@@ -258,7 +258,7 @@ func NewFolderWithIDAndWriter(t *testing.T, id TlfID, revision MetadataRevision,
 	rmd.Revision = revision
 	rmd.data.LastWriter = h.Writers[0]
 	if !public {
-		AddNewKeysOrBust(t, rmd, DirKeyBundle{})
+		AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
 	}
 
 	rmds := &RootMetadataSigned{}
@@ -272,8 +272,8 @@ func NewFolderWithIDAndWriter(t *testing.T, id TlfID, revision MetadataRevision,
 }
 
 // AddNewKeysOrBust adds new keys to root metadata and blows up on error.
-func AddNewKeysOrBust(t *testing.T, rmd *RootMetadata, dkb DirKeyBundle) {
-	if err := rmd.AddNewKeys(dkb); err != nil {
+func AddNewKeysOrBust(t *testing.T, rmd *RootMetadata, tkb TLFKeyBundle) {
+	if err := rmd.AddNewKeys(tkb); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -395,8 +395,8 @@ func testWithCanceledContext(t *testing.T, ctx context.Context,
 }
 
 // MakeDirRKeyBundle creates a new bundle with a reader key.
-func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
-	return DirKeyBundle{
+func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
+	return TLFKeyBundle{
 		RKeys: map[keybase1.UID]UserCryptKeyBundle{
 			uid: UserCryptKeyBundle{
 				cryptPublicKey.KID: TLFCryptKeyInfo{},
@@ -407,8 +407,8 @@ func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBu
 }
 
 // MakeDirWKeyBundle creates a new bundle with a writer key.
-func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) DirKeyBundle {
-	return DirKeyBundle{
+func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
+	return TLFKeyBundle{
 		WKeys: map[keybase1.UID]UserCryptKeyBundle{
 			uid: UserCryptKeyBundle{
 				cryptPublicKey.KID: TLFCryptKeyInfo{},

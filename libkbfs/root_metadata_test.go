@@ -28,7 +28,7 @@ func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
 func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 	tlfID := FakeTlfID(0, false)
 	rmd := NewRootMetadata(nil, tlfID)
-	AddNewKeysOrBust(t, rmd, DirKeyBundle{})
+	AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
 	dirHandle := rmd.GetTlfHandle()
 	if dirHandle == nil {
 		t.Fatal("nil TlfHandle")

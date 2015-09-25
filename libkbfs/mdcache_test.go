@@ -44,9 +44,9 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	rmd := &RootMetadata{
 		ID:       tlf,
 		Revision: rev,
-		Keys:     make([]DirKeyBundle, 1, 1),
+		Keys:     make([]TLFKeyBundle, 1, 1),
 	}
-	k := DirKeyBundle{}
+	k := TLFKeyBundle{}
 	rmd.Keys[0] = k
 	if mStatus == Unmerged {
 		rmd.Flags |= MetadataFlagUnmerged

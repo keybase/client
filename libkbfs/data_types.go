@@ -325,7 +325,7 @@ func (nonce BlockRefNonce) String() string {
 // BlockPointer contains the identifying information for a block in KBFS.
 type BlockPointer struct {
 	ID      BlockID
-	KeyGen  KeyGen  // if valid, which generation of the DirKeyBundle to use.
+	KeyGen  KeyGen  // if valid, which generation of the TLFKeyBundle to use.
 	DataVer DataVer // if valid, which version of the KBFS data structures is pointed to
 	// Creator is the UID that was first charged for the initial
 	// reference to this block.

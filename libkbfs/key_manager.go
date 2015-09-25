@@ -125,12 +125,12 @@ func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 	md *RootMetadata, keyGen KeyGen, wKeys map[keybase1.UID][]CryptPublicKey,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
 	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) error {
-	dkb, err := md.getDirKeyBundle(keyGen)
+	tkb, err := md.getTLFKeyBundle(keyGen)
 	if err != nil {
 		return err
 	}
 
-	newServerKeys, err := dkb.fillInDevices(km.config.Crypto(), wKeys, rKeys,
+	newServerKeys, err := tkb.fillInDevices(km.config.Crypto(), wKeys, rKeys,
 		ePubKey, ePrivKey, tlfCryptKey)
 	if err != nil {
 		return err
@@ -238,16 +238,16 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	} else {
 		// See if there is at least one new device in relation to the
 		// current key bundle
-		dkb, err := md.getDirKeyBundle(currKeyGen)
+		tkb, err := md.getTLFKeyBundle(currKeyGen)
 		if err != nil {
 			return false, err
 		}
 
-		addNewDevice = km.checkForNewDevice(ctx, md, dkb.WKeys, wKeys) ||
-			km.checkForNewDevice(ctx, md, dkb.RKeys, rKeys)
+		addNewDevice = km.checkForNewDevice(ctx, md, tkb.WKeys, wKeys) ||
+			km.checkForNewDevice(ctx, md, tkb.RKeys, rKeys)
 
-		incKeyGen = km.checkForRemovedDevice(ctx, md, dkb.WKeys, wKeys) ||
-			km.checkForRemovedDevice(ctx, md, dkb.RKeys, rKeys)
+		incKeyGen = km.checkForRemovedDevice(ctx, md, tkb.WKeys, wKeys) ||
+			km.checkForRemovedDevice(ctx, md, tkb.RKeys, rKeys)
 	}
 
 	if !addNewDevice && !incKeyGen {
@@ -288,7 +288,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 		return true, nil
 	}
 
-	newClientKeys := DirKeyBundle{
+	newClientKeys := TLFKeyBundle{
 		WKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
 		RKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
 		TLFPublicKey: pubKey,

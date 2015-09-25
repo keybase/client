@@ -18,7 +18,7 @@ func testKeyBundleGetKeysOrBust(t *testing.T, config Config, uid keybase1.UID,
 }
 
 func testKeyBundleCheckKeys(t *testing.T, config Config, uid keybase1.UID,
-	dkb DirKeyBundle, ePubKey TLFEphemeralPublicKey,
+	tkb TLFKeyBundle, ePubKey TLFEphemeralPublicKey,
 	tlfCryptKey TLFCryptKey, serverMap serverKeyMap) {
 	ctx := context.Background()
 	// Check that every user can recover the crypt key
@@ -26,11 +26,11 @@ func testKeyBundleCheckKeys(t *testing.T, config Config, uid keybase1.UID,
 	if err != nil {
 		t.Fatalf("Couldn't get current public key for user %s: %v", uid, err)
 	}
-	info, ok, err := dkb.GetTLFCryptKeyInfo(uid, cryptPublicKey)
+	info, ok, err := tkb.GetTLFCryptKeyInfo(uid, cryptPublicKey)
 	if !ok || err != nil {
 		t.Fatalf("Couldn't get current key info for user %s: %v", uid, err)
 	}
-	userEPubKey, err := dkb.GetTLFEphemeralPublicKey(uid, cryptPublicKey)
+	userEPubKey, err := tkb.GetTLFEphemeralPublicKey(uid, cryptPublicKey)
 	if err != nil {
 		t.Fatalf("Error getting ephemeral public key for user %s: %v", uid, err)
 	}
@@ -78,8 +78,8 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 		t.Fatalf("Couldn't get uid for user 3: %v", err)
 	}
 
-	// Make a DKB with empty UserCryptKeyBundles
-	dkb := DirKeyBundle{
+	// Make a tkb with empty UserCryptKeyBundles
+	tkb := TLFKeyBundle{
 		WKeys: make(map[keybase1.UID]UserCryptKeyBundle),
 		RKeys: make(map[keybase1.UID]UserCryptKeyBundle),
 		TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
@@ -99,15 +99,15 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't make keys: %v", err)
 	}
-	serverMap, err := dkb.fillInDevices(config1.Crypto(), wKeys, rKeys,
+	serverMap, err := tkb.fillInDevices(config1.Crypto(), wKeys, rKeys,
 		ePubKey, ePrivKey, tlfCryptKey)
 	if err != nil {
 		t.Fatalf("Fill in devices failed: %v", err)
 	}
 
-	testKeyBundleCheckKeys(t, config1, u1, dkb, ePubKey, tlfCryptKey, serverMap)
-	testKeyBundleCheckKeys(t, config2, u2, dkb, ePubKey, tlfCryptKey, serverMap)
-	testKeyBundleCheckKeys(t, config3, u3, dkb, ePubKey, tlfCryptKey, serverMap)
+	testKeyBundleCheckKeys(t, config1, u1, tkb, ePubKey, tlfCryptKey, serverMap)
+	testKeyBundleCheckKeys(t, config2, u2, tkb, ePubKey, tlfCryptKey, serverMap)
+	testKeyBundleCheckKeys(t, config3, u3, tkb, ePubKey, tlfCryptKey, serverMap)
 
 	// Add a device key for user 1
 	devIndex := AddDeviceForLocalUserOrBust(t, config1, u1)
@@ -126,13 +126,13 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't make keys: %v", err)
 	}
-	serverMap2, err := dkb.fillInDevices(config1.Crypto(), wKeys, rKeys,
+	serverMap2, err := tkb.fillInDevices(config1.Crypto(), wKeys, rKeys,
 		ePubKey2, ePrivKey2, tlfCryptKey)
 	if err != nil {
 		t.Fatalf("Fill in devices failed: %v", err)
 	}
 
-	testKeyBundleCheckKeys(t, config1B, u1, dkb, ePubKey2, tlfCryptKey,
+	testKeyBundleCheckKeys(t, config1B, u1, tkb, ePubKey2, tlfCryptKey,
 		serverMap2)
 	if len(serverMap2) > 1 {
 		t.Fatalf("Generated more than one key after device add: %d",

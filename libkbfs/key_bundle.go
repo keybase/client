@@ -2,6 +2,9 @@ package libkbfs
 
 import keybase1 "github.com/keybase/client/protocol/go"
 
+// All section references below are to https://keybase.io/blog/crypto
+// (version 1.3).
+
 // TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
 type TLFCryptKeyServerHalfID struct {
 	ID HMAC // Exported for serialization.
@@ -17,7 +20,7 @@ func (id TLFCryptKeyServerHalfID) String() string {
 	return id.ID.String()
 }
 
-// TLFCryptKeyInfo is a per-device key half entry in the DirKeyBundle.
+// TLFCryptKeyInfo is a per-device key half entry in the TLFKeyBundle.
 type TLFCryptKeyInfo struct {
 	ClientHalf   EncryptedTLFCryptKeyClientHalf
 	ServerHalfID TLFCryptKeyServerHalfID
@@ -102,8 +105,8 @@ func (uckb UserCryptKeyBundle) fillInDeviceInfo(crypto Crypto,
 	return serverMap, nil
 }
 
-// DirKeyBundle is a bundle of all the keys for a directory
-type DirKeyBundle struct {
+// TLFKeyBundle is a bundle of all the keys for a top-level folder.
+type TLFKeyBundle struct {
 	// Maps from each writer to their crypt key bundle.
 	WKeys map[keybase1.UID]UserCryptKeyBundle
 	// Maps from each reader to their crypt key bundle.
@@ -121,35 +124,35 @@ type DirKeyBundle struct {
 	TLFEphemeralPublicKeys []TLFEphemeralPublicKey `codec:"ePubKey"`
 }
 
-// DeepCopy returns a complete copy of this DirKeyBundle.
-func (dkb DirKeyBundle) DeepCopy() DirKeyBundle {
-	newDkb := dkb
-	newDkb.WKeys = make(map[keybase1.UID]UserCryptKeyBundle)
-	for u, m := range dkb.WKeys {
-		newDkb.WKeys[u] = m.DeepCopy()
+// DeepCopy returns a complete copy of this TLFKeyBundle.
+func (tkb TLFKeyBundle) DeepCopy() TLFKeyBundle {
+	newTkb := tkb
+	newTkb.WKeys = make(map[keybase1.UID]UserCryptKeyBundle)
+	for u, m := range tkb.WKeys {
+		newTkb.WKeys[u] = m.DeepCopy()
 	}
-	newDkb.RKeys = make(map[keybase1.UID]UserCryptKeyBundle)
-	for u, m := range dkb.RKeys {
-		newDkb.RKeys[u] = m.DeepCopy()
+	newTkb.RKeys = make(map[keybase1.UID]UserCryptKeyBundle)
+	for u, m := range tkb.RKeys {
+		newTkb.RKeys[u] = m.DeepCopy()
 	}
-	newDkb.TLFPublicKey = dkb.TLFPublicKey.DeepCopy()
-	newDkb.TLFEphemeralPublicKeys =
-		make([]TLFEphemeralPublicKey, len(dkb.TLFEphemeralPublicKeys))
-	for i, k := range dkb.TLFEphemeralPublicKeys {
-		newDkb.TLFEphemeralPublicKeys[i] = k.DeepCopy()
+	newTkb.TLFPublicKey = tkb.TLFPublicKey.DeepCopy()
+	newTkb.TLFEphemeralPublicKeys =
+		make([]TLFEphemeralPublicKey, len(tkb.TLFEphemeralPublicKeys))
+	for i, k := range tkb.TLFEphemeralPublicKeys {
+		newTkb.TLFEphemeralPublicKeys[i] = k.DeepCopy()
 	}
-	return newDkb
+	return newTkb
 }
 
 // IsWriter returns true if the given user device is in the writer set.
-func (dkb *DirKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := dkb.WKeys[user][deviceKID]
+func (tkb *TLFKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
+	_, ok := tkb.WKeys[user][deviceKID]
 	return ok
 }
 
 // IsReader returns true if the given user device is in the reader set.
-func (dkb *DirKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := dkb.RKeys[user][deviceKID]
+func (tkb *TLFKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+	_, ok := tkb.RKeys[user][deviceKID]
 	return ok
 }
 
@@ -181,23 +184,23 @@ func fillInDevicesAndServerMap(crypto Crypto, newIndex int,
 // in the provided lists has complete TLF crypt key info, and uses the
 // new ephemeral key pair to generate the info if it doesn't yet
 // exist.
-func (dkb *DirKeyBundle) fillInDevices(crypto Crypto,
+func (tkb *TLFKeyBundle) fillInDevices(crypto Crypto,
 	wKeys map[keybase1.UID][]CryptPublicKey,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
 	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (
 	serverKeyMap, error) {
-	dkb.TLFEphemeralPublicKeys =
-		append(dkb.TLFEphemeralPublicKeys, ePubKey)
-	newIndex := len(dkb.TLFEphemeralPublicKeys) - 1
+	tkb.TLFEphemeralPublicKeys =
+		append(tkb.TLFEphemeralPublicKeys, ePubKey)
+	newIndex := len(tkb.TLFEphemeralPublicKeys) - 1
 
 	// now fill in the secret keys as needed
 	newServerKeys := serverKeyMap{}
-	err := fillInDevicesAndServerMap(crypto, newIndex, wKeys, dkb.WKeys,
+	err := fillInDevicesAndServerMap(crypto, newIndex, wKeys, tkb.WKeys,
 		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
 	if err != nil {
 		return nil, err
 	}
-	err = fillInDevicesAndServerMap(crypto, newIndex, rKeys, dkb.RKeys,
+	err = fillInDevicesAndServerMap(crypto, newIndex, rKeys, tkb.RKeys,
 		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
 	if err != nil {
 		return nil, err
@@ -207,13 +210,13 @@ func (dkb *DirKeyBundle) fillInDevices(crypto Crypto,
 
 // GetTLFCryptKeyInfo returns the TLFCryptKeyInfo entry for the given user
 // and device.
-func (dkb DirKeyBundle) GetTLFCryptKeyInfo(user keybase1.UID,
+func (tkb TLFKeyBundle) GetTLFCryptKeyInfo(user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (TLFCryptKeyInfo, bool, error) {
 	key := currentCryptPublicKey.KID
-	if u, ok1 := dkb.WKeys[user]; ok1 {
+	if u, ok1 := tkb.WKeys[user]; ok1 {
 		info, ok := u[key]
 		return info, ok, nil
-	} else if u, ok1 = dkb.RKeys[user]; ok1 {
+	} else if u, ok1 = tkb.RKeys[user]; ok1 {
 		info, ok := u[key]
 		return info, ok, nil
 	}
@@ -222,11 +225,11 @@ func (dkb DirKeyBundle) GetTLFCryptKeyInfo(user keybase1.UID,
 
 // GetTLFEphemeralPublicKey returns the ephemeral public key used for
 // the TLFCryptKeyInfo for the given user and device.
-func (dkb DirKeyBundle) GetTLFEphemeralPublicKey(user keybase1.UID,
+func (tkb TLFKeyBundle) GetTLFEphemeralPublicKey(user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
 	key := currentCryptPublicKey.KID
 
-	info, ok, err := dkb.GetTLFCryptKeyInfo(user, currentCryptPublicKey)
+	info, ok, err := tkb.GetTLFCryptKeyInfo(user, currentCryptPublicKey)
 	if err != nil {
 		return TLFEphemeralPublicKey{}, err
 	}
@@ -235,5 +238,5 @@ func (dkb DirKeyBundle) GetTLFEphemeralPublicKey(user keybase1.UID,
 			TLFEphemeralPublicKeyNotFoundError{user, key}
 	}
 
-	return dkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
+	return tkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
 }
