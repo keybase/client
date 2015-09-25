@@ -2927,8 +2927,13 @@ type CurrentSessionArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type CurrentUIDArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type SessionInterface interface {
 	CurrentSession(int) (Session, error)
+	CurrentUID(int) (UID, error)
 }
 
 func SessionProtocol(i SessionInterface) rpc2.Protocol {
@@ -2939,6 +2944,13 @@ func SessionProtocol(i SessionInterface) rpc2.Protocol {
 				args := make([]CurrentSessionArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.CurrentSession(args[0].SessionID)
+				}
+				return
+			},
+			"currentUID": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]CurrentUIDArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.CurrentUID(args[0].SessionID)
 				}
 				return
 			},
@@ -2954,6 +2966,12 @@ type SessionClient struct {
 func (c SessionClient) CurrentSession(sessionID int) (res Session, err error) {
 	__arg := CurrentSessionArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.session.currentSession", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SessionClient) CurrentUID(sessionID int) (res UID, err error) {
+	__arg := CurrentUIDArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.session.currentUID", []interface{}{__arg}, &res)
 	return
 }
 

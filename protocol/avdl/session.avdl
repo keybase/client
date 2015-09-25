@@ -11,4 +11,5 @@ protocol session {
 	}
 
 	Session currentSession(int sessionID);
+	UID currentUID(int sessionID);
 }

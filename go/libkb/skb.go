@@ -279,6 +279,7 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 		unlocked = s.Priv.Data
 	case int(triplesec.Version):
 		if tsec == nil {
+			fmt.Printf("skb triplesec\n")
 			tsec, err = triplesec.NewCipher([]byte(passphrase), nil)
 			if err != nil {
 				return nil, err

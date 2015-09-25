@@ -50,3 +50,31 @@ func (h *SessionHandler) CurrentSession(sessionID int) (keybase1.Session, error)
 
 	return s, nil
 }
+
+// CurrentUID returns the logged in user's UID, or ErrNoSession if
+// not logged in.
+func (h *SessionHandler) CurrentUID(sessionID int) (keybase1.UID, error) {
+	var loggedIn bool
+	var err error
+	var uid keybase1.UID
+	aerr := G.LoginState().Account(func(a *libkb.Account) {
+		loggedIn, err = a.LoggedInProvisionedLoad()
+		if err != nil {
+			return
+		}
+		if !loggedIn {
+			return
+		}
+		uid = a.LocalSession().GetUID()
+	}, "Service - SessionHandler - CurrentUID")
+	if aerr != nil {
+		return uid, err
+	}
+	if err != nil {
+		return uid, err
+	}
+	if !loggedIn {
+		return uid, ErrNoSession
+	}
+	return uid, nil
+}
