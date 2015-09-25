@@ -14,7 +14,8 @@ class Folders extends Component {
   render () {
     return (
       <View style={{backgroundColor: 'red'}}>
-        <Text> Folders is alive </Text>
+        <Text> Folders go here</Text>
+        <Text> Whoa, whoa, whoa, whoa, theres still plenty of meat on that bone. Now you take this home, throw it in a pot, add some broth, a potato. Baby you got a stew going! </Text>
       </View>
     )
   }
