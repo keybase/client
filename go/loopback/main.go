@@ -3,17 +3,15 @@ package keybase
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/service"
 	"net"
 	"sync"
+
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/service"
 )
 
-var val string
 var con net.Conn
 var startOnce sync.Once
-
-type dummyCmd struct{}
 
 type debuggingConfig struct {
 	libkb.NullConfiguration
@@ -49,18 +47,16 @@ func (n debuggingConfig) GetHome() string {
 	return *n.homeDir
 }
 
-func (d dummyCmd) GetUsage() libkb.Usage {
-	return libkb.Usage{
-		Config:    true,
-		API:       true,
-		KbKeyring: true,
-	}
-}
-
 func start(cmdline libkb.CommandLine) {
 	startOnce.Do(func() {
 		libkb.G.Init()
-		libkb.G.ConfigureAll(cmdline, dummyCmd{})
+		libkb.G.SetCommandLine(cmdline)
+		libkb.G.ConfigureLogging()
+		libkb.G.ConfigureUsage(libkb.Usage{
+			Config:    true,
+			API:       true,
+			KbKeyring: true,
+		})
 		(service.NewService(false)).StartLoopbackServer(libkb.G)
 		Reset()
 	})
@@ -71,13 +67,21 @@ func Init(homeDir string, runMode string) {
 }
 
 // Takes base64 encoded msgpack rpc payload
-func WriteB64(str string) {
+func WriteB64(str string) bool {
 	data, err := base64.StdEncoding.DecodeString(str)
-	if err == nil {
-		con.Write(data)
-	} else {
-		fmt.Println("write error:", err, str)
+	if err != nil {
+		fmt.Println("Base64 decode error:", err, str)
 	}
+	n, err := con.Write(data)
+	if err != nil {
+		fmt.Println("Write error: ", err)
+		return false
+	}
+	if n != len(data) {
+		fmt.Println("Did not write all the data")
+		return false
+	}
+	return true
 }
 
 // Blocking read, returns base64 encoded msgpack rpc payload
