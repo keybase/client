@@ -1,7 +1,8 @@
-Package: keybase
+Package: @@NAME@@
 Version: @@VERSION@@
 Architecture: @@ARCHITECTURE@@
-Maintainer: bugs@keybase.io
+Installed-Size: @@SIZE@@
+Maintainer: Keybase Bugs <bugs@keybase.io>
 Section: misc
 Priority: optional
 Description: Keybase's command line client

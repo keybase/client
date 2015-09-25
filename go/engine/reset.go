@@ -38,7 +38,7 @@ func (e *ResetEngine) Run(ctx *Context) (err error) {
 	if err = e.G().Logout(); err != nil {
 		return
 	}
-	if err = e.G().LocalDb.Nuke(); err != nil {
+	if _, err = e.G().LocalDb.Nuke(); err != nil {
 		return
 	}
 	return

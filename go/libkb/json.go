@@ -57,7 +57,7 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 		return err
 	}
 	f.jw = jsonw.NewWrapper(obj)
-	G.Log.Debug(fmt.Sprintf("- successfully loaded %s file", f.which))
+	G.Log.Debug("- successfully loaded %s file", f.which)
 	return nil
 }
 

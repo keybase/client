@@ -33,7 +33,7 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
 		keybase1.BTCProtocol(NewBTCHandler(xp)),
 		keybase1.ConfigProtocol(ConfigHandler{xp}),
 		keybase1.CryptoProtocol(NewCryptoHandler(xp)),
-		keybase1.CtlProtocol(CtlHandler{}),
+		keybase1.CtlProtocol(NewCtlHandler(xp)),
 		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp)),
 		keybase1.DoctorProtocol(NewDoctorHandler(xp)),
@@ -252,6 +252,10 @@ func NewCmdService(cl *libcmdline.CommandLine) cli.Command {
 			cli.StringFlag{
 				Name:  "chdir",
 				Usage: "Specify where to run as a daemon (via chdir)",
+			},
+			cli.StringFlag{
+				Name:  "label",
+				Usage: "Specifying a label can help identify services.",
 			},
 		},
 		Action: func(c *cli.Context) {

@@ -53,13 +53,13 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 			binPath := args[1]
 
 			plistArgs := []string{}
-			plistArgs = append(plistArgs, fmt.Sprintf("--label=%s", label))
 			plistArgs = append(plistArgs, "--log-format=file")
 			runMode := c.String("run-mode")
 			if runMode != "" {
 				plistArgs = append(plistArgs, fmt.Sprintf("--run-mode=%s", runMode))
 			}
 			plistArgs = append(plistArgs, "service")
+			plistArgs = append(plistArgs, fmt.Sprintf("--label=%s", label))
 
 			envVars := make(map[string]string)
 			envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"

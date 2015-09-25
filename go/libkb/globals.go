@@ -143,20 +143,7 @@ func (g *GlobalContext) ConfigureConfig() error {
 	return nil
 }
 
-func (g *GlobalContext) writeConfig() error {
-	cw := g.Env.GetConfigWriter()
-	if cw != nil {
-		return cw.Write()
-	}
-	return nil
-}
-
 func (g *GlobalContext) ConfigReload() error {
-	// write the existing config just to be safe
-	if err := g.writeConfig(); err != nil {
-		return err
-	}
-
 	return g.ConfigureConfig()
 }
 
@@ -170,14 +157,14 @@ func (g *GlobalContext) ConfigureKeyring() error {
 	return nil
 }
 
-func VersionMessage(devel bool, linefn func(string)) {
-	linefn(fmt.Sprintf("Keybase CLI %s", VersionString(devel)))
+func VersionMessage(linefn func(string)) {
+	linefn(fmt.Sprintf("Keybase CLI %s", VersionString()))
 	linefn(fmt.Sprintf("- Built with %s", runtime.Version()))
 	linefn("- Visit https://keybase.io for more details")
 }
 
 func (g *GlobalContext) StartupMessage() {
-	VersionMessage(false, func(s string) { g.Log.Debug(s) })
+	VersionMessage(func(s string) { g.Log.Debug(s) })
 }
 
 func (g *GlobalContext) ConfigureAPI() error {
@@ -244,8 +231,6 @@ func (g *GlobalContext) Shutdown() error {
 		for _, hook := range g.ShutdownHooks {
 			epick.Push(hook())
 		}
-
-		epick.Push(g.writeConfig())
 
 		err = epick.Error()
 	})

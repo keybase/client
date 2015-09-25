@@ -4,19 +4,17 @@ import (
 	"fmt"
 )
 
+// NOTE: This file is the source of truth for our version number, but we have a
+//       script that reads it at packaging/version.sh. If you refactor this
+//       file, update that script.
+
 // Version as MAJOR.MINOR.PATCH
 const Version = "1.0.0"
 
 // Build number
-const Build = "21"
+const Build = "25"
 
 // VersionString returns semantic version string.
-// If devel, include build in version string (for development releases), for
-// example, "1.2.3-400". Otherwise only return version string as
-// MAJOR.MINOR.PATCH. For example, "1.2.3".
-func VersionString(devel bool) string {
-	if devel && Build != "" {
-		return fmt.Sprintf("%s-%s", Version, Build)
-	}
-	return Version
+func VersionString() string {
+	return fmt.Sprintf("%s-%s", Version, Build)
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
@@ -49,4 +50,17 @@ func (h *SessionHandler) CurrentSession(sessionID int) (keybase1.Session, error)
 	s.DeviceSubkeyKid = deviceSubkey.GetKID()
 
 	return s, nil
+}
+
+// CurrentUID returns the logged in user's UID, or ErrNoSession if
+// not logged in.
+func (h *SessionHandler) CurrentUID(sessionID int) (keybase1.UID, error) {
+	uid, err := engine.CurrentUID(G)
+	if err != nil {
+		if _, ok := err.(libkb.LoginRequiredError); ok {
+			return uid, ErrNoSession
+		}
+		return uid, err
+	}
+	return uid, nil
 }

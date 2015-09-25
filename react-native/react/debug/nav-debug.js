@@ -1,8 +1,6 @@
 'use strict'
 
-/*
- * A debug tab. Use this to jump directly to a part of the app outside of the flow for quick debugging
- */
+/* shows how the meta navigator works */
 
 import React from 'react-native'
 const { Component, View, Text } = React
@@ -16,7 +14,7 @@ function mapStateToGetURI (state) {
   ]).toObject()
 }
 
-class Debug extends Component {
+class NavDebug extends Component {
   constructor () {
     super()
 
@@ -45,7 +43,7 @@ class Debug extends Component {
         <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri.toJSON())}</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['debug', 'page2']))}>Click here to go somewhere</Text>
+          onPress={() => this.props.dispatch(navigateTo(['more', 'navDebug', 'page2']))}>Click here to go somewhere</Text>
       </View>
     )
   }
@@ -58,7 +56,7 @@ class Debug extends Component {
     const componentAtTop = {
       title: 'Debug',
       mapStateToProps: mapStateToGetURI,
-      component: Debug
+      component: NavDebug
     }
 
     return {
@@ -68,7 +66,7 @@ class Debug extends Component {
   }
 }
 
-Debug.propTypes = {
+NavDebug.propTypes = {
   dispatch: React.PropTypes.object.isRequired,
   uri: React.PropTypes.object.isRequired
 }
@@ -87,7 +85,7 @@ class DebugPage2 extends Component {
           onPress={() => this.props.dispatch(routeAppend('page3'))}>infinite recursion</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['debug']))}>go back to debug</Text>
+          onPress={() => this.props.dispatch(navigateTo(['more', 'navDebug']))}>go back to debug</Text>
       </View>
     )
   }
@@ -129,7 +127,7 @@ class DebugPage3 extends Component {
           onPress={() => this.props.dispatch(routeAppend('page2'))}>infinite recursion</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['debug']))}>go back to debug</Text>
+          onPress={() => this.props.dispatch(navigateTo(['more']))}>go back to more</Text>
       </View>
     )
   }
@@ -157,4 +155,4 @@ DebugPage3.propTypes = {
   uri: React.PropTypes.object.isRequired
 }
 
-export default Debug
+export default NavDebug

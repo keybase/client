@@ -80,9 +80,6 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")
 }
-func (p CommandLine) GetLabel() string {
-	return p.GetGString("label")
-}
 func (p CommandLine) GetGpgHome() string {
 	return p.GetGString("gpg-home")
 }
@@ -97,6 +94,9 @@ func (p CommandLine) GetPinentry() string {
 }
 func (p CommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
+}
+func (p CommandLine) GetString(s string) string {
+	return p.ctx.String(s)
 }
 func (p CommandLine) GetGInt(s string) int {
 	return p.ctx.GlobalInt(s)
@@ -212,7 +212,7 @@ func NewCommandLine(addHelp bool, extraFlags []cli.Flag) *CommandLine {
 func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app := p.app
 	app.Name = "keybase"
-	app.Version = libkb.Version
+	app.Version = libkb.VersionString()
 	app.Usage = "Keybase command line client."
 
 	app.Flags = []cli.Flag{
@@ -322,7 +322,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "timers",
-			Usage: "specify 'a' for API; 'r' for RPCs; and 'x' for eXternal API calls",
+			Usage: "Specify 'a' for API; 'r' for RPCs; and 'x' for eXternal API calls",
 		},
 	}
 	if extraFlags != nil {

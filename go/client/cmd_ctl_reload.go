@@ -29,7 +29,7 @@ func (s *CmdCtlReload) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	return cli.Reload()
+	return cli.Reload(0)
 }
 
 func (s *CmdCtlReload) GetUsage() libkb.Usage {

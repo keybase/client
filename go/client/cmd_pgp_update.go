@@ -26,7 +26,6 @@ func (v *CmdPGPUpdate) Run() (err error) {
 	}
 
 	protocols := []rpc2.Protocol{
-		NewLogUIProtocol(),
 		NewSecretUIProtocol(),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
@@ -43,7 +42,7 @@ func NewCmdPGPUpdate(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "update",
 		ArgumentHelp: "[fingerprints...]",
-		Usage:        "Update PGP keys",
+		Usage:        "Update your public PGP keys on keybase with those exported from the local GPG keyring",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "all",

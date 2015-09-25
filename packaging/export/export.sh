@@ -2,55 +2,69 @@
 
 set -e # Fail on error
 
-# Change to root repo dir
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+# What to export
+EXPORT=$1
+if [ "$EXPORT" = "" ]; then
+  echo "No dirs specified"
+  exit 1
+elif [ "$EXPORT" = "client" ]; then
+  DIRS=(go protocol packaging)
+elif [ "$EXPORT" = "kbfs" ]; then
+  DIRS=(kbfs kbfsfuse libfuse libkbfs)
+fi
 
-# Read destination dir (repo)
-DEST=$1
+# Source dir (private repo)
+SRC="$GOPATH/src/github.com/keybase/$EXPORT"
+
+# Destination dir (beta repo)
+DEST=$2
 if [ "$DEST" = "" ]; then
-  echo "No destination specified. Need /path/to/client-beta"
+  echo "No destination dir specified. Need /path/to/beta/repo"
   exit 1
 fi
 
-TAG=$2
-if [ "$TAG" = "" ]; then
-  echo "No tag specified"
-  exit 1
-fi
-
-# Check dest exists
 if [ ! -d "$DEST" ]; then
   echo "$DEST doesn't exist"
   exit 2
 fi
 
-# These are the only dirs we want to make available
-dirs=(go protocol)
+TAG=$3
+if [ "$TAG" = "" ]; then
+  echo "No tag specified"
+  exit 1
+fi
 
-# Archive the current client repo
-echo "Building git archive for $TAG"
-cd $DIR/../..
-git archive --format tar $TAG > $DIR/client.tar
-cd $DIR
+echo "Source: $SRC"
+echo "Dirs to export: $DIRS"
+echo "Destination: $DEST"
+echo "Tag: $TAG"
+echo " "
 
-cp export.md $DEST/README.md
+# Archive the repo
+cd $SRC
+echo "Building git archive for $TAG ($SRC)"
+git archive --format tar $TAG > $SRC/$EXPORT.tar
 
+# Copy archive to dest and unpack
+echo "Unpacking archive in $DEST"
 cd $DEST
-rm -rf client
-mkdir -p client
-tar xpf $DIR/client.tar -C client ${dirs[@]}
+rm -rf $EXPORT
+mkdir -p $EXPORT
+tar xpf $SRC/$EXPORT.tar -C $EXPORT ${DIRS[@]}
 
-rm $DIR/client.tar
+rm $SRC/$EXPORT.tar
 
-echo "Now you should add, commit, tag and push the changes."
 echo "
+Now you should add, commit, tag and push the changes in the $EXPORT-beta repository.
 
     cd $DEST
     git add .
-    git commit -m \"Importing $TAG\"
-    git tag -a $TAG -m $TAG
-
+    git commit -m \"Importing from $TAG\"
     git push
+
+If you tagged:
+
+    git tag -a $TAG -m $TAG
     git push --tags
 
 "

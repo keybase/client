@@ -114,7 +114,10 @@ func (e *LoginEngine) postLogin(ctx *Context, lctx libkb.LoginContext) error {
 		return err
 	}
 	if e.locksmith.Status().CurrentDeviceOk {
-		lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID())
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+			// not a fatal error, session will stay in memory
+			e.G().Log.Warning("error saving session file: %s", err)
+		}
 		return nil
 	}
 
@@ -152,13 +155,17 @@ func (e *LoginEngine) postLogin(ctx *Context, lctx libkb.LoginContext) error {
 	larg.CheckOnly = false
 	e.locksmith = NewLocksmith(larg, e.G())
 	if err := RunEngine(e.locksmith, ctx); err != nil {
+		if _, canceled := err.(libkb.CanceledError); canceled {
+			lctx.Logout()
+		}
 		return err
 	}
 
-	lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID())
-
+	if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+		// not a fatal error, session will stay in memory
+		e.G().Log.Warning("error saving session file: %s", err)
+	}
 	return nil
-
 }
 
 func (e *LoginEngine) User() *libkb.User {

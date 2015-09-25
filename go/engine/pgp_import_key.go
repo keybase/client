@@ -218,7 +218,7 @@ func (e *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
 	}
 	gpg := e.G().GetGpgClient()
 
-	if _, err := gpg.Configure(); err != nil {
+	if err := gpg.Configure(); err != nil {
 		if err == exec.ErrNotFound {
 			e.G().Log.Debug("Not saving new key to GPG since no gpg install was found")
 			err = nil

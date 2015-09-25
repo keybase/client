@@ -182,6 +182,13 @@
         "type" : "int"
       } ],
       "response" : "Session"
+    },
+    "currentUID" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "UID"
     }
   }
 }
