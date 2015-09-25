@@ -195,7 +195,7 @@ func (c *Connection) DoCommand(ctx context.Context, rpcFunc func() error) error 
 			return nil
 		}, backoff.NewExponentialBackOff(),
 			func(err error, nextTime time.Duration) {
-				libkb.G.Log.Warning(
+				c.config.MakeLogger("").Warning(
 					"error: %q; will retry in %s",
 					err, nextTime)
 			})

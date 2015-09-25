@@ -104,6 +104,7 @@ func TestReconnectBasic(t *testing.T) {
 func TestDoCommandThrottle(t *testing.T) {
 	ctx := context.Background()
 	config := NewConfigLocal()
+	setTestLogger(config, t)
 	unitTester := &unitTester{doneChan: make(chan bool)}
 
 	throttleErr := errors.New("throttle")
