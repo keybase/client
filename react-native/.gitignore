@@ -21,8 +21,10 @@ npm-debug.log
 project.xcworkspace
 xcuserdata
 Pods
+
 keybase.framework
-Keybase/main.jsbundle
+
+main.jsbundle
 
 # Android
 #
