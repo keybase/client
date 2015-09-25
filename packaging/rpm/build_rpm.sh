@@ -38,7 +38,9 @@ build_one_architecture() {
   #      https://github.com/golang/go/issues/11165
   go build -a -tags "$go_tags" -o "$dest/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  version="$("$here/../version.sh")"
+  # RPM does not allow - in version numbers. Sigh.
+  version="$("$here/../version.sh" | sed 's/-/./')"
+  echo version is $version
 
   spec="$build_root/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"
