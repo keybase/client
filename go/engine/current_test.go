@@ -9,7 +9,7 @@ import (
 func TestCurrentUID(t *testing.T) {
 	tc := SetupEngineTest(t, "current")
 	defer tc.Cleanup()
-	CreateAndSignupFakeUser(tc, "login")
+	u := CreateAndSignupFakeUser(tc, "login")
 
 	currentUID, err := CurrentUID(tc.G)
 	if err != nil {
@@ -33,5 +33,14 @@ func TestCurrentUID(t *testing.T) {
 	}
 	if _, ok := err.(libkb.LoginRequiredError); !ok {
 		t.Fatalf("expected LoginRequiredError, got %T", err)
+	}
+
+	u.LoginOrBust(tc)
+	currentUID, err = CurrentUID(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if currentUID != loadedUser.GetUID() {
+		t.Errorf("after logout/login: current uid: %s, loaded uid: %s\n", currentUID, loadedUser.GetUID())
 	}
 }
