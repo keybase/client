@@ -34,7 +34,7 @@ func createGpgClient(tc libkb.TestContext) *libkb.GpgCLI {
 	gpgClient := libkb.NewGpgCLI(libkb.GpgCLIArg{
 		LogUI: tc.G.UI.GetLogUI(),
 	})
-	_, err := gpgClient.Configure()
+	err := gpgClient.Configure()
 	if err != nil {
 		tc.T.Fatal("Error while configuring gpg client.")
 	}

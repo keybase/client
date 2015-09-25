@@ -61,7 +61,7 @@ func TestPGPUpdate(t *testing.T) {
 	gpgCLI := libkb.NewGpgCLI(libkb.GpgCLIArg{
 		LogUI: tc.G.UI.GetLogUI(),
 	})
-	_, err := gpgCLI.Configure()
+	err := gpgCLI.Configure()
 	if err != nil {
 		t.Fatal("erorr initializing GpgCLI", err)
 	}
