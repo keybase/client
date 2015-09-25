@@ -27,14 +27,47 @@ class QR extends Component {
       code: this.getNextCode()
     }
 
-    this.state.generatedCodeImage = this.generateCodeImage()
+    this.timerId = null
+  }
+
+  componentWillUnmount () {
+    this.stopCountdown()
   }
 
   componentDidMount () {
-    clearInterval(this.state.timerId)
-    this.state.timerId = setInterval(() => {
+    this.checkTimers()
+  }
+
+  componentDidUpdate () {
+    this.checkTimers()
+  }
+
+  startCountdown () {
+    if (this.timerId) {
+      return
+    }
+
+    this.setState({
+      countDown: countMax,
+      generatedCodeImage: this.generateCodeImage()
+    })
+
+    this.timerId = setInterval(() => {
       this.countDown()
     }, 1000)
+  }
+
+  stopCountdown () {
+    clearInterval(this.timerId)
+    this.timerId = null
+  }
+
+  checkTimers () {
+    if (this.state.scanning) {
+      this.stopCountdown()
+    } else {
+      this.startCountdown()
+    }
   }
 
   countDown () {
@@ -93,8 +126,7 @@ class QR extends Component {
         <Camera
           style={styles.camera}
           ref='cam'
-          onBarCodeRead={({data}) => this.setState({readCode: data})}
-          type={Camera.constants.Type.back}>
+          onBarCodeRead={({data}) => this.setState({readCode: data})}>
           <Text>{this.state.readCode}</Text>
           {scanSwitch}
         </Camera>
@@ -113,9 +145,7 @@ class QR extends Component {
   }
 }
 
-QR.propTypes = {
-  navigator: React.PropTypes.object
-}
+QR.propTypes = { }
 
 const styles = StyleSheet.create({
   camera: {

@@ -29,3 +29,5 @@ Keybase/main.jsbundle
 android/local.properties
 android/.gradle
 android/keybaselib/keybaselib.aar
+android/.idea
+*.iml
