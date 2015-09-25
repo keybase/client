@@ -35,3 +35,7 @@ func (g *gpgtestui) SelectKey(arg keybase1.SelectKeyArg) (string, error) {
 func (g *gpgtestui) WantToAddGPGKey(dummy int) (bool, error) {
 	return true, nil
 }
+
+func (g *gpgtestui) ConfirmDuplicateKeyChosen(dummy int) (bool, error) {
+	return true, nil
+}

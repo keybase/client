@@ -708,6 +708,14 @@ func (e NotConfirmedError) Error() string {
 
 //=============================================================================
 
+type DuplicateKeyChosenError struct{}
+
+func (e DuplicateKeyChosenError) Error() string {
+	return "Key is already selected for use on Keybase"
+}
+
+//=============================================================================
+
 type ProofNotYetAvailableError struct{}
 
 func (e ProofNotYetAvailableError) Error() string {

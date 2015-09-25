@@ -123,7 +123,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	e.G().Log.Info("SelectKey result: %+v", res)
+	e.G().Log.Debug("SelectKey result: %+v", res)
 
 	var selected *libkb.GpgPrimaryKey
 	for _, key := range index.Keys {
@@ -135,6 +135,24 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	if selected == nil {
 		return nil
+	}
+
+	publicKeys := me.GetActivePGPKeys(false)
+	duplicate := false
+	for _, key := range publicKeys {
+		if key.GetFingerprint() == *(selected.GetFingerprint()) {
+			duplicate = true
+		}
+	}
+	if duplicate {
+		// This key's already been posted to the server.
+		res, err := ctx.GPGUI.ConfirmDuplicateKeyChosen(0)
+		if err != nil {
+			return err
+		}
+		if !res {
+			return libkb.DuplicateKeyChosenError{}
+		}
 	}
 
 	bundle, err := gpg.ImportKey(true, *(selected.GetFingerprint()))
@@ -160,7 +178,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	if err = RunEngine(eng, ctx); err != nil {
 
-		// It's important to propogate a CanceledError unmolested,
+		// It's important to propagate a CanceledError unmolested,
 		// since the UI needs to know that. See:
 		//  https://github.com/keybase/client/issues/226
 		if _, ok := err.(libkb.CanceledError); !ok {

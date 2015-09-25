@@ -2,10 +2,11 @@ package client
 
 import (
 	"fmt"
-	keybase1 "github.com/keybase/client/protocol/go"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"strings"
 	"text/tabwriter"
+
+	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
 func NewGPGUIProtocol() rpc2.Protocol {
@@ -60,4 +61,11 @@ func (g GPGUI) WantToAddGPGKey(dummy int) (bool, error) {
 		return false, nil
 	}
 	return g.parent.PromptYesNo("Would you like to add one of your PGP keys to Keybase?", PromptDefaultYes)
+}
+
+func (g GPGUI) ConfirmDuplicateKeyChosen(dummy int) (bool, error) {
+	if g.noPrompt {
+		return false, nil
+	}
+	return g.parent.PromptYesNo("You've already selected this public key for use on Keybase. Would you like to update it on Keybase?", PromptDefaultYes)
 }
