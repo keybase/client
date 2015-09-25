@@ -9,10 +9,10 @@ import (
 //       file, update that script.
 
 // Version as MAJOR.MINOR.PATCH
-const Version = "1.0.0"
+const Version = "1.0.1"
 
 // Build number
-const Build = "24"
+const Build = "1"
 
 // VersionString returns semantic version string.
 func VersionString() string {
