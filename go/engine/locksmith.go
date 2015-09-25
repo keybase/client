@@ -511,7 +511,7 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) error {
 
 	// use gpg to unlock it
 	gpg := d.G().GetGpgClient()
-	if _, err := gpg.Configure(); err != nil {
+	if err := gpg.Configure(); err != nil {
 		return err
 	}
 

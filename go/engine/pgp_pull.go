@@ -134,7 +134,7 @@ func (e *PGPPullEngine) Run(ctx *Context) error {
 	gpgClient := libkb.NewGpgCLI(libkb.GpgCLIArg{
 		LogUI: ctx.LogUI,
 	})
-	_, err = gpgClient.Configure()
+	err = gpgClient.Configure()
 	if err != nil {
 		return err
 	}

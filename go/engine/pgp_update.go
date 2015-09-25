@@ -64,7 +64,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 	gpgCLI := libkb.NewGpgCLI(libkb.GpgCLIArg{
 		LogUI: ctx.LogUI,
 	})
-	_, err = gpgCLI.Configure()
+	err = gpgCLI.Configure()
 	if err != nil {
 		return err
 	}
