@@ -4,10 +4,10 @@
  * A debug tab. Use this to jump directly to a part of the app outside of the flow for quick debugging
  */
 
-import React from 'react-native'
+const React = require('react-native')
 const { Component, View, Text } = React
 
-import { navigateTo, routeAppend, navigateUp } from '../actions/router'
+const { navigateTo, routeAppend, navigateUp } = require('../actions/router')
 
 class Debug extends Component {
   constructor () {
@@ -150,4 +150,4 @@ DebugPage3.propTypes = {
   uri: React.PropTypes.object.isRequired
 }
 
-export default Debug
+module.exports = Debug

@@ -1,6 +1,6 @@
 'use strict'
 
-import React from 'react-native'
+const React = require('react-native')
 const {
   Component,
   Navigator,
@@ -173,4 +173,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default KBNavigator
+module.exports = KBNavigator

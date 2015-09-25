@@ -3,5 +3,5 @@
  * @providesModule Engine
  */
 
-import { NativeModules } from 'react-native'
-export default NativeModules.KeybaseEngine
+const { NativeModules } = require('react-native')
+module.exports = NativeModules.KeybaseEngine

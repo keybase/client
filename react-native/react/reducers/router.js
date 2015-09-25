@@ -1,8 +1,8 @@
 'use strict'
 
-import * as loginTypes from '../constants/loginActionTypes'
-import * as routerTypes from '../constants/routerActionTypes'
-import Immutable from 'immutable'
+const loginTypes = require('../constants/loginActionTypes')
+const routerTypes = require('../constants/routerActionTypes')
+const Immutable = require('immutable')
 
 const initialState = Immutable.Map({
   uri: parseUri(['root']),
@@ -14,7 +14,7 @@ const initialState = Immutable.Map({
 function pushIfTailIsDifferent (thing, stack) {
   // TODO: fix this equality check.
   console.log('Maybe pushing', thing, 'onto', stack)
-  if (Immutable.is(stack.last(),thing)) {
+  if (Immutable.is(stack.last(), thing)) {
     return stack.push(thing)
   }
   return stack
@@ -42,7 +42,7 @@ function parseUri (uri) {
   return Immutable.List(uri.map(parsePath))
 }
 
-export default function (state = initialState, action) {
+module.exports = function (state = initialState, action) {
   console.log('action in router', action)
   const stateWithHistory = state.update('history', pushIfTailIsDifferent.bind(null, state.get('uri')))
   switch (action.type) {
@@ -54,7 +54,7 @@ export default function (state = initialState, action) {
     case routerTypes.NAVIGATE:
       return stateWithHistory.set('uri', parseUri(action.uri))
     case routerTypes.NAVIGATE_APPEND:
-      return stateWithHistory.update('uri',(uri) => uri.push(parsePath(action.topRoute)))
+      return stateWithHistory.update('uri', (uri) => uri.push(parsePath(action.topRoute)))
     // TODO(mm) remove these and replace them with NAVIGATE's
     case loginTypes.START_LOGIN:
       return stateWithHistory.set('uri', parseUri(['login', 'loginform']))

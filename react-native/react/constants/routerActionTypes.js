@@ -1,6 +1,6 @@
 'use strict'
 /* @flow */
 
-export const NAVIGATE = 'NAVIGATE'
-export const NAVIGATE_APPEND = 'NAVIGATE_APPEND'
-export const NAVIGATE_UP = 'NAVIGATE_UP'
+module.exports.NAVIGATE = 'NAVIGATE'
+module.exports.NAVIGATE_APPEND = 'NAVIGATE_APPEND'
+module.exports.NAVIGATE_UP = 'NAVIGATE_UP'

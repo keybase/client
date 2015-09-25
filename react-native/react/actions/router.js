@@ -1,21 +1,21 @@
 'use strict'
 
-import * as types from '../constants/routerActionTypes'
+const types = require('../constants/routerActionTypes')
 
-export function navigateUp () {
+module.exports.navigateUp = function () {
   return {
     type: types.NAVIGATE_UP
   }
 }
 
-export function navigateTo (uri) {
+module.exports.navigateTo = function (uri) {
   return {
     type: types.NAVIGATE,
     uri: uri
   }
 }
 
-export function routeAppend (routeStr) {
+module.exports.routeAppend = function (routeStr) {
   return {
     type: types.NAVIGATE_APPEND,
     topRoute: routeStr
