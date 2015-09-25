@@ -8,7 +8,7 @@ set -e -u -o pipefail
 
 here="$(dirname "$BASH_SOURCE")"
 
-mode="$("$here/build_mode.sh")"
+mode="$("$here/build_mode.sh" "$@")"
 
 if [ "$mode" = "release" ] ; then
   echo keybase

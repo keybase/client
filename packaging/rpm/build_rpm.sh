@@ -3,13 +3,16 @@
 # Builds the keybase binary and packages it into two ".deb" files, one for i386
 # and one for amd64. Takes a build directory as an argument, or creates one in
 # /tmp. The package files are created there, in their respective folders.
+#
+# Usage:
+#   ./build_rpm.sh (release|staging|devel) [build_dir]
 
 set -e -u -o pipefail
 
 here="$(dirname "$BASH_SOURCE")"
 
-mode="$("$here/../build_mode.sh")"
-binary_name="$("$here/../binary_name.sh")"
+mode="$("$here/../build_mode.sh" "$@")"
+binary_name="$("$here/../binary_name.sh" "$@")"
 if [ "$mode" = "release" ] ; then
   go_tags="release"
 elif [ "$mode" = "staging" ] ; then
@@ -18,8 +21,8 @@ else
   go_tags=""
 fi
 
-# Take the first argument, or a tmp dir if there is no first argument.
-build_root="${1:-$(mktemp -d)}"
+# Take the second argument, or a tmp dir if there is no first argument.
+build_root="${2:-$(mktemp -d)}"
 
 echo "Building $mode mode in $build_root"
 
