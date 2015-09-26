@@ -1,0 +1,17 @@
+$:.unshift(File.expand_path("../lib", __FILE__))
+
+task :test, :case do |t, args|
+  unless File.exist?("ext/engine.so")
+    ok = system("make engine")
+    raise "problem building engine.so" unless ok
+  end
+  require "test"
+  Test.include_test(args[:case]) if args[:case]
+  Dir[File.dirname(__FILE__) + "/tests/*.rb"].each do |file|
+    require file
+  end
+  total, failures = Test.total, Test.failures
+  puts "\n=========================="
+  puts "total: #{total}, failures: #{failures}"
+  exit 1 if failures > 0
+end

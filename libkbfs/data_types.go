@@ -459,17 +459,18 @@ func resolveUser(ctx context.Context, config Config, name string,
 	results <- uid
 }
 
-type uidList []keybase1.UID
+// UIDList can be used to lexicographically sort UIDs.
+type UIDList []keybase1.UID
 
-func (u uidList) Len() int {
+func (u UIDList) Len() int {
 	return len(u)
 }
 
-func (u uidList) Less(i, j int) bool {
+func (u UIDList) Less(i, j int) bool {
 	return u[i].Less(u[j])
 }
 
-func (u uidList) Swap(i, j int) {
+func (u UIDList) Swap(i, j int) {
 	u[i], u[j] = u[j], u[i]
 }
 
@@ -478,7 +479,7 @@ func sortUIDS(m map[keybase1.UID]struct{}) []keybase1.UID {
 	for uid := range m {
 		s = append(s, uid)
 	}
-	sort.Sort(uidList(s))
+	sort.Sort(UIDList(s))
 	return s
 }
 

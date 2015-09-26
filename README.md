@@ -86,6 +86,10 @@ the mock interfaces used by the tests:
 (Right now the mocks are checked into the repo; this isn't ideal and
 we should probably change it.)
 
+# Domain-specific KBFS test language tests
+
+Please see [test/README.md](test/README.md) for more information.
+
 # Backend integration tests
 
 First, make sure you have these prereqs:

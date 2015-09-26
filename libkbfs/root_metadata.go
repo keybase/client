@@ -286,8 +286,8 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 			}
 		}
 	}
-	sort.Sort(uidList(h.Writers))
-	sort.Sort(uidList(h.Readers))
+	sort.Sort(UIDList(h.Writers))
+	sort.Sort(UIDList(h.Readers))
 	md.cachedTlfHandle = h
 	return h
 }

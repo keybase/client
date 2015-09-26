@@ -11,6 +11,8 @@ install:
 script:
   - GO15VENDOREXPERIMENT=0 go build ./...
   - cd libkbfs && go get -t && go test
+  - cd ../test
+  - make test
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
 

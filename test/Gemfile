@@ -1,0 +1,5 @@
+source 'https://rubygems.org'
+
+gem 'rake', '~> 10.4.2'
+gem 'colorize', '~> 0.7'
+gem 'ffi', github: 'aalness/ffi', ref: '428367f12b59d1173efd1bbd027f03ef905dbca9'

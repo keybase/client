@@ -156,7 +156,7 @@ func testCRSharedFolderForUsers(t *testing.T, createAs keybase1.UID,
 	for u := range configs {
 		h.Writers = append(h.Writers, u)
 	}
-	sort.Sort(uidList(h.Writers))
+	sort.Sort(UIDList(h.Writers))
 	nodes := make(map[keybase1.UID]Node)
 
 	// create by the first user
