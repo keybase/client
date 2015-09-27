@@ -995,6 +995,137 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 	}
 }
 
+func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
+		"user2")
+	defer config1.Shutdown()
+	mnt1, fs1, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	defer config2.Shutdown()
+	mnt2, _, cancelFn2 := makeFS(t, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
+	p1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p1, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := os.Open(p1)
+	if err != nil {
+		t.Fatalf("cannot open file: %v", err)
+	}
+	defer f.Close()
+
+	p2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
+	if err := os.Remove(p2); err != nil {
+		t.Fatalf("cannot delete file: %v", err)
+	}
+
+	syncFolderToServer(t, "user1,user2", fs1)
+
+	buf, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Fatalf("cannot read unlinked file: %v", err)
+	}
+	if g, e := string(buf), input; g != e {
+		t.Errorf("read wrong content: %q != %q", g, e)
+	}
+
+	if err := f.Close(); err != nil {
+		t.Fatalf("error on close: %v", err)
+	}
+
+	checkDir(t, path.Join(mnt1.Dir, PrivateName, "user1,user2"),
+		map[string]fileInfoCheck{})
+
+	if _, err := ioutil.ReadFile(p1); !os.IsNotExist(err) {
+		t.Errorf("file still exists: %v", err)
+	}
+}
+
+func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
+		"user2")
+	defer config1.Shutdown()
+	mnt1, fs1, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	defer config2.Shutdown()
+	mnt2, _, cancelFn2 := makeFS(t, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
+	p1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p1, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	p1Other := path.Join(mnt1.Dir, PrivateName, "user1,user2", "other")
+	const inputOther = "hello, other\n"
+	if err := ioutil.WriteFile(p1Other, []byte(inputOther), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := os.Open(p1)
+	if err != nil {
+		t.Fatalf("cannot open file: %v", err)
+	}
+	defer f.Close()
+
+	p2Other := path.Join(mnt2.Dir, PrivateName, "user1,user2", "other")
+	p2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
+	if err := os.Rename(p2Other, p2); err != nil {
+		t.Fatalf("cannot rename file: %v", err)
+	}
+
+	syncFolderToServer(t, "user1,user2", fs1)
+
+	buf, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Fatalf("cannot read unlinked file: %v", err)
+	}
+	if g, e := string(buf), input; g != e {
+		t.Errorf("read wrong content: %q != %q", g, e)
+	}
+
+	if err := f.Close(); err != nil {
+		t.Fatalf("error on close: %v", err)
+	}
+
+	checkDir(t, path.Join(mnt1.Dir, PrivateName, "user1,user2"),
+		map[string]fileInfoCheck{
+			"myfile": nil,
+		})
+
+	if _, err := ioutil.ReadFile(p1Other); !os.IsNotExist(err) {
+		t.Errorf("other file still exists: %v", err)
+	}
+
+	buf, err = ioutil.ReadFile(p1)
+	if err != nil {
+		t.Errorf("read error: %v", err)
+	}
+	if g, e := string(buf), inputOther; g != e {
+		t.Errorf("bad file contents: %q != %q", g, e)
+	}
+}
+
 func TestTruncateGrow(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer config.Shutdown()
