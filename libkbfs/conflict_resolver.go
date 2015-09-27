@@ -658,4 +658,31 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// * Finally attempt to put the final MD object.  If successful, send
 	//   out all the notifyOps to observers.
 	// Release all locks and reset the currInput, we're done!
+
+	// Notes on resolving conflicts:
+	//
+	// * Make a function on a crChain M that takes in the corresponding
+	//   chain U from the other branch.
+	//   * For each operation in U, iterate through the ops in M.  If there is
+	//     a conflict where an entry from the U operation needs to be renamed:
+	//     1) Create a new "local" operation that renames the entry as a
+	//        U-derived conflict (i.e., "foo.conflict.<loser_user>.<date>), and
+	//        prepend it to the M chain, followed by a create operation for
+	//        the original name and the entry's M-mostRecent details.
+	//     2) Create a new "remote" operation that creates the newly-renamed
+	//        entry that needs to be inserted into U before any other
+	//        operations affecting that node.
+	//   * If there is a conflict where the node from the M operation needs to
+	//     be renamed, then do the above but reverse the "local" and "remote".
+	//   * Change the "original" pointer for M to be the "mostRecent" pointer
+	//     of U.
+	//   * Change the "original" pointer for U to be the "mostRecent" pointer
+	//     of M.
+	// * At the end of this process, U is the set of operations that needs to
+	//   be merged, while M is the set of operations that need to be applied
+	//   locally for notification purposes.
+	// * The above process can also take in a copy of the most-recent merged
+	//   block, along with the most-recent unmerged block, for chain in
+	//   question, and make the "remote" changes directly to the copy of the
+	//   merged block for future Put-ing.
 }
