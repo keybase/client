@@ -3104,15 +3104,19 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 		var newNode Node
 		if realOp.NewDir.Ref != zeroPtr {
 			newNode = fbo.nodeCache.Get(realOp.NewDir.Ref)
+			if newNode != nil {
+				changes = append(changes, NodeChange{
+					Node:       newNode,
+					DirUpdated: []string{realOp.NewName},
+				})
+			}
 		} else {
 			newNode = oldNode
-		}
-
-		if newNode != nil {
-			changes = append(changes, NodeChange{
-				Node:       newNode,
-				DirUpdated: []string{realOp.NewName},
-			})
+			if oldNode != nil {
+				// Add another name to the existing NodeChange.
+				changes[len(changes)-1].DirUpdated =
+					append(changes[len(changes)-1].DirUpdated, realOp.NewName)
+			}
 		}
 
 		if oldNode != nil {

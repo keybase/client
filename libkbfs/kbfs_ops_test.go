@@ -1543,8 +1543,8 @@ func TestRenameInDirSuccess(t *testing.T) {
 		t, config, newP.path[1].BlockPointer, newP.Branch)
 	if _, ok := b1.Children["b"]; ok {
 		t.Errorf("entry for b is still around after rename")
-	} else if len(config.observer.batchChanges) != 2 {
-		t.Errorf("Expected 2 batch notifications, got %d",
+	} else if len(config.observer.batchChanges) != 1 {
+		t.Errorf("Expected 1 batch notification, got %d",
 			len(config.observer.batchChanges))
 	}
 	blocks = blocks[:len(blocks)-1] // the last block is never in the cache
@@ -1614,8 +1614,8 @@ func TestRenameInRootSuccess(t *testing.T) {
 		t, config, newP.path[0].BlockPointer, newP.Branch)
 	if _, ok := b0.Children["a"]; ok {
 		t.Errorf("entry for a is still around after rename")
-	} else if len(config.observer.batchChanges) != 2 {
-		t.Errorf("Expected 2 batch notifications, got %d",
+	} else if len(config.observer.batchChanges) != 1 {
+		t.Errorf("Expected 1 batch notification, got %d",
 			len(config.observer.batchChanges))
 	}
 	blocks = blocks[:len(blocks)-1] // the last block is never in the cache
