@@ -1607,10 +1607,9 @@ func (fbo *FolderBranchOps) CreateLink(
 }
 
 // unrefEntry modifies md to unreference all relevant blocks for the
-// given entry.  It returns a path to child of dir with the given
-// name.
+// given entry.
 func (fbo *FolderBranchOps) unrefEntry(ctx context.Context,
-	md *RootMetadata, dir path, de DirEntry, name string) (path, error) {
+	md *RootMetadata, dir path, de DirEntry, name string) error {
 	md.AddUnrefBlock(de.BlockInfo)
 	// construct a path for the child so we can unlink with it.
 	childPath := *dir.ChildPathNoPtr(name)
@@ -1627,11 +1626,11 @@ func (fbo *FolderBranchOps) unrefEntry(ctx context.Context,
 			return fbo.getBlockLocked(ctx, md, childPath, NewFileBlock, write)
 		}()
 		if err != nil {
-			return path{}, NoSuchBlockError{de.ID}
+			return NoSuchBlockError{de.ID}
 		}
 		fBlock, ok := block.(*FileBlock)
 		if !ok {
-			return path{}, &NotFileError{dir}
+			return &NotFileError{dir}
 		}
 		if fBlock.IsInd {
 			for _, ptr := range fBlock.IPtrs {
@@ -1639,7 +1638,7 @@ func (fbo *FolderBranchOps) unrefEntry(ctx context.Context,
 			}
 		}
 	}
-	return childPath, nil
+	return nil
 }
 
 // writerLock must be taken by caller.
@@ -1661,7 +1660,7 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	}
 
 	md.AddOp(newRmOp(name, dir.tailPointer()))
-	childPath, err := fbo.unrefEntry(ctx, md, dir, de, name)
+	err = fbo.unrefEntry(ctx, md, dir, de, name)
 	if err != nil {
 		return err
 	}
@@ -1676,7 +1675,6 @@ func (fbo *FolderBranchOps) removeEntryLocked(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	fbo.nodeCache.Unlink(de.BlockPointer, childPath)
 	return nil
 }
 
@@ -1836,7 +1834,7 @@ func (fbo *FolderBranchOps) renameLocked(
 		}
 
 		// Delete the old block pointed to by this direntry.
-		_, err := fbo.unrefEntry(ctx, md, newParent, de, newName)
+		err := fbo.unrefEntry(ctx, md, newParent, de, newName)
 		if err != nil {
 			return err
 		}
@@ -3177,6 +3175,21 @@ func (fbo *FolderBranchOps) searchForNode(ctx context.Context,
 	return n, nil
 }
 
+func (fbo *FolderBranchOps) unlinkFromCache(op op, oldDir BlockPointer,
+	node Node, name string) {
+	// The entry could be under any one of the unref'd blocks, and
+	// it's safe to perform this when the pointer isn't real, so just
+	// try them all to avoid the overhead of looking up the right
+	// pointer in the old version of the block.
+	childPath := fbo.nodeCache.PathFromNode(node).ChildPathNoPtr(name)
+	// revert the parent pointer
+	childPath.path[len(childPath.path)-2].BlockPointer = oldDir
+	for _, ptr := range op.Unrefs() {
+		childPath.path[len(childPath.path)-1].BlockPointer = ptr
+		fbo.nodeCache.Unlink(ptr, *childPath)
+	}
+}
+
 func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 	md *RootMetadata) {
 	// update all the block pointers
@@ -3210,6 +3223,10 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 			Node:       node,
 			DirUpdated: []string{realOp.OldName},
 		})
+
+		// If this node exists, then the child node might exist too,
+		// and we need to unlink it in the node cache.
+		fbo.unlinkFromCache(op, realOp.Dir.Unref, node, realOp.OldName)
 	case *renameOp:
 		oldNode := fbo.nodeCache.Get(realOp.OldDir.Ref)
 		if oldNode != nil {
@@ -3261,7 +3278,15 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 			}
 
 			if newNode != nil {
-				// if new node exists as well, move the node
+				// If new node exists as well, unlink any previously
+				// existing entry and move the node.
+				var unrefPtr BlockPointer
+				if oldNode != newNode {
+					unrefPtr = realOp.NewDir.Unref
+				} else {
+					unrefPtr = realOp.OldDir.Unref
+				}
+				fbo.unlinkFromCache(op, unrefPtr, newNode, realOp.NewName)
 				err :=
 					fbo.nodeCache.Move(realOp.Renamed, newNode, realOp.NewName)
 				if err != nil {
