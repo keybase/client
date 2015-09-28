@@ -8,7 +8,7 @@ import (
 
 const (
 	keychainServiceName = "keybase"
-	accessGroup         = ""
+	accessGroup         = "99229SGT5K.keybase"
 )
 
 type KeychainSecretStore struct {
@@ -16,7 +16,6 @@ type KeychainSecretStore struct {
 }
 
 func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
-	// TODO: Access group for iOS
 	item := keychain.NewGenericPassword(keychainServiceName, k.accountName, "", secret, accessGroup)
 	item.SetSynchronizable(keychain.SynchronizableNo)
 	item.SetAccessible(keychain.AccessibleWhenUnlockedThisDeviceOnly)
