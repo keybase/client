@@ -153,6 +153,11 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		if !res {
 			return libkb.DuplicateKeyChosenError{}
 		}
+		// We're sending a key update, then.
+		fp := fmt.Sprintf("%s", *(selected.GetFingerprint()))
+		selectedFingerprint := []string{fp}
+		eng := NewPGPUpdateEngine(selectedFingerprint, false, e.G())
+		return RunEngine(eng, ctx)
 	}
 
 	bundle, err := gpg.ImportKey(true, *(selected.GetFingerprint()))
