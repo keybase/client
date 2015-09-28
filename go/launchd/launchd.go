@@ -164,6 +164,9 @@ func (s ServiceStatus) IsRunning() bool {
 // StatusDescription returns the service status description
 func (s Service) StatusDescription() string {
 	status, err := s.Status()
+	if status == nil {
+		return fmt.Sprintf("%s: Not Running", s.label)
+	}
 	if err != nil {
 		return fmt.Sprintf("%s: %v", s.label, err)
 	}
