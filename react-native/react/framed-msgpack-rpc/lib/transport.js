@@ -176,7 +176,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/transport.iced",
+            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/transport.iced",
             funcname: "Transport.connect"
           });
           _this._lock.acquire(__iced_deferrals.defer({
@@ -191,7 +191,7 @@
               (function(__iced_k) {
                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                   parent: ___iced_passed_deferral,
-                  filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/transport.iced",
+                  filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/transport.iced",
                   funcname: "Transport.connect"
                 });
                 _this._connect_critical_section(__iced_deferrals.defer({
@@ -262,7 +262,7 @@
           _ref.eof(netw);
         }
       }
-      if (netw.close()) {
+      if (netw != null ? netw.close() : void 0) {
         return this._reconnect(false);
       }
     };
@@ -357,7 +357,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/transport.iced",
+            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/transport.iced",
             funcname: "Transport._connect_critical_section"
           });
           rv.wait(__iced_deferrals.defer({
@@ -457,7 +457,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/transport.iced",
+            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/transport.iced",
             funcname: "RobustTransport._connect_loop"
           });
           _this._lock.acquire(__iced_deferrals.defer({
@@ -494,7 +494,7 @@
                         (function(__iced_k) {
                           __iced_deferrals = new iced.Deferrals(__iced_k, {
                             parent: ___iced_passed_deferral,
-                            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/transport.iced",
+                            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/transport.iced",
                             funcname: "RobustTransport._connect_loop"
                           });
                           setTimeout(__iced_deferrals.defer({
@@ -508,7 +508,7 @@
                         (function(__iced_k) {
                           __iced_deferrals = new iced.Deferrals(__iced_k, {
                             parent: ___iced_passed_deferral,
-                            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/transport.iced",
+                            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/transport.iced",
                             funcname: "RobustTransport._connect_loop"
                           });
                           _this._connect_critical_section(__iced_deferrals.defer({
@@ -526,7 +526,7 @@
                               (function(__iced_k) {
                                 __iced_deferrals = new iced.Deferrals(__iced_k, {
                                   parent: ___iced_passed_deferral,
-                                  filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/transport.iced",
+                                  filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/transport.iced",
                                   funcname: "RobustTransport._connect_loop"
                                 });
                                 setTimeout(__iced_deferrals.defer({
@@ -594,7 +594,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/transport.iced",
+            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/transport.iced",
             funcname: "RobustTransport._timed_invoke"
           });
           rv.wait(__iced_deferrals.defer({
@@ -630,7 +630,7 @@
                     (function(__iced_k) {
                       __iced_deferrals = new iced.Deferrals(__iced_k, {
                         parent: ___iced_passed_deferral,
-                        filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/transport.iced",
+                        filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/transport.iced",
                         funcname: "RobustTransport._timed_invoke"
                       });
                       rv.wait(__iced_deferrals.defer({
