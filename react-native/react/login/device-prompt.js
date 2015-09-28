@@ -2,14 +2,14 @@
 /* @flow */
 
 import React from 'react-native'
-const {
+import {
   Component,
   StyleSheet,
   View,
   Text,
   TextInput,
   TouchableHighlight
-} = React
+} from 'react-native'
 
 import commonStyles from '../styles/common'
 import { submitDeviceName } from '../actions/login'

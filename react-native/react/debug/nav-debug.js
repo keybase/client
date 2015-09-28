@@ -3,8 +3,7 @@
 /* shows how the meta navigator works */
 
 import React from 'react-native'
-const { Component, View, Text } = React
-
+import { Component, View, Text } from 'react-native'
 import { navigateTo, routeAppend, navigateUp } from '../actions/router'
 
 function mapStateToGetURI (state) {

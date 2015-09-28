@@ -1,17 +1,17 @@
 'use strict'
 
 import React from 'react-native'
-const {
+import {
   Component,
   ListView,
   StyleSheet,
   View,
   Text,
   TouchableHighlight
-} = React
+} from 'react-native'
 
 import commonStyles from '../../styles/common'
-import LoginActions from '../../actions/login'
+import * as LoginActions from '../../actions/login'
 import { navigateTo } from '../../actions/router'
 
 export default class More extends Component {
@@ -24,6 +24,9 @@ export default class More extends Component {
 
     this.state = {
       dataSource: ds.cloneWithRows([
+        {name: 'Login', onClick: () => {
+          this.props.dispatch(LoginActions.startLogin())
+        }},
         {name: 'Sign Out', onClick: () => {
           this.props.dispatch(LoginActions.logout())
         }},
@@ -81,7 +84,8 @@ export default class More extends Component {
       'developer': require('./developer').parseRoute,
       'navDebug': require('../../debug/nav-debug').parseRoute,
       'bridging': require('../../debug/bridging-tabs').parseRoute,
-      'qr': require('../../qr').parseRoute
+      'qr': require('../../qr').parseRoute,
+      'login': require('../../login').parseRoute
     }
 
     const componentAtTop = {

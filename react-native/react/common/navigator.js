@@ -1,14 +1,14 @@
 'use strict'
 
 import React from 'react-native'
-const {
+import {
   Component,
   Navigator,
   Settings,
   StyleSheet,
   Text,
   TouchableOpacity
-} = React
+} from 'react-native'
 
 const NavigationBarRouteMapper = {
   LeftButton: function (route, navigator, index, navState) {

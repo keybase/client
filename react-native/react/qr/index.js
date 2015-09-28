@@ -1,19 +1,20 @@
 'use strict'
 /* @flow */
 
-const React = require('react-native')
-const {
+import React from 'react-native'
+import {
   Component,
   Image,
   StyleSheet,
   Text,
   TouchableHighlight,
   View
-} = React
+} from 'react-native'
 
-const Camera = require('react-native-camera')
-const commonStyles = require('../styles/common')
-const qrCode = require('qrcode-generator')
+import Camera from 'react-native-camera'
+import commonStyles from '../styles/common'
+import qrCode from 'qrcode-generator'
+
 const countMax = 10
 
 class QR extends Component {
@@ -197,4 +198,4 @@ const styles = StyleSheet.create({
   }
 })
 
-module.exports = QR
+export default QR

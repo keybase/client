@@ -2,12 +2,12 @@
 /* @flow */
 
 import React from 'react-native'
-const {
+import {
   Component,
   Text,
   StyleSheet,
   View
-} = React
+} from 'react-native'
 
 class Search extends Component {
   constructor () {
