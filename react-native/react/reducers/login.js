@@ -10,6 +10,7 @@ const initialState = {
   passphrase: null,
   storeSecret: true,
   deviceName: null,
+  deviceNameError: null,
   waitingForServer: false,
   secretWords: null,
   response: null,
@@ -52,6 +53,7 @@ export default function (state = initialState, action) {
         ...state,
         loginState: states.ASK_DEVICE_NAME,
         response: action.response,
+        deviceNameError: null,
         waitingForServer: true
       }
     case types.ASK_DEVICE_SIGNER:
@@ -86,7 +88,7 @@ export default function (state = initialState, action) {
     case types.DEVICE_NAME_TAKEN:
       return {
         ...state,
-        error: `${action.name} is already in use, please choose another name`
+        deviceNameError: `${action.name} is already in use, please choose another name`
       }
 
     default:
