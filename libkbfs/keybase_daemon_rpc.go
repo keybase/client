@@ -118,6 +118,21 @@ func (k KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 	}, nil
 }
 
+// CurrentUID implements the KeybaseDaemon interface for KeybaseDaemonRPC.
+func (k KeybaseDaemonRPC) CurrentUID(ctx context.Context, sessionID int) (
+	keybase1.UID, error) {
+	var currentUID keybase1.UID
+	f := func() error {
+		var err error
+		currentUID, err = k.session.CurrentUID(sessionID)
+		return err
+	}
+	if err := runUnlessCanceled(ctx, f); err != nil {
+		return keybase1.UID(""), err
+	}
+	return currentUID, nil
+}
+
 // CurrentSession implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {

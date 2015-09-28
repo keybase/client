@@ -11,6 +11,7 @@ import (
 type KeybaseDaemonMeasured struct {
 	delegate            KeybaseDaemon
 	identifyTimer       metrics.Timer
+	currentUIDTimer     metrics.Timer
 	currentSessionTimer metrics.Timer
 	favoriteAddTimer    metrics.Timer
 	favoriteDeleteTimer metrics.Timer
@@ -23,6 +24,7 @@ var _ KeybaseDaemon = KeybaseDaemonMeasured{}
 // instance with the given delegate and registry.
 func NewKeybaseDaemonMeasured(delegate KeybaseDaemon, r metrics.Registry) KeybaseDaemonMeasured {
 	identifyTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.Identify", r)
+	currentUIDTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.CurrentUID", r)
 	currentSessionTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.CurrentSession", r)
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteAdd", r)
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteDelete", r)
@@ -30,6 +32,7 @@ func NewKeybaseDaemonMeasured(delegate KeybaseDaemon, r metrics.Registry) Keybas
 	return KeybaseDaemonMeasured{
 		delegate:            delegate,
 		identifyTimer:       identifyTimer,
+		currentUIDTimer:     currentUIDTimer,
 		currentSessionTimer: currentSessionTimer,
 		favoriteAddTimer:    favoriteAddTimer,
 		favoriteDeleteTimer: favoriteDeleteTimer,
@@ -44,6 +47,16 @@ func (k KeybaseDaemonMeasured) Identify(ctx context.Context, assertion string) (
 		userInfo, err = k.delegate.Identify(ctx, assertion)
 	})
 	return userInfo, err
+}
+
+// CurrentUID implements the KeybaseDaemon interface for
+// KeybaseDaemonMeasured.
+func (k KeybaseDaemonMeasured) CurrentUID(ctx context.Context, sessionID int) (
+	currentUID keybase1.UID, err error) {
+	k.currentUIDTimer.Time(func() {
+		currentUID, err = k.delegate.CurrentUID(ctx, sessionID)
+	})
+	return currentUID, err
 }
 
 // CurrentSession implements the KeybaseDaemon interface for

@@ -231,6 +231,11 @@ type KeybaseDaemon interface {
 	// otherwise.
 	Identify(ctx context.Context, assertion string) (UserInfo, error)
 
+	// CurrentUID returns the UID of the current session, or an
+	// error otherwise. This should be faster than calling
+	// CurrentSession.
+	CurrentUID(ctx context.Context, sessionID int) (keybase1.UID, error)
+
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.
 	CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error)

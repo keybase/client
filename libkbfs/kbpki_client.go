@@ -35,14 +35,15 @@ func (k *KBPKIClient) GetCurrentToken(ctx context.Context) (string, error) {
 
 // GetCurrentUID implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentUID(ctx context.Context) (keybase1.UID, error) {
-	s, err := k.session(ctx)
+	const sessionID = 0
+	currentUID, err := k.config.KeybaseDaemon().CurrentUID(ctx, sessionID)
 	if err != nil {
 		// TODO: something more intelligent; maybe just shut down
 		// unless we want anonymous browsing of public data
 		return keybase1.UID(""), err
 	}
-	k.log.CInfof(ctx, "logged in user uid = %s", s.UID)
-	return s.UID, nil
+	k.log.CInfof(ctx, "logged in user uid = %s", currentUID)
+	return currentUID, nil
 }
 
 // GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIClient.

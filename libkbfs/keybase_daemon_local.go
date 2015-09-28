@@ -125,6 +125,12 @@ func (k KeybaseDaemonLocal) Identify(ctx context.Context, assertion string) (
 	return u.UserInfo, nil
 }
 
+// CurrentUID implements KeybaseDaemon for KeybaseDaemonLocal.
+func (k KeybaseDaemonLocal) CurrentUID(ctx context.Context, sessionID int) (
+	keybase1.UID, error) {
+	return k.currentUID, nil
+}
+
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {
