@@ -45,6 +45,9 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "Specify an outfile (stdout by default).",
 			},
 		},
+		Description : `Use of this command requires at least one PGP secret key imported
+   into the PGP keyring. It will try all secret keys in the local keyring that match the
+   given ciphertext, an will succeeed so long as one such key is available.`,
 	}
 }
 

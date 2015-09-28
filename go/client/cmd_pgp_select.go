@@ -79,6 +79,21 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "only import the secret key into local Keybase private keycahin.",
 			},
 		},
+		Description : `"keybase pgp select" looks at the local GnuPG keychain for all
+   available secret keys. It then makes those keys available for use with keybase.
+   The steps involved are: (1) sign a signature chain link with the selected PGP
+   key and the existing device key; (2) push this signature and the public PGP
+   key to the server; (3) copy the PGP secret half into your local Keybase secret
+   key chain; and (4) encrypt this secret key with Keybase's local key security
+   mechanism.
+
+   By default, Keybase suggests only one PGP public key, but if you want to,
+   you can supply the "--multi" flag to override this restriction. If you don't
+   want your secret key imported into Keybase's local key chain, then use
+   the "--no-import" flag.
+
+   This operation will never push your secret key, encrypted or otherwise,
+   to the Keybase server.`,
 	}
 }
 
