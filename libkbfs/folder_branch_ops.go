@@ -2759,11 +2759,9 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 					return true, err
 				}
 
-				// put the new block in the cache, but defer the
-				// finalize until after the new path is ready, in case
-				// anyone tries to read the dirty file in the
-				// meantime.
-				bcache.Put(newInfo.BlockPointer, fbo.id(), block)
+				// Defer the DeleteDirty until after the new path is
+				// ready, in case anyone tries to read the dirty file
+				// in the meantime.
 				localPtr := ptr.BlockPointer
 				deferredDirtyDeletes =
 					append(deferredDirtyDeletes, func() error {
