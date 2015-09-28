@@ -5,7 +5,9 @@
  */
 
 import React from 'react-native'
-const { Component } = React
+import {
+  Component
+} from 'react-native'
 
 import Temp from '../qr'
 

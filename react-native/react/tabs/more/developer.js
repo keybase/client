@@ -2,13 +2,13 @@
 /* @flow */
 
 import React from 'react-native'
-const {
+import {
   Component,
   StyleSheet,
   View,
   Text,
   TextInput
-} = React
+} from 'react-native'
 
 import commonStyles from '../../styles/common'
 
@@ -77,3 +77,5 @@ const styles = StyleSheet.create({
     marginTop: 10
   }
 })
+
+export default Developer

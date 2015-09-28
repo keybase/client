@@ -6,10 +6,10 @@
  */
 
 import React from 'react-native'
-const {
+import {
   Component,
   Navigator
-  } = React
+} from 'react-native'
 
 import { connect } from 'react-redux/native'
 import Immutable from 'immutable'

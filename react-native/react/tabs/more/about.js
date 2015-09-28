@@ -2,12 +2,12 @@
 /* @flow */
 
 import React from 'react-native'
-const {
+import {
   Component,
   StyleSheet,
   View,
   Text
-} = React
+} from 'react-native'
 
 import commonStyles from '../../styles/common'
 

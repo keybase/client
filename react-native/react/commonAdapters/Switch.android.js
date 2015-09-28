@@ -1,7 +1,5 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-const { SwitchAndroid } = React
-
+import { SwitchAndroid } from 'react-native'
 export default SwitchAndroid

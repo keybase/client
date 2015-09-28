@@ -2,20 +2,17 @@
 /* @flow */
 
 import React from 'react-native'
-
-const {
+import {
   Component,
   Text,
   StyleSheet,
   View
-} = React
+} from 'react-native'
 
 import DevicePrompt from './device-prompt'
 import SelectSigner from './select-signer'
 import DisplaySecretWords from './display-secret-words'
 import LoginForm from './form'
-
-import engine from '../engine'
 
 import { bindActionCreators } from 'redux'
 import * as LoginActions from '../actions/login'

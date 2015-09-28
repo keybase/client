@@ -1,7 +1,5 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-const { SwitchIOS } = React
-
+import { SwitchIOS } from 'react-native'
 export default SwitchIOS
