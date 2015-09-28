@@ -147,7 +147,6 @@ class QR extends Component {
   static parseRoute (store, currentPath, nextPath) {
     const componentAtTop = {
       title: 'QR',
-      mapStateToProps: state => state.router.toObject(),
       component: QR
     }
 
@@ -166,7 +165,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-end',
     backgroundColor: 'transparent',
-    marginTop: 60
+    marginTop: 60,
+    marginBottom: 49
   },
   switchContainer: {
     flexDirection: 'row',

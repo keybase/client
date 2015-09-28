@@ -96,7 +96,7 @@ export function showedSecretWords (response) {
   }
 }
 
-module.exports.logout = function () {
+export function logout () {
   return function (dispatch) {
     engine.rpc('login.logout', {}, {}, (error, response) => {
       if (error) {

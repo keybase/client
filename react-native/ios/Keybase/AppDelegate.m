@@ -10,7 +10,7 @@
 
 // Set this to 1 to use the application bundle to hold the react JS
 #define REACT_EMBEDDED_BUNDLE 0
-#define REACT_HOST_HARDCODED 1
+#define REACT_HOST_HARDCODED 0
 
 // TODO load off of settings screen
 static NSString* const HOME_DIR = nil;
@@ -38,7 +38,7 @@ static NSString* const RUN_MODE = @"devel";
   // http://facebook.github.io/react-native/docs/runningondevice.html
   jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #else
-  #ifdef REACT_HOST_HARDCODED
+  #if REACT_HOST_HARDCODED
     #define REACT_HOST @"192.168.1.50:8081"
   #else
     #define REACT_HOST @"localhost:8081"

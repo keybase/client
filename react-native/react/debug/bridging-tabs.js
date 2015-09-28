@@ -83,7 +83,6 @@ class Bridging extends Component {
   static parseRoute (store, currentPath, nextPath) {
     const componentAtTop = {
       title: 'Bridging',
-      mapStateToProps: state => state.router.toObject(),
       component: Bridging
     }
 

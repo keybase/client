@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-const React = require('react-native')
+import React from 'react-native'
 const {
   Component,
   StyleSheet,
@@ -10,9 +10,9 @@ const {
   TextInput
 } = React
 
-const commonStyles = require('../styles/common')
+import commonStyles from '../../styles/common'
 
-class Developer extends Component {
+export default class Developer extends Component {
   constructor (props) {
     super(props)
 
@@ -39,7 +39,6 @@ class Developer extends Component {
   static parseRoute (store, currentPath, nextPath) {
     const componentAtTop = {
       title: 'Developer',
-      mapStateToProps: state => state.router.toObject(),
       component: Developer
     }
 
@@ -78,5 +77,3 @@ const styles = StyleSheet.create({
     marginTop: 10
   }
 })
-
-module.exports = Developer

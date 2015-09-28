@@ -9,9 +9,9 @@ const {
   Text
 } = React
 
-const commonStyles = require('../styles/common')
+import commonStyles from '../../styles/common'
 
-class About extends Component {
+export default class About extends Component {
   constructor (props) {
     super(props)
 
@@ -30,7 +30,6 @@ class About extends Component {
   static parseRoute (store, currentPath, nextPath) {
     const componentAtTop = {
       title: 'About',
-      mapStateToProps: state => state.router.toObject(),
       component: About
     }
 
@@ -51,5 +50,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF'
   }
 })
-
-module.exports = About
