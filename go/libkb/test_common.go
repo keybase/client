@@ -81,7 +81,7 @@ func (tc *TestContext) Cleanup() {
 		G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		tc.G.Shutdown()
 		os.RemoveAll(tc.Tp.Home)
-		ClearAllStoredSecrets()
+		tc.ClearAllStoredSecrets()
 	}
 }
 
@@ -149,6 +149,21 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 // without logging out.
 func (tc *TestContext) ResetLoginState() {
 	tc.G.createLoginState()
+}
+
+func (tc TestContext) ClearAllStoredSecrets() error {
+	usernames, err := GetUsersWithStoredSecrets()
+	if err != nil {
+		return err
+	}
+	for _, username := range usernames {
+		nu := NewNormalizedUsername(username)
+		err = ClearStoredSecret(nu)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 var setupTestMu sync.Mutex
