@@ -67,3 +67,18 @@ func ClearStoredSecret(username NormalizedUsername) error {
 	}
 	return secretStore.ClearSecret()
 }
+
+func ClearAllStoredSecrets() error {
+	usernames, err := GetUsersWithStoredSecrets()
+	if err != nil {
+		return err
+	}
+	for _, username := range usernames {
+		nu := NewNormalizedUsername(username)
+		err = ClearStoredSecret(nu)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

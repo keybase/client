@@ -663,3 +663,21 @@ func (e *Env) GetLogFile() string {
 		func() string { return filepath.Join(e.GetLogDir(), "keybase.log") },
 	)
 }
+
+func (e *Env) GetStoredSecretServiceName() string {
+	var serviceName string
+	switch e.GetRunMode() {
+	case DevelRunMode:
+		serviceName = "keybase-devel"
+	case StagingRunMode:
+		serviceName = "keybase-staging"
+	case ProductionRunMode:
+		serviceName = "keybase"
+	default:
+		panic("Invalid run mode")
+	}
+	if e.Test.Devel {
+		serviceName = serviceName + "-test"
+	}
+	return serviceName
+}

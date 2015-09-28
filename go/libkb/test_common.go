@@ -81,6 +81,7 @@ func (tc *TestContext) Cleanup() {
 		G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		tc.G.Shutdown()
 		os.RemoveAll(tc.Tp.Home)
+		ClearAllStoredSecrets()
 	}
 }
 
