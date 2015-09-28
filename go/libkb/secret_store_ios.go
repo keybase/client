@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	keychainServiceName = "keybase"
-	accessGroup         = "99229SGT5K.keybase"
+	accessGroup = "99229SGT5K.keybase"
 )
 
 type KeychainSecretStore struct {
@@ -16,7 +15,7 @@ type KeychainSecretStore struct {
 }
 
 func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
-	item := keychain.NewGenericPassword(keychainServiceName, k.accountName, "", secret, accessGroup)
+	item := keychain.NewGenericPassword(G.Env.GetStoredSecretServiceName(), k.accountName, "", secret, accessGroup)
 	item.SetSynchronizable(keychain.SynchronizableNo)
 	item.SetAccessible(keychain.AccessibleWhenUnlockedThisDeviceOnly)
 
@@ -25,11 +24,11 @@ func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 }
 
 func (k KeychainSecretStore) RetrieveSecret() ([]byte, error) {
-	return keychain.GetGenericPassword(keychainServiceName, k.accountName, "", "")
+	return keychain.GetGenericPassword(G.Env.GetStoredSecretServiceName(), k.accountName, "", "")
 }
 
 func (k KeychainSecretStore) ClearSecret() (err error) {
-	query := keychain.NewGenericPassword(keychainServiceName, k.accountName, "", nil, "")
+	query := keychain.NewGenericPassword(G.Env.GetStoredSecretServiceName(), k.accountName, "", nil, "")
 	query.SetMatchLimit(keychain.MatchLimitAll)
 	return keychain.DeleteItem(query)
 }
@@ -43,7 +42,7 @@ func HasSecretStore() bool {
 }
 
 func GetUsersWithStoredSecrets() ([]string, error) {
-	return keychain.GetAccountsForService(keychainServiceName)
+	return keychain.GetAccountsForService(G.Env.GetStoredSecretServiceName())
 }
 
 func GetTerminalPrompt() string {
