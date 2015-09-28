@@ -103,7 +103,7 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "Disable exporting of new keys to GPG keychain.",
 			},
 		},
-		Description : `'keybase pgp gen' generates a new PGP key for this account.
+		Description : `"keybase pgp gen" generates a new PGP key for this account.
    In all cases, it signs the public key with an exising device key,
    and pushes the signature to the server. Thus, the user will have a
    publicly-visible "PGP device" after running this operation.
@@ -111,7 +111,7 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
    The secret half of the PGP key is written by default to the user's
    local Keybase keychain and encrypted with the "local key security"
    (LKS) protocol. (For more information, try 'keybase help keyring').
-   Also, by default, the public and secret half of the new PGP key
+   Also, by default, the public and secret halves of the new PGP key
    is exported to the local GnuPG keyring, if one is found.
 
    On subsequent secret key accesses --- say for PGP decryption or
@@ -119,7 +119,7 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
    Rather, keybase will access the secret PGP key in its own local keychain.
 
    By default, the secret half of the PGP key is never exported off
-   of the local system, but users have a choice via terminal propmpt
+   of the local system, but users have a choice via terminal prompt
    to select storage of their encrypted secret PGP key on the Keybase
    servers.`,
 		Action: func(c *cli.Context) {

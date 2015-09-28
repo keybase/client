@@ -46,8 +46,8 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Description : `Use of this command requires at least one PGP secret key imported
-   into the PGP keyring. It will try all secret keys in the local keyring that match the
-   given ciphertext, an will succeeed so long as one such key is available.`,
+   into the local Keybase keyring. It will try all secret keys in the local keyring that match the
+   given ciphertext, and will succeed so long as one such key is available.`,
 	}
 }
 
