@@ -39,6 +39,8 @@ package:
 
 ### Notes
 
+#### protocol/go external dependency
+
 The `keybase/client/protocol/go` package is an external
 package.  Since it uses external packages that
 `keybase/client/go` also uses, it had to be placed in
@@ -50,4 +52,19 @@ If you change the protocol, you need to run this:
     GO15VENDOREXPERIMENT=1 govendor update github.com/keybase/client/protocol/go
 
 I tried to get around this, but it is necessary.
+
+#### External dependency test files
+
+The `govendor` tool does not copy `_test.go` files from
+external dependencies into the `vendor` subdirectory.
+
+#### Environment variable
+
+Anyone working on this code should probably set
+GO15VENDOREXPERIMENT=1 globally.  The `go` tool uses it
+for a variety of subcommands and things like 
+
+    go test ./...
+
+are not happy without it.
 
