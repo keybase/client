@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 
 import commonStyles from '../../styles/common'
-import LoginActions from '../../actions/login'
+import * as LoginActions from '../../actions/login'
 import { navigateTo } from '../../actions/router'
 
 export default class More extends Component {
@@ -24,6 +24,9 @@ export default class More extends Component {
 
     this.state = {
       dataSource: ds.cloneWithRows([
+        {name: 'Login', onClick: () => {
+          this.props.dispatch(LoginActions.startLogin())
+        }},
         {name: 'Sign Out', onClick: () => {
           this.props.dispatch(LoginActions.logout())
         }},
