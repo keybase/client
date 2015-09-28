@@ -85,8 +85,14 @@ func WriteB64(str string) bool {
 }
 
 // Blocking read, returns base64 encoded msgpack rpc payload
+// bufferSize must be divisible by 3 to ensure that we don't split
+// our b64 encode across a payload boundary if we go over our buffer
+// size
+const targetBufferSize = 50 * 1024
+const bufferSize = targetBufferSize - (targetBufferSize % 3)
+
 func ReadB64() string {
-	data := make([]byte, 50*1024)
+	data := make([]byte, bufferSize)
 
 	n, err := con.Read(data)
 	if n > 0 && err == nil {
