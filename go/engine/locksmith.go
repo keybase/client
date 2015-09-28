@@ -428,7 +428,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 				ctx.LogUI.Debug("device sign w/ paper backup key success")
 				return nil
 			}
-			d.G().Log.Errorf("deviceSignPaper error: %s", err)
+			ctx.LogUI.Errorf("deviceSignPaper error: %s", err)
 			uiarg := keybase1.DeviceSignAttemptErrArg{
 				Msg:     err.Error(),
 				Attempt: i + 1,
