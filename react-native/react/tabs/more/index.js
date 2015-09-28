@@ -84,7 +84,8 @@ export default class More extends Component {
       'developer': require('./developer').parseRoute,
       'navDebug': require('../../debug/nav-debug').parseRoute,
       'bridging': require('../../debug/bridging-tabs').parseRoute,
-      'qr': require('../../qr').parseRoute
+      'qr': require('../../qr').parseRoute,
+      'login': require('../../login').parseRoute
     }
 
     const componentAtTop = {
