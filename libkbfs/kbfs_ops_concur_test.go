@@ -519,13 +519,13 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).Times(2).After(c).Return(nil)
 	putErr := errors.New("This is a forced error on put")
-	errChan := make(chan struct{})
+	errPtrChan := make(chan BlockPointer)
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext, buf []byte,
 		serverHalf BlockCryptKeyServerHalf) {
-		errChan <- struct{}{}
+		errPtrChan <- context.(BlockPointer)
 	}).After(c).Return(putErr)
 	// let the rest through
 	proceedChan := make(chan struct{})
@@ -538,13 +538,22 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	}).After(c).Return(nil)
 	b.EXPECT().Shutdown().AnyTimes()
 
+	var errPtr BlockPointer
 	go func() {
-		<-errChan
+		errPtr = <-errPtrChan
 		close(proceedChan)
 	}()
 
 	err = kbfsOps.Sync(ctx, fileNode)
 	if err != putErr {
 		t.Errorf("Sync did not get the expected error: %v", err)
+	}
+
+	// wait for proceedChan to close, so we know the errPtr has been set
+	<-proceedChan
+
+	// make sure the error'd file didn't make it to the cache
+	if _, err := config.BlockCache().Get(errPtr, MasterBranch); err == nil {
+		t.Errorf("Failed block put for %v left block in cache", errPtr)
 	}
 }
