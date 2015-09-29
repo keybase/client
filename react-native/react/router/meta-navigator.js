@@ -84,7 +84,7 @@ class MetaNavigator extends Component {
     // TODO (mm): know when to create a new navigator
 
     // TODO (mm): specify the prop types
-    const { store, rootRouteParser, uri } = this.props
+    const { store, rootRouteParser, uri, NavBar } = this.props
 
     let {componentAtTop, routeStack} = this.getComponentAtTop(rootRouteParser, store, uri)
 
@@ -98,7 +98,7 @@ class MetaNavigator extends Component {
             React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(route.component), {...route.props})
           )
         }}
-        // TODO: render the nav bar
+        navigationBar={NavBar}
       />
     )
   }
@@ -107,6 +107,7 @@ class MetaNavigator extends Component {
 MetaNavigator.propTypes = {
   uri: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
+  NavBar: React.PropTypes.object.isRequired,
   rootRouteParser: React.PropTypes.func.isRequired
 }
 

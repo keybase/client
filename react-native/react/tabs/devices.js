@@ -11,7 +11,7 @@ const {
 export default class Devices extends Component {
   render () {
     return (
-      <View>
+      <View style={{flex: 1, justifyContent: 'center'}}>
         <Text> Devices goes here </Text>
         <Text> No Touching! </Text>
       </View>

@@ -13,7 +13,7 @@ export default class NoTab extends Component {
 
   render () {
     return (
-      <View style={{backgroundColor: 'red'}}>
+      <View style={{flex: 1, justifyContent: 'center', backgroundColor: 'red'}}>
         <Text> Error! Tab name was not recognized</Text>
       </View>
     )

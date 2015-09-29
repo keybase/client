@@ -11,7 +11,7 @@ const {
 export default class Chat extends Component {
   render () {
     return (
-      <View>
+      <View style={{flex: 1, justifyContent: 'center'}}>
         <Text> Chat goes here </Text>
         <Text> Always Money in the Banana Stand </Text>
       </View>
