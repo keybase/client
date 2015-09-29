@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/nacl/box"
 )
 
-func getSecretKey(
+func getMySecretKey(
 	g *libkb.GlobalContext, secretUI libkb.SecretUI,
 	secretKeyType libkb.SecretKeyType, reason string) (
 	libkb.GenericKey, error) {
@@ -28,9 +28,8 @@ func getSecretKey(
 func SignED25519(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 	arg keybase1.SignED25519Arg) (
 	ret keybase1.ED25519SignatureInfo, err error) {
-	signingKey, err := getSecretKey(
-		g, secretUI, libkb.DeviceSigningKeyType,
-		arg.SessionID, arg.Reason)
+	signingKey, err := getMySecretKey(
+		g, secretUI, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -54,9 +53,8 @@ func SignED25519(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 // private encryption key and the given nonce and peer public key.
 func UnboxBytes32(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 	arg keybase1.UnboxBytes32Arg) (bytes32 keybase1.Bytes32, err error) {
-	encryptionKey, err := getSecretKey(
-		g, secretUI, libkb.DeviceEncryptionKeyType,
-		arg.SessionID, arg.Reason)
+	encryptionKey, err := getMySecretKey(
+		g, secretUI, libkb.DeviceEncryptionKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
