@@ -68,3 +68,10 @@ for a variety of subcommands and things like
 
 are not happy without it.
 
+Also, `go test ./...` will print a line for each
+vendored package saying no test files are found.  If
+this bugs you, you can do this instead:
+
+    go test $(go list ./... | grep -v /vendor/)
+
+and the output will be the same.
