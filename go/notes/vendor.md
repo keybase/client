@@ -39,20 +39,6 @@ package:
 
 ### Notes
 
-#### protocol/go external dependency
-
-The `keybase/client/protocol/go` package is an external
-package.  Since it uses external packages that
-`keybase/client/go` also uses, it had to be placed in
-vendor as well.
-
-If you change the protocol, you need to run this:
-
-    cd $GOPATH/github.com/keybase/client/go
-    GO15VENDOREXPERIMENT=1 govendor update github.com/keybase/client/protocol/go
-
-I tried to get around this, but it is necessary.
-
 #### External dependency test files
 
 The `govendor` tool does not copy `_test.go` files from
