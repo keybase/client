@@ -2,9 +2,13 @@
 
 import { combineReducers } from 'redux'
 import login from './login'
+import search from './search'
 import tabbedRouter from './tabbed-router.js'
 
-export default combineReducers({
-  login,
-  tabbedRouter
-})
+export default function (state, action) {
+  return combineReducers({
+    login,
+    tabbedRouter,
+    search
+  })(state, action)
+}

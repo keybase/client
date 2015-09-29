@@ -17,7 +17,7 @@ export function createRouterState (uri, history) {
 
 function pushIfTailIsDifferent (thing, stack) {
   // TODO: fix this equality check.
-  console.log('Maybe pushing', thing, 'onto', stack)
+  console.log('Maybe pushing', thing.toJS(), 'onto', stack.toJS())
   if (Immutable.is(stack.last(), thing)) {
     return stack.push(thing)
   }

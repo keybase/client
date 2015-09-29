@@ -51,7 +51,6 @@ class DisplaySecretWords extends Component {
 }
 
 DisplaySecretWords.propTypes = {
-  navigator: React.PropTypes.object,
   response: React.PropTypes.object,
   secretWords: React.PropTypes.string
 }
