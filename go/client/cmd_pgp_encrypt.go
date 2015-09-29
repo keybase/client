@@ -60,6 +60,9 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "Specify an outfile (stdout by default).",
 			},
 		},
+		Description : `If encrypting with signatures, "keybase pgp encrypt" requires an
+   imported PGP private key, and accesses the local Keybase keyring when producing
+   the signature.`,
 	}
 }
 

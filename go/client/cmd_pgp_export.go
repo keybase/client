@@ -32,6 +32,9 @@ func NewCmdPGPExport(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "Only export keys matching that query.",
 			},
 		},
+		Description : `"keybase pgp export" exports public (and optionally private) PGP keys
+   from Keybase, and into a file or to standard output. It doesn't access
+   the GnuGP keychain at all.`,
 	}
 }
 

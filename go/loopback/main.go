@@ -15,8 +15,9 @@ var startOnce sync.Once
 
 type debuggingConfig struct {
 	libkb.NullConfiguration
-	homeDir *string
-	runMode *string
+	homeDir   string
+	runMode   string
+	serverURI string
 }
 
 func (n debuggingConfig) GetDebug() (bool, bool) {
@@ -32,19 +33,19 @@ func (n debuggingConfig) GetLocalRPCDebug() string {
 }
 
 func (n debuggingConfig) GetRunMode() (libkb.RunMode, error) {
-	if n.runMode == nil {
+	if n.runMode == "" {
 		return libkb.DevelRunMode, nil
 	}
 
-	return libkb.StringToRunMode(*n.runMode)
+	return libkb.StringToRunMode(n.runMode)
 }
 
 func (n debuggingConfig) GetHome() string {
-	if n.homeDir == nil {
-		return ""
-	}
+	return n.homeDir
+}
 
-	return *n.homeDir
+func (n debuggingConfig) GetServerURI() string {
+	return n.serverURI
 }
 
 func start(cmdline libkb.CommandLine) {
@@ -62,8 +63,8 @@ func start(cmdline libkb.CommandLine) {
 	})
 }
 
-func Init(homeDir string, runMode string) {
-	start(debuggingConfig{libkb.NullConfiguration{}, &homeDir, &runMode})
+func Init(homeDir string, runMode string, serverURI string) {
+	start(debuggingConfig{libkb.NullConfiguration{}, homeDir, runMode, serverURI})
 }
 
 // Takes base64 encoded msgpack rpc payload
@@ -85,8 +86,14 @@ func WriteB64(str string) bool {
 }
 
 // Blocking read, returns base64 encoded msgpack rpc payload
+// bufferSize must be divisible by 3 to ensure that we don't split
+// our b64 encode across a payload boundary if we go over our buffer
+// size
+const targetBufferSize = 50 * 1024
+const bufferSize = targetBufferSize - (targetBufferSize % 3)
+
 func ReadB64() string {
-	data := make([]byte, 50*1024)
+	data := make([]byte, bufferSize)
 
 	n, err := con.Read(data)
 	if n > 0 && err == nil {

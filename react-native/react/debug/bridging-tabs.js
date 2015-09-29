@@ -1,10 +1,10 @@
 'use strict'
 
 import React from 'react-native'
-const {
+import {
   Component,
   TabBarIOS
-} = React
+} from 'react-native'
 
 import SwiftTest from './swift-test'
 import GoTest from './go-test'

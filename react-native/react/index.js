@@ -3,14 +3,14 @@
 
 import React from 'react-native'
 
-const {
+import {
   AppRegistry,
   Component,
   StyleSheet,
   Text,
   TouchableHighlight,
   View
-} = React
+} from 'react-native'
 
 import commonStyles from './styles/common'
 
