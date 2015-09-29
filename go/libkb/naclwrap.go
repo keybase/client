@@ -8,7 +8,7 @@ import (
 	"io"
 
 	"github.com/agl/ed25519"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	triplesec "github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/nacl/box"
 )
