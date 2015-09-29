@@ -138,6 +138,11 @@ class Search extends Component {
   }
 }
 
+function mapStateToGetURI (state) {
+  var uri = SearchActions.getCurrentRoute(state)
+  return state.search[uri]
+}
+
 Search.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   base: React.PropTypes.string.isRequired,
