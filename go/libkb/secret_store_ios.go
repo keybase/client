@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	accessGroup = "99229SGT5K.keybase"
+	accessGroup = "99229SGT5K.group.keybase"
 )
 
 type KeychainSecretStore struct {

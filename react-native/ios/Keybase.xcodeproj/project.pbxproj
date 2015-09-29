@@ -24,7 +24,6 @@
 		DBDCF30C1B8D03DD00BA95D8 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3051B8D03DD00BA95D8 /* AppDelegate.m */; };
 		DBDCF30D1B8D03DD00BA95D8 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3061B8D03DD00BA95D8 /* LaunchScreen.xib */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
-		DBDCF30F1B8D03DD00BA95D8 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3091B8D03DD00BA95D8 /* Info.plist */; };
 		DBDCF3101B8D03DD00BA95D8 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF30A1B8D03DD00BA95D8 /* main.jsbundle */; };
 		DBDCF3111B8D03DD00BA95D8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF30B1B8D03DD00BA95D8 /* main.m */; };
 		DBDCF3531B8D04FD00BA95D8 /* ObjcTest.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */; };
@@ -424,7 +423,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0700;
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = Keybase;
 				TargetAttributes = {
 					00E356ED1AD99517003FC87E = {
@@ -434,7 +433,19 @@
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = 99229SGT5K;
 						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
+							com.apple.DataProtection = {
+								enabled = 1;
+							};
 							com.apple.Keychain = {
+								enabled = 1;
+							};
+							com.apple.Push = {
+								enabled = 1;
+							};
+							com.apple.SafariKeychain = {
 								enabled = 1;
 							};
 						};
@@ -600,7 +611,6 @@
 			files = (
 				DBDCF30D1B8D03DD00BA95D8 /* LaunchScreen.xib in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
-				DBDCF30F1B8D03DD00BA95D8 /* Info.plist in Resources */,
 				DBDCF3101B8D03DD00BA95D8 /* main.jsbundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -714,6 +724,7 @@
 				INFOPLIST_FILE = KeybaseTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Keybase";
 			};
@@ -731,6 +742,7 @@
 				INFOPLIST_FILE = KeybaseTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Keybase";
 			};
@@ -759,15 +771,11 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Keybase/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Users/chrisnojima/go/src/github.com/keybase/client/go/loopback,
-				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = keybase.Keybase;
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
@@ -798,15 +806,11 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Keybase/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Users/chrisnojima/go/src/github.com/keybase/client/go/loopback,
-				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = keybase.Keybase;
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
@@ -833,6 +837,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -973,15 +978,11 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Keybase/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Users/chrisnojima/go/src/github.com/keybase/client/go/loopback,
-				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = keybase.Keybase;
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
@@ -1004,6 +1005,7 @@
 				INFOPLIST_FILE = KeybaseTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Keybase";
 			};
