@@ -22,10 +22,6 @@ class MetaNavigator extends Component {
     }
   }
 
-  hasDeeperRoute (parseNextRoute) {
-    return (parseNextRoute != null)
-  }
-
   isParentOfRoute (routeParent, routeMaybeChild) {
     return (
       !Immutable.is(routeMaybeChild, routeParent) &&
@@ -58,23 +54,44 @@ class MetaNavigator extends Component {
     }
   }
 
+  findGlobalRouteHandler (currentPath) {
+    let parseRoute = null
+    if (this.props.globalRoutes) {
+      this.props.globalRoutes.forEach((route) => {
+        if (route.canParseNextRoute(currentPath)) {
+          parseRoute = route.parseRoute
+          return false // short circuit
+        } else {
+          return true
+        }
+      })
+    }
+
+    return parseRoute
+  }
+
   getComponentAtTop (rootRouteParser, store, uri) {
     let currentPath = uri.first() || Immutable.Map()
     let nextPath = uri.rest().first() || Immutable.Map()
     let restPath = uri.rest().rest()
+    let routeStack = Immutable.List()
 
-    let {componentAtTop, parseNextRoute} = rootRouteParser(store, currentPath, nextPath)
-    let routeStack = Immutable.List([componentAtTop])
+    let parseNextRoute = rootRouteParser
+    let componentAtTop = null
 
-    while (this.hasDeeperRoute(parseNextRoute)) {
-      currentPath = nextPath
-      nextPath = restPath.first() || Immutable.Map()
-      restPath = restPath.rest()
-      const t = parseNextRoute(store, currentPath, nextPath)
-
+    while (parseNextRoute) {
+      const t = parseNextRoute(store, currentPath, nextPath, uri)
       componentAtTop = t.componentAtTop
       parseNextRoute = t.parseNextRoute
       routeStack = routeStack.push(componentAtTop)
+
+      currentPath = nextPath
+      nextPath = restPath.first() || Immutable.Map()
+      restPath = restPath.rest()
+
+      if (!parseNextRoute) {
+        parseNextRoute = this.findGlobalRouteHandler(currentPath)
+      }
     }
 
     return {componentAtTop, routeStack}
@@ -108,7 +125,8 @@ MetaNavigator.propTypes = {
   uri: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
   NavBar: React.PropTypes.object.isRequired,
-  rootRouteParser: React.PropTypes.func.isRequired
+  rootRouteParser: React.PropTypes.func.isRequired,
+  globalRoutes: React.PropTypes.object
 }
 
 export default MetaNavigator

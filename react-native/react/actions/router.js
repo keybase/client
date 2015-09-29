@@ -2,6 +2,15 @@
 
 import * as types from '../constants/routerActionTypes'
 
+export function getCurrentURI (state) {
+  return state.tabbedRouter
+    .getIn(['tabs', state.tabbedRouter.get('activeTab'), 'uri'])
+}
+
+export function getCurrentTab (state) {
+  return state.tabbedRouter.get('activeTab')
+}
+
 export function navigateUp () {
   return {
     type: types.NAVIGATE_UP
