@@ -155,8 +155,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		}
 		// We're sending a key update, then.
 		fp := fmt.Sprintf("%s", *(selected.GetFingerprint()))
-		selectedFingerprint := []string{fp}
-		eng := NewPGPUpdateEngine(selectedFingerprint, false, e.G())
+		eng := NewPGPUpdateEngine([]string{fp}, false, e.G())
 		return RunEngine(eng, ctx)
 	}
 
