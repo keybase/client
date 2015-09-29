@@ -1,3 +1,5 @@
+// +build darwin,!ios
+
 package osxkeychain
 
 // See https://developer.apple.com/library/mac/documentation/Security/Reference/keychainservices/index.html for the APIs used below.
