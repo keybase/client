@@ -801,7 +801,7 @@ func (fbo *FolderBranchOps) getEntryLocked(ctx context.Context,
 // Lookup implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, de DirEntry, err error) {
-	fbo.log.CDebugf(ctx, "Lookup %v %p", dir.GetID(), name)
+	fbo.log.CDebugf(ctx, "Lookup %p %s", dir.GetID(), name)
 	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
 
 	err = fbo.checkNode(dir)
@@ -2508,7 +2508,7 @@ func (fbo *FolderBranchOps) setExLocked(
 // SetEx implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) SetEx(
 	ctx context.Context, file Node, ex bool) (err error) {
-	fbo.log.CDebugf(ctx, "SetEx %p %v", file.GetID(), ex)
+	fbo.log.CDebugf(ctx, "SetEx %p %t", file.GetID(), ex)
 	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
 
 	err = fbo.checkNode(file)
