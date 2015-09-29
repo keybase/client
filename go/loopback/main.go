@@ -15,8 +15,9 @@ var startOnce sync.Once
 
 type debuggingConfig struct {
 	libkb.NullConfiguration
-	homeDir *string
-	runMode *string
+	homeDir   string
+	runMode   string
+	serverURI string
 }
 
 func (n debuggingConfig) GetDebug() (bool, bool) {
@@ -32,19 +33,19 @@ func (n debuggingConfig) GetLocalRPCDebug() string {
 }
 
 func (n debuggingConfig) GetRunMode() (libkb.RunMode, error) {
-	if n.runMode == nil {
+	if n.runMode == "" {
 		return libkb.DevelRunMode, nil
 	}
 
-	return libkb.StringToRunMode(*n.runMode)
+	return libkb.StringToRunMode(n.runMode)
 }
 
 func (n debuggingConfig) GetHome() string {
-	if n.homeDir == nil {
-		return ""
-	}
+	return n.homeDir
+}
 
-	return *n.homeDir
+func (n debuggingConfig) GetServerURI() string {
+	return n.serverURI
 }
 
 func start(cmdline libkb.CommandLine) {
@@ -62,8 +63,8 @@ func start(cmdline libkb.CommandLine) {
 	})
 }
 
-func Init(homeDir string, runMode string) {
-	start(debuggingConfig{libkb.NullConfiguration{}, &homeDir, &runMode})
+func Init(homeDir string, runMode string, serverURI string) {
+	start(debuggingConfig{libkb.NullConfiguration{}, homeDir, runMode, serverURI})
 }
 
 // Takes base64 encoded msgpack rpc payload
