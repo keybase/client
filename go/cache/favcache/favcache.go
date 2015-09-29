@@ -4,7 +4,7 @@ import (
 	"sort"
 	"sync"
 
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // Cache is a simple cache of kbfs folder favorites.  It doesn't

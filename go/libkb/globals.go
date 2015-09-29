@@ -22,7 +22,7 @@ import (
 
 	"github.com/keybase/client/go/cache/favcache"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type ShutdownHook func() error

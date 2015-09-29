@@ -48,8 +48,8 @@ build-stamp: \
 	@mkdir -p json
 	date > $@
 
-go/keybase_v1.go: build-stamp
-	@mkdir -p go/
+../go/protocol/keybase_v1.go: build-stamp
+	@mkdir -p ../go/protocol
 	$(ICED) ./bin/go.iced -v 2 -d json -t go -o $@
 	gofmt -w $@
 
@@ -62,9 +62,9 @@ js/keybase_v1.js: build-stamp
 	node ./bin/js.js
 
 clean:
-	rm -rf json/*.json go/keybase_v1.go objc/* js/keybase_v1.js
+	rm -rf json/*.json ../go/protocol/keybase_v1.go objc/* js/keybase_v1.js
 
-build: build-stamp go/keybase_v1.go objc-build-stamp js/keybase_v1.js
+build: build-stamp ../go/protocol/keybase_v1.go objc-build-stamp js/keybase_v1.js
 
 .PHONY: test setup config
 

@@ -6,7 +6,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -79,7 +79,7 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "only import the secret key into the local Keybase keyring.",
 			},
 		},
-		Description : `"keybase pgp select" looks at the local GnuPG keychain for all
+		Description: `"keybase pgp select" looks at the local GnuPG keychain for all
    available secret keys. It then makes those keys available for use with keybase.
    The steps involved are: (1) sign a signature chain link with the selected PGP
    key and the existing device key; (2) push this signature and the public PGP

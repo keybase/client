@@ -1,7 +1,7 @@
 package client
 
 import (
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func promptNewPassphrase() (string, error) {

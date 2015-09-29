@@ -1,6 +1,6 @@
 package libkb
 
-import keybase1 "github.com/keybase/client/protocol/go"
+import keybase1 "github.com/keybase/client/go/protocol"
 
 type IdentifyState struct {
 	res   *IdentifyOutcome
