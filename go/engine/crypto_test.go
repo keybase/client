@@ -3,6 +3,8 @@ package engine
 import (
 	"testing"
 
+	"golang.org/x/crypto/nacl/box"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/protocol/go"
 )
@@ -50,24 +52,28 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	}
 }
 
-/*
 // Test that CryptoHandler.UnboxBytes32() decrypts a boxed 32-byte
 // array correctly.
 func TestCryptoUnboxBytes32(t *testing.T) {
-	h := NewCryptoHandler(nil)
+	tc := SetupEngineTest(t, "crypto")
+	defer tc.Cleanup()
 
-	kp, err := libkb.GenerateNaclDHKeyPair()
+	u := CreateAndSignupFakeUser(tc, "fu")
+	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+
+	key, err := getMySecretKey(
+		tc.G, secretUI, libkb.DeviceEncryptionKeyType, "test")
 	if err != nil {
 		t.Fatal(err)
+	}
+	kp, ok := key.(libkb.NaclDHKeyPair)
+	if !ok || kp.Private == nil {
+		t.Fatalf("unexpected key %v", key)
 	}
 
 	peerKp, err := libkb.GenerateNaclDHKeyPair()
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
-		return kp, nil
 	}
 
 	expectedBytes32 := keybase1.Bytes32{0, 1, 2, 3, 4, 5}
@@ -83,7 +89,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 
 	copy(encryptedBytes32[:], encryptedData)
 
-	bytes32, err := h.UnboxBytes32(keybase1.UnboxBytes32Arg{
+	bytes32, err := UnboxBytes32(tc.G, secretUI, keybase1.UnboxBytes32Arg{
 		EncryptedBytes32: encryptedBytes32,
 		Nonce:            nonce,
 		PeersPublicKey:   peersPublicKey,
@@ -98,6 +104,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 	}
 }
 
+/*
 // Test that CryptoHandler.UnboxBytes32() propagates any decryption
 // errors correctly.
 //
