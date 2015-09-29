@@ -14,6 +14,7 @@ import More from './tabs/more'
 
 import { switchTab } from './actions/tabbedRouter'
 import { navigateUp } from './actions/router'
+import { getConfig } from './actions/config'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
 
@@ -74,6 +75,12 @@ function NavigationBarRouteMapper (dispatch) {
 }
 
 class Nav extends Component {
+  constructor (props) {
+    super(props)
+
+    const {dispatch} = this.props
+    dispatch(getConfig())
+  }
 
   navBar () {
     const {dispatch} = this.props
@@ -101,12 +108,29 @@ class Nav extends Component {
   shouldComponentUpdate (nextProps, nextState) {
     const activeTab = this.props.tabbedRouter.get('activeTab')
     const nextActiveTab = nextProps.tabbedRouter.get('activeTab')
-    return activeTab !== nextActiveTab
+    if (activeTab !== nextActiveTab) {
+      return true
+    }
+
+    if (this.props.config.loaded !== nextProps.config.loaded) {
+      return true
+    }
+
+    return false
   }
 
   render () {
     const {dispatch} = this.props
     const activeTab = this.props.tabbedRouter.get('activeTab')
+
+    if (!this.props.config.loaded) {
+      return (
+        <Text style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          Loading...
+        </Text>
+      )
+    }
+
     return (
       <View style={{flex: 1}}>
         <TabBarIOS
@@ -149,7 +173,7 @@ class Nav extends Component {
 
   static parseRoute () {
     return {
-      componentAtTop: {component: Nav},
+      componentAtTop: { component: Nav },
       parseNextRoute: null
     }
   }
@@ -158,7 +182,10 @@ class Nav extends Component {
 Nav.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
-  store: React.PropTypes.object.isRequired
+  store: React.PropTypes.object.isRequired,
+  config: React.PropTypes.shape({
+    loaded: React.PropTypes.bool.isRequired
+  }).isRequired
 }
 
 const styles = StyleSheet.create({
