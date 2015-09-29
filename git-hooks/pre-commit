@@ -31,7 +31,7 @@ check_go_vet() {
 	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/)
 	[ -z "$gofiles" ] && return 0
 
-	warnings=$(go vet ./... 2>&1 | grep -v vendor)
+	warnings=$(go vet $(go list ./... | grep -v vendor) 2>&1)
 	[ -z "$warnings" ] && return 0
 
 	# go vet found issues
