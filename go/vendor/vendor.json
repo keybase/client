@@ -53,11 +53,6 @@
 			"revisionTime": "2015-09-21T11:51:56-05:00"
 		},
 		{
-			"path": "github.com/keybase/client/protocol/go",
-			"revision": "2b30c8688ef948df1ffed21396c998df91686ef6",
-			"revisionTime": "2015-09-25T15:46:30-07:00"
-		},
-		{
 			"path": "github.com/keybase/go-jsonw",
 			"revision": "8b210ebd44e383ee4c61a58284a478f1a50787e4",
 			"revisionTime": "2015-06-24T12:59:21-04:00"
