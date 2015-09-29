@@ -34,50 +34,23 @@ func TestCryptoSignED25519(t *testing.T) {
 	}
 }
 
-/*
-// Test that SignED25519() returns an error if the wrong type of key
-// is returned as the signing key.
-func TestCryptoSignED25519WrongSigningKey(t *testing.T) {
-	h := NewCryptoHandler(nil)
-
-	kp, err := libkb.GenerateNaclDHKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
-		return kp, nil
-	}
-
-	_, err = h.SignED25519(keybase1.SignED25519Arg{
-		Msg: []byte("test message"),
-	})
-
-	expectedErr := libkb.KeyCannotSignError{}
-	if err != expectedErr {
-		t.Errorf("expected %v, got %v", expectedErr, err)
-	}
-}
-
 // Test that CryptoHandler.SignED25519() propagates any error
 // encountered when getting the device signing key.
 func TestCryptoSignED25519NoSigningKey(t *testing.T) {
-	h := NewCryptoHandler(nil)
+	tc := SetupEngineTest(t, "crypto")
+	defer tc.Cleanup()
 
-	expectedErr := errors.New("Test error")
-	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
-		return nil, expectedErr
-	}
-
-	_, err := h.SignED25519(keybase1.SignED25519Arg{
+	secretUI := &libkb.TestSecretUI{}
+	_, err := SignED25519(tc.G, secretUI, keybase1.SignED25519Arg{
 		Msg: []byte("test message"),
 	})
 
-	if err != expectedErr {
-		t.Errorf("expected %v, got %v", expectedErr, err)
+	if err == nil {
+		t.Errorf("expected nil, got %v", err)
 	}
 }
 
+/*
 // Test that CryptoHandler.UnboxBytes32() decrypts a boxed 32-byte
 // array correctly.
 func TestCryptoUnboxBytes32(t *testing.T) {
