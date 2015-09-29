@@ -708,9 +708,9 @@ func (e NotConfirmedError) Error() string {
 
 //=============================================================================
 
-type DuplicateKeyChosenError struct{}
+type SibkeyAlreadyExistsError struct{}
 
-func (e DuplicateKeyChosenError) Error() string {
+func (e SibkeyAlreadyExistsError) Error() string {
 	return "Key is already selected for use on Keybase"
 }
 

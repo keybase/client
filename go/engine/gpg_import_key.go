@@ -151,7 +151,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 			return err
 		}
 		if !res {
-			return libkb.DuplicateKeyChosenError{}
+			return libkb.SibkeyAlreadyExistsError{}
 		}
 		// We're sending a key update, then.
 		fp := fmt.Sprintf("%s", *(selected.GetFingerprint()))

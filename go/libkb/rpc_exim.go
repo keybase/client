@@ -218,8 +218,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ReloginRequiredError{}
 	case SCDeviceRequired:
 		return DeviceRequiredError{}
-	case SCDuplicateKeyChosen:
-		return DuplicateKeyChosenError{}
+	case SCSibkeyAlreadyExists:
+		return SibkeyAlreadyExistsError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -747,9 +747,9 @@ func (e DeviceRequiredError) ToStatus() keybase1.Status {
 	}
 }
 
-func (e DuplicateKeyChosenError) ToStatus() keybase1.Status {
+func (e SibkeyAlreadyExistsError) ToStatus() keybase1.Status {
 	return keybase1.Status{
-		Code: SCDuplicateKeyChosen,
+		Code: SCSibkeyAlreadyExists,
 		Name: "SC_DUPLICATE_KEY_CHOSEN",
 		Desc: e.Error(),
 	}

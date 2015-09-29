@@ -112,6 +112,7 @@ const (
 	SCKeyBadEldest           = 919
 	SCKeyNoEldest            = 920
 	SCKeyDuplicateUpdate     = 921
+	SCSibkeyAlreadyExists    = 922
 	SCBadTrackSession        = 1301
 	SCDeviceNotFound         = 1409
 	SCDeviceMismatch         = 1410
@@ -126,7 +127,6 @@ const (
 	SCIdentificationExpired  = 1702
 	SCSelfNotFound           = 1703
 	SCBadKexPhrase           = 1704
-	SCDuplicateKeyChosen     = 1705
 )
 
 const (
