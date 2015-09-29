@@ -140,8 +140,9 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	publicKeys := me.GetActivePGPKeys(false)
 	duplicate := false
 	for _, key := range publicKeys {
-		if key.GetFingerprint() == *(selected.GetFingerprint()) {
+		if key.GetFingerprint().Eq(*(selected.GetFingerprint())) {
 			duplicate = true
+			break
 		}
 	}
 	if duplicate {
