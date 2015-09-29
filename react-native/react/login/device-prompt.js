@@ -30,6 +30,8 @@ class DevicePrompt extends Component {
   }
 
   render () {
+    const error = this.props.deviceNameError ? <Text>{this.props.deviceNameError}</Text> : null
+
     return (
         <View style={styles.container}>
           <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Set a device name</Text>
@@ -44,6 +46,8 @@ class DevicePrompt extends Component {
             onChangeText={(deviceName) => this.setState({deviceName})}
             onSubmitEditing={(event) => { this.submit() }}
             />
+
+          {error}
 
           <View style={styles.submitWrapper}>
             <TouchableHighlight
@@ -79,7 +83,8 @@ class DevicePrompt extends Component {
 
 DevicePrompt.propTypes = {
   onSubmit: React.PropTypes.func.isRequired,
-  deviceName: React.PropTypes.string
+  deviceName: React.PropTypes.string,
+  deviceNameError: React.PropTypes.string
 }
 
 const styles = StyleSheet.create({

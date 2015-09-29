@@ -22,7 +22,6 @@
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DBCE36251B90F14800ECADDE /* ObjcEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* ObjcEngine.m */; };
 		DBDCF30C1B8D03DD00BA95D8 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3051B8D03DD00BA95D8 /* AppDelegate.m */; };
-		DBDCF30D1B8D03DD00BA95D8 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3061B8D03DD00BA95D8 /* LaunchScreen.xib */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DBDCF3101B8D03DD00BA95D8 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF30A1B8D03DD00BA95D8 /* main.jsbundle */; };
 		DBDCF3111B8D03DD00BA95D8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF30B1B8D03DD00BA95D8 /* main.m */; };
@@ -144,7 +143,6 @@
 		DBCE36241B90F14800ECADDE /* ObjcEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ObjcEngine.m; sourceTree = "<group>"; };
 		DBDCF3041B8D03DD00BA95D8 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DBDCF3051B8D03DD00BA95D8 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		DBDCF3071B8D03DD00BA95D8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF30A1B8D03DD00BA95D8 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
@@ -341,7 +339,6 @@
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				DBDCF3041B8D03DD00BA95D8 /* AppDelegate.h */,
 				DBDCF3051B8D03DD00BA95D8 /* AppDelegate.m */,
-				DBDCF3061B8D03DD00BA95D8 /* LaunchScreen.xib */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DBDCF30A1B8D03DD00BA95D8 /* main.jsbundle */,
@@ -609,7 +606,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DBDCF30D1B8D03DD00BA95D8 /* LaunchScreen.xib in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
 				DBDCF3101B8D03DD00BA95D8 /* main.jsbundle in Resources */,
 			);
@@ -696,17 +692,6 @@
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		DBDCF3061B8D03DD00BA95D8 /* LaunchScreen.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				DBDCF3071B8D03DD00BA95D8 /* Base */,
-			);
-			name = LaunchScreen.xib;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
