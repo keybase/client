@@ -750,7 +750,7 @@ func (e DeviceRequiredError) ToStatus() keybase1.Status {
 func (e SibkeyAlreadyExistsError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCSibkeyAlreadyExists,
-		Name: "SC_DUPLICATE_KEY_CHOSEN",
+		Name: "SC_SIBKEY_ALREADY_EXISTS",
 		Desc: e.Error(),
 	}
 }
