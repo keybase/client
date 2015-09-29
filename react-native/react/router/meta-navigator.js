@@ -98,19 +98,6 @@ class MetaNavigator extends Component {
     */
   }
 
-  /*
-  handleGlobalRoutes (parseNextRoute, store, currentPath, nextPath) {
-    if (parseNextRoute || !this.props.globalRoutes) {
-      return parseNextRoute
-    }
-
-    this.props.globalRoutes.forEach( (route) => {
-      const t = route.parseNextRoute(store, currentPath, nextPath)
-
-    })
-  }
-
- */
   render () {
     // TODO (mm): know when to create a new navigator
 
