@@ -52,7 +52,7 @@ function NavigationBarRouteMapper (dispatch) {
           onPress={() => dispatch(navigateUp())}
           style={styles.navBarLeftButton}>
           <Text style={[styles.navBarText, styles.navBarButtonText]}>
-            {route.leftButtonTitle || previousRoute.title || ' <= '}
+            {route.leftButtonTitle || previousRoute.title || 'Back'}
           </Text>
         </TouchableOpacity>
       )
