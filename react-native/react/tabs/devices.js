@@ -13,6 +13,7 @@ const {
 
 import commonStyles from '../styles/common'
 import { loadDevices } from '../actions/devices'
+import moment from 'moment'
 
 export default class Devices extends Component {
   constructor (props) {
@@ -35,7 +36,7 @@ export default class Devices extends Component {
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
     const devices = !props.devices ? [] : props.devices.map(function (d) {
-      const desc = 'hi'
+      const desc = `A ${d.type} with id: ${d.deviceID} added on ${moment(d.cTime).format('dddd, MMMM Do YYYY, h:mm:ss a')}`
       return {
         ...d,
         desc: desc
