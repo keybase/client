@@ -24,15 +24,15 @@ func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, 
 	return
 }
 
-func checkAliceProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
-	checkKeyedProfile(t, idUI, user, "alice", true, map[string]string{
+func checkAliceProofs(tb testing.TB, idUI *FakeIdentifyUI, user *libkb.User) {
+	checkKeyedProfile(tb, idUI, user, "alice", true, map[string]string{
 		"github":  "kbtester2",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkBobProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
-	checkKeyedProfile(t, idUI, user, "bob", true, map[string]string{
+func checkBobProofs(tb testing.TB, idUI *FakeIdentifyUI, user *libkb.User) {
+	checkKeyedProfile(tb, idUI, user, "bob", true, map[string]string{
 		"github":  "kbtester1",
 		"twitter": "kbtester1",
 	})
@@ -49,13 +49,13 @@ func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
 	checkKeyedProfile(t, idUI, user, "doug", false, nil)
 }
 
-func checkKeyedProfile(t *testing.T, idUI *FakeIdentifyUI, them *libkb.User, name string, hasImg bool, expectedProofs map[string]string) {
+func checkKeyedProfile(tb testing.TB, idUI *FakeIdentifyUI, them *libkb.User, name string, hasImg bool, expectedProofs map[string]string) {
 	if exported := them.Export(); !reflect.DeepEqual(idUI.User, exported) {
-		t.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
+		tb.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
 	}
 
 	if !reflect.DeepEqual(expectedProofs, idUI.Proofs) {
-		t.Fatal("Wrong proofs.", expectedProofs, idUI.Proofs)
+		tb.Fatal("Wrong proofs.", expectedProofs, idUI.Proofs)
 	}
 }
 
