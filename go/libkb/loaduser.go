@@ -114,6 +114,9 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	defer func() {
 		if ret != nil {
 			ret.SetGlobalContext(arg.G())
+			if err == nil {
+				arg.G().UserCache.Insert(ret)
+			}
 		}
 	}()
 
@@ -301,4 +304,54 @@ func LookupMerkleLeaf(uid keybase1.UID, local *User) (f *MerkleUserLeaf, err err
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}
 	return
+}
+
+func LoadUserPlusKeys(g *GlobalContext, assertion string, cacheOK bool) (keybase1.UserPlusKeys, error) {
+	var up keybase1.UserPlusKeys
+
+	// resolve assertion -> uid
+	rres := ResolveUID(assertion)
+	if rres.err != nil {
+		return up, rres.err
+	}
+
+	if rres.uid.IsNil() {
+		return up, fmt.Errorf("No resolution for assertion=%s", assertion)
+	}
+
+	var u *User
+	if cacheOK {
+		// it's ok to return a cached value
+		var err error
+		u, err = g.UserCache.Get(rres.uid)
+		if err != nil {
+			// not going to bail on cache error
+			if _, ok := err.(NotFoundError); !ok {
+				g.Log.Debug("UserCache Get error: %s", err)
+			}
+		}
+	}
+
+	if u == nil {
+		arg := NewLoadUserArg(g)
+		arg.UID = rres.uid
+		arg.PublicKeyOptional = true
+		var err error
+		u, err = LoadUser(arg)
+		if err != nil {
+			return up, err
+		}
+		if u == nil {
+			return up, fmt.Errorf("Nil user, nil error from LoadUser")
+		}
+	}
+
+	// export user to UserPlusKeys
+	up.Uid = u.GetUID()
+	up.Username = u.GetName()
+	if u.GetComputedKeyFamily() != nil {
+		up.DeviceKeys = u.GetComputedKeyFamily().ExportDeviceKeys()
+	}
+
+	return up, nil
 }

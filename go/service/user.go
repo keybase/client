@@ -88,6 +88,10 @@ func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, er
 	return
 }
 
+func (h *UserHandler) LoadUserPlusKeys(arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
+	return libkb.LoadUserPlusKeys(G, arg.Assertion, arg.CacheOK)
+}
+
 func (h *UserHandler) Search(arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {
 	eng := engine.NewSearchEngine(engine.SearchEngineArgs{
 		Query: arg.Query,

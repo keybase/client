@@ -4,6 +4,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libkb"
@@ -101,6 +102,9 @@ func (p CommandLine) GetString(s string) string {
 func (p CommandLine) GetGInt(s string) int {
 	return p.ctx.GlobalInt(s)
 }
+func (p CommandLine) GetGDuration(s string) (time.Duration, error) {
+	return time.ParseDuration(p.GetGString(s))
+}
 func (p CommandLine) GetGpg() string {
 	return p.GetGString("gpg")
 }
@@ -129,12 +133,12 @@ func (p CommandLine) GetMerkleKIDs() []string {
 	}
 	return nil
 }
-func (p CommandLine) GetUserCacheSize() (int, bool) {
-	ret := p.GetGInt("user-cache-size")
-	if ret != 0 {
-		return ret, true
+func (p CommandLine) GetUserCacheMaxAge() (time.Duration, bool) {
+	ret, err := p.GetGDuration("user-cache-maxage")
+	if err != nil {
+		return 0, false
 	}
-	return 0, false
+	return ret, true
 }
 func (p CommandLine) GetProofCacheSize() (int, bool) {
 	ret := p.GetGInt("proof-cache-size")

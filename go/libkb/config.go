@@ -432,8 +432,8 @@ func (f JSONConfigFile) getCacheSize(w string) (int, bool) {
 	return f.jw.AtPathGetInt(w)
 }
 
-func (f JSONConfigFile) GetUserCacheSize() (int, bool) {
-	return f.getCacheSize("cache.limits.users")
+func (f JSONConfigFile) GetUserCacheMaxAge() (time.Duration, bool) {
+	return f.GetDurationAtPath("cache.maxage.users")
 }
 func (f JSONConfigFile) GetProofCacheSize() (int, bool) {
 	return f.getCacheSize("cache.limits.proofs")

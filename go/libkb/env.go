@@ -24,7 +24,7 @@ func (n NullConfiguration) GetEmail() string                              { retu
 func (n NullConfiguration) GetProxy() string                              { return "" }
 func (n NullConfiguration) GetGpgHome() string                            { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                  { return "" }
-func (n NullConfiguration) GetUserCacheSize() (int, bool)                 { return 0, false }
+func (n NullConfiguration) GetUserCacheMaxAge() (time.Duration, bool)     { return 0, false }
 func (n NullConfiguration) GetProofCacheSize() (int, bool)                { return 0, false }
 func (n NullConfiguration) GetProofCacheLongDur() (time.Duration, bool)   { return 0, false }
 func (n NullConfiguration) GetProofCacheMediumDur() (time.Duration, bool) { return 0, false }
@@ -494,11 +494,11 @@ func (e *Env) GetBundledCA(host string) string {
 	)
 }
 
-func (e *Env) GetUserCacheSize() int {
-	return e.GetInt(UserCacheSize,
-		func() (int, bool) { return e.cmd.GetUserCacheSize() },
-		func() (int, bool) { return e.getEnvInt("KEYBASE_USER_CACHE_SIZE") },
-		func() (int, bool) { return e.config.GetUserCacheSize() },
+func (e *Env) GetUserCacheMaxAge() time.Duration {
+	return e.GetDuration(UserCacheMaxAge,
+		func() (time.Duration, bool) { return e.cmd.GetUserCacheMaxAge() },
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_USER_CACHE_MAX_AGE") },
+		func() (time.Duration, bool) { return e.config.GetUserCacheMaxAge() },
 	)
 }
 

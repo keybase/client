@@ -40,6 +40,12 @@ protocol user {
 		Time trackTime;
 	}
 
+	record UserPlusKeys {
+		UID uid;
+		string username;
+		array<PublicKey> deviceKeys;
+	}
+
 	// load user summaries for the supplied uids.
 	// they are "unchecked" in that the client is not verifying the info from the server.
 	// if len(uids) > 500, the first 500 will be returned.
@@ -47,6 +53,11 @@ protocol user {
 
 	// Load a user from the server.
 	User loadUser(int sessionID, UID uid);
+
+	// Load a user + device keys from the server.
+	// assertion can be any user assertion.
+	// cacheOK -> true means that a cached value is ok to return.
+	UserPlusKeys loadUserPlusKeys(int sessionID, string assertion, boolean cacheOK);
 
 	// Load public keys for a user
 	array<PublicKey> loadPublicKeys(int sessionID, UID uid);

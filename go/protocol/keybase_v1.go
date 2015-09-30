@@ -3453,6 +3453,12 @@ type UserSummary struct {
 	TrackTime    Time   `codec:"trackTime" json:"trackTime"`
 }
 
+type UserPlusKeys struct {
+	Uid        UID         `codec:"uid" json:"uid"`
+	Username   string      `codec:"username" json:"username"`
+	DeviceKeys []PublicKey `codec:"deviceKeys" json:"deviceKeys"`
+}
+
 type SearchComponent struct {
 	Key   string  `codec:"key" json:"key"`
 	Value string  `codec:"value" json:"value"`
@@ -3490,6 +3496,12 @@ type LoadUserArg struct {
 	Uid       UID `codec:"uid" json:"uid"`
 }
 
+type LoadUserPlusKeysArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Assertion string `codec:"assertion" json:"assertion"`
+	CacheOK   bool   `codec:"cacheOK" json:"cacheOK"`
+}
+
 type LoadPublicKeysArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -3517,6 +3529,7 @@ type UserInterface interface {
 	ListTrackersSelf(int) ([]Tracker, error)
 	LoadUncheckedUserSummaries(LoadUncheckedUserSummariesArg) ([]UserSummary, error)
 	LoadUser(LoadUserArg) (User, error)
+	LoadUserPlusKeys(LoadUserPlusKeysArg) (UserPlusKeys, error)
 	LoadPublicKeys(LoadPublicKeysArg) ([]PublicKey, error)
 	ListTracking(ListTrackingArg) ([]UserSummary, error)
 	ListTrackingJSON(ListTrackingJSONArg) (string, error)
@@ -3559,6 +3572,13 @@ func UserProtocol(i UserInterface) rpc2.Protocol {
 				args := make([]LoadUserArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.LoadUser(args[0])
+				}
+				return
+			},
+			"loadUserPlusKeys": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]LoadUserPlusKeysArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.LoadUserPlusKeys(args[0])
 				}
 				return
 			},
@@ -3622,6 +3642,11 @@ func (c UserClient) LoadUncheckedUserSummaries(__arg LoadUncheckedUserSummariesA
 
 func (c UserClient) LoadUser(__arg LoadUserArg) (res User, err error) {
 	err = c.Cli.Call("keybase.1.user.loadUser", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) LoadUserPlusKeys(__arg LoadUserPlusKeysArg) (res UserPlusKeys, err error) {
+	err = c.Cli.Call("keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res)
 	return
 }
 

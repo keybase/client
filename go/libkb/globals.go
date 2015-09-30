@@ -48,6 +48,7 @@ type GlobalContext struct {
 	XStreams         *ExportedStreams  // a table of streams we've exported to the daemon (or vice-versa)
 	Timers           *TimerSet         // Which timers are currently configured on
 	IdentifyCache    *IdentifyCache    // cache of IdentifyOutcomes
+	UserCache        *UserCache        // cache of Users
 	UI               UI                // Interact with the UI
 	Service          bool              // whether we're in server mode
 	shutdownOnce     sync.Once         // whether we've shut down or not
@@ -109,7 +110,11 @@ func (g *GlobalContext) Logout() error {
 	if g.IdentifyCache != nil {
 		g.IdentifyCache.Shutdown()
 	}
+	if g.UserCache != nil {
+		g.UserCache.Shutdown()
+	}
 	g.IdentifyCache = NewIdentifyCache()
+	g.UserCache = NewUserCache(g.Env.GetUserCacheMaxAge())
 	g.FavoriteCache = favcache.New()
 
 	// get a clean LoginState:
@@ -180,6 +185,7 @@ func (g *GlobalContext) ConfigureAPI() error {
 func (g *GlobalContext) ConfigureCaches() error {
 	g.ResolveCache = NewResolveCache()
 	g.IdentifyCache = NewIdentifyCache()
+	g.UserCache = NewUserCache(g.Env.GetUserCacheMaxAge())
 	g.ProofCache = NewProofCache(g.Env.GetProofCacheSize())
 	g.FavoriteCache = favcache.New()
 
@@ -226,6 +232,9 @@ func (g *GlobalContext) Shutdown() error {
 
 		if g.IdentifyCache != nil {
 			g.IdentifyCache.Shutdown()
+		}
+		if g.UserCache != nil {
+			g.UserCache.Shutdown()
 		}
 
 		for _, hook := range g.ShutdownHooks {

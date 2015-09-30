@@ -249,6 +249,22 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "UserPlusKeys",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "deviceKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    } ]
+  }, {
+    "type" : "record",
     "name" : "SearchComponent",
     "fields" : [ {
       "name" : "key",
@@ -342,6 +358,19 @@
         "type" : "UID"
       } ],
       "response" : "User"
+    },
+    "loadUserPlusKeys" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "assertion",
+        "type" : "string"
+      }, {
+        "name" : "cacheOK",
+        "type" : "boolean"
+      } ],
+      "response" : "UserPlusKeys"
     },
     "loadPublicKeys" : {
       "request" : [ {

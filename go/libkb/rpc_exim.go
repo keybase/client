@@ -586,6 +586,54 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 	return exportedKeys
 }
 
+func (ckf ComputedKeyFamily) ExportDeviceKeys() []keybase1.PublicKey {
+	fmt.Printf("export device keys\n")
+	exportedKeys := []keybase1.PublicKey{}
+	addKey := func(key GenericKey) {
+		fmt.Printf("addKey: %+v\n", key)
+		if _, isPGP := key.(*PGPKeyBundle); isPGP {
+			return
+		}
+		kid := key.GetKID()
+		cki := ckf.cki.Infos[kid]
+		deviceID := ckf.cki.KIDToDeviceID[kid]
+		device := ckf.cki.Devices[deviceID]
+		deviceDescription := ""
+		deviceType := ""
+		if device != nil {
+			if device.Description != nil {
+				deviceDescription = *device.Description
+			}
+			if device.Type != "" {
+				deviceType = device.Type
+			}
+		}
+		parentID := ""
+		if cki.Parent.IsValid() {
+			parentID = cki.Parent.String()
+		}
+		exportedKeys = append(exportedKeys, keybase1.PublicKey{
+			KID:               kid,
+			IsSibkey:          cki.Sibkey,
+			IsEldest:          cki.Eldest,
+			ParentID:          parentID,
+			DeviceID:          deviceID,
+			DeviceType:        deviceType,
+			DeviceDescription: deviceDescription,
+			CTime:             keybase1.TimeFromSeconds(cki.CTime),
+			ETime:             keybase1.TimeFromSeconds(cki.ETime),
+		})
+	}
+	for _, sibkey := range ckf.GetAllActiveSibkeys() {
+		addKey(sibkey)
+	}
+	for _, subkey := range ckf.GetAllActiveSubkeys() {
+		addKey(subkey)
+	}
+	sort.Sort(PublicKeyList(exportedKeys))
+	return exportedKeys
+}
+
 func (u *User) Export() *keybase1.User {
 	return &keybase1.User{
 		Uid:      u.GetUID(),

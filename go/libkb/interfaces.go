@@ -30,7 +30,7 @@ type CommandLine interface {
 	GetLogFormat() string
 	GetGpgHome() string
 	GetAPIDump() (bool, bool)
-	GetUserCacheSize() (int, bool)
+	GetUserCacheMaxAge() (time.Duration, bool)
 	GetProofCacheSize() (int, bool)
 	GetMerkleKIDs() []string
 	GetPinentry() string
@@ -95,7 +95,7 @@ type ConfigReader interface {
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
 	GetNullAtPath(string) bool
-	GetUserCacheSize() (int, bool)
+	GetUserCacheMaxAge() (time.Duration, bool)
 	GetProofCacheSize() (int, bool)
 	GetProofCacheLongDur() (time.Duration, bool)
 	GetProofCacheMediumDur() (time.Duration, bool)
