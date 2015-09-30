@@ -14,19 +14,7 @@ import SelectSigner from './select-signer'
 import DisplaySecretWords from './display-secret-words'
 import LoginForm from './form'
 
-import { bindActionCreators } from 'redux'
-import * as LoginActions from '../actions/login'
-
-class LoginContainer extends Component {
-  constructor (props) {
-    super(props)
-
-    const { dispatch } = this.props
-    this.actions = bindActionCreators(LoginActions, dispatch)
-    // TODO move this into the router logic
-    this.showingLoginState = null
-  }
-
+export default class LoginContainer extends Component {
   render () {
     return (
       <View style={styles.container}>
@@ -94,5 +82,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF'
   }
 })
-
-export default LoginContainer

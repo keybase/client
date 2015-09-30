@@ -31,6 +31,10 @@ export default StyleSheet.create({
   },
   h2: {
     fontSize: 16
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#CCCCCC'
   }
 })
 
