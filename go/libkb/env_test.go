@@ -13,10 +13,9 @@ func TestEnvDarwin(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("%s\n", sockFile)
 
 	expectedSockFile := filepath.Join(runtimeDir, "keybased.sock")
 	if sockFile != expectedSockFile {
-		t.Fatal("Clients expect sock file to be %s", expectedSockFile)
+		t.Fatalf("Clients expect sock file to be %s", expectedSockFile)
 	}
 }
