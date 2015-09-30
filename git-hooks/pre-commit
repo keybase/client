@@ -43,6 +43,10 @@ check_go_vet() {
 }
 
 check_make_lint() {
+    if ! which golint > /dev/null 2>&1 ; then
+      echo >&2 "golint is not installed"
+      exit 1
+    fi
     # Try the root dir.  If that doesn't work, see if there's a go subdir.
     lint=$(make -s lint 2> /dev/null)
     if [ $? -eq 2 ] ; then
