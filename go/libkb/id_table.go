@@ -722,7 +722,7 @@ func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error
 func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(u)
 	if list, found := tab.tracks[u.whom]; !found {
-		G.Log.Notice("Bad untrack of %s; no previous tracking statement found",
+		G.Log.Debug("| Useless untrack of %s; no previous tracking statement found",
 			u.whom)
 	} else {
 		for _, obj := range list {
