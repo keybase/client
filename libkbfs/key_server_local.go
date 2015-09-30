@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"

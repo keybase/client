@@ -1,7 +1,7 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/protocol/go"
+	"github.com/keybase/client/go/protocol"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )

@@ -8,7 +8,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
-	go0 "github.com/keybase/client/protocol/go"
+	go0 "github.com/keybase/client/go/protocol"
 	rpc2 "github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"

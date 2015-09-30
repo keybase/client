@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strconv"
 
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // PrivateMetadata contains the portion of metadata that's secret for private

@@ -7,7 +7,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"

@@ -3,7 +3,7 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	"golang.org/x/net/context"
 )

@@ -6,7 +6,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/cache/favcache"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )

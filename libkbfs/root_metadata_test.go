@@ -3,7 +3,7 @@ package libkbfs
 import (
 	"testing"
 
-	"github.com/keybase/client/protocol/go"
+	"github.com/keybase/client/go/protocol"
 )
 
 // Test that GetTlfHandle() generates a TlfHandle properly for public

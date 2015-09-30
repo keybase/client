@@ -5,7 +5,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/keybase/client/protocol/go"
+	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )

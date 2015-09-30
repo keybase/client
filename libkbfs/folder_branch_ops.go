@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
 

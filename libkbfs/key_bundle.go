@@ -1,6 +1,6 @@
 package libkbfs
 
-import keybase1 "github.com/keybase/client/protocol/go"
+import keybase1 "github.com/keybase/client/go/protocol"
 
 // All section references below are to https://keybase.io/blog/crypto
 // (version 1.3).
