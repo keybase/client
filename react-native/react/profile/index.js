@@ -6,6 +6,7 @@ import {
   ActivityIndicatorIOS,
   Component,
   StyleSheet,
+  ScrollView,
   Text,
   TextInput,
   TouchableHighlight,
@@ -26,9 +27,11 @@ class Profile extends Component {
 
   render () {
     return (
-      <View style={styles.container}>
-        <Text>{this.props}</Text>
-      </View>
+      <ScrollView style={styles.container}>
+        <View>
+          <Text>{JSON.stringify(this.props, null, 4)}</Text>
+        </View>
+      </ScrollView>
     )
   }
 
@@ -58,8 +61,6 @@ Profile.propTypes = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'stretch',
     backgroundColor: '#F5FCFF',
     marginTop: 64
   },
