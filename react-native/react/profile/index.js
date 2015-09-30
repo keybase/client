@@ -33,7 +33,7 @@ class Profile extends Component {
           <Text>keybase.io/{this.props.username}</Text>
           { Object.keys(this.props.proofs).map(proof => {
             const {proofs: {[proof]: details}} = this.props
-            return (<Text>{proof}: {details.display} </Text>)
+            return (<Text>{proof}: {details.display}{details.warning}{details.error} </Text>)
           }) }
           { /* (<Text>{JSON.stringify(this.props, null, 4)}</Text>) */ }
         </View>

@@ -3,6 +3,8 @@
 import * as types from '../constants/profileActionTypes'
 import { routeAppend } from './router'
 import engine from '../engine'
+import { identify } from '../keybase_v1'
+const enums = identify
 
 export function pushNewProfile (username) {
   return function (dispatch, getState) {
@@ -56,8 +58,8 @@ export function refreshProfile (username) {
         const {
           lcr: {
             proofResult: {
-              state: proofState,
-              status: proofStatus }
+              state: proofState
+            }
           }
         } = param
 
@@ -68,14 +70,25 @@ export function refreshProfile (username) {
           }
         } = param
 
+        const warning = {
+          [enums['tempFailure']]: 'Temporarily unavailable',
+          [enums['looking']]: 'Looking'
+        }[proofState]
+        const error = {
+          [enums['none']]: 'No proof',
+          [enums['permFailure']]: 'Failed',
+          [enums['superseded']]: 'Superseded',
+          [enums['revoked']]: 'Revoked'
+        }[proofState]
+
         dispatch({
           username,
           type: types.PROFILE_NETWORK_UPDATE,
           network,
           update: {
             display,
-            proofState,
-            proofStatus
+            warning,
+            error
           }
         })
 
