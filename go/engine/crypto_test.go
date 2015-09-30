@@ -47,8 +47,8 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 		Msg: []byte("test message"),
 	})
 
-	if err == nil {
-		t.Errorf("expected nil, got %v", err)
+	if _, ok := err.(libkb.SelfNotFoundError); !ok {
+		t.Errorf("expected SelfNotFoundError, got %v", err)
 	}
 }
 
@@ -104,68 +104,34 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 	}
 }
 
-/*
 // Test that CryptoHandler.UnboxBytes32() propagates any decryption
 // errors correctly.
 //
 // For now, we're assuming that nacl/box works correctly (i.e., we're
 // not testing the ways in which decryption can fail).
 func TestCryptoUnboxBytes32DecryptionError(t *testing.T) {
-	h := NewCryptoHandler(nil)
+	tc := SetupEngineTest(t, "crypto")
+	defer tc.Cleanup()
 
-	kp, err := libkb.GenerateNaclDHKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	u := CreateAndSignupFakeUser(tc, "fu")
+	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
-	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
-		return kp, nil
-	}
-
-	_, err = h.UnboxBytes32(keybase1.UnboxBytes32Arg{})
-
-	expectedErr := libkb.DecryptionError{}
-	if err != expectedErr {
-		t.Errorf("expected %v, got %v", expectedErr, err)
-	}
-}
-
-// Test that CryptoHandler.UnboxBytes32() returns an error if the
-// wrong type of key is returned as the encryption key.
-func TestCryptoUnboxBytes32WrongEncryptionKey(t *testing.T) {
-	h := NewCryptoHandler(nil)
-
-	kp, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
-		return kp, nil
-	}
-
-	_, err = h.UnboxBytes32(keybase1.UnboxBytes32Arg{})
-
-	expectedErr := libkb.KeyCannotDecryptError{}
-	if err != expectedErr {
-		t.Errorf("expected %v, got %v", expectedErr, err)
+	_, err := UnboxBytes32(tc.G, secretUI, keybase1.UnboxBytes32Arg{})
+	if err != (libkb.DecryptionError{}) {
+		t.Errorf("expected nil, got %v", err)
 	}
 }
 
 // Test that CryptoHandler.UnboxBytes32() propagates any error
 // encountered when getting the device encryption key.
 func TestCryptoUnboxBytes32NoEncryptionKey(t *testing.T) {
-	h := NewCryptoHandler(nil)
+	tc := SetupEngineTest(t, "crypto")
+	defer tc.Cleanup()
 
-	expectedErr := errors.New("Test error")
-	h.getSecretKeyFn = func(_ libkb.SecretKeyType, _ int, _ string) (libkb.GenericKey, error) {
-		return nil, expectedErr
-	}
+	secretUI := &libkb.TestSecretUI{}
+	_, err := UnboxBytes32(tc.G, secretUI, keybase1.UnboxBytes32Arg{})
 
-	_, err := h.UnboxBytes32(keybase1.UnboxBytes32Arg{})
-
-	if err != expectedErr {
-		t.Errorf("expected %v, got %v", expectedErr, err)
+	if _, ok := err.(libkb.SelfNotFoundError); !ok {
+		t.Errorf("expected SelfNotFoundError, got %v", err)
 	}
 }
-*/
