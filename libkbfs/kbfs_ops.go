@@ -98,9 +98,15 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
 	// TODO: only do this the first time, cache the folder ID after that
-	md, err := mdops.GetForHandle(ctx, handle)
+	md, err := mdops.GetUnmergedForHandle(ctx, handle)
 	if err != nil {
 		return
+	}
+	if md == nil {
+		md, err = mdops.GetForHandle(ctx, handle)
+		if err != nil {
+			return
+		}
 	}
 
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}

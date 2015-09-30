@@ -169,9 +169,6 @@ type FolderBranchOps struct {
 	// Can be used to turn off notifications for a while (e.g., for testing)
 	updatePauseChan chan (<-chan struct{})
 
-	// make sure we only kick off registration once
-	registerOnce sync.Once
-
 	// How to resolve conflicts
 	cr *ConflictResolver
 }
@@ -280,10 +277,45 @@ func (fbo *FolderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
 
 // headLock must be taken by caller
 func (fbo *FolderBranchOps) setHeadLocked(ctx context.Context,
-	md *RootMetadata) {
+	md *RootMetadata) error {
+	if fbo.head != nil {
+		mdID, err := md.MetadataID(fbo.config)
+		if err != nil {
+			return err
+		}
+
+		headID, err := fbo.head.MetadataID(fbo.config)
+		if err != nil {
+			return err
+		}
+
+		if headID == mdID {
+			// only save this new MD if the MDID has changed
+			return nil
+		}
+	}
+
 	fbo.log.CDebugf(ctx, "Setting head revision to %d", md.Revision)
+	err := fbo.config.MDCache().Put(md)
+	if err != nil {
+		return err
+	}
+
+	// If this is the first time the MD is being set, and we are
+	// operating on unmerged data, initialize the state properly and
+	// kick off conflict resolution.
+	if fbo.head == nil && md.MergedStatus() == Unmerged {
+		// no need to take the writer lock here since is the first
+		// time the folder is being used
+		fbo.setStagedLocked(true)
+		// Use uninitialized for the merged branch; the unmerged
+		// revision is enough to trigger conflict resolution.
+		fbo.cr.Resolve(md.Revision, MetadataRevisionUninitialized)
+	}
+
 	fbo.head = md
 	fbo.status.setRootMetadata(md)
+	return nil
 }
 
 // if rtype == write, then writerLock must be taken
@@ -311,12 +343,7 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 	if err != nil {
 		return nil, err
 	}
-	if md != nil {
-		fbo.setStagedLocked(true)
-		// Use uninitialized for the merged branch; the unmerged
-		// revision is enough to trigger conflict resolution.
-		fbo.cr.Resolve(md.Revision, MetadataRevisionUninitialized)
-	} else {
+	if md == nil {
 		// no unmerged MDs for this device, so just get the current head
 		md, err = mdops.GetForTLF(ctx, fbo.id())
 		if err != nil {
@@ -330,14 +357,12 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 			return nil, err
 		}
 	} else {
-		err = fbo.config.MDCache().Put(md)
+		fbo.headLock.Lock()
+		defer fbo.headLock.Unlock()
+		err = fbo.setHeadLocked(ctx, md)
 		if err != nil {
 			return nil, err
 		}
-
-		fbo.headLock.Lock()
-		defer fbo.headLock.Unlock()
-		fbo.setHeadLocked(ctx, md)
 	}
 
 	return md, err
@@ -458,9 +483,6 @@ func (fbo *FolderBranchOps) initMDLocked(
 	if err = fbo.config.MDOps().Put(ctx, md); err != nil {
 		return err
 	}
-	if err = fbo.config.MDCache().Put(md); err != nil {
-		return err
-	}
 
 	fbo.headLock.Lock()
 	defer fbo.headLock.Unlock()
@@ -470,7 +492,10 @@ func (fbo *FolderBranchOps) initMDLocked(
 			"%v: Unexpected MD ID during new MD initialization: %v",
 			md.ID, headID)
 	}
-	fbo.setHeadLocked(ctx, md)
+	err = fbo.setHeadLocked(ctx, md)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -496,7 +521,8 @@ func (fbo *FolderBranchOps) checkNode(node Node) error {
 // initialized yet; if not, it does so.
 func (fbo *FolderBranchOps) CheckForNewMDAndInit(
 	ctx context.Context, md *RootMetadata) (err error) {
-	fbo.log.CDebugf(ctx, "CheckForNewMDAndInit")
+	fbo.log.CDebugf(ctx, "CheckForNewMDAndInit, revision=%d (%s)",
+		md.Revision, md.MergedStatus())
 	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
 
 	fb := FolderBranch{md.ID, MasterBranch}
@@ -504,13 +530,25 @@ func (fbo *FolderBranchOps) CheckForNewMDAndInit(
 		return WrongOpsError{fbo.folderBranch, fb}
 	}
 
-	// subscribe to updates; for now only the master branch can get updates
-	if fbo.branch() == MasterBranch {
-		fbo.registerOnce.Do(fbo.registerForUpdates)
-	}
-
 	if md.data.Dir.Type == Dir {
 		// this MD is already initialized
+		fbo.headLock.Lock()
+		defer fbo.headLock.Unlock()
+		// Only update the head the first time; later it will be
+		// updated either directly via writes or through the
+		// background update processor.
+		if fbo.head == nil {
+			err := fbo.setHeadLocked(ctx, md)
+			if err != nil {
+				return err
+			}
+			// Start registering for updates right away, using this MD
+			// as a starting point. For now only the master branch can
+			// get updates
+			if fbo.branch() == MasterBranch {
+				go fbo.registerForUpdates()
+			}
+		}
 		return nil
 	}
 
@@ -981,29 +1019,6 @@ func (fbo *FolderBranchOps) unembedBlockChanges(
 	return
 }
 
-// headLock should be taken by the caller.
-func (fbo *FolderBranchOps) saveMdToCacheLocked(ctx context.Context,
-	md *RootMetadata) error {
-	mdID, err := md.MetadataID(fbo.config)
-	if err != nil {
-		return err
-	}
-
-	headID, err := fbo.head.MetadataID(fbo.config)
-	if err != nil {
-		return err
-	}
-
-	if headID == mdID {
-		// only save this new MD if the MDID has changed
-		return nil
-	} else if err = fbo.config.MDCache().Put(md); err != nil {
-		return err
-	}
-	fbo.setHeadLocked(ctx, md)
-	return nil
-}
-
 // cacheBlockIfNotYetDirtyLocked puts a block into the cache, but only
 // does so if the block isn't already marked as dirty in the cache.
 // This is useful when operating on a dirty copy of a block that may
@@ -1378,7 +1393,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		return err
 	}
 
-	err = fbo.saveMdToCacheLocked(ctx, md)
+	err = fbo.setHeadLocked(ctx, md)
 	if err != nil {
 		// XXX: if we return with an error here, should we somehow
 		// roll back the nodeCache BlockPointer updates that happened
@@ -3314,7 +3329,7 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 				fbo.getCurrMDRevisionLocked()}
 		}
 
-		err := fbo.saveMdToCacheLocked(ctx, rmd)
+		err := fbo.setHeadLocked(ctx, rmd)
 		if err != nil {
 			return err
 		}
@@ -3352,7 +3367,7 @@ func (fbo *FolderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 				fbo.getCurrMDRevisionLocked()}
 		}
 
-		err := fbo.saveMdToCacheLocked(ctx, rmd)
+		err := fbo.setHeadLocked(ctx, rmd)
 		if err != nil {
 			return err
 		}
@@ -3426,7 +3441,7 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 	if len(rmds) == 0 {
 		return fmt.Errorf("Couldn't find the branch point %d", currHead)
 	}
-	err = fbo.saveMdToCacheLocked(ctx, rmds[0])
+	err = fbo.setHeadLocked(ctx, rmds[0])
 	if err != nil {
 		return err
 	}

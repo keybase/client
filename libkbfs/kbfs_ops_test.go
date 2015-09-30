@@ -385,6 +385,8 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		Ctime: 2,
 	}
 
+	config.mockMdops.EXPECT().GetUnmergedForHandle(gomock.Any(), h).Return(
+		nil, nil)
 	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h).Return(rmd, nil)
 	ops := getOps(config, id)
 	ops.head = rmd
