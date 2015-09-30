@@ -9,7 +9,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
-	"github.com/keybase/client/go/libkb"
 )
 
 func NewCmdLaunchd(cl *libcmdline.CommandLine) cli.Command {
@@ -32,14 +31,8 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine) cli.Command {
 func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "install",
-		ArgumentHelp: "<label> <path/to/keybase>",
-		Usage:        "Install a keybase launchd service",
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "run-mode",
-				Usage: fmt.Sprintf("Run mode (%s)", libkb.RunModes),
-			},
-		},
+		ArgumentHelp: "<label> <path/to/keybase> <args>",
+		Usage:        "Install a launchd service",
 		Action: func(c *cli.Context) {
 			args := c.Args()
 			if len(args) < 1 {
@@ -51,18 +44,12 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 
 			label := args[0]
 			binPath := args[1]
-
-			plistArgs := []string{}
-			plistArgs = append(plistArgs, "--log-format=file")
-			runMode := c.String("run-mode")
-			if runMode != "" {
-				plistArgs = append(plistArgs, fmt.Sprintf("--run-mode=%s", runMode))
-			}
-			plistArgs = append(plistArgs, "service")
-			plistArgs = append(plistArgs, fmt.Sprintf("--label=%s", label))
+			plistArgs := args[2:]
 
 			envVars := make(map[string]string)
 			envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
+			envVars["KEYBASE_LABEL"] = label
+			envVars["KEYBASE_LOG_FORMAT"] = "file"
 
 			workingDir := G.Env.GetCacheDir()
 
