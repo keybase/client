@@ -1,57 +1,45 @@
 'use strict'
 
 import * as types from '../constants/profileActionTypes'
+import Immutable from 'immutable'
 
-const initialState = {}
+const initialState = Immutable.Map()
 
 export default function (state = initialState, action) {
-  const existingProfile = state[action.username]
-
   switch (action.type) {
     case types.INIT_PROFILE:
-      return {
-        ...state,
+      return state.mergeDeep({
         [action.username]: {
-          ...existingProfile,
           username: action.username,
           proofs: {}
         }
-      }
+      })
     case types.PROFILE_RECEIVED_DISPLAY_KEY:
-      return {
-        ...state,
+      return state.mergeDeep({
         [action.username]: {
-          ...existingProfile,
           proofs: {
-            ...existingProfile.proofs,
             pgp: action.key
           }
         }
-      }
+      })
     case types.PROFILE_CHECKING_NETWORKS:
-      return {
-        ...state,
+      return state.mergeDeep({
         [action.username]: {
-          ...existingProfile,
           proofs: {
-            ...existingProfile.proofs,
             ...action.networks.reduce((a, b) => { a[b] = {}; return a }, {})
           }
         }
-      }
+      })
     case types.PROFILE_NETWORK_UPDATE:
-      return {
-        ...state,
+      return state.mergeDeep({
         [action.username]: {
-          ...existingProfile,
           proofs: {
-            ...existingProfile.proofs,
             ...{
               [action.network]: action.update
             }
           }
         }
-      }
+      })
     default:
       return state
   }

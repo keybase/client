@@ -3,19 +3,12 @@
 
 import React from 'react-native'
 import {
-  ActivityIndicatorIOS,
   Component,
   StyleSheet,
   ScrollView,
   Text,
-  TextInput,
-  TouchableHighlight,
   View
 } from 'react-native'
-
-import { getCurrentRoute } from '../actions/router'
-import * as ProfileActions from '../actions/profile'
-import commonStyles from '../styles/common'
 
 class Profile extends Component {
   constructor (props) {
@@ -31,9 +24,8 @@ class Profile extends Component {
         <View>
           <Text>{this.props.username}</Text>
           <Text>keybase.io/{this.props.username}</Text>
-          { Object.keys(this.props.proofs).map(proof => {
-            const {proofs: {[proof]: details}} = this.props
-            return (<Text>{proof}: {details.display}{details.warning}{details.error} </Text>)
+          { this.props.proofs.map((details, proof) => {
+            return (<Text>{proof}: {details.get('display')}{details.get('warning')}{details.get('error')} </Text>)
           }) }
           { /* (<Text>{JSON.stringify(this.props, null, 4)}</Text>) */ }
         </View>
@@ -50,7 +42,7 @@ class Profile extends Component {
     return {
       componentAtTop: {
         component: Profile,
-        mapStateToProps: state => state.profile[username]
+        mapStateToProps: state => state.profile.get(username).toObject()
       },
       parseNextRoute: null
     }
