@@ -95,7 +95,7 @@
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
-                filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/lock.iced",
+                filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/lock.iced",
                 funcname: "Table.acquire"
               });
               l.acquire(__iced_deferrals.defer({

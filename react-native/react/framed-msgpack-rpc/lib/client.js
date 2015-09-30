@@ -27,7 +27,7 @@
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
             parent: ___iced_passed_deferral,
-            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/ios/react/framed-msgpack-rpc/src/client.iced",
+            filename: "/Users/chrisnojima/go/src/github.com/keybase/client/react-native/react/framed-msgpack-rpc/src/client.iced",
             funcname: "Client.invoke"
           });
           _this.transport.invoke(arg, __iced_deferrals.defer({

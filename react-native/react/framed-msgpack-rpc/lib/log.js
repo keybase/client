@@ -23,7 +23,7 @@
       return "";
     } else if (Buffer.isBuffer(o)) {
       return o.toString('utf8');
-    } else if (_.isError(o)) {
+    } else if (util.isError(o)) {
       return o.toString();
     } else {
       return "" + o;
