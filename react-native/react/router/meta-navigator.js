@@ -95,7 +95,6 @@ class MetaNavigator extends Component {
     }
 
     return {componentAtTop, routeStack}
-    */
   }
 
   render () {
