@@ -64,7 +64,7 @@ export function refreshProfile (username) {
         const {
           rp: {
             key: network,
-            value: networkName
+            value: display
           }
         } = param
 
@@ -73,7 +73,7 @@ export function refreshProfile (username) {
           type: types.PROFILE_NETWORK_UPDATE,
           network,
           update: {
-            networkName,
+            display,
             proofState,
             proofStatus
           }

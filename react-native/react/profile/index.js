@@ -29,7 +29,13 @@ class Profile extends Component {
     return (
       <ScrollView style={styles.container}>
         <View>
-          <Text>{JSON.stringify(this.props, null, 4)}</Text>
+          <Text>{this.props.username}</Text>
+          <Text>keybase.io/{this.props.username}</Text>
+          { Object.keys(this.props.proofs).map(proof => {
+            const {proofs: {[proof]: details}} = this.props
+            return (<Text>{proof}: {details.display} </Text>)
+          }) }
+          { /* (<Text>{JSON.stringify(this.props, null, 4)}</Text>) */ }
         </View>
       </ScrollView>
     )
@@ -52,10 +58,9 @@ class Profile extends Component {
 }
 
 Profile.propTypes = {
-  kbNavigator: React.PropTypes.object,
-  dispatch: React.PropTypes.func.isRequired,
-  results: React.PropTypes.array,
-  waitingForServer: React.PropTypes.bool.isRequired
+  waitingForServer: React.PropTypes.bool.isRequired,
+  username: React.PropTypes.string,
+  proofs: React.PropTypes.array
 }
 
 const styles = StyleSheet.create({
