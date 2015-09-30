@@ -15,7 +15,6 @@ import {
 
 import { submitSearch } from '../actions/search'
 import { pushNewProfile } from '../actions/profile'
-import { getCurrentRoute } from '../actions/router'
 import commonStyles from '../styles/common'
 
 class Search extends Component {
@@ -147,7 +146,7 @@ class Search extends Component {
 
 Search.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
-  base: React.PropTypes.string.isRequired,
+  base: React.PropTypes.object.isRequired,
   results: React.PropTypes.array,
   waitingForServer: React.PropTypes.bool.isRequired
 }

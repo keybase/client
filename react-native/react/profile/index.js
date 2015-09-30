@@ -27,7 +27,7 @@ class Profile extends Component {
   render () {
     return (
       <View style={styles.container}>
-        <Text>this.props</Text>
+        <Text>{this.props}</Text>
       </View>
     )
   }
@@ -37,20 +37,11 @@ class Profile extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
+    const username = currentPath.get('username')
     return {
       componentAtTop: {
         component: Profile,
-        mapStateToProps: (state) => {
-          return state
-          /*
-          console.log('in profile')
-          console.log(state)
-          console.log(state.profile[currentPath.get('username')])
-          console.log(JSON.stringify(state.profile))
-          return state.profile[currentPath.get('username')]
-          // TEMP
-          */
-        }
+        mapStateToProps: state => state.profile[username]
       },
       parseNextRoute: null
     }
@@ -69,7 +60,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'stretch',
-    backgroundColor: '#F5FCFF'
+    backgroundColor: '#F5FCFF',
+    marginTop: 64
   },
   input: {
     height: 40,

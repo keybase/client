@@ -10,10 +10,9 @@ export function pushNewProfile (username) {
       type: types.INIT_PROFILE,
       username
     })
-    dispatch(routeAppend('profile'/*{
+    dispatch(routeAppend({
       path: 'profile',
       username
-
-    }*/))
+    }))
   }
 }
