@@ -120,6 +120,8 @@ func (f *FS) Serve(ctx context.Context) error {
 
 var _ fs.FS = (*FS)(nil)
 
+var _ fs.FSStatfser = (*FS)(nil)
+
 func (f *FS) reportErr(ctx context.Context, err error) {
 	if err == nil {
 		f.log.CDebugf(ctx, "Request complete")
@@ -149,6 +151,23 @@ func (f *FS) Root() (fs.Node, error) {
 		},
 	}
 	return n, nil
+}
+
+// Statfs implements the fs.FSStatfser interface for FS.
+func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
+	// TODO: Fill in real values for these.
+	var bsize uint32 = 32 * 1024
+	*resp = fuse.StatfsResponse{
+		Blocks:  ^uint64(0) / uint64(bsize),
+		Bfree:   ^uint64(0) / uint64(bsize),
+		Bavail:  ^uint64(0) / uint64(bsize),
+		Files:   0,
+		Ffree:   0,
+		Bsize:   bsize,
+		Namelen: ^uint32(0),
+		Frsize:  0,
+	}
+	return nil
 }
 
 // Root represents the root of the KBFS file system.
