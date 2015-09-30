@@ -21,15 +21,15 @@ var local = flag.Bool("local", false,
 	"use a fake local user DB instead of Keybase")
 var localUserFlag = flag.String("localuser", "strib",
 	"fake local user (only valid when local=true)")
-var clientFlag = flag.Bool("client", false, "use keybase daemon")
+var clientFlag = flag.Bool("client", defaultClientFlag, "connect as client to keybase daemon")
 var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
 var versionFile = flag.String("version-file", "", "write version to file on successful startup")
-var mountType = flag.String("mount-type", "", "mount type: default, force")
+var mountType = flag.String("mount-type", defaultMountType, "mount type: default, force")
 var debug = flag.Bool("debug", false, "Print debug messages")
 var version = flag.Bool("version", false, "Print version")
-var bserverAddr = flag.String("bserver", "", "host:port of the block server (ex: bserver.dev.keybase.io:443)")
-var mdserverAddr = flag.String("mdserver", "", "host:port of the metadata server (ex: mdserver.dev.keybase.io:443)")
+var bserverAddr = flag.String("bserver", defaultBServerURI, "host:port of the block server")
+var mdserverAddr = flag.String("mdserver", defaultMDServerURI, "host:port of the metadata server")
 
 const usageStr = `Usage:
   kbfsfuse [-client | -local [-localuser=<user>]] [-debug]
