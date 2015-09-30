@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
 	"github.com/keybase/client/go/logger"
@@ -25,6 +26,11 @@ import (
 
 func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 	*fstestutil.Mount, *FS, func()) {
+	log := logger.NewTestLogger(t)
+	fuse.Debug = func(msg interface{}) {
+		log.Debug("%s", msg)
+	}
+
 	// TODO duplicates main() in kbfsfuse/main.go too much
 	filesys := &FS{
 		config: config,
@@ -1980,6 +1986,77 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 		t.Fatal(err)
 	}
 	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}
+
+func TestInvalidateAppendAcrossMounts(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
+		"user2")
+	mnt1, _, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2, fs2, cancelFn2 := makeFS(t, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
+	// user 1 writes one file to root and one to a sub directory
+	const input1 = "input round one"
+	myfile1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "myfile")
+	if err := ioutil.WriteFile(myfile1, []byte(input1), 0644); err != nil {
+		t.Fatal(err)
+	}
+	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
+	buf, err := ioutil.ReadFile(myfile2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+
+	// user 1 append using libkbfs, to ensure that it doesn't flush
+	// the whole page.
+	const input2 = "input round two"
+	{
+		ctx := context.Background()
+		dh, err := libkbfs.ParseTlfHandle(ctx, config1, "user1,user2")
+		if err != nil {
+			t.Fatalf("cannot parse folder for jdoe: %v", err)
+		}
+		ops := config1.KBFSOps()
+		jdoe, _, err := ops.GetOrCreateRootNodeForHandle(ctx, dh,
+			libkbfs.MasterBranch)
+		if err != nil {
+			t.Fatal(err)
+		}
+		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := ops.Write(
+			ctx, myfile, []byte(input2), int64(len(input1))); err != nil {
+			t.Fatal(err)
+		}
+		if err := ops.Sync(ctx, myfile); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	syncFolderToServer(t, "user1,user2", fs2)
+
+	// check everything from user 2's perspective
+	buf, err = ioutil.ReadFile(myfile2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1+input2; g != e {
 		t.Errorf("wrong content: %q != %q", g, e)
 	}
 }
