@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/nacl/box"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // Test that SignED25519() signs the given message with the device
