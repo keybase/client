@@ -73,7 +73,8 @@ type TestContext struct {
 	G          *GlobalContext
 	PrevGlobal *GlobalContext
 	Tp         TestParameters
-	T          *testing.T
+	// TODO: Rename this to TB.
+	T testing.TB
 }
 
 func (tc *TestContext) Cleanup() {
@@ -168,12 +169,12 @@ func (tc TestContext) ClearAllStoredSecrets() error {
 
 var setupTestMu sync.Mutex
 
-func setupTestContext(t *testing.T, nm string) (tc TestContext, err error) {
+func setupTestContext(tb testing.TB, nm string) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
 
 	g := NewGlobalContext()
-	g.Log = logger.NewTestLogger(t)
+	g.Log = logger.NewTestLogger(tb)
 	g.Init()
 
 	// Set up our testing parameters.  We might add others later on
@@ -221,18 +222,18 @@ func setupTestContext(t *testing.T, nm string) (tc TestContext, err error) {
 	tc.PrevGlobal = G
 	G = g
 	tc.G = g
+	tc.T = tb
 
 	return
 }
 
-func SetupTest(t *testing.T, nm string) (tc TestContext) {
+func SetupTest(tb testing.TB, nm string) (tc TestContext) {
 	G.Log.Debug("SetupTest %s", nm)
 	var err error
-	tc, err = setupTestContext(t, nm)
+	tc, err = setupTestContext(tb, nm)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
-	tc.T = t
 
 	return tc
 }

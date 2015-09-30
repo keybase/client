@@ -52,6 +52,24 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	}
 }
 
+func BenchmarkCryptoSignED25519(b *testing.B) {
+	tc := SetupEngineTest(b, "crypto")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "fu")
+	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+
+	for i := 0; i < b.N; i++ {
+		msg := []byte("test message")
+		_, err := SignED25519(tc.G, secretUI, keybase1.SignED25519Arg{
+			Msg: msg,
+		})
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 // Test that CryptoHandler.UnboxBytes32() decrypts a boxed 32-byte
 // array correctly.
 func TestCryptoUnboxBytes32(t *testing.T) {
