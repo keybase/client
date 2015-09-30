@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -403,8 +402,7 @@ func (e *Env) GetSocketFile() (ret string, err error) {
 		func() string { return e.config.GetSocketFile() },
 	)
 	if len(ret) == 0 {
-		filename := fmt.Sprintf("keybased-%s.sock", e.GetRunMode())
-		ret = filepath.Join(e.GetRuntimeDir(), filename)
+		ret = filepath.Join(e.GetRuntimeDir(), SocketFile)
 	}
 	return
 }
@@ -416,8 +414,7 @@ func (e *Env) GetPidFile() (ret string, err error) {
 		func() string { return e.config.GetPidFile() },
 	)
 	if len(ret) == 0 {
-		filename := fmt.Sprintf("keybased-%s.pid", e.GetRunMode())
-		ret = filepath.Join(e.GetRuntimeDir(), filename)
+		ret = filepath.Join(e.GetRuntimeDir(), PIDFile)
 	}
 	return
 }
