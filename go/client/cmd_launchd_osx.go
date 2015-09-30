@@ -87,7 +87,12 @@ func NewCmdLaunchdList(cl *libcmdline.CommandLine) cli.Command {
 		Name:  "list",
 		Usage: "List keybase launchd services",
 		Action: func(c *cli.Context) {
-			err := launchd.ShowServices("keybase")
+			var err error
+			err = launchd.ShowServices("keybase.", "Keybase")
+			if err != nil {
+				G.Log.Fatalf("%v", err)
+			}
+			err = launchd.ShowServices("kbfs.", "KBFS")
 			if err != nil {
 				G.Log.Fatalf("%v", err)
 			}

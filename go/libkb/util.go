@@ -178,13 +178,20 @@ func SafeWriteToFile(t SafeWriter, mode os.FileMode) error {
 
 // Pluralize returns pluralized string with value.
 // For example,
-//   Pluralize(1, "zebra", "zebras") => "1 zebra"
-//   Pluralize(2, "zebra", "zebras") => "2 zebras"
-func Pluralize(n int, singular string, plural string) string {
+//   Pluralize(1, "zebra", "zebras", true) => "1 zebra"
+//   Pluralize(2, "zebra", "zebras", true) => "2 zebras"
+//   Pluralize(2, "zebra", "zebras", false) => "zebras"
+func Pluralize(n int, singular string, plural string, nshow bool) string {
 	if n == 1 {
-		return fmt.Sprintf("%d %s", n, singular)
+		if nshow {
+			return fmt.Sprintf("%d %s", n, singular)
+		}
+		return singular
 	}
-	return fmt.Sprintf("%d %s", n, plural)
+	if nshow {
+		return fmt.Sprintf("%d %s", n, plural)
+	}
+	return plural
 }
 
 func IsIn(needle string, haystack []string, ci bool) bool {
