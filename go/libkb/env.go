@@ -154,6 +154,10 @@ func (e *Env) SetConfigWriter(writer ConfigWriter) {
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader) *Env {
+	return newEnv(cmd, config, runtime.GOOS)
+}
+
+func newEnv(cmd CommandLine, config ConfigReader, osname string) *Env {
 	if cmd == nil {
 		cmd = NullConfiguration{}
 	}
@@ -164,7 +168,7 @@ func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 
 	e.homeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
-		runtime.GOOS,
+		osname,
 		func() RunMode { return e.GetRunMode() })
 	return &e
 }
