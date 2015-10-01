@@ -87,6 +87,10 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle, Un
 		return nil, err
 	}
 	if rmds == nil {
+		if Unmerged {
+			// don't automatically create unmerged MDs
+			return nil, nil
+		}
 		// create one if it doesn't exist
 		rmd := NewRootMetadata(handle, id)
 		rmds = &RootMetadataSigned{MD: *rmd}
