@@ -5,7 +5,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	keybase1 "github.com/keybase/client/protocol/go"
+	"github.com/keybase/client/go/protocol"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 

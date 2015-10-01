@@ -167,7 +167,7 @@ exports.Transport = class Transport extends Dispatch
   _close : (netw) ->
     # If an optional close hook was specified, call it here...
     @hooks?.eof? netw
-    @_reconnect false if netw.close()
+    @_reconnect false if netw?.close()
 
   ##-----------------------------------------
 

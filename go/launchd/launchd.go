@@ -164,6 +164,9 @@ func (s ServiceStatus) IsRunning() bool {
 // StatusDescription returns the service status description
 func (s Service) StatusDescription() string {
 	status, err := s.Status()
+	if status == nil {
+		return fmt.Sprintf("%s: Not Running", s.label)
+	}
 	if err != nil {
 		return fmt.Sprintf("%s: %v", s.label, err)
 	}
@@ -208,19 +211,20 @@ func (s Service) Status() (*ServiceStatus, error) {
 	return nil, nil
 }
 
-// ShowServices ouputs keybase service info
-func ShowServices(filter string) (err error) {
+// ShowServices ouputs keybase service info.
+func ShowServices(filter string, name string) (err error) {
 	services, err := ListServices(filter)
 	if err != nil {
 		return
 	}
 	if len(services) > 0 {
-		log.Info("Found %s:", libkb.Pluralize(len(services), "service", "services"))
+		log.Info("%s %s:", name, libkb.Pluralize(len(services), "service", "services", false))
 		for _, service := range services {
 			log.Info(service.StatusDescription())
 		}
+		log.Info("")
 	} else {
-		log.Info("No services")
+		log.Info("No %s services.\n", name)
 	}
 	return
 }

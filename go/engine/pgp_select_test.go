@@ -49,6 +49,16 @@ func TestSelectEngine(t *testing.T) {
 	gpg := NewGPGImportKeyEngine(&garg, tc.G)
 	err = RunEngine(gpg, ctx)
 
+	fp = fmt.Sprintf("%s", publicKeys[0].GetFingerprint())
+	garg = GPGImportKeyArg{
+		Query:      fp,
+		AllowMulti: true,
+		SkipImport: false,
+		OnlyImport: false,
+	}
+	gpg = NewGPGImportKeyEngine(&garg, tc.G)
+	err = RunEngine(gpg, ctx)
+
 	// The GPGImportKeyEngine converts a multi select on the same key into
 	// an update, so our test checks that the update code ran, by counting
 	// on the test version of the update key prompt.

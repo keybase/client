@@ -4,7 +4,7 @@ import (
 	"sort"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // DevList is an engine that gets a list of all the user's

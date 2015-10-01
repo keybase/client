@@ -1,14 +1,14 @@
 'use strict'
 
 import React from 'react-native'
-const {
+import {
   Component,
   ListView,
   StyleSheet,
   View,
   Text,
   TouchableHighlight
-} = React
+} from 'react-native'
 
 import { submitDeviceSigner } from '../actions/login'
 

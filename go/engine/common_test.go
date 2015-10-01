@@ -9,8 +9,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func SetupEngineTest(t *testing.T, name string) libkb.TestContext {
-	tc := libkb.SetupTest(t, name)
+func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
+	tc := libkb.SetupTest(tb, name)
 	return tc
 }
 
@@ -43,10 +43,10 @@ func (fu FakeUser) NormalizedUsername() libkb.NormalizedUsername {
 	return libkb.NewNormalizedUsername(fu.Username)
 }
 
-func NewFakeUserOrBust(t *testing.T, prefix string) (fu *FakeUser) {
+func NewFakeUserOrBust(tb testing.TB, prefix string) (fu *FakeUser) {
 	var err error
 	if fu, err = NewFakeUser(prefix); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	return fu
 }

@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 const (
@@ -36,6 +36,8 @@ const (
 	ConfigFile  = "config.json"
 	SessionFile = "session.json"
 	DBFile      = "keybase.leveldb"
+	SocketFile  = "keybased.sock"
+	PIDFile     = "keybased.pid"
 
 	SecretKeyringTemplate = "secretkeys.%u.mpack"
 

@@ -9,7 +9,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type UI struct {
@@ -512,27 +512,15 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 		optcount++
 	}
 
-	fmt.Fprintf(w, "(999) Cancel, I'll login later\t(cancel)\n")
-
 	w.Flush()
 
-	ret, err := d.parent.PromptSelectionOrCancel("Choose a signing option", 1, 999)
+	ret, err := d.parent.PromptSelectionOrCancel("Choose a signing option", 1, optcount)
 	if err != nil {
 		if err == ErrInputCanceled {
 			res.Action = keybase1.SelectSignerAction_CANCEL
 			return res, nil
 		}
 		return res, err
-	}
-
-	if ret == 999 {
-		res.Action = keybase1.SelectSignerAction_CANCEL
-		return res, nil
-	}
-
-	if ret < 1 || ret > optcount {
-		res.Action = keybase1.SelectSignerAction_CANCEL
-		return res, nil
 	}
 
 	res.Action = keybase1.SelectSignerAction_SIGN
@@ -908,17 +896,17 @@ func (ui *UI) PromptSelectionOrCancel(prompt string, low, hi int) (ret int, err 
 		Prompt: prompt,
 		Checker: &libkb.Checker{
 			F: func(s string) bool {
-				if s == "c" {
+				if s == "q" {
 					return true
 				}
 				v, e := strconv.Atoi(s)
 				return (e == nil && v >= low && v <= hi)
 			},
-			Hint: fmt.Sprintf("%d-%d, or c to cancel", low, hi),
+			Hint: fmt.Sprintf("%d-%d, or q to cancel", low, hi),
 		},
 	}
 	err = NewPrompter([]*Field{field}).Run()
-	if p := field.Value; p == nil || *p == "c" {
+	if p := field.Value; p == nil || *p == "q" {
 		err = ErrInputCanceled
 	} else {
 		ret, err = strconv.Atoi(*p)

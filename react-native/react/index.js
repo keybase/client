@@ -3,26 +3,25 @@
 
 import React from 'react-native'
 
-const {
+import {
   AppRegistry,
   Component,
   StyleSheet,
   Text,
   TouchableHighlight,
   View
-} = React
+} from 'react-native'
 
-import MetaNavigator from './router/meta-navigator'
 import commonStyles from './styles/common'
 
-import { Provider } from 'react-redux/native'
+import { Provider, connect } from 'react-redux/native'
 import configureStore from './store/configureStore'
 const store = configureStore()
 
 import { navigateTo } from './actions/router'
 
 import LoginComponent from './login'
-import MoreComponent from './more'
+import Nav from './nav'
 
 if (GLOBAL) {
   GLOBAL.store = store // TEMP to test
@@ -65,12 +64,8 @@ class Keybase extends Component {
     return (
       <Provider store={store}>
         {() => {
-          // TODO(mm): maybe not pass in store? and use connect
-          return (
-            <MetaNavigator
-              store={store}
-              rootRouteParser={Keybase.parseRoute}/>
-          )
+          // TODO(mm): maybe not pass in store?
+          return React.createElement(connect(state => state)(Nav), {store: store})
         }}
       </Provider>
     )
@@ -81,8 +76,7 @@ class Keybase extends Component {
   // route is the array form of our route (e.g. ["foo","bar"] instead of "foo/bar")
   static parseRoute (store, currentPath, nextPath) {
     const routes = {
-      'login': LoginComponent.parseRoute,
-      'more': MoreComponent.parseRoute
+      'login': LoginComponent.parseRoute
     }
 
     const componentAtTop = {
@@ -99,9 +93,6 @@ class Keybase extends Component {
 }
 
 const styles = StyleSheet.create({
-  navigator: {
-    flex: 1
-  },
   appDebug: {
     flex: 1,
     justifyContent: 'center',

@@ -6,10 +6,10 @@
  */
 
 import React from 'react-native'
-const {
+import {
   Component,
   Navigator
-  } = React
+} from 'react-native'
 
 import { connect } from 'react-redux/native'
 import Immutable from 'immutable'
@@ -35,8 +35,8 @@ class MetaNavigator extends Component {
 
   shouldComponentUpdate (nextProps, nextState) {
     const { store, rootRouteParser } = this.props
-    const route = this.props.router.get('uri')
-    const nextRoute = nextProps.router.get('uri')
+    const route = this.props.uri
+    const nextRoute = nextProps.uri
 
     const { componentAtTop, routeStack: nextRouteStack } = this.getComponentAtTop(rootRouteParser, store, nextRoute)
     if (nextProps === this.props && nextState === this.state) {
@@ -84,36 +84,31 @@ class MetaNavigator extends Component {
     // TODO (mm): know when to create a new navigator
 
     // TODO (mm): specify the prop types
-    const { store, rootRouteParser } = this.props
-
-    const uri = store.getState().router.get('uri')
+    const { store, rootRouteParser, uri, NavBar } = this.props
 
     let {componentAtTop, routeStack} = this.getComponentAtTop(rootRouteParser, store, uri)
 
-    console.log('Uri:', uri.toJS())
-    console.log('Stack:', routeStack.toJS())
-    console.log('Rendering', componentAtTop)
     return (
       <Navigator
         saveName='main'
         ref='navigator'
         initialRouteStack={routeStack.toJS()}
         renderScene={(route, navigator) => {
-          console.log('Doing route:', route)
           return (
             React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(route.component), {...route.props})
           )
         }}
-        // TODO: render the nav bar
+        navigationBar={NavBar}
       />
     )
   }
 }
 
 MetaNavigator.propTypes = {
-  router: React.PropTypes.object.isRequired,
+  uri: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
-  rootRouteParser: React.PropTypes.object.isRequired
+  NavBar: React.PropTypes.object.isRequired,
+  rootRouteParser: React.PropTypes.func.isRequired
 }
 
-export default connect(state => state)(MetaNavigator)
+export default MetaNavigator

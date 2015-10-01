@@ -8,7 +8,7 @@ import (
 	"sync"
 	"syscall"
 
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	logging "github.com/op/go-logging"
 	"golang.org/x/net/context"
 )

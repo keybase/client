@@ -8,10 +8,6 @@ import (
 	kc "github.com/keybase/go-osxkeychain"
 )
 
-const (
-	keychainServiceName = "keybase"
-)
-
 type KeychainSecretStore struct {
 	accountName NormalizedUsername
 }
@@ -25,7 +21,7 @@ func (kss *KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 	// base64-encode to make it easy to work with Keychain Access.
 	encodedSecret := base64.StdEncoding.EncodeToString(secret)
 	attributes := kc.GenericPasswordAttributes{
-		ServiceName: keychainServiceName,
+		ServiceName: G.Env.GetStoredSecretServiceName(),
 		AccountName: kss.accountName.String(),
 		Password:    []byte(encodedSecret),
 	}
@@ -40,7 +36,7 @@ func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 	}()
 
 	attributes := kc.GenericPasswordAttributes{
-		ServiceName: keychainServiceName,
+		ServiceName: G.Env.GetStoredSecretServiceName(),
 		AccountName: kss.accountName.String(),
 	}
 
@@ -64,7 +60,7 @@ func (kss *KeychainSecretStore) ClearSecret() (err error) {
 	}()
 
 	attributes := kc.GenericPasswordAttributes{
-		ServiceName: keychainServiceName,
+		ServiceName: G.Env.GetStoredSecretServiceName(),
 		AccountName: kss.accountName.String(),
 	}
 
@@ -85,7 +81,7 @@ func HasSecretStore() bool {
 }
 
 func GetUsersWithStoredSecrets() ([]string, error) {
-	return kc.GetAllAccountNames(keychainServiceName)
+	return kc.GetAllAccountNames(G.Env.GetStoredSecretServiceName())
 }
 
 func GetTerminalPrompt() string {

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // TestConfig tracks libkb config during a test
@@ -73,7 +73,8 @@ type TestContext struct {
 	G          *GlobalContext
 	PrevGlobal *GlobalContext
 	Tp         TestParameters
-	T          *testing.T
+	// TODO: Rename this to TB.
+	T testing.TB
 }
 
 func (tc *TestContext) Cleanup() {
@@ -81,6 +82,7 @@ func (tc *TestContext) Cleanup() {
 		G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		tc.G.Shutdown()
 		os.RemoveAll(tc.Tp.Home)
+		tc.ClearAllStoredSecrets()
 	}
 }
 
@@ -150,14 +152,29 @@ func (tc *TestContext) ResetLoginState() {
 	tc.G.createLoginState()
 }
 
+func (tc TestContext) ClearAllStoredSecrets() error {
+	usernames, err := GetUsersWithStoredSecrets()
+	if err != nil {
+		return err
+	}
+	for _, username := range usernames {
+		nu := NewNormalizedUsername(username)
+		err = ClearStoredSecret(nu)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 var setupTestMu sync.Mutex
 
-func setupTestContext(t *testing.T, nm string) (tc TestContext, err error) {
+func setupTestContext(tb testing.TB, nm string) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
 
 	g := NewGlobalContext()
-	g.Log = logger.NewTestLogger(t)
+	g.Log = logger.NewTestLogger(tb)
 	g.Init()
 
 	// Set up our testing parameters.  We might add others later on
@@ -205,18 +222,18 @@ func setupTestContext(t *testing.T, nm string) (tc TestContext, err error) {
 	tc.PrevGlobal = G
 	G = g
 	tc.G = g
+	tc.T = tb
 
 	return
 }
 
-func SetupTest(t *testing.T, nm string) (tc TestContext) {
+func SetupTest(tb testing.TB, nm string) (tc TestContext) {
 	G.Log.Debug("SetupTest %s", nm)
 	var err error
-	tc, err = setupTestContext(t, nm)
+	tc, err = setupTestContext(tb, nm)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
-	tc.T = t
 
 	return tc
 }

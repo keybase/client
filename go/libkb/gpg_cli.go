@@ -98,7 +98,7 @@ type RunGpgRes struct {
 	Wait  func() error
 }
 
-func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, err error) {
+func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error) {
 	var cmd string
 	if secret {
 		cmd = "--export-secret-key"
@@ -120,7 +120,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, e
 	buf.ReadFrom(res.Stdout)
 	armored := buf.String()
 
-	if err = res.Wait(); err != nil {
+	if err := res.Wait(); err != nil {
 		return nil, err
 	}
 
@@ -128,7 +128,23 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (ret *PGPKeyBundle, e
 		return nil, NoKeyError{fmt.Sprintf("No key found for %s", fp)}
 	}
 
-	return ReadOneKeyFromString(armored)
+	bundle, err := ReadOneKeyFromString(armored)
+	if err != nil {
+		return nil, err
+	}
+
+	// For secret keys, *also* import the key in public mode, and then grab the
+	// ArmoredPublicKey from that. That's because the public import goes out of
+	// its way to preserve the exact armored string from GPG.
+	if secret {
+		publicBundle, err := g.ImportKey(false, fp)
+		if err != nil {
+			return nil, err
+		}
+		bundle.ArmoredPublicKey = publicBundle.ArmoredPublicKey
+	}
+
+	return bundle, nil
 }
 
 func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {

@@ -2,8 +2,7 @@
 /* @flow */
 
 import React from 'react-native'
-
-const {
+import {
   ActivityIndicatorIOS,
   Component,
   StyleSheet,
@@ -11,7 +10,7 @@ const {
   Text,
   TextInput,
   TouchableHighlight
-} = React
+} from 'react-native'
 
 import commonStyles from '../styles/common'
 import Switch from '../commonAdapters/Switch'

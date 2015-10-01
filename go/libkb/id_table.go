@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -722,7 +722,7 @@ func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error
 func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(u)
 	if list, found := tab.tracks[u.whom]; !found {
-		G.Log.Notice("Bad untrack of %s; no previous tracking statement found",
+		G.Log.Debug("| Useless untrack of %s; no previous tracking statement found",
 			u.whom)
 	} else {
 		for _, obj := range list {

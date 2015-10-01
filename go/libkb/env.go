@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -10,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type NullConfiguration struct{}
@@ -155,6 +154,10 @@ func (e *Env) SetConfigWriter(writer ConfigWriter) {
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader) *Env {
+	return newEnv(cmd, config, runtime.GOOS)
+}
+
+func newEnv(cmd CommandLine, config ConfigReader, osname string) *Env {
 	if cmd == nil {
 		cmd = NullConfiguration{}
 	}
@@ -165,7 +168,7 @@ func NewEnv(cmd CommandLine, config ConfigReader) *Env {
 
 	e.homeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
-		runtime.GOOS,
+		osname,
 		func() RunMode { return e.GetRunMode() })
 	return &e
 }
@@ -403,8 +406,7 @@ func (e *Env) GetSocketFile() (ret string, err error) {
 		func() string { return e.config.GetSocketFile() },
 	)
 	if len(ret) == 0 {
-		filename := fmt.Sprintf("keybased-%s.sock", e.GetRunMode())
-		ret = filepath.Join(e.GetRuntimeDir(), filename)
+		ret = filepath.Join(e.GetRuntimeDir(), SocketFile)
 	}
 	return
 }
@@ -416,8 +418,7 @@ func (e *Env) GetPidFile() (ret string, err error) {
 		func() string { return e.config.GetPidFile() },
 	)
 	if len(ret) == 0 {
-		filename := fmt.Sprintf("keybased-%s.pid", e.GetRunMode())
-		ret = filepath.Join(e.GetRuntimeDir(), filename)
+		ret = filepath.Join(e.GetRuntimeDir(), PIDFile)
 	}
 	return
 }
@@ -662,4 +663,22 @@ func (e *Env) GetLogFile() string {
 		func() string { return e.config.GetLogFile() },
 		func() string { return filepath.Join(e.GetLogDir(), "keybase.log") },
 	)
+}
+
+func (e *Env) GetStoredSecretServiceName() string {
+	var serviceName string
+	switch e.GetRunMode() {
+	case DevelRunMode:
+		serviceName = "keybase-devel"
+	case StagingRunMode:
+		serviceName = "keybase-staging"
+	case ProductionRunMode:
+		serviceName = "keybase"
+	default:
+		panic("Invalid run mode")
+	}
+	if e.Test.Devel {
+		serviceName = serviceName + "-test"
+	}
+	return serviceName
 }

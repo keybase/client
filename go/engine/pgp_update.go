@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
-	// keybase_1 "github.com/keybase/client/protocol/go"
+	// keybase_1 "github.com/keybase/client/go/protocol"
 )
 
 type PGPUpdateEngine struct {

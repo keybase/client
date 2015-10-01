@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 )
 
@@ -49,6 +49,12 @@ func NewCmdPGPSign(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "Specify a key to use for signing (otherwise most recent PGP key is used).",
 			},
 		},
+		Description: `Use the PGP secret key in your local Keybase keyring to PGP sign
+   a file. If you have several keys, you can specify a particular signing key with
+   the "--key" flag; otherwise, the most recent PGP key is used.
+
+   Since this command uses only your Keybase keyring, it does not access the GnuPG
+   keyring.`,
 	}
 }
 

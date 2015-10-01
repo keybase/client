@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node_modules/react-native/packager/packager.sh",
-    "reactbundle-ios": "react-native bundle --minify --root react --out ios/Keybase/main.jsbundle",
+    "reactbundle-ios": "node node_modules/react-native/local-cli/cli.js bundle --minify --root react --out ios/Keybase/main.jsbundle --url \"/react/index.bundle?platform=ios&dev=\"",
     "gobuild-ios": "gomobile bind -target=ios -o ios/keybase.framework github.com/keybase/client/go/loopback",
     "gobuild-android": "gomobile bind -target=android -o android/keybaselib/keybaselib.aar github.com/keybase/client/go/loopback",
     "packager-wipe-cache": "node ./react/packager/wipe-cache.js"
@@ -13,7 +13,10 @@
     "buffer": "^3.4.3",
     "iced-runtime": "^1.0.3",
     "immutable": "^3.7.5",
+    "moment": "^2.10.6",
+    "qrcode-generator": "^1.0.0",
     "react-native": "^0.11.0",
+    "react-native-camera": "^0.3.5",
     "react-redux": "^2.1.2",
     "redux": "^3.0.0",
     "redux-thunk": "^1.0.0",
@@ -21,7 +24,7 @@
   },
   "standard": {
     "parser": "babel-eslint",
-    "ignore":[
+    "ignore": [
       "purepack/",
       "iced-error/",
       "framed-msgpack-rpc/",

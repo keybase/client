@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // SpecialKeyRing holds blessed keys, like the one Keybase uses to sign

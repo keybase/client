@@ -8,7 +8,7 @@ import (
 
 	Q "github.com/PuerkitoBio/goquery"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/protocol/go"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/kr/text"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"

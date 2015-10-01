@@ -2,9 +2,11 @@
 
 import { combineReducers } from 'redux'
 import login from './login'
-import router from './router'
+import devices from './devices'
+import tabbedRouter from './tabbed-router.js'
 
 export default combineReducers({
   login,
-  router
+  devices,
+  tabbedRouter
 })

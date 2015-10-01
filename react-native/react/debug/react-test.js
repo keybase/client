@@ -1,12 +1,12 @@
 'use strict'
 
 import React from 'react-native'
-const {
+import {
   StyleSheet,
   Text,
   View,
   Component
-} = React
+} from 'react-native'
 
 class ReactTest extends Component {
   constructor () {

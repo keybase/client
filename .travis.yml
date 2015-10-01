@@ -1,7 +1,6 @@
 sudo: required
 language: go
 go:
-  - 1.4
   - 1.5
 services:
   - docker
@@ -9,10 +8,11 @@ before_install:
   - export DEBIAN_FRONTEND=noninteractive
   - sudo apt-get update
   - sudo apt-get install -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" lxc-docker
+install: true
 script:
   - docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST
   - docker pull $CI_HOST/kbweb
   - travis_retry docker run --name kbweb3000 -d -p 3000:3000 $CI_HOST/kbweb
-  - cd go && ./test/check_or_start_kbweb.sh && go test ./...
+  - cd go && ./test/check_or_start_kbweb.sh && GO15VENDOREXPERIMENT=1 go test ./...
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0

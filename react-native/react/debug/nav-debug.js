@@ -3,9 +3,15 @@
 /* shows how the meta navigator works */
 
 import React from 'react-native'
-const { Component, View, Text } = React
-
+import { Component, View, Text } from 'react-native'
 import { navigateTo, routeAppend, navigateUp } from '../actions/router'
+
+function mapStateToGetURI (state) {
+  return state.tabbedRouter.getIn([
+    'tabs',
+    state.tabbedRouter.get('activeTab')
+  ]).toObject()
+}
 
 class NavDebug extends Component {
   constructor () {
@@ -36,7 +42,7 @@ class NavDebug extends Component {
         <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri.toJSON())}</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['more', 'navDebug', 'page2']))}>Click here to go somewhere</Text>
+          onPress={() => this.props.dispatch(navigateTo(['navDebug', 'page2']))}>Click here to go somewhere</Text>
       </View>
     )
   }
@@ -48,7 +54,7 @@ class NavDebug extends Component {
 
     const componentAtTop = {
       title: 'Debug',
-      mapStateToProps: state => state.router.toObject(),
+      mapStateToProps: mapStateToGetURI,
       component: NavDebug
     }
 
@@ -78,7 +84,7 @@ class DebugPage2 extends Component {
           onPress={() => this.props.dispatch(routeAppend('page3'))}>infinite recursion</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['more', 'navDebug']))}>go back to debug</Text>
+          onPress={() => this.props.dispatch(navigateTo(['navDebug']))}>go back to debug</Text>
       </View>
     )
   }
@@ -90,7 +96,7 @@ class DebugPage2 extends Component {
 
     const componentAtTop = {
       title: 'Debug Page 2',
-      mapStateToProps: state => state.router.toObject(),
+      mapStateToProps: mapStateToGetURI,
       component: DebugPage2
     }
 
@@ -120,7 +126,7 @@ class DebugPage3 extends Component {
           onPress={() => this.props.dispatch(routeAppend('page2'))}>infinite recursion</Text>
         <Text
           style={{textAlign: 'center', color: 'blue'}}
-          onPress={() => this.props.dispatch(navigateTo(['more']))}>go back to more</Text>
+          onPress={() => this.props.dispatch(navigateTo([]))}>go back to more</Text>
       </View>
     )
   }
@@ -132,7 +138,7 @@ class DebugPage3 extends Component {
 
     const componentAtTop = {
       title: 'Debug Page 3',
-      mapStateToProps: state => state.router.toObject(),
+      mapStateToProps: mapStateToGetURI,
       component: DebugPage3
     }
 

@@ -1,13 +1,13 @@
 'use strict'
 
 import React from 'react-native'
-const {
+import {
   Component,
   StyleSheet,
   Text,
   View,
   NativeModules
-} = React
+} from 'react-native'
 
 const swiftNative = NativeModules.SwiftTest
 
