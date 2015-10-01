@@ -2630,10 +2630,16 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 	}
 
 	bps := newBlockPutState(1)
-	fbo.cacheLock.Lock()
 	filePtr := stripBP(file.tailPointer())
-	si := fbo.unrefCache[filePtr]
-	fbo.cacheLock.Unlock()
+	si, ok := func() (*syncInfo, bool) {
+		fbo.cacheLock.Lock()
+		defer fbo.cacheLock.Unlock()
+		si, ok := fbo.unrefCache[filePtr]
+		return si, ok
+	}()
+	if !ok {
+		return true, fmt.Errorf("No syncOp found for file pointer %v", filePtr)
+	}
 	md.AddOp(si.op)
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
