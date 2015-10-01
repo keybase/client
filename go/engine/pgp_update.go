@@ -9,8 +9,9 @@ import (
 )
 
 type PGPUpdateEngine struct {
-	selectedFingerprints map[string]bool
-	all                  bool
+	selectedFingerprints   map[string]bool
+	all                    bool
+	duplicatedFingerprints []string
 	libkb.Contextified
 }
 
@@ -104,6 +105,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 		if err := del.Run(ctx.LoginContext); err != nil {
 			if appStatusErr, ok := err.(libkb.AppStatusError); ok && appStatusErr.Code == libkb.SCKeyDuplicateUpdate {
 				ctx.LogUI.Info("Key was already up to date.")
+				e.duplicatedFingerprints = append(e.duplicatedFingerprints, fingerprint.String())
 				continue
 			}
 			return err

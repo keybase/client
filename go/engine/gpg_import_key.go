@@ -25,8 +25,9 @@ type GPGImportKeyArg struct {
 }
 
 type GPGImportKeyEngine struct {
-	last *libkb.PGPKeyBundle
-	arg  *GPGImportKeyArg
+	last                   *libkb.PGPKeyBundle
+	arg                    *GPGImportKeyArg
+	duplicatedFingerprints []string
 	libkb.Contextified
 }
 
@@ -157,7 +158,10 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		// We're sending a key update, then.
 		fp := fmt.Sprintf("%s", *(selected.GetFingerprint()))
 		eng := NewPGPUpdateEngine([]string{fp}, false, e.G())
-		return RunEngine(eng, ctx)
+		err = RunEngine(eng, ctx)
+		e.duplicatedFingerprints = eng.duplicatedFingerprints
+
+		return err
 	}
 
 	bundle, err := gpg.ImportKey(true, *(selected.GetFingerprint()))

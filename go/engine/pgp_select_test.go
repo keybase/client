@@ -49,22 +49,17 @@ func TestSelectEngine(t *testing.T) {
 	gpg := NewGPGImportKeyEngine(&garg, tc.G)
 	err = RunEngine(gpg, ctx)
 
-	fp = fmt.Sprintf("%s", publicKeys[0].GetFingerprint())
-	garg = GPGImportKeyArg{
-		Query:      fp,
-		AllowMulti: true,
-		SkipImport: false,
-		OnlyImport: false,
-	}
-	gpg = NewGPGImportKeyEngine(&garg, tc.G)
-	err = RunEngine(gpg, ctx)
-
 	// The GPGImportKeyEngine converts a multi select on the same key into
 	// an update, so our test checks that the update code ran, by counting
 	// on the test version of the update key prompt.
 	if testui.keyChosenCount != 1 {
 		tc.T.Fatal("Selected the same key twice and no update happened")
 	}
-
+	if len(gpg.duplicatedFingerprints) != 1 {
+		tc.T.Fatal("Server didn't return an error while updating")
+	}
+	if fp != gpg.duplicatedFingerprints[0] {
+		tc.T.Fatal("Our fingerprint ID wasn't returned as up to date")
+	}
 	return
 }
