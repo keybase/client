@@ -14,7 +14,7 @@ func TestLocation(t *testing.T) {
 
 	var called bool
 	c := CmdConfigInfo{}
-	c.writer = libkb.NewTestOutput(config.GetConfigFileName()+"\n", t, &called)
+	c.writer = libkb.NewTestOutput("File: "+config.GetConfigFileName()+"\n\n", t, &called)
 	c.Run()
 	if !called {
 		t.Errorf("Did not output location")
