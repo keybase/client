@@ -4,6 +4,7 @@
 import React from 'react-native'
 import {
   Component,
+  Image,
   StyleSheet,
   ScrollView,
   Text,
@@ -21,7 +22,8 @@ class Profile extends Component {
   render () {
     return (
       <ScrollView style={styles.container}>
-        <View>
+        <View style={{justifyContent: 'center', alignItems: 'center'}}>
+          <Image style={{width: 100, height: 100}} source={{uri: this.props.avatar}}/>
           <Text>{this.props.username}</Text>
           <Text>keybase.io/{this.props.username}</Text>
           { this.props.proofs.map((details, proof) => {
@@ -52,7 +54,8 @@ class Profile extends Component {
 Profile.propTypes = {
   waitingForServer: React.PropTypes.bool.isRequired,
   username: React.PropTypes.string,
-  proofs: React.PropTypes.array
+  proofs: React.PropTypes.array,
+  avatar: React.PropTypes.string
 }
 
 const styles = StyleSheet.create({

@@ -11,6 +11,7 @@ export default function (state = initialState, action) {
       return state.mergeDeep({
         [action.username]: {
           username: action.username,
+          avatar: action.avatar,
           proofs: {}
         }
       })

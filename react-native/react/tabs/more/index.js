@@ -14,6 +14,7 @@ import commonStyles from '../../styles/common'
 import * as LoginActions from '../../actions/login'
 import * as SearchActions from '../../actions/search'
 import { navigateTo } from '../../actions/router'
+import { pushNewProfile } from '../../actions/profile'
 
 export default class More extends Component {
   constructor (props) {
@@ -48,6 +49,9 @@ export default class More extends Component {
         }},
         {name: 'Search', hasChildren: true, onClick: () => {
           this.props.dispatch(SearchActions.pushNewSearch())
+        }},
+        {name: 'Profile', hasChildren: true, onClick: () => {
+          this.props.dispatch(pushNewProfile('t_alice'))
         }}
       ])
     }

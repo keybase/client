@@ -10,7 +10,8 @@ export function pushNewProfile (username) {
   return function (dispatch, getState) {
     dispatch({
       type: types.INIT_PROFILE,
-      username
+      username,
+      avatar: `${getState().config.serverURI}/${username}/picture?format=square_200`
     })
     dispatch(routeAppend({
       path: 'profile',
