@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -119,7 +120,25 @@ func (v *CmdConfigReset) Run() error {
 
 func (v *CmdConfigInfo) Run() error {
 	configFile := G.Env.GetConfigFilename()
-	fmt.Fprintf(v.writer, "%s\n", configFile)
+	fmt.Fprintf(v.writer, "File: %s\n\n", configFile)
+
+	cli, err := GetConfigClient()
+	if err != nil {
+		return err
+	}
+	if err := RegisterProtocols(nil); err != nil {
+		return err
+	}
+
+	config, err := cli.GetConfig(0)
+	if err != nil {
+		return err
+	}
+	out, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(v.writer, "%s", out)
 	return nil
 }
 

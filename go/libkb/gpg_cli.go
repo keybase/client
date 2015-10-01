@@ -12,11 +12,6 @@ type GpgCLI struct {
 	path    string
 	options []string
 
-	// Configuration --- cache the results
-	configured     bool
-	configExplicit bool
-	configError    error
-
 	mutex *sync.Mutex
 
 	logUI LogUI
@@ -32,9 +27,8 @@ func NewGpgCLI(arg GpgCLIArg) *GpgCLI {
 		logUI = G.Log
 	}
 	return &GpgCLI{
-		configured: false,
-		mutex:      new(sync.Mutex),
-		logUI:      logUI,
+		mutex: new(sync.Mutex),
+		logUI: logUI,
 	}
 }
 
@@ -76,13 +70,14 @@ func (g *GpgCLI) CanExec() (bool, error) {
 	return true, nil
 }
 
-// Path returns the path of the gpg executable.  Configure must be
-// called before using this.
+// Path returns the path of the gpg executable.
+// Path is only available if CanExec() is true.
 func (g *GpgCLI) Path() string {
-	if !g.configured {
-		panic("GpgCLI not configured")
+	canExec, err := g.CanExec()
+	if err == nil && canExec {
+		return g.path
 	}
-	return g.path
+	return ""
 }
 
 type RunGpgArg struct {
