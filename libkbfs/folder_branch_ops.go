@@ -2582,7 +2582,6 @@ func (fbo *FolderBranchOps) mergeUnrefCacheLocked(file path, md *RootMetadata) {
 		// because the subsequent ones should have a QuotaSize of 0.
 		md.AddUnrefBlock(info)
 	}
-	delete(fbo.unrefCache, filePtr)
 }
 
 // writerLock must be taken by the caller.
