@@ -1,8 +1,7 @@
 'use strict'
 /*
- * Components which could show up at any point in a route. Meta navigator will call parseRoute. If that
- * returns null it means it can't handle the route
- *
+ * Components which could show up at any point in a route. Meta navigator will see if .canParseRoute(currentPath)
+ * returns true, which indicates it can be injected
  * @flow
  */
 
