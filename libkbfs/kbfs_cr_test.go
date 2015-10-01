@@ -258,7 +258,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	rootNode2, _, err :=
 		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
-		t.Errorf("Couldn't create folder: %v", err)
+		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
 	if err != nil {
