@@ -7,7 +7,8 @@ import (
 )
 
 type gpgtestui struct {
-	index int
+	index          int
+	keyChosenCount int
 }
 
 func (g *gpgtestui) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
@@ -37,6 +38,7 @@ func (g *gpgtestui) WantToAddGPGKey(dummy int) (bool, error) {
 }
 
 func (g *gpgtestui) ConfirmDuplicateKeyChosen(dummy int) (bool, error) {
+	g.keyChosenCount++
 	return true, nil
 }
 
