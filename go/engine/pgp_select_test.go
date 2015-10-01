@@ -39,7 +39,8 @@ func TestSelectEngine(t *testing.T) {
 		tc.T.Fatal("There should be one generated PGP key")
 	}
 
-	fp := fmt.Sprintf("%s", publicKeys[0].GetFingerprint())
+	key := publicKeys[0]
+	fp := fmt.Sprintf("%s", key.GetFingerprint())
 	garg := GPGImportKeyArg{
 		Query:      fp,
 		AllowMulti: true,
@@ -58,7 +59,7 @@ func TestSelectEngine(t *testing.T) {
 	if len(gpg.duplicatedFingerprints) != 1 {
 		tc.T.Fatal("Server didn't return an error while updating")
 	}
-	if fp != gpg.duplicatedFingerprints[0] {
+	if !key.GetFingerprint().Eq(gpg.duplicatedFingerprints[0]) {
 		tc.T.Fatal("Our fingerprint ID wasn't returned as up to date")
 	}
 	return

@@ -27,7 +27,7 @@ type GPGImportKeyArg struct {
 type GPGImportKeyEngine struct {
 	last                   *libkb.PGPKeyBundle
 	arg                    *GPGImportKeyArg
-	duplicatedFingerprints []string
+	duplicatedFingerprints []libkb.PGPFingerprint
 	libkb.Contextified
 }
 
