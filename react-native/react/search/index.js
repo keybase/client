@@ -86,9 +86,9 @@ class Search extends Component {
     const activity = this.props.waitingForServer ? (
       <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
         <ActivityIndicatorIOS
-        animating
-        style={{height: 80}}
-        size='large'
+          animating
+          style={{height: 80}}
+          size='large'
         />
       </View>
     ) : null
