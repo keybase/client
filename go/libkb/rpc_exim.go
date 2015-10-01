@@ -587,10 +587,8 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 }
 
 func (ckf ComputedKeyFamily) ExportDeviceKeys() []keybase1.PublicKey {
-	fmt.Printf("export device keys\n")
 	exportedKeys := []keybase1.PublicKey{}
 	addKey := func(key GenericKey) {
-		fmt.Printf("addKey: %+v\n", key)
 		if _, isPGP := key.(*PGPKeyBundle); isPGP {
 			return
 		}

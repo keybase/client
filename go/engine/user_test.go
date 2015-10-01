@@ -15,7 +15,7 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(up.DeviceKeys) != 2 {
-		t.Errorf("num device keys: %d, expected 2", len(up.DeviceKeys))
+	if len(up.DeviceKeys) != 4 {
+		t.Errorf("num device keys: %d, expected 4", len(up.DeviceKeys))
 	}
 }

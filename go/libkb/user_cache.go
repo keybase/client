@@ -8,10 +8,15 @@ import (
 	"stathat.com/c/ramcache"
 )
 
+// UserCache stores User objects in memory for a fixed amount of
+// time.
 type UserCache struct {
 	cache *ramcache.Ramcache
 }
 
+// NewUserCache creates a UserCache and sets the object max age to
+// maxAge.  Once a user is inserted, after maxAge duration passes,
+// the user will be removed from the cache.
 func NewUserCache(maxAge time.Duration) *UserCache {
 	res := &UserCache{
 		cache: ramcache.New(),
@@ -21,6 +26,8 @@ func NewUserCache(maxAge time.Duration) *UserCache {
 	return res
 }
 
+// Get returns a user object.  If none exists for uid, it will
+// return NotFoundError.
 func (c *UserCache) Get(uid keybase1.UID) (*User, error) {
 	v, err := c.cache.Get(string(uid))
 	if err != nil {
@@ -37,10 +44,12 @@ func (c *UserCache) Get(uid keybase1.UID) (*User, error) {
 	return u, nil
 }
 
+// Insert adds a user to the cache, keyed on UID.
 func (c *UserCache) Insert(u *User) error {
 	return c.cache.Set(string(u.GetUID()), u)
 }
 
+// Shutdown stops any goroutines in the cache.
 func (c *UserCache) Shutdown() {
 	c.cache.Shutdown()
 }

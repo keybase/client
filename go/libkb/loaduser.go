@@ -114,9 +114,6 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	defer func() {
 		if ret != nil {
 			ret.SetGlobalContext(arg.G())
-			if err == nil {
-				arg.G().UserCache.Insert(ret)
-			}
 		}
 	}()
 
@@ -343,6 +340,10 @@ func LoadUserPlusKeys(g *GlobalContext, assertion string, cacheOK bool) (keybase
 		}
 		if u == nil {
 			return up, fmt.Errorf("Nil user, nil error from LoadUser")
+		}
+		err = g.UserCache.Insert(u)
+		if err != nil {
+			g.Log.Debug("UserCache Set error: %s", err)
 		}
 	}
 
