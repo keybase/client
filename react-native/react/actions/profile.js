@@ -103,14 +103,47 @@ export function refreshProfile (username) {
 
     engine.rpc('identify.identify', {userAssertion: username, forceRemoteCheck: false, trackStatement: false}, incomingMap,
       (error, results) => {
-        console.log('search results', results)
-        dispatch({
-          username,
-          type: types.PROFILE_LOADED,
-          results,
-          error
-        })
+        if (error) {
+          console.log('identity error: ', username)
+        } else {
+          console.log('search results', results)
+          dispatch({
+            username,
+            type: types.PROFILE_LOADED,
+            results,
+            error
+          })
+
+          dispatch(loadSummaries([results.user.uid]))
+        }
       }
     )
+  }
+}
+
+export function loadSummaries (uids) {
+  return function (dispatch) {
+    dispatch({
+      uids,
+      type: types.PROFILE_SUMMARY_LOADING
+    })
+
+    engine.rpc('user.loadUncheckedUserSummaries', {uids: uids}, {}, (error, response) => {
+      if (error) {
+        console.log(error)
+        return
+      }
+
+      let summaries = {}
+      response.forEach(r => {
+        summaries[r.username] = {summary: r}
+      })
+
+      dispatch({
+        type: types.PROFILE_SUMMARY_LOADED,
+        summaries,
+        error
+      })
+    })
   }
 }

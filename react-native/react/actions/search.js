@@ -2,6 +2,7 @@
 
 import { INIT_SEARCH, SEARCH_RUNNING, SEARCH_RESULTS } from '../constants/searchActionTypes'
 import { routeAppend, getCurrentURI } from './router'
+import { loadSummaries } from './profile'
 import engine from '../engine'
 
 export function pushNewSearch () {
@@ -30,6 +31,10 @@ export function submitSearch (base, term) {
         results,
         error
       })
+
+      if (!error) {
+        dispatch(loadSummaries(results.map(r => r.uid)))
+      }
     })
   }
 }

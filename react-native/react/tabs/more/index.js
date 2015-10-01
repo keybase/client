@@ -51,7 +51,7 @@ export default class More extends Component {
           this.props.dispatch(SearchActions.pushNewSearch())
         }},
         {name: 'Profile', hasChildren: true, onClick: () => {
-          this.props.dispatch(pushNewProfile('t_alice'))
+          this.props.dispatch(pushNewProfile('test12'))
         }}
       ])
     }

@@ -118,7 +118,7 @@ class Search extends Component {
           returnKeyType='next'
           autoCorrect={false}
           onChangeText={(search) => { this.setState({search}) }}
-          onEndEditing={() => this.onSubmit()}
+          onSubmitEditing={() => this.onSubmit()}
         />
         {activity}{button}
         <ListView style={{flex: 1}}

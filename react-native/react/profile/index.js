@@ -26,6 +26,8 @@ class Profile extends Component {
           <Image style={{width: 100, height: 100}} source={{uri: this.props.avatar}}/>
           <Text>{this.props.username}</Text>
           <Text>keybase.io/{this.props.username}</Text>
+          <Text>Full Name: {this.props.summary.get('fullName')}</Text>
+          <Text>Bio: {this.props.summary.get('bio')}</Text>
           { this.props.proofs.map((details, proof) => {
             return (<Text>{proof}: {details.get('display')}{details.get('warning')}{details.get('error')} </Text>)
           }) }
@@ -55,7 +57,8 @@ Profile.propTypes = {
   waitingForServer: React.PropTypes.bool.isRequired,
   username: React.PropTypes.string,
   proofs: React.PropTypes.array,
-  avatar: React.PropTypes.string
+  avatar: React.PropTypes.string,
+  summary: React.PropTypes.object
 }
 
 const styles = StyleSheet.create({
