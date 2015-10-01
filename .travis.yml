@@ -4,6 +4,9 @@ go:
   - 1.5
 services:
   - docker
+os:
+  - linux
+  - osx
 before_install:
   - export DEBIAN_FRONTEND=noninteractive
   - sudo apt-get update
