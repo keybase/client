@@ -79,15 +79,15 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	return nil
 }
 
-func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle, Unmerged bool) (
+func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle, unmerged bool) (
 	*RootMetadata, error) {
 	mdserv := md.config.MDServer()
-	id, rmds, err := mdserv.GetForHandle(ctx, handle, Unmerged)
+	id, rmds, err := mdserv.GetForHandle(ctx, handle, unmerged)
 	if err != nil {
 		return nil, err
 	}
 	if rmds == nil {
-		if Unmerged {
+		if unmerged {
 			// don't automatically create unmerged MDs
 			return nil, nil
 		}
@@ -138,9 +138,9 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	return md.processMetadata(ctx, rmds.MD.GetTlfHandle(), rmds)
 }
 
-func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID, Unmerged bool) (
+func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID, unmerged bool) (
 	*RootMetadata, error) {
-	rmds, err := md.config.MDServer().GetForTLF(ctx, id, Unmerged)
+	rmds, err := md.config.MDServer().GetForTLF(ctx, id, unmerged)
 	if err != nil {
 		return nil, err
 	}
@@ -220,9 +220,9 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	return rmd, nil
 }
 
-func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID, Unmerged bool,
+func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID, unmerged bool,
 	start, stop MetadataRevision) ([]*RootMetadata, error) {
-	rmds, err := md.config.MDServer().GetRange(ctx, id, Unmerged, start, stop)
+	rmds, err := md.config.MDServer().GetRange(ctx, id, unmerged, start, stop)
 	if err != nil {
 		return nil, err
 	}
