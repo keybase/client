@@ -33,7 +33,6 @@ const tabToRootRouteParse = {
 class Nav extends Component {
   constructor (props) {
     super(props)
-    this.props.dispatch(switchTab(MORE_TAB))
   }
 
   _renderContent (color, activeTab) {
@@ -41,7 +40,7 @@ class Nav extends Component {
       <View style={[styles.tabContent, {backgroundColor: color}]}>
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator),
-          {store: this.props.store, rootRouteParser: tabToRootRouteParse[activeTab] || NoTab}
+          {store: this.props.store, rootRouteParser: tabToRootRouteParse[activeTab] || NoTab.parseRoute}
         )}
       </View>
     )
