@@ -17,11 +17,11 @@ export function createRouterState (uri, history) {
 
 function pushIfTailIsDifferent (thing, stack) {
   // TODO: fix this equality check.
-  console.log('Maybe pushing', thing, 'onto', stack)
+  console.log('Maybe pushing', thing.toJS(), 'onto', stack.toJS())
   if (Immutable.is(stack.last(), thing)) {
-    return stack.push(thing)
+    return stack
   }
-  return stack
+  return stack.push(thing)
 }
 
 // A path can either be a string or an object with the key path and extra arguments
@@ -55,6 +55,10 @@ export default function (state = initialState, action) {
     // we get rid of everything after it
     case routerTypes.NAVIGATE_UP:
       return state.update('uri', (uri) => uri.count() > 1 ? uri.pop() : uri)
+    case routerTypes.NAVIGATE_BACK:
+      const lastUri = state.get('history').last() || parseUri([])
+      return state.update('history', (history) => history.count() > 1 ? history.pop() : parseUri([]))
+        .set('uri', lastUri)
     case routerTypes.NAVIGATE:
       return stateWithHistory.set('uri', parseUri(action.uri))
     case routerTypes.NAVIGATE_APPEND:
