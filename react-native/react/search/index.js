@@ -30,7 +30,7 @@ class Search extends Component {
   buildDataSource (props) {
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
-    const results = !props.results ? [] : props.results.map((s) => {
+    const results = !props.results ? [] : props.results.toJS().map((s) => {
       const { username } = s
       const row1 = `${username}${this.componentName(s)}`
       const row2 = s.components.map(c => this.componentText(c)).filter(c => c).join(' | ')
@@ -137,7 +137,7 @@ class Search extends Component {
     return {
       componentAtTop: {
         component: Search,
-        mapStateToProps: (state) => state.search[base]
+        mapStateToProps: (state) => state.search.get(base).toObject()
       },
       parseNextRoute: null
     }
@@ -147,7 +147,7 @@ class Search extends Component {
 Search.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   base: React.PropTypes.object.isRequired,
-  results: React.PropTypes.array,
+  results: React.PropTypes.object,
   waitingForServer: React.PropTypes.bool.isRequired
 }
 
