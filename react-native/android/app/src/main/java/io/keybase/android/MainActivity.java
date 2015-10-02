@@ -20,7 +20,7 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Init(this.getFilesDir().getPath(), "staging");
+        Init(this.getFilesDir().getPath(), "staging", "");
 
         mReactRootView = new ReactRootView(this);
         mReactInstanceManager = ReactInstanceManager.builder()
@@ -51,6 +51,16 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
     public void invokeDefaultOnBackPressed() {
       super.onBackPressed();
     }
+
+    @Override
+    public void onBackPressed() {
+        if (mReactInstanceManager != null) {
+            mReactInstanceManager.onBackPressed();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
 
     @Override
     protected void onPause() {

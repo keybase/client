@@ -1,5 +1,6 @@
 package io.keybase.android.modules;
 
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -7,8 +8,9 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static go.keybase.Keybase.ReadB64;
 import static go.keybase.Keybase.Reset;
@@ -18,6 +20,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule {
 
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
+    private final ExecutorService executor;
 
     private class ReadFromKBLib implements Runnable {
         private final ReactApplicationContext reactContext;
@@ -32,9 +35,8 @@ public class KeybaseEngine extends ReactContextBaseJavaModule {
             // It will fail if you try to run .getJSModule
             // before react has loaded.
 
-            //noinspection InfiniteLoopStatement
-            while (true) {
-                String data = ReadB64();
+            while (!Thread.currentThread().isInterrupted()) {
+                final String data = ReadB64();
 
                 reactContext
                   .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
@@ -46,8 +48,35 @@ public class KeybaseEngine extends ReactContextBaseJavaModule {
     public KeybaseEngine(final ReactApplicationContext reactContext) {
         super(reactContext);
 
-        Executor executor = Executors.newSingleThreadExecutor();
+        executor = Executors.newSingleThreadExecutor();
         executor.execute(new ReadFromKBLib(reactContext));
+
+        reactContext.addLifecycleEventListener(new LifecycleEventListener() {
+            @Override
+            public void onHostResume() {
+                Reset();
+            }
+
+            @Override
+            public void onHostPause() {
+                Reset();
+            }
+
+            @Override
+            public void onHostDestroy() {
+                destroy();
+            }
+        });
+    }
+
+    public void destroy(){
+        try {
+            executor.shutdownNow();
+            Reset();
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getName() {

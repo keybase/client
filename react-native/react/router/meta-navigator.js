@@ -54,6 +54,13 @@ class MetaNavigator extends Component {
     }
   }
 
+  componentDidMount () {
+    // TODO FIX this...
+    // This is just to fix an error we get from the navigator complaining about
+    // some var elgibleGestures not setup. This hack sets it up.
+    this.refs.navigator._handleTouchStart()
+  }
+
   findGlobalRouteHandler (currentPath) {
     let parseRoute = null
     if (this.props.globalRoutes) {

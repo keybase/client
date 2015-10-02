@@ -26,5 +26,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.0.0'
     compile 'com.facebook.react:react-native:0.11.0'
+    debugCompile 'com.hanhuy.android:viewserver:1.0.3'
     compile project(':keybaselib')
 }

@@ -1,14 +1,14 @@
 'use strict'
 
 import React from 'react-native'
-import {
+const {
   Component,
   ListView,
   StyleSheet,
   View,
   Text,
   TouchableHighlight
-} from 'react-native'
+} = React
 
 import commonStyles from '../../styles/common'
 import * as LoginActions from '../../actions/login'
@@ -26,7 +26,11 @@ export default class More extends Component {
     this.state = {
       dataSource: ds.cloneWithRows([
         {name: 'Login', onClick: () => {
-          this.props.dispatch(LoginActions.startLogin())
+          this.props.dispatch(navigateTo(['login']))
+        }},
+        {name: 'reset', onClick: () => {
+          require('../../engine').reset()
+          console.log('Engine reset!');
         }},
         {name: 'Sign Out', onClick: () => {
           this.props.dispatch(LoginActions.logout())
