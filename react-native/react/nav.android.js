@@ -21,6 +21,7 @@ import {
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
 import { switchTab } from './actions/tabbedRouter'
+import { navigateBack } from './actions/router'
 
 const tabToRootRouteParse = {
   [FOLDER_TAB]: Folders.parseRoute,
@@ -49,7 +50,13 @@ class Nav extends Component {
   componentWillMount () {
     BackAndroid.addEventListener('hardwareBackPress', () => {
       // TODO Properly handle android back button press
-      return false
+      const currentRoute = this.props.tabbedRouter.getIn(['tabs', this.props.tabbedRouter.get('activeTab'),'uri'])
+      const {dispatch} = this.props
+      if (currentRoute == null || currentRoute.count() <= 1) {
+        return false
+      }
+      dispatch(navigateBack())
+      return true
     })
   }
 

@@ -17,6 +17,12 @@ export function navigateUp () {
   }
 }
 
+export function navigateBack () {
+  return {
+    type: types.NAVIGATE_BACK
+  }
+}
+
 export function navigateTo (uri) {
   return {
     type: types.NAVIGATE,

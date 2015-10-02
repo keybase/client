@@ -3,7 +3,7 @@
 /* shows how the meta navigator works */
 
 import React from 'react-native'
-import { Component, View, Text } from 'react-native'
+import { Component, View, Text, StyleSheet } from 'react-native'
 import { navigateTo, routeAppend, navigateUp } from '../actions/router'
 
 function mapStateToGetURI (state) {
@@ -41,7 +41,7 @@ class NavDebug extends Component {
         <Text style={{textAlign: 'center'}}>In debug</Text>
         <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri.toJSON())}</Text>
         <Text
-          style={{textAlign: 'center', color: 'blue'}}
+          style={styles.button}
           onPress={() => this.props.dispatch(navigateTo(['navDebug', 'page2']))}>Click here to go somewhere</Text>
       </View>
     )
@@ -77,13 +77,13 @@ class DebugPage2 extends Component {
         <Text style={{textAlign: 'center'}}>Page 2</Text>
         <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri.toJSON())}</Text>
         <Text
-          style={{textAlign: 'center', color: 'blue'}}
+          style={styles.button}
           onPress={() => this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
         <Text
-          style={{textAlign: 'center', color: 'blue'}}
+          style={styles.button}
           onPress={() => this.props.dispatch(routeAppend('page3'))}>infinite recursion</Text>
         <Text
-          style={{textAlign: 'center', color: 'blue'}}
+          style={styles.button}
           onPress={() => this.props.dispatch(navigateTo(['navDebug']))}>go back to debug</Text>
       </View>
     )
@@ -119,13 +119,13 @@ class DebugPage3 extends Component {
         <Text style={{textAlign: 'center'}}>Page 3</Text>
         <Text style={{textAlign: 'center'}}>URI: {JSON.stringify(this.props.uri.toJSON())}</Text>
         <Text
-          style={{textAlign: 'center', color: 'blue'}}
+          style={styles.button}
           onPress={() => this.props.dispatch(navigateUp())}>Go up the nav hierarchy</Text>
         <Text
-          style={{textAlign: 'center', color: 'blue'}}
+          style={styles.button}
           onPress={() => this.props.dispatch(routeAppend('page2'))}>infinite recursion</Text>
         <Text
-          style={{textAlign: 'center', color: 'blue'}}
+          style={styles.button}
           onPress={() => this.props.dispatch(navigateTo([]))}>go back to more</Text>
       </View>
     )
@@ -153,5 +153,15 @@ DebugPage3.propTypes = {
   dispatch: React.PropTypes.object.isRequired,
   uri: React.PropTypes.object.isRequired
 }
+
+const styles = StyleSheet.create({
+  button: {
+    fontSize: 30,
+    marginTop: 20,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: 'blue'
+  }
+})
 
 export default NavDebug

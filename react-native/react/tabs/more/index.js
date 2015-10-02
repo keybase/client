@@ -25,6 +25,13 @@ export default class More extends Component {
 
     this.state = {
       dataSource: ds.cloneWithRows([
+        {name: 'Login', onClick: () => {
+          this.props.dispatch(navigateTo(['login']))
+        }},
+        {name: 'reset', onClick: () => {
+          require('../../engine').reset()
+          console.log('Engine reset!');
+        }},
         {name: 'Sign Out', onClick: () => {
           this.props.dispatch(LoginActions.logout())
         }},
