@@ -209,6 +209,9 @@ type NotFoundError struct {
 }
 
 func (e NotFoundError) Error() string {
+	if len(e.msg) == 0 {
+		return "Not found"
+	}
 	return e.msg
 }
 

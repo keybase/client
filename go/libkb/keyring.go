@@ -257,20 +257,74 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 	return
 }
 
+func (k *Keyrings) cachedSecretKey(lctx LoginContext, ska SecretKeyArg) GenericKey {
+	var key GenericKey
+	var err error
+	if lctx != nil {
+		key, err = lctx.CachedSecretKey(ska)
+	} else {
+		aerr := k.G().LoginState().Account(func(a *Account) {
+			key, err = a.CachedSecretKey(ska)
+		}, "Keyrings - cachedSecretKey")
+		if aerr != nil {
+			k.G().Log.Debug("Account error: %s", aerr)
+		}
+	}
+
+	if key != nil && err == nil {
+		k.G().Log.Debug("found cached secret key for ska: %+v", ska)
+	} else if err != nil {
+		if _, notFound := err.(NotFoundError); !notFound {
+			k.G().Log.Debug("error getting cached secret key: %s", err)
+		}
+	}
+
+	return key
+}
+
+func (k *Keyrings) setCachedSecretKey(lctx LoginContext, ska SecretKeyArg, key GenericKey) {
+	k.G().Log.Debug("caching secret key for ska: %+v", ska)
+	var setErr error
+	if lctx != nil {
+		setErr = lctx.SetCachedSecretKey(ska, key)
+	} else {
+		aerr := k.G().LoginState().Account(func(a *Account) {
+			setErr = a.SetCachedSecretKey(ska, key)
+		}, "GetSecretKeyWithPrompt - SetCachedSecretKey")
+		if aerr != nil {
+			k.G().Log.Debug("Account error: %s", aerr)
+		}
+	}
+	if setErr != nil {
+		k.G().Log.Debug("SetCachedSecretKey error: %s", setErr)
+	}
+}
+
 // TODO: Figure out whether and how to dep-inject the SecretStore.
 func (k *Keyrings) GetSecretKeyWithPrompt(lctx LoginContext, ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, err error) {
 	k.G().Log.Debug("+ GetSecretKeyWithPrompt(%s)", reason)
 	defer func() {
 		k.G().Log.Debug("- GetSecretKeyWithPrompt() -> %s", ErrToOk(err))
 	}()
+
+	key = k.cachedSecretKey(lctx, ska)
+	if key != nil {
+		return key, err
+	}
+
 	key, _, err = k.GetSecretKeyAndSKBWithPrompt(lctx, ska, secretUI, reason)
-	return
+
+	if key != nil && err == nil {
+		k.setCachedSecretKey(lctx, ska, key)
+	}
+
+	return key, err
 }
 
 func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(lctx LoginContext, ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
-	k.G().Log.Debug("+ GetSecretKeyWithPrompt(%s)", reason)
+	k.G().Log.Debug("+ GetSecretKeyAndSKBWithPrompt(%s)", reason)
 	defer func() {
-		k.G().Log.Debug("- GetSecretKeyWithPrompt() -> %s", ErrToOk(err))
+		k.G().Log.Debug("- GetSecretKeyAndSKBWithPrompt() -> %s", ErrToOk(err))
 	}()
 	var which string
 	if skb, which, err = k.GetSecretKeyLocked(lctx, ska); err != nil {
