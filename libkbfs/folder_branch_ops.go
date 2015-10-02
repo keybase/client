@@ -278,7 +278,8 @@ func (fbo *FolderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
 // headLock must be taken by caller
 func (fbo *FolderBranchOps) setHeadLocked(ctx context.Context,
 	md *RootMetadata) error {
-	if fbo.head != nil {
+	isFirstHead := fbo.head == nil
+	if !isFirstHead {
 		mdID, err := md.MetadataID(fbo.config)
 		if err != nil {
 			return err
@@ -304,7 +305,7 @@ func (fbo *FolderBranchOps) setHeadLocked(ctx context.Context,
 	// If this is the first time the MD is being set, and we are
 	// operating on unmerged data, initialize the state properly and
 	// kick off conflict resolution.
-	if fbo.head == nil && md.MergedStatus() == Unmerged {
+	if isFirstHead && md.MergedStatus() == Unmerged {
 		// no need to take the writer lock here since is the first
 		// time the folder is being used
 		fbo.setStagedLocked(true)
@@ -315,6 +316,14 @@ func (fbo *FolderBranchOps) setHeadLocked(ctx context.Context,
 
 	fbo.head = md
 	fbo.status.setRootMetadata(md)
+	if isFirstHead {
+		// Start registering for updates right away, using this MD
+		// as a starting point. For now only the master branch can
+		// get updates
+		if fbo.branch() == MasterBranch {
+			go fbo.registerForUpdates()
+		}
+	}
 	return nil
 }
 
@@ -541,12 +550,6 @@ func (fbo *FolderBranchOps) CheckForNewMDAndInit(
 			err := fbo.setHeadLocked(ctx, md)
 			if err != nil {
 				return err
-			}
-			// Start registering for updates right away, using this MD
-			// as a starting point. For now only the master branch can
-			// get updates
-			if fbo.branch() == MasterBranch {
-				go fbo.registerForUpdates()
 			}
 		}
 		return nil
