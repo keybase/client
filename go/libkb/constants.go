@@ -48,7 +48,7 @@ const (
 	IdentifyAs       = GoClientID + " v" + Version + " " + runtime.GOOS
 )
 
-var UserAgent = "Keybase-Go-CLI/" + Version + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
+var UserAgent = "Keybase/" + Version + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
 
 const (
 	PermFile          os.FileMode = 0600
