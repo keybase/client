@@ -58,6 +58,7 @@ func (e *GPGImportKeyEngine) RequiredUIs() []libkb.UIKind {
 func (e *GPGImportKeyEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		NewPGPKeyImportEngine(PGPKeyImportEngineArg{}),
+		NewPGPUpdateEngine(PGPUpdateEngineArg{}),
 	}
 }
 
