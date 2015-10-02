@@ -79,8 +79,8 @@
 		},
 		{
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "e5e2e2cc9f6851df9712d8f6fd9f65bc513a3c79",
-			"revisionTime": "2015-07-01T15:45:31-04:00"
+			"revision": "fc833da23dfb352183cf36abd061c26ac3ea3c6e",
+			"revisionTime": "2015-10-02T19:11:52-04:00"
 		},
 		{
 			"path": "github.com/keybase/miniline",
