@@ -944,3 +944,16 @@ type ConnectionTransport interface {
 	// Close is used to close any open connection.
 	Close()
 }
+
+// crAction represents a specific action to take as part of the
+// conflict resolution process.
+type crAction interface {
+	// do modifies the given merged block in place to resolve the
+	// conflict, and returns potentially modified sets of unmerged and
+	// merged operations.
+	do(config Config, unmergedMostRecent BlockPointer,
+		mergedMostRecent BlockPointer, unmergedOps []op, mergedOps []op,
+		unmergedBlock *DirBlock, mergedBlock *DirBlock) (
+		retUnmergedOps []op, retMergedOps []op, err error)
+	String() string
+}

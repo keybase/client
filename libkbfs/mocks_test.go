@@ -2515,3 +2515,46 @@ func (_m *MockConnectionTransport) Close() {
 func (_mr *_MockConnectionTransportRecorder) Close() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Close")
 }
+
+// Mock of crAction interface
+type MockcrAction struct {
+	ctrl     *gomock.Controller
+	recorder *_MockcrActionRecorder
+}
+
+// Recorder for MockcrAction (not exported)
+type _MockcrActionRecorder struct {
+	mock *MockcrAction
+}
+
+func NewMockcrAction(ctrl *gomock.Controller) *MockcrAction {
+	mock := &MockcrAction{ctrl: ctrl}
+	mock.recorder = &_MockcrActionRecorder{mock}
+	return mock
+}
+
+func (_m *MockcrAction) EXPECT() *_MockcrActionRecorder {
+	return _m.recorder
+}
+
+func (_m *MockcrAction) do(config Config, unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer, unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock, mergedBlock *DirBlock) ([]op, []op, error) {
+	ret := _m.ctrl.Call(_m, "do", config, unmergedMostRecent, mergedMostRecent, unmergedOps, mergedOps, unmergedBlock, mergedBlock)
+	ret0, _ := ret[0].([]op)
+	ret1, _ := ret[1].([]op)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockcrActionRecorder) do(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "do", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+}
+
+func (_m *MockcrAction) String() string {
+	ret := _m.ctrl.Call(_m, "String")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+func (_mr *_MockcrActionRecorder) String() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "String")
+}
