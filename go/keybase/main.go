@@ -68,7 +68,7 @@ func mainInner(g *libkb.GlobalContext) error {
 		client.InitUI()
 	}
 
-	if err = g.ConfigureAll(cl, cmd); err != nil {
+	if err = g.ConfigureCommand(cl, cmd); err != nil {
 		return err
 	}
 	g.StartupMessage()
