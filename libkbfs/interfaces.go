@@ -822,6 +822,13 @@ type Clock interface {
 	Now() time.Time
 }
 
+// ConflictRenamer deals with names for conflicting directory entries.
+type ConflictRenamer interface {
+	// GetConflictResolver returns the appropriate suffix for the
+	// given op causing a conflict.
+	GetConflictSuffix(op op) string
+}
+
 // Config collects all the singleton instance instantiations needed to
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
@@ -864,6 +871,8 @@ type Config interface {
 	SetNotifier(Notifier)
 	Clock() Clock
 	SetClock(Clock)
+	ConflictRenamer() ConflictRenamer
+	SetConflictRenamer(ConflictRenamer)
 	DataVersion() DataVer
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder

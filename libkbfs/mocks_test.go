@@ -1876,6 +1876,37 @@ func (_mr *_MockClockRecorder) Now() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Now")
 }
 
+// Mock of ConflictRenamer interface
+type MockConflictRenamer struct {
+	ctrl     *gomock.Controller
+	recorder *_MockConflictRenamerRecorder
+}
+
+// Recorder for MockConflictRenamer (not exported)
+type _MockConflictRenamerRecorder struct {
+	mock *MockConflictRenamer
+}
+
+func NewMockConflictRenamer(ctrl *gomock.Controller) *MockConflictRenamer {
+	mock := &MockConflictRenamer{ctrl: ctrl}
+	mock.recorder = &_MockConflictRenamerRecorder{mock}
+	return mock
+}
+
+func (_m *MockConflictRenamer) EXPECT() *_MockConflictRenamerRecorder {
+	return _m.recorder
+}
+
+func (_m *MockConflictRenamer) GetConflictSuffix(op op) string {
+	ret := _m.ctrl.Call(_m, "GetConflictSuffix", op)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+func (_mr *_MockConflictRenamerRecorder) GetConflictSuffix(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetConflictSuffix", arg0)
+}
+
 // Mock of Config interface
 type MockConfig struct {
 	ctrl     *gomock.Controller
@@ -2237,6 +2268,24 @@ func (_m *MockConfig) SetClock(_param0 Clock) {
 
 func (_mr *_MockConfigRecorder) SetClock(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetClock", arg0)
+}
+
+func (_m *MockConfig) ConflictRenamer() ConflictRenamer {
+	ret := _m.ctrl.Call(_m, "ConflictRenamer")
+	ret0, _ := ret[0].(ConflictRenamer)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) ConflictRenamer() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ConflictRenamer")
+}
+
+func (_m *MockConfig) SetConflictRenamer(_param0 ConflictRenamer) {
+	_m.ctrl.Call(_m, "SetConflictRenamer", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetConflictRenamer(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetConflictRenamer", arg0)
 }
 
 func (_m *MockConfig) DataVersion() DataVer {

@@ -40,6 +40,7 @@ type ConfigLocal struct {
 	bsplit    BlockSplitter
 	notifier  Notifier
 	clock     Clock
+	renamer   ConflictRenamer
 	rootCerts []byte
 	registry  metrics.Registry
 	loggerFn  func(prefix string) logger.Logger
@@ -143,6 +144,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetKBFSOps(NewKBFSOpsStandard(config))
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
+	config.SetConflictRenamer(TimeAndWriterConflictRenamer{config})
 	config.SetMDCache(NewMDCacheStandard(5000))
 	config.SetKeyCache(NewKeyCacheStandard(5000))
 	config.SetBlockCache(NewBlockCacheStandard(config, 5000))
@@ -359,6 +361,16 @@ func (c *ConfigLocal) Clock() Clock {
 // SetClock implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetClock(cl Clock) {
 	c.clock = cl
+}
+
+// ConflictRenamer implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) ConflictRenamer() ConflictRenamer {
+	return c.renamer
+}
+
+// SetConflictRenamer implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetConflictRenamer(cr ConflictRenamer) {
+	c.renamer = cr
 }
 
 // DataVersion implements the Config interface for ConfigLocal.
