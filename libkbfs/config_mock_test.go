@@ -45,6 +45,7 @@ type ConfigMock struct {
 	mockBserv    *MockBlockServer
 	mockBsplit   *MockBlockSplitter
 	mockNotifier *MockNotifier
+	mockClock    *MockClock
 	observer     *FakeObserver
 	ctr          *SafeTestReporter
 }
@@ -89,6 +90,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetBlockSplitter(config.mockBsplit)
 	config.mockNotifier = NewMockNotifier(c)
 	config.SetNotifier(config.mockNotifier)
+	config.mockClock = NewMockClock(c)
+	config.SetClock(config.mockClock)
 	config.observer = &FakeObserver{}
 	config.ctr = ctr
 	config.SetLoggerMaker(func(m string) logger.Logger {

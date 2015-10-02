@@ -82,6 +82,9 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config.mockMdserv.EXPECT().RegisterForUpdate(gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(c, nil)
 
+	// None of these tests depend on time
+	config.mockClock.EXPECT().Now().AnyTimes().Return(time.Now())
+
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
 	ctx = context.WithValue(context.Background(), tCtxID, rand.Int())

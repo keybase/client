@@ -1991,7 +1991,7 @@ func testForErrorText(t *testing.T, path string, expectedErr error,
 
 func TestErrorFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	config.SetReporter(libkbfs.NewReporterSimple(0))
+	config.SetReporter(libkbfs.NewReporterSimple(config.Clock(), 0))
 	defer config.Shutdown()
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()

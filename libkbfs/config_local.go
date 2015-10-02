@@ -39,6 +39,7 @@ type ConfigLocal struct {
 	daemon    KeybaseDaemon
 	bsplit    BlockSplitter
 	notifier  Notifier
+	clock     Clock
 	rootCerts []byte
 	registry  metrics.Registry
 	loggerFn  func(prefix string) logger.Logger
@@ -140,7 +141,8 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 func NewConfigLocal() *ConfigLocal {
 	config := &ConfigLocal{}
 	config.SetKBFSOps(NewKBFSOpsStandard(config))
-	config.SetReporter(NewReporterSimple(10))
+	config.SetClock(wallClock{})
+	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetMDCache(NewMDCacheStandard(5000))
 	config.SetKeyCache(NewKeyCacheStandard(5000))
 	config.SetBlockCache(NewBlockCacheStandard(config, 5000))
@@ -347,6 +349,16 @@ func (c *ConfigLocal) Notifier() Notifier {
 // SetNotifier implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetNotifier(n Notifier) {
 	c.notifier = n
+}
+
+// Clock implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) Clock() Clock {
+	return c.clock
+}
+
+// SetClock implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetClock(cl Clock) {
+	c.clock = cl
 }
 
 // DataVersion implements the Config interface for ConfigLocal.

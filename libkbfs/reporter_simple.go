@@ -3,12 +3,12 @@ package libkbfs
 import (
 	"fmt"
 	"sync"
-	"time"
 )
 
 // ReporterSimple remembers the last maxErrors errors, or all errors
 // if maxErrors < 1.
 type ReporterSimple struct {
+	clock          Clock
 	maxErrors      int
 	currErrorIndex int
 	filledOnce     bool
@@ -18,8 +18,9 @@ type ReporterSimple struct {
 }
 
 // NewReporterSimple creates a new ReporterSimple.
-func NewReporterSimple(maxErrors int) *ReporterSimple {
+func NewReporterSimple(clock Clock, maxErrors int) *ReporterSimple {
 	rs := &ReporterSimple{
+		clock:          clock,
 		maxErrors:      maxErrors,
 		currErrorIndex: -1,
 	}
@@ -39,7 +40,7 @@ func (r *ReporterSimple) Report(level ReportingLevel, message fmt.Stringer) {
 	if level >= RptE {
 		re := ReportedError{
 			Level: level,
-			Time:  time.Now(),
+			Time:  r.clock.Now(),
 			Error: message,
 		}
 		r.currErrorIndex++

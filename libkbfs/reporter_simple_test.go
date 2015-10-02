@@ -22,7 +22,7 @@ func checkReportedErrors(t *testing.T, expected []fmt.Stringer,
 }
 
 func TestReporterSimpleMaxLimited(t *testing.T) {
-	r := NewReporterSimple(3)
+	r := NewReporterSimple(wallClock{}, 3)
 	err1 := WrapError{errors.New("1")}
 	r.Report(RptE, err1)
 	checkReportedErrors(t, []fmt.Stringer{err1}, r.AllKnownErrors())
@@ -42,7 +42,7 @@ func TestReporterSimpleMaxLimited(t *testing.T) {
 }
 
 func TestReporterSimpleUnlimited(t *testing.T) {
-	r := NewReporterSimple(0)
+	r := NewReporterSimple(wallClock{}, 0)
 	err1 := WrapError{errors.New("1")}
 	r.Report(RptE, err1)
 	checkReportedErrors(t, []fmt.Stringer{err1}, r.AllKnownErrors())

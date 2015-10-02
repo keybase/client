@@ -816,6 +816,12 @@ type Notifier interface {
 	UnregisterFromChanges(folderBranches []FolderBranch, obs Observer) error
 }
 
+// Clock is an interface for getting the current time
+type Clock interface {
+	// Now returns the current time.
+	Now() time.Time
+}
+
 // Config collects all the singleton instance instantiations needed to
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
@@ -856,6 +862,8 @@ type Config interface {
 	SetBlockSplitter(BlockSplitter)
 	Notifier() Notifier
 	SetNotifier(Notifier)
+	Clock() Clock
+	SetClock(Clock)
 	DataVersion() DataVer
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder

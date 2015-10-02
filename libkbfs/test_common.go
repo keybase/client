@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -437,4 +438,14 @@ func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
 	c := make(chan struct{})
 	ops.updatePauseChan <- c
 	return c, nil
+}
+
+// TestClock returns a set time as the current time.
+type TestClock struct {
+	T time.Time
+}
+
+// Now implements the Clock interface for TestClock.
+func (tc TestClock) Now() time.Time {
+	return tc.T
 }

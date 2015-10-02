@@ -1845,6 +1845,37 @@ func (_mr *_MockNotifierRecorder) UnregisterFromChanges(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnregisterFromChanges", arg0, arg1)
 }
 
+// Mock of Clock interface
+type MockClock struct {
+	ctrl     *gomock.Controller
+	recorder *_MockClockRecorder
+}
+
+// Recorder for MockClock (not exported)
+type _MockClockRecorder struct {
+	mock *MockClock
+}
+
+func NewMockClock(ctrl *gomock.Controller) *MockClock {
+	mock := &MockClock{ctrl: ctrl}
+	mock.recorder = &_MockClockRecorder{mock}
+	return mock
+}
+
+func (_m *MockClock) EXPECT() *_MockClockRecorder {
+	return _m.recorder
+}
+
+func (_m *MockClock) Now() time.Time {
+	ret := _m.ctrl.Call(_m, "Now")
+	ret0, _ := ret[0].(time.Time)
+	return ret0
+}
+
+func (_mr *_MockClockRecorder) Now() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Now")
+}
+
 // Mock of Config interface
 type MockConfig struct {
 	ctrl     *gomock.Controller
@@ -2188,6 +2219,24 @@ func (_m *MockConfig) SetNotifier(_param0 Notifier) {
 
 func (_mr *_MockConfigRecorder) SetNotifier(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetNotifier", arg0)
+}
+
+func (_m *MockConfig) Clock() Clock {
+	ret := _m.ctrl.Call(_m, "Clock")
+	ret0, _ := ret[0].(Clock)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) Clock() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Clock")
+}
+
+func (_m *MockConfig) SetClock(_param0 Clock) {
+	_m.ctrl.Call(_m, "SetClock", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetClock(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetClock", arg0)
 }
 
 func (_m *MockConfig) DataVersion() DataVer {
