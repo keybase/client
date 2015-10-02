@@ -57,8 +57,9 @@ func BenchmarkCryptoSignED25519(b *testing.B) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "fu")
-	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	secretUI := u.NewSecretUI()
 
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		msg := []byte("test message")
 		_, err := SignED25519(tc.G, secretUI, keybase1.SignED25519Arg{
