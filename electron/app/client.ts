@@ -51,6 +51,10 @@ class Client {
     let client = this;
     this.transport.set_generic_handler(function(request) {
       //console.log("Handler: ", request);
+      if (request.method == "keybase.1.logUi.log") {
+        console.log("[Service] ", request.param);
+        return;
+      }
       client.serviceRequestForRenderer(request.method, request.param, request.response);
     });
 
