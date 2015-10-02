@@ -13,58 +13,20 @@ import (
 var con net.Conn
 var startOnce sync.Once
 
-type debuggingConfig struct {
-	libkb.NullConfiguration
-	homeDir   string
-	runMode   string
-	serverURI string
-}
-
-func (n debuggingConfig) GetDebug() (bool, bool) {
-	// if you want helpful debug info in xcode
-	return true, true
-	// return false, false
-}
-
-func (n debuggingConfig) GetLocalRPCDebug() string {
-	// if you want helpful debug info in xcode
-	return "Acsvip"
-	// return ""
-}
-
-func (n debuggingConfig) GetRunMode() (libkb.RunMode, error) {
-	if n.runMode == "" {
-		return libkb.DevelRunMode, nil
-	}
-
-	return libkb.StringToRunMode(n.runMode)
-}
-
-func (n debuggingConfig) GetHome() string {
-	return n.homeDir
-}
-
-func (n debuggingConfig) GetServerURI() string {
-	return n.serverURI
-}
-
-func start(cmdline libkb.CommandLine) {
+// ServerURI should match run mode environment.
+func Init(homeDir string, runMode string, serverURI string) {
 	startOnce.Do(func() {
 		libkb.G.Init()
-		libkb.G.SetCommandLine(cmdline)
-		libkb.G.ConfigureLogging()
-		libkb.G.ConfigureUsage(libkb.Usage{
+		usage := libkb.Usage{
 			Config:    true,
 			API:       true,
 			KbKeyring: true,
-		})
+		}
+		config := libkb.AppConfig{HomeDir: homeDir, RunMode: libkb.DevelRunMode, Debug: true, LocalRPCDebug: "Acsvip", ServerURI: serverURI}
+		libkb.G.Configure(config, usage)
 		(service.NewService(false)).StartLoopbackServer(libkb.G)
 		Reset()
 	})
-}
-
-func Init(homeDir string, runMode string, serverURI string) {
-	start(debuggingConfig{libkb.NullConfiguration{}, homeDir, runMode, serverURI})
 }
 
 // Takes base64 encoded msgpack rpc payload
