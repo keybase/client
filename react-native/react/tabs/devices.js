@@ -4,10 +4,13 @@
 import React from 'react-native'
 const {
   ActivityIndicatorIOS,
+  ProgressBarAndroid,
+  Platform,
   Component,
   ListView,
   Text,
   TouchableHighlight,
+  TouchableNativeFeedback,
   View
 } = React
 
@@ -24,11 +27,16 @@ export default class Devices extends Component {
     }
   }
 
-  componentDidMount () {
+  loadDevices () {
     const {dispatch} = this.props
-
-    if (!this.props.devices) {
+    if (!this.props.devices && !this.props.waitingForServer) {
       dispatch(loadDevices())
+    }
+  }
+
+  componentDidMount () {
+    if (Platform.OS === 'ios') {
+      this.loadDevices()
     }
   }
 
@@ -71,6 +79,29 @@ export default class Devices extends Component {
   }
 
   render () {
+    if (Platform.OS === 'android') {
+      // TODO: instead of forcing the user to click a button to load the devices we
+      // should do this a better way
+      // Currently all tabs are loaded on start, so this would load when they open the app
+      if (!this.props.waitingForServer && !this.props.devices) {
+        return (
+          <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+            <TouchableNativeFeedback
+              onPress={this.loadDevices.bind(this)}>
+              <View>
+                <Text style={{fontSize: 32, marginTop: 20, marginBottom: 20}}>Load Devices</Text>
+              </View>
+            </TouchableNativeFeedback>
+          </View>
+        )
+      } else if (this.props.waitingForServer) {
+        return (
+          <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+            <ProgressBarAndroid/>
+          </View>
+        )
+      }
+    }
     if (this.props.waitingForServer) {
       return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
@@ -94,6 +125,7 @@ export default class Devices extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
+        title: 'Devices',
         component: Devices,
         mapStateToProps: state => state.devices
       },
