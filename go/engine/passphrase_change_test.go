@@ -36,7 +36,7 @@ func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, _, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, skarg, u.NewSecretUI(), "testing sig")
+	sigKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, skarg, u.NewSecretUI(), "testing sig")
 	if err != nil {
 		tc.T.Fatalf("%s: %s", msg, err)
 	}
@@ -45,7 +45,7 @@ func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
 	}
 
 	skarg.KeyType = libkb.DeviceEncryptionKeyType
-	encKey, _, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, skarg, u.NewSecretUI(), "testing enc")
+	encKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, skarg, u.NewSecretUI(), "testing enc")
 	if err != nil {
 		tc.T.Fatalf("%s: %s", msg, err)
 	}
@@ -64,7 +64,7 @@ func assertLoadPGPKeys(tc libkb.TestContext, u *FakeUser) {
 		Me:      me,
 		KeyType: libkb.PGPKeyType,
 	}
-	key, _, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, ska, u.NewSecretUI(), "pgp test")
+	key, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, ska, u.NewSecretUI(), "pgp test")
 	if err != nil {
 		tc.T.Fatal(err)
 	}

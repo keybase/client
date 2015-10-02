@@ -114,7 +114,6 @@ class SelectSigner extends Component {
 }
 
 SelectSigner.propTypes = {
-  navigator: React.PropTypes.object,
   devices: React.PropTypes.array,
   hasPGP: React.PropTypes.bool,
   hasPaperBackupKey: React.PropTypes.bool,

@@ -2,7 +2,8 @@
 
 import React from 'react-native'
 import { connect } from 'react-redux/native'
-import MetaNavigator from './router/meta-navigator.js'
+import MetaNavigator from './router/meta-navigator'
+import globalRoutes from './router/global-routes'
 
 import Folders from './tabs/folders'
 import Chat from './tabs/chat'
@@ -86,9 +87,11 @@ class Nav extends Component {
     return (
       <View style={[styles.tabContent, {backgroundColor: color}]}>
         {React.createElement(
-          connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator),
-          {store: this.props.store, rootRouteParser: tabToRootRouteParse[activeTab] || NoTab,
-           NavBar: this.navBar()
+          connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator), {
+            store: this.props.store,
+            rootRouteParser: tabToRootRouteParse[activeTab] || NoTab,
+            globalRoutes,
+            NavBar: this.navBar()
           }
         )}
       </View>

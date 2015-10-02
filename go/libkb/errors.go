@@ -209,6 +209,9 @@ type NotFoundError struct {
 }
 
 func (e NotFoundError) Error() string {
+	if len(e.msg) == 0 {
+		return "Not found"
+	}
 	return e.msg
 }
 
@@ -704,6 +707,14 @@ type NotConfirmedError struct{}
 
 func (e NotConfirmedError) Error() string {
 	return "Not confirmed"
+}
+
+//=============================================================================
+
+type SibkeyAlreadyExistsError struct{}
+
+func (e SibkeyAlreadyExistsError) Error() string {
+	return "Key is already selected for use on Keybase"
 }
 
 //=============================================================================

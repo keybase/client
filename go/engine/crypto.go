@@ -10,17 +10,29 @@ func getMySecretKey(
 	g *libkb.GlobalContext, secretUI libkb.SecretUI,
 	secretKeyType libkb.SecretKeyType, reason string) (
 	libkb.GenericKey, error) {
+
+	var key libkb.GenericKey
+	var err error
+	aerr := g.LoginState().Account(func(a *libkb.Account) {
+		key, err = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: secretKeyType})
+	}, "Keyrings - cachedSecretKey")
+	if key != nil && err == nil {
+		return key, nil
+	}
+	if aerr != nil {
+		g.Log.Debug("error getting account: %s", aerr)
+	}
+
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
 		return nil, err
 	}
 
-	signingKey, _, err := g.Keyrings.GetSecretKeyWithPrompt(nil,
+	return g.Keyrings.GetSecretKeyWithPrompt(nil,
 		libkb.SecretKeyArg{
 			Me:      me,
 			KeyType: secretKeyType,
 		}, secretUI, reason)
-	return signingKey, err
 }
 
 // SignED25519 signs the given message with the current user's private

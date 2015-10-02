@@ -901,6 +901,10 @@ type WantToAddGPGKeyArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type ConfirmDuplicateKeyChosenArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type SelectKeyAndPushOptionArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Keys      []GPGKey `codec:"keys" json:"keys"`
@@ -913,6 +917,7 @@ type SelectKeyArg struct {
 
 type GpgUiInterface interface {
 	WantToAddGPGKey(int) (bool, error)
+	ConfirmDuplicateKeyChosen(int) (bool, error)
 	SelectKeyAndPushOption(SelectKeyAndPushOptionArg) (SelectKeyRes, error)
 	SelectKey(SelectKeyArg) (string, error)
 }
@@ -925,6 +930,13 @@ func GpgUiProtocol(i GpgUiInterface) rpc2.Protocol {
 				args := make([]WantToAddGPGKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.WantToAddGPGKey(args[0].SessionID)
+				}
+				return
+			},
+			"confirmDuplicateKeyChosen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+				args := make([]ConfirmDuplicateKeyChosenArg, 1)
+				if err = nxt(&args); err == nil {
+					ret, err = i.ConfirmDuplicateKeyChosen(args[0].SessionID)
 				}
 				return
 			},
@@ -954,6 +966,12 @@ type GpgUiClient struct {
 func (c GpgUiClient) WantToAddGPGKey(sessionID int) (res bool, err error) {
 	__arg := WantToAddGPGKeyArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.gpgUi.wantToAddGPGKey", []interface{}{__arg}, &res)
+	return
+}
+
+func (c GpgUiClient) ConfirmDuplicateKeyChosen(sessionID int) (res bool, err error) {
+	__arg := ConfirmDuplicateKeyChosenArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.gpgUi.confirmDuplicateKeyChosen", []interface{}{__arg}, &res)
 	return
 }
 

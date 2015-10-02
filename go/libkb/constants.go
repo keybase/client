@@ -48,7 +48,7 @@ const (
 	IdentifyAs       = GoClientID + " v" + Version + " " + runtime.GOOS
 )
 
-var UserAgent = "Keybase-Go-CLI/" + Version + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
+var UserAgent = "Keybase/" + Version + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
 
 const (
 	PermFile          os.FileMode = 0600
@@ -114,6 +114,7 @@ const (
 	SCKeyBadEldest           = 919
 	SCKeyNoEldest            = 920
 	SCKeyDuplicateUpdate     = 921
+	SCSibkeyAlreadyExists    = 922
 	SCBadTrackSession        = 1301
 	SCDeviceNotFound         = 1409
 	SCDeviceMismatch         = 1410

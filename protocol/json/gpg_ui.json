@@ -199,6 +199,13 @@
       } ],
       "response" : "boolean"
     },
+    "confirmDuplicateKeyChosen" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "boolean"
+    },
     "selectKeyAndPushOption" : {
       "request" : [ {
         "name" : "sessionID",

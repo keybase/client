@@ -103,14 +103,14 @@ func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
 	}
 	// passing in nil SecretUI since we don't know the passphrase.
 	c.G().Log.Debug("runForcedUpdate: getting device encryption key")
-	encKey, _, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
+	encKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
 	if err != nil {
 		return nil, err
 	}
 	c.G().Log.Debug("runForcedUpdate: got device encryption key")
 	c.G().Log.Debug("runForcedUpdate: getting device signing key")
 	ska.KeyType = libkb.DeviceSigningKeyType
-	sigKey, _, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
+	sigKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
 	if err != nil {
 		return nil, err
 	}

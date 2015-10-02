@@ -93,7 +93,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		}
 	}
 
-	signingKey, _, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
+	signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}, ctx.SecretUI, "You must sign your new paper key")

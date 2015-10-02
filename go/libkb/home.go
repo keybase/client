@@ -77,18 +77,10 @@ func (x XdgPosix) ConfigDir() string { return x.dirHelper("XDG_CONFIG_HOME", ".c
 func (x XdgPosix) CacheDir() string  { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
 func (x XdgPosix) DataDir() string   { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
 
-func (x XdgPosix) xdgRuntimeDir() string { return os.Getenv("XDG_RUNTIME_DIR") }
-
-func (x XdgPosix) RuntimeDir() string {
-	ret := x.xdgRuntimeDir()
-	if len(ret) != 0 {
-		return ret
-	}
-	return x.ConfigDir()
-}
+func (x XdgPosix) RuntimeDir() string { return x.dirHelper("XDG_RUNTIME_DIR", ".config") }
 
 func (x XdgPosix) ServiceSpawnDir() (ret string, err error) {
-	ret = x.xdgRuntimeDir()
+	ret = x.RuntimeDir()
 	if len(ret) == 0 {
 		ret, err = ioutil.TempDir("", "keybase_service")
 	}

@@ -682,3 +682,28 @@ func (e *Env) GetStoredSecretServiceName() string {
 	}
 	return serviceName
 }
+
+type AppConfig struct {
+	NullConfiguration
+	HomeDir       string
+	RunMode       RunMode
+	Debug         bool
+	LocalRPCDebug string
+	ServerURI     string
+}
+
+func (c AppConfig) GetDebug() (bool, bool) {
+	return c.Debug, c.Debug
+}
+
+func (c AppConfig) GetLocalRPCDebug() string {
+	return c.LocalRPCDebug
+}
+
+func (c AppConfig) GetRunMode() (RunMode, error) {
+	return c.RunMode, nil
+}
+
+func (c AppConfig) GetHome() string {
+	return c.HomeDir
+}

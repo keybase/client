@@ -53,6 +53,8 @@ npm run gobuild-android
 react-native run-android
 ```
 
+To set the host for the JS files: Shake the device and choose 'Dev Settings | Debug server host for device'
+
 ### Release building
 
 Make sure the code is set to use the bundled react js

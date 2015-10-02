@@ -5,12 +5,14 @@ import React from 'react-native'
 import {
   Component,
   StyleSheet,
+  TextInput,
   View,
   Text,
-  TextInput
+  TouchableHighlight
 } from 'react-native'
 
 import commonStyles from '../../styles/common'
+import * as SearchActions from '../../actions/search'
 
 export default class Developer extends Component {
   constructor (props) {
@@ -21,18 +23,24 @@ export default class Developer extends Component {
 
   render () {
     return (
-        <View style={styles.container}>
-          <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Dev settings</Text>
-          <TextInput
-            style={styles.input}
-            placeholder='Some setting'
-            value='TODO'
-            enablesReturnKeyAutomatically
-            returnKeyType='next'
-            autoCorrect={false}
-            onChangeText={() => { console.log('typing') }}
-            />
-        </View>
+      <View style={styles.container}>
+        <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Dev settings</Text>
+        <TextInput
+          style={styles.input}
+          placeholder='Some setting'
+          value='TODO'
+          enablesReturnKeyAutomatically
+          returnKeyType='next'
+          autoCorrect={false}
+          onChangeText={() => { console.log('typing') }}
+        />
+        <TouchableHighlight
+          style={{backgroundColor: 'blue'}}
+          underlayColor={commonStyles.buttonHighlight}
+          onPress={ () => this.props.dispatch(SearchActions.pushNewSearch('more')) }>
+          <Text>Launch search</Text>
+        </TouchableHighlight>
+      </View>
     )
   }
 
@@ -50,7 +58,7 @@ export default class Developer extends Component {
 }
 
 Developer.propTypes = {
-  navigator: React.PropTypes.object.isRequired
+  dispatch: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

@@ -57,8 +57,9 @@ func BenchmarkCryptoSignED25519(b *testing.B) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "fu")
-	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	secretUI := u.NewSecretUI()
 
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		msg := []byte("test message")
 		_, err := SignED25519(tc.G, secretUI, keybase1.SignED25519Arg{
@@ -152,4 +153,68 @@ func TestCryptoUnboxBytes32NoEncryptionKey(t *testing.T) {
 	if _, ok := err.(libkb.SelfNotFoundError); !ok {
 		t.Errorf("expected SelfNotFoundError, got %v", err)
 	}
+}
+
+func cachedSecretKey(tc libkb.TestContext, ktype libkb.SecretKeyType) (key libkb.GenericKey, err error) {
+	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
+		key, err = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: ktype})
+	}, "cachedSecretKey")
+
+	if aerr != nil {
+		return nil, aerr
+	}
+	return key, err
+}
+
+func assertCachedSecretKey(tc libkb.TestContext, ktype libkb.SecretKeyType) {
+	skey, err := cachedSecretKey(tc, ktype)
+	if err != nil {
+		tc.T.Fatalf("error getting cached secret key: %s", err)
+	}
+	if skey == nil {
+		tc.T.Fatalf("expected cached key, got nil")
+	}
+}
+
+func assertNotCachedSecretKey(tc libkb.TestContext, ktype libkb.SecretKeyType) {
+	skey, err := cachedSecretKey(tc, ktype)
+	if err == nil {
+		tc.T.Fatal("expected err getting cached secret key, got nil")
+	}
+	if _, notFound := err.(libkb.NotFoundError); !notFound {
+		tc.T.Fatalf("expected not found error, got %s (%T)", err, err)
+	}
+	if skey != nil {
+		tc.T.Fatalf("expected nil cached key, got %v", skey)
+	}
+}
+
+// TestCachedSecretKey tests that secret device keys are cached
+// properly.
+func TestCachedSecretKey(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+
+	assertNotCachedSecretKey(tc, libkb.DeviceSigningKeyType)
+	assertNotCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
+
+	msg := []byte("test message")
+	_, err := SignED25519(tc.G, u.NewSecretUI(), keybase1.SignED25519Arg{
+		Msg: msg,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertCachedSecretKey(tc, libkb.DeviceSigningKeyType)
+	assertNotCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
+
+	Logout(tc)
+	u.LoginOrBust(tc)
+
+	// login caches this...
+	assertCachedSecretKey(tc, libkb.DeviceSigningKeyType)
+	assertNotCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
 }

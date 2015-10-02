@@ -15,6 +15,8 @@ type Account struct {
 	loginSession *LoginSession
 	streamCache  *PassphraseStreamCache
 	skbKeyring   *SKBKeyringFile
+	secSigKey    GenericKey // cached secret signing key
+	secEncKey    GenericKey // cache secret encryption key
 }
 
 func NewAccount(g *GlobalContext) *Account {
@@ -106,6 +108,8 @@ func (a *Account) Logout() error {
 
 	a.secretSyncer.Clear()
 	a.secretSyncer = NewSecretSyncer(a.G())
+
+	a.ClearCachedSecretKeys()
 
 	return nil
 }
@@ -363,4 +367,43 @@ func (a *Account) Dump() {
 	fmt.Printf("Account dump:\n")
 	a.loginSession.Dump()
 	a.streamCache.Dump()
+}
+
+func (a *Account) CachedSecretKey(ska SecretKeyArg) (GenericKey, error) {
+	if ska.KeyType == DeviceSigningKeyType {
+		if a.secSigKey != nil {
+			return a.secSigKey, nil
+		}
+		return nil, NotFoundError{}
+	}
+	if ska.KeyType == DeviceEncryptionKeyType {
+		if a.secEncKey != nil {
+			return a.secEncKey, nil
+		}
+		return nil, NotFoundError{}
+	}
+	return nil, fmt.Errorf("invalid key type for cached secret key: %d", ska.KeyType)
+}
+
+func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
+	if key == nil {
+		return errors.New("cache of nil secret key attempted")
+	}
+	if ska.KeyType == DeviceSigningKeyType {
+		a.G().Log.Debug("caching secret key for %d", ska.KeyType)
+		a.secSigKey = key
+		return nil
+	}
+	if ska.KeyType == DeviceEncryptionKeyType {
+		a.G().Log.Debug("caching secret key for %d", ska.KeyType)
+		a.secEncKey = key
+		return nil
+	}
+	return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
+}
+
+func (a *Account) ClearCachedSecretKeys() {
+	a.G().Log.Debug("clearing cached secret keys")
+	a.secSigKey = nil
+	a.secEncKey = nil
 }

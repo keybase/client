@@ -59,6 +59,9 @@ type LoginContext interface {
 
 	SecretSyncer() *SecretSyncer
 	RunSecretSyncer(uid keybase1.UID) error
+
+	CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
+	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
 }
 
 type loginHandler func(LoginContext) error
@@ -635,8 +638,7 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 			Me:      me,
 			KeyType: DeviceSigningKeyType,
 		}
-		key, _, err := keyrings.GetSecretKeyWithPrompt(lctx, ska, secretUI, "Login")
-		return key, err
+		return keyrings.GetSecretKeyWithPrompt(lctx, ska, secretUI, "Login")
 	}
 
 	// If we're forcing a login to check our passphrase (as in when we're called
