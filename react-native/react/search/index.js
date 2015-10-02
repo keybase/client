@@ -13,7 +13,8 @@ import {
   View
 } from 'react-native'
 
-import * as SearchActions from '../actions/search'
+import { submitSearch } from '../actions/search'
+import { pushNewProfile } from '../actions/profile'
 import commonStyles from '../styles/common'
 
 class Search extends Component {
@@ -29,10 +30,11 @@ class Search extends Component {
   buildDataSource (props) {
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
-    const results = !props.results ? [] : props.results.map((s) => {
-      const row1 = `${s.username}${this.componentName(s)}on Keybase`
+    const results = !props.results ? [] : props.results.toJS().map((s) => {
+      const { username } = s
+      const row1 = `${username}${this.componentName(s)}`
       const row2 = s.components.map(c => this.componentText(c)).filter(c => c).join(' | ')
-      return { row1, row2 }
+      return { row1, row2, username }
     })
 
     return { dataSource: ds.cloneWithRows(results) }
@@ -60,13 +62,17 @@ class Search extends Component {
     }
   }
 
+  onPress (rowData) {
+    this.props.dispatch(pushNewProfile(rowData.username))
+  }
+
   renderRow (rowData, sectionID, rowID) {
     const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
 
     return (
       <TouchableHighlight
         underlayColor={commonStyles.buttonHighlight}
-        onPress={() => {}}>
+        onPress={() => { this.onPress(rowData) }}>
         <View>
           <View style={{margin: 10}}>
             <Text style={{}}>{rowData.row1}</Text>
@@ -79,7 +85,7 @@ class Search extends Component {
   }
 
   onSubmit () {
-    this.props.dispatch(SearchActions.submitSearch(this.props.base, this.state.search))
+    this.props.dispatch(submitSearch(this.props.base, this.state.search))
   }
 
   render () {
@@ -112,7 +118,7 @@ class Search extends Component {
           returnKeyType='next'
           autoCorrect={false}
           onChangeText={(search) => { this.setState({search}) }}
-          onEndEditing={() => this.onSubmit()}
+          onSubmitEditing={() => this.onSubmit()}
         />
         {activity}{button}
         <ListView style={{flex: 1}}
@@ -131,7 +137,7 @@ class Search extends Component {
     return {
       componentAtTop: {
         component: Search,
-        mapStateToProps: (state) => state.search[base]
+        mapStateToProps: (state) => state.search.get(base).toObject()
       },
       parseNextRoute: null
     }
@@ -140,8 +146,8 @@ class Search extends Component {
 
 Search.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
-  base: React.PropTypes.string.isRequired,
-  results: React.PropTypes.array,
+  base: React.PropTypes.object.isRequired,
+  results: React.PropTypes.object,
   waitingForServer: React.PropTypes.bool.isRequired
 }
 

@@ -7,5 +7,6 @@
 
 import Immutable from 'immutable'
 import Search from '../search'
+import Profile from '../profile'
 
-export default Immutable.List.of(Search)
+export default Immutable.List.of(Search, Profile)

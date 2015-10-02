@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/routerActionTypes'
+import { NAVIGATE_UP, NAVIGATE, NAVIGATE_APPEND } from '../constants/routerActionTypes'
 
 export function getCurrentURI (state) {
   return state.tabbedRouter
@@ -13,20 +13,20 @@ export function getCurrentTab (state) {
 
 export function navigateUp () {
   return {
-    type: types.NAVIGATE_UP
+    type: NAVIGATE_UP
   }
 }
 
 export function navigateTo (uri) {
   return {
-    type: types.NAVIGATE,
+    type: NAVIGATE,
     uri: uri
   }
 }
 
 export function routeAppend (routeStr) {
   return {
-    type: types.NAVIGATE_APPEND,
+    type: NAVIGATE_APPEND,
     topRoute: routeStr
   }
 }

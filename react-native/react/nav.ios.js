@@ -14,6 +14,7 @@ import More from './tabs/more'
 
 import { switchTab } from './actions/tabbedRouter'
 import { navigateUp } from './actions/router'
+import { getConfig } from './actions/config'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
 
@@ -74,6 +75,12 @@ function NavigationBarRouteMapper (dispatch) {
 }
 
 class Nav extends Component {
+  constructor (props) {
+    super(props)
+
+    const {dispatch} = this.props
+    //  TEMP need to merge in master dispatch(getConfig())
+  }
 
   navBar () {
     const {dispatch} = this.props
@@ -107,6 +114,15 @@ class Nav extends Component {
   render () {
     const {dispatch} = this.props
     const activeTab = this.props.tabbedRouter.get('activeTab')
+
+    if (!this.props.config.loaded) {
+      return (
+        <Text>
+          Loading...
+        </Text>
+      )
+    }
+
     return (
       <View style={{flex: 1}}>
         <TabBarIOS
@@ -158,7 +174,8 @@ class Nav extends Component {
 Nav.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
-  store: React.PropTypes.object.isRequired
+  store: React.PropTypes.object.isRequired,
+  config: React.PropTypes.object
 }
 
 const styles = StyleSheet.create({
