@@ -300,12 +300,23 @@ func (cr *ConflictResolver) getUnmergedPaths(ctx context.Context,
 		if n == nil {
 			cr.log.CDebugf(ctx, "Ignoring pointer with no found path: %v", ptr)
 			unmergedChains.removeChain(ptr)
-		} else {
-			p := cr.fbo.nodeCache.PathFromNode(n)
-			if p.tailPointer() != ptr {
-				return nil, NodeNotFoundError{ptr}
-			}
-			paths = append(paths, p)
+			continue
+		}
+
+		p := cr.fbo.nodeCache.PathFromNode(n)
+		if p.tailPointer() != ptr {
+			return nil, NodeNotFoundError{ptr}
+		}
+		paths = append(paths, p)
+
+		// update the unmerged final paths
+		chain, ok := unmergedChains.byMostRecent[ptr]
+		if !ok {
+			cr.log.CErrorf(ctx, "Couldn't find chain for found path: %v", ptr)
+			continue
+		}
+		for _, op := range chain.ops {
+			op.setFinalPath(p)
 		}
 	}
 
@@ -564,6 +575,19 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 			copy(newPath[len(p.path):], mergedPath.path)
 			mergedPath.path = newPath
 			mergedPaths[unmergedMostRecent] = mergedPath
+
+			// update the final paths for those corresponding merged
+			// chains
+			mergedMostRecent := mergedPath.tailPointer()
+			chain, ok := mergedChains.byMostRecent[mergedMostRecent]
+			if !ok {
+				// it's ok for the merged path not to exist because we
+				// might still need to create it.
+				continue
+			}
+			for _, op := range chain.ops {
+				op.setFinalPath(mergedPath)
+			}
 		}
 	}
 
@@ -711,7 +735,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	// * Find the corresponding path in the merged branch for each of
+	// Find the corresponding path in the merged branch for each of
 	// these unmerged paths, and the set of any createOps needed to
 	// apply these unmerged operations in the merged branch.
 	mergedPaths, recreateOps, err :=
