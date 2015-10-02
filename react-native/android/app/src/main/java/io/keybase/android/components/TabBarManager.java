@@ -1,8 +1,10 @@
 package io.keybase.android.components;
 
 import android.graphics.Color;
+import android.os.SystemClock;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -14,6 +16,7 @@ import com.facebook.react.uimanager.CatalystStylesDiffMap;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIProp;
 import com.facebook.react.uimanager.ViewGroupManager;
+import com.facebook.react.uimanager.events.NativeGestureUtil;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 
 import java.util.ArrayList;
@@ -80,7 +83,7 @@ public class TabBarManager extends ViewGroupManager<LinearLayout> {
 
     @Override
     protected LinearLayout createViewInstance(final ThemedReactContext themedReactContext) {
-        ViewPager viewPager = new ViewPager(themedReactContext);
+        final ViewPager viewPager = new ViewPager(themedReactContext);
         viewPager.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         // TODO: react native isn't playing nice when this is default of 1
         viewPager.setOffscreenPageLimit(15);
@@ -97,6 +100,9 @@ public class TabBarManager extends ViewGroupManager<LinearLayout> {
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
+                final long start = SystemClock.uptimeMillis();
+                final MotionEvent ev = MotionEvent.obtain(start, start, MotionEvent.ACTION_DOWN, position, 0, 0);
+                NativeGestureUtil.notifyNativeGestureStarted(viewPager, ev);
             }
 
             @Override
