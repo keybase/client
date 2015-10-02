@@ -341,6 +341,9 @@ func (c *CmdStress) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionAr
 func (c *CmdStress) WantToAddGPGKey(dummy int) (bool, error) {
 	return false, nil
 }
+func (c *CmdStress) ConfirmDuplicateKeyChosen(dummy int) (bool, error) {
+	return false, nil
+}
 
 func (c *CmdStress) secretUIProtocol() rpc2.Protocol {
 	return keybase1.SecretUiProtocol(c)

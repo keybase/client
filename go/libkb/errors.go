@@ -708,6 +708,14 @@ func (e NotConfirmedError) Error() string {
 
 //=============================================================================
 
+type SibkeyAlreadyExistsError struct{}
+
+func (e SibkeyAlreadyExistsError) Error() string {
+	return "Key is already selected for use on Keybase"
+}
+
+//=============================================================================
+
 type ProofNotYetAvailableError struct{}
 
 func (e ProofNotYetAvailableError) Error() string {

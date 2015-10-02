@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
-	// keybase_1 "github.com/keybase/client/go/protocol"
 )
 
 type PGPUpdateEngine struct {
-	selectedFingerprints map[string]bool
-	all                  bool
+	selectedFingerprints   map[string]bool
+	all                    bool
+	duplicatedFingerprints []libkb.PGPFingerprint
 	libkb.Contextified
 }
 
@@ -104,6 +104,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 		if err := del.Run(ctx.LoginContext); err != nil {
 			if appStatusErr, ok := err.(libkb.AppStatusError); ok && appStatusErr.Code == libkb.SCKeyDuplicateUpdate {
 				ctx.LogUI.Info("Key was already up to date.")
+				e.duplicatedFingerprints = append(e.duplicatedFingerprints, fingerprint)
 				continue
 			}
 			return err

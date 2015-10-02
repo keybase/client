@@ -63,7 +63,7 @@ func TestPGPUpdate(t *testing.T) {
 	})
 	err := gpgCLI.Configure()
 	if err != nil {
-		t.Fatal("erorr initializing GpgCLI", err)
+		t.Fatal("Error initializing GpgCLI", err)
 	}
 
 	// Add the modified key to the gpg keyring
