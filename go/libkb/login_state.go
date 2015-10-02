@@ -635,8 +635,7 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 			Me:      me,
 			KeyType: DeviceSigningKeyType,
 		}
-		key, _, err := keyrings.GetSecretKeyWithPrompt(lctx, ska, secretUI, "Login")
-		return key, err
+		return keyrings.GetSecretKeyWithPrompt(lctx, ska, secretUI, "Login")
 	}
 
 	// If we're forcing a login to check our passphrase (as in when we're called

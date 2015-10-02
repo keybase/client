@@ -91,7 +91,7 @@ func (k *KexProvisioner) Run(ctx *Context) error {
 		Me:      k.user,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	k.sigKey, _, err = k.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, arg, ctx.SecretUI, "new device install")
+	k.sigKey, err = k.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, arg, ctx.SecretUI, "new device install")
 	if err != nil {
 		k.G().Log.Warning("KexProvisioner.Run: GetSecretKey error: %s", err)
 		return err
@@ -195,7 +195,7 @@ func (k *KexProvisioner) handlePleaseSign(ctx *Context, m *kex.Msg) error {
 			Me:      k.user,
 			KeyType: libkb.DeviceSigningKeyType,
 		}
-		k.sigKey, _, err = k.G().Keyrings.GetSecretKeyWithPrompt(nil, arg, k.engctx.SecretUI, "new device install")
+		k.sigKey, err = k.G().Keyrings.GetSecretKeyWithPrompt(nil, arg, k.engctx.SecretUI, "new device install")
 		if err != nil {
 			return err
 		}

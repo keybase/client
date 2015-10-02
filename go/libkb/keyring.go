@@ -258,7 +258,16 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 }
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
-func (k *Keyrings) GetSecretKeyWithPrompt(lctx LoginContext, ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
+func (k *Keyrings) GetSecretKeyWithPrompt(lctx LoginContext, ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, err error) {
+	k.G().Log.Debug("+ GetSecretKeyWithPrompt(%s)", reason)
+	defer func() {
+		k.G().Log.Debug("- GetSecretKeyWithPrompt() -> %s", ErrToOk(err))
+	}()
+	key, _, err = k.GetSecretKeyAndSKBWithPrompt(lctx, ska, secretUI, reason)
+	return
+}
+
+func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(lctx LoginContext, ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
 	k.G().Log.Debug("+ GetSecretKeyWithPrompt(%s)", reason)
 	defer func() {
 		k.G().Log.Debug("- GetSecretKeyWithPrompt() -> %s", ErrToOk(err))

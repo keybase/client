@@ -15,12 +15,11 @@ func getMySecretKey(
 		return nil, err
 	}
 
-	signingKey, _, err := g.Keyrings.GetSecretKeyWithPrompt(nil,
+	return g.Keyrings.GetSecretKeyWithPrompt(nil,
 		libkb.SecretKeyArg{
 			Me:      me,
 			KeyType: secretKeyType,
 		}, secretUI, reason)
-	return signingKey, err
 }
 
 // SignED25519 signs the given message with the current user's private

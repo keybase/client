@@ -46,7 +46,7 @@ func TestLoginNewDeviceKex1(t *testing.T) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	_, _, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
+	_, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -175,7 +175,7 @@ func TestLoginNewDeviceKexBadPhrase(t *testing.T) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	_, _, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
+	_, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,7 +267,7 @@ func TestLoginNewDeviceKexRetryPhrase(t *testing.T) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	_, _, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
+	_, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -352,7 +352,7 @@ func TestLoginNewDeviceKexCancelOnY(t *testing.T) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	_, _, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
+	_, err = tcX.G.Keyrings.GetSecretKeyWithPrompt(nil, arg, secui, "new device install")
 	if err != nil {
 		t.Fatal(err)
 	}
