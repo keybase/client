@@ -103,8 +103,12 @@ func (b *BlockServerRemote) OnDisconnected() {
 }
 
 // ShouldThrottle implements the ConnectionHandler interface.
-func (b *BlockServerRemote) ShouldThrottle(error) bool {
-	return false
+func (b *BlockServerRemote) ShouldThrottle(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, shouldThrottle := err.(BServerErrorThrottle)
+	return shouldThrottle
 }
 
 // Helper to call an rpc command.

@@ -20,6 +20,8 @@ const (
 	StatusCodeBServerErrorOverQuota = 2703
 	// StatusCodeBServerErrorBlockNonExistent is the error code for when bserver cannot find a block
 	StatusCodeBServerErrorBlockNonExistent = 2704
+	// StatusCodeBServerErrorThrottle is the error code to indicate the client should initiate backoff.
+	StatusCodeBServerErrorThrottle = 2707
 )
 
 // BServerError is a generic bserver-side error.
@@ -121,6 +123,24 @@ func (e BServerErrorBlockNonExistent) ToStatus() (s keybase1.Status) {
 	return
 }
 
+// BServerErrorThrottle is returned when the server wants the client to backoff.
+type BServerErrorThrottle struct {
+	Msg string
+}
+
+// Error implements the Error interface for BServerErrorThrottle.
+func (e BServerErrorThrottle) Error() string {
+	return e.Msg
+}
+
+// ToStatus implements the ExportableError interface for BServerErrorThrottle.
+func (e BServerErrorThrottle) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeBServerErrorThrottle
+	s.Name = "THROTTLE"
+	s.Desc = e.Msg
+	return
+}
+
 // Error implements the Error interface for BServerErrorBlockNonExistent
 func (e BServerErrorBlockNonExistent) Error() string {
 	if e.Msg == "" {
@@ -152,6 +172,9 @@ func BServerUnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
 			break
 		case StatusCodeBServerErrorBlockNonExistent:
 			app = BServerErrorBlockNonExistent{Msg: s.Desc}
+			break
+		case StatusCodeBServerErrorThrottle:
+			app = BServerErrorThrottle{Msg: s.Desc}
 			break
 		default:
 			ase := libkb.AppStatusError{
