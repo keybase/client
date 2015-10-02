@@ -19,7 +19,6 @@ static NSString * const REACT_HOST = @"localhost:8081";
 static NSString * const WEB_SERVER_HOST = @"http://localhost:3000";
 
 // TODO load off of settings screen
-static NSString* const HOME_DIR = nil;
 static NSString* const RUN_MODE = @"devel";
 
 @implementation AppDelegate
@@ -59,25 +58,8 @@ static NSString* const RUN_MODE = @"devel";
 }
 
 - (void) setupEngine {
-  NSFileManager* fileManager = [NSFileManager defaultManager];
-  NSArray* possibleURLs = [fileManager URLsForDirectory:NSApplicationSupportDirectory
-                                              inDomains:NSUserDomainMask];
-  NSString* appDirectory = @"";
-
-  if ([possibleURLs count] > 0) {
-    NSURL* appSupportDir = nil;
-
-    appSupportDir = [possibleURLs objectAtIndex:0];
-
-    if (HOME_DIR.length) {
-      appSupportDir = [appSupportDir URLByAppendingPathComponent:HOME_DIR];
-    }
-
-    appDirectory = [appSupportDir path];
-  }
-
   NSDictionary * settings = @{ @"runmode": RUN_MODE,
-                               @"homedir": appDirectory,
+                               @"homedir": NSHomeDirectory(),
                                @"serverURI": WEB_SERVER_HOST};
 
   self.engine = [[Engine alloc] initWithSettings:settings];
