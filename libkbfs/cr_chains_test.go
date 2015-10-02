@@ -3,6 +3,8 @@ package libkbfs
 import (
 	"reflect"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 func checkExpectedChains(t *testing.T, expected map[BlockPointer]BlockPointer,
@@ -124,6 +126,19 @@ func testCRCheckOps(t *testing.T, cc *crChains, original BlockPointer,
 	}
 }
 
+func testCRChainsFillInWriter(t *testing.T, rmds []*RootMetadata) KBPKI {
+	config := MakeTestConfigOrBust(t, "u1")
+	kbpki := config.KBPKI()
+	uid, err := kbpki.GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatalf("Couldn't get UID: %v", err)
+	}
+	for _, rmd := range rmds {
+		rmd.data.LastWriter = uid
+	}
+	return kbpki
+}
+
 func TestCRChainsSingleOp(t *testing.T) {
 	rmd := &RootMetadata{}
 
@@ -139,7 +154,9 @@ func TestCRChainsSingleOp(t *testing.T) {
 	rmd.AddOp(co)
 	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
 
-	cc, err := newCRChains([]*RootMetadata{rmd})
+	rmds := []*RootMetadata{rmd}
+	kbpki := testCRChainsFillInWriter(t, rmds)
+	cc, err := newCRChains(context.Background(), kbpki, rmds)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -170,7 +187,9 @@ func TestCRChainsRenameOp(t *testing.T) {
 	rmd.AddOp(ro)
 	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
 
-	cc, err := newCRChains([]*RootMetadata{rmd})
+	rmds := []*RootMetadata{rmd}
+	kbpki := testCRChainsFillInWriter(t, rmds)
+	cc, err := newCRChains(context.Background(), kbpki, rmds)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -270,7 +289,9 @@ func TestCRChainsMultiOps(t *testing.T) {
 	multiRmds = append(multiRmds, newRmd)
 
 	bigRmd.data.Dir.BlockPointer = expected[rootPtrUnref]
-	cc, err := newCRChains([]*RootMetadata{bigRmd})
+	rmds := []*RootMetadata{bigRmd}
+	kbpki := testCRChainsFillInWriter(t, rmds)
+	cc, err := newCRChains(context.Background(), kbpki, rmds)
 	if err != nil {
 		t.Fatalf("Error making chains for big RMD: %v", err)
 	}
@@ -298,7 +319,8 @@ func TestCRChainsMultiOps(t *testing.T) {
 	testCRCheckOps(t, cc, file4Unref, []op{op4})
 
 	// now make sure the chain of MDs gets the same answers
-	mcc, err := newCRChains(multiRmds)
+	kbpki = testCRChainsFillInWriter(t, multiRmds)
+	mcc, err := newCRChains(context.Background(), kbpki, multiRmds)
 	if err != nil {
 		t.Fatalf("Error making chains for multi RMDs: %v", err)
 	}
@@ -402,7 +424,9 @@ func TestCRChainsCollapse(t *testing.T) {
 	rmd.AddOp(op8)
 
 	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
-	cc, err := newCRChains([]*RootMetadata{rmd})
+	rmds := []*RootMetadata{rmd}
+	kbpki := testCRChainsFillInWriter(t, rmds)
+	cc, err := newCRChains(context.Background(), kbpki, rmds)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}

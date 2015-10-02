@@ -19,6 +19,9 @@ func crTestInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock,
 	id, _, _ := NewFolder(t, 1, 1, false, false)
 	fbo := NewFolderBranchOps(config, FolderBranch{id, MasterBranch}, standard)
 	cr = NewConflictResolver(config, fbo)
+	// usernames don't matter for these tests
+	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), gomock.Any()).
+		AnyTimes().Return(libkb.NormalizedUsername("mockUser"), nil)
 	return mockCtrl, config, cr
 }
 

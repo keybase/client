@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 // op represents a single file-system remote-sync operation
@@ -16,6 +18,8 @@ type op interface {
 	Refs() []BlockPointer
 	Unrefs() []BlockPointer
 	String() string
+	setWriterName(name libkb.NormalizedUsername)
+	getWriterName() libkb.NormalizedUsername
 }
 
 // op codes
@@ -52,6 +56,9 @@ type OpCommon struct {
 	// its custom fields is updated on AddUpdate, instead of the
 	// generic Updates field.
 	customUpdates map[BlockPointer]*blockUpdate
+	// writerName is the keybase username that generated this
+	// operation.  Not exported; only used during conflict resolution.
+	writerName libkb.NormalizedUsername
 }
 
 // AddRefBlock adds this block to the list of newly-referenced blocks
@@ -87,6 +94,14 @@ func (oc *OpCommon) Refs() []BlockPointer {
 // unreferenced during this op.
 func (oc *OpCommon) Unrefs() []BlockPointer {
 	return oc.UnrefBlocks
+}
+
+func (oc *OpCommon) setWriterName(name libkb.NormalizedUsername) {
+	oc.writerName = name
+}
+
+func (oc *OpCommon) getWriterName() libkb.NormalizedUsername {
+	return oc.writerName
 }
 
 // createOp is an op representing a file or subdirectory creation

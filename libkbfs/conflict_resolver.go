@@ -240,12 +240,12 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 func (cr *ConflictResolver) makeChains(ctx context.Context,
 	unmerged []*RootMetadata, merged []*RootMetadata) (
 	unmergedChains *crChains, mergedChains *crChains, err error) {
-	unmergedChains, err = newCRChains(unmerged)
+	unmergedChains, err = newCRChains(ctx, cr.config.KBPKI(), unmerged)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	mergedChains, err = newCRChains(merged)
+	mergedChains, err = newCRChains(ctx, cr.config.KBPKI(), merged)
 	if err != nil {
 		return nil, nil, err
 	}

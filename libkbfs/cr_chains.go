@@ -1,6 +1,10 @@
 package libkbfs
 
-import "fmt"
+import (
+	"fmt"
+
+	"golang.org/x/net/context"
+)
 
 // crChain represents the set of operations that happened to a
 // particular KBFS node (e.g., individual file or directory) over a
@@ -140,6 +144,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		// split rename op into two separate operations, one for
 		// remove and one for create
 		ro := newRmOp(realOp.OldName, realOp.OldDir.Unref)
+		ro.setWriterName(realOp.getWriterName())
 		ro.Dir.Ref = realOp.OldDir.Ref
 		err := ccs.addOp(realOp.OldDir.Ref, ro)
 		if err != nil {
@@ -156,6 +161,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 
 		co := newCreateOp(realOp.NewName, ndu,
 			File /*type is arbitrary and won't be used*/)
+		co.setWriterName(realOp.getWriterName())
 		co.renamed = true
 		co.Dir.Ref = ndr
 		err = ccs.addOp(ndr, co)
@@ -242,7 +248,8 @@ func (ccs *crChains) renamedParentAndName(original BlockPointer) (
 	return info.originalNewParent, info.newName, true
 }
 
-func newCRChains(rmds []*RootMetadata) (ccs *crChains, err error) {
+func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
+	ccs *crChains, err error) {
 	ccs = &crChains{
 		byOriginal:       make(map[BlockPointer]*crChain),
 		byMostRecent:     make(map[BlockPointer]*crChain),
@@ -255,7 +262,13 @@ func newCRChains(rmds []*RootMetadata) (ccs *crChains, err error) {
 	// entries and create chains for the BlockPointers that are
 	// affected directly by the operation.
 	for _, rmd := range rmds {
+		writerName, err := kbpki.GetNormalizedUsername(ctx, rmd.data.LastWriter)
+		if err != nil {
+			return nil, err
+		}
+
 		for _, op := range rmd.data.Changes.Ops {
+			op.setWriterName(writerName)
 			err := ccs.makeChainForOp(op)
 			if err != nil {
 				return nil, err
