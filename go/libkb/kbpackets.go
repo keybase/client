@@ -15,6 +15,15 @@ import (
 	"github.com/ugorji/go/codec"
 )
 
+type FishyMsgpackError struct {
+	original  []byte
+	reencoded []byte
+}
+
+func (e FishyMsgpackError) Error() string {
+	return fmt.Sprintf("Original msgpack data didn't match re-encoded version: %#v != %#v", e.reencoded, e.original)
+}
+
 func codecHandle() *codec.MsgpackHandle {
 	var mh codec.MsgpackHandle
 	mh.WriteExt = true
@@ -176,6 +185,19 @@ func (p *KeybasePacket) myUnmarshalBinary(data []byte) error {
 		return err
 	}
 	p.Body = body
+
+	// Test for nonstandard msgpack data (which could be maliciously crafted)
+	// by re-encoding and making sure we get the same thing.
+	// https://github.com/keybase/client/issues/423
+	//
+	// Ideally this should be done at a lower level, like MsgpackDecodeAll, but
+	// our msgpack library doesn't sort maps the way we expect. See
+	// https://github.com/ugorji/go/issues/103
+	if reencoded, err := p.Encode(); err != nil {
+		return err
+	} else if !bytes.Equal(reencoded, data) {
+		return FishyMsgpackError{data, reencoded}
+	}
 
 	return p.checkHash()
 }
