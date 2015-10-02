@@ -12,6 +12,7 @@ import {
 
 import commonStyles from '../../styles/common'
 import * as LoginActions from '../../actions/login'
+import * as SearchActions from '../../actions/search'
 import { navigateTo } from '../../actions/router'
 
 export default class More extends Component {
@@ -44,6 +45,9 @@ export default class More extends Component {
         }},
         {name: 'QR', hasChildren: true, onClick: () => {
           this.props.dispatch(navigateTo(['qr']))
+        }},
+        {name: 'Search', hasChildren: true, onClick: () => {
+          this.props.dispatch(SearchActions.pushNewSearch())
         }}
       ])
     }
@@ -101,7 +105,6 @@ export default class More extends Component {
 }
 
 More.propTypes = {
-  navigator: React.PropTypes.object,
   dispatch: React.PropTypes.func.isRequired
 }
 
