@@ -87,8 +87,8 @@ func NewMDServerMemory(config Config) (*MDServerLocal, error) {
 }
 
 // GetForHandle implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle, isUnmerged bool) (
-	TlfID, *RootMetadataSigned, error) {
+func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle,
+	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
 	id := NullTlfID
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
@@ -107,7 +107,7 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle, is
 		if err != nil {
 			return NullTlfID, nil, err
 		}
-		rmds, err := md.GetForTLF(ctx, id, isUnmerged)
+		rmds, err := md.GetForTLF(ctx, id, mStatus)
 		return id, rmds, err
 	}
 
@@ -125,15 +125,15 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle, is
 }
 
 // GetForTLF implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID, isUnmerged bool) (
-	*RootMetadataSigned, error) {
+func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID,
+	mStatus MergeStatus) (*RootMetadataSigned, error) {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
 	if *md.shutdown {
 		return nil, errors.New("MD server already shut down")
 	}
 
-	mdID, err := md.getHeadForTLF(ctx, id, isUnmerged)
+	mdID, err := md.getHeadForTLF(ctx, id, mStatus)
 	if err != nil {
 		return nil, MDServerError{err}
 	}
@@ -147,9 +147,9 @@ func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID, isUnmerged boo
 	return rmds, nil
 }
 
-func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID, isUnmerged bool) (
-	mdID MdID, err error) {
-	key, err := md.getMDKey(ctx, id, 0, isUnmerged)
+func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID,
+	mStatus MergeStatus) (mdID MdID, err error) {
+	key, err := md.getMDKey(ctx, id, 0, mStatus)
 	if err != nil {
 		return
 	}
@@ -165,9 +165,9 @@ func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID, isUnmerged
 }
 
 func (md *MDServerLocal) getMDKey(ctx context.Context, id TlfID,
-	revision MetadataRevision, isUnmerged bool) ([]byte, error) {
+	revision MetadataRevision, mStatus MergeStatus) ([]byte, error) {
 	// short-cut
-	if revision == MetadataRevisionUninitialized && !isUnmerged {
+	if revision == MetadataRevisionUninitialized && mStatus == Merged {
 		return id.Bytes(), nil
 	}
 	buf := &bytes.Buffer{}
@@ -180,7 +180,7 @@ func (md *MDServerLocal) getMDKey(ctx context.Context, id TlfID,
 
 	// this order is significant. this way we can iterate by prefix
 	// when pruning unmerged history per device.
-	if isUnmerged {
+	if mStatus == Unmerged {
 		// add device KID
 		deviceKID, err := md.getCurrentDeviceKID(ctx)
 		if err != nil {
@@ -225,8 +225,9 @@ func (md *MDServerLocal) getCurrentDeviceKID(ctx context.Context) (keybase1.KID,
 }
 
 // GetRange implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID, isUnmerged bool,
-	start, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID,
+	mStatus MergeStatus, start, stop MetadataRevision) (
+	[]*RootMetadataSigned, error) {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
 	if *md.shutdown {
@@ -234,11 +235,11 @@ func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID, isUnmerged bool
 	}
 
 	var rmdses []*RootMetadataSigned
-	startKey, err := md.getMDKey(ctx, id, start, isUnmerged)
+	startKey, err := md.getMDKey(ctx, id, start, mStatus)
 	if err != nil {
 		return rmdses, MDServerError{err}
 	}
-	stopKey, err := md.getMDKey(ctx, id, stop+1, isUnmerged)
+	stopKey, err := md.getMDKey(ctx, id, stop+1, mStatus)
 	if err != nil {
 		return rmdses, MDServerError{err}
 	}
@@ -278,12 +279,12 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	defer md.mutex.Unlock()
 
 	id := rmds.MD.ID
-	isUnmerged := rmds.MD.MergedStatus() == Unmerged
-	currHead, err := md.getHeadForTLF(ctx, id, isUnmerged)
+	mStatus := rmds.MD.MergedStatus()
+	currHead, err := md.getHeadForTLF(ctx, id, mStatus)
 	if err != nil {
 		return MDServerError{err}
 	}
-	if isUnmerged && currHead == (MdID{}) {
+	if mStatus == Unmerged && currHead == (MdID{}) {
 		// currHead for unmerged history might be on the main branch
 		currHead = rmds.MD.PrevRoot
 	}
@@ -340,7 +341,7 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	batch := new(leveldb.Batch)
 
 	// Add an entry with the revision key.
-	revKey, err := md.getMDKey(ctx, id, rmds.MD.Revision, isUnmerged)
+	revKey, err := md.getMDKey(ctx, id, rmds.MD.Revision, mStatus)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -348,7 +349,7 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 
 	// Add an entry with the head key.
 	headKey, err := md.getMDKey(ctx, id, MetadataRevisionUninitialized,
-		isUnmerged)
+		mStatus)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -360,7 +361,7 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 		return MDServerError{err}
 	}
 
-	if !isUnmerged {
+	if mStatus == Merged {
 		md.sessionHeads[id] = md
 
 		// now fire all the observers that aren't from this session
@@ -388,7 +389,7 @@ func (md *MDServerLocal) PruneUnmerged(ctx context.Context, id TlfID) error {
 	}
 
 	// No revision and unmerged history.
-	headKey, err := md.getMDKey(ctx, id, 0, true)
+	headKey, err := md.getMDKey(ctx, id, 0, Unmerged)
 
 	// Do these deletes in atomic batches.
 	revBatch, mdBatch := new(leveldb.Batch), new(leveldb.Batch)
@@ -432,7 +433,7 @@ func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
 
 	// are we already past this revision?  If so, fire observer
 	// immediately
-	currMergedHead, err := md.getHeadForTLF(ctx, id, false)
+	currMergedHead, err := md.getHeadForTLF(ctx, id, Merged)
 	if err != nil {
 		return nil, err
 	}

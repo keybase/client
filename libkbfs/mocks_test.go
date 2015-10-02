@@ -8,7 +8,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
-	go0 "github.com/keybase/client/go/protocol"
+	protocol "github.com/keybase/client/go/protocol"
 	rpc2 "github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
@@ -58,9 +58,9 @@ func (_m *MockBlockContext) EXPECT() *_MockBlockContextRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockContext) GetCreator() go0.UID {
+func (_m *MockBlockContext) GetCreator() protocol.UID {
 	ret := _m.ctrl.Call(_m, "GetCreator")
-	ret0, _ := ret[0].(go0.UID)
+	ret0, _ := ret[0].(protocol.UID)
 	return ret0
 }
 
@@ -68,9 +68,9 @@ func (_mr *_MockBlockContextRecorder) GetCreator() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCreator")
 }
 
-func (_m *MockBlockContext) GetWriter() go0.UID {
+func (_m *MockBlockContext) GetWriter() protocol.UID {
 	ret := _m.ctrl.Call(_m, "GetWriter")
-	ret0, _ := ret[0].(go0.UID)
+	ret0, _ := ret[0].(protocol.UID)
 	return ret0
 }
 
@@ -469,6 +469,17 @@ func (_mr *_MockKeybaseDaemonRecorder) Identify(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1)
 }
 
+func (_m *MockKeybaseDaemon) CurrentUID(ctx context.Context, sessionID int) (protocol.UID, error) {
+	ret := _m.ctrl.Call(_m, "CurrentUID", ctx, sessionID)
+	ret0, _ := ret[0].(protocol.UID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseDaemonRecorder) CurrentUID(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CurrentUID", arg0, arg1)
+}
+
 func (_m *MockKeybaseDaemon) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
 	ret := _m.ctrl.Call(_m, "CurrentSession", ctx, sessionID)
 	ret0, _ := ret[0].(SessionInfo)
@@ -480,7 +491,7 @@ func (_mr *_MockKeybaseDaemonRecorder) CurrentSession(arg0, arg1 interface{}) *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CurrentSession", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) FavoriteAdd(ctx context.Context, folder go0.Folder) error {
+func (_m *MockKeybaseDaemon) FavoriteAdd(ctx context.Context, folder protocol.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteAdd", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -490,7 +501,7 @@ func (_mr *_MockKeybaseDaemonRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteAdd", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) FavoriteDelete(ctx context.Context, folder go0.Folder) error {
+func (_m *MockKeybaseDaemon) FavoriteDelete(ctx context.Context, folder protocol.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteDelete", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -500,9 +511,9 @@ func (_mr *_MockKeybaseDaemonRecorder) FavoriteDelete(arg0, arg1 interface{}) *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteDelete", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) FavoriteList(ctx context.Context, sessionID int) ([]go0.Folder, error) {
+func (_m *MockKeybaseDaemon) FavoriteList(ctx context.Context, sessionID int) ([]protocol.Folder, error) {
 	ret := _m.ctrl.Call(_m, "FavoriteList", ctx, sessionID)
-	ret0, _ := ret[0].([]go0.Folder)
+	ret0, _ := ret[0].([]protocol.Folder)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -551,9 +562,9 @@ func (_mr *_MockKBPKIRecorder) GetCurrentToken(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentToken", arg0)
 }
 
-func (_m *MockKBPKI) GetCurrentUID(ctx context.Context) (go0.UID, error) {
+func (_m *MockKBPKI) GetCurrentUID(ctx context.Context) (protocol.UID, error) {
 	ret := _m.ctrl.Call(_m, "GetCurrentUID", ctx)
-	ret0, _ := ret[0].(go0.UID)
+	ret0, _ := ret[0].(protocol.UID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -573,9 +584,9 @@ func (_mr *_MockKBPKIRecorder) GetCurrentCryptPublicKey(arg0 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentCryptPublicKey", arg0)
 }
 
-func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, input string) (go0.UID, error) {
+func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, input string) (protocol.UID, error) {
 	ret := _m.ctrl.Call(_m, "ResolveAssertion", ctx, input)
-	ret0, _ := ret[0].(go0.UID)
+	ret0, _ := ret[0].(protocol.UID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -584,7 +595,7 @@ func (_mr *_MockKBPKIRecorder) ResolveAssertion(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveAssertion", arg0, arg1)
 }
 
-func (_m *MockKBPKI) GetNormalizedUsername(ctx context.Context, uid go0.UID) (libkb.NormalizedUsername, error) {
+func (_m *MockKBPKI) GetNormalizedUsername(ctx context.Context, uid protocol.UID) (libkb.NormalizedUsername, error) {
 	ret := _m.ctrl.Call(_m, "GetNormalizedUsername", ctx, uid)
 	ret0, _ := ret[0].(libkb.NormalizedUsername)
 	ret1, _ := ret[1].(error)
@@ -595,7 +606,7 @@ func (_mr *_MockKBPKIRecorder) GetNormalizedUsername(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNormalizedUsername", arg0, arg1)
 }
 
-func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid go0.UID, verifyingKey VerifyingKey) error {
+func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid protocol.UID, verifyingKey VerifyingKey) error {
 	ret := _m.ctrl.Call(_m, "HasVerifyingKey", ctx, uid, verifyingKey)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -605,7 +616,7 @@ func (_mr *_MockKBPKIRecorder) HasVerifyingKey(arg0, arg1, arg2 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasVerifyingKey", arg0, arg1, arg2)
 }
 
-func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid go0.UID) ([]CryptPublicKey, error) {
+func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid protocol.UID) ([]CryptPublicKey, error) {
 	ret := _m.ctrl.Call(_m, "GetCryptPublicKeys", ctx, uid)
 	ret0, _ := ret[0].([]CryptPublicKey)
 	ret1, _ := ret[1].(error)
@@ -616,7 +627,7 @@ func (_mr *_MockKBPKIRecorder) GetCryptPublicKeys(arg0, arg1 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCryptPublicKeys", arg0, arg1)
 }
 
-func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder go0.Folder) error {
+func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder protocol.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteAdd", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -626,7 +637,7 @@ func (_mr *_MockKBPKIRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteAdd", arg0, arg1)
 }
 
-func (_m *MockKBPKI) FavoriteDelete(ctx context.Context, folder go0.Folder) error {
+func (_m *MockKBPKI) FavoriteDelete(ctx context.Context, folder protocol.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteDelete", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -636,9 +647,9 @@ func (_mr *_MockKBPKIRecorder) FavoriteDelete(arg0, arg1 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteDelete", arg0, arg1)
 }
 
-func (_m *MockKBPKI) FavoriteList(ctx context.Context) ([]go0.Folder, error) {
+func (_m *MockKBPKI) FavoriteList(ctx context.Context) ([]protocol.Folder, error) {
 	ret := _m.ctrl.Call(_m, "FavoriteList", ctx)
-	ret0, _ := ret[0].([]go0.Folder)
+	ret0, _ := ret[0].([]protocol.Folder)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1135,7 +1146,7 @@ func (_mr *_MockCryptoRecorder) DecryptTLFCryptKeyClientHalf(arg0, arg1, arg2 in
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptTLFCryptKeyClientHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) GetTLFCryptKeyServerHalfID(user go0.UID, deviceKID go0.KID, serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
+func (_m *MockCrypto) GetTLFCryptKeyServerHalfID(user protocol.UID, deviceKID protocol.KID, serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalfID", user, deviceKID, serverHalf)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalfID)
 	ret1, _ := ret[1].(error)
@@ -1146,7 +1157,7 @@ func (_mr *_MockCryptoRecorder) GetTLFCryptKeyServerHalfID(arg0, arg1, arg2 inte
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalfID", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user go0.UID, deviceKID go0.KID, serverHalf TLFCryptKeyServerHalf) error {
+func (_m *MockCrypto) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user protocol.UID, deviceKID protocol.KID, serverHalf TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "VerifyTLFCryptKeyServerHalfID", serverHalfID, user, deviceKID, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1397,7 +1408,7 @@ func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1)
 }
 
-func (_m *MockKeyOps) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[go0.UID]map[go0.KID]TLFCryptKeyServerHalf) error {
+func (_m *MockKeyOps) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[protocol.UID]map[protocol.KID]TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalves", ctx, serverKeyHalves)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1492,8 +1503,8 @@ func (_m *MockMDServer) EXPECT() *_MockMDServerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDServer) GetForHandle(ctx context.Context, handle *TlfHandle, isUnmerged bool) (TlfID, *RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, isUnmerged)
+func (_m *MockMDServer) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
 	ret0, _ := ret[0].(TlfID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
 	ret2, _ := ret[2].(error)
@@ -1504,8 +1515,8 @@ func (_mr *_MockMDServerRecorder) GetForHandle(arg0, arg1, arg2 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) GetForTLF(ctx context.Context, id TlfID, isUnmerged bool) (*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id, isUnmerged)
+func (_m *MockMDServer) GetForTLF(ctx context.Context, id TlfID, mStatus MergeStatus) (*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id, mStatus)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1515,8 +1526,8 @@ func (_mr *_MockMDServerRecorder) GetForTLF(arg0, arg1, arg2 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) GetRange(ctx context.Context, id TlfID, isUnmerged bool, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, isUnmerged, start, stop)
+func (_m *MockMDServer) GetRange(ctx context.Context, id TlfID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, mStatus, start, stop)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1719,7 +1730,7 @@ func (_mr *_MockKeyServerRecorder) GetTLFCryptKeyServerHalf(arg0, arg1 interface
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1)
 }
 
-func (_m *MockKeyServer) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[go0.UID]map[go0.KID]TLFCryptKeyServerHalf) error {
+func (_m *MockKeyServer) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[protocol.UID]map[protocol.KID]TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalves", ctx, serverKeyHalves)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2341,9 +2352,9 @@ func (_m *MockConnectionTransport) EXPECT() *_MockConnectionTransportRecorder {
 	return _m.recorder
 }
 
-func (_m *MockConnectionTransport) Dial(ctx context.Context, srvAddr string) (go0.GenericClient, error) {
+func (_m *MockConnectionTransport) Dial(ctx context.Context, srvAddr string) (protocol.GenericClient, error) {
 	ret := _m.ctrl.Call(_m, "Dial", ctx, srvAddr)
-	ret0, _ := ret[0].(go0.GenericClient)
+	ret0, _ := ret[0].(protocol.GenericClient)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

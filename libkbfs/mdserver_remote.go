@@ -196,7 +196,8 @@ func (md *MDServerRemote) doCommand(ctx context.Context, command func() error) e
 
 // Helper used to retrieve metadata blocks from the MD server.
 func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
-	isUnmerged bool, start, stop MetadataRevision) (TlfID, []*RootMetadataSigned, error) {
+	mStatus MergeStatus, start, stop MetadataRevision) (
+	TlfID, []*RootMetadataSigned, error) {
 	// figure out which args to send
 	if id == NullTlfID && handle == nil {
 		return id, nil, MDInvalidGetArguments{
@@ -207,7 +208,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 	arg := keybase1.GetMetadataArg{
 		StartRevision: start.Number(),
 		StopRevision:  stop.Number(),
-		Unmerged:      isUnmerged,
+		Unmerged:      mStatus == Unmerged,
 		LogTags:       LogTagsFromContextToMap(ctx),
 	}
 	if id == NullTlfID {
@@ -247,9 +248,9 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 }
 
 // GetForHandle implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) GetForHandle(ctx context.Context, handle *TlfHandle, isUnmerged bool) (
-	TlfID, *RootMetadataSigned, error) {
-	id, rmdses, err := md.get(ctx, NullTlfID, handle, isUnmerged,
+func (md *MDServerRemote) GetForHandle(ctx context.Context, handle *TlfHandle,
+	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
+	id, rmdses, err := md.get(ctx, NullTlfID, handle, mStatus,
 		MetadataRevisionUninitialized, MetadataRevisionUninitialized)
 	if err != nil {
 		return id, nil, err
@@ -261,9 +262,9 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context, handle *TlfHandle, i
 }
 
 // GetForTLF implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) GetForTLF(ctx context.Context, id TlfID, isUnmerged bool) (
-	*RootMetadataSigned, error) {
-	_, rmdses, err := md.get(ctx, id, nil, isUnmerged,
+func (md *MDServerRemote) GetForTLF(ctx context.Context, id TlfID,
+	mStatus MergeStatus) (*RootMetadataSigned, error) {
+	_, rmdses, err := md.get(ctx, id, nil, mStatus,
 		MetadataRevisionUninitialized, MetadataRevisionUninitialized)
 	if err != nil {
 		return nil, err
@@ -275,9 +276,10 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id TlfID, isUnmerged bo
 }
 
 // GetRange implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) GetRange(ctx context.Context, id TlfID, isUnmerged bool,
-	start, stop MetadataRevision) ([]*RootMetadataSigned, error) {
-	_, rmds, err := md.get(ctx, id, nil, isUnmerged, start, stop)
+func (md *MDServerRemote) GetRange(ctx context.Context, id TlfID,
+	mStatus MergeStatus, start, stop MetadataRevision) (
+	[]*RootMetadataSigned, error) {
+	_, rmds, err := md.get(ctx, id, nil, mStatus, start, stop)
 	return rmds, err
 }
 

@@ -28,7 +28,7 @@ func TestMDServerBasics(t *testing.T) {
 
 	// (1) get metadata -- allocates an ID
 	handle, _ := NewFolderWithIDAndWriter(t, NullTlfID, 1, true, false, uid)
-	id, md, err := mdServer.GetForHandle(ctx, handle, false)
+	id, md, err := mdServer.GetForHandle(ctx, handle, Merged)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (4) check for proper unmerged head
-	head, err := mdServer.GetForTLF(ctx, id, true)
+	head, err := mdServer.GetForTLF(ctx, id, Unmerged)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,7 +102,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (5) try to get unmerged range
-	rmdses, err := mdServer.GetRange(ctx, id, true, 1, 100)
+	rmdses, err := mdServer.GetRange(ctx, id, Unmerged, 1, 100)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (7) verify head is pruned
-	head, err = mdServer.GetForTLF(ctx, id, true)
+	head, err = mdServer.GetForTLF(ctx, id, Unmerged)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +132,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (8) verify revision history is pruned
-	rmdses, err = mdServer.GetRange(ctx, id, true, 1, 100)
+	rmdses, err = mdServer.GetRange(ctx, id, Unmerged, 1, 100)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (9) check for proper merged head
-	head, err = mdServer.GetForTLF(ctx, id, false)
+	head, err = mdServer.GetForTLF(ctx, id, Merged)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (10) try to get merged range
-	rmdses, err = mdServer.GetRange(ctx, id, false, 1, 100)
+	rmdses, err = mdServer.GetRange(ctx, id, Merged, 1, 100)
 	if err != nil {
 		t.Fatal(err)
 	}
