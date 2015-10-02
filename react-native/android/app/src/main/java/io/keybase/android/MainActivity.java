@@ -20,7 +20,7 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Init(this.getFilesDir().getPath(), "staging");
+        Init(this.getFilesDir().getPath(), "staging", "");
 
         mReactRootView = new ReactRootView(this);
         mReactInstanceManager = ReactInstanceManager.builder()
