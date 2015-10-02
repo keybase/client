@@ -12,11 +12,10 @@ import (
 	"fmt"
 	"io"
 
-	jsonw "github.com/keybase/go-jsonw"
 	"github.com/ugorji/go/codec"
 )
 
-func CodecHandle() *codec.MsgpackHandle {
+func codecHandle() *codec.MsgpackHandle {
 	var mh codec.MsgpackHandle
 	mh.WriteExt = true
 	return &mh
@@ -38,7 +37,7 @@ type KeybasePacket struct {
 
 type KeybasePackets []*KeybasePacket
 
-func (p *KeybasePacket) HashToBytes() (ret []byte, err error) {
+func (p *KeybasePacket) hashToBytes() (ret []byte, err error) {
 	zb := [0]byte{}
 	if p.Hash == nil {
 		p.Hash = &KeybasePacketHash{}
@@ -62,11 +61,11 @@ func (p *KeybasePacket) HashToBytes() (ret []byte, err error) {
 
 func (p *KeybasePacket) HashMe() error {
 	var err error
-	p.Hash.Value, err = p.HashToBytes()
+	p.Hash.Value, err = p.hashToBytes()
 	return err
 }
 
-func (p *KeybasePacket) CheckHash() error {
+func (p *KeybasePacket) checkHash() error {
 	var gotten []byte
 	var err error
 	if p.Hash == nil {
@@ -75,7 +74,7 @@ func (p *KeybasePacket) CheckHash() error {
 	given := p.Hash.Value
 	if p.Hash.Type != SHA256Code {
 		err = fmt.Errorf("Bad hash code: %d", p.Hash.Type)
-	} else if gotten, err = p.HashToBytes(); err != nil {
+	} else if gotten, err = p.hashToBytes(); err != nil {
 
 	} else if !FastByteArrayEq(gotten, given) {
 		err = fmt.Errorf("Bad packet hash")
@@ -85,7 +84,7 @@ func (p *KeybasePacket) CheckHash() error {
 
 func (p *KeybasePacket) Encode() ([]byte, error) {
 	var encoded []byte
-	err := codec.NewEncoderBytes(&encoded, CodecHandle()).Encode(p)
+	err := codec.NewEncoderBytes(&encoded, codecHandle()).Encode(p)
 	return encoded, err
 }
 
@@ -101,23 +100,23 @@ func (p *KeybasePacket) ArmoredEncode() (ret string, err error) {
 }
 
 func (p *KeybasePacket) EncodeTo(w io.Writer) error {
-	err := codec.NewEncoder(w, CodecHandle()).Encode(p)
+	err := codec.NewEncoder(w, codecHandle()).Encode(p)
 	return err
 }
 
 func (p KeybasePackets) Encode() ([]byte, error) {
 	var encoded []byte
-	err := codec.NewEncoderBytes(&encoded, CodecHandle()).Encode(p)
+	err := codec.NewEncoderBytes(&encoded, codecHandle()).Encode(p)
 	return encoded, err
 }
 
 func (p KeybasePackets) EncodeTo(w io.Writer) error {
-	err := codec.NewEncoder(w, CodecHandle()).Encode(p)
+	err := codec.NewEncoder(w, codecHandle()).Encode(p)
 	return err
 }
 
 func DecodePackets(reader io.Reader) (ret KeybasePackets, err error) {
-	ch := CodecHandle()
+	ch := codecHandle()
 	var generics []interface{}
 	if err = codec.NewDecoder(reader, ch).Decode(&generics); err != nil {
 		return
@@ -149,8 +148,8 @@ func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{})
 	return nil
 }
 
-func (p *KeybasePacket) MyUnmarshalBinary(data []byte) error {
-	ch := CodecHandle()
+func (p *KeybasePacket) myUnmarshalBinary(data []byte) error {
+	ch := codecHandle()
 	if err := MsgpackDecodeAll(data, ch, p); err != nil {
 		return err
 	}
@@ -177,15 +176,8 @@ func (p *KeybasePacket) MyUnmarshalBinary(data []byte) error {
 		return err
 	}
 	p.Body = body
-	return p.CheckHash()
-}
 
-func GetPacket(jsonw *jsonw.Wrapper) (*KeybasePacket, error) {
-	s, err := jsonw.GetString()
-	if err != nil {
-		return nil, err
-	}
-	return DecodeArmoredPacket(s)
+	return p.checkHash()
 }
 
 func DecodeArmoredPacket(s string) (*KeybasePacket, error) {
@@ -198,7 +190,7 @@ func DecodeArmoredPacket(s string) (*KeybasePacket, error) {
 
 func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{}
-	err = ret.MyUnmarshalBinary(data)
+	err = ret.myUnmarshalBinary(data)
 	if err != nil {
 		ret = nil
 	}
