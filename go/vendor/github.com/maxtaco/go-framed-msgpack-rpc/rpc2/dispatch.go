@@ -5,21 +5,17 @@ import "sync"
 type DecodeNext func(interface{}) error
 type ServeHook func(DecodeNext) (interface{}, error)
 
+// EOFHook is typically called when a transport has to shut down.
+// We supply it with the exact error that caused the shutdown, which
+// should be io.EOF under normal circumstances.
+type EOFHook func(error)
+
 type Dispatcher interface {
 	Dispatch(m *Message) error
 	Call(name string, arg interface{}, res interface{}, f UnwrapErrorFunc) error
 	RegisterProtocol(Protocol) error
-	Reset() error
-}
-
-type ResultPair struct {
-	res interface{}
-	err error
-}
-
-type ClientResultPair struct {
-	nxt DecodeNext
-	err error
+	RegisterEOFHook(EOFHook) error
+	Reset(error) error
 }
 
 type Protocol struct {
@@ -36,6 +32,7 @@ type Dispatch struct {
 	xp         Transporter
 	log        LogInterface
 	wrapError  WrapErrorFunc
+	eofHook    EOFHook
 }
 
 func NewDispatch(xp Transporter, l LogInterface, wef WrapErrorFunc) *Dispatch {
@@ -117,14 +114,6 @@ func (d *Dispatch) registerCall(c *Call) {
 func (d *Dispatch) Call(name string, arg interface{}, res interface{}, f UnwrapErrorFunc) (err error) {
 
 	d.callsMutex.Lock()
-	locked := true
-	unlock := func() {
-		if locked {
-			locked = false
-			d.callsMutex.Unlock()
-		}
-	}
-	defer unlock()
 
 	seqid := d.nextSeqid()
 	v := []interface{}{TYPE_CALL, seqid, name, arg}
@@ -138,7 +127,9 @@ func (d *Dispatch) Call(name string, arg interface{}, res interface{}, f UnwrapE
 	}
 	call.Init()
 	d.registerCall(call)
-	unlock()
+
+	d.callsMutex.Unlock()
+
 	err = d.xp.Encode(v)
 	if err != nil {
 		return
@@ -201,6 +192,15 @@ func (d *Dispatch) RegisterProtocol(p Protocol) (err error) {
 	return err
 }
 
+// RegisterEOFHook registers a function to call when the dispatcher
+// hits EOF. The hook will be called with whatever error caused the
+// channel to close.  Usually this should be io.EOF, but it can
+// of course be otherwise.
+func (d *Dispatch) RegisterEOFHook(h EOFHook) error {
+	d.eofHook = h
+	return nil
+}
+
 func (d *Dispatch) dispatchResponse(m *Message) (err error) {
 	var seqno int
 
@@ -251,13 +251,16 @@ func (d *Dispatch) dispatchResponse(m *Message) (err error) {
 	return
 }
 
-func (d *Dispatch) Reset() error {
+func (d *Dispatch) Reset(eofError error) error {
 	d.callsMutex.Lock()
 	for k, v := range d.calls {
 		v.ch <- EofError{}
 		delete(d.calls, k)
 	}
 	d.callsMutex.Unlock()
+	if d.eofHook != nil {
+		d.eofHook(eofError)
+	}
 	return nil
 }
 

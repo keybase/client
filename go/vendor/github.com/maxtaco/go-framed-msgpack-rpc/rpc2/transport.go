@@ -23,10 +23,10 @@ type Transporter interface {
 }
 
 type ConPackage struct {
+	Decoder
 	con        net.Conn
 	remoteAddr net.Addr
 	br         *bufio.Reader
-	dec        *codec.Decoder
 }
 
 func (c *ConPackage) ReadByte() (b byte, e error) {
@@ -68,7 +68,7 @@ func NewConPackage(c net.Conn, mh *codec.MsgpackHandle) *ConPackage {
 		con:        c,
 		remoteAddr: c.RemoteAddr(),
 		br:         br,
-		dec:        codec.NewDecoder(br, mh),
+		Decoder:    codec.NewDecoder(br, mh),
 	}
 }
 
@@ -131,15 +131,19 @@ func (t *Transport) handlePacketizerFailure(err error) {
 	// For now, just throw everything away.  Eventually we might
 	// want to make a plan for reconnecting.
 	t.mutex.Lock()
-	t.log.TransportError(err)
 	t.running = false
-	t.dispatcher.Reset()
+	t.dispatcher.Reset(err)
 	t.dispatcher = nil
 	t.packetizer.Clear()
 	t.packetizer = nil
 	t.cpkg.Close()
 	t.cpkg = nil
 	t.mutex.Unlock()
+	// NOTE: The logging implementation can be anything. In particular, it
+	// might try to send logs over this transport, which would take the mutex
+	// again. We *must not* call this while we hold the lock. (Yes, we figured
+	// this out by deadlocking ourselves :p)
+	t.log.TransportError(err)
 	return
 }
 
@@ -202,7 +206,7 @@ func (t *Transport) ReadByte() (b byte, err error) {
 func (t *Transport) Decode(i interface{}) (err error) {
 	var cp *ConPackage
 	if cp, err = t.getConPackage(); err == nil {
-		err = cp.dec.Decode(i)
+		err = cp.Decode(i)
 	}
 	return
 }

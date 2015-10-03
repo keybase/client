@@ -329,6 +329,11 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property KBRSigHint *hint;
 @end
 
+@interface KBRPassphraseStream : KBRObject
+@property NSData *passphraseStream;
+@property NSInteger generation;
+@end
+
 typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
 	KBRDeviceSignerKindDevice = 0,
 	KBRDeviceSignerKindPgp = 1,
@@ -455,13 +460,6 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 	KBRPromptOverwriteTypeSocial = 0,
 	KBRPromptOverwriteTypeSite = 1,
 };
-
-@interface KBRSessionToken : KBRObject
-@property NSString *uid;
-@property NSString *sid;
-@property NSInteger generated;
-@property NSInteger lifetime;
-@end
 
 @interface KBRSecretEntryArg : KBRObject
 @property NSString *desc;
@@ -774,6 +772,15 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRFinishRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@end
+@interface KBRHelloRequestParams : KBRRequestParams
+@property NSString *uid;
+@property NSString *token;
+@property KBRPassphraseStream *pps;
+@property NSString *sigBody;
+@end
+@interface KBRDidCounterSignRequestParams : KBRRequestParams
+@property NSData *sig;
 @end
 @interface KBRPromptDeviceNameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1389,6 +1396,24 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @end
 
+@interface KBRKex2ProvisioneeRequest : KBRRequest
+
+- (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion;
+
+- (void)helloWithUid:(NSString *)uid token:(NSString *)token pps:(KBRPassphraseStream *)pps sigBody:(NSString *)sigBody completion:(void (^)(NSError *error, NSString *helloRes))completion;
+
+- (void)didCounterSign:(KBRDidCounterSignRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)didCounterSignWithSig:(NSData *)sig completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRKex2ProvisionerRequest : KBRRequest
+
+- (void)kexStart:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRLocksmithUiRequest : KBRRequest
 
 - (void)promptDeviceName:(void (^)(NSError *error, NSString *str))completion;
@@ -1625,9 +1650,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRQuotaRequest : KBRRequest
 
-- (void)verifySession:(KBRVerifySessionRequestParams *)params completion:(void (^)(NSError *error, KBRSessionToken *sessionToken))completion;
+- (void)verifySession:(KBRVerifySessionRequestParams *)params completion:(void (^)(NSError *error, NSString *sessionToken))completion;
 
-- (void)verifySessionWithSession:(NSString *)session completion:(void (^)(NSError *error, KBRSessionToken *sessionToken))completion;
+- (void)verifySessionWithSession:(NSString *)session completion:(void (^)(NSError *error, NSString *sessionToken))completion;
 
 @end
 

@@ -1,0 +1,300 @@
+package kex2
+
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"errors"
+	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	"golang.org/x/net/context"
+	"io"
+	"testing"
+	"time"
+)
+
+const (
+	GoodProvisionee                  = 0
+	BadProvisioneeFailHello          = 1 << iota
+	BadProvisioneeFailDidCounterSign = 1 << iota
+	BadProvisioneeSlowHello          = 1 << iota
+	BadProvisioneeSlowDidCounterSign = 1 << iota
+	BadProvisioneeCancel             = 1 << iota
+)
+
+type mockProvisioner struct {
+	uid keybase1.UID
+}
+
+type mockProvisionee struct {
+	behavior int
+}
+
+func newMockProvisioner(t *testing.T) *mockProvisioner {
+	return &mockProvisioner{
+		uid: genUID(t),
+	}
+}
+
+type nullLogOutput struct {
+}
+
+func (n *nullLogOutput) Error(s string, args ...interface{})   {}
+func (n *nullLogOutput) Warning(s string, args ...interface{}) {}
+func (n *nullLogOutput) Info(s string, args ...interface{})    {}
+func (n *nullLogOutput) Debug(s string, args ...interface{})   {}
+func (n *nullLogOutput) Profile(s string, args ...interface{}) {}
+
+var _ rpc2.LogOutput = (*nullLogOutput)(nil)
+
+func makeLogFactory() rpc2.LogFactory {
+	if testing.Verbose() {
+		return nil
+	}
+	return rpc2.NewSimpleLogFactory(&nullLogOutput{}, nil)
+}
+
+func genUID(t *testing.T) keybase1.UID {
+	uid := make([]byte, 8)
+	if _, err := rand.Read(uid); err != nil {
+		t.Fatalf("rand failed: %v\n", err)
+	}
+	return keybase1.UID(hex.EncodeToString(uid))
+}
+
+func genKeybase1DeviceID(t *testing.T) keybase1.DeviceID {
+	did := make([]byte, 16)
+	if _, err := rand.Read(did); err != nil {
+		t.Fatalf("rand failed: %v\n", err)
+	}
+	return keybase1.DeviceID(hex.EncodeToString(did))
+}
+
+func newMockProvisionee(t *testing.T, behavior int) *mockProvisionee {
+	return &mockProvisionee{behavior}
+}
+
+func (mp *mockProvisioner) GetLogFactory() rpc2.LogFactory {
+	return makeLogFactory()
+}
+
+func (mp *mockProvisioner) CounterSign(input keybase1.HelloRes) (output []byte, err error) {
+	output = []byte(string(input))
+	return
+}
+
+func (mp *mockProvisioner) GetHelloArg() (res keybase1.HelloArg) {
+	res.Uid = mp.uid
+	return
+}
+
+func (mp *mockProvisionee) GetLogFactory() rpc2.LogFactory {
+	return makeLogFactory()
+}
+
+var ErrHandleHello = errors.New("handle hello failure")
+var ErrHandleDidCounterSign = errors.New("handle didCounterSign failure")
+var testTimeout = time.Duration(10) * time.Millisecond
+
+func (mp *mockProvisionee) HandleHello(arg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
+	if (mp.behavior & BadProvisioneeSlowHello) != 0 {
+		time.Sleep(testTimeout * 3)
+	}
+	if (mp.behavior & BadProvisioneeFailHello) != 0 {
+		err = ErrHandleHello
+		return
+	}
+	res = keybase1.HelloRes(arg.SigBody)
+	return
+}
+
+func (mp *mockProvisionee) HandleDidCounterSign([]byte) error {
+	if (mp.behavior & BadProvisioneeSlowDidCounterSign) != 0 {
+		time.Sleep(testTimeout * 3)
+	}
+	if (mp.behavior & BadProvisioneeFailDidCounterSign) != 0 {
+		return ErrHandleDidCounterSign
+	}
+	return nil
+}
+
+func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [2]error) {
+
+	timeout := testTimeout
+	router := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, timeout)
+
+	s2 := genSecret(t)
+
+	ch := make(chan error, 3)
+
+	secretCh := make(chan Secret)
+
+	ctx, cancelFn := context.WithCancel(context.Background())
+
+	// Run the provisioner
+	go func() {
+		err := RunProvisioner(ProvisionerArg{
+			KexBaseArg: KexBaseArg{
+				Ctx:           ctx,
+				Mr:            router,
+				Secret:        genSecret(t),
+				DeviceID:      genKeybase1DeviceID(t),
+				SecretChannel: secretCh,
+				Timeout:       timeout,
+			},
+			Provisioner: newMockProvisioner(t),
+		})
+		ch <- err
+	}()
+
+	// Run the privisionee
+	go func() {
+		err := RunProvisionee(ProvisioneeArg{
+			KexBaseArg: KexBaseArg{
+				Ctx:           context.Background(),
+				Mr:            router,
+				Secret:        s2,
+				DeviceID:      genKeybase1DeviceID(t),
+				SecretChannel: make(chan Secret),
+				Timeout:       timeout,
+			},
+			Provisionee: newMockProvisionee(t, provisioneeBehavior),
+		})
+		ch <- err
+	}()
+
+	if (provisioneeBehavior & BadProvisioneeCancel) != 0 {
+		go func() {
+			time.Sleep(testTimeout / 2)
+			cancelFn()
+		}()
+	}
+
+	secretCh <- s2
+
+	for i := 0; i < 2; i++ {
+		if e, eof := <-ch; !eof {
+			t.Fatalf("got unexpected channel close (try %d)", i)
+		} else if e != nil {
+			results[i] = e
+		}
+	}
+
+	return results
+}
+
+func TestFullProtocolXSuccess(t *testing.T) {
+	results := testProtocolXWithBehavior(t, GoodProvisionee)
+	for i, e := range results {
+		if e != nil {
+			t.Fatalf("Bad error %d: %v", i, e)
+		}
+	}
+}
+
+// Since errors are exported as strings, then we should just test that the
+// right kind of error was specified
+func eeq(e1, e2 error) bool {
+	return e1 != nil && e1.Error() == e2.Error()
+}
+
+func TestFullProtocolXProvisioneeFailHello(t *testing.T) {
+	results := testProtocolXWithBehavior(t, BadProvisioneeFailHello)
+	if !eeq(results[0], ErrHandleHello) {
+		t.Fatalf("Bad error 0: %v", results[0])
+	}
+	if !eeq(results[1], ErrHandleHello) {
+		t.Fatalf("Bad error 1: %v", results[1])
+	}
+}
+
+func TestFullProtocolXProvisioneeFailDidCounterSign(t *testing.T) {
+	results := testProtocolXWithBehavior(t, BadProvisioneeFailDidCounterSign)
+	if !eeq(results[0], ErrHandleDidCounterSign) {
+		t.Fatalf("Bad error 0: %v", results[0])
+	}
+	if !eeq(results[1], ErrHandleDidCounterSign) {
+		t.Fatalf("Bad error 1: %v", results[1])
+	}
+}
+
+func TestFullProtocolXProvisioneeSlowHello(t *testing.T) {
+	results := testProtocolXWithBehavior(t, BadProvisioneeSlowHello)
+	for i, e := range results {
+		if !eeq(e, ErrTimedOut) && !eeq(e, rpc2.EofError{}) {
+			t.Fatalf("Bad error %d: %v", i, e)
+		}
+	}
+}
+
+func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
+	results := testProtocolXWithBehavior(t, BadProvisioneeSlowHello|BadProvisioneeCancel)
+	for i, e := range results {
+		if !eeq(e, ErrCanceled) && !eeq(e, io.EOF) {
+			t.Fatalf("Bad error %d: %v", i, e)
+		}
+	}
+}
+
+func TestFullProtocolXProvisioneeSlowDidCounterSign(t *testing.T) {
+	results := testProtocolXWithBehavior(t, BadProvisioneeSlowDidCounterSign)
+	for i, e := range results {
+		if !eeq(e, ErrTimedOut) && !eeq(e, rpc2.EofError{}) {
+			t.Fatalf("Bad error %d: %v", i, e)
+		}
+	}
+}
+
+func TestFullProtocolY(t *testing.T) {
+
+	timeout := time.Duration(60) * time.Second
+	router := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, timeout)
+
+	s1 := genSecret(t)
+
+	ch := make(chan error, 3)
+
+	secretCh := make(chan Secret)
+
+	// Run the provisioner
+	go func() {
+		err := RunProvisioner(ProvisionerArg{
+			KexBaseArg: KexBaseArg{
+				Ctx:           context.TODO(),
+				Mr:            router,
+				Secret:        s1,
+				DeviceID:      genKeybase1DeviceID(t),
+				SecretChannel: make(chan Secret),
+				Timeout:       timeout,
+			},
+			Provisioner: newMockProvisioner(t),
+		})
+		ch <- err
+	}()
+
+	// Run the privisionee
+	go func() {
+		err := RunProvisionee(ProvisioneeArg{
+			KexBaseArg: KexBaseArg{
+				Ctx:           context.TODO(),
+				Mr:            router,
+				Secret:        genSecret(t),
+				DeviceID:      genKeybase1DeviceID(t),
+				SecretChannel: secretCh,
+				Timeout:       timeout,
+			},
+			Provisionee: newMockProvisionee(t, GoodProvisionee),
+		})
+		ch <- err
+	}()
+
+	secretCh <- s1
+
+	for i := 0; i < 2; i++ {
+		if e, eof := <-ch; !eof {
+			t.Fatalf("got unexpected channel close (try %d)", i)
+		} else if e != nil {
+			t.Fatalf("Unexpected error (receive %d): %v", i, e)
+		}
+	}
+
+}
