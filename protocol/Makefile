@@ -25,7 +25,8 @@ build-stamp: \
 	json/gpg_ui.json \
 	json/identify.json \
 	json/identify_ui.json \
-	json/kex2.json \
+	json/kex2provisioner.json \
+	json/kex2provisionee.json \
 	json/locksmith_ui.json \
 	json/log_ui.json \
 	json/login.json \

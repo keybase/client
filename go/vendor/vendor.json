@@ -98,9 +98,14 @@
 			"revisionTime": "2015-05-20T12:37:12-04:00"
 		},
 		{
+			"path": "github.com/maxtaco/go-framed-msgpack-rpc",
+			"revision": "5bc8b1e1cabf1c2eaf81a19d82562df4cf6a2352",
+			"revisionTime": "2015-10-05T22:14:12-04:00"
+		},
+		{
 			"path": "github.com/maxtaco/go-framed-msgpack-rpc/rpc2",
-			"revision": "c4d171b43eec575a772d95cca21f89ac395cd1d0",
-			"revisionTime": "2015-05-01T14:28:35-04:00"
+			"revision": "5bc8b1e1cabf1c2eaf81a19d82562df4cf6a2352",
+			"revisionTime": "2015-10-05T22:14:12-04:00"
 		},
 		{
 			"path": "github.com/op/go-logging",
