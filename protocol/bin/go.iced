@@ -243,11 +243,19 @@ class GoEmitter2 extends GoEmitter
   emit_imports : () ->
     @output '"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"'
 
-  emit_server_hook : (name, details) ->
+  emit_server_hook : (name, details, notify_pass) ->
+    return if (details.notify? isnt notify_pass)
+
     arg = details.request
     res = details.response
-    resvar = if res is "null" then "" else "ret, "
-    @output """"#{name}": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {"""
+    resvar = if (res is "null" or details.notify?) then "" else "ret, "
+
+    line = """"#{name}": func(nxt rpc2.DecodeNext) ("""
+    unless details.notify?
+      line += "ret interface {}, "
+    line += "err error) {"
+    @output line
+
     @tab()
     @output "args := make([]#{@go_primitive_type(arg.type)}, 1)"
     @output "if err = nxt(&args); err == nil {"
@@ -269,12 +277,21 @@ class GoEmitter2 extends GoEmitter
     @output "return rpc2.Protocol {"
     @tab()
     @output """Name: "#{@_pkg}.#{protocol}","""
+
     @output "Methods: map[string]rpc2.ServeHook{"
     @tab()
     for k,v of messages
-      @emit_server_hook k, v
+      @emit_server_hook k, v, false
     @untab()
     @output "},"
+
+    @output "NotifyMethods : map[string]rpc2.ServeNotifyHook{"
+    @tab()
+    for k,v of messages
+      @emit_server_hook k, v, true
+    @untab()
+    @output "},"
+
     @untab()
     @output "}"
     @untab()
@@ -290,11 +307,15 @@ class GoEmitter2 extends GoEmitter
     @output "#{@go_export_case(name)}(#{args}) (#{res_types.join ","})"
 
   emit_message_client: (protocol, name, details, async) ->
+
     p = @go_export_case protocol
     arg = details.request
     res = details.response
     out_list = []
-    if res isnt "null"
+
+    if details.notify?
+      res_in = null
+    else if res isnt "null"
       out_list.push "res #{@go_lint_capitalize(@emit_field_type(res).type)}"
       res_in = "&res"
     else
@@ -314,7 +335,11 @@ class GoEmitter2 extends GoEmitter
     oarg += if arg.nargs is 0 then "#{arg.type}{}"
     else arg.name
     oarg += "}"
-    @output """err = c.Cli.Call("#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
+
+    call = if details.notify? then "Notify" else "Call"
+    res_in = if res_in? then ", #{res_in}" else ""
+    @output """err = c.Cli.#{call}("#{@_pkg}.#{protocol}.#{name}", #{oarg}#{res_in})"""
+
     @output "return"
     @untab()
     @output "}"
