@@ -1,0 +1,13 @@
+
+@namespace("keybase.1")
+
+protocol Kex2 {
+	import idl "common.avdl";
+
+	@notify("")
+	void start();
+
+	string hello(UID uid, bytes session, bytes passphraseStream, string sigBody);
+	void didCounterSign(bytes sig);
+
+}
