@@ -124,19 +124,16 @@ func (p KeybasePackets) EncodeTo(w io.Writer) error {
 	return err
 }
 
-func DecodePackets(reader io.Reader) (ret KeybasePackets, err error) {
+// DecodePacketsUnchecked decodes an array of packets from `reader`. It does *not*
+// check that the stream was canonical msgpack.
+func DecodePacketsUnchecked(reader io.Reader) (ret KeybasePackets, err error) {
 	ch := codecHandle()
-	var generics []interface{}
-	if err = codec.NewDecoder(reader, ch).Decode(&generics); err != nil {
+	if err = codec.NewDecoder(reader, ch).Decode(&ret); err != nil {
 		return
 	}
-	ret = make(KeybasePackets, len(generics))
-	for i, e := range generics {
-		var encoded []byte
-		if err = codec.NewEncoderBytes(&encoded, ch).Encode(e); err != nil {
-			return
-		}
-		if ret[i], err = DecodePacket(encoded); err != nil {
+	for _, p := range ret {
+		err = p.unpackBody(ch)
+		if err != nil {
 			return
 		}
 	}
@@ -157,12 +154,7 @@ func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{})
 	return nil
 }
 
-func (p *KeybasePacket) myUnmarshalBinary(data []byte) error {
-	ch := codecHandle()
-	if err := MsgpackDecodeAll(data, ch, p); err != nil {
-		return err
-	}
-
+func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 	var body interface{}
 
 	switch p.Tag {
@@ -186,6 +178,19 @@ func (p *KeybasePacket) myUnmarshalBinary(data []byte) error {
 	}
 	p.Body = body
 
+	return nil
+}
+
+func (p *KeybasePacket) unmarshalBinary(data []byte) error {
+	ch := codecHandle()
+	if err := MsgpackDecodeAll(data, ch, p); err != nil {
+		return err
+	}
+
+	if err := p.unpackBody(ch); err != nil {
+		return err
+	}
+
 	// Test for nonstandard msgpack data (which could be maliciously crafted)
 	// by re-encoding and making sure we get the same thing.
 	// https://github.com/keybase/client/issues/423
@@ -193,6 +198,11 @@ func (p *KeybasePacket) myUnmarshalBinary(data []byte) error {
 	// Ideally this should be done at a lower level, like MsgpackDecodeAll, but
 	// our msgpack library doesn't sort maps the way we expect. See
 	// https://github.com/ugorji/go/issues/103
+	var reencoded []byte
+	if err := codec.NewEncoderBytes(&reencoded, ch).Encode(p); err != nil {
+		return err
+	}
+
 	if reencoded, err := p.Encode(); err != nil {
 		return err
 	} else if !bytes.Equal(reencoded, data) {
@@ -212,7 +222,7 @@ func DecodeArmoredPacket(s string) (*KeybasePacket, error) {
 
 func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{}
-	err = ret.myUnmarshalBinary(data)
+	err = ret.unmarshalBinary(data)
 	if err != nil {
 		ret = nil
 	}

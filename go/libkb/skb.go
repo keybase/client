@@ -433,7 +433,7 @@ func (k *SKBKeyringFile) Load() (err error) {
 	var file *os.File
 	if file, err = os.OpenFile(k.filename, os.O_RDONLY, 0); err == nil {
 		stream := base64.NewDecoder(base64.StdEncoding, file)
-		packets, err = DecodePackets(stream)
+		packets, err = DecodePacketsUnchecked(stream)
 		tmp := file.Close()
 		if err == nil && tmp != nil {
 			err = tmp
