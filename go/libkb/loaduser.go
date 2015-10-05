@@ -335,7 +335,7 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID, cacheOK bool) (keybase
 
 	// export user to UserPlusKeys
 	up.Uid = u.GetUID()
-	up.Username = u.GetName()
+	up.Username = u.GetNormalizedName().String()
 	if u.GetComputedKeyFamily() != nil {
 		up.DeviceKeys = u.GetComputedKeyFamily().ExportDeviceKeys()
 	}
