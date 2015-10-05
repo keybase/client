@@ -217,6 +217,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 	op1 := newSetAttrOp(f2, dir3Unref, exAttr, file2Ptr)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir3Unref}, op1)
+	expected[file2Ptr] = file2Ptr // no update to the file ptr
 	bigRmd.AddOp(op1)
 	newRmd := &RootMetadata{}
 	newRmd.AddOp(op1)
@@ -286,9 +287,12 @@ func TestCRChainsMultiOps(t *testing.T) {
 	// dir2 should have one rm op
 	testCRCheckOps(t, cc, dir2Unref, []op{op5})
 
-	// dir3 should have a setex and the rm part of a rename
+	// dir3 should have the rm part of a rename
 	ro3 := newRmOp(f2, op3.OldDir.Unref)
-	testCRCheckOps(t, cc, dir3Unref, []op{op1, ro3})
+	testCRCheckOps(t, cc, dir3Unref, []op{ro3})
+
+	// file2 should have the setattr
+	testCRCheckOps(t, cc, file2Ptr, []op{op1})
 
 	// file4 should have one op
 	testCRCheckOps(t, cc, file4Unref, []op{op4})
@@ -353,6 +357,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	op2 := newSetAttrOp(f1, dir2Unref, exAttr, file1Ptr)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], dir2Unref}, op2)
+	expected[file1Ptr] = file1Ptr
 	rmd.AddOp(op2)
 
 	// createfile root/dir1/file3
@@ -412,7 +417,10 @@ func TestCRChainsCollapse(t *testing.T) {
 	co1.renamed = true
 	testCRCheckOps(t, cc, dir1Unref, []op{co1})
 
-	// dir2 should have a setex and the rm part of a rename
+	// dir2 should have the rm part of a rename
 	ro2 := newRmOp(f1, op6.OldDir.Unref)
-	testCRCheckOps(t, cc, dir2Unref, []op{op2, ro2})
+	testCRCheckOps(t, cc, dir2Unref, []op{ro2})
+
+	// file1 should have the setattr
+	testCRCheckOps(t, cc, file1Ptr, []op{op2})
 }

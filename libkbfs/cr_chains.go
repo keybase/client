@@ -185,7 +185,18 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			return err
 		}
 	case *setAttrOp:
-		err := ccs.addOp(realOp.Dir.Ref, op)
+		// Because the attributes apply to the file, which doesn't
+		// actually have an updated pointer, we may need to create a
+		// new chain.
+		_, ok := ccs.byMostRecent[realOp.File]
+		if !ok {
+			// pointer didn't change, so most recent is the same:
+			chain := &crChain{original: realOp.File, mostRecent: realOp.File}
+			ccs.byOriginal[realOp.File] = chain
+			ccs.byMostRecent[realOp.File] = chain
+		}
+
+		err := ccs.addOp(realOp.File, op)
 		if err != nil {
 			return err
 		}
