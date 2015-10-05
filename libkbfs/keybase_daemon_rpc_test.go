@@ -46,7 +46,7 @@ func newKeybaseDaemonRPCWithFakeClient(t *testing.T) (
 	KeybaseDaemonRPC, chan struct{}) {
 	ctlChan := make(chan struct{})
 	c := newKeybaseDaemonRPCWithInterfaces(
-		blockingIdentify{ctlChan}, blockingSession{ctlChan}, nil,
+		blockingIdentify{ctlChan}, blockingSession{ctlChan}, nil, nil,
 		logger.NewTestLogger(t))
 	return c, ctlChan
 }
