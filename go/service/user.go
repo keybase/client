@@ -89,7 +89,7 @@ func (h *UserHandler) LoadUser(arg keybase1.LoadUserArg) (user keybase1.User, er
 }
 
 func (h *UserHandler) LoadUserPlusKeys(arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
-	return libkb.LoadUserPlusKeys(G, arg.Assertion, arg.CacheOK)
+	return libkb.LoadUserPlusKeys(G, arg.Uid, arg.CacheOK)
 }
 
 func (h *UserHandler) Search(arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {

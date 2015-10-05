@@ -55,9 +55,8 @@ protocol user {
 	User loadUser(int sessionID, UID uid);
 
 	// Load a user + device keys from the server.
-	// assertion can be any user assertion.
 	// cacheOK -> true means that a cached value is ok to return.
-	UserPlusKeys loadUserPlusKeys(int sessionID, string assertion, boolean cacheOK);
+	UserPlusKeys loadUserPlusKeys(int sessionID, UID uid, boolean cacheOK);
 
 	// Load public keys for a user
 	array<PublicKey> loadPublicKeys(int sessionID, UID uid);

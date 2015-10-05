@@ -364,8 +364,8 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "assertion",
-        "type" : "string"
+        "name" : "uid",
+        "type" : "UID"
       }, {
         "name" : "cacheOK",
         "type" : "boolean"

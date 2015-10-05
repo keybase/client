@@ -10,8 +10,12 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "user")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "login")
-	up, err := libkb.LoadUserPlusKeys(tc.G, u.Username, true)
+	CreateAndSignupFakeUser(tc, "login")
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
+	if err != nil {
+		t.Fatal(err)
+	}
+	up, err := libkb.LoadUserPlusKeys(tc.G, me.GetUID(), true)
 	if err != nil {
 		t.Fatal(err)
 	}

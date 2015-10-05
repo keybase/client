@@ -2157,7 +2157,7 @@
 }
 
 - (void)loadUserPlusKeys:(KBRLoadUserPlusKeysRequestParams *)params completion:(void (^)(NSError *error, KBRUserPlusKeys *userPlusKeys))completion {
-  NSDictionary *rparams = @{@"assertion": KBRValue(params.assertion), @"cacheOK": @(params.cacheOK)};
+  NSDictionary *rparams = @{@"uid": KBRValue(params.uid), @"cacheOK": @(params.cacheOK)};
   [self.client sendRequestWithMethod:@"keybase.1.user.loadUserPlusKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -2168,8 +2168,8 @@
   }];
 }
 
-- (void)loadUserPlusKeysWithAssertion:(NSString *)assertion cacheOK:(BOOL)cacheOK completion:(void (^)(NSError *error, KBRUserPlusKeys *userPlusKeys))completion {
-  NSDictionary *rparams = @{@"assertion": KBRValue(assertion), @"cacheOK": @(cacheOK)};
+- (void)loadUserPlusKeysWithUid:(NSString *)uid cacheOK:(BOOL)cacheOK completion:(void (^)(NSError *error, KBRUserPlusKeys *userPlusKeys))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(uid), @"cacheOK": @(cacheOK)};
   [self.client sendRequestWithMethod:@"keybase.1.user.loadUserPlusKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -4513,7 +4513,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.assertion = params[0][@"assertion"];
+    self.uid = params[0][@"uid"];
     self.cacheOK = [params[0][@"cacheOK"] boolValue];
   }
   return self;

@@ -1155,7 +1155,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRLoadUserPlusKeysRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSString *assertion;
+@property NSString *uid;
 @property BOOL cacheOK;
 @end
 @interface KBRLoadPublicKeysRequestParams : KBRRequestParams
@@ -1781,7 +1781,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)loadUserPlusKeys:(KBRLoadUserPlusKeysRequestParams *)params completion:(void (^)(NSError *error, KBRUserPlusKeys *userPlusKeys))completion;
 
-- (void)loadUserPlusKeysWithAssertion:(NSString *)assertion cacheOK:(BOOL)cacheOK completion:(void (^)(NSError *error, KBRUserPlusKeys *userPlusKeys))completion;
+- (void)loadUserPlusKeysWithUid:(NSString *)uid cacheOK:(BOOL)cacheOK completion:(void (^)(NSError *error, KBRUserPlusKeys *userPlusKeys))completion;
 
 - (void)loadPublicKeys:(KBRLoadPublicKeysRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 

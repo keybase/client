@@ -28,7 +28,7 @@ func NewUserCache(maxAge time.Duration) *UserCache {
 
 // Get returns a user object.  If none exists for uid, it will
 // return NotFoundError.
-func (c *UserCache) Get(uid keybase1.UID) (*User, error) {
+func (c *UserCache) Get(uid keybase1.UID) (*keybase1.UserPlusKeys, error) {
 	v, err := c.cache.Get(string(uid))
 	if err != nil {
 		if err == ramcache.ErrNotFound {
@@ -36,17 +36,17 @@ func (c *UserCache) Get(uid keybase1.UID) (*User, error) {
 		}
 		return nil, err
 	}
-	u, ok := v.(*User)
+	up, ok := v.(*keybase1.UserPlusKeys)
 	if !ok {
 		return nil, fmt.Errorf("invalid type in cache: %T", v)
 	}
 
-	return u, nil
+	return up, nil
 }
 
 // Insert adds a user to the cache, keyed on UID.
-func (c *UserCache) Insert(u *User) error {
-	return c.cache.Set(string(u.GetUID()), u)
+func (c *UserCache) Insert(up *keybase1.UserPlusKeys) error {
+	return c.cache.Set(string(up.Uid), up)
 }
 
 // Shutdown stops any goroutines in the cache.

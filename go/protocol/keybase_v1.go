@@ -3497,9 +3497,9 @@ type LoadUserArg struct {
 }
 
 type LoadUserPlusKeysArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Assertion string `codec:"assertion" json:"assertion"`
-	CacheOK   bool   `codec:"cacheOK" json:"cacheOK"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Uid       UID  `codec:"uid" json:"uid"`
+	CacheOK   bool `codec:"cacheOK" json:"cacheOK"`
 }
 
 type LoadPublicKeysArg struct {
