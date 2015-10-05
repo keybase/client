@@ -59,6 +59,14 @@ func (cc *crChain) collapse() {
 	}
 }
 
+func (cc *crChain) getActionsToMerge(mergedChain *crChain) ([]crAction, error) {
+	// Check each op against all ops in the corresponding merged
+	// chain, looking for conflicts.  If there is a conflict, return
+	// it as part of the action list.  If there are no conflicts for
+	// that op, return the op's default actions.
+	return nil, nil
+}
+
 type renameInfo struct {
 	originalOldParent BlockPointer
 	oldName           string
