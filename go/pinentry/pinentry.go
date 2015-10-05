@@ -70,24 +70,6 @@ func (pe *Pinentry) FindProgram() (error, error) {
 	return err, fatalerr
 }
 
-func (pe *Pinentry) GetTerminalName() {
-	tty, err := os.Readlink("/proc/self/fd/0")
-	if err != nil {
-		pe.log.Debug("| Can't find terminal name via /proc lookup: %s", err)
-
-		// try /dev/tty
-		tty = "/dev/tty"
-		_, err = os.Stat("/dev/tty")
-		if err != nil {
-			pe.log.Debug("| stat /dev/tty failed: %s", err)
-			return
-		}
-	}
-
-	pe.log.Debug("| found tty=%s", tty)
-	pe.tty = tty
-}
-
 func (pe *Pinentry) Get(arg keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
 
 	pe.log.Debug("+ Pinentry::Get()")
