@@ -734,18 +734,19 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	}
 
 	// TODO:
-	// * For syncOps, add a syncAttr setAttrOp to the parent unmerged dir chain
-	//   * If there's a conflict, add a resolving createOp to the parent.
-	// * Otherwise, for each operation in the unmerged chain, check for
+	// * For each operation in the unmerged chain, check for
 	//   conflicts in the corresponding merged chain and resolve accordingly.
 	//   * During this process, construct a separate set of notifyOps that
 	//     will be played locally to the local caches into line with the
 	//     new reality.
-	// * In addition, if the op is an rmOp that's not part of a rename, check
-	//   whether the original pointer of the actual BlockPointer in the
-	//   directory entry being removed has a different most recent pointer
-	//   in the merged branch.  If so, something has changed in it or in
-	//   one of its children in the merged branch, so we can ignore the rmOp.
+	//   * Chains involving syncOps and setAttrOps also need to be checked
+	//     to see if the corresponding node was removed in the merged chain; if
+	//     so the file and entry need copying.
+	//   * In addition, if the op is an rmOp that's not part of a rename, check
+	//     whether the original pointer of the actual BlockPointer in the
+	//     directory entry being removed has a different most recent pointer
+	//     in the merged branch.  If so, something has changed in it or in
+	//     one of its children in the merged branch, so we can ignore the rmOp.
 	// * Apply the operations by looking up the corresponding unmerged dir
 	//   entry and copying it to a copy of the corresponding merged block.
 	//   Keep these dirty block copies in a local dirty cache, keyed by
