@@ -214,7 +214,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 	var multiRmds []*RootMetadata
 
 	// setex root/dir3/file2
-	op1 := newSetAttrOp(f2, dir3Unref, exAttr)
+	op1 := newSetAttrOp(f2, dir3Unref, exAttr, file2Ptr)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir3Unref}, op1)
 	bigRmd.AddOp(op1)
@@ -350,7 +350,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	rmd.AddOp(op1)
 
 	// setex root/dir2/file1
-	op2 := newSetAttrOp(f1, dir2Unref, exAttr)
+	op2 := newSetAttrOp(f1, dir2Unref, exAttr, file1Ptr)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], dir2Unref}, op2)
 	rmd.AddOp(op2)

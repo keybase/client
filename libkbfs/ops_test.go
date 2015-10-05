@@ -104,9 +104,9 @@ func TestOpInversion(t *testing.T) {
 	}
 
 	// setAttr
-	saop := newSetAttrOp("name", oldPtr1, mtimeAttr)
+	saop := newSetAttrOp("name", oldPtr1, mtimeAttr, filePtr)
 	saop.AddUpdate(oldPtr1, newPtr1)
-	expectedIOp5 := newSetAttrOp("name", newPtr1, mtimeAttr)
+	expectedIOp5 := newSetAttrOp("name", newPtr1, mtimeAttr, filePtr)
 	expectedIOp5.AddUpdate(newPtr1, oldPtr1)
 	iop5, ok := invertOpForLocalNotifications(saop).(*setAttrOp)
 	if !ok || !reflect.DeepEqual(*iop5, *expectedIOp5) {

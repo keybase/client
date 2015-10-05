@@ -289,13 +289,14 @@ func (ac attrChange) String() string {
 // file/subdirectory with in a directory.
 type setAttrOp struct {
 	OpCommon
-	Name string      `codec:"n"`
-	Dir  blockUpdate `codec:"d"`
-	Attr attrChange  `codec:"a"`
+	Name string       `codec:"n"`
+	Dir  blockUpdate  `codec:"d"`
+	Attr attrChange   `codec:"a"`
+	File BlockPointer `codec:"f"`
 }
 
 func newSetAttrOp(name string, oldDir BlockPointer,
-	attr attrChange) *setAttrOp {
+	attr attrChange, file BlockPointer) *setAttrOp {
 	sao := &setAttrOp{
 		OpCommon: OpCommon{
 			customUpdates: make(map[BlockPointer]*blockUpdate),
@@ -305,6 +306,7 @@ func newSetAttrOp(name string, oldDir BlockPointer,
 	sao.Dir.Unref = oldDir
 	sao.customUpdates[oldDir] = &sao.Dir
 	sao.Attr = attr
+	sao.File = file
 	return sao
 }
 
@@ -377,7 +379,7 @@ func invertOpForLocalNotifications(oldOp op) op {
 		newOp.(*syncOp).Writes = make([]WriteRange, len(op.Writes))
 		copy(newOp.(*syncOp).Writes, op.Writes)
 	case *setAttrOp:
-		newOp = newSetAttrOp(op.Name, op.Dir.Ref, op.Attr)
+		newOp = newSetAttrOp(op.Name, op.Dir.Ref, op.Attr, op.File)
 	case *gcOp:
 		newOp = op
 	}
