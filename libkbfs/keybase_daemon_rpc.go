@@ -71,6 +71,35 @@ func newKeybaseDaemonRPCWithInterfaces(
 	}
 }
 
+func (k KeybaseDaemonRPC) filterKeys(ctx context.Context, uid keybase1.UID, keys []keybase1.PublicKey) ([]VerifyingKey, []CryptPublicKey, error) {
+	var verifyingKeys []VerifyingKey
+	var cryptPublicKeys []CryptPublicKey
+	for _, publicKey := range keys {
+		if len(publicKey.PGPFingerprint) > 0 {
+			continue
+		}
+		// Import the KID to validate it.
+		key, err := libkb.ImportKeypairFromKID(publicKey.KID)
+		if err != nil {
+			return nil, nil, err
+		}
+		if publicKey.IsSibkey {
+			k.log.CDebugf(
+				ctx, "got verifying key %s for user %s",
+				key.VerboseDescription(), uid)
+			verifyingKeys = append(
+				verifyingKeys, VerifyingKey{key.GetKID()})
+		} else {
+			k.log.CDebugf(
+				ctx, "got crypt public key %s for user %s",
+				key.VerboseDescription(), uid)
+			cryptPublicKeys = append(
+				cryptPublicKeys, CryptPublicKey{key.GetKID()})
+		}
+	}
+	return verifyingKeys, cryptPublicKeys, nil
+}
+
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 	UserInfo, error) {
@@ -88,30 +117,9 @@ func (k KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 	name := libkb.NewNormalizedUsername(res.User.Username)
 	uid := keybase1.UID(res.User.Uid)
 
-	var verifyingKeys []VerifyingKey
-	var cryptPublicKeys []CryptPublicKey
-	for _, publicKey := range res.PublicKeys {
-		if len(publicKey.PGPFingerprint) > 0 {
-			continue
-		}
-		// Import the KID to validate it.
-		key, err := libkb.ImportKeypairFromKID(publicKey.KID)
-		if err != nil {
-			return UserInfo{}, err
-		}
-		if publicKey.IsSibkey {
-			k.log.CDebugf(
-				ctx, "got verifying key %s for user %s",
-				key.VerboseDescription(), uid)
-			verifyingKeys = append(
-				verifyingKeys, VerifyingKey{key.GetKID()})
-		} else {
-			k.log.CDebugf(
-				ctx, "got crypt public key %s for user %s",
-				key.VerboseDescription(), uid)
-			cryptPublicKeys = append(
-				cryptPublicKeys, CryptPublicKey{key.GetKID()})
-		}
+	verifyingKeys, cryptPublicKeys, err := k.filterKeys(ctx, uid, res.PublicKeys)
+	if err != nil {
+		return UserInfo{}, err
 	}
 
 	return UserInfo{
@@ -123,6 +131,8 @@ func (k KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 }
 
 // LoadUserPlusKeys implements the KeybaseDaemon interface for KeybaseDaemonRPC.
+// If you have the UID for a user and don't require Identify, use
+// this to get UserInfo.
 func (k KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
 	UserInfo, error) {
 	arg := keybase1.LoadUserPlusKeysArg{Uid: uid, CacheOK: true}
@@ -136,27 +146,9 @@ func (k KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID
 		return UserInfo{}, err
 	}
 
-	var verifyingKeys []VerifyingKey
-	var cryptPublicKeys []CryptPublicKey
-	for _, publicKey := range res.DeviceKeys {
-		// Import the KID to validate it.
-		key, err := libkb.ImportKeypairFromKID(publicKey.KID)
-		if err != nil {
-			return UserInfo{}, err
-		}
-		if publicKey.IsSibkey {
-			k.log.CDebugf(
-				ctx, "got verifying key %s for user %s",
-				key.VerboseDescription(), res.Uid)
-			verifyingKeys = append(
-				verifyingKeys, VerifyingKey{key.GetKID()})
-		} else {
-			k.log.CDebugf(
-				ctx, "got crypt public key %s for user %s",
-				key.VerboseDescription(), res.Uid)
-			cryptPublicKeys = append(
-				cryptPublicKeys, CryptPublicKey{key.GetKID()})
-		}
+	verifyingKeys, cryptPublicKeys, err := k.filterKeys(ctx, uid, res.DeviceKeys)
+	if err != nil {
+		return UserInfo{}, err
 	}
 
 	return UserInfo{
