@@ -131,8 +131,6 @@ func (k KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 }
 
 // LoadUserPlusKeys implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-// If you have the UID for a user and don't require Identify, use
-// this to get UserInfo.
 func (k KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
 	UserInfo, error) {
 	arg := keybase1.LoadUserPlusKeysArg{Uid: uid, CacheOK: true}
