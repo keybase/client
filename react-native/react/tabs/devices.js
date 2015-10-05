@@ -3,16 +3,14 @@
 
 import React from 'react-native'
 const {
-  ActivityIndicatorIOS,
-  ProgressBarAndroid,
-  Platform,
   Component,
   ListView,
   Text,
   TouchableHighlight,
-  TouchableNativeFeedback,
   View
 } = React
+
+import ProgressIndicator from '../commonAdapters/ProgressIndicator'
 
 import commonStyles from '../styles/common'
 import { loadDevices } from '../actions/devices'
@@ -31,12 +29,6 @@ export default class Devices extends Component {
     const {dispatch} = this.props
     if (!this.props.devices && !this.props.waitingForServer) {
       dispatch(loadDevices())
-    }
-  }
-
-  componentDidMount () {
-    if (Platform.OS === 'ios') {
-      this.loadDevices()
     }
   }
 
@@ -79,37 +71,28 @@ export default class Devices extends Component {
   }
 
   render () {
-    if (Platform.OS === 'android') {
-      // TODO: instead of forcing the user to click a button to load the devices we
-      // should do this a better way
-      // Currently all tabs are loaded on start, so this would load when they open the app
-      if (!this.props.waitingForServer && !this.props.devices) {
-        return (
-          <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-            <TouchableNativeFeedback
-              onPress={this.loadDevices.bind(this)}>
-              <View>
-                <Text style={{fontSize: 32, marginTop: 20, marginBottom: 20}}>Load Devices</Text>
-              </View>
-            </TouchableNativeFeedback>
-          </View>
-        )
-      } else if (this.props.waitingForServer) {
-        return (
-          <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-            <ProgressBarAndroid/>
-          </View>
-        )
-      }
-    }
-    if (this.props.waitingForServer) {
+    // TODO: instead of forcing the user to click a button to load the devices we
+    // should do this a better way
+    // Currently all tabs are loaded on start on android,
+    // so this way they don't load when they open the app
+    if (!this.props.waitingForServer && !this.props.devices) {
       return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          <ActivityIndicatorIOS
-          animating
-          style={{height: 80}}
-          size='large'
-          />
+          <TouchableHighlight
+            onPress={this.loadDevices.bind(this)}>
+            <View>
+              <Text style={{fontSize: 32, marginTop: 20, marginBottom: 20}}>Load Devices</Text>
+            </View>
+          </TouchableHighlight>
+        </View>
+      )
+    } else if (this.props.waitingForServer) {
+      return (
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <ProgressIndicator
+            animating
+            style={{height: 80}}
+            size='large'/>
         </View>
       )
     }
