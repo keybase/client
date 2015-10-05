@@ -125,6 +125,16 @@ func (k KeybaseDaemonLocal) Identify(ctx context.Context, assertion string) (
 	return u.UserInfo, nil
 }
 
+// LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
+func (k KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error) {
+	u, err := k.localUsers.getLocalUser(uid)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	return u.UserInfo, nil
+}
+
 // CurrentUID implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k KeybaseDaemonLocal) CurrentUID(ctx context.Context, sessionID int) (
 	keybase1.UID, error) {

@@ -16,6 +16,7 @@ type KeybaseDaemonRPC struct {
 	identify keybase1.IdentifyInterface
 	session  keybase1.SessionInterface
 	favorite keybase1.FavoriteInterface
+	user     keybase1.UserInterface
 	log      logger.Logger
 }
 
@@ -48,8 +49,9 @@ func NewKeybaseDaemonRPC(ctx *libkb.GlobalContext, log logger.Logger) (KeybaseDa
 	identifyClient := keybase1.IdentifyClient{Cli: client}
 	sessionClient := keybase1.SessionClient{Cli: client}
 	favoriteClient := keybase1.FavoriteClient{Cli: client}
+	userClient := keybase1.UserClient{Cli: client}
 	return newKeybaseDaemonRPCWithInterfaces(
-		identifyClient, sessionClient, favoriteClient, log), nil
+		identifyClient, sessionClient, favoriteClient, userClient, log), nil
 }
 
 // For testing.
@@ -57,12 +59,14 @@ func newKeybaseDaemonRPCWithInterfaces(
 	identify keybase1.IdentifyInterface,
 	session keybase1.SessionInterface,
 	favorite keybase1.FavoriteInterface,
+	user keybase1.UserInterface,
 	log logger.Logger,
 ) KeybaseDaemonRPC {
 	return KeybaseDaemonRPC{
 		identify: identify,
 		session:  session,
 		favorite: favorite,
+		user:     user,
 		log:      log,
 	}
 }
@@ -113,6 +117,51 @@ func (k KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 	return UserInfo{
 		Name:            name,
 		UID:             uid,
+		VerifyingKeys:   verifyingKeys,
+		CryptPublicKeys: cryptPublicKeys,
+	}, nil
+}
+
+// LoadUserPlusKeys implements the KeybaseDaemon interface for KeybaseDaemonRPC.
+func (k KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
+	UserInfo, error) {
+	arg := keybase1.LoadUserPlusKeysArg{Uid: uid, CacheOK: true}
+	var res keybase1.UserPlusKeys
+	f := func() error {
+		var err error
+		res, err = k.user.LoadUserPlusKeys(arg)
+		return err
+	}
+	if err := runUnlessCanceled(ctx, f); err != nil {
+		return UserInfo{}, err
+	}
+
+	var verifyingKeys []VerifyingKey
+	var cryptPublicKeys []CryptPublicKey
+	for _, publicKey := range res.DeviceKeys {
+		// Import the KID to validate it.
+		key, err := libkb.ImportKeypairFromKID(publicKey.KID)
+		if err != nil {
+			return UserInfo{}, err
+		}
+		if publicKey.IsSibkey {
+			k.log.CDebugf(
+				ctx, "got verifying key %s for user %s",
+				key.VerboseDescription(), res.Uid)
+			verifyingKeys = append(
+				verifyingKeys, VerifyingKey{key.GetKID()})
+		} else {
+			k.log.CDebugf(
+				ctx, "got crypt public key %s for user %s",
+				key.VerboseDescription(), res.Uid)
+			cryptPublicKeys = append(
+				cryptPublicKeys, CryptPublicKey{key.GetKID()})
+		}
+	}
+
+	return UserInfo{
+		Name:            libkb.NormalizedUsername(res.Username),
+		UID:             res.Uid,
 		VerifyingKeys:   verifyingKeys,
 		CryptPublicKeys: cryptPublicKeys,
 	}, nil

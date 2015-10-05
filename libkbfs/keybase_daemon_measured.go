@@ -9,13 +9,14 @@ import (
 // KeybaseDaemonMeasured delegates to another KeybaseDaemon instance
 // but also keeps track of stats.
 type KeybaseDaemonMeasured struct {
-	delegate            KeybaseDaemon
-	identifyTimer       metrics.Timer
-	currentUIDTimer     metrics.Timer
-	currentSessionTimer metrics.Timer
-	favoriteAddTimer    metrics.Timer
-	favoriteDeleteTimer metrics.Timer
-	favoriteListTimer   metrics.Timer
+	delegate              KeybaseDaemon
+	identifyTimer         metrics.Timer
+	loadUserPlusKeysTimer metrics.Timer
+	currentUIDTimer       metrics.Timer
+	currentSessionTimer   metrics.Timer
+	favoriteAddTimer      metrics.Timer
+	favoriteDeleteTimer   metrics.Timer
+	favoriteListTimer     metrics.Timer
 }
 
 var _ KeybaseDaemon = KeybaseDaemonMeasured{}
@@ -24,19 +25,21 @@ var _ KeybaseDaemon = KeybaseDaemonMeasured{}
 // instance with the given delegate and registry.
 func NewKeybaseDaemonMeasured(delegate KeybaseDaemon, r metrics.Registry) KeybaseDaemonMeasured {
 	identifyTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.Identify", r)
+	loadUserPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.LoadUserPlusKeys", r)
 	currentUIDTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.CurrentUID", r)
 	currentSessionTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.CurrentSession", r)
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteAdd", r)
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteDelete", r)
 	favoriteListTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteList", r)
 	return KeybaseDaemonMeasured{
-		delegate:            delegate,
-		identifyTimer:       identifyTimer,
-		currentUIDTimer:     currentUIDTimer,
-		currentSessionTimer: currentSessionTimer,
-		favoriteAddTimer:    favoriteAddTimer,
-		favoriteDeleteTimer: favoriteDeleteTimer,
-		favoriteListTimer:   favoriteListTimer,
+		delegate:              delegate,
+		identifyTimer:         identifyTimer,
+		loadUserPlusKeysTimer: loadUserPlusKeysTimer,
+		currentUIDTimer:       currentUIDTimer,
+		currentSessionTimer:   currentSessionTimer,
+		favoriteAddTimer:      favoriteAddTimer,
+		favoriteDeleteTimer:   favoriteDeleteTimer,
+		favoriteListTimer:     favoriteListTimer,
 	}
 }
 
@@ -45,6 +48,15 @@ func (k KeybaseDaemonMeasured) Identify(ctx context.Context, assertion string) (
 	userInfo UserInfo, err error) {
 	k.identifyTimer.Time(func() {
 		userInfo, err = k.delegate.Identify(ctx, assertion)
+	})
+	return userInfo, err
+}
+
+// LoadUserPlusKeys implements the KeybaseDaemon interface for KeybaseDaemonMeasured.
+func (k KeybaseDaemonMeasured) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
+	userInfo UserInfo, err error) {
+	k.loadUserPlusKeysTimer.Time(func() {
+		userInfo, err = k.delegate.LoadUserPlusKeys(ctx, uid)
 	})
 	return userInfo, err
 }

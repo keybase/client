@@ -1,8 +1,6 @@
 package libkbfs
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -72,7 +70,7 @@ func (k *KBPKIClient) ResolveAssertion(ctx context.Context, username string) (
 // KBPKIClient.
 func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (
 	libkb.NormalizedUsername, error) {
-	userInfo, err := k.identifyByUID(ctx, uid)
+	userInfo, err := k.loadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return libkb.NormalizedUsername(""), err
 	}
@@ -82,7 +80,7 @@ func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UI
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	verifyingKey VerifyingKey) error {
-	userInfo, err := k.identifyByUID(ctx, uid)
+	userInfo, err := k.loadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return err
 	}
@@ -101,7 +99,7 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 // GetCryptPublicKeys implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 	uid keybase1.UID) (keys []CryptPublicKey, err error) {
-	userInfo, err := k.identifyByUID(ctx, uid)
+	userInfo, err := k.loadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -113,9 +111,9 @@ func (k *KBPKIClient) identify(ctx context.Context, assertion string) (
 	return k.config.KeybaseDaemon().Identify(ctx, assertion)
 }
 
-func (k *KBPKIClient) identifyByUID(ctx context.Context, uid keybase1.UID) (
+func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
 	UserInfo, error) {
-	return k.identify(ctx, fmt.Sprintf("uid:%s", uid))
+	return k.config.KeybaseDaemon().LoadUserPlusKeys(ctx, uid)
 }
 
 func (k *KBPKIClient) session(ctx context.Context) (SessionInfo, error) {
