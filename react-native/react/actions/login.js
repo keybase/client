@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/loginActionTypes'
+import * as types from '../constants/login-action-types'
 import engine from '../engine'
 
 export function startLogin () {

@@ -1,17 +1,9 @@
 'use strict'
 
-import React from 'react-native'
-import {
-  Component,
-  StyleSheet,
-  Text,
-  View,
-  NativeModules
-} from 'react-native'
-
+import React, { Component, StyleSheet, Text, View, NativeModules } from 'react-native'
 const swiftNative = NativeModules.SwiftTest
 
-class SwiftTest extends Component {
+export default class SwiftTest extends Component {
   constructor () {
     super()
 
@@ -46,5 +38,3 @@ const styles = StyleSheet.create({
     margin: 10
   }
 })
-
-export default SwiftTest

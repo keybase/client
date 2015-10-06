@@ -1,6 +1,6 @@
 'use strict'
 
-import { INIT_SEARCH, SEARCH_RUNNING, SEARCH_RESULTS } from '../constants/searchActionTypes'
+import { INIT_SEARCH, SEARCH_RUNNING, SEARCH_RESULTS } from '../constants/search-action-types'
 import { routeAppend, getCurrentURI } from './router'
 import { loadSummaries } from './profile'
 import engine from '../engine'

@@ -1,23 +1,13 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  ActivityIndicatorIOS,
-  Component,
-  ListView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableHighlight,
-  View
-} from 'react-native'
-
 import { submitSearch } from '../actions/search'
 import { pushNewProfile } from '../actions/profile'
+import React, { ActivityIndicatorIOS, Component, ListView, StyleSheet, Text, TextInput, View } from 'react-native'
 import commonStyles from '../styles/common'
+import Button from '../common-adapters/button'
 
-class Search extends Component {
+export default class Search extends Component {
   constructor (props) {
     super(props)
 
@@ -70,9 +60,7 @@ class Search extends Component {
     const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
 
     return (
-      <TouchableHighlight
-        underlayColor={commonStyles.buttonHighlight}
-        onPress={() => { this.onPress(rowData) }}>
+      <Button onPress={() => { this.onPress(rowData) }}>
         <View>
           <View style={{margin: 10}}>
             <Text style={{}}>{rowData.row1}</Text>
@@ -80,7 +68,7 @@ class Search extends Component {
           </View>
           {sep}
         </View>
-      </TouchableHighlight>
+      </Button>
     )
   }
 
@@ -89,25 +77,6 @@ class Search extends Component {
   }
 
   render () {
-    const activity = this.props.waitingForServer ? (
-      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-        <ActivityIndicatorIOS
-          animating
-          style={{height: 80}}
-          size='large'
-        />
-      </View>
-    ) : null
-
-    const button = !this.props.waitingForServer ? (
-      <TouchableHighlight
-        style={{width: 100}}
-        underlayColor={commonStyles.buttonHighlight}
-        onPress={ () => this.onSubmit() }>
-        <Text style={[commonStyles.actionButton, {width: 100}]}>Search</Text>
-      </TouchableHighlight>
-    ) : null
-
     return (
       <View style={styles.container}>
         <TextInput
@@ -120,7 +89,16 @@ class Search extends Component {
           onChangeText={(search) => { this.setState({search}) }}
           onSubmitEditing={() => this.onSubmit()}
         />
-        {activity}{button}
+        {this.props.waitingForServer &&
+          <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+            <ActivityIndicatorIOS
+              animating
+              style={{height: 80}}
+              size='large'
+            />
+          </View>}
+        {!this.props.waitingForServer &&
+          <Button buttonStyle={[commonStyles.actionButton, {width: 100}]} onPress={ () => this.onSubmit() } title='Search' />}
         <ListView style={{flex: 1}}
           dataSource={this.state.dataSource}
           renderRow={(...args) => { return this.renderRow(...args) }}
@@ -175,5 +153,3 @@ const styles = StyleSheet.create({
     marginTop: 10
   }
 })
-
-export default Search

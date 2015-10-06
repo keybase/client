@@ -1,6 +1,6 @@
 'use strict'
 
-import React from 'react-native'
+import React, { Component, TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { connect } from 'react-redux/native'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
@@ -12,23 +12,13 @@ import Devices from './tabs/devices'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
-import { switchTab } from './actions/tabbedRouter'
+import { switchTab } from './actions/tabbed-router'
 import { navigateUp } from './actions/router'
 import { getConfig } from './actions/config'
 
 import { constants as styleConstants } from './styles/common'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
-
-const {
-  Component,
-  TabBarIOS,
-  View,
-  Navigator,
-  Text,
-  TouchableOpacity,
-  StyleSheet
-} = React
 
 const tabToRootRouteParse = {
   [FOLDER_TAB]: Folders.parseRoute,
@@ -76,7 +66,7 @@ function NavigationBarRouteMapper (dispatch) {
   }
 }
 
-class Nav extends Component {
+export default class Nav extends Component {
   constructor (props) {
     super(props)
 
@@ -169,7 +159,7 @@ class Nav extends Component {
             systemIcon='more'
             selected={activeTab === MORE_TAB}
             onPress={() => dispatch(switchTab(MORE_TAB))}>
-            {this._renderContent('#21551C', 'Green Tab')}
+            {this._renderContent('transparent', 'Green Tab')}
           </TabBarIOS.Item>
         </TabBarIOS>
       </View>
@@ -217,5 +207,3 @@ const styles = StyleSheet.create({
     color: 'blue'
   }
 })
-
-export default Nav

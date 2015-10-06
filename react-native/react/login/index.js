@@ -1,14 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  Text,
-  StyleSheet,
-  View
-} from 'react-native'
-
+import React, { Component, Text, StyleSheet, View } from 'react-native'
 import DevicePrompt from './device-prompt'
 import SelectSigner from './select-signer'
 import DisplaySecretWords from './display-secret-words'

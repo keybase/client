@@ -11,7 +11,7 @@ const {
 } = rpc
 
 import { Buffer } from 'buffer'
-import NativeEventEmitter from '../commonAdapters/NativeEventEmitter'
+import NativeEventEmitter from '../common-adapters/native-event-emitter'
 
 class EngineError extends Error {
   constructor (err) {

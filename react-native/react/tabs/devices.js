@@ -1,17 +1,9 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-const {
-  Component,
-  ListView,
-  Text,
-  TouchableHighlight,
-  View
-} = React
-
-import ProgressIndicator from '../commonAdapters/ProgressIndicator'
-
+import React, { Component, ListView, Text, View } from 'react-native'
+import ProgressIndicator from '../common-adapters/progress-indicator'
+import Button from '../common-adapters/button'
 import commonStyles from '../styles/common'
 import { loadDevices } from '../actions/devices'
 import moment from 'moment'
@@ -56,9 +48,7 @@ export default class Devices extends Component {
     const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
 
     return (
-      <TouchableHighlight
-        underlayColor={commonStyles.buttonHighlight}
-        onPress={() => {}}>
+      <Button underlayColor={commonStyles.buttonHighlight}>
         <View>
           <View style={{margin: 10}}>
             <Text>{rowData.name}</Text>
@@ -66,7 +56,7 @@ export default class Devices extends Component {
           </View>
           {sep}
         </View>
-      </TouchableHighlight>
+      </Button>
     )
   }
 
@@ -78,12 +68,7 @@ export default class Devices extends Component {
     if (!this.props.waitingForServer && !this.props.devices) {
       return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          <TouchableHighlight
-            onPress={this.loadDevices.bind(this)}>
-            <View>
-              <Text style={{fontSize: 32, marginTop: 20, marginBottom: 20}}>Load Devices</Text>
-            </View>
-          </TouchableHighlight>
+          <Button onPress={this.loadDevices.bind(this)} buttonStyle={{fontSize: 32, marginTop: 20, marginBottom: 20}} title='Load Devices' />
         </View>
       )
     } else if (this.props.waitingForServer) {

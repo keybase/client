@@ -95,6 +95,12 @@ Currently we're using ES6/7 extensions through babel (https://babeljs.io/docs/le
 
 We're using redux to store our data and mutate it (http://rackt.github.io/redux/index.html)
 
+All files and folders should use the naming convention:
+
+```
+/this-is-a-folder/a-file.js
+```
+
 If you run into weird issues with your packager this may be due to a stale cache. Run this command to wipe your local cache
 ```
 npm run packager-wipe-cache

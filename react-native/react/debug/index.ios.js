@@ -4,14 +4,10 @@
  * A debug tab. Use this to jump directly to a part of the app outside of the flow for quick debugging
  */
 
-import React from 'react-native'
-import {
-  Component
-} from 'react-native'
-
+import React, { Component } from 'react-native'
 import Temp from '../qr'
 
-class Debug extends Component {
+export default class Debug extends Component {
   constructor () {
     super()
 
@@ -44,5 +40,3 @@ class Debug extends Component {
 Debug.propTypes = {
   navigator: React.PropTypes.object
 }
-
-export default Debug

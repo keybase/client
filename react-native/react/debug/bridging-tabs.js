@@ -1,11 +1,6 @@
 'use strict'
 
-import React from 'react-native'
-import {
-  Component,
-  TabBarIOS
-} from 'react-native'
-
+import React, { Component, TabBarIOS } from 'react-native'
 import SwiftTest from './swift-test'
 import GoTest from './go-test'
 import ReactTest from './react-test'
@@ -18,7 +13,7 @@ const tabIcon = {
   uri: 'tab'
 }
 
-class Bridging extends Component {
+export default class Bridging extends Component {
   constructor () {
     super()
     this.state = {
@@ -92,5 +87,3 @@ class Bridging extends Component {
     }
   }
 }
-
-export default Bridging

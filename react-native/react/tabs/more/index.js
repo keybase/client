@@ -1,20 +1,12 @@
 'use strict'
 
-import React from 'react-native'
-const {
-  Component,
-  ListView,
-  StyleSheet,
-  View,
-  Text,
-  TouchableHighlight
-} = React
-
+import React, { Component, ListView, StyleSheet, View, Text } from 'react-native'
 import commonStyles from '../../styles/common'
 import * as LoginActions from '../../actions/login'
 import * as SearchActions from '../../actions/search'
 import { navigateTo } from '../../actions/router'
 import { pushNewProfile } from '../../actions/profile'
+import Button from '../../common-adapters/button'
 
 export default class More extends Component {
   constructor (props) {
@@ -29,9 +21,15 @@ export default class More extends Component {
         {name: 'Login', onClick: () => {
           this.props.dispatch(navigateTo(['login']))
         }},
+        {name: 'Login2', onClick: () => {
+          this.props.dispatch(navigateTo(['login2', 'welcome']))
+        }},
+        {name: 'Register', onClick: () => {
+          this.props.dispatch(navigateTo(['login2', 'register']))
+        }},
         {name: 'reset', onClick: () => {
           require('../../engine').reset()
-          console.log('Engine reset!');
+          console.log('Engine reset!')
         }},
         {name: 'Sign Out', onClick: () => {
           this.props.dispatch(LoginActions.logout())
@@ -62,12 +60,10 @@ export default class More extends Component {
   }
 
   renderRow (rowData, sectionID, rowID) {
-    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={styles.separator} /> : null
+    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
 
     return (
-      <TouchableHighlight
-        underlayColor={commonStyles.buttonHighlight}
-        onPress={rowData.onClick}>
+      <Button onPress={rowData.onClick}>
         <View>
           <View style={{margin: 10, flexDirection: 'row', flex: 1, justifyContent: 'space-between'}}>
             <Text>{rowData.name}</Text>
@@ -75,7 +71,7 @@ export default class More extends Component {
           </View>
           {sep}
         </View>
-      </TouchableHighlight>
+      </Button>
     )
   }
 
@@ -97,7 +93,8 @@ export default class More extends Component {
       'navDebug': require('../../debug/nav-debug').parseRoute,
       'bridging': require('../../debug/bridging-tabs').parseRoute,
       'qr': require('../../qr').parseRoute,
-      'login': require('../../login').parseRoute
+      'login': require('../../login').parseRoute,
+      'login2': require('../../login2').parseRoute
     }
 
     const componentAtTop = {
@@ -122,9 +119,5 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'stretch',
     backgroundColor: '#F5FCFF'
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#CCCCCC'
   }
 })
