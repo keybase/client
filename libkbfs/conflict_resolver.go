@@ -776,6 +776,74 @@ func (cr *ConflictResolver) fixRenameCycles(unmergedChains *crChains,
 	return nil
 }
 
+// getActionsToMerge returns the set of actions needed to merge each
+// unmerged chain of operations, in a map keyed by the tail pointer of
+// the corresponding merged path.
+func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
+	mergedChains *crChains, mergedPaths map[BlockPointer]path) (
+	map[BlockPointer][]crAction, error) {
+	actionMap := make(map[BlockPointer][]crAction)
+	for unmergedMostRecent, unmergedChain := range unmergedChains.byMostRecent {
+		original := unmergedChain.original
+		// If this is a file that has been deleted in the merged
+		// branch, a corresponding recreate op will take care of it,
+		// no need to do anything here.
+
+		// We don't need the "ok" value from this lookup because it's
+		// fine to pass a nil mergedChain into crChain.getActionsToMerge.
+		mergedChain := mergedChains.byOriginal[original]
+		mergedPath, ok := mergedPaths[unmergedMostRecent]
+		if !ok {
+			// This most likely means that the file was created or
+			// deleted in the unmerged branch and thus has no
+			// corresponding merged path yet.
+			continue
+		}
+
+		actions, err := unmergedChain.getActionsToMerge(
+			cr.config.ConflictRenamer(), mergedPath, mergedChain)
+		if err != nil {
+			return nil, err
+		}
+
+		// Now check for nodes that have been deleted in the unmerged
+		// branch, but modified in the merged branch, and drop those
+		// unmerged operations.
+		for _, op := range unmergedChain.ops {
+			ro, ok := op.(*rmOp)
+			if !ok {
+				continue
+			}
+
+			for _, ptr := range ro.Unrefs() {
+				unrefOriginal := ptr
+				if ptrChain, ok := unmergedChains.byMostRecent[ptr]; ok {
+					unrefOriginal = ptrChain.original
+				}
+
+				if _, ok := mergedChains.byOriginal[unrefOriginal]; ok {
+					// This operation removes a node that was modified
+					// in the merged branch, so we have to drop it.
+					actions = append(actions, &dropUnmergedAction{op: ro})
+				}
+			}
+
+			// Or perhaps the rm target has been renamed somewhere else.
+			if len(ro.Unrefs()) == 0 {
+				// XXX: How do I figure out what the rename target
+				// was, so we can look up whether it has changed in
+				// the merged branch.
+			}
+		}
+
+		if len(actions) > 0 {
+			actionMap[mergedPath.tailPointer()] = actions
+		}
+	}
+
+	return actionMap, nil
+}
+
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
@@ -863,20 +931,12 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
+	_, err = cr.getActionsToMerge(unmergedChains, mergedChains, mergedPaths)
+	if err != nil {
+		return
+	}
+
 	// TODO:
-	// * For each operation in the unmerged chain, check for
-	//   conflicts in the corresponding merged chain and resolve accordingly.
-	//   * During this process, construct a separate set of notifyOps that
-	//     will be played locally to the local caches into line with the
-	//     new reality.
-	//   * Chains involving syncOps and setAttrOps also need to be checked
-	//     to see if the corresponding node was removed in the merged chain; if
-	//     so the file and entry need copying.
-	//   * In addition, if the op is an rmOp that's not part of a rename, check
-	//     whether the original pointer of the actual BlockPointer in the
-	//     directory entry being removed has a different most recent pointer
-	//     in the merged branch.  If so, something has changed in it or in
-	//     one of its children in the merged branch, so we can ignore the rmOp.
 	// * Apply the operations by looking up the corresponding unmerged dir
 	//   entry and copying it to a copy of the corresponding merged block.
 	//   Keep these dirty block copies in a local dirty cache, keyed by

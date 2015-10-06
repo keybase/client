@@ -59,12 +59,35 @@ func (cc *crChain) collapse() {
 	}
 }
 
-func (cc *crChain) getActionsToMerge(mergedChain *crChain) ([]crAction, error) {
+func (cc *crChain) getActionsToMerge(renamer ConflictRenamer, mergedPath path,
+	mergedChain *crChain) ([]crAction, error) {
 	// Check each op against all ops in the corresponding merged
 	// chain, looking for conflicts.  If there is a conflict, return
 	// it as part of the action list.  If there are no conflicts for
 	// that op, return the op's default actions.
-	return nil, nil
+	var actions []crAction
+	for _, unmergedOp := range cc.ops {
+		conflict := false
+		if mergedChain != nil {
+			for _, mergedOp := range mergedChain.ops {
+				action, err :=
+					unmergedOp.CheckConflict(renamer, mergedOp)
+				if err != nil {
+					return nil, err
+				}
+				if action != nil {
+					conflict = true
+					actions = append(actions, action)
+				}
+			}
+		}
+		// no conflicts!
+		if !conflict {
+			actions = append(actions, unmergedOp.GetDefaultAction(mergedPath))
+		}
+	}
+
+	return actions, nil
 }
 
 type renameInfo struct {
