@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -25,7 +26,7 @@ type Session struct {
 	valid    bool
 	uid      keybase1.UID
 	username *NormalizedUsername
-	mtime    int64
+	mtime    time.Time
 	checked  bool
 }
 
@@ -109,8 +110,13 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUs
 }
 
 func (s *Session) save() error {
-	s.GetDictionary().SetKey("mtime", jsonw.NewInt64(time.Now().Unix()))
-	return s.file.Save(true, 0)
+	mtime := time.Now()
+	s.GetDictionary().SetKey("mtime", jsonw.NewInt64(mtime.Unix()))
+	if err := s.file.Save(true, 0); err != nil {
+		return err
+	}
+	s.mtime = mtime
+	return nil
 }
 
 func (s *Session) SetCsrf(t string) {
@@ -206,7 +212,7 @@ func (s *Session) Load() error {
 			s.csrf = csrf
 			s.inFile = true
 			s.deviceID = did
-			s.mtime = mtime
+			s.mtime = time.Unix(mtime, 0)
 		}
 	}
 	s.G().Log.Debug("- Loaded session")
@@ -218,14 +224,14 @@ func (s *Session) GetDictionary() *jsonw.Wrapper {
 }
 
 func (s *Session) IsRecent() bool {
-	if s.mtime == 0 {
+	if s.mtime.IsZero() {
 		return false
 	}
-	t := time.Unix(s.mtime, 0)
-	return time.Since(t) < time.Hour
+	return time.Since(s.mtime) < time.Hour
 }
 
 func (s *Session) check() error {
+	debug.PrintStack()
 	s.G().Log.Debug("+ Checking session")
 	if s.IsRecent() && s.checked {
 		s.G().Log.Debug("- session is recent, short-circuiting")
@@ -292,7 +298,7 @@ func (s *Session) postLogout() error {
 	})
 	if err == nil {
 		s.valid = false
-		s.mtime = 0
+		s.mtime = time.Time{}
 		s.token = ""
 		s.csrf = ""
 		s.checked = false
