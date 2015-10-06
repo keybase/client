@@ -1,15 +1,9 @@
-protocol
-========
+# Protocol
 
-A local protocol for different parts of the Keybase system
+The protocol defines types and methods used in the Keybase API.
 
-* Description of Avro IDL [here](http://avro.apache.org/docs/1.7.5/idl.html)
-* running `make` should work
-* input files are in `avdl/`
-* output files dropped into `json/`
+The protocol files are defined using [Avro IDL](http://avro.apache.org/docs/1.7.5/idl.html) in `avdl`.
 
+To install dependencies for scripts: `make deps`.
 
-making a new protocol
-=====================
-* Add filename to Makefile under build-stamp
-* Add the protocol to the master list in service/main.go RegisterProtocols
+To build stubs, run `make`.
