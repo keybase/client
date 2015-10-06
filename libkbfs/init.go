@@ -206,7 +206,13 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	config.SetKeyServer(keyServer)
 
 	client.InitUI()
-	libkb.G.UI.Configure()
+	if libkb.G.UI != client.GlobUI {
+		lg := logger.NewWithCallDepth("", 1)
+		lg.Warning("In libkbfs/init: libkb.G.UI != client.GlobUI, which would be why libkb.G.UI.Configure() would fail to initialize SecretEntry for client.GlobUI...")
+	}
+	if err := client.GlobUI.Configure(); err != nil {
+		return nil, fmt.Errorf("problem configuring UI: %s", err)
+	}
 
 	daemon, err := makeKeybaseDaemon(serverRootDir, localUser, config.Codec(), config.MakeLogger(""))
 	if err != nil {
