@@ -61,10 +61,16 @@ js/keybase_v1.js: build-stamp
 	@mkdir -p js/
 	node ./bin/js.js
 
+swift-build-stamp: build-stamp
+	ruby ./bin/swift.rb
+	date > $@
+
 clean:
-	rm -rf json/*.json ../go/protocol/keybase_v1.go objc/* js/keybase_v1.js
+	rm -rf json/*.json ../go/protocol/keybase_v1.go objc/* js/keybase_v1.js swift/*
+
+deps:
+	npm install
 
 build: build-stamp ../go/protocol/keybase_v1.go objc-build-stamp js/keybase_v1.js
 
 .PHONY: test setup config
-
