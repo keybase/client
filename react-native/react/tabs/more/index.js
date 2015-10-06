@@ -28,9 +28,12 @@ export default class More extends Component {
         {name: 'Login', onClick: () => {
           this.props.dispatch(navigateTo(['login']))
         }},
+        {name: 'Login2', onClick: () => {
+          this.props.dispatch(navigateTo(['login2', 'welcome']))
+        }},
         {name: 'reset', onClick: () => {
           require('../../engine').reset()
-          console.log('Engine reset!');
+          console.log('Engine reset!')
         }},
         {name: 'Sign Out', onClick: () => {
           this.props.dispatch(LoginActions.logout())
@@ -93,7 +96,8 @@ export default class More extends Component {
       'navDebug': require('../../debug/nav-debug').parseRoute,
       'bridging': require('../../debug/bridging-tabs').parseRoute,
       'qr': require('../../qr').parseRoute,
-      'login': require('../../login').parseRoute
+      'login': require('../../login').parseRoute,
+      'login2': require('../../login2').parseRoute
     }
 
     const componentAtTop = {
