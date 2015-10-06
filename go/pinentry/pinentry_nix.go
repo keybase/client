@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/keybase/client/go/logger"
 )
@@ -90,7 +91,7 @@ func FindPinentry(log logger.Logger) (string, error) {
 
 	for _, ep := range extraPaths {
 		for _, c := range cmds {
-			full := ep + "/" + c
+			full := filepath.Join(ep, c)
 			if checkFull(full) {
 				return full, nil
 			}
@@ -99,4 +100,22 @@ func FindPinentry(log logger.Logger) (string, error) {
 
 	log.Debug("- FindPinentry: none found")
 	return "", fmt.Errorf("No pinentry found, checked a bunch of different places")
+}
+
+func (pe *Pinentry) GetTerminalName() {
+	tty, err := os.Readlink("/proc/self/fd/0")
+	if err != nil {
+		pe.log.Debug("| Can't find terminal name via /proc lookup: %s", err)
+
+		// try /dev/tty
+		tty = "/dev/tty"
+		_, err = os.Stat("/dev/tty")
+		if err != nil {
+			pe.log.Debug("| stat /dev/tty failed: %s", err)
+			return
+		}
+	}
+
+	pe.log.Debug("| found tty=%s", tty)
+	pe.tty = tty
 }

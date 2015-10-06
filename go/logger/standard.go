@@ -6,7 +6,6 @@ import (
 	"path"
 	"strings"
 	"sync"
-	"syscall"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	logging "github.com/op/go-logging"
@@ -249,28 +248,6 @@ func (log *Standard) Configure(style string, debug bool, filename string) {
 	}
 
 	logging.SetFormatter(logging.MustStringFormatter(logfmt))
-}
-
-func (log *Standard) RotateLogFile() error {
-	logRotateMutex.Lock()
-	defer logRotateMutex.Unlock()
-	log.internal.Info("Rotating log file; closing down old file")
-	_, file, err := OpenLogFile(log.filename)
-	if err != nil {
-		return err
-	}
-	err = PickFirstError(
-		syscall.Close(1),
-		syscall.Close(2),
-		syscall.Dup2(int(file.Fd()), 1),
-		syscall.Dup2(int(file.Fd()), 2),
-		file.Close(),
-	)
-	if err != nil {
-		log.internal.Warning("Couldn't rotate file: %v", err)
-	}
-	log.internal.Info("Rotated log file; opening up new file")
-	return nil
 }
 
 func OpenLogFile(filename string) (name string, file *os.File, err error) {

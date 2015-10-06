@@ -1,5 +1,3 @@
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
-
 // Package minterm implements minimal terminal functions.
 package minterm
 
