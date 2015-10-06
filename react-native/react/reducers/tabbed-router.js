@@ -11,6 +11,9 @@ import * as actionTypes from '../constants/tabbedRouterActionTypes'
 
 const emptyRouterState = createRouterState([], [])
 
+// Uncomment this to start at a specific page to help speed up
+// const emptyRouterState = createRouterState(['login2', 'welcome'], [])
+
 // TODO(mm) add type annotations
 const initialState = Immutable.fromJS({
   // a map from tab name to router obj

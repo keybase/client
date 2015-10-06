@@ -12,7 +12,7 @@ import {
   View
 } from 'react-native'
 import ProgressIndicator from '../commonAdapters/ProgressIndicator'
-// import * as screen from '../constants/login2Screens'
+
 import Welcome from './welcome'
 import Register from './register'
 
