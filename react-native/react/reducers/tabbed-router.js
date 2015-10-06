@@ -9,10 +9,10 @@ import routerReducer, { createRouterState } from './router'
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from '../constants/tabs'
 import * as actionTypes from '../constants/tabbedRouterActionTypes'
 
-const emptyRouterState = createRouterState([], [])
+// const emptyRouterState = createRouterState([], [])
 
 // Uncomment this to start at a specific page to help speed up
-// const emptyRouterState = createRouterState(['login2', 'welcome'], [])
+const emptyRouterState = createRouterState(['login2', 'welcome'], [])
 
 // TODO(mm) add type annotations
 const initialState = Immutable.fromJS({

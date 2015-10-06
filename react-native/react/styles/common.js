@@ -35,6 +35,17 @@ export default StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: '#CCCCCC'
+  },
+  textInput: {
+    borderColor: '#0f0f0f',
+    borderRadius: 2,
+    borderWidth: 0.5,
+    fontSize: 13,
+    height: 40,
+    marginBottom: 5,
+    marginLeft: 10,
+    marginRight: 10,
+    padding: 4
   }
 })
 

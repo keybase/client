@@ -140,7 +140,7 @@ class Nav extends Component {
             systemIcon='more'
             selected={activeTab === MORE_TAB}
             onPress={() => dispatch(switchTab(MORE_TAB))}>
-            {this._renderContent('#21551C', 'Green Tab')}
+            {this._renderContent('transparent', 'Green Tab')}
           </TabBarIOS.Item>
         </TabBarIOS>
       </View>
