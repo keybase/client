@@ -73,13 +73,15 @@ git push --tags
 echo "2. Exporting client source to kbfs-beta for version $client_version"
 $clientdir/packaging/export/export.sh client $betadir $client_version_tag
 cd $betadir
-git commit -a -m "Importing client source from $client_version_tag"
+git add .
+git commit -m "Importing client source from $client_version_tag"
 git push
 
 echo "3. Exporting kbfs source to kbfs-beta for version $kbfs_version"
 $clientdir/packaging/export/export.sh kbfs $betadir $kbfs_version_tag
 cd $betadir
-git commit -a -m "Importing kbfs source from $kbfs_version_tag"
+git add .
+git commit -m "Importing kbfs source from $kbfs_version_tag"
 git push
 git tag -a $kbfs_version_tag -m $kbfs_version_tag
 git push --tags

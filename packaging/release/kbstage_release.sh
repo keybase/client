@@ -66,7 +66,8 @@ git push --tags
 echo "2. Exporting client source to client-beta for version $version"
 $clientdir/packaging/export/export.sh client $betadir $version_tag
 cd $betadir
-git commit -a -m "Importing from $version_tag"
+git add .
+git commit -m "Importing from $version_tag"
 git push
 git tag -a $version_tag -m $version_tag
 git push --tags
