@@ -2,15 +2,19 @@
 
 import * as Constants from '../constants/login2'
 
-// TODO load this off of the init
-
 const initialState = {
-  username: 'Caley',
-  usernames: ['Chris', 'Caley', 'Cecile']
+  username: '',
+  passphrase: ''
 }
 
 export default function (state = initialState, action) {
   switch (action.type) {
+    case Constants.actionSubmitUserPass:
+      return {
+        ...state,
+        username: action.username,
+        passphrase: action.passphrase
+      }
     default:
       return state
   }

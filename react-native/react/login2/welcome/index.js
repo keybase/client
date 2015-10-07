@@ -64,15 +64,10 @@ export default class Welcome extends Component {
       parseNextRoute
     }
   }
-
 }
 
 Welcome.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
-  welcomeExpanded: React.PropTypes.string,
-  usernames: React.PropTypes.array.isRequired,
-  username: React.PropTypes.string,
-  passphrase: React.PropTypes.string
+  dispatch: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({
