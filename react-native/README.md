@@ -13,44 +13,34 @@ gomobile init
 npm install
 ```
 
-#### ios specific
-```sh
-# Do this inside react-native/ios
-cd ios/
+#### iOS
 
-# Install CocoaPods (if not installed)
+Install CocoaPods (if not installed):
+
+```sh
 sudo gem install cocoapods
-pod setup
-
-# Generate workspace
-pod install
 ```
+
+Install or update dependencies:
 
 ```sh
-# inside react-native/
-
-# Build the keybase go framwork
-npm run gobuild-ios
-
-# Make an initial bundle (not checked in)
-npm run reactbundle-ios
-
-# Open workspace (not xcodeproj)
-open Keybase.xcworkspace
+make dep-ios
 ```
 
-Then select the target ```Keybase``` and run.
+Open workspace (not xcodeproj):
 
-#### Android Specific
+```sh
+open ios/Keybase.xcworkspace
+```
+
+Then select the target `Keybase` and run.
+
+#### Android
+
 This will only work on an actual device or arm emulator. see: (https://github.com/golang/go/issues/10743)
+
 ```sh
-# inside react-native/
-
-# Build the go keybaselib
-npm run gobuild-android
-
-# This will install the app on your device
-react-native run-android
+make dep-android
 ```
 
 To set the host for the JS files: Shake the device and choose 'Dev Settings | Debug server host for device'
