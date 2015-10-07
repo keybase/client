@@ -7,70 +7,46 @@ import {
   LinkingIOS,
   StyleSheet,
   Text,
+  TouchableHighlight,
   View
 } from 'react-native'
 
 import commonStyles from '../../styles/common'
-import ForgotUserPass from './forgotUserPass'
-import * as Constants from '../../constants/login2'
 
 import Login from './login'
 import Signup from './signup'
 
-import { welcomeExpand, welcomeSubmitUserPass } from '../../actions/login2'
+import { routeAppend } from '../../actions/router'
 
 export default class Welcome extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      username: this.props.username || '',
-      passphrase: this.props.passphrase || ''
-    }
-  }
-  expand (section) {
-    this.props.dispatch(welcomeExpand(section))
-  }
-
-  reportBug () {
-    LinkingIOS.openURL('https://github.com/keybase/keybase-issues')
-  }
-
-  submitLogin (username, passphrase) {
-    this.props.dispatch(welcomeSubmitUserPass(username, passphrase))
-  }
-
   render () {
-    const login = this.props.welcomeExpanded !== Constants.signupExpanded ? (
-      <Login expanded={this.props.welcomeExpanded === Constants.loginExpanded}
-        expand={() => this.expand(Constants.loginExpanded)}
-        back={() => this.expand()}
-        submitLogin={(user, passphrase) => this.submitLogin(user, passphrase)}
-        />) : null
-
-    const signup = this.props.welcomeExpanded !== Constants.loginExpanded ? (
-      <Signup expanded={this.props.welcomeExpanded === Constants.signupExpanded}
-        expand={() => this.expand(Constants.signupExpanded)}
-        back={() => this.expand()}/>) : null
-
-    const feedback = !this.props.welcomeExpanded ? (
-      <View style={{flex: this.props.welcomeExpanded ? 0 : 1, justifyContent: 'flex-end', alignItems: 'flex-end', marginRight: 10}}>
-        <Text style={commonStyles.h2} onPress={() => { this.reportBug() }}>Report a bug or problem</Text>
-      </View>) : null
-
     return (
-      <View style={[styles.container, {marginTop: 64, marginBottom: 64}]}>
+      <View style={[styles.container, {marginTop: 64, marginBottom: 48}]}>
         <Text style={[commonStyles.h1, {padding: 20, textAlign: 'center'}]}>Welcome to Keybase</Text>
-        {login}
-        {signup}
-        {feedback}
+        <TouchableHighlight onPress={() => this.props.dispatch(routeAppend('login'))}>
+          <View>
+            <Text style={commonStyles.h1}>Log in -</Text>
+            <Text style={[commonStyles.h2, {marginBottom: 40}]}>Already a keybase user? Welcome back!</Text>
+          </View>
+        </TouchableHighlight>
+        <TouchableHighlight onPress={() => this.props.dispatch(routeAppend('signup'))}>
+          <View>
+            <Text style={commonStyles.h1}>Sign up -</Text>
+            <Text style={commonStyles.h2}>In order to sign up for our beta, a friend who is an existing member on Keybase is required to share a file with you</Text>
+          </View>
+        </TouchableHighlight>
+        <View style={{flex: 1, justifyContent: 'flex-end', alignItems: 'flex-end', padding: 10}}>
+          <Text style={commonStyles.h2}
+            onPress={() => { LinkingIOS.openURL('https://github.com/keybase/keybase-issues') }}>Report a bug or problem</Text>
+        </View>
       </View>
     )
   }
 
   static parseRoute (store, currentPath, nextPath) {
     const routes = {
-      forgotUserPass: ForgotUserPass.parseRoute
+      'login': Login.parseRoute,
+      'signup': Signup.parseRoute
     }
 
     const componentAtTop = {

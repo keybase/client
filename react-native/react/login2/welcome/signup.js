@@ -18,27 +18,36 @@ export default class Signup extends Component {
   }
 
   render () {
-    const inputPanel = this.props.expanded ? (
-      <View style={{flex: 1}}>
-        <Text>TODO</Text>
-        <View style={{flex: 1, alignItems: 'flex-end', justifyContent: 'flex-end'}}>
-          <Text style={{marginTop: 20}} onPress={() => { this.props.back() }}>Back</Text>
+    return (
+      <View style={{flex: 1, marginTop: 64, marginBottom: 48}}>
+        <Text style={commonStyles.h1}>Sign up -</Text>
+        <Text style={commonStyles.h2}>In order to sign up for our beta, a friend who is an existing member on Keybase is required to share a file with you</Text>
+        <View style={{flex: 1}}>
+          <Text>TODO</Text>
         </View>
       </View>
-    ) : null
-
-    return (
-      <View style={{flex: this.props.expanded ? 1 : 0}}>
-        <Text style={commonStyles.h1} onPress={() => { this.props.expand() }}>Sign up -</Text>
-        <Text style={commonStyles.h2}>In order to sign up for our beta, a friend who is an existing member on Keybase is required to share a file with you</Text>
-        {inputPanel}
-      </View>
     )
+  }
+
+  static parseRoute (store, currentPath, nextPath) {
+    const routes = { }
+
+    const componentAtTop = {
+      title: '',
+      component: Signup,
+      leftButtonTitle: '',
+      mapStateToProps: state => state.login2
+    }
+
+    // Default the next route to the login form
+    const parseNextRoute = routes[nextPath.get('path')]
+
+    return {
+      componentAtTop,
+      parseNextRoute
+    }
   }
 }
 
 Signup.propTypes = {
-  expanded: React.PropTypes.bool.isRequired,
-  back: React.PropTypes.func.isRequired,
-  expand: React.PropTypes.func.isRequired
 }
