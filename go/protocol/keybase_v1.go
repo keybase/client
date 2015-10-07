@@ -2800,12 +2800,19 @@ func (c ProveUiClient) DisplayRecheckWarning(__arg DisplayRecheckWarningArg) (er
 	return
 }
 
+type VerifySessionRes struct {
+	Uid       UID    `codec:"uid" json:"uid"`
+	Sid       string `codec:"sid" json:"sid"`
+	Generated int    `codec:"generated" json:"generated"`
+	Lifetime  int    `codec:"lifetime" json:"lifetime"`
+}
+
 type VerifySessionArg struct {
 	Session string `codec:"session" json:"session"`
 }
 
 type QuotaInterface interface {
-	VerifySession(string) (SessionToken, error)
+	VerifySession(string) (VerifySessionRes, error)
 }
 
 func QuotaProtocol(i QuotaInterface) rpc2.Protocol {
@@ -2828,7 +2835,7 @@ type QuotaClient struct {
 	Cli GenericClient
 }
 
-func (c QuotaClient) VerifySession(session string) (res SessionToken, err error) {
+func (c QuotaClient) VerifySession(session string) (res VerifySessionRes, err error) {
 	__arg := VerifySessionArg{Session: session}
 	err = c.Cli.Call("keybase.1.quota.verifySession", []interface{}{__arg}, &res)
 	return

@@ -5,12 +5,12 @@ protocol quota {
 
 	import idl "common.avdl";
 
-	record SessionToken {
+	record VerifySessionRes {
 		UID uid;
 		string sid;
 		int generated;
 		int lifetime;	
 	}
 
-	SessionToken verifySession(string session);
+	VerifySessionRes verifySession(string session);
 }
