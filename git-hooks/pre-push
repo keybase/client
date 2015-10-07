@@ -29,14 +29,14 @@ check_go_fmt() {
 	gofiles=$(git ls-files | grep '.go$' | grep -v go/vendor/ | grep -v vendor/)
 	[ -z "$gofiles" ] && return 0
 
-	unformatted=$(gofmt -l $gofiles)
+	unformatted=$(gofmt -l -s $gofiles)
 	[ -z "$unformatted" ] && return 0
 
 	# Some files are not gofmt'd. Print message and fail.
 
 	echo >&2 "Go files must be formatted with gofmt. Please run:"
 	for fn in $unformatted; do
-		echo >&2 "  gofmt -w $PWD/$fn"
+		echo >&2 "  gofmt -s -w $PWD/$fn"
 	done
 
 	exit 1
