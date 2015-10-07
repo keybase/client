@@ -13,7 +13,7 @@ type CtlHandler struct {
 	*BaseHandler
 }
 
-func NewCtlHandler(xp *rpc.Transport) *CtlHandler {
+func NewCtlHandler(xp rpc.Transporter) *CtlHandler {
 	return &CtlHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

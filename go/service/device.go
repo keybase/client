@@ -12,7 +12,7 @@ type DeviceHandler struct {
 }
 
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
-func NewDeviceHandler(xp *rpc.Transport) *DeviceHandler {
+func NewDeviceHandler(xp rpc.Transporter) *DeviceHandler {
 	return &DeviceHandler{CancelHandler: NewCancelHandler(xp)}
 }
 

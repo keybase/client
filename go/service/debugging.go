@@ -9,7 +9,7 @@ type DebuggingHandler struct {
 	*BaseHandler
 }
 
-func NewDebuggingHandler(xp *rpc.Transport) *DebuggingHandler {
+func NewDebuggingHandler(xp rpc.Transporter) *DebuggingHandler {
 	return &DebuggingHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

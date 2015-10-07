@@ -6,14 +6,14 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func GetRPCClient() (ret *rpc.Client, xp *rpc.Transport, err error) {
+func GetRPCClient() (ret *rpc.Client, xp rpc.Transporter, err error) {
 	if _, xp, err = G.GetSocket(); err == nil {
 		ret = rpc.NewClient(xp, libkb.UnwrapError)
 	}
 	return
 }
 
-func GetRPCServer() (ret *rpc.Server, xp *rpc.Transport, err error) {
+func GetRPCServer() (ret *rpc.Server, xp rpc.Transporter, err error) {
 	if _, xp, err = G.GetSocket(); err == nil {
 		ret = rpc.NewServer(xp, libkb.WrapError)
 	}

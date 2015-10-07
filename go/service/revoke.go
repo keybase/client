@@ -10,7 +10,7 @@ type RevokeHandler struct {
 	*BaseHandler
 }
 
-func NewRevokeHandler(xp *rpc.Transport) *RevokeHandler {
+func NewRevokeHandler(xp rpc.Transporter) *RevokeHandler {
 	return &RevokeHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

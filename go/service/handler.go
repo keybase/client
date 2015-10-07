@@ -7,14 +7,14 @@ import (
 )
 
 type BaseHandler struct {
-	xp        *rpc.Transport
+	xp        rpc.Transporter
 	cli       *rpc.Client
 	loginCli  *keybase1.LoginUiClient
 	secretCli *keybase1.SecretUiClient
 	logCli    *keybase1.LogUiClient
 }
 
-func NewBaseHandler(xp *rpc.Transport) *BaseHandler {
+func NewBaseHandler(xp rpc.Transporter) *BaseHandler {
 	h := &BaseHandler{xp: xp}
 	h.cli = rpc.NewClient(h.xp, libkb.UnwrapError)
 	h.loginCli = &keybase1.LoginUiClient{Cli: h.cli}

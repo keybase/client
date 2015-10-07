@@ -19,7 +19,7 @@ type proveUI struct {
 }
 
 // NewProveHandler makes a new ProveHandler object from an RPC transport.
-func NewProveHandler(xp *rpc.Transport) *ProveHandler {
+func NewProveHandler(xp rpc.Transporter) *ProveHandler {
 	return &ProveHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

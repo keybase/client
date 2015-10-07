@@ -11,7 +11,7 @@ type SignupHandler struct {
 	*BaseHandler
 }
 
-func NewSignupHandler(xp *rpc.Transport) *SignupHandler {
+func NewSignupHandler(xp rpc.Transporter) *SignupHandler {
 	return &SignupHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

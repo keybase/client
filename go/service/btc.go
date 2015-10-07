@@ -10,7 +10,7 @@ type BTCHandler struct {
 	*BaseHandler
 }
 
-func NewBTCHandler(xp *rpc.Transport) *BTCHandler {
+func NewBTCHandler(xp rpc.Transporter) *BTCHandler {
 	return &BTCHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

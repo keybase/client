@@ -11,7 +11,7 @@ import (
 
 type baseDevice struct {
 	conn     net.Conn
-	xp       *rpc.Transport
+	xp       rpc.Transporter
 	deviceID DeviceID
 	start    chan struct{}
 	canceled bool

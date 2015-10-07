@@ -10,7 +10,7 @@ type AccountHandler struct {
 	*BaseHandler
 }
 
-func NewAccountHandler(xp *rpc.Transport) *AccountHandler {
+func NewAccountHandler(xp rpc.Transporter) *AccountHandler {
 	return &AccountHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

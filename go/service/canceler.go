@@ -23,7 +23,7 @@ type CancelHandler struct {
 	cancelers map[int]Canceler
 }
 
-func NewCancelHandler(xp *rpc.Transport) *CancelHandler {
+func NewCancelHandler(xp rpc.Transporter) *CancelHandler {
 	return &CancelHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

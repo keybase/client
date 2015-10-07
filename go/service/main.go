@@ -27,7 +27,7 @@ func NewService(isDaemon bool) *Service {
 	return &Service{isDaemon: isDaemon}
 }
 
-func RegisterProtocols(srv *rpc.Server, xp *rpc.Transport) error {
+func RegisterProtocols(srv *rpc.Server, xp rpc.Transporter) error {
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp)),
 		keybase1.BTCProtocol(NewBTCHandler(xp)),

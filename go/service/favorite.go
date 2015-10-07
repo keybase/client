@@ -13,7 +13,7 @@ type FavoriteHandler struct {
 
 // NewFavoriteHandler creates a FavoriteHandler with the xp
 // protocol.
-func NewFavoriteHandler(xp *rpc.Transport) *FavoriteHandler {
+func NewFavoriteHandler(xp rpc.Transporter) *FavoriteHandler {
 	return &FavoriteHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
