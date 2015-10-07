@@ -11,6 +11,8 @@ import {
 
 import commonStyles from '../../styles/common'
 import { welcomeSubmitUserPass } from '../../actions/login2'
+import { routeAppend } from '../../actions/router'
+import ForgotUserPass from './forgotUserPass'
 
 export default class Login extends Component {
   constructor (props) {
@@ -51,7 +53,10 @@ export default class Login extends Component {
           clearButtonMode='while-editing'
           secureTextEntry
         />
-        <View style={{flex: 1, alignItems: 'flex-end', justifyContent: 'flex-end', padding: 10}}>
+        <View style={{alignItems: 'flex-end', justifyContent: 'flex-end', padding: 10}}>
+          <Text style={{marginTop: 20, padding: 10}} onPress={() => { this.props.dispatch(routeAppend('forgotUserPass')) }}>Forgot username/passphrase?</Text>
+        </View>
+        <View style={{alignItems: 'flex-end', justifyContent: 'flex-end', padding: 10}}>
           <Text style={{marginTop: 20, padding: 10}} onPress={() => { this.submitLogin() }}>Submit</Text>
         </View>
       </View>
@@ -59,7 +64,9 @@ export default class Login extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = { }
+    const routes = {
+      forgotUserPass: ForgotUserPass.parseRoute
+    }
 
     const componentAtTop = {
       title: '',
