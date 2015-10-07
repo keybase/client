@@ -26,7 +26,7 @@ func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 
 	var f *os.File
 	var err error
-	if f, err = ioutil.TempFile("/tmp/", "testconfig"); err != nil {
+	if f, err = ioutil.TempFile(os.TempDir(), "testconfig"); err != nil {
 		t.Fatalf("couldn't create temp file: %s", err)
 	}
 	c.configFileName = f.Name()

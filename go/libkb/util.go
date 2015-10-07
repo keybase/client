@@ -11,7 +11,7 @@ import (
 	"math"
 	"math/big"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -42,7 +42,7 @@ func FileExists(path string) (bool, error) {
 
 func MakeParentDirs(filename string) error {
 
-	dir, _ := path.Split(filename)
+	dir, _ := filepath.Split(filename)
 	exists, err := FileExists(dir)
 	if err != nil {
 		G.Log.Errorf("Can't see if parent dir %s exists", dir)
