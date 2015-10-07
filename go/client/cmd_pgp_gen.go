@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type CmdPGPGen struct {
@@ -40,7 +40,7 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 
 // Why use CreatePGPIDs rather than MakeAllIds?
 func (v *CmdPGPGen) Run() (err error) {
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(),
 	}
 	cli, err := GetPGPClient()

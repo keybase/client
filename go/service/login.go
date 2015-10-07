@@ -4,7 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type LoginHandler struct {
@@ -13,7 +13,7 @@ type LoginHandler struct {
 	locksmithUI libkb.LocksmithUI
 }
 
-func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
+func NewLoginHandler(xp rpc.Transporter) *LoginHandler {
 	return &LoginHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
@@ -110,7 +110,7 @@ type RemoteLocksmithUI struct {
 	uicli     keybase1.LocksmithUiClient
 }
 
-func NewRemoteLocksmithUI(sessionID int, c *rpc2.Client) *RemoteLocksmithUI {
+func NewRemoteLocksmithUI(sessionID int, c *rpc.Client) *RemoteLocksmithUI {
 	return &RemoteLocksmithUI{
 		sessionID: sessionID,
 		uicli:     keybase1.LocksmithUiClient{Cli: c},

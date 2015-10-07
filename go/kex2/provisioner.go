@@ -3,7 +3,7 @@ package kex2
 import (
 	"errors"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 	"net"
 	"time"
@@ -11,7 +11,7 @@ import (
 
 type baseDevice struct {
 	conn     net.Conn
-	xp       *rpc2.Transport
+	xp       rpc.Transporter
 	deviceID DeviceID
 	start    chan struct{}
 	canceled bool
@@ -30,7 +30,7 @@ var ErrCanceled = errors.New("kex canceled by caller")
 type Provisioner interface {
 	GetHelloArg() keybase1.HelloArg
 	CounterSign(keybase1.HelloRes) ([]byte, error)
-	GetLogFactory() rpc2.LogFactory
+	GetLogFactory() rpc.LogFactory
 }
 
 // KexBaseArg are arguments common to both Provisioner and Provisionee
@@ -110,8 +110,8 @@ func (p *provisioner) pickFirstConnection() (err error) {
 	}
 
 	prot := keybase1.Kex2ProvisionerProtocol(p)
-	xp := rpc2.NewTransport(conn, p.arg.Provisioner.GetLogFactory(), nil)
-	srv := rpc2.NewServer(xp, nil)
+	xp := rpc.NewTransport(conn, p.arg.Provisioner.GetLogFactory(), nil)
+	srv := rpc.NewServer(xp, nil)
 	if err = srv.Register(prot); err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (p *provisioner) pickFirstConnection() (err error) {
 		if p.conn, err = NewConn(p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}
-		p.xp = rpc2.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(), nil)
+		p.xp = rpc.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(), nil)
 		conn.Close()
 	case <-p.arg.Ctx.Done():
 		err = ErrCanceled
@@ -152,7 +152,7 @@ func (p *provisioner) runProtocolWithCancel() (err error) {
 }
 
 func (p *provisioner) runProtocol() (err error) {
-	cli := keybase1.Kex2ProvisioneeClient{Cli: rpc2.NewClient(p.xp, nil)}
+	cli := keybase1.Kex2ProvisioneeClient{Cli: rpc.NewClient(p.xp, nil)}
 	var res keybase1.HelloRes
 	if res, err = cli.Hello(p.arg.Provisioner.GetHelloArg()); err != nil {
 		return

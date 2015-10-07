@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // DeviceHandler is the RPC handler for the device interface.
@@ -12,7 +12,7 @@ type DeviceHandler struct {
 }
 
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
-func NewDeviceHandler(xp *rpc2.Transport) *DeviceHandler {
+func NewDeviceHandler(xp rpc.Transporter) *DeviceHandler {
 	return &DeviceHandler{CancelHandler: NewCancelHandler(xp)}
 }
 

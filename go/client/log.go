@@ -5,14 +5,14 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type LogUIServer struct {
 	log libkb.LogUI
 }
 
-func NewLogUIProtocol() rpc2.Protocol {
+func NewLogUIProtocol() rpc.Protocol {
 	return keybase1.LogUiProtocol(&LogUIServer{G.Log})
 }
 

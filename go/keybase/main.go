@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // Keep this around to simplify things
@@ -120,7 +120,7 @@ func mainInner(g *libkb.GlobalContext) error {
 }
 
 func registerGlobalLogUI(g *libkb.GlobalContext) error {
-	protocols := []rpc2.Protocol{client.NewLogUIProtocol()}
+	protocols := []rpc.Protocol{client.NewLogUIProtocol()}
 	if err := client.RegisterProtocols(protocols); err != nil {
 		return err
 	}

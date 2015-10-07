@@ -3,7 +3,7 @@ package service
 import (
 	"sync"
 
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // Cancelers are types with a Cancel method.  This is currently
@@ -23,7 +23,7 @@ type CancelHandler struct {
 	cancelers map[int]Canceler
 }
 
-func NewCancelHandler(xp *rpc2.Transport) *CancelHandler {
+func NewCancelHandler(xp rpc.Transporter) *CancelHandler {
 	return &CancelHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

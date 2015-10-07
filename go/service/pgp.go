@@ -4,14 +4,14 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type PGPHandler struct {
 	*BaseHandler
 }
 
-func NewPGPHandler(xp *rpc2.Transport) *PGPHandler {
+func NewPGPHandler(xp rpc.Transporter) *PGPHandler {
 	return &PGPHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

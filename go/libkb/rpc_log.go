@@ -4,7 +4,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // RPC log options, can turn on debugging, &c.
@@ -71,8 +71,8 @@ func NewRPCLogFactory() *RPCLogFactory {
 	return &RPCLogFactory{}
 }
 
-func (r *RPCLogFactory) NewLog(a net.Addr) rpc2.LogInterface {
-	ret := rpc2.SimpleLog{Addr: a, Out: G.Log, Opts: getRPCLogOptions()}
+func (r *RPCLogFactory) NewLog(a net.Addr) rpc.LogInterface {
+	ret := rpc.SimpleLog{Addr: a, Out: G.Log, Opts: getRPCLogOptions()}
 	ret.TransportStart()
 	return ret
 }

@@ -241,13 +241,13 @@ class GoEmitter2 extends GoEmitter
   special_wrapper_object : () -> true
 
   emit_imports : () ->
-    @output '"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"'
+    @output 'rpc "github.com/keybase/go-framed-msgpack-rpc"'
 
   emit_server_hook : (name, details) ->
     arg = details.request
     res = details.response
     resvar = if res is "null" then "" else "ret, "
-    @output """"#{name}": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {"""
+    @output """"#{name}": func(nxt rpc.DecodeNext) (ret interface{}, err error) {"""
     @tab()
     @output "args := make([]#{@go_primitive_type(arg.type)}, 1)"
     @output "if err = nxt(&args); err == nil {"
@@ -264,12 +264,12 @@ class GoEmitter2 extends GoEmitter
 
   emit_protocol_server : (protocol, messages) ->
     p = @go_export_case protocol
-    @output "func #{p}Protocol(i #{p}Interface) rpc2.Protocol {"
+    @output "func #{p}Protocol(i #{p}Interface) rpc.Protocol {"
     @tab()
-    @output "return rpc2.Protocol {"
+    @output "return rpc.Protocol {"
     @tab()
     @output """Name: "#{@_pkg}.#{protocol}","""
-    @output "Methods: map[string]rpc2.ServeHook{"
+    @output "Methods: map[string]rpc.ServeHook{"
     @tab()
     for k,v of messages
       @emit_server_hook k, v

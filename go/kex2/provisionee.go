@@ -2,7 +2,7 @@ package kex2
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"time"
 )
 
@@ -15,7 +15,7 @@ type provisionee struct {
 // Provisionee is an interface that abstracts out the crypto and session
 // management that a provisionee needs to do as part of the protocol.
 type Provisionee interface {
-	GetLogFactory() rpc2.LogFactory
+	GetLogFactory() rpc.LogFactory
 	HandleHello(keybase1.HelloArg) (keybase1.HelloRes, error)
 	HandleDidCounterSign([]byte) error
 }
@@ -94,8 +94,8 @@ func (p *provisionee) startServer(s Secret) (err error) {
 		return err
 	}
 	prot := keybase1.Kex2ProvisioneeProtocol(p)
-	p.xp = rpc2.NewTransport(p.conn, p.arg.Provisionee.GetLogFactory(), nil)
-	srv := rpc2.NewServer(p.xp, nil)
+	p.xp = rpc.NewTransport(p.conn, p.arg.Provisionee.GetLogFactory(), nil)
+	srv := rpc.NewServer(p.xp, nil)
 	if err = srv.Register(prot); err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (p *provisionee) pickFirstConnection() (err error) {
 		if err != nil {
 			return err
 		}
-		cli := keybase1.Kex2ProvisionerClient{Cli: rpc2.NewClient(p.xp, nil)}
+		cli := keybase1.Kex2ProvisionerClient{Cli: rpc.NewClient(p.xp, nil)}
 		if err = cli.KexStart(); err != nil {
 			return err
 		}

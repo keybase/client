@@ -3,14 +3,14 @@ package client
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type SecretUIServer struct {
 	eng libkb.SecretUI
 }
 
-func NewSecretUIProtocol() rpc2.Protocol {
+func NewSecretUIProtocol() rpc.Protocol {
 	return keybase1.SecretUiProtocol(&SecretUIServer{GlobUI.GetSecretUI()})
 }
 

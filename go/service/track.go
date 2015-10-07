@@ -4,7 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // TrackHandler is the RPC handler for the track interface.
@@ -13,7 +13,7 @@ type TrackHandler struct {
 }
 
 // NewTrackHandler creates a TrackHandler for the xp transport.
-func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
+func NewTrackHandler(xp rpc.Transporter) *TrackHandler {
 	return &TrackHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

@@ -4,7 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // UserHandler is the RPC handler for the user interface.
@@ -13,7 +13,7 @@ type UserHandler struct {
 }
 
 // NewUserHandler creates a UserHandler for the xp transport.
-func NewUserHandler(xp *rpc2.Transport) *UserHandler {
+func NewUserHandler(xp rpc.Transporter) *UserHandler {
 	return &UserHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

@@ -1,4 +1,4 @@
-package rpc2
+package rpc
 
 import (
 	"encoding/json"
@@ -17,8 +17,11 @@ type LogInterface interface {
 	TransportStart()
 	TransportError(error)
 	ServerCall(int, string, error, interface{})
+	ServerNotifyCall(string, error, interface{})
 	ServerReply(int, string, error, interface{})
+	ServerNotifyComplete(string, error)
 	ClientCall(int, string, interface{})
+	ClientNotify(string, interface{})
 	ClientReply(int, string, error, interface{})
 	StartProfiler(format string, args ...interface{}) Profiler
 	UnexpectedReply(int)
@@ -132,14 +135,29 @@ func (s SimpleLog) ServerReply(q int, meth string, err error, res interface{}) {
 		s.trace("reply", "res", s.Opts.ShowResult(), q, meth, err, res)
 	}
 }
+func (s SimpleLog) ServerNotifyComplete(meth string, err error) {
+	if s.Opts.ServerTrace() {
+		s.trace("complete", "", false, 0, meth, err, nil)
+	}
+}
 func (s SimpleLog) ServerCall(q int, meth string, err error, arg interface{}) {
 	if s.Opts.ServerTrace() {
 		s.trace("serve", "arg", s.Opts.ShowArg(), q, meth, err, arg)
 	}
 }
+func (s SimpleLog) ServerNotifyCall(meth string, err error, arg interface{}) {
+	if s.Opts.ServerTrace() {
+		s.trace("serve-notify", "arg", s.Opts.ShowArg(), 0, meth, err, arg)
+	}
+}
 func (s SimpleLog) ClientCall(q int, meth string, arg interface{}) {
 	if s.Opts.ClientTrace() {
 		s.trace("call", "arg", s.Opts.ShowArg(), q, meth, nil, arg)
+	}
+}
+func (s SimpleLog) ClientNotify(meth string, arg interface{}) {
+	if s.Opts.ClientTrace() {
+		s.trace("notify", "arg", s.Opts.ShowArg(), 0, meth, nil, arg)
 	}
 }
 func (s SimpleLog) ClientReply(q int, meth string, err error, res interface{}) {

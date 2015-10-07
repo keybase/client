@@ -3,14 +3,14 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type CryptoHandler struct {
 	*BaseHandler
 }
 
-func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
+func NewCryptoHandler(xp rpc.Transporter) *CryptoHandler {
 	return &CryptoHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

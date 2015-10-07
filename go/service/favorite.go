@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // FavoriteHandler implements the keybase1.Favorite protocol
@@ -13,7 +13,7 @@ type FavoriteHandler struct {
 
 // NewFavoriteHandler creates a FavoriteHandler with the xp
 // protocol.
-func NewFavoriteHandler(xp *rpc2.Transport) *FavoriteHandler {
+func NewFavoriteHandler(xp rpc.Transporter) *FavoriteHandler {
 	return &FavoriteHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

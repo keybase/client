@@ -6,7 +6,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 var ErrNoSession = errors.New("no current session")
@@ -17,7 +17,7 @@ type SessionHandler struct {
 }
 
 // NewSessionHandler creates a SessionHandler for the xp transport.
-func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
+func NewSessionHandler(xp rpc.Transporter) *SessionHandler {
 	return &SessionHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

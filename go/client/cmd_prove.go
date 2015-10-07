@@ -9,7 +9,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // CmdProve is the wrapper structure for the the `keybase prove` operation.
@@ -43,7 +43,7 @@ func (p *CmdProve) fileOutputHook(txt string) (err error) {
 	return
 }
 
-func newProveUIProtocol(ui ProveUI) rpc2.Protocol {
+func newProveUIProtocol(ui ProveUI) rpc.Protocol {
 	return keybase1.ProveUiProtocol(ui)
 }
 
@@ -54,7 +54,7 @@ func (p *CmdProve) Run() error {
 	proveUI := ProveUI{parent: GlobUI}
 	p.installOutputHook(&proveUI)
 
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		newProveUIProtocol(proveUI),
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),

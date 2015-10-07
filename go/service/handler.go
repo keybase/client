@@ -3,20 +3,20 @@ package service
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type BaseHandler struct {
-	xp        *rpc2.Transport
-	cli       *rpc2.Client
+	xp        rpc.Transporter
+	cli       *rpc.Client
 	loginCli  *keybase1.LoginUiClient
 	secretCli *keybase1.SecretUiClient
 	logCli    *keybase1.LogUiClient
 }
 
-func NewBaseHandler(xp *rpc2.Transport) *BaseHandler {
+func NewBaseHandler(xp rpc.Transporter) *BaseHandler {
 	h := &BaseHandler{xp: xp}
-	h.cli = rpc2.NewClient(h.xp, libkb.UnwrapError)
+	h.cli = rpc.NewClient(h.xp, libkb.UnwrapError)
 	h.loginCli = &keybase1.LoginUiClient{Cli: h.cli}
 	h.secretCli = &keybase1.SecretUiClient{Cli: h.cli}
 	h.logCli = &keybase1.LogUiClient{Cli: h.cli}
@@ -78,7 +78,7 @@ func (l *SecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) 
 	return l.cli.GetPaperKeyPassphrase(arg)
 }
 
-func (h *BaseHandler) rpcClient() *rpc2.Client {
+func (h *BaseHandler) rpcClient() *rpc.Client {
 	return h.cli
 }
 

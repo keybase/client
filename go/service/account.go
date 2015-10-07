@@ -3,14 +3,14 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type AccountHandler struct {
 	*BaseHandler
 }
 
-func NewAccountHandler(xp *rpc2.Transport) *AccountHandler {
+func NewAccountHandler(xp rpc.Transporter) *AccountHandler {
 	return &AccountHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

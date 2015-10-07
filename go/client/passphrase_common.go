@@ -2,7 +2,7 @@ package client
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 func newChangeArg(newPassphrase string, force bool) keybase1.PassphraseChangeArg {
@@ -17,7 +17,7 @@ func passphraseChange(arg keybase1.PassphraseChangeArg) error {
 	if err != nil {
 		return err
 	}
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {

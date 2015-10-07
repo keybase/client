@@ -4,7 +4,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 func NewCmdPaperKey(cl *libcmdline.CommandLine) cli.Command {
@@ -25,7 +25,7 @@ func (c *CmdPaperKey) Run() error {
 	if err != nil {
 		return err
 	}
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),
 	}

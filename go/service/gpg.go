@@ -2,7 +2,7 @@ package service
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type RemoteGPGUI struct {
@@ -10,7 +10,7 @@ type RemoteGPGUI struct {
 	uicli     keybase1.GpgUiClient
 }
 
-func NewRemoteGPGUI(sessionID int, c *rpc2.Client) *RemoteGPGUI {
+func NewRemoteGPGUI(sessionID int, c *rpc.Client) *RemoteGPGUI {
 	return &RemoteGPGUI{
 		sessionID: sessionID,
 		uicli:     keybase1.GpgUiClient{Cli: c},

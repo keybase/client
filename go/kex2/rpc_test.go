@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 	"io"
 	"testing"
@@ -44,13 +44,13 @@ func (n *nullLogOutput) Info(s string, args ...interface{})    {}
 func (n *nullLogOutput) Debug(s string, args ...interface{})   {}
 func (n *nullLogOutput) Profile(s string, args ...interface{}) {}
 
-var _ rpc2.LogOutput = (*nullLogOutput)(nil)
+var _ rpc.LogOutput = (*nullLogOutput)(nil)
 
-func makeLogFactory() rpc2.LogFactory {
+func makeLogFactory() rpc.LogFactory {
 	if testing.Verbose() {
 		return nil
 	}
-	return rpc2.NewSimpleLogFactory(&nullLogOutput{}, nil)
+	return rpc.NewSimpleLogFactory(&nullLogOutput{}, nil)
 }
 
 func genUID(t *testing.T) keybase1.UID {
@@ -73,7 +73,7 @@ func newMockProvisionee(t *testing.T, behavior int) *mockProvisionee {
 	return &mockProvisionee{behavior}
 }
 
-func (mp *mockProvisioner) GetLogFactory() rpc2.LogFactory {
+func (mp *mockProvisioner) GetLogFactory() rpc.LogFactory {
 	return makeLogFactory()
 }
 
@@ -87,7 +87,7 @@ func (mp *mockProvisioner) GetHelloArg() (res keybase1.HelloArg) {
 	return
 }
 
-func (mp *mockProvisionee) GetLogFactory() rpc2.LogFactory {
+func (mp *mockProvisionee) GetLogFactory() rpc.LogFactory {
 	return makeLogFactory()
 }
 
@@ -221,7 +221,7 @@ func TestFullProtocolXProvisioneeSlowHello(t *testing.T) {
 	t.Skip()
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowHello)
 	for i, e := range results {
-		if !eeq(e, ErrTimedOut) && !eeq(e, rpc2.EofError{}) {
+		if !eeq(e, ErrTimedOut) && !eeq(e, rpc.EofError{}) {
 			t.Fatalf("Bad error %d: %v", i, e)
 		}
 	}
@@ -241,7 +241,7 @@ func TestFullProtocolXProvisioneeSlowDidCounterSign(t *testing.T) {
 	t.Skip()
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowDidCounterSign)
 	for i, e := range results {
-		if !eeq(e, ErrTimedOut) && !eeq(e, rpc2.EofError{}) {
+		if !eeq(e, ErrTimedOut) && !eeq(e, rpc.EofError{}) {
 			t.Fatalf("Bad error %d: %v", i, e)
 		}
 	}

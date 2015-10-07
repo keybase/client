@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // SigsHandler is the RPC handler for the sigs interface.
@@ -12,7 +12,7 @@ type SigsHandler struct {
 }
 
 // NewSigsHandler creates a SigsHandler for the xp transport.
-func NewSigsHandler(xp *rpc2.Transport) *SigsHandler {
+func NewSigsHandler(xp rpc.Transporter) *SigsHandler {
 	return &SigsHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

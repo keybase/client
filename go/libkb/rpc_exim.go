@@ -8,7 +8,7 @@ import (
 	"sort"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/errors"
 )
@@ -159,7 +159,7 @@ func WrapError(e error) interface{} {
 	return ExportErrorAsStatus(e)
 }
 
-func UnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
+func UnwrapError(nxt rpc.DecodeNext) (app error, dispatch error) {
 	var s *keybase1.Status
 	if dispatch = nxt(&s); dispatch == nil {
 		app = ImportStatusAsError(s)

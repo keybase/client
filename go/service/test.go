@@ -2,14 +2,14 @@ package service
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type TestHandler struct {
 	*BaseHandler
 }
 
-func NewTestHandler(xp *rpc2.Transport) *TestHandler {
+func NewTestHandler(xp rpc.Transporter) *TestHandler {
 	return &TestHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

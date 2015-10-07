@@ -3,14 +3,14 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type RevokeHandler struct {
 	*BaseHandler
 }
 
-func NewRevokeHandler(xp *rpc2.Transport) *RevokeHandler {
+func NewRevokeHandler(xp rpc.Transporter) *RevokeHandler {
 	return &RevokeHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

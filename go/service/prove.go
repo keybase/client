@@ -4,7 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // ProveHandler is the service side of proving ownership of social media accounts
@@ -19,7 +19,7 @@ type proveUI struct {
 }
 
 // NewProveHandler makes a new ProveHandler object from an RPC transport.
-func NewProveHandler(xp *rpc2.Transport) *ProveHandler {
+func NewProveHandler(xp rpc.Transporter) *ProveHandler {
 	return &ProveHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

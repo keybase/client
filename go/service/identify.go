@@ -5,7 +5,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type RemoteBaseIdentifyUI struct {
@@ -24,7 +24,7 @@ type IdentifyHandler struct {
 	*BaseHandler
 }
 
-func NewIdentifyHandler(xp *rpc2.Transport) *IdentifyHandler {
+func NewIdentifyHandler(xp rpc.Transporter) *IdentifyHandler {
 	return &IdentifyHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

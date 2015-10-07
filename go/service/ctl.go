@@ -6,14 +6,14 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type CtlHandler struct {
 	*BaseHandler
 }
 
-func NewCtlHandler(xp *rpc2.Transport) *CtlHandler {
+func NewCtlHandler(xp rpc.Transporter) *CtlHandler {
 	return &CtlHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
