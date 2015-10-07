@@ -1,3 +1,12 @@
+## 1.0.0-29 (2015-10-06)
+
+- Bugfix: If no /dev/tty, still provide SecretEntry via UI.
+- Bugfix: Update session mtime when saving session file.
+
+## 1.0.0-28 (2015-10-06)
+
+- Performance improvement: Users plus device keys cached for kbfs.
+
 ## 1.0.0-27 (2015-10-02)
 
 - Bugfix: Now the entire runtime directory contains the "RunMode", e.g.
