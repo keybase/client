@@ -570,6 +570,89 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 	return mergedPaths, recreateOps, nil
 }
 
+// addRecreateOpsToUnmergedChains inserts each recreateOp, into its
+// appropriate unmerged chain, creating one if it doesn't exist yet.
+// It also adds entries as necessary to mergedPaths.
+func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
+	recreateOps []*createOp, unmergedChains *crChains, mergedChains *crChains,
+	mergedPaths map[BlockPointer]path) error {
+	if len(recreateOps) == 0 {
+		return nil
+	}
+
+	// First create a lookup table that maps every block pointer in
+	// every merged path a corresponding key in the mergedPaths map.
+	keys := make(map[BlockPointer]BlockPointer)
+	for ptr, p := range mergedPaths {
+		for _, node := range p.path {
+			keys[node.BlockPointer] = ptr
+		}
+	}
+
+	// we know all of these recreate ops were authored by the current user
+	kbpki := cr.config.KBPKI()
+	uid, err := kbpki.GetCurrentUID(ctx)
+	if err != nil {
+		return err
+	}
+	writerName, err := kbpki.GetNormalizedUsername(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	for _, rop := range recreateOps {
+		rop.setWriterName(writerName)
+
+		// If rop.Dir.Unref is a merged most recent pointer, look up the
+		// original.  Otherwise rop.Dir.Unref is the original.  Use the
+		// original to look up the appropriate unmerged chain and stick
+		// this op at the front.
+		origTargetPtr := rop.Dir.Unref
+		if ptr, err :=
+			mergedChains.originalFromMostRecent(origTargetPtr); err == nil {
+			origTargetPtr = ptr
+		}
+
+		chain, ok := unmergedChains.byOriginal[origTargetPtr]
+		if !ok {
+			oldUnref := rop.Dir.Unref
+			rop.Dir.Unref = origTargetPtr
+			rop.Dir.Ref = rop.Dir.Unref // so that most recent == original
+			err := unmergedChains.makeChainForOp(rop)
+			if err != nil {
+				return err
+			}
+			rop.Dir.Unref = oldUnref
+			rop.Dir.Ref = BlockPointer{}
+			chain = unmergedChains.byOriginal[origTargetPtr]
+		} else {
+			chain.ops = append([]op{rop}, chain.ops...)
+		}
+
+		// Look up the corresponding unmerged most recent pointer, and
+		// check whether there's a merged path for it yet.  If not,
+		// create one by looking it up in the lookup table (created
+		// above) and taking the appropriate subpath.
+		mergedPath, ok := mergedPaths[chain.mostRecent]
+		if !ok {
+			key, ok := keys[rop.Dir.Unref]
+			if !ok {
+				return fmt.Errorf("Couldn't find a merged path containing the "+
+					"target of a recreate op: %v", rop.Dir.Unref)
+			}
+			currPath := mergedPaths[key]
+			for currPath.tailPointer() != rop.Dir.Unref &&
+				currPath.hasValidParent() {
+				currPath = *currPath.parentPath()
+			}
+			mergedPath = currPath
+			mergedPaths[chain.mostRecent] = currPath
+		}
+		rop.setFinalPath(mergedPath)
+	}
+	return nil
+}
+
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
@@ -631,8 +714,24 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// * Find the corresponding path in the merged branch for each of
 	// these unmerged paths, and the set of any createOps needed to
 	// apply these unmerged operations in the merged branch.
-	_, _, err = cr.resolveMergedPaths(ctx, unmergedPaths, unmergedChains,
-		mergedChains, merged[len(merged)-1])
+	mergedPaths, recreateOps, err :=
+		cr.resolveMergedPaths(ctx, unmergedPaths, unmergedChains,
+			mergedChains, merged[len(merged)-1])
+	if err != nil {
+		return
+	}
+	err = cr.checkDone(ctx)
+	if err != nil {
+		return
+	}
+
+	// Process all the recreateOps, adding them to the appropriate
+	// unmerged chains.
+	err = cr.addRecreateOpsToUnmergedChains(ctx, recreateOps, unmergedChains,
+		mergedChains, mergedPaths)
+	if err != nil {
+		return
+	}
 
 	// TODO:
 	// * For syncOps, add a syncAttr setAttrOp to the parent unmerged dir chain
