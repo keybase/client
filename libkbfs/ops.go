@@ -137,8 +137,14 @@ type createOp struct {
 	Type    EntryType   `codec:"t"`
 
 	// If true, this create op represents half of a rename operation.
-	// This op should never be persisted in a real directory entry
+	// This op should never be persisted.
 	renamed bool
+
+	// If this is set, ths create op needs to be turned has been
+	// turned into a symlink creation locally to avoid a cycle during
+	// conflict resolution, and the following field represents the
+	// text of the symlink. This op should never be persisted.
+	crSymPath string
 }
 
 func newCreateOp(name string, oldDir BlockPointer, t EntryType) *createOp {

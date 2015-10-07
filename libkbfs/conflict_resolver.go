@@ -677,6 +677,105 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 	return nil
 }
 
+// fixRenameCycles checks every unmerged createOp associated with a
+// rename to see if it will cause a cycle.  If so, it makes it a
+// symlink create operation instead.
+func (cr *ConflictResolver) fixRenameCycles(unmergedChains *crChains,
+	mergedChains *crChains, mergedPaths map[BlockPointer]path) error {
+	// For every renamed block pointer in the unmerged chains:
+	//   * Check if any BlockPointer in its merged path contains a relative of
+	//     itself
+	//   * If so, replace the corresponding unmerged create operation with a
+	//     symlink creation to the new merged path instead.
+	// So, if in the merged branch someone did `mv b/ a/` and in the unmerged
+	// branch someone did `mv a/ b/`, the conflict resolution would end up with
+	// `a/b/a` where the second a is a symlink to "../../".
+	for ptr, info := range unmergedChains.renamedOriginals {
+		// The merged path is keyed by the most recent unmerged tail
+		// pointer.
+		parent, err :=
+			unmergedChains.mostRecentFromOriginal(info.originalNewParent)
+		if err != nil {
+			return err
+		}
+
+		mergedPath, ok := mergedPaths[parent]
+		if !ok {
+			// There should definitely be a merged path for this
+			// parent, since it has a create operation.
+			return fmt.Errorf("fixRenameCycles: couldn't find merged path "+
+				"for %v", parent)
+		}
+
+		for i, pn := range mergedPath.path {
+			original, err :=
+				mergedChains.originalFromMostRecent(pn.BlockPointer)
+			if err != nil {
+				// This node wasn't changed in the merged branch
+				original = pn.BlockPointer
+			}
+			// If any node on this path matches the renamed pointer,
+			// we have a cycle.
+			if original == ptr {
+				chain, ok := unmergedChains.byMostRecent[parent]
+				if !ok {
+					return fmt.Errorf("fixRenameCycles: no chain for parent %v",
+						parent)
+				}
+
+				found := false
+				for _, op := range chain.ops {
+					switch cop := op.(type) {
+					case *createOp:
+						if !cop.renamed || cop.NewName != info.newName {
+							continue
+						}
+
+						// Mark this as a symlink, and the resolver
+						// will take care of making it a symlink in
+						// the merged branch later. No need to copy
+						// since this createOp must have been created
+						// as part of conflict resolution.
+						cop.Type = Sym
+						symPath := "./"
+						for j := len(mergedPath.path); j > i; j-- {
+							symPath += "../"
+						}
+						cop.crSymPath = symPath
+
+						// Fix up the corresponding rmOp to make sure
+						// that it gets dropped
+						oldParentChain :=
+							unmergedChains.byOriginal[info.originalOldParent]
+						for _, oldOp := range oldParentChain.ops {
+							ro, ok := oldOp.(*rmOp)
+							if !ok {
+								continue
+							}
+							if ro.OldName == info.oldName {
+								// No need to copy since this createOp
+								// must have been created as part of
+								// conflict resolution.
+								ro.dropThis = true
+								break
+							}
+						}
+
+						found = true
+						break
+					}
+				}
+				if !found {
+					return fmt.Errorf("fixRenameCycles: couldn't find rename "+
+						"op corresponding to %v,%s in parent %v",
+						ptr, info.newName, parent)
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
@@ -753,6 +852,13 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// unmerged chains.
 	err = cr.addRecreateOpsToUnmergedChains(ctx, recreateOps, unmergedChains,
 		mergedChains, mergedPaths)
+	if err != nil {
+		return
+	}
+
+	// Fix any rename cycles by turning the corresponding unmerged
+	// createOp into a symlink entry type.
+	err = cr.fixRenameCycles(unmergedChains, mergedChains, mergedPaths)
 	if err != nil {
 		return
 	}
