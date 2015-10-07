@@ -519,7 +519,7 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 			append(chainsToSearchFor[mostRecent], p.tailPointer())
 
 		// At the end of this process, we are left with a merged path
-		// that begins just after currOriginal.  We will fill this in
+		// that begins just after mostRecent.  We will fill this in
 		// later with the searchFromNodes result.
 		mergedPaths[p.tailPointer()] = mergedPath
 	}
