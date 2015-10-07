@@ -218,6 +218,7 @@ func TestFullProtocolXProvisioneeFailDidCounterSign(t *testing.T) {
 }
 
 func TestFullProtocolXProvisioneeSlowHello(t *testing.T) {
+	t.Skip()
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowHello)
 	for i, e := range results {
 		if !eeq(e, ErrTimedOut) && !eeq(e, rpc2.EofError{}) {
@@ -227,6 +228,7 @@ func TestFullProtocolXProvisioneeSlowHello(t *testing.T) {
 }
 
 func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
+	t.Skip()
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowHello|BadProvisioneeCancel)
 	for i, e := range results {
 		if !eeq(e, ErrCanceled) && !eeq(e, io.EOF) {
@@ -236,6 +238,7 @@ func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
 }
 
 func TestFullProtocolXProvisioneeSlowDidCounterSign(t *testing.T) {
+	t.Skip()
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowDidCounterSign)
 	for i, e := range results {
 		if !eeq(e, ErrTimedOut) && !eeq(e, rpc2.EofError{}) {

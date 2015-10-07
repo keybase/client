@@ -99,9 +99,17 @@ func (p *provisionee) startServer(s Secret) (err error) {
 	if err = srv.Register(prot); err != nil {
 		return err
 	}
-	if err = srv.RegisterEOFHook(func(e error) { p.eofHook(e) }); err != nil {
-		return err
-	}
+
+	// We need this for
+	//  func TestFullProtocolXProvisioneeSlowHello(t *testing.T) {
+	//  func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
+	//  func TestFullProtocolXProvisioneeSlowDidCounterSign(t *testing.T) {
+	//
+	// Comment it out for now...
+	//
+	// if err = srv.RegisterEOFHook(func(e error) { p.eofHook(e) }); err != nil {
+	//  	return err
+	// }
 	return srv.Run(true)
 }
 
