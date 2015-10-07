@@ -103,7 +103,7 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
 				Usage: "Disable exporting of new keys to GPG keychain.",
 			},
 		},
-		Description : `"keybase pgp gen" generates a new PGP key for this account.
+		Description: `"keybase pgp gen" generates a new PGP key for this account.
    In all cases, it signs the public key with an exising device key,
    and pushes the signature to the server. Thus, the user will have a
    publicly-visible "PGP device" after running this operation.
