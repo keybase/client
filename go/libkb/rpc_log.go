@@ -4,7 +4,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // RPC log options, can turn on debugging, &c.

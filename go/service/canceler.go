@@ -3,7 +3,7 @@ package service
 import (
 	"sync"
 
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // Cancelers are types with a Cancel method.  This is currently

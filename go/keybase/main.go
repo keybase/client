@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // Keep this around to simplify things

@@ -241,7 +241,7 @@ class GoEmitter2 extends GoEmitter
   special_wrapper_object : () -> true
 
   emit_imports : () ->
-    @output '"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"'
+    @output 'rpc "github.com/keybase/go-framed-msgpack-rpc"'
 
   emit_server_hook : (name, details) ->
     arg = details.request

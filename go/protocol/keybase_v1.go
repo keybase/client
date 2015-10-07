@@ -1,7 +1,7 @@
 package keybase1
 
 import (
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type GenericClient interface {

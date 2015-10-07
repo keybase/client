@@ -2,7 +2,7 @@ package service
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type TestHandler struct {
