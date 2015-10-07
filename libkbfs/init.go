@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime/pprof"
+	"strings"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
@@ -16,7 +17,7 @@ import (
 
 func makeMDServer(config Config, serverRootDir *string, mdserverAddr string) (
 	MDServer, error) {
-	if serverRootDir == nil {
+	if len(*serverRootDir) == 0 {
 		// local in-memory MD server
 		return NewMDServerMemory(config)
 	}
@@ -57,7 +58,7 @@ func makeKeyServer(config Config, serverRootDir *string, keyserverAddr string) (
 func makeBlockServer(config Config, serverRootDir *string, bserverAddr string) (
 	BlockServer, error) {
 	if len(bserverAddr) == 0 {
-		if serverRootDir == nil {
+		if len(*serverRootDir) == 0 {
 			return NewBlockServerMemory(config)
 		}
 
@@ -183,7 +184,11 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
 	// TODO: handle production mode when it exists
-	if libkb.G.Env.GetRunMode() == libkb.StagingRunMode {
+	// in production mode, one must connect to a backend server in
+	// the dev.keybase.io domain
+	if libkb.G.Env.GetRunMode() == libkb.StagingRunMode &&
+		strings.HasSuffix(bserverAddr, "dev.keybase.io") &&
+		strings.HasSuffix(mdserverAddr, "dev.keybase.io") {
 		config.SetRootCerts([]byte(DevRootCerts))
 	}
 

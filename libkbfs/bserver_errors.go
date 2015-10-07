@@ -164,7 +164,7 @@ func (eu bServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, di
 		return nil, errors.New("Error converting arg to keybase1.Status object in bServerErrorUnwrapper.UnwrapError")
 	}
 
-	if s == nil {
+	if s == nil || s.Code == 0 {
 		return nil, nil
 	}
 

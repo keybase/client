@@ -86,7 +86,7 @@ var _ fs.HandleWriter = (*File)(nil)
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
 	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
-	f.folder.fs.log.CDebugf(ctx, "File Write")
+	f.folder.fs.log.CDebugf(ctx, "File Write sz=%d ", len(req.Data))
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
 	if err := f.folder.fs.config.KBFSOps().Write(
