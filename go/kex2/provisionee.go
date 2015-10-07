@@ -84,7 +84,7 @@ func (p *provisionee) run() (err error) {
 	return err
 }
 
-func (p *provisionee) EOFHook(e error) {
+func (p *provisionee) eofHook(e error) {
 	p.done <- e
 	return
 }
@@ -99,7 +99,7 @@ func (p *provisionee) startServer(s Secret) (err error) {
 	if err = srv.Register(prot); err != nil {
 		return err
 	}
-	if err = srv.RegisterEOFHook(func(e error) { p.EOFHook(e) }); err != nil {
+	if err = srv.RegisterEOFHook(func(e error) { p.eofHook(e) }); err != nil {
 		return err
 	}
 	return srv.Run(true)
