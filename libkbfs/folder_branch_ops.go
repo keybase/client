@@ -1096,7 +1096,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 		}
 
 		// prepend to path and setup next one
-		newPath.path = append([]pathNode{pathNode{info.BlockPointer, currName}},
+		newPath.path = append([]pathNode{{info.BlockPointer, currName}},
 			newPath.path...)
 
 		// get the parent block
@@ -2211,7 +2211,7 @@ func (fbo *FolderBranchOps) writeDataLocked(
 						Seed:  rand.Int63(),
 					},
 					IPtrs: []IndirectFilePtr{
-						IndirectFilePtr{
+						{
 							BlockInfo: BlockInfo{
 								BlockPointer: BlockPointer{
 									ID:       newID,
@@ -3377,7 +3377,7 @@ func (fbo *FolderBranchOps) reembedBlockChanges(ctx context.Context,
 			p := path{
 				FolderBranch: fbo.folderBranch,
 				path: []pathNode{
-					pathNode{BlockPointer: rmd.data.Changes.Pointer}},
+					{BlockPointer: rmd.data.Changes.Pointer}},
 			}
 			return fbo.getFileLocked(ctx, rmd, p, read)
 		}()

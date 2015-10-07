@@ -191,7 +191,7 @@ func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	ops.head = rmd
 	rmd.SerializedPrivateMetadata = make([]byte, 1)
 	config.Notifier().RegisterForChanges(
-		[]FolderBranch{FolderBranch{id, MasterBranch}}, config.observer)
+		[]FolderBranch{{id, MasterBranch}}, config.observer)
 	rmd.data.Dir.Creator = uid
 	return uid, id, rmd
 }
@@ -1152,7 +1152,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 		refBlocks = append(refBlocks, newP.path[2].BlockPointer)
 	}
 	updates := []blockUpdate{
-		blockUpdate{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
+		{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
 	}
 	checkOp(t, co.OpCommon, refBlocks, nil, updates)
 	dirUpdate := blockUpdate{rootBlock.Children["a"].BlockPointer,
@@ -1300,7 +1300,7 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	}
 	unrefBlocks := []BlockPointer{bNode.BlockPointer}
 	updates := []blockUpdate{
-		blockUpdate{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
+		{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
 	}
 	checkOp(t, ro.OpCommon, nil, unrefBlocks, updates)
 	dirUpdate := blockUpdate{rootBlock.Children["a"].BlockPointer,
@@ -1349,10 +1349,10 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, uid, 5), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, uid, 5), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, uid, 5), 15},
+		{makeBI(id1, rmd, config, uid, 5), 0},
+		{makeBI(id2, rmd, config, uid, 5), 5},
+		{makeBI(id3, rmd, config, uid, 5), 10},
+		{makeBI(id4, rmd, config, uid, 5), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -1406,7 +1406,7 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 		t.Errorf("Couldn't find the rmOp")
 	}
 	unrefBlocks := []BlockPointer{
-		BlockPointer{ID: fileID, KeyGen: 1},
+		{ID: fileID, KeyGen: 1},
 		fileBlock.IPtrs[0].BlockPointer,
 		fileBlock.IPtrs[1].BlockPointer,
 		fileBlock.IPtrs[2].BlockPointer,
@@ -1560,7 +1560,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 		t.Errorf("Couldn't find the renameOp")
 	}
 	updates := []blockUpdate{
-		blockUpdate{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
+		{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
 	}
 	checkOp(t, ro.OpCommon, nil, nil, updates)
 	oldDirUpdate := blockUpdate{aNode.BlockPointer, newP.path[1].BlockPointer}
@@ -1648,7 +1648,7 @@ func TestRenameInDirOverEntrySuccess(t *testing.T) {
 		t.Errorf("Couldn't find the renameOp")
 	}
 	updates := []blockUpdate{
-		blockUpdate{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
+		{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
 	}
 	checkOp(t, ro.OpCommon, nil, []BlockPointer{cNode.BlockPointer}, updates)
 	oldDirUpdate := blockUpdate{aNode.BlockPointer, newP.path[1].BlockPointer}
@@ -1825,7 +1825,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 		t.Errorf("Couldn't find the renameOp")
 	}
 	updates := []blockUpdate{
-		blockUpdate{rmd.data.Dir.BlockPointer, newP1.path[0].BlockPointer},
+		{rmd.data.Dir.BlockPointer, newP1.path[0].BlockPointer},
 	}
 	checkOp(t, ro.OpCommon, nil, nil, updates)
 	oldDirUpdate := blockUpdate{aNode.BlockPointer, newP1.path[1].BlockPointer}
@@ -2179,10 +2179,10 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, u, 0), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, u, 6), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, u, 7), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, u, 8), 15},
+		{makeBI(id1, rmd, config, u, 0), 0},
+		{makeBI(id2, rmd, config, u, 6), 5},
+		{makeBI(id3, rmd, config, u, 7), 10},
+		{makeBI(id4, rmd, config, u, 8), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2233,10 +2233,10 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, u, 0), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, u, 6), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, u, 7), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, u, 8), 15},
+		{makeBI(id1, rmd, config, u, 0), 0},
+		{makeBI(id2, rmd, config, u, 6), 5},
+		{makeBI(id3, rmd, config, u, 7), 10},
+		{makeBI(id4, rmd, config, u, 8), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2450,7 +2450,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{0, uint64(len(data))}})
+		[]WriteRange{{0, uint64(len(data))}})
 }
 
 func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
@@ -2509,7 +2509,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{5, uint64(len(data))}})
+		[]WriteRange{{5, uint64(len(data))}})
 }
 
 func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
@@ -2568,7 +2568,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{7, uint64(len(data))}})
+		[]WriteRange{{7, uint64(len(data))}})
 }
 
 func TestKBFSOpsWriteCauseSplit(t *testing.T) {
@@ -2676,7 +2676,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 			pblock.IPtrs[1].BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{1, uint64(len(newData))}})
+		[]WriteRange{{1, uint64(len(newData))}})
 }
 
 func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
@@ -2700,8 +2700,8 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, uid, 6), 5},
+		{makeBI(id1, rmd, config, uid, 5), 0},
+		{makeBI(id2, rmd, config, uid, 6), 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2758,7 +2758,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 
 	// merge the unref cache to make it easy to check for changes
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{2, uint64(len(data))}})
+		[]WriteRange{{2, uint64(len(data))}})
 	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
@@ -2830,7 +2830,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{0, 0}})
+		[]WriteRange{{0, 0}})
 }
 
 func TestKBFSOpsTruncateSameSize(t *testing.T) {
@@ -2919,7 +2919,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 			fileNode.BlockPointer: p.Branch,
 		})
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{5, 0}})
+		[]WriteRange{{5, 0}})
 }
 
 func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
@@ -2941,8 +2941,8 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, uid, 6), 5},
+		{makeBI(id1, rmd, config, uid, 5), 0},
+		{makeBI(id2, rmd, config, uid, 6), 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -2974,7 +2974,7 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 
 	// merge unref changes so we can easily check the block changes
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{7, 0}})
+		[]WriteRange{{7, 0}})
 	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
@@ -3021,8 +3021,8 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, uid, 6), 5},
+		{makeBI(id1, rmd, config, uid, 5), 0},
+		{makeBI(id2, rmd, config, uid, 6), 5},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -3051,7 +3051,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 
 	// merge unref changes so we can easily check the block changes
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{4, 0}})
+		[]WriteRange{{4, 0}})
 	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
@@ -3134,7 +3134,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	// A truncate past the end of the file actually translates into a
 	// write for the difference
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
-		[]WriteRange{WriteRange{5, 5}})
+		[]WriteRange{{5, 5}})
 }
 
 func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
@@ -3484,7 +3484,7 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 		t.Errorf("Couldn't find the syncOp")
 	}
 	updates := []blockUpdate{
-		blockUpdate{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
+		{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
 	}
 	checkOp(t, so.OpCommon, nil, nil, updates)
 	fileUpdate := blockUpdate{aNode.BlockPointer, newP.path[1].BlockPointer}
@@ -3493,7 +3493,7 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 			fileUpdate)
 	}
 	// make sure the write is propagated
-	checkSyncOp(t, so, aNode.BlockPointer, []WriteRange{WriteRange{0, 10}})
+	checkSyncOp(t, so, aNode.BlockPointer, []WriteRange{{0, 10}})
 }
 
 func TestSyncDirtySuccess(t *testing.T) {
@@ -3587,11 +3587,11 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, uid, 5), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config,
+		{makeBI(id1, rmd, config, uid, 5), 0},
+		{makeBI(id2, rmd, config,
 			keybase1.MakeTestUID(0), 0), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, uid, 7), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, uid, 0), 15},
+		{makeBI(id3, rmd, config, uid, 7), 10},
+		{makeBI(id4, rmd, config, uid, 0), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -3672,7 +3672,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 		makeBP(id4, rmd, config, keybase1.MakeTestUID(0)),
 	}
 	updates := []blockUpdate{
-		blockUpdate{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
+		{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
 	}
 	checkOp(t, so.OpCommon, refBlocks, unrefBlocks, updates)
 	fileUpdate := blockUpdate{fileNode.BlockPointer, newP.path[1].BlockPointer}
@@ -3773,7 +3773,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 		t.Errorf("Couldn't find the syncOp")
 	}
 	updates := []blockUpdate{
-		blockUpdate{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
+		{rmd.data.Dir.BlockPointer, newP.path[0].BlockPointer},
 	}
 	checkOp(t, so.OpCommon, nil, nil, updates)
 	fileUpdate := blockUpdate{bNode.BlockPointer, newP.path[1].BlockPointer}
@@ -3782,7 +3782,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 			fileUpdate)
 	}
 	// make sure the write is propagated
-	checkSyncOp(t, so, bNode.BlockPointer, []WriteRange{WriteRange{0, 10}})
+	checkSyncOp(t, so, bNode.BlockPointer, []WriteRange{{0, 10}})
 }
 
 func putAndCleanAnyBlock(config *ConfigMock, p path) {
@@ -3823,10 +3823,10 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, uid, 10), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, uid, 0), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, uid, 0), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, uid, 0), 15},
+		{makeBI(id1, rmd, config, uid, 10), 0},
+		{makeBI(id2, rmd, config, uid, 0), 5},
+		{makeBI(id3, rmd, config, uid, 0), 10},
+		{makeBI(id4, rmd, config, uid, 0), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}
@@ -4004,10 +4004,10 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
 	fileBlock.IPtrs = []IndirectFilePtr{
-		IndirectFilePtr{makeBI(id1, rmd, config, uid, 0), 0},
-		IndirectFilePtr{makeBI(id2, rmd, config, uid, 10), 5},
-		IndirectFilePtr{makeBI(id3, rmd, config, uid, 0), 10},
-		IndirectFilePtr{makeBI(id4, rmd, config, uid, 15), 15},
+		{makeBI(id1, rmd, config, uid, 0), 0},
+		{makeBI(id2, rmd, config, uid, 10), 5},
+		{makeBI(id3, rmd, config, uid, 0), 10},
+		{makeBI(id4, rmd, config, uid, 15), 15},
 	}
 	block1 := NewFileBlock().(*FileBlock)
 	block1.Contents = []byte{5, 4, 3, 2, 1}

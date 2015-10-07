@@ -48,37 +48,37 @@ func setupNodeCache(t *testing.T, id TlfID, branch BranchName, flat bool) (
 	}
 
 	childPath1 = []pathNode{
-		pathNode{
+		{
 			BlockPointer: parentPtr,
 			Name:         parentName,
 		},
-		pathNode{
+		{
 			BlockPointer: childPtr1,
 			Name:         childName1,
 		},
 	}
 	if flat {
 		childPath2 = []pathNode{
-			pathNode{
+			{
 				BlockPointer: parentPtr,
 				Name:         parentName,
 			},
-			pathNode{
+			{
 				BlockPointer: childPtr2,
 				Name:         childName2,
 			},
 		}
 	} else {
 		childPath2 = []pathNode{
-			pathNode{
+			{
 				BlockPointer: parentPtr,
 				Name:         parentName,
 			},
-			pathNode{
+			{
 				BlockPointer: childPtr1,
 				Name:         childName1,
 			},
-			pathNode{
+			{
 				BlockPointer: childPtr2,
 				Name:         childName2,
 			},

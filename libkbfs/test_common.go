@@ -398,7 +398,7 @@ func testWithCanceledContext(t *testing.T, ctx context.Context,
 func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
 	return TLFKeyBundle{
 		RKeys: map[keybase1.UID]UserCryptKeyBundle{
-			uid: UserCryptKeyBundle{
+			uid: {
 				cryptPublicKey.KID: TLFCryptKeyInfo{},
 			},
 		},
@@ -410,7 +410,7 @@ func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBu
 func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
 	return TLFKeyBundle{
 		WKeys: map[keybase1.UID]UserCryptKeyBundle{
-			uid: UserCryptKeyBundle{
+			uid: {
 				cryptPublicKey.KID: TLFCryptKeyInfo{},
 			},
 		},
