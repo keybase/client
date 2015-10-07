@@ -6,7 +6,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -30,22 +30,22 @@ func NewKeybaseDaemonRPC(ctx *libkb.GlobalContext, log logger.Logger) (KeybaseDa
 		return KeybaseDaemonRPC{}, err
 	}
 
-	srv := rpc2.NewServer(xp, libkb.WrapError)
+	srv := rpc.NewServer(xp, libkb.WrapError)
 
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		client.NewLogUIProtocol(),
 		client.NewIdentifyUIProtocol(),
 	}
 
 	for _, p := range protocols {
 		if err := srv.Register(p); err != nil {
-			if _, ok := err.(rpc2.AlreadyRegisteredError); !ok {
+			if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
 				return KeybaseDaemonRPC{}, err
 			}
 		}
 	}
 
-	client := rpc2.NewClient(xp, libkb.UnwrapError)
+	client := rpc.NewClient(xp, libkb.UnwrapError)
 	identifyClient := keybase1.IdentifyClient{Cli: client}
 	sessionClient := keybase1.SessionClient{Cli: client}
 	favoriteClient := keybase1.FavoriteClient{Cli: client}

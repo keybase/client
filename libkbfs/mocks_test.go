@@ -9,7 +9,7 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	protocol "github.com/keybase/client/go/protocol"
-	rpc2 "github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	go_framed_msgpack_rpc "github.com/keybase/go-framed-msgpack-rpc"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
 	reflect "reflect"
@@ -467,6 +467,17 @@ func (_m *MockKeybaseDaemon) Identify(ctx context.Context, assertion string) (Us
 
 func (_mr *_MockKeybaseDaemonRecorder) Identify(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1)
+}
+
+func (_m *MockKeybaseDaemon) LoadUserPlusKeys(ctx context.Context, uid protocol.UID) (UserInfo, error) {
+	ret := _m.ctrl.Call(_m, "LoadUserPlusKeys", ctx, uid)
+	ret0, _ := ret[0].(UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseDaemonRecorder) LoadUserPlusKeys(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUserPlusKeys", arg0, arg1)
 }
 
 func (_m *MockKeybaseDaemon) CurrentUID(ctx context.Context, sessionID int) (protocol.UID, error) {
@@ -2363,7 +2374,7 @@ func (_mr *_MockConnectionTransportRecorder) Dial(arg0, arg1 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Dial", arg0, arg1)
 }
 
-func (_m *MockConnectionTransport) Serve(server rpc2.Protocol) error {
+func (_m *MockConnectionTransport) Serve(server go_framed_msgpack_rpc.Protocol) error {
 	ret := _m.ctrl.Call(_m, "Serve", server)
 	ret0, _ := ret[0].(error)
 	return ret0

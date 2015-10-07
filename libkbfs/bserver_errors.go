@@ -6,7 +6,7 @@ import (
 	"bazil.org/fuse"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 const (
@@ -150,7 +150,7 @@ func (e BServerErrorBlockNonExistent) Error() string {
 }
 
 // BServerUnwrapError unwraps errors from the rpc stack.
-func BServerUnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
+func BServerUnwrapError(nxt rpc.DecodeNext) (app error, dispatch error) {
 	var s *keybase1.Status
 	if dispatch = nxt(&s); dispatch == nil {
 		if s == nil {

@@ -11,7 +11,7 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -34,13 +34,13 @@ type ConnectionHandler interface {
 	ShouldThrottle(error) bool
 }
 
-// ConnectionTransportTLS is a ConnectionTransport implementation that uses TLS+rpc2.
+// ConnectionTransportTLS is a ConnectionTransport implementation that uses TLS+rpc.
 type ConnectionTransportTLS struct {
 	config          Config
-	unwrapErrFunc   rpc2.UnwrapErrorFunc
-	transport       *rpc2.Transport
-	stagedTransport *rpc2.Transport
-	server          *rpc2.Server
+	unwrapErrFunc   rpc.UnwrapErrorFunc
+	transport       rpc.Transporter
+	stagedTransport rpc.Transporter
+	server          *rpc.Server
 	conn            net.Conn
 	mutex           sync.Mutex // protects transport and server
 }
@@ -67,19 +67,19 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context, srvAddr string) (
 		return nil, err
 	}
 
-	ct.stagedTransport = rpc2.NewTransport(ct.conn, libkb.NewRPCLogFactory(), libkb.WrapError)
-	client := rpc2.NewClient(ct.stagedTransport, ct.unwrapErrFunc)
+	ct.stagedTransport = rpc.NewTransport(ct.conn, libkb.NewRPCLogFactory(), libkb.WrapError)
+	client := rpc.NewClient(ct.stagedTransport, ct.unwrapErrFunc)
 	return client, nil
 }
 
 // Serve is an implementation of the ConnectionTransport interface.
-func (ct *ConnectionTransportTLS) Serve(server rpc2.Protocol) error {
+func (ct *ConnectionTransportTLS) Serve(server rpc.Protocol) error {
 	ct.mutex.Lock()
 	defer ct.mutex.Unlock()
 	if ct.server != nil {
 		return nil
 	}
-	ct.server = rpc2.NewServer(ct.transport, libkb.WrapError)
+	ct.server = rpc.NewServer(ct.transport, libkb.WrapError)
 	err := ct.server.Register(server)
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ type Connection struct {
 
 // NewConnection returns a newly connected connection.
 func NewConnection(ctx context.Context, config Config, srvAddr string,
-	handler ConnectionHandler, errFunc rpc2.UnwrapErrorFunc) *Connection {
+	handler ConnectionHandler, errFunc rpc.UnwrapErrorFunc) *Connection {
 	transport := &ConnectionTransportTLS{config: config, unwrapErrFunc: errFunc}
 	return newConnectionWithTransport(ctx, config, srvAddr, handler, transport)
 }
@@ -237,8 +237,8 @@ func (c *Connection) checkForRetry(err error) bool {
 	if err == nil {
 		return false
 	}
-	_, disconnected := err.(rpc2.DisconnectedError)
-	_, eof := err.(rpc2.EofError)
+	_, disconnected := err.(rpc.DisconnectedError)
+	_, eof := err.(rpc.EofError)
 	return disconnected || eof
 }
 
@@ -295,7 +295,7 @@ func (c *Connection) GetClient() keybase1.GenericClient {
 }
 
 // Serve is called to act as a server for an upstream client.
-func (c *Connection) Serve(server rpc2.Protocol) error {
+func (c *Connection) Serve(server rpc.Protocol) error {
 	return c.transport.Serve(server)
 }
 

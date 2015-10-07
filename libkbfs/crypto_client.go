@@ -4,7 +4,7 @@ import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -27,21 +27,21 @@ func NewCryptoClient(config Config, ctx *libkb.GlobalContext) (
 		return nil, err
 	}
 
-	srv := rpc2.NewServer(xp, libkb.WrapError)
+	srv := rpc.NewServer(xp, libkb.WrapError)
 
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		client.NewSecretUIProtocol(),
 	}
 
 	for _, p := range protocols {
 		if err := srv.Register(p); err != nil {
-			if _, ok := err.(rpc2.AlreadyRegisteredError); !ok {
+			if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
 				return nil, err
 			}
 		}
 	}
 
-	client := rpc2.NewClient(xp, libkb.UnwrapError)
+	client := rpc.NewClient(xp, libkb.UnwrapError)
 	return newCryptoClientWithClient(config, ctx, client), nil
 }
 

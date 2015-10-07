@@ -7,7 +7,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -50,7 +50,7 @@ func (ut *unitTester) Dial(ctx context.Context, srvAddr string) (
 }
 
 // Serve implements the ConnectionTransport interface.
-func (ut *unitTester) Serve(rpc2.Protocol) error {
+func (ut *unitTester) Serve(rpc.Protocol) error {
 	return nil
 }
 

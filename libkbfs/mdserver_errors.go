@@ -8,7 +8,7 @@ import (
 	"bazil.org/fuse"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 const (
@@ -215,7 +215,7 @@ func (e MDServerErrorConditionFailed) ToStatus() (s keybase1.Status) {
 }
 
 // MDServerUnwrapError unwraps errors from the rpc stack.
-func MDServerUnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
+func MDServerUnwrapError(nxt rpc.DecodeNext) (app error, dispatch error) {
 	var s *keybase1.Status
 	if dispatch = nxt(&s); dispatch == nil {
 		if s == nil {

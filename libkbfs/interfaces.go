@@ -8,7 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/maxtaco/go-framed-msgpack-rpc/rpc2"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
@@ -913,7 +913,7 @@ type ConnectionTransport interface {
 
 	// Serve is called when the client needs to act as a server on behalf
 	// of a server who wants to act as a client, e.g. push notifications.
-	Serve(server rpc2.Protocol) error
+	Serve(server rpc.Protocol) error
 
 	// IsConnected is called to check for connection status.
 	IsConnected() bool
