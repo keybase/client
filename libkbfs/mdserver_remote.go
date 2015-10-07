@@ -12,14 +12,13 @@ import (
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
-	config Config
-	conn   *Connection
-	log    logger.Logger
+	config        Config
+	conn          *Connection
+	clientFactory ClientFactory
+	log           logger.Logger
 
 	observerMu sync.Mutex // protects observers
 	observers  map[TlfID]chan<- error
-
-	testClient keybase1.GenericClient // for testing
 
 	tickerCancel context.CancelFunc
 	tickerMu     sync.Mutex // protects the ticker cancel function
@@ -38,8 +37,9 @@ func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) *MDSe
 		observers: make(map[TlfID]chan<- error),
 		log:       config.MakeLogger(""),
 	}
-	connection := NewConnection(ctx, config, srvAddr, mdServer, MDServerUnwrapError)
-	mdServer.conn = connection
+	conn := NewConnection(ctx, config, srvAddr, mdServer, MDServerUnwrapError)
+	mdServer.conn = conn
+	mdServer.clientFactory = ConnectionClientFactory{conn}
 	return mdServer
 }
 
@@ -47,9 +47,9 @@ func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) *MDSe
 func newMDServerRemoteWithClient(ctx context.Context, config Config,
 	testClient keybase1.GenericClient) *MDServerRemote {
 	mdServer := &MDServerRemote{
-		config:     config,
-		testClient: testClient,
-		log:        config.MakeLogger(""),
+		config:        config,
+		clientFactory: CancelableClientFactory{testClient},
+		log:           config.MakeLogger(""),
 	}
 	return mdServer
 }
@@ -79,13 +79,10 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		Sid:       token,
 	}
 
-	// save the conn pointer
-	md.conn = conn
-
-	// using conn.DoCommand here would cause problematic recursion
+	// using GetClient() here would cause problematic recursion
+	c := keybase1.MetadataClient{Cli: client}
 	var pingIntervalSeconds int
 	err = runUnlessCanceled(ctx, func() error {
-		c := keybase1.MetadataClient{Cli: client}
 		pingIntervalSeconds, err = c.Authenticate(creds)
 		return err
 	})
@@ -120,10 +117,11 @@ func (md *MDServerRemote) resetPingTicker(intervalSeconds int) {
 		for {
 			select {
 			case <-ticker.C:
-				// wrap with doCommand so failures trigger reconnects
-				md.doCommand(ctx, func() error {
-					return md.client().Ping()
-				})
+				err := md.client(ctx).Ping()
+				if err != nil {
+					md.log.Debug("MDServerRemote: ping error %s", err)
+				}
+
 			case <-ctx.Done():
 				md.log.Debug("MDServerRemote: stopping ping ticker")
 				ticker.Stop()
@@ -176,22 +174,8 @@ func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id Tlf
 }
 
 // Helper to return a metadata client.
-func (md *MDServerRemote) client() keybase1.MetadataClient {
-	if md.testClient != nil {
-		// for testing
-		return keybase1.MetadataClient{Cli: md.testClient}
-	}
-	return keybase1.MetadataClient{Cli: md.conn.GetClient()}
-}
-
-// Helper to call an rpc command.
-func (md *MDServerRemote) doCommand(ctx context.Context, command func() error) error {
-	if md.testClient != nil {
-		// for testing
-		return runUnlessCanceled(ctx, command)
-	}
-
-	return md.conn.DoCommand(ctx, command)
+func (md *MDServerRemote) client(ctx context.Context) keybase1.MetadataClient {
+	return keybase1.MetadataClient{Cli: md.clientFactory.GetClient(ctx)}
 }
 
 // Helper used to retrieve metadata blocks from the MD server.
@@ -218,12 +202,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 	}
 
 	// request
-	var err error
-	var response keybase1.MetadataResponse
-	err = md.doCommand(ctx, func() error {
-		response, err = md.client().GetMetadata(arg)
-		return err
-	})
+	response, err := md.client(ctx).GetMetadata(arg)
 	if err != nil {
 		return id, nil, err
 	}
@@ -296,9 +275,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		MdBlock: rmdsBytes,
 		LogTags: LogTagsFromContextToMap(ctx),
 	}
-	return md.doCommand(ctx, func() error {
-		return md.client().PutMetadata(arg)
-	})
+	return md.client(ctx).PutMetadata(arg)
 }
 
 // PruneUnmerged implements the MDServer interface for MDServerRemote.
@@ -307,9 +284,7 @@ func (md *MDServerRemote) PruneUnmerged(ctx context.Context, id TlfID) error {
 		FolderID: id.String(),
 		LogTags:  LogTagsFromContextToMap(ctx),
 	}
-	return md.doCommand(ctx, func() error {
-		return md.client().PruneUnmerged(arg)
-	})
+	return md.client(ctx).PruneUnmerged(arg)
 }
 
 // MetadataUpdate implements the MetadataUpdateProtocol interface.
@@ -343,13 +318,15 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 
 	// register
 	var c chan error
-	err := md.doCommand(ctx, func() error {
-		// set up the server to receive updates
+	err := md.conn.DoCommand(ctx, func() error {
+		// set up the server to receive updates, since we may
+		// get disconnected between retries.
 		err := md.conn.Serve(keybase1.MetadataUpdateProtocol(md))
 		if err != nil {
 			return err
 		}
-		// keep re-adding the observer on retries
+		// keep re-adding the observer on retries, since
+		// disconnects or connection errors clear observers.
 		func() {
 			md.observerMu.Lock()
 			defer md.observerMu.Unlock()
@@ -360,7 +337,10 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 			c = make(chan error, 1)
 			md.observers[id] = c
 		}()
-		err = md.client().RegisterForUpdates(arg)
+		// Use this instead of md.client(ctx) since we're
+		// already inside a DoCommand().
+		c := keybase1.MetadataClient{Cli: md.conn.GetClient()}
+		err = c.RegisterForUpdates(arg)
 		if err != nil {
 			func() {
 				md.observerMu.Lock()
@@ -385,7 +365,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 // Shutdown implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Shutdown() {
 	// close the connection
-	md.conn.Shutdown()
+	md.clientFactory.Shutdown()
 	// cancel pending observers
 	md.cancelObservers()
 	// cancel the ping ticker
@@ -412,11 +392,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 		KeyHalfID: idBytes,
 		LogTags:   LogTagsFromContextToMap(ctx),
 	}
-	var keyBytes []byte
-	err = md.doCommand(ctx, func() error {
-		keyBytes, err = md.client().GetKey(arg)
-		return err
-	})
+	keyBytes, err := md.client(ctx).GetKey(arg)
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
 	}
@@ -455,7 +431,5 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 		KeyHalves: keyHalves,
 		LogTags:   LogTagsFromContextToMap(ctx),
 	}
-	return md.doCommand(ctx, func() error {
-		return md.client().PutKeys(arg)
-	})
+	return md.client(ctx).PutKeys(arg)
 }

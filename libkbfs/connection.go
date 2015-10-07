@@ -313,3 +313,37 @@ func (c *Connection) Shutdown() {
 		c.transport.Close()
 	}
 }
+
+// A ConnectionClientFactory uses a Connection object to vend
+// GenericClient objects that robustly handles connection state
+// changes.
+type ConnectionClientFactory struct {
+	conn *Connection
+}
+
+var _ ClientFactory = ConnectionClientFactory{}
+
+type connectionClient struct {
+	conn *Connection
+	// We won't need this once ctx is plumbed through
+	// GenericClient.Call.
+	ctx context.Context
+}
+
+var _ keybase1.GenericClient = connectionClient{}
+
+func (c connectionClient) Call(s string, args interface{}, res interface{}) error {
+	return c.conn.DoCommand(c.ctx, func() error {
+		return c.conn.GetClient().Call(s, args, res)
+	})
+}
+
+// GetClient implements ClientFactory for ConnectionClientFactory.
+func (f ConnectionClientFactory) GetClient(ctx context.Context) keybase1.GenericClient {
+	return &connectionClient{f.conn, ctx}
+}
+
+// Shutdown implements ClientFactory for ConnectionClientFactory.
+func (f ConnectionClientFactory) Shutdown() {
+	f.conn.Shutdown()
+}
