@@ -3,10 +3,10 @@ package kex2
 import (
 	"bytes"
 	"crypto/rand"
-	"errors"
 	"io"
 	"net"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -17,10 +17,8 @@ type message struct {
 }
 
 type simplexSession struct {
-	sender   DeviceID
-	receiver DeviceID
-	eof      bool
-	ch       chan message
+	eof bool
+	ch  chan message
 }
 
 var zeroDeviceID DeviceID
@@ -29,25 +27,45 @@ func (d DeviceID) isZero() bool {
 	return d.Eq(zeroDeviceID)
 }
 
-func newSimplexSession(s DeviceID, r DeviceID) *simplexSession {
+func newSimplexSession() *simplexSession {
 	return &simplexSession{
-		sender:   s,
-		receiver: r,
-		eof:      false,
-		ch:       make(chan message, 100),
+		eof: false,
+		ch:  make(chan message, 100),
 	}
 }
 
 type session struct {
-	id    SessionID
-	left  *simplexSession
-	right *simplexSession
+	id              SessionID
+	devices         [2]DeviceID
+	simplexSessions [2](*simplexSession)
+}
+
+func newSession(I SessionID) *session {
+	sess := &session{id: I}
+	for j := 0; j < 2; j++ {
+		sess.simplexSessions[j] = newSimplexSession()
+	}
+	return sess
+}
+
+func (s *session) getDeviceNumber(d DeviceID) int {
+	if s.devices[0].Eq(d) {
+		return 0
+	}
+	if s.devices[0].isZero() {
+		s.devices[0] = d
+		return 0
+	}
+	s.devices[1] = d
+	return 1
 }
 
 type mockRouter struct {
 	behavior int
 	maxPoll  time.Duration
-	sessions map[SessionID]*session
+
+	sessionMutex sync.Mutex
+	sessions     map[SessionID]*session
 }
 
 const (
@@ -98,58 +116,35 @@ func (ss *simplexSession) post(seqno Seqno, msg []byte) error {
 	return nil
 }
 
-func (s *session) findOrMakeSimplexSession(sender DeviceID, receiver DeviceID) (ss *simplexSession, err error) {
+type lookupType int
 
-	myeq := func(a DeviceID, b DeviceID) bool {
-		return a.Eq(b) || a.isZero() || b.isZero()
-	}
+const (
+	bySender   lookupType = 0
+	byReceiver lookupType = 1
+)
 
-	myfix := func(ss *simplexSession, s DeviceID, r DeviceID) {
-		if ss.sender.isZero() && !s.isZero() {
-			ss.sender = s
-		}
-		if ss.receiver.isZero() && !r.isZero() {
-			ss.receiver = r
-		}
+func (s *session) findOrMakeSimplexSession(sender DeviceID, lt lookupType) *simplexSession {
+	i := s.getDeviceNumber(sender)
+	if lt == byReceiver {
+		i = 1 - i
 	}
-
-	if s.left == nil {
-		s.left = newSimplexSession(sender, receiver)
-		return s.left, nil
-	}
-	if myeq(s.left.sender, sender) && myeq(s.left.receiver, receiver) {
-		myfix(s.left, sender, receiver)
-		return s.left, nil
-	}
-
-	if s.right == nil {
-		s.right = newSimplexSession(sender, receiver)
-		return s.right, nil
-	}
-	if myeq(s.right.sender, sender) && myeq(s.right.receiver, receiver) {
-		myfix(s.right, sender, receiver)
-		if !myeq(s.right.sender, s.left.receiver) || !myeq(s.left.sender, s.right.receiver) {
-			return nil, errors.New("sender/receiver cross-mismatch")
-		}
-		return s.right, nil
-	}
-	return nil, errors.New("mysterious third party in this session")
+	return s.simplexSessions[i]
 }
 
-func (mr *mockRouter) findOrMakeSimplexSession(I SessionID, sender DeviceID, receiver DeviceID) (ss *simplexSession, err error) {
+func (mr *mockRouter) findOrMakeSimplexSession(I SessionID, sender DeviceID, lt lookupType) *simplexSession {
+	mr.sessionMutex.Lock()
+	defer mr.sessionMutex.Unlock()
+
 	sess, ok := mr.sessions[I]
 	if !ok {
-		sess = &session{I, nil, nil}
+		sess = newSession(I)
 		mr.sessions[I] = sess
 	}
-	return sess.findOrMakeSimplexSession(sender, receiver)
+	return sess.findOrMakeSimplexSession(sender, lt)
 }
 
 func (mr *mockRouter) Post(I SessionID, sender DeviceID, seqno Seqno, msg []byte) error {
-	ss, err := mr.findOrMakeSimplexSession(I, sender, zeroDeviceID)
-	if err != nil {
-		return err
-	}
+	ss := mr.findOrMakeSimplexSession(I, sender, bySender)
 	corruptMessage(mr.behavior, msg)
 	return ss.post(seqno, msg)
 }
@@ -211,10 +206,7 @@ func (ss *simplexSession) get(seqno Seqno, poll time.Duration, behavior int) (re
 }
 
 func (mr *mockRouter) Get(I SessionID, receiver DeviceID, seqno Seqno, poll time.Duration) ([][]byte, error) {
-	ss, err := mr.findOrMakeSimplexSession(I, zeroDeviceID, receiver)
-	if err != nil {
-		return nil, err
-	}
+	ss := mr.findOrMakeSimplexSession(I, receiver, byReceiver)
 	if mr.maxPoll > time.Duration(0) && poll > mr.maxPoll {
 		poll = mr.maxPoll
 	}

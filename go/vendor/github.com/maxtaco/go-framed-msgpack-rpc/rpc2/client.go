@@ -1,13 +1,11 @@
 package rpc2
 
-import ()
-
 type Client struct {
-	xp          *Transport
+	xp          Transporter
 	unwrapError UnwrapErrorFunc
 }
 
-func NewClient(xp *Transport, f UnwrapErrorFunc) *Client {
+func NewClient(xp Transporter, f UnwrapErrorFunc) *Client {
 	return &Client{xp, f}
 }
 

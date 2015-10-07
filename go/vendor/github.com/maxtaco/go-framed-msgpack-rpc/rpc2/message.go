@@ -10,6 +10,10 @@ type Message struct {
 	nDecoded int
 }
 
+func NewMessage(t Transporter, nFields int) Message {
+	return Message{t, nFields, 0}
+}
+
 func (m *Message) Decode(i interface{}) (err error) {
 	err = m.t.Decode(i)
 	if err == nil {

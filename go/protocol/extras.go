@@ -117,6 +117,21 @@ func DeviceIDFromBytes(b [DeviceIDLen]byte) DeviceID {
 	return DeviceID(hex.EncodeToString(b[:]))
 }
 
+func (d DeviceID) ToBytes(out []byte) error {
+	tmp, err := hex.DecodeString(string(d))
+	if err != nil {
+		return err
+	}
+	if len(tmp) != DeviceIDLen {
+		return fmt.Errorf("Bad device ID; wanted %d bytes but got %d", DeviceIDLen, len(tmp))
+	}
+	if len(out) != DeviceIDLen {
+		return fmt.Errorf("Need to output to a slice with %d bytes", DeviceIDLen)
+	}
+	copy(out[:], tmp)
+	return nil
+}
+
 func DeviceIDFromSlice(b []byte) (DeviceID, error) {
 	if len(b) != DeviceIDLen {
 		return "", fmt.Errorf("invalid byte slice for DeviceID: len == %d, expected %d", len(b), DeviceIDLen)
@@ -147,6 +162,10 @@ func (d DeviceID) IsNil() bool {
 
 func (d DeviceID) Exists() bool {
 	return !d.IsNil()
+}
+
+func (d DeviceID) Eq(d2 DeviceID) bool {
+	return d.Eq(d2)
 }
 
 func UIDFromString(s string) (UID, error) {

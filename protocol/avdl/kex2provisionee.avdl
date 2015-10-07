@@ -1,0 +1,19 @@
+
+@namespace("keybase.1")
+protocol Kex2Provisionee {
+	import idl "common.avdl";
+
+	record PassphraseStream {
+		bytes passphraseStream;
+		int generation	;
+	}
+
+	@typedef("string")
+	record SessionToken {}
+
+	@typedef("string")
+	record HelloRes {}
+
+	HelloRes hello(UID uid, SessionToken token, PassphraseStream pps, string sigBody);
+	void didCounterSign(bytes sig);
+}

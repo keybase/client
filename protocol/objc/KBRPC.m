@@ -696,6 +696,59 @@
 
 @end
 
+@implementation KBRKex2ProvisioneeRequest
+
+- (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(params.uid), @"token": KBRValue(params.token), @"pps": KBRValue(params.pps), @"sigBody": KBRValue(params.sigBody)};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee.hello" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)helloWithUid:(NSString *)uid token:(NSString *)token pps:(KBRPassphraseStream *)pps sigBody:(NSString *)sigBody completion:(void (^)(NSError *error, NSString *helloRes))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(uid), @"token": KBRValue(token), @"pps": KBRValue(pps), @"sigBody": KBRValue(sigBody)};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee.hello" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)didCounterSign:(KBRDidCounterSignRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"sig": KBRValue(params.sig)};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee.didCounterSign" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)didCounterSignWithSig:(NSData *)sig completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"sig": KBRValue(sig)};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee.didCounterSign" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRKex2ProvisionerRequest
+
+- (void)kexStart:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisioner.kexStart" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRLocksmithUiRequest
 
 - (void)promptDeviceName:(void (^)(NSError *error, NSString *str))completion {
@@ -1552,26 +1605,26 @@
 
 @implementation KBRQuotaRequest
 
-- (void)verifySession:(KBRVerifySessionRequestParams *)params completion:(void (^)(NSError *error, KBRSessionToken *sessionToken))completion {
+- (void)verifySession:(KBRVerifySessionRequestParams *)params completion:(void (^)(NSError *error, NSString *sessionToken))completion {
   NSDictionary *rparams = @{@"session": KBRValue(params.session)};
   [self.client sendRequestWithMethod:@"keybase.1.quota.verifySession" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRSessionToken *result = retval ? [MTLJSONAdapter modelOfClass:KBRSessionToken.class fromJSONDictionary:retval error:&error] : nil;
+    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
 
-- (void)verifySessionWithSession:(NSString *)session completion:(void (^)(NSError *error, KBRSessionToken *sessionToken))completion {
+- (void)verifySessionWithSession:(NSString *)session completion:(void (^)(NSError *error, NSString *sessionToken))completion {
   NSDictionary *rparams = @{@"session": KBRValue(session)};
   [self.client sendRequestWithMethod:@"keybase.1.quota.verifySession" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRSessionToken *result = retval ? [MTLJSONAdapter modelOfClass:KBRSessionToken.class fromJSONDictionary:retval error:&error] : nil;
+    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
@@ -3046,6 +3099,41 @@
 
 + (instancetype)params {
   KBRFinishRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRHelloRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.uid = params[0][@"uid"];
+    self.token = params[0][@"token"];
+    self.pps = [MTLJSONAdapter modelOfClass:KBRPassphraseStream.class fromJSONDictionary:params[0][@"pps"] error:nil];
+    self.sigBody = params[0][@"sigBody"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRHelloRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDidCounterSignRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sig = params[0][@"sig"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDidCounterSignRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4702,6 +4790,9 @@
 @implementation KBRLinkCheckResult
 @end
 
+@implementation KBRPassphraseStream
+@end
+
 @implementation KBRDeviceSigner
 @end
 
@@ -4746,9 +4837,6 @@
 @end
 
 @implementation KBRStartProofResult
-@end
-
-@implementation KBRSessionToken
 @end
 
 @implementation KBRSecretEntryArg

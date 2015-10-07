@@ -14,6 +14,12 @@ func (s *Server) Register(p Protocol) (err error) {
 	return s.xp.dispatcher.RegisterProtocol(p)
 }
 
+// RegisterEOFHook registers a callback that's called when there's
+// and EOF condition on the underlying channel.
+func (s *Server) RegisterEOFHook(h EOFHook) error {
+	return s.xp.dispatcher.RegisterEOFHook(h)
+}
+
 func (s *Server) Run(bg bool) error {
 	return s.xp.run(bg)
 }

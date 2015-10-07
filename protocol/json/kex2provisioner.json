@@ -1,0 +1,12 @@
+{
+  "protocol" : "Kex2Provisioner",
+  "namespace" : "keybase.1",
+  "types" : [ ],
+  "messages" : {
+    "kexStart" : {
+      "notify" : "",
+      "request" : [ ],
+      "response" : "null"
+    }
+  }
+}
