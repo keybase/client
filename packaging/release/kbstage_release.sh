@@ -58,28 +58,29 @@ fi
 echo "-------------------------------------------------------------------------"
 echo "Creating kbstage release for version $version"
 echo "-------------------------------------------------------------------------"
-echo "1. Exporting client-beta source for version $version"
+echo "1. Tagging client source with $version_tag"
 cd $clientdir
-git tag -a $version_tag -m $version_tag || true
-git push --tags || true
+git tag -a $version_tag -m $version_tag
+git push --tags
 
+echo "2. Exporting client source to client-beta for version $version"
 $clientdir/packaging/export/export.sh client $betadir $version_tag
 cd $betadir
-git commit -a -m "Importing from $version_tag" || true
-git push || true
-git tag -a $version_tag -m $version_tag || true
-git push --tags || true
+git commit -a -m "Importing from $version_tag"
+git push
+git tag -a $version_tag -m $version_tag
+git push --tags
 
 src_url="https://github.com/keybase/client-beta/archive/$version_tag.tar.gz"
 src_sha="$(curl -L -s $src_url | shasum -a 256 | cut -f 1 -d ' ')"
 echo "sha256 of src: $src_sha"
 
-echo "2. Updating kbstage brew formula"
+echo "3. Updating kbstage brew formula"
 sed -e "s/%VERSION%/$version/g" -e "s/%VERSION_TAG%/$version_tag/g" -e "s/%SRC_SHA%/$src_sha/g" $brewdir/kbstage.rb.tmpl > $brewdir/kbstage.rb
 cd $brewdir
 git commit -a -m "New kbstage version $version_tag"
 git push
 
-echo "3. Done.  brew update && brew upgrade kbstage should install version $version"
+echo "4. Done.  brew update && brew upgrade kbstage should install version $version"
 
 # TODO: run linux package maker script here...
