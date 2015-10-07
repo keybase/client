@@ -64,7 +64,7 @@ func (s *CmdPGPImport) Run() error {
 		return err
 	}
 
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(),
 	}
 

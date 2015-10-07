@@ -41,12 +41,12 @@ type CmdStress struct {
 	passphrase string
 }
 
-func (c *CmdStress) rpcClient() (*rpc2.Client, error) {
+func (c *CmdStress) rpcClient() (*rpc.Client, error) {
 	cli, _, err := GetRPCClient()
 	if err != nil {
 		return nil, err
 	}
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
 		c.secretUIProtocol(),
 		NewIdentifyUIProtocol(),
@@ -101,7 +101,7 @@ func (c *CmdStress) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdStress) signup(cli *rpc2.Client) (username, passphrase string, err error) {
+func (c *CmdStress) signup(cli *rpc.Client) (username, passphrase string, err error) {
 	buf := make([]byte, 5)
 	if _, err = rand.Read(buf); err != nil {
 		return
@@ -328,7 +328,7 @@ func (c *CmdStress) logout() {
 	}
 }
 
-func (c *CmdStress) gpgUIProtocol() rpc2.Protocol {
+func (c *CmdStress) gpgUIProtocol() rpc.Protocol {
 	return keybase1.GpgUiProtocol(c)
 }
 
@@ -345,7 +345,7 @@ func (c *CmdStress) ConfirmDuplicateKeyChosen(dummy int) (bool, error) {
 	return false, nil
 }
 
-func (c *CmdStress) secretUIProtocol() rpc2.Protocol {
+func (c *CmdStress) secretUIProtocol() rpc.Protocol {
 	return keybase1.SecretUiProtocol(c)
 }
 

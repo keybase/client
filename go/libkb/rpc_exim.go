@@ -159,7 +159,7 @@ func WrapError(e error) interface{} {
 	return ExportErrorAsStatus(e)
 }
 
-func UnwrapError(nxt rpc2.DecodeNext) (app error, dispatch error) {
+func UnwrapError(nxt rpc.DecodeNext) (app error, dispatch error) {
 	var s *keybase1.Status
 	if dispatch = nxt(&s); dispatch == nil {
 		app = ImportStatusAsError(s)

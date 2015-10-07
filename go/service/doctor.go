@@ -11,7 +11,7 @@ type DoctorHandler struct {
 	*BaseHandler
 }
 
-func NewDoctorHandler(xp *rpc2.Transport) *DoctorHandler {
+func NewDoctorHandler(xp *rpc.Transport) *DoctorHandler {
 	return &DoctorHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

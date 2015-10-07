@@ -10,7 +10,7 @@ type RemoteGPGUI struct {
 	uicli     keybase1.GpgUiClient
 }
 
-func NewRemoteGPGUI(sessionID int, c *rpc2.Client) *RemoteGPGUI {
+func NewRemoteGPGUI(sessionID int, c *rpc.Client) *RemoteGPGUI {
 	return &RemoteGPGUI{
 		sessionID: sessionID,
 		uicli:     keybase1.GpgUiClient{Cli: c},

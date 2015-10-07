@@ -12,7 +12,7 @@ type SigsHandler struct {
 }
 
 // NewSigsHandler creates a SigsHandler for the xp transport.
-func NewSigsHandler(xp *rpc2.Transport) *SigsHandler {
+func NewSigsHandler(xp *rpc.Transport) *SigsHandler {
 	return &SigsHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

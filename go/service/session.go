@@ -17,7 +17,7 @@ type SessionHandler struct {
 }
 
 // NewSessionHandler creates a SessionHandler for the xp transport.
-func NewSessionHandler(xp *rpc2.Transport) *SessionHandler {
+func NewSessionHandler(xp *rpc.Transport) *SessionHandler {
 	return &SessionHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

@@ -11,7 +11,7 @@ import (
 )
 
 type ConfigHandler struct {
-	xp *rpc2.Transport
+	xp *rpc.Transport
 }
 
 func (h ConfigHandler) GetCurrentStatus(sessionID int) (res keybase1.GetCurrentStatusRes, err error) {

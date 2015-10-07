@@ -13,7 +13,7 @@ type LoginHandler struct {
 	locksmithUI libkb.LocksmithUI
 }
 
-func NewLoginHandler(xp *rpc2.Transport) *LoginHandler {
+func NewLoginHandler(xp *rpc.Transport) *LoginHandler {
 	return &LoginHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
@@ -110,7 +110,7 @@ type RemoteLocksmithUI struct {
 	uicli     keybase1.LocksmithUiClient
 }
 
-func NewRemoteLocksmithUI(sessionID int, c *rpc2.Client) *RemoteLocksmithUI {
+func NewRemoteLocksmithUI(sessionID int, c *rpc.Client) *RemoteLocksmithUI {
 	return &RemoteLocksmithUI{
 		sessionID: sessionID,
 		uicli:     keybase1.LocksmithUiClient{Cli: c},

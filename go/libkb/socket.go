@@ -69,7 +69,7 @@ func ConfigureSocketInfo() (ret SocketInfo, err error) {
 
 type SocketWrapper struct {
 	conn net.Conn
-	xp   *rpc2.Transport
+	xp   *rpc.Transport
 	err  error
 }
 
@@ -91,7 +91,7 @@ func (g *GlobalContext) ClearSocketError() {
 	g.socketWrapperMu.Unlock()
 }
 
-func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
+func (g *GlobalContext) GetSocket() (net.Conn, *rpc.Transport, error) {
 
 	// Protect all global socket wrapper manipulation with a
 	// lock to prevent race conditions.
@@ -117,7 +117,7 @@ func (g *GlobalContext) GetSocket() (net.Conn, *rpc2.Transport, error) {
 			sw.conn, sw.err = DialSocket(g.SocketInfo)
 		}
 		if sw.err == nil {
-			sw.xp = rpc2.NewTransport(sw.conn, NewRPCLogFactory(), WrapError)
+			sw.xp = rpc.NewTransport(sw.conn, NewRPCLogFactory(), WrapError)
 		}
 		g.SocketWrapper = &sw
 	}

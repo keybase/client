@@ -24,7 +24,7 @@ type IdentifyHandler struct {
 	*BaseHandler
 }
 
-func NewIdentifyHandler(xp *rpc2.Transport) *IdentifyHandler {
+func NewIdentifyHandler(xp *rpc.Transport) *IdentifyHandler {
 	return &IdentifyHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

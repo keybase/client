@@ -10,7 +10,7 @@ type SecretUIServer struct {
 	eng libkb.SecretUI
 }
 
-func NewSecretUIProtocol() rpc2.Protocol {
+func NewSecretUIProtocol() rpc.Protocol {
 	return keybase1.SecretUiProtocol(&SecretUIServer{GlobUI.GetSecretUI()})
 }
 

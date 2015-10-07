@@ -103,7 +103,7 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPGPSign) Run() (err error) {
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
 		NewSecretUIProtocol(),
 	}

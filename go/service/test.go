@@ -9,7 +9,7 @@ type TestHandler struct {
 	*BaseHandler
 }
 
-func NewTestHandler(xp *rpc2.Transport) *TestHandler {
+func NewTestHandler(xp *rpc.Transport) *TestHandler {
 	return &TestHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

@@ -359,7 +359,7 @@ func (s *CmdSignup) initClient() error {
 		return err
 	}
 
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(),
 	}
 	if s.doPrompt {

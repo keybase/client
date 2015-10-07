@@ -19,11 +19,11 @@ type AccountInterface interface {
 	PassphraseChange(PassphraseChangeArg) error
 }
 
-func AccountProtocol(i AccountInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func AccountProtocol(i AccountInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.account",
-		Methods: map[string]rpc2.ServeHook{
-			"passphraseChange": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"passphraseChange": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PassphraseChangeArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PassphraseChange(args[0])
@@ -165,39 +165,39 @@ type BlockInterface interface {
 	DecBlockReference(DecBlockReferenceArg) error
 }
 
-func BlockProtocol(i BlockInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func BlockProtocol(i BlockInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.block",
-		Methods: map[string]rpc2.ServeHook{
-			"establishSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"establishSession": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]EstablishSessionArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.EstablishSession(args[0])
 				}
 				return
 			},
-			"putBlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"putBlock": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PutBlockArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PutBlock(args[0])
 				}
 				return
 			},
-			"getBlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"getBlock": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetBlockArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetBlock(args[0].Bid)
 				}
 				return
 			},
-			"incBlockReference": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"incBlockReference": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]IncBlockReferenceArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.IncBlockReference(args[0])
 				}
 				return
 			},
-			"decBlockReference": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"decBlockReference": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DecBlockReferenceArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DecBlockReference(args[0])
@@ -249,11 +249,11 @@ type BTCInterface interface {
 	RegisterBTC(RegisterBTCArg) error
 }
 
-func BTCProtocol(i BTCInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func BTCProtocol(i BTCInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.BTC",
-		Methods: map[string]rpc2.ServeHook{
-			"registerBTC": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"registerBTC": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]RegisterBTCArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.RegisterBTC(args[0])
@@ -314,25 +314,25 @@ type ConfigInterface interface {
 	SetUserConfig(SetUserConfigArg) error
 }
 
-func ConfigProtocol(i ConfigInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func ConfigProtocol(i ConfigInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.config",
-		Methods: map[string]rpc2.ServeHook{
-			"getCurrentStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"getCurrentStatus": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetCurrentStatusArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetCurrentStatus(args[0].SessionID)
 				}
 				return
 			},
-			"getConfig": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"getConfig": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetConfigArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetConfig(args[0].SessionID)
 				}
 				return
 			},
-			"setUserConfig": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"setUserConfig": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SetUserConfigArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.SetUserConfig(args[0])
@@ -395,18 +395,18 @@ type CryptoInterface interface {
 	UnboxBytes32(UnboxBytes32Arg) (Bytes32, error)
 }
 
-func CryptoProtocol(i CryptoInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func CryptoProtocol(i CryptoInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.crypto",
-		Methods: map[string]rpc2.ServeHook{
-			"signED25519": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"signED25519": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SignED25519Arg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.SignED25519(args[0])
 				}
 				return
 			},
-			"unboxBytes32": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"unboxBytes32": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]UnboxBytes32Arg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.UnboxBytes32(args[0])
@@ -461,39 +461,39 @@ type CtlInterface interface {
 	DbNuke(int) error
 }
 
-func CtlProtocol(i CtlInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func CtlProtocol(i CtlInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.ctl",
-		Methods: map[string]rpc2.ServeHook{
-			"stop": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"stop": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]StopArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Stop(args[0].SessionID)
 				}
 				return
 			},
-			"logRotate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"logRotate": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LogRotateArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.LogRotate(args[0].SessionID)
 				}
 				return
 			},
-			"setLogLevel": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"setLogLevel": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SetLogLevelArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.SetLogLevel(args[0])
 				}
 				return
 			},
-			"reload": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"reload": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ReloadArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Reload(args[0].SessionID)
 				}
 				return
 			},
-			"dbNuke": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"dbNuke": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DbNukeArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DbNuke(args[0].SessionID)
@@ -563,25 +563,25 @@ type DebuggingInterface interface {
 	Increment(IncrementArg) (int, error)
 }
 
-func DebuggingProtocol(i DebuggingInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.debugging",
-		Methods: map[string]rpc2.ServeHook{
-			"firstStep": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"firstStep": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]FirstStepArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.FirstStep(args[0])
 				}
 				return
 			},
-			"secondStep": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"secondStep": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SecondStepArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.SecondStep(args[0])
 				}
 				return
 			},
-			"increment": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"increment": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]IncrementArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Increment(args[0])
@@ -631,25 +631,25 @@ type DeviceInterface interface {
 	DeviceAddCancel(int) error
 }
 
-func DeviceProtocol(i DeviceInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func DeviceProtocol(i DeviceInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.device",
-		Methods: map[string]rpc2.ServeHook{
-			"deviceList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"deviceList": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DeviceListArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.DeviceList(args[0].SessionID)
 				}
 				return
 			},
-			"deviceAdd": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"deviceAdd": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DeviceAddArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DeviceAdd(args[0])
 				}
 				return
 			},
-			"deviceAddCancel": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"deviceAddCancel": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DeviceAddCancelArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DeviceAddCancel(args[0].SessionID)
@@ -690,11 +690,11 @@ type DoctorInterface interface {
 	Doctor(int) error
 }
 
-func DoctorProtocol(i DoctorInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func DoctorProtocol(i DoctorInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.doctor",
-		Methods: map[string]rpc2.ServeHook{
-			"doctor": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"doctor": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DoctorArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Doctor(args[0].SessionID)
@@ -759,25 +759,25 @@ type DoctorUiInterface interface {
 	DisplayResult(DisplayResultArg) error
 }
 
-func DoctorUiProtocol(i DoctorUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func DoctorUiProtocol(i DoctorUiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.doctorUi",
-		Methods: map[string]rpc2.ServeHook{
-			"loginSelect": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"loginSelect": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoginSelectArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.LoginSelect(args[0])
 				}
 				return
 			},
-			"displayStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"displayStatus": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayStatusArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.DisplayStatus(args[0])
 				}
 				return
 			},
-			"displayResult": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"displayResult": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayResultArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DisplayResult(args[0])
@@ -834,25 +834,25 @@ type FavoriteInterface interface {
 	FavoriteList(int) ([]Folder, error)
 }
 
-func FavoriteProtocol(i FavoriteInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.favorite",
-		Methods: map[string]rpc2.ServeHook{
-			"favoriteAdd": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"favoriteAdd": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]FavoriteAddArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.FavoriteAdd(args[0])
 				}
 				return
 			},
-			"favoriteDelete": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"favoriteDelete": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]FavoriteDeleteArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.FavoriteDelete(args[0])
 				}
 				return
 			},
-			"favoriteList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"favoriteList": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]FavoriteListArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.FavoriteList(args[0].SessionID)
@@ -922,32 +922,32 @@ type GpgUiInterface interface {
 	SelectKey(SelectKeyArg) (string, error)
 }
 
-func GpgUiProtocol(i GpgUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.gpgUi",
-		Methods: map[string]rpc2.ServeHook{
-			"wantToAddGPGKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"wantToAddGPGKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]WantToAddGPGKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.WantToAddGPGKey(args[0].SessionID)
 				}
 				return
 			},
-			"confirmDuplicateKeyChosen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"confirmDuplicateKeyChosen": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ConfirmDuplicateKeyChosenArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.ConfirmDuplicateKeyChosen(args[0].SessionID)
 				}
 				return
 			},
-			"selectKeyAndPushOption": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"selectKeyAndPushOption": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SelectKeyAndPushOptionArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.SelectKeyAndPushOption(args[0])
 				}
 				return
 			},
-			"selectKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"selectKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SelectKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.SelectKey(args[0])
@@ -1137,11 +1137,11 @@ type IdentifyInterface interface {
 	Identify(IdentifyArg) (IdentifyRes, error)
 }
 
-func IdentifyProtocol(i IdentifyInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.identify",
-		Methods: map[string]rpc2.ServeHook{
-			"identify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"identify": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]IdentifyArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Identify(args[0])
@@ -1281,74 +1281,74 @@ type IdentifyUiInterface interface {
 	Finish(int) error
 }
 
-func IdentifyUiProtocol(i IdentifyUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.identifyUi",
-		Methods: map[string]rpc2.ServeHook{
-			"start": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"start": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]StartArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Start(args[0])
 				}
 				return
 			},
-			"displayKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"displayKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DisplayKey(args[0])
 				}
 				return
 			},
-			"reportLastTrack": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"reportLastTrack": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ReportLastTrackArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.ReportLastTrack(args[0])
 				}
 				return
 			},
-			"launchNetworkChecks": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"launchNetworkChecks": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LaunchNetworkChecksArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.LaunchNetworkChecks(args[0])
 				}
 				return
 			},
-			"displayTrackStatement": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"displayTrackStatement": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayTrackStatementArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DisplayTrackStatement(args[0])
 				}
 				return
 			},
-			"finishWebProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"finishWebProofCheck": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]FinishWebProofCheckArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.FinishWebProofCheck(args[0])
 				}
 				return
 			},
-			"finishSocialProofCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"finishSocialProofCheck": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]FinishSocialProofCheckArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.FinishSocialProofCheck(args[0])
 				}
 				return
 			},
-			"displayCryptocurrency": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"displayCryptocurrency": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayCryptocurrencyArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DisplayCryptocurrency(args[0])
 				}
 				return
 			},
-			"confirm": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"confirm": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ConfirmArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Confirm(args[0])
 				}
 				return
 			},
-			"finish": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"finish": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]FinishArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Finish(args[0].SessionID)
@@ -1438,18 +1438,18 @@ type Kex2ProvisioneeInterface interface {
 	DidCounterSign([]byte) error
 }
 
-func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.Kex2Provisionee",
-		Methods: map[string]rpc2.ServeHook{
-			"hello": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"hello": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]HelloArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Hello(args[0])
 				}
 				return
 			},
-			"didCounterSign": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"didCounterSign": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DidCounterSignArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DidCounterSign(args[0].Sig)
@@ -1483,11 +1483,11 @@ type Kex2ProvisionerInterface interface {
 	KexStart() error
 }
 
-func Kex2ProvisionerProtocol(i Kex2ProvisionerInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func Kex2ProvisionerProtocol(i Kex2ProvisionerInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.Kex2Provisioner",
-		Methods: map[string]rpc2.ServeHook{
-			"kexStart": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"kexStart": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]KexStartArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.KexStart()
@@ -1597,46 +1597,46 @@ type LocksmithUiInterface interface {
 	KexStatus(KexStatusArg) error
 }
 
-func LocksmithUiProtocol(i LocksmithUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.locksmithUi",
-		Methods: map[string]rpc2.ServeHook{
-			"promptDeviceName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"promptDeviceName": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PromptDeviceNameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PromptDeviceName(args[0].SessionID)
 				}
 				return
 			},
-			"deviceNameTaken": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"deviceNameTaken": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DeviceNameTakenArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DeviceNameTaken(args[0])
 				}
 				return
 			},
-			"selectSigner": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"selectSigner": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SelectSignerArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.SelectSigner(args[0])
 				}
 				return
 			},
-			"deviceSignAttemptErr": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"deviceSignAttemptErr": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DeviceSignAttemptErrArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DeviceSignAttemptErr(args[0])
 				}
 				return
 			},
-			"displaySecretWords": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"displaySecretWords": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplaySecretWordsArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DisplaySecretWords(args[0])
 				}
 				return
 			},
-			"kexStatus": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"kexStatus": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]KexStatusArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.KexStatus(args[0])
@@ -1693,11 +1693,11 @@ type LogUiInterface interface {
 	Log(LogArg) error
 }
 
-func LogUiProtocol(i LogUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func LogUiProtocol(i LogUiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.logUi",
-		Methods: map[string]rpc2.ServeHook{
-			"log": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"log": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LogArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Log(args[0])
@@ -1777,67 +1777,67 @@ type LoginInterface interface {
 	PaperKey(int) error
 }
 
-func LoginProtocol(i LoginInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func LoginProtocol(i LoginInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.login",
-		Methods: map[string]rpc2.ServeHook{
-			"getConfiguredAccounts": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"getConfiguredAccounts": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetConfiguredAccountsArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetConfiguredAccounts(args[0].SessionID)
 				}
 				return
 			},
-			"loginWithPrompt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"loginWithPrompt": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoginWithPromptArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.LoginWithPrompt(args[0])
 				}
 				return
 			},
-			"loginWithStoredSecret": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"loginWithStoredSecret": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoginWithStoredSecretArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.LoginWithStoredSecret(args[0])
 				}
 				return
 			},
-			"loginWithPassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"loginWithPassphrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoginWithPassphraseArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.LoginWithPassphrase(args[0])
 				}
 				return
 			},
-			"clearStoredSecret": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"clearStoredSecret": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ClearStoredSecretArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.ClearStoredSecret(args[0])
 				}
 				return
 			},
-			"cancelLogin": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"cancelLogin": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]CancelLoginArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.CancelLogin(args[0].SessionID)
 				}
 				return
 			},
-			"logout": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"logout": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LogoutArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Logout(args[0].SessionID)
 				}
 				return
 			},
-			"reset": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"reset": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ResetArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Reset(args[0].SessionID)
 				}
 				return
 			},
-			"paperKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"paperKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PaperKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PaperKey(args[0].SessionID)
@@ -1930,32 +1930,32 @@ type LoginUiInterface interface {
 	DisplayPrimaryPaperKey(DisplayPrimaryPaperKeyArg) error
 }
 
-func LoginUiProtocol(i LoginUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.loginUi",
-		Methods: map[string]rpc2.ServeHook{
-			"getEmailOrUsername": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"getEmailOrUsername": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetEmailOrUsernameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetEmailOrUsername(args[0].SessionID)
 				}
 				return
 			},
-			"promptRevokePaperKeys": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"promptRevokePaperKeys": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PromptRevokePaperKeysArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PromptRevokePaperKeys(args[0])
 				}
 				return
 			},
-			"displayPaperKeyPhrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"displayPaperKeyPhrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayPaperKeyPhraseArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DisplayPaperKeyPhrase(args[0])
 				}
 				return
 			},
-			"displayPrimaryPaperKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"displayPrimaryPaperKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayPrimaryPaperKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DisplayPrimaryPaperKey(args[0])
@@ -2068,74 +2068,74 @@ type MetadataInterface interface {
 	Ping() error
 }
 
-func MetadataProtocol(i MetadataInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func MetadataProtocol(i MetadataInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.metadata",
-		Methods: map[string]rpc2.ServeHook{
-			"authenticate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"authenticate": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]AuthenticateArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Authenticate(args[0])
 				}
 				return
 			},
-			"putMetadata": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"putMetadata": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PutMetadataArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PutMetadata(args[0])
 				}
 				return
 			},
-			"getMetadata": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"getMetadata": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetMetadataArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetMetadata(args[0])
 				}
 				return
 			},
-			"registerForUpdates": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"registerForUpdates": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]RegisterForUpdatesArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.RegisterForUpdates(args[0])
 				}
 				return
 			},
-			"pruneUnmerged": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pruneUnmerged": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PruneUnmergedArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PruneUnmerged(args[0])
 				}
 				return
 			},
-			"putKeys": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"putKeys": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PutKeysArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PutKeys(args[0])
 				}
 				return
 			},
-			"getKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"getKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetKey(args[0])
 				}
 				return
 			},
-			"truncateLock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"truncateLock": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]TruncateLockArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.TruncateLock(args[0].FolderID)
 				}
 				return
 			},
-			"truncateUnlock": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"truncateUnlock": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]TruncateUnlockArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.TruncateUnlock(args[0].FolderID)
 				}
 				return
 			},
-			"ping": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"ping": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PingArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Ping()
@@ -2212,11 +2212,11 @@ type MetadataUpdateInterface interface {
 	MetadataUpdate(MetadataUpdateArg) error
 }
 
-func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.metadataUpdate",
-		Methods: map[string]rpc2.ServeHook{
-			"metadataUpdate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"metadataUpdate": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]MetadataUpdateArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.MetadataUpdate(args[0])
@@ -2400,102 +2400,102 @@ type PGPInterface interface {
 	PGPUpdate(PGPUpdateArg) error
 }
 
-func PGPProtocol(i PGPInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func PGPProtocol(i PGPInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.pgp",
-		Methods: map[string]rpc2.ServeHook{
-			"pgpSign": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"pgpSign": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPSignArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PGPSign(args[0])
 				}
 				return
 			},
-			"pgpPull": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpPull": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPPullArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PGPPull(args[0])
 				}
 				return
 			},
-			"pgpEncrypt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpEncrypt": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPEncryptArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PGPEncrypt(args[0])
 				}
 				return
 			},
-			"pgpDecrypt": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpDecrypt": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPDecryptArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PGPDecrypt(args[0])
 				}
 				return
 			},
-			"pgpVerify": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpVerify": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPVerifyArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PGPVerify(args[0])
 				}
 				return
 			},
-			"pgpImport": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpImport": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPImportArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PGPImport(args[0])
 				}
 				return
 			},
-			"pgpExport": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpExport": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPExportArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PGPExport(args[0])
 				}
 				return
 			},
-			"pgpExportByFingerprint": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpExportByFingerprint": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPExportByFingerprintArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PGPExportByFingerprint(args[0])
 				}
 				return
 			},
-			"pgpExportByKID": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpExportByKID": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPExportByKIDArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PGPExportByKID(args[0])
 				}
 				return
 			},
-			"pgpKeyGen": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpKeyGen": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPKeyGenArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PGPKeyGen(args[0])
 				}
 				return
 			},
-			"pgpKeyGenDefault": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpKeyGenDefault": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPKeyGenDefaultArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PGPKeyGenDefault(args[0])
 				}
 				return
 			},
-			"pgpDeletePrimary": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpDeletePrimary": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPDeletePrimaryArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PGPDeletePrimary(args[0].SessionID)
 				}
 				return
 			},
-			"pgpSelect": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpSelect": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPSelectArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PGPSelect(args[0])
 				}
 				return
 			},
-			"pgpUpdate": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"pgpUpdate": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PGPUpdateArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.PGPUpdate(args[0])
@@ -2610,18 +2610,18 @@ type ProveInterface interface {
 	CheckProof(CheckProofArg) (CheckProofStatus, error)
 }
 
-func ProveProtocol(i ProveInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func ProveProtocol(i ProveInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.prove",
-		Methods: map[string]rpc2.ServeHook{
-			"startProof": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"startProof": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]StartProofArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.StartProof(args[0])
 				}
 				return
 			},
-			"checkProof": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"checkProof": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]CheckProofArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.CheckProof(args[0])
@@ -2703,53 +2703,53 @@ type ProveUiInterface interface {
 	DisplayRecheckWarning(DisplayRecheckWarningArg) error
 }
 
-func ProveUiProtocol(i ProveUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.proveUi",
-		Methods: map[string]rpc2.ServeHook{
-			"promptOverwrite": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"promptOverwrite": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PromptOverwriteArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PromptOverwrite(args[0])
 				}
 				return
 			},
-			"promptUsername": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"promptUsername": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PromptUsernameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PromptUsername(args[0])
 				}
 				return
 			},
-			"outputPrechecks": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"outputPrechecks": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]OutputPrechecksArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.OutputPrechecks(args[0])
 				}
 				return
 			},
-			"preProofWarning": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"preProofWarning": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PreProofWarningArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PreProofWarning(args[0])
 				}
 				return
 			},
-			"outputInstructions": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"outputInstructions": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]OutputInstructionsArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.OutputInstructions(args[0])
 				}
 				return
 			},
-			"okToCheck": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"okToCheck": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]OkToCheckArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.OkToCheck(args[0])
 				}
 				return
 			},
-			"displayRecheckWarning": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"displayRecheckWarning": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]DisplayRecheckWarningArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.DisplayRecheckWarning(args[0])
@@ -2815,11 +2815,11 @@ type QuotaInterface interface {
 	VerifySession(string) (VerifySessionRes, error)
 }
 
-func QuotaProtocol(i QuotaInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func QuotaProtocol(i QuotaInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.quota",
-		Methods: map[string]rpc2.ServeHook{
-			"verifySession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"verifySession": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]VerifySessionArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.VerifySession(args[0].Session)
@@ -2863,25 +2863,25 @@ type RevokeInterface interface {
 	RevokeSigs(RevokeSigsArg) error
 }
 
-func RevokeProtocol(i RevokeInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func RevokeProtocol(i RevokeInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.revoke",
-		Methods: map[string]rpc2.ServeHook{
-			"revokeKey": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"revokeKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]RevokeKeyArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.RevokeKey(args[0])
 				}
 				return
 			},
-			"revokeDevice": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"revokeDevice": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]RevokeDeviceArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.RevokeDevice(args[0])
 				}
 				return
 			},
-			"revokeSigs": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"revokeSigs": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]RevokeSigsArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.RevokeSigs(args[0])
@@ -2966,32 +2966,32 @@ type SecretUiInterface interface {
 	GetPaperKeyPassphrase(GetPaperKeyPassphraseArg) (string, error)
 }
 
-func SecretUiProtocol(i SecretUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.secretUi",
-		Methods: map[string]rpc2.ServeHook{
-			"getSecret": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"getSecret": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetSecretArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetSecret(args[0])
 				}
 				return
 			},
-			"getNewPassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"getNewPassphrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetNewPassphraseArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetNewPassphrase(args[0])
 				}
 				return
 			},
-			"getKeybasePassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"getKeybasePassphrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetKeybasePassphraseArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetKeybasePassphrase(args[0])
 				}
 				return
 			},
-			"getPaperKeyPassphrase": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"getPaperKeyPassphrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]GetPaperKeyPassphraseArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.GetPaperKeyPassphrase(args[0])
@@ -3047,18 +3047,18 @@ type SessionInterface interface {
 	CurrentUID(int) (UID, error)
 }
 
-func SessionProtocol(i SessionInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func SessionProtocol(i SessionInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.session",
-		Methods: map[string]rpc2.ServeHook{
-			"currentSession": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"currentSession": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]CurrentSessionArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.CurrentSession(args[0].SessionID)
 				}
 				return
 			},
-			"currentUID": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"currentUID": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]CurrentUIDArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.CurrentUID(args[0].SessionID)
@@ -3120,25 +3120,25 @@ type SignupInterface interface {
 	InviteRequest(InviteRequestArg) error
 }
 
-func SignupProtocol(i SignupInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func SignupProtocol(i SignupInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.signup",
-		Methods: map[string]rpc2.ServeHook{
-			"checkUsernameAvailable": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"checkUsernameAvailable": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]CheckUsernameAvailableArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.CheckUsernameAvailable(args[0])
 				}
 				return
 			},
-			"signup": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"signup": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SignupArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Signup(args[0])
 				}
 				return
 			},
-			"inviteRequest": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"inviteRequest": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]InviteRequestArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.InviteRequest(args[0])
@@ -3213,18 +3213,18 @@ type SigsInterface interface {
 	SigListJSON(SigListJSONArg) (string, error)
 }
 
-func SigsProtocol(i SigsInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func SigsProtocol(i SigsInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.sigs",
-		Methods: map[string]rpc2.ServeHook{
-			"sigList": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"sigList": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SigListArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.SigList(args[0])
 				}
 				return
 			},
-			"sigListJSON": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"sigListJSON": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SigListJSONArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.SigListJSON(args[0])
@@ -3273,25 +3273,25 @@ type StreamUiInterface interface {
 	Write(WriteArg) (int, error)
 }
 
-func StreamUiProtocol(i StreamUiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.streamUi",
-		Methods: map[string]rpc2.ServeHook{
-			"close": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"close": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]CloseArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Close(args[0])
 				}
 				return
 			},
-			"read": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"read": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ReadArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Read(args[0])
 				}
 				return
 			},
-			"write": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"write": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]WriteArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Write(args[0])
@@ -3346,25 +3346,25 @@ type TestInterface interface {
 	Panic(string) error
 }
 
-func TestProtocol(i TestInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func TestProtocol(i TestInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.test",
-		Methods: map[string]rpc2.ServeHook{
-			"test": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"test": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]TestArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Test(args[0])
 				}
 				return
 			},
-			"testCallback": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"testCallback": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]TestCallbackArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.TestCallback(args[0])
 				}
 				return
 			},
-			"panic": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"panic": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PanicArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Panic(args[0].Message)
@@ -3420,25 +3420,25 @@ type TrackInterface interface {
 	Untrack(UntrackArg) error
 }
 
-func TrackProtocol(i TrackInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func TrackProtocol(i TrackInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.track",
-		Methods: map[string]rpc2.ServeHook{
-			"track": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"track": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]TrackArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Track(args[0])
 				}
 				return
 			},
-			"trackWithToken": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"trackWithToken": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]TrackWithTokenArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.TrackWithToken(args[0])
 				}
 				return
 			},
-			"untrack": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"untrack": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]UntrackArg, 1)
 				if err = nxt(&args); err == nil {
 					err = i.Untrack(args[0])
@@ -3487,11 +3487,11 @@ type UiInterface interface {
 	PromptYesNo(PromptYesNoArg) (bool, error)
 }
 
-func UiProtocol(i UiInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func UiProtocol(i UiInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.ui",
-		Methods: map[string]rpc2.ServeHook{
-			"promptYesNo": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"promptYesNo": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]PromptYesNoArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.PromptYesNo(args[0])
@@ -3629,74 +3629,74 @@ type UserInterface interface {
 	Search(SearchArg) ([]SearchResult, error)
 }
 
-func UserProtocol(i UserInterface) rpc2.Protocol {
-	return rpc2.Protocol{
+func UserProtocol(i UserInterface) rpc.Protocol {
+	return rpc.Protocol{
 		Name: "keybase.1.user",
-		Methods: map[string]rpc2.ServeHook{
-			"listTrackers": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+		Methods: map[string]rpc.ServeHook{
+			"listTrackers": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ListTrackersArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.ListTrackers(args[0])
 				}
 				return
 			},
-			"listTrackersByName": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"listTrackersByName": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ListTrackersByNameArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.ListTrackersByName(args[0])
 				}
 				return
 			},
-			"listTrackersSelf": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"listTrackersSelf": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ListTrackersSelfArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.ListTrackersSelf(args[0].SessionID)
 				}
 				return
 			},
-			"loadUncheckedUserSummaries": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"loadUncheckedUserSummaries": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoadUncheckedUserSummariesArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.LoadUncheckedUserSummaries(args[0])
 				}
 				return
 			},
-			"loadUser": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"loadUser": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoadUserArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.LoadUser(args[0])
 				}
 				return
 			},
-			"loadUserPlusKeys": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"loadUserPlusKeys": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoadUserPlusKeysArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.LoadUserPlusKeys(args[0])
 				}
 				return
 			},
-			"loadPublicKeys": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"loadPublicKeys": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]LoadPublicKeysArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.LoadPublicKeys(args[0])
 				}
 				return
 			},
-			"listTracking": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"listTracking": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ListTrackingArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.ListTracking(args[0])
 				}
 				return
 			},
-			"listTrackingJSON": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"listTrackingJSON": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]ListTrackingJSONArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.ListTrackingJSON(args[0])
 				}
 				return
 			},
-			"search": func(nxt rpc2.DecodeNext) (ret interface{}, err error) {
+			"search": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
 				args := make([]SearchArg, 1)
 				if err = nxt(&args); err == nil {
 					ret, err = i.Search(args[0])

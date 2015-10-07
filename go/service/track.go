@@ -13,7 +13,7 @@ type TrackHandler struct {
 }
 
 // NewTrackHandler creates a TrackHandler for the xp transport.
-func NewTrackHandler(xp *rpc2.Transport) *TrackHandler {
+func NewTrackHandler(xp *rpc.Transport) *TrackHandler {
 	return &TrackHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

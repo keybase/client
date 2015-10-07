@@ -10,7 +10,7 @@ type CryptoHandler struct {
 	*BaseHandler
 }
 
-func NewCryptoHandler(xp *rpc2.Transport) *CryptoHandler {
+func NewCryptoHandler(xp *rpc.Transport) *CryptoHandler {
 	return &CryptoHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

@@ -43,7 +43,7 @@ func (p *CmdProve) fileOutputHook(txt string) (err error) {
 	return
 }
 
-func newProveUIProtocol(ui ProveUI) rpc2.Protocol {
+func newProveUIProtocol(ui ProveUI) rpc.Protocol {
 	return keybase1.ProveUiProtocol(ui)
 }
 
@@ -54,7 +54,7 @@ func (p *CmdProve) Run() error {
 	proveUI := ProveUI{parent: GlobUI}
 	p.installOutputHook(&proveUI)
 
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		newProveUIProtocol(proveUI),
 		NewLoginUIProtocol(),
 		NewSecretUIProtocol(),

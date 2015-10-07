@@ -24,7 +24,7 @@ func (c *CmdDoctor) Run() error {
 	if err != nil {
 		return err
 	}
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewDoctorUIProtocol(),
 		NewSecretUIProtocol(),
 		NewLocksmithUIProtocol(),

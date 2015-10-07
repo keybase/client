@@ -9,7 +9,7 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewGPGUIProtocol() rpc2.Protocol {
+func NewGPGUIProtocol() rpc.Protocol {
 	return keybase1.GpgUiProtocol(GlobUI.GetGPGUI())
 }
 

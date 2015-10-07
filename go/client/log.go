@@ -12,7 +12,7 @@ type LogUIServer struct {
 	log libkb.LogUI
 }
 
-func NewLogUIProtocol() rpc2.Protocol {
+func NewLogUIProtocol() rpc.Protocol {
 	return keybase1.LogUiProtocol(&LogUIServer{G.Log})
 }
 

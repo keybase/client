@@ -10,11 +10,11 @@ type IdentifyUIServer struct {
 	ui libkb.IdentifyUI
 }
 
-func NewIdentifyUIProtocol() rpc2.Protocol {
+func NewIdentifyUIProtocol() rpc.Protocol {
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{GlobUI.GetIdentifyUI()})
 }
 
-func NewIdentifyTrackUIProtocol() rpc2.Protocol {
+func NewIdentifyTrackUIProtocol() rpc.Protocol {
 	ui := GlobUI.GetIdentifyTrackUI(true)
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{ui})
 }

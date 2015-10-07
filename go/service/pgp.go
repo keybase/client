@@ -11,7 +11,7 @@ type PGPHandler struct {
 	*BaseHandler
 }
 
-func NewPGPHandler(xp *rpc2.Transport) *PGPHandler {
+func NewPGPHandler(xp *rpc.Transport) *PGPHandler {
 	return &PGPHandler{BaseHandler: NewBaseHandler(xp)}
 }
 

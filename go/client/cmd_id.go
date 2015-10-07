@@ -38,7 +38,7 @@ func (v *CmdID) makeArg() *engine.IDEngineArg {
 
 func (v *CmdID) Run() error {
 	var cli keybase1.IdentifyClient
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewIdentifyUIProtocol(),
 	}
 	cli, err := GetIdentifyClient()

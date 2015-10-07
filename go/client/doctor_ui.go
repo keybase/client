@@ -11,7 +11,7 @@ import (
 )
 
 // doctor ui rpc protocol
-func NewDoctorUIProtocol() rpc2.Protocol {
+func NewDoctorUIProtocol() rpc.Protocol {
 	return keybase1.DoctorUiProtocol(&DoctorUIServer{GlobUI.GetDoctorUI()})
 }
 

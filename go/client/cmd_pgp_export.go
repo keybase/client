@@ -60,7 +60,7 @@ func (s *CmdPGPExport) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPGPExport) Run() (err error) {
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(),
 	}
 

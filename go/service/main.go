@@ -27,8 +27,8 @@ func NewService(isDaemon bool) *Service {
 	return &Service{isDaemon: isDaemon}
 }
 
-func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
-	protocols := []rpc2.Protocol{
+func RegisterProtocols(srv *rpc.Server, xp *rpc.Transport) error {
+	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp)),
 		keybase1.BTCProtocol(NewBTCHandler(xp)),
 		keybase1.ConfigProtocol(ConfigHandler{xp}),
@@ -59,9 +59,9 @@ func RegisterProtocols(srv *rpc2.Server, xp *rpc2.Transport) error {
 }
 
 func (d *Service) Handle(c net.Conn) {
-	xp := rpc2.NewTransport(c, libkb.NewRPCLogFactory(), libkb.WrapError)
+	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(), libkb.WrapError)
 
-	server := rpc2.NewServer(xp, libkb.WrapError)
+	server := rpc.NewServer(xp, libkb.WrapError)
 	if err := RegisterProtocols(server, xp); err != nil {
 		G.Log.Warning("RegisterProtocols error: %s", err)
 		return

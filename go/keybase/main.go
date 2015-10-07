@@ -120,7 +120,7 @@ func mainInner(g *libkb.GlobalContext) error {
 }
 
 func registerGlobalLogUI(g *libkb.GlobalContext) error {
-	protocols := []rpc2.Protocol{client.NewLogUIProtocol()}
+	protocols := []rpc.Protocol{client.NewLogUIProtocol()}
 	if err := client.RegisterProtocols(protocols); err != nil {
 		return err
 	}

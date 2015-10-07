@@ -34,7 +34,7 @@ func (c *CmdDeviceRemove) Run() (err error) {
 		return err
 	}
 
-	protocols := []rpc2.Protocol{
+	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(),
 	}
 	if err = RegisterProtocols(protocols); err != nil {

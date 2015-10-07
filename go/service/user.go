@@ -13,7 +13,7 @@ type UserHandler struct {
 }
 
 // NewUserHandler creates a UserHandler for the xp transport.
-func NewUserHandler(xp *rpc2.Transport) *UserHandler {
+func NewUserHandler(xp *rpc.Transport) *UserHandler {
 	return &UserHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
