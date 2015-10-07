@@ -308,7 +308,7 @@ func (c *Connection) Shutdown() {
 	if c.cancelFunc != nil {
 		c.cancelFunc()
 	}
-	if c.transport != nil {
+	if c.transport != nil && c.transport.IsConnected() {
 		// close the connection
 		c.transport.Close()
 	}

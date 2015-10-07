@@ -296,7 +296,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps2Dev2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(MDServerErrorUnauthorized); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
@@ -360,7 +360,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	// but device 1 should now fail
 	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(MDServerErrorUnauthorized); !ok {
 		t.Fatalf("Got unexpected error when reading with revoked key: %v", err)
 	}
 

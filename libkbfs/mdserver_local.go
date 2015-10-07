@@ -86,6 +86,46 @@ func NewMDServerMemory(config Config) (*MDServerLocal, error) {
 		storage.NewMemStorage())
 }
 
+// Helper to aid in enforcement that only specified public keys can access TLF metdata.
+func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID, checkWrite bool) (bool, error) {
+	mdID, err := md.getHeadForTLF(ctx, id, Merged)
+	if err != nil {
+		return false, err
+	}
+	rmds, err := md.get(ctx, mdID)
+	if err != nil {
+		return false, err
+	}
+	if rmds == nil {
+		// TODO: the real mdserver will actually reverse lookup the folder handle
+		// and check that the UID is listed.
+		return true, nil
+	}
+	device, err := md.getCurrentDeviceKID(ctx)
+	if err != nil {
+		return false, err
+	}
+	user, err := md.config.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		return false, err
+	}
+	isWriter := rmds.MD.IsWriter(user, device)
+	if checkWrite {
+		return isWriter, nil
+	}
+	return isWriter || rmds.MD.IsReader(user, device), nil
+}
+
+// Helper to aid in enforcement that only specified public keys can access TLF metdata.
+func (md *MDServerLocal) isReader(ctx context.Context, id TlfID) (bool, error) {
+	return md.checkPerms(ctx, id, false)
+}
+
+// Helper to aid in enforcement that only specified public keys can access TLF metdata.
+func (md *MDServerLocal) isWriter(ctx context.Context, id TlfID) (bool, error) {
+	return md.checkPerms(ctx, id, true)
+}
+
 // GetForHandle implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle,
 	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
@@ -131,6 +171,15 @@ func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID,
 	defer md.shutdownLock.RUnlock()
 	if *md.shutdown {
 		return nil, errors.New("MD server already shut down")
+	}
+
+	// Check permissions
+	ok, err := md.isReader(ctx, id)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+	if !ok {
+		return nil, MDServerErrorUnauthorized{}
 	}
 
 	mdID, err := md.getHeadForTLF(ctx, id, mStatus)
@@ -234,6 +283,15 @@ func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID,
 		return nil, errors.New("MD server already shut down")
 	}
 
+	// Check permissions
+	ok, err := md.isReader(ctx, id)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+	if !ok {
+		return nil, MDServerErrorUnauthorized{}
+	}
+
 	var rmdses []*RootMetadataSigned
 	startKey, err := md.getMDKey(ctx, id, start, mStatus)
 	if err != nil {
@@ -279,6 +337,16 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	defer md.mutex.Unlock()
 
 	id := rmds.MD.ID
+
+	// Check permissions
+	ok, err := md.isWriter(ctx, id)
+	if err != nil {
+		return MDServerError{err}
+	}
+	if !ok {
+		return MDServerErrorUnauthorized{}
+	}
+
 	mStatus := rmds.MD.MergedStatus()
 	currHead, err := md.getHeadForTLF(ctx, id, mStatus)
 	if err != nil {
