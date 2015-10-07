@@ -1,55 +1,55 @@
-package rpc2
+package rpc
 
 import "sync"
 
 type DecodeNext func(interface{}) error
 type ServeHook func(DecodeNext) (interface{}, error)
+type ServeNotifyHook func(DecodeNext) error
 
-// EOFHook is typically called when a transport has to shut down.
-// We supply it with the exact error that caused the shutdown, which
-// should be io.EOF under normal circumstances.
-type EOFHook func(error)
-
-type Dispatcher interface {
-	Dispatch(m *Message) error
+type dispatcher interface {
 	Call(name string, arg interface{}, res interface{}, f UnwrapErrorFunc) error
+	Notify(name string, arg interface{}) error
 	RegisterProtocol(Protocol) error
-	RegisterEOFHook(EOFHook) error
-	Reset(error) error
+	Dispatch(m *message) error
+	Reset() error
 }
 
 type Protocol struct {
-	Name      string
-	Methods   map[string]ServeHook
-	WrapError WrapErrorFunc
+	Name          string
+	Methods       map[string]ServeHook
+	NotifyMethods map[string]ServeNotifyHook
+	WrapError     WrapErrorFunc
 }
 
-type Dispatch struct {
+type dispatch struct {
+	enc        ByteEncoder
 	protocols  map[string]Protocol
-	calls      map[int]*Call
+	calls      map[int]*call
 	seqid      int
 	callsMutex *sync.Mutex
-	xp         Transporter
+	writeCh    chan []byte
+	errCh      chan error
 	log        LogInterface
 	wrapError  WrapErrorFunc
-	eofHook    EOFHook
 }
 
-func NewDispatch(xp Transporter, l LogInterface, wef WrapErrorFunc) *Dispatch {
-	return &Dispatch{
+func newDispatch(writeCh chan []byte, errCh chan error, l LogInterface, wef WrapErrorFunc) *dispatch {
+	return &dispatch{
+		enc:        newFramedMsgpackEncoder(),
 		protocols:  make(map[string]Protocol),
-		calls:      make(map[int]*Call),
+		calls:      make(map[int]*call),
 		seqid:      0,
 		callsMutex: new(sync.Mutex),
-		xp:         xp,
 		log:        l,
 		wrapError:  wef,
+		writeCh:    writeCh,
+		errCh:      errCh,
 	}
 }
 
-type Request struct {
-	msg       *Message
-	dispatch  *Dispatch
+type request struct {
+	msg       *message
+	dispatch  *dispatch
 	seqno     int
 	method    string
 	err       interface{}
@@ -58,7 +58,16 @@ type Request struct {
 	wrapError WrapErrorFunc
 }
 
-type Call struct {
+type notifyRequest struct {
+	msg       *message
+	dispatch  *dispatch
+	method    string
+	err       interface{}
+	hook      ServeNotifyHook
+	wrapError WrapErrorFunc
+}
+
+type call struct {
 	ch          chan error
 	method      string
 	seqid       int
@@ -67,11 +76,11 @@ type Call struct {
 	profiler    Profiler
 }
 
-func (c *Call) Init() {
+func (c *call) Init() {
 	c.ch = make(chan error)
 }
 
-func (r *Request) reply() error {
+func (r *request) reply() error {
 	v := []interface{}{
 		TYPE_RESPONSE,
 		r.seqno,
@@ -81,7 +90,7 @@ func (r *Request) reply() error {
 	return r.msg.Encode(v)
 }
 
-func (r *Request) serve() {
+func (r *request) serve() {
 	prof := r.dispatch.log.StartProfiler("serve %s", r.method)
 	nxt := r.msg.makeDecodeNext(func(v interface{}) {
 		r.dispatch.log.ServerCall(r.seqno, r.method, nil, v)
@@ -101,24 +110,39 @@ func (r *Request) serve() {
 	}()
 }
 
-func (d *Dispatch) nextSeqid() int {
+func (r *notifyRequest) serve() {
+	prof := r.dispatch.log.StartProfiler("serve %s", r.method)
+	nxt := r.msg.makeDecodeNext(func(v interface{}) {
+		r.dispatch.log.ServerNotifyCall(r.method, nil, v)
+	})
+
+	go func() {
+		err := r.hook(nxt)
+		if prof != nil {
+			prof.Stop()
+		}
+		r.dispatch.log.ServerNotifyComplete(r.method, err)
+	}()
+}
+
+func (d *dispatch) nextSeqid() int {
 	ret := d.seqid
 	d.seqid++
 	return ret
 }
 
-func (d *Dispatch) registerCall(c *Call) {
+func (d *dispatch) registerCall(c *call) {
 	d.calls[c.seqid] = c
 }
 
-func (d *Dispatch) Call(name string, arg interface{}, res interface{}, f UnwrapErrorFunc) (err error) {
+func (d *dispatch) Call(name string, arg interface{}, res interface{}, f UnwrapErrorFunc) (err error) {
 
 	d.callsMutex.Lock()
 
 	seqid := d.nextSeqid()
 	v := []interface{}{TYPE_CALL, seqid, name, arg}
 	profiler := d.log.StartProfiler("call %s", name)
-	call := &Call{
+	call := &call{
 		method:      name,
 		seqid:       seqid,
 		res:         res,
@@ -130,16 +154,37 @@ func (d *Dispatch) Call(name string, arg interface{}, res interface{}, f UnwrapE
 
 	d.callsMutex.Unlock()
 
-	err = d.xp.Encode(v)
+	err = d.sendEncoded(v)
 	if err != nil {
-		return
+		return err
 	}
 	d.log.ClientCall(seqid, name, arg)
 	err = <-call.ch
 	return
 }
 
-func (d *Dispatch) findServeHook(n string) (srv ServeHook, wrapError WrapErrorFunc, err error) {
+func (d *dispatch) Notify(name string, arg interface{}) (err error) {
+
+	v := []interface{}{TYPE_NOTIFY, name, arg}
+	err = d.sendEncoded(v)
+	if err != nil {
+		return
+	}
+	d.log.ClientNotify(name, arg)
+	return
+}
+
+func (d *dispatch) sendEncoded(v interface{}) error {
+	bytes, err := d.enc.EncodeToBytes(v)
+	if err != nil {
+		return err
+	}
+	d.writeCh <- bytes
+	err = <-d.errCh
+	return err
+}
+
+func (d *dispatch) findServeHook(n string) (srv ServeHook, wrapError WrapErrorFunc, err error) {
 	p, m := SplitMethodName(n)
 	var prot Protocol
 	var found bool
@@ -157,8 +202,48 @@ func (d *Dispatch) findServeHook(n string) (srv ServeHook, wrapError WrapErrorFu
 	return
 }
 
-func (d *Dispatch) dispatchCall(m *Message) (err error) {
-	req := Request{msg: m, dispatch: d}
+func (d *dispatch) findServeNotifyHook(n string) (srv ServeNotifyHook, wrapError WrapErrorFunc, err error) {
+	p, m := SplitMethodName(n)
+	var prot Protocol
+	var found bool
+	if prot, found = d.protocols[p]; !found {
+		err = ProtocolNotFoundError{p}
+	} else if srv, found = prot.NotifyMethods[m]; !found {
+		err = MethodNotFoundError{p, m}
+	}
+	if found {
+		wrapError = prot.WrapError
+	}
+	if wrapError == nil {
+		wrapError = d.wrapError
+	}
+	return
+}
+
+func (d *dispatch) dispatchNotify(m *message) (err error) {
+	req := notifyRequest{msg: m, dispatch: d}
+
+	if err = m.Decode(&req.method); err != nil {
+		return
+	}
+
+	var se error
+	var wrapError WrapErrorFunc
+	if req.hook, wrapError, se = d.findServeNotifyHook(req.method); se != nil {
+		req.err = m.WrapError(wrapError, se)
+		if err = m.decodeToNull(); err != nil {
+			return
+		}
+		d.log.ServerNotifyCall(req.method, se, nil)
+	} else {
+		req.wrapError = wrapError
+		req.serve()
+	}
+	return
+}
+
+func (d *dispatch) dispatchCall(m *message) (err error) {
+	req := request{msg: m, dispatch: d}
 
 	if err = m.Decode(&req.seqno); err != nil {
 		return
@@ -183,7 +268,7 @@ func (d *Dispatch) dispatchCall(m *Message) (err error) {
 	return
 }
 
-func (d *Dispatch) RegisterProtocol(p Protocol) (err error) {
+func (d *dispatch) RegisterProtocol(p Protocol) (err error) {
 	if _, found := d.protocols[p.Name]; found {
 		err = AlreadyRegisteredError{p.Name}
 	} else {
@@ -192,16 +277,7 @@ func (d *Dispatch) RegisterProtocol(p Protocol) (err error) {
 	return err
 }
 
-// RegisterEOFHook registers a function to call when the dispatcher
-// hits EOF. The hook will be called with whatever error caused the
-// channel to close.  Usually this should be io.EOF, but it can
-// of course be otherwise.
-func (d *Dispatch) RegisterEOFHook(h EOFHook) error {
-	d.eofHook = h
-	return nil
-}
-
-func (d *Dispatch) dispatchResponse(m *Message) (err error) {
+func (d *dispatch) dispatchResponse(m *message) (err error) {
 	var seqno int
 
 	if err = m.Decode(&seqno); err != nil {
@@ -209,7 +285,7 @@ func (d *Dispatch) dispatchResponse(m *Message) (err error) {
 	}
 
 	d.callsMutex.Lock()
-	var call *Call
+	var call *call
 	if call = d.calls[seqno]; call != nil {
 		delete(d.calls, seqno)
 	}
@@ -251,29 +327,44 @@ func (d *Dispatch) dispatchResponse(m *Message) (err error) {
 	return
 }
 
-func (d *Dispatch) Reset(eofError error) error {
+func (d *dispatch) Reset() error {
 	d.callsMutex.Lock()
 	for k, v := range d.calls {
 		v.ch <- EofError{}
 		delete(d.calls, k)
 	}
 	d.callsMutex.Unlock()
-	if d.eofHook != nil {
-		d.eofHook(eofError)
-	}
 	return nil
 }
 
-func (d *Dispatch) Dispatch(m *Message) (err error) {
-	if m.nFields == 4 {
+func (d *dispatch) Dispatch(m *message) (err error) {
+	switch m.nFields {
+	case 3:
+		err = d.dispatchTriple(m)
+	case 4:
 		err = d.dispatchQuad(m)
-	} else {
+	default:
 		err = NewDispatcherError("can only handle message quads (got n=%d fields)", m.nFields)
 	}
 	return
 }
 
-func (d *Dispatch) dispatchQuad(m *Message) (err error) {
+func (d *dispatch) dispatchTriple(m *message) (err error) {
+	var l int
+	if err = m.Decode(&l); err != nil {
+		return
+	}
+	switch l {
+	case TYPE_NOTIFY:
+		d.dispatchNotify(m)
+	default:
+		err = NewDispatcherError("Unexpected message type=%d; wanted NOTIFY=%d",
+			l, TYPE_NOTIFY)
+	}
+	return
+}
+
+func (d *dispatch) dispatchQuad(m *message) (err error) {
 	var l int
 	if err = m.Decode(&l); err != nil {
 		return

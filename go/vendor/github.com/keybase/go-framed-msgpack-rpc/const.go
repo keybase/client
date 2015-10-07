@@ -1,4 +1,4 @@
-package rpc2
+package rpc
 
 const (
 	TYPE_CALL     = 0
