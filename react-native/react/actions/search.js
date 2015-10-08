@@ -32,7 +32,7 @@ export function submitSearch (base, term) {
         error
       })
 
-      if (!error) {
+      if (!error && results) {
         dispatch(loadSummaries(results.map(r => r.uid)))
       }
     })

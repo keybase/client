@@ -8,7 +8,8 @@
 import React from 'react-native'
 import {
   Component,
-  Navigator
+  Navigator,
+  View
 } from 'react-native'
 
 import { connect } from 'react-redux/native'
@@ -119,10 +120,12 @@ class MetaNavigator extends Component {
         initialRouteStack={routeStack.toJS()}
         renderScene={(route, navigator) => {
           return (
-            React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(route.component), {...route.props})
+            <View style={{flex: 1, marginTop: route.hideNavBar ? 0 : this.props.navBarHeight}}>
+              {React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(route.component), {...route.props})}
+            </View>
           )
         }}
-        navigationBar={NavBar}
+        navigationBar={componentAtTop.hideNavBar ? null : NavBar}
       />
     )
   }
@@ -133,7 +136,8 @@ MetaNavigator.propTypes = {
   store: React.PropTypes.object.isRequired,
   NavBar: React.PropTypes.object.isRequired,
   rootRouteParser: React.PropTypes.func.isRequired,
-  globalRoutes: React.PropTypes.object
+  globalRoutes: React.PropTypes.object,
+  navBarHeight: React.PropTypes.number.isRequired
 }
 
 export default MetaNavigator

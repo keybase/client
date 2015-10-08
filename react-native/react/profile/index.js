@@ -56,8 +56,7 @@ Profile.propTypes = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5FCFF',
-    marginTop: 64
+    backgroundColor: '#F5FCFF'
   },
   input: {
     height: 40,

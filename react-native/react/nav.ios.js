@@ -16,6 +16,8 @@ import { switchTab } from './actions/tabbedRouter'
 import { navigateUp } from './actions/router'
 import { getConfig } from './actions/config'
 
+import { constants as styleConstants } from './styles/common'
+
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
 
 const {
@@ -98,7 +100,8 @@ class Nav extends Component {
             store: this.props.store,
             rootRouteParser: tabToRootRouteParse[activeTab] || NoTab,
             globalRoutes,
-            NavBar: this.navBar()
+            NavBar: this.navBar(),
+            navBarHeight: styleConstants.navBarHeight
           }
         )}
       </View>
@@ -134,7 +137,9 @@ class Nav extends Component {
     return (
       <View style={{flex: 1}}>
         <TabBarIOS
-          tintColor='black'>
+          tintColor='black'
+          translucent={false}
+          >
           <TabBarIOS.Item
             title='Folders'
             selected={activeTab === FOLDER_TAB}
@@ -190,7 +195,8 @@ Nav.propTypes = {
 
 const styles = StyleSheet.create({
   tabContent: {
-    flex: 1
+    flex: 1,
+    marginBottom: styleConstants.tabBarHeight // don't sit under the tab...
   },
   navBar: {
     backgroundColor: 'white'

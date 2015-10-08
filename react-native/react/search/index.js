@@ -156,8 +156,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'stretch',
-    backgroundColor: '#F5FCFF',
-    marginTop: 64
+    backgroundColor: '#F5FCFF'
   },
   input: {
     height: 40,

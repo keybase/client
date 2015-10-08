@@ -13,6 +13,7 @@ import {
 
 import commonStyles from '../../styles/common'
 import * as SearchActions from '../../actions/search'
+import { navigateUp } from '../../actions/router'
 
 export default class Developer extends Component {
   constructor (props) {
@@ -40,6 +41,7 @@ export default class Developer extends Component {
           onPress={ () => this.props.dispatch(SearchActions.pushNewSearch('more')) }>
           <Text>Launch search</Text>
         </TouchableHighlight>
+        <Text onPress={() => this.props.dispatch(navigateUp())}>Back</Text>
       </View>
     )
   }
@@ -47,7 +49,8 @@ export default class Developer extends Component {
   static parseRoute (store, currentPath, nextPath) {
     const componentAtTop = {
       title: 'Developer',
-      component: Developer
+      component: Developer,
+      hideNavBar: true
     }
 
     return {
@@ -66,7 +69,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'stretch',
-    backgroundColor: '#F5FCFF'
+    backgroundColor: 'red'
   },
   input: {
     height: 40,

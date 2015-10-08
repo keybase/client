@@ -30,7 +30,10 @@ export default class People extends Component {
 
   static parseRoute (store, currentPath, nextPath) {
     return {
-      componentAtTop: {component: People},
+      componentAtTop: {
+        component: People,
+        title: 'People'
+      },
       parseNextRoute: null
     }
   }
