@@ -34,21 +34,19 @@ func (s Service) Label() string { return s.label }
 
 // Plist defines a launchd plist
 type Plist struct {
-	label      string
-	binPath    string
-	args       []string
-	envVars    map[string]string
-	workingDir string
+	label   string
+	binPath string
+	args    []string
+	envVars map[string]string
 }
 
 // NewPlist constructs a launchd service.
-func NewPlist(label string, binPath string, args []string, envVars map[string]string, workingDir string) Plist {
+func NewPlist(label string, binPath string, args []string, envVars map[string]string) Plist {
 	return Plist{
-		label:      label,
-		binPath:    binPath,
-		args:       args,
-		envVars:    envVars,
-		workingDir: workingDir,
+		label:   label,
+		binPath: binPath,
+		args:    args,
+		envVars: envVars,
 	}
 }
 
@@ -232,14 +230,6 @@ func ShowServices(filter string, name string) (err error) {
 // Install will install a service
 func Install(plist Plist) (err error) {
 	service := NewService(plist.label)
-
-	if plist.workingDir != "" {
-		err := ensureDirectoryExists(plist.workingDir)
-		if err != nil {
-			return err
-		}
-	}
-
 	return service.Install(plist)
 }
 
@@ -347,8 +337,6 @@ func (p Plist) plist() string {
   <true/>
   <key>RunAtLoad</key>
   <true/>
-  <key>WorkingDirectory</key>
-  <string>` + p.workingDir + `</string>
   <key>StandardErrorPath</key>
   <string>` + logFile + `</string>
   <key>StandardOutPath</key>
