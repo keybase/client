@@ -171,7 +171,6 @@
   } ],
   "messages" : {
     "getConfiguredAccounts" : {
-      "doc" : "Returns an array of information about accounts configured on the local\n\t\tmachine. Currently configured accounts are defined as those that have stored\n\t\tsecrets, but this definition may be expanded in the future.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -182,7 +181,6 @@
       }
     },
     "loginWithPrompt" : {
-      "doc" : "Tries to log in, prompting for username (if empty) and passphrase if\n\t\tnecessary.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -193,7 +191,6 @@
       "response" : "null"
     },
     "loginWithStoredSecret" : {
-      "doc" : "Tries to log in with the given username and its associated stored secret.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -204,7 +201,6 @@
       "response" : "null"
     },
     "loginWithPassphrase" : {
-      "doc" : "Tries to log in with the given username and passphrase. If pubkey login is\n\t\tsuccessful and storeSecret is set, stores the derived secret in the\n\t\tplatform's secret store (e.g., the keychain on OS X).",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -221,7 +217,6 @@
       "response" : "null"
     },
     "clearStoredSecret" : {
-      "doc" : "Removes any existing stored secret for the given username.\n\t\tloginWithStoredSecret(_, username) will fail after this is called.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -253,7 +248,6 @@
       "response" : "null"
     },
     "paperKey" : {
-      "doc" : "PaperKey generates paper backup keys for restoring an account.\n\t\tIt calls login_ui.displayPaperKeyPhrase with the phrase.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

@@ -9,35 +9,29 @@ protocol login {
 	       boolean hasStoredSecret;
 	}
 
-	/**
-		Returns an array of information about accounts configured on the local
-		machine. Currently configured accounts are defined as those that have stored
-		secrets, but this definition may be expanded in the future.
-		*/
+	// Returns an array of information about accounts configured
+	// on the local machine. Currently configured accounts are
+	// defined as those that have stored secrets, but this definition
+	// may be expanded in the future.
 	array<ConfiguredAccount> getConfiguredAccounts(int sessionID);
 
-	/**
-		Tries to log in, prompting for username (if empty) and passphrase if
-		necessary.
-		*/
+	// username may be empty. Tries to log in, prompting for username
+	// and passphrase if necessary.
 	void loginWithPrompt(int sessionID, string username);
 
-	/**
-	 	Tries to log in with the given username and its associated stored secret.
-		*/
+	// Tries to log in with the given username and its associated
+	// stored secret.
 	void loginWithStoredSecret(int sessionID, string username);
 
-	/**
-		Tries to log in with the given username and passphrase. If pubkey login is
-		successful and storeSecret is set, stores the derived secret in the
-		platform's secret store (e.g., the keychain on OS X).
-		*/
+	// Tries to log in with the given username and passphrase. If
+	// pubkey login is successful and storeSecret is set, stores
+	// the derived secret in the platform's secret store (e.g.,
+	// the keychain on OS X).
 	void loginWithPassphrase(int sessionID, string username, string passphrase, boolean storeSecret);
 
-	/**
-		Removes any existing stored secret for the given username.
-		loginWithStoredSecret(_, username) will fail after this is called.
-		*/
+	// Removes any existing stored secret for the given username;
+	// i.e., loginWithStoredSecret(_, username) will fail after
+	// this is called.
 	void clearStoredSecret(int sessionID, string username);
 
 	void cancelLogin(int sessionID);
@@ -45,9 +39,7 @@ protocol login {
 	void logout(int sessionID);
 	void reset(int sessionID);
 
-	/**
-	 	PaperKey generates paper backup keys for restoring an account.
-		It calls login_ui.displayPaperKeyPhrase with the phrase.
-		*/
+	// paperKey generates paper backup keys for restoring an account.
+	// It calls login_ui.displayPaperKeyPhrase with the phrase.
 	void paperKey(int sessionID);
 }

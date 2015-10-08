@@ -222,7 +222,6 @@
       "response" : "Config"
     },
     "setUserConfig" : {
-      "doc" : "Change user config.\n\t\tFor example, to update primary picture source:\n\t\t\tkey=picture.source, value=twitter (or github)",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

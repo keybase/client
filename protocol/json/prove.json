@@ -201,7 +201,6 @@
   }, {
     "type" : "enum",
     "name" : "TrackStatus",
-    "doc" : "TrackStatus is a summary of this track before the track is approved by the\n\t\tuser.\n\t\tNEW_*: New tracks\n\t \tUPDATE_*: Update to an existing track\n\t \tNEW_OK: Everything ok\n\t \tNEW_ZERO_PROOFS: User being tracked has no proofs\n\t \tNEW_FAIL_PROOFS: User being tracked has some failed proofs\n\t \tUPDATE_BROKEN: Previous tracking statement broken, this one will fix it.\n\t \tUPDATE_NEW_PROOFS: Previous tracking statement ok, but there are new proofs since previous tracking statement generated\n\t \tUPDATE_OK: No changes to previous tracking statement",
     "symbols" : [ "NEW_OK_1", "NEW_ZERO_PROOFS_2", "NEW_FAIL_PROOFS_3", "UPDATE_BROKEN_4", "UPDATE_NEW_PROOFS_5", "UPDATE_OK_6" ]
   }, {
     "type" : "record",

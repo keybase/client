@@ -3,21 +3,15 @@
 protocol device {
 	import idl "common.avdl";
 
-	/**
-		List devices for the user.
-		*/
+	// deviceList returns the devices for the user.
 	array<Device> deviceList(int sessionID);
 
-	/**
-		Starts the process of adding a new device using an existing
-		device.  It is called on the existing device. Client is responsible
-		for generating a sessionID.
-		*/
+	// deviceAdd starts the process of adding a new device using an existing 
+	// device.  It is called on the existing device.  Client is responsible
+	// for generating a sessionID.
 	void deviceAdd(int sessionID, string secretPhrase);
 
-	/**
-		Cancels an in-progress deviceAdd(...). Use the sessionID
-		you provided to deviceAdd as the parameter.
-		*/
+	// deviceAddCancel cancels an in-progress deviceAdd(...).  Use the sessionID
+	// you provided to deviceAdd as the parameter.
 	void deviceAddCancel(int sessionID);
 }

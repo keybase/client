@@ -3,29 +3,21 @@
 protocol favorite {
 	import idl "common.avdl";
 
-	/**
-	 Folder represents a favorite top-level folder in kbfs.
-		This type is likely to change significantly as all the various parts are
-		connected and tested.
-		*/
+	// Folder represents a favorite top-level folder in kbfs.
+	// This type is likely to change significantly as all the various parts 
+	// are connected and tested.
 	record Folder {
 		string name;              // patrick,max or chris,maxtaco@twitter#strib
 		boolean private;          // in /keybase/private or /keybase/public?
 		boolean notificationsOn;  // user wants to be notified when this folder changes
 	}
 
-	/**
-		Adds a folder to a user's list of favorite folders.
-		*/
+	// favoriteAdd adds a folder to a user's list of favorite folders.
 	void favoriteAdd(int sessionID, Folder folder);
 
-	/**
-		Removes a folder from a user's list of favorite folders.
-		*/
+	// favoriteDelete removes a folder from a user's list of favorite folders.
 	void favoriteDelete(int sessionID, Folder folder);
 
-	/**
-	 	Returns all of a user's favorite folders.
-		*/
+	// favoriteList returns all of a user's favorite folders.
 	array<Folder> favoriteList(int sessionID);
 }

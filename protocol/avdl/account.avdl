@@ -2,10 +2,8 @@
 @namespace("keybase.1")
 protocol account {
 
-	/**
-		Change the passphrase from old to new. If old isn't set, and force is false,
-		then prompt at the UI for it. If old isn't set and force is true, then we'll
-		try to force a passphrase change.
-	*/
+	// Change the passphrase from old to new. If old isn't set, and force is
+	// false, then prompt at the UI for it. If old isn't set and force is true,
+	// then we'll try to force a passphrase change.
 	void passphraseChange(int sessionID, string oldPassphrase, string passphrase, boolean force);
 }

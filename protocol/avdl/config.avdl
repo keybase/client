@@ -27,10 +27,7 @@ protocol config {
 
 	Config getConfig(int sessionID);
 
-	/**
-		Change user config.
-		For example, to update primary picture source:
-			key=picture.source, value=twitter (or github)
-		*/
+	// Change user config.
+	// For example, to update primary picture source: key=picture.source, value=twitter (or github)
 	void setUserConfig(int sessionID, string username, string key, string value);
 }

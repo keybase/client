@@ -4,7 +4,6 @@
   "types" : [ ],
   "messages" : {
     "passphraseChange" : {
-      "doc" : "Change the passphrase from old to new. If old isn't set, and force is false,\n\t\tthen prompt at the UI for it. If old isn't set and force is true, then we'll\n\t\ttry to force a passphrase change.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
