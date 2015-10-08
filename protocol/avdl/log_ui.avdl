@@ -1,7 +1,7 @@
 
 @namespace("keybase.1")
 protocol logUi {
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	void log(int sessionID, LogLevel level, Text text);
+  void log(int sessionID, LogLevel level, Text text);
 }

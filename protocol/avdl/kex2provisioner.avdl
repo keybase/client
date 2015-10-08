@@ -1,6 +1,6 @@
 
 @namespace("keybase.1")
 protocol Kex2Provisioner {
-	@notify("")
-	void kexStart();
+  @notify("")
+  void kexStart();
 }

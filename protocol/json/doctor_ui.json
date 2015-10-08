@@ -197,6 +197,7 @@
   } ],
   "messages" : {
     "loginSelect" : {
+      "doc" : "If doctor runs and login is needed, it will call this to give the\n    user the option of which user to log in as.  The login will be\n    different from a standard login as it won't try to fix the user's\n    keys immediately.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -213,6 +214,7 @@
       "response" : "string"
     },
     "displayStatus" : {
+      "doc" : "Once the user is logged in, the status of their account will be evaluated\n    and displayStatus() will be called with info about it.\n    Return true to proceed and do any necessary fixes. Return false to cancel.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -223,6 +225,7 @@
       "response" : "boolean"
     },
     "displayResult" : {
+      "doc" : "If a fix is performed, displayResult() will be called after the fix is done.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

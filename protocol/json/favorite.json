@@ -161,6 +161,7 @@
   }, {
     "type" : "record",
     "name" : "Folder",
+    "doc" : "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested.",
     "fields" : [ {
       "name" : "name",
       "type" : "string"
@@ -174,6 +175,7 @@
   } ],
   "messages" : {
     "favoriteAdd" : {
+      "doc" : "Adds a folder to a user's list of favorite folders.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -184,6 +186,7 @@
       "response" : "null"
     },
     "favoriteDelete" : {
+      "doc" : "Removes a folder from a user's list of favorite folders.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -194,6 +197,7 @@
       "response" : "null"
     },
     "favoriteList" : {
+      "doc" : "Returns all of a user's favorite folders.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

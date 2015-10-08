@@ -1,9 +1,9 @@
 @namespace("keybase.1")
 
 protocol revoke {
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	void revokeKey(int sessionID, string keyID);
-	void revokeDevice(int sessionID, DeviceID deviceID, boolean force);
-	void revokeSigs(int sessionID, array<SigID> sigIDs);
+  void revokeKey(int sessionID, string keyID);
+  void revokeDevice(int sessionID, DeviceID deviceID, boolean force);
+  void revokeSigs(int sessionID, array<SigID> sigIDs);
 }

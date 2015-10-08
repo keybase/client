@@ -2,15 +2,15 @@
 @namespace("keybase.1")
 protocol signup {
 
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	record SignupRes {
-		boolean passphraseOk;
-		boolean postOk;
-		boolean writeOk;
-	}
+  record SignupRes {
+    boolean passphraseOk;
+    boolean postOk;
+    boolean writeOk;
+  }
 
-	void checkUsernameAvailable(int sessionID, string username);
-	SignupRes signup(int sessionID, string email, string inviteCode, string passphrase, string username, string deviceName, boolean storeSecret);
-	void inviteRequest(int sessionID, string email, string fullname, string notes);
+  void checkUsernameAvailable(int sessionID, string username);
+  SignupRes signup(int sessionID, string email, string inviteCode, string passphrase, string username, string deviceName, boolean storeSecret);
+  void inviteRequest(int sessionID, string email, string fullname, string notes);
 }

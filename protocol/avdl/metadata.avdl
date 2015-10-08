@@ -1,27 +1,27 @@
 @namespace("keybase.1")
 
 protocol metadata {
-	import idl "backend_common.avdl";
+  import idl "backend_common.avdl";
 
-	record KeyHalf {
-	       UID user;
-	       KID deviceKID;
-	       bytes key;	
-	}
+  record KeyHalf {
+         UID user;
+         KID deviceKID;
+         bytes key; 
+  }
 
-	record MetadataResponse {
-	       string folderID;
-	       array<bytes> mdBlocks;
-	}
+  record MetadataResponse {
+         string folderID;
+         array<bytes> mdBlocks;
+  }
 
-	int authenticate(UID user, KID deviceKID, string sid);
-	void putMetadata(bytes mdBlock, map<string> logTags);
-	MetadataResponse getMetadata(string folderID, bytes folderHandle, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);
-	void registerForUpdates(string folderID, long currRevision, map<string> logTags);
-	void pruneUnmerged(string folderID, map<string> logTags);
-	void putKeys(array<KeyHalf> keyHalves, map<string> logTags);
-	bytes getKey(bytes keyHalfID, map<string> logTags);
-	boolean truncateLock(string folderID);
-	boolean truncateUnlock(string folderID);
-	void ping();
+  int authenticate(UID user, KID deviceKID, string sid);
+  void putMetadata(bytes mdBlock, map<string> logTags);
+  MetadataResponse getMetadata(string folderID, bytes folderHandle, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);
+  void registerForUpdates(string folderID, long currRevision, map<string> logTags);
+  void pruneUnmerged(string folderID, map<string> logTags);
+  void putKeys(array<KeyHalf> keyHalves, map<string> logTags);
+  bytes getKey(bytes keyHalfID, map<string> logTags);
+  boolean truncateLock(string folderID);
+  boolean truncateUnlock(string folderID);
+  void ping();
 }

@@ -1,22 +1,22 @@
 @namespace("keybase.1")
 
 protocol block {
-	import idl "backend_common.avdl";
+  import idl "backend_common.avdl";
 
-	record GetBlockRes {
-		string blockKey;
-		bytes buf;
-	}
+  record GetBlockRes {
+    string blockKey;
+    bytes buf;
+  }
 
-	void establishSession(UID user, string sid);
+  void establishSession(UID user, string sid);
 
-	void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
-	GetBlockRes getBlock(BlockIdCombo bid);
+  void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
+  GetBlockRes getBlock(BlockIdCombo bid);
 
-	// Fixed-size nonce to identify a reference to a block
-	fixed BlockRefNonce(8);
+  // Fixed-size nonce to identify a reference to a block
+  fixed BlockRefNonce(8);
 
-	void incBlockReference(BlockIdCombo bid, BlockRefNonce nonce, string folder, UID chargedTo);
-	void decBlockReference(BlockIdCombo bid, BlockRefNonce nonce, string folder, UID chargedTo);
-	
+  void incBlockReference(BlockIdCombo bid, BlockRefNonce nonce, string folder, UID chargedTo);
+  void decBlockReference(BlockIdCombo bid, BlockRefNonce nonce, string folder, UID chargedTo);
+  
 }

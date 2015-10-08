@@ -1,85 +1,85 @@
 @namespace("keybase.1")
 protocol user {
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	record Tracker {
-		UID tracker;
-		int status; // 0 == none, 1 == tracking
-		Time mTime;
-	}
+  record Tracker {
+    UID tracker;
+    int status; // 0 == none, 1 == tracking
+    Time mTime;
+  }
 
-	array<Tracker> listTrackers(int sessionID, UID uid);
-	array<Tracker> listTrackersByName(int sessionID, string username);
-	array<Tracker> listTrackersSelf(int sessionID);
+  array<Tracker> listTrackers(int sessionID, UID uid);
+  array<Tracker> listTrackersByName(int sessionID, string username);
+  array<Tracker> listTrackersSelf(int sessionID);
 
-	record TrackProof {
-		string proofType;
-		string proofName;
-		string idString;
-	}
+  record TrackProof {
+    string proofType;
+    string proofName;
+    string idString;
+  }
 
-	record WebProof {
-		string hostname;
-		array<string> protocols;
-	}
+  record WebProof {
+    string hostname;
+    array<string> protocols;
+  }
 
-	record Proofs {
-		array<TrackProof> social;
-		array<WebProof> web;
-		array<PublicKey> publicKeys;
-	}
+  record Proofs {
+    array<TrackProof> social;
+    array<WebProof> web;
+    array<PublicKey> publicKeys;
+  }
 
-	record UserSummary {
-		UID uid;
-		string username;
-		int idVersion;
-		string fullName;
-		string bio;
-		Proofs proofs;
-		string sigIDDisplay;
-		Time trackTime;
-	}
+  record UserSummary {
+    UID uid;
+    string username;
+    int idVersion;
+    string fullName;
+    string bio;
+    Proofs proofs;
+    string sigIDDisplay;
+    Time trackTime;
+  }
 
-	record UserPlusKeys {
-		UID uid;
-		string username;
-		array<PublicKey> deviceKeys;
-	}
+  record UserPlusKeys {
+    UID uid;
+    string username;
+    array<PublicKey> deviceKeys;
+  }
 
-	// load user summaries for the supplied uids.
-	// they are "unchecked" in that the client is not verifying the info from the server.
-	// if len(uids) > 500, the first 500 will be returned.
-	array<UserSummary> loadUncheckedUserSummaries(int sessionID, array<UID> uids);
+  // load user summaries for the supplied uids.
+  // they are "unchecked" in that the client is not verifying the info from the server.
+  // if len(uids) > 500, the first 500 will be returned.
+  array<UserSummary> loadUncheckedUserSummaries(int sessionID, array<UID> uids);
 
-	// Load a user from the server.
-	User loadUser(int sessionID, UID uid);
+  // Load a user from the server.
+  User loadUser(int sessionID, UID uid);
 
-	// Load a user + device keys from the server.
-	// cacheOK -> true means that a cached value is ok to return.
-	UserPlusKeys loadUserPlusKeys(int sessionID, UID uid, boolean cacheOK);
+  // Load a user + device keys from the server.
+  // cacheOK -> true means that a cached value is ok to return.
+  UserPlusKeys loadUserPlusKeys(int sessionID, UID uid, boolean cacheOK);
 
-	// Load public keys for a user
-	array<PublicKey> loadPublicKeys(int sessionID, UID uid);
+  // Load public keys for a user
+  array<PublicKey> loadPublicKeys(int sessionID, UID uid);
 
-	// The list-tracking function get verified data from the tracking statements
-	// in the user's own sigchain.
-	array<UserSummary> listTracking(int sessionID, string filter);
-	string listTrackingJSON(int sessionID, string filter, boolean verbose);
+  // The list-tracking function get verified data from the tracking statements
+  // in the user's own sigchain.
+  array<UserSummary> listTracking(int sessionID, string filter);
+  string listTrackingJSON(int sessionID, string filter, boolean verbose);
 
 
-	record SearchComponent {
-		string key;
-		string value;
-		double score;
-	}
+  record SearchComponent {
+    string key;
+    string value;
+    double score;
+  }
 
-	record SearchResult {
-		UID uid;
-		string username;
-		array<SearchComponent> components;
-		double score;
-	}
+  record SearchResult {
+    UID uid;
+    string username;
+    array<SearchComponent> components;
+    double score;
+  }
 
-	// Search for users who match a given query
-	array<SearchResult> search(int sessionID, string query);
+  // Search for users who match a given query
+  array<SearchResult> search(int sessionID, string query);
 }

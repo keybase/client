@@ -161,6 +161,7 @@
   } ],
   "messages" : {
     "deviceList" : {
+      "doc" : "List devices for the user.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -171,6 +172,7 @@
       }
     },
     "deviceAdd" : {
+      "doc" : "Starts the process of adding a new device using an existing\n    device.  It is called on the existing device. Client is responsible\n    for generating a sessionID.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -181,6 +183,7 @@
       "response" : "null"
     },
     "deviceAddCancel" : {
+      "doc" : "Cancels an in-progress deviceAdd(...). Use the sessionID\n    you provided to deviceAdd as the parameter.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

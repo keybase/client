@@ -1,7 +1,7 @@
 @namespace("keybase.1")
 protocol ui {
 
-	import idl "common.avdl";
+  import idl "common.avdl";
 
   enum PromptDefault {
     NONE_0,
@@ -9,6 +9,6 @@ protocol ui {
     NO_2
   }
 
-	boolean promptYesNo(int sessionID, Text text, PromptDefault promptDefault);
+  boolean promptYesNo(int sessionID, Text text, PromptDefault promptDefault);
 
 }

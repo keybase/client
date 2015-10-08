@@ -38,6 +38,7 @@
   } ],
   "messages" : {
     "signED25519" : {
+      "doc" : "Sign the given message (which should be small) using the device's private\n    signing ED25519 key, and return the signature as well as the corresponding\n    public key that can be used to verify the signature. The 'reason' parameter\n    is used as part of the SecretEntryArg object passed into\n    secretUi.getSecret().",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -51,6 +52,7 @@
       "response" : "ED25519SignatureInfo"
     },
     "unboxBytes32" : {
+      "doc" : "Decrypt exactly 32 bytes using nacl/box with the given nonce, the given\n    peer's public key, and the device's private encryption key, and return the\n    decrypted data. The 'reason' parameter is used as part of the\n    SecretEntryArg object passed into secretUi.getSecret().",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
