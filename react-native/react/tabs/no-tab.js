@@ -1,16 +1,9 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-
-const {
-  Component,
-  Text,
-  View
-} = React
+import React, { Component, Text, View } from 'react-native'
 
 export default class NoTab extends Component {
-
   render () {
     return (
       <View style={{flex: 1, justifyContent: 'center', backgroundColor: 'red'}}>

@@ -1,13 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native'
+import React, { Component, StyleSheet, Text, View } from 'react-native'
 
 export default class ExistingDevice extends Component {
   render () {

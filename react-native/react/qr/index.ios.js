@@ -1,23 +1,15 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableHighlight,
-  View
-} from 'react-native'
-
+import React, { Component, Image, StyleSheet, Text, View } from 'react-native'
 import Camera from 'react-native-camera'
 import commonStyles from '../styles/common'
 import qrCode from 'qrcode-generator'
+import Button from '../common-adapters/button'
 
 const countMax = 10
 
-class QR extends Component {
+export default class QR extends Component {
   constructor (props) {
     super(props)
 
@@ -108,18 +100,16 @@ class QR extends Component {
   render () {
     const scanSwitch =
       <View style={styles.switchContainer}>
-        <TouchableHighlight
+        <Button
           style={styles.buttonContainer}
-          underlayColor={commonStyles.buttonHighlight}
-          onPress={() => this.setState({scanning: true, readCode: null})}>
-          <Text style={[commonStyles.actionButton, styles.actionButton]}>Scan Code</Text>
-        </TouchableHighlight>
-        <TouchableHighlight
+          onPress={() => this.setState({scanning: true, readCode: null})}
+          buttonStyle={[commonStyles.actionButton, styles.actionButton]}
+          title='Scan Code' />
+        <Button
           style={styles.buttonContainer}
-          underlayColor={commonStyles.buttonHighlight}
-          onPress={() => this.setState({scanning: false})}>
-          <Text style={[commonStyles.actionButton, styles.actionButton]}>Generate Code</Text>
-        </TouchableHighlight>
+          onPress={() => this.setState({scanning: false})}
+          buttonStyle={[commonStyles.actionButton, styles.actionButton]}
+          title='Generate Code' />
       </View>
 
     if (this.state.scanning) {
@@ -197,5 +187,3 @@ const styles = StyleSheet.create({
     marginRight: 10
   }
 })
-
-export default QR

@@ -1,18 +1,9 @@
 'use strict'
 
-import React from 'react-native'
-import {
-  StyleSheet,
-  Text,
-  View,
-  Component,
-  NativeModules,
-  NativeAppEventEmitter
-} from 'react-native'
-
+import React, { StyleSheet, Text, View, Component, NativeModules, NativeAppEventEmitter } from 'react-native'
 const objcNative = NativeModules.ObjcTest
 
-class ObjcTest extends Component {
+export default class ObjcTest extends Component {
   constructor () {
     super()
 
@@ -59,5 +50,3 @@ const styles = StyleSheet.create({
     margin: 10
   }
 })
-
-export default ObjcTest

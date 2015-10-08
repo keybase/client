@@ -2,8 +2,7 @@
 
 /* shows how the meta navigator works */
 
-import React from 'react-native'
-import { Component, View, Text, StyleSheet } from 'react-native'
+import React, { Component, View, Text, StyleSheet } from 'react-native'
 import { navigateTo, routeAppend, navigateUp } from '../actions/router'
 
 function mapStateToGetURI (state) {
@@ -13,7 +12,7 @@ function mapStateToGetURI (state) {
   ]).toObject()
 }
 
-class NavDebug extends Component {
+export default class NavDebug extends Component {
   constructor () {
     super()
 
@@ -163,5 +162,3 @@ const styles = StyleSheet.create({
     color: 'blue'
   }
 })
-
-export default NavDebug

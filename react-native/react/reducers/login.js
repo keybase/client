@@ -1,7 +1,7 @@
 'use strict'
 
-import * as states from '../constants/loginStates'
-import * as types from '../constants/loginActionTypes'
+import * as states from '../constants/login-states'
+import * as types from '../constants/login-action-types'
 
 const initialState = {
   loginState: states.ASK_USER_PASS,

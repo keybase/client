@@ -1,23 +1,13 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  ActivityIndicatorIOS,
-  Component,
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableHighlight
-} from 'react-native'
-
+import React, { ActivityIndicatorIOS, Component, StyleSheet, View, Text, TextInput } from 'react-native'
 import commonStyles from '../styles/common'
-import Switch from '../commonAdapters/Switch'
-
+import Switch from '../common-adapters/switch'
+import Button from '../common-adapters/button'
 import { submitUserPass } from '../actions/login'
 
-class LoginForm extends Component {
+export default class LoginForm extends Component {
   constructor (props) {
     super(props)
 
@@ -49,11 +39,7 @@ class LoginForm extends Component {
 
     const button = this.props.waitingForServer
       ? <Text style={[loginButtonStyle, {color: 'gray', backgroundColor: 'white'}]} >Login</Text>
-      : <TouchableHighlight
-            underlayColor={commonStyles.buttonHighlight}
-            onPress={() => this.submit()}>
-            <Text style={loginButtonStyle} >Login</Text>
-          </TouchableHighlight>
+      : <Button onPress={() => this.submit()} title='Login' buttonStyle={loginButtonStyle} />
 
     return (
       <View style={styles.container}>
@@ -172,5 +158,3 @@ const styles = StyleSheet.create({
 })
 
 const loginButtonStyle = [commonStyles.actionButton, {width: 200}]
-
-export default LoginForm

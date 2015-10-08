@@ -1,16 +1,9 @@
 'use strict'
 
-import React from 'react-native'
-import {
-  StyleSheet,
-  Text,
-  View,
-  Component
-} from 'react-native'
-
+import React, { StyleSheet, Text, View, Component } from 'react-native'
 import engine from '../engine'
 
-class GoTest extends Component {
+export default class GoTest extends Component {
   constructor () {
     super()
 
@@ -91,5 +84,3 @@ const styles = StyleSheet.create({
     margin: 10
   }
 })
-
-export default GoTest
