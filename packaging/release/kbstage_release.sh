@@ -17,7 +17,7 @@
 set -e -u -o pipefail
 
 if [ "$#" -lt 1 ] ; then
-	echo Usage: kbstage_release.sh VERSION
+	echo Usage: $0 VERSION
 	echo VERSION should be something like 1.0.3-245
 	exit 1
 fi
@@ -26,21 +26,25 @@ version="$1"
 version_tag="v$version"
 
 clientdir="$GOPATH/src/github.com/keybase/client"
-betadir="$GOPATH/src/github.com/keybase/client-beta"
-brewdir="$GOPATH/src/github.com/keybase/homebrew-beta"
+if [ "$BETADIR" = "" ]; then
+	BETADIR="$GOPATH/src/github.com/keybase/client-beta"
+fi
+if [ "$BREWDIR" = "" ]; then
+	BREWDIR="$GOPATH/src/github.com/keybase/homebrew-beta"
+fi
 
 if [ ! -d "$clientdir" ]; then
 	echo "Need client repo, expecting it here: $clientdir"
 	exit 1
 fi
 
-if [ ! -d "$betadir" ]; then
-	echo "Need client-beta repo, expecting it here: $betadir"
+if [ ! -d "$BETADIR" ]; then
+	echo "Need client-beta repo, expecting it here: $BETADIR"
 	exit 1
 fi
 
-if [ ! -d "$brewdir" ]; then
-	echo "Need homebrew-beta repo, expecting it here: $brewdir"
+if [ ! -d "$BREWDIR" ]; then
+	echo "Need homebrew-beta repo, expecting it here: $BREWDIR"
 	exit 1
 fi
 
@@ -64,8 +68,8 @@ git tag -a $version_tag -m $version_tag
 git push --tags
 
 echo "2. Exporting client source to client-beta for version $version"
-$clientdir/packaging/export/export.sh client $betadir $version_tag
-cd $betadir
+$clientdir/packaging/export/export.sh client $BETADIR $version_tag
+cd $BETADIR
 git add .
 git commit -m "Importing from $version_tag"
 git push
@@ -77,8 +81,8 @@ src_sha="$(curl -L -s $src_url | shasum -a 256 | cut -f 1 -d ' ')"
 echo "sha256 of src: $src_sha"
 
 echo "3. Updating kbstage brew formula"
-sed -e "s/%VERSION%/$version/g" -e "s/%VERSION_TAG%/$version_tag/g" -e "s/%SRC_SHA%/$src_sha/g" $brewdir/kbstage.rb.tmpl > $brewdir/kbstage.rb
-cd $brewdir
+sed -e "s/%VERSION%/$version/g" -e "s/%VERSION_TAG%/$version_tag/g" -e "s/%SRC_SHA%/$src_sha/g" $BREWDIR/kbstage.rb.tmpl > $BREWDIR/kbstage.rb
+cd $BREWDIR
 git commit -a -m "New kbstage version $version_tag"
 git push
 
