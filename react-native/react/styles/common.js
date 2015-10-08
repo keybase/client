@@ -3,6 +3,8 @@
 
 import { StyleSheet } from 'react-native'
 
+import native from './native'
+
 export default StyleSheet.create({
   button: {
     textAlign: 'center',
@@ -40,3 +42,4 @@ export default StyleSheet.create({
 
 // non stylesheet styles
 export const buttonHighlight = 'white'
+export const constants = native

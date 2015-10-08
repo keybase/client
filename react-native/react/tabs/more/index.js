@@ -119,10 +119,9 @@ More.propTypes = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'stretch',
-    backgroundColor: '#F5FCFF',
-    marginTop: 60
+    backgroundColor: '#F5FCFF'
   },
   separator: {
     height: 1,

@@ -24,7 +24,10 @@ export default class Folders extends Component {
   // store is our redux store
   static parseRoute (store, currentPath, nextPath) {
     return {
-      componentAtTop: {component: Folders},
+      componentAtTop: {
+        component: Folders,
+        title: 'Folders'
+      },
       parseNextRoute: null
     }
   }
