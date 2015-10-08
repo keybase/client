@@ -51,9 +51,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 			envVars["KEYBASE_LABEL"] = label
 			envVars["KEYBASE_LOG_FORMAT"] = "file"
 
-			workingDir := G.Env.GetCacheDir()
-
-			plist := launchd.NewPlist(label, binPath, plistArgs, envVars, workingDir)
+			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
 			err := launchd.Install(plist)
 			if err != nil {
 				G.Log.Fatalf("%v", err)
