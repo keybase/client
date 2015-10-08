@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"runtime/debug"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -231,7 +230,6 @@ func (s *Session) IsRecent() bool {
 }
 
 func (s *Session) check() error {
-	debug.PrintStack()
 	s.G().Log.Debug("+ Checking session")
 	if s.IsRecent() && s.checked {
 		s.G().Log.Debug("- session is recent, short-circuiting")
