@@ -13,33 +13,27 @@ gomobile init
 npm install
 ```
 
-#### ios specific
-```sh
-# Do this inside react-native/ios
-cd ios/
+#### iOS
 
-# Install CocoaPods (if not installed)
+Install CocoaPods (if not installed):
+
+```sh
 sudo gem install cocoapods
-pod setup
-
-# Generate workspace
-pod install
 ```
+
+Build and install dependencies:
 
 ```sh
-# inside react-native/
-
-# Build the keybase go framwork
-npm run gobuild-ios
-
-# Make an initial bundle (not checked in)
-npm run reactbundle-ios
-
-# Open workspace (not xcodeproj)
-open Keybase.xcworkspace
+npm run build-ios
 ```
 
-Then select the target ```Keybase``` and run.
+Open workspace (not xcodeproj):
+
+```sh
+open ios/Keybase.xcworkspace
+```
+
+Then select the target `Keybase` and run.
 
 #### Android Specific
 This will only work on an actual device or arm emulator. see: (https://github.com/golang/go/issues/10743)
