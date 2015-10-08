@@ -311,11 +311,7 @@ func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata) error {
 	if err != nil {
 		return err
 	}
-	if rmd.MergedStatus() == Unmerged {
-		return nil
-	}
-	// or else prune all unmerged history now
-	return md.config.MDServer().PruneUnmerged(ctx, rmd.ID)
+	return nil
 }
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.

@@ -1380,6 +1380,14 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 		fbo.setStagedLocked(true)
 		fbo.cr.Resolve(md.Revision, mergedRev)
 	} else {
+		if fbo.staged {
+			// If we were staged, prune all unmerged history now
+			err = fbo.config.MDServer().PruneUnmerged(ctx, fbo.id())
+			if err != nil {
+				return err
+			}
+		}
+
 		fbo.setStagedLocked(false)
 	}
 	fbo.transitionState(cleanState)

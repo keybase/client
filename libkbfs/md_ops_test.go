@@ -75,7 +75,6 @@ func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 		Return(SignatureInfo{}, nil)
 
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil)
-	config.mockMdserv.EXPECT().PruneUnmerged(gomock.Any(), gomock.Any()).Return(nil)
 }
 
 func putMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned,
