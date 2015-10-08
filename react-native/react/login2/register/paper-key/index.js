@@ -1,21 +1,20 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native'
+import React, { Component, StyleSheet, Text, TextInput, View } from 'react-native'
+import commonStyles from '../../../styles/common'
+import Button from '../../../common-adapters/button'
 
 export default class PaperKey extends Component {
   render () {
     return (
-      <View style={styles.container}>
-        <Text>Paper key</Text>
-        <Text>Enter</Text>
-        <Text>Submit</Text>
+      <View style={[styles.container, {paddingTop: 200}]}>
+        <Text style={commonStyles.h1}>Register with a paper key</Text>
+        <Text style={commonStyles.h2}>Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum Lorem ipsum </Text>
+        <TextInput
+          placeholder='Enter your paper key'
+        />
+        <Button onPress={() => { console.log('TODO') }} title='Submit'/>
       </View>
     )
   }

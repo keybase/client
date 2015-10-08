@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/tabbedRouterActionTypes'
+import * as types from '../constants/tabbed-router-action-types'
 
 export function switchTab (tabName) {
   return {

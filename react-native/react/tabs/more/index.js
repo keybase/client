@@ -1,19 +1,11 @@
 'use strict'
 
-import React from 'react-native'
-const {
-  Component,
-  ListView,
-  StyleSheet,
-  View,
-  Text,
-  TouchableHighlight
-} = React
-
+import React, { Component, ListView, StyleSheet, View, Text } from 'react-native'
 import commonStyles from '../../styles/common'
 import * as LoginActions from '../../actions/login'
 import * as SearchActions from '../../actions/search'
 import { navigateTo } from '../../actions/router'
+import Button from '../../common-adapters/button'
 
 export default class More extends Component {
   constructor (props) {
@@ -30,6 +22,9 @@ export default class More extends Component {
         }},
         {name: 'Login2', onClick: () => {
           this.props.dispatch(navigateTo(['login2', 'welcome']))
+        }},
+        {name: 'Register', onClick: () => {
+          this.props.dispatch(navigateTo(['login2', 'register']))
         }},
         {name: 'reset', onClick: () => {
           require('../../engine').reset()
@@ -61,12 +56,10 @@ export default class More extends Component {
   }
 
   renderRow (rowData, sectionID, rowID) {
-    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={styles.separator} /> : null
+    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
 
     return (
-      <TouchableHighlight
-        underlayColor={commonStyles.buttonHighlight}
-        onPress={rowData.onClick}>
+      <Button onPress={rowData.onClick}>
         <View>
           <View style={{margin: 10, flexDirection: 'row', flex: 1, justifyContent: 'space-between'}}>
             <Text>{rowData.name}</Text>
@@ -74,7 +67,7 @@ export default class More extends Component {
           </View>
           {sep}
         </View>
-      </TouchableHighlight>
+      </Button>
     )
   }
 
@@ -123,9 +116,5 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     backgroundColor: '#F5FCFF',
     marginTop: 60
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#CCCCCC'
   }
 })

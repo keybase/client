@@ -5,12 +5,7 @@
  * todo(mm) explain why we need a meta navigator
  */
 
-import React from 'react-native'
-import {
-  Component,
-  Navigator
-} from 'react-native'
-
+import React, { Component, Navigator } from 'react-native'
 import { connect } from 'react-redux/native'
 import Immutable from 'immutable'
 

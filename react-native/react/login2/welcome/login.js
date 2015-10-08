@@ -1,18 +1,11 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  Text,
-  TextInput,
-  View
-} from 'react-native'
-
+import React, { Component, Text, TextInput, View } from 'react-native'
 import commonStyles from '../../styles/common'
 import { welcomeSubmitUserPass } from '../../actions/login2'
 import { routeAppend } from '../../actions/router'
-import ForgotUserPass from './forgotUserPass'
+import ForgotUserPass from './forgot-user-pass'
 
 export default class Login extends Component {
   constructor (props) {

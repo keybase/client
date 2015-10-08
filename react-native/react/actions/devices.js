@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/devicesActionTypes'
+import * as types from '../constants/devices-action-types'
 import engine from '../engine'
 
 export function loadDevices () {

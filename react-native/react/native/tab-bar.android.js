@@ -1,9 +1,6 @@
 'use strict'
 
-import React, { requireNativeComponent, PropTypes } from 'react-native'
-const {
-  Component
-} = React
+import React, { requireNativeComponent, PropTypes, Component } from 'react-native'
 
 const tabBarProps = {
   name: 'TabBar',
@@ -36,7 +33,7 @@ const NativeTabBar = requireNativeComponent(
   {nativeOnly: {onSelect: true}}
 )
 
-class TabBar extends Component {
+export default class TabBar extends Component {
   constructor (props) {
     super(props)
   }
@@ -71,5 +68,3 @@ TabBar.propTypes = {
 }
 
 TabBar.Item = TabBarItem
-
-export default TabBar

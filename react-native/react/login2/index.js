@@ -5,14 +5,8 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  StyleSheet,
-  View
-} from 'react-native'
-import ProgressIndicator from '../commonAdapters/ProgressIndicator'
-
+import React, { Component, StyleSheet, View } from 'react-native'
+import ProgressIndicator from '../common-adapters/progress-indicator'
 import Welcome from './welcome'
 import Register from './register'
 

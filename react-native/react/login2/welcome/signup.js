@@ -1,13 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  Text,
-  View
-} from 'react-native'
-
+import React, { Component, Text, View } from 'react-native'
 import commonStyles from '../../styles/common'
 
 export default class Signup extends Component {

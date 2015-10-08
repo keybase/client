@@ -1,18 +1,11 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  StyleSheet,
-  View,
-  Text
-} from 'react-native'
-
+import React, { Component, StyleSheet, View, Text } from 'react-native'
 import { showedSecretWords } from '../actions/login'
 import commonStyles from '../styles/common'
 
-class DisplaySecretWords extends Component {
+export default class DisplaySecretWords extends Component {
   constructor (props) {
     super(props)
 
@@ -70,5 +63,3 @@ const styles = StyleSheet.create({
     padding: 10
   }
 })
-
-export default DisplaySecretWords

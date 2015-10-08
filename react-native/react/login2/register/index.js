@@ -1,16 +1,8 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native'
-
+import React, { Component, StyleSheet, Text, View } from 'react-native'
 import { routeAppend } from '../../actions/router'
-
 import PaperKey from './paper-key'
 import UserPass from './user-pass'
 import ExistingDevice from './existing-device'

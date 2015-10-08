@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/routerActionTypes'
+import * as types from '../constants/router-action-types'
 
 export function getCurrentURI (state) {
   return state.tabbedRouter
