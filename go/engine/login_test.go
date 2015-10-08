@@ -596,6 +596,10 @@ func (l *lockui) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
 	return nil
 }
 
+func (l *lockui) DisplayProvisionSuccess(arg keybase1.DisplayProvisionSuccessArg) error {
+	return nil
+}
+
 func (l *lockui) KexStatus(arg keybase1.KexStatusArg) error {
 	return nil
 }
