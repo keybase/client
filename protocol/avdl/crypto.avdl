@@ -5,17 +5,19 @@ protocol crypto {
 	fixed ED25519Signature(64);
 
 	record ED25519SignatureInfo {
-	       // The actual signature.
-	       ED25519Signature sig;
-	       // The public key that can verify the signature.
-	       ED25519PublicKey publicKey;
+		// The actual signature.
+		ED25519Signature sig;
+		// The public key that can verify the signature.
+		ED25519PublicKey publicKey;
 	}
 
-	// Sign the given message (which should be small) using the device's
-	// private signing ED25519 key, and return the signature as well as
-	// the corresponding public key that can be used to verify the
-	// signature. The 'reason' parameter is used as part of the
-	// SecretEntryArg object passed into secretUi.getSecret().
+	/**
+		Sign the given message (which should be small) using the device's private
+		signing ED25519 key, and return the signature as well as the corresponding
+		public key that can be used to verify the signature. The 'reason' parameter
+		is used as part of the SecretEntryArg object passed into
+		secretUi.getSecret().
+		*/
 	ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
 
 	fixed Bytes32(32);
@@ -24,10 +26,11 @@ protocol crypto {
 	fixed BoxNonce(24);
 	fixed BoxPublicKey(32);
 
-	// Decrypt exactly 32 bytes using nacl/box with the given nonce,
-	// the given peer's public key, and the device's private encryption
-	// key, and return the decrypted data.. The 'reason' parameter is
-	// used as part of the SecretEntryArg object passed into
-	// secretUi.getSecret().
+	/**
+		Decrypt exactly 32 bytes using nacl/box with the given nonce, the given
+		peer's public key, and the device's private encryption key, and return the
+		decrypted data. The 'reason' parameter is used as part of the
+		SecretEntryArg object passed into secretUi.getSecret().
+		*/
 	Bytes32 unboxBytes32(int sessionID, EncryptedBytes32 encryptedBytes32, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
 }

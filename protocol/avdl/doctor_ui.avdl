@@ -3,10 +3,12 @@ protocol doctorUi {
 
 	import idl "common.avdl";
 
-	// if doctor runs and login is needed, it will call this to give the
-	// user the option of which user to log in as.  The login will be
-	// different from a standard login as it won't try to fix the user's
-	// keys immediately.
+	/**
+		If doctor runs and login is needed, it will call this to give the
+		user the option of which user to log in as.  The login will be
+		different from a standard login as it won't try to fix the user's
+		keys immediately.
+		*/
 	string loginSelect(int sessionID, string currentUser, array<string> otherUsers);
 
 
@@ -30,12 +32,15 @@ protocol doctorUi {
 		union { null, Device } currentDevice;
 	}
 
-	// once the user is logged in, the status of their account will
-	// be evaluated and displayStatus() will be called with info about it.
-	// Return true to proceed and do any necessary fixes.  Return false to cancel.
+	/**
+		Once the user is logged in, the status of their account will be evaluated
+		and displayStatus() will be called with info about it.
+		Return true to proceed and do any necessary fixes. Return false to cancel.
+		*/
 	boolean displayStatus(int sessionID, DoctorStatus status);
 
-	// if a fix is performed, displayResult() will be called after the
-	// fix is done.
+	/**
+		If a fix is performed, displayResult() will be called after the fix is done.
+		*/
 	void displayResult(int sessionID, string message);
 }

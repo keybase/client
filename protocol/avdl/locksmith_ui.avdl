@@ -28,17 +28,23 @@ protocol locksmithUi {
 	string promptDeviceName(int sessionID);
 	void deviceNameTaken(int sessionID, string name);
 
-	// selectSigner is for when a user logs in with a new device
-	// and it needs to be signed by an existing device or pgp.
+	/**
+		Called when a user logs in with a new device and it needs to be signed by an
+		existing device or pgp.
+		*/
 	SelectSignerRes selectSigner(int sessionID, array<Device> devices, boolean hasPGP, boolean hasPaperBackupKey);
 
-	// if there's an error signing a new device, the daemon will call this
-	// to tell clients about the error.  attempt is the attempt number.
-	// total is the number of attempts that will be made.
+	/**
+		If there's an error signing a new device, the daemon will call this to tell
+		clients about the error. Attempt is the current attempt number.
+		Total is the number of attempts that will be made.
+		*/
 	void deviceSignAttemptErr(int sessionID, string msg, int attempt, int total);
 
-	// displaySecretWords is for device provisioning when device Y (new device) gives
-	// instructions containing the secret words to enter on device X (existing device).
+	/**
+		During device provisioning when device Y (new device) gives instructions
+		containing the secret words to enter on device X (existing device).
+		*/
 	void displaySecretWords(int sessionID, string secret, string deviceNameExisting, string deviceNameToAdd);
 
 	enum KexStatusCode {

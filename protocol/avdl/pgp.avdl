@@ -20,8 +20,10 @@ protocol pgp {
 	// Return a source that we should be writing to.
 	void pgpSign(int sessionID, Stream source, Stream sink, PGPSignOptions opts);
 
-	// Download PGP keys for tracked users and update the local GPG keyring.
-	// If usernames is nonempty, update only those users.
+	/**
+	 	Download PGP keys for tracked users and update the local GPG keyring.
+		If usernames is nonempty, update only those users.
+		*/
 	void pgpPull(int sessionID, array<string> userAsserts);
 
 	record PGPEncryptOptions {
@@ -35,9 +37,11 @@ protocol pgp {
 
 	void pgpEncrypt(int sessionID, Stream source, Stream sink, PGPEncryptOptions opts);
 
-	// PGPSigVerification is returned by pgpDecrypt and pgpVerify with information
-	// about a the signature verification.  If isSigned is false, there was no
-	// signature, and the rest of the fields should be ignored.
+	/**
+		PGPSigVerification is returned by pgpDecrypt and pgpVerify with information
+		about a the signature verification. If isSigned is false, there was no
+		signature, and the rest of the fields should be ignored.
+		*/
 	record PGPSigVerification {
 		boolean isSigned; // true if message was signed
 		boolean verified; // true if signature verified
@@ -76,7 +80,9 @@ protocol pgp {
 		boolean exactMatch;
 	}
 
-	// Exports active PGP keys. Only allows armored export.
+	/**
+		Exports active PGP keys. Only allows armored export.
+		*/
 	array<KeyInfo> pgpExport(int sessionID, PGPQuery options);
 	array<KeyInfo> pgpExportByFingerprint(int sessionID, PGPQuery options);
 	array<KeyInfo> pgpExportByKID(int sessionID, PGPQuery options);
@@ -92,9 +98,13 @@ protocol pgp {
 
 	void pgpDeletePrimary(int sessionID);
 
-	// select an existing key and add to kb
+	/**
+	 	Select an existing key and add to Keybase.
+		*/
 	void pgpSelect(int sessionID, string fingerprintQuery, boolean allowMulti, boolean skipImport, boolean onlyImport);
 
-	// push updated key(s) to the server
+	/**
+	 	Push updated key(s) to the server.
+		*/
 	void pgpUpdate(int sessionID, boolean all, array<string> fingerprints);
 }
