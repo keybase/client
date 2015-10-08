@@ -21,7 +21,7 @@ const initialState = Immutable.fromJS({
     [DEVICES_TAB]: emptyRouterState,
     [MORE_TAB]: emptyRouterState
   },
-  activeTab: CHAT_TAB
+  activeTab: MORE_TAB
 })
 
 export default function (state = initialState, action) {
