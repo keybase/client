@@ -843,6 +843,20 @@
   }];
 }
 
+- (void)displayProvisionSuccess:(KBRDisplayProvisionSuccessRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(params.username)};
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.displayProvisionSuccess" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayProvisionSuccessWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(username)};
+  [self.client sendRequestWithMethod:@"keybase.1.locksmithUi.displayProvisionSuccess" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRLogUiRequest
@@ -3242,6 +3256,23 @@
 
 + (instancetype)params {
   KBRKexStatusRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDisplayProvisionSuccessRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDisplayProvisionSuccessRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

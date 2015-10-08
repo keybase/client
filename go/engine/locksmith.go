@@ -14,13 +14,14 @@ type Locksmith struct {
 	libkb.Contextified
 	arg *LocksmithArg
 
-	status     LocksmithStatus
-	signingKey libkb.GenericKey
-	devName    string
-	lks        *libkb.LKSec
-	kexMu      sync.Mutex
-	kex        *KexNewDevice
-	canceled   chan struct{}
+	status            LocksmithStatus
+	signingKey        libkb.GenericKey
+	devName           string
+	lks               *libkb.LKSec
+	kexMu             sync.Mutex
+	kex               *KexNewDevice
+	canceled          chan struct{}
+	provisionRequired bool
 }
 
 type LocksmithArg struct {
@@ -153,7 +154,16 @@ func (d *Locksmith) fix(ctx *Context) error {
 		panic(err)
 	}
 
-	return d.checkKeys(ctx)
+	if err := d.checkKeys(ctx); err != nil {
+		return err
+	}
+
+	if d.provisionRequired {
+		// checkKeys provisioned a device, so inform the user:
+		return ctx.LocksmithUI.DisplayProvisionSuccess(keybase1.DisplayProvisionSuccessArg{Username: d.arg.User.GetName()})
+	}
+
+	return nil
 }
 
 func (d *Locksmith) Cancel() error {
@@ -202,8 +212,13 @@ func (d *Locksmith) checkKeys(ctx *Context) error {
 	if d.arg.User.HasDeviceInCurrentInstall() {
 		// they have a device sibkey for this device
 		d.G().Log.Debug("| User has a device in the current install; all done")
+		// no device provisioning performed:
+		d.provisionRequired = false
 		return nil
 	}
+
+	// a new device will be provisioned below, so set this here.
+	d.provisionRequired = true
 
 	// make sure secretsyncer loaded --- likely not needed since we
 	// already did this above
@@ -249,6 +264,9 @@ func (d *Locksmith) addBasicKeys(ctx *Context) error {
 	if err := d.paperKey(ctx); err != nil {
 		return err
 	}
+
+	// a new device was provisioned:
+	d.provisionRequired = true
 
 	return nil
 }

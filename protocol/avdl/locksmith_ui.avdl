@@ -61,4 +61,8 @@ protocol locksmithUi {
 	}
 
 	void kexStatus(int sessionID, string msg, KexStatusCode code);
+
+	// displayProvisionSuccess is called when running locksmith results in
+	// provisioning a new device.
+	void displayProvisionSuccess(int sessionID, string username);
 }

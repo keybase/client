@@ -1588,6 +1588,11 @@ type KexStatusArg struct {
 	Code      KexStatusCode `codec:"code" json:"code"`
 }
 
+type DisplayProvisionSuccessArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type LocksmithUiInterface interface {
 	PromptDeviceName(int) (string, error)
 	DeviceNameTaken(DeviceNameTakenArg) error
@@ -1595,6 +1600,7 @@ type LocksmithUiInterface interface {
 	DeviceSignAttemptErr(DeviceSignAttemptErrArg) error
 	DisplaySecretWords(DisplaySecretWordsArg) error
 	KexStatus(KexStatusArg) error
+	DisplayProvisionSuccess(DisplayProvisionSuccessArg) error
 }
 
 func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
@@ -1643,6 +1649,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 				}
 				return
 			},
+			"displayProvisionSuccess": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
+				args := make([]DisplayProvisionSuccessArg, 1)
+				if err = nxt(&args); err == nil {
+					err = i.DisplayProvisionSuccess(args[0])
+				}
+				return
+			},
 		},
 	}
 
@@ -1680,6 +1693,11 @@ func (c LocksmithUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err 
 
 func (c LocksmithUiClient) KexStatus(__arg KexStatusArg) (err error) {
 	err = c.Cli.Call("keybase.1.locksmithUi.kexStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocksmithUiClient) DisplayProvisionSuccess(__arg DisplayProvisionSuccessArg) (err error) {
+	err = c.Cli.Call("keybase.1.locksmithUi.displayProvisionSuccess", []interface{}{__arg}, nil)
 	return
 }
 

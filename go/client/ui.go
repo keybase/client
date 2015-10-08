@@ -557,6 +557,19 @@ func (d LocksmithUI) KexStatus(arg keybase1.KexStatusArg) error {
 	return nil
 }
 
+func (d LocksmithUI) DisplayProvisionSuccess(arg keybase1.DisplayProvisionSuccessArg) error {
+
+	d.parent.Printf(CHECK + " Success! You are logged in as " + ColorString("bold", arg.Username) + "\n")
+	// turn on when kbfs active:
+	if false {
+		d.parent.Printf("  - your keybase public directory is available at /keybase/public/%s\n", arg.Username)
+		d.parent.Printf("  - your keybase encrypted directory is available at /keybase/private/%s\n", arg.Username)
+	}
+
+	d.parent.Printf("  - type `keybase help` for more info.\n")
+	return nil
+}
+
 //============================================================
 
 type LoginUI struct {

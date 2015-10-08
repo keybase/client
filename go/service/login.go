@@ -145,3 +145,8 @@ func (r *RemoteLocksmithUI) KexStatus(arg keybase1.KexStatusArg) error {
 	arg.SessionID = r.sessionID
 	return r.uicli.KexStatus(arg)
 }
+
+func (r *RemoteLocksmithUI) DisplayProvisionSuccess(arg keybase1.DisplayProvisionSuccessArg) error {
+	arg.SessionID = r.sessionID
+	return r.uicli.DisplayProvisionSuccess(arg)
+}

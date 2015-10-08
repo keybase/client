@@ -819,6 +819,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *msg;
 @property KBRKexStatusCode code;
 @end
+@interface KBRDisplayProvisionSuccessRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@end
 @interface KBRLogRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRLogLevel level;
@@ -1444,6 +1448,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)kexStatus:(KBRKexStatusRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)kexStatusWithMsg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion;
+
+- (void)displayProvisionSuccess:(KBRDisplayProvisionSuccessRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)displayProvisionSuccessWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 @end
 
