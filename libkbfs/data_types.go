@@ -912,8 +912,7 @@ type DirBlock struct {
 	// if not indirect, a map of path name to directory entry
 	Children map[string]DirEntry `codec:",omitempty"`
 	// if indirect, contains the indirect pointers to the next level of blocks
-	IPtrs   []IndirectDirPtr `codec:",omitempty"`
-	Padding []byte
+	IPtrs []IndirectDirPtr `codec:",omitempty"`
 }
 
 // NewDirBlock creates a new, empty DirBlock.
@@ -944,8 +943,7 @@ type FileBlock struct {
 	// if not indirect, the full contents of this block
 	Contents []byte `codec:",omitempty"`
 	// if indirect, contains the indirect pointers to the next level of blocks
-	IPtrs   []IndirectFilePtr `codec:",omitempty"`
-	Padding []byte
+	IPtrs []IndirectFilePtr `codec:",omitempty"`
 }
 
 // NewFileBlock creates a new, empty FileBlock.

@@ -119,3 +119,33 @@ func TestBsplitterShouldNotEmbed(t *testing.T) {
 		t.Errorf("Not embedding a 1-byte block change")
 	}
 }
+
+func TestBsplitterOverhead(t *testing.T) {
+	codec := NewCodecMsgpack()
+	desiredBlockSize := int64(64 * 1024)
+	bsplit, err := NewBlockSplitterSimple(desiredBlockSize, 8*1024, codec)
+	if err != nil {
+		t.Fatalf("Got error making block splitter with overhead: %v", err)
+	}
+
+	// Test that an encoded, padded block matches this desired block size
+	block := NewFileBlock().(*FileBlock)
+	block.Contents = make([]byte, bsplit.maxSize)
+	for i := range block.Contents {
+		block.Contents[i] = byte(i)
+	}
+	encodedBlock, err := codec.Encode(block)
+	if err != nil {
+		t.Fatalf("Encoding block failed: %v", err)
+	}
+	crypto := &CryptoCommon{codec: codec}
+	paddedBlock, err := crypto.padBlock(encodedBlock)
+	if err != nil {
+		t.Fatalf("Padding block failed: %v", err)
+	}
+	// first 4 bytes of the padded block encodes the block size
+	if g, e := int64(len(paddedBlock)), desiredBlockSize+4; g != e {
+		t.Fatalf("Padded block size %d doesn't match desired block size %d",
+			g, e)
+	}
+}

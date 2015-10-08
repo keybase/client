@@ -77,6 +77,7 @@ func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *Conf
 	config := NewConfigLocal()
 	setTestLogger(config, t)
 
+	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
 	localUsers := MakeLocalUsers(users)
@@ -156,6 +157,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.SetLoggerMaker(config.loggerFn)
 	c.SetRootCerts(config.RootCerts())
 
+	c.SetBlockSplitter(config.BlockSplitter())
 	c.SetKeyManager(NewKeyManagerStandard(c))
 
 	daemon := config.KeybaseDaemon().(KeybaseDaemonLocal)

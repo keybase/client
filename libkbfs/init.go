@@ -152,6 +152,14 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 
 	config := NewConfigLocal()
 
+	// 64K blocks by default, block changes embedded max == 8K
+	bsplitter, err := NewBlockSplitterSimple(64*1024, 8*1024,
+		config.Codec())
+	if err != nil {
+		return nil, err
+	}
+	config.SetBlockSplitter(bsplitter)
+
 	if registry := config.MetricsRegistry(); registry != nil {
 		keyCache := config.KeyCache()
 		keyCache = NewKeyCacheMeasured(keyCache, registry)

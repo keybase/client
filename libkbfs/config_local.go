@@ -147,8 +147,6 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetMDOps(&MDOpsStandard{config})
 	config.SetBlockOps(&BlockOpsStandard{config})
 	config.SetKeyOps(&KeyOpsStandard{config})
-	// 64K blocks by default, block changes embedded max == 8K
-	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
 
 	// Set the cert to be the environment variable, if it exists.
