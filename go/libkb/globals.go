@@ -54,7 +54,7 @@ type GlobalContext struct {
 	shutdownOnce     sync.Once         // whether we've shut down or not
 	loginStateMu     sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
 	loginState       *LoginState       // What phase of login the user's in
-	androidKeyStore  AndroidKeyStore   // Java Obj for Native Android Keystore
+	externalKeyStore ExternalKeyStore  // Java Obj for Native Android Keystore
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -73,7 +73,7 @@ func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(c
 
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
-func (g *GlobalContext) SetAndroidKeyStore(s AndroidKeyStore) { g.androidKeyStore = s }
+func (g *GlobalContext) SetExternalKeyStore(s ExternalKeyStore) { g.externalKeyStore = s }
 
 func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)

@@ -94,15 +94,16 @@ type AndroidSecretStore libkb.SecretStore
 // We have to duplicate the interface defined in libkb.AndroidKeyStore
 // Otherwise we get an undefined param error when we use this as an argument
 // in an exported func
-type AndroidKeyStore interface {
+type ExternalKeyStore interface {
 	RetrieveSecret(username string) ([]byte, error)
 	StoreSecret(username string, secret []byte) error
 	ClearSecret(username string) error
 	GetUsersWithStoredSecretsMsgPack() ([]byte, error)
 	SetupKeyStore(username string) error
+	GetTerminalPrompt() string
 }
 
-func SetGlobalAndroidKeyStore(s AndroidKeyStore) {
+func SetGlobalExternalKeyStore(s ExternalKeyStore) {
 	// TODO: Gross! can we fix this?
-	libkb.G.SetAndroidKeyStore(libkb.AndroidKeyStore(s))
+	libkb.G.SetExternalKeyStore(libkb.ExternalKeyStore(s))
 }
