@@ -1,0 +1,16 @@
+language: go
+go:
+  - 1.5
+install:
+  - cd ..
+  - git clone git@github.com:keybase/client
+  - cd client
+  - GO15VENDOREXPERIMENT=1 go build ./...
+  - cd ../kbfs
+  - GO15VENDOREXPERIMENT=0 go get ./...
+script:
+  - GO15VENDOREXPERIMENT=0 go build ./...
+  - cd libkbfs && go get -t ./... && go test
+notifications:
+  slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
+
