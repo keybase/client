@@ -42,7 +42,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
 
     @Override
     public void ClearSecret(final String username) throws Exception {
-        ks.deleteEntry(KEY_ALIAS);
+        prefs.edit().remove(PREFS_KEY + username).apply();
     }
 
     @Override
@@ -72,18 +72,6 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     }
 
     @Override
-    public void StoreSecret(final String username, final byte[] bytes) throws Exception {
-        try {
-            storeSecret(username, bytes);
-        } catch (KeyStoreException e) {
-            // Try deleting the Keystore entry and creating new rsa keys
-            KeyStoreHelper.recreateKeyStoreEntry(context, ks, KEY_ALIAS);
-            storeSecret(username, bytes);
-        }
-
-    }
-
-    @Override
     public String GetTerminalPrompt() {
         return "Store secret in Android's KeyStore?";
     }
@@ -91,11 +79,28 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     @Override
     public void SetupKeyStore(final String username) throws Exception {
         if (!ks.containsAlias(KEY_ALIAS)) {
-            KeyStoreHelper.generateRSAKeyPair(context, ks, KEY_ALIAS);
+            KeyStoreHelper.generateRSAKeyPair(context, KEY_ALIAS);
         }
+
+        // Try to read the entry from the keystore.
+        // The entry may exists, but it may not be readable by us.
+        // (this happens when the app is uninstalled and reinstalled)
+        // In that case, lets' delete the entry and recurse
+        try {
+            final Entry entry = ks.getEntry(KEY_ALIAS, null);
+            if (entry == null) {
+                throw new NullPointerException("Null Entry");
+            }
+        } catch (Exception e) {
+            ks.deleteEntry(KEY_ALIAS);
+            SetupKeyStore(username);
+        }
+
+
     }
 
-    private void storeSecret(final String username, final byte[] bytes) throws Exception {
+    @Override
+    public void StoreSecret(final String username, final byte[] bytes) throws Exception {
         Entry entry = null;
 
         try {

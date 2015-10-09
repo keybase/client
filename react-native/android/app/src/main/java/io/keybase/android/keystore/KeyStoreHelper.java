@@ -22,18 +22,9 @@ import java.util.Calendar;
 import javax.security.auth.x500.X500Principal;
 
 public class KeyStoreHelper {
-// NewSecretStore(username string), HasSecretStore(),
-// GetUsersWithStoredSecrets() ([]string, error), and
-// GetTerminalPrompt() are defined in platform-specific files.
-
-    public static void recreateKeyStoreEntry(Context ctx, KeyStore ks, String keyAlias) throws KeyStoreException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-        ks.deleteEntry(keyAlias);
-        generateRSAKeyPair(ctx, ks, keyAlias);
-    }
-
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
-    public static void generateRSAKeyPair(Context ctx, KeyStore ks, String keyAlias) throws KeyStoreException, NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    public static void generateRSAKeyPair(Context ctx, String keyAlias) throws KeyStoreException, NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
 
         final AlgorithmParameterSpec spec;
