@@ -85,24 +85,3 @@ func Reset() {
 		fmt.Println("loopback socker error:", err)
 	}
 }
-
-// So We can export these libkb types
-type AndroidSecretRetriever libkb.SecretRetriever
-type AndroidSecretStorer libkb.SecretStorer
-type AndroidSecretStore libkb.SecretStore
-
-// We have to duplicate the interface defined in libkb.AndroidKeyStore
-// Otherwise we get an undefined param error when we use this as an argument
-// in an exported func
-type AndroidKeyStore interface {
-	RetrieveSecret(username string) ([]byte, error)
-	StoreSecret(username string, secret []byte) error
-	ClearSecret(username string) error
-	GetUsersWithStoredSecretsMsgPack() ([]byte, error)
-	SetupKeyStore(username string) error
-}
-
-func SetGlobalAndroidKeyStore(s AndroidKeyStore) {
-	// TODO: Gross! can we fix this?
-	libkb.G.SetAndroidKeyStore(libkb.AndroidKeyStore(s))
-}
