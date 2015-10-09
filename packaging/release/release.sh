@@ -55,13 +55,10 @@ if [ ! -d "$brewdir" ]; then
 	exit 1
 fi
 
-src_version="$(egrep -o "([0-9]{1,}\.)+[0-9]{1,}" $clientdir/go/libkb/version.go)"
-build_number="$(egrep -o "const Build = \"\d+\"" $clientdir/go/libkb/version.go | egrep -o "\d+")"
+version_on_disk="$("$clientdir/packaging/version.sh")"
 
-if [ "$version" != "$src_version-$build_number" ]; then
-	echo Version $version does not match libkb/version.go $src_version-$build_number
-	echo source version: $src_version
-	echo build number:   $build_number
+if [ "$version" != "$version_on_disk" ]; then
+	echo Version $version does not match libkb/version.go $version_on_disk
 	exit 1
 fi
 
