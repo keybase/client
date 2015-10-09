@@ -63,6 +63,11 @@
 			"revisionTime": "2015-06-24T12:59:21-04:00"
 		},
 		{
+			"path": "github.com/keybase/go-keychain",
+			"revision": "041360662df035870dc6cafa8bbb357265d0da98",
+			"revisionTime": "2015-09-29T12:22:00-07:00"
+		},
+		{
 			"path": "github.com/keybase/go-osxkeychain",
 			"revision": "895167325dc959eeb550354611609b1191f3403f",
 			"revisionTime": "2015-09-29T10:58:21-05:00"
