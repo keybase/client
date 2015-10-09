@@ -1,7 +1,7 @@
 'use strict'
 
-import * as loginTypes from '../constants/loginActionTypes'
-import * as routerTypes from '../constants/routerActionTypes'
+import * as loginTypes from '../constants/login-action-types'
+import * as routerTypes from '../constants/router-action-types'
 import Immutable from 'immutable'
 
 const initialState = createRouterState(['nav'], [])

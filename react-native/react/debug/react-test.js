@@ -1,14 +1,7 @@
 'use strict'
+import React, { StyleSheet, Text, View, Component } from 'react-native'
 
-import React from 'react-native'
-import {
-  StyleSheet,
-  Text,
-  View,
-  Component
-} from 'react-native'
-
-class ReactTest extends Component {
+export default class ReactTest extends Component {
   constructor () {
     super()
 
@@ -50,5 +43,3 @@ const styles = StyleSheet.create({
     margin: 10
   }
 })
-
-export default ReactTest

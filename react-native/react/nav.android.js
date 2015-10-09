@@ -1,7 +1,6 @@
 'use strict'
 
-import React from 'react-native'
-import TabBar from './native/TabBar'
+import TabBar from './native/tab-bar'
 import { connect } from 'react-redux/native'
 import MetaNavigator from './router/meta-navigator.js'
 
@@ -12,15 +11,10 @@ import Devices from './tabs/devices'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
-import {
-  Component,
-  View,
-  StyleSheet,
-  BackAndroid
-} from 'react-native'
+import React, { Component, View, StyleSheet, BackAndroid } from 'react-native'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
-import { switchTab } from './actions/tabbedRouter'
+import { switchTab } from './actions/tabbed-router'
 import { navigateBack } from './actions/router'
 
 const tabToRootRouteParse = {
@@ -31,7 +25,7 @@ const tabToRootRouteParse = {
   [MORE_TAB]: More.parseRoute
 }
 
-class Nav extends Component {
+export default class Nav extends Component {
   constructor (props) {
     super(props)
   }
@@ -50,7 +44,7 @@ class Nav extends Component {
   componentWillMount () {
     BackAndroid.addEventListener('hardwareBackPress', () => {
       // TODO Properly handle android back button press
-      const currentRoute = this.props.tabbedRouter.getIn(['tabs', this.props.tabbedRouter.get('activeTab'),'uri'])
+      const currentRoute = this.props.tabbedRouter.getIn(['tabs', this.props.tabbedRouter.get('activeTab'), 'uri'])
       const {dispatch} = this.props
       if (currentRoute == null || currentRoute.count() <= 1) {
         return false
@@ -117,5 +111,3 @@ const styles = StyleSheet.create({
     right: 0
   }
 })
-
-export default Nav

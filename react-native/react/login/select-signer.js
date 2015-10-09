@@ -1,21 +1,11 @@
 'use strict'
 
-import React from 'react-native'
-import {
-  Component,
-  ListView,
-  StyleSheet,
-  View,
-  Text,
-  TouchableHighlight
-} from 'react-native'
-
+import React, { Component, ListView, StyleSheet, View, Text } from 'react-native'
 import { submitDeviceSigner } from '../actions/login'
-
-import commonStyles from '../styles/common'
+import Button from '../common-adapters/button'
 import enums from '../keybase_v1'
 
-class SelectSigner extends Component {
+export default class SelectSigner extends Component {
   constructor (props) {
     super(props)
   }
@@ -65,9 +55,7 @@ class SelectSigner extends Component {
     const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={styles.separator} /> : null
 
     return (
-      <TouchableHighlight
-        underlayColor={commonStyles.buttonHighlight}
-        onPress={() => { this.select(rowData) }}>
+      <Button onPress={() => { this.select(rowData) }}>
         <View>
           <View style={{margin: 10}}>
             <Text>{rowData.name}</Text>
@@ -75,7 +63,7 @@ class SelectSigner extends Component {
           </View>
           {sep}
         </View>
-      </TouchableHighlight>
+      </Button>
     )
   }
 
@@ -132,5 +120,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#CCCCCC'
   }
 })
-
-export default SelectSigner

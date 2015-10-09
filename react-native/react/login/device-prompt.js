@@ -1,22 +1,12 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableHighlight
-} from 'react-native'
-
+import React, { Component, StyleSheet, View, Text, TextInput } from 'react-native'
 import commonStyles from '../styles/common'
 import { submitDeviceName } from '../actions/login'
+import Button from '../common-adapters/button'
 
-const submitButtonStyle = [commonStyles.actionButton, {width: 200}]
-
-class DevicePrompt extends Component {
+export default class DevicePrompt extends Component {
   constructor (props) {
     super(props)
 
@@ -50,11 +40,7 @@ class DevicePrompt extends Component {
           {error}
 
           <View style={styles.submitWrapper}>
-            <TouchableHighlight
-              underlayColor={commonStyles.buttonHighlight}
-              onPress={() => { this.submit() }}>
-              <Text style={submitButtonStyle} >Next</Text>
-            </TouchableHighlight>
+            <Button onPress={() => { this.submit() }} title='Next' isSubmit/>
           </View>
         </View>
     )
@@ -111,5 +97,3 @@ const styles = StyleSheet.create({
     marginTop: 10
   }
 })
-
-export default DevicePrompt

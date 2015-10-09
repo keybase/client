@@ -1,16 +1,8 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  StyleSheet,
-  TextInput,
-  View,
-  Text,
-  TouchableHighlight
-} from 'react-native'
-
+import React, { Component, StyleSheet, TextInput, View, Text } from 'react-native'
+import Button from '../../common-adapters/button'
 import commonStyles from '../../styles/common'
 import * as SearchActions from '../../actions/search'
 import { navigateUp } from '../../actions/router'
@@ -35,12 +27,10 @@ export default class Developer extends Component {
           autoCorrect={false}
           onChangeText={() => { console.log('typing') }}
         />
-        <TouchableHighlight
-          style={{backgroundColor: 'blue'}}
-          underlayColor={commonStyles.buttonHighlight}
-          onPress={ () => this.props.dispatch(SearchActions.pushNewSearch('more')) }>
-          <Text>Launch search</Text>
-        </TouchableHighlight>
+        <Button
+          buttonStyle={{backgroundColor: 'blue'}}
+          onPress={ () => this.props.dispatch(SearchActions.pushNewSearch('more')) }
+          title='Launch search' />
         <Text onPress={() => this.props.dispatch(navigateUp())}>Back</Text>
       </View>
     )
@@ -88,5 +78,3 @@ const styles = StyleSheet.create({
     marginTop: 10
   }
 })
-
-export default Developer

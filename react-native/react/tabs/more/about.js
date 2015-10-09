@@ -1,14 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  StyleSheet,
-  View,
-  Text
-} from 'react-native'
-
+import React, { Component, StyleSheet, View, Text } from 'react-native'
 import commonStyles from '../../styles/common'
 
 export default class About extends Component {

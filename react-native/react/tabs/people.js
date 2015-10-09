@@ -1,12 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-const {
-  Component,
-  Text,
-  View
-} = React
+import React, { Component, Text, View } from 'react-native'
 
 export default class People extends Component {
   constructor (props) {

@@ -1,6 +1,6 @@
 'use strict'
 
-import { NAVIGATE_UP, NAVIGATE, NAVIGATE_APPEND } from '../constants/routerActionTypes'
+import { NAVIGATE_UP, NAVIGATE, NAVIGATE_APPEND, NAVIGATE_BACK } from '../constants/router-action-types'
 
 export function getCurrentURI (state) {
   return state.tabbedRouter
@@ -19,7 +19,7 @@ export function navigateUp () {
 
 export function navigateBack () {
   return {
-    type: types.NAVIGATE_BACK
+    type: NAVIGATE_BACK
   }
 }
 
