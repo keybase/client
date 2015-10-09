@@ -6,6 +6,7 @@ import { routeAppend } from '../../actions/router'
 import PaperKey from './paper-key'
 import UserPass from './user-pass'
 import ExistingDevice from './existing-device'
+import SetPublicName from './set-public-name'
 
 export default class Register extends Component {
   render () {
@@ -23,7 +24,8 @@ export default class Register extends Component {
     const routes = {
       regPaperKey: PaperKey.parseRoute,
       regUserPass: UserPass.parseRoute,
-      regExistingDevice: ExistingDevice.parseRoute
+      regExistingDevice: ExistingDevice.parseRoute,
+      setSetPublicName: SetPublicName.parseRoute
     }
 
     const componentAtTop = {

@@ -4,6 +4,7 @@
 import React, { Component, StyleSheet, Text, TextInput, View } from 'react-native'
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
+import { navigateTo } from '../../../actions/router'
 
 export default class PaperKey extends Component {
   constructor (props) {
@@ -23,7 +24,11 @@ export default class PaperKey extends Component {
           placeholder='Enter your paper key'
           onChangeText={(paperKey) => this.setState({paperKey})}
         />
-        <Button style={{alignSelf: 'flex-end', marginRight: 10}} onPress={() => { console.log('TODO') }} title='Submit & Log in' enabled={this.state.paperKey}/>
+        <Button
+          style={{alignSelf: 'flex-end', marginRight: 10}}
+          onPress={() => { this.props.dispatch(navigateTo(['login2', 'register', 'setSetPublicName'])) }}
+          title='Submit & Log in'
+          enabled={this.state.paperKey}/>
       </View>
     )
   }

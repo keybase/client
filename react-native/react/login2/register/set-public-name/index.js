@@ -1,0 +1,51 @@
+'use strict'
+/* @flow */
+
+import React, { Component, StyleSheet, Text, View } from 'react-native'
+
+export default class SetPublicName extends Component {
+  render () {
+    return (
+      <View style={styles.container}>
+        <Text>Set public name for this device</Text>
+        <Text>lorem ips</Text>
+        <Text>Device nickname</Text>
+        <Text>Input</Text>
+        <Text>Submit</Text>
+      </View>
+    )
+  }
+
+  static parseRoute (store, currentPath, nextPath) {
+    const routes = { }
+
+    const componentAtTop = {
+      title: '',
+      component: SetPublicName,
+      leftButtonTitle: '',
+      mapStateToProps: state => state.login2
+    }
+
+    // Default the next route to the login form
+    const parseNextRoute = routes[nextPath.get('path')]
+
+    return {
+      componentAtTop,
+      parseNextRoute
+    }
+  }
+
+}
+
+SetPublicName.propTypes = {
+  dispatch: React.PropTypes.func.isRequired
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
+})
+
