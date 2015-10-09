@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
 
+import org.msgpack.MessagePack;
+
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -13,6 +15,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -47,7 +51,18 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
 
     @Override
     public byte[] GetUsersWithStoredSecretsMsgPack() throws Exception {
-        return new byte[0];
+        final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
+        final ArrayList<String> userNames = new ArrayList<>();
+
+        while (keyIterator.hasNext()) {
+            final String key = keyIterator.next();
+            if (key.indexOf(PREFS_KEY) == 0) {
+                userNames.add(key.substring(PREFS_KEY.length()));
+            }
+        }
+
+        MessagePack msgpack = new MessagePack();
+        return msgpack.write(userNames);
     }
 
     @Override
