@@ -5,8 +5,30 @@ import { createStore, applyMiddleware } from 'redux'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import rootReducer from '../reducers'
+import Immutable from 'immutable'
 
-const loggerMiddleware = createLogger()
+// Transform objects from Immutable on printing
+const objToJS = (state) => {
+  var newState = {}
+  for (var i of Object.keys(state)) {
+    if (Immutable.Iterable.isIterable(state[i])) {
+      newState[i] = state[i].toJS()
+    } else {
+      newState[i] = state[i]
+    }
+  }
+  return newState
+}
+
+// Only log if __DEV__
+const loggerMiddleware = createLogger({
+  /* eslint-disable no-undef */
+  predicate: (getState, action) => __DEV__,
+  /* eslint-enable no-undef */
+
+  transformer: objToJS,
+  actionTransformer: objToJS
+})
 
 const createStoreWithMiddleware = applyMiddleware(
   thunkMiddleware,
