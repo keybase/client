@@ -1,4 +1,4 @@
-// +build !release,!staging
+// +build !production,!staging
 
 package libkb
 

@@ -1,4 +1,4 @@
-// +build !release
+// +build !production
 
 // this command is only for testing purposes
 package client

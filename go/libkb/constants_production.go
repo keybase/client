@@ -1,4 +1,4 @@
-// +build release
+// +build production
 
 package libkb
 

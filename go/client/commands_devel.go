@@ -1,4 +1,4 @@
-// +build !release
+// +build !production
 
 // this is the list of commands for the devel version of the
 // client.
