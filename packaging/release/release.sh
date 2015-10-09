@@ -30,7 +30,7 @@ version_tag="v$version"
 if [ $mode == "staging" ]; then
 	formula="kbstage"
 elif [ $mode == "production" ]; then
-	formula="kbproduction"
+	formula="keybase"
 else 
 	echo "Invalid mode $mode.  Should be staging or production."
 	exit 1
