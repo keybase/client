@@ -54,7 +54,7 @@ type GlobalContext struct {
 	shutdownOnce     sync.Once         // whether we've shut down or not
 	loginStateMu     sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
 	loginState       *LoginState       // What phase of login the user's in
-	externalKeyStore ExternalKeyStore  // Java Obj for Native Android Keystore
+	externalKeyStore ExternalKeyStore  // Represents interface to some external key store
 }
 
 func NewGlobalContext() *GlobalContext {
