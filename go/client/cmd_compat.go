@@ -61,8 +61,8 @@ func NewCmdCompatPush(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name: "push",
 		Action: func(c *cli.Context) {
-			GlobUI.Println("`keybase push` has been deprecated.")
+			GlobUI.Println("Use `keybase pgp select` instead.")
 		},
-		Description: "`keybase push` has been deprecated.",
+		Description: "Use `keybase pgp select` instead.",
 	}
 }
