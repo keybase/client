@@ -100,7 +100,9 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
         // Try to read the entry from the keystore.
         // The entry may exists, but it may not be readable by us.
         // (this happens when the app is uninstalled and reinstalled)
-        // In that case, lets' delete the entry and recurse
+        // In that case, lets' delete the entry and recreate it.
+        // Note we are purposely not recursing to avoid a state where we
+        // Constantly try to generate new RSA keys (which is slow)
         try {
             final Entry entry = ks.getEntry(KEY_ALIAS, null);
             if (entry == null) {
@@ -108,10 +110,8 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
             }
         } catch (Exception e) {
             ks.deleteEntry(KEY_ALIAS);
-            SetupKeyStore(username);
+            KeyStoreHelper.generateRSAKeyPair(context, KEY_ALIAS);
         }
-
-
     }
 
     @Override
