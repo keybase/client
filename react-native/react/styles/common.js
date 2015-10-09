@@ -2,27 +2,40 @@
 /* @flow */
 
 import { StyleSheet } from 'react-native'
-
 import native from './native'
+
+const buttonHighlightCommon = {
+  padding: 0,
+  borderRadius: 2,
+  backgroundColor: '#eeeeee',
+  borderColor: 'blue'
+}
+
+const buttonCommon = {
+  ...buttonHighlightCommon,
+  padding: 10,
+  textAlign: 'center',
+  color: 'black'
+}
 
 export default StyleSheet.create({
   button: {
-    textAlign: 'center',
-    color: 'black',
-    marginBottom: 10,
-    padding: 10,
-    borderColor: 'blue',
-    borderRadius: 2,
-    backgroundColor: '#eeeeee'
+    ...buttonCommon
+  },
+  buttonHighlight: {
+    ...buttonHighlightCommon
+  },
+  disabledButtonHighlight: {
+    ...buttonHighlightCommon
   },
   actionButton: {
-    textAlign: 'center',
-    color: 'black',
-    marginBottom: 10,
-    padding: 10,
-    borderColor: 'blue',
-    borderRadius: 2,
+    ...buttonCommon,
     backgroundColor: '#5E80FF'
+  },
+  disabledButton: {
+    ...buttonCommon,
+    color: '#777777',
+    backgroundColor: '#999999'
   },
   error: {
     backgroundColor: 'red',
@@ -53,4 +66,5 @@ export default StyleSheet.create({
 
 // non stylesheet styles
 export const buttonHighlight = 'white'
+export const disabledButtonHighlight = 'black'
 export const constants = native

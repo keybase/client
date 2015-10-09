@@ -6,15 +6,24 @@ import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
 
 export default class PaperKey extends Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      paperKey: ''
+    }
+  }
+
   render () {
     return (
-      <View style={[styles.container, {paddingTop: 200}]}>
-        <Text style={commonStyles.h1}>Register with a paper key</Text>
-        <Text style={commonStyles.h2}>Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum Lorem ipsum </Text>
-        <TextInput
+      <View style={[styles.container, {backgroundColor: 'red', paddingTop: 200}]}>
+        <Text style={[commonStyles.h1, {padding: 10}]}>Register with a paper key</Text>
+        <Text style={[commonStyles.h2, {padding: 10, marginBottom: 20}]}>Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum Lorem ipsum </Text>
+        <TextInput style={commonStyles.textInput}
           placeholder='Enter your paper key'
+          onChangeText={(paperKey) => this.setState({paperKey})}
         />
-        <Button onPress={() => { console.log('TODO') }} title='Submit'/>
+        <Button style={{alignSelf: 'flex-end', marginRight: 10}} onPress={() => { console.log('TODO') }} title='Submit & Log in' enabled={this.state.paperKey}/>
       </View>
     )
   }
@@ -47,8 +56,7 @@ PaperKey.propTypes = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center'
+    alignItems: 'flex-start'
   }
 })
 
