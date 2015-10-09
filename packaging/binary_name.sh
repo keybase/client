@@ -10,7 +10,7 @@ here="$(dirname "$BASH_SOURCE")"
 
 mode="$("$here/build_mode.sh" "$@")"
 
-if [ "$mode" = "release" ] ; then
+if [ "$mode" = "production" ] ; then
   echo keybase
 elif [ "$mode" = "staging" ] ; then
   echo kbstage

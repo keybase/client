@@ -5,7 +5,7 @@
 # /tmp. The package files are created there, in their respective folders.
 #
 # Usage:
-#   ./build_debian.sh (release|staging|devel) [build_dir]
+#   ./build_debian.sh (production|staging|devel) [build_dir]
 
 set -e -u -o pipefail
 
@@ -13,8 +13,8 @@ here="$(dirname "$BASH_SOURCE")"
 
 mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
-if [ "$mode" = "release" ] ; then
-  go_tags="release"
+if [ "$mode" = "production" ] ; then
+  go_tags="production"
 elif [ "$mode" = "staging" ] ; then
   go_tags="staging"
 else
