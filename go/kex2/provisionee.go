@@ -84,11 +84,6 @@ func (p *provisionee) run() (err error) {
 	return err
 }
 
-func (p *provisionee) eofHook(e error) {
-	p.done <- e
-	return
-}
-
 func (p *provisionee) startServer(s Secret) (err error) {
 	if p.conn, err = NewConn(p.arg.Mr, s, p.deviceID, p.arg.Timeout); err != nil {
 		return err
@@ -100,16 +95,9 @@ func (p *provisionee) startServer(s Secret) (err error) {
 		return err
 	}
 
-	// We need this for
-	//  func TestFullProtocolXProvisioneeSlowHello(t *testing.T) {
-	//  func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
-	//  func TestFullProtocolXProvisioneeSlowDidCounterSign(t *testing.T) {
-	//
-	// Comment it out for now...
-	//
-	// if err = srv.RegisterEOFHook(func(e error) { p.eofHook(e) }); err != nil {
-	//  	return err
-	// }
+	if err = srv.AddCloseListener(p.done); err != nil {
+	 	return err
+	}
 	return srv.Run(true)
 }
 

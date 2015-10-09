@@ -2,14 +2,14 @@ package rpc
 
 import (
 	"bufio"
-	"github.com/ugorji/go/codec"
 	"io"
 	"net"
 	"sync"
+
+	"github.com/ugorji/go/codec"
 )
 
 type WrapErrorFunc func(error) interface{}
-type UnwrapErrorFunc func(nxt DecodeNext) (error, error)
 
 type Transporter interface {
 	getDispatcher() (dispatcher, error)
@@ -19,14 +19,10 @@ type Transporter interface {
 
 type transporter interface {
 	Transporter
-	io.ByteReader
-	Decoder
-	Encoder
-	sync.Locker
 }
 
 type connDecoder struct {
-	Decoder
+	decoder
 	net.Conn
 	io.ByteReader
 }
@@ -38,17 +34,17 @@ func newConnDecoder(c net.Conn) *connDecoder {
 	return &connDecoder{
 		Conn:       c,
 		ByteReader: br,
-		Decoder:    codec.NewDecoder(br, mh),
+		decoder:    codec.NewDecoder(br, mh),
 	}
 }
 
 var _ transporter = (*transport)(nil)
 
 type transport struct {
-	sync.Locker
-	ByteEncoder
 	cdec             *connDecoder
 	dispatcher       dispatcher
+	enc              encoder
+	dec              byteReadingDecoder
 	log              LogInterface
 	wrapError        WrapErrorFunc
 	startOnce        sync.Once
@@ -67,11 +63,8 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
 		l = NewSimpleLogFactory(nil, nil)
 	}
 	log := l.NewLog(cdec.RemoteAddr())
-	byteEncoder := newFramedMsgpackEncoder()
 
 	ret := &transport{
-		Locker:           new(sync.Mutex),
-		ByteEncoder:      byteEncoder,
 		cdec:             cdec,
 		log:              log,
 		wrapError:        wef,
@@ -83,7 +76,9 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
 		decodeResultCh:   make(chan error),
 		stopCh:           make(chan struct{}),
 	}
-	ret.dispatcher = newDispatch(ret.encodeCh, ret.encodeResultCh, log, wef)
+	ret.enc = newFramedMsgpackEncoder(ret.encodeCh, ret.encodeResultCh)
+	ret.dec = newFramedMsgpackDecoder(ret.decodeCh, ret.decodeResultCh, ret.readByteCh, ret.readByteResultCh)
+	ret.dispatcher = newDispatch(ret.enc, ret.dec, log, wef)
 	return ret
 }
 
@@ -101,28 +96,35 @@ func (t *transport) Run() (err error) {
 		return DisconnectedError{}
 	}
 	t.startOnce.Do(func() {
-		err = t.run2()
+		err = t.run()
 	})
 	return
 }
 
-func (t *transport) run2() (err error) {
+func (t *transport) run() (err error) {
 	// Initialize transport loops
 	readerDone := runInBg(t.readerLoop)
 	writerDone := runInBg(t.writerLoop)
 
 	// Packetize: do work
-	packetizer := newPacketizer(t.dispatcher, t)
+	packetizer := newPacketizer(t.dispatcher, t.dec)
 	err = packetizer.Packetize()
 
-	// Log packetizer completion and terminate transport loops
+	// Log packetizer completion
 	t.log.TransportError(err)
+
+	// Since the dispatcher might require the transport, we have to
+	// close it before terminating our loops
+	<-t.dispatcher.Close(err)
 	close(t.stopCh)
 
-	// Wait for loops to finish before resetting
+	// Wait for loops to finish before closing the connection
 	<-readerDone
 	<-writerDone
-	t.reset()
+
+	// Cleanup
+	t.cdec.Close()
+
 	return
 }
 
@@ -155,39 +157,6 @@ func (t *transport) writerLoop() {
 			t.encodeResultCh <- err
 		}
 	}
-}
-
-func (t *transport) reset() {
-	t.dispatcher.Reset()
-	t.dispatcher = nil
-	t.cdec.Close()
-	t.cdec = nil
-}
-
-type byteResult struct {
-	b   byte
-	err error
-}
-
-func (t *transport) Encode(i interface{}) error {
-	bytes, err := t.EncodeToBytes(i)
-	if err != nil {
-		return err
-	}
-	t.encodeCh <- bytes
-	err = <-t.encodeResultCh
-	return err
-}
-
-func (t *transport) ReadByte() (byte, error) {
-	t.readByteCh <- struct{}{}
-	byteRes := <-t.readByteResultCh
-	return byteRes.b, byteRes.err
-}
-
-func (t *transport) Decode(i interface{}) error {
-	t.decodeCh <- i
-	return <-t.decodeResultCh
 }
 
 func (t *transport) getDispatcher() (dispatcher, error) {

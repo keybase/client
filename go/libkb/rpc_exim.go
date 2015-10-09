@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"errors"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/errors"
+	pgpErrors "golang.org/x/crypto/openpgp/errors"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {
@@ -129,7 +129,7 @@ func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 		}
 	}
 
-	if e == errors.ErrKeyIncorrect {
+	if e == pgpErrors.ErrKeyIncorrect {
 		return &keybase1.Status{
 			Code: SCKeyNoActive,
 			Name: "SC_KEY_NO_ACTIVE",
@@ -159,11 +159,19 @@ func WrapError(e error) interface{} {
 	return ExportErrorAsStatus(e)
 }
 
-func UnwrapError(nxt rpc.DecodeNext) (app error, dispatch error) {
-	var s *keybase1.Status
-	if dispatch = nxt(&s); dispatch == nil {
-		app = ImportStatusAsError(s)
+type ErrorUnwrap struct{}
+
+func (eu ErrorUnwrap) MakeArg() interface{} {
+	return &keybase1.Status{}
+}
+
+func (eu ErrorUnwrap) UnwrapError(arg interface{}) (appError error, dispatchError error) {
+	targ, ok := arg.(*keybase1.Status)
+	if !ok {
+		dispatchError = errors.New("Error converting status to keybase1.Status object")
+		return
 	}
+	appError = ImportStatusAsError(targ)
 	return
 }
 

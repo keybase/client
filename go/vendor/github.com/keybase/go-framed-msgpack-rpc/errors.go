@@ -45,12 +45,6 @@ func (p ProtocolNotFoundError) Error() string {
 	return "protocol not found: " + p.p
 }
 
-type EofError struct{}
-
-func (e EofError) Error() string {
-	return "EOF from server"
-}
-
 type DisconnectedError struct{}
 
 func (e DisconnectedError) Error() string {
@@ -63,4 +57,16 @@ type AlreadyRegisteredError struct {
 
 func (a AlreadyRegisteredError) Error() string {
 	return a.p + ": protocol already registered"
+}
+
+type TypeError struct {
+	p string
+}
+
+func (t TypeError) Error() string {
+	return t.p
+}
+
+func NewTypeError(expected, actual interface{}) error {
+	return TypeError{fmt.Sprintf("Invalid type for arguments. Expected: %T, actual: %T", expected, actual)}
 }

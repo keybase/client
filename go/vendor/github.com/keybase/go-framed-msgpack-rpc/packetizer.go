@@ -1,42 +1,35 @@
 package rpc
 
 type packetizer struct {
-	dispatch  dispatcher
-	transport transporter
+	dispatch dispatcher
+	dec      byteReadingDecoder
 }
 
-func newPacketizer(d dispatcher, t transporter) *packetizer {
+func newPacketizer(d dispatcher, dec byteReadingDecoder) *packetizer {
 	return &packetizer{
-		dispatch:  d,
-		transport: t,
+		dispatch: d,
+		dec:      dec,
 	}
 }
 
 func (p *packetizer) getFrame() (int, error) {
 	var l int
 
-	p.transport.Lock()
-	err := p.transport.Decode(&l)
-	p.transport.Unlock()
+	err := p.dec.Decode(&l)
 
 	return l, err
-}
-
-func (p *packetizer) Clear() {
-	p.dispatch = nil
-	p.transport = nil
 }
 
 func (p *packetizer) getMessage(l int) (err error) {
 	var b byte
 
-	if b, err = p.transport.ReadByte(); err != nil {
+	if b, err = p.dec.ReadByte(); err != nil {
 		return err
 	}
 	nb := int(b)
 
 	if nb >= 0x91 && nb <= 0x9f {
-		err = p.dispatch.Dispatch(&message{p.transport, (nb - 0x90), 0})
+		err = p.dispatch.Dispatch(nb - 0x90)
 	} else {
 		err = NewPacketizerError("wrong message structure prefix (%d)", nb)
 	}

@@ -8,7 +8,7 @@ import (
 
 func GetRPCClient() (ret *rpc.Client, xp rpc.Transporter, err error) {
 	if _, xp, err = G.GetSocket(); err == nil {
-		ret = rpc.NewClient(xp, libkb.UnwrapError)
+		ret = rpc.NewClient(xp, libkb.ErrorUnwrap{})
 	}
 	return
 }
