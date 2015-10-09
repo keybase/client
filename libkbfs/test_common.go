@@ -147,6 +147,9 @@ func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *Conf
 	config.SetMDServer(mdServer)
 	config.SetKeyServer(keyServer)
 
+	// turn off background flushing by default during tests
+	config.noBGFlush = true
+
 	return config
 }
 

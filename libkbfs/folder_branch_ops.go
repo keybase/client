@@ -48,7 +48,11 @@ type syncInfo struct {
 // Constants used in this file.  TODO: Make these configurable?
 const (
 	maxParallelBlockPuts = 10
-	maxMDsAtATime        = 10 // Max response size for a single DynamoDB query is 1MB.
+	// Max response size for a single DynamoDB query is 1MB.
+	maxMDsAtATime = 10
+	// Time between checks for dirty files to flush, in case Sync is
+	// never called.
+	secondsBetweenBackgroundFlushes = 10
 )
 
 // FolderBranchOps implements the KBFSOps interface for a specific
@@ -212,6 +216,9 @@ func NewFolderBranchOps(config Config, fb FolderBranch,
 		updatePauseChan: make(chan (<-chan struct{})),
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
+	if config.DoBackgroundFlushes() {
+		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
+	}
 	return fbo
 }
 
@@ -3798,4 +3805,45 @@ func (fbo *FolderBranchOps) registerForUpdates() {
 			}
 		}
 	})
+}
+
+func (fbo *FolderBranchOps) getDirtyPointers() []BlockPointer {
+	fbo.cacheLock.Lock()
+	defer fbo.cacheLock.Unlock()
+	var dirtyPtrs []BlockPointer
+	for _, entries := range fbo.deCache {
+		for ptr := range entries {
+			dirtyPtrs = append(dirtyPtrs, ptr)
+		}
+	}
+	return dirtyPtrs
+}
+
+func (fbo *FolderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
+	ticker := time.NewTicker(betweenFlushes)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			dirtyPtrs := fbo.getDirtyPointers()
+			fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
+				for _, ptr := range dirtyPtrs {
+					node := fbo.nodeCache.Get(ptr)
+					if node == nil {
+						continue
+					}
+					err := fbo.Sync(ctx, node)
+					if err != nil {
+						// Just log the warning and keep trying to
+						// sync the rest of the dirty files.
+						fbo.log.CWarningf(ctx, "Couldn't sync dirty file %v",
+							ptr)
+					}
+				}
+				return nil
+			})
+		case <-fbo.shutdownChan:
+			return
+		}
+	}
 }

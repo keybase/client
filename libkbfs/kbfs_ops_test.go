@@ -4256,3 +4256,74 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 
 	// TODO: Sync succeeds, but it should fail. Fix this!
 }
+
+type testBGObserver struct {
+	c chan<- struct{}
+}
+
+func (t *testBGObserver) LocalChange(ctx context.Context, node Node,
+	write WriteRange) {
+	// ignore
+}
+
+func (t *testBGObserver) BatchChanges(ctx context.Context,
+	changes []NodeChange) {
+	t.c <- struct{}{}
+}
+
+// Tests that the background flusher will sync a dirty file if the
+// application does not.
+func TestKBFSOpsBackgroundFlush(t *testing.T) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, true)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	uid, id, rmd := makeIDAndRMD(t, config)
+
+	rootID := fakeBlockID(42)
+	rmd.data.Dir.ID = rootID
+	fileID := fakeBlockID(43)
+	rootBlock := NewDirBlock().(*DirBlock)
+	rootBlock.Children["f"] = DirEntry{
+		BlockInfo: BlockInfo{
+			BlockPointer: makeBP(fileID, rmd, config, uid),
+			EncodedSize:  1,
+		},
+		Type: File,
+	}
+	fileBlock := NewFileBlock().(*FileBlock)
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
+	ops := getOps(config, id)
+	n := nodeFromPath(t, ops, p)
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
+	testPutBlockInCache(config, fileNode.BlockPointer, id, fileBlock)
+	config.mockBsplit.EXPECT().CopyUntilSplit(
+		gomock.Any(), gomock.Any(), data, int64(0)).
+		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
+		block.Contents = data
+	}).Return(int64(len(data)))
+
+	if err := config.KBFSOps().Write(ctx, n, data, 0); err != nil {
+		t.Errorf("Got error on write: %v", err)
+	}
+
+	// expect a sync to happen in the background
+	var newRmd *RootMetadata
+	blocks := make([]BlockID, 2)
+	expectSyncBlock(t, config, nil, uid, id, "", p, rmd, false, 0, 0, 0,
+		&newRmd, blocks)
+
+	c := make(chan struct{})
+	observer := &testBGObserver{c}
+	config.Notifier().RegisterForChanges([]FolderBranch{{id, MasterBranch}},
+		observer)
+
+	// start the background flusher
+	go ops.backgroundFlusher(1 * time.Millisecond)
+
+	// Make sure we get the notification
+	<-c
+}

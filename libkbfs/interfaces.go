@@ -857,6 +857,10 @@ type Config interface {
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
+	// DoBackgroundFlushes says whether we should periodically try to
+	// flush dirty files, even without a sync from the user.  Should
+	// be true except for during some testing.
+	DoBackgroundFlushes() bool
 	RootCerts() []byte
 	SetRootCerts([]byte)
 	MakeLogger(module string) logger.Logger

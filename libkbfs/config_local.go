@@ -42,6 +42,7 @@ type ConfigLocal struct {
 	rootCerts []byte
 	registry  metrics.Registry
 	loggerFn  func(prefix string) logger.Logger
+	noBGFlush bool // logic opposite so the default value is the common setting
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -351,6 +352,11 @@ func (c *ConfigLocal) SetNotifier(n Notifier) {
 // DataVersion implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DataVersion() DataVer {
 	return 1
+}
+
+// DoBackgroundFlushes implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) DoBackgroundFlushes() bool {
+	return !c.noBGFlush
 }
 
 // ReqsBufSize implements the Config interface for ConfigLocal.

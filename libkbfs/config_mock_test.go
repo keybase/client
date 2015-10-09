@@ -94,5 +94,7 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetLoggerMaker(func(m string) logger.Logger {
 		return logger.NewTestLogger(ctr.t)
 	})
+	// turn off background flushing by default during tests
+	config.noBGFlush = true
 	return config
 }
