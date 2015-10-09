@@ -145,8 +145,7 @@ VERSION:
    {{.Version}}
    {{end}}{{if .Commands}}
 COMMANDS:
-   {{range .Commands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
-   {{end}}{{end}}{{if .HelpTopics}}
+{{range .Commands}}{{ if .Usage }}   {{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ "\n" }}{{ end }}{{end}}{{end}}{{if .HelpTopics}}
 ADDITIONAL HELP TOPICS:
    {{range .HelpTopics}}{{.Name}}{{ "\t\t" }}{{.Usage}}
    {{end}}{{end}}{{if .Copyright }}

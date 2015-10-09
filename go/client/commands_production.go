@@ -13,6 +13,12 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 	return []cli.Command{
 		NewCmdBTC(cl),
 		NewCmdCert(cl),
+		NewCmdCompatDecrypt(cl),
+		NewCmdCompatDir(cl),
+		NewCmdCompatEncrypt(cl),
+		NewCmdCompatPush(cl),
+		NewCmdCompatSign(cl),
+		NewCmdCompatVerify(cl),
 		NewCmdConfig(cl),
 		NewCmdCtl(cl),
 		NewCmdDb(cl),
