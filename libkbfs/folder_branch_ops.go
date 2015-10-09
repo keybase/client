@@ -3467,7 +3467,7 @@ func (fbo *FolderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 	// sync will put us into an unmerged state anyway and we'll
 	// require conflict resolution.
 	if fbo.getState() != cleanState {
-		return errors.New("Ignoring MD updates while writes are dirty")
+		return NotPermittedWhileDirtyError{}
 	}
 
 	fbo.reembedBlockChanges(ctx, rmds)
@@ -3588,7 +3588,7 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 	}
 
 	if fbo.getState() != cleanState {
-		return errors.New("Can't unstage while files are dirty!")
+		return NotPermittedWhileDirtyError{}
 	}
 
 	// launch unstaging in a new goroutine, because we don't want to
@@ -3792,6 +3792,12 @@ func (fbo *FolderBranchOps) registerForUpdates() {
 				if err != nil {
 					fbo.log.CDebugf(ctx, "Got an error while applying "+
 						"updates: %v", err)
+					if _, ok := err.(NotPermittedWhileDirtyError); ok {
+						// If this fails because of outstanding dirty
+						// files, delay a bit to avoid wasting RPCs
+						// and CPU.
+						time.Sleep(1 * time.Second)
+					}
 					return err
 				}
 				return nil

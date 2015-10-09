@@ -697,3 +697,13 @@ func (e MDUpdateInvertError) Error() string {
 	return fmt.Sprintf("MD revision %d isn't next in line for our "+
 		"current revision %d while inverting", e.rev, e.curr)
 }
+
+// NotPermittedWhileDirtyError indicates that some operation failed
+// because of outstanding dirty files, and may be retried later.
+type NotPermittedWhileDirtyError struct {
+}
+
+// Error implements the error interface for NotPermittedWhileDirtyError.
+func (e NotPermittedWhileDirtyError) Error() string {
+	return "Not permitted while writes are dirty"
+}
