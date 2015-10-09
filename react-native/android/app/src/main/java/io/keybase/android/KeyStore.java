@@ -23,7 +23,7 @@ import javax.crypto.spec.SecretKeySpec;
 import go.keybase.Keybase;
 import io.keybase.android.keystore.KeyStoreHelper;
 
-public class KeyStore extends Keybase.AndroidKeyStore.Stub {
+public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     private final Context context;
     private final SharedPreferences prefs;
     private final java.security.KeyStore ks;
@@ -81,6 +81,11 @@ public class KeyStore extends Keybase.AndroidKeyStore.Stub {
             storeSecret(username, bytes);
         }
 
+    }
+
+    @Override
+    public String GetTerminalPrompt() {
+        return "Store secret in Android's KeyStore?";
     }
 
     @Override

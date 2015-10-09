@@ -34,7 +34,7 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
         Init(this.getFilesDir().getPath(), "staging", "");
 
         try {
-            Keybase.SetGlobalAndroidKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
+            Keybase.SetGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
