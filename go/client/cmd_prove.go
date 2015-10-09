@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -26,7 +27,7 @@ func (p *CmdProve) ParseArgv(ctx *cli.Context) error {
 	p.output = ctx.String("output")
 
 	if nargs > 2 || nargs == 0 {
-		err = fmt.Errorf("prove takes 1 or args: <service> [<username>]")
+		err = fmt.Errorf("prove takes 1 or 2 args: <service> [<username>]")
 	} else {
 		p.arg.Service = ctx.Args()[0]
 		if nargs == 2 {
@@ -85,10 +86,13 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 
 // NewCmdProve makes a new prove command from the given CLI parameters.
 func NewCmdProve(cl *libcmdline.CommandLine) cli.Command {
+	serviceList := strings.Join(libkb.ListProofCheckers(), ", ")
+	description := fmt.Sprintf("Supported services are: %s.", serviceList)
 	return cli.Command{
 		Name:         "prove",
 		ArgumentHelp: "<service> [service username]",
-		Usage:        "Generate a new proof",
+		Usage:        "Generate a new proof.",
+		Description:  description,
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "output, o",
