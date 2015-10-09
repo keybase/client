@@ -37,8 +37,8 @@ else
 fi
 
 clientdir="$GOPATH/src/github.com/keybase/client"
-betadir=${BETADIR:=$GOPATH/src/github.com/keybase/client-beta}
-brewdir=${BREWDIR:=$GOPATH/src/github.com/keybase/homebrew-beta}
+betadir=${BETADIR:-$GOPATH/src/github.com/keybase/client-beta}
+brewdir=${BREWDIR:-$GOPATH/src/github.com/keybase/homebrew-beta}
 
 if [ ! -d "$clientdir" ]; then
 	echo "Need client repo, expecting it here: $clientdir"
