@@ -3,7 +3,7 @@
 #
 # release.sh creates keybase releases.
 #
-# Call it with a version number:  kbstage_release.sh 1.1.12-102
+# Call it with a mode and version number:  release.sh staging 1.1.12-102
 #
 # It does the following:
 #
@@ -18,7 +18,7 @@ set -e -u -o pipefail
 
 if [ "$#" -lt 2 ] ; then
 	echo Usage: release.sh MODE VERSION
-	echo MODE should be staging or release
+	echo MODE should be staging or production
 	echo VERSION should be something like 1.0.3-245
 	exit 1
 fi
@@ -29,10 +29,11 @@ version_tag="v$version"
 
 if [ $mode == "staging" ]; then
 	formula="kbstage"
-elif [ $mode == "release" ]; then
-	formula="kbrelease"
+elif [ $mode == "production" ]; then
+	formula="kbproduction"
 else 
-	echo "Invalid mode $mode.  Should be staging or release."
+	echo "Invalid mode $mode.  Should be staging or production."
+	exit 1
 fi
 
 clientdir="$GOPATH/src/github.com/keybase/client"
@@ -56,7 +57,6 @@ fi
 
 src_version="$(egrep -o "([0-9]{1,}\.)+[0-9]{1,}" $clientdir/go/libkb/version.go)"
 build_number="$(egrep -o "const Build = \"\d+\"" $clientdir/go/libkb/version.go | egrep -o "\d+")"
-
 
 if [ "$version" != "$src_version-$build_number" ]; then
 	echo Version $version does not match libkb/version.go $src_version-$build_number
@@ -98,7 +98,7 @@ if git commit -a -m "New $formula version $version_tag" ; then
 	git push
 	echo "Done.  brew update && brew upgrade $formula should install version $version"
 else
-	echo "$brewdir/$formula did not change."
+	echo "$brewdir/$formula.rb did not change."
 fi
 
 # TODO: run linux package maker script here...
