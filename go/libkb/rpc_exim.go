@@ -3,10 +3,10 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"sort"
-	"errors"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/crypto/openpgp"
@@ -159,13 +159,13 @@ func WrapError(e error) interface{} {
 	return ExportErrorAsStatus(e)
 }
 
-type ErrorUnwrap struct{}
+type ErrorUnwrapper struct{}
 
-func (eu ErrorUnwrap) MakeArg() interface{} {
+func (eu ErrorUnwrapper) MakeArg() interface{} {
 	return &keybase1.Status{}
 }
 
-func (eu ErrorUnwrap) UnwrapError(arg interface{}) (appError error, dispatchError error) {
+func (eu ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
 	targ, ok := arg.(*keybase1.Status)
 	if !ok {
 		dispatchError = errors.New("Error converting status to keybase1.Status object")
