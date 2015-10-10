@@ -29,7 +29,7 @@ func NewBlockServerRemote(ctx context.Context, config Config, blkSrvAddr string)
 		log:        config.MakeLogger(""),
 		blkSrvAddr: blkSrvAddr,
 	}
-	conn := NewConnection(ctx, config, blkSrvAddr, bs, BServerUnwrapError)
+	conn := NewConnection(ctx, config, blkSrvAddr, bs, bServerErrorUnwrapper{})
 	bs.clientFactory = ConnectionClientFactory{conn}
 	return bs
 }

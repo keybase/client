@@ -41,7 +41,7 @@ func NewCryptoClient(config Config, ctx *libkb.GlobalContext) (
 		}
 	}
 
-	client := rpc.NewClient(xp, libkb.UnwrapError)
+	client := rpc.NewClient(xp, libkb.ErrorUnwrapper{})
 	return newCryptoClientWithClient(config, ctx, client), nil
 }
 

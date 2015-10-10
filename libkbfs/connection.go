@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"io"
 	"net"
 	"sync"
 	"time"
@@ -37,7 +38,7 @@ type ConnectionHandler interface {
 // ConnectionTransportTLS is a ConnectionTransport implementation that uses TLS+rpc.
 type ConnectionTransportTLS struct {
 	config          Config
-	unwrapErrFunc   rpc.UnwrapErrorFunc
+	errorUnwrapper  rpc.ErrorUnwrapper
 	transport       rpc.Transporter
 	stagedTransport rpc.Transporter
 	server          *rpc.Server
@@ -68,7 +69,7 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context, srvAddr string) (
 	}
 
 	ct.stagedTransport = rpc.NewTransport(ct.conn, libkb.NewRPCLogFactory(), libkb.WrapError)
-	client := rpc.NewClient(ct.stagedTransport, ct.unwrapErrFunc)
+	client := rpc.NewClient(ct.stagedTransport, ct.errorUnwrapper)
 	return client, nil
 }
 
@@ -127,8 +128,8 @@ type Connection struct {
 
 // NewConnection returns a newly connected connection.
 func NewConnection(ctx context.Context, config Config, srvAddr string,
-	handler ConnectionHandler, errFunc rpc.UnwrapErrorFunc) *Connection {
-	transport := &ConnectionTransportTLS{config: config, unwrapErrFunc: errFunc}
+	handler ConnectionHandler, errorUnwrapper rpc.ErrorUnwrapper) *Connection {
+	transport := &ConnectionTransportTLS{config: config, errorUnwrapper: errorUnwrapper}
 	return newConnectionWithTransport(ctx, config, srvAddr, handler, transport)
 }
 
@@ -238,7 +239,7 @@ func (c *Connection) checkForRetry(err error) bool {
 		return false
 	}
 	_, disconnected := err.(rpc.DisconnectedError)
-	_, eof := err.(rpc.EofError)
+	eof := err == io.EOF
 	return disconnected || eof
 }
 

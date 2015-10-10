@@ -45,7 +45,7 @@ func NewKeybaseDaemonRPC(ctx *libkb.GlobalContext, log logger.Logger) (KeybaseDa
 		}
 	}
 
-	client := rpc.NewClient(xp, libkb.UnwrapError)
+	client := rpc.NewClient(xp, libkb.ErrorUnwrapper{})
 	identifyClient := keybase1.IdentifyClient{Cli: client}
 	sessionClient := keybase1.SessionClient{Cli: client}
 	favoriteClient := keybase1.FavoriteClient{Cli: client}

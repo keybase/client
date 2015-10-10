@@ -8,7 +8,7 @@ import (
 	"bazil.org/fuse"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc"
 )
 
 const (
@@ -214,54 +214,68 @@ func (e MDServerErrorConditionFailed) ToStatus() (s keybase1.Status) {
 	return
 }
 
-// MDServerUnwrapError unwraps errors from the rpc stack.
-func MDServerUnwrapError(nxt rpc.DecodeNext) (app error, dispatch error) {
-	var s *keybase1.Status
-	if dispatch = nxt(&s); dispatch == nil {
-		if s == nil {
-			app = nil
-			return
-		}
-		switch s.Code {
-		case StatusCodeMDServerError:
-			app = MDServerError{errors.New(s.Desc)}
-			break
-		case StatusCodeMDServerErrorBadRequest:
-			app = MDServerErrorBadRequest{Reason: s.Desc}
-			break
-		case StatusCodeMDServerErrorConflictRevision:
-			app = MDServerErrorConflictRevision{Desc: s.Desc}
-			break
-		case StatusCodeMDServerErrorConflictPrevRoot:
-			app = MDServerErrorConflictPrevRoot{Desc: s.Desc}
-			break
-		case StatusCodeMDServerErrorConflictDiskUsage:
-			app = MDServerErrorConflictDiskUsage{Desc: s.Desc}
-			break
-		case StatusCodeMDServerErrorLocked:
-			app = MDServerErrorLocked{}
-			break
-		case StatusCodeMDServerErrorUnauthorized:
-			app = MDServerErrorUnauthorized{}
-			break
-		case StatusCodeMDServerErrorThrottle:
-			app = MDServerErrorThrottle{errors.New(s.Desc)}
-			break
-		case StatusCodeMDServerErrorConditionFailed:
-			app = MDServerErrorConditionFailed{errors.New(s.Desc)}
-			break
-		default:
-			ase := libkb.AppStatusError{
-				Code:   s.Code,
-				Name:   s.Name,
-				Desc:   s.Desc,
-				Fields: make(map[string]string),
-			}
-			for _, f := range s.Fields {
-				ase.Fields[f.Key] = f.Value
-			}
-			app = ase
-		}
+// MDServerErrorUnwrapper is an implementation of rpc.ErrorUnwrapper
+// for errors coming from the MDServer.
+type MDServerErrorUnwrapper struct{}
+
+var _ rpc.ErrorUnwrapper = MDServerErrorUnwrapper{}
+
+// MakeArg implements rpc.ErrorUnwrapper for MDServerErrorUnwrapper.
+func (eu MDServerErrorUnwrapper) MakeArg() interface{} {
+	return &keybase1.Status{}
+}
+
+// UnwrapError implements rpc.ErrorUnwrapper for MDServerErrorUnwrapper.
+func (eu MDServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
+	s, ok := arg.(*keybase1.Status)
+	if !ok {
+		return nil, errors.New("Error converting arg to keybase1.Status object in MDServerErrorUnwrapper.UnwrapError")
 	}
-	return
+
+	if s == nil {
+		return nil, nil
+	}
+
+	switch s.Code {
+	case StatusCodeMDServerError:
+		appError = MDServerError{errors.New(s.Desc)}
+		break
+	case StatusCodeMDServerErrorBadRequest:
+		appError = MDServerErrorBadRequest{Reason: s.Desc}
+		break
+	case StatusCodeMDServerErrorConflictRevision:
+		appError = MDServerErrorConflictRevision{Desc: s.Desc}
+		break
+	case StatusCodeMDServerErrorConflictPrevRoot:
+		appError = MDServerErrorConflictPrevRoot{Desc: s.Desc}
+		break
+	case StatusCodeMDServerErrorConflictDiskUsage:
+		appError = MDServerErrorConflictDiskUsage{Desc: s.Desc}
+		break
+	case StatusCodeMDServerErrorLocked:
+		appError = MDServerErrorLocked{}
+		break
+	case StatusCodeMDServerErrorUnauthorized:
+		appError = MDServerErrorUnauthorized{}
+		break
+	case StatusCodeMDServerErrorThrottle:
+		appError = MDServerErrorThrottle{errors.New(s.Desc)}
+		break
+	case StatusCodeMDServerErrorConditionFailed:
+		appError = MDServerErrorConditionFailed{errors.New(s.Desc)}
+		break
+	default:
+		ase := libkb.AppStatusError{
+			Code:   s.Code,
+			Name:   s.Name,
+			Desc:   s.Desc,
+			Fields: make(map[string]string),
+		}
+		for _, f := range s.Fields {
+			ase.Fields[f.Key] = f.Value
+		}
+		appError = ase
+	}
+
+	return appError, nil
 }

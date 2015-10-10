@@ -1,12 +1,13 @@
 package libkbfs
 
 import (
+	"errors"
 	"syscall"
 
 	"bazil.org/fuse"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc"
 )
 
 const (
@@ -149,45 +150,55 @@ func (e BServerErrorBlockNonExistent) Error() string {
 	return e.Msg
 }
 
-// BServerUnwrapError unwraps errors from the rpc stack.
-func BServerUnwrapError(nxt rpc.DecodeNext) (app error, dispatch error) {
-	var s *keybase1.Status
-	if dispatch = nxt(&s); dispatch == nil {
-		if s == nil {
-			app = nil
-			return
-		}
-		switch s.Code {
-		case StatusCodeBServerError:
-			app = BServerError{Msg: s.Desc}
-			break
-		case StatusCodeBServerErrorBadRequest:
-			app = BServerErrorBadRequest{Msg: s.Desc}
-			break
-		case StatusCodeBServerErrorUnauthorized:
-			app = BServerErrorUnauthorized{Msg: s.Desc}
-			break
-		case StatusCodeBServerErrorOverQuota:
-			app = BServerErrorOverQuota{Msg: s.Desc}
-			break
-		case StatusCodeBServerErrorBlockNonExistent:
-			app = BServerErrorBlockNonExistent{Msg: s.Desc}
-			break
-		case StatusCodeBServerErrorThrottle:
-			app = BServerErrorThrottle{Msg: s.Desc}
-			break
-		default:
-			ase := libkb.AppStatusError{
-				Code:   s.Code,
-				Name:   s.Name,
-				Desc:   s.Desc,
-				Fields: make(map[string]string),
-			}
-			for _, f := range s.Fields {
-				ase.Fields[f.Key] = f.Value
-			}
-			app = ase
-		}
+type bServerErrorUnwrapper struct{}
+
+var _ rpc.ErrorUnwrapper = bServerErrorUnwrapper{}
+
+func (eu bServerErrorUnwrapper) MakeArg() interface{} {
+	return &keybase1.Status{}
+}
+
+func (eu bServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
+	s, ok := arg.(*keybase1.Status)
+	if !ok {
+		return nil, errors.New("Error converting arg to keybase1.Status object in bServerErrorUnwrapper.UnwrapError")
 	}
-	return
+
+	if s == nil {
+		return nil, nil
+	}
+
+	switch s.Code {
+	case StatusCodeBServerError:
+		appError = BServerError{Msg: s.Desc}
+		break
+	case StatusCodeBServerErrorBadRequest:
+		appError = BServerErrorBadRequest{Msg: s.Desc}
+		break
+	case StatusCodeBServerErrorUnauthorized:
+		appError = BServerErrorUnauthorized{Msg: s.Desc}
+		break
+	case StatusCodeBServerErrorOverQuota:
+		appError = BServerErrorOverQuota{Msg: s.Desc}
+		break
+	case StatusCodeBServerErrorBlockNonExistent:
+		appError = BServerErrorBlockNonExistent{Msg: s.Desc}
+		break
+	case StatusCodeBServerErrorThrottle:
+		appError = BServerErrorThrottle{Msg: s.Desc}
+		break
+	default:
+		ase := libkb.AppStatusError{
+			Code:   s.Code,
+			Name:   s.Name,
+			Desc:   s.Desc,
+			Fields: make(map[string]string),
+		}
+		for _, f := range s.Fields {
+			ase.Fields[f.Key] = f.Value
+		}
+		appError = ase
+	}
+
+	return appError, nil
 }

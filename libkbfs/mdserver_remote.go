@@ -37,7 +37,7 @@ func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) *MDSe
 		observers: make(map[TlfID]chan<- error),
 		log:       config.MakeLogger(""),
 	}
-	conn := NewConnection(ctx, config, srvAddr, mdServer, MDServerUnwrapError)
+	conn := NewConnection(ctx, config, srvAddr, mdServer, MDServerErrorUnwrapper{})
 	mdServer.conn = conn
 	mdServer.clientFactory = ConnectionClientFactory{conn}
 	return mdServer
