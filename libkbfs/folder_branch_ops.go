@@ -3589,8 +3589,12 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 	// notifications if we do.  But we still want to wait for the
 	// context to cancel.
 	c := make(chan error, 1)
-	freshCtx, cancel := context.WithCancel(context.Background())
+	logTags := make(logger.CtxLogTags)
+	logTags[CtxFBOIDKey] = CtxFBOOpID
+	ctxWithTags := logger.NewContextWithLogTags(context.Background(), logTags)
+	freshCtx, cancel := context.WithCancel(ctxWithTags)
 	defer cancel()
+	fbo.log.CDebugf(freshCtx, "Launching new context for UnstageForTesting")
 	go func() {
 		fbo.writerLock.Lock()
 		defer fbo.writerLock.Unlock()
