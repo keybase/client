@@ -1,17 +1,17 @@
 package rpc
 
 // Client allows calls and notifies on the given transporter, or any protocol
-// type. All will share the same UnwrapErrorFunc hook for unwrapping incoming
+// type. All will share the same ErrorUnwrapper hook for unwrapping incoming
 // msgpack objects and converting to possible Go-native `Error` types
 type Client struct {
-	xp          Transporter
-	unwrapError UnwrapErrorFunc
+	xp             Transporter
+	errorUnwrapper ErrorUnwrapper
 }
 
-// NewClient constructs a new client from the given RPC transport and the
-// UnwrapErrorFunc.
-func NewClient(xp Transporter, f UnwrapErrorFunc) *Client {
-	return &Client{xp, f}
+// NewClient constructs a new client from the given RPC Transporter and the
+// ErrorUnwrapper.
+func NewClient(xp Transporter, u ErrorUnwrapper) *Client {
+	return &Client{xp, u}
 }
 
 // Call makes an msgpack RPC call over the transports that's bound to this
@@ -23,7 +23,7 @@ func (c *Client) Call(method string, arg interface{}, res interface{}) (err erro
 	var d dispatcher
 	go c.xp.Run()
 	if d, err = c.xp.getDispatcher(); err == nil {
-		err = d.Call(method, arg, res, c.unwrapError)
+		err = d.Call(method, arg, res, c.errorUnwrapper)
 	}
 	return
 }

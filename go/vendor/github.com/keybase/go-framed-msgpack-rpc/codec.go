@@ -2,28 +2,34 @@ package rpc
 
 import (
 	"github.com/ugorji/go/codec"
+	"io"
 )
 
-type Decoder interface {
+type decoder interface {
 	Decode(interface{}) error
 }
 
-type Encoder interface {
+type byteReadingDecoder interface {
+	decoder
+	io.ByteReader
+}
+
+type encoder interface {
 	Encode(interface{}) error
 }
 
-type ByteEncoder interface {
-	EncodeToBytes(interface{}) ([]byte, error)
-}
-
 type framedMsgpackEncoder struct {
-	handle codec.Handle
+	handle   codec.Handle
+	writeCh  chan []byte
+	resultCh chan error
 }
 
-func newFramedMsgpackEncoder() *framedMsgpackEncoder {
+func newFramedMsgpackEncoder(writeCh chan []byte, resultCh chan error) *framedMsgpackEncoder {
 	mh := &codec.MsgpackHandle{WriteExt: true}
 	return &framedMsgpackEncoder{
-		handle: mh,
+		handle:   mh,
+		writeCh:  writeCh,
+		resultCh: resultCh,
 	}
 }
 
@@ -35,7 +41,7 @@ func (e *framedMsgpackEncoder) encodeToBytes(i interface{}) (v []byte, err error
 	return
 }
 
-func (e *framedMsgpackEncoder) EncodeToBytes(i interface{}) (bytes []byte, err error) {
+func (e *framedMsgpackEncoder) encodeFrame(i interface{}) (bytes []byte, err error) {
 	var length, content []byte
 	if content, err = e.encodeToBytes(i); err != nil {
 		return
@@ -46,4 +52,45 @@ func (e *framedMsgpackEncoder) EncodeToBytes(i interface{}) (bytes []byte, err e
 	}
 	bytes = append(length, content...)
 	return bytes, nil
+}
+
+func (e *framedMsgpackEncoder) Encode(i interface{}) error {
+	bytes, err := e.encodeFrame(i)
+	if err != nil {
+		return err
+	}
+	e.writeCh <- bytes
+	return <-e.resultCh
+}
+
+type byteResult struct {
+	b   byte
+	err error
+}
+
+type framedMsgpackDecoder struct {
+	decoderCh        chan interface{}
+	decoderResultCh  chan error
+	readByteCh       chan struct{}
+	readByteResultCh chan byteResult
+}
+
+func newFramedMsgpackDecoder(decoderCh chan interface{}, decoderResultCh chan error, readByteCh chan struct{}, readByteResultCh chan byteResult) *framedMsgpackDecoder {
+	return &framedMsgpackDecoder{
+		decoderCh:        decoderCh,
+		decoderResultCh:  decoderResultCh,
+		readByteCh:       readByteCh,
+		readByteResultCh: readByteResultCh,
+	}
+}
+
+func (t *framedMsgpackDecoder) ReadByte() (byte, error) {
+	t.readByteCh <- struct{}{}
+	byteRes := <-t.readByteResultCh
+	return byteRes.b, byteRes.err
+}
+
+func (t *framedMsgpackDecoder) Decode(i interface{}) error {
+	t.decoderCh <- i
+	return <-t.decoderResultCh
 }

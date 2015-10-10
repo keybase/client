@@ -218,17 +218,15 @@ func TestFullProtocolXProvisioneeFailDidCounterSign(t *testing.T) {
 }
 
 func TestFullProtocolXProvisioneeSlowHello(t *testing.T) {
-	t.Skip()
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowHello)
 	for i, e := range results {
-		if !eeq(e, ErrTimedOut) && !eeq(e, rpc.EofError{}) {
+		if !eeq(e, ErrTimedOut) && !eeq(e, io.EOF) {
 			t.Fatalf("Bad error %d: %v", i, e)
 		}
 	}
 }
 
 func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
-	t.Skip()
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowHello|BadProvisioneeCancel)
 	for i, e := range results {
 		if !eeq(e, ErrCanceled) && !eeq(e, io.EOF) {
@@ -238,10 +236,9 @@ func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
 }
 
 func TestFullProtocolXProvisioneeSlowDidCounterSign(t *testing.T) {
-	t.Skip()
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowDidCounterSign)
 	for i, e := range results {
-		if !eeq(e, ErrTimedOut) && !eeq(e, rpc.EofError{}) {
+		if !eeq(e, ErrTimedOut) && !eeq(e, io.EOF) {
 			t.Fatalf("Bad error %d: %v", i, e)
 		}
 	}

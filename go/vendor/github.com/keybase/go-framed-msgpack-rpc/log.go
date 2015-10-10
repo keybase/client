@@ -198,13 +198,13 @@ func (s SimpleLog) trace(which string, objname string, verbose bool, q int, meth
 
 func (s SimpleLog) StartProfiler(format string, args ...interface{}) Profiler {
 	if s.Opts.Profile() {
-		return SimpleProfiler{
+		return &SimpleProfiler{
 			start: time.Now(),
 			msg:   fmt.Sprintf(format, args...),
 			log:   s,
 		}
 	} else {
-		return nil
+		return NilProfiler{}
 	}
 }
 
@@ -231,8 +231,13 @@ type SimpleProfiler struct {
 	log   SimpleLog
 }
 
-func (s SimpleProfiler) Stop() {
+func (s *SimpleProfiler) Stop() {
 	stop := time.Now()
 	diff := stop.Sub(s.start)
 	s.log.Out.Profile(s.log.msg(false, "%s ran in %dms", s.msg, diff/time.Millisecond))
 }
+
+// Callers shouldn't have to worry about whether an interface is satisfied or not
+type NilProfiler struct{}
+
+func (n NilProfiler) Stop() {}

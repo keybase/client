@@ -22,17 +22,25 @@ type AccountInterface interface {
 func AccountProtocol(i AccountInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.account",
-		Methods: map[string]rpc.ServeHook{
-			"passphraseChange": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PassphraseChangeArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PassphraseChange(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"passphraseChange": {
+				MakeArg: func() interface{} {
+					ret := make([]PassphraseChangeArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PassphraseChangeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PassphraseChangeArg)(nil), args)
+						return
+					}
+					err = i.PassphraseChange((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type AccountClient struct {
@@ -168,45 +176,89 @@ type BlockInterface interface {
 func BlockProtocol(i BlockInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.block",
-		Methods: map[string]rpc.ServeHook{
-			"establishSession": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]EstablishSessionArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.EstablishSession(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"establishSession": {
+				MakeArg: func() interface{} {
+					ret := make([]EstablishSessionArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]EstablishSessionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]EstablishSessionArg)(nil), args)
+						return
+					}
+					err = i.EstablishSession((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"putBlock": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PutBlockArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PutBlock(args[0])
-				}
-				return
+			"putBlock": {
+				MakeArg: func() interface{} {
+					ret := make([]PutBlockArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PutBlockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PutBlockArg)(nil), args)
+						return
+					}
+					err = i.PutBlock((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"getBlock": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetBlockArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetBlock(args[0].Bid)
-				}
-				return
+			"getBlock": {
+				MakeArg: func() interface{} {
+					ret := make([]GetBlockArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetBlockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetBlockArg)(nil), args)
+						return
+					}
+					ret, err = i.GetBlock((*typedArgs)[0].Bid)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"incBlockReference": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]IncBlockReferenceArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.IncBlockReference(args[0])
-				}
-				return
+			"incBlockReference": {
+				MakeArg: func() interface{} {
+					ret := make([]IncBlockReferenceArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]IncBlockReferenceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]IncBlockReferenceArg)(nil), args)
+						return
+					}
+					err = i.IncBlockReference((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"decBlockReference": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DecBlockReferenceArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DecBlockReference(args[0])
-				}
-				return
+			"decBlockReference": {
+				MakeArg: func() interface{} {
+					ret := make([]DecBlockReferenceArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DecBlockReferenceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DecBlockReferenceArg)(nil), args)
+						return
+					}
+					err = i.DecBlockReference((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type BlockClient struct {
@@ -252,17 +304,25 @@ type BTCInterface interface {
 func BTCProtocol(i BTCInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.BTC",
-		Methods: map[string]rpc.ServeHook{
-			"registerBTC": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]RegisterBTCArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.RegisterBTC(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"registerBTC": {
+				MakeArg: func() interface{} {
+					ret := make([]RegisterBTCArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RegisterBTCArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RegisterBTCArg)(nil), args)
+						return
+					}
+					err = i.RegisterBTC((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type BTCClient struct {
@@ -317,31 +377,57 @@ type ConfigInterface interface {
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.config",
-		Methods: map[string]rpc.ServeHook{
-			"getCurrentStatus": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetCurrentStatusArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetCurrentStatus(args[0].SessionID)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"getCurrentStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]GetCurrentStatusArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetCurrentStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetCurrentStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.GetCurrentStatus((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"getConfig": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetConfigArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetConfig(args[0].SessionID)
-				}
-				return
+			"getConfig": {
+				MakeArg: func() interface{} {
+					ret := make([]GetConfigArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetConfigArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetConfigArg)(nil), args)
+						return
+					}
+					ret, err = i.GetConfig((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"setUserConfig": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SetUserConfigArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.SetUserConfig(args[0])
-				}
-				return
+			"setUserConfig": {
+				MakeArg: func() interface{} {
+					ret := make([]SetUserConfigArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetUserConfigArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetUserConfigArg)(nil), args)
+						return
+					}
+					err = i.SetUserConfig((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type ConfigClient struct {
@@ -398,24 +484,41 @@ type CryptoInterface interface {
 func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.crypto",
-		Methods: map[string]rpc.ServeHook{
-			"signED25519": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SignED25519Arg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.SignED25519(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"signED25519": {
+				MakeArg: func() interface{} {
+					ret := make([]SignED25519Arg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SignED25519Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SignED25519Arg)(nil), args)
+						return
+					}
+					ret, err = i.SignED25519((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"unboxBytes32": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]UnboxBytes32Arg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.UnboxBytes32(args[0])
-				}
-				return
+			"unboxBytes32": {
+				MakeArg: func() interface{} {
+					ret := make([]UnboxBytes32Arg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UnboxBytes32Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UnboxBytes32Arg)(nil), args)
+						return
+					}
+					ret, err = i.UnboxBytes32((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type CryptoClient struct {
@@ -464,45 +567,89 @@ type CtlInterface interface {
 func CtlProtocol(i CtlInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.ctl",
-		Methods: map[string]rpc.ServeHook{
-			"stop": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]StopArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Stop(args[0].SessionID)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"stop": {
+				MakeArg: func() interface{} {
+					ret := make([]StopArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]StopArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]StopArg)(nil), args)
+						return
+					}
+					err = i.Stop((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"logRotate": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LogRotateArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.LogRotate(args[0].SessionID)
-				}
-				return
+			"logRotate": {
+				MakeArg: func() interface{} {
+					ret := make([]LogRotateArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LogRotateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LogRotateArg)(nil), args)
+						return
+					}
+					err = i.LogRotate((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"setLogLevel": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SetLogLevelArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.SetLogLevel(args[0])
-				}
-				return
+			"setLogLevel": {
+				MakeArg: func() interface{} {
+					ret := make([]SetLogLevelArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetLogLevelArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetLogLevelArg)(nil), args)
+						return
+					}
+					err = i.SetLogLevel((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"reload": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ReloadArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Reload(args[0].SessionID)
-				}
-				return
+			"reload": {
+				MakeArg: func() interface{} {
+					ret := make([]ReloadArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ReloadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ReloadArg)(nil), args)
+						return
+					}
+					err = i.Reload((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"dbNuke": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DbNukeArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DbNuke(args[0].SessionID)
-				}
-				return
+			"dbNuke": {
+				MakeArg: func() interface{} {
+					ret := make([]DbNukeArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DbNukeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DbNukeArg)(nil), args)
+						return
+					}
+					err = i.DbNuke((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type CtlClient struct {
@@ -566,31 +713,57 @@ type DebuggingInterface interface {
 func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.debugging",
-		Methods: map[string]rpc.ServeHook{
-			"firstStep": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]FirstStepArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.FirstStep(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"firstStep": {
+				MakeArg: func() interface{} {
+					ret := make([]FirstStepArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FirstStepArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FirstStepArg)(nil), args)
+						return
+					}
+					ret, err = i.FirstStep((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"secondStep": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SecondStepArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.SecondStep(args[0])
-				}
-				return
+			"secondStep": {
+				MakeArg: func() interface{} {
+					ret := make([]SecondStepArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SecondStepArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SecondStepArg)(nil), args)
+						return
+					}
+					ret, err = i.SecondStep((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"increment": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]IncrementArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Increment(args[0])
-				}
-				return
+			"increment": {
+				MakeArg: func() interface{} {
+					ret := make([]IncrementArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]IncrementArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]IncrementArg)(nil), args)
+						return
+					}
+					ret, err = i.Increment((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type DebuggingClient struct {
@@ -634,31 +807,57 @@ type DeviceInterface interface {
 func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.device",
-		Methods: map[string]rpc.ServeHook{
-			"deviceList": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DeviceListArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.DeviceList(args[0].SessionID)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"deviceList": {
+				MakeArg: func() interface{} {
+					ret := make([]DeviceListArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeviceListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeviceListArg)(nil), args)
+						return
+					}
+					ret, err = i.DeviceList((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"deviceAdd": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DeviceAddArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DeviceAdd(args[0])
-				}
-				return
+			"deviceAdd": {
+				MakeArg: func() interface{} {
+					ret := make([]DeviceAddArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeviceAddArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeviceAddArg)(nil), args)
+						return
+					}
+					err = i.DeviceAdd((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"deviceAddCancel": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DeviceAddCancelArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DeviceAddCancel(args[0].SessionID)
-				}
-				return
+			"deviceAddCancel": {
+				MakeArg: func() interface{} {
+					ret := make([]DeviceAddCancelArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeviceAddCancelArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeviceAddCancelArg)(nil), args)
+						return
+					}
+					err = i.DeviceAddCancel((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type DeviceClient struct {
@@ -693,17 +892,25 @@ type DoctorInterface interface {
 func DoctorProtocol(i DoctorInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.doctor",
-		Methods: map[string]rpc.ServeHook{
-			"doctor": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DoctorArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Doctor(args[0].SessionID)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"doctor": {
+				MakeArg: func() interface{} {
+					ret := make([]DoctorArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DoctorArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DoctorArg)(nil), args)
+						return
+					}
+					err = i.Doctor((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type DoctorClient struct {
@@ -762,31 +969,57 @@ type DoctorUiInterface interface {
 func DoctorUiProtocol(i DoctorUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.doctorUi",
-		Methods: map[string]rpc.ServeHook{
-			"loginSelect": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoginSelectArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.LoginSelect(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"loginSelect": {
+				MakeArg: func() interface{} {
+					ret := make([]LoginSelectArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoginSelectArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoginSelectArg)(nil), args)
+						return
+					}
+					ret, err = i.LoginSelect((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displayStatus": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayStatusArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.DisplayStatus(args[0])
-				}
-				return
+			"displayStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayStatusArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.DisplayStatus((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displayResult": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayResultArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplayResult(args[0])
-				}
-				return
+			"displayResult": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayResultArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayResultArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayResultArg)(nil), args)
+						return
+					}
+					err = i.DisplayResult((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type DoctorUiClient struct {
@@ -837,31 +1070,57 @@ type FavoriteInterface interface {
 func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.favorite",
-		Methods: map[string]rpc.ServeHook{
-			"favoriteAdd": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]FavoriteAddArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.FavoriteAdd(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"favoriteAdd": {
+				MakeArg: func() interface{} {
+					ret := make([]FavoriteAddArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FavoriteAddArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FavoriteAddArg)(nil), args)
+						return
+					}
+					err = i.FavoriteAdd((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"favoriteDelete": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]FavoriteDeleteArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.FavoriteDelete(args[0])
-				}
-				return
+			"favoriteDelete": {
+				MakeArg: func() interface{} {
+					ret := make([]FavoriteDeleteArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FavoriteDeleteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FavoriteDeleteArg)(nil), args)
+						return
+					}
+					err = i.FavoriteDelete((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"favoriteList": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]FavoriteListArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.FavoriteList(args[0].SessionID)
-				}
-				return
+			"favoriteList": {
+				MakeArg: func() interface{} {
+					ret := make([]FavoriteListArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FavoriteListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FavoriteListArg)(nil), args)
+						return
+					}
+					ret, err = i.FavoriteList((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type FavoriteClient struct {
@@ -925,38 +1184,73 @@ type GpgUiInterface interface {
 func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.gpgUi",
-		Methods: map[string]rpc.ServeHook{
-			"wantToAddGPGKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]WantToAddGPGKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.WantToAddGPGKey(args[0].SessionID)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"wantToAddGPGKey": {
+				MakeArg: func() interface{} {
+					ret := make([]WantToAddGPGKeyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]WantToAddGPGKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]WantToAddGPGKeyArg)(nil), args)
+						return
+					}
+					ret, err = i.WantToAddGPGKey((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"confirmDuplicateKeyChosen": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ConfirmDuplicateKeyChosenArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.ConfirmDuplicateKeyChosen(args[0].SessionID)
-				}
-				return
+			"confirmDuplicateKeyChosen": {
+				MakeArg: func() interface{} {
+					ret := make([]ConfirmDuplicateKeyChosenArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ConfirmDuplicateKeyChosenArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ConfirmDuplicateKeyChosenArg)(nil), args)
+						return
+					}
+					ret, err = i.ConfirmDuplicateKeyChosen((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"selectKeyAndPushOption": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SelectKeyAndPushOptionArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.SelectKeyAndPushOption(args[0])
-				}
-				return
+			"selectKeyAndPushOption": {
+				MakeArg: func() interface{} {
+					ret := make([]SelectKeyAndPushOptionArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SelectKeyAndPushOptionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SelectKeyAndPushOptionArg)(nil), args)
+						return
+					}
+					ret, err = i.SelectKeyAndPushOption((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"selectKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SelectKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.SelectKey(args[0])
-				}
-				return
+			"selectKey": {
+				MakeArg: func() interface{} {
+					ret := make([]SelectKeyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SelectKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SelectKeyArg)(nil), args)
+						return
+					}
+					ret, err = i.SelectKey((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type GpgUiClient struct {
@@ -1140,17 +1434,25 @@ type IdentifyInterface interface {
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.identify",
-		Methods: map[string]rpc.ServeHook{
-			"identify": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]IdentifyArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Identify(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"identify": {
+				MakeArg: func() interface{} {
+					ret := make([]IdentifyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]IdentifyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]IdentifyArg)(nil), args)
+						return
+					}
+					ret, err = i.Identify((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type IdentifyClient struct {
@@ -1284,80 +1586,169 @@ type IdentifyUiInterface interface {
 func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.identifyUi",
-		Methods: map[string]rpc.ServeHook{
-			"start": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]StartArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Start(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"start": {
+				MakeArg: func() interface{} {
+					ret := make([]StartArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]StartArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]StartArg)(nil), args)
+						return
+					}
+					err = i.Start((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displayKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplayKey(args[0])
-				}
-				return
+			"displayKey": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayKeyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayKeyArg)(nil), args)
+						return
+					}
+					err = i.DisplayKey((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"reportLastTrack": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ReportLastTrackArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.ReportLastTrack(args[0])
-				}
-				return
+			"reportLastTrack": {
+				MakeArg: func() interface{} {
+					ret := make([]ReportLastTrackArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ReportLastTrackArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ReportLastTrackArg)(nil), args)
+						return
+					}
+					err = i.ReportLastTrack((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"launchNetworkChecks": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LaunchNetworkChecksArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.LaunchNetworkChecks(args[0])
-				}
-				return
+			"launchNetworkChecks": {
+				MakeArg: func() interface{} {
+					ret := make([]LaunchNetworkChecksArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LaunchNetworkChecksArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LaunchNetworkChecksArg)(nil), args)
+						return
+					}
+					err = i.LaunchNetworkChecks((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displayTrackStatement": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayTrackStatementArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplayTrackStatement(args[0])
-				}
-				return
+			"displayTrackStatement": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayTrackStatementArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayTrackStatementArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayTrackStatementArg)(nil), args)
+						return
+					}
+					err = i.DisplayTrackStatement((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"finishWebProofCheck": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]FinishWebProofCheckArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.FinishWebProofCheck(args[0])
-				}
-				return
+			"finishWebProofCheck": {
+				MakeArg: func() interface{} {
+					ret := make([]FinishWebProofCheckArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FinishWebProofCheckArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FinishWebProofCheckArg)(nil), args)
+						return
+					}
+					err = i.FinishWebProofCheck((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"finishSocialProofCheck": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]FinishSocialProofCheckArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.FinishSocialProofCheck(args[0])
-				}
-				return
+			"finishSocialProofCheck": {
+				MakeArg: func() interface{} {
+					ret := make([]FinishSocialProofCheckArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FinishSocialProofCheckArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FinishSocialProofCheckArg)(nil), args)
+						return
+					}
+					err = i.FinishSocialProofCheck((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displayCryptocurrency": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayCryptocurrencyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplayCryptocurrency(args[0])
-				}
-				return
+			"displayCryptocurrency": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayCryptocurrencyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayCryptocurrencyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayCryptocurrencyArg)(nil), args)
+						return
+					}
+					err = i.DisplayCryptocurrency((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"confirm": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ConfirmArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Confirm(args[0])
-				}
-				return
+			"confirm": {
+				MakeArg: func() interface{} {
+					ret := make([]ConfirmArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ConfirmArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ConfirmArg)(nil), args)
+						return
+					}
+					ret, err = i.Confirm((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"finish": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]FinishArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Finish(args[0].SessionID)
-				}
-				return
+			"finish": {
+				MakeArg: func() interface{} {
+					ret := make([]FinishArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FinishArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FinishArg)(nil), args)
+						return
+					}
+					err = i.Finish((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type IdentifyUiClient struct {
@@ -1441,24 +1832,41 @@ type Kex2ProvisioneeInterface interface {
 func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.Kex2Provisionee",
-		Methods: map[string]rpc.ServeHook{
-			"hello": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]HelloArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Hello(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"hello": {
+				MakeArg: func() interface{} {
+					ret := make([]HelloArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]HelloArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]HelloArg)(nil), args)
+						return
+					}
+					ret, err = i.Hello((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"didCounterSign": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DidCounterSignArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DidCounterSign(args[0].Sig)
-				}
-				return
+			"didCounterSign": {
+				MakeArg: func() interface{} {
+					ret := make([]DidCounterSignArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DidCounterSignArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DidCounterSignArg)(nil), args)
+						return
+					}
+					err = i.DidCounterSign((*typedArgs)[0].Sig)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type Kex2ProvisioneeClient struct {
@@ -1486,17 +1894,20 @@ type Kex2ProvisionerInterface interface {
 func Kex2ProvisionerProtocol(i Kex2ProvisionerInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.Kex2Provisioner",
-		Methods: map[string]rpc.ServeHook{
-			"kexStart": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]KexStartArg, 1)
-				if err = nxt(&args); err == nil {
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"kexStart": {
+				MakeArg: func() interface{} {
+					ret := make([]KexStartArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
 					err = i.KexStart()
-				}
-				return
+					return
+				},
+				MethodType: rpc.MethodNotify,
 			},
 		},
 	}
-
 }
 
 type Kex2ProvisionerClient struct {
@@ -1606,59 +2017,121 @@ type LocksmithUiInterface interface {
 func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.locksmithUi",
-		Methods: map[string]rpc.ServeHook{
-			"promptDeviceName": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptDeviceNameArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PromptDeviceName(args[0].SessionID)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"promptDeviceName": {
+				MakeArg: func() interface{} {
+					ret := make([]PromptDeviceNameArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PromptDeviceNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PromptDeviceNameArg)(nil), args)
+						return
+					}
+					ret, err = i.PromptDeviceName((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"deviceNameTaken": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DeviceNameTakenArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DeviceNameTaken(args[0])
-				}
-				return
+			"deviceNameTaken": {
+				MakeArg: func() interface{} {
+					ret := make([]DeviceNameTakenArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeviceNameTakenArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeviceNameTakenArg)(nil), args)
+						return
+					}
+					err = i.DeviceNameTaken((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"selectSigner": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SelectSignerArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.SelectSigner(args[0])
-				}
-				return
+			"selectSigner": {
+				MakeArg: func() interface{} {
+					ret := make([]SelectSignerArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SelectSignerArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SelectSignerArg)(nil), args)
+						return
+					}
+					ret, err = i.SelectSigner((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"deviceSignAttemptErr": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DeviceSignAttemptErrArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DeviceSignAttemptErr(args[0])
-				}
-				return
+			"deviceSignAttemptErr": {
+				MakeArg: func() interface{} {
+					ret := make([]DeviceSignAttemptErrArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeviceSignAttemptErrArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeviceSignAttemptErrArg)(nil), args)
+						return
+					}
+					err = i.DeviceSignAttemptErr((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displaySecretWords": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplaySecretWordsArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplaySecretWords(args[0])
-				}
-				return
+			"displaySecretWords": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplaySecretWordsArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplaySecretWordsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplaySecretWordsArg)(nil), args)
+						return
+					}
+					err = i.DisplaySecretWords((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"kexStatus": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]KexStatusArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.KexStatus(args[0])
-				}
-				return
+			"kexStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]KexStatusArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]KexStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]KexStatusArg)(nil), args)
+						return
+					}
+					err = i.KexStatus((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displayProvisionSuccess": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayProvisionSuccessArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplayProvisionSuccess(args[0])
-				}
-				return
+			"displayProvisionSuccess": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayProvisionSuccessArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayProvisionSuccessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayProvisionSuccessArg)(nil), args)
+						return
+					}
+					err = i.DisplayProvisionSuccess((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type LocksmithUiClient struct {
@@ -1714,17 +2187,25 @@ type LogUiInterface interface {
 func LogUiProtocol(i LogUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.logUi",
-		Methods: map[string]rpc.ServeHook{
-			"log": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LogArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Log(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"log": {
+				MakeArg: func() interface{} {
+					ret := make([]LogArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LogArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LogArg)(nil), args)
+						return
+					}
+					err = i.Log((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type LogUiClient struct {
@@ -1798,73 +2279,153 @@ type LoginInterface interface {
 func LoginProtocol(i LoginInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.login",
-		Methods: map[string]rpc.ServeHook{
-			"getConfiguredAccounts": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetConfiguredAccountsArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetConfiguredAccounts(args[0].SessionID)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"getConfiguredAccounts": {
+				MakeArg: func() interface{} {
+					ret := make([]GetConfiguredAccountsArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetConfiguredAccountsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetConfiguredAccountsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetConfiguredAccounts((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"loginWithPrompt": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoginWithPromptArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.LoginWithPrompt(args[0])
-				}
-				return
+			"loginWithPrompt": {
+				MakeArg: func() interface{} {
+					ret := make([]LoginWithPromptArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoginWithPromptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoginWithPromptArg)(nil), args)
+						return
+					}
+					err = i.LoginWithPrompt((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"loginWithStoredSecret": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoginWithStoredSecretArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.LoginWithStoredSecret(args[0])
-				}
-				return
+			"loginWithStoredSecret": {
+				MakeArg: func() interface{} {
+					ret := make([]LoginWithStoredSecretArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoginWithStoredSecretArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoginWithStoredSecretArg)(nil), args)
+						return
+					}
+					err = i.LoginWithStoredSecret((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"loginWithPassphrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoginWithPassphraseArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.LoginWithPassphrase(args[0])
-				}
-				return
+			"loginWithPassphrase": {
+				MakeArg: func() interface{} {
+					ret := make([]LoginWithPassphraseArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoginWithPassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoginWithPassphraseArg)(nil), args)
+						return
+					}
+					err = i.LoginWithPassphrase((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"clearStoredSecret": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ClearStoredSecretArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.ClearStoredSecret(args[0])
-				}
-				return
+			"clearStoredSecret": {
+				MakeArg: func() interface{} {
+					ret := make([]ClearStoredSecretArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ClearStoredSecretArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ClearStoredSecretArg)(nil), args)
+						return
+					}
+					err = i.ClearStoredSecret((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"cancelLogin": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]CancelLoginArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.CancelLogin(args[0].SessionID)
-				}
-				return
+			"cancelLogin": {
+				MakeArg: func() interface{} {
+					ret := make([]CancelLoginArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CancelLoginArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CancelLoginArg)(nil), args)
+						return
+					}
+					err = i.CancelLogin((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"logout": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LogoutArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Logout(args[0].SessionID)
-				}
-				return
+			"logout": {
+				MakeArg: func() interface{} {
+					ret := make([]LogoutArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LogoutArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LogoutArg)(nil), args)
+						return
+					}
+					err = i.Logout((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"reset": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ResetArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Reset(args[0].SessionID)
-				}
-				return
+			"reset": {
+				MakeArg: func() interface{} {
+					ret := make([]ResetArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ResetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ResetArg)(nil), args)
+						return
+					}
+					err = i.Reset((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"paperKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PaperKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PaperKey(args[0].SessionID)
-				}
-				return
+			"paperKey": {
+				MakeArg: func() interface{} {
+					ret := make([]PaperKeyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PaperKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PaperKeyArg)(nil), args)
+						return
+					}
+					err = i.PaperKey((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type LoginClient struct {
@@ -1951,38 +2512,73 @@ type LoginUiInterface interface {
 func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.loginUi",
-		Methods: map[string]rpc.ServeHook{
-			"getEmailOrUsername": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetEmailOrUsernameArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetEmailOrUsername(args[0].SessionID)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"getEmailOrUsername": {
+				MakeArg: func() interface{} {
+					ret := make([]GetEmailOrUsernameArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetEmailOrUsernameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetEmailOrUsernameArg)(nil), args)
+						return
+					}
+					ret, err = i.GetEmailOrUsername((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"promptRevokePaperKeys": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptRevokePaperKeysArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PromptRevokePaperKeys(args[0])
-				}
-				return
+			"promptRevokePaperKeys": {
+				MakeArg: func() interface{} {
+					ret := make([]PromptRevokePaperKeysArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PromptRevokePaperKeysArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PromptRevokePaperKeysArg)(nil), args)
+						return
+					}
+					ret, err = i.PromptRevokePaperKeys((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displayPaperKeyPhrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayPaperKeyPhraseArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplayPaperKeyPhrase(args[0])
-				}
-				return
+			"displayPaperKeyPhrase": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayPaperKeyPhraseArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayPaperKeyPhraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayPaperKeyPhraseArg)(nil), args)
+						return
+					}
+					err = i.DisplayPaperKeyPhrase((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displayPrimaryPaperKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayPrimaryPaperKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplayPrimaryPaperKey(args[0])
-				}
-				return
+			"displayPrimaryPaperKey": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayPrimaryPaperKeyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayPrimaryPaperKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayPrimaryPaperKeyArg)(nil), args)
+						return
+					}
+					err = i.DisplayPrimaryPaperKey((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type LoginUiClient struct {
@@ -2089,80 +2685,164 @@ type MetadataInterface interface {
 func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.metadata",
-		Methods: map[string]rpc.ServeHook{
-			"authenticate": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]AuthenticateArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Authenticate(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"authenticate": {
+				MakeArg: func() interface{} {
+					ret := make([]AuthenticateArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]AuthenticateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]AuthenticateArg)(nil), args)
+						return
+					}
+					ret, err = i.Authenticate((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"putMetadata": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PutMetadataArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PutMetadata(args[0])
-				}
-				return
+			"putMetadata": {
+				MakeArg: func() interface{} {
+					ret := make([]PutMetadataArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PutMetadataArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PutMetadataArg)(nil), args)
+						return
+					}
+					err = i.PutMetadata((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"getMetadata": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetMetadataArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetMetadata(args[0])
-				}
-				return
+			"getMetadata": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMetadataArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMetadataArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMetadataArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMetadata((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"registerForUpdates": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]RegisterForUpdatesArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.RegisterForUpdates(args[0])
-				}
-				return
+			"registerForUpdates": {
+				MakeArg: func() interface{} {
+					ret := make([]RegisterForUpdatesArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RegisterForUpdatesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RegisterForUpdatesArg)(nil), args)
+						return
+					}
+					err = i.RegisterForUpdates((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pruneUnmerged": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PruneUnmergedArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PruneUnmerged(args[0])
-				}
-				return
+			"pruneUnmerged": {
+				MakeArg: func() interface{} {
+					ret := make([]PruneUnmergedArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PruneUnmergedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PruneUnmergedArg)(nil), args)
+						return
+					}
+					err = i.PruneUnmerged((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"putKeys": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PutKeysArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PutKeys(args[0])
-				}
-				return
+			"putKeys": {
+				MakeArg: func() interface{} {
+					ret := make([]PutKeysArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PutKeysArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PutKeysArg)(nil), args)
+						return
+					}
+					err = i.PutKeys((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"getKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetKey(args[0])
-				}
-				return
+			"getKey": {
+				MakeArg: func() interface{} {
+					ret := make([]GetKeyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetKeyArg)(nil), args)
+						return
+					}
+					ret, err = i.GetKey((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"truncateLock": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]TruncateLockArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.TruncateLock(args[0].FolderID)
-				}
-				return
+			"truncateLock": {
+				MakeArg: func() interface{} {
+					ret := make([]TruncateLockArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TruncateLockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TruncateLockArg)(nil), args)
+						return
+					}
+					ret, err = i.TruncateLock((*typedArgs)[0].FolderID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"truncateUnlock": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]TruncateUnlockArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.TruncateUnlock(args[0].FolderID)
-				}
-				return
+			"truncateUnlock": {
+				MakeArg: func() interface{} {
+					ret := make([]TruncateUnlockArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TruncateUnlockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TruncateUnlockArg)(nil), args)
+						return
+					}
+					ret, err = i.TruncateUnlock((*typedArgs)[0].FolderID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"ping": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PingArg, 1)
-				if err = nxt(&args); err == nil {
+			"ping": {
+				MakeArg: func() interface{} {
+					ret := make([]PingArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
 					err = i.Ping()
-				}
-				return
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type MetadataClient struct {
@@ -2233,17 +2913,25 @@ type MetadataUpdateInterface interface {
 func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.metadataUpdate",
-		Methods: map[string]rpc.ServeHook{
-			"metadataUpdate": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]MetadataUpdateArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.MetadataUpdate(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"metadataUpdate": {
+				MakeArg: func() interface{} {
+					ret := make([]MetadataUpdateArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]MetadataUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]MetadataUpdateArg)(nil), args)
+						return
+					}
+					err = i.MetadataUpdate((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type MetadataUpdateClient struct {
@@ -2421,108 +3109,233 @@ type PGPInterface interface {
 func PGPProtocol(i PGPInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.pgp",
-		Methods: map[string]rpc.ServeHook{
-			"pgpSign": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPSignArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PGPSign(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"pgpSign": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPSignArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPSignArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPSignArg)(nil), args)
+						return
+					}
+					err = i.PGPSign((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpPull": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPPullArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PGPPull(args[0])
-				}
-				return
+			"pgpPull": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPPullArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPPullArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPPullArg)(nil), args)
+						return
+					}
+					err = i.PGPPull((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpEncrypt": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPEncryptArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PGPEncrypt(args[0])
-				}
-				return
+			"pgpEncrypt": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPEncryptArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPEncryptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPEncryptArg)(nil), args)
+						return
+					}
+					err = i.PGPEncrypt((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpDecrypt": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPDecryptArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PGPDecrypt(args[0])
-				}
-				return
+			"pgpDecrypt": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPDecryptArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPDecryptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPDecryptArg)(nil), args)
+						return
+					}
+					ret, err = i.PGPDecrypt((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpVerify": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPVerifyArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PGPVerify(args[0])
-				}
-				return
+			"pgpVerify": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPVerifyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPVerifyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPVerifyArg)(nil), args)
+						return
+					}
+					ret, err = i.PGPVerify((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpImport": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPImportArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PGPImport(args[0])
-				}
-				return
+			"pgpImport": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPImportArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPImportArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPImportArg)(nil), args)
+						return
+					}
+					err = i.PGPImport((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpExport": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPExportArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PGPExport(args[0])
-				}
-				return
+			"pgpExport": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPExportArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPExportArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPExportArg)(nil), args)
+						return
+					}
+					ret, err = i.PGPExport((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpExportByFingerprint": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPExportByFingerprintArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PGPExportByFingerprint(args[0])
-				}
-				return
+			"pgpExportByFingerprint": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPExportByFingerprintArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPExportByFingerprintArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPExportByFingerprintArg)(nil), args)
+						return
+					}
+					ret, err = i.PGPExportByFingerprint((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpExportByKID": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPExportByKIDArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PGPExportByKID(args[0])
-				}
-				return
+			"pgpExportByKID": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPExportByKIDArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPExportByKIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPExportByKIDArg)(nil), args)
+						return
+					}
+					ret, err = i.PGPExportByKID((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpKeyGen": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPKeyGenArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PGPKeyGen(args[0])
-				}
-				return
+			"pgpKeyGen": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPKeyGenArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPKeyGenArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPKeyGenArg)(nil), args)
+						return
+					}
+					err = i.PGPKeyGen((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpKeyGenDefault": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPKeyGenDefaultArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PGPKeyGenDefault(args[0])
-				}
-				return
+			"pgpKeyGenDefault": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPKeyGenDefaultArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPKeyGenDefaultArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPKeyGenDefaultArg)(nil), args)
+						return
+					}
+					err = i.PGPKeyGenDefault((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpDeletePrimary": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPDeletePrimaryArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PGPDeletePrimary(args[0].SessionID)
-				}
-				return
+			"pgpDeletePrimary": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPDeletePrimaryArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPDeletePrimaryArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPDeletePrimaryArg)(nil), args)
+						return
+					}
+					err = i.PGPDeletePrimary((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpSelect": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPSelectArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PGPSelect(args[0])
-				}
-				return
+			"pgpSelect": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPSelectArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPSelectArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPSelectArg)(nil), args)
+						return
+					}
+					err = i.PGPSelect((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"pgpUpdate": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PGPUpdateArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.PGPUpdate(args[0])
-				}
-				return
+			"pgpUpdate": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPUpdateArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPUpdateArg)(nil), args)
+						return
+					}
+					err = i.PGPUpdate((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type PGPClient struct {
@@ -2631,24 +3444,41 @@ type ProveInterface interface {
 func ProveProtocol(i ProveInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.prove",
-		Methods: map[string]rpc.ServeHook{
-			"startProof": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]StartProofArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.StartProof(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"startProof": {
+				MakeArg: func() interface{} {
+					ret := make([]StartProofArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]StartProofArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]StartProofArg)(nil), args)
+						return
+					}
+					ret, err = i.StartProof((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"checkProof": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]CheckProofArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.CheckProof(args[0])
-				}
-				return
+			"checkProof": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckProofArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CheckProofArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CheckProofArg)(nil), args)
+						return
+					}
+					ret, err = i.CheckProof((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type ProveClient struct {
@@ -2724,59 +3554,121 @@ type ProveUiInterface interface {
 func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.proveUi",
-		Methods: map[string]rpc.ServeHook{
-			"promptOverwrite": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptOverwriteArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PromptOverwrite(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"promptOverwrite": {
+				MakeArg: func() interface{} {
+					ret := make([]PromptOverwriteArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PromptOverwriteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PromptOverwriteArg)(nil), args)
+						return
+					}
+					ret, err = i.PromptOverwrite((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"promptUsername": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptUsernameArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PromptUsername(args[0])
-				}
-				return
+			"promptUsername": {
+				MakeArg: func() interface{} {
+					ret := make([]PromptUsernameArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PromptUsernameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PromptUsernameArg)(nil), args)
+						return
+					}
+					ret, err = i.PromptUsername((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"outputPrechecks": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]OutputPrechecksArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.OutputPrechecks(args[0])
-				}
-				return
+			"outputPrechecks": {
+				MakeArg: func() interface{} {
+					ret := make([]OutputPrechecksArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]OutputPrechecksArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]OutputPrechecksArg)(nil), args)
+						return
+					}
+					err = i.OutputPrechecks((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"preProofWarning": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PreProofWarningArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PreProofWarning(args[0])
-				}
-				return
+			"preProofWarning": {
+				MakeArg: func() interface{} {
+					ret := make([]PreProofWarningArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PreProofWarningArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PreProofWarningArg)(nil), args)
+						return
+					}
+					ret, err = i.PreProofWarning((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"outputInstructions": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]OutputInstructionsArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.OutputInstructions(args[0])
-				}
-				return
+			"outputInstructions": {
+				MakeArg: func() interface{} {
+					ret := make([]OutputInstructionsArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]OutputInstructionsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]OutputInstructionsArg)(nil), args)
+						return
+					}
+					err = i.OutputInstructions((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"okToCheck": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]OkToCheckArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.OkToCheck(args[0])
-				}
-				return
+			"okToCheck": {
+				MakeArg: func() interface{} {
+					ret := make([]OkToCheckArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]OkToCheckArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]OkToCheckArg)(nil), args)
+						return
+					}
+					ret, err = i.OkToCheck((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"displayRecheckWarning": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]DisplayRecheckWarningArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.DisplayRecheckWarning(args[0])
-				}
-				return
+			"displayRecheckWarning": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayRecheckWarningArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayRecheckWarningArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayRecheckWarningArg)(nil), args)
+						return
+					}
+					err = i.DisplayRecheckWarning((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type ProveUiClient struct {
@@ -2836,17 +3728,25 @@ type QuotaInterface interface {
 func QuotaProtocol(i QuotaInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.quota",
-		Methods: map[string]rpc.ServeHook{
-			"verifySession": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]VerifySessionArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.VerifySession(args[0].Session)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"verifySession": {
+				MakeArg: func() interface{} {
+					ret := make([]VerifySessionArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]VerifySessionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]VerifySessionArg)(nil), args)
+						return
+					}
+					ret, err = i.VerifySession((*typedArgs)[0].Session)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type QuotaClient struct {
@@ -2884,31 +3784,57 @@ type RevokeInterface interface {
 func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.revoke",
-		Methods: map[string]rpc.ServeHook{
-			"revokeKey": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]RevokeKeyArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.RevokeKey(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"revokeKey": {
+				MakeArg: func() interface{} {
+					ret := make([]RevokeKeyArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RevokeKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RevokeKeyArg)(nil), args)
+						return
+					}
+					err = i.RevokeKey((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"revokeDevice": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]RevokeDeviceArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.RevokeDevice(args[0])
-				}
-				return
+			"revokeDevice": {
+				MakeArg: func() interface{} {
+					ret := make([]RevokeDeviceArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RevokeDeviceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RevokeDeviceArg)(nil), args)
+						return
+					}
+					err = i.RevokeDevice((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"revokeSigs": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]RevokeSigsArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.RevokeSigs(args[0])
-				}
-				return
+			"revokeSigs": {
+				MakeArg: func() interface{} {
+					ret := make([]RevokeSigsArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RevokeSigsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RevokeSigsArg)(nil), args)
+						return
+					}
+					err = i.RevokeSigs((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type RevokeClient struct {
@@ -2987,38 +3913,73 @@ type SecretUiInterface interface {
 func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.secretUi",
-		Methods: map[string]rpc.ServeHook{
-			"getSecret": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetSecretArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetSecret(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"getSecret": {
+				MakeArg: func() interface{} {
+					ret := make([]GetSecretArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetSecretArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetSecretArg)(nil), args)
+						return
+					}
+					ret, err = i.GetSecret((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"getNewPassphrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetNewPassphraseArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetNewPassphrase(args[0])
-				}
-				return
+			"getNewPassphrase": {
+				MakeArg: func() interface{} {
+					ret := make([]GetNewPassphraseArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetNewPassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetNewPassphraseArg)(nil), args)
+						return
+					}
+					ret, err = i.GetNewPassphrase((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"getKeybasePassphrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetKeybasePassphraseArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetKeybasePassphrase(args[0])
-				}
-				return
+			"getKeybasePassphrase": {
+				MakeArg: func() interface{} {
+					ret := make([]GetKeybasePassphraseArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetKeybasePassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetKeybasePassphraseArg)(nil), args)
+						return
+					}
+					ret, err = i.GetKeybasePassphrase((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"getPaperKeyPassphrase": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]GetPaperKeyPassphraseArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.GetPaperKeyPassphrase(args[0])
-				}
-				return
+			"getPaperKeyPassphrase": {
+				MakeArg: func() interface{} {
+					ret := make([]GetPaperKeyPassphraseArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetPaperKeyPassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetPaperKeyPassphraseArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPaperKeyPassphrase((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type SecretUiClient struct {
@@ -3068,24 +4029,41 @@ type SessionInterface interface {
 func SessionProtocol(i SessionInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.session",
-		Methods: map[string]rpc.ServeHook{
-			"currentSession": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]CurrentSessionArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.CurrentSession(args[0].SessionID)
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"currentSession": {
+				MakeArg: func() interface{} {
+					ret := make([]CurrentSessionArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CurrentSessionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CurrentSessionArg)(nil), args)
+						return
+					}
+					ret, err = i.CurrentSession((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"currentUID": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]CurrentUIDArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.CurrentUID(args[0].SessionID)
-				}
-				return
+			"currentUID": {
+				MakeArg: func() interface{} {
+					ret := make([]CurrentUIDArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CurrentUIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CurrentUIDArg)(nil), args)
+						return
+					}
+					ret, err = i.CurrentUID((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type SessionClient struct {
@@ -3141,31 +4119,57 @@ type SignupInterface interface {
 func SignupProtocol(i SignupInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.signup",
-		Methods: map[string]rpc.ServeHook{
-			"checkUsernameAvailable": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]CheckUsernameAvailableArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.CheckUsernameAvailable(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"checkUsernameAvailable": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckUsernameAvailableArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CheckUsernameAvailableArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CheckUsernameAvailableArg)(nil), args)
+						return
+					}
+					err = i.CheckUsernameAvailable((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"signup": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SignupArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Signup(args[0])
-				}
-				return
+			"signup": {
+				MakeArg: func() interface{} {
+					ret := make([]SignupArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SignupArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SignupArg)(nil), args)
+						return
+					}
+					ret, err = i.Signup((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"inviteRequest": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]InviteRequestArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.InviteRequest(args[0])
-				}
-				return
+			"inviteRequest": {
+				MakeArg: func() interface{} {
+					ret := make([]InviteRequestArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]InviteRequestArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]InviteRequestArg)(nil), args)
+						return
+					}
+					err = i.InviteRequest((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type SignupClient struct {
@@ -3234,24 +4238,41 @@ type SigsInterface interface {
 func SigsProtocol(i SigsInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.sigs",
-		Methods: map[string]rpc.ServeHook{
-			"sigList": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SigListArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.SigList(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"sigList": {
+				MakeArg: func() interface{} {
+					ret := make([]SigListArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SigListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SigListArg)(nil), args)
+						return
+					}
+					ret, err = i.SigList((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"sigListJSON": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SigListJSONArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.SigListJSON(args[0])
-				}
-				return
+			"sigListJSON": {
+				MakeArg: func() interface{} {
+					ret := make([]SigListJSONArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SigListJSONArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SigListJSONArg)(nil), args)
+						return
+					}
+					ret, err = i.SigListJSON((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type SigsClient struct {
@@ -3294,31 +4315,57 @@ type StreamUiInterface interface {
 func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.streamUi",
-		Methods: map[string]rpc.ServeHook{
-			"close": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]CloseArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Close(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"close": {
+				MakeArg: func() interface{} {
+					ret := make([]CloseArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CloseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CloseArg)(nil), args)
+						return
+					}
+					err = i.Close((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"read": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ReadArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Read(args[0])
-				}
-				return
+			"read": {
+				MakeArg: func() interface{} {
+					ret := make([]ReadArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ReadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ReadArg)(nil), args)
+						return
+					}
+					ret, err = i.Read((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"write": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]WriteArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Write(args[0])
-				}
-				return
+			"write": {
+				MakeArg: func() interface{} {
+					ret := make([]WriteArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]WriteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]WriteArg)(nil), args)
+						return
+					}
+					ret, err = i.Write((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type StreamUiClient struct {
@@ -3367,31 +4414,57 @@ type TestInterface interface {
 func TestProtocol(i TestInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.test",
-		Methods: map[string]rpc.ServeHook{
-			"test": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]TestArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Test(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"test": {
+				MakeArg: func() interface{} {
+					ret := make([]TestArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TestArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TestArg)(nil), args)
+						return
+					}
+					ret, err = i.Test((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"testCallback": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]TestCallbackArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.TestCallback(args[0])
-				}
-				return
+			"testCallback": {
+				MakeArg: func() interface{} {
+					ret := make([]TestCallbackArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TestCallbackArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TestCallbackArg)(nil), args)
+						return
+					}
+					ret, err = i.TestCallback((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"panic": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PanicArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Panic(args[0].Message)
-				}
-				return
+			"panic": {
+				MakeArg: func() interface{} {
+					ret := make([]PanicArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PanicArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PanicArg)(nil), args)
+						return
+					}
+					err = i.Panic((*typedArgs)[0].Message)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type TestClient struct {
@@ -3441,31 +4514,57 @@ type TrackInterface interface {
 func TrackProtocol(i TrackInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.track",
-		Methods: map[string]rpc.ServeHook{
-			"track": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]TrackArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Track(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"track": {
+				MakeArg: func() interface{} {
+					ret := make([]TrackArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TrackArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TrackArg)(nil), args)
+						return
+					}
+					err = i.Track((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"trackWithToken": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]TrackWithTokenArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.TrackWithToken(args[0])
-				}
-				return
+			"trackWithToken": {
+				MakeArg: func() interface{} {
+					ret := make([]TrackWithTokenArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TrackWithTokenArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TrackWithTokenArg)(nil), args)
+						return
+					}
+					err = i.TrackWithToken((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"untrack": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]UntrackArg, 1)
-				if err = nxt(&args); err == nil {
-					err = i.Untrack(args[0])
-				}
-				return
+			"untrack": {
+				MakeArg: func() interface{} {
+					ret := make([]UntrackArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UntrackArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UntrackArg)(nil), args)
+						return
+					}
+					err = i.Untrack((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type TrackClient struct {
@@ -3508,17 +4607,25 @@ type UiInterface interface {
 func UiProtocol(i UiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.ui",
-		Methods: map[string]rpc.ServeHook{
-			"promptYesNo": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]PromptYesNoArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.PromptYesNo(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"promptYesNo": {
+				MakeArg: func() interface{} {
+					ret := make([]PromptYesNoArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PromptYesNoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PromptYesNoArg)(nil), args)
+						return
+					}
+					ret, err = i.PromptYesNo((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type UiClient struct {
@@ -3650,80 +4757,169 @@ type UserInterface interface {
 func UserProtocol(i UserInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.user",
-		Methods: map[string]rpc.ServeHook{
-			"listTrackers": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ListTrackersArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.ListTrackers(args[0])
-				}
-				return
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"listTrackers": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackersArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackersArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackers((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"listTrackersByName": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ListTrackersByNameArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.ListTrackersByName(args[0])
-				}
-				return
+			"listTrackersByName": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackersByNameArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackersByNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackersByNameArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackersByName((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"listTrackersSelf": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ListTrackersSelfArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.ListTrackersSelf(args[0].SessionID)
-				}
-				return
+			"listTrackersSelf": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackersSelfArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackersSelfArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackersSelfArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackersSelf((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"loadUncheckedUserSummaries": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoadUncheckedUserSummariesArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.LoadUncheckedUserSummaries(args[0])
-				}
-				return
+			"loadUncheckedUserSummaries": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadUncheckedUserSummariesArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadUncheckedUserSummariesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadUncheckedUserSummariesArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadUncheckedUserSummaries((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"loadUser": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoadUserArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.LoadUser(args[0])
-				}
-				return
+			"loadUser": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadUserArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadUserArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadUserArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadUser((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"loadUserPlusKeys": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoadUserPlusKeysArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.LoadUserPlusKeys(args[0])
-				}
-				return
+			"loadUserPlusKeys": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadUserPlusKeysArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadUserPlusKeysArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadUserPlusKeysArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadUserPlusKeys((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"loadPublicKeys": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]LoadPublicKeysArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.LoadPublicKeys(args[0])
-				}
-				return
+			"loadPublicKeys": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadPublicKeysArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadPublicKeysArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadPublicKeysArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadPublicKeys((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"listTracking": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ListTrackingArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.ListTracking(args[0])
-				}
-				return
+			"listTracking": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackingArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackingArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTracking((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"listTrackingJSON": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]ListTrackingJSONArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.ListTrackingJSON(args[0])
-				}
-				return
+			"listTrackingJSON": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackingJSONArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackingJSONArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackingJSONArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackingJSON((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
-			"search": func(nxt rpc.DecodeNext) (ret interface{}, err error) {
-				args := make([]SearchArg, 1)
-				if err = nxt(&args); err == nil {
-					ret, err = i.Search(args[0])
-				}
-				return
+			"search": {
+				MakeArg: func() interface{} {
+					ret := make([]SearchArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SearchArg)(nil), args)
+						return
+					}
+					ret, err = i.Search((*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
-
 }
 
 type UserClient struct {
