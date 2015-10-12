@@ -213,23 +213,11 @@ func testCRCheckPaths(t *testing.T, cr *ConflictResolver,
 	expectedUnmergedPaths []path, expectedMergedPaths map[BlockPointer]path,
 	expectedRecreateOps []*createOp) {
 	ctx := context.Background()
-	// get the MDs
-	unmerged, merged, err := cr.getMDs(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get MDs: %v", err)
-	}
 
-	// Make the chains
-	unmergedChains, mergedChains, err := cr.makeChains(ctx, unmerged, merged)
+	_, _, unmergedPaths, mergedPaths, recreateOps, err :=
+		cr.buildChainsAndPaths(ctx)
 	if err != nil {
-		t.Fatalf("Couldn't make chains: %v", err)
-	}
-
-	// unmerged paths
-	unmergedPaths, err := cr.getUnmergedPaths(ctx, unmergedChains,
-		unmerged[len(unmerged)-1])
-	if err != nil {
-		t.Fatalf("Couldn't get unmerged paths: %v", err)
+		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
 
 	// we don't care about the order of the unmerged paths, so put
@@ -246,14 +234,6 @@ func testCRCheckPaths(t *testing.T, cr *ConflictResolver,
 	if !reflect.DeepEqual(eUPathMap, uPathMap) {
 		t.Fatalf("Unmerged paths aren't right.  Expected %v, got %v",
 			expectedUnmergedPaths, unmergedPaths)
-	}
-
-	// merged paths
-	mergedPaths, recreateOps, err :=
-		cr.resolveMergedPaths(ctx, unmergedPaths, unmergedChains,
-			mergedChains, merged[len(merged)-1])
-	if err != nil {
-		t.Fatalf("Couldn't get the merged paths: %v", err)
 	}
 
 	if !reflect.DeepEqual(expectedMergedPaths, mergedPaths) {

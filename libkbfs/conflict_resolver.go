@@ -594,6 +594,67 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 	return mergedPaths, recreateOps, nil
 }
 
+func (cr *ConflictResolver) buildChainsAndPaths(ctx context.Context) (
+	unmergedChains *crChains, mergedChains *crChains, unmergedPaths []path,
+	mergedPaths map[BlockPointer]path, recreateOps []*createOp, err error) {
+	// Fetch the merged and unmerged MDs
+	unmerged, merged, err := cr.getMDs(ctx)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	if u, m := len(unmerged), len(merged); u == 0 || m == 0 {
+		cr.log.CDebugf(ctx, "Skipping merge process due to empty MD list: "+
+			"%d unmerged, %d merged", u, m)
+		return nil, nil, nil, nil, nil, nil
+	}
+
+	// Update the current input to reflect the MDs we'll actually be
+	// working with.
+	err = cr.updateCurrInput(ctx, unmerged, merged)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	// Canceled before we start the heavy lifting?
+	err = cr.checkDone(ctx)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	// Make the chains
+	unmergedChains, mergedChains, err = cr.makeChains(ctx, unmerged, merged)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	// TODO: if the root node didn't change in either chain, we can
+	// short circuit the rest of the process with a really easy
+	// merge...
+
+	// Get the full path for every most recent unmerged pointer with a
+	// chain of unmerged operations, and which was not created or
+	// deleted within in the unmerged branch.
+	unmergedPaths, err = cr.getUnmergedPaths(ctx, unmergedChains,
+		unmerged[len(unmerged)-1])
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	// Find the corresponding path in the merged branch for each of
+	// these unmerged paths, and the set of any createOps needed to
+	// apply these unmerged operations in the merged branch.
+	mergedPaths, recreateOps, err =
+		cr.resolveMergedPaths(ctx, unmergedPaths, unmergedChains,
+			mergedChains, merged[len(merged)-1])
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	return unmergedChains, mergedChains, unmergedPaths, mergedPaths,
+		recreateOps, nil
+}
+
 // addRecreateOpsToUnmergedChains inserts each recreateOp, into its
 // appropriate unmerged chain, creating one if it doesn't exist yet.
 // It also adds entries as necessary to mergedPaths.
@@ -858,59 +919,16 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	// Fetch the merged and unmerged MDs
-	unmerged, merged, err := cr.getMDs(ctx)
+	unmergedChains, mergedChains, _, mergedPaths, recreateOps, err :=
+		cr.buildChainsAndPaths(ctx)
 	if err != nil {
 		return
 	}
-
-	if u, m := len(unmerged), len(merged); u == 0 || m == 0 {
-		cr.log.CDebugf(ctx, "Skipping merge process due to empty MD list: "+
-			"%d unmerged, %d merged", u, m)
+	if unmergedChains == nil {
+		// nothing to do
 		return
 	}
 
-	// Update the current input to reflect the MDs we'll actually be
-	// working with.
-	err = cr.updateCurrInput(ctx, unmerged, merged)
-	if err != nil {
-		return
-	}
-
-	// Canceled before we start the heavy lifting?
-	err = cr.checkDone(ctx)
-	if err != nil {
-		return
-	}
-
-	// Make the chains
-	unmergedChains, mergedChains, err := cr.makeChains(ctx, unmerged, merged)
-	if err != nil {
-		return
-	}
-
-	// TODO: if the root node didn't change in either chain, we can
-	// short circuit the rest of the process with a really easy
-	// merge...
-
-	// Get the full path for every most recent unmerged pointer with a
-	// chain of unmerged operations, and which was not created or
-	// deleted within in the unmerged branch.
-	unmergedPaths, err := cr.getUnmergedPaths(ctx, unmergedChains,
-		unmerged[len(unmerged)-1])
-	if err != nil {
-		return
-	}
-
-	// Find the corresponding path in the merged branch for each of
-	// these unmerged paths, and the set of any createOps needed to
-	// apply these unmerged operations in the merged branch.
-	mergedPaths, recreateOps, err :=
-		cr.resolveMergedPaths(ctx, unmergedPaths, unmergedChains,
-			mergedChains, merged[len(merged)-1])
-	if err != nil {
-		return
-	}
 	err = cr.checkDone(ctx)
 	if err != nil {
 		return
