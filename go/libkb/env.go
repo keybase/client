@@ -707,3 +707,7 @@ func (c AppConfig) GetRunMode() (RunMode, error) {
 func (c AppConfig) GetHome() string {
 	return c.HomeDir
 }
+
+func (c AppConfig) GetServerURI() string {
+	return c.ServerURI
+}
