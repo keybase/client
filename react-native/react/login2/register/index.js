@@ -25,7 +25,7 @@ export default class Register extends Component {
       regPaperKey: PaperKey.parseRoute,
       regUserPass: UserPass.parseRoute,
       regExistingDevice: ExistingDevice.parseRoute,
-      setSetPublicName: SetPublicName.parseRoute
+      regSetPublicName: SetPublicName.parseRoute
     }
 
     const componentAtTop = {
