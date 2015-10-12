@@ -2,8 +2,8 @@ package libkb
 
 import (
 	"bytes"
+	"crypto/rand"
 	"io/ioutil"
-	"os"
 	"strings"
 	"testing"
 	"testing/quick"
@@ -155,12 +155,8 @@ func TestPGPEncryptLong(t *testing.T) {
 	}
 
 	msg := make([]byte, 1024*1024)
-	f, err := os.Open("/dev/urandom")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer f.Close()
-	f.Read(msg)
+
+	rand.Read(msg)
 
 	G.Log.Info("msg size: %d", len(msg))
 

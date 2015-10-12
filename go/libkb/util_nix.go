@@ -32,3 +32,7 @@ func canExec(s string) error {
 		return nil
 	}
 }
+
+func PosixLineEndings(arg string) string {
+	return arg
+}

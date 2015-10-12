@@ -18,3 +18,7 @@ func canExec(s string) error {
 	_, err := exec.LookPath(s)
 	return err
 }
+
+func PosixLineEndings(arg string) string {
+	return strings.Replace(arg, "\r", "", -1)
+}

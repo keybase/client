@@ -115,6 +115,9 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 	buf.ReadFrom(res.Stdout)
 	armored := buf.String()
 
+	// Convert to posix style on windows
+	armored = PosixLineEndings(armored)
+
 	if err := res.Wait(); err != nil {
 		return nil, err
 	}

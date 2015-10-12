@@ -2,7 +2,7 @@ package engine
 
 import (
 	"bytes"
-	"os"
+	"crypto/rand"
 	"strings"
 	"testing"
 
@@ -208,12 +208,8 @@ func TestPGPDecryptLong(t *testing.T) {
 
 	// encrypt a message
 	msg := make([]byte, 1024*1024)
-	f, err := os.Open("/dev/urandom")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer f.Close()
-	if _, err := f.Read(msg); err != nil {
+
+	if _, err := rand.Read(msg); err != nil {
 		t.Fatal(err)
 	}
 
