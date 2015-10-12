@@ -5,7 +5,6 @@ import React, { Component, StyleSheet, Text, View } from 'react-native'
 
 import { codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2 } from '../../../constants/login2'
 import commonStyles from '../../../styles/common'
-// import { navigateUp, routeAppend } from '../../../actions/router'
 
 export default class CodePage extends Component {
   render () {
