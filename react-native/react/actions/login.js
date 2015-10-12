@@ -57,6 +57,9 @@ export function submitUserPass (username, passphrase, storeSecret) {
       'keybase.1.locksmithUi.kexStatus': (param, response) => {
         console.log(param, response)
         response.result()
+      },
+      'keybase.1.locksmithUi.displayProvisionSuccess': (param, response) => {
+        response.result()
       }
     }
 
