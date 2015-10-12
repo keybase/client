@@ -26,34 +26,46 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 	// overhead is.
 	block := NewFileBlock().(*FileBlock)
 	fullData := make([]byte, desiredBlockSize)
+	// Fill in the block with varying data to make sure not to trigger
+	// any encoding optimizations.
 	for i := range fullData {
 		fullData[i] = byte(i)
 	}
-	block.Contents = fullData
-	encodedBlock, err := codec.Encode(block)
-	if err != nil {
-		return nil, err
-	}
 
-	overhead := int64(0)
+	maxSize := desiredBlockSize
+	var encodedLen int64
 	// Iterate until we find the right size (up to a maximum number of
 	// attempts), because the overhead is not constant across
-	// different Contents lengths.
-	for i := 0; int64(len(encodedBlock)) != desiredBlockSize && i < 10; i++ {
-		overhead += int64(len(encodedBlock)) - desiredBlockSize
-		if overhead+1 > desiredBlockSize {
-			return nil, fmt.Errorf("Too much block overhead: %d", overhead)
-		}
-
-		block.Contents = fullData[:desiredBlockSize-overhead]
-		encodedBlock, err = codec.Encode(block)
+	// different Contents lengths (probably due to variable length
+	// encoding of the buffer size).
+	for i := 0; i < 10; i++ {
+		block.Contents = fullData[:maxSize]
+		encodedBlock, err := codec.Encode(block)
 		if err != nil {
 			return nil, err
 		}
+
+		encodedLen = int64(len(encodedBlock))
+		if encodedLen >= 2*desiredBlockSize {
+			return nil, fmt.Errorf("Encoded block of %d bytes is more than "+
+				"twice as big as the desired block size %d",
+				encodedLen, desiredBlockSize)
+		}
+
+		if encodedLen == desiredBlockSize {
+			break
+		}
+
+		maxSize += (desiredBlockSize - encodedLen)
+	}
+
+	if encodedLen != desiredBlockSize {
+		return nil, fmt.Errorf("Couldn't converge on a max block size for a "+
+			"desired size of %d", desiredBlockSize)
 	}
 
 	return &BlockSplitterSimple{
-		maxSize:                 desiredBlockSize - overhead,
+		maxSize:                 maxSize,
 		blockChangeEmbedMaxSize: blockChangeEmbedMaxSize,
 	}, nil
 }
