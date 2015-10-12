@@ -42,4 +42,7 @@ protocol login {
 	// paperKey generates paper backup keys for restoring an account.
 	// It calls login_ui.displayPaperKeyPhrase with the phrase.
 	void paperKey(int sessionID);
+
+	// unlock restores access to local key store by priming passphrase stream cache.
+	void unlock(int sessionID);
 }

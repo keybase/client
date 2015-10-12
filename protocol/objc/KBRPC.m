@@ -975,6 +975,13 @@
   }];
 }
 
+- (void)unlock:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.login.unlock" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRLoginUiRequest
@@ -3441,6 +3448,22 @@
 
 + (instancetype)params {
   KBRPaperKeyRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRUnlockRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRUnlockRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

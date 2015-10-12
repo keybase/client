@@ -44,6 +44,7 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdStatus(cl),
 		NewCmdStress(cl),
 		NewCmdTrack(cl),
+		NewCmdUnlock(cl),
 		NewCmdUntrack(cl),
 		NewCmdVersion(cl),
 	}

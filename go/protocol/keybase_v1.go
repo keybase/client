@@ -2264,6 +2264,10 @@ type PaperKeyArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type UnlockArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LoginInterface interface {
 	GetConfiguredAccounts(int) ([]ConfiguredAccount, error)
 	LoginWithPrompt(LoginWithPromptArg) error
@@ -2274,6 +2278,7 @@ type LoginInterface interface {
 	Logout(int) error
 	Reset(int) error
 	PaperKey(int) error
+	Unlock(int) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -2424,6 +2429,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"unlock": {
+				MakeArg: func() interface{} {
+					ret := make([]UnlockArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UnlockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UnlockArg)(nil), args)
+						return
+					}
+					err = i.Unlock((*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2479,6 +2500,12 @@ func (c LoginClient) Reset(sessionID int) (err error) {
 func (c LoginClient) PaperKey(sessionID int) (err error) {
 	__arg := PaperKeyArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.login.paperKey", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) Unlock(sessionID int) (err error) {
+	__arg := UnlockArg{SessionID: sessionID}
+	err = c.Cli.Call("keybase.1.login.unlock", []interface{}{__arg}, nil)
 	return
 }
 

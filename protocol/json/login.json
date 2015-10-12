@@ -253,6 +253,13 @@
         "type" : "int"
       } ],
       "response" : "null"
+    },
+    "unlock" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "null"
     }
   }
 }

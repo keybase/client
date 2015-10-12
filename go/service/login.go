@@ -105,6 +105,15 @@ func (h *LoginHandler) PaperKey(sessionID int) error {
 	return engine.RunEngine(eng, ctx)
 }
 
+func (h *LoginHandler) Unlock(sessionID int) error {
+	ctx := &engine.Context{
+		LogUI:    h.getLogUI(sessionID),
+		SecretUI: h.getSecretUI(sessionID),
+	}
+	eng := engine.NewUnlock(G)
+	return engine.RunEngine(eng, ctx)
+}
+
 type RemoteLocksmithUI struct {
 	sessionID int
 	uicli     keybase1.LocksmithUiClient

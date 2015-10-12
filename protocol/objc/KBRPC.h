@@ -861,6 +861,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRPaperKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRUnlockRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
@@ -1490,6 +1493,8 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)reset:(void (^)(NSError *error))completion;
 
 - (void)paperKey:(void (^)(NSError *error))completion;
+
+- (void)unlock:(void (^)(NSError *error))completion;
 
 @end
 
