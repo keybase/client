@@ -2,32 +2,35 @@
 @namespace("keybase.1")
 protocol config {
 
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	record GetCurrentStatusRes {
-		boolean configured;
-		boolean registered;
-		boolean loggedIn;
-		union { null, User } user;
-	}
+  record GetCurrentStatusRes {
+    boolean configured;
+    boolean registered;
+    boolean loggedIn;
+    union { null, User } user;
+  }
 
-	GetCurrentStatusRes getCurrentStatus(int sessionID);
+  GetCurrentStatusRes getCurrentStatus(int sessionID);
 
-	record Config {
-		string serverURI;
-		string socketFile;
-		string label;
-		string runMode;
-		boolean gpgExists;
-		string gpgPath;
-		string version;
-		string path;
-		string configPath;
-	}
+  record Config {
+    string serverURI;
+    string socketFile;
+    string label;
+    string runMode;
+    boolean gpgExists;
+    string gpgPath;
+    string version;
+    string path;
+    string configPath;
+  }
 
-	Config getConfig(int sessionID);
+  Config getConfig(int sessionID);
 
-	// Change user config.
-	// For example, to update primary picture source: key=picture.source, value=twitter (or github)
-	void setUserConfig(int sessionID, string username, string key, string value);
+  /**
+    Change user config.
+    For example, to update primary picture source:
+      key=picture.source, value=twitter (or github)
+    */
+  void setUserConfig(int sessionID, string username, string key, string value);
 }

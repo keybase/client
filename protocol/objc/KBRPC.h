@@ -1197,6 +1197,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *query;
 @end@interface KBRAccountRequest : KBRRequest
 
+/*!
+ Change the passphrase from old to new. If old isn't set, and force is false,
+ then prompt at the UI for it. If old isn't set and force is true, then we'll
+ try to force a passphrase change.
+ */
 - (void)passphraseChange:(KBRPassphraseChangeRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)passphraseChangeWithOldPassphrase:(NSString *)oldPassphrase passphrase:(NSString *)passphrase force:(BOOL)force completion:(void (^)(NSError *error))completion;
@@ -1241,6 +1246,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getConfig:(void (^)(NSError *error, KBRConfig *config))completion;
 
+/*!
+ Change user config.
+ For example, to update primary picture source:
+ key=picture.source, value=twitter (or github)
+ */
 - (void)setUserConfig:(KBRSetUserConfigRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)setUserConfigWithUsername:(NSString *)username key:(NSString *)key value:(NSString *)value completion:(void (^)(NSError *error))completion;
@@ -1249,10 +1259,23 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRCryptoRequest : KBRRequest
 
+/*!
+ Sign the given message (which should be small) using the device's private
+ signing ED25519 key, and return the signature as well as the corresponding
+ public key that can be used to verify the signature. The 'reason' parameter
+ is used as part of the SecretEntryArg object passed into
+ secretUi.getSecret().
+ */
 - (void)signED25519:(KBRSignED25519RequestParams *)params completion:(void (^)(NSError *error, KBRED25519SignatureInfo *eD25519SignatureInfo))completion;
 
 - (void)signED25519WithMsg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRED25519SignatureInfo *eD25519SignatureInfo))completion;
 
+/*!
+ Decrypt exactly 32 bytes using nacl/box with the given nonce, the given
+ peer's public key, and the device's private encryption key, and return the
+ decrypted data. The 'reason' parameter is used as part of the
+ SecretEntryArg object passed into secretUi.getSecret().
+ */
 - (void)unboxBytes32:(KBRUnboxBytes32RequestParams *)params completion:(void (^)(NSError *error, NSData *bytes32))completion;
 
 - (void)unboxBytes32WithEncryptedBytes32:(NSData *)encryptedBytes32 nonce:(NSData *)nonce peersPublicKey:(NSData *)peersPublicKey reason:(NSString *)reason completion:(void (^)(NSError *error, NSData *bytes32))completion;
@@ -1293,12 +1316,24 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRDeviceRequest : KBRRequest
 
+/*!
+ List devices for the user.
+ */
 - (void)deviceList:(void (^)(NSError *error, NSArray *items))completion;
 
+/*!
+ Starts the process of adding a new device using an existing
+ device. It is called on the existing device. Client is responsible
+ for generating a sessionID.
+ */
 - (void)deviceAdd:(KBRDeviceAddRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
 
+/*!
+ Cancels an in-progress deviceAdd(...). Use the sessionID
+ you provided to deviceAdd as the parameter.
+ */
 - (void)deviceAddCancel:(void (^)(NSError *error))completion;
 
 @end
@@ -1311,14 +1346,28 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRDoctorUiRequest : KBRRequest
 
+/*!
+ If doctor runs and login is needed, it will call this to give the
+ user the option of which user to log in as. The login will be
+ different from a standard login as it won't try to fix the user's
+ keys immediately.
+ */
 - (void)loginSelect:(KBRLoginSelectRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
 
 - (void)loginSelectWithCurrentUser:(NSString *)currentUser otherUsers:(NSArray *)otherUsers completion:(void (^)(NSError *error, NSString *str))completion;
 
+/*!
+ Once the user is logged in, the status of their account will be evaluated
+ and displayStatus() will be called with info about it.
+ Return true to proceed and do any necessary fixes. Return false to cancel.
+ */
 - (void)displayStatus:(KBRDisplayStatusRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)displayStatusWithStatus:(KBRDoctorStatus *)status completion:(void (^)(NSError *error, BOOL b))completion;
 
+/*!
+ If a fix is performed, displayResult() will be called after the fix is done.
+ */
 - (void)displayResult:(KBRDisplayResultRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)displayResultWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion;
@@ -1327,14 +1376,23 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRFavoriteRequest : KBRRequest
 
+/*!
+ Adds a folder to a user's list of favorite folders.
+ */
 - (void)favoriteAdd:(KBRFavoriteAddRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)favoriteAddWithFolder:(KBRFolder *)folder completion:(void (^)(NSError *error))completion;
 
+/*!
+ Removes a folder from a user's list of favorite folders.
+ */
 - (void)favoriteDelete:(KBRFavoriteDeleteRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)favoriteDeleteWithFolder:(KBRFolder *)folder completion:(void (^)(NSError *error))completion;
 
+/*!
+ Returns all of a user's favorite folders.
+ */
 - (void)favoriteList:(void (^)(NSError *error, NSArray *items))completion;
 
 @end
@@ -1436,14 +1494,27 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)deviceNameTakenWithName:(NSString *)name completion:(void (^)(NSError *error))completion;
 
+/*!
+ Called when a user logs in with a new device and it needs to be signed by an
+ existing device or pgp.
+ */
 - (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
 - (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP hasPaperBackupKey:(BOOL)hasPaperBackupKey completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
 
+/*!
+ If there's an error signing a new device, the daemon will call this to tell
+ clients about the error. Attempt is the current attempt number.
+ Total is the number of attempts that will be made.
+ */
 - (void)deviceSignAttemptErr:(KBRDeviceSignAttemptErrRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)deviceSignAttemptErrWithMsg:(NSString *)msg attempt:(NSInteger)attempt total:(NSInteger)total completion:(void (^)(NSError *error))completion;
 
+/*!
+ During device provisioning when device Y (new device) gives instructions
+ containing the secret words to enter on device X (existing device).
+ */
 - (void)displaySecretWords:(KBRDisplaySecretWordsRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)displaySecretWordsWithSecret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion;
@@ -1452,6 +1523,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)kexStatusWithMsg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion;
 
+/*!
+ When device provisioning completes in successfully provisioning a new
+ device.
+ */
 - (void)displayProvisionSuccess:(KBRDisplayProvisionSuccessRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)displayProvisionSuccessWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
@@ -1468,20 +1543,41 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRLoginRequest : KBRRequest
 
+/*!
+ Returns an array of information about accounts configured on the local
+ machine. Currently configured accounts are defined as those that have stored
+ secrets, but this definition may be expanded in the future.
+ */
 - (void)getConfiguredAccounts:(void (^)(NSError *error, NSArray *items))completion;
 
+/*!
+ Tries to log in, prompting for username (if empty) and passphrase if
+ necessary.
+ */
 - (void)loginWithPrompt:(KBRLoginWithPromptRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)loginWithPromptWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
+/*!
+ Tries to log in with the given username and its associated stored secret.
+ */
 - (void)loginWithStoredSecret:(KBRLoginWithStoredSecretRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)loginWithStoredSecretWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
+/*!
+ Tries to log in with the given username and passphrase. If pubkey login is
+ successful and storeSecret is set, stores the derived secret in the
+ platform's secret store (e.g., the keychain on OS X).
+ */
 - (void)loginWithPassphrase:(KBRLoginWithPassphraseRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)loginWithPassphraseWithUsername:(NSString *)username passphrase:(NSString *)passphrase storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error))completion;
 
+/*!
+ Removes any existing stored secret for the given username.
+ loginWithStoredSecret(_, username) will fail after this is called.
+ */
 - (void)clearStoredSecret:(KBRClearStoredSecretRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)clearStoredSecretWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
@@ -1492,8 +1588,15 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)reset:(void (^)(NSError *error))completion;
 
+/*!
+ PaperKey generates paper backup keys for restoring an account.
+ It calls login_ui.displayPaperKeyPhrase with the phrase.
+ */
 - (void)paperKey:(void (^)(NSError *error))completion;
 
+/*!
+ Unlock restores access to local key store by priming passphrase stream cache.
+ */
 - (void)unlock:(void (^)(NSError *error))completion;
 
 @end
@@ -1572,6 +1675,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)pgpSignWithSource:(KBRStream *)source sink:(KBRStream *)sink opts:(KBRPGPSignOptions *)opts completion:(void (^)(NSError *error))completion;
 
+/*!
+ Download PGP keys for tracked users and update the local GPG keyring.
+ If usernames is nonempty, update only those users.
+ */
 - (void)pgpPull:(KBRPgpPullRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)pgpPullWithUserAsserts:(NSArray *)userAsserts completion:(void (^)(NSError *error))completion;
@@ -1592,6 +1699,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)pgpImportWithKey:(NSData *)key pushSecret:(BOOL)pushSecret completion:(void (^)(NSError *error))completion;
 
+/*!
+ Exports active PGP keys. Only allows armored export.
+ */
 - (void)pgpExport:(KBRPgpExportRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)pgpExportWithOptions:(KBRPGPQuery *)options completion:(void (^)(NSError *error, NSArray *items))completion;
@@ -1614,10 +1724,16 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)pgpDeletePrimary:(void (^)(NSError *error))completion;
 
+/*!
+ Select an existing key and add to Keybase.
+ */
 - (void)pgpSelect:(KBRPgpSelectRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)pgpSelectWithFingerprintQuery:(NSString *)fingerprintQuery allowMulti:(BOOL)allowMulti skipImport:(BOOL)skipImport onlyImport:(BOOL)onlyImport completion:(void (^)(NSError *error))completion;
 
+/*!
+ Push updated key(s) to the server.
+ */
 - (void)pgpUpdate:(KBRPgpUpdateRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)pgpUpdateWithAll:(BOOL)all fingerprints:(NSArray *)fingerprints completion:(void (^)(NSError *error))completion;

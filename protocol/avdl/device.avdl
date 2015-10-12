@@ -1,17 +1,23 @@
 @namespace("keybase.1")
 
 protocol device {
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	// deviceList returns the devices for the user.
-	array<Device> deviceList(int sessionID);
+  /**
+    List devices for the user.
+    */
+  array<Device> deviceList(int sessionID);
 
-	// deviceAdd starts the process of adding a new device using an existing 
-	// device.  It is called on the existing device.  Client is responsible
-	// for generating a sessionID.
-	void deviceAdd(int sessionID, string secretPhrase);
+  /**
+    Starts the process of adding a new device using an existing
+    device.  It is called on the existing device. Client is responsible
+    for generating a sessionID.
+    */
+  void deviceAdd(int sessionID, string secretPhrase);
 
-	// deviceAddCancel cancels an in-progress deviceAdd(...).  Use the sessionID
-	// you provided to deviceAdd as the parameter.
-	void deviceAddCancel(int sessionID);
+  /**
+    Cancels an in-progress deviceAdd(...). Use the sessionID
+    you provided to deviceAdd as the parameter.
+    */
+  void deviceAddCancel(int sessionID);
 }

@@ -213,6 +213,7 @@
       "response" : "null"
     },
     "selectSigner" : {
+      "doc" : "Called when a user logs in with a new device and it needs to be signed by an\n    existing device or pgp.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -232,6 +233,7 @@
       "response" : "SelectSignerRes"
     },
     "deviceSignAttemptErr" : {
+      "doc" : "If there's an error signing a new device, the daemon will call this to tell\n    clients about the error. Attempt is the current attempt number.\n    Total is the number of attempts that will be made.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -248,6 +250,7 @@
       "response" : "null"
     },
     "displaySecretWords" : {
+      "doc" : "During device provisioning when device Y (new device) gives instructions\n    containing the secret words to enter on device X (existing device).",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -277,6 +280,7 @@
       "response" : "null"
     },
     "displayProvisionSuccess" : {
+      "doc" : "When device provisioning completes in successfully provisioning a new\n    device.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

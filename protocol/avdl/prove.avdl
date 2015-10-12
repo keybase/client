@@ -1,23 +1,24 @@
 
 @namespace("keybase.1")
 protocol prove {
-	import idl "common.avdl";
-	import idl "identify_common.avdl";
-	import idl "prove_common.avdl";
+  import idl "common.avdl";
+  import idl "identify_common.avdl";
+  import idl "prove_common.avdl";
 
-	record CheckProofStatus {
-		boolean found;
-		ProofStatus status;
-		string proofText;
-	}
+  record CheckProofStatus {
+    boolean found;
+    ProofStatus status;
+    string proofText;
+  }
 
-	record StartProofResult {
-		SigID sigID;
-	}
+  record StartProofResult {
+    SigID sigID;
+  }
 
-	/*
-		@param promptPosted Set to true to enable the okToCheck, displayRecheckWarning ui loop
-	*/
-	StartProofResult startProof(int sessionID, string service, string username, boolean force, boolean promptPosted);
-	CheckProofStatus checkProof(int sessionID, SigID sigID);
+  /*
+    Create a proof. Set promptPosted to true to enable the okToCheck,
+    displayRecheckWarning ui loop.
+  */
+  StartProofResult startProof(int sessionID, string service, string username, boolean force, boolean promptPosted);
+  CheckProofStatus checkProof(int sessionID, SigID sigID);
 }

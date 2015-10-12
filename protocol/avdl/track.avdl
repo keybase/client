@@ -1,16 +1,16 @@
 @namespace("keybase.1")
 
 protocol track {
-	import idl "common.avdl";
+  import idl "common.avdl";
    import idl "identify_common.avdl";
 
-	// This will perform identify and track.
-	// Set forceRemoteCheck to true to force all remote proofs to be checked (otherwise a cached is used).
-	void track(int sessionID, string userAssertion, TrackOptions options, boolean forceRemoteCheck);
+  // This will perform identify and track.
+  // Set forceRemoteCheck to true to force all remote proofs to be checked (otherwise a cached is used).
+  void track(int sessionID, string userAssertion, TrackOptions options, boolean forceRemoteCheck);
 
-	// Track with token returned from identify.
-	void trackWithToken(int sessionID, string trackToken, TrackOptions options);
+  // Track with token returned from identify.
+  void trackWithToken(int sessionID, string trackToken, TrackOptions options);
 
-	void untrack(int sessionID, string username);
+  void untrack(int sessionID, string username);
 }
 

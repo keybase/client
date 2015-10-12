@@ -1,10 +1,10 @@
 
 @namespace("keybase.1")
 protocol loginUi {
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	string getEmailOrUsername(int sessionID);
-	boolean promptRevokePaperKeys(int sessionID, Device device, int index);
-	void displayPaperKeyPhrase(int sessionID, string phrase);
-	void displayPrimaryPaperKey(int sessionID, string phrase);
+  string getEmailOrUsername(int sessionID);
+  boolean promptRevokePaperKeys(int sessionID, Device device, int index);
+  void displayPaperKeyPhrase(int sessionID, string phrase);
+  void displayPrimaryPaperKey(int sessionID, string phrase);
 }

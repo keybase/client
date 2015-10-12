@@ -3,14 +3,14 @@
 
 protocol quota {
 
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	record VerifySessionRes {
-		UID uid;
-		string sid;
-		int generated;
-		int lifetime;	
-	}
+  record VerifySessionRes {
+    UID uid;
+    string sid;
+    int generated;
+    int lifetime; 
+  }
 
-	VerifySessionRes verifySession(string session);
+  VerifySessionRes verifySession(string session);
 }

@@ -2,11 +2,11 @@
 
 protocol ctl {
 
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	void stop(int sessionID);
-	void logRotate(int sessionID);
-	void setLogLevel(int sessionID, LogLevel level);
-	void reload(int sessionID);
-	void dbNuke(int sessionID);
+  void stop(int sessionID);
+  void logRotate(int sessionID);
+  void setLogLevel(int sessionID, LogLevel level);
+  void reload(int sessionID);
+  void dbNuke(int sessionID);
 }

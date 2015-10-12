@@ -1,15 +1,15 @@
 @namespace("keybase.1")
 
 protocol session {
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	record Session {
-		UID uid;
-		string username;
-		string token;
-		KID deviceSubkeyKid;
-	}
+  record Session {
+    UID uid;
+    string username;
+    string token;
+    KID deviceSubkeyKid;
+  }
 
-	Session currentSession(int sessionID);
-	UID currentUID(int sessionID);
+  Session currentSession(int sessionID);
+  UID currentUID(int sessionID);
 }

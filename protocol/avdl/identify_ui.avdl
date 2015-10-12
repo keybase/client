@@ -1,73 +1,73 @@
 
 @namespace("keybase.1")
 protocol identifyUi {
-	import idl "common.avdl";
-	import idl "identify_common.avdl";
+  import idl "common.avdl";
+  import idl "identify_common.avdl";
 
-	record ProofResult {
-		ProofState state;
-		ProofStatus status;
-		string desc;
-	}
+  record ProofResult {
+    ProofState state;
+    ProofStatus status;
+    string desc;
+  }
 
-	record IdentifyRow {
-		int rowId;
-		RemoteProof proof;
-		union { null, TrackDiff } trackDiff;
-	}
+  record IdentifyRow {
+    int rowId;
+    RemoteProof proof;
+    union { null, TrackDiff } trackDiff;
+  }
 
-	// XXX when FOKID goes away, remove pgpFingerprint from this
-	record IdentifyKey {
-		bytes pgpFingerprint;
-		KID KID;
-		union { null, TrackDiff } trackDiff;
-	}
+  // XXX when FOKID goes away, remove pgpFingerprint from this
+  record IdentifyKey {
+    bytes pgpFingerprint;
+    KID KID;
+    union { null, TrackDiff } trackDiff;
+  }
 
-	record Cryptocurrency {
-		int rowId;
-		bytes pkhash;
-		string address;
-	}
+  record Cryptocurrency {
+    int rowId;
+    bytes pkhash;
+    string address;
+  }
 
-	record Identity {
-		union { null, Status } status;
-		int whenLastTracked;
-		array<IdentifyRow> proofs;
-		array<Cryptocurrency> cryptocurrency;
-		array<TrackDiff> revoked;
-	}
+  record Identity {
+    union { null, Status } status;
+    int whenLastTracked;
+    array<IdentifyRow> proofs;
+    array<Cryptocurrency> cryptocurrency;
+    array<TrackDiff> revoked;
+  }
 
-	record SigHint {
-		string remoteId;
-		string humanUrl;
-		string apiUrl;
-		string checkText;
-	}
+  record SigHint {
+    string remoteId;
+    string humanUrl;
+    string apiUrl;
+    string checkText;
+  }
 
-	record CheckResult {
-		ProofResult proofResult;
-		Time time;
-		string displayMarkup;
-	}
+  record CheckResult {
+    ProofResult proofResult;
+    Time time;
+    string displayMarkup;
+  }
 
-	record LinkCheckResult {
-		int proofId;
-		ProofResult proofResult;
-		union { null, CheckResult } cached;
-		union { null, TrackDiff } diff;
-		union { null, TrackDiff } remoteDiff;
-		union { null, SigHint } hint;
-	}
+  record LinkCheckResult {
+    int proofId;
+    ProofResult proofResult;
+    union { null, CheckResult } cached;
+    union { null, TrackDiff } diff;
+    union { null, TrackDiff } remoteDiff;
+    union { null, SigHint } hint;
+  }
 
-	void start(int sessionID, string username);
-	void displayKey(int sessionID, IdentifyKey key);
-	void reportLastTrack(int sessionID, union { null, TrackSummary } track);
-	void launchNetworkChecks(int sessionID, Identity identity, User user);
-	void displayTrackStatement(int sessionID, string stmt);
+  void start(int sessionID, string username);
+  void displayKey(int sessionID, IdentifyKey key);
+  void reportLastTrack(int sessionID, union { null, TrackSummary } track);
+  void launchNetworkChecks(int sessionID, Identity identity, User user);
+  void displayTrackStatement(int sessionID, string stmt);
 
-	void finishWebProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
-	void finishSocialProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
-	void displayCryptocurrency(int sessionID, Cryptocurrency c);
-	boolean confirm(int sessionID, IdentifyOutcome outcome);
-	void finish(int sessionID);
+  void finishWebProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
+  void finishSocialProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
+  void displayCryptocurrency(int sessionID, Cryptocurrency c);
+  boolean confirm(int sessionID, IdentifyOutcome outcome);
+  void finish(int sessionID);
 }

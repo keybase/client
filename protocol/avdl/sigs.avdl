@@ -1,36 +1,36 @@
 @namespace("keybase.1")
 protocol sigs {
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	record Sig {
-		int seqno;
-		SigID sigID;
-		string sigIDDisplay;
-		string type;
-		Time cTime;
-		boolean revoked;
-		boolean active;
-		string key;
-		string body;
-	}
+  record Sig {
+    int seqno;
+    SigID sigID;
+    string sigIDDisplay;
+    string type;
+    Time cTime;
+    boolean revoked;
+    boolean active;
+    string key;
+    string body;
+  }
 
-	record SigTypes {
-		boolean track;
-		boolean proof;
-		boolean cryptocurrency;
-		boolean isSelf;
-	}
+  record SigTypes {
+    boolean track;
+    boolean proof;
+    boolean cryptocurrency;
+    boolean isSelf;
+  }
 
-	record SigListArgs {
-		int sessionID;
-		string username;
-		boolean allKeys;
-		union { null, SigTypes } types;
-		string filterx;
-		boolean verbose;
-		boolean revoked;
-	}
+  record SigListArgs {
+    int sessionID;
+    string username;
+    boolean allKeys;
+    union { null, SigTypes } types;
+    string filterx;
+    boolean verbose;
+    boolean revoked;
+  }
 
-	array<Sig> sigList(int sessionID, SigListArgs arg);
-	string sigListJSON(int sessionID, SigListArgs arg);
+  array<Sig> sigList(int sessionID, SigListArgs arg);
+  string sigListJSON(int sessionID, SigListArgs arg);
 }

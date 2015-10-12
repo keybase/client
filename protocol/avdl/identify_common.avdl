@@ -27,15 +27,18 @@ protocol identifyCommon {
 		boolean isRemote;
 	}
 
-	// TrackStatus is a summary of this track before the track is approved by the user.
-	// NEW_*: New tracks
-	// UPDATE_*: Update to an existing track
-	// NEW_OK: everything ok
-	// NEW_ZERO_PROOFS: user being tracked has no proofs
-	// NEW_FAIL_PROOFS: user being tracked has some failed proofs
-	// UPDATE_BROKEN: previous tracking statement broken, this one will fix it.
-	// UPDATE_NEW_PROOFS: previous tracking statement ok, but there are new proofs since previous tracking statement generated
-	// UPDATE_OK: no changes to previous tracking statement
+	/**
+		TrackStatus is a summary of this track before the track is approved by the
+		user.
+		NEW_*: New tracks
+		UPDATE_*: Update to an existing track
+		NEW_OK: Everything ok
+		NEW_ZERO_PROOFS: User being tracked has no proofs
+		NEW_FAIL_PROOFS: User being tracked has some failed proofs
+		UPDATE_BROKEN: Previous tracking statement broken, this one will fix it.
+		UPDATE_NEW_PROOFS: Previous tracking statement ok, but there are new proofs since previous tracking statement generated
+		UPDATE_OK: No changes to previous tracking statement
+		*/
 	enum TrackStatus {
 		NEW_OK_1,
 		NEW_ZERO_PROOFS_2,
