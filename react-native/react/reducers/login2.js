@@ -1,10 +1,15 @@
 'use strict'
 
 import * as Constants from '../constants/login2'
+import Immutable from 'immutable'
 
 const initialState = {
   username: '',
-  passphrase: ''
+  passphrase: '',
+  codePage: {
+    role: null,
+    otherRole: null
+  }
 }
 
 export default function (state = initialState, action) {
@@ -15,6 +20,14 @@ export default function (state = initialState, action) {
         username: action.username,
         passphrase: action.passphrase
       }
+    case Constants.setCodeState:
+      const s = Immutable.fromJS(state)
+      return s.mergeDeep({
+        codePage: {
+          role: action.role,
+          otherRole: action.otherRole
+        }
+      }).toJS()
     default:
       return state
   }
