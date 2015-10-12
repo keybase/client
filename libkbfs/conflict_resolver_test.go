@@ -209,13 +209,15 @@ func testCRSharedFolderForUsers(t *testing.T, createAs keybase1.UID,
 	return nodes
 }
 
-func testCRCheckPaths(t *testing.T, cr *ConflictResolver,
+func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 	expectedUnmergedPaths []path, expectedMergedPaths map[BlockPointer]path,
-	expectedRecreateOps []*createOp) {
+	expectedRecreateOps []*createOp,
+	expectedActions map[BlockPointer][]crAction) {
 	ctx := context.Background()
 
-	_, _, unmergedPaths, mergedPaths, recreateOps, err :=
-		cr.buildChainsAndPaths(ctx)
+	// Step 1 -- check the chains and paths
+	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
+		recreateOps, err := cr.buildChainsAndPaths(ctx)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
@@ -256,6 +258,25 @@ func testCRCheckPaths(t *testing.T, cr *ConflictResolver,
 			g.NewName != e.NewName {
 			t.Fatalf("Unexpected op at index %d: %v vs %v", i, g, e)
 		}
+	}
+
+	// Now for step 2 -- check the actions
+	actionMap, err := cr.computeActions(ctx, unmergedChains, mergedChains,
+		mergedPaths, recreateOps)
+	if err != nil {
+		t.Fatalf("Couldn't compute actions: %v", err)
+	}
+	if expectedActions == nil {
+		return
+	}
+
+	if !reflect.DeepEqual(expectedActions, actionMap) {
+		for k, v := range expectedActions {
+			t.Logf("Expected: %v -> %v", k, v)
+			t.Logf("Got: %v -> %v", k, actionMap[k])
+		}
+		t.Fatalf("Actions aren't right.  Expected %v, got %v",
+			expectedActions, actionMap)
 	}
 }
 
@@ -307,6 +328,11 @@ func TestCRMergedChainsSimple(t *testing.T) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
+	cr1 := testCRGetCROrBust(t, config1, fb)
+	cr2 := testCRGetCROrBust(t, config2, fb)
+	cr2.Shutdown()
+	cr2.inputChan = make(chan conflictInput)
+
 	// user2 makes a file (causes a conflict, and goes unstaged)
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false)
 	if err != nil {
@@ -314,14 +340,16 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	}
 
 	// Now step through conflict resolution manually for user 2
-	cr1 := testCRGetCROrBust(t, config1, fb)
-	cr2 := testCRGetCROrBust(t, config2, fb)
-
 	mergedPaths := make(map[BlockPointer]path)
 	expectedUnmergedPath := cr2.fbo.nodeCache.PathFromNode(dir2)
-	mergedPaths[expectedUnmergedPath.tailPointer()] =
-		cr1.fbo.nodeCache.PathFromNode(dir1)
-	testCRCheckPaths(t, cr2, []path{expectedUnmergedPath}, mergedPaths, nil)
+	mergedPath := cr1.fbo.nodeCache.PathFromNode(dir1)
+	mergedPaths[expectedUnmergedPath.tailPointer()] = mergedPath
+	expectedActions := make(map[BlockPointer][]crAction)
+	expectedActions[mergedPath.tailPointer()] = []crAction{
+		&copyUnmergedEntryAction{"file2", "file2"},
+	}
+	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
+		mergedPaths, nil, expectedActions)
 }
 
 // Same as TestCRMergedChainsSimple, but the two users make changes in
@@ -361,6 +389,11 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
+	cr1 := testCRGetCROrBust(t, config1, fb)
+	cr2 := testCRGetCROrBust(t, config2, fb)
+	cr2.Shutdown()
+	cr2.inputChan = make(chan conflictInput)
+
 	// user2 makes a file in dir B
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dirB2, "file2", false)
 	if err != nil {
@@ -368,14 +401,16 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	}
 
 	// Now step through conflict resolution manually for user 2
-	cr1 := testCRGetCROrBust(t, config1, fb)
-	cr2 := testCRGetCROrBust(t, config2, fb)
-
 	mergedPaths := make(map[BlockPointer]path)
 	expectedUnmergedPath := cr2.fbo.nodeCache.PathFromNode(dirB2)
-	mergedPaths[expectedUnmergedPath.tailPointer()] =
-		cr1.fbo.nodeCache.PathFromNode(dirB1)
-	testCRCheckPaths(t, cr2, []path{expectedUnmergedPath}, mergedPaths, nil)
+	mergedPath := cr1.fbo.nodeCache.PathFromNode(dirB1)
+	mergedPaths[expectedUnmergedPath.tailPointer()] = mergedPath
+	expectedActions := make(map[BlockPointer][]crAction)
+	expectedActions[mergedPath.tailPointer()] = []crAction{
+		&copyUnmergedEntryAction{"file2", "file2"},
+	}
+	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
+		mergedPaths, nil, expectedActions)
 }
 
 // Same as TestCRMergedChainsSimple, but u1 actually deletes some of
@@ -402,6 +437,8 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
+	cr2.Shutdown()
+	cr2.inputChan = make(chan conflictInput)
 
 	nodesB := testCRSharedFolderForUsers(t, uid1, configs,
 		[]string{"dirA", "dirB"})
@@ -456,8 +493,20 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 		cr1.fbo.nodeCache.PathFromNode(dirA1).tailPointer(), File)
 	coC := newCreateOp("dirC", dirBPtr, File)
 
-	testCRCheckPaths(t, cr2, []path{expectedUnmergedPath}, mergedPaths,
-		[]*createOp{coB, coC})
+	expectedActions := make(map[BlockPointer][]crAction)
+	expectedActions[dirCPtr] = []crAction{
+		&copyUnmergedEntryAction{"file2", "file2"},
+	}
+	expectedActions[dirBPtr] = []crAction{
+		&copyUnmergedEntryAction{"dirC", "dirC"},
+	}
+	dirAPtr1 := cr1.fbo.nodeCache.PathFromNode(dirA1).tailPointer()
+	expectedActions[dirAPtr1] = []crAction{
+		&copyUnmergedEntryAction{"dirB", "dirB"},
+	}
+
+	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
+		mergedPaths, []*createOp{coB, coC}, expectedActions)
 }
 
 // Same as TestCRMergedChainsSimple, but u1 actually renames one of
@@ -484,6 +533,8 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
+	cr2.Shutdown()
+	cr2.inputChan = make(chan conflictInput)
 
 	nodesB := testCRSharedFolderForUsers(t, uid1, configs,
 		[]string{"dirA", "dirB"})
@@ -528,7 +579,13 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	})
 	mergedPaths[expectedUnmergedPath.tailPointer()] = mergedPath
 
-	testCRCheckPaths(t, cr2, []path{expectedUnmergedPath}, mergedPaths, nil)
+	expectedActions := make(map[BlockPointer][]crAction)
+	expectedActions[mergedPath.tailPointer()] = []crAction{
+		&copyUnmergedEntryAction{"file2", "file2"},
+	}
+
+	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
+		mergedPaths, nil, expectedActions)
 }
 
 // A mix of the above TestCRMergedChains* tests, with various other
@@ -562,6 +619,8 @@ func TestCRMergedChainsComplex(t *testing.T) {
 
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
+	cr2.Shutdown()
+	cr2.inputChan = make(chan conflictInput)
 
 	nodesB := testCRSharedFolderForUsers(t, uid1, configs,
 		[]string{"dirA", "dirB"})
@@ -607,11 +666,11 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	//
 	// user 2:
 	// mkdir /dirA/dirJ
-	// touch /dirE/dirF/file2
+	// touch /dirA/dirJ/file2
 	// touch /dirE/dirF/file3
 	// touch /dirA/dirB/dirC/file4
 	// mv /dirA/dirB/dirC/file4 /dirG/dirH/file4
-	// touch /dirA/dirB/dirD/file5
+	// rm /dirA/dirB/dirD/file5
 	// rm -rf /dirA/dirB/dirD
 
 	// user 1:
@@ -669,7 +728,8 @@ func TestCRMergedChainsComplex(t *testing.T) {
 
 	mergedPaths := make(map[BlockPointer]path)
 	// Both users updated A
-	mergedPaths[uPathA2.tailPointer()] = cr1.fbo.nodeCache.PathFromNode(dirA1)
+	mergedPathA := cr1.fbo.nodeCache.PathFromNode(dirA1)
+	mergedPaths[uPathA2.tailPointer()] = mergedPathA
 	// user 1 deleted dirF, so reconstruct
 	mergedPathF := cr1.fbo.nodeCache.PathFromNode(dirE1)
 	mergedPathF.path = append(mergedPathF.path, pathNode{
@@ -691,6 +751,26 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	coF := newCreateOp("dirF",
 		cr1.fbo.nodeCache.PathFromNode(dirE1).tailPointer(), File)
 
-	testCRCheckPaths(t, cr2, []path{uPathA2, uPathF2, uPathH2, uPathB2},
-		mergedPaths, []*createOp{coF})
+	expectedActions := make(map[BlockPointer][]crAction)
+	expectedActions[mergedPathA.tailPointer()] = []crAction{
+		&copyUnmergedEntryAction{"dirJ", "dirJ"},
+	}
+	mergedPathE := cr1.fbo.nodeCache.PathFromNode(dirE1)
+	expectedActions[mergedPathE.tailPointer()] = []crAction{
+		&copyUnmergedEntryAction{"dirF", "dirF"},
+	}
+	expectedActions[mergedPathF.tailPointer()] = []crAction{
+		&copyUnmergedEntryAction{"file3", "file3"},
+	}
+	expectedActions[mergedPathH.tailPointer()] = []crAction{
+		&copyUnmergedEntryAction{"file4", "file4"},
+	}
+	expectedActions[mergedPathB.tailPointer()] = []crAction{
+		&rmMergedEntryAction{"dirD"},
+	}
+	// `rm file5` doesn't get an action because the parent directory
+	// was deleted in the unmerged branch.
+
+	testCRCheckPathsAndActions(t, cr2, []path{uPathA2, uPathF2, uPathH2,
+		uPathB2}, mergedPaths, []*createOp{coF}, expectedActions)
 }
