@@ -7,11 +7,8 @@ const initialState = {
   username: '',
   passphrase: '',
   codePage: {
-    // TEMP
-    // role: null,
-    // otherRole: null
     otherRole: Constants.codePageRoleComputer1,
-    role: Constants.codePageRolePhone2,
+    myRole: Constants.codePageRolePhone2,
     mode: Constants.codePageModeScanCode,
     codeCountDown: 0,
     textCode: null,
@@ -32,7 +29,7 @@ export default function (state = initialState, action) {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
-          role: action.role,
+          myRole: action.myRole,
           otherRole: action.otherRole
         }
       }).toJS()
@@ -45,7 +42,6 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
-
     case Constants.setCountdown: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
@@ -54,7 +50,6 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
-
     case Constants.setTextCode: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
@@ -63,7 +58,6 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
-
     case Constants.qrGenerate: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
@@ -72,7 +66,6 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
-
     case Constants.qrGenerated: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
@@ -81,7 +74,6 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
-
     case Constants.qrScanned: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
@@ -90,7 +82,6 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
-
     default:
       return state
   }

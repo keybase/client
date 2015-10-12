@@ -134,4 +134,3 @@ export function qrGenerate () {
     })
   }
 }
-
