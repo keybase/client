@@ -88,7 +88,7 @@ export default class Nav extends Component {
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator), {
             store: this.props.store,
-            rootRouteParser: tabToRootRouteParse[activeTab] || NoTab,
+            rootRouteParser: tabToRootRouteParse[activeTab] || NoTab.parseRoute,
             globalRoutes,
             NavBar: this.navBar(),
             navBarHeight: styleConstants.navBarHeight

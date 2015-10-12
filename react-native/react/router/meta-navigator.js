@@ -104,9 +104,6 @@ class MetaNavigator extends Component {
   }
 
   render () {
-    // TODO (mm): know when to create a new navigator
-
-    // TODO (mm): specify the prop types
     const { store, rootRouteParser, uri, NavBar } = this.props
 
     let {componentAtTop, routeStack} = this.getComponentAtTop(rootRouteParser, store, uri)
