@@ -31,9 +31,9 @@ export default class Nav extends Component {
     super(props)
   }
 
-  _renderContent (color, activeTab) {
+  _renderContent (activeTab) {
     return (
-      <View style={[styles.tabContent, {backgroundColor: color}]}>
+      <View style={styles.tabContent}>
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator), {
             store: this.props.store,
@@ -70,32 +70,32 @@ export default class Nav extends Component {
             title='Folders'
             selected={activeTab === FOLDER_TAB}
             onPress={() => dispatch(switchTab(FOLDER_TAB))}>
-            {this._renderContent('#414A8C', FOLDER_TAB)}
+            {this._renderContent(FOLDER_TAB)}
           </TabBar.Item>
           <TabBar.Item
             title='Chat'
             selected={activeTab === CHAT_TAB}
             onPress={() => dispatch(switchTab(CHAT_TAB))}>
-            {this._renderContent('#417A8C', CHAT_TAB)}
+            {this._renderContent(CHAT_TAB)}
           </TabBar.Item>
           <TabBar.Item
             title='People'
             systemIcon='contacts'
             selected={activeTab === PEOPLE_TAB}
             onPress={() => dispatch(switchTab(PEOPLE_TAB))}>
-            {this._renderContent('#214A8C', PEOPLE_TAB)}
+            {this._renderContent(PEOPLE_TAB)}
           </TabBar.Item>
           <TabBar.Item
             title='Devices'
             selected={activeTab === DEVICES_TAB}
             onPress={() => dispatch(switchTab(DEVICES_TAB))}>
-            {this._renderContent('#783E33', DEVICES_TAB)}
+            {this._renderContent(DEVICES_TAB)}
           </TabBar.Item>
           <TabBar.Item
             title='more'
             selected={activeTab === MORE_TAB}
             onPress={() => dispatch(switchTab(MORE_TAB))}>
-            {this._renderContent('#21551C', MORE_TAB)}
+            {this._renderContent(MORE_TAB)}
           </TabBar.Item>
       </TabBar>
     )
