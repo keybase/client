@@ -905,6 +905,34 @@ func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
 	return actionMap, nil
 }
 
+func (cr *ConflictResolver) computeActions(ctx context.Context,
+	unmergedChains *crChains, mergedChains *crChains,
+	mergedPaths map[BlockPointer]path, recreateOps []*createOp) (
+	map[BlockPointer][]crAction, error) {
+	// Process all the recreateOps, adding them to the appropriate
+	// unmerged chains.
+	err := cr.addRecreateOpsToUnmergedChains(ctx, recreateOps, unmergedChains,
+		mergedChains, mergedPaths)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fix any rename cycles by turning the corresponding unmerged
+	// createOp into a symlink entry type.
+	err = cr.fixRenameCycles(unmergedChains, mergedChains, mergedPaths)
+	if err != nil {
+		return nil, err
+	}
+
+	actionMap, err :=
+		cr.getActionsToMerge(unmergedChains, mergedChains, mergedPaths)
+	if err != nil {
+		return nil, err
+	}
+
+	return actionMap, nil
+}
+
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
@@ -919,6 +947,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
+	// Step 1: build the chains for each branch, as well as the paths
+	// and necessary extra recreate ops.
 	unmergedChains, mergedChains, _, mergedPaths, recreateOps, err :=
 		cr.buildChainsAndPaths(ctx)
 	if err != nil {
@@ -934,22 +964,15 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	// Process all the recreateOps, adding them to the appropriate
-	// unmerged chains.
-	err = cr.addRecreateOpsToUnmergedChains(ctx, recreateOps, unmergedChains,
-		mergedChains, mergedPaths)
+	// Step 2: figure out which actions need to be taken in the merged
+	// branch to best reflect the unmerged changes.
+	_, err = cr.computeActions(ctx, unmergedChains, mergedChains,
+		mergedPaths, recreateOps)
 	if err != nil {
 		return
 	}
 
-	// Fix any rename cycles by turning the corresponding unmerged
-	// createOp into a symlink entry type.
-	err = cr.fixRenameCycles(unmergedChains, mergedChains, mergedPaths)
-	if err != nil {
-		return
-	}
-
-	_, err = cr.getActionsToMerge(unmergedChains, mergedChains, mergedPaths)
+	err = cr.checkDone(ctx)
 	if err != nil {
 		return
 	}
