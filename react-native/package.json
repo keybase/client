@@ -6,7 +6,7 @@
     "start": "node_modules/react-native/packager/packager.sh",
     "pod-install": "cd ios; pod install",
     "reactbundle-ios": "node node_modules/react-native/local-cli/cli.js bundle --minify --root react --out ios/Keybase/main.jsbundle --url \"/react/index.bundle?platform=ios&dev=\"",
-    "gobuild-ios": "gomobile bind -target=ios -o ios/keybase.framework github.com/keybase/client/go/loopback",
+    "gobuild-ios": "GO15VENDOREXPERIMENT=1 gomobile bind -target=ios -o ios/keybase.framework github.com/keybase/client/go/loopback",
     "gobuild-android": "gomobile bind -target=android -o android/keybaselib/keybaselib.aar github.com/keybase/client/go/loopback",
     "packager-wipe-cache": "node ./react/packager/wipe-cache.js",
     "build-ios": "npm run pod-install && npm run gobuild-ios && npm run reactbundle-ios"
