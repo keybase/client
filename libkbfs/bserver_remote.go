@@ -112,8 +112,10 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	var err error
 	size := -1
-	startTime := time.Now()
-	defer b.logCommand(ctx, "BlockServerRemote.Get", id, context.GetWriter(), size, startTime, err)
+	defer func() {
+		b.log.CDebugf(ctx, "BlockServerRemote.Get id=%s uid=%s sz=%d err=%v",
+			id, context.GetWriter(), size, err)
+	}()
 
 	bid := keybase1.BlockIdCombo{
 		BlockHash: id.String(),
@@ -142,8 +144,10 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	serverHalf BlockCryptKeyServerHalf) error {
 	var err error
 	size := len(buf)
-	startTime := time.Now()
-	defer b.logCommand(ctx, "BlockServerRemote.Put", id, context.GetWriter(), size, startTime, err)
+	defer func() {
+		b.log.CDebugf(ctx, "BlockServerRemote.Put id=%s uid=%s sz=%d err=%v",
+			id, context.GetWriter(), size, err)
+	}()
 
 	arg := keybase1.PutBlockArg{
 		Bid: keybase1.BlockIdCombo{
@@ -156,21 +160,17 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	}
 
 	err = b.client(ctx).PutBlock(arg)
-	if err != nil {
-		b.log.CDebugf(ctx, "BlockServerRemote.Put id=%s err=%v",
-			id.String(), err)
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	var err error
-	startTime := time.Now()
-	defer b.logCommand(ctx, "BlockServerRemote.AddBlockReference", id, context.GetWriter(), -1, startTime, err)
+	defer func() {
+		b.log.CDebugf(ctx, "BlockServerRemote.AddBlockReference id=%s uid=%s err=%v",
+			id, context.GetWriter(), err)
+	}()
 
 	arg := keybase1.IncBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
@@ -184,12 +184,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	copy(arg.Nonce[:], nonce[:])
 
 	err = b.client(ctx).IncBlockReference(arg)
-	if err != nil {
-		b.log.CDebugf(ctx, "BlockServerRemote.AddBlockReference id=%s err=%v",
-			id.String(), err)
-		return err
-	}
-	return nil
+	return err
 }
 
 // RemoveBlockReference implements the BlockServer interface for
@@ -197,8 +192,10 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	var err error
-	startTime := time.Now()
-	defer b.logCommand(ctx, "BlockServerRemote.RemoveBlockReference", id, context.GetWriter(), -1, startTime, err)
+	defer func() {
+		b.log.CDebugf(ctx, "BlockServerRemote.RemoveBlockReference id=%s uid=%s err=%v",
+			id, context.GetWriter(), err)
+	}()
 
 	arg := keybase1.DecBlockReferenceArg{
 		Bid: keybase1.BlockIdCombo{
@@ -212,22 +209,10 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 	copy(arg.Nonce[:], nonce[:])
 
 	err = b.client(ctx).DecBlockReference(arg)
-	if err != nil {
-		b.log.CDebugf(ctx, "BlockServerRemote.RemoveBlockReference id=%s "+
-			"err=%v", id.String(), err)
-		return err
-	}
-	return nil
+	return err
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Shutdown() {
 	b.clientFactory.Shutdown()
-}
-
-func (b *BlockServerRemote) logCommand(ctx context.Context, cmd string, id BlockID, uid keybase1.UID, size int,
-	startTime time.Time, err error) {
-	duration := time.Since(startTime).Nanoseconds() / int64(time.Millisecond)
-	b.log.CDebugf(ctx, "%s id=%s uid=%s sz=%d durationMs=%v err=%v",
-		cmd, id.String(), uid.String(), size, duration, err)
 }
