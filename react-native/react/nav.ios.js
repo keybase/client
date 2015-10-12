@@ -13,7 +13,7 @@ import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
 import { switchTab } from './actions/tabbed-router'
-import { navigateUp } from './actions/router'
+import { navigateTo, navigateUp } from './actions/router'
 import { getConfig } from './actions/config'
 
 import { constants as styleConstants } from './styles/common'
@@ -43,10 +43,10 @@ function NavigationBarRouteMapper (dispatch) {
 
       return (
         <TouchableOpacity
-          onPress={() => dispatch(navigateUp())}
+          onPress={() => dispatch(route.upLink ? navigateTo(route.upLink) : navigateUp())}
           style={styles.navBarLeftButton}>
           <Text style={[styles.navBarText, styles.navBarButtonText]}>
-            {route.leftButtonTitle || previousRoute.title || 'Back'}
+            {route.upTitle || route.leftButtonTitle || previousRoute.title || 'Back'}
           </Text>
         </TouchableOpacity>
       )

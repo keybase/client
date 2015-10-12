@@ -22,10 +22,10 @@ export default class More extends Component {
           this.props.dispatch(navigateTo(['login']))
         }},
         {name: 'Login2', onClick: () => {
-          this.props.dispatch(navigateTo(['login2', 'welcome']))
+          this.props.dispatch(navigateTo(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}]))
         }},
         {name: 'Register', onClick: () => {
-          this.props.dispatch(navigateTo(['login2', 'register']))
+          this.props.dispatch(navigateTo(['login2', {path: 'register', upLink: ['']}]))
         }},
         {name: 'reset', onClick: () => {
           require('../../engine').reset()
