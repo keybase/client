@@ -5,6 +5,7 @@
 //  Copyright (c) 2015 Keybase. All rights reserved.
 //
 
+#import <UIKit/UIKit.h>
 #import "RCTBridgeModule.h"
 
 @interface RCT_EXTERN_MODULE(SwiftTest, NSObject)
