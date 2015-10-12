@@ -63,12 +63,11 @@ func ForkServerNix(cl libkb.CommandLine) error {
 func pingLoop() error {
 	var err error
 	for i := 0; i < 10; i++ {
-		_, _, err = G.GetSocket()
+		_, _, err = G.GetSocket(true)
 		if err == nil {
 			G.Log.Debug("Connected (%d)", i)
 			return nil
 		}
-		G.ClearSocketError()
 		G.Log.Debug("Failed to connect to socket (%d): %s", i, err)
 		err = nil
 		time.Sleep(200 * time.Millisecond)
