@@ -8,7 +8,7 @@ import (
 	"testing"
 	"testing/quick"
 
-	"golang.org/x/crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp"
 )
 
 // give a private key and a public key, test the encryption of a

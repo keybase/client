@@ -9,10 +9,10 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
-	"golang.org/x/crypto/openpgp/clearsign"
-	"golang.org/x/crypto/openpgp/packet"
+	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp/armor"
+	"github.com/keybase/go-crypto/openpgp/clearsign"
+	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
 type PGPVerifyArg struct {

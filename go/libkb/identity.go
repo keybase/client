@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"golang.org/x/crypto/openpgp/packet"
+	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
 type Identity struct {

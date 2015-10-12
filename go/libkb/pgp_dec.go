@@ -7,10 +7,10 @@ import (
 	"io/ioutil"
 	"time"
 
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
-	"golang.org/x/crypto/openpgp/clearsign"
-	"golang.org/x/crypto/openpgp/errors"
+	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp/armor"
+	"github.com/keybase/go-crypto/openpgp/clearsign"
+	"github.com/keybase/go-crypto/openpgp/errors"
 )
 
 type SignatureStatus struct {

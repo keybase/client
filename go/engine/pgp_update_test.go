@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	"golang.org/x/crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp"
 )
 
 func doUpdate(fingerprints []string, all bool, fu *FakeUser, tc libkb.TestContext) (err error) {

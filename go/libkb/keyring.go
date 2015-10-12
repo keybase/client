@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/keybase/go-crypto/openpgp"
 	triplesec "github.com/keybase/go-triplesec"
-	"golang.org/x/crypto/openpgp"
 )
 
 type KeyringFile struct {

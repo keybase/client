@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/errors"
-	"golang.org/x/crypto/openpgp/packet"
-	"golang.org/x/crypto/openpgp/s2k"
+	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp/errors"
+	"github.com/keybase/go-crypto/openpgp/packet"
+	"github.com/keybase/go-crypto/openpgp/s2k"
 )
 
 type PGPGenArg struct {

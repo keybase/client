@@ -5,9 +5,9 @@ import (
 	"encoding/base64"
 	"testing"
 
+	"github.com/keybase/go-crypto/openpgp"
 	triplesec "github.com/keybase/go-triplesec"
 	"github.com/ugorji/go/codec"
-	"golang.org/x/crypto/openpgp"
 )
 
 type Foo struct {

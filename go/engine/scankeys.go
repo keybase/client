@@ -5,8 +5,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/packet"
+	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
 // ScanKeys finds pgp decryption keys in SKB and also if there is

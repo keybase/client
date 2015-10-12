@@ -96,7 +96,7 @@ func (p *provisionee) startServer(s Secret) (err error) {
 	}
 
 	if err = srv.AddCloseListener(p.done); err != nil {
-	 	return err
+		return err
 	}
 	return srv.Run(true)
 }

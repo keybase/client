@@ -12,10 +12,10 @@ import (
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp/armor"
+	"github.com/keybase/go-crypto/openpgp/packet"
 	jsonw "github.com/keybase/go-jsonw"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
-	"golang.org/x/crypto/openpgp/packet"
 )
 
 type PGPKeyBundle struct {

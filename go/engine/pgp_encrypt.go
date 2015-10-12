@@ -6,7 +6,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/crypto/openpgp/armor"
+	"github.com/keybase/go-crypto/openpgp/armor"
 )
 
 type PGPEncryptArg struct {

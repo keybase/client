@@ -53,6 +53,11 @@
 			"revisionTime": "2015-09-21T11:51:56-05:00"
 		},
 		{
+			"path": "github.com/keybase/go-crypto/openpgp",
+			"revision": "67d171e99a58463b40209d86a5438f5b708d8ad0",
+			"revisionTime": "2015-10-12T10:46:00-04:00"
+		},
+		{
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
 			"revision": "6f0a7381848041e01f95ca2921a8decfab18a604",
 			"revisionTime": "2015-10-09T17:08:57-04:00"

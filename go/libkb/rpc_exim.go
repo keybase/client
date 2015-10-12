@@ -9,8 +9,8 @@ import (
 	"sort"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/crypto/openpgp"
-	pgpErrors "golang.org/x/crypto/openpgp/errors"
+	"github.com/keybase/go-crypto/openpgp"
+	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {

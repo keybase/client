@@ -10,7 +10,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/crypto/openpgp/packet"
+	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
 //=============================================================================

@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp/armor"
 	jsonw "github.com/keybase/go-jsonw"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
 )
 
 func ComputeSigIDFromSigBody(body []byte) keybase1.SigID {
@@ -134,7 +134,7 @@ func (ps *ParsedSig) Verify(k PGPKeyBundle) (err error) {
 		return
 	}
 
-	if ps.MD.Signature == nil {
+	if ps.MD.Signature == nil && ps.MD.SignatureV3 == nil {
 		err = fmt.Errorf("No available signature after checking signature")
 		return
 	}

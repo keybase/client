@@ -3,7 +3,7 @@ package libkb
 import (
 	"crypto"
 
-	"golang.org/x/crypto/openpgp/packet"
+	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
 func combineSignatures(toSignatures []*packet.Signature, fromSignatures []*packet.Signature) (ret []*packet.Signature) {
