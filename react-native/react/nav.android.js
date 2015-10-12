@@ -2,7 +2,7 @@
 
 import TabBar from './native/tab-bar'
 import { connect } from 'react-redux/native'
-import MetaNavigator from './router/meta-navigator.js'
+import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 
 import Folders from './tabs/folders'
@@ -33,7 +33,7 @@ export default class Nav extends Component {
 
   _renderContent (activeTab) {
     return (
-      <View style={styles.tabContent}>
+      <View style={styles.tabContent} collapsable={false}>
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator), {
             store: this.props.store,

@@ -62,7 +62,9 @@ Welcome.propTypes = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start'
+    justifyContent: 'flex-start',
+    marginLeft: 8,
+    marginRight: 8
   }
 })
 
