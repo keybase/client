@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.os.SystemClock;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +30,7 @@ public class TabBarManager extends ViewGroupManager<LinearLayout> {
     private final ArrayList<Boolean> selectedStates = new ArrayList<>();
     private int selectedItem;
 
-    @Override
+    private static final String TAG = TabBarManager.class.getName();
     public String getName() {
         return REACT_CLASS;
     }
