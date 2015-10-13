@@ -2202,6 +2202,16 @@ func (_mr *_MockConfigRecorder) ReqsBufSize() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReqsBufSize")
 }
 
+func (_m *MockConfig) DoBackgroundFlushes() bool {
+	ret := _m.ctrl.Call(_m, "DoBackgroundFlushes")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) DoBackgroundFlushes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DoBackgroundFlushes")
+}
+
 func (_m *MockConfig) RootCerts() []byte {
 	ret := _m.ctrl.Call(_m, "RootCerts")
 	ret0, _ := ret[0].([]byte)
