@@ -29,6 +29,32 @@ export default function (state = initialState, action) {
         loaded: true,
         error: null
       }
+    case types.DEV_CONFIG_LOADING:
+      return {
+        ...state,
+        devConfig: null
+      }
+    case types.DEV_CONFIG_LOADED:
+      return {
+        ...state,
+        devConfig: action.devConfig
+      }
+    case types.DEV_CONFIG_SAVED:
+      return {
+        ...state,
+        devConfig: null
+      }
+    case types.DEV_CONFIG_UPDATE:
+      return {
+        ...state,
+        devConfig: {
+          ...state.devConfig,
+          configured: {
+            ...state.devConfig.configured,
+            ...action.updates
+          }
+        }
+      }
     default:
       return state
   }

@@ -13,3 +13,11 @@
 RCT_EXTERN_METHOD(example:(NSString *)prefix callback:(RCTResponseSenderBlock)callback)
 
 @end
+
+
+@interface RCT_EXTERN_REMAP_MODULE(App, AppBridge, NSObject)
+
+RCT_EXTERN_METHOD(getDevConfig:(RCTResponseSenderBlock)cb)
+RCT_EXTERN_METHOD(setDevConfig:(NSDictionary*)newConfig)
+
+@end

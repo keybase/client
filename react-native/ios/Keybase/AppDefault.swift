@@ -1,29 +1,30 @@
 import Foundation
 
-enum AppDefault {
+enum AppDefault: String {
   
-  case APIServer, RunMode, HomeDirectory, ReactHost
+  case APIServer = "APIServer"
+  case RunMode = "RunMode"
+  case HomeDirectory = "HomeDirectory"
+  case ReactHost = "ReactHost"
   
-  var stringValue: String? {
-    get { return NSUserDefaults.standardUserDefaults().stringForKey(String(self)) }
+  var objectValue: AnyObject? {
+    get { return NSUserDefaults.standardUserDefaults().objectForKey(rawValue) }
     nonmutating set {
       if let newValue = newValue {
-        NSUserDefaults.standardUserDefaults().setObject(newValue, forKey: String(self))
+        NSUserDefaults.standardUserDefaults().setObject(newValue, forKey: rawValue)
       } else {
-        NSUserDefaults.standardUserDefaults().removeObjectForKey(String(self))
+        NSUserDefaults.standardUserDefaults().removeObjectForKey(rawValue)
       }
     }
   }
   
-}
-
-extension String {
-  init(_ appDefault: AppDefault) {
-    switch appDefault {
-    case .APIServer: self = "APIServer"
-    case .RunMode: self = "RunMode"
-    case .HomeDirectory: self = "HomeDirectory"
-    case .ReactHost: self = "ReactHost"
-    }
+  var stringValue: String? {
+    get { return NSUserDefaults.standardUserDefaults().stringForKey(rawValue) }
+    nonmutating set { objectValue = newValue }
   }
+  
+  func setDefaultValue(value: AnyObject) {
+    NSUserDefaults.standardUserDefaults().registerDefaults([rawValue: value])
+  }
+  
 }
