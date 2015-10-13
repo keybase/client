@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type RevokeHandler struct {
@@ -14,7 +15,7 @@ func NewRevokeHandler(xp rpc.Transporter) *RevokeHandler {
 	return &RevokeHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *RevokeHandler) RevokeKey(arg keybase1.RevokeKeyArg) error {
+func (h *RevokeHandler) RevokeKey(_ context.Context, arg keybase1.RevokeKeyArg) error {
 	sessionID := arg.SessionID
 	ctx := engine.Context{
 		LogUI:    h.getLogUI(sessionID),
@@ -24,7 +25,7 @@ func (h *RevokeHandler) RevokeKey(arg keybase1.RevokeKeyArg) error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *RevokeHandler) RevokeDevice(arg keybase1.RevokeDeviceArg) error {
+func (h *RevokeHandler) RevokeDevice(_ context.Context, arg keybase1.RevokeDeviceArg) error {
 	sessionID := arg.SessionID
 	ctx := engine.Context{
 		LogUI:    h.getLogUI(sessionID),
@@ -34,7 +35,7 @@ func (h *RevokeHandler) RevokeDevice(arg keybase1.RevokeDeviceArg) error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *RevokeHandler) RevokeSigs(arg keybase1.RevokeSigsArg) error {
+func (h *RevokeHandler) RevokeSigs(_ context.Context, arg keybase1.RevokeSigsArg) error {
 	ctx := engine.Context{
 		LogUI:    h.getLogUI(arg.SessionID),
 		SecretUI: h.getSecretUI(arg.SessionID),

@@ -16,7 +16,7 @@ func NewDoctorHandler(xp rpc.Transporter) *DoctorHandler {
 	return &DoctorHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *DoctorHandler) Doctor(sessionID int) error {
+func (h *DoctorHandler) Doctor(_ context.Context, sessionID int) error {
 	ctx := &engine.Context{
 		DoctorUI:    h.ui(sessionID),
 		LogUI:       h.getLogUI(sessionID),
@@ -42,23 +42,23 @@ type RemoteDoctorUI struct {
 	uicli     keybase1.DoctorUiClient
 }
 
-func (r *RemoteDoctorUI) LoginSelect(currentUser string, otherUsers []string) (string, error) {
-	return r.uicli.LoginSelect(context.TODO(), keybase1.LoginSelectArg{
+func (r *RemoteDoctorUI) LoginSelect(ctx context.Context, currentUser string, otherUsers []string) (string, error) {
+	return r.uicli.LoginSelect(ctx, keybase1.LoginSelectArg{
 		SessionID:   r.sessionID,
 		CurrentUser: currentUser,
 		OtherUsers:  otherUsers,
 	})
 }
 
-func (r *RemoteDoctorUI) DisplayStatus(status keybase1.DoctorStatus) (bool, error) {
-	return r.uicli.DisplayStatus(context.TODO(), keybase1.DisplayStatusArg{
+func (r *RemoteDoctorUI) DisplayStatus(ctx context.Context, status keybase1.DoctorStatus) (bool, error) {
+	return r.uicli.DisplayStatus(ctx, keybase1.DisplayStatusArg{
 		SessionID: r.sessionID,
 		Status:    status,
 	})
 }
 
-func (r *RemoteDoctorUI) DisplayResult(msg string) error {
-	return r.uicli.DisplayResult(context.TODO(), keybase1.DisplayResultArg{
+func (r *RemoteDoctorUI) DisplayResult(ctx context.Context, msg string) error {
+	return r.uicli.DisplayResult(ctx, keybase1.DisplayResultArg{
 		SessionID: r.sessionID,
 		Message:   msg,
 	})

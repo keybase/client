@@ -3,6 +3,8 @@ package engine
 import (
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -23,14 +25,14 @@ func TestDoctor(t *testing.T) {
 
 type docui struct{}
 
-func (d *docui) LoginSelect(s string, o []string) (string, error) {
+func (d *docui) LoginSelect(_ context.Context, s string, o []string) (string, error) {
 	return s, nil
 }
 
-func (d *docui) DisplayStatus(s keybase1.DoctorStatus) (bool, error) {
+func (d *docui) DisplayStatus(_ context.Context, s keybase1.DoctorStatus) (bool, error) {
 	return true, nil
 }
 
-func (d *docui) DisplayResult(s string) error {
+func (d *docui) DisplayResult(_ context.Context, s string) error {
 	return nil
 }

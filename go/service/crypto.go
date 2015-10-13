@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type CryptoHandler struct {
@@ -14,10 +15,10 @@ func NewCryptoHandler(xp rpc.Transporter) *CryptoHandler {
 	return &CryptoHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (c *CryptoHandler) SignED25519(arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
+func (c *CryptoHandler) SignED25519(_ context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
 	return engine.SignED25519(G, c.getSecretUI(arg.SessionID), arg)
 }
 
-func (c *CryptoHandler) UnboxBytes32(arg keybase1.UnboxBytes32Arg) (keybase1.Bytes32, error) {
+func (c *CryptoHandler) UnboxBytes32(_ context.Context, arg keybase1.UnboxBytes32Arg) (keybase1.Bytes32, error) {
 	return engine.UnboxBytes32(G, c.getSecretUI(arg.SessionID), arg)
 }

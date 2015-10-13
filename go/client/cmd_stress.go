@@ -334,16 +334,16 @@ func (c *CmdStress) gpgUIProtocol() rpc.Protocol {
 	return keybase1.GpgUiProtocol(c)
 }
 
-func (c *CmdStress) SelectKey(arg keybase1.SelectKeyArg) (string, error) {
+func (c *CmdStress) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
 	return "", nil
 }
-func (c *CmdStress) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (res keybase1.SelectKeyRes, err error) {
+func (c *CmdStress) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (res keybase1.SelectKeyRes, err error) {
 	return
 }
-func (c *CmdStress) WantToAddGPGKey(dummy int) (bool, error) {
+func (c *CmdStress) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
-func (c *CmdStress) ConfirmDuplicateKeyChosen(dummy int) (bool, error) {
+func (c *CmdStress) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
 
@@ -351,18 +351,18 @@ func (c *CmdStress) secretUIProtocol() rpc.Protocol {
 	return keybase1.SecretUiProtocol(c)
 }
 
-func (c *CmdStress) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (string, error) {
+func (c *CmdStress) GetKeybasePassphrase(_ context.Context, arg keybase1.GetKeybasePassphraseArg) (string, error) {
 	return c.passphrase, nil
 }
 
-func (c *CmdStress) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (string, error) {
+func (c *CmdStress) GetPaperKeyPassphrase(_ context.Context, arg keybase1.GetPaperKeyPassphraseArg) (string, error) {
 	return "", nil
 }
 
-func (c *CmdStress) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
+func (c *CmdStress) GetNewPassphrase(_ context.Context, arg keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
 	return keybase1.GetNewPassphraseRes{Passphrase: c.passphrase}, nil
 }
 
-func (c *CmdStress) GetSecret(arg keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {
+func (c *CmdStress) GetSecret(_ context.Context, arg keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {
 	return
 }

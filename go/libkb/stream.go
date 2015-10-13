@@ -85,7 +85,7 @@ func (s *ExportedStreams) GetReader(st keybase1.Stream) (ret io.ReadCloser, err 
 	return
 }
 
-func (s *ExportedStreams) Close(a keybase1.CloseArg) (err error) {
+func (s *ExportedStreams) Close(_ context.Context, a keybase1.CloseArg) (err error) {
 	s.Lock()
 	defer s.Unlock()
 	if obj, found := s.m[a.S.Fd]; !found {
@@ -105,7 +105,7 @@ func (s *ExportedStreams) Close(a keybase1.CloseArg) (err error) {
 	return err
 }
 
-func (s *ExportedStreams) Read(a keybase1.ReadArg) (buf []byte, err error) {
+func (s *ExportedStreams) Read(_ context.Context, a keybase1.ReadArg) (buf []byte, err error) {
 	var r io.ReadCloser
 	if r, err = s.GetReader(a.S); err != nil {
 		return
@@ -117,7 +117,7 @@ func (s *ExportedStreams) Read(a keybase1.ReadArg) (buf []byte, err error) {
 	return
 }
 
-func (s *ExportedStreams) Write(a keybase1.WriteArg) (n int, err error) {
+func (s *ExportedStreams) Write(_ context.Context, a keybase1.WriteArg) (n int, err error) {
 	var w io.WriteCloser
 	if w, err = s.GetWriter(a.S); err != nil {
 		return

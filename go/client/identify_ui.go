@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type IdentifyUIServer struct {
@@ -19,50 +20,50 @@ func NewIdentifyTrackUIProtocol() rpc.Protocol {
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{ui})
 }
 
-func (i *IdentifyUIServer) Confirm(arg keybase1.ConfirmArg) (bool, error) {
+func (i *IdentifyUIServer) Confirm(_ context.Context, arg keybase1.ConfirmArg) (bool, error) {
 	return i.ui.Confirm(&arg.Outcome)
 }
 
-func (i *IdentifyUIServer) FinishWebProofCheck(arg keybase1.FinishWebProofCheckArg) error {
+func (i *IdentifyUIServer) FinishWebProofCheck(_ context.Context, arg keybase1.FinishWebProofCheckArg) error {
 	i.ui.FinishWebProofCheck(arg.Rp, arg.Lcr)
 	return nil
 }
 
-func (i *IdentifyUIServer) FinishSocialProofCheck(arg keybase1.FinishSocialProofCheckArg) error {
+func (i *IdentifyUIServer) FinishSocialProofCheck(_ context.Context, arg keybase1.FinishSocialProofCheckArg) error {
 	i.ui.FinishSocialProofCheck(arg.Rp, arg.Lcr)
 	return nil
 }
 
-func (i *IdentifyUIServer) DisplayCryptocurrency(arg keybase1.DisplayCryptocurrencyArg) error {
+func (i *IdentifyUIServer) DisplayCryptocurrency(_ context.Context, arg keybase1.DisplayCryptocurrencyArg) error {
 	i.ui.DisplayCryptocurrency(arg.C)
 	return nil
 }
 
-func (i *IdentifyUIServer) DisplayKey(arg keybase1.DisplayKeyArg) error {
+func (i *IdentifyUIServer) DisplayKey(_ context.Context, arg keybase1.DisplayKeyArg) error {
 	i.ui.DisplayKey(arg.Key)
 	return nil
 }
 
-func (i *IdentifyUIServer) ReportLastTrack(arg keybase1.ReportLastTrackArg) error {
+func (i *IdentifyUIServer) ReportLastTrack(_ context.Context, arg keybase1.ReportLastTrackArg) error {
 	i.ui.ReportLastTrack(arg.Track)
 	return nil
 }
 
-func (i *IdentifyUIServer) LaunchNetworkChecks(arg keybase1.LaunchNetworkChecksArg) error {
+func (i *IdentifyUIServer) LaunchNetworkChecks(_ context.Context, arg keybase1.LaunchNetworkChecksArg) error {
 	return nil
 }
 
-func (i *IdentifyUIServer) DisplayTrackStatement(arg keybase1.DisplayTrackStatementArg) error {
+func (i *IdentifyUIServer) DisplayTrackStatement(_ context.Context, arg keybase1.DisplayTrackStatementArg) error {
 	i.ui.DisplayTrackStatement(arg.Stmt)
 	return nil
 }
 
-func (i *IdentifyUIServer) Start(arg keybase1.StartArg) error {
+func (i *IdentifyUIServer) Start(_ context.Context, arg keybase1.StartArg) error {
 	i.ui.Start(arg.Username)
 	return nil
 }
 
-func (i *IdentifyUIServer) Finish(sessionID int) error {
+func (i *IdentifyUIServer) Finish(_ context.Context, sessionID int) error {
 	i.ui.Finish()
 	return nil
 }

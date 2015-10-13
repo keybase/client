@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 // TrackHandler is the RPC handler for the track interface.
@@ -18,7 +19,7 @@ func NewTrackHandler(xp rpc.Transporter) *TrackHandler {
 }
 
 // Track creates a TrackEngine and runs it.
-func (h *TrackHandler) Track(arg keybase1.TrackArg) error {
+func (h *TrackHandler) Track(_ context.Context, arg keybase1.TrackArg) error {
 	earg := engine.TrackEngineArg{
 		UserAssertion:    arg.UserAssertion,
 		Options:          arg.Options,
@@ -32,7 +33,7 @@ func (h *TrackHandler) Track(arg keybase1.TrackArg) error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *TrackHandler) TrackWithToken(arg keybase1.TrackWithTokenArg) error {
+func (h *TrackHandler) TrackWithToken(_ context.Context, arg keybase1.TrackWithTokenArg) error {
 	earg := engine.TrackTokenArg{
 		Token:   libkb.ImportIdentifyCacheToken(arg.TrackToken),
 		Options: arg.Options,
@@ -46,7 +47,7 @@ func (h *TrackHandler) TrackWithToken(arg keybase1.TrackWithTokenArg) error {
 }
 
 // Untrack creates an UntrackEngine and runs it.
-func (h *TrackHandler) Untrack(arg keybase1.UntrackArg) error {
+func (h *TrackHandler) Untrack(_ context.Context, arg keybase1.UntrackArg) error {
 	earg := engine.UntrackEngineArg{
 		Username: arg.Username,
 	}

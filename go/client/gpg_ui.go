@@ -5,6 +5,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
@@ -18,7 +20,7 @@ type GPGUI struct {
 	noPrompt bool
 }
 
-func (g GPGUI) SelectKeyID(keys []keybase1.GPGKey) (string, error) {
+func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, error) {
 	w := new(tabwriter.Writer)
 	w.Init(g.parent.OutputWriter(), 5, 0, 3, ' ', 0)
 
@@ -43,8 +45,8 @@ func (g GPGUI) SelectKeyID(keys []keybase1.GPGKey) (string, error) {
 	return keys[ret-1].KeyID, nil
 }
 
-func (g GPGUI) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (res keybase1.SelectKeyRes, err error) {
-	keyID, err := g.SelectKeyID(arg.Keys)
+func (g GPGUI) SelectKeyAndPushOption(ctx context.Context, arg keybase1.SelectKeyAndPushOptionArg) (res keybase1.SelectKeyRes, err error) {
+	keyID, err := g.SelectKeyID(ctx, arg.Keys)
 	if err != nil {
 		return res, err
 	}
@@ -52,18 +54,18 @@ func (g GPGUI) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (r
 	return res, nil
 }
 
-func (g GPGUI) SelectKey(arg keybase1.SelectKeyArg) (string, error) {
-	return g.SelectKeyID(arg.Keys)
+func (g GPGUI) SelectKey(ctx context.Context, arg keybase1.SelectKeyArg) (string, error) {
+	return g.SelectKeyID(ctx, arg.Keys)
 }
 
-func (g GPGUI) WantToAddGPGKey(dummy int) (bool, error) {
+func (g GPGUI) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 	if g.noPrompt {
 		return false, nil
 	}
 	return g.parent.PromptYesNo("Would you like to add one of your PGP keys to Keybase?", PromptDefaultYes)
 }
 
-func (g GPGUI) ConfirmDuplicateKeyChosen(dummy int) (bool, error) {
+func (g GPGUI) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	if g.noPrompt {
 		return false, nil
 	}

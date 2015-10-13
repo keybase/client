@@ -3,6 +3,8 @@ package engine
 import (
 	"errors"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -103,7 +105,7 @@ func (k *KexNewDevice) Run(ctx *Context) error {
 		DeviceNameExisting: k.args.DstName,
 		Secret:             sec.Phrase(),
 	}
-	if err := ctx.LocksmithUI.DisplaySecretWords(darg); err != nil {
+	if err := ctx.LocksmithUI.DisplaySecretWords(context.TODO(), darg); err != nil {
 		return err
 	}
 	// start the kex session with X

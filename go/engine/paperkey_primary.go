@@ -7,6 +7,7 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"golang.org/x/net/context"
 )
 
 // PaperKeyPrimary is an engine.
@@ -71,5 +72,5 @@ func (e *PaperKeyPrimary) Run(ctx *Context) error {
 		return err
 	}
 
-	return ctx.LoginUI.DisplayPrimaryPaperKey(keybase1.DisplayPrimaryPaperKeyArg{Phrase: e.passphrase.String()})
+	return ctx.LoginUI.DisplayPrimaryPaperKey(context.TODO(), keybase1.DisplayPrimaryPaperKeyArg{Phrase: e.passphrase.String()})
 }

@@ -35,7 +35,7 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PassphraseChangeArg)(nil), args)
 						return
 					}
-					err = i.PassphraseChange((*typedArgs)[0])
+					err = i.PassphraseChange(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -189,7 +189,7 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]EstablishSessionArg)(nil), args)
 						return
 					}
-					err = i.EstablishSession((*typedArgs)[0])
+					err = i.EstablishSession(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -205,7 +205,7 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PutBlockArg)(nil), args)
 						return
 					}
-					err = i.PutBlock((*typedArgs)[0])
+					err = i.PutBlock(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -221,7 +221,7 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetBlockArg)(nil), args)
 						return
 					}
-					ret, err = i.GetBlock((*typedArgs)[0].Bid)
+					ret, err = i.GetBlock(context.TODO(), (*typedArgs)[0].Bid)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -237,7 +237,7 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]IncBlockReferenceArg)(nil), args)
 						return
 					}
-					err = i.IncBlockReference((*typedArgs)[0])
+					err = i.IncBlockReference(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -253,7 +253,7 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DecBlockReferenceArg)(nil), args)
 						return
 					}
-					err = i.DecBlockReference((*typedArgs)[0])
+					err = i.DecBlockReference(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -317,7 +317,7 @@ func BTCProtocol(i BTCInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RegisterBTCArg)(nil), args)
 						return
 					}
-					err = i.RegisterBTC((*typedArgs)[0])
+					err = i.RegisterBTC(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -390,7 +390,7 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetCurrentStatusArg)(nil), args)
 						return
 					}
-					ret, err = i.GetCurrentStatus((*typedArgs)[0].SessionID)
+					ret, err = i.GetCurrentStatus(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -406,7 +406,7 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetConfigArg)(nil), args)
 						return
 					}
-					ret, err = i.GetConfig((*typedArgs)[0].SessionID)
+					ret, err = i.GetConfig(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -422,7 +422,7 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SetUserConfigArg)(nil), args)
 						return
 					}
-					err = i.SetUserConfig((*typedArgs)[0])
+					err = i.SetUserConfig(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -497,7 +497,7 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SignED25519Arg)(nil), args)
 						return
 					}
-					ret, err = i.SignED25519((*typedArgs)[0])
+					ret, err = i.SignED25519(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -513,7 +513,7 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]UnboxBytes32Arg)(nil), args)
 						return
 					}
-					ret, err = i.UnboxBytes32((*typedArgs)[0])
+					ret, err = i.UnboxBytes32(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -580,7 +580,7 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]StopArg)(nil), args)
 						return
 					}
-					err = i.Stop((*typedArgs)[0].SessionID)
+					err = i.Stop(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -596,7 +596,7 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LogRotateArg)(nil), args)
 						return
 					}
-					err = i.LogRotate((*typedArgs)[0].SessionID)
+					err = i.LogRotate(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -612,7 +612,7 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SetLogLevelArg)(nil), args)
 						return
 					}
-					err = i.SetLogLevel((*typedArgs)[0])
+					err = i.SetLogLevel(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -628,7 +628,7 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ReloadArg)(nil), args)
 						return
 					}
-					err = i.Reload((*typedArgs)[0].SessionID)
+					err = i.Reload(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -644,7 +644,7 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DbNukeArg)(nil), args)
 						return
 					}
-					err = i.DbNuke((*typedArgs)[0].SessionID)
+					err = i.DbNuke(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -726,7 +726,7 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]FirstStepArg)(nil), args)
 						return
 					}
-					ret, err = i.FirstStep((*typedArgs)[0])
+					ret, err = i.FirstStep(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -742,7 +742,7 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SecondStepArg)(nil), args)
 						return
 					}
-					ret, err = i.SecondStep((*typedArgs)[0])
+					ret, err = i.SecondStep(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -758,7 +758,7 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]IncrementArg)(nil), args)
 						return
 					}
-					ret, err = i.Increment((*typedArgs)[0])
+					ret, err = i.Increment(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -820,7 +820,7 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DeviceListArg)(nil), args)
 						return
 					}
-					ret, err = i.DeviceList((*typedArgs)[0].SessionID)
+					ret, err = i.DeviceList(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -836,7 +836,7 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DeviceAddArg)(nil), args)
 						return
 					}
-					err = i.DeviceAdd((*typedArgs)[0])
+					err = i.DeviceAdd(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -852,7 +852,7 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DeviceAddCancelArg)(nil), args)
 						return
 					}
-					err = i.DeviceAddCancel((*typedArgs)[0].SessionID)
+					err = i.DeviceAddCancel(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -905,7 +905,7 @@ func DoctorProtocol(i DoctorInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DoctorArg)(nil), args)
 						return
 					}
-					err = i.Doctor((*typedArgs)[0].SessionID)
+					err = i.Doctor(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -982,7 +982,7 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LoginSelectArg)(nil), args)
 						return
 					}
-					ret, err = i.LoginSelect((*typedArgs)[0])
+					ret, err = i.LoginSelect(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -998,7 +998,7 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplayStatusArg)(nil), args)
 						return
 					}
-					ret, err = i.DisplayStatus((*typedArgs)[0])
+					ret, err = i.DisplayStatus(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1014,7 +1014,7 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplayResultArg)(nil), args)
 						return
 					}
-					err = i.DisplayResult((*typedArgs)[0])
+					err = i.DisplayResult(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1083,7 +1083,7 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]FavoriteAddArg)(nil), args)
 						return
 					}
-					err = i.FavoriteAdd((*typedArgs)[0])
+					err = i.FavoriteAdd(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1099,7 +1099,7 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]FavoriteDeleteArg)(nil), args)
 						return
 					}
-					err = i.FavoriteDelete((*typedArgs)[0])
+					err = i.FavoriteDelete(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1115,7 +1115,7 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]FavoriteListArg)(nil), args)
 						return
 					}
-					ret, err = i.FavoriteList((*typedArgs)[0].SessionID)
+					ret, err = i.FavoriteList(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1197,7 +1197,7 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]WantToAddGPGKeyArg)(nil), args)
 						return
 					}
-					ret, err = i.WantToAddGPGKey((*typedArgs)[0].SessionID)
+					ret, err = i.WantToAddGPGKey(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1213,7 +1213,7 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ConfirmDuplicateKeyChosenArg)(nil), args)
 						return
 					}
-					ret, err = i.ConfirmDuplicateKeyChosen((*typedArgs)[0].SessionID)
+					ret, err = i.ConfirmDuplicateKeyChosen(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1229,7 +1229,7 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SelectKeyAndPushOptionArg)(nil), args)
 						return
 					}
-					ret, err = i.SelectKeyAndPushOption((*typedArgs)[0])
+					ret, err = i.SelectKeyAndPushOption(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1245,7 +1245,7 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SelectKeyArg)(nil), args)
 						return
 					}
-					ret, err = i.SelectKey((*typedArgs)[0])
+					ret, err = i.SelectKey(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1447,7 +1447,7 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]IdentifyArg)(nil), args)
 						return
 					}
-					ret, err = i.Identify((*typedArgs)[0])
+					ret, err = i.Identify(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1599,7 +1599,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]StartArg)(nil), args)
 						return
 					}
-					err = i.Start((*typedArgs)[0])
+					err = i.Start(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1615,7 +1615,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplayKeyArg)(nil), args)
 						return
 					}
-					err = i.DisplayKey((*typedArgs)[0])
+					err = i.DisplayKey(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1631,7 +1631,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ReportLastTrackArg)(nil), args)
 						return
 					}
-					err = i.ReportLastTrack((*typedArgs)[0])
+					err = i.ReportLastTrack(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1647,7 +1647,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LaunchNetworkChecksArg)(nil), args)
 						return
 					}
-					err = i.LaunchNetworkChecks((*typedArgs)[0])
+					err = i.LaunchNetworkChecks(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1663,7 +1663,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplayTrackStatementArg)(nil), args)
 						return
 					}
-					err = i.DisplayTrackStatement((*typedArgs)[0])
+					err = i.DisplayTrackStatement(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1679,7 +1679,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]FinishWebProofCheckArg)(nil), args)
 						return
 					}
-					err = i.FinishWebProofCheck((*typedArgs)[0])
+					err = i.FinishWebProofCheck(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1695,7 +1695,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]FinishSocialProofCheckArg)(nil), args)
 						return
 					}
-					err = i.FinishSocialProofCheck((*typedArgs)[0])
+					err = i.FinishSocialProofCheck(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1711,7 +1711,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplayCryptocurrencyArg)(nil), args)
 						return
 					}
-					err = i.DisplayCryptocurrency((*typedArgs)[0])
+					err = i.DisplayCryptocurrency(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1727,7 +1727,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ConfirmArg)(nil), args)
 						return
 					}
-					ret, err = i.Confirm((*typedArgs)[0])
+					ret, err = i.Confirm(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1743,7 +1743,7 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]FinishArg)(nil), args)
 						return
 					}
-					err = i.Finish((*typedArgs)[0].SessionID)
+					err = i.Finish(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1847,7 +1847,7 @@ func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]HelloArg)(nil), args)
 						return
 					}
-					ret, err = i.Hello((*typedArgs)[0])
+					ret, err = i.Hello(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1863,7 +1863,7 @@ func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DidCounterSignArg)(nil), args)
 						return
 					}
-					err = i.DidCounterSign((*typedArgs)[0].Sig)
+					err = i.DidCounterSign(context.TODO(), (*typedArgs)[0].Sig)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1904,7 +1904,7 @@ func Kex2ProvisionerProtocol(i Kex2ProvisionerInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(args interface{}) (ret interface{}, err error) {
-					err = i.KexStart()
+					err = i.KexStart(context.TODO())
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -2032,7 +2032,7 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PromptDeviceNameArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptDeviceName((*typedArgs)[0].SessionID)
+					ret, err = i.PromptDeviceName(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2048,7 +2048,7 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DeviceNameTakenArg)(nil), args)
 						return
 					}
-					err = i.DeviceNameTaken((*typedArgs)[0])
+					err = i.DeviceNameTaken(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2064,7 +2064,7 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SelectSignerArg)(nil), args)
 						return
 					}
-					ret, err = i.SelectSigner((*typedArgs)[0])
+					ret, err = i.SelectSigner(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2080,7 +2080,7 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DeviceSignAttemptErrArg)(nil), args)
 						return
 					}
-					err = i.DeviceSignAttemptErr((*typedArgs)[0])
+					err = i.DeviceSignAttemptErr(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2096,7 +2096,7 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplaySecretWordsArg)(nil), args)
 						return
 					}
-					err = i.DisplaySecretWords((*typedArgs)[0])
+					err = i.DisplaySecretWords(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2112,7 +2112,7 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]KexStatusArg)(nil), args)
 						return
 					}
-					err = i.KexStatus((*typedArgs)[0])
+					err = i.KexStatus(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2128,7 +2128,7 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplayProvisionSuccessArg)(nil), args)
 						return
 					}
-					err = i.DisplayProvisionSuccess((*typedArgs)[0])
+					err = i.DisplayProvisionSuccess(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2202,7 +2202,7 @@ func LogUiProtocol(i LogUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LogArg)(nil), args)
 						return
 					}
-					err = i.Log((*typedArgs)[0])
+					err = i.Log(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2304,7 +2304,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetConfiguredAccountsArg)(nil), args)
 						return
 					}
-					ret, err = i.GetConfiguredAccounts((*typedArgs)[0].SessionID)
+					ret, err = i.GetConfiguredAccounts(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2320,7 +2320,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LoginWithPromptArg)(nil), args)
 						return
 					}
-					err = i.LoginWithPrompt((*typedArgs)[0])
+					err = i.LoginWithPrompt(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2336,7 +2336,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LoginWithStoredSecretArg)(nil), args)
 						return
 					}
-					err = i.LoginWithStoredSecret((*typedArgs)[0])
+					err = i.LoginWithStoredSecret(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2352,7 +2352,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LoginWithPassphraseArg)(nil), args)
 						return
 					}
-					err = i.LoginWithPassphrase((*typedArgs)[0])
+					err = i.LoginWithPassphrase(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2368,7 +2368,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ClearStoredSecretArg)(nil), args)
 						return
 					}
-					err = i.ClearStoredSecret((*typedArgs)[0])
+					err = i.ClearStoredSecret(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2384,7 +2384,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CancelLoginArg)(nil), args)
 						return
 					}
-					err = i.CancelLogin((*typedArgs)[0].SessionID)
+					err = i.CancelLogin(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2400,7 +2400,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LogoutArg)(nil), args)
 						return
 					}
-					err = i.Logout((*typedArgs)[0].SessionID)
+					err = i.Logout(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2416,7 +2416,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ResetArg)(nil), args)
 						return
 					}
-					err = i.Reset((*typedArgs)[0].SessionID)
+					err = i.Reset(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2448,7 +2448,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PaperKeyArg)(nil), args)
 						return
 					}
-					err = i.PaperKey((*typedArgs)[0].SessionID)
+					err = i.PaperKey(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2464,7 +2464,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]UnlockArg)(nil), args)
 						return
 					}
-					err = i.Unlock((*typedArgs)[0].SessionID)
+					err = i.Unlock(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2581,7 +2581,7 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetEmailOrUsernameArg)(nil), args)
 						return
 					}
-					ret, err = i.GetEmailOrUsername((*typedArgs)[0].SessionID)
+					ret, err = i.GetEmailOrUsername(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2597,7 +2597,7 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PromptRevokePaperKeysArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptRevokePaperKeys((*typedArgs)[0])
+					ret, err = i.PromptRevokePaperKeys(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2613,7 +2613,7 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplayPaperKeyPhraseArg)(nil), args)
 						return
 					}
-					err = i.DisplayPaperKeyPhrase((*typedArgs)[0])
+					err = i.DisplayPaperKeyPhrase(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2629,7 +2629,7 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplayPrimaryPaperKeyArg)(nil), args)
 						return
 					}
-					err = i.DisplayPrimaryPaperKey((*typedArgs)[0])
+					err = i.DisplayPrimaryPaperKey(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2754,7 +2754,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]AuthenticateArg)(nil), args)
 						return
 					}
-					ret, err = i.Authenticate((*typedArgs)[0])
+					ret, err = i.Authenticate(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2770,7 +2770,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PutMetadataArg)(nil), args)
 						return
 					}
-					err = i.PutMetadata((*typedArgs)[0])
+					err = i.PutMetadata(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2786,7 +2786,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetMetadataArg)(nil), args)
 						return
 					}
-					ret, err = i.GetMetadata((*typedArgs)[0])
+					ret, err = i.GetMetadata(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2802,7 +2802,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RegisterForUpdatesArg)(nil), args)
 						return
 					}
-					err = i.RegisterForUpdates((*typedArgs)[0])
+					err = i.RegisterForUpdates(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2818,7 +2818,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PruneUnmergedArg)(nil), args)
 						return
 					}
-					err = i.PruneUnmerged((*typedArgs)[0])
+					err = i.PruneUnmerged(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2834,7 +2834,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PutKeysArg)(nil), args)
 						return
 					}
-					err = i.PutKeys((*typedArgs)[0])
+					err = i.PutKeys(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2850,7 +2850,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetKeyArg)(nil), args)
 						return
 					}
-					ret, err = i.GetKey((*typedArgs)[0])
+					ret, err = i.GetKey(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2866,7 +2866,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TruncateLockArg)(nil), args)
 						return
 					}
-					ret, err = i.TruncateLock((*typedArgs)[0].FolderID)
+					ret, err = i.TruncateLock(context.TODO(), (*typedArgs)[0].FolderID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2882,7 +2882,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TruncateUnlockArg)(nil), args)
 						return
 					}
-					ret, err = i.TruncateUnlock((*typedArgs)[0].FolderID)
+					ret, err = i.TruncateUnlock(context.TODO(), (*typedArgs)[0].FolderID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2893,7 +2893,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(args interface{}) (ret interface{}, err error) {
-					err = i.Ping()
+					err = i.Ping(context.TODO())
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2982,7 +2982,7 @@ func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]MetadataUpdateArg)(nil), args)
 						return
 					}
-					err = i.MetadataUpdate((*typedArgs)[0])
+					err = i.MetadataUpdate(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3178,7 +3178,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPSignArg)(nil), args)
 						return
 					}
-					err = i.PGPSign((*typedArgs)[0])
+					err = i.PGPSign(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3194,7 +3194,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPPullArg)(nil), args)
 						return
 					}
-					err = i.PGPPull((*typedArgs)[0])
+					err = i.PGPPull(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3210,7 +3210,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPEncryptArg)(nil), args)
 						return
 					}
-					err = i.PGPEncrypt((*typedArgs)[0])
+					err = i.PGPEncrypt(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3226,7 +3226,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPDecryptArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPDecrypt((*typedArgs)[0])
+					ret, err = i.PGPDecrypt(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3242,7 +3242,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPVerifyArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPVerify((*typedArgs)[0])
+					ret, err = i.PGPVerify(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3258,7 +3258,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPImportArg)(nil), args)
 						return
 					}
-					err = i.PGPImport((*typedArgs)[0])
+					err = i.PGPImport(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3274,7 +3274,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPExportArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPExport((*typedArgs)[0])
+					ret, err = i.PGPExport(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3290,7 +3290,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPExportByFingerprintArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPExportByFingerprint((*typedArgs)[0])
+					ret, err = i.PGPExportByFingerprint(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3306,7 +3306,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPExportByKIDArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPExportByKID((*typedArgs)[0])
+					ret, err = i.PGPExportByKID(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3322,7 +3322,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPKeyGenArg)(nil), args)
 						return
 					}
-					err = i.PGPKeyGen((*typedArgs)[0])
+					err = i.PGPKeyGen(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3338,7 +3338,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPKeyGenDefaultArg)(nil), args)
 						return
 					}
-					err = i.PGPKeyGenDefault((*typedArgs)[0])
+					err = i.PGPKeyGenDefault(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3354,7 +3354,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPDeletePrimaryArg)(nil), args)
 						return
 					}
-					err = i.PGPDeletePrimary((*typedArgs)[0].SessionID)
+					err = i.PGPDeletePrimary(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3370,7 +3370,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPSelectArg)(nil), args)
 						return
 					}
-					err = i.PGPSelect((*typedArgs)[0])
+					err = i.PGPSelect(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3386,7 +3386,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPUpdateArg)(nil), args)
 						return
 					}
-					err = i.PGPUpdate((*typedArgs)[0])
+					err = i.PGPUpdate(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3513,7 +3513,7 @@ func ProveProtocol(i ProveInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]StartProofArg)(nil), args)
 						return
 					}
-					ret, err = i.StartProof((*typedArgs)[0])
+					ret, err = i.StartProof(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3529,7 +3529,7 @@ func ProveProtocol(i ProveInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CheckProofArg)(nil), args)
 						return
 					}
-					ret, err = i.CheckProof((*typedArgs)[0])
+					ret, err = i.CheckProof(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3623,7 +3623,7 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PromptOverwriteArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptOverwrite((*typedArgs)[0])
+					ret, err = i.PromptOverwrite(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3639,7 +3639,7 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PromptUsernameArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptUsername((*typedArgs)[0])
+					ret, err = i.PromptUsername(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3655,7 +3655,7 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]OutputPrechecksArg)(nil), args)
 						return
 					}
-					err = i.OutputPrechecks((*typedArgs)[0])
+					err = i.OutputPrechecks(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3671,7 +3671,7 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PreProofWarningArg)(nil), args)
 						return
 					}
-					ret, err = i.PreProofWarning((*typedArgs)[0])
+					ret, err = i.PreProofWarning(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3687,7 +3687,7 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]OutputInstructionsArg)(nil), args)
 						return
 					}
-					err = i.OutputInstructions((*typedArgs)[0])
+					err = i.OutputInstructions(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3703,7 +3703,7 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]OkToCheckArg)(nil), args)
 						return
 					}
-					ret, err = i.OkToCheck((*typedArgs)[0])
+					ret, err = i.OkToCheck(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3719,7 +3719,7 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DisplayRecheckWarningArg)(nil), args)
 						return
 					}
-					err = i.DisplayRecheckWarning((*typedArgs)[0])
+					err = i.DisplayRecheckWarning(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3797,7 +3797,7 @@ func QuotaProtocol(i QuotaInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]VerifySessionArg)(nil), args)
 						return
 					}
-					ret, err = i.VerifySession((*typedArgs)[0].Session)
+					ret, err = i.VerifySession(context.TODO(), (*typedArgs)[0].Session)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3853,7 +3853,7 @@ func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RevokeKeyArg)(nil), args)
 						return
 					}
-					err = i.RevokeKey((*typedArgs)[0])
+					err = i.RevokeKey(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3869,7 +3869,7 @@ func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RevokeDeviceArg)(nil), args)
 						return
 					}
-					err = i.RevokeDevice((*typedArgs)[0])
+					err = i.RevokeDevice(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3885,7 +3885,7 @@ func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RevokeSigsArg)(nil), args)
 						return
 					}
-					err = i.RevokeSigs((*typedArgs)[0])
+					err = i.RevokeSigs(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3982,7 +3982,7 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetSecretArg)(nil), args)
 						return
 					}
-					ret, err = i.GetSecret((*typedArgs)[0])
+					ret, err = i.GetSecret(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3998,7 +3998,7 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetNewPassphraseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetNewPassphrase((*typedArgs)[0])
+					ret, err = i.GetNewPassphrase(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4014,7 +4014,7 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetKeybasePassphraseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetKeybasePassphrase((*typedArgs)[0])
+					ret, err = i.GetKeybasePassphrase(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4030,7 +4030,7 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetPaperKeyPassphraseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetPaperKeyPassphrase((*typedArgs)[0])
+					ret, err = i.GetPaperKeyPassphrase(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4098,7 +4098,7 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CurrentSessionArg)(nil), args)
 						return
 					}
-					ret, err = i.CurrentSession((*typedArgs)[0].SessionID)
+					ret, err = i.CurrentSession(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4114,7 +4114,7 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CurrentUIDArg)(nil), args)
 						return
 					}
-					ret, err = i.CurrentUID((*typedArgs)[0].SessionID)
+					ret, err = i.CurrentUID(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4188,7 +4188,7 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CheckUsernameAvailableArg)(nil), args)
 						return
 					}
-					err = i.CheckUsernameAvailable((*typedArgs)[0])
+					err = i.CheckUsernameAvailable(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4204,7 +4204,7 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SignupArg)(nil), args)
 						return
 					}
-					ret, err = i.Signup((*typedArgs)[0])
+					ret, err = i.Signup(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4220,7 +4220,7 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]InviteRequestArg)(nil), args)
 						return
 					}
-					err = i.InviteRequest((*typedArgs)[0])
+					err = i.InviteRequest(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4307,7 +4307,7 @@ func SigsProtocol(i SigsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SigListArg)(nil), args)
 						return
 					}
-					ret, err = i.SigList((*typedArgs)[0])
+					ret, err = i.SigList(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4323,7 +4323,7 @@ func SigsProtocol(i SigsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SigListJSONArg)(nil), args)
 						return
 					}
-					ret, err = i.SigListJSON((*typedArgs)[0])
+					ret, err = i.SigListJSON(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4384,7 +4384,7 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CloseArg)(nil), args)
 						return
 					}
-					err = i.Close((*typedArgs)[0])
+					err = i.Close(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4400,7 +4400,7 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ReadArg)(nil), args)
 						return
 					}
-					ret, err = i.Read((*typedArgs)[0])
+					ret, err = i.Read(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4416,7 +4416,7 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]WriteArg)(nil), args)
 						return
 					}
-					ret, err = i.Write((*typedArgs)[0])
+					ret, err = i.Write(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4483,7 +4483,7 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TestArg)(nil), args)
 						return
 					}
-					ret, err = i.Test((*typedArgs)[0])
+					ret, err = i.Test(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4499,7 +4499,7 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TestCallbackArg)(nil), args)
 						return
 					}
-					ret, err = i.TestCallback((*typedArgs)[0])
+					ret, err = i.TestCallback(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4515,7 +4515,7 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PanicArg)(nil), args)
 						return
 					}
-					err = i.Panic((*typedArgs)[0].Message)
+					err = i.Panic(context.TODO(), (*typedArgs)[0].Message)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4583,7 +4583,7 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TrackArg)(nil), args)
 						return
 					}
-					err = i.Track((*typedArgs)[0])
+					err = i.Track(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4599,7 +4599,7 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TrackWithTokenArg)(nil), args)
 						return
 					}
-					err = i.TrackWithToken((*typedArgs)[0])
+					err = i.TrackWithToken(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4615,7 +4615,7 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]UntrackArg)(nil), args)
 						return
 					}
-					err = i.Untrack((*typedArgs)[0])
+					err = i.Untrack(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4676,7 +4676,7 @@ func UiProtocol(i UiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PromptYesNoArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptYesNo((*typedArgs)[0])
+					ret, err = i.PromptYesNo(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4826,7 +4826,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ListTrackersArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTrackers((*typedArgs)[0])
+					ret, err = i.ListTrackers(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4842,7 +4842,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ListTrackersByNameArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTrackersByName((*typedArgs)[0])
+					ret, err = i.ListTrackersByName(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4858,7 +4858,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ListTrackersSelfArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTrackersSelf((*typedArgs)[0].SessionID)
+					ret, err = i.ListTrackersSelf(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4874,7 +4874,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LoadUncheckedUserSummariesArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadUncheckedUserSummaries((*typedArgs)[0])
+					ret, err = i.LoadUncheckedUserSummaries(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4890,7 +4890,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LoadUserArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadUser((*typedArgs)[0])
+					ret, err = i.LoadUser(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4906,7 +4906,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LoadUserPlusKeysArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadUserPlusKeys((*typedArgs)[0])
+					ret, err = i.LoadUserPlusKeys(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4922,7 +4922,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LoadPublicKeysArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadPublicKeys((*typedArgs)[0])
+					ret, err = i.LoadPublicKeys(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4938,7 +4938,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ListTrackingArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTracking((*typedArgs)[0])
+					ret, err = i.ListTracking(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4954,7 +4954,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ListTrackingJSONArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTrackingJSON((*typedArgs)[0])
+					ret, err = i.ListTrackingJSON(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4970,7 +4970,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SearchArg)(nil), args)
 						return
 					}
-					ret, err = i.Search((*typedArgs)[0])
+					ret, err = i.Search(context.TODO(), (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,

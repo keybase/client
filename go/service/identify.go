@@ -29,7 +29,7 @@ func NewIdentifyHandler(xp rpc.Transporter) *IdentifyHandler {
 	return &IdentifyHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *IdentifyHandler) Identify(arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
+func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
 	iarg := engine.ImportIDEngineArg(arg)
 	res, err := h.identify(arg.SessionID, iarg, true)
 	if err != nil {
@@ -38,7 +38,7 @@ func (h *IdentifyHandler) Identify(arg keybase1.IdentifyArg) (keybase1.IdentifyR
 	return *(res.Export()), nil
 }
 
-func (h *IdentifyHandler) IdentifyDefault(arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
+func (h *IdentifyHandler) IdentifyDefault(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
 	iarg := engine.IDEngineArg{UserAssertion: arg.UserAssertion, ForceRemoteCheck: arg.ForceRemoteCheck}
 	res, err := h.identify(arg.SessionID, iarg, true)
 	if err != nil {

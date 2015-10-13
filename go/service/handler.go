@@ -30,23 +30,23 @@ type LoginUI struct {
 	cli       *keybase1.LoginUiClient
 }
 
-func (u *LoginUI) GetEmailOrUsername(dummy int) (string, error) {
-	return u.cli.GetEmailOrUsername(context.TODO(), u.sessionID)
+func (u *LoginUI) GetEmailOrUsername(ctx context.Context, _ int) (string, error) {
+	return u.cli.GetEmailOrUsername(ctx, u.sessionID)
 }
 
-func (u *LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+func (u *LoginUI) PromptRevokePaperKeys(ctx context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	arg.SessionID = u.sessionID
-	return u.cli.PromptRevokePaperKeys(context.TODO(), arg)
+	return u.cli.PromptRevokePaperKeys(ctx, arg)
 }
 
-func (u *LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
+func (u *LoginUI) DisplayPaperKeyPhrase(ctx context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
 	arg.SessionID = u.sessionID
-	return u.cli.DisplayPaperKeyPhrase(context.TODO(), arg)
+	return u.cli.DisplayPaperKeyPhrase(ctx, arg)
 }
 
-func (u *LoginUI) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
+func (u *LoginUI) DisplayPrimaryPaperKey(ctx context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	arg.SessionID = u.sessionID
-	return u.cli.DisplayPrimaryPaperKey(context.TODO(), arg)
+	return u.cli.DisplayPrimaryPaperKey(ctx, arg)
 }
 
 type SecretUI struct {

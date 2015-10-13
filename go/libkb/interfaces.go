@@ -14,6 +14,8 @@ import (
 	"net/url"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/PuerkitoBio/goquery"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -244,13 +246,13 @@ type LoginUI interface {
 }
 
 type ProveUI interface {
-	PromptOverwrite(keybase1.PromptOverwriteArg) (bool, error)
-	PromptUsername(keybase1.PromptUsernameArg) (string, error)
-	OutputPrechecks(keybase1.OutputPrechecksArg) error
-	PreProofWarning(keybase1.PreProofWarningArg) (bool, error)
-	OutputInstructions(keybase1.OutputInstructionsArg) error
-	OkToCheck(keybase1.OkToCheckArg) (bool, error)
-	DisplayRecheckWarning(keybase1.DisplayRecheckWarningArg) error
+	PromptOverwrite(context.Context, keybase1.PromptOverwriteArg) (bool, error)
+	PromptUsername(context.Context, keybase1.PromptUsernameArg) (string, error)
+	OutputPrechecks(context.Context, keybase1.OutputPrechecksArg) error
+	PreProofWarning(context.Context, keybase1.PreProofWarningArg) (bool, error)
+	OutputInstructions(context.Context, keybase1.OutputInstructionsArg) error
+	OkToCheck(context.Context, keybase1.OkToCheckArg) (bool, error)
+	DisplayRecheckWarning(context.Context, keybase1.DisplayRecheckWarningArg) error
 }
 
 type SecretUI interface {
@@ -278,9 +280,9 @@ type GPGUI interface {
 }
 
 type DoctorUI interface {
-	LoginSelect(currentUser string, otherUsers []string) (string, error)
-	DisplayStatus(status keybase1.DoctorStatus) (bool, error)
-	DisplayResult(msg string) error
+	LoginSelect(ctx context.Context, currentUser string, otherUsers []string) (string, error)
+	DisplayStatus(ctx context.Context, status keybase1.DoctorStatus) (bool, error)
+	DisplayResult(ctx context.Context, msg string) error
 }
 
 type UI interface {

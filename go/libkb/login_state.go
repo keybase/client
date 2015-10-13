@@ -9,6 +9,8 @@ import (
 	"runtime/debug"
 	"time"
 
+	"golang.org/x/net/context"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	triplesec "github.com/keybase/go-triplesec"
 )
@@ -510,7 +512,7 @@ func (s *LoginState) getEmailOrUsername(lctx LoginContext, username *string, log
 	}
 
 	if loginUI != nil {
-		if *username, err = loginUI.GetEmailOrUsername(0); err != nil {
+		if *username, err = loginUI.GetEmailOrUsername(context.TODO(), 0); err != nil {
 			*username = ""
 			return
 		}

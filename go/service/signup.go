@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type SignupHandler struct {
@@ -15,11 +16,11 @@ func NewSignupHandler(xp rpc.Transporter) *SignupHandler {
 	return &SignupHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *SignupHandler) CheckUsernameAvailable(arg keybase1.CheckUsernameAvailableArg) error {
+func (h *SignupHandler) CheckUsernameAvailable(_ context.Context, arg keybase1.CheckUsernameAvailableArg) error {
 	return engine.CheckUsernameAvailable(G, arg.Username)
 }
 
-func (h *SignupHandler) Signup(arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
+func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
 	ctx := &engine.Context{
 		LogUI:    h.getLogUI(arg.SessionID),
 		GPGUI:    h.getGPGUI(arg.SessionID),
@@ -61,7 +62,7 @@ func (h *SignupHandler) Signup(arg keybase1.SignupArg) (res keybase1.SignupRes, 
 	return res, err
 }
 
-func (h *SignupHandler) InviteRequest(arg keybase1.InviteRequestArg) (err error) {
+func (h *SignupHandler) InviteRequest(_ context.Context, arg keybase1.InviteRequestArg) (err error) {
 	return libkb.PostInviteRequest(libkb.InviteRequestArg{
 		Email:    arg.Email,
 		Fullname: arg.Fullname,

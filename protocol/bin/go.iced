@@ -247,7 +247,7 @@ class GoEmitter
     else
       access = if arg.nargs is 1 then ".#{@go_export_case arg.single.name}" else ''
       "(*typedArgs)[0]#{access}"
-    @output "#{resvar}err = i.#{@go_export_case(name)}(#{farg})"
+    @output "#{resvar}err = i.#{@go_export_case(name)}(context.TODO(), #{farg})"
     @output "return"
     @untab()
     @output "},"

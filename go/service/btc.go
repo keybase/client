@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type BTCHandler struct {
@@ -15,7 +16,7 @@ func NewBTCHandler(xp rpc.Transporter) *BTCHandler {
 }
 
 // BTC creates a BTCEngine and runs it.
-func (h *BTCHandler) RegisterBTC(arg keybase1.RegisterBTCArg) error {
+func (h *BTCHandler) RegisterBTC(_ context.Context, arg keybase1.RegisterBTCArg) error {
 	ctx := engine.Context{
 		LogUI:    h.getLogUI(arg.SessionID),
 		SecretUI: h.getSecretUI(arg.SessionID),

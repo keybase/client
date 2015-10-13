@@ -52,7 +52,7 @@ build-stamp: \
 	@mkdir -p json
 	date > $@
 
-../go/protocol/keybase_v1.go: build-stamp
+../go/protocol/keybase_v1.go: build-stamp ./bin/go.iced
 	@mkdir -p ../go/protocol
 	$(ICED) ./bin/go.iced -v 2 -d json -t go -o $@
 	gofmt -w $@

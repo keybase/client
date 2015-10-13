@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -14,7 +16,7 @@ type ConfigHandler struct {
 	xp rpc.Transporter
 }
 
-func (h ConfigHandler) GetCurrentStatus(sessionID int) (res keybase1.GetCurrentStatusRes, err error) {
+func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res keybase1.GetCurrentStatusRes, err error) {
 	var cs libkb.CurrentStatus
 	if cs, err = libkb.GetCurrentStatus(); err == nil {
 		res = cs.Export()
@@ -22,7 +24,7 @@ func (h ConfigHandler) GetCurrentStatus(sessionID int) (res keybase1.GetCurrentS
 	return
 }
 
-func (h ConfigHandler) GetConfig(sessionID int) (keybase1.Config, error) {
+func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Config, error) {
 	var c keybase1.Config
 
 	c.ServerURI = G.Env.GetServerURI()
@@ -53,7 +55,7 @@ func (h ConfigHandler) GetConfig(sessionID int) (keybase1.Config, error) {
 	return c, nil
 }
 
-func (h ConfigHandler) SetUserConfig(arg keybase1.SetUserConfigArg) (err error) {
+func (h ConfigHandler) SetUserConfig(_ context.Context, arg keybase1.SetUserConfigArg) (err error) {
 	eng := engine.NewUserConfigEngine(&engine.UserConfigEngineArg{
 		Key:   arg.Key,
 		Value: arg.Value,
