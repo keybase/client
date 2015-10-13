@@ -26,7 +26,6 @@ export default class UserPass extends Component {
       mapStateToProps: state => state.login2
     }
 
-    // Default the next route to the login form
     const parseNextRoute = routes[nextPath.get('path')]
 
     return {
