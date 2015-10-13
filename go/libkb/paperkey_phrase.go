@@ -65,7 +65,7 @@ func (p PaperKeyPhrase) words() []string {
 func wordVersion(word string) uint8 {
 	h := sha256.Sum256([]byte(word))
 	if PaperKeyVersionBits > 8 {
-		panic("PaperKeyIDBits must be 8 bits or fewer")
+		panic("PaperKeyVersionBits must be 8 bits or fewer")
 	}
 	return h[len(h)-1] & ((1 << PaperKeyVersionBits) - 1)
 }
