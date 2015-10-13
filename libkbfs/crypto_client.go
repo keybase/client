@@ -22,7 +22,7 @@ var _ Crypto = (*CryptoClient)(nil)
 // NewCryptoClient constructs a new CryptoClient.
 func NewCryptoClient(config Config, ctx *libkb.GlobalContext) (
 	*CryptoClient, error) {
-	_, xp, err := ctx.GetSocket()
+	_, xp, err := ctx.GetSocket(false)
 	if err != nil {
 		return nil, err
 	}

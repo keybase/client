@@ -25,7 +25,7 @@ var _ KeybaseDaemon = KeybaseDaemonRPC{}
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given context.
 func NewKeybaseDaemonRPC(ctx *libkb.GlobalContext, log logger.Logger) (KeybaseDaemonRPC, error) {
-	_, xp, err := ctx.GetSocket()
+	_, xp, err := ctx.GetSocket(false)
 	if err != nil {
 		return KeybaseDaemonRPC{}, err
 	}
