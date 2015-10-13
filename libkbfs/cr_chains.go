@@ -60,6 +60,8 @@ func (cc *crChain) collapse() {
 }
 
 type renameInfo struct {
+	originalOldParent BlockPointer
+	oldName           string
 	originalNewParent BlockPointer
 	newName           string
 }
@@ -78,8 +80,9 @@ type crChains struct {
 	deletedOriginals map[BlockPointer]bool
 	createdOriginals map[BlockPointer]bool
 
-	// A map from original blockpointer to the original block pointer
-	// of the corresponding node's most recent parent.
+	// A map from original blockpointer to the full rename operation
+	// of the node (from the original location of the node to the
+	// final locations).
 	renamedOriginals map[BlockPointer]renameInfo
 }
 
@@ -176,14 +179,28 @@ func (ccs *crChains) makeChainForOp(op op) error {
 				return fmt.Errorf("While renaming, couldn't find the chain "+
 					"for the new parent %v", ndr)
 			}
+			oldParentChain, ok := ccs.byMostRecent[realOp.OldDir.Ref]
+			if !ok {
+				return fmt.Errorf("While renaming, couldn't find the chain "+
+					"for the old parent %v", ndr)
+			}
+
 			renamedOriginal := realOp.Renamed
 			if renamedChain, ok := ccs.byMostRecent[realOp.Renamed]; ok {
 				renamedOriginal = renamedChain.original
 			}
-			ccs.renamedOriginals[renamedOriginal] = renameInfo{
-				originalNewParent: newParentChain.original,
-				newName:           realOp.NewName,
+			ri := renameInfo{
+				originalOldParent: oldParentChain.original,
+				oldName:           realOp.OldName,
 			}
+			if oldRi, ok := ccs.renamedOriginals[renamedOriginal]; ok {
+				// Use the previous old info if there is one already,
+				// in case this node has been renamed multiple times.
+				ri = oldRi
+			}
+			ri.originalNewParent = newParentChain.original
+			ri.newName = realOp.NewName
+			ccs.renamedOriginals[renamedOriginal] = ri
 		}
 	case *syncOp:
 		err := ccs.addOp(realOp.File.Ref, op)

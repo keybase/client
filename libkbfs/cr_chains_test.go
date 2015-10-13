@@ -90,7 +90,7 @@ func testCRCheckOps(t *testing.T, cc *crChains, original BlockPointer,
 	}
 
 	if g, e := len(chain.ops), len(expectedOps); g != e {
-		t.Fatalf("Wrong number of operations: %d vs %d", g, e)
+		t.Fatalf("Wrong number of operations: %d vs %d: %v", g, e, chain.ops)
 	}
 
 	for i, op := range chain.ops {
@@ -181,7 +181,7 @@ func TestCRChainsRenameOp(t *testing.T) {
 
 	oldName, newName := "old", "new"
 	ro := newRenameOp(oldName, dir1Unref, newName, dir2Unref, filePtr)
-	expectedRenames[filePtr] = renameInfo{dir2Unref, "new"}
+	expectedRenames[filePtr] = renameInfo{dir1Unref, "old", dir2Unref, "new"}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir1Unref, dir2Unref}, ro)
 	rmd.AddOp(ro)
@@ -256,7 +256,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 	// rename root/dir3/file2 root/dir1/file4
 	op3 := newRenameOp(f2, expected[dir3Unref], f4,
 		expected[dir1Unref], file2Ptr)
-	expectedRenames[file2Ptr] = renameInfo{dir1Unref, f4}
+	expectedRenames[file2Ptr] = renameInfo{dir3Unref, f2, dir1Unref, f4}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
 			expected[dir3Unref]}, op3)
@@ -349,12 +349,14 @@ func TestCRChainsCollapse(t *testing.T) {
 	// * rm root/dir1/file2
 	// * rename root/dir2/file1 root/dir1/file3
 	// * rm root/dir1/file3
-	// * rename root/dir1/file4 root/dir1/file3
+	// * rename root/dir1/file4 root/dir1/file5
+	// * rename root/dir1/file5 root/dir1/file3
 
 	f1 := "file1"
 	f2 := "file2"
 	f3 := "file3"
 	f4 := "file4"
+	f5 := "file5"
 
 	currPtr, ptrs, revPtrs := testCRInitPtrs(3)
 	rootPtrUnref := ptrs[0]
@@ -403,7 +405,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	// rename root/dir2/file1 root/dir1/file3
 	op6 := newRenameOp(f1, expected[dir2Unref], f3, expected[dir1Unref],
 		file1Ptr)
-	expectedRenames[file1Ptr] = renameInfo{dir1Unref, f3}
+	expectedRenames[file1Ptr] = renameInfo{dir2Unref, f1, dir1Unref, f3}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
 			expected[dir2Unref]}, op6)
@@ -415,13 +417,21 @@ func TestCRChainsCollapse(t *testing.T) {
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op7)
 	rmd.AddOp(op7)
 
-	// rename root/dir1/file4 root/dir1/file3
-	op8 := newRenameOp(f4, expected[dir1Unref], f3, expected[dir1Unref],
+	// rename root/dir1/file4 root/dir1/file5
+	op8 := newRenameOp(f4, expected[dir1Unref], f5, expected[dir1Unref],
 		file4Ptr)
-	expectedRenames[file4Ptr] = renameInfo{dir1Unref, f3}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op8)
 	rmd.AddOp(op8)
+
+	// rename root/dir1/file5 root/dir1/file3
+	op9 := newRenameOp(f5, expected[dir1Unref], f3, expected[dir1Unref],
+		file4Ptr)
+	// expected the previous old name, not the new one
+	expectedRenames[file4Ptr] = renameInfo{dir1Unref, f4, dir1Unref, f3}
+	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op9)
+	rmd.AddOp(op9)
 
 	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
 	rmds := []*RootMetadata{rmd}
@@ -437,7 +447,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	testCRCheckOps(t, cc, rootPtrUnref, []op{})
 
 	// dir1 should only have one createOp (the final rename)
-	co1 := newCreateOp(f3, op8.OldDir.Unref, File)
+	co1 := newCreateOp(f3, op9.OldDir.Unref, File)
 	co1.renamed = true
 	testCRCheckOps(t, cc, dir1Unref, []op{co1})
 
