@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"golang.org/x/net/context"
 	"io"
 	"sync"
 )
@@ -25,8 +26,8 @@ type ErrorUnwrapper interface {
 }
 
 type dispatcher interface {
-	Call(name string, arg interface{}, res interface{}, u ErrorUnwrapper) error
-	Notify(name string, arg interface{}) error
+	Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper) error
+	Notify(ctx context.Context, name string, arg interface{}) error
 	RegisterProtocol(Protocol) error
 	Dispatch(l int) error
 	Close(err error) chan struct{}
@@ -40,21 +41,23 @@ type Protocol struct {
 }
 
 type dispatch struct {
-	enc              encoder
-	dec              byteReadingDecoder
-	protocols        map[string]Protocol
-	seqid            int
-	listeners        map[chan error]struct{}
-	listenerMtx      sync.Mutex
-	callCh           chan *call
-	callRespCh       chan *call
-	rmCallCh         chan int
-	stopCh           chan struct{}
-	closedCh         chan struct{}
-	writeCh          chan []byte
-	errCh            chan error
+	transmitter encoder
+	receiver    byteReadingDecoder
+
+	protocols     map[string]Protocol
+	seqid         int
+	wrapErrorFunc WrapErrorFunc
+
+	listeners   map[chan error]struct{}
+	listenerMtx sync.Mutex
+
+	callCh     chan *call
+	callRespCh chan *call
+	rmCallCh   chan int
+	stopCh     chan struct{}
+	closedCh   chan struct{}
+
 	log              LogInterface
-	wrapErrorFunc    WrapErrorFunc
 	dispatchHandlers map[MethodType]messageHandler
 }
 
@@ -65,8 +68,8 @@ type messageHandler struct {
 
 func newDispatch(enc encoder, dec byteReadingDecoder, l LogInterface, wef WrapErrorFunc) *dispatch {
 	d := &dispatch{
-		enc:           enc,
-		dec:           dec,
+		transmitter:   enc,
+		receiver:      dec,
 		protocols:     make(map[string]Protocol),
 		listeners:     make(map[chan error]struct{}),
 		callCh:        make(chan *call),
@@ -88,7 +91,9 @@ func newDispatch(enc encoder, dec byteReadingDecoder, l LogInterface, wef WrapEr
 }
 
 type call struct {
+	context.Context
 	ch             chan error
+	doneCh         chan struct{}
 	method         string
 	seqid          int
 	arg            interface{}
@@ -97,14 +102,26 @@ type call struct {
 	profiler       Profiler
 }
 
-func newCall(m string, arg interface{}, res interface{}, u ErrorUnwrapper, p Profiler) *call {
+func newCall(ctx context.Context, m string, arg interface{}, res interface{}, u ErrorUnwrapper, p Profiler) *call {
 	return &call{
-		ch:             make(chan error),
+		Context: ctx,
+		// ch has a buffer so the first call to Finish() succeeds
+		ch:             make(chan error, 1),
+		doneCh:         make(chan struct{}),
 		method:         m,
 		arg:            arg,
 		res:            res,
 		errorUnwrapper: u,
 		profiler:       p,
+	}
+}
+
+func (c *call) Finish(err error) {
+	// Ensure we only send a response and close doneCh once
+	select {
+	case c.ch <- err:
+		close(c.doneCh)
+	default:
 	}
 }
 
@@ -114,7 +131,7 @@ func (d *dispatch) callLoop() {
 		select {
 		case <-d.stopCh:
 			for _, v := range calls {
-				v.ch <- io.EOF
+				v.Finish(io.EOF)
 			}
 			close(d.closedCh)
 			return
@@ -123,12 +140,20 @@ func (d *dispatch) callLoop() {
 			c.seqid = seqid
 			v := []interface{}{MethodCall, seqid, c.method, c.arg}
 			calls[c.seqid] = c
-			err := d.enc.Encode(v)
+			err := d.transmitter.Encode(v)
 			if err != nil {
-				c.ch <- err
+				c.Finish(err)
 				continue
 			}
 			d.log.ClientCall(seqid, c.method, c.arg)
+			go func() {
+				select {
+				case <-c.Done():
+					// TODO also dispatch a cancelation request
+					c.Finish(NewCanceledError(c.method, c.seqid))
+				case <-c.doneCh:
+				}
+			}()
 		case seqid := <-d.rmCallCh:
 			call := calls[seqid]
 			delete(calls, seqid)
@@ -143,17 +168,16 @@ func (d *dispatch) nextSeqid() int {
 	return ret
 }
 
-func (d *dispatch) Call(name string, arg interface{}, res interface{}, u ErrorUnwrapper) error {
+func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper) error {
 	profiler := d.log.StartProfiler("call %s", name)
-	call := newCall(name, arg, res, u, profiler)
+	call := newCall(ctx, name, arg, res, u, profiler)
 	d.callCh <- call
 	return <-call.ch
 }
 
-func (d *dispatch) Notify(name string, arg interface{}) (err error) {
-
+func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) (err error) {
 	v := []interface{}{MethodNotify, name, arg}
-	err = d.enc.Encode(v)
+	err = d.transmitter.Encode(v)
 	if err != nil {
 		return
 	}
@@ -208,7 +232,7 @@ func (d *dispatch) broadcast(err error) {
 
 func (d *dispatch) Dispatch(length int) error {
 	var requestType MethodType
-	if err := d.dec.Decode(&requestType); err != nil {
+	if err := d.receiver.Decode(&requestType); err != nil {
 		return err
 	}
 	handler, ok := d.dispatchHandlers[requestType]
@@ -233,7 +257,7 @@ func (d *dispatch) dispatchCall() error {
 }
 
 func (d *dispatch) handleDispatch(req request) error {
-	if err := decodeIntoRequest(d.dec, req); err != nil {
+	if err := decodeIntoRequest(d.receiver, req); err != nil {
 		return err
 	}
 
@@ -243,11 +267,11 @@ func (d *dispatch) handleDispatch(req request) error {
 	var serveHandler *ServeHandlerDescription
 	if serveHandler, wrapErrorFunc, se = d.findServeHandler(m.method); se != nil {
 		m.err = wrapError(wrapErrorFunc, se)
-		if err := decodeToNull(d.dec, m); err != nil {
+		if err := decodeToNull(d.receiver, m); err != nil {
 			return err
 		}
 		req.LogInvocation(d.log, se, nil)
-		return req.Reply(d.enc, d.log)
+		return req.Reply(d.transmitter, d.log)
 	}
 	d.serveRequest(req, serveHandler, wrapErrorFunc)
 	return nil
@@ -258,7 +282,7 @@ func (d *dispatch) serveRequest(r request, handler *ServeHandlerDescription, wra
 	prof := d.log.StartProfiler("serve %s", m.method)
 
 	arg := handler.MakeArg()
-	err := decodeMessage(d.dec, m, arg)
+	err := decodeMessage(d.receiver, m, arg)
 
 	go func() {
 		r.LogInvocation(d.log, err, arg)
@@ -271,7 +295,7 @@ func (d *dispatch) serveRequest(r request, handler *ServeHandlerDescription, wra
 		}
 		prof.Stop()
 		r.LogCompletion(d.log, err)
-		r.Reply(d.enc, d.log)
+		r.Reply(d.transmitter, d.log)
 	}()
 }
 
@@ -279,7 +303,7 @@ func (d *dispatch) serveRequest(r request, handler *ServeHandlerDescription, wra
 func (d *dispatch) dispatchResponse() (err error) {
 	m := &message{remainingFields: 3}
 
-	if err = decodeMessage(d.dec, m, &m.seqno); err != nil {
+	if err = decodeMessage(d.receiver, m, &m.seqno); err != nil {
 		return err
 	}
 
@@ -288,32 +312,32 @@ func (d *dispatch) dispatchResponse() (err error) {
 
 	if call == nil {
 		d.log.UnexpectedReply(m.seqno)
-		return decodeToNull(d.dec, m)
+		return decodeToNull(d.receiver, m)
 	}
 
 	var apperr error
 
 	call.profiler.Stop()
 
-	if apperr, err = decodeError(d.dec, m, call.errorUnwrapper); err == nil {
+	if apperr, err = decodeError(d.receiver, m, call.errorUnwrapper); err == nil {
 		decodeTo := call.res
 		if decodeTo == nil {
 			decodeTo = new(interface{})
 		}
-		err = decodeMessage(d.dec, m, decodeTo)
+		err = decodeMessage(d.receiver, m, decodeTo)
 		d.log.ClientReply(m.seqno, call.method, err, decodeTo)
 	} else {
 		d.log.ClientReply(m.seqno, call.method, err, nil)
 	}
 
 	if err != nil {
-		decodeToNull(d.dec, m)
+		decodeToNull(d.receiver, m)
 		if apperr == nil {
 			apperr = err
 		}
 	}
 
-	call.ch <- apperr
+	call.Finish(apperr)
 
 	return
 }
