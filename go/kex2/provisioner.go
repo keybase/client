@@ -55,7 +55,7 @@ func (p *provisioner) close() (err error) {
 	return err
 }
 
-func (p *provisioner) KexStart(ctx context.Context) error {
+func (p *provisioner) KexStart(_ context.Context) error {
 	close(p.start)
 	return nil
 }
