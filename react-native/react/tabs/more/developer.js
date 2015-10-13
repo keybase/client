@@ -1,7 +1,8 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, TextInput, View, Text } from 'react-native'
+import React, { Component, StyleSheet, Navigator, TextInput, View, Text } from 'react-native'
+import { navigateUp } from '../../actions/router'
 import { getDevSettings, saveDevSettings, updateDevSettings } from '../../actions/config'
 
 export default class Developer extends Component {
@@ -27,21 +28,24 @@ export default class Developer extends Component {
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center'
-          }}
-        ><Text>Loading…</Text></View>
+          }}>
+          <Text>Loading…</Text>
+        </View>
       )
     }
     let settingNodes = this.props.devConfig.keys.map((key) => {
-      return (<View style={styles.group} key={key}>
-        <Text style={styles.label}>{key.replace(/(?!^)(?=[A-Z][a-z])/g, ' ')}</Text>
-        <TextInput
-          placeholder={this.props.devConfig.defaults[key]}
-          value={this.props.devConfig.configured[key]}
-          style={styles.input}
-          clearButtonMode='always'
-          onChangeText={ (val) => this.props.dispatch(updateDevSettings({ [key]: val || null })) }
-        />
-      </View>)
+      return (
+        <View style={styles.group} key={key}>
+          <Text style={styles.label}>{key.replace(/(?!^)(?=[A-Z][a-z])/g, ' ')}</Text>
+          <TextInput
+            placeholder={this.props.devConfig.defaults[key]}
+            value={this.props.devConfig.configured[key]}
+            style={styles.input}
+            clearButtonMode='always'
+            onChangeText={ (val) => this.props.dispatch(updateDevSettings({ [key]: val || null })) }
+          />
+        </View>
+      )
     })
     return (
       <View style={styles.container}>
@@ -54,6 +58,9 @@ export default class Developer extends Component {
     const componentAtTop = {
       title: 'Developer',
       component: Developer,
+      leftButton: null,
+      rightButtonAction: navigateUp(),
+      sceneConfig: Navigator.SceneConfigs.FloatFromBottom,
       mapStateToProps: state => state.config
     }
 
@@ -93,5 +100,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10
+  },
+  navBarRightButton: {
+    fontSize: 16,
+    marginVertical: 10,
+    paddingRight: 10,
+    color: 'blue'
   }
 })

@@ -113,6 +113,7 @@ class MetaNavigator extends Component {
         saveName='main'
         ref='navigator'
         initialRouteStack={routeStack.toJS()}
+        configureScene={route => route.sceneConfig || Navigator.SceneConfigs.FloatFromRight }
         renderScene={(route, navigator) => {
           return (
             <View style={{flex: 1, marginTop: route.hideNavBar ? 0 : this.props.navBarHeight}}>

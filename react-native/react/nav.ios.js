@@ -31,7 +31,7 @@ const tabToRootRouteParse = {
 function NavigationBarRouteMapper (dispatch) {
   return {
     LeftButton: function (route, navigator, index, navState) {
-      if (route.leftButton) {
+      if (typeof route.leftButton !== 'undefined') {
         return route.leftButton
       }
 
@@ -53,7 +53,18 @@ function NavigationBarRouteMapper (dispatch) {
     },
 
     RightButton: function (route, navigator, index, navState) {
-      return route.rightButton
+      if (!route.rightButtonAction) {
+        return null
+      }
+      return (
+        <TouchableOpacity
+          onPress={() => dispatch(route.rightButtonAction)}
+          style={styles.navBarRightButton}>
+          <Text style={[styles.navBarText, styles.navBarButtonText]}>
+            {route.rightButtonTitle || 'Done'}
+          </Text>
+        </TouchableOpacity>
+      )
     },
 
     Title: function (route, navigator, index, navState) {
@@ -202,6 +213,9 @@ const styles = StyleSheet.create({
   },
   navBarLeftButton: {
     paddingLeft: 10
+  },
+  navBarRightButton: {
+    paddingRight: 10
   },
   navBarButtonText: {
     color: 'blue'
