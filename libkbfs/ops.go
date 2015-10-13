@@ -215,6 +215,10 @@ type rmOp struct {
 	OpCommon
 	OldName string      `codec:"n"`
 	Dir     blockUpdate `codec:"d"`
+
+	// Indicates that the resolution process should skip this rm op.
+	// Likely indicates the rm half of a cycle-creating rename.
+	dropThis bool
 }
 
 func newRmOp(name string, oldDir BlockPointer) *rmOp {
@@ -259,6 +263,9 @@ func (ro *rmOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 }
 
 func (ro *rmOp) GetDefaultAction(mergedPath path) crAction {
+	if ro.dropThis {
+		return &dropUnmergedAction{op: ro}
+	}
 	return &rmMergedEntryAction{name: ro.OldName}
 }
 
