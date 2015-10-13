@@ -1,5 +1,5 @@
 //
-//  ObjcEngine.h
+//  Engine.h
 //  Keybase
 //
 //  Created by Chris Nojima on 8/28/15.
@@ -9,5 +9,5 @@
 #import <Foundation/Foundation.h>
 
 @interface Engine : NSObject
-- (instancetype) initWithSettings:(NSDictionary*) settings;
+- (instancetype)initWithSettings:(NSDictionary *)settings;
 @end

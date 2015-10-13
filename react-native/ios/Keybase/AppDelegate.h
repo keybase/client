@@ -1,3 +1,4 @@
+//
 //  Keybase
 //
 //  Created by Chris Nojima on 8/25/15.
@@ -6,10 +7,11 @@
 
 #import <UIKit/UIKit.h>
 
-@class Engine;
+#import "Engine.h"
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (nonatomic, strong) UIWindow *window;
-@property (nonatomic, strong) Engine *engine;
+@property Engine *engine;
+
 @end

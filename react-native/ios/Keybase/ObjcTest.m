@@ -1,3 +1,4 @@
+//
 //  Keybase
 //
 //  Created by Chris Nojima on 8/25/15.
@@ -17,30 +18,27 @@
 @implementation ObjcTest
 
 // required by reactnative
-@synthesize bridge = _bridge;
+@synthesize bridge=_bridge;
 
 RCT_EXPORT_MODULE();
 
-- (instancetype) init {
+- (instancetype)init {
   if ((self = [super init])) {
     self.count = 0;
-
     [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(onTimer) userInfo:nil repeats:YES];
   }
-
   return self;
 }
 
 #pragma mark - Send event
-- (void) onTimer {
+- (void)onTimer {
     [self.bridge.eventDispatcher sendAppEventWithName:@"EventName"
                                                  body:@{@"payload": [NSString stringWithFormat:@"%@", @(self.count++)]}];
 }
 
 #pragma mark - Exposed method
 
-RCT_EXPORT_METHOD(exampleWith:(NSString *)prefix withCallback:(RCTResponseSenderBlock)callback)
-{
+RCT_EXPORT_METHOD(exampleWith:(NSString *)prefix withCallback:(RCTResponseSenderBlock)callback) {
 #ifdef FORCE_MAIN_QUEUE
   UIView * view = [[UIView alloc] initWithFrame:CGRectMake(10, 10, 30, 30)];
   view.layer.backgroundColor = [UIColor redColor].CGColor;
@@ -55,16 +53,14 @@ RCT_EXPORT_METHOD(exampleWith:(NSString *)prefix withCallback:(RCTResponseSender
 }
 
 #ifdef FORCE_MAIN_QUEUE
-- (dispatch_queue_t)methodQueue
-{
+- (dispatch_queue_t)methodQueue {
   return dispatch_get_main_queue();
 }
 #endif
 
 #pragma mark - Exposed Constants
 
-- (NSDictionary *)constantsToExport
-{
+- (NSDictionary *)constantsToExport {
   return @{ @"language": @"English" };
 }
 

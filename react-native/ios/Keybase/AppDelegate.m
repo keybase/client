@@ -1,3 +1,4 @@
+//
 //  Keybase
 //
 //  Created by Chris Nojima on 8/25/15.
@@ -6,25 +7,24 @@
 
 #import "AppDelegate.h"
 #import "RCTRootView.h"
-#import "ObjcEngine.h"
+#import "Engine.h"
 
 // Set this to 1 to use the application bundle to hold the react JS
 #define REACT_EMBEDDED_BUNDLE 0
 #define REACT_HOST_HARDCODED 0
 
-//static NSString * const REACT_HOST = @"192.168.1.50:8081";
-static NSString * const REACT_HOST = @"localhost:8081";
+//static NSString *const REACT_HOST = @"192.168.1.50:8081";
+static NSString *const REACT_HOST = @"localhost:8081";
 
-//static NSString * const WEB_SERVER_HOST = @"http://192.168.1.50:3000";
-static NSString * const WEB_SERVER_HOST = @"http://localhost:3000";
+//static NSString *const WEB_SERVER_HOST = @"http://192.168.1.50:3000";
+static NSString *const WEB_SERVER_HOST = @"http://localhost:3000";
 
 // TODO load off of settings screen
-static NSString* const RUN_MODE = @"devel";
+static NSString *const RUN_MODE = @"devel";
 
 @implementation AppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   [self setupEngine];
   UIView * rootView = [self setupReactWithOptions:launchOptions];
 
@@ -36,7 +36,7 @@ static NSString* const RUN_MODE = @"devel";
   return YES;
 }
 
-- (UIView*) setupReactWithOptions:(NSDictionary *)options {
+- (UIView *)setupReactWithOptions:(NSDictionary *)options {
   NSURL *jsCodeLocation;
 
 #if (REACT_EMBEDDED_BUNDLE)
