@@ -85,13 +85,7 @@ func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 	return BindToSocket(g.SocketInfo)
 }
 
-func (g *GlobalContext) ClearSocketError() {
-	g.socketWrapperMu.Lock()
-	g.SocketWrapper = nil
-	g.socketWrapperMu.Unlock()
-}
-
-func (g *GlobalContext) GetSocket() (net.Conn, rpc.Transporter, error) {
+func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, error) {
 
 	// Protect all global socket wrapper manipulation with a
 	// lock to prevent race conditions.
@@ -122,5 +116,10 @@ func (g *GlobalContext) GetSocket() (net.Conn, rpc.Transporter, error) {
 		g.SocketWrapper = &sw
 	}
 
-	return g.SocketWrapper.conn, g.SocketWrapper.xp, g.SocketWrapper.err
+	sw := g.SocketWrapper
+	if sw.err != nil && clearError {
+		g.SocketWrapper = nil
+	}
+
+	return sw.conn, sw.xp, sw.err
 }

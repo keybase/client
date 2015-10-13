@@ -7,14 +7,14 @@ import (
 )
 
 func GetRPCClient() (ret *rpc.Client, xp rpc.Transporter, err error) {
-	if _, xp, err = G.GetSocket(); err == nil {
+	if _, xp, err = G.GetSocket(false); err == nil {
 		ret = rpc.NewClient(xp, libkb.ErrorUnwrapper{})
 	}
 	return
 }
 
 func GetRPCServer() (ret *rpc.Server, xp rpc.Transporter, err error) {
-	if _, xp, err = G.GetSocket(); err == nil {
+	if _, xp, err = G.GetSocket(false); err == nil {
 		ret = rpc.NewServer(xp, libkb.WrapError)
 	}
 	if err != nil {
