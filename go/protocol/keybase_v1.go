@@ -17,7 +17,7 @@ type PassphraseChangeArg struct {
 }
 
 type AccountInterface interface {
-	PassphraseChange(PassphraseChangeArg) error
+	PassphraseChange(context.Context, PassphraseChangeArg) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -167,11 +167,11 @@ type DecBlockReferenceArg struct {
 }
 
 type BlockInterface interface {
-	EstablishSession(EstablishSessionArg) error
-	PutBlock(PutBlockArg) error
-	GetBlock(BlockIdCombo) (GetBlockRes, error)
-	IncBlockReference(IncBlockReferenceArg) error
-	DecBlockReference(DecBlockReferenceArg) error
+	EstablishSession(context.Context, EstablishSessionArg) error
+	PutBlock(context.Context, PutBlockArg) error
+	GetBlock(context.Context, BlockIdCombo) (GetBlockRes, error)
+	IncBlockReference(context.Context, IncBlockReferenceArg) error
+	DecBlockReference(context.Context, DecBlockReferenceArg) error
 }
 
 func BlockProtocol(i BlockInterface) rpc.Protocol {
@@ -299,7 +299,7 @@ type RegisterBTCArg struct {
 }
 
 type BTCInterface interface {
-	RegisterBTC(RegisterBTCArg) error
+	RegisterBTC(context.Context, RegisterBTCArg) error
 }
 
 func BTCProtocol(i BTCInterface) rpc.Protocol {
@@ -370,9 +370,9 @@ type SetUserConfigArg struct {
 }
 
 type ConfigInterface interface {
-	GetCurrentStatus(int) (GetCurrentStatusRes, error)
-	GetConfig(int) (Config, error)
-	SetUserConfig(SetUserConfigArg) error
+	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
+	GetConfig(context.Context, int) (Config, error)
+	SetUserConfig(context.Context, SetUserConfigArg) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -478,8 +478,8 @@ type UnboxBytes32Arg struct {
 }
 
 type CryptoInterface interface {
-	SignED25519(SignED25519Arg) (ED25519SignatureInfo, error)
-	UnboxBytes32(UnboxBytes32Arg) (Bytes32, error)
+	SignED25519(context.Context, SignED25519Arg) (ED25519SignatureInfo, error)
+	UnboxBytes32(context.Context, UnboxBytes32Arg) (Bytes32, error)
 }
 
 func CryptoProtocol(i CryptoInterface) rpc.Protocol {
@@ -558,11 +558,11 @@ type DbNukeArg struct {
 }
 
 type CtlInterface interface {
-	Stop(int) error
-	LogRotate(int) error
-	SetLogLevel(SetLogLevelArg) error
-	Reload(int) error
-	DbNuke(int) error
+	Stop(context.Context, int) error
+	LogRotate(context.Context, int) error
+	SetLogLevel(context.Context, SetLogLevelArg) error
+	Reload(context.Context, int) error
+	DbNuke(context.Context, int) error
 }
 
 func CtlProtocol(i CtlInterface) rpc.Protocol {
@@ -706,9 +706,9 @@ type IncrementArg struct {
 }
 
 type DebuggingInterface interface {
-	FirstStep(FirstStepArg) (FirstStepResult, error)
-	SecondStep(SecondStepArg) (int, error)
-	Increment(IncrementArg) (int, error)
+	FirstStep(context.Context, FirstStepArg) (FirstStepResult, error)
+	SecondStep(context.Context, SecondStepArg) (int, error)
+	Increment(context.Context, IncrementArg) (int, error)
 }
 
 func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
@@ -800,9 +800,9 @@ type DeviceAddCancelArg struct {
 }
 
 type DeviceInterface interface {
-	DeviceList(int) ([]Device, error)
-	DeviceAdd(DeviceAddArg) error
-	DeviceAddCancel(int) error
+	DeviceList(context.Context, int) ([]Device, error)
+	DeviceAdd(context.Context, DeviceAddArg) error
+	DeviceAddCancel(context.Context, int) error
 }
 
 func DeviceProtocol(i DeviceInterface) rpc.Protocol {
@@ -887,7 +887,7 @@ type DoctorArg struct {
 }
 
 type DoctorInterface interface {
-	Doctor(int) error
+	Doctor(context.Context, int) error
 }
 
 func DoctorProtocol(i DoctorInterface) rpc.Protocol {
@@ -962,9 +962,9 @@ type DisplayResultArg struct {
 }
 
 type DoctorUiInterface interface {
-	LoginSelect(LoginSelectArg) (string, error)
-	DisplayStatus(DisplayStatusArg) (bool, error)
-	DisplayResult(DisplayResultArg) error
+	LoginSelect(context.Context, LoginSelectArg) (string, error)
+	DisplayStatus(context.Context, DisplayStatusArg) (bool, error)
+	DisplayResult(context.Context, DisplayResultArg) error
 }
 
 func DoctorUiProtocol(i DoctorUiInterface) rpc.Protocol {
@@ -1063,9 +1063,9 @@ type FavoriteListArg struct {
 }
 
 type FavoriteInterface interface {
-	FavoriteAdd(FavoriteAddArg) error
-	FavoriteDelete(FavoriteDeleteArg) error
-	FavoriteList(int) ([]Folder, error)
+	FavoriteAdd(context.Context, FavoriteAddArg) error
+	FavoriteDelete(context.Context, FavoriteDeleteArg) error
+	FavoriteList(context.Context, int) ([]Folder, error)
 }
 
 func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
@@ -1176,10 +1176,10 @@ type SelectKeyArg struct {
 }
 
 type GpgUiInterface interface {
-	WantToAddGPGKey(int) (bool, error)
-	ConfirmDuplicateKeyChosen(int) (bool, error)
-	SelectKeyAndPushOption(SelectKeyAndPushOptionArg) (SelectKeyRes, error)
-	SelectKey(SelectKeyArg) (string, error)
+	WantToAddGPGKey(context.Context, int) (bool, error)
+	ConfirmDuplicateKeyChosen(context.Context, int) (bool, error)
+	SelectKeyAndPushOption(context.Context, SelectKeyAndPushOptionArg) (SelectKeyRes, error)
+	SelectKey(context.Context, SelectKeyArg) (string, error)
 }
 
 func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
@@ -1429,7 +1429,7 @@ type IdentifyArg struct {
 }
 
 type IdentifyInterface interface {
-	Identify(IdentifyArg) (IdentifyRes, error)
+	Identify(context.Context, IdentifyArg) (IdentifyRes, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
@@ -1572,16 +1572,16 @@ type FinishArg struct {
 }
 
 type IdentifyUiInterface interface {
-	Start(StartArg) error
-	DisplayKey(DisplayKeyArg) error
-	ReportLastTrack(ReportLastTrackArg) error
-	LaunchNetworkChecks(LaunchNetworkChecksArg) error
-	DisplayTrackStatement(DisplayTrackStatementArg) error
-	FinishWebProofCheck(FinishWebProofCheckArg) error
-	FinishSocialProofCheck(FinishSocialProofCheckArg) error
-	DisplayCryptocurrency(DisplayCryptocurrencyArg) error
-	Confirm(ConfirmArg) (bool, error)
-	Finish(int) error
+	Start(context.Context, StartArg) error
+	DisplayKey(context.Context, DisplayKeyArg) error
+	ReportLastTrack(context.Context, ReportLastTrackArg) error
+	LaunchNetworkChecks(context.Context, LaunchNetworkChecksArg) error
+	DisplayTrackStatement(context.Context, DisplayTrackStatementArg) error
+	FinishWebProofCheck(context.Context, FinishWebProofCheckArg) error
+	FinishSocialProofCheck(context.Context, FinishSocialProofCheckArg) error
+	DisplayCryptocurrency(context.Context, DisplayCryptocurrencyArg) error
+	Confirm(context.Context, ConfirmArg) (bool, error)
+	Finish(context.Context, int) error
 }
 
 func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
@@ -1828,8 +1828,8 @@ type DidCounterSignArg struct {
 }
 
 type Kex2ProvisioneeInterface interface {
-	Hello(HelloArg) (HelloRes, error)
-	DidCounterSign([]byte) error
+	Hello(context.Context, HelloArg) (HelloRes, error)
+	DidCounterSign(context.Context, []byte) error
 }
 
 func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc.Protocol {
@@ -1891,7 +1891,7 @@ type KexStartArg struct {
 }
 
 type Kex2ProvisionerInterface interface {
-	KexStart() error
+	KexStart(context.Context) error
 }
 
 func Kex2ProvisionerProtocol(i Kex2ProvisionerInterface) rpc.Protocol {
@@ -2008,13 +2008,13 @@ type DisplayProvisionSuccessArg struct {
 }
 
 type LocksmithUiInterface interface {
-	PromptDeviceName(int) (string, error)
-	DeviceNameTaken(DeviceNameTakenArg) error
-	SelectSigner(SelectSignerArg) (SelectSignerRes, error)
-	DeviceSignAttemptErr(DeviceSignAttemptErrArg) error
-	DisplaySecretWords(DisplaySecretWordsArg) error
-	KexStatus(KexStatusArg) error
-	DisplayProvisionSuccess(DisplayProvisionSuccessArg) error
+	PromptDeviceName(context.Context, int) (string, error)
+	DeviceNameTaken(context.Context, DeviceNameTakenArg) error
+	SelectSigner(context.Context, SelectSignerArg) (SelectSignerRes, error)
+	DeviceSignAttemptErr(context.Context, DeviceSignAttemptErrArg) error
+	DisplaySecretWords(context.Context, DisplaySecretWordsArg) error
+	KexStatus(context.Context, KexStatusArg) error
+	DisplayProvisionSuccess(context.Context, DisplayProvisionSuccessArg) error
 }
 
 func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
@@ -2184,7 +2184,7 @@ type LogArg struct {
 }
 
 type LogUiInterface interface {
-	Log(LogArg) error
+	Log(context.Context, LogArg) error
 }
 
 func LogUiProtocol(i LogUiInterface) rpc.Protocol {
@@ -2276,17 +2276,17 @@ type UnlockArg struct {
 }
 
 type LoginInterface interface {
-	GetConfiguredAccounts(int) ([]ConfiguredAccount, error)
-	LoginWithPrompt(LoginWithPromptArg) error
-	LoginWithStoredSecret(LoginWithStoredSecretArg) error
-	LoginWithPassphrase(LoginWithPassphraseArg) error
-	ClearStoredSecret(ClearStoredSecretArg) error
-	CancelLogin(int) error
-	Logout(int) error
-	Reset(int) error
-	RecoverAccountFromEmailAddress(string) error
-	PaperKey(int) error
-	Unlock(int) error
+	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
+	LoginWithPrompt(context.Context, LoginWithPromptArg) error
+	LoginWithStoredSecret(context.Context, LoginWithStoredSecretArg) error
+	LoginWithPassphrase(context.Context, LoginWithPassphraseArg) error
+	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
+	CancelLogin(context.Context, int) error
+	Logout(context.Context, int) error
+	Reset(context.Context, int) error
+	RecoverAccountFromEmailAddress(context.Context, string) error
+	PaperKey(context.Context, int) error
+	Unlock(context.Context, int) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -2560,10 +2560,10 @@ type DisplayPrimaryPaperKeyArg struct {
 }
 
 type LoginUiInterface interface {
-	GetEmailOrUsername(int) (string, error)
-	PromptRevokePaperKeys(PromptRevokePaperKeysArg) (bool, error)
-	DisplayPaperKeyPhrase(DisplayPaperKeyPhraseArg) error
-	DisplayPrimaryPaperKey(DisplayPrimaryPaperKeyArg) error
+	GetEmailOrUsername(context.Context, int) (string, error)
+	PromptRevokePaperKeys(context.Context, PromptRevokePaperKeysArg) (bool, error)
+	DisplayPaperKeyPhrase(context.Context, DisplayPaperKeyPhraseArg) error
+	DisplayPrimaryPaperKey(context.Context, DisplayPrimaryPaperKeyArg) error
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
@@ -2727,16 +2727,16 @@ type PingArg struct {
 }
 
 type MetadataInterface interface {
-	Authenticate(AuthenticateArg) (int, error)
-	PutMetadata(PutMetadataArg) error
-	GetMetadata(GetMetadataArg) (MetadataResponse, error)
-	RegisterForUpdates(RegisterForUpdatesArg) error
-	PruneUnmerged(PruneUnmergedArg) error
-	PutKeys(PutKeysArg) error
-	GetKey(GetKeyArg) ([]byte, error)
-	TruncateLock(string) (bool, error)
-	TruncateUnlock(string) (bool, error)
-	Ping() error
+	Authenticate(context.Context, AuthenticateArg) (int, error)
+	PutMetadata(context.Context, PutMetadataArg) error
+	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
+	RegisterForUpdates(context.Context, RegisterForUpdatesArg) error
+	PruneUnmerged(context.Context, PruneUnmergedArg) error
+	PutKeys(context.Context, PutKeysArg) error
+	GetKey(context.Context, GetKeyArg) ([]byte, error)
+	TruncateLock(context.Context, string) (bool, error)
+	TruncateUnlock(context.Context, string) (bool, error)
+	Ping(context.Context) error
 }
 
 func MetadataProtocol(i MetadataInterface) rpc.Protocol {
@@ -2964,7 +2964,7 @@ type MetadataUpdateArg struct {
 }
 
 type MetadataUpdateInterface interface {
-	MetadataUpdate(MetadataUpdateArg) error
+	MetadataUpdate(context.Context, MetadataUpdateArg) error
 }
 
 func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc.Protocol {
@@ -3147,20 +3147,20 @@ type PGPUpdateArg struct {
 }
 
 type PGPInterface interface {
-	PGPSign(PGPSignArg) error
-	PGPPull(PGPPullArg) error
-	PGPEncrypt(PGPEncryptArg) error
-	PGPDecrypt(PGPDecryptArg) (PGPSigVerification, error)
-	PGPVerify(PGPVerifyArg) (PGPSigVerification, error)
-	PGPImport(PGPImportArg) error
-	PGPExport(PGPExportArg) ([]KeyInfo, error)
-	PGPExportByFingerprint(PGPExportByFingerprintArg) ([]KeyInfo, error)
-	PGPExportByKID(PGPExportByKIDArg) ([]KeyInfo, error)
-	PGPKeyGen(PGPKeyGenArg) error
-	PGPKeyGenDefault(PGPKeyGenDefaultArg) error
-	PGPDeletePrimary(int) error
-	PGPSelect(PGPSelectArg) error
-	PGPUpdate(PGPUpdateArg) error
+	PGPSign(context.Context, PGPSignArg) error
+	PGPPull(context.Context, PGPPullArg) error
+	PGPEncrypt(context.Context, PGPEncryptArg) error
+	PGPDecrypt(context.Context, PGPDecryptArg) (PGPSigVerification, error)
+	PGPVerify(context.Context, PGPVerifyArg) (PGPSigVerification, error)
+	PGPImport(context.Context, PGPImportArg) error
+	PGPExport(context.Context, PGPExportArg) ([]KeyInfo, error)
+	PGPExportByFingerprint(context.Context, PGPExportByFingerprintArg) ([]KeyInfo, error)
+	PGPExportByKID(context.Context, PGPExportByKIDArg) ([]KeyInfo, error)
+	PGPKeyGen(context.Context, PGPKeyGenArg) error
+	PGPKeyGenDefault(context.Context, PGPKeyGenDefaultArg) error
+	PGPDeletePrimary(context.Context, int) error
+	PGPSelect(context.Context, PGPSelectArg) error
+	PGPUpdate(context.Context, PGPUpdateArg) error
 }
 
 func PGPProtocol(i PGPInterface) rpc.Protocol {
@@ -3494,8 +3494,8 @@ type CheckProofArg struct {
 }
 
 type ProveInterface interface {
-	StartProof(StartProofArg) (StartProofResult, error)
-	CheckProof(CheckProofArg) (CheckProofStatus, error)
+	StartProof(context.Context, StartProofArg) (StartProofResult, error)
+	CheckProof(context.Context, CheckProofArg) (CheckProofStatus, error)
 }
 
 func ProveProtocol(i ProveInterface) rpc.Protocol {
@@ -3599,13 +3599,13 @@ type DisplayRecheckWarningArg struct {
 }
 
 type ProveUiInterface interface {
-	PromptOverwrite(PromptOverwriteArg) (bool, error)
-	PromptUsername(PromptUsernameArg) (string, error)
-	OutputPrechecks(OutputPrechecksArg) error
-	PreProofWarning(PreProofWarningArg) (bool, error)
-	OutputInstructions(OutputInstructionsArg) error
-	OkToCheck(OkToCheckArg) (bool, error)
-	DisplayRecheckWarning(DisplayRecheckWarningArg) error
+	PromptOverwrite(context.Context, PromptOverwriteArg) (bool, error)
+	PromptUsername(context.Context, PromptUsernameArg) (string, error)
+	OutputPrechecks(context.Context, OutputPrechecksArg) error
+	PreProofWarning(context.Context, PreProofWarningArg) (bool, error)
+	OutputInstructions(context.Context, OutputInstructionsArg) error
+	OkToCheck(context.Context, OkToCheckArg) (bool, error)
+	DisplayRecheckWarning(context.Context, DisplayRecheckWarningArg) error
 }
 
 func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
@@ -3779,7 +3779,7 @@ type VerifySessionArg struct {
 }
 
 type QuotaInterface interface {
-	VerifySession(string) (VerifySessionRes, error)
+	VerifySession(context.Context, string) (VerifySessionRes, error)
 }
 
 func QuotaProtocol(i QuotaInterface) rpc.Protocol {
@@ -3833,9 +3833,9 @@ type RevokeSigsArg struct {
 }
 
 type RevokeInterface interface {
-	RevokeKey(RevokeKeyArg) error
-	RevokeDevice(RevokeDeviceArg) error
-	RevokeSigs(RevokeSigsArg) error
+	RevokeKey(context.Context, RevokeKeyArg) error
+	RevokeDevice(context.Context, RevokeDeviceArg) error
+	RevokeSigs(context.Context, RevokeSigsArg) error
 }
 
 func RevokeProtocol(i RevokeInterface) rpc.Protocol {
@@ -3961,10 +3961,10 @@ type GetPaperKeyPassphraseArg struct {
 }
 
 type SecretUiInterface interface {
-	GetSecret(GetSecretArg) (SecretEntryRes, error)
-	GetNewPassphrase(GetNewPassphraseArg) (GetNewPassphraseRes, error)
-	GetKeybasePassphrase(GetKeybasePassphraseArg) (string, error)
-	GetPaperKeyPassphrase(GetPaperKeyPassphraseArg) (string, error)
+	GetSecret(context.Context, GetSecretArg) (SecretEntryRes, error)
+	GetNewPassphrase(context.Context, GetNewPassphraseArg) (GetNewPassphraseRes, error)
+	GetKeybasePassphrase(context.Context, GetKeybasePassphraseArg) (string, error)
+	GetPaperKeyPassphrase(context.Context, GetPaperKeyPassphraseArg) (string, error)
 }
 
 func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
@@ -4079,8 +4079,8 @@ type CurrentUIDArg struct {
 }
 
 type SessionInterface interface {
-	CurrentSession(int) (Session, error)
-	CurrentUID(int) (UID, error)
+	CurrentSession(context.Context, int) (Session, error)
+	CurrentUID(context.Context, int) (UID, error)
 }
 
 func SessionProtocol(i SessionInterface) rpc.Protocol {
@@ -4168,9 +4168,9 @@ type InviteRequestArg struct {
 }
 
 type SignupInterface interface {
-	CheckUsernameAvailable(CheckUsernameAvailableArg) error
-	Signup(SignupArg) (SignupRes, error)
-	InviteRequest(InviteRequestArg) error
+	CheckUsernameAvailable(context.Context, CheckUsernameAvailableArg) error
+	Signup(context.Context, SignupArg) (SignupRes, error)
+	InviteRequest(context.Context, InviteRequestArg) error
 }
 
 func SignupProtocol(i SignupInterface) rpc.Protocol {
@@ -4288,8 +4288,8 @@ type SigListJSONArg struct {
 }
 
 type SigsInterface interface {
-	SigList(SigListArg) ([]Sig, error)
-	SigListJSON(SigListJSONArg) (string, error)
+	SigList(context.Context, SigListArg) ([]Sig, error)
+	SigListJSON(context.Context, SigListJSONArg) (string, error)
 }
 
 func SigsProtocol(i SigsInterface) rpc.Protocol {
@@ -4364,9 +4364,9 @@ type WriteArg struct {
 }
 
 type StreamUiInterface interface {
-	Close(CloseArg) error
-	Read(ReadArg) ([]byte, error)
-	Write(WriteArg) (int, error)
+	Close(context.Context, CloseArg) error
+	Read(context.Context, ReadArg) ([]byte, error)
+	Write(context.Context, WriteArg) (int, error)
 }
 
 func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
@@ -4463,9 +4463,9 @@ type PanicArg struct {
 }
 
 type TestInterface interface {
-	Test(TestArg) (Test, error)
-	TestCallback(TestCallbackArg) (string, error)
-	Panic(string) error
+	Test(context.Context, TestArg) (Test, error)
+	TestCallback(context.Context, TestCallbackArg) (string, error)
+	Panic(context.Context, string) error
 }
 
 func TestProtocol(i TestInterface) rpc.Protocol {
@@ -4563,9 +4563,9 @@ type UntrackArg struct {
 }
 
 type TrackInterface interface {
-	Track(TrackArg) error
-	TrackWithToken(TrackWithTokenArg) error
-	Untrack(UntrackArg) error
+	Track(context.Context, TrackArg) error
+	TrackWithToken(context.Context, TrackWithTokenArg) error
+	Untrack(context.Context, UntrackArg) error
 }
 
 func TrackProtocol(i TrackInterface) rpc.Protocol {
@@ -4658,7 +4658,7 @@ type PromptYesNoArg struct {
 }
 
 type UiInterface interface {
-	PromptYesNo(PromptYesNoArg) (bool, error)
+	PromptYesNo(context.Context, PromptYesNoArg) (bool, error)
 }
 
 func UiProtocol(i UiInterface) rpc.Protocol {
@@ -4799,16 +4799,16 @@ type SearchArg struct {
 }
 
 type UserInterface interface {
-	ListTrackers(ListTrackersArg) ([]Tracker, error)
-	ListTrackersByName(ListTrackersByNameArg) ([]Tracker, error)
-	ListTrackersSelf(int) ([]Tracker, error)
-	LoadUncheckedUserSummaries(LoadUncheckedUserSummariesArg) ([]UserSummary, error)
-	LoadUser(LoadUserArg) (User, error)
-	LoadUserPlusKeys(LoadUserPlusKeysArg) (UserPlusKeys, error)
-	LoadPublicKeys(LoadPublicKeysArg) ([]PublicKey, error)
-	ListTracking(ListTrackingArg) ([]UserSummary, error)
-	ListTrackingJSON(ListTrackingJSONArg) (string, error)
-	Search(SearchArg) ([]SearchResult, error)
+	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
+	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
+	ListTrackersSelf(context.Context, int) ([]Tracker, error)
+	LoadUncheckedUserSummaries(context.Context, LoadUncheckedUserSummariesArg) ([]UserSummary, error)
+	LoadUser(context.Context, LoadUserArg) (User, error)
+	LoadUserPlusKeys(context.Context, LoadUserPlusKeysArg) (UserPlusKeys, error)
+	LoadPublicKeys(context.Context, LoadPublicKeysArg) ([]PublicKey, error)
+	ListTracking(context.Context, ListTrackingArg) ([]UserSummary, error)
+	ListTrackingJSON(context.Context, ListTrackingJSONArg) (string, error)
+	Search(context.Context, SearchArg) ([]SearchResult, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {

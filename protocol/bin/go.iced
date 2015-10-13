@@ -277,7 +277,7 @@ class GoEmitter
     res_types = []
     if res isnt "null" then res_types.push @go_lint_capitalize(@emit_field_type(res).type)
     res_types.push "error"
-    @output "#{@go_export_case(name)}(#{args}) (#{res_types.join ","})"
+    @output "#{@go_export_case(name)}(context.Context, #{args}) (#{res_types.join ","})"
 
   emit_message_client: (protocol, name, details, async) ->
     p = @go_export_case protocol
