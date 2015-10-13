@@ -295,7 +295,7 @@ class GoEmitter
     else
       parg = arg.single or arg
       "#{parg.name} #{(@emit_field_type parg.type).type}"
-    @output "func (c #{p}Client) #{@go_export_case(name)}(#{params}) (#{outs}) {"
+    @output "func (c #{p}Client) #{@go_export_case(name)}(ctx context.Context, #{params}) (#{outs}) {"
     @tab()
     if arg.nargs is 1
       n = arg.single.name
@@ -304,7 +304,7 @@ class GoEmitter
     oarg += if arg.nargs is 0 then "#{arg.type}{}"
     else arg.name
     oarg += "}"
-    @output """err = c.Cli.Call(context.TODO(), "#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
+    @output """err = c.Cli.Call(ctx, "#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
     @output "return"
     @untab()
     @output "}"

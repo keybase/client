@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -163,7 +165,7 @@ func (s *CmdSigsList) Run() error {
 	}
 
 	if s.json {
-		json, err := cli.SigListJSON(keybase1.SigListJSONArg{Arg: args})
+		json, err := cli.SigListJSON(context.TODO(), keybase1.SigListJSONArg{Arg: args})
 		if err != nil {
 			return err
 		}
@@ -171,7 +173,7 @@ func (s *CmdSigsList) Run() error {
 		return nil
 	}
 
-	sigs, err := cli.SigList(keybase1.SigListArg{Arg: args})
+	sigs, err := cli.SigList(context.TODO(), keybase1.SigListArg{Arg: args})
 	if err != nil {
 		return err
 	}

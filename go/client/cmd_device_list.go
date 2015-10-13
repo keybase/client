@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -36,7 +38,7 @@ func (c *CmdDeviceList) Run() error {
 		return err
 	}
 
-	devs, err := cli.DeviceList(0)
+	devs, err := cli.DeviceList(context.TODO(), 0)
 	if err != nil {
 		return err
 	}

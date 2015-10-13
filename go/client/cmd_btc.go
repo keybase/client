@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -37,7 +39,7 @@ func (c *CmdBTC) Run() (err error) {
 		return err
 	}
 
-	return cli.RegisterBTC(keybase1.RegisterBTCArg{
+	return cli.RegisterBTC(context.TODO(), keybase1.RegisterBTCArg{
 		Address: c.address,
 		Force:   c.force,
 	})

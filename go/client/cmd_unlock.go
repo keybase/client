@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 func NewCmdUnlock(cl *libcmdline.CommandLine) cli.Command {
@@ -41,7 +42,7 @@ func (c *CmdUnlock) Run() error {
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	return cli.Unlock(0)
+	return cli.Unlock(context.TODO(), 0)
 }
 
 func (c *CmdUnlock) ParseArgv(ctx *cli.Context) error {

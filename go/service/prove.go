@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 // ProveHandler is the service side of proving ownership of social media accounts
@@ -25,31 +26,31 @@ func NewProveHandler(xp rpc.Transporter) *ProveHandler {
 
 func (p *proveUI) PromptOverwrite(arg keybase1.PromptOverwriteArg) (b bool, err error) {
 	arg.SessionID = p.sessionID
-	return p.cli.PromptOverwrite(arg)
+	return p.cli.PromptOverwrite(context.TODO(), arg)
 }
 func (p *proveUI) PromptUsername(arg keybase1.PromptUsernameArg) (un string, err error) {
 	arg.SessionID = p.sessionID
-	return p.cli.PromptUsername(arg)
+	return p.cli.PromptUsername(context.TODO(), arg)
 }
 func (p *proveUI) OutputPrechecks(arg keybase1.OutputPrechecksArg) error {
 	arg.SessionID = p.sessionID
-	return p.cli.OutputPrechecks(arg)
+	return p.cli.OutputPrechecks(context.TODO(), arg)
 }
 func (p *proveUI) PreProofWarning(arg keybase1.PreProofWarningArg) (ok bool, err error) {
 	arg.SessionID = p.sessionID
-	return p.cli.PreProofWarning(arg)
+	return p.cli.PreProofWarning(context.TODO(), arg)
 }
 func (p *proveUI) OutputInstructions(arg keybase1.OutputInstructionsArg) (err error) {
 	arg.SessionID = p.sessionID
-	return p.cli.OutputInstructions(arg)
+	return p.cli.OutputInstructions(context.TODO(), arg)
 }
 func (p *proveUI) OkToCheck(arg keybase1.OkToCheckArg) (bool, error) {
 	arg.SessionID = p.sessionID
-	return p.cli.OkToCheck(arg)
+	return p.cli.OkToCheck(context.TODO(), arg)
 }
 func (p *proveUI) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningArg) error {
 	arg.SessionID = p.sessionID
-	return p.cli.DisplayRecheckWarning(arg)
+	return p.cli.DisplayRecheckWarning(context.TODO(), arg)
 }
 
 func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {

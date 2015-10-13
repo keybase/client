@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
@@ -81,7 +82,7 @@ func (c *CmdPGPDecrypt) Run() error {
 		TrackOptions: c.trackOptions,
 	}
 	arg := keybase1.PGPDecryptArg{Source: src, Sink: snk, Opts: opts}
-	_, err = cli.PGPDecrypt(arg)
+	_, err = cli.PGPDecrypt(context.TODO(), arg)
 
 	cerr := c.Close(err)
 

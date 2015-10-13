@@ -48,8 +48,8 @@ type AccountClient struct {
 	Cli GenericClient
 }
 
-func (c AccountClient) PassphraseChange(__arg PassphraseChangeArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.account.passphraseChange", []interface{}{__arg}, nil)
+func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseChangeArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.passphraseChange", []interface{}{__arg}, nil)
 	return
 }
 
@@ -266,29 +266,29 @@ type BlockClient struct {
 	Cli GenericClient
 }
 
-func (c BlockClient) EstablishSession(__arg EstablishSessionArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.block.establishSession", []interface{}{__arg}, nil)
+func (c BlockClient) EstablishSession(ctx context.Context, __arg EstablishSessionArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.establishSession", []interface{}{__arg}, nil)
 	return
 }
 
-func (c BlockClient) PutBlock(__arg PutBlockArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.block.putBlock", []interface{}{__arg}, nil)
+func (c BlockClient) PutBlock(ctx context.Context, __arg PutBlockArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.putBlock", []interface{}{__arg}, nil)
 	return
 }
 
-func (c BlockClient) GetBlock(bid BlockIdCombo) (res GetBlockRes, err error) {
+func (c BlockClient) GetBlock(ctx context.Context, bid BlockIdCombo) (res GetBlockRes, err error) {
 	__arg := GetBlockArg{Bid: bid}
-	err = c.Cli.Call(context.TODO(), "keybase.1.block.getBlock", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.getBlock", []interface{}{__arg}, &res)
 	return
 }
 
-func (c BlockClient) IncBlockReference(__arg IncBlockReferenceArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.block.incBlockReference", []interface{}{__arg}, nil)
+func (c BlockClient) IncBlockReference(ctx context.Context, __arg IncBlockReferenceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.incBlockReference", []interface{}{__arg}, nil)
 	return
 }
 
-func (c BlockClient) DecBlockReference(__arg DecBlockReferenceArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.block.decBlockReference", []interface{}{__arg}, nil)
+func (c BlockClient) DecBlockReference(ctx context.Context, __arg DecBlockReferenceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.decBlockReference", []interface{}{__arg}, nil)
 	return
 }
 
@@ -330,8 +330,8 @@ type BTCClient struct {
 	Cli GenericClient
 }
 
-func (c BTCClient) RegisterBTC(__arg RegisterBTCArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.BTC.registerBTC", []interface{}{__arg}, nil)
+func (c BTCClient) RegisterBTC(ctx context.Context, __arg RegisterBTCArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.BTC.registerBTC", []interface{}{__arg}, nil)
 	return
 }
 
@@ -435,20 +435,20 @@ type ConfigClient struct {
 	Cli GenericClient
 }
 
-func (c ConfigClient) GetCurrentStatus(sessionID int) (res GetCurrentStatusRes, err error) {
+func (c ConfigClient) GetCurrentStatus(ctx context.Context, sessionID int) (res GetCurrentStatusRes, err error) {
 	__arg := GetCurrentStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ConfigClient) GetConfig(sessionID int) (res Config, err error) {
+func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config, err error) {
 	__arg := GetConfigArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.config.getConfig", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getConfig", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ConfigClient) SetUserConfig(__arg SetUserConfigArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
+func (c ConfigClient) SetUserConfig(ctx context.Context, __arg SetUserConfigArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
 	return
 }
 
@@ -526,13 +526,13 @@ type CryptoClient struct {
 	Cli GenericClient
 }
 
-func (c CryptoClient) SignED25519(__arg SignED25519Arg) (res ED25519SignatureInfo, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.crypto.signED25519", []interface{}{__arg}, &res)
+func (c CryptoClient) SignED25519(ctx context.Context, __arg SignED25519Arg) (res ED25519SignatureInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.crypto.signED25519", []interface{}{__arg}, &res)
 	return
 }
 
-func (c CryptoClient) UnboxBytes32(__arg UnboxBytes32Arg) (res Bytes32, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.crypto.unboxBytes32", []interface{}{__arg}, &res)
+func (c CryptoClient) UnboxBytes32(ctx context.Context, __arg UnboxBytes32Arg) (res Bytes32, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.crypto.unboxBytes32", []interface{}{__arg}, &res)
 	return
 }
 
@@ -657,32 +657,32 @@ type CtlClient struct {
 	Cli GenericClient
 }
 
-func (c CtlClient) Stop(sessionID int) (err error) {
+func (c CtlClient) Stop(ctx context.Context, sessionID int) (err error) {
 	__arg := StopArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.stop", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil)
 	return
 }
 
-func (c CtlClient) LogRotate(sessionID int) (err error) {
+func (c CtlClient) LogRotate(ctx context.Context, sessionID int) (err error) {
 	__arg := LogRotateArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
 	return
 }
 
-func (c CtlClient) SetLogLevel(__arg SetLogLevelArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.setLogLevel", []interface{}{__arg}, nil)
+func (c CtlClient) SetLogLevel(ctx context.Context, __arg SetLogLevelArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.setLogLevel", []interface{}{__arg}, nil)
 	return
 }
 
-func (c CtlClient) Reload(sessionID int) (err error) {
+func (c CtlClient) Reload(ctx context.Context, sessionID int) (err error) {
 	__arg := ReloadArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.reload", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.reload", []interface{}{__arg}, nil)
 	return
 }
 
-func (c CtlClient) DbNuke(sessionID int) (err error) {
+func (c CtlClient) DbNuke(ctx context.Context, sessionID int) (err error) {
 	__arg := DbNukeArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil)
 	return
 }
 
@@ -771,18 +771,18 @@ type DebuggingClient struct {
 	Cli GenericClient
 }
 
-func (c DebuggingClient) FirstStep(__arg FirstStepArg) (res FirstStepResult, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.debugging.firstStep", []interface{}{__arg}, &res)
+func (c DebuggingClient) FirstStep(ctx context.Context, __arg FirstStepArg) (res FirstStepResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.debugging.firstStep", []interface{}{__arg}, &res)
 	return
 }
 
-func (c DebuggingClient) SecondStep(__arg SecondStepArg) (res int, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.debugging.secondStep", []interface{}{__arg}, &res)
+func (c DebuggingClient) SecondStep(ctx context.Context, __arg SecondStepArg) (res int, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.debugging.secondStep", []interface{}{__arg}, &res)
 	return
 }
 
-func (c DebuggingClient) Increment(__arg IncrementArg) (res int, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.debugging.increment", []interface{}{__arg}, &res)
+func (c DebuggingClient) Increment(ctx context.Context, __arg IncrementArg) (res int, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.debugging.increment", []interface{}{__arg}, &res)
 	return
 }
 
@@ -865,20 +865,20 @@ type DeviceClient struct {
 	Cli GenericClient
 }
 
-func (c DeviceClient) DeviceList(sessionID int) (res []Device, err error) {
+func (c DeviceClient) DeviceList(ctx context.Context, sessionID int) (res []Device, err error) {
 	__arg := DeviceListArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.device.deviceList", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceList", []interface{}{__arg}, &res)
 	return
 }
 
-func (c DeviceClient) DeviceAdd(__arg DeviceAddArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.device.deviceAdd", []interface{}{__arg}, nil)
+func (c DeviceClient) DeviceAdd(ctx context.Context, __arg DeviceAddArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceAdd", []interface{}{__arg}, nil)
 	return
 }
 
-func (c DeviceClient) DeviceAddCancel(sessionID int) (err error) {
+func (c DeviceClient) DeviceAddCancel(ctx context.Context, sessionID int) (err error) {
 	__arg := DeviceAddCancelArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.device.deviceAddCancel", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceAddCancel", []interface{}{__arg}, nil)
 	return
 }
 
@@ -918,9 +918,9 @@ type DoctorClient struct {
 	Cli GenericClient
 }
 
-func (c DoctorClient) Doctor(sessionID int) (err error) {
+func (c DoctorClient) Doctor(ctx context.Context, sessionID int) (err error) {
 	__arg := DoctorArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.doctor.doctor", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.doctor.doctor", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1027,18 +1027,18 @@ type DoctorUiClient struct {
 	Cli GenericClient
 }
 
-func (c DoctorUiClient) LoginSelect(__arg LoginSelectArg) (res string, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.doctorUi.loginSelect", []interface{}{__arg}, &res)
+func (c DoctorUiClient) LoginSelect(ctx context.Context, __arg LoginSelectArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.doctorUi.loginSelect", []interface{}{__arg}, &res)
 	return
 }
 
-func (c DoctorUiClient) DisplayStatus(__arg DisplayStatusArg) (res bool, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.doctorUi.displayStatus", []interface{}{__arg}, &res)
+func (c DoctorUiClient) DisplayStatus(ctx context.Context, __arg DisplayStatusArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.doctorUi.displayStatus", []interface{}{__arg}, &res)
 	return
 }
 
-func (c DoctorUiClient) DisplayResult(__arg DisplayResultArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.doctorUi.displayResult", []interface{}{__arg}, nil)
+func (c DoctorUiClient) DisplayResult(ctx context.Context, __arg DisplayResultArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.doctorUi.displayResult", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1128,19 +1128,19 @@ type FavoriteClient struct {
 	Cli GenericClient
 }
 
-func (c FavoriteClient) FavoriteAdd(__arg FavoriteAddArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.favorite.favoriteAdd", []interface{}{__arg}, nil)
+func (c FavoriteClient) FavoriteAdd(ctx context.Context, __arg FavoriteAddArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteAdd", []interface{}{__arg}, nil)
 	return
 }
 
-func (c FavoriteClient) FavoriteDelete(__arg FavoriteDeleteArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.favorite.favoriteDelete", []interface{}{__arg}, nil)
+func (c FavoriteClient) FavoriteDelete(ctx context.Context, __arg FavoriteDeleteArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteDelete", []interface{}{__arg}, nil)
 	return
 }
 
-func (c FavoriteClient) FavoriteList(sessionID int) (res []Folder, err error) {
+func (c FavoriteClient) FavoriteList(ctx context.Context, sessionID int) (res []Folder, err error) {
 	__arg := FavoriteListArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1258,25 +1258,25 @@ type GpgUiClient struct {
 	Cli GenericClient
 }
 
-func (c GpgUiClient) WantToAddGPGKey(sessionID int) (res bool, err error) {
+func (c GpgUiClient) WantToAddGPGKey(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := WantToAddGPGKeyArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.gpgUi.wantToAddGPGKey", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.wantToAddGPGKey", []interface{}{__arg}, &res)
 	return
 }
 
-func (c GpgUiClient) ConfirmDuplicateKeyChosen(sessionID int) (res bool, err error) {
+func (c GpgUiClient) ConfirmDuplicateKeyChosen(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := ConfirmDuplicateKeyChosenArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.gpgUi.confirmDuplicateKeyChosen", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.confirmDuplicateKeyChosen", []interface{}{__arg}, &res)
 	return
 }
 
-func (c GpgUiClient) SelectKeyAndPushOption(__arg SelectKeyAndPushOptionArg) (res SelectKeyRes, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.gpgUi.selectKeyAndPushOption", []interface{}{__arg}, &res)
+func (c GpgUiClient) SelectKeyAndPushOption(ctx context.Context, __arg SelectKeyAndPushOptionArg) (res SelectKeyRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.selectKeyAndPushOption", []interface{}{__arg}, &res)
 	return
 }
 
-func (c GpgUiClient) SelectKey(__arg SelectKeyArg) (res string, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.gpgUi.selectKey", []interface{}{__arg}, &res)
+func (c GpgUiClient) SelectKey(ctx context.Context, __arg SelectKeyArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.selectKey", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1460,8 +1460,8 @@ type IdentifyClient struct {
 	Cli GenericClient
 }
 
-func (c IdentifyClient) Identify(__arg IdentifyArg) (res IdentifyRes, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identify.identify", []interface{}{__arg}, &res)
+func (c IdentifyClient) Identify(ctx context.Context, __arg IdentifyArg) (res IdentifyRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identify.identify", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1756,54 +1756,54 @@ type IdentifyUiClient struct {
 	Cli GenericClient
 }
 
-func (c IdentifyUiClient) Start(__arg StartArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.start", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) Start(ctx context.Context, __arg StartArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.start", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) DisplayKey(__arg DisplayKeyArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.displayKey", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) DisplayKey(ctx context.Context, __arg DisplayKeyArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayKey", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) ReportLastTrack(__arg ReportLastTrackArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.reportLastTrack", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) ReportLastTrack(ctx context.Context, __arg ReportLastTrackArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportLastTrack", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) LaunchNetworkChecks(__arg LaunchNetworkChecksArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) LaunchNetworkChecks(ctx context.Context, __arg LaunchNetworkChecksArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) DisplayTrackStatement(__arg DisplayTrackStatementArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) DisplayTrackStatement(ctx context.Context, __arg DisplayTrackStatementArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) FinishWebProofCheck(__arg FinishWebProofCheckArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) FinishWebProofCheck(ctx context.Context, __arg FinishWebProofCheckArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) FinishSocialProofCheck(__arg FinishSocialProofCheckArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) FinishSocialProofCheck(ctx context.Context, __arg FinishSocialProofCheckArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) DisplayCryptocurrency(__arg DisplayCryptocurrencyArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
+func (c IdentifyUiClient) DisplayCryptocurrency(ctx context.Context, __arg DisplayCryptocurrencyArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
 	return
 }
 
-func (c IdentifyUiClient) Confirm(__arg ConfirmArg) (res bool, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.confirm", []interface{}{__arg}, &res)
+func (c IdentifyUiClient) Confirm(ctx context.Context, __arg ConfirmArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.confirm", []interface{}{__arg}, &res)
 	return
 }
 
-func (c IdentifyUiClient) Finish(sessionID int) (err error) {
+func (c IdentifyUiClient) Finish(ctx context.Context, sessionID int) (err error) {
 	__arg := FinishArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.finish", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finish", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1876,14 +1876,14 @@ type Kex2ProvisioneeClient struct {
 	Cli GenericClient
 }
 
-func (c Kex2ProvisioneeClient) Hello(__arg HelloArg) (res HelloRes, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.Kex2Provisionee.hello", []interface{}{__arg}, &res)
+func (c Kex2ProvisioneeClient) Hello(ctx context.Context, __arg HelloArg) (res HelloRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.Kex2Provisionee.hello", []interface{}{__arg}, &res)
 	return
 }
 
-func (c Kex2ProvisioneeClient) DidCounterSign(sig []byte) (err error) {
+func (c Kex2ProvisioneeClient) DidCounterSign(ctx context.Context, sig []byte) (err error) {
 	__arg := DidCounterSignArg{Sig: sig}
-	err = c.Cli.Call(context.TODO(), "keybase.1.Kex2Provisionee.didCounterSign", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.Kex2Provisionee.didCounterSign", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1917,8 +1917,8 @@ type Kex2ProvisionerClient struct {
 	Cli GenericClient
 }
 
-func (c Kex2ProvisionerClient) KexStart() (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.Kex2Provisioner.kexStart", []interface{}{KexStartArg{}}, nil)
+func (c Kex2ProvisionerClient) KexStart(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.Kex2Provisioner.kexStart", []interface{}{KexStartArg{}}, nil)
 	return
 }
 
@@ -2141,39 +2141,39 @@ type LocksmithUiClient struct {
 	Cli GenericClient
 }
 
-func (c LocksmithUiClient) PromptDeviceName(sessionID int) (res string, err error) {
+func (c LocksmithUiClient) PromptDeviceName(ctx context.Context, sessionID int) (res string, err error) {
 	__arg := PromptDeviceNameArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.promptDeviceName", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.locksmithUi.promptDeviceName", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LocksmithUiClient) DeviceNameTaken(__arg DeviceNameTakenArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.deviceNameTaken", []interface{}{__arg}, nil)
+func (c LocksmithUiClient) DeviceNameTaken(ctx context.Context, __arg DeviceNameTakenArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.locksmithUi.deviceNameTaken", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LocksmithUiClient) SelectSigner(__arg SelectSignerArg) (res SelectSignerRes, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.selectSigner", []interface{}{__arg}, &res)
+func (c LocksmithUiClient) SelectSigner(ctx context.Context, __arg SelectSignerArg) (res SelectSignerRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.locksmithUi.selectSigner", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LocksmithUiClient) DeviceSignAttemptErr(__arg DeviceSignAttemptErrArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.deviceSignAttemptErr", []interface{}{__arg}, nil)
+func (c LocksmithUiClient) DeviceSignAttemptErr(ctx context.Context, __arg DeviceSignAttemptErrArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.locksmithUi.deviceSignAttemptErr", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LocksmithUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.displaySecretWords", []interface{}{__arg}, nil)
+func (c LocksmithUiClient) DisplaySecretWords(ctx context.Context, __arg DisplaySecretWordsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.locksmithUi.displaySecretWords", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LocksmithUiClient) KexStatus(__arg KexStatusArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.kexStatus", []interface{}{__arg}, nil)
+func (c LocksmithUiClient) KexStatus(ctx context.Context, __arg KexStatusArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.locksmithUi.kexStatus", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LocksmithUiClient) DisplayProvisionSuccess(__arg DisplayProvisionSuccessArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.displayProvisionSuccess", []interface{}{__arg}, nil)
+func (c LocksmithUiClient) DisplayProvisionSuccess(ctx context.Context, __arg DisplayProvisionSuccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.locksmithUi.displayProvisionSuccess", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2215,8 +2215,8 @@ type LogUiClient struct {
 	Cli GenericClient
 }
 
-func (c LogUiClient) Log(__arg LogArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.logUi.log", []interface{}{__arg}, nil)
+func (c LogUiClient) Log(ctx context.Context, __arg LogArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.logUi.log", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2477,65 +2477,65 @@ type LoginClient struct {
 	Cli GenericClient
 }
 
-func (c LoginClient) GetConfiguredAccounts(sessionID int) (res []ConfiguredAccount, err error) {
+func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (res []ConfiguredAccount, err error) {
 	__arg := GetConfiguredAccountsArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LoginClient) LoginWithPrompt(__arg LoginWithPromptArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.loginWithPrompt", []interface{}{__arg}, nil)
+func (c LoginClient) LoginWithPrompt(ctx context.Context, __arg LoginWithPromptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPrompt", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) LoginWithStoredSecret(__arg LoginWithStoredSecretArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.loginWithStoredSecret", []interface{}{__arg}, nil)
+func (c LoginClient) LoginWithStoredSecret(ctx context.Context, __arg LoginWithStoredSecretArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.loginWithStoredSecret", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) LoginWithPassphrase(__arg LoginWithPassphraseArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.loginWithPassphrase", []interface{}{__arg}, nil)
+func (c LoginClient) LoginWithPassphrase(ctx context.Context, __arg LoginWithPassphraseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPassphrase", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) ClearStoredSecret(__arg ClearStoredSecretArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.clearStoredSecret", []interface{}{__arg}, nil)
+func (c LoginClient) ClearStoredSecret(ctx context.Context, __arg ClearStoredSecretArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.clearStoredSecret", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) CancelLogin(sessionID int) (err error) {
+func (c LoginClient) CancelLogin(ctx context.Context, sessionID int) (err error) {
 	__arg := CancelLoginArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.cancelLogin", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.cancelLogin", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) Logout(sessionID int) (err error) {
+func (c LoginClient) Logout(ctx context.Context, sessionID int) (err error) {
 	__arg := LogoutArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.logout", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.logout", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) Reset(sessionID int) (err error) {
+func (c LoginClient) Reset(ctx context.Context, sessionID int) (err error) {
 	__arg := ResetArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.reset", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.reset", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) RecoverAccountFromEmailAddress(email string) (err error) {
+func (c LoginClient) RecoverAccountFromEmailAddress(ctx context.Context, email string) (err error) {
 	__arg := RecoverAccountFromEmailAddressArg{Email: email}
-	err = c.Cli.Call("keybase.1.login.recoverAccountFromEmailAddress", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.recoverAccountFromEmailAddress", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) PaperKey(sessionID int) (err error) {
+func (c LoginClient) PaperKey(ctx context.Context, sessionID int) (err error) {
 	__arg := PaperKeyArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.paperKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.paperKey", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginClient) Unlock(sessionID int) (err error) {
+func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 	__arg := UnlockArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.login.unlock", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.unlock", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2642,24 +2642,24 @@ type LoginUiClient struct {
 	Cli GenericClient
 }
 
-func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error) {
+func (c LoginUiClient) GetEmailOrUsername(ctx context.Context, sessionID int) (res string, err error) {
 	__arg := GetEmailOrUsernameArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LoginUiClient) PromptRevokePaperKeys(__arg PromptRevokePaperKeysArg) (res bool, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.loginUi.promptRevokePaperKeys", []interface{}{__arg}, &res)
+func (c LoginUiClient) PromptRevokePaperKeys(ctx context.Context, __arg PromptRevokePaperKeysArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptRevokePaperKeys", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LoginUiClient) DisplayPaperKeyPhrase(__arg DisplayPaperKeyPhraseArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.loginUi.displayPaperKeyPhrase", []interface{}{__arg}, nil)
+func (c LoginUiClient) DisplayPaperKeyPhrase(ctx context.Context, __arg DisplayPaperKeyPhraseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPaperKeyPhrase", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LoginUiClient) DisplayPrimaryPaperKey(__arg DisplayPrimaryPaperKeyArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil)
+func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg DisplayPrimaryPaperKeyArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2906,55 +2906,55 @@ type MetadataClient struct {
 	Cli GenericClient
 }
 
-func (c MetadataClient) Authenticate(__arg AuthenticateArg) (res int, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.authenticate", []interface{}{__arg}, &res)
+func (c MetadataClient) Authenticate(ctx context.Context, __arg AuthenticateArg) (res int, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.authenticate", []interface{}{__arg}, &res)
 	return
 }
 
-func (c MetadataClient) PutMetadata(__arg PutMetadataArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.putMetadata", []interface{}{__arg}, nil)
+func (c MetadataClient) PutMetadata(ctx context.Context, __arg PutMetadataArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.putMetadata", []interface{}{__arg}, nil)
 	return
 }
 
-func (c MetadataClient) GetMetadata(__arg GetMetadataArg) (res MetadataResponse, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.getMetadata", []interface{}{__arg}, &res)
+func (c MetadataClient) GetMetadata(ctx context.Context, __arg GetMetadataArg) (res MetadataResponse, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMetadata", []interface{}{__arg}, &res)
 	return
 }
 
-func (c MetadataClient) RegisterForUpdates(__arg RegisterForUpdatesArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.registerForUpdates", []interface{}{__arg}, nil)
+func (c MetadataClient) RegisterForUpdates(ctx context.Context, __arg RegisterForUpdatesArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.registerForUpdates", []interface{}{__arg}, nil)
 	return
 }
 
-func (c MetadataClient) PruneUnmerged(__arg PruneUnmergedArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.pruneUnmerged", []interface{}{__arg}, nil)
+func (c MetadataClient) PruneUnmerged(ctx context.Context, __arg PruneUnmergedArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.pruneUnmerged", []interface{}{__arg}, nil)
 	return
 }
 
-func (c MetadataClient) PutKeys(__arg PutKeysArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.putKeys", []interface{}{__arg}, nil)
+func (c MetadataClient) PutKeys(ctx context.Context, __arg PutKeysArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.putKeys", []interface{}{__arg}, nil)
 	return
 }
 
-func (c MetadataClient) GetKey(__arg GetKeyArg) (res []byte, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.getKey", []interface{}{__arg}, &res)
+func (c MetadataClient) GetKey(ctx context.Context, __arg GetKeyArg) (res []byte, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getKey", []interface{}{__arg}, &res)
 	return
 }
 
-func (c MetadataClient) TruncateLock(folderID string) (res bool, err error) {
+func (c MetadataClient) TruncateLock(ctx context.Context, folderID string) (res bool, err error) {
 	__arg := TruncateLockArg{FolderID: folderID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.truncateLock", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.metadata.truncateLock", []interface{}{__arg}, &res)
 	return
 }
 
-func (c MetadataClient) TruncateUnlock(folderID string) (res bool, err error) {
+func (c MetadataClient) TruncateUnlock(ctx context.Context, folderID string) (res bool, err error) {
 	__arg := TruncateUnlockArg{FolderID: folderID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.truncateUnlock", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.metadata.truncateUnlock", []interface{}{__arg}, &res)
 	return
 }
 
-func (c MetadataClient) Ping() (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.ping", []interface{}{PingArg{}}, nil)
+func (c MetadataClient) Ping(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.ping", []interface{}{PingArg{}}, nil)
 	return
 }
 
@@ -2995,8 +2995,8 @@ type MetadataUpdateClient struct {
 	Cli GenericClient
 }
 
-func (c MetadataUpdateClient) MetadataUpdate(__arg MetadataUpdateArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.metadataUpdate.metadataUpdate", []interface{}{__arg}, nil)
+func (c MetadataUpdateClient) MetadataUpdate(ctx context.Context, __arg MetadataUpdateArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadataUpdate.metadataUpdate", []interface{}{__arg}, nil)
 	return
 }
 
@@ -3399,74 +3399,74 @@ type PGPClient struct {
 	Cli GenericClient
 }
 
-func (c PGPClient) PGPSign(__arg PGPSignArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpSign", []interface{}{__arg}, nil)
+func (c PGPClient) PGPSign(ctx context.Context, __arg PGPSignArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpSign", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PGPClient) PGPPull(__arg PGPPullArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpPull", []interface{}{__arg}, nil)
+func (c PGPClient) PGPPull(ctx context.Context, __arg PGPPullArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPull", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PGPClient) PGPEncrypt(__arg PGPEncryptArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpEncrypt", []interface{}{__arg}, nil)
+func (c PGPClient) PGPEncrypt(ctx context.Context, __arg PGPEncryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpEncrypt", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PGPClient) PGPDecrypt(__arg PGPDecryptArg) (res PGPSigVerification, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, &res)
+func (c PGPClient) PGPDecrypt(ctx context.Context, __arg PGPDecryptArg) (res PGPSigVerification, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PGPClient) PGPVerify(__arg PGPVerifyArg) (res PGPSigVerification, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpVerify", []interface{}{__arg}, &res)
+func (c PGPClient) PGPVerify(ctx context.Context, __arg PGPVerifyArg) (res PGPSigVerification, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpVerify", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PGPClient) PGPImport(__arg PGPImportArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpImport", []interface{}{__arg}, nil)
+func (c PGPClient) PGPImport(ctx context.Context, __arg PGPImportArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpImport", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PGPClient) PGPExport(__arg PGPExportArg) (res []KeyInfo, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
+func (c PGPClient) PGPExport(ctx context.Context, __arg PGPExportArg) (res []KeyInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PGPClient) PGPExportByFingerprint(__arg PGPExportByFingerprintArg) (res []KeyInfo, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpExportByFingerprint", []interface{}{__arg}, &res)
+func (c PGPClient) PGPExportByFingerprint(ctx context.Context, __arg PGPExportByFingerprintArg) (res []KeyInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpExportByFingerprint", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PGPClient) PGPExportByKID(__arg PGPExportByKIDArg) (res []KeyInfo, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpExportByKID", []interface{}{__arg}, &res)
+func (c PGPClient) PGPExportByKID(ctx context.Context, __arg PGPExportByKIDArg) (res []KeyInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpExportByKID", []interface{}{__arg}, &res)
 	return
 }
 
-func (c PGPClient) PGPKeyGen(__arg PGPKeyGenArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpKeyGen", []interface{}{__arg}, nil)
+func (c PGPClient) PGPKeyGen(ctx context.Context, __arg PGPKeyGenArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGen", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PGPClient) PGPKeyGenDefault(__arg PGPKeyGenDefaultArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil)
+func (c PGPClient) PGPKeyGenDefault(ctx context.Context, __arg PGPKeyGenDefaultArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PGPClient) PGPDeletePrimary(sessionID int) (err error) {
+func (c PGPClient) PGPDeletePrimary(ctx context.Context, sessionID int) (err error) {
 	__arg := PGPDeletePrimaryArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpDeletePrimary", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpDeletePrimary", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PGPClient) PGPSelect(__arg PGPSelectArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpSelect", []interface{}{__arg}, nil)
+func (c PGPClient) PGPSelect(ctx context.Context, __arg PGPSelectArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpSelect", []interface{}{__arg}, nil)
 	return
 }
 
-func (c PGPClient) PGPUpdate(__arg PGPUpdateArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpUpdate", []interface{}{__arg}, nil)
+func (c PGPClient) PGPUpdate(ctx context.Context, __arg PGPUpdateArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpUpdate", []interface{}{__arg}, nil)
 	return
 }
 
@@ -3542,13 +3542,13 @@ type ProveClient struct {
 	Cli GenericClient
 }
 
-func (c ProveClient) StartProof(__arg StartProofArg) (res StartProofResult, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.prove.startProof", []interface{}{__arg}, &res)
+func (c ProveClient) StartProof(ctx context.Context, __arg StartProofArg) (res StartProofResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.prove.startProof", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveClient) CheckProof(__arg CheckProofArg) (res CheckProofStatus, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.prove.checkProof", []interface{}{__arg}, &res)
+func (c ProveClient) CheckProof(ctx context.Context, __arg CheckProofArg) (res CheckProofStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.prove.checkProof", []interface{}{__arg}, &res)
 	return
 }
 
@@ -3732,38 +3732,38 @@ type ProveUiClient struct {
 	Cli GenericClient
 }
 
-func (c ProveUiClient) PromptOverwrite(__arg PromptOverwriteArg) (res bool, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.promptOverwrite", []interface{}{__arg}, &res)
+func (c ProveUiClient) PromptOverwrite(ctx context.Context, __arg PromptOverwriteArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptOverwrite", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveUiClient) PromptUsername(__arg PromptUsernameArg) (res string, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.promptUsername", []interface{}{__arg}, &res)
+func (c ProveUiClient) PromptUsername(ctx context.Context, __arg PromptUsernameArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptUsername", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveUiClient) OutputPrechecks(__arg OutputPrechecksArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.outputPrechecks", []interface{}{__arg}, nil)
+func (c ProveUiClient) OutputPrechecks(ctx context.Context, __arg OutputPrechecksArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputPrechecks", []interface{}{__arg}, nil)
 	return
 }
 
-func (c ProveUiClient) PreProofWarning(__arg PreProofWarningArg) (res bool, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.preProofWarning", []interface{}{__arg}, &res)
+func (c ProveUiClient) PreProofWarning(ctx context.Context, __arg PreProofWarningArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.preProofWarning", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveUiClient) OutputInstructions(__arg OutputInstructionsArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.outputInstructions", []interface{}{__arg}, nil)
+func (c ProveUiClient) OutputInstructions(ctx context.Context, __arg OutputInstructionsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputInstructions", []interface{}{__arg}, nil)
 	return
 }
 
-func (c ProveUiClient) OkToCheck(__arg OkToCheckArg) (res bool, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res)
+func (c ProveUiClient) OkToCheck(ctx context.Context, __arg OkToCheckArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ProveUiClient) DisplayRecheckWarning(__arg DisplayRecheckWarningArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.displayRecheckWarning", []interface{}{__arg}, nil)
+func (c ProveUiClient) DisplayRecheckWarning(ctx context.Context, __arg DisplayRecheckWarningArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.displayRecheckWarning", []interface{}{__arg}, nil)
 	return
 }
 
@@ -3810,9 +3810,9 @@ type QuotaClient struct {
 	Cli GenericClient
 }
 
-func (c QuotaClient) VerifySession(session string) (res VerifySessionRes, err error) {
+func (c QuotaClient) VerifySession(ctx context.Context, session string) (res VerifySessionRes, err error) {
 	__arg := VerifySessionArg{Session: session}
-	err = c.Cli.Call(context.TODO(), "keybase.1.quota.verifySession", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.quota.verifySession", []interface{}{__arg}, &res)
 	return
 }
 
@@ -3898,18 +3898,18 @@ type RevokeClient struct {
 	Cli GenericClient
 }
 
-func (c RevokeClient) RevokeKey(__arg RevokeKeyArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.revoke.revokeKey", []interface{}{__arg}, nil)
+func (c RevokeClient) RevokeKey(ctx context.Context, __arg RevokeKeyArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.revoke.revokeKey", []interface{}{__arg}, nil)
 	return
 }
 
-func (c RevokeClient) RevokeDevice(__arg RevokeDeviceArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.revoke.revokeDevice", []interface{}{__arg}, nil)
+func (c RevokeClient) RevokeDevice(ctx context.Context, __arg RevokeDeviceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.revoke.revokeDevice", []interface{}{__arg}, nil)
 	return
 }
 
-func (c RevokeClient) RevokeSigs(__arg RevokeSigsArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.revoke.revokeSigs", []interface{}{__arg}, nil)
+func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.revoke.revokeSigs", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4043,23 +4043,23 @@ type SecretUiClient struct {
 	Cli GenericClient
 }
 
-func (c SecretUiClient) GetSecret(__arg GetSecretArg) (res SecretEntryRes, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.secretUi.getSecret", []interface{}{__arg}, &res)
+func (c SecretUiClient) GetSecret(ctx context.Context, __arg GetSecretArg) (res SecretEntryRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.secretUi.getSecret", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SecretUiClient) GetNewPassphrase(__arg GetNewPassphraseArg) (res GetNewPassphraseRes, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
+func (c SecretUiClient) GetNewPassphrase(ctx context.Context, __arg GetNewPassphraseArg) (res GetNewPassphraseRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SecretUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res string, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.secretUi.getKeybasePassphrase", []interface{}{__arg}, &res)
+func (c SecretUiClient) GetKeybasePassphrase(ctx context.Context, __arg GetKeybasePassphraseArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.secretUi.getKeybasePassphrase", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SecretUiClient) GetPaperKeyPassphrase(__arg GetPaperKeyPassphraseArg) (res string, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.secretUi.getPaperKeyPassphrase", []interface{}{__arg}, &res)
+func (c SecretUiClient) GetPaperKeyPassphrase(ctx context.Context, __arg GetPaperKeyPassphraseArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.secretUi.getPaperKeyPassphrase", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4127,15 +4127,15 @@ type SessionClient struct {
 	Cli GenericClient
 }
 
-func (c SessionClient) CurrentSession(sessionID int) (res Session, err error) {
+func (c SessionClient) CurrentSession(ctx context.Context, sessionID int) (res Session, err error) {
 	__arg := CurrentSessionArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.session.currentSession", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.session.currentSession", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SessionClient) CurrentUID(sessionID int) (res UID, err error) {
+func (c SessionClient) CurrentUID(ctx context.Context, sessionID int) (res UID, err error) {
 	__arg := CurrentUIDArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.session.currentUID", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.session.currentUID", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4233,18 +4233,18 @@ type SignupClient struct {
 	Cli GenericClient
 }
 
-func (c SignupClient) CheckUsernameAvailable(__arg CheckUsernameAvailableArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.signup.checkUsernameAvailable", []interface{}{__arg}, nil)
+func (c SignupClient) CheckUsernameAvailable(ctx context.Context, __arg CheckUsernameAvailableArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.signup.checkUsernameAvailable", []interface{}{__arg}, nil)
 	return
 }
 
-func (c SignupClient) Signup(__arg SignupArg) (res SignupRes, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.signup.signup", []interface{}{__arg}, &res)
+func (c SignupClient) Signup(ctx context.Context, __arg SignupArg) (res SignupRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.signup.signup", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
+func (c SignupClient) InviteRequest(ctx context.Context, __arg InviteRequestArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4336,13 +4336,13 @@ type SigsClient struct {
 	Cli GenericClient
 }
 
-func (c SigsClient) SigList(__arg SigListArg) (res []Sig, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.sigs.sigList", []interface{}{__arg}, &res)
+func (c SigsClient) SigList(ctx context.Context, __arg SigListArg) (res []Sig, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.sigs.sigList", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SigsClient) SigListJSON(__arg SigListJSONArg) (res string, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.sigs.sigListJSON", []interface{}{__arg}, &res)
+func (c SigsClient) SigListJSON(ctx context.Context, __arg SigListJSONArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.sigs.sigListJSON", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4429,18 +4429,18 @@ type StreamUiClient struct {
 	Cli GenericClient
 }
 
-func (c StreamUiClient) Close(__arg CloseArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.streamUi.close", []interface{}{__arg}, nil)
+func (c StreamUiClient) Close(ctx context.Context, __arg CloseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.streamUi.close", []interface{}{__arg}, nil)
 	return
 }
 
-func (c StreamUiClient) Read(__arg ReadArg) (res []byte, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.streamUi.read", []interface{}{__arg}, &res)
+func (c StreamUiClient) Read(ctx context.Context, __arg ReadArg) (res []byte, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.streamUi.read", []interface{}{__arg}, &res)
 	return
 }
 
-func (c StreamUiClient) Write(__arg WriteArg) (res int, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.streamUi.write", []interface{}{__arg}, &res)
+func (c StreamUiClient) Write(ctx context.Context, __arg WriteArg) (res int, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.streamUi.write", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4528,19 +4528,19 @@ type TestClient struct {
 	Cli GenericClient
 }
 
-func (c TestClient) Test(__arg TestArg) (res Test, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.test.test", []interface{}{__arg}, &res)
+func (c TestClient) Test(ctx context.Context, __arg TestArg) (res Test, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.test.test", []interface{}{__arg}, &res)
 	return
 }
 
-func (c TestClient) TestCallback(__arg TestCallbackArg) (res string, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.test.testCallback", []interface{}{__arg}, &res)
+func (c TestClient) TestCallback(ctx context.Context, __arg TestCallbackArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.test.testCallback", []interface{}{__arg}, &res)
 	return
 }
 
-func (c TestClient) Panic(message string) (err error) {
+func (c TestClient) Panic(ctx context.Context, message string) (err error) {
 	__arg := PanicArg{Message: message}
-	err = c.Cli.Call(context.TODO(), "keybase.1.test.panic", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.test.panic", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4628,18 +4628,18 @@ type TrackClient struct {
 	Cli GenericClient
 }
 
-func (c TrackClient) Track(__arg TrackArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.track.track", []interface{}{__arg}, nil)
+func (c TrackClient) Track(ctx context.Context, __arg TrackArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.track.track", []interface{}{__arg}, nil)
 	return
 }
 
-func (c TrackClient) TrackWithToken(__arg TrackWithTokenArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.track.trackWithToken", []interface{}{__arg}, nil)
+func (c TrackClient) TrackWithToken(ctx context.Context, __arg TrackWithTokenArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.track.trackWithToken", []interface{}{__arg}, nil)
 	return
 }
 
-func (c TrackClient) Untrack(__arg UntrackArg) (err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.track.untrack", []interface{}{__arg}, nil)
+func (c TrackClient) Untrack(ctx context.Context, __arg UntrackArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.track.untrack", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4689,8 +4689,8 @@ type UiClient struct {
 	Cli GenericClient
 }
 
-func (c UiClient) PromptYesNo(__arg PromptYesNoArg) (res bool, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.ui.promptYesNo", []interface{}{__arg}, &res)
+func (c UiClient) PromptYesNo(ctx context.Context, __arg PromptYesNoArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ui.promptYesNo", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4983,53 +4983,53 @@ type UserClient struct {
 	Cli GenericClient
 }
 
-func (c UserClient) ListTrackers(__arg ListTrackersArg) (res []Tracker, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTrackers", []interface{}{__arg}, &res)
+func (c UserClient) ListTrackers(ctx context.Context, __arg ListTrackersArg) (res []Tracker, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) ListTrackersByName(__arg ListTrackersByNameArg) (res []Tracker, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTrackersByName", []interface{}{__arg}, &res)
+func (c UserClient) ListTrackersByName(ctx context.Context, __arg ListTrackersByNameArg) (res []Tracker, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackersByName", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) ListTrackersSelf(sessionID int) (res []Tracker, err error) {
+func (c UserClient) ListTrackersSelf(ctx context.Context, sessionID int) (res []Tracker, err error) {
 	__arg := ListTrackersSelfArg{SessionID: sessionID}
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTrackersSelf", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackersSelf", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) LoadUncheckedUserSummaries(__arg LoadUncheckedUserSummariesArg) (res []UserSummary, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
+func (c UserClient) LoadUncheckedUserSummaries(ctx context.Context, __arg LoadUncheckedUserSummariesArg) (res []UserSummary, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) LoadUser(__arg LoadUserArg) (res User, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.loadUser", []interface{}{__arg}, &res)
+func (c UserClient) LoadUser(ctx context.Context, __arg LoadUserArg) (res User, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUser", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) LoadUserPlusKeys(__arg LoadUserPlusKeysArg) (res UserPlusKeys, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res)
+func (c UserClient) LoadUserPlusKeys(ctx context.Context, __arg LoadUserPlusKeysArg) (res UserPlusKeys, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) LoadPublicKeys(__arg LoadPublicKeysArg) (res []PublicKey, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res)
+func (c UserClient) LoadPublicKeys(ctx context.Context, __arg LoadPublicKeysArg) (res []PublicKey, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) ListTracking(__arg ListTrackingArg) (res []UserSummary, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTracking", []interface{}{__arg}, &res)
+func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (res []UserSummary, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) ListTrackingJSON(__arg ListTrackingJSONArg) (res string, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res)
+func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSONArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserClient) Search(__arg SearchArg) (res []SearchResult, err error) {
-	err = c.Cli.Call(context.TODO(), "keybase.1.user.search", []interface{}{__arg}, &res)
+func (c UserClient) Search(ctx context.Context, __arg SearchArg) (res []SearchResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.search", []interface{}{__arg}, &res)
 	return
 }

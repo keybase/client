@@ -3,6 +3,8 @@ package service
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -13,7 +15,7 @@ type LogUI struct {
 
 func (l *LogUI) Log(level keybase1.LogLevel, format string, args []interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	l.cli.Log(keybase1.LogArg{
+	l.cli.Log(context.TODO(), keybase1.LogArg{
 		SessionID: l.sessionID,
 		Level:     keybase1.LogLevel(level),
 		Text: keybase1.Text{

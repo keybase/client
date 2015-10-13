@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type LoginHandler struct {
@@ -145,35 +146,35 @@ func NewRemoteLocksmithUI(sessionID int, c *rpc.Client) *RemoteLocksmithUI {
 }
 
 func (r *RemoteLocksmithUI) PromptDeviceName(dummy int) (string, error) {
-	return r.uicli.PromptDeviceName(r.sessionID)
+	return r.uicli.PromptDeviceName(context.TODO(), r.sessionID)
 }
 
 func (r *RemoteLocksmithUI) DeviceNameTaken(arg keybase1.DeviceNameTakenArg) error {
 	arg.SessionID = r.sessionID
-	return r.uicli.DeviceNameTaken(arg)
+	return r.uicli.DeviceNameTaken(context.TODO(), arg)
 }
 
 func (r *RemoteLocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (keybase1.SelectSignerRes, error) {
 	arg.SessionID = r.sessionID
-	return r.uicli.SelectSigner(arg)
+	return r.uicli.SelectSigner(context.TODO(), arg)
 }
 
 func (r *RemoteLocksmithUI) DeviceSignAttemptErr(arg keybase1.DeviceSignAttemptErrArg) error {
 	arg.SessionID = r.sessionID
-	return r.uicli.DeviceSignAttemptErr(arg)
+	return r.uicli.DeviceSignAttemptErr(context.TODO(), arg)
 }
 
 func (r *RemoteLocksmithUI) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
 	arg.SessionID = r.sessionID
-	return r.uicli.DisplaySecretWords(arg)
+	return r.uicli.DisplaySecretWords(context.TODO(), arg)
 }
 
 func (r *RemoteLocksmithUI) KexStatus(arg keybase1.KexStatusArg) error {
 	arg.SessionID = r.sessionID
-	return r.uicli.KexStatus(arg)
+	return r.uicli.KexStatus(context.TODO(), arg)
 }
 
 func (r *RemoteLocksmithUI) DisplayProvisionSuccess(arg keybase1.DisplayProvisionSuccessArg) error {
 	arg.SessionID = r.sessionID
-	return r.uicli.DisplayProvisionSuccess(arg)
+	return r.uicli.DisplayProvisionSuccess(context.TODO(), arg)
 }

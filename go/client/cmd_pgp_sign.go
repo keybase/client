@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -118,7 +120,7 @@ func (s *CmdPGPSign) Run() (err error) {
 	snk, src, err := s.ClientFilterOpen()
 	if err == nil {
 		arg := keybase1.PGPSignArg{Source: src, Sink: snk, Opts: s.opts}
-		err = cli.PGPSign(arg)
+		err = cli.PGPSign(context.TODO(), arg)
 	}
 	cerr := s.Close(err)
 	return libkb.PickFirstError(err, cerr)

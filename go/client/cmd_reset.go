@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 type CmdReset struct{}
@@ -26,7 +27,7 @@ func (v *CmdReset) Run() (err error) {
 		return err
 	}
 
-	return cli.Reset(0)
+	return cli.Reset(context.TODO(), 0)
 }
 
 func NewCmdReset(cl *libcmdline.CommandLine) cli.Command {

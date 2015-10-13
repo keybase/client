@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -152,7 +154,7 @@ func (s *CmdSignup) checkRegistered() (err error) {
 
 	var rres keybase1.GetCurrentStatusRes
 
-	if rres, err = s.ccli.GetCurrentStatus(0); err != nil {
+	if rres, err = s.ccli.GetCurrentStatus(context.TODO(), 0); err != nil {
 		return err
 	}
 	if !rres.Registered {
@@ -224,7 +226,7 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		StoreSecret: s.storeSecret,
 		DeviceName:  s.fields.deviceName.GetValue(),
 	}
-	res, err := s.scli.Signup(rarg)
+	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {
 		return false, nil
 	}
@@ -386,7 +388,7 @@ func (s *CmdSignup) postInviteRequest() (err error) {
 		Fullname: s.fullname,
 		Notes:    s.notes,
 	}
-	err = s.scli.InviteRequest(rarg)
+	err = s.scli.InviteRequest(context.TODO(), rarg)
 	if err == nil {
 		G.Log.Info("Success! You're on our list, thanks for your interest.")
 	}

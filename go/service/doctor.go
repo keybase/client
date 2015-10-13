@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 // DoctorHandler implements the keybase_1.Doctor protocol
@@ -42,7 +43,7 @@ type RemoteDoctorUI struct {
 }
 
 func (r *RemoteDoctorUI) LoginSelect(currentUser string, otherUsers []string) (string, error) {
-	return r.uicli.LoginSelect(keybase1.LoginSelectArg{
+	return r.uicli.LoginSelect(context.TODO(), keybase1.LoginSelectArg{
 		SessionID:   r.sessionID,
 		CurrentUser: currentUser,
 		OtherUsers:  otherUsers,
@@ -50,14 +51,14 @@ func (r *RemoteDoctorUI) LoginSelect(currentUser string, otherUsers []string) (s
 }
 
 func (r *RemoteDoctorUI) DisplayStatus(status keybase1.DoctorStatus) (bool, error) {
-	return r.uicli.DisplayStatus(keybase1.DisplayStatusArg{
+	return r.uicli.DisplayStatus(context.TODO(), keybase1.DisplayStatusArg{
 		SessionID: r.sessionID,
 		Status:    status,
 	})
 }
 
 func (r *RemoteDoctorUI) DisplayResult(msg string) error {
-	return r.uicli.DisplayResult(keybase1.DisplayResultArg{
+	return r.uicli.DisplayResult(context.TODO(), keybase1.DisplayResultArg{
 		SessionID: r.sessionID,
 		Message:   msg,
 	})

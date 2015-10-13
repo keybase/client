@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"golang.org/x/net/context"
 )
 
 type CmdPGPPull struct {
@@ -26,7 +27,7 @@ func (v *CmdPGPPull) Run() (err error) {
 		return err
 	}
 
-	return cli.PGPPull(keybase1.PGPPullArg{
+	return cli.PGPPull(context.TODO(), keybase1.PGPPullArg{
 		UserAsserts: v.userAsserts,
 	})
 }

@@ -3,6 +3,8 @@ package client
 import (
 	"io/ioutil"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -79,7 +81,7 @@ func (c *CmdPGPVerify) Run() error {
 			SignedBy:     c.signedBy,
 		},
 	}
-	_, err = cli.PGPVerify(arg)
+	_, err = cli.PGPVerify(context.TODO(), arg)
 
 	cerr := c.Close(err)
 	return libkb.PickFirstError(err, cerr)

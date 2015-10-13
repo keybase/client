@@ -5,6 +5,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type provisionee struct {
@@ -112,7 +113,7 @@ func (p *provisionee) pickFirstConnection() (err error) {
 			return err
 		}
 		cli := keybase1.Kex2ProvisionerClient{Cli: rpc.NewClient(p.xp, nil)}
-		if err = cli.KexStart(); err != nil {
+		if err = cli.KexStart(context.TODO()); err != nil {
 			return err
 		}
 	case <-p.arg.Ctx.Done():

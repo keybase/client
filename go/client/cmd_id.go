@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -50,7 +52,7 @@ func (v *CmdID) Run() error {
 	}
 
 	arg := v.makeArg()
-	_, err = cli.Identify(arg.Export())
+	_, err = cli.Identify(context.TODO(), arg.Export())
 	if _, ok := err.(libkb.SelfNotFoundError); ok {
 		GlobUI.Println("Could not find UID or username for you on this device.")
 		GlobUI.Println("You can either specify a user to id:  keybase id <username>")

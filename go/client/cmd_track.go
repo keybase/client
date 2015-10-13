@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -59,7 +61,7 @@ func (v *CmdTrack) Run() error {
 		return err
 	}
 
-	return cli.Track(keybase1.TrackArg{
+	return cli.Track(context.TODO(), keybase1.TrackArg{
 		UserAssertion: v.user,
 		Options:       v.options,
 	})

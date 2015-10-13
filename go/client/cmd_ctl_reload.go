@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 func NewCmdCtlReload(cl *libcmdline.CommandLine) cli.Command {
@@ -29,7 +30,7 @@ func (s *CmdCtlReload) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	return cli.Reload(0)
+	return cli.Reload(context.TODO(), 0)
 }
 
 func (s *CmdCtlReload) GetUsage() libkb.Usage {

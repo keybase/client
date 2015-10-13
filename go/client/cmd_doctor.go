@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 func NewCmdDoctor(cl *libcmdline.CommandLine) cli.Command {
@@ -32,7 +33,7 @@ func (c *CmdDoctor) Run() error {
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	return cli.Doctor(0)
+	return cli.Doctor(context.TODO(), 0)
 }
 
 func (c *CmdDoctor) ParseArgv(ctx *cli.Context) error {

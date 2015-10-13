@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
@@ -58,7 +60,7 @@ func (v *CmdPGPGen) Run() (err error) {
 		return err
 	}
 
-	err = cli.PGPKeyGen(v.arg.Export())
+	err = cli.PGPKeyGen(context.TODO(), v.arg.Export())
 	err = AddPGPMultiInstructions(err)
 	return err
 }

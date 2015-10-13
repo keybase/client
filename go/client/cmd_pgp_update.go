@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type CmdPGPUpdate struct {
@@ -32,7 +33,7 @@ func (v *CmdPGPUpdate) Run() (err error) {
 		return err
 	}
 
-	return cli.PGPUpdate(keybase1.PGPUpdateArg{
+	return cli.PGPUpdate(context.TODO(), keybase1.PGPUpdateArg{
 		Fingerprints: v.fingerprints,
 		All:          v.all,
 	})

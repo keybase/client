@@ -5,6 +5,8 @@ import (
 	"io"
 	"sync"
 
+	"golang.org/x/net/context"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -131,16 +133,16 @@ type RemoteStream struct {
 }
 
 func (ewc RemoteStream) Write(buf []byte) (n int, err error) {
-	return ewc.Cli.Write(keybase1.WriteArg{S: ewc.Stream, Buf: buf, SessionID: ewc.SessionID})
+	return ewc.Cli.Write(context.TODO(), keybase1.WriteArg{S: ewc.Stream, Buf: buf, SessionID: ewc.SessionID})
 }
 
 func (ewc RemoteStream) Close() (err error) {
-	return ewc.Cli.Close(keybase1.CloseArg{S: ewc.Stream, SessionID: ewc.SessionID})
+	return ewc.Cli.Close(context.TODO(), keybase1.CloseArg{S: ewc.Stream, SessionID: ewc.SessionID})
 }
 
 func (ewc RemoteStream) Read(buf []byte) (n int, err error) {
 	var tmp []byte
-	if tmp, err = ewc.Cli.Read(keybase1.ReadArg{S: ewc.Stream, Sz: len(buf), SessionID: ewc.SessionID}); err == nil {
+	if tmp, err = ewc.Cli.Read(context.TODO(), keybase1.ReadArg{S: ewc.Stream, Sz: len(buf), SessionID: ewc.SessionID}); err == nil {
 		n = len(tmp)
 		copy(buf, tmp)
 	}

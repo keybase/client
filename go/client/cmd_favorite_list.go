@@ -4,6 +4,8 @@ import (
 	"errors"
 	"path/filepath"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -57,5 +59,5 @@ func list(arg keybase1.FavoriteListArg) ([]keybase1.Folder, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.FavoriteList(0)
+	return cli.FavoriteList(context.TODO(), 0)
 }
