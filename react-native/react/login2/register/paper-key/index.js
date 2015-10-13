@@ -26,7 +26,7 @@ export default class PaperKey extends Component {
         />
         <Button
           style={{alignSelf: 'flex-end', marginRight: 10}}
-          onPress={() => { this.props.dispatch(navigateTo(['login2', 'register', 'setSetPublicName'])) }}
+          onPress={() => { this.props.dispatch(navigateTo(['login2', 'register', 'setPublicName'])) }}
           title='Submit & Log in'
           enabled={this.state.paperKey}/>
       </View>
