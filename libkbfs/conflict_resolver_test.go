@@ -346,7 +346,7 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	mergedPaths[expectedUnmergedPath.tailPointer()] = mergedPath
 	expectedActions := make(map[BlockPointer][]crAction)
 	expectedActions[mergedPath.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file2", "file2"},
+		&copyUnmergedEntryAction{"file2", "file2", ""},
 	}
 	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
 		mergedPaths, nil, expectedActions)
@@ -407,7 +407,7 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	mergedPaths[expectedUnmergedPath.tailPointer()] = mergedPath
 	expectedActions := make(map[BlockPointer][]crAction)
 	expectedActions[mergedPath.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file2", "file2"},
+		&copyUnmergedEntryAction{"file2", "file2", ""},
 	}
 	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
 		mergedPaths, nil, expectedActions)
@@ -495,14 +495,14 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 
 	expectedActions := make(map[BlockPointer][]crAction)
 	expectedActions[dirCPtr] = []crAction{
-		&copyUnmergedEntryAction{"file2", "file2"},
+		&copyUnmergedEntryAction{"file2", "file2", ""},
 	}
 	expectedActions[dirBPtr] = []crAction{
-		&copyUnmergedEntryAction{"dirC", "dirC"},
+		&copyUnmergedEntryAction{"dirC", "dirC", ""},
 	}
 	dirAPtr1 := cr1.fbo.nodeCache.PathFromNode(dirA1).tailPointer()
 	expectedActions[dirAPtr1] = []crAction{
-		&copyUnmergedEntryAction{"dirB", "dirB"},
+		&copyUnmergedEntryAction{"dirB", "dirB", ""},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
@@ -581,7 +581,7 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 
 	expectedActions := make(map[BlockPointer][]crAction)
 	expectedActions[mergedPath.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file2", "file2"},
+		&copyUnmergedEntryAction{"file2", "file2", ""},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
@@ -753,17 +753,17 @@ func TestCRMergedChainsComplex(t *testing.T) {
 
 	expectedActions := make(map[BlockPointer][]crAction)
 	expectedActions[mergedPathA.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"dirJ", "dirJ"},
+		&copyUnmergedEntryAction{"dirJ", "dirJ", ""},
 	}
 	mergedPathE := cr1.fbo.nodeCache.PathFromNode(dirE1)
 	expectedActions[mergedPathE.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"dirF", "dirF"},
+		&copyUnmergedEntryAction{"dirF", "dirF", ""},
 	}
 	expectedActions[mergedPathF.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file3", "file3"},
+		&copyUnmergedEntryAction{"file3", "file3", ""},
 	}
 	expectedActions[mergedPathH.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file4", "file4"},
+		&copyUnmergedEntryAction{"file4", "file4", ""},
 	}
 	expectedActions[mergedPathB.tailPointer()] = []crAction{
 		&rmMergedEntryAction{"dirD"},
@@ -773,4 +773,88 @@ func TestCRMergedChainsComplex(t *testing.T) {
 
 	testCRCheckPathsAndActions(t, cr2, []path{uPathA2, uPathF2, uPathH2,
 		uPathB2}, mergedPaths, []*createOp{coF}, expectedActions)
+}
+
+// Tests that conflict resolution detects and can fix rename cycles.
+func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer config1.Shutdown()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer config2.Shutdown()
+	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	configs := make(map[keybase1.UID]Config)
+	configs[uid1] = config1
+	configs[uid2] = config2
+	nodesRoot := testCRSharedFolderForUsers(t, uid1, configs, []string{"root"})
+	dirRoot1 := nodesRoot[uid1]
+	dirRoot2 := nodesRoot[uid2]
+	fb := dirRoot1.GetFolderBranch()
+
+	nodesA := testCRSharedFolderForUsers(t, uid1, configs,
+		[]string{"root", "dirA"})
+	dirA1 := nodesA[uid1]
+
+	nodesB := testCRSharedFolderForUsers(t, uid1, configs,
+		[]string{"root", "dirB"})
+	dirB1 := nodesB[uid1]
+	dirB2 := nodesB[uid2]
+
+	cr1 := testCRGetCROrBust(t, config1, fb)
+	cr2 := testCRGetCROrBust(t, config2, fb)
+	cr2.Shutdown()
+	cr2.inputChan = make(chan conflictInput)
+
+	dirRootPtr := cr2.fbo.nodeCache.PathFromNode(dirRoot2).tailPointer()
+
+	// pause user 2
+	_, err = DisableUpdatesForTesting(config2, fb)
+	if err != nil {
+		t.Fatalf("Can't disable updates for user 2: %v", err)
+	}
+
+	// user1 moves dirB into dirA
+	err = config1.KBFSOps().Rename(ctx, dirRoot1, "dirB", dirA1, "dirB")
+	if err != nil {
+		t.Fatalf("Couldn't make dir: %v", err)
+	}
+
+	// user2 moves dirA into dirB
+	err = config2.KBFSOps().Rename(ctx, dirRoot2, "dirA", dirB2, "dirA")
+	if err != nil {
+		t.Fatalf("Couldn't make dir: %v", err)
+	}
+
+	// Now step through conflict resolution manually for user 2
+
+	mergedPaths := make(map[BlockPointer]path)
+
+	// root
+	unmergedPathRoot := cr2.fbo.nodeCache.PathFromNode(dirRoot2)
+	mergedPathRoot := cr1.fbo.nodeCache.PathFromNode(dirRoot1)
+	mergedPaths[unmergedPathRoot.tailPointer()] = mergedPathRoot
+	unmergedPathB := cr2.fbo.nodeCache.PathFromNode(dirB2)
+	mergedPathB := cr1.fbo.nodeCache.PathFromNode(dirB1)
+	mergedPaths[unmergedPathB.tailPointer()] = mergedPathB
+
+	expectedActions := make(map[BlockPointer][]crAction)
+	ro := newRmOp("dirA", dirRootPtr)
+	ro.Dir.Ref = unmergedPathRoot.tailPointer()
+	ro.dropThis = true
+	ro.setWriterName("u2")
+	ro.setFinalPath(unmergedPathRoot)
+	expectedActions[mergedPathRoot.tailPointer()] = []crAction{
+		&dropUnmergedAction{ro},
+	}
+	expectedActions[mergedPathB.tailPointer()] = []crAction{
+		&copyUnmergedEntryAction{"dirA", "dirA", "./../../"},
+	}
+
+	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathRoot, unmergedPathB},
+		mergedPaths, nil, expectedActions)
 }
