@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"encoding/base64"
+	"io"
 	"time"
 
 	"github.com/keybase/client/go/kex2"
@@ -9,6 +10,8 @@ import (
 
 // KexRouter implements the kex2.MessageRouter interface.
 type KexRouter struct {
+	postEOF bool // true after Post called with nil msg
+	getEOF  bool // true after Get receives an empty message
 	Contextified
 }
 
@@ -24,6 +27,12 @@ func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2
 		k.G().Log.Debug("- KexRouter.Post(%x, %x, %d) -> %s", sessID, sender, seqno, ErrToOk(err))
 	}()
 
+	// once an EOF is received, then the connection is closed and no more messages can be sent:
+	if k.postEOF {
+		err = io.EOF
+		return err
+	}
+
 	_, err = k.G().API.Post(APIArg{
 		Endpoint: "kex2/send",
 		Args: HTTPArgs{
@@ -35,6 +44,11 @@ func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2
 		Contextified: NewContextified(k.G()),
 	})
 
+	// a nil message signals EOF.
+	if msg == nil {
+		k.postEOF = true
+	}
+
 	return err
 }
 
@@ -44,6 +58,12 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 	defer func() {
 		k.G().Log.Debug("- KexRouter.Get(%x, %x, %d, %s) -> %s (messages: %d)", sessID, receiver, low, poll, ErrToOk(err), len(msgs))
 	}()
+
+	// if previously received EOF, then connection is closed.  Short-circuit and return EOF.
+	if k.getEOF {
+		err = io.EOF
+		return nil, err
+	}
 
 	arg := APIArg{
 		Endpoint: "kex2/receive",
@@ -74,6 +94,16 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 	}
 
 	for _, m := range j.Msgs {
+		if len(m.Msg) == 0 {
+			// empty message signals EOF.
+			k.getEOF = true
+			if len(msgs) > 0 {
+				// received some messages before EOF, so return those
+				return msgs, nil
+			}
+			// just EOF, so return EOF.
+			return nil, io.EOF
+		}
 		dec, err := base64.StdEncoding.DecodeString(m.Msg)
 		if err != nil {
 			return nil, err

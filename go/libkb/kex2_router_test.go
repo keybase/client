@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"io"
 	"sync"
 	"testing"
 	"time"
@@ -32,9 +33,9 @@ func newKtester() *ktester {
 	return kt
 }
 
-func (k *ktester) post(mr kex2.MessageRouter, s string) error {
+func (k *ktester) post(mr kex2.MessageRouter, b []byte) error {
 	k.seqno++
-	return mr.Post(k.I, k.sender, k.seqno, []byte(s))
+	return mr.Post(k.I, k.sender, k.seqno, b)
 }
 
 func (k *ktester) get(mr kex2.MessageRouter, low kex2.Seqno, poll time.Duration) ([][]byte, error) {
@@ -51,11 +52,11 @@ func TestKex2Router(t *testing.T) {
 	m3 := "plaid shirt"
 
 	// test send 2 messages
-	if err := kt.post(mr, m1); err != nil {
+	if err := kt.post(mr, []byte(m1)); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := kt.post(mr, m2); err != nil {
+	if err := kt.post(mr, []byte(m2)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -86,7 +87,7 @@ func TestKex2Router(t *testing.T) {
 		wg.Done()
 	}()
 
-	if err := kt.post(mr, m3); err != nil {
+	if err := kt.post(mr, []byte(m3)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -105,5 +106,49 @@ func TestKex2Router(t *testing.T) {
 	}
 	if len(msgs) != 0 {
 		t.Errorf("number of messages: %d, expected 0", len(msgs))
+	}
+}
+
+func TestKex2RouterEOF(t *testing.T) {
+	tc := SetupTest(t, "kex2 router")
+	postRouter := NewKexRouter(tc.G)
+	getRouter := NewKexRouter(tc.G)
+	kt := newKtester()
+
+	m1 := "coca cola"
+	if err := kt.post(postRouter, []byte(m1)); err != nil {
+		t.Fatal(err)
+	}
+	if err := kt.post(postRouter, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	msgs, err := kt.get(getRouter, 0, 10*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(msgs) != 1 {
+		t.Fatalf("number of messages: %d, expected 1", len(msgs))
+	}
+	if string(msgs[0]) != m1 {
+		t.Errorf("message: %q, expected %q", msgs[0], m1)
+	}
+
+	// all posts should return io.EOF:
+	for i := 0; i < 10; i++ {
+		if err := kt.post(postRouter, []byte(m1)); err != io.EOF {
+			t.Errorf("post %d: expected io.EOF, got %s", i, err)
+		}
+	}
+
+	// all gets should return io.EOF:
+	for i := 0; i < 10; i++ {
+		msgs, err := kt.get(getRouter, 0, 10*time.Millisecond)
+		if err != io.EOF {
+			t.Errorf("get %d: expected io.EOF, got %s", i, err)
+		}
+		if len(msgs) != 0 {
+			t.Errorf("get %d: returned %d messages, expected 0", i, len(msgs))
+		}
 	}
 }
