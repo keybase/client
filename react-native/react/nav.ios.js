@@ -101,6 +101,7 @@ export default class Nav extends Component {
             store: this.props.store,
             rootRouteParser: tabToRootRouteParse[activeTab] || NoTab.parseRoute,
             globalRoutes,
+            Navigator: Navigator,
             NavBar: this.navBar(),
             navBarHeight: styleConstants.navBarHeight
           }

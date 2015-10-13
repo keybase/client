@@ -26,6 +26,38 @@ const tabToRootRouteParse = {
   [MORE_TAB]: More.parseRoute
 }
 
+class AndroidNavigator extends Component {
+  constructor (props) {
+    super(props)
+  }
+
+  push (componentAtTop) {
+    return false
+  }
+
+  getCurrentRoutes () {
+    return []
+  }
+
+  popToRoute (targetRoute) {
+    return false
+  }
+
+  immediatelyResetRouteStack () {
+    return false
+  }
+
+  render () {
+    let componentAtTop = this.props.initialRouteStack[this.props.initialRouteStack.length - 1]
+    return this.props.renderScene(componentAtTop, null)
+  }
+}
+
+AndroidNavigator.propTypes = {
+  initialRouteStack: React.PropTypes.array.isRequired,
+  renderScene: React.PropTypes.func.isRequired
+}
+
 export default class Nav extends Component {
   constructor (props) {
     super(props)
@@ -40,6 +72,7 @@ export default class Nav extends Component {
             rootRouteParser: tabToRootRouteParse[activeTab] || NoTab.parseRoute,
             globalRoutes,
             navBarHeight: 0,
+            Navigator: AndroidNavigator,
             NavBar: <View/>
           }
         )}
