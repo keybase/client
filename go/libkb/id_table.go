@@ -1170,15 +1170,26 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	p := res.link
 
 	G.Log.Debug("+ RemoteCheckProof %s", p.ToDebugString())
+	doCache := false
+	sid := p.GetSigID()
+
 	defer func() {
+
 		if hasPreviousTrack {
 			observedProofState := ProofErrorToState(res.err)
 			res.remoteDiff = ComputeRemoteDiff(res.trackedProofState, observedProofState)
 		}
+
+		if doCache {
+			G.Log.Debug("| Caching results under key=%s", sid)
+			if cacheErr := G.ProofCache.Put(sid, res.err); cacheErr != nil {
+				G.Log.Warning("proof cache put error: %s", cacheErr)
+			}
+		}
+
 		G.Log.Debug("- RemoteCheckProof %s", p.ToDebugString())
 	}()
 
-	sid := p.GetSigID()
 	res.hint = idt.sigHints.Lookup(sid)
 	if res.hint == nil {
 		res.err = NewProofError(keybase1.ProofStatus_NO_HINT, "No server-given hint for sig=%s", sid)
@@ -1199,13 +1210,18 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 		return
 	}
 
-	res.err = pc.CheckHint(*res.hint)
-	if res.err == nil {
-		res.err = pc.CheckStatus(*res.hint)
+	// From this point on in the function, we'll be putting our results into
+	// cache (in the defer above).
+	doCache = true
+
+	if res.err = pc.CheckHint(*res.hint); res.err != nil {
+		G.Log.Debug("| Hint failed with error: %s", res.err.Error())
+		return
 	}
 
-	if err := G.ProofCache.Put(sid, res.err); err != nil {
-		G.Log.Warning("proof cache put error: %s", err)
+	if res.err = pc.CheckStatus(*res.hint); res.err != nil {
+		G.Log.Debug("| Check status failed with error: %s", res.err.Error())
+		return
 	}
 
 	return
