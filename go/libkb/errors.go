@@ -1000,11 +1000,11 @@ func (e APINetError) Error() string {
 
 //=============================================================================
 
-type PGPDecError struct {
+type PGPNoDecryptionKeyError struct {
 	Msg string
 }
 
-func (e PGPDecError) Error() string {
+func (e PGPNoDecryptionKeyError) Error() string {
 	return fmt.Sprintf("pgp decrypt error: %s", e.Msg)
 }
 

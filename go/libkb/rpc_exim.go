@@ -730,7 +730,14 @@ func (e ProofNotFoundForUsernameError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-func (e PGPDecError) ToStatus() (s keybase1.Status) {
+func (e PGPNoDecryptionKeyError) ToStatus() (s keybase1.Status) {
+	s.Code = SCDecryptionKeyNotFound
+	s.Name = "KEY_NOT_FOUND_DECRYPTION"
+	s.Desc = e.Msg
+	return
+}
+
+func (e NoKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyNotFound
 	s.Name = "KEY_NOT_FOUND"
 	s.Desc = e.Msg
