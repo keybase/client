@@ -947,8 +947,15 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	// Step 1: build the chains for each branch, as well as the paths
-	// and necessary extra recreate ops.
+	// Step 1: Build the chains for each branch, as well as the paths
+	// and necessary extra recreate ops.  The result of this step is:
+	//   * A set of conflict resolution "chains" for both the unmerged and
+	//     merged branches
+	//   * A map containing, for each changed unmerged node, the full path to
+	//     the corresponding merged node.
+	//   * A set of "recreate" ops that must be applied on the merged branch
+	//     to recreate any directories that were modified in the unmerged
+	//     branch but removed in the merged branch.
 	unmergedChains, mergedChains, _, mergedPaths, recreateOps, err :=
 		cr.buildChainsAndPaths(ctx)
 	if err != nil {
@@ -964,8 +971,14 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	// Step 2: figure out which actions need to be taken in the merged
-	// branch to best reflect the unmerged changes.
+	// Step 2: Figure out which actions need to be taken in the merged
+	// branch to best reflect the unmerged changes.  The result of
+	// this step is a map containing, for each node in the merged path
+	// that will be updated during conflict resolution, a set of
+	// "actions" to be applied to the merged branch.  Each of these
+	// actions contains the logic needed to manipulate the data into
+	// the final merged state, including the resolution of any
+	// conflicts that occurred between the two branches.
 	_, err = cr.computeActions(ctx, unmergedChains, mergedChains,
 		mergedPaths, recreateOps)
 	if err != nil {
@@ -978,10 +991,19 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	}
 
 	// TODO:
-	// * Apply the operations by looking up the corresponding unmerged dir
+	// * Apply the actions by looking up the corresponding unmerged dir
 	//   entry and copying it to a copy of the corresponding merged block.
 	//   Keep these dirty block copies in a local dirty cache, keyed by
 	//   corresponding merged most recent pointer.
+	// * At the same time, construct two sets of ops: one that will be put
+	//   into the final MD object that gets merged, and one that needs to be
+	//   played through as notifications locally to get any local caches
+	//   synchronized with the final merged state.
+	//   * This will be taken care of by each crAction.do() method, which
+	//     modifies the unmerged and merged ops for a particular chain.  After
+	//     all the crActions are applied, the "unmerged" ops need to be pushed
+	//     as part of the MD update, while the "merged" ops need to be applied
+	//     locally.
 	// * Once all the new blocks are ready, calculate the resolvedChain paths
 	//   and arrange them into a tree.  Do a recursive descent and
 	//   syncBlockLocked each branch (filling in the new BlockChanges in a
@@ -989,31 +1011,4 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// * Finally attempt to put the final MD object.  If successful, send
 	//   out all the notifyOps to observers.
 	// Release all locks and reset the currInput, we're done!
-
-	// Notes on resolving conflicts:
-	//
-	// * Make a function on a crChain M that takes in the corresponding
-	//   chain U from the other branch.
-	//   * For each operation in U, iterate through the ops in M.  If there is
-	//     a conflict where an entry from the U operation needs to be renamed:
-	//     1) Create a new "local" operation that renames the entry as a
-	//        U-derived conflict (i.e., "foo.conflict.<loser_user>.<date>), and
-	//        prepend it to the M chain, followed by a create operation for
-	//        the original name and the entry's M-mostRecent details.
-	//     2) Create a new "remote" operation that creates the newly-renamed
-	//        entry that needs to be inserted into U before any other
-	//        operations affecting that node.
-	//   * If there is a conflict where the node from the M operation needs to
-	//     be renamed, then do the above but reverse the "local" and "remote".
-	//   * Change the "original" pointer for M to be the "mostRecent" pointer
-	//     of U.
-	//   * Change the "original" pointer for U to be the "mostRecent" pointer
-	//     of M.
-	// * At the end of this process, U is the set of operations that needs to
-	//   be merged, while M is the set of operations that need to be applied
-	//   locally for notification purposes.
-	// * The above process can also take in a copy of the most-recent merged
-	//   block, along with the most-recent unmerged block, for chain in
-	//   question, and make the "remote" changes directly to the copy of the
-	//   merged block for future Put-ing.
 }

@@ -950,10 +950,18 @@ type ConnectionTransport interface {
 type crAction interface {
 	// do modifies the given merged block in place to resolve the
 	// conflict, and returns potentially modified sets of unmerged and
-	// merged operations.
+	// merged operations.  Eventually, the "unmerged" ops will be
+	// pushed as part of a MD update, and so should contain any
+	// necessarily operations to fully merge the unmerged data,
+	// including any conflict resolution.  The "merged" ops will be
+	// played through locally, to notify any caches about the
+	// newly-obtained merged data (and any changes to local data that
+	// were required as part of conflict resolution, such as renames).
 	do(config Config, unmergedMostRecent BlockPointer,
 		mergedMostRecent BlockPointer, unmergedOps []op, mergedOps []op,
 		unmergedBlock *DirBlock, mergedBlock *DirBlock) (
 		retUnmergedOps []op, retMergedOps []op, err error)
+	// String returns a string representation for this crAction, used
+	// for debugging.
 	String() string
 }
