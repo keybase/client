@@ -161,7 +161,7 @@ class GoEmitter
   emit_generic_client : () ->
     @output "type GenericClient interface {"
     @tab()
-    @output "Call(s string, args interface{}, res interface{}) error"
+    @output "Call(ctx context.Context, s string, args interface{}, res interface{}) error"
     @untab()
     @output "}"
 
@@ -184,6 +184,7 @@ class GoEmitter
 
   emit_imports : () ->
     @output 'rpc "github.com/keybase/go-framed-msgpack-rpc"'
+    @output 'context "golang.org/x/net/context"'
 
   emit_interface_server : (protocol, messages) ->
     p = @go_export_case protocol
@@ -303,7 +304,7 @@ class GoEmitter
     oarg += if arg.nargs is 0 then "#{arg.type}{}"
     else arg.name
     oarg += "}"
-    @output """err = c.Cli.Call("#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
+    @output """err = c.Cli.Call(context.TODO(), "#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
     @output "return"
     @untab()
     @output "}"

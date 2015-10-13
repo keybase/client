@@ -3,6 +3,7 @@ package service
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type TestHandler struct {
@@ -17,7 +18,7 @@ func (t TestHandler) Test(arg keybase1.TestArg) (test keybase1.Test, err error) 
 	client := t.rpcClient()
 	cbArg := keybase1.TestCallbackArg{Name: arg.Name, SessionID: arg.SessionID}
 	var cbReply string
-	err = client.Call("keybase.1.test.testCallback", []interface{}{cbArg}, &cbReply)
+	err = client.Call(context.TODO(), "keybase.1.test.testCallback", []interface{}{cbArg}, &cbReply)
 	if err != nil {
 		return
 	}

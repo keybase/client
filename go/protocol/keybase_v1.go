@@ -2,10 +2,11 @@ package keybase1
 
 import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	context "golang.org/x/net/context"
 )
 
 type GenericClient interface {
-	Call(s string, args interface{}, res interface{}) error
+	Call(ctx context.Context, s string, args interface{}, res interface{}) error
 }
 
 type PassphraseChangeArg struct {
@@ -48,7 +49,7 @@ type AccountClient struct {
 }
 
 func (c AccountClient) PassphraseChange(__arg PassphraseChangeArg) (err error) {
-	err = c.Cli.Call("keybase.1.account.passphraseChange", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.account.passphraseChange", []interface{}{__arg}, nil)
 	return
 }
 
@@ -266,28 +267,28 @@ type BlockClient struct {
 }
 
 func (c BlockClient) EstablishSession(__arg EstablishSessionArg) (err error) {
-	err = c.Cli.Call("keybase.1.block.establishSession", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.block.establishSession", []interface{}{__arg}, nil)
 	return
 }
 
 func (c BlockClient) PutBlock(__arg PutBlockArg) (err error) {
-	err = c.Cli.Call("keybase.1.block.putBlock", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.block.putBlock", []interface{}{__arg}, nil)
 	return
 }
 
 func (c BlockClient) GetBlock(bid BlockIdCombo) (res GetBlockRes, err error) {
 	__arg := GetBlockArg{Bid: bid}
-	err = c.Cli.Call("keybase.1.block.getBlock", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.block.getBlock", []interface{}{__arg}, &res)
 	return
 }
 
 func (c BlockClient) IncBlockReference(__arg IncBlockReferenceArg) (err error) {
-	err = c.Cli.Call("keybase.1.block.incBlockReference", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.block.incBlockReference", []interface{}{__arg}, nil)
 	return
 }
 
 func (c BlockClient) DecBlockReference(__arg DecBlockReferenceArg) (err error) {
-	err = c.Cli.Call("keybase.1.block.decBlockReference", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.block.decBlockReference", []interface{}{__arg}, nil)
 	return
 }
 
@@ -330,7 +331,7 @@ type BTCClient struct {
 }
 
 func (c BTCClient) RegisterBTC(__arg RegisterBTCArg) (err error) {
-	err = c.Cli.Call("keybase.1.BTC.registerBTC", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.BTC.registerBTC", []interface{}{__arg}, nil)
 	return
 }
 
@@ -436,18 +437,18 @@ type ConfigClient struct {
 
 func (c ConfigClient) GetCurrentStatus(sessionID int) (res GetCurrentStatusRes, err error) {
 	__arg := GetCurrentStatusArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res)
 	return
 }
 
 func (c ConfigClient) GetConfig(sessionID int) (res Config, err error) {
 	__arg := GetConfigArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.config.getConfig", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.config.getConfig", []interface{}{__arg}, &res)
 	return
 }
 
 func (c ConfigClient) SetUserConfig(__arg SetUserConfigArg) (err error) {
-	err = c.Cli.Call("keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
 	return
 }
 
@@ -526,12 +527,12 @@ type CryptoClient struct {
 }
 
 func (c CryptoClient) SignED25519(__arg SignED25519Arg) (res ED25519SignatureInfo, err error) {
-	err = c.Cli.Call("keybase.1.crypto.signED25519", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.crypto.signED25519", []interface{}{__arg}, &res)
 	return
 }
 
 func (c CryptoClient) UnboxBytes32(__arg UnboxBytes32Arg) (res Bytes32, err error) {
-	err = c.Cli.Call("keybase.1.crypto.unboxBytes32", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.crypto.unboxBytes32", []interface{}{__arg}, &res)
 	return
 }
 
@@ -658,30 +659,30 @@ type CtlClient struct {
 
 func (c CtlClient) Stop(sessionID int) (err error) {
 	__arg := StopArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.ctl.stop", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.stop", []interface{}{__arg}, nil)
 	return
 }
 
 func (c CtlClient) LogRotate(sessionID int) (err error) {
 	__arg := LogRotateArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
 	return
 }
 
 func (c CtlClient) SetLogLevel(__arg SetLogLevelArg) (err error) {
-	err = c.Cli.Call("keybase.1.ctl.setLogLevel", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.setLogLevel", []interface{}{__arg}, nil)
 	return
 }
 
 func (c CtlClient) Reload(sessionID int) (err error) {
 	__arg := ReloadArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.ctl.reload", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.reload", []interface{}{__arg}, nil)
 	return
 }
 
 func (c CtlClient) DbNuke(sessionID int) (err error) {
 	__arg := DbNukeArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.ctl.dbNuke", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil)
 	return
 }
 
@@ -771,17 +772,17 @@ type DebuggingClient struct {
 }
 
 func (c DebuggingClient) FirstStep(__arg FirstStepArg) (res FirstStepResult, err error) {
-	err = c.Cli.Call("keybase.1.debugging.firstStep", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.debugging.firstStep", []interface{}{__arg}, &res)
 	return
 }
 
 func (c DebuggingClient) SecondStep(__arg SecondStepArg) (res int, err error) {
-	err = c.Cli.Call("keybase.1.debugging.secondStep", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.debugging.secondStep", []interface{}{__arg}, &res)
 	return
 }
 
 func (c DebuggingClient) Increment(__arg IncrementArg) (res int, err error) {
-	err = c.Cli.Call("keybase.1.debugging.increment", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.debugging.increment", []interface{}{__arg}, &res)
 	return
 }
 
@@ -866,18 +867,18 @@ type DeviceClient struct {
 
 func (c DeviceClient) DeviceList(sessionID int) (res []Device, err error) {
 	__arg := DeviceListArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.device.deviceList", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.device.deviceList", []interface{}{__arg}, &res)
 	return
 }
 
 func (c DeviceClient) DeviceAdd(__arg DeviceAddArg) (err error) {
-	err = c.Cli.Call("keybase.1.device.deviceAdd", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.device.deviceAdd", []interface{}{__arg}, nil)
 	return
 }
 
 func (c DeviceClient) DeviceAddCancel(sessionID int) (err error) {
 	__arg := DeviceAddCancelArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.device.deviceAddCancel", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.device.deviceAddCancel", []interface{}{__arg}, nil)
 	return
 }
 
@@ -919,7 +920,7 @@ type DoctorClient struct {
 
 func (c DoctorClient) Doctor(sessionID int) (err error) {
 	__arg := DoctorArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.doctor.doctor", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.doctor.doctor", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1027,17 +1028,17 @@ type DoctorUiClient struct {
 }
 
 func (c DoctorUiClient) LoginSelect(__arg LoginSelectArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.doctorUi.loginSelect", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.doctorUi.loginSelect", []interface{}{__arg}, &res)
 	return
 }
 
 func (c DoctorUiClient) DisplayStatus(__arg DisplayStatusArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.doctorUi.displayStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.doctorUi.displayStatus", []interface{}{__arg}, &res)
 	return
 }
 
 func (c DoctorUiClient) DisplayResult(__arg DisplayResultArg) (err error) {
-	err = c.Cli.Call("keybase.1.doctorUi.displayResult", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.doctorUi.displayResult", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1128,18 +1129,18 @@ type FavoriteClient struct {
 }
 
 func (c FavoriteClient) FavoriteAdd(__arg FavoriteAddArg) (err error) {
-	err = c.Cli.Call("keybase.1.favorite.favoriteAdd", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.favorite.favoriteAdd", []interface{}{__arg}, nil)
 	return
 }
 
 func (c FavoriteClient) FavoriteDelete(__arg FavoriteDeleteArg) (err error) {
-	err = c.Cli.Call("keybase.1.favorite.favoriteDelete", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.favorite.favoriteDelete", []interface{}{__arg}, nil)
 	return
 }
 
 func (c FavoriteClient) FavoriteList(sessionID int) (res []Folder, err error) {
 	__arg := FavoriteListArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1259,23 +1260,23 @@ type GpgUiClient struct {
 
 func (c GpgUiClient) WantToAddGPGKey(sessionID int) (res bool, err error) {
 	__arg := WantToAddGPGKeyArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.gpgUi.wantToAddGPGKey", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.gpgUi.wantToAddGPGKey", []interface{}{__arg}, &res)
 	return
 }
 
 func (c GpgUiClient) ConfirmDuplicateKeyChosen(sessionID int) (res bool, err error) {
 	__arg := ConfirmDuplicateKeyChosenArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.gpgUi.confirmDuplicateKeyChosen", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.gpgUi.confirmDuplicateKeyChosen", []interface{}{__arg}, &res)
 	return
 }
 
 func (c GpgUiClient) SelectKeyAndPushOption(__arg SelectKeyAndPushOptionArg) (res SelectKeyRes, err error) {
-	err = c.Cli.Call("keybase.1.gpgUi.selectKeyAndPushOption", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.gpgUi.selectKeyAndPushOption", []interface{}{__arg}, &res)
 	return
 }
 
 func (c GpgUiClient) SelectKey(__arg SelectKeyArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.gpgUi.selectKey", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.gpgUi.selectKey", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1460,7 +1461,7 @@ type IdentifyClient struct {
 }
 
 func (c IdentifyClient) Identify(__arg IdentifyArg) (res IdentifyRes, err error) {
-	err = c.Cli.Call("keybase.1.identify.identify", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identify.identify", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1756,53 +1757,53 @@ type IdentifyUiClient struct {
 }
 
 func (c IdentifyUiClient) Start(__arg StartArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.start", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.start", []interface{}{__arg}, nil)
 	return
 }
 
 func (c IdentifyUiClient) DisplayKey(__arg DisplayKeyArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.displayKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.displayKey", []interface{}{__arg}, nil)
 	return
 }
 
 func (c IdentifyUiClient) ReportLastTrack(__arg ReportLastTrackArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.reportLastTrack", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.reportLastTrack", []interface{}{__arg}, nil)
 	return
 }
 
 func (c IdentifyUiClient) LaunchNetworkChecks(__arg LaunchNetworkChecksArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil)
 	return
 }
 
 func (c IdentifyUiClient) DisplayTrackStatement(__arg DisplayTrackStatementArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil)
 	return
 }
 
 func (c IdentifyUiClient) FinishWebProofCheck(__arg FinishWebProofCheckArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil)
 	return
 }
 
 func (c IdentifyUiClient) FinishSocialProofCheck(__arg FinishSocialProofCheckArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil)
 	return
 }
 
 func (c IdentifyUiClient) DisplayCryptocurrency(__arg DisplayCryptocurrencyArg) (err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
 	return
 }
 
 func (c IdentifyUiClient) Confirm(__arg ConfirmArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.identifyUi.confirm", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.confirm", []interface{}{__arg}, &res)
 	return
 }
 
 func (c IdentifyUiClient) Finish(sessionID int) (err error) {
 	__arg := FinishArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.identifyUi.finish", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.identifyUi.finish", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1876,13 +1877,13 @@ type Kex2ProvisioneeClient struct {
 }
 
 func (c Kex2ProvisioneeClient) Hello(__arg HelloArg) (res HelloRes, err error) {
-	err = c.Cli.Call("keybase.1.Kex2Provisionee.hello", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.Kex2Provisionee.hello", []interface{}{__arg}, &res)
 	return
 }
 
 func (c Kex2ProvisioneeClient) DidCounterSign(sig []byte) (err error) {
 	__arg := DidCounterSignArg{Sig: sig}
-	err = c.Cli.Call("keybase.1.Kex2Provisionee.didCounterSign", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.Kex2Provisionee.didCounterSign", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1917,7 +1918,7 @@ type Kex2ProvisionerClient struct {
 }
 
 func (c Kex2ProvisionerClient) KexStart() (err error) {
-	err = c.Cli.Call("keybase.1.Kex2Provisioner.kexStart", []interface{}{KexStartArg{}}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.Kex2Provisioner.kexStart", []interface{}{KexStartArg{}}, nil)
 	return
 }
 
@@ -2142,37 +2143,37 @@ type LocksmithUiClient struct {
 
 func (c LocksmithUiClient) PromptDeviceName(sessionID int) (res string, err error) {
 	__arg := PromptDeviceNameArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.locksmithUi.promptDeviceName", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.promptDeviceName", []interface{}{__arg}, &res)
 	return
 }
 
 func (c LocksmithUiClient) DeviceNameTaken(__arg DeviceNameTakenArg) (err error) {
-	err = c.Cli.Call("keybase.1.locksmithUi.deviceNameTaken", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.deviceNameTaken", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LocksmithUiClient) SelectSigner(__arg SelectSignerArg) (res SelectSignerRes, err error) {
-	err = c.Cli.Call("keybase.1.locksmithUi.selectSigner", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.selectSigner", []interface{}{__arg}, &res)
 	return
 }
 
 func (c LocksmithUiClient) DeviceSignAttemptErr(__arg DeviceSignAttemptErrArg) (err error) {
-	err = c.Cli.Call("keybase.1.locksmithUi.deviceSignAttemptErr", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.deviceSignAttemptErr", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LocksmithUiClient) DisplaySecretWords(__arg DisplaySecretWordsArg) (err error) {
-	err = c.Cli.Call("keybase.1.locksmithUi.displaySecretWords", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.displaySecretWords", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LocksmithUiClient) KexStatus(__arg KexStatusArg) (err error) {
-	err = c.Cli.Call("keybase.1.locksmithUi.kexStatus", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.kexStatus", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LocksmithUiClient) DisplayProvisionSuccess(__arg DisplayProvisionSuccessArg) (err error) {
-	err = c.Cli.Call("keybase.1.locksmithUi.displayProvisionSuccess", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.locksmithUi.displayProvisionSuccess", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2215,7 +2216,7 @@ type LogUiClient struct {
 }
 
 func (c LogUiClient) Log(__arg LogArg) (err error) {
-	err = c.Cli.Call("keybase.1.logUi.log", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.logUi.log", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2478,45 +2479,45 @@ type LoginClient struct {
 
 func (c LoginClient) GetConfiguredAccounts(sessionID int) (res []ConfiguredAccount, err error) {
 	__arg := GetConfiguredAccountsArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res)
 	return
 }
 
 func (c LoginClient) LoginWithPrompt(__arg LoginWithPromptArg) (err error) {
-	err = c.Cli.Call("keybase.1.login.loginWithPrompt", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.loginWithPrompt", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LoginClient) LoginWithStoredSecret(__arg LoginWithStoredSecretArg) (err error) {
-	err = c.Cli.Call("keybase.1.login.loginWithStoredSecret", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.loginWithStoredSecret", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LoginClient) LoginWithPassphrase(__arg LoginWithPassphraseArg) (err error) {
-	err = c.Cli.Call("keybase.1.login.loginWithPassphrase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.loginWithPassphrase", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LoginClient) ClearStoredSecret(__arg ClearStoredSecretArg) (err error) {
-	err = c.Cli.Call("keybase.1.login.clearStoredSecret", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.clearStoredSecret", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LoginClient) CancelLogin(sessionID int) (err error) {
 	__arg := CancelLoginArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.login.cancelLogin", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.cancelLogin", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LoginClient) Logout(sessionID int) (err error) {
 	__arg := LogoutArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.login.logout", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.logout", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LoginClient) Reset(sessionID int) (err error) {
 	__arg := ResetArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.login.reset", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.reset", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2528,13 +2529,13 @@ func (c LoginClient) RecoverAccountFromEmailAddress(email string) (err error) {
 
 func (c LoginClient) PaperKey(sessionID int) (err error) {
 	__arg := PaperKeyArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.login.paperKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.paperKey", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LoginClient) Unlock(sessionID int) (err error) {
 	__arg := UnlockArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.login.unlock", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.login.unlock", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2643,22 +2644,22 @@ type LoginUiClient struct {
 
 func (c LoginUiClient) GetEmailOrUsername(sessionID int) (res string, err error) {
 	__arg := GetEmailOrUsernameArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res)
 	return
 }
 
 func (c LoginUiClient) PromptRevokePaperKeys(__arg PromptRevokePaperKeysArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.loginUi.promptRevokePaperKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.loginUi.promptRevokePaperKeys", []interface{}{__arg}, &res)
 	return
 }
 
 func (c LoginUiClient) DisplayPaperKeyPhrase(__arg DisplayPaperKeyPhraseArg) (err error) {
-	err = c.Cli.Call("keybase.1.loginUi.displayPaperKeyPhrase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.loginUi.displayPaperKeyPhrase", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LoginUiClient) DisplayPrimaryPaperKey(__arg DisplayPrimaryPaperKeyArg) (err error) {
-	err = c.Cli.Call("keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2906,54 +2907,54 @@ type MetadataClient struct {
 }
 
 func (c MetadataClient) Authenticate(__arg AuthenticateArg) (res int, err error) {
-	err = c.Cli.Call("keybase.1.metadata.authenticate", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.authenticate", []interface{}{__arg}, &res)
 	return
 }
 
 func (c MetadataClient) PutMetadata(__arg PutMetadataArg) (err error) {
-	err = c.Cli.Call("keybase.1.metadata.putMetadata", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.putMetadata", []interface{}{__arg}, nil)
 	return
 }
 
 func (c MetadataClient) GetMetadata(__arg GetMetadataArg) (res MetadataResponse, err error) {
-	err = c.Cli.Call("keybase.1.metadata.getMetadata", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.getMetadata", []interface{}{__arg}, &res)
 	return
 }
 
 func (c MetadataClient) RegisterForUpdates(__arg RegisterForUpdatesArg) (err error) {
-	err = c.Cli.Call("keybase.1.metadata.registerForUpdates", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.registerForUpdates", []interface{}{__arg}, nil)
 	return
 }
 
 func (c MetadataClient) PruneUnmerged(__arg PruneUnmergedArg) (err error) {
-	err = c.Cli.Call("keybase.1.metadata.pruneUnmerged", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.pruneUnmerged", []interface{}{__arg}, nil)
 	return
 }
 
 func (c MetadataClient) PutKeys(__arg PutKeysArg) (err error) {
-	err = c.Cli.Call("keybase.1.metadata.putKeys", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.putKeys", []interface{}{__arg}, nil)
 	return
 }
 
 func (c MetadataClient) GetKey(__arg GetKeyArg) (res []byte, err error) {
-	err = c.Cli.Call("keybase.1.metadata.getKey", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.getKey", []interface{}{__arg}, &res)
 	return
 }
 
 func (c MetadataClient) TruncateLock(folderID string) (res bool, err error) {
 	__arg := TruncateLockArg{FolderID: folderID}
-	err = c.Cli.Call("keybase.1.metadata.truncateLock", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.truncateLock", []interface{}{__arg}, &res)
 	return
 }
 
 func (c MetadataClient) TruncateUnlock(folderID string) (res bool, err error) {
 	__arg := TruncateUnlockArg{FolderID: folderID}
-	err = c.Cli.Call("keybase.1.metadata.truncateUnlock", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.truncateUnlock", []interface{}{__arg}, &res)
 	return
 }
 
 func (c MetadataClient) Ping() (err error) {
-	err = c.Cli.Call("keybase.1.metadata.ping", []interface{}{PingArg{}}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadata.ping", []interface{}{PingArg{}}, nil)
 	return
 }
 
@@ -2995,7 +2996,7 @@ type MetadataUpdateClient struct {
 }
 
 func (c MetadataUpdateClient) MetadataUpdate(__arg MetadataUpdateArg) (err error) {
-	err = c.Cli.Call("keybase.1.metadataUpdate.metadataUpdate", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.metadataUpdate.metadataUpdate", []interface{}{__arg}, nil)
 	return
 }
 
@@ -3399,73 +3400,73 @@ type PGPClient struct {
 }
 
 func (c PGPClient) PGPSign(__arg PGPSignArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpSign", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpSign", []interface{}{__arg}, nil)
 	return
 }
 
 func (c PGPClient) PGPPull(__arg PGPPullArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpPull", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpPull", []interface{}{__arg}, nil)
 	return
 }
 
 func (c PGPClient) PGPEncrypt(__arg PGPEncryptArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpEncrypt", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpEncrypt", []interface{}{__arg}, nil)
 	return
 }
 
 func (c PGPClient) PGPDecrypt(__arg PGPDecryptArg) (res PGPSigVerification, err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpDecrypt", []interface{}{__arg}, &res)
 	return
 }
 
 func (c PGPClient) PGPVerify(__arg PGPVerifyArg) (res PGPSigVerification, err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpVerify", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpVerify", []interface{}{__arg}, &res)
 	return
 }
 
 func (c PGPClient) PGPImport(__arg PGPImportArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpImport", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpImport", []interface{}{__arg}, nil)
 	return
 }
 
 func (c PGPClient) PGPExport(__arg PGPExportArg) (res []KeyInfo, err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpExport", []interface{}{__arg}, &res)
 	return
 }
 
 func (c PGPClient) PGPExportByFingerprint(__arg PGPExportByFingerprintArg) (res []KeyInfo, err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpExportByFingerprint", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpExportByFingerprint", []interface{}{__arg}, &res)
 	return
 }
 
 func (c PGPClient) PGPExportByKID(__arg PGPExportByKIDArg) (res []KeyInfo, err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpExportByKID", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpExportByKID", []interface{}{__arg}, &res)
 	return
 }
 
 func (c PGPClient) PGPKeyGen(__arg PGPKeyGenArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpKeyGen", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpKeyGen", []interface{}{__arg}, nil)
 	return
 }
 
 func (c PGPClient) PGPKeyGenDefault(__arg PGPKeyGenDefaultArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 
 func (c PGPClient) PGPDeletePrimary(sessionID int) (err error) {
 	__arg := PGPDeletePrimaryArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.pgp.pgpDeletePrimary", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpDeletePrimary", []interface{}{__arg}, nil)
 	return
 }
 
 func (c PGPClient) PGPSelect(__arg PGPSelectArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpSelect", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpSelect", []interface{}{__arg}, nil)
 	return
 }
 
 func (c PGPClient) PGPUpdate(__arg PGPUpdateArg) (err error) {
-	err = c.Cli.Call("keybase.1.pgp.pgpUpdate", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.pgp.pgpUpdate", []interface{}{__arg}, nil)
 	return
 }
 
@@ -3542,12 +3543,12 @@ type ProveClient struct {
 }
 
 func (c ProveClient) StartProof(__arg StartProofArg) (res StartProofResult, err error) {
-	err = c.Cli.Call("keybase.1.prove.startProof", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.prove.startProof", []interface{}{__arg}, &res)
 	return
 }
 
 func (c ProveClient) CheckProof(__arg CheckProofArg) (res CheckProofStatus, err error) {
-	err = c.Cli.Call("keybase.1.prove.checkProof", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.prove.checkProof", []interface{}{__arg}, &res)
 	return
 }
 
@@ -3732,37 +3733,37 @@ type ProveUiClient struct {
 }
 
 func (c ProveUiClient) PromptOverwrite(__arg PromptOverwriteArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.promptOverwrite", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.promptOverwrite", []interface{}{__arg}, &res)
 	return
 }
 
 func (c ProveUiClient) PromptUsername(__arg PromptUsernameArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.promptUsername", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.promptUsername", []interface{}{__arg}, &res)
 	return
 }
 
 func (c ProveUiClient) OutputPrechecks(__arg OutputPrechecksArg) (err error) {
-	err = c.Cli.Call("keybase.1.proveUi.outputPrechecks", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.outputPrechecks", []interface{}{__arg}, nil)
 	return
 }
 
 func (c ProveUiClient) PreProofWarning(__arg PreProofWarningArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.preProofWarning", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.preProofWarning", []interface{}{__arg}, &res)
 	return
 }
 
 func (c ProveUiClient) OutputInstructions(__arg OutputInstructionsArg) (err error) {
-	err = c.Cli.Call("keybase.1.proveUi.outputInstructions", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.outputInstructions", []interface{}{__arg}, nil)
 	return
 }
 
 func (c ProveUiClient) OkToCheck(__arg OkToCheckArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res)
 	return
 }
 
 func (c ProveUiClient) DisplayRecheckWarning(__arg DisplayRecheckWarningArg) (err error) {
-	err = c.Cli.Call("keybase.1.proveUi.displayRecheckWarning", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.proveUi.displayRecheckWarning", []interface{}{__arg}, nil)
 	return
 }
 
@@ -3811,7 +3812,7 @@ type QuotaClient struct {
 
 func (c QuotaClient) VerifySession(session string) (res VerifySessionRes, err error) {
 	__arg := VerifySessionArg{Session: session}
-	err = c.Cli.Call("keybase.1.quota.verifySession", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.quota.verifySession", []interface{}{__arg}, &res)
 	return
 }
 
@@ -3898,17 +3899,17 @@ type RevokeClient struct {
 }
 
 func (c RevokeClient) RevokeKey(__arg RevokeKeyArg) (err error) {
-	err = c.Cli.Call("keybase.1.revoke.revokeKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.revoke.revokeKey", []interface{}{__arg}, nil)
 	return
 }
 
 func (c RevokeClient) RevokeDevice(__arg RevokeDeviceArg) (err error) {
-	err = c.Cli.Call("keybase.1.revoke.revokeDevice", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.revoke.revokeDevice", []interface{}{__arg}, nil)
 	return
 }
 
 func (c RevokeClient) RevokeSigs(__arg RevokeSigsArg) (err error) {
-	err = c.Cli.Call("keybase.1.revoke.revokeSigs", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.revoke.revokeSigs", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4043,22 +4044,22 @@ type SecretUiClient struct {
 }
 
 func (c SecretUiClient) GetSecret(__arg GetSecretArg) (res SecretEntryRes, err error) {
-	err = c.Cli.Call("keybase.1.secretUi.getSecret", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.secretUi.getSecret", []interface{}{__arg}, &res)
 	return
 }
 
 func (c SecretUiClient) GetNewPassphrase(__arg GetNewPassphraseArg) (res GetNewPassphraseRes, err error) {
-	err = c.Cli.Call("keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
 	return
 }
 
 func (c SecretUiClient) GetKeybasePassphrase(__arg GetKeybasePassphraseArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.secretUi.getKeybasePassphrase", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.secretUi.getKeybasePassphrase", []interface{}{__arg}, &res)
 	return
 }
 
 func (c SecretUiClient) GetPaperKeyPassphrase(__arg GetPaperKeyPassphraseArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.secretUi.getPaperKeyPassphrase", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.secretUi.getPaperKeyPassphrase", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4128,13 +4129,13 @@ type SessionClient struct {
 
 func (c SessionClient) CurrentSession(sessionID int) (res Session, err error) {
 	__arg := CurrentSessionArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.session.currentSession", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.session.currentSession", []interface{}{__arg}, &res)
 	return
 }
 
 func (c SessionClient) CurrentUID(sessionID int) (res UID, err error) {
 	__arg := CurrentUIDArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.session.currentUID", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.session.currentUID", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4233,17 +4234,17 @@ type SignupClient struct {
 }
 
 func (c SignupClient) CheckUsernameAvailable(__arg CheckUsernameAvailableArg) (err error) {
-	err = c.Cli.Call("keybase.1.signup.checkUsernameAvailable", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.signup.checkUsernameAvailable", []interface{}{__arg}, nil)
 	return
 }
 
 func (c SignupClient) Signup(__arg SignupArg) (res SignupRes, err error) {
-	err = c.Cli.Call("keybase.1.signup.signup", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.signup.signup", []interface{}{__arg}, &res)
 	return
 }
 
 func (c SignupClient) InviteRequest(__arg InviteRequestArg) (err error) {
-	err = c.Cli.Call("keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4336,12 +4337,12 @@ type SigsClient struct {
 }
 
 func (c SigsClient) SigList(__arg SigListArg) (res []Sig, err error) {
-	err = c.Cli.Call("keybase.1.sigs.sigList", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.sigs.sigList", []interface{}{__arg}, &res)
 	return
 }
 
 func (c SigsClient) SigListJSON(__arg SigListJSONArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.sigs.sigListJSON", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.sigs.sigListJSON", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4429,17 +4430,17 @@ type StreamUiClient struct {
 }
 
 func (c StreamUiClient) Close(__arg CloseArg) (err error) {
-	err = c.Cli.Call("keybase.1.streamUi.close", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.streamUi.close", []interface{}{__arg}, nil)
 	return
 }
 
 func (c StreamUiClient) Read(__arg ReadArg) (res []byte, err error) {
-	err = c.Cli.Call("keybase.1.streamUi.read", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.streamUi.read", []interface{}{__arg}, &res)
 	return
 }
 
 func (c StreamUiClient) Write(__arg WriteArg) (res int, err error) {
-	err = c.Cli.Call("keybase.1.streamUi.write", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.streamUi.write", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4528,18 +4529,18 @@ type TestClient struct {
 }
 
 func (c TestClient) Test(__arg TestArg) (res Test, err error) {
-	err = c.Cli.Call("keybase.1.test.test", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.test.test", []interface{}{__arg}, &res)
 	return
 }
 
 func (c TestClient) TestCallback(__arg TestCallbackArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.test.testCallback", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.test.testCallback", []interface{}{__arg}, &res)
 	return
 }
 
 func (c TestClient) Panic(message string) (err error) {
 	__arg := PanicArg{Message: message}
-	err = c.Cli.Call("keybase.1.test.panic", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.test.panic", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4628,17 +4629,17 @@ type TrackClient struct {
 }
 
 func (c TrackClient) Track(__arg TrackArg) (err error) {
-	err = c.Cli.Call("keybase.1.track.track", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.track.track", []interface{}{__arg}, nil)
 	return
 }
 
 func (c TrackClient) TrackWithToken(__arg TrackWithTokenArg) (err error) {
-	err = c.Cli.Call("keybase.1.track.trackWithToken", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.track.trackWithToken", []interface{}{__arg}, nil)
 	return
 }
 
 func (c TrackClient) Untrack(__arg UntrackArg) (err error) {
-	err = c.Cli.Call("keybase.1.track.untrack", []interface{}{__arg}, nil)
+	err = c.Cli.Call(context.TODO(), "keybase.1.track.untrack", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4689,7 +4690,7 @@ type UiClient struct {
 }
 
 func (c UiClient) PromptYesNo(__arg PromptYesNoArg) (res bool, err error) {
-	err = c.Cli.Call("keybase.1.ui.promptYesNo", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.ui.promptYesNo", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4983,52 +4984,52 @@ type UserClient struct {
 }
 
 func (c UserClient) ListTrackers(__arg ListTrackersArg) (res []Tracker, err error) {
-	err = c.Cli.Call("keybase.1.user.listTrackers", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTrackers", []interface{}{__arg}, &res)
 	return
 }
 
 func (c UserClient) ListTrackersByName(__arg ListTrackersByNameArg) (res []Tracker, err error) {
-	err = c.Cli.Call("keybase.1.user.listTrackersByName", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTrackersByName", []interface{}{__arg}, &res)
 	return
 }
 
 func (c UserClient) ListTrackersSelf(sessionID int) (res []Tracker, err error) {
 	__arg := ListTrackersSelfArg{SessionID: sessionID}
-	err = c.Cli.Call("keybase.1.user.listTrackersSelf", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTrackersSelf", []interface{}{__arg}, &res)
 	return
 }
 
 func (c UserClient) LoadUncheckedUserSummaries(__arg LoadUncheckedUserSummariesArg) (res []UserSummary, err error) {
-	err = c.Cli.Call("keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
 	return
 }
 
 func (c UserClient) LoadUser(__arg LoadUserArg) (res User, err error) {
-	err = c.Cli.Call("keybase.1.user.loadUser", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.loadUser", []interface{}{__arg}, &res)
 	return
 }
 
 func (c UserClient) LoadUserPlusKeys(__arg LoadUserPlusKeysArg) (res UserPlusKeys, err error) {
-	err = c.Cli.Call("keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res)
 	return
 }
 
 func (c UserClient) LoadPublicKeys(__arg LoadPublicKeysArg) (res []PublicKey, err error) {
-	err = c.Cli.Call("keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res)
 	return
 }
 
 func (c UserClient) ListTracking(__arg ListTrackingArg) (res []UserSummary, err error) {
-	err = c.Cli.Call("keybase.1.user.listTracking", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTracking", []interface{}{__arg}, &res)
 	return
 }
 
 func (c UserClient) ListTrackingJSON(__arg ListTrackingJSONArg) (res string, err error) {
-	err = c.Cli.Call("keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res)
 	return
 }
 
 func (c UserClient) Search(__arg SearchArg) (res []SearchResult, err error) {
-	err = c.Cli.Call("keybase.1.user.search", []interface{}{__arg}, &res)
+	err = c.Cli.Call(context.TODO(), "keybase.1.user.search", []interface{}{__arg}, &res)
 	return
 }

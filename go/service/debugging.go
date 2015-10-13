@@ -3,6 +3,7 @@ package service
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type DebuggingHandler struct {
@@ -17,7 +18,7 @@ func (t DebuggingHandler) FirstStep(arg keybase1.FirstStepArg) (result keybase1.
 	client := t.rpcClient()
 	cbArg := keybase1.SecondStepArg{Val: arg.Val + 1, SessionID: arg.SessionID}
 	var cbReply int
-	err = client.Call("keybase.1.debugging.secondStep", []interface{}{cbArg}, &cbReply)
+	err = client.Call(context.TODO(), "keybase.1.debugging.secondStep", []interface{}{cbArg}, &cbReply)
 	if err != nil {
 		return
 	}
