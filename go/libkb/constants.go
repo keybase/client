@@ -310,7 +310,9 @@ const (
 	PaperKeyScryptR       = 8
 	PaperKeyScryptP       = 1
 	PaperKeyScryptKeylen  = 128
-	PaperKeyPhraseEntropy = 144
+	PaperKeySecretEntropy = 117
+	PaperKeyIDBits        = 22
+	PaperKeyVersionBits   = 4
 	PaperKeyVersion       = 0
 )
 

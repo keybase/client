@@ -14,8 +14,9 @@ type PaperKeyPhrase string
 // MakePaperKeyPhrase creates a new, random paper key phrase for
 // the given version.
 func MakePaperKeyPhrase(version uint8) (PaperKeyPhrase, error) {
+	nbits := PaperKeySecretEntropy + PaperKeyIDBits + PaperKeyVersionBits
 	for i := 0; i < 1000; i++ {
-		words, err := SecWordList(PaperKeyPhraseEntropy)
+		words, err := SecWordList(nbits)
 		if err != nil {
 			return "", err
 		}
@@ -63,5 +64,8 @@ func (p PaperKeyPhrase) words() []string {
 // word.
 func wordVersion(word string) uint8 {
 	h := sha256.Sum256([]byte(word))
-	return h[len(h)-1] & 0x0f
+	if PaperKeyVersionBits > 8 {
+		panic("PaperKeyVersionBits must be 8 bits or fewer")
+	}
+	return h[len(h)-1] & ((1 << PaperKeyVersionBits) - 1)
 }
