@@ -129,8 +129,8 @@
 		},
 		{
 			"path": "github.com/keybase/miniline",
-			"revision": "7b05931ce7f81b8e11f7480c5490707b0d9c4644",
-			"revisionTime": "2015-09-21T15:02:06-04:00"
+			"revision": "52e080cafce9259a7343c686aee3254637482472",
+			"revisionTime": "2015-10-05T10:18:12-07:00"
 		},
 		{
 			"path": "github.com/kr/pty",
