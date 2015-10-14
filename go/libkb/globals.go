@@ -64,9 +64,6 @@ func NewGlobalContext() *GlobalContext {
 
 var G *GlobalContext
 
-// Represents interface to some external key store
-var GlobalExternalKeyStore ExternalKeyStore
-
 func init() {
 	G = NewGlobalContext()
 }
@@ -74,10 +71,6 @@ func init() {
 func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
 
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
-
-// This is called by Android to register Android's KeyStore with Go
-func SetGlobalExternalKeyStore(s ExternalKeyStore) { GlobalExternalKeyStore = s }
-func GetGlobalExternalKeyStore() ExternalKeyStore  { return GlobalExternalKeyStore }
 
 func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)

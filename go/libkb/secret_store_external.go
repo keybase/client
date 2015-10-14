@@ -2,24 +2,30 @@
 
 package libkb
 
+// Represents interface to some external key store
+var GlobalExternalKeyStore ExternalKeyStore
+
+// This is called by Android to register Android's KeyStore with Go
+func SetGlobalExternalKeyStore(s ExternalKeyStore) { GlobalExternalKeyStore = s }
+
 type SecretStoreAccountName struct {
 	accountName string
 }
 
 func (s SecretStoreAccountName) StoreSecret(secret []byte) (err error) {
-	return GetGlobalExternalKeyStore().StoreSecret(s.accountName, secret)
+	return GlobalExternalKeyStore.StoreSecret(s.accountName, secret)
 }
 
 func (s SecretStoreAccountName) RetrieveSecret() ([]byte, error) {
-	return GetGlobalExternalKeyStore().RetrieveSecret(s.accountName)
+	return GlobalExternalKeyStore.RetrieveSecret(s.accountName)
 }
 
 func (s SecretStoreAccountName) ClearSecret() (err error) {
-	return GetGlobalExternalKeyStore().ClearSecret(s.accountName)
+	return GlobalExternalKeyStore.ClearSecret(s.accountName)
 }
 
 func NewSecretStore(username NormalizedUsername) SecretStore {
-	GetGlobalExternalKeyStore().SetupKeyStore(string(username))
+	GlobalExternalKeyStore.SetupKeyStore(string(username))
 	return SecretStoreAccountName{string(username)}
 }
 
@@ -28,7 +34,7 @@ func HasSecretStore() bool {
 }
 
 func GetUsersWithStoredSecrets() ([]string, error) {
-	usersMsgPack, err := GetGlobalExternalKeyStore().GetUsersWithStoredSecretsMsgPack()
+	usersMsgPack, err := GlobalExternalKeyStore.GetUsersWithStoredSecretsMsgPack()
 	if err != nil {
 		return nil, err
 	}
@@ -39,5 +45,5 @@ func GetUsersWithStoredSecrets() ([]string, error) {
 }
 
 func GetTerminalPrompt() string {
-	return GetGlobalExternalKeyStore().GetTerminalPrompt()
+	return GlobalExternalKeyStore.GetTerminalPrompt()
 }
