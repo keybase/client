@@ -3,6 +3,7 @@ package libkb
 import (
 	"fmt"
 
+	keybase1 "github.com/keybase/client/go/protocol"
 	triplesec "github.com/keybase/go-triplesec"
 )
 
@@ -88,5 +89,12 @@ func (ps *PassphraseStream) Clone() *PassphraseStream {
 	return &PassphraseStream{
 		stream: arr,
 		gen:    ps.gen,
+	}
+}
+
+func (ps PassphraseStream) Export() keybase1.PassphraseStream {
+	return keybase1.PassphraseStream{
+		PassphraseStream: ps.stream,
+		Generation:       int(ps.gen),
 	}
 }
