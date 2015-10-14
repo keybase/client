@@ -16,7 +16,7 @@ type provisioner struct {
 // Provisioner is an interface that abstracts out the crypto and session
 // management that a provisioner needs to do as part of the protocol.
 type Provisioner interface {
-	GetHelloArg() keybase1.HelloArg
+	GetHelloArg() (keybase1.HelloArg, error)
 	CounterSign(keybase1.HelloRes) ([]byte, error)
 	GetLogFactory() rpc.LogFactory
 }
@@ -131,8 +131,13 @@ func (p *provisioner) runProtocolWithCancel() (err error) {
 
 func (p *provisioner) runProtocol() (err error) {
 	cli := keybase1.Kex2ProvisioneeClient{Cli: rpc.NewClient(p.xp, nil)}
+	var helloArg keybase1.HelloArg
+	helloArg, err = p.arg.Provisioner.GetHelloArg()
+	if err != nil {
+		return
+	}
 	var res keybase1.HelloRes
-	if res, err = cli.Hello(p.arg.Provisioner.GetHelloArg()); err != nil {
+	if res, err = cli.Hello(helloArg); err != nil {
 		return
 	}
 	if p.canceled {

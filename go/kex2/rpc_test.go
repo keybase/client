@@ -83,7 +83,7 @@ func (mp *mockProvisioner) CounterSign(input keybase1.HelloRes) (output []byte, 
 	return
 }
 
-func (mp *mockProvisioner) GetHelloArg() (res keybase1.HelloArg) {
+func (mp *mockProvisioner) GetHelloArg() (res keybase1.HelloArg, err error) {
 	res.Uid = mp.uid
 	return
 }
