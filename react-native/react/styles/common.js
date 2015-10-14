@@ -68,3 +68,5 @@ export default StyleSheet.create({
 export const buttonHighlight = 'white'
 export const disabledButtonHighlight = 'black'
 export const constants = native
+
+export const androidTabBarHeight = 48

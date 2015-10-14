@@ -1,22 +1,15 @@
 'use strict'
 /* @flow */
 
-import React, { Component, ListView, Text, View } from 'react-native'
-import ProgressIndicator from '../common-adapters/progress-indicator'
+import React, { Component, Text, View, ScrollView, StyleSheet } from 'react-native'
 import Button from '../common-adapters/button'
-import commonStyles from '../styles/common'
 import { loadDevices } from '../actions/devices'
 import moment from 'moment'
 
+// TODO
+// [ ] - Add Icons
+
 export default class Devices extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      ...this.buildDataSource(props)
-    }
-  }
-
   loadDevices () {
     const {dispatch} = this.props
     if (!this.props.devices && !this.props.waitingForServer) {
@@ -24,86 +17,135 @@ export default class Devices extends Component {
     }
   }
 
-  buildDataSource (props) {
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
-
-    const devices = !props.devices ? [] : props.devices.map(function (d) {
-      const desc = `A ${d.type} with id: ${d.deviceID} added on ${moment(d.cTime).format('dddd, MMMM Do YYYY, h:mm:ss a')}`
-      return {
-        ...d,
-        desc: desc
-      }
-    })
-
-    return { dataSource: ds.cloneWithRows(devices) }
-  }
-
-  componentWillReceiveProps (nextProps) {
-    if (nextProps.devices !== this.props.devices) {
-      this.setState(this.buildDataSource(nextProps))
-    }
-  }
-
-  renderRow (rowData, sectionID, rowID) {
-    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
-
+  renderDevice (device, onRemove) {
     return (
-      <Button underlayColor={commonStyles.buttonHighlight}>
-        <View>
-          <View style={{margin: 10}}>
-            <Text>{rowData.name}</Text>
-            <Text style={{fontSize: 10}}>{rowData.desc}</Text>
-          </View>
-          {sep}
-        </View>
-      </Button>
+      <View key={device.name} style={[styles.device]}>
+        <Text style={styles.greyText}>ICON {device.type}</Text>
+        <Text style={styles.deviceName}>{device.name}</Text>
+        <Text style={[styles.deviceLastUsed, styles.greyText]}>Last Used: {moment(device.cTime).format('MM/DD/YY')}</Text>
+        <Text style={[styles.deviceAddedInfo, styles.greyText]}>TODO: Get Added info</Text>
+        <Text style={styles.deviceRemove} onPress={onRemove}>Remove</Text>
+      </View>
     )
   }
 
   render () {
-    // TODO: instead of forcing the user to click a button to load the devices we
-    // should do this a better way
-    // Currently all tabs are loaded on start on android,
-    // so this way they don't load when they open the app
-    if (!this.props.waitingForServer && !this.props.devices) {
+    const { devices, loggedIn } = this.props
+
+    if (!loggedIn) {
+      return (
+        <View>
+          <Text> Login to see devices </Text>
+        </View>
+      )
+    }
+
+    if (!devices) {
       return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <Button onPress={this.loadDevices.bind(this)} buttonStyle={{fontSize: 32, marginTop: 20, marginBottom: 20}} title='Load Devices' />
         </View>
       )
-    } else if (this.props.waitingForServer) {
-      return (
-        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          <ProgressIndicator
-            animating
-            style={{height: 80}}
-            size='large'/>
-        </View>
-      )
     }
 
     return (
-      <ListView style={{flex: 1}}
-        dataSource={this.state.dataSource}
-        renderRow={(...args) => { return this.renderRow(...args) }}
-      />
+      <ScrollView>
+        <View doc='Wrapper for new Actions (i.e. Connect a new device, Generate new paper key)'
+          style={styles.newActionsWrapper}>
+          <View doc='Wrapper for connect a new Device' style={[styles.outlineBox, styles.innerAction, {marginRight: 10}]}>
+            <View style={{alignItems: 'center', flex: 1}}>
+              <Text style={styles.greyText}>ICON</Text>
+              <Text style={styles.greyText}>Connect a new Device</Text>
+            </View>
+            <Text style={styles.greyText}>On another device, download Keybase then click here to enter your unique passphrase</Text>
+          </View>
+          <View doc='Wrapper for generate a new paper key' style={[styles.outlineBox, styles.innerAction]}>
+            <View style={{flex: 0, backgroundColor: 'green'}}>
+              <Text style={[styles.greyText, {textAlign: 'center'}]}>ICON</Text>
+              <Text style={[styles.greyText, {textAlign: 'center'}]}>Generate a new paper key</Text>
+            </View>
+            <Text style={[styles.greyText, {flex: 2, textAlign: 'center'}]}>A paper key is lorem ipsum dolor sit amet, consectetur adipiscing</Text>
+          </View>
+        </View>
+
+        <View doc='Wrapper for devices' style={styles.deviceWrapper}>
+          {devices.map((d) => this.renderDevice(d, () => console.log('removed', d)))}
+        </View>
+      </ScrollView>
     )
   }
 
   static parseRoute (store, currentPath, nextPath) {
+    const componentAtTop = {
+      component: Devices,
+      hideNavBar: true,
+      mapStateToProps: state => Object.assign({}, state.login, state.devices)
+    }
+
     return {
-      componentAtTop: {
-        title: 'Devices',
-        component: Devices,
-        mapStateToProps: state => state.devices
-      },
+      componentAtTop,
       parseNextRoute: null
     }
   }
 }
 
 Devices.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
-  devices: React.PropTypes.array,
-  waitingForServer: React.PropTypes.bool.isRequired
+  devices: React.PropTypes.object.isRequired,
+  loggedIn: React.PropTypes.bool.isRequired,
+  waitingForServer: React.PropTypes.bool.isRequired,
+  dispatch: React.PropTypes.func.isRequired
 }
+
+const styles = StyleSheet.create({
+  outlineBox: {
+    backgroundColor: '#f4f4f4',
+    borderWidth: 2,
+    borderColor: '#999999',
+    // TODO: this doesn't work
+    borderStyle: 'dotted'
+  },
+  newActionsWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    marginRight: 10,
+    marginLeft: 10,
+    marginTop: 20
+  },
+  innerAction: {
+    flex: 1,
+    padding: 10,
+    alignItems: 'stretch'
+  },
+  greyText: {
+    color: '#a6a6a6'
+  },
+
+  // Device Styling
+  deviceScrollView: {
+  },
+  deviceWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    alignItems: 'stretch',
+    marginRight: 10,
+    marginLeft: 10,
+    marginTop: 20
+  },
+  device: {
+    width: 100,
+    marginRight: 10,
+    marginLeft: 10,
+    marginBottom: 20
+  },
+  deviceName: {
+  },
+  deviceLastUsed: {
+  },
+  deviceAddedInfo: {
+  },
+  deviceRemove: {
+    textDecorationLine: 'underline'
+  }
+})
