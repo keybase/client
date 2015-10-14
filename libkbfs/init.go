@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/net/context"
 )
 
 func makeMDServer(config Config, serverRootDir *string, mdserverAddr string) (
@@ -33,7 +32,7 @@ func makeMDServer(config Config, serverRootDir *string, mdserverAddr string) (
 
 	// remote MD server. this can't fail. reconnection attempts
 	// will be automatic.
-	mdServer := NewMDServerRemote(context.TODO(), config, mdserverAddr)
+	mdServer := NewMDServerRemote(config, mdserverAddr)
 	return mdServer, nil
 }
 
@@ -67,13 +66,13 @@ func makeBlockServer(config Config, serverRootDir *string, bserverAddr string) (
 	}
 
 	fmt.Printf("Using remote bserver %s\n", bserverAddr)
-	return NewBlockServerRemote(context.TODO(), config, bserverAddr), nil
+	return NewBlockServerRemote(config, bserverAddr), nil
 }
 
-func makeKeybaseDaemon(serverRootDir *string, localUser libkb.NormalizedUsername, codec Codec, log logger.Logger) (KeybaseDaemon, error) {
+func makeKeybaseDaemon(config Config, serverRootDir *string, localUser libkb.NormalizedUsername, codec Codec, log logger.Logger) (KeybaseDaemon, error) {
 	if localUser == "" {
 		libkb.G.ConfigureSocketInfo()
-		return NewKeybaseDaemonRPC(libkb.G, log)
+		return NewKeybaseDaemonRPC(config, libkb.G, log), nil
 	}
 
 	users := []libkb.NormalizedUsername{"strib", "max", "chris", "fred"}
@@ -225,7 +224,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 		lg.Warning("ignoring for now...")
 	}
 
-	daemon, err := makeKeybaseDaemon(serverRootDir, localUser, config.Codec(), config.MakeLogger(""))
+	daemon, err := makeKeybaseDaemon(config, serverRootDir, localUser, config.Codec(), config.MakeLogger(""))
 	if err != nil {
 		return nil, fmt.Errorf("problem creating daemon: %s", err)
 	}
@@ -240,10 +239,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	config.SetKBPKI(k)
 
 	if localUser == "" {
-		c, err := NewCryptoClient(config, libkb.G)
-		if err != nil {
-			return nil, fmt.Errorf("Could not get Crypto: %v", err)
-		}
+		c := NewCryptoClient(config, libkb.G, config.MakeLogger(""))
 		config.SetCrypto(c)
 	} else {
 		signingKey := MakeLocalUserSigningKeyOrBust(localUser)

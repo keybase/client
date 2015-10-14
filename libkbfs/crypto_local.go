@@ -132,3 +132,6 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	copy(clientHalf.ClientHalf[:], decryptedData)
 	return
 }
+
+// Shutdown implements the Crypto interface for CryptoLocal.
+func (c *CryptoLocal) Shutdown() {}

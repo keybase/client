@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/go-framed-msgpack-rpc"
+
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -31,13 +33,13 @@ var _ MDServer = (*MDServerRemote)(nil)
 var _ KeyServer = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
-func NewMDServerRemote(ctx context.Context, config Config, srvAddr string) *MDServerRemote {
+func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 	mdServer := &MDServerRemote{
 		config:    config,
 		observers: make(map[TlfID]chan<- error),
 		log:       config.MakeLogger(""),
 	}
-	conn := NewConnection(ctx, config, srvAddr, mdServer, MDServerErrorUnwrapper{})
+	conn := NewTLSConnection(config, srvAddr, MDServerErrorUnwrapper{}, mdServer)
 	mdServer.conn = conn
 	mdServer.clientFactory = ConnectionClientFactory{conn}
 	return mdServer
@@ -56,7 +58,8 @@ func newMDServerRemoteWithClient(ctx context.Context, config Config,
 
 // OnConnect implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnConnect(ctx context.Context,
-	conn *Connection, client keybase1.GenericClient) error {
+	conn *Connection, client keybase1.GenericClient,
+	_ *rpc.Server) error {
 	// get UID, deviceKID and session token
 	uid, err := md.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
@@ -321,10 +324,16 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 	err := md.conn.DoCommand(ctx, func() error {
 		// set up the server to receive updates, since we may
 		// get disconnected between retries.
-		err := md.conn.Serve(keybase1.MetadataUpdateProtocol(md))
+		server := md.conn.GetServer()
+		err := server.Register(keybase1.MetadataUpdateProtocol(md))
 		if err != nil {
 			return err
 		}
+		err = server.Run(true)
+		if err != nil {
+			return err
+		}
+
 		// keep re-adding the observer on retries, since
 		// disconnects or connection errors clear observers.
 		func() {

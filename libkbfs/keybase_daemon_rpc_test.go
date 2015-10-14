@@ -8,45 +8,24 @@ import (
 	"golang.org/x/net/context"
 )
 
-type blockingIdentify struct {
+type blockingClient struct {
 	ctlChan chan struct{}
 }
 
-var _ keybase1.IdentifyInterface = blockingIdentify{}
+var _ keybase1.GenericClient = blockingClient{}
 
-func (b blockingIdentify) Identify(keybase1.IdentifyArg) (
-	keybase1.IdentifyRes, error) {
+func (b blockingClient) Call(s string, args interface{},
+	res interface{}) error {
 	// Say we're ready, and wait for the signal to proceed.
 	b.ctlChan <- struct{}{}
 	<-b.ctlChan
-	return keybase1.IdentifyRes{}, nil
-}
-
-type blockingSession struct {
-	ctlChan chan struct{}
-}
-
-var _ keybase1.SessionInterface = blockingSession{}
-
-func (b blockingSession) CurrentUID(int) (keybase1.UID, error) {
-	// Say we're ready, and wait for the signal to proceed.
-	b.ctlChan <- struct{}{}
-	<-b.ctlChan
-	return keybase1.UID(""), nil
-}
-
-func (b blockingSession) CurrentSession(int) (keybase1.Session, error) {
-	// Say we're ready, and wait for the signal to proceed.
-	b.ctlChan <- struct{}{}
-	<-b.ctlChan
-	return keybase1.Session{}, nil
+	return nil
 }
 
 func newKeybaseDaemonRPCWithFakeClient(t *testing.T) (
 	KeybaseDaemonRPC, chan struct{}) {
 	ctlChan := make(chan struct{})
-	c := newKeybaseDaemonRPCWithInterfaces(
-		blockingIdentify{ctlChan}, blockingSession{ctlChan}, nil, nil,
+	c := newKeybaseDaemonRPCWithClient(blockingClient{ctlChan},
 		logger.NewTestLogger(t))
 	return c, ctlChan
 }

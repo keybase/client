@@ -415,4 +415,5 @@ func (c *ConfigLocal) Shutdown() {
 	c.KeyServer().Shutdown()
 	c.KeybaseDaemon().Shutdown()
 	c.BlockServer().Shutdown()
+	c.Crypto().Shutdown()
 }

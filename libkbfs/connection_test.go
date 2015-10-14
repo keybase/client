@@ -19,7 +19,7 @@ type unitTester struct {
 }
 
 // OnConnect implements the ConnectionHandler interface.
-func (ut *unitTester) OnConnect(context.Context, *Connection, keybase1.GenericClient) error {
+func (ut *unitTester) OnConnect(context.Context, *Connection, keybase1.GenericClient, *rpc.Server) error {
 	ut.numConnects++
 	ut.doneChan <- true
 	return nil
@@ -41,17 +41,12 @@ func (ut *unitTester) ShouldThrottle(err error) bool {
 }
 
 // Dial implements the ConnectionTransport interface.
-func (ut *unitTester) Dial(ctx context.Context, srvAddr string) (
-	keybase1.GenericClient, error) {
+func (ut *unitTester) Dial(ctx context.Context) (
+	rpc.Transporter, error) {
 	if ut.numConnectErrors == 0 {
 		return nil, errors.New("intentional error to trigger reconnect")
 	}
 	return nil, nil
-}
-
-// Serve implements the ConnectionTransport interface.
-func (ut *unitTester) Serve(rpc.Protocol) error {
-	return nil
 }
 
 // IsConnected implements the ConnectionTransport interface.
@@ -83,10 +78,9 @@ func (ut *unitTester) Err() error {
 
 // Test a basic reconnect flow.
 func TestReconnectBasic(t *testing.T) {
-	ctx := context.Background()
 	config := NewConfigLocal()
 	unitTester := &unitTester{doneChan: make(chan bool)}
-	conn := newConnectionWithTransport(ctx, config, "", unitTester, unitTester)
+	conn := newConnectionWithTransport(config, unitTester, unitTester)
 	defer conn.Shutdown()
 	timeout := time.After(2 * time.Second)
 	select {
@@ -102,17 +96,17 @@ func TestReconnectBasic(t *testing.T) {
 
 // Test DoCommand with throttling.
 func TestDoCommandThrottle(t *testing.T) {
-	ctx := context.Background()
 	config := NewConfigLocal()
 	setTestLogger(config, t)
 	unitTester := &unitTester{doneChan: make(chan bool)}
 
 	throttleErr := errors.New("throttle")
-	conn := newConnectionWithTransport(ctx, config, "", unitTester, unitTester)
+	conn := newConnectionWithTransport(config, unitTester, unitTester)
 	defer conn.Shutdown()
 	<-unitTester.doneChan
 
 	throttle := true
+	ctx := context.Background()
 	err := conn.DoCommand(ctx, func() error {
 		if throttle {
 			throttle = false

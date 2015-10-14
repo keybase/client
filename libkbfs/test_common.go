@@ -98,7 +98,7 @@ func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *Conf
 	bserverAddr := os.Getenv(EnvTestBServerAddr)
 	if len(bserverAddr) != 0 {
 		blockServer :=
-			NewBlockServerRemote(context.TODO(), config, bserverAddr)
+			NewBlockServerRemote(config, bserverAddr)
 		config.SetBlockServer(blockServer)
 	} else {
 		blockServer, err := NewBlockServerMemory(config)
@@ -129,7 +129,7 @@ func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *Conf
 		libkb.G.ConfigureLogging()
 
 		// connect to server
-		mdServer = NewMDServerRemote(context.TODO(), config, mdServerAddr)
+		mdServer = NewMDServerRemote(config, mdServerAddr)
 		// for now the MD server acts as the key server in production
 		keyServer = mdServer.(*MDServerRemote)
 	} else {
@@ -183,7 +183,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.SetCrypto(crypto)
 
 	if s, ok := config.BlockServer().(*BlockServerRemote); ok {
-		blockServer := NewBlockServerRemote(context.TODO(), c, s.RemoteAddress())
+		blockServer := NewBlockServerRemote(c, s.RemoteAddress())
 		c.SetBlockServer(blockServer)
 	} else {
 		c.SetBlockServer(config.BlockServer())
@@ -196,7 +196,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	var keyServer KeyServer
 	if len(mdServerAddr) != 0 {
 		// connect to server
-		mdServer = NewMDServerRemote(context.TODO(), c, mdServerAddr)
+		mdServer = NewMDServerRemote(c, mdServerAddr)
 		// for now the MD server also acts as the key server.
 		keyServer = mdServer.(*MDServerRemote)
 	} else {

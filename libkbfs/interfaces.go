@@ -522,6 +522,9 @@ type Crypto interface {
 	// DecryptBlock() must guarantee that (size of the decrypted
 	// block) <= len(encryptedBlock).
 	DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error
+
+	// Shutdown frees any resources associated with this instance.
+	Shutdown()
 }
 
 // Codec encodes and decodes arbitrary data
@@ -913,11 +916,7 @@ type NodeCache interface {
 // used by a Connection instance.
 type ConnectionTransport interface {
 	// Dial is called to connect to the server.
-	Dial(ctx context.Context, srvAddr string) (keybase1.GenericClient, error)
-
-	// Serve is called when the client needs to act as a server on behalf
-	// of a server who wants to act as a client, e.g. push notifications.
-	Serve(server rpc.Protocol) error
+	Dial(ctx context.Context) (rpc.Transporter, error)
 
 	// IsConnected is called to check for connection status.
 	IsConnected() bool

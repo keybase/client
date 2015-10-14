@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"time"
 
+	"github.com/keybase/go-framed-msgpack-rpc"
+
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -23,15 +25,15 @@ var _ BlockServer = (*BlockServerRemote)(nil)
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(ctx context.Context, config Config, blkSrvAddr string) *BlockServerRemote {
+func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	bs := &BlockServerRemote{
 		config:     config,
 		log:        config.MakeLogger(""),
 		blkSrvAddr: blkSrvAddr,
 	}
-	bs.log.CDebugf(ctx, "BlockServerRemote new instance "+
-		"server addr %s\n", blkSrvAddr)
-	conn := NewConnection(ctx, config, blkSrvAddr, bs, bServerErrorUnwrapper{})
+	bs.log.Debug("BlockServerRemote new instance "+
+		"server addr %s", blkSrvAddr)
+	conn := NewTLSConnection(config, blkSrvAddr, bServerErrorUnwrapper{}, bs)
 	bs.clientFactory = ConnectionClientFactory{conn}
 	return bs
 }
@@ -54,7 +56,7 @@ func (b *BlockServerRemote) RemoteAddress() string {
 
 // OnConnect implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnect(ctx context.Context,
-	conn *Connection, client keybase1.GenericClient) error {
+	conn *Connection, client keybase1.GenericClient, _ *rpc.Server) error {
 	token, err := b.config.KBPKI().GetCurrentToken(ctx)
 	if err != nil {
 		b.log.CWarningf(ctx, "BlockServerRemote: error getting session %q", err)
@@ -72,7 +74,7 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	}
 
 	b.log.CDebugf(ctx, "BlockServerRemote.OnConnect establish session for "+
-		"uid %s\n", uid.String())
+		"uid %s", uid.String())
 	// Using GetClient() here would cause problematic recursion.
 	c := keybase1.BlockClient{Cli: client}
 	return runUnlessCanceled(ctx, func() error {

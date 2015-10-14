@@ -1222,6 +1222,14 @@ func (_mr *_MockCryptoRecorder) DecryptBlock(arg0, arg1, arg2 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptBlock", arg0, arg1, arg2)
 }
 
+func (_m *MockCrypto) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockCryptoRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
 // Mock of Codec interface
 type MockCodec struct {
 	ctrl     *gomock.Controller
@@ -2373,25 +2381,15 @@ func (_m *MockConnectionTransport) EXPECT() *_MockConnectionTransportRecorder {
 	return _m.recorder
 }
 
-func (_m *MockConnectionTransport) Dial(ctx context.Context, srvAddr string) (protocol.GenericClient, error) {
-	ret := _m.ctrl.Call(_m, "Dial", ctx, srvAddr)
-	ret0, _ := ret[0].(protocol.GenericClient)
+func (_m *MockConnectionTransport) Dial(ctx context.Context) (go_framed_msgpack_rpc.Transporter, error) {
+	ret := _m.ctrl.Call(_m, "Dial", ctx)
+	ret0, _ := ret[0].(go_framed_msgpack_rpc.Transporter)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockConnectionTransportRecorder) Dial(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Dial", arg0, arg1)
-}
-
-func (_m *MockConnectionTransport) Serve(server go_framed_msgpack_rpc.Protocol) error {
-	ret := _m.ctrl.Call(_m, "Serve", server)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockConnectionTransportRecorder) Serve(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Serve", arg0)
+func (_mr *_MockConnectionTransportRecorder) Dial(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Dial", arg0)
 }
 
 func (_m *MockConnectionTransport) IsConnected() bool {
