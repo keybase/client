@@ -12,10 +12,13 @@ type LevelDb struct {
 	db       *leveldb.DB
 	filename string
 	sync.Mutex
+	Contextified
 }
 
-func NewLevelDb() *LevelDb {
-	return &LevelDb{}
+func NewLevelDb(g *GlobalContext) *LevelDb {
+	return &LevelDb{
+		Contextified: NewContextified(g),
+	}
 }
 
 // Explicit open does nothing we'll wait for a lazy open
@@ -28,7 +31,7 @@ func (l *LevelDb) open() error {
 	var err error
 	if l.db == nil {
 		fn := l.GetFilename()
-		G.Log.Debug("Opening LevelDB for local cache: %s", fn)
+		l.G().Log.Debug("Opening LevelDB for local cache: %s", fn)
 		l.db, err = leveldb.OpenFile(fn, nil)
 	}
 	return err
@@ -43,7 +46,8 @@ func (l *LevelDb) ForceOpen() error {
 
 func (l *LevelDb) GetFilename() string {
 	if len(l.filename) == 0 {
-		l.filename = G.Env.GetDbFilename()
+		l.G().Log.Warning("data dir: %s", l.G().Env.GetDataDir())
+		l.filename = l.G().Env.GetDbFilename()
 	}
 	return l.filename
 }
@@ -60,7 +64,7 @@ func (l *LevelDb) close(doLock bool) error {
 
 	var err error
 	if l.db != nil {
-		G.Log.Debug("Closing LevelDB local cache: %s", l.GetFilename())
+		l.G().Log.Debug("Closing LevelDB local cache: %s", l.GetFilename())
 		err = l.db.Close()
 		l.db = nil
 	}

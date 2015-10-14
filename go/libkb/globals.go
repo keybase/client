@@ -192,7 +192,7 @@ func (g *GlobalContext) ConfigureCaches() error {
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic
 	// checking).
-	g.LocalDb = NewJSONLocalDb(NewLevelDb())
+	g.LocalDb = NewJSONLocalDb(NewLevelDb(g))
 	return g.LocalDb.Open()
 }
 
