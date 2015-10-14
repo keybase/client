@@ -1,5 +1,6 @@
 package io.keybase.android;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
@@ -44,9 +45,10 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     }
 
 
+    @SuppressLint("CommitPrefEdits")
     @Override
     public void ClearSecret(final String username) throws Exception {
-        prefs.edit().remove(PREFS_KEY + username).apply();
+        prefs.edit().remove(PREFS_KEY + username).commit();
     }
 
     @Override
@@ -66,7 +68,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     }
 
     @Override
-    public byte[] RetrieveSecret(final String username) throws Exception {
+    public synchronized byte[] RetrieveSecret(final String username) throws Exception {
         final byte[] wrappedSecret = readWrappedSecret(prefs, PREFS_KEY + username);
         Entry entry;
         try {
@@ -92,7 +94,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     }
 
     @Override
-    public void SetupKeyStore(final String username) throws Exception {
+    public synchronized void SetupKeyStore(final String username) throws Exception {
         if (!ks.containsAlias(KEY_ALIAS)) {
             KeyStoreHelper.generateRSAKeyPair(context, KEY_ALIAS);
         }
@@ -115,7 +117,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     }
 
     @Override
-    public void StoreSecret(final String username, final byte[] bytes) throws Exception {
+    public synchronized void StoreSecret(final String username, final byte[] bytes) throws Exception {
         Entry entry = null;
 
         try {
