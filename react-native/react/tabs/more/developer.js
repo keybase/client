@@ -1,11 +1,9 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, TextInput, View, Text } from 'react-native'
-import Button from '../../common-adapters/button'
-import commonStyles from '../../styles/common'
-import * as SearchActions from '../../actions/search'
+import React, { Component, StyleSheet, Navigator, TextInput, View, Text } from 'react-native'
 import { navigateUp } from '../../actions/router'
+import { getDevSettings, saveDevSettings, updateDevSettings } from '../../actions/config'
 
 export default class Developer extends Component {
   constructor (props) {
@@ -14,24 +12,44 @@ export default class Developer extends Component {
     this.state = { }
   }
 
+  componentDidMount () {
+    this.props.dispatch(getDevSettings())
+  }
+
+  componentWillUnmount () {
+    this.props.dispatch(saveDevSettings())
+  }
+
   render () {
+    if (!this.props.devConfig) {
+      return (
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+          <Text>Loading…</Text>
+        </View>
+      )
+    }
+    let settingNodes = this.props.devConfig.keys.map((key) => {
+      return (
+        <View style={styles.group} key={key}>
+          <Text style={styles.label}>{key.replace(/(?!^)(?=[A-Z][a-z])/g, ' ')}</Text>
+          <TextInput
+            placeholder={this.props.devConfig.defaults[key]}
+            value={this.props.devConfig.configured[key]}
+            style={styles.input}
+            clearButtonMode='always'
+            onChangeText={ (val) => this.props.dispatch(updateDevSettings({ [key]: val || null })) }
+          />
+        </View>
+      )
+    })
     return (
       <View style={styles.container}>
-        <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Dev settings</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='Some setting'
-          value='TODO'
-          enablesReturnKeyAutomatically
-          returnKeyType='next'
-          autoCorrect={false}
-          onChangeText={() => { console.log('typing') }}
-        />
-        <Button
-          buttonStyle={{backgroundColor: 'blue'}}
-          onPress={ () => this.props.dispatch(SearchActions.pushNewSearch('more')) }
-          title='Launch search' />
-        <Text onPress={() => this.props.dispatch(navigateUp())}>Back</Text>
+        {settingNodes}
       </View>
     )
   }
@@ -40,7 +58,10 @@ export default class Developer extends Component {
     const componentAtTop = {
       title: 'Developer',
       component: Developer,
-      hideNavBar: true
+      leftButton: null,
+      rightButtonAction: navigateUp(),
+      sceneConfig: Navigator.SceneConfigs.FloatFromBottom,
+      mapStateToProps: state => state.config
     }
 
     return {
@@ -51,7 +72,8 @@ export default class Developer extends Component {
 }
 
 Developer.propTypes = {
-  dispatch: React.PropTypes.func.isRequired
+  dispatch: React.PropTypes.func.isRequired,
+  devConfig: React.PropTypes.object
 }
 
 const styles = StyleSheet.create({
@@ -61,11 +83,13 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     backgroundColor: 'red'
   },
+  group: {
+    margin: 10
+  },
+  label: {
+  },
   input: {
     height: 40,
-    marginBottom: 5,
-    marginLeft: 10,
-    marginRight: 10,
     borderWidth: 0.5,
     borderColor: '#0f0f0f',
     fontSize: 13,
@@ -76,5 +100,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10
+  },
+  navBarRightButton: {
+    fontSize: 16,
+    marginVertical: 10,
+    paddingRight: 10,
+    color: 'blue'
   }
 })
