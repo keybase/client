@@ -2,6 +2,16 @@
 
 package libkb
 
+// This represents the interface to the actual keystore
+type ExternalKeyStore interface {
+	RetrieveSecret(username string) ([]byte, error)
+	StoreSecret(username string, secret []byte) error
+	ClearSecret(username string) error
+	GetUsersWithStoredSecretsMsgPack() ([]byte, error)
+	SetupKeyStore(username string) error
+	GetTerminalPrompt() string
+}
+
 // Represents interface to some external key store
 var GlobalExternalKeyStore ExternalKeyStore
 

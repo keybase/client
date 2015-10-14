@@ -67,13 +67,3 @@ func ClearStoredSecret(username NormalizedUsername) error {
 	}
 	return secretStore.ClearSecret()
 }
-
-// This represents the interface to the actual keystore
-type ExternalKeyStore interface {
-	RetrieveSecret(username string) ([]byte, error)
-	StoreSecret(username string, secret []byte) error
-	ClearSecret(username string) error
-	GetUsersWithStoredSecretsMsgPack() ([]byte, error)
-	SetupKeyStore(username string) error
-	GetTerminalPrompt() string
-}
