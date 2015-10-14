@@ -4,7 +4,7 @@ package keybase
 
 import "github.com/keybase/client/go/libkb"
 
-// ExternalKeyStore - We have to duplicate the interface defined in libkb.AndroidKeyStore
+// ExternalKeyStore - We have to duplicate the interface defined in libkb.ExternalKeyStore
 // Otherwise we get an undefined param error when we use this as an argument
 // in an exported func
 type ExternalKeyStore interface {
@@ -18,5 +18,5 @@ type ExternalKeyStore interface {
 
 func SetGlobalExternalKeyStore(s ExternalKeyStore) {
 	// TODO: Gross! can we fix this?
-	libkb.G.SetExternalKeyStore(libkb.ExternalKeyStore(s))
+	libkb.SetGlobalExternalKeyStore(libkb.ExternalKeyStore(s))
 }
