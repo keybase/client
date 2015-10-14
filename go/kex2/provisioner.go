@@ -1,29 +1,17 @@
 package kex2
 
 import (
-	"errors"
-	keybase1 "github.com/keybase/client/go/protocol"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"golang.org/x/net/context"
 	"net"
 	"time"
-)
 
-type baseDevice struct {
-	conn     net.Conn
-	xp       rpc.Transporter
-	deviceID DeviceID
-	start    chan struct{}
-	canceled bool
-}
+	keybase1 "github.com/keybase/client/go/protocol"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
+)
 
 type provisioner struct {
 	baseDevice
 	arg ProvisionerArg
 }
-
-// ErrCanceled is returned if Kex is canceled by the caller via the Context argument
-var ErrCanceled = errors.New("kex canceled by caller")
 
 // Provisioner is an interface that abstracts out the crypto and session
 // management that a provisioner needs to do as part of the protocol.
@@ -31,16 +19,6 @@ type Provisioner interface {
 	GetHelloArg() keybase1.HelloArg
 	CounterSign(keybase1.HelloRes) ([]byte, error)
 	GetLogFactory() rpc.LogFactory
-}
-
-// KexBaseArg are arguments common to both Provisioner and Provisionee
-type KexBaseArg struct {
-	Ctx           context.Context
-	Mr            MessageRouter
-	Secret        Secret
-	DeviceID      keybase1.DeviceID // For now, this deviceID is different from the one in the transport
-	SecretChannel <-chan Secret
-	Timeout       time.Duration
 }
 
 // ProvisionerArg provides the details that a provisioner needs in order

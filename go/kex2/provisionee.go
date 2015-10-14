@@ -1,9 +1,10 @@
 package kex2
 
 import (
+	"time"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"time"
 )
 
 type provisionee struct {
@@ -38,7 +39,7 @@ func newProvisionee(arg ProvisioneeArg) *provisionee {
 	return ret
 }
 
-// RunProvisionee runs a provisioner given the necessary arguments.
+// RunProvisionee runs a provisionee given the necessary arguments.
 func RunProvisionee(arg ProvisioneeArg) error {
 	p := newProvisionee(arg)
 	return p.run()
