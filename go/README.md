@@ -14,8 +14,8 @@ Download the appropriate package:
 
 * [64-bit .deb](https://dist.keybase.io/linux/deb/keybase-latest-amd64.deb)
 * [32-bit .deb](https://dist.keybase.io/linux/deb/keybase-latest-i386.deb)
-* [64-bit .rpm](https://dist.keybase.io/linux/rpm/kbstage-latest-x86_64.rpm)
-* [32-bit .rpm](https://dist.keybase.io/linux/rpm/kbstage-latest-i386.rpm)
+* [64-bit .rpm](https://dist.keybase.io/linux/rpm/keybase-latest-x86_64.rpm)
+* [32-bit .rpm](https://dist.keybase.io/linux/rpm/keybase-latest-i386.rpm)
 * [Arch Linux](https://aur.archlinux.org/packages/keybase-release/)
 
 ### Building
