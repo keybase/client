@@ -53,18 +53,18 @@ export default class Devices extends Component {
         <View doc='Wrapper for new Actions (i.e. Connect a new device, Generate new paper key)'
           style={styles.newActionsWrapper}>
           <View doc='Wrapper for connect a new Device' style={[styles.outlineBox, styles.innerAction, {marginRight: 10}]}>
-            <View style={{alignItems: 'center', flex: 1}}>
-              <Text style={styles.greyText}>ICON</Text>
-              <Text style={styles.greyText}>Connect a new Device</Text>
+            <View style={{flex: 1}}>
+              <Text style={[styles.greyText, styles.centerText]}>ICON</Text>
+              <Text style={[styles.greyText, styles.centerText]}>Connect a new Device</Text>
             </View>
-            <Text style={styles.greyText}>On another device, download Keybase then click here to enter your unique passphrase</Text>
+            <Text style={[styles.greyText, styles.centerText]}>On another device, download Keybase then click here to enter your unique passphrase</Text>
           </View>
           <View doc='Wrapper for generate a new paper key' style={[styles.outlineBox, styles.innerAction]}>
-            <View style={{flex: 0, backgroundColor: 'green'}}>
-              <Text style={[styles.greyText, {textAlign: 'center'}]}>ICON</Text>
-              <Text style={[styles.greyText, {textAlign: 'center'}]}>Generate a new paper key</Text>
+            <View style={{flex: 1}}>
+              <Text style={[styles.greyText, styles.centerText]}>ICON</Text>
+              <Text style={[styles.greyText, styles.centerText]}>Generate a new paper key</Text>
             </View>
-            <Text style={[styles.greyText, {flex: 2, textAlign: 'center'}]}>A paper key is lorem ipsum dolor sit amet, consectetur adipiscing</Text>
+            <Text style={[styles.greyText, styles.centerText, {flex: 2}]}>A paper key is lorem ipsum dolor sit amet, consectetur adipiscing</Text>
           </View>
         </View>
 
@@ -110,7 +110,8 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     marginRight: 10,
     marginLeft: 10,
-    marginTop: 20
+    marginTop: 20,
+    flex: 1
   },
   innerAction: {
     flex: 1,
@@ -119,6 +120,9 @@ const styles = StyleSheet.create({
   },
   greyText: {
     color: '#a6a6a6'
+  },
+  centerText: {
+    textAlign: 'center'
   },
 
   // Device Styling
