@@ -117,6 +117,9 @@ func (p *provisioner) pickFirstConnection() (err error) {
 		}
 	}()
 
+	// Only make a channel if we were provided a secret to start it with.
+	// If not, we'll just have to wait for a message on p.arg.SecretChannel
+	// and use the provisionee's channel.
 	if len(p.arg.Secret) != 0 {
 		if conn, err = NewConn(p.arg.Mr, p.arg.Secret, p.deviceID, p.arg.Timeout); err != nil {
 			return err
@@ -135,7 +138,7 @@ func (p *provisioner) pickFirstConnection() (err error) {
 	select {
 	case <-p.start:
 		p.conn = conn
-		conn = nil
+		conn = nil // so it's not closed in the defer()'ed close
 		p.xp = xp
 	case sec := <-p.arg.SecretChannel:
 		if p.conn, err = NewConn(p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
