@@ -4,9 +4,8 @@
 
 #### Mac
 
-```brew update
-brew install keybase/beta/keybase
-```
+    brew update
+    brew install keybase/beta/keybase
 
 #### Linux
 
