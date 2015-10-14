@@ -69,7 +69,7 @@ func GetUsersWithStoredSecrets() ([]string, error) {
 	}
 	var users []string
 	ch := codecHandle()
-	err = MsgpackDecodeAll(usersMsgPack, ch, users)
+	err = MsgpackDecodeAll(usersMsgPack, ch, &users)
 	return users, err
 }
 
