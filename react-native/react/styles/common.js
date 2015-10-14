@@ -35,7 +35,8 @@ export default StyleSheet.create({
   disabledButton: {
     ...buttonCommon,
     color: '#777777',
-    backgroundColor: '#999999'
+    backgroundColor: '#999999',
+    textDecorationLine: 'line-through'
   },
   error: {
     backgroundColor: 'red',

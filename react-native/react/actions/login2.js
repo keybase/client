@@ -2,7 +2,7 @@
 
 import * as Constants from '../constants/login2'
 import QRCodeGen from 'qrcode-generator'
-import { navigateTo } from './router'
+import { appendRouteOnUnchanged, navigateTo } from './router'
 
 export function welcomeSubmitUserPass (username, passphrase) {
   return {
@@ -133,4 +133,28 @@ export function qrGenerate () {
       qrCode
     })
   }
+}
+
+export function registerSubmitUserPass (username, passphrase) {
+  return appendRouteOnUnchanged((dispatch, getState, maybeRoute) => {
+    dispatch({
+      type: Constants.actionRegisterUserPassSubmit,
+      username,
+      passphrase
+    })
+
+    // TODO make call to backend
+    setTimeout(() => {
+      const error = null
+
+      dispatch({
+        type: Constants.actionRegisterUserPassDone,
+        error
+      })
+
+      if (!error) {
+        maybeRoute('regSetPublicName')
+      }
+    }, 1000)
+  })
 }

@@ -14,7 +14,9 @@ const initialState = {
     textCode: null,
     qrScanned: null,
     qrCode: null
-  }
+  },
+  registerUserPassError: null,
+  registerUserPassLoading: false
 }
 
 export default function (state = initialState, action) {
@@ -82,6 +84,20 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
+    case Constants.actionRegisterUserPassSubmit:
+      return {
+        ...state,
+        username: action.username,
+        passphrase: action.passphrase,
+        registerUserPassError: null,
+        registerUserPassLoading: true
+      }
+    case Constants.actionRegisterUserPassDone:
+      return {
+        ...state,
+        registerUserPassError: action.error,
+        registerUserPassLoading: false
+      }
     default:
       return state
   }
