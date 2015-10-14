@@ -4,6 +4,7 @@
 
 #### Mac
 
+    brew tap keybase/beta
     brew update
     brew install keybase/beta/keybase
 
