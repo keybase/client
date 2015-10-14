@@ -99,17 +99,45 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 
 }
 
+func (rc *RooterChecker) rewriteURL(s string) (string, error) {
+	u1, err := url.Parse(s)
+	if err != nil {
+		return "", err
+	}
+	u2, err := url.Parse(G.Env.GetServerURI())
+	if err != nil {
+		return "", err
+	}
+
+	u3 := url.URL{
+		Host:     u2.Host,
+		Scheme:   u2.Scheme,
+		Path:     u1.Path,
+		Fragment: u1.Fragment,
+	}
+
+	return u3.String(), nil
+}
+
 func (rc *RooterChecker) CheckStatus(h SigHint) (perr ProofError) {
+
 	G.Log.Debug("+ Checking rooter at API=%s", h.apiURL)
 	defer func() {
 		G.Log.Debug("- Rooter -> %v", perr)
 	}()
+
+	url, err := rc.rewriteURL(h.apiURL)
+	if err != nil {
+		return XapiError(err, url)
+	}
+	G.Log.Debug("| URL after rewriter is: %s", url)
+
 	res, err := G.XAPI.Get(APIArg{
-		Endpoint:    h.apiURL,
+		Endpoint:    url,
 		NeedSession: false,
 	})
 	if err != nil {
-		perr = XapiError(err, h.apiURL)
+		perr = XapiError(err, url)
 		return perr
 	}
 	dat, perr := rc.UnpackData(res.Body)
