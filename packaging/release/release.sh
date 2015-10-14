@@ -79,6 +79,8 @@ echo "-------------------------------------------------------------------------"
 echo "Creating $formula release for version $version"
 echo "-------------------------------------------------------------------------"
 cd $clientdir
+git checkout master
+git pull --ff-only
 if git tag -a $version_tag -m $version_tag ; then 
 	echo "Tagged client source with $version_tag"
 	git push --tags
@@ -104,6 +106,8 @@ echo "sha256 of $src_url is $src_sha"
 echo "Updating brew formula $formula"
 sed -e "s/%VERSION%/$version/g" -e "s/%VERSION_TAG%/$version_tag/g" -e "s/%SRC_SHA%/$src_sha/g" $brewdir/$formula.rb.tmpl > $brewdir/$formula.rb
 cd $brewdir
+git checkout master
+git pull --ff-only
 if git commit -a -m "New $formula version $version_tag" ; then
 	git push
 	echo "Done.  brew update && brew upgrade $formula should install version $version"
@@ -114,4 +118,7 @@ fi
 echo "-------------------------------------------------------------------------"
 echo "Creating Linux packages for version $version"
 echo "-------------------------------------------------------------------------"
+cd "$serveropsdir"
+git checkout master
+git pull --ff-only
 "$serveropsdir/deploy/linux_docker_build.sh" "$mode" "$version_tag"
