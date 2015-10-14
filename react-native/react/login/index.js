@@ -17,38 +17,26 @@ export default class LoginContainer extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    // TODO(mm): maybe these route names can be the constants we are already using?
-    // e.g. state.SHOW_SECRET_WORDS
-    const routes = {
-      'loginform': LoginForm.parseRoute,
-      'device-prompt': DevicePrompt.parseRoute,
-      'device-signer': SelectSigner.parseRoute,
-      'show-secret-words': DisplaySecretWords.parseRoute
-    }
-
-    // TODO(mm): figure out how this interacts with redux
-    const componentAtTop = {
-      title: 'Keybase',
-      component: LoginContainer,
-      saveKey: 'Login',
-      leftButtonTitle: '¯\\_(ツ)_/¯',
-      mapStateToProps: state => state.login,
-      props: {
-        onLoggedIn: () => {
-          this.showSearch()
+    return {
+      componentAtTop: {
+        title: 'Keybase',
+        saveKey: 'Login',
+        leftButtonTitle: '¯\\_(ツ)_/¯',
+        mapStateToProps: state => state.login,
+        props: {
+          onLoggedIn: () => {
+            this.showSearch()
+          }
         }
+      },
+      subRoutes: {
+        loginform: LoginForm,
+        'device-prompt': DevicePrompt,
+        'device-signer': SelectSigner,
+        'show-secret-words': DisplaySecretWords
       }
     }
-
-    // Default the next route to the login form
-    const parseNextRoute = routes[nextPath.get('path')] || LoginForm.parseRoute
-
-    return {
-      componentAtTop,
-      parseNextRoute
-    }
   }
-
 }
 
 LoginContainer.propTypes = {

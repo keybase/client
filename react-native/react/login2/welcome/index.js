@@ -34,23 +34,14 @@ export default class Welcome extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = {
-      'login': Login.parseRoute,
-      'signup': Signup.parseRoute
-    }
-
-    const componentAtTop = {
-      title: '',
-      component: Welcome,
-      leftButtonTitle: '',
-      mapStateToProps: state => state.login2
-    }
-
-    const parseNextRoute = routes[nextPath.get('path')]
-
     return {
-      componentAtTop,
-      parseNextRoute
+      componentAtTop: {
+        mapStateToProps: state => state.login2
+      },
+      subRoutes: {
+        'login': Login,
+        'signup': Signup
+      }
     }
   }
 }

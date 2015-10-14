@@ -18,10 +18,8 @@ export default class Chat extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        component: Chat,
         title: 'Chat'
-      },
-      parseNextRoute: null
+      }
     }
   }
 }

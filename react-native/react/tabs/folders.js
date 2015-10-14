@@ -13,15 +13,11 @@ export default class Folders extends Component {
     )
   }
 
-  // TODO(mm): annotate types
-  // store is our redux store
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        component: Folders,
         title: 'Folders'
-      },
-      parseNextRoute: null
+      }
     }
   }
 }

@@ -21,28 +21,18 @@ export default class Register extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = {
-      regPaperKey: PaperKey.parseRoute,
-      regUserPass: UserPass.parseRoute,
-      regExistingDevice: ExistingDevice.parseRoute,
-      regSetPublicName: SetPublicName.parseRoute
-    }
-
-    const componentAtTop = {
-      title: '',
-      component: Register,
-      leftButtonTitle: '',
-      mapStateToProps: state => state.login2
-    }
-
-    const parseNextRoute = routes[nextPath.get('path')]
-
     return {
-      componentAtTop,
-      parseNextRoute
+      componentAtTop: {
+        mapStateToProps: state => state.login2
+      },
+      subRoutes: {
+        regPaperKey: PaperKey,
+        regUserPass: UserPass,
+        regExistingDevice: ExistingDevice,
+        regSetPublicName: SetPublicName
+      }
     }
   }
-
 }
 
 Register.propTypes = {

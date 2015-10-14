@@ -13,13 +13,6 @@ export default class NoTab extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const componentAtTop = {
-      component: NoTab
-    }
-
-    return {
-      componentAtTop,
-      parseNextRoute: null
-    }
+    return { }
   }
 }

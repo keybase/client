@@ -15,23 +15,12 @@ export default class ForgotUserPass extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = { }
-
-    const componentAtTop = {
-      title: '',
-      component: ForgotUserPass,
-      leftButtonTitle: '',
-      mapStateToProps: state => state.login2
-    }
-
-    const parseNextRoute = routes[nextPath.get('path')]
-
     return {
-      componentAtTop,
-      parseNextRoute
+      componentAtTop: {
+        mapStateToProps: state => state.login2
+      }
     }
   }
-
 }
 
 ForgotUserPass.propTypes = {

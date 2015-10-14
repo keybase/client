@@ -94,10 +94,8 @@ export default class Devices extends Component {
     return {
       componentAtTop: {
         title: 'Devices',
-        component: Devices,
         mapStateToProps: state => state.devices
-      },
-      parseNextRoute: null
+      }
     }
   }
 }

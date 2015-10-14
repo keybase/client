@@ -18,12 +18,12 @@ import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constan
 import { switchTab } from './actions/tabbed-router'
 import { navigateBack } from './actions/router'
 
-const tabToRootRouteParse = {
-  [FOLDER_TAB]: Folders.parseRoute,
-  [CHAT_TAB]: Chat.parseRoute,
-  [PEOPLE_TAB]: People.parseRoute,
-  [DEVICES_TAB]: Devices.parseRoute,
-  [MORE_TAB]: More.parseRoute
+const tabToRootComponent = {
+  [FOLDER_TAB]: Folders,
+  [CHAT_TAB]: Chat,
+  [PEOPLE_TAB]: People,
+  [DEVICES_TAB]: Devices,
+  [MORE_TAB]: More
 }
 
 export default class Nav extends Component {
@@ -37,7 +37,7 @@ export default class Nav extends Component {
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator), {
             store: this.props.store,
-            rootRouteParser: tabToRootRouteParse[activeTab] || NoTab.parseRoute,
+            rootComponent: tabToRootComponent[activeTab] || NoTab,
             globalRoutes,
             navBarHeight: 0,
             NavBar: <View/>

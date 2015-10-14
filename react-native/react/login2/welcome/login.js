@@ -57,22 +57,13 @@ export default class Login extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = {
-      forgotUserPass: ForgotUserPass.parseRoute
-    }
-
-    const componentAtTop = {
-      title: '',
-      component: Login,
-      leftButtonTitle: '',
-      mapStateToProps: state => state.login2
-    }
-
-    const parseNextRoute = routes[nextPath.get('path')]
-
     return {
-      componentAtTop,
-      parseNextRoute
+      componentAtTop: {
+        mapStateToProps: state => state.login2
+      },
+      subRoutes: {
+        forgotUserPass: ForgotUserPass
+      }
     }
   }
 }

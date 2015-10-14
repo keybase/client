@@ -88,23 +88,20 @@ export default class LoginForm extends Component {
   static parseRoute (store) {
     // TODO(mm): maybe we can just pass the state here instead of the store.
     const {username, passphrase, storeSecret, waitingForServer} = store.getState().login
-    const componentAtTop = {
-      title: 'Login',
-      component: LoginForm,
-      leftButtonTitle: 'Cancel',
-      mapStateToProps: state => state.login,
-      props: {
-        onSubmit: (username, passphrase, storeSecret) => store.dispatch(submitUserPass(username, passphrase, storeSecret)),
-        username,
-        passphrase,
-        storeSecret,
-        waitingForServer
-      }
-    }
 
     return {
-      componentAtTop,
-      parseNextRoute: null // terminal node, so no next route
+      componentAtTop: {
+        title: 'Login',
+        leftButtonTitle: 'Cancel',
+        mapStateToProps: state => state.login,
+        props: {
+          onSubmit: (username, passphrase, storeSecret) => store.dispatch(submitUserPass(username, passphrase, storeSecret)),
+          username,
+          passphrase,
+          storeSecret,
+          waitingForServer
+        }
+      }
     }
   }
 }

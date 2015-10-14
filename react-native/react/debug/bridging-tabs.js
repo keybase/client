@@ -69,14 +69,10 @@ export default class Bridging extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const componentAtTop = {
-      title: 'Bridging',
-      component: Bridging
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: null
+      componentAtTop: {
+        title: 'Bridging'
+      }
     }
   }
 }

@@ -83,20 +83,17 @@ export default class SelectSigner extends Component {
 
   static parseRoute (store) {
     const {signers, response} = store.getState().login
-    const componentAtTop = {
-      title: 'Device Setup',
-      leftButtonTitle: 'Cancel',
-      component: SelectSigner,
-      mapStateToProps: state => state.login,
-      props: {
-        onSubmit: (result) => store.dispatch(submitDeviceSigner(result, response)),
-        ...signers
-      }
-    }
 
     return {
-      componentAtTop,
-      parseNextRoute: null // terminal node, so no next route
+      componentAtTop: {
+        title: 'Device Setup',
+        leftButtonTitle: 'Cancel',
+        mapStateToProps: state => state.login,
+        props: {
+          onSubmit: (result) => store.dispatch(submitDeviceSigner(result, response)),
+          ...signers
+        }
+      }
     }
   }
 }
