@@ -16,7 +16,61 @@ func (cuea *copyUnmergedEntryAction) do(config Config,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
-	return unmergedOps, mergedOps, nil
+	// Find the unmerged entry
+	unmergedEntry, ok := unmergedBlock.Children[cuea.fromName]
+	if !ok {
+		return nil, nil, NoSuchNameError{cuea.fromName}
+	}
+
+	if cuea.symPath != "" {
+		unmergedEntry.Type = Sym
+		unmergedEntry.SymPath = cuea.symPath
+
+		// If this was turned into a symlink, then we have to simulate
+		// a rename in the mergedOps list.  Even if the names are the
+		// same, this should clear out the caches of any observers.
+		retMergedOps = append(retMergedOps,
+			newRenameOp(cuea.fromName, unmergedMostRecent, cuea.toName,
+				unmergedMostRecent, unmergedEntry.BlockPointer))
+	}
+
+	mergedBlock.Children[cuea.toName] = unmergedEntry
+
+	// If the name changed, we have to update all the unmerged ops
+	// with the new name.
+
+	// The unmerged ops don't change, though later we may have to
+	// manipulate the block pointers in the original ops.
+	if cuea.fromName != cuea.toName {
+		retUnmergedOps := make([]op, len(unmergedOps))
+		for _, uop := range unmergedOps {
+			done := false
+			switch realOp := uop.(type) {
+			// The only names that matter are in createOps or
+			// setAttrOps.  rms on the unmerged side wouldn't be
+			// part of the unmerged entry
+			case *createOp:
+				if realOp.NewName == cuea.fromName {
+					realOpCopy := *realOp
+					realOpCopy.NewName = cuea.toName
+					retUnmergedOps = append(retUnmergedOps, &realOpCopy)
+					done = true
+				}
+			case *setAttrOp:
+				if realOp.Name == cuea.fromName {
+					realOpCopy := *realOp
+					realOpCopy.Name = cuea.toName
+					retUnmergedOps = append(retUnmergedOps, &realOpCopy)
+					done = true
+				}
+			}
+			if !done {
+				retUnmergedOps = append(retUnmergedOps, uop)
+			}
+		}
+	}
+
+	return retUnmergedOps, retMergedOps, nil
 }
 
 func (cuea *copyUnmergedEntryAction) String() string {
