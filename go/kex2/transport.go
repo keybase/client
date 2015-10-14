@@ -41,14 +41,18 @@ func (s SessionID) Eq(s2 SessionID) bool {
 // JSON/REST calls to the Keybase API server.
 type MessageRouter interface {
 
-	// Post a message, or if `msg = nil`, mark the EOF
+	// Post a message. Message will always be non-nil and non-empty.
+	// Even for an EOF, the empty buffer is encrypted via SecretBox,
+	// so the buffer posted to the server will have data.
 	Post(I SessionID, sender DeviceID, seqno Seqno, msg []byte) error
 
 	// Get messages on the channel.  Only poll for `poll` milliseconds. If the timeout
-	// elapses without any data ready, then `ErrTimedOut` is returned as an error.
+	// elapses without any data ready, then just return an empty result, with nil error.
 	// Several messages can be returned at once, which should be processed in serial.
 	// They are guaranteed to be in order; otherwise, there was an issue.
-	// On close of the connection, Get returns an empty array and an error of type `io.EOF`
+	// Get() should only return a non-nil error if there was an HTTPS or TCP-level error.
+	// Application-level errors like EOF or no data ready are handled by modulating
+	// the `msgs` result.
 	Get(I SessionID, receiver DeviceID, seqno Seqno, poll time.Duration) (msg [][]byte, err error)
 }
 
@@ -258,19 +262,52 @@ func (c *Conn) decryptIncomingMessages(msgs [][]byte) (int, error) {
 
 func (c *Conn) readBufferedMsgsIntoBytes(out []byte) (int, error) {
 	p := 0
+
+	// If no buffered messages, then return that we didn't pull any
+	// new data from the server.
+	if len(c.bufferedMsgs) == 0 {
+		return 0, nil
+	}
+
+	// Any empty buffer signals an EOF condition
+	if len(c.bufferedMsgs[0]) == 0 {
+		return 0, io.EOF
+	}
+
 	for p < len(out) {
 		rem := len(out) - p
 		if len(c.bufferedMsgs) > 0 {
 			front := c.bufferedMsgs[0]
 			n := len(front)
+
+			// An empty buffer signifies that the other side wanted
+			// and EOF condition. However, we shouldn't return an EOF
+			// if we've read anything, this time through.
+			if n == 0 {
+				var err error
+				if p == 0 {
+					err = io.EOF
+				}
+				return p, err
+			}
+
 			if rem < n {
 				n = rem
 				copy(out[p:(p+n)], front[0:n])
-				c.bufferedMsgs[0] = front[n:]
+				front = front[n:]
+				if len(front) == 0 {
+					// Be careful not to recycle an empty buffer into the
+					// list of buffered messages, since that has special
+					// significance (see above).
+					c.bufferedMsgs = c.bufferedMsgs[1:]
+				} else {
+					c.bufferedMsgs[0] = front
+				}
 			} else {
 				copy(out[p:(p+n)], front[:])
 				c.bufferedMsgs = c.bufferedMsgs[1:]
 			}
+
 			p += n
 		} else {
 			break
@@ -288,12 +325,10 @@ func (c *Conn) pollLoop(poll time.Duration) (msgs [][]byte, err error) {
 		newPoll := poll - totalWaitTime
 		msgs, err = c.router.Get(c.sessionID, c.deviceID, c.readSeqno, newPoll)
 		totalWaitTime = time.Since(start)
-
-		if err != ErrTimedOut || totalWaitTime >= poll {
+		if err != nil || len(msgs) > 0 || totalWaitTime >= poll {
 			return
 		}
 	}
-
 }
 
 // Read data from the connection, returning plaintext data if all
@@ -330,17 +365,8 @@ func (c *Conn) Read(out []byte) (n int, err error) {
 	var msgs [][]byte
 	msgs, err = c.pollLoop(poll)
 
-	// If the router returned messages and also indicated the end of the connection,
-	// the semantics of Read() are to not return EOF until the next time through.
-	if len(msgs) > 0 && err == io.EOF {
-		err = nil
-	}
-
 	if err != nil {
 		return 0, c.setReadError(err)
-	}
-	if len(msgs) == 0 {
-		return 0, c.setReadError(io.EOF)
 	}
 	if _, err = c.decryptIncomingMessages(msgs); err != nil {
 		return 0, c.setReadError(err)
@@ -348,7 +374,16 @@ func (c *Conn) Read(out []byte) (n int, err error) {
 	if n, err = c.readBufferedMsgsIntoBytes(out); err != nil {
 		return 0, c.setReadError(err)
 	}
-	return n, nil
+
+	if n == 0 {
+		if poll > 0 {
+			err = ErrTimedOut
+		} else {
+			err = ErrAgain
+		}
+	}
+
+	return n, err
 }
 
 func (c *Conn) encryptOutgoingMessage(seqno Seqno, buf []byte) (ret []byte, err error) {
@@ -396,10 +431,24 @@ func (c *Conn) nextWriteSeqno() Seqno {
 // Write data to the connection, encrypting and MAC'ing along the way.
 // Obeys the `net.Conn` interface
 func (c *Conn) Write(buf []byte) (n int, err error) {
-	var ctext []byte
 
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
+
+	// Our protocol specifes that writing an empty buffer means "close"
+	// the connection.  We don't want callers of `Write` to do this by
+	// accident, we want them to call `Close()` explicitly. So short-circuit
+	// the write operation here for empty buffers.
+	if len(buf) == 0 {
+		return 0, nil
+	}
+
+	return c.writeWithLock(buf)
+}
+
+func (c *Conn) writeWithLock(buf []byte) (n int, err error) {
+
+	var ctext []byte
 
 	// The first error kills the whole stream
 	if err = c.getErrorForWrite(); err != nil {
@@ -414,28 +463,25 @@ func (c *Conn) Write(buf []byte) (n int, err error) {
 	}
 
 	if err = c.router.Post(c.sessionID, c.deviceID, seqno, ctext); err != nil {
-		return 0, err
+		return 0, c.setWriteError(err)
 	}
 
 	return len(ctext), nil
 }
 
-// Close the connection to the server, sending a `Post()` message to the
-// `MessageRouter` with `eof` set to `true`. Fulfills the
-// `net.Conn` interface
+// Close the connection to the server, sending an empty buffer via POST
+// through the `MessageRouter`. Fulfills the `net.Conn` interface
 func (c *Conn) Close() error {
 
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
 
-	// The first error kills the whole stream
-	if err := c.getErrorForWrite(); err != nil {
+	// Write an empty buffer to signal EOF
+	if _, err := c.writeWithLock([]byte{}); err != nil {
 		return err
 	}
 
-	if err := c.router.Post(c.sessionID, c.deviceID, c.nextWriteSeqno(), nil); err != nil {
-		return err
-	}
+	// All subsequent writes should fail.
 	c.setWriteError(io.EOF)
 	return nil
 }

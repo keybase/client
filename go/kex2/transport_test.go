@@ -17,8 +17,7 @@ type message struct {
 }
 
 type simplexSession struct {
-	eof bool
-	ch  chan message
+	ch chan message
 }
 
 var zeroDeviceID DeviceID
@@ -29,8 +28,7 @@ func (d DeviceID) isZero() bool {
 
 func newSimplexSession() *simplexSession {
 	return &simplexSession{
-		eof: false,
-		ch:  make(chan message, 100),
+		ch: make(chan message, 100),
 	}
 }
 
@@ -150,18 +148,9 @@ func (mr *mockRouter) Post(I SessionID, sender DeviceID, seqno Seqno, msg []byte
 }
 
 func (ss *simplexSession) get(seqno Seqno, poll time.Duration, behavior int) (ret [][]byte, err error) {
-	if ss.eof {
-		return nil, io.EOF
-	}
 	timeout := false
-	hitEOF := false
 	handleMessage := func(msg message) {
-		if msg.msg == nil {
-			hitEOF = true
-			ss.eof = true
-		} else {
-			ret = append(ret, msg.msg)
-		}
+		ret = append(ret, msg.msg)
 	}
 	if poll.Nanoseconds() > 0 {
 		select {
@@ -180,18 +169,6 @@ func (ss *simplexSession) get(seqno Seqno, poll time.Duration, behavior int) (re
 			default:
 				break loopMessages
 			}
-		}
-	}
-
-	if hitEOF {
-		err = io.EOF
-	}
-
-	if len(ret) == 0 && err != io.EOF {
-		if poll.Nanoseconds() > 0 {
-			err = ErrTimedOut
-		} else {
-			err = ErrAgain
 		}
 	}
 
@@ -453,7 +430,7 @@ func TestClose(t *testing.T) {
 	if n, err := c2.Read(buf); err != nil {
 		t.Fatal(err)
 	} else if n != len(msg) {
-		t.Fatal("short read")
+		t.Fatalf("short read: %d v %d: %v", n, len(msg), msg)
 	} else if string(buf[0:n]) != msg {
 		t.Fatal("wrong msg")
 	}
