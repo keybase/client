@@ -2,6 +2,8 @@
 
 package libkb
 
+import "sync"
+
 // This represents the interface to the actual keystore
 type ExternalKeyStore interface {
 	RetrieveSecret(username string) ([]byte, error)
@@ -15,28 +17,45 @@ type ExternalKeyStore interface {
 // Represents interface to some external key store
 var GlobalExternalKeyStore ExternalKeyStore
 
+var l sync.Mutex
+
 // This is called by Android to register Android's KeyStore with Go
-func SetGlobalExternalKeyStore(s ExternalKeyStore) { GlobalExternalKeyStore = s }
+func SetGlobalExternalKeyStore(s ExternalKeyStore) {
+	l.Lock()
+	defer l.Unlock()
+	GlobalExternalKeyStore = s
+}
+
+func GetGlobalExternalKeyStore() ExternalKeyStore {
+	l.Lock()
+	defer l.Unlock()
+	return GlobalExternalKeyStore
+}
 
 type SecretStoreAccountName struct {
-	accountName string
+	accountName      string
+	externalKeyStore ExternalKeyStore
 }
 
 func (s SecretStoreAccountName) StoreSecret(secret []byte) (err error) {
-	return GlobalExternalKeyStore.StoreSecret(s.accountName, secret)
+	return s.externalKeyStore.StoreSecret(s.accountName, secret)
 }
 
 func (s SecretStoreAccountName) RetrieveSecret() ([]byte, error) {
-	return GlobalExternalKeyStore.RetrieveSecret(s.accountName)
+	return s.externalKeyStore.RetrieveSecret(s.accountName)
 }
 
 func (s SecretStoreAccountName) ClearSecret() (err error) {
-	return GlobalExternalKeyStore.ClearSecret(s.accountName)
+	return s.externalKeyStore.ClearSecret(s.accountName)
 }
 
 func NewSecretStore(username NormalizedUsername) SecretStore {
-	GlobalExternalKeyStore.SetupKeyStore(string(username))
-	return SecretStoreAccountName{string(username)}
+	externalKeyStore := GetGlobalExternalKeyStore()
+	if externalKeyStore == nil {
+		return nil
+	}
+	externalKeyStore.SetupKeyStore(string(username))
+	return SecretStoreAccountName{string(username), externalKeyStore}
 }
 
 func HasSecretStore() bool {
@@ -44,7 +63,7 @@ func HasSecretStore() bool {
 }
 
 func GetUsersWithStoredSecrets() ([]string, error) {
-	usersMsgPack, err := GlobalExternalKeyStore.GetUsersWithStoredSecretsMsgPack()
+	usersMsgPack, err := GetGlobalExternalKeyStore().GetUsersWithStoredSecretsMsgPack()
 	if err != nil {
 		return nil, err
 	}
@@ -55,5 +74,5 @@ func GetUsersWithStoredSecrets() ([]string, error) {
 }
 
 func GetTerminalPrompt() string {
-	return GlobalExternalKeyStore.GetTerminalPrompt()
+	return GetGlobalExternalKeyStore().GetTerminalPrompt()
 }
