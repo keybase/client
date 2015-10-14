@@ -435,9 +435,14 @@ func (c *Conn) Write(buf []byte) (n int, err error) {
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
 
+	// Our protocol specifes that writing an empty buffer means "close"
+	// the connection.  We don't want callers of `Write` to do this by
+	// accident, we want them to call `Close()` explicitly. So short-circuit
+	// the write operation here for empty buffers.
 	if len(buf) == 0 {
 		return 0, nil
 	}
+
 	return c.writeWithLock(buf)
 }
 
@@ -464,17 +469,19 @@ func (c *Conn) writeWithLock(buf []byte) (n int, err error) {
 	return len(ctext), nil
 }
 
-// Close the connection to the server, sending a `Post()` message to the
-// `MessageRouter` with `eof` set to `true`. Fulfills the
-// `net.Conn` interface
+// Close the connection to the server, sending an empty buffer via POST
+// through the `MessageRouter`. Fulfills the `net.Conn` interface
 func (c *Conn) Close() error {
 
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
 
+	// Write an empty buffer to signal EOF
 	if _, err := c.writeWithLock([]byte{}); err != nil {
 		return err
 	}
+
+	// All subsequent writes should fail.
 	c.setWriteError(io.EOF)
 	return nil
 }
