@@ -119,7 +119,7 @@ func TestKex2RouterEOF(t *testing.T) {
 	if err := kt.post(postRouter, []byte(m1)); err != nil {
 		t.Fatal(err)
 	}
-	if err := kt.post(postRouter, nil); err != nil {
+	if err := kt.post(postRouter, []byte{}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -127,7 +127,7 @@ func TestKex2RouterEOF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(msgs) != 1 {
+	if len(msgs) != 2 {
 		t.Fatalf("number of messages: %d, expected 1", len(msgs))
 	}
 	if string(msgs[0]) != m1 {
