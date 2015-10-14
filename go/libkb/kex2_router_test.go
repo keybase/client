@@ -79,7 +79,7 @@ func TestKex2Router(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		var merr error
-		msgs, merr = kt.get(mr, 3, 20*time.Millisecond)
+		msgs, merr = kt.get(mr, 3, 5*time.Second)
 		if merr != nil {
 			t.Errorf("receive error: %s", merr)
 		}
