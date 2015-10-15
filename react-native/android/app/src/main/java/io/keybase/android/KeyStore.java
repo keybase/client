@@ -52,7 +52,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     }
 
     @Override
-    public byte[] GetUsersWithStoredSecretsMsgPack() throws Exception {
+    public synchronized byte[] GetUsersWithStoredSecretsMsgPack() throws Exception {
         final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
         final ArrayList<String> userNames = new ArrayList<>();
 
@@ -164,7 +164,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
         return mCipher.wrap(key);
     }
 
-    private SecretKey unwrapSecret(PrivateKeyEntry entry, byte[] wrappedSecretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
+    private static SecretKey unwrapSecret(PrivateKeyEntry entry, byte[] wrappedSecretKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, NoSuchProviderException {
         KeyPair mPair = new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
         Cipher mCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         mCipher.init(Cipher.UNWRAP_MODE, mPair.getPrivate());
