@@ -979,6 +979,120 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 	return actionMap, nil
 }
 
+func (cr *ConflictResolver) fetchBlockCopy(ctx context.Context,
+	md *RootMetadata, dir path, lbc localBcache) (*DirBlock, error) {
+	ptr := dir.tailPointer()
+	// TODO: lock lbc if we parallelize
+	if block, ok := lbc[ptr]; ok {
+		return block, nil
+	}
+
+	cr.fbo.blockLock.RLock()
+	defer cr.fbo.blockLock.RUnlock()
+	// get the directory for the last element in the path
+	block, err := cr.fbo.getBlockLocked(ctx, md, dir, NewDirBlock, read)
+	if err != nil {
+		return nil, err
+	}
+	dblock, ok := block.(*DirBlock)
+	if !ok {
+		return nil, NotDirError{dir}
+	}
+	dblock = dblock.DeepCopy()
+	lbc[ptr] = dblock
+	return dblock, nil
+}
+
+func (cr *ConflictResolver) doActions(ctx context.Context,
+	mostRecentUnmergedMD *RootMetadata, mostRecentMergedMD *RootMetadata,
+	unmergedChains *crChains, mergedChains *crChains,
+	unmergedPaths []path, mergedPaths map[BlockPointer]path,
+	actionMap map[BlockPointer]crActionList, lbc localBcache) error {
+	// For each set of actions:
+	//   * Find the corresponding chains
+	//   * Make a reference to each slice of ops
+	//   * Get the unmerged block.
+	//   * Get the merged block if it's not already in the local cache, and
+	//     make a copy.
+	//   * Get the merged block
+	//   * Do each action, updating the ops references to the returned ones
+	// At the end, the local block cache should contain all the
+	// updated merged blocks.  A future phase will update the pointers
+	// in standard Merkle-tree-fashion.
+	for _, unmergedPath := range unmergedPaths {
+		unmergedMostRecent := unmergedPath.tailPointer()
+		unmergedChain, ok :=
+			unmergedChains.byMostRecent[unmergedMostRecent]
+		if !ok {
+			return fmt.Errorf("Couldn't find unmerged chain for %v",
+				unmergedMostRecent)
+		}
+
+		original := unmergedChain.original
+		// If this is a file that has been deleted in the merged
+		// branch, a corresponding recreate op will take care of it,
+		// no need to do anything here.
+
+		// fnd the corresponding merged path
+		mergedPath, ok := mergedPaths[unmergedMostRecent]
+		if !ok {
+			// This most likely means that the file was created or
+			// deleted in the unmerged branch and thus has no
+			// corresponding merged path yet.
+			continue
+		}
+		if unmergedChain.isFile() {
+			// The merged path is actually the parent
+			mergedPath = *mergedPath.parentPath()
+		}
+
+		actions, ok := actionMap[mergedPath.tailPointer()]
+		if !ok || len(actions) == 0 {
+			// Another path mapping to the same parent path already
+			// executed, or there were no actions left.
+			continue
+		}
+		// Make sure we don't try to execute the same actions twice.
+		delete(actionMap, mergedPath.tailPointer())
+
+		var mergedOps []op
+		mergedChain, ok := mergedChains.byOriginal[original]
+		if ok {
+			mergedOps = mergedChain.ops
+		}
+		unmergedOps := unmergedChain.ops
+
+		// Now get the directory blocks.
+		unmergedBlock, err := cr.fetchBlockCopy(ctx, mostRecentUnmergedMD,
+			unmergedPath, lbc)
+		if err != nil {
+			return err
+		}
+		mergedBlock, err := cr.fetchBlockCopy(ctx, mostRecentMergedMD,
+			mergedPath, lbc)
+		if err != nil {
+			return err
+		}
+
+		// Execute each action and save the modified ops back into
+		// each chain.
+		for _, action := range actions {
+			unmergedOps, mergedOps, err :=
+				action.do(cr.config, unmergedMostRecent,
+					mergedPath.tailPointer(), unmergedOps, mergedOps,
+					unmergedBlock, mergedBlock)
+			if err != nil {
+				return err
+			}
+			unmergedChain.ops = unmergedOps
+			if mergedChain != nil {
+				mergedChain.ops = mergedOps
+			}
+		}
+	}
+	return nil
+}
+
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
