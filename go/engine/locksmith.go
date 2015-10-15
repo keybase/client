@@ -347,7 +347,6 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 			return d.deviceSignPGP(ctx)
 		}
 	}
-
 	var arg keybase1.SelectSignerArg
 	for k, v := range devs {
 		if v.Type != libkb.DeviceTypePaper {
@@ -402,7 +401,14 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 				ctx.LogUI.Debug("device sign w/ pgp success")
 				return nil
 			}
-			ctx.LogUI.Info("deviceSignPGP error: %s", err)
+
+			// If there are no available public keys, and no other ways to login,
+			// then no point in continuing. Bail out.
+			if _, ok := err.(libkb.NoKeyError); ok && !arg.HasPaperBackupKey && len(arg.Devices) == 0 {
+				return err
+			}
+
+			ctx.LogUI.Info("PGP: %s", err)
 			uiarg := keybase1.DeviceSignAttemptErrArg{
 				Msg:     err.Error(),
 				Attempt: i + 1,
@@ -527,7 +533,8 @@ func (d *Locksmith) deviceSignPGP(ctx *Context) (err error) {
 
 	bundle, ierr := gpg.ImportKey(true, selected.GetFingerprint())
 	if ierr != nil {
-		err = fmt.Errorf("ImportKey error: %s", ierr)
+		err = ierr
+		return err
 	}
 
 	if err = bundle.Unlock("adding this device to your account", ctx.SecretUI); err != nil {
