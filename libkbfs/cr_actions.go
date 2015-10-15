@@ -24,25 +24,6 @@ func (cuea *copyUnmergedEntryAction) String() string {
 		cuea.fromName, cuea.toName, cuea.symPath)
 }
 
-// copyUnmergedFileAction says that the unmerged entry for the given
-// name should be copied directly into the merged version of the
-// directory, and the underlying file blocks should be copied as well.
-type copyUnmergedFileAction struct {
-	fromName string
-	toName   string
-}
-
-func (cufa *copyUnmergedFileAction) do(config Config,
-	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
-	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
-	return unmergedOps, mergedOps, nil
-}
-
-func (cufa *copyUnmergedFileAction) String() string {
-	return fmt.Sprintf("copyUnmergedFile: %s -> %s", cufa.fromName, cufa.toName)
-}
-
 // copyUnmergedAttrAction says that the given attributed in the
 // unmerged entry for the given name should be copied directly into
 // the merged version of the directory; there should be no conflict.

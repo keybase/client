@@ -474,9 +474,10 @@ func (sao *setAttrOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 		if realMergedOp.Attr == sao.Attr {
 			// A set attr for the same attribute on the same file is a
 			// conflict.
-			return &copyUnmergedFileAction{
+			return &renameUnmergedAction{
 				fromName: sao.getFinalPath().tailName(),
-				toName:   sao.getFinalPath().tailName(),
+				toName: mergedOp.getFinalPath().tailName() +
+					renamer.GetConflictSuffix(sao),
 			}, nil
 		}
 	}
