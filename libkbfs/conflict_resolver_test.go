@@ -886,7 +886,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	// user1 creates file1
 	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file1", false)
 	if err != nil {
-		t.Fatalf("Couldn't make dir: %v", err)
+		t.Fatalf("Couldn't make file: %v", err)
 	}
 
 	// user2 also create file1
@@ -911,4 +911,104 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathRoot},
 		mergedPaths, nil, expectedActions)
+}
+
+// Tests that conflict resolution detects and renames conflicts.
+func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer config1.Shutdown()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer config2.Shutdown()
+	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	now := time.Now()
+	config2.SetClock(&TestClock{now})
+
+	configs := make(map[keybase1.UID]Config)
+	configs[uid1] = config1
+	configs[uid2] = config2
+	nodesRoot := testCRSharedFolderForUsers(t, uid1, configs, []string{"root"})
+	dirRoot1 := nodesRoot[uid1]
+	dirRoot2 := nodesRoot[uid2]
+	fb := dirRoot1.GetFolderBranch()
+
+	cr1 := testCRGetCROrBust(t, config1, fb)
+	cr2 := testCRGetCROrBust(t, config2, fb)
+	cr2.Shutdown()
+	cr2.inputChan = make(chan conflictInput)
+
+	// user1 creates file
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file", false)
+	if err != nil {
+		t.Fatalf("Couldn't make file: %v", err)
+	}
+
+	// user2 lookup
+	err = config2.KBFSOps().SyncFromServer(ctx, fb)
+	if err != nil {
+		t.Fatalf("Couldn't sync user 2")
+	}
+	file2, _, err := config2.KBFSOps().Lookup(ctx, dirRoot2, "file")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+
+	filePtr := cr2.fbo.nodeCache.PathFromNode(file2).tailPointer()
+
+	// pause user 2
+	_, err = DisableUpdatesForTesting(config2, fb)
+	if err != nil {
+		t.Fatalf("Can't disable updates for user 2: %v", err)
+	}
+
+	// user1 deletes the file and creates another
+	err = config1.KBFSOps().RemoveEntry(ctx, dirRoot1, "file")
+	if err != nil {
+		t.Fatalf("Couldn't remove file: %v", err)
+	}
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file", false)
+	if err != nil {
+		t.Fatalf("Couldn't re-make file: %v", err)
+	}
+
+	// user2 updates the file attribute and writes to
+	err = config2.KBFSOps().SetEx(ctx, file2, true)
+	if err != nil {
+		t.Fatalf("Couldn't set ex: %v", err)
+	}
+	err = config2.KBFSOps().Write(ctx, file2, []byte{1, 2, 3}, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write: %v", err)
+	}
+
+	// Now step through conflict resolution manually for user 2
+	mergedPaths := make(map[BlockPointer]path)
+
+	// file (needs to be recreated)
+	unmergedPathFile := cr2.fbo.nodeCache.PathFromNode(file2)
+	mergedPathFile := cr1.fbo.nodeCache.PathFromNode(dirRoot1)
+	mergedPathFile.path = append(mergedPathFile.path, pathNode{
+		BlockPointer: filePtr,
+		Name:         "file",
+	})
+	mergedPaths[unmergedPathFile.tailPointer()] = mergedPathFile
+
+	coFile := newCreateOp("file",
+		cr1.fbo.nodeCache.PathFromNode(dirRoot1).tailPointer(), File)
+
+	nowString := now.Format(time.UnixDate)
+	mergedPathRoot := cr1.fbo.nodeCache.PathFromNode(dirRoot1)
+	// Both unmerged actions should collapse into just one rename operation
+	expectedActions := map[BlockPointer]crActionList{
+		mergedPathRoot.tailPointer(): {&renameUnmergedAction{
+			"file", "file.conflict.u2." + nowString}},
+	}
+
+	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathFile},
+		mergedPaths, []*createOp{coFile}, expectedActions)
 }

@@ -90,6 +90,21 @@ func (cc *crChain) getActionsToMerge(renamer ConflictRenamer, mergedPath path,
 	return actions, nil
 }
 
+func (cc *crChain) isFile() bool {
+	if len(cc.ops) == 0 {
+		return false
+	}
+
+	// If the first op is setAttr or sync, this is a file chain.
+	switch cc.ops[0].(type) {
+	case *syncOp:
+		return true
+	case *setAttrOp:
+		return true
+	}
+	return false
+}
+
 type renameInfo struct {
 	originalOldParent BlockPointer
 	oldName           string

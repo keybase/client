@@ -910,6 +910,44 @@ func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
 	return actionMap, nil
 }
 
+// collapseActions combines file updates with their parent directory
+// updates, because conflict resolution only happens within a
+// directory (i.e., files are merged directly, they are just
+// renamed/copied).  It also collapses each action list to get rid of
+// redundant actions.
+func collapseActions(unmergedChains *crChains,
+	mergedPaths map[BlockPointer]path,
+	actionMap map[BlockPointer]crActionList) {
+	for unmergedMostRecent, chain := range unmergedChains.byMostRecent {
+		if !chain.isFile() {
+			continue
+		}
+
+		// Find the parent directory path and combine
+		p, ok := mergedPaths[unmergedMostRecent]
+		if !ok {
+			continue
+		}
+
+		fileActions, ok := actionMap[p.tailPointer()]
+		if !ok {
+			continue
+		}
+
+		parentPath := *p.parentPath()
+		mergedParent := parentPath.tailPointer()
+		parentActions := actionMap[mergedParent]
+		combinedActions := append(parentActions, fileActions...)
+		actionMap[mergedParent] = combinedActions
+		mergedPaths[unmergedMostRecent] = parentPath
+		delete(actionMap, p.tailPointer())
+	}
+
+	for ptr, actions := range actionMap {
+		actionMap[ptr] = actions.collapse()
+	}
+}
+
 func (cr *ConflictResolver) computeActions(ctx context.Context,
 	unmergedChains *crChains, mergedChains *crChains,
 	mergedPaths map[BlockPointer]path, recreateOps []*createOp) (
@@ -935,6 +973,9 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 		return nil, err
 	}
 
+	// Finally, merged the file actions back into their parent
+	// directory action list, and collapse everything together.
+	collapseActions(unmergedChains, mergedPaths, actionMap)
 	return actionMap, nil
 }
 
