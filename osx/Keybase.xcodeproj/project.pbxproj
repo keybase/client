@@ -32,6 +32,7 @@
 		0013928E1B0BE6170082DEA8 /* uninstall_helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0013928C1B0BE5DC0082DEA8 /* uninstall_helper */; };
 		001C6B3C1B24F8630048F086 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001C6B3B1B24F8630048F086 /* icon.icns */; };
 		001C6B401B24F8630048F086 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 001C6B3F1B24F8630048F086 /* ShareViewController.m */; };
+		002A4B661BC6E9EF004073BA /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002A4B651BC6E9EF004073BA /* Import.swift */; settings = {ASSET_TAGS = (); }; };
 		002E20DC1B7943BF0093CB0F /* KBPath.h in Headers */ = {isa = PBXBuildFile; fileRef = 002E20DA1B7943BF0093CB0F /* KBPath.h */; };
 		002E20DD1B7943BF0093CB0F /* KBPath.m in Sources */ = {isa = PBXBuildFile; fileRef = 002E20DB1B7943BF0093CB0F /* KBPath.m */; };
 		002F2B4F1B3B7A0800779FED /* KBProofRepairView.h in Headers */ = {isa = PBXBuildFile; fileRef = 002F2B4D1B3B7A0800779FED /* KBProofRepairView.h */; };
@@ -89,8 +90,6 @@
 		004625391B2A5A9400E218AC /* KBStrengthLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 004625371B2A5A9400E218AC /* KBStrengthLabel.m */; };
 		0046253C1B2A5B6100E218AC /* KBComposeTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046253A1B2A5B6100E218AC /* KBComposeTextView.h */; };
 		0046253D1B2A5B6100E218AC /* KBComposeTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046253B1B2A5B6100E218AC /* KBComposeTextView.m */; };
-		0046C0E51B290A0B00C4D06F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; };
-		0046C0E61B290A3A00C4D06F /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0046C0E41B290A0B00C4D06F /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0046C0E91B290CA100C4D06F /* KBAppExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0E71B290CA100C4D06F /* KBAppExtension.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0046C0EA1B290CA100C4D06F /* KBAppExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 0046C0E81B290CA100C4D06F /* KBAppExtension.m */; };
 		0046C0ED1B29114F00C4D06F /* KBNotifications.h in Headers */ = {isa = PBXBuildFile; fileRef = 0046C0EB1B29114F00C4D06F /* KBNotifications.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -373,9 +372,9 @@
 		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
 		00FED9A71BA8C8D9004541AF /* KBErrorStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00FED9A51BA8C8D9004541AF /* KBErrorStatusView.h */; };
 		00FED9A81BA8C8D9004541AF /* KBErrorStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FED9A61BA8C8D9004541AF /* KBErrorStatusView.m */; };
-		4107D6DB8EFF41B5241BD2F4 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EE90BB7C590E1825E8556714 /* libPods-Keybase.a */; };
-		58C3E639B91016531F23947C /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 28243FD1B0705F42278302F1 /* libPods-keybase.Helper.a */; };
-		B9DBD381EDEB1C3DE31B4531 /* libPods-KBKit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 92A4A228BA0B528D11BAFDA9 /* libPods-KBKit.a */; };
+		0E5C9C390BDF8C913608E80E /* Pods_keybase_Helper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADA8B962FE303B2CAE53E3FA /* Pods_keybase_Helper.framework */; };
+		C748D3E5AFB533BF1AA9248E /* Pods_Keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F453DA5F7B5A6E5A220B592 /* Pods_Keybase.framework */; };
+		E9AADCDEF64FC8E61A8BF4C6 /* Pods_KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44A7A68F03DD7668613A7D59 /* Pods_KBKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -440,7 +439,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				0046C0E61B290A3A00C4D06F /* Sparkle.framework in Embed Frameworks */,
 				0043D1021B28ED290036C532 /* KBKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -515,6 +513,8 @@
 		001C6B3D1B24F8630048F086 /* Share.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Share.entitlements; sourceTree = "<group>"; };
 		001C6B3E1B24F8630048F086 /* ShareViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
 		001C6B3F1B24F8630048F086 /* ShareViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
+		002A4B641BC6E9EE004073BA /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
+		002A4B651BC6E9EF004073BA /* Import.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		002E20DA1B7943BF0093CB0F /* KBPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPath.h; sourceTree = "<group>"; };
 		002E20DB1B7943BF0093CB0F /* KBPath.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPath.m; sourceTree = "<group>"; };
 		002F2B4D1B3B7A0800779FED /* KBProofRepairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProofRepairView.h; sourceTree = "<group>"; };
@@ -571,7 +571,6 @@
 		004625371B2A5A9400E218AC /* KBStrengthLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStrengthLabel.m; sourceTree = "<group>"; };
 		0046253A1B2A5B6100E218AC /* KBComposeTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBComposeTextView.h; sourceTree = "<group>"; };
 		0046253B1B2A5B6100E218AC /* KBComposeTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBComposeTextView.m; sourceTree = "<group>"; };
-		0046C0E41B290A0B00C4D06F /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Pods/Sparkle/Sparkle.framework; sourceTree = "<group>"; };
 		0046C0E71B290CA100C4D06F /* KBAppExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppExtension.h; sourceTree = "<group>"; };
 		0046C0E81B290CA100C4D06F /* KBAppExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppExtension.m; sourceTree = "<group>"; };
 		0046C0EB1B29114F00C4D06F /* KBNotifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNotifications.h; sourceTree = "<group>"; };
@@ -846,8 +845,6 @@
 		009E16071B28AA3600C72B28 /* KBService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBService.m; sourceTree = "<group>"; };
 		009E161C1B28AA8100C72B28 /* KBConvert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBConvert.h; sourceTree = "<group>"; };
 		009E161D1B28AA8100C72B28 /* KBConvert.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBConvert.m; sourceTree = "<group>"; };
-		009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.debug.xcconfig"; sourceTree = "<group>"; };
-		009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.release.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.release.xcconfig"; sourceTree = "<group>"; };
 		009E164D1B28AD6900C72B28 /* KBEnvConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBEnvConfig.h; sourceTree = "<group>"; };
 		009E164E1B28AD6900C72B28 /* KBEnvConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvConfig.m; sourceTree = "<group>"; };
 		009E164F1B28AD6900C72B28 /* KBEnvironment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBEnvironment.h; sourceTree = "<group>"; };
@@ -878,13 +875,15 @@
 		00FB76C11B0D3CA30070DEED /* KBFormatterTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFormatterTest.m; sourceTree = "<group>"; };
 		00FED9A51BA8C8D9004541AF /* KBErrorStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBErrorStatusView.h; sourceTree = "<group>"; };
 		00FED9A61BA8C8D9004541AF /* KBErrorStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBErrorStatusView.m; sourceTree = "<group>"; };
-		28243FD1B0705F42278302F1 /* libPods-keybase.Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-keybase.Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2DAA038ECF4F88C4E9D2BA1F /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
-		8D23D54BB04DE19BBF61A888 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
-		92A4A228BA0B528D11BAFDA9 /* libPods-KBKit.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KBKit.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		C90761892F9CE72BDF1A25D0 /* Pods-keybase.Helper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.debug.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.debug.xcconfig"; sourceTree = "<group>"; };
-		EE90BB7C590E1825E8556714 /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		FAAF3A5FAFE57DBEBE1CCC2A /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
+		1DB52707057FCC85BB1B76F8 /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
+		44A7A68F03DD7668613A7D59 /* Pods_KBKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KBKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5611361778543495FB1C6D51 /* Pods-KBKit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.release.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.release.xcconfig"; sourceTree = "<group>"; };
+		5FA8FAC13FFF7279017D794D /* Pods-keybase.Helper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.debug.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.debug.xcconfig"; sourceTree = "<group>"; };
+		8F453DA5F7B5A6E5A220B592 /* Pods_Keybase.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Keybase.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		ADA8B962FE303B2CAE53E3FA /* Pods_keybase_Helper.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_keybase_Helper.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD11FB3DFD5135D6FFF9F4F6 /* Pods-KBKit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.debug.xcconfig"; sourceTree = "<group>"; };
+		D03F297691EEE4910C0947B4 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
+		E84E3BDE0C6A769F175C3E0B /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -910,7 +909,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				58C3E639B91016531F23947C /* libPods-keybase.Helper.a in Frameworks */,
+				0E5C9C390BDF8C913608E80E /* Pods_keybase_Helper.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -933,7 +932,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B9DBD381EDEB1C3DE31B4531 /* libPods-KBKit.a in Frameworks */,
+				E9AADCDEF64FC8E61A8BF4C6 /* Pods_KBKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -942,8 +941,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0043D1011B28ED290036C532 /* KBKit.framework in Frameworks */,
-				0046C0E51B290A0B00C4D06F /* Sparkle.framework in Frameworks */,
-				4107D6DB8EFF41B5241BD2F4 /* libPods-Keybase.a in Frameworks */,
+				C748D3E5AFB533BF1AA9248E /* Pods_Keybase.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1632,8 +1630,8 @@
 				00566A531A9BAD4800CA236E /* Install */,
 				4A1398D8A1B7A96F0CD7F917 /* Tests */,
 				00CC434A1A3A9E6C006118A9 /* Products */,
-				D28313B93FED2BB6CA992160 /* Pods */,
 				468C135BF6D934E5DFBB8513 /* Frameworks */,
+				3D6FC9F5BAAFC4ACF8A02449 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1657,6 +1655,8 @@
 				009E137B1B28A91F00C72B28 /* AppDelegate.h */,
 				009E137C1B28A91F00C72B28 /* AppDelegate.m */,
 				00CC434C1A3A9E6C006118A9 /* Supporting Files */,
+				002A4B651BC6E9EF004073BA /* Import.swift */,
+				002A4B641BC6E9EE004073BA /* Keybase-Bridging-Header.h */,
 			);
 			path = Keybase;
 			sourceTree = "<group>";
@@ -1681,15 +1681,27 @@
 			path = Share;
 			sourceTree = "<group>";
 		};
+		3D6FC9F5BAAFC4ACF8A02449 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				CD11FB3DFD5135D6FFF9F4F6 /* Pods-KBKit.debug.xcconfig */,
+				5611361778543495FB1C6D51 /* Pods-KBKit.release.xcconfig */,
+				1DB52707057FCC85BB1B76F8 /* Pods-Keybase.debug.xcconfig */,
+				E84E3BDE0C6A769F175C3E0B /* Pods-Keybase.release.xcconfig */,
+				5FA8FAC13FFF7279017D794D /* Pods-keybase.Helper.debug.xcconfig */,
+				D03F297691EEE4910C0947B4 /* Pods-keybase.Helper.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		468C135BF6D934E5DFBB8513 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				00DAF5BE1B2F885D000D7F9A /* Social.framework */,
 				004624CD1B2A3BE300E218AC /* FinderSync.framework */,
-				0046C0E41B290A0B00C4D06F /* Sparkle.framework */,
-				92A4A228BA0B528D11BAFDA9 /* libPods-KBKit.a */,
-				EE90BB7C590E1825E8556714 /* libPods-Keybase.a */,
-				28243FD1B0705F42278302F1 /* libPods-keybase.Helper.a */,
+				44A7A68F03DD7668613A7D59 /* Pods_KBKit.framework */,
+				8F453DA5F7B5A6E5A220B592 /* Pods_Keybase.framework */,
+				ADA8B962FE303B2CAE53E3FA /* Pods_keybase_Helper.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1706,19 +1718,6 @@
 				00AA75111B27635D0069A6CC /* Supporting Files */,
 			);
 			path = Tests;
-			sourceTree = "<group>";
-		};
-		D28313B93FED2BB6CA992160 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */,
-				009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */,
-				C90761892F9CE72BDF1A25D0 /* Pods-keybase.Helper.debug.xcconfig */,
-				8D23D54BB04DE19BBF61A888 /* Pods-keybase.Helper.release.xcconfig */,
-				FAAF3A5FAFE57DBEBE1CCC2A /* Pods-Keybase.debug.xcconfig */,
-				2DAA038ECF4F88C4E9D2BA1F /* Pods-Keybase.release.xcconfig */,
-			);
-			name = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1936,11 +1935,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0057B0BA1AE57A4900BFB0E7 /* Build configuration list for PBXNativeTarget "keybase.Helper" */;
 			buildPhases = (
-				6E0F08E09C226BC3351ADEC4 /* Check Pods Manifest.lock */,
+				CB41650F98EDFE5B21FBB436 /* Check Pods Manifest.lock */,
 				0057B0B01AE57A4900BFB0E7 /* Sources */,
 				0057B0B11AE57A4900BFB0E7 /* Frameworks */,
 				0057B0B21AE57A4900BFB0E7 /* CopyFiles */,
-				F2140848A7BEF9B0D514267F /* Copy Pods Resources */,
+				02381F0D236DD028C5F6BA99 /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1991,12 +1990,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00C0DC4F1B28EC1900A825D4 /* Build configuration list for PBXNativeTarget "KBKit" */;
 			buildPhases = (
-				A26B8F9EA8D6662F48C46CA6 /* Check Pods Manifest.lock */,
+				0AC86F9329258BB61855891A /* Check Pods Manifest.lock */,
 				00C0DC311B28EC1800A825D4 /* Sources */,
 				00C0DC321B28EC1800A825D4 /* Frameworks */,
 				00C0DC331B28EC1800A825D4 /* Headers */,
 				00C0DC341B28EC1800A825D4 /* Resources */,
-				1082DFC21EE47B30FAF9F749 /* Copy Pods Resources */,
+				AE72F736964CE943EC0CF15D /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -2011,6 +2010,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00CC43661A3A9E6C006118A9 /* Build configuration list for PBXNativeTarget "Keybase" */;
 			buildPhases = (
+				CC3F25291ABFB9BAA882912E /* Check Pods Manifest.lock */,
 				00CC43451A3A9E6C006118A9 /* Sources */,
 				00CC43461A3A9E6C006118A9 /* Frameworks */,
 				00CC43471A3A9E6C006118A9 /* Resources */,
@@ -2018,7 +2018,8 @@
 				0057B0DA1AE57B4C00BFB0E7 /* Copy Files */,
 				001392891B0BDB8A0082DEA8 /* CopyFiles */,
 				0043D1051B28ED290036C532 /* Embed Frameworks */,
-				0043D1481B2905950036C532 /* ShellScript */,
+				0FBE7CCD4D64C1D681D867C4 /* Embed Pods Frameworks */,
+				6BCFDBF5EF91B1EDCBE661BC /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -2038,6 +2039,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = KB;
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = Keybase;
 				TargetAttributes = {
@@ -2190,21 +2192,67 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		0043D1481B2905950036C532 /* ShellScript */ = {
+		02381F0D236DD028C5F6BA99 /* Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Copy Pods Resources";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "LOCATION=\"${BUILT_PRODUCTS_DIR}\"/\"${FRAMEWORKS_FOLDER_PATH}\"\nIDENTITY=\"Developer ID Application: Keybase, Inc.\"\ncodesign --verbose --force --sign \"$IDENTITY\" \"$LOCATION/Sparkle.framework/Versions/A\"";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		1082DFC21EE47B30FAF9F749 /* Copy Pods Resources */ = {
+		0AC86F9329258BB61855891A /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		0FBE7CCD4D64C1D681D867C4 /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase/Pods-Keybase-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6BCFDBF5EF91B1EDCBE661BC /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase/Pods-Keybase-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AE72F736964CE943EC0CF15D /* Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2219,7 +2267,7 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-KBKit/Pods-KBKit-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		6E0F08E09C226BC3351ADEC4 /* Check Pods Manifest.lock */ = {
+		CB41650F98EDFE5B21FBB436 /* Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2234,7 +2282,7 @@
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
-		A26B8F9EA8D6662F48C46CA6 /* Check Pods Manifest.lock */ = {
+		CC3F25291ABFB9BAA882912E /* Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2247,21 +2295,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
-			showEnvVarsInLog = 0;
-		};
-		F2140848A7BEF9B0D514267F /* Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -2492,6 +2525,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				002A4B661BC6E9EF004073BA /* Import.swift in Sources */,
 				009E137D1B28A91F00C72B28 /* AppDelegate.m in Sources */,
 				00CC43521A3A9E6C006118A9 /* main.m in Sources */,
 			);
@@ -2546,7 +2580,6 @@
 /* Begin XCBuildConfiguration section */
 		001C6B471B24F8630048F086 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Share/Share.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -2568,7 +2601,6 @@
 		};
 		001C6B481B24F8630048F086 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Share/Share.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -2624,7 +2656,7 @@
 		};
 		0057B0B81AE57A4900BFB0E7 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C90761892F9CE72BDF1A25D0 /* Pods-keybase.Helper.debug.xcconfig */;
+			baseConfigurationReference = 5FA8FAC13FFF7279017D794D /* Pods-keybase.Helper.debug.xcconfig */;
 			buildSettings = {
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2650,7 +2682,7 @@
 		};
 		0057B0B91AE57A4900BFB0E7 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8D23D54BB04DE19BBF61A888 /* Pods-keybase.Helper.release.xcconfig */;
+			baseConfigurationReference = D03F297691EEE4910C0947B4 /* Pods-keybase.Helper.release.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2672,7 +2704,6 @@
 		};
 		009E13761B27B39300C72B28 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -2694,7 +2725,6 @@
 		};
 		009E13771B27B39300C72B28 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
@@ -2712,7 +2742,6 @@
 		};
 		00AA75191B27635D0069A6CC /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
@@ -2737,7 +2766,6 @@
 		};
 		00AA751A1B27635D0069A6CC /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
@@ -2758,7 +2786,7 @@
 		};
 		00C0DC501B28EC1900A825D4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 009E16211B28AC9300C72B28 /* Pods-KBKit.debug.xcconfig */;
+			baseConfigurationReference = CD11FB3DFD5135D6FFF9F4F6 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -2767,6 +2795,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				FRAMEWORK_VERSION = A;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2786,7 +2815,7 @@
 		};
 		00C0DC511B28EC1900A825D4 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 009E16221B28AC9300C72B28 /* Pods-KBKit.release.xcconfig */;
+			baseConfigurationReference = 5611361778543495FB1C6D51 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -2795,6 +2824,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				FRAMEWORK_VERSION = A;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = KBKit/Info.plist;
@@ -2889,7 +2919,7 @@
 		};
 		00CC43671A3A9E6C006118A9 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FAAF3A5FAFE57DBEBE1CCC2A /* Pods-Keybase.debug.xcconfig */;
+			baseConfigurationReference = 1DB52707057FCC85BB1B76F8 /* Pods-Keybase.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
@@ -2897,23 +2927,21 @@
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Pods/Sparkle",
-				);
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = Keybase/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Keybase;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/View/Debug/Keybase-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
 		00CC43681A3A9E6C006118A9 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 2DAA038ECF4F88C4E9D2BA1F /* Pods-Keybase.release.xcconfig */;
+			baseConfigurationReference = E84E3BDE0C6A769F175C3E0B /* Pods-Keybase.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
@@ -2921,16 +2949,14 @@
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Pods/Sparkle",
-				);
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = Keybase/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Keybase;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/View/Debug/Keybase-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 			};
 			name = Release;
 		};

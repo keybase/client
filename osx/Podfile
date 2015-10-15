@@ -1,7 +1,8 @@
-platform :osx, "10.8"
+platform :osx, "10.9"
+use_frameworks!
 
 target "Keybase" do
-  pod "Sparkle"
+  pod "ObjectiveSugar"
 end
 
 # Used by Keybase.app and extensions
@@ -12,6 +13,8 @@ target "KBKit" do
 
   pod "Mantle"
 
+  #pod "Sparkle"
+
   pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
 
   pod "YOLayout"#, :path => "~/Projects/YOLayout"
@@ -19,7 +22,7 @@ target "KBKit" do
   pod "ZXCVBN"
   pod "AFNetworking"
 
-  pod "CocoaLumberjack"
+  pod "CocoaLumberjack"#, :git => "https://github.com/CocoaLumberjack/CocoaLumberjack.git", :branch => "swift_2.0"
   pod "GHODictionary"
 
   pod "MASPreferences"

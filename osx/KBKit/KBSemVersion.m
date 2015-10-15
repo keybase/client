@@ -8,7 +8,7 @@
 
 #import "KBSemVersion.h"
 
-#import <KBAppKit/KBAppKit.h>
+#import <ObjectiveSugar/ObjectiveSugar.h>
 
 @interface KBSemVersion ()
 @property NSString *version;

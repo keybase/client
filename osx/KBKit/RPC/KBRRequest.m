@@ -24,7 +24,7 @@
 }
 
 - (NSNumber *)sessionId {
-  if (!_sessionId) _sessionId = [_client nextSessionId];
+  if (!_sessionId) _sessionId = [_client nextMessageId];
   return _sessionId;
 }
 

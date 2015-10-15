@@ -31,6 +31,8 @@
 #import "KBNotifications.h"
 #import "KBErrorStatusView.h"
 
+#import <Keybase/Keybase-Swift.h>
+
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
   KBAppViewModeInProgress = 1,
   KBAppViewModeError,
@@ -399,7 +401,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didLog:(NSString *)message {
-  DDLogInfo(message);
+  DDLogInfo(@"%@", message);
 }
 
 - (void)RPClient:(KBRPClient *)RPClient didRequestSecretForPrompt:(NSString *)prompt info:(NSString *)info details:(NSString *)details previousError:(NSString *)previousError completion:(KBRPClientOnSecret)completion {

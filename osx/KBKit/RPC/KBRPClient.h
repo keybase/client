@@ -50,10 +50,13 @@ typedef void (^KBRPClientOnSecret)(NSString *secret);
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config options:(KBRClientOptions)options;
 
+- (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params messageId:(NSNumber *)messageId completion:(MPRequestCompletion)completion;
+
+// @deprecated
 - (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion;
 - (void)registerMethod:(NSString *)method sessionId:(NSNumber *)sessionId requestHandler:(MPRequestHandler)requestHandler;
 - (void)unregister:(NSNumber *)sessionId;
-- (NSNumber *)nextSessionId;
+- (NSNumber *)nextMessageId;
 
 - (void)open:(KBCompletion)completion;
 
