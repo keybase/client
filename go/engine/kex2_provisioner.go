@@ -7,17 +7,19 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
 
 // Kex2Provisioner is an engine.
 type Kex2Provisioner struct {
 	libkb.Contextified
-	deviceID keybase1.DeviceID
-	secret   kex2.Secret
-	secretCh chan kex2.Secret
-	me       *libkb.User
-	ctx      *Context
+	deviceID   keybase1.DeviceID
+	secret     kex2.Secret
+	secretCh   chan kex2.Secret
+	me         *libkb.User
+	signingKey libkb.GenericKey
+	pps        *libkb.PassphraseStream
 }
 
 // NewKex2Provisioner creates a Kex2Provisioner engine.
@@ -62,8 +64,20 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	// need to hold onto the context for use in the kex2 functions:
-	e.ctx = ctx
+	arg := libkb.SecretKeyArg{
+		Me:      e.me,
+		KeyType: libkb.DeviceSigningKeyType,
+	}
+	e.signingKey, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, arg, ctx.SecretUI, "new device install")
+	if err != nil {
+		return err
+	}
+
+	// get passphrase stream
+	e.pps, err = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+	if err != nil {
+		return err
+	}
 
 	karg := kex2.KexBaseArg{
 		Ctx:           context.TODO(),
@@ -94,12 +108,6 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 	e.G().Log.Debug("+ GetHelloArg()")
 	defer func() { e.G().Log.Debug("- GetHelloArg() -> %s", libkb.ErrToOk(err)) }()
 
-	// get passphrase stream
-	pps, err := e.G().LoginState().GetPassphraseStream(e.ctx.SecretUI)
-	if err != nil {
-		return arg, err
-	}
-
 	// get a session token that device Y can use
 	var resp *libkb.APIRes
 	resp, err = e.G().API.Post(libkb.APIArg{
@@ -113,11 +121,29 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 		return arg, err
 	}
 
+	delg := libkb.Delegator{
+		ExistingKey:    e.signingKey,
+		Me:             e.me,
+		DelegationType: libkb.SibkeyType,
+		Expire:         libkb.NaclEdDSAExpireIn,
+	}
+
+	var jw *jsonw.Wrapper
+	if jw, err = libkb.KeyProof(delg); err != nil {
+		return arg, err
+	}
+	var body []byte
+	body, err = jw.Marshal()
+	if err != nil {
+		return arg, err
+	}
+	e.G().Log.Debug("sibkey skeleton: %s", string(body))
+
 	arg = keybase1.HelloArg{
 		Uid:     e.me.GetUID(),
-		Pps:     pps.Export(),
+		Pps:     e.pps.Export(),
 		Token:   keybase1.SessionToken(token),
-		SigBody: "hi",
+		SigBody: string(body),
 	}
 	return arg, nil
 }
@@ -126,6 +152,41 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) ([]byte, error) {
 	e.G().Log.Debug("+ CounterSign()")
 	defer e.G().Log.Debug("- CounterSign()")
 
-	// XXX temporary
-	return []byte(input), nil
+	jw, err := jsonw.Unmarshal([]byte(input))
+	if err != nil {
+		return nil, err
+	}
+
+	e.G().Log.Debug("input to CounterSign: %s", jw.MarshalPretty())
+	kid, err := jw.AtPath("body.sibkey.kid").GetString()
+	if err != nil {
+		return nil, err
+	}
+
+	keypair, err := libkb.ImportKeypairFromKID(keybase1.KIDFromString(kid))
+	if err != nil {
+		return nil, err
+	}
+
+	revsig, err := jw.AtPath("body.sibkey.reverse_sig").GetString()
+	if err != nil {
+		return nil, err
+	}
+
+	sigPayload, _, err := keypair.VerifyStringAndExtract(revsig)
+	if err != nil {
+		return nil, err
+	}
+
+	e.G().Log.Debug("sig payload: %s", sigPayload)
+
+	// XXX verify payload + jw
+
+	var sig string
+	sig, _, _, err = libkb.SignJSON(jw, e.signingKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(sig), nil
 }

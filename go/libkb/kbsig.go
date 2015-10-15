@@ -220,6 +220,8 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 
 type ProofMetadata struct {
 	Me             *User
+	LastSeqno      Seqno
+	PrevLink       string
 	LinkType       LinkType
 	SigningKey     GenericKey
 	Eldest         keybase1.KID
@@ -234,15 +236,21 @@ func (arg ProofMetadata) ToJSON() (ret *jsonw.Wrapper, err error) {
 	var prevS string
 	var key, prev *jsonw.Wrapper
 
-	lastSeqno := arg.Me.sigChain().GetLastKnownSeqno()
-	lastLink := arg.Me.sigChain().GetLastKnownID()
-	if lastLink == nil {
-		seqno = 1
-		prev = jsonw.NewNil()
+	if arg.LastSeqno > 0 {
+		seqno = int(arg.LastSeqno) + 1
+		// XXX this still needs work in regards to `prev` field
+		prev = jsonw.NewString("XXX")
 	} else {
-		seqno = int(lastSeqno) + 1
-		prevS = lastLink.String()
-		prev = jsonw.NewString(prevS)
+		lastSeqno := arg.Me.sigChain().GetLastKnownSeqno()
+		lastLink := arg.Me.sigChain().GetLastKnownID()
+		if lastLink == nil {
+			seqno = 1
+			prev = jsonw.NewNil()
+		} else {
+			seqno = int(lastSeqno) + 1
+			prevS = lastLink.String()
+			prev = jsonw.NewString(prevS)
+		}
 	}
 
 	ctime := arg.CreationTime
@@ -319,13 +327,15 @@ func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.W
 	return
 }
 
-func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
+// arg.Me user is used to get the last known seqno in ProofMetadata.
+// If arg.Me == nil, set arg.LastSeqno.
+func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 	var kp *jsonw.Wrapper
 	includePGPHash := false
 
 	if arg.DelegationType == EldestType {
 		includePGPHash = true
-	} else {
+	} else if arg.NewKey != nil {
 		keySection := KeySection{
 			Key: arg.NewKey,
 		}
@@ -345,13 +355,14 @@ func (u *User) KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 	}
 
 	ret, err = ProofMetadata{
-		Me:             u,
+		Me:             arg.Me,
 		LinkType:       LinkType(arg.DelegationType),
 		ExpireIn:       arg.Expire,
 		SigningKey:     arg.GetSigningKey(),
 		Eldest:         arg.EldestKID,
 		CreationTime:   arg.Ctime,
 		IncludePGPHash: includePGPHash,
+		LastSeqno:      arg.LastSeqno,
 	}.ToJSON()
 	if err != nil {
 		return

@@ -216,7 +216,7 @@ func (k *KexNewDevice) revSig(eddsa libkb.NaclKeyPair) (sig string, err error) {
 		Device:         k.GetDevice(),
 	}
 	var jw *jsonw.Wrapper
-	if jw, err = k.args.User.KeyProof(delg); err != nil {
+	if jw, err = libkb.KeyProof(delg); err != nil {
 		return
 	}
 	sig, _, _, err = libkb.SignJSON(jw, eddsa)

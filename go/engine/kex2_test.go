@@ -43,7 +43,11 @@ func TestKex2Provision(t *testing.T) {
 			t.Errorf("provisionee device id error: %s", err)
 			return
 		}
-		provisionee := NewKex2Provisionee(tcY.G, deviceID, secretY)
+		device := &libkb.Device{
+			ID:   deviceID,
+			Type: libkb.DeviceTypeDesktop,
+		}
+		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
 		if err := RunEngine(provisionee, ctx); err != nil {
 			t.Errorf("provisionee error: %s", err)
 			return

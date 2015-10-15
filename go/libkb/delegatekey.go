@@ -30,6 +30,9 @@ type Delegator struct {
 	DelegationType    DelegationType
 	Aggregated        bool // During aggregation we skip some steps (posting, updating some state)
 
+	// Optional
+	LastSeqno Seqno // during kex2, HandleDidCounterSign needs to sign subkey without a user but we know what the last seqno was
+
 	// Internal fields
 	sig          string
 	sigID        keybase1.SigID
@@ -158,7 +161,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 	// For a sibkey signature, we first sign the blob with the
 	// sibkey, and then embed that signature for the delegating key
 	if d.DelegationType == SibkeyType {
-		if jw, err = d.Me.KeyProof(*d); err != nil {
+		if jw, err = KeyProof(*d); err != nil {
 			G.Log.Debug("| Failure in intermediate KeyProof()")
 			return err
 		}
@@ -169,7 +172,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 		}
 	}
 
-	if jw, err = d.Me.KeyProof(*d); err != nil {
+	if jw, err = KeyProof(*d); err != nil {
 		G.Log.Debug("| Failure in KeyProof()")
 		return
 	}
