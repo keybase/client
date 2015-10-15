@@ -12,7 +12,7 @@ import * as actionTypes from '../constants/tabbed-router-action-types'
 const emptyRouterState = createRouterState([], [])
 
 // Uncomment this to start at a specific page to help speed up
-// const emptyRouterState = createRouterState(['login2', 'register', 'regExistingDevice'], [])
+// const emptyRouterState = createRouterState(['login2', 'register', 'regPaperKey'], [])
 
 // TODO(mm) add type annotations
 const initialState = Immutable.fromJS({
