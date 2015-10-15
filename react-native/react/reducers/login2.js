@@ -16,7 +16,11 @@ const initialState = {
     qrCode: null
   },
   registerUserPassError: null,
-  registerUserPassLoading: false
+  registerUserPassLoading: false,
+  forgotPasswordEmailAddress: '',
+  forgotPasswordSubmitting: false,
+  forgotPasswordSuccess: false,
+  forgotPasswordError: null
 }
 
 export default function (state = initialState, action) {
@@ -97,6 +101,27 @@ export default function (state = initialState, action) {
         ...state,
         registerUserPassError: action.error,
         registerUserPassLoading: false
+      }
+    case Constants.actionUpdateForgotPasswordEmailAddress:
+      return {
+        ...state,
+        forgotPasswordEmailAddress: action.email,
+        forgotPasswordSuccess: false,
+        forgotPasswordError: false
+      }
+    case Constants.actionSetForgotPasswordSubmitting:
+      return {
+        ...state,
+        forgotPasswordSubmitting: true,
+        forgotPasswordSuccess: false,
+        forgotPasswordError: null
+      }
+    case Constants.actionForgotPasswordDone:
+      return {
+        ...state,
+        forgotPasswordSubmitting: false,
+        forgotPasswordSuccess: !action.error,
+        forgotPasswordError: action.error
       }
     default:
       return state
