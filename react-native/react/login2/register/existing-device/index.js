@@ -44,7 +44,7 @@ export default class ExistingDevice extends Component {
         mapStateToProps: state => state.login2
       },
       subRoutes: {
-        codePage: CodePage.parseRoute
+        codePage: CodePage
       }
     }
   }
