@@ -168,3 +168,82 @@ func (dua *dropUnmergedAction) do(config Config,
 func (dua *dropUnmergedAction) String() string {
 	return fmt.Sprintf("dropUnmerged: %s", dua.op)
 }
+
+type collapseActionInfo struct {
+	topAction      crAction
+	topActionIndex int
+}
+
+type crActionList []crAction
+
+func setTopAction(action crAction, fromName string, index int,
+	infoMap map[string]collapseActionInfo, indicesToRemove map[int]bool) {
+	info, ok := infoMap[fromName]
+	if ok {
+		indicesToRemove[info.topActionIndex] = true
+	}
+	info.topAction = action
+	info.topActionIndex = index
+	infoMap[fromName] = info
+}
+
+// collapse drops any actions that are made irrelevant by other
+// actions in the list.  It assumes that file-related actions have
+// already been merged into their parent directory action lists.
+func (cal crActionList) collapse() crActionList {
+	// Order of precedence for a given fromName:
+	// 1) renameUnmergedAction
+	// 2) copyUnmergedEntryAction
+	// 3) copyUnmergedAttrAction
+	infoMap := make(map[string]collapseActionInfo) // fromName -> info
+	indicesToRemove := make(map[int]bool)
+	for i, untypedAction := range cal {
+		switch action := untypedAction.(type) {
+
+		// Unmerged actions:
+		case *renameUnmergedAction:
+			setTopAction(action, action.fromName, i, infoMap, indicesToRemove)
+		case *copyUnmergedEntryAction:
+			untypedTopAction := infoMap[action.fromName].topAction
+			switch untypedTopAction.(type) {
+			case *renameUnmergedAction:
+				indicesToRemove[i] = true
+			default:
+				setTopAction(action, action.fromName, i, infoMap,
+					indicesToRemove)
+			}
+		case *copyUnmergedAttrAction:
+			untypedTopAction := infoMap[action.fromName].topAction
+			switch untypedTopAction.(type) {
+			case *renameUnmergedAction:
+				indicesToRemove[i] = true
+			case *copyUnmergedEntryAction:
+				indicesToRemove[i] = true
+			default:
+				setTopAction(action, action.fromName, i, infoMap,
+					indicesToRemove)
+			}
+
+		// Merged actions
+		case *renameMergedAction:
+			// Prefix merged actions with a reserved prefix to keep
+			// them separate from the unmerged actions.
+			setTopAction(action, ".kbfs_merged_"+action.fromName, i, infoMap,
+				indicesToRemove)
+		}
+	}
+
+	if len(indicesToRemove) == 0 {
+		return cal
+	}
+
+	newList := make(crActionList, 0, len(cal)-len(indicesToRemove))
+	for i, action := range cal {
+		if indicesToRemove[i] {
+			continue
+		}
+		newList = append(newList, action)
+	}
+
+	return newList
+}
