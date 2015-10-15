@@ -28,4 +28,5 @@ dependencies {
     compile 'com.facebook.react:react-native:0.12.0'
     debugCompile 'com.hanhuy.android:viewserver:1.0.3'
     compile project(':keybaselib')
+    testCompile 'junit:junit:4.12'
 }
