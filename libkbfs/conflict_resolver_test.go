@@ -918,7 +918,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	expectedActions := make(map[BlockPointer][]crAction)
 	nowString := now.Format(time.UnixDate)
 	expectedActions[mergedPathRoot.tailPointer()] = []crAction{
-		&renameUnmergedAction{"file1", "file1.conflict.u2." + nowString, ""},
+		&renameUnmergedAction{"file1", "file1.conflict.u2." + nowString},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathRoot},

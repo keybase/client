@@ -192,14 +192,12 @@ func (co *createOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 				return &renameMergedAction{
 					fromName: co.NewName,
 					toName:   co.NewName + renamer.GetConflictSuffix(mergedOp),
-					symPath:  co.crSymPath,
 				}, nil
 			}
-			// Otherwise rename the unmerged entry.
+			// Otherwise rename the unmerged entry (guaranteed to be a file).
 			return &renameUnmergedAction{
 				fromName: co.NewName,
 				toName:   co.NewName + renamer.GetConflictSuffix(co),
-				symPath:  co.crSymPath,
 			}, nil
 		}
 	}

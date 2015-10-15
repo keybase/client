@@ -63,12 +63,10 @@ func (rmea *rmMergedEntryAction) String() string {
 }
 
 // renameUnmergedAction says that the unmerged copy of a file needs to
-// be renamed, and the file blocks should be copied.  If symPath is
-// non-empty, then the unmerged entry becomes a symlink to that path.
+// be renamed, and the file blocks should be copied.
 type renameUnmergedAction struct {
 	fromName string
 	toName   string
-	symPath  string
 }
 
 func (rua *renameUnmergedAction) do(config Config,
@@ -79,17 +77,14 @@ func (rua *renameUnmergedAction) do(config Config,
 }
 
 func (rua *renameUnmergedAction) String() string {
-	return fmt.Sprintf("renameUnmerged: %s -> %s %s", rua.fromName, rua.toName,
-		rua.symPath)
+	return fmt.Sprintf("renameUnmerged: %s -> %s", rua.fromName, rua.toName)
 }
 
 // renameMergedAction says that the merged copy of a file needs to be
-// renamed, and the file blocks should be copied.  If symPath is
-// non-empty, then the unmerged entry becomes a symlink to that path.
+// renamed, and the file blocks should be copied.
 type renameMergedAction struct {
 	fromName string
 	toName   string
-	symPath  string
 }
 
 func (rma *renameMergedAction) do(config Config,
@@ -100,8 +95,7 @@ func (rma *renameMergedAction) do(config Config,
 }
 
 func (rma *renameMergedAction) String() string {
-	return fmt.Sprintf("renameMerged: %s -> %s %s", rma.fromName, rma.toName,
-		rma.symPath)
+	return fmt.Sprintf("renameMerged: %s -> %s", rma.fromName, rma.toName)
 }
 
 // dropUnmergedAction says that the corresponding unmerged
