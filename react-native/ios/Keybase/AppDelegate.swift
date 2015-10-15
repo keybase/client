@@ -43,7 +43,6 @@ extension AppDelegate: UIApplicationDelegate {
       AppDefault.APIServer.setDefaultValue("http://localhost:3000")
       AppDefault.RunMode.setDefaultValue("devel")
     #else
-      AppDefault.APIServer.setDefaultValue("https://keybase.io")
       AppDefault.RunMode.setDefaultValue("prod")
     #endif
     
