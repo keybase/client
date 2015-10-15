@@ -35,8 +35,8 @@ export default class Devices extends Component {
 
     if (!loggedIn) {
       return (
-        <View>
-          <Text> Login to see devices </Text>
+        <View style={{marginTop: 20}}>
+          <Text style={{textAlign: 'center'}}> Login to see devices </Text>
         </View>
       )
     }
