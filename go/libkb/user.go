@@ -153,6 +153,18 @@ func (u *User) GetActivePGPKIDs(sibkey bool) (ret []keybase1.KID) {
 	return
 }
 
+func (u *User) GetDeviceSibkey() (GenericKey, error) {
+	did := u.G().Env.GetDeviceID()
+	if did.IsNil() {
+		return nil, NotProvisionedError{}
+	}
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		return nil, KeyFamilyError{"no key family available"}
+	}
+	return ckf.GetSibkeyForDevice(did)
+}
+
 func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
