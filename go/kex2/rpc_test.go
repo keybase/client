@@ -248,8 +248,7 @@ func TestFullProtocolXProvisioneeSlowDidCounterSign(t *testing.T) {
 func TestFullProtocolY(t *testing.T) {
 
 	timeout := time.Duration(60) * time.Second
-	routerX := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, timeout)
-	routerY := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, timeout)
+	router := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, timeout)
 
 	s1 := genSecret(t)
 
@@ -262,7 +261,7 @@ func TestFullProtocolY(t *testing.T) {
 		err := RunProvisioner(ProvisionerArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
-				Mr:            routerX,
+				Mr:            router,
 				Secret:        s1,
 				DeviceID:      genKeybase1DeviceID(t),
 				SecretChannel: make(chan Secret),
@@ -278,7 +277,7 @@ func TestFullProtocolY(t *testing.T) {
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
-				Mr:            routerY,
+				Mr:            router,
 				Secret:        genSecret(t),
 				DeviceID:      genKeybase1DeviceID(t),
 				SecretChannel: secretCh,

@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -231,8 +230,6 @@ func (c *Conn) decryptIncomingMessage(msg []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	fmt.Printf("im.Seqno = %d\n", im.Seqno)
-	fmt.Printf("im: %+v\n", im)
 	if !om.SenderID.Eq(im.SenderID) || !om.SessionID.Eq(im.SessionID) || om.Seqno != im.Seqno {
 		return 0, ErrBadMetadata
 	}
@@ -244,7 +241,6 @@ func (c *Conn) decryptIncomingMessage(msg []byte) (int, error) {
 	}
 
 	if im.Seqno != c.readSeqno+1 {
-		fmt.Printf("bad packet sequence:  im.Seqno = %d, c.readSeqno+1 = %d\n", im.Seqno, c.readSeqno+1)
 		return 0, ErrBadPacketSequence
 	}
 	c.readSeqno = im.Seqno
@@ -328,7 +324,7 @@ func (c *Conn) pollLoop(poll time.Duration) (msgs [][]byte, err error) {
 	start := time.Now()
 	for {
 		newPoll := poll - totalWaitTime
-		msgs, err = c.router.Get(c.sessionID, c.deviceID, c.readSeqno, newPoll)
+		msgs, err = c.router.Get(c.sessionID, c.deviceID, c.readSeqno+1, newPoll)
 		totalWaitTime = time.Since(start)
 		if err != nil || len(msgs) > 0 || totalWaitTime >= poll {
 			return
