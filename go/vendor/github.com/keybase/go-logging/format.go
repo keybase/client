@@ -265,13 +265,7 @@ func (f *stringFormatter) Format(calldepth int, r *Record, output io.Writer) err
 		} else if part.verb == fmtVerbTime {
 			output.Write([]byte(r.Time.Format(part.layout)))
 		} else if part.verb == fmtVerbLevelColor {
-			if part.layout == "bold" {
-				output.Write([]byte(boldcolors[r.Level]))
-			} else if part.layout == "reset" {
-				output.Write([]byte("\033[0m"))
-			} else {
-				output.Write([]byte(colors[r.Level]))
-			}
+			doFmtVerbLevelColor(part.layout, r.Level, output)
 		} else {
 			var v interface{}
 			switch part.verb {
