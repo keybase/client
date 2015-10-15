@@ -30,7 +30,8 @@ export default class Devices extends Component {
   }
 
   render () {
-    const { devices, loggedIn } = this.props
+    const { loggedIn } = this.props
+    const devices = this.props.devices || []
 
     if (!loggedIn) {
       return (
