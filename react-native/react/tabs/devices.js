@@ -6,6 +6,8 @@ import Button from '../common-adapters/button'
 import { loadDevices } from '../actions/devices'
 import moment from 'moment'
 
+import commonStyles from '../styles/common'
+
 // TODO
 // [ ] - Add Icons
 
@@ -20,23 +22,34 @@ export default class Devices extends Component {
   renderDevice (device, onRemove) {
     return (
       <View key={device.name} style={[styles.device]}>
-        <Text style={styles.greyText}>ICON {device.type}</Text>
+        <Text style={commonStyles.greyText}>ICON {device.type}</Text>
         <Text style={styles.deviceName}>{device.name}</Text>
-        <Text style={[styles.deviceLastUsed, styles.greyText]}>Last Used: {moment(device.cTime).format('MM/DD/YY')}</Text>
-        <Text style={[styles.deviceAddedInfo, styles.greyText]}>TODO: Get Added info</Text>
+        <Text style={[styles.deviceLastUsed, commonStyles.greyText]}>Last Used: {moment(device.cTime).format('MM/DD/YY')}</Text>
+        <Text style={[styles.deviceAddedInfo, commonStyles.greyText]}>TODO: Get Added info</Text>
         <Text style={styles.deviceRemove} onPress={onRemove}>Remove</Text>
       </View>
     )
   }
 
+  renderAction (headerText, subText) {
+    return (
+      <View style={[styles.outlineBox, styles.innerAction, {marginRight: 10}]}>
+        <View style={{flex: 1}}>
+          <Text style={[commonStyles.greyText, commonStyles.centerText]}>ICON</Text>
+          <Text style={[commonStyles.greyText, commonStyles.centerText]}>{headerText}</Text>
+        </View>
+        <Text style={[commonStyles.greyText, commonStyles.centerText]}>{subText}</Text>
+      </View>
+    )
+  }
+
   render () {
-    const { loggedIn } = this.props
-    const devices = this.props.devices || []
+    const { loggedIn, devices } = this.props
 
     if (!loggedIn) {
       return (
         <View style={{marginTop: 20}}>
-          <Text style={{textAlign: 'center'}}> Login to see devices </Text>
+          <Text style={[commonStyles.centerText]}> Login to see devices </Text>
         </View>
       )
     }
@@ -53,20 +66,8 @@ export default class Devices extends Component {
       <ScrollView>
         <View doc='Wrapper for new Actions (i.e. Connect a new device, Generate new paper key)'
           style={styles.newActionsWrapper}>
-          <View doc='Wrapper for connect a new Device' style={[styles.outlineBox, styles.innerAction, {marginRight: 10}]}>
-            <View style={{flex: 1}}>
-              <Text style={[styles.greyText, styles.centerText]}>ICON</Text>
-              <Text style={[styles.greyText, styles.centerText]}>Connect a new Device</Text>
-            </View>
-            <Text style={[styles.greyText, styles.centerText]}>On another device, download Keybase then click here to enter your unique passphrase</Text>
-          </View>
-          <View doc='Wrapper for generate a new paper key' style={[styles.outlineBox, styles.innerAction]}>
-            <View style={{flex: 1}}>
-              <Text style={[styles.greyText, styles.centerText]}>ICON</Text>
-              <Text style={[styles.greyText, styles.centerText]}>Generate a new paper key</Text>
-            </View>
-            <Text style={[styles.greyText, styles.centerText, {flex: 2}]}>A paper key is lorem ipsum dolor sit amet, consectetur adipiscing</Text>
-          </View>
+          {this.renderAction("Connect a new Device", "On another device, download Keybase then click here to enter your unique passphrase")}
+          {this.renderAction("Generate a new paper key", "A paper key is lorem ipsum dolor sit amet, consectetur adipiscing")}
         </View>
 
         <View doc='Wrapper for devices' style={styles.deviceWrapper}>
@@ -91,7 +92,7 @@ export default class Devices extends Component {
 }
 
 Devices.propTypes = {
-  devices: React.PropTypes.object.isRequired,
+  devices: React.PropTypes.array,
   loggedIn: React.PropTypes.bool.isRequired,
   waitingForServer: React.PropTypes.bool.isRequired,
   dispatch: React.PropTypes.func.isRequired
@@ -118,12 +119,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     alignItems: 'stretch'
-  },
-  greyText: {
-    color: '#a6a6a6'
-  },
-  centerText: {
-    textAlign: 'center'
   },
 
   // Device Styling

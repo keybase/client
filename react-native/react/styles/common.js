@@ -61,6 +61,12 @@ export default StyleSheet.create({
     marginLeft: 10,
     marginRight: 10,
     padding: 4
+  },
+  greyText: {
+    color: '#a6a6a6'
+  },
+  centerText: {
+    textAlign: 'center'
   }
 })
 
@@ -68,5 +74,3 @@ export default StyleSheet.create({
 export const buttonHighlight = 'white'
 export const disabledButtonHighlight = 'black'
 export const constants = native
-
-export const androidTabBarHeight = 48

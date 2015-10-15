@@ -15,7 +15,7 @@ import More from './tabs/more'
 import React, { Component, View, StyleSheet, BackAndroid } from 'react-native'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
-import { androidTabBarHeight } from './styles/common'
+import { androidTabBarHeight } from './styles/native'
 
 import { switchTab } from './actions/tabbed-router'
 import { navigateBack } from './actions/router'
