@@ -99,11 +99,12 @@ export default class CodePage extends Component {
 
 CodePage.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
-  otherRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2]),
   mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]),
   codeCountDown: React.PropTypes.number,
   textCode: React.PropTypes.string,
-  qrCode: React.PropTypes.string
+  qrCode: React.PropTypes.string,
+  myRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2]),
+  otherRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2])
 }
 
 const styles = StyleSheet.create({

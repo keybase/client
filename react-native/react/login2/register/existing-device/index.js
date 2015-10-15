@@ -10,8 +10,8 @@ import CodePage from '../code-page'
 import { codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1 } from '../../../constants/login2'
 
 export default class ExistingDevice extends Component {
-  showCodePage (role, otherRole) {
-    this.props.dispatch(setCodePageRoles(role, otherRole))
+  showCodePage (myRole, otherRole) {
+    this.props.dispatch(setCodePageRoles(myRole, otherRole))
     this.props.dispatch(routeAppend('codePage'))
   }
 
