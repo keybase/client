@@ -15,23 +15,12 @@ export default class ExistingDevice extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = { }
-
-    const componentAtTop = {
-      title: '',
-      component: ExistingDevice,
-      leftButtonTitle: '',
-      mapStateToProps: state => state.login2
-    }
-
-    const parseNextRoute = routes[nextPath.get('path')]
-
     return {
-      componentAtTop,
-      parseNextRoute
+      componentAtTop: {
+        mapStateToProps: state => state.login2
+      }
     }
   }
-
 }
 
 ExistingDevice.propTypes = {
@@ -45,4 +34,3 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   }
 })
-
