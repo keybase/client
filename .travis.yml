@@ -6,7 +6,7 @@ services:
   - docker
 before_install:
   - export DEBIAN_FRONTEND=noninteractive
-  - sudo apt-get update; sudo apt-get install -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine
+  - sudo apt-get update; sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine
 install: true
 script:
   - docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST
