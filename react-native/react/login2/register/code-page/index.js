@@ -10,7 +10,7 @@ export default class CodePage extends Component {
   render () {
     return (
       <View style={[styles.container, {marginTop: 200, padding: 20, alignItems: 'stretch'}]}>
-        <Text style={commonStyles.h1}>{this.props.role + ':' + this.props.otherRole}</Text>
+        <Text style={commonStyles.h1}>{this.props.myRole + ':' + this.props.otherRole}</Text>
       </View>
     )
   }
@@ -38,7 +38,7 @@ export default class CodePage extends Component {
 
 CodePage.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
-  role: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2]),
+  myRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2]),
   otherRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2])
 }
 

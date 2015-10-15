@@ -7,7 +7,7 @@ const initialState = {
   username: '',
   passphrase: '',
   codePage: {
-    role: null,
+    myRole: null,
     otherRole: null
   }
 }
@@ -24,8 +24,7 @@ export default function (state = initialState, action) {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
-          role: action.role,
-          otherRole: action.otherRole
+          ...action
         }
       }).toJS()
     default:
