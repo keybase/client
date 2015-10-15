@@ -846,8 +846,8 @@ func (cr *ConflictResolver) fixRenameCycles(unmergedChains *crChains,
 // the corresponding merged path.
 func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
 	mergedChains *crChains, mergedPaths map[BlockPointer]path) (
-	map[BlockPointer][]crAction, error) {
-	actionMap := make(map[BlockPointer][]crAction)
+	map[BlockPointer]crActionList, error) {
+	actionMap := make(map[BlockPointer]crActionList)
 	for unmergedMostRecent, unmergedChain := range unmergedChains.byMostRecent {
 		original := unmergedChain.original
 		// If this is a file that has been deleted in the merged
@@ -913,7 +913,7 @@ func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
 func (cr *ConflictResolver) computeActions(ctx context.Context,
 	unmergedChains *crChains, mergedChains *crChains,
 	mergedPaths map[BlockPointer]path, recreateOps []*createOp) (
-	map[BlockPointer][]crAction, error) {
+	map[BlockPointer]crActionList, error) {
 	// Process all the recreateOps, adding them to the appropriate
 	// unmerged chains.
 	err := cr.addRecreateOpsToUnmergedChains(ctx, recreateOps, unmergedChains,

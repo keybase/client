@@ -60,12 +60,12 @@ func (cc *crChain) collapse() {
 }
 
 func (cc *crChain) getActionsToMerge(renamer ConflictRenamer, mergedPath path,
-	mergedChain *crChain) ([]crAction, error) {
+	mergedChain *crChain) (crActionList, error) {
 	// Check each op against all ops in the corresponding merged
 	// chain, looking for conflicts.  If there is a conflict, return
 	// it as part of the action list.  If there are no conflicts for
 	// that op, return the op's default actions.
-	var actions []crAction
+	var actions crActionList
 	for _, unmergedOp := range cc.ops {
 		conflict := false
 		if mergedChain != nil {
