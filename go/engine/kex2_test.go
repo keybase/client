@@ -46,6 +46,7 @@ func TestKex2Provision(t *testing.T) {
 		provisionee := NewKex2Provisionee(tcY.G, deviceID, secretY)
 		if err := RunEngine(provisionee, ctx); err != nil {
 			t.Errorf("provisionee error: %s", err)
+			return
 		}
 	}()
 
@@ -65,6 +66,7 @@ func TestKex2Provision(t *testing.T) {
 		go provisioner.AddSecret(secretY)
 		if err := RunEngine(provisioner, ctx); err != nil {
 			t.Errorf("provisioner error: %s", err)
+			return
 		}
 	}()
 

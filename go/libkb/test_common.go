@@ -79,11 +79,14 @@ type TestContext struct {
 
 func (tc *TestContext) Cleanup() {
 	if len(tc.Tp.Home) > 0 {
-		G.Log.Debug("cleaning up %s", tc.Tp.Home)
+		tc.G.Log.Debug("global context shutdown:")
 		tc.G.Shutdown()
+		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		os.RemoveAll(tc.Tp.Home)
+		tc.G.Log.Debug("clearing stored secrets:")
 		tc.ClearAllStoredSecrets()
 	}
+	tc.G.Log.Debug("cleanup complete")
 }
 
 func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {

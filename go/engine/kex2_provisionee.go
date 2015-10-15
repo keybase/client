@@ -80,7 +80,9 @@ func (e *Kex2Provisionee) GetLogFactory() rpc.LogFactory {
 func (e *Kex2Provisionee) HandleHello(harg keybase1.HelloArg) (keybase1.HelloRes, error) {
 	e.G().Log.Debug("+ HandleHello()")
 	defer e.G().Log.Debug("- HandleHello()")
-	return "", nil
+
+	// XXX temporary
+	return keybase1.HelloRes(harg.SigBody), nil
 }
 
 func (e *Kex2Provisionee) HandleDidCounterSign([]byte) error {

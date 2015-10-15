@@ -122,8 +122,10 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 	return arg, nil
 }
 
-func (e *Kex2Provisioner) CounterSign(keybase1.HelloRes) ([]byte, error) {
+func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) ([]byte, error) {
 	e.G().Log.Debug("+ CounterSign()")
 	defer e.G().Log.Debug("- CounterSign()")
-	return nil, nil
+
+	// XXX temporary
+	return []byte(input), nil
 }

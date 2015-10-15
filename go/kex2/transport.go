@@ -5,12 +5,14 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
-	"github.com/ugorji/go/codec"
-	"golang.org/x/crypto/nacl/secretbox"
+	"fmt"
 	"io"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/ugorji/go/codec"
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 // DeviceID is a 16-byte identifier that each side of key exchange has. It's
@@ -229,6 +231,8 @@ func (c *Conn) decryptIncomingMessage(msg []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	fmt.Printf("im.Seqno = %d\n", im.Seqno)
+	fmt.Printf("im: %+v\n", im)
 	if !om.SenderID.Eq(im.SenderID) || !om.SessionID.Eq(im.SessionID) || om.Seqno != im.Seqno {
 		return 0, ErrBadMetadata
 	}
@@ -240,6 +244,7 @@ func (c *Conn) decryptIncomingMessage(msg []byte) (int, error) {
 	}
 
 	if im.Seqno != c.readSeqno+1 {
+		fmt.Printf("bad packet sequence:  im.Seqno = %d, c.readSeqno+1 = %d\n", im.Seqno, c.readSeqno+1)
 		return 0, ErrBadPacketSequence
 	}
 	c.readSeqno = im.Seqno
