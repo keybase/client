@@ -303,6 +303,7 @@
   } ],
   "messages" : {
     "track" : {
+      "doc" : "This will perform identify and track.\n    If forceRemoteCheck is true, we force all remote proofs to be checked\n    (otherwise a cache is used).",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -319,6 +320,7 @@
       "response" : "null"
     },
     "trackWithToken" : {
+      "doc" : "Track with token returned from identify.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

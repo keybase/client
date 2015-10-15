@@ -334,6 +334,7 @@
       }
     },
     "loadUncheckedUserSummaries" : {
+      "doc" : "Load user summaries for the supplied uids.\n    They are \"unchecked\" in that the client is not verifying the info from the server.\n    If len(uids) > 500, the first 500 will be returned.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -350,6 +351,7 @@
       }
     },
     "loadUser" : {
+      "doc" : "Load a user from the server.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -360,6 +362,7 @@
       "response" : "User"
     },
     "loadUserPlusKeys" : {
+      "doc" : "Load a user + device keys from the server.\n    If cacheOK is true means that a cached value is ok to return.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -373,6 +376,7 @@
       "response" : "UserPlusKeys"
     },
     "loadPublicKeys" : {
+      "doc" : "Load public keys for a user.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -386,6 +390,7 @@
       }
     },
     "listTracking" : {
+      "doc" : "The list-tracking function get verified data from the tracking statements\n    in the user's own sigchain.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -412,6 +417,7 @@
       "response" : "string"
     },
     "search" : {
+      "doc" : "Search for users who match a given query.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

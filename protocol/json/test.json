@@ -4,6 +4,7 @@
   "types" : [ {
     "type" : "record",
     "name" : "Test",
+    "doc" : "Result from calling test(..).",
     "fields" : [ {
       "name" : "reply",
       "type" : "string"
@@ -11,6 +12,7 @@
   } ],
   "messages" : {
     "test" : {
+      "doc" : "Call test method.\n    Will trigger the testCallback method, whose result will be set in the\n    returned Test object, reply property.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -21,6 +23,7 @@
       "response" : "Test"
     },
     "testCallback" : {
+      "doc" : "This is a service callback triggered from test(..).\n    The name param is what was passed into test.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -31,6 +34,7 @@
       "response" : "string"
     },
     "panic" : {
+      "doc" : "For testing crashes.",
       "request" : [ {
         "name" : "message",
         "type" : "string"
