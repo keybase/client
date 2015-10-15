@@ -9,13 +9,10 @@ import (
 
 	"github.com/keybase/gopass"
 	"github.com/keybase/miniline"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 // MinTerm is a minimal terminal interface.
 type MinTerm struct {
-	tty    *os.File
-	in     *os.File
 	out    *os.File
 	width  int
 	height int
@@ -34,31 +31,14 @@ func New() (*MinTerm, error) {
 	return m, nil
 }
 
-func (m *MinTerm) open() error {
-	f, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
-	if err != nil {
-		return err
-	}
-	m.tty = f
-	m.out = m.tty
-	m.in = m.tty
-	fd := int(m.tty.Fd())
-	w, h, err := terminal.GetSize(fd)
-	if err != nil {
-		return err
-	}
-	m.width, m.height = w, h
-	return nil
-}
-
 // Shutdown closes the terminal.
 func (m *MinTerm) Shutdown() error {
-	if m.tty == nil {
+	if m.out == nil {
 		return nil
 	}
 	// this can hang waiting for newline, so do it in a goroutine.
 	// application shutting down, so will get closed by os anyway...
-	go m.tty.Close()
+	go m.out.Close()
 	return nil
 }
 
