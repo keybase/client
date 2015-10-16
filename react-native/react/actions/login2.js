@@ -14,24 +14,24 @@ export function welcomeSubmitUserPass (username, passphrase) {
 
 function defaultModeForRoles (myRole, otherRole) {
   switch (myRole + otherRole) {
-    case Constants.codePageRoleComputer1 + Constants.codePageRoleComputer2:
+    case Constants.codePageRoleExistingComputer + Constants.codePageRoleNewComputer:
       return Constants.codePageModeEnterText
-    case Constants.codePageRoleComputer2 + Constants.codePageRoleComputer1:
+    case Constants.codePageRoleNewComputer + Constants.codePageRoleExistingComputer:
       return Constants.codePageModeShowText
 
-    case Constants.codePageRoleComputer1 + Constants.codePageRolePhone2:
+    case Constants.codePageRoleExistingComputer + Constants.codePageRoleNewPhone:
       return Constants.codePageModeShowCode
-    case Constants.codePageRolePhone2 + Constants.codePageRoleComputer1:
+    case Constants.codePageRoleNewPhone + Constants.codePageRoleExistingComputer:
       return Constants.codePageModeScanCode
 
-    case Constants.codePageRolePhone1 + Constants.codePageRoleComputer2:
+    case Constants.codePageRoleExistingPhone + Constants.codePageRoleNewComputer:
       return Constants.codePageModeScanCode
-    case Constants.codePageRoleComputer2 + Constants.codePageRolePhone1:
+    case Constants.codePageRoleNewComputer + Constants.codePageRoleExistingPhone:
       return Constants.codePageModeShowCode
 
-    case Constants.codePageRolePhone1 + Constants.codePageRolePhone2:
+    case Constants.codePageRoleExistingPhone + Constants.codePageRoleNewPhone:
       return Constants.codePageModeScanCode
-    case Constants.codePageRolePhone2 + Constants.codePageRolePhone1:
+    case Constants.codePageRoleNewPhone + Constants.codePageRoleExistingPhone:
       return Constants.codePageModeShowCode
   }
   return null

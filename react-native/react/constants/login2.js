@@ -2,10 +2,10 @@
 /* @flow */
 
 // constants
-export const codePageRolePhone1 = 'codePageRolePhone1'
-export const codePageRolePhone2 = 'codePageRolePhone2'
-export const codePageRoleComputer1 = 'codePageRoleComputer1'
-export const codePageRoleComputer2 = 'codePageRoleComputer2'
+export const codePageRoleExistingPhone = 'codePageRoleExistingPhone'
+export const codePageRoleNewPhone = 'codePageRoleNewPhone'
+export const codePageRoleExistingComputer = 'codePageRoleExistingComputer'
+export const codePageRoleNewComputer = 'codePageRoleNewComputer'
 
 export const codePageModeScanCode = 'codePageModeScanCode'
 export const codePageModeShowCode = 'codePageModeShowCode'

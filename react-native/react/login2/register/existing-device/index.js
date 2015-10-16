@@ -7,7 +7,7 @@ import commonStyles from '../../../styles/common'
 import { navigateUp, routeAppend } from '../../../actions/router'
 import { setCodePageRoles } from '../../../actions/login2'
 import CodePage from '../code-page'
-import { codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1 } from '../../../constants/login2'
+import { codePageRoleExistingPhone, codePageRoleNewPhone, codePageRoleExistingComputer } from '../../../constants/login2'
 
 export default class ExistingDevice extends Component {
   showCodePage (myRole, otherRole) {
@@ -20,13 +20,13 @@ export default class ExistingDevice extends Component {
       <View style={[styles.container, {marginTop: 200, padding: 20, alignItems: 'stretch'}]}>
         <Text style={commonStyles.h1}>What type of device would you like to connect this device with?</Text>
         <View style={{flex: 1, flexDirection: 'row', marginTop: 40, justifyContent: 'space-between', alignItems: 'flex-start', paddingLeft: 40, paddingRight: 40}}>
-          <TouchableHighlight onPress={() => this.showCodePage(codePageRolePhone2, codePageRoleComputer1)}>
+          <TouchableHighlight onPress={() => this.showCodePage(codePageRoleNewPhone, codePageRoleExistingComputer)}>
             <View style={{flexDirection: 'column', alignItems: 'center'}}>
               <Text>[Desktop icon]</Text>
               <Text>Desktop Device &gt;</Text>
             </View>
           </TouchableHighlight>
-          <TouchableHighlight onPress={() => this.showCodePage(codePageRolePhone2, codePageRolePhone1)}>
+          <TouchableHighlight onPress={() => this.showCodePage(codePageRoleNewPhone, codePageRoleExistingPhone)}>
             <View style={{flexDirection: 'column', alignItems: 'center'}}>
               <Text>[Mobile icon]</Text>
               <Text>Mobile Device &gt;</Text>

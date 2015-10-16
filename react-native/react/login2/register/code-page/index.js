@@ -3,7 +3,7 @@
 
 import React, { Component, StyleSheet, Text, View } from 'react-native'
 
-import { codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2 } from '../../../constants/login2'
+import { codePageRoleExistingPhone, codePageRoleNewPhone, codePageRoleExistingComputer, codePageRoleNewComputer } from '../../../constants/login2'
 import { codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText } from '../../../constants/login2'
 import { setCodePageMode, qrScanned } from '../../../actions/login2'
 import QR from './qr'
@@ -11,7 +11,7 @@ import QR from './qr'
 export default class CodePage extends Component {
   renderControls () {
     switch (this.props.myRole + this.props.otherRole) {
-      case codePageRolePhone2 + codePageRoleComputer1:
+      case codePageRoleNewPhone + codePageRoleExistingComputer:
         return (
           <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
             <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>QR Code</Text>
@@ -103,8 +103,8 @@ CodePage.propTypes = {
   codeCountDown: React.PropTypes.number,
   textCode: React.PropTypes.string,
   qrCode: React.PropTypes.string,
-  myRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2]),
-  otherRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2])
+  myRole: React.PropTypes.oneOf([codePageRoleExistingPhone, codePageRoleNewPhone, codePageRoleExistingComputer, codePageRoleNewComputer]),
+  otherRole: React.PropTypes.oneOf([codePageRoleExistingPhone, codePageRoleNewPhone, codePageRoleExistingComputer, codePageRoleNewComputer])
 }
 
 const styles = StyleSheet.create({
