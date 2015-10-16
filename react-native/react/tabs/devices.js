@@ -67,8 +67,8 @@ export default class Devices extends Component {
       <ScrollView>
         <View doc='Wrapper for new Actions (i.e. Connect a new device, Generate new paper key)'
           style={styles.newActionsWrapper}>
-          {this.renderAction("Connect a new Device", "On another device, download Keybase then click here to enter your unique passphrase")}
-          {this.renderAction("Generate a new paper key", "A paper key is lorem ipsum dolor sit amet, consectetur adipiscing")}
+          {this.renderAction('Connect a new Device', 'On another device, download Keybase then click here to enter your unique passphrase')}
+          {this.renderAction('Generate a new paper key', 'A paper key is lorem ipsum dolor sit amet, consectetur adipiscing')}
         </View>
 
         <View doc='Wrapper for devices' style={styles.deviceWrapper}>
