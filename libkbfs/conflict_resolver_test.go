@@ -1012,3 +1012,90 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathFile},
 		mergedPaths, []*createOp{coFile}, expectedActions)
 }
+
+// Test that actions get executed properly in the simple case of two
+// files being created simultaneously in the same directory.
+func TestCRDoActionsSimple(t *testing.T) {
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer config1.Shutdown()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer config2.Shutdown()
+	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	configs := make(map[keybase1.UID]Config)
+	configs[uid1] = config1
+	configs[uid2] = config2
+	nodes := testCRSharedFolderForUsers(t, uid1, configs, []string{"dir"})
+	dir1 := nodes[uid1]
+	dir2 := nodes[uid2]
+	fb := dir1.GetFolderBranch()
+
+	// pause user 2
+	_, err = DisableUpdatesForTesting(config2, fb)
+	if err != nil {
+		t.Fatalf("Can't disable updates for user 2: %v", err)
+	}
+
+	// user1 makes a file
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dir1, "file1", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	cr1 := testCRGetCROrBust(t, config1, fb)
+	cr2 := testCRGetCROrBust(t, config2, fb)
+	cr2.Shutdown()
+	cr2.inputChan = make(chan conflictInput)
+
+	// user2 makes a file (causes a conflict, and goes unstaged)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Now run through conflict resolution manually for user2.
+	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
+		recreateOps, err := cr2.buildChainsAndPaths(ctx)
+	if err != nil {
+		t.Fatalf("Couldn't build chains and paths: %v", err)
+	}
+
+	actionMap, err := cr2.computeActions(ctx, unmergedChains, mergedChains,
+		mergedPaths, recreateOps)
+	if err != nil {
+		t.Fatalf("Couldn't compute actions: %v", err)
+	}
+
+	unmergedMDs, mergedMDs, err := cr2.getMDs(ctx)
+	if err != nil {
+		t.Fatalf("Couldn't get MDs: %v", err)
+	}
+
+	lbc := make(localBcache)
+	err = cr2.doActions(ctx, unmergedMDs[len(unmergedMDs)-1],
+		mergedMDs[len(mergedMDs)-1], unmergedChains, mergedChains,
+		unmergedPaths, mergedPaths, actionMap, lbc)
+	if err != nil {
+		t.Fatalf("Couldn't do actions: %v", err)
+	}
+
+	// Does the merged block contain both entries?
+	mergedRootPath := cr1.fbo.nodeCache.PathFromNode(dir1)
+	block1, ok := lbc[mergedRootPath.tailPointer()]
+	if !ok {
+		t.Fatalf("Couldn't find merged block at path %s", mergedRootPath)
+	}
+	if g, e := len(block1.Children), 2; g != e {
+		t.Errorf("Unexpected number of children: %d vs %d", g, e)
+	}
+	for _, file := range []string{"file1", "file2"} {
+		if _, ok := block1.Children[file]; !ok {
+			t.Errorf("Couldn't find entry in merged children: %s", file)
+		}
+	}
+}
