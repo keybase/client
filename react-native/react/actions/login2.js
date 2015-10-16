@@ -115,6 +115,14 @@ export function qrScanned (code) {
   }
 }
 
+export function textEntered (code) {
+  return function (dispatch) {
+    // TODO send to go to verify
+    console.log('Text entered: ', code)
+    dispatch(navigateTo([]))
+  }
+}
+
 export function qrGenerate () {
   return function (dispatch) {
     dispatch({
@@ -134,3 +142,11 @@ export function qrGenerate () {
     })
   }
 }
+
+export function setCameraBrokenMode (broken) {
+  return {
+    type: Constants.cameraBrokenMode,
+    broken
+  }
+}
+

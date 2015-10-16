@@ -7,9 +7,10 @@ const initialState = {
   username: '',
   passphrase: '',
   codePage: {
-    otherDeviceRole: Constants.codePageDeviceRoleNewComputer,
+    otherDeviceRole: Constants.codePageDeviceRoleNewPhone,
     myDeviceRole: Constants.codePageDeviceRoleExistingPhone,
-    mode: Constants.codePageModeScanCode,
+    mode: Constants.codePageModeEnterText,
+    cameraBrokenMode: true,
     codeCountDown: 0,
     textCode: null,
     qrScanned: null,
@@ -79,6 +80,14 @@ export default function (state = initialState, action) {
       return s.mergeDeep({
         codePage: {
           qrScanned: action.code
+        }
+      }).toJS()
+    }
+    case Constants.cameraBrokenMode: {
+      const s = Immutable.fromJS(state)
+      return s.mergeDeep({
+        codePage: {
+          cameraBrokenMode: action.broken
         }
       }).toJS()
     }
