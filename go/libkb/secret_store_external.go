@@ -78,5 +78,9 @@ func GetUsersWithStoredSecrets() ([]string, error) {
 }
 
 func GetTerminalPrompt() string {
-	return getGlobalExternalKeyStore().GetTerminalPrompt()
+	externalKeyStore := getGlobalExternalKeyStore()
+	if externalKeyStore == nil {
+		return ""
+	}
+	return externalKeyStore.GetTerminalPrompt()
 }
