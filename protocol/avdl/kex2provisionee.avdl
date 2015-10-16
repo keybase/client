@@ -12,8 +12,11 @@ protocol Kex2Provisionee {
   record SessionToken {}
 
   @typedef("string")
+  record CsrfToken {}
+
+  @typedef("string")
   record HelloRes {}
 
-  HelloRes hello(UID uid, SessionToken token, PassphraseStream pps, string sigBody);
+  HelloRes hello(UID uid, SessionToken token, CsrfToken csrf, PassphraseStream pps, string sigBody);
   void didCounterSign(bytes sig);
 }

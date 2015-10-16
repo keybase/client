@@ -1812,10 +1812,12 @@ type PassphraseStream struct {
 }
 
 type SessionToken string
+type CsrfToken string
 type HelloRes string
 type HelloArg struct {
 	Uid     UID              `codec:"uid" json:"uid"`
 	Token   SessionToken     `codec:"token" json:"token"`
+	Csrf    CsrfToken        `codec:"csrf" json:"csrf"`
 	Pps     PassphraseStream `codec:"pps" json:"pps"`
 	SigBody string           `codec:"sigBody" json:"sigBody"`
 }

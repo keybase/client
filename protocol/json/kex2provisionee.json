@@ -175,6 +175,11 @@
     "typedef" : "string"
   }, {
     "type" : "record",
+    "name" : "CsrfToken",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
     "name" : "HelloRes",
     "fields" : [ ],
     "typedef" : "string"
@@ -187,6 +192,9 @@
       }, {
         "name" : "token",
         "type" : "SessionToken"
+      }, {
+        "name" : "csrf",
+        "type" : "CsrfToken"
       }, {
         "name" : "pps",
         "type" : "PassphraseStream"

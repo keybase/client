@@ -699,7 +699,7 @@
 @implementation KBRKex2ProvisioneeRequest
 
 - (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion {
-  NSDictionary *rparams = @{@"uid": KBRValue(params.uid), @"token": KBRValue(params.token), @"pps": KBRValue(params.pps), @"sigBody": KBRValue(params.sigBody)};
+  NSDictionary *rparams = @{@"uid": KBRValue(params.uid), @"token": KBRValue(params.token), @"csrf": KBRValue(params.csrf), @"pps": KBRValue(params.pps), @"sigBody": KBRValue(params.sigBody)};
   [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee.hello" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -710,8 +710,8 @@
   }];
 }
 
-- (void)helloWithUid:(NSString *)uid token:(NSString *)token pps:(KBRPassphraseStream *)pps sigBody:(NSString *)sigBody completion:(void (^)(NSError *error, NSString *helloRes))completion {
-  NSDictionary *rparams = @{@"uid": KBRValue(uid), @"token": KBRValue(token), @"pps": KBRValue(pps), @"sigBody": KBRValue(sigBody)};
+- (void)helloWithUid:(NSString *)uid token:(NSString *)token csrf:(NSString *)csrf pps:(KBRPassphraseStream *)pps sigBody:(NSString *)sigBody completion:(void (^)(NSError *error, NSString *helloRes))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(uid), @"token": KBRValue(token), @"csrf": KBRValue(csrf), @"pps": KBRValue(pps), @"sigBody": KBRValue(sigBody)};
   [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee.hello" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -3131,6 +3131,7 @@
   if ((self = [super initWithParams:params])) {
     self.uid = params[0][@"uid"];
     self.token = params[0][@"token"];
+    self.csrf = params[0][@"csrf"];
     self.pps = [MTLJSONAdapter modelOfClass:KBRPassphraseStream.class fromJSONDictionary:params[0][@"pps"] error:nil];
     self.sigBody = params[0][@"sigBody"];
   }

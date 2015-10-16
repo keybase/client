@@ -783,6 +783,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRHelloRequestParams : KBRRequestParams
 @property NSString *uid;
 @property NSString *token;
+@property NSString *csrf;
 @property KBRPassphraseStream *pps;
 @property NSString *sigBody;
 @end
@@ -1472,7 +1473,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion;
 
-- (void)helloWithUid:(NSString *)uid token:(NSString *)token pps:(KBRPassphraseStream *)pps sigBody:(NSString *)sigBody completion:(void (^)(NSError *error, NSString *helloRes))completion;
+- (void)helloWithUid:(NSString *)uid token:(NSString *)token csrf:(NSString *)csrf pps:(KBRPassphraseStream *)pps sigBody:(NSString *)sigBody completion:(void (^)(NSError *error, NSString *helloRes))completion;
 
 - (void)didCounterSign:(KBRDidCounterSignRequestParams *)params completion:(void (^)(NSError *error))completion;
 
