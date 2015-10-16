@@ -302,27 +302,31 @@ func (sc *SigChain) Store() (err error) {
 	return nil
 }
 
-// LimitToEldestKID takes the given sigchain and walks backward,
-// stopping once it scrolls off the current KID.
-func (sc *SigChain) LimitToEldestKID(eldest keybase1.KID) (links []*ChainLink, err error) {
+// GetCurrentSubchain takes the given sigchain and walks backward until it
+// finds the start of the current subchain, returning all the links in the
+// subchain. A new subchain starts in one of two ways (from the perspective of
+// walking from oldest to newest):
+// 1) A link has a new eldest key, usually in the form of reporting no
+//    eldest_kid of its own and being signed by a KID that's not the previous
+//    eldest. Most resets so far take this form.
+// 2) A link of type "eldest", regardless of the KIDs involved. We want this to
+//    be how everything works in the future.
+func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (links []*ChainLink, err error) {
 	if sc.chainLinks == nil {
 		return
 	}
 	l := len(sc.chainLinks)
 	lastGood := l
 	for i := l - 1; i >= 0; i-- {
+		// Check that the eldest KID hasn't changed.
 		if sc.chainLinks[i].ToEldestKID().Equal(eldest) {
 			lastGood = i
 		} else {
 			break
 		}
-	}
-
-	// The eldest KID *must* refer to the latest subchain. Make sure there
-	// are no earlier matching subchains.
-	for i := lastGood - 1; i >= 0; i-- {
-		if sc.chainLinks[i].ToEldestKID().Equal(eldest) {
-			return nil, NotLatestSubchainError{"The eldest key's subchain must always be at the end."}
+		// Also stop walking if the current link has type "eldest".
+		if sc.chainLinks[i].unpacked.typ == string(EldestType) {
+			break
 		}
 	}
 
@@ -472,7 +476,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 		G.Log.Debug("| VerifyWithKey short-circuit, since no Key available")
 		return
 	}
-	links, err := sc.LimitToEldestKID(eldest)
+	links, err := sc.GetCurrentSubchain(eldest)
 	if err != nil {
 		return
 	}
