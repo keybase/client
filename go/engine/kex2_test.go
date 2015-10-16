@@ -2,6 +2,7 @@ package engine
 
 import (
 	"crypto/rand"
+	"fmt"
 	"sync"
 	"testing"
 
@@ -43,9 +44,16 @@ func TestKex2Provision(t *testing.T) {
 			t.Errorf("provisionee device id error: %s", err)
 			return
 		}
+		suffix, err := libkb.RandBytes(5)
+		if err != nil {
+			t.Errorf("provisionee device suffix error: %s", err)
+			return
+		}
+		dname := fmt.Sprintf("device_%x", suffix)
 		device := &libkb.Device{
-			ID:   deviceID,
-			Type: libkb.DeviceTypeDesktop,
+			ID:          deviceID,
+			Description: &dname,
+			Type:        libkb.DeviceTypeDesktop,
 		}
 		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
 		if err := RunEngine(provisionee, ctx); err != nil {
