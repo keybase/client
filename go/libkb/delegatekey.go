@@ -30,8 +30,10 @@ type Delegator struct {
 	DelegationType    DelegationType
 	Aggregated        bool // During aggregation we skip some steps (posting, updating some state)
 
-	// Optional
-	LastSeqno Seqno // during kex2, HandleDidCounterSign needs to sign subkey without a user but we know what the last seqno was
+	// Optional precalculated values used by KeyProof
+	LastSeqno   Seqno     // kex2 HandleDidCounterSign needs to sign subkey without a user but we know what the last seqno was
+	PrevLinkID  LinkID    // kex2 HandleDidCounterSign calculates previous link id without a user
+	SigningUser UserBasic // kex2 doesn't have a full user, but does have basic user info
 
 	// Internal fields
 	sig          string

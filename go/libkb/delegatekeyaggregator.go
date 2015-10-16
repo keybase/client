@@ -29,6 +29,7 @@ func DelegatorAggregator(lctx LoginContext, ds []Delegator) (err error) {
 	payload := make(JSONPayload)
 	payload["sigs"] = args
 
+	// XXX what's the purpose of this?
 	if err != nil {
 		return err
 	}
