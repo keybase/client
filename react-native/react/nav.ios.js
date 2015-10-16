@@ -20,12 +20,12 @@ import { constants as styleConstants } from './styles/common'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
 
-const tabToRootRouteParse = {
-  [FOLDER_TAB]: Folders.parseRoute,
-  [CHAT_TAB]: Chat.parseRoute,
-  [PEOPLE_TAB]: People.parseRoute,
-  [DEVICES_TAB]: Devices.parseRoute,
-  [MORE_TAB]: More.parseRoute
+const tabToRootComponent = {
+  [FOLDER_TAB]: Folders,
+  [CHAT_TAB]: Chat,
+  [PEOPLE_TAB]: People,
+  [DEVICES_TAB]: Devices,
+  [MORE_TAB]: More
 }
 
 function NavigationBarRouteMapper (dispatch) {
@@ -99,7 +99,7 @@ export default class Nav extends Component {
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator), {
             store: this.props.store,
-            rootRouteParser: tabToRootRouteParse[activeTab] || NoTab.parseRoute,
+            rootComponent: tabToRootComponent[activeTab] || NoTab,
             globalRoutes,
             Navigator: Navigator,
             NavBar: this.navBar(),

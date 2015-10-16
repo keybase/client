@@ -189,7 +189,7 @@ func (t RooterServiceType) PostInstructions(un string) *Markup {
 
 func (t RooterServiceType) DisplayName(un string) string { return "Rooter" }
 func (t RooterServiceType) GetTypeName() string          { return "rooter" }
-func (t RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
+func (t RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
 	return t.BaseRecheckProofPosting(tryNumber, status)
 }
 func (t RooterServiceType) GetProofType() string { return "test.web_service_binding.rooter" }

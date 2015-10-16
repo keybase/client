@@ -82,7 +82,7 @@
     KBLog(KBLogRPC|KBLogDebug, @"Service requested: %@(%@)", method, KBDescription(params));
 
 //    if ([KBWorkspace userDefaults] boolForKey:@"Preferences.Advanced.Record"]) {
-//      [gself.recorder recordRequest:method params:params sessionId:[sessionId integerValue] callback:YES];
+//      [gself.recorder recordRequest:method params:params messageId:[messageId integerValue] callback:YES];
 //    }
 
     if ([method isEqualToString:@"keybase.1.logUi.log"]) {
@@ -187,7 +187,7 @@
   return [requestHandlers firstObject];
 }
 
-- (NSNumber *)nextSessionId {
+- (NSNumber *)nextMessageId {
   static NSInteger gSessionId = 0;
   return [NSNumber numberWithInteger:++gSessionId];
 }
@@ -205,16 +205,20 @@
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion {
+  [self sendRequestWithMethod:method params:params sessionId:sessionId completion:completion];
+}
+
+- (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params messageId:(NSNumber *)messageId completion:(MPRequestCompletion)completion {
   NSTimeInterval delay = 0;
 #ifdef DEBUG
   //delay = 0.5;
 #endif
   if (delay > 0) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-      [self _sendRequestWithMethod:method params:params sessionId:sessionId completion:completion];
+      [self _sendRequestWithMethod:method params:params messageId:messageId completion:completion];
     });
   } else {
-    [self _sendRequestWithMethod:method params:params sessionId:sessionId completion:completion];
+    [self _sendRequestWithMethod:method params:params messageId:messageId completion:completion];
   }
 }
 
@@ -227,22 +231,18 @@
   completion(error, result);
 }
 
-- (void)_sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion {
+- (void)_sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params messageId:(NSNumber *)messageId completion:(MPRequestCompletion)completion {
   if (_client.status != MPMessagePackClientStatusOpen) {
     [self _respondWithResult:nil error:KBMakeErrorWithRecovery(-400, @"We are unable to connect to the Keybase service.", @"You may need to update or re-install to fix this.") method:method completion:completion];
     return;
   }
 
-  NSAssert([sessionId integerValue] > 0, @"Bad session id");
+  NSAssert([messageId integerValue] > 0, @"Bad message id");
 
-  NSMutableDictionary *mparams = [params mutableCopy];
-  [mparams gh_mutableCompact];
-  if (!mparams[@"sessionID"]) mparams[@"sessionID"] = sessionId;
+  KBLog(KBLogRPC|KBLogDebug, @"Requesting: %@(%@)", method, KBDescription(KBScrubSensitive(params)));
 
-  KBLog(KBLogRPC|KBLogDebug, @"Requesting: %@(%@)", method, KBDescription(KBScrubSensitive(mparams)));
-
-  [_client sendRequestWithMethod:method params:@[mparams] messageId:[sessionId integerValue] completion:^(NSError *error, id result) {
-    [self unregister:sessionId];
+  [_client sendRequestWithMethod:method params:@[params] messageId:[messageId integerValue] completion:^(NSError *error, id result) {
+    [self unregister:messageId];
     if (error) {
       KBLog(KBLogRPC|KBLogError, @"%@", error);
       NSDictionary *errorInfo = error.userInfo[MPErrorInfoKey];

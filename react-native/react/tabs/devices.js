@@ -79,15 +79,12 @@ export default class Devices extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const componentAtTop = {
-      component: Devices,
-      hideNavBar: true,
-      mapStateToProps: state => Object.assign({}, state.login, state.devices)
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: null
+      parseNextRoute: null,
+      componentAtTop: {
+        hideNavBar: true,
+        mapStateToProps: state => Object.assign({}, state.login, state.devices)
+      }
     }
   }
 }

@@ -47,19 +47,14 @@ export default class NavDebug extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = {
-      'page2': DebugPage2.parseRoute
-    }
-
-    const componentAtTop = {
-      title: 'Debug',
-      mapStateToProps: mapStateToGetURI,
-      component: NavDebug
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: routes[nextPath.get('path')] || null
+      componentAtTop: {
+        title: 'Debug',
+        mapStateToProps: mapStateToGetURI
+      },
+      subRoutes: {
+        'page2': DebugPage2
+      }
     }
   }
 }
@@ -89,19 +84,14 @@ class DebugPage2 extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = {
-      page3: DebugPage3.parseRoute
-    }
-
-    const componentAtTop = {
-      title: 'Debug Page 2',
-      mapStateToProps: mapStateToGetURI,
-      component: DebugPage2
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: routes[nextPath.get('path')] || null
+      componentAtTop: {
+        title: 'Debug Page 2',
+        mapStateToProps: mapStateToGetURI
+      },
+      subRoutes: {
+        page3: DebugPage3
+      }
     }
   }
 }
@@ -131,19 +121,14 @@ class DebugPage3 extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = {
-      page2: DebugPage2.parseRoute
-    }
-
-    const componentAtTop = {
-      title: 'Debug Page 3',
-      mapStateToProps: mapStateToGetURI,
-      component: DebugPage3
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: routes[nextPath.get('path')] || null
+      componentAtTop: {
+        title: 'Debug Page 3',
+        mapStateToProps: mapStateToGetURI
+      },
+      subRoutes: {
+        page2: DebugPage2
+      }
     }
   }
 }

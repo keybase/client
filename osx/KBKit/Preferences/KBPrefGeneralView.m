@@ -13,7 +13,7 @@
 #import "KBPrefOption.h"
 
 #import "KBApp.h"
-#import <Sparkle/Sparkle.h>
+//#import <Sparkle/Sparkle.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBPrefGeneralView

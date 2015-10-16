@@ -9,14 +9,10 @@ export default class QR extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const componentAtTop = {
-      title: 'QR',
-      component: QR
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: null
+      componentAtTop: {
+        title: 'QR'
+      }
     }
   }
 }

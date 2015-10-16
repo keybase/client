@@ -55,18 +55,13 @@ export default class Developer extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const componentAtTop = {
-      title: 'Developer',
-      component: Developer,
-      leftButton: null,
-      rightButtonAction: navigateUp(),
-      sceneConfig: Navigator.SceneConfigs.FloatFromBottom,
-      mapStateToProps: state => state.config
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: null
+      componentAtTop: {
+        title: 'Developer',
+        rightButtonAction: navigateUp(),
+        sceneConfig: Navigator.SceneConfigs.FloatFromBottom,
+        mapStateToProps: state => state.config
+      }
     }
   }
 }

@@ -25,11 +25,11 @@ class MetaNavigator extends Component {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
-    const { store, rootRouteParser } = this.props
+    const { store, rootComponent } = this.props
     const route = this.props.uri
     const nextRoute = nextProps.uri
 
-    const { componentAtTop, routeStack: nextRouteStack } = this.getComponentAtTop(rootRouteParser, store, nextRoute)
+    const { componentAtTop, routeStack: nextRouteStack } = this.getComponentAtTop(rootComponent, store, nextRoute)
     if (nextProps === this.props && nextState === this.state) {
       return false
     } else if (this.isParentOfRoute(route, nextRoute)) {
@@ -49,29 +49,14 @@ class MetaNavigator extends Component {
     }
   }
 
-  findGlobalRouteHandler (currentPath) {
-    let parseRoute = null
-    if (this.props.globalRoutes) {
-      this.props.globalRoutes.forEach((route) => {
-        if (route.canParseNextRoute(currentPath)) {
-          parseRoute = route.parseRoute
-          return false // short circuit
-        } else {
-          return true
-        }
-      })
-    }
-
-    return parseRoute
-  }
-
-  getComponentAtTop (rootRouteParser, store, uri) {
+  getComponentAtTop (rootComponent, store, uri) {
     let currentPath = uri.first() || Immutable.Map()
     let nextPath = uri.rest().first() || Immutable.Map()
     let restPath = uri.rest().rest()
     let routeStack = Immutable.List()
 
-    let parseNextRoute = rootRouteParser
+    let nextComponent = rootComponent
+    let parseNextRoute = rootComponent.parseRoute
     let componentAtTop = null
 
     while (parseNextRoute) {
@@ -81,25 +66,43 @@ class MetaNavigator extends Component {
         upLink: currentPath.get('upLink'),
         upTitle: currentPath.get('upTitle')
       }
+
+      // If the component was created through subRoutes we have access to the nextComponent implicitly
+      if (!componentAtTop.component && nextComponent) {
+        componentAtTop.component = nextComponent
+      }
+
+      nextComponent = null
       parseNextRoute = t.parseNextRoute
+
+      // If you return subRoutes, we'll figure out which route is next
+      // We also handle globalRoutes here
+      if (!parseNextRoute) {
+        const subRoutes = {
+          ...this.props.globalRoutes,
+          ...t.subRoutes
+        }
+
+        if (subRoutes[nextPath.get('path')]) {
+          nextComponent = subRoutes[nextPath.get('path')]
+          parseNextRoute = nextComponent.parseRoute
+        }
+      }
+
       routeStack = routeStack.push(componentAtTop)
 
       currentPath = nextPath
       nextPath = restPath.first() || Immutable.Map()
       restPath = restPath.rest()
-
-      if (!parseNextRoute) {
-        parseNextRoute = this.findGlobalRouteHandler(currentPath)
-      }
     }
 
     return {componentAtTop, routeStack}
   }
 
   render () {
-    const { store, rootRouteParser, uri, NavBar, Navigator } = this.props
+    const { store, rootComponent, uri, NavBar, Navigator } = this.props
 
-    let {componentAtTop, routeStack} = this.getComponentAtTop(rootRouteParser, store, uri)
+    let {componentAtTop, routeStack} = this.getComponentAtTop(rootComponent, store, uri)
 
     return (
       <Navigator
@@ -124,7 +127,7 @@ MetaNavigator.propTypes = {
   uri: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
   NavBar: React.PropTypes.object.isRequired,
-  rootRouteParser: React.PropTypes.func.isRequired,
+  rootComponent: React.PropTypes.func.isRequired,
   Navigator: React.PropTypes.object.isRequired,
   globalRoutes: React.PropTypes.object,
   navBarHeight: React.PropTypes.number.isRequired

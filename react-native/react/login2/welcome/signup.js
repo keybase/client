@@ -24,23 +24,12 @@ export default class Signup extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = { }
-
-    const componentAtTop = {
-      title: '',
-      component: Signup,
-      leftButtonTitle: '',
-      mapStateToProps: state => state.login2
-    }
-
-    const parseNextRoute = routes[nextPath.get('path')]
-
     return {
-      componentAtTop,
-      parseNextRoute
+      componentAtTop: {
+        mapStateToProps: state => state.login2
+      }
     }
   }
 }
 
-Signup.propTypes = {
-}
+Signup.propTypes = { }

@@ -6,13 +6,6 @@ import GoTest from './go-test'
 import ReactTest from './react-test'
 import ObjcTest from './objc-test'
 
-// Known bug in react causing message in chrome:
-// Warning: Failed propType: Invalid prop `icon` of type `string` supplied to `RCTTabBarItem`, expected `object`.
-// See: https://github.com/facebook/react-native/issues/2361
-const tabIcon = {
-  uri: 'tab'
-}
-
 export default class Bridging extends Component {
   constructor () {
     super()
@@ -38,7 +31,7 @@ export default class Bridging extends Component {
         <TabBarIOS.Item
           title='React'
           selected={this.isSelected('react')}
-          icon={tabIcon}
+          systemIcon='bookmarks'
           onPress={() => this.onSwitchTab('react')}
           >
           <ReactTest/>
@@ -47,7 +40,7 @@ export default class Bridging extends Component {
         <TabBarIOS.Item
           title='Objc'
           selected={this.isSelected('objc')}
-          icon={tabIcon}
+          systemIcon='bookmarks'
           onPress={() => this.onSwitchTab('objc')}
           >
           <ObjcTest/>
@@ -56,7 +49,7 @@ export default class Bridging extends Component {
         <TabBarIOS.Item
           title='Swift'
           selected={this.isSelected('swift')}
-          icon={tabIcon}
+          systemIcon='bookmarks'
           onPress={() => this.onSwitchTab('swift')}
           >
           <SwiftTest/>
@@ -65,7 +58,7 @@ export default class Bridging extends Component {
         <TabBarIOS.Item
           title='Go'
           selected={this.isSelected('go')}
-          icon={tabIcon}
+          systemIcon='bookmarks'
           onPress={() => this.onSwitchTab('go')}
           >
           <GoTest/>
@@ -76,14 +69,10 @@ export default class Bridging extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const componentAtTop = {
-      title: 'Bridging',
-      component: Bridging
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: null
+      componentAtTop: {
+        title: 'Bridging'
+      }
     }
   }
 }

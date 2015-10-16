@@ -100,7 +100,7 @@ Click here: https://coinbase.com/` + un + `/public-key`)
 func (t CoinbaseServiceType) DisplayName(un string) string { return "Coinbase" }
 func (t CoinbaseServiceType) GetTypeName() string          { return "coinbase" }
 
-func (t CoinbaseServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
+func (t CoinbaseServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
 	warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	return
 }

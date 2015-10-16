@@ -1818,6 +1818,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage useSecretStore:(BOOL)useSecretStore completion:(void (^)(NSError *error, KBRGetNewPassphraseRes *getNewPassphraseRes))completion;
 
+/*!
+ This is used only for passphrase login, so we don't need to use the secret
+ store.
+ */
 - (void)getKeybasePassphrase:(KBRGetKeybasePassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
 
 - (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString *str))completion;
@@ -1882,14 +1886,26 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRTestRequest : KBRRequest
 
+/*!
+ Call test method.
+ Will trigger the testCallback method, whose result will be set in the
+ returned Test object, reply property.
+ */
 - (void)test:(KBRTestRequestParams *)params completion:(void (^)(NSError *error, KBRTest *test))completion;
 
 - (void)testWithName:(NSString *)name completion:(void (^)(NSError *error, KBRTest *test))completion;
 
+/*!
+ This is a service callback triggered from test(..).
+ The name param is what was passed into test.
+ */
 - (void)testCallback:(KBRTestCallbackRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
 
 - (void)testCallbackWithName:(NSString *)name completion:(void (^)(NSError *error, NSString *str))completion;
 
+/*!
+ For testing crashes.
+ */
 - (void)panic:(KBRPanicRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)panicWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion;
@@ -1898,10 +1914,18 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRTrackRequest : KBRRequest
 
+/*!
+ This will perform identify and track.
+ If forceRemoteCheck is true, we force all remote proofs to be checked
+ (otherwise a cache is used).
+ */
 - (void)track:(KBRTrackRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)trackWithUserAssertion:(NSString *)userAssertion options:(KBRTrackOptions *)options forceRemoteCheck:(BOOL)forceRemoteCheck completion:(void (^)(NSError *error))completion;
 
+/*!
+ Track with token returned from identify.
+ */
 - (void)trackWithToken:(KBRTrackWithTokenRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)trackWithTokenWithTrackToken:(NSString *)trackToken options:(KBRTrackOptions *)options completion:(void (^)(NSError *error))completion;
@@ -1932,22 +1956,41 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)listTrackersSelf:(void (^)(NSError *error, NSArray *items))completion;
 
+/*!
+ Load user summaries for the supplied uids.
+ They are "unchecked" in that the client is not verifying the info from the server.
+ If len(uids) > 500, the first 500 will be returned.
+ */
 - (void)loadUncheckedUserSummaries:(KBRLoadUncheckedUserSummariesRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)loadUncheckedUserSummariesWithUids:(NSArray *)uids completion:(void (^)(NSError *error, NSArray *items))completion;
 
+/*!
+ Load a user from the server.
+ */
 - (void)loadUser:(KBRLoadUserRequestParams *)params completion:(void (^)(NSError *error, KBRUser *user))completion;
 
 - (void)loadUserWithUid:(NSString *)uid completion:(void (^)(NSError *error, KBRUser *user))completion;
 
+/*!
+ Load a user + device keys from the server.
+ If cacheOK is true means that a cached value is ok to return.
+ */
 - (void)loadUserPlusKeys:(KBRLoadUserPlusKeysRequestParams *)params completion:(void (^)(NSError *error, KBRUserPlusKeys *userPlusKeys))completion;
 
 - (void)loadUserPlusKeysWithUid:(NSString *)uid cacheOK:(BOOL)cacheOK completion:(void (^)(NSError *error, KBRUserPlusKeys *userPlusKeys))completion;
 
+/*!
+ Load public keys for a user.
+ */
 - (void)loadPublicKeys:(KBRLoadPublicKeysRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)loadPublicKeysWithUid:(NSString *)uid completion:(void (^)(NSError *error, NSArray *items))completion;
 
+/*!
+ The list-tracking function get verified data from the tracking statements
+ in the user's own sigchain.
+ */
 - (void)listTracking:(KBRListTrackingRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)listTrackingWithFilter:(NSString *)filter completion:(void (^)(NSError *error, NSArray *items))completion;
@@ -1956,6 +1999,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)listTrackingJSONWithFilter:(NSString *)filter verbose:(BOOL)verbose completion:(void (^)(NSError *error, NSString *str))completion;
 
+/*!
+ Search for users who match a given query.
+ */
 - (void)search:(KBRSearchRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
 
 - (void)searchWithQuery:(NSString *)query completion:(void (^)(NSError *error, NSArray *items))completion;

@@ -19,7 +19,7 @@ export default class More extends Component {
     this.state = {
       dataSource: ds.cloneWithRows([
         {name: 'Login', onClick: () => {
-          this.props.dispatch(navigateTo(['login']))
+          this.props.dispatch(navigateTo(['login', 'loginform']))
         }},
         {name: 'Login2', onClick: () => {
           this.props.dispatch(navigateTo(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}]))
@@ -45,9 +45,6 @@ export default class More extends Component {
         }},
         {name: 'Bridging', hasChildren: true, onClick: () => {
           this.props.dispatch(navigateTo(['bridging']))
-        }},
-        {name: 'QR', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['qr']))
         }},
         {name: 'Search', hasChildren: true, onClick: () => {
           this.props.dispatch(SearchActions.pushNewSearch())
@@ -87,24 +84,18 @@ export default class More extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = {
-      'about': require('./about').parseRoute,
-      'developer': require('./developer').parseRoute,
-      'navDebug': require('../../debug/nav-debug').parseRoute,
-      'bridging': require('../../debug/bridging-tabs').parseRoute,
-      'qr': require('../../qr').parseRoute,
-      'login': require('../../login').parseRoute,
-      'login2': require('../../login2').parseRoute
-    }
-
-    const componentAtTop = {
-      title: 'More',
-      component: More
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: routes[nextPath.get('path')] || null
+      componentAtTop: {
+        title: 'More'
+      },
+      subRoutes: {
+        about: require('./about'),
+        developer: require('./developer'),
+        navDebug: require('../../debug/nav-debug'),
+        bridging: require('../../debug/bridging-tabs'),
+        login: require('../../login'),
+        login2: require('../../login2')
+      }
     }
   }
 }

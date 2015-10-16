@@ -1,3 +1,5 @@
+// +build !windows
+
 // Copyright 2013, Örjan Persson. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -76,5 +78,15 @@ func init() {
 		WARNING:  colorSeqBold(colorYellow),
 		NOTICE:   colorSeqBold(colorGreen),
 		DEBUG:    colorSeqBold(colorCyan),
+	}
+}
+
+func doFmtVerbLevelColor(layout string, level Level, output io.Writer) {
+	if layout == "bold" {
+		output.Write([]byte(boldcolors[level]))
+	} else if layout == "reset" {
+		output.Write([]byte("\033[0m"))
+	} else {
+		output.Write([]byte(colors[level]))
 	}
 }

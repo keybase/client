@@ -114,10 +114,8 @@ export default class Search extends Component {
     const base = uri.pop()
     return {
       componentAtTop: {
-        component: Search,
         mapStateToProps: (state) => state.search.get(base).toObject()
-      },
-      parseNextRoute: null
+      }
     }
   }
 }

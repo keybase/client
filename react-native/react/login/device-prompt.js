@@ -49,20 +49,17 @@ export default class DevicePrompt extends Component {
   // TODO(mm): add types
   static parseRoute (store, currentPath, nextPath) {
     const {response, deviceName} = store.getState().login
-    const componentAtTop = {
-      title: 'Device Name',
-      component: DevicePrompt,
-      leftButtonTitle: 'Cancel',
-      mapStateToProps: state => state.login,
-      props: {
-        onSubmit: (name) => store.dispatch(submitDeviceName(name, response)),
-        deviceName
-      }
-    }
 
     return {
-      componentAtTop,
-      parseNextRoute: null // terminal node, so no next route
+      componentAtTop: {
+        title: 'Device Name',
+        leftButtonTitle: 'Cancel',
+        mapStateToProps: state => state.login,
+        props: {
+          onSubmit: (name) => store.dispatch(submitDeviceName(name, response)),
+          deviceName
+        }
+      }
     }
   }
 }

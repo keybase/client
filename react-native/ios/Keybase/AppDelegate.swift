@@ -30,7 +30,7 @@ class AppDelegate: UIResponder {
     engine = Engine(settings: [
       "runmode": AppDefault.RunMode.stringValue!,
       "homedir": (NSHomeDirectory() as NSString).stringByAppendingPathComponent(AppDefault.HomeDirectory.stringValue ?? ""),
-      "serverURI": AppDefault.APIServer.stringValue!
+      "serverURI": AppDefault.APIServer.stringValue ?? ""
     ])
   }
   
@@ -40,10 +40,8 @@ extension AppDelegate: UIApplicationDelegate {
 
   func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
     #if DEBUG
-      AppDefault.APIServer.setDefaultValue("http://localhost:3000")
       AppDefault.RunMode.setDefaultValue("devel")
     #else
-      AppDefault.APIServer.setDefaultValue("https://keybase.io")
       AppDefault.RunMode.setDefaultValue("prod")
     #endif
     

@@ -95,8 +95,10 @@ type RunGpgRes struct {
 
 func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error) {
 	var cmd string
+	var which string
 	if secret {
 		cmd = "--export-secret-key"
+		which = "secret "
 	} else {
 		cmd = "--export"
 	}
@@ -123,7 +125,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 	}
 
 	if len(armored) == 0 {
-		return nil, NoKeyError{fmt.Sprintf("No key found for %s", fp)}
+		return nil, NoKeyError{fmt.Sprintf("No %skey found for fingerprint %s", which, fp)}
 	}
 
 	bundle, err := ReadOneKeyFromString(armored)

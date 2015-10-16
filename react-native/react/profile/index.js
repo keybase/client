@@ -37,10 +37,8 @@ class Profile extends Component {
     const username = currentPath.get('username')
     return {
       componentAtTop: {
-        component: Profile,
         mapStateToProps: state => state.profile.get(username).toObject()
-      },
-      parseNextRoute: null
+      }
     }
   }
 }

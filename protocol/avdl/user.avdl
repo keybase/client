@@ -46,23 +46,33 @@ protocol user {
     array<PublicKey> deviceKeys;
   }
 
-  // load user summaries for the supplied uids.
-  // they are "unchecked" in that the client is not verifying the info from the server.
-  // if len(uids) > 500, the first 500 will be returned.
+  /**
+    Load user summaries for the supplied uids.
+    They are "unchecked" in that the client is not verifying the info from the server.
+    If len(uids) > 500, the first 500 will be returned.
+    */
   array<UserSummary> loadUncheckedUserSummaries(int sessionID, array<UID> uids);
 
-  // Load a user from the server.
+  /**
+    Load a user from the server.
+    */
   User loadUser(int sessionID, UID uid);
 
-  // Load a user + device keys from the server.
-  // cacheOK -> true means that a cached value is ok to return.
+  /**
+    Load a user + device keys from the server.
+    If cacheOK is true means that a cached value is ok to return.
+    */
   UserPlusKeys loadUserPlusKeys(int sessionID, UID uid, boolean cacheOK);
 
-  // Load public keys for a user
+  /**
+    Load public keys for a user.
+    */
   array<PublicKey> loadPublicKeys(int sessionID, UID uid);
 
-  // The list-tracking function get verified data from the tracking statements
-  // in the user's own sigchain.
+  /**
+    The list-tracking function get verified data from the tracking statements
+    in the user's own sigchain.
+    */
   array<UserSummary> listTracking(int sessionID, string filter);
   string listTrackingJSON(int sessionID, string filter, boolean verbose);
 
@@ -80,6 +90,8 @@ protocol user {
     double score;
   }
 
-  // Search for users who match a given query
+  /**
+    Search for users who match a given query.
+    */
   array<SearchResult> search(int sessionID, string query);
 }

@@ -192,7 +192,7 @@ func (t RedditServiceType) FormatProofText(ppr *PostProofRes) (res string, err e
 
 func (t RedditServiceType) DisplayName(un string) string { return "Reddit" }
 
-func (t RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
+func (t RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
 	warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	return
 }

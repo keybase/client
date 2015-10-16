@@ -8,12 +8,14 @@
 
 #import "AppDelegate.h"
 
-#import <Sparkle/Sparkle.h>
+//#import <Sparkle/Sparkle.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
 #import <GHKit/GHKit.h>
 
 #import <KBKit/KBWorkspace.h>
 #import <KBKit/KBNotifications.h>
+
+#import <Keybase/Keybase-Swift.h>
 
 @interface AppDelegate ()
 @property NSStatusItem *statusItem;
@@ -111,6 +113,7 @@
 #pragma mark Preferences
 
 - (id)preferencesValueForIdentifier:(NSString *)identifier {
+  /*
   if ([identifier isEqualTo:@"Preferences.Sparkle.AutoUpdate"]) {
     return @(SUUpdater.sharedUpdater.automaticallyChecksForUpdates);
   }
@@ -126,6 +129,7 @@
   if ([identifier isEqualTo:@"Preferences.Sparkle.SendsProfile"]) {
     return @(SUUpdater.sharedUpdater.sendsSystemProfile);
   }
+   */
 
   if ([identifier isEqualTo:@"Preferences.LaunchAtLogin"]) {
     return @([self isLoginEnabledForURL:[NSURL fileURLWithPath:NSBundle.mainBundle.executablePath]]);
@@ -135,6 +139,7 @@
 }
 
 - (BOOL)setPrefencesValue:(id)value forIdentifier:(NSString *)identifier synchronize:(BOOL)synchronize {
+  /*
   if ([identifier isEqualTo:@"Preferences.Sparkle.AutoUpdate"]) {
     SUUpdater.sharedUpdater.automaticallyChecksForUpdates = [value boolValue];
   } else if ([identifier isEqualTo:@"Preferences.Sparkle.CheckInterval"]) {
@@ -143,7 +148,8 @@
     SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = [value boolValue];
   } else if ([identifier isEqualTo:@"Preferences.Sparkle.SendsProfile"]) {
     SUUpdater.sharedUpdater.sendsSystemProfile = [value boolValue];
-  } else if ([identifier isEqualTo:@"Preferences.LaunchAtLogin"]) {
+   */
+  if ([identifier isEqualTo:@"Preferences.LaunchAtLogin"]) {
     [self setLoginEnabled:[value boolValue] forURL:[NSURL fileURLWithPath:NSBundle.mainBundle.executablePath]];
   } else {
     // Not found

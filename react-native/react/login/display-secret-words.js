@@ -25,20 +25,16 @@ export default class DisplaySecretWords extends Component {
   static parseRoute (store) {
     const { secretWords, response } = store.getState().login
 
-    const componentAtTop = {
-      title: 'Register Device',
-      component: DisplaySecretWords,
-      leftButtonTitle: 'Cancel',
-      mapStateToProps: state => state.login,
-      props: {
-        onSubmit: () => store.dispatch(showedSecretWords(response)),
-        secretWords
-      }
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: null // terminal node, so no next route
+      componentAtTop: {
+        title: 'Register Device',
+        leftButtonTitle: 'Cancel',
+        mapStateToProps: state => state.login,
+        props: {
+          onSubmit: () => store.dispatch(showedSecretWords(response)),
+          secretWords
+        }
+      }
     }
   }
 }

@@ -131,9 +131,9 @@ func (t DNSServiceType) PostInstructions(un string) *Markup {
 func (t DNSServiceType) DisplayName(un string) string { return "Dns" }
 func (t DNSServiceType) GetTypeName() string          { return "dns" }
 
-func (t DNSServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
-	warning = FmtMarkup(`<p>We couldn't find a DNS proof for...<strong>yet</strong></p>
-<p>DNS propogation can be slow; we'll keep trying and email you the result</p>`)
+func (t DNSServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, dn string) (warning *Markup, err error) {
+	warning = FmtMarkup(`<p>We couldn't find a DNS proof for ` + dn + ` ... <strong>yet</strong></p>
+<p>DNS propagation can be slow; we'll keep trying and email you the result</p>`)
 	err = WaitForItError{}
 	return
 }

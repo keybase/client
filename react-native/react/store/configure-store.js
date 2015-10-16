@@ -10,13 +10,15 @@ import Immutable from 'immutable'
 // Transform objects from Immutable on printing
 const objToJS = (state) => {
   var newState = {}
-  for (var i of Object.keys(state)) {
+
+  Object.keys(state).forEach(i => {
     if (Immutable.Iterable.isIterable(state[i])) {
       newState[i] = state[i].toJS()
     } else {
       newState[i] = state[i]
     }
-  }
+  })
+
   return newState
 }
 
