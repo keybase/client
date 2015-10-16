@@ -86,32 +86,25 @@ export default class CodePage extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = { }
-
-    const componentAtTop = {
-      title: '',
-      component: CodePage,
-      leftButtonTitle: '',
-      mapStateToProps: state => state.login2.codePage
-    }
-
-    const parseNextRoute = routes[nextPath.get('path')]
-
     return {
-      componentAtTop,
-      parseNextRoute
+      componentAtTop: {
+        title: '',
+        component: CodePage,
+        leftButtonTitle: '',
+        mapStateToProps: state => state.login2.codePage
+      }
     }
   }
 }
 
 CodePage.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
-  role: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2]),
-  otherRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2]),
   mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]),
   codeCountDown: React.PropTypes.number,
   textCode: React.PropTypes.string,
-  qrCode: React.PropTypes.string
+  qrCode: React.PropTypes.string,
+  myRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2]),
+  otherRole: React.PropTypes.oneOf([codePageRolePhone1, codePageRolePhone2, codePageRoleComputer1, codePageRoleComputer2])
 }
 
 const styles = StyleSheet.create({

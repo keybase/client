@@ -12,8 +12,8 @@ export function welcomeSubmitUserPass (username, passphrase) {
   }
 }
 
-function defaultModeForRoles (role, otherRole) {
-  switch (role + otherRole) {
+function defaultModeForRoles (myRole, otherRole) {
+  switch (myRole + otherRole) {
     case Constants.codePageRoleComputer1 + Constants.codePageRoleComputer2:
       return Constants.codePageModeEnterText
     case Constants.codePageRoleComputer2 + Constants.codePageRoleComputer1:
@@ -37,12 +37,12 @@ function defaultModeForRoles (role, otherRole) {
   return null
 }
 
-export function setCodePageRoles (role, otherRole) {
+export function setCodePageRoles (myRole, otherRole) {
   return function (dispatch) {
-    dispatch(setCodePageMode(defaultModeForRoles(role, otherRole)))
+    dispatch(setCodePageMode(defaultModeForRoles(myRole, otherRole)))
     dispatch({
       type: Constants.setCodeState,
-      role,
+      myRole,
       otherRole
     })
   }
@@ -134,4 +134,3 @@ export function qrGenerate () {
     })
   }
 }
-
