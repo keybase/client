@@ -1008,7 +1008,7 @@ func NewIdentityTable(eldest keybase1.KID, sc *SigChain, h *SigHints) (*Identity
 
 func (idt *IdentityTable) populate() error {
 	G.Log.Debug("+ Populate ID Table")
-	links, err := idt.sigChain.LimitToEldestKID(idt.eldest)
+	links, err := idt.sigChain.GetCurrentSubchain(idt.eldest)
 	if err != nil {
 		return err
 	}
