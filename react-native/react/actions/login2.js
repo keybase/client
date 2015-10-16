@@ -12,38 +12,38 @@ export function welcomeSubmitUserPass (username, passphrase) {
   }
 }
 
-function defaultModeForRoles (myRole, otherRole) {
-  switch (myRole + otherRole) {
-    case Constants.codePageRoleExistingComputer + Constants.codePageRoleNewComputer:
+function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole) {
+  switch (myDeviceRole + otherDeviceRole) {
+    case Constants.codePageDeviceRoleExistingComputer + Constants.codePageDeviceRoleNewComputer:
       return Constants.codePageModeEnterText
-    case Constants.codePageRoleNewComputer + Constants.codePageRoleExistingComputer:
+    case Constants.codePageDeviceRoleNewComputer + Constants.codePageDeviceRoleExistingComputer:
       return Constants.codePageModeShowText
 
-    case Constants.codePageRoleExistingComputer + Constants.codePageRoleNewPhone:
+    case Constants.codePageDeviceRoleExistingComputer + Constants.codePageDeviceRoleNewPhone:
       return Constants.codePageModeShowCode
-    case Constants.codePageRoleNewPhone + Constants.codePageRoleExistingComputer:
+    case Constants.codePageDeviceRoleNewPhone + Constants.codePageDeviceRoleExistingComputer:
       return Constants.codePageModeScanCode
 
-    case Constants.codePageRoleExistingPhone + Constants.codePageRoleNewComputer:
+    case Constants.codePageDeviceRoleExistingPhone + Constants.codePageDeviceRoleNewComputer:
       return Constants.codePageModeScanCode
-    case Constants.codePageRoleNewComputer + Constants.codePageRoleExistingPhone:
+    case Constants.codePageDeviceRoleNewComputer + Constants.codePageDeviceRoleExistingPhone:
       return Constants.codePageModeShowCode
 
-    case Constants.codePageRoleExistingPhone + Constants.codePageRoleNewPhone:
+    case Constants.codePageDeviceRoleExistingPhone + Constants.codePageDeviceRoleNewPhone:
       return Constants.codePageModeScanCode
-    case Constants.codePageRoleNewPhone + Constants.codePageRoleExistingPhone:
+    case Constants.codePageDeviceRoleNewPhone + Constants.codePageDeviceRoleExistingPhone:
       return Constants.codePageModeShowCode
   }
   return null
 }
 
-export function setCodePageRoles (myRole, otherRole) {
+export function setCodePageDeviceRoles (myDeviceRole, otherDeviceRole) {
   return function (dispatch) {
-    dispatch(setCodePageMode(defaultModeForRoles(myRole, otherRole)))
+    dispatch(setCodePageMode(defaultModeForDeviceRoles(myDeviceRole, otherDeviceRole)))
     dispatch({
       type: Constants.setCodeState,
-      myRole,
-      otherRole
+      myDeviceRole,
+      otherDeviceRole
     })
   }
 }

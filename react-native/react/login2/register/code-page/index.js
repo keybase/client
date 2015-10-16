@@ -3,15 +3,19 @@
 
 import React, { Component, StyleSheet, Text, View } from 'react-native'
 
-import { codePageRoleExistingPhone, codePageRoleNewPhone, codePageRoleExistingComputer, codePageRoleNewComputer } from '../../../constants/login2'
+import {
+  codePageDeviceRoleExistingPhone,
+  codePageDeviceRoleNewPhone,
+  codePageDeviceRoleExistingComputer,
+  codePageDeviceRoleNewComputer } from '../../../constants/login2'
 import { codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText } from '../../../constants/login2'
 import { setCodePageMode, qrScanned } from '../../../actions/login2'
 import QR from './qr'
 
 export default class CodePage extends Component {
   renderControls () {
-    switch (this.props.myRole + this.props.otherRole) {
-      case codePageRoleNewPhone + codePageRoleExistingComputer:
+    switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
+      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer:
         return (
           <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
             <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>QR Code</Text>
@@ -30,7 +34,7 @@ export default class CodePage extends Component {
         onBarCodeRead={(code) => this.props.dispatch(qrScanned(code))}
         qrCode={this.props.qrCode}>
 
-        <Text style={{margin: 50, color: 'white', textAlign: 'center', shadowColor: 'black', shadowOpacity: 1, shadowOffset: {width: 1, height: 1}}}>Use this phone to scan the QR code displayed on your other device</Text>
+        <Text style={styles.text}>Use this phone to scan the QR code displayed on your other device</Text>
         <View style={{alignSelf: 'center', width: 200, height: 200}}>
           <View style={[styles.box, styles.boxEdge, {left: 0}]}/>
           <View style={[styles.box, styles.boxEdge, {right: 0}]}/>
@@ -97,14 +101,16 @@ export default class CodePage extends Component {
   }
 }
 
+const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer]
+
 CodePage.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]),
   codeCountDown: React.PropTypes.number,
   textCode: React.PropTypes.string,
   qrCode: React.PropTypes.string,
-  myRole: React.PropTypes.oneOf([codePageRoleExistingPhone, codePageRoleNewPhone, codePageRoleExistingComputer, codePageRoleNewComputer]),
-  otherRole: React.PropTypes.oneOf([codePageRoleExistingPhone, codePageRoleNewPhone, codePageRoleExistingComputer, codePageRoleNewComputer])
+  myDeviceRole: React.PropTypes.oneOf(validRoles),
+  otherDeviceRole: React.PropTypes.oneOf(validRoles)
 }
 
 const styles = StyleSheet.create({
@@ -125,6 +131,14 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 1
+  },
+  text: {
+    margin: 50,
+    color: 'white',
+    textAlign: 'center',
+    shadowColor: 'black',
+    shadowOpacity: 1,
+    shadowOffset: {width: 1, height: 1}
   }
 })
 
