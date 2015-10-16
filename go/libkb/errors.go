@@ -564,11 +564,11 @@ func (e NoUsernameError) Error() string {
 //=============================================================================
 
 type UnmarshalError struct {
-	t string
+	T string
 }
 
 func (u UnmarshalError) Error() string {
-	return "Bad " + u.t + " packet"
+	return "Bad " + u.T + " packet"
 }
 
 type VerificationError struct{}
