@@ -9,3 +9,11 @@ export function welcomeSubmitUserPass (username, passphrase) {
     passphrase
   }
 }
+
+export function setCodePageRoles (myRole, otherRole) {
+  return {
+    type: Constants.setCodeState,
+    myRole,
+    otherRole
+  }
+}
