@@ -148,6 +148,10 @@ func (rmea *rmMergedEntryAction) do(config Config,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
+	if _, ok := mergedBlock.Children[rmea.name]; !ok {
+		return nil, nil, NoSuchNameError{rmea.name}
+	}
+	delete(mergedBlock.Children, rmea.name)
 	return unmergedOps, mergedOps, nil
 }
 
