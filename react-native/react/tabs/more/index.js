@@ -46,9 +46,6 @@ export default class More extends Component {
         {name: 'Bridging', hasChildren: true, onClick: () => {
           this.props.dispatch(navigateTo(['bridging']))
         }},
-        {name: 'QR', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['qr']))
-        }},
         {name: 'Search', hasChildren: true, onClick: () => {
           this.props.dispatch(SearchActions.pushNewSearch())
         }},
@@ -96,7 +93,6 @@ export default class More extends Component {
         developer: require('./developer'),
         navDebug: require('../../debug/nav-debug'),
         bridging: require('../../debug/bridging-tabs'),
-        qr: require('../../qr'),
         login: require('../../login'),
         login2: require('../../login2')
       }
