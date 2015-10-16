@@ -8,13 +8,13 @@ package logging
 import (
 	"bytes"
 	"io"
-	"os"
 	"log"
+	"os"
 	"syscall"
 )
 
 var (
-	kernel32DLL = syscall.NewLazyDLL("kernel32.dll")
+	kernel32DLL                 = syscall.NewLazyDLL("kernel32.dll")
 	setConsoleTextAttributeProc = kernel32DLL.NewProc("SetConsoleTextAttribute")
 )
 
@@ -23,7 +23,7 @@ var colors []WORD
 var boldcolors []WORD
 
 type color int
-type WORD  uint16
+type WORD uint16
 
 const (
 	// Character attributes
@@ -52,7 +52,7 @@ type LogBackend struct {
 
 // NewLogBackend creates a new LogBackend.
 func NewLogBackend(out *os.File, prefix string, flag int) *LogBackend {
-	return &LogBackend{Logger: log.New(out, prefix, flag), Handle: out.Fd() }
+	return &LogBackend{Logger: log.New(out, prefix, flag), Handle: out.Fd()}
 }
 
 func (b *LogBackend) Log(level Level, calldepth int, rec *Record) error {
@@ -99,14 +99,13 @@ func setConsoleTextAttribute(handle uintptr, attribute WORD) error {
 	return checkError(r1, r2, err)
 }
 
-
 // checkError evaluates the results of a Windows API call and returns the error if it failed.
 func checkError(r1, r2 uintptr, err error) error {
 	// Windows APIs return non-zero to indicate success
 	if r1 != 0 {
 		return nil
 	}
-	
+
 	// Return the error if provided, otherwise default to EINVAL
 	if err != nil {
 		return err

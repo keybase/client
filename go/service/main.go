@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"os"
@@ -82,7 +83,9 @@ func (d *Service) Handle(c net.Conn) {
 	}
 
 	if err := server.Run(false /* bg */); err != nil {
-		G.Log.Warning("Run error: %s", err)
+		if err != io.EOF {
+			G.Log.Warning("Run error: %s", err)
+		}
 	}
 }
 
