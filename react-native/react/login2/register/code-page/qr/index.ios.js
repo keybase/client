@@ -9,7 +9,7 @@ export default class QR extends Component {
     if (this.props.scanning) {
       return (
         <Camera
-          style={[styles.camera, this.props.styles]}
+          style={[styles.camera, this.props.style]}
           ref='cam'
           onBarCodeRead={(data) => this.props.onBarCodeRead(data)}>
           {this.props.children}
@@ -17,10 +17,9 @@ export default class QR extends Component {
       )
     } else {
       return (
-        <View style={[styles.camera, this.props.styles]}>
-          <Image style={{width: 300, height: 300}} source={{uri: this.props.qrCode}}>
-            {this.props.children}
-          </Image>
+        <View style={[styles.camera, this.props.style]}>
+          {this.props.children}
+          <Image style={[{width: 300, height: 300}, this.props.imageStyle]} source={{uri: this.props.qrCode}} />
         </View>
       )
     }
@@ -28,15 +27,17 @@ export default class QR extends Component {
 }
 
 QR.propTypes = {
-  scanning: React.PropTypes.bool.isRequired,
-  onBarCodeRead: React.PropTypes.func.isRequired,
+  scanning: React.PropTypes.bool,
+  onBarCodeRead: React.PropTypes.func,
   qrCode: React.PropTypes.string,
   children: React.PropTypes.any,
-  styles: React.PropTypes.any
+  style: React.PropTypes.any,
+  imageStyle: React.PropTypes.any
 }
 
 const styles = StyleSheet.create({
   camera: {
-    flex: 1
+    flex: 1,
+    flexDirection: 'column'
   }
 })
