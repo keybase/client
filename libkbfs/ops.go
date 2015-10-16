@@ -397,6 +397,14 @@ func (so *syncOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 			toName: mergedOp.getFinalPath().tailName() +
 				renamer.GetConflictSuffix(so),
 		}, nil
+	case *setAttrOp:
+		// Someone on the merged path explicitly set an attribute, so
+		// just copy the size and blockpointer over.
+		return &copyUnmergedAttrAction{
+			fromName: so.getFinalPath().tailName(),
+			toName:   mergedOp.getFinalPath().tailName(),
+			attr:     []attrChange{sizeAttr},
+		}, nil
 	}
 	return nil, nil
 }
@@ -414,6 +422,7 @@ type attrChange uint16
 const (
 	exAttr attrChange = iota
 	mtimeAttr
+	sizeAttr // only used during conflict resolution
 )
 
 func (ac attrChange) String() string {
@@ -422,6 +431,8 @@ func (ac attrChange) String() string {
 		return "ex"
 	case mtimeAttr:
 		return "mtime"
+	case sizeAttr:
+		return "size"
 	}
 	return "<invalid attrChange>"
 }
