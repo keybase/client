@@ -230,7 +230,7 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		if found || err != nil {
 			break
 		}
-		warn, err = p.st.RecheckProofPosting(i, status)
+		warn, err = p.st.RecheckProofPosting(i, status, p.usernameNormalized)
 		if warn != nil {
 			uierr := ctx.ProveUI.DisplayRecheckWarning(keybase1.DisplayRecheckWarningArg{
 				Text: warn.Export(),

@@ -147,7 +147,7 @@ func (t TwitterServiceType) PostInstructions(un string) *Markup {
 func (t TwitterServiceType) DisplayName(un string) string { return "Twitter" }
 func (t TwitterServiceType) GetTypeName() string          { return "twitter" }
 
-func (t TwitterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
+func (t TwitterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
 		warning = FmtMarkup("Permission denied! We can't suppport <strong>private</strong feeds.")
 	} else {

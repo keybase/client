@@ -174,7 +174,7 @@ func (t WebServiceType) PostInstructions(un string) *Markup {
 func (t WebServiceType) DisplayName(un string) string { return "Web" }
 func (t WebServiceType) GetTypeName() string          { return "web" }
 
-func (t WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error) {
+func (t WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
 		warning = FmtMarkup("Permission denied! Make sure your proof page is <strong>public</strong>.")
 	} else {

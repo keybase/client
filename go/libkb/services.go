@@ -21,7 +21,7 @@ type ServiceType interface {
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
 	DisplayName(username string) string
-	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus) (warning *Markup, err error)
+	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, username string) (warning *Markup, err error)
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
