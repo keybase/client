@@ -7,8 +7,8 @@ const initialState = {
   username: '',
   passphrase: '',
   codePage: {
-    otherRole: Constants.codePageRoleComputer1,
-    myRole: Constants.codePageRolePhone2,
+    otherDeviceRole: Constants.codePageDeviceRoleExistingComputer,
+    myDeviceRole: Constants.codePageDeviceRoleNewPhone,
     mode: Constants.codePageModeScanCode,
     codeCountDown: 0,
     textCode: null,
@@ -29,8 +29,8 @@ export default function (state = initialState, action) {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
-          myRole: action.myRole,
-          otherRole: action.otherRole
+          myDeviceRole: action.myDeviceRole,
+          otherDeviceRole: action.otherDeviceRole
         }
       }).toJS()
     }
