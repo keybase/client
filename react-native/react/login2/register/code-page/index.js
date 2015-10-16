@@ -15,7 +15,8 @@ import QR from './qr'
 export default class CodePage extends Component {
   renderControls () {
     switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
-      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer:
+      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
+      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
         return (
           <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
             <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>QR Code</Text>
@@ -92,9 +93,7 @@ export default class CodePage extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        title: '',
         component: CodePage,
-        leftButtonTitle: '',
         mapStateToProps: state => state.login2.codePage
       }
     }

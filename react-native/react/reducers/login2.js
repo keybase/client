@@ -7,8 +7,8 @@ const initialState = {
   username: '',
   passphrase: '',
   codePage: {
-    otherDeviceRole: Constants.codePageDeviceRoleExistingComputer,
-    myDeviceRole: Constants.codePageDeviceRoleNewPhone,
+    otherDeviceRole: Constants.codePageDeviceRoleNewComputer,
+    myDeviceRole: Constants.codePageDeviceRoleExistingPhone,
     mode: Constants.codePageModeScanCode,
     codeCountDown: 0,
     textCode: null,

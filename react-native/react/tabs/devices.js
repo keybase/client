@@ -7,6 +7,7 @@ import Button from '../common-adapters/button'
 import commonStyles from '../styles/common'
 import { loadDevices } from '../actions/devices'
 import moment from 'moment'
+import CodePage from '../login2/register/code-page'
 
 export default class Devices extends Component {
   constructor (props) {
@@ -95,6 +96,9 @@ export default class Devices extends Component {
       componentAtTop: {
         title: 'Devices',
         mapStateToProps: state => state.devices
+      },
+      subRoutes: {
+        codePage: CodePage
       }
     }
   }
