@@ -12,6 +12,37 @@ type copyUnmergedEntryAction struct {
 	symPath  string
 }
 
+func fixupNamesInOps(fromName string, toName string, unmergedOps []op) (
+	retUnmergedOps []op) {
+	retUnmergedOps = make([]op, 0, len(unmergedOps))
+	for _, uop := range unmergedOps {
+		done := false
+		switch realOp := uop.(type) {
+		// The only names that matter are in createOps or
+		// setAttrOps.  rms on the unmerged side wouldn't be
+		// part of the unmerged entry
+		case *createOp:
+			if realOp.NewName == fromName {
+				realOpCopy := *realOp
+				realOpCopy.NewName = toName
+				retUnmergedOps = append(retUnmergedOps, &realOpCopy)
+				done = true
+			}
+		case *setAttrOp:
+			if realOp.Name == fromName {
+				realOpCopy := *realOp
+				realOpCopy.Name = toName
+				retUnmergedOps = append(retUnmergedOps, &realOpCopy)
+				done = true
+			}
+		}
+		if !done {
+			retUnmergedOps = append(retUnmergedOps, uop)
+		}
+	}
+	return retUnmergedOps
+}
+
 func (cuea *copyUnmergedEntryAction) do(config Config,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
@@ -38,36 +69,11 @@ func (cuea *copyUnmergedEntryAction) do(config Config,
 
 	// If the name changed, we have to update all the unmerged ops
 	// with the new name.
-
-	// The unmerged ops don't change, though later we may have to
+	// The merged ops don't change, though later we may have to
 	// manipulate the block pointers in the original ops.
 	if cuea.fromName != cuea.toName {
-		retUnmergedOps := make([]op, len(unmergedOps))
-		for _, uop := range unmergedOps {
-			done := false
-			switch realOp := uop.(type) {
-			// The only names that matter are in createOps or
-			// setAttrOps.  rms on the unmerged side wouldn't be
-			// part of the unmerged entry
-			case *createOp:
-				if realOp.NewName == cuea.fromName {
-					realOpCopy := *realOp
-					realOpCopy.NewName = cuea.toName
-					retUnmergedOps = append(retUnmergedOps, &realOpCopy)
-					done = true
-				}
-			case *setAttrOp:
-				if realOp.Name == cuea.fromName {
-					realOpCopy := *realOp
-					realOpCopy.Name = cuea.toName
-					retUnmergedOps = append(retUnmergedOps, &realOpCopy)
-					done = true
-				}
-			}
-			if !done {
-				retUnmergedOps = append(retUnmergedOps, uop)
-			}
-		}
+		retUnmergedOps =
+			fixupNamesInOps(cuea.fromName, cuea.toName, unmergedOps)
 	}
 
 	return retUnmergedOps, retMergedOps, nil
@@ -91,7 +97,40 @@ func (cuaa *copyUnmergedAttrAction) do(config Config,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
-	return unmergedOps, mergedOps, nil
+	// Find the unmerged entry
+	unmergedEntry, ok := unmergedBlock.Children[cuaa.fromName]
+	if !ok {
+		return nil, nil, NoSuchNameError{cuaa.fromName}
+	}
+
+	mergedEntry, ok := mergedBlock.Children[cuaa.toName]
+	if !ok {
+		return nil, nil, NoSuchNameError{cuaa.toName}
+	}
+	for _, attr := range cuaa.attr {
+		switch attr {
+		case exAttr:
+			mergedEntry.Type = unmergedEntry.Type
+		case mtimeAttr:
+			mergedEntry.Mtime = unmergedEntry.Mtime
+		case sizeAttr:
+			mergedEntry.Size = unmergedEntry.Size
+			mergedEntry.EncodedSize = unmergedEntry.EncodedSize
+			mergedEntry.BlockPointer = unmergedEntry.BlockPointer
+		}
+	}
+	mergedBlock.Children[cuaa.toName] = mergedEntry
+
+	// If the name changed, we have to update all the unmerged ops
+	// with the new name.
+	// The merged ops don't change, though later we may have to
+	// manipulate the block pointers in the original ops.
+	if cuaa.fromName != cuaa.toName {
+		retUnmergedOps =
+			fixupNamesInOps(cuaa.fromName, cuaa.toName, unmergedOps)
+	}
+
+	return retUnmergedOps, retMergedOps, nil
 }
 
 func (cuaa *copyUnmergedAttrAction) String() string {
