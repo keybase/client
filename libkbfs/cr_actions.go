@@ -84,7 +84,7 @@ func (cuea *copyUnmergedEntryAction) String() string {
 type copyUnmergedAttrAction struct {
 	fromName string
 	toName   string
-	attr     attrChange
+	attr     []attrChange
 }
 
 func (cuaa *copyUnmergedAttrAction) do(config Config,
@@ -214,10 +214,25 @@ func (cal crActionList) collapse() crActionList {
 			}
 		case *copyUnmergedAttrAction:
 			untypedTopAction := infoMap[action.fromName].topAction
-			switch untypedTopAction.(type) {
+			switch topAction := untypedTopAction.(type) {
 			case *renameUnmergedAction:
 				indicesToRemove[i] = true
 			case *copyUnmergedEntryAction:
+				indicesToRemove[i] = true
+			case *copyUnmergedAttrAction:
+				// Add attributes to the current top action, if not
+				// already there.
+				for _, a := range action.attr {
+					found := false
+					for _, topA := range topAction.attr {
+						if a == topA {
+							found = true
+						}
+					}
+					if !found {
+						topAction.attr = append(topAction.attr, a)
+					}
+				}
 				indicesToRemove[i] = true
 			default:
 				setTopAction(action, action.fromName, i, infoMap,

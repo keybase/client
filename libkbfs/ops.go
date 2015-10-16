@@ -486,7 +486,7 @@ func (sao *setAttrOp) GetDefaultAction(mergedPath path) crAction {
 	return &copyUnmergedAttrAction{
 		fromName: sao.getFinalPath().tailName(),
 		toName:   mergedPath.tailName(),
-		attr:     sao.Attr,
+		attr:     []attrChange{sao.Attr},
 	}
 }
 

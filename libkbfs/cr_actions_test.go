@@ -11,7 +11,7 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 		&copyUnmergedEntryAction{"old2", "new2", ""},
 		&renameUnmergedAction{"old3", "new3"},
 		&renameMergedAction{"old4", "new4"},
-		&copyUnmergedAttrAction{"old5", "new5", mtimeAttr},
+		&copyUnmergedAttrAction{"old5", "new5", []attrChange{mtimeAttr}},
 	}
 
 	newList := al.collapse()
@@ -22,7 +22,7 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 
 func TestCRActionsCollapseEntry(t *testing.T) {
 	al := crActionList{
-		&copyUnmergedAttrAction{"old", "new", mtimeAttr},
+		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}},
 		&copyUnmergedEntryAction{"old", "new", ""},
 		&renameUnmergedAction{"old", "new"},
 	}
@@ -51,6 +51,23 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 	expected = crActionList{al[0]}
 
 	newList = al.collapse()
+	if !reflect.DeepEqual(expected, newList) {
+		t.Errorf("Collapse returned unexpected list: %v vs %v",
+			expected, newList)
+	}
+}
+func TestCRActionsCollapseAttr(t *testing.T) {
+	al := crActionList{
+		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}},
+		&copyUnmergedAttrAction{"old", "new", []attrChange{exAttr}},
+		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}},
+	}
+
+	expected := crActionList{
+		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr, exAttr}},
+	}
+
+	newList := al.collapse()
 	if !reflect.DeepEqual(expected, newList) {
 		t.Errorf("Collapse returned unexpected list: %v vs %v",
 			expected, newList)
