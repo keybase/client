@@ -67,7 +67,7 @@ export default class CodePage extends Component {
 
   renderScanner () {
     return (
-      <QR style={{flex: 1, alignItems: 'flex-start', justifyContent: 'flex-start', flexDirection: 'row'}}
+      <QR
         scanning
         onBarCodeRead={(code) => this.props.dispatch(qrScanned(code))}
         qrCode={this.props.qrCode}>
@@ -107,9 +107,12 @@ export default class CodePage extends Component {
 
   renderCode () {
     return (
-      <View style={{flex: 1, backgroundColor: 'green', alignItems: 'center', justifyContent: 'center', padding: 20}}>
-        <Text>Show code </Text>
-      </View>
+      <QR
+        style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}
+        scanning={false}
+        qrCode={this.props.qrCode}>
+        <Text style={styles.text}>Scan this QR code with your other device</Text>
+      </QR>
     )
   }
 

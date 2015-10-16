@@ -9,8 +9,8 @@ const initialState = {
   codePage: {
     otherDeviceRole: Constants.codePageDeviceRoleNewPhone,
     myDeviceRole: Constants.codePageDeviceRoleExistingPhone,
-    mode: Constants.codePageModeEnterText,
-    cameraBrokenMode: true,
+    mode: Constants.codePageModeShowCode,
+    cameraBrokenMode: false,
     codeCountDown: 0,
     textCode: null,
     qrScanned: null,
@@ -59,11 +59,11 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
-    case Constants.qrGenerate: {
+    case Constants.setQRCode: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
-          qrCode: null
+          qrCode: action.qrCode
         }
       }).toJS()
     }

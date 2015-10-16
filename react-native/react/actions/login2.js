@@ -81,15 +81,27 @@ function startCodeGenCountdown (mode) {
 }
 
 export function startCodeGen (mode) {
+  // TEMP this needs to come from go
+  const code = 'TODO TEMP:' + Math.floor(Math.random() * 99999)
+
+  // The text representation and the QR code are the same (those map to a bits of a key in go)
   return function (dispatch) {
     switch (mode) {
       case Constants.codePageModeShowText:
         dispatch({
           type: Constants.setTextCode,
           // TODO need this from go
-          text: 'TODO TEMP:' + Math.floor(Math.random() * 99999)
+          text: code
         })
         dispatch(startCodeGenCountdown(mode))
+        break
+      case Constants.codePageModeShowCode:
+        dispatch({
+          type: Constants.setQRCode,
+          qrCode: qrGenerate(code)
+        })
+        dispatch(startCodeGenCountdown(mode))
+        break
     }
   }
 }
@@ -123,24 +135,14 @@ export function textEntered (code) {
   }
 }
 
-export function qrGenerate () {
-  return function (dispatch) {
-    dispatch({
-      type: Constants.qrGenerate
-    })
-
-    const qr = QRCodeGen(10, 'L')
-    qr.addData(this.state.code)
-    qr.make()
-    let tag = qr.createImgTag(10)
-    const [ , src, , ] = tag.split(' ')
-    const [ , qrCode ] = src.split('\"')
-
-    dispatch({
-      type: Constants.qrGenerated,
-      qrCode
-    })
-  }
+function qrGenerate (code) {
+  const qr = QRCodeGen(10, 'L')
+  qr.addData(code)
+  qr.make()
+  let tag = qr.createImgTag(10)
+  const [ , src, , ] = tag.split(' ')
+  const [ , qrCode ] = src.split('\"')
+  return qrCode
 }
 
 export function setCameraBrokenMode (broken) {
