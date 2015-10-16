@@ -10,7 +10,7 @@ import QR from './qr'
 
 export default class CodePage extends Component {
   renderControls () {
-    switch (this.props.role + this.props.otherRole) {
+    switch (this.props.myRole + this.props.otherRole) {
       case codePageRolePhone2 + codePageRoleComputer1:
         return (
           <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
