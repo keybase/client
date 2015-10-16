@@ -8,6 +8,11 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+type UserBasic interface {
+	GetUID() keybase1.UID
+	GetName() string
+}
+
 type User struct {
 	// Raw JSON element read from the server or our local DB.
 	basics     *jsonw.Wrapper
