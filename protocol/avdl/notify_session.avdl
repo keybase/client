@@ -1,0 +1,8 @@
+
+@namespace("keybase.1")
+protocol NotifySession {
+
+	@notify("")
+	void loggedOut();
+
+}

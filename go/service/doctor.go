@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
@@ -10,10 +11,14 @@ import (
 // DoctorHandler implements the keybase_1.Doctor protocol
 type DoctorHandler struct {
 	*BaseHandler
+	libkb.Contextified
 }
 
-func NewDoctorHandler(xp rpc.Transporter) *DoctorHandler {
-	return &DoctorHandler{BaseHandler: NewBaseHandler(xp)}
+func NewDoctorHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DoctorHandler {
+	return &DoctorHandler{
+		BaseHandler:  NewBaseHandler(xp),
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (h *DoctorHandler) Doctor(_ context.Context, sessionID int) error {
@@ -25,7 +30,7 @@ func (h *DoctorHandler) Doctor(_ context.Context, sessionID int) error {
 		LocksmithUI: h.getLocksmithUI(sessionID),
 		GPGUI:       h.getGPGUI(sessionID),
 	}
-	eng := engine.NewDoctor(G)
+	eng := engine.NewDoctor(h.G())
 	return engine.RunEngine(eng, ctx)
 }
 

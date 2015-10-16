@@ -1231,6 +1231,53 @@
 
 @end
 
+@implementation KBRNotifyCtlRequest
+
+- (void)toggleNotifications:(KBRToggleNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"channels": KBRValue(params.channels)};
+  [self.client sendRequestWithMethod:@"keybase.1.notifyCtl.toggleNotifications" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)toggleNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"channels": KBRValue(channels)};
+  [self.client sendRequestWithMethod:@"keybase.1.notifyCtl.toggleNotifications" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRNotifySessionRequest
+
+- (void)loggedOut:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifySession.loggedOut" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRNotifyUsersRequest
+
+- (void)changed:(KBRChangedRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(params.uid)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyUsers.changed" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)changedWithUid:(NSString *)uid completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(uid)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyUsers.changed" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRPgpRequest
 
 - (void)pgpSign:(KBRPgpSignRequestParams *)params completion:(void (^)(NSError *error))completion {
@@ -3742,6 +3789,38 @@
 }
 @end
 
+@implementation KBRToggleNotificationsRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.channels = [MTLJSONAdapter modelOfClass:KBRNotificationChannels.class fromJSONDictionary:params[0][@"channels"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRToggleNotificationsRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRChangedRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.uid = params[0][@"uid"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRChangedRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRPgpSignRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -4891,6 +4970,9 @@
 @end
 
 @implementation KBRMetadataResponse
+@end
+
+@implementation KBRNotificationChannels
 @end
 
 @implementation KBRPGPSignOptions

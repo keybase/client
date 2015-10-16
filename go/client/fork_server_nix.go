@@ -32,28 +32,28 @@ func GetExtraFlags() []cli.Flag {
 // pingable. It will only do something useful on Unixes; it won't work on
 // Windows (probably?). Returns an error if anything bad happens; otherwise,
 // assume that the server was successfully started up.
-func ForkServerNix(cl libkb.CommandLine) error {
-	srv := service.NewService(true /* isDaemon */)
+func ForkServerNix(cl libkb.CommandLine, g *libkb.GlobalContext) error {
+	srv := service.NewService(true /* isDaemon */, g)
 
 	// If we try to get an exclusive lock and succeed, it means we
 	// need to relaunch the daemon since it's dead
-	G.Log.Debug("Getting flock")
+	g.Log.Debug("Getting flock")
 	err := srv.GetExclusiveLockWithoutAutoUnlock()
 	if err == nil {
-		G.Log.Debug("Flocked! Server must have died")
+		g.Log.Debug("Flocked! Server must have died")
 		srv.ReleaseLock()
 		err = spawnServer(cl)
 		if err != nil {
-			G.Log.Errorf("Error in spawning server process: %s", err)
+			g.Log.Errorf("Error in spawning server process: %s", err)
 			return err
 		}
 		err = pingLoop()
 		if err != nil {
-			G.Log.Errorf("Ping failure after server fork: %s", err)
+			g.Log.Errorf("Ping failure after server fork: %s", err)
 			return err
 		}
 	} else {
-		G.Log.Debug("The server is still up")
+		g.Log.Debug("The server is still up")
 		err = nil
 	}
 

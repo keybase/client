@@ -10,14 +10,18 @@ import (
 
 type SignupHandler struct {
 	*BaseHandler
+	libkb.Contextified
 }
 
-func NewSignupHandler(xp rpc.Transporter) *SignupHandler {
-	return &SignupHandler{BaseHandler: NewBaseHandler(xp)}
+func NewSignupHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SignupHandler {
+	return &SignupHandler{
+		BaseHandler:  NewBaseHandler(xp),
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (h *SignupHandler) CheckUsernameAvailable(_ context.Context, arg keybase1.CheckUsernameAvailableArg) error {
-	return engine.CheckUsernameAvailable(G, arg.Username)
+	return engine.CheckUsernameAvailable(h.G(), arg.Username)
 }
 
 func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
@@ -35,7 +39,7 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 		StoreSecret: arg.StoreSecret,
 		DeviceName:  arg.DeviceName,
 	}
-	eng := engine.NewSignupEngine(&runarg, G)
+	eng := engine.NewSignupEngine(&runarg, h.G())
 	err = engine.RunEngine(eng, ctx)
 
 	if err == nil {

@@ -35,6 +35,9 @@ build-stamp: \
 	json/login_ui.json \
 	json/metadata.json \
 	json/metadata_update.json \
+	json/notify_ctl.json \
+	json/notify_session.json \
+	json/notify_users.json \
 	json/pgp.json \
 	json/prove.json \
 	json/prove_ui.json \

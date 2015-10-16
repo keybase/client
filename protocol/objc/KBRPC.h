@@ -388,6 +388,11 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 @property NSArray *mdBlocks; /*of bytes*/
 @end
 
+@interface KBRNotificationChannels : KBRObject
+@property BOOL session;
+@property BOOL users;
+@end
+
 typedef NS_ENUM (NSInteger, KBRSignMode) {
 	KBRSignModeAttached = 0,
 	KBRSignModeDetached = 1,
@@ -927,6 +932,12 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRMetadataUpdateRequestParams : KBRRequestParams
 @property NSString *folderID;
 @property long revision;
+@end
+@interface KBRToggleNotificationsRequestParams : KBRRequestParams
+@property KBRNotificationChannels *channels;
+@end
+@interface KBRChangedRequestParams : KBRRequestParams
+@property NSString *uid;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1674,6 +1685,28 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)metadataUpdate:(KBRMetadataUpdateRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRNotifyCtlRequest : KBRRequest
+
+- (void)toggleNotifications:(KBRToggleNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)toggleNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRNotifySessionRequest : KBRRequest
+
+- (void)loggedOut:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRNotifyUsersRequest : KBRRequest
+
+- (void)changed:(KBRChangedRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)changedWithUid:(NSString *)uid completion:(void (^)(NSError *error))completion;
 
 @end
 

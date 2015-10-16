@@ -3000,6 +3000,130 @@ func (c MetadataUpdateClient) MetadataUpdate(ctx context.Context, __arg Metadata
 	return
 }
 
+type NotificationChannels struct {
+	Session bool `codec:"session" json:"session"`
+	Users   bool `codec:"users" json:"users"`
+}
+
+type ToggleNotificationsArg struct {
+	Channels NotificationChannels `codec:"channels" json:"channels"`
+}
+
+type NotifyCtlInterface interface {
+	ToggleNotifications(NotificationChannels) error
+}
+
+func NotifyCtlProtocol(i NotifyCtlInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.notifyCtl",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"toggleNotifications": {
+				MakeArg: func() interface{} {
+					ret := make([]ToggleNotificationsArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ToggleNotificationsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ToggleNotificationsArg)(nil), args)
+						return
+					}
+					err = i.ToggleNotifications((*typedArgs)[0].Channels)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type NotifyCtlClient struct {
+	Cli GenericClient
+}
+
+func (c NotifyCtlClient) ToggleNotifications(channels NotificationChannels) (err error) {
+	__arg := ToggleNotificationsArg{Channels: channels}
+	err = c.Cli.Call("keybase.1.notifyCtl.toggleNotifications", []interface{}{__arg}, nil)
+	return
+}
+
+type LoggedOutArg struct {
+}
+
+type NotifySessionInterface interface {
+	LoggedOut() error
+}
+
+func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.NotifySession",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"loggedOut": {
+				MakeArg: func() interface{} {
+					ret := make([]LoggedOutArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					err = i.LoggedOut()
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+		},
+	}
+}
+
+type NotifySessionClient struct {
+	Cli GenericClient
+}
+
+func (c NotifySessionClient) LoggedOut() (err error) {
+	err = c.Cli.Call("keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}}, nil)
+	return
+}
+
+type ChangedArg struct {
+	Uid UID `codec:"uid" json:"uid"`
+}
+
+type NotifyUsersInterface interface {
+	Changed(UID) error
+}
+
+func NotifyUsersProtocol(i NotifyUsersInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.NotifyUsers",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"changed": {
+				MakeArg: func() interface{} {
+					ret := make([]ChangedArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChangedArg)(nil), args)
+						return
+					}
+					err = i.Changed((*typedArgs)[0].Uid)
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+		},
+	}
+}
+
+type NotifyUsersClient struct {
+	Cli GenericClient
+}
+
+func (c NotifyUsersClient) Changed(uid UID) (err error) {
+	__arg := ChangedArg{Uid: uid}
+	err = c.Cli.Call("keybase.1.NotifyUsers.changed", []interface{}{__arg}, nil)
+	return
+}
+
 type SignMode int
 
 const (

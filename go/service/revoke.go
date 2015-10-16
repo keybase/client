@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
@@ -9,10 +10,14 @@ import (
 
 type RevokeHandler struct {
 	*BaseHandler
+	libkb.Contextified
 }
 
-func NewRevokeHandler(xp rpc.Transporter) *RevokeHandler {
-	return &RevokeHandler{BaseHandler: NewBaseHandler(xp)}
+func NewRevokeHandler(xp rpc.Transporter, g *libkb.GlobalContext) *RevokeHandler {
+	return &RevokeHandler{
+		BaseHandler:  NewBaseHandler(xp),
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (h *RevokeHandler) RevokeKey(_ context.Context, arg keybase1.RevokeKeyArg) error {
@@ -21,7 +26,7 @@ func (h *RevokeHandler) RevokeKey(_ context.Context, arg keybase1.RevokeKeyArg) 
 		LogUI:    h.getLogUI(sessionID),
 		SecretUI: h.getSecretUI(sessionID),
 	}
-	eng := engine.NewRevokeKeyEngine(arg.KeyID, G)
+	eng := engine.NewRevokeKeyEngine(arg.KeyID, h.G())
 	return engine.RunEngine(eng, &ctx)
 }
 
@@ -31,7 +36,7 @@ func (h *RevokeHandler) RevokeDevice(_ context.Context, arg keybase1.RevokeDevic
 		LogUI:    h.getLogUI(sessionID),
 		SecretUI: h.getSecretUI(sessionID),
 	}
-	eng := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: arg.DeviceID, Force: arg.Force}, G)
+	eng := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: arg.DeviceID, Force: arg.Force}, h.G())
 	return engine.RunEngine(eng, &ctx)
 }
 
@@ -40,6 +45,6 @@ func (h *RevokeHandler) RevokeSigs(_ context.Context, arg keybase1.RevokeSigsArg
 		LogUI:    h.getLogUI(arg.SessionID),
 		SecretUI: h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewRevokeSigsEngine(arg.SigIDs, G)
+	eng := engine.NewRevokeSigsEngine(arg.SigIDs, h.G())
 	return engine.RunEngine(eng, &ctx)
 }

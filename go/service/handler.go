@@ -128,17 +128,18 @@ func (h *BaseHandler) NewRemoteSelfIdentifyUI(sessionID int) *RemoteSelfIdentify
 	}}
 }
 
-func (h *BaseHandler) NewRemoteIdentifyUI(sessionID int) *RemoteIdentifyUI {
+func (h *BaseHandler) NewRemoteIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI {
 	c := h.rpcClient()
 	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
-		sessionID: sessionID,
-		uicli:     keybase1.IdentifyUiClient{Cli: c},
-		logUI:     h.getLogUI(sessionID),
+		sessionID:    sessionID,
+		uicli:        keybase1.IdentifyUiClient{Cli: c},
+		logUI:        h.getLogUI(sessionID),
+		Contextified: libkb.NewContextified(g),
 	}}
 }
 
-func (h *BaseHandler) NewRemoteSkipPromptIdentifyUI(sessionID int) *RemoteIdentifyUI {
-	c := h.NewRemoteIdentifyUI(sessionID)
+func (h *BaseHandler) NewRemoteSkipPromptIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI {
+	c := h.NewRemoteIdentifyUI(sessionID, g)
 	c.skipPrompt = true
 	return c
 }

@@ -54,6 +54,7 @@ type GlobalContext struct {
 	shutdownOnce     sync.Once         // whether we've shut down or not
 	loginStateMu     sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
 	loginState       *LoginState       // What phase of login the user's in
+	NotifyRouter     *NotifyRouter     // How to route notifications
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -76,6 +77,7 @@ func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
 	g.Service = false
 	g.createLoginState()
+	g.NotifyRouter = NewNotifyRouter()
 }
 
 // requires lock on loginStateMu before calling
