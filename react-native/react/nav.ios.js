@@ -92,15 +92,16 @@ export default class Nav extends Component {
              routeMapper={NavigationBarRouteMapper(dispatch)}/>)
   }
 
-  _renderContent (color, pageText, num) {
+  _renderContent () {
     const activeTab = this.props.tabbedRouter.get('activeTab')
     return (
-      <View style={[styles.tabContent, {backgroundColor: color}]}>
+      <View style={styles.tabContent}>
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator), {
             store: this.props.store,
             rootComponent: tabToRootComponent[activeTab] || NoTab,
             globalRoutes,
+            Navigator: Navigator,
             NavBar: this.navBar(),
             navBarHeight: styleConstants.navBarHeight
           }
@@ -145,32 +146,32 @@ export default class Nav extends Component {
             title='Folders'
             selected={activeTab === FOLDER_TAB}
             onPress={() => dispatch(switchTab(FOLDER_TAB))}>
-            {this._renderContent('#414A8C', 'Blue Tab')}
+            {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             title='Chat'
             selected={activeTab === CHAT_TAB}
             onPress={() => dispatch(switchTab(CHAT_TAB))}>
-            {this._renderContent('#417A8C', 'Blue Tab')}
+            {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             title='People'
             systemIcon='contacts'
             selected={activeTab === PEOPLE_TAB}
             onPress={() => dispatch(switchTab(PEOPLE_TAB))}>
-            {this._renderContent('#214A8C', 'Blue Tab')}
+            {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             title='Devices'
             selected={activeTab === DEVICES_TAB}
             onPress={() => dispatch(switchTab(DEVICES_TAB))}>
-            {this._renderContent('#783E33', 'Red Tab')}
+            {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             systemIcon='more'
             selected={activeTab === MORE_TAB}
             onPress={() => dispatch(switchTab(MORE_TAB))}>
-            {this._renderContent('transparent', 'Green Tab')}
+            {this._renderContent()}
           </TabBarIOS.Item>
         </TabBarIOS>
       </View>

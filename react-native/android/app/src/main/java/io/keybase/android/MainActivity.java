@@ -40,9 +40,14 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_MENU && mReactInstanceManager != null) {
-            mReactInstanceManager.showDevOptionsDialog();
-            return true;
+        if (BuildConfig.DEBUG) {
+            if (keyCode == KeyEvent.KEYCODE_MENU && mReactInstanceManager != null) {
+                mReactInstanceManager.showDevOptionsDialog();
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && mReactInstanceManager != null) {
+                mReactInstanceManager.getDevSupportManager().handleReloadJS();
+                return true;
+            }
         }
         return super.onKeyUp(keyCode, event);
     }
@@ -60,7 +65,6 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
             super.onBackPressed();
         }
     }
-
 
     @Override
     protected void onPause() {

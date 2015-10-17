@@ -5,7 +5,6 @@ import * as types from '../constants/login-action-types'
 
 const initialState = {
   loginState: states.ASK_USER_PASS,
-  loggedIn: false,
   username: null,
   passphrase: null,
   storeSecret: true,
@@ -83,7 +82,7 @@ export default function (state = initialState, action) {
     case types.LOGGED_IN:
       return {
         ...state,
-        loginState: states.LOGGED_IN
+        loginState: states.LOGGED_IN,
       }
     case types.DEVICE_NAME_TAKEN:
       return {

@@ -5,7 +5,7 @@
  * todo(mm) explain why we need a meta navigator
  */
 
-import React, { Component, Navigator, View } from 'react-native'
+import React, { Component, View } from 'react-native'
 import { connect } from 'react-redux/native'
 import Immutable from 'immutable'
 
@@ -47,13 +47,6 @@ class MetaNavigator extends Component {
       this.refs.navigator.immediatelyResetRouteStack(nextRouteStack.toJS())
       return true
     }
-  }
-
-  componentDidMount () {
-    // TODO FIX this...
-    // This is just to fix an error we get from the navigator complaining about
-    // some var elgibleGestures not setup. This hack sets it up.
-    this.refs.navigator._handleTouchStart()
   }
 
   getComponentAtTop (rootComponent, store, uri) {
@@ -107,7 +100,7 @@ class MetaNavigator extends Component {
   }
 
   render () {
-    const { store, rootComponent, uri, NavBar } = this.props
+    const { store, rootComponent, uri, NavBar, Navigator } = this.props
 
     let {componentAtTop, routeStack} = this.getComponentAtTop(rootComponent, store, uri)
 
@@ -120,7 +113,7 @@ class MetaNavigator extends Component {
         renderScene={(route, navigator) => {
           return (
             <View style={{flex: 1, marginTop: route.hideNavBar ? 0 : this.props.navBarHeight}}>
-              {React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(route.component), {...route.props})}
+              {React.createElement(connect(route.mapStateToProps || (state => state))(route.component), {...route.props})}
             </View>
           )
         }}
@@ -135,6 +128,7 @@ MetaNavigator.propTypes = {
   store: React.PropTypes.object.isRequired,
   NavBar: React.PropTypes.object.isRequired,
   rootComponent: React.PropTypes.func.isRequired,
+  Navigator: React.PropTypes.object.isRequired,
   globalRoutes: React.PropTypes.object,
   navBarHeight: React.PropTypes.number.isRequired
 }

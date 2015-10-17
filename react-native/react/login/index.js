@@ -43,7 +43,6 @@ LoginContainer.propTypes = {
   onLoggedIn: React.PropTypes.func.isRequired,
   dispatch: React.PropTypes.func.isRequired,
   loginState: React.PropTypes.string.isRequired,
-  loggedIn: React.PropTypes.bool.isRequired,
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string,
   storeSecret: React.PropTypes.bool.isRequired,

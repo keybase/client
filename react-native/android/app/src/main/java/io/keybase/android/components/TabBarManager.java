@@ -29,7 +29,7 @@ public class TabBarManager extends ViewGroupManager<LinearLayout> {
     private final ArrayList<Boolean> selectedStates = new ArrayList<>();
     private int selectedItem;
 
-    @Override
+    private static final String TAG = TabBarManager.class.getName();
     public String getName() {
         return REACT_CLASS;
     }
@@ -133,8 +133,10 @@ public class TabBarManager extends ViewGroupManager<LinearLayout> {
             @Override
             public Object instantiateItem(ViewGroup container, int position) {
                 final View child = tabs.get(position);
-                container.addView(child);
-                return child;
+                final LinearLayout wrapper = new LinearLayout(container.getContext());
+                wrapper.addView(child);
+                container.addView(wrapper);
+                return wrapper;
             }
 
             @Override
