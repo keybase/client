@@ -114,7 +114,7 @@ func (l TrackLookup) GetProofState(id string) keybase1.ProofState {
 func (l TrackLookup) GetTrackedKeys() []TrackedKey {
 	ret, err := l.link.GetTrackedKeys()
 	if err != nil {
-		G.Log.Warning("Error in lookup up tracked PGP fingerprints: %s", err)
+		G.Log.Warning("Error in lookup of tracked PGP fingerprints: %s", err)
 	}
 	return ret
 }
