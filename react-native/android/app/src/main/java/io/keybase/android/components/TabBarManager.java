@@ -4,7 +4,6 @@ import android.graphics.Color;
 import android.os.SystemClock;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -134,8 +133,10 @@ public class TabBarManager extends ViewGroupManager<LinearLayout> {
             @Override
             public Object instantiateItem(ViewGroup container, int position) {
                 final View child = tabs.get(position);
-                container.addView(child);
-                return child;
+                final LinearLayout wrapper = new LinearLayout(container.getContext());
+                wrapper.addView(child);
+                container.addView(wrapper);
+                return wrapper;
             }
 
             @Override
