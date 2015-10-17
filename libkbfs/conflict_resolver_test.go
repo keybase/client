@@ -1077,9 +1077,10 @@ func TestCRDoActionsSimple(t *testing.T) {
 	}
 
 	lbc := make(localBcache)
+	newFileBlocks := make(fileBlockMap)
 	err = cr2.doActions(ctx, unmergedMDs[len(unmergedMDs)-1],
 		mergedMDs[len(mergedMDs)-1], unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, actionMap, lbc)
+		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks)
 	if err != nil {
 		t.Fatalf("Couldn't do actions: %v", err)
 	}
@@ -1097,5 +1098,149 @@ func TestCRDoActionsSimple(t *testing.T) {
 		if _, ok := block1.Children[file]; !ok {
 			t.Errorf("Couldn't find entry in merged children: %s", file)
 		}
+	}
+	if len(newFileBlocks) != 0 {
+		t.Errorf("Unexpected new file blocks!")
+	}
+}
+
+// Test that actions get executed properly in the case of two
+// simultaneous writes to the same file.
+func TestCRDoActionsWriteConflict(t *testing.T) {
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer config1.Shutdown()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer config2.Shutdown()
+	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	now := time.Now()
+	config2.SetClock(&TestClock{now})
+
+	configs := make(map[keybase1.UID]Config)
+	configs[uid1] = config1
+	configs[uid2] = config2
+	nodes := testCRSharedFolderForUsers(t, uid1, configs, []string{"dir"})
+	dir1 := nodes[uid1]
+	dir2 := nodes[uid2]
+	fb := dir1.GetFolderBranch()
+
+	// user1 makes a file
+	file1, _, err := config1.KBFSOps().CreateFile(ctx, dir1, "file", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// user2 lookup
+	err = config2.KBFSOps().SyncFromServer(ctx, fb)
+	if err != nil {
+		t.Fatalf("Couldn't sync user 2")
+	}
+	file2, _, err := config2.KBFSOps().Lookup(ctx, dir2, "file")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+
+	// pause user 2
+	_, err = DisableUpdatesForTesting(config2, fb)
+	if err != nil {
+		t.Fatalf("Can't disable updates for user 2: %v", err)
+	}
+
+	cr1 := testCRGetCROrBust(t, config1, fb)
+	cr2 := testCRGetCROrBust(t, config2, fb)
+	cr2.Shutdown()
+	cr2.inputChan = make(chan conflictInput)
+
+	// user1 writes the file
+	err = config1.KBFSOps().Write(ctx, file1, []byte{1, 2, 3}, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = config1.KBFSOps().Sync(ctx, file1)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// user2 writes the file
+	unmergedData := []byte{4, 5, 6}
+	err = config2.KBFSOps().Write(ctx, file2, unmergedData, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = config2.KBFSOps().Sync(ctx, file2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// Now run through conflict resolution manually for user2.
+	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
+		recreateOps, err := cr2.buildChainsAndPaths(ctx)
+	if err != nil {
+		t.Fatalf("Couldn't build chains and paths: %v", err)
+	}
+
+	actionMap, err := cr2.computeActions(ctx, unmergedChains, mergedChains,
+		mergedPaths, recreateOps)
+	if err != nil {
+		t.Fatalf("Couldn't compute actions: %v", err)
+	}
+
+	unmergedMDs, mergedMDs, err := cr2.getMDs(ctx)
+	if err != nil {
+		t.Fatalf("Couldn't get MDs: %v", err)
+	}
+
+	lbc := make(localBcache)
+	newFileBlocks := make(fileBlockMap)
+	err = cr2.doActions(ctx, unmergedMDs[len(unmergedMDs)-1],
+		mergedMDs[len(mergedMDs)-1], unmergedChains, mergedChains,
+		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks)
+	if err != nil {
+		t.Fatalf("Couldn't do actions: %v", err)
+	}
+
+	// Does the merged block contain the two files?
+	mergedRootPath := cr1.fbo.nodeCache.PathFromNode(dir1)
+	block1, ok := lbc[mergedRootPath.tailPointer()]
+	if !ok {
+		t.Fatalf("Couldn't find merged block at path %s", mergedRootPath)
+	}
+	if g, e := len(block1.Children), 2; g != e {
+		t.Errorf("Unexpected number of children: %d vs %d", g, e)
+	}
+	nowString := now.Format(time.UnixDate)
+	mergedName := "file.conflict.u2." + nowString
+	for _, file := range []string{"file", mergedName} {
+		if _, ok := block1.Children[file]; !ok {
+			t.Errorf("Couldn't find entry in merged children: %s", file)
+		}
+	}
+	if len(newFileBlocks) != 1 {
+		t.Errorf("Unexpected new file blocks!")
+	}
+	if blocks, ok := newFileBlocks[mergedRootPath.tailPointer()]; !ok {
+		t.Errorf("No blocks for dir merged ptr: %v",
+			mergedRootPath.tailPointer())
+	} else if len(blocks) != 1 {
+		t.Errorf("Unexpected number of blocks")
+	} else if fblock, ok := blocks[mergedName]; !ok {
+		t.Errorf("No block for name %s", mergedName)
+	} else if fblock.IsInd {
+		t.Errorf("Unexpected indirect block")
+	} else if g, e := fblock.Contents, unmergedData; !reflect.DeepEqual(g, e) {
+		t.Errorf("Unexpected block contents: %v vs %v", g, e)
+	}
+	unmergedFilePtr := cr2.fbo.nodeCache.PathFromNode(file2).tailPointer()
+	mergedEntry := block1.Children[mergedName]
+	if g, e := mergedEntry.ID, unmergedFilePtr.ID; g != e {
+		t.Errorf("Copied block for %v wasn't a dup of %v", e, g)
+	}
+	if g, ne := mergedEntry.RefNonce, unmergedFilePtr.RefNonce; g == ne {
+		t.Errorf("Dup block for %v had the same nonce as %v", ne, g)
 	}
 }

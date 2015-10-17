@@ -979,18 +979,26 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 	return actionMap, nil
 }
 
-func (cr *ConflictResolver) fetchBlockCopy(ctx context.Context,
+func (cr *ConflictResolver) fetchBlock(ctx context.Context,
+	md *RootMetadata, p path) (Block, error) {
+	cr.fbo.blockLock.RLock()
+	defer cr.fbo.blockLock.RUnlock()
+	// get the directory for the last element in the path
+	block, err := cr.fbo.getBlockLocked(ctx, md, p, NewDirBlock, read)
+	if err != nil {
+		return nil, err
+	}
+	return block, nil
+}
+
+func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	md *RootMetadata, dir path, lbc localBcache) (*DirBlock, error) {
 	ptr := dir.tailPointer()
 	// TODO: lock lbc if we parallelize
 	if block, ok := lbc[ptr]; ok {
 		return block, nil
 	}
-
-	cr.fbo.blockLock.RLock()
-	defer cr.fbo.blockLock.RUnlock()
-	// get the directory for the last element in the path
-	block, err := cr.fbo.getBlockLocked(ctx, md, dir, NewDirBlock, read)
+	block, err := cr.fetchBlock(ctx, md, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -1003,11 +1011,64 @@ func (cr *ConflictResolver) fetchBlockCopy(ctx context.Context,
 	return dblock, nil
 }
 
+// fileBlockMap maps latest merged block pointer to a map of final
+// merged name -> file block.
+type fileBlockMap map[BlockPointer]map[string]*FileBlock
+
+func (cr *ConflictResolver) fetchFileBlockCopy(ctx context.Context,
+	md *RootMetadata, mergedMostRecent BlockPointer, parentPath path,
+	name string, ptr BlockPointer, blocks fileBlockMap) (
+	BlockPointer, *FileBlock, error) {
+	file := *parentPath.ChildPathNoPtr(name)
+	file.path[len(file.path)-1].BlockPointer = ptr
+	block, err := cr.fetchBlock(ctx, md, file)
+	if err != nil {
+		return BlockPointer{}, nil, err
+	}
+	fblock, ok := block.(*FileBlock)
+	if !ok {
+		return BlockPointer{}, nil, NotFileError{file}
+	}
+	fblock = fblock.DeepCopy()
+	newPtr := ptr
+	uid, err := cr.config.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		return BlockPointer{}, nil, err
+	}
+	if fblock.IsInd {
+		newID, err := cr.config.Crypto().MakeTemporaryBlockID()
+		if err != nil {
+			return BlockPointer{}, nil, err
+		}
+		newPtr = BlockPointer{
+			ID:       newID,
+			KeyGen:   md.LatestKeyGeneration(),
+			DataVer:  cr.config.DataVersion(),
+			Creator:  uid,
+			RefNonce: zeroBlockRefNonce,
+		}
+	} else {
+		newPtr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()
+		if err != nil {
+			return BlockPointer{}, nil, err
+		}
+		newPtr.SetWriter(uid)
+	}
+
+	if _, ok := blocks[mergedMostRecent]; !ok {
+		blocks[mergedMostRecent] = make(map[string]*FileBlock)
+	}
+
+	blocks[mergedMostRecent][name] = fblock
+	return newPtr, fblock, nil
+}
+
 func (cr *ConflictResolver) doActions(ctx context.Context,
 	mostRecentUnmergedMD *RootMetadata, mostRecentMergedMD *RootMetadata,
 	unmergedChains *crChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
-	actionMap map[BlockPointer]crActionList, lbc localBcache) error {
+	actionMap map[BlockPointer]crActionList, lbc localBcache,
+	newFileBlocks fileBlockMap) error {
 	// For each set of actions:
 	//   * Find the corresponding chains
 	//   * Make a reference to each slice of ops
@@ -1033,7 +1094,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 		// branch, a corresponding recreate op will take care of it,
 		// no need to do anything here.
 
-		// fnd the corresponding merged path
+		// find the corresponding merged path
 		mergedPath, ok := mergedPaths[unmergedMostRecent]
 		if !ok {
 			// This most likely means that the file was created or
@@ -1042,8 +1103,9 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 			continue
 		}
 		if unmergedChain.isFile() {
-			// The merged path is actually the parent
-			mergedPath = *mergedPath.parentPath()
+			// The unmerged path is actually the parent (the merged
+			// path was already corrected above)
+			unmergedPath = *unmergedPath.parentPath()
 		}
 
 		actions, ok := actionMap[mergedPath.tailPointer()]
@@ -1063,24 +1125,38 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 		unmergedOps := unmergedChain.ops
 
 		// Now get the directory blocks.
-		unmergedBlock, err := cr.fetchBlockCopy(ctx, mostRecentUnmergedMD,
+		unmergedBlock, err := cr.fetchDirBlockCopy(ctx, mostRecentUnmergedMD,
 			unmergedPath, lbc)
 		if err != nil {
 			return err
 		}
-		mergedBlock, err := cr.fetchBlockCopy(ctx, mostRecentMergedMD,
+		mergedBlock, err := cr.fetchDirBlockCopy(ctx, mostRecentMergedMD,
 			mergedPath, lbc)
 		if err != nil {
 			return err
+		}
+
+		// Any file block copies, keyed by their new temporary block
+		// IDs, and later we will ready them.
+		unmergedFetcher := func(name string, ptr BlockPointer) (
+			BlockPointer, *FileBlock, error) {
+			return cr.fetchFileBlockCopy(ctx, mostRecentUnmergedMD,
+				mergedPath.tailPointer(), unmergedPath, name, ptr,
+				newFileBlocks)
+		}
+		mergedFetcher := func(name string, ptr BlockPointer) (
+			BlockPointer, *FileBlock, error) {
+			return cr.fetchFileBlockCopy(ctx, mostRecentMergedMD,
+				mergedPath.tailPointer(), mergedPath, name, ptr, newFileBlocks)
 		}
 
 		// Execute each action and save the modified ops back into
 		// each chain.
 		for _, action := range actions {
 			unmergedOps, mergedOps, err :=
-				action.do(cr.config, unmergedMostRecent,
-					mergedPath.tailPointer(), unmergedOps, mergedOps,
-					unmergedBlock, mergedBlock)
+				action.do(ctx, cr.config, unmergedFetcher, mergedFetcher,
+					unmergedMostRecent, mergedPath.tailPointer(), unmergedOps,
+					mergedOps, unmergedBlock, mergedBlock)
 			if err != nil {
 				return err
 			}

@@ -1,6 +1,10 @@
 package libkbfs
 
-import "fmt"
+import (
+	"fmt"
+
+	"golang.org/x/net/context"
+)
 
 // copyUnmergedEntryAction says that the unmerged entry for the given
 // name should be copied directly into the merged version of the
@@ -43,7 +47,9 @@ func fixupNamesInOps(fromName string, toName string, unmergedOps []op) (
 	return retUnmergedOps
 }
 
-func (cuea *copyUnmergedEntryAction) do(config Config,
+func (cuea *copyUnmergedEntryAction) do(ctx context.Context, config Config,
+	fetchUnmergedBlockCopy blockCopyFetcher,
+	fetchMergedBlockCopy blockCopyFetcher,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
@@ -58,11 +64,12 @@ func (cuea *copyUnmergedEntryAction) do(config Config,
 		unmergedEntry.SymPath = cuea.symPath
 
 		// If this was turned into a symlink, then we have to simulate
-		// a rename in the mergedOps list.  Even if the names are the
-		// same, this should clear out the caches of any observers.
-		retMergedOps = append(retMergedOps,
-			newRenameOp(cuea.fromName, unmergedMostRecent, cuea.toName,
-				unmergedMostRecent, unmergedEntry.BlockPointer))
+		// a rename at the beginning of the mergedOps list.  Even if
+		// the names are the same, this should clear out the caches of
+		// any observers.
+		retMergedOps = append([]op{newRenameOp(
+			cuea.fromName, unmergedMostRecent, cuea.toName,
+			unmergedMostRecent, unmergedEntry.BlockPointer)}, mergedOps...)
 	}
 
 	mergedBlock.Children[cuea.toName] = unmergedEntry
@@ -93,7 +100,9 @@ type copyUnmergedAttrAction struct {
 	attr     []attrChange
 }
 
-func (cuaa *copyUnmergedAttrAction) do(config Config,
+func (cuaa *copyUnmergedAttrAction) do(ctx context.Context, config Config,
+	fetchUnmergedBlockCopy blockCopyFetcher,
+	fetchMergedBlockCopy blockCopyFetcher,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
@@ -144,7 +153,9 @@ type rmMergedEntryAction struct {
 	name string
 }
 
-func (rmea *rmMergedEntryAction) do(config Config,
+func (rmea *rmMergedEntryAction) do(ctx context.Context, config Config,
+	fetchUnmergedBlockCopy blockCopyFetcher,
+	fetchMergedBlockCopy blockCopyFetcher,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
@@ -166,11 +177,77 @@ type renameUnmergedAction struct {
 	toName   string
 }
 
-func (rua *renameUnmergedAction) do(config Config,
+func (rua *renameUnmergedAction) do(ctx context.Context, config Config,
+	fetchUnmergedBlockCopy blockCopyFetcher,
+	fetchMergedBlockCopy blockCopyFetcher,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
-	return unmergedOps, mergedOps, nil
+	// Find the unmerged entry.
+	unmergedEntry, ok := unmergedBlock.Children[rua.fromName]
+	if !ok {
+		return nil, nil, NoSuchNameError{rua.fromName}
+	}
+
+	// We only rename files.
+	if unmergedEntry.Type == Dir {
+		// Just fill in the last path node, we don't have the full path.
+		return nil, nil, NotFileError{path{path: []pathNode{pathNode{
+			BlockPointer: unmergedEntry.BlockPointer,
+			Name:         rua.fromName,
+		}}}}
+	}
+
+	// Fetch the top block, and dup all of the leaf blocks.
+	// TODO: deal with multiple levels of indirection.
+	ptr, fblock, err := fetchUnmergedBlockCopy(
+		rua.toName, unmergedEntry.BlockPointer)
+	if err != nil {
+		return nil, nil, err
+	}
+	if fblock.IsInd {
+		uid, err := config.KBPKI().GetCurrentUID(ctx)
+		if err != nil {
+			return nil, nil, err
+		}
+		for i, ptr := range fblock.IPtrs {
+			// Generate a new nonce for each one.
+			ptr.RefNonce, err = config.Crypto().MakeBlockRefNonce()
+			if err != nil {
+				return nil, nil, err
+			}
+			ptr.SetWriter(uid)
+			fblock.IPtrs[i] = ptr
+		}
+	}
+	// Set the entry under the new name, with the new pointer.
+	unmergedEntry.BlockPointer = ptr
+	mergedBlock.Children[rua.toName] = unmergedEntry
+	mergedEntry, ok := mergedBlock.Children[rua.fromName]
+	if !ok {
+		return nil, nil, NoSuchNameError{rua.fromName}
+	}
+
+	// Prepend a rename for the unmerged copy to the merged set of
+	// operations, with anothe create for the merged file, for local
+	// playback.  XXX: this isn't quite right because mergedMostRecent
+	// is probably not a valid BlockPointer when we start playing back
+	// these operations.  Hrmmm, I will fix this up in a future commit
+	// once I know exactly how the operations will be fixed up and
+	// played forward.
+	retMergedOps = append([]op{
+		newRenameOp(rua.fromName, unmergedMostRecent, rua.toName,
+			mergedMostRecent, unmergedEntry.BlockPointer),
+		newCreateOp(rua.fromName, mergedMostRecent, mergedEntry.Type),
+	}, mergedOps...)
+
+	// Before merging the unmerged ops, create a file with the new
+	// name, and then rename all subsequent ops with it.
+	retUnmergedOps = append([]op{
+		newCreateOp(rua.toName, mergedMostRecent, unmergedEntry.Type),
+	}, unmergedOps...)
+	retUnmergedOps = fixupNamesInOps(rua.fromName, rua.toName, retUnmergedOps)
+	return retUnmergedOps, retMergedOps, nil
 }
 
 func (rua *renameUnmergedAction) String() string {
@@ -184,7 +261,9 @@ type renameMergedAction struct {
 	toName   string
 }
 
-func (rma *renameMergedAction) do(config Config,
+func (rma *renameMergedAction) do(ctx context.Context, config Config,
+	fetchUnmergedBlockCopy blockCopyFetcher,
+	fetchMergedBlockCopy blockCopyFetcher,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
@@ -201,7 +280,9 @@ type dropUnmergedAction struct {
 	op op
 }
 
-func (dua *dropUnmergedAction) do(config Config,
+func (dua *dropUnmergedAction) do(ctx context.Context, config Config,
+	fetchUnmergedBlockCopy blockCopyFetcher,
+	fetchMergedBlockCopy blockCopyFetcher,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {

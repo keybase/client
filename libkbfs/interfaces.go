@@ -940,6 +940,10 @@ type ConnectionTransport interface {
 	Close()
 }
 
+// Fetches a file block and generates a new random temporary block ID for it.
+type blockCopyFetcher func(string, BlockPointer) (
+	BlockPointer, *FileBlock, error)
+
 // crAction represents a specific action to take as part of the
 // conflict resolution process.
 type crAction interface {
@@ -952,7 +956,9 @@ type crAction interface {
 	// played through locally, to notify any caches about the
 	// newly-obtained merged data (and any changes to local data that
 	// were required as part of conflict resolution, such as renames).
-	do(config Config, unmergedMostRecent BlockPointer,
+	do(ctx context.Context, config Config,
+		fetchUnmergedBlockCopy blockCopyFetcher,
+		fetchMergedBlockCopy blockCopyFetcher, unmergedMostRecent BlockPointer,
 		mergedMostRecent BlockPointer, unmergedOps []op, mergedOps []op,
 		unmergedBlock *DirBlock, mergedBlock *DirBlock) (
 		retUnmergedOps []op, retMergedOps []op, err error)
