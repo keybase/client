@@ -329,7 +329,17 @@ func (dua *dropUnmergedAction) do(ctx context.Context, config Config,
 	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
 	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
-	return unmergedOps, mergedOps, nil
+	for i, op := range unmergedOps {
+		if op == dua.op {
+			retUnmergedOps = append(unmergedOps[:i], unmergedOps[i+1:]...)
+			break
+		}
+	}
+
+	invertedOp := invertOpForLocalNotifications(dua.op)
+	// XXX: Need to fix up the pointers in invertedOp.
+	retMergedOps = append([]op{invertedOp}, mergedOps...)
+	return retUnmergedOps, retMergedOps, nil
 }
 
 func (dua *dropUnmergedAction) String() string {
