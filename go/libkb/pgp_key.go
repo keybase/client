@@ -255,9 +255,18 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
 	return
 }
 
+func cleanPGPInput(s string) string {
+	rxx := regexp.MustCompile(`[ \t\r]*\n[ \t\r]*`)
+	s = strings.TrimSpace(s)
+	v := rxx.Split(s, -1)
+	ret := strings.Join(v, "\n")
+	return ret
+}
+
 // note:  openpgp.ReadArmoredKeyRing only returns the first block.
 // It will never return multiple entities.
 func ReadOneKeyFromString(s string) (*PGPKeyBundle, error) {
+	s = cleanPGPInput(s)
 	reader := strings.NewReader(s)
 	el, err := openpgp.ReadArmoredKeyRing(reader)
 	return finishReadOne(el, s, err)
