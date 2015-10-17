@@ -35,7 +35,7 @@ type ParsedSig struct {
 
 func PGPOpenSig(armored string) (ps *ParsedSig, err error) {
 	pso := ParsedSig{}
-	pso.Block, err = armor.Decode(strings.NewReader(armored))
+	pso.Block, err = armor.Decode(strings.NewReader(cleanPGPInput(armored)))
 	if err != nil {
 		return
 	}
