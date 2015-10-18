@@ -111,9 +111,9 @@ func (s *ScanKeys) Count() int {
 func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 	primaries := s.unlockByID(id)
 	memres := primaries.KeysById(id)
-	s.G().Log.Debug("ScanKeys:KeysById(%d) => %d keys match in memory", id, len(memres))
+	s.G().Log.Debug("ScanKeys:KeysById(%016x) => %d keys match in memory", id, len(memres))
 	if len(memres) > 0 {
-		s.G().Log.Debug("ScanKeys:KeysById(%d) => owner == me (%s)", id, s.me.GetName())
+		s.G().Log.Debug("ScanKeys:KeysById(%016x) => owner == me (%s)", id, s.me.GetName())
 		s.owner = s.me // `me` is the owner of all s.skbs
 		return memres
 	}
@@ -142,9 +142,9 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 	// check the local keys first.
 	primaries := s.publicByID(id)
 	memres := primaries.KeysByIdUsage(id, requiredUsage)
-	s.G().Log.Debug("ScanKeys:KeysByIdUsage(%d, %x) => %d keys match in memory", id, requiredUsage, len(memres))
+	s.G().Log.Debug("ScanKeys:KeysByIdUsage(%016x, %x) => %d keys match in memory", id, requiredUsage, len(memres))
 	if len(memres) > 0 {
-		s.G().Log.Debug("ScanKeys:KeysByIdUsage(%d) => owner == me (%s)", id, s.me.GetName())
+		s.G().Log.Debug("ScanKeys:KeysByIdUsage(%016x) => owner == me (%s)", id, s.me.GetName())
 		s.owner = s.me // `me` is the owner of all s.skbs
 		return memres
 	}
@@ -209,7 +209,7 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.G().Log.Debug("key id %d (%16x) => %s, %s", id, id, username, uid)
+	s.G().Log.Debug("key id %016x => %s, %s", id, id, username, uid)
 	if len(username) == 0 || len(uid) == 0 {
 		return nil, libkb.NoKeyError{}
 	}
@@ -232,7 +232,7 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 		return nil, err
 	}
 	// user found is the owner of the keys
-	s.G().Log.Debug("scan(%d) => owner of key = (%s)", id, uplus[0].User.GetName())
+	s.G().Log.Debug("scan(%016x) => owner of key = (%s)", id, uplus[0].User.GetName())
 	s.owner = uplus[0].User
 
 	// convert the bundles to an openpgp entity list
