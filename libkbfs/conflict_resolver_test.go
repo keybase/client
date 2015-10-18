@@ -66,7 +66,7 @@ func TestCRInput(t *testing.T) {
 			nil, NoSuchMDError{cr.fbo.id(), branchPoint, Unmerged})
 	}
 	config.mockMdops.EXPECT().GetUnmergedRange(gomock.Any(), cr.fbo.id(),
-		MetadataRevisionInitial, branchPoint).Return(nil, nil)
+		cr.fbo.bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
 
 	for i := branchPoint + 1; i <= mergedHead; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
@@ -121,7 +121,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 			nil, NoSuchMDError{cr.fbo.id(), branchPoint, Unmerged})
 	}
 	config.mockMdops.EXPECT().GetUnmergedRange(gomock.Any(), cr.fbo.id(),
-		MetadataRevisionInitial, branchPoint).Return(nil, nil)
+		cr.fbo.bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
 
 	skipCacheRevision := MetadataRevision(10)
 	for i := branchPoint + 1; i <= mergedHead; i++ {

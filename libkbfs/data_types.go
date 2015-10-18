@@ -993,7 +993,9 @@ const (
 	// resolution needs to be done.
 	Merged MergeStatus = iota
 	// Unmerged means that the TLF is unmerged and conflict
-	// resolution needs to be done.
+	// resolution needs to be done. Metadata blocks which
+	// represent unmerged history should have a non-null
+	// branch ID defined.
 	Unmerged
 )
 

@@ -430,6 +430,9 @@ type Crypto interface {
 	// MakeRandomTlfID generates a dir ID using a CSPRNG.
 	MakeRandomTlfID(isPublic bool) (TlfID, error)
 
+	// MakeRandomBranchID generates a per-device branch ID using a CSPRNG.
+	MakeRandomBranchID() (BranchID, error)
+
 	// MakeMdID computes the MD ID of a RootMetadata object.
 	MakeMdID(md *RootMetadata) (MdID, error)
 
@@ -571,7 +574,7 @@ type MDOps interface {
 
 	// GetUnmergedForTLF is the same as the above but for unmerged
 	// metadata.
-	GetUnmergedForTLF(ctx context.Context, id TlfID) (
+	GetUnmergedForTLF(ctx context.Context, id TlfID, bid BranchID) (
 		*RootMetadata, error)
 
 	// GetRange returns a range of metadata objects corresponding to
@@ -581,8 +584,8 @@ type MDOps interface {
 
 	// GetUnmergedRange is the same as the above but for unmerged
 	// metadata history (inclusive).
-	GetUnmergedRange(ctx context.Context, id TlfID, start, stop MetadataRevision) (
-		[]*RootMetadata, error)
+	GetUnmergedRange(ctx context.Context, id TlfID, bid BranchID,
+		start, stop MetadataRevision) ([]*RootMetadata, error)
 
 	// Put stores the metadata object for the given
 	// top-level folder.
@@ -590,7 +593,7 @@ type MDOps interface {
 
 	// PutUnmerged is the same as the above but for unmerged
 	// metadata history.
-	PutUnmerged(ctx context.Context, rmd *RootMetadata) error
+	PutUnmerged(ctx context.Context, rmd *RootMetadata, bid BranchID) error
 }
 
 // KeyOps fetches server-side key halves from the key server.
@@ -659,14 +662,13 @@ type MDServer interface {
 	// GetForTLF returns the current (signed/encrypted) metadata object
 	// corresponding to the given top-level folder, if the logged-in
 	// user has read permission on the folder.
-	GetForTLF(ctx context.Context, id TlfID, mStatus MergeStatus) (
+	GetForTLF(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus) (
 		*RootMetadataSigned, error)
 
 	// GetRange returns a range of (signed/encrypted) metadata objects
 	// corresponding to the passed revision numbers (inclusive).
-	GetRange(ctx context.Context, id TlfID, mStatus MergeStatus,
-		start, stop MetadataRevision) (
-		[]*RootMetadataSigned, error)
+	GetRange(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
+		start, stop MetadataRevision) ([]*RootMetadataSigned, error)
 
 	// Put stores the (signed/encrypted) metadata object for the given
 	// top-level folder. Note: If the unmerged bit is set in the metadata
@@ -674,9 +676,8 @@ type MDServer interface {
 	// history.
 	Put(ctx context.Context, rmds *RootMetadataSigned) error
 
-	// PruneUnmerged prunes all unmerged history for the given user
-	// and device for the given top-level folder..
-	PruneUnmerged(ctx context.Context, id TlfID) error
+	// PruneBranch prunes all unmerged history for the given TLF branch.
+	PruneBranch(ctx context.Context, id TlfID, bid BranchID) error
 
 	// RegisterForUpdate tells the MD server to inform the caller when
 	// there is a merged update with a revision number greater than

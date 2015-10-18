@@ -80,6 +80,10 @@ func TestMDServerBasics(t *testing.T) {
 	// (4) push some new unmerged metadata blocks linking to the
 	//     middle merged block.
 	prevRoot = middleRoot
+	bid, err := config.Crypto().MakeRandomBranchID()
+	if err != nil {
+		t.Fatal(err)
+	}
 	for i := MetadataRevision(6); i < 41; i++ {
 		_, md := NewFolderWithIDAndWriter(t, id, i, true, false, uid)
 		md.MD.SerializedPrivateMetadata = make([]byte, 1)
@@ -88,6 +92,7 @@ func TestMDServerBasics(t *testing.T) {
 		AddNewKeysOrBust(t, &md.MD, keys)
 		md.MD.ClearMetadataID()
 		md.MD.Flags |= MetadataFlagUnmerged
+		md.MD.BID = bid
 		err = mdServer.Put(ctx, md)
 		if err != nil {
 			t.Fatal(err)
@@ -99,7 +104,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (5) check for proper unmerged head
-	head, err := mdServer.GetForTLF(ctx, id, Unmerged)
+	head, err := mdServer.GetForTLF(ctx, id, bid, Unmerged)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +117,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (6) try to get unmerged range
-	rmdses, err := mdServer.GetRange(ctx, id, Unmerged, 1, 100)
+	rmdses, err := mdServer.GetRange(ctx, id, bid, Unmerged, 1, 100)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,13 +132,13 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (7) prune unmerged
-	err = mdServer.PruneUnmerged(ctx, id)
+	err = mdServer.PruneBranch(ctx, id, bid)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// (8) verify head is pruned
-	head, err = mdServer.GetForTLF(ctx, id, Unmerged)
+	head, err = mdServer.GetForTLF(ctx, id, NullBranchID, Unmerged)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +147,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (9) verify revision history is pruned
-	rmdses, err = mdServer.GetRange(ctx, id, Unmerged, 1, 100)
+	rmdses, err = mdServer.GetRange(ctx, id, NullBranchID, Unmerged, 1, 100)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +156,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (10) check for proper merged head
-	head, err = mdServer.GetForTLF(ctx, id, Merged)
+	head, err = mdServer.GetForTLF(ctx, id, NullBranchID, Merged)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +169,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (11) try to get merged range
-	rmdses, err = mdServer.GetRange(ctx, id, Merged, 1, 100)
+	rmdses, err = mdServer.GetRange(ctx, id, NullBranchID, Merged, 1, 100)
 	if err != nil {
 		t.Fatal(err)
 	}

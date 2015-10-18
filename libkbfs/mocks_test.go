@@ -990,6 +990,17 @@ func (_mr *_MockCryptoRecorder) MakeRandomTlfID(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomTlfID", arg0)
 }
 
+func (_m *MockCrypto) MakeRandomBranchID() (BranchID, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomBranchID")
+	ret0, _ := ret[0].(BranchID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeRandomBranchID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomBranchID")
+}
+
 func (_m *MockCrypto) MakeMdID(md *RootMetadata) (MdID, error) {
 	ret := _m.ctrl.Call(_m, "MakeMdID", md)
 	ret0, _ := ret[0].(MdID)
@@ -1342,15 +1353,15 @@ func (_mr *_MockMDOpsRecorder) GetForTLF(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1)
 }
 
-func (_m *MockMDOps) GetUnmergedForTLF(ctx context.Context, id TlfID) (*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetUnmergedForTLF", ctx, id)
+func (_m *MockMDOps) GetUnmergedForTLF(ctx context.Context, id TlfID, bid BranchID) (*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetUnmergedForTLF", ctx, id, bid)
 	ret0, _ := ret[0].(*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) GetUnmergedForTLF(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedForTLF", arg0, arg1)
+func (_mr *_MockMDOpsRecorder) GetUnmergedForTLF(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedForTLF", arg0, arg1, arg2)
 }
 
 func (_m *MockMDOps) GetRange(ctx context.Context, id TlfID, start MetadataRevision, stop MetadataRevision) ([]*RootMetadata, error) {
@@ -1364,15 +1375,15 @@ func (_mr *_MockMDOpsRecorder) GetRange(arg0, arg1, arg2, arg3 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRange", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDOps) GetUnmergedRange(ctx context.Context, id TlfID, start MetadataRevision, stop MetadataRevision) ([]*RootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "GetUnmergedRange", ctx, id, start, stop)
+func (_m *MockMDOps) GetUnmergedRange(ctx context.Context, id TlfID, bid BranchID, start MetadataRevision, stop MetadataRevision) ([]*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetUnmergedRange", ctx, id, bid, start, stop)
 	ret0, _ := ret[0].([]*RootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDOpsRecorder) GetUnmergedRange(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedRange", arg0, arg1, arg2, arg3)
+func (_mr *_MockMDOpsRecorder) GetUnmergedRange(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedRange", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockMDOps) Put(ctx context.Context, rmd *RootMetadata) error {
@@ -1385,14 +1396,14 @@ func (_mr *_MockMDOpsRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
 }
 
-func (_m *MockMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) error {
-	ret := _m.ctrl.Call(_m, "PutUnmerged", ctx, rmd)
+func (_m *MockMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata, bid BranchID) error {
+	ret := _m.ctrl.Call(_m, "PutUnmerged", ctx, rmd, bid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1)
+func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2)
 }
 
 // Mock of KeyOps interface
@@ -1534,26 +1545,26 @@ func (_mr *_MockMDServerRecorder) GetForHandle(arg0, arg1, arg2 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) GetForTLF(ctx context.Context, id TlfID, mStatus MergeStatus) (*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id, mStatus)
+func (_m *MockMDServer) GetForTLF(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id, bid, mStatus)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDServerRecorder) GetForTLF(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1, arg2)
+func (_mr *_MockMDServerRecorder) GetForTLF(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDServer) GetRange(ctx context.Context, id TlfID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
-	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, mStatus, start, stop)
+func (_m *MockMDServer) GetRange(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, bid, mStatus, start, stop)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMDServerRecorder) GetRange(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRange", arg0, arg1, arg2, arg3, arg4)
+func (_mr *_MockMDServerRecorder) GetRange(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRange", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 func (_m *MockMDServer) Put(ctx context.Context, rmds *RootMetadataSigned) error {
@@ -1566,14 +1577,14 @@ func (_mr *_MockMDServerRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
 }
 
-func (_m *MockMDServer) PruneUnmerged(ctx context.Context, id TlfID) error {
-	ret := _m.ctrl.Call(_m, "PruneUnmerged", ctx, id)
+func (_m *MockMDServer) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
+	ret := _m.ctrl.Call(_m, "PruneBranch", ctx, id, bid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockMDServerRecorder) PruneUnmerged(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneUnmerged", arg0, arg1)
+func (_mr *_MockMDServerRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
 }
 
 func (_m *MockMDServer) RegisterForUpdate(ctx context.Context, id TlfID, currHead MetadataRevision) (<-chan error, error) {

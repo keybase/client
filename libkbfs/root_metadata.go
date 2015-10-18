@@ -79,6 +79,8 @@ type RootMetadata struct {
 	PrevRoot MdID
 	// The directory ID, signed over to make verification easier
 	ID TlfID
+	// The branch ID, currently only set if this is in unmerged per-device history.
+	BID BranchID
 	// The revision number
 	Revision MetadataRevision
 	// Flags
@@ -162,6 +164,7 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 		Writers: writers,
 		Keys:    keys,
 		ID:      id,
+		BID:     BranchID{},
 		data:    PrivateMetadata{},
 		// need to keep the dir handle around long
 		// enough to rekey the metadata for the first

@@ -49,7 +49,7 @@ func (m *MDOpsConcurTest) GetForTLF(ctx context.Context, id TlfID) (
 	return m.getForTLF(ctx, id, false)
 }
 
-func (m *MDOpsConcurTest) GetUnmergedForTLF(ctx context.Context, id TlfID) (
+func (m *MDOpsConcurTest) GetUnmergedForTLF(ctx context.Context, id TlfID, bid BranchID) (
 	*RootMetadata, error) {
 	return m.getForTLF(ctx, id, true)
 }
@@ -59,7 +59,7 @@ func (m *MDOpsConcurTest) GetRange(ctx context.Context, id TlfID,
 	return nil, nil
 }
 
-func (m *MDOpsConcurTest) GetUnmergedRange(ctx context.Context, id TlfID,
+func (m *MDOpsConcurTest) GetUnmergedRange(ctx context.Context, id TlfID, bid BranchID,
 	start, stop MetadataRevision) ([]*RootMetadata, error) {
 	return nil, nil
 }
@@ -71,8 +71,9 @@ func (m *MDOpsConcurTest) Put(ctx context.Context, md *RootMetadata) error {
 	return nil
 }
 
-func (m *MDOpsConcurTest) PutUnmerged(ctx context.Context, md *RootMetadata) error {
+func (m *MDOpsConcurTest) PutUnmerged(ctx context.Context, md *RootMetadata, bid BranchID) error {
 	md.Flags |= MetadataFlagUnmerged
+	md.BID = bid
 	return m.Put(ctx, md)
 }
 

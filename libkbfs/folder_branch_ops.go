@@ -112,6 +112,7 @@ const (
 type FolderBranchOps struct {
 	config           Config
 	folderBranch     FolderBranch
+	bid              BranchID // protected by writerLock
 	bType            branchType
 	head             *RootMetadata
 	observers        []Observer
@@ -200,6 +201,7 @@ func NewFolderBranchOps(config Config, fb FolderBranch,
 	fbo := &FolderBranchOps{
 		config:         config,
 		folderBranch:   fb,
+		bid:            BranchID{},
 		bType:          bType,
 		observers:      make([]Observer, 0),
 		copyFileBlocks: make(map[BlockPointer]bool),
@@ -265,8 +267,9 @@ func (fbo *FolderBranchOps) transitionState(newState state) {
 }
 
 // The caller must hold writerLock.
-func (fbo *FolderBranchOps) setStagedLocked(staged bool) {
+func (fbo *FolderBranchOps) setStagedLocked(staged bool, bid BranchID) {
 	fbo.staged = staged
+	fbo.bid = bid
 	if !staged {
 		fbo.status.setCRChains(nil, nil)
 	}
@@ -315,7 +318,7 @@ func (fbo *FolderBranchOps) setHeadLocked(ctx context.Context,
 	if isFirstHead && md.MergedStatus() == Unmerged {
 		// no need to take the writer lock here since is the first
 		// time the folder is being used
-		fbo.setStagedLocked(true)
+		fbo.setStagedLocked(true, md.BID)
 		// Use uninitialized for the merged branch; the unmerged
 		// revision is enough to trigger conflict resolution.
 		fbo.cr.Resolve(md.Revision, MetadataRevisionUninitialized)
@@ -355,7 +358,7 @@ func (fbo *FolderBranchOps) getMDLocked(ctx context.Context, rtype reqType) (
 	mdops := fbo.config.MDOps()
 
 	// get the head of the unmerged branch for this device (if any)
-	md, err := mdops.GetUnmergedForTLF(ctx, fbo.id())
+	md, err := mdops.GetUnmergedForTLF(ctx, fbo.id(), NullBranchID)
 	if err != nil {
 		return nil, err
 	}
@@ -1358,7 +1361,7 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 	md.data.LastWriter = uid
 	mdops := fbo.config.MDOps()
 
-	doUnmergedPut := true
+	doUnmergedPut, wasStaged := true, fbo.staged
 	mergedRev := MetadataRevisionUninitialized
 	if !fbo.staged {
 		// only do a normal Put if we're not already staged.
@@ -1378,22 +1381,32 @@ func (fbo *FolderBranchOps) finalizeWriteLocked(ctx context.Context,
 
 	if doUnmergedPut {
 		// We're out of date, so put it as an unmerged MD.
-		err = mdops.PutUnmerged(ctx, md)
+		var bid BranchID
+		if !wasStaged {
+			// new branch ID
+			crypto := fbo.config.Crypto()
+			if bid, err = crypto.MakeRandomBranchID(); err != nil {
+				return err
+			}
+		} else {
+			bid = fbo.bid
+		}
+		err := mdops.PutUnmerged(ctx, md, bid)
 		if err != nil {
 			return nil
 		}
-		fbo.setStagedLocked(true)
+		fbo.setStagedLocked(true, bid)
 		fbo.cr.Resolve(md.Revision, mergedRev)
 	} else {
 		if fbo.staged {
 			// If we were staged, prune all unmerged history now
-			err = fbo.config.MDServer().PruneUnmerged(ctx, fbo.id())
+			err = fbo.config.MDServer().PruneBranch(ctx, fbo.id(), fbo.bid)
 			if err != nil {
 				return err
 			}
 		}
 
-		fbo.setStagedLocked(false)
+		fbo.setStagedLocked(false, NullBranchID)
 	}
 	fbo.transitionState(cleanState)
 
@@ -3546,14 +3559,27 @@ func (fbo *FolderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 
 func (fbo *FolderBranchOps) getUnmergedMDUpdates(ctx context.Context) (
 	MetadataRevision, []*RootMetadata, error) {
+	// acquire writerLock to read the current branch ID.
+	bid := func() BranchID {
+		fbo.writerLock.Lock()
+		defer fbo.writerLock.Unlock()
+		return fbo.bid
+	}()
 	return getUnmergedMDUpdates(ctx, fbo.config, fbo.id(),
-		fbo.getCurrMDRevision())
+		bid, fbo.getCurrMDRevision())
+}
+
+// writerLock should be held by caller.
+func (fbo *FolderBranchOps) getUnmergedMDUpdatesLocked(ctx context.Context) (
+	MetadataRevision, []*RootMetadata, error) {
+	return getUnmergedMDUpdates(ctx, fbo.config, fbo.id(),
+		fbo.bid, fbo.getCurrMDRevision())
 }
 
 // writerLock should be held by caller.
 func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 	ctx context.Context) error {
-	currHead, unmergedRmds, err := fbo.getUnmergedMDUpdates(ctx)
+	currHead, unmergedRmds, err := fbo.getUnmergedMDUpdatesLocked(ctx)
 	if err != nil {
 		return err
 	}
@@ -3569,10 +3595,10 @@ func (fbo *FolderBranchOps) undoUnmergedMDUpdatesLocked(
 	// being currHead-1, so that future calls to
 	// applyMDUpdates will fetch this along with the rest of
 	// the updates.
-	fbo.setStagedLocked(false)
+	fbo.setStagedLocked(false, NullBranchID)
 
 	rmds, err :=
-		getMDRange(ctx, fbo.config, fbo.id(), currHead, currHead, Merged)
+		getMDRange(ctx, fbo.config, fbo.id(), NullBranchID, currHead, currHead, Merged)
 	if err != nil {
 		return err
 	}
@@ -3635,6 +3661,7 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 		defer fbo.writerLock.Unlock()
 
 		// fetch all of my unstaged updates, and undo them one at a time
+		bid, wasStaged := fbo.bid, fbo.staged
 		err := fbo.undoUnmergedMDUpdatesLocked(freshCtx)
 		if err != nil {
 			c <- err
@@ -3642,10 +3669,12 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 		}
 
 		// let the server know we no longer have need
-		err = fbo.config.MDServer().PruneUnmerged(freshCtx, fbo.id())
-		if err != nil {
-			c <- err
-			return
+		if wasStaged {
+			err = fbo.config.MDServer().PruneBranch(freshCtx, fbo.id(), bid)
+			if err != nil {
+				c <- err
+				return
+			}
 		}
 
 		// now go forward in time, if possible

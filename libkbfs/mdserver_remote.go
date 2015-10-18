@@ -170,7 +170,7 @@ func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id Tlf
 
 // Helper used to retrieve metadata blocks from the MD server.
 func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
-	mStatus MergeStatus, start, stop MetadataRevision) (
+	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	TlfID, []*RootMetadataSigned, error) {
 	// figure out which args to send
 	if id == NullTlfID && handle == nil {
@@ -182,6 +182,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 	arg := keybase1.GetMetadataArg{
 		StartRevision: start.Number(),
 		StopRevision:  stop.Number(),
+		BranchID:      bid.String(),
 		Unmerged:      mStatus == Unmerged,
 		LogTags:       LogTagsFromContextToMap(ctx),
 	}
@@ -219,7 +220,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 // GetForHandle implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForHandle(ctx context.Context, handle *TlfHandle,
 	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
-	id, rmdses, err := md.get(ctx, NullTlfID, handle, mStatus,
+	id, rmdses, err := md.get(ctx, NullTlfID, handle, NullBranchID, mStatus,
 		MetadataRevisionUninitialized, MetadataRevisionUninitialized)
 	if err != nil {
 		return id, nil, err
@@ -232,8 +233,8 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context, handle *TlfHandle,
 
 // GetForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForTLF(ctx context.Context, id TlfID,
-	mStatus MergeStatus) (*RootMetadataSigned, error) {
-	_, rmdses, err := md.get(ctx, id, nil, mStatus,
+	bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
+	_, rmdses, err := md.get(ctx, id, nil, bid, mStatus,
 		MetadataRevisionUninitialized, MetadataRevisionUninitialized)
 	if err != nil {
 		return nil, err
@@ -246,9 +247,9 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id TlfID,
 
 // GetRange implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetRange(ctx context.Context, id TlfID,
-	mStatus MergeStatus, start, stop MetadataRevision) (
+	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
-	_, rmds, err := md.get(ctx, id, nil, mStatus, start, stop)
+	_, rmds, err := md.get(ctx, id, nil, bid, mStatus, start, stop)
 	return rmds, err
 }
 
@@ -268,13 +269,14 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 	return md.client.PutMetadata(ctx, arg)
 }
 
-// PruneUnmerged implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) PruneUnmerged(ctx context.Context, id TlfID) error {
-	arg := keybase1.PruneUnmergedArg{
+// PruneBranch implementms the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
+	arg := keybase1.PruneBranchArg{
 		FolderID: id.String(),
+		BranchID: bid.String(),
 		LogTags:  LogTagsFromContextToMap(ctx),
 	}
-	return md.client.PruneUnmerged(ctx, arg)
+	return md.client.PruneBranch(ctx, arg)
 }
 
 // MetadataUpdate implements the MetadataUpdateProtocol interface.

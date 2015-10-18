@@ -56,6 +56,16 @@ func (c *CryptoCommon) MakeRandomTlfID(isPublic bool) (TlfID, error) {
 	return id, nil
 }
 
+// MakeRandomBranchID implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) MakeRandomBranchID() (BranchID, error) {
+	var id BranchID
+	err := cryptoRandRead(id.id[:])
+	if err != nil {
+		return BranchID{}, err
+	}
+	return id, nil
+}
+
 // MakeMdID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakeMdID(md *RootMetadata) (MdID, error) {
 	// Make sure that the serialized metadata is set; otherwise we

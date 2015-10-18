@@ -25,9 +25,9 @@ func makeMDServer(config Config, serverRootDir *string, mdserverAddr string) (
 		// local persistent MD server
 		handlePath := filepath.Join(*serverRootDir, "kbfs_handles")
 		mdPath := filepath.Join(*serverRootDir, "kbfs_md")
-		revPath := filepath.Join(*serverRootDir, "kbfs_revisions")
+		branchPath := filepath.Join(*serverRootDir, "kbfs_branches")
 		return NewMDServerLocal(
-			config, handlePath, mdPath, revPath)
+			config, handlePath, mdPath, branchPath)
 	}
 
 	// remote MD server. this can't fail. reconnection attempts

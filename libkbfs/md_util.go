@@ -12,7 +12,7 @@ type mdRange struct {
 	end   MetadataRevision
 }
 
-func getMDRange(ctx context.Context, config Config, id TlfID,
+func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 	start MetadataRevision, end MetadataRevision, mStatus MergeStatus) (
 	rmds []*RootMetadata, err error) {
 	// The range is invalid.  Don't treat as an error though; it just
@@ -58,7 +58,7 @@ func getMDRange(ctx context.Context, config Config, id TlfID,
 				ctx, id, r.start, r.end)
 		case Unmerged:
 			fetchedRmds, err = config.MDOps().GetUnmergedRange(
-				ctx, id, r.start, r.end)
+				ctx, id, bid, r.start, r.end)
 		default:
 			panic(fmt.Sprintf("Unknown merged type: %s", mStatus))
 		}
@@ -106,7 +106,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	start := startRev
 	for {
 		end := start + maxMDsAtATime - 1 // range is inclusive
-		rmds, err := getMDRange(ctx, config, id, start, end, Merged)
+		rmds, err := getMDRange(ctx, config, id, NullBranchID, start, end, Merged)
 		if err != nil {
 			return nil, err
 		}
@@ -123,7 +123,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 }
 
 func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
-	startRev MetadataRevision) (
+	bid BranchID, startRev MetadataRevision) (
 	currHead MetadataRevision, unmergedRmds []*RootMetadata, err error) {
 	// We don't yet know about any revisions yet, so there's no range
 	// to get.
@@ -140,7 +140,7 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 			startRev = MetadataRevisionInitial
 		}
 
-		rmds, err := getMDRange(ctx, config, id, startRev, currHead, Unmerged)
+		rmds, err := getMDRange(ctx, config, id, bid, startRev, currHead, Unmerged)
 		if err != nil {
 			return MetadataRevisionUninitialized, nil, err
 		}

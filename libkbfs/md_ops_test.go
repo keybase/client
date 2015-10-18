@@ -208,7 +208,7 @@ func TestMDOpsGetSuccess(t *testing.T) {
 	// expect one call to fetch MD, and one to verify it
 	id, _, rmds := newDir(t, config, 1, true, false)
 
-	config.mockMdserv.EXPECT().GetForTLF(ctx, id, Merged).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForTLF(ctx, id, NullBranchID, Merged).Return(rmds, nil)
 	verifyMDForPrivate(config, rmds, id)
 
 	if rmd2, err := config.MDOps().GetForTLF(ctx, id); err != nil {
@@ -231,7 +231,7 @@ func TestMDOpsGetBlankSigSuccess(t *testing.T) {
 	}
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetForTLF(ctx, id, Merged).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForTLF(ctx, id, NullBranchID, Merged).Return(rmds, nil)
 
 	if rmd2, err := config.MDOps().GetForTLF(ctx, id); err != nil {
 		t.Errorf("Got error on get: %v", err)
@@ -249,7 +249,7 @@ func TestMDOpsGetFailGet(t *testing.T) {
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetForTLF(ctx, id, Merged).Return(nil, err)
+	config.mockMdserv.EXPECT().GetForTLF(ctx, id, NullBranchID, Merged).Return(nil, err)
 
 	if _, err2 := config.MDOps().GetForTLF(ctx, id); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
@@ -264,7 +264,7 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 	_, _, rmds := newDir(t, config, 1, true, false)
 	id2, _, _ := newDir(t, config, 2, true, false)
 
-	config.mockMdserv.EXPECT().GetForTLF(ctx, id2, Merged).Return(rmds, nil)
+	config.mockMdserv.EXPECT().GetForTLF(ctx, id2, NullBranchID, Merged).Return(rmds, nil)
 
 	if _, err := config.MDOps().GetForTLF(ctx, id2); err == nil {
 		t.Errorf("Got no error on bad id check test")
@@ -298,7 +298,7 @@ func testMDOpsGetRangeSuccess(t *testing.T, fromStart bool) {
 
 	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
 
-	config.mockMdserv.EXPECT().GetRange(ctx, id, Merged, start, stop).
+	config.mockMdserv.EXPECT().GetRange(ctx, id, NullBranchID, Merged, start, stop).
 		Return(allRMDSs, nil)
 	verifyMDForPrivate(config, rmds3, id)
 	verifyMDForPrivate(config, rmds2, id)
@@ -341,7 +341,7 @@ func TestMDOpsGetRangeFailBadPrevRoot(t *testing.T) {
 	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
 
 	start, stop := MetadataRevision(200), MetadataRevision(202)
-	config.mockMdserv.EXPECT().GetRange(ctx, id, Merged, start, stop).
+	config.mockMdserv.EXPECT().GetRange(ctx, id, NullBranchID, Merged, start, stop).
 		Return(allRMDSs, nil)
 	verifyMDForPrivate(config, rmds3, id)
 	verifyMDForPrivate(config, rmds2, id)
@@ -376,7 +376,7 @@ func TestMDOpsPutPrivateSuccess(t *testing.T) {
 	id, _, rmds := newDir(t, config, 1, true, false)
 	putMDForPrivate(config, rmds, id)
 
-	if err := config.MDOps().PutUnmerged(ctx, &rmds.MD); err != nil {
+	if err := config.MDOps().PutUnmerged(ctx, &rmds.MD, NullBranchID); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
