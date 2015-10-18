@@ -79,13 +79,14 @@ func TestKex2Router(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		var merr error
-		msgs, merr = kt.get(mr, 3, 5*time.Second)
+		msgs, merr = kt.get(mr, 3, 1*time.Second)
 		if merr != nil {
 			t.Errorf("receive error: %s", merr)
 		}
 		wg.Done()
 	}()
 
+	time.Sleep(3 * time.Millisecond)
 	if err := kt.post(mr, []byte(m3)); err != nil {
 		t.Fatal(err)
 	}
@@ -96,6 +97,7 @@ func TestKex2Router(t *testing.T) {
 	}
 	if string(msgs[0]) != m3 {
 		t.Errorf("message: %q, expected %q", msgs[0], m3)
+		t.Errorf("Full message vector was: %v\n", msgs)
 	}
 
 	// test no messages ready

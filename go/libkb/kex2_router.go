@@ -19,7 +19,7 @@ func NewKexRouter(g *GlobalContext) *KexRouter {
 
 // Post implements Post in the kex2.MessageRouter interface.
 func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2.Seqno, msg []byte) (err error) {
-	k.G().Log.Debug("+ KexRouter.Post(%x, %x, %d, msg)", sessID, sender, seqno)
+	k.G().Log.Debug("+ KexRouter.Post(%x, %x, %d, %v)", sessID, sender, seqno, msg)
 	defer func() {
 		k.G().Log.Debug("- KexRouter.Post(%x, %x, %d) -> %s", sessID, sender, seqno, ErrToOk(err))
 	}()
