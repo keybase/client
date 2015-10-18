@@ -7,7 +7,11 @@ import (
 )
 
 func GetRPCClient() (ret *rpc.Client, xp rpc.Transporter, err error) {
-	if _, xp, err = G.GetSocket(false); err == nil {
+	return GetRPCClientWithContext(G)
+}
+
+func GetRPCClientWithContext(g *libkb.GlobalContext) (ret *rpc.Client, xp rpc.Transporter, err error) {
+	if _, xp, err = g.GetSocket(false); err == nil {
 		ret = rpc.NewClient(xp, libkb.ErrorUnwrapper{})
 	}
 	return
@@ -145,9 +149,9 @@ func GetDoctorClient() (cli keybase1.DoctorClient, err error) {
 	return
 }
 
-func GetCtlClient() (cli keybase1.CtlClient, err error) {
+func GetCtlClient(g *libkb.GlobalContext) (cli keybase1.CtlClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.CtlClient{Cli: rcli}
 	}
 	return

@@ -98,6 +98,7 @@ type TestParameters struct {
 	GPGOptions     []string
 	Debug          bool
 	Devel          bool // Whether we are in Devel Mode
+	SocketFile     string
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -400,6 +401,7 @@ func (e *Env) GetUsername() NormalizedUsername {
 
 func (e *Env) GetSocketFile() (ret string, err error) {
 	ret = e.GetString(
+		func() string { return e.Test.SocketFile },
 		func() string { return e.cmd.GetSocketFile() },
 		func() string { return os.Getenv("KEYBASE_SOCKET_FILE") },
 		func() string { return e.config.GetSocketFile() },
@@ -701,4 +703,21 @@ func (c AppConfig) GetHome() string {
 
 func (c AppConfig) GetServerURI() string {
 	return c.ServerURI
+}
+
+func (e *Env) getSocketInfo() (ret SocketInfo, err error) {
+	port := e.GetDaemonPort()
+	if runtime.GOOS == "windows" && port == 0 {
+		port = DaemonPort
+	}
+	if port != 0 {
+		ret = SocketInfoTCP{port}
+	} else {
+		var s string
+		s, err = e.GetSocketFile()
+		if err == nil {
+			ret = SocketInfoUnix{s}
+		}
+	}
+	return
 }

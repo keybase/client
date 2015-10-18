@@ -3,7 +3,6 @@ package libkb
 import (
 	"fmt"
 	"net"
-
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 

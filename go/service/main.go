@@ -20,13 +20,19 @@ type Service struct {
 	isDaemon bool
 	chdirTo  string
 	lockPid  *libkb.LockPIDFile
+	startCh  chan struct{}
 }
 
 func NewService(isDaemon bool, g *libkb.GlobalContext) *Service {
 	return &Service{
 		Contextified: libkb.NewContextified(g),
 		isDaemon:     isDaemon,
+		startCh:      make(chan struct{}),
 	}
+}
+
+func (d *Service) GetStartChannel() <-chan struct{} {
+	return d.startCh
 }
 
 func RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, g *libkb.GlobalContext) error {
@@ -91,6 +97,12 @@ func (d *Service) Handle(c net.Conn) {
 
 func (d *Service) Run() (err error) {
 
+	defer func() {
+		if d.startCh != nil {
+			close(d.startCh)
+		}
+	}()
+
 	d.G().Service = true
 
 	err = d.writeVersionFile()
@@ -110,7 +122,6 @@ func (d *Service) Run() (err error) {
 	if err = d.GetExclusiveLock(); err != nil {
 		return
 	}
-
 	if err = d.OpenSocket(); err != nil {
 		return
 	}
@@ -224,6 +235,9 @@ func (d *Service) lockPIDFile() (err error) {
 func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
 	if l, err = d.G().BindToSocket(); err != nil {
 		return
+	}
+	if d.startCh != nil {
+		close(d.startCh)
 	}
 
 	d.G().PushShutdownHook(func() error {

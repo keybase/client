@@ -51,7 +51,7 @@ func warnNonProd(log logger.Logger, e *libkb.Env) {
 
 func mainInner(g *libkb.GlobalContext) error {
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
-	cl.AddCommands(client.GetCommands(cl))
+	cl.AddCommands(client.GetCommands(cl, g))
 	cl.AddCommands(service.GetCommands(cl, g))
 	cl.AddHelpTopics(client.GetHelpTopics())
 
@@ -132,7 +132,7 @@ func registerGlobalLogUI(g *libkb.GlobalContext) error {
 	if g.Env.GetDebug() {
 		logLevel = keybase1.LogLevel_DEBUG
 	}
-	ctlClient, err := client.GetCtlClient()
+	ctlClient, err := client.GetCtlClient(g)
 	if err != nil {
 		return err
 	}
