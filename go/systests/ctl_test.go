@@ -6,27 +6,29 @@ import (
 	"testing"
 )
 
-func TestSignup(t *testing.T) {
+func TestStop(t *testing.T) {
 
-	tc := setupTest(t, "signup")
+	tc := setupTest(t, "stop")
 
 	defer tc.Cleanup()
 
-	stopCh := make(chan struct{})
+	stopCh := make(chan error)
 	svc := service.NewService(false, tc.G)
 	startCh := svc.GetStartChannel()
 	go func() {
-		if err := svc.Run(); err != nil {
-			t.Fatal(err)
-		}
-		close(stopCh)
+		stopCh <- svc.Run()
 	}()
 
 	tc2 := cloneContext(tc)
 	stopper := client.NewCmdCtlStopRunner(tc2.G)
+
 	<-startCh
 	if err := stopper.Run(); err != nil {
 		t.Fatal(err)
 	}
-	<-stopCh
+
+	// If the server failed, it's also an error
+	if err := <-stopCh; err != nil {
+		t.Fatal(err)
+	}
 }

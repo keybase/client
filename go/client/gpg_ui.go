@@ -6,7 +6,7 @@ import (
 	"text/tabwriter"
 
 	"golang.org/x/net/context"
-
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
@@ -35,7 +35,7 @@ func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, e
 	}
 	w.Flush()
 
-	ret, err := g.parent.PromptSelectionOrCancel("Choose a key", 1, len(keys))
+	ret, err := g.parent.PromptSelectionOrCancel(PromptDescriptorGPGSelectKey, "Choose a key", 1, len(keys))
 	if err != nil {
 		if err == ErrInputCanceled {
 			return "", nil
@@ -62,12 +62,12 @@ func (g GPGUI) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 	if g.noPrompt {
 		return false, nil
 	}
-	return g.parent.PromptYesNo("Would you like to add one of your PGP keys to Keybase?", PromptDefaultYes)
+	return g.parent.PromptYesNo(PromptDescriptorGPGOKToAdd, "Would you like to add one of your PGP keys to Keybase?", libkb.PromptDefaultYes)
 }
 
 func (g GPGUI) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	if g.noPrompt {
 		return false, nil
 	}
-	return g.parent.PromptYesNo("You've already selected this public key for use on Keybase. Would you like to update it on Keybase?", PromptDefaultYes)
+	return g.parent.PromptYesNo(PromptDescriptorGPGConfirmDuplicateKey, "You've already selected this public key for use on Keybase. Would you like to update it on Keybase?", libkb.PromptDefaultYes)
 }

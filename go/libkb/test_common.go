@@ -279,6 +279,9 @@ func (n *nullui) GetIdentifyTrackUI(strict bool) IdentifyUI {
 func (n *nullui) GetLoginUI() LoginUI {
 	return nil
 }
+func (n *nullui) GetTerminalUI() TerminalUI {
+	return nil
+}
 func (n *nullui) GetSecretUI() SecretUI {
 	return nil
 }

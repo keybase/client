@@ -41,7 +41,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdRevoke(cl),
 		NewCmdSearch(cl),
 		NewCmdSigs(cl),
-		NewCmdSignup(cl),
+		NewCmdSignup(cl, g),
 		NewCmdStatus(cl),
 		NewCmdStress(cl),
 		NewCmdTrack(cl),

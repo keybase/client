@@ -53,7 +53,7 @@ func (d DoctorUI) LoginSelect(_ context.Context, currentUser string, otherUsers 
 	d.parent.Printf("The last account you used on this device was %s.\n\n", ColorString("bold", currentUser))
 	d.parent.Printf("Other accounts you have used: %s\n\n", strings.Join(otherUsers, ", "))
 	allusers := append([]string{currentUser}, otherUsers...)
-	selection, err := d.parent.Prompt("Which account would you like to check?", false, libkb.CheckMember{Set: allusers}.Checker())
+	selection, err := d.parent.PromptWithChecker(PromptDescriptorDoctorWhichAccount, "Which account would you like to check?", false, libkb.CheckMember{Set: allusers}.Checker())
 	if err != nil {
 		return "", err
 	}
@@ -102,7 +102,7 @@ func (d DoctorUI) DisplayStatus(_ context.Context, status keybase1.DoctorStatus)
 		d.parent.Output(signout + "\n")
 	}
 
-	return d.parent.PromptYesNo("Proceed?", PromptDefaultYes)
+	return d.parent.PromptYesNo(PromptDescriptorDoctorSignOK, "Proceed?", libkb.PromptDefaultYes)
 }
 
 func (d DoctorUI) DisplayResult(_ context.Context, msg string) error {

@@ -55,7 +55,7 @@ func (v *CmdPGPGen) Run() (err error) {
 	if err = v.arg.Gen.CreatePGPIDs(); err != nil {
 		return err
 	}
-	v.arg.PushSecret, err = GlobUI.PromptYesNo("Push an encrypted copy of your new secret key to the Keybase.io server?", PromptDefaultYes)
+	v.arg.PushSecret, err = GlobUI.PromptYesNo(PromptDescriptorPGPGenPushSecret, "Push an encrypted copy of your new secret key to the Keybase.io server?", libkb.PromptDefaultYes)
 	if err != nil {
 		return err
 	}

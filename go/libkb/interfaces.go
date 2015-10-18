@@ -283,17 +283,34 @@ type DoctorUI interface {
 	DisplayResult(ctx context.Context, msg string) error
 }
 
+type PromptDefault int
+
+const (
+	PromptDefaultNo PromptDefault = iota
+	PromptDefaultYes
+	PromptDefaultNeither
+)
+
+type PromptDescriptor int
+
+type TerminalUI interface {
+	Output(string) error
+	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
+	Prompt(PromptDescriptor, string) (string, error)
+	PromptPassword(PromptDescriptor, string) (string, error)
+}
+
 type UI interface {
 	GetDoctorUI() DoctorUI
 	GetIdentifyUI() IdentifyUI
 	GetIdentifyTrackUI(strict bool) IdentifyUI
 	GetLoginUI() LoginUI
 	GetSecretUI() SecretUI
+	GetTerminalUI() TerminalUI
 	GetProveUI() ProveUI
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
 	GetLocksmithUI() LocksmithUI
-	Prompt(string, bool, Checker) (string, error)
 	Configure() error
 	Shutdown() error
 }
