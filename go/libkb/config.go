@@ -501,9 +501,6 @@ func (f JSONConfigFile) GetSocketFile() string {
 func (f JSONConfigFile) GetPidFile() string {
 	return f.GetTopLevelString("pid_file")
 }
-func (f JSONConfigFile) GetDaemonPort() (int, bool) {
-	return f.GetIntAtPath("daemon_port")
-}
 
 func (f JSONConfigFile) GetProxyCACerts() (ret []string, err error) {
 	jw := f.jw.AtKey("proxyCAs")

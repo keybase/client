@@ -3,68 +3,14 @@ package libkb
 import (
 	"fmt"
 	"net"
-	"runtime"
 
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-type SocketInfo interface {
-	PrepSocket() error
-	ToStringPair() (string, string)
-}
-
-type SocketInfoUnix struct {
-	file string
-}
-
-type SocketInfoTCP struct {
-	port int
-}
-
-func (s SocketInfoUnix) PrepSocket() error {
-	return MakeParentDirs(s.file)
-}
-
-func (s SocketInfoUnix) ToStringPair() (string, string) {
-	return "unix", s.file
-}
-
-func (s SocketInfoTCP) PrepSocket() error {
-	return nil
-}
-
-func (s SocketInfoTCP) ToStringPair() (string, string) {
-	return "tcp", fmt.Sprintf("127.0.0.1:%d", s.port)
-}
-
-func BindToSocket(info SocketInfo) (ret net.Listener, err error) {
-	if err = info.PrepSocket(); err != nil {
-		return
-	}
-	l, a := info.ToStringPair()
-	G.Log.Info("Binding to %s:%s", l, a)
-	return net.Listen(l, a)
-}
-
-func DialSocket(info SocketInfo) (ret net.Conn, err error) {
-	return net.Dial(info.ToStringPair())
-}
-
-func ConfigureSocketInfo() (ret SocketInfo, err error) {
-	port := G.Env.GetDaemonPort()
-	if runtime.GOOS == "windows" && port == 0 {
-		port = DaemonPort
-	}
-	if port != 0 {
-		ret = SocketInfoTCP{port}
-	} else {
-		var s string
-		s, err = G.Env.GetSocketFile()
-		if err == nil {
-			ret = SocketInfoUnix{s}
-		}
-	}
-	return
+// NewSocket() (Socket, err) is defined in the various platform-specific socket_*.go files.
+type Socket interface {
+	BindToSocket() (net.Listener, error)
+	DialSocket() (net.Conn, error)
 }
 
 type SocketWrapper struct {
@@ -82,7 +28,7 @@ func (g *GlobalContext) MakeLoopbackServer() (l net.Listener, err error) {
 }
 
 func (g *GlobalContext) BindToSocket() (net.Listener, error) {
-	return BindToSocket(g.SocketInfo)
+	return g.SocketInfo.BindToSocket()
 }
 
 func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, error) {
@@ -108,7 +54,7 @@ func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, e
 		} else if g.SocketInfo == nil {
 			sw.err = fmt.Errorf("Cannot get socket in standalone mode")
 		} else {
-			sw.conn, sw.err = DialSocket(g.SocketInfo)
+			sw.conn, sw.err = g.SocketInfo.DialSocket()
 		}
 		if sw.err == nil {
 			sw.xp = rpc.NewTransport(sw.conn, NewRPCLogFactory(), WrapError)

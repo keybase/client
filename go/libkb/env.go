@@ -39,7 +39,6 @@ func (n NullConfiguration) GetSecretKeyringTemplate() string              { retu
 func (n NullConfiguration) GetSalt() []byte                               { return nil }
 func (n NullConfiguration) GetSocketFile() string                         { return "" }
 func (n NullConfiguration) GetPidFile() string                            { return "" }
-func (n NullConfiguration) GetDaemonPort() (int, bool)                    { return 0, false }
 func (n NullConfiguration) GetStandalone() (bool, bool)                   { return false, false }
 func (n NullConfiguration) GetLocalRPCDebug() string                      { return "" }
 func (n NullConfiguration) GetTimers() string                             { return "" }
@@ -421,14 +420,6 @@ func (e *Env) GetPidFile() (ret string, err error) {
 		ret = filepath.Join(e.GetRuntimeDir(), PIDFile)
 	}
 	return
-}
-
-func (e *Env) GetDaemonPort() int {
-	return e.GetInt(0,
-		func() (int, bool) { return e.cmd.GetDaemonPort() },
-		func() (int, bool) { return e.getEnvInt("KEYBASE_DAEMON_PORT") },
-		func() (int, bool) { return e.config.GetDaemonPort() },
-	)
 }
 
 func (e *Env) GetEmail() string {
