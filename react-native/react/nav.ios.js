@@ -14,7 +14,7 @@ import More from './tabs/more'
 
 import { switchTab } from './actions/tabbed-router'
 import { navigateTo, navigateUp } from './actions/router'
-import { getConfig } from './actions/config'
+import { startup } from './actions/config'
 
 import { constants as styleConstants } from './styles/common'
 
@@ -82,7 +82,7 @@ export default class Nav extends Component {
     super(props)
 
     const {dispatch} = this.props
-    dispatch(getConfig())
+    dispatch(startup())
   }
 
   navBar () {

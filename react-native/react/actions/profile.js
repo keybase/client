@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/profileActionTypes'
+import * as types from '../constants/profile-action-types'
 import { routeAppend } from './router'
 import engine from '../engine'
 import { identify } from '../keybase_v1'
@@ -11,7 +11,7 @@ export function pushNewProfile (username) {
     dispatch({
       type: types.INIT_PROFILE,
       username,
-      avatar: `${getState().config.serverURI}/${username}/picture?format=square_200`
+      avatar: `${getState().config.config.serverURI}/${username}/picture?format=square_200`
     })
     dispatch(routeAppend({
       path: 'profile',

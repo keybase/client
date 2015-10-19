@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/profileActionTypes'
+import * as types from '../constants/profile-action-types'
 import Immutable from 'immutable'
 
 const initialState = Immutable.Map()
