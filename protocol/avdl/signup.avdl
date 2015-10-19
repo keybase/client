@@ -11,6 +11,6 @@ protocol signup {
   }
 
   void checkUsernameAvailable(int sessionID, string username);
-  SignupRes signup(int sessionID, string email, string inviteCode, string passphrase, string username, string deviceName, boolean storeSecret);
+  SignupRes signup(int sessionID, string email, string inviteCode, string passphrase, string username, string deviceName, boolean storeSecret, boolean skipMail);
   void inviteRequest(int sessionID, string email, string fullname, string notes);
 }

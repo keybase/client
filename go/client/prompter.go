@@ -1,9 +1,8 @@
 package client
 
 import (
-	"strings"
-
 	"github.com/keybase/client/go/libkb"
+	"strings"
 )
 
 type Field struct {

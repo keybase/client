@@ -378,7 +378,7 @@ func (ui *UI) GetIdentifyUI() libkb.IdentifyUI {
 }
 
 func (ui *UI) GetLoginUI() libkb.LoginUI {
-	return LoginUI{parent: ui}
+	return NewLoginUI(ui.GetTerminalUI(), false)
 }
 
 func (ui *UI) GetSecretUI() libkb.SecretUI {
@@ -394,7 +394,7 @@ func (ui *UI) GetLogUI() libkb.LogUI {
 }
 
 func (ui *UI) GetGPGUI() libkb.GPGUI {
-	return GPGUI{ui, false}
+	return NewGPGUI(ui.GetTerminalUI(), false)
 }
 
 func (ui *UI) GetLocksmithUI() libkb.LocksmithUI {
@@ -478,7 +478,7 @@ type LocksmithUI struct {
 }
 
 func (d LocksmithUI) PromptDeviceName(_ context.Context, _ int) (string, error) {
-	return d.parent.PromptWithChecker(PromptDescriptorLocksmithDeviceName, "Enter a public name for this device", false, libkb.CheckDeviceName)
+	return PromptWithChecker(PromptDescriptorLocksmithDeviceName, d.parent, "Enter a public name for this device", false, libkb.CheckDeviceName)
 }
 
 func (d LocksmithUI) DeviceNameTaken(_ context.Context, arg keybase1.DeviceNameTakenArg) error {
@@ -519,7 +519,7 @@ func (d LocksmithUI) SelectSigner(_ context.Context, arg keybase1.SelectSignerAr
 
 	w.Flush()
 
-	ret, err := d.parent.PromptSelectionOrCancel(PromptDescriptorLocksmithSigningOption, "Choose a signing option", 1, optcount)
+	ret, err := PromptSelectionOrCancel(PromptDescriptorLocksmithSigningOption, d.parent, "Choose a signing option", 1, optcount)
 	if err != nil {
 		if err == ErrInputCanceled {
 			res.Action = keybase1.SelectSignerAction_CANCEL
@@ -578,12 +578,16 @@ func (d LocksmithUI) DisplayProvisionSuccess(_ context.Context, arg keybase1.Dis
 //============================================================
 
 type LoginUI struct {
-	parent   *UI
+	parent   libkb.TerminalUI
 	noPrompt bool
 }
 
+func NewLoginUI(t libkb.TerminalUI, noPrompt bool) LoginUI {
+	return LoginUI{t, noPrompt}
+}
+
 func (l LoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
-	return l.parent.PromptWithChecker(PromptDescriptorLoginUsername, "Your keybase username or email", false,
+	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username or email", false,
 		libkb.CheckEmailOrUsername)
 }
 
@@ -831,10 +835,10 @@ func (ui *UI) Prompt(_ libkb.PromptDescriptor, s string) (string, error) {
 	return ui.Terminal.Prompt(s)
 }
 
-func (ui *UI) PromptWithChecker(pd libkb.PromptDescriptor, prompt string, password bool, checker libkb.Checker) (string, error) {
+func PromptWithChecker(pd libkb.PromptDescriptor, ui libkb.TerminalUI, prompt string, password bool, checker libkb.Checker) (string, error) {
 	var prompter func(string) (string, error)
 
-	if ui.Terminal == nil {
+	if ui == nil {
 		return "", NoTerminalError{}
 	}
 
@@ -920,7 +924,7 @@ func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
 	return
 }
 
-func (ui *UI) PromptSelectionOrCancel(pd libkb.PromptDescriptor, prompt string, low, hi int) (ret int, err error) {
+func PromptSelectionOrCancel(pd libkb.PromptDescriptor, ui libkb.TerminalUI, prompt string, low, hi int) (ret int, err error) {
 	field := &Field{
 		Name:   "selection",
 		Prompt: prompt,
@@ -936,7 +940,7 @@ func (ui *UI) PromptSelectionOrCancel(pd libkb.PromptDescriptor, prompt string, 
 		},
 		PromptDescriptor: pd,
 	}
-	err = NewPrompter([]*Field{field}, ui.GetTerminalUI()).Run()
+	err = NewPrompter([]*Field{field}, ui).Run()
 	if p := field.Value; p == nil || *p == "q" {
 		err = ErrInputCanceled
 	} else {

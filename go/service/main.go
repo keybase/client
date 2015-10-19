@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -21,6 +22,7 @@ type Service struct {
 	chdirTo  string
 	lockPid  *libkb.LockPIDFile
 	startCh  chan struct{}
+	stopCh   chan struct{}
 }
 
 func NewService(isDaemon bool, g *libkb.GlobalContext) *Service {
@@ -28,6 +30,7 @@ func NewService(isDaemon bool, g *libkb.GlobalContext) *Service {
 		Contextified: libkb.NewContextified(g),
 		isDaemon:     isDaemon,
 		startCh:      make(chan struct{}),
+		stopCh:       make(chan struct{}),
 	}
 }
 
@@ -35,13 +38,13 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 	return d.startCh
 }
 
-func RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, g *libkb.GlobalContext) error {
+func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, g *libkb.GlobalContext) error {
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
 		keybase1.ConfigProtocol(NewConfigHandler(xp, g)),
 		keybase1.CryptoProtocol(NewCryptoHandler(xp, g)),
-		keybase1.CtlProtocol(NewCtlHandler(xp, g)),
+		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
 		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.DoctorProtocol(NewDoctorHandler(xp, g)),
@@ -76,7 +79,7 @@ func (d *Service) Handle(c net.Conn) {
 	server.AddCloseListener(cl)
 	connID := d.G().NotifyRouter.AddConnection(xp, cl)
 
-	if err := RegisterProtocols(server, xp, connID, d.G()); err != nil {
+	if err := d.RegisterProtocols(server, xp, connID, d.G()); err != nil {
 		d.G().Log.Warning("RegisterProtocols error: %s", err)
 		return
 	}
@@ -101,6 +104,7 @@ func (d *Service) Run() (err error) {
 		if d.startCh != nil {
 			close(d.startCh)
 		}
+		d.G().Shutdown()
 	}()
 
 	d.G().Service = true
@@ -130,7 +134,7 @@ func (d *Service) Run() (err error) {
 	if l, err = d.ConfigRPCServer(); err != nil {
 		return
 	}
-	if err = d.ListenLoop(l); err != nil {
+	if err = d.ListenLoopWithStopper(l); err != nil {
 		return
 	}
 	return
@@ -238,6 +242,7 @@ func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
 	}
 	if d.startCh != nil {
 		close(d.startCh)
+		d.startCh = nil
 	}
 
 	d.G().PushShutdownHook(func() error {
@@ -247,10 +252,32 @@ func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
 	return
 }
 
+func (d *Service) Stop() {
+	d.stopCh <- struct{}{}
+}
+
+func (d *Service) ListenLoopWithStopper(l net.Listener) (err error) {
+	ch := make(chan error)
+	go func() {
+		ch <- d.ListenLoop(l)
+	}()
+	<-d.stopCh
+	l.Close()
+	return <-ch
+}
+
 func (d *Service) ListenLoop(l net.Listener) (err error) {
+	d.G().Log.Debug("+ Enter ListenLoop()")
 	for {
 		var c net.Conn
 		if c, err = l.Accept(); err != nil {
+
+			// net.errClosing isn't exported, so do this.. UGLY!
+			if strings.HasSuffix(err.Error(), "use of closed network connection") {
+				err = nil
+			}
+
+			d.G().Log.Debug("+ Leaving ListenLoop() w/ error %v", err)
 			return
 		}
 		go d.Handle(c)

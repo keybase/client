@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -14,13 +13,15 @@ import (
 
 type CtlHandler struct {
 	libkb.Contextified
+	service *Service
 	*BaseHandler
 }
 
-func NewCtlHandler(xp rpc.Transporter, g *libkb.GlobalContext) *CtlHandler {
+func NewCtlHandler(xp rpc.Transporter, v *Service, g *libkb.GlobalContext) *CtlHandler {
 	return &CtlHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
+		service:      v,
 	}
 }
 
@@ -28,9 +29,7 @@ func NewCtlHandler(xp rpc.Transporter, g *libkb.GlobalContext) *CtlHandler {
 func (c *CtlHandler) Stop(_ context.Context, sessionID int) error {
 	c.G().Log.Info("Received stop() RPC; shutting down")
 	go func() {
-		time.Sleep(1 * time.Second)
-		c.G().Shutdown()
-		os.Exit(0)
+		c.service.Stop()
 	}()
 	return nil
 

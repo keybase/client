@@ -208,6 +208,10 @@ func (e *Env) getEnvPath(s string) []string {
 }
 
 func (e *Env) getEnvBool(s string) (bool, bool) {
+	return getEnvBool(s)
+}
+
+func getEnvBool(s string) (bool, bool) {
 	tmp := os.Getenv(s)
 	if len(tmp) == 0 {
 		return false, false

@@ -37,7 +37,7 @@ func (h *LoginHandler) Reset(_ context.Context, sessionID int) error {
 }
 
 func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email string) error {
-	res, err := G.API.Post(libkb.APIArg{
+	res, err := h.G().API.Post(libkb.APIArg{
 		Endpoint:    "send-reset-pw",
 		NeedSession: false,
 		Args: libkb.HTTPArgs{

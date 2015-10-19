@@ -1110,6 +1110,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *username;
 @property NSString *deviceName;
 @property BOOL storeSecret;
+@property BOOL skipMail;
 @end
 @interface KBRInviteRequestRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1889,7 +1890,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)signup:(KBRSignupRequestParams *)params completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
 
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret skipMail:(BOOL)skipMail completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
 
 - (void)inviteRequest:(KBRInviteRequestRequestParams *)params completion:(void (^)(NSError *error))completion;
 

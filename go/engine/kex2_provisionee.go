@@ -335,6 +335,7 @@ func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID
 		LastSeqno:      libkb.Seqno(seqno),
 		PrevLinkID:     linkID,
 		SigningUser:    e,
+		Contextified:   libkb.NewContextified(e.G()),
 	}
 
 	jw, err := libkb.KeyProof(delg)

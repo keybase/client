@@ -1904,7 +1904,7 @@
 }
 
 - (void)signup:(KBRSignupRequestParams *)params completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
-  NSDictionary *rparams = @{@"email": KBRValue(params.email), @"inviteCode": KBRValue(params.inviteCode), @"passphrase": KBRValue(params.passphrase), @"username": KBRValue(params.username), @"deviceName": KBRValue(params.deviceName), @"storeSecret": @(params.storeSecret)};
+  NSDictionary *rparams = @{@"email": KBRValue(params.email), @"inviteCode": KBRValue(params.inviteCode), @"passphrase": KBRValue(params.passphrase), @"username": KBRValue(params.username), @"deviceName": KBRValue(params.deviceName), @"storeSecret": @(params.storeSecret), @"skipMail": @(params.skipMail)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.signup" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -1915,8 +1915,8 @@
   }];
 }
 
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
-  NSDictionary *rparams = @{@"email": KBRValue(email), @"inviteCode": KBRValue(inviteCode), @"passphrase": KBRValue(passphrase), @"username": KBRValue(username), @"deviceName": KBRValue(deviceName), @"storeSecret": @(storeSecret)};
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret skipMail:(BOOL)skipMail completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
+  NSDictionary *rparams = @{@"email": KBRValue(email), @"inviteCode": KBRValue(inviteCode), @"passphrase": KBRValue(passphrase), @"username": KBRValue(username), @"deviceName": KBRValue(deviceName), @"storeSecret": @(storeSecret), @"skipMail": @(skipMail)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.signup" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -4437,6 +4437,7 @@
     self.username = params[0][@"username"];
     self.deviceName = params[0][@"deviceName"];
     self.storeSecret = [params[0][@"storeSecret"] boolValue];
+    self.skipMail = [params[0][@"skipMail"] boolValue];
   }
   return self;
 }

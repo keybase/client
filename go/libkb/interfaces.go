@@ -10,6 +10,7 @@ package libkb
  */
 
 import (
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -294,7 +295,9 @@ const (
 type PromptDescriptor int
 
 type TerminalUI interface {
+	OutputWriter() io.Writer
 	Output(string) error
+	Printf(fmt string, args ...interface{}) (int, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	Prompt(PromptDescriptor, string) (string, error)
 	PromptPassword(PromptDescriptor, string) (string, error)

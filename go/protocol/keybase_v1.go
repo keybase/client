@@ -4282,6 +4282,7 @@ type SignupArg struct {
 	Username    string `codec:"username" json:"username"`
 	DeviceName  string `codec:"deviceName" json:"deviceName"`
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
+	SkipMail    bool   `codec:"skipMail" json:"skipMail"`
 }
 
 type InviteRequestArg struct {

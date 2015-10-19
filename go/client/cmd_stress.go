@@ -55,7 +55,7 @@ func (c *CmdStress) rpcClient() (*rpc.Client, error) {
 		c.gpgUIProtocol(),
 		NewDoctorUIProtocol(),
 		NewLocksmithUIProtocol(),
-		NewLoginUIProtocol(),
+		NewLoginUIProtocol(G),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return nil, err
@@ -318,7 +318,7 @@ func (c *CmdStress) status() {
 }
 
 func (c *CmdStress) logout() {
-	cli, err := GetLoginClient()
+	cli, err := GetLoginClient(G)
 	if err != nil {
 		G.Log.Warning("GetLoginClient error: %s", err)
 		return

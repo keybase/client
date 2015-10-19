@@ -65,12 +65,18 @@ type CmdSignup struct {
 	defaultPassphrase string
 	defaultDevice     string
 	doPrompt          bool
+	skipMail          bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
 	return &CmdSignup{
 		Contextified: libkb.NewContextified(g),
+		doPrompt:     true,
 	}
+}
+
+func (s *CmdSignup) SetTest() {
+	s.skipMail = true
 }
 
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
@@ -181,6 +187,11 @@ func (s *CmdSignup) checkRegistered() (err error) {
 }
 
 func (s *CmdSignup) prompt() (err error) {
+	s.G().Log.Debug("+ prompt")
+	defer func() {
+		s.G().Log.Debug("- prompt -> %s", libkb.ErrToOk(err))
+	}()
+
 	if !s.doPrompt {
 		return nil
 	}
@@ -189,6 +200,7 @@ func (s *CmdSignup) prompt() (err error) {
 	}
 
 	if err = s.prompter.Run(); err != nil {
+		s.G().Log.Debug("| Prompter failed\n")
 		return
 	}
 	arg := keybase1.GetNewPassphraseArg{
@@ -232,6 +244,7 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		Passphrase:  s.passphrase,
 		StoreSecret: s.storeSecret,
 		DeviceName:  s.fields.deviceName.GetValue(),
+		SkipMail:    s.skipMail,
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {
@@ -367,11 +380,11 @@ func (s *CmdSignup) GetUsage() libkb.Usage {
 
 func (s *CmdSignup) initClient() error {
 	var err error
-	if s.scli, err = GetSignupClient(); err != nil {
+	if s.scli, err = GetSignupClient(s.G()); err != nil {
 		return err
 	}
 
-	if s.ccli, err = GetConfigClient(); err != nil {
+	if s.ccli, err = GetConfigClient(s.G()); err != nil {
 		return err
 	}
 
@@ -379,8 +392,8 @@ func (s *CmdSignup) initClient() error {
 		NewSecretUIProtocol(),
 	}
 	if s.doPrompt {
-		protocols = append(protocols, NewGPGUIProtocol())
-		protocols = append(protocols, NewLoginUIProtocol())
+		protocols = append(protocols, NewGPGUIProtocol(s.G()))
+		protocols = append(protocols, NewLoginUIProtocol(s.G()))
 	} else {
 		gpgUI := s.G().UI.GetGPGUI().(GPGUI)
 		gpgUI.noPrompt = true
@@ -390,7 +403,7 @@ func (s *CmdSignup) initClient() error {
 		loginUI.noPrompt = true
 		protocols = append(protocols, keybase1.LoginUiProtocol(loginUI))
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
 	return nil

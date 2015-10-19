@@ -11,13 +11,17 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewGPGUIProtocol() rpc.Protocol {
-	return keybase1.GpgUiProtocol(GlobUI.GetGPGUI())
+func NewGPGUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.GpgUiProtocol(g.UI.GetGPGUI())
 }
 
 type GPGUI struct {
-	parent   *UI
+	parent   libkb.TerminalUI
 	noPrompt bool
+}
+
+func NewGPGUI(t libkb.TerminalUI, np bool) GPGUI {
+	return GPGUI{t, np}
 }
 
 func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, error) {
@@ -35,7 +39,7 @@ func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, e
 	}
 	w.Flush()
 
-	ret, err := g.parent.PromptSelectionOrCancel(PromptDescriptorGPGSelectKey, "Choose a key", 1, len(keys))
+	ret, err := PromptSelectionOrCancel(PromptDescriptorGPGSelectKey, g.parent, "Choose a key", 1, len(keys))
 	if err != nil {
 		if err == ErrInputCanceled {
 			return "", nil

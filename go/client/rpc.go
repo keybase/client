@@ -17,8 +17,8 @@ func GetRPCClientWithContext(g *libkb.GlobalContext) (ret *rpc.Client, xp rpc.Tr
 	return
 }
 
-func GetRPCServer() (ret *rpc.Server, xp rpc.Transporter, err error) {
-	if _, xp, err = G.GetSocket(false); err == nil {
+func GetRPCServer(g *libkb.GlobalContext) (ret *rpc.Server, xp rpc.Transporter, err error) {
+	if _, xp, err = g.GetSocket(false); err == nil {
 		ret = rpc.NewServer(xp, libkb.WrapError)
 	}
 	if err != nil {
@@ -27,36 +27,35 @@ func GetRPCServer() (ret *rpc.Server, xp rpc.Transporter, err error) {
 	return
 }
 
-func GetSignupClient() (cli keybase1.SignupClient, err error) {
+func GetSignupClient(g *libkb.GlobalContext) (cli keybase1.SignupClient, err error) {
 	var rpc *rpc.Client
-	if rpc, _, err = GetRPCClient(); err == nil {
+	if rpc, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.SignupClient{Cli: rpc}
 	}
 	return
 }
 
-func GetConfigClient() (cli keybase1.ConfigClient, err error) {
+func GetConfigClient(g *libkb.GlobalContext) (cli keybase1.ConfigClient, err error) {
 	var rpc *rpc.Client
-	if rpc, _, err = GetRPCClient(); err == nil {
+	if rpc, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.ConfigClient{Cli: rpc}
 	}
 	return
 }
 
-func GetLoginClient() (cli keybase1.LoginClient, err error) {
+func GetLoginClient(g *libkb.GlobalContext) (cli keybase1.LoginClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.LoginClient{Cli: rcli}
 	}
 	return
 }
 
-func RegisterProtocols(prots []rpc.Protocol) (err error) {
+func RegisterProtocolsWithContext(prots []rpc.Protocol, g *libkb.GlobalContext) (err error) {
 	var srv *rpc.Server
-	if srv, _, err = GetRPCServer(); err != nil {
+	if srv, _, err = GetRPCServer(g); err != nil {
 		return
 	}
-
 	prots = append(prots, NewLogUIProtocol())
 	for _, p := range prots {
 		if err = srv.Register(p); err != nil {
@@ -67,6 +66,10 @@ func RegisterProtocols(prots []rpc.Protocol) (err error) {
 		}
 	}
 	return
+}
+
+func RegisterProtocols(prots []rpc.Protocol) (err error) {
+	return RegisterProtocolsWithContext(prots, G)
 }
 
 func GetIdentifyClient() (cli keybase1.IdentifyClient, err error) {

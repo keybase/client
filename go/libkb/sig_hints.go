@@ -18,6 +18,7 @@ func (sh SigHint) GetAPIURL() string    { return sh.apiURL }
 func (sh SigHint) GetCheckText() string { return sh.checkText }
 
 type SigHints struct {
+	Contextified
 	uid     keybase1.UID
 	version int
 	hints   map[keybase1.SigID]*SigHint
@@ -39,8 +40,13 @@ func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
 	return obj
 }
 
-func NewSigHints(jw *jsonw.Wrapper, uid keybase1.UID, dirty bool) (sh *SigHints, err error) {
-	sh = &SigHints{uid: uid, dirty: dirty, version: 0}
+func NewSigHints(jw *jsonw.Wrapper, uid keybase1.UID, dirty bool, g *GlobalContext) (sh *SigHints, err error) {
+	sh = &SigHints{
+		uid:          uid,
+		dirty:        dirty,
+		version:      0,
+		Contextified: NewContextified(g),
+	}
 	err = sh.PopulateWith(jw)
 	if err != nil {
 		sh = nil
@@ -69,7 +75,7 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 	for i := 0; i < n; i++ {
 		hint, tmpe := NewSigHint(jw.AtKey("hints").AtIndex(i))
 		if tmpe != nil {
-			G.Log.Warning("Bad SigHint Loaded: %s", tmpe)
+			sh.G().Log.Warning("Bad SigHint Loaded: %s", tmpe)
 		} else {
 			sh.hints[hint.sigID] = hint
 		}
@@ -100,35 +106,35 @@ func (sh SigHints) MarshalToJSON() *jsonw.Wrapper {
 }
 
 func (sh *SigHints) Store() (err error) {
-	G.Log.Debug("+ SigHints.Store() for uid=%s", sh.uid)
+	sh.G().Log.Debug("+ SigHints.Store() for uid=%s", sh.uid)
 	if sh.dirty {
-		err = G.LocalDb.Put(DbKeyUID(DBSigHints, sh.uid), []DbKey{}, sh.MarshalToJSON())
+		err = sh.G().LocalDb.Put(DbKeyUID(DBSigHints, sh.uid), []DbKey{}, sh.MarshalToJSON())
 		sh.dirty = false
 	} else {
-		G.Log.Debug("| SigHints.Store() skipped; wasn't dirty")
+		sh.G().Log.Debug("| SigHints.Store() skipped; wasn't dirty")
 	}
-	G.Log.Debug("- SigHints.Store() for uid=%s -> %v", sh.uid, ErrToOk(err))
+	sh.G().Log.Debug("- SigHints.Store() for uid=%s -> %v", sh.uid, ErrToOk(err))
 	return err
 }
 
-func LoadSigHints(uid keybase1.UID) (sh *SigHints, err error) {
-	G.Log.Debug("+ LoadSigHints(%s)", uid)
+func LoadSigHints(uid keybase1.UID, g *GlobalContext) (sh *SigHints, err error) {
+	g.Log.Debug("+ LoadSigHints(%s)", uid)
 	var jw *jsonw.Wrapper
-	jw, err = G.LocalDb.Get(DbKeyUID(DBSigHints, uid))
+	jw, err = g.LocalDb.Get(DbKeyUID(DBSigHints, uid))
 	if err != nil {
 		return
 	}
-	sh, err = NewSigHints(jw, uid, false)
+	sh, err = NewSigHints(jw, uid, false, g)
 	if err == nil {
-		G.Log.Debug("| SigHints loaded @v%d", sh.version)
+		g.Log.Debug("| SigHints loaded @v%d", sh.version)
 	}
-	G.Log.Debug("- LoadSigHints(%s)", uid)
+	g.Log.Debug("- LoadSigHints(%s)", uid)
 	return
 }
 
 func (sh *SigHints) Refresh() error {
-	G.Log.Debug("+ Refresh SigHints() for uid=%s", sh.uid)
-	res, err := G.API.Get(APIArg{
+	sh.G().Log.Debug("+ Refresh SigHints() for uid=%s", sh.uid)
+	res, err := sh.G().API.Get(APIArg{
 		Endpoint:    "sig/hints",
 		NeedSession: false,
 		Args: HTTPArgs{
@@ -145,18 +151,18 @@ func (sh *SigHints) Refresh() error {
 		return err
 	}
 	if n == 0 {
-		G.Log.Debug("| No changes; version %d was up-to-date", sh.version)
+		sh.G().Log.Debug("| No changes; version %d was up-to-date", sh.version)
 	} else if err = sh.PopulateWith(res.Body); err != nil {
 		return err
 	} else {
 		sh.dirty = true
 	}
-	G.Log.Debug("- Refresh SigHints() for uid=%s", sh.uid)
+	sh.G().Log.Debug("- Refresh SigHints() for uid=%s", sh.uid)
 	return nil
 }
 
-func LoadAndRefreshSigHints(uid keybase1.UID) (sh *SigHints, err error) {
-	sh, err = LoadSigHints(uid)
+func LoadAndRefreshSigHints(uid keybase1.UID, g *GlobalContext) (sh *SigHints, err error) {
+	sh, err = LoadSigHints(uid, g)
 	if err == nil {
 		err = sh.Refresh()
 	}

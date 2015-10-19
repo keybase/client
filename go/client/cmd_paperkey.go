@@ -22,12 +22,12 @@ type CmdPaperKey struct {
 }
 
 func (c *CmdPaperKey) Run() error {
-	cli, err := GetLoginClient()
+	cli, err := GetLoginClient(G)
 	if err != nil {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewLoginUIProtocol(),
+		NewLoginUIProtocol(G),
 		NewSecretUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {

@@ -190,6 +190,8 @@ func (e *DeviceKeygen) appendEldest(ds []libkb.Delegator, ctx *Context, pargs *D
 	}
 
 	var d libkb.Delegator
+	d.SetGlobalContext(e.G())
+
 	d, e.pushErr = e.naclSignGen.Push(ctx.LoginContext, true)
 	if e.pushErr == nil {
 		return append(ds, d)
@@ -204,6 +206,8 @@ func (e *DeviceKeygen) appendSibkey(ds []libkb.Delegator, ctx *Context, pargs *D
 	}
 
 	var d libkb.Delegator
+	d.SetGlobalContext(e.G())
+
 	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, true, pargs.User)
 	d, e.pushErr = e.naclSignGen.Push(ctx.LoginContext, true)
 	if e.pushErr == nil {
@@ -221,6 +225,7 @@ func (e *DeviceKeygen) appendEncKey(ds []libkb.Delegator, ctx *Context, signer l
 	e.naclEncGen.UpdateArg(signer, eldestKID, false, user)
 
 	var d libkb.Delegator
+	d.SetGlobalContext(e.G())
 	d, e.pushErr = e.naclEncGen.Push(ctx.LoginContext, true)
 	if e.pushErr == nil {
 		return append(ds, d)

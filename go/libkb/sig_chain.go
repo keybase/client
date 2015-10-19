@@ -580,11 +580,11 @@ type SigChainLoader struct {
 func (l *SigChainLoader) LoadLastLinkIDFromStorage() (mt *MerkleTriple, err error) {
 	var tmp MerkleTriple
 	var found bool
-	found, err = G.LocalDb.GetInto(&tmp, l.dbKey())
+	found, err = l.G().LocalDb.GetInto(&tmp, l.dbKey())
 	if err != nil {
-		G.Log.Debug("| Error loading last link: %s", err)
+		l.G().Log.Debug("| Error loading last link: %s", err)
 	} else if !found {
-		G.Log.Debug("| LastLinkId was null")
+		l.G().Log.Debug("| LastLinkId was null")
 	} else {
 		mt = &tmp
 	}
@@ -612,16 +612,16 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 	uid := l.user.GetUID()
 
-	G.Log.Debug("+ SigChainLoader.LoadFromStorage(%s)", uid)
-	defer func() { G.Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid, ErrToOk(err)) }()
+	l.G().Log.Debug("+ SigChainLoader.LoadFromStorage(%s)", uid)
+	defer func() { l.G().Log.Debug("- SigChainLoader.LoadFromStorage(%s) -> %s", uid, ErrToOk(err)) }()
 
 	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil {
-		G.Log.Debug("| Failed to load last link ID")
+		l.G().Log.Debug("| Failed to load last link ID")
 		if err == nil {
-			G.Log.Debug("| no error loading last link ID from storage")
+			l.G().Log.Debug("| no error loading last link ID from storage")
 		}
 		if mt == nil {
-			G.Log.Debug("| mt (MerkleTriple) nil result from load last link ID from storage")
+			l.G().Log.Debug("| mt (MerkleTriple) nil result from load last link ID from storage")
 		}
 		return err
 	}
@@ -638,7 +638,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	suid := l.selfUID()
 
 	for curr != nil && goodKey {
-		G.Log.Debug("| loading link; curr=%s", curr)
+		l.G().Log.Debug("| loading link; curr=%s", curr)
 		if link, err = ImportLinkFromStorage(curr, suid); err != nil {
 			return
 		}
@@ -646,10 +646,10 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 		if loadKID.IsNil() {
 			loadKID = kid2
-			G.Log.Debug("| Setting loadKID=%s", kid2)
+			l.G().Log.Debug("| Setting loadKID=%s", kid2)
 		} else if !l.allKeys && loadKID.Exists() && !loadKID.Equal(kid2) {
 			goodKey = false
-			G.Log.Debug("| Stop loading at KID=%s (!= KID=%s)", loadKID, kid2)
+			l.G().Log.Debug("| Stop loading at KID=%s (!= KID=%s)", loadKID, kid2)
 		}
 
 		if goodKey {

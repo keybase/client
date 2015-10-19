@@ -180,7 +180,13 @@ func setupTestContext(tb testing.TB, nm string, tcPrev *TestContext) (tc TestCon
 	defer setupTestMu.Unlock()
 
 	g := NewGlobalContext()
-	g.Log = logger.NewTestLogger(tb)
+
+	// In debugging mode, dump all log, don't use the test logger.
+	// We only use the environment variable to discover debug mode
+	if val, _ := getEnvBool("KEYBASE_DEBUG"); !val {
+		g.Log = logger.NewTestLogger(tb)
+	}
+
 	g.Init()
 	g.Log.Debug("SetupTest %s", nm)
 

@@ -156,7 +156,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id); err != nil {
+	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id, arg.G()); err != nil {
 		return
 	}
 
@@ -199,7 +199,7 @@ func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool
 		g.Log.Warning("Failed to load %s from storage: %s", uid, err)
 	}
 
-	leaf, err := LookupMerkleLeaf(uid, local)
+	leaf, err := lookupMerkleLeaf(g, uid, local)
 	if err != nil {
 		return nil, refresh, err
 	}
@@ -298,15 +298,15 @@ func myUID(g *GlobalContext, lctx LoginContext) keybase1.UID {
 	return g.GetMyUID()
 }
 
-func LookupMerkleLeaf(uid keybase1.UID, local *User) (f *MerkleUserLeaf, err error) {
+func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, local *User) (f *MerkleUserLeaf, err error) {
 	if uid.IsNil() {
-		err = fmt.Errorf("uid parameter for LookupMerkleLeaf empty")
+		err = fmt.Errorf("uid parameter for lookupMerkleLeaf empty")
 		return
 	}
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
-	f, err = G.MerkleClient.LookupUser(q)
+	f, err = g.MerkleClient.LookupUser(q)
 	if err == nil && f == nil && local != nil {
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}
