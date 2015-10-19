@@ -1075,6 +1075,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 	// At the end, the local block cache should contain all the
 	// updated merged blocks.  A future phase will update the pointers
 	// in standard Merkle-tree-fashion.
+	doneActions := make(map[BlockPointer]bool)
 	for _, unmergedPath := range unmergedPaths {
 		unmergedMostRecent := unmergedPath.tailPointer()
 		unmergedChain, ok :=
@@ -1103,13 +1104,13 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 		}
 
 		actions, ok := actionMap[mergedPath.tailPointer()]
-		if !ok || len(actions) == 0 {
+		if !ok || len(actions) == 0 || doneActions[mergedPath.tailPointer()] {
 			// Another path mapping to the same parent path already
 			// executed, or there were no actions left.
 			continue
 		}
 		// Make sure we don't try to execute the same actions twice.
-		delete(actionMap, mergedPath.tailPointer())
+		doneActions[mergedPath.tailPointer()] = true
 
 		// Now get the directory blocks.
 		unmergedBlock, err := cr.fetchDirBlockCopy(ctx, mostRecentUnmergedMD,
