@@ -15,7 +15,8 @@ export const codePageModeShowText = 'codePageModeShowText'
 export const countDownTime = 5 * 60
 
 // actions
-export const actionSubmitUserPass = 'actionSubmitUserPass'
+export const login = 'login'
+export const loginDone = 'loginDone'
 export const setCodeState = 'setCodeState'
 export const setCodeMode = 'setCodeMode'
 export const setCountdown = 'setCountdown'
