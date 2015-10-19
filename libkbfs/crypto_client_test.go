@@ -32,7 +32,7 @@ func (fc FakeCryptoClient) maybeWaitOnChannel() {
 	}
 }
 
-func (fc FakeCryptoClient) Call(s string, args interface{}, res interface{}) error {
+func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, res interface{}) error {
 	switch s {
 	case "keybase.1.crypto.signED25519":
 		fc.maybeWaitOnChannel()
@@ -111,7 +111,7 @@ func TestCryptoClientSignCanceled(t *testing.T) {
 	config := testCryptoClientConfig(t)
 	ctlChan := make(chan struct{})
 	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, ctlChan)
-	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
+	c := newCryptoClientWithClient(config.Codec(), cancelableClient{fc}, logger.NewTestLogger(t))
 
 	f := func(ctx context.Context) error {
 		msg := []byte("message")
@@ -317,7 +317,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 	config := testCryptoClientConfig(t)
 	ctlChan := make(chan struct{})
 	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, ctlChan)
-	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
+	c := newCryptoClientWithClient(config.Codec(), cancelableClient{fc}, logger.NewTestLogger(t))
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {

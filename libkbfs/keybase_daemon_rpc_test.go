@@ -14,7 +14,7 @@ type blockingClient struct {
 
 var _ keybase1.GenericClient = blockingClient{}
 
-func (b blockingClient) Call(s string, args interface{},
+func (b blockingClient) Call(ctx context.Context, s string, args interface{},
 	res interface{}) error {
 	// Say we're ready, and wait for the signal to proceed.
 	b.ctlChan <- struct{}{}
@@ -25,7 +25,8 @@ func (b blockingClient) Call(s string, args interface{},
 func newKeybaseDaemonRPCWithFakeClient(t *testing.T) (
 	KeybaseDaemonRPC, chan struct{}) {
 	ctlChan := make(chan struct{})
-	c := newKeybaseDaemonRPCWithClient(blockingClient{ctlChan},
+	c := newKeybaseDaemonRPCWithClient(
+		cancelableClient{blockingClient{ctlChan}},
 		logger.NewTestLogger(t))
 	return c, ctlChan
 }

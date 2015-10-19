@@ -44,7 +44,7 @@ func (fc *FakeBServerClient) maybeFinishOnChannel() {
 	}
 }
 
-func (fc *FakeBServerClient) Call(s string, args interface{},
+func (fc *FakeBServerClient) Call(_ context.Context, s string, args interface{},
 	res interface{}) error {
 	switch s {
 	case "keybase.1.block.establishSession":
@@ -142,7 +142,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	fc := NewFakeBServerClient(readyChan, goChan, nil)
 
 	f := func(ctx context.Context) error {
-		b := newBlockServerRemoteWithClient(ctx, config, fc)
+		b := newBlockServerRemoteWithClient(ctx, config, cancelableClient{fc})
 
 		bID := fakeBlockID(1)
 		tlfID := FakeTlfID(2, false)

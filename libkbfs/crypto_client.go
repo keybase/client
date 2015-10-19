@@ -16,7 +16,8 @@ import (
 // signing key.
 type CryptoClient struct {
 	CryptoCommon
-	clientFactory ClientFactory
+	client     keybase1.CryptoClient
+	shutdownFn func()
 }
 
 var _ Crypto = (*CryptoClient)(nil)
@@ -30,19 +31,20 @@ func NewCryptoClient(config Config, kbCtx *libkb.GlobalContext, log logger.Logge
 		},
 	}
 	conn := NewSharedKeybaseConnection(kbCtx, config, c)
-	c.clientFactory = ConnectionClientFactory{conn}
+	c.client = keybase1.CryptoClient{Cli: conn.GetClient()}
+	c.shutdownFn = conn.Shutdown
 	return c
 }
 
 // newCryptoClientWithClient should only be used for testing.
-func newCryptoClientWithClient(codec Codec, testClient keybase1.GenericClient,
+func newCryptoClientWithClient(codec Codec, client keybase1.GenericClient,
 	log logger.Logger) *CryptoClient {
 	return &CryptoClient{
 		CryptoCommon: CryptoCommon{
 			codec: codec,
 			log:   log,
 		},
-		clientFactory: CancelableClientFactory{testClient},
+		client: keybase1.CryptoClient{Cli: client},
 	}
 }
 
@@ -75,10 +77,6 @@ func (c *CryptoClient) ShouldThrottle(err error) bool {
 	return false
 }
 
-func (c CryptoClient) client(ctx context.Context) keybase1.CryptoClient {
-	return keybase1.CryptoClient{Cli: c.clientFactory.GetClient(ctx)}
-}
-
 // Sign implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	sigInfo SignatureInfo, err error) {
@@ -87,7 +85,7 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 			sigInfo, err)
 	}()
 
-	ed25519SigInfo, err := c.client(ctx).SignED25519(keybase1.SignED25519Arg{
+	ed25519SigInfo, err := c.client.SignED25519(ctx, keybase1.SignED25519Arg{
 		SessionID: 0,
 		Msg:       msg,
 		Reason:    "to use kbfs",
@@ -129,7 +127,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
 
-	decryptedClientHalf, err := c.client(ctx).UnboxBytes32(keybase1.UnboxBytes32Arg{
+	decryptedClientHalf, err := c.client.UnboxBytes32(ctx, keybase1.UnboxBytes32Arg{
 		SessionID:        0,
 		EncryptedBytes32: encryptedData,
 		Nonce:            nonce,
@@ -146,5 +144,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 
 // Shutdown implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) Shutdown() {
-	c.clientFactory.Shutdown()
+	if c.shutdownFn != nil {
+		c.shutdownFn()
+	}
 }

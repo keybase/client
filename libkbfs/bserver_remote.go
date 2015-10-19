@@ -14,10 +14,11 @@ import (
 // BlockServerRemote implements the BlockServer interface and
 // represents a remote KBFS block server.
 type BlockServerRemote struct {
-	config        Config
-	clientFactory ClientFactory
-	log           logger.Logger
-	blkSrvAddr    string
+	config     Config
+	shutdownFn func()
+	client     keybase1.BlockInterface
+	log        logger.Logger
+	blkSrvAddr string
 }
 
 // Test that BlockServerRemote fully implements the BlockServer interface.
@@ -34,17 +35,18 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	bs.log.Debug("BlockServerRemote new instance "+
 		"server addr %s", blkSrvAddr)
 	conn := NewTLSConnection(config, blkSrvAddr, bServerErrorUnwrapper{}, bs)
-	bs.clientFactory = ConnectionClientFactory{conn}
+	bs.client = keybase1.BlockClient{Cli: conn.GetClient()}
+	bs.shutdownFn = conn.Shutdown
 	return bs
 }
 
 // For testing.
 func newBlockServerRemoteWithClient(ctx context.Context, config Config,
-	testClient keybase1.GenericClient) *BlockServerRemote {
+	client keybase1.GenericClient) *BlockServerRemote {
 	bs := &BlockServerRemote{
-		config:        config,
-		clientFactory: CancelableClientFactory{testClient},
-		log:           config.MakeLogger(""),
+		config: config,
+		client: keybase1.BlockClient{Cli: client},
+		log:    config.MakeLogger(""),
 	}
 	return bs
 }
@@ -75,11 +77,9 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 
 	b.log.CDebugf(ctx, "BlockServerRemote.OnConnect establish session for "+
 		"uid %s", uid.String())
-	// Using GetClient() here would cause problematic recursion.
-	c := keybase1.BlockClient{Cli: client}
-	return runUnlessCanceled(ctx, func() error {
-		return c.EstablishSession(arg)
-	})
+	// Using b.client here would cause problematic recursion.
+	c := keybase1.BlockClient{Cli: cancelableClient{client}}
+	return c.EstablishSession(ctx, arg)
 }
 
 // OnConnectError implements the ConnectionHandler interface.
@@ -88,11 +88,6 @@ func (b *BlockServerRemote) OnConnectError(err error, wait time.Duration) {
 		err, wait)
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
-}
-
-// Helper to return a metadata client.
-func (b *BlockServerRemote) client(ctx context.Context) keybase1.BlockClient {
-	return keybase1.BlockClient{Cli: b.clientFactory.GetClient(ctx)}
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
@@ -124,7 +119,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 		ChargedTo: context.GetWriter(),
 	}
 
-	res, err := b.client(ctx).GetBlock(bid)
+	res, err := b.client.GetBlock(ctx, bid)
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
@@ -161,7 +156,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 		Buf:      buf,
 	}
 
-	err = b.client(ctx).PutBlock(arg)
+	err = b.client.PutBlock(ctx, arg)
 	return err
 }
 
@@ -185,7 +180,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	nonce := context.GetRefNonce()
 	copy(arg.Nonce[:], nonce[:])
 
-	err = b.client(ctx).IncBlockReference(arg)
+	err = b.client.IncBlockReference(ctx, arg)
 	return err
 }
 
@@ -210,11 +205,13 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 	nonce := context.GetRefNonce()
 	copy(arg.Nonce[:], nonce[:])
 
-	err = b.client(ctx).DecBlockReference(arg)
+	err = b.client.DecBlockReference(ctx, arg)
 	return err
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Shutdown() {
-	b.clientFactory.Shutdown()
+	if b.shutdownFn != nil {
+		b.shutdownFn()
+	}
 }

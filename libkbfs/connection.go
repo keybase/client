@@ -228,7 +228,7 @@ func (c *Connection) connect(ctx context.Context) error {
 }
 
 // DoCommand executes the specific rpc command wrapped in rpcFunc.
-func (c *Connection) DoCommand(ctx context.Context, rpcFunc func() error) error {
+func (c *Connection) DoCommand(ctx context.Context, rpcFunc func(keybase1.GenericClient) error) error {
 	for {
 		// we may or may not be in the process of reconnecting.
 		// if so we'll block here unless canceled by the caller.
@@ -241,10 +241,17 @@ func (c *Connection) DoCommand(ctx context.Context, rpcFunc func() error) error 
 
 		// retry throttle errors w/backoff
 		throttleErr := backoff.RetryNotify(func() error {
+			rawClient := func() keybase1.GenericClient {
+				c.mutex.Lock()
+				defer c.mutex.Unlock()
+				return c.client
+			}()
 			// try the rpc call. this can also be canceled
 			// by the caller, and will retry connectivity
 			// errors w/backoff.
-			throttleErr := runUnlessCanceled(ctx, rpcFunc)
+			throttleErr := runUnlessCanceled(ctx, func() error {
+				return rpcFunc(rawClient)
+			})
 			if c.handler.ShouldThrottle(throttleErr) {
 				return throttleErr
 			}
@@ -344,11 +351,10 @@ func (c *Connection) doReconnect(ctx context.Context, reconnectChan chan struct{
 	c.cancelFunc = nil
 }
 
-// GetClient is called to retrieve an rpc client suitable for use by the caller.
+// GetClient returns an RPC client that uses DoCommand() for RPC
+// calls, and thus handles throttling, disconnections, etc.
 func (c *Connection) GetClient() keybase1.GenericClient {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	return c.client
+	return connectionClient{c}
 }
 
 // GetServer is called to retrieve an rpc server suitable for use by the caller.
@@ -373,36 +379,14 @@ func (c *Connection) Shutdown() {
 	}
 }
 
-// A ConnectionClientFactory uses a Connection object to vend
-// GenericClient objects that robustly handles connection state
-// changes.
-type ConnectionClientFactory struct {
-	conn *Connection
-}
-
-var _ ClientFactory = ConnectionClientFactory{}
-
 type connectionClient struct {
 	conn *Connection
-	// We won't need this once ctx is plumbed through
-	// GenericClient.Call.
-	ctx context.Context
 }
 
 var _ keybase1.GenericClient = connectionClient{}
 
-func (c connectionClient) Call(s string, args interface{}, res interface{}) error {
-	return c.conn.DoCommand(c.ctx, func() error {
-		return c.conn.GetClient().Call(s, args, res)
+func (c connectionClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
+	return c.conn.DoCommand(ctx, func(rawClient keybase1.GenericClient) error {
+		return rawClient.Call(ctx, s, args, res)
 	})
-}
-
-// GetClient implements ClientFactory for ConnectionClientFactory.
-func (f ConnectionClientFactory) GetClient(ctx context.Context) keybase1.GenericClient {
-	return &connectionClient{f.conn, ctx}
-}
-
-// Shutdown implements ClientFactory for ConnectionClientFactory.
-func (f ConnectionClientFactory) Shutdown() {
-	f.conn.Shutdown()
 }

@@ -14,10 +14,10 @@ import (
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
-	config        Config
-	conn          *Connection
-	clientFactory ClientFactory
-	log           logger.Logger
+	config Config
+	conn   *Connection
+	client keybase1.MetadataClient
+	log    logger.Logger
 
 	observerMu sync.Mutex // protects observers
 	observers  map[TlfID]chan<- error
@@ -41,18 +41,7 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 	}
 	conn := NewTLSConnection(config, srvAddr, MDServerErrorUnwrapper{}, mdServer)
 	mdServer.conn = conn
-	mdServer.clientFactory = ConnectionClientFactory{conn}
-	return mdServer
-}
-
-// For testing.
-func newMDServerRemoteWithClient(ctx context.Context, config Config,
-	testClient keybase1.GenericClient) *MDServerRemote {
-	mdServer := &MDServerRemote{
-		config:        config,
-		clientFactory: CancelableClientFactory{testClient},
-		log:           config.MakeLogger(""),
-	}
+	mdServer.client = keybase1.MetadataClient{Cli: conn.GetClient()}
 	return mdServer
 }
 
@@ -82,19 +71,16 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		Sid:       token,
 	}
 
-	// using GetClient() here would cause problematic recursion
-	c := keybase1.MetadataClient{Cli: client}
-	var pingIntervalSeconds int
-	err = runUnlessCanceled(ctx, func() error {
-		pingIntervalSeconds, err = c.Authenticate(creds)
+	// Using md.client here would cause problematic recursion.
+	c := keybase1.MetadataClient{Cli: cancelableClient{client}}
+	pingIntervalSeconds, err := c.Authenticate(ctx, creds)
+	if err != nil {
 		return err
-	})
+	}
 
 	// start pinging
-	if err == nil {
-		md.resetPingTicker(pingIntervalSeconds)
-	}
-	return err
+	md.resetPingTicker(pingIntervalSeconds)
+	return nil
 }
 
 // Helper to reset a ping ticker.
@@ -120,7 +106,7 @@ func (md *MDServerRemote) resetPingTicker(intervalSeconds int) {
 		for {
 			select {
 			case <-ticker.C:
-				err := md.client(ctx).Ping()
+				err := md.client.Ping(ctx)
 				if err != nil {
 					md.log.Debug("MDServerRemote: ping error %s", err)
 				}
@@ -176,11 +162,6 @@ func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id Tlf
 	delete(md.observers, id)
 }
 
-// Helper to return a metadata client.
-func (md *MDServerRemote) client(ctx context.Context) keybase1.MetadataClient {
-	return keybase1.MetadataClient{Cli: md.clientFactory.GetClient(ctx)}
-}
-
 // Helper used to retrieve metadata blocks from the MD server.
 func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 	mStatus MergeStatus, start, stop MetadataRevision) (
@@ -205,7 +186,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 	}
 
 	// request
-	response, err := md.client(ctx).GetMetadata(arg)
+	response, err := md.client.GetMetadata(ctx, arg)
 	if err != nil {
 		return id, nil, err
 	}
@@ -278,7 +259,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		MdBlock: rmdsBytes,
 		LogTags: LogTagsFromContextToMap(ctx),
 	}
-	return md.client(ctx).PutMetadata(arg)
+	return md.client.PutMetadata(ctx, arg)
 }
 
 // PruneUnmerged implements the MDServer interface for MDServerRemote.
@@ -287,11 +268,11 @@ func (md *MDServerRemote) PruneUnmerged(ctx context.Context, id TlfID) error {
 		FolderID: id.String(),
 		LogTags:  LogTagsFromContextToMap(ctx),
 	}
-	return md.client(ctx).PruneUnmerged(arg)
+	return md.client.PruneUnmerged(ctx, arg)
 }
 
 // MetadataUpdate implements the MetadataUpdateProtocol interface.
-func (md *MDServerRemote) MetadataUpdate(arg keybase1.MetadataUpdateArg) error {
+func (md *MDServerRemote) MetadataUpdate(_ context.Context, arg keybase1.MetadataUpdateArg) error {
 	id := ParseTlfID(arg.FolderID)
 	if id == NullTlfID {
 		return MDServerErrorBadRequest{"Invalid folder ID"}
@@ -321,7 +302,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 
 	// register
 	var c chan error
-	err := md.conn.DoCommand(ctx, func() error {
+	err := md.conn.DoCommand(ctx, func(rawClient keybase1.GenericClient) error {
 		// set up the server to receive updates, since we may
 		// get disconnected between retries.
 		server := md.conn.GetServer()
@@ -346,10 +327,10 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 			c = make(chan error, 1)
 			md.observers[id] = c
 		}()
-		// Use this instead of md.client(ctx) since we're
-		// already inside a DoCommand().
-		c := keybase1.MetadataClient{Cli: md.conn.GetClient()}
-		err = c.RegisterForUpdates(arg)
+		// Use this instead of md.client since we're already
+		// inside a DoCommand().
+		c := keybase1.MetadataClient{Cli: rawClient}
+		err = c.RegisterForUpdates(ctx, arg)
 		if err != nil {
 			func() {
 				md.observerMu.Lock()
@@ -374,7 +355,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 // Shutdown implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Shutdown() {
 	// close the connection
-	md.clientFactory.Shutdown()
+	md.conn.Shutdown()
 	// cancel pending observers
 	md.cancelObservers()
 	// cancel the ping ticker
@@ -401,7 +382,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 		KeyHalfID: idBytes,
 		LogTags:   LogTagsFromContextToMap(ctx),
 	}
-	keyBytes, err := md.client(ctx).GetKey(arg)
+	keyBytes, err := md.client.GetKey(ctx, arg)
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
 	}
@@ -440,5 +421,5 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 		KeyHalves: keyHalves,
 		LogTags:   LogTagsFromContextToMap(ctx),
 	}
-	return md.client(ctx).PutKeys(arg)
+	return md.client.PutKeys(ctx, arg)
 }

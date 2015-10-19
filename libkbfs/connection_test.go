@@ -151,7 +151,7 @@ func TestDoCommandThrottle(t *testing.T) {
 
 	throttle := true
 	ctx := context.Background()
-	err := conn.DoCommand(ctx, func() error {
+	err := conn.DoCommand(ctx, func(keybase1.GenericClient) error {
 		if throttle {
 			throttle = false
 			err, _ := conn.errorUnwrapper.UnwrapError(libkb.WrapError(throttleError{Err: throttleErr}))
