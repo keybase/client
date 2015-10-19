@@ -78,12 +78,12 @@ func TestKex2Router(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		var merr error
 		msgs, merr = kt.get(mr, 3, 1*time.Second)
 		if merr != nil {
 			t.Errorf("receive error: %s", merr)
 		}
-		wg.Done()
 	}()
 
 	time.Sleep(3 * time.Millisecond)
