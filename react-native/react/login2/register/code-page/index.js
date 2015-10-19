@@ -1,6 +1,11 @@
 'use strict'
 /* @flow */
 
+/*
+ * Screen to scan/show qrcode/text code. Goes into various modes with various options depending on if
+ * you're a phone/computer and if you're the existing device or the new device
+ */
+
 import React, { Component, StyleSheet, Text, View, TextInput } from 'react-native'
 
 import {
@@ -176,14 +181,9 @@ export default class CodePage extends Component {
     }
   }
 
-  renderDebug () {
-    return <Text style={{color: 'red', fontSize: 8}}>{[this.props.myDeviceRole, this.props.otherDeviceRole, this.props.mode].join(':')}</Text>
-  }
-
   render () {
     return (
       <View style={styles.container}>
-        {this.renderDebug()}
         {this.renderContent()}
         {this.renderControls()}
       </View>
