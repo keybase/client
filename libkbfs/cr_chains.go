@@ -277,6 +277,65 @@ func (ccs *crChains) makeChainForOp(op op) error {
 	return nil
 }
 
+func (ccs *crChains) makeChainForNewOpWithUpdate(
+	targetPtr BlockPointer, newOp op, update *blockUpdate) error {
+	oldUnref := update.Unref
+	update.Unref = targetPtr
+	update.Ref = update.Unref // so that most recent == original
+	defer func() {
+		// reset the update to its original state before returning.
+		update.Unref = oldUnref
+		update.Ref = BlockPointer{}
+	}()
+	err := ccs.makeChainForOp(newOp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// makeChainForNewOp makes a new chain for an op that does not yet
+// have its pointers initialized, so help it out by setting Unref and
+// Ref to be the same for the duration of this function.  This
+// function is not goroutine-safe with respect to newOp.  Also note
+// that rename ops will not be split into two ops; they will be placed
+// only in the new directory chain.
+func (ccs *crChains) makeChainForNewOp(targetPtr BlockPointer, newOp op) error {
+	switch realOp := newOp.(type) {
+	case *createOp:
+		return ccs.makeChainForNewOpWithUpdate(targetPtr, newOp, &realOp.Dir)
+	case *rmOp:
+		return ccs.makeChainForNewOpWithUpdate(targetPtr, newOp, &realOp.Dir)
+	case *renameOp:
+		// In this case, we don't want to split the rename chain, so
+		// just make up a new operation and later overwrite it with
+		// the rename op.
+		co := newCreateOp(realOp.NewName, realOp.NewDir.Unref, File)
+		err := ccs.makeChainForNewOpWithUpdate(targetPtr, co, &co.Dir)
+		if err != nil {
+			return err
+		}
+		chain, ok := ccs.byMostRecent[targetPtr]
+		if !ok {
+			return fmt.Errorf("Couldn't find chain for %v after making it",
+				targetPtr)
+		}
+		if len(chain.ops) != 1 {
+			return fmt.Errorf("Chain of unexpected length for %v after "+
+				"making it", targetPtr)
+		}
+		chain.ops[0] = realOp
+		return nil
+	case *setAttrOp:
+		return ccs.makeChainForNewOpWithUpdate(targetPtr, newOp, &realOp.Dir)
+	case *syncOp:
+		return ccs.makeChainForNewOpWithUpdate(targetPtr, newOp, &realOp.File)
+	default:
+		return fmt.Errorf("Couldn't make chain with unknown operation %s",
+			newOp)
+	}
+}
+
 func (ccs *crChains) mostRecentFromOriginal(original BlockPointer) (
 	BlockPointer, error) {
 	chain, ok := ccs.byOriginal[original]

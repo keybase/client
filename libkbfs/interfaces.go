@@ -948,20 +948,33 @@ type blockCopyFetcher func(string, BlockPointer) (
 // conflict resolution process.
 type crAction interface {
 	// do modifies the given merged block in place to resolve the
-	// conflict, and returns potentially modified sets of unmerged and
-	// merged operations.  Eventually, the "unmerged" ops will be
-	// pushed as part of a MD update, and so should contain any
-	// necessarily operations to fully merge the unmerged data,
-	// including any conflict resolution.  The "merged" ops will be
-	// played through locally, to notify any caches about the
-	// newly-obtained merged data (and any changes to local data that
-	// were required as part of conflict resolution, such as renames).
+	// conflict, and potential uses the provided blockCopyFetchers to
+	// obtain copies of other blocks (along with new BlockPointers)
+	// when requiring a block copy.
 	do(ctx context.Context, config Config,
 		fetchUnmergedBlockCopy blockCopyFetcher,
-		fetchMergedBlockCopy blockCopyFetcher, unmergedMostRecent BlockPointer,
-		mergedMostRecent BlockPointer, unmergedOps []op, mergedOps []op,
-		unmergedBlock *DirBlock, mergedBlock *DirBlock) (
-		retUnmergedOps []op, retMergedOps []op, err error)
+		fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
+		mergedBlock *DirBlock) error
+	// updateOps potentially modifies, in place, the slices of
+	// unmerged and merged operations stored in the corresponding
+	// crChains for the given unmerged and merged most recent
+	// pointers.  Eventually, the "unmerged" ops will be pushed as
+	// part of a MD update, and so should contain any necessarily
+	// operations to fully merge the unmerged data, including any
+	// conflict resolution.  The "merged" ops will be played through
+	// locally, to notify any caches about the newly-obtained merged
+	// data (and any changes to local data that were required as part
+	// of conflict resolution, such as renames).  A few things to note:
+	// * A particular action's updateOps method may be called more than
+	//   once for different sets of chains, however it should only add
+	//   new directory operations (like create/rm/rename) into directory
+	//   chains.
+	// * updateOps doesn't necessarily result in correct BlockPointers within
+	//   each of those ops; that must happen in a later phase.
+	// * mergedBlock can be nil if the chain is for a file.
+	updateOps(unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
+		mergedBlock *DirBlock, unmergedChains *crChains,
+		mergedChains *crChains) error
 	// String returns a string representation for this crAction, used
 	// for debugging.
 	String() string

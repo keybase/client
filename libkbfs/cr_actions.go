@@ -48,41 +48,69 @@ func fixupNamesInOps(fromName string, toName string, ops []op) (retOps []op) {
 
 func (cuea *copyUnmergedEntryAction) do(ctx context.Context, config Config,
 	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher,
-	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
-	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
+	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
+	mergedBlock *DirBlock) error {
 	// Find the unmerged entry
 	unmergedEntry, ok := unmergedBlock.Children[cuea.fromName]
 	if !ok {
-		return nil, nil, NoSuchNameError{cuea.fromName}
+		return NoSuchNameError{cuea.fromName}
 	}
 
 	if cuea.symPath != "" {
 		unmergedEntry.Type = Sym
 		unmergedEntry.SymPath = cuea.symPath
-
-		// If this was turned into a symlink, then we have to simulate
-		// a rename at the beginning of the mergedOps list.  Even if
-		// the names are the same, this should clear out the caches of
-		// any observers.
-		retMergedOps = append([]op{newRenameOp(
-			cuea.fromName, unmergedMostRecent, cuea.toName,
-			unmergedMostRecent, unmergedEntry.BlockPointer)}, mergedOps...)
 	}
 
 	mergedBlock.Children[cuea.toName] = unmergedEntry
+	return nil
+}
+
+func prependOpsToChain(mostRecent BlockPointer, chains *crChains,
+	newOps ...op) error {
+	chain := chains.byMostRecent[mostRecent]
+	// Create the chain if it doesn't exist yet.
+	if chain == nil && len(newOps) > 0 {
+		err := chains.makeChainForNewOp(mostRecent, newOps[0])
+		if err != nil {
+			return err
+		}
+		chain = chains.byMostRecent[mostRecent]
+		chain.ops = nil // will prepend it below
+	}
+	// prepend it
+	chain.ops = append(newOps, chain.ops...)
+	return nil
+}
+
+func (cuea *copyUnmergedEntryAction) updateOps(unmergedMostRecent BlockPointer,
+	mergedMostRecent BlockPointer, mergedBlock *DirBlock,
+	unmergedChains *crChains, mergedChains *crChains) error {
+	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
+	if !ok {
+		return fmt.Errorf("Couldn't find unmerged chain for %v",
+			unmergedMostRecent)
+	}
+
+	if cuea.symPath != "" && !unmergedChain.isFile() {
+		// If this was turned into a symlink, then we have to simulate
+		// rm/create at the beginning of the mergedOps list.
+		err := prependOpsToChain(mergedMostRecent, mergedChains,
+			newRmOp(cuea.fromName, mergedMostRecent),
+			newCreateOp(cuea.toName, mergedMostRecent, Sym))
+		if err != nil {
+			return err
+		}
+	}
 
 	// If the name changed, we have to update all the unmerged ops
 	// with the new name.
 	// The merged ops don't change, though later we may have to
 	// manipulate the block pointers in the original ops.
 	if cuea.fromName != cuea.toName {
-		retUnmergedOps =
-			fixupNamesInOps(cuea.fromName, cuea.toName, unmergedOps)
+		unmergedChain.ops =
+			fixupNamesInOps(cuea.fromName, cuea.toName, unmergedChain.ops)
 	}
-
-	return retUnmergedOps, retMergedOps, nil
+	return nil
 }
 
 func (cuea *copyUnmergedEntryAction) String() string {
@@ -101,19 +129,17 @@ type copyUnmergedAttrAction struct {
 
 func (cuaa *copyUnmergedAttrAction) do(ctx context.Context, config Config,
 	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher,
-	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
-	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
+	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
+	mergedBlock *DirBlock) error {
 	// Find the unmerged entry
 	unmergedEntry, ok := unmergedBlock.Children[cuaa.fromName]
 	if !ok {
-		return nil, nil, NoSuchNameError{cuaa.fromName}
+		return NoSuchNameError{cuaa.fromName}
 	}
 
 	mergedEntry, ok := mergedBlock.Children[cuaa.toName]
 	if !ok {
-		return nil, nil, NoSuchNameError{cuaa.toName}
+		return NoSuchNameError{cuaa.toName}
 	}
 	for _, attr := range cuaa.attr {
 		switch attr {
@@ -129,16 +155,27 @@ func (cuaa *copyUnmergedAttrAction) do(ctx context.Context, config Config,
 	}
 	mergedBlock.Children[cuaa.toName] = mergedEntry
 
+	return nil
+}
+
+func (cuaa *copyUnmergedAttrAction) updateOps(unmergedMostRecent BlockPointer,
+	mergedMostRecent BlockPointer, mergedBlock *DirBlock,
+	unmergedChains *crChains, mergedChains *crChains) error {
+	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
+	if !ok {
+		return fmt.Errorf("Couldn't find unmerged chain for %v",
+			unmergedMostRecent)
+	}
+
 	// If the name changed, we have to update all the unmerged ops
 	// with the new name.
 	// The merged ops don't change, though later we may have to
 	// manipulate the block pointers in the original ops.
 	if cuaa.fromName != cuaa.toName {
-		retUnmergedOps =
-			fixupNamesInOps(cuaa.fromName, cuaa.toName, unmergedOps)
+		unmergedChain.ops =
+			fixupNamesInOps(cuaa.fromName, cuaa.toName, unmergedChain.ops)
 	}
-
-	return retUnmergedOps, retMergedOps, nil
+	return nil
 }
 
 func (cuaa *copyUnmergedAttrAction) String() string {
@@ -154,15 +191,19 @@ type rmMergedEntryAction struct {
 
 func (rmea *rmMergedEntryAction) do(ctx context.Context, config Config,
 	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher,
-	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
-	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
+	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
+	mergedBlock *DirBlock) error {
 	if _, ok := mergedBlock.Children[rmea.name]; !ok {
-		return nil, nil, NoSuchNameError{rmea.name}
+		return NoSuchNameError{rmea.name}
 	}
 	delete(mergedBlock.Children, rmea.name)
-	return unmergedOps, mergedOps, nil
+	return nil
+}
+
+func (rmea *rmMergedEntryAction) updateOps(unmergedMostRecent BlockPointer,
+	mergedMostRecent BlockPointer, mergedBlock *DirBlock,
+	unmergedChains *crChains, mergedChains *crChains) error {
+	return nil
 }
 
 func (rmea *rmMergedEntryAction) String() string {
@@ -223,42 +264,71 @@ func crActionCopyFile(ctx context.Context, config Config,
 
 func (rua *renameUnmergedAction) do(ctx context.Context, config Config,
 	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher,
-	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
-	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
-	unmergedEntry, err := crActionCopyFile(ctx, config,
+	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
+	mergedBlock *DirBlock) error {
+	_, err := crActionCopyFile(ctx, config,
 		fetchUnmergedBlockCopy, rua.fromName, rua.toName, unmergedBlock,
 		mergedBlock)
 	if err != nil {
-		return nil, nil, err
+		return err
+	}
+	return nil
+}
+
+func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
+	mergedMostRecent BlockPointer, mergedBlock *DirBlock,
+	unmergedChains *crChains, mergedChains *crChains) error {
+	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
+	if !ok {
+		return fmt.Errorf("Couldn't find unmerged chain for %v",
+			unmergedMostRecent)
 	}
 
-	mergedEntry, ok := mergedBlock.Children[rua.fromName]
-	if !ok {
-		return nil, nil, NoSuchNameError{rua.fromName}
-	}
+	// Rename all operations with the old name to the new name.
+	unmergedChain.ops =
+		fixupNamesInOps(rua.fromName, rua.toName, unmergedChain.ops)
 
 	// Prepend a rename for the unmerged copy to the merged set of
 	// operations, with another create for the merged file, for local
-	// playback.  XXX: this isn't quite right because mergedMostRecent
-	// is not a valid BlockPointer when we start playing back these
-	// operations.  Hrmmm, I will fix this up in a future commit once
-	// I know exactly how the operations will be fixed up and played
-	// forward.
-	retMergedOps = append([]op{
-		newRenameOp(rua.fromName, unmergedMostRecent, rua.toName,
-			mergedMostRecent, unmergedEntry.BlockPointer),
-		newCreateOp(rua.fromName, mergedMostRecent, mergedEntry.Type),
-	}, mergedOps...)
+	// playback.
+	if !unmergedChain.isFile() {
+		unmergedEntry, ok := mergedBlock.Children[rua.toName]
+		if !ok {
+			return NoSuchNameError{rua.toName}
+		}
 
-	// Before merging the unmerged ops, create a file with the new
-	// name, and then rename all subsequent ops with it.
-	retUnmergedOps = append([]op{
-		newCreateOp(rua.toName, mergedMostRecent, unmergedEntry.Type),
-	}, unmergedOps...)
-	retUnmergedOps = fixupNamesInOps(rua.fromName, rua.toName, retUnmergedOps)
-	return retUnmergedOps, retMergedOps, nil
+		mergedEntry, ok := mergedBlock.Children[rua.fromName]
+		if !ok {
+			return NoSuchNameError{rua.fromName}
+		}
+
+		err := prependOpsToChain(mergedMostRecent, mergedChains,
+			newRenameOp(rua.fromName, unmergedMostRecent, rua.toName,
+				mergedMostRecent, unmergedEntry.BlockPointer),
+			newCreateOp(rua.fromName, mergedMostRecent, mergedEntry.Type))
+		if err != nil {
+			return err
+		}
+
+		// Before merging the unmerged ops, create a file with the new
+		// name, unless the create already exists.
+		found := false
+		for _, op := range unmergedChain.ops {
+			if co, ok := op.(*createOp); ok && co.NewName == rua.toName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			err = prependOpsToChain(unmergedMostRecent, unmergedChains,
+				newCreateOp(rua.toName, mergedMostRecent, mergedEntry.Type))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (rua *renameUnmergedAction) String() string {
@@ -274,43 +344,82 @@ type renameMergedAction struct {
 
 func (rma *renameMergedAction) do(ctx context.Context, config Config,
 	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher,
-	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
-	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
-	mergedEntry, err := crActionCopyFile(ctx, config,
+	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
+	mergedBlock *DirBlock) error {
+	_, err := crActionCopyFile(ctx, config,
 		fetchMergedBlockCopy, rma.fromName, rma.toName, mergedBlock,
 		mergedBlock)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	unmergedEntry, ok := unmergedBlock.Children[rma.fromName]
 	if !ok {
-		return nil, nil, NoSuchNameError{rma.fromName}
+		return NoSuchNameError{rma.fromName}
 	}
 	mergedBlock.Children[rma.fromName] = unmergedEntry
+	return nil
+}
 
-	// Prepend a rename for the merged copy to the unmerged set of
-	// operations, with another create for the unmerged file, for remote
-	// playback.
-	retUnmergedOps = append([]op{
-		newRenameOp(rma.fromName, mergedMostRecent, rma.toName,
-			mergedMostRecent, mergedEntry.BlockPointer),
-		newCreateOp(rma.fromName, mergedMostRecent, unmergedEntry.Type),
-	}, unmergedOps...)
+func (rma *renameMergedAction) updateOps(unmergedMostRecent BlockPointer,
+	mergedMostRecent BlockPointer, mergedBlock *DirBlock,
+	unmergedChains *crChains, mergedChains *crChains) error {
+	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
+	if !ok {
+		return fmt.Errorf("Couldn't find unmerged chain for %v",
+			unmergedMostRecent)
+	}
 
-	// Before merging the unmerged ops, create a file with the new
-	// name, and then rename all subsequent ops with it.  XXX: this
-	// isn't quite right because mergedMostRecent is not a valid
-	// BlockPointer when we start playing back these operations.
-	// Hrmmm, I will fix this up in a future commit once I know
-	// exactly how the operations will be fixed up and played forward.
-	retMergedOps = append([]op{
-		newCreateOp(rma.toName, mergedMostRecent, mergedEntry.Type),
-	}, mergedOps...)
-	retMergedOps = fixupNamesInOps(rma.fromName, rma.toName, retMergedOps)
-	return retUnmergedOps, retMergedOps, nil
+	// Rename all operations with the old name to the new name.
+	mergedChain := mergedChains.byMostRecent[mergedMostRecent]
+	if mergedChain != nil {
+		mergedChain.ops =
+			fixupNamesInOps(rma.fromName, rma.toName, mergedChain.ops)
+	}
+
+	if !unmergedChain.isFile() {
+		unmergedEntry, ok := mergedBlock.Children[rma.fromName]
+		if !ok {
+			return NoSuchNameError{rma.fromName}
+		}
+
+		mergedEntry, ok := mergedBlock.Children[rma.toName]
+		if !ok {
+			return NoSuchNameError{rma.toName}
+		}
+
+		// Prepend a rename for the merged copy to the unmerged set of
+		// operations, with another create for the unmerged file, for remote
+		// playback.
+		err := prependOpsToChain(unmergedMostRecent, unmergedChains,
+			newRenameOp(rma.fromName, mergedMostRecent, rma.toName,
+				mergedMostRecent, mergedEntry.BlockPointer),
+			newCreateOp(rma.fromName, mergedMostRecent, unmergedEntry.Type))
+		if err != nil {
+			return err
+		}
+
+		// Before playing back the merged ops, create a file with the
+		// new name, unless the create already exists.
+		found := false
+		if mergedChain != nil {
+			for _, op := range mergedChain.ops {
+				if co, ok := op.(*createOp); ok && co.NewName == rma.toName {
+					found = true
+					break
+				}
+			}
+		}
+		if !found {
+			err := prependOpsToChain(mergedMostRecent, mergedChains,
+				newCreateOp(rma.toName, mergedMostRecent, mergedEntry.Type))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (rma *renameMergedAction) String() string {
@@ -325,21 +434,34 @@ type dropUnmergedAction struct {
 
 func (dua *dropUnmergedAction) do(ctx context.Context, config Config,
 	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher,
-	unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
-	unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) (retUnmergedOps []op, retMergedOps []op, err error) {
-	for i, op := range unmergedOps {
+	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
+	mergedBlock *DirBlock) error {
+	return nil
+}
+
+func (dua *dropUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
+	mergedMostRecent BlockPointer, mergedBlock *DirBlock,
+	unmergedChains *crChains, mergedChains *crChains) error {
+	unmergedChain, ok := unmergedChains.byMostRecent[unmergedMostRecent]
+	if !ok {
+		return fmt.Errorf("Couldn't find unmerged chain for %v",
+			unmergedMostRecent)
+	}
+
+	for i, op := range unmergedChain.ops {
 		if op == dua.op {
-			retUnmergedOps = append(unmergedOps[:i], unmergedOps[i+1:]...)
+			unmergedChain.ops =
+				append(unmergedChain.ops[:i], unmergedChain.ops[i+1:]...)
 			break
 		}
 	}
 
 	invertedOp := invertOpForLocalNotifications(dua.op)
-	// XXX: Need to fix up the pointers in invertedOp.
-	retMergedOps = append([]op{invertedOp}, mergedOps...)
-	return retUnmergedOps, retMergedOps, nil
+	err := prependOpsToChain(mergedMostRecent, mergedChains, invertedOp)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (dua *dropUnmergedAction) String() string {

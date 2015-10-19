@@ -706,15 +706,10 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 		if ok {
 			chain.ops = append([]op{rop}, chain.ops...)
 		} else {
-			oldUnref := rop.Dir.Unref
-			rop.Dir.Unref = origTargetPtr
-			rop.Dir.Ref = rop.Dir.Unref // so that most recent == original
-			err := unmergedChains.makeChainForOp(rop)
+			err := unmergedChains.makeChainForNewOp(origTargetPtr, rop)
 			if err != nil {
 				return err
 			}
-			rop.Dir.Unref = oldUnref
-			rop.Dir.Ref = BlockPointer{}
 			chain = unmergedChains.byOriginal[origTargetPtr]
 		}
 
@@ -1089,7 +1084,6 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 				unmergedMostRecent)
 		}
 
-		original := unmergedChain.original
 		// If this is a file that has been deleted in the merged
 		// branch, a corresponding recreate op will take care of it,
 		// no need to do anything here.
@@ -1116,13 +1110,6 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 		}
 		// Make sure we don't try to execute the same actions twice.
 		delete(actionMap, mergedPath.tailPointer())
-
-		var mergedOps []op
-		mergedChain, ok := mergedChains.byOriginal[original]
-		if ok {
-			mergedOps = mergedChain.ops
-		}
-		unmergedOps := unmergedChain.ops
 
 		// Now get the directory blocks.
 		unmergedBlock, err := cr.fetchDirBlockCopy(ctx, mostRecentUnmergedMD,
@@ -1153,16 +1140,10 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 		// Execute each action and save the modified ops back into
 		// each chain.
 		for _, action := range actions {
-			unmergedOps, mergedOps, err :=
-				action.do(ctx, cr.config, unmergedFetcher, mergedFetcher,
-					unmergedMostRecent, mergedPath.tailPointer(), unmergedOps,
-					mergedOps, unmergedBlock, mergedBlock)
+			err := action.do(ctx, cr.config, unmergedFetcher, mergedFetcher,
+				unmergedBlock, mergedBlock)
 			if err != nil {
 				return err
-			}
-			unmergedChain.ops = unmergedOps
-			if mergedChain != nil {
-				mergedChain.ops = mergedOps
 			}
 		}
 	}
