@@ -36,9 +36,9 @@ test:
     # run tests  against the emulator.
     - (cd android && ./gradlew connectedAndroidTest)
     # copy the build outputs to artifacts
-    - cp -r my-project/build/outputs $CIRCLE_ARTIFACTS
+    - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
     # copy the test results to the test results directory.
-    - cp -r my-project/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
+    - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
     # Build a debug version of the app
     - (cd android && ./gradlew assembleDebug)
     # Upload it to appetize
