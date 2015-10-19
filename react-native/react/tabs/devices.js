@@ -5,7 +5,6 @@ import React, { Component, Text, View, ScrollView, StyleSheet } from 'react-nati
 import Button from '../common-adapters/button'
 import { loadDevices } from '../actions/devices'
 import moment from 'moment'
-import * as loginStates from '../constants/login-states'
 import CodePage from '../login2/register/code-page'
 
 import commonStyles from '../styles/common'
@@ -46,15 +45,7 @@ export default class Devices extends Component {
   }
 
   render () {
-    const { loginState, devices } = this.props
-
-    if (loginState !== loginStates.LOGGED_IN) {
-      return (
-        <View style={{marginTop: 20}}>
-          <Text style={[commonStyles.centerText]}> Login to see devices </Text>
-        </View>
-      )
-    }
+    const { devices } = this.props
 
     if (!devices) {
       return (
@@ -84,7 +75,7 @@ export default class Devices extends Component {
       parseNextRoute: null,
       componentAtTop: {
         hideNavBar: true,
-        mapStateToProps: state => Object.assign({}, state.login, state.devices)
+        mapStateToProps: state => state.devices
       },
       subRoutes: {
         codePage: CodePage
@@ -95,7 +86,6 @@ export default class Devices extends Component {
 
 Devices.propTypes = {
   devices: React.PropTypes.array,
-  loginState: React.PropTypes.string.isRequired,
   waitingForServer: React.PropTypes.bool.isRequired,
   dispatch: React.PropTypes.func.isRequired
 }

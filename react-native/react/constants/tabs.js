@@ -1,4 +1,5 @@
 'use strict'
+export const STARTUP_TAB = 'STARTUP_TAB'
 export const FOLDER_TAB = 'FOLDER_TAB'
 export const CHAT_TAB = 'CHAT_TAB'
 export const PEOPLE_TAB = 'PEOPLE_TAB'

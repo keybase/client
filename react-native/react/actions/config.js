@@ -1,24 +1,24 @@
 'use strict'
 
 import { NativeModules } from 'react-native'
-import * as types from '../constants/config-action-types'
-import { autoLogin } from './login'
+import * as Constants from '../constants/config'
+import { autoLogin } from './login2'
 import engine from '../engine'
 
 export function startup () {
   return function (dispatch) {
-    dispatch({type: types.STARTUP_LOADING})
+    dispatch({type: Constants.startupLoading})
 
     engine.rpc('config.getConfig', {}, {}, (error, config) => {
       if (error) {
-        dispatch({ type: types.STARTUP_LOADED, payload: error, error: true })
+        dispatch({ type: Constants.startupLoaded, payload: error, error: true })
       } else {
         engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
           if (error) {
-            dispatch({ type: types.STARTUP_LOADED, payload: error, error: true })
+            dispatch({ type: Constants.startupLoaded, payload: error, error: true })
           } else {
             dispatch({
-              type: types.STARTUP_LOADED,
+              type: Constants.startupLoaded,
               payload: { config, status }
             })
 
@@ -35,12 +35,12 @@ export function startup () {
 export function getDevSettings () {
   return function (dispatch) {
     dispatch({
-      type: types.DEV_CONFIG_LOADING
+      type: Constants.devConfigLoading
     })
 
     NativeModules.App.getDevConfig((devConfig) => {
       dispatch({
-        type: types.DEV_CONFIG_LOADED,
+        type: Constants.devConfigLoaded,
         devConfig
       })
     })
@@ -55,14 +55,14 @@ export function saveDevSettings () {
     NativeModules.App.setDevConfig(devConfig.configured)
 
     return dispatch({
-      type: types.DEV_CONFIG_SAVED
+      type: Constants.devConfigSaved
     })
   }
 }
 
 export function updateDevSettings (updates) {
   return {
-    type: types.DEV_CONFIG_UPDATE,
+    type: Constants.devConfigUpdate,
     updates
   }
 }

@@ -246,3 +246,33 @@ export function submitForgotPassword () {
     })
   }
 }
+
+export function autoLogin () {
+  return function (dispatch) {
+    engine.rpc('login.loginWithPrompt', {}, {}, (error, status) => {
+      if (error) {
+        console.log(error)
+      } else {
+        dispatch({
+          type: Constants.loginDone,
+          error: false,
+          payload: status
+        })
+      }
+    })
+  }
+}
+
+export function logout () {
+  return function (dispatch) {
+    engine.rpc('login.logout', {}, {}, (error, response) => {
+      if (error) {
+        console.log(error)
+      } else {
+        dispatch({
+          type: Constants.logoutDone
+        })
+      }
+    })
+  }
+}
