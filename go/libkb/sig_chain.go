@@ -302,15 +302,29 @@ func (sc *SigChain) Store() (err error) {
 	return nil
 }
 
+// Some users (6) managed to reuse eldest keys after a sigchain reset, without
+// using the "eldest" link type, before the server prohibited this. To clients,
+// that means their chains don't appear to reset. We hardcode these cases.
+var hardcodedResets = map[keybase1.SigID]bool{
+	"11111487aa193b9fafc92851176803af8ed005983cad1eaf5d6a49a459b8fffe0f": true,
+	"df0005f6c61bd6efd2867b320013800781f7f047e83fd44d484c2cb2616f019f0f": true,
+	"32eab86aa31796db3200f42f2553d330b8a68931544bbb98452a80ad2b0003d30f": true,
+	"5ed7a3356fd0f759a4498fc6fed1dca7f62611eb14f782a2a9cda1b836c58db50f": true,
+	"d5fe2c5e31958fe45a7f42b325375d5bd8916ef757f736a6faaa66a6b18bec780f": true,
+	"1e116e81bc08b915d9df93dc35c202a75ead36c479327cdf49a15f3768ac58f80f": true,
+}
+
 // GetCurrentSubchain takes the given sigchain and walks backward until it
 // finds the start of the current subchain, returning all the links in the
-// subchain. A new subchain starts in one of two ways (from the perspective of
-// walking from oldest to newest):
+// subchain. A new subchain starts in one of three ways (from the perspective
+// of walking from oldest to newest):
 // 1) A link has a new eldest key, usually in the form of reporting no
 //    eldest_kid of its own and being signed by a KID that's not the previous
 //    eldest. Most resets so far take this form.
 // 2) A link of type "eldest", regardless of the KIDs involved. We want this to
 //    be how everything works in the future.
+// 3) One of a set of six hardcoded links that made it in back when we allowed
+//    repeating eldest keys without using the "eldest" link type.
 func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (links []*ChainLink, err error) {
 	if sc.chainLinks == nil {
 		return
@@ -326,6 +340,10 @@ func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (links []*ChainLink,
 		}
 		// Also stop walking if the current link has type "eldest".
 		if sc.chainLinks[i].unpacked.typ == string(EldestType) {
+			break
+		}
+		// Or if the link is one of our hardcoded six that reuse an eldest key ambiguously.
+		if hardcodedResets[sc.chainLinks[i].unpacked.sigID] {
 			break
 		}
 	}

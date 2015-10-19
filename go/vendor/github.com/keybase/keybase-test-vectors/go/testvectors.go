@@ -213,6 +213,13 @@ const ChainTests = `
       "len": 1,
       "sibkeys": 1,
       "subkeys": 0
+    },
+    "test_hardcoded_reset": {
+      "_comment": "Several users (6) managed to do a sigchain reset and reuse their eldest key without an 'eldest' link, before we prohibited that on the server. This test uses the chain of one of those users, as a canary to make sure they're covered.",
+      "input": "hardcoded_reset.json",
+      "len": 1,
+      "sibkeys": 1,
+      "subkeys": 0
     }
   }
 }
@@ -5839,6 +5846,78 @@ var ChainTestInputs = map[string]string{
     ],
     "uid": "745cc9f7c761ae00709dd707b9276f19",
     "username": "kathy"
+}
+`,
+	"hardcoded_reset.json": `{
+    "chain": [
+        {
+            "seqno": 1,
+            "payload_hash": "45aa7f220a5f1a54e0d2a7f7ec16fff99c90849842f9eb06c51fab5282c4c997",
+            "sig_id": "ab1dc65843751ca45a730b7ee4f191e40df133a4f7f2b1bb9c23cdd739a523b10f",
+            "sig_id_short": "qx3GWEN1HKRacwt-5PGR5A3xM6T38rG7nCPN",
+            "kid": "0101550c284019ad5249e04ccbcf0a6176eddd371e5ba17c034b27b8d59d5cce84300a",
+            "sig": "-----BEGIN PGP MESSAGE-----\nVersion: GnuPG v2\n\nowGtUmtIFFEU3vXdkpWJ9CMtG6F+uK53Xjuz5g8rjKKCHqBsisvMvXd1dJtdZ2bV\n9QEVBIVSUWmRiJVhRFBkVlhpVBSKb62tkAoziTXECoqIimbMogj61f117znfd853\nv3MOx4abYsx7jg8NmBPyC8y9IdGUE3V9cRUhelGAyKgioEfCsmbcZGEXJjKIEhwQ\nBRXbJG+y7EXYVqwmz2GsRBlWVMkr6yhg420UIGqsBt5gYw/CquYqkZCRJQHJsgBS\nPANIh4BYinFgwEAoQjcQ7CRnxwghmiMxKwokBwHNiBQn8oh1IBZCzDM0AILe0C3J\nhVjxKZIhkSDddo6nMUQMYLH+gA5EUQwmAYUdkEF2gYd2TAOsE4u8qvbHZ4hZpa4f\n8v7G/2fd/tlyNEdBEoqIozDj5llS4BhE0RTD8QJH0aTDAKpYmTMeCWUS8gmKEjBs\n1eNlEsS/DUYrlzQNK/8iaQGfESzHomuO7xIlGekm/hperj49UodCTTIKkAxDUzyw\ns8BK4AqfpGCXZCBYzs4D/VgJn4LLiAzZ7/EYokplr57VOwmFeiNVKpQFza9gouaA\nOTHCZI4xRUWGGQtmssxb9HPrChtiTIc6q9ZAwI86iQpbLXU1ZUfditrMjumLXS7f\nbnWmZaw7dapzui27ftOJ2++am86+uLutryl+b99N37qCDVvFxuFzoeev3y/LP+gB\n9U+dlo2VFpvz5a3onk/70hJbxk+y0elvF0aMV13pusA4r5W0NzTIqRnHUJ8zu/1S\n0pvHQ/csHVnSnbSE2LyjfdalkzMB08fcQN6T6TPssxs5cEEwFPyWPqVOPPw6v/b8\naN1EsG6w2sG/qmzdcj8RBUfi+6tTVofxSV1trQPx+5PA6Qdx+cM714c/6u+pjij9\nkFk0Wdq8OW151ph/sDg00btqZElR4+XGL93EZ3vk9iOn1q6M46a/Aw==\n=KYmi\n-----END PGP MESSAGE-----",
+            "payload_json": "{\"body\":{\"client\":{\"name\":\"keybase.io node.js client\",\"version\":\"0.8.20\"},\"key\":{\"eldest_kid\":\"0101550c284019ad5249e04ccbcf0a6176eddd371e5ba17c034b27b8d59d5cce84300a\",\"fingerprint\":\"1f6783ecd405e1f6c9d224e102e9c4d6a8c6e30e\",\"host\":\"keybase.io\",\"key_id\":\"02e9c4d6a8c6e30e\",\"kid\":\"0101550c284019ad5249e04ccbcf0a6176eddd371e5ba17c034b27b8d59d5cce84300a\",\"uid\":\"372c1cbd72e4f851a74d232478a72319\",\"username\":\"davidparry\"},\"service\":{\"name\":\"twitter\",\"username\":\"davidparry\"},\"type\":\"web_service_binding\",\"version\":1},\"ctime\":1443280650,\"expire_in\":157680000,\"prev\":null,\"seqno\":1,\"tag\":\"signature\"}",
+            "sig_type": 2,
+            "ctime": 1443280650,
+            "etime": 1600960650,
+            "rtime": null,
+            "sig_status": 2,
+            "prev": null,
+            "proof_id": "7cd19fa85fc05075a670dd10",
+            "proof_type": 2,
+            "proof_text_check": "Verifying myself: I am davidparry on Keybase.io. qx3GWEN1HKRacwt-5PGR5A3xM6T38rG7nCPN /",
+            "proof_text_full": "Verifying myself: I am davidparry on Keybase.io. qx3GWEN1HKRacwt-5PGR5A3xM6T38rG7nCPN / https://keybase.io/davidparry/sigs/qx3GWEN1HKRacwt-5PGR5A3xM6T38rG7nCPN\n",
+            "check_data_json": "{\"name\":\"twitter\",\"username\":\"davidparry\"}",
+            "remote_id": "647792257505054720",
+            "api_url": "https://twitter.com/davidparry/status/647792257505054720",
+            "human_url": "https://twitter.com/davidparry/status/647792257505054720",
+            "proof_state": 5,
+            "proof_status": 1,
+            "retry_count": 1,
+            "hard_fail_count": 0,
+            "last_check": 1443280691,
+            "last_success": 1443280691,
+            "version": 1,
+            "fingerprint": "1f6783ecd405e1f6c9d224e102e9c4d6a8c6e30e"
+        },
+        {
+            "seqno": 2,
+            "payload_hash": "bc898feeb7a2717e23dc1f457dc18902fb9157bf86374b2a0b1aaba4f2831bee",
+            "sig_id": "32eab86aa31796db3200f42f2553d330b8a68931544bbb98452a80ad2b0003d30f",
+            "sig_id_short": "Muq4aqMXltsyAPQvJVPTMLimiTFUS7uYRSqA",
+            "kid": "0101550c284019ad5249e04ccbcf0a6176eddd371e5ba17c034b27b8d59d5cce84300a",
+            "sig": "-----BEGIN PGP MESSAGE-----\nVersion: GnuPG v2\n\nowGtUllsTUEYvtfakiZiaeIGaQ4i0utmzpw5W1se2gfLA61YSug1Z+Y/10Hvvc49\nbbU3RAlNJbYgqqFB0ojGGtRSiS14EEtSS4gttrRKqhFBQzinSojEk3ma+ef7vvn+\n759NaT19Kf7K7bdu+IfMK/JfazV8s/pcSk8KRoyXC1lJgS2xIOp4uygtBiFLWAzl\nBk1AyIplRGMcQosSGd2YoFAKdsKKRV0UCmkhjITlQQ/vsWEJh4QTXmxx71ZEoiwj\nhjWCRJ1yGRMdEGHMYCaiiqgqwDmXVBFkg4oqQxIxsGpoXNa5zBhoREKIug+aVjQC\ndty2PIuCaCqqJgHjBMngHpjOMSYgIgw6I1yhGlNAQuASF8YSzh/NCF1Owz/s/Y3/\nz75LuuQkFTORGVzFQExNFqlKOJYwUTWqYknUPWAC7O7gOS21eJzadrkXq1svtRj8\nNhinzHIcsP9FcsrjXrEMjHA3P2xYUe6G+Gt429zpiS6UOZYnIBIiYc3tSAkKsCxu\n2RC2PISsKhpyV1CI21DqahKZUtXEGFHZFKlMAHHsFlRgomKapq4zHWlE1wg2dTCQ\nwmTRpIaMNcwI03VV8FpaGo0JWdj1SSOuZMKKRKlTYoOwvNo/rJfPn+Lr07uH9z19\n/VIH/PyzK6r6fmP6p7M1Z5wPT5OFg8z8ptZnn5Xg/iktJUJzfUvvtXV525sCKLCr\n4GF2YmdqRf7EewuuXqoQLuaO0KQJK89ffrOv/uCcQy2Nd47W1RbY6fxCTv7oJzNa\nUw4lq/ZW5aZ1VB+YbgYK4NXFpsebC0Nvp57syFl9vQHqHmWMjd/fndPeeOX6+v6n\nZ4+b7IYTeeGPT3p9O/nl3IOhY09rw+nxkfkzw+Et7060Bs5+OzWwaMeawfU1aRue\nj0/v+FB4bS6af3h01c2szOzL9ccONmze37mx0maBPVvff53ZEWtYlXtr3deXtcV1\nzdMa7xY54zPVvE61R2R4+GP74DE5zZnVbW3O7iOjsr8D\n=wPnA\n-----END PGP MESSAGE-----",
+            "payload_json": "{\"body\":{\"client\":{\"name\":\"keybase.io node.js client\",\"version\":\"0.8.20\"},\"key\":{\"eldest_kid\":\"0101550c284019ad5249e04ccbcf0a6176eddd371e5ba17c034b27b8d59d5cce84300a\",\"fingerprint\":\"1f6783ecd405e1f6c9d224e102e9c4d6a8c6e30e\",\"host\":\"keybase.io\",\"key_id\":\"02e9c4d6a8c6e30e\",\"kid\":\"0101550c284019ad5249e04ccbcf0a6176eddd371e5ba17c034b27b8d59d5cce84300a\",\"uid\":\"372c1cbd72e4f851a74d232478a72319\",\"username\":\"davidparry\"},\"service\":{\"name\":\"twitter\",\"username\":\"davidparry\"},\"type\":\"web_service_binding\",\"version\":1},\"ctime\":1443283716,\"expire_in\":157680000,\"prev\":\"45aa7f220a5f1a54e0d2a7f7ec16fff99c90849842f9eb06c51fab5282c4c997\",\"seqno\":2,\"tag\":\"signature\"}",
+            "sig_type": 2,
+            "ctime": 1443283716,
+            "etime": 1600963716,
+            "rtime": null,
+            "sig_status": 0,
+            "prev": "45aa7f220a5f1a54e0d2a7f7ec16fff99c90849842f9eb06c51fab5282c4c997",
+            "proof_id": "215636b046e902ceacacde10",
+            "proof_type": 2,
+            "proof_text_check": "Verifying myself: I am davidparry on Keybase.io. Muq4aqMXltsyAPQvJVPTMLimiTFUS7uYRSqA /",
+            "proof_text_full": "Verifying myself: I am davidparry on Keybase.io. Muq4aqMXltsyAPQvJVPTMLimiTFUS7uYRSqA / https://keybase.io/davidparry/sigs/Muq4aqMXltsyAPQvJVPTMLimiTFUS7uYRSqA\n",
+            "check_data_json": "{\"name\":\"twitter\",\"username\":\"davidparry\"}",
+            "remote_id": "647805236594278404",
+            "api_url": "https://twitter.com/davidparry/status/647805236594278404",
+            "human_url": "https://twitter.com/davidparry/status/647805236594278404",
+            "proof_state": 1,
+            "proof_status": 1,
+            "retry_count": 34,
+            "hard_fail_count": 0,
+            "last_check": 1445242202,
+            "last_success": 1445242202,
+            "version": 2,
+            "fingerprint": "1f6783ecd405e1f6c9d224e102e9c4d6a8c6e30e"
+        }
+    ],
+    "keys": [
+        "-----BEGIN PGP PUBLIC KEY BLOCK-----\nVersion: Keybase OpenPGP v2.0.46\nComment: https://keybase.io/crypto\n\n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\nS3sAQg==\n=KcM3\n-----END PGP PUBLIC KEY BLOCK-----"
+    ],
+    "uid": "372c1cbd72e4f851a74d232478a72319",
+    "username": "davidparry"
 }
 `,
 }
