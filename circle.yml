@@ -13,6 +13,7 @@ general:
 dependencies:
   cache_directories:
     - "~/go"
+    - "~/.gradle"
   override:
     - emulator -avd circleci-android22 -no-audio -no-window:
         background: true
