@@ -85,9 +85,14 @@ export function startCodeGen (mode) {
   const code = 'TODO TEMP:' + Math.floor(Math.random() * 99999)
 
   // The text representation and the QR code are the same (those map to a bits of a key in go)
-  return function (dispatch) {
+  return function (dispatch, getState) {
+    const store = getState().login2.codePage
     switch (mode) {
       case Constants.codePageModeShowText:
+        if (store.codeCountDown && store.textCode) {
+          return // still have a valid code
+        }
+
         dispatch({
           type: Constants.setTextCode,
           // TODO need this from go
@@ -96,6 +101,10 @@ export function startCodeGen (mode) {
         dispatch(startCodeGenCountdown(mode))
         break
       case Constants.codePageModeShowCode:
+        if (store.codeCountDown && store.qrCode) {
+          return // still have a valid code
+        }
+
         dispatch({
           type: Constants.setQRCode,
           qrCode: qrGenerate(code)
@@ -107,9 +116,11 @@ export function startCodeGen (mode) {
 }
 
 export function setCodePageMode (mode) {
-  resetCountdown()
+  return function (dispatch, getState) {
+    if (getState().login2.codePage.mode === mode) {
+      return // already in this mode
+    }
 
-  return function (dispatch) {
     dispatch(startCodeGen(mode))
 
     dispatch({

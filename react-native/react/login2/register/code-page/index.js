@@ -22,14 +22,30 @@ export default class CodePage extends Component {
       enterText: null
     }
   }
+
+  controlStyle (mode) {
+    if (this.props.mode === mode) {
+      return {
+        backgroundColor: 'green'
+      }
+    } else {
+      return {}
+    }
+  }
+
+  renderSwitch (mode, text) {
+    return (<Text style={this.controlStyle(mode)} onPress={() => this.props.dispatch(setCodePageMode(mode)) }>{text}</Text>)
+  }
+
   renderControls () {
     switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
       case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
       case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
         return (
           <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
-            <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>QR Code</Text>
-            <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowText)) }>Text Code</Text>
+            {this.renderSwitch(codePageModeScanCode, 'QR Code')}
+            <Text style={this.controlStyle(codePageModeScanCode)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>QR Code</Text>
+            <Text style={this.controlStyle(codePageModeScanCode)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowText)) }>Text Code</Text>
           </View>
         )
       case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone:
@@ -37,8 +53,8 @@ export default class CodePage extends Component {
           return (
             <View style={{flexDirection: 'column', padding: 20}}>
               <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
-                <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowText)) }>Display code</Text>
-                <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeEnterText)) }>Enter Code</Text>
+                <Text style={this.controlStyle(codePageModeShowText)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowText)) }>Display code</Text>
+                <Text style={this.controlStyle(codePageModeEnterText)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeEnterText)) }>Enter Code</Text>
               </View>
               <Text style={{textAlign: 'center'}} onPress={() => {
                 this.props.dispatch(setCameraBrokenMode(false))
@@ -50,8 +66,8 @@ export default class CodePage extends Component {
           return (
             <View style={{flexDirection: 'column', padding: 20}}>
               <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
-                <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowCode)) }>Display code</Text>
-                <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>Scan Code</Text>
+                <Text style={this.controlStyle(codePageModeShowCode)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowCode)) }>Display code</Text>
+                <Text style={this.controlStyle(codePageModeScanCode)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>Scan Code</Text>
               </View>
               <Text style={{textAlign: 'center'}} onPress={() => {
                 this.props.dispatch(setCameraBrokenMode(true))
@@ -112,6 +128,7 @@ export default class CodePage extends Component {
         scanning={false}
         qrCode={this.props.qrCode}>
         <Text style={styles.text}>Scan this QR code with your other device</Text>
+        <Text style={{alignSelf: 'flex-end', marginRight: 40}}>Code valid for {this.countDownToTime()}</Text>
       </QR>
     )
   }
