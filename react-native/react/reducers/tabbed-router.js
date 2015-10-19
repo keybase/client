@@ -6,7 +6,7 @@
 
 import Immutable from 'immutable'
 import routerReducer, { createRouterState } from './router'
-import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from '../constants/tabs'
+import {STARTUP_TAB, FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from '../constants/tabs'
 import * as actionTypes from '../constants/tabbed-router-action-types'
 
 const emptyRouterState = createRouterState([], [])
@@ -18,13 +18,14 @@ const emptyRouterState = createRouterState([], [])
 const initialState = Immutable.fromJS({
   // a map from tab name to router obj
   tabs: {
+    [STARTUP_TAB]: emptyRouterState,
     [FOLDER_TAB]: emptyRouterState,
     [CHAT_TAB]: emptyRouterState,
     [PEOPLE_TAB]: emptyRouterState,
     [DEVICES_TAB]: emptyRouterState,
     [MORE_TAB]: emptyRouterState
   },
-  activeTab: MORE_TAB
+  activeTab: STARTUP_TAB
 })
 
 export default function (state = initialState, action) {

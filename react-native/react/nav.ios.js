@@ -1,6 +1,7 @@
 'use strict'
 
 import React, { Component, TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet } from 'react-native'
+
 import { connect } from 'react-redux/native'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
@@ -15,6 +16,10 @@ import More from './tabs/more'
 import { switchTab } from './actions/tabbed-router'
 import { navigateTo, navigateUp } from './actions/router'
 import { startup } from './actions/config'
+import * as Constants from './constants/config'
+
+import Registration from './login2/register'
+import Welcome from './login2/welcome'
 
 import { constants as styleConstants } from './styles/common'
 
@@ -90,14 +95,14 @@ export default class Nav extends Component {
              routeMapper={NavigationBarRouteMapper(dispatch)}/>)
   }
 
-  _renderContent () {
+  _renderContent (rootComponent) {
     const activeTab = this.props.tabbedRouter.get('activeTab')
     return (
       <View style={styles.tabContent}>
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator), {
             store: this.props.store,
-            rootComponent: tabToRootComponent[activeTab] || NoTab,
+            rootComponent: rootComponent || tabToRootComponent[activeTab] || NoTab,
             globalRoutes,
             Navigator: Navigator,
             NavBar: this.navBar(),
@@ -115,7 +120,7 @@ export default class Nav extends Component {
       return true
     }
 
-    if (this.props.config.loaded !== nextProps.config.loaded) {
+    if (this.props.config.navState !== nextProps.config.navState) {
       return true
     }
 
@@ -126,12 +131,20 @@ export default class Nav extends Component {
     const {dispatch} = this.props
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
-    if (!this.props.config.loaded) {
+    if (this.props.config.navState === Constants.navStartingUp) {
       return (
-        <Text style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          Loading...
-        </Text>
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <Text>Loading...</Text>
+        </View>
       )
+    }
+
+    if (this.props.config.navState === Constants.navNeedsRegistration) {
+      return this._renderContent(Registration)
+    }
+
+    if (this.props.config.navState === Constants.navNeedsLogin) {
+      return this._renderContent(Welcome)
     }
 
     return (
@@ -189,7 +202,7 @@ Nav.propTypes = {
   tabbedRouter: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
-    loaded: React.PropTypes.bool.isRequired
+    navState: React.PropTypes.oneOf([Constants.navStartingUp, Constants.navNeedsRegistration, Constants.navNeedsLogin])
   }).isRequired
 }
 
