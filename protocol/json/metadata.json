@@ -246,6 +246,9 @@
         "name" : "folderHandle",
         "type" : "bytes"
       }, {
+        "name" : "branchID",
+        "type" : "string"
+      }, {
         "name" : "unmerged",
         "type" : "boolean"
       }, {
@@ -279,9 +282,12 @@
       } ],
       "response" : "null"
     },
-    "pruneUnmerged" : {
+    "pruneBranch" : {
       "request" : [ {
         "name" : "folderID",
+        "type" : "string"
+      }, {
+        "name" : "branchID",
         "type" : "string"
       }, {
         "name" : "logTags",

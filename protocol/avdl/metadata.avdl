@@ -21,9 +21,9 @@ protocol metadata {
 
   int authenticate(UID user, KID deviceKID, string sid);
   void putMetadata(bytes mdBlock, map<string> logTags);
-  MetadataResponse getMetadata(string folderID, bytes folderHandle, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);
+  MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);
   void registerForUpdates(string folderID, long currRevision, map<string> logTags);
-  void pruneUnmerged(string folderID, map<string> logTags);
+  void pruneBranch(string folderID, string branchID, map<string> logTags);
   void putKeys(array<KeyHalf> keyHalves, map<string> logTags);
   bytes getKey(bytes keyHalfID, map<string> logTags);
   boolean truncateLock(string folderID);

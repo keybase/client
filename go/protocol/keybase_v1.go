@@ -2206,6 +2206,7 @@ type PutMetadataArg struct {
 type GetMetadataArg struct {
 	FolderID      string            `codec:"folderID" json:"folderID"`
 	FolderHandle  []byte            `codec:"folderHandle" json:"folderHandle"`
+	BranchID      string            `codec:"branchID" json:"branchID"`
 	Unmerged      bool              `codec:"unmerged" json:"unmerged"`
 	StartRevision int64             `codec:"startRevision" json:"startRevision"`
 	StopRevision  int64             `codec:"stopRevision" json:"stopRevision"`
@@ -2218,8 +2219,9 @@ type RegisterForUpdatesArg struct {
 	LogTags      map[string]string `codec:"logTags" json:"logTags"`
 }
 
-type PruneUnmergedArg struct {
+type PruneBranchArg struct {
 	FolderID string            `codec:"folderID" json:"folderID"`
+	BranchID string            `codec:"branchID" json:"branchID"`
 	LogTags  map[string]string `codec:"logTags" json:"logTags"`
 }
 
@@ -2253,7 +2255,7 @@ type MetadataInterface interface {
 	PutMetadata(context.Context, PutMetadataArg) error
 	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
 	RegisterForUpdates(context.Context, RegisterForUpdatesArg) error
-	PruneUnmerged(context.Context, PruneUnmergedArg) error
+	PruneBranch(context.Context, PruneBranchArg) error
 	PutKeys(context.Context, PutKeysArg) error
 	GetKey(context.Context, GetKeyArg) ([]byte, error)
 	TruncateLock(context.Context, string) (bool, error)
@@ -2330,18 +2332,18 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"pruneUnmerged": {
+			"pruneBranch": {
 				MakeArg: func() interface{} {
-					ret := make([]PruneUnmergedArg, 1)
+					ret := make([]PruneBranchArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PruneUnmergedArg)
+					typedArgs, ok := args.(*[]PruneBranchArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]PruneUnmergedArg)(nil), args)
+						err = rpc.NewTypeError((*[]PruneBranchArg)(nil), args)
 						return
 					}
-					err = i.PruneUnmerged(ctx, (*typedArgs)[0])
+					err = i.PruneBranch(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2465,8 +2467,8 @@ func (c MetadataClient) RegisterForUpdates(ctx context.Context, __arg RegisterFo
 	return
 }
 
-func (c MetadataClient) PruneUnmerged(ctx context.Context, __arg PruneUnmergedArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.metadata.pruneUnmerged", []interface{}{__arg}, nil)
+func (c MetadataClient) PruneBranch(ctx context.Context, __arg PruneBranchArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.pruneBranch", []interface{}{__arg}, nil)
 	return
 }
 
