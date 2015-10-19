@@ -3,18 +3,13 @@
 import * as Constants from '../constants/login2'
 import Immutable from 'immutable'
 
-import * as Actions from '../actions/login2'
-
-const DEBUG_MY_ROLE = Constants.codePageDeviceRoleExistingComputer
-const DEBUG_OTHER_ROLE = Constants.codePageDeviceRoleNewComputer
-
 const initialState = {
   username: '',
   passphrase: '',
   codePage: {
-    otherDeviceRole: DEBUG_OTHER_ROLE,
-    myDeviceRole: DEBUG_MY_ROLE,
-    mode: Actions.defaultModeForDeviceRoles(DEBUG_MY_ROLE, DEBUG_OTHER_ROLE),
+    otherDeviceRole: null,
+    myDeviceRole: null,
+    mode: null,
     cameraBrokenMode: false,
     codeCountDown: 0,
     textCode: null,
@@ -93,6 +88,21 @@ export default function (state = initialState, action) {
       return s.mergeDeep({
         codePage: {
           cameraBrokenMode: action.broken
+        }
+      }).toJS()
+    }
+    case Constants.doneRegistering: {
+      const s = Immutable.fromJS(state)
+      return s.mergeDeep({
+        codePage: {
+          otherDeviceRole: null,
+          myDeviceRole: null,
+          mode: null,
+          cameraBrokenMode: false,
+          codeCountDown: 0,
+          textCode: null,
+          qrScanned: null,
+          qrCode: null
         }
       }).toJS()
     }

@@ -9,7 +9,7 @@ import {
   codePageDeviceRoleExistingComputer,
   codePageDeviceRoleNewComputer } from '../../../constants/login2'
 import { codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText } from '../../../constants/login2'
-import { setCodePageMode, qrScanned, setCameraBrokenMode, textEntered } from '../../../actions/login2'
+import { setCodePageMode, qrScanned, setCameraBrokenMode, textEntered, doneRegistering } from '../../../actions/login2'
 import QR from './qr'
 import Button from '../../../common-adapters/button'
 import commonStyles from '../../../styles/common'
@@ -21,6 +21,10 @@ export default class CodePage extends Component {
     this.state = {
       enterText: null
     }
+  }
+
+  componentWillUnmount () {
+    this.props.dispatch(doneRegistering())
   }
 
   controlStyle (mode) {

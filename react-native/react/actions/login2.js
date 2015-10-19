@@ -12,6 +12,13 @@ export function welcomeSubmitUserPass (username, passphrase) {
   }
 }
 
+export function doneRegistering () {
+  resetCountdown()
+  return {
+    type: Constants.doneRegistering
+  }
+}
+
 export function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, brokenMode) {
   switch (myDeviceRole + otherDeviceRole) {
     case Constants.codePageDeviceRoleExistingComputer + Constants.codePageDeviceRoleNewComputer:
