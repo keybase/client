@@ -8,14 +8,10 @@ import Immutable from 'immutable'
 import routerReducer, { createRouterState } from './router'
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from '../constants/tabs'
 import * as actionTypes from '../constants/tabbed-router-action-types'
+import * as LocalDebug from '../local-debug'
 
-const emptyRouterState = createRouterState([], [])
+const emptyRouterState = LocalDebug.overrideRouterState ? LocalDebug.overrideRouterState : createRouterState([], [])
 
-// Uncomment this to start at a specific page to help speed up
-// const emptyRouterState = createRouterState(['codePage'], [])
-// const emptyRouterState = createRouterState(['login2', 'register', 'regExistingDevice', 'codePage'], [])
-
-// TODO(mm) add type annotations
 const initialState = Immutable.fromJS({
   // a map from tab name to router obj
   tabs: {
@@ -25,7 +21,7 @@ const initialState = Immutable.fromJS({
     [DEVICES_TAB]: emptyRouterState,
     [MORE_TAB]: emptyRouterState
   },
-  activeTab: MORE_TAB
+  activeTab: LocalDebug.overrideActiveTab ? LocalDebug.overrideActiveTab : MORE_TAB
 })
 
 export default function (state = initialState, action) {
