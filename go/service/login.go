@@ -32,7 +32,7 @@ func (h *LoginHandler) Reset(_ context.Context, sessionID int) error {
 	return engine.RunEngine(eng, &ctx)
 }
 
-func (h *LoginHandler) RecoverAccountFromEmailAddress(email string) error {
+func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email string) error {
 	res, err := G.API.Post(libkb.APIArg{
 		Endpoint:    "send-reset-pw",
 		NeedSession: false,
