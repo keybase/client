@@ -34,4 +34,4 @@ android/.gradle
 android/keybaselib/keybaselib.aar
 android/.idea
 *.iml
-index.android.bundle
+index.bundle
