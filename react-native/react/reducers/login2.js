@@ -3,13 +3,18 @@
 import * as Constants from '../constants/login2'
 import Immutable from 'immutable'
 
+import * as Actions from '../actions/login2'
+
+const DEBUG_MY_ROLE = Constants.codePageDeviceRoleExistingPhone
+const DEBUG_OTHER_ROLE = Constants.codePageDeviceRoleNewPhone
+
 const initialState = {
   username: '',
   passphrase: '',
   codePage: {
-    otherDeviceRole: Constants.codePageDeviceRoleNewPhone,
-    myDeviceRole: Constants.codePageDeviceRoleExistingPhone,
-    mode: Constants.codePageModeShowCode,
+    otherDeviceRole: DEBUG_OTHER_ROLE,
+    myDeviceRole: DEBUG_MY_ROLE,
+    mode: Actions.defaultModeForDeviceRoles(DEBUG_MY_ROLE, DEBUG_OTHER_ROLE),
     cameraBrokenMode: false,
     codeCountDown: 0,
     textCode: null,

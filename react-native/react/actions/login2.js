@@ -12,7 +12,7 @@ export function welcomeSubmitUserPass (username, passphrase) {
   }
 }
 
-function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole) {
+export function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, brokenMode) {
   switch (myDeviceRole + otherDeviceRole) {
     case Constants.codePageDeviceRoleExistingComputer + Constants.codePageDeviceRoleNewComputer:
       return Constants.codePageModeEnterText
@@ -30,16 +30,16 @@ function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole) {
       return Constants.codePageModeShowCode
 
     case Constants.codePageDeviceRoleExistingPhone + Constants.codePageDeviceRoleNewPhone:
-      return Constants.codePageModeScanCode
+      return brokenMode ? Constants.codePageModeShowText : Constants.codePageModeShowCode
     case Constants.codePageDeviceRoleNewPhone + Constants.codePageDeviceRoleExistingPhone:
-      return Constants.codePageModeShowCode
+      return brokenMode ? Constants.codePageModeEnterText : Constants.codePageModeScanCode
   }
   return null
 }
 
 export function setCodePageDeviceRoles (myDeviceRole, otherDeviceRole) {
   return function (dispatch) {
-    dispatch(setCodePageMode(defaultModeForDeviceRoles(myDeviceRole, otherDeviceRole)))
+    dispatch(setCodePageMode(defaultModeForDeviceRoles(myDeviceRole, otherDeviceRole, false)))
     dispatch({
       type: Constants.setCodeState,
       myDeviceRole,
@@ -157,9 +157,14 @@ function qrGenerate (code) {
 }
 
 export function setCameraBrokenMode (broken) {
-  return {
-    type: Constants.cameraBrokenMode,
-    broken
+  return function (dispatch, getState) {
+    dispatch({
+      type: Constants.cameraBrokenMode,
+      broken
+    })
+
+    const root = getState().login2.codePage
+    dispatch(setCodePageMode(defaultModeForDeviceRoles(root.myDeviceRole, root.otherDeviceRole, broken)))
   }
 }
 

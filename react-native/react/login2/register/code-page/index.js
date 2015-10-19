@@ -33,52 +33,58 @@ export default class CodePage extends Component {
     }
   }
 
-  renderSwitch (mode, text) {
-    return (<Text style={this.controlStyle(mode)} onPress={() => this.props.dispatch(setCodePageMode(mode)) }>{text}</Text>)
+  renderSwitch (mode) {
+    const label = {
+      codePageModeShowText: 'Display Code',
+      codePageModeEnterText: 'Enter Code',
+      codePageModeShowCode: 'Display Code',
+      codePageModeScanCode: 'Scan Code'
+    }
+
+    return (<Text style={this.controlStyle(mode)} onPress={() => this.props.dispatch(setCodePageMode(mode)) }>{label[mode]}</Text>)
   }
 
-  renderControls () {
+  renderCameraBrokenControl () {
     switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
-      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
-      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
-        return (
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
-            {this.renderSwitch(codePageModeScanCode, 'QR Code')}
-            <Text style={this.controlStyle(codePageModeScanCode)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>QR Code</Text>
-            <Text style={this.controlStyle(codePageModeScanCode)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowText)) }>Text Code</Text>
-          </View>
-        )
-      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone:
-        if (this.props.cameraBrokenMode) {
-          return (
-            <View style={{flexDirection: 'column', padding: 20}}>
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
-                <Text style={this.controlStyle(codePageModeShowText)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowText)) }>Display code</Text>
-                <Text style={this.controlStyle(codePageModeEnterText)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeEnterText)) }>Enter Code</Text>
-              </View>
-              <Text style={{textAlign: 'center'}} onPress={() => {
-                this.props.dispatch(setCameraBrokenMode(false))
-                this.props.dispatch(setCodePageMode(codePageModeShowCode))
-              }}>Camera working?</Text>
-            </View>
-          )
-        } else {
-          return (
-            <View style={{flexDirection: 'column', padding: 20}}>
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
-                <Text style={this.controlStyle(codePageModeShowCode)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowCode)) }>Display code</Text>
-                <Text style={this.controlStyle(codePageModeScanCode)} onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>Scan Code</Text>
-              </View>
-              <Text style={{textAlign: 'center'}} onPress={() => {
-                this.props.dispatch(setCameraBrokenMode(true))
-                this.props.dispatch(setCodePageMode(codePageModeShowText))
-              }}>Camera broken?</Text>
-            </View>
-          )
-        }
+      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone: // fallthrough
+      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
+        return (<Text style={{textAlign: 'center', backgroundColor: 'red', padding: 20}} onPress={() => {
+          this.props.dispatch(setCameraBrokenMode(!this.props.cameraBrokenMode))
+          //this.props.dispatch(setCodePageMode(this.props.cameraBrokenMode ? codePageModeShowCode : codePageModeShowText))
+        }}>Camera {this.props.cameraBrokenMode ? 'working' : 'broken'}?</Text>)
     }
 
     return null
+  }
+
+  renderControls () {
+    let controls = []
+
+    switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
+      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
+      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
+        controls = [ codePageModeScanCode, codePageModeShowText ]
+        break
+      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone: // fallthrough
+      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
+        if (this.props.cameraBrokenMode) {
+          controls = [ codePageModeShowText, codePageModeEnterText ]
+        } else {
+          controls = [ codePageModeShowCode, codePageModeScanCode ]
+        }
+        break
+    }
+
+    return (
+      <View style={{flexDirection: 'column', justifyContent: 'space-between'}}>
+        {[
+          (<View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20, backgroundColor: 'orange'}}>
+            {controls.map(c => this.renderSwitch(c))}
+          </View>),
+          this.renderCameraBrokenControl()
+        ]}
+      </View>
+    )
   }
 
   renderScanner () {
@@ -162,9 +168,14 @@ export default class CodePage extends Component {
     }
   }
 
+  renderDebug () {
+    return <Text style={{color: 'red', fontSize: 8}}>{[this.props.myDeviceRole, this.props.otherDeviceRole, this.props.mode].join(':')}</Text>
+  }
+
   render () {
     return (
       <View style={styles.container}>
+        {this.renderDebug()}
         {this.renderContent()}
         {this.renderControls()}
       </View>
