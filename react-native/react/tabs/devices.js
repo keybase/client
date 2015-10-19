@@ -6,6 +6,7 @@ import Button from '../common-adapters/button'
 import { loadDevices } from '../actions/devices'
 import moment from 'moment'
 import * as loginStates from '../constants/login-states'
+import CodePage from '../login2/register/code-page'
 
 import commonStyles from '../styles/common'
 
@@ -84,6 +85,9 @@ export default class Devices extends Component {
       componentAtTop: {
         hideNavBar: true,
         mapStateToProps: state => Object.assign({}, state.login, state.devices)
+      },
+      subRoutes: {
+        codePage: CodePage
       }
     }
   }
