@@ -12,13 +12,14 @@ import Devices from './tabs/devices'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
-import React, { Component, View, StyleSheet, BackAndroid } from 'react-native'
+import React, { Component, Text, View, StyleSheet, BackAndroid } from 'react-native'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
 import { androidTabBarHeight } from './styles/native'
 
 import { switchTab } from './actions/tabbed-router'
 import { navigateBack } from './actions/router'
+import { startup } from './actions/config'
 
 const tabToRootComponent = {
   [FOLDER_TAB]: Folders,
@@ -63,6 +64,7 @@ AndroidNavigator.propTypes = {
 export default class Nav extends Component {
   constructor (props) {
     super(props)
+    this.props.dispatch(startup())
   }
 
   _renderContent (activeTab) {
@@ -98,6 +100,14 @@ export default class Nav extends Component {
   render () {
     const {dispatch} = this.props
     const activeTab = this.props.tabbedRouter.get('activeTab')
+
+    if (!this.props.config.loaded) {
+      return (
+        <Text style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          Loading...
+        </Text>
+      )
+    }
 
     return (
       <TabBar style={{position: 'absolute', left: 0, right: 0, top: 0, bottom: 0}}>
@@ -140,7 +150,10 @@ export default class Nav extends Component {
 Nav.propTypes = {
   dispatch: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
-  store: React.PropTypes.object.isRequired
+  store: React.PropTypes.object.isRequired,
+  config: React.PropTypes.shape({
+    loaded: React.PropTypes.bool.isRequired
+  }).isRequired
 }
 
 const styles = StyleSheet.create({

@@ -80,9 +80,7 @@ function NavigationBarRouteMapper (dispatch) {
 export default class Nav extends Component {
   constructor (props) {
     super(props)
-
-    const {dispatch} = this.props
-    dispatch(startup())
+    this.props.dispatch(startup())
   }
 
   navBar () {
