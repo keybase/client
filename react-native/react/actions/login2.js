@@ -3,12 +3,38 @@
 import * as Constants from '../constants/login2'
 import QRCodeGen from 'qrcode-generator'
 import { appendRouteOnUnchanged, navigateTo } from './router'
+import engine from '../engine'
 
-export function welcomeSubmitUserPass (username, passphrase) {
-  return {
-    type: Constants.actionSubmitUserPass,
-    username,
-    passphrase
+export function login (username, passphrase) {
+  return function (dispatch) {
+    dispatch({
+      type: Constants.login
+    })
+
+    const param = {
+      username,
+      passphrase,
+      error: null
+    }
+
+    const incomingMap = {
+      'keybase.1.logUi.log': (param, response) => {
+        console.log(param, response)
+        response.result()
+      }
+    }
+
+    engine.rpc('login.loginWithPassphrase', param, incomingMap, (error, response) => {
+      if (error) {
+        console.log(error)
+      }
+
+      dispatch({
+        type: Constants.loginDone,
+        error: !!error,
+        payload: error || response
+      })
+    })
   }
 }
 

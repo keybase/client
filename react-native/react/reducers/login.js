@@ -82,7 +82,7 @@ export default function (state = initialState, action) {
     case types.LOGGED_IN:
       return {
         ...state,
-        loginState: states.LOGGED_IN,
+        loginState: states.LOGGED_IN
       }
     case types.DEVICE_NAME_TAKEN:
       return {

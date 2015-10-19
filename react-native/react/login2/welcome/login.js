@@ -3,9 +3,10 @@
 
 import React, { Component, Text, TextInput, View } from 'react-native'
 import commonStyles from '../../styles/common'
-import { welcomeSubmitUserPass } from '../../actions/login2'
+import { login } from '../../actions/login2'
 import { routeAppend } from '../../actions/router'
 import ForgotUserPass from './forgot-user-pass'
+import Button from '../../common-adapters/button'
 
 export default class Login extends Component {
   constructor (props) {
@@ -18,7 +19,7 @@ export default class Login extends Component {
   }
 
   submitLogin () {
-    this.props.dispatch(welcomeSubmitUserPass(this.state.username, this.state.passphrase))
+    this.props.dispatch(login(this.state.username, this.state.passphrase))
   }
 
   render () {
@@ -29,6 +30,7 @@ export default class Login extends Component {
         <TextInput
           style={commonStyles.textInput}
           onChangeText={(username) => this.setState({username})}
+          onSubmitEditing={() => this.refs.passphrase.focus()}
           value={this.state.username}
           autoCorrect={false}
           placeholder='Username'
@@ -36,6 +38,7 @@ export default class Login extends Component {
           clearButtonMode='while-editing'
         />
         <TextInput
+          ref='passphrase'
           style={commonStyles.textInput}
           onChangeText={(passphrase) => this.setState({passphrase})}
           onSubmitEditing={() => this.submitLogin()}
@@ -46,12 +49,13 @@ export default class Login extends Component {
           clearButtonMode='while-editing'
           secureTextEntry
         />
-        <View style={{alignItems: 'flex-end', justifyContent: 'flex-end', padding: 10}}>
-          <Text style={{marginTop: 20, padding: 10}} onPress={() => { this.props.dispatch(routeAppend('forgotUserPass')) }}>Forgot username/passphrase?</Text>
-        </View>
-        <View style={{alignItems: 'flex-end', justifyContent: 'flex-end', padding: 10}}>
-          <Text style={{marginTop: 20, padding: 10}} onPress={() => { this.submitLogin() }}>Submit</Text>
-        </View>
+        <Text style={{alignSelf: 'flex-end', marginTop: 20, padding: 10}} onPress={() => { this.props.dispatch(routeAppend('forgotUserPass')) }}>Forgot username/passphrase?</Text>
+        <Button
+          style={{alignSelf: 'flex-end', marginTop: 20}}
+          onPress={() => { this.submitLogin() }}
+          enabled={this.state.username.length && this.state.passphrase.length}
+          isAction
+          title='Submit'/>
       </View>
     )
   }

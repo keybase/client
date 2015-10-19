@@ -21,11 +21,16 @@ const initialState = {
 
 export default function (state = initialState, action) {
   switch (action.type) {
-    case Constants.actionSubmitUserPass:
+    case Constants.login:
       return {
         ...state,
         username: action.username,
         passphrase: action.passphrase
+      }
+    case Constants.loginDone:
+      return {
+        ...state,
+        username: action.username
       }
     case Constants.setCodeState: {
       const s = Immutable.fromJS(state)
