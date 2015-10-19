@@ -1,7 +1,12 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Text, View } from 'react-native'
+/*
+ * Screen to scan/show qrcode/text code. Goes into various modes with various options depending on if
+ * you're a phone/computer and if you're the existing device or the new device
+ */
+
+import React, { Component, StyleSheet, Text, View, TextInput } from 'react-native'
 
 import {
   codePageDeviceRoleExistingPhone,
@@ -9,28 +14,95 @@ import {
   codePageDeviceRoleExistingComputer,
   codePageDeviceRoleNewComputer } from '../../../constants/login2'
 import { codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText } from '../../../constants/login2'
-import { setCodePageMode, qrScanned } from '../../../actions/login2'
+import { setCodePageMode, qrScanned, setCameraBrokenMode, textEntered, doneRegistering } from '../../../actions/login2'
 import QR from './qr'
+import Button from '../../../common-adapters/button'
+import commonStyles from '../../../styles/common'
 
 export default class CodePage extends Component {
-  renderControls () {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      enterText: null
+    }
+  }
+
+  componentWillUnmount () {
+    this.props.dispatch(doneRegistering())
+  }
+
+  controlStyle (mode) {
+    if (this.props.mode === mode) {
+      return { backgroundColor: 'green' }
+    }
+    return {}
+  }
+
+  renderSwitch (mode) {
+    const label = {
+      codePageModeShowText: 'Display Code',
+      codePageModeEnterText: 'Enter Code',
+      codePageModeShowCode: 'Display Code',
+      codePageModeScanCode: 'Scan Code'
+    }
+
+    return (<Text style={this.controlStyle(mode)} onPress={() => this.props.dispatch(setCodePageMode(mode)) }>{label[mode]}</Text>)
+  }
+
+  renderCameraBrokenControl () {
     switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
-      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
-      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
-        return (
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20}}>
-            <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeScanCode)) }>QR Code</Text>
-            <Text onPress={() => this.props.dispatch(setCodePageMode(codePageModeShowText)) }>Text Code</Text>
-          </View>
-        )
+      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone: // fallthrough
+      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
+        return (<Text style={{textAlign: 'center', backgroundColor: 'red', padding: 20}} onPress={() => {
+          this.props.dispatch(setCameraBrokenMode(!this.props.cameraBrokenMode))
+        }}>Camera {this.props.cameraBrokenMode ? 'working' : 'broken'}?</Text>)
     }
 
     return null
   }
 
+  renderControls () {
+    let controls = null
+
+    switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
+      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
+      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
+        controls = [ codePageModeScanCode, codePageModeShowText ]
+        break
+      case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone: // fallthrough
+      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
+        if (this.props.cameraBrokenMode) {
+          controls = [ codePageModeShowText, codePageModeEnterText ]
+        } else {
+          controls = [ codePageModeShowCode, codePageModeScanCode ]
+        }
+        break
+      case codePageDeviceRoleNewComputer + codePageDeviceRoleExistingPhone: // fallthrough
+      case codePageDeviceRoleExistingComputer + codePageDeviceRoleNewPhone:
+        controls = [ codePageModeShowCode, codePageModeEnterText ]
+        break
+    }
+
+    if (!controls) {
+      return null
+    }
+
+    return (
+      <View style={{flexDirection: 'column', justifyContent: 'space-between'}}>
+        {[
+          (<View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 20, backgroundColor: 'orange'}}>
+            {controls.map(c => this.renderSwitch(c))}
+          </View>),
+          this.renderCameraBrokenControl()
+        ]}
+      </View>
+    )
+  }
+
   renderScanner () {
     return (
-      <QR style={{flex: 1, alignItems: 'flex-start', justifyContent: 'flex-start', flexDirection: 'row'}}
+      <QR
         scanning
         onBarCodeRead={(code) => this.props.dispatch(qrScanned(code))}
         qrCode={this.props.qrCode}>
@@ -68,14 +140,42 @@ export default class CodePage extends Component {
     )
   }
 
+  renderCode () {
+    return (
+      <QR
+        style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}
+        scanning={false}
+        qrCode={this.props.qrCode}>
+        <Text style={styles.text}>Scan this QR code with your other device</Text>
+        <Text style={{alignSelf: 'flex-end', marginRight: 40}}>Code valid for {this.countDownToTime()}</Text>
+      </QR>
+    )
+  }
+
+  renderEnterText () {
+    return (
+      <View style={{flex: 1, backgroundColor: 'green', alignItems: 'center', justifyContent: 'center', padding: 20}}>
+        <Text style={commonStyles.h1}>Type the verification code from your other device into here</Text>
+        <TextInput value={this.state.enterText}
+          style={[commonStyles.textInput, {height: 100, marginTop: 40}]}
+          onChangeText={(enterText) => this.setState({enterText})}
+          placeholder='Type code here'
+          multiline />
+        <Button style={{alignSelf: 'flex-end'}} title='Submit' action onPress={() => {
+          this.props.dispatch(textEntered(this.state.enterText))
+        }}/>
+      </View>
+    )
+  }
+
   renderContent () {
     switch (this.props.mode) {
       case codePageModeScanCode:
         return this.renderScanner()
       case codePageModeShowCode:
-        return (<Text>Show code </Text>)
+        return this.renderCode()
       case codePageModeEnterText:
-        return (<Text>Enter text</Text>)
+        return this.renderEnterText()
       case codePageModeShowText:
         return this.renderText()
     }
@@ -109,7 +209,8 @@ CodePage.propTypes = {
   textCode: React.PropTypes.string,
   qrCode: React.PropTypes.string,
   myDeviceRole: React.PropTypes.oneOf(validRoles),
-  otherDeviceRole: React.PropTypes.oneOf(validRoles)
+  otherDeviceRole: React.PropTypes.oneOf(validRoles),
+  cameraBrokenMode: React.PropTypes.bool.isRequired
 }
 
 const styles = StyleSheet.create({

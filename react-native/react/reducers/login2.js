@@ -7,9 +7,10 @@ const initialState = {
   username: '',
   passphrase: '',
   codePage: {
-    otherDeviceRole: Constants.codePageDeviceRoleNewComputer,
-    myDeviceRole: Constants.codePageDeviceRoleExistingPhone,
-    mode: Constants.codePageModeScanCode,
+    otherDeviceRole: null,
+    myDeviceRole: null,
+    mode: null,
+    cameraBrokenMode: false,
     codeCountDown: 0,
     textCode: null,
     qrScanned: null,
@@ -58,11 +59,11 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
-    case Constants.qrGenerate: {
+    case Constants.setQRCode: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
-          qrCode: null
+          qrCode: action.qrCode
         }
       }).toJS()
     }
@@ -79,6 +80,29 @@ export default function (state = initialState, action) {
       return s.mergeDeep({
         codePage: {
           qrScanned: action.code
+        }
+      }).toJS()
+    }
+    case Constants.cameraBrokenMode: {
+      const s = Immutable.fromJS(state)
+      return s.mergeDeep({
+        codePage: {
+          cameraBrokenMode: action.broken
+        }
+      }).toJS()
+    }
+    case Constants.doneRegistering: {
+      const s = Immutable.fromJS(state)
+      return s.mergeDeep({
+        codePage: {
+          otherDeviceRole: null,
+          myDeviceRole: null,
+          mode: null,
+          cameraBrokenMode: false,
+          codeCountDown: 0,
+          textCode: null,
+          qrScanned: null,
+          qrCode: null
         }
       }).toJS()
     }

@@ -12,7 +12,14 @@ export function welcomeSubmitUserPass (username, passphrase) {
   }
 }
 
-function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole) {
+export function doneRegistering () {
+  resetCountdown()
+  return {
+    type: Constants.doneRegistering
+  }
+}
+
+export function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, brokenMode) {
   switch (myDeviceRole + otherDeviceRole) {
     case Constants.codePageDeviceRoleExistingComputer + Constants.codePageDeviceRoleNewComputer:
       return Constants.codePageModeEnterText
@@ -30,16 +37,16 @@ function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole) {
       return Constants.codePageModeShowCode
 
     case Constants.codePageDeviceRoleExistingPhone + Constants.codePageDeviceRoleNewPhone:
-      return Constants.codePageModeScanCode
+      return brokenMode ? Constants.codePageModeShowText : Constants.codePageModeShowCode
     case Constants.codePageDeviceRoleNewPhone + Constants.codePageDeviceRoleExistingPhone:
-      return Constants.codePageModeShowCode
+      return brokenMode ? Constants.codePageModeEnterText : Constants.codePageModeScanCode
   }
   return null
 }
 
 export function setCodePageDeviceRoles (myDeviceRole, otherDeviceRole) {
   return function (dispatch) {
-    dispatch(setCodePageMode(defaultModeForDeviceRoles(myDeviceRole, otherDeviceRole)))
+    dispatch(setCodePageMode(defaultModeForDeviceRoles(myDeviceRole, otherDeviceRole, false)))
     dispatch({
       type: Constants.setCodeState,
       myDeviceRole,
@@ -81,23 +88,46 @@ function startCodeGenCountdown (mode) {
 }
 
 export function startCodeGen (mode) {
-  return function (dispatch) {
+  // TEMP this needs to come from go
+  const code = 'TODO TEMP:' + Math.floor(Math.random() * 99999)
+
+  // The text representation and the QR code are the same (those map to a bits of a key in go)
+  return function (dispatch, getState) {
+    const store = getState().login2.codePage
     switch (mode) {
       case Constants.codePageModeShowText:
+        if (store.codeCountDown && store.textCode) {
+          return // still have a valid code
+        }
+
         dispatch({
           type: Constants.setTextCode,
           // TODO need this from go
-          text: 'TODO TEMP:' + Math.floor(Math.random() * 99999)
+          text: code
         })
         dispatch(startCodeGenCountdown(mode))
+        break
+      case Constants.codePageModeShowCode:
+        if (store.codeCountDown && store.qrCode) {
+          return // still have a valid code
+        }
+
+        dispatch({
+          type: Constants.setQRCode,
+          qrCode: qrGenerate(code)
+        })
+        dispatch(startCodeGenCountdown(mode))
+        break
     }
   }
 }
 
 export function setCodePageMode (mode) {
-  resetCountdown()
+  return function (dispatch, getState) {
+    if (getState().login2.codePage.mode === mode) {
+      return // already in this mode
+    }
 
-  return function (dispatch) {
     dispatch(startCodeGen(mode))
 
     dispatch({
@@ -115,22 +145,33 @@ export function qrScanned (code) {
   }
 }
 
-export function qrGenerate () {
+export function textEntered (code) {
   return function (dispatch) {
-    dispatch({
-      type: Constants.qrGenerate
-    })
-
-    const qr = QRCodeGen(10, 'L')
-    qr.addData(this.state.code)
-    qr.make()
-    let tag = qr.createImgTag(10)
-    const [ , src, , ] = tag.split(' ')
-    const [ , qrCode ] = src.split('\"')
-
-    dispatch({
-      type: Constants.qrGenerated,
-      qrCode
-    })
+    // TODO send to go to verify
+    console.log('Text entered: ', code)
+    dispatch(navigateTo([]))
   }
 }
+
+function qrGenerate (code) {
+  const qr = QRCodeGen(10, 'L')
+  qr.addData(code)
+  qr.make()
+  let tag = qr.createImgTag(10)
+  const [ , src, , ] = tag.split(' ')
+  const [ , qrCode ] = src.split('\"')
+  return qrCode
+}
+
+export function setCameraBrokenMode (broken) {
+  return function (dispatch, getState) {
+    dispatch({
+      type: Constants.cameraBrokenMode,
+      broken
+    })
+
+    const root = getState().login2.codePage
+    dispatch(setCodePageMode(defaultModeForDeviceRoles(root.myDeviceRole, root.otherDeviceRole, broken)))
+  }
+}
+
