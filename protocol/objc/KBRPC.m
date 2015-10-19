@@ -968,6 +968,20 @@
   }];
 }
 
+- (void)recoverAccountFromEmailAddress:(KBRRecoverAccountFromEmailAddressRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"email": KBRValue(params.email)};
+  [self.client sendRequestWithMethod:@"keybase.1.login.recoverAccountFromEmailAddress" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)recoverAccountFromEmailAddressWithEmail:(NSString *)email completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"email": KBRValue(email)};
+  [self.client sendRequestWithMethod:@"keybase.1.login.recoverAccountFromEmailAddress" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)paperKey:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{};
   [self.client sendRequestWithMethod:@"keybase.1.login.paperKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -3433,6 +3447,22 @@
 
 + (instancetype)params {
   KBRResetRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRRecoverAccountFromEmailAddressRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.email = params[0][@"email"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRRecoverAccountFromEmailAddressRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

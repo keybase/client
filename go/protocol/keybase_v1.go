@@ -2262,6 +2262,10 @@ type ResetArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type RecoverAccountFromEmailAddressArg struct {
+	Email string `codec:"email" json:"email"`
+}
+
 type PaperKeyArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -2279,6 +2283,7 @@ type LoginInterface interface {
 	CancelLogin(int) error
 	Logout(int) error
 	Reset(int) error
+	RecoverAccountFromEmailAddress(string) error
 	PaperKey(int) error
 	Unlock(int) error
 }
@@ -2415,6 +2420,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"recoverAccountFromEmailAddress": {
+				MakeArg: func() interface{} {
+					ret := make([]RecoverAccountFromEmailAddressArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RecoverAccountFromEmailAddressArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RecoverAccountFromEmailAddressArg)(nil), args)
+						return
+					}
+					err = i.RecoverAccountFromEmailAddress((*typedArgs)[0].Email)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"paperKey": {
 				MakeArg: func() interface{} {
 					ret := make([]PaperKeyArg, 1)
@@ -2496,6 +2517,12 @@ func (c LoginClient) Logout(sessionID int) (err error) {
 func (c LoginClient) Reset(sessionID int) (err error) {
 	__arg := ResetArg{SessionID: sessionID}
 	err = c.Cli.Call("keybase.1.login.reset", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) RecoverAccountFromEmailAddress(email string) (err error) {
+	__arg := RecoverAccountFromEmailAddressArg{Email: email}
+	err = c.Cli.Call("keybase.1.login.recoverAccountFromEmailAddress", []interface{}{__arg}, nil)
 	return
 }
 

@@ -45,6 +45,8 @@ protocol login {
   void logout(int sessionID);
   void reset(int sessionID);
 
+  void recoverAccountFromEmailAddress(string email);
+
   /**
     PaperKey generates paper backup keys for restoring an account.
     It calls login_ui.displayPaperKeyPhrase with the phrase.

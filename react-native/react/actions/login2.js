@@ -3,6 +3,7 @@
 import * as Constants from '../constants/login2'
 import QRCodeGen from 'qrcode-generator'
 import { appendRouteOnUnchanged, navigateTo } from './router'
+import engine from '../engine'
 
 export function welcomeSubmitUserPass (username, passphrase) {
   return {
@@ -157,4 +158,26 @@ export function registerSubmitUserPass (username, passphrase) {
       }
     }, 1000)
   })
+}
+
+export function updateForgotPasswordEmail (email) {
+  return {
+    type: Constants.actionUpdateForgotPasswordEmailAddress,
+    email
+  }
+}
+
+export function submitForgotPassword () {
+  return function (dispatch, getState) {
+    dispatch({
+      type: Constants.actionSetForgotPasswordSubmitting
+    })
+
+    engine.rpc('login.recoverAccountFromEmailAddress', {email: getState().login2.forgotPasswordEmailAddress}, {}, (error, response) => {
+      dispatch({
+        type: Constants.actionForgotPasswordDone,
+        error
+      })
+    })
+  }
 }

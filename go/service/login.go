@@ -31,6 +31,24 @@ func (h *LoginHandler) Reset(sessionID int) error {
 	return engine.RunEngine(eng, &ctx)
 }
 
+func (h *LoginHandler) RecoverAccountFromEmailAddress(email string) error {
+	res, err := G.API.Post(libkb.APIArg{
+		Endpoint:    "send-reset-pw",
+		NeedSession: false,
+		Args: libkb.HTTPArgs{
+			"email_or_username": libkb.S{email},
+		},
+		AppStatus: []string{"OK", "BAD_LOGIN_USER_NOT_FOUND"},
+	})
+	if err != nil {
+		return err
+	}
+	if res.AppStatus == "BAD_LOGIN_USER_NOT_FOUND" {
+		return libkb.NotFoundError{}
+	}
+	return nil
+}
+
 func (h *LoginHandler) LoginWithPrompt(arg keybase1.LoginWithPromptArg) error {
 	ctx := &engine.Context{
 		LogUI:       h.getLogUI(arg.SessionID),

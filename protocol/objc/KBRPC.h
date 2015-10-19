@@ -859,6 +859,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRResetRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRRecoverAccountFromEmailAddressRequestParams : KBRRequestParams
+@property NSString *email;
+@end
 @interface KBRPaperKeyRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
@@ -1588,6 +1591,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)logout:(void (^)(NSError *error))completion;
 
 - (void)reset:(void (^)(NSError *error))completion;
+
+- (void)recoverAccountFromEmailAddress:(KBRRecoverAccountFromEmailAddressRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)recoverAccountFromEmailAddressWithEmail:(NSString *)email completion:(void (^)(NSError *error))completion;
 
 /*!
  PaperKey generates paper backup keys for restoring an account.

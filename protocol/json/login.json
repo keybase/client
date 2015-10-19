@@ -252,6 +252,13 @@
       } ],
       "response" : "null"
     },
+    "recoverAccountFromEmailAddress" : {
+      "request" : [ {
+        "name" : "email",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
     "paperKey" : {
       "doc" : "PaperKey generates paper backup keys for restoring an account.\n    It calls login_ui.displayPaperKeyPhrase with the phrase.",
       "request" : [ {
