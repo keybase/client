@@ -25,12 +25,9 @@ export default class CodePage extends Component {
 
   controlStyle (mode) {
     if (this.props.mode === mode) {
-      return {
-        backgroundColor: 'green'
-      }
-    } else {
-      return {}
+      return { backgroundColor: 'green' }
     }
+    return {}
   }
 
   renderSwitch (mode) {
@@ -50,7 +47,6 @@ export default class CodePage extends Component {
       case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
         return (<Text style={{textAlign: 'center', backgroundColor: 'red', padding: 20}} onPress={() => {
           this.props.dispatch(setCameraBrokenMode(!this.props.cameraBrokenMode))
-          //this.props.dispatch(setCodePageMode(this.props.cameraBrokenMode ? codePageModeShowCode : codePageModeShowText))
         }}>Camera {this.props.cameraBrokenMode ? 'working' : 'broken'}?</Text>)
     }
 
@@ -58,7 +54,7 @@ export default class CodePage extends Component {
   }
 
   renderControls () {
-    let controls = []
+    let controls = null
 
     switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
       case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
@@ -73,6 +69,14 @@ export default class CodePage extends Component {
           controls = [ codePageModeShowCode, codePageModeScanCode ]
         }
         break
+      case codePageDeviceRoleNewComputer + codePageDeviceRoleExistingPhone: // fallthrough
+      case codePageDeviceRoleExistingComputer + codePageDeviceRoleNewPhone:
+        controls = [ codePageModeShowCode, codePageModeEnterText ]
+        break
+    }
+
+    if (!controls) {
+      return null
     }
 
     return (

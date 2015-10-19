@@ -5,8 +5,8 @@ import Immutable from 'immutable'
 
 import * as Actions from '../actions/login2'
 
-const DEBUG_MY_ROLE = Constants.codePageDeviceRoleExistingPhone
-const DEBUG_OTHER_ROLE = Constants.codePageDeviceRoleNewPhone
+const DEBUG_MY_ROLE = Constants.codePageDeviceRoleExistingComputer
+const DEBUG_OTHER_ROLE = Constants.codePageDeviceRoleNewComputer
 
 const initialState = {
   username: '',
