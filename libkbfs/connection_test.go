@@ -154,7 +154,7 @@ func TestDoCommandThrottle(t *testing.T) {
 	err := conn.DoCommand(ctx, func() error {
 		if throttle {
 			throttle = false
-			err, _ := conn.errorUnwrapper.UnwrapError(WrapError(throttleError{Err: throttleErr}))
+			err, _ := conn.errorUnwrapper.UnwrapError(libkb.WrapError(throttleError{Err: throttleErr}))
 			return err
 		}
 		return nil
