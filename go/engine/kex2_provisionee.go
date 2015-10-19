@@ -27,6 +27,12 @@ type Kex2Provisionee struct {
 	csrfToken    keybase1.CsrfToken
 }
 
+// Kex2Provisionee implements kex2.Provisionee, libkb.UserBasic,
+// and libkb.SessionReader interfaces.
+var _ kex2.Provisionee = (*Kex2Provisionee)(nil)
+var _ libkb.UserBasic = (*Kex2Provisionee)(nil)
+var _ libkb.SessionReader = (*Kex2Provisionee)(nil)
+
 // NewKex2Provisionee creates a Kex2Provisionee engine.
 func NewKex2Provisionee(g *libkb.GlobalContext, device *libkb.Device, secret kex2.Secret) *Kex2Provisionee {
 	return &Kex2Provisionee{

@@ -22,6 +22,9 @@ type Kex2Provisioner struct {
 	pps        *libkb.PassphraseStream
 }
 
+// Kex2Provisioner implements kex2.Provisioner interface.
+var _ kex2.Provisioner = (*Kex2Provisioner)(nil)
+
 // NewKex2Provisioner creates a Kex2Provisioner engine.
 func NewKex2Provisioner(g *libkb.GlobalContext, deviceID keybase1.DeviceID, secret kex2.Secret) *Kex2Provisioner {
 	return &Kex2Provisioner{
