@@ -26,19 +26,17 @@ dependencies:
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client    # start the emulator
     - npm run gobuild-android
-    # - (bash -c "npm run reactbundle-android")
     - npm run reactbundle-android
     - echo y | android update sdk --all --no-ui --filter "build-tools-23.0.1,android-23,extra-android-support"
 test:
   override:
-    - echo "Test here plz"
     # wait for it to have booted
-    # - circle-android wait-for-boot
+    - circle-android wait-for-boot
     # run tests  against the emulator.
-    # - (cd android && ./gradlew connectedAndroidTest)
+    - (cd android && ./gradlew connectedAndroidTest)
     # copy the build outputs to artifacts
-    # - cp -r my-project/build/outputs $CIRCLE_ARTIFACTS
+    - cp -r my-project/build/outputs $CIRCLE_ARTIFACTS
     # copy the test results to the test results directory.
-    # - cp -r my-project/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
+    - cp -r my-project/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
     # Build a debug version of the app
-    # - (cd android && ./gradlew assembleDebug)
+    - (cd android && ./gradlew assembleDebug)
