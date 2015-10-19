@@ -1,25 +1,31 @@
 'use strict'
 
 import { NativeModules } from 'react-native'
-import * as types from '../constants/configActionTypes'
+import * as types from '../constants/config-action-types'
+import { autoLogin } from './login'
 import engine from '../engine'
 
-export function getConfig () {
+export function startup () {
   return function (dispatch) {
-    dispatch({
-      type: types.CONFIG_LOADING
-    })
+    dispatch({type: types.STARTUP_LOADING})
 
     engine.rpc('config.getConfig', {}, {}, (error, config) => {
       if (error) {
-        dispatch({
-          type: types.CONFIG_ERRORED,
-          error: error
-        })
+        dispatch({ type: types.STARTUP_LOADED, payload: error, error: true })
       } else {
-        dispatch({
-          type: types.CONFIG_LOADED,
-          config: config
+        engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
+          if (error) {
+            dispatch({ type: types.STARTUP_LOADED, payload: error, error: true })
+          } else {
+            dispatch({
+              type: types.STARTUP_LOADED,
+              payload: { config, status }
+            })
+
+            if (status.loggedIn) {
+              dispatch(autoLogin())
+            }
+          }
         })
       }
     })

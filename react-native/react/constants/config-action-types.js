@@ -1,9 +1,8 @@
 'use strict'
 /* @flow */
 
-export const CONFIG_LOADING = 'CONFIG_LOADING'
-export const CONFIG_ERRORED = 'CONFIG_ERRORED'
-export const CONFIG_LOADED = 'CONFIG_LOADED'
+export const STARTUP_LOADING = 'STARTUP_LOADING'
+export const STARTUP_LOADED = 'STARTUP_LOADED'
 
 export const DEV_CONFIG_LOADING = 'DEV_CONFIG_LOADING'
 export const DEV_CONFIG_LOADED = 'DEV_CONFIG_LOADED'
