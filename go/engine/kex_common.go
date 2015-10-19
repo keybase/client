@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -92,7 +94,7 @@ func (k *KexCommon) kexStatus(ctx *Context, msg string, code keybase1.KexStatusC
 		return
 	}
 
-	if err := ctx.LocksmithUI.KexStatus(keybase1.KexStatusArg{Msg: msg, Code: code}); err != nil {
+	if err := ctx.LocksmithUI.KexStatus(context.TODO(), keybase1.KexStatusArg{Msg: msg, Code: code}); err != nil {
 		// an error here isn't critical
 		k.G().Log.Debug("send KexStatus error: %s", err)
 	}

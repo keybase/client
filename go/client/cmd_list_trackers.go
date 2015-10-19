@@ -6,6 +6,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -87,18 +89,18 @@ func (c *CmdListTrackers) Run() error {
 
 	var trs []keybase1.Tracker
 	if c.uid.Exists() {
-		trs, err = cli.ListTrackers(keybase1.ListTrackersArg{Uid: c.uid})
+		trs, err = cli.ListTrackers(context.TODO(), keybase1.ListTrackersArg{Uid: c.uid})
 	} else if len(c.username) > 0 {
-		trs, err = cli.ListTrackersByName(keybase1.ListTrackersByNameArg{Username: c.username})
+		trs, err = cli.ListTrackersByName(context.TODO(), keybase1.ListTrackersByNameArg{Username: c.username})
 	} else {
-		trs, err = cli.ListTrackersSelf(0)
+		trs, err = cli.ListTrackersSelf(context.TODO(), 0)
 	}
 	if err != nil {
 		return err
 	}
 
 	summarize := func(uids []keybase1.UID) (res []keybase1.UserSummary, err error) {
-		return cli.LoadUncheckedUserSummaries(keybase1.LoadUncheckedUserSummariesArg{Uids: uids})
+		return cli.LoadUncheckedUserSummaries(context.TODO(), keybase1.LoadUncheckedUserSummariesArg{Uids: uids})
 	}
 
 	return c.output(trs, summarize)

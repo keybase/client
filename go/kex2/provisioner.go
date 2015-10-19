@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	"golang.org/x/net/context"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
@@ -53,7 +55,7 @@ func (p *provisioner) close() (err error) {
 	return err
 }
 
-func (p *provisioner) KexStart() error {
+func (p *provisioner) KexStart(_ context.Context) error {
 	close(p.start)
 	return nil
 }
@@ -137,7 +139,7 @@ func (p *provisioner) runProtocol() (err error) {
 		return
 	}
 	var res keybase1.HelloRes
-	if res, err = cli.Hello(helloArg); err != nil {
+	if res, err = cli.Hello(context.TODO(), helloArg); err != nil {
 		return
 	}
 	if p.canceled {
@@ -147,7 +149,7 @@ func (p *provisioner) runProtocol() (err error) {
 	if counterSigned, err = p.arg.Provisioner.CounterSign(res); err != nil {
 		return err
 	}
-	if err = cli.DidCounterSign(counterSigned); err != nil {
+	if err = cli.DidCounterSign(context.TODO(), counterSigned); err != nil {
 		return err
 	}
 	return nil

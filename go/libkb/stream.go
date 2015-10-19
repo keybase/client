@@ -5,6 +5,8 @@ import (
 	"io"
 	"sync"
 
+	"golang.org/x/net/context"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -83,7 +85,7 @@ func (s *ExportedStreams) GetReader(st keybase1.Stream) (ret io.ReadCloser, err 
 	return
 }
 
-func (s *ExportedStreams) Close(a keybase1.CloseArg) (err error) {
+func (s *ExportedStreams) Close(_ context.Context, a keybase1.CloseArg) (err error) {
 	s.Lock()
 	defer s.Unlock()
 	if obj, found := s.m[a.S.Fd]; !found {
@@ -103,7 +105,7 @@ func (s *ExportedStreams) Close(a keybase1.CloseArg) (err error) {
 	return err
 }
 
-func (s *ExportedStreams) Read(a keybase1.ReadArg) (buf []byte, err error) {
+func (s *ExportedStreams) Read(_ context.Context, a keybase1.ReadArg) (buf []byte, err error) {
 	var r io.ReadCloser
 	if r, err = s.GetReader(a.S); err != nil {
 		return
@@ -115,7 +117,7 @@ func (s *ExportedStreams) Read(a keybase1.ReadArg) (buf []byte, err error) {
 	return
 }
 
-func (s *ExportedStreams) Write(a keybase1.WriteArg) (n int, err error) {
+func (s *ExportedStreams) Write(_ context.Context, a keybase1.WriteArg) (n int, err error) {
 	var w io.WriteCloser
 	if w, err = s.GetWriter(a.S); err != nil {
 		return
@@ -131,16 +133,16 @@ type RemoteStream struct {
 }
 
 func (ewc RemoteStream) Write(buf []byte) (n int, err error) {
-	return ewc.Cli.Write(keybase1.WriteArg{S: ewc.Stream, Buf: buf, SessionID: ewc.SessionID})
+	return ewc.Cli.Write(context.TODO(), keybase1.WriteArg{S: ewc.Stream, Buf: buf, SessionID: ewc.SessionID})
 }
 
 func (ewc RemoteStream) Close() (err error) {
-	return ewc.Cli.Close(keybase1.CloseArg{S: ewc.Stream, SessionID: ewc.SessionID})
+	return ewc.Cli.Close(context.TODO(), keybase1.CloseArg{S: ewc.Stream, SessionID: ewc.SessionID})
 }
 
 func (ewc RemoteStream) Read(buf []byte) (n int, err error) {
 	var tmp []byte
-	if tmp, err = ewc.Cli.Read(keybase1.ReadArg{S: ewc.Stream, Sz: len(buf), SessionID: ewc.SessionID}); err == nil {
+	if tmp, err = ewc.Cli.Read(context.TODO(), keybase1.ReadArg{S: ewc.Stream, Sz: len(buf), SessionID: ewc.SessionID}); err == nil {
 		n = len(tmp)
 		copy(buf, tmp)
 	}

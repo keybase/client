@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -464,7 +466,7 @@ func (l *lockuiDevice) secretPhrase() string {
 }
 
 // select the first device
-func (l *lockuiDevice) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
+func (l *lockuiDevice) SelectSigner(_ context.Context, arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
 	l.selectSignerCount++
 	if len(arg.Devices) == 0 {
 		return res, fmt.Errorf("expected len(devices) > 0")
@@ -476,7 +478,7 @@ func (l *lockuiDevice) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.
 	return
 }
 
-func (l *lockuiDevice) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
+func (l *lockuiDevice) DisplaySecretWords(_ context.Context, arg keybase1.DisplaySecretWordsArg) error {
 	l.shared.Lock()
 	l.shared.secret = arg.Secret
 	l.shared.Unlock()
@@ -488,7 +490,7 @@ type lockuiCancel struct {
 	shared *lockuiDeviceShared
 }
 
-func (l *lockuiCancel) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
+func (l *lockuiCancel) SelectSigner(_ context.Context, arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
 	res.Action = keybase1.SelectSignerAction_CANCEL
 	return
 }

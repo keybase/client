@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"io/ioutil"
 
 	"github.com/keybase/cli"
@@ -75,7 +77,7 @@ func (s *CmdPGPImport) Run() error {
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	return cli.PGPImport(s.arg)
+	return cli.PGPImport(context.TODO(), s.arg)
 }
 
 func (s *CmdPGPImport) readKeyData() error {

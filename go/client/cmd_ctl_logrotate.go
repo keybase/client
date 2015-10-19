@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 func NewCmdCtlLogRotate(cl *libcmdline.CommandLine) cli.Command {
@@ -29,7 +30,7 @@ func (s *CmdCtlLogRotate) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	return cli.LogRotate(0)
+	return cli.LogRotate(context.TODO(), 0)
 }
 
 func (s *CmdCtlLogRotate) GetUsage() libkb.Usage {

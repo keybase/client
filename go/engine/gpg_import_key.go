@@ -10,6 +10,8 @@ package engine
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -74,7 +76,7 @@ func (e *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
 
 	// they have gpg
 
-	res, err := ctx.GPGUI.WantToAddGPGKey(0)
+	res, err := ctx.GPGUI.WantToAddGPGKey(context.TODO(), 0)
 	if err != nil {
 		return false, err
 	}
@@ -121,7 +123,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return fmt.Errorf("No PGP keys available to choose from.")
 	}
 
-	res, err := ctx.GPGUI.SelectKeyAndPushOption(keybase1.SelectKeyAndPushOptionArg{Keys: gks})
+	res, err := ctx.GPGUI.SelectKeyAndPushOption(context.TODO(), keybase1.SelectKeyAndPushOptionArg{Keys: gks})
 	if err != nil {
 		return err
 	}
@@ -149,7 +151,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	}
 	if duplicate {
 		// This key's already been posted to the server.
-		res, err := ctx.GPGUI.ConfirmDuplicateKeyChosen(0)
+		res, err := ctx.GPGUI.ConfirmDuplicateKeyChosen(context.TODO(), 0)
 		if err != nil {
 			return err
 		}

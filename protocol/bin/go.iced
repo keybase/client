@@ -161,7 +161,7 @@ class GoEmitter
   emit_generic_client : () ->
     @output "type GenericClient interface {"
     @tab()
-    @output "Call(s string, args interface{}, res interface{}) error"
+    @output "Call(ctx context.Context, s string, args interface{}, res interface{}) error"
     @untab()
     @output "}"
 
@@ -184,6 +184,7 @@ class GoEmitter
 
   emit_imports : () ->
     @output 'rpc "github.com/keybase/go-framed-msgpack-rpc"'
+    @output 'context "golang.org/x/net/context"'
 
   emit_interface_server : (protocol, messages) ->
     p = @go_export_case protocol
@@ -246,7 +247,7 @@ class GoEmitter
     else
       access = if arg.nargs is 1 then ".#{@go_export_case arg.single.name}" else ''
       "(*typedArgs)[0]#{access}"
-    @output "#{resvar}err = i.#{@go_export_case(name)}(#{farg})"
+    @output "#{resvar}err = i.#{@go_export_case(name)}(context.TODO(), #{farg})"
     @output "return"
     @untab()
     @output "},"
@@ -276,7 +277,7 @@ class GoEmitter
     res_types = []
     if res isnt "null" then res_types.push @go_lint_capitalize(@emit_field_type(res).type)
     res_types.push "error"
-    @output "#{@go_export_case(name)}(#{args}) (#{res_types.join ","})"
+    @output "#{@go_export_case(name)}(context.Context, #{args}) (#{res_types.join ","})"
 
   emit_message_client: (protocol, name, details, async) ->
     p = @go_export_case protocol
@@ -294,7 +295,7 @@ class GoEmitter
     else
       parg = arg.single or arg
       "#{parg.name} #{(@emit_field_type parg.type).type}"
-    @output "func (c #{p}Client) #{@go_export_case(name)}(#{params}) (#{outs}) {"
+    @output "func (c #{p}Client) #{@go_export_case(name)}(ctx context.Context, #{params}) (#{outs}) {"
     @tab()
     if arg.nargs is 1
       n = arg.single.name
@@ -303,7 +304,7 @@ class GoEmitter
     oarg += if arg.nargs is 0 then "#{arg.type}{}"
     else arg.name
     oarg += "}"
-    @output """err = c.Cli.Call("#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
+    @output """err = c.Cli.Call(ctx, "#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
     @output "return"
     @untab()
     @output "}"

@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/signal"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -135,7 +137,7 @@ func registerGlobalLogUI(g *libkb.GlobalContext) error {
 		return err
 	}
 	arg := keybase1.SetLogLevelArg{Level: logLevel}
-	ctlClient.SetLogLevel(arg)
+	ctlClient.SetLogLevel(context.TODO(), arg)
 	return nil
 }
 

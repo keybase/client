@@ -70,3 +70,17 @@ func (t TypeError) Error() string {
 func NewTypeError(expected, actual interface{}) error {
 	return TypeError{fmt.Sprintf("Invalid type for arguments. Expected: %T, actual: %T", expected, actual)}
 }
+
+type CanceledError struct {
+	p string
+}
+
+func NewCanceledError(method string, seq int) CanceledError {
+	return CanceledError{
+		p: fmt.Sprintf("call canceled: method %s, seqid %d", method, seq),
+	}
+}
+
+func (c CanceledError) Error() string {
+	return c.p
+}

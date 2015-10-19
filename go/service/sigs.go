@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 // SigsHandler is the RPC handler for the sigs interface.
@@ -16,7 +17,7 @@ func NewSigsHandler(xp rpc.Transporter) *SigsHandler {
 	return &SigsHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (h *SigsHandler) SigList(arg keybase1.SigListArg) ([]keybase1.Sig, error) {
+func (h *SigsHandler) SigList(_ context.Context, arg keybase1.SigListArg) ([]keybase1.Sig, error) {
 	eng, err := h.run(arg.Arg)
 	if err != nil {
 		return nil, err
@@ -24,7 +25,7 @@ func (h *SigsHandler) SigList(arg keybase1.SigListArg) ([]keybase1.Sig, error) {
 	return eng.Sigs(), nil
 }
 
-func (h *SigsHandler) SigListJSON(arg keybase1.SigListJSONArg) (string, error) {
+func (h *SigsHandler) SigListJSON(_ context.Context, arg keybase1.SigListJSONArg) (string, error) {
 	eng, err := h.run(arg.Arg)
 	if err != nil {
 		return "", err

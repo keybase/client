@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -41,7 +43,7 @@ func (c *CmdDeviceRemove) Run() (err error) {
 		return err
 	}
 
-	return cli.RevokeDevice(keybase1.RevokeDeviceArg{
+	return cli.RevokeDevice(context.TODO(), keybase1.RevokeDeviceArg{
 		Force:    c.force,
 		DeviceID: c.id,
 	})

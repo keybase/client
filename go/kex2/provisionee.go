@@ -5,6 +5,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type provisionee struct {
@@ -48,7 +49,7 @@ func RunProvisionee(arg ProvisioneeArg) error {
 // Hello is called via the RPC server interface by the remote client.
 // It in turn delegates the work to the passed in Provisionee interface,
 // calling HandleHello()
-func (p *provisionee) Hello(arg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
+func (p *provisionee) Hello(_ context.Context, arg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
 	close(p.start)
 	res, err = p.arg.Provisionee.HandleHello(arg)
 	if err != nil {
@@ -60,7 +61,7 @@ func (p *provisionee) Hello(arg keybase1.HelloArg) (res keybase1.HelloRes, err e
 // DidCounterSign is called via the RPC server interface by the remote client.
 // It in turn delegates the work to the passed in Provisionee interface,
 // calling HandleDidCounterSign()
-func (p *provisionee) DidCounterSign(sig []byte) (err error) {
+func (p *provisionee) DidCounterSign(_ context.Context, sig []byte) (err error) {
 	err = p.arg.Provisionee.HandleDidCounterSign(sig)
 	p.done <- err
 	return err
@@ -112,7 +113,7 @@ func (p *provisionee) pickFirstConnection() (err error) {
 			return err
 		}
 		cli := keybase1.Kex2ProvisionerClient{Cli: rpc.NewClient(p.xp, nil)}
-		if err = cli.KexStart(); err != nil {
+		if err = cli.KexStart(context.TODO()); err != nil {
 			return err
 		}
 	case <-p.arg.Ctx.Done():

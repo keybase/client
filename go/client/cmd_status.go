@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -28,7 +30,7 @@ func (v *CmdStatus) Run() (err error) {
 		return err
 	}
 
-	currentStatus, err := configCli.GetCurrentStatus(0)
+	currentStatus, err := configCli.GetCurrentStatus(context.TODO(), 0)
 	if err != nil {
 		return err
 	}
@@ -42,12 +44,12 @@ func (v *CmdStatus) Run() (err error) {
 		return err
 	}
 
-	me, err := userCli.LoadUser(keybase1.LoadUserArg{Uid: myUID})
+	me, err := userCli.LoadUser(context.TODO(), keybase1.LoadUserArg{Uid: myUID})
 	if err != nil {
 		return err
 	}
 
-	publicKeys, err := userCli.LoadPublicKeys(keybase1.LoadPublicKeysArg{Uid: myUID})
+	publicKeys, err := userCli.LoadPublicKeys(context.TODO(), keybase1.LoadPublicKeysArg{Uid: myUID})
 	if err != nil {
 		return err
 	}
@@ -56,7 +58,7 @@ func (v *CmdStatus) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	devs, err := devCli.DeviceList(0)
+	devs, err := devCli.DeviceList(context.TODO(), 0)
 	if err != nil {
 		return err
 	}

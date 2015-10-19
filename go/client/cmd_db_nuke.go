@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 type CmdDbNuke struct {
@@ -28,7 +29,7 @@ func (c *CmdDbNuke) Run() error {
 		if err = RegisterProtocols(nil); err != nil {
 			return err
 		}
-		return cli.DbNuke(0)
+		return cli.DbNuke(context.TODO(), 0)
 	}
 	return err
 }

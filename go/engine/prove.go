@@ -4,6 +4,7 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 // Prove is an engine used for proving ownership of remote accounts,
@@ -67,7 +68,7 @@ func (p *Prove) checkExists1(ctx *Context) (err error) {
 	if len(proofs) != 0 && !p.arg.Force && p.st.LastWriterWins() {
 		lst := proofs[len(proofs)-1]
 		var redo bool
-		redo, err = ctx.ProveUI.PromptOverwrite(keybase1.PromptOverwriteArg{
+		redo, err = ctx.ProveUI.PromptOverwrite(context.TODO(), keybase1.PromptOverwriteArg{
 			Account: lst.ToDisplayString(),
 			Typ:     keybase1.PromptOverwriteType_SOCIAL,
 		})
@@ -88,7 +89,7 @@ func (p *Prove) promptRemoteName(ctx *Context) (err error) {
 		var prevErr error
 		for len(p.username) == 0 && err == nil {
 			var un string
-			un, err = ctx.ProveUI.PromptUsername(keybase1.PromptUsernameArg{
+			un, err = ctx.ProveUI.PromptUsername(context.TODO(), keybase1.PromptUsernameArg{
 				Prompt:    p.st.GetPrompt(),
 				PrevError: libkb.ExportErrorAsStatus(prevErr),
 			})
@@ -124,7 +125,7 @@ func (p *Prove) checkExists2(ctx *Context) (err error) {
 		}
 		if found != nil {
 			var redo bool
-			redo, err = ctx.ProveUI.PromptOverwrite(keybase1.PromptOverwriteArg{
+			redo, err = ctx.ProveUI.PromptOverwrite(context.TODO(), keybase1.PromptOverwriteArg{
 				Account: found.ToDisplayString(),
 				Typ:     keybase1.PromptOverwriteType_SITE,
 			})
@@ -145,7 +146,7 @@ func (p *Prove) doPrechecks(ctx *Context) (err error) {
 	var w *libkb.Markup
 	w, err = p.st.PreProofCheck(p.usernameNormalized)
 	if w != nil {
-		if uierr := ctx.ProveUI.OutputPrechecks(keybase1.OutputPrechecksArg{Text: w.Export()}); uierr != nil {
+		if uierr := ctx.ProveUI.OutputPrechecks(context.TODO(), keybase1.OutputPrechecksArg{Text: w.Export()}); uierr != nil {
 			p.G().Log.Warning("prove ui OutputPrechecks call error: %s", uierr)
 		}
 	}
@@ -156,7 +157,7 @@ func (p *Prove) doWarnings(ctx *Context) (err error) {
 	if mu := p.st.PreProofWarning(p.usernameNormalized); mu != nil {
 		var ok bool
 		arg := keybase1.PreProofWarningArg{Text: mu.Export()}
-		if ok, err = ctx.ProveUI.PreProofWarning(arg); err == nil && !ok {
+		if ok, err = ctx.ProveUI.PreProofWarning(context.TODO(), arg); err == nil && !ok {
 			err = libkb.NotConfirmedError{}
 		}
 	}
@@ -206,7 +207,7 @@ func (p *Prove) instructAction(ctx *Context) (err error) {
 	if txt, err = p.st.FormatProofText(p.postRes); err != nil {
 		return
 	}
-	err = ctx.ProveUI.OutputInstructions(keybase1.OutputInstructionsArg{
+	err = ctx.ProveUI.OutputInstructions(context.TODO(), keybase1.OutputInstructionsArg{
 		Instructions: mkp.Export(),
 		Proof:        txt,
 	})
@@ -219,7 +220,7 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		var retry bool
 		var status keybase1.ProofStatus
 		var warn *libkb.Markup
-		retry, err = ctx.ProveUI.OkToCheck(keybase1.OkToCheckArg{
+		retry, err = ctx.ProveUI.OkToCheck(context.TODO(), keybase1.OkToCheckArg{
 			Name:    p.st.DisplayName(p.usernameNormalized),
 			Attempt: i,
 		})
@@ -232,7 +233,7 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		}
 		warn, err = p.st.RecheckProofPosting(i, status, p.usernameNormalized)
 		if warn != nil {
-			uierr := ctx.ProveUI.DisplayRecheckWarning(keybase1.DisplayRecheckWarningArg{
+			uierr := ctx.ProveUI.DisplayRecheckWarning(context.TODO(), keybase1.DisplayRecheckWarningArg{
 				Text: warn.Export(),
 			})
 			if uierr != nil {

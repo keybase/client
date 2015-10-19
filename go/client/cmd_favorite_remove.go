@@ -3,6 +3,8 @@ package client
 import (
 	"errors"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -32,7 +34,7 @@ func (c *CmdFavoriteDelete) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.FavoriteDelete(arg)
+	return cli.FavoriteDelete(context.TODO(), arg)
 }
 
 func (c *CmdFavoriteDelete) ParseArgv(ctx *cli.Context) error {

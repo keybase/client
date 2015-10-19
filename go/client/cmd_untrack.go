@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -46,7 +48,7 @@ func (v *CmdUntrack) Run() error {
 		return err
 	}
 
-	return cli.Untrack(keybase1.UntrackArg{
+	return cli.Untrack(context.TODO(), keybase1.UntrackArg{
 		Username: v.user,
 	})
 }

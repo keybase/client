@@ -18,8 +18,8 @@ func (s *Server) Register(p Protocol) error {
 	return dispatcher.RegisterProtocol(p)
 }
 
-// RegisterEOFHook registers a callback that's called when there's
-// and EOF condition on the underlying channel.
+// AddCloseListener supplies a channel listener to which
+// the server will send an error when a connection closes
 func (s *Server) AddCloseListener(ch chan error) error {
 	dispatcher, err := s.xp.getDispatcher()
 	if err != nil {

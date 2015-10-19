@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -39,7 +41,7 @@ func (c *CmdSigsRevoke) Run() error {
 		return err
 	}
 
-	return cli.RevokeSigs(keybase1.RevokeSigsArg{
+	return cli.RevokeSigs(context.TODO(), keybase1.RevokeSigsArg{
 		SigIDs: c.sigIDs,
 	})
 }

@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -72,7 +74,7 @@ func (p *CmdProve) Run() error {
 	// command line interface wants the PromptPosted ui loop
 	p.arg.PromptPosted = true
 
-	_, err = cli.StartProof(p.arg)
+	_, err = cli.StartProof(context.TODO(), p.arg)
 	return err
 }
 

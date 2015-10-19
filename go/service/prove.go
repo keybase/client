@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 // ProveHandler is the service side of proving ownership of social media accounts
@@ -23,33 +24,33 @@ func NewProveHandler(xp rpc.Transporter) *ProveHandler {
 	return &ProveHandler{BaseHandler: NewBaseHandler(xp)}
 }
 
-func (p *proveUI) PromptOverwrite(arg keybase1.PromptOverwriteArg) (b bool, err error) {
+func (p *proveUI) PromptOverwrite(ctx context.Context, arg keybase1.PromptOverwriteArg) (b bool, err error) {
 	arg.SessionID = p.sessionID
-	return p.cli.PromptOverwrite(arg)
+	return p.cli.PromptOverwrite(ctx, arg)
 }
-func (p *proveUI) PromptUsername(arg keybase1.PromptUsernameArg) (un string, err error) {
+func (p *proveUI) PromptUsername(ctx context.Context, arg keybase1.PromptUsernameArg) (un string, err error) {
 	arg.SessionID = p.sessionID
-	return p.cli.PromptUsername(arg)
+	return p.cli.PromptUsername(ctx, arg)
 }
-func (p *proveUI) OutputPrechecks(arg keybase1.OutputPrechecksArg) error {
+func (p *proveUI) OutputPrechecks(ctx context.Context, arg keybase1.OutputPrechecksArg) error {
 	arg.SessionID = p.sessionID
-	return p.cli.OutputPrechecks(arg)
+	return p.cli.OutputPrechecks(ctx, arg)
 }
-func (p *proveUI) PreProofWarning(arg keybase1.PreProofWarningArg) (ok bool, err error) {
+func (p *proveUI) PreProofWarning(ctx context.Context, arg keybase1.PreProofWarningArg) (ok bool, err error) {
 	arg.SessionID = p.sessionID
-	return p.cli.PreProofWarning(arg)
+	return p.cli.PreProofWarning(ctx, arg)
 }
-func (p *proveUI) OutputInstructions(arg keybase1.OutputInstructionsArg) (err error) {
+func (p *proveUI) OutputInstructions(ctx context.Context, arg keybase1.OutputInstructionsArg) (err error) {
 	arg.SessionID = p.sessionID
-	return p.cli.OutputInstructions(arg)
+	return p.cli.OutputInstructions(ctx, arg)
 }
-func (p *proveUI) OkToCheck(arg keybase1.OkToCheckArg) (bool, error) {
+func (p *proveUI) OkToCheck(ctx context.Context, arg keybase1.OkToCheckArg) (bool, error) {
 	arg.SessionID = p.sessionID
-	return p.cli.OkToCheck(arg)
+	return p.cli.OkToCheck(ctx, arg)
 }
-func (p *proveUI) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningArg) error {
+func (p *proveUI) DisplayRecheckWarning(ctx context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	arg.SessionID = p.sessionID
-	return p.cli.DisplayRecheckWarning(arg)
+	return p.cli.DisplayRecheckWarning(ctx, arg)
 }
 
 func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
@@ -57,7 +58,7 @@ func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 }
 
 // Prove handles the `keybase.1.startProof` RPC.
-func (ph *ProveHandler) StartProof(arg keybase1.StartProofArg) (res keybase1.StartProofResult, err error) {
+func (ph *ProveHandler) StartProof(_ context.Context, arg keybase1.StartProofArg) (res keybase1.StartProofResult, err error) {
 	eng := engine.NewProve(&arg, G)
 	ctx := engine.Context{
 		ProveUI:  ph.getProveUI(arg.SessionID),
@@ -72,7 +73,7 @@ func (ph *ProveHandler) StartProof(arg keybase1.StartProofArg) (res keybase1.Sta
 	return res, err
 }
 
-func (ph *ProveHandler) CheckProof(arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
+func (ph *ProveHandler) CheckProof(_ context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
 	eng := engine.NewProveCheck(G, arg.SigID)
 	ctx := &engine.Context{}
 	if err = engine.RunEngine(eng, ctx); err != nil {

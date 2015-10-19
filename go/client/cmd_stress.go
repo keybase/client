@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -117,7 +119,7 @@ func (c *CmdStress) signup(cli *rpc.Client) (username, passphrase string, err er
 	G.Log.Info("username: %q, email: %q, passphrase: %q", username, email, c.passphrase)
 
 	scli := keybase1.SignupClient{Cli: cli}
-	res, err := scli.Signup(keybase1.SignupArg{
+	res, err := scli.Signup(context.TODO(), keybase1.SignupArg{
 		Email:      email,
 		InviteCode: "202020202020202020202020",
 		Passphrase: c.passphrase,
@@ -163,7 +165,7 @@ func (c *CmdStress) idSelf() {
 		return
 	}
 	icli := keybase1.IdentifyClient{Cli: cli}
-	_, err = icli.Identify(keybase1.IdentifyArg{})
+	_, err = icli.Identify(context.TODO(), keybase1.IdentifyArg{})
 	if err != nil {
 		G.Log.Warning("id self error: %s", err)
 	}
@@ -176,7 +178,7 @@ func (c *CmdStress) idAlice() {
 		return
 	}
 	icli := keybase1.IdentifyClient{Cli: cli}
-	_, err = icli.Identify(keybase1.IdentifyArg{UserAssertion: "t_alice"})
+	_, err = icli.Identify(context.TODO(), keybase1.IdentifyArg{UserAssertion: "t_alice"})
 	if err != nil {
 		G.Log.Warning("id t_alice error: %s", err)
 	}
@@ -194,7 +196,7 @@ func (c *CmdStress) trackSomeone() {
 
 	tcli := keybase1.TrackClient{Cli: cli}
 	options := keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}
-	err = tcli.Track(keybase1.TrackArg{UserAssertion: username, Options: options})
+	err = tcli.Track(context.TODO(), keybase1.TrackArg{UserAssertion: username, Options: options})
 	if err != nil {
 		G.Log.Warning("track %s error: %s", username, err)
 
@@ -202,7 +204,7 @@ func (c *CmdStress) trackSomeone() {
 	if libkb.RandIntn(2) == 0 {
 		return
 	}
-	err = tcli.Untrack(keybase1.UntrackArg{Username: username})
+	err = tcli.Untrack(context.TODO(), keybase1.UntrackArg{Username: username})
 	if err != nil {
 		G.Log.Warning("untrack %s error: %s", username, err)
 	}
@@ -215,7 +217,7 @@ func (c *CmdStress) listTrackers() {
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.ListTrackersSelf(0)
+	_, err = ucli.ListTrackersSelf(context.TODO(), 0)
 	if err != nil {
 		G.Log.Warning("list trackers error: %s", err)
 	}
@@ -228,7 +230,7 @@ func (c *CmdStress) listTracking() {
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.ListTracking(keybase1.ListTrackingArg{})
+	_, err = ucli.ListTracking(context.TODO(), keybase1.ListTrackingArg{})
 	if err != nil {
 		G.Log.Warning("list tracking error: %s", err)
 	}
@@ -241,7 +243,7 @@ func (c *CmdStress) deviceList() {
 		return
 	}
 	dcli := keybase1.DeviceClient{Cli: cli}
-	_, err = dcli.DeviceList(0)
+	_, err = dcli.DeviceList(context.TODO(), 0)
 	if err != nil {
 		G.Log.Warning("device list error: %s", err)
 	}
@@ -264,13 +266,13 @@ func (c *CmdStress) deviceAdd() {
 		G.Log.Warning("RandBytes error: %s", err)
 		return
 	}
-	err = dcli.DeviceAdd(keybase1.DeviceAddArg{SecretPhrase: string(phrase), SessionID: sessionID})
+	err = dcli.DeviceAdd(context.TODO(), keybase1.DeviceAddArg{SecretPhrase: string(phrase), SessionID: sessionID})
 	if err != nil {
 		G.Log.Warning("device add error: %s", err)
 	}
 	go func() {
 		time.Sleep(10 * time.Millisecond)
-		err := dcli.DeviceAddCancel(sessionID)
+		err := dcli.DeviceAddCancel(context.TODO(), sessionID)
 		if err != nil {
 			G.Log.Warning("device add cancel error: %s", err)
 		}
@@ -284,7 +286,7 @@ func (c *CmdStress) doctor() {
 		return
 	}
 	dcli := keybase1.DoctorClient{Cli: cli}
-	err = dcli.Doctor(0)
+	err = dcli.Doctor(context.TODO(), 0)
 	if err != nil {
 		G.Log.Warning("doctor error: %s", err)
 	}
@@ -297,7 +299,7 @@ func (c *CmdStress) status() {
 		return
 	}
 	ccli := keybase1.ConfigClient{Cli: cli}
-	currentStatus, err := ccli.GetCurrentStatus(0)
+	currentStatus, err := ccli.GetCurrentStatus(context.TODO(), 0)
 	if err != nil {
 		G.Log.Warning("status error: %s", err)
 		return
@@ -309,7 +311,7 @@ func (c *CmdStress) status() {
 	myUID := currentStatus.User.Uid
 
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.LoadUser(keybase1.LoadUserArg{Uid: myUID})
+	_, err = ucli.LoadUser(context.TODO(), keybase1.LoadUserArg{Uid: myUID})
 	if err != nil {
 		G.Log.Warning("load user error: %s", err)
 	}
@@ -321,7 +323,7 @@ func (c *CmdStress) logout() {
 		G.Log.Warning("GetLoginClient error: %s", err)
 		return
 	}
-	err = cli.Logout(0)
+	err = cli.Logout(context.TODO(), 0)
 	if err != nil {
 		G.Log.Warning("Logout error: %s", err)
 		return
@@ -332,16 +334,16 @@ func (c *CmdStress) gpgUIProtocol() rpc.Protocol {
 	return keybase1.GpgUiProtocol(c)
 }
 
-func (c *CmdStress) SelectKey(arg keybase1.SelectKeyArg) (string, error) {
+func (c *CmdStress) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
 	return "", nil
 }
-func (c *CmdStress) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (res keybase1.SelectKeyRes, err error) {
+func (c *CmdStress) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (res keybase1.SelectKeyRes, err error) {
 	return
 }
-func (c *CmdStress) WantToAddGPGKey(dummy int) (bool, error) {
+func (c *CmdStress) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
-func (c *CmdStress) ConfirmDuplicateKeyChosen(dummy int) (bool, error) {
+func (c *CmdStress) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	return false, nil
 }
 
@@ -349,18 +351,18 @@ func (c *CmdStress) secretUIProtocol() rpc.Protocol {
 	return keybase1.SecretUiProtocol(c)
 }
 
-func (c *CmdStress) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (string, error) {
+func (c *CmdStress) GetKeybasePassphrase(_ context.Context, arg keybase1.GetKeybasePassphraseArg) (string, error) {
 	return c.passphrase, nil
 }
 
-func (c *CmdStress) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (string, error) {
+func (c *CmdStress) GetPaperKeyPassphrase(_ context.Context, arg keybase1.GetPaperKeyPassphraseArg) (string, error) {
 	return "", nil
 }
 
-func (c *CmdStress) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
+func (c *CmdStress) GetNewPassphrase(_ context.Context, arg keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
 	return keybase1.GetNewPassphraseRes{Passphrase: c.passphrase}, nil
 }
 
-func (c *CmdStress) GetSecret(arg keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {
+func (c *CmdStress) GetSecret(_ context.Context, arg keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {
 	return
 }

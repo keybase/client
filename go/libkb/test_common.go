@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -327,18 +329,18 @@ type TestLoginUI struct {
 	RevokeBackup bool
 }
 
-func (t TestLoginUI) GetEmailOrUsername(dummy int) (string, error) {
+func (t TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
 	return t.Username, nil
 }
 
-func (t TestLoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+func (t TestLoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	return t.RevokeBackup, nil
 }
 
-func (t TestLoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
+func (t TestLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
 
-func (t TestLoginUI) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
+func (t TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }

@@ -3,6 +3,8 @@ package client
 import (
 	"errors"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -50,7 +52,7 @@ func (v *CmdLogin) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.LoginWithPrompt(keybase1.LoginWithPromptArg{
+	return cli.LoginWithPrompt(context.TODO(), keybase1.LoginWithPromptArg{
 		SessionID: v.sessionID,
 		Username:  v.Username,
 	})
@@ -64,7 +66,7 @@ func (v *CmdLogin) Cancel() error {
 	if err != nil {
 		return err
 	}
-	return cli.CancelLogin(v.sessionID)
+	return cli.CancelLogin(context.TODO(), v.sessionID)
 }
 
 func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {

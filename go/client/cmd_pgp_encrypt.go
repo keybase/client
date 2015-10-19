@@ -3,6 +3,8 @@ package client
 import (
 	"errors"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -102,7 +104,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		TrackOptions: c.trackOptions,
 	}
 	arg := keybase1.PGPEncryptArg{Source: src, Sink: snk, Opts: opts}
-	err = cli.PGPEncrypt(arg)
+	err = cli.PGPEncrypt(context.TODO(), arg)
 
 	cerr := c.Close(err)
 	return libkb.PickFirstError(err, cerr)

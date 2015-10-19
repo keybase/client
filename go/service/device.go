@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 // DeviceHandler is the RPC handler for the device interface.
@@ -16,7 +17,7 @@ func NewDeviceHandler(xp rpc.Transporter) *DeviceHandler {
 	return &DeviceHandler{CancelHandler: NewCancelHandler(xp)}
 }
 
-func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase1.Device, error) {
+func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1.Device, error) {
 	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
 	eng := engine.NewDevList(G)
 	if err := engine.RunEngine(eng, ctx); err != nil {
@@ -26,7 +27,7 @@ func (h *DeviceHandler) DeviceList(sessionID int) ([]keybase1.Device, error) {
 }
 
 // DeviceAdd adds a sibkey using a SibkeyEngine.
-func (h *DeviceHandler) DeviceAdd(arg keybase1.DeviceAddArg) error {
+func (h *DeviceHandler) DeviceAdd(_ context.Context, arg keybase1.DeviceAddArg) error {
 	locksmithUI := NewRemoteLocksmithUI(arg.SessionID, h.rpcClient())
 	ctx := &engine.Context{SecretUI: h.getSecretUI(arg.SessionID), LocksmithUI: locksmithUI}
 	eng := engine.NewKexProvisioner(G, arg.SecretPhrase)
@@ -39,7 +40,7 @@ func (h *DeviceHandler) DeviceAdd(arg keybase1.DeviceAddArg) error {
 
 // DeviceAddCancel stops the device provisioning authorized with
 // DeviceAdd.
-func (h *DeviceHandler) DeviceAddCancel(sessionID int) error {
+func (h *DeviceHandler) DeviceAddCancel(_ context.Context, sessionID int) error {
 	c := h.canceler(sessionID)
 	if c == nil {
 		return nil

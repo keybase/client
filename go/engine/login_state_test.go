@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -218,7 +220,7 @@ type GetUsernameMock struct {
 	LastErr  error
 }
 
-func (m *GetUsernameMock) GetEmailOrUsername(int) (string, error) {
+func (m *GetUsernameMock) GetEmailOrUsername(context.Context, int) (string, error) {
 	if m.Called {
 		m.LastErr = errors.New("GetEmailOrUsername unexpectedly called more than once")
 		return "invalid username", m.LastErr
@@ -227,15 +229,15 @@ func (m *GetUsernameMock) GetEmailOrUsername(int) (string, error) {
 	return m.Username, nil
 }
 
-func (m *GetUsernameMock) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+func (m *GetUsernameMock) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	return false, nil
 }
 
-func (m *GetUsernameMock) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
+func (m *GetUsernameMock) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
 
-func (m *GetUsernameMock) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
+func (m *GetUsernameMock) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
 

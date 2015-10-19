@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -106,7 +108,7 @@ func (s *CmdListTracking) Run() error {
 	}
 
 	if s.json {
-		jsonStr, err := cli.ListTrackingJSON(keybase1.ListTrackingJSONArg{
+		jsonStr, err := cli.ListTrackingJSON(context.TODO(), keybase1.ListTrackingJSONArg{
 			Filter:  s.filter,
 			Verbose: s.verbose,
 		})
@@ -116,7 +118,7 @@ func (s *CmdListTracking) Run() error {
 		return DisplayJSON(jsonStr)
 	}
 
-	table, err := cli.ListTracking(keybase1.ListTrackingArg{Filter: s.filter})
+	table, err := cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter})
 	if err != nil {
 		return err
 	}

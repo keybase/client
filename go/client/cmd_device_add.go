@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -54,7 +56,7 @@ func (c *CmdDeviceAdd) Run() error {
 		return err
 	}
 
-	return cli.DeviceAdd(keybase1.DeviceAddArg{SecretPhrase: c.phrase, SessionID: c.sessionID})
+	return cli.DeviceAdd(context.TODO(), keybase1.DeviceAddArg{SecretPhrase: c.phrase, SessionID: c.sessionID})
 }
 
 // ParseArgv gets the secret phrase from the command args.

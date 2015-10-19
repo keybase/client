@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 type CmdLogout struct{}
@@ -13,7 +14,7 @@ func (v *CmdLogout) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.Logout(0)
+	return cli.Logout(context.TODO(), 0)
 }
 
 func NewCmdLogout(cl *libcmdline.CommandLine) cli.Command {

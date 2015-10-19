@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -35,7 +37,7 @@ func (c *CmdRevoke) Run() (err error) {
 		return err
 	}
 
-	return cli.RevokeKey(keybase1.RevokeKeyArg{
+	return cli.RevokeKey(context.TODO(), keybase1.RevokeKeyArg{
 		KeyID: c.id,
 	})
 }

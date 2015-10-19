@@ -8,6 +8,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -407,7 +409,7 @@ type ProveUI struct {
 	outputHook func(string) error
 }
 
-func (p ProveUI) PromptOverwrite(arg keybase1.PromptOverwriteArg) (bool, error) {
+func (p ProveUI) PromptOverwrite(_ context.Context, arg keybase1.PromptOverwriteArg) (bool, error) {
 	var prompt string
 	switch arg.Typ {
 	case keybase1.PromptOverwriteType_SOCIAL:
@@ -420,7 +422,7 @@ func (p ProveUI) PromptOverwrite(arg keybase1.PromptOverwriteArg) (bool, error) 
 	return p.parent.PromptYesNo(prompt, PromptDefaultNo)
 }
 
-func (p ProveUI) PromptUsername(arg keybase1.PromptUsernameArg) (string, error) {
+func (p ProveUI) PromptUsername(_ context.Context, arg keybase1.PromptUsernameArg) (string, error) {
 	err := libkb.ImportStatusAsError(arg.PrevError)
 	if err != nil {
 		G.Log.Error(err.Error())
@@ -432,17 +434,17 @@ func (p ProveUI) render(txt keybase1.Text) {
 	RenderText(p.parent.OutputWriter(), txt)
 }
 
-func (p ProveUI) OutputPrechecks(arg keybase1.OutputPrechecksArg) error {
+func (p ProveUI) OutputPrechecks(_ context.Context, arg keybase1.OutputPrechecksArg) error {
 	p.render(arg.Text)
 	return nil
 }
 
-func (p ProveUI) PreProofWarning(arg keybase1.PreProofWarningArg) (bool, error) {
+func (p ProveUI) PreProofWarning(_ context.Context, arg keybase1.PreProofWarningArg) (bool, error) {
 	p.render(arg.Text)
 	return p.parent.PromptYesNo("Proceed?", PromptDefaultNo)
 }
 
-func (p ProveUI) OutputInstructions(arg keybase1.OutputInstructionsArg) (err error) {
+func (p ProveUI) OutputInstructions(_ context.Context, arg keybase1.OutputInstructionsArg) (err error) {
 	p.render(arg.Instructions)
 	if p.outputHook != nil {
 		err = p.outputHook(arg.Proof)
@@ -452,7 +454,7 @@ func (p ProveUI) OutputInstructions(arg keybase1.OutputInstructionsArg) (err err
 	return
 }
 
-func (p ProveUI) OkToCheck(arg keybase1.OkToCheckArg) (bool, error) {
+func (p ProveUI) OkToCheck(_ context.Context, arg keybase1.OkToCheckArg) (bool, error) {
 	var agn string
 	if arg.Attempt > 0 {
 		agn = "again "
@@ -461,7 +463,7 @@ func (p ProveUI) OkToCheck(arg keybase1.OkToCheckArg) (bool, error) {
 	return p.parent.PromptYesNo(prompt, PromptDefaultYes)
 }
 
-func (p ProveUI) DisplayRecheckWarning(arg keybase1.DisplayRecheckWarningArg) error {
+func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	p.render(arg.Text)
 	return nil
 }
@@ -472,16 +474,16 @@ type LocksmithUI struct {
 	parent *UI
 }
 
-func (d LocksmithUI) PromptDeviceName(dummy int) (string, error) {
+func (d LocksmithUI) PromptDeviceName(_ context.Context, _ int) (string, error) {
 	return d.parent.Prompt("Enter a public name for this device", false, libkb.CheckDeviceName)
 }
 
-func (d LocksmithUI) DeviceNameTaken(arg keybase1.DeviceNameTakenArg) error {
+func (d LocksmithUI) DeviceNameTaken(_ context.Context, arg keybase1.DeviceNameTakenArg) error {
 	d.parent.Output(fmt.Sprintf("Device name %q is already in use.  Please enter a unique device name.\n", arg.Name))
 	return nil
 }
 
-func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
+func (d LocksmithUI) SelectSigner(_ context.Context, arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
 	d.parent.Output("How would you like to sign this install of Keybase?\n\n")
 	w := new(tabwriter.Writer)
 	w.Init(d.parent.OutputWriter(), 5, 0, 3, ' ', 0)
@@ -542,22 +544,22 @@ func (d LocksmithUI) SelectSigner(arg keybase1.SelectSignerArg) (res keybase1.Se
 	return res, nil
 }
 
-func (d LocksmithUI) DeviceSignAttemptErr(arg keybase1.DeviceSignAttemptErrArg) error {
+func (d LocksmithUI) DeviceSignAttemptErr(_ context.Context, arg keybase1.DeviceSignAttemptErrArg) error {
 	return nil
 }
 
-func (d LocksmithUI) DisplaySecretWords(arg keybase1.DisplaySecretWordsArg) error {
+func (d LocksmithUI) DisplaySecretWords(_ context.Context, arg keybase1.DisplaySecretWordsArg) error {
 	d.parent.Printf("\nUsing the terminal at %q, type this:\n\n", arg.DeviceNameExisting)
 	d.parent.Printf("\tkeybase device add \"%s\"\n\n", arg.Secret)
 	return nil
 }
 
-func (d LocksmithUI) KexStatus(arg keybase1.KexStatusArg) error {
+func (d LocksmithUI) KexStatus(_ context.Context, arg keybase1.KexStatusArg) error {
 	G.Log.Debug("kex status: %s (%d)", arg.Msg, arg.Code)
 	return nil
 }
 
-func (d LocksmithUI) DisplayProvisionSuccess(arg keybase1.DisplayProvisionSuccessArg) error {
+func (d LocksmithUI) DisplayProvisionSuccess(_ context.Context, arg keybase1.DisplayProvisionSuccessArg) error {
 
 	d.parent.Printf(CHECK + " Success! You are logged in as " + ColorString("bold", arg.Username) + "\n")
 	// turn on when kbfs active:
@@ -577,12 +579,12 @@ type LoginUI struct {
 	noPrompt bool
 }
 
-func (l LoginUI) GetEmailOrUsername(dummy int) (string, error) {
+func (l LoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
 	return l.parent.Prompt("Your keybase username or email", false,
 		libkb.CheckEmailOrUsername)
 }
 
-func (l LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+func (l LoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	if l.noPrompt {
 		return false, nil
 	}
@@ -603,7 +605,7 @@ func (l LoginUI) PromptRevokePaperKeys(arg keybase1.PromptRevokePaperKeysArg) (b
 	return l.parent.PromptYesNo(prompt, PromptDefaultNo)
 }
 
-func (l LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) error {
+func (l LoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
 	if l.noPrompt {
 		return nil
 	}
@@ -613,7 +615,7 @@ func (l LoginUI) DisplayPaperKeyPhrase(arg keybase1.DisplayPaperKeyPhraseArg) er
 	return nil
 }
 
-func (l LoginUI) DisplayPrimaryPaperKey(arg keybase1.DisplayPrimaryPaperKeyArg) error {
+func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	if l.noPrompt {
 		return nil
 	}

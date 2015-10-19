@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 func NewCmdPaperKey(cl *libcmdline.CommandLine) cli.Command {
@@ -32,7 +33,7 @@ func (c *CmdPaperKey) Run() error {
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	return cli.PaperKey(0)
+	return cli.PaperKey(context.TODO(), 0)
 }
 
 func (c *CmdPaperKey) ParseArgv(ctx *cli.Context) error {

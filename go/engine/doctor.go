@@ -3,6 +3,8 @@ package engine
 import (
 	"errors"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -104,7 +106,7 @@ func (e *Doctor) login(ctx *Context) {
 		othersExp = append(othersExp, o.String())
 	}
 
-	selected, err := ctx.DoctorUI.LoginSelect(current.String(), othersExp)
+	selected, err := ctx.DoctorUI.LoginSelect(context.TODO(), current.String(), othersExp)
 	if err != nil {
 		e.runErr = err
 		return
@@ -205,7 +207,7 @@ func (e *Doctor) status(ctx *Context) {
 
 	// get det key
 
-	proceed, err := ctx.DoctorUI.DisplayStatus(uistatus)
+	proceed, err := ctx.DoctorUI.DisplayStatus(context.TODO(), uistatus)
 	if err != nil {
 		e.runErr = err
 		return
@@ -238,5 +240,5 @@ func (e *Doctor) done(ctx *Context) {
 	if e.runErr != nil {
 		return
 	}
-	e.runErr = ctx.DoctorUI.DisplayResult("done")
+	e.runErr = ctx.DoctorUI.DisplayResult(context.TODO(), "done")
 }

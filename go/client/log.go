@@ -3,6 +3,8 @@ package client
 import (
 	"bytes"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -16,7 +18,7 @@ func NewLogUIProtocol() rpc.Protocol {
 	return keybase1.LogUiProtocol(&LogUIServer{G.Log})
 }
 
-func (s LogUIServer) Log(arg keybase1.LogArg) error {
+func (s LogUIServer) Log(_ context.Context, arg keybase1.LogArg) error {
 	buf := new(bytes.Buffer)
 	RenderText(buf, arg.Text)
 	msg := buf.String()

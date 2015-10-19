@@ -4,6 +4,8 @@ import (
 	"os"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/engine"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -18,7 +20,7 @@ func NewCtlHandler(xp rpc.Transporter) *CtlHandler {
 }
 
 // Stop is called on the rpc keybase.1.ctl.stop, which shuts down the service.
-func (c *CtlHandler) Stop(sessionID int) error {
+func (c *CtlHandler) Stop(_ context.Context, sessionID int) error {
 	G.Log.Info("Received stop() RPC; shutting down")
 	go func() {
 		time.Sleep(1 * time.Second)
@@ -28,21 +30,21 @@ func (c *CtlHandler) Stop(sessionID int) error {
 	return nil
 }
 
-func (c *CtlHandler) LogRotate(sessionID int) error {
+func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
 	return G.Log.RotateLogFile()
 }
 
-func (c *CtlHandler) SetLogLevel(arg keybase1.SetLogLevelArg) error {
+func (c *CtlHandler) SetLogLevel(_ context.Context, arg keybase1.SetLogLevelArg) error {
 	G.Log.SetExternalLogLevel(arg.Level)
 	return nil
 }
 
-func (c *CtlHandler) Reload(sessionID int) error {
+func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
 	G.Log.Info("Reloading config file")
 	return G.ConfigReload()
 }
 
-func (c *CtlHandler) DbNuke(sessionID int) error {
+func (c *CtlHandler) DbNuke(_ context.Context, sessionID int) error {
 	ctx := engine.Context{
 		LogUI: c.getLogUI(sessionID),
 	}

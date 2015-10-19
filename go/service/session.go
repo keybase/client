@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -23,7 +25,7 @@ func NewSessionHandler(xp rpc.Transporter) *SessionHandler {
 
 // CurrentSession uses the global session to find the session.  If
 // the user isn't logged in, it returns ErrNoSession.
-func (h *SessionHandler) CurrentSession(sessionID int) (keybase1.Session, error) {
+func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keybase1.Session, error) {
 	var s keybase1.Session
 	var token string
 	var username libkb.NormalizedUsername
@@ -54,7 +56,7 @@ func (h *SessionHandler) CurrentSession(sessionID int) (keybase1.Session, error)
 
 // CurrentUID returns the logged in user's UID, or ErrNoSession if
 // not logged in.
-func (h *SessionHandler) CurrentUID(sessionID int) (keybase1.UID, error) {
+func (h *SessionHandler) CurrentUID(_ context.Context, sessionID int) (keybase1.UID, error) {
 	uid, err := engine.CurrentUID(G)
 	if err != nil {
 		if _, ok := err.(libkb.LoginRequiredError); ok {

@@ -8,6 +8,8 @@ package engine
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -66,7 +68,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 	}
 	var needReload bool
 	for i, bdev := range cki.PaperDevices() {
-		revoke, err := ctx.LoginUI.PromptRevokePaperKeys(
+		revoke, err := ctx.LoginUI.PromptRevokePaperKeys(context.TODO(),
 			keybase1.PromptRevokePaperKeysArg{
 				Device: *bdev.ProtExport(),
 				Index:  i,
@@ -116,7 +118,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		return err
 	}
 
-	return ctx.LoginUI.DisplayPaperKeyPhrase(keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase.String()})
+	return ctx.LoginUI.DisplayPaperKeyPhrase(context.TODO(), keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase.String()})
 
 }
 

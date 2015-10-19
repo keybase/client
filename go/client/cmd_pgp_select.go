@@ -3,6 +3,8 @@ package client
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -47,7 +49,7 @@ func (v *CmdPGPSelect) Run() error {
 		return err
 	}
 
-	err = c.PGPSelect(keybase1.PGPSelectArg{
+	err = c.PGPSelect(context.TODO(), keybase1.PGPSelectArg{
 		FingerprintQuery: v.query,
 		AllowMulti:       v.multi,
 		SkipImport:       v.skipImport,
