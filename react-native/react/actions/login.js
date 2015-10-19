@@ -118,3 +118,17 @@ export function logout () {
     })
   }
 }
+
+export function autoLogin () {
+  return function (dispatch) {
+    engine.rpc('login.loginWithPrompt', {}, {}, (error, status) => {
+      if (error) {
+        console.log(error)
+      } else {
+        dispatch({
+          type: types.LOGGED_IN
+        })
+      }
+    })
+  }
+}
