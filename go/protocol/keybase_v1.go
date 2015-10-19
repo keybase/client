@@ -2432,7 +2432,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RecoverAccountFromEmailAddressArg)(nil), args)
 						return
 					}
-					err = i.RecoverAccountFromEmailAddress((*typedArgs)[0].Email)
+					err = i.RecoverAccountFromEmailAddress(context.TODO(), (*typedArgs)[0].Email)
 					return
 				},
 				MethodType: rpc.MethodCall,
