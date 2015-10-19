@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
@@ -37,7 +38,8 @@ func (ut *unitTester) OnDisconnected() {
 
 // ShouldThrottle implements the ConnectionHandler interface.
 func (ut *unitTester) ShouldThrottle(err error) bool {
-	return err != nil && err.Error() == "throttle"
+	_, isThrottle := err.(throttleError)
+	return isThrottle
 }
 
 // Dial implements the ConnectionTransport interface.
@@ -80,7 +82,7 @@ func (ut *unitTester) Err() error {
 func TestReconnectBasic(t *testing.T) {
 	config := NewConfigLocal()
 	unitTester := &unitTester{doneChan: make(chan bool)}
-	conn := newConnectionWithTransport(config, unitTester, unitTester)
+	conn := newConnectionWithTransport(config, unitTester, unitTester, libkb.ErrorUnwrapper{})
 	defer conn.Shutdown()
 	timeout := time.After(2 * time.Second)
 	select {
@@ -94,6 +96,48 @@ func TestReconnectBasic(t *testing.T) {
 	}
 }
 
+type throttleError struct {
+	Err error
+}
+
+func (e throttleError) ToStatus() (s keybase1.Status) {
+	s.Code = 1
+	s.Name = "THROTTLE"
+	s.Desc = e.Err.Error()
+	return
+}
+
+func (e throttleError) Error() string {
+	return e.Err.Error()
+}
+
+type testErrorUnwrapper struct{}
+
+var _ rpc.ErrorUnwrapper = testErrorUnwrapper{}
+
+func (eu testErrorUnwrapper) MakeArg() interface{} {
+	return &keybase1.Status{}
+}
+
+func (eu testErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
+	s, ok := arg.(*keybase1.Status)
+	if !ok {
+		return nil, errors.New("Error converting arg to keybase1.Status object")
+	}
+	if s == nil || s.Code == 0 {
+		return nil, nil
+	}
+
+	switch s.Code {
+	case 1:
+		appError = throttleError{errors.New("throttle")}
+		break
+	default:
+		panic("Unknown testing error")
+	}
+	return appError, nil
+}
+
 // Test DoCommand with throttling.
 func TestDoCommandThrottle(t *testing.T) {
 	config := NewConfigLocal()
@@ -101,7 +145,7 @@ func TestDoCommandThrottle(t *testing.T) {
 	unitTester := &unitTester{doneChan: make(chan bool)}
 
 	throttleErr := errors.New("throttle")
-	conn := newConnectionWithTransport(config, unitTester, unitTester)
+	conn := newConnectionWithTransport(config, unitTester, unitTester, testErrorUnwrapper{})
 	defer conn.Shutdown()
 	<-unitTester.doneChan
 
@@ -110,7 +154,8 @@ func TestDoCommandThrottle(t *testing.T) {
 	err := conn.DoCommand(ctx, func() error {
 		if throttle {
 			throttle = false
-			return throttleErr
+			err, _ := conn.errorUnwrapper.UnwrapError(WrapError(throttleError{Err: throttleErr}))
+			return err
 		}
 		return nil
 	})

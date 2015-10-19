@@ -38,9 +38,8 @@ type ConnectionHandler interface {
 
 // ConnectionTransportTLS is a ConnectionTransport implementation that uses TLS+rpc.
 type ConnectionTransportTLS struct {
-	config         Config
-	srvAddr        string
-	errorUnwrapper rpc.ErrorUnwrapper
+	config  Config
+	srvAddr string
 
 	// Protects everything below.
 	mutex           sync.Mutex
@@ -155,10 +154,11 @@ func (kt *SharedKeybaseTransport) Close() {
 
 // Connection encapsulates all client connection handling.
 type Connection struct {
-	config    Config
-	srvAddr   string
-	handler   ConnectionHandler
-	transport ConnectionTransport
+	config         Config
+	srvAddr        string
+	handler        ConnectionHandler
+	transport      ConnectionTransport
+	errorUnwrapper rpc.ErrorUnwrapper
 
 	mutex         sync.Mutex // protects: client, reconnectChan, and cancelFunc
 	client        keybase1.GenericClient
@@ -171,8 +171,8 @@ type Connection struct {
 // given server address with TLS.
 func NewTLSConnection(config Config, srvAddr string,
 	errorUnwrapper rpc.ErrorUnwrapper, handler ConnectionHandler) *Connection {
-	transport := &ConnectionTransportTLS{config: config, srvAddr: srvAddr, errorUnwrapper: errorUnwrapper}
-	return newConnectionWithTransport(config, handler, transport)
+	transport := &ConnectionTransportTLS{config: config, srvAddr: srvAddr}
+	return newConnectionWithTransport(config, handler, transport, errorUnwrapper)
 }
 
 // NewSharedKeybaseConnection returns a connection that tries to
@@ -180,17 +180,19 @@ func NewTLSConnection(config Config, srvAddr string,
 func NewSharedKeybaseConnection(kbCtx *libkb.GlobalContext, config Config,
 	handler ConnectionHandler) *Connection {
 	transport := &SharedKeybaseTransport{kbCtx: kbCtx}
-	return newConnectionWithTransport(config, handler, transport)
+	return newConnectionWithTransport(config, handler, transport, libkb.ErrorUnwrapper{})
 }
 
 // Separate from New*Connection functions above to allow for unit
 // testing.
 func newConnectionWithTransport(config Config,
-	handler ConnectionHandler, transport ConnectionTransport) *Connection {
+	handler ConnectionHandler, transport ConnectionTransport,
+	errorUnwrapper rpc.ErrorUnwrapper) *Connection {
 	connection := &Connection{
-		config:    config,
-		handler:   handler,
-		transport: transport,
+		config:         config,
+		handler:        handler,
+		transport:      transport,
+		errorUnwrapper: errorUnwrapper,
 	}
 	connection.getReconnectChan() // start connecting
 	return connection
@@ -204,7 +206,7 @@ func (c *Connection) connect(ctx context.Context) error {
 		return err
 	}
 
-	client := rpc.NewClient(transport, libkb.ErrorUnwrapper{})
+	client := rpc.NewClient(transport, c.errorUnwrapper)
 	server := rpc.NewServer(transport, libkb.WrapError)
 
 	// call the connect handler
