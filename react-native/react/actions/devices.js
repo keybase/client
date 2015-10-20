@@ -18,3 +18,40 @@ export function loadDevices () {
     })
   }
 }
+
+export function generatePaperKey () {
+  return function (dispatch) {
+    dispatch({
+      type: types.PAPER_KEY_LOADING
+    })
+
+    const incomingMap = {
+      'keybase.1.loginUi.promptRevokePaperKeys': (param, response) => {
+        response.result(false)
+      },
+      'keybase.1.secretUi.getSecret': (param, response) => {
+        console.log(param)
+      }
+    }
+
+    /*
+    engine.rpc('login.paperKey', {}, incomingMap, (error, paperKey) => {
+      dispatch({
+        type: types.PAPER_KEY_LOADED,
+        payload: error ? error : paperKey,
+        error: !!error
+      })
+    })
+    */
+
+     const error = null
+     const paperKey = 'TODO call engine: 123'
+     setTimeout(() => {
+        dispatch({
+          type: types.PAPER_KEY_LOADED,
+          payload: error ? error : paperKey,
+          error: !!error
+        })
+     }, 1000)
+  }
+}

@@ -2,16 +2,16 @@
 /* @flow */
 
 import React, { Component, Text, TouchableHighlight, View, ScrollView, StyleSheet, Platform } from 'react-native'
-import Button from '../common-adapters/button'
-import { loadDevices } from '../actions/devices'
+import Button from '../../common-adapters/button'
+import { loadDevices } from '../../actions/devices'
 import moment from 'moment'
-import CodePage from '../login2/register/code-page'
-import { routeAppend } from '../actions/router'
-import commonStyles from '../styles/common'
-import PaperKey from '../login2/register/paper-key'
-import ExistingDevice from '../login2/register/existing-device'
-import { setCodePageMyRole } from '../actions/login2'
-import { codePageDeviceRoleExistingPhone, codePageDeviceRoleExistingComputer } from '../constants/login2'
+import CodePage from '../../login2/register/code-page'
+import { routeAppend } from '../../actions/router'
+import commonStyles from '../../styles/common'
+import GenPaperKey from './gen-paper-key'
+import ExistingDevice from '../../login2/register/existing-device'
+import { setCodePageMyRole } from '../../actions/login2'
+import { codePageDeviceRoleExistingPhone, codePageDeviceRoleExistingComputer } from '../../constants/login2'
 
 // TODO
 // [ ] - Add Icons
@@ -77,7 +77,7 @@ export default class Devices extends Component {
                              () => this.props.dispatch(routeAppend('regExistingDevice')))}
           {this.renderAction('Generate a new paper key',
                              'A paper key is lorem ipsum dolor sit amet, consectetur adipiscing',
-                             () => this.props.dispatch(routeAppend('regPaperKey')))}
+                             () => this.props.dispatch(routeAppend('genPaperKey')))}
         </View>
 
         <View doc='Wrapper for devices' style={styles.deviceWrapper}>
@@ -95,7 +95,7 @@ export default class Devices extends Component {
       },
       subRoutes: {
         codePage: CodePage,
-        regPaperKey: PaperKey,
+        genPaperKey: GenPaperKey,
         regExistingDevice: ExistingDevice
       }
     }
