@@ -55,3 +55,11 @@ export function generatePaperKey () {
      }, 1000)
   }
 }
+
+export function removeDevice (deviceID) {
+  return function (dispatch) {
+    setTimeout( () => {
+      console.log('TODO REMOVE DEVICE:', deviceID)
+    }, 1000)
+  }
+}
