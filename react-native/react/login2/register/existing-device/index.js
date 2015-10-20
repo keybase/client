@@ -5,28 +5,44 @@ import React, { Component, StyleSheet, Text, TouchableHighlight, View } from 're
 
 import commonStyles from '../../../styles/common'
 import { navigateUp, routeAppend } from '../../../actions/router'
-import { setCodePageDeviceRoles } from '../../../actions/login2'
+import { setCodePageOtherDeviceRole } from '../../../actions/login2'
 import CodePage from '../code-page'
-import { codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer } from '../../../constants/login2'
+import { codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer } from '../../../constants/login2'
 
 export default class ExistingDevice extends Component {
-  showCodePage (myDeviceRole, otherDeviceRole) {
-    this.props.dispatch(setCodePageDeviceRoles(myDeviceRole, otherDeviceRole))
+  showCodePage (otherDeviceRole) {
+    this.props.dispatch(setCodePageOtherDeviceRole(otherDeviceRole))
     this.props.dispatch(routeAppend('codePage'))
   }
 
   render () {
+    let otherDeviceComputer = null
+    let otherDevicePhone = null
+
+    switch (this.props.myDeviceRole) {
+      case codePageDeviceRoleExistingPhone: // fallthrough
+      case codePageDeviceRoleExistingComputer:
+        otherDeviceComputer = codePageDeviceRoleNewComputer
+        otherDevicePhone = codePageDeviceRoleNewPhone
+        break
+      case codePageDeviceRoleNewPhone: // fallthrough
+      case codePageDeviceRoleNewComputer:
+        otherDeviceComputer = codePageDeviceRoleExistingComputer
+        otherDevicePhone = codePageDeviceRoleExistingPhone
+        break
+    }
+
     return (
       <View style={[styles.container, {marginTop: 200, padding: 20, alignItems: 'stretch'}]}>
         <Text style={commonStyles.h1}>What type of device would you like to connect this device with?</Text>
         <View style={{flex: 1, flexDirection: 'row', marginTop: 40, justifyContent: 'space-between', alignItems: 'flex-start', paddingLeft: 40, paddingRight: 40}}>
-          <TouchableHighlight onPress={() => this.showCodePage(codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer)}>
+          <TouchableHighlight onPress={() => this.showCodePage(otherDeviceComputer)}>
             <View style={{flexDirection: 'column', alignItems: 'center'}}>
               <Text>[Desktop icon]</Text>
               <Text>Desktop Device &gt;</Text>
             </View>
           </TouchableHighlight>
-          <TouchableHighlight onPress={() => this.showCodePage(codePageDeviceRoleNewPhone, codePageDeviceRoleExistingPhone)}>
+          <TouchableHighlight onPress={() => this.showCodePage(otherDevicePhone)}>
             <View style={{flexDirection: 'column', alignItems: 'center'}}>
               <Text>[Mobile icon]</Text>
               <Text>Mobile Device &gt;</Text>
@@ -41,7 +57,7 @@ export default class ExistingDevice extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => state.login2.codePage
       },
       subRoutes: {
         codePage: CodePage
@@ -51,7 +67,13 @@ export default class ExistingDevice extends Component {
 }
 
 ExistingDevice.propTypes = {
-  dispatch: React.PropTypes.func.isRequired
+  dispatch: React.PropTypes.func.isRequired,
+  myDeviceRole: React.PropTypes.oneOf([
+    codePageDeviceRoleExistingPhone,
+    codePageDeviceRoleNewPhone,
+    codePageDeviceRoleExistingComputer,
+    codePageDeviceRoleNewComputer
+  ])
 }
 
 const styles = StyleSheet.create({

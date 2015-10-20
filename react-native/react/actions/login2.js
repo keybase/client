@@ -70,12 +70,12 @@ export function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, broken
   return null
 }
 
-export function setCodePageDeviceRoles (myDeviceRole, otherDeviceRole) {
-  return function (dispatch) {
-    dispatch(setCodePageMode(defaultModeForDeviceRoles(myDeviceRole, otherDeviceRole, false)))
+export function setCodePageOtherDeviceRole (otherDeviceRole) {
+  return function (dispatch, getState) {
+    const store = getState().login2.codePage
+    dispatch(setCodePageMode(defaultModeForDeviceRoles(store.myDeviceRole, otherDeviceRole, false)))
     dispatch({
-      type: Constants.setCodeState,
-      myDeviceRole,
+      type: Constants.setOtherDeviceCodeState,
       otherDeviceRole
     })
   }

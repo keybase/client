@@ -6,7 +6,8 @@ const initialState = {
   waitingForServer: false,
   response: null,
   devices: null,
-  error: null
+  error: null,
+  paperKey: null
 }
 
 export default function (state = initialState, action) {
@@ -23,6 +24,19 @@ export default function (state = initialState, action) {
         error: action.error,
         devices: action.devices,
         waitingForServer: false
+      }
+
+    case types.PAPER_KEY_LOADING:
+      return {
+        ...state,
+        error: null,
+        paperKey: null
+      }
+    case types.PAPER_KEY_LOADED:
+      return {
+        ...state,
+        error: action.error ? action.payload : null,
+        paperKey: action.error ? null : action.payload
       }
     default:
       return state

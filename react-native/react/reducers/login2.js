@@ -1,7 +1,14 @@
 'use strict'
 
 import * as Constants from '../constants/login2'
+import * as ConfigConstants from '../constants/config'
 import Immutable from 'immutable'
+import { Platform } from 'react-native'
+import {
+  codePageDeviceRoleNewPhone,
+  codePageDeviceRoleNewComputer,
+  codePageDeviceRoleExistingPhone,
+  codePageDeviceRoleExistingComputer } from '../constants/login2'
 
 const initialState = {
   username: '',
@@ -37,11 +44,30 @@ export default function (state = initialState, action) {
         ...state,
         username: action.username
       }
-    case Constants.setCodeState: {
+    case ConfigConstants.startupLoaded:
+      if (!action.error) {
+        let myDeviceRole = null
+        const isPhone = (Platform.OS === 'ios' || Platform.OS === 'android')
+
+        if (action.payload.status.registered) {
+          myDeviceRole = isPhone ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
+        } else {
+          myDeviceRole = isPhone ? codePageDeviceRoleNewPhone : codePageDeviceRoleNewComputer
+        }
+
+        const s = Immutable.fromJS(state)
+        return s.mergeDeep({
+          codePage: {
+            myDeviceRole
+          }
+        }).toJS()
+      }
+
+      return state
+    case Constants.setOtherDeviceCodeState: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
-          myDeviceRole: action.myDeviceRole,
           otherDeviceRole: action.otherDeviceRole
         }
       }).toJS()
@@ -141,10 +167,6 @@ export default function (state = initialState, action) {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
-          otherDeviceRole: null,
-          myDeviceRole: null,
-          mode: null,
-          cameraBrokenMode: false,
           codeCountDown: 0,
           textCode: null,
           qrScanned: null,
