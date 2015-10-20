@@ -44,6 +44,7 @@ export default class LoginForm extends Component {
     return (
       <View style={styles.container}>
         <TextInput
+          autoCapitalize='none'
           autoCorrect={false}
           enablesReturnKeyAutomatically
           onChangeText={(username) => this.setState({username})}
@@ -56,6 +57,7 @@ export default class LoginForm extends Component {
 
         <TextInput
           autoCorrect={false}
+          autoCapitalize='none'
           enablesReturnKeyAutomatically
           onChangeText={(passphrase) => this.setState({passphrase})}
           onSubmitEditing={() => this.submit() }

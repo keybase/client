@@ -2,6 +2,7 @@
 
 import * as types from '../constants/devices-action-types'
 import engine from '../engine'
+import { navigateUpOnUnchanged } from './router'
 
 export function loadDevices () {
   return function (dispatch) {
@@ -31,27 +32,48 @@ export function generatePaperKey () {
       },
       'keybase.1.secretUi.getSecret': (param, response) => {
         console.log(param)
+      },
+      'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase: paperKey}, response) => {
+        dispatch({
+          type: types.PAPER_KEY_LOADED,
+          payload: paperKey
+        })
+        response.result()
       }
     }
 
-    /*
     engine.rpc('login.paperKey', {}, incomingMap, (error, paperKey) => {
-      dispatch({
-        type: types.PAPER_KEY_LOADED,
-        payload: error ? error : paperKey,
-        error: !!error
-      })
-    })
-    */
-
-     const error = null
-     const paperKey = 'TODO call engine: 123'
-     setTimeout(() => {
+      if (error) {
         dispatch({
           type: types.PAPER_KEY_LOADED,
-          payload: error ? error : paperKey,
-          error: !!error
+          payload: error,
+          error: true
         })
-     }, 1000)
+      }
+    })
   }
+}
+
+export function removeDevice (deviceID) {
+  return navigateUpOnUnchanged((dispatch, getState, maybeNavigateUp) => {
+    const incomingMap = {
+      'keybase.1.logUi.log': (param, response) => {
+        console.log(param)
+        response.result()
+      }
+    }
+
+    engine.rpc('revoke.revokeDevice', {deviceID, force: false}, incomingMap, (error) => {
+      dispatch({
+        type: types.DEVICE_REMOVED,
+        payload: error,
+        error: !!error
+      })
+
+      if (!error) {
+        dispatch(loadDevices())
+        maybeNavigateUp()
+      }
+    })
+  })
 }

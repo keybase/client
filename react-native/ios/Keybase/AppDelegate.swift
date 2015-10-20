@@ -27,10 +27,17 @@ class AppDelegate: UIResponder {
   }
   
   private func setupEngine() {
+    #if SIMULATOR
+      let SecurityAccessGroupOverride = true
+    #else
+      let SecurityAccessGroupOverride = false
+    #endif
+
     engine = Engine(settings: [
       "runmode": AppDefault.RunMode.stringValue!,
       "homedir": (NSHomeDirectory() as NSString).stringByAppendingPathComponent(AppDefault.HomeDirectory.stringValue ?? ""),
-      "serverURI": AppDefault.APIServer.stringValue ?? ""
+      "serverURI": AppDefault.APIServer.stringValue ?? "",
+      "SecurityAccessGroupOverride": SecurityAccessGroupOverride
     ])
   }
   
@@ -47,8 +54,14 @@ extension AppDelegate: UIApplicationDelegate {
     
     #if SIMULATOR
       AppDefault.ReactHost.setDefaultValue("localhost:8081")
+    #else
+      #if DEBUG
+        // Uncomment if you want your device to hit a local server while debugging
+//        AppDefault.ReactHost.setDefaultValue("192.168.1.50:8081")
+//        AppDefault.APIServer.setDefaultValue("http://192.168.1.50:3000")
+      #endif
     #endif
-    
+
     setupEngine()
     
     let rootViewController = UIViewController()

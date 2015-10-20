@@ -10,33 +10,55 @@ export function startup () {
   return function (dispatch) {
     dispatch({type: Constants.startupLoading})
 
-    engine.rpc('config.getConfig', {}, {}, (error, config) => {
-      if (error) {
-        dispatch({ type: Constants.startupLoaded, payload: error, error: true })
-      } else {
-        engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
-          if (error) {
-            dispatch({ type: Constants.startupLoaded, payload: error, error: true })
-          } else {
-            dispatch({
-              type: Constants.startupLoaded,
-              payload: { config, status }
-            })
+    const getConfig = new Promise((resolve, reject) => {
+      engine.rpc('config.getConfig', {}, {}, (error, config) => {
+        if (error) {
+          throw new Error(error)
+        }
 
-            if (status) {
-              if (!status.registered) {
-                dispatch({ type: LoginConstants.needsRegistering })
-              } else if (!status.loggedIn) {
-                dispatch({ type: LoginConstants.needsLogin })
-              }
-            }
+        resolve(config)
+      })
+    })
 
-            if (status.loggedIn) {
-              dispatch(autoLogin())
-            }
-          }
-        })
+    const getStatus = new Promise((resolve, reject) => {
+      engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
+        if (error) {
+          throw new Error(error)
+        }
+
+        resolve(status)
+      })
+    })
+
+    const getConfiguredAccounts = new Promise((resolve, reject) => {
+      engine.rpc('login.getConfiguredAccounts', {}, {}, (error, configuredAccounts) => {
+        if (error) {
+          throw new Error(error)
+        }
+
+        resolve(configuredAccounts)
+      })
+    })
+
+    Promise.all([getConfig, getStatus, getConfiguredAccounts]).then(([config, status, configuredAccounts]) => {
+      dispatch({
+        type: Constants.startupLoaded,
+        payload: { config, status, configuredAccounts }
+      })
+
+      if (status) {
+        if (!status.registered) {
+          dispatch({ type: LoginConstants.needsRegistering })
+        } else if (!status.loggedIn) {
+          dispatch({ type: LoginConstants.needsLogin })
+        }
+
+        if (status.loggedIn) {
+          dispatch(autoLogin())
+        }
       }
+    }).catch(error => {
+      dispatch({ type: Constants.startupLoaded, payload: error, error: true })
     })
   }
 }

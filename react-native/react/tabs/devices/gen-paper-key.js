@@ -18,8 +18,8 @@ export default class GenPaperKey extends Component {
         <Text style={commonStyles.h1}>Generate a new paper key</Text>
         <Text style={[commonStyles.h2, {marginTop: 20}]}>Here is your paper key for Keybase. Please write this down on a piece of paper and keep it somewhere safe, as this will be used to lorem ipsum leorem</Text>
         <View style={styles.paperKey}>
-          <Text style={{marginRight: 20}}>[Icon]</Text>
-          {this.props.paperKey && <Text>{this.props.paperKey}</Text>}
+          <Text style={{marginRight: 20, height: 60, textAlign: 'center'}}>[Icon]</Text>
+          {this.props.paperKey && <Text style={{flex: 1}}>{this.props.paperKey}</Text>}
           {!this.props.paperKey && <Text>Loading...</Text>}
         </View>
       </View>
@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
     padding: 20,
     margin: 20,
     marginTop: 40,
-    flexDirection: 'row'
+    flexDirection: 'row',
+    alignItems: 'center'
   }
 })

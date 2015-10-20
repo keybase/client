@@ -80,6 +80,15 @@ func (e *Env) GenClientConfigForInternalAPI() (*ClientConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if url.Scheme == "" {
+		return nil, fmt.Errorf("Server URL missing Scheme")
+	}
+
+	if url.Host == "" {
+		return nil, fmt.Errorf("Server URL missing Host")
+	}
+
 	useTLS := (url.Scheme == "https")
 	host, port, e2 := SplitHost(url.Host)
 	if e2 != nil {

@@ -14,7 +14,7 @@ var con net.Conn
 var startOnce sync.Once
 
 // ServerURI should match run mode environment.
-func Init(homeDir string, runModeStr string, serverURI string) {
+func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverride bool) {
 	startOnce.Do(func() {
 		g := libkb.G
 		g.Init()
@@ -27,8 +27,11 @@ func Init(homeDir string, runModeStr string, serverURI string) {
 		if err != nil {
 			fmt.Println("Error decoding run mode", err, runModeStr)
 		}
-		config := libkb.AppConfig{HomeDir: homeDir, RunMode: runMode, Debug: true, LocalRPCDebug: "Acsvip", ServerURI: serverURI}
-		libkb.G.Configure(config, usage)
+		config := libkb.AppConfig{HomeDir: homeDir, RunMode: runMode, Debug: true, LocalRPCDebug: "Acsvip", ServerURI: serverURI, SecurityAccessGroupOverride: accessGroupOverride}
+		err = libkb.G.Configure(config, usage)
+		if err != nil {
+			panic(err)
+		}
 		(service.NewService(false, g)).StartLoopbackServer()
 		Reset()
 	})

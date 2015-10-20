@@ -14,6 +14,7 @@ export function login (username, passphrase) {
     const param = {
       username,
       passphrase,
+      storeSecret: true,
       error: null
     }
 
