@@ -70,13 +70,6 @@ export function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, broken
   return null
 }
 
-export function setCodePageMyRole (myDeviceRole) {
-  return {
-    type: Constants.setMyDeviceCodeState,
-    myDeviceRole
-  }
-}
-
 export function setCodePageOtherDeviceRole (otherDeviceRole) {
   return function (dispatch, getState) {
     const store = getState().login2.codePage

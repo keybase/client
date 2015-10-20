@@ -1,23 +1,14 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Text, View, Platform } from 'react-native'
+import React, { Component, StyleSheet, Text, View } from 'react-native'
 import { routeAppend } from '../../actions/router'
 import PaperKey from './paper-key'
 import UserPass from './user-pass'
 import ExistingDevice from './existing-device'
 import SetPublicName from './set-public-name'
-import { setCodePageMyRole } from '../../actions/login2'
-import { codePageDeviceRoleNewPhone, codePageDeviceRoleNewComputer } from '../../constants/login2'
 
 export default class Register extends Component {
-  constructor (props) {
-    super(props)
-
-    const myRole = (Platform.OS === 'ios' || Platform.OS === 'android') ? codePageDeviceRoleNewPhone : codePageDeviceRoleNewComputer
-    this.props.dispatch(setCodePageMyRole(myRole))
-  }
-
   render () {
     return (
       <View style={styles.container}>

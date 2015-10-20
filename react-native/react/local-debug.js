@@ -13,7 +13,7 @@ let activeTab = null
 let skipRouteToRoot = false
 
 if (__DEV__) {
-  routerState = createRouterState(['root', 'genPaperKey'], [])
+  routerState = createRouterState([], [])
   activeTab = Tabs.DEVICES_TAB
   skipRouteToRoot = true
 }

@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Text, TouchableHighlight, View, ScrollView, StyleSheet, Platform } from 'react-native'
+import React, { Component, Text, TouchableHighlight, View, ScrollView, StyleSheet } from 'react-native'
 import Button from '../../common-adapters/button'
 import { loadDevices } from '../../actions/devices'
 import moment from 'moment'
@@ -10,20 +10,11 @@ import { routeAppend } from '../../actions/router'
 import commonStyles from '../../styles/common'
 import GenPaperKey from './gen-paper-key'
 import ExistingDevice from '../../login2/register/existing-device'
-import { setCodePageMyRole } from '../../actions/login2'
-import { codePageDeviceRoleExistingPhone, codePageDeviceRoleExistingComputer } from '../../constants/login2'
 
 // TODO
 // [ ] - Add Icons
 
 export default class Devices extends Component {
-  constructor (props) {
-    super(props)
-
-    const myRole = (Platform.OS === 'ios' || Platform.OS === 'android') ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
-    this.props.dispatch(setCodePageMyRole(myRole))
-  }
-
   loadDevices () {
     const {dispatch} = this.props
     if (!this.props.devices && !this.props.waitingForServer) {

@@ -1,7 +1,14 @@
 'use strict'
 
 import * as Constants from '../constants/login2'
+import * as ConfigConstants from '../constants/config'
 import Immutable from 'immutable'
+import { Platform } from 'react-native'
+import {
+  codePageDeviceRoleNewPhone,
+  codePageDeviceRoleNewComputer,
+  codePageDeviceRoleExistingPhone,
+  codePageDeviceRoleExistingComputer } from '../constants/login2'
 
 const initialState = {
   username: '',
@@ -37,14 +44,26 @@ export default function (state = initialState, action) {
         ...state,
         username: action.username
       }
-    case Constants.setMyDeviceCodeState: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
-        codePage: {
-          myDeviceRole: action.myDeviceRole
+    case ConfigConstants.startupLoaded:
+      if (!action.error) {
+        let myDeviceRole = null
+        const isPhone = (Platform.OS === 'ios' || Platform.OS === 'android')
+
+        if (action.payload.status.registered) {
+          myDeviceRole = isPhone ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
+        } else {
+          myDeviceRole = isPhone ? codePageDeviceRoleNewPhone : codePageDeviceRoleNewComputer
         }
-      }).toJS()
-    }
+
+        const s = Immutable.fromJS(state)
+        return s.mergeDeep({
+          codePage: {
+            myDeviceRole
+          }
+        }).toJS()
+      }
+
+      return state
     case Constants.setOtherDeviceCodeState: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
