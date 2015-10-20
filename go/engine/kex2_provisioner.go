@@ -200,6 +200,7 @@ func (e *Kex2Provisioner) skeletonProof() (string, error) {
 		Me:             e.me,
 		DelegationType: libkb.SibkeyType,
 		Expire:         libkb.NaclEdDSAExpireIn,
+		Contextified:   libkb.NewContextified(e.G()),
 	}
 
 	jw, err := libkb.KeyProof(delg)

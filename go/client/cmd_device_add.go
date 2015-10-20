@@ -20,7 +20,7 @@ type CmdDeviceAdd struct {
 	sessionID int
 }
 
-const cmdDevAddDesc = `When you are adding a new device to your account and you have an 
+const cmdDevAddDesc = `When you are adding a new device to your account and you have an
 existing device, you will be prompted to use this command on your
 existing device to authorize the new device.`
 
@@ -49,7 +49,7 @@ func (c *CmdDeviceAdd) Run() error {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(G),
 		NewLocksmithUIProtocol(),
 	}
 	if err := RegisterProtocols(protocols); err != nil {

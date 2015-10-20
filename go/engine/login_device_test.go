@@ -138,7 +138,7 @@ func TestLoginNewDeviceCancel(t *testing.T) {
 	}
 
 	// issue #408 refers to GetCurrentStatus, so check that:
-	status, err := libkb.GetCurrentStatus()
+	status, err := libkb.GetCurrentStatus(tcY.G)
 	if err != nil {
 		t.Fatal(err)
 	}

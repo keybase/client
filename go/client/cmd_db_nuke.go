@@ -8,6 +8,7 @@ import (
 )
 
 type CmdDbNuke struct {
+	libkb.Contextified
 	force bool
 }
 
@@ -22,7 +23,7 @@ func (c *CmdDbNuke) Run() error {
 		err = GlobUI.PromptForConfirmation("Really blast away your local database?")
 	}
 	if err == nil {
-		cli, err := GetCtlClient()
+		cli, err := GetCtlClient(c.G())
 		if err != nil {
 			return err
 		}
@@ -34,12 +35,12 @@ func (c *CmdDbNuke) Run() error {
 	return err
 }
 
-func NewCmdDbNuke(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDbNuke(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "nuke",
 		Usage: "Delete the local database",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDbNuke{}, "nuke", c)
+			cl.ChooseCommand(NewCmdDbNukeRunner(g), "nuke", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -50,12 +51,19 @@ func NewCmdDbNuke(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func NewCmdDb(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDbNukeRunner(g *libkb.GlobalContext) *CmdDbNuke {
+	return &CmdDbNuke{
+		Contextified: libkb.NewContextified(g),
+		force:        false,
+	}
+}
+
+func NewCmdDb(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "db",
 		Usage: "Manage the local database",
 		Subcommands: []cli.Command{
-			NewCmdDbNuke(cl),
+			NewCmdDbNuke(cl, g),
 		},
 	}
 }

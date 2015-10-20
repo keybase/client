@@ -205,6 +205,9 @@
       }, {
         "name" : "storeSecret",
         "type" : "boolean"
+      }, {
+        "name" : "skipMail",
+        "type" : "boolean"
       } ],
       "response" : "SignupRes"
     },

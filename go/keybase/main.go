@@ -51,8 +51,8 @@ func warnNonProd(log logger.Logger, e *libkb.Env) {
 
 func mainInner(g *libkb.GlobalContext) error {
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
-	cl.AddCommands(client.GetCommands(cl))
-	cl.AddCommands(service.GetCommands(cl))
+	cl.AddCommands(client.GetCommands(cl, g))
+	cl.AddCommands(service.GetCommands(cl, g))
 	cl.AddHelpTopics(client.GetHelpTopics())
 
 	var err error
@@ -90,7 +90,7 @@ func mainInner(g *libkb.GlobalContext) error {
 		if cl.IsNoStandalone() {
 			return fmt.Errorf("Can't run command in standalone mode")
 		}
-		if err := service.NewService(false /* isDaemon */).StartLoopbackServer(g); err != nil {
+		if err := service.NewService(false /* isDaemon */, g).StartLoopbackServer(); err != nil {
 			if pflerr, ok := err.(libkb.PIDFileLockError); ok {
 				err = fmt.Errorf("Can't run in standalone mode with a service running (see %q)",
 					pflerr.Filename)
@@ -100,7 +100,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	} else {
 		// If this command warrants an autofork, do it now.
 		if fc := cl.GetForkCmd(); fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {
-			if err = client.ForkServerNix(cl); err != nil {
+			if err = client.ForkServerNix(cl, g); err != nil {
 				return err
 			}
 		}
@@ -132,7 +132,7 @@ func registerGlobalLogUI(g *libkb.GlobalContext) error {
 	if g.Env.GetDebug() {
 		logLevel = keybase1.LogLevel_DEBUG
 	}
-	ctlClient, err := client.GetCtlClient()
+	ctlClient, err := client.GetCtlClient(g)
 	if err != nil {
 		return err
 	}

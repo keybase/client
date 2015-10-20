@@ -27,7 +27,7 @@ func TestHelp(t *testing.T) {
 	cl := libcmdline.NewCommandLine(true, GetExtraFlags())
 	var buf bytes.Buffer
 	cl.SetOutputWriter(&buf)
-	cl.AddCommands(GetCommands(cl))
+	cl.AddCommands(GetCommands(cl, G))
 	cmd, err := cl.Parse(strings.Fields("keybase pgp help"))
 	if err != nil {
 		t.Fatal(err)
@@ -43,7 +43,7 @@ func TestParentHelp(t *testing.T) {
 	cl := libcmdline.NewCommandLine(true, GetExtraFlags())
 	var buf1 bytes.Buffer
 	cl.SetOutputWriter(&buf1)
-	cl.AddCommands(GetCommands(cl))
+	cl.AddCommands(GetCommands(cl, G))
 
 	cmd, err := cl.Parse(strings.Fields("keybase pgp help"))
 	if err != nil {

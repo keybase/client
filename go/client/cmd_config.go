@@ -124,7 +124,7 @@ func (v *CmdConfigInfo) Run() error {
 	configFile := G.Env.GetConfigFilename()
 	fmt.Fprintf(v.writer, "File: %s\n\n", configFile)
 
-	cli, err := GetConfigClient()
+	cli, err := GetConfigClient(G)
 	if err != nil {
 		return err
 	}

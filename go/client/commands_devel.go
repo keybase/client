@@ -7,11 +7,12 @@ package client
 import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 )
 
-func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
+func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
-		NewCmdBTC(cl),
+		NewCmdBTC(cl, g),
 		NewCmdCert(cl),
 		NewCmdCompatDecrypt(cl),
 		NewCmdCompatDir(cl),
@@ -20,8 +21,8 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdCompatSign(cl),
 		NewCmdCompatVerify(cl),
 		NewCmdConfig(cl),
-		NewCmdCtl(cl),
-		NewCmdDb(cl),
+		NewCmdCtl(cl, g),
+		NewCmdDb(cl, g),
 		NewCmdDevice(cl),
 		NewCmdDoctor(cl),
 		NewCmdFavorite(cl),
@@ -30,7 +31,7 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdListTracking(cl),
 		NewCmdListTrackers(cl),
 		NewCmdLogin(cl),
-		NewCmdLogout(cl),
+		NewCmdLogout(cl, g),
 		NewCmdPaperKey(cl),
 		NewCmdPassphrase(cl),
 		NewCmdPGP(cl),
@@ -40,7 +41,7 @@ func GetCommands(cl *libcmdline.CommandLine) []cli.Command {
 		NewCmdRevoke(cl),
 		NewCmdSearch(cl),
 		NewCmdSigs(cl),
-		NewCmdSignup(cl),
+		NewCmdSignup(cl, g),
 		NewCmdStatus(cl),
 		NewCmdStress(cl),
 		NewCmdTrack(cl),

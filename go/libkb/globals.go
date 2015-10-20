@@ -54,6 +54,7 @@ type GlobalContext struct {
 	shutdownOnce     sync.Once         // whether we've shut down or not
 	loginStateMu     sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
 	loginState       *LoginState       // What phase of login the user's in
+	NotifyRouter     *NotifyRouter     // How to route notifications
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -76,6 +77,7 @@ func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
 	g.Service = false
 	g.createLoginState()
+	g.NotifyRouter = NewNotifyRouter()
 }
 
 // requires lock on loginStateMu before calling
@@ -173,7 +175,7 @@ func (g *GlobalContext) StartupMessage() {
 }
 
 func (g *GlobalContext) ConfigureAPI() error {
-	iapi, xapi, err := NewAPIEngines(g.Env)
+	iapi, xapi, err := NewAPIEngines(g.Env, g)
 	if err != nil {
 		return fmt.Errorf("Failed to configure API access: %s", err)
 	}
@@ -219,6 +221,10 @@ func (g *GlobalContext) Shutdown() error {
 		didShutdown = true
 
 		epick := FirstErrorPicker{}
+
+		if g.NotifyRouter != nil {
+			g.NotifyRouter.Shutdown()
+		}
 
 		if g.UI != nil {
 			epick.Push(g.UI.Shutdown())
@@ -289,7 +295,7 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 			return err
 		}
 	}
-	if usage.Socket || !G.Env.GetStandalone() {
+	if usage.Socket || !g.Env.GetStandalone() {
 		if err = g.ConfigureSocketInfo(); err != nil {
 			return err
 		}
@@ -348,7 +354,7 @@ func (g *GlobalContext) GetMyUID() keybase1.UID {
 }
 
 func (g *GlobalContext) ConfigureSocketInfo() (err error) {
-	g.SocketInfo, err = NewSocket()
+	g.SocketInfo, err = NewSocket(g)
 	return err
 }
 
@@ -364,6 +370,10 @@ func (c Contextified) G() *GlobalContext {
 		return c.g
 	}
 	return G
+}
+
+func (c Contextified) GStrict() *GlobalContext {
+	return c.g
 }
 
 func (c *Contextified) SetGlobalContext(g *GlobalContext) { c.g = g }

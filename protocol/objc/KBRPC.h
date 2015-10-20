@@ -388,6 +388,11 @@ typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
 @property NSArray *mdBlocks; /*of bytes*/
 @end
 
+@interface KBRNotificationChannels : KBRObject
+@property BOOL session;
+@property BOOL users;
+@end
+
 typedef NS_ENUM (NSInteger, KBRSignMode) {
 	KBRSignModeAttached = 0,
 	KBRSignModeDetached = 1,
@@ -928,6 +933,12 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *folderID;
 @property long revision;
 @end
+@interface KBRToggleNotificationsRequestParams : KBRRequestParams
+@property KBRNotificationChannels *channels;
+@end
+@interface KBRUserChangedRequestParams : KBRRequestParams
+@property NSString *uid;
+@end
 @interface KBRPgpSignRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRStream *source;
@@ -1099,6 +1110,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *username;
 @property NSString *deviceName;
 @property BOOL storeSecret;
+@property BOOL skipMail;
 @end
 @interface KBRInviteRequestRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1677,6 +1689,28 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @end
 
+@interface KBRNotifyCtlRequest : KBRRequest
+
+- (void)toggleNotifications:(KBRToggleNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)toggleNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRNotifySessionRequest : KBRRequest
+
+- (void)loggedOut:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRNotifyUsersRequest : KBRRequest
+
+- (void)userChanged:(KBRUserChangedRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)userChangedWithUid:(NSString *)uid completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRPgpRequest : KBRRequest
 
 - (void)pgpSign:(KBRPgpSignRequestParams *)params completion:(void (^)(NSError *error))completion;
@@ -1856,7 +1890,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)signup:(KBRSignupRequestParams *)params completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
 
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret skipMail:(BOOL)skipMail completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion;
 
 - (void)inviteRequest:(KBRInviteRequestRequestParams *)params completion:(void (^)(NSError *error))completion;
 

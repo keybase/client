@@ -15,12 +15,12 @@ func TestKex2Provision(t *testing.T) {
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
 
+	// provisioner needs to be logged in
+	userX := CreateAndSignupFakeUser(tcX, "login")
+
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "kex2provision")
 	defer tcY.Cleanup()
-
-	// provisioner needs to be logged in
-	userX := CreateAndSignupFakeUser(tcX, "login")
 
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {

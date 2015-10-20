@@ -109,11 +109,15 @@ func LoadMe(arg LoadUserArg) (*User, error) {
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	G.Log.Debug("LoadUser: %+v", arg)
+	var refresh bool
 
 	// Whatever the reply is, pass along our desired global context
 	defer func() {
 		if ret != nil {
 			ret.SetGlobalContext(arg.G())
+			if refresh {
+				arg.G().NotifyRouter.HandleUserChanged(ret.GetUID())
+			}
 		}
 	}()
 
@@ -136,7 +140,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	G.Log.Debug("| resolved to %s", arg.UID)
 
 	// load user from local, remote
-	ret, err = loadUser(arg.G(), arg.UID, rres, arg.ForceReload)
+	ret, refresh, err = loadUser(arg.G(), arg.UID, rres, arg.ForceReload)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +156,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return
 	}
 
-	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id); err != nil {
+	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id, arg.G()); err != nil {
 		return
+	}
+
+	if ret.sigHints != nil && ret.sigHints.dirty {
+		refresh = true
 	}
 
 	// Proactively cache fetches from remote server to local storage
@@ -184,15 +192,16 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return
 }
 
-func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool) (*User, error) {
+func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool) (*User, bool, error) {
 	local, err := loadUserFromLocalStorage(g, uid)
+	var refresh bool
 	if err != nil {
 		g.Log.Warning("Failed to load %s from storage: %s", uid, err)
 	}
 
-	leaf, err := LookupMerkleLeaf(uid, local)
+	leaf, err := lookupMerkleLeaf(g, uid, local)
 	if err != nil {
-		return nil, err
+		return nil, refresh, err
 	}
 
 	var f1, loadRemote bool
@@ -201,9 +210,10 @@ func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool
 		g.Log.Debug("| No local user stored for %s", uid)
 		loadRemote = true
 	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
-		return nil, err
+		return nil, refresh, err
 	} else {
 		loadRemote = !f1
+		refresh = loadRemote
 	}
 
 	g.Log.Debug("| Freshness: basics=%v; for %s", f1, uid)
@@ -212,15 +222,15 @@ func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool
 	if !loadRemote && !force {
 		ret = local
 	} else if ret, err = loadUserFromServer(g, uid, rres.body); err != nil {
-		return nil, err
+		return nil, refresh, err
 	}
 
 	if ret == nil {
-		return nil, nil
+		return nil, refresh, nil
 	}
 
 	ret.leaf = *leaf
-	return ret, nil
+	return ret, refresh, nil
 }
 
 func loadUserFromLocalStorage(g *GlobalContext, uid keybase1.UID) (u *User, err error) {
@@ -288,15 +298,15 @@ func myUID(g *GlobalContext, lctx LoginContext) keybase1.UID {
 	return g.GetMyUID()
 }
 
-func LookupMerkleLeaf(uid keybase1.UID, local *User) (f *MerkleUserLeaf, err error) {
+func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, local *User) (f *MerkleUserLeaf, err error) {
 	if uid.IsNil() {
-		err = fmt.Errorf("uid parameter for LookupMerkleLeaf empty")
+		err = fmt.Errorf("uid parameter for lookupMerkleLeaf empty")
 		return
 	}
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
-	f, err = G.MerkleClient.LookupUser(q)
+	f, err = g.MerkleClient.LookupUser(q)
 	if err == nil && f == nil && local != nil {
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}

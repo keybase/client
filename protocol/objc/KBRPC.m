@@ -1231,6 +1231,53 @@
 
 @end
 
+@implementation KBRNotifyCtlRequest
+
+- (void)toggleNotifications:(KBRToggleNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"channels": KBRValue(params.channels)};
+  [self.client sendRequestWithMethod:@"keybase.1.notifyCtl.toggleNotifications" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)toggleNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"channels": KBRValue(channels)};
+  [self.client sendRequestWithMethod:@"keybase.1.notifyCtl.toggleNotifications" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRNotifySessionRequest
+
+- (void)loggedOut:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifySession.loggedOut" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRNotifyUsersRequest
+
+- (void)userChanged:(KBRUserChangedRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(params.uid)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyUsers.userChanged" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)userChangedWithUid:(NSString *)uid completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(uid)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyUsers.userChanged" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRPgpRequest
 
 - (void)pgpSign:(KBRPgpSignRequestParams *)params completion:(void (^)(NSError *error))completion {
@@ -1857,7 +1904,7 @@
 }
 
 - (void)signup:(KBRSignupRequestParams *)params completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
-  NSDictionary *rparams = @{@"email": KBRValue(params.email), @"inviteCode": KBRValue(params.inviteCode), @"passphrase": KBRValue(params.passphrase), @"username": KBRValue(params.username), @"deviceName": KBRValue(params.deviceName), @"storeSecret": @(params.storeSecret)};
+  NSDictionary *rparams = @{@"email": KBRValue(params.email), @"inviteCode": KBRValue(params.inviteCode), @"passphrase": KBRValue(params.passphrase), @"username": KBRValue(params.username), @"deviceName": KBRValue(params.deviceName), @"storeSecret": @(params.storeSecret), @"skipMail": @(params.skipMail)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.signup" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -1868,8 +1915,8 @@
   }];
 }
 
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
-  NSDictionary *rparams = @{@"email": KBRValue(email), @"inviteCode": KBRValue(inviteCode), @"passphrase": KBRValue(passphrase), @"username": KBRValue(username), @"deviceName": KBRValue(deviceName), @"storeSecret": @(storeSecret)};
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret skipMail:(BOOL)skipMail completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
+  NSDictionary *rparams = @{@"email": KBRValue(email), @"inviteCode": KBRValue(inviteCode), @"passphrase": KBRValue(passphrase), @"username": KBRValue(username), @"deviceName": KBRValue(deviceName), @"storeSecret": @(storeSecret), @"skipMail": @(skipMail)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.signup" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -3742,6 +3789,38 @@
 }
 @end
 
+@implementation KBRToggleNotificationsRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.channels = [MTLJSONAdapter modelOfClass:KBRNotificationChannels.class fromJSONDictionary:params[0][@"channels"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRToggleNotificationsRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRUserChangedRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.uid = params[0][@"uid"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRUserChangedRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRPgpSignRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -4358,6 +4437,7 @@
     self.username = params[0][@"username"];
     self.deviceName = params[0][@"deviceName"];
     self.storeSecret = [params[0][@"storeSecret"] boolValue];
+    self.skipMail = [params[0][@"skipMail"] boolValue];
   }
   return self;
 }
@@ -4891,6 +4971,9 @@
 @end
 
 @implementation KBRMetadataResponse
+@end
+
+@implementation KBRNotificationChannels
 @end
 
 @implementation KBRPGPSignOptions

@@ -29,11 +29,13 @@ func (l *LevelDb) open() error {
 	defer l.Unlock()
 
 	var err error
+	G.Log.Debug("+ LevelDb.open")
 	if l.db == nil {
 		fn := l.GetFilename()
-		l.G().Log.Debug("Opening LevelDB for local cache: %s", fn)
+		l.G().Log.Debug("Opening LevelDB for local cache: %v %s", l, fn)
 		l.db, err = leveldb.OpenFile(fn, nil)
 	}
+	G.Log.Debug("- LevelDb.open -> %s", ErrToOk(err))
 	return err
 }
 

@@ -18,7 +18,7 @@ func (v *CmdReset) Run() (err error) {
 		return
 	}
 
-	cli, err := GetLoginClient()
+	cli, err := GetLoginClient(G)
 	if err != nil {
 		return err
 	}

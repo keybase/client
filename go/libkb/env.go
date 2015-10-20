@@ -98,6 +98,7 @@ type TestParameters struct {
 	GPGOptions     []string
 	Debug          bool
 	Devel          bool // Whether we are in Devel Mode
+	SocketFile     string
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -207,6 +208,10 @@ func (e *Env) getEnvPath(s string) []string {
 }
 
 func (e *Env) getEnvBool(s string) (bool, bool) {
+	return getEnvBool(s)
+}
+
+func getEnvBool(s string) (bool, bool) {
 	tmp := os.Getenv(s)
 	if len(tmp) == 0 {
 		return false, false
@@ -400,6 +405,7 @@ func (e *Env) GetUsername() NormalizedUsername {
 
 func (e *Env) GetSocketFile() (ret string, err error) {
 	ret = e.GetString(
+		func() string { return e.Test.SocketFile },
 		func() string { return e.cmd.GetSocketFile() },
 		func() string { return os.Getenv("KEYBASE_SOCKET_FILE") },
 		func() string { return e.config.GetSocketFile() },

@@ -55,7 +55,7 @@ func (v *CmdTrack) Run() error {
 
 	protocols := []rpc.Protocol{
 		NewIdentifyTrackUIProtocol(),
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(G),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err

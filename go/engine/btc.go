@@ -42,8 +42,12 @@ func (e *BTCEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *BTCEngine) Run(ctx *Context) error {
-	_, _, err := libkb.BtcAddrCheck(e.address, nil)
+func (e *BTCEngine) Run(ctx *Context) (err error) {
+	e.G().Log.Debug("+ BTCEngine Run")
+	defer func() {
+		e.G().Log.Debug("- BTCEngine Run")
+	}()
+	_, _, err = libkb.BtcAddrCheck(e.address, nil)
 	if err != nil {
 		return err
 	}
@@ -95,6 +99,5 @@ func (e *BTCEngine) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	ctx.LogUI.Info("Added bitcoin address %s", e.address)
 	return nil
 }

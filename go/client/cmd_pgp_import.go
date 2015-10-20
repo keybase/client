@@ -67,7 +67,7 @@ func (s *CmdPGPImport) Run() error {
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(G),
 	}
 
 	cli, err := GetPGPClient()

@@ -16,8 +16,8 @@ type CurrentStatus struct {
 	User       *User
 }
 
-func GetCurrentStatus() (res CurrentStatus, err error) {
-	cr := G.Env.GetConfig()
+func GetCurrentStatus(g *GlobalContext) (res CurrentStatus, err error) {
+	cr := g.Env.GetConfig()
 	if cr == nil {
 		return
 	}
@@ -26,6 +26,6 @@ func GetCurrentStatus() (res CurrentStatus, err error) {
 		res.Registered = true
 		res.User = NewUserThin(cr.GetUsername().String(), u)
 	}
-	res.LoggedIn, err = G.LoginState().LoggedInProvisionedLoad()
+	res.LoggedIn, err = g.LoginState().LoggedInProvisionedLoad()
 	return
 }

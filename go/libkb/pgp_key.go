@@ -134,14 +134,14 @@ func (k *PGPKeyBundle) StripRevocations() (strippedKey *PGPKeyBundle) {
 	return
 }
 
-func (k *PGPKeyBundle) StoreToLocalDb() error {
+func (k *PGPKeyBundle) StoreToLocalDb(g *GlobalContext) error {
 	s, err := k.Encode()
 	if err != nil {
 		return err
 	}
 	val := jsonw.NewString(s)
-	G.Log.Debug("| Storing Key (kid=%s) to Local DB", k.GetKID())
-	return G.LocalDb.Put(DbKey{Typ: DBPGPKey, Key: k.GetKID().String()}, []DbKey{}, val)
+	g.Log.Debug("| Storing Key (kid=%s) to Local DB", k.GetKID())
+	return g.LocalDb.Put(DbKey{Typ: DBPGPKey, Key: k.GetKID().String()}, []DbKey{}, val)
 }
 
 func (p PGPFingerprint) Eq(p2 PGPFingerprint) bool {

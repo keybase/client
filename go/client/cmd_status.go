@@ -25,7 +25,7 @@ func (v *CmdStatus) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdStatus) Run() (err error) {
-	configCli, err := GetConfigClient()
+	configCli, err := GetConfigClient(G)
 	if err != nil {
 		return err
 	}

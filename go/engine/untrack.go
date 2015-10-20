@@ -133,7 +133,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		}
 	}
 
-	lLink, err := libkb.LocalTrackChainLinkFor(e.arg.Me.GetUID(), uid)
+	lLink, err := libkb.LocalTrackChainLinkFor(e.arg.Me.GetUID(), uid, e.G())
 	if err != nil {
 		return
 	}
@@ -170,7 +170,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 }
 
 func (e *UntrackEngine) storeLocalUntrack(them *libkb.User) error {
-	return libkb.RemoveLocalTrack(e.arg.Me.GetUID(), them.GetUID())
+	return libkb.RemoveLocalTrack(e.arg.Me.GetUID(), them.GetUID(), e.G())
 }
 
 func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err error) {

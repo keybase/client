@@ -174,6 +174,14 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 		}
 	}
 
+	if d.GStrict() == nil {
+		panic("null g strict")
+	}
+
+	if d.GStrict().LocalDb == nil {
+		panic("should have a local DB")
+	}
+
 	if jw, err = KeyProof(*d); err != nil {
 		G.Log.Debug("| Failure in KeyProof()")
 		return

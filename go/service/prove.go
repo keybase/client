@@ -12,6 +12,7 @@ import (
 // like Twitter and Github.
 type ProveHandler struct {
 	*BaseHandler
+	libkb.Contextified
 }
 
 type proveUI struct {
@@ -20,8 +21,11 @@ type proveUI struct {
 }
 
 // NewProveHandler makes a new ProveHandler object from an RPC transport.
-func NewProveHandler(xp rpc.Transporter) *ProveHandler {
-	return &ProveHandler{BaseHandler: NewBaseHandler(xp)}
+func NewProveHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ProveHandler {
+	return &ProveHandler{
+		BaseHandler:  NewBaseHandler(xp),
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (p *proveUI) PromptOverwrite(ctx context.Context, arg keybase1.PromptOverwriteArg) (b bool, err error) {
@@ -59,7 +63,7 @@ func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 
 // Prove handles the `keybase.1.startProof` RPC.
 func (ph *ProveHandler) StartProof(_ context.Context, arg keybase1.StartProofArg) (res keybase1.StartProofResult, err error) {
-	eng := engine.NewProve(&arg, G)
+	eng := engine.NewProve(&arg, ph.G())
 	ctx := engine.Context{
 		ProveUI:  ph.getProveUI(arg.SessionID),
 		SecretUI: ph.getSecretUI(arg.SessionID),
@@ -74,7 +78,7 @@ func (ph *ProveHandler) StartProof(_ context.Context, arg keybase1.StartProofArg
 }
 
 func (ph *ProveHandler) CheckProof(_ context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
-	eng := engine.NewProveCheck(G, arg.SigID)
+	eng := engine.NewProveCheck(ph.G(), arg.SigID)
 	ctx := &engine.Context{}
 	if err = engine.RunEngine(eng, ctx); err != nil {
 		return

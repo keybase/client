@@ -1,0 +1,12 @@
+{
+  "protocol" : "NotifySession",
+  "namespace" : "keybase.1",
+  "types" : [ ],
+  "messages" : {
+    "loggedOut" : {
+      "notify" : "",
+      "request" : [ ],
+      "response" : "null"
+    }
+  }
+}

@@ -13,12 +13,12 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewCmdSignup(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	cmd := cli.Command{
 		Name:  "signup",
 		Usage: "Signup for a new account",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdSignup{}, "signup", c)
+			cl.ChooseCommand(NewCmdSignupRunner(g), "signup", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -48,6 +48,7 @@ func (pf PromptFields) ToList() []*Field {
 }
 
 type CmdSignup struct {
+	libkb.Contextified
 	fields   *PromptFields
 	prompter *Prompter
 
@@ -64,6 +65,18 @@ type CmdSignup struct {
 	defaultPassphrase string
 	defaultDevice     string
 	doPrompt          bool
+	skipMail          bool
+}
+
+func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
+	return &CmdSignup{
+		Contextified: libkb.NewContextified(g),
+		doPrompt:     true,
+	}
+}
+
+func (s *CmdSignup) SetTest() {
+	s.skipMail = true
 }
 
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
@@ -94,7 +107,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 		}
 
 		s.passphrase = s.defaultPassphrase
-		s.prompter = NewPrompter(s.fields.ToList())
+		s.prompter = NewPrompter(s.fields.ToList(), s.G().UI.GetTerminalUI())
 		s.doPrompt = false
 	} else {
 		s.doPrompt = true
@@ -121,11 +134,11 @@ to us at https://github.com/keybase/keybase-issues
 
 Enjoy!
 `, username, username)
-	return GlobUI.Output(msg)
+	return s.G().UI.GetTerminalUI().Output(msg)
 }
 
 func (s *CmdSignup) Run() (err error) {
-	G.Log.Debug("| Client mode")
+	s.G().Log.Debug("| Client mode")
 
 	if err = s.initClient(); err != nil {
 		return err
@@ -149,8 +162,8 @@ func (s *CmdSignup) Run() (err error) {
 
 func (s *CmdSignup) checkRegistered() (err error) {
 
-	G.Log.Debug("+ clientModeSignupEngine::CheckRegistered")
-	defer G.Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
+	s.G().Log.Debug("+ clientModeSignupEngine::CheckRegistered")
+	defer s.G().Log.Debug("- clientModeSignupEngine::CheckRegistered -> %s", libkb.ErrToOk(err))
 
 	var rres keybase1.GetCurrentStatusRes
 
@@ -165,7 +178,7 @@ func (s *CmdSignup) checkRegistered() (err error) {
 		return nil
 	}
 	prompt := "Already registered; do you want to reregister?"
-	if rereg, err := GlobUI.PromptYesNo(prompt, PromptDefaultNo); err != nil {
+	if rereg, err := s.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorReregister, prompt, libkb.PromptDefaultNo); err != nil {
 		return err
 	} else if !rereg {
 		return NotConfirmedError{}
@@ -174,6 +187,11 @@ func (s *CmdSignup) checkRegistered() (err error) {
 }
 
 func (s *CmdSignup) prompt() (err error) {
+	s.G().Log.Debug("+ prompt")
+	defer func() {
+		s.G().Log.Debug("- prompt -> %s", libkb.ErrToOk(err))
+	}()
+
 	if !s.doPrompt {
 		return nil
 	}
@@ -182,6 +200,7 @@ func (s *CmdSignup) prompt() (err error) {
 	}
 
 	if err = s.prompter.Run(); err != nil {
+		s.G().Log.Debug("| Prompter failed\n")
 		return
 	}
 	arg := keybase1.GetNewPassphraseArg{
@@ -194,7 +213,7 @@ func (s *CmdSignup) prompt() (err error) {
 	f := s.fields.passphraseRetry
 	if f.Disabled || libkb.IsYes(f.GetValue()) {
 		var res keybase1.GetNewPassphraseRes
-		res, err = GlobUI.GetSecretUI().GetNewPassphrase(arg)
+		res, err = s.G().UI.GetSecretUI().GetNewPassphrase(arg)
 		if err != nil {
 			return
 		}
@@ -225,12 +244,13 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		Passphrase:  s.passphrase,
 		StoreSecret: s.storeSecret,
 		DeviceName:  s.fields.deviceName.GetValue(),
+		SkipMail:    s.skipMail,
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {
 		return false, nil
 	}
-	G.Log.Debug("error: %q, type: %T", err, err)
+	s.G().Log.Debug("error: %q, type: %T", err, err)
 	// check to see if the error is a join engine run result:
 	if res.PassphraseOk {
 		s.fields.passphraseRetry.Disabled = false
@@ -244,7 +264,7 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 func (s *CmdSignup) requestInvitePromptForOk() (err error) {
 	prompt := "Would you like to be added to the invite request list?"
 	var invite bool
-	if invite, err = GlobUI.PromptYesNo(prompt, PromptDefaultYes); err != nil {
+	if invite, err = s.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorInviteOK, prompt, libkb.PromptDefaultYes); err != nil {
 		return err
 	}
 	if !invite {
@@ -256,16 +276,18 @@ func (s *CmdSignup) requestInvitePromptForOk() (err error) {
 func (s *CmdSignup) requestInvitePromptForData() error {
 
 	fullname := &Field{
-		Name:   "fullname",
-		Prompt: "Your name",
+		Name:             "fullname",
+		Prompt:           "Your name",
+		PromptDescriptor: PromptDescriptorSignupFullName,
 	}
 	notes := &Field{
-		Name:   "notes",
-		Prompt: "Any comments for the team",
+		Name:             "notes",
+		Prompt:           "Any comments for the team",
+		PromptDescriptor: PromptDescriptorSignupNotes,
 	}
 
 	fields := []*Field{fullname, notes}
-	prompter := NewPrompter(fields)
+	prompter := NewPrompter(fields, s.G().UI.GetTerminalUI())
 	if err := prompter.Run(); err != nil {
 		return err
 	}
@@ -286,10 +308,11 @@ func (s *CmdSignup) requestInvite() error {
 
 func (s *CmdSignup) MakePrompter() {
 	code := &Field{
-		Defval:  s.code,
-		Name:    "code",
-		Prompt:  "Your invite code",
-		Checker: &libkb.CheckInviteCode,
+		Defval:           s.code,
+		Name:             "code",
+		Prompt:           "Your invite code",
+		Checker:          &libkb.CheckInviteCode,
+		PromptDescriptor: PromptDescriptorSignupCode,
 	}
 
 	if len(s.code) == 0 {
@@ -303,32 +326,36 @@ func (s *CmdSignup) MakePrompter() {
 	}
 
 	passphraseRetry := &Field{
-		Defval:   "n",
-		Disabled: true,
-		Name:     "passphraseRetry",
-		Checker:  &libkb.CheckYesNo,
-		Prompt:   "Re-enter passphrase",
+		Defval:           "n",
+		Disabled:         true,
+		Name:             "passphraseRetry",
+		Checker:          &libkb.CheckYesNo,
+		Prompt:           "Re-enter passphrase",
+		PromptDescriptor: PromptDescriptorSignupReenterPassphrase,
 	}
 
 	email := &Field{
-		Defval:  s.defaultEmail,
-		Name:    "email",
-		Prompt:  "Your email address",
-		Checker: &libkb.CheckEmail,
+		Defval:           s.defaultEmail,
+		Name:             "email",
+		Prompt:           "Your email address",
+		Checker:          &libkb.CheckEmail,
+		PromptDescriptor: PromptDescriptorSignupEmail,
 	}
 
 	username := &Field{
-		Defval:  s.defaultUsername,
-		Name:    "username",
-		Prompt:  "Your desired username",
-		Checker: &libkb.CheckUsername,
+		Defval:           s.defaultUsername,
+		Name:             "username",
+		Prompt:           "Your desired username",
+		Checker:          &libkb.CheckUsername,
+		PromptDescriptor: PromptDescriptorSignupUsername,
 	}
 
 	deviceName := &Field{
-		Defval:  s.defaultDevice,
-		Name:    "devname",
-		Prompt:  "A public name for this device",
-		Checker: &libkb.CheckNotEmpty,
+		Defval:           s.defaultDevice,
+		Name:             "devname",
+		Prompt:           "A public name for this device",
+		Checker:          &libkb.CheckNotEmpty,
+		PromptDescriptor: PromptDescriptorSignupDevice,
 	}
 
 	s.fields = &PromptFields{
@@ -339,7 +366,7 @@ func (s *CmdSignup) MakePrompter() {
 		deviceName:      deviceName,
 	}
 
-	s.prompter = NewPrompter(s.fields.ToList())
+	s.prompter = NewPrompter(s.fields.ToList(), s.G().UI.GetTerminalUI())
 }
 
 func (s *CmdSignup) GetUsage() libkb.Usage {
@@ -353,30 +380,30 @@ func (s *CmdSignup) GetUsage() libkb.Usage {
 
 func (s *CmdSignup) initClient() error {
 	var err error
-	if s.scli, err = GetSignupClient(); err != nil {
+	if s.scli, err = GetSignupClient(s.G()); err != nil {
 		return err
 	}
 
-	if s.ccli, err = GetConfigClient(); err != nil {
+	if s.ccli, err = GetConfigClient(s.G()); err != nil {
 		return err
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(s.G()),
 	}
 	if s.doPrompt {
-		protocols = append(protocols, NewGPGUIProtocol())
-		protocols = append(protocols, NewLoginUIProtocol())
+		protocols = append(protocols, NewGPGUIProtocol(s.G()))
+		protocols = append(protocols, NewLoginUIProtocol(s.G()))
 	} else {
-		gpgUI := GlobUI.GetGPGUI().(GPGUI)
+		gpgUI := s.G().UI.GetGPGUI().(GPGUI)
 		gpgUI.noPrompt = true
 		protocols = append(protocols, keybase1.GpgUiProtocol(gpgUI))
 
-		loginUI := GlobUI.GetLoginUI().(LoginUI)
+		loginUI := s.G().UI.GetLoginUI().(LoginUI)
 		loginUI.noPrompt = true
 		protocols = append(protocols, keybase1.LoginUiProtocol(loginUI))
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
 	return nil
@@ -390,7 +417,7 @@ func (s *CmdSignup) postInviteRequest() (err error) {
 	}
 	err = s.scli.InviteRequest(context.TODO(), rarg)
 	if err == nil {
-		G.Log.Info("Success! You're on our list, thanks for your interest.")
+		s.G().Log.Info("Success! You're on our list, thanks for your interest.")
 	}
 	return
 }
@@ -402,24 +429,24 @@ func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {
 		switch ase.Name {
 		case "BAD_SIGNUP_EMAIL_TAKEN":
 			v := s.fields.email.Clear()
-			G.Log.Errorf("Email address '%s' already taken", v)
+			s.G().Log.Errorf("Email address '%s' already taken", v)
 			retry = true
 			err = nil
 		case "BAD_SIGNUP_USERNAME_TAKEN":
 			v := s.fields.username.Clear()
-			G.Log.Errorf("Username '%s' already taken", v)
+			s.G().Log.Errorf("Username '%s' already taken", v)
 			retry = true
 			err = nil
 		case "INPUT_ERROR":
 			if ase.IsBadField("username") {
 				v := s.fields.username.Clear()
-				G.Log.Errorf("Username '%s' rejected by server", v)
+				s.G().Log.Errorf("Username '%s' rejected by server", v)
 				retry = true
 				err = nil
 			}
 		case "BAD_INVITATION_CODE":
 			v := s.fields.code.Clear()
-			G.Log.Errorf("Bad invitation code '%s' given", v)
+			s.G().Log.Errorf("Bad invitation code '%s' given", v)
 			retry = true
 			err = nil
 		}

@@ -2,7 +2,7 @@
 
 protocol track {
   import idl "common.avdl";
-   import idl "identify_common.avdl";
+  import idl "identify_common.avdl";
 
   /**
     This will perform identify and track.

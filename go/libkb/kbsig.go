@@ -15,15 +15,15 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
-func clientInfo() *jsonw.Wrapper {
+func clientInfo(g *GlobalContext) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("version", jsonw.NewString(Version))
 	ret.SetKey("name", jsonw.NewString(GoClientID))
 	return ret
 }
 
-func merkleRootInfo() (ret *jsonw.Wrapper) {
-	if mc := G.MerkleClient; mc != nil {
+func merkleRootInfo(g *GlobalContext) (ret *jsonw.Wrapper) {
+	if mc := g.MerkleClient; mc != nil {
 		ret, _ = mc.LastRootToSigJSON()
 	}
 	return ret
@@ -230,7 +230,7 @@ type ProofMetadata struct {
 	IncludePGPHash bool
 }
 
-func (arg ProofMetadata) ToJSON() (ret *jsonw.Wrapper, err error) {
+func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error) {
 	// if only Me exists, then that is the signing user too
 	if arg.SigningUser == nil && arg.Me != nil {
 		arg.SigningUser = arg.Me
@@ -296,8 +296,10 @@ func (arg ProofMetadata) ToJSON() (ret *jsonw.Wrapper, err error) {
 
 	// Capture the most recent Merkle Root and also what kind of client
 	// we're running.
-	ret.SetKey("client", clientInfo())
-	ret.SetKey("merkle_root", merkleRootInfo())
+	ret.SetKey("client", clientInfo(g))
+	if mr := merkleRootInfo(g); mr != nil {
+		ret.SetKey("merkle_root", mr)
+	}
 
 	return
 }
@@ -307,7 +309,7 @@ func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *Identi
 		Me:         u,
 		LinkType:   TrackType,
 		SigningKey: signingKey,
-	}.ToJSON()
+	}.ToJSON(u.G())
 	if err == nil {
 		err = u2.ToTrackingStatement(ret.AtKey("body"), outcome)
 	}
@@ -319,7 +321,7 @@ func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.W
 		Me:         u,
 		LinkType:   UntrackType,
 		SigningKey: signingKey,
-	}.ToJSON()
+	}.ToJSON(u.G())
 	if err == nil {
 		err = u2.ToUntrackingStatement(ret.AtKey("body"))
 	}
@@ -364,7 +366,8 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 		IncludePGPHash: includePGPHash,
 		LastSeqno:      arg.LastSeqno,
 		PrevLinkID:     arg.PrevLinkID,
-	}.ToJSON()
+	}.ToJSON(arg.G())
+
 	if err != nil {
 		return
 	}
@@ -394,7 +397,7 @@ func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename s
 		Me:         u,
 		LinkType:   WebServiceBindingType,
 		SigningKey: signingKey,
-	}.ToJSON()
+	}.ToJSON(u.G())
 	if err != nil {
 		return
 	}
@@ -422,7 +425,7 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 		LinkType:   AuthenticationType,
 		ExpireIn:   ei,
 		SigningKey: key,
-	}.ToJSON()); err != nil {
+	}.ToJSON(u.G())); err != nil {
 		return
 	}
 	body := ret.AtKey("body")
@@ -443,7 +446,7 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []keybase1.KID, devi
 		Me:         u,
 		LinkType:   RevokeType,
 		SigningKey: key,
-	}.ToJSON()
+	}.ToJSON(u.G())
 	if err != nil {
 		return nil, err
 	}
@@ -470,7 +473,7 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) 
 		Me:         u,
 		LinkType:   RevokeType,
 		SigningKey: key,
-	}.ToJSON()
+	}.ToJSON(u.G())
 	if err != nil {
 		return nil, err
 	}
@@ -490,7 +493,7 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke key
 		Me:         u,
 		LinkType:   CryptocurrencyType,
 		SigningKey: key,
-	}.ToJSON()
+	}.ToJSON(u.G())
 	if err != nil {
 		return nil, err
 	}
@@ -512,7 +515,7 @@ func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen Passphras
 		Me:         u,
 		LinkType:   UpdatePassphraseType,
 		SigningKey: key,
-	}.ToJSON()
+	}.ToJSON(u.G())
 	if err != nil {
 		return nil, err
 	}

@@ -318,24 +318,24 @@ func LocalTrackDBKey(tracker, trackee keybase1.UID) DbKey {
 
 //=====================================================================
 
-func LocalTrackChainLinkFor(tracker, trackee keybase1.UID) (ret *TrackChainLink, err error) {
-	G.Log.Debug("+ GetLocalTrack(%s,%s)", tracker, trackee)
-	defer G.Log.Debug("- GetLocalTrack(%s,%s) -> (%v, %s)", tracker, trackee, ret, ErrToOk(err))
+func LocalTrackChainLinkFor(tracker, trackee keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
+	g.Log.Debug("+ GetLocalTrack(%s,%s)", tracker, trackee)
+	defer g.Log.Debug("- GetLocalTrack(%s,%s) -> (%v, %s)", tracker, trackee, ret, ErrToOk(err))
 
 	var obj *jsonw.Wrapper
-	obj, err = G.LocalDb.Get(LocalTrackDBKey(tracker, trackee))
+	obj, err = g.LocalDb.Get(LocalTrackDBKey(tracker, trackee))
 	if err != nil {
-		G.Log.Debug("| DB lookup failed")
+		g.Log.Debug("| DB lookup failed")
 		return
 	}
 	if obj == nil {
-		G.Log.Debug("| No local track found")
+		g.Log.Debug("| No local track found")
 		return
 	}
 
 	cl := &ChainLink{payloadJSON: obj, unsigned: true}
 	if err = cl.UnpackLocal(); err != nil {
-		G.Log.Debug("| unpack failed -> %s", err)
+		g.Log.Debug("| unpack failed -> %s", err)
 		return
 	}
 	base := GenericChainLink{cl}
@@ -347,12 +347,12 @@ func LocalTrackChainLinkFor(tracker, trackee keybase1.UID) (ret *TrackChainLink,
 	return
 }
 
-func StoreLocalTrack(tracker keybase1.UID, trackee keybase1.UID, statement *jsonw.Wrapper) error {
-	G.Log.Debug("| StoreLocalTrack")
-	return G.LocalDb.Put(LocalTrackDBKey(tracker, trackee), nil, statement)
+func StoreLocalTrack(tracker keybase1.UID, trackee keybase1.UID, statement *jsonw.Wrapper, g *GlobalContext) error {
+	g.Log.Debug("| StoreLocalTrack")
+	return g.LocalDb.Put(LocalTrackDBKey(tracker, trackee), nil, statement)
 }
 
-func RemoveLocalTrack(tracker keybase1.UID, trackee keybase1.UID) error {
-	G.Log.Debug("| RemoveLocalTrack")
-	return G.LocalDb.Delete(LocalTrackDBKey(tracker, trackee))
+func RemoveLocalTrack(tracker keybase1.UID, trackee keybase1.UID, g *GlobalContext) error {
+	g.Log.Debug("| RemoveLocalTrack")
+	return g.LocalDb.Delete(LocalTrackDBKey(tracker, trackee))
 }

@@ -1,8 +1,8 @@
 package libkb
 
 import (
-	"testing"
 	"encoding/base64"
+	"testing"
 )
 
 func TestKeithWinstein(t *testing.T) {
@@ -15,4 +15,3 @@ func TestKeithWinstein(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-

@@ -569,8 +569,8 @@ func NewChainLink(parent *SigChain, id LinkID, jw *jsonw.Wrapper) *ChainLink {
 	}
 }
 
-func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID) (*ChainLink, error) {
-	jw, err := G.LocalDb.Get(DbKey{Typ: DBLink, Key: id.String()})
+func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*ChainLink, error) {
+	jw, err := g.LocalDb.Get(DbKey{Typ: DBLink, Key: id.String()})
 	var ret *ChainLink
 	if err == nil {
 		// May as well recheck onload (maybe revisit this)
@@ -630,7 +630,7 @@ func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) error {
 	return nil
 }
 
-func (c *ChainLink) Store() (didStore bool, err error) {
+func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
 
 	if c.storedLocally && !c.dirty {
 		didStore = false
@@ -653,10 +653,10 @@ func (c *ChainLink) Store() (didStore bool, err error) {
 	key := DbKey{Typ: DBLink, Key: c.id.String()}
 
 	// Don't write with any aliases
-	if err = G.LocalDb.Put(key, []DbKey{}, c.packed); err != nil {
+	if err = g.LocalDb.Put(key, []DbKey{}, c.packed); err != nil {
 		return
 	}
-	G.Log.Debug("| Store Link %s", c.id)
+	g.Log.Debug("| Store Link %s", c.id)
 
 	c.storedLocally = true
 	c.dirty = false

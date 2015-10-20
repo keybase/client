@@ -37,7 +37,7 @@ func assertUntracked(tc libkb.TestContext, username string) {
 		tc.T.Fatal("expected not to get a tracking statement; but got one")
 	}
 
-	s, err = libkb.LocalTrackChainLinkFor(me.GetUID(), them.GetUID())
+	s, err = libkb.LocalTrackChainLinkFor(me.GetUID(), them.GetUID(), tc.G)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

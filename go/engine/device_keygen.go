@@ -125,6 +125,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	}
 
 	ds = e.appendEncKey(ds, ctx, encSigner, eldestKID, pargs.User)
+
 	e.pushErr = libkb.DelegatorAggregator(ctx.LoginContext, ds)
 
 	// push the LKS server half
@@ -192,6 +193,7 @@ func (e *DeviceKeygen) appendEldest(ds []libkb.Delegator, ctx *Context, pargs *D
 	var d libkb.Delegator
 	d, e.pushErr = e.naclSignGen.Push(ctx.LoginContext, true)
 	if e.pushErr == nil {
+		d.SetGlobalContext(e.G())
 		return append(ds, d)
 	}
 
@@ -204,9 +206,11 @@ func (e *DeviceKeygen) appendSibkey(ds []libkb.Delegator, ctx *Context, pargs *D
 	}
 
 	var d libkb.Delegator
+
 	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, true, pargs.User)
 	d, e.pushErr = e.naclSignGen.Push(ctx.LoginContext, true)
 	if e.pushErr == nil {
+		d.SetGlobalContext(e.G())
 		return append(ds, d)
 	}
 
@@ -223,6 +227,7 @@ func (e *DeviceKeygen) appendEncKey(ds []libkb.Delegator, ctx *Context, signer l
 	var d libkb.Delegator
 	d, e.pushErr = e.naclEncGen.Push(ctx.LoginContext, true)
 	if e.pushErr == nil {
+		d.SetGlobalContext(e.G())
 		return append(ds, d)
 	}
 

@@ -5,19 +5,23 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"golang.org/x/net/context"
-
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
-func NewGPGUIProtocol() rpc.Protocol {
-	return keybase1.GpgUiProtocol(GlobUI.GetGPGUI())
+func NewGPGUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.GpgUiProtocol(g.UI.GetGPGUI())
 }
 
 type GPGUI struct {
-	parent   *UI
+	parent   libkb.TerminalUI
 	noPrompt bool
+}
+
+func NewGPGUI(t libkb.TerminalUI, np bool) GPGUI {
+	return GPGUI{t, np}
 }
 
 func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, error) {
@@ -35,7 +39,7 @@ func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, e
 	}
 	w.Flush()
 
-	ret, err := g.parent.PromptSelectionOrCancel("Choose a key", 1, len(keys))
+	ret, err := PromptSelectionOrCancel(PromptDescriptorGPGSelectKey, g.parent, "Choose a key", 1, len(keys))
 	if err != nil {
 		if err == ErrInputCanceled {
 			return "", nil
@@ -62,12 +66,12 @@ func (g GPGUI) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 	if g.noPrompt {
 		return false, nil
 	}
-	return g.parent.PromptYesNo("Would you like to add one of your PGP keys to Keybase?", PromptDefaultYes)
+	return g.parent.PromptYesNo(PromptDescriptorGPGOKToAdd, "Would you like to add one of your PGP keys to Keybase?", libkb.PromptDefaultYes)
 }
 
 func (g GPGUI) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	if g.noPrompt {
 		return false, nil
 	}
-	return g.parent.PromptYesNo("You've already selected this public key for use on Keybase. Would you like to update it on Keybase?", PromptDefaultYes)
+	return g.parent.PromptYesNo(PromptDescriptorGPGConfirmDuplicateKey, "You've already selected this public key for use on Keybase. Would you like to update it on Keybase?", libkb.PromptDefaultYes)
 }

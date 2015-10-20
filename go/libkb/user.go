@@ -467,7 +467,7 @@ func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChain
 	defer u.G().Log.Debug("- GetTrackingStatement for %s", uid)
 
 	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
-	local, e2 := LocalTrackChainLinkFor(u.id, uid)
+	local, e2 := LocalTrackChainLinkFor(u.id, uid, u.G())
 
 	u.G().Log.Debug("| Load remote -> %v", (remote != nil))
 	u.G().Log.Debug("| Load local -> %v", (local != nil))

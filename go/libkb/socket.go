@@ -2,9 +2,8 @@ package libkb
 
 import (
 	"fmt"
-	"net"
-
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"net"
 )
 
 // NewSocket() (Socket, err) is defined in the various platform-specific socket_*.go files.
