@@ -125,6 +125,8 @@ func (e *XLoginProvision) device(ctx *Context) error {
 	// create provisionee engine
 	provisionee := NewKex2Provisionee(e.G(), device, secret.Secret())
 
+	var canceler func()
+
 	// display secret and prompt for secret from X in a goroutine:
 	go func() {
 		sb := secret.Secret()
@@ -133,7 +135,9 @@ func (e *XLoginProvision) device(ctx *Context) error {
 			Phrase:                secret.Phrase(),
 			ProvisionerDeviceType: provisionerType,
 		}
-		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(context.TODO(), arg)
+		var contxt context.Context
+		contxt, canceler = context.WithCancel(context.Background())
+		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 		if err != nil {
 			// XXX ???
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
@@ -141,6 +145,13 @@ func (e *XLoginProvision) device(ctx *Context) error {
 			var ks kex2.Secret
 			copy(ks[:], receivedSecret)
 			provisionee.AddSecret(ks)
+		}
+	}()
+
+	defer func() {
+		if canceler != nil {
+			e.G().Log.Debug("canceling DisplayAndPromptSecret call")
+			canceler()
 		}
 	}()
 
