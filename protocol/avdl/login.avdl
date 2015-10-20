@@ -61,5 +61,5 @@ protocol login {
   /**
     Performs login.  username is optional.  Will use the kex2 flow.
     */
-  void xLogin(int sessionID, string username);
+  void xLogin(int sessionID, string deviceType, string username);
 }

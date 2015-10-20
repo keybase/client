@@ -473,6 +473,11 @@ typedef NS_ENUM (NSInteger, KBRProvisionMethod) {
 	KBRProvisionMethodPassphrase = 3,
 };
 
+typedef NS_ENUM (NSInteger, KBRDeviceType) {
+	KBRDeviceTypeDesktop = 0,
+	KBRDeviceTypeMobile = 1,
+};
+
 @interface KBRVerifySessionRes : KBRObject
 @property NSString *uid;
 @property NSString *sid;
@@ -882,6 +887,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRXLoginRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@property NSString *deviceType;
 @property NSString *username;
 @end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
@@ -1068,6 +1074,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRChooseProvisioningMethodRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSArray *gpgUsers;
+@end
+@interface KBRChooseProvisionerDeviceTypeRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;
@@ -1639,7 +1648,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  */
 - (void)xLogin:(KBRXLoginRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)xLoginWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
+- (void)xLoginWithDeviceType:(NSString *)deviceType username:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -1859,6 +1868,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)chooseProvisioningMethod:(KBRChooseProvisioningMethodRequestParams *)params completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
 
 - (void)chooseProvisioningMethodWithGpgUsers:(NSArray *)gpgUsers completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
+
+/*!
+ If provisioning via device, this will be called so user can select the provisioner device type: desktop or mobile.
+ */
+- (void)chooseProvisionerDeviceType:(void (^)(NSError *error, KBRDeviceType deviceType))completion;
 
 @end
 

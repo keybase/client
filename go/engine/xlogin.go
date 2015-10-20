@@ -14,13 +14,17 @@ var errNoDevice = errors.New("No device provisioned locally for this user")
 // XLogin is an engine.
 type XLogin struct {
 	libkb.Contextified
-	username string
+	deviceType string
+	username   string
 }
 
 // NewXLogin creates a XLogin engine.  username is optional.
-func NewXLogin(g *libkb.GlobalContext, username string) *XLogin {
+// deviceType should be libkb.DeviceTypeDesktop or
+// libkb.DeviceTypeMobile.
+func NewXLogin(g *libkb.GlobalContext, deviceType, username string) *XLogin {
 	return &XLogin{
 		Contextified: libkb.NewContextified(g),
+		deviceType:   deviceType,
 		username:     username,
 	}
 }
@@ -71,7 +75,7 @@ func (e *XLogin) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("XLoginProvisioned error: %s (continuing with device provisioning...)", err)
 
 	// this device needs to be provisioned:
-	deng := NewXLoginProvision(e.G())
+	deng := NewXLoginProvision(e.G(), e.deviceType)
 	err = RunEngine(deng, ctx)
 
 	return err

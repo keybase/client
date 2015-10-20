@@ -162,6 +162,10 @@
     "type" : "enum",
     "name" : "ProvisionMethod",
     "symbols" : [ "DEVICE_0", "GPG_1", "PAPER_KEY_2", "PASSPHRASE_3" ]
+  }, {
+    "type" : "enum",
+    "name" : "DeviceType",
+    "symbols" : [ "DESKTOP_0", "MOBILE_1" ]
   } ],
   "messages" : {
     "chooseProvisioningMethod" : {
@@ -177,6 +181,14 @@
         }
       } ],
       "response" : "ProvisionMethod"
+    },
+    "chooseProvisionerDeviceType" : {
+      "doc" : "If provisioning via device, this will be called so user can select the provisioner device type: desktop or mobile.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "DeviceType"
     }
   }
 }

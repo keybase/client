@@ -16,4 +16,13 @@ protocol provisionUi {
     gpg is not a valid option.
     */
   ProvisionMethod chooseProvisioningMethod(int sessionID, array<string> gpgUsers);
+
+  enum DeviceType {
+    DESKTOP_0,
+    MOBILE_1
+  }
+  /**
+   If provisioning via device, this will be called so user can select the provisioner device type: desktop or mobile.
+   */
+  DeviceType chooseProvisionerDeviceType(int sessionID);
 }

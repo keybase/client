@@ -47,6 +47,29 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 	return res, fmt.Errorf("invalid provision option: %d", ret)
 }
 
+func (p ProvisionUI) ChooseProvisionerDeviceType(ctx context.Context, sessionID int) (keybase1.DeviceType, error) {
+	p.parent.Output("What type of device would you like to connect this device with?\n\n")
+	p.parent.Output("(1) Desktop\n")
+	p.parent.Output("(2) Mobile\n")
+
+	var res keybase1.DeviceType
+	ret, err := p.parent.PromptSelectionOrCancel("Choose a device type", 1, 2)
+	if err != nil {
+		if err == ErrInputCanceled {
+			return res, libkb.CanceledError{M: "user canceled input"}
+		}
+		return res, err
+	}
+	switch ret {
+	case 1:
+		return keybase1.DeviceType_DESKTOP, nil
+	case 2:
+		return keybase1.DeviceType_MOBILE, nil
+	}
+	return res, fmt.Errorf("invalid device type option: %d", ret)
+
+}
+
 func NewProvisionUIProtocol() rpc.Protocol {
 	return keybase1.ProvisionUiProtocol(&ProvisionUIServer{ui: GlobUI.GetProvisionUI()})
 }
@@ -57,4 +80,8 @@ type ProvisionUIServer struct {
 
 func (p *ProvisionUIServer) ChooseProvisioningMethod(ctx context.Context, arg keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
 	return p.ui.ChooseProvisioningMethod(ctx, arg)
+}
+
+func (p *ProvisionUIServer) ChooseProvisionerDeviceType(ctx context.Context, sessionID int) (keybase1.DeviceType, error) {
+	return p.ui.ChooseProvisionerDeviceType(ctx, sessionID)
 }

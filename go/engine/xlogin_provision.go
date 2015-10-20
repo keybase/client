@@ -13,12 +13,14 @@ import (
 // device.
 type XLoginProvision struct {
 	libkb.Contextified
+	deviceType string
 }
 
 // NewXLoginProvision creates a XLoginProvision engine.
-func NewXLoginProvision(g *libkb.GlobalContext) *XLoginProvision {
+func NewXLoginProvision(g *libkb.GlobalContext, deviceType string) *XLoginProvision {
 	return &XLoginProvision{
 		Contextified: libkb.NewContextified(g),
+		deviceType:   deviceType,
 	}
 }
 
@@ -48,6 +50,12 @@ func (e *XLoginProvision) SubConsumers() []libkb.UIConsumer {
 func (e *XLoginProvision) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("+ XLoginProvision.Run()")
 	defer func() { e.G().Log.Debug("- XLoginProvision.Run() -> %s", libkb.ErrToOk(err)) }()
+
+	// check we have a good device type:
+	if e.deviceType != libkb.DeviceTypeDesktop && e.deviceType != libkb.DeviceTypeMobile {
+		err = fmt.Errorf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.deviceType)
+		return err
+	}
 
 	availableGPGPrivateKeyUsers, err := e.searchGPG(ctx)
 	if err != nil {
@@ -90,7 +98,38 @@ func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
 }
 
 func (e *XLoginProvision) device(ctx *Context) error {
-	panic("device provision not yet implemented")
+	provisionerType, err := ctx.ProvisionUI.ChooseProvisionerDeviceType(context.TODO(), 0)
+	if err != nil {
+		return err
+	}
+	e.G().Log.Debug("provisioner device type: %v", provisionerType)
+
+	// make a new secret:
+	secret, err := libkb.NewKex2Secret()
+	if err != nil {
+		return err
+	}
+	e.G().Log.Debug("secret phrase: %s", secret.Phrase())
+
+	// make a new device:
+	deviceID, err := libkb.NewDeviceID()
+	if err != nil {
+		return err
+	}
+	device := &libkb.Device{
+		ID:   deviceID,
+		Type: e.deviceType,
+	}
+
+	// create provisionee engine
+	provisionee := NewKex2Provisionee(e.G(), device, secret.Secret())
+
+	// display secret and prompt for secret from X in a goroutine:
+
+	// run provisionee
+	_ = provisionee
+
+	return nil
 }
 
 func (e *XLoginProvision) gpg(ctx *Context) error {

@@ -650,6 +650,10 @@ module.exports = {
       "gpg": 1,
       "paperKey": 2,
       "passphrase": 3
+    },
+    "DeviceType": {
+      "desktop": 0,
+      "mobile": 1
     }
   },
   "quota": {

@@ -23,3 +23,7 @@ func (u *RemoteProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg ke
 	arg.SessionID = u.sessionID
 	return u.cli.ChooseProvisioningMethod(ctx, arg)
 }
+
+func (u *RemoteProvisionUI) ChooseProvisionerDeviceType(ctx context.Context, _ int) (keybase1.DeviceType, error) {
+	return u.cli.ChooseProvisionerDeviceType(ctx, u.sessionID)
+}

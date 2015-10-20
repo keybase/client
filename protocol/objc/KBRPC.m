@@ -997,14 +997,14 @@
 }
 
 - (void)xLogin:(KBRXLoginRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"username": KBRValue(params.username)};
+  NSDictionary *rparams = @{@"deviceType": KBRValue(params.deviceType), @"username": KBRValue(params.username)};
   [self.client sendRequestWithMethod:@"keybase.1.login.xLogin" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)xLoginWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"username": KBRValue(username)};
+- (void)xLoginWithDeviceType:(NSString *)deviceType username:(NSString *)username completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"deviceType": KBRValue(deviceType), @"username": KBRValue(username)};
   [self.client sendRequestWithMethod:@"keybase.1.login.xLogin" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1721,6 +1721,18 @@
       return;
     }
     KBRProvisionMethod *result = retval ? [MTLJSONAdapter modelOfClass:KBRProvisionMethod.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)chooseProvisionerDeviceType:(void (^)(NSError *error, KBRDeviceType deviceType))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseProvisionerDeviceType" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRDeviceType *result = retval ? [MTLJSONAdapter modelOfClass:KBRDeviceType.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
@@ -3594,6 +3606,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.deviceType = params[0][@"deviceType"];
     self.username = params[0][@"username"];
   }
   return self;
@@ -4306,6 +4319,22 @@
 
 + (instancetype)params {
   KBRChooseProvisioningMethodRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRChooseProvisionerDeviceTypeRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRChooseProvisionerDeviceTypeRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

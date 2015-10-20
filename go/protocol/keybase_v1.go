@@ -2276,8 +2276,9 @@ type UnlockArg struct {
 }
 
 type XLoginArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	DeviceType string `codec:"deviceType" json:"deviceType"`
+	Username   string `codec:"username" json:"username"`
 }
 
 type LoginInterface interface {
@@ -3927,13 +3928,25 @@ const (
 	ProvisionMethod_PASSPHRASE ProvisionMethod = 3
 )
 
+type DeviceType int
+
+const (
+	DeviceType_DESKTOP DeviceType = 0
+	DeviceType_MOBILE  DeviceType = 1
+)
+
 type ChooseProvisioningMethodArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	GpgUsers  []string `codec:"gpgUsers" json:"gpgUsers"`
 }
 
+type ChooseProvisionerDeviceTypeArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ProvisionUiInterface interface {
 	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
+	ChooseProvisionerDeviceType(context.Context, int) (DeviceType, error)
 }
 
 func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
@@ -3956,6 +3969,22 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"chooseProvisionerDeviceType": {
+				MakeArg: func() interface{} {
+					ret := make([]ChooseProvisionerDeviceTypeArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChooseProvisionerDeviceTypeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChooseProvisionerDeviceTypeArg)(nil), args)
+						return
+					}
+					ret, err = i.ChooseProvisionerDeviceType(context.TODO(), (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3966,6 +3995,12 @@ type ProvisionUiClient struct {
 
 func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg ChooseProvisioningMethodArg) (res ProvisionMethod, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseProvisioningMethod", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) ChooseProvisionerDeviceType(ctx context.Context, sessionID int) (res DeviceType, err error) {
+	__arg := ChooseProvisionerDeviceTypeArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseProvisionerDeviceType", []interface{}{__arg}, &res)
 	return
 }
 

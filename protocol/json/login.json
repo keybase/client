@@ -281,6 +281,9 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
+        "name" : "deviceType",
+        "type" : "string"
+      }, {
         "name" : "username",
         "type" : "string"
       } ],
