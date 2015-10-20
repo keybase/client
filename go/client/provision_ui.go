@@ -112,6 +112,11 @@ func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) 
 	return nil
 }
 
+func (p ProvisionUI) ProvisionSuccess(ctx context.Context, sessionID int) error {
+	p.parent.Output("Device successfully provisioned.")
+	return nil
+}
+
 func NewProvisionUIProtocol() rpc.Protocol {
 	// return keybase1.ProvisionUiProtocol(&ProvisionUIServer{ui: GlobUI.GetProvisionUI()})
 	return keybase1.ProvisionUiProtocol(GlobUI.GetProvisionUI())

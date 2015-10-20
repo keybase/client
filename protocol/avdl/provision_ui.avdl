@@ -45,4 +45,9 @@ protocol provisionUi {
    names for the user.
    */
   string PromptNewDeviceName(int sessionID, array<string> existingDevices);
+
+  /**
+   ProvisionSuccess is called after device provisioning runs successfully.
+   */
+  void ProvisionSuccess(int sessionID);
 }

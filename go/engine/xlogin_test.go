@@ -101,3 +101,8 @@ func (u *testProvisionUI) DisplaySecretExchanged(_ context.Context, _ int) error
 	fmt.Printf("DisplaySecretExchanged\n")
 	return nil
 }
+
+func (u *testProvisionUI) ProvisionSuccess(_ context.Context, _ int) error {
+	fmt.Printf("ProvisionSuccess\n")
+	return nil
+}

@@ -228,6 +228,14 @@
         }
       } ],
       "response" : "string"
+    },
+    "ProvisionSuccess" : {
+      "doc" : "ProvisionSuccess is called after device provisioning runs successfully.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "null"
     }
   }
 }

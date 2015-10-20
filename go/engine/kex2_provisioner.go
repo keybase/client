@@ -108,6 +108,10 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 	}
 	err = kex2.RunProvisioner(parg)
 
+	if err == nil {
+		ctx.ProvisionUI.ProvisionSuccess(context.TODO(), 0)
+	}
+
 	return err
 }
 

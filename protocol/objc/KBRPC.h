@@ -1091,6 +1091,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property NSArray *existingDevices;
 @end
+@interface KBRProvisionSuccessRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;
 @end
@@ -1910,6 +1913,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)promptNewDeviceName:(KBRPromptNewDeviceNameRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
 
 - (void)promptNewDeviceNameWithExistingDevices:(NSArray *)existingDevices completion:(void (^)(NSError *error, NSString *str))completion;
+
+/*!
+ ProvisionSuccess is called after device provisioning runs successfully.
+ */
+- (void)provisionSuccess:(void (^)(NSError *error))completion;
 
 @end
 

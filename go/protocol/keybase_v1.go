@@ -3960,12 +3960,17 @@ type PromptNewDeviceNameArg struct {
 	ExistingDevices []string `codec:"existingDevices" json:"existingDevices"`
 }
 
+type ProvisionSuccessArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ProvisionUiInterface interface {
 	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
 	ChooseProvisionerDeviceType(context.Context, int) (DeviceType, error)
 	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) ([]byte, error)
 	DisplaySecretExchanged(context.Context, int) error
 	PromptNewDeviceName(context.Context, PromptNewDeviceNameArg) (string, error)
+	ProvisionSuccess(context.Context, int) error
 }
 
 func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
@@ -4052,6 +4057,22 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"ProvisionSuccess": {
+				MakeArg: func() interface{} {
+					ret := make([]ProvisionSuccessArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ProvisionSuccessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ProvisionSuccessArg)(nil), args)
+						return
+					}
+					err = i.ProvisionSuccess(context.TODO(), (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4084,6 +4105,12 @@ func (c ProvisionUiClient) DisplaySecretExchanged(ctx context.Context, sessionID
 
 func (c ProvisionUiClient) PromptNewDeviceName(ctx context.Context, __arg PromptNewDeviceNameArg) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.provisionUi.PromptNewDeviceName", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) ProvisionSuccess(ctx context.Context, sessionID int) (err error) {
+	__arg := ProvisionSuccessArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.ProvisionSuccess", []interface{}{__arg}, nil)
 	return
 }
 

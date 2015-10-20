@@ -41,3 +41,7 @@ func (u *RemoteProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase
 func (u *RemoteProvisionUI) DisplaySecretExchanged(ctx context.Context, _ int) error {
 	return u.cli.DisplaySecretExchanged(ctx, u.sessionID)
 }
+
+func (u *RemoteProvisionUI) ProvisionSuccess(ctx context.Context, _ int) error {
+	return u.cli.ProvisionSuccess(ctx, u.sessionID)
+}
