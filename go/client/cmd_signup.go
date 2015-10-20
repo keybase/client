@@ -389,7 +389,7 @@ func (s *CmdSignup) initClient() error {
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(s.G()),
 	}
 	if s.doPrompt {
 		protocols = append(protocols, NewGPGUIProtocol(s.G()))

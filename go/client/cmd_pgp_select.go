@@ -43,7 +43,7 @@ func (v *CmdPGPSelect) Run() error {
 	}
 	protocols := []rpc.Protocol{
 		NewGPGUIProtocol(G),
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(G),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err

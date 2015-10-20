@@ -12,6 +12,7 @@ import (
 )
 
 type SocketNamedPipe struct {
+	Contextified
 	pipename string
 }
 
@@ -20,7 +21,7 @@ type SocketNamedPipe struct {
 // following the doulble backslashes.
 // If the service ever runs under a different account than
 // current user, this will have to be revisited.
-func NewSocket() (ret Socket, err error) {
+func NewSocket(g *GlobalContext) (ret Socket, err error) {
 	currentUser, err := user.Current()
 	if err != nil {
 		return
@@ -29,11 +30,14 @@ func NewSocket() (ret Socket, err error) {
 		err = errors.New("Empty username, can't make pipe")
 		return
 	}
-	return SocketNamedPipe{`\\.\pipe\kbservice\` + currentUser.Username}, nil
+	return SocketNamedPipe{
+		Contextified: NewContextified(g),
+		pipename:     `\\.\pipe\kbservice\` + currentUser.Username,
+	}, nil
 }
 
 func (s SocketNamedPipe) BindToSocket() (ret net.Listener, err error) {
-	G.Log.Info("Binding to pipe:%s", s.pipename)
+	s.G().Log.Info("Binding to pipe:%s", s.pipename)
 	return npipe.Listen(s.pipename)
 }
 

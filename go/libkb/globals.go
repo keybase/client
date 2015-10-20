@@ -175,7 +175,7 @@ func (g *GlobalContext) StartupMessage() {
 }
 
 func (g *GlobalContext) ConfigureAPI() error {
-	iapi, xapi, err := NewAPIEngines(g.Env)
+	iapi, xapi, err := NewAPIEngines(g.Env, g)
 	if err != nil {
 		return fmt.Errorf("Failed to configure API access: %s", err)
 	}
@@ -221,6 +221,10 @@ func (g *GlobalContext) Shutdown() error {
 		didShutdown = true
 
 		epick := FirstErrorPicker{}
+
+		if g.NotifyRouter != nil {
+			g.NotifyRouter.Shutdown()
+		}
 
 		if g.UI != nil {
 			epick.Push(g.UI.Shutdown())
@@ -350,8 +354,7 @@ func (g *GlobalContext) GetMyUID() keybase1.UID {
 }
 
 func (g *GlobalContext) ConfigureSocketInfo() (err error) {
-	g.SocketInfo, err = NewSocket()
-	// g.SocketInfo, err = g.Env.getSocketInfo()
+	g.SocketInfo, err = NewSocket(g)
 	return err
 }
 
@@ -367,6 +370,10 @@ func (c Contextified) G() *GlobalContext {
 		return c.g
 	}
 	return G
+}
+
+func (c Contextified) GStrict() *GlobalContext {
+	return c.g
 }
 
 func (c *Contextified) SetGlobalContext(g *GlobalContext) { c.g = g }

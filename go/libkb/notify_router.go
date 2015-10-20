@@ -3,6 +3,7 @@ package libkb
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	context "golang.org/x/net/context"
 )
 
 type getObj struct {
@@ -18,23 +19,30 @@ type setObj struct {
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
 type NotifyRouter struct {
-	cm    *ConnectionManager
-	state map[ConnectionID]keybase1.NotificationChannels
-	setCh chan setObj
-	getCh chan getObj
+	cm         *ConnectionManager
+	state      map[ConnectionID]keybase1.NotificationChannels
+	setCh      chan setObj
+	getCh      chan getObj
+	shutdownCh chan struct{}
 }
 
 // NewNotifyRouter makes a new notification router; we should only
 // make one of these per process.
 func NewNotifyRouter() *NotifyRouter {
 	ret := &NotifyRouter{
-		cm:    NewConnectionManager(),
-		state: make(map[ConnectionID]keybase1.NotificationChannels),
-		setCh: make(chan setObj),
-		getCh: make(chan getObj),
+		cm:         NewConnectionManager(),
+		state:      make(map[ConnectionID]keybase1.NotificationChannels),
+		setCh:      make(chan setObj),
+		getCh:      make(chan getObj),
+		shutdownCh: make(chan struct{}),
 	}
 	go ret.run()
 	return ret
+}
+
+func (n *NotifyRouter) Shutdown() {
+	n.shutdownCh <- struct{}{}
+	n.cm.Shutdown()
 }
 
 func (n *NotifyRouter) set(id ConnectionID, val keybase1.NotificationChannels) {
@@ -50,6 +58,8 @@ func (n *NotifyRouter) get(id ConnectionID) keybase1.NotificationChannels {
 func (n *NotifyRouter) run() {
 	for {
 		select {
+		case <-n.shutdownCh:
+			return
 		case o := <-n.setCh:
 			n.state[o.id] = o.val
 		case o := <-n.getCh:
@@ -81,7 +91,7 @@ func (n *NotifyRouter) HandleLogout() {
 			go func() {
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).LoggedOut()
+				}).LoggedOut(context.TODO())
 			}()
 		}
 		return true
@@ -97,7 +107,7 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 			go func() {
 				(keybase1.NotifyUsersClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).Changed(uid)
+				}).UserChanged(context.TODO(), uid)
 			}()
 		}
 		return true

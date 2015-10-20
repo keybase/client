@@ -33,6 +33,7 @@ type ConnectionManager struct {
 	lookupConnectionCh chan *lookupConnectionObj
 	removeConnectionCh chan ConnectionID
 	applyAllCh         chan ApplyFn
+	shutdownCh         chan struct{}
 }
 
 // AddConnection adds a new connection to the table of Connection object, with a
@@ -59,9 +60,15 @@ func (c *ConnectionManager) LookupConnection(i ConnectionID) rpc.Transporter {
 	return <-retCh
 }
 
+func (c *ConnectionManager) Shutdown() {
+	c.shutdownCh <- struct{}{}
+}
+
 func (c *ConnectionManager) run() {
 	for {
 		select {
+		case <-c.shutdownCh:
+			return
 		case addConnectionObj := <-c.addConnectionCh:
 			nxt := c.nxt
 			c.nxt++
@@ -97,6 +104,7 @@ func NewConnectionManager() *ConnectionManager {
 		lookupConnectionCh: make(chan *lookupConnectionObj),
 		removeConnectionCh: make(chan ConnectionID),
 		applyAllCh:         make(chan ApplyFn),
+		shutdownCh:         make(chan struct{}),
 	}
 	go ret.run()
 	return ret

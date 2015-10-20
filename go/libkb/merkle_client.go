@@ -145,7 +145,7 @@ func GetNodeHashVoid(w *jsonw.Wrapper, nhp *NodeHash, errp *error) {
 
 func NewMerkleClient(g *GlobalContext) *MerkleClient {
 	return &MerkleClient{
-		keyring:      NewSpecialKeyRing(g.Env.GetMerkleKIDs()),
+		keyring:      NewSpecialKeyRing(g.Env.GetMerkleKIDs(), g),
 		verified:     make(map[Seqno]bool),
 		lastRoot:     nil,
 		Contextified: NewContextified(g),

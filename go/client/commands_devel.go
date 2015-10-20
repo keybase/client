@@ -12,7 +12,7 @@ import (
 
 func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
-		NewCmdBTC(cl),
+		NewCmdBTC(cl, g),
 		NewCmdCert(cl),
 		NewCmdCompatDecrypt(cl),
 		NewCmdCompatDir(cl),

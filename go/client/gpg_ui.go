@@ -5,10 +5,10 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"golang.org/x/net/context"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 func NewGPGUIProtocol(g *libkb.GlobalContext) rpc.Protocol {

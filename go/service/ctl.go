@@ -1,14 +1,11 @@
 package service
 
 import (
-	"os"
-	"time"
-
-	"golang.org/x/net/context"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 type CtlHandler struct {
@@ -32,6 +29,7 @@ func (c *CtlHandler) Stop(_ context.Context, sessionID int) error {
 		c.service.Stop()
 	}()
 	return nil
+}
 
 func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
 	return c.G().Log.RotateLogFile()

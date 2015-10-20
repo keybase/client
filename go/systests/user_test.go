@@ -9,6 +9,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	context "golang.org/x/net/context"
 	"io"
 	"testing"
 )
@@ -154,23 +155,37 @@ func randomUser(prefix string) *signupInfo {
 
 type notifyHandler struct {
 	logoutCh chan struct{}
+	userCh   chan keybase1.UID
 	errCh    chan error
 }
 
 func newNotifyHandler() *notifyHandler {
 	return &notifyHandler{
 		logoutCh: make(chan struct{}),
+		userCh:   make(chan keybase1.UID),
 		errCh:    make(chan error),
 	}
 }
 
-func (h *notifyHandler) LoggedOut() error {
+func (h *notifyHandler) LoggedOut(_ context.Context) error {
 	h.logoutCh <- struct{}{}
+	return nil
+}
+
+func (h *notifyHandler) UserChanged(_ context.Context, uid keybase1.UID) error {
+	h.userCh <- uid
 	return nil
 }
 
 func TestSignupLogout(t *testing.T) {
 	tc := setupTest(t, "signup")
+	tc2 := cloneContext(tc)
+	tc5 := cloneContext(tc)
+
+	libkb.G.LocalDb = nil
+
+	// Hack the various portions of the service that aren't
+	// properly contextified.
 
 	defer tc.Cleanup()
 
@@ -181,7 +196,6 @@ func TestSignupLogout(t *testing.T) {
 		stopCh <- svc.Run()
 	}()
 
-	tc2 := cloneContext(tc)
 	sui := signupUI{
 		info:         randomUser("sgnp"),
 		Contextified: libkb.NewContextified(tc2.G),
@@ -190,23 +204,21 @@ func TestSignupLogout(t *testing.T) {
 	signup := client.NewCmdSignupRunner(tc2.G)
 	signup.SetTest()
 
-	tc4 := cloneContext(tc)
-	logout := client.NewCmdLogoutRunner(tc4.G)
+	logout := client.NewCmdLogoutRunner(tc2.G)
 
-	tc3 := cloneContext(tc)
-	stopper := client.NewCmdCtlStopRunner(tc3.G)
+	stopper := client.NewCmdCtlStopRunner(tc2.G)
 
 	<-startCh
 
 	if err := signup.Run(); err != nil {
 		t.Fatal(err)
 	}
+	tc2.G.Log.Debug("Login State: %v", tc2.G.LoginState())
 
 	nh := newNotifyHandler()
 
 	// Launch the server that will listen for notifications on updates, such as logout
 	launchServer := func(nh *notifyHandler) error {
-		tc5 := cloneContext(tc)
 		cli, xp, err := client.GetRPCClientWithContext(tc5.G)
 		if err != nil {
 			return err
@@ -215,8 +227,14 @@ func TestSignupLogout(t *testing.T) {
 		if err = srv.Register(keybase1.NotifySessionProtocol(nh)); err != nil {
 			return err
 		}
+		if err = srv.Register(keybase1.NotifyUsersProtocol(nh)); err != nil {
+			return err
+		}
 		ncli := keybase1.NotifyCtlClient{Cli: cli}
-		if err = ncli.ToggleNotifications(keybase1.NotificationChannels{Session: true}); err != nil {
+		if err = ncli.ToggleNotifications(context.TODO(), keybase1.NotificationChannels{
+			Session: true,
+			Users:   true,
+		}); err != nil {
 			return err
 		}
 		return nil
@@ -229,6 +247,20 @@ func TestSignupLogout(t *testing.T) {
 			nh.errCh <- err
 		}
 	}()
+
+	btc := client.NewCmdBTCRunner(tc2.G)
+	btc.SetAddress("1HUCBSJeHnkhzrVKVjaVmWg2QtZS1mdfaz")
+	if err := btc.Run(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Now let's be sure that we get a notification back as we expect.
+	select {
+	case err := <-nh.errCh:
+		t.Fatalf("Error before notify: %v", err)
+	case uid := <-nh.userCh:
+		tc.G.Log.Debug("Got notification from user changed handled (%s)", uid)
+	}
 
 	// Fire a logout
 	if err := logout.Run(); err != nil {

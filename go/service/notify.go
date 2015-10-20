@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	context "golang.org/x/net/context"
 )
 
 // NotifyCtlHandler is the RPC handler for notify control messages
@@ -23,7 +24,7 @@ func NewNotifyCtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.Glo
 	}
 }
 
-func (h *NotifyCtlHandler) ToggleNotifications(n keybase1.NotificationChannels) error {
+func (h *NotifyCtlHandler) ToggleNotifications(_ context.Context, n keybase1.NotificationChannels) error {
 	h.G().NotifyRouter.SetChannels(h.id, n)
 	return nil
 }

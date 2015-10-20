@@ -28,7 +28,7 @@ func (c *CmdPaperKey) Run() error {
 	}
 	protocols := []rpc.Protocol{
 		NewLoginUIProtocol(G),
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(G),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err

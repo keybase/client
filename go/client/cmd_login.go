@@ -33,7 +33,7 @@ func NewLocksmithUIProtocol() rpc.Protocol {
 func (v *CmdLogin) client() (*keybase1.LoginClient, error) {
 	protocols := []rpc.Protocol{
 		NewLoginUIProtocol(v.G()),
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(v.G()),
 		NewLocksmithUIProtocol(),
 		NewGPGUIProtocol(v.G()),
 	}

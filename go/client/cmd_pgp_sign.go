@@ -107,7 +107,7 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 func (s *CmdPGPSign) Run() (err error) {
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(G),
 	}
 
 	cli, err := GetPGPClient()

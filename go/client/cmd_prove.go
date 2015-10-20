@@ -60,7 +60,7 @@ func (p *CmdProve) Run() error {
 	protocols := []rpc.Protocol{
 		newProveUIProtocol(proveUI),
 		NewLoginUIProtocol(G),
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(G),
 	}
 
 	cli, err := GetProveClient()

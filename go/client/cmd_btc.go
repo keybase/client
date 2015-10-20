@@ -13,6 +13,7 @@ import (
 )
 
 type CmdBTC struct {
+	libkb.Contextified
 	address string
 	force   bool
 }
@@ -26,26 +27,35 @@ func (c *CmdBTC) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func (c *CmdBTC) SetAddress(s string) {
+	c.address = s
+}
+
 func (c *CmdBTC) Run() (err error) {
-	cli, err := GetBTCClient()
+	cli, err := GetBTCClient(c.G())
 	if err != nil {
 		return err
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(c.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 
-	return cli.RegisterBTC(context.TODO(), keybase1.RegisterBTCArg{
+	err = cli.RegisterBTC(context.TODO(), keybase1.RegisterBTCArg{
 		Address: c.address,
 		Force:   c.force,
 	})
+	if err != nil {
+		return err
+	}
+	c.G().UI.GetTerminalUI().Printf("Added bitcoin address %s\n", c.address)
+	return nil
 }
 
-func NewCmdBTC(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdBTC(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "btc",
 		Usage:        "Claim a bitcoin address",
@@ -57,8 +67,14 @@ func NewCmdBTC(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdBTC{}, "btc", c)
+			cl.ChooseCommand(NewCmdBTCRunner(g), "btc", c)
 		},
+	}
+}
+
+func NewCmdBTCRunner(g *libkb.GlobalContext) *CmdBTC {
+	return &CmdBTC{
+		Contextified: libkb.NewContextified(g),
 	}
 }
 

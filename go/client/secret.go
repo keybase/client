@@ -11,8 +11,8 @@ type SecretUIServer struct {
 	eng libkb.SecretUI
 }
 
-func NewSecretUIProtocol() rpc.Protocol {
-	return keybase1.SecretUiProtocol(&SecretUIServer{GlobUI.GetSecretUI()})
+func NewSecretUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.SecretUiProtocol(&SecretUIServer{g.UI.GetSecretUI()})
 }
 
 func (s *SecretUIServer) GetSecret(_ context.Context, arg keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {

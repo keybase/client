@@ -136,9 +136,9 @@ func GetRevokeClient() (cli keybase1.RevokeClient, err error) {
 	return
 }
 
-func GetBTCClient() (cli keybase1.BTCClient, err error) {
+func GetBTCClient(g *libkb.GlobalContext) (cli keybase1.BTCClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.BTCClient{Cli: rcli}
 	}
 	return

@@ -708,20 +708,3 @@ func (c AppConfig) GetHome() string {
 func (c AppConfig) GetServerURI() string {
 	return c.ServerURI
 }
-
-func (e *Env) getSocketInfo() (ret SocketInfo, err error) {
-	port := e.GetDaemonPort()
-	if runtime.GOOS == "windows" && port == 0 {
-		port = DaemonPort
-	}
-	if port != 0 {
-		ret = SocketInfoTCP{port}
-	} else {
-		var s string
-		s, err = e.GetSocketFile()
-		if err == nil {
-			ret = SocketInfoUnix{s}
-		}
-	}
-	return
-}

@@ -936,7 +936,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRToggleNotificationsRequestParams : KBRRequestParams
 @property KBRNotificationChannels *channels;
 @end
-@interface KBRChangedRequestParams : KBRRequestParams
+@interface KBRUserChangedRequestParams : KBRRequestParams
 @property NSString *uid;
 @end
 @interface KBRPgpSignRequestParams : KBRRequestParams
@@ -1705,9 +1705,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRNotifyUsersRequest : KBRRequest
 
-- (void)changed:(KBRChangedRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)userChanged:(KBRUserChangedRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)changedWithUid:(NSString *)uid completion:(void (^)(NSError *error))completion;
+- (void)userChangedWithUid:(NSString *)uid completion:(void (^)(NSError *error))completion;
 
 @end
 

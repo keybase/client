@@ -4,5 +4,5 @@ protocol NotifyUsers {
   import idl "common.avdl";
 
   @notify("")
-  void changed(UID uid);
+  void userChanged(UID uid);
 }

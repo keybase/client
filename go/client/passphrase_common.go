@@ -19,7 +19,7 @@ func passphraseChange(arg keybase1.PassphraseChangeArg) error {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(G),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err

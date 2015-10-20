@@ -37,7 +37,7 @@ func (c *CmdUnlock) Run() error {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(),
+		NewSecretUIProtocol(G),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err

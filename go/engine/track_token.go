@@ -143,7 +143,7 @@ func (e *TrackToken) loadThem(username string) error {
 }
 
 func (e *TrackToken) storeLocalTrack() error {
-	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.trackStatement)
+	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.trackStatement, e.G())
 }
 
 func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {

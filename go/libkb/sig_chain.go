@@ -9,6 +9,8 @@ import (
 )
 
 type SigChain struct {
+	Contextified
+
 	uid               keybase1.UID
 	username          NormalizedUsername
 	chainLinks        []*ChainLink
@@ -27,8 +29,6 @@ type SigChain struct {
 
 	// When the local chain was updated.
 	localChainUpdateTime time.Time
-
-	Contextified
 }
 
 func (sc SigChain) Len() int {
@@ -45,7 +45,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 		cki = l.cki.ShallowCopy()
 	}
 	if cki == nil {
-		G.Log.Debug("LocalDelegate: creating new cki (signingKid: %s)", signingKid)
+		sc.G().Log.Debug("LocalDelegate: creating new cki (signingKid: %s)", signingKid)
 		cki = NewComputedKeyInfos()
 		cki.InsertLocalEldestKey(signingKid)
 	}
@@ -66,7 +66,7 @@ func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 	if cki == nil {
 		if l := sc.GetLastLink(); l != nil {
 			if l.cki == nil {
-				G.Log.Debug("GetComputedKeyInfos: l.cki is nil")
+				sc.G().Log.Debug("GetComputedKeyInfos: l.cki is nil")
 			}
 			cki = l.cki
 		}
@@ -119,7 +119,7 @@ func (sc *SigChain) VerifiedChainLinks(fp PGPFingerprint) (ret []*ChainLink) {
 
 func (sc *SigChain) Bump(mt MerkleTriple) {
 	mt.Seqno = sc.GetLastKnownSeqno() + 1
-	G.Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.Seqno)
+	sc.G().Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.Seqno)
 	sc.localChainTail = &mt
 	sc.localChainUpdateTime = time.Now()
 }
@@ -128,8 +128,8 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 	low := sc.GetLastLoadedSeqno()
 	sc.loadedFromLinkOne = (low == Seqno(0) || low == Seqno(-1))
 
-	G.Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
-	defer func() { G.Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
+	sc.G().Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
+	defer func() { sc.G().Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
 	res, err := G.API.Get(APIArg{
 		Endpoint:    "sig/get",
@@ -152,7 +152,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 
 	foundTail := false
 
-	G.Log.Debug("| Got back %d new entries", lim)
+	sc.G().Log.Debug("| Got back %d new entries", lim)
 
 	var links []*ChainLink
 	var tail *ChainLink
@@ -186,7 +186,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 		// If we've stored a `last` and it's less than the one
 		// we just loaded, then nuke it.
 		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
-			G.Log.Debug("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
+			sc.G().Log.Debug("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
 			sc.localChainTail = nil
 			sc.localCki = nil
 		}
@@ -204,9 +204,9 @@ func (sc *SigChain) getFirstSeqno() (ret Seqno) {
 }
 
 func (sc *SigChain) VerifyChain() (err error) {
-	G.Log.Debug("+ SigChain::VerifyChain()")
+	sc.G().Log.Debug("+ SigChain::VerifyChain()")
 	defer func() {
-		G.Log.Debug("- SigChain::VerifyChain() -> %s", ErrToOk(err))
+		sc.G().Log.Debug("- SigChain::VerifyChain() -> %s", ErrToOk(err))
 	}()
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
@@ -266,12 +266,12 @@ func (sc SigChain) GetLastLink() *ChainLink {
 }
 
 func (sc SigChain) GetLastKnownSeqno() (ret Seqno) {
-	G.Log.Debug("+ GetLastKnownSeqno()")
+	sc.G().Log.Debug("+ GetLastKnownSeqno()")
 	defer func() {
-		G.Log.Debug("- GetLastKnownSeqno() -> %d", ret)
+		sc.G().Log.Debug("- GetLastKnownSeqno() -> %d", ret)
 	}()
 	if sc.localChainTail != nil {
-		G.Log.Debug("| Cached in last summary object...")
+		sc.G().Log.Debug("| Cached in last summary object...")
 		ret = sc.localChainTail.Seqno
 	} else {
 		ret = sc.GetLastLoadedSeqno()
@@ -280,12 +280,12 @@ func (sc SigChain) GetLastKnownSeqno() (ret Seqno) {
 }
 
 func (sc SigChain) GetLastLoadedSeqno() (ret Seqno) {
-	G.Log.Debug("+ GetLastLoadedSeqno()")
+	sc.G().Log.Debug("+ GetLastLoadedSeqno()")
 	defer func() {
-		G.Log.Debug("- GetLastLoadedSeqno() -> %d", ret)
+		sc.G().Log.Debug("- GetLastLoadedSeqno() -> %d", ret)
 	}()
 	if l := last(sc.chainLinks); l != nil {
-		G.Log.Debug("| Fetched from main chain")
+		sc.G().Log.Debug("| Fetched from main chain")
 		ret = l.GetSeqno()
 	}
 	return
@@ -295,7 +295,7 @@ func (sc *SigChain) Store() (err error) {
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		link := sc.chainLinks[i]
 		var didStore bool
-		if didStore, err = link.Store(); err != nil || !didStore {
+		if didStore, err = link.Store(sc.G()); err != nil || !didStore {
 			return
 		}
 	}
@@ -372,9 +372,9 @@ func (sc *SigChain) Dump(w io.Writer) {
 func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached bool, cki *ComputedKeyInfos, err error) {
 	un := sc.username
 
-	G.Log.Debug("+ verifySubchain")
+	sc.G().Log.Debug("+ verifySubchain")
 	defer func() {
-		G.Log.Debug("- verifySubchain -> %v, %s", cached, ErrToOk(err))
+		sc.G().Log.Debug("- verifySubchain -> %v, %s", cached, ErrToOk(err))
 	}()
 
 	if links == nil || len(links) == 0 {
@@ -385,7 +385,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 	last := links[len(links)-1]
 	if cki = last.GetSigCheckCache(); cki != nil {
 		cached = true
-		G.Log.Debug("Skipped verification (cached): %s", last.id)
+		sc.G().Log.Debug("Skipped verification (cached): %s", last.id)
 		return
 	}
 
@@ -396,7 +396,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 
 	for linkIndex, link := range links {
 		if isBad, reason := link.IsBad(); isBad {
-			G.Log.Debug("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
+			sc.G().Log.Debug("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
 			continue
 		}
 
@@ -407,7 +407,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 			w.Warn()
 		}
 
-		G.Log.Debug("| Verify link: %s", link.id)
+		sc.G().Log.Debug("| Verify link: %s", link.id)
 
 		if first {
 			if err = ckf.InsertEldestLink(tcl, un); err != nil {
@@ -429,7 +429,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		if isModifyingKeys || isFinalLink || isLastLinkInSameKeyRun {
 			_, err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {
-				G.Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err)
+				sc.G().Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err)
 				return
 			}
 		}
@@ -437,20 +437,20 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		if isDelegating {
 			err = ckf.Delegate(tcl)
 			if err != nil {
-				G.Log.Debug("| Failure in Delegate: %s", err)
+				sc.G().Log.Debug("| Failure in Delegate: %s", err)
 				return
 			}
 		}
 
 		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
 			if hash := pgpcl.GetPGPFullHash(); hash != "" {
-				G.Log.Debug("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
+				sc.G().Log.Debug("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
 				ckf.SetActivePGPHash(pgpcl.kid, hash)
 			}
 		}
 
 		if err = tcl.VerifyReverseSig(ckf); err != nil {
-			G.Log.Debug("| Failure in VerifyReverseSig: %s", err)
+			sc.G().Log.Debug("| Failure in VerifyReverseSig: %s", err)
 			return
 		}
 
@@ -474,9 +474,9 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
 
 	cached = false
-	G.Log.Debug("+ VerifySigsAndComputeKeys for user %s (eldest = %s)", sc.uid, eldest)
+	sc.G().Log.Debug("+ VerifySigsAndComputeKeys for user %s (eldest = %s)", sc.uid, eldest)
 	defer func() {
-		G.Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", sc.uid, ErrToOk(err))
+		sc.G().Log.Debug("- VerifySigsAndComputeKeys for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
 
 	if err = sc.VerifyChain(); err != nil {
@@ -491,7 +491,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 	}
 
 	if ckf.kf == nil || eldest.IsNil() {
-		G.Log.Debug("| VerifyWithKey short-circuit, since no Key available")
+		sc.G().Log.Debug("| VerifyWithKey short-circuit, since no Key available")
 		return
 	}
 	links, err := sc.GetCurrentSubchain(eldest)
@@ -500,7 +500,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 	}
 
 	if links == nil || len(links) == 0 {
-		G.Log.Debug("| Empty chain after we limited to eldest %s", eldest)
+		sc.G().Log.Debug("| Empty chain after we limited to eldest %s", eldest)
 		eldestKey, _ := ckf.FindKeyWithKIDUnsafe(eldest)
 		sc.localCki = NewComputedKeyInfos()
 		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
@@ -593,13 +593,13 @@ func (l *SigChainLoader) LoadLastLinkIDFromStorage() (mt *MerkleTriple, err erro
 
 func (l *SigChainLoader) AccessPreload() (cached bool, err error) {
 	if l.preload != nil && (l.preload.allKeys == l.allKeys) {
-		G.Log.Debug("| Preload successful")
+		l.G().Log.Debug("| Preload successful")
 		cached = true
 		src := l.preload.chainLinks
 		l.links = make([]*ChainLink, len(src))
 		copy(l.links, src)
 	} else {
-		G.Log.Debug("| Preload failed")
+		l.G().Log.Debug("| Preload failed")
 	}
 	return
 }
@@ -639,7 +639,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 
 	for curr != nil && goodKey {
 		l.G().Log.Debug("| loading link; curr=%s", curr)
-		if link, err = ImportLinkFromStorage(curr, suid); err != nil {
+		if link, err = ImportLinkFromStorage(curr, suid, l.G()); err != nil {
 			return
 		}
 		kid2 := link.ToEldestKID()
@@ -704,27 +704,27 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 
 	future := sc.GetFutureChainTail()
 	Efn := NewServerChainError
-	G.Log.Debug("+ CheckFreshness")
-	defer G.Log.Debug("- CheckFreshness (%s) -> (%v,%s)", sc.uid, current, ErrToOk(err))
+	sc.G().Log.Debug("+ CheckFreshness")
+	defer sc.G().Log.Debug("- CheckFreshness (%s) -> (%v,%s)", sc.uid, current, ErrToOk(err))
 	a := Seqno(-1)
 	b := Seqno(-1)
 
 	if srv != nil {
-		G.Log.Debug("| Server triple: %v", srv)
+		sc.G().Log.Debug("| Server triple: %v", srv)
 		b = srv.Seqno
 	} else {
-		G.Log.Debug("| Server triple=nil")
+		sc.G().Log.Debug("| Server triple=nil")
 	}
 	if cli != nil {
-		G.Log.Debug("| Client triple: %v", cli)
+		sc.G().Log.Debug("| Client triple: %v", cli)
 		a = cli.Seqno
 	} else {
-		G.Log.Debug("| Client triple=nil")
+		sc.G().Log.Debug("| Client triple=nil")
 	}
 	if future != nil {
-		G.Log.Debug("| Future triple: %v", future)
+		sc.G().Log.Debug("| Future triple: %v", future)
 	} else {
-		G.Log.Debug("| Future triple=nil")
+		sc.G().Log.Debug("| Future triple=nil")
 	}
 
 	if srv == nil && cli != nil {
@@ -742,7 +742,7 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 	}
 
 	if b == a {
-		G.Log.Debug("| Local chain version is up-to-date @ version %d", b)
+		sc.G().Log.Debug("| Local chain version is up-to-date @ version %d", b)
 		current = true
 		if cli == nil {
 			err = Efn("Failed to read last link for user")
@@ -753,12 +753,12 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 			return
 		}
 	} else {
-		G.Log.Debug("| Local chain version is out-of-date: %d < %d", a, b)
+		sc.G().Log.Debug("| Local chain version is out-of-date: %d < %d", a, b)
 		current = false
 	}
 
 	if current && future != nil && (cli == nil || cli.Seqno < future.Seqno) {
-		G.Log.Debug("| Still need to reload, since locally, we know seqno=%d is last", future.Seqno)
+		sc.G().Log.Debug("| Still need to reload, since locally, we know seqno=%d is last", future.Seqno)
 		current = false
 	}
 
@@ -791,7 +791,7 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 //========================================================================
 
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
-	G.Log.Debug("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
+	l.G().Log.Debug("VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
 	if l.ckf.kf != nil {
 		_, err = l.chain.VerifySigsAndComputeKeys(l.leaf.eldest, &l.ckf)
 	}
@@ -806,8 +806,8 @@ func (l *SigChainLoader) StoreTail() (err error) {
 	if l.dirtyTail == nil {
 		return
 	}
-	err = G.LocalDb.PutObj(l.dbKey(), nil, l.dirtyTail)
-	G.Log.Debug("| Storing dirtyTail @ %d (%v)", l.dirtyTail.Seqno, l.dirtyTail)
+	err = l.G().LocalDb.PutObj(l.dbKey(), nil, l.dirtyTail)
+	l.G().Log.Debug("| Storing dirtyTail @ %d (%v)", l.dirtyTail.Seqno, l.dirtyTail)
 	if err == nil {
 		l.dirtyTail = nil
 	}
@@ -833,13 +833,13 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 	uid := l.user.GetUID()
 
-	G.Log.Debug("+ SigChainLoader.Load(%s)", uid)
+	l.G().Log.Debug("+ SigChainLoader.Load(%s)", uid)
 	defer func() {
-		G.Log.Debug("- SigChainLoader.Load(%s) -> (%v, %s)", uid, (ret != nil), ErrToOk(err))
+		l.G().Log.Debug("- SigChainLoader.Load(%s) -> (%v, %s)", uid, (ret != nil), ErrToOk(err))
 	}()
 
 	stage := func(s string) {
-		G.Log.Debug("| SigChainLoader.Load(%s) %s", uid, s)
+		l.G().Log.Debug("| SigChainLoader.Load(%s) %s", uid, s)
 	}
 
 	stage("GetFingerprint")
@@ -881,7 +881,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 
 	if !current {
 	} else if l.chain.GetComputedKeyInfos() == nil {
-		G.Log.Debug("| Need to reverify chain since we don't have ComputedKeyInfos")
+		l.G().Log.Debug("| Need to reverify chain since we don't have ComputedKeyInfos")
 	} else {
 		return
 	}

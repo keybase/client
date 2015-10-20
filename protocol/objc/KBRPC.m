@@ -1262,16 +1262,16 @@
 
 @implementation KBRNotifyUsersRequest
 
-- (void)changed:(KBRChangedRequestParams *)params completion:(void (^)(NSError *error))completion {
+- (void)userChanged:(KBRUserChangedRequestParams *)params completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"uid": KBRValue(params.uid)};
-  [self.client sendRequestWithMethod:@"keybase.1.NotifyUsers.changed" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyUsers.userChanged" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)changedWithUid:(NSString *)uid completion:(void (^)(NSError *error))completion {
+- (void)userChangedWithUid:(NSString *)uid completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"uid": KBRValue(uid)};
-  [self.client sendRequestWithMethod:@"keybase.1.NotifyUsers.changed" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyUsers.userChanged" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -3805,7 +3805,7 @@
 }
 @end
 
-@implementation KBRChangedRequestParams
+@implementation KBRUserChangedRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -3815,7 +3815,7 @@
 }
 
 + (instancetype)params {
-  KBRChangedRequestParams *p = [[self alloc] init];
+  KBRUserChangedRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

@@ -242,6 +242,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		ExistingKey:    e.arg.SigningKey,
 		Me:             e.arg.Me,
 		Device:         backupDev,
+		Contextified:   libkb.NewContextified(e.G()),
 	}
 
 	// push the paper encryption key
@@ -252,6 +253,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		ExistingKey:    e.sigKey,
 		Me:             e.arg.Me,
 		Device:         backupDev,
+		Contextified:   libkb.NewContextified(e.G()),
 	}
 
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc})
