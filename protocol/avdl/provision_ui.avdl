@@ -25,4 +25,24 @@ protocol provisionUi {
    If provisioning via device, this will be called so user can select the provisioner device type: desktop or mobile.
    */
   DeviceType chooseProvisionerDeviceType(int sessionID);
+
+  /**
+   DisplayAndPromptSecret displays a secret that the user can enter into the provisioner device.
+   It also can return a secret that the user enters into this device (from the provisioner). 
+   If it does not return a secret, it will be canceled when this device receives the secret via kex2.
+   */
+  bytes DisplayAndPromptSecret(int sessionID, bytes secret, string phrase, DeviceType provisionerDeviceType);
+
+  /**
+   DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two
+   devices.
+   */
+  void DisplaySecretExchanged(int sessionID);
+
+  /**
+   PromptNewDeviceName is called when the device provisioning process needs a name for the new device.
+   To help the clients not send a duplicate name, existingDevices is populated with the current device
+   names for the user.
+   */
+  string PromptNewDeviceName(int sessionID, array<string> existingDevices);
 }

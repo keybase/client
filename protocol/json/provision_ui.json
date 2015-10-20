@@ -189,6 +189,45 @@
         "type" : "int"
       } ],
       "response" : "DeviceType"
+    },
+    "DisplayAndPromptSecret" : {
+      "doc" : "DisplayAndPromptSecret displays a secret that the user can enter into the provisioner device.\n   It also can return a secret that the user enters into this device (from the provisioner). \n   If it does not return a secret, it will be canceled when this device receives the secret via kex2.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "secret",
+        "type" : "bytes"
+      }, {
+        "name" : "phrase",
+        "type" : "string"
+      }, {
+        "name" : "provisionerDeviceType",
+        "type" : "DeviceType"
+      } ],
+      "response" : "bytes"
+    },
+    "DisplaySecretExchanged" : {
+      "doc" : "DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two\n   devices.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "null"
+    },
+    "PromptNewDeviceName" : {
+      "doc" : "PromptNewDeviceName is called when the device provisioning process needs a name for the new device.\n   To help the clients not send a duplicate name, existingDevices is populated with the current device\n   names for the user.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "existingDevices",
+        "type" : {
+          "type" : "array",
+          "items" : "string"
+        }
+      } ],
+      "response" : "string"
     }
   }
 }

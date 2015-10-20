@@ -25,6 +25,7 @@ type Kex2Provisionee struct {
 	username     string
 	sessionToken keybase1.SessionToken
 	csrfToken    keybase1.CsrfToken
+	ctx          *Context
 }
 
 // Kex2Provisionee implements kex2.Provisionee, libkb.UserBasic,
@@ -55,7 +56,9 @@ func (e *Kex2Provisionee) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *Kex2Provisionee) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{
+		libkb.ProvisionUIKind,
+	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -74,6 +77,9 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 	if e.device.ID.IsNil() {
 		return errors.New("provisionee device requires ID to be set")
 	}
+
+	// ctx is needed in some of the kex2 functions:
+	e.ctx = ctx
 
 	karg := kex2.KexBaseArg{
 		Ctx:           context.TODO(),
@@ -250,8 +256,15 @@ func (e *Kex2Provisionee) APIArgs() (token, csrf string) {
 }
 
 func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
-	// TODO:
-	// if e.device.Description == nil { get a device name from the user }
+	if e.device.Description == nil {
+		// TODO: get existing device names
+		arg := keybase1.PromptNewDeviceNameArg{}
+		name, err := e.ctx.ProvisionUI.PromptNewDeviceName(context.TODO(), arg)
+		if err != nil {
+			return err
+		}
+		e.device.Description = &name
+	}
 
 	s := libkb.DeviceStatusActive
 	e.device.Status = &s

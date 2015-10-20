@@ -20,12 +20,15 @@ type Kex2Provisioner struct {
 	me         *libkb.User
 	signingKey libkb.GenericKey
 	pps        *libkb.PassphraseStream
+	ctx        *Context
 }
 
 // Kex2Provisioner implements kex2.Provisioner interface.
 var _ kex2.Provisioner = (*Kex2Provisioner)(nil)
 
 // NewKex2Provisioner creates a Kex2Provisioner engine.
+// XXX should be able to remove deviceID parameter.  Provisioner
+// is signed in.  Can get device id from env.
 func NewKex2Provisioner(g *libkb.GlobalContext, deviceID keybase1.DeviceID, secret kex2.Secret) *Kex2Provisioner {
 	return &Kex2Provisioner{
 		Contextified: libkb.NewContextified(g),
@@ -49,6 +52,7 @@ func (e *Kex2Provisioner) Prereqs() Prereqs {
 func (e *Kex2Provisioner) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.SecretUIKind,
+		libkb.ProvisionUIKind,
 	}
 }
 
@@ -86,6 +90,9 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 		return err
 	}
 
+	// ctx needed by some kex2 functions
+	e.ctx = ctx
+
 	// all set:  start provisioner
 	karg := kex2.KexBaseArg{
 		Ctx:           context.TODO(),
@@ -119,6 +126,8 @@ func (e *Kex2Provisioner) GetLogFactory() rpc.LogFactory {
 func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 	e.G().Log.Debug("+ GetHelloArg()")
 	defer func() { e.G().Log.Debug("- GetHelloArg() -> %s", libkb.ErrToOk(err)) }()
+
+	e.ctx.ProvisionUI.DisplaySecretExchanged(context.TODO(), 0)
 
 	// get a session token that device Y can use
 	token, csrf, err := e.sessionForY()

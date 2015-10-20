@@ -3944,9 +3944,28 @@ type ChooseProvisionerDeviceTypeArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type DisplayAndPromptSecretArg struct {
+	SessionID             int        `codec:"sessionID" json:"sessionID"`
+	Secret                []byte     `codec:"secret" json:"secret"`
+	Phrase                string     `codec:"phrase" json:"phrase"`
+	ProvisionerDeviceType DeviceType `codec:"provisionerDeviceType" json:"provisionerDeviceType"`
+}
+
+type DisplaySecretExchangedArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type PromptNewDeviceNameArg struct {
+	SessionID       int      `codec:"sessionID" json:"sessionID"`
+	ExistingDevices []string `codec:"existingDevices" json:"existingDevices"`
+}
+
 type ProvisionUiInterface interface {
 	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
 	ChooseProvisionerDeviceType(context.Context, int) (DeviceType, error)
+	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) ([]byte, error)
+	DisplaySecretExchanged(context.Context, int) error
+	PromptNewDeviceName(context.Context, PromptNewDeviceNameArg) (string, error)
 }
 
 func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
@@ -3985,6 +4004,54 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"DisplayAndPromptSecret": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayAndPromptSecretArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayAndPromptSecretArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayAndPromptSecretArg)(nil), args)
+						return
+					}
+					ret, err = i.DisplayAndPromptSecret(context.TODO(), (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"DisplaySecretExchanged": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplaySecretExchangedArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplaySecretExchangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplaySecretExchangedArg)(nil), args)
+						return
+					}
+					err = i.DisplaySecretExchanged(context.TODO(), (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"PromptNewDeviceName": {
+				MakeArg: func() interface{} {
+					ret := make([]PromptNewDeviceNameArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PromptNewDeviceNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PromptNewDeviceNameArg)(nil), args)
+						return
+					}
+					ret, err = i.PromptNewDeviceName(context.TODO(), (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4001,6 +4068,22 @@ func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg C
 func (c ProvisionUiClient) ChooseProvisionerDeviceType(ctx context.Context, sessionID int) (res DeviceType, err error) {
 	__arg := ChooseProvisionerDeviceTypeArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseProvisionerDeviceType", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) DisplayAndPromptSecret(ctx context.Context, __arg DisplayAndPromptSecretArg) (res []byte, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplayAndPromptSecret", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) DisplaySecretExchanged(ctx context.Context, sessionID int) (err error) {
+	__arg := DisplaySecretExchangedArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplaySecretExchanged", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ProvisionUiClient) PromptNewDeviceName(ctx context.Context, __arg PromptNewDeviceNameArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.PromptNewDeviceName", []interface{}{__arg}, &res)
 	return
 }
 

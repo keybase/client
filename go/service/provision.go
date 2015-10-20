@@ -27,3 +27,17 @@ func (u *RemoteProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg ke
 func (u *RemoteProvisionUI) ChooseProvisionerDeviceType(ctx context.Context, _ int) (keybase1.DeviceType, error) {
 	return u.cli.ChooseProvisionerDeviceType(ctx, u.sessionID)
 }
+
+func (u *RemoteProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.DisplayAndPromptSecret(ctx, arg)
+}
+
+func (u *RemoteProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.PromptNewDeviceName(ctx, arg)
+}
+
+func (u *RemoteProvisionUI) DisplaySecretExchanged(ctx context.Context, _ int) error {
+	return u.cli.DisplaySecretExchanged(ctx, u.sessionID)
+}

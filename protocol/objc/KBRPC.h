@@ -1078,6 +1078,19 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRChooseProvisionerDeviceTypeRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRDisplayAndPromptSecretRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSData *secret;
+@property NSString *phrase;
+@property KBRDeviceType provisionerDeviceType;
+@end
+@interface KBRDisplaySecretExchangedRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRPromptNewDeviceNameRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSArray *existingDevices;
+@end
 @interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;
 @end
@@ -1873,6 +1886,30 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  If provisioning via device, this will be called so user can select the provisioner device type: desktop or mobile.
  */
 - (void)chooseProvisionerDeviceType:(void (^)(NSError *error, KBRDeviceType deviceType))completion;
+
+/*!
+ DisplayAndPromptSecret displays a secret that the user can enter into the provisioner device.
+ It also can return a secret that the user enters into this device (from the provisioner). 
+ If it does not return a secret, it will be canceled when this device receives the secret via kex2.
+ */
+- (void)displayAndPromptSecret:(KBRDisplayAndPromptSecretRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion;
+
+- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase provisionerDeviceType:(KBRDeviceType)provisionerDeviceType completion:(void (^)(NSError *error, NSData *bytes))completion;
+
+/*!
+ DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two
+ devices.
+ */
+- (void)displaySecretExchanged:(void (^)(NSError *error))completion;
+
+/*!
+ PromptNewDeviceName is called when the device provisioning process needs a name for the new device.
+ To help the clients not send a duplicate name, existingDevices is populated with the current device
+ names for the user.
+ */
+- (void)promptNewDeviceName:(KBRPromptNewDeviceNameRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)promptNewDeviceNameWithExistingDevices:(NSArray *)existingDevices completion:(void (^)(NSError *error, NSString *str))completion;
 
 @end
 

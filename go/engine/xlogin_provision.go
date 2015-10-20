@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -125,9 +126,28 @@ func (e *XLoginProvision) device(ctx *Context) error {
 	provisionee := NewKex2Provisionee(e.G(), device, secret.Secret())
 
 	// display secret and prompt for secret from X in a goroutine:
+	go func() {
+		sb := secret.Secret()
+		arg := keybase1.DisplayAndPromptSecretArg{
+			Secret:                sb[:],
+			Phrase:                secret.Phrase(),
+			ProvisionerDeviceType: provisionerType,
+		}
+		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(context.TODO(), arg)
+		if err != nil {
+			// XXX ???
+			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+		} else if receivedSecret != nil {
+			var ks kex2.Secret
+			copy(ks[:], receivedSecret)
+			provisionee.AddSecret(ks)
+		}
+	}()
 
 	// run provisionee
-	_ = provisionee
+	if err := RunEngine(provisionee, ctx); err != nil {
+		return err
+	}
 
 	return nil
 }
