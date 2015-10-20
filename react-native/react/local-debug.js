@@ -10,12 +10,15 @@ import * as Tabs from './constants/tabs'
 /* eslint-disable no-undef */
 let routerState = null
 let activeTab = null
+let skipRouteToRoot = false
 
 if (__DEV__) {
-  routerState = createRouterState([], [])
-  activeTab = Tabs.MORE_TAB
+  routerState = createRouterState(['root', 'genPaperKey'], [])
+  activeTab = Tabs.DEVICES_TAB
+  skipRouteToRoot = true
 }
 
 export const overrideRouterState = routerState
 export const overrideActiveTab = activeTab
+export const skipLoginRouteToRoot = skipRouteToRoot
 /* eslint-enable no-undef */

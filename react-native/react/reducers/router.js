@@ -3,6 +3,7 @@
 import * as loginTypes from '../constants/login-action-types'
 import * as routerTypes from '../constants/router-action-types'
 import Immutable from 'immutable'
+import * as localDebug from '../local-debug'
 
 const initialState = createRouterState(['nav'], [])
 
@@ -81,6 +82,9 @@ export default function (state = initialState, action) {
     case loginTypes.SHOW_SECRET_WORDS:
       return stateWithHistory.set('uri', parseUri(['login', 'show-secret-words']))
     case loginTypes.LOGGED_IN:
+      if (localDebug.skipLoginRouteToRoot) {
+        return state
+      }
       return stateWithHistory.set('uri', parseUri(['root']))
     default:
       return state
