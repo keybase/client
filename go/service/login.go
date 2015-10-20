@@ -138,7 +138,12 @@ func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 }
 
 func (h *LoginHandler) XLogin(_ context.Context, arg keybase1.XLoginArg) error {
-	return nil
+	ctx := &engine.Context{
+		LogUI: h.getLogUI(arg.SessionID),
+		// SecretUI: h.getSecretUI(sessionID),
+	}
+	eng := engine.NewXLogin(G)
+	return engine.RunEngine(eng, ctx)
 }
 
 type RemoteLocksmithUI struct {
