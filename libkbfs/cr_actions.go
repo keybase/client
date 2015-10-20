@@ -24,7 +24,7 @@ func (cuea *copyUnmergedEntryAction) String() string {
 		cuea.fromName, cuea.toName, cuea.symPath)
 }
 
-// copyUnmergedAttrAction says that the given attributed in the
+// copyUnmergedAttrAction says that the given attributes in the
 // unmerged entry for the given name should be copied directly into
 // the merged version of the directory; there should be no conflict.
 type copyUnmergedAttrAction struct {

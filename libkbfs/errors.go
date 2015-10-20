@@ -707,3 +707,14 @@ type NotPermittedWhileDirtyError struct {
 func (e NotPermittedWhileDirtyError) Error() string {
 	return "Not permitted while writes are dirty"
 }
+
+// NoChainFoundError indicates that a conflict resolution chain
+// corresponding to the given pointer could not be found.
+type NoChainFoundError struct {
+	ptr BlockPointer
+}
+
+// Error implements the error interface for NoChainFoundError.
+func (e NoChainFoundError) Error() string {
+	return fmt.Sprintf("No chain found for %v", e.ptr)
+}

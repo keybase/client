@@ -666,7 +666,7 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 	}
 
 	// First create a lookup table that maps every block pointer in
-	// every merged path a corresponding key in the mergedPaths map.
+	// every merged path to a corresponding key in the mergedPaths map.
 	keys := make(map[BlockPointer]BlockPointer)
 	for ptr, p := range mergedPaths {
 		for _, node := range p.path {
@@ -693,13 +693,19 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 		// original to look up the appropriate unmerged chain and stick
 		// this op at the front.
 		origTargetPtr := rop.Dir.Unref
-		if ptr, err :=
-			mergedChains.originalFromMostRecent(origTargetPtr); err == nil {
+		ptr, err := mergedChains.originalFromMostRecent(origTargetPtr)
+		if err == nil {
+			// A satisfactory chain was found.
 			origTargetPtr = ptr
+		} else if _, ok := err.(NoChainFoundError); !ok {
+			// An unexpected error!
+			return err
 		}
 
 		chain, ok := unmergedChains.byOriginal[origTargetPtr]
-		if !ok {
+		if ok {
+			chain.ops = append([]op{rop}, chain.ops...)
+		} else {
 			oldUnref := rop.Dir.Unref
 			rop.Dir.Unref = origTargetPtr
 			rop.Dir.Ref = rop.Dir.Unref // so that most recent == original
@@ -710,8 +716,6 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 			rop.Dir.Unref = oldUnref
 			rop.Dir.Ref = BlockPointer{}
 			chain = unmergedChains.byOriginal[origTargetPtr]
-		} else {
-			chain.ops = append([]op{rop}, chain.ops...)
 		}
 
 		// Look up the corresponding unmerged most recent pointer, and
@@ -891,9 +895,10 @@ func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
 
 			// Or perhaps the rm target has been renamed somewhere else.
 			if len(ro.Unrefs()) == 0 {
-				// XXX: How do I figure out what the rename target
-				// was, so we can look up whether it has changed in
-				// the merged branch.
+				// TODO: Use mergedChains.renamedOriginals to look up
+				// whether it has changed in the merged branch, and
+				// potentially use symlinks to resolve the conflict if
+				// necessary.
 			}
 		}
 

@@ -220,14 +220,15 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			if renamedChain, ok := ccs.byMostRecent[realOp.Renamed]; ok {
 				renamedOriginal = renamedChain.original
 			}
-			ri := renameInfo{
-				originalOldParent: oldParentChain.original,
-				oldName:           realOp.OldName,
-			}
-			if oldRi, ok := ccs.renamedOriginals[renamedOriginal]; ok {
-				// Use the previous old info if there is one already,
-				// in case this node has been renamed multiple times.
-				ri = oldRi
+			// Use the previous old info if there is one already,
+			// in case this node has been renamed multiple times.
+			ri, ok := ccs.renamedOriginals[renamedOriginal]
+			if !ok {
+				// Otherwise make a new one.
+				ri = renameInfo{
+					originalOldParent: oldParentChain.original,
+					oldName:           realOp.OldName,
+				}
 			}
 			ri.originalNewParent = newParentChain.original
 			ri.newName = realOp.NewName
@@ -265,7 +266,7 @@ func (ccs *crChains) mostRecentFromOriginal(original BlockPointer) (
 	BlockPointer, error) {
 	chain, ok := ccs.byOriginal[original]
 	if !ok {
-		return BlockPointer{}, fmt.Errorf("No chain found for %v", original)
+		return BlockPointer{}, NoChainFoundError{original}
 	}
 	return chain.mostRecent, nil
 }
@@ -274,7 +275,7 @@ func (ccs *crChains) originalFromMostRecent(mostRecent BlockPointer) (
 	BlockPointer, error) {
 	chain, ok := ccs.byMostRecent[mostRecent]
 	if !ok {
-		return BlockPointer{}, fmt.Errorf("No chain found for %v", mostRecent)
+		return BlockPointer{}, NoChainFoundError{mostRecent}
 	}
 	return chain.original, nil
 }

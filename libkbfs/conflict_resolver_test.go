@@ -345,9 +345,9 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	expectedUnmergedPath := cr2.fbo.nodeCache.PathFromNode(dir2)
 	mergedPath := cr1.fbo.nodeCache.PathFromNode(dir1)
 	mergedPaths[expectedUnmergedPath.tailPointer()] = mergedPath
-	expectedActions := make(map[BlockPointer][]crAction)
-	expectedActions[mergedPath.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file2", "file2", ""},
+	expectedActions := map[BlockPointer][]crAction{
+		mergedPath.tailPointer(): {&copyUnmergedEntryAction{
+			"file2", "file2", ""}},
 	}
 	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
 		mergedPaths, nil, expectedActions)
@@ -406,9 +406,9 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	expectedUnmergedPath := cr2.fbo.nodeCache.PathFromNode(dirB2)
 	mergedPath := cr1.fbo.nodeCache.PathFromNode(dirB1)
 	mergedPaths[expectedUnmergedPath.tailPointer()] = mergedPath
-	expectedActions := make(map[BlockPointer][]crAction)
-	expectedActions[mergedPath.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file2", "file2", ""},
+	expectedActions := map[BlockPointer][]crAction{
+		mergedPath.tailPointer(): {&copyUnmergedEntryAction{
+			"file2", "file2", ""}},
 	}
 	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
 		mergedPaths, nil, expectedActions)
@@ -494,16 +494,11 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 		cr1.fbo.nodeCache.PathFromNode(dirA1).tailPointer(), File)
 	coC := newCreateOp("dirC", dirBPtr, File)
 
-	expectedActions := make(map[BlockPointer][]crAction)
-	expectedActions[dirCPtr] = []crAction{
-		&copyUnmergedEntryAction{"file2", "file2", ""},
-	}
-	expectedActions[dirBPtr] = []crAction{
-		&copyUnmergedEntryAction{"dirC", "dirC", ""},
-	}
 	dirAPtr1 := cr1.fbo.nodeCache.PathFromNode(dirA1).tailPointer()
-	expectedActions[dirAPtr1] = []crAction{
-		&copyUnmergedEntryAction{"dirB", "dirB", ""},
+	expectedActions := map[BlockPointer][]crAction{
+		dirCPtr:  {&copyUnmergedEntryAction{"file2", "file2", ""}},
+		dirBPtr:  {&copyUnmergedEntryAction{"dirC", "dirC", ""}},
+		dirAPtr1: {&copyUnmergedEntryAction{"dirB", "dirB", ""}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
@@ -580,9 +575,9 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	})
 	mergedPaths[expectedUnmergedPath.tailPointer()] = mergedPath
 
-	expectedActions := make(map[BlockPointer][]crAction)
-	expectedActions[mergedPath.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file2", "file2", ""},
+	expectedActions := map[BlockPointer][]crAction{
+		mergedPath.tailPointer(): {&copyUnmergedEntryAction{
+			"file2", "file2", ""}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{expectedUnmergedPath},
@@ -752,22 +747,17 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	coF := newCreateOp("dirF",
 		cr1.fbo.nodeCache.PathFromNode(dirE1).tailPointer(), File)
 
-	expectedActions := make(map[BlockPointer][]crAction)
-	expectedActions[mergedPathA.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"dirJ", "dirJ", ""},
-	}
 	mergedPathE := cr1.fbo.nodeCache.PathFromNode(dirE1)
-	expectedActions[mergedPathE.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"dirF", "dirF", ""},
-	}
-	expectedActions[mergedPathF.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file3", "file3", ""},
-	}
-	expectedActions[mergedPathH.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"file4", "file4", ""},
-	}
-	expectedActions[mergedPathB.tailPointer()] = []crAction{
-		&rmMergedEntryAction{"dirD"},
+	expectedActions := map[BlockPointer][]crAction{
+		mergedPathA.tailPointer(): {&copyUnmergedEntryAction{
+			"dirJ", "dirJ", ""}},
+		mergedPathE.tailPointer(): {&copyUnmergedEntryAction{
+			"dirF", "dirF", ""}},
+		mergedPathF.tailPointer(): {&copyUnmergedEntryAction{
+			"file3", "file3", ""}},
+		mergedPathH.tailPointer(): {&copyUnmergedEntryAction{
+			"file4", "file4", ""}},
+		mergedPathB.tailPointer(): {&rmMergedEntryAction{"dirD"}},
 	}
 	// `rm file5` doesn't get an action because the parent directory
 	// was deleted in the unmerged branch.
@@ -843,17 +833,15 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	mergedPathB := cr1.fbo.nodeCache.PathFromNode(dirB1)
 	mergedPaths[unmergedPathB.tailPointer()] = mergedPathB
 
-	expectedActions := make(map[BlockPointer][]crAction)
 	ro := newRmOp("dirA", dirRootPtr)
 	ro.Dir.Ref = unmergedPathRoot.tailPointer()
 	ro.dropThis = true
 	ro.setWriterName("u2")
 	ro.setFinalPath(unmergedPathRoot)
-	expectedActions[mergedPathRoot.tailPointer()] = []crAction{
-		&dropUnmergedAction{ro},
-	}
-	expectedActions[mergedPathB.tailPointer()] = []crAction{
-		&copyUnmergedEntryAction{"dirA", "dirA", "./../../"},
+	expectedActions := map[BlockPointer][]crAction{
+		mergedPathRoot.tailPointer(): {&dropUnmergedAction{ro}},
+		mergedPathB.tailPointer(): {&copyUnmergedEntryAction{
+			"dirA", "dirA", "./../../"}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathRoot, unmergedPathB},
@@ -915,10 +903,10 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	mergedPathRoot := cr1.fbo.nodeCache.PathFromNode(dirRoot1)
 	mergedPaths[unmergedPathRoot.tailPointer()] = mergedPathRoot
 
-	expectedActions := make(map[BlockPointer][]crAction)
 	nowString := now.Format(time.UnixDate)
-	expectedActions[mergedPathRoot.tailPointer()] = []crAction{
-		&renameUnmergedAction{"file1", "file1.conflict.u2." + nowString},
+	expectedActions := map[BlockPointer][]crAction{
+		mergedPathRoot.tailPointer(): {&renameUnmergedAction{
+			"file1", "file1.conflict.u2." + nowString}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathRoot},

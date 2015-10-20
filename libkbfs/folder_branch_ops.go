@@ -425,6 +425,10 @@ func (fbo *FolderBranchOps) getMDForWriteLocked(ctx context.Context) (
 	return &newMd, nil
 }
 
+func (fbo *FolderBranchOps) nowUnixNano() int64 {
+	return fbo.config.Clock().Now().UnixNano()
+}
+
 // writerLock must be taken
 func (fbo *FolderBranchOps) initMDLocked(
 	ctx context.Context, md *RootMetadata) error {
@@ -469,12 +473,13 @@ func (fbo *FolderBranchOps) initMDLocked(
 		return err
 	}
 
+	now := fbo.nowUnixNano()
 	md.data.Dir = DirEntry{
 		BlockInfo: info,
 		Type:      Dir,
 		Size:      uint64(plainSize),
-		Mtime:     fbo.config.Clock().Now().UnixNano(),
-		Ctime:     fbo.config.Clock().Now().UnixNano(),
+		Mtime:     now,
+		Ctime:     now,
 	}
 	md.AddOp(newCreateOp("", BlockPointer{}, Dir))
 	md.AddRefBlock(md.data.Dir.BlockInfo)
@@ -1089,7 +1094,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 	refPath := *dir.ChildPathNoPtr(name)
 	var newDe DirEntry
 	doSetTime := true
-	now := fbo.config.Clock().Now().UnixNano()
+	now := fbo.nowUnixNano()
 	for len(newPath.path) < len(dir.path)+1 {
 		info, plainSize, err :=
 			fbo.readyBlockMultiple(ctx, md, currBlock, uid, bps)
@@ -1571,12 +1576,13 @@ func (fbo *FolderBranchOps) createLinkLocked(
 	md.AddOp(newCreateOp(fromName, dirPath.tailPointer(), Sym))
 
 	// Create a direntry for the link, and then sync
+	now := fbo.nowUnixNano()
 	dblock.Children[fromName] = DirEntry{
 		Type:    Sym,
 		Size:    uint64(len(toPath)),
 		SymPath: toPath,
-		Mtime:   fbo.config.Clock().Now().UnixNano(),
-		Ctime:   fbo.config.Clock().Now().UnixNano(),
+		Mtime:   now,
+		Ctime:   now,
 	}
 
 	_, err = fbo.syncBlockAndFinalizeLocked(
@@ -1797,7 +1803,7 @@ func (fbo *FolderBranchOps) renameLocked(
 		if err != nil {
 			return err
 		}
-		now := fbo.config.Clock().Now().UnixNano()
+		now := fbo.nowUnixNano()
 
 		oldGrandparent := *oldParent.parentPath()
 		if len(oldGrandparent.path) > 0 {
@@ -1841,7 +1847,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	}
 
 	// only the ctime changes
-	newDe.Ctime = fbo.config.Clock().Now().UnixNano()
+	newDe.Ctime = fbo.nowUnixNano()
 	newPBlock.Children[newName] = newDe
 	delete(oldPBlock.Children, oldName)
 
@@ -2512,7 +2518,7 @@ func (fbo *FolderBranchOps) setExLocked(
 
 	// If the type isn't File or Exec, there's nothing to do, but
 	// change the ctime anyway (to match ext4 behavior).
-	de.Ctime = fbo.config.Clock().Now().UnixNano()
+	de.Ctime = fbo.nowUnixNano()
 	dblock.Children[file.tailName()] = de
 	_, err = fbo.syncBlockAndFinalizeLocked(
 		ctx, md, dblock, *parentPath.parentPath(), parentPath.tailName(),
@@ -2560,7 +2566,7 @@ func (fbo *FolderBranchOps) setMtimeLocked(
 
 	de.Mtime = mtime.UnixNano()
 	// setting the mtime counts as changing the file MD, so must set ctime too
-	de.Ctime = fbo.config.Clock().Now().UnixNano()
+	de.Ctime = fbo.nowUnixNano()
 	dblock.Children[file.tailName()] = de
 	_, err = fbo.syncBlockAndFinalizeLocked(
 		ctx, md, dblock, *parentPath.parentPath(), parentPath.tailName(),
