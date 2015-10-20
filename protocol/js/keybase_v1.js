@@ -634,6 +634,24 @@ module.exports = {
       "site": 1
     }
   },
+  "provisionUi": {
+    "LogLevel": {
+      "none": 0,
+      "debug": 1,
+      "info": 2,
+      "notice": 3,
+      "warn": 4,
+      "error": 5,
+      "critical": 6,
+      "fatal": 7
+    },
+    "ProvisionMethod": {
+      "device": 0,
+      "gpg": 1,
+      "paperKey": 2,
+      "passphrase": 3
+    }
+  },
   "quota": {
     "LogLevel": {
       "none": 0,

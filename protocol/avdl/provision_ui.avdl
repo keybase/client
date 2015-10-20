@@ -1,0 +1,19 @@
+@namespace("keybase.1")
+
+protocol provisionUi {
+  import idl "common.avdl";
+
+  enum ProvisionMethod {
+    DEVICE_0,
+    GPG_1,
+    PAPER_KEY_2,
+    PASSPHRASE_3
+  }
+  /**
+    Called during device provisioning for the user to select a
+    method for provisioning.  gpgUsers will contain a list of
+    locally available gpg private keys.  If it is empty, then
+    gpg is not a valid option.
+    */
+  ProvisionMethod chooseProvisioningMethod(int sessionID, array<string> gpgUsers);
+}

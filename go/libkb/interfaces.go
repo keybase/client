@@ -284,6 +284,10 @@ type DoctorUI interface {
 	DisplayResult(ctx context.Context, msg string) error
 }
 
+type ProvisionUI interface {
+	keybase1.ProvisionUiInterface
+}
+
 type PromptDefault int
 
 const (
@@ -314,6 +318,8 @@ type UI interface {
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
 	GetLocksmithUI() LocksmithUI
+	GetProvisionUI() ProvisionUI
+	Prompt(string, bool, Checker) (string, error)
 	Configure() error
 	Shutdown() error
 }

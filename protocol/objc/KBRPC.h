@@ -466,6 +466,13 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 	KBRPromptOverwriteTypeSite = 1,
 };
 
+typedef NS_ENUM (NSInteger, KBRProvisionMethod) {
+	KBRProvisionMethodDevice = 0,
+	KBRProvisionMethodGpg = 1,
+	KBRProvisionMethodPaperKey = 2,
+	KBRProvisionMethodPassphrase = 3,
+};
+
 @interface KBRVerifySessionRes : KBRObject
 @property NSString *uid;
 @property NSString *sid;
@@ -1057,6 +1064,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRDisplayRecheckWarningRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRText *text;
+@end
+@interface KBRChooseProvisioningMethodRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSArray *gpgUsers;
 @end
 @interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;
@@ -1834,6 +1845,20 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)displayRecheckWarning:(KBRDisplayRecheckWarningRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)displayRecheckWarningWithText:(KBRText *)text completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRProvisionUiRequest : KBRRequest
+
+/*!
+ Called during device provisioning for the user to select a
+ method for provisioning. gpgUsers will contain a list of
+ locally available gpg private keys. If it is empty, then
+ gpg is not a valid option.
+ */
+- (void)chooseProvisioningMethod:(KBRChooseProvisioningMethodRequestParams *)params completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
+
+- (void)chooseProvisioningMethodWithGpgUsers:(NSArray *)gpgUsers completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
 
 @end
 

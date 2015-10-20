@@ -115,6 +115,10 @@ func (h *BaseHandler) getLogUI(sessionID int) libkb.LogUI {
 	return &LogUI{sessionID, h.getLogUICli()}
 }
 
+func (h *BaseHandler) getProvisionUI(sessionID int) libkb.ProvisionUI {
+	return NewRemoteProvisionUI(sessionID, h.rpcClient())
+}
+
 func (h *BaseHandler) getStreamUICli() *keybase1.StreamUiClient {
 	return &keybase1.StreamUiClient{Cli: h.rpcClient()}
 }

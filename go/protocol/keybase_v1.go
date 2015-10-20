@@ -3918,6 +3918,57 @@ func (c ProveUiClient) DisplayRecheckWarning(ctx context.Context, __arg DisplayR
 	return
 }
 
+type ProvisionMethod int
+
+const (
+	ProvisionMethod_DEVICE     ProvisionMethod = 0
+	ProvisionMethod_GPG        ProvisionMethod = 1
+	ProvisionMethod_PAPER_KEY  ProvisionMethod = 2
+	ProvisionMethod_PASSPHRASE ProvisionMethod = 3
+)
+
+type ChooseProvisioningMethodArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	GpgUsers  []string `codec:"gpgUsers" json:"gpgUsers"`
+}
+
+type ProvisionUiInterface interface {
+	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
+}
+
+func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.provisionUi",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"chooseProvisioningMethod": {
+				MakeArg: func() interface{} {
+					ret := make([]ChooseProvisioningMethodArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChooseProvisioningMethodArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChooseProvisioningMethodArg)(nil), args)
+						return
+					}
+					ret, err = i.ChooseProvisioningMethod(context.TODO(), (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type ProvisionUiClient struct {
+	Cli GenericClient
+}
+
+func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg ChooseProvisioningMethodArg) (res ProvisionMethod, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseProvisioningMethod", []interface{}{__arg}, &res)
+	return
+}
+
 type VerifySessionRes struct {
 	Uid       UID    `codec:"uid" json:"uid"`
 	Sid       string `codec:"sid" json:"sid"`

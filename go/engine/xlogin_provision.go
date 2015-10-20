@@ -1,7 +1,12 @@
 package engine
 
 import (
+	"fmt"
+
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // XLoginProvision is an engine that will provision the current
@@ -29,7 +34,9 @@ func (e *XLoginProvision) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *XLoginProvision) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{
+		libkb.ProvisionUIKind,
+	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -48,7 +55,29 @@ func (e *XLoginProvision) Run(ctx *Context) (err error) {
 	}
 	e.G().Log.Debug("available private gpg key users: %v", availableGPGPrivateKeyUsers)
 
-	return nil
+	arg := keybase1.ChooseProvisioningMethodArg{
+		GpgUsers: availableGPGPrivateKeyUsers,
+	}
+	method, err := ctx.ProvisionUI.ChooseProvisioningMethod(context.TODO(), arg)
+	if err != nil {
+		return err
+	}
+	e.G().Log.Debug("chosen method: %v", method)
+
+	switch method {
+	case keybase1.ProvisionMethod_DEVICE:
+		err = e.device(ctx)
+	case keybase1.ProvisionMethod_GPG:
+		err = e.gpg(ctx)
+	case keybase1.ProvisionMethod_PAPER_KEY:
+		err = e.paper(ctx)
+	case keybase1.ProvisionMethod_PASSPHRASE:
+		err = e.passphrase(ctx)
+	default:
+		err = fmt.Errorf("unhandled provisioning method: %v", method)
+	}
+
+	return err
 }
 
 // searchGPG looks in local gpg keyring for any private keys
@@ -58,4 +87,20 @@ func (e *XLoginProvision) Run(ctx *Context) (err error) {
 //
 func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
 	return nil, nil
+}
+
+func (e *XLoginProvision) device(ctx *Context) error {
+	panic("device provision not yet implemented")
+}
+
+func (e *XLoginProvision) gpg(ctx *Context) error {
+	panic("gpg provision not yet implemented")
+}
+
+func (e *XLoginProvision) paper(ctx *Context) error {
+	panic("paper provision not yet implemented")
+}
+
+func (e *XLoginProvision) passphrase(ctx *Context) error {
+	panic("passphrase provision not yet implemented")
 }

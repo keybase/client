@@ -139,7 +139,8 @@ func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 
 func (h *LoginHandler) XLogin(_ context.Context, arg keybase1.XLoginArg) error {
 	ctx := &engine.Context{
-		LogUI: h.getLogUI(arg.SessionID),
+		LogUI:       h.getLogUI(arg.SessionID),
+		ProvisionUI: h.getProvisionUI(arg.SessionID),
 		// SecretUI: h.getSecretUI(sessionID),
 	}
 	eng := engine.NewXLogin(G, arg.Username)

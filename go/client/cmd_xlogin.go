@@ -28,7 +28,9 @@ type CmdXLogin struct {
 }
 
 func (c *CmdXLogin) Run() error {
-	protocols := []rpc.Protocol{}
+	protocols := []rpc.Protocol{
+		NewProvisionUIProtocol(),
+	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}

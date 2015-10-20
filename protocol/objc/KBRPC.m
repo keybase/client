@@ -1699,6 +1699,34 @@
 
 @end
 
+@implementation KBRProvisionUiRequest
+
+- (void)chooseProvisioningMethod:(KBRChooseProvisioningMethodRequestParams *)params completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion {
+  NSDictionary *rparams = @{@"gpgUsers": KBRValue(params.gpgUsers)};
+  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseProvisioningMethod" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRProvisionMethod *result = retval ? [MTLJSONAdapter modelOfClass:KBRProvisionMethod.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)chooseProvisioningMethodWithGpgUsers:(NSArray *)gpgUsers completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion {
+  NSDictionary *rparams = @{@"gpgUsers": KBRValue(gpgUsers)};
+  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseProvisioningMethod" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRProvisionMethod *result = retval ? [MTLJSONAdapter modelOfClass:KBRProvisionMethod.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBRQuotaRequest
 
 - (void)verifySession:(KBRVerifySessionRequestParams *)params completion:(void (^)(NSError *error, KBRVerifySessionRes *verifySessionRes))completion {
@@ -4261,6 +4289,23 @@
 
 + (instancetype)params {
   KBRDisplayRecheckWarningRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRChooseProvisioningMethodRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.gpgUsers = KBRValidateArray(params[0][@"gpgUsers"], NSString.class);
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRChooseProvisioningMethodRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
