@@ -58,4 +58,8 @@ protocol login {
     */
   void unlock(int sessionID);
 
+  /**
+    Performs login.  username is optional.  Will use the kex2 flow.
+    */
+  void xLogin(int sessionID, string username);
 }

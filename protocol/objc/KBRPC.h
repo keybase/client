@@ -873,6 +873,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRUnlockRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRXLoginRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *username;
+@end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
@@ -1618,6 +1622,13 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  Unlock restores access to local key store by priming passphrase stream cache.
  */
 - (void)unlock:(void (^)(NSError *error))completion;
+
+/*!
+ Performs login. username is optional. Will use the kex2 flow.
+ */
+- (void)xLogin:(KBRXLoginRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)xLoginWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 @end
 

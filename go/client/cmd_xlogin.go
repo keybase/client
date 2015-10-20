@@ -3,9 +3,12 @@ package client
 import (
 	"errors"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -33,7 +36,7 @@ func (c *CmdXLogin) Run() error {
 	if err != nil {
 		return err
 	}
-	return client.XLogin(c.username)
+	return client.XLogin(context.TODO(), keybase1.XLoginArg{Username: c.username})
 }
 
 func (c *CmdXLogin) ParseArgv(ctx *cli.Context) error {
