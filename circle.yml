@@ -1,0 +1,47 @@
+machine:
+  node:
+    version: 4.2.1
+  environment:
+    GOROOT: $HOME/go
+    GOPATH: $HOME/go-path
+    PATH: $GOROOT/bin:$PATH
+general:
+  build_dir: react-native
+  branches:
+    only:
+      - master
+      - /.*MOBILE.*/ # Only build on mobile branches
+dependencies:
+  cache_directories:
+    - "~/go"
+    - "~/.gradle"
+  override:
+    - emulator -avd circleci-android22 -no-audio -no-window:
+        background: true
+        parallel: true
+    - npm install --dev
+    - wget https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz -O $HOME/go.tar.gz
+    - (cd $HOME; tar -xzvf go.tar.gz)
+    - mkdir $HOME/go-path
+    - go get golang.org/x/mobile/cmd/gomobile
+    - $GOPATH/bin/gomobile init
+    - mkdir -p $GOPATH/src/github.com/keybase
+    - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
+    - npm run gobuild-android
+    - npm run reactbundle-android
+    - echo y | android update sdk --all --no-ui --filter "build-tools-23.0.1,android-23,extra-android-support"
+test:
+  override:
+    # wait for it to have booted
+    - circle-android wait-for-boot
+    # run tests  against the emulator.
+    - (cd android && ./gradlew connectedAndroidTest)
+    # copy the build outputs to artifacts
+    - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
+    # copy the test results to the test results directory.
+    - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
+    # Build a debug version of the app
+    - (cd android && ./gradlew assembleDebug)
+    # Upload it to appetize
+    # And grep so we only reveal the public url in the CI logs
+    - PLATFORM=android PLATFORM_BUILD_PATH="android/app/build/outputs/apk/app-debug.apk" S3_URL="s3://kb-appbuilds/" BUILD_URL="https://s3-us-west-2.amazonaws.com/kb-appbuilds/" ./uploadApp.sh | grep -Eo "\"publicURL\":\"[^\"]*\""
