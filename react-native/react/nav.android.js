@@ -165,7 +165,7 @@ Nav.propTypes = {
   tabbedRouter: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
-    navState: React.PropTypes.oneOf([Constants.navStartingUp, Constants.navNeedsRegistration, Constants.navNeedsLogin])
+    navState: React.PropTypes.oneOf([Constants.navStartingUp, Constants.navNeedsRegistration, Constants.navNeedsLogin, Constants.navLoggedIn])
   }).isRequired
 }
 
