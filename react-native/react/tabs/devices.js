@@ -1,19 +1,30 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Text, View, ScrollView, StyleSheet } from 'react-native'
+import React, { Component, Text, TouchableHighlight, View, ScrollView, StyleSheet, Platform } from 'react-native'
 import Button from '../common-adapters/button'
 import { loadDevices } from '../actions/devices'
 import moment from 'moment'
 import * as loginStates from '../constants/login-states'
 import CodePage from '../login2/register/code-page'
-
+import { routeAppend } from '../actions/router'
 import commonStyles from '../styles/common'
+import PaperKey from '../login2/register/paper-key'
+import ExistingDevice from '../login2/register/existing-device'
+import { setCodePageMyRole } from '../actions/login2'
+import { codePageDeviceRoleExistingPhone, codePageDeviceRoleExistingComputer } from '../constants/login2'
 
 // TODO
 // [ ] - Add Icons
 
 export default class Devices extends Component {
+  constructor (props) {
+    super(props)
+
+    const myRole = (Platform.OS === 'ios' || Platform.OS === 'android') ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
+    this.props.dispatch(setCodePageMyRole(myRole))
+  }
+
   loadDevices () {
     const {dispatch} = this.props
     if (!this.props.devices && !this.props.waitingForServer) {
@@ -33,15 +44,17 @@ export default class Devices extends Component {
     )
   }
 
-  renderAction (headerText, subText) {
+  renderAction (headerText, subText, onPress) {
     return (
-      <View style={[styles.outlineBox, styles.innerAction, {marginRight: 10}]}>
-        <View style={{flex: 1}}>
-          <Text style={[commonStyles.greyText, commonStyles.centerText]}>ICON</Text>
-          <Text style={[commonStyles.greyText, commonStyles.centerText]}>{headerText}</Text>
+      <TouchableHighlight onPress={onPress} style={{flex: 1}}>
+        <View style={[styles.outlineBox, styles.innerAction, {marginRight: 10}]}>
+          <View style={{flex: 1}}>
+            <Text style={[commonStyles.greyText, commonStyles.centerText]}>ICON</Text>
+            <Text style={[commonStyles.greyText, commonStyles.centerText]}>{headerText}</Text>
+          </View>
+          <Text style={[commonStyles.greyText, commonStyles.centerText]}>{subText}</Text>
         </View>
-        <Text style={[commonStyles.greyText, commonStyles.centerText]}>{subText}</Text>
-      </View>
+      </TouchableHighlight>
     )
   }
 
@@ -68,8 +81,12 @@ export default class Devices extends Component {
       <ScrollView>
         <View doc='Wrapper for new Actions (i.e. Connect a new device, Generate new paper key)'
           style={styles.newActionsWrapper}>
-          {this.renderAction('Connect a new Device', 'On another device, download Keybase then click here to enter your unique passphrase')}
-          {this.renderAction('Generate a new paper key', 'A paper key is lorem ipsum dolor sit amet, consectetur adipiscing')}
+          {this.renderAction('Connect a new Device',
+                             'On another device, download Keybase then click here to enter your unique passphrase',
+                             () => this.props.dispatch(routeAppend('regExistingDevice')))}
+          {this.renderAction('Generate a new paper key',
+                             'A paper key is lorem ipsum dolor sit amet, consectetur adipiscing',
+                             () => this.props.dispatch(routeAppend('regPaperKey')))}
         </View>
 
         <View doc='Wrapper for devices' style={styles.deviceWrapper}>
@@ -81,13 +98,14 @@ export default class Devices extends Component {
 
   static parseRoute (store, currentPath, nextPath) {
     return {
-      parseNextRoute: null,
       componentAtTop: {
         hideNavBar: true,
         mapStateToProps: state => Object.assign({}, state.login, state.devices)
       },
       subRoutes: {
-        codePage: CodePage
+        codePage: CodePage,
+        regPaperKey: PaperKey,
+        regExistingDevice: ExistingDevice
       }
     }
   }

@@ -37,11 +37,18 @@ export default function (state = initialState, action) {
         ...state,
         username: action.username
       }
-    case Constants.setCodeState: {
+    case Constants.setMyDeviceCodeState: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
-          myDeviceRole: action.myDeviceRole,
+          myDeviceRole: action.myDeviceRole
+        }
+      }).toJS()
+    }
+    case Constants.setOtherDeviceCodeState: {
+      const s = Immutable.fromJS(state)
+      return s.mergeDeep({
+        codePage: {
           otherDeviceRole: action.otherDeviceRole
         }
       }).toJS()
@@ -141,10 +148,6 @@ export default function (state = initialState, action) {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
-          otherDeviceRole: null,
-          myDeviceRole: null,
-          mode: null,
-          cameraBrokenMode: false,
           codeCountDown: 0,
           textCode: null,
           qrScanned: null,
