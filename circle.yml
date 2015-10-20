@@ -9,6 +9,7 @@ general:
   build_dir: react-native
   branches:
     only:
+      - master
       - /.*MOBILE.*/ # Only build on mobile branches
 dependencies:
   cache_directories:
