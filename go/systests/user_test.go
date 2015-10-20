@@ -196,8 +196,10 @@ func TestSignupLogout(t *testing.T) {
 		stopCh <- svc.Run()
 	}()
 
+	userInfo := randomUser("sgnup")
+
 	sui := signupUI{
-		info:         randomUser("sgnp"),
+		info:         userInfo,
 		Contextified: libkb.NewContextified(tc2.G),
 	}
 	tc2.G.SetUI(&sui)
@@ -260,6 +262,9 @@ func TestSignupLogout(t *testing.T) {
 		t.Fatalf("Error before notify: %v", err)
 	case uid := <-nh.userCh:
 		tc.G.Log.Debug("Got notification from user changed handled (%s)", uid)
+		if e := libkb.CheckUIDAgainstUsername(uid, userInfo.username); e != nil {
+			t.Fatalf("Bad UID back: %s != %s (%s)", uid, userInfo.username, e)
+		}
 	}
 
 	// Fire a logout

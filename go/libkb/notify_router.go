@@ -45,11 +45,11 @@ func (n *NotifyRouter) Shutdown() {
 	n.cm.Shutdown()
 }
 
-func (n *NotifyRouter) set(id ConnectionID, val keybase1.NotificationChannels) {
+func (n *NotifyRouter) setNotificationChannels(id ConnectionID, val keybase1.NotificationChannels) {
 	n.setCh <- setObj{id, val}
 }
 
-func (n *NotifyRouter) get(id ConnectionID) keybase1.NotificationChannels {
+func (n *NotifyRouter) getNotificationChannels(id ConnectionID) keybase1.NotificationChannels {
 	retCh := make(chan keybase1.NotificationChannels)
 	n.getCh <- getObj{id, retCh}
 	return <-retCh
@@ -73,22 +73,26 @@ func (n *NotifyRouter) run() {
 // and also the channel that will get messages when the chanel closes.
 func (n *NotifyRouter) AddConnection(xp rpc.Transporter, ch chan error) ConnectionID {
 	id := n.cm.AddConnection(xp, ch)
-	n.set(id, keybase1.NotificationChannels{})
+	n.setNotificationChannels(id, keybase1.NotificationChannels{})
 	return id
 }
 
 // SetChannels sets which notification channels are interested for the connection
 // with the given connection ID.
 func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChannels) {
-	n.set(i, nc)
+	n.setNotificationChannels(i, nc)
 }
 
 // HandleLogout is called whenever the current user logged out. It will broadcast
 // the message to all connections who care about such a mesasge.
 func (n *NotifyRouter) HandleLogout() {
+	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.get(id).Session {
+		// If the connection wants the `Session` notification type
+		if n.getNotificationChannels(id).Session {
+			// In the background do...
 			go func() {
+				// A send of a `LoggedOut` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
 				}).LoggedOut(context.TODO())
@@ -102,9 +106,13 @@ func (n *NotifyRouter) HandleLogout() {
 // changed (and must be cache-busted). It will broadcast the messages
 // to all curious listeners.
 func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
+	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.get(id).Users {
+		// If the connection wants the `Users` notification type
+		if n.getNotificationChannels(id).Users {
+			// In the background do...
 			go func() {
+				// A send of a `UserChanged` RPC with the user's UID
 				(keybase1.NotifyUsersClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
 				}).UserChanged(context.TODO(), uid)
