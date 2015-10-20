@@ -25,7 +25,7 @@ dependencies:
     - go get golang.org/x/mobile/cmd/gomobile
     - $GOPATH/bin/gomobile init
     - mkdir -p $GOPATH/src/github.com/keybase
-    - ln -s $HOME/client $GOPATH/src/github.com/keybase/client    # start the emulator
+    - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
     - npm run gobuild-android
     - npm run reactbundle-android
     - echo y | android update sdk --all --no-ui --filter "build-tools-23.0.1,android-23,extra-android-support"
