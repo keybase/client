@@ -775,7 +775,7 @@
 					"$(SRCROOT)/KeybaseGo",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Keybase/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -810,7 +810,7 @@
 					"$(SRCROOT)/KeybaseGo",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Keybase/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
