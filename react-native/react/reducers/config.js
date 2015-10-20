@@ -1,9 +1,10 @@
 'use strict'
 
-import * as types from '../constants/config-action-types'
+import * as Constants from '../constants/config'
+import * as LoginConstants from '../constants/login2'
 
 const initialState = {
-  loaded: false,
+  navState: Constants.navStartingUp,
   status: null,
   config: null,
   error: null
@@ -11,38 +12,58 @@ const initialState = {
 
 export default function (state = initialState, action) {
   switch (action.type) {
-    case types.STARTUP_LOADING:
+    case Constants.startupLoading:
       return {
         ...state,
-        loaded: false,
+        navState: Constants.navStartingUp,
         config: null,
         status: null,
         error: null
       }
-    case types.STARTUP_LOADED:
+    case Constants.startupLoaded:
+      let navState = Constants.navStartingUp
+
+      if (!action.error) {
+        if (!action.payload.status.registered) {
+          navState = Constants.navNeedsRegistration
+        } else if (!action.payload.status.loggedIn) {
+          navState = Constants.navNeedsLogin
+        }
+      }
+
       return {
         ...state,
         config: action.error ? null : action.payload.config,
         status: action.error ? null : action.payload.status,
-        loaded: !action.error,
-        error: action.error ? action.payload : null
+        error: action.error ? action.payload : null,
+        navState
       }
-    case types.DEV_CONFIG_LOADING:
+    case LoginConstants.logoutDone:
+      return {
+        ...state,
+        navState: Constants.navNeedsLogin
+      }
+    case LoginConstants.loginDone:
+      return {
+        ...state,
+        navState: Constants.navLoggedIn
+      }
+    case Constants.devConfigLoading:
       return {
         ...state,
         devConfig: null
       }
-    case types.DEV_CONFIG_LOADED:
+    case Constants.devConfigLoaded:
       return {
         ...state,
         devConfig: action.devConfig
       }
-    case types.DEV_CONFIG_SAVED:
+    case Constants.devConfigSaved:
       return {
         ...state,
         devConfig: null
       }
-    case types.DEV_CONFIG_UPDATE:
+    case Constants.devConfigUpdate:
       return {
         ...state,
         devConfig: {

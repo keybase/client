@@ -105,30 +105,3 @@ export function showedSecretWords (response) {
     response.result()
   }
 }
-
-export function logout () {
-  return function (dispatch) {
-    engine.rpc('login.logout', {}, {}, (error, response) => {
-      if (error) {
-        console.log(error)
-      } else {
-        // TODO something else
-        dispatch(startLogin())
-      }
-    })
-  }
-}
-
-export function autoLogin () {
-  return function (dispatch) {
-    engine.rpc('login.loginWithPrompt', {}, {}, (error, status) => {
-      if (error) {
-        console.log(error)
-      } else {
-        dispatch({
-          type: types.LOGGED_IN
-        })
-      }
-    })
-  }
-}

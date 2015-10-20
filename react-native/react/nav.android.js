@@ -14,12 +14,17 @@ import More from './tabs/more'
 
 import React, { Component, Text, View, StyleSheet, BackAndroid } from 'react-native'
 
-import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
+import { FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB, STARTUP_TAB } from './constants/tabs'
 import { androidTabBarHeight } from './styles/native'
 
 import { switchTab } from './actions/tabbed-router'
 import { navigateBack } from './actions/router'
 import { startup } from './actions/config'
+
+import * as Constants from './constants/config'
+
+// TODO when kex2 is done import Registration from './login2/register'
+import Welcome from './login2/welcome'
 
 const tabToRootComponent = {
   [FOLDER_TAB]: Folders,
@@ -67,13 +72,13 @@ export default class Nav extends Component {
     this.props.dispatch(startup())
   }
 
-  _renderContent (activeTab) {
+  _renderContent (activeTab, rootComponent) {
     return (
       <View style={styles.tabContent} collapsable={false}>
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', activeTab]).toObject())(MetaNavigator), {
             store: this.props.store,
-            rootComponent: tabToRootComponent[activeTab] || NoTab,
+            rootComponent: rootComponent || tabToRootComponent[activeTab] || NoTab,
             globalRoutes,
             navBarHeight: 0,
             Navigator: AndroidNavigator,
@@ -101,12 +106,20 @@ export default class Nav extends Component {
     const {dispatch} = this.props
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
-    if (!this.props.config.loaded) {
+    if (this.props.config.navState === Constants.navStartingUp) {
       return (
-        <Text style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          Loading...
-        </Text>
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <Text>Loading...</Text>
+        </View>
       )
+    }
+
+    if (this.props.config.navState === Constants.navNeedsRegistration) {
+      // TODO when kex2 is done return this._renderContent(STARTUP_TAB, Registration)
+    }
+
+    if (this.props.config.navState === Constants.navNeedsLogin) {
+      return this._renderContent(STARTUP_TAB, Welcome)
     }
 
     return (
@@ -152,7 +165,7 @@ Nav.propTypes = {
   tabbedRouter: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
-    loaded: React.PropTypes.bool.isRequired
+    navState: React.PropTypes.oneOf([Constants.navStartingUp, Constants.navNeedsRegistration, Constants.navNeedsLogin, Constants.navLoggedIn])
   }).isRequired
 }
 

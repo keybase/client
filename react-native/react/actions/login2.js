@@ -26,7 +26,7 @@ export function login (username, passphrase) {
 
     engine.rpc('login.loginWithPassphrase', param, incomingMap, (error, response) => {
       if (error) {
-        console.log(error)
+        console.error(error)
       }
 
       dispatch({
@@ -243,6 +243,35 @@ export function submitForgotPassword () {
         type: Constants.actionForgotPasswordDone,
         error
       })
+    })
+  }
+}
+
+export function autoLogin () {
+  return function (dispatch) {
+    engine.rpc('login.loginWithPrompt', {}, {}, (error, status) => {
+      if (error) {
+        console.error(error)
+      } else {
+        dispatch({
+          type: Constants.loginDone,
+          payload: status
+        })
+      }
+    })
+  }
+}
+
+export function logout () {
+  return function (dispatch) {
+    engine.rpc('login.logout', {}, {}, (error, response) => {
+      if (error) {
+        console.error(error)
+      } else {
+        dispatch({
+          type: Constants.logoutDone
+        })
+      }
     })
   }
 }

@@ -6,15 +6,17 @@
 
 import Immutable from 'immutable'
 import routerReducer, { createRouterState } from './router'
-import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from '../constants/tabs'
+import {STARTUP_TAB, FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from '../constants/tabs'
 import * as actionTypes from '../constants/tabbed-router-action-types'
 import * as LocalDebug from '../local-debug'
+import * as LoginConstants from '../constants/login2'
 
 const emptyRouterState = LocalDebug.overrideRouterState ? LocalDebug.overrideRouterState : createRouterState([], [])
 
 const initialState = Immutable.fromJS({
   // a map from tab name to router obj
   tabs: {
+    [STARTUP_TAB]: emptyRouterState,
     [FOLDER_TAB]: emptyRouterState,
     [CHAT_TAB]: emptyRouterState,
     [PEOPLE_TAB]: emptyRouterState,
@@ -28,6 +30,10 @@ export default function (state = initialState, action) {
   switch (action.type) {
     case actionTypes.SWITCH_TAB:
       return state.set('activeTab', action.tabName)
+    case LoginConstants.loginDone:
+      return state.set('activeTab', FOLDER_TAB)
+    case LoginConstants.logoutDone:
+      return state.set('activeTab', STARTUP_TAB)
     default:
       return state.updateIn(['tabs', state.get('activeTab')], (routerState) => routerReducer(routerState, action))
   }

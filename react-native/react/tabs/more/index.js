@@ -2,7 +2,7 @@
 
 import React, { Component, ListView, StyleSheet, View, Text } from 'react-native'
 import commonStyles from '../../styles/common'
-import * as LoginActions from '../../actions/login'
+import * as LoginActions from '../../actions/login2'
 import * as SearchActions from '../../actions/search'
 import { navigateTo } from '../../actions/router'
 import { pushNewProfile } from '../../actions/profile'
