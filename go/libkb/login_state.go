@@ -761,7 +761,11 @@ func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) e
 			Me:      me,
 			KeyType: DeviceSigningKeyType,
 		}
-		return keyrings.GetSecretKeyWithStoredSecret(lctx, ska, me, secretRetriever)
+		key, err := keyrings.GetSecretKeyWithStoredSecret(lctx, ska, me, secretRetriever)
+		if err != nil {
+			return nil, SecretStoreError{Msg: err.Error()}
+		}
+		return key, nil
 	}
 	return s.pubkeyLoginHelper(lctx, username, getSecretKeyFn)
 }
@@ -782,7 +786,11 @@ func (s *LoginState) loginWithPassphrase(lctx LoginContext, username, passphrase
 		if storeSecret {
 			secretStorer = NewSecretStore(me.GetNormalizedName())
 		}
-		return keyrings.GetSecretKeyWithPassphrase(lctx, me, passphrase, secretStorer)
+		key, err := keyrings.GetSecretKeyWithPassphrase(lctx, me, passphrase, secretStorer)
+		if err != nil {
+			return nil, SecretStoreError{Msg: err.Error()}
+		}
+		return key, nil
 	}
 	if loggedIn, err := s.tryPubkeyLoginHelper(lctx, username, getSecretKeyFn); err != nil {
 		return err

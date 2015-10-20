@@ -1115,3 +1115,11 @@ type PIDFileLockError struct {
 func (e PIDFileLockError) Error() string {
 	return fmt.Sprintf("error locking %s: server already running", e.Filename)
 }
+
+type SecretStoreError struct {
+	Msg string
+}
+
+func (e SecretStoreError) Error() string {
+	return "Secret store error: " + e.Msg
+}

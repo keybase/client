@@ -38,6 +38,24 @@ func (e *XLoginProvision) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *XLoginProvision) Run(ctx *Context) error {
+func (e *XLoginProvision) Run(ctx *Context) (err error) {
+	e.G().Log.Debug("+ XLoginProvision.Run()")
+	defer func() { e.G().Log.Debug("- XLoginProvision.Run() -> %s", libkb.ErrToOk(err)) }()
+
+	availableGPGPrivateKeyUsers, err := e.searchGPG(ctx)
+	if err != nil {
+		return err
+	}
+	e.G().Log.Debug("available private gpg key users: %v", availableGPGPrivateKeyUsers)
+
 	return nil
+}
+
+// searchGPG looks in local gpg keyring for any private keys
+// associated with keybase users.
+//
+// TODO: implement this
+//
+func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
+	return nil, nil
 }

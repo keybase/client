@@ -3,18 +3,25 @@
 package engine
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/libkb"
 )
+
+var errNoUsername = errors.New("No username available in session")
+var errNoDevice = errors.New("No device provisioned locally for this user")
 
 // XLogin is an engine.
 type XLogin struct {
 	libkb.Contextified
+	username string
 }
 
-// NewXLogin creates a XLogin engine.
-func NewXLogin(g *libkb.GlobalContext) *XLogin {
+// NewXLogin creates a XLogin engine.  username is optional.
+func NewXLogin(g *libkb.GlobalContext, username string) *XLogin {
 	return &XLogin{
 		Contextified: libkb.NewContextified(g),
+		username:     username,
 	}
 }
 
@@ -35,7 +42,10 @@ func (e *XLogin) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *XLogin) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{
+		&XLoginCurrentDevice{},
+		&XLoginProvision{},
+	}
 }
 
 // Run starts the engine.
@@ -44,7 +54,7 @@ func (e *XLogin) Run(ctx *Context) (err error) {
 	defer func() { e.G().Log.Debug("- XLogin.Run() -> %s", libkb.ErrToOk(err)) }()
 
 	// first see if this device is already provisioned and it is possible to log in:
-	eng := NewXLoginCurrentDevice(e.G())
+	eng := NewXLoginCurrentDevice(e.G(), e.username)
 	err = RunEngine(eng, ctx)
 	if err == nil {
 		// login successful
@@ -70,5 +80,18 @@ func (e *XLogin) Run(ctx *Context) (err error) {
 // notProvisionedErr will return true if err signifies that login
 // failed because this device has not yet been provisioned.
 func (e *XLogin) notProvisionedErr(err error) bool {
+	if err == errNoUsername {
+		return true
+	}
+	if err == errNoDevice {
+		return true
+	}
+	switch err.(type) {
+	case libkb.SecretStoreError:
+		return true
+	}
+
+	e.G().Log.Debug("notProvisioned, not handling error %s (err type: %T)", err, err)
+
 	return false
 }
