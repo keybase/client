@@ -3,6 +3,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
@@ -35,4 +36,8 @@ func canExec(s string) error {
 
 func PosixLineEndings(arg string) string {
 	return arg
+}
+
+func AppDataDir() (string, error) {
+	return "", errors.New("unsupported: AppDataDir")
 }
