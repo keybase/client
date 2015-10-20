@@ -42,7 +42,6 @@ type CommandLine interface {
 	GetSecretKeyringTemplate() string
 	GetSocketFile() string
 	GetPidFile() string
-	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetNoAutoFork() (bool, bool)
@@ -111,7 +110,6 @@ type ConfigReader interface {
 	GetSalt() []byte
 	GetSocketFile() string
 	GetPidFile() string
-	GetDaemonPort() (int, bool)
 	GetStandalone() (bool, bool)
 	GetLocalRPCDebug() string
 	GetTimers() string

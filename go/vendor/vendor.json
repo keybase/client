@@ -148,6 +148,11 @@
 			"revisionTime": "2015-05-20T12:37:12-04:00"
 		},
 		{
+			"path": "github.com/natefinch/npipe",
+			"revision": "0938d701e50e580f5925c773055eb6d6b32a0cbc",
+			"revisionTime": "2014-10-08T16:43:58+02:00"
+		},
+		{
 			"path": "github.com/syndtr/goleveldb/leveldb",
 			"revision": "a06509502ca32565bdf74afc1e573050023f261c",
 			"revisionTime": "2015-06-10T06:54:26+07:00"

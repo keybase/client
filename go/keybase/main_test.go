@@ -1,3 +1,7 @@
+// +build !windows
+
+// gexpect is not windows friendly
+
 package main
 
 import (
@@ -38,6 +42,7 @@ func keybaseBinaryPath() string {
 // TestMain runs test but first compiles/installs the keybase
 // binary so that we can test it in the following tests.
 func TestMain(m *testing.M) {
+
 	if err := compileBinary(); err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 		os.Exit(2)

@@ -37,7 +37,7 @@ func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email s
 		Endpoint:    "send-reset-pw",
 		NeedSession: false,
 		Args: libkb.HTTPArgs{
-			"email_or_username": libkb.S{email},
+			"email_or_username": libkb.S{Val: email},
 		},
 		AppStatus: []string{"OK", "BAD_LOGIN_USER_NOT_FOUND"},
 	})

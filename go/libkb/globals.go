@@ -41,7 +41,7 @@ type GlobalContext struct {
 	FavoriteCache    *favcache.Cache // where to cache favorite folders
 	GpgClient        *GpgCLI         // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook  // on shutdown, fire these...
-	SocketInfo       SocketInfo      // which socket to bind/connect to
+	SocketInfo       Socket          // which socket to bind/connect to
 	socketWrapperMu  sync.RWMutex
 	SocketWrapper    *SocketWrapper    // only need one connection per
 	LoopbackListener *LoopbackListener // If we're in loopback mode, we'll connect through here
@@ -348,7 +348,7 @@ func (g *GlobalContext) GetMyUID() keybase1.UID {
 }
 
 func (g *GlobalContext) ConfigureSocketInfo() (err error) {
-	g.SocketInfo, err = ConfigureSocketInfo()
+	g.SocketInfo, err = NewSocket()
 	return err
 }
 

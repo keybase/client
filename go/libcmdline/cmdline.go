@@ -147,12 +147,6 @@ func (p CommandLine) GetProofCacheSize() (int, bool) {
 	}
 	return 0, false
 }
-func (p CommandLine) GetDaemonPort() (ret int, set bool) {
-	if ret = p.GetGInt("daemon-port"); ret != 0 {
-		set = true
-	}
-	return
-}
 
 func (p CommandLine) GetStandalone() (bool, bool) {
 	return p.GetBool("standalone", true)
@@ -303,10 +297,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "gpg-options",
 			Usage: "Options to use when calling GPG.",
-		},
-		cli.IntFlag{
-			Name:  "daemon-port",
-			Usage: "Specify a daemon port on 127.0.0.1.",
 		},
 		cli.BoolFlag{
 			Name:  "standalone",
