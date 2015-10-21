@@ -1860,30 +1860,6 @@ func (fbo *FolderBranchOps) renameLocked(
 	newPBlock.Children[newName] = newDe
 	delete(oldPBlock.Children, oldName)
 
-	// if there are any outstanding de updates from writes/truncates
-	// for the moved path, we need to move them too
-	if oldParent.tailPointer().ID != newParent.tailPointer().ID {
-		fbo.cacheLock.Lock()
-		oldPtr := stripBP(oldParent.tailPointer())
-		if deMap, ok := fbo.deCache[oldPtr]; ok {
-			dePtr := stripBP(newDe.BlockPointer)
-			if de, ok := deMap[dePtr]; ok {
-				newPtr := stripBP(newParent.tailPointer())
-				if _, ok = fbo.deCache[newPtr]; !ok {
-					fbo.deCache[newPtr] = make(map[BlockPointer]DirEntry)
-				}
-				fbo.deCache[newPtr][dePtr] = de
-				delete(deMap, dePtr)
-				if len(deMap) == 0 {
-					delete(fbo.deCache, oldPtr)
-				} else {
-					fbo.deCache[oldPtr] = deMap
-				}
-			}
-		}
-		fbo.cacheLock.Unlock()
-	}
-
 	// find the common ancestor
 	var i int
 	found := false
@@ -3205,6 +3181,29 @@ func (fbo *FolderBranchOps) unlinkFromCache(op op, oldDir BlockPointer,
 	}
 }
 
+func (fbo *FolderBranchOps) moveDeCacheEntry(oldParent BlockPointer,
+	newParent BlockPointer, moved BlockPointer) {
+	fbo.cacheLock.Lock()
+	defer fbo.cacheLock.Unlock()
+	oldPtr := stripBP(oldParent)
+	if deMap, ok := fbo.deCache[oldPtr]; ok {
+		dePtr := stripBP(moved)
+		if de, ok := deMap[dePtr]; ok {
+			newPtr := stripBP(newParent)
+			if _, ok = fbo.deCache[newPtr]; !ok {
+				fbo.deCache[newPtr] = make(map[BlockPointer]DirEntry)
+			}
+			fbo.deCache[newPtr][dePtr] = de
+			delete(deMap, dePtr)
+			if len(deMap) == 0 {
+				delete(fbo.deCache, oldPtr)
+			} else {
+				fbo.deCache[oldPtr] = deMap
+			}
+		}
+	}
+}
+
 func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 	md *RootMetadata) {
 	// update all the block pointers
@@ -3259,6 +3258,8 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 					DirUpdated: []string{realOp.NewName},
 				})
 			}
+			fbo.moveDeCacheEntry(realOp.OldDir.Ref, realOp.NewDir.Ref,
+				realOp.Renamed)
 		} else {
 			newNode = oldNode
 			if oldNode != nil {
