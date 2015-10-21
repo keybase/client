@@ -352,6 +352,13 @@
   }];
 }
 
+- (void)deviceXAdd:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.device.deviceXAdd" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRDoctorRequest
@@ -2920,6 +2927,22 @@
 
 + (instancetype)params {
   KBRDeviceAddCancelRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDeviceXAddRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDeviceXAddRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

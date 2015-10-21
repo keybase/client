@@ -799,10 +799,15 @@ type DeviceAddCancelArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type DeviceXAddArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type DeviceInterface interface {
 	DeviceList(context.Context, int) ([]Device, error)
 	DeviceAdd(context.Context, DeviceAddArg) error
 	DeviceAddCancel(context.Context, int) error
+	DeviceXAdd(context.Context, int) error
 }
 
 func DeviceProtocol(i DeviceInterface) rpc.Protocol {
@@ -857,6 +862,22 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"deviceXAdd": {
+				MakeArg: func() interface{} {
+					ret := make([]DeviceXAddArg, 1)
+					return &ret
+				},
+				Handler: func(args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeviceXAddArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeviceXAddArg)(nil), args)
+						return
+					}
+					err = i.DeviceXAdd(context.TODO(), (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -879,6 +900,12 @@ func (c DeviceClient) DeviceAdd(ctx context.Context, __arg DeviceAddArg) (err er
 func (c DeviceClient) DeviceAddCancel(ctx context.Context, sessionID int) (err error) {
 	__arg := DeviceAddCancelArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.device.deviceAddCancel", []interface{}{__arg}, nil)
+	return
+}
+
+func (c DeviceClient) DeviceXAdd(ctx context.Context, sessionID int) (err error) {
+	__arg := DeviceXAddArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceXAdd", []interface{}{__arg}, nil)
 	return
 }
 

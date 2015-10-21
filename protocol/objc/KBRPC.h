@@ -708,6 +708,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRDeviceAddCancelRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRDeviceXAddRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBRDoctorRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
@@ -1391,6 +1394,13 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  you provided to deviceAdd as the parameter.
  */
 - (void)deviceAddCancel:(void (^)(NSError *error))completion;
+
+/*!
+ Starts the process of adding a new device using an existing
+ device. It is called on the existing device. 
+ This is for kex2.
+ */
+- (void)deviceXAdd:(void (^)(NSError *error))completion;
 
 @end
 

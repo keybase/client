@@ -16,6 +16,7 @@ func NewCmdDevice(cl *libcmdline.CommandLine) cli.Command {
 			NewCmdDeviceAdd(cl),
 			NewCmdDeviceRemove(cl),
 			NewCmdDeviceList(cl),
+			NewCmdDeviceXAdd(cl),
 		},
 	}
 }

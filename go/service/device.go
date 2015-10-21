@@ -52,3 +52,11 @@ func (h *DeviceHandler) DeviceAddCancel(_ context.Context, sessionID int) error 
 	}
 	return c.Cancel()
 }
+
+// DeviceXAdd starts the kex2 device provisioning on the
+// provisioner (device X/C1)
+func (h *DeviceHandler) DeviceXAdd(_ context.Context, sessionID int) error {
+	ctx := &engine.Context{}
+	eng := engine.NewDeviceAdd(G)
+	return engine.RunEngine(eng, ctx)
+}
