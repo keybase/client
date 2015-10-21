@@ -396,8 +396,10 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 			return path{}, BlockPointer{}, nil, err
 		}
 
-		recreateOps = append(recreateOps, newCreateOp(name, currOriginal,
-			File /*placeholder type, will look up actual type later*/))
+		co := newCreateOp(name, currOriginal,
+			File /*placeholder type, will look up actual type later*/)
+		co.setFinalPath(currPath)
+		recreateOps = append(recreateOps, co)
 	}
 	if len(recreateOps) > 0 {
 		// The final recreateOp (the one closest to the root) can
@@ -657,12 +659,13 @@ func (cr *ConflictResolver) buildChainsAndPaths(ctx context.Context) (
 
 // addRecreateOpsToUnmergedChains inserts each recreateOp, into its
 // appropriate unmerged chain, creating one if it doesn't exist yet.
-// It also adds entries as necessary to mergedPaths.
+// It also adds entries as necessary to mergedPaths, and returns a
+// slice of new unmergedPaths to be added.
 func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 	recreateOps []*createOp, unmergedChains *crChains, mergedChains *crChains,
-	mergedPaths map[BlockPointer]path) error {
+	mergedPaths map[BlockPointer]path) ([]path, error) {
 	if len(recreateOps) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	// First create a lookup table that maps every block pointer in
@@ -678,13 +681,14 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 	kbpki := cr.config.KBPKI()
 	uid, err := kbpki.GetCurrentUID(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	writerName, err := kbpki.GetNormalizedUsername(ctx, uid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var newUnmergedPaths []path
 	for _, rop := range recreateOps {
 		rop.setWriterName(writerName)
 
@@ -699,7 +703,7 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 			origTargetPtr = ptr
 		} else if _, ok := err.(NoChainFoundError); !ok {
 			// An unexpected error!
-			return err
+			return nil, err
 		}
 
 		chain, ok := unmergedChains.byOriginal[origTargetPtr]
@@ -708,33 +712,32 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 		} else {
 			err := unmergedChains.makeChainForNewOp(origTargetPtr, rop)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			chain = unmergedChains.byOriginal[origTargetPtr]
+			newUnmergedPaths = append(newUnmergedPaths, rop.getFinalPath())
 		}
 
 		// Look up the corresponding unmerged most recent pointer, and
 		// check whether there's a merged path for it yet.  If not,
 		// create one by looking it up in the lookup table (created
 		// above) and taking the appropriate subpath.
-		mergedPath, ok := mergedPaths[chain.mostRecent]
+		_, ok = mergedPaths[chain.mostRecent]
 		if !ok {
 			key, ok := keys[rop.Dir.Unref]
 			if !ok {
-				return fmt.Errorf("Couldn't find a merged path containing the "+
-					"target of a recreate op: %v", rop.Dir.Unref)
+				return nil, fmt.Errorf("Couldn't find a merged path "+
+					"containing the target of a recreate op: %v", rop.Dir.Unref)
 			}
 			currPath := mergedPaths[key]
 			for currPath.tailPointer() != rop.Dir.Unref &&
 				currPath.hasValidParent() {
 				currPath = *currPath.parentPath()
 			}
-			mergedPath = currPath
 			mergedPaths[chain.mostRecent] = currPath
 		}
-		rop.setFinalPath(mergedPath)
 	}
-	return nil
+	return newUnmergedPaths, nil
 }
 
 // fixRenameCycles checks every unmerged createOp associated with a
@@ -946,32 +949,32 @@ func collapseActions(unmergedChains *crChains,
 func (cr *ConflictResolver) computeActions(ctx context.Context,
 	unmergedChains *crChains, mergedChains *crChains,
 	mergedPaths map[BlockPointer]path, recreateOps []*createOp) (
-	map[BlockPointer]crActionList, error) {
+	map[BlockPointer]crActionList, []path, error) {
 	// Process all the recreateOps, adding them to the appropriate
 	// unmerged chains.
-	err := cr.addRecreateOpsToUnmergedChains(ctx, recreateOps, unmergedChains,
-		mergedChains, mergedPaths)
+	newUnmergedPaths, err := cr.addRecreateOpsToUnmergedChains(
+		ctx, recreateOps, unmergedChains, mergedChains, mergedPaths)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Fix any rename cycles by turning the corresponding unmerged
 	// createOp into a symlink entry type.
 	err = cr.fixRenameCycles(unmergedChains, mergedChains, mergedPaths)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	actionMap, err :=
 		cr.getActionsToMerge(unmergedChains, mergedChains, mergedPaths)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Finally, merged the file actions back into their parent
 	// directory action list, and collapse everything together.
 	collapseActions(unmergedChains, mergedPaths, actionMap)
-	return actionMap, nil
+	return actionMap, newUnmergedPaths, nil
 }
 
 func (cr *ConflictResolver) fetchBlock(ctx context.Context,
@@ -1174,7 +1177,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	//   * A set of "recreate" ops that must be applied on the merged branch
 	//     to recreate any directories that were modified in the unmerged
 	//     branch but removed in the merged branch.
-	unmergedChains, mergedChains, _, mergedPaths, recreateOps, err :=
+	unmergedChains, mergedChains, unmergedPaths, mergedPaths, recreateOps, err :=
 		cr.buildChainsAndPaths(ctx)
 	if err != nil {
 		return
@@ -1197,10 +1200,16 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// actions contains the logic needed to manipulate the data into
 	// the final merged state, including the resolution of any
 	// conflicts that occurred between the two branches.
-	_, err = cr.computeActions(ctx, unmergedChains, mergedChains,
-		mergedPaths, recreateOps)
+	_, newUnmergedPaths, err := cr.computeActions(ctx, unmergedChains,
+		mergedChains, mergedPaths, recreateOps)
 	if err != nil {
 		return
+	}
+
+	// Insert the new unmerged paths as needed
+	if len(newUnmergedPaths) > 0 {
+		unmergedPaths = append(unmergedPaths, newUnmergedPaths...)
+		sort.Sort(crSortedPaths(unmergedPaths))
 	}
 
 	err = cr.checkDone(ctx)
