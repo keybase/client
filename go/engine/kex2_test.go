@@ -38,7 +38,9 @@ func TestKex2Provision(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		ctx := &Context{}
+		ctx := &Context{
+			ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
+		}
 		deviceID, err := libkb.NewDeviceID()
 		if err != nil {
 			t.Errorf("provisionee device id error: %s", err)
@@ -67,7 +69,8 @@ func TestKex2Provision(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		ctx := &Context{
-			SecretUI: userX.NewSecretUI(),
+			SecretUI:    userX.NewSecretUI(),
+			ProvisionUI: &testProvisionUI{},
 		}
 		deviceID, err := libkb.NewDeviceID()
 		if err != nil {
