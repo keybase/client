@@ -12,7 +12,7 @@ let routerState = null
 let activeTab = null
 let skipRouteToRoot = false
 
-if (__DEV__) {
+if (__DEV__ && false) {
   routerState = createRouterState([], [])
   activeTab = Tabs.DEVICES_TAB
   skipRouteToRoot = true
