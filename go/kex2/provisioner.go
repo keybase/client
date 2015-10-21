@@ -1,7 +1,6 @@
 package kex2
 
 import (
-	"fmt"
 	"net"
 	"time"
 
@@ -133,14 +132,12 @@ func (p *provisioner) runProtocolWithCancel() (err error) {
 }
 
 func (p *provisioner) runProtocol() (err error) {
-	fmt.Printf("provisioner.runProtocol()\n")
 	cli := keybase1.Kex2ProvisioneeClient{Cli: rpc.NewClient(p.xp, nil)}
 	var helloArg keybase1.HelloArg
 	helloArg, err = p.arg.Provisioner.GetHelloArg()
 	if err != nil {
 		return
 	}
-	fmt.Printf("provisioner.runProtocol() - got hello arg\n")
 	var res keybase1.HelloRes
 	if res, err = cli.Hello(context.TODO(), helloArg); err != nil {
 		return
@@ -148,15 +145,12 @@ func (p *provisioner) runProtocol() (err error) {
 	if p.canceled {
 		return ErrCanceled
 	}
-	fmt.Printf("provisioner.runProtocol() - called hello\n")
 	var counterSigned []byte
 	if counterSigned, err = p.arg.Provisioner.CounterSign(res); err != nil {
 		return err
 	}
-	fmt.Printf("provisioner.runProtocol() - counter signed\n")
 	if err = cli.DidCounterSign(context.TODO(), counterSigned); err != nil {
 		return err
 	}
-	fmt.Printf("provisioner.runProtocol() - did counter sign [done]\n")
 	return nil
 }

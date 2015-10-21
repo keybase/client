@@ -164,6 +164,12 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 
 	e.G().Log.Debug("HandleDidCounterSign sig: %s", string(sig))
 
+	// load self user (to load merkle root)
+	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.username))
+	if err != nil {
+		return err
+	}
+
 	// decode sig
 	decSig, err := e.decodeSig(sig)
 	if err != nil {
@@ -193,12 +199,6 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 
 	// post them to the api server
 	err = e.postSigs(eddsaArgs, dhArgs)
-	if err != nil {
-		return err
-	}
-
-	// load self user
-	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.username))
 	if err != nil {
 		return err
 	}
