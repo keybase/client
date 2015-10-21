@@ -1106,15 +1106,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 			unmergedPath = *unmergedPath.parentPath()
 		}
 
-		actions, ok := actionMap[mergedPath.tailPointer()]
-		if !ok || len(actions) == 0 || doneActions[mergedPath.tailPointer()] {
-			// Another path mapping to the same parent path already
-			// executed, or there were no actions left.
-			continue
-		}
-		// Make sure we don't try to execute the same actions twice.
-		doneActions[mergedPath.tailPointer()] = true
-
+		actions := actionMap[mergedPath.tailPointer()]
 		// Now get the directory blocks.
 		unmergedBlock, err := cr.fetchDirBlockCopy(ctx, mostRecentUnmergedMD,
 			unmergedPath, lbc)
@@ -1127,25 +1119,50 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 			return err
 		}
 
-		// Any file block copies, keyed by their new temporary block
-		// IDs, and later we will ready them.
-		unmergedFetcher := func(name string, ptr BlockPointer) (
-			BlockPointer, *FileBlock, error) {
-			return cr.fetchFileBlockCopy(ctx, mostRecentUnmergedMD,
-				mergedPath.tailPointer(), unmergedPath, name, ptr,
-				newFileBlocks)
-		}
-		mergedFetcher := func(name string, ptr BlockPointer) (
-			BlockPointer, *FileBlock, error) {
-			return cr.fetchFileBlockCopy(ctx, mostRecentMergedMD,
-				mergedPath.tailPointer(), mergedPath, name, ptr, newFileBlocks)
+		if len(actions) > 0 && !doneActions[mergedPath.tailPointer()] {
+			// Make sure we don't try to execute the same actions twice.
+			doneActions[mergedPath.tailPointer()] = true
+
+			// Any file block copies, keyed by their new temporary block
+			// IDs, and later we will ready them.
+			unmergedFetcher := func(name string, ptr BlockPointer) (
+				BlockPointer, *FileBlock, error) {
+				return cr.fetchFileBlockCopy(ctx, mostRecentUnmergedMD,
+					mergedPath.tailPointer(), unmergedPath, name, ptr,
+					newFileBlocks)
+			}
+			mergedFetcher := func(name string, ptr BlockPointer) (
+				BlockPointer, *FileBlock, error) {
+				return cr.fetchFileBlockCopy(ctx, mostRecentMergedMD,
+					mergedPath.tailPointer(), mergedPath, name,
+					ptr, newFileBlocks)
+			}
+
+			// Execute each action and save the modified ops back into
+			// each chain.
+			for _, action := range actions {
+				err := action.do(ctx, cr.config, unmergedFetcher, mergedFetcher,
+					unmergedBlock, mergedBlock)
+				if err != nil {
+					return err
+				}
+			}
 		}
 
-		// Execute each action and save the modified ops back into
-		// each chain.
+		// Now update the ops related to this exact path (not the ops
+		// for its parent!).
 		for _, action := range actions {
-			err := action.do(ctx, cr.config, unmergedFetcher, mergedFetcher,
-				unmergedBlock, mergedBlock)
+			// unmergedMostRecent is for the correct pointer, but
+			// mergedPath may be for the parent in the case of files
+			// so we need to find the real mergedMostRecent pointer.
+			mergedMostRecent := unmergedChain.original
+			mergedChain, ok := mergedChains.byOriginal[unmergedChain.original]
+			if ok {
+				mergedMostRecent = mergedChain.mostRecent
+			}
+
+			err := action.updateOps(unmergedMostRecent, mergedMostRecent,
+				mergedBlock, unmergedChains, mergedChains)
 			if err != nil {
 				return err
 			}
