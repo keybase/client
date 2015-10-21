@@ -1,10 +1,10 @@
 'use strict'
 /* @flow */
 
-import Base from "../base-component"
+import BaseComponent from "../base-component"
 import Render from "./chat-render"
 
-export default class Chat extends Base {
+export default class Chat extends BaseComponent {
   constructor (props) {
     super(props)
   }
