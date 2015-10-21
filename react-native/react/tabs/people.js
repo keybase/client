@@ -17,10 +17,8 @@ export default class People extends BaseComponent {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        component: People,
         title: 'People'
-      },
-      parseNextRoute: null
+      }
     }
   }
 }
