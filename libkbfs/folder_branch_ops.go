@@ -927,13 +927,11 @@ type blockState struct {
 
 // blockPutState is an internal structure to track data when putting blocks
 type blockPutState struct {
-	oldPtrs     map[BlockPointer]BlockPointer
 	blockStates []blockState
 }
 
 func newBlockPutState(length int) *blockPutState {
 	bps := &blockPutState{}
-	bps.oldPtrs = make(map[BlockPointer]BlockPointer)
 	bps.blockStates = make([]blockState, 0, length)
 	return bps
 }
@@ -945,9 +943,6 @@ func (bps *blockPutState) addNewBlock(blockPtr BlockPointer, block Block,
 }
 
 func (bps *blockPutState) mergeOtherBps(other *blockPutState) {
-	for k, v := range other.oldPtrs {
-		bps.oldPtrs[k] = v
-	}
 	bps.blockStates = append(bps.blockStates, other.blockStates...)
 }
 
@@ -1188,10 +1183,8 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 
 		if prevIdx < 0 {
 			md.AddUpdate(md.data.Dir.BlockInfo, info)
-			bps.oldPtrs[info.BlockPointer] = md.data.Dir.BlockPointer
 		} else if prevDe, ok := prevDblock.Children[currName]; ok {
 			md.AddUpdate(prevDe.BlockInfo, info)
-			bps.oldPtrs[info.BlockPointer] = prevDe.BlockPointer
 		} else {
 			// this is a new block
 			md.AddRefBlock(info)
@@ -1315,14 +1308,6 @@ func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState) error {
 	defer fbo.cacheLock.Unlock()
 	for _, blockState := range bps.blockStates {
 		newPtr := blockState.blockPtr
-		if oldPtr, ok := bps.oldPtrs[newPtr]; ok {
-			// move the deCache for this directory
-			oldPtrStripped := stripBP(oldPtr)
-			if deMap, ok := fbo.deCache[oldPtrStripped]; ok {
-				fbo.deCache[stripBP(blockState.blockPtr)] = deMap
-				delete(fbo.deCache, oldPtrStripped)
-			}
-		}
 		// only cache this block if we made a brand new block, not if
 		// we just incref'd some other block.
 		if !newPtr.IsFirstRef() {
@@ -3181,10 +3166,14 @@ func (fbo *FolderBranchOps) unlinkFromCache(op op, oldDir BlockPointer,
 	}
 }
 
-func (fbo *FolderBranchOps) moveDeCacheEntry(oldParent BlockPointer,
+// cacheLock must be taken by the caller.
+func (fbo *FolderBranchOps) moveDeCacheEntryLocked(oldParent BlockPointer,
 	newParent BlockPointer, moved BlockPointer) {
-	fbo.cacheLock.Lock()
-	defer fbo.cacheLock.Unlock()
+	if newParent == zeroPtr {
+		// A rename within the same directory, so no need to move anything.
+		return
+	}
+
 	oldPtr := stripBP(oldParent)
 	if deMap, ok := fbo.deCache[oldPtr]; ok {
 		dePtr := stripBP(moved)
@@ -3204,12 +3193,30 @@ func (fbo *FolderBranchOps) moveDeCacheEntry(oldParent BlockPointer,
 	}
 }
 
-func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
-	md *RootMetadata) {
-	// update all the block pointers
+func (fbo *FolderBranchOps) updatePointers(op op) {
+	fbo.cacheLock.Lock()
+	defer fbo.cacheLock.Unlock()
 	for _, update := range op.AllUpdates() {
 		fbo.nodeCache.UpdatePointer(update.Unref, update.Ref)
+		// move the deCache for this directory
+		oldPtrStripped := stripBP(update.Unref)
+		if deMap, ok := fbo.deCache[oldPtrStripped]; ok {
+			fbo.deCache[stripBP(update.Ref)] = deMap
+			delete(fbo.deCache, oldPtrStripped)
+		}
 	}
+
+	// For renames, we need to update any outstanding writes as well.
+	rop, ok := op.(*renameOp)
+	if !ok {
+		return
+	}
+	fbo.moveDeCacheEntryLocked(rop.OldDir.Ref, rop.NewDir.Ref, rop.Renamed)
+}
+
+func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
+	md *RootMetadata) {
+	fbo.updatePointers(op)
 
 	var changes []NodeChange
 	switch realOp := op.(type) {
@@ -3258,8 +3265,6 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 					DirUpdated: []string{realOp.NewName},
 				})
 			}
-			fbo.moveDeCacheEntry(realOp.OldDir.Ref, realOp.NewDir.Ref,
-				realOp.Renamed)
 		} else {
 			newNode = oldNode
 			if oldNode != nil {
