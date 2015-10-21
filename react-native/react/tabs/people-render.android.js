@@ -1,0 +1,1 @@
+people-render.ios.js

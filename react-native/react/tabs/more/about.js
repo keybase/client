@@ -21,10 +21,14 @@ export default class About extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
+    const componentAtTop = {
+      title: 'About',
+      component: About
+    }
+
     return {
-      componentAtTop: {
-        title: 'About'
-      }
+      componentAtTop,
+      parseNextRoute: null
     }
   }
 }

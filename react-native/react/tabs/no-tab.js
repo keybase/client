@@ -1,18 +1,25 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Text, View } from 'react-native'
+import BaseComponent from '../base-component'
+import Render from './no-tab-render'
 
-export default class NoTab extends Component {
+export default class NoTab extends BaseComponent {
+  constructor (props) {
+    super(props)
+  }
   render () {
-    return (
-      <View style={{flex: 1, justifyContent: 'center', backgroundColor: 'red'}}>
-        <Text> Error! Tab name was not recognized</Text>
-      </View>
-    )
+    return Render.apply(this)
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    return { }
+    const componentAtTop = {
+      component: NoTab
+    }
+
+    return {
+      componentAtTop,
+      parseNextRoute: null
+    }
   }
 }
