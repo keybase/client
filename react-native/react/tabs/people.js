@@ -1,10 +1,10 @@
 'use strict'
 /* @flow */
 
-import Base from "../base"
-import Render from "./people-native"
+import BaseComponent from '../base-component'
+import Render from './people-render'
 
-export default class People extends Base {
+export default class People extends BaseComponent {
   constructor (props) {
     super(props)
     this.state = {count: 0}

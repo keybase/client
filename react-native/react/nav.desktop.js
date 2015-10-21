@@ -1,19 +1,19 @@
 'use strict'
 /* @flow */
 
-import BaseComponent from "./base-component"
+import BaseComponent from './base-component'
 import { connect } from 'react-redux'
-//import MetaNavigator from './router/meta-navigator'
-//import React from 'react'
+import MetaNavigator from './router/meta-navigator'
+import React from 'react'
 import { StyleSheet } from 'react'
-//import Folders from './tabs/folders'
-//import Chat from './tabs/chat'
-//import People from './tabs/people'
+import Folders from './tabs/folders'
+import Chat from './tabs/chat'
+import People from './tabs/people'
 //import Devices from './tabs/devices'
-//import NoTab from './tabs/no-tab'
-//import More from './tabs/more/index-desktop.es6'
+import NoTab from './tabs/no-tab'
+import More from './tabs/more'
 
-impoasdadrt {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
+import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
 import { switchTab } from './actions/tabbed-router'
 import { Tab, Tabs, IconButton, Styles } from 'material-ui'
 let { Colors, Typography } = Styles;
@@ -40,7 +40,6 @@ export default class Nav extends BaseComponent {
   _renderContent (color, activeTab) {
     return (
       <div>
-        /*
         {React.createElement(
           connect(state => {
             let elem = state.tabbedRouter.get('activeTab')
@@ -54,13 +53,11 @@ export default class Nav extends BaseComponent {
             rootRouteParser: tabToRootRouteParse[activeTab] || NoTab.parseRoute
           }
         )}
-        */
       </div>
     )
   }
 
   _handleTabsChange (e, key, payload) {
-    console.log('should switch to ' + e)
     this.props.dispatch(switchTab(e))
   }
 
