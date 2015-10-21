@@ -5095,6 +5095,7 @@ type Proofs struct {
 type UserSummary struct {
 	Uid          UID    `codec:"uid" json:"uid"`
 	Username     string `codec:"username" json:"username"`
+	Thumbnail    string `codec:"thumbnail" json:"thumbnail"`
 	IdVersion    int    `codec:"idVersion" json:"idVersion"`
 	FullName     string `codec:"fullName" json:"fullName"`
 	Bio          string `codec:"bio" json:"bio"`
