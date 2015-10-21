@@ -3967,15 +3967,15 @@ type ChooseProvisioningMethodArg struct {
 	GpgUsers  []string `codec:"gpgUsers" json:"gpgUsers"`
 }
 
-type ChooseProvisionerDeviceTypeArg struct {
+type ChooseDeviceTypeArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type DisplayAndPromptSecretArg struct {
-	SessionID             int        `codec:"sessionID" json:"sessionID"`
-	Secret                []byte     `codec:"secret" json:"secret"`
-	Phrase                string     `codec:"phrase" json:"phrase"`
-	ProvisionerDeviceType DeviceType `codec:"provisionerDeviceType" json:"provisionerDeviceType"`
+	SessionID       int        `codec:"sessionID" json:"sessionID"`
+	Secret          []byte     `codec:"secret" json:"secret"`
+	Phrase          string     `codec:"phrase" json:"phrase"`
+	OtherDeviceType DeviceType `codec:"otherDeviceType" json:"otherDeviceType"`
 }
 
 type DisplaySecretExchangedArg struct {
@@ -3993,7 +3993,7 @@ type ProvisionSuccessArg struct {
 
 type ProvisionUiInterface interface {
 	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
-	ChooseProvisionerDeviceType(context.Context, int) (DeviceType, error)
+	ChooseDeviceType(context.Context, int) (DeviceType, error)
 	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) ([]byte, error)
 	DisplaySecretExchanged(context.Context, int) error
 	PromptNewDeviceName(context.Context, PromptNewDeviceNameArg) (string, error)
@@ -4020,18 +4020,18 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"chooseProvisionerDeviceType": {
+			"chooseDeviceType": {
 				MakeArg: func() interface{} {
-					ret := make([]ChooseProvisionerDeviceTypeArg, 1)
+					ret := make([]ChooseDeviceTypeArg, 1)
 					return &ret
 				},
 				Handler: func(args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]ChooseProvisionerDeviceTypeArg)
+					typedArgs, ok := args.(*[]ChooseDeviceTypeArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]ChooseProvisionerDeviceTypeArg)(nil), args)
+						err = rpc.NewTypeError((*[]ChooseDeviceTypeArg)(nil), args)
 						return
 					}
-					ret, err = i.ChooseProvisionerDeviceType(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.ChooseDeviceType(context.TODO(), (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4113,9 +4113,9 @@ func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg C
 	return
 }
 
-func (c ProvisionUiClient) ChooseProvisionerDeviceType(ctx context.Context, sessionID int) (res DeviceType, err error) {
-	__arg := ChooseProvisionerDeviceTypeArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseProvisionerDeviceType", []interface{}{__arg}, &res)
+func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, sessionID int) (res DeviceType, err error) {
+	__arg := ChooseDeviceTypeArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseDeviceType", []interface{}{__arg}, &res)
 	return
 }
 

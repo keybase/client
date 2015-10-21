@@ -22,16 +22,16 @@ protocol provisionUi {
     MOBILE_1
   }
   /**
-   If provisioning via device, this will be called so user can select the provisioner device type: desktop or mobile.
+   If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.
    */
-  DeviceType chooseProvisionerDeviceType(int sessionID);
+  DeviceType chooseDeviceType(int sessionID);
 
   /**
-   DisplayAndPromptSecret displays a secret that the user can enter into the provisioner device.
-   It also can return a secret that the user enters into this device (from the provisioner). 
+   DisplayAndPromptSecret displays a secret that the user can enter into the other device.
+   It also can return a secret that the user enters into this device (from the other device). 
    If it does not return a secret, it will be canceled when this device receives the secret via kex2.
    */
-  bytes DisplayAndPromptSecret(int sessionID, bytes secret, string phrase, DeviceType provisionerDeviceType);
+  bytes DisplayAndPromptSecret(int sessionID, bytes secret, string phrase, DeviceType otherDeviceType);
 
   /**
    DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two

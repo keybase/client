@@ -1078,14 +1078,14 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property NSArray *gpgUsers;
 @end
-@interface KBRChooseProvisionerDeviceTypeRequestParams : KBRRequestParams
+@interface KBRChooseDeviceTypeRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
 @interface KBRDisplayAndPromptSecretRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSData *secret;
 @property NSString *phrase;
-@property KBRDeviceType provisionerDeviceType;
+@property KBRDeviceType otherDeviceType;
 @end
 @interface KBRDisplaySecretExchangedRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1896,18 +1896,18 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)chooseProvisioningMethodWithGpgUsers:(NSArray *)gpgUsers completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
 
 /*!
- If provisioning via device, this will be called so user can select the provisioner device type: desktop or mobile.
+ If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.
  */
-- (void)chooseProvisionerDeviceType:(void (^)(NSError *error, KBRDeviceType deviceType))completion;
+- (void)chooseDeviceType:(void (^)(NSError *error, KBRDeviceType deviceType))completion;
 
 /*!
- DisplayAndPromptSecret displays a secret that the user can enter into the provisioner device.
- It also can return a secret that the user enters into this device (from the provisioner). 
+ DisplayAndPromptSecret displays a secret that the user can enter into the other device.
+ It also can return a secret that the user enters into this device (from the other device). 
  If it does not return a secret, it will be canceled when this device receives the secret via kex2.
  */
 - (void)displayAndPromptSecret:(KBRDisplayAndPromptSecretRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion;
 
-- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase provisionerDeviceType:(KBRDeviceType)provisionerDeviceType completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase otherDeviceType:(KBRDeviceType)otherDeviceType completion:(void (^)(NSError *error, NSData *bytes))completion;
 
 /*!
  DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two

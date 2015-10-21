@@ -47,7 +47,7 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 	return res, fmt.Errorf("invalid provision option: %d", ret)
 }
 
-func (p ProvisionUI) ChooseProvisionerDeviceType(ctx context.Context, sessionID int) (keybase1.DeviceType, error) {
+func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keybase1.DeviceType, error) {
 	p.parent.Output("What type of device would you like to connect this device with?\n\n")
 	p.parent.Output("(1) Desktop\n")
 	p.parent.Output("(2) Mobile\n")
@@ -71,8 +71,8 @@ func (p ProvisionUI) ChooseProvisionerDeviceType(ctx context.Context, sessionID 
 }
 
 func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
-	if arg.ProvisionerDeviceType == keybase1.DeviceType_MOBILE {
-		// TODO: if provisioner is a mobile device, should show arg.Secret as a QR code here:
+	if arg.OtherDeviceType == keybase1.DeviceType_MOBILE {
+		// TODO: if other device is a mobile device, should show arg.Secret as a QR code here:
 
 		// also allow them to enter the phrase from the mobile device:
 		p.parent.Output("Enter the verification code from your mobile device here:\n\n")
@@ -88,7 +88,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 		return sbytes[:], nil
 	}
 
-	if arg.ProvisionerDeviceType == keybase1.DeviceType_DESKTOP {
+	if arg.OtherDeviceType == keybase1.DeviceType_DESKTOP {
 		p.parent.Output("Type this verification code into your other device:\n\n")
 		p.parent.Output("\t" + arg.Phrase + "\n")
 
@@ -99,7 +99,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 		return nil, nil
 	}
 
-	return nil, fmt.Errorf("invalid device type: %d", arg.ProvisionerDeviceType)
+	return nil, fmt.Errorf("invalid device type: %d", arg.OtherDeviceType)
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {

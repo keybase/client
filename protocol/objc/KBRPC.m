@@ -1732,9 +1732,9 @@
   }];
 }
 
-- (void)chooseProvisionerDeviceType:(void (^)(NSError *error, KBRDeviceType deviceType))completion {
+- (void)chooseDeviceType:(void (^)(NSError *error, KBRDeviceType deviceType))completion {
   NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseProvisionerDeviceType" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseDeviceType" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
@@ -1745,7 +1745,7 @@
 }
 
 - (void)displayAndPromptSecret:(KBRDisplayAndPromptSecretRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSDictionary *rparams = @{@"secret": KBRValue(params.secret), @"phrase": KBRValue(params.phrase), @"provisionerDeviceType": @(params.provisionerDeviceType)};
+  NSDictionary *rparams = @{@"secret": KBRValue(params.secret), @"phrase": KBRValue(params.phrase), @"otherDeviceType": @(params.otherDeviceType)};
   [self.client sendRequestWithMethod:@"keybase.1.provisionUi.DisplayAndPromptSecret" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -1756,8 +1756,8 @@
   }];
 }
 
-- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase provisionerDeviceType:(KBRDeviceType)provisionerDeviceType completion:(void (^)(NSError *error, NSData *bytes))completion {
-  NSDictionary *rparams = @{@"secret": KBRValue(secret), @"phrase": KBRValue(phrase), @"provisionerDeviceType": @(provisionerDeviceType)};
+- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase otherDeviceType:(KBRDeviceType)otherDeviceType completion:(void (^)(NSError *error, NSData *bytes))completion {
+  NSDictionary *rparams = @{@"secret": KBRValue(secret), @"phrase": KBRValue(phrase), @"otherDeviceType": @(otherDeviceType)};
   [self.client sendRequestWithMethod:@"keybase.1.provisionUi.DisplayAndPromptSecret" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -4409,7 +4409,7 @@
 }
 @end
 
-@implementation KBRChooseProvisionerDeviceTypeRequestParams
+@implementation KBRChooseDeviceTypeRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -4419,7 +4419,7 @@
 }
 
 + (instancetype)params {
-  KBRChooseProvisionerDeviceTypeRequestParams *p = [[self alloc] init];
+  KBRChooseDeviceTypeRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4432,7 +4432,7 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.secret = params[0][@"secret"];
     self.phrase = params[0][@"phrase"];
-    self.provisionerDeviceType = [params[0][@"provisionerDeviceType"] integerValue];
+    self.otherDeviceType = [params[0][@"otherDeviceType"] integerValue];
   }
   return self;
 }

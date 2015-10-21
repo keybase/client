@@ -101,7 +101,7 @@ func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
 // device provisions this device with an existing device using the
 // kex2 protocol.
 func (e *XLoginProvision) device(ctx *Context) error {
-	provisionerType, err := ctx.ProvisionUI.ChooseProvisionerDeviceType(context.TODO(), 0)
+	provisionerType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), 0)
 	if err != nil {
 		return err
 	}
@@ -133,9 +133,9 @@ func (e *XLoginProvision) device(ctx *Context) error {
 	go func() {
 		sb := secret.Secret()
 		arg := keybase1.DisplayAndPromptSecretArg{
-			Secret:                sb[:],
-			Phrase:                secret.Phrase(),
-			ProvisionerDeviceType: provisionerType,
+			Secret:          sb[:],
+			Phrase:          secret.Phrase(),
+			OtherDeviceType: provisionerType,
 		}
 		var contxt context.Context
 		contxt, canceler = context.WithCancel(context.Background())

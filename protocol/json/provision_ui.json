@@ -182,8 +182,8 @@
       } ],
       "response" : "ProvisionMethod"
     },
-    "chooseProvisionerDeviceType" : {
-      "doc" : "If provisioning via device, this will be called so user can select the provisioner device type: desktop or mobile.",
+    "chooseDeviceType" : {
+      "doc" : "If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -191,7 +191,7 @@
       "response" : "DeviceType"
     },
     "DisplayAndPromptSecret" : {
-      "doc" : "DisplayAndPromptSecret displays a secret that the user can enter into the provisioner device.\n   It also can return a secret that the user enters into this device (from the provisioner). \n   If it does not return a secret, it will be canceled when this device receives the secret via kex2.",
+      "doc" : "DisplayAndPromptSecret displays a secret that the user can enter into the other device.\n   It also can return a secret that the user enters into this device (from the other device). \n   If it does not return a secret, it will be canceled when this device receives the secret via kex2.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -202,7 +202,7 @@
         "name" : "phrase",
         "type" : "string"
       }, {
-        "name" : "provisionerDeviceType",
+        "name" : "otherDeviceType",
         "type" : "DeviceType"
       } ],
       "response" : "bytes"
