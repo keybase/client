@@ -69,6 +69,34 @@ func TestXLogin(t *testing.T) {
 	wg.Wait()
 }
 
+// If a user has device keys, selecting the username/passphrase
+// provisioning option should fail.
+func TestProvisionPassphraseFail(t *testing.T) {
+	// device X (provisioner) context:
+	tcX := SetupEngineTest(t, "provision_x")
+	defer tcX.Cleanup()
+
+	// create user (and device X)
+	userX := CreateAndSignupFakeUser(tcX, "login")
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "provision_y")
+	defer tcY.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: &testProvisionPassphraseUI{},
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
+	}
+	eng := NewXLogin(tcY.G, libkb.DeviceTypeDesktop, "")
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("expected xlogin to fail, but it ran without error")
+	}
+	if _, ok := err.(libkb.PassphraseProvisionImpossibleError); !ok {
+		t.Fatalf("expected PassphraseProvisionImpossibleError, got %T (%s)", err, err)
+	}
+}
+
 type testProvisionUI struct {
 	secretCh chan kex2.Secret
 }
@@ -104,4 +132,13 @@ func (u *testProvisionUI) DisplaySecretExchanged(_ context.Context, _ int) error
 func (u *testProvisionUI) ProvisionSuccess(_ context.Context, _ int) error {
 	fmt.Printf("ProvisionSuccess\n")
 	return nil
+}
+
+type testProvisionPassphraseUI struct {
+	testProvisionUI
+}
+
+func (u *testProvisionPassphraseUI) ChooseProvisioningMethod(_ context.Context, _ keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
+	fmt.Printf("ChooseProvisioningMethod\n")
+	return keybase1.ProvisionMethod_PASSPHRASE, nil
 }

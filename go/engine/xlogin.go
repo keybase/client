@@ -75,7 +75,11 @@ func (e *XLogin) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("XLoginProvisioned error: %s (continuing with device provisioning...)", err)
 
 	// this device needs to be provisioned:
-	deng := NewXLoginProvision(e.G(), e.deviceType)
+	darg := &XLoginProvisionArg{
+		DeviceType: e.deviceType,
+		Username:   e.username,
+	}
+	deng := NewXLoginProvision(e.G(), darg)
 	err = RunEngine(deng, ctx)
 
 	return err

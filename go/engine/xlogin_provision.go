@@ -14,14 +14,20 @@ import (
 // device.
 type XLoginProvision struct {
 	libkb.Contextified
-	deviceType string
+	arg *XLoginProvisionArg
 }
 
-// NewXLoginProvision creates a XLoginProvision engine.
-func NewXLoginProvision(g *libkb.GlobalContext, deviceType string) *XLoginProvision {
+type XLoginProvisionArg struct {
+	DeviceType string // desktop or mobile
+	Username   string // optional
+}
+
+// NewXLoginProvision creates a XLoginProvision engine.  username
+// is optional.
+func NewXLoginProvision(g *libkb.GlobalContext, arg *XLoginProvisionArg) *XLoginProvision {
 	return &XLoginProvision{
 		Contextified: libkb.NewContextified(g),
-		deviceType:   deviceType,
+		arg:          arg,
 	}
 }
 
@@ -39,6 +45,7 @@ func (e *XLoginProvision) Prereqs() Prereqs {
 func (e *XLoginProvision) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.ProvisionUIKind,
+		libkb.LoginUIKind,
 	}
 }
 
@@ -53,8 +60,8 @@ func (e *XLoginProvision) Run(ctx *Context) (err error) {
 	defer func() { e.G().Log.Debug("- XLoginProvision.Run() -> %s", libkb.ErrToOk(err)) }()
 
 	// check we have a good device type:
-	if e.deviceType != libkb.DeviceTypeDesktop && e.deviceType != libkb.DeviceTypeMobile {
-		err = fmt.Errorf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.deviceType)
+	if e.arg.DeviceType != libkb.DeviceTypeDesktop && e.arg.DeviceType != libkb.DeviceTypeMobile {
+		err = fmt.Errorf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)
 		return err
 	}
 
@@ -121,7 +128,7 @@ func (e *XLoginProvision) device(ctx *Context) error {
 	}
 	device := &libkb.Device{
 		ID:   deviceID,
-		Type: e.deviceType,
+		Type: e.arg.DeviceType,
 	}
 
 	// create provisionee engine
@@ -170,8 +177,7 @@ func (e *XLoginProvision) gpg(ctx *Context) error {
 }
 
 func (e *XLoginProvision) paper(ctx *Context) error {
-	// prompt for username (if not provided)
-	// load the user
+	// prompt for the username (if not provided) and load the user:
 	// check if they have any paper keys
 	// if they do, can call findPaperKeys
 	// if that succeeds, then need to get ppstream (for lks).
@@ -180,15 +186,35 @@ func (e *XLoginProvision) paper(ctx *Context) error {
 }
 
 func (e *XLoginProvision) passphrase(ctx *Context) error {
-	// prompt for the username (if not provided)
-	// load the user
+	// prompt for the username (if not provided) and load the user:
+	user, err := e.loadUser(ctx)
+	if err != nil {
+		return err
+	}
+
 	// check if they have any devices
-	// if they do, abort
+	ckf := user.GetComputedKeyFamily()
+	devices := ckf.GetAllDevices()
+	for _, dev := range devices {
+		if *dev.Status == libkb.DeviceStatusActive {
+			return libkb.PassphraseProvisionImpossibleError{}
+		}
+	}
+
 	// if they have a synced private pgp key, then provision with that
 	// otherwise, add device keys as eldest keys (again, need ppstream)
-	panic("passphrase provision not yet implemented")
+
+	return libkb.PassphraseProvisionImpossibleError{}
 }
 
+// prompt for username (if not provided) and load the user.
 func (e *XLoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
-	return nil, nil
+	if len(e.arg.Username) == 0 {
+		username, err := ctx.LoginUI.GetEmailOrUsername(context.TODO(), 0)
+		if err != nil {
+			return nil, err
+		}
+		e.arg.Username = username
+	}
+	return libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.arg.Username))
 }
