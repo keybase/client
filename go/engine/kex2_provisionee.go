@@ -197,12 +197,6 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 		return err
 	}
 
-	// post them to the api server
-	err = e.postSigs(eddsaArgs, dhArgs)
-	if err != nil {
-		return err
-	}
-
 	// logged in, so save the login state
 	err = e.saveLoginState()
 	if err != nil {
@@ -217,6 +211,16 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 
 	// save device and keys locally
 	err = e.localSave()
+	if err != nil {
+		return err
+	}
+
+	// post the key sigs to the api server
+	err = e.postSigs(eddsaArgs, dhArgs)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
