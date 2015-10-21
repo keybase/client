@@ -19,11 +19,11 @@ import { Tab, Tabs, IconButton, Styles } from 'material-ui'
 let { Colors, Typography } = Styles;
 
 const tabToRootRouteParse = {
-  [FOLDER_TAB]: Folders.parseRoute,
-  [CHAT_TAB]: Chat.parseRoute,
-  [PEOPLE_TAB]: People.parseRoute,
+  [FOLDER_TAB]: Folders,
+  [CHAT_TAB]: Chat,
+  [PEOPLE_TAB]: People,
 //  [DEVICES_TAB]: Devices.parseRoute,
-  [MORE_TAB]: More.parseRoute
+  [MORE_TAB]: More
 }
 
 const menuItems = [
@@ -37,7 +37,7 @@ export default class Nav extends BaseComponent {
     super(props)
   }
 
-  _renderContent (color, activeTab) {
+  _renderContent (activeTab, rootComponent) {
     return (
       <div>
         {React.createElement(
@@ -50,7 +50,7 @@ export default class Nav extends BaseComponent {
             return state.tabbedRouter.getIn(['tabs', elem]).toObject()
           })(MetaNavigator), {
             store: this.props.store,
-            rootRouteParser: tabToRootRouteParse[activeTab] || NoTab.parseRoute
+            rootComponent: rootComponent || tabToRootComponent[activeTab] || NoTab
           }
         )}
       </div>
@@ -106,16 +106,16 @@ export default class Nav extends BaseComponent {
       <div style={styles.tabsContainer}>
         <Tabs valueLink={{value: activeTab, requestChange: this._handleTabsChange.bind(this)}}>
           <Tab label="More" value={MORE_TAB} >
-            {this._renderContent('#aaaaaa', activeTab)}
+            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
           </Tab>
           <Tab label="Folders" value={FOLDER_TAB} >
-            {this._renderContent('#aaaaaa', activeTab)}
+            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
           </Tab>
           <Tab label="Chat" value={CHAT_TAB}>
-            {this._renderContent('#aaaaaa', activeTab)}
+            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
           </Tab>
           <Tab label="People" value={PEOPLE_TAB}>
-            {this._renderContent('#aaaaaa', activeTab)}
+            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
           </Tab>
         </Tabs>
       </div>

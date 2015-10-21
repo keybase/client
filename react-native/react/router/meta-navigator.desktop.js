@@ -14,7 +14,8 @@ class MetaNavigator extends BaseComponent {
   constructor () {
     super()
 
-    this.state = {}
+    this.state = {
+    }
   }
 
   isParentOfRoute (routeParent, routeMaybeChild) {
@@ -25,11 +26,11 @@ class MetaNavigator extends BaseComponent {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
-    const { store, rootRouteParser } = this.props
+    const { store, rootComponent } = this.props
     const route = this.props.uri
     const nextRoute = nextProps.uri
 
-    const { componentAtTop, routeStack: nextRouteStack } = this.getComponentAtTop(rootRouteParser, store, nextRoute)
+    const { componentAtTop, routeStack: nextRouteStack } = this.getComponentAtTop(rootComponent, store, nextRoute)
     if (nextProps === this.props && nextState === this.state) {
       return false
     } else if (this.isParentOfRoute(route, nextRoute)) {
@@ -49,63 +50,59 @@ class MetaNavigator extends BaseComponent {
     }
   }
 
-  componentDidMount () {
-    // TODO FIX this...
-    // This is just to fix an error we get from the navigator complaining about
-    // some var elgibleGestures not setup. This hack sets it up.
-    // this.refs.navigator._handleTouchStart()
-  }
-
-  findGlobalRouteHandler (currentPath) {
-    let parseRoute = null
-    if (this.props.globalRoutes) {
-      this.props.globalRoutes.forEach((route) => {
-        if (route.canParseNextRoute(currentPath)) {
-          parseRoute = route.parseRoute
-          return false // short circuit
-        } else {
-          return true
-        }
-      })
-    }
-
-    return parseRoute
-  }
-
-  getComponentAtTop (rootRouteParser, store, uri) {
+  getComponentAtTop (rootComponent, store, uri) {
     let currentPath = uri.first() || Immutable.Map()
     let nextPath = uri.rest().first() || Immutable.Map()
     let restPath = uri.rest().rest()
     let routeStack = Immutable.List()
 
-    let parseNextRoute = rootRouteParser
+    let nextComponent = rootComponent
+    let parseNextRoute = rootComponent.parseRoute
     let componentAtTop = null
 
     while (parseNextRoute) {
       const t = parseNextRoute(store, currentPath, nextPath, uri)
-      componentAtTop = t.componentAtTop
+      componentAtTop = {
+        ...t.componentAtTop,
+        upLink: currentPath.get('upLink'),
+        upTitle: currentPath.get('upTitle')
+      }
+
+      // If the component was created through subRoutes we have access to the nextComponent implicitly
+      if (!componentAtTop.component && nextComponent) {
+        componentAtTop.component = nextComponent
+      }
+
+      nextComponent = null
       parseNextRoute = t.parseNextRoute
+
+      // If you return subRoutes, we'll figure out which route is next
+      // We also handle globalRoutes here
+      if (!parseNextRoute) {
+        const subRoutes = {
+          ...this.props.globalRoutes,
+          ...t.subRoutes
+        }
+
+        if (subRoutes[nextPath.get('path')]) {
+          nextComponent = subRoutes[nextPath.get('path')]
+          parseNextRoute = nextComponent.parseRoute
+        }
+      }
+
       routeStack = routeStack.push(componentAtTop)
 
       currentPath = nextPath
       nextPath = restPath.first() || Immutable.Map()
       restPath = restPath.rest()
-
-      if (!parseNextRoute) {
-        parseNextRoute = this.findGlobalRouteHandler(currentPath)
-      }
     }
 
     return {componentAtTop, routeStack}
   }
 
   render () {
-    // TODO (mm): know when to create a new navigator
-
-    // TODO (mm): specify the prop types
-    const { store, rootRouteParser, uri, NavBar } = this.props
-
-    let {componentAtTop, routeStack} = this.getComponentAtTop(rootRouteParser, store, uri)
+    const { store, rootComponent, uri, NavBar, Navigator } = this.props
+    let {componentAtTop, routeStack} = this.getComponentAtTop(rootComponent, store, uri)
 
     return React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(componentAtTop.component), {...componentAtTop.props})
   }
@@ -115,7 +112,8 @@ MetaNavigator.propTypes = {
   uri: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
   NavBar: React.PropTypes.object.isRequired,
-  rootRouteParser: React.PropTypes.func.isRequired,
+  rootComponent: React.PropTypes.func.isRequired,
+  Navigator: React.PropTypes.object.isRequired,
   globalRoutes: React.PropTypes.object,
   navBarHeight: React.PropTypes.number.isRequired
 }
