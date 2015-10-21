@@ -90,6 +90,12 @@ func (b *BlockServerRemote) OnConnectError(err error, wait time.Duration) {
 	// due to authentication, for example.
 }
 
+// OnDoCommandError implements the ConnectionHandler interface.
+func (b *BlockServerRemote) OnDoCommandError(err error, wait time.Duration) {
+	b.log.Warning("BlockServerRemote: DoCommand error: %q; retrying in %s",
+		err, wait)
+}
+
 // OnDisconnected implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnDisconnected() {
 	b.log.Warning("BlockServerRemote is disconnected")

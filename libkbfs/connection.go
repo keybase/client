@@ -26,6 +26,9 @@ type ConnectionHandler interface {
 	// OnConnectError is called whenever there is an error during connection.
 	OnConnectError(err error, reconnectThrottleDuration time.Duration)
 
+	// OnDoCommandError is called whenever there is an error during DoCommand
+	OnDoCommandError(err error, nextTime time.Duration)
+
 	// OnDisconnected is called whenever the connection notices it is disconnected.
 	OnDisconnected()
 
@@ -257,12 +260,8 @@ func (c *Connection) DoCommand(ctx context.Context, rpcFunc func(keybase1.Generi
 			}
 			rpcErr = throttleErr
 			return nil
-		}, backoff.NewExponentialBackOff(),
-			func(err error, nextTime time.Duration) {
-				c.config.MakeLogger("").Warning(
-					"error: %q; will retry in %s",
-					err, nextTime)
-			})
+		}, backoff.NewExponentialBackOff(), c.handler.OnDoCommandError)
+
 		// RetryNotify gave up.
 		if throttleErr != nil {
 			return throttleErr

@@ -130,6 +130,12 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 	md.resetPingTicker(0)
 }
 
+// OnDoCommandError implements the ConnectionHandler interface.
+func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
+	md.log.Warning("MDServerRemote: DoCommand error: %q; retrying in %s",
+		err, wait)
+}
+
 // OnDisconnected implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnDisconnected() {
 	md.cancelObservers()
