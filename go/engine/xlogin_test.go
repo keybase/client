@@ -49,8 +49,7 @@ func TestXLogin(t *testing.T) {
 	}()
 
 	// start provisioner
-	deviceID := tcX.G.Env.GetDeviceID()
-	provisioner := NewKex2Provisioner(tcX.G, deviceID, secretX)
+	provisioner := NewKex2Provisioner(tcX.G, secretX)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

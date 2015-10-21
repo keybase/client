@@ -61,7 +61,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("secret phrase: %s", secret.Phrase())
 
 	// create provisioner engine
-	provisioner := NewKex2Provisioner(e.G(), e.G().Env.GetDeviceID(), secret.Secret())
+	provisioner := NewKex2Provisioner(e.G(), secret.Secret())
 
 	var canceler func()
 

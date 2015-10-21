@@ -14,7 +14,6 @@ import (
 // Kex2Provisioner is an engine.
 type Kex2Provisioner struct {
 	libkb.Contextified
-	deviceID   keybase1.DeviceID
 	secret     kex2.Secret
 	secretCh   chan kex2.Secret
 	me         *libkb.User
@@ -27,12 +26,9 @@ type Kex2Provisioner struct {
 var _ kex2.Provisioner = (*Kex2Provisioner)(nil)
 
 // NewKex2Provisioner creates a Kex2Provisioner engine.
-// XXX should be able to remove deviceID parameter.  Provisioner
-// is signed in.  Can get device id from env.
-func NewKex2Provisioner(g *libkb.GlobalContext, deviceID keybase1.DeviceID, secret kex2.Secret) *Kex2Provisioner {
+func NewKex2Provisioner(g *libkb.GlobalContext, secret kex2.Secret) *Kex2Provisioner {
 	return &Kex2Provisioner{
 		Contextified: libkb.NewContextified(g),
-		deviceID:     deviceID,
 		secret:       secret,
 		secretCh:     make(chan kex2.Secret),
 	}
@@ -93,11 +89,13 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 	// ctx needed by some kex2 functions
 	e.ctx = ctx
 
+	deviceID := e.G().Env.GetDeviceID()
+
 	// all set:  start provisioner
 	karg := kex2.KexBaseArg{
 		Ctx:           context.TODO(),
 		Mr:            libkb.NewKexRouter(e.G()),
-		DeviceID:      e.deviceID,
+		DeviceID:      deviceID,
 		Secret:        e.secret,
 		SecretChannel: e.secretCh,
 		Timeout:       5 * time.Minute,
