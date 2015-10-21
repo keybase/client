@@ -638,7 +638,7 @@ func (cr *ConflictResolver) buildChainsAndPaths(ctx context.Context) (
 	// chain of unmerged operations, and which was not created or
 	// deleted within in the unmerged branch.
 	unmergedPaths, err = cr.getUnmergedPaths(ctx, unmergedChains,
-		unmerged[len(unmerged)-1])
+		unmergedChains.mostRecentMD)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
@@ -648,7 +648,7 @@ func (cr *ConflictResolver) buildChainsAndPaths(ctx context.Context) (
 	// apply these unmerged operations in the merged branch.
 	mergedPaths, recreateOps, err =
 		cr.resolveMergedPaths(ctx, unmergedPaths, unmergedChains,
-			mergedChains, merged[len(merged)-1])
+			mergedChains, mergedChains.mostRecentMD)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
@@ -1062,7 +1062,6 @@ func (cr *ConflictResolver) fetchFileBlockCopy(ctx context.Context,
 }
 
 func (cr *ConflictResolver) doActions(ctx context.Context,
-	mostRecentUnmergedMD *RootMetadata, mostRecentMergedMD *RootMetadata,
 	unmergedChains *crChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	actionMap map[BlockPointer]crActionList, lbc localBcache,
@@ -1108,12 +1107,12 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 
 		actions := actionMap[mergedPath.tailPointer()]
 		// Now get the directory blocks.
-		unmergedBlock, err := cr.fetchDirBlockCopy(ctx, mostRecentUnmergedMD,
-			unmergedPath, lbc)
+		unmergedBlock, err := cr.fetchDirBlockCopy(ctx,
+			unmergedChains.mostRecentMD, unmergedPath, lbc)
 		if err != nil {
 			return err
 		}
-		mergedBlock, err := cr.fetchDirBlockCopy(ctx, mostRecentMergedMD,
+		mergedBlock, err := cr.fetchDirBlockCopy(ctx, mergedChains.mostRecentMD,
 			mergedPath, lbc)
 		if err != nil {
 			return err
@@ -1127,13 +1126,13 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 			// IDs, and later we will ready them.
 			unmergedFetcher := func(name string, ptr BlockPointer) (
 				BlockPointer, *FileBlock, error) {
-				return cr.fetchFileBlockCopy(ctx, mostRecentUnmergedMD,
+				return cr.fetchFileBlockCopy(ctx, unmergedChains.mostRecentMD,
 					mergedPath.tailPointer(), unmergedPath, name, ptr,
 					newFileBlocks)
 			}
 			mergedFetcher := func(name string, ptr BlockPointer) (
 				BlockPointer, *FileBlock, error) {
-				return cr.fetchFileBlockCopy(ctx, mostRecentMergedMD,
+				return cr.fetchFileBlockCopy(ctx, mergedChains.mostRecentMD,
 					mergedPath.tailPointer(), mergedPath, name,
 					ptr, newFileBlocks)
 			}
@@ -1194,7 +1193,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	//   * A set of "recreate" ops that must be applied on the merged branch
 	//     to recreate any directories that were modified in the unmerged
 	//     branch but removed in the merged branch.
-	unmergedChains, mergedChains, unmergedPaths, mergedPaths, recreateOps, err :=
+	unmergedChains, mergedChains, unmergedPaths, mergedPaths, recOps, err :=
 		cr.buildChainsAndPaths(ctx)
 	if err != nil {
 		return
@@ -1217,8 +1216,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// actions contains the logic needed to manipulate the data into
 	// the final merged state, including the resolution of any
 	// conflicts that occurred between the two branches.
-	_, newUnmergedPaths, err := cr.computeActions(ctx, unmergedChains,
-		mergedChains, mergedPaths, recreateOps)
+	actionMap, newUnmergedPaths, err := cr.computeActions(ctx, unmergedChains,
+		mergedChains, mergedPaths, recOps)
 	if err != nil {
 		return
 	}
@@ -1234,20 +1233,37 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
+	// Step 3: Apply the actions by looking up the corresponding
+	// unmerged dir entry and copying it to a copy of the
+	// corresponding merged block.  Keep these dirty block copies in a
+	// local dirty cache, keyed by corresponding merged most recent
+	// pointer.
+	//
+	// At the same time, construct two sets of ops: one that will be
+	// put into the final MD object that gets merged, and one that
+	// needs to be played through as notifications locally to get any
+	// local caches synchronized with the final merged state.
+	//
+	// * This will be taken care of by each crAction.updateOps()
+	// method, which modifies the unmerged and merged ops for a
+	// particular chain.  After all the crActions are applied, the
+	// "unmerged" ops need to be pushed as part of the MD update,
+	// while the "merged" ops need to be applied locally.
+
+	// lbc contains the modified directory blocks we need to sync
+	lbc := make(localBcache)
+	// newFileBlocks contains the copies of the file blocks we need to
+	// sync.  If a block is indirect, we need to put it and add new
+	// references for all indirect pointers inside it.  If it is not
+	// an indirect block, just add a new reference to the block.
+	newFileBlocks := make(fileBlockMap)
+	err = cr.doActions(ctx, unmergedChains, mergedChains, unmergedPaths,
+		mergedPaths, actionMap, lbc, newFileBlocks)
+	if err != nil {
+		return
+	}
+
 	// TODO:
-	// * Apply the actions by looking up the corresponding unmerged dir
-	//   entry and copying it to a copy of the corresponding merged block.
-	//   Keep these dirty block copies in a local dirty cache, keyed by
-	//   corresponding merged most recent pointer.
-	// * At the same time, construct two sets of ops: one that will be put
-	//   into the final MD object that gets merged, and one that needs to be
-	//   played through as notifications locally to get any local caches
-	//   synchronized with the final merged state.
-	//   * This will be taken care of by each crAction.do() method, which
-	//     modifies the unmerged and merged ops for a particular chain.  After
-	//     all the crActions are applied, the "unmerged" ops need to be pushed
-	//     as part of the MD update, while the "merged" ops need to be applied
-	//     locally.
 	// * Once all the new blocks are ready, calculate the resolvedChain paths
 	//   and arrange them into a tree.  Do a recursive descent and
 	//   syncBlockLocked each branch (filling in the new BlockChanges in a

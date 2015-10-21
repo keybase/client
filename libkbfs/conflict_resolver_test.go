@@ -1071,15 +1071,9 @@ func TestCRDoActionsSimple(t *testing.T) {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}
 
-	unmergedMDs, mergedMDs, err := cr2.getMDs(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get MDs: %v", err)
-	}
-
 	lbc := make(localBcache)
 	newFileBlocks := make(fileBlockMap)
-	err = cr2.doActions(ctx, unmergedMDs[len(unmergedMDs)-1],
-		mergedMDs[len(mergedMDs)-1], unmergedChains, mergedChains,
+	err = cr2.doActions(ctx, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks)
 	if err != nil {
 		t.Fatalf("Couldn't do actions: %v", err)
@@ -1190,15 +1184,9 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}
 
-	unmergedMDs, mergedMDs, err := cr2.getMDs(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get MDs: %v", err)
-	}
-
 	lbc := make(localBcache)
 	newFileBlocks := make(fileBlockMap)
-	err = cr2.doActions(ctx, unmergedMDs[len(unmergedMDs)-1],
-		mergedMDs[len(mergedMDs)-1], unmergedChains, mergedChains,
+	err = cr2.doActions(ctx, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks)
 	if err != nil {
 		t.Fatalf("Couldn't do actions: %v", err)

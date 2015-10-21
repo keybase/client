@@ -130,6 +130,10 @@ type crChains struct {
 	// of the node (from the original location of the node to the
 	// final locations).
 	renamedOriginals map[BlockPointer]renameInfo
+
+	// Also keep a reference to the most recent MD that's part of this
+	// chain.
+	mostRecentMD *RootMetadata
 }
 
 func (ccs *crChains) addOp(ptr BlockPointer, op op) error {
@@ -405,7 +409,6 @@ func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
 				ccs.originalRoot = rootChain.original
 			}
 		}
-
 	}
 
 	for _, chain := range ccs.byOriginal {
@@ -413,6 +416,10 @@ func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
 		// NOTE: even if we've removed all its ops, still keep the
 		// chain around so we can see the mapping between the original
 		// and most recent pointers.
+	}
+
+	if len(rmds) > 0 {
+		ccs.mostRecentMD = rmds[len(rmds)-1]
 	}
 
 	return ccs, nil
