@@ -52,7 +52,7 @@ func newCryptoClientWithClient(codec Codec, client keybase1.GenericClient,
 func (c *CryptoClient) OnConnect(ctx context.Context,
 	conn *Connection, _ keybase1.GenericClient,
 	server *rpc.Server) error {
-	err := server.Register(client.NewSecretUIProtocol())
+	err := server.Register(client.NewSecretUIProtocol(libkb.G))
 	if err != nil {
 		if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
 			return err
