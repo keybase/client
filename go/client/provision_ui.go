@@ -27,7 +27,7 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 	}
 
 	var res keybase1.ProvisionMethod
-	ret, err := p.parent.PromptSelectionOrCancel("Choose a signing option", 1, max)
+	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseProvisioningMethod, p.parent, "Choose a signing option", 1, max)
 	if err != nil {
 		if err == ErrInputCanceled {
 			return res, libkb.CanceledError{M: "user canceled input"}
@@ -53,7 +53,7 @@ func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keyba
 	p.parent.Output("(2) Mobile\n")
 
 	var res keybase1.DeviceType
-	ret, err := p.parent.PromptSelectionOrCancel("Choose a device type", 1, 2)
+	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDeviceType, p.parent, "Choose a device type", 1, 2)
 	if err != nil {
 		if err == ErrInputCanceled {
 			return res, libkb.CanceledError{M: "user canceled input"}
@@ -79,7 +79,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 	// Prompt for the secret from the other device:
 	p.parent.Output("\n -- Or -- \n")
 	p.parent.Output("Enter the verification code from your other device here:\n\n")
-	ret, err := p.parent.Prompt("Verification code", false, libkb.CheckNotEmpty)
+	ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckNotEmpty)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
 	// TODO check for duplicates (existing device list in arg)
-	return p.parent.Prompt("Enter a public name for this device", false, libkb.CheckDeviceName)
+	return PromptWithChecker(PromptDescriptorProvisionDeviceName, p.parent, "Enter a public name for this device", false, libkb.CheckDeviceName)
 }
 
 func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) error {

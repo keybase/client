@@ -60,6 +60,6 @@ func (h *DeviceHandler) DeviceXAdd(_ context.Context, sessionID int) error {
 		ProvisionUI: h.getProvisionUI(sessionID),
 		SecretUI:    h.getSecretUI(sessionID),
 	}
-	eng := engine.NewDeviceAdd(G)
+	eng := engine.NewDeviceAdd(h.G())
 	return engine.RunEngine(eng, ctx)
 }

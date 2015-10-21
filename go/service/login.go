@@ -142,7 +142,7 @@ func (h *LoginHandler) XLogin(_ context.Context, arg keybase1.XLoginArg) error {
 		LogUI:       h.getLogUI(arg.SessionID),
 		ProvisionUI: h.getProvisionUI(arg.SessionID),
 	}
-	eng := engine.NewXLogin(G, arg.DeviceType, arg.Username)
+	eng := engine.NewXLogin(h.G(), arg.DeviceType, arg.Username)
 	return engine.RunEngine(eng, ctx)
 }
 

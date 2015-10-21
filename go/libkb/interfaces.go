@@ -319,7 +319,6 @@ type UI interface {
 	GetGPGUI() GPGUI
 	GetLocksmithUI() LocksmithUI
 	GetProvisionUI() ProvisionUI
-	Prompt(string, bool, Checker) (string, error)
 	Configure() error
 	Shutdown() error
 }

@@ -34,7 +34,7 @@ func (c *CmdXLogin) Run() error {
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	client, err := GetLoginClient()
+	client, err := GetLoginClient(G)
 	if err != nil {
 		return err
 	}
