@@ -6,7 +6,7 @@
  */
 
 import BaseComponent from '../base-component'
-import React from 'react'
+import React from '../base-react'
 import { connect } from 'react-redux'
 import Immutable from 'immutable'
 
