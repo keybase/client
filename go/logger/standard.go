@@ -3,7 +3,7 @@ package logger
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -267,7 +267,7 @@ func FileExists(path string) (bool, error) {
 }
 
 func MakeParentDirs(filename string) error {
-	dir, _ := path.Split(filename)
+	dir, _ := filepath.Split(filename)
 	exists, err := FileExists(dir)
 	if err != nil {
 		return err

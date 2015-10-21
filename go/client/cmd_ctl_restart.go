@@ -44,7 +44,7 @@ func (s *CmdCtlRestart) Run() error {
 	G.Log.Info("Delaying for shutdown...")
 	time.Sleep(2 * time.Second)
 	G.Log.Info("Restart")
-	return ForkServerNix(s.G().Env.GetCommandLine(), s.G())
+	return ForkServer(s.G().Env.GetCommandLine(), s.G())
 }
 
 func (s *CmdCtlRestart) GetUsage() libkb.Usage {
