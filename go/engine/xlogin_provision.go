@@ -176,7 +176,7 @@ func (e *XLoginProvision) paper(ctx *Context) error {
 	// if they do, can call findPaperKeys
 	// if that succeeds, then need to get ppstream (for lks).
 	// addDeviceKeyWithSigner
-	return nil
+	panic("paper provision not yet implemented")
 }
 
 func (e *XLoginProvision) passphrase(ctx *Context) error {
@@ -186,7 +186,7 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 	// if they do, abort
 	// if they have a synced private pgp key, then provision with that
 	// otherwise, add device keys as eldest keys (again, need ppstream)
-	return nil
+	panic("passphrase provision not yet implemented")
 }
 
 func (e *XLoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
