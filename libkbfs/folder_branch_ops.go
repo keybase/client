@@ -3611,9 +3611,6 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 	go func() {
 		fbo.writerLock.Lock()
 		defer fbo.writerLock.Unlock()
-		// don't allow any writes to sneak into the cache
-		fbo.cacheLock.Lock()
-		defer fbo.cacheLock.Unlock()
 
 		// fetch all of my unstaged updates, and undo them one at a time
 		err := fbo.undoUnmergedMDUpdatesLocked(freshCtx)
