@@ -3599,6 +3599,12 @@ func (fbo *FolderBranchOps) UnstageForTesting(
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxFBOIDKey] = CtxFBOOpID
 	ctxWithTags := logger.NewContextWithLogTags(context.Background(), logTags)
+	id, err := MakeRandomRequestID()
+	if err != nil {
+		fbo.log.Warning("Couldn't generate a random request ID: %v", err)
+	} else {
+		ctxWithTags = context.WithValue(ctxWithTags, CtxFBOIDKey, id)
+	}
 	freshCtx, cancel := context.WithCancel(ctxWithTags)
 	defer cancel()
 	fbo.log.CDebugf(freshCtx, "Launching new context for UnstageForTesting")
