@@ -38,7 +38,7 @@ func (c *CmdXLogin) Run() error {
 	if err != nil {
 		return err
 	}
-	return client.XLogin(context.TODO(), keybase1.XLoginArg{Username: c.username})
+	return client.XLogin(context.TODO(), keybase1.XLoginArg{Username: c.username, DeviceType: libkb.DeviceTypeDesktop})
 }
 
 func (c *CmdXLogin) ParseArgv(ctx *cli.Context) error {

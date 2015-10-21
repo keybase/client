@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"fmt"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kex2"
@@ -49,7 +47,6 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("+ DeviceAdd.Run()")
 	defer func() { e.G().Log.Debug("- DeviceAdd.Run() -> %s", libkb.ErrToOk(err)) }()
 
-	fmt.Printf("DeviceAdd.Run()\n")
 	provisioneeType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), 0)
 	if err != nil {
 		return err
@@ -63,8 +60,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	}
 	e.G().Log.Debug("secret phrase: %s", secret.Phrase())
 
-	fmt.Printf("Creating provisioner engine\n")
-	// create provisionee engine
+	// create provisioner engine
 	provisioner := NewKex2Provisioner(e.G(), e.G().Env.GetDeviceID(), secret.Secret())
 
 	var canceler func()
@@ -84,6 +80,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 			// XXX ???
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
 		} else if receivedSecret != nil {
+			e.G().Log.Debug("received secret, adding to provisioner")
 			var ks kex2.Secret
 			copy(ks[:], receivedSecret)
 			provisioner.AddSecret(ks)

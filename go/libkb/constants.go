@@ -233,7 +233,7 @@ var RemoteServiceOrder = []keybase1.ProofType{
 const CanonicalHost = "keybase.io"
 
 const (
-	HTTPDefaultTimeout = 10 * time.Second
+	HTTPDefaultTimeout = 60 * time.Second
 )
 
 // Packet tags for OpenPGP and also Keybase packets

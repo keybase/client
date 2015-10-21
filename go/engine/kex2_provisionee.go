@@ -170,7 +170,6 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 		return err
 	}
 
-	// TODO: don't throw this away...
 	e.dh, err = libkb.GenerateNaclDHKeyPair()
 	if err != nil {
 		return err
@@ -194,6 +193,12 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 
 	// post them to the api server
 	err = e.postSigs(eddsaArgs, dhArgs)
+	if err != nil {
+		return err
+	}
+
+	// load self user
+	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.username))
 	if err != nil {
 		return err
 	}
@@ -279,6 +284,7 @@ func (e *Kex2Provisionee) APIArgs() (token, csrf string) {
 
 func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 	if e.device.Description == nil {
+		e.G().Log.Debug("prompting for device name")
 		// TODO: get existing device names
 		arg := keybase1.PromptNewDeviceNameArg{}
 		name, err := e.ctx.ProvisionUI.PromptNewDeviceName(context.TODO(), arg)
@@ -286,6 +292,7 @@ func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 			return err
 		}
 		e.device.Description = &name
+		e.G().Log.Debug("got device name: %q", name)
 	}
 
 	s := libkb.DeviceStatusActive

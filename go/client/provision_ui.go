@@ -71,39 +71,44 @@ func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keyba
 }
 
 func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
-	if arg.OtherDeviceType == keybase1.DeviceType_MOBILE {
-		// TODO: if other device is a mobile device, should show arg.Secret as a QR code here:
+	// Display the secret:
+	// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code instead }
+	p.parent.Output("Type this verification code into your other device:\n\n")
+	p.parent.Output("\t" + arg.Phrase + "\n\n")
 
-		// also allow them to enter the phrase from the mobile device:
-		p.parent.Output("Enter the verification code from your mobile device here:\n\n")
-		ret, err := p.parent.Prompt("Verification code", false, libkb.CheckNotEmpty)
-		if err != nil {
-			return nil, err
-		}
-		secret, err := libkb.NewKex2SecretFromPhrase(ret)
-		if err != nil {
-			return nil, err
-		}
-		sbytes := secret.Secret()
-		return sbytes[:], nil
+	// Prompt for the secret from the other device:
+	p.parent.Output("\n -- Or -- \n")
+	p.parent.Output("Enter the verification code from your other device here:\n\n")
+	ret, err := p.parent.Prompt("Verification code", false, libkb.CheckNotEmpty)
+	if err != nil {
+		return nil, err
 	}
-
-	if arg.OtherDeviceType == keybase1.DeviceType_DESKTOP {
-		p.parent.Output("Type this verification code into your other device:\n\n")
-		p.parent.Output("\t" + arg.Phrase + "\n")
-
-		// in C2 > C1 flow, there's no secret input on C2
-		// (computer -> computer provisioning, device Y (provisionee) does not
-		// offer to accept a secret from device X (provisioner) even though
-		// the protocol allows it.)
-		return nil, nil
+	secret, err := libkb.NewKex2SecretFromPhrase(ret)
+	if err != nil {
+		return nil, err
 	}
+	sbytes := secret.Secret()
+	return sbytes[:], nil
+	/*
+		}
 
-	return nil, fmt.Errorf("invalid device type: %d", arg.OtherDeviceType)
+		if arg.OtherDeviceType == keybase1.DeviceType_DESKTOP {
+			p.parent.Output("Type this verification code into your other device:\n\n")
+			p.parent.Output("\t" + arg.Phrase + "\n")
+
+			// in C2 > C1 flow, there's no secret input on C2
+			// (computer -> computer provisioning, device Y (provisionee) does not
+			// offer to accept a secret from device X (provisioner) even though
+			// the protocol allows it.)
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("invalid device type: %d", arg.OtherDeviceType)
+	*/
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
-	// XXX check for duplicates
+	// TODO check for duplicates (existing device list in arg)
 	return p.parent.Prompt("Enter a public name for this device", false, libkb.CheckDeviceName)
 }
 
@@ -118,24 +123,5 @@ func (p ProvisionUI) ProvisionSuccess(ctx context.Context, sessionID int) error 
 }
 
 func NewProvisionUIProtocol() rpc.Protocol {
-	// return keybase1.ProvisionUiProtocol(&ProvisionUIServer{ui: GlobUI.GetProvisionUI()})
 	return keybase1.ProvisionUiProtocol(GlobUI.GetProvisionUI())
 }
-
-/*
-type ProvisionUIServer struct {
-	ui libkb.ProvisionUI
-}
-
-func (p *ProvisionUIServer) ChooseProvisioningMethod(ctx context.Context, arg keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
-	return p.ui.ChooseProvisioningMethod(ctx, arg)
-}
-
-func (p *ProvisionUIServer) ChooseProvisionerDeviceType(ctx context.Context, sessionID int) (keybase1.DeviceType, error) {
-	return p.ui.ChooseProvisionerDeviceType(ctx, sessionID)
-}
-
-func (p *ProvisionUIServer) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
-	return p.ui.DisplayAndPromptSecret(ctx, arg)
-}
-*/
