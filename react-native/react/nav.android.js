@@ -12,9 +12,9 @@ import Devices from './tabs/devices'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
-import React, { Component, Text, View, StyleSheet, BackAndroid } from 'react-native'
+import React, { Component, Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback } from 'react-native'
 
-import { FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB, STARTUP_TAB } from './constants/tabs'
+import { FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB, STARTUP_TAB, prettify } from './constants/tabs'
 import { androidTabBarHeight } from './styles/native'
 
 import { switchTab } from './actions/tabbed-router'
@@ -122,40 +122,88 @@ export default class Nav extends Component {
       return this._renderContent(STARTUP_TAB, Welcome)
     }
 
+    const drawerContnet = (
+      <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <Text style={{margin: 10, fontSize: 15, textAlign: 'left'}}>I'm in the Drawer!</Text>
+      </View>
+    )
+
     return (
-      <TabBar style={{position: 'absolute', left: 0, right: 0, top: 0, bottom: 0}}>
-          <TabBar.Item
-            title='Folders'
-            selected={activeTab === FOLDER_TAB}
-            onPress={() => dispatch(switchTab(FOLDER_TAB))}>
-            {this._renderContent(FOLDER_TAB)}
-          </TabBar.Item>
-          <TabBar.Item
-            title='Chat'
-            selected={activeTab === CHAT_TAB}
-            onPress={() => dispatch(switchTab(CHAT_TAB))}>
-            {this._renderContent(CHAT_TAB)}
-          </TabBar.Item>
-          <TabBar.Item
-            title='People'
-            systemIcon='contacts'
-            selected={activeTab === PEOPLE_TAB}
-            onPress={() => dispatch(switchTab(PEOPLE_TAB))}>
-            {this._renderContent(PEOPLE_TAB)}
-          </TabBar.Item>
-          <TabBar.Item
-            title='Devices'
-            selected={activeTab === DEVICES_TAB}
-            onPress={() => dispatch(switchTab(DEVICES_TAB))}>
-            {this._renderContent(DEVICES_TAB)}
-          </TabBar.Item>
-          <TabBar.Item
-            title='more'
-            selected={activeTab === MORE_TAB}
-            onPress={() => dispatch(switchTab(MORE_TAB))}>
-            {this._renderContent(MORE_TAB)}
-          </TabBar.Item>
-      </TabBar>
+      <DrawerLayoutAndroid
+        drawerWidth={300}
+        ref='drawer'
+        drawerPosition={DrawerLayoutAndroid.positions.Left}
+        renderNavigationView={() => drawerContnet}>
+        <View collapsable={false} style={{flex: 1}}>
+            <View
+              title={''}
+              style={styles.toolbar}>
+              <View collapsable={false} style={styles.toolbarContent}>
+                <View style={{flex: 0}}>
+                <TouchableNativeFeedback
+                  onPress={ () => this.refs.drawer && this.refs.drawer.openDrawer() }
+                  delayPressIn={0}
+                  background={TouchableNativeFeedback.Ripple('grey', true)} >
+                  <View>
+                    <Image style={[styles.toolbarImage, {marginTop: 4}]} resizeMode={'contain'} source={require('image!ic_menu_black_24dp')}/>
+                  </View>
+                </TouchableNativeFeedback>
+              </View>
+
+                <View style={{marginLeft: 40}}>
+                  <Text style={styles.toolbarName}>{prettify(activeTab)}</Text>
+                </View>
+
+                <View style={styles.toolbarSearchWrapper}>
+                  <TouchableNativeFeedback
+                    onPress={ () => console.log('todo: show search')}
+                    delayPressIn={0}
+                    background={TouchableNativeFeedback.Ripple('grey', true)} >
+                    <View>
+                      <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('image!ic_search_black_24dp')}/>
+                    </View>
+                  </TouchableNativeFeedback>
+                </View>
+              </View>
+            </View>
+          <View collapsable={false} style={{flex: 2}}>
+            <TabBar style={{position: 'absolute', left: 0, right: 0, top: 0, bottom: 0}}>
+                <TabBar.Item
+                  title='Folders'
+                  selected={activeTab === FOLDER_TAB}
+                  onPress={() => dispatch(switchTab(FOLDER_TAB))}>
+                  {this._renderContent(FOLDER_TAB)}
+                </TabBar.Item>
+                <TabBar.Item
+                  title='Chat'
+                  selected={activeTab === CHAT_TAB}
+                  onPress={() => dispatch(switchTab(CHAT_TAB))}>
+                  {this._renderContent(CHAT_TAB)}
+                </TabBar.Item>
+                <TabBar.Item
+                  title='People'
+                  systemIcon='contacts'
+                  selected={activeTab === PEOPLE_TAB}
+                  onPress={() => dispatch(switchTab(PEOPLE_TAB))}>
+                  {this._renderContent(PEOPLE_TAB)}
+                </TabBar.Item>
+                <TabBar.Item
+                  title='Devices'
+                  selected={activeTab === DEVICES_TAB}
+                  onPress={() => dispatch(switchTab(DEVICES_TAB))}>
+                  {this._renderContent(DEVICES_TAB)}
+                </TabBar.Item>
+                <TabBar.Item
+                  title='more'
+                  selected={activeTab === MORE_TAB}
+                  onPress={() => dispatch(switchTab(MORE_TAB))}>
+                  {this._renderContent(MORE_TAB)}
+                </TabBar.Item>
+            </TabBar>
+          </View>
+        </View>
+      </DrawerLayoutAndroid>
+
     )
   }
 }
@@ -177,5 +225,34 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     marginBottom: androidTabBarHeight
+  },
+  toolbar: {
+    height: 50,
+    flex: 0
+  },
+
+  toolbarContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 16,
+    paddingRight: 10
+  },
+
+  toolbarName: {
+    fontWeight: 'bold',
+    fontSize: 24,
+    color: 'black'
+  },
+
+  toolbarImage: {
+    height: 40,
+    width: 30
+  },
+
+  toolbarSearchWrapper: {
+    flex: 2,
+    flexDirection: 'row',
+    justifyContent: 'flex-end'
   }
 })
