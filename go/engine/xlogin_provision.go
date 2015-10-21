@@ -98,6 +98,8 @@ func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
 	return nil, nil
 }
 
+// device provisions this device with an existing device using the
+// kex2 protocol.
 func (e *XLoginProvision) device(ctx *Context) error {
 	provisionerType, err := ctx.ProvisionUI.ChooseProvisionerDeviceType(context.TODO(), 0)
 	if err != nil {
@@ -168,9 +170,25 @@ func (e *XLoginProvision) gpg(ctx *Context) error {
 }
 
 func (e *XLoginProvision) paper(ctx *Context) error {
-	panic("paper provision not yet implemented")
+	// prompt for username (if not provided)
+	// load the user
+	// check if they have any paper keys
+	// if they do, can call findPaperKeys
+	// if that succeeds, then need to get ppstream (for lks).
+	// addDeviceKeyWithSigner
+	return nil
 }
 
 func (e *XLoginProvision) passphrase(ctx *Context) error {
-	panic("passphrase provision not yet implemented")
+	// prompt for the username (if not provided)
+	// load the user
+	// check if they have any devices
+	// if they do, abort
+	// if they have a synced private pgp key, then provision with that
+	// otherwise, add device keys as eldest keys (again, need ppstream)
+	return nil
+}
+
+func (e *XLoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
+	return nil, nil
 }

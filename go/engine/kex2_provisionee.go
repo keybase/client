@@ -21,10 +21,13 @@ type Kex2Provisionee struct {
 	secret       kex2.Secret
 	secretCh     chan kex2.Secret
 	eddsa        libkb.NaclKeyPair
+	dh           libkb.NaclKeyPair
 	uid          keybase1.UID
 	username     string
 	sessionToken keybase1.SessionToken
 	csrfToken    keybase1.CsrfToken
+	pps          keybase1.PassphraseStream
+	lks          *libkb.LKSec
 	ctx          *Context
 }
 
@@ -119,6 +122,7 @@ func (e *Kex2Provisionee) HandleHello(harg keybase1.HelloArg) (res keybase1.Hell
 	e.uid = harg.Uid
 	e.sessionToken = harg.Token
 	e.csrfToken = harg.Csrf
+	e.pps = harg.Pps
 
 	jw, err := jsonw.Unmarshal([]byte(harg.SigBody))
 	if err != nil {
@@ -167,13 +171,13 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 	}
 
 	// TODO: don't throw this away...
-	dh, err := libkb.GenerateNaclDHKeyPair()
+	e.dh, err = libkb.GenerateNaclDHKeyPair()
 	if err != nil {
 		return err
 	}
 
 	// make a keyproof for the dh key, signed w/ e.eddsa
-	dhSig, dhSigID, err := e.dhKeyProof(dh, decSig.eldestKID, decSig.seqno, decSig.linkID)
+	dhSig, dhSigID, err := e.dhKeyProof(e.dh, decSig.eldestKID, decSig.seqno, decSig.linkID)
 	if err != nil {
 		return err
 	}
@@ -183,13 +187,31 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 	if err != nil {
 		return err
 	}
-	dhArgs, err := makeKeyArgs(dhSigID, []byte(dhSig), libkb.SubkeyType, dh, decSig.eldestKID, e.eddsa.GetKID())
+	dhArgs, err := makeKeyArgs(dhSigID, []byte(dhSig), libkb.SubkeyType, e.dh, decSig.eldestKID, e.eddsa.GetKID())
 	if err != nil {
 		return err
 	}
 
 	// post them to the api server
 	err = e.postSigs(eddsaArgs, dhArgs)
+	if err != nil {
+		return err
+	}
+
+	// logged in, so save the login state
+	err = e.saveLoginState()
+	if err != nil {
+		return err
+	}
+
+	// push the LKS server half
+	err = e.pushLKSServerHalf()
+	if err != nil {
+		return err
+	}
+
+	// save device and keys locally
+	err = e.localSave()
 	return err
 }
 
@@ -365,6 +387,98 @@ func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID
 
 	return dhSig, dhSigID, nil
 
+}
+
+func (e *Kex2Provisionee) pushLKSServerHalf() error {
+	// make new lks
+	ppstream := libkb.NewPassphraseStream(e.pps.PassphraseStream)
+	ppstream.SetGeneration(libkb.PassphraseGeneration(e.pps.Generation))
+	e.lks = libkb.NewLKSec(ppstream, e.uid, e.G())
+	e.lks.GenerateServerHalf()
+
+	// make client half recovery
+	chrKID := e.dh.GetKID()
+	chrText, err := e.lks.EncryptClientHalfRecovery(e.dh)
+	if err != nil {
+		return err
+	}
+
+	err = libkb.PostDeviceLKS(e, e.device.ID, e.device.Type, e.lks.GetServerHalf(), e.lks.Generation(), chrText, chrKID)
+	if err != nil {
+		return err
+	}
+
+	// Sync the LKS stuff back from the server, so that subsequent
+	// attempts to use public key login will work.
+	/*
+		err = e.G().LoginState().RunSecretSyncer(e.uid)
+		if err != nil {
+			return err
+		}
+	*/
+
+	return nil
+}
+
+func (e *Kex2Provisionee) localSave() error {
+	if err := e.saveConfig(); err != nil {
+		return err
+	}
+	if err := e.saveKeys(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *Kex2Provisionee) saveLoginState() error {
+	var err error
+	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+		err = a.LoadLoginSession(e.username)
+		if err != nil {
+			return
+		}
+		err = a.SaveState(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), e.uid)
+		if err != nil {
+			return
+		}
+	}, "Kex2Provisionee - saveLoginState()")
+	if aerr != nil {
+		return aerr
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *Kex2Provisionee) saveConfig() error {
+	wr := e.G().Env.GetConfigWriter()
+	if wr == nil {
+		return errors.New("couldn't get config writer")
+	}
+
+	if err := wr.SetDeviceID(e.device.ID); err != nil {
+		return err
+	}
+
+	if err := wr.Write(); err != nil {
+		return err
+	}
+
+	e.G().Log.Debug("Set Device ID to %s in config file", e.device.ID)
+	return nil
+}
+
+func (e *Kex2Provisionee) saveKeys() error {
+	_, err := libkb.WriteLksSKBToKeyring(e.eddsa, e.lks, nil)
+	if err != nil {
+		return err
+	}
+	_, err = libkb.WriteLksSKBToKeyring(e.dh, e.lks, nil)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func firstValues(vals url.Values) map[string]string {

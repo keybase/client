@@ -230,7 +230,11 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	}
 
 	// post them to the server.
-	if err := libkb.PostDeviceLKS(ctx.LoginContext, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	var sr libkb.SessionReader
+	if ctx.LoginContext != nil {
+		sr = ctx.LoginContext.LocalSession()
+	}
+	if err := libkb.PostDeviceLKS(sr, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 

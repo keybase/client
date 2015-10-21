@@ -595,7 +595,7 @@ func (k SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	return 0, nil
 }
 
-func (k *SKBKeyringFile) Save(lui LogUI) error {
+func (k *SKBKeyringFile) Save() error {
 	if !k.dirty {
 		return nil
 	}
@@ -603,7 +603,7 @@ func (k *SKBKeyringFile) Save(lui LogUI) error {
 		return err
 	}
 	k.dirty = false
-	lui.Debug("Updated keyring %s", k.filename)
+	G.Log.Debug("Updated keyring %s", k.filename)
 	return nil
 }
 
@@ -727,9 +727,9 @@ func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretSto
 	return
 }
 
-func (k *SKBKeyringFile) PushAndSave(skb *SKB, lui LogUI) error {
+func (k *SKBKeyringFile) PushAndSave(skb *SKB) error {
 	if err := k.Push(skb); err != nil {
 		return err
 	}
-	return k.Save(lui)
+	return k.Save()
 }
