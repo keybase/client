@@ -241,6 +241,54 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	}
 }
 
+// Test that a write can survive a folder BlockPointer update
+func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
+	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer config.Shutdown()
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	h := NewTlfHandle()
+	uid, err := config.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Errorf("Couldn't get logged in user: %v", err)
+	}
+	h.Writers = append(h.Writers, uid)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	data := []byte{1}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// Now update the folder pointer in some other way
+	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Now sync the original file and see make sure the write survived
+	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+		t.Fatalf("Couldn't sync: %v", err)
+	}
+
+	de, err := kbfsOps.Stat(ctx, fileNode)
+	if err != nil {
+		t.Errorf("Couldn't stat file: %v", err)
+	}
+	if g, e := de.Size, len(data); g != uint64(e) {
+		t.Errorf("Got wrong size %d; expected %d", g, e)
+	}
+}
+
 // Test that a write can happen concurrently with a sync when there
 // are multiple blocks in the file.
 func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
