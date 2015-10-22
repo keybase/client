@@ -149,7 +149,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 			break
 		}
 	}
-	if duplicate {
+	if duplicate && !e.arg.OnlyImport {
 		// This key's already been posted to the server.
 		res, err := ctx.GPGUI.ConfirmDuplicateKeyChosen(context.TODO(), 0)
 		if err != nil {
