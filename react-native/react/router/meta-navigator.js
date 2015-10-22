@@ -5,11 +5,13 @@
  * todo(mm) explain why we need a meta navigator
  */
 
-import React, { Component, View } from 'react-native'
-import { connect } from 'react-redux/native'
+import BaseComponent from '../base-component'
+import React from '../base-react'
+import Render from './meta-navigator-render'
+import { connect } from 'react-redux'
 import Immutable from 'immutable'
 
-class MetaNavigator extends Component {
+class MetaNavigator extends BaseComponent {
   constructor () {
     super()
 
@@ -100,26 +102,7 @@ class MetaNavigator extends Component {
   }
 
   render () {
-    const { store, rootComponent, uri, NavBar, Navigator } = this.props
-
-    let {componentAtTop, routeStack} = this.getComponentAtTop(rootComponent, store, uri)
-
-    return (
-      <Navigator
-        saveName='main'
-        ref='navigator'
-        initialRouteStack={routeStack.toJS()}
-        configureScene={route => route.sceneConfig || Navigator.SceneConfigs.FloatFromRight }
-        renderScene={(route, navigator) => {
-          return (
-            <View style={{flex: 1, marginTop: route.hideNavBar ? 0 : this.props.navBarHeight}}>
-              {React.createElement(connect(route.mapStateToProps || (state => state))(route.component), {...route.props})}
-            </View>
-          )
-        }}
-        navigationBar={componentAtTop.hideNavBar ? null : NavBar}
-      />
-    )
+    return Render.apply(this)
   }
 }
 
