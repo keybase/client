@@ -42,8 +42,7 @@ export default class Nav extends BaseComponent {
       <div>
         {React.createElement(
           connect(state => {
-            let elem = state.tabbedRouter.get('activeTab')
-            return state.tabbedRouter.getIn(['tabs', elem]).toObject()
+            return state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject()
           })(MetaNavigator), {
             store: this.props.store,
             rootComponent: rootComponent || tabToRootComponent[activeTab] || NoTab
