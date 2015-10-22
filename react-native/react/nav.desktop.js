@@ -43,10 +43,6 @@ export default class Nav extends BaseComponent {
         {React.createElement(
           connect(state => {
             let elem = state.tabbedRouter.get('activeTab')
-            // FIXME: After initial load, why do we end up with an array here?
-            if (Array.isArray(elem)) {
-              elem = elem[0]
-            }
             return state.tabbedRouter.getIn(['tabs', elem]).toObject()
           })(MetaNavigator), {
             store: this.props.store,
