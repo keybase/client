@@ -132,6 +132,36 @@ func TestProvisionPassphraseNoKeys(t *testing.T) {
 	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 }
 
+// If a user has (only) a synced pgp key, provision via passphrase
+// should work.
+func TestProvisionPassphraseSyncedPGP(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	u1 := createFakeUserWithPGPOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc = SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+	}
+	eng := NewXLogin(tc.G, libkb.DeviceTypeDesktop, "")
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any device keys, xlogin should have fixed that:
+	testUserHasDeviceKey(tc)
+
+	// and they should have a paper backup key
+	hasOnePaperDev(tc, u1)
+}
+
 type testProvisionUI struct {
 	secretCh chan kex2.Secret
 	method   keybase1.ProvisionMethod
@@ -166,17 +196,17 @@ func (u *testProvisionUI) printf(format string, a ...interface{}) {
 }
 
 func (u *testProvisionUI) ChooseProvisioningMethod(_ context.Context, _ keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
-	// u.printf("ChooseProvisioningMethod")
+	u.printf("ChooseProvisioningMethod")
 	return u.method, nil
 }
 
 func (u *testProvisionUI) ChooseDeviceType(_ context.Context, _ int) (keybase1.DeviceType, error) {
-	// u.printf("ChooseProvisionerDevice")
+	u.printf("ChooseProvisionerDevice")
 	return keybase1.DeviceType_DESKTOP, nil
 }
 
 func (u *testProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
-	// u.printf("DisplayAndPromptSecret")
+	u.printf("DisplayAndPromptSecret")
 	var ks kex2.Secret
 	copy(ks[:], arg.Secret)
 	u.secretCh <- ks
@@ -184,16 +214,16 @@ func (u *testProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1
 }
 
 func (u *testProvisionUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
-	// u.printf("PromptNewDeviceName")
+	u.printf("PromptNewDeviceName")
 	return "device_xxx", nil
 }
 
 func (u *testProvisionUI) DisplaySecretExchanged(_ context.Context, _ int) error {
-	// u.printf("DisplaySecretExchanged")
+	u.printf("DisplaySecretExchanged")
 	return nil
 }
 
 func (u *testProvisionUI) ProvisionSuccess(_ context.Context, _ int) error {
-	// u.printf("ProvisionSuccess")
+	u.printf("ProvisionSuccess")
 	return nil
 }

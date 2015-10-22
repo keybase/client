@@ -156,6 +156,9 @@ func (ss *SecretSyncer) store(uid keybase1.UID) (err error) {
 // FindActiveKey examines the synced keys, looking for one that's currently active.
 // Returns ret=nil if none was found.
 func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
+	if ss.keys == nil {
+		return nil, nil
+	}
 	for _, key := range ss.keys.PrivateKeys {
 		if ret, _ = key.FindActiveKey(ckf); ret != nil {
 			return

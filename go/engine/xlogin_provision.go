@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -191,7 +192,8 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 		return err
 	}
 
-	// check if they have any devices
+	// check if they have any devices, pgp keys
+	hasSinglePGP := false
 	ckf := user.GetComputedKeyFamily()
 	if ckf != nil {
 		devices := ckf.GetAllDevices()
@@ -200,9 +202,17 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 				return libkb.PassphraseProvisionImpossibleError{}
 			}
 		}
+		hasSinglePGP = len(ckf.GetActivePGPKeys(false)) == 1
 	}
 
-	// if they have a synced private pgp key, then provision with that
+	// if they have a single pgp key in their family, there's a chance it is a synced
+	// pgp key, so try provisioning with it.
+	if hasSinglePGP {
+		return e.pgpProvision()
+	}
+
+	e.G().Log.Debug("user %q has no devices, no pgp keys", user.GetName())
+
 	// otherwise, add device keys as eldest keys (again, need ppstream)
 
 	if err := e.addEldestDeviceKey(ctx, user); err != nil {
@@ -214,6 +224,20 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 	}
 
 	return nil
+}
+
+func (e *XLoginProvision) pgpProvision() error {
+	e.G().Log.Debug("pgp provision")
+
+	// need a session to try to get synced private key
+
+	// login with passphrase
+
+	// user.SyncedSecretKey
+
+	// unlock it
+
+	return errors.New("not yet implemented")
 }
 
 // prompt for username (if not provided) and load the user.
