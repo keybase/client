@@ -32,7 +32,11 @@ func (t Terminal) Write(s string) error {
 }
 
 func (t Terminal) Prompt(s string) (string, error) {
-	return t.engine.Prompt(s)
+	s, err := t.engine.Prompt(s)
+	if err == minterm.ErrPromptInterrupted {
+		err = libkb.CanceledError{M: "input canceled"}
+	}
+	return s, err
 }
 
 func (t Terminal) PromptYesNo(p string, def libkb.PromptDefault) (ret bool, err error) {

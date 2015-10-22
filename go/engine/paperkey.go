@@ -66,7 +66,9 @@ func (e *PaperKey) Run(ctx *Context) error {
 	if cki == nil {
 		return fmt.Errorf("no computed key infos")
 	}
+
 	var needReload bool
+	var devicesToRevoke []*libkb.Device
 	for i, bdev := range cki.PaperDevices() {
 		revoke, err := ctx.LoginUI.PromptRevokePaperKeys(context.TODO(),
 			keybase1.PromptRevokePaperKeysArg{
@@ -75,11 +77,16 @@ func (e *PaperKey) Run(ctx *Context) error {
 			})
 		if err != nil {
 			e.G().Log.Warning("prompt error: %s", err)
-			continue
+			return err
 		}
-		if !revoke {
-			continue
+		if revoke {
+			devicesToRevoke = append(devicesToRevoke, bdev)
 		}
+	}
+
+	// Revoke all keys at once, not one-by-one. This way, a cancelation of the
+	// experience above will stop all operations
+	for _, bdev := range devicesToRevoke {
 		reng := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: bdev.ID}, e.G())
 		if err := RunEngine(reng, ctx); err != nil {
 			// probably not a good idea to continue...
