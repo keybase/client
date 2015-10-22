@@ -208,17 +208,18 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 	// if they have a single pgp key in their family, there's a chance it is a synced
 	// pgp key, so try provisioning with it.
 	if hasSinglePGP {
-		return e.pgpProvision()
+		e.G().Log.Debug("user %q has a single pgp key, trying to provision with it", user.GetName())
+		if err := e.pgpProvision(ctx, user); err != nil {
+			return err
+		}
+	} else {
+		e.G().Log.Debug("user %q has no devices, no pgp keys", user.GetName())
+		if err := e.addEldestDeviceKey(ctx, user); err != nil {
+			return err
+		}
 	}
 
-	e.G().Log.Debug("user %q has no devices, no pgp keys", user.GetName())
-
-	// otherwise, add device keys as eldest keys (again, need ppstream)
-
-	if err := e.addEldestDeviceKey(ctx, user); err != nil {
-		return err
-	}
-
+	// and finally, a paper key
 	if err := e.paperKey(ctx, user); err != nil {
 		return err
 	}
@@ -226,18 +227,62 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 	return nil
 }
 
-func (e *XLoginProvision) pgpProvision() error {
+func (e *XLoginProvision) pgpProvision(ctx *Context, user *libkb.User) error {
 	e.G().Log.Debug("pgp provision")
 
 	// need a session to try to get synced private key
+	if err := e.G().LoginState().LoginWithPrompt(user.GetName(), ctx.LoginUI, ctx.SecretUI, nil); err != nil {
+		return err
+	}
 
-	// login with passphrase
+	// this could go in afterFn of LoginWithPrompt?
 
-	// user.SyncedSecretKey
+	key, err := user.SyncedSecretKey(nil)
+	if err != nil {
+		return err
+	}
+	if key == nil {
+		return errors.New("failed to get synced secret key")
+	}
+
+	e.G().Log.Debug("got synced secret key")
 
 	// unlock it
+	unlocked, err := key.PromptAndUnlock(nil, "sign new device", "keybase", nil, ctx.SecretUI, nil, user)
+	if err != nil {
+		return err
+	}
 
-	return errors.New("not yet implemented")
+	e.G().Log.Debug("unlocked secret key")
+
+	eldest := user.GetEldestKID()
+
+	devname, err := e.deviceName(ctx)
+	if err != nil {
+		return err
+	}
+	pps, err := e.ppStream(ctx)
+	if err != nil {
+		return err
+	}
+	if e.lks == nil {
+		e.lks = libkb.NewLKSec(pps, user.GetUID(), e.G())
+	}
+	args := &DeviceWrapArgs{
+		Me:         user,
+		DeviceName: devname,
+		Lks:        e.lks,
+		IsEldest:   false,
+		Signer:     unlocked,
+		EldestKID:  eldest,
+	}
+	eng := NewDeviceWrap(args, e.G())
+	if err := RunEngine(eng, ctx); err != nil {
+		return err
+	}
+
+	e.signingKey = eng.SigningKey()
+	return nil
 }
 
 // prompt for username (if not provided) and load the user.
@@ -263,7 +308,9 @@ func (e *XLoginProvision) addEldestDeviceKey(ctx *Context, user *libkb.User) err
 	if err != nil {
 		return err
 	}
-	e.lks = libkb.NewLKSec(pps, user.GetUID(), e.G())
+	if e.lks == nil {
+		e.lks = libkb.NewLKSec(pps, user.GetUID(), e.G())
+	}
 	args := &DeviceWrapArgs{
 		Me:         user,
 		DeviceName: devname,
