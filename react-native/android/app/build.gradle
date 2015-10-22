@@ -7,9 +7,9 @@ android {
     defaultConfig {
         applicationId "io.keybase.android"
         minSdkVersion 16
-        targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 23
+        versionCode 2
+        versionName "1.0.0-alpha-1"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
