@@ -11,6 +11,7 @@ import People from './tabs/people'
 import Devices from './tabs/devices'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
+import Startup from './tabs/start-up'
 
 import React, { Component, Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback } from 'react-native'
 
@@ -23,15 +24,13 @@ import { startup } from './actions/config'
 
 import * as Constants from './constants/config'
 
-// TODO when kex2 is done import Registration from './login2/register'
-import Welcome from './login2/welcome'
-
 const tabToRootComponent = {
   [FOLDER_TAB]: Folders,
   [CHAT_TAB]: Chat,
   [PEOPLE_TAB]: People,
   [DEVICES_TAB]: Devices,
-  [MORE_TAB]: More
+  [MORE_TAB]: More,
+  [STARTUP_TAB]: Startup
 }
 
 class AndroidNavigator extends Component {
@@ -72,13 +71,13 @@ export default class Nav extends Component {
     this.props.dispatch(startup())
   }
 
-  _renderContent (activeTab, rootComponent) {
+  _renderContent (activeTab) {
     return (
       <View style={styles.tabContent} collapsable={false}>
         {React.createElement(
           connect(state => state.tabbedRouter.getIn(['tabs', activeTab]).toObject())(MetaNavigator), {
             store: this.props.store,
-            rootComponent: rootComponent || tabToRootComponent[activeTab] || NoTab,
+            rootComponent: tabToRootComponent[activeTab] || NoTab,
             globalRoutes,
             navBarHeight: 0,
             Navigator: AndroidNavigator,
@@ -114,12 +113,8 @@ export default class Nav extends Component {
       )
     }
 
-    if (this.props.config.navState === Constants.navNeedsRegistration) {
-      // TODO when kex2 is done return this._renderContent(STARTUP_TAB, Registration)
-    }
-
-    if (this.props.config.navState === Constants.navNeedsLogin) {
-      return this._renderContent(STARTUP_TAB, Welcome)
+    if (activeTab === STARTUP_TAB) {
+      return this._renderContent(STARTUP_TAB)
     }
 
     const drawerContnet = (

@@ -1,6 +1,7 @@
 'use strict'
 
 import { NativeModules } from 'react-native'
+import * as LoginConstants from '../constants/login2'
 import * as Constants from '../constants/config'
 import { autoLogin } from './login2'
 import engine from '../engine'
@@ -21,6 +22,14 @@ export function startup () {
               type: Constants.startupLoaded,
               payload: { config, status }
             })
+
+            if (status) {
+              if (!status.registered) {
+                dispatch({ type: LoginConstants.needsRegistering })
+              } else if (!status.loggedIn) {
+                dispatch({ type: LoginConstants.needsLogin })
+              }
+            }
 
             if (status.loggedIn) {
               dispatch(autoLogin())
