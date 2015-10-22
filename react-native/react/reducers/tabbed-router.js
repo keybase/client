@@ -34,6 +34,9 @@ export default function (state = initialState, action) {
       return state.set('activeTab', FOLDER_TAB)
     case LoginConstants.logoutDone:
       return state.set('activeTab', STARTUP_TAB)
+    case LoginConstants.needsLogin:
+    case LoginConstants.needsRegistering:
+      return state.set('activeTab', STARTUP_TAB).updateIn(['tabs', STARTUP_TAB], (routerState) => routerReducer(routerState, action))
     default:
       return state.updateIn(['tabs', state.get('activeTab')], (routerState) => routerReducer(routerState, action))
   }

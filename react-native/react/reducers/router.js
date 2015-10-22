@@ -4,6 +4,7 @@ import * as loginTypes from '../constants/login-action-types'
 import * as routerTypes from '../constants/router-action-types'
 import Immutable from 'immutable'
 import * as localDebug from '../local-debug'
+import * as LoginConstants from '../constants/login2'
 
 const initialState = createRouterState(['nav'], [])
 
@@ -64,6 +65,10 @@ export default function (state = initialState, action) {
       return stateWithHistory.set('uri', parseUri(action.uri))
     case routerTypes.NAVIGATE_APPEND:
       return stateWithHistory.update('uri', (uri) => uri.push(parsePath(action.topRoute)))
+    case LoginConstants.needsLogin:
+      return state.set('uri', parseUri(['login']))
+    case LoginConstants.needsRegistering:
+      return state.set('uri', parseUri(['register']))
     // TODO(mm) remove these and replace them with NAVIGATE's
     case loginTypes.START_LOGIN:
       return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
