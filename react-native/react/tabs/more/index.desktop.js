@@ -1,7 +1,6 @@
 'use strict'
 
 import React, { Component } from 'react'
-//import commonStyles from '../../styles/common'
 import * as LoginActions from '../../actions/login'
 import * as SearchActions from '../../actions/search'
 import { navigateTo } from '../../actions/router'
@@ -70,26 +69,19 @@ export default class More extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    const routes = {
-      'login': require('../../login').parseRoute,
-/*
-      'about': require('./about').parseRoute,
-      'developer': require('./developer').parseRoute,
-      'navDebug': require('../../debug/nav-debug').parseRoute,
-      'bridging': require('../../debug/bridging-tabs').parseRoute,
-      'qr': require('../../qr').parseRoute,
-      'login2': require('../../login2').parseRoute
-*/
-    }
-
-    const componentAtTop = {
-      title: 'More',
-      component: More
-    }
-
     return {
-      componentAtTop,
-      parseNextRoute: routes[nextPath.get('path')] || null
+      componentAtTop: {
+        title: 'More'
+      },
+      subRoutes: {
+        'login': require('../../login'),
+        'about': require('./about')
+        //'developer': require('./developer'),
+        //'navDebug': require('../../debug/nav-debug'),
+        //'bridging': require('../../debug/bridging-tabs'),
+        //'qr': require('../../qr'),
+        //'login2': require('../../login2')
+      }
     }
   }
 }

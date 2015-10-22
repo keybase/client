@@ -1,10 +1,11 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, View, Text } from 'react-native'
-import commonStyles from '../../styles/common'
+import React, { StyleSheet } from '../../base-react'
+import BaseComponent from '../../base-component'
+import Render from './about-render'
 
-export default class About extends Component {
+export default class About extends BaseComponent {
   constructor (props) {
     super(props)
 
@@ -13,11 +14,7 @@ export default class About extends Component {
 
   // TODO get version from golang
   render () {
-    return (
-        <View style={styles.container}>
-          <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Version 0.1</Text>
-        </View>
-    )
+    return Render.apply(this)
   }
 
   static parseRoute (store, currentPath, nextPath) {
@@ -31,6 +28,7 @@ export default class About extends Component {
 
 About.propTypes = {}
 
+console.log(StyleSheet)
 const styles = StyleSheet.create({
   container: {
     flex: 1,

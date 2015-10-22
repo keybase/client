@@ -3,7 +3,7 @@
 
 import React from 'react'
 
-export default function (props, state) {
+export default function () {
   return (
     <div>
       <h2> Folders go here </h2>

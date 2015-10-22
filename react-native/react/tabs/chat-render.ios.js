@@ -3,7 +3,7 @@
 
 import React, { Text, View } from 'react-native'
 
-export default function (props, state) {
+export default function () {
   return (
     <View style={{flex: 1, justifyContent: 'center'}}>
       <Text> Folders go here</Text>
