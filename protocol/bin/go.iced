@@ -233,7 +233,7 @@ class GoEmitter
     res = details.response
     resvar = if res is "null" then "" else "ret, "
     pt = @go_primitive_type arg.type
-    @output "Handler: func(args interface{}) (ret interface{}, err error) {"
+    @output "Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {"
     @tab()
     if arg.nargs > 0
       @output "typedArgs, ok := args.(*[]#{pt})"
@@ -247,7 +247,7 @@ class GoEmitter
     else
       access = if arg.nargs is 1 then ".#{@go_export_case arg.single.name}" else ''
       "(*typedArgs)[0]#{access}"
-    @output "#{resvar}err = i.#{@go_export_case(name)}(context.TODO(), #{farg})"
+    @output "#{resvar}err = i.#{@go_export_case(name)}(ctx, #{farg})"
     @output "return"
     @untab()
     @output "},"
