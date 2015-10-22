@@ -36,6 +36,8 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     private static final String PREFS_KEY = "wrappedKey_";
     private static final String KEY_ALIAS = "keybase-rsa-wrapper_";
 
+    private static final String ALGORITHM = "SECRETBOX";
+
     public KeyStore(final Context context, final SharedPreferences prefs) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         this.context = context;
         this.prefs = prefs;
@@ -81,7 +83,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
             return null;
         }
 
-        if (entry == null || !(entry instanceof PrivateKeyEntry)){
+        if (!(entry instanceof PrivateKeyEntry)){
             return null;
         }
 
@@ -130,7 +132,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
             throw new KeyStoreException("No RSA keys in the keystore");
         }
 
-        final byte[] wrappedSecret = wrapSecret((PrivateKeyEntry) entry, new SecretKeySpec(bytes, "SECRETBOX"));
+        final byte[] wrappedSecret = wrapSecret((PrivateKeyEntry) entry, new SecretKeySpec(bytes, ALGORITHM));
 
         if (wrappedSecret == null) {
             throw new IOException("Null return when wrapping secret");
@@ -168,7 +170,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
         KeyPair mPair = new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
         Cipher mCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         mCipher.init(Cipher.UNWRAP_MODE, mPair.getPrivate());
-        return (SecretKey) mCipher.unwrap(wrappedSecretKey, "SECRETBOX", Cipher.SECRET_KEY);
+        return (SecretKey) mCipher.unwrap(wrappedSecretKey, ALGORITHM, Cipher.SECRET_KEY);
     }
 
 
