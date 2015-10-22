@@ -22,7 +22,7 @@ export default class Startup extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        title: 'More'
+        hideNavBar: true
       },
       subRoutes: {
         login: require('../login2/welcome'),
