@@ -34,7 +34,10 @@ func TestXLogin(t *testing.T) {
 
 	// provisionee calls xlogin:
 	ctx := &Context{
-		ProvisionUI: &testProvisionUI{secretCh: secretCh},
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
 	}
 	eng := NewXLogin(tcY.G, libkb.DeviceTypeDesktop, "")
 
@@ -44,8 +47,10 @@ func TestXLogin(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		tcY.G.Log.Warning("starting xlogin")
 		if err := RunEngine(eng, ctx); err != nil {
-			t.Fatal(err)
+			t.Errorf("xlogin error: %s", err)
+			return
 		}
 	}()
 
@@ -57,7 +62,7 @@ func TestXLogin(t *testing.T) {
 
 		ctx := &Context{
 			SecretUI:    userX.NewSecretUI(),
-			ProvisionUI: &testProvisionUI{},
+			ProvisionUI: newTestProvisionUI(),
 		}
 		if err := RunEngine(provisioner, ctx); err != nil {
 			t.Errorf("provisioner error: %s", err)
@@ -85,8 +90,10 @@ func TestProvisionPassphraseFail(t *testing.T) {
 	defer tcY.Cleanup()
 
 	ctx := &Context{
-		ProvisionUI: &testProvisionPassphraseUI{},
+		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
 	}
 	eng := NewXLogin(tcY.G, libkb.DeviceTypeDesktop, "")
 	err := RunEngine(eng, ctx)
@@ -96,6 +103,33 @@ func TestProvisionPassphraseFail(t *testing.T) {
 	if _, ok := err.(libkb.PassphraseProvisionImpossibleError); !ok {
 		t.Fatalf("expected PassphraseProvisionImpossibleError, got %T (%s)", err, err)
 	}
+}
+
+// If a user has no keys, provision via passphrase should work.
+func TestProvisionPassphraseNoKeys(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	username, passphrase := createFakeUserWithNoKeys(tc)
+
+	Logout(tc)
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
+	}
+	eng := NewXLogin(tc.G, libkb.DeviceTypeDesktop, "")
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any keys, login should have fixed that:
+	testUserHasDeviceKey(tc)
+
+	// and they should have a paper backup key
+	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 }
 
 type testProvisionUI struct {
@@ -109,6 +143,12 @@ func newTestProvisionUI() *testProvisionUI {
 	if len(os.Getenv("KB_TEST_VERBOSE")) > 0 {
 		ui.verbose = true
 	}
+	return ui
+}
+
+func newTestProvisionUISecretCh(ch chan kex2.Secret) *testProvisionUI {
+	ui := newTestProvisionUI()
+	ui.secretCh = ch
 	return ui
 }
 
@@ -126,19 +166,17 @@ func (u *testProvisionUI) printf(format string, a ...interface{}) {
 }
 
 func (u *testProvisionUI) ChooseProvisioningMethod(_ context.Context, _ keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
-	u.printf("ChooseProvisioningMethod")
+	// u.printf("ChooseProvisioningMethod")
 	return u.method, nil
 }
 
 func (u *testProvisionUI) ChooseDeviceType(_ context.Context, _ int) (keybase1.DeviceType, error) {
-	if u.verbose {
-		fmt.Printf("ChooseProvisionerDevice\n")
-	}
+	// u.printf("ChooseProvisionerDevice")
 	return keybase1.DeviceType_DESKTOP, nil
 }
 
 func (u *testProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
-	fmt.Printf("DisplayAndPromptSecret\n")
+	// u.printf("DisplayAndPromptSecret")
 	var ks kex2.Secret
 	copy(ks[:], arg.Secret)
 	u.secretCh <- ks
@@ -146,25 +184,16 @@ func (u *testProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1
 }
 
 func (u *testProvisionUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
-	fmt.Printf("PromptNewDeviceName\n")
+	// u.printf("PromptNewDeviceName")
 	return "device_xxx", nil
 }
 
 func (u *testProvisionUI) DisplaySecretExchanged(_ context.Context, _ int) error {
-	fmt.Printf("DisplaySecretExchanged\n")
+	// u.printf("DisplaySecretExchanged")
 	return nil
 }
 
 func (u *testProvisionUI) ProvisionSuccess(_ context.Context, _ int) error {
-	fmt.Printf("ProvisionSuccess\n")
+	// u.printf("ProvisionSuccess")
 	return nil
-}
-
-type testProvisionPassphraseUI struct {
-	testProvisionUI
-}
-
-func (u *testProvisionPassphraseUI) ChooseProvisioningMethod(_ context.Context, _ keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
-	fmt.Printf("ChooseProvisioningMethod\n")
-	return keybase1.ProvisionMethod_PASSPHRASE, nil
 }

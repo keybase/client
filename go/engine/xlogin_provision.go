@@ -14,7 +14,9 @@ import (
 // device.
 type XLoginProvision struct {
 	libkb.Contextified
-	arg *XLoginProvisionArg
+	arg        *XLoginProvisionArg
+	lks        *libkb.LKSec
+	signingKey libkb.GenericKey
 }
 
 type XLoginProvisionArg struct {
@@ -46,23 +48,23 @@ func (e *XLoginProvision) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.ProvisionUIKind,
 		libkb.LoginUIKind,
+		libkb.SecretUIKind,
 	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *XLoginProvision) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{
+		&DeviceWrap{},
+		&PaperKeyPrimary{},
+	}
 }
 
 // Run starts the engine.
-func (e *XLoginProvision) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ XLoginProvision.Run()")
-	defer func() { e.G().Log.Debug("- XLoginProvision.Run() -> %s", libkb.ErrToOk(err)) }()
-
+func (e *XLoginProvision) Run(ctx *Context) error {
 	// check we have a good device type:
 	if e.arg.DeviceType != libkb.DeviceTypeDesktop && e.arg.DeviceType != libkb.DeviceTypeMobile {
-		err = fmt.Errorf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)
-		return err
+		return fmt.Errorf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)
 	}
 
 	availableGPGPrivateKeyUsers, err := e.searchGPG(ctx)
@@ -78,22 +80,19 @@ func (e *XLoginProvision) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("chosen method: %v", method)
 
 	switch method {
 	case keybase1.ProvisionMethod_DEVICE:
-		err = e.device(ctx)
+		return e.device(ctx)
 	case keybase1.ProvisionMethod_GPG:
-		err = e.gpg(ctx)
+		return e.gpg(ctx)
 	case keybase1.ProvisionMethod_PAPER_KEY:
-		err = e.paper(ctx)
+		return e.paper(ctx)
 	case keybase1.ProvisionMethod_PASSPHRASE:
-		err = e.passphrase(ctx)
-	default:
-		err = fmt.Errorf("unhandled provisioning method: %v", method)
+		return e.passphrase(ctx)
 	}
 
-	return err
+	return fmt.Errorf("unhandled provisioning method: %v", method)
 }
 
 // searchGPG looks in local gpg keyring for any private keys
@@ -194,15 +193,25 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 
 	// check if they have any devices
 	ckf := user.GetComputedKeyFamily()
-	devices := ckf.GetAllDevices()
-	for _, dev := range devices {
-		if *dev.Status == libkb.DeviceStatusActive {
-			return libkb.PassphraseProvisionImpossibleError{}
+	if ckf != nil {
+		devices := ckf.GetAllDevices()
+		for _, dev := range devices {
+			if *dev.Status == libkb.DeviceStatusActive {
+				return libkb.PassphraseProvisionImpossibleError{}
+			}
 		}
 	}
 
 	// if they have a synced private pgp key, then provision with that
 	// otherwise, add device keys as eldest keys (again, need ppstream)
+
+	if err := e.addEldestDeviceKey(ctx, user); err != nil {
+		return err
+	}
+
+	if err := e.paperKey(ctx, user); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -216,5 +225,51 @@ func (e *XLoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 		}
 		e.arg.Username = username
 	}
-	return libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.arg.Username))
+	arg := libkb.NewLoadUserByNameArg(e.G(), e.arg.Username)
+	arg.PublicKeyOptional = true
+	return libkb.LoadUser(arg)
+}
+
+func (e *XLoginProvision) addEldestDeviceKey(ctx *Context, user *libkb.User) error {
+	devname, err := e.deviceName(ctx)
+	if err != nil {
+		return err
+	}
+	pps, err := e.ppStream(ctx)
+	if err != nil {
+		return err
+	}
+	e.lks = libkb.NewLKSec(pps, user.GetUID(), e.G())
+	args := &DeviceWrapArgs{
+		Me:         user,
+		DeviceName: devname,
+		Lks:        e.lks,
+		IsEldest:   true,
+	}
+	eng := NewDeviceWrap(args, e.G())
+	if err := RunEngine(eng, ctx); err != nil {
+		return err
+	}
+
+	e.signingKey = eng.SigningKey()
+	return nil
+}
+
+func (e *XLoginProvision) paperKey(ctx *Context, user *libkb.User) error {
+	args := &PaperKeyPrimaryArgs{
+		SigningKey: e.signingKey,
+		Me:         user,
+	}
+	eng := NewPaperKeyPrimary(e.G(), args)
+	return RunEngine(eng, ctx)
+}
+
+func (e *XLoginProvision) deviceName(ctx *Context) (string, error) {
+	// TODO: get existing device names
+	arg := keybase1.PromptNewDeviceNameArg{}
+	return ctx.ProvisionUI.PromptNewDeviceName(context.TODO(), arg)
+}
+
+func (e *XLoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
+	return e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
 }

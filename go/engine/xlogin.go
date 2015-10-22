@@ -53,13 +53,10 @@ func (e *XLogin) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *XLogin) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ XLogin.Run()")
-	defer func() { e.G().Log.Debug("- XLogin.Run() -> %s", libkb.ErrToOk(err)) }()
-
+func (e *XLogin) Run(ctx *Context) error {
 	// first see if this device is already provisioned and it is possible to log in:
 	eng := NewXLoginCurrentDevice(e.G(), e.username)
-	err = RunEngine(eng, ctx)
+	err := RunEngine(eng, ctx)
 	if err == nil {
 		// login successful
 		e.G().Log.Debug("XLoginCurrentDevice.Run() was successful")
@@ -80,9 +77,7 @@ func (e *XLogin) Run(ctx *Context) (err error) {
 		Username:   e.username,
 	}
 	deng := NewXLoginProvision(e.G(), darg)
-	err = RunEngine(deng, ctx)
-
-	return err
+	return RunEngine(deng, ctx)
 }
 
 // notProvisionedErr will return true if err signifies that login
@@ -96,6 +91,8 @@ func (e *XLogin) notProvisionedErr(err error) bool {
 	}
 	switch err.(type) {
 	case libkb.SecretStoreError:
+		return true
+	case libkb.NoKeyError:
 		return true
 	}
 

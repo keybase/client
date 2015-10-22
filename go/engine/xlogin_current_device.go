@@ -39,10 +39,7 @@ func (e *XLoginCurrentDevice) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *XLoginCurrentDevice) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ XLoginCurrentDevice.Run()")
-	defer func() { e.G().Log.Debug("- XLoginCurrentDevice.Run() -> %s", libkb.ErrToOk(err)) }()
-
+func (e *XLoginCurrentDevice) Run(ctx *Context) error {
 	// already logged in?
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {
@@ -70,8 +67,7 @@ func (e *XLoginCurrentDevice) Run(ctx *Context) (err error) {
 	}
 
 	if len(e.username) == 0 {
-		err = errNoUsername
-		return err
+		return errNoUsername
 	}
 
 	// try pubkey/stored secret login:
@@ -80,11 +76,19 @@ func (e *XLoginCurrentDevice) Run(ctx *Context) (err error) {
 	}
 	err = e.G().LoginState().LoginWithStoredSecret(e.username, after)
 
-	// XXX if that didn't work because of a stored secret error, the user
-	// still could be on a provisioned device, they just didn't store the
-	// secret and need to enter a passphrase.
-	//
-	// check if there is a device id in config file for e.username?
+	if err == nil {
+		// login worked
+		return nil
+	}
+
+	if _, ok := err.(libkb.SecretStoreError); ok {
+
+		// XXX if that didn't work because of a stored secret error, the user
+		// still could be on a provisioned device, they just didn't store the
+		// secret and need to enter a passphrase.
+		//
+		// check if there is a device id in config file for e.username?
+	}
 
 	return err
 }
