@@ -84,31 +84,47 @@ func (p *provisioner) setDeviceID() (err error) {
 }
 
 func (p *provisioner) pickFirstConnection() (err error) {
-	var conn net.Conn
-	if conn, err = NewConn(p.arg.Mr, p.arg.Secret, p.deviceID, p.arg.Timeout); err != nil {
-		return err
-	}
 
-	prot := keybase1.Kex2ProvisionerProtocol(p)
-	xp := rpc.NewTransport(conn, p.arg.Provisioner.GetLogFactory(), nil)
-	srv := rpc.NewServer(xp, nil)
-	if err = srv.Register(prot); err != nil {
-		return err
-	}
-	if err = srv.Run(true); err != nil {
-		return err
+	// This connection is auto-closed at the end of this function, so if
+	// you don't want it to close, then set it to nil.  See the first
+	// case in the select below.
+	var conn net.Conn
+	var xp rpc.Transporter
+
+	defer func() {
+		if conn != nil {
+			conn.Close()
+		}
+	}()
+
+	// Only make a channel if we were provided a secret to start it with.
+	// If not, we'll just have to wait for a message on p.arg.SecretChannel
+	// and use the provisionee's channel.
+	if len(p.arg.Secret) != 0 {
+		if conn, err = NewConn(p.arg.Mr, p.arg.Secret, p.deviceID, p.arg.Timeout); err != nil {
+			return err
+		}
+		prot := keybase1.Kex2ProvisionerProtocol(p)
+		xp = rpc.NewTransport(conn, p.arg.Provisioner.GetLogFactory(), nil)
+		srv := rpc.NewServer(xp, nil)
+		if err = srv.Register(prot); err != nil {
+			return err
+		}
+		if err = srv.Run(true); err != nil {
+			return err
+		}
 	}
 
 	select {
 	case <-p.start:
 		p.conn = conn
+		conn = nil // so it's not closed in the defer()'ed close
 		p.xp = xp
 	case sec := <-p.arg.SecretChannel:
 		if p.conn, err = NewConn(p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}
 		p.xp = rpc.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(), nil)
-		conn.Close()
 	case <-p.arg.Ctx.Done():
 		err = ErrCanceled
 	case <-time.After(p.arg.Timeout):
