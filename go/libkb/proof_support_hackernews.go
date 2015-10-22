@@ -97,7 +97,7 @@ func (t HackerNewsServiceType) AllStringKeys() []string     { return t.BaseAllSt
 func (t HackerNewsServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
 
 func (t HackerNewsServiceType) CheckUsername(s string) (err error) {
-	if regexp.MustCompile(`^@?(?i:[a-z0-9_-]{2,15})$`).MatchString(s) {
+	if !regexp.MustCompile(`^@?(?i:[a-z0-9_-]{2,15})$`).MatchString(s) {
 		err = BadUsernameError{s}
 	}
 	return
