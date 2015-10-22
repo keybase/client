@@ -117,6 +117,20 @@ func (p CommandLine) GetSocketFile() string {
 func (p CommandLine) GetPidFile() string {
 	return p.GetGString("pid-file")
 }
+func (p CommandLine) GetScraperTimeout() (time.Duration, bool) {
+	ret, err := p.GetGDuration("scraper-timeout")
+	if err != nil {
+		return 0, false
+	}
+	return ret, true
+}
+func (p CommandLine) GetAPITimeout() (time.Duration, bool) {
+	ret, err := p.GetGDuration("api-timeout")
+	if err != nil {
+		return 0, false
+	}
+	return ret, true
+}
 func (p CommandLine) GetGpgOptions() []string {
 	var ret []string
 	s := p.GetGString("gpg-options")
@@ -317,6 +331,14 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "timers",
 			Usage: "Specify 'a' for API; 'r' for RPCs; and 'x' for eXternal API calls",
+		},
+		cli.StringFlag{
+			Name:  "scraper-timeout",
+			Usage: "set the HTTP timeout for external proof scrapers",
+		},
+		cli.StringFlag{
+			Name:  "api-timeout",
+			Usage: "set the HTTP timeout for API calls to the keybase API server",
 		},
 	}
 	if extraFlags != nil {

@@ -52,6 +52,9 @@ type CommandLine interface {
 	GetLogFile() string
 	GetRunMode() (RunMode, error)
 
+	GetScraperTimeout() (time.Duration, bool)
+	GetAPITimeout() (time.Duration, bool)
+
 	// Lower-level functions
 	GetGString(string) string
 	GetString(string) string
@@ -122,6 +125,8 @@ type ConfigReader interface {
 	GetSplitLogOutput() (bool, bool)
 	GetLogFile() string
 	GetRunMode() (RunMode, error)
+	GetScraperTimeout() (time.Duration, bool)
+	GetAPITimeout() (time.Duration, bool)
 }
 
 type ConfigWriter interface {

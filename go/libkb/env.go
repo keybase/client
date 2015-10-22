@@ -49,6 +49,8 @@ func (n NullConfiguration) GetRunMode() (RunMode, error)                  { retu
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                   { return false, false }
 func (n NullConfiguration) GetSplitLogOutput() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetLogFile() string                            { return "" }
+func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)      { return 0, false }
+func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)          { return 0, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -496,6 +498,22 @@ func (e *Env) GetUserCacheMaxAge() time.Duration {
 		func() (time.Duration, bool) { return e.cmd.GetUserCacheMaxAge() },
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_USER_CACHE_MAX_AGE") },
 		func() (time.Duration, bool) { return e.config.GetUserCacheMaxAge() },
+	)
+}
+
+func (e *Env) GetAPITimeout() time.Duration {
+	return e.GetDuration(HTTPDefaultTimeout,
+		func() (time.Duration, bool) { return e.cmd.GetAPITimeout() },
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_API_TIMEOUT") },
+		func() (time.Duration, bool) { return e.config.GetAPITimeout() },
+	)
+}
+
+func (e *Env) GetScraperTimeout() time.Duration {
+	return e.GetDuration(HTTPDefaultTimeout,
+		func() (time.Duration, bool) { return e.cmd.GetScraperTimeout() },
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_SCRAPER_TIMEOUT") },
+		func() (time.Duration, bool) { return e.config.GetScraperTimeout() },
 	)
 }
 

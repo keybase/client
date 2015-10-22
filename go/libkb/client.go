@@ -66,10 +66,10 @@ func ShortCA(raw string) string {
 	return strings.Join(parts, " ") + "..."
 }
 
-// Pull the information out of the environment configuration,
+// GenClientConfigForInternalAPI pulls the information out of the environment configuration,
 // and build a Client config that will be used in all API server
 // requests
-func (e *Env) GenClientConfig() (*ClientConfig, error) {
+func (e *Env) GenClientConfigForInternalAPI() (*ClientConfig, error) {
 	serverURI := e.GetServerURI()
 
 	if serverURI == "" {
@@ -101,8 +101,15 @@ func (e *Env) GenClientConfig() (*ClientConfig, error) {
 		return nil, err
 	}
 
-	ret := &ClientConfig{host, port, useTLS, url, rootCAs, url.Path, true, HTTPDefaultTimeout}
+	ret := &ClientConfig{host, port, useTLS, url, rootCAs, url.Path, true, e.GetAPITimeout()}
 	return ret, nil
+}
+
+func (e *Env) GenClientConfigForScrapers() (*ClientConfig, error) {
+	return &ClientConfig{
+		UseCookies: true,
+		Timeout:    e.GetScraperTimeout(),
+	}, nil
 }
 
 func NewClient(config *ClientConfig, needCookie bool) *Client {
@@ -119,9 +126,11 @@ func NewClient(config *ClientConfig, needCookie bool) *Client {
 			Proxy:           http.ProxyFromEnvironment,
 			TLSClientConfig: &tls.Config{RootCAs: config.RootCAs},
 		}
-		timeout = config.Timeout
-	} else {
+	}
+	if config == nil || config.Timeout == 0 {
 		timeout = HTTPDefaultTimeout
+	} else {
+		timeout = config.Timeout
 	}
 
 	ret := &Client{
