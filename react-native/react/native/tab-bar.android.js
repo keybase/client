@@ -38,6 +38,24 @@ export default class TabBar extends Component {
     super(props)
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    // If the titles are the same, then we aren't going to rerender.
+    const oldTabs = this.props.children
+    const newTabs = nextProps.children
+    const oldTitles = oldTabs.map((t) => t.props.title)
+    const newTitles = newTabs.map((t) => t.props.title)
+    if (oldTitles.length !== newTitles.length) {
+      return true
+    }
+
+    oldTitles.forEach((oldTitle, i) => {
+      if (oldTitle !== newTitles[i]) {
+        return true
+      }
+    })
+    return false
+  }
+
   render () {
     const tabs = this.props.children
     const titles = tabs.map((t) => t.props.title)
