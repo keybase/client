@@ -44,20 +44,26 @@ type Requester interface {
 // Make a new InternalApiEngine and a new ExternalApiEngine, which share the
 // same network config (i.e., TOR and Proxy parameters)
 func NewAPIEngines(e *Env, g *GlobalContext) (*InternalAPIEngine, *ExternalAPIEngine, error) {
-	config, err := e.GenClientConfig()
+	cliConfig, err := e.GenClientConfigForInternalAPI()
 	if err != nil {
 		return nil, nil, err
 	}
 
 	i := &InternalAPIEngine{
 		BaseAPIEngine{
-			config:       config,
+			config:       cliConfig,
 			clients:      make(map[int]*Client),
 			Contextified: NewContextified(g),
 		},
 	}
+	scraperConfig, err := e.GenClientConfigForScrapers()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	x := &ExternalAPIEngine{
 		BaseAPIEngine{
+			config:       scraperConfig,
 			clients:      make(map[int]*Client),
 			Contextified: NewContextified(g),
 		},
