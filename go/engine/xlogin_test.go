@@ -73,6 +73,10 @@ func TestXLogin(t *testing.T) {
 	provisioner.AddSecret(secretFromY)
 
 	wg.Wait()
+
+	if err := AssertLoggedIn(tcY); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // If a user has device keys, selecting the username/passphrase
@@ -103,6 +107,10 @@ func TestProvisionPassphraseFail(t *testing.T) {
 	if _, ok := err.(libkb.PassphraseProvisionImpossibleError); !ok {
 		t.Fatalf("expected PassphraseProvisionImpossibleError, got %T (%s)", err, err)
 	}
+
+	if err := AssertLoggedIn(tcY); err == nil {
+		t.Fatal("should not be logged in")
+	}
 }
 
 // If a user has no keys, provision via passphrase should work.
@@ -130,6 +138,10 @@ func TestProvisionPassphraseNoKeys(t *testing.T) {
 
 	// and they should have a paper backup key
 	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
+
+	if err := AssertLoggedIn(tc); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // If a user has (only) a synced pgp key, provision via passphrase
@@ -160,6 +172,10 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 
 	// and they should have a paper backup key
 	hasOnePaperDev(tc, u1)
+
+	if err := AssertLoggedIn(tc); err != nil {
+		t.Fatal(err)
+	}
 }
 
 type testProvisionUI struct {

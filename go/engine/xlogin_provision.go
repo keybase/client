@@ -195,7 +195,7 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 	}
 
 	// check if they have any devices, pgp keys
-	hasSinglePGP := false
+	hasPGP := false
 	ckf := e.user.GetComputedKeyFamily()
 	if ckf != nil {
 		devices := ckf.GetAllDevices()
@@ -204,13 +204,13 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 				return libkb.PassphraseProvisionImpossibleError{}
 			}
 		}
-		hasSinglePGP = len(ckf.GetActivePGPKeys(false)) == 1
+		hasPGP = len(ckf.GetActivePGPKeys(false)) > 0
 	}
 
-	// if they have a single pgp key in their family, there's a chance it is a synced
+	// if they have any pgp keys in their family, there's a chance there is a synced
 	// pgp key, so try provisioning with it.
-	if hasSinglePGP {
-		e.G().Log.Debug("user %q has a single pgp key, trying to provision with it", e.user.GetName())
+	if hasPGP {
+		e.G().Log.Debug("user %q has a pgp key, trying to provision with it", e.user.GetName())
 		if err := e.pgpProvision(ctx); err != nil {
 			return err
 		}
@@ -221,7 +221,7 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 		}
 	}
 
-	// and finally, a paper key
+	// and finally, a paper key, since this is their first device
 	if err := e.paperKey(ctx); err != nil {
 		return err
 	}
@@ -230,8 +230,6 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 }
 
 func (e *XLoginProvision) pgpProvision(ctx *Context) error {
-	e.G().Log.Debug("pgp provision")
-
 	// need a session to try to get synced private key
 	if err := e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, nil); err != nil {
 		return err
