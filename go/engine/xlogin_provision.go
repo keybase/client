@@ -204,7 +204,7 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 	// if they have a synced private pgp key, then provision with that
 	// otherwise, add device keys as eldest keys (again, need ppstream)
 
-	return libkb.PassphraseProvisionImpossibleError{}
+	return nil
 }
 
 // prompt for username (if not provided) and load the user.

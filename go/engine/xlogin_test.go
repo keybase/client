@@ -3,6 +3,7 @@ package engine
 import (
 	"crypto/rand"
 	"fmt"
+	"os"
 	"sync"
 	"testing"
 
@@ -99,15 +100,40 @@ func TestProvisionPassphraseFail(t *testing.T) {
 
 type testProvisionUI struct {
 	secretCh chan kex2.Secret
+	method   keybase1.ProvisionMethod
+	verbose  bool
+}
+
+func newTestProvisionUI() *testProvisionUI {
+	ui := &testProvisionUI{method: keybase1.ProvisionMethod_DEVICE}
+	if len(os.Getenv("KB_TEST_VERBOSE")) > 0 {
+		ui.verbose = true
+	}
+	return ui
+}
+
+func newTestProvisionUIPassphrase() *testProvisionUI {
+	ui := newTestProvisionUI()
+	ui.method = keybase1.ProvisionMethod_PASSPHRASE
+	return ui
+}
+
+func (u *testProvisionUI) printf(format string, a ...interface{}) {
+	if !u.verbose {
+		return
+	}
+	fmt.Printf("testProvisionUI: "+format+"\n", a...)
 }
 
 func (u *testProvisionUI) ChooseProvisioningMethod(_ context.Context, _ keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
-	fmt.Printf("ChooseProvisioningMethod\n")
-	return keybase1.ProvisionMethod_DEVICE, nil
+	u.printf("ChooseProvisioningMethod")
+	return u.method, nil
 }
 
 func (u *testProvisionUI) ChooseDeviceType(_ context.Context, _ int) (keybase1.DeviceType, error) {
-	fmt.Printf("ChooseProvisionerDevice\n")
+	if u.verbose {
+		fmt.Printf("ChooseProvisionerDevice\n")
+	}
 	return keybase1.DeviceType_DESKTOP, nil
 }
 
