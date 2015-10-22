@@ -31,8 +31,6 @@
 #import "KBNotifications.h"
 #import "KBErrorStatusView.h"
 
-#import <Keybase/Keybase-Swift.h>
-
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
   KBAppViewModeInProgress = 1,
   KBAppViewModeError,

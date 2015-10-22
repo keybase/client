@@ -15,8 +15,6 @@
 #import <KBKit/KBWorkspace.h>
 #import <KBKit/KBNotifications.h>
 
-#import <Keybase/Keybase-Swift.h>
-
 @interface AppDelegate ()
 @property NSStatusItem *statusItem;
 @property NSDictionary *config;
