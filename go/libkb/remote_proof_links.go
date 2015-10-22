@@ -45,11 +45,19 @@ func (r *RemoteProofLinks) ForService(st ServiceType) []RemoteProofChainLink {
 				continue
 			}
 			links = append(links, l.link)
-			if l.link.LastWriterWins() {
-				break
-			}
 		}
 	}
+
+	// Chop the array off if it's a last-writer wins service
+	// (like many social networks).
+	for i := len(links) - 1; i >= 0; i-- {
+		if links[i].LastWriterWins() {
+			links = links[i:]
+			break
+		}
+
+	}
+
 	return links
 }
 
