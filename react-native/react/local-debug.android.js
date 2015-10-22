@@ -1,1 +1,1 @@
-local.debug.ios.js
+local-debug.ios.js
