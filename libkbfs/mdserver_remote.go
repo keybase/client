@@ -308,7 +308,9 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 		server := md.conn.GetServer()
 		err := server.Register(keybase1.MetadataUpdateProtocol(md))
 		if err != nil {
-			return err
+			if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
+				return err
+			}
 		}
 		err = server.Run(true)
 		if err != nil {

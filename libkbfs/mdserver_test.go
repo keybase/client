@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/protocol"
+
 	"golang.org/x/net/context"
 )
 
@@ -174,5 +176,52 @@ func TestMDServerBasics(t *testing.T) {
 			t.Fatal(fmt.Errorf("expected revision %d, got: %d",
 				i, rmdses[i-1].MD.Revision))
 		}
+	}
+}
+
+// This should pass for both local and remote servers. Make sure that
+// registering multiple TLFs for updates works. This is a regression
+// test for https://keybase.atlassian.net/browse/KBFS-467 .
+func TestMDServerRegisterForUpdate(t *testing.T) {
+	// setup
+	config := MakeTestConfigOrBust(t, "test_user")
+	defer config.MDServer().Shutdown()
+	mdServer := config.MDServer()
+	ctx := context.Background()
+
+	uid, err := config.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create first TLF.
+	h1 := NewTlfHandle()
+	h1.Writers = []keybase1.UID{uid}
+	id1, _, err := mdServer.GetForHandle(ctx, h1, Merged)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create second TLF, which should end up being different from
+	// the first one.
+	h2 := NewTlfHandle()
+	h2.Readers = []keybase1.UID{keybase1.PublicUID}
+	h2.Writers = []keybase1.UID{uid}
+	id2, _, err := mdServer.GetForHandle(ctx, h2, Merged)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if id1 == id2 {
+		t.Fatalf("id2 == id1: %s", id1)
+	}
+
+	_, err = mdServer.RegisterForUpdate(ctx, id1, MetadataRevisionInitial)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = mdServer.RegisterForUpdate(ctx, id2, MetadataRevisionInitial)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
