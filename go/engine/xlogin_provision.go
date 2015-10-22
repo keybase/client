@@ -97,15 +97,6 @@ func (e *XLoginProvision) Run(ctx *Context) error {
 	return fmt.Errorf("unhandled provisioning method: %v", method)
 }
 
-// searchGPG looks in local gpg keyring for any private keys
-// associated with keybase users.
-//
-// TODO: implement this
-//
-func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
-	return nil, nil
-}
-
 // device provisions this device with an existing device using the
 // kex2 protocol.
 func (e *XLoginProvision) device(ctx *Context) error {
@@ -173,10 +164,12 @@ func (e *XLoginProvision) device(ctx *Context) error {
 	return nil
 }
 
+// gpg attempts to provision the device via a gpg key.
 func (e *XLoginProvision) gpg(ctx *Context) error {
 	panic("gpg provision not yet implemented")
 }
 
+// paper attempts to provision the device via a paper key.
 func (e *XLoginProvision) paper(ctx *Context) error {
 	// prompt for the username (if not provided) and load the user:
 	// check if they have any paper keys
@@ -186,6 +179,10 @@ func (e *XLoginProvision) paper(ctx *Context) error {
 	panic("paper provision not yet implemented")
 }
 
+// passphrase attempts to provision the device via username and
+// passphrase.  This will work if the user has no keys or only a
+// synced pgp key.  Any other situations require different
+// provisioning methods.
 func (e *XLoginProvision) passphrase(ctx *Context) error {
 	// prompt for the username (if not provided) and load the user:
 	var err error
@@ -229,6 +226,8 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 	return nil
 }
 
+// pgpProvision attempts to provision with a synced pgp key.  It
+// needs to get a session first to look for a synced pgp key.
 func (e *XLoginProvision) pgpProvision(ctx *Context) error {
 	// need a session to try to get synced private key
 	if err := e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, nil); err != nil {
@@ -253,6 +252,8 @@ func (e *XLoginProvision) pgpProvision(ctx *Context) error {
 	return e.makeDeviceKeys(ctx, args)
 }
 
+// addEldestDeviceKey makes the device keys the eldest keys for
+// e.user.
 func (e *XLoginProvision) addEldestDeviceKey(ctx *Context) error {
 	args, err := e.makeDeviceWrapArgs(ctx)
 	if err != nil {
@@ -263,6 +264,7 @@ func (e *XLoginProvision) addEldestDeviceKey(ctx *Context) error {
 	return e.makeDeviceKeys(ctx, args)
 }
 
+// paperKey generates a primary paper key for the user.
 func (e *XLoginProvision) paperKey(ctx *Context) error {
 	args := &PaperKeyPrimaryArgs{
 		SigningKey: e.signingKey,
@@ -272,17 +274,20 @@ func (e *XLoginProvision) paperKey(ctx *Context) error {
 	return RunEngine(eng, ctx)
 }
 
+// deviceName gets a new device name from the user.
 func (e *XLoginProvision) deviceName(ctx *Context) (string, error) {
 	// TODO: get existing device names
 	arg := keybase1.PromptNewDeviceNameArg{}
 	return ctx.ProvisionUI.PromptNewDeviceName(context.TODO(), arg)
 }
 
+// ppStream gets the passphrase stream, either cached or via
+// SecretUI.
 func (e *XLoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
 	return e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
 }
 
-// ensure we have LKSec for saving device keys.
+// ensureLKSec ensures we have LKSec for saving device keys.
 func (e *XLoginProvision) ensureLKSec(ctx *Context) error {
 	if e.lks != nil {
 		return nil
@@ -297,6 +302,9 @@ func (e *XLoginProvision) ensureLKSec(ctx *Context) error {
 	return nil
 }
 
+// makeDeviceWrapArgs creates a base set of args for DeviceWrap.
+// It ensures that LKSec is created.  It also gets a new device
+// name for this device.
 func (e *XLoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error) {
 	if err := e.ensureLKSec(ctx); err != nil {
 		return nil, err
@@ -314,6 +322,7 @@ func (e *XLoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, err
 	}, nil
 }
 
+// makeDeviceKeys uses DeviceWrap to generate device keys.
 func (e *XLoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(args, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
@@ -324,7 +333,7 @@ func (e *XLoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) err
 	return nil
 }
 
-// prompt for username (if not provided) and load the user.
+// loadUser will prompt for username (if not provided) and load the user.
 func (e *XLoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 	if len(e.arg.Username) == 0 {
 		username, err := ctx.LoginUI.GetEmailOrUsername(context.TODO(), 0)
@@ -338,6 +347,8 @@ func (e *XLoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 	return libkb.LoadUser(arg)
 }
 
+// syncedPGPKey looks for a synced pgp key for e.user.  If found,
+// it unlocks it.
 func (e *XLoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	key, err := e.user.SyncedSecretKey(nil)
 	if err != nil {
@@ -357,4 +368,13 @@ func (e *XLoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 
 	e.G().Log.Debug("unlocked secret key")
 	return unlocked, nil
+}
+
+// searchGPG looks in local gpg keyring for any private keys
+// associated with keybase users.
+//
+// TODO: implement this
+//
+func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
+	return nil, nil
 }
