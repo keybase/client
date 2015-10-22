@@ -54,14 +54,18 @@ func runPrereqs(e Engine, ctx *Context) (err error) {
 
 }
 
-func RunEngine(e Engine, ctx *Context) error {
-	if err := check(e, ctx); err != nil {
+func RunEngine(e Engine, ctx *Context) (err error) {
+	e.G().Log.Debug("+ RunEngine(%s)", e.Name())
+	defer func() { e.G().Log.Debug("- RunEngine(%s) -> %s", e.Name(), libkb.ErrToOk(err)) }()
+
+	if err = check(e, ctx); err != nil {
 		return err
 	}
-	if err := runPrereqs(e, ctx); err != nil {
+	if err = runPrereqs(e, ctx); err != nil {
 		return err
 	}
-	return e.Run(ctx)
+	err = e.Run(ctx)
+	return err
 }
 
 func check(c libkb.UIConsumer, ctx *Context) error {
