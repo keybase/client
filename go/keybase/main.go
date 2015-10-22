@@ -100,7 +100,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	} else {
 		// If this command warrants an autofork, do it now.
 		if fc := cl.GetForkCmd(); fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {
-			if err = client.ForkServerNix(cl, g); err != nil {
+			if err = client.ForkServer(cl, g); err != nil {
 				return err
 			}
 		}
