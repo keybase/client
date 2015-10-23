@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+var errNoConfig = errors.New("No user config available")
 var errNoUsername = errors.New("No username available in session")
 var errNoDevice = errors.New("No device provisioned locally for this user")
 
@@ -87,6 +88,9 @@ func (e *XLogin) notProvisionedErr(err error) bool {
 		return true
 	}
 	if err == errNoDevice {
+		return true
+	}
+	if err == errNoConfig {
 		return true
 	}
 	switch err.(type) {
