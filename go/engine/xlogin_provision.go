@@ -346,7 +346,6 @@ func (e *XLoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error
 
 // deviceName gets a new device name from the user.
 func (e *XLoginProvision) deviceName(ctx *Context) (string, error) {
-	// TODO: get existing device names
 	names, err := e.user.DeviceNames()
 	if err != nil {
 		e.G().Log.Debug("error getting device names: %s", err)
