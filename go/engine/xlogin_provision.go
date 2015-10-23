@@ -211,6 +211,7 @@ func (e *XLoginProvision) pgpProvision(ctx *Context) error {
 	// After obtaining login session, this will be called before the login state is released.
 	// It tries to get the pgp key and uses it to provision new device keys for this device.
 	var afterLogin = func(lctx libkb.LoginContext) error {
+		ctx.LoginContext = lctx
 		unlocked, err := e.syncedPGPKey(ctx)
 		if err != nil {
 			return err
@@ -264,6 +265,13 @@ func (e *XLoginProvision) deviceName(ctx *Context) (string, error) {
 // ppStream gets the passphrase stream, either cached or via
 // SecretUI.
 func (e *XLoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
+	if ctx.LoginContext != nil {
+		cached := ctx.LoginContext.PassphraseStreamCache()
+		if cached == nil {
+			return nil, errors.New("nil PassphraseStreamCache")
+		}
+		return cached.PassphraseStream(), nil
+	}
 	return e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
 }
 
@@ -330,7 +338,7 @@ func (e *XLoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 // syncedPGPKey looks for a synced pgp key for e.user.  If found,
 // it unlocks it.
 func (e *XLoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
-	key, err := e.user.SyncedSecretKey(nil)
+	key, err := e.user.SyncedSecretKey(ctx.LoginContext)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +349,7 @@ func (e *XLoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	e.G().Log.Debug("got synced secret key")
 
 	// unlock it
-	unlocked, err := key.PromptAndUnlock(nil, "sign new device", "keybase", nil, ctx.SecretUI, nil, e.user)
+	unlocked, err := key.PromptAndUnlock(ctx.LoginContext, "sign new device", "keybase", nil, ctx.SecretUI, e.lks, e.user)
 	if err != nil {
 		return nil, err
 	}
