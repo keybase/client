@@ -1,7 +1,38 @@
 [ignore]
 
-# all node modules
-.*/node_modules/.*
+# TODO: unignore these:
+.*/react/actions/.*
+.*/react/common-adapters/.*
+.*/react/constants/.*
+.*/react/debug/.*
+.*/react/engine/.*
+.*/react/framed-msgpack-rpc/.*
+.*/react/iced-error/.*
+.*/react/login/.*
+.*/react/login2/.*
+.*/react/native/.*
+.*/react/packager/.*
+.*/react/profile/.*
+.*/react/purepack/.*
+.*/react/reducers/.*
+.*/react/router/.*
+.*/react/search/.*
+.*/react/store/.*
+.*/react/styles/.*
+.*/react/tabs/.*
+.*/react/nav.android.js
+.*/react/nav.ios.js
+.*/react/keybase_v1.js
+.*/react/local-debug.js
+.*/react/index.js
+
+# Ignoring these for now
+.*/desktop/.*
+.*/node_modules/redux-devtools/.*
+.*/node_modules/react-redux/node_modules/invariant/.*
+
+# Some react native errors in flow type
+.*/node_modules/react-native/Libraries/Animated/src/Interpolation.js
 
 # We fork some components by platform.
 .*/*.web.js
@@ -13,13 +44,9 @@
 # Ignore react-tools where there are overlaps, but don't ignore anything that
 # react-native relies on
 .*/node_modules/react-tools/src/React.js
-.*/node_modules/react-tools/src/renderers/shared/reconciler/ReactInstanceHandles.js
 .*/node_modules/react-tools/src/renderers/shared/event/EventPropagators.js
 .*/node_modules/react-tools/src/renderers/shared/event/eventPlugins/ResponderEventPlugin.js
-.*/node_modules/react-tools/src/renderers/shared/event/eventPlugins/ResponderSyntheticEvent.js
-.*/node_modules/react-tools/src/renderers/shared/event/eventPlugins/ResponderTouchHistoryStore.js
 .*/node_modules/react-tools/src/shared/vendor/core/ExecutionEnvironment.js
-
 
 # Ignore commoner tests
 .*/node_modules/commoner/test/.*
@@ -28,7 +55,7 @@
 .*/react-tools/node_modules/commoner/lib/reader.js
 
 # Ignore jest
-.*/react-native/node_modules/jest-cli/.*
+.*/node_modules/jest-cli/.*
 
 [include]
 
@@ -39,13 +66,18 @@ react/flow-interface.js
 [options]
 module.system=haste
 
+munge_underscores=true
+
+module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
+module.name_mapper='^[./a-zA-Z0-9$_-]+\.png$' -> 'RelativeImageStub'
+
 suppress_type=$FlowIssue
 suppress_type=$FlowFixMe
 suppress_type=$FixMe
 
-suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe\\($\\|[^(]\\|(\\(>=0\\.\\(1[0-3]\\|[0-9]\\).[0-9]\\)? *\\(site=[a-z,_]*react_native[a-z,_]*\\)?)\\)
-suppress_comment=\\(.\\|\n\\)*\\$FlowIssue\\((\\(>=0\\.\\(1[0-3]\\|[0-9]\\).[0-9]\\)? *\\(site=[a-z,_]*react_native[a-z,_]*\\)?)\\)? #[0-9]+
+suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe\\($\\|[^(]\\|(\\(>=0\\.\\(1[0-6]\\|[0-9]\\).[0-9]\\)? *\\(site=[a-z,_]*react_native[a-z,_]*\\)?)\\)
+suppress_comment=\\(.\\|\n\\)*\\$FlowIssue\\((\\(>=0\\.\\(1[0-6]\\|[0-9]\\).[0-9]\\)? *\\(site=[a-z,_]*react_native[a-z,_]*\\)?)\\)? #[0-9]+
 suppress_comment=\\(.\\|\n\\)*\\$FlowFixedInNextDeploy
 
 [version]
-0.14
+0.17.0

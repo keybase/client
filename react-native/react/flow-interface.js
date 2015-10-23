@@ -1,7 +1,7 @@
-declare module 'react-native' {
+declare module 'invariant' {
   declare var exports: (callback: any) => any;
 }
 
-declare module 'EventEmitter' {
+declare module 'Interpolation' {
   declare var exports: (callback: any) => any;
 }
