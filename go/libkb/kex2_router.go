@@ -45,6 +45,10 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 		k.G().Log.Debug("- KexRouter.Get(%x, %x, %d, %s) -> %s (messages: %d)", sessID, receiver, low, poll, ErrToOk(err), len(msgs))
 	}()
 
+	if poll > HTTPPollMaximum {
+		poll = HTTPPollMaximum
+	}
+
 	arg := APIArg{
 		Endpoint: "kex2/receive",
 		Args: HTTPArgs{
