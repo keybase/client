@@ -25,7 +25,11 @@ export default function (state = initialState, action) {
         devices: action.devices,
         waitingForServer: false
       }
-
+    case types.DEVICE_REMOVED:
+      return {
+        ...state,
+        waitingForServer: false
+      }
     case types.PAPER_KEY_LOADING:
       return {
         ...state,

@@ -535,3 +535,7 @@ func (f JSONConfigFile) GetLogFile() string {
 func (f JSONConfigFile) GetSplitLogOutput() (bool, bool) {
 	return f.GetTopLevelBool("split_log_output")
 }
+
+func (f JSONConfigFile) GetSecurityAccessGroupOverride() (bool, bool) {
+	return false, false
+}

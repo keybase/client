@@ -93,6 +93,10 @@ func (n NullConfiguration) GetNullAtPath(string) bool {
 	return false
 }
 
+func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
+	return false, false
+}
+
 type TestParameters struct {
 	ConfigFilename string
 	Home           string
@@ -680,6 +684,18 @@ func (e *Env) GetLogFile() string {
 	)
 }
 
+func (e *Env) GetStoredSecretAccessGroup() string {
+	var override = e.GetBool(
+		false,
+		func() (bool, bool) { return e.config.GetSecurityAccessGroupOverride() },
+	)
+
+	if override {
+		return ""
+	}
+	return "99229SGT5K.group.keybase"
+}
+
 func (e *Env) GetStoredSecretServiceName() string {
 	var serviceName string
 	switch e.GetRunMode() {
@@ -700,11 +716,12 @@ func (e *Env) GetStoredSecretServiceName() string {
 
 type AppConfig struct {
 	NullConfiguration
-	HomeDir       string
-	RunMode       RunMode
-	Debug         bool
-	LocalRPCDebug string
-	ServerURI     string
+	HomeDir                     string
+	RunMode                     RunMode
+	Debug                       bool
+	LocalRPCDebug               string
+	ServerURI                   string
+	SecurityAccessGroupOverride bool
 }
 
 func (c AppConfig) GetDebug() (bool, bool) {
@@ -725,4 +742,8 @@ func (c AppConfig) GetHome() string {
 
 func (c AppConfig) GetServerURI() string {
 	return c.ServerURI
+}
+
+func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
+	return c.SecurityAccessGroupOverride, c.SecurityAccessGroupOverride
 }

@@ -127,6 +127,7 @@ type ConfigReader interface {
 	GetRunMode() (RunMode, error)
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
+	GetSecurityAccessGroupOverride() (bool, bool)
 }
 
 type ConfigWriter interface {
