@@ -5,6 +5,7 @@ import React, { Component, Text, TextInput, View } from 'react-native'
 import commonStyles from '../../styles/common'
 import { login } from '../../actions/login2'
 import { routeAppend } from '../../actions/router'
+import { bindActionCreators } from 'redux'
 import ForgotUserPass from './forgot-user-pass'
 import Button from '../../common-adapters/button'
 
@@ -19,7 +20,7 @@ export default class Login extends Component {
   }
 
   submitLogin () {
-    this.props.dispatch(login(this.state.username, this.state.passphrase))
+    this.props.login(this.state.username, this.state.passphrase)
   }
 
   render () {
@@ -49,7 +50,7 @@ export default class Login extends Component {
           clearButtonMode='while-editing'
           secureTextEntry
         />
-        <Text style={{alignSelf: 'flex-end', marginTop: 20, padding: 10}} onPress={() => { this.props.dispatch(routeAppend('forgotUserPass')) }}>Forgot username/passphrase?</Text>
+        <Text style={{alignSelf: 'flex-end', marginTop: 20, padding: 10}} onPress={() => { this.props.routeAppend('forgotUserPass') }}>Forgot username/passphrase?</Text>
         <Button
           style={{alignSelf: 'flex-end', marginTop: 20}}
           onPress={() => { this.submitLogin() }}
@@ -63,7 +64,14 @@ export default class Login extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => {
+          const { username, passphrase } = state.login2
+          return { username, passphrase }
+        },
+        props: {
+          routeAppend: bindActionCreators(routeAppend, store.dispatch),
+          login: bindActionCreators(login, store.dispatch)
+        }
       },
       subRoutes: {
         forgotUserPass: ForgotUserPass
@@ -73,7 +81,8 @@ export default class Login extends Component {
 }
 
 Login.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
+  routeAppend: React.PropTypes.func.isRequired,
+  login: React.PropTypes.func.isRequired,
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string
 }

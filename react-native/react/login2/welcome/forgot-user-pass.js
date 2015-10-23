@@ -5,12 +5,13 @@ import React, { Component, StyleSheet, Text, TextInput, View } from 'react-nativ
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 import { updateForgotPasswordEmail, submitForgotPassword } from '../../actions/login2'
+import { bindActionCreators } from 'redux'
 
 export default class ForgotUserPass extends Component {
   render () {
     return (
       <View style={{ flex: 1, marginTop: 64, marginBottom: 48, justifyContent: 'flex-start' }}>
-        {this.props.forgotPasswordSuccess ? (
+        {this.props.success ? (
           <View>
             <Text style={commonStyles.h1}>Email sent!</Text>
             <Text style={[commonStyles.h2, {marginBottom: 40}]}>Great great great.</Text>
@@ -23,12 +24,12 @@ export default class ForgotUserPass extends Component {
         )}
         <TextInput
           style={commonStyles.textInput}
-          value={this.props.forgotPasswordEmailAddress}
-          onChangeText={(email) => this.props.dispatch(updateForgotPasswordEmail(email)) }
-          onSubmitEditing={() => this.props.dispatch(submitForgotPassword())}
+          value={this.props.email}
+          onChangeText={(email) => this.props.updateEmail(email) }
+          onSubmitEditing={() => this.props.submit()}
           autoCorrect={false}
           autoFocus
-          editable={!this.props.forgotPasswordSubmitting && !this.props.forgotPasswordSuccess}
+          editable={!this.props.submitting && !this.props.success}
           placeholder='Email address (or username)'
           keyboardType='email-address'
           clearButtonMode='while-editing'
@@ -36,35 +37,52 @@ export default class ForgotUserPass extends Component {
         <Button
           title='Submit'
           style={styles.submitButton}
-          onPress={() => this.props.dispatch(submitForgotPassword())}
-          enabled={!this.props.forgotPasswordSuccess}
+          onPress={() => this.props.submit()}
+          enabled={!this.props.success}
         />
-        {this.props.forgotPasswordError && (
-          <Text style={{color: 'red'}}>{this.props.forgotPasswordError.toString()}</Text>
+        {this.props.error && (
+          <Text style={{color: 'red'}}>{this.props.error.toString()}</Text>
         )}
       </View>
     )
   }
 
   componentWillUnmount () {
-    this.props.dispatch(updateForgotPasswordEmail(''))
+    this.props.updateEmail('')
   }
 
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => {
+          const {
+              forgotPasswordEmailAddress: email,
+              forgotPasswordSubmitting: submitting,
+              forgotPasswordSuccess: success,
+              forgotPasswordError: error } = state.login2
+          return {
+            email,
+            submitting,
+            success,
+            error
+          }
+        },
+        props: {
+          updateEmail: bindActionCreators(updateForgotPasswordEmail, store.dispatch),
+          submit: bindActionCreators(submitForgotPassword, store.dispatch)
+        }
       }
     }
   }
 }
 
 ForgotUserPass.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
-  forgotPasswordEmailAddress: React.PropTypes.string.isRequired,
-  forgotPasswordSubmitting: React.PropTypes.bool.isRequired,
-  forgotPasswordSuccess: React.PropTypes.bool.isRequired,
-  forgotPasswordError: React.PropTypes.object
+  updateEmail: React.PropTypes.func.isRequired,
+  submit: React.PropTypes.func.isRequired,
+  email: React.PropTypes.string.isRequired,
+  submitting: React.PropTypes.bool.isRequired,
+  success: React.PropTypes.bool.isRequired,
+  error: React.PropTypes.object
 }
 
 const styles = StyleSheet.create({
