@@ -31,7 +31,7 @@ if [ $mode == "staging" ]; then
 	formula="kbstage"
 elif [ $mode == "production" ]; then
 	formula="keybase"
-else 
+else
 	echo "Invalid mode $mode.  Should be staging or production."
 	exit 1
 fi
@@ -68,23 +68,22 @@ if [ "$version" != "$version_on_disk" ]; then
 	exit 1
 fi
 
-# Make sure you have the Keybase code signing key.
-code_signing_fingerprint="$(cat $serveropsdir/deploy/lib/code_signing_fingerprint)"
-if ! gpg -K "$code_signing_fingerprint" ; then
-	echo "You're missing the GPG code signing secret key ($code_signing_fingerprint)."
-	exit 1
-fi
-
 echo "-------------------------------------------------------------------------"
 echo "Creating $formula release for version $version"
 echo "-------------------------------------------------------------------------"
 cd $clientdir
 git checkout master
+
+if ! git diff-index --quiet HEAD --; then
+	echo "There are changes in $clientdir"
+	exit 1
+fi
+
 git pull --ff-only
-if git tag -a $version_tag -m $version_tag ; then 
+if git tag -a $version_tag -m $version_tag ; then
 	echo "Tagged client source with $version_tag"
 	git push --tags
-	
+
 	echo "Exporting client source to client-beta for version $version"
 	$clientdir/packaging/export/export.sh client $betadir $version_tag
 	cd $betadir
@@ -93,7 +92,7 @@ if git tag -a $version_tag -m $version_tag ; then
 	git push
 	git tag -a $version_tag -m $version_tag
 	git push --tags
-else 
+else
 	echo "git tag $version_tag failed on $clientdir, presumably it exists"
 	echo "skipped client source export to client-beta for version $version"
 fi
@@ -118,6 +117,14 @@ fi
 echo "-------------------------------------------------------------------------"
 echo "Creating Linux packages for version $version"
 echo "-------------------------------------------------------------------------"
+
+# Make sure you have the Keybase code signing key.
+code_signing_fingerprint="$(cat $serveropsdir/deploy/lib/code_signing_fingerprint)"
+if ! gpg -K "$code_signing_fingerprint" ; then
+	echo "You're missing the GPG code signing secret key ($code_signing_fingerprint)."
+	exit 1
+fi
+
 cd "$serveropsdir"
 git checkout master
 git pull --ff-only
