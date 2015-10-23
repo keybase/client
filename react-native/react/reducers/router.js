@@ -1,14 +1,21 @@
+/* @flow */
 'use strict'
 
 import * as loginTypes from '../constants/login-action-types'
 import * as routerTypes from '../constants/router-action-types'
 import Immutable from 'immutable'
+// $FlowFixMe ignore this import for now
 import * as localDebug from '../local-debug'
 import * as LoginConstants from '../constants/login2'
 
-const initialState = createRouterState(['nav'], [])
+type URI = Immutable.List<string>
+type History = Immutable.List<Immutable.List<string>>
 
-export function createRouterState (uri, history) {
+export type RouterState = MapADT2<'uri', URI, 'history', History> // eslint-disable-line no-undef
+
+const initialState: RouterState = createRouterState(['nav'], [])
+
+export function createRouterState (uri: Array<string>, history: Array<Array<string>>) {
   // TODO(mm): when we have a splash screen set it here.
   // history is android's back button
   return Immutable.Map({
@@ -48,7 +55,7 @@ function parseUri (uri) {
   return Immutable.List(uri.map(parsePath))
 }
 
-export default function (state = initialState, action) {
+export default function (state: RouterState = initialState, action: any): RouterState {
   console.log('action in router', action)
   const stateWithHistory = state.update('history', pushIfTailIsDifferent.bind(null, state.get('uri')))
   switch (action.type) {
