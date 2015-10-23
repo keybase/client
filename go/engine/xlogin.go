@@ -9,7 +9,6 @@ import (
 )
 
 var errNoConfig = errors.New("No user config available")
-var errNoUsername = errors.New("No username available in session")
 var errNoDevice = errors.New("No device provisioned locally for this user")
 
 // XLogin is an engine.
@@ -84,19 +83,10 @@ func (e *XLogin) Run(ctx *Context) error {
 // notProvisionedErr will return true if err signifies that login
 // failed because this device has not yet been provisioned.
 func (e *XLogin) notProvisionedErr(err error) bool {
-	if err == errNoUsername {
-		return true
-	}
 	if err == errNoDevice {
 		return true
 	}
 	if err == errNoConfig {
-		return true
-	}
-	switch err.(type) {
-	case libkb.SecretStoreError:
-		return true
-	case libkb.NoKeyError:
 		return true
 	}
 
