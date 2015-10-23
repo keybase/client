@@ -2,8 +2,7 @@
 
 # TODO: unignore these:
 .*/react/index.js
-.*/react/router/.*
-.*/react/keybase_v1.js
+.*/react/router/global-routes.js
 .*/react/nav.android.js
 .*/react/nav.ios.js
 .*/react/common-adapters/.*
@@ -74,6 +73,7 @@ suppress_type=$FixMe
 suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe\\($\\|[^(]\\|(\\(>=0\\.\\(1[0-6]\\|[0-9]\\).[0-9]\\)? *\\(site=[a-z,_]*react_native[a-z,_]*\\)?)\\)
 suppress_comment=\\(.\\|\n\\)*\\$FlowIssue\\((\\(>=0\\.\\(1[0-6]\\|[0-9]\\).[0-9]\\)? *\\(site=[a-z,_]*react_native[a-z,_]*\\)?)\\)? #[0-9]+
 suppress_comment=\\(.\\|\n\\)*\\$FlowFixedInNextDeploy
+suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
 
 [version]
 0.17.0
