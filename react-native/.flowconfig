@@ -1,31 +1,31 @@
 [ignore]
 
 # TODO: unignore these:
-.*/react/common-adapters/.*
-.*/react/debug/.*
-.*/react/engine/.*
-.*/react/framed-msgpack-rpc/.*
-.*/react/iced-error/.*
-.*/react/login/.*
-.*/react/login2/.*
-.*/react/native/.*
-.*/react/packager/.*
-.*/react/profile/.*
-.*/react/purepack/.*
+.*/react/index.js
 .*/react/router/.*
-.*/react/search/.*
-.*/react/styles/.*
-.*/react/tabs/.*
+.*/react/keybase_v1.js
 .*/react/nav.android.js
 .*/react/nav.ios.js
-.*/react/keybase_v1.js
+.*/react/common-adapters/.*
+.*/react/styles/.*
+.*/react/login/.*
+.*/react/login2/.*
+.*/react/profile/.*
+.*/react/search/.*
+.*/react/tabs/.*
 .*/react/local-debug.js
-.*/react/index.js
 
 # Ignoring these for now
 .*/desktop/.*
 .*/node_modules/redux-devtools/.*
 .*/node_modules/react-redux/node_modules/invariant/.*
+.*/react/packager/.*
+.*/react/native/.*
+.*/react/purepack/.*
+.*/react/framed-msgpack-rpc/.*
+.*/react/iced-error/.*
+.*/react/debug/.*
+.*/react/engine/.*
 
 # Some react native errors in flow type
 .*/node_modules/react-native/Libraries/Animated/src/Interpolation.js
