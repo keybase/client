@@ -178,6 +178,55 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 	}
 }
 
+func TestProvisionPaper(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	fu := NewFakeUserOrBust(t, "paper")
+	arg := MakeTestSignupEngineRunArg(fu)
+	loginUI := &paperLoginUI{Username: fu.Username}
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(&arg, tc.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	assertNumDevicesAndKeys(tc, fu, 2, 4)
+
+	Logout(tc)
+
+	if len(loginUI.PaperPhrase) == 0 {
+		t.Fatal("login ui has no paper key phrase")
+	}
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	secui := fu.NewSecretUI()
+	secui.BackupPassphrase = loginUI.PaperPhrase
+
+	ctx = &Context{
+		ProvisionUI: newTestProvisionUIPaper(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    secui,
+		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
+	}
+	eng := NewXLogin(tc2.G, libkb.DeviceTypeDesktop, "")
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tc2)
+
+	assertNumDevicesAndKeys(tc, fu, 3, 6)
+}
+
 type testProvisionUI struct {
 	secretCh chan kex2.Secret
 	method   keybase1.ProvisionMethod
@@ -201,6 +250,12 @@ func newTestProvisionUISecretCh(ch chan kex2.Secret) *testProvisionUI {
 func newTestProvisionUIPassphrase() *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.method = keybase1.ProvisionMethod_PASSPHRASE
+	return ui
+}
+
+func newTestProvisionUIPaper() *testProvisionUI {
+	ui := newTestProvisionUI()
+	ui.method = keybase1.ProvisionMethod_PAPER_KEY
 	return ui
 }
 

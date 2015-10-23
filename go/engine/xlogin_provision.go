@@ -151,11 +151,39 @@ func (e *XLoginProvision) gpg(ctx *Context) error {
 // paper attempts to provision the device via a paper key.
 func (e *XLoginProvision) paper(ctx *Context) error {
 	// prompt for the username (if not provided) and load the user:
-	// check if they have any paper keys
-	// if they do, can call findPaperKeys
-	// if that succeeds, then need to get ppstream (for lks).
-	// addDeviceKeyWithSigner
-	panic("paper provision not yet implemented")
+	var err error
+	e.user, err = e.loadUser(ctx)
+	if err != nil {
+		return err
+	}
+
+	// find a paper key for this user
+	kp, err := findPaperKeys(ctx, e.G(), e.user)
+	if err != nil {
+		return err
+	}
+
+	// found a paper key that can be used for signing
+	e.G().Log.Debug("found paper key match for %s", e.user.GetName())
+
+	// After obtaining login session, this will be called before the login state is released.
+	// It signs this new device with the paper key.
+	var afterLogin = func(lctx libkb.LoginContext) error {
+		ctx.LoginContext = lctx
+
+		args, err := e.makeDeviceWrapArgs(ctx)
+		if err != nil {
+			return err
+		}
+		args.Signer = kp.sigKey
+		args.IsEldest = false
+		args.EldestKID = e.user.GetEldestKID()
+
+		return e.makeDeviceKeys(ctx, args)
+	}
+
+	// need a session to continue to provision
+	return e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
 }
 
 // passphrase attempts to provision the device via username and
