@@ -11,11 +11,10 @@ protocol provisionUi {
   }
   /**
     Called during device provisioning for the user to select a
-    method for provisioning.  gpgUsers will contain a list of
-    locally available gpg private keys.  If it is empty, then
-    gpg is not a valid option.
+    method for provisioning.  gpgOption will be true if GPG
+    should be offered as an option.
     */
-  ProvisionMethod chooseProvisioningMethod(int sessionID, array<string> gpgUsers);
+  ProvisionMethod chooseProvisioningMethod(int sessionID, boolean gpgOption);
 
   enum DeviceType {
     DESKTOP_0,

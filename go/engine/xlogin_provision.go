@@ -19,6 +19,7 @@ type XLoginProvision struct {
 	user       *libkb.User
 	lks        *libkb.LKSec
 	signingKey libkb.GenericKey
+	gpgCli     *libkb.GpgCLI
 }
 
 type XLoginProvisionArg struct {
@@ -51,6 +52,7 @@ func (e *XLoginProvision) RequiredUIs() []libkb.UIKind {
 		libkb.ProvisionUIKind,
 		libkb.LoginUIKind,
 		libkb.SecretUIKind,
+		libkb.GPGUIKind,
 	}
 }
 
@@ -73,7 +75,11 @@ func (e *XLoginProvision) Run(ctx *Context) error {
 		return err
 	}
 
-	return e.runMethod(ctx, method)
+	if err := e.runMethod(ctx, method); err != nil {
+		return err
+	}
+
+	return e.ensurePaperKey(ctx)
 }
 
 // device provisions this device with an existing device using the
@@ -145,7 +151,22 @@ func (e *XLoginProvision) device(ctx *Context) error {
 
 // gpg attempts to provision the device via a gpg key.
 func (e *XLoginProvision) gpg(ctx *Context) error {
-	panic("gpg provision not yet implemented")
+	bundle, err := e.chooseAndUnlockGPGKey(ctx)
+	if err != nil {
+		return err
+	}
+
+	e.G().Log.Debug("imported private gpg key %s", bundle.GetKID())
+
+	// After obtaining login session, this will be called before the login state is released.
+	// It signs this new device with the gpg key in bundle.
+	var afterLogin = func(lctx libkb.LoginContext) error {
+		ctx.LoginContext = lctx
+		return e.makeDeviceKeysWithSigner(ctx, bundle)
+	}
+
+	// need a session to continue to provision
+	return e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
 }
 
 // paper attempts to provision the device via a paper key.
@@ -170,16 +191,7 @@ func (e *XLoginProvision) paper(ctx *Context) error {
 	// It signs this new device with the paper key.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
-
-		args, err := e.makeDeviceWrapArgs(ctx)
-		if err != nil {
-			return err
-		}
-		args.Signer = kp.sigKey
-		args.IsEldest = false
-		args.EldestKID = e.user.GetEldestKID()
-
-		return e.makeDeviceKeys(ctx, args)
+		return e.makeDeviceKeysWithSigner(ctx, kp.sigKey)
 	}
 
 	// need a session to continue to provision
@@ -226,11 +238,6 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 		}
 	}
 
-	// and finally, a paper key, since this is their first device
-	if err := e.paperKey(ctx); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -241,24 +248,30 @@ func (e *XLoginProvision) pgpProvision(ctx *Context) error {
 	// It tries to get the pgp key and uses it to provision new device keys for this device.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
-		unlocked, err := e.syncedPGPKey(ctx)
+		signer, err := e.syncedPGPKey(ctx)
 		if err != nil {
 			return err
 		}
 
-		args, err := e.makeDeviceWrapArgs(ctx)
-		if err != nil {
-			return err
-		}
-		args.Signer = unlocked
-		args.IsEldest = false
-		args.EldestKID = e.user.GetEldestKID()
-
-		return e.makeDeviceKeys(ctx, args)
+		return e.makeDeviceKeysWithSigner(ctx, signer)
 	}
 
 	// need a session to try to get synced private key
 	return e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
+}
+
+// makeDeviceKeysWithSigner creates device keys given a signing
+// key.
+func (e *XLoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.GenericKey) error {
+	args, err := e.makeDeviceWrapArgs(ctx)
+	if err != nil {
+		return err
+	}
+	args.Signer = signer
+	args.IsEldest = false // just to be explicit
+	args.EldestKID = e.user.GetEldestKID()
+
+	return e.makeDeviceKeys(ctx, args)
 }
 
 // addEldestDeviceKey makes the device keys the eldest keys for
@@ -386,13 +399,48 @@ func (e *XLoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	return unlocked, nil
 }
 
-// searchGPG looks in local gpg keyring for any private keys
-// associated with keybase users.
-//
-// TODO: implement this
-//
-func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
-	return nil, nil
+// hasGPGPrivate returns true if GPG is available and contains
+// private keys.
+func (e *XLoginProvision) hasGPGPrivate() bool {
+	index, err := e.gpgPrivateIndex()
+	if err != nil {
+		e.G().Log.Debug("gpg not an option: get index error: %s", err)
+		return false
+	}
+
+	e.G().Log.Debug("have gpg.  num private keys: %d", index.Len())
+
+	return index.Len() > 0
+}
+
+// gpgPrivateIndex returns an index of the private gpg keys.
+func (e *XLoginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
+	cli, err := e.gpgClient()
+	if err != nil {
+		return nil, err
+	}
+
+	// get an index of all the secret keys
+	index, _, err := cli.Index(true, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return index, nil
+}
+
+// gpgClient returns a gpg client.
+func (e *XLoginProvision) gpgClient() (*libkb.GpgCLI, error) {
+	if e.gpgCli != nil {
+		return e.gpgCli, nil
+	}
+
+	gpg := e.G().GetGpgClient()
+	if err := gpg.Configure(); err != nil {
+		return nil, err
+	}
+	e.gpgCli = gpg
+	return e.gpgCli, nil
 }
 
 // checkArg checks XLoginProvisionArg for sane arguments.
@@ -408,15 +456,11 @@ func (e *XLoginProvision) checkArg() error {
 // chooseMethod uses ProvisionUI to let user choose a provisioning
 // method.
 func (e *XLoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, error) {
-	var nilMethod keybase1.ProvisionMethod
-	availableGPGPrivateKeyUsers, err := e.searchGPG(ctx)
-	if err != nil {
-		return nilMethod, err
-	}
-	e.G().Log.Debug("available private gpg key users: %v", availableGPGPrivateKeyUsers)
+	hasGPGPrivate := e.hasGPGPrivate()
+	e.G().Log.Debug("found gpg with private keys?: %v", hasGPGPrivate)
 
 	arg := keybase1.ChooseProvisioningMethodArg{
-		GpgUsers: availableGPGPrivateKeyUsers,
+		GpgOption: hasGPGPrivate,
 	}
 	return ctx.ProvisionUI.ChooseProvisioningMethod(context.TODO(), arg)
 }
@@ -435,4 +479,110 @@ func (e *XLoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMetho
 	}
 
 	return fmt.Errorf("unhandled provisioning method: %v", method)
+}
+
+// ensurePaperKey checks to see if e.user has any paper keys.  If
+// not, it makes one.
+func (e *XLoginProvision) ensurePaperKey(ctx *Context) error {
+	// device provisioning doesn't load a user:
+	if e.user == nil {
+		return nil
+	}
+
+	// see if they have a paper key already
+	cki := e.user.GetComputedKeyInfos()
+	if cki != nil {
+		if len(cki.PaperDevices()) > 0 {
+			return nil
+		}
+	}
+
+	// make one
+	return e.paperKey(ctx)
+}
+
+// chooseAndUnlockGPGKey asks the user to select a gpg key to use,
+// then checks if the fingerprint exists on keybase.io, and
+// finally uses gpg to unlock it.
+func (e *XLoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBundle, error) {
+	// choose a private gpg key to use
+	keyid, fingerprints, err := e.selectGPGKey(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// see if public key on keybase, and if so load the user
+	if err := e.checkUserByPGPKeyID(ctx, keyid); err != nil {
+		return nil, err
+	}
+
+	// find the fingerprint for keyid
+	fp, ok := fingerprints[keyid]
+	if !ok {
+		return nil, fmt.Errorf("selected keyid (%s) not in fingerprint index", keyid)
+	}
+	if fp == nil {
+		return nil, fmt.Errorf("nil fingerprint in index for (%s)", keyid)
+	}
+
+	// unlock it with gpg
+	cli, err := e.gpgClient()
+	if err != nil {
+		return nil, err
+	}
+	return cli.ImportKey(true, *fp)
+}
+
+// selectGPGKey creates an index of the private gpg keys and
+// presents them to the user who chooses one of them.
+func (e *XLoginProvision) selectGPGKey(ctx *Context) (keyid string, fingerprints map[string]*libkb.PGPFingerprint, err error) {
+	index, err := e.gpgPrivateIndex()
+	if err != nil {
+		return "", nil, err
+	}
+	if index.Len() == 0 {
+		return "", nil, errors.New("no private gpg keys available")
+	}
+
+	fingerprints = make(map[string]*libkb.PGPFingerprint)
+	var gks []keybase1.GPGKey
+	for _, key := range index.Keys {
+		gk := keybase1.GPGKey{
+			Algorithm:  key.AlgoString(),
+			KeyID:      key.ID64,
+			Creation:   key.CreatedString(),
+			Identities: key.GetPGPIdentities(),
+		}
+		gks = append(gks, gk)
+		fingerprints[key.ID64] = key.GetFingerprint()
+	}
+
+	keyid, err = ctx.GPGUI.SelectKey(context.TODO(), keybase1.SelectKeyArg{Keys: gks})
+	if err != nil {
+		return "", nil, err
+	}
+	e.G().Log.Debug("SelectKey result: %s", keyid)
+
+	return keyid, fingerprints, nil
+}
+
+// checkUserByPGPKeyID looks up a keyid on keybase.io.  If it
+// finds a username for keyid, it loads that user.
+func (e *XLoginProvision) checkUserByPGPKeyID(ctx *Context, keyid string) error {
+	// see if public key on keybase
+	username, uid, err := libkb.PGPLookupHex(e.G(), keyid)
+	if err != nil {
+		e.G().Log.Debug("error finding user for key %s: %s", keyid, err)
+		return err
+	}
+	e.G().Log.Debug("found user (%s, %s) for key %s", username, uid, keyid)
+
+	// if so, will have username from that
+	e.arg.Username = username
+	e.user, err = e.loadUser(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

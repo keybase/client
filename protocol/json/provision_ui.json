@@ -169,16 +169,13 @@
   } ],
   "messages" : {
     "chooseProvisioningMethod" : {
-      "doc" : "Called during device provisioning for the user to select a\n    method for provisioning.  gpgUsers will contain a list of\n    locally available gpg private keys.  If it is empty, then\n    gpg is not a valid option.",
+      "doc" : "Called during device provisioning for the user to select a\n    method for provisioning.  gpgOption will be true if GPG\n    should be offered as an option.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "gpgUsers",
-        "type" : {
-          "type" : "array",
-          "items" : "string"
-        }
+        "name" : "gpgOption",
+        "type" : "boolean"
       } ],
       "response" : "ProvisionMethod"
     },

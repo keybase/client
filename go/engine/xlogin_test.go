@@ -38,6 +38,7 @@ func TestXLogin(t *testing.T) {
 		LoginUI:     &libkb.TestLoginUI{},
 		LogUI:       tcY.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
 	}
 	eng := NewXLogin(tcY.G, libkb.DeviceTypeDesktop, "")
 
@@ -98,6 +99,7 @@ func TestProvisionPassphraseFail(t *testing.T) {
 		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
 	}
 	eng := NewXLogin(tcY.G, libkb.DeviceTypeDesktop, "")
 	err := RunEngine(eng, ctx)
@@ -127,6 +129,7 @@ func TestProvisionPassphraseNoKeys(t *testing.T) {
 		LoginUI:     &libkb.TestLoginUI{Username: username},
 		LogUI:       tc.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
+		GPGUI:       &gpgtestui{},
 	}
 	eng := NewXLogin(tc.G, libkb.DeviceTypeDesktop, "")
 	if err := RunEngine(eng, ctx); err != nil {
@@ -161,6 +164,7 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 		LogUI:       tc.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
 	}
 	eng := NewXLogin(tc.G, libkb.DeviceTypeDesktop, "")
 	if err := RunEngine(eng, ctx); err != nil {
@@ -216,6 +220,7 @@ func TestProvisionPaper(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secui,
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
+		GPGUI:       &gpgtestui{},
 	}
 	eng := NewXLogin(tc2.G, libkb.DeviceTypeDesktop, "")
 	if err := RunEngine(eng, ctx); err != nil {
@@ -225,6 +230,46 @@ func TestProvisionPaper(t *testing.T) {
 	testUserHasDeviceKey(tc2)
 
 	assertNumDevicesAndKeys(tc, fu, 3, 6)
+}
+
+// Provision device using a private GPG key (not synced to keybase
+// server).
+func TestProvisionGPG(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// run xlogin on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPG(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewXLogin(tc2.G, libkb.DeviceTypeDesktop, "")
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tc2)
+
+	// highly possible they didn't have a paper key, so make sure they have one now:
+	hasOnePaperDev(tc2, u1)
 }
 
 type testProvisionUI struct {
@@ -256,6 +301,12 @@ func newTestProvisionUIPassphrase() *testProvisionUI {
 func newTestProvisionUIPaper() *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.method = keybase1.ProvisionMethod_PAPER_KEY
+	return ui
+}
+
+func newTestProvisionUIGPG() *testProvisionUI {
+	ui := newTestProvisionUI()
+	ui.method = keybase1.ProvisionMethod_GPG
 	return ui
 }
 
