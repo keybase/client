@@ -1,7 +1,8 @@
 [ignore]
 
 # TODO: unignore these:
-.*/react/actions/.*
+.*/react/reducers/.*
+.*/react/store/.*
 .*/react/common-adapters/.*
 .*/react/constants/.*
 .*/react/debug/.*
@@ -14,10 +15,8 @@
 .*/react/packager/.*
 .*/react/profile/.*
 .*/react/purepack/.*
-.*/react/reducers/.*
 .*/react/router/.*
 .*/react/search/.*
-.*/react/store/.*
 .*/react/styles/.*
 .*/react/tabs/.*
 .*/react/nav.android.js
