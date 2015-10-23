@@ -4,7 +4,6 @@
 .*/react/reducers/.*
 .*/react/store/.*
 .*/react/common-adapters/.*
-.*/react/constants/.*
 .*/react/debug/.*
 .*/react/engine/.*
 .*/react/framed-msgpack-rpc/.*
