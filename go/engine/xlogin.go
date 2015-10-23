@@ -60,7 +60,7 @@ func (e *XLogin) Run(ctx *Context) error {
 	if err == nil {
 		// login successful
 		e.G().Log.Debug("XLoginCurrentDevice.Run() was successful")
-		return err
+		return nil
 	}
 
 	// if this device has been provisioned already and there was an error, then

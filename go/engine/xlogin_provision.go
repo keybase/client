@@ -64,37 +64,16 @@ func (e *XLoginProvision) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *XLoginProvision) Run(ctx *Context) error {
-	// check we have a good device type:
-	if e.arg.DeviceType != libkb.DeviceTypeDesktop && e.arg.DeviceType != libkb.DeviceTypeMobile {
-		return fmt.Errorf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)
-	}
-
-	availableGPGPrivateKeyUsers, err := e.searchGPG(ctx)
-	if err != nil {
+	if err := e.checkArg(); err != nil {
 		return err
 	}
-	e.G().Log.Debug("available private gpg key users: %v", availableGPGPrivateKeyUsers)
 
-	arg := keybase1.ChooseProvisioningMethodArg{
-		GpgUsers: availableGPGPrivateKeyUsers,
-	}
-	method, err := ctx.ProvisionUI.ChooseProvisioningMethod(context.TODO(), arg)
+	method, err := e.chooseMethod(ctx)
 	if err != nil {
 		return err
 	}
 
-	switch method {
-	case keybase1.ProvisionMethod_DEVICE:
-		return e.device(ctx)
-	case keybase1.ProvisionMethod_GPG:
-		return e.gpg(ctx)
-	case keybase1.ProvisionMethod_PAPER_KEY:
-		return e.paper(ctx)
-	case keybase1.ProvisionMethod_PASSPHRASE:
-		return e.passphrase(ctx)
-	}
-
-	return fmt.Errorf("unhandled provisioning method: %v", method)
+	return e.runMethod(ctx, method)
 }
 
 // device provisions this device with an existing device using the
@@ -229,27 +208,28 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 // pgpProvision attempts to provision with a synced pgp key.  It
 // needs to get a session first to look for a synced pgp key.
 func (e *XLoginProvision) pgpProvision(ctx *Context) error {
+	// After obtaining login session, this will be called before the login state is released.
+	// It tries to get the pgp key and uses it to provision new device keys for this device.
+	var afterLogin = func(lctx libkb.LoginContext) error {
+		unlocked, err := e.syncedPGPKey(ctx)
+		if err != nil {
+			return err
+		}
+
+		args, err := e.makeDeviceWrapArgs(ctx)
+		if err != nil {
+			return err
+		}
+		args.Signer = unlocked
+		args.IsEldest = false
+		args.EldestKID = e.user.GetEldestKID()
+
+		return e.makeDeviceKeys(ctx, args)
+
+	}
+
 	// need a session to try to get synced private key
-	if err := e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, nil); err != nil {
-		return err
-	}
-
-	// this could go in afterFn of LoginWithPrompt?
-
-	unlocked, err := e.syncedPGPKey(ctx)
-	if err != nil {
-		return err
-	}
-
-	args, err := e.makeDeviceWrapArgs(ctx)
-	if err != nil {
-		return err
-	}
-	args.Signer = unlocked
-	args.IsEldest = false
-	args.EldestKID = e.user.GetEldestKID()
-
-	return e.makeDeviceKeys(ctx, args)
+	return e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
 }
 
 // addEldestDeviceKey makes the device keys the eldest keys for
@@ -377,4 +357,42 @@ func (e *XLoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 //
 func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
 	return nil, nil
+}
+
+func (e *XLoginProvision) checkArg() error {
+	// check we have a good device type:
+	if e.arg.DeviceType != libkb.DeviceTypeDesktop && e.arg.DeviceType != libkb.DeviceTypeMobile {
+		return fmt.Errorf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)
+	}
+
+	return nil
+}
+
+func (e *XLoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, error) {
+	var nilMethod keybase1.ProvisionMethod
+	availableGPGPrivateKeyUsers, err := e.searchGPG(ctx)
+	if err != nil {
+		return nilMethod, err
+	}
+	e.G().Log.Debug("available private gpg key users: %v", availableGPGPrivateKeyUsers)
+
+	arg := keybase1.ChooseProvisioningMethodArg{
+		GpgUsers: availableGPGPrivateKeyUsers,
+	}
+	return ctx.ProvisionUI.ChooseProvisioningMethod(context.TODO(), arg)
+}
+
+func (e *XLoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMethod) error {
+	switch method {
+	case keybase1.ProvisionMethod_DEVICE:
+		return e.device(ctx)
+	case keybase1.ProvisionMethod_GPG:
+		return e.gpg(ctx)
+	case keybase1.ProvisionMethod_PAPER_KEY:
+		return e.paper(ctx)
+	case keybase1.ProvisionMethod_PASSPHRASE:
+		return e.passphrase(ctx)
+	}
+
+	return fmt.Errorf("unhandled provisioning method: %v", method)
 }
