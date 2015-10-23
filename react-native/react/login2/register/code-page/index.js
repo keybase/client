@@ -7,17 +7,14 @@
  */
 
 import React, { Component, StyleSheet, Text, View, TextInput } from 'react-native'
-
-import {
-  codePageDeviceRoleExistingPhone,
-  codePageDeviceRoleNewPhone,
-  codePageDeviceRoleExistingComputer,
-  codePageDeviceRoleNewComputer } from '../../../constants/login2'
+import { codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
+         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer } from '../../../constants/login2'
 import { codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText } from '../../../constants/login2'
 import { setCodePageMode, qrScanned, setCameraBrokenMode, textEntered, doneRegistering } from '../../../actions/login2'
 import QR from './qr'
 import Button from '../../../common-adapters/button'
 import commonStyles from '../../../styles/common'
+import { bindActionCreators } from 'redux'
 
 export default class CodePage extends Component {
   constructor (props) {
@@ -29,7 +26,7 @@ export default class CodePage extends Component {
   }
 
   componentWillUnmount () {
-    this.props.dispatch(doneRegistering())
+    this.props.doneRegistering()
   }
 
   controlStyle (mode) {
@@ -47,7 +44,7 @@ export default class CodePage extends Component {
       codePageModeScanCode: 'Scan Code'
     }
 
-    return (<Text style={this.controlStyle(mode)} onPress={() => this.props.dispatch(setCodePageMode(mode)) }>{label[mode]}</Text>)
+    return (<Text style={this.controlStyle(mode)} onPress={() => this.props.setCodePageMode(mode) }>{label[mode]}</Text>)
   }
 
   renderCameraBrokenControl () {
@@ -55,7 +52,7 @@ export default class CodePage extends Component {
       case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone: // fallthrough
       case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
         return (<Text style={{textAlign: 'center', backgroundColor: 'red', padding: 20}} onPress={() => {
-          this.props.dispatch(setCameraBrokenMode(!this.props.cameraBrokenMode))
+          this.props.setCameraBrokenMode(!this.props.cameraBrokenMode)
         }}>Camera {this.props.cameraBrokenMode ? 'working' : 'broken'}?</Text>)
     }
 
@@ -104,7 +101,7 @@ export default class CodePage extends Component {
     return (
       <QR
         scanning
-        onBarCodeRead={(code) => this.props.dispatch(qrScanned(code))}
+        onBarCodeRead={(code) => this.props.qrScanned(code)}
         qrCode={this.props.qrCode}>
 
         <Text style={styles.text}>Use this phone to scan the QR code displayed on your other device</Text>
@@ -162,7 +159,7 @@ export default class CodePage extends Component {
           placeholder='Type code here'
           multiline />
         <Button style={{alignSelf: 'flex-end'}} title='Submit' action onPress={() => {
-          this.props.dispatch(textEntered(this.state.enterText))
+          this.props.textEntered(this.state.enterText)
         }}/>
       </View>
     )
@@ -194,7 +191,26 @@ export default class CodePage extends Component {
     return {
       componentAtTop: {
         component: CodePage,
-        mapStateToProps: state => state.login2.codePage
+        mapStateToProps: state => {
+          const {
+            mode, codeCountDown, textCode, qrCode,
+            myDeviceRole, otherDeviceRole } = state.login2.codePage
+          return {
+            mode,
+            codeCountDown,
+            textCode,
+            qrCode,
+            myDeviceRole,
+            otherDeviceRole
+          }
+        },
+        props: {
+          setCodePageMode: bindActionCreators(setCodePageMode, store.dispatch),
+          qrScanned: bindActionCreators(qrScanned, store.dispatch),
+          setCameraBrokenMode: bindActionCreators(setCameraBrokenMode, store.dispatch),
+          textEntered: bindActionCreators(textEntered, store.dispatch),
+          doneRegistering: bindActionCreators(doneRegistering, store.dispatch)
+        }
       }
     }
   }
@@ -203,14 +219,18 @@ export default class CodePage extends Component {
 const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer]
 
 CodePage.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
   mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]),
   codeCountDown: React.PropTypes.number,
   textCode: React.PropTypes.string,
   qrCode: React.PropTypes.string,
   myDeviceRole: React.PropTypes.oneOf(validRoles),
   otherDeviceRole: React.PropTypes.oneOf(validRoles),
-  cameraBrokenMode: React.PropTypes.bool.isRequired
+  cameraBrokenMode: React.PropTypes.bool.isRequired,
+  setCodePageMode: React.PropTypes.func.isRequired,
+  qrScanned: React.PropTypes.func.isRequired,
+  setCameraBrokenMode: React.PropTypes.func.isRequired,
+  textEntered: React.PropTypes.func.isRequired,
+  doneRegistering: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

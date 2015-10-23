@@ -21,6 +21,7 @@ import { startup } from './actions/config'
 import * as Constants from './constants/config'
 
 import { constants as styleConstants } from './styles/common'
+import { bindActionCreators } from 'redux'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB, STARTUP_TAB} from './constants/tabs'
 
@@ -33,7 +34,7 @@ const tabToRootComponent = {
   [STARTUP_TAB]: Startup
 }
 
-function NavigationBarRouteMapper (dispatch) {
+function NavigationBarRouteMapper (navigateTo, navigateUp) {
   return {
     LeftButton: function (route, navigator, index, navState) {
       if (typeof route.leftButton !== 'undefined') {
@@ -48,7 +49,7 @@ function NavigationBarRouteMapper (dispatch) {
 
       return (
         <TouchableOpacity
-          onPress={() => dispatch(route.upLink ? navigateTo(route.upLink) : navigateUp())}
+          onPress={() => route.upLink ? navigateTo(route.upLink) : navigateUp()}
           style={styles.navBarLeftButton}>
           <Text style={[styles.navBarText, styles.navBarButtonText]}>
             {route.upTitle || route.leftButtonTitle || previousRoute.title || 'Back'}
@@ -63,7 +64,7 @@ function NavigationBarRouteMapper (dispatch) {
       }
       return (
         <TouchableOpacity
-          onPress={() => dispatch(route.rightButtonAction)}
+          onPress={() => route.rightButtonAction()}
           style={styles.navBarRightButton}>
           <Text style={[styles.navBarText, styles.navBarButtonText]}>
             {route.rightButtonTitle || 'Done'}
@@ -85,14 +86,21 @@ function NavigationBarRouteMapper (dispatch) {
 export default class Nav extends Component {
   constructor (props) {
     super(props)
-    this.props.dispatch(startup())
+
+    this.state = {
+      startup: bindActionCreators(startup, props.dispatch),
+      navigateTo: bindActionCreators(navigateTo, props.dispatch),
+      navigateUp: bindActionCreators(navigateUp, props.dispatch),
+      switchTab: bindActionCreators(switchTab, props.dispatch)
+    }
+
+    this.state.startup()
   }
 
   navBar () {
-    const {dispatch} = this.props
     return (<Navigator.NavigationBar
              style={styles.navBar}
-             routeMapper={NavigationBarRouteMapper(dispatch)}/>)
+             routeMapper={NavigationBarRouteMapper(this.state.navigateTo, this.state.navigateUp)}/>)
   }
 
   _renderContent () {
@@ -128,7 +136,6 @@ export default class Nav extends Component {
   }
 
   render () {
-    const {dispatch} = this.props
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
     if (this.props.config.navState === Constants.navStartingUp) {
@@ -152,32 +159,32 @@ export default class Nav extends Component {
           <TabBarIOS.Item
             title='Folders'
             selected={activeTab === FOLDER_TAB}
-            onPress={() => dispatch(switchTab(FOLDER_TAB))}>
+            onPress={() => this.state.switchTab(FOLDER_TAB)}>
             {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             title='Chat'
             selected={activeTab === CHAT_TAB}
-            onPress={() => dispatch(switchTab(CHAT_TAB))}>
+            onPress={() => this.state.switchTab(CHAT_TAB)}>
             {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             title='People'
             systemIcon='contacts'
             selected={activeTab === PEOPLE_TAB}
-            onPress={() => dispatch(switchTab(PEOPLE_TAB))}>
+            onPress={() => this.state.switchTab(PEOPLE_TAB)}>
             {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             title='Devices'
             selected={activeTab === DEVICES_TAB}
-            onPress={() => dispatch(switchTab(DEVICES_TAB))}>
+            onPress={() => this.state.switchTab(DEVICES_TAB)}>
             {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             systemIcon='more'
             selected={activeTab === MORE_TAB}
-            onPress={() => dispatch(switchTab(MORE_TAB))}>
+            onPress={() => this.state.switchTab(MORE_TAB)}>
             {this._renderContent()}
           </TabBarIOS.Item>
         </TabBarIOS>

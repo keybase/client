@@ -6,6 +6,7 @@ import Button from '../../../common-adapters/button'
 import commonStyles from '../../../styles/common'
 import { registerSubmitUserPass } from '../../../actions/login2'
 import SetPublicName from '../set-public-name'
+import { bindActionCreators } from 'redux'
 
 export default class UserPass extends Component {
   constructor (props) {
@@ -18,7 +19,7 @@ export default class UserPass extends Component {
   }
 
   onSubmit () {
-    this.props.dispatch(registerSubmitUserPass(this.state.username, this.state.passphrase))
+    this.props.submit(this.state.username, this.state.passphrase)
   }
 
   render () {
@@ -48,8 +49,8 @@ export default class UserPass extends Component {
           placeholder='Keybase Passphrase'
         />
 
-        {this.props.registerUserPassError && (
-          <Text>{this.props.registerUserPassError.toString()}</Text>
+        {this.props.error && (
+          <Text>{this.props.error.toString()}</Text>
         )}
 
         <Button style={{alignSelf: 'flex-end', marginTop: 20}} buttonStyle={commonStyles.actionButton} onPress={() => this.onSubmit()} enabled={buttonEnabled} title='Submit'/>
@@ -60,7 +61,18 @@ export default class UserPass extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => {
+          const { username, passphrase, registerUserPassError: error, registerUserPassLoading: loading } = state.login2
+          return {
+            username,
+            passphrase,
+            loading,
+            error
+          }
+        },
+        props: {
+          submit: bindActionCreators(registerSubmitUserPass, store.dispatch)
+        }
       },
       subRoutes: {
         regSetPublicName: SetPublicName
@@ -70,11 +82,11 @@ export default class UserPass extends Component {
 }
 
 UserPass.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string,
-  registerUserPassError: React.PropTypes.object,
-  registerUserPassLoading: React.PropTypes.bool.isRequired
+  error: React.PropTypes.object,
+  loading: React.PropTypes.bool.isRequired,
+  submit: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

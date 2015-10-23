@@ -4,20 +4,15 @@
 import React, { Component, StyleSheet, Navigator, TextInput, View, Text } from 'react-native'
 import { navigateUp } from '../../actions/router'
 import { getDevSettings, saveDevSettings, updateDevSettings } from '../../actions/config'
+import { bindActionCreators } from 'redux'
 
 export default class Developer extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = { }
-  }
-
   componentDidMount () {
-    this.props.dispatch(getDevSettings())
+    this.props.getDevSettings()
   }
 
   componentWillUnmount () {
-    this.props.dispatch(saveDevSettings())
+    this.props.saveDevSettings()
   }
 
   render () {
@@ -42,7 +37,7 @@ export default class Developer extends Component {
             value={this.props.devConfig.configured[key]}
             style={styles.input}
             clearButtonMode='always'
-            onChangeText={ (val) => this.props.dispatch(updateDevSettings({ [key]: val || null })) }
+            onChangeText={ (val) => this.props.updateDevSettings({ [key]: val || null }) }
           />
         </View>
       )
@@ -58,17 +53,29 @@ export default class Developer extends Component {
     return {
       componentAtTop: {
         title: 'Developer',
-        rightButtonAction: navigateUp(),
+        rightButtonAction: bindActionCreators(navigateUp, store.dispatch),
         sceneConfig: Navigator.SceneConfigs.FloatFromBottom,
-        mapStateToProps: state => state.config
+        mapStateToProps: state => {
+          const { devConfig } = state.config
+          return {
+            devConfig
+          }
+        },
+        props: {
+          getDevSettings: bindActionCreators(getDevSettings, store.dispatch),
+          saveDevSettings: bindActionCreators(saveDevSettings, store.dispatch),
+          updateDevSettings: bindActionCreators(updateDevSettings, store.dispatch)
+        }
       }
     }
   }
 }
 
 Developer.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
-  devConfig: React.PropTypes.object
+  devConfig: React.PropTypes.object,
+  getDevSettings: React.PropTypes.func.isRequired,
+  saveDevSettings: React.PropTypes.func.isRequired,
+  updateDevSettings: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

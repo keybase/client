@@ -5,6 +5,7 @@ import React, { Component, StyleSheet, Text, TextInput, View } from 'react-nativ
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
 import { navigateTo } from '../../../actions/router'
+import { bindActionCreators } from 'redux'
 
 export default class PaperKey extends Component {
   constructor (props) {
@@ -26,7 +27,7 @@ export default class PaperKey extends Component {
         />
         <Button
           style={{alignSelf: 'flex-end', marginRight: 10}}
-          onPress={() => { this.props.dispatch(navigateTo(['login2', 'register', 'setPublicName'])) }}
+          onPress={() => { this.props.navigateTo(['login2', 'register', 'setPublicName']) }}
           title='Submit & Log in'
           enabled={this.state.paperKey}/>
       </View>
@@ -36,14 +37,17 @@ export default class PaperKey extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => { return {} }
+      },
+      props: {
+        navigateTo: bindActionCreators(navigateTo, store.dispatch)
       }
     }
   }
 }
 
 PaperKey.propTypes = {
-  dispatch: React.PropTypes.func.isRequired
+  navigateTo: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

@@ -2,11 +2,12 @@
 
 import React, { Component, ListView, StyleSheet, View, Text } from 'react-native'
 import commonStyles from '../../styles/common'
-import * as LoginActions from '../../actions/login2'
-import * as SearchActions from '../../actions/search'
+import Button from '../../common-adapters/button'
+import { bindActionCreators } from 'redux'
+import { logout } from '../../actions/login2'
+import { pushNewSearch } from '../../actions/search'
 import { navigateTo } from '../../actions/router'
 import { pushNewProfile } from '../../actions/profile'
-import Button from '../../common-adapters/button'
 
 export default class More extends Component {
   constructor (props) {
@@ -19,38 +20,38 @@ export default class More extends Component {
     this.state = {
       dataSource: ds.cloneWithRows([
         {name: 'Login', onClick: () => {
-          this.props.dispatch(navigateTo(['login', 'loginform']))
+          this.props.navigateTo(['login', 'loginform'])
         }},
         {name: 'Login2', onClick: () => {
-          this.props.dispatch(navigateTo(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}]))
+          this.props.navigateTo(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}])
         }},
         {name: 'Register', onClick: () => {
-          this.props.dispatch(navigateTo(['login2', {path: 'register', upLink: ['']}]))
+          this.props.navigateTo(['login2', {path: 'register', upLink: ['']}])
         }},
         {name: 'reset', onClick: () => {
           require('../../engine').reset()
           console.log('Engine reset!')
         }},
         {name: 'Sign Out', onClick: () => {
-          this.props.dispatch(LoginActions.logout())
+          this.props.logout()
         }},
         {name: 'About', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['about']))
+          this.props.navigateTo(['about'])
         }},
         {name: 'Developer', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['developer']))
+          this.props.navigateTo(['developer'])
         }},
         {name: 'Nav debug', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['navDebug']))
+          this.props.navigateTo(['navDebug'])
         }},
         {name: 'Bridging', hasChildren: true, onClick: () => {
-          this.props.dispatch(navigateTo(['bridging']))
+          this.props.navigateTo(['bridging'])
         }},
         {name: 'Search', hasChildren: true, onClick: () => {
-          this.props.dispatch(SearchActions.pushNewSearch())
+          this.props.pushNewSearch()
         }},
         {name: 'Profile', hasChildren: true, onClick: () => {
-          this.props.dispatch(pushNewProfile('test12'))
+          this.props.pushNewProfile('test12')
         }}
       ])
     }
@@ -86,7 +87,14 @@ export default class More extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        title: 'More'
+        title: 'More',
+        mapStateToProps: state => { return {} },
+        props: {
+          navigateTo: bindActionCreators(navigateTo, store.dispatch),
+          logout: bindActionCreators(logout, store.dispatch),
+          pushNewSearch: bindActionCreators(pushNewSearch, store.dispatch),
+          pushNewProfile: bindActionCreators(pushNewProfile, store.dispatch)
+        }
       },
       subRoutes: {
         about: require('./about'),
@@ -101,7 +109,10 @@ export default class More extends Component {
 }
 
 More.propTypes = {
-  dispatch: React.PropTypes.func.isRequired
+  navigateTo: React.PropTypes.func.isRequired,
+  logout: React.PropTypes.func.isRequired,
+  pushNewSearch: React.PropTypes.func.isRequired,
+  pushNewProfile: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

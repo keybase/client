@@ -4,12 +4,13 @@
 import React, { Component, Text, View, StyleSheet } from 'react-native'
 import commonStyles from '../../styles/common'
 import { generatePaperKey } from '../../actions/devices'
+import { bindActionCreators } from 'redux'
 
 export default class GenPaperKey extends Component {
   constructor (props) {
     super(props)
 
-    this.props.dispatch(generatePaperKey())
+    this.props.generatePaperKey()
   }
 
   render () {
@@ -29,14 +30,23 @@ export default class GenPaperKey extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.devices
+        mapStateToProps: state => {
+          const { paperKey } = state.devices
+
+          return {
+            paperKey
+          }
+        }
+      },
+      props: {
+        generatePaperKey: bindActionCreators(generatePaperKey, store.dispatch)
       }
     }
   }
 }
 
 GenPaperKey.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
+  generatePaperKey: React.PropTypes.func.isRequired,
   paperKey: React.PropTypes.string
 }
 

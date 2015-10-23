@@ -22,6 +22,8 @@ import { switchTab } from './actions/tabbed-router'
 import { navigateBack } from './actions/router'
 import { startup } from './actions/config'
 
+import { bindActionCreators } from 'redux'
+
 import * as Constants from './constants/config'
 
 const tabToRootComponent = {
@@ -68,22 +70,30 @@ AndroidNavigator.propTypes = {
 export default class Nav extends Component {
   constructor (props) {
     super(props)
-    this.props.dispatch(startup())
+
+    this.state = {
+      switchTab: bindActionCreators(switchTab, this.props.dispatch),
+      navigateBack: bindActionCreators(navigateBack, this.props.dispatch),
+      startup: bindActionCreators(startup, this.props.dispatch)
+    }
+
+    this.state.startup()
   }
 
   _renderContent (activeTab) {
     return (
       <View style={styles.tabContent} collapsable={false}>
         {React.createElement(
-          connect(state => state.tabbedRouter.getIn(['tabs', activeTab]).toObject())(MetaNavigator), {
+          connect(state => state.tabbedRouter.getIn(['tabs', activeTab]).toObject()(MetaNavigator), {
             store: this.props.store,
             rootComponent: tabToRootComponent[activeTab] || NoTab,
             globalRoutes,
             navBarHeight: 0,
             Navigator: AndroidNavigator,
             NavBar: <View/>
-          }
-        )}
+          })
+        )
+        }
       </View>
     )
   }
@@ -92,17 +102,15 @@ export default class Nav extends Component {
     BackAndroid.addEventListener('hardwareBackPress', () => {
       // TODO Properly handle android back button press
       const currentRoute = this.props.tabbedRouter.getIn(['tabs', this.props.tabbedRouter.get('activeTab'), 'uri'])
-      const {dispatch} = this.props
       if (currentRoute == null || currentRoute.count() <= 1) {
         return false
       }
-      dispatch(navigateBack())
+      this.state.navigateBack()
       return true
     })
   }
 
   render () {
-    const {dispatch} = this.props
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
     if (this.props.config.navState === Constants.navStartingUp) {
@@ -166,32 +174,32 @@ export default class Nav extends Component {
                 <TabBar.Item
                   title='Folders'
                   selected={activeTab === FOLDER_TAB}
-                  onPress={() => dispatch(switchTab(FOLDER_TAB))}>
+                  onPress={() => this.state.switchTab(FOLDER_TAB)}>
                   {this._renderContent(FOLDER_TAB)}
                 </TabBar.Item>
                 <TabBar.Item
                   title='Chat'
                   selected={activeTab === CHAT_TAB}
-                  onPress={() => dispatch(switchTab(CHAT_TAB))}>
+                  onPress={() => this.state.switchTab(CHAT_TAB)}>
                   {this._renderContent(CHAT_TAB)}
                 </TabBar.Item>
                 <TabBar.Item
                   title='People'
                   systemIcon='contacts'
                   selected={activeTab === PEOPLE_TAB}
-                  onPress={() => dispatch(switchTab(PEOPLE_TAB))}>
+                  onPress={() => this.state.switchTab(PEOPLE_TAB)}>
                   {this._renderContent(PEOPLE_TAB)}
                 </TabBar.Item>
                 <TabBar.Item
                   title='Devices'
                   selected={activeTab === DEVICES_TAB}
-                  onPress={() => dispatch(switchTab(DEVICES_TAB))}>
+                  onPress={() => this.state.switchTab(DEVICES_TAB)}>
                   {this._renderContent(DEVICES_TAB)}
                 </TabBar.Item>
                 <TabBar.Item
                   title='more'
                   selected={activeTab === MORE_TAB}
-                  onPress={() => dispatch(switchTab(MORE_TAB))}>
+                  onPress={() => this.state.switchTab(MORE_TAB)}>
                   {this._renderContent(MORE_TAB)}
                 </TabBar.Item>
             </TabBar>
