@@ -53,7 +53,7 @@ export default class Search extends Component {
   }
 
   onPress (rowData) {
-    this.props.dispatch(pushNewProfile(rowData.username))
+    this.props.pushNewProfile(rowData.username)
   }
 
   renderRow (rowData, sectionID, rowID) {
@@ -73,7 +73,7 @@ export default class Search extends Component {
   }
 
   onSubmit () {
-    this.props.dispatch(submitSearch(this.props.base, this.state.search))
+    this.props.submitSearch(this.props.base, this.state.search)
   }
 
   render () {
@@ -106,22 +106,24 @@ export default class Search extends Component {
       </View>
     )
   }
-  static canParseNextRoute (currentPath) {
-    return currentPath.get('path') === 'search'
-  }
 
   static parseRoute (store, currentPath, nextPath, uri) {
     const base = uri.pop()
     return {
       componentAtTop: {
-        mapStateToProps: (state) => state.search.get(base).toObject()
+        mapStateToProps: state => state.search.get(base).toObject(),
+        props: {
+          submitSearch: (base, search) => store.dispatch(submitSearch(base, search)),
+          pushNewProfile: username => store.dispatch(pushNewProfile(username))
+        }
       }
     }
   }
 }
 
 Search.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
+  submitSearch: React.PropTypes.func.isRequired,
+  pushNewProfile: React.PropTypes.func.isRequired,
   base: React.PropTypes.object.isRequired,
   results: React.PropTypes.object,
   waitingForServer: React.PropTypes.bool.isRequired

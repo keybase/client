@@ -13,13 +13,13 @@ export default class Welcome extends Component {
     return (
       <View style={[styles.container, {marginTop: 64, marginBottom: 48}]}>
         <Text style={[commonStyles.h1, {padding: 20, textAlign: 'center'}]}>Welcome to Keybase</Text>
-        <Button onPress={() => this.props.dispatch(routeAppend('login'))}>
+        <Button onPress={() => this.props.gotoLoginPage()}>
           <View>
             <Text style={commonStyles.h1}>Log in -</Text>
             <Text style={[commonStyles.h2, {marginBottom: 40}]}>Already a keybase user? Welcome back!</Text>
           </View>
         </Button>
-        <Button onPress={() => this.props.dispatch(routeAppend('signup'))}>
+        <Button onPress={() => this.props.gotoSignupPage()}>
           <View>
             <Text style={commonStyles.h1}>Sign up -</Text>
             <Text style={commonStyles.h2}>In order to sign up for our beta, a friend who is an existing member on Keybase is required to share a file with you</Text>
@@ -36,8 +36,12 @@ export default class Welcome extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2,
-        hideNavBar: true
+        mapStateToProps: state => { return {} },
+        hideNavBar: true,
+        props: {
+          gotoLoginPage: () => store.dispatch(routeAppend('login')),
+          gotoSignupPage: () => store.dispatch(routeAppend('signup'))
+        }
       },
       subRoutes: {
         'login': Login,
@@ -48,7 +52,8 @@ export default class Welcome extends Component {
 }
 
 Welcome.propTypes = {
-  dispatch: React.PropTypes.func.isRequired
+  gotoLoginPage: React.PropTypes.func.isRequired,
+  gotoSignupPage: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

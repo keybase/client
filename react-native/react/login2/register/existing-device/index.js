@@ -6,13 +6,13 @@ import React, { Component, StyleSheet, Text, TouchableHighlight, View } from 're
 import commonStyles from '../../../styles/common'
 import { navigateUp, routeAppend } from '../../../actions/router'
 import { setCodePageOtherDeviceRole } from '../../../actions/login2'
-import CodePage from '../code-page'
 import { codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer } from '../../../constants/login2'
+import CodePage from '../code-page'
 
 export default class ExistingDevice extends Component {
   showCodePage (otherDeviceRole) {
-    this.props.dispatch(setCodePageOtherDeviceRole(otherDeviceRole))
-    this.props.dispatch(routeAppend('codePage'))
+    this.props.setCodePageOtherDeviceRole(otherDeviceRole)
+    this.props.gotoCodePage()
   }
 
   render () {
@@ -49,7 +49,7 @@ export default class ExistingDevice extends Component {
             </View>
           </TouchableHighlight>
         </View>
-        <Text onPress={() => this.props.dispatch(navigateUp())} style={{alignSelf: 'flex-end'}}>Back</Text>
+        <Text onPress={() => this.props.navigateUp()} style={{alignSelf: 'flex-end'}}>Back</Text>
       </View>
     )
   }
@@ -57,7 +57,17 @@ export default class ExistingDevice extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2.codePage
+        mapStateToProps: state => {
+          const { myDeviceRole } = state.login2.codePage
+          return {
+            myDeviceRole
+          }
+        },
+        props: {
+          navigateUp: () => store.dispatch(navigateUp()),
+          gotoCodePage: () => store.dispatch(routeAppend('codePage')),
+          setCodePageOtherDeviceRole: otherRole => store.dispatch(setCodePageOtherDeviceRole(otherRole))
+        }
       },
       subRoutes: {
         codePage: CodePage
@@ -67,13 +77,15 @@ export default class ExistingDevice extends Component {
 }
 
 ExistingDevice.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
   myDeviceRole: React.PropTypes.oneOf([
     codePageDeviceRoleExistingPhone,
     codePageDeviceRoleNewPhone,
     codePageDeviceRoleExistingComputer,
     codePageDeviceRoleNewComputer
-  ])
+  ]),
+  navigateUp: React.PropTypes.func.isRequired,
+  gotoCodePage: React.PropTypes.func.isRequired,
+  setCodePageOtherDeviceRole: React.PropTypes.func.isRequire
 }
 
 const styles = StyleSheet.create({

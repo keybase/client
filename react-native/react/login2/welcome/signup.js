@@ -26,7 +26,7 @@ export default class Signup extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => { return {} }
       }
     }
   }
