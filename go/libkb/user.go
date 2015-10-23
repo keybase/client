@@ -556,6 +556,25 @@ func (u *User) GetDevice(id keybase1.DeviceID) (*Device, error) {
 	return device, nil
 }
 
+func (u *User) DeviceNames() ([]string, error) {
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		return nil, fmt.Errorf("no computed key family")
+	}
+	if ckf.cki == nil {
+		return nil, fmt.Errorf("no computed key infos")
+	}
+
+	var names []string
+	for _, device := range ckf.cki.Devices {
+		if device.Description == nil {
+			continue
+		}
+		names = append(names, *device.Description)
+	}
+	return names, nil
+}
+
 // Returns whether or not the current install has an active device
 // sibkey.
 func (u *User) HasDeviceInCurrentInstall() bool {
