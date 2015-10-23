@@ -57,7 +57,7 @@ func makeKeyServer(config Config, serverRootDir *string, keyserverAddr string) (
 func makeBlockServer(config Config, serverRootDir *string, bserverAddr string) (
 	BlockServer, error) {
 	if len(bserverAddr) == 0 {
-		if len(*serverRootDir) == 0 {
+		if serverRootDir == nil {
 			return NewBlockServerMemory(config)
 		}
 
