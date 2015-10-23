@@ -183,14 +183,15 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 		hasPGP = len(ckf.GetActivePGPKeys(false)) > 0
 	}
 
-	// if they have any pgp keys in their family, there's a chance there is a synced
-	// pgp key, so try provisioning with it.
 	if hasPGP {
+		// if they have any pgp keys in their family, there's a chance there is a synced
+		// pgp key, so try provisioning with it.
 		e.G().Log.Debug("user %q has a pgp key, trying to provision with it", e.user.GetName())
 		if err := e.pgpProvision(ctx); err != nil {
 			return err
 		}
 	} else {
+		// they have no keys, so make the device keys the eldest keys:
 		e.G().Log.Debug("user %q has no devices, no pgp keys", e.user.GetName())
 		if err := e.addEldestDeviceKey(ctx); err != nil {
 			return err
@@ -226,7 +227,6 @@ func (e *XLoginProvision) pgpProvision(ctx *Context) error {
 		args.EldestKID = e.user.GetEldestKID()
 
 		return e.makeDeviceKeys(ctx, args)
-
 	}
 
 	// need a session to try to get synced private key
@@ -255,41 +255,6 @@ func (e *XLoginProvision) paperKey(ctx *Context) error {
 	return RunEngine(eng, ctx)
 }
 
-// deviceName gets a new device name from the user.
-func (e *XLoginProvision) deviceName(ctx *Context) (string, error) {
-	// TODO: get existing device names
-	arg := keybase1.PromptNewDeviceNameArg{}
-	return ctx.ProvisionUI.PromptNewDeviceName(context.TODO(), arg)
-}
-
-// ppStream gets the passphrase stream, either cached or via
-// SecretUI.
-func (e *XLoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
-	if ctx.LoginContext != nil {
-		cached := ctx.LoginContext.PassphraseStreamCache()
-		if cached == nil {
-			return nil, errors.New("nil PassphraseStreamCache")
-		}
-		return cached.PassphraseStream(), nil
-	}
-	return e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
-}
-
-// ensureLKSec ensures we have LKSec for saving device keys.
-func (e *XLoginProvision) ensureLKSec(ctx *Context) error {
-	if e.lks != nil {
-		return nil
-	}
-
-	pps, err := e.ppStream(ctx)
-	if err != nil {
-		return err
-	}
-
-	e.lks = libkb.NewLKSec(pps, e.user.GetUID(), e.G())
-	return nil
-}
-
 // makeDeviceWrapArgs creates a base set of args for DeviceWrap.
 // It ensures that LKSec is created.  It also gets a new device
 // name for this device.
@@ -308,6 +273,41 @@ func (e *XLoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, err
 		DeviceName: devname,
 		Lks:        e.lks,
 	}, nil
+}
+
+// ensureLKSec ensures we have LKSec for saving device keys.
+func (e *XLoginProvision) ensureLKSec(ctx *Context) error {
+	if e.lks != nil {
+		return nil
+	}
+
+	pps, err := e.ppStream(ctx)
+	if err != nil {
+		return err
+	}
+
+	e.lks = libkb.NewLKSec(pps, e.user.GetUID(), e.G())
+	return nil
+}
+
+// ppStream gets the passphrase stream, either cached or via
+// SecretUI.
+func (e *XLoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
+	if ctx.LoginContext != nil {
+		cached := ctx.LoginContext.PassphraseStreamCache()
+		if cached == nil {
+			return nil, errors.New("nil PassphraseStreamCache")
+		}
+		return cached.PassphraseStream(), nil
+	}
+	return e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+}
+
+// deviceName gets a new device name from the user.
+func (e *XLoginProvision) deviceName(ctx *Context) (string, error) {
+	// TODO: get existing device names
+	arg := keybase1.PromptNewDeviceNameArg{}
+	return ctx.ProvisionUI.PromptNewDeviceName(context.TODO(), arg)
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.
@@ -367,6 +367,7 @@ func (e *XLoginProvision) searchGPG(ctx *Context) ([]string, error) {
 	return nil, nil
 }
 
+// checkArg checks XLoginProvisionArg for sane arguments.
 func (e *XLoginProvision) checkArg() error {
 	// check we have a good device type:
 	if e.arg.DeviceType != libkb.DeviceTypeDesktop && e.arg.DeviceType != libkb.DeviceTypeMobile {
@@ -376,6 +377,8 @@ func (e *XLoginProvision) checkArg() error {
 	return nil
 }
 
+// chooseMethod uses ProvisionUI to let user choose a provisioning
+// method.
 func (e *XLoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, error) {
 	var nilMethod keybase1.ProvisionMethod
 	availableGPGPrivateKeyUsers, err := e.searchGPG(ctx)
@@ -390,6 +393,7 @@ func (e *XLoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, 
 	return ctx.ProvisionUI.ChooseProvisioningMethod(context.TODO(), arg)
 }
 
+// runMethod runs the function for the chosen provisioning method.
 func (e *XLoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMethod) error {
 	switch method {
 	case keybase1.ProvisionMethod_DEVICE:
