@@ -276,3 +276,26 @@ export function logout () {
     })
   }
 }
+
+export function setDeviceName (name) {
+  return function (dispatch) {
+    // TODO integrate
+    setTimeout(() => {
+      const error = false
+
+      if (error) {
+        dispatch({
+          type: Constants.deviceNameSet,
+          error: true,
+          payload: error
+        })
+      } else {
+        dispatch({
+          type: Constants.deviceNameSet
+        })
+
+        // TODO multiple things do this, what do we do next? individual reducers?
+      }
+    }, 1000)
+  }
+}

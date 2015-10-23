@@ -23,6 +23,7 @@ import * as Constants from './constants/config'
 import { constants as styleConstants } from './styles/common'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB, STARTUP_TAB} from './constants/tabs'
+import Button from './common-adapters/button'
 
 const tabToRootComponent = {
   [FOLDER_TAB]: Folders,
@@ -145,6 +146,15 @@ export default class Nav extends Component {
       )
     }
 
+    if (this.props.config.navState === Constants.navErrorStartingUp) {
+      return (
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <Text>Error Loading: {this.props.config.error.toString()}</Text>
+          <Button title='Retry' onPress={() => this.state.startup()} isAction />
+        </View>
+      )
+    }
+
     if (activeTab === STARTUP_TAB) {
       return this._renderContent()
     }
@@ -204,7 +214,13 @@ Nav.propTypes = {
   tabbedRouter: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
-    navState: React.PropTypes.oneOf([Constants.navStartingUp, Constants.navNeedsRegistration, Constants.navNeedsLogin, Constants.navLoggedIn])
+    navState: React.PropTypes.oneOf([
+      Constants.navStartingUp,
+      Constants.navNeedsRegistration,
+      Constants.navNeedsLogin,
+      Constants.navLoggedIn,
+      Constants.navErrorStartingUp]),
+    error: React.PropTypes.object
   }).isRequired
 }
 
