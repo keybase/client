@@ -1,8 +1,6 @@
 [ignore]
 
 # TODO: unignore these:
-.*/react/reducers/.*
-.*/react/store/.*
 .*/react/common-adapters/.*
 .*/react/debug/.*
 .*/react/engine/.*
