@@ -1,0 +1,15 @@
+{
+  "name": "gen_test_vectors",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "armor58": "0.0.1",
+    "iced-coffee-script": "^108.0.9"
+  }
+}
