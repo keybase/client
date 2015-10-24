@@ -1,3 +1,4 @@
+/* @flow */
 'use strict'
 
 import * as Constants from '../constants/login2'
@@ -10,7 +11,37 @@ import {
   codePageDeviceRoleExistingPhone,
   codePageDeviceRoleExistingComputer } from '../constants/login2'
 
-const initialState = {
+type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
+
+type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
+
+// TODO: What's the real type of this?
+type QRCode = string
+
+type Error = string
+
+type LoginState = {
+  username: string | '',
+  passphrase: string | '',
+  codePage: {
+    otherDeviceRole: ?DeviceRole,
+    myDeviceRole: ?DeviceRole,
+    mode: ?Mode,
+    cameraBrokenMode: boolean,
+    codeCountDown: number,
+    textCode: ?string,
+    qrScanned: ?QRCode,
+    qrCode: ?QRCode
+  },
+  registerUserPassError: ?Error,
+  registerUserPassLoading: boolean,
+  forgotPasswordEmailAddress: string | '',
+  forgotPasswordSubmitting: boolean,
+  forgotPasswordSuccess: boolean,
+  forgotPasswordError: ?Error
+}
+
+const initialState: LoginState = {
   username: '',
   passphrase: '',
   codePage: {
@@ -31,7 +62,7 @@ const initialState = {
   forgotPasswordError: null
 }
 
-export default function (state = initialState, action) {
+export default function (state: LoginState = initialState, action: any): LoginState {
   switch (action.type) {
     case Constants.login:
       return {
@@ -104,7 +135,7 @@ export default function (state = initialState, action) {
         }
       }).toJS()
     }
-    case Constants.qrGenerated: {
+    case Constants.qrGenerate: {
       const s = Immutable.fromJS(state)
       return s.mergeDeep({
         codePage: {
@@ -139,7 +170,7 @@ export default function (state = initialState, action) {
         ...state,
         forgotPasswordEmailAddress: action.email,
         forgotPasswordSuccess: false,
-        forgotPasswordError: false
+        forgotPasswordError: null
       }
     case Constants.actionSetForgotPasswordSubmitting:
       return {

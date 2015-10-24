@@ -14,7 +14,7 @@ type ConfigState = {
   devConfig: ?any;
 }
 
-const initialState = {
+const initialState: ConfigState = {
   navState: Constants.navStartingUp,
   status: null,
   config: null,
