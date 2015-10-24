@@ -8,7 +8,7 @@ import Immutable from 'immutable'
 import * as localDebug from '../local-debug'
 import * as LoginConstants from '../constants/login2'
 
-type URI = Immutable.List<string>
+export type URI = Immutable.List<string>
 type History = Immutable.List<Immutable.List<string>>
 
 export type RouterState = MapADT2<'uri', URI, 'history', History> // eslint-disable-line no-undef
