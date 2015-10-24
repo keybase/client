@@ -1,8 +1,8 @@
 package libfuse
 
 import (
-	"fmt"
-	"io/ioutil"
+	"os"
+	"path"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -16,7 +16,8 @@ type StartOptions struct {
 	ServerRootDir *string
 	CPUProfile    string
 	MemProfile    string
-	VersionFile   string
+	RuntimeDir    string
+	Label         string
 	Debug         bool
 	BServerAddr   string
 	MDServerAddr  string
@@ -56,9 +57,9 @@ func Start(mounter Mounter, options StartOptions) *Error {
 
 	defer libkbfs.Shutdown(options.MemProfile)
 
-	if options.VersionFile != "" {
-		version := fmt.Sprintf("%s-%s", libkbfs.Version, libkbfs.Build)
-		err = ioutil.WriteFile(options.VersionFile, []byte(version), 0644)
+	if options.RuntimeDir != "" {
+		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.Build, options.Label, os.Getpid())
+		err = info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"))
 		if err != nil {
 			return InitError(err.Error())
 		}
