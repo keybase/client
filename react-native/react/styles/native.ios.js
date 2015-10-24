@@ -3,7 +3,7 @@
  */
 'use strict'
 
-import NavigatorNavigationBarStyles from 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStyles'
+import NavigatorNavigationBarStyles from 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS'
 
 export default {
   navBarHeight: NavigatorNavigationBarStyles.General.TotalNavHeight,
