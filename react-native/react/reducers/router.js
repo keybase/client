@@ -3,13 +3,13 @@
 
 import * as loginTypes from '../constants/login-action-types'
 import * as routerTypes from '../constants/router-action-types'
-import Immutable from 'immutable'
+import Immutable, {List, Map} from 'immutable'
 // $FlowFixMe ignore this import for now
 import * as localDebug from '../local-debug'
 import * as LoginConstants from '../constants/login2'
 
-export type URI = Immutable.List<string>
-type History = Immutable.List<Immutable.List<string>>
+export type URI = List<Map<string, string>>
+type History = List<URI>
 
 export type RouterState = MapADT2<'uri', URI, 'history', History> // eslint-disable-line no-undef
 
