@@ -36,10 +36,10 @@ export default class GenPaperKey extends Component {
           return {
             paperKey
           }
+        },
+        props: {
+          generatePaperKey: bindActionCreators(generatePaperKey, store.dispatch)
         }
-      },
-      props: {
-        generatePaperKey: bindActionCreators(generatePaperKey, store.dispatch)
       }
     }
   }
