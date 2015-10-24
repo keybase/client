@@ -1,5 +1,10 @@
 ## Keybase
 
+### Project Status
+
+Hi everyone! This folder's code is *not* ready for prime time. Use at your own risk (and never against production!)
+We are iterating quickly and a lot of the code is changing every day.
+
 ### Project Setup
 
 #### General (both android and ios)
