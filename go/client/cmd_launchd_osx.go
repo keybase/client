@@ -3,12 +3,16 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 func NewCmdLaunchd(cl *libcmdline.CommandLine) cli.Command {
@@ -24,6 +28,7 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine) cli.Command {
 			NewCmdLaunchdStart(cl),
 			NewCmdLaunchdStop(cl),
 			NewCmdLaunchdRestart(cl),
+			NewCmdLaunchdConfig(cl),
 		},
 	}
 }
@@ -46,10 +51,17 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 			binPath := args[1]
 			plistArgs := args[2:]
 
+			homeDir := os.Getenv("HOME")
+			home := libkb.NewHomeFinder("keybase",
+				func() string { return homeDir },
+				runtime.GOOS,
+				func() libkb.RunMode { return libkb.DefaultRunMode })
+
 			envVars := make(map[string]string)
 			envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
 			envVars["KEYBASE_LABEL"] = label
 			envVars["KEYBASE_LOG_FORMAT"] = "file"
+			envVars["KEYBASE_RUNTIME_DIR"] = home.RuntimeDir()
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
 			err := launchd.Install(plist)
@@ -118,6 +130,17 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
+func NewCmdLaunchdConfig(cl *libcmdline.CommandLine) cli.Command {
+	return cli.Command{
+		Name:         "config",
+		ArgumentHelp: "",
+		Usage:        "Config for keybase launchd service",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(&CmdLaunchdConfig{}, "config", c)
+		},
+	}
+}
+
 func NewCmdLaunchdRestart(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "restart",
@@ -173,6 +196,39 @@ func NewCmdLaunchdStop(cl *libcmdline.CommandLine) cli.Command {
 			os.Exit(0)
 		},
 	}
+}
+
+type CmdLaunchdConfig struct{}
+
+func (v *CmdLaunchdConfig) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
+	}
+}
+
+func (v *CmdLaunchdConfig) ParseArgv(ctx *cli.Context) error {
+	return nil
+}
+
+func (v *CmdLaunchdConfig) Run() error {
+	configCli, err := GetConfigClient(G)
+	if err != nil {
+		return err
+	}
+
+	config, err := configCli.GetConfig(context.TODO(), 0)
+	if err != nil {
+		return err
+	}
+
+	configJSON, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	GlobUI.Printf("%s\n", configJSON)
+	return nil
 }
 
 func DiagnoseSocketError(err error) {
