@@ -67,3 +67,21 @@ func TestDecodeVectors(t *testing.T) {
 		testDecodeVector(t, orig, encoding)
 	}
 }
+
+func TestBadEncodings(t *testing.T) {
+	badEncodings := []string{
+		"1",
+		"B",
+		"1111",
+		"BBBB",
+		"11111111",
+		"BBBBBBBB",
+	}
+	var buf [100]byte
+	for _, b := range badEncodings {
+		n, err := StdEncoding.Decode(buf[:], []byte(b))
+		if err == nil {
+			t.Errorf("Should have failed to decode '%s' (got %v)", b, buf[0:n])
+		}
+	}
+}

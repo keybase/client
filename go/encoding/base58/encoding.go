@@ -2,6 +2,7 @@ package base58
 
 import (
 	"bytes"
+	"errors"
 	"math"
 	"math/big"
 )
@@ -127,10 +128,13 @@ func (enc *Encoding) Decode(dst, src []byte) (n int, err error) {
 	return dp, nil
 }
 
+var ErrInvalidEncodingLength = errors.New("invalid encoding length; either truncated or has trailing garbage")
+
 func (enc *Encoding) decodeBlock(dst []byte, src []byte) (int, int, error) {
 	si := 0 // dest index, source index
 	numGoodChars := 0
 	res := new(big.Int)
+
 	for _, b := range src {
 		v := enc.decodeMap[b]
 		si++
@@ -144,6 +148,10 @@ func (enc *Encoding) decodeBlock(dst []byte, src []byte) (int, int, error) {
 		if numGoodChars == enc.outBlockLen {
 			break
 		}
+	}
+
+	if !enc.IsValidEncodingLength(numGoodChars) {
+		return 0, 0, ErrInvalidEncodingLength
 	}
 
 	raw := res.Bytes()
@@ -191,4 +199,20 @@ func (enc *Encoding) DecodedLen(n int) int {
 		out += int(math.Floor(float64(rem) * enc.log58 / float64(8)))
 	}
 	return out
+}
+
+// IsValidEncodingLength returns true if this block has a valid encoding length.
+// An encoding length is invalid if a short encoding would have sufficed.
+func (enc *Encoding) IsValidEncodingLength(n int) bool {
+	// Fast path!
+	if n == enc.outBlockLen {
+		return true
+	}
+	f := func(n int) int {
+		return int(math.Floor(float64(n) * enc.log58 / float64(8)))
+	}
+	if f(n) == f(n-1) {
+		return false
+	}
+	return true
 }
