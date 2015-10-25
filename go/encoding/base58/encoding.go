@@ -2,6 +2,8 @@ package base58
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"math"
 	"math/big"
 )
@@ -94,7 +96,7 @@ func (enc *Encoding) encodeBlock(dst, src []byte) {
 	rem := new(big.Int)
 	quo := new(big.Int)
 
-	p := len(dst) - 1
+	p := enc.EncodedLen(len(src)) - 1
 
 	for num.Sign() != 0 {
 		num, rem = quo.QuoRem(num, enc.baseBig, rem)
@@ -109,15 +111,20 @@ func (enc *Encoding) encodeBlock(dst, src []byte) {
 	}
 }
 
-// Decode decodes src using the encoding enc.  It writes at most
+// DecodeStrict decodes src using the encoding enc.  It writes at most
 // DecodedLen(len(src)) bytes to dst and returns the number of bytes
 // written.  If src contains invalid base58 data, it will return the
-// number of bytes successfully written and CorruptInputError.
-// Non-base58-characters are ignored.
-func (enc *Encoding) Decode(dst, src []byte) (n int, err error) {
+// number of bytes successfully written and CorruptInputError.  It can
+// also return an ErrInvalidEncodingLength error if there is a non-standard
+// number of bytes in this encoding
+func (enc *Encoding) DecodeStrict(dst, src []byte) (n int, err error) {
+	return enc.decode(dst, src, true)
+}
+
+func (enc *Encoding) decode(dst []byte, src []byte, strict bool) (n int, err error) {
 	dp, sp := 0, 0
 	for sp < len(src) {
-		di, si, err := enc.decodeBlock(dst[dp:], src[sp:])
+		di, si, err := enc.decodeBlock(dst[dp:], src[sp:], sp, strict)
 		if err != nil {
 			return 0, err
 		}
@@ -127,16 +134,38 @@ func (enc *Encoding) Decode(dst, src []byte) (n int, err error) {
 	return dp, nil
 }
 
-func (enc *Encoding) decodeBlock(dst []byte, src []byte) (int, int, error) {
-	si := 0 // dest index, source index
+// Decode is like DecodeStrict, but first strips out all non-base58 characters
+func (enc *Encoding) Decode(dst, src []byte) (n int, err error) {
+	return enc.decode(dst, src, false)
+}
+
+// CorruptInputError is returned when Decode() finds a non-base58 character
+type CorruptInputError int
+
+// Error fits the error interface
+func (e CorruptInputError) Error() string {
+	return fmt.Sprintf("illegal base58 data at input byte %d", int(e))
+}
+
+// ErrInvalidEncodingLength is returned when a non-minimal encoding length is found
+var ErrInvalidEncodingLength = errors.New("invalid encoding length; either truncated or has trailing garbage")
+
+func (enc *Encoding) decodeBlock(dst []byte, src []byte, baseOffset int, strict bool) (int, int, error) {
+	si := 0 // source index
 	numGoodChars := 0
 	res := new(big.Int)
-	for _, b := range src {
+
+	for i, b := range src {
 		v := enc.decodeMap[b]
 		si++
+
 		if v == 0xFF {
+			if strict {
+				return 0, 0, CorruptInputError(i + baseOffset)
+			}
 			continue
 		}
+
 		numGoodChars++
 		res.Mul(res, enc.baseBig)
 		res.Add(res, big.NewInt(int64(v)))
@@ -144,6 +173,10 @@ func (enc *Encoding) decodeBlock(dst []byte, src []byte) (int, int, error) {
 		if numGoodChars == enc.outBlockLen {
 			break
 		}
+	}
+
+	if !enc.IsValidEncodingLength(numGoodChars) {
+		return 0, 0, ErrInvalidEncodingLength
 	}
 
 	raw := res.Bytes()
@@ -191,4 +224,20 @@ func (enc *Encoding) DecodedLen(n int) int {
 		out += int(math.Floor(float64(rem) * enc.log58 / float64(8)))
 	}
 	return out
+}
+
+// IsValidEncodingLength returns true if this block has a valid encoding length.
+// An encoding length is invalid if a short encoding would have sufficed.
+func (enc *Encoding) IsValidEncodingLength(n int) bool {
+	// Fast path!
+	if n == enc.outBlockLen {
+		return true
+	}
+	f := func(n int) int {
+		return int(math.Floor(float64(n) * enc.log58 / float64(8)))
+	}
+	if f(n) == f(n-1) {
+		return false
+	}
+	return true
 }
