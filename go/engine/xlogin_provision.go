@@ -214,28 +214,25 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 	hasPGP := false
 	ckf := e.user.GetComputedKeyFamily()
 	if ckf != nil {
-		devices := ckf.GetAllDevices()
-		for _, dev := range devices {
-			if *dev.Status == libkb.DeviceStatusActive {
-				return libkb.PassphraseProvisionImpossibleError{}
-			}
-		}
 		hasPGP = len(ckf.GetActivePGPKeys(false)) > 0
 	}
 
-	if hasPGP {
+	if !e.user.GetEldestKID().IsNil() && hasPGP {
 		// if they have any pgp keys in their family, there's a chance there is a synced
 		// pgp key, so try provisioning with it.
 		e.G().Log.Debug("user %q has a pgp key, trying to provision with it", e.user.GetName())
 		if err := e.pgpProvision(ctx); err != nil {
 			return err
 		}
-	} else {
+	} else if e.user.GetEldestKID().IsNil() {
 		// they have no keys, so make the device keys the eldest keys:
 		e.G().Log.Debug("user %q has no devices, no pgp keys", e.user.GetName())
 		if err := e.addEldestDeviceKey(ctx); err != nil {
 			return err
 		}
+	} else {
+		// they have keys, but no pgp keys, so passphrase provisioning is impossible.
+		return libkb.PassphraseProvisionImpossibleError{}
 	}
 
 	return nil
@@ -390,7 +387,7 @@ func (e *XLoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 		return nil, err
 	}
 	if key == nil {
-		return nil, errors.New("failed to get synced secret key")
+		return nil, libkb.NoKeyError{Msg: "failed to get synced secret key"}
 	}
 
 	e.G().Log.Debug("got synced secret key")
