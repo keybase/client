@@ -85,7 +85,7 @@ func (e *encoder) Close() error {
 
 // NewEncoder returns a new baseX stream encoder.  Data written to
 // the returned writer will be encoded using enc and then written to w.
-// Base64 encodings operate in enc.outBlockLen-byte blocks; when finished
+// Encodings operate in enc.outBlockLen-byte blocks; when finished
 // writing, the caller must Close the returned encoder to flush any
 // partially written blocks.
 func NewEncoder(enc *Encoding, w io.Writer) io.WriteCloser {
