@@ -59,7 +59,7 @@ export default class More extends Component {
       },
       subRoutes: {
         about: require('./about'),
-        account: require('./about'),
+        account: require('./account'),
         billing: require('./about'),
         'app-prefs': require('./about'),
         invites: require('./about'),
