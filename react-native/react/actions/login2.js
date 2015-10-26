@@ -27,7 +27,7 @@ export function login (username, passphrase) {
 
     engine.rpc('login.loginWithPassphrase', param, incomingMap, (error, response) => {
       if (error) {
-        console.error(error)
+        console.log(error)
       }
 
       dispatch({
@@ -252,7 +252,7 @@ export function autoLogin () {
   return function (dispatch) {
     engine.rpc('login.loginWithPrompt', {}, {}, (error, status) => {
       if (error) {
-        console.error(error)
+        console.log(error)
       } else {
         dispatch({
           type: Constants.loginDone,
@@ -267,7 +267,7 @@ export function logout () {
   return function (dispatch) {
     engine.rpc('login.logout', {}, {}, (error, response) => {
       if (error) {
-        console.error(error)
+        console.log(error)
       } else {
         dispatch({
           type: Constants.logoutDone

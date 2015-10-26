@@ -193,14 +193,15 @@ export default class CodePage extends Component {
         mapStateToProps: state => {
           const {
             mode, codeCountDown, textCode, qrCode,
-            myDeviceRole, otherDeviceRole } = state.login2.codePage
+            myDeviceRole, otherDeviceRole, cameraBrokenMode } = state.login2.codePage
           return {
             mode,
             codeCountDown,
             textCode,
             qrCode,
             myDeviceRole,
-            otherDeviceRole
+            otherDeviceRole,
+            cameraBrokenMode
           }
         },
         props: {
