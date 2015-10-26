@@ -512,23 +512,17 @@ func (e *XLoginProvision) ensurePaperKey(ctx *Context) error {
 // finally uses gpg to unlock it.
 func (e *XLoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBundle, error) {
 	// choose a private gpg key to use
-	keyid, fingerprints, err := e.selectGPGKey(ctx)
+	fp, err := e.selectGPGKey(ctx)
 	if err != nil {
 		return nil, err
 	}
+	if fp == nil {
+		return nil, libkb.NoKeyError{Msg: "selectGPGKey returned nil fingerprint"}
+	}
 
 	// see if public key on keybase, and if so load the user
-	if err := e.checkUserByPGPKeyID(ctx, keyid); err != nil {
+	if err := e.checkUserByPGPFingerprint(ctx, fp); err != nil {
 		return nil, err
-	}
-
-	// find the fingerprint for keyid
-	fp, ok := fingerprints[keyid]
-	if !ok {
-		return nil, libkb.NoKeyError{Msg: fmt.Sprintf("selected keyid (%s) not in fingerprint index", keyid)}
-	}
-	if fp == nil {
-		return nil, libkb.NoKeyError{Msg: fmt.Sprintf("nil fingerprint in index for (%s)", keyid)}
 	}
 
 	// unlock it with gpg
@@ -541,16 +535,16 @@ func (e *XLoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBund
 
 // selectGPGKey creates an index of the private gpg keys and
 // presents them to the user who chooses one of them.
-func (e *XLoginProvision) selectGPGKey(ctx *Context) (keyid string, fingerprints map[string]*libkb.PGPFingerprint, err error) {
+func (e *XLoginProvision) selectGPGKey(ctx *Context) (fp *libkb.PGPFingerprint, err error) {
 	index, err := e.gpgPrivateIndex()
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	if index.Len() == 0 {
-		return "", nil, errors.New("no private gpg keys available")
+		return nil, libkb.NoSecretKeyError{}
 	}
 
-	fingerprints = make(map[string]*libkb.PGPFingerprint)
+	fingerprints := make(map[string]*libkb.PGPFingerprint)
 	var gks []keybase1.GPGKey
 	for _, key := range index.Keys {
 		gk := keybase1.GPGKey{
@@ -563,25 +557,29 @@ func (e *XLoginProvision) selectGPGKey(ctx *Context) (keyid string, fingerprints
 		fingerprints[key.ID64] = key.GetFingerprint()
 	}
 
-	keyid, err = ctx.GPGUI.SelectKey(context.TODO(), keybase1.SelectKeyArg{Keys: gks})
+	keyid, err := ctx.GPGUI.SelectKey(context.TODO(), keybase1.SelectKeyArg{Keys: gks})
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	e.G().Log.Debug("SelectKey result: %s", keyid)
+	fp, ok := fingerprints[keyid]
+	if !ok {
+		return nil, libkb.NoSecretKeyError{}
+	}
 
-	return keyid, fingerprints, nil
+	return fp, nil
 }
 
-// checkUserByPGPKeyID looks up a keyid on keybase.io.  If it
+// checkUserByPGPFingerprint looks up a fingerprint on keybase.io.  If it
 // finds a username for keyid, it loads that user.
-func (e *XLoginProvision) checkUserByPGPKeyID(ctx *Context, keyid string) error {
+func (e *XLoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFingerprint) error {
 	// see if public key on keybase
-	username, uid, err := libkb.PGPLookupHex(e.G(), keyid)
+	username, uid, err := libkb.PGPLookupFingerprint(e.G(), fp)
 	if err != nil {
-		e.G().Log.Debug("error finding user for key %s: %s", keyid, err)
+		e.G().Log.Debug("error finding user for fp %s: %s", fp, err)
 		return err
 	}
-	e.G().Log.Debug("found user (%s, %s) for key %s", username, uid, keyid)
+	e.G().Log.Debug("found user (%s, %s) for key %s", username, uid, fp)
 
 	// if so, will have username from that
 	e.arg.Username = username
