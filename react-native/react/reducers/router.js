@@ -16,17 +16,13 @@ export type RouterState = MapADT2<'uri', URI, 'history', History> // eslint-disa
 const initialState: RouterState = createRouterState(['nav'], [])
 
 export function createRouterState (uri: Array<string>, history: Array<Array<string>>) {
-  // TODO(mm): when we have a splash screen set it here.
-  // history is android's back button
-  return Immutable.Map({
+  return Map({
     uri: parseUri(uri),
-    history: Immutable.List(history.map(parseUri))
+    history: List(history.map(parseUri))
   })
 }
 
 function pushIfTailIsDifferent (thing, stack) {
-  // TODO: fix this equality check.
-  console.log('Maybe pushing', thing.toJS(), 'onto', stack.toJS())
   if (Immutable.is(stack.last(), thing)) {
     return stack
   }
@@ -36,27 +32,26 @@ function pushIfTailIsDifferent (thing, stack) {
 // A path can either be a string or an object with the key path and extra arguments
 function parsePath (path) {
   if (typeof path === 'string') {
-    return Immutable.Map({path})
-  } else if (Immutable.Map.isMap(path)) {
+    return Map({path})
+  } else if (Map.isMap(path)) {
     return path
   }
-  return Immutable.Map(path)
+  return Map(path)
 }
 
 // A path can either be a string or an object with the key path and extra arguments
 function parseUri (uri) {
-  if (Immutable.List.isList(uri)) {
+  if (List.isList(uri)) {
     return uri
   }
   if (uri.length === 0 || uri[0] !== 'root') {
     uri.unshift('root')
   }
 
-  return Immutable.List(uri.map(parsePath))
+  return List(uri.map(parsePath))
 }
 
 export default function (state: RouterState = initialState, action: any): RouterState {
-  console.log('action in router', action)
   const stateWithHistory = state.update('history', pushIfTailIsDifferent.bind(null, state.get('uri')))
   switch (action.type) {
     // TODO(MM): change the history so if we go up to something that is already in the history,
