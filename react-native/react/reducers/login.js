@@ -17,7 +17,6 @@ const initialState = {
 }
 
 export default function (state = initialState, action) {
-  console.log('login to action', action)
   switch (action.type) {
     case types.START_LOGIN:
       return {

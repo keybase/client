@@ -3,77 +3,69 @@
 
 import { submitSearch } from '../actions/search'
 import { pushNewProfile } from '../actions/profile'
-import React, { ActivityIndicatorIOS, Component, ListView, StyleSheet, Text, TextInput, View } from 'react-native'
+import React, { Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image } from 'react-native'
 import commonStyles from '../styles/common'
-import Button from '../common-adapters/button'
+import Immutable from 'immutable'
+
+function renderTextWithHighlight (text, highlight, style) {
+  const idx = text.toLowerCase().indexOf(highlight.toLowerCase())
+  if (idx === -1) {
+    return <Text>{text}</Text>
+  }
+  return (
+    <Text>
+      {text.substr(0, idx)}
+      <Text style={style}>
+        {text.substr(idx, highlight.length)}
+      </Text>
+      {text.substr(idx + highlight.length)}
+    </Text>
+  )
+}
 
 export default class Search extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      search: props.term,
-      ...this.buildDataSource(props)
-    }
-  }
-
-  buildDataSource (props) {
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
-
-    const results = !props.results ? [] : props.results.toJS().map((s) => {
-      const { username } = s
-      const row1 = `${username}${this.componentName(s)}`
-      const row2 = s.components.map(c => this.componentText(c)).filter(c => c).join(' | ')
-      return { row1, row2, username }
+  constructor (...args) {
+    super(...args)
+    this.dataSource = new ListView.DataSource({
+      rowHasChanged: (r1, r2) => r1 !== r2
     })
-
-    return { dataSource: ds.cloneWithRows(results) }
-  }
-
-  componentName (s) {
-    return s.components.filter(c => c.key === 'full_name').map(c => ` [${c.value}] `).join('')
-  }
-
-  componentText (c) {
-    switch (c.key) {
-      case 'username':
-      case 'full_name':
-        return null
-      case 'key_fingerprint':
-        return `PGP: ${c.value.substring(0, 5)}...`
-      default:
-        return `${c.value}@${c.key}`
-    }
-  }
-
-  componentWillReceiveProps (nextProps) {
-    if (nextProps.results !== this.props.results) {
-      this.setState(this.buildDataSource(nextProps))
-    }
   }
 
   onPress (rowData) {
-    this.props.pushNewProfile(rowData.username)
+    this.props.pushNewProfile(rowData.get('username'))
   }
 
   renderRow (rowData, sectionID, rowID) {
-    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
-
+    const profile = this.props.profile.get(rowData.get('username'), Immutable.Map())
+    const thumbnail = profile.getIn(['summary', 'thumbnail'])
+    const fullName = profile.getIn(['summary', 'fullName'])
     return (
-      <Button onPress={() => { this.onPress(rowData) }}>
-        <View>
-          <View style={{margin: 10}}>
-            <Text style={{}}>{rowData.row1}</Text>
-            <Text style={{fontSize: 10}}>{rowData.row2}</Text>
+      <View>
+        <TouchableHighlight underlayColor='#ccc' onPress={() => { this.onPress(rowData) }}>
+          <View style={{flexDirection: 'row'}}>
+            <View style={styles.photoWrapper}>
+              {thumbnail ? <Image style={styles.photo} source={{uri: thumbnail}}/> : null}
+            </View>
+            {rowData.get('tracking') ? <View style={styles.trackingIndicator} /> : null}
+            <View style={styles.username}>
+              {renderTextWithHighlight(rowData.get('username'), this.props.term, styles.highlight)}
+            </View>
+            {fullName ? <Text style={styles.fullName}>
+              {renderTextWithHighlight(fullName, this.props.term, styles.highlight)}
+            </Text> : null}
           </View>
-          {sep}
-        </View>
-      </Button>
+        </TouchableHighlight>
+        {this.renderSeparator()}
+      </View>
     )
   }
 
-  onSubmit () {
-    this.props.submitSearch(this.props.base, this.state.search)
+  renderSeparator () {
+    return <View style={commonStyles.separator} />
+  }
+
+  onInput (search) {
+    this.props.submitSearch(this.props.base, search)
   }
 
   render () {
@@ -82,26 +74,21 @@ export default class Search extends Component {
         <TextInput
           style={styles.input}
           placeholder='Search'
-          value={this.state.search}
+          value={this.props.term}
           enablesReturnKeyAutomatically
           returnKeyType='next'
           autoCorrect={false}
-          onChangeText={(search) => { this.setState({search}) }}
-          onSubmitEditing={() => this.onSubmit()}
+          autoCapitalize='none'
+          autoFocus
+          clearButtonMode='always'
+          onChangeText={(search) => this.onInput(search)}
         />
-        {this.props.waitingForServer &&
-          <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-            <ActivityIndicatorIOS
-              animating
-              style={{height: 80}}
-              size='large'
-            />
-          </View>}
-        {!this.props.waitingForServer &&
-          <Button buttonStyle={[commonStyles.actionButton, {width: 100}]} onPress={ () => this.onSubmit() } title='Search' />}
+        <View style={styles.divider}/>
         <ListView style={{flex: 1}}
-          dataSource={this.state.dataSource}
+          dataSource={this.dataSource.cloneWithRows((this.props.results || Immutable.List()).toArray())}
           renderRow={(...args) => { return this.renderRow(...args) }}
+          keyboardDismissMode='on-drag'
+          pageSize={20}
         />
       </View>
     )
@@ -111,7 +98,10 @@ export default class Search extends Component {
     const base = uri.pop()
     return {
       componentAtTop: {
-        mapStateToProps: state => state.search.get(base).toObject(),
+        mapStateToProps: (state) => ({
+          ...state.search.get(base).toObject(),
+          profile: state.profile
+        }),
         props: {
           submitSearch: (base, search) => store.dispatch(submitSearch(base, search)),
           pushNewProfile: username => store.dispatch(pushNewProfile(username))
@@ -125,8 +115,11 @@ Search.propTypes = {
   submitSearch: React.PropTypes.func.isRequired,
   pushNewProfile: React.PropTypes.func.isRequired,
   base: React.PropTypes.object.isRequired,
+  term: React.PropTypes.string,
   results: React.PropTypes.object,
-  waitingForServer: React.PropTypes.bool.isRequired
+  error: React.PropTypes.object,
+  waitingForServer: React.PropTypes.bool.isRequired,
+  profile: React.PropTypes.object.isRequired
 }
 
 const styles = StyleSheet.create({
@@ -136,20 +129,55 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     backgroundColor: '#F5FCFF'
   },
+  divider: {
+    height: 0.5,
+    backgroundColor: '#0f0f0f'
+  },
   input: {
     height: 40,
-    marginBottom: 5,
-    marginLeft: 10,
-    marginRight: 10,
-    borderWidth: 0.5,
-    borderColor: '#0f0f0f',
+    borderBottomWidth: 0.5,
     fontSize: 13,
-    padding: 4
+    padding: 10
   },
   submitWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10
+  },
+  photoWrapper: {
+    width: 32,
+    height: 32,
+    overflow: 'hidden',
+    borderRadius: 16,
+    margin: 10,
+    backgroundColor: 'grey'
+  },
+  photo: {
+    width: 32,
+    height: 32
+  },
+  trackingIndicator: {
+    backgroundColor: 'red',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    position: 'absolute',
+    bottom: 10,
+    left: 10
+  },
+  username: {
+    height: 10,
+    flex: 1,
+    paddingVertical: 10,
+    paddingRight: 1
+  },
+  fullName: {
+    position: 'absolute',
+    top: 10,
+    right: 10
+  },
+  highlight: {
+    fontWeight: 'bold'
   }
 })

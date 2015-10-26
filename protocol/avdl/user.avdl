@@ -32,6 +32,7 @@ protocol user {
   record UserSummary {
     UID uid;
     string username;
+    string thumbnail;
     int idVersion;
     string fullName;
     string bio;

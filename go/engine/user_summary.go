@@ -132,6 +132,7 @@ func (p *Proofs) Export() keybase1.Proofs {
 type Summary struct {
 	UID       keybase1.UID `json:"-"`
 	Username  string       `json:"username"`
+	Thumbnail string       `json:"thumbnail"`
 	IDVersion int          `json:"id_version"`
 	FullName  string       `json:"full_name"`
 	Bio       string       `json:"bio"`
@@ -142,6 +143,7 @@ func (s Summary) Export() keybase1.UserSummary {
 	return keybase1.UserSummary{
 		Uid:       s.UID,
 		Username:  s.Username,
+		Thumbnail: s.Thumbnail,
 		IdVersion: s.IDVersion,
 		FullName:  s.FullName,
 		Bio:       s.Bio,
