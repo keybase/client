@@ -1,4 +1,4 @@
-package base58
+package basex
 
 import (
 	"bytes"
@@ -8,45 +8,44 @@ import (
 	"math/big"
 )
 
-// An Encoding is a radix 58 encoding/decoding scheme, defined by a
-// 58-character alphabet.
+// An Encoding is a radix X encoding/decoding scheme, defined by X-length
+// character alphabet.
 type Encoding struct {
-	encode      [58]byte
+	encode      []byte
 	decodeMap   [256]byte
 	inBlockLen  int
 	outBlockLen int
-	log58       float64
+	base        int
+	logOfBase   float64
 	baseBig     *big.Int
 }
 
-const encodeStd = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-
 // NewEncoding returns a new Encoding defined by the given alphabet,
-// which must a 58-byte string. No padding options are currently allowed.
-// inBlock is the size of input blocks to consider.  We recommend 19-byte
+// which must a x-byte string. No padding options are currently allowed.
+// inBlock is the size of input blocks to consider.
+//
+// For base 58, we recommend 19-byte
 // input blocks, which encode to 26-byte output blocks with only .3 bits
 // wasted per block. The name of the game is to find a good rational
 // approximation of 8/log2(58), and 26/19 is pretty good!
 func NewEncoding(encoder string, inBlockLen int) *Encoding {
 
-	base := 58
+	base := len(encoder)
 
-	log58 := math.Log2(float64(base))
+	logOfBase := math.Log2(float64(base))
 
 	// If input blocks are inBlockLen size, compute the corresponding
 	// output block length.  We need to round up to fit the overflow.
-	outBlockLen := int(math.Ceil(float64(8*inBlockLen) / log58))
+	outBlockLen := int(math.Ceil(float64(8*inBlockLen) / logOfBase))
 
 	// Code adapted from encoding/base64/base64.go in the standard
 	// Go libraries.
-	if len(encoder) != base {
-		panic("encoding alphabet is not 58-bytes long")
-	}
-
 	e := &Encoding{
+		encode:      make([]byte, base),
+		base:        base,
 		inBlockLen:  inBlockLen,
 		outBlockLen: outBlockLen,
-		log58:       log58,
+		logOfBase:   logOfBase,
 		baseBig:     big.NewInt(int64(base)),
 	}
 	copy(e.encode[:], encoder)
@@ -59,9 +58,6 @@ func NewEncoding(encoder string, inBlockLen int) *Encoding {
 	}
 	return e
 }
-
-// StdEncoding is the standard base58-encoding
-var StdEncoding = NewEncoding(encodeStd, 19)
 
 /*
  * Encoder
@@ -113,7 +109,7 @@ func (enc *Encoding) encodeBlock(dst, src []byte) {
 
 // DecodeStrict decodes src using the encoding enc.  It writes at most
 // DecodedLen(len(src)) bytes to dst and returns the number of bytes
-// written.  If src contains invalid base58 data, it will return the
+// written.  If src contains invalid baseX data, it will return the
 // number of bytes successfully written and CorruptInputError.  It can
 // also return an ErrInvalidEncodingLength error if there is a non-standard
 // number of bytes in this encoding
@@ -134,17 +130,17 @@ func (enc *Encoding) decode(dst []byte, src []byte, strict bool) (n int, err err
 	return dp, nil
 }
 
-// Decode is like DecodeStrict, but first strips out all non-base58 characters
+// Decode is like DecodeStrict, but first strips out all non-alphabet characters
 func (enc *Encoding) Decode(dst, src []byte) (n int, err error) {
 	return enc.decode(dst, src, false)
 }
 
-// CorruptInputError is returned when Decode() finds a non-base58 character
+// CorruptInputError is returned when Decode() finds a non-alphabet character
 type CorruptInputError int
 
 // Error fits the error interface
 func (e CorruptInputError) Error() string {
-	return fmt.Sprintf("illegal base58 data at input byte %d", int(e))
+	return fmt.Sprintf("illegal data at input byte %d", int(e))
 }
 
 // ErrInvalidEncodingLength is returned when a non-minimal encoding length is found
@@ -190,7 +186,7 @@ func (enc *Encoding) decodeBlock(dst []byte, src []byte, baseOffset int, strict 
 	return paddedLen, si, nil
 }
 
-// EncodedLen returns the length in bytes of the base58 encoding
+// EncodedLen returns the length in bytes of the baseX encoding
 // of an input buffer of length n
 func (enc *Encoding) EncodedLen(n int) int {
 
@@ -203,12 +199,12 @@ func (enc *Encoding) EncodedLen(n int) int {
 	out := nblocks * enc.outBlockLen
 	rem := n % enc.inBlockLen
 	if rem > 0 {
-		out += int(math.Ceil(float64(rem*8) / enc.log58))
+		out += int(math.Ceil(float64(rem*8) / enc.logOfBase))
 	}
 	return out
 }
 
-// DecodedLen returns the length in bytes of the base58 decoding
+// DecodedLen returns the length in bytes of the baseX decoding
 // of an input buffer of length n
 func (enc *Encoding) DecodedLen(n int) int {
 
@@ -221,7 +217,7 @@ func (enc *Encoding) DecodedLen(n int) int {
 	out := nblocks * enc.inBlockLen
 	rem := n % enc.outBlockLen
 	if rem > 0 {
-		out += int(math.Floor(float64(rem) * enc.log58 / float64(8)))
+		out += int(math.Floor(float64(rem) * enc.logOfBase / float64(8)))
 	}
 	return out
 }
@@ -234,7 +230,7 @@ func (enc *Encoding) IsValidEncodingLength(n int) bool {
 		return true
 	}
 	f := func(n int) int {
-		return int(math.Floor(float64(n) * enc.log58 / float64(8)))
+		return int(math.Floor(float64(n) * enc.logOfBase / float64(8)))
 	}
 	if f(n) == f(n-1) {
 		return false

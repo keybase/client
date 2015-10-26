@@ -1,4 +1,4 @@
-package base58
+package basex
 
 var testEncodeVectors1 = map[string]string{
 	"empty":            "",
