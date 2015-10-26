@@ -1,1 +1,0 @@
-configure-store.ios.js
