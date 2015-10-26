@@ -1,0 +1,34 @@
+install:
+  - cmd: rd C:\Go /s /q
+  - cmd: appveyor DownloadFile https://storage.googleapis.com/golang/go1.5.1.windows-amd64.zip
+  - cmd: 7z x go1.5.1.windows-amd64.zip -oC:\ >nul
+
+environment:
+  global:
+    GOPATH: c:\work\
+    GO15VENDOREXPERIMENT: 1
+
+# clone directory
+clone_folder: c:\work\src\github.com\keybase\client
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# build platform, i.e. x86, x64, Any CPU. This setting is optional.
+#platform: Any CPU
+
+# scripts to run before build
+before_build:
+
+# scripts to run after build
+after_build:
+
+# to run your custom scripts instead of automatic MSBuild
+build_script:
+  - cd go\keybase
+  - go get
+  - go build
+
+# to disable automatic builds
+#build: off
