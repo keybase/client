@@ -7,18 +7,25 @@
 import { createRouterState } from './reducers/router'
 import * as Tabs from './constants/tabs'
 
-/* eslint-disable no-undef */
-let routerState = null
-let activeTab = null
-let skipRouteToRoot = false
-
-if (__DEV__ && false) {
-  routerState = createRouterState([], [])
-  activeTab = Tabs.DEVICES_TAB
-  skipRouteToRoot = true
+let config = {
+  overrideRouterState: null,
+  overrideActiveTab: null,
+  skipLoginRouteToRoot: false,
+  allowStartupFailure: false
 }
 
-export const overrideRouterState = routerState
-export const overrideActiveTab = activeTab
-export const skipLoginRouteToRoot = skipRouteToRoot
+/* eslint-disable no-undef */
+if (__DEV__ && false) {
 /* eslint-enable no-undef */
+  config.overrideRouterState = createRouterState(['login2', 'register', 'regSetPublicName'], [])
+  config.overrideActiveTab = Tabs.MORE_TAB
+  config.skipLoginRouteToRoot = true
+  config.allowStartupFailure = true
+}
+
+export const {
+  overrideRouterState,
+  overrideActiveTab,
+  skipLoginRouteToRoot,
+  allowStartupFailure
+} = config

@@ -5,6 +5,7 @@ import * as LoginConstants from '../constants/login2'
 import * as Constants from '../constants/config'
 import { autoLogin } from './login2'
 import engine from '../engine'
+import * as LocalDebug from '../local-debug'
 
 export function startup () {
   return function (dispatch) {
@@ -12,31 +13,31 @@ export function startup () {
 
     const getConfig = new Promise((resolve, reject) => {
       engine.rpc('config.getConfig', {}, {}, (error, config) => {
-        if (error) {
+        if (error && !LocalDebug.allowStartupFailure) {
           reject(new Error(error))
+        } else {
+          resolve(config)
         }
-
-        resolve(config)
       })
     })
 
     const getStatus = new Promise((resolve, reject) => {
       engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
-        if (error) {
+        if (error && !LocalDebug.allowStartupFailure) {
           reject(new Error(error))
+        } else {
+          resolve(status)
         }
-
-        resolve(status)
       })
     })
 
     const getConfiguredAccounts = new Promise((resolve, reject) => {
       engine.rpc('login.getConfiguredAccounts', {}, {}, (error, configuredAccounts) => {
-        if (error) {
+        if (error && !LocalDebug.allowStartupFailure) {
           reject(new Error(error))
+        } else {
+          resolve(configuredAccounts)
         }
-
-        resolve(configuredAccounts)
       })
     })
 

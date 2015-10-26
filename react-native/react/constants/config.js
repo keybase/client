@@ -6,6 +6,7 @@ export const navStartingUp = 'navStartingUp'
 export const navNeedsRegistration = 'navNeedsRegistration'
 export const navNeedsLogin = 'navNeedsLogin'
 export const navLoggedIn = 'navLoggedIn'
+export const navErrorStartingUp = 'navErrorStartingUp'
 
 // Actions
 export const startupLoading = 'startupLoading'

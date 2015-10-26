@@ -41,6 +41,8 @@ export default function (state: ConfigState = initialState, action: any): Config
         } else if (!action.payload.status.loggedIn) {
           navState = Constants.navNeedsLogin
         }
+      } else {
+        navState = Constants.navErrorStartingUp
       }
 
       return {

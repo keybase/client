@@ -44,6 +44,9 @@ export default function (state: TabbedRouterState = initialState, action: any): 
     case actionTypes.SWITCH_TAB:
       return state.set('activeTab', action.tabName)
     case LoginConstants.loginDone:
+      if (LocalDebug.skipLoginRouteToRoot) {
+        return state
+      }
       return state.set('activeTab', FOLDER_TAB)
     case LoginConstants.logoutDone:
       return state.set('activeTab', STARTUP_TAB)
