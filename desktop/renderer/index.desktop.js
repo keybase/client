@@ -1,12 +1,12 @@
 'use strict'
 /* @flow */
 
-import BaseComponent from '../../../react-native/react/base-component'
+import BaseComponent from '../../react-native/react/base-component'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider, connect } from 'react-redux'
-import configureStore from '../../../react-native/react/store/configure-store'
-import Nav from '../../../react-native/react/nav'
+import configureStore from '../../react-native/react/store/configure-store'
+import Nav from '../../react-native/react/nav'
 import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 const store = configureStore()

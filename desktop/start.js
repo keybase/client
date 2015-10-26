@@ -43,6 +43,6 @@ bsync.init({
   })
 
   bsync
-    .watch('../react/**/*')
+    .watch('../react-mobile/react/**/*')
     .on('change', bsync.reload)
 })
