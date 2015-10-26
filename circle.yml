@@ -5,6 +5,8 @@ machine:
     GOROOT: $HOME/go
     GOPATH: $HOME/go-path
     PATH: $GOROOT/bin:$PATH
+    # Some node dependencies break without this
+    CXX: g++-4.8
 general:
   build_dir: react-native
   branches:
@@ -16,9 +18,10 @@ dependencies:
     - "~/go"
     - "~/.gradle"
   override:
-    - emulator -avd circleci-android22 -no-audio -no-window:
-        background: true
-        parallel: true
+    # TODO(mm): use the emulator when we figure out a consistent way of getting this working
+    # - emulator -avd circleci-android22 -no-audio -no-window:
+    #    background: true
+    #    parallel: true
     - npm install
     - wget https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz -O $HOME/go.tar.gz
     - (cd $HOME; tar -xzvf go.tar.gz)
@@ -32,14 +35,15 @@ dependencies:
     - echo y | android update sdk --all --no-ui --filter "build-tools-23.0.1,android-23,extra-android-support"
 test:
   override:
+    # TODO(mm) uncomment these device tests (see todo above)
     # wait for it to have booted
-    - circle-android wait-for-boot
+    # - circle-android wait-for-boot
     # run tests  against the emulator.
-    - (cd android && ./gradlew connectedAndroidTest)
+    # - (cd android && ./gradlew connectedAndroidTest)
     # copy the build outputs to artifacts
-    - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
+    # - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
     # copy the test results to the test results directory.
-    - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
+    # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
     # Build a debug version of the app
     - (cd android && ./gradlew assembleDebug)
     # Upload it to appetize
