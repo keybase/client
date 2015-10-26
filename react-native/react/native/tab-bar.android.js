@@ -30,7 +30,16 @@ TabBarItem.propTypes = {
 const NativeTabBar = requireNativeComponent(
   'TabBar',
   tabBarProps,
-  {nativeOnly: {onSelect: true}}
+  {nativeOnly: {
+    onSelect: true,
+    // Silence RN's warnings for missing nativeProps
+    // TODO remove this when react stops complaining
+    rotation: true,
+    scaleX: true,
+    scaleY: true,
+    translateX: true,
+    translateY: true
+  }}
 )
 
 export default class TabBar extends Component {
