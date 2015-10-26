@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; settings = {ASSET_TAGS = (); }; };
+		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
 		00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
 		00C302E71ABCBA2D00DB3ED1 /* libRCTGeolocation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302BA1ABCB90400DB3ED1 /* libRCTGeolocation.a */; };
 		00C302E81ABCBA2D00DB3ED1 /* libRCTImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302C01ABCB91800DB3ED1 /* libRCTImage.a */; };
@@ -18,7 +18,7 @@
 		139105C61AF99C1200B5F7CC /* libRCTSettings.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 139105C11AF99BAD00B5F7CC /* libRCTSettings.a */; };
 		139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 139FDEF41B06529B00C62182 /* libRCTWebSocket.a */; };
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
-		2A072A6E5766F786B63BAEB4 /* Pods_Keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53D00F0B06A7318D8F3F70C1 /* Pods_Keybase.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		2A072A6E5766F786B63BAEB4 /* Pods_Keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53D00F0B06A7318D8F3F70C1 /* Pods_Keybase.framework */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
@@ -28,9 +28,9 @@
 		DBDCF3541B8D04FD00BA95D8 /* ReactBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3511B8D04FD00BA95D8 /* ReactBridge.m */; };
 		DBDCF3551B8D04FD00BA95D8 /* SwiftTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */; };
 		DBF20EC41BB34AF00048BC26 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */; };
-		E94938C71BCC082C00137015 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938C61BCC082C00137015 /* App.swift */; settings = {ASSET_TAGS = (); }; };
-		E94939001BCC1E4300137015 /* AppDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938FF1BCC1E4300137015 /* AppDefault.swift */; settings = {ASSET_TAGS = (); }; };
-		E964581D1BC8542000902F39 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964581C1BC8542000902F39 /* AppDelegate.swift */; settings = {ASSET_TAGS = (); }; };
+		E94938C71BCC082C00137015 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938C61BCC082C00137015 /* App.swift */; };
+		E94939001BCC1E4300137015 /* AppDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938FF1BCC1E4300137015 /* AppDefault.swift */; };
+		E964581D1BC8542000902F39 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964581C1BC8542000902F39 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */

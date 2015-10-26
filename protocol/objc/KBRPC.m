@@ -1709,7 +1709,7 @@
 @implementation KBRProvisionUiRequest
 
 - (void)chooseProvisioningMethod:(KBRChooseProvisioningMethodRequestParams *)params completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion {
-  NSDictionary *rparams = @{@"gpgUsers": KBRValue(params.gpgUsers)};
+  NSDictionary *rparams = @{@"gpgOption": @(params.gpgOption)};
   [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseProvisioningMethod" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -1720,8 +1720,8 @@
   }];
 }
 
-- (void)chooseProvisioningMethodWithGpgUsers:(NSArray *)gpgUsers completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion {
-  NSDictionary *rparams = @{@"gpgUsers": KBRValue(gpgUsers)};
+- (void)chooseProvisioningMethodWithGpgOption:(BOOL)gpgOption completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion {
+  NSDictionary *rparams = @{@"gpgOption": @(gpgOption)};
   [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseProvisioningMethod" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -4397,7 +4397,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.gpgUsers = KBRValidateArray(params[0][@"gpgUsers"], NSString.class);
+    self.gpgOption = [params[0][@"gpgOption"] boolValue];
   }
   return self;
 }

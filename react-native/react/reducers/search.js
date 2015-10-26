@@ -1,40 +1,46 @@
+/* @flow */
 'use strict'
 
 import * as types from '../constants/search-action-types'
 import Immutable from 'immutable'
 
-const initialState = Immutable.Map()
+import type { URI } from './router'
 
-export default function (state = initialState, action) {
-  let update = null
+type Base = URI
 
-  switch (action.type) {
-    case types.INIT_SEARCH:
-      update = {
-        base: action.base,
-        waitingForServer: false,
-        term: ''
-      }
-      break
-    case types.SEARCH_RUNNING:
-      update = {
-        term: action.term,
-        results: null,
-        error: null,
-        waitingForServer: true
-      }
-      break
-    case types.SEARCH_RESULTS:
-      update = {
-        results: action.results,
-        waitingForServer: false,
-        error: action.error
-      }
-      break
-    default:
-      return state
-  }
+// TODO settle on some error type and put it in a common type folder
+// instead of duplicating this Error type
+type Error = string
 
-  // We need to use .set() to keep the object as a key
-  return state.mergeDeep(Immutable.Map().set(action.base, Immutable.fromJS(update)))
+type SubSearchState = MapADT5<'base', Base, 'waitingForServer', boolean, 'error', ?Error, 'term', string | ''> // eslint-disable-line no-undef
+type SearchState = Immutable.Map<Base, SubSearchState>
+
+const initialState: SearchState = Immutable.Map()
+
+export default function (state: SearchState = initialState, action: any): SearchState {
+  return state.update(action.base, oldValue => {
+    switch (action.type) {
+      case types.INIT_SEARCH:
+        return Immutable.fromJS({
+          base: action.base,
+          waitingForServer: false,
+          term: '',
+          results: []
+        })
+      case types.SEARCH_TERM:
+        return oldValue.set('term', action.term)
+      case types.SEARCH_RUNNING:
+        return oldValue.merge({
+          nonce: action.nonce,
+          error: null,
+          waitingForServer: true
+        })
+      case types.SEARCH_RESULTS:
+        return oldValue.merge({
+          waitingForServer: false,
+          results: action.results,
+          error: action.error
+        })
+    }
+  })
 }

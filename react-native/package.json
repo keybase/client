@@ -16,7 +16,10 @@
     "buffer": "^3.5.1",
     "iced-runtime": "^1.0.3",
     "immutable": "^3.7.5",
+    "lodash": "^3.10.1",
     "moment": "^2.10.6",
+    "node-framed-msgpack-rpc": "https://github.com/keybase/node-framed-msgpack-rpc.git#nojima/keybase-client-changes",
+    "purepack": "https://github.com/keybase/purepack.git#nojima/keybase-client-changes",
     "qrcode-generator": "^1.0.0",
     "react-native": "git://github.com/cjb/react-native#packager-allows-mobile-files",
     "react-native-camera": "^0.3.8",
@@ -28,9 +31,6 @@
   "standard": {
     "parser": "babel-eslint",
     "ignore": [
-      "purepack/",
-      "iced-error/",
-      "framed-msgpack-rpc/",
       "keybase_v1.js"
     ]
   },

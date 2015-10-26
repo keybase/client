@@ -27,7 +27,7 @@ export function login (username, passphrase) {
 
     engine.rpc('login.loginWithPassphrase', param, incomingMap, (error, response) => {
       if (error) {
-        console.error(error)
+        console.log(error)
       }
 
       dispatch({
@@ -252,7 +252,7 @@ export function autoLogin () {
   return function (dispatch) {
     engine.rpc('login.loginWithPrompt', {}, {}, (error, status) => {
       if (error) {
-        console.error(error)
+        console.log(error)
       } else {
         dispatch({
           type: Constants.loginDone,
@@ -267,12 +267,35 @@ export function logout () {
   return function (dispatch) {
     engine.rpc('login.logout', {}, {}, (error, response) => {
       if (error) {
-        console.error(error)
+        console.log(error)
       } else {
         dispatch({
           type: Constants.logoutDone
         })
       }
     })
+  }
+}
+
+export function setDeviceName (name) {
+  return function (dispatch) {
+    // TODO integrate
+    setTimeout(() => {
+      const error = false
+
+      if (error) {
+        dispatch({
+          type: Constants.deviceNameSet,
+          error: true,
+          payload: error
+        })
+      } else {
+        dispatch({
+          type: Constants.deviceNameSet
+        })
+
+        // TODO multiple things do this, what do we do next? individual reducers?
+      }
+    }, 1000)
   }
 }

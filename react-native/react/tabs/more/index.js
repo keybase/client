@@ -3,8 +3,10 @@
 import BaseComponent from '../../base-component'
 import React from '../../base-react'
 import MoreTabs from './more'
-import * as LoginActions from '../../actions/login'
-import * as SearchActions from '../../actions/search'
+import commonStyles from '../../styles/common'
+import Button from '../../common-adapters/button'
+import { logout } from '../../actions/login2'
+import { pushNewSearch } from '../../actions/search'
 import { navigateTo } from '../../actions/router'
 import { pushNewProfile } from '../../actions/profile'
 
@@ -56,7 +58,14 @@ export default class More extends BaseComponent {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        title: 'More'
+        title: 'More',
+        mapStateToProps: state => { return {} },
+        props: {
+          navigateTo: uri => store.dispatch(navigateTo(uri)),
+          logout: () => store.dispatch(logout()),
+          pushNewSearch: () => store.dispatch(pushNewSearch()),
+          pushNewProfile: username => store.dispatch(pushNewProfile(username))
+        }
       },
       subRoutes: {
         'login': require('../../login'),
@@ -76,5 +85,8 @@ export default class More extends BaseComponent {
 }
 
 More.propTypes = {
-  dispatch: React.PropTypes.func.isRequired
+  navigateTo: React.PropTypes.func.isRequired,
+  logout: React.PropTypes.func.isRequired,
+  pushNewSearch: React.PropTypes.func.isRequired,
+  pushNewProfile: React.PropTypes.func.isRequired
 }

@@ -288,9 +288,20 @@ func (e *Kex2Provisionee) APIArgs() (token, csrf string) {
 
 func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 	if e.device.Description == nil {
+		// need user to get existing device names
+		user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.username))
+		if err != nil {
+			return err
+		}
+		existingDevices, err := user.DeviceNames()
+		if err != nil {
+			e.G().Log.Debug("proceeding despite error getting existing device names: %s", err)
+		}
+
 		e.G().Log.Debug("prompting for device name")
-		// TODO: get existing device names
-		arg := keybase1.PromptNewDeviceNameArg{}
+		arg := keybase1.PromptNewDeviceNameArg{
+			ExistingDevices: existingDevices,
+		}
 		name, err := e.ctx.ProvisionUI.PromptNewDeviceName(context.TODO(), arg)
 		if err != nil {
 			return err

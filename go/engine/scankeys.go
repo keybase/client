@@ -247,22 +247,7 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 // apiLookup gets the username and uid from the api server for the
 // key id.
 func (s *ScanKeys) apiLookup(id uint64) (username, uid string, err error) {
-	var data struct {
-		Username string
-		UID      string
-	}
-
-	// lookup key on api server
-	args := libkb.APIArg{
-		Endpoint: "key/basics",
-		Args: libkb.HTTPArgs{
-			"pgp_key_id": libkb.UHex{Val: id},
-		},
-	}
-	if err = s.G().API.GetDecode(args, &data); err != nil {
-		return "", "", err
-	}
-	return data.Username, data.UID, nil
+	return libkb.PGPLookup(s.G(), id)
 }
 
 func (s *ScanKeys) publicByID(id uint64) openpgp.EntityList {

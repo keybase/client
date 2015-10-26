@@ -97,6 +97,11 @@ func (k GpgBaseKey) ExpirationString() string {
 	return time.Unix(int64(k.Expires), 0).Format(layout)
 }
 
+func (k GpgBaseKey) CreatedString() string {
+	layout := "2006-01-02"
+	return time.Unix(int64(k.Created), 0).Format(layout)
+}
+
 func (k *GpgBaseKey) ParseBase(line *GpgIndexLine) (err error) {
 	if line.Len() < 12 {
 		err = GpgIndexError{line.lineno, "Not enough fields (need 12)"}

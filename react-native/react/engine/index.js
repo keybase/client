@@ -5,7 +5,7 @@
 import engine from './native'
 import EngineError from './errors'
 
-import rpc from '../framed-msgpack-rpc/lib/main'
+import rpc from 'framed-msgpack-rpc'
 const {
   client: { Client: RpcClient },
   transport: { Transport: RpcTransport }

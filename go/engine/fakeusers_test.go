@@ -88,7 +88,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	return fu
 }
 
-// private key not pushed to server
+// private gpg key not pushed to server
 func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	fu := NewFakeUserOrBust(t, "login")
 	if err := tc.GenerateGPGKeyring(fu.Email); err != nil {

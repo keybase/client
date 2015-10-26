@@ -26,10 +26,7 @@ export default class Login extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2,
-        props: {
-          onLoggedIn: () => this.showSearch()
-        }
+        mapStateToProps: state => { return {} }
       },
       subRoutes: {
         welcome: Welcome,

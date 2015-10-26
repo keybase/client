@@ -11,12 +11,13 @@ import {
   View
 } from 'react-native'
 
-class Profile extends Component {
+export default class Profile extends Component {
   render () {
+    const thumbnail = this.props.summary.get('thumbnail')
     return (
       <ScrollView style={styles.container}>
         <View style={{justifyContent: 'center', alignItems: 'center'}}>
-          <Image style={{width: 100, height: 100}} source={{uri: this.props.avatar}}/>
+          <Image style={{width: 100, height: 100}} {...(thumbnail ? {source: {uri: thumbnail}} : null)}/>
           <Text>{this.props.username}</Text>
           <Text>keybase.io/{this.props.username}</Text>
           <Text>Full Name: {this.props.summary.get('fullName')}</Text>
@@ -27,10 +28,6 @@ class Profile extends Component {
         </View>
       </ScrollView>
     )
-  }
-
-  static canParseNextRoute (currentPath) {
-    return currentPath.get('path') === 'profile'
   }
 
   static parseRoute (store, currentPath, nextPath) {
@@ -73,5 +70,3 @@ const styles = StyleSheet.create({
     marginTop: 10
   }
 })
-
-export default Profile

@@ -26,7 +26,7 @@ export default class PaperKey extends Component {
         />
         <Button
           style={{alignSelf: 'flex-end', marginRight: 10}}
-          onPress={() => { this.props.dispatch(navigateTo(['login2', 'register', 'setPublicName'])) }}
+          onPress={() => { this.props.submit() }}
           title='Submit & Log in'
           enabled={this.state.paperKey}/>
       </View>
@@ -36,14 +36,17 @@ export default class PaperKey extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => { return {} }
+      },
+      props: {
+        submit: () => store.dispatch(navigateTo(['login2', 'register', 'setPublicName']))
       }
     }
   }
 }
 
 PaperKey.propTypes = {
-  dispatch: React.PropTypes.func.isRequired
+  submit: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

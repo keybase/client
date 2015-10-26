@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"strings"
 
 	"golang.org/x/net/context"
 
@@ -21,8 +20,8 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 	p.parent.Output("(2) Use a paper key\n")
 	p.parent.Output("(3) Use my Keybase passphrase\n")
 	max := 3
-	if len(arg.GpgUsers) > 0 {
-		p.parent.Printf("(4) Use GPG (private key found for %s)\n", strings.Join(arg.GpgUsers, ", "))
+	if arg.GpgOption {
+		p.parent.Printf("(4) Use GPG\n")
 		max = 4
 	}
 

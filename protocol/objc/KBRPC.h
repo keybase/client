@@ -584,6 +584,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRUserSummary : KBRObject
 @property NSString *uid;
 @property NSString *username;
+@property NSString *thumbnail;
 @property NSInteger idVersion;
 @property NSString *fullName;
 @property NSString *bio;
@@ -1076,7 +1077,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRChooseProvisioningMethodRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSArray *gpgUsers;
+@property BOOL gpgOption;
 @end
 @interface KBRChooseDeviceTypeRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1887,13 +1888,12 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 /*!
  Called during device provisioning for the user to select a
- method for provisioning. gpgUsers will contain a list of
- locally available gpg private keys. If it is empty, then
- gpg is not a valid option.
+ method for provisioning. gpgOption will be true if GPG
+ should be offered as an option.
  */
 - (void)chooseProvisioningMethod:(KBRChooseProvisioningMethodRequestParams *)params completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
 
-- (void)chooseProvisioningMethodWithGpgUsers:(NSArray *)gpgUsers completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
+- (void)chooseProvisioningMethodWithGpgOption:(BOOL)gpgOption completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
 
 /*!
  If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.

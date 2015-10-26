@@ -48,6 +48,9 @@ func (g *GpgCLI) Configure() (err error) {
 			prog, err = exec.LookPath("gpg")
 		}
 	}
+	if err != nil {
+		return err
+	}
 
 	g.logUI.Debug("| configured GPG w/ path: %s", prog)
 

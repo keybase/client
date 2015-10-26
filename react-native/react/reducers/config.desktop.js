@@ -1,16 +1,28 @@
+/* @flow */
 'use strict'
 
 import * as Constants from '../constants/config'
 import * as LoginConstants from '../constants/login2'
 
-const initialState = {
+type NavState = 'navStartingUp' | 'navNeedsRegistration' | 'navNeedsLogin' | 'navLoggedIn'
+
+type ConfigState = {
+  navState: NavState;
+  status: ?any;
+  config: ?any;
+  error: ?any;
+  devConfig: ?any;
+}
+
+const initialState: ConfigState = {
   navState: Constants.navStartingUp,
   status: null,
   config: null,
-  error: null
+  error: null,
+  devConfig: null
 }
 
-export default function (state = initialState, action) {
+export default function (state: ConfigState = initialState, action: any): ConfigState {
   switch (action.type) {
     case Constants.startupLoading:
       return {
@@ -29,6 +41,8 @@ export default function (state = initialState, action) {
         } else if (!action.payload.status.loggedIn) {
           navState = Constants.navNeedsLogin
         }
+      } else {
+        navState = Constants.navErrorStartingUp
       }
 
       return {
@@ -64,12 +78,13 @@ export default function (state = initialState, action) {
         devConfig: null
       }
     case Constants.devConfigUpdate:
+      const devConfigured = state.devConfig && state.devConfig.configured || {}
       return {
         ...state,
         devConfig: {
           ...state.devConfig,
           configured: {
-            ...state.devConfig.configured,
+            ...devConfigured,
             ...action.updates
           }
         }
