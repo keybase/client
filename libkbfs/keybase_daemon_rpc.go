@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/client"
@@ -21,40 +22,58 @@ type KeybaseDaemonRPC struct {
 	favoriteClient keybase1.FavoriteInterface
 	shutdownFn     func()
 	log            logger.Logger
+
+	sessionCacheLock sync.RWMutex
+	// Set to the zero value when invalidated.
+	cachedCurrentSession SessionInfo
+
+	userCacheLock sync.RWMutex
+	// Map entries are removed when invalidated.
+	userCache map[keybase1.UID]UserInfo
 }
 
-var _ KeybaseDaemon = KeybaseDaemonRPC{}
+var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
+
+var _ keybase1.NotifyUsersInterface = (*KeybaseDaemonRPC)(nil)
+
+var _ ConnectionHandler = (*KeybaseDaemonRPC)(nil)
+
+var _ KeybaseDaemon = (*KeybaseDaemonRPC)(nil)
 
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
-func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.Logger) KeybaseDaemonRPC {
-	k := KeybaseDaemonRPC{
-		log: log,
-	}
+func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.Logger) *KeybaseDaemonRPC {
+	k := newKeybaseDaemonRPC(log)
 	conn := NewSharedKeybaseConnection(kbCtx, config, k)
-	fillClients(&k, conn.GetClient())
+	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
 	return k
 }
 
 // For testing.
 func newKeybaseDaemonRPCWithClient(client keybase1.GenericClient,
-	log logger.Logger) KeybaseDaemonRPC {
-	k := KeybaseDaemonRPC{
-		log: log,
-	}
-	fillClients(&k, client)
+	log logger.Logger) *KeybaseDaemonRPC {
+	k := newKeybaseDaemonRPC(log)
+	k.fillClients(client)
 	return k
 }
 
-func fillClients(k *KeybaseDaemonRPC, client keybase1.GenericClient) {
+func newKeybaseDaemonRPC(log logger.Logger) *KeybaseDaemonRPC {
+	k := KeybaseDaemonRPC{
+		log:       log,
+		userCache: make(map[keybase1.UID]UserInfo),
+	}
+	return &k
+}
+
+func (k *KeybaseDaemonRPC) fillClients(client keybase1.GenericClient) {
 	k.identifyClient = keybase1.IdentifyClient{Cli: client}
 	k.userClient = keybase1.UserClient{Cli: client}
 	k.sessionClient = keybase1.SessionClient{Cli: client}
 	k.favoriteClient = keybase1.FavoriteClient{Cli: client}
 }
 
-func (k KeybaseDaemonRPC) filterKeys(ctx context.Context, uid keybase1.UID, keys []keybase1.PublicKey) ([]VerifyingKey, []CryptPublicKey, error) {
+func (k *KeybaseDaemonRPC) filterKeys(ctx context.Context, uid keybase1.UID, keys []keybase1.PublicKey) ([]VerifyingKey, []CryptPublicKey, error) {
 	var verifyingKeys []VerifyingKey
 	var cryptPublicKeys []CryptPublicKey
 	for _, publicKey := range keys {
@@ -83,13 +102,57 @@ func (k KeybaseDaemonRPC) filterKeys(ctx context.Context, uid keybase1.UID, keys
 	return verifyingKeys, cryptPublicKeys, nil
 }
 
+func (k *KeybaseDaemonRPC) getCachedCurrentSession() SessionInfo {
+	k.sessionCacheLock.RLock()
+	defer k.sessionCacheLock.RUnlock()
+	return k.cachedCurrentSession
+}
+
+func (k *KeybaseDaemonRPC) setCachedCurrentSession(s SessionInfo) {
+	k.sessionCacheLock.Lock()
+	defer k.sessionCacheLock.Unlock()
+	k.cachedCurrentSession = s
+}
+
+func (k *KeybaseDaemonRPC) getCachedUserInfo(uid keybase1.UID) UserInfo {
+	k.userCacheLock.RLock()
+	defer k.userCacheLock.RUnlock()
+	return k.userCache[uid]
+}
+
+func (k *KeybaseDaemonRPC) setCachedUserInfo(uid keybase1.UID, info UserInfo) {
+	k.userCacheLock.Lock()
+	defer k.userCacheLock.Unlock()
+	if info.Name == libkb.NormalizedUsername("") {
+		delete(k.userCache, uid)
+	} else {
+		k.userCache[uid] = info
+	}
+}
+
+// LoggedOut implements keybase1.NotifySessionInterface.
+func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
+	k.log.CDebugf(ctx, "Current session logged out")
+	k.setCachedCurrentSession(SessionInfo{})
+	return nil
+}
+
+// UserChanged implements keybase1.NotifySessionInterface.
+func (k *KeybaseDaemonRPC) UserChanged(ctx context.Context, uid keybase1.UID) error {
+	k.log.CDebugf(ctx, "User %s changed", uid)
+	k.setCachedUserInfo(uid, UserInfo{})
+	return nil
+}
+
 // OnConnect implements the ConnectionHandler interface.
-func (k KeybaseDaemonRPC) OnConnect(ctx context.Context,
-	conn *Connection, _ keybase1.GenericClient,
+func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
+	conn *Connection, rawClient keybase1.GenericClient,
 	server *rpc.Server) error {
 	protocols := []rpc.Protocol{
 		client.NewLogUIProtocol(),
 		client.NewIdentifyUIProtocol(),
+		keybase1.NotifySessionProtocol(k),
+		keybase1.NotifyUsersProtocol(k),
 	}
 	for _, p := range protocols {
 		err := server.Register(p)
@@ -99,27 +162,39 @@ func (k KeybaseDaemonRPC) OnConnect(ctx context.Context,
 			}
 		}
 	}
+
+	// Using conn.GetClient() here would cause problematic
+	// recursion.
+	c := keybase1.NotifyCtlClient{Cli: cancelableClient{rawClient}}
+	err := c.ToggleNotifications(ctx, keybase1.NotificationChannels{
+		Session: true,
+		Users:   true,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // OnConnectError implements the ConnectionHandler interface.
-func (k KeybaseDaemonRPC) OnConnectError(err error, wait time.Duration) {
+func (k *KeybaseDaemonRPC) OnConnectError(err error, wait time.Duration) {
 	k.log.Warning("KeybaseDaemonRPC: connection error: %q; retrying in %s",
 		err, wait)
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (k KeybaseDaemonRPC) OnDisconnected() {
+func (k *KeybaseDaemonRPC) OnDisconnected() {
 	k.log.Warning("KeybaseDaemonRPC is disconnected")
 }
 
 // ShouldThrottle implements the ConnectionHandler interface.
-func (k KeybaseDaemonRPC) ShouldThrottle(err error) bool {
+func (k *KeybaseDaemonRPC) ShouldThrottle(err error) bool {
 	return false
 }
 
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-func (k KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
+func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 	UserInfo, error) {
 	arg := engine.IDEngineArg{UserAssertion: assertion}.Export()
 	res, err := k.identifyClient.Identify(ctx, arg)
@@ -127,25 +202,32 @@ func (k KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 		return UserInfo{}, err
 	}
 
-	name := libkb.NewNormalizedUsername(res.User.Username)
-	uid := keybase1.UID(res.User.Uid)
-
+	uid := res.User.Uid
 	verifyingKeys, cryptPublicKeys, err := k.filterKeys(ctx, uid, res.PublicKeys)
 	if err != nil {
 		return UserInfo{}, err
 	}
 
-	return UserInfo{
-		Name:            name,
+	u := UserInfo{
+		Name:            libkb.NewNormalizedUsername(res.User.Username),
 		UID:             uid,
 		VerifyingKeys:   verifyingKeys,
 		CryptPublicKeys: cryptPublicKeys,
-	}, nil
+	}
+
+	k.setCachedUserInfo(uid, u)
+
+	return u, nil
 }
 
 // LoadUserPlusKeys implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-func (k KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
+func (k *KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
 	UserInfo, error) {
+	cachedUserInfo := k.getCachedUserInfo(uid)
+	if cachedUserInfo.Name != libkb.NormalizedUsername("") {
+		return cachedUserInfo, nil
+	}
+
 	arg := keybase1.LoadUserPlusKeysArg{Uid: uid, CacheOK: true}
 	res, err := k.userClient.LoadUserPlusKeys(ctx, arg)
 	if err != nil {
@@ -157,27 +239,26 @@ func (k KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID
 		return UserInfo{}, err
 	}
 
-	return UserInfo{
-		Name:            libkb.NormalizedUsername(res.Username),
+	u := UserInfo{
+		Name:            libkb.NewNormalizedUsername(res.Username),
 		UID:             res.Uid,
 		VerifyingKeys:   verifyingKeys,
 		CryptPublicKeys: cryptPublicKeys,
-	}, nil
-}
-
-// CurrentUID implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-func (k KeybaseDaemonRPC) CurrentUID(ctx context.Context, sessionID int) (
-	keybase1.UID, error) {
-	currentUID, err := k.sessionClient.CurrentUID(ctx, sessionID)
-	if err != nil {
-		return keybase1.UID(""), err
 	}
-	return currentUID, nil
+
+	k.setCachedUserInfo(uid, u)
+
+	return u, nil
 }
 
 // CurrentSession implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-func (k KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
+func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {
+	cachedCurrentSession := k.getCachedCurrentSession()
+	if cachedCurrentSession != (SessionInfo{}) {
+		return cachedCurrentSession, nil
+	}
+
 	res, err := k.sessionClient.CurrentSession(ctx, sessionID)
 	if err != nil {
 		return SessionInfo{}, err
@@ -190,30 +271,34 @@ func (k KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 	k.log.CDebugf(ctx, "got device subkey %s",
 		deviceSubkey.GetKID().ToShortIDString())
 	cryptPublicKey := CryptPublicKey{deviceSubkey.GetKID()}
-	return SessionInfo{
+	s := SessionInfo{
 		UID:            keybase1.UID(res.Uid),
 		Token:          res.Token,
 		CryptPublicKey: cryptPublicKey,
-	}, nil
+	}
+
+	k.setCachedCurrentSession(s)
+
+	return s, nil
 }
 
 // FavoriteAdd implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-func (k KeybaseDaemonRPC) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
+func (k *KeybaseDaemonRPC) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
 	return k.favoriteClient.FavoriteAdd(ctx, keybase1.FavoriteAddArg{Folder: folder})
 }
 
 // FavoriteDelete implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-func (k KeybaseDaemonRPC) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
+func (k *KeybaseDaemonRPC) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
 	return k.favoriteClient.FavoriteDelete(ctx, keybase1.FavoriteDeleteArg{Folder: folder})
 }
 
 // FavoriteList implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-func (k KeybaseDaemonRPC) FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
+func (k *KeybaseDaemonRPC) FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
 	return k.favoriteClient.FavoriteList(ctx, sessionID)
 }
 
 // Shutdown implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-func (k KeybaseDaemonRPC) Shutdown() {
+func (k *KeybaseDaemonRPC) Shutdown() {
 	if k.shutdownFn != nil {
 		k.shutdownFn()
 	}
