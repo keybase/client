@@ -32,7 +32,7 @@ public class MainActivity extends Activity implements DefaultHardwareBackBtnHand
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Init(this.getFilesDir().getPath(), "staging", "");
+        Init(this.getFilesDir().getPath(), "staging", "", false);
 
         try {
             Keybase.SetGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
