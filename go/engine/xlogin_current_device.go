@@ -39,73 +39,43 @@ func (e *XLoginCurrentDevice) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *XLoginCurrentDevice) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ XLoginCurrentDevice.Run()")
-	defer func() { e.G().Log.Debug("- XLoginCurrentDevice.Run() -> %s", libkb.ErrToOk(err)) }()
-
+func (e *XLoginCurrentDevice) Run(ctx *Context) error {
 	// already logged in?
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {
 		return nil
 	}
 
-	// have a username?
+	var config *libkb.UserConfig
 	if len(e.username) == 0 {
-		// try the session:
-		var nu *libkb.NormalizedUsername
-		err = e.G().LoginState().LocalSession(func(s *libkb.Session) {
-			nu = s.GetUsername()
-		}, "XLoginCurrentDevice.Run()")
-		if err != nil {
-			return err
-		}
-		if nu != nil {
-			e.username = nu.String()
-		}
-
-		if len(e.username) == 0 {
-			// try config:
-			e.username = e.G().Env.GetConfig().GetUsername().String()
-		}
+		config, err = e.G().Env.GetConfig().GetUserConfig()
+	} else {
+		nu := libkb.NewNormalizedUsername(e.username)
+		config, err = e.G().Env.GetConfig().GetUserConfigForUsername(nu)
 	}
-
-	if len(e.username) == 0 {
-		err = errNoUsername
-		return err
-	}
-
-	// try pubkey/stored secret login:
-	after := func(lctx libkb.LoginContext) error {
-		return e.postLogin(ctx, lctx)
-	}
-	err = e.G().LoginState().LoginWithStoredSecret(e.username, after)
-
-	// XXX if that didn't work because of a stored secret error, the user
-	// still could be on a provisioned device, they just didn't store the
-	// secret and need to enter a passphrase.
-	//
-	// check if there is a device id in config file for e.username?
-
-	return err
-}
-
-func (e *XLoginCurrentDevice) postLogin(ctx *Context, lctx libkb.LoginContext) error {
-	arg := libkb.NewLoadUserForceArg(e.G())
-	arg.LoginContext = lctx
-	user, err := libkb.LoadMe(arg)
 	if err != nil {
-		return err
+		e.G().Log.Debug("error getting user config: %s (%T)", err, err)
+		return errNoConfig
 	}
-
-	if !user.HasDeviceInCurrentInstall() {
+	if config == nil {
+		e.G().Log.Debug("user config is nil")
+		return errNoConfig
+	}
+	if config.GetDeviceID().IsNil() {
+		e.G().Log.Debug("no device in user config")
 		return errNoDevice
 	}
 
-	// XXX not 100% sure this is necessary...
-	if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
-		// not a fatal error, session will stay in memory
-		e.G().Log.Warning("error saving session file: %s", err)
-	}
+	// at this point, there is a user config either for the current user or for e.username
+	// and it has a device id, so this should be a provisioned device.  Thus, they should
+	// just login normally.
 
-	return nil
+	var afterLogin = func(lctx libkb.LoginContext) error {
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+			// not a fatal error, session will stay in memory
+			e.G().Log.Warning("error saving session file: %s", err)
+		}
+		return nil
+	}
+	return e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin)
 }

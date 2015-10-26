@@ -5,7 +5,14 @@ import (
 	"testing"
 )
 
-func testTestVector(t *testing.T, name string, val string, swizzler func([]byte) []byte) {
+func decode(strict bool, dst, src []byte) (int, error) {
+	if strict {
+		return StdEncoding.DecodeStrict(dst, src)
+	}
+	return StdEncoding.Decode(dst, src)
+}
+
+func testTestVector(t *testing.T, name string, val string, strict bool, swizzler func([]byte) []byte) {
 	raw, err := base64.StdEncoding.DecodeString(val)
 	if err != nil {
 		t.Fatalf("%s: %s", name, err)
@@ -17,7 +24,7 @@ func testTestVector(t *testing.T, name string, val string, swizzler func([]byte)
 	b58 = swizzler(b58)
 
 	reenc := make([]byte, StdEncoding.DecodedLen(len(b58)))
-	n, err := StdEncoding.Decode(reenc, b58)
+	n, err := decode(strict, reenc, b58)
 	if err != nil {
 		t.Fatalf("%s: %s", name, err)
 	}
@@ -29,7 +36,7 @@ func testTestVector(t *testing.T, name string, val string, swizzler func([]byte)
 
 func TestVectors1(t *testing.T) {
 	for k, v := range testEncodeVectors1 {
-		testTestVector(t, k, v, func(b []byte) []byte { return b })
+		testTestVector(t, k, v, true, func(b []byte) []byte { return b })
 	}
 }
 
@@ -46,7 +53,7 @@ func TestVectorsSpacer(t *testing.T) {
 	}
 
 	for k, v := range testEncodeVectors1 {
-		testTestVector(t, k, v, spacer)
+		testTestVector(t, k, v, false, spacer)
 	}
 }
 

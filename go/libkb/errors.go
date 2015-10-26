@@ -1123,3 +1123,17 @@ type SecretStoreError struct {
 func (e SecretStoreError) Error() string {
 	return "Secret store error: " + e.Msg
 }
+
+type PassphraseProvisionImpossibleError struct{}
+
+func (e PassphraseProvisionImpossibleError) Error() string {
+	return "Passphrase provision is not possible since you have at least one provisioned device or pgp key already"
+}
+
+type InvalidArgumentError struct {
+	Msg string
+}
+
+func (e InvalidArgumentError) Error() string {
+	return fmt.Sprintf("invalid argument: %s", e.Msg)
+}

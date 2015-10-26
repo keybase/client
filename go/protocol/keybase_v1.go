@@ -3963,8 +3963,8 @@ const (
 )
 
 type ChooseProvisioningMethodArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	GpgUsers  []string `codec:"gpgUsers" json:"gpgUsers"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	GpgOption bool `codec:"gpgOption" json:"gpgOption"`
 }
 
 type ChooseDeviceTypeArg struct {

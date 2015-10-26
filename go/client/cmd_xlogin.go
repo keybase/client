@@ -30,6 +30,9 @@ type CmdXLogin struct {
 func (c *CmdXLogin) Run() error {
 	protocols := []rpc.Protocol{
 		NewProvisionUIProtocol(),
+		NewLoginUIProtocol(G),
+		NewSecretUIProtocol(G),
+		NewGPGUIProtocol(G),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
