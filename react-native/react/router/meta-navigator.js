@@ -8,7 +8,6 @@
 import BaseComponent from '../base-component'
 import React from '../base-react'
 import Render from './meta-navigator-render'
-import { connect } from 'react-redux'
 import Immutable from 'immutable'
 
 class MetaNavigator extends BaseComponent {

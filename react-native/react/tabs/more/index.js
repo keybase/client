@@ -3,8 +3,6 @@
 import BaseComponent from '../../base-component'
 import React from '../../base-react'
 import MoreTabs from './more'
-import commonStyles from '../../styles/common'
-import Button from '../../common-adapters/button'
 import { logout } from '../../actions/login2'
 import { pushNewSearch } from '../../actions/search'
 import { navigateTo } from '../../actions/router'
