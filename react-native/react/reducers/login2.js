@@ -15,7 +15,7 @@ type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhon
 
 type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
 
-// TODO: What's the real type of this?
+// It's the b64 encoded value used to render the image
 type QRCode = string
 
 type Error = string
