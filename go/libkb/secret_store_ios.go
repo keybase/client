@@ -6,16 +6,13 @@ import (
 	keychain "github.com/keybase/go-keychain"
 )
 
-const (
-	accessGroup = "99229SGT5K.group.keybase"
-)
-
 type KeychainSecretStore struct {
 	accountName string
 }
 
 func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
-	item := keychain.NewGenericPassword(G.Env.GetStoredSecretServiceName(), k.accountName, "", secret, accessGroup)
+	// GetStoredSecretAccessGroup MUST be "" for the simulator
+	item := keychain.NewGenericPassword(G.Env.GetStoredSecretServiceName(), k.accountName, "", secret, G.Env.GetStoredSecretAccessGroup())
 	item.SetSynchronizable(keychain.SynchronizableNo)
 	item.SetAccessible(keychain.AccessibleWhenUnlockedThisDeviceOnly)
 

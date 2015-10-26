@@ -28,6 +28,17 @@ export function appendRouteOnUnchanged (asyncAction) {
   }
 }
 
+export function navigateUpOnUnchanged (asyncAction) {
+  return function (dispatch, getState) {
+    const oldRoute = getCurrentURI(getState())
+    asyncAction(dispatch, getState, () => {
+      if (oldRoute === getCurrentURI(getState())) {
+        dispatch(navigateUp())
+      }
+    })
+  }
+}
+
 export function getCurrentURI (state) {
   return state.tabbedRouter
     .getIn(['tabs', state.tabbedRouter.get('activeTab'), 'uri'])

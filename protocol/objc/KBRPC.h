@@ -466,6 +466,18 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 	KBRPromptOverwriteTypeSite = 1,
 };
 
+typedef NS_ENUM (NSInteger, KBRProvisionMethod) {
+	KBRProvisionMethodDevice = 0,
+	KBRProvisionMethodGpg = 1,
+	KBRProvisionMethodPaperKey = 2,
+	KBRProvisionMethodPassphrase = 3,
+};
+
+typedef NS_ENUM (NSInteger, KBRDeviceType) {
+	KBRDeviceTypeDesktop = 0,
+	KBRDeviceTypeMobile = 1,
+};
+
 @interface KBRVerifySessionRes : KBRObject
 @property NSString *uid;
 @property NSString *sid;
@@ -696,6 +708,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRDeviceAddCancelRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRDeviceXAddRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBRDoctorRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
@@ -872,6 +887,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRUnlockRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@end
+@interface KBRXLoginRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *deviceType;
+@property NSString *username;
 @end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1053,6 +1073,29 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRDisplayRecheckWarningRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRText *text;
+@end
+@interface KBRChooseProvisioningMethodRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSArray *gpgUsers;
+@end
+@interface KBRChooseDeviceTypeRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRDisplayAndPromptSecretRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSData *secret;
+@property NSString *phrase;
+@property KBRDeviceType otherDeviceType;
+@end
+@interface KBRDisplaySecretExchangedRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
+@interface KBRPromptNewDeviceNameRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSArray *existingDevices;
+@end
+@interface KBRProvisionSuccessRequestParams : KBRRequestParams
+@property NSInteger sessionID;
 @end
 @interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;
@@ -1352,6 +1395,13 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  */
 - (void)deviceAddCancel:(void (^)(NSError *error))completion;
 
+/*!
+ Starts the process of adding a new device using an existing
+ device. It is called on the existing device. 
+ This is for kex2.
+ */
+- (void)deviceXAdd:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRDoctorRequest : KBRRequest
@@ -1619,6 +1669,13 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  */
 - (void)unlock:(void (^)(NSError *error))completion;
 
+/*!
+ Performs login. username is optional. Will use the kex2 flow.
+ */
+- (void)xLogin:(KBRXLoginRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)xLoginWithDeviceType:(NSString *)deviceType username:(NSString *)username completion:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRLoginUiRequest : KBRRequest
@@ -1823,6 +1880,54 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)displayRecheckWarning:(KBRDisplayRecheckWarningRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)displayRecheckWarningWithText:(KBRText *)text completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRProvisionUiRequest : KBRRequest
+
+/*!
+ Called during device provisioning for the user to select a
+ method for provisioning. gpgUsers will contain a list of
+ locally available gpg private keys. If it is empty, then
+ gpg is not a valid option.
+ */
+- (void)chooseProvisioningMethod:(KBRChooseProvisioningMethodRequestParams *)params completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
+
+- (void)chooseProvisioningMethodWithGpgUsers:(NSArray *)gpgUsers completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion;
+
+/*!
+ If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.
+ */
+- (void)chooseDeviceType:(void (^)(NSError *error, KBRDeviceType deviceType))completion;
+
+/*!
+ DisplayAndPromptSecret displays a secret that the user can enter into the other device.
+ It also can return a secret that the user enters into this device (from the other device). 
+ If it does not return a secret, it will be canceled when this device receives the secret via kex2.
+ */
+- (void)displayAndPromptSecret:(KBRDisplayAndPromptSecretRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion;
+
+- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase otherDeviceType:(KBRDeviceType)otherDeviceType completion:(void (^)(NSError *error, NSData *bytes))completion;
+
+/*!
+ DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two
+ devices.
+ */
+- (void)displaySecretExchanged:(void (^)(NSError *error))completion;
+
+/*!
+ PromptNewDeviceName is called when the device provisioning process needs a name for the new device.
+ To help the clients not send a duplicate name, existingDevices is populated with the current device
+ names for the user.
+ */
+- (void)promptNewDeviceName:(KBRPromptNewDeviceNameRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
+
+- (void)promptNewDeviceNameWithExistingDevices:(NSArray *)existingDevices completion:(void (^)(NSError *error, NSString *str))completion;
+
+/*!
+ ProvisionSuccess is called after device provisioning runs successfully.
+ */
+- (void)provisionSuccess:(void (^)(NSError *error))completion;
 
 @end
 

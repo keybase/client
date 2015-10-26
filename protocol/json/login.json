@@ -274,6 +274,20 @@
         "type" : "int"
       } ],
       "response" : "null"
+    },
+    "xLogin" : {
+      "doc" : "Performs login.  username is optional.  Will use the kex2 flow.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "deviceType",
+        "type" : "string"
+      }, {
+        "name" : "username",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

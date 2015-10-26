@@ -14,9 +14,9 @@ func GetHelpTopics() []cli.HelpTopic {
 
 var advancedHT = cli.HelpTopic{
 	Name:  "advanced",
-	Usage: "description of advanced global options",
-	Body: `Keybase commands can run with various command line flags to
-configure global options. To use, add the flags before the command name:
+	Usage: "Description of advanced global options",
+	Body: `Keybase commands can run with various command line flags to configure global
+options. To use, add the flags before the command name:
 
    {{ .Name }} [global options] command [command options]
 
@@ -28,7 +28,7 @@ GLOBAL OPTIONS:
 
 var gpgHT = cli.HelpTopic{
 	Name:  "gpg",
-	Usage: "description of how keybase interacts with GPG",
+	Usage: "Description of how keybase interacts with GPG",
 	Body: `Keybase + GnuPG
 
 The Keybase client makes selective use of a local installation

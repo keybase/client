@@ -10,6 +10,7 @@ import { routeAppend } from '../../actions/router'
 import commonStyles from '../../styles/common'
 import GenPaperKey from './gen-paper-key'
 import ExistingDevice from '../../login2/register/existing-device'
+import RemoveDevice from './remove-device'
 
 // TODO
 // [ ] - Add Icons
@@ -22,14 +23,14 @@ export default class Devices extends Component {
     }
   }
 
-  renderDevice (device, onRemove) {
+  renderDevice (device) {
     return (
       <View key={device.name} style={[styles.device]}>
         <Text style={commonStyles.greyText}>ICON {device.type}</Text>
         <Text style={styles.deviceName}>{device.name}</Text>
         <Text style={[styles.deviceLastUsed, commonStyles.greyText]}>Last Used: {moment(device.cTime).format('MM/DD/YY')}</Text>
         <Text style={[styles.deviceAddedInfo, commonStyles.greyText]}>TODO: Get Added info</Text>
-        <Text style={styles.deviceRemove} onPress={onRemove}>Remove</Text>
+        <Text style={styles.deviceRemove} onPress={() => this.props.dispatch(routeAppend({path: 'removeDevice', device}))}>Remove</Text>
       </View>
     )
   }
@@ -72,7 +73,7 @@ export default class Devices extends Component {
         </View>
 
         <View doc='Wrapper for devices' style={styles.deviceWrapper}>
-          {devices.map((d) => this.renderDevice(d, () => console.log('removed', d)))}
+          {devices.map((d) => this.renderDevice(d))}
         </View>
       </ScrollView>
     )
@@ -87,7 +88,8 @@ export default class Devices extends Component {
       subRoutes: {
         codePage: CodePage,
         genPaperKey: GenPaperKey,
-        regExistingDevice: ExistingDevice
+        regExistingDevice: ExistingDevice,
+        removeDevice: RemoveDevice
       }
     }
   }

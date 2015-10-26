@@ -1,9 +1,10 @@
 package systests
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"path/filepath"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 func setupTest(t *testing.T, nm string) *libkb.TestContext {
@@ -40,6 +41,7 @@ func (n *baseNullUI) GetGPGUI() libkb.GPGUI                           { return n
 func (n *baseNullUI) GetLogUI() libkb.LogUI                           { return n.g.Log }
 func (n *baseNullUI) GetLocksmithUI() libkb.LocksmithUI               { return nil }
 func (n *baseNullUI) GetIdentifyLubaUI() libkb.IdentifyUI             { return nil }
+func (n *baseNullUI) GetProvisionUI() libkb.ProvisionUI               { return nil }
 
 func (n *baseNullUI) Configure() error { return nil }
 func (n *baseNullUI) Shutdown() error  { return nil }

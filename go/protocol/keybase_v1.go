@@ -29,13 +29,13 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					ret := make([]PassphraseChangeArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PassphraseChangeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PassphraseChangeArg)(nil), args)
 						return
 					}
-					err = i.PassphraseChange(context.TODO(), (*typedArgs)[0])
+					err = i.PassphraseChange(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -183,13 +183,13 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 					ret := make([]EstablishSessionArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]EstablishSessionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]EstablishSessionArg)(nil), args)
 						return
 					}
-					err = i.EstablishSession(context.TODO(), (*typedArgs)[0])
+					err = i.EstablishSession(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -199,13 +199,13 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 					ret := make([]PutBlockArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PutBlockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PutBlockArg)(nil), args)
 						return
 					}
-					err = i.PutBlock(context.TODO(), (*typedArgs)[0])
+					err = i.PutBlock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -215,13 +215,13 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 					ret := make([]GetBlockArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetBlockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetBlockArg)(nil), args)
 						return
 					}
-					ret, err = i.GetBlock(context.TODO(), (*typedArgs)[0].Bid)
+					ret, err = i.GetBlock(ctx, (*typedArgs)[0].Bid)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -231,13 +231,13 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 					ret := make([]IncBlockReferenceArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]IncBlockReferenceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]IncBlockReferenceArg)(nil), args)
 						return
 					}
-					err = i.IncBlockReference(context.TODO(), (*typedArgs)[0])
+					err = i.IncBlockReference(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -247,13 +247,13 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 					ret := make([]DecBlockReferenceArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DecBlockReferenceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DecBlockReferenceArg)(nil), args)
 						return
 					}
-					err = i.DecBlockReference(context.TODO(), (*typedArgs)[0])
+					err = i.DecBlockReference(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -311,13 +311,13 @@ func BTCProtocol(i BTCInterface) rpc.Protocol {
 					ret := make([]RegisterBTCArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]RegisterBTCArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]RegisterBTCArg)(nil), args)
 						return
 					}
-					err = i.RegisterBTC(context.TODO(), (*typedArgs)[0])
+					err = i.RegisterBTC(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -384,13 +384,13 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					ret := make([]GetCurrentStatusArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetCurrentStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetCurrentStatusArg)(nil), args)
 						return
 					}
-					ret, err = i.GetCurrentStatus(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.GetCurrentStatus(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -400,13 +400,13 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					ret := make([]GetConfigArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetConfigArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetConfigArg)(nil), args)
 						return
 					}
-					ret, err = i.GetConfig(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.GetConfig(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -416,13 +416,13 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					ret := make([]SetUserConfigArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SetUserConfigArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SetUserConfigArg)(nil), args)
 						return
 					}
-					err = i.SetUserConfig(context.TODO(), (*typedArgs)[0])
+					err = i.SetUserConfig(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -491,13 +491,13 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 					ret := make([]SignED25519Arg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SignED25519Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SignED25519Arg)(nil), args)
 						return
 					}
-					ret, err = i.SignED25519(context.TODO(), (*typedArgs)[0])
+					ret, err = i.SignED25519(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -507,13 +507,13 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 					ret := make([]UnboxBytes32Arg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]UnboxBytes32Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[]UnboxBytes32Arg)(nil), args)
 						return
 					}
-					ret, err = i.UnboxBytes32(context.TODO(), (*typedArgs)[0])
+					ret, err = i.UnboxBytes32(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -574,13 +574,13 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 					ret := make([]StopArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]StopArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]StopArg)(nil), args)
 						return
 					}
-					err = i.Stop(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.Stop(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -590,13 +590,13 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 					ret := make([]LogRotateArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LogRotateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LogRotateArg)(nil), args)
 						return
 					}
-					err = i.LogRotate(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.LogRotate(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -606,13 +606,13 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 					ret := make([]SetLogLevelArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SetLogLevelArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SetLogLevelArg)(nil), args)
 						return
 					}
-					err = i.SetLogLevel(context.TODO(), (*typedArgs)[0])
+					err = i.SetLogLevel(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -622,13 +622,13 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 					ret := make([]ReloadArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ReloadArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ReloadArg)(nil), args)
 						return
 					}
-					err = i.Reload(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.Reload(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -638,13 +638,13 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 					ret := make([]DbNukeArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DbNukeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DbNukeArg)(nil), args)
 						return
 					}
-					err = i.DbNuke(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.DbNuke(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -720,13 +720,13 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 					ret := make([]FirstStepArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]FirstStepArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]FirstStepArg)(nil), args)
 						return
 					}
-					ret, err = i.FirstStep(context.TODO(), (*typedArgs)[0])
+					ret, err = i.FirstStep(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -736,13 +736,13 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 					ret := make([]SecondStepArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SecondStepArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SecondStepArg)(nil), args)
 						return
 					}
-					ret, err = i.SecondStep(context.TODO(), (*typedArgs)[0])
+					ret, err = i.SecondStep(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -752,13 +752,13 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 					ret := make([]IncrementArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]IncrementArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]IncrementArg)(nil), args)
 						return
 					}
-					ret, err = i.Increment(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Increment(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -799,10 +799,15 @@ type DeviceAddCancelArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type DeviceXAddArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type DeviceInterface interface {
 	DeviceList(context.Context, int) ([]Device, error)
 	DeviceAdd(context.Context, DeviceAddArg) error
 	DeviceAddCancel(context.Context, int) error
+	DeviceXAdd(context.Context, int) error
 }
 
 func DeviceProtocol(i DeviceInterface) rpc.Protocol {
@@ -814,13 +819,13 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 					ret := make([]DeviceListArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DeviceListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DeviceListArg)(nil), args)
 						return
 					}
-					ret, err = i.DeviceList(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.DeviceList(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -830,13 +835,13 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 					ret := make([]DeviceAddArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DeviceAddArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DeviceAddArg)(nil), args)
 						return
 					}
-					err = i.DeviceAdd(context.TODO(), (*typedArgs)[0])
+					err = i.DeviceAdd(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -846,13 +851,29 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 					ret := make([]DeviceAddCancelArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DeviceAddCancelArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DeviceAddCancelArg)(nil), args)
 						return
 					}
-					err = i.DeviceAddCancel(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.DeviceAddCancel(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"deviceXAdd": {
+				MakeArg: func() interface{} {
+					ret := make([]DeviceXAddArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeviceXAddArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeviceXAddArg)(nil), args)
+						return
+					}
+					err = i.DeviceXAdd(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -882,6 +903,12 @@ func (c DeviceClient) DeviceAddCancel(ctx context.Context, sessionID int) (err e
 	return
 }
 
+func (c DeviceClient) DeviceXAdd(ctx context.Context, sessionID int) (err error) {
+	__arg := DeviceXAddArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceXAdd", []interface{}{__arg}, nil)
+	return
+}
+
 type DoctorArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -899,13 +926,13 @@ func DoctorProtocol(i DoctorInterface) rpc.Protocol {
 					ret := make([]DoctorArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DoctorArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DoctorArg)(nil), args)
 						return
 					}
-					err = i.Doctor(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.Doctor(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -976,13 +1003,13 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc.Protocol {
 					ret := make([]LoginSelectArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LoginSelectArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LoginSelectArg)(nil), args)
 						return
 					}
-					ret, err = i.LoginSelect(context.TODO(), (*typedArgs)[0])
+					ret, err = i.LoginSelect(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -992,13 +1019,13 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc.Protocol {
 					ret := make([]DisplayStatusArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplayStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplayStatusArg)(nil), args)
 						return
 					}
-					ret, err = i.DisplayStatus(context.TODO(), (*typedArgs)[0])
+					ret, err = i.DisplayStatus(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1008,13 +1035,13 @@ func DoctorUiProtocol(i DoctorUiInterface) rpc.Protocol {
 					ret := make([]DisplayResultArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplayResultArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplayResultArg)(nil), args)
 						return
 					}
-					err = i.DisplayResult(context.TODO(), (*typedArgs)[0])
+					err = i.DisplayResult(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1077,13 +1104,13 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 					ret := make([]FavoriteAddArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]FavoriteAddArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]FavoriteAddArg)(nil), args)
 						return
 					}
-					err = i.FavoriteAdd(context.TODO(), (*typedArgs)[0])
+					err = i.FavoriteAdd(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1093,13 +1120,13 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 					ret := make([]FavoriteDeleteArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]FavoriteDeleteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]FavoriteDeleteArg)(nil), args)
 						return
 					}
-					err = i.FavoriteDelete(context.TODO(), (*typedArgs)[0])
+					err = i.FavoriteDelete(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1109,13 +1136,13 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 					ret := make([]FavoriteListArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]FavoriteListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]FavoriteListArg)(nil), args)
 						return
 					}
-					ret, err = i.FavoriteList(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.FavoriteList(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1191,13 +1218,13 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 					ret := make([]WantToAddGPGKeyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]WantToAddGPGKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]WantToAddGPGKeyArg)(nil), args)
 						return
 					}
-					ret, err = i.WantToAddGPGKey(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.WantToAddGPGKey(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1207,13 +1234,13 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 					ret := make([]ConfirmDuplicateKeyChosenArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ConfirmDuplicateKeyChosenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ConfirmDuplicateKeyChosenArg)(nil), args)
 						return
 					}
-					ret, err = i.ConfirmDuplicateKeyChosen(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.ConfirmDuplicateKeyChosen(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1223,13 +1250,13 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 					ret := make([]SelectKeyAndPushOptionArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SelectKeyAndPushOptionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SelectKeyAndPushOptionArg)(nil), args)
 						return
 					}
-					ret, err = i.SelectKeyAndPushOption(context.TODO(), (*typedArgs)[0])
+					ret, err = i.SelectKeyAndPushOption(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1239,13 +1266,13 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 					ret := make([]SelectKeyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SelectKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SelectKeyArg)(nil), args)
 						return
 					}
-					ret, err = i.SelectKey(context.TODO(), (*typedArgs)[0])
+					ret, err = i.SelectKey(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1441,13 +1468,13 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 					ret := make([]IdentifyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]IdentifyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]IdentifyArg)(nil), args)
 						return
 					}
-					ret, err = i.Identify(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Identify(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1593,13 +1620,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]StartArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]StartArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]StartArg)(nil), args)
 						return
 					}
-					err = i.Start(context.TODO(), (*typedArgs)[0])
+					err = i.Start(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1609,13 +1636,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]DisplayKeyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplayKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplayKeyArg)(nil), args)
 						return
 					}
-					err = i.DisplayKey(context.TODO(), (*typedArgs)[0])
+					err = i.DisplayKey(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1625,13 +1652,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]ReportLastTrackArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ReportLastTrackArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ReportLastTrackArg)(nil), args)
 						return
 					}
-					err = i.ReportLastTrack(context.TODO(), (*typedArgs)[0])
+					err = i.ReportLastTrack(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1641,13 +1668,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]LaunchNetworkChecksArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LaunchNetworkChecksArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LaunchNetworkChecksArg)(nil), args)
 						return
 					}
-					err = i.LaunchNetworkChecks(context.TODO(), (*typedArgs)[0])
+					err = i.LaunchNetworkChecks(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1657,13 +1684,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]DisplayTrackStatementArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplayTrackStatementArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplayTrackStatementArg)(nil), args)
 						return
 					}
-					err = i.DisplayTrackStatement(context.TODO(), (*typedArgs)[0])
+					err = i.DisplayTrackStatement(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1673,13 +1700,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]FinishWebProofCheckArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]FinishWebProofCheckArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]FinishWebProofCheckArg)(nil), args)
 						return
 					}
-					err = i.FinishWebProofCheck(context.TODO(), (*typedArgs)[0])
+					err = i.FinishWebProofCheck(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1689,13 +1716,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]FinishSocialProofCheckArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]FinishSocialProofCheckArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]FinishSocialProofCheckArg)(nil), args)
 						return
 					}
-					err = i.FinishSocialProofCheck(context.TODO(), (*typedArgs)[0])
+					err = i.FinishSocialProofCheck(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1705,13 +1732,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]DisplayCryptocurrencyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplayCryptocurrencyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplayCryptocurrencyArg)(nil), args)
 						return
 					}
-					err = i.DisplayCryptocurrency(context.TODO(), (*typedArgs)[0])
+					err = i.DisplayCryptocurrency(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1721,13 +1748,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]ConfirmArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ConfirmArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ConfirmArg)(nil), args)
 						return
 					}
-					ret, err = i.Confirm(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Confirm(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1737,13 +1764,13 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 					ret := make([]FinishArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]FinishArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]FinishArg)(nil), args)
 						return
 					}
-					err = i.Finish(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.Finish(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1841,13 +1868,13 @@ func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc.Protocol {
 					ret := make([]HelloArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]HelloArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]HelloArg)(nil), args)
 						return
 					}
-					ret, err = i.Hello(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Hello(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1857,13 +1884,13 @@ func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc.Protocol {
 					ret := make([]DidCounterSignArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DidCounterSignArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DidCounterSignArg)(nil), args)
 						return
 					}
-					err = i.DidCounterSign(context.TODO(), (*typedArgs)[0].Sig)
+					err = i.DidCounterSign(ctx, (*typedArgs)[0].Sig)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1903,8 +1930,8 @@ func Kex2ProvisionerProtocol(i Kex2ProvisionerInterface) rpc.Protocol {
 					ret := make([]KexStartArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
-					err = i.KexStart(context.TODO())
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.KexStart(ctx)
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -2026,13 +2053,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 					ret := make([]PromptDeviceNameArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PromptDeviceNameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PromptDeviceNameArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptDeviceName(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.PromptDeviceName(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2042,13 +2069,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 					ret := make([]DeviceNameTakenArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DeviceNameTakenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DeviceNameTakenArg)(nil), args)
 						return
 					}
-					err = i.DeviceNameTaken(context.TODO(), (*typedArgs)[0])
+					err = i.DeviceNameTaken(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2058,13 +2085,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 					ret := make([]SelectSignerArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SelectSignerArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SelectSignerArg)(nil), args)
 						return
 					}
-					ret, err = i.SelectSigner(context.TODO(), (*typedArgs)[0])
+					ret, err = i.SelectSigner(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2074,13 +2101,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 					ret := make([]DeviceSignAttemptErrArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DeviceSignAttemptErrArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DeviceSignAttemptErrArg)(nil), args)
 						return
 					}
-					err = i.DeviceSignAttemptErr(context.TODO(), (*typedArgs)[0])
+					err = i.DeviceSignAttemptErr(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2090,13 +2117,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 					ret := make([]DisplaySecretWordsArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplaySecretWordsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplaySecretWordsArg)(nil), args)
 						return
 					}
-					err = i.DisplaySecretWords(context.TODO(), (*typedArgs)[0])
+					err = i.DisplaySecretWords(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2106,13 +2133,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 					ret := make([]KexStatusArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]KexStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]KexStatusArg)(nil), args)
 						return
 					}
-					err = i.KexStatus(context.TODO(), (*typedArgs)[0])
+					err = i.KexStatus(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2122,13 +2149,13 @@ func LocksmithUiProtocol(i LocksmithUiInterface) rpc.Protocol {
 					ret := make([]DisplayProvisionSuccessArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplayProvisionSuccessArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplayProvisionSuccessArg)(nil), args)
 						return
 					}
-					err = i.DisplayProvisionSuccess(context.TODO(), (*typedArgs)[0])
+					err = i.DisplayProvisionSuccess(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2196,13 +2223,13 @@ func LogUiProtocol(i LogUiInterface) rpc.Protocol {
 					ret := make([]LogArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LogArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LogArg)(nil), args)
 						return
 					}
-					err = i.Log(context.TODO(), (*typedArgs)[0])
+					err = i.Log(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2275,6 +2302,12 @@ type UnlockArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type XLoginArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	DeviceType string `codec:"deviceType" json:"deviceType"`
+	Username   string `codec:"username" json:"username"`
+}
+
 type LoginInterface interface {
 	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
 	LoginWithPrompt(context.Context, LoginWithPromptArg) error
@@ -2287,6 +2320,7 @@ type LoginInterface interface {
 	RecoverAccountFromEmailAddress(context.Context, string) error
 	PaperKey(context.Context, int) error
 	Unlock(context.Context, int) error
+	XLogin(context.Context, XLoginArg) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -2298,13 +2332,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]GetConfiguredAccountsArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetConfiguredAccountsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetConfiguredAccountsArg)(nil), args)
 						return
 					}
-					ret, err = i.GetConfiguredAccounts(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.GetConfiguredAccounts(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2314,13 +2348,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]LoginWithPromptArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LoginWithPromptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LoginWithPromptArg)(nil), args)
 						return
 					}
-					err = i.LoginWithPrompt(context.TODO(), (*typedArgs)[0])
+					err = i.LoginWithPrompt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2330,13 +2364,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]LoginWithStoredSecretArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LoginWithStoredSecretArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LoginWithStoredSecretArg)(nil), args)
 						return
 					}
-					err = i.LoginWithStoredSecret(context.TODO(), (*typedArgs)[0])
+					err = i.LoginWithStoredSecret(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2346,13 +2380,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]LoginWithPassphraseArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LoginWithPassphraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LoginWithPassphraseArg)(nil), args)
 						return
 					}
-					err = i.LoginWithPassphrase(context.TODO(), (*typedArgs)[0])
+					err = i.LoginWithPassphrase(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2362,13 +2396,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]ClearStoredSecretArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ClearStoredSecretArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ClearStoredSecretArg)(nil), args)
 						return
 					}
-					err = i.ClearStoredSecret(context.TODO(), (*typedArgs)[0])
+					err = i.ClearStoredSecret(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2378,13 +2412,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]CancelLoginArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]CancelLoginArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]CancelLoginArg)(nil), args)
 						return
 					}
-					err = i.CancelLogin(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.CancelLogin(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2394,13 +2428,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]LogoutArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LogoutArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LogoutArg)(nil), args)
 						return
 					}
-					err = i.Logout(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.Logout(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2410,13 +2444,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]ResetArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ResetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ResetArg)(nil), args)
 						return
 					}
-					err = i.Reset(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.Reset(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2426,13 +2460,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]RecoverAccountFromEmailAddressArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]RecoverAccountFromEmailAddressArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]RecoverAccountFromEmailAddressArg)(nil), args)
 						return
 					}
-					err = i.RecoverAccountFromEmailAddress(context.TODO(), (*typedArgs)[0].Email)
+					err = i.RecoverAccountFromEmailAddress(ctx, (*typedArgs)[0].Email)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2442,13 +2476,13 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]PaperKeyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PaperKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PaperKeyArg)(nil), args)
 						return
 					}
-					err = i.PaperKey(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.PaperKey(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2458,13 +2492,29 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 					ret := make([]UnlockArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]UnlockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]UnlockArg)(nil), args)
 						return
 					}
-					err = i.Unlock(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.Unlock(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"xLogin": {
+				MakeArg: func() interface{} {
+					ret := make([]XLoginArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]XLoginArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]XLoginArg)(nil), args)
+						return
+					}
+					err = i.XLogin(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2539,6 +2589,11 @@ func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 	return
 }
 
+func (c LoginClient) XLogin(ctx context.Context, __arg XLoginArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.xLogin", []interface{}{__arg}, nil)
+	return
+}
+
 type GetEmailOrUsernameArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -2575,13 +2630,13 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 					ret := make([]GetEmailOrUsernameArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetEmailOrUsernameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetEmailOrUsernameArg)(nil), args)
 						return
 					}
-					ret, err = i.GetEmailOrUsername(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.GetEmailOrUsername(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2591,13 +2646,13 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 					ret := make([]PromptRevokePaperKeysArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PromptRevokePaperKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PromptRevokePaperKeysArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptRevokePaperKeys(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PromptRevokePaperKeys(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2607,13 +2662,13 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 					ret := make([]DisplayPaperKeyPhraseArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplayPaperKeyPhraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplayPaperKeyPhraseArg)(nil), args)
 						return
 					}
-					err = i.DisplayPaperKeyPhrase(context.TODO(), (*typedArgs)[0])
+					err = i.DisplayPaperKeyPhrase(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2623,13 +2678,13 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 					ret := make([]DisplayPrimaryPaperKeyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplayPrimaryPaperKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplayPrimaryPaperKeyArg)(nil), args)
 						return
 					}
-					err = i.DisplayPrimaryPaperKey(context.TODO(), (*typedArgs)[0])
+					err = i.DisplayPrimaryPaperKey(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2748,13 +2803,13 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]AuthenticateArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]AuthenticateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]AuthenticateArg)(nil), args)
 						return
 					}
-					ret, err = i.Authenticate(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Authenticate(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2764,13 +2819,13 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]PutMetadataArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PutMetadataArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PutMetadataArg)(nil), args)
 						return
 					}
-					err = i.PutMetadata(context.TODO(), (*typedArgs)[0])
+					err = i.PutMetadata(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2780,13 +2835,13 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]GetMetadataArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetMetadataArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetMetadataArg)(nil), args)
 						return
 					}
-					ret, err = i.GetMetadata(context.TODO(), (*typedArgs)[0])
+					ret, err = i.GetMetadata(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2796,13 +2851,13 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]RegisterForUpdatesArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]RegisterForUpdatesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]RegisterForUpdatesArg)(nil), args)
 						return
 					}
-					err = i.RegisterForUpdates(context.TODO(), (*typedArgs)[0])
+					err = i.RegisterForUpdates(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2812,13 +2867,13 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]PruneUnmergedArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PruneUnmergedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PruneUnmergedArg)(nil), args)
 						return
 					}
-					err = i.PruneUnmerged(context.TODO(), (*typedArgs)[0])
+					err = i.PruneUnmerged(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2828,13 +2883,13 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]PutKeysArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PutKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PutKeysArg)(nil), args)
 						return
 					}
-					err = i.PutKeys(context.TODO(), (*typedArgs)[0])
+					err = i.PutKeys(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2844,13 +2899,13 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]GetKeyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetKeyArg)(nil), args)
 						return
 					}
-					ret, err = i.GetKey(context.TODO(), (*typedArgs)[0])
+					ret, err = i.GetKey(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2860,13 +2915,13 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]TruncateLockArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]TruncateLockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]TruncateLockArg)(nil), args)
 						return
 					}
-					ret, err = i.TruncateLock(context.TODO(), (*typedArgs)[0].FolderID)
+					ret, err = i.TruncateLock(ctx, (*typedArgs)[0].FolderID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2876,13 +2931,13 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]TruncateUnlockArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]TruncateUnlockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]TruncateUnlockArg)(nil), args)
 						return
 					}
-					ret, err = i.TruncateUnlock(context.TODO(), (*typedArgs)[0].FolderID)
+					ret, err = i.TruncateUnlock(ctx, (*typedArgs)[0].FolderID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2892,8 +2947,8 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 					ret := make([]PingArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
-					err = i.Ping(context.TODO())
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.Ping(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2976,13 +3031,13 @@ func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc.Protocol {
 					ret := make([]MetadataUpdateArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]MetadataUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]MetadataUpdateArg)(nil), args)
 						return
 					}
-					err = i.MetadataUpdate(context.TODO(), (*typedArgs)[0])
+					err = i.MetadataUpdate(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3022,13 +3077,13 @@ func NotifyCtlProtocol(i NotifyCtlInterface) rpc.Protocol {
 					ret := make([]ToggleNotificationsArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ToggleNotificationsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ToggleNotificationsArg)(nil), args)
 						return
 					}
-					err = i.ToggleNotifications(context.TODO(), (*typedArgs)[0].Channels)
+					err = i.ToggleNotifications(ctx, (*typedArgs)[0].Channels)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3063,8 +3118,8 @@ func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
 					ret := make([]LoggedOutArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
-					err = i.LoggedOut(context.TODO())
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.LoggedOut(ctx)
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -3099,13 +3154,13 @@ func NotifyUsersProtocol(i NotifyUsersInterface) rpc.Protocol {
 					ret := make([]UserChangedArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]UserChangedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]UserChangedArg)(nil), args)
 						return
 					}
-					err = i.UserChanged(context.TODO(), (*typedArgs)[0].Uid)
+					err = i.UserChanged(ctx, (*typedArgs)[0].Uid)
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -3296,13 +3351,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPSignArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPSignArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPSignArg)(nil), args)
 						return
 					}
-					err = i.PGPSign(context.TODO(), (*typedArgs)[0])
+					err = i.PGPSign(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3312,13 +3367,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPPullArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPPullArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPPullArg)(nil), args)
 						return
 					}
-					err = i.PGPPull(context.TODO(), (*typedArgs)[0])
+					err = i.PGPPull(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3328,13 +3383,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPEncryptArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPEncryptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPEncryptArg)(nil), args)
 						return
 					}
-					err = i.PGPEncrypt(context.TODO(), (*typedArgs)[0])
+					err = i.PGPEncrypt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3344,13 +3399,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPDecryptArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPDecryptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPDecryptArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPDecrypt(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PGPDecrypt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3360,13 +3415,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPVerifyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPVerifyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPVerifyArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPVerify(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PGPVerify(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3376,13 +3431,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPImportArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPImportArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPImportArg)(nil), args)
 						return
 					}
-					err = i.PGPImport(context.TODO(), (*typedArgs)[0])
+					err = i.PGPImport(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3392,13 +3447,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPExportArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPExportArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPExportArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPExport(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PGPExport(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3408,13 +3463,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPExportByFingerprintArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPExportByFingerprintArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPExportByFingerprintArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPExportByFingerprint(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PGPExportByFingerprint(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3424,13 +3479,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPExportByKIDArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPExportByKIDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPExportByKIDArg)(nil), args)
 						return
 					}
-					ret, err = i.PGPExportByKID(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PGPExportByKID(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3440,13 +3495,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPKeyGenArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPKeyGenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPKeyGenArg)(nil), args)
 						return
 					}
-					err = i.PGPKeyGen(context.TODO(), (*typedArgs)[0])
+					err = i.PGPKeyGen(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3456,13 +3511,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPKeyGenDefaultArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPKeyGenDefaultArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPKeyGenDefaultArg)(nil), args)
 						return
 					}
-					err = i.PGPKeyGenDefault(context.TODO(), (*typedArgs)[0])
+					err = i.PGPKeyGenDefault(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3472,13 +3527,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPDeletePrimaryArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPDeletePrimaryArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPDeletePrimaryArg)(nil), args)
 						return
 					}
-					err = i.PGPDeletePrimary(context.TODO(), (*typedArgs)[0].SessionID)
+					err = i.PGPDeletePrimary(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3488,13 +3543,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPSelectArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPSelectArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPSelectArg)(nil), args)
 						return
 					}
-					err = i.PGPSelect(context.TODO(), (*typedArgs)[0])
+					err = i.PGPSelect(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3504,13 +3559,13 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 					ret := make([]PGPUpdateArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PGPUpdateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PGPUpdateArg)(nil), args)
 						return
 					}
-					err = i.PGPUpdate(context.TODO(), (*typedArgs)[0])
+					err = i.PGPUpdate(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3631,13 +3686,13 @@ func ProveProtocol(i ProveInterface) rpc.Protocol {
 					ret := make([]StartProofArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]StartProofArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]StartProofArg)(nil), args)
 						return
 					}
-					ret, err = i.StartProof(context.TODO(), (*typedArgs)[0])
+					ret, err = i.StartProof(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3647,13 +3702,13 @@ func ProveProtocol(i ProveInterface) rpc.Protocol {
 					ret := make([]CheckProofArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]CheckProofArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]CheckProofArg)(nil), args)
 						return
 					}
-					ret, err = i.CheckProof(context.TODO(), (*typedArgs)[0])
+					ret, err = i.CheckProof(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3741,13 +3796,13 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 					ret := make([]PromptOverwriteArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PromptOverwriteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PromptOverwriteArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptOverwrite(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PromptOverwrite(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3757,13 +3812,13 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 					ret := make([]PromptUsernameArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PromptUsernameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PromptUsernameArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptUsername(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PromptUsername(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3773,13 +3828,13 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 					ret := make([]OutputPrechecksArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]OutputPrechecksArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]OutputPrechecksArg)(nil), args)
 						return
 					}
-					err = i.OutputPrechecks(context.TODO(), (*typedArgs)[0])
+					err = i.OutputPrechecks(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3789,13 +3844,13 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 					ret := make([]PreProofWarningArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PreProofWarningArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PreProofWarningArg)(nil), args)
 						return
 					}
-					ret, err = i.PreProofWarning(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PreProofWarning(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3805,13 +3860,13 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 					ret := make([]OutputInstructionsArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]OutputInstructionsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]OutputInstructionsArg)(nil), args)
 						return
 					}
-					err = i.OutputInstructions(context.TODO(), (*typedArgs)[0])
+					err = i.OutputInstructions(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3821,13 +3876,13 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 					ret := make([]OkToCheckArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]OkToCheckArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]OkToCheckArg)(nil), args)
 						return
 					}
-					ret, err = i.OkToCheck(context.TODO(), (*typedArgs)[0])
+					ret, err = i.OkToCheck(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3837,13 +3892,13 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 					ret := make([]DisplayRecheckWarningArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]DisplayRecheckWarningArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]DisplayRecheckWarningArg)(nil), args)
 						return
 					}
-					err = i.DisplayRecheckWarning(context.TODO(), (*typedArgs)[0])
+					err = i.DisplayRecheckWarning(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3891,6 +3946,201 @@ func (c ProveUiClient) DisplayRecheckWarning(ctx context.Context, __arg DisplayR
 	return
 }
 
+type ProvisionMethod int
+
+const (
+	ProvisionMethod_DEVICE     ProvisionMethod = 0
+	ProvisionMethod_GPG        ProvisionMethod = 1
+	ProvisionMethod_PAPER_KEY  ProvisionMethod = 2
+	ProvisionMethod_PASSPHRASE ProvisionMethod = 3
+)
+
+type DeviceType int
+
+const (
+	DeviceType_DESKTOP DeviceType = 0
+	DeviceType_MOBILE  DeviceType = 1
+)
+
+type ChooseProvisioningMethodArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	GpgUsers  []string `codec:"gpgUsers" json:"gpgUsers"`
+}
+
+type ChooseDeviceTypeArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type DisplayAndPromptSecretArg struct {
+	SessionID       int        `codec:"sessionID" json:"sessionID"`
+	Secret          []byte     `codec:"secret" json:"secret"`
+	Phrase          string     `codec:"phrase" json:"phrase"`
+	OtherDeviceType DeviceType `codec:"otherDeviceType" json:"otherDeviceType"`
+}
+
+type DisplaySecretExchangedArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type PromptNewDeviceNameArg struct {
+	SessionID       int      `codec:"sessionID" json:"sessionID"`
+	ExistingDevices []string `codec:"existingDevices" json:"existingDevices"`
+}
+
+type ProvisionSuccessArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type ProvisionUiInterface interface {
+	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
+	ChooseDeviceType(context.Context, int) (DeviceType, error)
+	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) ([]byte, error)
+	DisplaySecretExchanged(context.Context, int) error
+	PromptNewDeviceName(context.Context, PromptNewDeviceNameArg) (string, error)
+	ProvisionSuccess(context.Context, int) error
+}
+
+func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.provisionUi",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"chooseProvisioningMethod": {
+				MakeArg: func() interface{} {
+					ret := make([]ChooseProvisioningMethodArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChooseProvisioningMethodArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChooseProvisioningMethodArg)(nil), args)
+						return
+					}
+					ret, err = i.ChooseProvisioningMethod(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"chooseDeviceType": {
+				MakeArg: func() interface{} {
+					ret := make([]ChooseDeviceTypeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChooseDeviceTypeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChooseDeviceTypeArg)(nil), args)
+						return
+					}
+					ret, err = i.ChooseDeviceType(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"DisplayAndPromptSecret": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayAndPromptSecretArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayAndPromptSecretArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayAndPromptSecretArg)(nil), args)
+						return
+					}
+					ret, err = i.DisplayAndPromptSecret(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"DisplaySecretExchanged": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplaySecretExchangedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplaySecretExchangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplaySecretExchangedArg)(nil), args)
+						return
+					}
+					err = i.DisplaySecretExchanged(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"PromptNewDeviceName": {
+				MakeArg: func() interface{} {
+					ret := make([]PromptNewDeviceNameArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PromptNewDeviceNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PromptNewDeviceNameArg)(nil), args)
+						return
+					}
+					ret, err = i.PromptNewDeviceName(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"ProvisionSuccess": {
+				MakeArg: func() interface{} {
+					ret := make([]ProvisionSuccessArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ProvisionSuccessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ProvisionSuccessArg)(nil), args)
+						return
+					}
+					err = i.ProvisionSuccess(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type ProvisionUiClient struct {
+	Cli GenericClient
+}
+
+func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg ChooseProvisioningMethodArg) (res ProvisionMethod, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseProvisioningMethod", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, sessionID int) (res DeviceType, err error) {
+	__arg := ChooseDeviceTypeArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseDeviceType", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) DisplayAndPromptSecret(ctx context.Context, __arg DisplayAndPromptSecretArg) (res []byte, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplayAndPromptSecret", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) DisplaySecretExchanged(ctx context.Context, sessionID int) (err error) {
+	__arg := DisplaySecretExchangedArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplaySecretExchanged", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ProvisionUiClient) PromptNewDeviceName(ctx context.Context, __arg PromptNewDeviceNameArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.PromptNewDeviceName", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) ProvisionSuccess(ctx context.Context, sessionID int) (err error) {
+	__arg := ProvisionSuccessArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.ProvisionSuccess", []interface{}{__arg}, nil)
+	return
+}
+
 type VerifySessionRes struct {
 	Uid       UID    `codec:"uid" json:"uid"`
 	Sid       string `codec:"sid" json:"sid"`
@@ -3915,13 +4165,13 @@ func QuotaProtocol(i QuotaInterface) rpc.Protocol {
 					ret := make([]VerifySessionArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]VerifySessionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]VerifySessionArg)(nil), args)
 						return
 					}
-					ret, err = i.VerifySession(context.TODO(), (*typedArgs)[0].Session)
+					ret, err = i.VerifySession(ctx, (*typedArgs)[0].Session)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3971,13 +4221,13 @@ func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 					ret := make([]RevokeKeyArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]RevokeKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]RevokeKeyArg)(nil), args)
 						return
 					}
-					err = i.RevokeKey(context.TODO(), (*typedArgs)[0])
+					err = i.RevokeKey(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3987,13 +4237,13 @@ func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 					ret := make([]RevokeDeviceArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]RevokeDeviceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]RevokeDeviceArg)(nil), args)
 						return
 					}
-					err = i.RevokeDevice(context.TODO(), (*typedArgs)[0])
+					err = i.RevokeDevice(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4003,13 +4253,13 @@ func RevokeProtocol(i RevokeInterface) rpc.Protocol {
 					ret := make([]RevokeSigsArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]RevokeSigsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]RevokeSigsArg)(nil), args)
 						return
 					}
-					err = i.RevokeSigs(context.TODO(), (*typedArgs)[0])
+					err = i.RevokeSigs(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4100,13 +4350,13 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 					ret := make([]GetSecretArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetSecretArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetSecretArg)(nil), args)
 						return
 					}
-					ret, err = i.GetSecret(context.TODO(), (*typedArgs)[0])
+					ret, err = i.GetSecret(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4116,13 +4366,13 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 					ret := make([]GetNewPassphraseArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetNewPassphraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetNewPassphraseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetNewPassphrase(context.TODO(), (*typedArgs)[0])
+					ret, err = i.GetNewPassphrase(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4132,13 +4382,13 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 					ret := make([]GetKeybasePassphraseArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetKeybasePassphraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetKeybasePassphraseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetKeybasePassphrase(context.TODO(), (*typedArgs)[0])
+					ret, err = i.GetKeybasePassphrase(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4148,13 +4398,13 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 					ret := make([]GetPaperKeyPassphraseArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]GetPaperKeyPassphraseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]GetPaperKeyPassphraseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetPaperKeyPassphrase(context.TODO(), (*typedArgs)[0])
+					ret, err = i.GetPaperKeyPassphrase(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4216,13 +4466,13 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 					ret := make([]CurrentSessionArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]CurrentSessionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]CurrentSessionArg)(nil), args)
 						return
 					}
-					ret, err = i.CurrentSession(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.CurrentSession(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4232,13 +4482,13 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 					ret := make([]CurrentUIDArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]CurrentUIDArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]CurrentUIDArg)(nil), args)
 						return
 					}
-					ret, err = i.CurrentUID(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.CurrentUID(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4307,13 +4557,13 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 					ret := make([]CheckUsernameAvailableArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]CheckUsernameAvailableArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]CheckUsernameAvailableArg)(nil), args)
 						return
 					}
-					err = i.CheckUsernameAvailable(context.TODO(), (*typedArgs)[0])
+					err = i.CheckUsernameAvailable(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4323,13 +4573,13 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 					ret := make([]SignupArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SignupArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SignupArg)(nil), args)
 						return
 					}
-					ret, err = i.Signup(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Signup(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4339,13 +4589,13 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 					ret := make([]InviteRequestArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]InviteRequestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]InviteRequestArg)(nil), args)
 						return
 					}
-					err = i.InviteRequest(context.TODO(), (*typedArgs)[0])
+					err = i.InviteRequest(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4426,13 +4676,13 @@ func SigsProtocol(i SigsInterface) rpc.Protocol {
 					ret := make([]SigListArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SigListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SigListArg)(nil), args)
 						return
 					}
-					ret, err = i.SigList(context.TODO(), (*typedArgs)[0])
+					ret, err = i.SigList(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4442,13 +4692,13 @@ func SigsProtocol(i SigsInterface) rpc.Protocol {
 					ret := make([]SigListJSONArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SigListJSONArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SigListJSONArg)(nil), args)
 						return
 					}
-					ret, err = i.SigListJSON(context.TODO(), (*typedArgs)[0])
+					ret, err = i.SigListJSON(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4503,13 +4753,13 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 					ret := make([]CloseArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]CloseArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]CloseArg)(nil), args)
 						return
 					}
-					err = i.Close(context.TODO(), (*typedArgs)[0])
+					err = i.Close(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4519,13 +4769,13 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 					ret := make([]ReadArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ReadArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ReadArg)(nil), args)
 						return
 					}
-					ret, err = i.Read(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Read(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4535,13 +4785,13 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 					ret := make([]WriteArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]WriteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]WriteArg)(nil), args)
 						return
 					}
-					ret, err = i.Write(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Write(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4602,13 +4852,13 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 					ret := make([]TestArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]TestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]TestArg)(nil), args)
 						return
 					}
-					ret, err = i.Test(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Test(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4618,13 +4868,13 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 					ret := make([]TestCallbackArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]TestCallbackArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]TestCallbackArg)(nil), args)
 						return
 					}
-					ret, err = i.TestCallback(context.TODO(), (*typedArgs)[0])
+					ret, err = i.TestCallback(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4634,13 +4884,13 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 					ret := make([]PanicArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PanicArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PanicArg)(nil), args)
 						return
 					}
-					err = i.Panic(context.TODO(), (*typedArgs)[0].Message)
+					err = i.Panic(ctx, (*typedArgs)[0].Message)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4702,13 +4952,13 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 					ret := make([]TrackArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]TrackArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]TrackArg)(nil), args)
 						return
 					}
-					err = i.Track(context.TODO(), (*typedArgs)[0])
+					err = i.Track(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4718,13 +4968,13 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 					ret := make([]TrackWithTokenArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]TrackWithTokenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]TrackWithTokenArg)(nil), args)
 						return
 					}
-					err = i.TrackWithToken(context.TODO(), (*typedArgs)[0])
+					err = i.TrackWithToken(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4734,13 +4984,13 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 					ret := make([]UntrackArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]UntrackArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]UntrackArg)(nil), args)
 						return
 					}
-					err = i.Untrack(context.TODO(), (*typedArgs)[0])
+					err = i.Untrack(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4795,13 +5045,13 @@ func UiProtocol(i UiInterface) rpc.Protocol {
 					ret := make([]PromptYesNoArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]PromptYesNoArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]PromptYesNoArg)(nil), args)
 						return
 					}
-					ret, err = i.PromptYesNo(context.TODO(), (*typedArgs)[0])
+					ret, err = i.PromptYesNo(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4945,13 +5195,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]ListTrackersArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ListTrackersArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ListTrackersArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTrackers(context.TODO(), (*typedArgs)[0])
+					ret, err = i.ListTrackers(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4961,13 +5211,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]ListTrackersByNameArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ListTrackersByNameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ListTrackersByNameArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTrackersByName(context.TODO(), (*typedArgs)[0])
+					ret, err = i.ListTrackersByName(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4977,13 +5227,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]ListTrackersSelfArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ListTrackersSelfArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ListTrackersSelfArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTrackersSelf(context.TODO(), (*typedArgs)[0].SessionID)
+					ret, err = i.ListTrackersSelf(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4993,13 +5243,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]LoadUncheckedUserSummariesArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LoadUncheckedUserSummariesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LoadUncheckedUserSummariesArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadUncheckedUserSummaries(context.TODO(), (*typedArgs)[0])
+					ret, err = i.LoadUncheckedUserSummaries(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5009,13 +5259,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]LoadUserArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LoadUserArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LoadUserArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadUser(context.TODO(), (*typedArgs)[0])
+					ret, err = i.LoadUser(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5025,13 +5275,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]LoadUserPlusKeysArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LoadUserPlusKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LoadUserPlusKeysArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadUserPlusKeys(context.TODO(), (*typedArgs)[0])
+					ret, err = i.LoadUserPlusKeys(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5041,13 +5291,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]LoadPublicKeysArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]LoadPublicKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]LoadPublicKeysArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadPublicKeys(context.TODO(), (*typedArgs)[0])
+					ret, err = i.LoadPublicKeys(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5057,13 +5307,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]ListTrackingArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ListTrackingArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ListTrackingArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTracking(context.TODO(), (*typedArgs)[0])
+					ret, err = i.ListTracking(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5073,13 +5323,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]ListTrackingJSONArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]ListTrackingJSONArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]ListTrackingJSONArg)(nil), args)
 						return
 					}
-					ret, err = i.ListTrackingJSON(context.TODO(), (*typedArgs)[0])
+					ret, err = i.ListTrackingJSON(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5089,13 +5339,13 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					ret := make([]SearchArg, 1)
 					return &ret
 				},
-				Handler: func(args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					typedArgs, ok := args.(*[]SearchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[]SearchArg)(nil), args)
 						return
 					}
-					ret, err = i.Search(context.TODO(), (*typedArgs)[0])
+					ret, err = i.Search(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,

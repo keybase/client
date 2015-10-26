@@ -35,23 +35,20 @@ func newFramedMsgpackEncoder(writeCh chan []byte, resultCh chan error) *framedMs
 
 func (e *framedMsgpackEncoder) encodeToBytes(i interface{}) (v []byte, err error) {
 	enc := codec.NewEncoderBytes(&v, e.handle)
-	if err = enc.Encode(i); err != nil {
-		return
-	}
-	return
+	err = enc.Encode(i)
+	return v, err
 }
 
-func (e *framedMsgpackEncoder) encodeFrame(i interface{}) (bytes []byte, err error) {
-	var length, content []byte
-	if content, err = e.encodeToBytes(i); err != nil {
-		return
+func (e *framedMsgpackEncoder) encodeFrame(i interface{}) ([]byte, error) {
+	content, err := e.encodeToBytes(i)
+	if err != nil {
+		return nil, err
 	}
-	l := len(content)
-	if length, err = e.encodeToBytes(l); err != nil {
-		return
+	length, err := e.encodeToBytes(len(content))
+	if err != nil {
+		return nil, err
 	}
-	bytes = append(length, content...)
-	return bytes, nil
+	return append(length, content...), nil
 }
 
 func (e *framedMsgpackEncoder) Encode(i interface{}) error {

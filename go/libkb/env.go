@@ -49,6 +49,8 @@ func (n NullConfiguration) GetRunMode() (RunMode, error)                  { retu
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                   { return false, false }
 func (n NullConfiguration) GetSplitLogOutput() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetLogFile() string                            { return "" }
+func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)      { return 0, false }
+func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)          { return 0, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -89,6 +91,10 @@ func (n NullConfiguration) GetIntAtPath(string) (int, bool) {
 
 func (n NullConfiguration) GetNullAtPath(string) bool {
 	return false
+}
+
+func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
+	return false, false
 }
 
 type TestParameters struct {
@@ -499,6 +505,22 @@ func (e *Env) GetUserCacheMaxAge() time.Duration {
 	)
 }
 
+func (e *Env) GetAPITimeout() time.Duration {
+	return e.GetDuration(HTTPDefaultTimeout,
+		func() (time.Duration, bool) { return e.cmd.GetAPITimeout() },
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_API_TIMEOUT") },
+		func() (time.Duration, bool) { return e.config.GetAPITimeout() },
+	)
+}
+
+func (e *Env) GetScraperTimeout() time.Duration {
+	return e.GetDuration(HTTPDefaultTimeout,
+		func() (time.Duration, bool) { return e.cmd.GetScraperTimeout() },
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_SCRAPER_TIMEOUT") },
+		func() (time.Duration, bool) { return e.config.GetScraperTimeout() },
+	)
+}
+
 func (e *Env) GetProofCacheSize() int {
 	return e.GetInt(ProofCacheSize,
 		e.cmd.GetProofCacheSize,
@@ -662,6 +684,18 @@ func (e *Env) GetLogFile() string {
 	)
 }
 
+func (e *Env) GetStoredSecretAccessGroup() string {
+	var override = e.GetBool(
+		false,
+		func() (bool, bool) { return e.config.GetSecurityAccessGroupOverride() },
+	)
+
+	if override {
+		return ""
+	}
+	return "99229SGT5K.group.keybase"
+}
+
 func (e *Env) GetStoredSecretServiceName() string {
 	var serviceName string
 	switch e.GetRunMode() {
@@ -682,11 +716,12 @@ func (e *Env) GetStoredSecretServiceName() string {
 
 type AppConfig struct {
 	NullConfiguration
-	HomeDir       string
-	RunMode       RunMode
-	Debug         bool
-	LocalRPCDebug string
-	ServerURI     string
+	HomeDir                     string
+	RunMode                     RunMode
+	Debug                       bool
+	LocalRPCDebug               string
+	ServerURI                   string
+	SecurityAccessGroupOverride bool
 }
 
 func (c AppConfig) GetDebug() (bool, bool) {
@@ -707,4 +742,8 @@ func (c AppConfig) GetHome() string {
 
 func (c AppConfig) GetServerURI() string {
 	return c.ServerURI
+}
+
+func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
+	return c.SecurityAccessGroupOverride, c.SecurityAccessGroupOverride
 }

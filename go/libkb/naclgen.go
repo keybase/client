@@ -18,7 +18,6 @@ type NaclKeyGenArg struct {
 	Sibkey      bool
 	ExpireIn    int          // how long it lasts
 	EldestKeyID keybase1.KID // the eldest KID for this epoch
-	LogUI       LogUI
 	Device      *Device
 	RevSig      string // optional reverse sig.  set to nil for autogenerate.
 }
@@ -38,7 +37,7 @@ func (g *NaclKeyGen) Generate() (err error) {
 }
 
 func (g *NaclKeyGen) SaveLKS(lks *LKSec, lctx LoginContext) error {
-	_, err := WriteLksSKBToKeyring(g.pair, lks, g.arg.LogUI, lctx)
+	_, err := WriteLksSKBToKeyring(g.pair, lks, lctx)
 	return err
 }
 

@@ -303,6 +303,9 @@ func (n *nullui) GetLogUI() LogUI {
 func (n *nullui) GetLocksmithUI() LocksmithUI {
 	return nil
 }
+func (n *nullui) GetProvisionUI() ProvisionUI {
+	return nil
+}
 func (n *nullui) Prompt(string, bool, Checker) (string, error) {
 	return "", nil
 }

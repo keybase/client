@@ -41,6 +41,7 @@ build-stamp: \
 	json/pgp.json \
 	json/prove.json \
 	json/prove_ui.json \
+	json/provision_ui.json \
 	json/quota.json \
 	json/revoke.json \
 	json/secret_ui.json \

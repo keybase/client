@@ -170,7 +170,7 @@ func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.Proo
 	return rfound, keybase1.ProofStatus(rstatus), rerr
 }
 
-func PostDeviceLKS(lctx LoginContext, deviceID keybase1.DeviceID, deviceType string, serverHalf []byte,
+func PostDeviceLKS(sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf []byte,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
 	if len(serverHalf) == 0 {
@@ -191,9 +191,7 @@ func PostDeviceLKS(lctx LoginContext, deviceID keybase1.DeviceID, deviceType str
 			"lks_client_half": S{Val: clientHalfRecovery},
 			"kid":             S{Val: clientHalfRecoveryKID.String()},
 		},
-	}
-	if lctx != nil {
-		arg.SessionR = lctx.LocalSession()
+		SessionR: sr,
 	}
 	_, err := G.API.Post(arg)
 	return err

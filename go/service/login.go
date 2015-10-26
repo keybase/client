@@ -137,6 +137,15 @@ func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 	return engine.RunEngine(eng, ctx)
 }
 
+func (h *LoginHandler) XLogin(_ context.Context, arg keybase1.XLoginArg) error {
+	ctx := &engine.Context{
+		LogUI:       h.getLogUI(arg.SessionID),
+		ProvisionUI: h.getProvisionUI(arg.SessionID),
+	}
+	eng := engine.NewXLogin(h.G(), arg.DeviceType, arg.Username)
+	return engine.RunEngine(eng, ctx)
+}
+
 type RemoteLocksmithUI struct {
 	sessionID int
 	uicli     keybase1.LocksmithUiClient

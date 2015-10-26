@@ -264,7 +264,11 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	}
 
 	// send it to api server
-	e.pushErr = libkb.PostDeviceLKS(ctx.LoginContext, e.args.DeviceID, libkb.DeviceTypeDesktop, serverHalf, e.args.Lks.Generation(), chr, chrk)
+	var sr libkb.SessionReader
+	if ctx.LoginContext != nil {
+		sr = ctx.LoginContext.LocalSession()
+	}
+	e.pushErr = libkb.PostDeviceLKS(sr, e.args.DeviceID, libkb.DeviceTypeDesktop, serverHalf, e.args.Lks.Generation(), chr, chrk)
 	if e.pushErr != nil {
 		return
 	}
@@ -284,7 +288,6 @@ func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire 
 		Device:    e.device(),
 		Me:        e.args.Me,
 		ExpireIn:  expire,
-		LogUI:     ctx.LogUI,
 	}
 }
 

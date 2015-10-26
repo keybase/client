@@ -2,12 +2,12 @@ package libkb
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 type ConfigGetter func() string
@@ -164,24 +164,50 @@ func (w Win32) Home(emptyOk bool) string {
 		ret = w.getHome()
 	}
 	if len(ret) == 0 && !emptyOk {
+		ret, _ = AppDataDir()
+		if len(ret) == 0 {
+			G.Log.Info("APPDATA environment variable not found")
+		}
+
+	}
+	if len(ret) == 0 && !emptyOk {
 		tmp := os.Getenv("TEMP")
 		if len(tmp) == 0 {
-			log.Fatalf("No 'TEMP' environment variable found")
+			G.Log.Info("No 'TEMP' environment variable found")
+			tmp = os.Getenv("TMP")
+			if len(tmp) == 0 {
+				G.Log.Fatalf("No 'TMP' environment variable found")
+			}
 		}
 		v := w.Split(tmp)
 		if len(v) < 2 {
-			log.Fatalf("Bad 'TEMP' variable found, no directory separators!")
+			G.Log.Fatalf("Bad 'TEMP' variable found, no directory separators!")
 		}
 		last := strings.ToLower(v[len(v)-1])
 		rest := v[0 : len(v)-1]
 		if last != "temp" && last != "tmp" {
-			log.Fatalf("TEMP directory didn't end in \\Temp")
+			G.Log.Fatalf("TEMP directory didn't end in \\Temp")
 		}
 		if strings.ToLower(rest[len(rest)-1]) == "local" {
 			rest[len(rest)-1] = "Roaming"
 		}
 		ret = w.Unsplit(rest)
 	}
+
+	packageName := "Keybase"
+
+	if w.getRunMode() == DevelRunMode || w.getRunMode() == StagingRunMode {
+		runModeName := string(w.getRunMode())
+		if runModeName != "" {
+			// Capitalize the first letter
+			r, n := utf8.DecodeRuneInString(runModeName)
+			runModeName = string(unicode.ToUpper(r)) + runModeName[n:]
+			packageName = packageName + runModeName
+		}
+	}
+
+	ret = filepath.Join(ret, packageName)
+
 	return ret
 }
 

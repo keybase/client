@@ -36,7 +36,8 @@ export default class Welcome extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => state.login2,
+        hideNavBar: true
       },
       subRoutes: {
         'login': Login,

@@ -435,6 +435,12 @@ func (f JSONConfigFile) getCacheSize(w string) (int, bool) {
 func (f JSONConfigFile) GetUserCacheMaxAge() (time.Duration, bool) {
 	return f.GetDurationAtPath("cache.maxage.users")
 }
+func (f JSONConfigFile) GetAPITimeout() (time.Duration, bool) {
+	return f.GetDurationAtPath("timeouts.api")
+}
+func (f JSONConfigFile) GetScraperTimeout() (time.Duration, bool) {
+	return f.GetDurationAtPath("timeouts.scraper")
+}
 func (f JSONConfigFile) GetProofCacheSize() (int, bool) {
 	return f.getCacheSize("cache.limits.proofs")
 }
@@ -528,4 +534,8 @@ func (f JSONConfigFile) GetLogFile() string {
 }
 func (f JSONConfigFile) GetSplitLogOutput() (bool, bool) {
 	return f.GetTopLevelBool("split_log_output")
+}
+
+func (f JSONConfigFile) GetSecurityAccessGroupOverride() (bool, bool) {
+	return false, false
 }

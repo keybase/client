@@ -14,22 +14,21 @@ import (
 // Kex2Provisioner is an engine.
 type Kex2Provisioner struct {
 	libkb.Contextified
-	deviceID   keybase1.DeviceID
 	secret     kex2.Secret
 	secretCh   chan kex2.Secret
 	me         *libkb.User
 	signingKey libkb.GenericKey
 	pps        *libkb.PassphraseStream
+	ctx        *Context
 }
 
 // Kex2Provisioner implements kex2.Provisioner interface.
 var _ kex2.Provisioner = (*Kex2Provisioner)(nil)
 
 // NewKex2Provisioner creates a Kex2Provisioner engine.
-func NewKex2Provisioner(g *libkb.GlobalContext, deviceID keybase1.DeviceID, secret kex2.Secret) *Kex2Provisioner {
+func NewKex2Provisioner(g *libkb.GlobalContext, secret kex2.Secret) *Kex2Provisioner {
 	return &Kex2Provisioner{
 		Contextified: libkb.NewContextified(g),
-		deviceID:     deviceID,
 		secret:       secret,
 		secretCh:     make(chan kex2.Secret),
 	}
@@ -49,6 +48,7 @@ func (e *Kex2Provisioner) Prereqs() Prereqs {
 func (e *Kex2Provisioner) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.SecretUIKind,
+		libkb.ProvisionUIKind,
 	}
 }
 
@@ -86,11 +86,16 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 		return err
 	}
 
+	// ctx needed by some kex2 functions
+	e.ctx = ctx
+
+	deviceID := e.G().Env.GetDeviceID()
+
 	// all set:  start provisioner
 	karg := kex2.KexBaseArg{
 		Ctx:           context.TODO(),
 		Mr:            libkb.NewKexRouter(e.G()),
-		DeviceID:      e.deviceID,
+		DeviceID:      deviceID,
 		Secret:        e.secret,
 		SecretChannel: e.secretCh,
 		Timeout:       5 * time.Minute,
@@ -100,6 +105,10 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 		Provisioner: e,
 	}
 	err = kex2.RunProvisioner(parg)
+
+	if err == nil {
+		ctx.ProvisionUI.ProvisionSuccess(context.TODO(), 0)
+	}
 
 	return err
 }
@@ -119,6 +128,8 @@ func (e *Kex2Provisioner) GetLogFactory() rpc.LogFactory {
 func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 	e.G().Log.Debug("+ GetHelloArg()")
 	defer func() { e.G().Log.Debug("- GetHelloArg() -> %s", libkb.ErrToOk(err)) }()
+
+	e.ctx.ProvisionUI.DisplaySecretExchanged(context.TODO(), 0)
 
 	// get a session token that device Y can use
 	token, csrf, err := e.sessionForY()

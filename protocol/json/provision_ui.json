@@ -1,0 +1,241 @@
+{
+  "protocol" : "provisionUi",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Time",
+    "fields" : [ ],
+    "typedef" : "long"
+  }, {
+    "type" : "record",
+    "name" : "StringKVPair",
+    "fields" : [ {
+      "name" : "key",
+      "type" : "string"
+    }, {
+      "name" : "value",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Status",
+    "fields" : [ {
+      "name" : "code",
+      "type" : "int"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "fields",
+      "type" : {
+        "type" : "array",
+        "items" : "StringKVPair"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "DeviceID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "SigID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "KID",
+    "fields" : [ ],
+    "typedef" : "string"
+  }, {
+    "type" : "record",
+    "name" : "Text",
+    "fields" : [ {
+      "name" : "data",
+      "type" : "string"
+    }, {
+      "name" : "markup",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PGPIdentity",
+    "fields" : [ {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "comment",
+      "type" : "string"
+    }, {
+      "name" : "email",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PublicKey",
+    "fields" : [ {
+      "name" : "KID",
+      "type" : "KID"
+    }, {
+      "name" : "PGPFingerprint",
+      "type" : "string"
+    }, {
+      "name" : "PGPIdentities",
+      "type" : {
+        "type" : "array",
+        "items" : "PGPIdentity"
+      }
+    }, {
+      "name" : "isSibkey",
+      "type" : "boolean"
+    }, {
+      "name" : "isEldest",
+      "type" : "boolean"
+    }, {
+      "name" : "parentID",
+      "type" : "string"
+    }, {
+      "name" : "deviceID",
+      "type" : "DeviceID"
+    }, {
+      "name" : "deviceDescription",
+      "type" : "string"
+    }, {
+      "name" : "deviceType",
+      "type" : "string"
+    }, {
+      "name" : "cTime",
+      "type" : "Time"
+    }, {
+      "name" : "eTime",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "User",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Device",
+    "fields" : [ {
+      "name" : "type",
+      "type" : "string"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "deviceID",
+      "type" : "DeviceID"
+    }, {
+      "name" : "cTime",
+      "type" : "Time"
+    }, {
+      "name" : "mTime",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Stream",
+    "fields" : [ {
+      "name" : "fd",
+      "type" : "int"
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "LogLevel",
+    "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
+  }, {
+    "type" : "enum",
+    "name" : "ProvisionMethod",
+    "symbols" : [ "DEVICE_0", "GPG_1", "PAPER_KEY_2", "PASSPHRASE_3" ]
+  }, {
+    "type" : "enum",
+    "name" : "DeviceType",
+    "symbols" : [ "DESKTOP_0", "MOBILE_1" ]
+  } ],
+  "messages" : {
+    "chooseProvisioningMethod" : {
+      "doc" : "Called during device provisioning for the user to select a\n    method for provisioning.  gpgUsers will contain a list of\n    locally available gpg private keys.  If it is empty, then\n    gpg is not a valid option.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "gpgUsers",
+        "type" : {
+          "type" : "array",
+          "items" : "string"
+        }
+      } ],
+      "response" : "ProvisionMethod"
+    },
+    "chooseDeviceType" : {
+      "doc" : "If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "DeviceType"
+    },
+    "DisplayAndPromptSecret" : {
+      "doc" : "DisplayAndPromptSecret displays a secret that the user can enter into the other device.\n   It also can return a secret that the user enters into this device (from the other device). \n   If it does not return a secret, it will be canceled when this device receives the secret via kex2.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "secret",
+        "type" : "bytes"
+      }, {
+        "name" : "phrase",
+        "type" : "string"
+      }, {
+        "name" : "otherDeviceType",
+        "type" : "DeviceType"
+      } ],
+      "response" : "bytes"
+    },
+    "DisplaySecretExchanged" : {
+      "doc" : "DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two\n   devices.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "null"
+    },
+    "PromptNewDeviceName" : {
+      "doc" : "PromptNewDeviceName is called when the device provisioning process needs a name for the new device.\n   To help the clients not send a duplicate name, existingDevices is populated with the current device\n   names for the user.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "existingDevices",
+        "type" : {
+          "type" : "array",
+          "items" : "string"
+        }
+      } ],
+      "response" : "string"
+    },
+    "ProvisionSuccess" : {
+      "doc" : "ProvisionSuccess is called after device provisioning runs successfully.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "null"
+    }
+  }
+}

@@ -32,4 +32,8 @@ const (
 	PromptDescriptorSignupReenterPassphrase
 	PromptDescriptorSignupDevice
 	PromptDescriptorSignupCode
+	PromptDescriptorChooseProvisioningMethod
+	PromptDescriptorChooseDeviceType
+	PromptDescriptorProvisionPhrase
+	PromptDescriptorProvisionDeviceName
 )

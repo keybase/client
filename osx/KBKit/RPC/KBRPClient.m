@@ -205,7 +205,7 @@
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params sessionId:(NSNumber *)sessionId completion:(MPRequestCompletion)completion {
-  [self sendRequestWithMethod:method params:params sessionId:sessionId completion:completion];
+  [self sendRequestWithMethod:method params:params messageId:sessionId completion:completion];
 }
 
 - (void)sendRequestWithMethod:(NSString *)method params:(NSDictionary *)params messageId:(NSNumber *)messageId completion:(MPRequestCompletion)completion {

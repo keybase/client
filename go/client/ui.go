@@ -405,6 +405,10 @@ func (ui *UI) GetDoctorUI() libkb.DoctorUI {
 	return DoctorUI{parent: ui}
 }
 
+func (ui *UI) GetProvisionUI() libkb.ProvisionUI {
+	return ProvisionUI{parent: ui}
+}
+
 //============================================================
 
 type ProveUI struct {

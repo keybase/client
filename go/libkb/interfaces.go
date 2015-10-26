@@ -52,6 +52,9 @@ type CommandLine interface {
 	GetLogFile() string
 	GetRunMode() (RunMode, error)
 
+	GetScraperTimeout() (time.Duration, bool)
+	GetAPITimeout() (time.Duration, bool)
+
 	// Lower-level functions
 	GetGString(string) string
 	GetString(string) string
@@ -122,6 +125,9 @@ type ConfigReader interface {
 	GetSplitLogOutput() (bool, bool)
 	GetLogFile() string
 	GetRunMode() (RunMode, error)
+	GetScraperTimeout() (time.Duration, bool)
+	GetAPITimeout() (time.Duration, bool)
+	GetSecurityAccessGroupOverride() (bool, bool)
 }
 
 type ConfigWriter interface {
@@ -284,6 +290,10 @@ type DoctorUI interface {
 	DisplayResult(ctx context.Context, msg string) error
 }
 
+type ProvisionUI interface {
+	keybase1.ProvisionUiInterface
+}
+
 type PromptDefault int
 
 const (
@@ -314,6 +324,7 @@ type UI interface {
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
 	GetLocksmithUI() LocksmithUI
+	GetProvisionUI() ProvisionUI
 	Configure() error
 	Shutdown() error
 }

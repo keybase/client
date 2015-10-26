@@ -5,3 +5,13 @@
 * **osx**: The Mac OS X Keybase.app. [Learn More](osx/README.md)
 * **ios**: The iOS Keybase.app. [Learn More](ios/README.md)
 * **media**: Icons, graphics, media for Keybase apps.
+
+### Problems?
+
+Report any issues with client software on this GitHub [issue tracker](https://github.com/keybase/client/issues).
+Internally, we track our progress using Jira, but all PRs come through GitHub for your review!
+
+If you're having problem with our Website, try the
+[keybase-issues](https://github.com/keybase/keybase-issues) issue tracker.
+
+We check and update both frequently.
