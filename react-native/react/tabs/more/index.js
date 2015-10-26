@@ -1,84 +1,49 @@
 'use strict'
 
-import React, { Component, ListView, StyleSheet, View, Text } from 'react-native'
-import commonStyles from '../../styles/common'
-import Button from '../../common-adapters/button'
-import { logout } from '../../actions/login2'
-import { pushNewSearch } from '../../actions/search'
+import React, { Component, StyleSheet, View } from 'react-native'
 import { navigateTo } from '../../actions/router'
-import { pushNewProfile } from '../../actions/profile'
+import MenuList from './menu-list'
 
 export default class More extends Component {
-  constructor (props) {
-    super(props)
-  }
-
-  componentWillMount () {
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
-
-    this.state = {
-      dataSource: ds.cloneWithRows([
-        {name: 'Login', onClick: () => {
-          this.props.navigateTo(['login', 'loginform'])
-        }},
-        {name: 'Login2', onClick: () => {
-          this.props.navigateTo(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}])
-        }},
-        {name: 'Register', onClick: () => {
-          this.props.navigateTo(['login2', {path: 'register', upLink: ['']}])
-        }},
-        {name: 'reset', onClick: () => {
-          require('../../engine').reset()
-          console.log('Engine reset!')
-        }},
-        {name: 'Sign Out', onClick: () => {
-          this.props.logout()
-        }},
-        {name: 'About', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['about'])
-        }},
-        {name: 'Developer', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['developer'])
-        }},
-        {name: 'Nav debug', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['navDebug'])
-        }},
-        {name: 'Bridging', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['bridging'])
-        }},
-        {name: 'Search', hasChildren: true, onClick: () => {
-          this.props.pushNewSearch()
-        }},
-        {name: 'Profile', hasChildren: true, onClick: () => {
-          this.props.pushNewProfile('test12')
-        }}
-      ])
-    }
-  }
-
-  renderRow (rowData, sectionID, rowID) {
-    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
-
-    return (
-      <Button onPress={rowData.onClick}>
-        <View>
-          <View style={{margin: 10, flexDirection: 'row', flex: 1, justifyContent: 'space-between'}}>
-            <Text>{rowData.name}</Text>
-            <Text>{rowData.hasChildren ? '>' : ''}</Text>
-          </View>
-          {sep}
-        </View>
-      </Button>
-    )
-  }
-
   render () {
+    // TODO: actually get this data
+    const dummyInvitationCount = 3
+    const menuItems = [
+      {name: 'Account', hasChildren: true, onClick: () => {
+        this.props.navigateTo(['account'])
+      }},
+      {name: 'Billing Settings', hasChildren: true, onClick: () => {
+        this.props.navigateTo(['billing'])
+      }},
+      {name: 'App Preferences', hasChildren: true, onClick: () => {
+        this.props.navigateTo(['app-prefs'])
+      }},
+      {name: `Invitations (${dummyInvitationCount})`, hasChildren: true, onClick: () => {
+        this.props.navigateTo(['invites'])
+      }},
+      {name: 'Notifications', hasChildren: true, onClick: () => {
+        this.props.navigateTo(['notifs'])
+      }},
+      {name: 'Delete me', hasChildren: true, onClick: () => {
+        this.props.navigateTo(['delete-me'])
+      }},
+
+      {name: 'About', hasChildren: true, onClick: () => {
+        this.props.navigateTo(['about'])
+      }}
+    ]
+
+    if (__DEV__) { // eslint-disable-line no-undef
+      menuItems.push({
+        name: 'Dev Menu',
+        hasChildren: true,
+        onClick: () => this.props.navigateTo(['devMenu'])
+      })
+    }
+
     return (
       <View style={styles.container}>
-        <ListView
-        dataSource={this.state.dataSource}
-        renderRow={(...args) => { return this.renderRow(...args) }}
-        />
+        <MenuList menuItems={menuItems} />
       </View>
     )
   }
@@ -89,36 +54,29 @@ export default class More extends Component {
         title: 'More',
         mapStateToProps: state => { return {} },
         props: {
-          navigateTo: uri => store.dispatch(navigateTo(uri)),
-          logout: () => store.dispatch(logout()),
-          pushNewSearch: () => store.dispatch(pushNewSearch()),
-          pushNewProfile: username => store.dispatch(pushNewProfile(username))
+          navigateTo: uri => store.dispatch(navigateTo(uri))
         }
       },
       subRoutes: {
         about: require('./about'),
-        developer: require('./developer'),
-        navDebug: require('../../debug/nav-debug'),
-        bridging: require('../../debug/bridging-tabs'),
-        login: require('../../login'),
-        login2: require('../../login2')
+        account: require('./about'),
+        billing: require('./about'),
+        'app-prefs': require('./about'),
+        invites: require('./about'),
+        notifs: require('./about'),
+        'delete-me': require('./about'),
+        devMenu: require('./dev-menu')
       }
     }
   }
 }
 
 More.propTypes = {
-  navigateTo: React.PropTypes.func.isRequired,
-  logout: React.PropTypes.func.isRequired,
-  pushNewSearch: React.PropTypes.func.isRequired,
-  pushNewProfile: React.PropTypes.func.isRequired
+  navigateTo: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'stretch',
-    backgroundColor: '#F5FCFF'
+    flex: 1
   }
 })
