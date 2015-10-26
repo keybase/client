@@ -80,8 +80,7 @@ func TestKex2Router(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		var merr error
-		// Very large timeout, for the benefit of CI, which maybe be
-		// slow
+		// Very large timeout, for the benefit of CI, which may be slow
 		msgs, merr = kt.get(mr, 3, 10*time.Second)
 		if merr != nil {
 			t.Errorf("receive error: %s", merr)
