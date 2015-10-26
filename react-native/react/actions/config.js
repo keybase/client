@@ -13,7 +13,7 @@ export function startup () {
     const getConfig = new Promise((resolve, reject) => {
       engine.rpc('config.getConfig', {}, {}, (error, config) => {
         if (error) {
-          throw new Error(error)
+          reject(new Error(error))
         }
 
         resolve(config)
@@ -23,7 +23,7 @@ export function startup () {
     const getStatus = new Promise((resolve, reject) => {
       engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
         if (error) {
-          throw new Error(error)
+          reject(new Error(error))
         }
 
         resolve(status)
@@ -33,7 +33,7 @@ export function startup () {
     const getConfiguredAccounts = new Promise((resolve, reject) => {
       engine.rpc('login.getConfiguredAccounts', {}, {}, (error, configuredAccounts) => {
         if (error) {
-          throw new Error(error)
+          reject(new Error(error))
         }
 
         resolve(configuredAccounts)

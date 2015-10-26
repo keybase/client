@@ -9,7 +9,7 @@ export default class GenPaperKey extends Component {
   constructor (props) {
     super(props)
 
-    this.props.dispatch(generatePaperKey())
+    this.props.generatePaperKey()
   }
 
   render () {
@@ -29,14 +29,23 @@ export default class GenPaperKey extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.devices
+        mapStateToProps: state => {
+          const { paperKey } = state.devices
+
+          return {
+            paperKey
+          }
+        },
+        props: {
+          generatePaperKey: () => store.dispatch(generatePaperKey())
+        }
       }
     }
   }
 }
 
 GenPaperKey.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
+  generatePaperKey: React.PropTypes.func.isRequired,
   paperKey: React.PropTypes.string
 }
 

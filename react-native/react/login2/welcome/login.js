@@ -19,7 +19,7 @@ export default class Login extends Component {
   }
 
   submitLogin () {
-    this.props.dispatch(login(this.state.username, this.state.passphrase))
+    this.props.login(this.state.username, this.state.passphrase)
   }
 
   render () {
@@ -49,7 +49,7 @@ export default class Login extends Component {
           clearButtonMode='while-editing'
           secureTextEntry
         />
-        <Text style={{alignSelf: 'flex-end', marginTop: 20, padding: 10}} onPress={() => { this.props.dispatch(routeAppend('forgotUserPass')) }}>Forgot username/passphrase?</Text>
+        <Text style={{alignSelf: 'flex-end', marginTop: 20, padding: 10}} onPress={() => this.props.showForgotUserPassPage()}>Forgot username/passphrase?</Text>
         <Button
           style={{alignSelf: 'flex-end', marginTop: 20}}
           onPress={() => { this.submitLogin() }}
@@ -63,7 +63,14 @@ export default class Login extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => {
+          const { username, passphrase } = state.login2
+          return { username, passphrase }
+        },
+        props: {
+          showForgotUserPassPage: () => store.dispatch(routeAppend('forgotUserPass')),
+          login: (username, passphrase) => store.dispatch(login(username, passphrase))
+        }
       },
       subRoutes: {
         forgotUserPass: ForgotUserPass
@@ -73,7 +80,8 @@ export default class Login extends Component {
 }
 
 Login.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
+  showForgotUserPassPage: React.PropTypes.func.isRequired,
+  login: React.PropTypes.func.isRequired,
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string
 }

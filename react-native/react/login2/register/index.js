@@ -13,9 +13,9 @@ export default class Register extends Component {
     return (
       <View style={styles.container}>
         <Text>Register</Text>
-        <Text onPress={() => { this.props.dispatch(routeAppend('regExistingDevice')) }}>Use an existing device</Text>
-        <Text onPress={() => { this.props.dispatch(routeAppend('regPaperKey')) }}>Use a paper key</Text>
-        <Text onPress={() => { this.props.dispatch(routeAppend('regUserPass')) }}>Use my keybase passphrase</Text>
+        <Text onPress={() => { this.props.gotoExistingDevicePage() }}>Use an existing device</Text>
+        <Text onPress={() => { this.props.gotoPaperKeyPage() }}>Use a paper key</Text>
+        <Text onPress={() => { this.props.gotoUserPassPage() }}>Use my keybase passphrase</Text>
       </View>
     )
   }
@@ -23,7 +23,12 @@ export default class Register extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => state.login2
+        mapStateToProps: state => { return {} },
+        props: {
+          gotoExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
+          gotoPaperKeyPage: () => store.dispatch(routeAppend('regPaperKey')),
+          gotoUserPassPage: () => store.dispatch(routeAppend('regUserPass'))
+        }
       },
       subRoutes: {
         regPaperKey: PaperKey,
@@ -36,7 +41,9 @@ export default class Register extends Component {
 }
 
 Register.propTypes = {
-  dispatch: React.PropTypes.func.isRequired
+  gotoExistingDevicePage: React.PropTypes.func.isRequired,
+  gotoPaperKeyPage: React.PropTypes.func.isRequired,
+  gotoUserPassPage: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

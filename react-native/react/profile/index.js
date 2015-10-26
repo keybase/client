@@ -11,7 +11,7 @@ import {
   View
 } from 'react-native'
 
-class Profile extends Component {
+export default class Profile extends Component {
   render () {
     return (
       <ScrollView style={styles.container}>
@@ -27,10 +27,6 @@ class Profile extends Component {
         </View>
       </ScrollView>
     )
-  }
-
-  static canParseNextRoute (currentPath) {
-    return currentPath.get('path') === 'profile'
   }
 
   static parseRoute (store, currentPath, nextPath) {
@@ -73,5 +69,3 @@ const styles = StyleSheet.create({
     marginTop: 10
   }
 })
-
-export default Profile
