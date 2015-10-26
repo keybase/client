@@ -1779,18 +1779,6 @@
   }];
 }
 
-- (void)currentUID:(void (^)(NSError *error, NSString *uID))completion {
-  NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.session.currentUID" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
-    completion(error, result);
-  }];
-}
-
 @end
 
 @implementation KBRSignupRequest
@@ -4172,22 +4160,6 @@
 
 + (instancetype)params {
   KBRCurrentSessionRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRCurrentUIDRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRCurrentUIDRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
