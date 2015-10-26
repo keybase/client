@@ -91,8 +91,7 @@ export default class Nav extends Component {
             navBarHeight: 0,
             Navigator: AndroidNavigator,
             NavBar: <View/>
-          })
-        )
+          }))
         }
       </View>
     )
