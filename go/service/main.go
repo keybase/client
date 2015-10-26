@@ -1,9 +1,7 @@
 package service
 
 import (
-	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"os"
 	"path"
@@ -109,7 +107,7 @@ func (d *Service) Run() (err error) {
 
 	d.G().Service = true
 
-	err = d.writeVersionFile()
+	err = d.writeServiceInfo()
 	if err != nil {
 		return
 	}
@@ -158,19 +156,22 @@ func (d *Service) StartLoopbackServer() error {
 	return nil
 }
 
+func (d *Service) ensureRuntimeDir() (string, error) {
+	runtimeDir := d.G().Env.GetRuntimeDir()
+	return runtimeDir, os.MkdirAll(runtimeDir, libkb.PermDir)
+}
+
 // If the daemon is already running, we need to be able to check what version
 // it is, in case the client has been updated.
-func (d *Service) writeVersionFile() error {
-	// 0700 as per the XDG standard
-	// TODO: It shouldn't be the responsibility of all callers to remember to
-	// create these directories. They should be created transparently when
-	// anything retrieves them.
-	if err := os.MkdirAll(d.G().Env.GetRuntimeDir(), 0700); err != nil {
+func (d *Service) writeServiceInfo() error {
+	runtimeDir, err := d.ensureRuntimeDir()
+	if err != nil {
 		return err
 	}
-	versionFilePath := path.Join(d.G().Env.GetRuntimeDir(), "service.version")
-	version := fmt.Sprintf("%s-%s", libkb.Version, libkb.Build)
-	return ioutil.WriteFile(versionFilePath, []byte(version), 0644)
+
+	// Write runtime info file
+	rtInfo := libkb.KeybaseServiceInfo()
+	return rtInfo.WriteFile(path.Join(runtimeDir, "keybased.info"))
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and
@@ -184,7 +185,7 @@ func (d *Service) ReleaseLock() error {
 // keybase and continues to hold the lock. The caller is then required to
 // manually release this lock via ReleaseLock()
 func (d *Service) GetExclusiveLockWithoutAutoUnlock() error {
-	if err := os.MkdirAll(d.G().Env.GetRuntimeDir(), libkb.PermDir); err != nil {
+	if _, err := d.ensureRuntimeDir(); err != nil {
 		return err
 	}
 	if err := d.lockPIDFile(); err != nil {

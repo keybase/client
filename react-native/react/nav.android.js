@@ -82,14 +82,14 @@ export default class Nav extends Component {
     return (
       <View style={styles.tabContent} collapsable={false}>
         {React.createElement(
-          connect(state => state.tabbedRouter.getIn(['tabs', activeTab]).toObject()(MetaNavigator), {
-            store: this.props.store,
+          connect(state => state.tabbedRouter.getIn(['tabs', activeTab]).toObject())(MetaNavigator),
+          { store: this.props.store,
             rootComponent: tabToRootComponent[activeTab] || NoTab,
             globalRoutes,
             navBarHeight: 0,
             Navigator: AndroidNavigator,
             NavBar: <View/>
-          }))
+          })
         }
       </View>
     )
