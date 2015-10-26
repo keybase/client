@@ -1,4 +1,4 @@
-package base58
+package basex
 
 import (
 	"encoding/base64"
@@ -7,9 +7,9 @@ import (
 
 func decode(strict bool, dst, src []byte) (int, error) {
 	if strict {
-		return StdEncoding.DecodeStrict(dst, src)
+		return Base58StdEncoding.DecodeStrict(dst, src)
 	}
-	return StdEncoding.Decode(dst, src)
+	return Base58StdEncoding.Decode(dst, src)
 }
 
 func testTestVector(t *testing.T, name string, val string, strict bool, swizzler func([]byte) []byte) {
@@ -17,13 +17,13 @@ func testTestVector(t *testing.T, name string, val string, strict bool, swizzler
 	if err != nil {
 		t.Fatalf("%s: %s", name, err)
 	}
-	b58 := make([]byte, StdEncoding.EncodedLen(len(raw)))
-	StdEncoding.Encode(b58, raw)
+	b58 := make([]byte, Base58StdEncoding.EncodedLen(len(raw)))
+	Base58StdEncoding.Encode(b58, raw)
 
 	// Potentially add spaces or random control characters or whatever else..
 	b58 = swizzler(b58)
 
-	reenc := make([]byte, StdEncoding.DecodedLen(len(b58)))
+	reenc := make([]byte, Base58StdEncoding.DecodedLen(len(b58)))
 	n, err := decode(strict, reenc, b58)
 	if err != nil {
 		t.Fatalf("%s: %s", name, err)
@@ -58,8 +58,8 @@ func TestVectorsSpacer(t *testing.T) {
 }
 
 func testDecodeVector(t *testing.T, orig string, encoding string) {
-	dec := make([]byte, StdEncoding.DecodedLen(len(encoding)))
-	n, err := StdEncoding.Decode(dec, []byte(encoding))
+	dec := make([]byte, Base58StdEncoding.DecodedLen(len(encoding)))
+	n, err := Base58StdEncoding.Decode(dec, []byte(encoding))
 	if err != nil {
 		t.Fatalf("%s: %s", orig, err)
 	}
@@ -86,7 +86,7 @@ func TestBadEncodings(t *testing.T) {
 	}
 	var buf [100]byte
 	for _, b := range badEncodings {
-		n, err := StdEncoding.Decode(buf[:], []byte(b))
+		n, err := Base58StdEncoding.Decode(buf[:], []byte(b))
 		if err == nil {
 			t.Errorf("Should have failed to decode '%s' (got %v)", b, buf[0:n])
 		}

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package base58
+package basex
 
 import (
 	"bytes"
@@ -56,7 +56,7 @@ func stdRef(ref string) string {
 }
 
 var encodingTests = []encodingTest{
-	encodingTest{StdEncoding, stdRef},
+	encodingTest{Base58StdEncoding, stdRef},
 }
 
 var bigtest = testpair{
@@ -85,7 +85,7 @@ func TestEncode(t *testing.T) {
 func TestEncoder(t *testing.T) {
 	for _, p := range pairs {
 		bb := &bytes.Buffer{}
-		encoder := NewEncoder(StdEncoding, bb)
+		encoder := NewEncoder(Base58StdEncoding, bb)
 		encoder.Write([]byte(p.decoded))
 		encoder.Close()
 		testEqual(t, "Encode(%q) = %q, want %q", p.decoded, bb.String(), p.encoded)
@@ -96,7 +96,7 @@ func TestEncoderBuffering(t *testing.T) {
 	input := []byte(bigtest.decoded)
 	for bs := 1; bs <= 12; bs++ {
 		bb := &bytes.Buffer{}
-		encoder := NewEncoder(StdEncoding, bb)
+		encoder := NewEncoder(Base58StdEncoding, bb)
 		for pos := 0; pos < len(input); pos += bs {
 			end := pos + bs
 			if end > len(input) {
@@ -131,8 +131,8 @@ func TestDecode(t *testing.T) {
 
 func TestDecoder(t *testing.T) {
 	for _, p := range pairs {
-		decoder := NewDecoder(StdEncoding, strings.NewReader(p.encoded))
-		dbuf := make([]byte, StdEncoding.DecodedLen(len(p.encoded)))
+		decoder := NewDecoder(Base58StdEncoding, strings.NewReader(p.encoded))
+		dbuf := make([]byte, Base58StdEncoding.DecodedLen(len(p.encoded)))
 		count, err := decoder.Read(dbuf)
 		if err != nil && err != io.EOF {
 			t.Fatal("Read failed", err)
@@ -148,7 +148,7 @@ func TestDecoder(t *testing.T) {
 
 func TestDecoderBuffering(t *testing.T) {
 	for bs := 1; bs <= 12; bs++ {
-		decoder := NewDecoder(StdEncoding, strings.NewReader(bigtest.encoded))
+		decoder := NewDecoder(Base58StdEncoding, strings.NewReader(bigtest.encoded))
 		buf := make([]byte, len(bigtest.decoded)+12)
 		var total int
 		for total = 0; total < len(bigtest.decoded); {
@@ -163,12 +163,12 @@ func TestDecoderBuffering(t *testing.T) {
 func TestBig(t *testing.T) {
 	n := 3*1000 + 1
 	raw := make([]byte, n)
-	alpha := encodeStd
-	for i := 0; i < n || !StdEncoding.IsValidEncodingLength(i); i++ {
+	alpha := base58EncodeStd
+	for i := 0; i < n || !Base58StdEncoding.IsValidEncodingLength(i); i++ {
 		raw[i] = alpha[i%len(alpha)]
 	}
 	encoded := new(bytes.Buffer)
-	w := NewEncoder(StdEncoding, encoded)
+	w := NewEncoder(Base58StdEncoding, encoded)
 	nn, err := w.Write(raw)
 	if nn != n || err != nil {
 		t.Fatalf("Encoder.Write(raw) = %d, %v want %d, nil", nn, err, n)
@@ -177,7 +177,7 @@ func TestBig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Encoder.Close() = %v want nil", err)
 	}
-	decoded, err := ioutil.ReadAll(NewDecoder(StdEncoding, encoded))
+	decoded, err := ioutil.ReadAll(NewDecoder(Base58StdEncoding, encoded))
 	if err != nil {
 		t.Fatalf("ioutil.ReadAll(NewDecoder(...)): %v", err)
 	}
@@ -207,7 +207,7 @@ func TestNewLineCharacters(t *testing.T) {
 		"3xB2T\nW",
 	}
 	for _, e := range examples {
-		buf, err := StdEncoding.DecodeString(e)
+		buf, err := Base58StdEncoding.DecodeString(e)
 		if err != nil {
 			t.Errorf("Decode(%q) failed: %v", e, err)
 			continue
@@ -247,7 +247,7 @@ func TestDecoderIssue3577(t *testing.T) {
 	next <- nextRead{5, nil}
 	next <- nextRead{10, wantErr}
 	next <- nextRead{0, wantErr}
-	d := NewDecoder(StdEncoding, &faultInjectReader{
+	d := NewDecoder(Base58StdEncoding, &faultInjectReader{
 		source: "GTsfDqyGri6QZNu9WnLkGjRiS73vQ4n9xVSxpZfC6Rhd92z", // twas brillig...
 		nextc:  next,
 	})
@@ -288,13 +288,13 @@ QMbQoToAuRpfmWvM4FH
 `
 	encodedShort := strings.Replace(encoded, "\n", "", -1)
 
-	dec := NewDecoder(StdEncoding, strings.NewReader(encoded))
+	dec := NewDecoder(Base58StdEncoding, strings.NewReader(encoded))
 	res1, err := ioutil.ReadAll(dec)
 	if err != nil {
 		t.Errorf("ReadAll failed: %v", err)
 	}
 
-	dec = NewDecoder(StdEncoding, strings.NewReader(encodedShort))
+	dec = NewDecoder(Base58StdEncoding, strings.NewReader(encodedShort))
 	var res2 []byte
 	res2, err = ioutil.ReadAll(dec)
 	if err != nil {
@@ -322,8 +322,8 @@ func TestDecodeCorrupt(t *testing.T) {
 		{"A==", 1},
 	}
 	for _, tc := range testCases {
-		dbuf := make([]byte, StdEncoding.DecodedLen(len(tc.input)))
-		_, err := StdEncoding.DecodeStrict(dbuf, []byte(tc.input))
+		dbuf := make([]byte, Base58StdEncoding.DecodedLen(len(tc.input)))
+		_, err := Base58StdEncoding.DecodeStrict(dbuf, []byte(tc.input))
 		if tc.offset == -1 {
 			if err != nil {
 				t.Error("Decoder wrongly detected coruption in", tc.input)
@@ -343,14 +343,14 @@ func BenchmarkEncodeToString(b *testing.B) {
 	data := make([]byte, 8192)
 	b.SetBytes(int64(len(data)))
 	for i := 0; i < b.N; i++ {
-		StdEncoding.EncodeToString(data)
+		Base58StdEncoding.EncodeToString(data)
 	}
 }
 
 func BenchmarkDecodeString(b *testing.B) {
-	data := StdEncoding.EncodeToString(make([]byte, 8192))
+	data := Base58StdEncoding.EncodeToString(make([]byte, 8192))
 	b.SetBytes(int64(len(data)))
 	for i := 0; i < b.N; i++ {
-		StdEncoding.DecodeString(data)
+		Base58StdEncoding.DecodeString(data)
 	}
 }

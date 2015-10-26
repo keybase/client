@@ -45,7 +45,7 @@ output_test_decode_vectors = () ->
   output out, "testDecodeVectors1"
 
 main = () ->
-  console.log "package base58"
+  console.log "package basex"
   output_test_encode_vectors()
   output_test_decode_vectors()
 

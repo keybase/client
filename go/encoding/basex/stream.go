@@ -1,4 +1,4 @@
-package base58
+package basex
 
 import (
 	"io"
@@ -83,9 +83,9 @@ func (e *encoder) Close() error {
 	return e.err
 }
 
-// NewEncoder returns a new base58 stream encoder.  Data written to
+// NewEncoder returns a new baseX stream encoder.  Data written to
 // the returned writer will be encoded using enc and then written to w.
-// Base64 encodings operate in 19-byte blocks; when finished
+// Base64 encodings operate in enc.outBlockLen-byte blocks; when finished
 // writing, the caller must Close the returned encoder to flush any
 // partially written blocks.
 func NewEncoder(enc *Encoding, w io.Writer) io.WriteCloser {
@@ -97,16 +97,16 @@ func NewEncoder(enc *Encoding, w io.Writer) io.WriteCloser {
 	}
 }
 
-// DecodeStringStrict returns the bytes represented by the base58 string s.
-// It uses the strict decoding strategy, not allowing any non-base58-characters
+// DecodeStringStrict returns the bytes represented by the baseX string s.
+// It uses the strict decoding strategy, not allowing any non-baseX-characters
 func (enc *Encoding) DecodeStringStrict(s string) ([]byte, error) {
 	dbuf := make([]byte, enc.DecodedLen(len(s)))
 	n, err := enc.DecodeStrict(dbuf, []byte(s))
 	return dbuf[:n], err
 }
 
-// DecodeString returns the bytes represented by the base58 string s.
-// It uses the liberal decoding strategy, ignoring any non-base58-characters
+// DecodeString returns the bytes represented by the baseX string s.
+// It uses the liberal decoding strategy, ignoring any non-baseX-characters
 func (enc *Encoding) DecodeString(s string) ([]byte, error) {
 	dbuf := make([]byte, enc.DecodedLen(len(s)))
 	n, err := enc.Decode(dbuf, []byte(s))
@@ -224,13 +224,13 @@ func (r *filteringReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// NewDecoder constructs a new base58 stream decoder.
+// NewDecoder constructs a new baseX stream decoder.
 func NewDecoder(enc *Encoding, r io.Reader) io.Reader {
 	return newDecoder(enc, r, false)
 }
 
-// NewDecoderStrict constructs a new base58 stream decoder, but will return an
-// error on any non-base58 character input
+// NewDecoderStrict constructs a new baseX stream decoder, but will return an
+// error on any non-base-X character input
 func NewDecoderStrict(enc *Encoding, r io.Reader) io.Reader {
 	return newDecoder(enc, r, true)
 }
