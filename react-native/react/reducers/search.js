@@ -1,11 +1,23 @@
+/* @flow */
 'use strict'
 
 import * as types from '../constants/search-action-types'
-import Immutable from 'immutable'
+import {Map} from 'immutable'
 
-const initialState = Immutable.Map()
+import type { URI } from './router'
 
-export default function (state = initialState, action) {
+type Base = URI
+
+// TODO settle on some error type and put it in a common type folder
+// instead of duplicating this Error type
+type Error = string
+
+type SubSearchState = MapADT5<'base', Base, 'waitingForServer', boolean, 'error', ?Error, 'term', string | ''> // eslint-disable-line no-undef
+type SearchState = Map<Base, SubSearchState>
+
+const initialState: SearchState = Map()
+
+export default function (state: SearchState = initialState, action: any): SearchState {
   let update = null
 
   switch (action.type) {
@@ -35,6 +47,5 @@ export default function (state = initialState, action) {
       return state
   }
 
-  // We need to use .set() to keep the object as a key
-  return state.mergeDeep(Immutable.Map().set(action.base, Immutable.fromJS(update)))
+  return state.update(action.base, Map(), (b) => b.merge(update))
 }
