@@ -453,7 +453,7 @@ func (e *XLoginProvision) gpgClient() (*libkb.GpgCLI, error) {
 func (e *XLoginProvision) checkArg() error {
 	// check we have a good device type:
 	if e.arg.DeviceType != libkb.DeviceTypeDesktop && e.arg.DeviceType != libkb.DeviceTypeMobile {
-		return fmt.Errorf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)
+		return libkb.InvalidArgumentError{Msg: fmt.Sprintf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)}
 	}
 
 	return nil
@@ -484,7 +484,7 @@ func (e *XLoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMetho
 		return e.passphrase(ctx)
 	}
 
-	return fmt.Errorf("unhandled provisioning method: %v", method)
+	return libkb.InternalError{Msg: fmt.Sprintf("unhandled provisioning method: %v", method)}
 }
 
 // ensurePaperKey checks to see if e.user has any paper keys.  If
@@ -525,10 +525,10 @@ func (e *XLoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBund
 	// find the fingerprint for keyid
 	fp, ok := fingerprints[keyid]
 	if !ok {
-		return nil, fmt.Errorf("selected keyid (%s) not in fingerprint index", keyid)
+		return nil, libkb.NoKeyError{Msg: fmt.Sprintf("selected keyid (%s) not in fingerprint index", keyid)}
 	}
 	if fp == nil {
-		return nil, fmt.Errorf("nil fingerprint in index for (%s)", keyid)
+		return nil, libkb.NoKeyError{Msg: fmt.Sprintf("nil fingerprint in index for (%s)", keyid)}
 	}
 
 	// unlock it with gpg
