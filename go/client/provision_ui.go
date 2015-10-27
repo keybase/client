@@ -96,6 +96,9 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 
 		p.parent.Output("Type this verification code into your other device:\n\n")
 		p.parent.Output("\t" + arg.Phrase + "\n\n")
+		p.parent.Output("If you are using the command line client on your other device, run this command:\n\n")
+		p.parent.Output("\tkeybase device xadd\n")
+		p.parent.Output("It will then prompt you for the verification code above.\n")
 
 		// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code as well }
 		return nil, nil
@@ -108,11 +111,11 @@ func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.Promp
 }
 
 func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) error {
-	p.parent.Output("Secret successfully exchanged.  On your new device, choose and save a public name for it.")
+	p.parent.Output("Secret successfully exchanged.  On your new device, choose and save a public name for it.\n\n")
 	return nil
 }
 
 func (p ProvisionUI) ProvisionSuccess(ctx context.Context, sessionID int) error {
-	p.parent.Output("Device successfully provisioned.")
+	p.parent.Output("Device successfully provisioned.\n\n")
 	return nil
 }

@@ -71,8 +71,6 @@ func (e *Kex2Provisionee) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Kex2Provisionee) Run(ctx *Context) error {
-	e.G().Log.Debug("+ Kex2Provisionee.Run()")
-
 	// check device struct:
 	if len(e.device.Type) == 0 {
 		return errors.New("provisionee device requires Type to be set")
@@ -100,10 +98,13 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 		KexBaseArg:  karg,
 		Provisionee: e,
 	}
-	err := kex2.RunProvisionee(parg)
-	e.G().Log.Debug("- Kex2Provisionee.Run() -> %s", libkb.ErrToOk(err))
+	if err := kex2.RunProvisionee(parg); err != nil {
+		return err
+	}
 
-	return err
+	ctx.ProvisionUI.ProvisionSuccess(context.TODO(), 0)
+
+	return nil
 }
 
 // AddSecret inserts a received secret into the provisionee's
