@@ -1,7 +1,7 @@
 'use strict'
 
 import React, { Component, StyleSheet, View } from 'react-native'
-import { navigateTo } from '../../actions/router'
+import { routeAppend } from '../../actions/router'
 import { pushNewProfile } from '../../actions/profile'
 import { pushNewSearch } from '../../actions/search'
 import { logout } from '../../actions/login2'
@@ -11,13 +11,13 @@ export default class DevMenu extends Component {
   render () {
     const menuItems = [
       {name: 'Login', onClick: () => {
-        this.props.navigateTo(['login', 'loginform'])
+        this.props.routeAppend(['login', {path: 'loginform', upLink: ['']}])
       }},
       {name: 'Login2', onClick: () => {
-        this.props.navigateTo(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}])
+        this.props.routeAppend(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}])
       }},
       {name: 'Register', onClick: () => {
-        this.props.navigateTo(['login2', {path: 'register', upLink: ['']}])
+        this.props.routeAppend(['login2', {path: 'register', upLink: ['']}])
       }},
       {name: 'reset', onClick: () => {
         require('../../engine').reset()
@@ -27,16 +27,16 @@ export default class DevMenu extends Component {
         this.props.logout()
       }},
       {name: 'About', hasChildren: true, onClick: () => {
-        this.props.navigateTo(['about'])
+        this.props.routeAppend(['about'])
       }},
       {name: 'Developer', hasChildren: true, onClick: () => {
-        this.props.navigateTo(['developer'])
+        this.props.routeAppend('developer')
       }},
       {name: 'Nav debug', hasChildren: true, onClick: () => {
-        this.props.navigateTo(['navDebug'])
+        this.props.routeAppend('navDebug')
       }},
       {name: 'Bridging', hasChildren: true, onClick: () => {
-        this.props.navigateTo(['bridging'])
+        this.props.routeAppend('bridging')
       }},
       {name: 'Search', hasChildren: true, onClick: () => {
         this.props.pushNewSearch()
@@ -58,7 +58,7 @@ export default class DevMenu extends Component {
         title: 'Dev Menu',
         mapStateToProps: state => { return {} },
         props: {
-          navigateTo: uri => store.dispatch(navigateTo(uri)),
+          routeAppend: uri => store.dispatch(routeAppend(uri)),
           logout: () => store.dispatch(logout()),
           pushNewSearch: () => store.dispatch(pushNewSearch()),
           pushNewProfile: username => store.dispatch(pushNewProfile(username))
@@ -77,7 +77,7 @@ export default class DevMenu extends Component {
 }
 
 DevMenu.propTypes = {
-  navigateTo: React.PropTypes.func.isRequired,
+  routeAppend: React.PropTypes.func.isRequired,
   logout: React.PropTypes.func.isRequired,
   pushNewSearch: React.PropTypes.func.isRequired,
   pushNewProfile: React.PropTypes.func.isRequired
