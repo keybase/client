@@ -84,6 +84,10 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 	// ctx is needed in some of the kex2 functions:
 	e.ctx = ctx
 
+	if len(e.secret) == 0 {
+		panic("empty secret")
+	}
+
 	karg := kex2.KexBaseArg{
 		Ctx:           context.TODO(),
 		Mr:            libkb.NewKexRouter(e.G()),

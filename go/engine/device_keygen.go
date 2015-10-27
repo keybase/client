@@ -11,6 +11,7 @@ type DeviceKeygenArgs struct {
 	Me         *libkb.User
 	DeviceID   keybase1.DeviceID
 	DeviceName string
+	DeviceType string
 	Lks        *libkb.LKSec
 }
 
@@ -268,7 +269,7 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	if ctx.LoginContext != nil {
 		sr = ctx.LoginContext.LocalSession()
 	}
-	e.pushErr = libkb.PostDeviceLKS(sr, e.args.DeviceID, libkb.DeviceTypeDesktop, serverHalf, e.args.Lks.Generation(), chr, chrk)
+	e.pushErr = libkb.PostDeviceLKS(sr, e.args.DeviceID, e.args.DeviceType, serverHalf, e.args.Lks.Generation(), chr, chrk)
 	if e.pushErr != nil {
 		return
 	}
@@ -296,7 +297,7 @@ func (e *DeviceKeygen) device() *libkb.Device {
 	return &libkb.Device{
 		ID:          e.args.DeviceID,
 		Description: &e.args.DeviceName,
-		Type:        libkb.DeviceTypeDesktop,
+		Type:        e.args.DeviceType,
 		Status:      &s,
 	}
 }

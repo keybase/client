@@ -17,6 +17,7 @@ type DeviceWrap struct {
 type DeviceWrapArgs struct {
 	Me         *libkb.User
 	DeviceName string
+	DeviceType string
 	Lks        *libkb.LKSec
 	IsEldest   bool
 	Signer     libkb.GenericKey
@@ -72,6 +73,7 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 		Me:         e.args.Me,
 		DeviceID:   deviceID,
 		DeviceName: e.args.DeviceName,
+		DeviceType: e.args.DeviceType,
 		Lks:        e.args.Lks,
 	}
 	kgEng := NewDeviceKeygen(kgArgs, e.G())

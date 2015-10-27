@@ -11,7 +11,12 @@ import (
 )
 
 type ProvisionUI struct {
-	parent *UI
+	parent      *UI
+	provisioner bool // set to true if the client UI is the device provisioner
+}
+
+func NewProvisionUIProtocol(g *libkb.GlobalContext, provisioner bool) rpc.Protocol {
+	return keybase1.ProvisionUiProtocol(g.UI.GetProvisionUI(provisioner))
 }
 
 func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
@@ -70,40 +75,31 @@ func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keyba
 }
 
 func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
-	// Display the secret:
-	// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code instead }
-	p.parent.Output("Type this verification code into your other device:\n\n")
-	p.parent.Output("\t" + arg.Phrase + "\n\n")
-
-	// Prompt for the secret from the other device:
-	p.parent.Output("\n -- Or -- \n")
-	p.parent.Output("Enter the verification code from your other device here:\n\n")
-	ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckNotEmpty)
-	if err != nil {
-		return nil, err
-	}
-	secret, err := libkb.NewKex2SecretFromPhrase(ret)
-	if err != nil {
-		return nil, err
-	}
-	sbytes := secret.Secret()
-	return sbytes[:], nil
-	/*
+	if p.provisioner {
+		// This is the provisioner device (device X)
+		// For command line app, all secrets are entered on the provisioner only:
+		p.parent.Output("Enter the verification code from your other device here:\n\n")
+		ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckNotEmpty)
+		if err != nil {
+			return nil, err
 		}
-
-		if arg.OtherDeviceType == keybase1.DeviceType_DESKTOP {
-			p.parent.Output("Type this verification code into your other device:\n\n")
-			p.parent.Output("\t" + arg.Phrase + "\n")
-
-			// in C2 > C1 flow, there's no secret input on C2
-			// (computer -> computer provisioning, device Y (provisionee) does not
-			// offer to accept a secret from device X (provisioner) even though
-			// the protocol allows it.)
-			return nil, nil
+		secret, err := libkb.NewKex2SecretFromPhrase(ret)
+		if err != nil {
+			return nil, err
 		}
+		sbytes := secret.Secret()
+		return sbytes[:], nil
 
-		return nil, fmt.Errorf("invalid device type: %d", arg.OtherDeviceType)
-	*/
+	} else {
+		// this is the provisionee device (device Y)
+		// For command line app, the provisionee displays secrets only
+
+		p.parent.Output("Type this verification code into your other device:\n\n")
+		p.parent.Output("\t" + arg.Phrase + "\n\n")
+
+		// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code as well }
+		return nil, nil
+	}
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
@@ -119,8 +115,4 @@ func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) 
 func (p ProvisionUI) ProvisionSuccess(ctx context.Context, sessionID int) error {
 	p.parent.Output("Device successfully provisioned.")
 	return nil
-}
-
-func NewProvisionUIProtocol() rpc.Protocol {
-	return keybase1.ProvisionUiProtocol(GlobUI.GetProvisionUI())
 }

@@ -125,9 +125,10 @@ func (e *XLoginProvision) device(ctx *Context) error {
 		contxt, canceler = context.WithCancel(context.Background())
 		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 		if err != nil {
-			// XXX ???
+			// could cancel provisionee run here?
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
-		} else if receivedSecret != nil {
+		} else if receivedSecret != nil && len(receivedSecret) > 0 {
+			e.G().Log.Warning("provisionee received secret: %x", receivedSecret)
 			var ks kex2.Secret
 			copy(ks[:], receivedSecret)
 			provisionee.AddSecret(ks)
@@ -309,6 +310,7 @@ func (e *XLoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, err
 	return &DeviceWrapArgs{
 		Me:         e.user,
 		DeviceName: devname,
+		DeviceType: e.arg.DeviceType,
 		Lks:        e.lks,
 	}, nil
 }

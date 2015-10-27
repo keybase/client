@@ -432,6 +432,7 @@ func TestLoginInterruptDevicePush(t *testing.T) {
 		Me:         me,
 		DeviceID:   dreg.DeviceID(),
 		DeviceName: dregArgs.Name,
+		DeviceType: libkb.DeviceTypeDesktop,
 		Lks:        lks,
 	}
 	dkey := NewDeviceKeygen(dkeyArgs, tc.G)

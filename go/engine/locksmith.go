@@ -295,6 +295,7 @@ func (d *Locksmith) addDeviceKeyWithSigner(ctx *Context, signer libkb.GenericKey
 	args := &DeviceWrapArgs{
 		Me:         d.arg.User,
 		DeviceName: devname,
+		DeviceType: libkb.DeviceTypeDesktop,
 		Lks:        d.lks,
 		IsEldest:   false,
 		Signer:     signer,
@@ -322,7 +323,7 @@ func (d *Locksmith) deviceSign(ctx *Context, withPGPOption bool) error {
 		return err
 	}
 
-	devFilter := map[string]bool{
+	devFilter := libkb.DeviceTypeSet{
 		libkb.DeviceTypeDesktop: true,
 		libkb.DeviceTypeMobile:  true,
 		libkb.DeviceTypePaper:   true,

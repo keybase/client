@@ -29,7 +29,7 @@ type CmdXLogin struct {
 
 func (c *CmdXLogin) Run() error {
 	protocols := []rpc.Protocol{
-		NewProvisionUIProtocol(),
+		NewProvisionUIProtocol(G, false /* not provisioner */),
 		NewLoginUIProtocol(G),
 		NewSecretUIProtocol(G),
 		NewGPGUIProtocol(G),

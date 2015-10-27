@@ -126,6 +126,7 @@ func (k *KexNewDevice) Run(ctx *Context) error {
 		Me:         k.user,
 		DeviceID:   k.deviceID,
 		DeviceName: k.args.DevDesc,
+		DeviceType: libkb.DeviceTypeDesktop,
 		Lks:        k.lks,
 	}
 	dkeng := NewDeviceKeygen(dkargs, k.G())

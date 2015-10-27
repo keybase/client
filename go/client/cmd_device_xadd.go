@@ -39,7 +39,7 @@ func (c *CmdDeviceXAdd) Run() error {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewProvisionUIProtocol(),
+		NewProvisionUIProtocol(G, true /* device provisioner */),
 		NewSecretUIProtocol(G),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
