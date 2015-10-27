@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React, { View, Text } from 'react-native'
+import React, { View, Text, StyleSheet } from 'react-native'
 import commonStyles from '../../styles/common'
 
 export default function () {
@@ -11,3 +11,12 @@ export default function () {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    backgroundColor: '#F5FCFF'
+  }
+})

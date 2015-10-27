@@ -27,13 +27,3 @@ export default class About extends BaseComponent {
 }
 
 About.propTypes = {}
-
-console.log(StyleSheet)
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'stretch',
-    backgroundColor: '#F5FCFF'
-  }
-})
