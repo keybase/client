@@ -62,6 +62,10 @@ type Engine interface {
 	// SyncFromServer is called by the test harness as the given user to actively retrieve new
 	// metadata for a folder.
 	SyncFromServer(u User, dir Node) (err error)
-	// Shutdown is called by the test harness when it is done with the given user.
+	// Shutdown is called by the test harness when it is done with the
+	// given user.
 	Shutdown(u User)
+	// PrintLog is called by the test harness when the engine should
+	// print out all accumulated log output to stdout.
+	PrintLog()
 }

@@ -11,8 +11,9 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"testing"
 	"time"
+
+	"github.com/keybase/client/go/logger"
 )
 
 const (
@@ -123,7 +124,7 @@ func (tdr *TestDynamoDBRunner) downloadIfNecessary() error {
 }
 
 // Run starts the local DynamoDB server.
-func (tdr *TestDynamoDBRunner) Run(t *testing.T) {
+func (tdr *TestDynamoDBRunner) Run(t logger.TestLogBackend) {
 	// kill any old process
 	if pid, err := tdr.getPid(); err == nil {
 		if p, err := os.FindProcess(pid); err == nil {

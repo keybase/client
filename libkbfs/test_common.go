@@ -66,7 +66,7 @@ func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
 	return rmd
 }
 
-func setTestLogger(config Config, t *testing.T) {
+func setTestLogger(config Config, t logger.TestLogBackend) {
 	config.SetLoggerMaker(func(m string) logger.Logger {
 		return logger.NewTestLogger(t)
 	})
@@ -74,7 +74,8 @@ func setTestLogger(config Config, t *testing.T) {
 
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
-func MakeTestConfigOrBust(t *testing.T, users ...libkb.NormalizedUsername) *ConfigLocal {
+func MakeTestConfigOrBust(t logger.TestLogBackend,
+	users ...libkb.NormalizedUsername) *ConfigLocal {
 	config := NewConfigLocal()
 	setTestLogger(config, t)
 

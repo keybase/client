@@ -271,6 +271,7 @@ module Test
       msg = "failed: " + e.message
       printf "%-50s: %s\n", @test, msg.red
       puts e.backtrace if ENV["DUMP_STACK"]
+      Engine.print_log()
     else
       printf "%-50s: %s\n", @test, "success".green
     ensure

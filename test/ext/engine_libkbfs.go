@@ -6,7 +6,6 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 	"sort"
-	"testing" // hack: just so we can call MakeTestConfigOrBust()
 )
 
 // LibKBFS implements the Engine interface for direct test harness usage of libkbfs.
@@ -15,6 +14,8 @@ type LibKBFS struct {
 	refs map[libkbfs.Config]map[libkbfs.Node]bool
 	// channels used to re-enable updates if disabled
 	updateChannels map[libkbfs.Config]map[libkbfs.Node]chan<- struct{}
+	// test object, mostly for logging
+	log *MemoryLog
 }
 
 // Check that LibKBFS fully implements the Engine interface.
@@ -25,6 +26,7 @@ func (k *LibKBFS) Init() {
 	// Initialize reference holder and channels maps
 	k.refs = make(map[libkbfs.Config]map[libkbfs.Node]bool)
 	k.updateChannels = make(map[libkbfs.Config]map[libkbfs.Node]chan<- struct{})
+	k.log = &MemoryLog{}
 }
 
 // CreateUsers implements the Engine interface.
@@ -35,7 +37,7 @@ func (k *LibKBFS) CreateUsers(users ...string) map[string]User {
 		normalized[i] = libkb.NormalizedUsername(name)
 	}
 	// create the first user specially
-	config := libkbfs.MakeTestConfigOrBust(&testing.T{}, normalized...)
+	config := libkbfs.MakeTestConfigOrBust(k.log, normalized...)
 	userMap[users[0]] = config
 	k.refs[config] = make(map[libkbfs.Node]bool)
 	k.updateChannels[config] = make(map[libkbfs.Node]chan<- struct{})
@@ -265,4 +267,9 @@ func (k *LibKBFS) Shutdown(u User) {
 	delete(k.updateChannels, config)
 	// shutdown
 	config.Shutdown()
+}
+
+// PrintLog implements the Engine interface.
+func (k *LibKBFS) PrintLog() {
+	k.log.PrintLog()
 }

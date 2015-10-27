@@ -249,6 +249,11 @@ func Shutdown(u interface{}) {
 	engine.Shutdown(u)
 }
 
+//export PrintLog
+func PrintLog() {
+	engine.PrintLog()
+}
+
 // Helper to convert from C.StringArray to []string
 func arrayToStrings(arg *C.StringArray) (strings []string) {
 	strings = make([]string, int(arg.size))
