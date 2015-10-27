@@ -53,8 +53,8 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 
 func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keybase1.DeviceType, error) {
 	p.parent.Output("What type of device would you like to connect this device with?\n\n")
-	p.parent.Output("(1) Desktop\n")
-	p.parent.Output("(2) Mobile\n")
+	p.parent.Output("(1) Desktop or laptop\n")
+	p.parent.Output("(2) Mobile phone\n")
 
 	var res keybase1.DeviceType
 	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDeviceType, p.parent, "Choose a device type", 1, 2)
