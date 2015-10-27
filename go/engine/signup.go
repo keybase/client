@@ -150,6 +150,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	args := &DeviceWrapArgs{
 		Me:         s.me,
 		DeviceName: deviceName,
+		DeviceType: libkb.DeviceTypeDesktop,
 		Lks:        s.lks,
 		IsEldest:   true,
 	}

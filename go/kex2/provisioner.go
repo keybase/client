@@ -121,6 +121,9 @@ func (p *provisioner) pickFirstConnection() (err error) {
 		conn = nil // so it's not closed in the defer()'ed close
 		p.xp = xp
 	case sec := <-p.arg.SecretChannel:
+		if len(sec) != SecretLen {
+			return ErrBadSecret
+		}
 		if p.conn, err = NewConn(p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}

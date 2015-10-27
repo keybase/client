@@ -51,13 +51,16 @@ func (s *Session) IsLoggedInAndProvisioned() bool {
 		return false
 	}
 	if len(s.deviceID) == 0 {
+		s.G().Log.Warning("no device id in session")
 		return false
 	}
 	envid := s.G().Env.GetDeviceID()
 	if envid.IsNil() {
+		s.G().Log.Warning("no device id in env")
 		return false
 	}
 	if s.deviceID != envid {
+		s.G().Log.Warning("device id mismatch session <-> env")
 		return false
 	}
 

@@ -1137,3 +1137,10 @@ type InvalidArgumentError struct {
 func (e InvalidArgumentError) Error() string {
 	return fmt.Sprintf("invalid argument: %s", e.Msg)
 }
+
+type RetryExhaustedError struct {
+}
+
+func (e RetryExhaustedError) Error() string {
+	return "Prompt attempts exhausted."
+}

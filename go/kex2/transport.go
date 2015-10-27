@@ -22,8 +22,11 @@ type DeviceID [16]byte
 // session secret. It's used to route messages on the server side.
 type SessionID [32]byte
 
+// SecretLen is the number of bytes in the secret.
+const SecretLen = 32
+
 // Secret is the 32-byte shared secret identifier
-type Secret [32]byte
+type Secret [SecretLen]byte
 
 // Seqno increments on every message sent from a Kex sender.
 type Seqno uint32
@@ -153,6 +156,9 @@ var ErrSelfRecieve = errors.New("got message back that we sent")
 // ErrAgain indicates that no data was available to read, but the
 // reader was in non-blocking mode, so to try again later.
 var ErrAgain = errors.New("no data were ready to read")
+
+// ErrBadSecret indicates that the secret received was invalid.
+var ErrBadSecret = errors.New("bad secret")
 
 func (c *Conn) setReadError(e error) error {
 	c.errMutex.Lock()
