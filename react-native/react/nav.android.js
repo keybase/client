@@ -143,7 +143,7 @@ export default class Nav extends Component {
                 <TouchableNativeFeedback
                   onPress={ () => this.refs.drawer && this.refs.drawer.openDrawer() }
                   delayPressIn={0}
-                  background={TouchableNativeFeedback.Ripple('grey', true)} >
+                  background={TouchableNativeFeedback.SelectableBackground()} >
                   <View>
                     <Image style={[styles.toolbarImage, {marginTop: 4}]} resizeMode={'contain'} source={require('image!ic_menu_black_24dp')}/>
                   </View>
@@ -158,7 +158,7 @@ export default class Nav extends Component {
                   <TouchableNativeFeedback
                     onPress={ () => console.log('todo: show search')}
                     delayPressIn={0}
-                    background={TouchableNativeFeedback.Ripple('grey', true)} >
+                    background={TouchableNativeFeedback.SelectableBackground()}>
                     <View>
                       <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('image!ic_search_black_24dp')}/>
                     </View>
