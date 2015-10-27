@@ -97,8 +97,8 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 		p.parent.Output("Type this verification code into your other device:\n\n")
 		p.parent.Output("\t" + arg.Phrase + "\n\n")
 		p.parent.Output("If you are using the command line client on your other device, run this command:\n\n")
-		p.parent.Output("\tkeybase device xadd\n")
-		p.parent.Output("It will then prompt you for the verification code above.\n")
+		p.parent.Output("\tkeybase device xadd\n\n")
+		p.parent.Output("It will then prompt you for the verification code above.\n\n")
 
 		// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code as well }
 		return nil, nil
@@ -106,8 +106,25 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
-	// TODO check for duplicates (existing device list in arg)
-	return PromptWithChecker(PromptDescriptorProvisionDeviceName, p.parent, "Enter a public name for this device", false, libkb.CheckDeviceName)
+	for i := 0; i < 10; i++ {
+
+		name, err := PromptWithChecker(PromptDescriptorProvisionDeviceName, p.parent, "Enter a public name for this device", false, libkb.CheckDeviceName)
+		if err != nil {
+			return "", err
+		}
+		var match bool
+		for _, existing := range arg.ExistingDevices {
+			if libkb.NameCmp(name, existing) {
+				match = true
+				p.parent.Printf("Device name %q already in use.  Please try again.\n", name)
+				break
+			}
+		}
+		if !match {
+			return name, nil
+		}
+	}
+	return "", libkb.RetryExhaustedError{}
 }
 
 func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) error {
