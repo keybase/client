@@ -77,12 +77,24 @@ func (f *JSONFile) Nuke() error {
 	return err
 }
 
-func (f *JSONFile) Save(pretty bool, mode os.FileMode) (err error) {
-	G.Log.Debug(fmt.Sprintf("+ saving %s file %s", f.which, f.filename))
+func (f *JSONFile) Save(pretty bool, mode os.FileMode) error {
+	if err := f.save(f.filename, pretty, mode); err != nil {
+		return err
+	}
+	f.dirty = false
+	return nil
+}
 
-	err = MakeParentDirs(f.filename)
+func (f *JSONFile) SaveTmp() error {
+	return f.save(tmpfile, true, 0)
+}
+
+func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err error) {
+	G.Log.Debug(fmt.Sprintf("+ saving %s file %s", f.which, filename))
+
+	err = MakeParentDirs(filename)
 	if err != nil {
-		G.Log.Errorf("Failed to make parent dirs for %s", f.filename)
+		G.Log.Errorf("Failed to make parent dirs for %s", filename)
 		return err
 	}
 
@@ -105,10 +117,10 @@ func (f *JSONFile) Save(pretty bool, mode os.FileMode) (err error) {
 	if mode == 0 {
 		mode = PermFile // By default, secrecy
 	}
-	writer, err = os.OpenFile(f.filename, flags, mode)
+	writer, err = os.OpenFile(filename, flags, mode)
 	if err != nil {
 		G.Log.Errorf("Failed to open %s file %s for writing: %s",
-			f.which, f.filename, err)
+			f.which, filename, err)
 		return err
 	}
 	defer writer.Close()
@@ -125,20 +137,19 @@ func (f *JSONFile) Save(pretty bool, mode os.FileMode) (err error) {
 
 	if err != nil {
 		G.Log.Errorf("Error encoding data to %s file %s: %s",
-			f.which, f.filename, err)
+			f.which, filename, err)
 		return err
 	}
 
 	err = writer.Close()
 	if err != nil {
 		G.Log.Errorf("Error flushing %s file %s: %s",
-			f.which, f.filename, err)
+			f.which, filename, err)
 		return err
 	}
 
-	G.Log.Debug(fmt.Sprintf("Wrote %s file to %s", f.which, f.filename))
-	f.dirty = false
+	G.Log.Debug(fmt.Sprintf("Wrote %s file to %s", f.which, filename))
 
-	G.Log.Debug(fmt.Sprintf("- saved %s file %s", f.which, f.filename))
+	G.Log.Debug(fmt.Sprintf("- saved %s file %s", f.which, filename))
 	return
 }

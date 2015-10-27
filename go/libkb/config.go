@@ -326,6 +326,10 @@ func (f *JSONConfigFile) Write() error {
 	return f.MaybeSave(true, 0)
 }
 
+func (f *JSONConfigFile) WriteTmp() error {
+	return f.SaveTmp()
+}
+
 func (f JSONConfigFile) GetHome() string {
 	return f.GetTopLevelString("home")
 }
