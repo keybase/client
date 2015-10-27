@@ -107,6 +107,9 @@ func (p *provisionee) pickFirstConnection() (err error) {
 	select {
 	case <-p.start:
 	case sec := <-p.arg.SecretChannel:
+		if len(sec) != SecretLen {
+			return ErrBadSecret
+		}
 		p.conn.Close()
 		err = p.startServer(sec)
 		if err != nil {
