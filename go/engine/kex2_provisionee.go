@@ -440,12 +440,10 @@ func (e *Kex2Provisionee) pushLKSServerHalf() error {
 
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
-	/*
-		err = e.G().LoginState().RunSecretSyncer(e.uid)
-		if err != nil {
-			return err
-		}
-	*/
+	err = e.G().LoginState().RunSecretSyncer(e.uid)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
