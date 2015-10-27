@@ -1,3 +1,7 @@
+## 1.0.0-40 (2015-10-27)
+
+- Support for kex2 device provisioning.
+
 ## 1.0.0-29 (2015-10-06)
 
 - Bugfix: If no /dev/tty, still provide SecretEntry via UI.
