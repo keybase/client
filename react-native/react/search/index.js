@@ -7,6 +7,14 @@ import React, { Component, ListView, StyleSheet, TouchableHighlight, Text, TextI
 import commonStyles from '../styles/common'
 import Immutable from 'immutable'
 
+const serviceIcons = {
+  twitter: require('image!twitter'),
+  github: require('image!gh'),
+  reddit: require('image!reddit'),
+  coinbase: require('image!btc'),
+  hackernews: require('image!hn')
+}
+
 function renderTextWithHighlight (text, highlight, style) {
   const idx = text.toLowerCase().indexOf(highlight.toLowerCase())
   if (idx === -1) {
@@ -36,9 +44,11 @@ export default class Search extends Component {
   }
 
   renderRow (rowData, sectionID, rowID) {
-    const profile = this.props.profile.get(rowData.get('username'), Immutable.Map())
-    const thumbnail = profile.getIn(['summary', 'thumbnail'])
-    const fullName = profile.getIn(['summary', 'fullName'])
+    const summary = this.props.profile.getIn([rowData.get('username'), 'summary'], Immutable.Map())
+    const thumbnail = summary.get('thumbnail')
+    const fullName = summary.get('fullName')
+    const socialProofs = summary.getIn(['proofs', 'social'], Immutable.List())
+    const matchingProof = socialProofs.find(val => val.get('proofName').indexOf(this.props.term) !== -1)
     return (
       <View>
         <TouchableHighlight underlayColor='#ccc' onPress={() => { this.onPress(rowData) }}>
@@ -47,12 +57,24 @@ export default class Search extends Component {
               {thumbnail ? <Image style={styles.photo} source={{uri: thumbnail}}/> : null}
             </View>
             {rowData.get('tracking') ? <View style={styles.trackingIndicator} /> : null}
-            <View style={styles.username}>
-              {renderTextWithHighlight(rowData.get('username'), this.props.term, styles.highlight)}
+            <View style={{flex: 1}}>
+              <View style={styles.username}>
+                {renderTextWithHighlight(rowData.get('username'), this.props.term, styles.highlight)}
+              </View>
+              {fullName ? <Text style={styles.fullName}>
+                {renderTextWithHighlight(fullName, this.props.term, styles.highlight)}
+              </Text> : null}
+              <View style={styles.services}>
+                {socialProofs.map((proof) => <View style={styles.service}>
+                    <Image style={styles.serviceIcon} source={serviceIcons[proof.get('proofType')]}/>
+                    {proof === matchingProof ? <Text
+                      style={styles.serviceName}
+                    >
+                      {renderTextWithHighlight(proof.get('proofName'), this.props.term, styles.highlight)}
+                   </Text> : null}
+                </View>).toArray()}
+              </View>
             </View>
-            {fullName ? <Text style={styles.fullName}>
-              {renderTextWithHighlight(fullName, this.props.term, styles.highlight)}
-            </Text> : null}
           </View>
         </TouchableHighlight>
         {this.renderSeparator()}
@@ -167,9 +189,9 @@ const styles = StyleSheet.create({
     left: 10
   },
   username: {
-    height: 10,
     flex: 1,
-    paddingVertical: 10,
+    paddingTop: 5,
+    paddingBottom: 3,
     paddingRight: 1
   },
   fullName: {
@@ -179,5 +201,22 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: 'bold'
+  },
+  services: {
+    flexDirection: 'row'
+  },
+  service: {
+    flexDirection: 'row',
+    marginRight: 5,
+    alignItems: 'center'
+  },
+  serviceIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10
+  },
+  serviceName: {
+    fontSize: 11,
+    marginLeft: 3
   }
 })
