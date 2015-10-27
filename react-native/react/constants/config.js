@@ -1,6 +1,8 @@
 'use strict'
 /* @flow */
 
+export type NavState = 'navStartingUp' | 'navNeedsRegistration' | 'navNeedsLogin' | 'navLoggedIn' | 'navErrorStartingUp'
+
 // Constants
 export const navStartingUp = 'navStartingUp'
 export const navNeedsRegistration = 'navNeedsRegistration'
