@@ -128,7 +128,6 @@ func (e *XLoginProvision) device(ctx *Context) error {
 			// could cancel provisionee run here?
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
 		} else if receivedSecret != nil && len(receivedSecret) > 0 {
-			e.G().Log.Warning("provisionee received secret: %x", receivedSecret)
 			var ks kex2.Secret
 			copy(ks[:], receivedSecret)
 			provisionee.AddSecret(ks)
@@ -144,6 +143,12 @@ func (e *XLoginProvision) device(ctx *Context) error {
 
 	// run provisionee
 	if err := RunEngine(provisionee, ctx); err != nil {
+		return err
+	}
+
+	if err := e.G().LoginState().LocalSession(func(s *libkb.Session) {
+		s.SetDeviceProvisioned(deviceID)
+	}, "XLoginProvision - device"); err != nil {
 		return err
 	}
 
@@ -163,7 +168,14 @@ func (e *XLoginProvision) gpg(ctx *Context) error {
 	// It signs this new device with the gpg key in bundle.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
-		return e.makeDeviceKeysWithSigner(ctx, bundle)
+		if err := e.makeDeviceKeysWithSigner(ctx, bundle); err != nil {
+			return err
+		}
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+			// not a fatal error, session will stay in memory
+			e.G().Log.Warning("error saving session file: %s", err)
+		}
+		return nil
 	}
 
 	// need a session to continue to provision
@@ -192,7 +204,14 @@ func (e *XLoginProvision) paper(ctx *Context) error {
 	// It signs this new device with the paper key.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
-		return e.makeDeviceKeysWithSigner(ctx, kp.sigKey)
+		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
+			return err
+		}
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+			// not a fatal error, session will stay in memory
+			e.G().Log.Warning("error saving session file: %s", err)
+		}
+		return nil
 	}
 
 	// need a session to continue to provision
@@ -237,6 +256,7 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 	}
 
 	return nil
+
 }
 
 // pgpProvision attempts to provision with a synced pgp key.  It
@@ -251,7 +271,14 @@ func (e *XLoginProvision) pgpProvision(ctx *Context) error {
 			return err
 		}
 
-		return e.makeDeviceKeysWithSigner(ctx, signer)
+		if err := e.makeDeviceKeysWithSigner(ctx, signer); err != nil {
+			return err
+		}
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+			// not a fatal error, session will stay in memory
+			e.G().Log.Warning("error saving session file: %s", err)
+		}
+		return nil
 	}
 
 	// need a session to try to get synced private key
@@ -281,7 +308,12 @@ func (e *XLoginProvision) addEldestDeviceKey(ctx *Context) error {
 	}
 	args.IsEldest = true
 
-	return e.makeDeviceKeys(ctx, args)
+	if err := e.makeDeviceKeys(ctx, args); err != nil {
+		return err
+	}
+
+	// save provisioned device id in the session
+	return e.setSessionDeviceID(e.G().Env.GetDeviceID())
 }
 
 // paperKey generates a primary paper key for the user.
@@ -588,4 +620,14 @@ func (e *XLoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPF
 	}
 
 	return nil
+}
+
+func (e *XLoginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
+	var serr error
+	if err := e.G().LoginState().LocalSession(func(s *libkb.Session) {
+		serr = s.SetDeviceProvisioned(id)
+	}, "XLoginProvision - device"); err != nil {
+		return err
+	}
+	return serr
 }

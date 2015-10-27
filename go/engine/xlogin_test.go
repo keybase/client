@@ -75,7 +75,7 @@ func TestXLogin(t *testing.T) {
 
 	wg.Wait()
 
-	if err := AssertLoggedIn(tcY); err != nil {
+	if err := AssertProvisioned(tcY); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -142,7 +142,7 @@ func TestProvisionPassphraseNoKeys(t *testing.T) {
 	// and they should have a paper backup key
 	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 
-	if err := AssertLoggedIn(tc); err != nil {
+	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -177,7 +177,7 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 	// and they should have a paper backup key
 	hasOnePaperDev(tc, u1)
 
-	if err := AssertLoggedIn(tc); err != nil {
+	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -230,6 +230,10 @@ func TestProvisionPaper(t *testing.T) {
 	testUserHasDeviceKey(tc2)
 
 	assertNumDevicesAndKeys(tc, fu, 3, 6)
+
+	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -270,6 +274,10 @@ func TestProvisionGPG(t *testing.T) {
 
 	// highly possible they didn't have a paper key, so make sure they have one now:
 	hasOnePaperDev(tc2, u1)
+
+	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
 }
 
 type testProvisionUI struct {
