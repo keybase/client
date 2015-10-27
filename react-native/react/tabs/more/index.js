@@ -43,6 +43,9 @@ export default class More extends Component {
         {name: 'Nav debug', hasChildren: true, onClick: () => {
           this.props.navigateTo(['navDebug'])
         }},
+        {name: 'Flow Routing Demo', hasChildren: true, onClick: () => {
+          this.props.navigateTo(['flowRoute'])
+        }},
         {name: 'Bridging', hasChildren: true, onClick: () => {
           this.props.navigateTo(['bridging'])
         }},
@@ -101,6 +104,7 @@ export default class More extends Component {
         navDebug: require('../../debug/nav-debug'),
         bridging: require('../../debug/bridging-tabs'),
         login: require('../../login'),
+        flowRoute: require('./flow-route'),
         login2: require('../../login2')
       }
     }
