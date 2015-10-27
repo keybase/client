@@ -1,3 +1,4 @@
+Gemfile.lock
 secrets
 ext/engine.h
 ext/engine.so
