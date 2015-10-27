@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -85,8 +86,9 @@ func (f *JSONFile) Save(pretty bool, mode os.FileMode) error {
 	return nil
 }
 
-func (f *JSONFile) SaveTmp() error {
-	return f.save(tmpfile, true, 0)
+func (f *JSONFile) SaveTmp(suffix string) error {
+	filename := path.Join(os.TempDir(), fmt.Sprintf("keybase_config_%s.json", suffix))
+	return f.save(filename, true, 0)
 }
 
 func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err error) {
