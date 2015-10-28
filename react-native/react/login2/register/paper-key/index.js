@@ -35,9 +35,6 @@ export default class PaperKey extends Component {
 
   static parseRoute (store, currentPath, nextPath) {
     return {
-      componentAtTop: {
-        mapStateToProps: state => { return {} }
-      },
       props: {
         submit: () => store.dispatch(navigateTo(['login2', 'register', 'setPublicName']))
       }

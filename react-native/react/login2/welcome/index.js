@@ -36,7 +36,6 @@ export default class Welcome extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => { return {} },
         hideNavBar: true,
         props: {
           gotoLoginPage: () => store.dispatch(routeAppend('login')),

@@ -87,7 +87,6 @@ export default class More extends Component {
     return {
       componentAtTop: {
         title: 'More',
-        mapStateToProps: state => { return {} },
         props: {
           navigateTo: uri => store.dispatch(navigateTo(uri)),
           logout: () => store.dispatch(logout()),
