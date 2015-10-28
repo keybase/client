@@ -63,13 +63,12 @@ export default class More extends BaseComponent {
         }
       },
       subRoutes: {
+        'about': require('./about'),
+        'developer': require('./developer'),
+        'navDebug': require('../../debug/nav-debug'),
+        'bridging': require('../../debug/bridging-tabs'),
         'login': require('../../login'),
-        'about': require('./about')
-        //'developer': require('./developer'),
-        //'navDebug': require('../../debug/nav-debug'),
-        //'bridging': require('../../debug/bridging-tabs'),
-        //'qr': require('../../qr'),
-        //'login2': require('../../login2')
+        'login2': require('../../login2')
       }
     }
   }
