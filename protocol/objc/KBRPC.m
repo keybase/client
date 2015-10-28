@@ -1799,9 +1799,30 @@
   }];
 }
 
-- (void)provisionSuccess:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.ProvisionSuccess" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)provisioneeSuccess:(KBRProvisioneeSuccessRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(params.username), @"deviceName": KBRValue(params.deviceName)};
+  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.ProvisioneeSuccess" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)provisioneeSuccessWithUsername:(NSString *)username deviceName:(NSString *)deviceName completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(username), @"deviceName": KBRValue(deviceName)};
+  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.ProvisioneeSuccess" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)provisionerSuccess:(KBRProvisionerSuccessRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"deviceName": KBRValue(params.deviceName), @"deviceType": KBRValue(params.deviceType)};
+  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.ProvisionerSuccess" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)provisionerSuccessWithDeviceName:(NSString *)deviceName deviceType:(NSString *)deviceType completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"deviceName": KBRValue(deviceName), @"deviceType": KBRValue(deviceType)};
+  [self.client sendRequestWithMethod:@"keybase.1.provisionUi.ProvisionerSuccess" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -4477,17 +4498,37 @@
 }
 @end
 
-@implementation KBRProvisionSuccessRequestParams
+@implementation KBRProvisioneeSuccessRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
+    self.deviceName = params[0][@"deviceName"];
   }
   return self;
 }
 
 + (instancetype)params {
-  KBRProvisionSuccessRequestParams *p = [[self alloc] init];
+  KBRProvisioneeSuccessRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRProvisionerSuccessRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.deviceName = params[0][@"deviceName"];
+    self.deviceType = params[0][@"deviceType"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRProvisionerSuccessRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

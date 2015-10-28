@@ -20,6 +20,8 @@ type XLoginProvision struct {
 	lks        *libkb.LKSec
 	signingKey libkb.GenericKey
 	gpgCli     *libkb.GpgCLI
+	username   string
+	devname    string
 }
 
 type XLoginProvisionArg struct {
@@ -79,7 +81,15 @@ func (e *XLoginProvision) Run(ctx *Context) error {
 		return err
 	}
 
-	return e.ensurePaperKey(ctx)
+	if err := e.ensurePaperKey(ctx); err != nil {
+		return err
+	}
+
+	if err := e.displaySuccess(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // device provisions this device with an existing device using the
@@ -150,6 +160,17 @@ func (e *XLoginProvision) device(ctx *Context) error {
 		s.SetDeviceProvisioned(deviceID)
 	}, "XLoginProvision - device"); err != nil {
 		return err
+	}
+
+	// need username, device name for ProvisionUI.ProvisioneeSuccess()
+	e.username = provisionee.GetName()
+	pdevice := provisionee.Device()
+	if pdevice == nil {
+		e.G().Log.Warning("nil provisionee device")
+	} else if pdevice.Description == nil {
+		e.G().Log.Warning("nil provisionee device description")
+	} else {
+		e.devname = *pdevice.Description
 	}
 
 	return nil
@@ -338,10 +359,11 @@ func (e *XLoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, err
 	if err != nil {
 		return nil, err
 	}
+	e.devname = devname
 
 	return &DeviceWrapArgs{
 		Me:         e.user,
-		DeviceName: devname,
+		DeviceName: e.devname,
 		DeviceType: e.arg.DeviceType,
 		Lks:        e.lks,
 	}, nil
@@ -639,4 +661,15 @@ func (e *XLoginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
 		return err
 	}
 	return serr
+}
+
+func (e *XLoginProvision) displaySuccess(ctx *Context) error {
+	if len(e.username) == 0 && e.user != nil {
+		e.username = e.user.GetName()
+	}
+	sarg := keybase1.ProvisioneeSuccessArg{
+		Username:   e.username,
+		DeviceName: e.devname,
+	}
+	return ctx.ProvisionUI.ProvisioneeSuccess(context.TODO(), sarg)
 }

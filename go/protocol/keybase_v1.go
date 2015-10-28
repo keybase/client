@@ -3987,8 +3987,16 @@ type PromptNewDeviceNameArg struct {
 	ExistingDevices []string `codec:"existingDevices" json:"existingDevices"`
 }
 
-type ProvisionSuccessArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+type ProvisioneeSuccessArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Username   string `codec:"username" json:"username"`
+	DeviceName string `codec:"deviceName" json:"deviceName"`
+}
+
+type ProvisionerSuccessArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	DeviceName string `codec:"deviceName" json:"deviceName"`
+	DeviceType string `codec:"deviceType" json:"deviceType"`
 }
 
 type ProvisionUiInterface interface {
@@ -3997,7 +4005,8 @@ type ProvisionUiInterface interface {
 	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) ([]byte, error)
 	DisplaySecretExchanged(context.Context, int) error
 	PromptNewDeviceName(context.Context, PromptNewDeviceNameArg) (string, error)
-	ProvisionSuccess(context.Context, int) error
+	ProvisioneeSuccess(context.Context, ProvisioneeSuccessArg) error
+	ProvisionerSuccess(context.Context, ProvisionerSuccessArg) error
 }
 
 func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
@@ -4084,18 +4093,34 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"ProvisionSuccess": {
+			"ProvisioneeSuccess": {
 				MakeArg: func() interface{} {
-					ret := make([]ProvisionSuccessArg, 1)
+					ret := make([]ProvisioneeSuccessArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]ProvisionSuccessArg)
+					typedArgs, ok := args.(*[]ProvisioneeSuccessArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]ProvisionSuccessArg)(nil), args)
+						err = rpc.NewTypeError((*[]ProvisioneeSuccessArg)(nil), args)
 						return
 					}
-					err = i.ProvisionSuccess(ctx, (*typedArgs)[0].SessionID)
+					err = i.ProvisioneeSuccess(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"ProvisionerSuccess": {
+				MakeArg: func() interface{} {
+					ret := make([]ProvisionerSuccessArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ProvisionerSuccessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ProvisionerSuccessArg)(nil), args)
+						return
+					}
+					err = i.ProvisionerSuccess(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4135,9 +4160,13 @@ func (c ProvisionUiClient) PromptNewDeviceName(ctx context.Context, __arg Prompt
 	return
 }
 
-func (c ProvisionUiClient) ProvisionSuccess(ctx context.Context, sessionID int) (err error) {
-	__arg := ProvisionSuccessArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.provisionUi.ProvisionSuccess", []interface{}{__arg}, nil)
+func (c ProvisionUiClient) ProvisioneeSuccess(ctx context.Context, __arg ProvisioneeSuccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.ProvisioneeSuccess", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ProvisionUiClient) ProvisionerSuccess(ctx context.Context, __arg ProvisionerSuccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.ProvisionerSuccess", []interface{}{__arg}, nil)
 	return
 }
 

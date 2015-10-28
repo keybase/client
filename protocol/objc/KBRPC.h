@@ -1095,8 +1095,15 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property NSArray *existingDevices;
 @end
-@interface KBRProvisionSuccessRequestParams : KBRRequestParams
+@interface KBRProvisioneeSuccessRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@property NSString *username;
+@property NSString *deviceName;
+@end
+@interface KBRProvisionerSuccessRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *deviceName;
+@property NSString *deviceType;
 @end
 @interface KBRVerifySessionRequestParams : KBRRequestParams
 @property NSString *session;
@@ -1925,9 +1932,18 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)promptNewDeviceNameWithExistingDevices:(NSArray *)existingDevices completion:(void (^)(NSError *error, NSString *str))completion;
 
 /*!
- ProvisionSuccess is called after device provisioning runs successfully.
+ ProvisioneeSuccess is called on provisionee when it is successfully provisioned.
  */
-- (void)provisionSuccess:(void (^)(NSError *error))completion;
+- (void)provisioneeSuccess:(KBRProvisioneeSuccessRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)provisioneeSuccessWithUsername:(NSString *)username deviceName:(NSString *)deviceName completion:(void (^)(NSError *error))completion;
+
+/*!
+ ProvisionerSuccess is called on provisioner when it successfully provisions another device.
+ */
+- (void)provisionerSuccess:(KBRProvisionerSuccessRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)provisionerSuccessWithDeviceName:(NSString *)deviceName deviceType:(NSString *)deviceType completion:(void (^)(NSError *error))completion;
 
 @end
 

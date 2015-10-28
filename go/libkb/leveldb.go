@@ -48,7 +48,7 @@ func (l *LevelDb) ForceOpen() error {
 
 func (l *LevelDb) GetFilename() string {
 	if len(l.filename) == 0 {
-		l.G().Log.Warning("data dir: %s", l.G().Env.GetDataDir())
+		l.G().Log.Debug("data dir: %s", l.G().Env.GetDataDir())
 		l.filename = l.G().Env.GetDbFilename()
 	}
 	return l.filename

@@ -136,7 +136,20 @@ func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) 
 	return nil
 }
 
-func (p ProvisionUI) ProvisionSuccess(ctx context.Context, sessionID int) error {
-	p.parent.Output("Device successfully provisioned.\n\n")
+func (p ProvisionUI) ProvisioneeSuccess(ctx context.Context, arg keybase1.ProvisioneeSuccessArg) error {
+	p.parent.Printf(CHECK + " Success! You provisioned your device " + ColorString("bold", arg.DeviceName) + ".\n\n")
+	p.parent.Printf("You are logged in as " + ColorString("bold", arg.Username) + "\n")
+	// turn on when kbfs active:
+	if false {
+		p.parent.Printf("  - your keybase public directory is available at /keybase/public/%s\n", arg.Username)
+		p.parent.Printf("  - your keybase encrypted directory is available at /keybase/private/%s\n", arg.Username)
+	}
+
+	p.parent.Printf("  - type `keybase help` for more info.\n")
+	return nil
+}
+
+func (p ProvisionUI) ProvisionerSuccess(ctx context.Context, arg keybase1.ProvisionerSuccessArg) error {
+	p.parent.Printf(CHECK + " Success! You added a new device named " + ColorString("bold", arg.DeviceName) + " to your account.\n\n")
 	return nil
 }
