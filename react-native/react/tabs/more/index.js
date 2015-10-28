@@ -3,6 +3,7 @@
 import React, { Component, StyleSheet, View } from 'react-native'
 import { navigateTo } from '../../actions/router'
 import MenuList from './menu-list'
+import { isDev } from '../../constants/platform'
 
 export default class More extends Component {
   render () {
@@ -33,7 +34,7 @@ export default class More extends Component {
       }}
     ]
 
-    if (__DEV__) { // eslint-disable-line no-undef
+    if (isDev) {
       menuItems.push({
         name: 'Dev Menu',
         hasChildren: true,
