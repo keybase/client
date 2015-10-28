@@ -4,9 +4,6 @@ import React, { Component, Text, TextInput, View, StyleSheet } from 'react-nativ
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 
-// TODO:
-// [ ] - hook up on email chnage
-
 export default class Account extends Component {
 
   constructor (props) {

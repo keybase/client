@@ -16,7 +16,7 @@ export default class More extends Component {
         this.props.navigateTo(['billing'])
       }},
       {name: 'App Preferences', hasChildren: true, onClick: () => {
-        this.props.navigateTo(['app-prefs'])
+        this.props.navigateTo(['appPrefs'])
       }},
       {name: `Invitations (${dummyInvitationCount})`, hasChildren: true, onClick: () => {
         this.props.navigateTo(['invites'])
@@ -25,7 +25,7 @@ export default class More extends Component {
         this.props.navigateTo(['notifs'])
       }},
       {name: 'Delete me', hasChildren: true, onClick: () => {
-        this.props.navigateTo(['delete-me'])
+        this.props.navigateTo(['deleteMe'])
       }},
 
       {name: 'About', hasChildren: true, onClick: () => {
@@ -61,10 +61,10 @@ export default class More extends Component {
         about: require('./about'),
         account: require('./account'),
         billing: require('./about'),
-        'app-prefs': require('./about'),
+        appPrefs: require('./about'),
         invites: require('./about'),
         notifs: require('./about'),
-        'delete-me': require('./about'),
+        deleteMe: require('./about'),
         devMenu: require('./dev-menu')
       }
     }
