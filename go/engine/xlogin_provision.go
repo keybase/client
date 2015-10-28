@@ -556,12 +556,21 @@ func (e *XLoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBund
 		return nil, err
 	}
 
-	// unlock it with gpg
+	// import it with gpg
 	cli, err := e.gpgClient()
 	if err != nil {
 		return nil, err
 	}
-	return cli.ImportKey(true, *fp)
+	bundle, err := cli.ImportKey(true, *fp)
+	if err != nil {
+		return nil, err
+	}
+
+	// unlock it
+	if err := bundle.Unlock("sign new device", ctx.SecretUI); err != nil {
+		return nil, err
+	}
+	return bundle, nil
 }
 
 // selectGPGKey creates an index of the private gpg keys and
