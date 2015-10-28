@@ -141,6 +141,8 @@ type ConfigWriter interface {
 	DeleteAtPath(string)
 	Reset()
 	Write() error
+	SaveTmp(suffix string) (string, error)
+	SwapTmp(filename string) error
 }
 
 type HTTPRequest interface {

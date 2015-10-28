@@ -86,9 +86,14 @@ func (f *JSONFile) Save(pretty bool, mode os.FileMode) error {
 	return nil
 }
 
-func (f *JSONFile) SaveTmp(suffix string) error {
+// SaveTmp saves the config to a temporary file.  It returns the
+// filename and any error.
+func (f *JSONFile) SaveTmp(suffix string) (string, error) {
 	filename := path.Join(os.TempDir(), fmt.Sprintf("keybase_config_%s.json", suffix))
-	return f.save(filename, true, 0)
+	if err := f.save(filename, true, 0); err != nil {
+		return "", err
+	}
+	return filename, nil
 }
 
 func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err error) {
@@ -154,4 +159,11 @@ func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err err
 
 	G.Log.Debug(fmt.Sprintf("- saved %s file %s", f.which, filename))
 	return
+}
+
+func (f *JSONFile) SwapTmp(filename string) error {
+	if err := MakeParentDirs(f.filename); err != nil {
+		return err
+	}
+	return os.Rename(filename, f.filename)
 }
