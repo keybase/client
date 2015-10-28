@@ -13,8 +13,6 @@
 
 @interface KBServiceConfig : NSObject
 
-@property (readonly) NSString *versionPath;
-
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
 - (NSDictionary *)launchdPlistDictionary:(NSString *)label;

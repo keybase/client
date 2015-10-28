@@ -10,7 +10,7 @@
 
 #import "KBRPC.h"
 
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 @class KBGPGKeysView;
 

@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBProveInputView.h"
 #import "KBProveInstructionsView.h"
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 #import "KBRPC.h"
 #import "KBProofResult.h"
 

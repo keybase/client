@@ -9,7 +9,8 @@
 #import "KBFSService.h"
 #import "KBDebugPropertiesView.h"
 #import "KBFSConfig.h"
-#import "KBLaunchService.h"
+#import "KBKeybaseLaunchd.h"
+#import "KBSemVersion.h"
 
 @interface KBFSService ()
 @property NSString *name;
@@ -17,7 +18,9 @@
 @property (getter=isInstallDisabled) BOOL installDisabled;
 
 @property KBFSConfig *kbfsConfig;
-@property KBLaunchService *launchService;
+@property NSString *label;
+@property KBSemVersion *bundleVersion;
+@property KBComponentStatus *componentStatus;
 
 @property KBEnvConfig *config;
 
@@ -32,13 +35,9 @@
     _name = @"KBFS";
     _info = @"The filesystem";
     _kbfsConfig = [[KBFSConfig alloc] initWithConfig:_config];
-
-    if (label) {
-      NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-      NSDictionary *plist = [_kbfsConfig launchdPlistDictionary:label];
-      KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
-      _launchService = [[KBLaunchService alloc] initWithLabel:label bundleVersion:bundleVersion versionPath:_kbfsConfig.versionPath plist:plist logFile:[config logFile:label]];
-    }
+    _label = label;
+    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+    _bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
   }
   return self;
 }
@@ -55,10 +54,7 @@
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
 
-  info[@"Launchd"] = _launchService.label ? _launchService.label : @"-";
-
-  GHODictionary *statusInfo = [_launchService componentStatusInfo];
-  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
+  if (_componentStatus.info) [info addEntriesFromOrderedDictionary:_componentStatus.info];
 
   YOView *view = [[YOView alloc] init];
   KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];
@@ -76,67 +72,35 @@
 
 - (void)install:(KBCompletion)completion {
   NSString *mountDir = [self.config mountDir];
-  GHWeakSelf gself = self;
-
   NSError *error = nil;
   if (![KBPath ensureDirectory:mountDir error:&error]) {
     completion(error);
     return;
   }
 
-  if (![KBPath ensureDirectory:[_config appPath:nil options:0] error:&error]) {
-    completion(error);
-    return;
-  }
-
-  if (![KBPath ensureDirectory:[_config cachePath:nil options:0] error:&error]) {
-    completion(error);
-    return;
-  }
-
-  if (![KBPath ensureDirectory:[_config runtimePath:nil options:0] error:&error]) {
-    completion(error);
-    return;
-  }
-
-  [gself.launchService installWithTimeout:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-    if ([serviceStatus.lastExitStatus integerValue] == 3) {
-      completion(KBMakeError(-1, @"Failed with a mount error"));
-    } else {
-      completion(componentStatus.error);
-    }
-  }];
+  NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
+  [KBKeybaseLaunchd install:binPath label:_label args:@[mountDir] completion:completion];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  [_launchService uninstall:completion];
+  [KBKeybaseLaunchd run:[_config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"uninstall", _label] completion:completion];
 }
 
 - (void)start:(KBCompletion)completion {
-  [_launchService start:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-    completion(componentStatus.error);
-  }];
+  [KBKeybaseLaunchd run:[_config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"start", _label] completion:completion];
 }
 
 - (void)stop:(KBCompletion)completion {
-  [_launchService stop:completion];
+  [KBKeybaseLaunchd run:[_config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"stop", _label] completion:completion];
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
-  if (!_launchService) {
+  GHWeakSelf gself = self;
+  [KBKeybaseLaunchd status:[_config serviceBinPathWithPathOptions:0 useBundle:YES] name:@"kbfs" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
+    gself.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     [self componentDidUpdate];
-    completion(nil);
-    return;
-  }
-
-  [_launchService updateComponentStatus:0 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-    [self componentDidUpdate];
-    completion(componentStatus.error);
+    completion(error);
   }];
-}
-
-- (KBComponentStatus *)componentStatus {
-  return _launchService.componentStatus;
 }
 
 @end

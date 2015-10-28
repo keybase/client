@@ -7,7 +7,7 @@
 //
 
 #import "KBPrefCheckbox.h"
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 @interface KBPrefCheckbox ()
 @property KBLabel *categoryLabel; // Optional

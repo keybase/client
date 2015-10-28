@@ -55,6 +55,13 @@
 }
 
 - (void)open {
+  [self setup];
+  [self selectEnv:^(KBEnvironment *environment) {
+    [self openWithEnvironment:environment];
+  }];
+}
+
+- (void)setup {
   _preferences = [[KBPreferences alloc] init];
 
   _consoleView = [[KBConsoleView alloc] init];
@@ -83,15 +90,16 @@
   NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
   [userDefaults setObject:version forKey:@"InstallVersion"];
   [userDefaults synchronize];
+}
 
+- (void)selectEnv:(void (^)(KBEnvironment *env))completion {
   KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
   KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(900, 600) retain:YES];
   envSelectView.onSelect = ^(KBEnvConfig *envConfig) {
     [window close];
-    [KBEnvironment lookupForConfig:envConfig completion:^(KBEnvironment *environment) {
-      [self openWithEnvironment:environment];
-    }];
+    KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig];
+    [self openWithEnvironment:environment];
   };
   window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask;
   [window center];
@@ -108,12 +116,11 @@
   _appView = [[KBAppView alloc] init];
   [_appView openWindow];
 
-  NSMutableArray *componentsForControlPanel = [environment.componentsForControlPanel mutableCopy];
-  [componentsForControlPanel addObject:_appView];
+//  NSMutableArray *componentsForControlPanel = [environment.componentsForControlPanel mutableCopy];
+//  [componentsForControlPanel addObject:_appView];
+//  [componentsForControlPanel addObject:[[KBStyleGuideView alloc] init]];
+//  [_controlPanel addComponents:componentsForControlPanel];
 
-  [componentsForControlPanel addObject:[[KBStyleGuideView alloc] init]];
-
-  [_controlPanel addComponents:componentsForControlPanel];
   [_controlPanel open:_appView];
 
   [_appView openWithEnvironment:environment completion:^(NSError *error) {}];

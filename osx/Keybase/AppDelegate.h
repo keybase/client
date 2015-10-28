@@ -8,7 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import <KBKit/KBApp.h>
+@import KBKit;
 
 
 @interface AppDelegate : NSObject <KBAppDelegate>

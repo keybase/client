@@ -9,9 +9,9 @@
 #import <Foundation/Foundation.h>
 
 #import "KBRPC.h"
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 #import "KBRPC.h"
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 @interface KBProveInstructionsView : YOView
 

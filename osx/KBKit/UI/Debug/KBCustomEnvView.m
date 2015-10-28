@@ -49,17 +49,17 @@
 //  _develButton.state = NSOnState;
 //  [self addSubview:_develButton];
 
-  KBLabel *serviceLabel = [KBLabel labelWithText:@"Service Command" style:KBTextStyleHeader];
-  [self addSubview:serviceLabel];
-  _serviceCLI = [KBLabel label];
-  _serviceCLI.selectable = YES;
-  [self addSubview:_serviceCLI];
+//  KBLabel *serviceLabel = [KBLabel labelWithText:@"Service Command" style:KBTextStyleHeader];
+//  [self addSubview:serviceLabel];
+//  _serviceCLI = [KBLabel label];
+//  _serviceCLI.selectable = YES;
+//  [self addSubview:_serviceCLI];
 
-  KBLabel *kbfsLabel = [KBLabel labelWithText:@"KBFS Command" style:KBTextStyleHeader];
-  [self addSubview:kbfsLabel];
-  _kbfsCLI = [KBLabel label];
-  _kbfsCLI.selectable = YES;
-  [self addSubview:_kbfsCLI];
+//  KBLabel *kbfsLabel = [KBLabel labelWithText:@"KBFS Command" style:KBTextStyleHeader];
+//  [self addSubview:kbfsLabel];
+//  _kbfsCLI = [KBLabel label];
+//  _kbfsCLI.selectable = YES;
+//  [self addSubview:_kbfsCLI];
 
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
@@ -74,10 +74,10 @@
 //    y += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.develButton].size.height + 10;
     x = 10;
     y += 20;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:serviceLabel].size.height + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.serviceCLI].size.height + 20;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:kbfsLabel].size.height + 10;
-    y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.kbfsCLI].size.height + 10;
+    //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:serviceLabel].size.height + 10;
+    //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.serviceCLI].size.height + 20;
+    //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:kbfsLabel].size.height + 10;
+    //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.kbfsCLI].size.height + 10;
 
     return size;
   }];
@@ -103,10 +103,10 @@
 - (void)updateCLI:(KBEnvConfig *)config {
 
   KBServiceConfig *serviceConfig = [[KBServiceConfig alloc] initWithConfig:config];
-  NSString *serviceCLI = NSStringWithFormat(@"env -i %@", [serviceConfig commandLineWithPathOptions:KBPathOptionsEscape]);
+  NSString *serviceCLI = NSStringWithFormat(@"%@", [serviceConfig commandLineWithPathOptions:KBPathOptionsEscape]);
 
   KBFSConfig *kbfsConfig = [[KBFSConfig alloc] initWithConfig:config];
-  NSString *kbfsCLI = NSStringWithFormat(@"env -i %@", [kbfsConfig commandLineWithPathOptions:KBPathOptionsEscape]);
+  NSString *kbfsCLI = NSStringWithFormat(@"%@", [kbfsConfig commandLineWithPathOptions:KBPathOptionsEscape]);
 
   [_serviceCLI setText:serviceCLI style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 

@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 @interface KBComposeTextView : KBTextView
 

@@ -11,23 +11,24 @@
 
 @implementation KBLaunchCtl
 
-+ (void)reload:(NSString *)plist label:(NSString *)label completion:(KBOnLaunchStatus)completion {
++ (void)reload:(NSString *)plist label:(NSString *)label completion:(KBOnLaunchCtlStatus)completion {
   [self unload:plist label:label disable:NO completion:^(NSError *unloadError, NSString *unloadOutput) {
     [self load:plist label:label force:YES completion:^(NSError *loadError, NSString *loadOutput) {
-      [self status:label completion:^(KBServiceStatus *serviceStatus) {
+      [self status:label completion:^(KBLaunchdStatus *serviceStatus) {
         completion(serviceStatus);
       }];
     }];
   }];
 }
 
-+ (void)load:(NSString *)plist label:(NSString *)label force:(BOOL)force completion:(KBOnLaunchExecution)completion {
++ (void)load:(NSString *)plist label:(NSString *)label force:(BOOL)force completion:(KBOnLaunchCtlExecution)completion {
   NSMutableArray *args = [NSMutableArray array];
   [args addObject:@"load"];
   if (force) [args addObject:@"-w"];
   [args addObject:plist];
   DDLogDebug(@"Loading %@", label);
-  [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSString *output) {
+  [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSData *data) {
+    NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     DDLogDebug(@"Output: %@", output);
     if (error) {
       completion(error, output);
@@ -39,14 +40,15 @@
   }];
 }
 
-+ (void)unload:(NSString *)plist label:(NSString *)label disable:(BOOL)disable completion:(KBOnLaunchExecution)completion {
++ (void)unload:(NSString *)plist label:(NSString *)label disable:(BOOL)disable completion:(KBOnLaunchCtlExecution)completion {
   NSParameterAssert(plist);
   NSMutableArray *args = [NSMutableArray array];
   [args addObject:@"unload"];
   if (disable) [args addObject:@"-w"];
   [args addObject:plist];
   DDLogDebug(@"Unloading %@", label);
-  [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSString *output) {
+  [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSData *data) {
+    NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     DDLogDebug(@"Output: %@", output);
     if (error) {
       completion(error, output);
@@ -62,12 +64,13 @@
   }];
 }
 
-+ (void)status:(NSString *)label completion:(KBOnLaunchStatus)completion {
++ (void)status:(NSString *)label completion:(KBOnLaunchCtlStatus)completion {
   NSParameterAssert(label);
   DDLogDebug(@"Checking launchd status for %@", label);
-  [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSString *output) {
+  [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSData *data) {
+    NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     if (error) {
-      completion([KBServiceStatus error:error]);
+      completion([KBLaunchdStatus error:error]);
       return;
     }
     for (NSString *line in [output componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
@@ -77,7 +80,7 @@
         NSNumber *pid = KBNumberFromString(info[0]);
         // Only parse exit status if PID is not set
         NSNumber *lastExitStatus = !pid ? KBNumberFromString(info[1]) : nil;
-        completion([KBServiceStatus serviceStatusWithPid:pid lastExitStatus:lastExitStatus label:label]);
+        completion([KBLaunchdStatus serviceStatusWithPid:pid lastExitStatus:lastExitStatus label:label]);
         return;
       }
     }
@@ -86,7 +89,7 @@
 }
 
 + (void)waitForUnloadWithLabel:(NSString *)label attempt:(NSInteger)attempt completion:(void (^)(NSError *error))completion {
-  [self status:label completion:^(KBServiceStatus *status) {
+  [self status:label completion:^(KBLaunchdStatus *status) {
     if (!status || !status.isRunning) {
       DDLogDebug(@"%@ is not running (%@)", label, KBOr(status.info, @"-"));
       completion(nil);
@@ -104,7 +107,7 @@
 }
 
 + (void)waitForLoadWithLabel:(NSString *)label attempt:(NSInteger)attempt completion:(void (^)(NSError *error))completion {
-  [self status:label completion:^(KBServiceStatus *status) {
+  [self status:label completion:^(KBLaunchdStatus *status) {
     if (status && status.isRunning) {
       DDLogDebug(@"%@ is running: %@", status.label, status.pid);
       completion(nil);
@@ -121,7 +124,7 @@
   }];
 }
 
-+ (void)execute:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error, NSString *output))completion {
++ (void)execute:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error, NSData *data))completion {
   NSTask *task = [[NSTask alloc] init];
   task.launchPath = command;
   task.arguments = args;
@@ -132,13 +135,17 @@
     //DDLogDebug(@"Task: \"%@ %@\" (%@)", command, [args componentsJoinedByString:@" "], @(t.terminationStatus));
     NSFileHandle *read = [outpipe fileHandleForReading];
     NSData *data = [read readDataToEndOfFile];
-    NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     dispatch_async(dispatch_get_main_queue(), ^{
       // TODO Check termination status and complete with error if > 0
-      completion(nil, output);
+      completion(nil, data);
     });
   };
-  [task launch];
+
+  @try {
+    [task launch];
+  } @catch (NSException *e) {
+    completion(KBMakeError(-1, @"%@", e.reason), nil);
+  }
 }
 
 @end

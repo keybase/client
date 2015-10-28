@@ -31,7 +31,7 @@ The bundled version info is read from the Keybase.app Info.plist (KBServiceVersi
 
 We read from a version file, because it's possible after an upgrade that the service running and the service installed will be different, and we need to tell launch services to restart it.
 
-### Privileged Helper Tool 
+### Privileged Helper Tool
 
 The bundled version info is read from the Keybase.app Info.plist (KBHelperVersion). The installed/running version is checked by making a version (XPC) request. The install process relies on the ServiceManagement.framework (and OS) to install the privileged helper tool. See [Writing a Privileged Helper](https://developer.apple.com/library/mac/documentation/Security/Conceptual/SecureCodingGuide/Articles/AccessControl.html#//apple_ref/doc/uid/TP40002589-SW2) for more info.
 
@@ -48,4 +48,3 @@ The installed version info is read from `/Library/Filesystems/osxfusefs.fs/Suppo
 The running version is queried from calling `KextManagerCopyLoadedKextInfo` from the privileged helper tool.
 
 When upgrading we have to be careful to make sure KBFS is shutdown and there aren't any mounts.
-

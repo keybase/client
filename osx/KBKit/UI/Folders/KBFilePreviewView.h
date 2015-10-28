@@ -10,7 +10,7 @@
 
 #import "KBFile.h"
 
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 @interface KBFilePreviewView : YOView
 

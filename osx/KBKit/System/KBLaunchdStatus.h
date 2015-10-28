@@ -1,5 +1,5 @@
 //
-//  KBServiceStatus.h
+//  KBLaunchdStatus.h
 //  Keybase
 //
 //  Created by Gabriel on 5/11/15.
@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KBServiceStatus : NSObject
+@interface KBLaunchdStatus : NSObject
 
 @property (readonly) NSString *label;
 @property (readonly) NSNumber *pid;

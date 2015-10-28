@@ -8,7 +8,7 @@
 
 #import "KBFilePreviewView.h"
 
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 @interface KBFilePreviewView ()
 @property KBImageView *imageView;

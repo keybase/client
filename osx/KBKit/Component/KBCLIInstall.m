@@ -50,7 +50,7 @@
   NSError *error = nil;
   NSString *destination = [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:LINK_SOURCE error:&error];
   if (error) {
-    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
     completion(nil);
     //self.componentStatus = [KBComponentStatus componentStatusWithError:error];
     //completion(error);
@@ -63,14 +63,14 @@
   // This will follow the symlink (to check if symlink exists you'd have to look for attributesOfItemAtPath:)
   if ([NSFileManager.defaultManager fileExistsAtPath:linkSource isDirectory:nil]) {
     if ([destination isEqualToString:linkDestination]) {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
       completion(nil);
     } else {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusNone info:nil];
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusNone info:nil];
       completion(nil);
     }
   } else {
-    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled runtimeStatus:KBRuntimeStatusNone info:nil];
     completion(nil);
   }
 }

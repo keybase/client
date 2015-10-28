@@ -10,7 +10,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <MASPreferences/MASPreferencesWindowController.h>
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 #import "KBPrefGeneralView.h"
 #import "KBPrefAdvancedView.h"

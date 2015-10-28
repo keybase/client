@@ -8,15 +8,15 @@
 
 #import <Foundation/Foundation.h>
 
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 #import "KBDefines.h"
 
-typedef void (^KBWork)(KBCompletion completion);
+typedef void (^KBOnWork)(KBCompletion completion);
 
 @interface KBProgressView : YOView
 
-@property (copy) KBWork work;
+@property (copy) KBOnWork work;
 
 - (void)setProgressTitle:(NSString *)progressTitle;
 

@@ -10,7 +10,7 @@
 
 #import "KBRPC.h"
 #import "KBSearchResults.h"
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 @interface KBSearcher : NSObject
 

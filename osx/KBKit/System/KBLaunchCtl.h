@@ -8,10 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBServiceStatus.h"
+#import "KBLaunchdStatus.h"
 
-typedef void (^KBOnLaunchExecution)(NSError *error, NSString *output);
-typedef void (^KBOnLaunchStatus)(KBServiceStatus *serviceStatus);
+typedef void (^KBOnLaunchCtlExecution)(NSError *error, NSString *output);
+typedef void (^KBOnLaunchCtlStatus)(KBLaunchdStatus *serviceStatus);
 
 
 @interface KBLaunchCtl : NSObject
@@ -19,7 +19,7 @@ typedef void (^KBOnLaunchStatus)(KBServiceStatus *serviceStatus);
 /*!
  @param force Enables service even if it has been disabled (launchctl load -w)
  */
-+ (void)load:(NSString *)plist label:(NSString *)label force:(BOOL)force completion:(KBOnLaunchExecution)completion;
++ (void)load:(NSString *)plist label:(NSString *)label force:(BOOL)force completion:(KBOnLaunchCtlExecution)completion;
 
 /*!
  Unload service.
@@ -27,10 +27,12 @@ typedef void (^KBOnLaunchStatus)(KBServiceStatus *serviceStatus);
  @param label If you want to wait for it to unload, specify the label (if nil, will not wait).
  @param disable If YES, disables service so it won't restart (launchctl unload -w)
  */
-+ (void)unload:(NSString *)plist label:(NSString *)label disable:(BOOL)disable completion:(KBOnLaunchExecution)completion;
++ (void)unload:(NSString *)plist label:(NSString *)label disable:(BOOL)disable completion:(KBOnLaunchCtlExecution)completion;
 
-+ (void)reload:(NSString *)plist label:(NSString *)label completion:(KBOnLaunchStatus)completion;
++ (void)reload:(NSString *)plist label:(NSString *)label completion:(KBOnLaunchCtlStatus)completion;
 
-+ (void)status:(NSString *)label completion:(KBOnLaunchStatus)completion;
++ (void)status:(NSString *)label completion:(KBOnLaunchCtlStatus)completion;
+
++ (void)execute:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error, NSData *data))completion;
 
 @end

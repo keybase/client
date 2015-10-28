@@ -17,24 +17,31 @@ PODS:
   - AFNetworking/Reachability (2.6.1)
   - AFNetworking/Security (2.6.1)
   - AFNetworking/Serialization (2.6.1)
-  - CocoaLumberjack (2.0.3):
-    - CocoaLumberjack/Default (= 2.0.3)
-    - CocoaLumberjack/Extensions (= 2.0.3)
-  - CocoaLumberjack/Core (2.0.3)
-  - CocoaLumberjack/Default (2.0.3):
+  - CocoaLumberjack (2.2.0):
+    - CocoaLumberjack/Default (= 2.2.0)
+    - CocoaLumberjack/Extensions (= 2.2.0)
+  - CocoaLumberjack/Core (2.2.0)
+  - CocoaLumberjack/Default (2.2.0):
     - CocoaLumberjack/Core
-  - CocoaLumberjack/Extensions (2.0.3):
+  - CocoaLumberjack/Extensions (2.2.0):
     - CocoaLumberjack/Default
   - GHKeychain (1.2.8)
   - GHKit (2.0.0)
   - GHODictionary (1.0.9)
-  - KBAppKit (0.1.6):
+  - KBKit (0.1.6):
     - AFNetworking
     - CocoaLumberjack
+    - GHKeychain
     - GHKit
+    - GHODictionary
+    - Mantle
+    - MASPreferences
+    - MDPSplitView
+    - MPMessagePack
     - ObjectiveSugar
-    - Slash
-    - YOLayout (~> 0.2.3)
+    - Tikppa
+    - YOLayout
+    - ZXCVBN
   - Mantle (2.0.5):
     - Mantle/extobjc (= 2.0.5)
   - Mantle/extobjc (2.0.5)
@@ -48,41 +55,39 @@ PODS:
     - Slash/no-arc (= 0.1.2)
   - Slash/arc (0.1.2)
   - Slash/no-arc (0.1.2)
+  - Tikppa (0.1.1):
+    - AFNetworking
+    - CocoaLumberjack
+    - GHKit
+    - ObjectiveSugar
+    - Slash
+    - YOLayout
   - YOLayout (0.2.12)
   - ZXCVBN (1.0.5)
 
 DEPENDENCIES:
-  - AFNetworking
-  - CocoaLumberjack
-  - GHKeychain
-  - GHKit
-  - GHODictionary
-  - KBAppKit (from `.`)
-  - Mantle
-  - MASPreferences
-  - MDPSplitView
+  - KBKit (from `.`)
   - MPMessagePack
   - ObjectiveSugar
-  - YOLayout
-  - ZXCVBN
 
 EXTERNAL SOURCES:
-  KBAppKit:
+  KBKit:
     :path: "."
 
 SPEC CHECKSUMS:
   AFNetworking: 8e4e60500beb8bec644cf575beee72990a76d399
-  CocoaLumberjack: f58d8a19629f4d8379ae14bb3534def24161430e
+  CocoaLumberjack: 17fe8581f84914d5d7e6360f7c70022b173c3ae0
   GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
   GHODictionary: 1f7873492445e0f33ac19575a358c3c91926b564
-  KBAppKit: 979d91841106c7674dbc6245bd93d07ef487b26c
+  KBKit: 7a54fc1e54c4b97abd503b215fec0270cd55ac5f
   Mantle: 1912395033f601de5adc8ee91e48f46e4c7051ad
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
   MPMessagePack: 23bbb933ef1046edcf104e3556ab4a6b4b0a69d4
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
+  Tikppa: 3d4fca3d897592397d33d28cf594a9ae53cf966e
   YOLayout: 3f5b3ac64f9018f1e63a19223dbb8382c37d58cb
   ZXCVBN: f3888e3f6363b8cf57bcc32857a9bc09f9f9e18e
 

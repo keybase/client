@@ -13,7 +13,7 @@
 #import "KBViews.h"
 #import "KBFolderUsersView.h"
 #import "KBFolderAddView.h"
-#import "AppDelegate.h"
+#import "KBApp.h"
 
 @interface KBFoldersView ()
 @property NSSegmentedControl *segmentedControl;

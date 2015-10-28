@@ -10,7 +10,7 @@
 
 #import "KBRPC.h"
 #import "KBGPGKeysView.h"
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 typedef void (^KBKeySelectViewCompletion)(id sender, id response);
 

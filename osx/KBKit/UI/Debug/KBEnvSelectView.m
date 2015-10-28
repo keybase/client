@@ -19,7 +19,7 @@
 #import "KBInstaller.h"
 #import "MDPSplitView.h"
 
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 @interface KBEnvSelectView ()
 @property MDPSplitView *splitView;

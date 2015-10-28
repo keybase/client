@@ -44,9 +44,24 @@
 
 
 NSArray *KBRValidateArray(id array, Class clazz) {
+  // TODO: Only in debug
   if (![array isKindOfClass:NSArray.class]) return nil;
   for (id obj in array) {
     if (![obj isKindOfClass:clazz]) return nil;
   }
   return array;
+}
+
+NSDictionary *KBRValidateDictionary(id dict, Class clazz) {
+  // TODO: Only in debug
+  if (![dict isKindOfClass:NSDictionary.class]) return nil;
+  __block BOOL failed = NO;
+  [dict enumerateKeysAndObjectsUsingBlock:^(id key, id value, BOOL* stop) {
+    if (![key isKindOfClass:NSString.class] || ![value isKindOfClass:clazz]) {
+      failed = YES;
+      *stop = YES;
+    }
+  }];
+  if (failed) return nil;
+  return dict;
 }

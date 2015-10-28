@@ -33,7 +33,7 @@
   GHODictionary *info = [GHODictionary dictionary];
 
   info[@"Status Error"] = _componentStatus.error.localizedDescription;
-  info[@"Install Status"] = NSStringFromKBInstallStatus(_componentStatus.installStatus);
+  info[@"Install Status"] = NSStringFromKBRInstallStatus(_componentStatus.installStatus);
   info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(_componentStatus.runtimeStatus);
 
   return info;

@@ -93,7 +93,7 @@
 
     if ([installable.componentStatus needsInstallOrUpgrade]) {
       [topView addSubview:[KBButton buttonWithText:installable.componentStatus.actionLabel style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self install:installable]; }]];
-    } else if (installable.componentStatus.installStatus == KBInstallStatusInstalled) {
+    } else if (installable.componentStatus.installStatus == KBRInstallStatusInstalled) {
       [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self uninstall:installable]; }]];
     }
 

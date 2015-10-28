@@ -26,7 +26,7 @@
 #import "KBDebugViews.h"
 #import "KBAppProgressView.h"
 #import "KBSecretPromptView.h"
-#import "KBInstallerView.h"
+#import "KBStatusView.h"
 #import "KBAppDebug.h"
 #import "KBNotifications.h"
 #import "KBErrorStatusView.h"
@@ -115,11 +115,14 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall) {
+    [self showStatusView:environment completion:completion];
+    /*
     if (needsInstall) {
-      [self showInstaller:environment completion:completion];
+      [self showStatusView:environment completion:completion];
     } else {
       [self connect:completion];
     }
+     */
   }];
 }
 
@@ -229,8 +232,8 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   }];
 }
 
-- (void)showInstaller:(KBEnvironment *)environment completion:(KBCompletion)completion {
-  KBInstallerView *view = [[KBInstallerView alloc] init];
+- (void)showStatusView:(KBEnvironment *)environment completion:(KBCompletion)completion {
+  KBStatusView *view = [[KBStatusView alloc] init];
   [view setEnvironment:environment];
   view.completion = ^() {
     [self showConnect:completion];

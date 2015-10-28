@@ -10,7 +10,7 @@
 
 #import "KBDefines.h"
 #import "KBPath.h"
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 
 @interface KBEnvConfig ()
 @property NSString *homeDir;
@@ -105,6 +105,19 @@
   return [KBPath pathInDir:homeDir path:cachePath options:options];
 }
 
+- (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions useBundle:(BOOL)useBundle {
+  if (!useBundle) return [self binName];
+  return [KBPath pathInDir:self.bundle.sharedSupportPath path:NSStringWithFormat(@"bin/%@", [self binName]) options:pathOptions];
+}
+
+- (NSString *)binName {
+  switch(_runMode) {
+    case KBRunModeDevel: return @"kbdev";
+    case KBRunModeStaging: return @"kbstage";
+    case KBRunModeProd: return @"keybase";
+  }
+}
+
 - (NSString *)homeDir {
   NSString *homeDir = _homeDir ? _homeDir : @"~";
   return [KBPath path:homeDir options:0];
@@ -169,18 +182,18 @@
 - (NSString *)launchdServiceLabel {
   if (_installDisabled) return nil;
   switch (_runMode) {
-    case KBRunModeDevel: return @"keybase.Service.devel";
-    case KBRunModeStaging: return @"keybase.Service.staging";
-    case KBRunModeProd: return @"keybase.Service.prod";
+    case KBRunModeDevel: return @"keybase.service.devel";
+    case KBRunModeStaging: return @"keybase.service.staging";
+    case KBRunModeProd: return @"keybase.service";
   }
 }
 
 - (NSString *)launchdKBFSLabel {
   if (_installDisabled) return nil;
   switch (_runMode) {
-    case KBRunModeDevel: return @"keybase.KBFS.devel";
-    case KBRunModeStaging: return @"keybase.KBFS.staging";
-    case KBRunModeProd: return @"keybase.KBFS.prod";
+    case KBRunModeDevel: return @"keybase.kbfs.devel";
+    case KBRunModeStaging: return @"keybase.kbfs.staging";
+    case KBRunModeProd: return @"keybase.kbfs";
   }
 }
 

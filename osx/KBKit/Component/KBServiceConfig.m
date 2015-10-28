@@ -10,10 +10,10 @@
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <GHKit/GHKit.h>
+#import "KBLaunchdPlist.h"
 
 @interface KBServiceConfig ()
 @property KBEnvConfig *config;
-@property NSString *versionPath;
 @end
 
 @implementation KBServiceConfig
@@ -21,24 +21,22 @@
 - (instancetype)initWithConfig:(KBEnvConfig *)config {
   if ((self = [self init])) {
     _config = config;
-
-    _versionPath = [config runtimePath:@"service.version" options:0];
   }
   return self;
 }
 
 - (NSArray *)programArgumentsWithPathOptions:(KBPathOptions)pathOptions useBundle:(BOOL)useBundle args:(NSArray *)args {
   NSMutableArray *pargs = [NSMutableArray array];
-  if (useBundle) {
-    [pargs addObject:[KBPath pathInDir:_config.bundle.sharedSupportPath path:@"bin/keybase" options:pathOptions]];
-  } else {
-    [pargs addObjectsFromArray:@[@"./keybase"]];
-  }
-  if (_config.isHomeDirSet) {
+  [pargs addObject:[_config serviceBinPathWithPathOptions:pathOptions useBundle:useBundle]];
+
+  NSString *defaultHomeDir = NSProcessInfo.processInfo.environment[@"HOME"];
+  if (_config.isHomeDirSet && ![_config.homeDir isEqual:defaultHomeDir]) {
     [pargs addObjectsFromArray:@[@"-H", [KBPath path:_config.homeDir options:pathOptions]]];
   }
 
-  [pargs addObject:NSStringWithFormat(@"--run-mode=%@", NSStringFromKBRunMode(_config.runMode, YES))];
+  if (_config.runMode != KBRunModeDevel) {
+    [pargs addObject:NSStringWithFormat(@"--run-mode=%@", NSStringFromKBRunMode(_config.runMode, YES))];
+  }
 
   if (_config.debugEnabled) {
     [pargs addObject:@"-d"];
@@ -53,28 +51,18 @@
   return pargs;
 }
 
-- (NSDictionary *)launchdPlistDictionary:(NSString *)label {
-  NSParameterAssert(label);
-
-  NSMutableArray *pargs = [NSMutableArray array];
-  [pargs addObject:NSStringWithFormat(@"--label=%@", label)];
-  [pargs addObject:@"--log-format=file"];
-
-  NSArray *args = [self programArgumentsWithPathOptions:0 useBundle:YES args:pargs];
-  NSString *logFile = [_config logFile:label];
-  return @{
-           @"Label": label,
-           @"ProgramArguments": args,
-           @"RunAtLoad": @YES,
-           @"KeepAlive": @YES,
-           @"WorkingDirectory": [_config cachePath:nil options:0],
-           @"StandardOutPath": logFile,
-           @"StandardErrorPath": logFile,
-           };
-}
-
 - (NSString *)commandLineWithPathOptions:(KBPathOptions)pathOptions {
   return [[self programArgumentsWithPathOptions:pathOptions useBundle:NO args:nil] join:@" "];
+}
+
+- (NSDictionary *)launchdPlistDictionary:(NSString *)label {
+  NSParameterAssert(label);
+  NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
+  NSString *runtimeDir = [_config runtimePath:nil options:0];
+  NSString *logPath = [_config logFile:label];
+  NSArray *args = @[@"service"];
+  KBLaunchdPlist *plist = [[KBLaunchdPlist alloc] initWithLabel:label binPath:binPath runtimeDir:runtimeDir logPath:logPath args:args];
+  return [plist plistDictionary];
 }
 
 @end

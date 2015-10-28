@@ -8,12 +8,12 @@
 
 #import "KBService.h"
 
-#import "KBLaunchCtl.h"
-#import "KBLaunchService.h"
 #import "KBDebugPropertiesView.h"
 #import "KBSemVersion.h"
 #import "KBServiceConfig.h"
 #import "KBRPC.h"
+#import "KBSemVersion.h"
+#import "KBKeybaseLaunchd.h"
 
 @interface KBService ()
 @property KBRPClient *client;
@@ -23,9 +23,12 @@
 @property (getter=isInstallDisabled) BOOL installDisabled;
 
 @property KBServiceConfig *serviceConfig;
-@property KBLaunchService *launchService;
+@property NSString *label;
+@property KBSemVersion *bundleVersion;
 
 @property KBEnvConfig *config;
+
+@property KBComponentStatus *componentStatus;
 
 @property YOView *infoView;
 @end
@@ -38,17 +41,10 @@
     _name = @"Service";
     _info = @"The Keybase service";
 
-    // Using homebrew service for the moment
-    _installDisabled = YES;
-
     _serviceConfig = [[KBServiceConfig alloc] initWithConfig:_config];
-
-    if (label) {
-      NSDictionary *plist = [_serviceConfig launchdPlistDictionary:label];
-      NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-      KBSemVersion *bundleVersion = [KBSemVersion version:info[@"KBServiceVersion"] build:info[@"KBServiceBuild"]];
-      _launchService = [[KBLaunchService alloc] initWithLabel:label bundleVersion:bundleVersion versionPath:_serviceConfig.versionPath plist:plist logFile:[_config logFile:label]];
-    }
+    _label = label;
+    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+    _bundleVersion = [KBSemVersion version:info[@"KBServiceVersion"] build:info[@"KBServiceBuild"]];
   }
   return self;
 }
@@ -76,9 +72,7 @@
   info[@"Home"] =  [KBPath path:self.config.homeDir options:KBPathOptionsTilde];
   info[@"Socket"] =  [KBPath path:self.config.sockFile options:KBPathOptionsTilde];
 
-  info[@"Launchd"] = _launchService.label ? _launchService.label : @"-";
-  GHODictionary *statusInfo = [_launchService componentStatusInfo];
-  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
+  if (_componentStatus.info) [info addEntriesFromOrderedDictionary:_componentStatus.info];
 
   YOView *view = [[YOView alloc] init];
   KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];
@@ -133,16 +127,12 @@
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
-  if (_launchService) {
-    [_launchService updateComponentStatus:0 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-      [self componentDidUpdate];
-      completion(componentStatus.error);
-    }];
-  } else {
+  GHWeakSelf gself = self;
+  [KBKeybaseLaunchd status:[_config serviceBinPathWithPathOptions:0 useBundle:YES] name:@"service" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
+    gself.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     [self componentDidUpdate];
-    completion(nil);
-    return;
-  }
+    completion(error);
+  }];
 }
 
 - (void)panic:(KBCompletion)completion {
@@ -153,43 +143,20 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  NSError *error = nil;
-  if (![KBPath ensureDirectory:[_config appPath:nil options:0] error:&error]) {
-    completion(error);
-    return;
-  }
-
-  if (![KBPath ensureDirectory:[_config cachePath:nil options:0] error:&error]) {
-    completion(error);
-    return;
-  }
-
-  if (![KBPath ensureDirectory:[_config runtimePath:nil options:0] error:&error]) {
-    completion(error);
-    return;
-  }
-
-  [_launchService installWithTimeout:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-    completion(componentStatus.error);
-  }];
+  NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
+  [KBKeybaseLaunchd install:binPath label:_label args:@[@"service"] completion:completion];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  [_launchService uninstall:completion];
+  [KBKeybaseLaunchd run:[_config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"uninstall", _label] completion:completion];
 }
 
 - (void)start:(KBCompletion)completion {
-  [_launchService start:5 completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
-    completion(componentStatus.error);
-  }];
+  [KBKeybaseLaunchd run:[_config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"start", _label] completion:completion];
 }
 
 - (void)stop:(KBCompletion)completion {
-  [_launchService stop:completion];
-}
-
-- (KBComponentStatus *)componentStatus {
-  return _launchService.componentStatus;
+  [KBKeybaseLaunchd run:[_config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"stop", _label] completion:completion];
 }
 
 @end

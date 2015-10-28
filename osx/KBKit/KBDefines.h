@@ -46,7 +46,7 @@ typedef NS_ENUM (NSInteger, KBErrorResponse) {
 #define KBOrNull(obj) (obj ? obj : NSNull.null)
 #define KBOr(obj, dv) (obj ? obj : dv)
 #define KBIfNull(obj, val) ([obj isEqual:NSNull.null] ? val : obj)
-
+#define KBIfBlank(s, dv) ((!s || [s isEqualToString:@""]) ? dv : s)
 
 #define KBErrorAlert(fmt, ...) [NSError errorWithDomain:@"Keybase" code:-1 userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:fmt, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey:@[@"OK"]}]
 

@@ -23,7 +23,7 @@
 @property KBSemVersion *bundleVersion;
 @property KBSemVersion *runningVersion;
 
-@property KBServiceStatus *serviceStatus;
+@property KBLaunchdStatus *serviceStatus;
 @property KBComponentStatus *componentStatus;
 @end
 
@@ -45,7 +45,7 @@
 
   if (self.componentStatus) {
     info[@"Status Error"] = self.componentStatus.error.localizedDescription;
-    info[@"Install Status"] = NSStringFromKBInstallStatus(self.componentStatus.installStatus);
+    info[@"Install Status"] = NSStringFromKBRInstallStatus(self.componentStatus.installStatus);
     info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(self.componentStatus.runtimeStatus);
   } else {
     info[@"Install Status"] = @"Install Disabled";
@@ -75,7 +75,7 @@
   [KBWaitFor waitFor:block delay:0.5 timeout:timeout label:NSStringWithFormat(@"%@; %@", reason, KBPathTilde(versionFile)) completion:completion];
 }
 
-- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(void (^)(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus))completion {
+- (void)updateComponentStatus:(NSTimeInterval)timeout completion:(void (^)(KBComponentStatus *componentStatus, KBLaunchdStatus *serviceStatus))completion {
   self.serviceStatus = nil;
   self.runningVersion = nil;
   self.componentStatus = nil;
@@ -86,11 +86,11 @@
   }
   NSString *label = _label;
   NSString *versionPath = _versionPath;
-  [KBLaunchCtl status:label completion:^(KBServiceStatus *serviceStatus) {
+  [KBLaunchCtl status:label completion:^(KBLaunchdStatus *serviceStatus) {
     self.serviceStatus = serviceStatus;
     if (!serviceStatus) {
       NSString *plistDest = [self plistDestination];
-      KBInstallStatus installStatus = [NSFileManager.defaultManager fileExistsAtPath:plistDest] ? KBInstallStatusInstalled : KBInstallStatusNotInstalled;
+      KBRInstallStatus installStatus = [NSFileManager.defaultManager fileExistsAtPath:plistDest] ? KBRInstallStatusInstalled : KBRInstallStatusNotInstalled;
 
       GHODictionary *info = [GHODictionary dictionary];
       if (serviceStatus.lastExitStatus) info[@"Status"] = serviceStatus.lastExitStatus;
@@ -110,15 +110,15 @@
           info[@"Version"] = runningVersion;
           if ([self.bundleVersion isGreaterThan:self.runningVersion]) {
             info[@"New Version"] = [self.bundleVersion description];
-            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
+            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNeedsUpgrade runtimeStatus:KBRuntimeStatusRunning info:info];
           } else {
-            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
+            self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
           }
         } else {
-          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
+          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled runtimeStatus:KBRuntimeStatusNotRunning info:nil];
         }
 
-        [KBLaunchCtl status:label completion:^(KBServiceStatus *serviceStatus) {
+        [KBLaunchCtl status:label completion:^(KBLaunchdStatus *serviceStatus) {
           self.serviceStatus = serviceStatus;
           completion(self.componentStatus, self.serviceStatus);
         }];
@@ -192,7 +192,7 @@
   // We installed the launch agent plist
   DDLogDebug(@"Installed launch agent plist");
 
-  [KBLaunchCtl reload:plistDest label:_label completion:^(KBServiceStatus *reloadStatus) {
+  [KBLaunchCtl reload:plistDest label:_label completion:^(KBLaunchdStatus *reloadStatus) {
     [self updateComponentStatus:timeout completion:completion];
   }];
 }
@@ -218,7 +218,7 @@
   NSString *plistDest = [self plistDestination];
   NSString *label = _label;
   [KBLaunchCtl load:plistDest label:label force:YES completion:^(NSError *error, NSString *output) {
-    [self updateComponentStatus:timeout completion:^(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus) {
+    [self updateComponentStatus:timeout completion:^(KBComponentStatus *componentStatus, KBLaunchdStatus *serviceStatus) {
       completion(componentStatus, serviceStatus);
     }];
   }];

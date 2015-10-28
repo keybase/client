@@ -11,7 +11,7 @@
 
 #import "KBRPC.h"
 #import "KBTrackView.h"
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 #import "KBRPC.h"
 
 @interface KBUserProfileView : YOView

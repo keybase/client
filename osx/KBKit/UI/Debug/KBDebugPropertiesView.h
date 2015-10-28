@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 #import <GHODictionary/GHODictionary.h>
 
 @interface KBDebugPropertiesView : YOView

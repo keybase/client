@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 #import "KBRPC.h"
 
 typedef void (^KBDevicePromptCompletion)(id sender, NSError *error, NSString *deviceName);

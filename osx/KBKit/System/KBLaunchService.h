@@ -10,11 +10,11 @@
 
 #import "KBInstallable.h"
 #import "KBComponent.h"
-#import "KBServiceStatus.h"
+#import "KBLaunchdStatus.h"
 #import "KBLaunchCtl.h"
 #import "KBSemVersion.h"
 
-typedef void (^KBLaunchComponentStatus)(KBComponentStatus *componentStatus, KBServiceStatus *serviceStatus);
+typedef void (^KBLaunchComponentStatus)(KBComponentStatus *componentStatus, KBLaunchdStatus *serviceStatus);
 
 @interface KBLaunchService : NSObject
 

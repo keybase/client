@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 
-#import <KBAppKit/KBAppKit.h>
+#import <Tikppa/Tikppa.h>
 #import "KBRPC.h"
 #import "KBPGPOutputFooterView.h"
 

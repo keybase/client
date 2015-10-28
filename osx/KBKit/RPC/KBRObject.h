@@ -15,3 +15,6 @@
 
 // Validate the array and that it contains all elements of class
 NSArray *KBRValidateArray(id array, Class clazz);
+
+// Validate the dictionary and that it contains all keys of string and values of class
+NSDictionary *KBRValidateDictionary(id dict, Class clazz);

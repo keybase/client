@@ -1,19 +1,19 @@
 //
-//  KBInstallerView.m
+//  KBStatusView.m
 //  Keybase
 //
 //  Created by Gabriel on 5/10/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBInstallerView.h"
+#import "KBStatusView.h"
 
 #import "KBHeaderLabelView.h"
 #import "KBInstallAction.h"
 #import "KBInstaller.h"
 #import "KBRunOver.h"
 
-@interface KBInstallerView ()
+@interface KBStatusView ()
 @property YOView *installStatusView;
 @property YOHBox *buttons;
 @property YOHBox *skipButtons;
@@ -21,7 +21,7 @@
 @property (nonatomic) KBEnvironment *environment;
 @end
 
-@implementation KBInstallerView
+@implementation KBStatusView
 
 - (void)viewInit {
   [super viewInit];

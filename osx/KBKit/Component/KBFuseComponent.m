@@ -8,10 +8,8 @@
 
 #import "KBFuseComponent.h"
 
-
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBDebugPropertiesView.h"
-#import "KBFS.h"
 #import "KBSemVersion.h"
 
 @interface KBFuseComponent ()
@@ -49,7 +47,7 @@
   GHODictionary *statusInfo = [self componentStatusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
-  info[@"Location"] = KBFUSE_BUNDLE;
+  info[@"Location"] = @"/Library/Filesystems/osxfusefs.fs";
 
   if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
   [_infoView setProperties:info];
@@ -66,7 +64,7 @@
   helper.timeout = 10;
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusUnknown runtimeStatus:KBRuntimeStatusNone info:nil];
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusUnknown runtimeStatus:KBRuntimeStatusNone info:nil];
       completion(error);
     } else {
       NSString *fuseRunningVersion = KBIfNull(versions[@"fuseRunningVersion"], nil);
@@ -76,7 +74,7 @@
       self.version = runningVersion;
       if (runningVersion) info[@"Version"] = [runningVersion description];
       if (!runningVersion) {
-        KBInstallStatus installStatus = installedVersion ? KBInstallStatusInstalled : KBInstallStatusNotInstalled;
+        KBRInstallStatus installStatus = installedVersion ? KBRInstallStatusInstalled : KBRInstallStatusNotInstalled;
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:nil];
         completion(nil);
       } else if ([bundleVersion isGreaterThan:runningVersion]) {
@@ -86,7 +84,7 @@
         self.componentStatus = [KBComponentStatus componentStatusWithError:KBMakeError(-1, @"%@", errorMsg)];
         completion(nil);
       } else {
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
         completion(nil);
       }
     }
