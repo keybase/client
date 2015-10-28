@@ -14,41 +14,38 @@ export default class More extends BaseComponent {
 
     this.menu = [
       {name: 'Login', onClick: () => {
-        this.props.dispatch(navigateTo(['login', 'loginform']))
+        this.props.navigateTo(['login', 'loginform'])
       }},
       {name: 'Login2', onClick: () => {
-        this.props.dispatch(navigateTo(['login2', 'welcome']))
+        this.props.navigateTo(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}])
       }},
       {name: 'Register', onClick: () => {
-        this.props.dispatch(navigateTo(['login2', 'register']))
+        this.props.navigateTo(['login2', {path: 'register', upLink: ['']}])
       }},
       {name: 'reset', onClick: () => {
         require('../../engine').reset()
         console.log('Engine reset!')
       }},
       {name: 'Sign Out', onClick: () => {
-        this.props.dispatch(LoginActions.logout())
+        this.props.logout()
       }},
       {name: 'About', hasChildren: true, onClick: () => {
-        this.props.dispatch(navigateTo(['about']))
+        this.props.navigateTo(['about'])
       }},
       {name: 'Developer', hasChildren: true, onClick: () => {
-        this.props.dispatch(navigateTo(['developer']))
+        this.props.navigateTo(['developer'])
       }},
       {name: 'Nav debug', hasChildren: true, onClick: () => {
-        this.props.dispatch(navigateTo(['navDebug']))
+        this.props.navigateTo(['navDebug'])
       }},
       {name: 'Bridging', hasChildren: true, onClick: () => {
-        this.props.dispatch(navigateTo(['bridging']))
-      }},
-      {name: 'QR', hasChildren: true, onClick: () => {
-        this.props.dispatch(navigateTo(['qr']))
+        this.props.navigateTo(['bridging'])
       }},
       {name: 'Search', hasChildren: true, onClick: () => {
-        this.props.dispatch(SearchActions.pushNewSearch())
+        this.props.pushNewSearch()
       }},
       {name: 'Profile', hasChildren: true, onClick: () => {
-        this.props.dispatch(pushNewProfile('test12'))
+        this.props.pushNewProfile('test12')
       }}
     ]
   }
