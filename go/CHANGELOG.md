@@ -1,4 +1,6 @@
+## 1.0.0-41 (2015-10-28)
 
+- Added QR code display to terminal when provisioner is a mobile device. 
 - Fixed confusing passphrase pinentry during device
   provisioning.
 - Connection log cleanup.
