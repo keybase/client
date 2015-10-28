@@ -80,10 +80,12 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	// get current passphrase stream:
-	e.pps, err = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
-	if err != nil {
-		return err
+	// get current passphrase stream if necessary:
+	if e.pps == nil {
+		e.pps, err = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+		if err != nil {
+			return err
+		}
 	}
 
 	// ctx needed by some kex2 functions
@@ -117,6 +119,11 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 // secret channel.
 func (e *Kex2Provisioner) AddSecret(s kex2.Secret) {
 	e.secretCh <- s
+}
+
+// SetPassphraseStream populates the passphrase stream.
+func (e *Kex2Provisioner) SetPassphraseStream(pps *libkb.PassphraseStream) {
+	e.pps = pps
 }
 
 // GetLogFactory implements GetLogFactory in kex2.Provisioner.
