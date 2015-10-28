@@ -72,7 +72,7 @@ func TestKex2Provision(t *testing.T) {
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: &testProvisionUI{},
 		}
-		provisioner := NewKex2Provisioner(tcX.G, secretX)
+		provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 		go provisioner.AddSecret(secretY)
 		if err := RunEngine(provisioner, ctx); err != nil {
 			t.Errorf("provisioner error: %s", err)

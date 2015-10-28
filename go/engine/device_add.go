@@ -69,8 +69,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	}
 
 	// create provisioner engine
-	provisioner := NewKex2Provisioner(e.G(), secret.Secret())
-	provisioner.SetPassphraseStream(pps)
+	provisioner := NewKex2Provisioner(e.G(), secret.Secret(), pps)
 
 	var canceler func()
 
