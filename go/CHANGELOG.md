@@ -1,3 +1,9 @@
+
+- Fixed confusing passphrase pinentry during device
+  provisioning.
+- Connection log cleanup.
+- Fixed GPG device provisioning.
+
 ## 1.0.0-40 (2015-10-27)
 
 - Support for kex2 device provisioning.
