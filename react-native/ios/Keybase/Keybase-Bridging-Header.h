@@ -6,3 +6,4 @@
 #import "RCTEventDispatcher.h"
 #import "Engine.h"
 #import "RCTRootView.h"
+#import <keybase/keybase.h>

@@ -2,15 +2,11 @@
 
 // Handles sending requests to objc (then go) and back
 
-import React from '../base-react'
 import engine from './native'
 import Transport from './transport'
-
 import rpc from 'framed-msgpack-rpc'
-const {
-  client: { Client: RpcClient },
-  transport: { Transport: RpcTransport }
-} = rpc
+import { printRPC } from '../local-debug'
+const { client: { Client: RpcClient } } = rpc
 
 import { Buffer } from 'buffer'
 import NativeEventEmitter from '../common-adapters/native-event-emitter'
@@ -77,7 +73,43 @@ class Engine {
     const callMap = this.sessionIDToIncomingCall[sessionID]
 
     if (callMap && callMap[method]) {
-      callMap[method](param, response)
+      // make wrapper so we only call this once
+      let once = false
+
+      const wrappedResponse = {
+        result: (...args) => {
+          if (once) {
+            if (printRPC) {
+              console.log('RPC ▼ result bailing on additional calls: ', method, param, ...args)
+            }
+            return
+          }
+          once = true
+
+          if (printRPC) {
+            console.log('RPC ▼ result: ', method, param, ...args)
+          }
+
+          response.result(...args)
+        },
+        error: (...args) => {
+          if (once) {
+            if (printRPC) {
+              console.log('RPC ▼ error bailing on additional calls: ', method, param, ...args)
+            }
+            return
+          }
+          once = true
+
+          if (printRPC) {
+            console.log('RPC ▼ error: ', method, param, ...args)
+          }
+
+          response.error(...args)
+        }
+      }
+
+      callMap[method](param, wrappedResponse)
     } else {
       console.log(`Unknown incoming rpc: ${sessionID} ${method}`)
     }
@@ -93,7 +125,14 @@ class Engine {
     const sessionID = param.sessionID = this.getSessionID()
     this.sessionIDToIncomingCall[sessionID] = incomingCallMap
 
+    if (printRPC) {
+      console.log('RPC ▶', method, param)
+    }
+
     this.rpcClient.invoke(method, [param], (err, data) => {
+      if (printRPC) {
+        console.log('RPC ◀', method, param, err, data)
+      }
       // deregister incomingCallbacks
       delete this.sessionIDToIncomingCall[sessionID]
       if (callback) {

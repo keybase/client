@@ -7,6 +7,7 @@ import Button from '../../common-adapters/button'
 import Login from './login'
 import Signup from './signup'
 import { routeAppend } from '../../actions/router'
+import { login } from '../../actions/login2'
 
 export default class Welcome extends Component {
   render () {
@@ -38,7 +39,7 @@ export default class Welcome extends Component {
       componentAtTop: {
         hideNavBar: true,
         props: {
-          gotoLoginPage: () => store.dispatch(routeAppend('login')),
+          gotoLoginPage: () => store.dispatch(login()),
           gotoSignupPage: () => store.dispatch(routeAppend('signup'))
         }
       },

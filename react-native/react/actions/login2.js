@@ -2,51 +2,31 @@
 
 import * as Constants from '../constants/login2'
 import QRCodeGen from 'qrcode-generator'
-import { appendRouteOnUnchanged, navigateTo } from './router'
+import { navigateTo, routeAppend, getCurrentURI, getCurrentTab } from './router'
 import engine from '../engine'
+import enums from '../keybase_v1'
+import UserPass from '../login2/register/user-pass'
+import PaperKey from '../login2/register/paper-key'
+import CodePage from '../login2/register/code-page'
+import ExistingDevice from '../login2/register/existing-device'
+import SetPublicName from '../login2/register/set-public-name'
+import { switchTab } from './tabbed-router'
+import { DEVICES_TAB } from '../constants/tabs'
+import { loadDevices } from './devices'
 
-export function login (username, passphrase) {
-  return function (dispatch) {
-    dispatch({
-      type: Constants.login
-    })
-
-    const param = {
-      username,
-      passphrase,
-      storeSecret: true,
-      error: null
-    }
-
-    const incomingMap = {
-      'keybase.1.logUi.log': (param, response) => {
-        console.log(param, response)
-        response.result()
-      }
-    }
-
-    engine.rpc('login.loginWithPassphrase', param, incomingMap, (error, response) => {
-      if (error) {
-        console.log(error)
-      }
-
-      dispatch({
-        type: Constants.loginDone,
-        error: !!error,
-        payload: error || response
-      })
-    })
+export function login () {
+  return (dispatch, getState) => {
+    startLoginFlow(dispatch, getState, enums.provisionUi.ProvisionMethod.device, 'Keybase username', 'lorem ipsum', Constants.loginDone)
   }
 }
 
 export function doneRegistering () {
-  resetCountdown()
   return {
     type: Constants.doneRegistering
   }
 }
 
-export function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, brokenMode) {
+function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, brokenMode) {
   switch (myDeviceRole + otherDeviceRole) {
     case Constants.codePageDeviceRoleExistingComputer + Constants.codePageDeviceRoleNewComputer:
       return Constants.codePageModeEnterText
@@ -71,8 +51,8 @@ export function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, broken
   return null
 }
 
-export function setCodePageOtherDeviceRole (otherDeviceRole) {
-  return function (dispatch, getState) {
+function setCodePageOtherDeviceRole (otherDeviceRole) {
+  return (dispatch, getState) => {
     const store = getState().login2.codePage
     dispatch(setCodePageMode(defaultModeForDeviceRoles(store.myDeviceRole, otherDeviceRole, false)))
     dispatch({
@@ -82,80 +62,26 @@ export function setCodePageOtherDeviceRole (otherDeviceRole) {
   }
 }
 
-let timerId = null
-function resetCountdown () {
-  clearInterval(timerId)
-  timerId = null
-}
+function generateQRCode (dispatch, getState) {
+  const store = getState().login2.codePage
 
-// Count down until 0, then make a new code
-function startCodeGenCountdown (mode) {
-  let countDown = Constants.countDownTime
-
-  return function (dispatch) {
-    resetCountdown()
-    timerId = setInterval(() => {
-      countDown -= 1
-
-      if (countDown <= 0) {
-        dispatch(startCodeGen(mode))
-      } else {
-        dispatch({
-          type: Constants.setCountdown,
-          countDown
-        })
-      }
-    }, 1000)
-
+  if (store.mode === Constants.codePageModeShowCode && !store.qrCode && store.textCode) {
     dispatch({
-      type: Constants.setCountdown,
-      countDown
+      type: Constants.setQRCode,
+      qrCode: qrGenerate(store.textCode)
     })
   }
 }
 
-export function startCodeGen (mode) {
-  // TEMP this needs to come from go
-  const code = 'TODO TEMP:' + Math.floor(Math.random() * 99999)
-
-  // The text representation and the QR code are the same (those map to a bits of a key in go)
-  return function (dispatch, getState) {
+function setCodePageMode (mode) {
+  return (dispatch, getState) => {
     const store = getState().login2.codePage
-    switch (mode) {
-      case Constants.codePageModeShowText:
-        if (store.codeCountDown && store.textCode) {
-          return // still have a valid code
-        }
 
-        dispatch({
-          type: Constants.setTextCode,
-          // TODO need this from go
-          text: code
-        })
-        dispatch(startCodeGenCountdown(mode))
-        break
-      case Constants.codePageModeShowCode:
-        if (store.codeCountDown && store.qrCode) {
-          return // still have a valid code
-        }
+    generateQRCode(dispatch, getState)
 
-        dispatch({
-          type: Constants.setQRCode,
-          qrCode: qrGenerate(code)
-        })
-        dispatch(startCodeGenCountdown(mode))
-        break
-    }
-  }
-}
-
-export function setCodePageMode (mode) {
-  return function (dispatch, getState) {
-    if (getState().login2.codePage.mode === mode) {
+    if (store.mode === mode) {
       return // already in this mode
     }
-
-    dispatch(startCodeGen(mode))
 
     dispatch({
       type: Constants.setCodeMode,
@@ -164,24 +90,8 @@ export function setCodePageMode (mode) {
   }
 }
 
-export function qrScanned (code) {
-  return function (dispatch) {
-    // TODO send to go to verify
-    console.log('QR Scanned: ', code)
-    dispatch(navigateTo([]))
-  }
-}
-
-export function textEntered (code) {
-  return function (dispatch) {
-    // TODO send to go to verify
-    console.log('Text entered: ', code)
-    dispatch(navigateTo([]))
-  }
-}
-
 function qrGenerate (code) {
-  const qr = QRCodeGen(10, 'L')
+  const qr = QRCodeGen(3, 'L')
   qr.addData(code)
   qr.make()
   let tag = qr.createImgTag(10)
@@ -190,8 +100,8 @@ function qrGenerate (code) {
   return qrCode
 }
 
-export function setCameraBrokenMode (broken) {
-  return function (dispatch, getState) {
+function setCameraBrokenMode (broken) {
+  return (dispatch, getState) => {
     dispatch({
       type: Constants.cameraBrokenMode,
       broken
@@ -202,30 +112,6 @@ export function setCameraBrokenMode (broken) {
   }
 }
 
-export function registerSubmitUserPass (username, passphrase) {
-  return appendRouteOnUnchanged((dispatch, getState, maybeRoute) => {
-    dispatch({
-      type: Constants.actionRegisterUserPassSubmit,
-      username,
-      passphrase
-    })
-
-    // TODO make call to backend
-    setTimeout(() => {
-      const error = null
-
-      dispatch({
-        type: Constants.actionRegisterUserPassDone,
-        error
-      })
-
-      if (!error) {
-        maybeRoute('regSetPublicName')
-      }
-    }, 1000)
-  })
-}
-
 export function updateForgotPasswordEmail (email) {
   return {
     type: Constants.actionUpdateForgotPasswordEmailAddress,
@@ -234,7 +120,7 @@ export function updateForgotPasswordEmail (email) {
 }
 
 export function submitForgotPassword () {
-  return function (dispatch, getState) {
+  return (dispatch, getState) => {
     dispatch({
       type: Constants.actionSetForgotPasswordSubmitting
     })
@@ -249,8 +135,8 @@ export function submitForgotPassword () {
 }
 
 export function autoLogin () {
-  return function (dispatch) {
-    engine.rpc('login.loginWithPrompt', {}, {}, (error, status) => {
+  return dispatch => {
+    engine.rpc('login.login', {}, {}, (error, status) => {
       if (error) {
         console.log(error)
       } else {
@@ -264,7 +150,7 @@ export function autoLogin () {
 }
 
 export function logout () {
-  return function (dispatch) {
+  return dispatch => {
     engine.rpc('login.logout', {}, {}, (error, response) => {
       if (error) {
         console.log(error)
@@ -277,25 +163,300 @@ export function logout () {
   }
 }
 
-export function setDeviceName (name) {
-  return function (dispatch) {
-    // TODO integrate
-    setTimeout(() => {
-      const error = false
-
-      if (error) {
+// Show a user/pass screen, call cb() when done
+// title/subTitle to customize the screen
+function askForUserPass (title, subTitle, cb) {
+  return dispatch => {
+    const props = {
+      title,
+      subTitle,
+      onSubmit: (username, passphrase) => {
         dispatch({
-          type: Constants.deviceNameSet,
-          error: true,
-          payload: error
-        })
-      } else {
-        dispatch({
-          type: Constants.deviceNameSet
+          type: Constants.actionSetUserPass,
+          username,
+          passphrase
         })
 
-        // TODO multiple things do this, what do we do next? individual reducers?
+        cb()
       }
-    }, 1000)
+    }
+
+    dispatch(routeAppend({
+      parseRoute: {
+        componentAtTop: {
+          component: UserPass,
+          mapStateToProps: state => state.login2.userPass,
+          props
+        }
+      }
+    }))
   }
 }
+
+function askForPaperKey (cb) {
+  return dispatch => {
+    const props = {
+      onSubmit: (paperKey) => {
+        cb(paperKey)
+      }
+    }
+
+    dispatch(routeAppend({
+      parseRoute: {
+        componentAtTop: {
+          component: PaperKey,
+          mapStateToProps: state => state.login2,
+          props
+        }
+      }
+    }))
+  }
+}
+
+// Show a device naming page, call cb() when done
+// existing devices are blacklisted
+function askForDeviceName (existingDevices, cb) {
+  return dispatch => {
+    dispatch({
+      type: Constants.actionAskDeviceName,
+      existingDevices,
+      onSubmit: (deviceName) => {
+        dispatch({
+          type: Constants.actionSetDeviceName,
+          deviceName
+        })
+
+        cb()
+      }
+    })
+
+    dispatch(routeAppend({
+      parseRoute: {
+        componentAtTop: {
+          component: SetPublicName,
+          mapStateToProps: state => state.login2.deviceName
+        }
+      }
+    }))
+  }
+}
+
+function askForOtherDeviceType (cb) {
+  return dispatch => {
+    const props = {
+      onSubmit: otherDeviceRole => {
+        cb(otherDeviceRole)
+      }
+    }
+
+    dispatch(routeAppend({
+      parseRoute: {
+        componentAtTop: {
+          component: ExistingDevice,
+          mapStateToProps: state => state.login2.codePage,
+          props
+        }
+      }
+    }))
+  }
+}
+
+function askForCodePage (cb) {
+  return dispatch => {
+    const props = {
+      setCodePageMode: mode => dispatch(setCodePageMode(mode)),
+      qrScanned: code => cb(code.data),
+      setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
+      textEntered: text => cb(text),
+      doneRegistering: () => dispatch(doneRegistering())
+    }
+
+    const mapStateToProps = state => {
+      const {
+        mode, codeCountDown, textCode, qrCode,
+        myDeviceRole, otherDeviceRole, cameraBrokenMode } = state.login2.codePage
+      return {
+        mode,
+        codeCountDown,
+        textCode,
+        qrCode,
+        myDeviceRole,
+        otherDeviceRole,
+        cameraBrokenMode
+      }
+    }
+
+    dispatch(routeAppend({
+      parseRoute: {
+        componentAtTop: {
+          component: CodePage,
+          mapStateToProps,
+          props
+        }
+      }
+    }))
+  }
+}
+
+export function registerWithExistingDevice () {
+  return (dispatch, getState) => {
+    const provisionMethod = enums.provisionUi.ProvisionMethod.device
+    startLoginFlow(dispatch, getState, provisionMethod, null, null, Constants.actionRegisteredWithExistingDevice)
+  }
+}
+
+export function registerWithUserPass () {
+  return (dispatch, getState) => {
+    const title = 'Registering with your Keybase passphrase'
+    const subTitle = 'lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
+    const provisionMethod = enums.provisionUi.ProvisionMethod.passphrase
+    startLoginFlow(dispatch, getState, provisionMethod, title, subTitle, Constants.actionRegisteredWithUserPass)
+  }
+}
+
+export function registerWithPaperKey () {
+  return (dispatch, getState) => {
+    const title = 'Registering with your paperkey requires your username'
+    const subTitle = 'Different lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
+    const provisionMethod = enums.provisionUi.ProvisionMethod.paperKey
+    startLoginFlow(dispatch, getState, provisionMethod, title, subTitle, Constants.actionRegisteredWithPaperKey)
+  }
+}
+
+function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle, successType) {
+  const mobile = true // TODO desktop also
+  const deviceType = mobile ? 'mobile' : 'desktop'
+  const incomingMap = makeKex2IncomingMap(dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle)
+
+  engine.rpc('login.login', {deviceType}, incomingMap, (error, response) => {
+    dispatch({
+      type: successType,
+      error: !!error,
+      payload: error || null
+    })
+
+    dispatch(navigateTo([]))
+    dispatch(switchTab(DEVICES_TAB))
+  })
+}
+
+export function addANewDevice () {
+  return (dispatch, getState) => {
+    const provisionMethod = enums.provisionUi.ProvisionMethod.device
+    const userPassTitle = 'Registering a new device requires your Keybase username and passphrase'
+    const userPassSubtitle = 'reggy lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
+    const incomingMap = makeKex2IncomingMap(dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle)
+
+    engine.rpc('device.deviceAdd', {}, incomingMap, (error, response) => {
+      console.log(error)
+    })
+  }
+}
+
+function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle) {
+  return {
+    'keybase.1.provisionUi.chooseProvisioningMethod': (param, response) => {
+      response.result(provisionMethod)
+    },
+    'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
+      const { username } = getState().login2.userPass
+      if (!username) {
+        dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
+          const { username } = getState().login2.userPass
+          response.result(username)
+        }))
+      } else {
+        response.result(username)
+      }
+    },
+    'keybase.1.secretUi.getPaperKeyPassphrase': (param, response) => {
+      dispatch(askForPaperKey((paperKey) => {
+        response.result(paperKey)
+      }))
+    },
+    'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {
+      const { passphrase } = getState().login2.userPass
+      if (!passphrase) {
+        dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
+          const { passphrase } = getState().login2.userPass
+          response.result(passphrase)
+        }))
+      } else {
+        response.result(passphrase)
+      }
+    },
+    'keybase.1.secretUi.getSecret': (param, response) => {
+      const { passphrase } = getState().login2.userPass
+      if (!passphrase) {
+        dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
+          const { passphrase } = getState().login2.userPass
+          response.result({
+            text: passphrase,
+            canceled: false,
+            storeSecret: true
+          })
+        }))
+      } else {
+        response.result({
+          text: passphrase,
+          canceled: false,
+          storeSecret: true
+        })
+      }
+    },
+    'keybase.1.provisionUi.PromptNewDeviceName': (param, response) => {
+      const { existingDevices } = param
+      dispatch(askForDeviceName(existingDevices, () => {
+        const { deviceName } = getState().login2.deviceName
+        response.result(deviceName)
+      }))
+    },
+    'keybase.1.logUi.log': (param, response) => {
+      console.log(param)
+      response.result()
+    },
+    'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
+      response.result()
+    },
+    'keybase.1.provisionUi.ProvisionerSuccess': (param, response) => {
+      response.result()
+      const uri = getCurrentURI(getState()).last()
+
+      const onDevicesTab = getCurrentTab(getState()) === DEVICES_TAB
+      const onCodePage = uri && uri.getIn(['parseRoute']) &&
+        uri.getIn(['parseRoute']).componentAtTop && uri.getIn(['parseRoute']).componentAtTop.component === CodePage
+
+      if (onDevicesTab && onCodePage) {
+        dispatch(navigateTo([]))
+        dispatch(loadDevices())
+      }
+    },
+    'keybase.1.provisionUi.chooseDeviceType': (param, response) => {
+      dispatch(askForOtherDeviceType((type) => {
+        const typeMap = {
+          [Constants.codePageDeviceRoleExistingPhone]: enums.provisionUi.DeviceType.mobile,
+          [Constants.codePageDeviceRoleExistingComputer]: enums.provisionUi.DeviceType.desktop
+        }
+
+        dispatch(setCodePageOtherDeviceRole(type))
+        response.result(typeMap[type])
+      }))
+    },
+    'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
+      dispatch({
+        type: Constants.setTextCode,
+        text: phrase
+      })
+
+      generateQRCode(dispatch, getState)
+
+      dispatch(askForCodePage(phrase => {
+        response.result({phrase})
+      }))
+    },
+    'keybase.1.provisionUi.DisplaySecretExchanged': (param, response) => {
+      response.result()
+    }
+  }
+}
+
