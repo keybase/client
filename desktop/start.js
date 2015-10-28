@@ -33,10 +33,8 @@ bsync.init({
 
   spawn(electron, ['.'], {
     env: {
-      ...{
-        NODE_ENV: 'development',
-        BROWSER_SYNC_CLIENT_URL: getClientUrl(bs.options)
-      },
+      NODE_ENV: 'development',
+      BROWSER_SYNC_CLIENT_URL: getClientUrl(bs.options),
       ...process.env
     },
     stdio: 'inherit'
