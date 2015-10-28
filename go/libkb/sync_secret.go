@@ -68,6 +68,12 @@ var DefaultDeviceTypes = DeviceTypeSet{
 	DeviceTypeMobile:  true,
 }
 
+var AllDeviceTypes = DeviceTypeSet{
+	DeviceTypeDesktop: true,
+	DeviceTypeMobile:  true,
+	DeviceTypePaper:   true,
+}
+
 func NewSecretSyncer(g *GlobalContext) *SecretSyncer {
 	return &SecretSyncer{
 		Contextified: NewContextified(g),
