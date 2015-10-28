@@ -1,16 +1,25 @@
 'use strict'
 
-import BaseComponent from '../base-component'
+import React from '../../base-react'
+import BaseComponent from '../../base-component'
+import { View, ListView, Text, StyleSheet } from 'react-native'
 import * as LoginActions from '../../actions/login'
 import * as SearchActions from '../../actions/search'
 import { navigateTo } from '../../actions/router'
 import { pushNewProfile } from '../../actions/profile'
-//import Button from '../../common-adapters/button'
-import { List, ListItem, RaisedButton } from 'material-ui'
+import Button from '../../common-adapters/button'
+import commonStyles from '../../styles/common'
 
 export default class More extends BaseComponent {
   constructor (props) {
     super(props)
+  }
+
+  componentWillMount () {
+    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+    this.state = {
+      dataSource: ds.cloneWithRows(this.props.items)
+    }
   }
 
   renderRow (rowData, sectionID, rowID) {
@@ -40,3 +49,12 @@ export default class More extends BaseComponent {
     )
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+    backgroundColor: '#F5FCFF'
+  }
+})
