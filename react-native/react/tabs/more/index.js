@@ -14,7 +14,7 @@ export default class More extends BaseComponent {
 
     this.menu = [
       {name: 'Login', onClick: () => {
-        this.props.dispatch(navigateTo(['login']))
+        this.props.dispatch(navigateTo(['login', 'loginform']))
       }},
       {name: 'Login2', onClick: () => {
         this.props.dispatch(navigateTo(['login2', 'welcome']))
