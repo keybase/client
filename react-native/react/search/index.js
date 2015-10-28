@@ -61,17 +61,19 @@ export default class Search extends Component {
               <View style={styles.username}>
                 {renderTextWithHighlight(rowData.get('username'), this.props.term, styles.highlight)}
               </View>
-              {fullName ? <Text style={styles.fullName}>
-                {renderTextWithHighlight(fullName, this.props.term, styles.highlight)}
-              </Text> : null}
+              {fullName ? (
+                <Text style={styles.fullName}>
+                  {renderTextWithHighlight(fullName, this.props.term, styles.highlight)}
+                </Text>
+              ) : null}
               <View style={styles.services}>
-                {socialProofs.map((proof) => <View style={styles.service}>
+                {socialProofs.map(proof => <View key={proof.get('proofType')} style={styles.service}>
                     <Image style={styles.serviceIcon} source={serviceIcons[proof.get('proofType')]}/>
-                    {proof === matchingProof ? <Text
-                      style={styles.serviceName}
-                    >
-                      {renderTextWithHighlight(proof.get('proofName'), this.props.term, styles.highlight)}
-                   </Text> : null}
+                    {proof === matchingProof && (
+                      <Text style={styles.serviceName}>
+                        {renderTextWithHighlight(proof.get('proofName'), this.props.term, styles.highlight)}
+                      </Text>
+                    )}
                 </View>).toArray()}
               </View>
             </View>
