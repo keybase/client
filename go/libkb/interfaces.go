@@ -324,7 +324,7 @@ type UI interface {
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
 	GetLocksmithUI() LocksmithUI
-	GetProvisionUI(provisioner bool) ProvisionUI
+	GetProvisionUI(role KexRole) ProvisionUI
 	Configure() error
 	Shutdown() error
 }

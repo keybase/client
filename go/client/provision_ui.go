@@ -11,12 +11,12 @@ import (
 )
 
 type ProvisionUI struct {
-	parent      *UI
-	provisioner bool // set to true if the client UI is the device provisioner
+	parent *UI
+	role   libkb.KexRole
 }
 
-func NewProvisionUIProtocol(g *libkb.GlobalContext, provisioner bool) rpc.Protocol {
-	return keybase1.ProvisionUiProtocol(g.UI.GetProvisionUI(provisioner))
+func NewProvisionUIProtocol(g *libkb.GlobalContext, role libkb.KexRole) rpc.Protocol {
+	return keybase1.ProvisionUiProtocol(g.UI.GetProvisionUI(role))
 }
 
 func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
@@ -75,7 +75,7 @@ func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keyba
 }
 
 func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
-	if p.provisioner {
+	if p.role == libkb.KexRoleProvisioner {
 		// This is the provisioner device (device X)
 		// For command line app, all secrets are entered on the provisioner only:
 		p.parent.Output("Enter the verification code from your other device here:\n\n")
@@ -92,17 +92,21 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 
 	}
 
-	// this is the provisionee device (device Y)
-	// For command line app, the provisionee displays secrets only
+	if p.role == libkb.KexRoleProvisionee {
+		// this is the provisionee device (device Y)
+		// For command line app, the provisionee displays secrets only
 
-	p.parent.Output("Type this verification code into your other device:\n\n")
-	p.parent.Output("\t" + arg.Phrase + "\n\n")
-	p.parent.Output("If you are using the command line client on your other device, run this command:\n\n")
-	p.parent.Output("\tkeybase device xadd\n\n")
-	p.parent.Output("It will then prompt you for the verification code above.\n\n")
+		p.parent.Output("Type this verification code into your other device:\n\n")
+		p.parent.Output("\t" + arg.Phrase + "\n\n")
+		p.parent.Output("If you are using the command line client on your other device, run this command:\n\n")
+		p.parent.Output("\tkeybase device xadd\n\n")
+		p.parent.Output("It will then prompt you for the verification code above.\n\n")
 
-	// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code as well }
-	return nil, nil
+		// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code as well }
+		return nil, nil
+	}
+
+	return nil, libkb.InvalidArgumentError{Msg: fmt.Sprintf("invalid ProvisionUI role: %d", p.role)}
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
