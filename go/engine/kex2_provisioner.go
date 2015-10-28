@@ -14,12 +14,14 @@ import (
 // Kex2Provisioner is an engine.
 type Kex2Provisioner struct {
 	libkb.Contextified
-	secret     kex2.Secret
-	secretCh   chan kex2.Secret
-	me         *libkb.User
-	signingKey libkb.GenericKey
-	pps        *libkb.PassphraseStream
-	ctx        *Context
+	secret                kex2.Secret
+	secretCh              chan kex2.Secret
+	me                    *libkb.User
+	signingKey            libkb.GenericKey
+	pps                   *libkb.PassphraseStream
+	provisioneeDeviceName string
+	provisioneeDeviceType string
+	ctx                   *Context
 }
 
 // Kex2Provisioner implements kex2.Provisioner interface.
@@ -105,13 +107,20 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 		KexBaseArg:  karg,
 		Provisioner: e,
 	}
-	err = kex2.RunProvisioner(parg)
-
-	if err == nil {
-		ctx.ProvisionUI.ProvisionSuccess(context.TODO(), 0)
+	if err := kex2.RunProvisioner(parg); err != nil {
+		return err
 	}
 
-	return err
+	// succesfully provisioned the other device
+	sarg := keybase1.ProvisionerSuccessArg{
+		DeviceName: e.provisioneeDeviceName,
+		DeviceType: e.provisioneeDeviceType,
+	}
+	if err := ctx.ProvisionUI.ProvisionerSuccess(context.TODO(), sarg); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // AddSecret inserts a received secret into the provisioner's
@@ -171,6 +180,11 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 		return nil, err
 	}
 	e.G().Log.Debug("provisioner verified reverse sig")
+
+	// remember some device information for ProvisionUI.ProvisionerSuccess()
+	if err = e.rememberDeviceInfo(jw); err != nil {
+		return nil, err
+	}
 
 	// sign the whole thing with provisioner's signing key
 	s, _, _, err := libkb.SignJSON(jw, e.signingKey)
@@ -257,6 +271,24 @@ func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 
 	// put reverse_sig back in
 	jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(revsig))
+
+	return nil
+}
+
+// rememberDeviceInfo saves the device name and type in
+// Kex2Provisioner for later use.
+func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
+	name, err := jw.AtPath("body.device.name").GetString()
+	if err != nil {
+		return err
+	}
+	e.provisioneeDeviceName = name
+
+	dtype, err := jw.AtPath("body.device.type").GetString()
+	if err != nil {
+		return err
+	}
+	e.provisioneeDeviceType = dtype
 
 	return nil
 }

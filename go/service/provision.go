@@ -42,6 +42,12 @@ func (u *RemoteProvisionUI) DisplaySecretExchanged(ctx context.Context, _ int) e
 	return u.cli.DisplaySecretExchanged(ctx, u.sessionID)
 }
 
-func (u *RemoteProvisionUI) ProvisionSuccess(ctx context.Context, _ int) error {
-	return u.cli.ProvisionSuccess(ctx, u.sessionID)
+func (u *RemoteProvisionUI) ProvisionerSuccess(ctx context.Context, arg keybase1.ProvisionerSuccessArg) error {
+	arg.SessionID = u.sessionID
+	return u.cli.ProvisionerSuccess(ctx, arg)
+}
+
+func (u *RemoteProvisionUI) ProvisioneeSuccess(ctx context.Context, arg keybase1.ProvisioneeSuccessArg) error {
+	arg.SessionID = u.sessionID
+	return u.cli.ProvisioneeSuccess(ctx, arg)
 }

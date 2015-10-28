@@ -405,8 +405,8 @@ func (ui *UI) GetDoctorUI() libkb.DoctorUI {
 	return DoctorUI{parent: ui}
 }
 
-func (ui *UI) GetProvisionUI(provisioner bool) libkb.ProvisionUI {
-	return ProvisionUI{parent: ui, provisioner: provisioner}
+func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
+	return ProvisionUI{parent: ui, role: role}
 }
 
 //============================================================

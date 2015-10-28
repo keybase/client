@@ -18,7 +18,7 @@ export default function () {
       renderScene={(route, navigator) => {
         return (
           <View style={{flex: 1, marginTop: route.hideNavBar ? 0 : this.props.navBarHeight}}>
-            {React.createElement(connect(route.mapStateToProps || (state => state))(route.component), {...route.props})}
+            {React.createElement(connect(route.mapStateToProps || (state => { return {} }))(route.component), {...route.props})}
           </View>
         )
       }}

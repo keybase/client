@@ -353,7 +353,12 @@ func (u *testProvisionUI) DisplaySecretExchanged(_ context.Context, _ int) error
 	return nil
 }
 
-func (u *testProvisionUI) ProvisionSuccess(_ context.Context, _ int) error {
-	u.printf("ProvisionSuccess")
+func (u *testProvisionUI) ProvisioneeSuccess(_ context.Context, _ keybase1.ProvisioneeSuccessArg) error {
+	u.printf("ProvisioneeSuccess")
+	return nil
+}
+
+func (u *testProvisionUI) ProvisionerSuccess(_ context.Context, _ keybase1.ProvisionerSuccessArg) error {
+	u.printf("ProvisionerSuccess")
 	return nil
 }

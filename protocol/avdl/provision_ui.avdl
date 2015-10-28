@@ -46,7 +46,12 @@ protocol provisionUi {
   string PromptNewDeviceName(int sessionID, array<string> existingDevices);
 
   /**
-   ProvisionSuccess is called after device provisioning runs successfully.
+   ProvisioneeSuccess is called on provisionee when it is successfully provisioned.
    */
-  void ProvisionSuccess(int sessionID);
+  void ProvisioneeSuccess(int sessionID, string username, string deviceName);
+  
+  /**
+   ProvisionerSuccess is called on provisioner when it successfully provisions another device.
+   */
+  void ProvisionerSuccess(int sessionID, string deviceName, string deviceType);
 }

@@ -102,8 +102,6 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 		return err
 	}
 
-	ctx.ProvisionUI.ProvisionSuccess(context.TODO(), 0)
-
 	return nil
 }
 
@@ -289,6 +287,11 @@ func (e *Kex2Provisionee) GetUID() keybase1.UID {
 // APIArgs implements libkb.SessionReader interface.
 func (e *Kex2Provisionee) APIArgs() (token, csrf string) {
 	return string(e.sessionToken), string(e.csrfToken)
+}
+
+// Device returns the new device struct.
+func (e *Kex2Provisionee) Device() *libkb.Device {
+	return e.device
 }
 
 func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
