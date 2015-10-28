@@ -26,17 +26,8 @@ export default class DevMenu extends Component {
       {name: 'Sign Out', onClick: () => {
         this.props.logout()
       }},
-      {name: 'About', hasChildren: true, onClick: () => {
-        this.props.routeAppend(['about'])
-      }},
       {name: 'Developer', hasChildren: true, onClick: () => {
         this.props.routeAppend('developer')
-      }},
-      {name: 'Nav debug', hasChildren: true, onClick: () => {
-        this.props.routeAppend('navDebug')
-      }},
-      {name: 'Bridging', hasChildren: true, onClick: () => {
-        this.props.routeAppend('bridging')
       }},
       {name: 'Search', hasChildren: true, onClick: () => {
         this.props.pushNewSearch()
@@ -65,10 +56,7 @@ export default class DevMenu extends Component {
         }
       },
       subRoutes: {
-        about: require('./about'),
         developer: require('./developer'),
-        navDebug: require('../../debug/nav-debug'),
-        bridging: require('../../debug/bridging-tabs'),
         login: require('../../login'),
         login2: require('../../login2')
       }
