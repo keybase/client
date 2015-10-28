@@ -8,16 +8,6 @@
     "typedef" : "long"
   }, {
     "type" : "record",
-    "name" : "StringKVPair",
-    "fields" : [ {
-      "name" : "key",
-      "type" : "string"
-    }, {
-      "name" : "value",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
     "name" : "Status",
     "fields" : [ {
       "name" : "code",
@@ -31,8 +21,8 @@
     }, {
       "name" : "fields",
       "type" : {
-        "type" : "array",
-        "items" : "StringKVPair"
+        "type" : "map",
+        "values" : "string"
       }
     } ]
   }, {

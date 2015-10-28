@@ -5,16 +5,11 @@ protocol Common {
 	@typedef("long")
 	record Time {}
 
-	record StringKVPair {
-		string key;
-		string value;
-	}
-
 	record Status {
 		int code;
 		string name;
 		string desc;
-		array<StringKVPair> fields;
+		map<string> fields;
 	}
 
 	@typedef("string")

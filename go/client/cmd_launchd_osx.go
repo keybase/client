@@ -6,13 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"runtime"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
-	"github.com/keybase/client/go/libkb"
-	"golang.org/x/net/context"
+	"github.com/keybase/client/go/protocol"
 )
 
 func NewCmdLaunchd(cl *libcmdline.CommandLine) cli.Command {
@@ -28,7 +26,6 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine) cli.Command {
 			NewCmdLaunchdStart(cl),
 			NewCmdLaunchdStop(cl),
 			NewCmdLaunchdRestart(cl),
-			NewCmdLaunchdConfig(cl),
 		},
 	}
 }
@@ -51,17 +48,11 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 			binPath := args[1]
 			plistArgs := args[2:]
 
-			homeDir := os.Getenv("HOME")
-			home := libkb.NewHomeFinder("keybase",
-				func() string { return homeDir },
-				runtime.GOOS,
-				func() libkb.RunMode { return libkb.DefaultRunMode })
-
 			envVars := make(map[string]string)
 			envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
 			envVars["KEYBASE_LABEL"] = label
 			envVars["KEYBASE_LOG_FORMAT"] = "file"
-			envVars["KEYBASE_RUNTIME_DIR"] = home.RuntimeDir()
+			envVars["KEYBASE_RUNTIME_DIR"] = runtimeDir()
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
 			err := launchd.Install(plist)
@@ -107,36 +98,6 @@ func NewCmdLaunchdList(cl *libcmdline.CommandLine) cli.Command {
 				G.Log.Fatalf("%v", err)
 			}
 			os.Exit(0)
-		},
-	}
-}
-
-func NewCmdLaunchdStatus(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name:         "status",
-		ArgumentHelp: "<label>",
-		Usage:        "Status for keybase launchd service",
-		Action: func(c *cli.Context) {
-			args := c.Args()
-			if len(args) < 1 {
-				G.Log.Fatalf("No label specified.")
-			}
-			err := launchd.ShowStatus(args[0])
-			if err != nil {
-				G.Log.Fatalf("%v", err)
-			}
-			os.Exit(0)
-		},
-	}
-}
-
-func NewCmdLaunchdConfig(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name:         "config",
-		ArgumentHelp: "",
-		Usage:        "Config for keybase launchd service",
-		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdLaunchdConfig{}, "config", c)
 		},
 	}
 }
@@ -198,69 +159,43 @@ func NewCmdLaunchdStop(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-type CmdLaunchdConfig struct{}
-
-func (v *CmdLaunchdConfig) GetUsage() libkb.Usage {
-	return libkb.Usage{
-		Config: true,
-		API:    true,
-	}
-}
-
-func (v *CmdLaunchdConfig) ParseArgv(ctx *cli.Context) error {
-	return nil
-}
-
-func (v *CmdLaunchdConfig) Run() error {
-	configCli, err := GetConfigClient(G)
-	if err != nil {
-		return err
-	}
-
-	config, err := configCli.GetConfig(context.TODO(), 0)
-	if err != nil {
-		return err
-	}
-
-	configJSON, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	GlobUI.Printf("%s\n", configJSON)
-	return nil
-}
-
-func DiagnoseSocketError(err error) {
-	services, err := launchd.ListServices("keybase.")
-	if err != nil {
-		GlobUI.Printf("Error checking launchd services: %v\n\n", err)
-		return
-	}
-
-	if len(services) == 0 {
-		GlobUI.Println("\nThere are no Keybase services installed. You may need to re-install.")
-	} else if len(services) > 1 {
-		GlobUI.Println("\nWe found multiple services:")
-		for _, service := range services {
-			GlobUI.Println("  " + service.StatusDescription())
-		}
-		GlobUI.Println("")
-	} else if len(services) == 1 {
-		service := services[0]
-		status, err := service.Status()
-		if err != nil {
-			G.Log.Errorf("Error checking service status(%s): %v\n\n", service.Label(), err)
-		} else {
-			if status == nil || !status.IsRunning() {
-				GlobUI.Printf("\nWe found a Keybase service (%s) but it's not running.\n", service.Label())
-				cmd := fmt.Sprintf("keybase launchd start %s", service.Label())
-				GlobUI.Println("You might try starting it: " + cmd + "\n")
-			} else {
-				GlobUI.Printf("\nWe couldn't connect but there is a Keybase service (%s) running (%s).\n", status.Label(), status.Pid())
-				cmd := fmt.Sprintf("keybase launchd restart %s", service.Label())
-				GlobUI.Println("You might try restarting it: " + cmd + "\n")
+func NewCmdLaunchdStatus(cl *libcmdline.CommandLine) cli.Command {
+	return cli.Command{
+		Name:         "status",
+		ArgumentHelp: "<service-name> <bundle-version>",
+		Usage:        "Status for keybase launchd service, including for installing or updating",
+		Action: func(c *cli.Context) {
+			args := c.Args()
+			if len(args) < 1 {
+				G.Log.Fatalf("No service name specified.")
 			}
-		}
+			if len(args) < 2 {
+				G.Log.Fatalf("No bundle version specified.")
+			}
+			err := ShowServiceStatus(args[0], args[1])
+			if err != nil {
+				G.Log.Fatalf("%v", err)
+			}
+			os.Exit(0)
+		},
 	}
+}
+
+func ShowServiceStatus(name string, bundleVersion string) error {
+	var st keybase1.ServiceStatus
+	if name == "service" {
+		st = KeybaseServiceStatus(bundleVersion)
+	} else if name == "kbfs" {
+		st = KBFSServiceStatus(bundleVersion)
+	} else {
+		return fmt.Errorf("Invalid service name: %s", name)
+	}
+
+	out, err := json.MarshalIndent(st, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	GlobUI.Printf("%s\n", out)
+	return nil
 }

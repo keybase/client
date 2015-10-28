@@ -111,7 +111,12 @@ func mainInner(g *libkb.GlobalContext) error {
 		if g.Env.GetLocalRPCDebug() != "" {
 			g.Log.Info("Disabling log forwarding due to RPC debugging.")
 		} else {
-			err = registerGlobalLogUI(g)
+			// TODO This triggers a connection to the RPC server before cmd.Run() is
+			// called, so the command has no way to deal with errors on its own.
+			// This should probably be moved into RegisterProtocols?
+			// Also rpc.RegisterProtocolsWithContext seems to automatically add the
+			// LogUIProtocol?
+			err := registerGlobalLogUI(g)
 			if err != nil {
 				return err
 			}

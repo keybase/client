@@ -15,8 +15,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-var log = libkb.G.Log
-
 // Service defines a service
 type Service struct {
 	label string
@@ -58,7 +56,7 @@ func (s Service) Load(restart bool) error {
 	if restart {
 		exec.Command("/bin/launchctl", "unload", plistDest).Output()
 	}
-	log.Info("Loading %s", s.label)
+	fmt.Printf("Loading %s\n", s.label)
 	_, err := exec.Command("/bin/launchctl", "load", "-w", plistDest).Output()
 	return err
 }
@@ -66,7 +64,7 @@ func (s Service) Load(restart bool) error {
 // Unload will unload the service
 func (s Service) Unload() error {
 	plistDest := s.plistDestination()
-	log.Info("Unloading %s", s.label)
+	fmt.Printf("Unloading %s\n", s.label)
 	_, err := exec.Command("/bin/launchctl", "unload", plistDest).Output()
 	return err
 }
@@ -79,7 +77,7 @@ func (s Service) Install(p Plist) (err error) {
 	plist := p.plist()
 	plistDest := s.plistDestination()
 
-	log.Info("Saving %s", plistDest)
+	fmt.Printf("Saving %s\n", plistDest)
 	file := libkb.NewFile(plistDest, []byte(plist), 0644)
 	err = file.Save()
 	if err != nil {
@@ -99,7 +97,7 @@ func (s Service) Uninstall() (err error) {
 
 	plistDest := s.plistDestination()
 	if _, err := os.Stat(plistDest); err == nil {
-		log.Info("Removing %s", plistDest)
+		fmt.Printf("Removing %s\n", plistDest)
 		err = os.Remove(plistDest)
 	}
 	return
@@ -137,6 +135,9 @@ func (s ServiceStatus) Label() string { return s.label }
 
 // Pid for status (empty string if not running)
 func (s ServiceStatus) Pid() string { return s.pid }
+
+// LastExitStatus will be blank if pid > 0, or a number "123"
+func (s ServiceStatus) LastExitStatus() string { return s.lastExitStatus }
 
 // Description returns service status info
 func (s ServiceStatus) Description() string {
@@ -216,13 +217,13 @@ func ShowServices(filter string, name string) (err error) {
 		return
 	}
 	if len(services) > 0 {
-		log.Info("%s %s:", name, libkb.Pluralize(len(services), "service", "services", false))
+		fmt.Printf("%s %s:\n", name, libkb.Pluralize(len(services), "service", "services", false))
 		for _, service := range services {
-			log.Info(service.StatusDescription())
+			fmt.Printf(service.StatusDescription())
 		}
-		log.Info("")
+		fmt.Printf("\n")
 	} else {
-		log.Info("No %s services.\n", name)
+		fmt.Printf("No %s services.\n\n", name)
 	}
 	return
 }
@@ -259,9 +260,9 @@ func ShowStatus(label string) error {
 		return err
 	}
 	if status != nil {
-		log.Info(status.Description())
+		fmt.Println(status.Description())
 	} else {
-		log.Info("No service found with label: %s", label)
+		fmt.Printf("No service found with label: %s\n", label)
 	}
 	return nil
 }

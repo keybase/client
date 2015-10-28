@@ -33,4 +33,30 @@ protocol config {
       key=picture.source, value=twitter (or github)
     */
   void setUserConfig(int sessionID, string username, string key, string value);
+
+  /**
+    Install status describes state of install for a component or service.
+    */
+  enum InstallStatus {
+    UNKNOWN_0,
+    ERROR_1,
+    NOT_INSTALLED_2,
+    NEEDS_UPGRADE_3,
+    INSTALLED_4
+  }
+
+  record ServiceStatusError {
+    string message;
+  }
+
+  record ServiceStatus {
+    string version;
+    string label;
+    string pid;
+    string lastExitStatus;
+    string bundleVersion;
+    InstallStatus installStatus;
+    union { null, ServiceStatusError } `error`;
+  }
+
 }

@@ -8,16 +8,6 @@
     "typedef" : "long"
   }, {
     "type" : "record",
-    "name" : "StringKVPair",
-    "fields" : [ {
-      "name" : "key",
-      "type" : "string"
-    }, {
-      "name" : "value",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
     "name" : "Status",
     "fields" : [ {
       "name" : "code",
@@ -31,8 +21,8 @@
     }, {
       "name" : "fields",
       "type" : {
-        "type" : "array",
-        "items" : "StringKVPair"
+        "type" : "map",
+        "values" : "string"
       }
     } ]
   }, {
@@ -204,6 +194,43 @@
     }, {
       "name" : "configPath",
       "type" : "string"
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "InstallStatus",
+    "doc" : "Install status describes state of install for a component or service.",
+    "symbols" : [ "UNKNOWN_0", "ERROR_1", "NOT_INSTALLED_2", "NEEDS_UPGRADE_3", "INSTALLED_4" ]
+  }, {
+    "type" : "record",
+    "name" : "ServiceStatusError",
+    "fields" : [ {
+      "name" : "message",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ServiceStatus",
+    "fields" : [ {
+      "name" : "version",
+      "type" : "string"
+    }, {
+      "name" : "label",
+      "type" : "string"
+    }, {
+      "name" : "pid",
+      "type" : "string"
+    }, {
+      "name" : "lastExitStatus",
+      "type" : "string"
+    }, {
+      "name" : "bundleVersion",
+      "type" : "string"
+    }, {
+      "name" : "installStatus",
+      "type" : "InstallStatus"
+    }, {
+      "name" : "error",
+      "type" : [ "null", "ServiceStatusError" ]
     } ]
   } ],
   "messages" : {

@@ -54,16 +54,11 @@ func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseCha
 }
 
 type Time int64
-type StringKVPair struct {
-	Key   string `codec:"key" json:"key"`
-	Value string `codec:"value" json:"value"`
-}
-
 type Status struct {
-	Code   int            `codec:"code" json:"code"`
-	Name   string         `codec:"name" json:"name"`
-	Desc   string         `codec:"desc" json:"desc"`
-	Fields []StringKVPair `codec:"fields" json:"fields"`
+	Code   int               `codec:"code" json:"code"`
+	Name   string            `codec:"name" json:"name"`
+	Desc   string            `codec:"desc" json:"desc"`
+	Fields map[string]string `codec:"fields" json:"fields"`
 }
 
 type UID string
@@ -352,6 +347,30 @@ type Config struct {
 	Version    string `codec:"version" json:"version"`
 	Path       string `codec:"path" json:"path"`
 	ConfigPath string `codec:"configPath" json:"configPath"`
+}
+
+type InstallStatus int
+
+const (
+	InstallStatus_UNKNOWN       InstallStatus = 0
+	InstallStatus_ERROR         InstallStatus = 1
+	InstallStatus_NOT_INSTALLED InstallStatus = 2
+	InstallStatus_NEEDS_UPGRADE InstallStatus = 3
+	InstallStatus_INSTALLED     InstallStatus = 4
+)
+
+type ServiceStatusError struct {
+	Message string `codec:"message" json:"message"`
+}
+
+type ServiceStatus struct {
+	Version        string              `codec:"version" json:"version"`
+	Label          string              `codec:"label" json:"label"`
+	Pid            string              `codec:"pid" json:"pid"`
+	LastExitStatus string              `codec:"lastExitStatus" json:"lastExitStatus"`
+	BundleVersion  string              `codec:"bundleVersion" json:"bundleVersion"`
+	InstallStatus  InstallStatus       `codec:"installStatus" json:"installStatus"`
+	Error          *ServiceStatusError `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 type GetCurrentStatusArg struct {
