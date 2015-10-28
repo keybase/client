@@ -1,15 +1,16 @@
 'use strict'
 /* @flow */
 
+import React from '../base-react'
 import BaseComponent from '../base-component'
-import Render from './no-tab-render'
+import NoTabRender from './no-tab-render'
 
 export default class NoTab extends BaseComponent {
   constructor (props) {
     super(props)
   }
   render () {
-    return Render.apply(this)
+    return <NoTabRender />
   }
 
   static parseRoute (store, currentPath, nextPath) {

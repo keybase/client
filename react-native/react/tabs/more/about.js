@@ -1,9 +1,9 @@
 'use strict'
 /* @flow */
 
-import React, { StyleSheet } from '../../base-react'
+import React from '../../base-react'
 import BaseComponent from '../../base-component'
-import Render from './about-render'
+import AboutRender from './about-render'
 
 export default class About extends BaseComponent {
   constructor (props) {
@@ -14,7 +14,7 @@ export default class About extends BaseComponent {
 
   // TODO get version from golang
   render () {
-    return Render.apply(this)
+    return <AboutRender />
   }
 
   static parseRoute (store, currentPath, nextPath) {

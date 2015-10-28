@@ -1,15 +1,16 @@
 'use strict'
 /* @flow */
 
-import BaseComponent from "../base-component"
-import Render from "./chat-render"
+import React from '../base-react'
+import BaseComponent from '../base-component'
+import ChatRender from './chat-render'
 
 export default class Chat extends BaseComponent {
   constructor (props) {
     super(props)
   }
   render () {
-    return Render.apply(this)
+    return <ChatRender />
   }
 
   static parseRoute (store, currentPath, nextPath) {

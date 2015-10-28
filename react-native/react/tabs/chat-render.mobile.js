@@ -1,13 +1,23 @@
 'use strict'
 /* @flow */
 
-import React, { Text, View } from 'react-native'
+import React from '../base-react'
+import BaseComponent from '../base-component'
+import { Text, View } from 'react-native'
 
-export default function () {
-  return (
-    <View style={{flex: 1, justifyContent: 'center'}}>
-      <Text> Folders go here</Text>
-      <Text> Whoa, whoa, whoa, whoa, theres still plenty of meat on that bone. Now you take this home, throw it in a pot, add some broth, a potato. Baby you got a stew going! </Text>
-    </View>
-  )
+export default class ChatRender extends BaseComponent {
+  constructor (props) {
+    super(props)
+  }
+
+  render () {
+    return (
+      <View style={{flex: 1, justifyContent: 'space-between', alignItems: 'stretch', padding: 0}}>
+        <View style={{width: 100, height: 100, backgroundColor: 'red'}}/>
+        <Text> Chat goes here </Text>
+        <Text> Always Money in the Banana Stand </Text>
+        <View style={{width: 100, height: 100, backgroundColor: 'blue'}}/>
+      </View>
+    )
+  }
 }

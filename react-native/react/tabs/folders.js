@@ -1,15 +1,17 @@
 'use strict'
 /* @flow */
 
+import React from '../base-react'
 import BaseComponent from "../base-component"
-import Render from "./folders-render"
+import FoldersRender from "./folders-render"
 
 export default class Folders extends BaseComponent {
   constructor (props) {
     super(props)
   }
+
   render () {
-    return Render.apply(this)
+    return <FoldersRender />
   }
 
   static parseRoute (store, currentPath, nextPath) {

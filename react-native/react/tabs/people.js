@@ -1,17 +1,17 @@
 'use strict'
 /* @flow */
 
+import React from '../base-react'
 import BaseComponent from '../base-component'
-import Render from './people-render'
+import PeopleRender from './people-render'
 
 export default class People extends BaseComponent {
   constructor (props) {
     super(props)
-    this.state = {count: 0}
   }
 
   render () {
-    return Render.apply(this)
+    return <PeopleRender />
   }
 
   static parseRoute (store, currentPath, nextPath) {
