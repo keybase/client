@@ -37,7 +37,7 @@ function addEnums (prot, json) {
 
 function write () {
   var s = fs.createWriteStream('js/keybase_v1.js')
-  s.write('module.exports = ' + JSON.stringify(protocols, null, 2))
+  s.write('export default ' + JSON.stringify(protocols, null, 2).replace(/\"/g, '\'') + '\n')
   s.close()
 }
 

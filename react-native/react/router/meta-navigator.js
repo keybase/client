@@ -90,6 +90,12 @@ class MetaNavigator extends BaseComponent {
         }
       }
 
+      // See if they're using an embedded parseRoute
+      if (!parseNextRoute && nextPath.get('parseRoute')) {
+        const result = nextPath.get('parseRoute')
+        parseNextRoute = () => result
+      }
+
       routeStack = routeStack.push(componentAtTop)
 
       currentPath = nextPath
