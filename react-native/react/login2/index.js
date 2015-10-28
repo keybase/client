@@ -25,9 +25,6 @@ export default class Login extends Component {
 
   static parseRoute (store, currentPath, nextPath) {
     return {
-      componentAtTop: {
-        mapStateToProps: state => { return {} }
-      },
       subRoutes: {
         welcome: Welcome,
         register: Register

@@ -200,13 +200,6 @@ export default class Nav extends Component {
       </View>
     )
   }
-
-  static parseRoute () {
-    return {
-      componentAtTop: { component: Nav },
-      parseNextRoute: null
-    }
-  }
 }
 
 Nav.propTypes = {
