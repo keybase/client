@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React, { Component, Text, View } from 'react-native'
 

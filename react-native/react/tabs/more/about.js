@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React, { Component, StyleSheet, View, Text } from 'react-native'
 import commonStyles from '../../styles/common'
