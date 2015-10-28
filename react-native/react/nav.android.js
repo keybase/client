@@ -1,7 +1,7 @@
 'use strict'
 
 import TabBar from './native/tab-bar'
-import { connect } from 'react-redux/native'
+import { connect } from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 

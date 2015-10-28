@@ -2,7 +2,7 @@
 /* @flow */
 
 import React, { View } from 'react-native'
-import { connect } from 'react-redux/native'
+import { connect } from '../base-redux'
 
 export default function () {
   const { store, rootComponent, uri, NavBar, Navigator } = this.props

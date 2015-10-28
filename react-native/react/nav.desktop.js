@@ -2,7 +2,7 @@
 /* @flow */
 
 import BaseComponent from './base-component'
-import { connect } from 'react-redux'
+import { connect } from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import React from 'react'
 import { StyleSheet } from 'react'

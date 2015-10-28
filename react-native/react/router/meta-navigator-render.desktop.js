@@ -2,7 +2,7 @@
 /* @flow */
 
 import React from '../base-react'
-import { connect } from 'react-redux'
+import { connect } from '../base-redux'
 
 export default function () {
   const { store, rootComponent, uri, NavBar, Navigator } = this.props

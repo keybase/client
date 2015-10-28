@@ -1,11 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from 'react'
+import * as React from 'react'
 export default React
 
-// Stub: StyleSheet only exists in react-native.
-export class StyleSheet {
-  constructor() {}
-  static create() {}
-}
+export const StyleSheet = (styles) => styles
