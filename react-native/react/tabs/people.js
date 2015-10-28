@@ -8,10 +8,18 @@ import PeopleRender from './people-render'
 export default class People extends BaseComponent {
   constructor (props) {
     super(props)
+    this.state = {count: 0}
+  }
+
+  handleCountIncrease () {
+    this.setState({count: this.state.count + 1})
   }
 
   render () {
-    return <PeopleRender />
+    return <PeopleRender
+      count={this.state.count}
+      onCount={() => this.handleCountIncrease()}
+    />
   }
 
   static parseRoute (store, currentPath, nextPath) {
