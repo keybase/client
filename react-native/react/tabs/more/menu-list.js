@@ -38,8 +38,7 @@ export default class MenuList extends Component {
       <View style={styles.container}>
         <ListView
         dataSource={this.state.dataSource}
-        renderRow={(...args) => { return this.renderRow(...args) }}
-        />
+        renderRow={(rowData, sectionID, rowID) => { return this.renderRow(rowData, sectionID, rowID) }}/>
       </View>
     )
   }
