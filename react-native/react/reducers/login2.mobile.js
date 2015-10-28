@@ -4,12 +4,12 @@
 import * as Constants from '../constants/login2'
 import * as ConfigConstants from '../constants/config'
 import Immutable from 'immutable'
-import { Platform } from 'react-native'
+import {Platform} from 'react-native'
 import {
   codePageDeviceRoleNewPhone,
   codePageDeviceRoleNewComputer,
   codePageDeviceRoleExistingPhone,
-  codePageDeviceRoleExistingComputer } from '../constants/login2'
+  codePageDeviceRoleExistingComputer} from '../constants/login2'
 
 type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
 
@@ -21,8 +21,6 @@ type QRCode = string
 type Error = string
 
 type LoginState = {
-  username: string | '',
-  passphrase: string | '',
   codePage: {
     otherDeviceRole: ?DeviceRole,
     myDeviceRole: ?DeviceRole,
@@ -38,12 +36,19 @@ type LoginState = {
   forgotPasswordEmailAddress: string | '',
   forgotPasswordSubmitting: boolean,
   forgotPasswordSuccess: boolean,
-  forgotPasswordError: ?Error
+  forgotPasswordError: ?Error,
+  userPass: {
+    username: string | '',
+    passphrase: string | ''
+  },
+  deviceName: {
+    onSubmit: ?Function,
+    existingDevices: ?Array,
+    deviceName: string | ''
+  }
 }
 
 const initialState: LoginState = {
-  username: '',
-  passphrase: '',
   codePage: {
     otherDeviceRole: null,
     myDeviceRole: null,
@@ -59,153 +64,142 @@ const initialState: LoginState = {
   forgotPasswordEmailAddress: '',
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,
-  forgotPasswordError: null
+  forgotPasswordError: null,
+  userPass: {
+    username: '',
+    passphrase: ''
+  },
+  deviceName: {
+    onSubmit: () => {},
+    existingDevices: [],
+    deviceName: ''
+  }
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {
+  let toMerge = null
+
   switch (action.type) {
     case Constants.login:
-      return {
-        ...state,
-        username: action.username,
-        passphrase: action.passphrase
-      }
-    case Constants.loginDone:
-      return {
-        ...state,
-        username: action.username
-      }
+      const {username, passphrase} = action
+      toMerge = {userPass: {username, passphrase}}
+      break
+    case Constants.loginDone: {
+      const {username} = action
+      toMerge = {userPass: {username}}
+      break
+    }
     case ConfigConstants.startupLoaded:
-      if (!action.error) {
-        let myDeviceRole = null
-        const isPhone = (Platform.OS === 'ios' || Platform.OS === 'android')
+      if (action.error) {
+        return state
+      }
+      let myDeviceRole = null
+      const isPhone = (Platform.OS === 'ios' || Platform.OS === 'android')
 
-        if (action.payload.status.registered) {
-          myDeviceRole = isPhone ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
-        } else {
-          myDeviceRole = isPhone ? codePageDeviceRoleNewPhone : codePageDeviceRoleNewComputer
-        }
-
-        const s = Immutable.fromJS(state)
-        return s.mergeDeep({
-          codePage: {
-            myDeviceRole
-          }
-        }).toJS()
+      if (action.payload.status.registered) {
+        myDeviceRole = isPhone ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
+      } else {
+        myDeviceRole = isPhone ? codePageDeviceRoleNewPhone : codePageDeviceRoleNewComputer
       }
 
-      return state
-    case Constants.setOtherDeviceCodeState: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
-        codePage: {
-          otherDeviceRole: action.otherDeviceRole
-        }
-      }).toJS()
-    }
-    case Constants.setCodeMode: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
-        codePage: {
-          mode: action.mode
-        }
-      }).toJS()
-    }
-    case Constants.setCountdown: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
-        codePage: {
-          codeCountDown: action.countDown
-        }
-      }).toJS()
-    }
-    case Constants.setTextCode: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
-        codePage: {
-          textCode: action.text
-        }
-      }).toJS()
-    }
-    case Constants.setQRCode: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
-        codePage: {
-          qrCode: action.qrCode
-        }
-      }).toJS()
-    }
-    case Constants.qrGenerate: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
-        codePage: {
-          qrCode: action.qrCode
-        }
-      }).toJS()
-    }
-    case Constants.qrScanned: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
-        codePage: {
-          qrScanned: action.code
-        }
-      }).toJS()
-    }
-    case Constants.actionRegisterUserPassSubmit:
-      return {
-        ...state,
-        username: action.username,
-        passphrase: action.passphrase,
+      toMerge = {codePage: {myDeviceRole}}
+      break
+    case Constants.setOtherDeviceCodeState:
+      toMerge = {codePage: {otherDeviceRole: action.otherDeviceRole}}
+      break
+    case Constants.setCodeMode:
+      toMerge = {codePage: {mode: action.mode}}
+      break
+    case Constants.setCountdown:
+      toMerge = {codePage: {codeCountDown: action.countDown}}
+      break
+    case Constants.setTextCode:
+      toMerge = {codePage: {textCode: action.text}}
+      break
+    case Constants.setQRCode:
+      toMerge = {codePage: {qrCode: action.qrCode}}
+      break
+    case Constants.qrGenerate:
+      toMerge = {codePage: {qrCode: action.qrCode}}
+      break
+    case Constants.qrScanned:
+      toMerge = {codePage: {qrScanned: action.code}}
+      break
+    case Constants.actionRegisterUserPassSubmit: {
+      const {username, passphrase} = action
+      toMerge = {
+        serPass: {
+          username,
+          passphrase
+        },
         registerUserPassError: null,
         registerUserPassLoading: true
       }
+      break
+    }
     case Constants.actionRegisterUserPassDone:
-      return {
-        ...state,
+      toMerge = {
         registerUserPassError: action.error,
         registerUserPassLoading: false
       }
+      break
     case Constants.actionUpdateForgotPasswordEmailAddress:
-      return {
-        ...state,
+      toMerge = {
         forgotPasswordEmailAddress: action.email,
         forgotPasswordSuccess: false,
         forgotPasswordError: null
       }
+      break
     case Constants.actionSetForgotPasswordSubmitting:
-      return {
-        ...state,
+      toMerge = {
         forgotPasswordSubmitting: true,
         forgotPasswordSuccess: false,
         forgotPasswordError: null
       }
+      break
     case Constants.actionForgotPasswordDone:
-      return {
-        ...state,
+      toMerge = {
         forgotPasswordSubmitting: false,
         forgotPasswordSuccess: !action.error,
         forgotPasswordError: action.error
       }
-    case Constants.cameraBrokenMode: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
-        codePage: {
-          cameraBrokenMode: action.broken
-        }
-      }).toJS()
-    }
+      break
+    case Constants.cameraBrokenMode:
+      toMerge = {codePage: {cameraBrokenMode: action.broken}}
+      break
     case Constants.doneRegistering: {
-      const s = Immutable.fromJS(state)
-      return s.mergeDeep({
+      toMerge = {
         codePage: {
           codeCountDown: 0,
           textCode: null,
           qrScanned: null,
           qrCode: null
         }
-      }).toJS()
+      }
+      break
     }
+    case Constants.actionAskUserPass:
+      const {title, subTitle, onSubmit, hidePass} = action
+      toMerge = {userPass: {title, subTitle, hidePass, onSubmit}}
+      break
+    case Constants.actionSetUserPass: {
+      const {username, passphrase} = action
+      toMerge = {userPass: {username, passphrase}}
+      break
+    }
+    case Constants.actionAskDeviceName: {
+      const {onSubmit, existingDevices} = action
+      toMerge = {deviceName: {onSubmit, existingDevices}}
+      break
+    }
+    case Constants.actionSetDeviceName:
+      const {deviceName} = action
+      toMerge = {deviceName: {deviceName}}
+      break
     default:
       return state
   }
+
+  const s = Immutable.fromJS(state)
+  return s.mergeDeep(toMerge).toJS()
 }

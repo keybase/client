@@ -3,8 +3,7 @@
 
 import React, { Component, StyleSheet, Text, View } from 'react-native'
 import { routeAppend } from '../../actions/router'
-import PaperKey from './paper-key'
-import UserPass from './user-pass'
+import { registerWithUserPass, registerWithPaperKey } from '../../actions/login2'
 import ExistingDevice from './existing-device'
 import SetPublicName from './set-public-name'
 
@@ -25,13 +24,11 @@ export default class Register extends Component {
       componentAtTop: {
         props: {
           gotoExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
-          gotoPaperKeyPage: () => store.dispatch(routeAppend('regPaperKey')),
-          gotoUserPassPage: () => store.dispatch(routeAppend('regUserPass'))
+          gotoPaperKeyPage: () => store.dispatch(registerWithPaperKey()),
+          gotoUserPassPage: () => store.dispatch(registerWithUserPass())
         }
       },
       subRoutes: {
-        regPaperKey: PaperKey,
-        regUserPass: UserPass,
         regExistingDevice: ExistingDevice,
         regSetPublicName: SetPublicName
       }
