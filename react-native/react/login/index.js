@@ -1,18 +1,19 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Text, StyleSheet, View } from 'react-native'
+import React from '../base-react'
+import BaseComponent from '../base-component'
+
 import DevicePrompt from './device-prompt'
 import SelectSigner from './select-signer'
 import DisplaySecretWords from './display-secret-words'
 import LoginForm from './form'
+import MissingRouteRender from './missing-route'
 
-export default class LoginContainer extends Component {
+export default class LoginContainer extends BaseComponent {
   render () {
     return (
-      <View style={styles.container}>
-        <Text>Welp, you shouldn't be here</Text>
-      </View>
+      <MissingRouteRender />
     )
   }
 
@@ -53,12 +54,3 @@ LoginContainer.propTypes = {
   secretWords: React.PropTypes.string,
   error: React.PropTypes.string
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF'
-  }
-})
