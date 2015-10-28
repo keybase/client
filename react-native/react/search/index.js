@@ -48,7 +48,7 @@ export default class Search extends Component {
     const thumbnail = summary.get('thumbnail')
     const fullName = summary.get('fullName')
     const socialProofs = summary.getIn(['proofs', 'social'], Immutable.List())
-    const matchingProof = socialProofs.find(val => val.get('proofName').indexOf(this.props.term) !== -1)
+    const matchingProof = socialProofs.find(val => val.get('proofName').toLowerCase().indexOf(this.props.term.toLowerCase()) !== -1)
     return (
       <View>
         <TouchableHighlight underlayColor='#ccc' onPress={() => { this.onPress(rowData) }}>
