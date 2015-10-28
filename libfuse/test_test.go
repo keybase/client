@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 	bserverAddr := os.Getenv(EnvBServerAddr)
 	if len(bserverAddr) != 0 && strings.HasPrefix(bserverAddr, "127.0.0.1") {
 		fmt.Println("Starting bserver at ", bserverAddr)
-		bserver.StartBServer(bserverAddr)
+		bserver.StartBServer("dummy", bserverAddr, "")
 	}
 
 	os.Exit(m.Run())

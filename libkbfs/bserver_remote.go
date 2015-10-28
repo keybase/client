@@ -70,7 +70,7 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 		return err
 	}
 
-	arg := keybase1.EstablishSessionArg{
+	arg := keybase1.AuthenticateSessionArg{
 		User: uid,
 		Sid:  token,
 	}
@@ -79,7 +79,7 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 		"uid %s", uid.String())
 	// Using b.client here would cause problematic recursion.
 	c := keybase1.BlockClient{Cli: cancelableClient{client}}
-	return c.EstablishSession(ctx, arg)
+	return c.AuthenticateSession(ctx, arg)
 }
 
 // OnConnectError implements the ConnectionHandler interface.
@@ -175,18 +175,20 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 			id, context.GetWriter(), err)
 	}()
 
-	arg := keybase1.IncBlockReferenceArg{
+	ref := keybase1.BlockReference{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetCreator(),
 			BlockHash: id.String(),
 		},
-		Folder:    tlfID.String(),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
 	nonce := context.GetRefNonce()
-	copy(arg.Nonce[:], nonce[:])
+	copy(ref.Nonce[:], nonce[:])
 
-	err = b.client.IncBlockReference(ctx, arg)
+	err = b.client.AddReference(ctx, keybase1.AddReferenceArg{
+		Ref:    ref,
+		Folder: tlfID.String(),
+	})
 	return err
 }
 
@@ -200,19 +202,62 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 			id, context.GetWriter(), err)
 	}()
 
-	arg := keybase1.DecBlockReferenceArg{
+	ref := keybase1.BlockReference{
 		Bid: keybase1.BlockIdCombo{
 			ChargedTo: context.GetCreator(),
 			BlockHash: id.String(),
 		},
-		Folder:    tlfID.String(),
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
 	}
 	nonce := context.GetRefNonce()
-	copy(arg.Nonce[:], nonce[:])
+	copy(ref.Nonce[:], nonce[:])
 
-	err = b.client.DecBlockReference(ctx, arg)
+	err = b.client.DelReference(ctx, keybase1.DelReferenceArg{
+		Ref:    ref,
+		Folder: tlfID.String(),
+	})
 	return err
+}
+
+// ArchiveBlockReference archives Block references
+func (b *BlockServerRemote) ArchiveBlockReference(ctx context.Context, tlfID TlfID, refs []keybase1.BlockReference) (err error) {
+	doneRefs := make(map[string]bool)
+	notDone := refs
+	prevProgress := true
+	var res []keybase1.BlockReference
+	for len(notDone) > 0 {
+
+		res, err = b.client.ArchiveReference(ctx, keybase1.ArchiveReferenceArg{
+			Refs:   notDone,
+			Folder: tlfID.String(),
+		})
+		b.log.CDebugf(ctx, "BlockServerRemote.ArchiveBlockReference request to archive %d refs actual archived %d\n",
+			len(notDone), len(res))
+		if err != nil {
+			b.log.CWarningf(ctx, "BlockServerRemote.ArchiveBlockReference err=%v", err)
+		}
+		if len(res) == 0 && !prevProgress {
+			b.log.CErrorf(ctx, "BlockServerRemote.ArchiveBlockReference failed to make proress err=%v", err)
+			break
+		}
+		prevProgress = len(res) == 0
+		for _, ref := range res {
+			doneRefs[ref.Bid.BlockHash+string(ref.Nonce[:])] = true
+		}
+		notDone = b.getNotDoneRefs(refs, doneRefs)
+	}
+	return err
+}
+
+func (b *BlockServerRemote) getNotDoneRefs(refs []keybase1.BlockReference, done map[string]bool) (
+	notDone []keybase1.BlockReference) {
+	for _, ref := range refs {
+		if _, ok := done[ref.Bid.BlockHash+string(ref.Nonce[:])]; ok {
+		} else {
+			notDone = append(notDone, ref)
+		}
+	}
+	return notDone
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.

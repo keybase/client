@@ -19,8 +19,12 @@ const (
 	StatusCodeBServerErrorOverQuota = 2703
 	// StatusCodeBServerErrorBlockNonExistent is the error code for when bserver cannot find a block
 	StatusCodeBServerErrorBlockNonExistent = 2704
+	// StatusCodeBServerErrorBlockArchived is the error code for a block has been archived
+	StatusCodeBServerErrorBlockArchived = 2705
+	// StatusCodeBServerErrorNoPermission is the error code for when there's no permission
+	StatusCodeBServerErrorNoPermission = 2706
 	// StatusCodeBServerErrorThrottle is the error code to indicate the client should initiate backoff.
-	StatusCodeBServerErrorThrottle = 2707
+	StatusCodeBServerErrorThrottle = 2799
 )
 
 // BServerError is a generic bserver-side error.
@@ -117,6 +121,56 @@ func (e BServerErrorBlockNonExistent) ToStatus() (s keybase1.Status) {
 	return
 }
 
+// Error implements the Error interface for BServerErrorBlockNonExistent.
+func (e BServerErrorBlockNonExistent) Error() string {
+	if e.Msg == "" {
+		return "BServer: block does not exist"
+	}
+	return e.Msg
+}
+
+//BServerErrorBlockArchived is an exportable error from bserver
+type BServerErrorBlockArchived struct {
+	Msg string
+}
+
+// ToStatus implements the ExportableError interface for BServerErrorBlockArchived
+func (e BServerErrorBlockArchived) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeBServerErrorBlockArchived
+	s.Name = "BLOCK_ARCHIVED"
+	s.Desc = e.Msg
+	return
+}
+
+// Error implements the Error interface for BServerErrorBlockArchived.
+func (e BServerErrorBlockArchived) Error() string {
+	if e.Msg == "" {
+		return "BServer: block is archived"
+	}
+	return e.Msg
+}
+
+//BServerErrorNoPermission is an exportable error from bserver
+type BServerErrorNoPermission struct {
+	Msg string
+}
+
+// ToStatus implements the ExportableError interface for BServerErrorBlockArchived
+func (e BServerErrorNoPermission) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeBServerErrorNoPermission
+	s.Name = "NO_PERMISSION"
+	s.Desc = e.Msg
+	return
+}
+
+// Error implements the Error interface for BServerErrorNoPermission.
+func (e BServerErrorNoPermission) Error() string {
+	if e.Msg == "" {
+		return "BServer: permission denied"
+	}
+	return e.Msg
+}
+
 // BServerErrorThrottle is returned when the server wants the client to backoff.
 type BServerErrorThrottle struct {
 	Msg string
@@ -133,14 +187,6 @@ func (e BServerErrorThrottle) ToStatus() (s keybase1.Status) {
 	s.Name = "THROTTLE"
 	s.Desc = e.Msg
 	return
-}
-
-// Error implements the Error interface for BServerErrorBlockNonExistent
-func (e BServerErrorBlockNonExistent) Error() string {
-	if e.Msg == "" {
-		return "BServer: non-existent block"
-	}
-	return e.Msg
 }
 
 type bServerErrorUnwrapper struct{}
@@ -176,6 +222,12 @@ func (eu bServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, di
 		break
 	case StatusCodeBServerErrorBlockNonExistent:
 		appError = BServerErrorBlockNonExistent{Msg: s.Desc}
+		break
+	case StatusCodeBServerErrorBlockArchived:
+		appError = BServerErrorBlockArchived{Msg: s.Desc}
+		break
+	case StatusCodeBServerErrorNoPermission:
+		appError = BServerErrorNoPermission{Msg: s.Desc}
 		break
 	case StatusCodeBServerErrorThrottle:
 		appError = BServerErrorThrottle{Msg: s.Desc}
