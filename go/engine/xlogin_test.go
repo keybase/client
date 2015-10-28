@@ -56,7 +56,7 @@ func TestXLogin(t *testing.T) {
 	}()
 
 	// start provisioner
-	provisioner := NewKex2Provisioner(tcX.G, secretX)
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

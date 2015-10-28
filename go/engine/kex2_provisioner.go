@@ -26,11 +26,12 @@ type Kex2Provisioner struct {
 var _ kex2.Provisioner = (*Kex2Provisioner)(nil)
 
 // NewKex2Provisioner creates a Kex2Provisioner engine.
-func NewKex2Provisioner(g *libkb.GlobalContext, secret kex2.Secret) *Kex2Provisioner {
+func NewKex2Provisioner(g *libkb.GlobalContext, secret kex2.Secret, pps *libkb.PassphraseStream) *Kex2Provisioner {
 	return &Kex2Provisioner{
 		Contextified: libkb.NewContextified(g),
 		secret:       secret,
 		secretCh:     make(chan kex2.Secret),
+		pps:          pps,
 	}
 }
 
@@ -58,13 +59,11 @@ func (e *Kex2Provisioner) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the provisioner engine.
-func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ Kex2Provisioner.Run()")
-	defer func() { e.G().Log.Debug("- Kex2Provisioner.Run() -> %s", libkb.ErrToOk(err)) }()
-
+func (e *Kex2Provisioner) Run(ctx *Context) error {
 	// before starting provisioning, need to load some information:
 
 	// load self:
+	var err error
 	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
@@ -80,10 +79,12 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	// get current passphrase stream:
-	e.pps, err = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
-	if err != nil {
-		return err
+	// get current passphrase stream if necessary:
+	if e.pps == nil {
+		e.pps, err = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+		if err != nil {
+			return err
+		}
 	}
 
 	// ctx needed by some kex2 functions

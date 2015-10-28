@@ -3,7 +3,7 @@ declare module 'invariant' {
 }
 
 declare module 'Interpolation' {
-  declare var exports: (callback: any) => any;
+  declare var exports: any;
 }
 
 // Algebraic data types

@@ -3,8 +3,7 @@
 
 import * as Constants from '../constants/config'
 import * as LoginConstants from '../constants/login2'
-
-type NavState = 'navStartingUp' | 'navNeedsRegistration' | 'navNeedsLogin' | 'navLoggedIn'
+import type { NavState } from '../constants/config'
 
 type ConfigState = {
   navState: NavState;

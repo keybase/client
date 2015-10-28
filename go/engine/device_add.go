@@ -60,8 +60,16 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	}
 	e.G().Log.Debug("secret phrase: %s", secret.Phrase())
 
+	// provisioner needs ppstream, and UI is confusing when it asks for
+	// it at the same time as asking for the secret, so get it first
+	// before prompting for the kex2 secret:
+	pps, err := e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+	if err != nil {
+		return err
+	}
+
 	// create provisioner engine
-	provisioner := NewKex2Provisioner(e.G(), secret.Secret())
+	provisioner := NewKex2Provisioner(e.G(), secret.Secret(), pps)
 
 	var canceler func()
 

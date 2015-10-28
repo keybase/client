@@ -53,8 +53,8 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 
 func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keybase1.DeviceType, error) {
 	p.parent.Output("What type of device would you like to connect this device with?\n\n")
-	p.parent.Output("(1) Desktop\n")
-	p.parent.Output("(2) Mobile\n")
+	p.parent.Output("(1) Desktop or laptop\n")
+	p.parent.Output("(2) Mobile phone\n")
 
 	var res keybase1.DeviceType
 	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDeviceType, p.parent, "Choose a device type", 1, 2)
@@ -90,19 +90,19 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 		sbytes := secret.Secret()
 		return sbytes[:], nil
 
-	} else {
-		// this is the provisionee device (device Y)
-		// For command line app, the provisionee displays secrets only
-
-		p.parent.Output("Type this verification code into your other device:\n\n")
-		p.parent.Output("\t" + arg.Phrase + "\n\n")
-		p.parent.Output("If you are using the command line client on your other device, run this command:\n\n")
-		p.parent.Output("\tkeybase device xadd\n\n")
-		p.parent.Output("It will then prompt you for the verification code above.\n\n")
-
-		// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code as well }
-		return nil, nil
 	}
+
+	// this is the provisionee device (device Y)
+	// For command line app, the provisionee displays secrets only
+
+	p.parent.Output("Type this verification code into your other device:\n\n")
+	p.parent.Output("\t" + arg.Phrase + "\n\n")
+	p.parent.Output("If you are using the command line client on your other device, run this command:\n\n")
+	p.parent.Output("\tkeybase device xadd\n\n")
+	p.parent.Output("It will then prompt you for the verification code above.\n\n")
+
+	// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code as well }
+	return nil, nil
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
