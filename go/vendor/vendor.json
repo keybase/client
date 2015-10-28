@@ -3,6 +3,11 @@
 	"ignore": "test",
 	"package": [
 		{
+			"path": "code.google.com/p/rsc/qr",
+			"revision": "2d8aa6027fab",
+			"revisionTime": "2014-11-30T16:07:12-05:00"
+		},
+		{
 			"path": "github.com/PuerkitoBio/goquery",
 			"revision": "b4440419d81240f8451a505b2f806c853bc2befc",
 			"revisionTime": "2015-06-05T22:16:32-04:00"
