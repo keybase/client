@@ -8,11 +8,11 @@ import commonStyles from '../styles/common'
 import Immutable from 'immutable'
 
 const serviceIcons = {
-  twitter: require('image!twitter'),
-  github: require('image!gh'),
-  reddit: require('image!reddit'),
-  coinbase: require('image!btc'),
-  hackernews: require('image!hn')
+  twitter: require('image!service_twitter'),
+  github: require('image!service_github'),
+  reddit: require('image!service_reddit'),
+  coinbase: require('image!service_coinbase'),
+  hackernews: require('image!service_hackernews')
 }
 
 function renderTextWithHighlight (text, highlight, style) {
