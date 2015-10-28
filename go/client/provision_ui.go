@@ -2,11 +2,14 @@ package client
 
 import (
 	"fmt"
+	"os"
+	"path"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/qrcode"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -102,7 +105,21 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 		p.parent.Output("\tkeybase device xadd\n\n")
 		p.parent.Output("It will then prompt you for the verification code above.\n\n")
 
-		// TODO: if arg.OtherDeviceType == keybase1.DeviceType_MOBILE { show qr code as well }
+		if arg.OtherDeviceType == keybase1.DeviceType_MOBILE {
+			encodings, err := qrcode.Encode(arg.Secret)
+			// ignoring any of these errors...phrase above will suffice.
+			if err == nil {
+				p.parent.Output("Or, scan this QR Code with the keybase app on your mobile phone:\n\n")
+				p.parent.Output(encodings.Terminal)
+				fname := path.Join(os.TempDir(), "keybase_qr.png")
+				f, ferr := os.Create(fname)
+				if ferr == nil {
+					f.Write(encodings.PNG)
+					f.Close()
+					p.parent.Printf("\nThere's also a PNG version in %s that might work better.\n\n", fname)
+				}
+			}
+		}
 		return nil, nil
 	}
 
