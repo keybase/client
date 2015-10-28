@@ -119,7 +119,7 @@ func AddrToString(addr net.Addr) string {
 
 func (l SimpleLog) TransportStart() {
 	if l.Opts.TransportStart() {
-		l.Out.Info(l.msg(true, "New connection"))
+		l.Out.Debug(l.msg(true, "New connection"))
 	}
 }
 
@@ -127,7 +127,7 @@ func (l SimpleLog) TransportError(e error) {
 	if e != io.EOF {
 		l.Out.Error(l.msg(true, "Error in transport: %s", e.Error()))
 	} else if l.Opts.TransportStart() {
-		l.Out.Info(l.msg(true, "EOF"))
+		l.Out.Debug(l.msg(true, "EOF"))
 	}
 	return
 }
