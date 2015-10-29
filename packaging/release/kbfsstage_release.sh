@@ -31,7 +31,8 @@ kbfs_version_tag="v$kbfs_version"
 
 clientdir="$GOPATH/src/github.com/keybase/client"
 kbfsdir="$GOPATH/src/github.com/keybase/kbfs"
-betadir=${BETADIR:-$GOPATH/src/github.com/keybase/client-beta}
+client_betadir=${CLIENT_BETADIR:-$GOPATH/src/github.com/keybase/client-beta}
+kbfs_betadir=${KBFS_BETADIR:-$GOPATH/src/github.com/keybase/kbfs-beta}
 brewdir=${BREWDIR:-$GOPATH/src/github.com/keybase/homebrew-beta}
 
 if [ ! -d "$clientdir" ]; then
@@ -44,8 +45,13 @@ if [ ! -d "$kbfsdir" ]; then
 	exit 1
 fi
 
-if [ ! -d "$betadir" ]; then
-	echo "Need client-beta repo, expecting it here: $betadir"
+if [ ! -d "$client_betadir" ]; then
+	echo "Need client-beta repo, expecting it here: $client_betadir"
+	exit 1
+fi
+
+if [ ! -d "$kbfs_betadir" ]; then
+	echo "Need kbfs-beta repo, expecting it here: $kbfs_betadir"
 	exit 1
 fi
 
@@ -80,18 +86,18 @@ if git tag -a $kbfs_version_tag -m $kbfs_version_tag ; then
 	echo "Tagged client source with $kbfs_version_tag"
 	git push --tags
 
-	echo "Exporting client source to kbfs-beta for version $client_version"
-	$clientdir/packaging/export/export.sh client $betadir $client_version_tag
-	cd $betadir
+	echo "Exporting client source to client-beta for version $client_version"
+	$clientdir/packaging/export/export.sh client $client_betadir $client_version_tag
+	cd $client_betadir
 	git add .
 	git commit -m "Importing client source from $client_version_tag"
 	git push
-	git tag -a $version_tag -m $version_tag
+	git tag -a $client_version_tag -m $client_version_tag
 	git push --tags
 
 	echo "Exporting kbfs source to kbfs-beta for version $kbfs_version"
-	$clientdir/packaging/export/export.sh kbfs $betadir $kbfs_version_tag
-	cd $betadir
+	$clientdir/packaging/export/export.sh kbfs $kbfs_betadir $kbfs_version_tag
+	cd $kbfs_betadir
 	git add .
 	git commit -m "Importing kbfs source from $kbfs_version_tag"
 	git push
@@ -99,7 +105,7 @@ if git tag -a $kbfs_version_tag -m $kbfs_version_tag ; then
 	git push --tags
 else
 	echo "git tag $kbfs_version_tag failed on $kbfsdir, presumably it exists"
-	echo "skipped client and kbfs source export to kbfs-beta for client version $client_version and kbfs version $kbfs_version"
+	echo "skipped client export to client-beta for client version $client_version and kbfs export to kbfs-beta for kbfs version $kbfs_version"
 fi
 
 src_url="https://github.com/keybase/kbfs-beta/archive/$kbfs_version_tag.tar.gz"
