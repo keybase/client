@@ -11,8 +11,6 @@
 # 2. exports the code to the client-beta repo
 # 3. updates the kbstage brew formula
 #
-# Soon, it will also call the linux package build script...
-#
 
 set -e -u -o pipefail
 
