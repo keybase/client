@@ -24,7 +24,8 @@ var localUserFlag = flag.String("localuser", "strib",
 var clientFlag = flag.Bool("client", defaultClientFlag, "connect as client to keybase daemon")
 var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
-var versionFile = flag.String("version-file", "", "write version to file on successful startup")
+var runtimeDir = flag.String("runtime-dir", os.Getenv("KEYBASE_RUNTIME_DIR"), "runtime directory")
+var label = flag.String("label", os.Getenv("KEYBASE_LABEL"), "label to help identify if running as a service")
 var mountType = flag.String("mount-type", defaultMountType, "mount type: default, force")
 var debug = flag.Bool("debug", false, "Print debug messages")
 var version = flag.Bool("version", false, "Print version")
@@ -86,7 +87,8 @@ func start() *libfuse.Error {
 		ServerRootDir: serverRootDir,
 		CPUProfile:    *cpuprofile,
 		MemProfile:    *memprofile,
-		VersionFile:   *versionFile,
+		RuntimeDir:    *runtimeDir,
+		Label:         *label,
 		Debug:         *debug,
 		BServerAddr:   *bserverAddr,
 		MDServerAddr:  *mdserverAddr,
