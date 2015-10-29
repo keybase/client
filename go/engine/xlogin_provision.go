@@ -15,13 +15,14 @@ import (
 // device.
 type XLoginProvision struct {
 	libkb.Contextified
-	arg        *XLoginProvisionArg
-	user       *libkb.User
-	lks        *libkb.LKSec
-	signingKey libkb.GenericKey
-	gpgCli     *libkb.GpgCLI
-	username   string
-	devname    string
+	arg          *XLoginProvisionArg
+	user         *libkb.User
+	lks          *libkb.LKSec
+	signingKey   libkb.GenericKey
+	gpgCli       *libkb.GpgCLI
+	username     string
+	devname      string
+	cleanupOnErr bool
 }
 
 type XLoginProvisionArg struct {
@@ -78,6 +79,8 @@ func (e *XLoginProvision) Run(ctx *Context) error {
 	}
 
 	if err := e.runMethod(ctx, method); err != nil {
+		// cleanup state because there was an error:
+		e.cleanup()
 		return err
 	}
 
@@ -526,6 +529,9 @@ func (e *XLoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, 
 
 // runMethod runs the function for the chosen provisioning method.
 func (e *XLoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMethod) error {
+	// if there is an error running one of these, then the engine will
+	// cleanup the state.
+	e.cleanupOnErr = true
 	switch method {
 	case keybase1.ProvisionMethod_DEVICE:
 		return e.device(ctx)
@@ -537,6 +543,8 @@ func (e *XLoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMetho
 		return e.passphrase(ctx)
 	}
 
+	// no cleanup necessary as nothing ran
+	e.cleanupOnErr = false
 	return libkb.InternalError{Msg: fmt.Sprintf("unhandled provisioning method: %v", method)}
 }
 
@@ -672,4 +680,14 @@ func (e *XLoginProvision) displaySuccess(ctx *Context) error {
 		DeviceName: e.devname,
 	}
 	return ctx.ProvisionUI.ProvisioneeSuccess(context.TODO(), sarg)
+}
+
+func (e *XLoginProvision) cleanup() {
+	if !e.cleanupOnErr {
+		return
+	}
+
+	// the best way to cleanup is to logout...
+	e.G().Log.Debug("an error occurred during provisioning, logging out")
+	e.G().Logout()
 }
