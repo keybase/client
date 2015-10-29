@@ -9,7 +9,7 @@ import { StyleSheet } from 'react'
 import Folders from './tabs/folders'
 import Chat from './tabs/chat'
 import People from './tabs/people'
-//import Devices from './tabs/devices'
+// import Devices from './tabs/devices'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
@@ -22,14 +22,15 @@ const tabToRootRouteParse = {
   [FOLDER_TAB]: Folders,
   [CHAT_TAB]: Chat,
   [PEOPLE_TAB]: People,
-//  [DEVICES_TAB]: Devices.parseRoute,
+  // [DEVICES_TAB]: Devices,
   [MORE_TAB]: More
 }
 
 const menuItems = [
   { route: [FOLDER_TAB], text: 'Folders' },
   { route: [CHAT_TAB], text: 'Chat' },
-  { route: [PEOPLE_TAB], text: 'People' }
+  { route: [PEOPLE_TAB], text: 'People' },
+  { route: [DEVICES_TAB], text: 'Devices' }
 ]
 
 export default class Nav extends BaseComponent {
@@ -110,6 +111,9 @@ export default class Nav extends BaseComponent {
             {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
           </Tab>
           <Tab label="People" value={PEOPLE_TAB}>
+            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
+          </Tab>
+          <Tab label="Devices" value={DEVICES_TAB}>
             {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
           </Tab>
         </Tabs>

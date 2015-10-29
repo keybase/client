@@ -2,6 +2,7 @@
 
 // Handles sending requests to objc (then go) and back
 
+import React from '../base-react'
 import engine from './native'
 import EngineError from './errors'
 
@@ -47,14 +48,49 @@ class DummyTransport extends RpcTransport {
   }
 }
 
+class ElectronTransport extends RpcTransport {
+  constructor (opts, incomingRPCCallback) {
+    super(opts)
+    this.set_generic_handler(incomingRPCCallback)
+  }
+  unwrap_incoming_error (err) {
+    if (!err) {
+      return null
+    }
+
+    if (typeof (err) === 'object') {
+      return new EngineError(err)
+    } else {
+      return new Error(JSON.stringify(err))
+    }
+  }
+}
+
 class Engine {
   constructor () {
-    this.rpcClient = new RpcClient(
-      new DummyTransport(
-        this._rpcWrite,
-        (payload) => { this._rpcIncoming(payload) }),
+    if ('platform' in React) {
+      /* React Native */
+      this.rpcClient = new RpcClient(
+        new DummyTransport(
+          this._rpcWrite,
+          (payload) => { this._rpcIncoming(payload) }
+        ),
         'keybase.1'
-    )
+      )
+    } else {
+      /* React Desktop */
+      this.rpcClient = new RpcClient(
+        new ElectronTransport({
+          path: '/run/user/1000/keybase.devel/keybased.sock',
+          robust: true
+        },
+          (payload) => { this._rpcIncoming(payload) }
+        ),
+        'keybase.1'
+      )
+      this.rpcClient.transport.connect(err => console.log(err))
+    }
+
     this.setupListener()
     this.sessionID = 123
 
@@ -75,7 +111,9 @@ class Engine {
           return
         }
 
-        this.rpcClient.transport.packetize_data(new Buffer(payload, 'base64'))
+        if ('platform' in React) {
+          this.rpcClient.transport.packetize_data(new Buffer(payload, 'base64'))
+        }
       }
     )
   }
