@@ -15,15 +15,16 @@ import (
 // the devices for the current user.
 type CmdDeviceList struct {
 	all bool
+	libkb.Contextified
 }
 
 // NewCmdDeviceList creates a new cli.Command.
-func NewCmdDeviceList(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDeviceList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "list",
 		Usage: "List devices",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{}, "list", c)
+			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "list", c)
 		},
 	}
 }

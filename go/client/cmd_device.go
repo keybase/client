@@ -14,8 +14,8 @@ func NewCmdDevice(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		Usage:        "Manage your devices",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
-			NewCmdDeviceRemove(cl),
-			NewCmdDeviceList(cl),
+			NewCmdDeviceRemove(cl, g),
+			NewCmdDeviceList(cl, g),
 			NewCmdDeviceAdd(cl, g),
 		},
 	}
