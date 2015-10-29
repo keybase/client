@@ -5131,7 +5131,11 @@
   return p;
 }
 @end
+@implementation KBRStringKVPair
+@end
+
 @implementation KBRStatus
++ (NSValueTransformer *)fieldsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRStringKVPair.class]; }
 @end
 
 @implementation KBRText

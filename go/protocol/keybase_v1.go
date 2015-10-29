@@ -54,11 +54,16 @@ func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseCha
 }
 
 type Time int64
+type StringKVPair struct {
+	Key   string `codec:"key" json:"key"`
+	Value string `codec:"value" json:"value"`
+}
+
 type Status struct {
-	Code   int               `codec:"code" json:"code"`
-	Name   string            `codec:"name" json:"name"`
-	Desc   string            `codec:"desc" json:"desc"`
-	Fields map[string]string `codec:"fields" json:"fields"`
+	Code   int            `codec:"code" json:"code"`
+	Name   string         `codec:"name" json:"name"`
+	Desc   string         `codec:"desc" json:"desc"`
+	Fields []StringKVPair `codec:"fields" json:"fields"`
 }
 
 type UID string

@@ -235,8 +235,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			Desc:   s.Desc,
 			Fields: make(map[string]string),
 		}
-		for k, v := range s.Fields {
-			ase.Fields[k] = v
+		for _, f := range s.Fields {
+			ase.Fields[f.Key] = f.Value
 		}
 		return ase
 	}
@@ -245,11 +245,16 @@ func ImportStatusAsError(s *keybase1.Status) error {
 //=============================================================================
 
 func (a AppStatusError) ToStatus() keybase1.Status {
+	var fields []keybase1.StringKVPair
+	for k, v := range a.Fields {
+		fields = append(fields, keybase1.StringKVPair{Key: k, Value: v})
+	}
+
 	return keybase1.Status{
 		Code:   a.Code,
 		Name:   a.Name,
 		Desc:   a.Desc,
-		Fields: a.Fields,
+		Fields: fields,
 	}
 }
 
