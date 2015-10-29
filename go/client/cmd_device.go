@@ -13,7 +13,6 @@ func NewCmdDevice(cl *libcmdline.CommandLine) cli.Command {
 		Usage:        "Manage your devices",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
-			NewCmdDeviceAdd(cl),
 			NewCmdDeviceRemove(cl),
 			NewCmdDeviceList(cl),
 			NewCmdDeviceXAdd(cl),
