@@ -16,10 +16,16 @@ type JSONFile struct {
 	jw       *jsonw.Wrapper
 	exists   bool
 	dirty    bool
+	Contextified
 }
 
-func NewJSONFile(filename, which string) *JSONFile {
-	return &JSONFile{filename, which, jsonw.NewDictionary(), false, false}
+func NewJSONFile(g *GlobalContext, filename, which string) *JSONFile {
+	return &JSONFile{
+		filename:     filename,
+		which:        which,
+		jw:           jsonw.NewDictionary(),
+		Contextified: NewContextified(g),
+	}
 }
 
 func (f *JSONFile) GetWrapper() *jsonw.Wrapper {
@@ -28,21 +34,19 @@ func (f *JSONFile) GetWrapper() *jsonw.Wrapper {
 func (f *JSONFile) Exists() bool { return f.exists }
 
 func (f *JSONFile) Load(warnOnNotFound bool) error {
-	G.Log.Debug(fmt.Sprintf("+ loading %s file: %s", f.which, f.filename))
+	f.G().Log.Debug("+ loading %s file: %s", f.which, f.filename)
 	file, err := os.Open(f.filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			msg := fmt.Sprintf("No %s file found; tried %s",
-				f.which, f.filename)
+			msg := fmt.Sprintf("No %s file found; tried %s", f.which, f.filename)
 			if warnOnNotFound {
-				G.Log.Warning(msg)
+				f.G().Log.Warning(msg)
 			} else {
-				G.Log.Debug(msg)
+				f.G().Log.Debug(msg)
 			}
 			return nil
 		} else if os.IsPermission(err) {
-			G.Log.Warning(fmt.Sprintf("Permission denied opening %s file %s",
-				f.which, f.filename))
+			f.G().Log.Warning("Permission denied opening %s file %s", f.which, f.filename)
 			return nil
 		} else {
 			return err
@@ -54,11 +58,11 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	obj := make(map[string]interface{})
 	// Treat empty files like an empty dictionary
 	if err = decoder.Decode(&obj); err != nil && err != io.EOF {
-		G.Log.Errorf("Error decoding %s file %s", f.which, f.filename)
+		f.G().Log.Errorf("Error decoding %s file %s", f.which, f.filename)
 		return err
 	}
 	f.jw = jsonw.NewWrapper(obj)
-	G.Log.Debug("- successfully loaded %s file", f.which)
+	f.G().Log.Debug("- successfully loaded %s file", f.which)
 	return nil
 }
 
@@ -70,10 +74,10 @@ func (f *JSONFile) MaybeSave(pretty bool, mode os.FileMode) (err error) {
 }
 
 func (f *JSONFile) Nuke() error {
-	G.Log.Debug("+ nuke file %s", f.filename)
+	f.G().Log.Debug("+ nuke file %s", f.filename)
 
 	err := os.Remove(f.filename)
-	G.Log.Debug("- nuke file %s -> %s", f.filename, ErrToOk(err))
+	f.G().Log.Debug("- nuke file %s -> %s", f.filename, ErrToOk(err))
 
 	return err
 }
@@ -97,11 +101,11 @@ func (f *JSONFile) SaveTmp(suffix string) (string, error) {
 }
 
 func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err error) {
-	G.Log.Debug(fmt.Sprintf("+ saving %s file %s", f.which, filename))
+	f.G().Log.Debug("+ saving %s file %s", f.which, filename)
 
 	err = MakeParentDirs(filename)
 	if err != nil {
-		G.Log.Errorf("Failed to make parent dirs for %s", filename)
+		f.G().Log.Errorf("Failed to make parent dirs for %s", filename)
 		return err
 	}
 
@@ -110,12 +114,12 @@ func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err err
 	if f.jw == nil {
 		// Make a default Dictionary if none already exists
 		dat = make(map[string]interface{})
-		G.Log.Warning("No value for %s file; assuming empty value (i.e., {})",
+		f.G().Log.Warning("No value for %s file; assuming empty value (i.e., {})",
 			f.which)
 	} else {
 		dat, err = f.jw.GetData()
 		if err != nil {
-			G.Log.Errorf("Failed to encode data for %s file", f.which)
+			f.G().Log.Errorf("Failed to encode data for %s file", f.which)
 			return err
 		}
 	}
@@ -126,7 +130,7 @@ func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err err
 	}
 	writer, err = os.OpenFile(filename, flags, mode)
 	if err != nil {
-		G.Log.Errorf("Failed to open %s file %s for writing: %s",
+		f.G().Log.Errorf("Failed to open %s file %s for writing: %s",
 			f.which, filename, err)
 		return err
 	}
@@ -143,21 +147,20 @@ func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err err
 	}
 
 	if err != nil {
-		G.Log.Errorf("Error encoding data to %s file %s: %s",
+		f.G().Log.Errorf("Error encoding data to %s file %s: %s",
 			f.which, filename, err)
 		return err
 	}
 
 	err = writer.Close()
 	if err != nil {
-		G.Log.Errorf("Error flushing %s file %s: %s",
-			f.which, filename, err)
+		f.G().Log.Errorf("Error flushing %s file %s: %s", f.which, filename, err)
 		return err
 	}
 
-	G.Log.Debug(fmt.Sprintf("Wrote %s file to %s", f.which, filename))
+	f.G().Log.Debug("Wrote %s file to %s", f.which, filename)
 
-	G.Log.Debug(fmt.Sprintf("- saved %s file %s", f.which, filename))
+	f.G().Log.Debug("- saved %s file %s", f.which, filename)
 	return
 }
 

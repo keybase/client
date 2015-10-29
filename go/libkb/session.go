@@ -169,7 +169,7 @@ func (s *Session) Load() error {
 		return err
 	}
 
-	s.file = NewJSONFile(s.G().Env.GetSessionFilename(), "session")
+	s.file = NewJSONFile(s.G(), s.G().Env.GetSessionFilename(), "session")
 	err = s.file.Load(false)
 	s.loaded = true
 
