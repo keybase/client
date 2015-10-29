@@ -40,7 +40,7 @@ export default class MoreTabs extends BaseComponent {
     return (
       <View style={styles.container}>
         <ListView
-        dataSource={this.state.dataSource}
+        dataSource={this.dataSource}
         renderRow={(...args) => { return this.renderRow(...args) }}
         />
       </View>
