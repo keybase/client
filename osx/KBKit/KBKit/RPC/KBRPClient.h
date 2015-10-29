@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 
 #import <MPMessagePack/MPMessagePackClient.h>
-#import "KBEnvConfig.h"
-#import "KBDefines.h"
+#import <KBKit/KBEnvConfig.h>
+#import <KBKit/KBDefines.h>
 
 typedef NS_ENUM (NSInteger, KBRPClientStatus) {
   KBRPClientStatusClosed,

@@ -9,7 +9,7 @@
 #import <Cocoa/Cocoa.h>
 #import <XCTest/XCTest.h>
 
-#import "KBSemVersion.h"
+#import <KBKit/KBSemVersion.h>
 
 @interface KBSemVersionTest : XCTestCase
 @end

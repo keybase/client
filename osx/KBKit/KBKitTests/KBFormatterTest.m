@@ -9,7 +9,7 @@
 #import <Cocoa/Cocoa.h>
 #import <XCTest/XCTest.h>
 
-#import <KBKit/KBKit.h>
+#import <KBKit/KBFormatter.h>
 #import <GHODictionary/GHODictionary.h>
 
 @interface KBFormatterTest : XCTestCase

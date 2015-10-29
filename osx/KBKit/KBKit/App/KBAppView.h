@@ -9,8 +9,10 @@
 #import <Foundation/Foundation.h>
 
 #import <Tikppa/Tikppa.h>
-#import "KBRPC.h"
-#import "KBEnvironment.h"
+
+#import <KBKit/KBDefines.h>
+#import <KBKit/KBEnvironment.h>
+#import <KBKit/KBRPC.h>
 
 @interface KBAppView : YOView
 

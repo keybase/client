@@ -10,7 +10,7 @@
 
 #import <Tikppa/Tikppa.h>
 #import "KBUserStatusView.h"
-#import "KBAppDefines.h"
+#import <KBKit/KBAppDefines.h>
 
 @class KBSourceOutlineView;
 

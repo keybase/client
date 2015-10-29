@@ -8,13 +8,13 @@
 
 #import "KBEnvironment.h"
 
-#import "KBHelperTool.h"
-#import "KBFuseComponent.h"
-#import "KBCLIInstall.h"
-#import "KBRunOver.h"
+#import <KBKit/KBHelperTool.h>
+#import <KBKit/KBFuseComponent.h>
+#import <KBKit/KBRunOver.h>
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
-#import "KBDefines.h"
+#import <KBKit/KBDefines.h>
+#import <KBKit/KBInstallAction.h>
 
 @interface KBEnvironment ()
 @property KBEnvConfig *config;

@@ -8,10 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBEnvConfig.h"
-#import "KBService.h"
-#import "KBFSService.h"
-#import "KBInstallAction.h"
+#import <KBKit/KBEnvConfig.h>
+#import <KBKit/KBService.h>
+#import <KBKit/KBFSService.h>
 
 @interface KBEnvironment : NSObject
 

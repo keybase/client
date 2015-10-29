@@ -8,8 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-
-#import "KBRPC.h"
+#import <KBKit/KBRPC.h>
 
 @interface KBProofResult : NSObject
 

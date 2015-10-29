@@ -9,9 +9,10 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-#import "KBService.h"
-#import "KBAppView.h"
-#import "KBPreferences.h"
+#import <KBKit/KBAppView.h>
+#import <KBKit/KBPreferences.h>
+#import <KBKit/KBEnvironment.h>
+#import <KBKit/KBService.h>
 
 @class KBApp;
 

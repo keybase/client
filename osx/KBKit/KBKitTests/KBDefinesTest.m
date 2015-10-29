@@ -9,7 +9,7 @@
 #import <Cocoa/Cocoa.h>
 #import <XCTest/XCTest.h>
 
-#import "KBDefines.h"
+#import <KBKit/KBDefines.h>
 
 @interface KBDefinesTest : XCTestCase
 @end

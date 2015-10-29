@@ -8,9 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBComponent.h"
-#import "KBComponentStatus.h"
-#import "KBInstallable.h"
+#import <KBKit/KBComponent.h>
+#import <KBKit/KBComponentStatus.h>
+#import <KBKit/KBInstallable.h>
 
 @interface KBInstallAction : NSObject
 

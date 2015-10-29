@@ -8,9 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBComponent.h"
-#import "KBComponentStatus.h"
-#import "KBEnvConfig.h"
+#import <KBKit/KBEnvConfig.h>
+#import <KBKit/KBComponent.h>
+#import <KBKit/KBComponentStatus.h>
 
 typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 

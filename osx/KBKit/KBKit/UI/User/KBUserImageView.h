@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBImageView.h"
+#import <Tikppa/Tikppa.h>
 
 @interface KBImageView (KBUserImageView)
 

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "KBPath.h"
+#import <KBKit/KBPath.h>
 
 typedef NS_ENUM (NSInteger, KBRunMode) {
   KBRunModeProd,

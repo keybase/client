@@ -1,0 +1,2010 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00010B101BE19F2100A9C285 /* KBKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B0F1BE19F2100A9C285 /* KBKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010B171BE19F2100A9C285 /* KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00010B0C1BE19F2100A9C285 /* KBKit.framework */; };
+		00010C911BE19F8900A9C285 /* KBApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B271BE19F8800A9C285 /* KBApp.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010C921BE19F8900A9C285 /* KBApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B281BE19F8800A9C285 /* KBApp.m */; };
+		00010C931BE19F8900A9C285 /* KBAppDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B291BE19F8800A9C285 /* KBAppDefines.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010C941BE19F8900A9C285 /* KBAppDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B2A1BE19F8800A9C285 /* KBAppDefines.m */; };
+		00010C951BE19F8900A9C285 /* KBAppExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B2B1BE19F8800A9C285 /* KBAppExtension.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010C961BE19F8900A9C285 /* KBAppExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B2C1BE19F8800A9C285 /* KBAppExtension.m */; };
+		00010C971BE19F8900A9C285 /* KBAppToolbar.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B2D1BE19F8800A9C285 /* KBAppToolbar.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010C981BE19F8900A9C285 /* KBAppToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B2E1BE19F8800A9C285 /* KBAppToolbar.m */; };
+		00010C991BE19F8900A9C285 /* KBAppView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B2F1BE19F8800A9C285 /* KBAppView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010C9A1BE19F8900A9C285 /* KBAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B301BE19F8800A9C285 /* KBAppView.m */; };
+		00010C9B1BE19F8900A9C285 /* KBNotifications.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B311BE19F8800A9C285 /* KBNotifications.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010C9C1BE19F8900A9C285 /* KBNotifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B321BE19F8800A9C285 /* KBNotifications.m */; };
+		00010C9D1BE19F8900A9C285 /* KBSourceOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B331BE19F8800A9C285 /* KBSourceOutlineView.h */; };
+		00010C9E1BE19F8900A9C285 /* KBSourceOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B341BE19F8800A9C285 /* KBSourceOutlineView.m */; };
+		00010C9F1BE19F8900A9C285 /* KBCLIInstall.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B361BE19F8800A9C285 /* KBCLIInstall.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CA01BE19F8900A9C285 /* KBCLIInstall.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B371BE19F8800A9C285 /* KBCLIInstall.m */; };
+		00010CA11BE19F8900A9C285 /* KBComponent.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B381BE19F8800A9C285 /* KBComponent.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CA21BE19F8900A9C285 /* KBComponent.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B391BE19F8800A9C285 /* KBComponent.m */; };
+		00010CA31BE19F8900A9C285 /* KBComponentStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B3A1BE19F8800A9C285 /* KBComponentStatus.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CA41BE19F8900A9C285 /* KBComponentStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B3B1BE19F8800A9C285 /* KBComponentStatus.m */; };
+		00010CA51BE19F8900A9C285 /* KBFSConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B3C1BE19F8800A9C285 /* KBFSConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CA61BE19F8900A9C285 /* KBFSConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B3D1BE19F8800A9C285 /* KBFSConfig.m */; };
+		00010CA71BE19F8900A9C285 /* KBFSService.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B3E1BE19F8800A9C285 /* KBFSService.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CA81BE19F8900A9C285 /* KBFSService.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B3F1BE19F8800A9C285 /* KBFSService.m */; };
+		00010CA91BE19F8900A9C285 /* KBFuseComponent.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B401BE19F8800A9C285 /* KBFuseComponent.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CAA1BE19F8900A9C285 /* KBFuseComponent.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B411BE19F8800A9C285 /* KBFuseComponent.m */; };
+		00010CAB1BE19F8900A9C285 /* KBHelperTool.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B421BE19F8800A9C285 /* KBHelperTool.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CAC1BE19F8900A9C285 /* KBHelperTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B431BE19F8800A9C285 /* KBHelperTool.m */; };
+		00010CAD1BE19F8900A9C285 /* KBInstallable.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B441BE19F8800A9C285 /* KBInstallable.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CAE1BE19F8900A9C285 /* KBInstallable.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B451BE19F8800A9C285 /* KBInstallable.m */; };
+		00010CAF1BE19F8900A9C285 /* KBInstallAction.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B461BE19F8800A9C285 /* KBInstallAction.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CB01BE19F8900A9C285 /* KBInstallAction.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B471BE19F8800A9C285 /* KBInstallAction.m */; };
+		00010CB11BE19F8900A9C285 /* KBInstaller.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B481BE19F8800A9C285 /* KBInstaller.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CB21BE19F8900A9C285 /* KBInstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B491BE19F8800A9C285 /* KBInstaller.m */; };
+		00010CB31BE19F8900A9C285 /* KBKeybaseLaunchd.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B4A1BE19F8800A9C285 /* KBKeybaseLaunchd.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CB41BE19F8900A9C285 /* KBKeybaseLaunchd.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B4B1BE19F8800A9C285 /* KBKeybaseLaunchd.m */; };
+		00010CB51BE19F8900A9C285 /* KBLaunchdPlist.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B4C1BE19F8800A9C285 /* KBLaunchdPlist.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CB61BE19F8900A9C285 /* KBLaunchdPlist.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B4D1BE19F8800A9C285 /* KBLaunchdPlist.m */; };
+		00010CB71BE19F8900A9C285 /* KBService.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B4E1BE19F8800A9C285 /* KBService.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CB81BE19F8900A9C285 /* KBService.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B4F1BE19F8800A9C285 /* KBService.m */; };
+		00010CB91BE19F8900A9C285 /* KBServiceConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B501BE19F8800A9C285 /* KBServiceConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CBA1BE19F8900A9C285 /* KBServiceConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B511BE19F8800A9C285 /* KBServiceConfig.m */; };
+		00010CBB1BE19F8900A9C285 /* KBUninstaller.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B521BE19F8800A9C285 /* KBUninstaller.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CBC1BE19F8900A9C285 /* KBUninstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B531BE19F8800A9C285 /* KBUninstaller.m */; };
+		00010CBD1BE19F8900A9C285 /* KBFileReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B551BE19F8800A9C285 /* KBFileReader.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CBE1BE19F8900A9C285 /* KBFileReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B561BE19F8800A9C285 /* KBFileReader.m */; };
+		00010CBF1BE19F8900A9C285 /* KBFileWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B571BE19F8800A9C285 /* KBFileWriter.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CC01BE19F8900A9C285 /* KBFileWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B581BE19F8800A9C285 /* KBFileWriter.m */; };
+		00010CC11BE19F8900A9C285 /* KBPath.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B591BE19F8800A9C285 /* KBPath.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CC21BE19F8900A9C285 /* KBPath.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B5A1BE19F8800A9C285 /* KBPath.m */; };
+		00010CC31BE19F8900A9C285 /* KBReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B5B1BE19F8800A9C285 /* KBReader.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CC41BE19F8900A9C285 /* KBReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B5C1BE19F8800A9C285 /* KBReader.m */; };
+		00010CC51BE19F8900A9C285 /* KBStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B5D1BE19F8800A9C285 /* KBStream.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CC61BE19F8900A9C285 /* KBStream.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B5E1BE19F8800A9C285 /* KBStream.m */; };
+		00010CC71BE19F8900A9C285 /* KBWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B5F1BE19F8800A9C285 /* KBWriter.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CC81BE19F8900A9C285 /* KBWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B601BE19F8800A9C285 /* KBWriter.m */; };
+		00010CC91BE19F8900A9C285 /* KBDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B611BE19F8800A9C285 /* KBDefines.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CCA1BE19F8900A9C285 /* KBDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B621BE19F8800A9C285 /* KBDefines.m */; };
+		00010CCB1BE19F8900A9C285 /* KBFinder.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B641BE19F8800A9C285 /* KBFinder.h */; };
+		00010CCC1BE19F8900A9C285 /* KBFinder.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B651BE19F8800A9C285 /* KBFinder.m */; };
+		00010CCF1BE19F8900A9C285 /* KBSemVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B691BE19F8800A9C285 /* KBSemVersion.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CD01BE19F8900A9C285 /* KBSemVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B6A1BE19F8800A9C285 /* KBSemVersion.m */; };
+		00010CD11BE19F8900A9C285 /* KBWorkspace.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B6B1BE19F8800A9C285 /* KBWorkspace.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CD21BE19F8900A9C285 /* KBWorkspace.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B6C1BE19F8800A9C285 /* KBWorkspace.m */; };
+		00010CD31BE19F8900A9C285 /* KBLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B6E1BE19F8800A9C285 /* KBLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CD41BE19F8900A9C285 /* KBLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B6F1BE19F8800A9C285 /* KBLog.m */; };
+		00010CD61BE19F8900A9C285 /* KBPrefAdvancedView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B721BE19F8800A9C285 /* KBPrefAdvancedView.h */; };
+		00010CD71BE19F8900A9C285 /* KBPrefAdvancedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B731BE19F8800A9C285 /* KBPrefAdvancedView.m */; };
+		00010CD81BE19F8900A9C285 /* KBPrefButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B741BE19F8800A9C285 /* KBPrefButton.h */; };
+		00010CD91BE19F8900A9C285 /* KBPrefButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B751BE19F8800A9C285 /* KBPrefButton.m */; };
+		00010CDA1BE19F8900A9C285 /* KBPrefCheckbox.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B761BE19F8800A9C285 /* KBPrefCheckbox.h */; };
+		00010CDB1BE19F8900A9C285 /* KBPrefCheckbox.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B771BE19F8800A9C285 /* KBPrefCheckbox.m */; };
+		00010CDC1BE19F8900A9C285 /* KBPreferences.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B781BE19F8800A9C285 /* KBPreferences.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CDD1BE19F8900A9C285 /* KBPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B791BE19F8800A9C285 /* KBPreferences.m */; };
+		00010CDE1BE19F8900A9C285 /* KBPrefFileView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B7A1BE19F8800A9C285 /* KBPrefFileView.h */; };
+		00010CDF1BE19F8900A9C285 /* KBPrefFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B7B1BE19F8800A9C285 /* KBPrefFileView.m */; };
+		00010CE01BE19F8900A9C285 /* KBPrefGeneralView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B7C1BE19F8800A9C285 /* KBPrefGeneralView.h */; };
+		00010CE11BE19F8900A9C285 /* KBPrefGeneralView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B7D1BE19F8800A9C285 /* KBPrefGeneralView.m */; };
+		00010CE21BE19F8900A9C285 /* KBPrefGPGView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B7E1BE19F8800A9C285 /* KBPrefGPGView.h */; };
+		00010CE31BE19F8900A9C285 /* KBPrefGPGView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B7F1BE19F8800A9C285 /* KBPrefGPGView.m */; };
+		00010CE41BE19F8900A9C285 /* KBPrefOption.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B801BE19F8800A9C285 /* KBPrefOption.h */; };
+		00010CE51BE19F8900A9C285 /* KBPrefOption.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B811BE19F8800A9C285 /* KBPrefOption.m */; };
+		00010CE61BE19F8900A9C285 /* KBPrefPopUpView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B821BE19F8800A9C285 /* KBPrefPopUpView.h */; };
+		00010CE71BE19F8900A9C285 /* KBPrefPopUpView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B831BE19F8800A9C285 /* KBPrefPopUpView.m */; };
+		00010CE81BE19F8900A9C285 /* KBPrefTextField.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B841BE19F8800A9C285 /* KBPrefTextField.h */; };
+		00010CE91BE19F8900A9C285 /* KBPrefTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B851BE19F8800A9C285 /* KBPrefTextField.m */; };
+		00010CEA1BE19F8900A9C285 /* KBRMockClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B871BE19F8800A9C285 /* KBRMockClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CEB1BE19F8900A9C285 /* KBRMockClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B881BE19F8800A9C285 /* KBRMockClient.m */; };
+		00010CEC1BE19F8900A9C285 /* KBRObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B891BE19F8800A9C285 /* KBRObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CED1BE19F8900A9C285 /* KBRObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B8A1BE19F8800A9C285 /* KBRObject.m */; };
+		00010CEE1BE19F8900A9C285 /* KBRPC.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B8B1BE19F8800A9C285 /* KBRPC.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CEF1BE19F8900A9C285 /* KBRPC.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B8C1BE19F8800A9C285 /* KBRPC.m */; };
+		00010CF01BE19F8900A9C285 /* KBRPClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B8D1BE19F8800A9C285 /* KBRPClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CF11BE19F8900A9C285 /* KBRPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B8E1BE19F8800A9C285 /* KBRPClient.m */; };
+		00010CF21BE19F8900A9C285 /* KBRPCRecord.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B8F1BE19F8800A9C285 /* KBRPCRecord.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CF31BE19F8900A9C285 /* KBRPCRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B901BE19F8800A9C285 /* KBRPCRecord.m */; };
+		00010CF41BE19F8900A9C285 /* KBRPCRegistration.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B911BE19F8800A9C285 /* KBRPCRegistration.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CF51BE19F8900A9C285 /* KBRPCRegistration.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B921BE19F8800A9C285 /* KBRPCRegistration.m */; };
+		00010CF61BE19F8900A9C285 /* KBRRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B931BE19F8800A9C285 /* KBRRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CF71BE19F8900A9C285 /* KBRRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B941BE19F8800A9C285 /* KBRRequest.m */; };
+		00010CF81BE19F8900A9C285 /* KBRRequestParams.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B951BE19F8800A9C285 /* KBRRequestParams.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CF91BE19F8900A9C285 /* KBRRequestParams.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B961BE19F8800A9C285 /* KBRRequestParams.m */; };
+		00010CFA1BE19F8900A9C285 /* KBEnvConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B981BE19F8800A9C285 /* KBEnvConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CFB1BE19F8900A9C285 /* KBEnvConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B991BE19F8800A9C285 /* KBEnvConfig.m */; };
+		00010CFC1BE19F8900A9C285 /* KBEnvironment.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B9A1BE19F8800A9C285 /* KBEnvironment.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CFD1BE19F8900A9C285 /* KBEnvironment.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B9B1BE19F8800A9C285 /* KBEnvironment.m */; };
+		00010CFE1BE19F8900A9C285 /* KBLaunchCtl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B9C1BE19F8800A9C285 /* KBLaunchCtl.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010CFF1BE19F8900A9C285 /* KBLaunchCtl.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B9D1BE19F8800A9C285 /* KBLaunchCtl.m */; };
+		00010D001BE19F8900A9C285 /* KBLaunchdStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B9E1BE19F8800A9C285 /* KBLaunchdStatus.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010D011BE19F8900A9C285 /* KBLaunchdStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B9F1BE19F8800A9C285 /* KBLaunchdStatus.m */; };
+		00010D021BE19F8900A9C285 /* KBLaunchService.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BA01BE19F8800A9C285 /* KBLaunchService.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010D031BE19F8900A9C285 /* KBLaunchService.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BA11BE19F8800A9C285 /* KBLaunchService.m */; };
+		00010D041BE19F8900A9C285 /* KBPrivilegedTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BA21BE19F8800A9C285 /* KBPrivilegedTask.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010D051BE19F8900A9C285 /* KBPrivilegedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BA31BE19F8800A9C285 /* KBPrivilegedTask.m */; };
+		00010D061BE19F8900A9C285 /* KBUserTrackStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BA51BE19F8800A9C285 /* KBUserTrackStatus.h */; };
+		00010D071BE19F8900A9C285 /* KBUserTrackStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BA61BE19F8800A9C285 /* KBUserTrackStatus.m */; };
+		00010D081BE19F8900A9C285 /* KBAppDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BA91BE19F8900A9C285 /* KBAppDebug.h */; };
+		00010D091BE19F8900A9C285 /* KBAppDebug.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BAA1BE19F8900A9C285 /* KBAppDebug.m */; };
+		00010D0A1BE19F8900A9C285 /* KBConsoleView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BAB1BE19F8900A9C285 /* KBConsoleView.h */; };
+		00010D0B1BE19F8900A9C285 /* KBConsoleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BAC1BE19F8900A9C285 /* KBConsoleView.m */; };
+		00010D0C1BE19F8900A9C285 /* KBControlPanel.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BAD1BE19F8900A9C285 /* KBControlPanel.h */; };
+		00010D0D1BE19F8900A9C285 /* KBControlPanel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BAE1BE19F8900A9C285 /* KBControlPanel.m */; };
+		00010D0E1BE19F8900A9C285 /* KBCustomEnvView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BAF1BE19F8900A9C285 /* KBCustomEnvView.h */; };
+		00010D0F1BE19F8900A9C285 /* KBCustomEnvView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB01BE19F8900A9C285 /* KBCustomEnvView.m */; };
+		00010D101BE19F8900A9C285 /* KBDebugPropertiesView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB11BE19F8900A9C285 /* KBDebugPropertiesView.h */; };
+		00010D111BE19F8900A9C285 /* KBDebugPropertiesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB21BE19F8900A9C285 /* KBDebugPropertiesView.m */; };
+		00010D121BE19F8900A9C285 /* KBDebugViews.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB31BE19F8900A9C285 /* KBDebugViews.h */; };
+		00010D131BE19F8900A9C285 /* KBDebugViews.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB41BE19F8900A9C285 /* KBDebugViews.m */; };
+		00010D141BE19F8900A9C285 /* KBEnvSelectView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB51BE19F8900A9C285 /* KBEnvSelectView.h */; };
+		00010D151BE19F8900A9C285 /* KBEnvSelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB61BE19F8900A9C285 /* KBEnvSelectView.m */; };
+		00010D161BE19F8900A9C285 /* KBFSStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB71BE19F8900A9C285 /* KBFSStatusView.h */; };
+		00010D171BE19F8900A9C285 /* KBFSStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB81BE19F8900A9C285 /* KBFSStatusView.m */; };
+		00010D181BE19F8900A9C285 /* KBStyleGuideView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB91BE19F8900A9C285 /* KBStyleGuideView.h */; };
+		00010D191BE19F8900A9C285 /* KBStyleGuideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BBA1BE19F8900A9C285 /* KBStyleGuideView.m */; };
+		00010D1A1BE19F8900A9C285 /* KBDeviceAddView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BBC1BE19F8900A9C285 /* KBDeviceAddView.h */; };
+		00010D1B1BE19F8900A9C285 /* KBDeviceAddView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BBD1BE19F8900A9C285 /* KBDeviceAddView.m */; };
+		00010D1C1BE19F8900A9C285 /* KBDevicesAppView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BBE1BE19F8900A9C285 /* KBDevicesAppView.h */; };
+		00010D1D1BE19F8900A9C285 /* KBDevicesAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BBF1BE19F8900A9C285 /* KBDevicesAppView.m */; };
+		00010D1E1BE19F8900A9C285 /* KBDeviceSetupChooseView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BC01BE19F8900A9C285 /* KBDeviceSetupChooseView.h */; };
+		00010D1F1BE19F8900A9C285 /* KBDeviceSetupChooseView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BC11BE19F8900A9C285 /* KBDeviceSetupChooseView.m */; };
+		00010D201BE19F8900A9C285 /* KBDeviceSetupDisplayView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BC21BE19F8900A9C285 /* KBDeviceSetupDisplayView.h */; };
+		00010D211BE19F8900A9C285 /* KBDeviceSetupDisplayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BC31BE19F8900A9C285 /* KBDeviceSetupDisplayView.m */; };
+		00010D221BE19F8900A9C285 /* KBDeviceSetupPromptView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BC41BE19F8900A9C285 /* KBDeviceSetupPromptView.h */; };
+		00010D231BE19F8900A9C285 /* KBDeviceSetupPromptView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BC51BE19F8900A9C285 /* KBDeviceSetupPromptView.m */; };
+		00010D241BE19F8900A9C285 /* KBDeviceSignerOption.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BC61BE19F8900A9C285 /* KBDeviceSignerOption.h */; };
+		00010D251BE19F8900A9C285 /* KBDeviceSignerOption.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BC71BE19F8900A9C285 /* KBDeviceSignerOption.m */; };
+		00010D261BE19F8900A9C285 /* KBDeviceView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BC81BE19F8900A9C285 /* KBDeviceView.h */; };
+		00010D271BE19F8900A9C285 /* KBDeviceView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BC91BE19F8900A9C285 /* KBDeviceView.m */; };
+		00010D281BE19F8900A9C285 /* KBFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BCB1BE19F8900A9C285 /* KBFile.h */; };
+		00010D291BE19F8900A9C285 /* KBFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BCC1BE19F8900A9C285 /* KBFile.m */; };
+		00010D2A1BE19F8900A9C285 /* KBFileIcon.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BCD1BE19F8900A9C285 /* KBFileIcon.h */; };
+		00010D2B1BE19F8900A9C285 /* KBFileIcon.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BCE1BE19F8900A9C285 /* KBFileIcon.m */; };
+		00010D2C1BE19F8900A9C285 /* KBFileLabel.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BCF1BE19F8900A9C285 /* KBFileLabel.h */; };
+		00010D2D1BE19F8900A9C285 /* KBFileLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BD01BE19F8900A9C285 /* KBFileLabel.m */; };
+		00010D2E1BE19F8900A9C285 /* KBFileListView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BD11BE19F8900A9C285 /* KBFileListView.h */; };
+		00010D2F1BE19F8900A9C285 /* KBFileListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BD21BE19F8900A9C285 /* KBFileListView.m */; };
+		00010D301BE19F8900A9C285 /* KBFilePreviewView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BD31BE19F8900A9C285 /* KBFilePreviewView.h */; };
+		00010D311BE19F8900A9C285 /* KBFilePreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BD41BE19F8900A9C285 /* KBFilePreviewView.m */; };
+		00010D321BE19F8900A9C285 /* KBFileSelectView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BD51BE19F8900A9C285 /* KBFileSelectView.h */; };
+		00010D331BE19F8900A9C285 /* KBFileSelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BD61BE19F8900A9C285 /* KBFileSelectView.m */; };
+		00010D341BE19F8900A9C285 /* KBFolderAddView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BD71BE19F8900A9C285 /* KBFolderAddView.h */; };
+		00010D351BE19F8900A9C285 /* KBFolderAddView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BD81BE19F8900A9C285 /* KBFolderAddView.m */; };
+		00010D361BE19F8900A9C285 /* KBFoldersAppView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BD91BE19F8900A9C285 /* KBFoldersAppView.h */; };
+		00010D371BE19F8900A9C285 /* KBFoldersAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BDA1BE19F8900A9C285 /* KBFoldersAppView.m */; };
+		00010D381BE19F8900A9C285 /* KBFoldersView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BDB1BE19F8900A9C285 /* KBFoldersView.h */; };
+		00010D391BE19F8900A9C285 /* KBFoldersView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BDC1BE19F8900A9C285 /* KBFoldersView.m */; };
+		00010D3A1BE19F8900A9C285 /* KBFolderUsersListView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BDD1BE19F8900A9C285 /* KBFolderUsersListView.h */; };
+		00010D3B1BE19F8900A9C285 /* KBFolderUsersListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BDE1BE19F8900A9C285 /* KBFolderUsersListView.m */; };
+		00010D3C1BE19F8900A9C285 /* KBFolderUsersView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BDF1BE19F8900A9C285 /* KBFolderUsersView.h */; };
+		00010D3D1BE19F8900A9C285 /* KBFolderUsersView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE01BE19F8900A9C285 /* KBFolderUsersView.m */; };
+		00010D3E1BE19F8900A9C285 /* KBUserPermission.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE11BE19F8900A9C285 /* KBUserPermission.h */; };
+		00010D3F1BE19F8900A9C285 /* KBUserPermission.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE21BE19F8900A9C285 /* KBUserPermission.m */; };
+		00010D401BE19F8900A9C285 /* KBStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE41BE19F8900A9C285 /* KBStatusView.h */; };
+		00010D411BE19F8900A9C285 /* KBStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE51BE19F8900A9C285 /* KBStatusView.m */; };
+		00010D421BE19F8900A9C285 /* KBComposeTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE61BE19F8900A9C285 /* KBComposeTextView.h */; };
+		00010D431BE19F8900A9C285 /* KBComposeTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE71BE19F8900A9C285 /* KBComposeTextView.m */; };
+		00010D441BE19F8900A9C285 /* KBErrorStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE81BE19F8900A9C285 /* KBErrorStatusView.h */; };
+		00010D451BE19F8900A9C285 /* KBErrorStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE91BE19F8900A9C285 /* KBErrorStatusView.m */; };
+		00010D461BE19F8900A9C285 /* KBErrorView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BEA1BE19F8900A9C285 /* KBErrorView.h */; };
+		00010D471BE19F8900A9C285 /* KBErrorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BEB1BE19F8900A9C285 /* KBErrorView.m */; };
+		00010D481BE19F8900A9C285 /* KBFatalErrorView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BEC1BE19F8900A9C285 /* KBFatalErrorView.h */; };
+		00010D491BE19F8900A9C285 /* KBFatalErrorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BED1BE19F8900A9C285 /* KBFatalErrorView.m */; };
+		00010D4A1BE19F8900A9C285 /* KBHeaderLabelView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BEE1BE19F8900A9C285 /* KBHeaderLabelView.h */; };
+		00010D4B1BE19F8900A9C285 /* KBHeaderLabelView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BEF1BE19F8900A9C285 /* KBHeaderLabelView.m */; };
+		00010D4C1BE19F8900A9C285 /* KBImageLabel.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BF01BE19F8900A9C285 /* KBImageLabel.h */; };
+		00010D4D1BE19F8900A9C285 /* KBImageLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BF11BE19F8900A9C285 /* KBImageLabel.m */; };
+		00010D4E1BE19F8900A9C285 /* KBProgressView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BF21BE19F8900A9C285 /* KBProgressView.h */; };
+		00010D4F1BE19F8900A9C285 /* KBProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BF31BE19F8900A9C285 /* KBProgressView.m */; };
+		00010D501BE19F8900A9C285 /* KBGPGKeysView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BF51BE19F8900A9C285 /* KBGPGKeysView.h */; };
+		00010D511BE19F8900A9C285 /* KBGPGKeysView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BF61BE19F8900A9C285 /* KBGPGKeysView.m */; };
+		00010D521BE19F8900A9C285 /* KBKeyImportView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BF71BE19F8900A9C285 /* KBKeyImportView.h */; };
+		00010D531BE19F8900A9C285 /* KBKeyImportView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BF81BE19F8900A9C285 /* KBKeyImportView.m */; };
+		00010D541BE19F8900A9C285 /* KBKeySelectView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BF91BE19F8900A9C285 /* KBKeySelectView.h */; };
+		00010D551BE19F8900A9C285 /* KBKeySelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BFA1BE19F8900A9C285 /* KBKeySelectView.m */; };
+		00010D561BE19F8900A9C285 /* KBKeyView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BFB1BE19F8900A9C285 /* KBKeyView.h */; };
+		00010D571BE19F8900A9C285 /* KBKeyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BFC1BE19F8900A9C285 /* KBKeyView.m */; };
+		00010D581BE19F8900A9C285 /* KBUserKeyView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BFD1BE19F8900A9C285 /* KBUserKeyView.h */; };
+		00010D591BE19F8900A9C285 /* KBUserKeyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BFE1BE19F8900A9C285 /* KBUserKeyView.m */; };
+		00010D5A1BE19F8900A9C285 /* KBAppProgressView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C001BE19F8900A9C285 /* KBAppProgressView.h */; };
+		00010D5B1BE19F8900A9C285 /* KBAppProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C011BE19F8900A9C285 /* KBAppProgressView.m */; };
+		00010D5C1BE19F8900A9C285 /* KBLoginView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C021BE19F8900A9C285 /* KBLoginView.h */; };
+		00010D5D1BE19F8900A9C285 /* KBLoginView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C031BE19F8900A9C285 /* KBLoginView.m */; };
+		00010D5E1BE19F8900A9C285 /* KBSignupView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C041BE19F8900A9C285 /* KBSignupView.h */; };
+		00010D5F1BE19F8900A9C285 /* KBSignupView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C051BE19F8900A9C285 /* KBSignupView.m */; };
+		00010D601BE19F8900A9C285 /* KBStrengthLabel.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C061BE19F8900A9C285 /* KBStrengthLabel.h */; };
+		00010D611BE19F8900A9C285 /* KBStrengthLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C071BE19F8900A9C285 /* KBStrengthLabel.m */; };
+		00010D621BE19F8900A9C285 /* KBPaperKeyDisplayView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C091BE19F8900A9C285 /* KBPaperKeyDisplayView.h */; };
+		00010D631BE19F8900A9C285 /* KBPaperKeyDisplayView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C0A1BE19F8900A9C285 /* KBPaperKeyDisplayView.m */; };
+		00010D641BE19F8900A9C285 /* KBFileListEditView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C0C1BE19F8900A9C285 /* KBFileListEditView.h */; };
+		00010D651BE19F8900A9C285 /* KBFileListEditView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C0D1BE19F8900A9C285 /* KBFileListEditView.m */; };
+		00010D661BE19F8900A9C285 /* KBPGPAppView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C0E1BE19F8900A9C285 /* KBPGPAppView.h */; };
+		00010D671BE19F8900A9C285 /* KBPGPAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C0F1BE19F8900A9C285 /* KBPGPAppView.m */; };
+		00010D681BE19F8900A9C285 /* KBPGPDecrypt.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C101BE19F8900A9C285 /* KBPGPDecrypt.h */; };
+		00010D691BE19F8900A9C285 /* KBPGPDecrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C111BE19F8900A9C285 /* KBPGPDecrypt.m */; };
+		00010D6A1BE19F8900A9C285 /* KBPGPDecryptAppView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C121BE19F8900A9C285 /* KBPGPDecryptAppView.h */; };
+		00010D6B1BE19F8900A9C285 /* KBPGPDecryptAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C131BE19F8900A9C285 /* KBPGPDecryptAppView.m */; };
+		00010D6C1BE19F8900A9C285 /* KBPGPDecrypted.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C141BE19F8900A9C285 /* KBPGPDecrypted.h */; };
+		00010D6D1BE19F8900A9C285 /* KBPGPDecrypted.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C151BE19F8900A9C285 /* KBPGPDecrypted.m */; };
+		00010D6E1BE19F8900A9C285 /* KBPGPDecryptFileView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C161BE19F8900A9C285 /* KBPGPDecryptFileView.h */; };
+		00010D6F1BE19F8900A9C285 /* KBPGPDecryptFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C171BE19F8900A9C285 /* KBPGPDecryptFileView.m */; };
+		00010D701BE19F8900A9C285 /* KBPGPDecryptFooterView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C181BE19F8900A9C285 /* KBPGPDecryptFooterView.h */; };
+		00010D711BE19F8900A9C285 /* KBPGPDecryptFooterView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C191BE19F8900A9C285 /* KBPGPDecryptFooterView.m */; };
+		00010D721BE19F8900A9C285 /* KBPGPDecryptView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C1A1BE19F8900A9C285 /* KBPGPDecryptView.h */; };
+		00010D731BE19F8900A9C285 /* KBPGPDecryptView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C1B1BE19F8900A9C285 /* KBPGPDecryptView.m */; };
+		00010D741BE19F8900A9C285 /* KBPGPEncrypt.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C1C1BE19F8900A9C285 /* KBPGPEncrypt.h */; };
+		00010D751BE19F8900A9C285 /* KBPGPEncrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C1D1BE19F8900A9C285 /* KBPGPEncrypt.m */; };
+		00010D761BE19F8900A9C285 /* KBPGPEncryptActionView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C1E1BE19F8900A9C285 /* KBPGPEncryptActionView.h */; };
+		00010D771BE19F8900A9C285 /* KBPGPEncryptActionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C1F1BE19F8900A9C285 /* KBPGPEncryptActionView.m */; };
+		00010D781BE19F8900A9C285 /* KBPGPEncryptAppView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C201BE19F8900A9C285 /* KBPGPEncryptAppView.h */; };
+		00010D791BE19F8900A9C285 /* KBPGPEncryptAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C211BE19F8900A9C285 /* KBPGPEncryptAppView.m */; };
+		00010D7A1BE19F8900A9C285 /* KBPGPEncryptFilesView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C221BE19F8900A9C285 /* KBPGPEncryptFilesView.h */; };
+		00010D7B1BE19F8900A9C285 /* KBPGPEncryptFilesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C231BE19F8900A9C285 /* KBPGPEncryptFilesView.m */; };
+		00010D7C1BE19F8900A9C285 /* KBPGPEncryptFooterView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C241BE19F8900A9C285 /* KBPGPEncryptFooterView.h */; };
+		00010D7D1BE19F8900A9C285 /* KBPGPEncryptFooterView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C251BE19F8900A9C285 /* KBPGPEncryptFooterView.m */; };
+		00010D7E1BE19F8900A9C285 /* KBPGPEncryptView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C261BE19F8900A9C285 /* KBPGPEncryptView.h */; };
+		00010D7F1BE19F8900A9C285 /* KBPGPEncryptView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C271BE19F8900A9C285 /* KBPGPEncryptView.m */; };
+		00010D801BE19F8900A9C285 /* KBPGPKeyGenView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C281BE19F8900A9C285 /* KBPGPKeyGenView.h */; };
+		00010D811BE19F8900A9C285 /* KBPGPKeyGenView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C291BE19F8900A9C285 /* KBPGPKeyGenView.m */; };
+		00010D821BE19F8900A9C285 /* KBPGPOutputFileView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C2A1BE19F8900A9C285 /* KBPGPOutputFileView.h */; };
+		00010D831BE19F8900A9C285 /* KBPGPOutputFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C2B1BE19F8900A9C285 /* KBPGPOutputFileView.m */; };
+		00010D841BE19F8900A9C285 /* KBPGPOutputFooterView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C2C1BE19F8900A9C285 /* KBPGPOutputFooterView.h */; };
+		00010D851BE19F8900A9C285 /* KBPGPOutputFooterView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C2D1BE19F8900A9C285 /* KBPGPOutputFooterView.m */; };
+		00010D861BE19F8900A9C285 /* KBPGPOutputView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C2E1BE19F8900A9C285 /* KBPGPOutputView.h */; };
+		00010D871BE19F8900A9C285 /* KBPGPOutputView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C2F1BE19F8900A9C285 /* KBPGPOutputView.m */; };
+		00010D881BE19F8900A9C285 /* KBPGPSignAppView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C301BE19F8900A9C285 /* KBPGPSignAppView.h */; };
+		00010D891BE19F8900A9C285 /* KBPGPSignAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C311BE19F8900A9C285 /* KBPGPSignAppView.m */; };
+		00010D8A1BE19F8900A9C285 /* KBPGPSigner.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C321BE19F8900A9C285 /* KBPGPSigner.h */; };
+		00010D8B1BE19F8900A9C285 /* KBPGPSigner.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C331BE19F8900A9C285 /* KBPGPSigner.m */; };
+		00010D8C1BE19F8900A9C285 /* KBPGPSignFilesView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C341BE19F8900A9C285 /* KBPGPSignFilesView.h */; };
+		00010D8D1BE19F8900A9C285 /* KBPGPSignFilesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C351BE19F8900A9C285 /* KBPGPSignFilesView.m */; };
+		00010D8E1BE19F8900A9C285 /* KBPGPSignFileView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C361BE19F8900A9C285 /* KBPGPSignFileView.h */; };
+		00010D8F1BE19F8900A9C285 /* KBPGPSignFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C371BE19F8900A9C285 /* KBPGPSignFileView.m */; };
+		00010D901BE19F8900A9C285 /* KBPGPSignFooterView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C381BE19F8900A9C285 /* KBPGPSignFooterView.h */; };
+		00010D911BE19F8900A9C285 /* KBPGPSignFooterView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C391BE19F8900A9C285 /* KBPGPSignFooterView.m */; };
+		00010D921BE19F8900A9C285 /* KBPGPSignView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C3A1BE19F8900A9C285 /* KBPGPSignView.h */; };
+		00010D931BE19F8900A9C285 /* KBPGPSignView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C3B1BE19F8900A9C285 /* KBPGPSignView.m */; };
+		00010D941BE19F8900A9C285 /* KBPGPTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C3C1BE19F8900A9C285 /* KBPGPTextView.h */; };
+		00010D951BE19F8900A9C285 /* KBPGPTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C3D1BE19F8900A9C285 /* KBPGPTextView.m */; };
+		00010D961BE19F8900A9C285 /* KBPGPVerifiedView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C3E1BE19F8900A9C285 /* KBPGPVerifiedView.h */; };
+		00010D971BE19F8900A9C285 /* KBPGPVerifiedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C3F1BE19F8900A9C285 /* KBPGPVerifiedView.m */; };
+		00010D981BE19F8900A9C285 /* KBPGPVerify.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C401BE19F8900A9C285 /* KBPGPVerify.h */; };
+		00010D991BE19F8900A9C285 /* KBPGPVerify.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C411BE19F8900A9C285 /* KBPGPVerify.m */; };
+		00010D9A1BE19F8900A9C285 /* KBPGPVerifyAppView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C421BE19F8900A9C285 /* KBPGPVerifyAppView.h */; };
+		00010D9B1BE19F8900A9C285 /* KBPGPVerifyAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C431BE19F8900A9C285 /* KBPGPVerifyAppView.m */; };
+		00010D9C1BE19F8900A9C285 /* KBPGPVerifyDetachedView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C441BE19F8900A9C285 /* KBPGPVerifyDetachedView.h */; };
+		00010D9D1BE19F8900A9C285 /* KBPGPVerifyDetachedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C451BE19F8900A9C285 /* KBPGPVerifyDetachedView.m */; };
+		00010D9E1BE19F8900A9C285 /* KBPGPVerifyFileView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C461BE19F8900A9C285 /* KBPGPVerifyFileView.h */; };
+		00010D9F1BE19F8900A9C285 /* KBPGPVerifyFileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C471BE19F8900A9C285 /* KBPGPVerifyFileView.m */; };
+		00010DA01BE19F8900A9C285 /* KBPGPVerifyFooterView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C481BE19F8900A9C285 /* KBPGPVerifyFooterView.h */; };
+		00010DA11BE19F8900A9C285 /* KBPGPVerifyFooterView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C491BE19F8900A9C285 /* KBPGPVerifyFooterView.m */; };
+		00010DA21BE19F8900A9C285 /* KBPGPVerifyView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C4A1BE19F8900A9C285 /* KBPGPVerifyView.h */; };
+		00010DA31BE19F8900A9C285 /* KBPGPVerifyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C4B1BE19F8900A9C285 /* KBPGPVerifyView.m */; };
+		00010DA41BE19F8900A9C285 /* KBAlertView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C4D1BE19F8900A9C285 /* KBAlertView.h */; };
+		00010DA51BE19F8900A9C285 /* KBAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C4E1BE19F8900A9C285 /* KBAlertView.m */; };
+		00010DA61BE19F8900A9C285 /* KBSecretPromptView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C4F1BE19F8900A9C285 /* KBSecretPromptView.h */; };
+		00010DA71BE19F8900A9C285 /* KBSecretPromptView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C501BE19F8900A9C285 /* KBSecretPromptView.m */; };
+		00010DA81BE19F8900A9C285 /* KBProofLabel.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C521BE19F8900A9C285 /* KBProofLabel.h */; };
+		00010DA91BE19F8900A9C285 /* KBProofLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C531BE19F8900A9C285 /* KBProofLabel.m */; };
+		00010DAA1BE19F8900A9C285 /* KBProofRepairView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C541BE19F8900A9C285 /* KBProofRepairView.h */; };
+		00010DAB1BE19F8900A9C285 /* KBProofRepairView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C551BE19F8900A9C285 /* KBProofRepairView.m */; };
+		00010DAC1BE19F8900A9C285 /* KBProofResult.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C561BE19F8900A9C285 /* KBProofResult.h */; };
+		00010DAD1BE19F8900A9C285 /* KBProofResult.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C571BE19F8900A9C285 /* KBProofResult.m */; };
+		00010DAE1BE19F8900A9C285 /* KBProofView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C581BE19F8900A9C285 /* KBProofView.h */; };
+		00010DAF1BE19F8900A9C285 /* KBProofView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C591BE19F8900A9C285 /* KBProofView.m */; };
+		00010DB01BE19F8900A9C285 /* KBProveInputView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C5A1BE19F8900A9C285 /* KBProveInputView.h */; };
+		00010DB11BE19F8900A9C285 /* KBProveInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C5B1BE19F8900A9C285 /* KBProveInputView.m */; };
+		00010DB21BE19F8900A9C285 /* KBProveInstructionsView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C5C1BE19F8900A9C285 /* KBProveInstructionsView.h */; };
+		00010DB31BE19F8900A9C285 /* KBProveInstructionsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C5D1BE19F8900A9C285 /* KBProveInstructionsView.m */; };
+		00010DB41BE19F8900A9C285 /* KBProver.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C5E1BE19F8900A9C285 /* KBProver.h */; };
+		00010DB51BE19F8900A9C285 /* KBProver.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C5F1BE19F8900A9C285 /* KBProver.m */; };
+		00010DB61BE19F8900A9C285 /* KBProveView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C601BE19F8900A9C285 /* KBProveView.h */; };
+		00010DB71BE19F8900A9C285 /* KBProveView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C611BE19F8900A9C285 /* KBProveView.m */; };
+		00010DB81BE19F8900A9C285 /* KBSearchControl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C631BE19F8900A9C285 /* KBSearchControl.h */; };
+		00010DB91BE19F8900A9C285 /* KBSearchControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C641BE19F8900A9C285 /* KBSearchControl.m */; };
+		00010DBA1BE19F8900A9C285 /* KBSearcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C651BE19F8900A9C285 /* KBSearcher.h */; };
+		00010DBB1BE19F8900A9C285 /* KBSearcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C661BE19F8900A9C285 /* KBSearcher.m */; };
+		00010DBC1BE19F8900A9C285 /* KBSearchField.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C671BE19F8900A9C285 /* KBSearchField.h */; };
+		00010DBD1BE19F8900A9C285 /* KBSearchField.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C681BE19F8900A9C285 /* KBSearchField.m */; };
+		00010DBE1BE19F8900A9C285 /* KBSearchResults.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C691BE19F8900A9C285 /* KBSearchResults.h */; };
+		00010DBF1BE19F8900A9C285 /* KBSearchResults.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C6A1BE19F8900A9C285 /* KBSearchResults.m */; };
+		00010DC01BE19F8900A9C285 /* KBTrackView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C6C1BE19F8900A9C285 /* KBTrackView.h */; };
+		00010DC11BE19F8900A9C285 /* KBTrackView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C6D1BE19F8900A9C285 /* KBTrackView.m */; };
+		00010DC21BE19F8900A9C285 /* KBUserButtonView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C6E1BE19F8900A9C285 /* KBUserButtonView.h */; };
+		00010DC31BE19F8900A9C285 /* KBUserButtonView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C6F1BE19F8900A9C285 /* KBUserButtonView.m */; };
+		00010DC41BE19F8900A9C285 /* KBUserHeaderView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C701BE19F8900A9C285 /* KBUserHeaderView.h */; };
+		00010DC51BE19F8900A9C285 /* KBUserHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C711BE19F8900A9C285 /* KBUserHeaderView.m */; };
+		00010DC61BE19F8900A9C285 /* KBUserImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C721BE19F8900A9C285 /* KBUserImageView.h */; };
+		00010DC71BE19F8900A9C285 /* KBUserImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C731BE19F8900A9C285 /* KBUserImageView.m */; };
+		00010DC81BE19F8900A9C285 /* KBUserInfoLabels.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C741BE19F8900A9C285 /* KBUserInfoLabels.h */; };
+		00010DC91BE19F8900A9C285 /* KBUserInfoLabels.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C751BE19F8900A9C285 /* KBUserInfoLabels.m */; };
+		00010DCA1BE19F8900A9C285 /* KBUserInfoView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C761BE19F8900A9C285 /* KBUserInfoView.h */; };
+		00010DCB1BE19F8900A9C285 /* KBUserInfoView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C771BE19F8900A9C285 /* KBUserInfoView.m */; };
+		00010DCC1BE19F8900A9C285 /* KBUserListView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C781BE19F8900A9C285 /* KBUserListView.h */; };
+		00010DCD1BE19F8900A9C285 /* KBUserListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C791BE19F8900A9C285 /* KBUserListView.m */; };
+		00010DCE1BE19F8900A9C285 /* KBUserPickerView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C7A1BE19F8900A9C285 /* KBUserPickerView.h */; };
+		00010DCF1BE19F8900A9C285 /* KBUserPickerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C7B1BE19F8900A9C285 /* KBUserPickerView.m */; };
+		00010DD01BE19F8900A9C285 /* KBUserProfileView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C7C1BE19F8900A9C285 /* KBUserProfileView.h */; };
+		00010DD11BE19F8900A9C285 /* KBUserProfileView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C7D1BE19F8900A9C285 /* KBUserProfileView.m */; };
+		00010DD21BE19F8900A9C285 /* KBUsersAppView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C7E1BE19F8900A9C285 /* KBUsersAppView.h */; };
+		00010DD31BE19F8900A9C285 /* KBUsersAppView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C7F1BE19F8900A9C285 /* KBUsersAppView.m */; };
+		00010DD41BE19F8900A9C285 /* KBUserStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C801BE19F8900A9C285 /* KBUserStatusView.h */; };
+		00010DD51BE19F8900A9C285 /* KBUserStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C811BE19F8900A9C285 /* KBUserStatusView.m */; };
+		00010DD61BE19F8900A9C285 /* KBUserView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C821BE19F8900A9C285 /* KBUserView.h */; };
+		00010DD71BE19F8900A9C285 /* KBUserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C831BE19F8900A9C285 /* KBUserView.m */; };
+		00010DD81BE19F8900A9C285 /* KBConvert.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C851BE19F8900A9C285 /* KBConvert.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010DD91BE19F8900A9C285 /* KBConvert.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C861BE19F8900A9C285 /* KBConvert.m */; };
+		00010DDA1BE19F8900A9C285 /* KBFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C871BE19F8900A9C285 /* KBFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010DDB1BE19F8900A9C285 /* KBFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C881BE19F8900A9C285 /* KBFormatter.m */; };
+		00010DDC1BE19F8900A9C285 /* KBLogFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C891BE19F8900A9C285 /* KBLogFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010DDD1BE19F8900A9C285 /* KBLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C8A1BE19F8900A9C285 /* KBLogFormatter.m */; };
+		00010DDE1BE19F8900A9C285 /* KBRunOver.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C8B1BE19F8900A9C285 /* KBRunOver.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010DDF1BE19F8900A9C285 /* KBRunOver.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C8C1BE19F8900A9C285 /* KBRunOver.m */; };
+		00010DE01BE19F8900A9C285 /* KBWaitFor.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C8D1BE19F8900A9C285 /* KBWaitFor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010DE11BE19F8900A9C285 /* KBWaitFor.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C8E1BE19F8900A9C285 /* KBWaitFor.m */; };
+		00010DE21BE19F8900A9C285 /* KBWork.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010C8F1BE19F8900A9C285 /* KBWork.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		00010DE31BE19F8900A9C285 /* KBWork.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010C901BE19F8900A9C285 /* KBWork.m */; };
+		00010DEA1BE1A0B900A9C285 /* KBDefinesTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE41BE1A0B900A9C285 /* KBDefinesTest.m */; };
+		00010DEB1BE1A0B900A9C285 /* KBEnvConfigTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE51BE1A0B900A9C285 /* KBEnvConfigTest.m */; };
+		00010DEC1BE1A0B900A9C285 /* KBFormatterTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE61BE1A0B900A9C285 /* KBFormatterTest.m */; };
+		00010DEF1BE1A0B900A9C285 /* KBSemVersionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE91BE1A0B900A9C285 /* KBSemVersionTest.m */; };
+		38A713FFC5FC7A9ABE7CC5B5 /* Pods_KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 760C2694B64DCD2BA5ADD378 /* Pods_KBKit.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		00010B181BE19F2100A9C285 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00010B031BE19F2100A9C285 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 00010B0B1BE19F2100A9C285;
+			remoteInfo = KBKit;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		00010B0C1BE19F2100A9C285 /* KBKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KBKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		00010B0F1BE19F2100A9C285 /* KBKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KBKit.h; sourceTree = "<group>"; };
+		00010B111BE19F2100A9C285 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00010B161BE19F2100A9C285 /* KBKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KBKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00010B1D1BE19F2100A9C285 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00010B271BE19F8800A9C285 /* KBApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBApp.h; sourceTree = "<group>"; };
+		00010B281BE19F8800A9C285 /* KBApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBApp.m; sourceTree = "<group>"; };
+		00010B291BE19F8800A9C285 /* KBAppDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppDefines.h; sourceTree = "<group>"; };
+		00010B2A1BE19F8800A9C285 /* KBAppDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppDefines.m; sourceTree = "<group>"; };
+		00010B2B1BE19F8800A9C285 /* KBAppExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppExtension.h; sourceTree = "<group>"; };
+		00010B2C1BE19F8800A9C285 /* KBAppExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppExtension.m; sourceTree = "<group>"; };
+		00010B2D1BE19F8800A9C285 /* KBAppToolbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppToolbar.h; sourceTree = "<group>"; };
+		00010B2E1BE19F8800A9C285 /* KBAppToolbar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppToolbar.m; sourceTree = "<group>"; };
+		00010B2F1BE19F8800A9C285 /* KBAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppView.h; sourceTree = "<group>"; };
+		00010B301BE19F8800A9C285 /* KBAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppView.m; sourceTree = "<group>"; };
+		00010B311BE19F8800A9C285 /* KBNotifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBNotifications.h; sourceTree = "<group>"; };
+		00010B321BE19F8800A9C285 /* KBNotifications.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBNotifications.m; sourceTree = "<group>"; };
+		00010B331BE19F8800A9C285 /* KBSourceOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSourceOutlineView.h; sourceTree = "<group>"; };
+		00010B341BE19F8800A9C285 /* KBSourceOutlineView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSourceOutlineView.m; sourceTree = "<group>"; };
+		00010B361BE19F8800A9C285 /* KBCLIInstall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCLIInstall.h; sourceTree = "<group>"; };
+		00010B371BE19F8800A9C285 /* KBCLIInstall.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCLIInstall.m; sourceTree = "<group>"; };
+		00010B381BE19F8800A9C285 /* KBComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBComponent.h; sourceTree = "<group>"; };
+		00010B391BE19F8800A9C285 /* KBComponent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBComponent.m; sourceTree = "<group>"; };
+		00010B3A1BE19F8800A9C285 /* KBComponentStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBComponentStatus.h; sourceTree = "<group>"; };
+		00010B3B1BE19F8800A9C285 /* KBComponentStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBComponentStatus.m; sourceTree = "<group>"; };
+		00010B3C1BE19F8800A9C285 /* KBFSConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFSConfig.h; sourceTree = "<group>"; };
+		00010B3D1BE19F8800A9C285 /* KBFSConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFSConfig.m; sourceTree = "<group>"; };
+		00010B3E1BE19F8800A9C285 /* KBFSService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFSService.h; sourceTree = "<group>"; };
+		00010B3F1BE19F8800A9C285 /* KBFSService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFSService.m; sourceTree = "<group>"; };
+		00010B401BE19F8800A9C285 /* KBFuseComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFuseComponent.h; sourceTree = "<group>"; };
+		00010B411BE19F8800A9C285 /* KBFuseComponent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFuseComponent.m; sourceTree = "<group>"; };
+		00010B421BE19F8800A9C285 /* KBHelperTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperTool.h; sourceTree = "<group>"; };
+		00010B431BE19F8800A9C285 /* KBHelperTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelperTool.m; sourceTree = "<group>"; };
+		00010B441BE19F8800A9C285 /* KBInstallable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstallable.h; sourceTree = "<group>"; };
+		00010B451BE19F8800A9C285 /* KBInstallable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstallable.m; sourceTree = "<group>"; };
+		00010B461BE19F8800A9C285 /* KBInstallAction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstallAction.h; sourceTree = "<group>"; };
+		00010B471BE19F8800A9C285 /* KBInstallAction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstallAction.m; sourceTree = "<group>"; };
+		00010B481BE19F8800A9C285 /* KBInstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstaller.h; sourceTree = "<group>"; };
+		00010B491BE19F8800A9C285 /* KBInstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstaller.m; sourceTree = "<group>"; };
+		00010B4A1BE19F8800A9C285 /* KBKeybaseLaunchd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeybaseLaunchd.h; sourceTree = "<group>"; };
+		00010B4B1BE19F8800A9C285 /* KBKeybaseLaunchd.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeybaseLaunchd.m; sourceTree = "<group>"; };
+		00010B4C1BE19F8800A9C285 /* KBLaunchdPlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLaunchdPlist.h; sourceTree = "<group>"; };
+		00010B4D1BE19F8800A9C285 /* KBLaunchdPlist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchdPlist.m; sourceTree = "<group>"; };
+		00010B4E1BE19F8800A9C285 /* KBService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBService.h; sourceTree = "<group>"; };
+		00010B4F1BE19F8800A9C285 /* KBService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBService.m; sourceTree = "<group>"; };
+		00010B501BE19F8800A9C285 /* KBServiceConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBServiceConfig.h; sourceTree = "<group>"; };
+		00010B511BE19F8800A9C285 /* KBServiceConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBServiceConfig.m; sourceTree = "<group>"; };
+		00010B521BE19F8800A9C285 /* KBUninstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUninstaller.h; sourceTree = "<group>"; };
+		00010B531BE19F8800A9C285 /* KBUninstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUninstaller.m; sourceTree = "<group>"; };
+		00010B551BE19F8800A9C285 /* KBFileReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileReader.h; sourceTree = "<group>"; };
+		00010B561BE19F8800A9C285 /* KBFileReader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileReader.m; sourceTree = "<group>"; };
+		00010B571BE19F8800A9C285 /* KBFileWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileWriter.h; sourceTree = "<group>"; };
+		00010B581BE19F8800A9C285 /* KBFileWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileWriter.m; sourceTree = "<group>"; };
+		00010B591BE19F8800A9C285 /* KBPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPath.h; sourceTree = "<group>"; };
+		00010B5A1BE19F8800A9C285 /* KBPath.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPath.m; sourceTree = "<group>"; };
+		00010B5B1BE19F8800A9C285 /* KBReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBReader.h; sourceTree = "<group>"; };
+		00010B5C1BE19F8800A9C285 /* KBReader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBReader.m; sourceTree = "<group>"; };
+		00010B5D1BE19F8800A9C285 /* KBStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStream.h; sourceTree = "<group>"; };
+		00010B5E1BE19F8800A9C285 /* KBStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStream.m; sourceTree = "<group>"; };
+		00010B5F1BE19F8800A9C285 /* KBWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBWriter.h; sourceTree = "<group>"; };
+		00010B601BE19F8800A9C285 /* KBWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBWriter.m; sourceTree = "<group>"; };
+		00010B611BE19F8800A9C285 /* KBDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBDefines.h; path = KBKit/KBDefines.h; sourceTree = SOURCE_ROOT; };
+		00010B621BE19F8800A9C285 /* KBDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KBDefines.m; path = KBKit/KBDefines.m; sourceTree = SOURCE_ROOT; };
+		00010B641BE19F8800A9C285 /* KBFinder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFinder.h; sourceTree = "<group>"; };
+		00010B651BE19F8800A9C285 /* KBFinder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFinder.m; sourceTree = "<group>"; };
+		00010B691BE19F8800A9C285 /* KBSemVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBSemVersion.h; path = KBKit/KBSemVersion.h; sourceTree = SOURCE_ROOT; };
+		00010B6A1BE19F8800A9C285 /* KBSemVersion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KBSemVersion.m; path = KBKit/KBSemVersion.m; sourceTree = SOURCE_ROOT; };
+		00010B6B1BE19F8800A9C285 /* KBWorkspace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBWorkspace.h; path = KBKit/KBWorkspace.h; sourceTree = SOURCE_ROOT; };
+		00010B6C1BE19F8800A9C285 /* KBWorkspace.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KBWorkspace.m; path = KBKit/KBWorkspace.m; sourceTree = SOURCE_ROOT; };
+		00010B6E1BE19F8800A9C285 /* KBLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLog.h; sourceTree = "<group>"; };
+		00010B6F1BE19F8800A9C285 /* KBLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLog.m; sourceTree = "<group>"; };
+		00010B701BE19F8800A9C285 /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; };
+		00010B721BE19F8800A9C285 /* KBPrefAdvancedView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefAdvancedView.h; sourceTree = "<group>"; };
+		00010B731BE19F8800A9C285 /* KBPrefAdvancedView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefAdvancedView.m; sourceTree = "<group>"; };
+		00010B741BE19F8800A9C285 /* KBPrefButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefButton.h; sourceTree = "<group>"; };
+		00010B751BE19F8800A9C285 /* KBPrefButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefButton.m; sourceTree = "<group>"; };
+		00010B761BE19F8800A9C285 /* KBPrefCheckbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefCheckbox.h; sourceTree = "<group>"; };
+		00010B771BE19F8800A9C285 /* KBPrefCheckbox.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefCheckbox.m; sourceTree = "<group>"; };
+		00010B781BE19F8800A9C285 /* KBPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPreferences.h; sourceTree = "<group>"; };
+		00010B791BE19F8800A9C285 /* KBPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPreferences.m; sourceTree = "<group>"; };
+		00010B7A1BE19F8800A9C285 /* KBPrefFileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefFileView.h; sourceTree = "<group>"; };
+		00010B7B1BE19F8800A9C285 /* KBPrefFileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefFileView.m; sourceTree = "<group>"; };
+		00010B7C1BE19F8800A9C285 /* KBPrefGeneralView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefGeneralView.h; sourceTree = "<group>"; };
+		00010B7D1BE19F8800A9C285 /* KBPrefGeneralView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefGeneralView.m; sourceTree = "<group>"; };
+		00010B7E1BE19F8800A9C285 /* KBPrefGPGView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefGPGView.h; sourceTree = "<group>"; };
+		00010B7F1BE19F8800A9C285 /* KBPrefGPGView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefGPGView.m; sourceTree = "<group>"; };
+		00010B801BE19F8800A9C285 /* KBPrefOption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefOption.h; sourceTree = "<group>"; };
+		00010B811BE19F8800A9C285 /* KBPrefOption.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefOption.m; sourceTree = "<group>"; };
+		00010B821BE19F8800A9C285 /* KBPrefPopUpView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefPopUpView.h; sourceTree = "<group>"; };
+		00010B831BE19F8800A9C285 /* KBPrefPopUpView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefPopUpView.m; sourceTree = "<group>"; };
+		00010B841BE19F8800A9C285 /* KBPrefTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefTextField.h; sourceTree = "<group>"; };
+		00010B851BE19F8800A9C285 /* KBPrefTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefTextField.m; sourceTree = "<group>"; };
+		00010B871BE19F8800A9C285 /* KBRMockClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRMockClient.h; sourceTree = "<group>"; };
+		00010B881BE19F8800A9C285 /* KBRMockClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRMockClient.m; sourceTree = "<group>"; };
+		00010B891BE19F8800A9C285 /* KBRObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRObject.h; sourceTree = "<group>"; };
+		00010B8A1BE19F8800A9C285 /* KBRObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRObject.m; sourceTree = "<group>"; };
+		00010B8B1BE19F8800A9C285 /* KBRPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPC.h; sourceTree = "<group>"; };
+		00010B8C1BE19F8800A9C285 /* KBRPC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPC.m; sourceTree = "<group>"; };
+		00010B8D1BE19F8800A9C285 /* KBRPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPClient.h; sourceTree = "<group>"; };
+		00010B8E1BE19F8800A9C285 /* KBRPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPClient.m; sourceTree = "<group>"; };
+		00010B8F1BE19F8800A9C285 /* KBRPCRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPCRecord.h; sourceTree = "<group>"; };
+		00010B901BE19F8800A9C285 /* KBRPCRecord.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPCRecord.m; sourceTree = "<group>"; };
+		00010B911BE19F8800A9C285 /* KBRPCRegistration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRPCRegistration.h; sourceTree = "<group>"; };
+		00010B921BE19F8800A9C285 /* KBRPCRegistration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRPCRegistration.m; sourceTree = "<group>"; };
+		00010B931BE19F8800A9C285 /* KBRRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRRequest.h; sourceTree = "<group>"; };
+		00010B941BE19F8800A9C285 /* KBRRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRRequest.m; sourceTree = "<group>"; };
+		00010B951BE19F8800A9C285 /* KBRRequestParams.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRRequestParams.h; sourceTree = "<group>"; };
+		00010B961BE19F8800A9C285 /* KBRRequestParams.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRRequestParams.m; sourceTree = "<group>"; };
+		00010B981BE19F8800A9C285 /* KBEnvConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBEnvConfig.h; sourceTree = "<group>"; };
+		00010B991BE19F8800A9C285 /* KBEnvConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvConfig.m; sourceTree = "<group>"; };
+		00010B9A1BE19F8800A9C285 /* KBEnvironment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBEnvironment.h; sourceTree = "<group>"; };
+		00010B9B1BE19F8800A9C285 /* KBEnvironment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvironment.m; sourceTree = "<group>"; };
+		00010B9C1BE19F8800A9C285 /* KBLaunchCtl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLaunchCtl.h; sourceTree = "<group>"; };
+		00010B9D1BE19F8800A9C285 /* KBLaunchCtl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchCtl.m; sourceTree = "<group>"; };
+		00010B9E1BE19F8800A9C285 /* KBLaunchdStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLaunchdStatus.h; sourceTree = "<group>"; };
+		00010B9F1BE19F8800A9C285 /* KBLaunchdStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchdStatus.m; sourceTree = "<group>"; };
+		00010BA01BE19F8800A9C285 /* KBLaunchService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLaunchService.h; sourceTree = "<group>"; };
+		00010BA11BE19F8800A9C285 /* KBLaunchService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchService.m; sourceTree = "<group>"; };
+		00010BA21BE19F8800A9C285 /* KBPrivilegedTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrivilegedTask.h; sourceTree = "<group>"; };
+		00010BA31BE19F8800A9C285 /* KBPrivilegedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrivilegedTask.m; sourceTree = "<group>"; };
+		00010BA51BE19F8800A9C285 /* KBUserTrackStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserTrackStatus.h; sourceTree = "<group>"; };
+		00010BA61BE19F8800A9C285 /* KBUserTrackStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserTrackStatus.m; sourceTree = "<group>"; };
+		00010BA91BE19F8900A9C285 /* KBAppDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppDebug.h; sourceTree = "<group>"; };
+		00010BAA1BE19F8900A9C285 /* KBAppDebug.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppDebug.m; sourceTree = "<group>"; };
+		00010BAB1BE19F8900A9C285 /* KBConsoleView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBConsoleView.h; sourceTree = "<group>"; };
+		00010BAC1BE19F8900A9C285 /* KBConsoleView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBConsoleView.m; sourceTree = "<group>"; };
+		00010BAD1BE19F8900A9C285 /* KBControlPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBControlPanel.h; sourceTree = "<group>"; };
+		00010BAE1BE19F8900A9C285 /* KBControlPanel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBControlPanel.m; sourceTree = "<group>"; };
+		00010BAF1BE19F8900A9C285 /* KBCustomEnvView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCustomEnvView.h; sourceTree = "<group>"; };
+		00010BB01BE19F8900A9C285 /* KBCustomEnvView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCustomEnvView.m; sourceTree = "<group>"; };
+		00010BB11BE19F8900A9C285 /* KBDebugPropertiesView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDebugPropertiesView.h; sourceTree = "<group>"; };
+		00010BB21BE19F8900A9C285 /* KBDebugPropertiesView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDebugPropertiesView.m; sourceTree = "<group>"; };
+		00010BB31BE19F8900A9C285 /* KBDebugViews.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDebugViews.h; sourceTree = "<group>"; };
+		00010BB41BE19F8900A9C285 /* KBDebugViews.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDebugViews.m; sourceTree = "<group>"; };
+		00010BB51BE19F8900A9C285 /* KBEnvSelectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBEnvSelectView.h; sourceTree = "<group>"; };
+		00010BB61BE19F8900A9C285 /* KBEnvSelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvSelectView.m; sourceTree = "<group>"; };
+		00010BB71BE19F8900A9C285 /* KBFSStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFSStatusView.h; sourceTree = "<group>"; };
+		00010BB81BE19F8900A9C285 /* KBFSStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFSStatusView.m; sourceTree = "<group>"; };
+		00010BB91BE19F8900A9C285 /* KBStyleGuideView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStyleGuideView.h; sourceTree = "<group>"; };
+		00010BBA1BE19F8900A9C285 /* KBStyleGuideView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStyleGuideView.m; sourceTree = "<group>"; };
+		00010BBC1BE19F8900A9C285 /* KBDeviceAddView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDeviceAddView.h; sourceTree = "<group>"; };
+		00010BBD1BE19F8900A9C285 /* KBDeviceAddView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDeviceAddView.m; sourceTree = "<group>"; };
+		00010BBE1BE19F8900A9C285 /* KBDevicesAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDevicesAppView.h; sourceTree = "<group>"; };
+		00010BBF1BE19F8900A9C285 /* KBDevicesAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDevicesAppView.m; sourceTree = "<group>"; };
+		00010BC01BE19F8900A9C285 /* KBDeviceSetupChooseView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDeviceSetupChooseView.h; sourceTree = "<group>"; };
+		00010BC11BE19F8900A9C285 /* KBDeviceSetupChooseView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDeviceSetupChooseView.m; sourceTree = "<group>"; };
+		00010BC21BE19F8900A9C285 /* KBDeviceSetupDisplayView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDeviceSetupDisplayView.h; sourceTree = "<group>"; };
+		00010BC31BE19F8900A9C285 /* KBDeviceSetupDisplayView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDeviceSetupDisplayView.m; sourceTree = "<group>"; };
+		00010BC41BE19F8900A9C285 /* KBDeviceSetupPromptView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDeviceSetupPromptView.h; sourceTree = "<group>"; };
+		00010BC51BE19F8900A9C285 /* KBDeviceSetupPromptView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDeviceSetupPromptView.m; sourceTree = "<group>"; };
+		00010BC61BE19F8900A9C285 /* KBDeviceSignerOption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDeviceSignerOption.h; sourceTree = "<group>"; };
+		00010BC71BE19F8900A9C285 /* KBDeviceSignerOption.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDeviceSignerOption.m; sourceTree = "<group>"; };
+		00010BC81BE19F8900A9C285 /* KBDeviceView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDeviceView.h; sourceTree = "<group>"; };
+		00010BC91BE19F8900A9C285 /* KBDeviceView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDeviceView.m; sourceTree = "<group>"; };
+		00010BCB1BE19F8900A9C285 /* KBFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFile.h; sourceTree = "<group>"; };
+		00010BCC1BE19F8900A9C285 /* KBFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFile.m; sourceTree = "<group>"; };
+		00010BCD1BE19F8900A9C285 /* KBFileIcon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileIcon.h; sourceTree = "<group>"; };
+		00010BCE1BE19F8900A9C285 /* KBFileIcon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileIcon.m; sourceTree = "<group>"; };
+		00010BCF1BE19F8900A9C285 /* KBFileLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileLabel.h; sourceTree = "<group>"; };
+		00010BD01BE19F8900A9C285 /* KBFileLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileLabel.m; sourceTree = "<group>"; };
+		00010BD11BE19F8900A9C285 /* KBFileListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileListView.h; sourceTree = "<group>"; };
+		00010BD21BE19F8900A9C285 /* KBFileListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileListView.m; sourceTree = "<group>"; };
+		00010BD31BE19F8900A9C285 /* KBFilePreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFilePreviewView.h; sourceTree = "<group>"; };
+		00010BD41BE19F8900A9C285 /* KBFilePreviewView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFilePreviewView.m; sourceTree = "<group>"; };
+		00010BD51BE19F8900A9C285 /* KBFileSelectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileSelectView.h; sourceTree = "<group>"; };
+		00010BD61BE19F8900A9C285 /* KBFileSelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileSelectView.m; sourceTree = "<group>"; };
+		00010BD71BE19F8900A9C285 /* KBFolderAddView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolderAddView.h; sourceTree = "<group>"; };
+		00010BD81BE19F8900A9C285 /* KBFolderAddView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderAddView.m; sourceTree = "<group>"; };
+		00010BD91BE19F8900A9C285 /* KBFoldersAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFoldersAppView.h; sourceTree = "<group>"; };
+		00010BDA1BE19F8900A9C285 /* KBFoldersAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFoldersAppView.m; sourceTree = "<group>"; };
+		00010BDB1BE19F8900A9C285 /* KBFoldersView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFoldersView.h; sourceTree = "<group>"; };
+		00010BDC1BE19F8900A9C285 /* KBFoldersView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFoldersView.m; sourceTree = "<group>"; };
+		00010BDD1BE19F8900A9C285 /* KBFolderUsersListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolderUsersListView.h; sourceTree = "<group>"; };
+		00010BDE1BE19F8900A9C285 /* KBFolderUsersListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderUsersListView.m; sourceTree = "<group>"; };
+		00010BDF1BE19F8900A9C285 /* KBFolderUsersView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFolderUsersView.h; sourceTree = "<group>"; };
+		00010BE01BE19F8900A9C285 /* KBFolderUsersView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderUsersView.m; sourceTree = "<group>"; };
+		00010BE11BE19F8900A9C285 /* KBUserPermission.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserPermission.h; sourceTree = "<group>"; };
+		00010BE21BE19F8900A9C285 /* KBUserPermission.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserPermission.m; sourceTree = "<group>"; };
+		00010BE41BE19F8900A9C285 /* KBStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStatusView.h; sourceTree = "<group>"; };
+		00010BE51BE19F8900A9C285 /* KBStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStatusView.m; sourceTree = "<group>"; };
+		00010BE61BE19F8900A9C285 /* KBComposeTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBComposeTextView.h; sourceTree = "<group>"; };
+		00010BE71BE19F8900A9C285 /* KBComposeTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBComposeTextView.m; sourceTree = "<group>"; };
+		00010BE81BE19F8900A9C285 /* KBErrorStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBErrorStatusView.h; sourceTree = "<group>"; };
+		00010BE91BE19F8900A9C285 /* KBErrorStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBErrorStatusView.m; sourceTree = "<group>"; };
+		00010BEA1BE19F8900A9C285 /* KBErrorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBErrorView.h; sourceTree = "<group>"; };
+		00010BEB1BE19F8900A9C285 /* KBErrorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBErrorView.m; sourceTree = "<group>"; };
+		00010BEC1BE19F8900A9C285 /* KBFatalErrorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFatalErrorView.h; sourceTree = "<group>"; };
+		00010BED1BE19F8900A9C285 /* KBFatalErrorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFatalErrorView.m; sourceTree = "<group>"; };
+		00010BEE1BE19F8900A9C285 /* KBHeaderLabelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHeaderLabelView.h; sourceTree = "<group>"; };
+		00010BEF1BE19F8900A9C285 /* KBHeaderLabelView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHeaderLabelView.m; sourceTree = "<group>"; };
+		00010BF01BE19F8900A9C285 /* KBImageLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBImageLabel.h; sourceTree = "<group>"; };
+		00010BF11BE19F8900A9C285 /* KBImageLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBImageLabel.m; sourceTree = "<group>"; };
+		00010BF21BE19F8900A9C285 /* KBProgressView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProgressView.h; sourceTree = "<group>"; };
+		00010BF31BE19F8900A9C285 /* KBProgressView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProgressView.m; sourceTree = "<group>"; };
+		00010BF51BE19F8900A9C285 /* KBGPGKeysView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBGPGKeysView.h; sourceTree = "<group>"; };
+		00010BF61BE19F8900A9C285 /* KBGPGKeysView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBGPGKeysView.m; sourceTree = "<group>"; };
+		00010BF71BE19F8900A9C285 /* KBKeyImportView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeyImportView.h; sourceTree = "<group>"; };
+		00010BF81BE19F8900A9C285 /* KBKeyImportView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeyImportView.m; sourceTree = "<group>"; };
+		00010BF91BE19F8900A9C285 /* KBKeySelectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeySelectView.h; sourceTree = "<group>"; };
+		00010BFA1BE19F8900A9C285 /* KBKeySelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeySelectView.m; sourceTree = "<group>"; };
+		00010BFB1BE19F8900A9C285 /* KBKeyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKeyView.h; sourceTree = "<group>"; };
+		00010BFC1BE19F8900A9C285 /* KBKeyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKeyView.m; sourceTree = "<group>"; };
+		00010BFD1BE19F8900A9C285 /* KBUserKeyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserKeyView.h; sourceTree = "<group>"; };
+		00010BFE1BE19F8900A9C285 /* KBUserKeyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserKeyView.m; sourceTree = "<group>"; };
+		00010C001BE19F8900A9C285 /* KBAppProgressView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppProgressView.h; sourceTree = "<group>"; };
+		00010C011BE19F8900A9C285 /* KBAppProgressView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppProgressView.m; sourceTree = "<group>"; };
+		00010C021BE19F8900A9C285 /* KBLoginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLoginView.h; sourceTree = "<group>"; };
+		00010C031BE19F8900A9C285 /* KBLoginView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLoginView.m; sourceTree = "<group>"; };
+		00010C041BE19F8900A9C285 /* KBSignupView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSignupView.h; sourceTree = "<group>"; };
+		00010C051BE19F8900A9C285 /* KBSignupView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSignupView.m; sourceTree = "<group>"; };
+		00010C061BE19F8900A9C285 /* KBStrengthLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStrengthLabel.h; sourceTree = "<group>"; };
+		00010C071BE19F8900A9C285 /* KBStrengthLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStrengthLabel.m; sourceTree = "<group>"; };
+		00010C091BE19F8900A9C285 /* KBPaperKeyDisplayView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPaperKeyDisplayView.h; sourceTree = "<group>"; };
+		00010C0A1BE19F8900A9C285 /* KBPaperKeyDisplayView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPaperKeyDisplayView.m; sourceTree = "<group>"; };
+		00010C0C1BE19F8900A9C285 /* KBFileListEditView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileListEditView.h; sourceTree = "<group>"; };
+		00010C0D1BE19F8900A9C285 /* KBFileListEditView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFileListEditView.m; sourceTree = "<group>"; };
+		00010C0E1BE19F8900A9C285 /* KBPGPAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPAppView.h; sourceTree = "<group>"; };
+		00010C0F1BE19F8900A9C285 /* KBPGPAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPAppView.m; sourceTree = "<group>"; };
+		00010C101BE19F8900A9C285 /* KBPGPDecrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPDecrypt.h; sourceTree = "<group>"; };
+		00010C111BE19F8900A9C285 /* KBPGPDecrypt.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPDecrypt.m; sourceTree = "<group>"; };
+		00010C121BE19F8900A9C285 /* KBPGPDecryptAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPDecryptAppView.h; sourceTree = "<group>"; };
+		00010C131BE19F8900A9C285 /* KBPGPDecryptAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPDecryptAppView.m; sourceTree = "<group>"; };
+		00010C141BE19F8900A9C285 /* KBPGPDecrypted.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPDecrypted.h; sourceTree = "<group>"; };
+		00010C151BE19F8900A9C285 /* KBPGPDecrypted.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPDecrypted.m; sourceTree = "<group>"; };
+		00010C161BE19F8900A9C285 /* KBPGPDecryptFileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPDecryptFileView.h; sourceTree = "<group>"; };
+		00010C171BE19F8900A9C285 /* KBPGPDecryptFileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPDecryptFileView.m; sourceTree = "<group>"; };
+		00010C181BE19F8900A9C285 /* KBPGPDecryptFooterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPDecryptFooterView.h; sourceTree = "<group>"; };
+		00010C191BE19F8900A9C285 /* KBPGPDecryptFooterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPDecryptFooterView.m; sourceTree = "<group>"; };
+		00010C1A1BE19F8900A9C285 /* KBPGPDecryptView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPDecryptView.h; sourceTree = "<group>"; };
+		00010C1B1BE19F8900A9C285 /* KBPGPDecryptView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPDecryptView.m; sourceTree = "<group>"; };
+		00010C1C1BE19F8900A9C285 /* KBPGPEncrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPEncrypt.h; sourceTree = "<group>"; };
+		00010C1D1BE19F8900A9C285 /* KBPGPEncrypt.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPEncrypt.m; sourceTree = "<group>"; };
+		00010C1E1BE19F8900A9C285 /* KBPGPEncryptActionView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPEncryptActionView.h; sourceTree = "<group>"; };
+		00010C1F1BE19F8900A9C285 /* KBPGPEncryptActionView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPEncryptActionView.m; sourceTree = "<group>"; };
+		00010C201BE19F8900A9C285 /* KBPGPEncryptAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPEncryptAppView.h; sourceTree = "<group>"; };
+		00010C211BE19F8900A9C285 /* KBPGPEncryptAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPEncryptAppView.m; sourceTree = "<group>"; };
+		00010C221BE19F8900A9C285 /* KBPGPEncryptFilesView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPEncryptFilesView.h; sourceTree = "<group>"; };
+		00010C231BE19F8900A9C285 /* KBPGPEncryptFilesView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPEncryptFilesView.m; sourceTree = "<group>"; };
+		00010C241BE19F8900A9C285 /* KBPGPEncryptFooterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPEncryptFooterView.h; sourceTree = "<group>"; };
+		00010C251BE19F8900A9C285 /* KBPGPEncryptFooterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPEncryptFooterView.m; sourceTree = "<group>"; };
+		00010C261BE19F8900A9C285 /* KBPGPEncryptView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPEncryptView.h; sourceTree = "<group>"; };
+		00010C271BE19F8900A9C285 /* KBPGPEncryptView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPEncryptView.m; sourceTree = "<group>"; };
+		00010C281BE19F8900A9C285 /* KBPGPKeyGenView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPKeyGenView.h; sourceTree = "<group>"; };
+		00010C291BE19F8900A9C285 /* KBPGPKeyGenView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPKeyGenView.m; sourceTree = "<group>"; };
+		00010C2A1BE19F8900A9C285 /* KBPGPOutputFileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPOutputFileView.h; sourceTree = "<group>"; };
+		00010C2B1BE19F8900A9C285 /* KBPGPOutputFileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPOutputFileView.m; sourceTree = "<group>"; };
+		00010C2C1BE19F8900A9C285 /* KBPGPOutputFooterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPOutputFooterView.h; sourceTree = "<group>"; };
+		00010C2D1BE19F8900A9C285 /* KBPGPOutputFooterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPOutputFooterView.m; sourceTree = "<group>"; };
+		00010C2E1BE19F8900A9C285 /* KBPGPOutputView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPOutputView.h; sourceTree = "<group>"; };
+		00010C2F1BE19F8900A9C285 /* KBPGPOutputView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPOutputView.m; sourceTree = "<group>"; };
+		00010C301BE19F8900A9C285 /* KBPGPSignAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPSignAppView.h; sourceTree = "<group>"; };
+		00010C311BE19F8900A9C285 /* KBPGPSignAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPSignAppView.m; sourceTree = "<group>"; };
+		00010C321BE19F8900A9C285 /* KBPGPSigner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPSigner.h; sourceTree = "<group>"; };
+		00010C331BE19F8900A9C285 /* KBPGPSigner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPSigner.m; sourceTree = "<group>"; };
+		00010C341BE19F8900A9C285 /* KBPGPSignFilesView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPSignFilesView.h; sourceTree = "<group>"; };
+		00010C351BE19F8900A9C285 /* KBPGPSignFilesView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPSignFilesView.m; sourceTree = "<group>"; };
+		00010C361BE19F8900A9C285 /* KBPGPSignFileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPSignFileView.h; sourceTree = "<group>"; };
+		00010C371BE19F8900A9C285 /* KBPGPSignFileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPSignFileView.m; sourceTree = "<group>"; };
+		00010C381BE19F8900A9C285 /* KBPGPSignFooterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPSignFooterView.h; sourceTree = "<group>"; };
+		00010C391BE19F8900A9C285 /* KBPGPSignFooterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPSignFooterView.m; sourceTree = "<group>"; };
+		00010C3A1BE19F8900A9C285 /* KBPGPSignView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPSignView.h; sourceTree = "<group>"; };
+		00010C3B1BE19F8900A9C285 /* KBPGPSignView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPSignView.m; sourceTree = "<group>"; };
+		00010C3C1BE19F8900A9C285 /* KBPGPTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPTextView.h; sourceTree = "<group>"; };
+		00010C3D1BE19F8900A9C285 /* KBPGPTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPTextView.m; sourceTree = "<group>"; };
+		00010C3E1BE19F8900A9C285 /* KBPGPVerifiedView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPVerifiedView.h; sourceTree = "<group>"; };
+		00010C3F1BE19F8900A9C285 /* KBPGPVerifiedView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPVerifiedView.m; sourceTree = "<group>"; };
+		00010C401BE19F8900A9C285 /* KBPGPVerify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPVerify.h; sourceTree = "<group>"; };
+		00010C411BE19F8900A9C285 /* KBPGPVerify.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPVerify.m; sourceTree = "<group>"; };
+		00010C421BE19F8900A9C285 /* KBPGPVerifyAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPVerifyAppView.h; sourceTree = "<group>"; };
+		00010C431BE19F8900A9C285 /* KBPGPVerifyAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPVerifyAppView.m; sourceTree = "<group>"; };
+		00010C441BE19F8900A9C285 /* KBPGPVerifyDetachedView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPVerifyDetachedView.h; sourceTree = "<group>"; };
+		00010C451BE19F8900A9C285 /* KBPGPVerifyDetachedView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPVerifyDetachedView.m; sourceTree = "<group>"; };
+		00010C461BE19F8900A9C285 /* KBPGPVerifyFileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPVerifyFileView.h; sourceTree = "<group>"; };
+		00010C471BE19F8900A9C285 /* KBPGPVerifyFileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPVerifyFileView.m; sourceTree = "<group>"; };
+		00010C481BE19F8900A9C285 /* KBPGPVerifyFooterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPVerifyFooterView.h; sourceTree = "<group>"; };
+		00010C491BE19F8900A9C285 /* KBPGPVerifyFooterView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPVerifyFooterView.m; sourceTree = "<group>"; };
+		00010C4A1BE19F8900A9C285 /* KBPGPVerifyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPGPVerifyView.h; sourceTree = "<group>"; };
+		00010C4B1BE19F8900A9C285 /* KBPGPVerifyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPGPVerifyView.m; sourceTree = "<group>"; };
+		00010C4D1BE19F8900A9C285 /* KBAlertView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAlertView.h; sourceTree = "<group>"; };
+		00010C4E1BE19F8900A9C285 /* KBAlertView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAlertView.m; sourceTree = "<group>"; };
+		00010C4F1BE19F8900A9C285 /* KBSecretPromptView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSecretPromptView.h; sourceTree = "<group>"; };
+		00010C501BE19F8900A9C285 /* KBSecretPromptView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSecretPromptView.m; sourceTree = "<group>"; };
+		00010C521BE19F8900A9C285 /* KBProofLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProofLabel.h; sourceTree = "<group>"; };
+		00010C531BE19F8900A9C285 /* KBProofLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProofLabel.m; sourceTree = "<group>"; };
+		00010C541BE19F8900A9C285 /* KBProofRepairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProofRepairView.h; sourceTree = "<group>"; };
+		00010C551BE19F8900A9C285 /* KBProofRepairView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProofRepairView.m; sourceTree = "<group>"; };
+		00010C561BE19F8900A9C285 /* KBProofResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProofResult.h; sourceTree = "<group>"; };
+		00010C571BE19F8900A9C285 /* KBProofResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProofResult.m; sourceTree = "<group>"; };
+		00010C581BE19F8900A9C285 /* KBProofView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProofView.h; sourceTree = "<group>"; };
+		00010C591BE19F8900A9C285 /* KBProofView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProofView.m; sourceTree = "<group>"; };
+		00010C5A1BE19F8900A9C285 /* KBProveInputView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProveInputView.h; sourceTree = "<group>"; };
+		00010C5B1BE19F8900A9C285 /* KBProveInputView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProveInputView.m; sourceTree = "<group>"; };
+		00010C5C1BE19F8900A9C285 /* KBProveInstructionsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProveInstructionsView.h; sourceTree = "<group>"; };
+		00010C5D1BE19F8900A9C285 /* KBProveInstructionsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProveInstructionsView.m; sourceTree = "<group>"; };
+		00010C5E1BE19F8900A9C285 /* KBProver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProver.h; sourceTree = "<group>"; };
+		00010C5F1BE19F8900A9C285 /* KBProver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProver.m; sourceTree = "<group>"; };
+		00010C601BE19F8900A9C285 /* KBProveView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBProveView.h; sourceTree = "<group>"; };
+		00010C611BE19F8900A9C285 /* KBProveView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBProveView.m; sourceTree = "<group>"; };
+		00010C631BE19F8900A9C285 /* KBSearchControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchControl.h; sourceTree = "<group>"; };
+		00010C641BE19F8900A9C285 /* KBSearchControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchControl.m; sourceTree = "<group>"; };
+		00010C651BE19F8900A9C285 /* KBSearcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearcher.h; sourceTree = "<group>"; };
+		00010C661BE19F8900A9C285 /* KBSearcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearcher.m; sourceTree = "<group>"; };
+		00010C671BE19F8900A9C285 /* KBSearchField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchField.h; sourceTree = "<group>"; };
+		00010C681BE19F8900A9C285 /* KBSearchField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchField.m; sourceTree = "<group>"; };
+		00010C691BE19F8900A9C285 /* KBSearchResults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSearchResults.h; sourceTree = "<group>"; };
+		00010C6A1BE19F8900A9C285 /* KBSearchResults.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSearchResults.m; sourceTree = "<group>"; };
+		00010C6C1BE19F8900A9C285 /* KBTrackView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTrackView.h; sourceTree = "<group>"; };
+		00010C6D1BE19F8900A9C285 /* KBTrackView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTrackView.m; sourceTree = "<group>"; };
+		00010C6E1BE19F8900A9C285 /* KBUserButtonView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserButtonView.h; sourceTree = "<group>"; };
+		00010C6F1BE19F8900A9C285 /* KBUserButtonView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserButtonView.m; sourceTree = "<group>"; };
+		00010C701BE19F8900A9C285 /* KBUserHeaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserHeaderView.h; sourceTree = "<group>"; };
+		00010C711BE19F8900A9C285 /* KBUserHeaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserHeaderView.m; sourceTree = "<group>"; };
+		00010C721BE19F8900A9C285 /* KBUserImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserImageView.h; sourceTree = "<group>"; };
+		00010C731BE19F8900A9C285 /* KBUserImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserImageView.m; sourceTree = "<group>"; };
+		00010C741BE19F8900A9C285 /* KBUserInfoLabels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserInfoLabels.h; sourceTree = "<group>"; };
+		00010C751BE19F8900A9C285 /* KBUserInfoLabels.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserInfoLabels.m; sourceTree = "<group>"; };
+		00010C761BE19F8900A9C285 /* KBUserInfoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserInfoView.h; sourceTree = "<group>"; };
+		00010C771BE19F8900A9C285 /* KBUserInfoView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserInfoView.m; sourceTree = "<group>"; };
+		00010C781BE19F8900A9C285 /* KBUserListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserListView.h; sourceTree = "<group>"; };
+		00010C791BE19F8900A9C285 /* KBUserListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserListView.m; sourceTree = "<group>"; };
+		00010C7A1BE19F8900A9C285 /* KBUserPickerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserPickerView.h; sourceTree = "<group>"; };
+		00010C7B1BE19F8900A9C285 /* KBUserPickerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserPickerView.m; sourceTree = "<group>"; };
+		00010C7C1BE19F8900A9C285 /* KBUserProfileView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserProfileView.h; sourceTree = "<group>"; };
+		00010C7D1BE19F8900A9C285 /* KBUserProfileView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserProfileView.m; sourceTree = "<group>"; };
+		00010C7E1BE19F8900A9C285 /* KBUsersAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUsersAppView.h; sourceTree = "<group>"; };
+		00010C7F1BE19F8900A9C285 /* KBUsersAppView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUsersAppView.m; sourceTree = "<group>"; };
+		00010C801BE19F8900A9C285 /* KBUserStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserStatusView.h; sourceTree = "<group>"; };
+		00010C811BE19F8900A9C285 /* KBUserStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserStatusView.m; sourceTree = "<group>"; };
+		00010C821BE19F8900A9C285 /* KBUserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserView.h; sourceTree = "<group>"; };
+		00010C831BE19F8900A9C285 /* KBUserView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserView.m; sourceTree = "<group>"; };
+		00010C851BE19F8900A9C285 /* KBConvert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBConvert.h; sourceTree = "<group>"; };
+		00010C861BE19F8900A9C285 /* KBConvert.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBConvert.m; sourceTree = "<group>"; };
+		00010C871BE19F8900A9C285 /* KBFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFormatter.h; sourceTree = "<group>"; };
+		00010C881BE19F8900A9C285 /* KBFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFormatter.m; sourceTree = "<group>"; };
+		00010C891BE19F8900A9C285 /* KBLogFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLogFormatter.h; sourceTree = "<group>"; };
+		00010C8A1BE19F8900A9C285 /* KBLogFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLogFormatter.m; sourceTree = "<group>"; };
+		00010C8B1BE19F8900A9C285 /* KBRunOver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBRunOver.h; sourceTree = "<group>"; };
+		00010C8C1BE19F8900A9C285 /* KBRunOver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBRunOver.m; sourceTree = "<group>"; };
+		00010C8D1BE19F8900A9C285 /* KBWaitFor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBWaitFor.h; sourceTree = "<group>"; };
+		00010C8E1BE19F8900A9C285 /* KBWaitFor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBWaitFor.m; sourceTree = "<group>"; };
+		00010C8F1BE19F8900A9C285 /* KBWork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBWork.h; sourceTree = "<group>"; };
+		00010C901BE19F8900A9C285 /* KBWork.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBWork.m; sourceTree = "<group>"; };
+		00010DE41BE1A0B900A9C285 /* KBDefinesTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefinesTest.m; sourceTree = "<group>"; };
+		00010DE51BE1A0B900A9C285 /* KBEnvConfigTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvConfigTest.m; sourceTree = "<group>"; };
+		00010DE61BE1A0B900A9C285 /* KBFormatterTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFormatterTest.m; sourceTree = "<group>"; };
+		00010DE91BE1A0B900A9C285 /* KBSemVersionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSemVersionTest.m; sourceTree = "<group>"; };
+		00010DF01BE1AC3D00A9C285 /* KBKit.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = KBKit.podspec; sourceTree = "<group>"; };
+		0B241DD368CEEC403E93FDBB /* Pods-KBKit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.debug.xcconfig"; sourceTree = "<group>"; };
+		760C2694B64DCD2BA5ADD378 /* Pods_KBKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KBKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3B225A40BAFB15EDA2B6BB8 /* Pods-KBKit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.release.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.release.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		00010B081BE19F2100A9C285 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				38A713FFC5FC7A9ABE7CC5B5 /* Pods_KBKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00010B131BE19F2100A9C285 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00010B171BE19F2100A9C285 /* KBKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		00010B021BE19F2100A9C285 = {
+			isa = PBXGroup;
+			children = (
+				00010DF01BE1AC3D00A9C285 /* KBKit.podspec */,
+				00010B0E1BE19F2100A9C285 /* KBKit */,
+				00010B1A1BE19F2100A9C285 /* KBKitTests */,
+				00010B0D1BE19F2100A9C285 /* Products */,
+				C602E48F06130BEDB7894351 /* Pods */,
+				8DB85EA5F43C7A1050696E67 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		00010B0D1BE19F2100A9C285 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00010B0C1BE19F2100A9C285 /* KBKit.framework */,
+				00010B161BE19F2100A9C285 /* KBKitTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		00010B0E1BE19F2100A9C285 /* KBKit */ = {
+			isa = PBXGroup;
+			children = (
+				00010B701BE19F8800A9C285 /* Podfile */,
+				00010B0F1BE19F2100A9C285 /* KBKit.h */,
+				00010B111BE19F2100A9C285 /* Info.plist */,
+				00010B611BE19F8800A9C285 /* KBDefines.h */,
+				00010B621BE19F8800A9C285 /* KBDefines.m */,
+				00010B691BE19F8800A9C285 /* KBSemVersion.h */,
+				00010B6A1BE19F8800A9C285 /* KBSemVersion.m */,
+				00010B6B1BE19F8800A9C285 /* KBWorkspace.h */,
+				00010B6C1BE19F8800A9C285 /* KBWorkspace.m */,
+				00010B261BE19F8800A9C285 /* App */,
+				00010B351BE19F8800A9C285 /* Component */,
+				00010B541BE19F8800A9C285 /* IO */,
+				00010B631BE19F8800A9C285 /* KBFS */,
+				00010B6D1BE19F8800A9C285 /* Log */,
+				00010B711BE19F8800A9C285 /* Preferences */,
+				00010B861BE19F8800A9C285 /* RPC */,
+				00010B971BE19F8800A9C285 /* System */,
+				00010BA41BE19F8800A9C285 /* Track */,
+				00010BA71BE19F8800A9C285 /* UI */,
+				00010C841BE19F8900A9C285 /* Utils */,
+			);
+			path = KBKit;
+			sourceTree = "<group>";
+		};
+		00010B1A1BE19F2100A9C285 /* KBKitTests */ = {
+			isa = PBXGroup;
+			children = (
+				00010DE41BE1A0B900A9C285 /* KBDefinesTest.m */,
+				00010DE51BE1A0B900A9C285 /* KBEnvConfigTest.m */,
+				00010DE61BE1A0B900A9C285 /* KBFormatterTest.m */,
+				00010DE91BE1A0B900A9C285 /* KBSemVersionTest.m */,
+				00010B1D1BE19F2100A9C285 /* Info.plist */,
+			);
+			path = KBKitTests;
+			sourceTree = "<group>";
+		};
+		00010B261BE19F8800A9C285 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				00010B271BE19F8800A9C285 /* KBApp.h */,
+				00010B281BE19F8800A9C285 /* KBApp.m */,
+				00010B291BE19F8800A9C285 /* KBAppDefines.h */,
+				00010B2A1BE19F8800A9C285 /* KBAppDefines.m */,
+				00010B2B1BE19F8800A9C285 /* KBAppExtension.h */,
+				00010B2C1BE19F8800A9C285 /* KBAppExtension.m */,
+				00010B2D1BE19F8800A9C285 /* KBAppToolbar.h */,
+				00010B2E1BE19F8800A9C285 /* KBAppToolbar.m */,
+				00010B2F1BE19F8800A9C285 /* KBAppView.h */,
+				00010B301BE19F8800A9C285 /* KBAppView.m */,
+				00010B311BE19F8800A9C285 /* KBNotifications.h */,
+				00010B321BE19F8800A9C285 /* KBNotifications.m */,
+				00010B331BE19F8800A9C285 /* KBSourceOutlineView.h */,
+				00010B341BE19F8800A9C285 /* KBSourceOutlineView.m */,
+			);
+			name = App;
+			path = KBKit/App;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010B351BE19F8800A9C285 /* Component */ = {
+			isa = PBXGroup;
+			children = (
+				00010B381BE19F8800A9C285 /* KBComponent.h */,
+				00010B391BE19F8800A9C285 /* KBComponent.m */,
+				00010B3A1BE19F8800A9C285 /* KBComponentStatus.h */,
+				00010B3B1BE19F8800A9C285 /* KBComponentStatus.m */,
+				00010B3C1BE19F8800A9C285 /* KBFSConfig.h */,
+				00010B3D1BE19F8800A9C285 /* KBFSConfig.m */,
+				00010B3E1BE19F8800A9C285 /* KBFSService.h */,
+				00010B3F1BE19F8800A9C285 /* KBFSService.m */,
+				00010B401BE19F8800A9C285 /* KBFuseComponent.h */,
+				00010B411BE19F8800A9C285 /* KBFuseComponent.m */,
+				00010B421BE19F8800A9C285 /* KBHelperTool.h */,
+				00010B431BE19F8800A9C285 /* KBHelperTool.m */,
+				00010B441BE19F8800A9C285 /* KBInstallable.h */,
+				00010B451BE19F8800A9C285 /* KBInstallable.m */,
+				00010B461BE19F8800A9C285 /* KBInstallAction.h */,
+				00010B471BE19F8800A9C285 /* KBInstallAction.m */,
+				00010B481BE19F8800A9C285 /* KBInstaller.h */,
+				00010B491BE19F8800A9C285 /* KBInstaller.m */,
+				00010B4A1BE19F8800A9C285 /* KBKeybaseLaunchd.h */,
+				00010B4B1BE19F8800A9C285 /* KBKeybaseLaunchd.m */,
+				00010B4C1BE19F8800A9C285 /* KBLaunchdPlist.h */,
+				00010B4D1BE19F8800A9C285 /* KBLaunchdPlist.m */,
+				00010B4E1BE19F8800A9C285 /* KBService.h */,
+				00010B4F1BE19F8800A9C285 /* KBService.m */,
+				00010B501BE19F8800A9C285 /* KBServiceConfig.h */,
+				00010B511BE19F8800A9C285 /* KBServiceConfig.m */,
+				00010B361BE19F8800A9C285 /* KBCLIInstall.h */,
+				00010B371BE19F8800A9C285 /* KBCLIInstall.m */,
+				00010B521BE19F8800A9C285 /* KBUninstaller.h */,
+				00010B531BE19F8800A9C285 /* KBUninstaller.m */,
+			);
+			name = Component;
+			path = KBKit/Component;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010B541BE19F8800A9C285 /* IO */ = {
+			isa = PBXGroup;
+			children = (
+				00010B551BE19F8800A9C285 /* KBFileReader.h */,
+				00010B561BE19F8800A9C285 /* KBFileReader.m */,
+				00010B571BE19F8800A9C285 /* KBFileWriter.h */,
+				00010B581BE19F8800A9C285 /* KBFileWriter.m */,
+				00010B591BE19F8800A9C285 /* KBPath.h */,
+				00010B5A1BE19F8800A9C285 /* KBPath.m */,
+				00010B5B1BE19F8800A9C285 /* KBReader.h */,
+				00010B5C1BE19F8800A9C285 /* KBReader.m */,
+				00010B5D1BE19F8800A9C285 /* KBStream.h */,
+				00010B5E1BE19F8800A9C285 /* KBStream.m */,
+				00010B5F1BE19F8800A9C285 /* KBWriter.h */,
+				00010B601BE19F8800A9C285 /* KBWriter.m */,
+			);
+			name = IO;
+			path = KBKit/IO;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010B631BE19F8800A9C285 /* KBFS */ = {
+			isa = PBXGroup;
+			children = (
+				00010B641BE19F8800A9C285 /* KBFinder.h */,
+				00010B651BE19F8800A9C285 /* KBFinder.m */,
+			);
+			name = KBFS;
+			path = KBKit/KBFS;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010B6D1BE19F8800A9C285 /* Log */ = {
+			isa = PBXGroup;
+			children = (
+				00010B6E1BE19F8800A9C285 /* KBLog.h */,
+				00010B6F1BE19F8800A9C285 /* KBLog.m */,
+			);
+			name = Log;
+			path = KBKit/Log;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010B711BE19F8800A9C285 /* Preferences */ = {
+			isa = PBXGroup;
+			children = (
+				00010B721BE19F8800A9C285 /* KBPrefAdvancedView.h */,
+				00010B731BE19F8800A9C285 /* KBPrefAdvancedView.m */,
+				00010B741BE19F8800A9C285 /* KBPrefButton.h */,
+				00010B751BE19F8800A9C285 /* KBPrefButton.m */,
+				00010B761BE19F8800A9C285 /* KBPrefCheckbox.h */,
+				00010B771BE19F8800A9C285 /* KBPrefCheckbox.m */,
+				00010B781BE19F8800A9C285 /* KBPreferences.h */,
+				00010B791BE19F8800A9C285 /* KBPreferences.m */,
+				00010B7A1BE19F8800A9C285 /* KBPrefFileView.h */,
+				00010B7B1BE19F8800A9C285 /* KBPrefFileView.m */,
+				00010B7C1BE19F8800A9C285 /* KBPrefGeneralView.h */,
+				00010B7D1BE19F8800A9C285 /* KBPrefGeneralView.m */,
+				00010B7E1BE19F8800A9C285 /* KBPrefGPGView.h */,
+				00010B7F1BE19F8800A9C285 /* KBPrefGPGView.m */,
+				00010B801BE19F8800A9C285 /* KBPrefOption.h */,
+				00010B811BE19F8800A9C285 /* KBPrefOption.m */,
+				00010B821BE19F8800A9C285 /* KBPrefPopUpView.h */,
+				00010B831BE19F8800A9C285 /* KBPrefPopUpView.m */,
+				00010B841BE19F8800A9C285 /* KBPrefTextField.h */,
+				00010B851BE19F8800A9C285 /* KBPrefTextField.m */,
+			);
+			name = Preferences;
+			path = KBKit/Preferences;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010B861BE19F8800A9C285 /* RPC */ = {
+			isa = PBXGroup;
+			children = (
+				00010B871BE19F8800A9C285 /* KBRMockClient.h */,
+				00010B881BE19F8800A9C285 /* KBRMockClient.m */,
+				00010B891BE19F8800A9C285 /* KBRObject.h */,
+				00010B8A1BE19F8800A9C285 /* KBRObject.m */,
+				00010B8B1BE19F8800A9C285 /* KBRPC.h */,
+				00010B8C1BE19F8800A9C285 /* KBRPC.m */,
+				00010B8D1BE19F8800A9C285 /* KBRPClient.h */,
+				00010B8E1BE19F8800A9C285 /* KBRPClient.m */,
+				00010B8F1BE19F8800A9C285 /* KBRPCRecord.h */,
+				00010B901BE19F8800A9C285 /* KBRPCRecord.m */,
+				00010B911BE19F8800A9C285 /* KBRPCRegistration.h */,
+				00010B921BE19F8800A9C285 /* KBRPCRegistration.m */,
+				00010B931BE19F8800A9C285 /* KBRRequest.h */,
+				00010B941BE19F8800A9C285 /* KBRRequest.m */,
+				00010B951BE19F8800A9C285 /* KBRRequestParams.h */,
+				00010B961BE19F8800A9C285 /* KBRRequestParams.m */,
+			);
+			name = RPC;
+			path = KBKit/RPC;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010B971BE19F8800A9C285 /* System */ = {
+			isa = PBXGroup;
+			children = (
+				00010B981BE19F8800A9C285 /* KBEnvConfig.h */,
+				00010B991BE19F8800A9C285 /* KBEnvConfig.m */,
+				00010B9A1BE19F8800A9C285 /* KBEnvironment.h */,
+				00010B9B1BE19F8800A9C285 /* KBEnvironment.m */,
+				00010B9C1BE19F8800A9C285 /* KBLaunchCtl.h */,
+				00010B9D1BE19F8800A9C285 /* KBLaunchCtl.m */,
+				00010B9E1BE19F8800A9C285 /* KBLaunchdStatus.h */,
+				00010B9F1BE19F8800A9C285 /* KBLaunchdStatus.m */,
+				00010BA01BE19F8800A9C285 /* KBLaunchService.h */,
+				00010BA11BE19F8800A9C285 /* KBLaunchService.m */,
+				00010BA21BE19F8800A9C285 /* KBPrivilegedTask.h */,
+				00010BA31BE19F8800A9C285 /* KBPrivilegedTask.m */,
+			);
+			name = System;
+			path = KBKit/System;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010BA41BE19F8800A9C285 /* Track */ = {
+			isa = PBXGroup;
+			children = (
+				00010BA51BE19F8800A9C285 /* KBUserTrackStatus.h */,
+				00010BA61BE19F8800A9C285 /* KBUserTrackStatus.m */,
+			);
+			name = Track;
+			path = KBKit/Track;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010BA71BE19F8800A9C285 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				00010BA81BE19F8900A9C285 /* Debug */,
+				00010BBB1BE19F8900A9C285 /* Device */,
+				00010BCA1BE19F8900A9C285 /* Folders */,
+				00010BE31BE19F8900A9C285 /* Install */,
+				00010BE61BE19F8900A9C285 /* KBComposeTextView.h */,
+				00010BE71BE19F8900A9C285 /* KBComposeTextView.m */,
+				00010BE81BE19F8900A9C285 /* KBErrorStatusView.h */,
+				00010BE91BE19F8900A9C285 /* KBErrorStatusView.m */,
+				00010BEA1BE19F8900A9C285 /* KBErrorView.h */,
+				00010BEB1BE19F8900A9C285 /* KBErrorView.m */,
+				00010BEC1BE19F8900A9C285 /* KBFatalErrorView.h */,
+				00010BED1BE19F8900A9C285 /* KBFatalErrorView.m */,
+				00010BEE1BE19F8900A9C285 /* KBHeaderLabelView.h */,
+				00010BEF1BE19F8900A9C285 /* KBHeaderLabelView.m */,
+				00010BF01BE19F8900A9C285 /* KBImageLabel.h */,
+				00010BF11BE19F8900A9C285 /* KBImageLabel.m */,
+				00010BF21BE19F8900A9C285 /* KBProgressView.h */,
+				00010BF31BE19F8900A9C285 /* KBProgressView.m */,
+				00010BF41BE19F8900A9C285 /* Keys */,
+				00010BFF1BE19F8900A9C285 /* Login */,
+				00010C081BE19F8900A9C285 /* PaperKey */,
+				00010C0B1BE19F8900A9C285 /* PGP */,
+				00010C4C1BE19F8900A9C285 /* Prompt */,
+				00010C511BE19F8900A9C285 /* Proof */,
+				00010C621BE19F8900A9C285 /* Search */,
+				00010C6B1BE19F8900A9C285 /* User */,
+			);
+			name = UI;
+			path = KBKit/UI;
+			sourceTree = SOURCE_ROOT;
+		};
+		00010BA81BE19F8900A9C285 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				00010BA91BE19F8900A9C285 /* KBAppDebug.h */,
+				00010BAA1BE19F8900A9C285 /* KBAppDebug.m */,
+				00010BAB1BE19F8900A9C285 /* KBConsoleView.h */,
+				00010BAC1BE19F8900A9C285 /* KBConsoleView.m */,
+				00010BAD1BE19F8900A9C285 /* KBControlPanel.h */,
+				00010BAE1BE19F8900A9C285 /* KBControlPanel.m */,
+				00010BAF1BE19F8900A9C285 /* KBCustomEnvView.h */,
+				00010BB01BE19F8900A9C285 /* KBCustomEnvView.m */,
+				00010BB11BE19F8900A9C285 /* KBDebugPropertiesView.h */,
+				00010BB21BE19F8900A9C285 /* KBDebugPropertiesView.m */,
+				00010BB31BE19F8900A9C285 /* KBDebugViews.h */,
+				00010BB41BE19F8900A9C285 /* KBDebugViews.m */,
+				00010BB51BE19F8900A9C285 /* KBEnvSelectView.h */,
+				00010BB61BE19F8900A9C285 /* KBEnvSelectView.m */,
+				00010BB71BE19F8900A9C285 /* KBFSStatusView.h */,
+				00010BB81BE19F8900A9C285 /* KBFSStatusView.m */,
+				00010BB91BE19F8900A9C285 /* KBStyleGuideView.h */,
+				00010BBA1BE19F8900A9C285 /* KBStyleGuideView.m */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
+		00010BBB1BE19F8900A9C285 /* Device */ = {
+			isa = PBXGroup;
+			children = (
+				00010BBC1BE19F8900A9C285 /* KBDeviceAddView.h */,
+				00010BBD1BE19F8900A9C285 /* KBDeviceAddView.m */,
+				00010BBE1BE19F8900A9C285 /* KBDevicesAppView.h */,
+				00010BBF1BE19F8900A9C285 /* KBDevicesAppView.m */,
+				00010BC01BE19F8900A9C285 /* KBDeviceSetupChooseView.h */,
+				00010BC11BE19F8900A9C285 /* KBDeviceSetupChooseView.m */,
+				00010BC21BE19F8900A9C285 /* KBDeviceSetupDisplayView.h */,
+				00010BC31BE19F8900A9C285 /* KBDeviceSetupDisplayView.m */,
+				00010BC41BE19F8900A9C285 /* KBDeviceSetupPromptView.h */,
+				00010BC51BE19F8900A9C285 /* KBDeviceSetupPromptView.m */,
+				00010BC61BE19F8900A9C285 /* KBDeviceSignerOption.h */,
+				00010BC71BE19F8900A9C285 /* KBDeviceSignerOption.m */,
+				00010BC81BE19F8900A9C285 /* KBDeviceView.h */,
+				00010BC91BE19F8900A9C285 /* KBDeviceView.m */,
+			);
+			path = Device;
+			sourceTree = "<group>";
+		};
+		00010BCA1BE19F8900A9C285 /* Folders */ = {
+			isa = PBXGroup;
+			children = (
+				00010BCB1BE19F8900A9C285 /* KBFile.h */,
+				00010BCC1BE19F8900A9C285 /* KBFile.m */,
+				00010BCD1BE19F8900A9C285 /* KBFileIcon.h */,
+				00010BCE1BE19F8900A9C285 /* KBFileIcon.m */,
+				00010BCF1BE19F8900A9C285 /* KBFileLabel.h */,
+				00010BD01BE19F8900A9C285 /* KBFileLabel.m */,
+				00010BD11BE19F8900A9C285 /* KBFileListView.h */,
+				00010BD21BE19F8900A9C285 /* KBFileListView.m */,
+				00010BD31BE19F8900A9C285 /* KBFilePreviewView.h */,
+				00010BD41BE19F8900A9C285 /* KBFilePreviewView.m */,
+				00010BD51BE19F8900A9C285 /* KBFileSelectView.h */,
+				00010BD61BE19F8900A9C285 /* KBFileSelectView.m */,
+				00010BD71BE19F8900A9C285 /* KBFolderAddView.h */,
+				00010BD81BE19F8900A9C285 /* KBFolderAddView.m */,
+				00010BD91BE19F8900A9C285 /* KBFoldersAppView.h */,
+				00010BDA1BE19F8900A9C285 /* KBFoldersAppView.m */,
+				00010BDB1BE19F8900A9C285 /* KBFoldersView.h */,
+				00010BDC1BE19F8900A9C285 /* KBFoldersView.m */,
+				00010BDD1BE19F8900A9C285 /* KBFolderUsersListView.h */,
+				00010BDE1BE19F8900A9C285 /* KBFolderUsersListView.m */,
+				00010BDF1BE19F8900A9C285 /* KBFolderUsersView.h */,
+				00010BE01BE19F8900A9C285 /* KBFolderUsersView.m */,
+				00010BE11BE19F8900A9C285 /* KBUserPermission.h */,
+				00010BE21BE19F8900A9C285 /* KBUserPermission.m */,
+			);
+			path = Folders;
+			sourceTree = "<group>";
+		};
+		00010BE31BE19F8900A9C285 /* Install */ = {
+			isa = PBXGroup;
+			children = (
+				00010BE41BE19F8900A9C285 /* KBStatusView.h */,
+				00010BE51BE19F8900A9C285 /* KBStatusView.m */,
+			);
+			path = Install;
+			sourceTree = "<group>";
+		};
+		00010BF41BE19F8900A9C285 /* Keys */ = {
+			isa = PBXGroup;
+			children = (
+				00010BF51BE19F8900A9C285 /* KBGPGKeysView.h */,
+				00010BF61BE19F8900A9C285 /* KBGPGKeysView.m */,
+				00010BF71BE19F8900A9C285 /* KBKeyImportView.h */,
+				00010BF81BE19F8900A9C285 /* KBKeyImportView.m */,
+				00010BF91BE19F8900A9C285 /* KBKeySelectView.h */,
+				00010BFA1BE19F8900A9C285 /* KBKeySelectView.m */,
+				00010BFB1BE19F8900A9C285 /* KBKeyView.h */,
+				00010BFC1BE19F8900A9C285 /* KBKeyView.m */,
+				00010BFD1BE19F8900A9C285 /* KBUserKeyView.h */,
+				00010BFE1BE19F8900A9C285 /* KBUserKeyView.m */,
+			);
+			path = Keys;
+			sourceTree = "<group>";
+		};
+		00010BFF1BE19F8900A9C285 /* Login */ = {
+			isa = PBXGroup;
+			children = (
+				00010C001BE19F8900A9C285 /* KBAppProgressView.h */,
+				00010C011BE19F8900A9C285 /* KBAppProgressView.m */,
+				00010C021BE19F8900A9C285 /* KBLoginView.h */,
+				00010C031BE19F8900A9C285 /* KBLoginView.m */,
+				00010C041BE19F8900A9C285 /* KBSignupView.h */,
+				00010C051BE19F8900A9C285 /* KBSignupView.m */,
+				00010C061BE19F8900A9C285 /* KBStrengthLabel.h */,
+				00010C071BE19F8900A9C285 /* KBStrengthLabel.m */,
+			);
+			path = Login;
+			sourceTree = "<group>";
+		};
+		00010C081BE19F8900A9C285 /* PaperKey */ = {
+			isa = PBXGroup;
+			children = (
+				00010C091BE19F8900A9C285 /* KBPaperKeyDisplayView.h */,
+				00010C0A1BE19F8900A9C285 /* KBPaperKeyDisplayView.m */,
+			);
+			path = PaperKey;
+			sourceTree = "<group>";
+		};
+		00010C0B1BE19F8900A9C285 /* PGP */ = {
+			isa = PBXGroup;
+			children = (
+				00010C0C1BE19F8900A9C285 /* KBFileListEditView.h */,
+				00010C0D1BE19F8900A9C285 /* KBFileListEditView.m */,
+				00010C0E1BE19F8900A9C285 /* KBPGPAppView.h */,
+				00010C0F1BE19F8900A9C285 /* KBPGPAppView.m */,
+				00010C101BE19F8900A9C285 /* KBPGPDecrypt.h */,
+				00010C111BE19F8900A9C285 /* KBPGPDecrypt.m */,
+				00010C121BE19F8900A9C285 /* KBPGPDecryptAppView.h */,
+				00010C131BE19F8900A9C285 /* KBPGPDecryptAppView.m */,
+				00010C141BE19F8900A9C285 /* KBPGPDecrypted.h */,
+				00010C151BE19F8900A9C285 /* KBPGPDecrypted.m */,
+				00010C161BE19F8900A9C285 /* KBPGPDecryptFileView.h */,
+				00010C171BE19F8900A9C285 /* KBPGPDecryptFileView.m */,
+				00010C181BE19F8900A9C285 /* KBPGPDecryptFooterView.h */,
+				00010C191BE19F8900A9C285 /* KBPGPDecryptFooterView.m */,
+				00010C1A1BE19F8900A9C285 /* KBPGPDecryptView.h */,
+				00010C1B1BE19F8900A9C285 /* KBPGPDecryptView.m */,
+				00010C1C1BE19F8900A9C285 /* KBPGPEncrypt.h */,
+				00010C1D1BE19F8900A9C285 /* KBPGPEncrypt.m */,
+				00010C1E1BE19F8900A9C285 /* KBPGPEncryptActionView.h */,
+				00010C1F1BE19F8900A9C285 /* KBPGPEncryptActionView.m */,
+				00010C201BE19F8900A9C285 /* KBPGPEncryptAppView.h */,
+				00010C211BE19F8900A9C285 /* KBPGPEncryptAppView.m */,
+				00010C221BE19F8900A9C285 /* KBPGPEncryptFilesView.h */,
+				00010C231BE19F8900A9C285 /* KBPGPEncryptFilesView.m */,
+				00010C241BE19F8900A9C285 /* KBPGPEncryptFooterView.h */,
+				00010C251BE19F8900A9C285 /* KBPGPEncryptFooterView.m */,
+				00010C261BE19F8900A9C285 /* KBPGPEncryptView.h */,
+				00010C271BE19F8900A9C285 /* KBPGPEncryptView.m */,
+				00010C281BE19F8900A9C285 /* KBPGPKeyGenView.h */,
+				00010C291BE19F8900A9C285 /* KBPGPKeyGenView.m */,
+				00010C2A1BE19F8900A9C285 /* KBPGPOutputFileView.h */,
+				00010C2B1BE19F8900A9C285 /* KBPGPOutputFileView.m */,
+				00010C2C1BE19F8900A9C285 /* KBPGPOutputFooterView.h */,
+				00010C2D1BE19F8900A9C285 /* KBPGPOutputFooterView.m */,
+				00010C2E1BE19F8900A9C285 /* KBPGPOutputView.h */,
+				00010C2F1BE19F8900A9C285 /* KBPGPOutputView.m */,
+				00010C301BE19F8900A9C285 /* KBPGPSignAppView.h */,
+				00010C311BE19F8900A9C285 /* KBPGPSignAppView.m */,
+				00010C321BE19F8900A9C285 /* KBPGPSigner.h */,
+				00010C331BE19F8900A9C285 /* KBPGPSigner.m */,
+				00010C341BE19F8900A9C285 /* KBPGPSignFilesView.h */,
+				00010C351BE19F8900A9C285 /* KBPGPSignFilesView.m */,
+				00010C361BE19F8900A9C285 /* KBPGPSignFileView.h */,
+				00010C371BE19F8900A9C285 /* KBPGPSignFileView.m */,
+				00010C381BE19F8900A9C285 /* KBPGPSignFooterView.h */,
+				00010C391BE19F8900A9C285 /* KBPGPSignFooterView.m */,
+				00010C3A1BE19F8900A9C285 /* KBPGPSignView.h */,
+				00010C3B1BE19F8900A9C285 /* KBPGPSignView.m */,
+				00010C3C1BE19F8900A9C285 /* KBPGPTextView.h */,
+				00010C3D1BE19F8900A9C285 /* KBPGPTextView.m */,
+				00010C3E1BE19F8900A9C285 /* KBPGPVerifiedView.h */,
+				00010C3F1BE19F8900A9C285 /* KBPGPVerifiedView.m */,
+				00010C401BE19F8900A9C285 /* KBPGPVerify.h */,
+				00010C411BE19F8900A9C285 /* KBPGPVerify.m */,
+				00010C421BE19F8900A9C285 /* KBPGPVerifyAppView.h */,
+				00010C431BE19F8900A9C285 /* KBPGPVerifyAppView.m */,
+				00010C441BE19F8900A9C285 /* KBPGPVerifyDetachedView.h */,
+				00010C451BE19F8900A9C285 /* KBPGPVerifyDetachedView.m */,
+				00010C461BE19F8900A9C285 /* KBPGPVerifyFileView.h */,
+				00010C471BE19F8900A9C285 /* KBPGPVerifyFileView.m */,
+				00010C481BE19F8900A9C285 /* KBPGPVerifyFooterView.h */,
+				00010C491BE19F8900A9C285 /* KBPGPVerifyFooterView.m */,
+				00010C4A1BE19F8900A9C285 /* KBPGPVerifyView.h */,
+				00010C4B1BE19F8900A9C285 /* KBPGPVerifyView.m */,
+			);
+			path = PGP;
+			sourceTree = "<group>";
+		};
+		00010C4C1BE19F8900A9C285 /* Prompt */ = {
+			isa = PBXGroup;
+			children = (
+				00010C4D1BE19F8900A9C285 /* KBAlertView.h */,
+				00010C4E1BE19F8900A9C285 /* KBAlertView.m */,
+				00010C4F1BE19F8900A9C285 /* KBSecretPromptView.h */,
+				00010C501BE19F8900A9C285 /* KBSecretPromptView.m */,
+			);
+			path = Prompt;
+			sourceTree = "<group>";
+		};
+		00010C511BE19F8900A9C285 /* Proof */ = {
+			isa = PBXGroup;
+			children = (
+				00010C521BE19F8900A9C285 /* KBProofLabel.h */,
+				00010C531BE19F8900A9C285 /* KBProofLabel.m */,
+				00010C541BE19F8900A9C285 /* KBProofRepairView.h */,
+				00010C551BE19F8900A9C285 /* KBProofRepairView.m */,
+				00010C561BE19F8900A9C285 /* KBProofResult.h */,
+				00010C571BE19F8900A9C285 /* KBProofResult.m */,
+				00010C581BE19F8900A9C285 /* KBProofView.h */,
+				00010C591BE19F8900A9C285 /* KBProofView.m */,
+				00010C5A1BE19F8900A9C285 /* KBProveInputView.h */,
+				00010C5B1BE19F8900A9C285 /* KBProveInputView.m */,
+				00010C5C1BE19F8900A9C285 /* KBProveInstructionsView.h */,
+				00010C5D1BE19F8900A9C285 /* KBProveInstructionsView.m */,
+				00010C5E1BE19F8900A9C285 /* KBProver.h */,
+				00010C5F1BE19F8900A9C285 /* KBProver.m */,
+				00010C601BE19F8900A9C285 /* KBProveView.h */,
+				00010C611BE19F8900A9C285 /* KBProveView.m */,
+			);
+			path = Proof;
+			sourceTree = "<group>";
+		};
+		00010C621BE19F8900A9C285 /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				00010C631BE19F8900A9C285 /* KBSearchControl.h */,
+				00010C641BE19F8900A9C285 /* KBSearchControl.m */,
+				00010C651BE19F8900A9C285 /* KBSearcher.h */,
+				00010C661BE19F8900A9C285 /* KBSearcher.m */,
+				00010C671BE19F8900A9C285 /* KBSearchField.h */,
+				00010C681BE19F8900A9C285 /* KBSearchField.m */,
+				00010C691BE19F8900A9C285 /* KBSearchResults.h */,
+				00010C6A1BE19F8900A9C285 /* KBSearchResults.m */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
+		00010C6B1BE19F8900A9C285 /* User */ = {
+			isa = PBXGroup;
+			children = (
+				00010C6C1BE19F8900A9C285 /* KBTrackView.h */,
+				00010C6D1BE19F8900A9C285 /* KBTrackView.m */,
+				00010C6E1BE19F8900A9C285 /* KBUserButtonView.h */,
+				00010C6F1BE19F8900A9C285 /* KBUserButtonView.m */,
+				00010C701BE19F8900A9C285 /* KBUserHeaderView.h */,
+				00010C711BE19F8900A9C285 /* KBUserHeaderView.m */,
+				00010C721BE19F8900A9C285 /* KBUserImageView.h */,
+				00010C731BE19F8900A9C285 /* KBUserImageView.m */,
+				00010C741BE19F8900A9C285 /* KBUserInfoLabels.h */,
+				00010C751BE19F8900A9C285 /* KBUserInfoLabels.m */,
+				00010C761BE19F8900A9C285 /* KBUserInfoView.h */,
+				00010C771BE19F8900A9C285 /* KBUserInfoView.m */,
+				00010C781BE19F8900A9C285 /* KBUserListView.h */,
+				00010C791BE19F8900A9C285 /* KBUserListView.m */,
+				00010C7A1BE19F8900A9C285 /* KBUserPickerView.h */,
+				00010C7B1BE19F8900A9C285 /* KBUserPickerView.m */,
+				00010C7C1BE19F8900A9C285 /* KBUserProfileView.h */,
+				00010C7D1BE19F8900A9C285 /* KBUserProfileView.m */,
+				00010C7E1BE19F8900A9C285 /* KBUsersAppView.h */,
+				00010C7F1BE19F8900A9C285 /* KBUsersAppView.m */,
+				00010C801BE19F8900A9C285 /* KBUserStatusView.h */,
+				00010C811BE19F8900A9C285 /* KBUserStatusView.m */,
+				00010C821BE19F8900A9C285 /* KBUserView.h */,
+				00010C831BE19F8900A9C285 /* KBUserView.m */,
+			);
+			path = User;
+			sourceTree = "<group>";
+		};
+		00010C841BE19F8900A9C285 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				00010C851BE19F8900A9C285 /* KBConvert.h */,
+				00010C861BE19F8900A9C285 /* KBConvert.m */,
+				00010C871BE19F8900A9C285 /* KBFormatter.h */,
+				00010C881BE19F8900A9C285 /* KBFormatter.m */,
+				00010C891BE19F8900A9C285 /* KBLogFormatter.h */,
+				00010C8A1BE19F8900A9C285 /* KBLogFormatter.m */,
+				00010C8B1BE19F8900A9C285 /* KBRunOver.h */,
+				00010C8C1BE19F8900A9C285 /* KBRunOver.m */,
+				00010C8D1BE19F8900A9C285 /* KBWaitFor.h */,
+				00010C8E1BE19F8900A9C285 /* KBWaitFor.m */,
+				00010C8F1BE19F8900A9C285 /* KBWork.h */,
+				00010C901BE19F8900A9C285 /* KBWork.m */,
+			);
+			name = Utils;
+			path = KBKit/Utils;
+			sourceTree = SOURCE_ROOT;
+		};
+		8DB85EA5F43C7A1050696E67 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				760C2694B64DCD2BA5ADD378 /* Pods_KBKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C602E48F06130BEDB7894351 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				0B241DD368CEEC403E93FDBB /* Pods-KBKit.debug.xcconfig */,
+				F3B225A40BAFB15EDA2B6BB8 /* Pods-KBKit.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		00010B091BE19F2100A9C285 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00010DC41BE19F8900A9C285 /* KBUserHeaderView.h in Headers */,
+				00010D021BE19F8900A9C285 /* KBLaunchService.h in Headers */,
+				00010D4E1BE19F8900A9C285 /* KBProgressView.h in Headers */,
+				00010DBC1BE19F8900A9C285 /* KBSearchField.h in Headers */,
+				00010CF01BE19F8900A9C285 /* KBRPClient.h in Headers */,
+				00010D601BE19F8900A9C285 /* KBStrengthLabel.h in Headers */,
+				00010DC61BE19F8900A9C285 /* KBUserImageView.h in Headers */,
+				00010DD81BE19F8900A9C285 /* KBConvert.h in Headers */,
+				00010CB31BE19F8900A9C285 /* KBKeybaseLaunchd.h in Headers */,
+				00010D921BE19F8900A9C285 /* KBPGPSignView.h in Headers */,
+				00010DE01BE19F8900A9C285 /* KBWaitFor.h in Headers */,
+				00010CAF1BE19F8900A9C285 /* KBInstallAction.h in Headers */,
+				00010CE81BE19F8900A9C285 /* KBPrefTextField.h in Headers */,
+				00010D441BE19F8900A9C285 /* KBErrorStatusView.h in Headers */,
+				00010D501BE19F8900A9C285 /* KBGPGKeysView.h in Headers */,
+				00010DBA1BE19F8900A9C285 /* KBSearcher.h in Headers */,
+				00010CB51BE19F8900A9C285 /* KBLaunchdPlist.h in Headers */,
+				00010D341BE19F8900A9C285 /* KBFolderAddView.h in Headers */,
+				00010CDA1BE19F8900A9C285 /* KBPrefCheckbox.h in Headers */,
+				00010D401BE19F8900A9C285 /* KBStatusView.h in Headers */,
+				00010CDE1BE19F8900A9C285 /* KBPrefFileView.h in Headers */,
+				00010D001BE19F8900A9C285 /* KBLaunchdStatus.h in Headers */,
+				00010C931BE19F8900A9C285 /* KBAppDefines.h in Headers */,
+				00010C971BE19F8900A9C285 /* KBAppToolbar.h in Headers */,
+				00010D801BE19F8900A9C285 /* KBPGPKeyGenView.h in Headers */,
+				00010D481BE19F8900A9C285 /* KBFatalErrorView.h in Headers */,
+				00010D7E1BE19F8900A9C285 /* KBPGPEncryptView.h in Headers */,
+				00010CB91BE19F8900A9C285 /* KBServiceConfig.h in Headers */,
+				00010DCA1BE19F8900A9C285 /* KBUserInfoView.h in Headers */,
+				00010DC01BE19F8900A9C285 /* KBTrackView.h in Headers */,
+				00010DB21BE19F8900A9C285 /* KBProveInstructionsView.h in Headers */,
+				00010D0C1BE19F8900A9C285 /* KBControlPanel.h in Headers */,
+				00010D781BE19F8900A9C285 /* KBPGPEncryptAppView.h in Headers */,
+				00010D641BE19F8900A9C285 /* KBFileListEditView.h in Headers */,
+				00010D841BE19F8900A9C285 /* KBPGPOutputFooterView.h in Headers */,
+				00010D061BE19F8900A9C285 /* KBUserTrackStatus.h in Headers */,
+				00010CD81BE19F8900A9C285 /* KBPrefButton.h in Headers */,
+				00010D701BE19F8900A9C285 /* KBPGPDecryptFooterView.h in Headers */,
+				00010D161BE19F8900A9C285 /* KBFSStatusView.h in Headers */,
+				00010D1A1BE19F8900A9C285 /* KBDeviceAddView.h in Headers */,
+				00010DAC1BE19F8900A9C285 /* KBProofResult.h in Headers */,
+				00010C9B1BE19F8900A9C285 /* KBNotifications.h in Headers */,
+				00010D081BE19F8900A9C285 /* KBAppDebug.h in Headers */,
+				00010CA31BE19F8900A9C285 /* KBComponentStatus.h in Headers */,
+				00010CD61BE19F8900A9C285 /* KBPrefAdvancedView.h in Headers */,
+				00010D9E1BE19F8900A9C285 /* KBPGPVerifyFileView.h in Headers */,
+				00010D3E1BE19F8900A9C285 /* KBUserPermission.h in Headers */,
+				00010CE21BE19F8900A9C285 /* KBPrefGPGView.h in Headers */,
+				00010DD61BE19F8900A9C285 /* KBUserView.h in Headers */,
+				00010DBE1BE19F8900A9C285 /* KBSearchResults.h in Headers */,
+				00010D2C1BE19F8900A9C285 /* KBFileLabel.h in Headers */,
+				00010CA11BE19F8900A9C285 /* KBComponent.h in Headers */,
+				00010CBB1BE19F8900A9C285 /* KBUninstaller.h in Headers */,
+				00010DB81BE19F8900A9C285 /* KBSearchControl.h in Headers */,
+				00010CC71BE19F8900A9C285 /* KBWriter.h in Headers */,
+				00010DCE1BE19F8900A9C285 /* KBUserPickerView.h in Headers */,
+				00010D861BE19F8900A9C285 /* KBPGPOutputView.h in Headers */,
+				00010DA81BE19F8900A9C285 /* KBProofLabel.h in Headers */,
+				00010CA71BE19F8900A9C285 /* KBFSService.h in Headers */,
+				00010C9F1BE19F8900A9C285 /* KBCLIInstall.h in Headers */,
+				00010D561BE19F8900A9C285 /* KBKeyView.h in Headers */,
+				00010CBD1BE19F8900A9C285 /* KBFileReader.h in Headers */,
+				00010DDC1BE19F8900A9C285 /* KBLogFormatter.h in Headers */,
+				00010D881BE19F8900A9C285 /* KBPGPSignAppView.h in Headers */,
+				00010D621BE19F8900A9C285 /* KBPaperKeyDisplayView.h in Headers */,
+				00010D6C1BE19F8900A9C285 /* KBPGPDecrypted.h in Headers */,
+				00010CE41BE19F8900A9C285 /* KBPrefOption.h in Headers */,
+				00010D821BE19F8900A9C285 /* KBPGPOutputFileView.h in Headers */,
+				00010CA51BE19F8900A9C285 /* KBFSConfig.h in Headers */,
+				00010D981BE19F8900A9C285 /* KBPGPVerify.h in Headers */,
+				00010D8A1BE19F8900A9C285 /* KBPGPSigner.h in Headers */,
+				00010D0A1BE19F8900A9C285 /* KBConsoleView.h in Headers */,
+				00010CEE1BE19F8900A9C285 /* KBRPC.h in Headers */,
+				00010DA61BE19F8900A9C285 /* KBSecretPromptView.h in Headers */,
+				00010D761BE19F8900A9C285 /* KBPGPEncryptActionView.h in Headers */,
+				00010CEA1BE19F8900A9C285 /* KBRMockClient.h in Headers */,
+				00010C951BE19F8900A9C285 /* KBAppExtension.h in Headers */,
+				00010CC91BE19F8900A9C285 /* KBDefines.h in Headers */,
+				00010D901BE19F8900A9C285 /* KBPGPSignFooterView.h in Headers */,
+				00010DD21BE19F8900A9C285 /* KBUsersAppView.h in Headers */,
+				00010DE21BE19F8900A9C285 /* KBWork.h in Headers */,
+				00010D281BE19F8900A9C285 /* KBFile.h in Headers */,
+				00010DD41BE19F8900A9C285 /* KBUserStatusView.h in Headers */,
+				00010D121BE19F8900A9C285 /* KBDebugViews.h in Headers */,
+				00010DC21BE19F8900A9C285 /* KBUserButtonView.h in Headers */,
+				00010D181BE19F8900A9C285 /* KBStyleGuideView.h in Headers */,
+				00010CFC1BE19F8900A9C285 /* KBEnvironment.h in Headers */,
+				00010DCC1BE19F8900A9C285 /* KBUserListView.h in Headers */,
+				00010DAA1BE19F8900A9C285 /* KBProofRepairView.h in Headers */,
+				00010CAB1BE19F8900A9C285 /* KBHelperTool.h in Headers */,
+				00010CC31BE19F8900A9C285 /* KBReader.h in Headers */,
+				00010D7A1BE19F8900A9C285 /* KBPGPEncryptFilesView.h in Headers */,
+				00010CDC1BE19F8900A9C285 /* KBPreferences.h in Headers */,
+				00010D421BE19F8900A9C285 /* KBComposeTextView.h in Headers */,
+				00010CC51BE19F8900A9C285 /* KBStream.h in Headers */,
+				00010DB01BE19F8900A9C285 /* KBProveInputView.h in Headers */,
+				00010DA21BE19F8900A9C285 /* KBPGPVerifyView.h in Headers */,
+				00010D7C1BE19F8900A9C285 /* KBPGPEncryptFooterView.h in Headers */,
+				00010D241BE19F8900A9C285 /* KBDeviceSignerOption.h in Headers */,
+				00010C9D1BE19F8900A9C285 /* KBSourceOutlineView.h in Headers */,
+				00010D3C1BE19F8900A9C285 /* KBFolderUsersView.h in Headers */,
+				00010D9A1BE19F8900A9C285 /* KBPGPVerifyAppView.h in Headers */,
+				00010CE61BE19F8900A9C285 /* KBPrefPopUpView.h in Headers */,
+				00010DB41BE19F8900A9C285 /* KBProver.h in Headers */,
+				00010D8C1BE19F8900A9C285 /* KBPGPSignFilesView.h in Headers */,
+				00010D381BE19F8900A9C285 /* KBFoldersView.h in Headers */,
+				00010D361BE19F8900A9C285 /* KBFoldersAppView.h in Headers */,
+				00010CBF1BE19F8900A9C285 /* KBFileWriter.h in Headers */,
+				00010D101BE19F8900A9C285 /* KBDebugPropertiesView.h in Headers */,
+				00010CD31BE19F8900A9C285 /* KBLog.h in Headers */,
+				00010D3A1BE19F8900A9C285 /* KBFolderUsersListView.h in Headers */,
+				00010CCB1BE19F8900A9C285 /* KBFinder.h in Headers */,
+				00010D461BE19F8900A9C285 /* KBErrorView.h in Headers */,
+				00010D301BE19F8900A9C285 /* KBFilePreviewView.h in Headers */,
+				00010D741BE19F8900A9C285 /* KBPGPEncrypt.h in Headers */,
+				00010D521BE19F8900A9C285 /* KBKeyImportView.h in Headers */,
+				00010CFE1BE19F8900A9C285 /* KBLaunchCtl.h in Headers */,
+				00010CF41BE19F8900A9C285 /* KBRPCRegistration.h in Headers */,
+				00010D321BE19F8900A9C285 /* KBFileSelectView.h in Headers */,
+				00010D221BE19F8900A9C285 /* KBDeviceSetupPromptView.h in Headers */,
+				00010CA91BE19F8900A9C285 /* KBFuseComponent.h in Headers */,
+				00010D0E1BE19F8900A9C285 /* KBCustomEnvView.h in Headers */,
+				00010D581BE19F8900A9C285 /* KBUserKeyView.h in Headers */,
+				00010CFA1BE19F8900A9C285 /* KBEnvConfig.h in Headers */,
+				00010DA41BE19F8900A9C285 /* KBAlertView.h in Headers */,
+				00010DC81BE19F8900A9C285 /* KBUserInfoLabels.h in Headers */,
+				00010D141BE19F8900A9C285 /* KBEnvSelectView.h in Headers */,
+				00010B101BE19F2100A9C285 /* KBKit.h in Headers */,
+				00010D201BE19F8900A9C285 /* KBDeviceSetupDisplayView.h in Headers */,
+				00010CC11BE19F8900A9C285 /* KBPath.h in Headers */,
+				00010D941BE19F8900A9C285 /* KBPGPTextView.h in Headers */,
+				00010DB61BE19F8900A9C285 /* KBProveView.h in Headers */,
+				00010CF61BE19F8900A9C285 /* KBRRequest.h in Headers */,
+				00010D9C1BE19F8900A9C285 /* KBPGPVerifyDetachedView.h in Headers */,
+				00010D6E1BE19F8900A9C285 /* KBPGPDecryptFileView.h in Headers */,
+				00010CEC1BE19F8900A9C285 /* KBRObject.h in Headers */,
+				00010DD01BE19F8900A9C285 /* KBUserProfileView.h in Headers */,
+				00010D261BE19F8900A9C285 /* KBDeviceView.h in Headers */,
+				00010D541BE19F8900A9C285 /* KBKeySelectView.h in Headers */,
+				00010CD11BE19F8900A9C285 /* KBWorkspace.h in Headers */,
+				00010CB11BE19F8900A9C285 /* KBInstaller.h in Headers */,
+				00010DDA1BE19F8900A9C285 /* KBFormatter.h in Headers */,
+				00010D961BE19F8900A9C285 /* KBPGPVerifiedView.h in Headers */,
+				00010DAE1BE19F8900A9C285 /* KBProofView.h in Headers */,
+				00010D661BE19F8900A9C285 /* KBPGPAppView.h in Headers */,
+				00010D2E1BE19F8900A9C285 /* KBFileListView.h in Headers */,
+				00010CF21BE19F8900A9C285 /* KBRPCRecord.h in Headers */,
+				00010CAD1BE19F8900A9C285 /* KBInstallable.h in Headers */,
+				00010CCF1BE19F8900A9C285 /* KBSemVersion.h in Headers */,
+				00010D1E1BE19F8900A9C285 /* KBDeviceSetupChooseView.h in Headers */,
+				00010D5A1BE19F8900A9C285 /* KBAppProgressView.h in Headers */,
+				00010D721BE19F8900A9C285 /* KBPGPDecryptView.h in Headers */,
+				00010D4C1BE19F8900A9C285 /* KBImageLabel.h in Headers */,
+				00010CE01BE19F8900A9C285 /* KBPrefGeneralView.h in Headers */,
+				00010D4A1BE19F8900A9C285 /* KBHeaderLabelView.h in Headers */,
+				00010D6A1BE19F8900A9C285 /* KBPGPDecryptAppView.h in Headers */,
+				00010D5C1BE19F8900A9C285 /* KBLoginView.h in Headers */,
+				00010CF81BE19F8900A9C285 /* KBRRequestParams.h in Headers */,
+				00010D2A1BE19F8900A9C285 /* KBFileIcon.h in Headers */,
+				00010C991BE19F8900A9C285 /* KBAppView.h in Headers */,
+				00010DDE1BE19F8900A9C285 /* KBRunOver.h in Headers */,
+				00010DA01BE19F8900A9C285 /* KBPGPVerifyFooterView.h in Headers */,
+				00010D041BE19F8900A9C285 /* KBPrivilegedTask.h in Headers */,
+				00010C911BE19F8900A9C285 /* KBApp.h in Headers */,
+				00010D1C1BE19F8900A9C285 /* KBDevicesAppView.h in Headers */,
+				00010CB71BE19F8900A9C285 /* KBService.h in Headers */,
+				00010D5E1BE19F8900A9C285 /* KBSignupView.h in Headers */,
+				00010D8E1BE19F8900A9C285 /* KBPGPSignFileView.h in Headers */,
+				00010D681BE19F8900A9C285 /* KBPGPDecrypt.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		00010B0B1BE19F2100A9C285 /* KBKit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00010B201BE19F2100A9C285 /* Build configuration list for PBXNativeTarget "KBKit" */;
+			buildPhases = (
+				CA8937270646D858454815FC /* Check Pods Manifest.lock */,
+				00010B071BE19F2100A9C285 /* Sources */,
+				00010B081BE19F2100A9C285 /* Frameworks */,
+				00010B091BE19F2100A9C285 /* Headers */,
+				00010B0A1BE19F2100A9C285 /* Resources */,
+				9489A45C8DE7DBCF77ECE41C /* Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KBKit;
+			productName = KBKit;
+			productReference = 00010B0C1BE19F2100A9C285 /* KBKit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		00010B151BE19F2100A9C285 /* KBKitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00010B231BE19F2100A9C285 /* Build configuration list for PBXNativeTarget "KBKitTests" */;
+			buildPhases = (
+				00010B121BE19F2100A9C285 /* Sources */,
+				00010B131BE19F2100A9C285 /* Frameworks */,
+				00010B141BE19F2100A9C285 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				00010B191BE19F2100A9C285 /* PBXTargetDependency */,
+			);
+			name = KBKitTests;
+			productName = KBKitTests;
+			productReference = 00010B161BE19F2100A9C285 /* KBKitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		00010B031BE19F2100A9C285 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0710;
+				ORGANIZATIONNAME = "Gabriel Handford";
+				TargetAttributes = {
+					00010B0B1BE19F2100A9C285 = {
+						CreatedOnToolsVersion = 7.1;
+					};
+					00010B151BE19F2100A9C285 = {
+						CreatedOnToolsVersion = 7.1;
+					};
+				};
+			};
+			buildConfigurationList = 00010B061BE19F2100A9C285 /* Build configuration list for PBXProject "KBKit" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 00010B021BE19F2100A9C285;
+			productRefGroup = 00010B0D1BE19F2100A9C285 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				00010B0B1BE19F2100A9C285 /* KBKit */,
+				00010B151BE19F2100A9C285 /* KBKitTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		00010B0A1BE19F2100A9C285 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00010B141BE19F2100A9C285 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		9489A45C8DE7DBCF77ECE41C /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-KBKit/Pods-KBKit-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		CA8937270646D858454815FC /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		00010B071BE19F2100A9C285 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00010C921BE19F8900A9C285 /* KBApp.m in Sources */,
+				00010DA71BE19F8900A9C285 /* KBSecretPromptView.m in Sources */,
+				00010D531BE19F8900A9C285 /* KBKeyImportView.m in Sources */,
+				00010CE11BE19F8900A9C285 /* KBPrefGeneralView.m in Sources */,
+				00010CE51BE19F8900A9C285 /* KBPrefOption.m in Sources */,
+				00010D171BE19F8900A9C285 /* KBFSStatusView.m in Sources */,
+				00010CD01BE19F8900A9C285 /* KBSemVersion.m in Sources */,
+				00010DE11BE19F8900A9C285 /* KBWaitFor.m in Sources */,
+				00010D7B1BE19F8900A9C285 /* KBPGPEncryptFilesView.m in Sources */,
+				00010DAD1BE19F8900A9C285 /* KBProofResult.m in Sources */,
+				00010D411BE19F8900A9C285 /* KBStatusView.m in Sources */,
+				00010D3F1BE19F8900A9C285 /* KBUserPermission.m in Sources */,
+				00010D011BE19F8900A9C285 /* KBLaunchdStatus.m in Sources */,
+				00010DE31BE19F8900A9C285 /* KBWork.m in Sources */,
+				00010CCA1BE19F8900A9C285 /* KBDefines.m in Sources */,
+				00010C9C1BE19F8900A9C285 /* KBNotifications.m in Sources */,
+				00010CA61BE19F8900A9C285 /* KBFSConfig.m in Sources */,
+				00010D711BE19F8900A9C285 /* KBPGPDecryptFooterView.m in Sources */,
+				00010D951BE19F8900A9C285 /* KBPGPTextView.m in Sources */,
+				00010D391BE19F8900A9C285 /* KBFoldersView.m in Sources */,
+				00010DDB1BE19F8900A9C285 /* KBFormatter.m in Sources */,
+				00010D1F1BE19F8900A9C285 /* KBDeviceSetupChooseView.m in Sources */,
+				00010D8B1BE19F8900A9C285 /* KBPGPSigner.m in Sources */,
+				00010CD21BE19F8900A9C285 /* KBWorkspace.m in Sources */,
+				00010D271BE19F8900A9C285 /* KBDeviceView.m in Sources */,
+				00010D491BE19F8900A9C285 /* KBFatalErrorView.m in Sources */,
+				00010D931BE19F8900A9C285 /* KBPGPSignView.m in Sources */,
+				00010CC01BE19F8900A9C285 /* KBFileWriter.m in Sources */,
+				00010D591BE19F8900A9C285 /* KBUserKeyView.m in Sources */,
+				00010CF91BE19F8900A9C285 /* KBRRequestParams.m in Sources */,
+				00010CEF1BE19F8900A9C285 /* KBRPC.m in Sources */,
+				00010CB61BE19F8900A9C285 /* KBLaunchdPlist.m in Sources */,
+				00010D731BE19F8900A9C285 /* KBPGPDecryptView.m in Sources */,
+				00010D551BE19F8900A9C285 /* KBKeySelectView.m in Sources */,
+				00010DC71BE19F8900A9C285 /* KBUserImageView.m in Sources */,
+				00010DC51BE19F8900A9C285 /* KBUserHeaderView.m in Sources */,
+				00010DA31BE19F8900A9C285 /* KBPGPVerifyView.m in Sources */,
+				00010C961BE19F8900A9C285 /* KBAppExtension.m in Sources */,
+				00010D451BE19F8900A9C285 /* KBErrorStatusView.m in Sources */,
+				00010D3B1BE19F8900A9C285 /* KBFolderUsersListView.m in Sources */,
+				00010CAC1BE19F8900A9C285 /* KBHelperTool.m in Sources */,
+				00010CC81BE19F8900A9C285 /* KBWriter.m in Sources */,
+				00010D751BE19F8900A9C285 /* KBPGPEncrypt.m in Sources */,
+				00010CDF1BE19F8900A9C285 /* KBPrefFileView.m in Sources */,
+				00010CDD1BE19F8900A9C285 /* KBPreferences.m in Sources */,
+				00010D1B1BE19F8900A9C285 /* KBDeviceAddView.m in Sources */,
+				00010D8F1BE19F8900A9C285 /* KBPGPSignFileView.m in Sources */,
+				00010DAF1BE19F8900A9C285 /* KBProofView.m in Sources */,
+				00010DAB1BE19F8900A9C285 /* KBProofRepairView.m in Sources */,
+				00010CB41BE19F8900A9C285 /* KBKeybaseLaunchd.m in Sources */,
+				00010CCC1BE19F8900A9C285 /* KBFinder.m in Sources */,
+				00010DDF1BE19F8900A9C285 /* KBRunOver.m in Sources */,
+				00010CAE1BE19F8900A9C285 /* KBInstallable.m in Sources */,
+				00010DC31BE19F8900A9C285 /* KBUserButtonView.m in Sources */,
+				00010DBD1BE19F8900A9C285 /* KBSearchField.m in Sources */,
+				00010D4F1BE19F8900A9C285 /* KBProgressView.m in Sources */,
+				00010DCB1BE19F8900A9C285 /* KBUserInfoView.m in Sources */,
+				00010D6D1BE19F8900A9C285 /* KBPGPDecrypted.m in Sources */,
+				00010CB81BE19F8900A9C285 /* KBService.m in Sources */,
+				00010D0F1BE19F8900A9C285 /* KBCustomEnvView.m in Sources */,
+				00010D351BE19F8900A9C285 /* KBFolderAddView.m in Sources */,
+				00010C981BE19F8900A9C285 /* KBAppToolbar.m in Sources */,
+				00010D651BE19F8900A9C285 /* KBFileListEditView.m in Sources */,
+				00010D5F1BE19F8900A9C285 /* KBSignupView.m in Sources */,
+				00010DD51BE19F8900A9C285 /* KBUserStatusView.m in Sources */,
+				00010DDD1BE19F8900A9C285 /* KBLogFormatter.m in Sources */,
+				00010D291BE19F8900A9C285 /* KBFile.m in Sources */,
+				00010CDB1BE19F8900A9C285 /* KBPrefCheckbox.m in Sources */,
+				00010CBE1BE19F8900A9C285 /* KBFileReader.m in Sources */,
+				00010CF71BE19F8900A9C285 /* KBRRequest.m in Sources */,
+				00010D6F1BE19F8900A9C285 /* KBPGPDecryptFileView.m in Sources */,
+				00010D0B1BE19F8900A9C285 /* KBConsoleView.m in Sources */,
+				00010D0D1BE19F8900A9C285 /* KBControlPanel.m in Sources */,
+				00010D4D1BE19F8900A9C285 /* KBImageLabel.m in Sources */,
+				00010CEB1BE19F8900A9C285 /* KBRMockClient.m in Sources */,
+				00010DB91BE19F8900A9C285 /* KBSearchControl.m in Sources */,
+				00010DB71BE19F8900A9C285 /* KBProveView.m in Sources */,
+				00010DBF1BE19F8900A9C285 /* KBSearchResults.m in Sources */,
+				00010DCD1BE19F8900A9C285 /* KBUserListView.m in Sources */,
+				00010CE31BE19F8900A9C285 /* KBPrefGPGView.m in Sources */,
+				00010D371BE19F8900A9C285 /* KBFoldersAppView.m in Sources */,
+				00010D671BE19F8900A9C285 /* KBPGPAppView.m in Sources */,
+				00010D3D1BE19F8900A9C285 /* KBFolderUsersView.m in Sources */,
+				00010D071BE19F8900A9C285 /* KBUserTrackStatus.m in Sources */,
+				00010D4B1BE19F8900A9C285 /* KBHeaderLabelView.m in Sources */,
+				00010D911BE19F8900A9C285 /* KBPGPSignFooterView.m in Sources */,
+				00010DA91BE19F8900A9C285 /* KBProofLabel.m in Sources */,
+				00010D871BE19F8900A9C285 /* KBPGPOutputView.m in Sources */,
+				00010D331BE19F8900A9C285 /* KBFileSelectView.m in Sources */,
+				00010DD91BE19F8900A9C285 /* KBConvert.m in Sources */,
+				00010D811BE19F8900A9C285 /* KBPGPKeyGenView.m in Sources */,
+				00010D2D1BE19F8900A9C285 /* KBFileLabel.m in Sources */,
+				00010CFF1BE19F8900A9C285 /* KBLaunchCtl.m in Sources */,
+				00010D7D1BE19F8900A9C285 /* KBPGPEncryptFooterView.m in Sources */,
+				00010D5D1BE19F8900A9C285 /* KBLoginView.m in Sources */,
+				00010CED1BE19F8900A9C285 /* KBRObject.m in Sources */,
+				00010DBB1BE19F8900A9C285 /* KBSearcher.m in Sources */,
+				00010D691BE19F8900A9C285 /* KBPGPDecrypt.m in Sources */,
+				00010CA21BE19F8900A9C285 /* KBComponent.m in Sources */,
+				00010DB31BE19F8900A9C285 /* KBProveInstructionsView.m in Sources */,
+				00010D231BE19F8900A9C285 /* KBDeviceSetupPromptView.m in Sources */,
+				00010DA51BE19F8900A9C285 /* KBAlertView.m in Sources */,
+				00010D6B1BE19F8900A9C285 /* KBPGPDecryptAppView.m in Sources */,
+				00010D831BE19F8900A9C285 /* KBPGPOutputFileView.m in Sources */,
+				00010D151BE19F8900A9C285 /* KBEnvSelectView.m in Sources */,
+				00010D9F1BE19F8900A9C285 /* KBPGPVerifyFileView.m in Sources */,
+				00010CC61BE19F8900A9C285 /* KBStream.m in Sources */,
+				00010D771BE19F8900A9C285 /* KBPGPEncryptActionView.m in Sources */,
+				00010D251BE19F8900A9C285 /* KBDeviceSignerOption.m in Sources */,
+				00010C9E1BE19F8900A9C285 /* KBSourceOutlineView.m in Sources */,
+				00010D611BE19F8900A9C285 /* KBStrengthLabel.m in Sources */,
+				00010D851BE19F8900A9C285 /* KBPGPOutputFooterView.m in Sources */,
+				00010D7F1BE19F8900A9C285 /* KBPGPEncryptView.m in Sources */,
+				00010DC11BE19F8900A9C285 /* KBTrackView.m in Sources */,
+				00010CA81BE19F8900A9C285 /* KBFSService.m in Sources */,
+				00010CD41BE19F8900A9C285 /* KBLog.m in Sources */,
+				00010CF51BE19F8900A9C285 /* KBRPCRegistration.m in Sources */,
+				00010D211BE19F8900A9C285 /* KBDeviceSetupDisplayView.m in Sources */,
+				00010DB51BE19F8900A9C285 /* KBProver.m in Sources */,
+				00010D1D1BE19F8900A9C285 /* KBDevicesAppView.m in Sources */,
+				00010DA11BE19F8900A9C285 /* KBPGPVerifyFooterView.m in Sources */,
+				00010D031BE19F8900A9C285 /* KBLaunchService.m in Sources */,
+				00010D791BE19F8900A9C285 /* KBPGPEncryptAppView.m in Sources */,
+				00010CFB1BE19F8900A9C285 /* KBEnvConfig.m in Sources */,
+				00010D891BE19F8900A9C285 /* KBPGPSignAppView.m in Sources */,
+				00010D051BE19F8900A9C285 /* KBPrivilegedTask.m in Sources */,
+				00010D991BE19F8900A9C285 /* KBPGPVerify.m in Sources */,
+				00010D091BE19F8900A9C285 /* KBAppDebug.m in Sources */,
+				00010CA41BE19F8900A9C285 /* KBComponentStatus.m in Sources */,
+				00010D9B1BE19F8900A9C285 /* KBPGPVerifyAppView.m in Sources */,
+				00010D311BE19F8900A9C285 /* KBFilePreviewView.m in Sources */,
+				00010CFD1BE19F8900A9C285 /* KBEnvironment.m in Sources */,
+				00010DD31BE19F8900A9C285 /* KBUsersAppView.m in Sources */,
+				00010D111BE19F8900A9C285 /* KBDebugPropertiesView.m in Sources */,
+				00010DB11BE19F8900A9C285 /* KBProveInputView.m in Sources */,
+				00010D8D1BE19F8900A9C285 /* KBPGPSignFilesView.m in Sources */,
+				00010CAA1BE19F8900A9C285 /* KBFuseComponent.m in Sources */,
+				00010D2F1BE19F8900A9C285 /* KBFileListView.m in Sources */,
+				00010DC91BE19F8900A9C285 /* KBUserInfoLabels.m in Sources */,
+				00010CE71BE19F8900A9C285 /* KBPrefPopUpView.m in Sources */,
+				00010CE91BE19F8900A9C285 /* KBPrefTextField.m in Sources */,
+				00010D511BE19F8900A9C285 /* KBGPGKeysView.m in Sources */,
+				00010DD11BE19F8900A9C285 /* KBUserProfileView.m in Sources */,
+				00010D5B1BE19F8900A9C285 /* KBAppProgressView.m in Sources */,
+				00010CC41BE19F8900A9C285 /* KBReader.m in Sources */,
+				00010CA01BE19F8900A9C285 /* KBCLIInstall.m in Sources */,
+				00010D971BE19F8900A9C285 /* KBPGPVerifiedView.m in Sources */,
+				00010D9D1BE19F8900A9C285 /* KBPGPVerifyDetachedView.m in Sources */,
+				00010CF11BE19F8900A9C285 /* KBRPClient.m in Sources */,
+				00010DCF1BE19F8900A9C285 /* KBUserPickerView.m in Sources */,
+				00010D471BE19F8900A9C285 /* KBErrorView.m in Sources */,
+				00010D571BE19F8900A9C285 /* KBKeyView.m in Sources */,
+				00010CBC1BE19F8900A9C285 /* KBUninstaller.m in Sources */,
+				00010C941BE19F8900A9C285 /* KBAppDefines.m in Sources */,
+				00010CB21BE19F8900A9C285 /* KBInstaller.m in Sources */,
+				00010CB01BE19F8900A9C285 /* KBInstallAction.m in Sources */,
+				00010D191BE19F8900A9C285 /* KBStyleGuideView.m in Sources */,
+				00010D131BE19F8900A9C285 /* KBDebugViews.m in Sources */,
+				00010CF31BE19F8900A9C285 /* KBRPCRecord.m in Sources */,
+				00010CD91BE19F8900A9C285 /* KBPrefButton.m in Sources */,
+				00010D631BE19F8900A9C285 /* KBPaperKeyDisplayView.m in Sources */,
+				00010DD71BE19F8900A9C285 /* KBUserView.m in Sources */,
+				00010C9A1BE19F8900A9C285 /* KBAppView.m in Sources */,
+				00010CBA1BE19F8900A9C285 /* KBServiceConfig.m in Sources */,
+				00010D431BE19F8900A9C285 /* KBComposeTextView.m in Sources */,
+				00010D2B1BE19F8900A9C285 /* KBFileIcon.m in Sources */,
+				00010CD71BE19F8900A9C285 /* KBPrefAdvancedView.m in Sources */,
+				00010CC21BE19F8900A9C285 /* KBPath.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		00010B121BE19F2100A9C285 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00010DEB1BE1A0B900A9C285 /* KBEnvConfigTest.m in Sources */,
+				00010DEC1BE1A0B900A9C285 /* KBFormatterTest.m in Sources */,
+				00010DEA1BE1A0B900A9C285 /* KBDefinesTest.m in Sources */,
+				00010DEF1BE1A0B900A9C285 /* KBSemVersionTest.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		00010B191BE19F2100A9C285 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 00010B0B1BE19F2100A9C285 /* KBKit */;
+			targetProxy = 00010B181BE19F2100A9C285 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		00010B1E1BE19F2100A9C285 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		00010B1F1BE19F2100A9C285 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		00010B211BE19F2100A9C285 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0B241DD368CEEC403E93FDBB /* Pods-KBKit.debug.xcconfig */;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = "$(SRCROOT)/KBKit/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.KBKit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		00010B221BE19F2100A9C285 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F3B225A40BAFB15EDA2B6BB8 /* Pods-KBKit.release.xcconfig */;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = "$(SRCROOT)/KBKit/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.KBKit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		00010B241BE19F2100A9C285 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = KBKitTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.KBKitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		00010B251BE19F2100A9C285 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = KBKitTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.KBKitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		00010B061BE19F2100A9C285 /* Build configuration list for PBXProject "KBKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00010B1E1BE19F2100A9C285 /* Debug */,
+				00010B1F1BE19F2100A9C285 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00010B201BE19F2100A9C285 /* Build configuration list for PBXNativeTarget "KBKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00010B211BE19F2100A9C285 /* Debug */,
+				00010B221BE19F2100A9C285 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00010B231BE19F2100A9C285 /* Build configuration list for PBXNativeTarget "KBKitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00010B241BE19F2100A9C285 /* Debug */,
+				00010B251BE19F2100A9C285 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 00010B031BE19F2100A9C285 /* Project object */;
+}

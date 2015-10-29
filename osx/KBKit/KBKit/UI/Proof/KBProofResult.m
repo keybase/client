@@ -7,9 +7,9 @@
 //
 
 #import "KBProofResult.h"
-#import "KBFormatter.h"
 
 #import <GHKit/GHKit.h>
+#import <KBKit/KBFormatter.h>
 
 @implementation KBProofResult
 
