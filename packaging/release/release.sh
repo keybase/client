@@ -97,7 +97,7 @@ fi
 
 src_url="https://github.com/keybase/client-beta/archive/$version_tag.tar.gz"
 echo "Computing sha256 of $src_url"
-src_sha="$(curl -L -s $src_url | shasum -a 256 | cut -f 1 -d ' ')"
+src_sha="$(curl -f -L -s $src_url | shasum -a 256 | cut -f 1 -d ' ')"
 echo "sha256 of $src_url is $src_sha"
 
 echo "Updating brew formula $formula"
