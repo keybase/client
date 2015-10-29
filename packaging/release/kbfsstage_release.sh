@@ -86,15 +86,8 @@ if git tag -a $kbfs_version_tag -m $kbfs_version_tag ; then
 	echo "Tagged kbfs source with $kbfs_version_tag"
 	git push --tags
 
-	echo "Exporting client source to client-beta for version $client_version"
-	$clientdir/packaging/export/export.sh client $client_betadir $client_version_tag
-	cd $client_betadir
-	git add .
-	git commit -m "Importing client source from $client_version_tag"
-	git push
-	git tag -a $client_version_tag -m $client_version_tag
-	git push --tags
-
+	echo "Exporting client source to kbfs-beta for version $client_version"
+	$clientdir/packaging/export/export.sh client $kbfs_betadir $client_version_tag
 	echo "Exporting kbfs source to kbfs-beta for version $kbfs_version"
 	$clientdir/packaging/export/export.sh kbfs $kbfs_betadir $kbfs_version_tag
 	cd $kbfs_betadir
@@ -105,7 +98,7 @@ if git tag -a $kbfs_version_tag -m $kbfs_version_tag ; then
 	git push --tags
 else
 	echo "git tag $kbfs_version_tag failed on $kbfsdir, presumably it exists"
-	echo "skipped client export to client-beta for client version $client_version and kbfs export to kbfs-beta for kbfs version $kbfs_version"
+	echo "skipped client and kbfs export to kbfs-beta for client version $client_version and kbfs version $kbfs_version"
 fi
 
 src_url="https://github.com/keybase/kbfs-beta/archive/$kbfs_version_tag.tar.gz"
