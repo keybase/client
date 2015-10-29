@@ -8,7 +8,12 @@ import (
 var G = libkb.G
 var GlobUI *UI
 
-func InitUI() {
+func InitUI(uiType string) {
+	// TODO: Null UI type disables the UI. This is a workaround when the client is
+	// run from a process without access to /dev/tty.
+	if uiType == "null" {
+		return
+	}
 	GlobUI = &UI{}
 	G.SetUI(GlobUI)
 }

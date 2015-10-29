@@ -46,6 +46,10 @@ func (s ServiceInfo) WriteFile(path string) error {
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
 func WaitForServiceInfoFile(path string, pid string, maxAttempts int, wait time.Duration, reason string) (*ServiceInfo, error) {
+	if pid == "" {
+		return nil, fmt.Errorf("No pid to wait for")
+	}
+
 	f := func() (*ServiceInfo, bool, error) {
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			return nil, true, nil

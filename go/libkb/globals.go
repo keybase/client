@@ -126,8 +126,15 @@ func (g *GlobalContext) Logout() error {
 }
 
 func (g *GlobalContext) ConfigureLogging() error {
-	g.Log.Configure(g.Env.GetLogFormat(), g.Env.GetDebug(),
-		g.Env.GetLogFile())
+	logFormat := g.Env.GetLogFormat()
+	// TODO: Temporary to workaround disabling logging until we can support log
+	// levels or disabling logs with a new config.
+	if logFormat == "null" {
+		g.Log = logger.NewNull()
+	} else {
+		g.Log.Configure(g.Env.GetLogFormat(), g.Env.GetDebug(),
+			g.Env.GetLogFile())
+	}
 	g.Output = os.Stdout
 	return nil
 }

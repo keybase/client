@@ -86,13 +86,18 @@ func KBFSServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.Se
 		return keybase1.ServiceStatus{InstallStatus: keybase1.InstallStatus_NOT_INSTALLED}
 	}
 
-	runtimeDir := g.Env.GetRuntimeDir()
-	kbfsInfo, err := libkb.WaitForServiceInfoFile(path.Join(runtimeDir, "kbfs.info"), kbfsLaunchdStatus.Pid(), 5, 500*time.Millisecond, "launchd status for kbfs")
-	if err != nil {
-		return errorStatus(err)
-	}
-	// nil means file wasn't found
-	if kbfsInfo == nil {
+	var kbfsInfo *libkb.ServiceInfo
+	if kbfsLaunchdStatus.Pid() != "" {
+		runtimeDir := g.Env.GetRuntimeDir()
+		kbfsInfo, err = libkb.WaitForServiceInfoFile(path.Join(runtimeDir, "kbfs.info"), kbfsLaunchdStatus.Pid(), 5, 500*time.Millisecond, "launchd status for kbfs")
+		if err != nil {
+			return errorStatus(err)
+		}
+		// nil means file wasn't found
+		if kbfsInfo == nil {
+			kbfsInfo = &libkb.ServiceInfo{}
+		}
+	} else {
 		kbfsInfo = &libkb.ServiceInfo{}
 	}
 

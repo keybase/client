@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -21,12 +21,12 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			NewCmdLaunchdInstall(cl, g),
-			NewCmdLaunchdUninstall(cl),
-			NewCmdLaunchdList(cl),
+			NewCmdLaunchdUninstall(cl, g),
+			NewCmdLaunchdList(cl, g),
 			NewCmdLaunchdStatus(cl, g),
-			NewCmdLaunchdStart(cl),
-			NewCmdLaunchdStop(cl),
-			NewCmdLaunchdRestart(cl),
+			NewCmdLaunchdStart(cl, g),
+			NewCmdLaunchdStop(cl, g),
+			NewCmdLaunchdRestart(cl, g),
 		},
 	}
 }
@@ -37,12 +37,13 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		ArgumentHelp: "<label> <path/to/keybase> <args>",
 		Usage:        "Install a launchd service",
 		Action: func(c *cli.Context) {
+			// TODO: Use ChooseCommand
 			args := c.Args()
 			if len(args) < 1 {
-				G.Log.Fatalf("No label specified.")
+				g.Log.Fatalf("No label specified.")
 			}
 			if len(args) < 2 {
-				G.Log.Fatalf("No path to keybase executable specified.")
+				g.Log.Fatalf("No path to keybase executable specified.")
 			}
 
 			label := args[0]
@@ -56,104 +57,109 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
-			err := launchd.Install(plist)
+			err := launchd.Install(plist, g.Log)
 			if err != nil {
-				G.Log.Fatalf("%v", err)
+				g.Log.Fatalf("%v", err)
 			}
 			os.Exit(0)
 		},
 	}
 }
 
-func NewCmdLaunchdUninstall(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdLaunchdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "uninstall",
 		ArgumentHelp: "<label>",
 		Usage:        "Uninstall a keybase launchd service",
 		Action: func(c *cli.Context) {
+			// TODO: Use ChooseCommand
 			args := c.Args()
 			if len(args) < 1 {
-				G.Log.Fatalf("No label specified.")
+				g.Log.Fatalf("No label specified.")
 			}
-			err := launchd.Uninstall(args[0])
+			err := launchd.Uninstall(args[0], g.Log)
 			if err != nil {
-				G.Log.Fatalf("%v", err)
+				g.Log.Fatalf("%v", err)
 			}
 			os.Exit(0)
 		},
 	}
 }
 
-func NewCmdLaunchdList(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdLaunchdList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "list",
 		Usage: "List keybase launchd services",
 		Action: func(c *cli.Context) {
+			// TODO: Use ChooseCommand
 			var err error
-			err = launchd.ShowServices("keybase.", "Keybase")
+			err = launchd.ShowServices("keybase.", "Keybase", g.Log)
 			if err != nil {
-				G.Log.Fatalf("%v", err)
+				g.Log.Fatalf("%v", err)
 			}
-			err = launchd.ShowServices("kbfs.", "KBFS")
+			err = launchd.ShowServices("kbfs.", "KBFS", g.Log)
 			if err != nil {
-				G.Log.Fatalf("%v", err)
+				g.Log.Fatalf("%v", err)
 			}
 			os.Exit(0)
 		},
 	}
 }
 
-func NewCmdLaunchdRestart(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdLaunchdRestart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "restart",
 		ArgumentHelp: "<label>",
 		Usage:        "Restart a keybase launchd service",
 		Action: func(c *cli.Context) {
+			// TODO: Use ChooseCommand
 			args := c.Args()
 			if len(args) < 1 {
-				G.Log.Fatalf("No label specified.")
+				g.Log.Fatalf("No label specified.")
 			}
-			err := launchd.Restart(args[0])
+			err := launchd.Restart(args[0], g.Log)
 			if err != nil {
-				G.Log.Fatalf("%v", err)
+				g.Log.Fatalf("%v", err)
 			}
 			os.Exit(0)
 		},
 	}
 }
 
-func NewCmdLaunchdStart(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdLaunchdStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "start",
 		ArgumentHelp: "<label>",
 		Usage:        "Start a keybase launchd service",
 		Action: func(c *cli.Context) {
+			// TODO: Use ChooseCommand
 			args := c.Args()
 			if len(args) < 1 {
-				G.Log.Fatalf("No label specified")
+				g.Log.Fatalf("No label specified")
 			}
-			err := launchd.Start(args[0])
+			err := launchd.Start(args[0], g.Log)
 			if err != nil {
-				G.Log.Fatalf("%v", err)
+				g.Log.Fatalf("%v", err)
 			}
 			os.Exit(0)
 		},
 	}
 }
 
-func NewCmdLaunchdStop(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdLaunchdStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "stop",
 		ArgumentHelp: "<label>",
 		Usage:        "Stop a keybase launchd service",
 		Action: func(c *cli.Context) {
+			// TODO: Use ChooseCommand
 			args := c.Args()
 			if len(args) < 1 {
-				G.Log.Fatalf("No label specified.")
+				g.Log.Fatalf("No label specified.")
 			}
-			err := launchd.Stop(args[0])
+			err := launchd.Stop(args[0], g.Log)
 			if err != nil {
-				G.Log.Fatalf("%v", err)
+				g.Log.Fatalf("%v", err)
 			}
 			os.Exit(0)
 		},
@@ -166,6 +172,18 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		ArgumentHelp: "<service-name> <bundle-version>",
 		Usage:        "Status for keybase launchd service, including for installing or updating",
 		Action: func(c *cli.Context) {
+			// This is to bypass the logui protocol registration in main.go which is
+			// triggering a connection before our Run() is called. See that file for
+			// more info.
+			os.Setenv("KEYBASE_LOCAL_RPC_DEBUG", "c")
+
+			// Disable log since we are outputting JSON.
+			os.Setenv("KEYBASE_LOG_FORMAT", "null")
+
+			// Disable terminal (UI) since we are running from the app process and
+			// don't have access to /dev/tty
+			os.Setenv("KEYBASE_UI", "null")
+
 			cl.ChooseCommand(NewCmdLaunchdStatusRunner(g), "status", c)
 		},
 	}
@@ -178,11 +196,6 @@ type CmdLaunchdStatus struct {
 }
 
 func NewCmdLaunchdStatusRunner(g *libkb.GlobalContext) *CmdLaunchdStatus {
-	// This is to bypass the logui protocol registration in main.go which is
-	// triggering a connection before our Run() is called. See that file for
-	// more info.
-	os.Setenv("KEYBASE_LOCAL_RPC_DEBUG", "c")
-
 	return &CmdLaunchdStatus{
 		Contextified: libkb.NewContextified(g),
 	}
@@ -220,7 +233,8 @@ func (v *CmdLaunchdStatus) Run() error {
 		return err
 	}
 
-	term := v.G().UI.GetTerminalUI()
-	term.Printf("%s\n", out)
+	// TODO: Terminal is not available when running from another program
+	// (/dev/tty is not configured).
+	fmt.Fprintf(os.Stderr, "%s\n", out)
 	return nil
 }

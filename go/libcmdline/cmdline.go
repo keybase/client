@@ -174,6 +174,10 @@ func (p CommandLine) GetTimers() string {
 	return p.GetGString("timers")
 }
 
+func (p CommandLine) GetUI() string {
+	return p.GetGString("ui")
+}
+
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {
@@ -331,6 +335,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "timers",
 			Usage: "Specify 'a' for API; 'r' for RPCs; and 'x' for eXternal API calls",
+		},
+		cli.StringFlag{
+			Name:  "ui",
+			Usage: "Specify a UI type, use 'none' to disable.",
 		},
 		cli.StringFlag{
 			Name:  "scraper-timeout",
