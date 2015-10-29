@@ -54,7 +54,7 @@ func (c *CmdDeviceAdd) Run() error {
 // ParseArgv gets the secret phrase from the command args.
 func (c *CmdDeviceAdd) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 0 {
-		return fmt.Errorf("device xadd takes zero arguments")
+		return fmt.Errorf("device add takes zero arguments")
 	}
 	return nil
 }
