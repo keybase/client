@@ -177,9 +177,6 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			// more info.
 			os.Setenv("KEYBASE_LOCAL_RPC_DEBUG", "c")
 
-			// Disable log since we are outputting JSON.
-			os.Setenv("KEYBASE_LOG_FORMAT", "null")
-
 			// Disable terminal (UI) since we are running from the app process and
 			// don't have access to /dev/tty
 			os.Setenv("KEYBASE_UI", "null")
@@ -235,6 +232,6 @@ func (v *CmdLaunchdStatus) Run() error {
 
 	// TODO: Terminal is not available when running from another program
 	// (/dev/tty is not configured).
-	fmt.Fprintf(os.Stderr, "%s\n", out)
+	fmt.Fprintf(os.Stdout, "%s\n", out)
 	return nil
 }
