@@ -48,7 +48,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdUnlock(cl),
 		NewCmdUntrack(cl),
 		NewCmdVersion(cl),
-		NewCmdXLogin(cl),
+		NewCmdXLogin(cl, g),
 	}
 }
 

@@ -12,32 +12,37 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewCmdXLogin(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdXLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "xlogin",
 		ArgumentHelp: "[username]",
 		Usage:        "Establish a session with the keybase server",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdXLogin{}, "xlogin", c)
+			cl.ChooseCommand(newCmdXLogin(g), "xlogin", c)
 		},
 	}
 }
 
 type CmdXLogin struct {
 	username string
+	libkb.Contextified
+}
+
+func newCmdXLogin(g *libkb.GlobalContext) *CmdXLogin {
+	return &CmdXLogin{Contextified: libkb.NewContextified(g)}
 }
 
 func (c *CmdXLogin) Run() error {
 	protocols := []rpc.Protocol{
-		NewProvisionUIProtocol(G, libkb.KexRoleProvisionee),
-		NewLoginUIProtocol(G),
-		NewSecretUIProtocol(G),
-		NewGPGUIProtocol(G),
+		NewProvisionUIProtocol(c.G(), libkb.KexRoleProvisionee),
+		NewLoginUIProtocol(c.G()),
+		NewSecretUIProtocol(c.G()),
+		NewGPGUIProtocol(c.G()),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	client, err := GetLoginClient(G)
+	client, err := GetLoginClient(c.G())
 	if err != nil {
 		return err
 	}
