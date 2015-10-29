@@ -2291,23 +2291,6 @@ type GetConfiguredAccountsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type LoginWithPromptArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-}
-
-type LoginWithStoredSecretArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-}
-
-type LoginWithPassphraseArg struct {
-	SessionID   int    `codec:"sessionID" json:"sessionID"`
-	Username    string `codec:"username" json:"username"`
-	Passphrase  string `codec:"passphrase" json:"passphrase"`
-	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
-}
-
 type ClearStoredSecretArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
@@ -2345,9 +2328,6 @@ type XLoginArg struct {
 
 type LoginInterface interface {
 	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
-	LoginWithPrompt(context.Context, LoginWithPromptArg) error
-	LoginWithStoredSecret(context.Context, LoginWithStoredSecretArg) error
-	LoginWithPassphrase(context.Context, LoginWithPassphraseArg) error
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
 	CancelLogin(context.Context, int) error
 	Logout(context.Context, int) error
@@ -2374,54 +2354,6 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetConfiguredAccounts(ctx, (*typedArgs)[0].SessionID)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"loginWithPrompt": {
-				MakeArg: func() interface{} {
-					ret := make([]LoginWithPromptArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]LoginWithPromptArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]LoginWithPromptArg)(nil), args)
-						return
-					}
-					err = i.LoginWithPrompt(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"loginWithStoredSecret": {
-				MakeArg: func() interface{} {
-					ret := make([]LoginWithStoredSecretArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]LoginWithStoredSecretArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]LoginWithStoredSecretArg)(nil), args)
-						return
-					}
-					err = i.LoginWithStoredSecret(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"loginWithPassphrase": {
-				MakeArg: func() interface{} {
-					ret := make([]LoginWithPassphraseArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]LoginWithPassphraseArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]LoginWithPassphraseArg)(nil), args)
-						return
-					}
-					err = i.LoginWithPassphrase(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2565,21 +2497,6 @@ type LoginClient struct {
 func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (res []ConfiguredAccount, err error) {
 	__arg := GetConfiguredAccountsArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res)
-	return
-}
-
-func (c LoginClient) LoginWithPrompt(ctx context.Context, __arg LoginWithPromptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPrompt", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LoginClient) LoginWithStoredSecret(ctx context.Context, __arg LoginWithStoredSecretArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.loginWithStoredSecret", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LoginClient) LoginWithPassphrase(ctx context.Context, __arg LoginWithPassphraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPassphrase", []interface{}{__arg}, nil)
 	return
 }
 

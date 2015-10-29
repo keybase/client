@@ -152,13 +152,14 @@ func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod 
 
 func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalContext) error {
 	ctx := &Context{
+		ProvisionUI: newTestProvisionUI(),
 		LogUI:       g.UI.GetLogUI(),
 		LocksmithUI: &lockui{},
 		GPGUI:       &gpgtestui{},
 		SecretUI:    secui,
 		LoginUI:     &libkb.TestLoginUI{},
 	}
-	li := NewLoginWithPromptEngine(fu.Username, g)
+	li := NewXLogin(g, libkb.DeviceTypeDesktop, fu.Username)
 	return RunEngine(li, ctx)
 }
 

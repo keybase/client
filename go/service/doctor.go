@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -22,16 +21,19 @@ func NewDoctorHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DoctorHandler
 }
 
 func (h *DoctorHandler) Doctor(_ context.Context, sessionID int) error {
-	ctx := &engine.Context{
-		DoctorUI:    h.ui(sessionID),
-		LogUI:       h.getLogUI(sessionID),
-		SecretUI:    h.getSecretUI(sessionID),
-		LoginUI:     h.getLoginUI(sessionID),
-		LocksmithUI: h.getLocksmithUI(sessionID),
-		GPGUI:       h.getGPGUI(sessionID),
-	}
-	eng := engine.NewDoctor(h.G())
-	return engine.RunEngine(eng, ctx)
+	/*
+		ctx := &engine.Context{
+			DoctorUI:    h.ui(sessionID),
+			LogUI:       h.getLogUI(sessionID),
+			SecretUI:    h.getSecretUI(sessionID),
+			LoginUI:     h.getLoginUI(sessionID),
+			LocksmithUI: h.getLocksmithUI(sessionID),
+			GPGUI:       h.getGPGUI(sessionID),
+		}
+		eng := engine.NewDoctor(h.G())
+		return engine.RunEngine(eng, ctx)
+	*/
+	return nil
 }
 
 func (h *DoctorHandler) ui(sessionID int) *RemoteDoctorUI {

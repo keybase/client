@@ -54,19 +54,23 @@ func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email s
 	return nil
 }
 
+/*
 func (h *LoginHandler) LoginWithPrompt(_ context.Context, arg keybase1.LoginWithPromptArg) error {
-	ctx := &engine.Context{
-		LogUI:       h.getLogUI(arg.SessionID),
-		LocksmithUI: h.getLocksmithUI(arg.SessionID),
-		SecretUI:    h.getSecretUI(arg.SessionID),
-		LoginUI:     h.getLoginUI(arg.SessionID),
-		GPGUI:       h.getGPGUI(arg.SessionID),
-	}
-	eng := engine.NewLoginWithPromptEngine(arg.Username, h.G())
+		ctx := &engine.Context{
+			LogUI:       h.getLogUI(arg.SessionID),
+			LocksmithUI: h.getLocksmithUI(arg.SessionID),
+			SecretUI:    h.getSecretUI(arg.SessionID),
+			LoginUI:     h.getLoginUI(arg.SessionID),
+			GPGUI:       h.getGPGUI(arg.SessionID),
+		}
+		eng := engine.NewLoginWithPromptEngine(arg.Username, h.G())
 
-	return h.loginWithEngine(eng, ctx, arg.SessionID)
+		return h.loginWithEngine(eng, ctx, arg.SessionID)
+	return nil
 }
+*/
 
+/*
 func (h *LoginHandler) LoginWithStoredSecret(_ context.Context, arg keybase1.LoginWithStoredSecretArg) error {
 	ctx := &engine.Context{
 		LogUI:       h.getLogUI(arg.SessionID),
@@ -91,11 +95,13 @@ func (h *LoginHandler) LoginWithPassphrase(_ context.Context, arg keybase1.Login
 	loginEngine := engine.NewLoginWithPassphraseEngine(arg.Username, arg.Passphrase, arg.StoreSecret, h.G())
 	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
 }
+*/
 
 func (h *LoginHandler) ClearStoredSecret(_ context.Context, arg keybase1.ClearStoredSecretArg) error {
 	return libkb.ClearStoredSecret(libkb.NewNormalizedUsername(arg.Username))
 }
 
+/*
 func (h *LoginHandler) loginWithEngine(eng *engine.LoginEngine, ctx *engine.Context, sessionID int) error {
 	h.setCanceler(sessionID, eng)
 	defer h.removeCanceler(sessionID)
@@ -108,6 +114,7 @@ func (h *LoginHandler) loginWithEngine(eng *engine.LoginEngine, ctx *engine.Cont
 	}
 	return err
 }
+*/
 
 func (h *LoginHandler) CancelLogin(_ context.Context, sessionID int) error {
 	c := h.canceler(sessionID)

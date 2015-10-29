@@ -145,15 +145,25 @@ func TestTrackAfterRevoke(t *testing.T) {
 	}
 
 	// Login on device tc2.  It will use gpg to sign the device.
-	docui := &lockuiPGP{&lockui{deviceName: "Device2"}}
-	li := NewLoginWithPromptEngine(u.Username, tc2.G)
+	/*
+		docui := &lockuiPGP{&lockui{deviceName: "Device2"}}
+		li := NewLoginWithPromptEngine(u.Username, tc2.G)
+		ctx := &Context{
+			LogUI:       tc2.G.UI.GetLogUI(),
+			LocksmithUI: docui,
+			SecretUI:    u.NewSecretUI(),
+			GPGUI:       &gpgtestui{},
+			LoginUI:     &libkb.TestLoginUI{},
+		}
+	*/
 	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPG(),
 		LogUI:       tc2.G.UI.GetLogUI(),
-		LocksmithUI: docui,
 		SecretUI:    u.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
 		GPGUI:       &gpgtestui{},
-		LoginUI:     &libkb.TestLoginUI{},
 	}
+	li := NewXLogin(tc2.G, libkb.DeviceTypeDesktop, "")
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}

@@ -884,20 +884,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRGetConfiguredAccountsRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRLoginWithPromptRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *username;
-@end
-@interface KBRLoginWithStoredSecretRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *username;
-@end
-@interface KBRLoginWithPassphraseRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *username;
-@property NSString *passphrase;
-@property BOOL storeSecret;
-@end
 @interface KBRClearStoredSecretRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *username;
@@ -1654,30 +1640,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  secrets, but this definition may be expanded in the future.
  */
 - (void)getConfiguredAccounts:(void (^)(NSError *error, NSArray *items))completion;
-
-/*!
- Tries to log in, prompting for username (if empty) and passphrase if
- necessary.
- */
-- (void)loginWithPrompt:(KBRLoginWithPromptRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)loginWithPromptWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
-
-/*!
- Tries to log in with the given username and its associated stored secret.
- */
-- (void)loginWithStoredSecret:(KBRLoginWithStoredSecretRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)loginWithStoredSecretWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
-
-/*!
- Tries to log in with the given username and passphrase. If pubkey login is
- successful and storeSecret is set, stores the derived secret in the
- platform's secret store (e.g., the keychain on OS X).
- */
-- (void)loginWithPassphrase:(KBRLoginWithPassphraseRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)loginWithPassphraseWithUsername:(NSString *)username passphrase:(NSString *)passphrase storeSecret:(BOOL)storeSecret completion:(void (^)(NSError *error))completion;
 
 /*!
  Removes any existing stored secret for the given username.

@@ -89,6 +89,7 @@ func testUserHasDeviceKey(tc libkb.TestContext) {
 	}
 }
 
+/*
 func TestLoginAddsKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -344,6 +345,7 @@ func TestLoginPaperSignNewDevice(t *testing.T) {
 
 	assertNumDevicesAndKeys(tc, fu, 3, 6)
 }
+*/
 
 // TestLoginInterrupt* tries to simulate what would happen if the
 // locksmith login checkup gets interrupted.  See Issue #287.
@@ -351,6 +353,7 @@ func TestLoginPaperSignNewDevice(t *testing.T) {
 // TestLoginInterruptDeviceRegister interrupts after registering a
 // device and then tests that login corrects the situation on the
 // next attempt.
+/*
 func TestLoginInterruptDeviceRegister(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -540,6 +543,7 @@ func TestLoginRestartProvision(t *testing.T) {
 	testUserHasDeviceKey(tc2)
 	hasOnePaperDev(tc2, u1)
 }
+*/
 
 func TestUserInfo(t *testing.T) {
 	t.Skip()

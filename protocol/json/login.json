@@ -181,45 +181,6 @@
         "items" : "ConfiguredAccount"
       }
     },
-    "loginWithPrompt" : {
-      "doc" : "Tries to log in, prompting for username (if empty) and passphrase if\n    necessary.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "username",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "loginWithStoredSecret" : {
-      "doc" : "Tries to log in with the given username and its associated stored secret.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "username",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "loginWithPassphrase" : {
-      "doc" : "Tries to log in with the given username and passphrase. If pubkey login is\n    successful and storeSecret is set, stores the derived secret in the\n    platform's secret store (e.g., the keychain on OS X).",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "username",
-        "type" : "string"
-      }, {
-        "name" : "passphrase",
-        "type" : "string"
-      }, {
-        "name" : "storeSecret",
-        "type" : "boolean"
-      } ],
-      "response" : "null"
-    },
     "clearStoredSecret" : {
       "doc" : "Removes any existing stored secret for the given username.\n    loginWithStoredSecret(_, username) will fail after this is called.",
       "request" : [ {

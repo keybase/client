@@ -1,16 +1,9 @@
 package engine
 
 import (
-	"fmt"
-	"sync"
-	"testing"
 	"time"
 
-	"golang.org/x/net/context"
-
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/libkb/kex"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func init() {
@@ -23,6 +16,7 @@ func init() {
 // simulates the scenario where a user logs in to a new device and
 // uses an existing device to provision it.  This test uses
 // the api server for all kex communication.
+/*
 func TestLoginNewDeviceKex1(t *testing.T) {
 	kex.HelloTimeout = 5 * time.Second
 	kex.IntraTimeout = 5 * time.Second
@@ -494,3 +488,4 @@ func (l *lockuiCancel) SelectSigner(_ context.Context, arg keybase1.SelectSigner
 	res.Action = keybase1.SelectSignerAction_CANCEL
 	return
 }
+*/

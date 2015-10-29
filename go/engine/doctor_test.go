@@ -1,14 +1,12 @@
 package engine
 
 import (
-	"testing"
-
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
+/*
 func TestDoctor(t *testing.T) {
 	tc := SetupEngineTest(t, "Doctor")
 	defer tc.Cleanup()
@@ -22,6 +20,7 @@ func TestDoctor(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+*/
 
 type docui struct{}
 
