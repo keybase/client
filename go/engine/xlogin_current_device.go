@@ -14,6 +14,7 @@ type XLoginCurrentDevice struct {
 // NewXLoginCurrentDevice creates a XLoginCurrentDevice engine.
 func NewXLoginCurrentDevice(g *libkb.GlobalContext, username string) *XLoginCurrentDevice {
 	return &XLoginCurrentDevice{
+		username:     username,
 		Contextified: libkb.NewContextified(g),
 	}
 }
