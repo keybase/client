@@ -220,6 +220,7 @@ func (v *CmdLaunchdStatus) Run() error {
 		return err
 	}
 
-	GlobUI.Printf("%s\n", out)
+	term := v.G().UI.GetTerminalUI()
+	term.Printf("%s\n", out)
 	return nil
 }

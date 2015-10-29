@@ -14,4 +14,4 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 // DebugSocketError allows platforms to help the user diagnose and resolve
 // socket errors.
-func DiagnoseSocketError(err error) {}
+func DiagnoseSocketError(ui libkb.UI, err error) {}

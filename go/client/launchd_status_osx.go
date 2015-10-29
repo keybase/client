@@ -144,35 +144,36 @@ func errorStatus(err error) keybase1.ServiceStatus {
 	}
 }
 
-func DiagnoseSocketError(err error) {
+func DiagnoseSocketError(ui libkb.UI, err error) {
+	t := ui.GetTerminalUI()
 	services, err := launchd.ListServices("keybase.")
 	if err != nil {
-		GlobUI.Printf("Error checking launchd services: %v\n\n", err)
+		t.Printf("Error checking launchd services: %v\n\n", err)
 		return
 	}
 
 	if len(services) == 0 {
-		GlobUI.Println("\nThere are no Keybase services installed. You may need to re-install.")
+		t.Printf("\nThere are no Keybase services installed. You may need to re-install.\n")
 	} else if len(services) > 1 {
-		GlobUI.Println("\nWe found multiple services:")
+		t.Printf("\nWe found multiple services:\n")
 		for _, service := range services {
-			GlobUI.Println("  " + service.StatusDescription())
+			t.Printf("  " + service.StatusDescription() + "\n")
 		}
-		GlobUI.Println("")
+		t.Printf("\n")
 	} else if len(services) == 1 {
 		service := services[0]
 		status, err := service.Status()
 		if err != nil {
-			G.Log.Errorf("Error checking service status(%s): %v\n\n", service.Label(), err)
+			t.Printf("Error checking service status(%s): %v\n\n", service.Label(), err)
 		} else {
 			if status == nil || !status.IsRunning() {
-				GlobUI.Printf("\nWe found a Keybase service (%s) but it's not running.\n", service.Label())
+				t.Printf("\nWe found a Keybase service (%s) but it's not running.\n", service.Label())
 				cmd := fmt.Sprintf("keybase launchd start %s", service.Label())
-				GlobUI.Println("You might try starting it: " + cmd + "\n")
+				t.Printf("You might try starting it: " + cmd + "\n\n")
 			} else {
-				GlobUI.Printf("\nWe couldn't connect but there is a Keybase service (%s) running (%s).\n", status.Label(), status.Pid())
+				t.Printf("\nWe couldn't connect but there is a Keybase service (%s) running (%s).\n\n", status.Label(), status.Pid())
 				cmd := fmt.Sprintf("keybase launchd restart %s", service.Label())
-				GlobUI.Println("You might try restarting it: " + cmd + "\n")
+				t.Printf("You might try restarting it: " + cmd + "\n\n")
 			}
 		}
 	}
