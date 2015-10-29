@@ -1,19 +1,13 @@
 'use strict'
 /* @flow */
 
-import { submitSearch } from '../actions/search'
+import { selectService, submitSearch } from '../actions/search'
 import { pushNewProfile } from '../actions/profile'
 import React, { Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image } from 'react-native'
 import commonStyles from '../styles/common'
 import Immutable from 'immutable'
-
-const serviceIcons = {
-  twitter: require('image!service_twitter'),
-  github: require('image!service_github'),
-  reddit: require('image!service_reddit'),
-  coinbase: require('image!service_coinbase'),
-  hackernews: require('image!service_hackernews')
-}
+import ScopeBar from './ScopeBar'
+import { services as serviceIcons } from '../constants/images'
 
 function renderTextWithHighlight (text, highlight, style) {
   const idx = text.toLowerCase().indexOf(highlight.toLowerCase())
@@ -110,6 +104,13 @@ export default class Search extends Component {
         <View style={styles.divider}/>
         <ListView style={{flex: 1}}
           dataSource={this.dataSource.cloneWithRows((this.props.results || Immutable.List()).toArray())}
+          renderHeader={() => <View>
+            <ScopeBar
+              selectedService={this.props.service}
+              onSelectService={service => this.props.selectService(this.props.base, service)}
+            />
+            <View style={styles.divider}/>
+          </View>}
           renderRow={(...args) => { return this.renderRow(...args) }}
           keyboardDismissMode='on-drag'
           pageSize={20}
@@ -128,7 +129,8 @@ export default class Search extends Component {
         }),
         props: {
           submitSearch: (base, search) => store.dispatch(submitSearch(base, search)),
-          pushNewProfile: username => store.dispatch(pushNewProfile(username))
+          pushNewProfile: username => store.dispatch(pushNewProfile(username)),
+          selectService: (base, service) => store.dispatch(selectService(base, service))
         }
       }
     }
@@ -140,6 +142,7 @@ Search.propTypes = {
   pushNewProfile: React.PropTypes.func.isRequired,
   base: React.PropTypes.object.isRequired,
   term: React.PropTypes.string,
+  service: React.PropTypes.string,
   results: React.PropTypes.object,
   error: React.PropTypes.object,
   waitingForServer: React.PropTypes.bool.isRequired,
