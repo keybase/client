@@ -11,28 +11,28 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-// CmdDeviceXAdd is the 'device xadd' command.  It is used for
+// CmdDeviceAdd is the 'device add' command.  It is used for
 // device provisioning on the provisioner/device X/C1.
-type CmdDeviceXAdd struct{}
+type CmdDeviceAdd struct{}
 
-const cmdDevXAddDesc = `When you are adding a new device to your account and you have an 
+const cmdDevAddDesc = `When you are adding a new device to your account and you have an 
 existing device, you will be prompted to use this command on your
 existing device to authorize the new device.`
 
-// NewCmdDeviceXAdd creates a new cli.Command.
-func NewCmdDeviceXAdd(cl *libcmdline.CommandLine) cli.Command {
+// NewCmdDeviceAdd creates a new cli.Command.
+func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:        "xadd",
+		Name:        "add",
 		Usage:       "Authorize a new device",
-		Description: cmdDevXAddDesc,
+		Description: cmdDevAddDesc,
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceXAdd{}, "xadd", c)
+			cl.ChooseCommand(&CmdDeviceAdd{}, "add", c)
 		},
 	}
 }
 
 // RunClient runs the command in client/server mode.
-func (c *CmdDeviceXAdd) Run() error {
+func (c *CmdDeviceAdd) Run() error {
 	var err error
 	cli, err := GetDeviceClient()
 	if err != nil {
@@ -50,7 +50,7 @@ func (c *CmdDeviceXAdd) Run() error {
 }
 
 // ParseArgv gets the secret phrase from the command args.
-func (c *CmdDeviceXAdd) ParseArgv(ctx *cli.Context) error {
+func (c *CmdDeviceAdd) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 0 {
 		return fmt.Errorf("device xadd takes zero arguments")
 	}
@@ -58,7 +58,7 @@ func (c *CmdDeviceXAdd) ParseArgv(ctx *cli.Context) error {
 }
 
 // GetUsage says what this command needs to operate.
-func (c *CmdDeviceXAdd) GetUsage() libkb.Usage {
+func (c *CmdDeviceAdd) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,
