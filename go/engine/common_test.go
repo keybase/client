@@ -85,6 +85,7 @@ func SignupFakeUserWithArg(tc libkb.TestContext, fu *FakeUser, arg SignupEngineR
 
 func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
 	fu := NewFakeUserOrBust(tc.T, prefix)
+	tc.T.Logf("new fake user: %+v", fu)
 	arg := MakeTestSignupEngineRunArg(fu)
 	_ = SignupFakeUserWithArg(tc, fu, arg)
 	return fu
@@ -157,14 +158,17 @@ func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalConte
 		LocksmithUI: &lockui{},
 		GPGUI:       &gpgtestui{},
 		SecretUI:    secui,
-		LoginUI:     &libkb.TestLoginUI{},
+		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
 	li := NewXLogin(g, libkb.DeviceTypeDesktop, fu.Username)
 	return RunEngine(li, ctx)
 }
 
 func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
-	return fu.LoginWithSecretUI(fu.NewSecretUI(), g)
+	g.Log.Debug("Login user: %+v", fu)
+	s := fu.NewSecretUI()
+	g.Log.Debug("test secret ui: %+v", s)
+	return fu.LoginWithSecretUI(s, g)
 }
 
 func (fu *FakeUser) LoginOrBust(tc libkb.TestContext) {

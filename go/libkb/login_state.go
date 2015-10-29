@@ -617,6 +617,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 		if pp, err = ui.GetKeybasePassphrase(arg); err != nil {
 			return err
 		}
+		s.G().Log.Debug("passphrase: %s\n")
 	}
 
 	return lctx.CreateStreamCacheViaStretch(pp)
@@ -634,6 +635,7 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 		return
 	}
 
+	s.G().Log.Debug("loginWithPromptHelper, switch user to %q", username)
 	if err = s.switchUser(lctx, username); err != nil {
 		return
 	}

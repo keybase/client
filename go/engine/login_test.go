@@ -10,17 +10,28 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-// Test login switching between two different users.
-func TestLoginAndSwitch(t *testing.T) {
+func TestLoginLogoutLogin(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	u1 := CreateAndSignupFakeUser(tc, "login")
 	Logout(tc)
-	u2 := CreateAndSignupFakeUser(tc, "login")
+	u1.LoginOrBust(tc)
+}
+
+// Test login switching between two different users.
+func TestLoginAndSwitch(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "first")
 	Logout(tc)
+	u2 := CreateAndSignupFakeUser(tc, "secon")
+	Logout(tc)
+	t.Logf("first logging back in")
 	u1.LoginOrBust(tc)
 	Logout(tc)
+	t.Logf("second logging back in")
 	u2.LoginOrBust(tc)
 
 	return
