@@ -15,6 +15,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+var log = libkb.G.Log
+
 // Service defines a service
 type Service struct {
 	label string
@@ -56,7 +58,7 @@ func (s Service) Load(restart bool) error {
 	if restart {
 		exec.Command("/bin/launchctl", "unload", plistDest).Output()
 	}
-	fmt.Printf("Loading %s\n", s.label)
+	log.Info("Loading %s", s.label)
 	_, err := exec.Command("/bin/launchctl", "load", "-w", plistDest).Output()
 	return err
 }
@@ -64,7 +66,7 @@ func (s Service) Load(restart bool) error {
 // Unload will unload the service
 func (s Service) Unload() error {
 	plistDest := s.plistDestination()
-	fmt.Printf("Unloading %s\n", s.label)
+	log.Info("Unloading %s", s.label)
 	_, err := exec.Command("/bin/launchctl", "unload", plistDest).Output()
 	return err
 }
@@ -77,7 +79,7 @@ func (s Service) Install(p Plist) (err error) {
 	plist := p.plist()
 	plistDest := s.plistDestination()
 
-	fmt.Printf("Saving %s\n", plistDest)
+	log.Info("Saving %s", plistDest)
 	file := libkb.NewFile(plistDest, []byte(plist), 0644)
 	err = file.Save()
 	if err != nil {
@@ -97,7 +99,7 @@ func (s Service) Uninstall() (err error) {
 
 	plistDest := s.plistDestination()
 	if _, err := os.Stat(plistDest); err == nil {
-		fmt.Printf("Removing %s\n", plistDest)
+		log.Info("Removing %s", plistDest)
 		err = os.Remove(plistDest)
 	}
 	return
@@ -217,13 +219,13 @@ func ShowServices(filter string, name string) (err error) {
 		return
 	}
 	if len(services) > 0 {
-		fmt.Printf("%s %s:\n", name, libkb.Pluralize(len(services), "service", "services", false))
+		log.Info("%s %s:", name, libkb.Pluralize(len(services), "service", "services", false))
 		for _, service := range services {
-			fmt.Printf(service.StatusDescription())
+			log.Info(service.StatusDescription())
 		}
-		fmt.Printf("\n")
+		log.Info("")
 	} else {
-		fmt.Printf("No %s services.\n\n", name)
+		log.Info("No %s services.\n", name)
 	}
 	return
 }
@@ -262,7 +264,7 @@ func ShowStatus(label string) error {
 	if status != nil {
 		fmt.Println(status.Description())
 	} else {
-		fmt.Printf("No service found with label: %s\n", label)
+		log.Info("No service found with label: %s", label)
 	}
 	return nil
 }

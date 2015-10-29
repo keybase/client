@@ -4,9 +4,7 @@ package client
 
 import (
 	"fmt"
-	"os"
 	"path"
-	"runtime"
 	"time"
 
 	"github.com/blang/semver"
@@ -16,7 +14,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func KeybaseServiceStatus(bundleVersion string) keybase1.ServiceStatus {
+func KeybaseServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.ServiceStatus {
 	serviceLabel := libkb.DefaultServiceLabel(libkb.KeybaseServiceID, libkb.DefaultRunMode)
 	kbService := launchd.NewService(serviceLabel)
 	kbLaunchdStatus, err := kbService.Status()
@@ -31,17 +29,13 @@ func KeybaseServiceStatus(bundleVersion string) keybase1.ServiceStatus {
 	var config keybase1.Config
 	if kbLaunchdStatus.Pid() != "" {
 
-		runtimeDir := runtimeDir()
+		runtimeDir := g.Env.GetRuntimeDir()
 		_, err := libkb.WaitForServiceInfoFile(path.Join(runtimeDir, "keybased.info"), kbLaunchdStatus.Pid(), 5, 500*time.Millisecond, "launchd status for service")
 		if err != nil {
 			return errorStatus(err)
 		}
 
-		ctx := libkb.NewGlobalContext()
-		ctx.Init()
-		ctx.ConfigureSocketInfo()
-
-		configClient, err := GetConfigClient(ctx)
+		configClient, err := GetConfigClient(g)
 		if err != nil {
 			return errorStatus(err)
 		}
@@ -80,7 +74,7 @@ func KeybaseServiceStatus(bundleVersion string) keybase1.ServiceStatus {
 	return st
 }
 
-func KBFSServiceStatus(bundleVersion string) keybase1.ServiceStatus {
+func KBFSServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.ServiceStatus {
 	serviceLabel := libkb.DefaultServiceLabel(libkb.KBFSServiceID, libkb.DefaultRunMode)
 	kbfsService := launchd.NewService(serviceLabel)
 	kbfsLaunchdStatus, err := kbfsService.Status()
@@ -92,7 +86,7 @@ func KBFSServiceStatus(bundleVersion string) keybase1.ServiceStatus {
 		return keybase1.ServiceStatus{InstallStatus: keybase1.InstallStatus_NOT_INSTALLED}
 	}
 
-	runtimeDir := runtimeDir()
+	runtimeDir := g.Env.GetRuntimeDir()
 	kbfsInfo, err := libkb.WaitForServiceInfoFile(path.Join(runtimeDir, "kbfs.info"), kbfsLaunchdStatus.Pid(), 5, 500*time.Millisecond, "launchd status for kbfs")
 	if err != nil {
 		return errorStatus(err)
@@ -148,16 +142,6 @@ func errorStatus(err error) keybase1.ServiceStatus {
 			Message: err.Error(),
 		},
 	}
-}
-
-func runtimeDir() string {
-	homeDir := os.Getenv("HOME")
-	home := libkb.NewHomeFinder("keybase",
-		func() string { return homeDir },
-		runtime.GOOS,
-		func() libkb.RunMode { return libkb.DefaultRunMode })
-
-	return home.RuntimeDir()
 }
 
 func DiagnoseSocketError(err error) {

@@ -10,19 +10,20 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 )
 
-func NewCmdLaunchd(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "launchd",
 		Usage:        "Manage keybase launchd services",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
-			NewCmdLaunchdInstall(cl),
+			NewCmdLaunchdInstall(cl, g),
 			NewCmdLaunchdUninstall(cl),
 			NewCmdLaunchdList(cl),
-			NewCmdLaunchdStatus(cl),
+			NewCmdLaunchdStatus(cl, g),
 			NewCmdLaunchdStart(cl),
 			NewCmdLaunchdStop(cl),
 			NewCmdLaunchdRestart(cl),
@@ -30,7 +31,7 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "install",
 		ArgumentHelp: "<label> <path/to/keybase> <args>",
@@ -52,7 +53,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine) cli.Command {
 			envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
 			envVars["KEYBASE_LABEL"] = label
 			envVars["KEYBASE_LOG_FORMAT"] = "file"
-			envVars["KEYBASE_RUNTIME_DIR"] = runtimeDir()
+			envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
 			err := launchd.Install(plist)
@@ -159,36 +160,59 @@ func NewCmdLaunchdStop(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func NewCmdLaunchdStatus(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "status",
 		ArgumentHelp: "<service-name> <bundle-version>",
 		Usage:        "Status for keybase launchd service, including for installing or updating",
 		Action: func(c *cli.Context) {
-			args := c.Args()
-			if len(args) < 1 {
-				G.Log.Fatalf("No service name specified.")
-			}
-			if len(args) < 2 {
-				G.Log.Fatalf("No bundle version specified.")
-			}
-			err := ShowServiceStatus(args[0], args[1])
-			if err != nil {
-				G.Log.Fatalf("%v", err)
-			}
-			os.Exit(0)
+			cl.ChooseCommand(NewCmdLaunchdStatusRunner(g), "status", c)
 		},
 	}
 }
 
-func ShowServiceStatus(name string, bundleVersion string) error {
+type CmdLaunchdStatus struct {
+	libkb.Contextified
+	name          string
+	bundleVersion string
+}
+
+func NewCmdLaunchdStatusRunner(g *libkb.GlobalContext) *CmdLaunchdStatus {
+	// This is to bypass the logui protocol registration in main.go which is
+	// triggering a connection before our Run() is called. See that file for
+	// more info.
+	os.Setenv("KEYBASE_LOCAL_RPC_DEBUG", "c")
+
+	return &CmdLaunchdStatus{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *CmdLaunchdStatus) GetUsage() libkb.Usage {
+	return libkb.Usage{}
+}
+
+func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
+	args := ctx.Args()
+	if len(args) < 1 {
+		return fmt.Errorf("No service name specified.")
+	}
+	v.name = args[0]
+	if len(args) < 2 {
+		return fmt.Errorf("No bundle version specified.")
+	}
+	v.bundleVersion = args[1]
+	return nil
+}
+
+func (v *CmdLaunchdStatus) Run() error {
 	var st keybase1.ServiceStatus
-	if name == "service" {
-		st = KeybaseServiceStatus(bundleVersion)
-	} else if name == "kbfs" {
-		st = KBFSServiceStatus(bundleVersion)
+	if v.name == "service" {
+		st = KeybaseServiceStatus(v.G(), v.bundleVersion)
+	} else if v.name == "kbfs" {
+		st = KBFSServiceStatus(v.G(), v.bundleVersion)
 	} else {
-		return fmt.Errorf("Invalid service name: %s", name)
+		return fmt.Errorf("Invalid service name: %s", v.name)
 	}
 
 	out, err := json.MarshalIndent(st, "", "  ")
