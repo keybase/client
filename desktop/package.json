@@ -17,6 +17,7 @@
     "babel-runtime": "^5.8.25",
     "core-decorators": "^0.4.1",
     "immutable": "^3.7.5",
+    "lodash": "^3.10.1",
     "material-ui": "^0.13.0",
     "node-framed-msgpack-rpc": "https://github.com/keybase/node-framed-msgpack-rpc.git#nojima/keybase-client-changes",
     "purepack": "https://github.com/keybase/purepack.git#nojima/keybase-client-changes",
