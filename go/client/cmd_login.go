@@ -12,27 +12,27 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewCmdXLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "xlogin",
+		Name:         "login",
 		ArgumentHelp: "[username]",
 		Usage:        "Establish a session with the keybase server",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(newCmdXLogin(g), "xlogin", c)
+			cl.ChooseCommand(newCmdLogin(g), "login", c)
 		},
 	}
 }
 
-type CmdXLogin struct {
+type CmdLogin struct {
 	username string
 	libkb.Contextified
 }
 
-func newCmdXLogin(g *libkb.GlobalContext) *CmdXLogin {
-	return &CmdXLogin{Contextified: libkb.NewContextified(g)}
+func newCmdLogin(g *libkb.GlobalContext) *CmdLogin {
+	return &CmdLogin{Contextified: libkb.NewContextified(g)}
 }
 
-func (c *CmdXLogin) Run() error {
+func (c *CmdLogin) Run() error {
 	protocols := []rpc.Protocol{
 		NewProvisionUIProtocol(c.G(), libkb.KexRoleProvisionee),
 		NewLoginUIProtocol(c.G()),
@@ -49,7 +49,7 @@ func (c *CmdXLogin) Run() error {
 	return client.XLogin(context.TODO(), keybase1.XLoginArg{Username: c.username, DeviceType: libkb.DeviceTypeDesktop})
 }
 
-func (c *CmdXLogin) ParseArgv(ctx *cli.Context) error {
+func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	if nargs > 1 {
 		return errors.New("Invalid arguments.")
@@ -61,7 +61,7 @@ func (c *CmdXLogin) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdXLogin) GetUsage() libkb.Usage {
+func (c *CmdLogin) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,
