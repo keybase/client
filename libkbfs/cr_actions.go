@@ -46,10 +46,9 @@ func fixupNamesInOps(fromName string, toName string, ops []op) (retOps []op) {
 	return retOps
 }
 
-func (cuea *copyUnmergedEntryAction) do(ctx context.Context, config Config,
-	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) error {
+func (cuea *copyUnmergedEntryAction) do(ctx context.Context,
+	unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier,
+	unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
 	// Find the unmerged entry
 	unmergedEntry, ok := unmergedBlock.Children[cuea.fromName]
 	if !ok {
@@ -127,10 +126,9 @@ type copyUnmergedAttrAction struct {
 	attr     []attrChange
 }
 
-func (cuaa *copyUnmergedAttrAction) do(ctx context.Context, config Config,
-	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) error {
+func (cuaa *copyUnmergedAttrAction) do(ctx context.Context,
+	unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier,
+	unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
 	// Find the unmerged entry
 	unmergedEntry, ok := unmergedBlock.Children[cuaa.fromName]
 	if !ok {
@@ -189,10 +187,9 @@ type rmMergedEntryAction struct {
 	name string
 }
 
-func (rmea *rmMergedEntryAction) do(ctx context.Context, config Config,
-	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) error {
+func (rmea *rmMergedEntryAction) do(ctx context.Context,
+	unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier,
+	unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
 	if _, ok := mergedBlock.Children[rmea.name]; !ok {
 		return NoSuchNameError{rmea.name}
 	}
@@ -217,9 +214,9 @@ type renameUnmergedAction struct {
 	toName   string
 }
 
-func crActionCopyFile(ctx context.Context, config Config,
-	fetchBlockCopy blockCopyFetcher, fromName string, toName string,
-	fromBlock *DirBlock, toBlock *DirBlock) (fromEntry DirEntry, err error) {
+func crActionCopyFile(ctx context.Context, copier fileBlockDeepCopier,
+	fromName string, toName string, fromBlock *DirBlock, toBlock *DirBlock) (
+	fromEntry DirEntry, err error) {
 	// Find the source entry.
 	fromEntry, ok := fromBlock.Children[fromName]
 	if !ok {
@@ -229,32 +226,16 @@ func crActionCopyFile(ctx context.Context, config Config,
 	// We only rename files.
 	if fromEntry.Type == Dir {
 		// Just fill in the last path node, we don't have the full path.
-		return DirEntry{}, NotFileError{path{path: []pathNode{pathNode{
+		return DirEntry{}, NotFileError{path{path: []pathNode{{
 			BlockPointer: fromEntry.BlockPointer,
 			Name:         fromName,
 		}}}}
 	}
 
-	// Fetch the top block, and dup all of the leaf blocks.
-	// TODO: deal with multiple levels of indirection.
-	ptr, fblock, err := fetchBlockCopy(toName, fromEntry.BlockPointer)
+	// Fetch the top block.
+	ptr, err := copier(ctx, toName, fromEntry.BlockPointer)
 	if err != nil {
 		return DirEntry{}, err
-	}
-	if fblock.IsInd {
-		uid, err := config.KBPKI().GetCurrentUID(ctx)
-		if err != nil {
-			return DirEntry{}, err
-		}
-		for i, ptr := range fblock.IPtrs {
-			// Generate a new nonce for each one.
-			ptr.RefNonce, err = config.Crypto().MakeBlockRefNonce()
-			if err != nil {
-				return DirEntry{}, err
-			}
-			ptr.SetWriter(uid)
-			fblock.IPtrs[i] = ptr
-		}
 	}
 	// Set the entry under the new name, with the new pointer.
 	fromEntry.BlockPointer = ptr
@@ -262,13 +243,11 @@ func crActionCopyFile(ctx context.Context, config Config,
 	return fromEntry, nil
 }
 
-func (rua *renameUnmergedAction) do(ctx context.Context, config Config,
-	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) error {
-	_, err := crActionCopyFile(ctx, config,
-		fetchUnmergedBlockCopy, rua.fromName, rua.toName, unmergedBlock,
-		mergedBlock)
+func (rua *renameUnmergedAction) do(ctx context.Context,
+	unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier,
+	unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
+	_, err := crActionCopyFile(ctx, unmergedCopier, rua.fromName, rua.toName,
+		unmergedBlock, mergedBlock)
 	if err != nil {
 		return err
 	}
@@ -342,13 +321,11 @@ type renameMergedAction struct {
 	toName   string
 }
 
-func (rma *renameMergedAction) do(ctx context.Context, config Config,
-	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) error {
-	_, err := crActionCopyFile(ctx, config,
-		fetchMergedBlockCopy, rma.fromName, rma.toName, mergedBlock,
-		mergedBlock)
+func (rma *renameMergedAction) do(ctx context.Context,
+	unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier,
+	unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
+	_, err := crActionCopyFile(ctx, mergedCopier, rma.fromName, rma.toName,
+		mergedBlock, mergedBlock)
 	if err != nil {
 		return err
 	}
@@ -432,10 +409,9 @@ type dropUnmergedAction struct {
 	op op
 }
 
-func (dua *dropUnmergedAction) do(ctx context.Context, config Config,
-	fetchUnmergedBlockCopy blockCopyFetcher,
-	fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
-	mergedBlock *DirBlock) error {
+func (dua *dropUnmergedAction) do(ctx context.Context,
+	unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier,
+	unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
 	return nil
 }
 

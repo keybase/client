@@ -940,9 +940,12 @@ type ConnectionTransport interface {
 	Close()
 }
 
-// Fetches a file block and generates a new random temporary block ID for it.
-type blockCopyFetcher func(string, BlockPointer) (
-	BlockPointer, *FileBlock, error)
+// fileBlockDeepCopier fetches a file block, makes a deep copy of it
+// (duplicating pointer for any indirect blocks) and generates a new
+// random temporary block ID for it.  It returns the new BlockPointer,
+// and internally saves the block for future uses.
+type fileBlockDeepCopier func(context.Context, string, BlockPointer) (
+	BlockPointer, error)
 
 // crAction represents a specific action to take as part of the
 // conflict resolution process.
@@ -951,9 +954,8 @@ type crAction interface {
 	// conflict, and potential uses the provided blockCopyFetchers to
 	// obtain copies of other blocks (along with new BlockPointers)
 	// when requiring a block copy.
-	do(ctx context.Context, config Config,
-		fetchUnmergedBlockCopy blockCopyFetcher,
-		fetchMergedBlockCopy blockCopyFetcher, unmergedBlock *DirBlock,
+	do(ctx context.Context, unmergedCopier fileBlockDeepCopier,
+		mergedCopier fileBlockDeepCopier, unmergedBlock *DirBlock,
 		mergedBlock *DirBlock) error
 	// updateOps potentially modifies, in place, the slices of
 	// unmerged and merged operations stored in the corresponding

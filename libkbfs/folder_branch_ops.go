@@ -679,6 +679,14 @@ func (fbo *FolderBranchOps) getBlockLocked(ctx context.Context,
 	return block, nil
 }
 
+func (fbo *FolderBranchOps) getBlock(ctx context.Context,
+	md *RootMetadata, dir path, newBlock makeNewBlock, rtype reqType) (
+	Block, error) {
+	fbo.blockLock.RLock()
+	defer fbo.blockLock.RUnlock()
+	return fbo.getBlockLocked(ctx, md, dir, newBlock, rtype)
+}
+
 // getDirLocked returns the directory block at the given path.
 // When rType == write and the cached version of the block is
 // currently clean, this method makes a copy of the directory block
