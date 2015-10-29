@@ -19,3 +19,7 @@ export default class MoreTabs extends BaseComponent {
     )
   }
 }
+
+MoreTabs.propTypes = {
+  items: React.PropTypes.object
+}
