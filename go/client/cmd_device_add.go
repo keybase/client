@@ -13,20 +13,22 @@ import (
 
 // CmdDeviceAdd is the 'device add' command.  It is used for
 // device provisioning on the provisioner/device X/C1.
-type CmdDeviceAdd struct{}
+type CmdDeviceAdd struct {
+	libkb.Contextified
+}
 
 const cmdDevAddDesc = `When you are adding a new device to your account and you have an 
 existing device, you will be prompted to use this command on your
 existing device to authorize the new device.`
 
 // NewCmdDeviceAdd creates a new cli.Command.
-func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDeviceAdd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:        "add",
 		Usage:       "Authorize a new device",
 		Description: cmdDevAddDesc,
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceAdd{}, "add", c)
+			cl.ChooseCommand(&CmdDeviceAdd{Contextified: libkb.NewContextified(g)}, "add", c)
 		},
 	}
 }
@@ -39,8 +41,8 @@ func (c *CmdDeviceAdd) Run() error {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewProvisionUIProtocol(G, libkb.KexRoleProvisioner),
-		NewSecretUIProtocol(G),
+		NewProvisionUIProtocol(c.G(), libkb.KexRoleProvisioner),
+		NewSecretUIProtocol(c.G()),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
