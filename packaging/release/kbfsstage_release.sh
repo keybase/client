@@ -83,7 +83,7 @@ fi
 
 git pull --ff-only
 if git tag -a $kbfs_version_tag -m $kbfs_version_tag ; then
-	echo "Tagged client source with $kbfs_version_tag"
+	echo "Tagged kbfs source with $kbfs_version_tag"
 	git push --tags
 
 	echo "Exporting client source to client-beta for version $client_version"
