@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type UI struct {
@@ -983,3 +984,11 @@ func (ui *UI) Println(a ...interface{}) (int, error) {
 }
 
 //=====================================================
+
+func NewLoginUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.LoginUiProtocol(g.UI.GetLoginUI())
+}
+
+func NewLocksmithUIProtocol() rpc.Protocol {
+	return keybase1.LocksmithUiProtocol(GlobUI.GetLocksmithUI())
+}
