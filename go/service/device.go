@@ -33,14 +33,17 @@ func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1
 
 // DeviceAdd adds a sibkey using a SibkeyEngine.
 func (h *DeviceHandler) DeviceAdd(_ context.Context, arg keybase1.DeviceAddArg) error {
-	locksmithUI := NewRemoteLocksmithUI(arg.SessionID, h.rpcClient())
-	ctx := &engine.Context{SecretUI: h.getSecretUI(arg.SessionID), LocksmithUI: locksmithUI}
-	eng := engine.NewKexProvisioner(h.G(), arg.SecretPhrase)
+	/*
+		locksmithUI := NewRemoteLocksmithUI(arg.SessionID, h.rpcClient())
+		ctx := &engine.Context{SecretUI: h.getSecretUI(arg.SessionID), LocksmithUI: locksmithUI}
+		eng := engine.NewKexProvisioner(h.G(), arg.SecretPhrase)
 
-	h.setCanceler(arg.SessionID, eng)
-	defer h.removeCanceler(arg.SessionID)
+		h.setCanceler(arg.SessionID, eng)
+		defer h.removeCanceler(arg.SessionID)
 
-	return engine.RunEngine(eng, ctx)
+		return engine.RunEngine(eng, ctx)
+	*/
+	return nil
 }
 
 // DeviceAddCancel stops the device provisioning authorized with
