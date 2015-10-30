@@ -3,6 +3,7 @@
 
 import React, { Component, StyleSheet, Text, View } from 'react-native'
 import { routeAppend } from '../../actions/router'
+import { showRegisterWithUserPass } from '../../actions/login2'
 import PaperKey from './paper-key'
 import UserPass from './user-pass'
 import ExistingDevice from './existing-device'
@@ -26,7 +27,7 @@ export default class Register extends Component {
         props: {
           gotoExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
           gotoPaperKeyPage: () => store.dispatch(routeAppend('regPaperKey')),
-          gotoUserPassPage: () => store.dispatch(routeAppend('regUserPass'))
+          gotoUserPassPage: () => store.dispatch(showRegisterWithUserPass())
         }
       },
       subRoutes: {

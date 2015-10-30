@@ -20,7 +20,8 @@ export default class SetPublicName extends Component {
   }
 
   render () {
-    const enabled = this.state.deviceName.length && (!this.props.existingDevices || this.props.existingDevices.indexOf(this.state.deviceName) === -1)
+    const dupeName = this.props.existingDevices && this.props.existingDevices.indexOf(this.state.deviceName) !== -1
+    const enabled = this.state.deviceName.length && !dupeName
 
     return (
       <View style={{flex: 1, padding: 20}}>

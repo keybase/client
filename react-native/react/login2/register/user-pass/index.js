@@ -4,16 +4,14 @@
 import React, { Component, StyleSheet, Text, TextInput, View } from 'react-native'
 import Button from '../../../common-adapters/button'
 import commonStyles from '../../../styles/common'
-import { registerSubmitUserPass } from '../../../actions/login2'
-import SetPublicName from '../set-public-name'
 
 export default class UserPass extends Component {
   constructor (props) {
     super(props)
 
     this.state = {
-      username: props.username || '',
-      passphrase: props.passphrase || ''
+      username: props.username || 'test12',
+      passphrase: props.passphrase || 'okokokokokok'
     }
   }
 
@@ -57,6 +55,7 @@ export default class UserPass extends Component {
     )
   }
 
+  /*
   static parseRoute (store, currentPath, nextPath) {
     const title = 'Register with your Keybase passphrase'
     const subTitle = 'Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum Lorem ipsum'
@@ -91,6 +90,7 @@ export default class UserPass extends Component {
       }
     }
   }
+  */
 }
 
 UserPass.propTypes = {

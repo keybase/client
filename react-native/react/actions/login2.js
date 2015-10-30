@@ -208,30 +208,6 @@ export function setCameraBrokenMode (broken) {
   }
 }
 
-export function registerSubmitUserPass (username, passphrase) {
-  return appendRouteOnUnchanged((dispatch, getState, maybeRoute) => {
-    dispatch({
-      type: Constants.actionRegisterUserPassSubmit,
-      username,
-      passphrase
-    })
-
-    // TODO make call to backend
-    setTimeout(() => {
-      const error = null
-
-      dispatch({
-        type: Constants.actionRegisterUserPassDone,
-        error
-      })
-
-      if (!error) {
-        maybeRoute('regSetPublicName')
-      }
-    }, 1000)
-  })
-}
-
 export function updateForgotPasswordEmail (email) {
   return {
     type: Constants.actionUpdateForgotPasswordEmailAddress,
@@ -283,30 +259,61 @@ export function logout () {
   }
 }
 
-/*
-export function setDeviceName (name) {
-  return function (dispatch) {
-    // TODO integrate
-    setTimeout(() => {
-      const error = false
+export const showRegisterWithUserPass = () => {
+  return (dispatch, getState) => {
+      /*
+      const title = 'Register with your Keybase passphrase'
+      const subTitle = 'Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum Lorem ipsum'
+      dispatch(askForUserPass(title, subTitle, () => {
+      */
+    const incomingMap = {
+      'keybase.1.provisionUi.chooseProvisioningMethod': (param, response) => {
+        response.result(enums.provisionUi.ProvisionMethod.passphrase)
+      },
+      // TODO remove this when KEX2 supports not asking for this
+      'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
+        const title = 'Registering with your Keybase passphrase'
+        const subTitle = 'lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
 
-      if (error) {
-        dispatch({
-          type: Constants.deviceNameSet,
-          error: true,
-          payload: error
-        })
-      } else {
-        dispatch({
-          type: Constants.deviceNameSet
-        })
-
-        // TODO multiple things do this, what do we do next? individual reducers?
+        dispatch(askForUserPass(title, subTitle, () => {
+          const { username } = getState().login2.userPass
+          response.result(username)
+        }, true))
+      },
+      'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {
+        const { passphrase } = getState().login2.userPass
+        response.result(passphrase)
+      },
+      'keybase.1.provisionUi.PromptNewDeviceName': (param, response) => {
+        const { existingDevices } = param
+        dispatch(askForDeviceName(existingDevices, () => {
+          const { deviceName } = getState().login2.deviceName
+          response.result(deviceName)
+        }))
+      },
+      'keybase.1.logUi.log': (param, response) => {
+        console.log(param)
+        response.result()
+      },
+      'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
+        response.result()
       }
-    }, 1000)
+    }
+
+    const mobile = true // TODO desktop also
+    const deviceType = mobile ? 'mobile' : 'desktop'
+
+    engine.rpc('login.xLogin', {deviceType}, incomingMap, (error, response) => {
+      dispatch({
+        type: Constants.actionRegisteredWithUserPass,
+        error: !!error,
+        payload: error || null
+      })
+
+      dispatch(switchTab(DEVICES_TAB))
+    })
   }
 }
-*/
 
 // Show a user/pass screen, call cb(user, passphrase) when done
 // title/subTitle to customize the screen

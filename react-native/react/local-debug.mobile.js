@@ -15,9 +15,9 @@ let config = {
 }
 
 /* eslint-disable no-undef */
-if (__DEV__ && false) {
+if (__DEV__ && true) {
 /* eslint-enable no-undef */
-  config.overrideRouterState = createRouterState(['login2', 'register', 'regSetPublicName'], [])
+  config.overrideRouterState = createRouterState(['login2', 'register'], [])
   config.overrideActiveTab = Tabs.MORE_TAB
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true

@@ -43,3 +43,5 @@ export const actionSetUserPass = 'actionSetUserPass'
 
 export const actionAskDeviceName = 'actionAskDeviceName'
 export const actionSetDeviceName = 'actionSetDeviceName'
+
+export const actionRegisteredWithUserPass = 'actionRegisteredWithUserPass'
