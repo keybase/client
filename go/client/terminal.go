@@ -25,7 +25,7 @@ func (t *Terminal) open() error {
 	}
 	eng, err := minterm.New()
 	if err != nil {
-		return nil
+		return err
 	}
 	t.engine = eng
 	return nil
