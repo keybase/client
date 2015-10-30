@@ -6,5 +6,7 @@ It's an early prototype, not ready for use yet.
 
 To run:
 
-* npm install
-* npm start
+```sh
+npm install
+npm start
+```
