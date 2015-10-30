@@ -3,10 +3,7 @@ package engine
 import (
 	"testing"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func TestLoginLogoutLogin(t *testing.T) {
@@ -317,98 +314,4 @@ func TestUserInfo(t *testing.T) {
 	if !username.Eq(libkb.NewNormalizedUsername(u.Username)) {
 		t.Errorf("userinfo username: %q, expected %q", username, u.Username)
 	}
-}
-
-/*
-type lockui struct {
-	selectSignerCount int
-	deviceName        string
-}
-
-func (l *lockui) setDeviceName(n string) {
-	l.deviceName = n
-}
-
-func (l *lockui) PromptDeviceName(_ context.Context, _ int) (string, error) {
-	return l.deviceName, nil
-}
-
-func (l *lockui) DeviceNameTaken(_ context.Context, arg keybase1.DeviceNameTakenArg) error {
-	return nil
-}
-
-func (l *lockui) SelectSigner(_ context.Context, arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
-	l.selectSignerCount++
-	res.Action = keybase1.SelectSignerAction_SIGN
-	devid, err := libkb.NewDeviceID()
-	if err != nil {
-		return
-	}
-	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_DEVICE, DeviceID: &devid}
-	return
-}
-
-func (l *lockui) DeviceSignAttemptErr(_ context.Context, arg keybase1.DeviceSignAttemptErrArg) error {
-	return nil
-}
-
-func (l *lockui) DisplaySecretWords(_ context.Context, arg keybase1.DisplaySecretWordsArg) error {
-	return nil
-}
-
-func (l *lockui) DisplayProvisionSuccess(_ context.Context, arg keybase1.DisplayProvisionSuccessArg) error {
-	return nil
-}
-
-func (l *lockui) KexStatus(_ context.Context, arg keybase1.KexStatusArg) error {
-	return nil
-}
-
-type lockuiPGP struct {
-	*lockui
-}
-
-func (l *lockuiPGP) SelectSigner(_ context.Context, arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
-	l.selectSignerCount++
-	if arg.HasPGP {
-		res.Action = keybase1.SelectSignerAction_SIGN
-		res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_PGP}
-	} else {
-		err = errors.New("arg.HasPGP is unexpectedly false")
-	}
-	return
-}
-
-type lockuiPaper struct {
-	*lockui
-}
-
-func (l *lockuiPaper) SelectSigner(_ context.Context, arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
-	l.selectSignerCount++
-	res.Action = keybase1.SelectSignerAction_SIGN
-	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_PAPER_BACKUP_KEY}
-	return
-}
-*/
-
-type paperLoginUI struct {
-	Username    string
-	PaperPhrase string
-}
-
-func (p *paperLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
-	return p.Username, nil
-}
-
-func (p *paperLoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
-	return false, nil
-}
-
-func (p *paperLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
-	return nil
-}
-
-func (p *paperLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
-	p.PaperPhrase = arg.Phrase
-	return nil
 }

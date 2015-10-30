@@ -439,3 +439,25 @@ type testProvisionDupDeviceUI struct {
 func (u *testProvisionDupDeviceUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
 	return arg.ExistingDevices[0], nil
 }
+
+type paperLoginUI struct {
+	Username    string
+	PaperPhrase string
+}
+
+func (p *paperLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
+	return p.Username, nil
+}
+
+func (p *paperLoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+	return false, nil
+}
+
+func (p *paperLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
+	return nil
+}
+
+func (p *paperLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
+	p.PaperPhrase = arg.Phrase
+	return nil
+}
