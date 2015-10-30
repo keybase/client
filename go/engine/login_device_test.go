@@ -1,16 +1,12 @@
 package engine
 
-import (
-	"time"
-
-	"github.com/keybase/client/go/libkb/kex"
-)
-
+/*
 func init() {
 	kex.HelloTimeout = 5 * time.Second
 	kex.IntraTimeout = 5 * time.Second
 	kex.PollDuration = 1 * time.Second
 }
+*/
 
 // TestLoginNewDeviceKex is a device provisioning test.  It
 // simulates the scenario where a user logs in to a new device and
