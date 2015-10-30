@@ -218,6 +218,10 @@
       "type" : "string"
     } ]
   }, {
+    "type" : "enum",
+    "name" : "InstallAction",
+    "symbols" : [ "UNKNOWN_0", "NONE_1", "UPGRADE_2", "REINSTALL_3", "INSTALL_4" ]
+  }, {
     "type" : "record",
     "name" : "ServiceStatus",
     "fields" : [ {
@@ -238,6 +242,9 @@
     }, {
       "name" : "installStatus",
       "type" : "InstallStatus"
+    }, {
+      "name" : "installAction",
+      "type" : "InstallAction"
     }, {
       "name" : "error",
       "type" : [ "null", "ServiceStatusError" ]

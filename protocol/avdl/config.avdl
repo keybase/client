@@ -49,6 +49,14 @@ protocol config {
     string message;
   }
 
+  enum InstallAction {
+    UNKNOWN_0,
+    NONE_1, // Nothing to do
+    UPGRADE_2, // Upgrade from earlier version
+    REINSTALL_3, // Something bad happened and need re-install
+    INSTALL_4 // Installing (not installed)
+  }
+
   record ServiceStatus {
     string version;
     string label;
@@ -56,6 +64,7 @@ protocol config {
     string lastExitStatus;
     string bundleVersion;
     InstallStatus installStatus;
+    InstallAction installAction;
     union { null, ServiceStatusError } `error`;
   }
 

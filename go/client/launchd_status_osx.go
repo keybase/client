@@ -64,12 +64,14 @@ func KeybaseServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1
 	// Something must be wrong if this build doesn't match the package version.
 	if bundleVersion != buildVersion {
 		st.InstallStatus = keybase1.InstallStatus_ERROR
+		st.InstallAction = keybase1.InstallAction_NONE
 		st.Error = &keybase1.ServiceStatusError{Message: fmt.Sprintf("Version mismatch: %s != %s", bundleVersion, buildVersion)}
 		return st
 	}
 
-	installStatus, se := installStatus(version, bundleVersion, st.LastExitStatus)
+	installStatus, installAction, se := installStatus(version, bundleVersion, st.LastExitStatus)
 	st.InstallStatus = installStatus
+	st.InstallAction = installAction
 	st.Error = se
 	return st
 }
@@ -110,40 +112,51 @@ func KBFSServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.Se
 		BundleVersion:  bundleVersion,
 	}
 
-	installStatus, se := installStatus(version, bundleVersion, st.LastExitStatus)
+	installStatus, installAction, se := installStatus(version, bundleVersion, st.LastExitStatus)
 	st.InstallStatus = installStatus
+	st.InstallAction = installAction
 	st.Error = se
 	return st
 }
 
-func installStatus(version string, bundleVersion string, lastExitStatus string) (keybase1.InstallStatus, *keybase1.ServiceStatusError) {
-	var installStatus keybase1.InstallStatus
-	installStatus = keybase1.InstallStatus_UNKNOWN
+func installStatus(version string, bundleVersion string, lastExitStatus string) (keybase1.InstallStatus, keybase1.InstallAction, *keybase1.ServiceStatusError) {
+	installStatus := keybase1.InstallStatus_UNKNOWN
+	installAction := keybase1.InstallAction_UNKNOWN
 	if version != "" && bundleVersion != "" {
 		sv, err := semver.Make(version)
 		if err != nil {
-			return keybase1.InstallStatus_ERROR, &keybase1.ServiceStatusError{Message: err.Error()}
+			return keybase1.InstallStatus_ERROR,
+				keybase1.InstallAction_REINSTALL,
+				&keybase1.ServiceStatusError{Message: err.Error()}
 		}
 		bsv, err := semver.Make(bundleVersion)
+		// Invalid bundle bersion
 		if err != nil {
-			return keybase1.InstallStatus_ERROR, &keybase1.ServiceStatusError{Message: err.Error()}
+			return keybase1.InstallStatus_ERROR,
+				keybase1.InstallAction_NONE,
+				&keybase1.ServiceStatusError{Message: err.Error()}
 		}
 		if bsv.GT(sv) {
 			installStatus = keybase1.InstallStatus_NEEDS_UPGRADE
+			installAction = keybase1.InstallAction_UPGRADE
 		} else if bsv.EQ(sv) {
 			installStatus = keybase1.InstallStatus_INSTALLED
+			installAction = keybase1.InstallAction_NONE
 		} else if bsv.LT(sv) {
-			return keybase1.InstallStatus_ERROR, &keybase1.ServiceStatusError{Message: fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version)}
+			return keybase1.InstallStatus_ERROR,
+				keybase1.InstallAction_NONE,
+				&keybase1.ServiceStatusError{Message: fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version)}
 		}
 	}
 
 	// If we had a version or last exit status (and the status was unknown) then a
 	// version is installed
 	if installStatus == keybase1.InstallStatus_UNKNOWN && (version != "" || lastExitStatus != "") {
+		installAction = keybase1.InstallAction_REINSTALL
 		installStatus = keybase1.InstallStatus_INSTALLED
 	}
 
-	return installStatus, nil
+	return installStatus, installAction, nil
 }
 
 func errorStatus(err error) keybase1.ServiceStatus {

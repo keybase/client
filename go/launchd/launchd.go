@@ -111,8 +111,8 @@ func (s Service) Uninstall() (err error) {
 	return
 }
 
-// ListServices will return service with label containing the filter string.
-func ListServices(filter string) ([]Service, error) {
+// ListServices will return service with label starts with a filter string.
+func ListServices(filters []string) ([]Service, error) {
 	files, err := ioutil.ReadDir(launchAgentDir())
 	if err != nil {
 		return nil, err
@@ -122,10 +122,12 @@ func ListServices(filter string) ([]Service, error) {
 		name := f.Name()
 		suffix := ".plist"
 		// We care about services that contain the filter word and end in .plist
-		if strings.Contains(name, filter) && strings.HasSuffix(name, suffix) {
-			label := name[0 : len(name)-len(suffix)]
-			service := NewService(label)
-			services = append(services, service)
+		for _, filter := range filters {
+			if strings.HasPrefix(name, filter) && strings.HasSuffix(name, suffix) {
+				label := name[0 : len(name)-len(suffix)]
+				service := NewService(label)
+				services = append(services, service)
+			}
 		}
 	}
 	return services, nil
@@ -219,8 +221,8 @@ func (s Service) Status() (*ServiceStatus, error) {
 }
 
 // ShowServices outputs keybase service info.
-func ShowServices(filter string, name string, log logger.Logger) (err error) {
-	services, err := ListServices(filter)
+func ShowServices(filters []string, name string, log logger.Logger) (err error) {
+	services, err := ListServices(filters)
 	if err != nil {
 		return
 	}
