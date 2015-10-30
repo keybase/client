@@ -106,8 +106,6 @@ def json_cast(type, optional=false)
 
   return ".intValue" if @enums.include?(type)
 
-  #ProvisionMethod(rawValue: JSON(response).intValue)!
-
   case type
   when "int" then ".intValue"
   when "long" then ".int64Value"
