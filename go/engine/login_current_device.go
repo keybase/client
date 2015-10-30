@@ -4,43 +4,43 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// XLoginCurrentDevice is an engine that tries to login using the
+// LoginCurrentDevice is an engine that tries to login using the
 // current device, if there is an existing provisioned device.
-type XLoginCurrentDevice struct {
+type LoginCurrentDevice struct {
 	libkb.Contextified
 	username string
 }
 
-// NewXLoginCurrentDevice creates a XLoginCurrentDevice engine.
-func NewXLoginCurrentDevice(g *libkb.GlobalContext, username string) *XLoginCurrentDevice {
-	return &XLoginCurrentDevice{
+// NewLoginCurrentDevice creates a LoginCurrentDevice engine.
+func NewLoginCurrentDevice(g *libkb.GlobalContext, username string) *LoginCurrentDevice {
+	return &LoginCurrentDevice{
 		username:     username,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *XLoginCurrentDevice) Name() string {
-	return "XLoginCurrentDevice"
+func (e *LoginCurrentDevice) Name() string {
+	return "LoginCurrentDevice"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *XLoginCurrentDevice) Prereqs() Prereqs {
+func (e *LoginCurrentDevice) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *XLoginCurrentDevice) RequiredUIs() []libkb.UIKind {
+func (e *LoginCurrentDevice) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *XLoginCurrentDevice) SubConsumers() []libkb.UIConsumer {
+func (e *LoginCurrentDevice) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
 // Run starts the engine.
-func (e *XLoginCurrentDevice) Run(ctx *Context) error {
+func (e *LoginCurrentDevice) Run(ctx *Context) error {
 	// already logged in?
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {

@@ -158,7 +158,7 @@ func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalConte
 		SecretUI:    secui,
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
-	li := NewXLogin(g, libkb.DeviceTypeDesktop, fu.Username)
+	li := NewLogin(g, libkb.DeviceTypeDesktop, fu.Username)
 	return RunEngine(li, ctx)
 }
 

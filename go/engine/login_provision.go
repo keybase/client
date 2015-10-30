@@ -11,11 +11,11 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-// XLoginProvision is an engine that will provision the current
+// LoginProvision is an engine that will provision the current
 // device.
-type XLoginProvision struct {
+type LoginProvision struct {
 	libkb.Contextified
-	arg          *XLoginProvisionArg
+	arg          *LoginProvisionArg
 	user         *libkb.User
 	lks          *libkb.LKSec
 	signingKey   libkb.GenericKey
@@ -25,32 +25,32 @@ type XLoginProvision struct {
 	cleanupOnErr bool
 }
 
-type XLoginProvisionArg struct {
+type LoginProvisionArg struct {
 	DeviceType string // desktop or mobile
 	Username   string // optional
 }
 
-// NewXLoginProvision creates a XLoginProvision engine.  username
+// NewLoginProvision creates a LoginProvision engine.  username
 // is optional.
-func NewXLoginProvision(g *libkb.GlobalContext, arg *XLoginProvisionArg) *XLoginProvision {
-	return &XLoginProvision{
+func NewLoginProvision(g *libkb.GlobalContext, arg *LoginProvisionArg) *LoginProvision {
+	return &LoginProvision{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
 	}
 }
 
 // Name is the unique engine name.
-func (e *XLoginProvision) Name() string {
-	return "XLoginProvision"
+func (e *LoginProvision) Name() string {
+	return "LoginProvision"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *XLoginProvision) Prereqs() Prereqs {
+func (e *LoginProvision) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *XLoginProvision) RequiredUIs() []libkb.UIKind {
+func (e *LoginProvision) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.ProvisionUIKind,
 		libkb.LoginUIKind,
@@ -60,7 +60,7 @@ func (e *XLoginProvision) RequiredUIs() []libkb.UIKind {
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *XLoginProvision) SubConsumers() []libkb.UIConsumer {
+func (e *LoginProvision) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DeviceWrap{},
 		&PaperKeyPrimary{},
@@ -68,7 +68,7 @@ func (e *XLoginProvision) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *XLoginProvision) Run(ctx *Context) error {
+func (e *LoginProvision) Run(ctx *Context) error {
 	if err := e.checkArg(); err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (e *XLoginProvision) Run(ctx *Context) error {
 
 // device provisions this device with an existing device using the
 // kex2 protocol.
-func (e *XLoginProvision) device(ctx *Context) error {
+func (e *LoginProvision) device(ctx *Context) error {
 	provisionerType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), 0)
 	if err != nil {
 		return err
@@ -161,7 +161,7 @@ func (e *XLoginProvision) device(ctx *Context) error {
 
 	if err := e.G().LoginState().LocalSession(func(s *libkb.Session) {
 		s.SetDeviceProvisioned(deviceID)
-	}, "XLoginProvision - device"); err != nil {
+	}, "LoginProvision - device"); err != nil {
 		return err
 	}
 
@@ -180,7 +180,7 @@ func (e *XLoginProvision) device(ctx *Context) error {
 }
 
 // gpg attempts to provision the device via a gpg key.
-func (e *XLoginProvision) gpg(ctx *Context) error {
+func (e *LoginProvision) gpg(ctx *Context) error {
 	bundle, err := e.chooseAndUnlockGPGKey(ctx)
 	if err != nil {
 		return err
@@ -207,7 +207,7 @@ func (e *XLoginProvision) gpg(ctx *Context) error {
 }
 
 // paper attempts to provision the device via a paper key.
-func (e *XLoginProvision) paper(ctx *Context) error {
+func (e *LoginProvision) paper(ctx *Context) error {
 	// prompt for the username (if not provided) and load the user:
 	var err error
 	e.user, err = e.loadUser(ctx)
@@ -246,7 +246,7 @@ func (e *XLoginProvision) paper(ctx *Context) error {
 // passphrase.  This will work if the user has no keys or only a
 // synced pgp key.  Any other situations require different
 // provisioning methods.
-func (e *XLoginProvision) passphrase(ctx *Context) error {
+func (e *LoginProvision) passphrase(ctx *Context) error {
 	// prompt for the username (if not provided) and load the user:
 	var err error
 	e.user, err = e.loadUser(ctx)
@@ -285,7 +285,7 @@ func (e *XLoginProvision) passphrase(ctx *Context) error {
 
 // pgpProvision attempts to provision with a synced pgp key.  It
 // needs to get a session first to look for a synced pgp key.
-func (e *XLoginProvision) pgpProvision(ctx *Context) error {
+func (e *LoginProvision) pgpProvision(ctx *Context) error {
 	// After obtaining login session, this will be called before the login state is released.
 	// It tries to get the pgp key and uses it to provision new device keys for this device.
 	var afterLogin = func(lctx libkb.LoginContext) error {
@@ -311,7 +311,7 @@ func (e *XLoginProvision) pgpProvision(ctx *Context) error {
 
 // makeDeviceKeysWithSigner creates device keys given a signing
 // key.
-func (e *XLoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.GenericKey) error {
+func (e *LoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.GenericKey) error {
 	args, err := e.makeDeviceWrapArgs(ctx)
 	if err != nil {
 		return err
@@ -325,7 +325,7 @@ func (e *XLoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.Ge
 
 // addEldestDeviceKey makes the device keys the eldest keys for
 // e.user.
-func (e *XLoginProvision) addEldestDeviceKey(ctx *Context) error {
+func (e *LoginProvision) addEldestDeviceKey(ctx *Context) error {
 	args, err := e.makeDeviceWrapArgs(ctx)
 	if err != nil {
 		return err
@@ -341,7 +341,7 @@ func (e *XLoginProvision) addEldestDeviceKey(ctx *Context) error {
 }
 
 // paperKey generates a primary paper key for the user.
-func (e *XLoginProvision) paperKey(ctx *Context) error {
+func (e *LoginProvision) paperKey(ctx *Context) error {
 	args := &PaperKeyPrimaryArgs{
 		SigningKey: e.signingKey,
 		Me:         e.user,
@@ -353,7 +353,7 @@ func (e *XLoginProvision) paperKey(ctx *Context) error {
 // makeDeviceWrapArgs creates a base set of args for DeviceWrap.
 // It ensures that LKSec is created.  It also gets a new device
 // name for this device.
-func (e *XLoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error) {
+func (e *LoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error) {
 	if err := e.ensureLKSec(ctx); err != nil {
 		return nil, err
 	}
@@ -373,7 +373,7 @@ func (e *XLoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, err
 }
 
 // ensureLKSec ensures we have LKSec for saving device keys.
-func (e *XLoginProvision) ensureLKSec(ctx *Context) error {
+func (e *LoginProvision) ensureLKSec(ctx *Context) error {
 	if e.lks != nil {
 		return nil
 	}
@@ -389,7 +389,7 @@ func (e *XLoginProvision) ensureLKSec(ctx *Context) error {
 
 // ppStream gets the passphrase stream, either cached or via
 // SecretUI.
-func (e *XLoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
+func (e *LoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
 	if ctx.LoginContext != nil {
 		cached := ctx.LoginContext.PassphraseStreamCache()
 		if cached == nil {
@@ -401,7 +401,7 @@ func (e *XLoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error
 }
 
 // deviceName gets a new device name from the user.
-func (e *XLoginProvision) deviceName(ctx *Context) (string, error) {
+func (e *LoginProvision) deviceName(ctx *Context) (string, error) {
 	names, err := e.user.DeviceNames()
 	if err != nil {
 		e.G().Log.Debug("error getting device names: %s", err)
@@ -414,7 +414,7 @@ func (e *XLoginProvision) deviceName(ctx *Context) (string, error) {
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.
-func (e *XLoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
+func (e *LoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(args, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
@@ -425,7 +425,7 @@ func (e *XLoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) err
 }
 
 // loadUser will prompt for username (if not provided) and load the user.
-func (e *XLoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
+func (e *LoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 	if len(e.arg.Username) == 0 {
 		username, err := ctx.LoginUI.GetEmailOrUsername(context.TODO(), 0)
 		if err != nil {
@@ -440,7 +440,7 @@ func (e *XLoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 
 // syncedPGPKey looks for a synced pgp key for e.user.  If found,
 // it unlocks it.
-func (e *XLoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
+func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	key, err := e.user.SyncedSecretKey(ctx.LoginContext)
 	if err != nil {
 		return nil, err
@@ -463,7 +463,7 @@ func (e *XLoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 
 // hasGPGPrivate returns true if GPG is available and contains
 // private keys.
-func (e *XLoginProvision) hasGPGPrivate() bool {
+func (e *LoginProvision) hasGPGPrivate() bool {
 	index, err := e.gpgPrivateIndex()
 	if err != nil {
 		e.G().Log.Debug("gpg not an option: get index error: %s", err)
@@ -476,7 +476,7 @@ func (e *XLoginProvision) hasGPGPrivate() bool {
 }
 
 // gpgPrivateIndex returns an index of the private gpg keys.
-func (e *XLoginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
+func (e *LoginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
 	cli, err := e.gpgClient()
 	if err != nil {
 		return nil, err
@@ -492,7 +492,7 @@ func (e *XLoginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
 }
 
 // gpgClient returns a gpg client.
-func (e *XLoginProvision) gpgClient() (*libkb.GpgCLI, error) {
+func (e *LoginProvision) gpgClient() (*libkb.GpgCLI, error) {
 	if e.gpgCli != nil {
 		return e.gpgCli, nil
 	}
@@ -505,8 +505,8 @@ func (e *XLoginProvision) gpgClient() (*libkb.GpgCLI, error) {
 	return e.gpgCli, nil
 }
 
-// checkArg checks XLoginProvisionArg for sane arguments.
-func (e *XLoginProvision) checkArg() error {
+// checkArg checks LoginProvisionArg for sane arguments.
+func (e *LoginProvision) checkArg() error {
 	// check we have a good device type:
 	if e.arg.DeviceType != libkb.DeviceTypeDesktop && e.arg.DeviceType != libkb.DeviceTypeMobile {
 		return libkb.InvalidArgumentError{Msg: fmt.Sprintf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)}
@@ -517,7 +517,7 @@ func (e *XLoginProvision) checkArg() error {
 
 // chooseMethod uses ProvisionUI to let user choose a provisioning
 // method.
-func (e *XLoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, error) {
+func (e *LoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, error) {
 	hasGPGPrivate := e.hasGPGPrivate()
 	e.G().Log.Debug("found gpg with private keys?: %v", hasGPGPrivate)
 
@@ -528,7 +528,7 @@ func (e *XLoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, 
 }
 
 // runMethod runs the function for the chosen provisioning method.
-func (e *XLoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMethod) error {
+func (e *LoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMethod) error {
 	// if there is an error running one of these, then the engine will
 	// cleanup the state.
 	e.cleanupOnErr = true
@@ -550,7 +550,7 @@ func (e *XLoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMetho
 
 // ensurePaperKey checks to see if e.user has any paper keys.  If
 // not, it makes one.
-func (e *XLoginProvision) ensurePaperKey(ctx *Context) error {
+func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
 	// device provisioning doesn't load a user:
 	if e.user == nil {
 		return nil
@@ -571,7 +571,7 @@ func (e *XLoginProvision) ensurePaperKey(ctx *Context) error {
 // chooseAndUnlockGPGKey asks the user to select a gpg key to use,
 // then checks if the fingerprint exists on keybase.io, and
 // finally uses gpg to unlock it.
-func (e *XLoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBundle, error) {
+func (e *LoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBundle, error) {
 	// choose a private gpg key to use
 	fp, err := e.selectGPGKey(ctx)
 	if err != nil {
@@ -605,7 +605,7 @@ func (e *XLoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBund
 
 // selectGPGKey creates an index of the private gpg keys and
 // presents them to the user who chooses one of them.
-func (e *XLoginProvision) selectGPGKey(ctx *Context) (fp *libkb.PGPFingerprint, err error) {
+func (e *LoginProvision) selectGPGKey(ctx *Context) (fp *libkb.PGPFingerprint, err error) {
 	index, err := e.gpgPrivateIndex()
 	if err != nil {
 		return nil, err
@@ -642,7 +642,7 @@ func (e *XLoginProvision) selectGPGKey(ctx *Context) (fp *libkb.PGPFingerprint, 
 
 // checkUserByPGPFingerprint looks up a fingerprint on keybase.io.  If it
 // finds a username for keyid, it loads that user.
-func (e *XLoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFingerprint) error {
+func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFingerprint) error {
 	// see if public key on keybase
 	username, uid, err := libkb.PGPLookupFingerprint(e.G(), fp)
 	if err != nil {
@@ -661,17 +661,17 @@ func (e *XLoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPF
 	return nil
 }
 
-func (e *XLoginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
+func (e *LoginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
 	var serr error
 	if err := e.G().LoginState().LocalSession(func(s *libkb.Session) {
 		serr = s.SetDeviceProvisioned(id)
-	}, "XLoginProvision - device"); err != nil {
+	}, "LoginProvision - device"); err != nil {
 		return err
 	}
 	return serr
 }
 
-func (e *XLoginProvision) displaySuccess(ctx *Context) error {
+func (e *LoginProvision) displaySuccess(ctx *Context) error {
 	if len(e.username) == 0 && e.user != nil {
 		e.username = e.user.GetName()
 	}
@@ -682,7 +682,7 @@ func (e *XLoginProvision) displaySuccess(ctx *Context) error {
 	return ctx.ProvisionUI.ProvisioneeSuccess(context.TODO(), sarg)
 }
 
-func (e *XLoginProvision) cleanup() {
+func (e *LoginProvision) cleanup() {
 	if !e.cleanupOnErr {
 		return
 	}

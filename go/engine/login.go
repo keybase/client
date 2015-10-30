@@ -12,17 +12,17 @@ var errNoConfig = errors.New("No user config available")
 var errNoDevice = errors.New("No device provisioned locally for this user")
 
 // XLogin is an engine.
-type XLogin struct {
+type Login struct {
 	libkb.Contextified
 	deviceType string
 	username   string
 }
 
-// NewXLogin creates a XLogin engine.  username is optional.
+// NewLogin creates a Login engine.  username is optional.
 // deviceType should be libkb.DeviceTypeDesktop or
 // libkb.DeviceTypeMobile.
-func NewXLogin(g *libkb.GlobalContext, deviceType, username string) *XLogin {
-	return &XLogin{
+func NewLogin(g *libkb.GlobalContext, deviceType, username string) *Login {
+	return &Login{
 		Contextified: libkb.NewContextified(g),
 		deviceType:   deviceType,
 		username:     username,
@@ -30,36 +30,36 @@ func NewXLogin(g *libkb.GlobalContext, deviceType, username string) *XLogin {
 }
 
 // Name is the unique engine name.
-func (e *XLogin) Name() string {
-	return "XLogin"
+func (e *Login) Name() string {
+	return "Login"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *XLogin) Prereqs() Prereqs {
+func (e *Login) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *XLogin) RequiredUIs() []libkb.UIKind {
+func (e *Login) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *XLogin) SubConsumers() []libkb.UIConsumer {
+func (e *Login) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&XLoginCurrentDevice{},
-		&XLoginProvision{},
+		&LoginCurrentDevice{},
+		&LoginProvision{},
 	}
 }
 
 // Run starts the engine.
-func (e *XLogin) Run(ctx *Context) error {
+func (e *Login) Run(ctx *Context) error {
 	// first see if this device is already provisioned and it is possible to log in:
-	eng := NewXLoginCurrentDevice(e.G(), e.username)
+	eng := NewLoginCurrentDevice(e.G(), e.username)
 	err := RunEngine(eng, ctx)
 	if err == nil {
 		// login successful
-		e.G().Log.Debug("XLoginCurrentDevice.Run() was successful")
+		e.G().Log.Debug("LoginCurrentDevice.Run() was successful")
 		return nil
 	}
 
@@ -69,20 +69,20 @@ func (e *XLogin) Run(ctx *Context) error {
 		return err
 	}
 
-	e.G().Log.Debug("XLoginProvisioned error: %s (continuing with device provisioning...)", err)
+	e.G().Log.Debug("LoginCurrentDevice error: %s (continuing with device provisioning...)", err)
 
 	// this device needs to be provisioned:
-	darg := &XLoginProvisionArg{
+	darg := &LoginProvisionArg{
 		DeviceType: e.deviceType,
 		Username:   e.username,
 	}
-	deng := NewXLoginProvision(e.G(), darg)
+	deng := NewLoginProvision(e.G(), darg)
 	return RunEngine(deng, ctx)
 }
 
 // notProvisionedErr will return true if err signifies that login
 // failed because this device has not yet been provisioned.
-func (e *XLogin) notProvisionedErr(err error) bool {
+func (e *Login) notProvisionedErr(err error) bool {
 	if err == errNoDevice {
 		return true
 	}
