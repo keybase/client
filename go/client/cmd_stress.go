@@ -53,8 +53,6 @@ func (c *CmdStress) rpcClient() (*rpc.Client, error) {
 		c.secretUIProtocol(),
 		NewIdentifyUIProtocol(),
 		c.gpgUIProtocol(),
-		NewDoctorUIProtocol(),
-		NewLocksmithUIProtocol(),
 		NewLoginUIProtocol(G),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
@@ -137,7 +135,6 @@ func (c *CmdStress) simulate(username, passphrase string) {
 	funcs := []func(){
 		// c.deviceAdd,
 		c.deviceList,
-		c.doctor,
 		c.idAlice,
 		c.idSelf,
 		c.listTrackers,
@@ -277,19 +274,6 @@ func (c *CmdStress) deviceAdd() {
 			G.Log.Warning("device add cancel error: %s", err)
 		}
 	}()
-}
-
-func (c *CmdStress) doctor() {
-	cli, err := c.rpcClient()
-	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
-		return
-	}
-	dcli := keybase1.DoctorClient{Cli: cli}
-	err = dcli.Doctor(context.TODO(), 0)
-	if err != nil {
-		G.Log.Warning("doctor error: %s", err)
-	}
 }
 
 func (c *CmdStress) status() {

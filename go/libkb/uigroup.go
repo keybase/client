@@ -5,10 +5,8 @@ import "fmt"
 type UIKind int
 
 const (
-	DoctorUIKind UIKind = iota
-	GPGUIKind
+	GPGUIKind UIKind = iota
 	IdentifyUIKind
-	LocksmithUIKind
 	LogUIKind
 	LoginUIKind
 	ProveUIKind
@@ -18,10 +16,6 @@ const (
 
 func (u UIKind) String() string {
 	switch u {
-	case DoctorUIKind:
-		return "DoctorUI"
-	case LocksmithUIKind:
-		return "LocksmithUI"
 	case GPGUIKind:
 		return "GPGUI"
 	case IdentifyUIKind:

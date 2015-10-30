@@ -144,14 +144,6 @@ func GetBTCClient(g *libkb.GlobalContext) (cli keybase1.BTCClient, err error) {
 	return
 }
 
-func GetDoctorClient() (cli keybase1.DoctorClient, err error) {
-	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
-		cli = keybase1.DoctorClient{Cli: rcli}
-	}
-	return
-}
-
 func GetCtlClient(g *libkb.GlobalContext) (cli keybase1.CtlClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {

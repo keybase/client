@@ -11,8 +11,7 @@ import (
 type LoginHandler struct {
 	libkb.Contextified
 	*CancelHandler
-	identifyUI  libkb.IdentifyUI
-	locksmithUI libkb.LocksmithUI
+	identifyUI libkb.IdentifyUI
 }
 
 func NewLoginHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LoginHandler {
@@ -54,67 +53,9 @@ func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email s
 	return nil
 }
 
-/*
-func (h *LoginHandler) LoginWithPrompt(_ context.Context, arg keybase1.LoginWithPromptArg) error {
-		ctx := &engine.Context{
-			LogUI:       h.getLogUI(arg.SessionID),
-			LocksmithUI: h.getLocksmithUI(arg.SessionID),
-			SecretUI:    h.getSecretUI(arg.SessionID),
-			LoginUI:     h.getLoginUI(arg.SessionID),
-			GPGUI:       h.getGPGUI(arg.SessionID),
-		}
-		eng := engine.NewLoginWithPromptEngine(arg.Username, h.G())
-
-		return h.loginWithEngine(eng, ctx, arg.SessionID)
-	return nil
-}
-*/
-
-/*
-func (h *LoginHandler) LoginWithStoredSecret(_ context.Context, arg keybase1.LoginWithStoredSecretArg) error {
-	ctx := &engine.Context{
-		LogUI:       h.getLogUI(arg.SessionID),
-		LocksmithUI: h.getLocksmithUI(arg.SessionID),
-		SecretUI:    h.getSecretUI(arg.SessionID),
-		LoginUI:     h.getLoginUI(arg.SessionID),
-		GPGUI:       h.getGPGUI(arg.SessionID),
-	}
-	loginEngine := engine.NewLoginWithStoredSecretEngine(arg.Username, h.G())
-	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
-}
-
-func (h *LoginHandler) LoginWithPassphrase(_ context.Context, arg keybase1.LoginWithPassphraseArg) error {
-	ctx := &engine.Context{
-		LogUI:       h.getLogUI(arg.SessionID),
-		LocksmithUI: h.getLocksmithUI(arg.SessionID),
-		SecretUI:    h.getSecretUI(arg.SessionID),
-		LoginUI:     h.getLoginUI(arg.SessionID),
-		GPGUI:       h.getGPGUI(arg.SessionID),
-	}
-
-	loginEngine := engine.NewLoginWithPassphraseEngine(arg.Username, arg.Passphrase, arg.StoreSecret, h.G())
-	return h.loginWithEngine(loginEngine, ctx, arg.SessionID)
-}
-*/
-
 func (h *LoginHandler) ClearStoredSecret(_ context.Context, arg keybase1.ClearStoredSecretArg) error {
 	return libkb.ClearStoredSecret(libkb.NewNormalizedUsername(arg.Username))
 }
-
-/*
-func (h *LoginHandler) loginWithEngine(eng *engine.LoginEngine, ctx *engine.Context, sessionID int) error {
-	h.setCanceler(sessionID, eng)
-	defer h.removeCanceler(sessionID)
-	err := engine.RunEngine(eng, ctx)
-	if err != nil {
-		if _, ok := err.(libkb.CanceledError); ok {
-			h.G().Log.Debug("logging out due to login cancel")
-			h.G().Logout()
-		}
-	}
-	return err
-}
-*/
 
 func (h *LoginHandler) CancelLogin(_ context.Context, sessionID int) error {
 	c := h.canceler(sessionID)
@@ -154,50 +95,4 @@ func (h *LoginHandler) Login(_ context.Context, arg keybase1.LoginArg) error {
 	}
 	eng := engine.NewXLogin(h.G(), arg.DeviceType, arg.Username)
 	return engine.RunEngine(eng, ctx)
-}
-
-type RemoteLocksmithUI struct {
-	sessionID int
-	uicli     keybase1.LocksmithUiClient
-}
-
-func NewRemoteLocksmithUI(sessionID int, c *rpc.Client) *RemoteLocksmithUI {
-	return &RemoteLocksmithUI{
-		sessionID: sessionID,
-		uicli:     keybase1.LocksmithUiClient{Cli: c},
-	}
-}
-
-func (r *RemoteLocksmithUI) PromptDeviceName(ctx context.Context, _ int) (string, error) {
-	return r.uicli.PromptDeviceName(ctx, r.sessionID)
-}
-
-func (r *RemoteLocksmithUI) DeviceNameTaken(ctx context.Context, arg keybase1.DeviceNameTakenArg) error {
-	arg.SessionID = r.sessionID
-	return r.uicli.DeviceNameTaken(ctx, arg)
-}
-
-func (r *RemoteLocksmithUI) SelectSigner(ctx context.Context, arg keybase1.SelectSignerArg) (keybase1.SelectSignerRes, error) {
-	arg.SessionID = r.sessionID
-	return r.uicli.SelectSigner(ctx, arg)
-}
-
-func (r *RemoteLocksmithUI) DeviceSignAttemptErr(ctx context.Context, arg keybase1.DeviceSignAttemptErrArg) error {
-	arg.SessionID = r.sessionID
-	return r.uicli.DeviceSignAttemptErr(ctx, arg)
-}
-
-func (r *RemoteLocksmithUI) DisplaySecretWords(ctx context.Context, arg keybase1.DisplaySecretWordsArg) error {
-	arg.SessionID = r.sessionID
-	return r.uicli.DisplaySecretWords(ctx, arg)
-}
-
-func (r *RemoteLocksmithUI) KexStatus(ctx context.Context, arg keybase1.KexStatusArg) error {
-	arg.SessionID = r.sessionID
-	return r.uicli.KexStatus(ctx, arg)
-}
-
-func (r *RemoteLocksmithUI) DisplayProvisionSuccess(ctx context.Context, arg keybase1.DisplayProvisionSuccessArg) error {
-	arg.SessionID = r.sessionID
-	return r.uicli.DisplayProvisionSuccess(ctx, arg)
 }

@@ -278,18 +278,8 @@ type LogUI interface {
 	Critical(format string, args ...interface{})
 }
 
-type LocksmithUI interface {
-	keybase1.LocksmithUiInterface
-}
-
 type GPGUI interface {
 	keybase1.GpgUiInterface
-}
-
-type DoctorUI interface {
-	LoginSelect(ctx context.Context, currentUser string, otherUsers []string) (string, error)
-	DisplayStatus(ctx context.Context, status keybase1.DoctorStatus) (bool, error)
-	DisplayResult(ctx context.Context, msg string) error
 }
 
 type ProvisionUI interface {
@@ -316,7 +306,6 @@ type TerminalUI interface {
 }
 
 type UI interface {
-	GetDoctorUI() DoctorUI
 	GetIdentifyUI() IdentifyUI
 	GetIdentifyTrackUI(strict bool) IdentifyUI
 	GetLoginUI() LoginUI
@@ -325,7 +314,6 @@ type UI interface {
 	GetProveUI() ProveUI
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
-	GetLocksmithUI() LocksmithUI
 	GetProvisionUI(role KexRole) ProvisionUI
 	Configure() error
 	Shutdown() error

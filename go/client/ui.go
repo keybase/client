@@ -398,14 +398,6 @@ func (ui *UI) GetGPGUI() libkb.GPGUI {
 	return NewGPGUI(ui.GetTerminalUI(), false)
 }
 
-func (ui *UI) GetLocksmithUI() libkb.LocksmithUI {
-	return LocksmithUI{ui}
-}
-
-func (ui *UI) GetDoctorUI() libkb.DoctorUI {
-	return DoctorUI{parent: ui}
-}
-
 func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
 	return ProvisionUI{parent: ui, role: role}
 }
@@ -473,110 +465,6 @@ func (p ProveUI) OkToCheck(_ context.Context, arg keybase1.OkToCheckArg) (bool, 
 
 func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	p.render(arg.Text)
-	return nil
-}
-
-//============================================================
-
-type LocksmithUI struct {
-	parent *UI
-}
-
-func (d LocksmithUI) PromptDeviceName(_ context.Context, _ int) (string, error) {
-	return PromptWithChecker(PromptDescriptorLocksmithDeviceName, d.parent, "Enter a public name for this device", false, libkb.CheckDeviceName)
-}
-
-func (d LocksmithUI) DeviceNameTaken(_ context.Context, arg keybase1.DeviceNameTakenArg) error {
-	d.parent.Output(fmt.Sprintf("Device name %q is already in use.  Please enter a unique device name.\n", arg.Name))
-	return nil
-}
-
-func (d LocksmithUI) SelectSigner(_ context.Context, arg keybase1.SelectSignerArg) (res keybase1.SelectSignerRes, err error) {
-	d.parent.Output("How would you like to sign this install of Keybase?\n\n")
-	w := new(tabwriter.Writer)
-	w.Init(d.parent.OutputWriter(), 5, 0, 3, ' ', 0)
-
-	optcount := 0
-	for i, dev := range arg.Devices {
-		var req string
-		switch dev.Type {
-		case libkb.DeviceTypeDesktop:
-			req = "requires access to that device"
-		case libkb.DeviceTypeMobile:
-			req = "requires your device"
-		default:
-			return res, fmt.Errorf("unknown device type: %q", dev.Type)
-		}
-
-		fmt.Fprintf(w, "(%d) with your device named %q\t(%s)\n", i+1, dev.Name, req)
-		optcount++
-	}
-
-	if arg.HasPGP {
-		fmt.Fprintf(w, "(%d) using PGP\t(requires access to your PGP key)\n", optcount+1)
-		optcount++
-	}
-
-	if arg.HasPaperBackupKey {
-		fmt.Fprintf(w, "(%d) using a paper backup key\t(that you wrote down during signup/login)\n", optcount+1)
-		optcount++
-	}
-
-	w.Flush()
-
-	ret, err := PromptSelectionOrCancel(PromptDescriptorLocksmithSigningOption, d.parent, "Choose a signing option", 1, optcount)
-	if err != nil {
-		if err == ErrInputCanceled {
-			res.Action = keybase1.SelectSignerAction_CANCEL
-			return res, nil
-		}
-		return res, err
-	}
-
-	res.Action = keybase1.SelectSignerAction_SIGN
-	res.Signer = &keybase1.DeviceSigner{}
-	if ret <= len(arg.Devices) {
-		res.Signer.Kind = keybase1.DeviceSignerKind_DEVICE
-		res.Signer.DeviceID = &(arg.Devices[ret-1].DeviceID)
-		res.Signer.DeviceName = &(arg.Devices[ret-1].Name)
-	} else if ret == len(arg.Devices)+1 {
-		if arg.HasPGP {
-			res.Signer.Kind = keybase1.DeviceSignerKind_PGP
-		} else {
-			res.Signer.Kind = keybase1.DeviceSignerKind_PAPER_BACKUP_KEY
-		}
-	} else if ret == len(arg.Devices)+2 {
-		res.Signer.Kind = keybase1.DeviceSignerKind_PAPER_BACKUP_KEY
-	}
-
-	return res, nil
-}
-
-func (d LocksmithUI) DeviceSignAttemptErr(_ context.Context, arg keybase1.DeviceSignAttemptErrArg) error {
-	return nil
-}
-
-func (d LocksmithUI) DisplaySecretWords(_ context.Context, arg keybase1.DisplaySecretWordsArg) error {
-	d.parent.Printf("\nUsing the terminal at %q, type this:\n\n", arg.DeviceNameExisting)
-	d.parent.Printf("\tkeybase device add \"%s\"\n\n", arg.Secret)
-	return nil
-}
-
-func (d LocksmithUI) KexStatus(_ context.Context, arg keybase1.KexStatusArg) error {
-	G.Log.Debug("kex status: %s (%d)", arg.Msg, arg.Code)
-	return nil
-}
-
-func (d LocksmithUI) DisplayProvisionSuccess(_ context.Context, arg keybase1.DisplayProvisionSuccessArg) error {
-
-	d.parent.Printf(CHECK + " Success! You are logged in as " + ColorString("bold", arg.Username) + "\n")
-	// turn on when kbfs active:
-	if false {
-		d.parent.Printf("  - your keybase public directory is available at /keybase/public/%s\n", arg.Username)
-		d.parent.Printf("  - your keybase encrypted directory is available at /keybase/private/%s\n", arg.Username)
-	}
-
-	d.parent.Printf("  - type `keybase help` for more info.\n")
 	return nil
 }
 
@@ -987,8 +875,4 @@ func (ui *UI) Println(a ...interface{}) (int, error) {
 
 func NewLoginUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	return keybase1.LoginUiProtocol(g.UI.GetLoginUI())
-}
-
-func NewLocksmithUIProtocol() rpc.Protocol {
-	return keybase1.LocksmithUiProtocol(GlobUI.GetLocksmithUI())
 }

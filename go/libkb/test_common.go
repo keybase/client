@@ -270,9 +270,6 @@ type nullui struct {
 	gctx *GlobalContext
 }
 
-func (n *nullui) GetDoctorUI() DoctorUI {
-	return nil
-}
 func (n *nullui) GetIdentifyUI() IdentifyUI {
 	return nil
 }
@@ -299,9 +296,6 @@ func (n *nullui) GetGPGUI() GPGUI {
 }
 func (n *nullui) GetLogUI() LogUI {
 	return n.gctx.Log
-}
-func (n *nullui) GetLocksmithUI() LocksmithUI {
-	return nil
 }
 func (n *nullui) GetProvisionUI(KexRole) ProvisionUI {
 	return nil

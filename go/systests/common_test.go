@@ -29,7 +29,6 @@ type baseNullUI struct {
 	g *libkb.GlobalContext
 }
 
-func (n *baseNullUI) GetDoctorUI() libkb.DoctorUI                     { return nil }
 func (n *baseNullUI) GetIdentifyUI() libkb.IdentifyUI                 { return nil }
 func (n *baseNullUI) GetIdentifySelfUI() libkb.IdentifyUI             { return nil }
 func (n *baseNullUI) GetIdentifyTrackUI(strict bool) libkb.IdentifyUI { return nil }
@@ -39,7 +38,6 @@ func (n *baseNullUI) GetSecretUI() libkb.SecretUI                     { return n
 func (n *baseNullUI) GetProveUI() libkb.ProveUI                       { return nil }
 func (n *baseNullUI) GetGPGUI() libkb.GPGUI                           { return nil }
 func (n *baseNullUI) GetLogUI() libkb.LogUI                           { return n.g.Log }
-func (n *baseNullUI) GetLocksmithUI() libkb.LocksmithUI               { return nil }
 func (n *baseNullUI) GetIdentifyLubaUI() libkb.IdentifyUI             { return nil }
 func (n *baseNullUI) GetProvisionUI(libkb.KexRole) libkb.ProvisionUI  { return nil }
 

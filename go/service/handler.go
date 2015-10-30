@@ -91,10 +91,6 @@ func (h *BaseHandler) getLoginUI(sessionID int) libkb.LoginUI {
 	return &LoginUI{sessionID, h.getLoginUICli()}
 }
 
-func (h *BaseHandler) getLocksmithUI(sessionID int) libkb.LocksmithUI {
-	return NewRemoteLocksmithUI(sessionID, h.rpcClient())
-}
-
 func (h *BaseHandler) getGPGUI(sessionID int) libkb.GPGUI {
 	return NewRemoteGPGUI(sessionID, h.rpcClient())
 }

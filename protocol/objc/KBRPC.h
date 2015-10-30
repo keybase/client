@@ -137,25 +137,6 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 @property NSInteger valPlusTwo;
 @end
 
-typedef NS_ENUM (NSInteger, KBRDoctorFixType) {
-	KBRDoctorFixTypeNone = 0,
-	KBRDoctorFixTypeAddEldestDevice = 1,
-	KBRDoctorFixTypeAddSiblingDevice = 2,
-};
-
-@interface KBRDoctorSignerOpts : KBRObject
-@property BOOL otherDevice;
-@property BOOL pgp;
-@property BOOL internal;
-@end
-
-@interface KBRDoctorStatus : KBRObject
-@property KBRDoctorFixType fix;
-@property KBRDoctorSignerOpts *signerOpts;
-@property NSArray *devices; /*of KBRDevice*/
-@property KBRDevice *currentDevice;
-@end
-
 @interface KBRFolder : KBRObject
 @property NSString *name;
 @property BOOL private;
@@ -364,44 +345,6 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property NSData *passphraseStream;
 @property NSInteger generation;
 @end
-
-typedef NS_ENUM (NSInteger, KBRDeviceSignerKind) {
-	KBRDeviceSignerKindDevice = 0,
-	KBRDeviceSignerKindPgp = 1,
-	KBRDeviceSignerKindPaperBackupKey = 2,
-};
-
-typedef NS_ENUM (NSInteger, KBRSelectSignerAction) {
-	KBRSelectSignerActionSign = 0,
-	KBRSelectSignerActionCancel = 1,
-};
-
-@interface KBRDeviceSigner : KBRObject
-@property KBRDeviceSignerKind kind;
-@property NSString *deviceID;
-@property NSString *deviceName;
-@end
-
-@interface KBRSelectSignerRes : KBRObject
-@property KBRSelectSignerAction action;
-@property KBRDeviceSigner *signer;
-@end
-
-typedef NS_ENUM (NSInteger, KBRKexStatusCode) {
-	KBRKexStatusCodeStartSend = 0,
-	KBRKexStatusCodeHelloWait = 1,
-	KBRKexStatusCodeHelloReceived = 2,
-	KBRKexStatusCodePleaseSignSend = 3,
-	KBRKexStatusCodeDoneWait = 4,
-	KBRKexStatusCodeDoneReceived = 5,
-	KBRKexStatusCodeStartWait = 6,
-	KBRKexStatusCodeStartReceived = 7,
-	KBRKexStatusCodeHelloSend = 8,
-	KBRKexStatusCodePleaseSignWait = 9,
-	KBRKexStatusCodePleaseSignReceived = 10,
-	KBRKexStatusCodeDoneSend = 11,
-	KBRKexStatusCodeEnd = 12,
-};
 
 @interface KBRConfiguredAccount : KBRObject
 @property NSString *username;
@@ -743,22 +686,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRDeviceXAddRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRDoctorRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@end
-@interface KBRLoginSelectRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *currentUser;
-@property NSArray *otherUsers;
-@end
-@interface KBRDisplayStatusRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property KBRDoctorStatus *status;
-@end
-@interface KBRDisplayResultRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *message;
-@end
 @interface KBRFavoriteAddRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRFolder *folder;
@@ -841,40 +768,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRDidCounterSignRequestParams : KBRRequestParams
 @property NSData *sig;
-@end
-@interface KBRPromptDeviceNameRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@end
-@interface KBRDeviceNameTakenRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *name;
-@end
-@interface KBRSelectSignerRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSArray *devices;
-@property BOOL hasPGP;
-@property BOOL hasPaperBackupKey;
-@end
-@interface KBRDeviceSignAttemptErrRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *msg;
-@property NSInteger attempt;
-@property NSInteger total;
-@end
-@interface KBRDisplaySecretWordsRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *secret;
-@property NSString *deviceNameExisting;
-@property NSString *deviceNameToAdd;
-@end
-@interface KBRKexStatusRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *msg;
-@property KBRKexStatusCode code;
-@end
-@interface KBRDisplayProvisionSuccessRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *username;
 @end
 @interface KBRLogRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1429,42 +1322,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @end
 
-@interface KBRDoctorRequest : KBRRequest
-
-- (void)doctor:(void (^)(NSError *error))completion;
-
-@end
-
-@interface KBRDoctorUiRequest : KBRRequest
-
-/*!
- If doctor runs and login is needed, it will call this to give the
- user the option of which user to log in as. The login will be
- different from a standard login as it won't try to fix the user's
- keys immediately.
- */
-- (void)loginSelect:(KBRLoginSelectRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
-
-- (void)loginSelectWithCurrentUser:(NSString *)currentUser otherUsers:(NSArray *)otherUsers completion:(void (^)(NSError *error, NSString *str))completion;
-
-/*!
- Once the user is logged in, the status of their account will be evaluated
- and displayStatus() will be called with info about it.
- Return true to proceed and do any necessary fixes. Return false to cancel.
- */
-- (void)displayStatus:(KBRDisplayStatusRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
-
-- (void)displayStatusWithStatus:(KBRDoctorStatus *)status completion:(void (^)(NSError *error, BOOL b))completion;
-
-/*!
- If a fix is performed, displayResult() will be called after the fix is done.
- */
-- (void)displayResult:(KBRDisplayResultRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)displayResultWithMessage:(NSString *)message completion:(void (^)(NSError *error))completion;
-
-@end
-
 @interface KBRFavoriteRequest : KBRRequest
 
 /*!
@@ -1574,53 +1431,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRKex2ProvisionerRequest : KBRRequest
 
 - (void)kexStart:(void (^)(NSError *error))completion;
-
-@end
-
-@interface KBRLocksmithUiRequest : KBRRequest
-
-- (void)promptDeviceName:(void (^)(NSError *error, NSString *str))completion;
-
-- (void)deviceNameTaken:(KBRDeviceNameTakenRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)deviceNameTakenWithName:(NSString *)name completion:(void (^)(NSError *error))completion;
-
-/*!
- Called when a user logs in with a new device and it needs to be signed by an
- existing device or pgp.
- */
-- (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
-
-- (void)selectSignerWithDevices:(NSArray *)devices hasPGP:(BOOL)hasPGP hasPaperBackupKey:(BOOL)hasPaperBackupKey completion:(void (^)(NSError *error, KBRSelectSignerRes *selectSignerRes))completion;
-
-/*!
- If there's an error signing a new device, the daemon will call this to tell
- clients about the error. Attempt is the current attempt number.
- Total is the number of attempts that will be made.
- */
-- (void)deviceSignAttemptErr:(KBRDeviceSignAttemptErrRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)deviceSignAttemptErrWithMsg:(NSString *)msg attempt:(NSInteger)attempt total:(NSInteger)total completion:(void (^)(NSError *error))completion;
-
-/*!
- During device provisioning when device Y (new device) gives instructions
- containing the secret words to enter on device X (existing device).
- */
-- (void)displaySecretWords:(KBRDisplaySecretWordsRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)displaySecretWordsWithSecret:(NSString *)secret deviceNameExisting:(NSString *)deviceNameExisting deviceNameToAdd:(NSString *)deviceNameToAdd completion:(void (^)(NSError *error))completion;
-
-- (void)kexStatus:(KBRKexStatusRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)kexStatusWithMsg:(NSString *)msg code:(KBRKexStatusCode)code completion:(void (^)(NSError *error))completion;
-
-/*!
- When device provisioning completes in successfully provisioning a new
- device.
- */
-- (void)displayProvisionSuccess:(KBRDisplayProvisionSuccessRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)displayProvisionSuccessWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 @end
 
