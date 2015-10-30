@@ -4,16 +4,18 @@
 import React, { Component, StyleSheet, Text, TouchableHighlight, View } from 'react-native'
 
 import commonStyles from '../../../styles/common'
-import { navigateUp, routeAppend } from '../../../actions/router'
-import { setCodePageOtherDeviceRole } from '../../../actions/login2'
+// import { navigateUp, routeAppend } from '../../../actions/router'
+// import { setCodePageOtherDeviceRole } from '../../../actions/login2'
 import { codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer } from '../../../constants/login2'
-import CodePage from '../code-page'
+// import CodePage from '../code-page'
 
 export default class ExistingDevice extends Component {
+  /*
   showCodePage (otherDeviceRole) {
     this.props.setCodePageOtherDeviceRole(otherDeviceRole)
     this.props.gotoCodePage()
   }
+  */
 
   render () {
     let otherDeviceComputer = null
@@ -36,24 +38,25 @@ export default class ExistingDevice extends Component {
       <View style={[styles.container, {marginTop: 200, padding: 20, alignItems: 'stretch'}]}>
         <Text style={commonStyles.h1}>What type of device would you like to connect this device with?</Text>
         <View style={{flex: 1, flexDirection: 'row', marginTop: 40, justifyContent: 'space-between', alignItems: 'flex-start', paddingLeft: 40, paddingRight: 40}}>
-          <TouchableHighlight onPress={() => this.showCodePage(otherDeviceComputer)}>
+          <TouchableHighlight onPress={() => this.props.onSubmit(otherDeviceComputer)}>
             <View style={{flexDirection: 'column', alignItems: 'center'}}>
               <Text>[Desktop icon]</Text>
               <Text>Desktop Device &gt;</Text>
             </View>
           </TouchableHighlight>
-          <TouchableHighlight onPress={() => this.showCodePage(otherDevicePhone)}>
+          <TouchableHighlight onPress={() => this.props.onSubmit(otherDevicePhone)}>
             <View style={{flexDirection: 'column', alignItems: 'center'}}>
               <Text>[Mobile icon]</Text>
               <Text>Mobile Device &gt;</Text>
             </View>
           </TouchableHighlight>
         </View>
-        <Text onPress={() => this.props.navigateUp()} style={{alignSelf: 'flex-end'}}>Back</Text>
+        {{ /* <Text onPress={() => this.props.navigateUp()} style={{alignSelf: 'flex-end'}}>Back</Text> */ }}
       </View>
     )
   }
 
+  /*
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
@@ -74,6 +77,7 @@ export default class ExistingDevice extends Component {
       }
     }
   }
+  */
 }
 
 ExistingDevice.propTypes = {
@@ -83,9 +87,10 @@ ExistingDevice.propTypes = {
     codePageDeviceRoleExistingComputer,
     codePageDeviceRoleNewComputer
   ]),
-  navigateUp: React.PropTypes.func.isRequired,
-  gotoCodePage: React.PropTypes.func.isRequired,
-  setCodePageOtherDeviceRole: React.PropTypes.func.isRequire
+  // navigateUp: React.PropTypes.func.isRequired,
+  // gotoCodePage: React.PropTypes.func.isRequired,
+  onSubmit: React.PropTypes.func.isRequired
+  // setCodePageOtherDeviceRole: React.PropTypes.func.isRequire
 }
 
 const styles = StyleSheet.create({

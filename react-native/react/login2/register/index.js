@@ -2,10 +2,7 @@
 /* @flow */
 
 import React, { Component, StyleSheet, Text, View } from 'react-native'
-import { routeAppend } from '../../actions/router'
-import { registerWithUserPass, registerWithPaperKey } from '../../actions/login2'
-import ExistingDevice from './existing-device'
-import SetPublicName from './set-public-name'
+import { registerWithUserPass, registerWithPaperKey, registerWithExistingDevice } from '../../actions/login2'
 
 export default class Register extends Component {
   render () {
@@ -23,14 +20,10 @@ export default class Register extends Component {
     return {
       componentAtTop: {
         props: {
-          gotoExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
+          gotoExistingDevicePage: () => store.dispatch(registerWithExistingDevice()),
           gotoPaperKeyPage: () => store.dispatch(registerWithPaperKey()),
           gotoUserPassPage: () => store.dispatch(registerWithUserPass())
         }
-      },
-      subRoutes: {
-        regExistingDevice: ExistingDevice,
-        regSetPublicName: SetPublicName
       }
     }
   }

@@ -186,6 +186,7 @@ export default class CodePage extends Component {
     )
   }
 
+  /*
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
@@ -214,6 +215,7 @@ export default class CodePage extends Component {
       }
     }
   }
+  */
 }
 
 const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer]

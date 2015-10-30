@@ -42,3 +42,4 @@ export const actionSetDeviceName = 'actionSetDeviceName'
 
 export const actionRegisteredWithUserPass = 'actionRegisteredWithUserPass'
 export const actionRegisteredWithPaperKey = 'actionRegisteredWithPaperKey'
+export const actionRegisteredWithExistingDevice = 'actionRegisteredWithExistingDevice'

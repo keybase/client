@@ -7,6 +7,8 @@ import engine from '../engine'
 import enums from '../keybase_v1'
 import UserPass from '../login2/register/user-pass'
 import PaperKey from '../login2/register/paper-key'
+import CodePage from '../login2/register/code-page'
+import ExistingDevice from '../login2/register/existing-device'
 import SetPublicName from '../login2/register/set-public-name'
 
 import { switchTab } from './tabbed-router'
@@ -47,7 +49,7 @@ export function login (username, passphrase) {
 }
 
 export function doneRegistering () {
-  resetCountdown()
+  // resetCountdown()
   return {
     type: Constants.doneRegistering
   }
@@ -89,6 +91,7 @@ export function setCodePageOtherDeviceRole (otherDeviceRole) {
   }
 }
 
+/*
 let timerId = null
 function resetCountdown () {
   clearInterval(timerId)
@@ -120,7 +123,9 @@ function startCodeGenCountdown (mode) {
     })
   }
 }
+*/
 
+  /*
 export function startCodeGen (mode) {
   // TEMP this needs to come from go
   const code = 'TODO TEMP:' + Math.floor(Math.random() * 99999)
@@ -155,6 +160,7 @@ export function startCodeGen (mode) {
     }
   }
 }
+  */
 
 export function setCodePageMode (mode) {
   return (dispatch, getState) => {
@@ -162,7 +168,7 @@ export function setCodePageMode (mode) {
       return // already in this mode
     }
 
-    dispatch(startCodeGen(mode))
+    //dispatch(startCodeGen(mode))
 
     dispatch({
       type: Constants.setCodeMode,
@@ -333,6 +339,64 @@ export function askForDeviceName (existingDevices, cb) {
   }
 }
 
+export function askForOtherDeviceType (cb) {
+  return (dispatch) => {
+    dispatch(routeAppend({
+      parseRoute: {
+        componentAtTop: {
+          component: ExistingDevice,
+          mapStateToProps: state => state.login2.codePage,
+          props: {
+            onSubmit: otherDeviceRole => {
+              cb(otherDeviceRole)
+            }
+          }
+        }
+      }
+    }))
+  }
+}
+
+export function askForCodePage (cb) {
+  return (dispatch) => {
+    dispatch(routeAppend({
+      parseRoute: {
+        componentAtTop: {
+          component: CodePage,
+          mapStateToProps: state => {
+            const {
+              mode, codeCountDown, textCode, qrCode,
+              myDeviceRole, otherDeviceRole, cameraBrokenMode } = state.login2.codePage
+            return {
+              mode,
+              codeCountDown,
+              textCode,
+              qrCode,
+              myDeviceRole,
+              otherDeviceRole,
+              cameraBrokenMode
+            }
+          },
+          props: {
+            setCodePageMode: mode => dispatch(setCodePageMode(mode)),
+            qrScanned: code => dispatch(qrScanned(code)),
+            setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
+            textEntered: text => dispatch(textEntered(text)),
+            doneRegistering: () => dispatch(doneRegistering())
+          }
+        }
+      }
+    }))
+  }
+}
+
+export function registerWithExistingDevice () {
+  return (dispatch, getState) => {
+    const provisionMethod = enums.provisionUi.ProvisionMethod.device
+    startLoginFlow(dispatch, getState, provisionMethod, null, null, Constants.actionRegisteredWithExistingDevice)
+  }
+}
+
 export function registerWithUserPass () {
   return (dispatch, getState) => {
     const title = 'Registering with your Keybase passphrase'
@@ -385,6 +449,25 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
     },
     'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
       response.result()
+    },
+    'keybase.1.provisionUi.chooseDeviceType': (param, response) => {
+      dispatch(askForOtherDeviceType((type) => {
+        const typeMap = {
+          [Constants.codePageDeviceRoleExistingPhone]: enums.provisionUi.DeviceType.mobile,
+          [Constants.codePageDeviceRoleExistingComputer]: enums.provisionUi.DeviceType.desktop
+        }
+
+        dispatch(setCodePageOtherDeviceRole(type))
+        response.result(typeMap[type])
+      }))
+    },
+    'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
+      dispatch({
+        type: Constants.setTextCode,
+        text: phrase
+      })
+
+      dispatch(askForCodePage())
     }
   }
 
