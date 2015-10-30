@@ -116,11 +116,16 @@ func (tp TestParameters) GetDebug() (bool, bool) {
 
 type Env struct {
 	sync.RWMutex
-	cmd        CommandLine
-	config     ConfigReader
-	homeFinder HomeFinder
-	writer     ConfigWriter
-	Test       TestParameters
+	cmd            CommandLine
+	config         ConfigReader
+	homeFinder     HomeFinder
+	writer         ConfigWriter
+	Test           TestParameters
+	skipLogForward bool
+}
+
+func (e *Env) SetSkipLogForward() {
+	e.skipLogForward = true
 }
 
 func (e *Env) GetConfig() ConfigReader {
@@ -653,6 +658,10 @@ func (e *Env) GetLocalRPCDebug() string {
 		func() string { return os.Getenv("KEYBASE_LOCAL_RPC_DEBUG") },
 		func() string { return e.config.GetLocalRPCDebug() },
 	)
+}
+
+func (e *Env) GetDoLogForward() bool {
+	return !e.skipLogForward && e.GetLocalRPCDebug() == ""
 }
 
 func (e *Env) GetTimers() string {

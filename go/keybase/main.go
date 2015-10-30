@@ -108,8 +108,8 @@ func mainInner(g *libkb.GlobalContext) error {
 		// mode (as opposed to standalone). Register a global LogUI so that
 		// calls to G.Log() in the daemon can be copied to us. This is
 		// something of a hack on the daemon side.
-		if g.Env.GetLocalRPCDebug() != "" {
-			g.Log.Info("Disabling log forwarding due to RPC debugging.")
+		if !g.Env.GetDoLogForward() {
+			g.Log.Debug("Disabling log forwarding")
 		} else {
 			// TODO This triggers a connection to the RPC server before cmd.Run() is
 			// called, so the command has no way to deal with errors on its own.
