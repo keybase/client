@@ -4,7 +4,6 @@
 import React, { Component, StyleSheet, Text, TextInput, View } from 'react-native'
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
-import { registerWithPaperKey } from '../../../actions/login2'
 
 export default class PaperKey extends Component {
   constructor (props) {
@@ -15,8 +14,8 @@ export default class PaperKey extends Component {
     }
   }
 
-  submit () {
-    this.props.submit(this.state.paperKey)
+  onSubmit () {
+    this.props.onSubmit(this.state.paperKey)
   }
 
   render () {
@@ -27,32 +26,21 @@ export default class PaperKey extends Component {
         <TextInput style={commonStyles.textInput}
           value={this.state.paperKey}
           placeholder='Enter your paper key'
-          onSubmitEditing={() => this.submit()}
-          onChangeText={(paperKey) => this.setState({paperKey})}
+          onSubmitEditing={() => this.onSubmit()}
+          onChangeText={paperKey => this.setState({paperKey})}
         />
         <Button
           style={{alignSelf: 'flex-end', marginRight: 10}}
-          onPress={() => this.submit()}
+          onPress={() => this.onSubmit()}
           title='Submit & Log in'
           enabled={this.state.paperKey}/>
       </View>
     )
   }
-
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        mapStateToProps: state => { return {} },
-        props: {
-          submit: paperKey => store.dispatch(registerWithPaperKey(paperKey))
-        }
-      }
-    }
-  }
 }
 
 PaperKey.propTypes = {
-  submit: React.PropTypes.func.isRequired
+  onSubmit: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

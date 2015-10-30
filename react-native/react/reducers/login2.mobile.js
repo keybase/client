@@ -39,10 +39,7 @@ type LoginState = {
   forgotPasswordError: ?Error,
   userPass: {
     username: string | '',
-    passphrase: string | '',
-    title: string | '',
-    subTitle: string | '',
-    onSubmit: ?Function
+    passphrase: string | ''
   },
   deviceName: {
     onSubmit: ?Function,
@@ -70,10 +67,7 @@ const initialState: LoginState = {
   forgotPasswordError: null,
   userPass: {
     username: '',
-    passphrase: '',
-    title: '',
-    subTitle: '',
-    onSubmit: () => {}
+    passphrase: ''
   },
   deviceName: {
     onSubmit: () => {},

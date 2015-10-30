@@ -2,10 +2,11 @@
 
 import * as Constants from '../constants/login2'
 import QRCodeGen from 'qrcode-generator'
-import { appendRouteOnUnchanged, navigateTo, routeAppend } from './router'
+import { navigateTo, routeAppend } from './router'
 import engine from '../engine'
 import enums from '../keybase_v1'
 import UserPass from '../login2/register/user-pass'
+import PaperKey from '../login2/register/paper-key'
 import SetPublicName from '../login2/register/set-public-name'
 
 import { switchTab } from './tabbed-router'
@@ -259,87 +260,45 @@ export function logout () {
   }
 }
 
-export const showRegisterWithUserPass = () => {
-  return (dispatch, getState) => {
-      /*
-      const title = 'Register with your Keybase passphrase'
-      const subTitle = 'Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum Lorem ipsum'
-      dispatch(askForUserPass(title, subTitle, () => {
-      */
-    const incomingMap = {
-      'keybase.1.provisionUi.chooseProvisioningMethod': (param, response) => {
-        response.result(enums.provisionUi.ProvisionMethod.passphrase)
-      },
-      // TODO remove this when KEX2 supports not asking for this
-      'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
-        const title = 'Registering with your Keybase passphrase'
-        const subTitle = 'lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
-
-        dispatch(askForUserPass(title, subTitle, () => {
-          const { username } = getState().login2.userPass
-          response.result(username)
-        }, true))
-      },
-      'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {
-        const { passphrase } = getState().login2.userPass
-        response.result(passphrase)
-      },
-      'keybase.1.provisionUi.PromptNewDeviceName': (param, response) => {
-        const { existingDevices } = param
-        dispatch(askForDeviceName(existingDevices, () => {
-          const { deviceName } = getState().login2.deviceName
-          response.result(deviceName)
-        }))
-      },
-      'keybase.1.logUi.log': (param, response) => {
-        console.log(param)
-        response.result()
-      },
-      'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
-        response.result()
-      }
-    }
-
-    const mobile = true // TODO desktop also
-    const deviceType = mobile ? 'mobile' : 'desktop'
-
-    engine.rpc('login.xLogin', {deviceType}, incomingMap, (error, response) => {
-      dispatch({
-        type: Constants.actionRegisteredWithUserPass,
-        error: !!error,
-        payload: error || null
-      })
-
-      dispatch(switchTab(DEVICES_TAB))
-    })
-  }
-}
-
 // Show a user/pass screen, call cb(user, passphrase) when done
 // title/subTitle to customize the screen
-export const askForUserPass = (title, subTitle, cb, hidePass = false) => {
+export function askForUserPass (title, subTitle, cb, hidePass = false) {
   return (dispatch) => {
-    dispatch({
-      type: Constants.actionAskUserPass,
-      title,
-      subTitle,
-      hidePass,
-      onSubmit: (username, passphrase) => {
-        dispatch({
-          type: Constants.actionSetUserPass,
-          username,
-          passphrase
-        })
-
-        cb()
-      }
-    })
-
     dispatch(routeAppend({
       parseRoute: {
         componentAtTop: {
           component: UserPass,
-          mapStateToProps: state => state.login2.userPass
+          mapStateToProps: state => state.login2.userPass,
+          props: {
+            title,
+            subTitle,
+            hidePass,
+            onSubmit: (username, passphrase) => {
+              dispatch({
+                type: Constants.actionSetUserPass,
+                username,
+                passphrase
+              })
+
+              cb()
+            }
+          }
+        }
+      }
+    }))
+  }
+}
+
+export function askForPaperKey (cb) {
+  return (dispatch) => {
+    dispatch(routeAppend({
+      parseRoute: {
+        componentAtTop: {
+          component: PaperKey,
+          mapStateToProps: state => state.login2,
+          props: {
+            onSubmit: (paperKey) => { cb(paperKey) }
+          }
         }
       }
     }))
@@ -348,7 +307,7 @@ export const askForUserPass = (title, subTitle, cb, hidePass = false) => {
 
 // Show a device naming page, call cb(deviceName) when done
 // existing devices are blacklisted
-export const askForDeviceName = (existingDevices, cb) => {
+export function askForDeviceName (existingDevices, cb) {
   return (dispatch) => {
     dispatch({
       type: Constants.actionAskDeviceName,
@@ -374,62 +333,71 @@ export const askForDeviceName = (existingDevices, cb) => {
   }
 }
 
-// TODO maybe paperKey should stay in the store and not be passed around?
-export function registerWithPaperKey (paperKey) {
+export function registerWithUserPass () {
   return (dispatch, getState) => {
-    dispatch({
-      type: Constants.actionRegisteringWithPaperKey
-    })
-
-    const incomingMap = {
-      'keybase.1.provisionUi.chooseProvisioningMethod': (param, response) => {
-        response.result(enums.provisionUi.ProvisionMethod.paperKey)
-      },
-      // TODO remove this when KEX2 supports not asking for this
-      'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
-        const title = 'Registering with your paperkey requires your username'
-        const subTitle = 'Different lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
-
-        dispatch(askForUserPass(title, subTitle, () => {
-          const { username } = getState().login2.userPass
-          response.result(username)
-        }, true))
-      },
-      'keybase.1.secretUi.getPaperKeyPassphrase': (param, response) => {
-        response.result(paperKey)
-      },
-      'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {
-        const { passphrase } = getState().login2.userPass
-        response.result(passphrase)
-      },
-      'keybase.1.provisionUi.PromptNewDeviceName': (param, response) => {
-        const { existingDevices } = param
-        dispatch(askForDeviceName(existingDevices, () => {
-          const { deviceName } = getState().login2.deviceName
-          response.result(deviceName)
-        }))
-      },
-      'keybase.1.logUi.log': (param, response) => {
-        console.log(param)
-        response.result()
-      },
-      'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
-        response.result()
-      }
-    }
-
-    const mobile = true // TODO desktop also
-    const deviceType = mobile ? 'mobile' : 'desktop'
-
-    engine.rpc('login.xLogin', {deviceType}, incomingMap, (error, response) => {
-      dispatch({
-        type: Constants.actionRegisteredWithPaperKey,
-        error: !!error,
-        payload: error || null
-      })
-
-      dispatch(switchTab(DEVICES_TAB))
-    })
+    const title = 'Registering with your Keybase passphrase'
+    const subTitle = 'lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
+    const provisionMethod = enums.provisionUi.ProvisionMethod.passphrase
+    startLoginFlow(dispatch, getState, provisionMethod, title, subTitle, Constants.actionRegisteredWithUserPass)
   }
 }
 
+export function registerWithPaperKey () {
+  return (dispatch, getState) => {
+    const title = 'Registering with your paperkey requires your username'
+    const subTitle = 'Different lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
+    const provisionMethod = enums.provisionUi.ProvisionMethod.paperKey
+    startLoginFlow(dispatch, getState, provisionMethod, title, subTitle, Constants.actionRegisteredWithPaperKey)
+  }
+}
+
+function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle, successType) {
+  const incomingMap = {
+    'keybase.1.provisionUi.chooseProvisioningMethod': (param, response) => {
+      response.result(provisionMethod)
+    },
+    // TODO remove this when KEX2 supports not asking for this
+    'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
+      dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
+        const { username } = getState().login2.userPass
+        response.result(username)
+      }, true))
+    },
+    'keybase.1.secretUi.getPaperKeyPassphrase': (param, response) => {
+      dispatch(askForPaperKey((paperKey) => {
+        response.result(paperKey)
+      }))
+    },
+    'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {
+      const { passphrase } = getState().login2.userPass
+      response.result(passphrase)
+    },
+    'keybase.1.provisionUi.PromptNewDeviceName': (param, response) => {
+      const { existingDevices } = param
+      dispatch(askForDeviceName(existingDevices, () => {
+        const { deviceName } = getState().login2.deviceName
+        response.result(deviceName)
+      }))
+    },
+    'keybase.1.logUi.log': (param, response) => {
+      console.log(param)
+      response.result()
+    },
+    'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
+      response.result()
+    }
+  }
+
+  const mobile = true // TODO desktop also
+  const deviceType = mobile ? 'mobile' : 'desktop'
+
+  engine.rpc('login.xLogin', {deviceType}, incomingMap, (error, response) => {
+    dispatch({
+      type: successType,
+      error: !!error,
+      payload: error || null
+    })
+
+    dispatch(switchTab(DEVICES_TAB))
+  })
+}

@@ -10,8 +10,8 @@ export default class UserPass extends Component {
     super(props)
 
     this.state = {
-      username: props.username || 'test12',
-      passphrase: props.passphrase || 'okokokokokok'
+      username: props.username || '',
+      passphrase: props.passphrase || ''
     }
   }
 
@@ -54,43 +54,6 @@ export default class UserPass extends Component {
       </View>
     )
   }
-
-  /*
-  static parseRoute (store, currentPath, nextPath) {
-    const title = 'Register with your Keybase passphrase'
-    const subTitle = 'Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum Lorem ipsum'
-
-    return {
-      componentAtTop: {
-        component: UserPass,
-        mapStateToProps: state => {
-          const { username, passphrase, registerUserPassError: error, registerUserPassLoading: loading } = state.login2
-          return {
-            username,
-            passphrase,
-            loading,
-            error
-          }
-        },
-        props: {
-          onSubmit: (user, passphrase) => {
-            const onSubmit = currentPath.get('onSubmit')
-            if (onSubmit) {
-              onSubmit(user, passphrase)
-            } else {
-              store.dispatch(registerSubmitUserPass(user, passphrase))
-            }
-          },
-          title,
-          subTitle
-        }
-      },
-      subRoutes: {
-        regSetPublicName: SetPublicName
-      }
-    }
-  }
-  */
 }
 
 UserPass.propTypes = {
