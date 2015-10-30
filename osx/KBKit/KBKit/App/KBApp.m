@@ -116,10 +116,10 @@
   _appView = [[KBAppView alloc] init];
   [_appView openWindow];
 
-//  NSMutableArray *componentsForControlPanel = [environment.componentsForControlPanel mutableCopy];
+  NSMutableArray *componentsForControlPanel = [environment.componentsForControlPanel mutableCopy];
 //  [componentsForControlPanel addObject:_appView];
 //  [componentsForControlPanel addObject:[[KBStyleGuideView alloc] init]];
-//  [_controlPanel addComponents:componentsForControlPanel];
+  [_controlPanel addComponents:componentsForControlPanel];
 
   [_controlPanel open:_appView];
 

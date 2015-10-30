@@ -1,10 +1,8 @@
 ## Keybase for Mac OS X
 
-
-### Installer
-
-To build Keybase.app and dmg package, see the [Installer](https://github.com/keybase/client/tree/master/osx/Install/README.md). For updater info see the [Updater](https://github.com/keybase/client/tree/master/osx/Install/Updater/README.md).
-
+**Warning**: The code in this repository does not represent a finalized 
+architecture or API and we will probably not accept any external pull requests.
+*We advise you not to fork this repository.*
 
 ### Project Setup
 

@@ -154,7 +154,13 @@
 
 - (NSBundle *)bundle {
 #ifdef DEBUG
-  return [NSBundle bundleWithPath:@"/Applications/Keybase.app"];
+  if (self.runMode == KBRunModeDevel) {
+    return nil;
+  } else if (self.runMode == KBRunModeStaging) {
+    return [NSBundle bundleWithPath:@"/Applications/KeybaseStage.app"];
+  } else {
+    return [NSBundle bundleWithPath:@"/Applications/Keybase.app"];
+  }
 #else
   return NSBundle.mainBundle;
 #endif

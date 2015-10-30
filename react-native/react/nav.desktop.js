@@ -9,7 +9,7 @@ import { StyleSheet } from 'react'
 import Folders from './tabs/folders'
 import Chat from './tabs/chat'
 import People from './tabs/people'
-// import Devices from './tabs/devices'
+import Devices from './tabs/devices'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
@@ -22,7 +22,7 @@ const tabToRootRouteParse = {
   [FOLDER_TAB]: Folders,
   [CHAT_TAB]: Chat,
   [PEOPLE_TAB]: People,
-  // [DEVICES_TAB]: Devices,
+  [DEVICES_TAB]: Devices,
   [MORE_TAB]: More
 }
 
