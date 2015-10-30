@@ -12,7 +12,9 @@ export default class DevicePrompt extends BaseComponent {
   }
 
   render () {
-    return <DevicePromptRender onSubmit={(deviceName) => { this.props.onSubmit(deviceName) }} />
+    const error = this.props.deviceNameError ? this.props.deviceNameError : ''
+
+    return <DevicePromptRender deviceNameError={this.props.deviceNameError} onSubmit={(deviceName) => { this.props.onSubmit(deviceName) }} />
   }
 
   // TODO(mm): add types

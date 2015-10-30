@@ -18,6 +18,8 @@ export default class DevicePromptRender extends BaseComponent {
   }
 
   render () {
+    const error = this.props.deviceNameError ? <Text>{this.props.deviceNameError}</Text> : null
+
     return (
       <View style={styles.container}>
         <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Set a device name</Text>
