@@ -17,22 +17,12 @@ protocol login {
   array<ConfiguredAccount> getConfiguredAccounts(int sessionID);
 
   /**
-    Tries to log in, prompting for username (if empty) and passphrase if
-    necessary.
+    Performs login.  deviceType should be libkb.DeviceTypeDesktop
+    or libkb.DeviceTypeMobile.  username is optional.  
+    If the current device isn't provisioned, this function will 
+    provision it.
     */
-  /* void loginWithPrompt(int sessionID, string username); */
-
-  /**
-    Tries to log in with the given username and its associated stored secret.
-    */
-  /* void loginWithStoredSecret(int sessionID, string username); */
-
-  /**
-    Tries to log in with the given username and passphrase. If pubkey login is
-    successful and storeSecret is set, stores the derived secret in the
-    platform's secret store (e.g., the keychain on OS X).
-    */
-  /* void loginWithPassphrase(int sessionID, string username, string passphrase, boolean storeSecret); */
+  void login(int sessionID, string deviceType, string username);
 
   /**
     Removes any existing stored secret for the given username.
@@ -58,8 +48,4 @@ protocol login {
     */
   void unlock(int sessionID);
 
-  /**
-    Performs login.  username is optional.  Will use the kex2 flow.
-    */
-  void xLogin(int sessionID, string deviceType, string username);
 }

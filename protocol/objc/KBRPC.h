@@ -884,6 +884,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRGetConfiguredAccountsRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRLoginRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *deviceType;
+@property NSString *username;
+@end
 @interface KBRClearStoredSecretRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *username;
@@ -905,11 +910,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRUnlockRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@end
-@interface KBRXLoginRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@property NSString *deviceType;
-@property NSString *username;
 @end
 @interface KBRGetEmailOrUsernameRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1642,6 +1642,16 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)getConfiguredAccounts:(void (^)(NSError *error, NSArray *items))completion;
 
 /*!
+ Performs login. deviceType should be libkb.DeviceTypeDesktop
+ or libkb.DeviceTypeMobile. username is optional. 
+ If the current device isn't provisioned, this function will 
+ provision it.
+ */
+- (void)login:(KBRLoginRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)loginWithDeviceType:(NSString *)deviceType username:(NSString *)username completion:(void (^)(NSError *error))completion;
+
+/*!
  Removes any existing stored secret for the given username.
  loginWithStoredSecret(_, username) will fail after this is called.
  */
@@ -1669,13 +1679,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  Unlock restores access to local key store by priming passphrase stream cache.
  */
 - (void)unlock:(void (^)(NSError *error))completion;
-
-/*!
- Performs login. username is optional. Will use the kex2 flow.
- */
-- (void)xLogin:(KBRXLoginRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)xLoginWithDeviceType:(NSString *)deviceType username:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 @end
 

@@ -46,7 +46,7 @@ func (c *CmdLogin) Run() error {
 	if err != nil {
 		return err
 	}
-	return client.XLogin(context.TODO(), keybase1.XLoginArg{Username: c.username, DeviceType: libkb.DeviceTypeDesktop})
+	return client.Login(context.TODO(), keybase1.LoginArg{Username: c.username, DeviceType: libkb.DeviceTypeDesktop})
 }
 
 func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {

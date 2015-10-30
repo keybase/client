@@ -898,6 +898,20 @@
   }];
 }
 
+- (void)login:(KBRLoginRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"deviceType": KBRValue(params.deviceType), @"username": KBRValue(params.username)};
+  [self.client sendRequestWithMethod:@"keybase.1.login.login" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)loginWithDeviceType:(NSString *)deviceType username:(NSString *)username completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"deviceType": KBRValue(deviceType), @"username": KBRValue(username)};
+  [self.client sendRequestWithMethod:@"keybase.1.login.login" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)clearStoredSecret:(KBRClearStoredSecretRequestParams *)params completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"username": KBRValue(params.username)};
   [self.client sendRequestWithMethod:@"keybase.1.login.clearStoredSecret" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -957,20 +971,6 @@
 - (void)unlock:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{};
   [self.client sendRequestWithMethod:@"keybase.1.login.unlock" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)xLogin:(KBRXLoginRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"deviceType": KBRValue(params.deviceType), @"username": KBRValue(params.username)};
-  [self.client sendRequestWithMethod:@"keybase.1.login.xLogin" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)xLoginWithDeviceType:(NSString *)deviceType username:(NSString *)username completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"deviceType": KBRValue(deviceType), @"username": KBRValue(username)};
-  [self.client sendRequestWithMethod:@"keybase.1.login.xLogin" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -3484,6 +3484,24 @@
 }
 @end
 
+@implementation KBRLoginRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.deviceType = params[0][@"deviceType"];
+    self.username = params[0][@"username"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRLoginRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRClearStoredSecretRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -3592,24 +3610,6 @@
 
 + (instancetype)params {
   KBRUnlockRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRXLoginRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.deviceType = params[0][@"deviceType"];
-    self.username = params[0][@"username"];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRXLoginRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

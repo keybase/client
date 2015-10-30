@@ -2291,6 +2291,12 @@ type GetConfiguredAccountsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type LoginArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	DeviceType string `codec:"deviceType" json:"deviceType"`
+	Username   string `codec:"username" json:"username"`
+}
+
 type ClearStoredSecretArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
@@ -2320,14 +2326,9 @@ type UnlockArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type XLoginArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	DeviceType string `codec:"deviceType" json:"deviceType"`
-	Username   string `codec:"username" json:"username"`
-}
-
 type LoginInterface interface {
 	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
+	Login(context.Context, LoginArg) error
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
 	CancelLogin(context.Context, int) error
 	Logout(context.Context, int) error
@@ -2335,7 +2336,6 @@ type LoginInterface interface {
 	RecoverAccountFromEmailAddress(context.Context, string) error
 	PaperKey(context.Context, int) error
 	Unlock(context.Context, int) error
-	XLogin(context.Context, XLoginArg) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -2354,6 +2354,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetConfiguredAccounts(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"login": {
+				MakeArg: func() interface{} {
+					ret := make([]LoginArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoginArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoginArg)(nil), args)
+						return
+					}
+					err = i.Login(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2470,22 +2486,6 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"xLogin": {
-				MakeArg: func() interface{} {
-					ret := make([]XLoginArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]XLoginArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]XLoginArg)(nil), args)
-						return
-					}
-					err = i.XLogin(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 		},
 	}
 }
@@ -2497,6 +2497,11 @@ type LoginClient struct {
 func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (res []ConfiguredAccount, err error) {
 	__arg := GetConfiguredAccountsArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.login", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2538,11 +2543,6 @@ func (c LoginClient) PaperKey(ctx context.Context, sessionID int) (err error) {
 func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 	__arg := UnlockArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.login.unlock", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LoginClient) XLogin(ctx context.Context, __arg XLoginArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.xLogin", []interface{}{__arg}, nil)
 	return
 }
 

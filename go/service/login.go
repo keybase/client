@@ -144,7 +144,7 @@ func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *LoginHandler) XLogin(_ context.Context, arg keybase1.XLoginArg) error {
+func (h *LoginHandler) Login(_ context.Context, arg keybase1.LoginArg) error {
 	ctx := &engine.Context{
 		LogUI:       h.getLogUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
