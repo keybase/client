@@ -6,6 +6,7 @@ import React from '../base-react'
 import engine from './native'
 import EngineError from './errors'
 
+import fs from 'fs'
 import rpc from 'framed-msgpack-rpc'
 const {
   client: { Client: RpcClient },
@@ -15,12 +16,41 @@ const {
 import { Buffer } from 'buffer'
 import NativeEventEmitter from '../common-adapters/native-event-emitter'
 
+let platform = 'desktop'
+if ('Platform' in React) {
+  platform = React.Platform.OS
+}
+console.log(`Platform is ${platform}.`)
+
+class BaseTransport extends RpcTransport {
+  constructor (opts, writeCallback, incomingRPCCallback) {
+    super(opts)
+
+    if (writeCallback) {
+      this.writeCallback = writeCallback
+    }
+    if (incomingRPCCallback) {
+      this.incomingRPCCallback = incomingRPCCallback
+    }
+  }
+
+  unwrap_incoming_error (err) {
+    if (!err) {
+      return null
+    }
+
+    if (typeof (err) === 'object') {
+      return new EngineError(err)
+    } else {
+      return new Error(JSON.stringify(err))
+    }
+  }
+}
+
 // Transport which just gives us the payload and skips really sending over the wire
-class DummyTransport extends RpcTransport {
-  constructor (writeCallback, incomingRPCCallback) {
-    super({})
-    this.writeCallback = writeCallback
-    this.set_generic_handler(incomingRPCCallback)
+class MobileTransport extends BaseTransport {
+  constructor (opts, writeCallback, incomingRPCCallback) {
+    super(opts, writeCallback, incomingRPCCallback)
   }
 
   connect (cb) { cb() }
@@ -29,18 +59,6 @@ class DummyTransport extends RpcTransport {
   close () { }
   get_generation () { return 1 }
 
-  unwrap_incoming_error (err) {
-    if (!err) {
-      return null
-    }
-
-    if (typeof (err) === 'object') {
-      return new EngineError(err)
-    } else {
-      return new Error(JSON.stringify(err))
-    }
-  }
-
   _raw_write_bufs (len, buf) {
     const buffer = Buffer.concat([new Buffer(len), new Buffer(buf)])
     const data = buffer.toString('base64')
@@ -48,47 +66,46 @@ class DummyTransport extends RpcTransport {
   }
 }
 
-class ElectronTransport extends RpcTransport {
-  constructor (opts, incomingRPCCallback) {
-    super(opts)
-    this.set_generic_handler(incomingRPCCallback)
-  }
-  unwrap_incoming_error (err) {
-    if (!err) {
-      return null
-    }
-
-    if (typeof (err) === 'object') {
-      return new EngineError(err)
-    } else {
-      return new Error(JSON.stringify(err))
-    }
-  }
-}
-
 class Engine {
   constructor () {
-    if ('platform' in React) {
+    let program = 'keybase.1'
+    if (platform === 'desktop') {
+      /* React Desktop */
+      const paths = [
+        // Hardcoded for now!
+        process.env.HOME + '/Library/Caches/KeybaseDevel/keybased.sock',
+        process.env.XDG_RUNTIME_DIR + '/keybase.devel/keybased.sock'
+      ]
+      let sockfile = null
+      paths.map(path => {
+        let exists = fs.existsSync(path)
+        if (exists) {
+          console.log('Found keybased socket file at ' + path)
+          sockfile = path
+        }
+      })
+      if (!sockfile) {
+        console.error('No keybased socket file found!')
+      }
+      this.rpcClient = new RpcClient(
+        new BaseTransport(
+          { path: sockfile, robust: true },
+          null,
+          (payload) => { this._rpcIncoming(payload) }
+        ),
+        program
+      )
+      this.rpcClient.transport.connect(err => console.log(err))
+    } else {
       /* React Native */
       this.rpcClient = new RpcClient(
-        new DummyTransport(
+        new MobileTransport(
+          {},
           this._rpcWrite,
           (payload) => { this._rpcIncoming(payload) }
         ),
-        'keybase.1'
+        program
       )
-    } else {
-      /* React Desktop */
-      this.rpcClient = new RpcClient(
-        new ElectronTransport({
-          path: '/run/user/1000/keybase.devel/keybased.sock',
-          robust: true
-        },
-          (payload) => { this._rpcIncoming(payload) }
-        ),
-        'keybase.1'
-      )
-      this.rpcClient.transport.connect(err => console.log(err))
     }
 
     this.setupListener()
@@ -111,7 +128,7 @@ class Engine {
           return
         }
 
-        if ('platform' in React) {
+        if (platform !== 'desktop') {
           this.rpcClient.transport.packetize_data(new Buffer(payload, 'base64'))
         }
       }
