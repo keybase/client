@@ -83,6 +83,10 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 	// ctx is needed in some of the kex2 functions:
 	e.ctx = ctx
 
+	if e.ctx.LoginContext == nil {
+		return errors.New("Kex2Provisionee needs LoginContext set in engine.Context")
+	}
+
 	if len(e.secret) == 0 {
 		panic("empty secret")
 	}
@@ -167,7 +171,9 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 	defer func() { e.G().Log.Debug("- HandleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
 
 	// load self user (to load merkle root)
-	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.username))
+	loadArg := libkb.NewLoadUserByNameArg(e.G(), e.username)
+	loadArg.LoginContext = e.ctx.LoginContext
+	_, err = libkb.LoadUser(loadArg)
 	if err != nil {
 		return err
 	}
@@ -298,7 +304,9 @@ func (e *Kex2Provisionee) Device() *libkb.Device {
 func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 	if e.device.Description == nil {
 		// need user to get existing device names
-		user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.username))
+		loadArg := libkb.NewLoadUserByNameArg(e.G(), e.username)
+		loadArg.LoginContext = e.ctx.LoginContext
+		user, err := libkb.LoadUser(loadArg)
 		if err != nil {
 			return err
 		}
@@ -441,7 +449,7 @@ func (e *Kex2Provisionee) pushLKSServerHalf() error {
 
 	// Sync the LKS stuff back from the server, so that subsequent
 	// attempts to use public key login will work.
-	err = e.G().LoginState().RunSecretSyncer(e.uid)
+	err = e.ctx.LoginContext.RunSecretSyncer(e.uid)
 	if err != nil {
 		return err
 	}
@@ -453,35 +461,48 @@ func (e *Kex2Provisionee) pushLKSServerHalf() error {
 // file is stored in a temporary location.  It must be put in
 // place with swapConfig.
 func (e *Kex2Provisionee) saveLoginState() error {
-	var err error
-	var filename string
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-		err = a.LoadLoginSession(e.username)
-		if err != nil {
-			return
-		}
-		filename, err = a.SaveStateTmp(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), e.uid, e.device.ID)
-		if err != nil {
-			return
-		}
-	}, "Kex2Provisionee - saveLoginState()")
-	if aerr != nil {
-		return aerr
+	if err := e.ctx.LoginContext.LoadLoginSession(e.username); err != nil {
+		return err
 	}
+	filename, err := e.ctx.LoginContext.SaveStateTmp(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), e.uid, e.device.ID)
 	if err != nil {
 		return err
 	}
 	e.tmpConfigFile = filename
 	return nil
+
+	/*
+		var err error
+		var filename string
+
+		aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+			err = a.LoadLoginSession(e.username)
+			if err != nil {
+				return
+			}
+			filename, err = a.SaveStateTmp(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), e.uid, e.device.ID)
+			if err != nil {
+				return
+			}
+		}, "Kex2Provisionee - saveLoginState()")
+		if aerr != nil {
+			return aerr
+		}
+		if err != nil {
+			return err
+		}
+		e.tmpConfigFile = filename
+		return nil
+	*/
 }
 
 // saveKeys writes the device keys to LKSec.
 func (e *Kex2Provisionee) saveKeys() error {
-	_, err := libkb.WriteLksSKBToKeyring(e.eddsa, e.lks, nil)
+	_, err := libkb.WriteLksSKBToKeyring(e.eddsa, e.lks, e.ctx.LoginContext)
 	if err != nil {
 		return err
 	}
-	_, err = libkb.WriteLksSKBToKeyring(e.dh, e.lks, nil)
+	_, err = libkb.WriteLksSKBToKeyring(e.dh, e.lks, e.ctx.LoginContext)
 	if err != nil {
 		return err
 	}

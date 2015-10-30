@@ -154,14 +154,12 @@ func (e *LoginProvision) device(ctx *Context) error {
 		}
 	}()
 
-	// run provisionee
-	if err := RunEngine(provisionee, ctx); err != nil {
-		return err
+	f := func(lctx libkb.LoginContext) error {
+		// run provisionee
+		ctx.LoginContext = lctx
+		return RunEngine(provisionee, ctx)
 	}
-
-	if err := e.G().LoginState().LocalSession(func(s *libkb.Session) {
-		s.SetDeviceProvisioned(deviceID)
-	}, "LoginProvision - device"); err != nil {
+	if err := e.G().LoginState().ExternalFunc(f, "LoginProvision.device - Run provisionee"); err != nil {
 		return err
 	}
 

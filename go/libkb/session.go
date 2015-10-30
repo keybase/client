@@ -91,7 +91,7 @@ func (s *Session) SetUsername(username NormalizedUsername) {
 	s.username = &username
 }
 
-func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUsername, uid keybase1.UID) error {
+func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
 	s.valid = true
 	s.uid = uid
 	s.username = &username
@@ -108,6 +108,13 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUs
 	s.GetDictionary().SetKey("session", jsonw.NewString(sessionID))
 
 	s.SetCsrf(csrfToken)
+
+	s.deviceID = deviceID
+	if s.file == nil {
+		return errors.New("no session file")
+	}
+	s.GetDictionary().SetKey("device_provisioned", jsonw.NewString(deviceID.String()))
+
 	return s.save()
 }
 

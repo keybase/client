@@ -358,7 +358,7 @@ func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername,
 	if err := cw.Write(); err != nil {
 		return err
 	}
-	if err := a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid); err != nil {
+	if err := a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid, nilDeviceID); err != nil {
 		return err
 	}
 
@@ -387,7 +387,7 @@ func (a *Account) SaveStateTmp(sessionID, csrf string, username NormalizedUserna
 	if err != nil {
 		return "", err
 	}
-	if err := a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid); err != nil {
+	if err := a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid, deviceID); err != nil {
 		return "", err
 	}
 

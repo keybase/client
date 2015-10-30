@@ -38,29 +38,39 @@ func TestKex2Provision(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		ctx := &Context{
-			ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
+
+		f := func(lctx libkb.LoginContext) error {
+
+			ctx := &Context{
+				ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
+				LoginContext: lctx,
+			}
+			deviceID, err := libkb.NewDeviceID()
+			if err != nil {
+				t.Errorf("provisionee device id error: %s", err)
+				return err
+			}
+			suffix, err := libkb.RandBytes(5)
+			if err != nil {
+				t.Errorf("provisionee device suffix error: %s", err)
+				return err
+			}
+			dname := fmt.Sprintf("device_%x", suffix)
+			device := &libkb.Device{
+				ID:          deviceID,
+				Description: &dname,
+				Type:        libkb.DeviceTypeDesktop,
+			}
+			provisionee := NewKex2Provisionee(tcY.G, device, secretY)
+			if err := RunEngine(provisionee, ctx); err != nil {
+				t.Errorf("provisionee error: %s", err)
+				return err
+			}
+			return nil
 		}
-		deviceID, err := libkb.NewDeviceID()
-		if err != nil {
-			t.Errorf("provisionee device id error: %s", err)
-			return
-		}
-		suffix, err := libkb.RandBytes(5)
-		if err != nil {
-			t.Errorf("provisionee device suffix error: %s", err)
-			return
-		}
-		dname := fmt.Sprintf("device_%x", suffix)
-		device := &libkb.Device{
-			ID:          deviceID,
-			Description: &dname,
-			Type:        libkb.DeviceTypeDesktop,
-		}
-		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
-		if err := RunEngine(provisionee, ctx); err != nil {
-			t.Errorf("provisionee error: %s", err)
-			return
+
+		if err := tcY.G.LoginState().ExternalFunc(f, "Test - Kex2Provision"); err != nil {
+			t.Errorf("kex2 provisionee error: %s", err)
 		}
 	}()
 
