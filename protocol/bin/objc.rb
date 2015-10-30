@@ -44,6 +44,7 @@ def objc_for_type(type, enums, aliases, space)
   when "float" then ["float", false]
   when "double" then ["double", false]
   when "array" then ["NSArray *", true]
+  when "map" then ["NSDictionary *", true]
   when "boolean" then ["BOOL", false]
   when "bytes" then ["NSData *", true]
   when "null" then ["void", false]
@@ -62,7 +63,7 @@ def objc_for_type(type, enums, aliases, space)
 end
 
 def is_native_type(type)
-  is_primitive_type(type) || ["string", "array", "bytes"].include?(type)
+  is_primitive_type(type) || ["string", "array", "map", "bytes"].include?(type)
 end
 
 def is_primitive_type(type)
@@ -93,6 +94,7 @@ def default_name_for_type(type)
   when "float" then "f"
   when "double" then "d"
   when "array" then "items"
+  when "map" then "dict"
   when "boolean" then "b"
   when "binary" then "data"
   when "null" then "void"
@@ -104,13 +106,19 @@ def value_for_type(type, name, enums, aliases)
   type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
   varname = "params[0][@\"#{name}\"]"
 
-  if type.kind_of?(Hash) # (for arrays)
-    type_for_array = type["items"]
-    type_for_array = aliases[type_for_array] if aliases[type_for_array]
-    if is_native_type(type_for_array)
-      return "KBRValidateArray(#{varname}, #{classname(type_for_array, aliases)}.class)"
+  if type.kind_of?(Hash) # For array, map
+    if type["type"] == "array" then
+      type_for_array = type["items"]
+      type_for_array = aliases[type_for_array] if aliases[type_for_array]
+      if is_native_type(type_for_array)
+        return "KBRValidateArray(#{varname}, #{classname(type_for_array, aliases)}.class)"
+      else
+        return "[MTLJSONAdapter modelsOfClass:#{classname(type_for_array, aliases)}.class fromJSONArray:#{varname} error:nil]"
+      end
     else
-      return "[MTLJSONAdapter modelsOfClass:#{classname(type_for_array, aliases)}.class fromJSONArray:#{varname} error:nil]"
+      type_for_map = type["values"]
+      type_for_map = aliases[type_for_map] if aliases[type_for_map]
+      return "KBRValidateDictionary(#{varname}, #{classname(type_for_map, aliases)}.class)"
     end
   end
 
@@ -128,13 +136,14 @@ def value_for_type(type, name, enums, aliases)
   when "boolean" then "[#{varname} boolValue]"
   when "string" then varname
   when "array" then varname
+  when "map" then varname
   when "bytes" then varname
   else
     "[MTLJSONAdapter modelOfClass:#{classname(type, aliases)}.class fromJSONDictionary:#{varname} error:nil]"
   end
 end
 
-def add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases)
+def add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases, enums)
   rpc_method = "#{namespace}.#{protocol}.#{method}"
   dc_method = method.camelize(:lower)
   objc_method = "- (void)#{dc_method}#{params_str.join(" ")}"
@@ -147,6 +156,8 @@ def add_methods(header, impl, namespace, protocol, response_type, method, reques
     "completion(error);"
   elsif is_primitive_type(response_type) # Primitive type result
     "completion(error, 0);" # TODO
+  elsif enums.include?(response_type)
+    "completion(error, [retval integerValue]);"
   elsif response_type.kind_of?(Hash) # Array result
     item_type = response_type["items"]
     item_clsname = classname(item_type, aliases)
@@ -280,10 +291,10 @@ paths.each do |path|
     if request_params.length > 0
       params_str << ":(KBR#{method.camelize}RequestParams *)params"
       params_str << "completion:(#{objc_for_type(response_completion, enums, aliases, false)})completion"
-      add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases)
+      add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases, enums)
     else
       params_str << ":(#{objc_for_type(response_completion, enums, aliases, false)})completion"
-      add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases)
+      add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases, enums)
     end
 
     # Generate with full method signature (deprecated)
@@ -304,7 +315,7 @@ paths.each do |path|
 
         "#{name}:(#{objc_for_type(param["type"], enums, aliases, false)})#{alias_name(param["name"])}"
       end
-      add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases)
+      add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases, enums)
     end
 
     # Request params
@@ -377,4 +388,3 @@ EOS
   f.write(impl_rparams.join("\n"))
   f.write(impl_records.join("\n"))
 }
-

@@ -22,7 +22,7 @@ func GetRPCServer(g *libkb.GlobalContext) (ret *rpc.Server, xp rpc.Transporter, 
 		ret = rpc.NewServer(xp, libkb.WrapError)
 	}
 	if err != nil {
-		DiagnoseSocketError(err)
+		DiagnoseSocketError(g.UI, err)
 	}
 	return
 }

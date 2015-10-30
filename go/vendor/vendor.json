@@ -43,6 +43,11 @@
 			"revisionTime": "2015-06-01T17:10:55-07:00"
 		},
 		{
+			"path": "github.com/blang/semver",
+			"revision": "31b736133b98f26d5e078ec9eb591666edfd091f",
+			"revisionTime": "2015-06-20T10:58:49+02:00"
+		},
+		{
 			"path": "github.com/dustin/go-humanize",
 			"revision": "c20a8bde38c8f5ba06f6600edf473705c96829d1",
 			"revisionTime": "2015-08-24T01:38:10-07:00"

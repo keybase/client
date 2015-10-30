@@ -1100,7 +1100,7 @@
   }];
 }
 
-- (void)putMetadataWithMdBlock:(NSData *)mdBlock logTags:(KBRmap *)logTags completion:(void (^)(NSError *error))completion {
+- (void)putMetadataWithMdBlock:(NSData *)mdBlock logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"mdBlock": KBRValue(mdBlock), @"logTags": KBRValue(logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.putMetadata" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -1119,7 +1119,7 @@
   }];
 }
 
-- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision logTags:(KBRmap *)logTags completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion {
+- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion {
   NSDictionary *rparams = @{@"folderID": KBRValue(folderID), @"folderHandle": KBRValue(folderHandle), @"unmerged": @(unmerged), @"startRevision": @(startRevision), @"stopRevision": @(stopRevision), @"logTags": KBRValue(logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.getMetadata" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1138,7 +1138,7 @@
   }];
 }
 
-- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(long)currRevision logTags:(KBRmap *)logTags completion:(void (^)(NSError *error))completion {
+- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(long)currRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"folderID": KBRValue(folderID), @"currRevision": @(currRevision), @"logTags": KBRValue(logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.registerForUpdates" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -1152,7 +1152,7 @@
   }];
 }
 
-- (void)pruneUnmergedWithFolderID:(NSString *)folderID logTags:(KBRmap *)logTags completion:(void (^)(NSError *error))completion {
+- (void)pruneUnmergedWithFolderID:(NSString *)folderID logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"folderID": KBRValue(folderID), @"logTags": KBRValue(logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.pruneUnmerged" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -1166,7 +1166,7 @@
   }];
 }
 
-- (void)putKeysWithKeyHalves:(NSArray *)keyHalves logTags:(KBRmap *)logTags completion:(void (^)(NSError *error))completion {
+- (void)putKeysWithKeyHalves:(NSArray *)keyHalves logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"keyHalves": KBRValue(keyHalves), @"logTags": KBRValue(logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.putKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -1185,7 +1185,7 @@
   }];
 }
 
-- (void)getKeyWithKeyHalfID:(NSData *)keyHalfID logTags:(KBRmap *)logTags completion:(void (^)(NSError *error, NSData *bytes))completion {
+- (void)getKeyWithKeyHalfID:(NSData *)keyHalfID logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error, NSData *bytes))completion {
   NSDictionary *rparams = @{@"keyHalfID": KBRValue(keyHalfID), @"logTags": KBRValue(logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.getKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1711,36 +1711,21 @@
 - (void)chooseProvisioningMethod:(KBRChooseProvisioningMethodRequestParams *)params completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion {
   NSDictionary *rparams = @{@"gpgOption": @(params.gpgOption)};
   [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseProvisioningMethod" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBRProvisionMethod *result = retval ? [MTLJSONAdapter modelOfClass:KBRProvisionMethod.class fromJSONDictionary:retval error:&error] : nil;
-    completion(error, result);
+    completion(error, [retval integerValue]);
   }];
 }
 
 - (void)chooseProvisioningMethodWithGpgOption:(BOOL)gpgOption completion:(void (^)(NSError *error, KBRProvisionMethod provisionMethod))completion {
   NSDictionary *rparams = @{@"gpgOption": @(gpgOption)};
   [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseProvisioningMethod" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBRProvisionMethod *result = retval ? [MTLJSONAdapter modelOfClass:KBRProvisionMethod.class fromJSONDictionary:retval error:&error] : nil;
-    completion(error, result);
+    completion(error, [retval integerValue]);
   }];
 }
 
 - (void)chooseDeviceType:(void (^)(NSError *error, KBRDeviceType deviceType))completion {
   NSDictionary *rparams = @{};
   [self.client sendRequestWithMethod:@"keybase.1.provisionUi.chooseDeviceType" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBRDeviceType *result = retval ? [MTLJSONAdapter modelOfClass:KBRDeviceType.class fromJSONDictionary:retval error:&error] : nil;
-    completion(error, result);
+    completion(error, [retval integerValue]);
   }];
 }
 
@@ -3816,7 +3801,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.mdBlock = params[0][@"mdBlock"];
-    self.logTags = [MTLJSONAdapter modelsOfClass:KBR.class fromJSONArray:params[0][@"logTags"] error:nil];
+    self.logTags = KBRValidateDictionary(params[0][@"logTags"], NSString.class);
   }
   return self;
 }
@@ -3837,7 +3822,7 @@
     self.unmerged = [params[0][@"unmerged"] boolValue];
     self.startRevision = [params[0][@"startRevision"] longValue];
     self.stopRevision = [params[0][@"stopRevision"] longValue];
-    self.logTags = [MTLJSONAdapter modelsOfClass:KBR.class fromJSONArray:params[0][@"logTags"] error:nil];
+    self.logTags = KBRValidateDictionary(params[0][@"logTags"], NSString.class);
   }
   return self;
 }
@@ -3855,7 +3840,7 @@
   if ((self = [super initWithParams:params])) {
     self.folderID = params[0][@"folderID"];
     self.currRevision = [params[0][@"currRevision"] longValue];
-    self.logTags = [MTLJSONAdapter modelsOfClass:KBR.class fromJSONArray:params[0][@"logTags"] error:nil];
+    self.logTags = KBRValidateDictionary(params[0][@"logTags"], NSString.class);
   }
   return self;
 }
@@ -3872,7 +3857,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.folderID = params[0][@"folderID"];
-    self.logTags = [MTLJSONAdapter modelsOfClass:KBR.class fromJSONArray:params[0][@"logTags"] error:nil];
+    self.logTags = KBRValidateDictionary(params[0][@"logTags"], NSString.class);
   }
   return self;
 }
@@ -3889,7 +3874,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.keyHalves = [MTLJSONAdapter modelsOfClass:KBRKeyHalf.class fromJSONArray:params[0][@"keyHalves"] error:nil];
-    self.logTags = [MTLJSONAdapter modelsOfClass:KBR.class fromJSONArray:params[0][@"logTags"] error:nil];
+    self.logTags = KBRValidateDictionary(params[0][@"logTags"], NSString.class);
   }
   return self;
 }
@@ -3906,7 +3891,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.keyHalfID = params[0][@"keyHalfID"];
-    self.logTags = [MTLJSONAdapter modelsOfClass:KBR.class fromJSONArray:params[0][@"logTags"] error:nil];
+    self.logTags = KBRValidateDictionary(params[0][@"logTags"], NSString.class);
   }
   return self;
 }
@@ -5182,6 +5167,12 @@
 @end
 
 @implementation KBRConfig
+@end
+
+@implementation KBRServiceStatusError
+@end
+
+@implementation KBRServiceStatus
 @end
 
 @implementation KBRED25519SignatureInfo

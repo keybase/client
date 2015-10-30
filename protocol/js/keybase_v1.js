@@ -34,6 +34,20 @@ module.exports = {
       "error": 5,
       "critical": 6,
       "fatal": 7
+    },
+    "InstallStatus": {
+      "unknown": 0,
+      "error": 1,
+      "notInstalled": 2,
+      "needsUpgrade": 3,
+      "installed": 4
+    },
+    "InstallAction": {
+      "unknown": 0,
+      "none": 1,
+      "upgrade": 2,
+      "reinstall": 3,
+      "install": 4
     }
   },
   "crypto": {},

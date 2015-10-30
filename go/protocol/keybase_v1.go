@@ -354,6 +354,41 @@ type Config struct {
 	ConfigPath string `codec:"configPath" json:"configPath"`
 }
 
+type InstallStatus int
+
+const (
+	InstallStatus_UNKNOWN       InstallStatus = 0
+	InstallStatus_ERROR         InstallStatus = 1
+	InstallStatus_NOT_INSTALLED InstallStatus = 2
+	InstallStatus_NEEDS_UPGRADE InstallStatus = 3
+	InstallStatus_INSTALLED     InstallStatus = 4
+)
+
+type ServiceStatusError struct {
+	Message string `codec:"message" json:"message"`
+}
+
+type InstallAction int
+
+const (
+	InstallAction_UNKNOWN   InstallAction = 0
+	InstallAction_NONE      InstallAction = 1
+	InstallAction_UPGRADE   InstallAction = 2
+	InstallAction_REINSTALL InstallAction = 3
+	InstallAction_INSTALL   InstallAction = 4
+)
+
+type ServiceStatus struct {
+	Version        string              `codec:"version" json:"version"`
+	Label          string              `codec:"label" json:"label"`
+	Pid            string              `codec:"pid" json:"pid"`
+	LastExitStatus string              `codec:"lastExitStatus" json:"lastExitStatus"`
+	BundleVersion  string              `codec:"bundleVersion" json:"bundleVersion"`
+	InstallStatus  InstallStatus       `codec:"installStatus" json:"installStatus"`
+	InstallAction  InstallAction       `codec:"installAction" json:"installAction"`
+	Error          *ServiceStatusError `codec:"error,omitempty" json:"error,omitempty"`
+}
+
 type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
