@@ -8,13 +8,12 @@ we have here is still very much a work-in-progress, with some code more mature t
 ### Code Layout
 
 * **go**: Core crypto libraries; the Keybase service and command line client. [Learn More](go/README.md)
-* **react-native**: Android and iOS apps developed via the [react-native framework](https://facebook.github.io/react-native/).
-* **desktop**: Desktop application for OSX, Linux and Windows, made via the [electron framework](https://github.com/atom/electron) framework, sharing React code with react-native.
+* **react-native**: Android and iOS apps developed with [React Native](https://facebook.github.io/react-native/).
+* **desktop**: Desktop application for OSX, Linux and Windows, made with the [Electron](https://github.com/atom/electron) framework, sharing React code with react-native.
 * **packaging**: Scripts for releasing packages across the various platforms.
 * **protocol**: Defines the protocol for communication for clients to the Keybase services. Uses [Avro](http://avro.apache.org/docs/1.7.7/). [Learn More](protocol/README.md)
 * **media**: Icons, graphics, media for Keybase apps.
-* **electron**: Exploration with Electron.
-* **osx**: The Mac OS X Keybase.app; development parallel to an Electron-based application above. [Learn More](osx/README.md)
+* **osx**: The Mac OS X Keybase.app, development parallel to an Electron-based application above. [Learn More](osx/README.md)
 
 
 ### Problems?
