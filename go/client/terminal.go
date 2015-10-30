@@ -9,7 +9,7 @@ import (
 )
 
 type Terminal struct {
-	sync.Mutex
+	once   sync.Once // protects opening the minterm
 	engine *minterm.MinTerm
 }
 
@@ -18,17 +18,20 @@ func NewTerminal() (*Terminal, error) {
 }
 
 func (t *Terminal) open() error {
-	t.Lock()
-	defer t.Unlock()
-	if t.engine != nil {
-		return nil
-	}
-	eng, err := minterm.New()
-	if err != nil {
-		return err
-	}
-	t.engine = eng
-	return nil
+	var err error
+	t.once.Do(func() {
+		if t.engine != nil {
+			return
+		}
+		var eng *minterm.MinTerm
+		eng, err = minterm.New()
+		if err != nil {
+			return
+		}
+		t.engine = eng
+		return
+	})
+	return err
 }
 
 func (t *Terminal) Shutdown() error {
