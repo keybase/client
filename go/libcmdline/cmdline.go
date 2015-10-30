@@ -174,10 +174,6 @@ func (p CommandLine) GetTimers() string {
 	return p.GetGString("timers")
 }
 
-func (p CommandLine) GetUI() string {
-	return p.GetGString("ui")
-}
-
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {

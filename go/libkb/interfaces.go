@@ -44,7 +44,6 @@ type CommandLine interface {
 	GetSocketFile() string
 	GetPidFile() string
 	GetStandalone() (bool, bool)
-	GetUI() string
 	GetAutoFork() (bool, bool)
 	GetNoAutoFork() (bool, bool)
 	GetLocalRPCDebug() string

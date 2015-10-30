@@ -64,7 +64,7 @@ func KeybaseServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1
 	// Something must be wrong if this build doesn't match the package version.
 	if bundleVersion != buildVersion {
 		st.InstallStatus = keybase1.InstallStatus_ERROR
-		st.Error = &keybase1.ServiceStatusError{Message: fmt.Sprintf("Bundle version mismatch: %s != %s", bundleVersion, buildVersion)}
+		st.Error = &keybase1.ServiceStatusError{Message: fmt.Sprintf("Version mismatch: %s != %s", bundleVersion, buildVersion)}
 		return st
 	}
 

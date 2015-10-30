@@ -177,10 +177,6 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			// more info.
 			os.Setenv("KEYBASE_LOCAL_RPC_DEBUG", "c")
 
-			// Disable terminal (UI) since we are running from the app process and
-			// don't have access to /dev/tty
-			os.Setenv("KEYBASE_UI", "null")
-
 			cl.ChooseCommand(NewCmdLaunchdStatusRunner(g), "status", c)
 		},
 	}

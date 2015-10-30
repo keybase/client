@@ -42,7 +42,6 @@ func (n NullConfiguration) GetPidFile() string                            { retu
 func (n NullConfiguration) GetStandalone() (bool, bool)                   { return false, false }
 func (n NullConfiguration) GetLocalRPCDebug() string                      { return "" }
 func (n NullConfiguration) GetTimers() string                             { return "" }
-func (n NullConfiguration) GetUI() string                                 { return "" }
 func (n NullConfiguration) GetDeviceID() keybase1.DeviceID                { return "" }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error)            { return nil, nil }
 func (n NullConfiguration) GetAutoFork() (bool, bool)                     { return false, false }
@@ -695,13 +694,6 @@ func (e *Env) GetStoredSecretAccessGroup() string {
 		return ""
 	}
 	return "99229SGT5K.group.keybase"
-}
-
-func (e *Env) GetUI() string {
-	return e.GetString(
-		func() string { return e.cmd.GetUI() },
-		func() string { return os.Getenv("KEYBASE_UI") },
-	)
 }
 
 func (e *Env) GetStoredSecretServiceName() string {
