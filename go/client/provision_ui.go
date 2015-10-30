@@ -102,7 +102,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 		p.parent.Output("Type this verification code into your other device:\n\n")
 		p.parent.Output("\t" + arg.Phrase + "\n\n")
 		p.parent.Output("If you are using the command line client on your other device, run this command:\n\n")
-		p.parent.Output("\tkeybase device xadd\n\n")
+		p.parent.Output("\tkeybase device add\n\n")
 		p.parent.Output("It will then prompt you for the verification code above.\n\n")
 
 		if arg.OtherDeviceType == keybase1.DeviceType_MOBILE {

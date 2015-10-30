@@ -23,14 +23,14 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdConfig(cl),
 		NewCmdCtl(cl, g),
 		NewCmdDb(cl, g),
-		NewCmdDevice(cl),
+		NewCmdDevice(cl, g),
 		NewCmdDoctor(cl),
 		NewCmdFavorite(cl),
 		NewCmdID(cl),
 		NewCmdLaunchd(cl, g),
 		NewCmdListTracking(cl),
 		NewCmdListTrackers(cl),
-		NewCmdLogin(cl),
+		NewCmdLogin(cl, g),
 		NewCmdLogout(cl, g),
 		NewCmdPaperKey(cl),
 		NewCmdPassphrase(cl),
@@ -48,7 +48,6 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdUnlock(cl),
 		NewCmdUntrack(cl),
 		NewCmdVersion(cl),
-		NewCmdXLogin(cl),
 	}
 }
 

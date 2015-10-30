@@ -133,7 +133,7 @@ func setAndCheck(t *testing.T, config *libkb.TestConfig, key string, value strin
 	c.Run()
 
 	// check the file by reading it in
-	cf := libkb.NewJSONConfigFile(config.GetConfigFileName())
+	cf := libkb.NewJSONConfigFile(G, config.GetConfigFileName())
 	if err := cf.Load(false); err != nil {
 		t.Fatalf("Couldn't load config file %s", config.GetConfigFileName())
 	}
@@ -219,7 +219,7 @@ func TestSetStringInExisting(t *testing.T) {
 
 	setAndCheck(t, config, "aaa.bbb.ccc", "blah", checker)
 	// and make sure the existing key is still there
-	cf := libkb.NewJSONConfigFile(config.GetConfigFileName())
+	cf := libkb.NewJSONConfigFile(G, config.GetConfigFileName())
 	if err := cf.Load(false); err != nil {
 		t.Fatalf("Couldn't load config file %s", config.GetConfigFileName())
 	}
@@ -336,7 +336,7 @@ func TestClear(t *testing.T) {
 
 	// make sure it's really done
 	fn := config.GetConfigFileName()
-	cf := libkb.NewJSONConfigFile(fn)
+	cf := libkb.NewJSONConfigFile(G, fn)
 	if err := cf.Load(false); err != nil {
 		t.Fatalf("Couldn't load config file %s", fn)
 	}

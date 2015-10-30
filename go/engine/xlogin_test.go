@@ -280,6 +280,74 @@ func TestProvisionGPG(t *testing.T) {
 	}
 }
 
+func TestProvisionDupDevice(t *testing.T) {
+	// device X (provisioner) context:
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisioner needs to be logged in
+	userX := CreateAndSignupFakeUser(tcX, "login")
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	secretCh := make(chan kex2.Secret)
+
+	provui := &testProvisionDupDeviceUI{newTestProvisionUISecretCh(secretCh)}
+
+	// provisionee calls xlogin:
+	ctx := &Context{
+		ProvisionUI: provui,
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewXLogin(tcY.G, libkb.DeviceTypeDesktop, "")
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tcY.G.Log.Warning("starting xlogin")
+		if err := RunEngine(eng, ctx); err == nil {
+			t.Errorf("xlogin ran without error")
+			return
+		}
+	}()
+
+	// start provisioner
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ctx := &Context{
+			SecretUI:    userX.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		if err := RunEngine(provisioner, ctx); err == nil {
+			t.Errorf("provisioner ran without error")
+			return
+		}
+	}()
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	wg.Wait()
+
+	if err := AssertProvisioned(tcY); err == nil {
+		t.Fatal("device provisioned using existing name")
+	}
+}
+
 type testProvisionUI struct {
 	secretCh chan kex2.Secret
 	method   keybase1.ProvisionMethod
@@ -361,4 +429,13 @@ func (u *testProvisionUI) ProvisioneeSuccess(_ context.Context, _ keybase1.Provi
 func (u *testProvisionUI) ProvisionerSuccess(_ context.Context, _ keybase1.ProvisionerSuccessArg) error {
 	u.printf("ProvisionerSuccess")
 	return nil
+}
+
+type testProvisionDupDeviceUI struct {
+	*testProvisionUI
+}
+
+// return an existing device name
+func (u *testProvisionDupDeviceUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
+	return arg.ExistingDevices[0], nil
 }

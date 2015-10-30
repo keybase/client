@@ -336,6 +336,8 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername, tok
 	return
 }
 
+// XXX during xlogin cleanup, should be possible to replace this
+// with SaveStateTmp().
 func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID) error {
 	cw := a.G().Env.GetConfigWriter()
 	if cw == nil {
@@ -361,6 +363,35 @@ func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername,
 	}
 
 	return nil
+}
+
+// SaveStateTmp saves the logins state to memory, and to a
+// temporary config file.
+func (a *Account) SaveStateTmp(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (filename string, err error) {
+	cw := a.G().Env.GetConfigWriter()
+	if cw == nil {
+		return "", NoConfigWriterError{}
+	}
+
+	if err := a.LoginSession().Clear(); err != nil {
+		return "", err
+	}
+	salt, err := a.LoginSession().Salt()
+	if err != nil {
+		return "", err
+	}
+	if err := cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), false); err != nil {
+		return "", err
+	}
+	filename, err = cw.SaveTmp(deviceID.String())
+	if err != nil {
+		return "", err
+	}
+	if err := a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid); err != nil {
+		return "", err
+	}
+
+	return filename, nil
 }
 
 func (a *Account) Dump() {

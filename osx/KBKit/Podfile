@@ -2,4 +2,17 @@ platform :osx, "10.10"
 use_frameworks!
 
 target "KBKit" do
+  pod "YOLayout"
+  pod "GHKit"
+  pod "ObjectiveSugar"
+  pod "CocoaLumberjack"
+  pod "AFNetworking"
+  pod "GHKeychain"
+  pod "Mantle"
+  pod "MPMessagePack"
+  pod "ZXCVBN"
+  pod "GHODictionary"
+  pod "MASPreferences"
+  pod "MDPSplitView"
+  pod "Tikppa"
 end

@@ -9,7 +9,7 @@ import { StyleSheet } from 'react'
 import Folders from './tabs/folders'
 import Chat from './tabs/chat'
 import People from './tabs/people'
-//import Devices from './tabs/devices'
+import Devices from './tabs/devices/index.desktop'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
@@ -22,7 +22,7 @@ const tabToRootRouteParse = {
   [FOLDER_TAB]: Folders,
   [CHAT_TAB]: Chat,
   [PEOPLE_TAB]: People,
-//  [DEVICES_TAB]: Devices.parseRoute,
+  [DEVICES_TAB]: Devices,
   [MORE_TAB]: More
 }
 
@@ -110,6 +110,9 @@ export default class Nav extends BaseComponent {
             {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
           </Tab>
           <Tab label="People" value={PEOPLE_TAB}>
+            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
+          </Tab>
+          <Tab label="Devices" value={DEVICES_TAB}>
             {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
           </Tab>
         </Tabs>
