@@ -333,10 +333,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Specify 'a' for API; 'r' for RPCs; and 'x' for eXternal API calls",
 		},
 		cli.StringFlag{
-			Name:  "ui",
-			Usage: "Specify a UI type, use 'none' to disable.",
-		},
-		cli.StringFlag{
 			Name:  "scraper-timeout",
 			Usage: "set the HTTP timeout for external proof scrapers",
 		},

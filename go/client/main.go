@@ -8,7 +8,7 @@ import (
 var G = libkb.G
 var GlobUI *UI
 
-func InitUI(uiType string) {
+func InitUI() {
 	GlobUI = &UI{}
 	G.SetUI(GlobUI)
 }
