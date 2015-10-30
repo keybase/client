@@ -30,8 +30,6 @@ protocol login {
     */
   void clearStoredSecret(int sessionID, string username);
 
-  void cancelLogin(int sessionID);
-
   void logout(int sessionID);
   void reset(int sessionID);
 

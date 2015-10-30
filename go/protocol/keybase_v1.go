@@ -826,23 +826,12 @@ type DeviceListArg struct {
 }
 
 type DeviceAddArg struct {
-	SessionID    int    `codec:"sessionID" json:"sessionID"`
-	SecretPhrase string `codec:"secretPhrase" json:"secretPhrase"`
-}
-
-type DeviceAddCancelArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
-type DeviceXAddArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type DeviceInterface interface {
 	DeviceList(context.Context, int) ([]Device, error)
-	DeviceAdd(context.Context, DeviceAddArg) error
-	DeviceAddCancel(context.Context, int) error
-	DeviceXAdd(context.Context, int) error
+	DeviceAdd(context.Context, int) error
 }
 
 func DeviceProtocol(i DeviceInterface) rpc.Protocol {
@@ -876,39 +865,7 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DeviceAddArg)(nil), args)
 						return
 					}
-					err = i.DeviceAdd(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"deviceAddCancel": {
-				MakeArg: func() interface{} {
-					ret := make([]DeviceAddCancelArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]DeviceAddCancelArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]DeviceAddCancelArg)(nil), args)
-						return
-					}
-					err = i.DeviceAddCancel(ctx, (*typedArgs)[0].SessionID)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"deviceXAdd": {
-				MakeArg: func() interface{} {
-					ret := make([]DeviceXAddArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]DeviceXAddArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]DeviceXAddArg)(nil), args)
-						return
-					}
-					err = i.DeviceXAdd(ctx, (*typedArgs)[0].SessionID)
+					err = i.DeviceAdd(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -927,20 +884,9 @@ func (c DeviceClient) DeviceList(ctx context.Context, sessionID int) (res []Devi
 	return
 }
 
-func (c DeviceClient) DeviceAdd(ctx context.Context, __arg DeviceAddArg) (err error) {
+func (c DeviceClient) DeviceAdd(ctx context.Context, sessionID int) (err error) {
+	__arg := DeviceAddArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.device.deviceAdd", []interface{}{__arg}, nil)
-	return
-}
-
-func (c DeviceClient) DeviceAddCancel(ctx context.Context, sessionID int) (err error) {
-	__arg := DeviceAddCancelArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.device.deviceAddCancel", []interface{}{__arg}, nil)
-	return
-}
-
-func (c DeviceClient) DeviceXAdd(ctx context.Context, sessionID int) (err error) {
-	__arg := DeviceXAddArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.device.deviceXAdd", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1887,10 +1833,6 @@ type ClearStoredSecretArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
-type CancelLoginArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type LogoutArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1915,7 +1857,6 @@ type LoginInterface interface {
 	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
 	Login(context.Context, LoginArg) error
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
-	CancelLogin(context.Context, int) error
 	Logout(context.Context, int) error
 	Reset(context.Context, int) error
 	RecoverAccountFromEmailAddress(context.Context, string) error
@@ -1971,22 +1912,6 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						return
 					}
 					err = i.ClearStoredSecret(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"cancelLogin": {
-				MakeArg: func() interface{} {
-					ret := make([]CancelLoginArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]CancelLoginArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]CancelLoginArg)(nil), args)
-						return
-					}
-					err = i.CancelLogin(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2092,12 +2017,6 @@ func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
 
 func (c LoginClient) ClearStoredSecret(ctx context.Context, __arg ClearStoredSecretArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.clearStoredSecret", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LoginClient) CancelLogin(ctx context.Context, sessionID int) (err error) {
-	__arg := CancelLoginArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.cancelLogin", []interface{}{__arg}, nil)
 	return
 }
 

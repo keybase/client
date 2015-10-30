@@ -331,30 +331,9 @@
   }];
 }
 
-- (void)deviceAdd:(KBRDeviceAddRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"secretPhrase": KBRValue(params.secretPhrase)};
-  [self.client sendRequestWithMethod:@"keybase.1.device.deviceAdd" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"secretPhrase": KBRValue(secretPhrase)};
-  [self.client sendRequestWithMethod:@"keybase.1.device.deviceAdd" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)deviceAddCancel:(void (^)(NSError *error))completion {
+- (void)deviceAdd:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.device.deviceAddCancel" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)deviceXAdd:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.device.deviceXAdd" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.device.deviceAdd" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -745,13 +724,6 @@
 - (void)clearStoredSecretWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"username": KBRValue(username)};
   [self.client sendRequestWithMethod:@"keybase.1.login.clearStoredSecret" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)cancelLogin:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.login.cancelLogin" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -2691,45 +2663,12 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.secretPhrase = params[0][@"secretPhrase"];
   }
   return self;
 }
 
 + (instancetype)params {
   KBRDeviceAddRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRDeviceAddCancelRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRDeviceAddCancelRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRDeviceXAddRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRDeviceXAddRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -3144,22 +3083,6 @@
 
 + (instancetype)params {
   KBRClearStoredSecretRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRCancelLoginRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRCancelLoginRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

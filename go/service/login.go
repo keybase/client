@@ -10,14 +10,14 @@ import (
 
 type LoginHandler struct {
 	libkb.Contextified
-	*CancelHandler
+	*BaseHandler
 	identifyUI libkb.IdentifyUI
 }
 
 func NewLoginHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LoginHandler {
 	return &LoginHandler{
-		CancelHandler: NewCancelHandler(xp),
-		Contextified:  libkb.NewContextified(g),
+		BaseHandler:  NewBaseHandler(xp),
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -55,15 +55,6 @@ func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email s
 
 func (h *LoginHandler) ClearStoredSecret(_ context.Context, arg keybase1.ClearStoredSecretArg) error {
 	return libkb.ClearStoredSecret(libkb.NewNormalizedUsername(arg.Username))
-}
-
-func (h *LoginHandler) CancelLogin(_ context.Context, sessionID int) error {
-	c := h.canceler(sessionID)
-	if c == nil {
-		h.G().Log.Debug("CancelLogin called and there's no login engine for sessionID %d", sessionID)
-		return libkb.LoginSessionNotFound{SessionID: sessionID}
-	}
-	return c.Cancel()
 }
 
 func (h *LoginHandler) PaperKey(_ context.Context, sessionID int) error {

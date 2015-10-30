@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -133,7 +132,6 @@ func (c *CmdStress) signup(cli *rpc.Client) (username, passphrase string, err er
 
 func (c *CmdStress) simulate(username, passphrase string) {
 	funcs := []func(){
-		// c.deviceAdd,
 		c.deviceList,
 		c.idAlice,
 		c.idSelf,
@@ -244,36 +242,6 @@ func (c *CmdStress) deviceList() {
 	if err != nil {
 		G.Log.Warning("device list error: %s", err)
 	}
-}
-
-func (c *CmdStress) deviceAdd() {
-	cli, err := c.rpcClient()
-	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
-		return
-	}
-	dcli := keybase1.DeviceClient{Cli: cli}
-	sessionID, err := libkb.RandInt()
-	if err != nil {
-		G.Log.Warning("RandInt error: %s", err)
-		return
-	}
-	phrase, err := libkb.RandBytes(50)
-	if err != nil {
-		G.Log.Warning("RandBytes error: %s", err)
-		return
-	}
-	err = dcli.DeviceAdd(context.TODO(), keybase1.DeviceAddArg{SecretPhrase: string(phrase), SessionID: sessionID})
-	if err != nil {
-		G.Log.Warning("device add error: %s", err)
-	}
-	go func() {
-		time.Sleep(10 * time.Millisecond)
-		err := dcli.DeviceAddCancel(context.TODO(), sessionID)
-		if err != nil {
-			G.Log.Warning("device add cancel error: %s", err)
-		}
-	}()
 }
 
 func (c *CmdStress) status() {

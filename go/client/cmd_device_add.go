@@ -48,7 +48,7 @@ func (c *CmdDeviceAdd) Run() error {
 		return err
 	}
 
-	return cli.DeviceXAdd(context.TODO(), 0)
+	return cli.DeviceAdd(context.TODO(), 0)
 }
 
 // ParseArgv gets the secret phrase from the command args.

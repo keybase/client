@@ -678,13 +678,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRDeviceAddRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property NSString *secretPhrase;
-@end
-@interface KBRDeviceAddCancelRequestParams : KBRRequestParams
-@property NSInteger sessionID;
-@end
-@interface KBRDeviceXAddRequestParams : KBRRequestParams
-@property NSInteger sessionID;
 @end
 @interface KBRFavoriteAddRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -785,9 +778,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRClearStoredSecretRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *username;
-@end
-@interface KBRCancelLoginRequestParams : KBRRequestParams
-@property NSInteger sessionID;
 @end
 @interface KBRLogoutRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1300,25 +1290,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 /*!
  Starts the process of adding a new device using an existing
- device. It is called on the existing device. Client is responsible
- for generating a sessionID.
- */
-- (void)deviceAdd:(KBRDeviceAddRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)deviceAddWithSecretPhrase:(NSString *)secretPhrase completion:(void (^)(NSError *error))completion;
-
-/*!
- Cancels an in-progress deviceAdd(...). Use the sessionID
- you provided to deviceAdd as the parameter.
- */
-- (void)deviceAddCancel:(void (^)(NSError *error))completion;
-
-/*!
- Starts the process of adding a new device using an existing
  device. It is called on the existing device. 
  This is for kex2.
  */
-- (void)deviceXAdd:(void (^)(NSError *error))completion;
+- (void)deviceAdd:(void (^)(NSError *error))completion;
 
 @end
 
@@ -1468,8 +1443,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)clearStoredSecret:(KBRClearStoredSecretRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)clearStoredSecretWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
-
-- (void)cancelLogin:(void (^)(NSError *error))completion;
 
 - (void)logout:(void (^)(NSError *error))completion;
 

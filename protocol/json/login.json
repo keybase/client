@@ -206,13 +206,6 @@
       } ],
       "response" : "null"
     },
-    "cancelLogin" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "null"
-    },
     "logout" : {
       "request" : [ {
         "name" : "sessionID",
