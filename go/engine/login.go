@@ -11,7 +11,7 @@ import (
 var errNoConfig = errors.New("No user config available")
 var errNoDevice = errors.New("No device provisioned locally for this user")
 
-// XLogin is an engine.
+// Login is an engine.
 type Login struct {
 	libkb.Contextified
 	deviceType string

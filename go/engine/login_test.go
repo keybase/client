@@ -342,7 +342,7 @@ func TestLogin(t *testing.T) {
 
 	secretCh := make(chan kex2.Secret)
 
-	// provisionee calls xlogin:
+	// provisionee calls login:
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUISecretCh(secretCh),
 		LoginUI:     &libkb.TestLoginUI{},
@@ -358,9 +358,8 @@ func TestLogin(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		tcY.G.Log.Warning("starting xlogin")
 		if err := RunEngine(eng, ctx); err != nil {
-			t.Errorf("xlogin error: %s", err)
+			t.Errorf("login error: %s", err)
 			return
 		}
 	}()
@@ -414,7 +413,7 @@ func TestProvisionPassphraseFail(t *testing.T) {
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "")
 	err := RunEngine(eng, ctx)
 	if err == nil {
-		t.Fatal("expected xlogin to fail, but it ran without error")
+		t.Fatal("expected login to fail, but it ran without error")
 	}
 	if _, ok := err.(libkb.PassphraseProvisionImpossibleError); !ok {
 		t.Fatalf("expected PassphraseProvisionImpossibleError, got %T (%s)", err, err)
@@ -481,7 +480,7 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// since this user didn't have any device keys, xlogin should have fixed that:
+	// since this user didn't have any device keys, login should have fixed that:
 	testUserHasDeviceKey(tc)
 
 	// and they should have a paper backup key
@@ -567,7 +566,7 @@ func TestProvisionGPG(t *testing.T) {
 	// now safe to cleanup first home
 	tc.Cleanup()
 
-	// run xlogin on new device
+	// run login on new device
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUIGPG(),
 		LogUI:       tc2.G.UI.GetLogUI(),
@@ -610,7 +609,7 @@ func TestProvisionDupDevice(t *testing.T) {
 
 	provui := &testProvisionDupDeviceUI{newTestProvisionUISecretCh(secretCh)}
 
-	// provisionee calls xlogin:
+	// provisionee calls login:
 	ctx := &Context{
 		ProvisionUI: provui,
 		LoginUI:     &libkb.TestLoginUI{},
@@ -626,9 +625,8 @@ func TestProvisionDupDevice(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		tcY.G.Log.Warning("starting xlogin")
 		if err := RunEngine(eng, ctx); err == nil {
-			t.Errorf("xlogin ran without error")
+			t.Errorf("login ran without error")
 			return
 		}
 	}()
