@@ -11,6 +11,10 @@ import Button from '../common-adapters/button'
 export default class DevicePromptRender extends BaseComponent {
   constructor (props) {
     super (props)
+
+    this.state = {
+      deviceName: props.deviceName || ''
+    }
   }
 
   render () {
@@ -26,13 +30,13 @@ export default class DevicePromptRender extends BaseComponent {
           returnKeyType='next'
           autoCorrect={false}
           onChangeText={(deviceName) => this.setState({deviceName})}
-          onSubmitEditing={(event) => { this.submit() }}
+          onSubmitEditing={(event) => { this.props.onSubmit(this.state.deviceName) }}
           />
 
         {error}
 
         <View style={styles.submitWrapper}>
-          <Button onPress={() => { this.submit() }} title='Next' isSubmit/>
+          <Button onPress={() => { this.props.onSubmit(this.state.deviceName) }} title='Next' isSubmit/>
         </View>
       </View>
     )

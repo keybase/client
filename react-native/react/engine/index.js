@@ -6,7 +6,6 @@ import React from '../base-react'
 import engine from './native'
 import EngineError from './errors'
 
-import fs from 'fs'
 import rpc from 'framed-msgpack-rpc'
 const {
   client: { Client: RpcClient },
@@ -30,7 +29,7 @@ class BaseTransport extends RpcTransport {
       this.writeCallback = writeCallback
     }
     if (incomingRPCCallback) {
-      this.incomingRPCCallback = incomingRPCCallback
+      this.set_generic_handler(incomingRPCCallback)
     }
   }
 
@@ -78,6 +77,8 @@ class Engine {
       ]
       let sockfile = null
       paths.map(path => {
+        // Can't use ES2015 import because it'll hoist and crash mobile.
+        let fs = require('fs')
         let exists = fs.existsSync(path)
         if (exists) {
           console.log('Found keybased socket file at ' + path)
