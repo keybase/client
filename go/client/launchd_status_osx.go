@@ -68,7 +68,7 @@ func KeybaseServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1
 		return st
 	}
 
-	installStatus, se := installStatus(version, bundleVersion)
+	installStatus, se := installStatus(version, bundleVersion, st.LastExitStatus)
 	st.InstallStatus = installStatus
 	st.Error = se
 	return st
@@ -93,11 +93,10 @@ func KBFSServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.Se
 		if err != nil {
 			return errorStatus(err)
 		}
-		// nil means file wasn't found
-		if kbfsInfo == nil {
-			kbfsInfo = &libkb.ServiceInfo{}
-		}
-	} else {
+	}
+
+	// nil means not running or file wasn't found
+	if kbfsInfo == nil {
 		kbfsInfo = &libkb.ServiceInfo{}
 	}
 
@@ -111,13 +110,13 @@ func KBFSServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.Se
 		BundleVersion:  bundleVersion,
 	}
 
-	installStatus, se := installStatus(version, bundleVersion)
+	installStatus, se := installStatus(version, bundleVersion, st.LastExitStatus)
 	st.InstallStatus = installStatus
 	st.Error = se
 	return st
 }
 
-func installStatus(version string, bundleVersion string) (keybase1.InstallStatus, *keybase1.ServiceStatusError) {
+func installStatus(version string, bundleVersion string, lastExitStatus string) (keybase1.InstallStatus, *keybase1.ServiceStatusError) {
 	var installStatus keybase1.InstallStatus
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	if version != "" && bundleVersion != "" {
@@ -137,6 +136,13 @@ func installStatus(version string, bundleVersion string) (keybase1.InstallStatus
 			return keybase1.InstallStatus_ERROR, &keybase1.ServiceStatusError{Message: fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version)}
 		}
 	}
+
+	// If we had a version or last exit status (and the status was unknown) then a
+	// version is installed
+	if installStatus == keybase1.InstallStatus_UNKNOWN && (version != "" || lastExitStatus != "") {
+		installStatus = keybase1.InstallStatus_INSTALLED
+	}
+
 	return installStatus, nil
 }
 
