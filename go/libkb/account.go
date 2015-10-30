@@ -336,62 +336,59 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername, tok
 	return
 }
 
-// XXX during xlogin cleanup, should be possible to replace this
-// with SaveStateTmp().
+// SaveState saves the logins state to memory, and to the user
+// config file.
 func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID) error {
-	cw := a.G().Env.GetConfigWriter()
-	if cw == nil {
-		return NoConfigWriterError{}
-	}
-
-	if err := a.LoginSession().Clear(); err != nil {
-		return err
-	}
-	salt, err := a.LoginSession().Salt()
-	if err != nil {
-		return err
+	saver := func(cw ConfigWriter) error {
+		return cw.Write()
 	}
 	var nilDeviceID keybase1.DeviceID
-	if err := cw.SetUserConfig(NewUserConfig(uid, username, salt, nilDeviceID), false); err != nil {
-		return err
-	}
-	if err := cw.Write(); err != nil {
-		return err
-	}
-	if err := a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid, nilDeviceID); err != nil {
-		return err
-	}
-
-	return nil
+	return a.saveState(sessionID, csrf, username, uid, nilDeviceID, saver)
 }
 
 // SaveStateTmp saves the logins state to memory, and to a
 // temporary config file.
 func (a *Account) SaveStateTmp(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (filename string, err error) {
+	saver := func(cw ConfigWriter) error {
+		var serr error
+		filename, serr = cw.SaveTmp(deviceID.String())
+		return serr
+	}
+	if err := a.saveState(sessionID, csrf, username, uid, deviceID, saver); err != nil {
+		return "", err
+	}
+	return filename, nil
+}
+
+func (a *Account) saveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID, saver func(ConfigWriter) error) error {
+	cw, err := a.newUserConfigWriter(username, uid, deviceID)
+	if err != nil {
+		return err
+	}
+	if err := saver(cw); err != nil {
+		return err
+	}
+	return a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid, deviceID)
+}
+
+func (a *Account) newUserConfigWriter(username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (ConfigWriter, error) {
 	cw := a.G().Env.GetConfigWriter()
 	if cw == nil {
-		return "", NoConfigWriterError{}
+		return nil, NoConfigWriterError{}
 	}
 
 	if err := a.LoginSession().Clear(); err != nil {
-		return "", err
+		return nil, err
 	}
 	salt, err := a.LoginSession().Salt()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if err := cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), false); err != nil {
-		return "", err
-	}
-	filename, err = cw.SaveTmp(deviceID.String())
-	if err != nil {
-		return "", err
-	}
-	if err := a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid, deviceID); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return filename, nil
+	return cw, nil
 }
 
 func (a *Account) Dump() {
