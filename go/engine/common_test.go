@@ -154,7 +154,6 @@ func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalConte
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUI(),
 		LogUI:       g.UI.GetLogUI(),
-		LocksmithUI: &lockui{},
 		GPGUI:       &gpgtestui{},
 		SecretUI:    secui,
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},

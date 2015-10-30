@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"errors"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -99,264 +98,6 @@ func testUserHasDeviceKey(tc libkb.TestContext) {
 		tc.T.Fatal("nil subkey")
 	}
 }
-
-/*
-func TestLoginAddsKeys(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-
-	username, passphrase := createFakeUserWithNoKeys(tc)
-
-	Logout(tc)
-
-	li := NewLoginWithPromptEngine(username, tc.G)
-	secui := &libkb.TestSecretUI{Passphrase: passphrase}
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), LocksmithUI: &lockui{deviceName: "Device"}, GPGUI: &gpgtestui{}, SecretUI: secui, LoginUI: &libkb.TestLoginUI{}}
-	if err := RunEngine(li, ctx); err != nil {
-		t.Fatal(err)
-	}
-	if err := AssertLoggedIn(tc); err != nil {
-		t.Fatal(err)
-	}
-
-	// since this user didn't have any keys, login should have fixed that:
-	testUserHasDeviceKey(tc)
-
-	// and they should have a paper backup key
-	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
-}
-
-// TestLoginPGPSignNewDevice
-//
-//  Setup: Create a new user who only has a Sync'ed PGP key, like our typical
-//    web user who has never used PGP.
-//  Step 1: Sign into a "new device" and authorize new keys with the synced
-//    PGP key.
-//
-func TestLoginPGPSignNewDevice(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	u1 := createFakeUserWithPGPOnly(t, tc)
-	Logout(tc)
-	tc.Cleanup()
-
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
-	docui := &lockuiPGP{&lockui{deviceName: "PGP Device"}}
-
-	before := docui.selectSignerCount
-
-	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
-	secui := &libkb.TestSecretUI{Passphrase: u1.Passphrase}
-	ctx := &Context{
-		LogUI:       tc2.G.UI.GetLogUI(),
-		LocksmithUI: docui,
-		SecretUI:    secui,
-		GPGUI:       &gpgtestui{},
-		LoginUI:     &libkb.TestLoginUI{},
-	}
-	if err := RunEngine(li, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	after := docui.selectSignerCount
-	if after-before != 0 {
-		t.Errorf("doc ui SelectSigner called %d times, expected 0", after-before)
-	}
-
-	testUserHasDeviceKey(tc2)
-	hasOnePaperDev(tc2, u1)
-}
-
-func TestLoginPGPPubOnlySignNewDevice(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	u1 := createFakeUserWithPGPPubOnly(t, tc)
-	Logout(tc)
-
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
-	// we need the gpg keyring that's in the first homedir
-	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
-	}
-
-	// now safe to cleanup first home
-	tc.Cleanup()
-
-	docui := &lockuiPGP{&lockui{deviceName: "Device"}}
-
-	before := docui.selectSignerCount
-
-	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
-	secui := &libkb.TestSecretUI{Passphrase: u1.Passphrase}
-	ctx := &Context{
-		LogUI:       tc2.G.UI.GetLogUI(),
-		LocksmithUI: docui,
-		SecretUI:    secui,
-		GPGUI:       &gpgtestui{},
-		LoginUI:     &libkb.TestLoginUI{},
-	}
-	if err := RunEngine(li, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	after := docui.selectSignerCount
-	if after-before != 1 {
-		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
-	}
-
-	testUserHasDeviceKey(tc2)
-	hasOnePaperDev(tc2, u1)
-}
-
-func TestLoginPGPMultSignNewDevice(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	u1 := createFakeUserWithPGPMult(t, tc)
-	Logout(tc)
-	defer tc.Cleanup()
-
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
-	// we need the gpg keyring that's in the first homedir
-	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
-	}
-
-	docui := &lockuiPGP{&lockui{deviceName: "Device"}}
-
-	before := docui.selectSignerCount
-
-	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
-	secui := &libkb.TestSecretUI{Passphrase: u1.Passphrase}
-	ctx := &Context{
-		LogUI:       tc2.G.UI.GetLogUI(),
-		LocksmithUI: docui,
-		GPGUI:       &gpgtestui{1, 0},
-		SecretUI:    secui,
-		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-	}
-	if err := RunEngine(li, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	after := docui.selectSignerCount
-	if after-before != 1 {
-		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
-	}
-
-	testUserHasDeviceKey(tc2)
-	hasOnePaperDev(tc2, u1)
-}
-
-// pgp sibkey used to sign new device
-func TestLoginGPGSignNewDevice(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	u1 := CreateAndSignupFakeUserGPG(tc, "pgp")
-	Logout(tc)
-
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
-	// we need the gpg keyring that's in the first homedir
-	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
-	}
-
-	// now safe to cleanup first home
-	tc.Cleanup()
-
-	docui := &lockuiPGP{&lockui{deviceName: "Device"}}
-
-	before := docui.selectSignerCount
-
-	li := NewLoginWithPromptEngine(u1.Username, tc2.G)
-	secui := &libkb.TestSecretUI{Passphrase: u1.Passphrase}
-	ctx := &Context{
-		LogUI:       tc2.G.UI.GetLogUI(),
-		LocksmithUI: docui,
-		SecretUI:    secui,
-		GPGUI:       &gpgtestui{},
-		LoginUI:     &libkb.TestLoginUI{},
-	}
-	if err := RunEngine(li, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	after := docui.selectSignerCount
-	if after-before != 1 {
-		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
-	}
-
-	testUserHasDeviceKey(tc2)
-	hasOnePaperDev(tc2, u1)
-}
-
-// paper backup key used to sign new device
-func TestLoginPaperSignNewDevice(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-	fu := NewFakeUserOrBust(t, "paper")
-	arg := MakeTestSignupEngineRunArg(fu)
-	loginUI := &paperLoginUI{Username: fu.Username}
-	ctx := &Context{
-		LogUI:    tc.G.UI.GetLogUI(),
-		GPGUI:    &gpgtestui{},
-		SecretUI: fu.NewSecretUI(),
-		LoginUI:  loginUI,
-	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-
-	assertNumDevicesAndKeys(tc, fu, 2, 4)
-
-	Logout(tc)
-
-	if len(loginUI.PaperPhrase) == 0 {
-		t.Fatal("login ui has no paper key phrase")
-	}
-
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
-	locksmithUI := &lockuiPaper{&lockui{deviceName: "new device paper sign"}}
-
-	before := locksmithUI.selectSignerCount
-
-	secui := fu.NewSecretUI()
-	secui.BackupPassphrase = loginUI.PaperPhrase
-
-	li := NewLoginWithPromptEngine(fu.Username, tc2.G)
-	ctx = &Context{
-		LogUI:       tc2.G.UI.GetLogUI(),
-		LocksmithUI: locksmithUI,
-		SecretUI:    secui,
-		GPGUI:       &gpgtestui{},
-		LoginUI:     &libkb.TestLoginUI{},
-	}
-	if err := RunEngine(li, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	after := locksmithUI.selectSignerCount
-	if after-before != 1 {
-		t.Errorf("doc ui SelectSigner called %d times, expected 1", after-before)
-	}
-
-	testUserHasDeviceKey(tc2)
-
-	assertNumDevicesAndKeys(tc, fu, 3, 6)
-}
-*/
 
 // TestLoginInterrupt* tries to simulate what would happen if the
 // locksmith login checkup gets interrupted.  See Issue #287.
@@ -578,6 +319,7 @@ func TestUserInfo(t *testing.T) {
 	}
 }
 
+/*
 type lockui struct {
 	selectSignerCount int
 	deviceName        string
@@ -647,6 +389,7 @@ func (l *lockuiPaper) SelectSigner(_ context.Context, arg keybase1.SelectSignerA
 	res.Signer = &keybase1.DeviceSigner{Kind: keybase1.DeviceSignerKind_PAPER_BACKUP_KEY}
 	return
 }
+*/
 
 type paperLoginUI struct {
 	Username    string
