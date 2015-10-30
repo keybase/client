@@ -7,11 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		000EB4731B879F1E002CFCF7 /* KBSemVersionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 000EB4721B879F1E002CFCF7 /* KBSemVersionTest.m */; };
-		000EB4741B87A057002CFCF7 /* KBFormatterTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FB76C11B0D3CA30070DEED /* KBFormatterTest.m */; };
-		000EB4751B87A2E3002CFCF7 /* KBEnvConfigTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FB76BC1B0C5B5D0070DEED /* KBEnvConfigTest.m */; };
-		000EB4761B87A351002CFCF7 /* KBDefinesTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */; };
-		000EB4771B87A36D002CFCF7 /* KBLaunchCtlTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */; };
 		0012060A1B7AC47000D773D6 /* osxfusefs.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 001206091B7AC47000D773D6 /* osxfusefs.bundle */; };
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
 		001392761B06B18A0082DEA8 /* gpgtools.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392721B06B18A0082DEA8 /* gpgtools.icns */; };
@@ -114,7 +109,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		000EB4721B879F1E002CFCF7 /* KBSemVersionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSemVersionTest.m; sourceTree = "<group>"; };
 		001206091B7AC47000D773D6 /* osxfusefs.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = osxfusefs.bundle; sourceTree = "<group>"; };
 		001392701B06B18A0082DEA8 /* DmgBackground.pxm */ = {isa = PBXFileReference; lastKnownFileType = file; path = DmgBackground.pxm; sourceTree = "<group>"; };
 		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
@@ -152,7 +146,6 @@
 		0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelper.m; sourceTree = "<group>"; };
 		0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = keybase.Helper.plist; sourceTree = "<group>"; };
 		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KBLaunchCtlTest.m; sourceTree = "<group>"; };
 		009E135B1B27654200C72B28 /* ShareViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ShareViewController.xib; sourceTree = "<group>"; };
 		009E13611B2794CF00C72B28 /* Keybase.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Keybase.entitlements; sourceTree = "<group>"; };
 		009E13661B27B39300C72B28 /* Action.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Action.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -173,9 +166,6 @@
 		00CC43561A3A9E6C006118A9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		00DAF5BE1B2F885D000D7F9A /* Social.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Social.framework; path = System/Library/Frameworks/Social.framework; sourceTree = SDKROOT; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDefinesTest.m; sourceTree = "<group>"; };
-		00FB76BC1B0C5B5D0070DEED /* KBEnvConfigTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvConfigTest.m; sourceTree = "<group>"; };
-		00FB76C11B0D3CA30070DEED /* KBFormatterTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFormatterTest.m; sourceTree = "<group>"; };
 		3DBB752A46481EFB17466C97 /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 		4691B1A10AF4B52AA57EF977 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
 		60B9CAF0001F02B07C7C15F0 /* Pods_Keybase.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Keybase.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -439,11 +429,6 @@
 			isa = PBXGroup;
 			children = (
 				003C45521AE6DF4700431829 /* KBHelperTest.m */,
-				0093A00E1AF1201800082859 /* KBLaunchCtlTest.m */,
-				00FB76BA1B0C5B300070DEED /* KBDefinesTest.m */,
-				00FB76BC1B0C5B5D0070DEED /* KBEnvConfigTest.m */,
-				00FB76C11B0D3CA30070DEED /* KBFormatterTest.m */,
-				000EB4721B879F1E002CFCF7 /* KBSemVersionTest.m */,
 				00AA75111B27635D0069A6CC /* Supporting Files */,
 			);
 			path = Tests;
@@ -841,11 +826,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				000EB4731B879F1E002CFCF7 /* KBSemVersionTest.m in Sources */,
-				000EB4761B87A351002CFCF7 /* KBDefinesTest.m in Sources */,
-				000EB4771B87A36D002CFCF7 /* KBLaunchCtlTest.m in Sources */,
-				000EB4751B87A2E3002CFCF7 /* KBEnvConfigTest.m in Sources */,
-				000EB4741B87A057002CFCF7 /* KBFormatterTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
