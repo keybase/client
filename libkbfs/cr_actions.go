@@ -502,6 +502,7 @@ func (cal crActionList) collapse() crActionList {
 					for _, topA := range topAction.attr {
 						if a == topA {
 							found = true
+							break
 						}
 					}
 					if !found {

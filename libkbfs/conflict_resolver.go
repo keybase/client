@@ -984,7 +984,7 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	if block, ok := lbc[ptr]; ok {
 		return block, nil
 	}
-	block, err := cr.fbo.getBlock(ctx, md, dir, NewDirBlock, read)
+	block, err := cr.fbo.getBlockForReading(ctx, md, dir, NewDirBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -1007,7 +1007,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	BlockPointer, error) {
 	file := *parentPath.ChildPathNoPtr(name)
 	file.path[len(file.path)-1].BlockPointer = ptr
-	block, err := cr.fbo.getBlock(ctx, md, file, NewFileBlock, read)
+	block, err := cr.fbo.getBlockForReading(ctx, md, file, NewFileBlock)
 	if err != nil {
 		return BlockPointer{}, err
 	}
@@ -1048,10 +1048,6 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	// Dup all of the leaf blocks.
 	// TODO: deal with multiple levels of indirection.
 	if fblock.IsInd {
-		uid, err := cr.config.KBPKI().GetCurrentUID(ctx)
-		if err != nil {
-			return BlockPointer{}, err
-		}
 		for i, ptr := range fblock.IPtrs {
 			// Generate a new nonce for each one.
 			ptr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()

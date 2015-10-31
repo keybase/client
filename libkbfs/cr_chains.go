@@ -299,11 +299,11 @@ func (ccs *crChains) makeChainForNewOpWithUpdate(
 }
 
 // makeChainForNewOp makes a new chain for an op that does not yet
-// have its pointers initialized, so help it out by setting Unref and
-// Ref to be the same for the duration of this function.  This
-// function is not goroutine-safe with respect to newOp.  Also note
-// that rename ops will not be split into two ops; they will be placed
-// only in the new directory chain.
+// have its pointers initialized.  It does so by setting Unref and Ref
+// to be the same for the duration of this function, and calling the
+// usual makeChainForOp method.  This function is not goroutine-safe
+// with respect to newOp.  Also note that rename ops will not be split
+// into two ops; they will be placed only in the new directory chain.
 func (ccs *crChains) makeChainForNewOp(targetPtr BlockPointer, newOp op) error {
 	switch realOp := newOp.(type) {
 	case *createOp:

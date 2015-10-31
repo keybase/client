@@ -679,12 +679,12 @@ func (fbo *FolderBranchOps) getBlockLocked(ctx context.Context,
 	return block, nil
 }
 
-func (fbo *FolderBranchOps) getBlock(ctx context.Context,
-	md *RootMetadata, dir path, newBlock makeNewBlock, rtype reqType) (
+func (fbo *FolderBranchOps) getBlockForReading(ctx context.Context,
+	md *RootMetadata, dir path, newBlock makeNewBlock) (
 	Block, error) {
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
-	return fbo.getBlockLocked(ctx, md, dir, newBlock, rtype)
+	return fbo.getBlockLocked(ctx, md, dir, newBlock, read)
 }
 
 // getDirLocked returns the directory block at the given path.
