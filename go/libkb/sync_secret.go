@@ -1,3 +1,7 @@
+// Copyright 2015 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
 // A module for syncing secrets with the server, such as SKB PGP keys,
 // and server-halves of our various secret keys.
 package libkb
