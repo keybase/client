@@ -7,7 +7,7 @@ class MobileTransport extends BaseTransport {
   constructor (incomingRPCCallback, rpcWriteCallback) {
     super(
       {},
-      writeCallback,
+      rpcWriteCallback,
       incomingRPCCallback
     )
     this.needsConnect = false
