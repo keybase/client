@@ -270,25 +270,27 @@ export function logout () {
 // title/subTitle to customize the screen
 export function askForUserPass (title, subTitle, cb, hidePass = false) {
   return (dispatch) => {
+    const props = {
+      title,
+      subTitle,
+      hidePass,
+      onSubmit: (username, passphrase) => {
+        dispatch({
+          type: Constants.actionSetUserPass,
+          username,
+          passphrase
+        })
+
+        cb()
+      }
+    }
+
     dispatch(routeAppend({
       parseRoute: {
         componentAtTop: {
           component: UserPass,
           mapStateToProps: state => state.login2.userPass,
-          props: {
-            title,
-            subTitle,
-            hidePass,
-            onSubmit: (username, passphrase) => {
-              dispatch({
-                type: Constants.actionSetUserPass,
-                username,
-                passphrase
-              })
-
-              cb()
-            }
-          }
+          props
         }
       }
     }))
@@ -297,14 +299,18 @@ export function askForUserPass (title, subTitle, cb, hidePass = false) {
 
 export function askForPaperKey (cb) {
   return (dispatch) => {
+    const props = {
+      onSubmit: (paperKey) => {
+        cb(paperKey)
+      }
+    }
+
     dispatch(routeAppend({
       parseRoute: {
         componentAtTop: {
           component: PaperKey,
           mapStateToProps: state => state.login2,
-          props: {
-            onSubmit: (paperKey) => { cb(paperKey) }
-          }
+          props
         }
       }
     }))
@@ -341,16 +347,18 @@ export function askForDeviceName (existingDevices, cb) {
 
 export function askForOtherDeviceType (cb) {
   return (dispatch) => {
+    const props = {
+      onSubmit: otherDeviceRole => {
+        cb(otherDeviceRole)
+      }
+    }
+
     dispatch(routeAppend({
       parseRoute: {
         componentAtTop: {
           component: ExistingDevice,
           mapStateToProps: state => state.login2.codePage,
-          props: {
-            onSubmit: otherDeviceRole => {
-              cb(otherDeviceRole)
-            }
-          }
+          props
         }
       }
     }))
@@ -359,31 +367,35 @@ export function askForOtherDeviceType (cb) {
 
 export function askForCodePage (cb) {
   return (dispatch) => {
+    const props = {
+      setCodePageMode: mode => dispatch(setCodePageMode(mode)),
+      qrScanned: code => dispatch(qrScanned(code)),
+      setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
+      textEntered: text => dispatch(textEntered(text)),
+      doneRegistering: () => dispatch(doneRegistering())
+    }
+
+    const mapStateToProps = state => {
+      const {
+        mode, codeCountDown, textCode, qrCode,
+        myDeviceRole, otherDeviceRole, cameraBrokenMode } = state.login2.codePage
+      return {
+        mode,
+        codeCountDown,
+        textCode,
+        qrCode,
+        myDeviceRole,
+        otherDeviceRole,
+        cameraBrokenMode
+      }
+    }
+
     dispatch(routeAppend({
       parseRoute: {
         componentAtTop: {
           component: CodePage,
-          mapStateToProps: state => {
-            const {
-              mode, codeCountDown, textCode, qrCode,
-              myDeviceRole, otherDeviceRole, cameraBrokenMode } = state.login2.codePage
-            return {
-              mode,
-              codeCountDown,
-              textCode,
-              qrCode,
-              myDeviceRole,
-              otherDeviceRole,
-              cameraBrokenMode
-            }
-          },
-          props: {
-            setCodePageMode: mode => dispatch(setCodePageMode(mode)),
-            qrScanned: code => dispatch(qrScanned(code)),
-            setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
-            textEntered: text => dispatch(textEntered(text)),
-            doneRegistering: () => dispatch(doneRegistering())
-          }
+          mapStateToProps,
+          props
         }
       }
     }))
@@ -481,6 +493,7 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
       payload: error || null
     })
 
+    dispatch(navigateTo(['root']))
     dispatch(switchTab(DEVICES_TAB))
   })
 }
