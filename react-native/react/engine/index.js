@@ -23,10 +23,13 @@ console.log(`Platform is ${platform}.`)
 
 class Engine {
   constructor () {
-    let program = 'keybase.1'
+    this.program = 'keybase.1'
     this.rpcClient = new RpcClient(
-      new Transport((payload) => { this._rpcIncoming(payload) }),
-      program
+      new Transport(
+        (payload) => { this._rpcIncoming(payload) },
+        this._rpcWrite
+      ),
+      this.program
     )
 
     if (this.rpcClient.transport.needsConnect) {

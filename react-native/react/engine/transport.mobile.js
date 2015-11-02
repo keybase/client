@@ -1,16 +1,18 @@
 'use strict'
 
 import BaseTransport from './rpc'
+import { Buffer } from 'buffer'
 
 class MobileTransport extends BaseTransport {
   constructor (incomingRPCCallback, rpcWriteCallback) {
     super(
       {},
-      rpcWriteCallback,
+      writeCallback,
       incomingRPCCallback
     )
     this.needsConnect = false
     this.needsBase64 = true
+    this.writeCallback = rpcWriteCallback
   }
 
   connect (cb) { cb() }
