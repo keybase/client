@@ -2,9 +2,6 @@ package libkbfs
 
 import (
 	"fmt"
-	"syscall"
-
-	"bazil.org/fuse"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -57,14 +54,6 @@ func (e NoSuchUserError) Error() string {
 	return fmt.Sprintf("No such user matching %s", e.Input)
 }
 
-var _ fuse.ErrorNumber = NoSuchUserError{""}
-
-// Errno implements the fuse.ErrorNumber interface for
-// NoSuchUserError
-func (e NoSuchUserError) Errno() fuse.Errno {
-	return fuse.Errno(syscall.ENOENT)
-}
-
 // BadTLFNameError indicates a top-level folder name that has an
 // incorrect format.
 type BadTLFNameError struct {
@@ -93,14 +82,6 @@ type DirNotEmptyError struct {
 // Error implements the error interface for DirNotEmptyError
 func (e DirNotEmptyError) Error() string {
 	return fmt.Sprintf("Directory %s is not empty and can't be removed", e.Name)
-}
-
-var _ fuse.ErrorNumber = DirNotEmptyError{""}
-
-// Errno implements the fuse.ErrorNumber interface for
-// DirNotEmptyError
-func (e DirNotEmptyError) Errno() fuse.Errno {
-	return fuse.Errno(syscall.ENOTEMPTY)
 }
 
 // TlfAccessError that the user tried to perform an unpermitted
@@ -147,14 +128,6 @@ func (e ReadAccessError) Error() string {
 		e.User, e.Dir)
 }
 
-var _ fuse.ErrorNumber = ReadAccessError{}
-
-// Errno implements the fuse.ErrorNumber interface for
-// ReadAccessError.
-func (e ReadAccessError) Errno() fuse.Errno {
-	return fuse.Errno(syscall.EACCES)
-}
-
 // WriteAccessError indicates that the user tried to read from a
 // top-level folder without read permission.
 type WriteAccessError struct {
@@ -166,14 +139,6 @@ type WriteAccessError struct {
 func (e WriteAccessError) Error() string {
 	return fmt.Sprintf("%s does not have write access to directory %s",
 		e.User, e.Dir)
-}
-
-var _ fuse.ErrorNumber = WriteAccessError{}
-
-// Errno implements the fuse.ErrorNumber interface for
-// WriteAccessError.
-func (e WriteAccessError) Errno() fuse.Errno {
-	return fuse.Errno(syscall.EACCES)
 }
 
 // NewReadAccessError constructs a ReadAccessError for the given

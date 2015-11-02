@@ -2,9 +2,7 @@ package libkbfs
 
 import (
 	"errors"
-	"syscall"
 
-	"bazil.org/fuse"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-framed-msgpack-rpc"
@@ -83,11 +81,6 @@ func (e BServerErrorUnauthorized) Error() string {
 		return "BServer: session not validated"
 	}
 	return e.Msg
-}
-
-// Errno implements the fuse.ErrorNumber interface for BServerErrorUnauthorized.
-func (e BServerErrorUnauthorized) Errno() fuse.Errno {
-	return fuse.Errno(syscall.EACCES)
 }
 
 // BServerErrorOverQuota is a generic client-side error.
