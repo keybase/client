@@ -21,6 +21,7 @@ func (s SocketUnix) BindToSocket() (ret net.Listener, err error) {
 }
 
 func (s SocketUnix) DialSocket() (ret net.Conn, err error) {
+	s.G().Log.Debug("Dialing unix:%s", s.file)
 	return net.Dial("unix", s.file)
 }
 
