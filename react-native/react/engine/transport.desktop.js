@@ -1,6 +1,7 @@
 'use strict'
 
 import BaseTransport from './rpc'
+import fs from 'fs'
 
 class DesktopTransport extends BaseTransport {
   constructor (incomingRPCCallback) {
@@ -11,8 +12,6 @@ class DesktopTransport extends BaseTransport {
     ]
     let sockfile = null
     paths.map(path => {
-      // Can't use ES2015 import because it'll hoist and crash mobile.
-      let fs = require('fs')
       let exists = fs.existsSync(path)
       if (exists) {
         console.log('Found keybased socket file at ' + path)
