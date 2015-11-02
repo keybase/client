@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React, { View } from 'react-native'
 import { connect } from '../base-redux'

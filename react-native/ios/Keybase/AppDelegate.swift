@@ -11,7 +11,7 @@ class AppDelegate: UIResponder {
   var window: UIWindow?
   var engine: Engine!
   
-  private func setupReactWithOptions(launchOptions: [NSObject: AnyObject]?) -> UIView {
+  private func setupReactWithOptions(launchOptions: [NSObject: AnyObject]?) -> RCTRootView {
     return RCTRootView(bundleURL: {
       
       #if DEBUG
@@ -43,6 +43,30 @@ class AppDelegate: UIResponder {
   
 }
 
+class KeyListener: UIViewController {
+  override func canBecomeFirstResponder() -> Bool {
+    return true
+  }
+
+  var bridge: RCTBridge!
+
+  override var keyCommands: [UIKeyCommand]? {
+    return [
+      UIKeyCommand(input: "b", modifierFlags: .Command, action: "goBackInTime:"),
+      UIKeyCommand(input: "n", modifierFlags: .Command, action: "goForwardInTime:")
+    ]
+  }
+
+  func goBackInTime(sender: UIKeyCommand){
+    bridge.eventDispatcher.sendAppEventWithName("backInTime", body: true)
+  }
+
+  func goForwardInTime(sender: UIKeyCommand){
+    bridge.eventDispatcher.sendAppEventWithName("forwardInTime", body: true)
+  }
+
+}
+
 extension AppDelegate: UIApplicationDelegate {
 
   func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
@@ -64,8 +88,10 @@ extension AppDelegate: UIApplicationDelegate {
 
     setupEngine()
     
-    let rootViewController = UIViewController()
-    rootViewController.view = setupReactWithOptions(launchOptions)
+    let rootViewController = KeyListener()
+    let rctView = setupReactWithOptions(launchOptions)
+    rootViewController.view = rctView
+    rootViewController.bridge = rctView.bridge
     
     let window = UIWindow(frame: UIScreen.mainScreen().bounds)
     self.window = window
