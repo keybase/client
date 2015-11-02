@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // PaperKey creates paper backup keys for a user and pushes them to the server.
 // It checks for existing paper devices and offers to revoke the
 // keys.
