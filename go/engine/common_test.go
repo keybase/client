@@ -76,7 +76,7 @@ func SignupFakeUserWithArg(tc libkb.TestContext, fu *FakeUser, arg SignupEngineR
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
-		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	s := NewSignupEngine(&arg, tc.G)
 	err := RunEngine(s, ctx)
@@ -104,7 +104,7 @@ func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUs
 		LogUI:    g.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
-		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	s := NewSignupEngine(&arg, g)
 	err = RunEngine(s, ctx)
@@ -125,7 +125,7 @@ func CreateAndSignupFakeUserGPG(tc libkb.TestContext, prefix string) *FakeUser {
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
-		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	s := NewSignupEngine(&arg, tc.G)
 	err := RunEngine(s, ctx)
@@ -143,7 +143,7 @@ func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod 
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
-		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	s := NewSignupEngine(&arg, tc.G)
 	err := RunEngine(s, ctx)

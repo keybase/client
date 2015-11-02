@@ -64,7 +64,7 @@ func TestPaperKey(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	eng := NewPaperKey(tc.G)
@@ -115,7 +115,7 @@ func TestPaperKeyRevoke(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{RevokeBackup: true},
+		LoginUI:  &libkb.TestLoginUI{RevokeBackup: true},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
@@ -158,7 +158,7 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{RevokeBackup: false},
+		LoginUI:  &libkb.TestLoginUI{RevokeBackup: false},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 
@@ -198,7 +198,7 @@ func TestPaperKeyGenWithSecretStore(t *testing.T) {
 		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
 		ctx := &Context{
 			LogUI:    tc.G.UI.GetLogUI(),
-			LoginUI:  libkb.TestLoginUI{},
+			LoginUI:  &libkb.TestLoginUI{},
 			SecretUI: secretUI,
 		}
 		eng := NewPaperKey(tc.G)

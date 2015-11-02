@@ -25,7 +25,7 @@ func TestPaperKeyPrimary(t *testing.T) {
 	}
 
 	ctx := &Context{
-		LoginUI: libkb.TestLoginUI{},
+		LoginUI: &libkb.TestLoginUI{},
 	}
 	args := &PaperKeyPrimaryArgs{
 		Me:         me,

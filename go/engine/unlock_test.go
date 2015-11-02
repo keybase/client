@@ -30,7 +30,7 @@ func TestUnlock(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: fu.NewSecretUI(),
 	}
 
@@ -64,7 +64,7 @@ func TestUnlockNoop(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: fu.NewSecretUI(),
 	}
 

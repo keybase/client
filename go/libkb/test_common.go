@@ -364,22 +364,24 @@ func (t *TestSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) 
 }
 
 type TestLoginUI struct {
-	Username     string
-	RevokeBackup bool
+	Username                 string
+	RevokeBackup             bool
+	CalledGetEmailOrUsername int
 }
 
-func (t TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
+func (t *TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
+	t.CalledGetEmailOrUsername++
 	return t.Username, nil
 }
 
-func (t TestLoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+func (t *TestLoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	return t.RevokeBackup, nil
 }
 
-func (t TestLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
+func (t *TestLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
 
-func (t TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
+func (t *TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }

@@ -218,18 +218,20 @@ func (e *LoginProvision) gpg(ctx *Context) error {
 
 // paper attempts to provision the device via a paper key.
 func (e *LoginProvision) paper(ctx *Context) error {
-	// prompt for the username (if not provided) and load the user:
-	var err error
-	e.user, err = e.loadUser(ctx)
+	// get the paper key from the user
+	sigKey, err := e.getPaperKey(ctx)
 	if err != nil {
 		return err
 	}
 
-	// find a paper key for this user
-	kp, err := findPaperKeys(ctx, e.G(), e.user)
+	e.G().Log.Debug("paper signing key kid: %s", sigKey.GetKID())
+
+	// use the KID to find (and load) the user
+	user, err := e.loadUserByKID(sigKey.GetKID())
 	if err != nil {
 		return err
 	}
+	e.user = user
 
 	// found a paper key that can be used for signing
 	e.G().Log.Debug("found paper key match for %s", e.user.GetName())
@@ -238,7 +240,8 @@ func (e *LoginProvision) paper(ctx *Context) error {
 	// It signs this new device with the paper key.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
-		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
+		// if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
+		if err := e.makeDeviceKeysWithSigner(ctx, sigKey); err != nil {
 			return err
 		}
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
@@ -669,6 +672,54 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 	}
 
 	return nil
+}
+
+func (e *LoginProvision) getPaperKey(ctx *Context) (libkb.GenericKey, error) {
+	passphrase, err := ctx.SecretUI.GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg{})
+	if err != nil {
+		return nil, err
+	}
+	paperPhrase := libkb.NewPaperKeyPhrase(passphrase)
+	if paperPhrase.Version() != libkb.PaperKeyVersion {
+		e.G().Log.Debug("paper version mismatch:  generated paper key version = %d, libkb version = %d", paperPhrase.Version(), libkb.PaperKeyVersion)
+		return nil, libkb.KeyVersionError{}
+	}
+
+	bkarg := &PaperKeyGenArg{
+		Passphrase: libkb.NewPaperKeyPhrase(passphrase),
+		SkipPush:   true,
+	}
+	bkeng := NewPaperKeyGen(bkarg, e.G())
+	if err := RunEngine(bkeng, ctx); err != nil {
+		return nil, err
+	}
+
+	return bkeng.SigKey(), nil
+}
+
+func (e *LoginProvision) loadUserByKID(kid keybase1.KID) (*libkb.User, error) {
+	arg := libkb.APIArg{
+		Endpoint:     "key/owner",
+		NeedSession:  false,
+		Contextified: libkb.NewContextified(e.G()),
+		Args:         libkb.HTTPArgs{"kid": libkb.S{Val: kid.String()}},
+	}
+	res, err := e.G().API.Get(arg)
+	if err != nil {
+		return nil, err
+	}
+	suid, err := res.Body.AtPath("uid").GetString()
+	if err != nil {
+		return nil, err
+	}
+	uid, err := keybase1.UIDFromString(suid)
+	if err != nil {
+		return nil, err
+	}
+	e.G().Log.Debug("key/owner result uid: %s", uid)
+	loadArg := libkb.NewLoadUserArg(e.G())
+	loadArg.UID = uid
+	return libkb.LoadUser(loadArg)
 }
 
 func (e *LoginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
