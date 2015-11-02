@@ -15,12 +15,6 @@ const {
 import { Buffer } from 'buffer'
 import NativeEventEmitter from '../common-adapters/native-event-emitter'
 
-let platform = 'desktop'
-if ('Platform' in React) {
-  platform = React.Platform.OS
-}
-console.log(`Platform is ${platform}.`)
-
 class Engine {
   constructor () {
     this.program = 'keybase.1'
