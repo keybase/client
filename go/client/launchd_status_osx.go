@@ -170,7 +170,8 @@ func errorStatus(err error) keybase1.ServiceStatus {
 
 func DiagnoseSocketError(ui libkb.UI, err error) {
 	t := ui.GetTerminalUI()
-	services, err := launchd.ListServices("keybase.")
+	// XXX making this change just to get master to build.  No idea what it should be.
+	services, err := launchd.ListServices([]string{"keybase."})
 	if err != nil {
 		t.Printf("Error checking launchd services: %v\n\n", err)
 		return

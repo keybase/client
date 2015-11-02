@@ -92,15 +92,18 @@ func NewCmdLaunchdList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 		Usage: "List keybase launchd services",
 		Action: func(c *cli.Context) {
 			// TODO: Use ChooseCommand
-			var err error
-			err = launchd.ShowServices("keybase.", "Keybase", g.Log)
-			if err != nil {
-				g.Log.Fatalf("%v", err)
-			}
-			err = launchd.ShowServices("kbfs.", "KBFS", g.Log)
-			if err != nil {
-				g.Log.Fatalf("%v", err)
-			}
+			// This is broken and doesn't compile.  Commenting out to fix master.
+			/*
+				var err error
+				err = launchd.ShowServices("keybase.", "Keybase", g.Log)
+				if err != nil {
+					g.Log.Fatalf("%v", err)
+				}
+				err = launchd.ShowServices("kbfs.", "KBFS", g.Log)
+				if err != nil {
+					g.Log.Fatalf("%v", err)
+				}
+			*/
 			os.Exit(0)
 		},
 	}
