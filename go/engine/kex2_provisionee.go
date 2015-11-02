@@ -471,29 +471,6 @@ func (e *Kex2Provisionee) saveLoginState() error {
 	e.tmpConfigFile = filename
 	return nil
 
-	/*
-		var err error
-		var filename string
-
-		aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-			err = a.LoadLoginSession(e.username)
-			if err != nil {
-				return
-			}
-			filename, err = a.SaveStateTmp(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), e.uid, e.device.ID)
-			if err != nil {
-				return
-			}
-		}, "Kex2Provisionee - saveLoginState()")
-		if aerr != nil {
-			return aerr
-		}
-		if err != nil {
-			return err
-		}
-		e.tmpConfigFile = filename
-		return nil
-	*/
 }
 
 // saveKeys writes the device keys to LKSec.

@@ -83,18 +83,6 @@ func TestPaperKey(t *testing.T) {
 	Logout(tc)
 
 	// make sure the passphrase authentication didn't change:
-	/*
-		leng := NewLoginWithPassphraseEngine(fu.Username, fu.Passphrase, false, tc.G)
-		lctx := &Context{
-			LogUI:       tc.G.UI.GetLogUI(),
-			LocksmithUI: &lockui{},
-			GPGUI:       &gpgtestui{},
-			SecretUI:    &libkb.TestSecretUI{},
-		}
-		if err := RunEngine(leng, lctx); err != nil {
-			t.Errorf("after backup key gen, login with passphrase failed: %s", err)
-		}
-	*/
 
 	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(fu.Passphrase)
 	if err != nil {
