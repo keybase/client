@@ -135,7 +135,8 @@ func (s *SignupJoinEngine) WriteOut(lctx libkb.LoginContext, salt []byte) error 
 	if err := lctx.CreateLoginSessionWithSalt(s.username.String(), salt); err != nil {
 		return err
 	}
-	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uid); err != nil {
+	var nilDeviceID keybase1.DeviceID
+	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID); err != nil {
 		return err
 	}
 	return nil

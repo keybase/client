@@ -338,12 +338,11 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername, tok
 
 // SaveState saves the logins state to memory, and to the user
 // config file.
-func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID) error {
+func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
 	saver := func(cw ConfigWriter) error {
 		return cw.Write()
 	}
-	var nilDeviceID keybase1.DeviceID
-	return a.saveState(sessionID, csrf, username, uid, nilDeviceID, saver)
+	return a.saveState(sessionID, csrf, username, uid, deviceID, saver)
 }
 
 // SaveStateTmp saves the logins state to memory, and to a
