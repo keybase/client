@@ -169,7 +169,7 @@ func (d *Service) writeServiceInfo() error {
 	}
 
 	// Write runtime info file
-	rtInfo := libkb.KeybaseServiceInfo()
+	rtInfo := libkb.KeybaseServiceInfo(d.G())
 	return rtInfo.WriteFile(path.Join(runtimeDir, "keybased.info"))
 }
 

@@ -104,7 +104,7 @@ type TestParameters struct {
 	GPGOptions     []string
 	Debug          bool
 	Devel          bool // Whether we are in Devel Mode
-	SocketFile     string
+	RuntimeDir     string
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -196,9 +196,16 @@ func (e *Env) GetHome() string                     { return e.homeFinder.Home(fa
 func (e *Env) GetConfigDir() string                { return e.homeFinder.ConfigDir() }
 func (e *Env) GetCacheDir() string                 { return e.homeFinder.CacheDir() }
 func (e *Env) GetDataDir() string                  { return e.homeFinder.DataDir() }
-func (e *Env) GetRuntimeDir() string               { return e.homeFinder.RuntimeDir() }
-func (e *Env) GetServiceSpawnDir() (string, error) { return e.homeFinder.ServiceSpawnDir() }
 func (e *Env) GetLogDir() string                   { return e.homeFinder.LogDir() }
+
+func (e *Env) GetRuntimeDir() string {
+	return e.GetString(
+		func() string { return e.Test.RuntimeDir },
+		func() string { return e.homeFinder.RuntimeDir() },
+	)
+}
+
+func (e *Env) GetServiceSpawnDir() (string, error) { return e.homeFinder.ServiceSpawnDir() }
 
 func (e *Env) getEnvInt(s string) (int, bool) {
 	v := os.Getenv(s)
@@ -416,7 +423,6 @@ func (e *Env) GetUsername() NormalizedUsername {
 
 func (e *Env) GetSocketFile() (ret string, err error) {
 	ret = e.GetString(
-		func() string { return e.Test.SocketFile },
 		func() string { return e.cmd.GetSocketFile() },
 		func() string { return os.Getenv("KEYBASE_SOCKET_FILE") },
 		func() string { return e.config.GetSocketFile() },
