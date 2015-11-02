@@ -15,6 +15,7 @@
 .*/react/local-debug.js
 
 # Ignoring these for now
+.*desktop.js
 .*/desktop/.*
 .*/node_modules/redux-devtools/.*
 .*/node_modules/react-redux/node_modules/invariant/.*
