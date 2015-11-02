@@ -12,7 +12,7 @@ import (
 
 func setupTest(t *testing.T, nm string) *libkb.TestContext {
 	tc := libkb.SetupTest(t, nm)
-	tc.SetSocketFile(filepath.Join(tc.Tp.Home, libkb.SocketFile))
+	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "run"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +21,7 @@ func setupTest(t *testing.T, nm string) *libkb.TestContext {
 
 func cloneContext(prev *libkb.TestContext) *libkb.TestContext {
 	ret := prev.Clone()
-	ret.SetSocketFile(filepath.Join(ret.Tp.Home, libkb.SocketFile))
+	ret.SetRuntimeDir(filepath.Join(ret.Tp.Home, "run"))
 	if err := ret.G.ConfigureSocketInfo(); err != nil {
 		ret.T.Fatal(err)
 	}

@@ -19,13 +19,18 @@ func TestStop(t *testing.T) {
 	svc := service.NewService(false, tc.G)
 	startCh := svc.GetStartChannel()
 	go func() {
-		stopCh <- svc.Run()
+		err := svc.Run()
+		if err != nil {
+			t.Logf("hit an error in Run, which might be masked: %v", err)
+		}
+		stopCh <- err
 	}()
 
 	tc2 := cloneContext(tc)
-	stopper := client.NewCmdCtlStopRunner(tc2.G)
 
 	<-startCh
+	stopper := client.NewCmdCtlStopRunner(tc2.G)
+
 	if err := stopper.Run(); err != nil {
 		t.Fatal(err)
 	}

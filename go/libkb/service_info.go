@@ -20,10 +20,10 @@ type ServiceInfo struct {
 }
 
 // KeybaseServiceInfo is runtime info for the Keybase service.
-func KeybaseServiceInfo() ServiceInfo {
+func KeybaseServiceInfo(g *GlobalContext) ServiceInfo {
 	return ServiceInfo{
 		Version: VersionString(),
-		Label:   G.Env.GetLabel(),
+		Label:   g.Env.GetLabel(),
 		Pid:     os.Getpid(),
 	}
 }

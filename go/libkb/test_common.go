@@ -255,9 +255,9 @@ func SetupTest(tb testing.TB, nm string) (tc TestContext) {
 	return tc
 }
 
-func (tc *TestContext) SetSocketFile(s string) {
-	tc.Tp.SocketFile = s
-	tc.G.Env.Test.SocketFile = s
+func (tc *TestContext) SetRuntimeDir(s string) {
+	tc.Tp.RuntimeDir = s
+	tc.G.Env.Test.RuntimeDir = s
 }
 
 func (tc TestContext) Clone() (ret TestContext) {
