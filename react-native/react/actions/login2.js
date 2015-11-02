@@ -1,5 +1,7 @@
 'use strict'
 
+// TODO decide what to do with the countdown stuff, that likely won't be in the MVP
+
 import * as Constants from '../constants/login2'
 import QRCodeGen from 'qrcode-generator'
 import { navigateTo, routeAppend } from './router'
