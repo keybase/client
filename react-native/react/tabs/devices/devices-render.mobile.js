@@ -77,33 +77,6 @@ export default class Devices extends Component {
       </ScrollView>
     )
   }
-
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        hideNavBar: true,
-        mapStateToProps: state => {
-          const { devices, waitingForServer } = state.devices
-          return {
-            devices,
-            waitingForServer
-          }
-        },
-        props: {
-          loadDevices: () => store.dispatch(loadDevices()),
-          showRemoveDevicePage: device => store.dispatch(routeAppend({path: 'removeDevice', device})),
-          showExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
-          showGenPaperKeyPage: () => store.dispatch(routeAppend('genPaperKey'))
-        }
-      },
-      subRoutes: {
-        codePage: CodePage,
-        genPaperKey: GenPaperKey,
-        regExistingDevice: ExistingDevice,
-        removeDevice: RemoveDevice
-      }
-    }
-  }
 }
 
 Devices.propTypes = {

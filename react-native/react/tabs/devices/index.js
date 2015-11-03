@@ -49,17 +49,17 @@ export default class Devices extends BaseComponent {
           showExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
           showGenPaperKeyPage: () => store.dispatch(routeAppend('genPaperKey'))
         },
-        subRoutes: {
-          codePage: CodePage,
-          genPaperKey: GenPaperKey,
-          regExistingDevice: ExistingDevice,
-          removeDevice: RemoveDevice
-        }
+      },
+      subRoutes: {
+        codePage: CodePage,
+        genPaperKey: GenPaperKey,
+        regExistingDevice: ExistingDevice,
+        removeDevice: RemoveDevice
       }
     }
   }
 
   render () {
-    return <DevicesRender devices={this.props.devices} showRemoveDevicePage={this.props.showRemoveDevicePage} showExistingDevicePage={this.props.showExistingDevicePage} showGenPaperKeyPage={this.props.showGenPaperKeyPage} />
+    return <DevicesRender devices={this.props.devices} showRemoveDevicePage={this.props.showRemoveDevicePage} showExistingDevicePage={this.props.showExistingDevicePage} showGenPaperKeyPage={this.props.showGenPaperKeyPage} connectNew={this.connectNew} addPaperKey={this.addPaperKey}/ >
   }
 }
