@@ -483,8 +483,8 @@ func NewLoginUI(t libkb.TerminalUI, noPrompt bool) LoginUI {
 }
 
 func (l LoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
-	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username or email", false,
-		libkb.CheckEmailOrUsername)
+	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username", false,
+		libkb.CheckUsername)
 }
 
 func (l LoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
