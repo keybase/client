@@ -219,15 +219,16 @@ func (e *LoginProvision) gpg(ctx *Context) error {
 // paper attempts to provision the device via a paper key.
 func (e *LoginProvision) paper(ctx *Context) error {
 	// get the paper key from the user
-	sigKey, err := e.getPaperKey(ctx)
+	kp, err := e.getPaperKey(ctx)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("paper signing key kid: %s", sigKey.GetKID())
+	e.G().Log.Debug("paper signing key kid: %s", kp.sigKey.GetKID())
+	e.G().Log.Debug("paper encryption key kid: %s", kp.encKey.GetKID())
 
 	// use the KID to find (and load) the user
-	user, err := e.loadUserByKID(sigKey.GetKID())
+	user, err := e.loadUserByKID(kp.sigKey.GetKID())
 	if err != nil {
 		return err
 	}
@@ -240,8 +241,13 @@ func (e *LoginProvision) paper(ctx *Context) error {
 	// It signs this new device with the paper key.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
-		// if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
-		if err := e.makeDeviceKeysWithSigner(ctx, sigKey); err != nil {
+
+		// need lksec to store device keys locally
+		if err := e.fetchLKS(ctx, kp.encKey); err != nil {
+			return err
+		}
+
+		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
 			return err
 		}
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
@@ -251,8 +257,8 @@ func (e *LoginProvision) paper(ctx *Context) error {
 		return nil
 	}
 
-	// need a session to continue to provision
-	return e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
+	// need a session to continue to provision, login with paper sigKey
+	return e.G().LoginState().LoginWithKey(ctx.LoginContext, e.user, kp.sigKey, afterLogin)
 }
 
 // passphrase attempts to provision the device via username and
@@ -406,7 +412,7 @@ func (e *LoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error)
 	if ctx.LoginContext != nil {
 		cached := ctx.LoginContext.PassphraseStreamCache()
 		if cached == nil {
-			return nil, errors.New("nil PassphraseStreamCache")
+			return nil, errors.New("LoginProvision: ppStream() -> nil PassphraseStreamCache")
 		}
 		return cached.PassphraseStream(), nil
 	}
@@ -674,7 +680,7 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 	return nil
 }
 
-func (e *LoginProvision) getPaperKey(ctx *Context) (libkb.GenericKey, error) {
+func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 	passphrase, err := ctx.SecretUI.GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg{})
 	if err != nil {
 		return nil, err
@@ -694,7 +700,7 @@ func (e *LoginProvision) getPaperKey(ctx *Context) (libkb.GenericKey, error) {
 		return nil, err
 	}
 
-	return bkeng.SigKey(), nil
+	return &keypair{sigKey: bkeng.SigKey(), encKey: bkeng.EncKey()}, nil
 }
 
 func (e *LoginProvision) loadUserByKID(kid keybase1.KID) (*libkb.User, error) {
@@ -720,6 +726,15 @@ func (e *LoginProvision) loadUserByKID(kid keybase1.KID) (*libkb.User, error) {
 	loadArg := libkb.NewLoadUserArg(e.G())
 	loadArg.UID = uid
 	return libkb.LoadUser(loadArg)
+}
+
+func (e *LoginProvision) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
+	gen, clientLKS, err := fetchLKS(ctx, e.G(), encKey)
+	if err != nil {
+		return err
+	}
+	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.user.GetUID(), e.G())
+	return nil
 }
 
 func (e *LoginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
