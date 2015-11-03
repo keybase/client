@@ -42,6 +42,4 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 // Called when component updated
 - (void)componentDidUpdate;
 
-- (GHODictionary *)componentStatusInfo;
-
 @end

@@ -24,7 +24,7 @@
 @property NSArray */*of id<KBInstallable>*/installables;
 @property NSArray */*of KBInstallAction*/installActions;
 
-@property NSArray */*of KBLaunchService*/services;
+@property NSArray *services;
 @end
 
 @implementation KBEnvironment

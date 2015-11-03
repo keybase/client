@@ -11,6 +11,7 @@
 #import "KBLaunchCtl.h"
 #import "KBComponentStatus.h"
 #import <Mantle/Mantle.h>
+#import <ObjectiveSugar/ObjectiveSugar.h>
 
 @interface KBKeybaseLaunchd ()
 @end
@@ -33,7 +34,8 @@
 }
 
 + (void)status:(NSString *)binPath name:(NSString *)name bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnServiceStatus)completion {
-  [self execute:binPath args:@[@"launchd", @"status", name, [bundleVersion description]] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  NSString *bundleVersionFlag = NSStringWithFormat(@"--bundle-version=%@", [bundleVersion description]);
+  [self execute:binPath args:@[@"launchd", @"status", bundleVersionFlag, name] completion:^(NSError *error, NSData *outData, NSData *errData) {
     if (error) {
       completion(error, nil);
       return;
@@ -71,16 +73,20 @@
     //DDLogDebug(@"Task: \"%@ %@\" (%@)", command, [args componentsJoinedByString:@" "], @(t.terminationStatus));
     NSFileHandle *outRead = [outPipe fileHandleForReading];
     NSData *outData = [outRead readDataToEndOfFile];
-    NSFileHandle *errRead = [outPipe fileHandleForReading];
+    NSFileHandle *errRead = [errPipe fileHandleForReading];
     NSData *errData = [errRead readDataToEndOfFile];
     dispatch_async(dispatch_get_main_queue(), ^{
       // TODO Check termination status and complete with error if > 0
+
+      DDLogDebug(@"Task (out): %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
+      DDLogDebug(@"Task (err): %@", [[NSString alloc] initWithData:errData encoding:NSUTF8StringEncoding]);
+
       completion(nil, outData, errData);
     });
   };
 
   @try {
-    DDLogDebug(@"Running: %@ %@", command, [args componentsJoinedByString:@" "]);
+    DDLogDebug(@"Task: %@ %@", command, [args componentsJoinedByString:@" "]);
     [task launch];
   } @catch (NSException *e) {
     completion(KBMakeError(-1, @"%@ (%@ %@)", e.reason, command, args), nil, nil);

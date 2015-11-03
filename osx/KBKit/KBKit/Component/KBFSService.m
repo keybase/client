@@ -54,7 +54,8 @@
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
 
-  if (_componentStatus.info) [info addEntriesFromOrderedDictionary:_componentStatus.info];
+  GHODictionary *statusInfo = [self.componentStatus statusInfo];
+  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
   YOView *view = [[YOView alloc] init];
   KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];

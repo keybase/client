@@ -25,7 +25,7 @@
 	<key>CFBundleVersion</key>
 	<string>15</string>
 	<key>KBFSBuild</key>
-	<string>20</string>
+	<string>23</string>
 	<key>KBFSVersion</key>
 	<string>1.0.0</string>
 	<key>KBFuseBuild</key>
@@ -33,11 +33,13 @@
 	<key>KBFuseVersion</key>
 	<string>2.8.0</string>
 	<key>KBHelperBuild</key>
-	<string>21</string>
+	<string>24</string>
 	<key>KBHelperVersion</key>
 	<string>1.0.15</string>
+	<key>KBRunMode</key>
+	<string>staging</string>
 	<key>KBServiceBuild</key>
-	<string>38</string>
+	<string>41</string>
 	<key>KBServiceVersion</key>
 	<string>1.0.0</string>
 	<key>LSApplicationCategoryType</key>

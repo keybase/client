@@ -28,7 +28,7 @@
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
   GHWeakSelf gself = self;
 
-  YOVBox *contentView = [YOVBox box:@{@"spacing": @(20)}];
+  YOVBox *contentView = [YOVBox box:@{@"spacing": @(20), @"insets": @(20)}];
   [self addSubview:contentView];
 
   KBLabel *header = [[KBLabel alloc] init];
@@ -54,7 +54,7 @@
   KBButton *refreshButton = [KBButton buttonWithText:@"Refresh" style:KBButtonStyleDefault];
   refreshButton.targetBlock = ^{ [gself refresh]; };
   [_buttons addSubview:refreshButton];
-  KBButton *nextButton = [KBButton buttonWithText:@"Update" style:KBButtonStylePrimary];
+  KBButton *nextButton = [KBButton buttonWithText:@"Apply" style:KBButtonStylePrimary];
   nextButton.targetBlock = ^{ [gself install]; };
   [_buttons addSubview:nextButton];  
 
@@ -108,15 +108,16 @@
   for (KBInstallAction *installAction in installActions) {
     NSString *name = installAction.name;
 
-    NSString *statusDescription = nil;
-    if (installAction.installable.isInstallDisabled) {
-      statusDescription = NSStringWithFormat(@"Install Disabled; %@", installAction.statusDescription);
-    } else {
-      statusDescription = installAction.statusDescription;
-    }
+    NSString *statusDescription = [installAction.statusDescription join:@"\n"];
 
     KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:statusDescription style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByWordWrapping];
     label.columnRatio = 0.5;
+
+    NSString *action = [installAction action];
+    if (action) {
+      [label addText:action style:KBTextStyleDefault options:KBTextOptionsStrong lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
+    }
+
     [_installStatusView addSubview:label];
   }
 

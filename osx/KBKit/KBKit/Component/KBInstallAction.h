@@ -1,5 +1,5 @@
 //
-//  KBLaunchServiceInstall.h
+//  KBInstallAction.h
 //  Keybase
 //
 //  Created by Gabriel on 5/7/15.
@@ -22,6 +22,9 @@
 + (instancetype)installActionWithInstallable:(id<KBInstallable>)installable;
 
 - (NSString *)name;
-- (NSString *)statusDescription;
+
+- (NSString *)action;
+- (NSArray *)statusDescription;
+- (NSArray *)actionStatusDescription;
 
 @end

@@ -72,7 +72,8 @@
   info[@"Home"] =  [KBPath path:self.config.homeDir options:KBPathOptionsTilde];
   info[@"Socket"] =  [KBPath path:self.config.sockFile options:KBPathOptionsTilde];
 
-  if (_componentStatus.info) [info addEntriesFromOrderedDictionary:_componentStatus.info];
+  GHODictionary *statusInfo = [self.componentStatus statusInfo];
+  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
   YOView *view = [[YOView alloc] init];
   KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];

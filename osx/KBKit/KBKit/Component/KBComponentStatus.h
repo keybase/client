@@ -10,6 +10,7 @@
 
 #import <GHODictionary/GHODictionary.h>
 #import "KBRPC.h"
+#import "KBSemVersion.h"
 
 typedef NS_ENUM (NSInteger, KBRuntimeStatus) {
   KBRuntimeStatusNone,
@@ -18,22 +19,27 @@ typedef NS_ENUM (NSInteger, KBRuntimeStatus) {
 };
 
 NSString *NSStringFromKBRInstallStatus(KBRInstallStatus status);
+NSString *NSStringFromKBRInstallAction(KBRInstallAction action);
 NSString *NSStringFromKBRuntimeStatus(KBRuntimeStatus status);
 
 @interface KBComponentStatus : NSObject
 
 @property (readonly) NSError *error;
 @property (readonly) KBRInstallStatus installStatus;
+@property (readonly) KBRInstallAction installAction;
 @property (readonly) KBRuntimeStatus runtimeStatus;
 @property (readonly) GHODictionary *info;
 
-+ (instancetype)componentStatusWithError:(NSError *)error;
-+ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus runtimeStatus:(KBRuntimeStatus)runtimeStatus info:(GHODictionary *)info;
++ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction runtimeStatus:(KBRuntimeStatus)runtimeStatus info:(GHODictionary *)info error:(NSError *)error;
+
++ (instancetype)componentStatusWithVersion:(KBSemVersion *)version bundleVersion:(KBSemVersion *)bundleVersion runtimeStatus:(KBRuntimeStatus)runtimeStatus info:(GHODictionary *)info;
+
 + (instancetype)componentStatusWithServiceStatus:(KBRServiceStatus *)serviceStatus;
 
 - (BOOL)needsInstallOrUpgrade;
-- (NSString *)actionLabel;
 
 - (NSString *)statusDescription;
+
+- (GHODictionary *)statusInfo;
 
 @end

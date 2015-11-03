@@ -9,12 +9,14 @@ build_dest=$dir/build
 
 run_mode=$1
 
+action=$2
+
 # Flirting with custom configuration but xcodebuild archive will only do Release
 # configuration.
 xcode_configuration="Release"
 
 if [ "$run_mode" = "staging" ]; then
-  app_name="KeybaseStage"
+  app_name="Keybase"
   service_bin="kbstage"
   kbfs_bin="kbfsstage"
   appdmg="appdmg-staging.json"
@@ -86,6 +88,7 @@ echo "  Updating $plist"
 /usr/libexec/plistBuddy -c "Set :KBFSBuild '${kbfs_build}'" $plist
 /usr/libexec/plistBuddy -c "Set :KBFuseVersion '${fuse_version}'" $plist
 /usr/libexec/plistBuddy -c "Set :KBFuseBuild '${fuse_build}'" $plist
+/usr/libexec/plistBuddy -c "Set :KBRunMode '${run_mode}'" $plist
 echo "  "
 
 echo "  Cleaning..."
@@ -159,23 +162,28 @@ echo "Checking Helper..."
 spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
 
 
-dmg_name="$app_name-$app_version-$app_build.dmg"
+if [ "$action" == "install" ]; then
 
-rm -rf $dmg_name
+  #trash /Applications/$app_name.app
+  ditto $app_name.app /Applications/$app_name.app
 
-cp ../appdmg/* .
+  spctl --assess --verbose=4 /Applications/$app_name.app
+  spctl --assess --verbose=4 /Applications/$app_name.app/Contents/Library/LaunchServices/keybase.Helper
 
-appdmg $appdmg $dmg_name
 
-if [ "$ACTION" = "install" ]; then
-  ditto $build_dest/$app_name.app /Applications/$app_name.app
-  echo "Installed to Applications"
+elif [ "$action" == "dmg" ]; then
+
+  dmg_name="$app_name-$app_version-$app_build.dmg"
+
+  rm -rf $dmg_name
+
+  cp ../appdmg/* .
+
+  appdmg $appdmg $dmg_name
+
 else
+
   echo "
-  To install into Applications:
-
-    ditto build/$app_name.app /Applications/$app_name.app
-
   To open the build dir:
 
     open build

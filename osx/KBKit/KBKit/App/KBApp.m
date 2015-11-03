@@ -93,17 +93,26 @@
 }
 
 - (void)selectEnv:(void (^)(KBEnvironment *env))completion {
-  KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
-  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
-  KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(900, 600) retain:YES];
-  envSelectView.onSelect = ^(KBEnvConfig *envConfig) {
-    [window close];
-    KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig];
-    [self openWithEnvironment:environment];
-  };
-  window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask;
-  [window center];
-  [window makeKeyAndOrderFront:nil];
+  NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
+  if ([runMode isEqualToString:@"prod"]) {
+    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeProd]]];
+  } else if ([runMode isEqualToString:@"staging"]) {
+    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeStaging]]];
+  } else if ([runMode isEqualToString:@"devel"]) {
+    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel]]];
+  } else {
+    KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
+    KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
+    KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(900, 600) retain:YES];
+    envSelectView.onSelect = ^(KBEnvConfig *envConfig) {
+      [window close];
+      KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig];
+      [self openWithEnvironment:environment];
+    };
+    window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask;
+    [window center];
+    [window makeKeyAndOrderFront:nil];
+  }
 
   //#ifdef DEBUG
   //  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

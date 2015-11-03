@@ -33,6 +33,6 @@
 
 - (void)setUsername:(NSString *)username;
 
-- (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(MPRequestCompletion)completion;
+//- (void)selectSigner:(KBRSelectSignerRequestParams *)params completion:(MPRequestCompletion)completion;
 
 @end

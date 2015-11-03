@@ -24,8 +24,6 @@
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
   
-  GHWeakSelf gself = self;
-
   YOView *contentView = [[YOView alloc] init];
   [self addSubview:contentView];
 
@@ -52,10 +50,14 @@
   YOHBox *footerView = [YOHBox box:@{@"spacing": @(20), @"minSize": @"130,0", @"horizontalAlignment": @"center"}];
   [contentView addSubview:footerView];
   _cancelButton = [KBButton buttonWithText:@"Cancel" style:KBButtonStyleDefault];
-  _cancelButton.targetBlock = ^{ [gself cancelDeviceAdd]; };
+  _cancelButton.targetBlock = ^{
+    //[gself cancelDeviceAdd];
+  };
   [footerView addSubview:_cancelButton];
   _addButton = [KBButton buttonWithText:@"OK" style:KBButtonStylePrimary];
-  _addButton.targetBlock = ^{ [gself save]; };
+  _addButton.targetBlock = ^{
+    //[gself save];
+  };
   [_addButton setKeyEquivalent:@"\r"];
   [footerView addSubview:_addButton];
 
@@ -81,6 +83,7 @@
   [self.window makeFirstResponder:_inputField];
 }
 
+/*
 - (void)cancelDeviceAdd {
   if (!_sessionId) {
     [self close:NO];
@@ -127,6 +130,7 @@
     [self close:YES];
   }];
 }
+ */
 
 - (void)close:(BOOL)added {
   self.completion(self, YES);

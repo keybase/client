@@ -47,7 +47,7 @@ PODS:
   - Mantle/extobjc (2.0.5)
   - MASPreferences (1.1.2)
   - MDPSplitView (1.0.2)
-  - MPMessagePack (1.3.2):
+  - MPMessagePack (1.3.3):
     - GHODictionary
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.2):
@@ -84,7 +84,7 @@ SPEC CHECKSUMS:
   Mantle: 1912395033f601de5adc8ee91e48f46e4c7051ad
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
-  MPMessagePack: 23bbb933ef1046edcf104e3556ab4a6b4b0a69d4
+  MPMessagePack: 0de75102afb01a48cb312b9570336f46659b410f
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: c74317f5ccf1e31f1d486a17e0d4076029ed3fc8
   Tikppa: 3d4fca3d897592397d33d28cf594a9ae53cf966e

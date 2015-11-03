@@ -12,80 +12,47 @@
 
 @interface KBFS ()
 @property NSString *path;
-@property NSString *source;
-@property NSString *destination;
-@property NSString *kext;
 @end
 
 @implementation KBFS
 
-- (instancetype)init {
-  if ((self = [super init])) {
-    _source = @"/Applications/Keybase.app/Contents/Resources/osxfusefs.bundle";
-    _destination = KBFUSE_BUNDLE;
-    _kext = KBNSStringWithFormat(@"%@/Support/osxfusefs.kext", _destination);
-  }
-  return self;
+- (NSDictionary *)kextInfo:(NSString *)label {
+  NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[label], NULL);
+  return kexts[label];
 }
 
-- (NSString *)bundleVersion {
-  NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:KBNSStringWithFormat(@"%@/Contents/Info.plist", _source)];
-  if (!plist) return nil;
-  return plist[@"CFBundleShortVersionString"];
+- (BOOL)isKextLoaded:(NSString *)label {
+  NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[label], (__bridge CFArrayRef)@[@"OSBundleStarted"]);
+  return [kexts[label][@"OSBundleStarted"] boolValue];
 }
 
-- (NSString *)installedVersion {
-  NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:KBNSStringWithFormat(@"%@/Contents/Info.plist", _destination)];
-  if (!plist) return nil;
-  return plist[@"CFBundleShortVersionString"];
-}
-
-- (NSDictionary *)kextInfo {
-  NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[KEXT_LABEL], NULL);
-  return kexts[KEXT_LABEL];
-}
-
-- (BOOL)isKextLoaded {
-  NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[KEXT_LABEL], (__bridge CFArrayRef)@[@"OSBundleStarted"]);
-  return [kexts[KEXT_LABEL][@"OSBundleStarted"] boolValue];
-}
-
-- (void)info:(KBOnCompletion)completion {
-  NSDictionary *info = @{@"KextLabel": KEXT_LABEL, @"Kext": [self kextInfo]};
-  completion(nil, info);
-}
-
-- (NSString *)runningVersion {
-  return [self kextInfo][@"CFBundleVersion"];
-}
-
-- (void)installOrUpdate:(KBOnCompletion)completion {
-  if ([NSFileManager.defaultManager fileExistsAtPath:_destination isDirectory:NULL]) {
+- (void)installOrUpdateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
+  if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL]) {
     completion(KBMakeError(KBHelperErrorKBFS, @"Update is currently unsupported."), @(0));
   } else {
-    [self install:completion];
+    [self installWithSource:source destination:destination kextID:kextID completion:completion];
   }
 }
 
-- (void)install:(KBOnCompletion)completion {
-  KBLog(@"Install: %@ to %@", _source, _destination);
+- (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
+  KBLog(@"Install: %@ to %@", source, destination);
 
   NSError *error = nil;
-  if (![NSFileManager.defaultManager copyItemAtPath:_source toPath:_destination error:&error]) {
+  if (![NSFileManager.defaultManager copyItemAtPath:source toPath:destination error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to copy");
     completion(error, @(0));
     return;
   }
 
-  NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:_destination error:NULL];
+  NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:destination error:NULL];
   NSMutableDictionary *attributes = [NSMutableDictionary dictionaryWithDictionary:fileAttributes];
   attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:0755];
   attributes[NSFileOwnerAccountID] = @(0);
   attributes[NSFileGroupOwnerAccountID] = @(0);
 
-  [self updateAttributes:attributes path:_destination completion:^(NSError *error) {
+  [self updateAttributes:attributes path:destination completion:^(NSError *error) {
     if (error) completion(error, @(0));
-    else [self load:completion];
+    else [self loadKextID:kextID path:destination completion:completion];
   }];
 }
 
@@ -110,15 +77,18 @@
   completion(nil);
 }
 
-- (void)update:(KBOnCompletion)completion {
-  [self uninstall:^(NSError *error, id value) {
-    if (error) completion(error, @(0));
-    else [self install:completion];
+- (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
+  [self uninstallWithDestination:destination kextID:kextID completion:^(NSError *error, id value) {
+    if (error) {
+      completion(error, @(0));
+      return;
+    }
+    [self installWithSource:source destination:destination kextID:kextID completion:completion];
   }];
 }
 
-- (void)load:(KBOnCompletion)completion {
-  OSReturn status = KextManagerLoadKextWithURL((__bridge CFURLRef)([NSURL fileURLWithPath:_kext]), NULL);
+- (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion {
+  OSReturn status = KextManagerLoadKextWithIdentifier((__bridge CFStringRef)(kextID), (__bridge CFArrayRef)@[[NSURL fileURLWithPath:path]]);
   if (status != kOSReturnSuccess) {
     NSError *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to load with status: %@", @(status));
     completion(error, @(0));
@@ -127,14 +97,14 @@
   }
 }
 
-- (void)unload:(KBOnCompletion)completion {
+- (void)unloadWithKextLabel:(NSString *)kextID completion:(KBOnCompletion)completion {
   NSError *error = nil;
-  BOOL unloaded = [self unloadKext:&error];
+  BOOL unloaded = [self unloadKextWithLabel:kextID error:&error];
   completion(error, @(unloaded));
 }
 
-- (BOOL)unloadKext:(NSError **)error {
-  OSReturn status = KextManagerUnloadKextWithIdentifier((CFStringRef)KEXT_LABEL);
+- (BOOL)unloadKextWithLabel:(NSString *)label error:(NSError **)error {
+  OSReturn status = KextManagerUnloadKextWithIdentifier((__bridge CFStringRef)label);
   if (status != kOSReturnSuccess) {
     if (error) *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to unload with status: %@: %@", @(status), [self descriptionForStatus:status]);
     return NO;
@@ -142,20 +112,20 @@
   return YES;
 }
 
-- (void)uninstall:(KBOnCompletion)completion {
-  if ([self isKextLoaded]) {
+- (void)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
+  if ([self isKextLoaded:kextID]) {
     NSError *error = nil;
-    if (![self unloadKext:&error]) {
+    if (![self unloadKextWithLabel:kextID error:&error]) {
       completion(error, @(NO));
       return;
     }
   } else {
     // Do an unload to be safe (in case isKextLoaded lied)
-    KextManagerUnloadKextWithIdentifier((CFStringRef)KEXT_LABEL);
+    KextManagerUnloadKextWithIdentifier((__bridge CFStringRef)kextID);
   }
 
   NSError *error = nil;
-  if ([NSFileManager.defaultManager fileExistsAtPath:_destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:_destination error:&error]) {
+  if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to uninstall");
     completion(error, @(0));
   } else {
