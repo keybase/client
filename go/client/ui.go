@@ -793,6 +793,10 @@ func sentencePunctuate(s string) string {
 // GetTerminalUI returns the main client UI, which happens to be a terminal UI
 func (ui *UI) GetTerminalUI() libkb.TerminalUI { return ui }
 
+// GetDumbOutput returns the main client UI, which happens to also be a
+// dumb output UI too.
+func (ui *UI) GetDumbOutputUI() libkb.DumbOutputUI { return ui }
+
 func (ui *UI) PromptYesNo(_ libkb.PromptDescriptor, p string, def libkb.PromptDefault) (ret bool, err error) {
 	return ui.Terminal.PromptYesNo(p, def)
 }
@@ -872,6 +876,10 @@ func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
 
 func (ui *UI) Println(a ...interface{}) (int, error) {
 	return fmt.Fprintln(ui.OutputWriter(), a...)
+}
+
+func (ui *UI) PrintfStderr(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(os.Stderr, format, a...)
 }
 
 //=====================================================

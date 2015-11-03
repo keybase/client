@@ -6,6 +6,7 @@ package service
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -54,6 +55,13 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 	}
 
 	c.Version = libkb.VersionString()
+	c.VersionShort = libkb.Version
+
+	var v []string
+	libkb.VersionMessage(func(s string) {
+		v = append(v, s)
+	})
+	c.VersionFull = strings.Join(v, "\n")
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err == nil {

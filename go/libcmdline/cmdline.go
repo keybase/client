@@ -20,6 +20,7 @@ type Command interface {
 }
 
 type ForkCmd int
+type LogForward int
 
 const (
 	NormalFork ForkCmd = iota
@@ -27,23 +28,31 @@ const (
 	ForceFork
 )
 
+const (
+	LogForwardNormal LogForward = iota
+	LogForwardNone
+)
+
 type CommandLine struct {
 	app          *cli.App
 	ctx          *cli.Context
 	cmd          Command
-	name         string  // the name of the chosen command
-	service      bool    // The server is a special command
-	fork         ForkCmd // If the command is to stop (then don't start the server)
-	noStandalone bool    // On if this command can't run in standalone mode
+	name         string     // the name of the chosen command
+	service      bool       // The server is a special command
+	fork         ForkCmd    // If the command is to stop (then don't start the server)
+	noStandalone bool       // On if this command can't run in standalone mode
+	logForward   LogForward // What do to about log forwarding
 	defaultCmd   string
 }
 
-func (p CommandLine) IsService() bool       { return p.service }
-func (p *CommandLine) SetService()          { p.service = true }
-func (p CommandLine) GetForkCmd() ForkCmd   { return p.fork }
-func (p *CommandLine) SetForkCmd(v ForkCmd) { p.fork = v }
-func (p *CommandLine) SetNoStandalone()     { p.noStandalone = true }
-func (p CommandLine) IsNoStandalone() bool  { return p.noStandalone }
+func (p CommandLine) IsService() bool             { return p.service }
+func (p *CommandLine) SetService()                { p.service = true }
+func (p CommandLine) GetForkCmd() ForkCmd         { return p.fork }
+func (p *CommandLine) SetForkCmd(v ForkCmd)       { p.fork = v }
+func (p *CommandLine) SetNoStandalone()           { p.noStandalone = true }
+func (p CommandLine) IsNoStandalone() bool        { return p.noStandalone }
+func (p *CommandLine) SetLogForward(f LogForward) { p.logForward = f }
+func (p *CommandLine) GetLogForward() LogForward  { return p.logForward }
 
 func (p CommandLine) GetSplitLogOutput() (bool, bool) {
 	return p.GetBool("split-log-output", true)

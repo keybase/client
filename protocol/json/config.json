@@ -204,6 +204,12 @@
     }, {
       "name" : "configPath",
       "type" : "string"
+    }, {
+      "name" : "versionShort",
+      "type" : "string"
+    }, {
+      "name" : "versionFull",
+      "type" : "string"
     } ]
   }, {
     "type" : "enum",

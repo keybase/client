@@ -95,6 +95,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSString *version;
 @property NSString *path;
 @property NSString *configPath;
+@property NSString *versionShort;
+@property NSString *versionFull;
 @end
 
 typedef NS_ENUM (NSInteger, KBRInstallStatus) {

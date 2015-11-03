@@ -1,6 +1,3 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
-// this source code is governed by the included BSD license.
-
 package keybase1
 
 import (
@@ -346,15 +343,17 @@ type GetCurrentStatusRes struct {
 }
 
 type Config struct {
-	ServerURI  string `codec:"serverURI" json:"serverURI"`
-	SocketFile string `codec:"socketFile" json:"socketFile"`
-	Label      string `codec:"label" json:"label"`
-	RunMode    string `codec:"runMode" json:"runMode"`
-	GpgExists  bool   `codec:"gpgExists" json:"gpgExists"`
-	GpgPath    string `codec:"gpgPath" json:"gpgPath"`
-	Version    string `codec:"version" json:"version"`
-	Path       string `codec:"path" json:"path"`
-	ConfigPath string `codec:"configPath" json:"configPath"`
+	ServerURI    string `codec:"serverURI" json:"serverURI"`
+	SocketFile   string `codec:"socketFile" json:"socketFile"`
+	Label        string `codec:"label" json:"label"`
+	RunMode      string `codec:"runMode" json:"runMode"`
+	GpgExists    bool   `codec:"gpgExists" json:"gpgExists"`
+	GpgPath      string `codec:"gpgPath" json:"gpgPath"`
+	Version      string `codec:"version" json:"version"`
+	Path         string `codec:"path" json:"path"`
+	ConfigPath   string `codec:"configPath" json:"configPath"`
+	VersionShort string `codec:"versionShort" json:"versionShort"`
+	VersionFull  string `codec:"versionFull" json:"versionFull"`
 }
 
 type InstallStatus int
