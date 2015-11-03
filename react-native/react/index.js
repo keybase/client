@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React, { AppRegistry, Component } from 'react-native'
+import React, { AppRegistry, Component, NativeAppEventEmitter } from 'react-native'
 import { Provider, connect } from 'react-redux/native'
 import configureStore from './store/configure-store'
 import Nav from './nav'
