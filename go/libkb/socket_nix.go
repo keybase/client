@@ -8,6 +8,7 @@ package libkb
 
 import (
 	"net"
+	"strings"
 )
 
 type SocketUnix struct {
@@ -38,4 +39,9 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 		}
 	}
 	return
+}
+
+// net.errClosing isn't exported, so do this.. UGLY!
+func IsSocketClosedError(e error) (bool) {
+	return strings.HasSuffix(e.Error(), "use of closed network connection")
 }

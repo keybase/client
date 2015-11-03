@@ -47,3 +47,7 @@ func (s SocketNamedPipe) BindToSocket() (ret net.Listener, err error) {
 func (s SocketNamedPipe) DialSocket() (ret net.Conn, err error) {
 	return npipe.Dial(s.pipename)
 }
+
+func IsSocketClosedError(e error) bool {
+	return e == npipe.ErrClosed
+}
