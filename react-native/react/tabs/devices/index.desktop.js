@@ -9,9 +9,15 @@ import HardwareComputer from 'material-ui/lib/svg-icons/hardware/computer'
 import CommunicationVpnKey from 'material-ui/lib/svg-icons/communication/vpn-key'
 import ActionNoteAdd from 'material-ui/lib/svg-icons/action/note-add'
 
+import CodePage from '../../login2/register/code-page'
+import GenPaperKey from './gen-paper-key'
+import ExistingDevice from '../../login2/register/existing-device'
+import RemoveDevice from './remove-device'
+
 import moment from 'moment'
 import View from 'react-flexbox'
 import { loadDevices } from '../../actions/devices'
+import { routeAppend } from '../../actions/router'
 
 export default class Devices extends BaseComponent {
   constructor (props) {
@@ -25,11 +31,11 @@ export default class Devices extends BaseComponent {
   }
 
   connectNew () {
-    console.log("Add device")
+    console.log('Add device')
   }
 
   addPaperKey () {
-    console.log("Add paper key")
+    console.log('Add paper key')
   }
 
   static parseRoute (store, currentPath, nextPath) {
@@ -44,13 +50,22 @@ export default class Devices extends BaseComponent {
           }
         },
         props: {
-          loadDevices: () => store.dispatch(loadDevices())
+          loadDevices: () => store.dispatch(loadDevices()),
+          showRemoveDevicePage: device => store.dispatch(routeAppend({path: 'removeDevice', device})),
+          showExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
+          showGenPaperKeyPage: () => store.dispatch(routeAppend('genPaperKey'))
+        },
+        subRoutes: {
+          codePage: CodePage,
+          genPaperKey: GenPaperKey,
+          regExistingDevice: ExistingDevice,
+          removeDevice: RemoveDevice
         }
       }
     }
   }
 
-  renderPhone(device) {
+  renderPhone (device) {
     return (
       <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
         <div style={styles.device}>
@@ -58,13 +73,13 @@ export default class Devices extends BaseComponent {
           <h3 style={styles.line2}>{device.name}</h3>
           <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
           <div style={styles.line2}>TODO: Get Added info</div>
-          <div><a href="">Remove</a></div>
+          <div><a href=''>Remove</a></div>
         </div>
       </div>
     )
   }
 
-  renderDesktop(device) {
+  renderDesktop (device) {
     return (
       <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
         <div style={styles.device}>
@@ -78,7 +93,7 @@ export default class Devices extends BaseComponent {
     )
   }
 
-  renderPaperKey(device) {
+  renderPaperKey (device) {
     return (
       <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
         <div style={styles.device}>
@@ -86,18 +101,18 @@ export default class Devices extends BaseComponent {
           <h3 style={styles.line2}>{device.name}</h3>
           <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
           <div>Paper key</div>
-          <div><a href="">Remove</a></div>
+          <div><a href=''>Remove</a></div>
         </div>
       </div>
     )
   }
 
-  renderDevice(device) {
-    if (device.type == 'desktop') {
+  renderDevice (device) {
+    if (device.type === 'desktop') {
       return this.renderDesktop(device)
-    } else if (device.type == 'phone') {
+    } else if (device.type === 'phone') {
       return this.renderPhone(device)
-    } else if (device.type == 'backup') {
+    } else if (device.type === 'backup') {
       return this.renderPaperKey(device)
     } else {
       console.error('Unknown device type: ' + device.type)
@@ -126,9 +141,7 @@ export default class Devices extends BaseComponent {
         </View>
 
         <View auto row style={styles.deviceContainer}>
-          {
-            this.props.devices && this.props.devices.map(device => this.renderDevice(device))
-          }
+          { this.props.devices && this.props.devices.map(device => this.renderDevice(device)) }
         </View>
       </View>
     )
