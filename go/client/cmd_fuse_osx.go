@@ -25,13 +25,18 @@ func NewCmdFuse(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 
 func NewCmdFuseStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "status",
-		ArgumentHelp: "<kext-label> <bundle-version>",
-		Usage:        "Status for fuse, including for installing or updating",
+		Name: "status",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "b, bundle-version",
+				Usage: "Bundle version",
+			},
+		},
+		Usage: "Status for fuse, including for installing or updating",
 		Action: func(c *cli.Context) {
 			g.Env.SetSkipLogForward()
 
-			cl.ChooseCommand(NewCmdFuseStatusRunner(g), "fuse", c)
+			cl.ChooseCommand(NewCmdFuseStatusRunner(g), "status", c)
 		},
 	}
 }
