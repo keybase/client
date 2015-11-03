@@ -1,20 +1,20 @@
 'use strict'
 
-import * as types from '../constants/devices-action-types'
+import * as Constants from '../constants/devices'
 import engine from '../engine'
 import { navigateUpOnUnchanged } from './router'
 
 export function loadDevices () {
   return function (dispatch) {
     dispatch({
-      type: types.LOADING_DEVICES
+      type: Constants.loadingDevices
     })
 
     engine.rpc('device.deviceList', {}, {}, (error, devices) => {
       dispatch({
-        type: types.SHOW_DEVICES,
-        devices,
-        error
+        type: Constants.showDevices,
+        payload: error || devices,
+        error: !!error
       })
     })
   }
@@ -23,7 +23,7 @@ export function loadDevices () {
 export function generatePaperKey () {
   return function (dispatch) {
     dispatch({
-      type: types.PAPER_KEY_LOADING
+      type: Constants.paperKeyLoading
     })
 
     const incomingMap = {
@@ -35,7 +35,7 @@ export function generatePaperKey () {
       },
       'keybase.1.loginUi.displayPaperKey': ({phrase: paperKey}, response) => {
         dispatch({
-          type: types.PAPER_KEY_LOADED,
+          type: Constants.paperKeyLoaded,
           payload: paperKey
         })
         response.result()
@@ -45,7 +45,7 @@ export function generatePaperKey () {
     engine.rpc('login.paperKey', {}, incomingMap, (error, paperKey) => {
       if (error) {
         dispatch({
-          type: types.PAPER_KEY_LOADED,
+          type: Constants.paperKeyLoaded,
           payload: error,
           error: true
         })
@@ -65,7 +65,7 @@ export function removeDevice (deviceID) {
 
     engine.rpc('revoke.revokeDevice', {deviceID, force: false}, incomingMap, (error) => {
       dispatch({
-        type: types.DEVICE_REMOVED,
+        type: Constants.deviceRemoved,
         payload: error,
         error: !!error
       })

@@ -6,49 +6,50 @@ import { autoLogin } from './login2'
 import engine from '../engine'
 
 export function startup () {
-  return function (dispatch) {
+  return dispatch => {
     dispatch({type: Constants.startupLoading})
 
     engine.rpc('config.getConfig', {}, {}, (error, config) => {
       if (error) {
         dispatch({ type: Constants.startupLoaded, payload: error, error: true })
-      } else {
-        engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
-          if (error) {
-            dispatch({ type: Constants.startupLoaded, payload: error, error: true })
-          } else {
-            dispatch({
-              type: Constants.startupLoaded,
-              payload: { config, status }
-            })
-
-            if (status.loggedIn) {
-              dispatch(autoLogin())
-            }
-          }
-        })
+        return
       }
+      engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
+        if (error) {
+          dispatch({ type: Constants.startupLoaded, payload: error, error: true })
+          return
+        }
+
+        dispatch({
+          type: Constants.startupLoaded,
+          payload: { config, status }
+        })
+
+        if (status.loggedIn) {
+          dispatch(autoLogin())
+        }
+      })
     })
   }
 }
 
 export function getDevSettings () {
-  return function (dispatch) {
+  return dispatch => {
     dispatch({
       type: Constants.devConfigLoading
     })
 
-    NativeModules.App.getDevConfig((devConfig) => {
+    NativeModules.App.getDevConfig(devConfig => {
       dispatch({
         type: Constants.devConfigLoaded,
-        devConfig
+        payload: devConfig
       })
     })
   }
 }
 
 export function saveDevSettings () {
-  return function (dispatch, getState) {
+  return (dispatch, getState) => {
     const { config: { devConfig } } = getState()
 
     console.info(devConfig)
@@ -63,6 +64,6 @@ export function saveDevSettings () {
 export function updateDevSettings (updates) {
   return {
     type: Constants.devConfigUpdate,
-    updates
+    payload: updates
   }
 }

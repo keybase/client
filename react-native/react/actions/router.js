@@ -1,6 +1,6 @@
 'use strict'
 
-import { NAVIGATE_UP, NAVIGATE, NAVIGATE_APPEND, NAVIGATE_BACK } from '../constants/router-action-types'
+import * as Constants from '../constants/router'
 
 /*
  * This is a helper to handle async actions which want to transition to a new route
@@ -50,26 +50,26 @@ export function getCurrentTab (state) {
 
 export function navigateUp () {
   return {
-    type: NAVIGATE_UP
+    type: Constants.navigateUp
   }
 }
 
 export function navigateBack () {
   return {
-    type: NAVIGATE_BACK
+    type: Constants.navigateBack
   }
 }
 
 export function navigateTo (uri) {
   return {
-    type: NAVIGATE,
-    uri: uri
+    type: Constants.navigate,
+    payload: uri
   }
 }
 
 export function routeAppend (routeStr) {
   return {
-    type: NAVIGATE_APPEND,
-    topRoute: routeStr
+    type: Constants.navigateAppend,
+    payload: routeStr
   }
 }

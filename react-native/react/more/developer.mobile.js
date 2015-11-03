@@ -2,8 +2,8 @@
 /* @flow */
 
 import React, { Component, StyleSheet, Navigator, TextInput, View, Text } from 'react-native'
-import { navigateUp } from '../../actions/router'
-import { getDevSettings, saveDevSettings, updateDevSettings } from '../../actions/config'
+import { navigateUp } from '../actions/router'
+import { getDevSettings, saveDevSettings, updateDevSettings } from '../actions/config'
 
 export default class Developer extends Component {
   componentDidMount () {

@@ -6,13 +6,13 @@ import { connect } from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 
-import Folders from './tabs/folders'
-import Chat from './tabs/chat'
-import People from './tabs/people'
-import Devices from './tabs/devices'
+import Folders from './folders'
+import Chat from './chat'
+import People from './people'
+import Devices from './devices'
 import NoTab from './tabs/no-tab'
-import More from './tabs/more'
-import Startup from './tabs/start-up'
+import More from './more'
+import Startup from './startup'
 
 import { switchTab } from './actions/tabbed-router'
 import { navigateTo, navigateUp } from './actions/router'
@@ -22,16 +22,16 @@ import * as Constants from './constants/config'
 
 import { constants as styleConstants } from './styles/common'
 
-import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB, STARTUP_TAB} from './constants/tabs'
+import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab} from './constants/tabs'
 import Button from './common-adapters/button'
 
 const tabToRootComponent = {
-  [FOLDER_TAB]: Folders,
-  [CHAT_TAB]: Chat,
-  [PEOPLE_TAB]: People,
-  [DEVICES_TAB]: Devices,
-  [MORE_TAB]: More,
-  [STARTUP_TAB]: Startup
+  [folderTab]: Folders,
+  [chatTab]: Chat,
+  [peopleTab]: People,
+  [devicesTab]: Devices,
+  [moreTab]: More,
+  [startupTab]: Startup
 }
 
 function NavigationBarRouteMapper (navigateTo, navigateUp) {
@@ -155,7 +155,7 @@ export default class Nav extends Component {
       )
     }
 
-    if (activeTab === STARTUP_TAB) {
+    if (activeTab === startupTab) {
       return this._renderContent()
     }
 
@@ -167,33 +167,33 @@ export default class Nav extends Component {
           >
           <TabBarIOS.Item
             title='Folders'
-            selected={activeTab === FOLDER_TAB}
-            onPress={() => this.state.switchTab(FOLDER_TAB)}>
+            selected={activeTab === folderTab}
+            onPress={() => this.state.switchTab(folderTab)}>
             {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             title='Chat'
-            selected={activeTab === CHAT_TAB}
-            onPress={() => this.state.switchTab(CHAT_TAB)}>
+            selected={activeTab === chatTab}
+            onPress={() => this.state.switchTab(chatTab)}>
             {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             title='People'
             systemIcon='contacts'
-            selected={activeTab === PEOPLE_TAB}
-            onPress={() => this.state.switchTab(PEOPLE_TAB)}>
+            selected={activeTab === peopleTab}
+            onPress={() => this.state.switchTab(peopleTab)}>
             {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             title='Devices'
-            selected={activeTab === DEVICES_TAB}
-            onPress={() => this.state.switchTab(DEVICES_TAB)}>
+            selected={activeTab === devicesTab}
+            onPress={() => this.state.switchTab(devicesTab)}>
             {this._renderContent()}
           </TabBarIOS.Item>
           <TabBarIOS.Item
             systemIcon='more'
-            selected={activeTab === MORE_TAB}
-            onPress={() => this.state.switchTab(MORE_TAB)}>
+            selected={activeTab === moreTab}
+            onPress={() => this.state.switchTab(moreTab)}>
             {this._renderContent()}
           </TabBarIOS.Item>
         </TabBarIOS>

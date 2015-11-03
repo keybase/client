@@ -1,26 +1,20 @@
 'use strict'
 
-import * as types from '../constants/configActionTypes'
+import * as Constants from '../constants/config'
 import engine from '../engine'
 
 export function getConfig () {
   return function (dispatch) {
     dispatch({
-      type: types.CONFIG_LOADING
+      type: Constants.startupLoading
     })
 
     engine.rpc('config.getConfig', {}, {}, (error, config) => {
-      if (error) {
-        dispatch({
-          type: types.CONFIG_ERRORED,
-          error: error
-        })
-      } else {
-        dispatch({
-          type: types.CONFIG_LOADED,
-          config: config
-        })
-      }
+      dispatch({
+        type: Constants.startupLoaded,
+        payload: error || config,
+        error: !!error
+      })
     })
   }
 }

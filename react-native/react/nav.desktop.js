@@ -6,17 +6,17 @@ import { connect } from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import React from 'react'
 import { StyleSheet } from 'react'
-import Folders from './tabs/folders'
-import Chat from './tabs/chat'
-import People from './tabs/people'
-import Devices from './tabs/devices'
+import Folders from './folders'
+import Chat from './chat'
+import People from './people'
+import Devices from './devices'
 import NoTab from './tabs/no-tab'
-import More from './tabs/more'
+import More from './more'
 
 import {FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from './constants/tabs'
 import { switchTab } from './actions/tabbed-router'
 import { Tab, Tabs, IconButton, Styles } from 'material-ui'
-let { Colors, Typography } = Styles;
+let { Colors, Typography } = Styles
 
 const tabToRootRouteParse = {
   [FOLDER_TAB]: Folders,

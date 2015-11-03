@@ -14,7 +14,6 @@ export function login (username, passphrase) {
     const param = {
       username,
       passphrase,
-      storeSecret: true,
       error: null
     }
 
@@ -25,7 +24,7 @@ export function login (username, passphrase) {
       }
     }
 
-    engine.rpc('login.loginWithPassphrase', param, incomingMap, (error, response) => {
+    engine.rpc('login.login', param, incomingMap, (error, response) => {
       if (error) {
         console.log(error)
       }
@@ -250,7 +249,7 @@ export function submitForgotPassword () {
 
 export function autoLogin () {
   return function (dispatch) {
-    engine.rpc('login.loginWithPrompt', {}, {}, (error, status) => {
+    engine.rpc('login.login', {}, {}, (error, status) => {
       if (error) {
         console.log(error)
       } else {
