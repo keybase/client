@@ -8,8 +8,8 @@
 # It does the following:
 #
 # 1. tags the client repo with a version tag
-# 2. exports the code to the client-beta repo
-# 3. updates the kbstage brew formula
+# 2. update the kbstage brew formulas
+# 3. build the Linux packages (pulling on dist.keybase.io is manual)
 #
 
 set -e -u -o pipefail
@@ -35,29 +35,12 @@ else
 fi
 
 clientdir="$GOPATH/src/github.com/keybase/client"
-betadir=${BETADIR:-$GOPATH/src/github.com/keybase/client-beta}
 brewdir=${BREWDIR:-$GOPATH/src/github.com/keybase/homebrew-beta}
 serveropsdir=${SERVEROPSDIR:-$GOPATH/src/github.com/keybase/server-ops}
 
-if [ ! -d "$clientdir" ]; then
-	echo "Need client repo, expecting it here: $clientdir"
-	exit 1
-fi
-
-if [ ! -d "$betadir" ]; then
-	echo "Need client-beta repo, expecting it here: $betadir"
-	exit 1
-fi
-
-if [ ! -d "$brewdir" ]; then
-	echo "Need homebrew-beta repo, expecting it here: $brewdir"
-	exit 1
-fi
-
-if [ ! -d "$serveropsdir" ]; then
-	echo "Need server-ops repo, expecting it here: $serveropsdir"
-	exit 1
-fi
+"$clientdir/packaging/check_status_and_pull.sh" "$clientdir"
+"$clientdir/packaging/check_status_and_pull.sh" "$brewdir"
+"$clientdir/packaging/check_status_and_pull.sh" "$serveropsdir"
 
 version_on_disk="$("$clientdir/packaging/version.sh")"
 
@@ -70,32 +53,15 @@ echo "-------------------------------------------------------------------------"
 echo "Creating $formula release for version $version"
 echo "-------------------------------------------------------------------------"
 cd $clientdir
-git checkout master
 
-if ! git diff-index --quiet HEAD --; then
-	echo "There are changes in $clientdir"
-	exit 1
-fi
-
-git pull --ff-only
 if git tag -a $version_tag -m $version_tag ; then
 	echo "Tagged client source with $version_tag"
 	git push --tags
-
-	echo "Exporting client source to client-beta for version $version"
-	$clientdir/packaging/export/export.sh client $betadir $version_tag
-	cd $betadir
-	git add .
-	git commit -m "Importing from $version_tag"
-	git push
-	git tag -a $version_tag -m $version_tag
-	git push --tags
 else
 	echo "git tag $version_tag failed on $clientdir, presumably it exists"
-	echo "skipped client source export to client-beta for version $version"
 fi
 
-src_url="https://github.com/keybase/client-beta/archive/$version_tag.tar.gz"
+src_url="https://github.com/keybase/client/archive/$version_tag.tar.gz"
 echo "Computing sha256 of $src_url"
 src_sha="$(curl -f -L -s $src_url | shasum -a 256 | cut -f 1 -d ' ')"
 echo "sha256 of $src_url is $src_sha"
@@ -103,8 +69,6 @@ echo "sha256 of $src_url is $src_sha"
 echo "Updating brew formula $formula"
 sed -e "s/%VERSION%/$version/g" -e "s/%VERSION_TAG%/$version_tag/g" -e "s/%SRC_SHA%/$src_sha/g" $brewdir/$formula.rb.tmpl > $brewdir/$formula.rb
 cd $brewdir
-git checkout master
-git pull --ff-only
 if git commit -a -m "New $formula version $version_tag" ; then
 	git push
 	echo "Done.  brew update && brew upgrade $formula should install version $version"
@@ -124,6 +88,4 @@ if ! gpg -K "$code_signing_fingerprint" ; then
 fi
 
 cd "$serveropsdir"
-git checkout master
-git pull --ff-only
 "$serveropsdir/deploy/linux_docker_build.sh" "$mode" "$version_tag"
