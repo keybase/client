@@ -76,7 +76,7 @@ func TestVersionAndStop(t *testing.T) {
 
 	<-startCh
 	version := client.NewCmdVersionRunner(tc2.G)
-	version.SetSvc()
+
 	if err := version.Run(); err != nil {
 		t.Fatal(err)
 	}

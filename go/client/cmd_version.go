@@ -27,13 +27,9 @@ type CmdVersion struct {
 func NewCmdVersionRunner(g *libkb.GlobalContext) *CmdVersion {
 	return &CmdVersion{
 		mode:         modeNormal,
-		svc:          false,
+		svc:          true,
 		Contextified: libkb.NewContextified(g),
 	}
-}
-
-func (v *CmdVersion) SetSvc() {
-	v.svc = true
 }
 
 func NewCmdVersion(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -46,8 +42,8 @@ func NewCmdVersion(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Alternate format for version output. Specify 's' for simple (1.2.3) or 'v' for verbose. Default (blank) includes build number (1.2.3-400).",
 			},
 			cli.BoolFlag{
-				Name:  "s, service",
-				Usage: "Also report on the service's build information",
+				Name:  "S, no-service",
+				Usage: "Don't report on the service's build information",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -65,7 +61,7 @@ func (v *CmdVersion) ParseArgv(c *cli.Context) error {
 	case "v":
 		v.mode = modeVerbose
 	}
-	v.svc = c.Bool("s")
+	v.svc = !c.Bool("S")
 	return nil
 }
 
@@ -81,7 +77,8 @@ func (v *CmdVersion) Run() error {
 func (v *CmdVersion) runService() error {
 	cli, err := GetConfigClient(v.G())
 	if err != nil {
-		return err
+		v.G().Log.Debug("no service running: %v", err)
+		return nil
 	}
 	res, err := cli.GetConfig(context.TODO(), 0)
 	if err != nil {
