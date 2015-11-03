@@ -45,7 +45,7 @@ protocol config {
     INSTALLED_4
   }
 
-  record ServiceStatusError {
+  record StatusError {
     string message;
   }
 
@@ -65,7 +65,17 @@ protocol config {
     string bundleVersion;
     InstallStatus installStatus;
     InstallAction installAction;
-    union { null, ServiceStatusError } `error`;
+    union { null, StatusError } `error`;
+  }
+
+  record FuseStatus {
+    string version;
+    string bundleVersion;
+    string kextLabel;
+    boolean kextStarted;
+    InstallStatus installStatus;
+    InstallAction installAction;
+    union { null, StatusError } `error`;
   }
 
 }

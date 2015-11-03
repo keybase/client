@@ -171,8 +171,14 @@ func NewCmdLaunchdStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 
 func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "status",
-		ArgumentHelp: "<service-name> <bundle-version>",
+		Name: "status",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "b, bundle-version",
+				Usage: "Bundle version",
+			},
+		},
+		ArgumentHelp: "<service-name>",
 		Usage:        "Status for keybase launchd service, including for installing or updating",
 		Action: func(c *cli.Context) {
 			// This is to bypass the logui protocol registration in main.go which is
@@ -207,10 +213,7 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 		return fmt.Errorf("No service name specified.")
 	}
 	v.name = args[0]
-	if len(args) < 2 {
-		return fmt.Errorf("No bundle version specified.")
-	}
-	v.bundleVersion = args[1]
+	v.bundleVersion = ctx.String("bundle-version")
 	return nil
 }
 

@@ -212,7 +212,7 @@
     "symbols" : [ "UNKNOWN_0", "ERROR_1", "NOT_INSTALLED_2", "NEEDS_UPGRADE_3", "INSTALLED_4" ]
   }, {
     "type" : "record",
-    "name" : "ServiceStatusError",
+    "name" : "StatusError",
     "fields" : [ {
       "name" : "message",
       "type" : "string"
@@ -247,7 +247,32 @@
       "type" : "InstallAction"
     }, {
       "name" : "error",
-      "type" : [ "null", "ServiceStatusError" ]
+      "type" : [ "null", "StatusError" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FuseStatus",
+    "fields" : [ {
+      "name" : "version",
+      "type" : "string"
+    }, {
+      "name" : "bundleVersion",
+      "type" : "string"
+    }, {
+      "name" : "kextLabel",
+      "type" : "string"
+    }, {
+      "name" : "kextStarted",
+      "type" : "boolean"
+    }, {
+      "name" : "installStatus",
+      "type" : "InstallStatus"
+    }, {
+      "name" : "installAction",
+      "type" : "InstallAction"
+    }, {
+      "name" : "error",
+      "type" : [ "null", "StatusError" ]
     } ]
   } ],
   "messages" : {

@@ -367,7 +367,7 @@ const (
 	InstallStatus_INSTALLED     InstallStatus = 4
 )
 
-type ServiceStatusError struct {
+type StatusError struct {
 	Message string `codec:"message" json:"message"`
 }
 
@@ -382,14 +382,24 @@ const (
 )
 
 type ServiceStatus struct {
-	Version        string              `codec:"version" json:"version"`
-	Label          string              `codec:"label" json:"label"`
-	Pid            string              `codec:"pid" json:"pid"`
-	LastExitStatus string              `codec:"lastExitStatus" json:"lastExitStatus"`
-	BundleVersion  string              `codec:"bundleVersion" json:"bundleVersion"`
-	InstallStatus  InstallStatus       `codec:"installStatus" json:"installStatus"`
-	InstallAction  InstallAction       `codec:"installAction" json:"installAction"`
-	Error          *ServiceStatusError `codec:"error,omitempty" json:"error,omitempty"`
+	Version        string        `codec:"version" json:"version"`
+	Label          string        `codec:"label" json:"label"`
+	Pid            string        `codec:"pid" json:"pid"`
+	LastExitStatus string        `codec:"lastExitStatus" json:"lastExitStatus"`
+	BundleVersion  string        `codec:"bundleVersion" json:"bundleVersion"`
+	InstallStatus  InstallStatus `codec:"installStatus" json:"installStatus"`
+	InstallAction  InstallAction `codec:"installAction" json:"installAction"`
+	Error          *StatusError  `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+type FuseStatus struct {
+	Version       string        `codec:"version" json:"version"`
+	BundleVersion string        `codec:"bundleVersion" json:"bundleVersion"`
+	KextLabel     string        `codec:"kextLabel" json:"kextLabel"`
+	KextStarted   bool          `codec:"kextStarted" json:"kextStarted"`
+	InstallStatus InstallStatus `codec:"installStatus" json:"installStatus"`
+	InstallAction InstallAction `codec:"installAction" json:"installAction"`
+	Error         *StatusError  `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 type GetCurrentStatusArg struct {

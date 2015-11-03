@@ -105,7 +105,7 @@ typedef NS_ENUM (NSInteger, KBRInstallStatus) {
 	KBRInstallStatusInstalled = 4,
 };
 
-@interface KBRServiceStatusError : KBRObject
+@interface KBRStatusError : KBRObject
 @property NSString *message;
 @end
 
@@ -125,7 +125,17 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 @property NSString *bundleVersion;
 @property KBRInstallStatus installStatus;
 @property KBRInstallAction installAction;
-@property KBRServiceStatusError *error;
+@property KBRStatusError *error;
+@end
+
+@interface KBRFuseStatus : KBRObject
+@property NSString *version;
+@property NSString *bundleVersion;
+@property NSString *kextLabel;
+@property BOOL kextStarted;
+@property KBRInstallStatus installStatus;
+@property KBRInstallAction installAction;
+@property KBRStatusError *error;
 @end
 
 @interface KBRED25519SignatureInfo : KBRObject

@@ -4627,10 +4627,13 @@
 @implementation KBRConfig
 @end
 
-@implementation KBRServiceStatusError
+@implementation KBRStatusError
 @end
 
 @implementation KBRServiceStatus
+@end
+
+@implementation KBRFuseStatus
 @end
 
 @implementation KBRED25519SignatureInfo
