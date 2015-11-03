@@ -33,15 +33,20 @@ function timeTravel (state: State, action: any): State {
 }
 
 export default function (state: State, action: any): State {
-  return timeTravel(
-    combineReducers({
-      login,
-      login2,
-      devices,
-      tabbedRouter,
-      search,
-      profile,
-      config
-    })(state, action),
-    action)
+  const nextState = combineReducers({
+    login,
+    login2,
+    devices,
+    tabbedRouter,
+    search,
+    profile,
+    config
+  })(state, action)
+
+  // TODO move this __DEV__ to a module
+  if (__DEV__) { // eslint-disable-line no-undef
+    return timeTravel(nextState, action)
+  }
+
+  return nextState
 }
