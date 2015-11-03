@@ -19,18 +19,20 @@ class Keybase extends Component {
     this.subscriptions = []
     // TODO move this __DEV__ to a module
     if (__DEV__) { // eslint-disable-line no-undef
+      AsyncStorage.getItem(STATE_KEY, (err, stateJSON) => {
+        if (err != null) {
+          console.error('Error in reading state:', err)
+        }
+        if (stateJSON != null) {
+          store.dispatch({type: 'restoreState', payload: stateJSON})
+        }
+      })
+
       this.subscriptions = [
         NativeAppEventEmitter.addListener('backInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'back'}})),
         NativeAppEventEmitter.addListener('forwardInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'forward'}})),
         NativeAppEventEmitter.addListener('saveState', () => store.dispatch({type: 'saveState'})),
-        NativeAppEventEmitter.addListener('restoreState', () => {
-          AsyncStorage.getItem(STATE_KEY, (err, stateJSON) => {
-            if (err != null) {
-              console.error('Error in reading state:', err)
-            }
-            store.dispatch({type: 'restoreState', payload: stateJSON})
-          })
-        })
+        NativeAppEventEmitter.addListener('clearState', () => AsyncStorage.removeItem(STATE_KEY))
       ]
     }
   }
