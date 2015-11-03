@@ -12,6 +12,7 @@ import config from './config'
 import tabbedRouter from './tabbed-router'
 import {List} from 'immutable'
 import type { State } from '../constants/reducer-types'
+import serialize from './serialize'
 
 let history = List()
 let index = 0
@@ -46,7 +47,7 @@ export default function (state: State, action: any): State {
 
   // TODO move this __DEV__ to a module
   if (__DEV__) { // eslint-disable-line no-undef
-    return timeTravel(nextState, action)
+    return serialize(timeTravel(nextState, action), action)
   }
 
   return nextState

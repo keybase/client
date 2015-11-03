@@ -26,6 +26,8 @@
     "react-redux": "^3.1.0",
     "redux": "^3.0.4",
     "redux-thunk": "^1.0.0",
+    "transit-immutable-js": "^0.4.0",
+    "transit-js": "^0.8.837",
     "util": "^0.10.3"
   },
   "standard": {
