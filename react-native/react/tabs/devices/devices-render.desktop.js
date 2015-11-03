@@ -9,65 +9,17 @@ import HardwareComputer from 'material-ui/lib/svg-icons/hardware/computer'
 import CommunicationVpnKey from 'material-ui/lib/svg-icons/communication/vpn-key'
 import ActionNoteAdd from 'material-ui/lib/svg-icons/action/note-add'
 
-import CodePage from '../../login2/register/code-page'
-import GenPaperKey from './gen-paper-key'
-import ExistingDevice from '../../login2/register/existing-device'
-import RemoveDevice from './remove-device'
-
 import moment from 'moment'
 import View from 'react-flexbox'
-import { loadDevices } from '../../actions/devices'
-import { routeAppend } from '../../actions/router'
 
-export default class Devices extends BaseComponent {
+export default class DevicesRender extends BaseComponent {
   constructor (props) {
     super(props)
   }
 
-  componentWillMount () {
-    if (!this.props.devices && !this.props.waitingForServer) {
-      this.props.loadDevices()
-    }
-  }
-
-  connectNew () {
-    console.log('Add device')
-  }
-
-  addPaperKey () {
-    console.log('Add paper key')
-  }
-
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        title: 'Devices',
-        mapStateToProps: state => {
-          const { devices, waitingForServer } = state.devices
-          return {
-            devices,
-            waitingForServer
-          }
-        },
-        props: {
-          loadDevices: () => store.dispatch(loadDevices()),
-          showRemoveDevicePage: device => store.dispatch(routeAppend({path: 'removeDevice', device})),
-          showExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
-          showGenPaperKeyPage: () => store.dispatch(routeAppend('genPaperKey'))
-        },
-        subRoutes: {
-          codePage: CodePage,
-          genPaperKey: GenPaperKey,
-          regExistingDevice: ExistingDevice,
-          removeDevice: RemoveDevice
-        }
-      }
-    }
-  }
-
   renderPhone (device) {
     return (
-      <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
+      <div key={device.deviceID} style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
         <div style={styles.device}>
           <HardwarePhoneIphone style={styles.deviceIcon}/>
           <h3 style={styles.line2}>{device.name}</h3>
@@ -81,7 +33,7 @@ export default class Devices extends BaseComponent {
 
   renderDesktop (device) {
     return (
-      <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
+      <div key={device.deviceID} style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
         <div style={styles.device}>
           <HardwareComputer style={styles.deviceIcon} />
           <h3 style={styles.line2}>{device.name}</h3>
@@ -95,7 +47,7 @@ export default class Devices extends BaseComponent {
 
   renderPaperKey (device) {
     return (
-      <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
+      <div key={device.deviceID} style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
         <div style={styles.device}>
           <CommunicationVpnKey style={styles.deviceIcon} />
           <h3 style={styles.line2}>{device.name}</h3>
