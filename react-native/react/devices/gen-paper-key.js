@@ -2,8 +2,8 @@
 /* @flow */
 
 import React, { Component, Text, View, StyleSheet } from 'react-native'
-import commonStyles from '../../styles/common'
-import { generatePaperKey } from '../../actions/devices'
+import commonStyles from '../styles/common'
+import { generatePaperKey } from '../actions/devices'
 
 export default class GenPaperKey extends Component {
   constructor (props) {

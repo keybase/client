@@ -1,7 +1,7 @@
 'use strict'
 
-import BaseComponent from '../../base-component'
-import React from '../../base-react'
+import BaseComponent from '../base-component'
+import React from '../base-react'
 import { List, ListItem } from 'material-ui'
 
 export default class MoreTabs extends BaseComponent {

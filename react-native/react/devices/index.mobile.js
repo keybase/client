@@ -2,14 +2,14 @@
 /* @flow */
 
 import React, { Component, Text, TouchableHighlight, View, ScrollView, StyleSheet } from 'react-native'
-import Button from '../../common-adapters/button'
+import Button from '../common-adapters/button'
 import moment from 'moment'
-import CodePage from '../../login2/register/code-page'
-import { loadDevices } from '../../actions/devices'
-import { routeAppend } from '../../actions/router'
-import commonStyles from '../../styles/common'
+import CodePage from '../login2/register/code-page'
+import { loadDevices } from '../actions/devices'
+import { routeAppend } from '../actions/router'
+import commonStyles from '../styles/common'
 import GenPaperKey from './gen-paper-key'
-import ExistingDevice from '../../login2/register/existing-device'
+import ExistingDevice from '../login2/register/existing-device'
 import RemoveDevice from './remove-device'
 
 // TODO

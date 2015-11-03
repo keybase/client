@@ -1,21 +1,18 @@
 'use strict'
 
-import BaseComponent from '../../base-component'
-import React from '../../base-react'
+import BaseComponent from '../base-component'
+import React from '../base-react'
 import MoreTabs from './more'
-import { logout } from '../../actions/login2'
-import { pushNewSearch } from '../../actions/search'
-import { navigateTo } from '../../actions/router'
-import { pushNewProfile } from '../../actions/profile'
+import { logout } from '../actions/login2'
+import { pushNewSearch } from '../actions/search'
+import { navigateTo } from '../actions/router'
+import { pushNewProfile } from '../actions/profile'
 
 export default class More extends BaseComponent {
   constructor (props) {
     super(props)
 
     this.menu = [
-      {name: 'Login', onClick: () => {
-        this.props.navigateTo(['login', 'loginform'])
-      }},
       {name: 'Login2', onClick: () => {
         this.props.navigateTo(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}])
       }},
@@ -34,12 +31,6 @@ export default class More extends BaseComponent {
       }},
       {name: 'Developer', hasChildren: true, onClick: () => {
         this.props.navigateTo(['developer'])
-      }},
-      {name: 'Nav debug', hasChildren: true, onClick: () => {
-        this.props.navigateTo(['navDebug'])
-      }},
-      {name: 'Bridging', hasChildren: true, onClick: () => {
-        this.props.navigateTo(['bridging'])
       }},
       {name: 'Search', hasChildren: true, onClick: () => {
         this.props.pushNewSearch()
@@ -64,10 +55,7 @@ export default class More extends BaseComponent {
       subRoutes: {
         about: require('./about'),
         developer: require('./developer'),
-        navDebug: require('../../debug/nav-debug'),
-        bridging: require('../../debug/bridging-tabs'),
-        login: require('../../login'),
-        login2: require('../../login2')
+        login2: require('../login2')
       }
     }
   }

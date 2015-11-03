@@ -1,14 +1,18 @@
 'use strict'
 
-import * as SearchActions from '../constants/search-action-types'
-import * as ProfileActions from '../constants/profile-action-types'
+import * as Constants from '../constants/search'
 import { routeAppend, getCurrentURI } from './router'
 import { loadSummaries } from './profile'
 import engine from '../engine'
 import * as _ from 'lodash'
 
 export function initSearch (base) {
-  return { type: SearchActions.INIT_SEARCH, base }
+  return {
+    type: Constants.init,
+    payload: {
+      base
+    }
+  }
 }
 
 export function pushNewSearch () {
@@ -24,9 +28,11 @@ const submitSearch_debounced = _.debounce((base, term, dispatch, getState) => {
   const nonce = next_nonce++
 
   dispatch({
-    base,
-    nonce,
-    type: SearchActions.SEARCH_RUNNING
+    type: Constants.searchRunning,
+    payload: {
+      base,
+      nonce
+    }
   })
 
   const bad_nonce = () => (getState().search.getIn([base, 'nonce']) !== nonce)
@@ -34,7 +40,7 @@ const submitSearch_debounced = _.debounce((base, term, dispatch, getState) => {
   const doRPC = (...args) => new Promise((resolve, reject) => {
     engine.rpc(...args, (error, results) => {
       if (bad_nonce()) { return }
-      if (error) { throw new Error(error) }
+      if (error) { reject(new Error(error)) }
       if (results) {
         dispatch(loadSummaries(results.map(r => r.uid)))
       }
@@ -53,15 +59,20 @@ const submitSearch_debounced = _.debounce((base, term, dispatch, getState) => {
     .then(results => {
       const trackingUsernames = new Set(results[0].map(u => u.uid))
       dispatch({
-        type: SearchActions.SEARCH_RESULTS,
-        base,
-        results: results[0].concat(results[1].filter(r => !trackingUsernames.has(r.uid)))
+        type: Constants.searchResults,
+        payload: {
+          base,
+          results: results[0].concat(results[1].filter(r => !trackingUsernames.has(r.uid)))
+        }
       })
     })
     .catch(err => dispatch({
-      type: SearchActions.SEARCH_RESULTS,
-      base,
-      error: err
+      type: Constants.searchResults,
+      payload: {
+        base,
+        error: err
+      },
+      error: true
     }))
 }, 150)
 
@@ -72,9 +83,11 @@ export function submitSearch (base, term) {
       return dispatch(initSearch(base))
     }
     dispatch({
-      type: SearchActions.SEARCH_TERM,
-      base,
-      term
+      type: Constants.searchTerm,
+      payload: {
+        base,
+        term
+      }
     })
     submitSearch_debounced(base, term, dispatch, getState)
   }

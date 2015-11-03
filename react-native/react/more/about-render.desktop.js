@@ -4,15 +4,16 @@
 import React from '../base-react'
 import BaseComponent from '../base-component'
 
-export default class MissingRouteRender extends BaseComponent {
+export default class ChatRender extends BaseComponent {
   constructor (props) {
     super(props)
   }
 
   render () {
     return (
-      <div style={{flex: 1, justifyContent: 'center', backgroundColor: 'red'}}>
-        <p> Error! Tab name was not recognized</p>
+      <div>
+        <h2>About</h2>
+        <p>Version 0.1</p>
       </div>
     )
   }

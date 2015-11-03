@@ -1,14 +1,10 @@
 'use strict'
 
-import React from '../../base-react'
-import BaseComponent from '../../base-component'
+import React from '../base-react'
+import BaseComponent from '../base-component'
 import { View, ListView, Text, StyleSheet } from 'react-native'
-import * as LoginActions from '../../actions/login'
-import * as SearchActions from '../../actions/search'
-import { navigateTo } from '../../actions/router'
-import { pushNewProfile } from '../../actions/profile'
-import Button from '../../common-adapters/button'
-import commonStyles from '../../styles/common'
+import Button from '../common-adapters/button'
+import commonStyles from '../styles/common'
 
 export default class More extends BaseComponent {
   constructor (props) {

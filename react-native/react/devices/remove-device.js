@@ -2,10 +2,10 @@
 /* @flow */
 
 import React, { Component, Text, View } from 'react-native'
-import commonStyles from '../../styles/common'
-import { removeDevice } from '../../actions/devices'
-import { navigateUp } from '../../actions/router'
-import Button from '../../common-adapters/button'
+import commonStyles from '../styles/common'
+import { removeDevice } from '../actions/devices'
+import { navigateUp } from '../actions/router'
+import Button from '../common-adapters/button'
 
 export default class RemoveDevice extends Component {
   constructor (props) {

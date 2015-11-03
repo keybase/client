@@ -52,30 +52,15 @@ export default function (state: ConfigState = initialState, action: any): Config
         navState
       }
     case LoginConstants.logoutDone:
-      return {
-        ...state,
-        navState: Constants.navNeedsLogin
-      }
+      return { ...state, navState: Constants.navNeedsLogin }
     case LoginConstants.loginDone:
-      return {
-        ...state,
-        navState: Constants.navLoggedIn
-      }
+      return { ...state, navState: Constants.navLoggedIn }
     case Constants.devConfigLoading:
-      return {
-        ...state,
-        devConfig: null
-      }
+      return { ...state, devConfig: null }
     case Constants.devConfigLoaded:
-      return {
-        ...state,
-        devConfig: action.devConfig
-      }
+      return { ...state, devConfig: action.payload }
     case Constants.devConfigSaved:
-      return {
-        ...state,
-        devConfig: null
-      }
+      return { ...state, devConfig: null }
     case Constants.devConfigUpdate:
       const devConfigured = state.devConfig && state.devConfig.configured || {}
       return {
@@ -84,7 +69,7 @@ export default function (state: ConfigState = initialState, action: any): Config
           ...state.devConfig,
           configured: {
             ...devConfigured,
-            ...action.updates
+            ...action.payload
           }
         }
       }

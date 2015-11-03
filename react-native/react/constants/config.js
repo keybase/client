@@ -11,10 +11,10 @@ export const navLoggedIn = 'navLoggedIn'
 export const navErrorStartingUp = 'navErrorStartingUp'
 
 // Actions
-export const startupLoading = 'startupLoading'
-export const startupLoaded = 'startupLoaded'
+export const startupLoading = 'Config:startupLoading'
+export const startupLoaded = 'Config:startupLoaded'
 
-export const devConfigLoading = 'devConfigLoadin'
-export const devConfigLoaded = 'devConfigLoaded'
-export const devConfigUpdate = 'devConfigUpdate'
-export const devConfigSaved = 'devConfigSaved'
+export const devConfigLoading = 'Config:devConfigLoading'
+export const devConfigLoaded = 'Config:devConfigLoaded'
+export const devConfigUpdate = 'Config:devConfigUpdate'
+export const devConfigSaved = 'Config:devConfigSaved'
