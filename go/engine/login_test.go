@@ -516,12 +516,13 @@ func (u *testProvisionUI) ChooseDeviceType(_ context.Context, _ int) (keybase1.D
 	return keybase1.DeviceType_DESKTOP, nil
 }
 
-func (u *testProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
+func (u *testProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1.DisplayAndPromptSecretArg) (keybase1.SecretResponse, error) {
 	u.printf("DisplayAndPromptSecret")
 	var ks kex2.Secret
 	copy(ks[:], arg.Secret)
 	u.secretCh <- ks
-	return nil, nil
+	var sr keybase1.SecretResponse
+	return sr, nil
 }
 
 func (u *testProvisionUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {

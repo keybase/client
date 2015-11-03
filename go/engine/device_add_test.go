@@ -95,6 +95,8 @@ type testXProvisionUI struct {
 	testProvisionUI
 }
 
-func (u *testXProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
-	return u.secret[:], nil
+func (u *testXProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1.DisplayAndPromptSecretArg) (keybase1.SecretResponse, error) {
+	var sr keybase1.SecretResponse
+	sr.Secret = u.secret[:]
+	return sr, nil
 }

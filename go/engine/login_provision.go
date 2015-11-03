@@ -143,10 +143,19 @@ func (e *LoginProvision) device(ctx *Context) error {
 		if err != nil {
 			// could cancel provisionee run here?
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
-		} else if receivedSecret != nil && len(receivedSecret) > 0 {
+		} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
+			e.G().Log.Debug("received secret, adding to provisionee")
 			var ks kex2.Secret
-			copy(ks[:], receivedSecret)
+			copy(ks[:], receivedSecret.Secret)
 			provisionee.AddSecret(ks)
+		} else if len(receivedSecret.Phrase) > 0 {
+			e.G().Log.Debug("received secret phrase, adding to provisionee")
+			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+			if err != nil {
+				e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+			} else {
+				provisionee.AddSecret(ks.Secret())
+			}
 		}
 	}()
 

@@ -3420,6 +3420,11 @@ const (
 	DeviceType_MOBILE  DeviceType = 1
 )
 
+type SecretResponse struct {
+	Secret []byte `codec:"secret" json:"secret"`
+	Phrase string `codec:"phrase" json:"phrase"`
+}
+
 type ChooseProvisioningMethodArg struct {
 	SessionID int  `codec:"sessionID" json:"sessionID"`
 	GpgOption bool `codec:"gpgOption" json:"gpgOption"`
@@ -3460,7 +3465,7 @@ type ProvisionerSuccessArg struct {
 type ProvisionUiInterface interface {
 	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
 	ChooseDeviceType(context.Context, int) (DeviceType, error)
-	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) ([]byte, error)
+	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) (SecretResponse, error)
 	DisplaySecretExchanged(context.Context, int) error
 	PromptNewDeviceName(context.Context, PromptNewDeviceNameArg) (string, error)
 	ProvisioneeSuccess(context.Context, ProvisioneeSuccessArg) error
@@ -3602,7 +3607,7 @@ func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, sessionID int) 
 	return
 }
 
-func (c ProvisionUiClient) DisplayAndPromptSecret(ctx context.Context, __arg DisplayAndPromptSecretArg) (res []byte, err error) {
+func (c ProvisionUiClient) DisplayAndPromptSecret(ctx context.Context, __arg DisplayAndPromptSecretArg) (res SecretResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.provisionUi.DisplayAndPromptSecret", []interface{}{__arg}, &res)
 	return
 }
