@@ -113,10 +113,19 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)install:(KBCompletion)completion {
+  /*
+  // OSXFuse 2.x
   NSString *source = [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"osxfusefs.bundle"];
   NSString *destination = @"/Library/Filesystems/osxfusefs.fs";
   NSString *kextID = @"com.github.osxfuse.filesystems.osxfusefs";
   NSString *kextPath = @"/Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext";
+   */
+
+  // OSXFuse 3.x
+  NSString *source = [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"osxfuse3.bundle"];
+  NSString *destination = @"/Library/Filesystems/osxfuse.fs";
+  NSString *kextID = @"com.github.osxfuse.filesystems.osxfuse";
+  NSString *kextPath = @"/Library/Filesystems/osxfuse.fs/Contents/Extensions/10.11/osxfuse.kext";
 
   [[self helper] sendRequest:@"kbfs_install" params:@[@{@"source": source, @"destination": destination, @"kextID": kextID, @"kextPath": kextPath}] completion:^(NSError *error, id value) {
     completion(error);
