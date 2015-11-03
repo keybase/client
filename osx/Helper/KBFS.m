@@ -26,15 +26,15 @@
   return [kexts[label][@"OSBundleStarted"] boolValue];
 }
 
-- (void)installOrUpdateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
+- (void)installOrUpdateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
   if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL]) {
     completion(KBMakeError(KBHelperErrorKBFS, @"Update is currently unsupported."), @(0));
   } else {
-    [self installWithSource:source destination:destination kextID:kextID completion:completion];
+    [self installWithSource:source destination:destination kextID:kextID kextPath:kextPath completion:completion];
   }
 }
 
-- (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
+- (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
   KBLog(@"Install: %@ to %@", source, destination);
 
   NSError *error = nil;
@@ -52,7 +52,7 @@
 
   [self updateAttributes:attributes path:destination completion:^(NSError *error) {
     if (error) completion(error, @(0));
-    else [self loadKextID:kextID path:destination completion:completion];
+    else [self loadKextID:kextID path:kextPath completion:completion];
   }];
 }
 
@@ -77,17 +77,18 @@
   completion(nil);
 }
 
-- (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
+- (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
   [self uninstallWithDestination:destination kextID:kextID completion:^(NSError *error, id value) {
     if (error) {
       completion(error, @(0));
       return;
     }
-    [self installWithSource:source destination:destination kextID:kextID completion:completion];
+    [self installWithSource:source destination:destination kextID:kextID kextPath:kextPath completion:completion];
   }];
 }
 
 - (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion {
+  KBLog(@"Loading kextID: %@ (%@)", kextID, path);
   OSReturn status = KextManagerLoadKextWithIdentifier((__bridge CFStringRef)(kextID), (__bridge CFArrayRef)@[[NSURL fileURLWithPath:path]]);
   if (status != kOSReturnSuccess) {
     NSError *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to load with status: %@", @(status));
@@ -97,13 +98,14 @@
   }
 }
 
-- (void)unloadWithKextLabel:(NSString *)kextID completion:(KBOnCompletion)completion {
+- (void)unloadKextID:(NSString *)kextID completion:(KBOnCompletion)completion {
+  KBLog(@"Unload kextID: %@ (%@)", kextID);
   NSError *error = nil;
-  BOOL unloaded = [self unloadKextWithLabel:kextID error:&error];
+  BOOL unloaded = [self unloadKextID:kextID error:&error];
   completion(error, @(unloaded));
 }
 
-- (BOOL)unloadKextWithLabel:(NSString *)label error:(NSError **)error {
+- (BOOL)unloadKextID:(NSString *)label error:(NSError **)error {
   OSReturn status = KextManagerUnloadKextWithIdentifier((__bridge CFStringRef)label);
   if (status != kOSReturnSuccess) {
     if (error) *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to unload with status: %@: %@", @(status), [self descriptionForStatus:status]);
@@ -115,7 +117,7 @@
 - (void)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
   if ([self isKextLoaded:kextID]) {
     NSError *error = nil;
-    if (![self unloadKextWithLabel:kextID error:&error]) {
+    if (![self unloadKextID:kextID error:&error]) {
       completion(error, @(NO));
       return;
     }
@@ -126,7 +128,7 @@
 
   NSError *error = nil;
   if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:&error]) {
-    if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to uninstall");
+    if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to remove path: %@", destination);
     completion(error, @(0));
   } else {
     completion(nil, @(1));

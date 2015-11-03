@@ -96,9 +96,9 @@
   }
 
   if (_info) [info addEntriesFromOrderedDictionary:_info];
-  info[@"Install Action"] = NSStringFromKBRInstallAction(self.installAction);
   info[@"Install Status"] = NSStringFromKBRInstallStatus(self.installStatus);
   info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(self.runtimeStatus);
+  info[@"Install Action"] = NSStringFromKBRInstallAction(self.installAction);
   return info;
 }
 

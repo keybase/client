@@ -26,10 +26,10 @@
     [kbfs loadKextID:args[@"kextID"] path:args[@"kextPath"] completion:completion];
   } else if ([method isEqualToString:@"kbfs_unload"]) {
     KBFS *kbfs = [[KBFS alloc] init];
-    [kbfs unloadWithKextLabel:args[@"kextID"] completion:completion];
+    [kbfs unloadKextID:args[@"kextID"] completion:completion];
   } else if ([method isEqualToString:@"kbfs_install"]) {
     KBFS *kbfs = [[KBFS alloc] init];
-    [kbfs installOrUpdateWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] completion:completion];
+    [kbfs installOrUpdateWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
   } else if ([method isEqualToString:@"kbfs_uninstall"]) {
     KBFS *kbfs = [[KBFS alloc] init];
     [kbfs uninstallWithDestination:args[@"destination"] kextID:args[@"kextID"] completion:completion];

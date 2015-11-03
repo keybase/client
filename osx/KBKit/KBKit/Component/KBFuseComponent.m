@@ -12,6 +12,7 @@
 #import "KBDebugPropertiesView.h"
 #import "KBSemVersion.h"
 #import "KBFormatter.h"
+#import "KBTask.h"
 
 #import <IOKit/kext/KextManager.h>
 
@@ -21,6 +22,8 @@
 
 @property (nonatomic) MPXPCClient *helper;
 @end
+
+typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 @implementation KBFuseComponent
 
@@ -49,55 +52,59 @@
   [_infoView setProperties:info];
 }
 
++ (void)status:(NSString *)binPath bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnFuseStatus)completion {
+  NSString *bundleVersionFlag = NSStringWithFormat(@"--bundle-version=%@", [bundleVersion description]);
+  [KBTask execute:binPath args:@[@"fuse", @"status", bundleVersionFlag] completion:^(NSError *error, NSData *outData, NSData *errData) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    if (!outData) {
+      completion(KBMakeError(-1, @"No data for fuse status"), nil);
+      return;
+    }
+
+    id dict = [NSJSONSerialization JSONObjectWithData:outData options:NSJSONReadingMutableContainers error:&error];
+    if (error) {
+      DDLogError(@"Invalid data: %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
+      completion(error, nil);
+      return;
+    }
+    if (!dict) {
+      completion(KBMakeError(-1, @"Invalid data for fuse status"), nil);
+      return;
+    }
+
+    KBRFuseStatus *status = [MTLJSONAdapter modelOfClass:KBRFuseStatus.class fromJSONDictionary:dict error:&error];
+    completion(nil, status);
+  }];
+}
+
 - (void)refreshComponent:(KBCompletion)completion {
-  GHODictionary *info = [GHODictionary dictionary];
+  GHWeakSelf gself = self;
   KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
-  info[@"Bundle Version"] = [bundleVersion description];
+  [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *status) {
 
-  NSString *kextFuse2ID = @"com.github.osxfuse.filesystems.osxfusefs";
-  NSString *kextFuse3ID = @"com.github.osxfuse.filesystems.osxfuse";
+    GHODictionary *info = [GHODictionary dictionary];
+    info[@"Version"] = KBIfBlank(status.version, nil);
 
-  NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[kextFuse2ID, kextFuse3ID], NULL);
+    if (![status.version isEqualToString:status.bundleVersion]) {
+      info[@"Bundle Version"] = KBIfBlank(status.bundleVersion, nil);
+    }
 
-  NSString *kextID;
-  if (kexts[kextFuse2ID] && kexts[kextFuse3ID]) {
-    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionNone runtimeStatus:KBRuntimeStatusNone info:info error:KBMakeError(-1, @"Fuse installed but kext is not loaded")];
-    completion(self.componentStatus.error);
-    return;
-  } else if (kexts[kextFuse3ID]) {
-    kextID = kextFuse3ID;
-  } else if (kexts[kextFuse2ID]) {
-    kextID = kextFuse2ID;
-  } else {
-    // Not installed
-    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall runtimeStatus:KBRuntimeStatusNone info:info error:nil];
-    completion(nil);
-    return;
-  }
+    if (![NSString gh_isBlank:status.kextID]) {
+      info[@"Kext ID"] = KBIfBlank(status.kextID, nil);
+      info[@"Kext Loaded"] = status.kextStarted ? @"Yes" : @"No";
+    }
+    info[@"Path"] = KBIfBlank(status.path, nil);
 
-  info[@"Kext ID"] = kextID;
-  NSDictionary *kextInfo = kexts[kextID];
+    KBComponentStatus *componentStatus = [KBComponentStatus componentStatusWithInstallStatus:status.installStatus installAction:status.installAction runtimeStatus:KBRuntimeStatusNone info:info error:(status.error ? KBMakeError(-1, @"%@", status.error.message) : nil)];
 
-  DDLogDebug(@"Kext info: %@", KBDescription(kextInfo));
+    gself.componentStatus = componentStatus;
 
-  KBSemVersion *version = [KBSemVersion version:kextInfo[@"CFBundleVersion"]];
-  if (!version) {
-    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionNone runtimeStatus:KBRuntimeStatusNone info:info error:KBMakeError(-1, @"Kext is loaded but no version")];
-    completion(nil);
-    return;
-  }
-
-  info[@"Version"] = [version description];
-  
-  BOOL started = [kextInfo[@"OSBundleStarted"] boolValue];
-  if (!started) {
-    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionNone runtimeStatus:KBRuntimeStatusNone info:info error:KBMakeError(-1, @"Kext installed but isn't loaded")];
-    completion(nil);
-    return;
-  }
-
-  self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone runtimeStatus:KBRuntimeStatusNone info:info error:nil];
-  completion(nil);
+    [self componentDidUpdate];
+    completion(error);
+  }];
 }
 
 - (MPXPCClient *)helper {
@@ -109,8 +116,9 @@
   NSString *source = [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"osxfusefs.bundle"];
   NSString *destination = @"/Library/Filesystems/osxfusefs.fs";
   NSString *kextID = @"com.github.osxfuse.filesystems.osxfusefs";
+  NSString *kextPath = @"/Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext";
 
-  [[self helper] sendRequest:@"kbfs_install" params:@[@{@"source": source, @"destination": destination, @"kextID": kextID}] completion:^(NSError *error, id value) {
+  [[self helper] sendRequest:@"kbfs_install" params:@[@{@"source": source, @"destination": destination, @"kextID": kextID, @"kextPath": kextPath}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
@@ -122,10 +130,10 @@
 }
 
 - (void)start:(KBCompletion)completion {
-  NSString *destination = @"/Library/Filesystems/osxfusefs.fs";
   NSString *kextID = @"com.github.osxfuse.filesystems.osxfusefs";
+  NSString *kextPath = @"/Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext";
 
-  [[self helper] sendRequest:@"kbfs_load" params:@[@{@"kextPath": destination, @"kextID": kextID}] completion:^(NSError *error, id value) {
+  [[self helper] sendRequest:@"kbfs_load" params:@[@{@"kextID": kextID, @"kextPath": kextPath}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

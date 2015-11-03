@@ -345,6 +345,8 @@
 		00010DEB1BE1A0B900A9C285 /* KBEnvConfigTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE51BE1A0B900A9C285 /* KBEnvConfigTest.m */; };
 		00010DEC1BE1A0B900A9C285 /* KBFormatterTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE61BE1A0B900A9C285 /* KBFormatterTest.m */; };
 		00010DEF1BE1A0B900A9C285 /* KBSemVersionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE91BE1A0B900A9C285 /* KBSemVersionTest.m */; };
+		00B82BD21BE9424600C1FC72 /* KBTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 00B82BD01BE9424600C1FC72 /* KBTask.h */; };
+		00B82BD31BE9424600C1FC72 /* KBTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B82BD11BE9424600C1FC72 /* KBTask.m */; };
 		38A713FFC5FC7A9ABE7CC5B5 /* Pods_KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 760C2694B64DCD2BA5ADD378 /* Pods_KBKit.framework */; };
 /* End PBXBuildFile section */
 
@@ -702,6 +704,8 @@
 		00010DE61BE1A0B900A9C285 /* KBFormatterTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFormatterTest.m; sourceTree = "<group>"; };
 		00010DE91BE1A0B900A9C285 /* KBSemVersionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSemVersionTest.m; sourceTree = "<group>"; };
 		00010DF01BE1AC3D00A9C285 /* KBKit.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = KBKit.podspec; sourceTree = "<group>"; };
+		00B82BD01BE9424600C1FC72 /* KBTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTask.h; sourceTree = "<group>"; };
+		00B82BD11BE9424600C1FC72 /* KBTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTask.m; sourceTree = "<group>"; };
 		0B241DD368CEEC403E93FDBB /* Pods-KBKit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.debug.xcconfig"; sourceTree = "<group>"; };
 		760C2694B64DCD2BA5ADD378 /* Pods_KBKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KBKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3B225A40BAFB15EDA2B6BB8 /* Pods-KBKit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.release.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.release.xcconfig"; sourceTree = "<group>"; };
@@ -950,6 +954,8 @@
 				00010B9F1BE19F8800A9C285 /* KBLaunchdStatus.m */,
 				00010BA21BE19F8800A9C285 /* KBPrivilegedTask.h */,
 				00010BA31BE19F8800A9C285 /* KBPrivilegedTask.m */,
+				00B82BD01BE9424600C1FC72 /* KBTask.h */,
+				00B82BD11BE9424600C1FC72 /* KBTask.m */,
 			);
 			name = System;
 			path = KBKit/System;
@@ -1399,6 +1405,7 @@
 				00010CC91BE19F8900A9C285 /* KBDefines.h in Headers */,
 				00010D901BE19F8900A9C285 /* KBPGPSignFooterView.h in Headers */,
 				00010DD21BE19F8900A9C285 /* KBUsersAppView.h in Headers */,
+				00B82BD21BE9424600C1FC72 /* KBTask.h in Headers */,
 				00010DE21BE19F8900A9C285 /* KBWork.h in Headers */,
 				00010D281BE19F8900A9C285 /* KBFile.h in Headers */,
 				00010DD41BE19F8900A9C285 /* KBUserStatusView.h in Headers */,
@@ -1765,6 +1772,7 @@
 				00010D511BE19F8900A9C285 /* KBGPGKeysView.m in Sources */,
 				00010DD11BE19F8900A9C285 /* KBUserProfileView.m in Sources */,
 				00010D5B1BE19F8900A9C285 /* KBAppProgressView.m in Sources */,
+				00B82BD31BE9424600C1FC72 /* KBTask.m in Sources */,
 				00010CC41BE19F8900A9C285 /* KBReader.m in Sources */,
 				00010D971BE19F8900A9C285 /* KBPGPVerifiedView.m in Sources */,
 				00010D9D1BE19F8900A9C285 /* KBPGPVerifyDetachedView.m in Sources */,
