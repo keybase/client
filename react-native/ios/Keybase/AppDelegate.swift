@@ -52,8 +52,8 @@ class KeyListener: UIViewController {
 
   override var keyCommands: [UIKeyCommand]? {
     return [
-      UIKeyCommand(input: "b", modifierFlags: .Command, action: "goBackInTime:"),
-      UIKeyCommand(input: "n", modifierFlags: .Command, action: "goForwardInTime:")
+      UIKeyCommand(input: "[", modifierFlags: .Command, action: "goBackInTime:"),
+      UIKeyCommand(input: "]", modifierFlags: .Command, action: "goForwardInTime:")
     ]
   }
 
