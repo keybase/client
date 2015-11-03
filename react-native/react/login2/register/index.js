@@ -23,7 +23,6 @@ export default class Register extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        mapStateToProps: state => { return {} },
         props: {
           gotoExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
           gotoPaperKeyPage: () => store.dispatch(routeAppend('regPaperKey')),

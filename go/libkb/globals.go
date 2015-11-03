@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 //
 // globals
 //
@@ -137,7 +140,7 @@ func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 }
 
 func (g *GlobalContext) ConfigureConfig() error {
-	c := NewJSONConfigFile(g.Env.GetConfigFilename())
+	c := NewJSONConfigFile(g, g.Env.GetConfigFilename())
 	err := c.Load(false)
 	if err != nil {
 		return err

@@ -10,21 +10,8 @@ protocol device {
 
   /**
     Starts the process of adding a new device using an existing
-    device.  It is called on the existing device. Client is responsible
-    for generating a sessionID.
-    */
-  void deviceAdd(int sessionID, string secretPhrase);
-
-  /**
-    Cancels an in-progress deviceAdd(...). Use the sessionID
-    you provided to deviceAdd as the parameter.
-    */
-  void deviceAddCancel(int sessionID);
-  
-  /**
-    Starts the process of adding a new device using an existing
     device.  It is called on the existing device. 
     This is for kex2.
     */
-  void deviceXAdd(int sessionID);
+  void deviceAdd(int sessionID);
 }

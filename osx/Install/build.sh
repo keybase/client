@@ -1,75 +1,74 @@
 #!/bin/sh
+
 set -e # Fail on error
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $DIR
+dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd $dir
 
-BUILD_DEST=$DIR/build
+build_dest=$dir/build
 
-ACTION=$1
+run_mode=$1
 
-KB_GO_SRC="$GOPATH/src/github.com/keybase/client/go"
-KBFS_GO_SRC="$GOPATH/src/github.com/keybase/kbfs"
-CODE_SIGN_IDENTITY="Developer ID Application: Keybase, Inc. (99229SGT5K)"
+action=$2
+
+# Flirting with custom configuration but xcodebuild archive will only do Release
+# configuration.
+xcode_configuration="Release"
+
+if [ "$run_mode" = "staging" ]; then
+  app_name="Keybase"
+  service_bin="kbstage"
+  kbfs_bin="kbfsstage"
+  appdmg="appdmg-staging.json"
+elif [ "$run_mode" = "prod" ]; then
+  app_name="Keybase"
+  service_bin="keybase"
+  kbfs_bin="kbfs"
+  appdmg="appdmg.json"
+else
+  echo "Invalid run mode: $run_mode"
+  exit 1
+fi
+
+code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
 # Clear existing build dir
-rm -rf $BUILD_DEST
-mkdir -p $BUILD_DEST
+rm -rf $build_dest
+mkdir -p $build_dest
 
-#
-# Build go services.
-# If the are already present, don't rebuild.
-#
-
-if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
-  echo "Using source: $KB_GO_SRC"
-  echo "Compiling keybase (go)..."
-  cd $KB_GO_SRC/keybase/
-  go build -a
-fi
-echo "Copying: $KB_GO_SRC/keybase/keybase"
-cp $KB_GO_SRC/keybase/keybase $BUILD_DEST/keybase
-chmod +x $BUILD_DEST/keybase
-
-if [ ! -f "$KB_GO_SRC/keybase/keybase" ]; then
-  echo "Using KBFS source: $KBFS_GO_SRC"
-  echo "Compiling kbfs..."
-  cd $KBFS_GO_SRC/kbfsfuse/
-  go build -a
-fi
-echo "Copying: $KBFS_GO_SRC/kbfsfuse/kbfsfuse"
-cp $KBFS_GO_SRC/kbfsfuse/kbfsfuse $BUILD_DEST/kbfsfuse
-chmod +x $BUILD_DEST/kbfsfuse
+# Copy from homebrew build for now
+cp /usr/local/opt/$service_bin/bin/$service_bin $build_dest
+cp /usr/local/opt/$kbfs_bin/bin/$kbfs_bin $build_dest
 
 # Read the versions and build numbers
-echo "Checking versions"
-KB_SERVICE_VERSION="`$BUILD_DEST/keybase version -d | cut -f1 -d '-'`"
-KB_SERVICE_BUILD="`$BUILD_DEST/keybase version -d | cut -f2 -d '-'`"
+echo "Checking version info for components"
+kb_service_version="`$build_dest/$service_bin version | cut -f1 -d '-'`"
+kb_service_build="`$build_dest/$service_bin version | cut -f2 -d '-'`"
 
-KBFS_VERSION="`$BUILD_DEST/kbfsfuse --version 2>&1 | cut -f1 -d '-'`"
-KBFS_BUILD="`$BUILD_DEST/kbfsfuse --version 2>&1 | cut -f2 -d '-'`"
+kbfs_version="`$build_dest/$kbfs_bin --version 2>&1 | cut -f1 -d '-'`"
+kbfs_build="`$build_dest/$kbfs_bin --version 2>&1 | cut -f2 -d '-'`"
 
 # CFBundleShortVersionString is the MAJOR.MINOR.TINY, for example, "1.2.3".
 # CFBundleVersion is the build number, for example, "12345" or "1.2.3 (build 12345AB)"
 
-PLIST=$DIR/../Keybase/Info.plist
-APP_VERSION="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $PLIST`"
-APP_BUILD="`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $PLIST`"
+plist=$dir/../Keybase/Info.plist
+app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
+app_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $plist`"
 
-HELPER_PLIST=$DIR/../Helper/Info.plist
-KB_HELPER_VERSION="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $HELPER_PLIST`"
-KB_HELPER_BUILD="`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $HELPER_PLIST`"
+HELPER_plist=$dir/../Helper/Info.plist
+KB_HELPER_VERSION="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $HELPER_plist`"
+KB_HELPER_BUILD="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $HELPER_plist`"
 
-FUSE_PLIST=$DIR/Fuse/osxfusefs.bundle/Contents/Info.plist
-FUSE_VERSION="`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" $FUSE_PLIST`"
-FUSE_BUILD="`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" $FUSE_PLIST`"
+FUSE_plist=$dir/Fuse/osxfusefs.bundle/Contents/Info.plist
+fuse_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $FUSE_plist`"
+fuse_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $FUSE_plist`"
 
 echo "Version (Build):"
-echo "  Keybase.app: $APP_VERSION ($APP_BUILD)"
-echo "  Service: $KB_SERVICE_VERSION ($KB_SERVICE_BUILD)"
-echo "  KBFS: $KBFS_VERSION ($KBFS_BUILD)"
-echo "  Helper: $KB_HELPER_VERSION ($KB_HELPER_BUILD)"
-echo "  Fuse: $FUSE_VERSION ($FUSE_BUILD)"
+echo "  $app_name.app: $app_version ($app_build)"
+echo "  $service_bin: $kb_service_version ($kb_service_build)"
+echo "  $kbfs_bin: $kbfs_version ($kbfs_build)"
+echo "  keybase.Helper: $KB_HELPER_VERSION ($KB_HELPER_BUILD)"
+echo "  Fuse: $fuse_version ($fuse_build)"
 echo ""
 
 echo "Is the correct?"
@@ -80,48 +79,49 @@ select o in "Yes" "No"; do
     esac
 done
 
-echo "  Updating $PLIST"
-/usr/libexec/PlistBuddy -c "Set :KBServiceVersion '${KB_SERVICE_VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KBServiceBuild '${KB_SERVICE_BUILD}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KBHelperVersion '${KB_HELPER_VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KBHelperBuild '${KB_HELPER_BUILD}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KBFSVersion '${KBFS_VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KBFSBuild '${KBFS_BUILD}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KBFuseVersion '${FUSE_VERSION}'" $PLIST
-/usr/libexec/PlistBuddy -c "Set :KBFuseBuild '${FUSE_BUILD}'" $PLIST
+echo "  Updating $plist"
+/usr/libexec/plistBuddy -c "Set :KBServiceVersion '${kb_service_version}'" $plist
+/usr/libexec/plistBuddy -c "Set :KBServiceBuild '${kb_service_build}'" $plist
+/usr/libexec/plistBuddy -c "Set :KBHelperVersion '${KB_HELPER_VERSION}'" $plist
+/usr/libexec/plistBuddy -c "Set :KBHelperBuild '${KB_HELPER_BUILD}'" $plist
+/usr/libexec/plistBuddy -c "Set :KBFSVersion '${kbfs_version}'" $plist
+/usr/libexec/plistBuddy -c "Set :KBFSBuild '${kbfs_build}'" $plist
+/usr/libexec/plistBuddy -c "Set :KBFuseVersion '${fuse_version}'" $plist
+/usr/libexec/plistBuddy -c "Set :KBFuseBuild '${fuse_build}'" $plist
+/usr/libexec/plistBuddy -c "Set :KBRunMode '${run_mode}'" $plist
 echo "  "
 
 echo "  Cleaning..."
-set -o pipefail && xcodebuild clean -scheme Keybase -workspace $DIR/../Keybase.xcworkspace -configuration Release | xcpretty -c
+set -o pipefail && xcodebuild clean -scheme Keybase -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration | xcpretty -c
 
 #
 # Archive
 #
 
-ARCHIVE_DIR_DAY=$(date +"%Y-%m-%d")  # 2015-01-31
-ARCHIVE_POSTFIX=$(date +"%-m-%-e-%y, %-l.%M %p") #1-31-15, 1.47 PM
+archive_dir_day=$(date +"%Y-%m-%d")  # 2015-01-31
+archive_postfix=$(date +"%-m-%-e-%y, %-l.%M %p") #1-31-15, 1.47 PM
 
-ARCHIVE_PATH="$BUILD_DEST/Keybase.xcarchive"
-ARCHIVE_HOLD_PATH="/Users/gabe/Library/Developer/Xcode/Archives/$ARCHIVE_DIR_DAY/Keybase $ARCHIVE_POSTFIX.xcarchive"
+archive_path="$build_dest/$app_name.xcarchive"
+archive_hold_path="/Users/gabe/Library/Developer/Xcode/Archives/$archive_dir_day/$app_name $archive_postfix.xcarchive"
 
-APP_PATH="$BUILD_DEST/Keybase.app"
+app_path="$build_dest/$app_name.app"
 
-rm -rf $ARCHIVE_PATH
+rm -rf $archive_path
 
 echo "  Archiving..."
-set -o pipefail && xcodebuild archive -scheme Keybase -workspace $DIR/../Keybase.xcworkspace -configuration Release -archivePath $ARCHIVE_PATH | xcpretty -c
+set -o pipefail && xcodebuild archive -scheme Keybase -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration -archivePath $archive_path | xcpretty -c
 
-echo "  Copying archive to $ARCHIVE_HOLD_PATH"
-ditto "$ARCHIVE_PATH" "$ARCHIVE_HOLD_PATH"
+echo "  Copying archive to $archive_hold_path"
+ditto "$archive_path" "$archive_hold_path"
 
 #
 # Export
 #
 
-rm -rf $APP_PATH
+rm -rf $app_path
 
 echo "  Exporting..."
-set -o pipefail && xcodebuild -exportArchive -archivePath $ARCHIVE_PATH -exportFormat app -exportPath $APP_PATH | xcpretty -c
+set -o pipefail && xcodebuild -exportArchive -archivePath $archive_path -exportFormat app -exportPath $app_path | xcpretty -c
 
 echo "  Done"
 echo "  "
@@ -130,55 +130,70 @@ echo "  "
 # Package
 #
 
-cd $BUILD_DEST
+cd $build_dest
 
-echo "Copying keybase into Keybase.app..."
-chmod +x keybase
-SUPPORT_BIN="Keybase.app/Contents/SharedSupport/bin"
-mkdir -p $SUPPORT_BIN
-cp keybase $SUPPORT_BIN
-cp kbfsfuse $SUPPORT_BIN
+echo "Copying support binaries into $app_name.app..."
+chmod +x $service_bin
+chmod +x $kbfs_bin
+support_bin="$app_name.app/Contents/SharedSupport/bin"
+mkdir -p $support_bin
+cp $service_bin $support_bin
+cp $kbfs_bin $support_bin
 
-echo "Re-signing..."
+echo "
+
+Re-signing...
+
+NOTE: If codesigning fails (ambiguous certificate) you need to manually delete
+the (old) March 4th version of the certificate from your Keychain.
+
+$code_sign_identity
+
+"
 # Need to sign contents first (helper), then app bundle
-codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." Keybase.app/Contents/Library/LaunchServices/keybase.Helper
-codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." Keybase.app
+codesign --verbose --force --deep --sign "$code_sign_identity" $app_name.app/Contents/Library/LaunchServices/keybase.Helper
+codesign --verbose --force --deep --sign "$code_sign_identity" $app_name.app
 
 # Verify
 #codesign --verify --verbose=4 Keybase.app
 #spctl --assess --verbose=4 /Applications/Keybase.app/Contents/Library/LaunchServices/keybase.Helper
 
 echo "Checking Helper..."
-spctl --assess --verbose=4 Keybase.app/Contents/Library/LaunchServices/keybase.Helper
+spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
 
 
-DMG_NAME="Keybase-$APP_VERSION-$APP_BUILD.dmg"
+if [ "$action" == "install" ]; then
 
-rm -rf $DMG_NAME
+  #trash /Applications/$app_name.app
+  ditto $app_name.app /Applications/$app_name.app
 
-cp ../appdmg/* .
+  spctl --assess --verbose=4 /Applications/$app_name.app
+  spctl --assess --verbose=4 /Applications/$app_name.app/Contents/Library/LaunchServices/keybase.Helper
 
-appdmg appdmg.json $DMG_NAME
 
-if [ "$ACTION" = "install" ]; then
-  ditto $BUILD_DEST/Keybase.app /Applications/Keybase.app
-  echo "Installed to Applications"
+elif [ "$action" == "dmg" ]; then
+
+  dmg_name="$app_name-$app_version-$app_build.dmg"
+
+  rm -rf $dmg_name
+
+  cp ../appdmg/* .
+
+  appdmg $appdmg $dmg_name
+
 else
+
   echo "
-  To install into Applications:
-
-    ditto build/Keybase.app /Applications/Keybase.app
-
   To open the build dir:
 
     open build
 
   To open the DMG:
 
-    open build/$DMG_NAME
+    open build/$dmg_name
 
   The build was archived to:
 
-    $ARCHIVE_HOLD_PATH
+    $archive_hold_path
   "
 fi

@@ -2,7 +2,7 @@
 
 import React, { Component, TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet } from 'react-native'
 
-import { connect } from 'react-redux/native'
+import { connect } from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 
@@ -199,13 +199,6 @@ export default class Nav extends Component {
         </TabBarIOS>
       </View>
     )
-  }
-
-  static parseRoute () {
-    return {
-      componentAtTop: { component: Nav },
-      parseNextRoute: null
-    }
   }
 }
 

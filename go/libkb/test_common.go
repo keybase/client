@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // +build !production
 
 package libkb
@@ -252,9 +255,9 @@ func SetupTest(tb testing.TB, nm string) (tc TestContext) {
 	return tc
 }
 
-func (tc *TestContext) SetSocketFile(s string) {
-	tc.Tp.SocketFile = s
-	tc.G.Env.Test.SocketFile = s
+func (tc *TestContext) SetRuntimeDir(s string) {
+	tc.Tp.RuntimeDir = s
+	tc.G.Env.Test.RuntimeDir = s
 }
 
 func (tc TestContext) Clone() (ret TestContext) {
@@ -270,9 +273,6 @@ type nullui struct {
 	gctx *GlobalContext
 }
 
-func (n *nullui) GetDoctorUI() DoctorUI {
-	return nil
-}
 func (n *nullui) GetIdentifyUI() IdentifyUI {
 	return nil
 }
@@ -300,10 +300,7 @@ func (n *nullui) GetGPGUI() GPGUI {
 func (n *nullui) GetLogUI() LogUI {
 	return n.gctx.Log
 }
-func (n *nullui) GetLocksmithUI() LocksmithUI {
-	return nil
-}
-func (n *nullui) GetProvisionUI(bool) ProvisionUI {
+func (n *nullui) GetProvisionUI(KexRole) ProvisionUI {
 	return nil
 }
 func (n *nullui) Prompt(string, bool, Checker) (string, error) {

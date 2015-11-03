@@ -172,25 +172,6 @@
       }
     },
     "deviceAdd" : {
-      "doc" : "Starts the process of adding a new device using an existing\n    device.  It is called on the existing device. Client is responsible\n    for generating a sessionID.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "secretPhrase",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "deviceAddCancel" : {
-      "doc" : "Cancels an in-progress deviceAdd(...). Use the sessionID\n    you provided to deviceAdd as the parameter.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "null"
-    },
-    "deviceXAdd" : {
       "doc" : "Starts the process of adding a new device using an existing\n    device.  It is called on the existing device. \n    This is for kex2.",
       "request" : [ {
         "name" : "sessionID",

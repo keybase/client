@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -152,18 +155,19 @@ func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod 
 
 func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalContext) error {
 	ctx := &Context{
+		ProvisionUI: newTestProvisionUI(),
 		LogUI:       g.UI.GetLogUI(),
-		LocksmithUI: &lockui{},
 		GPGUI:       &gpgtestui{},
 		SecretUI:    secui,
-		LoginUI:     &libkb.TestLoginUI{},
+		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
-	li := NewLoginWithPromptEngine(fu.Username, g)
+	li := NewLogin(g, libkb.DeviceTypeDesktop, fu.Username)
 	return RunEngine(li, ctx)
 }
 
 func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
-	return fu.LoginWithSecretUI(fu.NewSecretUI(), g)
+	s := fu.NewSecretUI()
+	return fu.LoginWithSecretUI(s, g)
 }
 
 func (fu *FakeUser) LoginOrBust(tc libkb.TestContext) {

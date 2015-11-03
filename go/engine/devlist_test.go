@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import "testing"
@@ -13,10 +16,10 @@ func TestDeviceList(t *testing.T) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
-	if len(eng.List()) != 1 {
+	if len(eng.List()) != 2 {
 		for i, d := range eng.List() {
 			t.Logf("%d: %+v", i, d)
 		}
-		t.Errorf("devices: %d, expected 1", len(eng.List()))
+		t.Errorf("devices: %d, expected 2", len(eng.List()))
 	}
 }

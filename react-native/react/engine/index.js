@@ -2,8 +2,9 @@
 
 // Handles sending requests to objc (then go) and back
 
+import React from '../base-react'
 import engine from './native'
-import EngineError from './errors'
+import Transport from './transport'
 
 import rpc from 'framed-msgpack-rpc'
 const {
@@ -14,47 +15,21 @@ const {
 import { Buffer } from 'buffer'
 import NativeEventEmitter from '../common-adapters/native-event-emitter'
 
-// Transport which just gives us the payload and skips really sending over the wire
-class DummyTransport extends RpcTransport {
-  constructor (writeCallback, incomingRPCCallback) {
-    super({})
-    this.writeCallback = writeCallback
-    this.set_generic_handler(incomingRPCCallback)
-  }
-
-  connect (cb) { cb() }
-  is_connected () { return true }
-  reset () { }
-  close () { }
-  get_generation () { return 1 }
-
-  unwrap_incoming_error (err) {
-    if (!err) {
-      return null
-    }
-
-    if (typeof (err) === 'object') {
-      return new EngineError(err)
-    } else {
-      return new Error(JSON.stringify(err))
-    }
-  }
-
-  _raw_write_bufs (len, buf) {
-    const buffer = Buffer.concat([new Buffer(len), new Buffer(buf)])
-    const data = buffer.toString('base64')
-    this.writeCallback(data)
-  }
-}
-
 class Engine {
   constructor () {
+    this.program = 'keybase.1'
     this.rpcClient = new RpcClient(
-      new DummyTransport(
-        this._rpcWrite,
-        (payload) => { this._rpcIncoming(payload) }),
-        'keybase.1'
+      new Transport(
+        (payload) => { this._rpcIncoming(payload) },
+        this._rpcWrite
+      ),
+      this.program
     )
+
+    if (this.rpcClient.transport.needsConnect) {
+      this.rpcClient.transport.connect(err => console.log(err))
+    }
+
     this.setupListener()
     this.sessionID = 123
 
@@ -75,7 +50,9 @@ class Engine {
           return
         }
 
-        this.rpcClient.transport.packetize_data(new Buffer(payload, 'base64'))
+        if (this.rpcClient.transport.needsBase64) {
+          this.rpcClient.transport.packetize_data(new Buffer(payload, 'base64'))
+        }
       }
     )
   }

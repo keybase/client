@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package libkb
 
 import (
@@ -329,3 +332,10 @@ const (
 const UserSummaryLimit = 500 // max number of user summaries in one request
 
 const MinPassphraseLength = 12
+
+type KexRole int
+
+const (
+	KexRoleProvisioner KexRole = iota
+	KexRoleProvisionee
+)

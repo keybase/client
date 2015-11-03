@@ -34,6 +34,20 @@ module.exports = {
       "error": 5,
       "critical": 6,
       "fatal": 7
+    },
+    "InstallStatus": {
+      "unknown": 0,
+      "error": 1,
+      "notInstalled": 2,
+      "needsUpgrade": 3,
+      "installed": 4
+    },
+    "InstallAction": {
+      "unknown": 0,
+      "none": 1,
+      "upgrade": 2,
+      "reinstall": 3,
+      "install": 4
     }
   },
   "crypto": {},
@@ -60,35 +74,6 @@ module.exports = {
       "error": 5,
       "critical": 6,
       "fatal": 7
-    }
-  },
-  "doctor": {
-    "LogLevel": {
-      "none": 0,
-      "debug": 1,
-      "info": 2,
-      "notice": 3,
-      "warn": 4,
-      "error": 5,
-      "critical": 6,
-      "fatal": 7
-    }
-  },
-  "doctorUi": {
-    "LogLevel": {
-      "none": 0,
-      "debug": 1,
-      "info": 2,
-      "notice": 3,
-      "warn": 4,
-      "error": 5,
-      "critical": 6,
-      "fatal": 7
-    },
-    "DoctorFixType": {
-      "none": 0,
-      "addEldestDevice": 1,
-      "addSiblingDevice": 2
     }
   },
   "favorite": {
@@ -310,42 +295,6 @@ module.exports = {
     }
   },
   "Kex2Provisioner": {},
-  "locksmithUi": {
-    "LogLevel": {
-      "none": 0,
-      "debug": 1,
-      "info": 2,
-      "notice": 3,
-      "warn": 4,
-      "error": 5,
-      "critical": 6,
-      "fatal": 7
-    },
-    "DeviceSignerKind": {
-      "device": 0,
-      "pgp": 1,
-      "paperBackupKey": 2
-    },
-    "SelectSignerAction": {
-      "sign": 0,
-      "cancel": 1
-    },
-    "KexStatusCode": {
-      "startSend": 0,
-      "helloWait": 1,
-      "helloReceived": 2,
-      "pleaseSignSend": 3,
-      "doneWait": 4,
-      "doneReceived": 5,
-      "startWait": 6,
-      "startReceived": 7,
-      "helloSend": 8,
-      "pleaseSignWait": 9,
-      "pleaseSignReceived": 10,
-      "doneSend": 11,
-      "end": 12
-    }
-  },
   "logUi": {
     "LogLevel": {
       "none": 0,

@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // +build windows
 
 // npipe_windows.go
@@ -43,4 +46,8 @@ func (s SocketNamedPipe) BindToSocket() (ret net.Listener, err error) {
 
 func (s SocketNamedPipe) DialSocket() (ret net.Conn, err error) {
 	return npipe.Dial(s.pipename)
+}
+
+func IsSocketClosedError(e error) bool {
+	return e == npipe.ErrClosed
 }

@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // +build !production
 
 // this is the list of commands for the devel version of the
@@ -23,14 +26,13 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdConfig(cl),
 		NewCmdCtl(cl, g),
 		NewCmdDb(cl, g),
-		NewCmdDevice(cl),
-		NewCmdDoctor(cl),
+		NewCmdDevice(cl, g),
 		NewCmdFavorite(cl),
 		NewCmdID(cl),
-		NewCmdLaunchd(cl),
+		NewCmdLaunchd(cl, g),
 		NewCmdListTracking(cl),
 		NewCmdListTrackers(cl),
-		NewCmdLogin(cl),
+		NewCmdLogin(cl, g),
 		NewCmdLogout(cl, g),
 		NewCmdPaperKey(cl),
 		NewCmdPassphrase(cl),
@@ -48,7 +50,6 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdUnlock(cl),
 		NewCmdUntrack(cl),
 		NewCmdVersion(cl),
-		NewCmdXLogin(cl),
 	}
 }
 

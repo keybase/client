@@ -1,11 +1,13 @@
 'use strict'
 /* @flow */
 
-import { submitSearch } from '../actions/search'
+import { selectService, submitSearch } from '../actions/search'
 import { pushNewProfile } from '../actions/profile'
 import React, { Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image } from 'react-native'
 import commonStyles from '../styles/common'
 import Immutable from 'immutable'
+import ScopeBar from './ScopeBar'
+import { services as serviceIcons } from '../constants/images'
 
 function renderTextWithHighlight (text, highlight, style) {
   const idx = text.toLowerCase().indexOf(highlight.toLowerCase())
@@ -36,9 +38,11 @@ export default class Search extends Component {
   }
 
   renderRow (rowData, sectionID, rowID) {
-    const profile = this.props.profile.get(rowData.get('username'), Immutable.Map())
-    const thumbnail = profile.getIn(['summary', 'thumbnail'])
-    const fullName = profile.getIn(['summary', 'fullName'])
+    const summary = this.props.profile.getIn([rowData.get('username'), 'summary'], Immutable.Map())
+    const thumbnail = summary.get('thumbnail')
+    const fullName = summary.get('fullName')
+    const socialProofs = summary.getIn(['proofs', 'social'], Immutable.List())
+    const matchingProof = socialProofs.find(val => val.get('proofName').toLowerCase().indexOf(this.props.term.toLowerCase()) !== -1)
     return (
       <View>
         <TouchableHighlight underlayColor='#ccc' onPress={() => { this.onPress(rowData) }}>
@@ -47,12 +51,26 @@ export default class Search extends Component {
               {thumbnail ? <Image style={styles.photo} source={{uri: thumbnail}}/> : null}
             </View>
             {rowData.get('tracking') ? <View style={styles.trackingIndicator} /> : null}
-            <View style={styles.username}>
-              {renderTextWithHighlight(rowData.get('username'), this.props.term, styles.highlight)}
+            <View style={{flex: 1}}>
+              <View style={styles.username}>
+                {renderTextWithHighlight(rowData.get('username'), this.props.term, styles.highlight)}
+              </View>
+              {fullName ? (
+                <Text style={styles.fullName}>
+                  {renderTextWithHighlight(fullName, this.props.term, styles.highlight)}
+                </Text>
+              ) : null}
+              <View style={styles.services}>
+                {socialProofs.map(proof => <View key={proof.get('proofType')} style={styles.service}>
+                    <Image style={styles.serviceIcon} source={serviceIcons[proof.get('proofType')]}/>
+                    {proof === matchingProof && (
+                      <Text style={styles.serviceName}>
+                        {renderTextWithHighlight(proof.get('proofName'), this.props.term, styles.highlight)}
+                      </Text>
+                    )}
+                </View>).toArray()}
+              </View>
             </View>
-            {fullName ? <Text style={styles.fullName}>
-              {renderTextWithHighlight(fullName, this.props.term, styles.highlight)}
-            </Text> : null}
           </View>
         </TouchableHighlight>
         {this.renderSeparator()}
@@ -86,6 +104,13 @@ export default class Search extends Component {
         <View style={styles.divider}/>
         <ListView style={{flex: 1}}
           dataSource={this.dataSource.cloneWithRows((this.props.results || Immutable.List()).toArray())}
+          renderHeader={() => <View>
+            <ScopeBar
+              selectedService={this.props.service}
+              onSelectService={service => this.props.selectService(this.props.base, service)}
+            />
+            <View style={styles.divider}/>
+          </View>}
           renderRow={(...args) => { return this.renderRow(...args) }}
           keyboardDismissMode='on-drag'
           pageSize={20}
@@ -104,7 +129,8 @@ export default class Search extends Component {
         }),
         props: {
           submitSearch: (base, search) => store.dispatch(submitSearch(base, search)),
-          pushNewProfile: username => store.dispatch(pushNewProfile(username))
+          pushNewProfile: username => store.dispatch(pushNewProfile(username)),
+          selectService: (base, service) => store.dispatch(selectService(base, service))
         }
       }
     }
@@ -116,6 +142,7 @@ Search.propTypes = {
   pushNewProfile: React.PropTypes.func.isRequired,
   base: React.PropTypes.object.isRequired,
   term: React.PropTypes.string,
+  service: React.PropTypes.string,
   results: React.PropTypes.object,
   error: React.PropTypes.object,
   waitingForServer: React.PropTypes.bool.isRequired,
@@ -167,9 +194,9 @@ const styles = StyleSheet.create({
     left: 10
   },
   username: {
-    height: 10,
     flex: 1,
-    paddingVertical: 10,
+    paddingTop: 5,
+    paddingBottom: 3,
     paddingRight: 1
   },
   fullName: {
@@ -179,5 +206,22 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: 'bold'
+  },
+  services: {
+    flexDirection: 'row'
+  },
+  service: {
+    flexDirection: 'row',
+    marginRight: 5,
+    alignItems: 'center'
+  },
+  serviceIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10
+  },
+  serviceName: {
+    fontSize: 11,
+    marginLeft: 3
   }
 })

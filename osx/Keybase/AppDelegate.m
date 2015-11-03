@@ -8,10 +8,6 @@
 
 #import "AppDelegate.h"
 
-//#import <Sparkle/Sparkle.h>
-#import <CocoaLumberjack/CocoaLumberjack.h>
-#import <GHKit/GHKit.h>
-
 #import <KBKit/KBWorkspace.h>
 #import <KBKit/KBNotifications.h>
 

@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // +build !production
 
 // this command is only for testing purposes
@@ -9,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -53,8 +55,6 @@ func (c *CmdStress) rpcClient() (*rpc.Client, error) {
 		c.secretUIProtocol(),
 		NewIdentifyUIProtocol(),
 		c.gpgUIProtocol(),
-		NewDoctorUIProtocol(),
-		NewLocksmithUIProtocol(),
 		NewLoginUIProtocol(G),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
@@ -135,9 +135,7 @@ func (c *CmdStress) signup(cli *rpc.Client) (username, passphrase string, err er
 
 func (c *CmdStress) simulate(username, passphrase string) {
 	funcs := []func(){
-		// c.deviceAdd,
 		c.deviceList,
-		c.doctor,
 		c.idAlice,
 		c.idSelf,
 		c.listTrackers,
@@ -246,49 +244,6 @@ func (c *CmdStress) deviceList() {
 	_, err = dcli.DeviceList(context.TODO(), 0)
 	if err != nil {
 		G.Log.Warning("device list error: %s", err)
-	}
-}
-
-func (c *CmdStress) deviceAdd() {
-	cli, err := c.rpcClient()
-	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
-		return
-	}
-	dcli := keybase1.DeviceClient{Cli: cli}
-	sessionID, err := libkb.RandInt()
-	if err != nil {
-		G.Log.Warning("RandInt error: %s", err)
-		return
-	}
-	phrase, err := libkb.RandBytes(50)
-	if err != nil {
-		G.Log.Warning("RandBytes error: %s", err)
-		return
-	}
-	err = dcli.DeviceAdd(context.TODO(), keybase1.DeviceAddArg{SecretPhrase: string(phrase), SessionID: sessionID})
-	if err != nil {
-		G.Log.Warning("device add error: %s", err)
-	}
-	go func() {
-		time.Sleep(10 * time.Millisecond)
-		err := dcli.DeviceAddCancel(context.TODO(), sessionID)
-		if err != nil {
-			G.Log.Warning("device add cancel error: %s", err)
-		}
-	}()
-}
-
-func (c *CmdStress) doctor() {
-	cli, err := c.rpcClient()
-	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
-		return
-	}
-	dcli := keybase1.DoctorClient{Cli: cli}
-	err = dcli.Doctor(context.TODO(), 0)
-	if err != nil {
-		G.Log.Warning("doctor error: %s", err)
 	}
 }
 

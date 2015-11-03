@@ -27,6 +27,8 @@ export default function (state: SearchState = initialState, action: any): Search
           term: '',
           results: []
         })
+      case types.SEARCH_SERVICE:
+        return oldValue.set('service', action.service)
       case types.SEARCH_TERM:
         return oldValue.set('term', action.term)
       case types.SEARCH_RUNNING:

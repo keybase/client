@@ -14,7 +14,9 @@
 int main(int argc, const char *argv[]) {
 
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
-  KBLog(@"Starting keybase.Helper: %@", version);
+  NSString *bundleVersion = NSBundle.mainBundle.infoDictionary[@"CFBundleVersion"];
+  
+  KBLog(@"Starting keybase.Helper: %@-%@", version, bundleVersion);
 
   xpc_connection_t service = xpc_connection_create_mach_service("keybase.Helper", dispatch_get_main_queue(), XPC_CONNECTION_MACH_SERVICE_LISTENER);
   if (!service) {
@@ -22,9 +24,18 @@ int main(int argc, const char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  KBHelper *helper = [[KBHelper alloc] init];
-  [helper listen:service];
+  @try {
+    KBHelper *helper = [[KBHelper alloc] init];
+    KBLog(@"Listen");
+    [helper listen:service];
 
-  dispatch_main();
+    KBLog(@"dispatch_main()");
+    dispatch_main();
+  } @catch(NSException *e) {
+    KBLog(@"Exception: %@", e);
+  }
+
+  KBLog(@"keybase.Helper exit");
+  return 0;
 }
 

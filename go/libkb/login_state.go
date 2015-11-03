@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package libkb
 
 import (
@@ -54,7 +57,8 @@ type LoginContext interface {
 
 	LocalSession() *Session
 	EnsureUsername(username NormalizedUsername)
-	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID) error
+	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
+	SaveStateTmp(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (string, error)
 
 	Keyring() (*SKBKeyringFile, error)
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
@@ -323,7 +327,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 
 func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) error {
 	lctx.SetStreamGeneration(res.ppGen)
-	return lctx.SaveState(res.sessionID, res.csrfToken, NewNormalizedUsername(res.username), res.uid)
+	return lctx.SaveState(res.sessionID, res.csrfToken, NewNormalizedUsername(res.username), res.uid, s.G().Env.GetDeviceID())
 }
 
 func (r PostAuthProofRes) loginResult() (*loginAPIResult, error) {
