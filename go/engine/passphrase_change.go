@@ -159,39 +159,6 @@ func (c *PassphraseChange) findUpdateKeys(ctx *Context) (*keypair, error) {
 	return kp, nil
 }
 
-// fetchLKS gets the encrypted LKS client half from the server.
-// It uses encKey to decrypt it.  It also returns the passphrase
-// generation.
-func (c *PassphraseChange) fetchLKS(ctx *Context, encKey libkb.GenericKey) (libkb.PassphraseGeneration, []byte, error) {
-	res, err := c.G().API.Get(
-		libkb.APIArg{
-			Endpoint:    "passphrase/recover",
-			NeedSession: true,
-			Args: libkb.HTTPArgs{
-				"kid": encKey.GetKID(),
-			},
-		})
-	if err != nil {
-		return 0, nil, err
-	}
-	ctext, err := res.Body.AtKey("ctext").GetString()
-	if err != nil {
-		return 0, nil, err
-	}
-	ppGen, err := res.Body.AtKey("passphrase_generation").GetInt()
-	if err != nil {
-		return 0, nil, err
-	}
-
-	//  Now try to decrypt with the unlocked device key
-	msg, _, err := encKey.DecryptFromString(ctext)
-	if err != nil {
-		return 0, nil, err
-	}
-
-	return libkb.PassphraseGeneration(ppGen), msg, nil
-}
-
 func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf []byte) error {
 
 	pgpKeys, err := c.findAndDecryptPrivatePGPKeys(ctx)
@@ -267,7 +234,7 @@ func (c *PassphraseChange) runForcedUpdate(ctx *Context) (err error) {
 	if kp == nil {
 		return libkb.NoSecretKeyError{}
 	}
-	ppGen, oldClientHalf, err := c.fetchLKS(ctx, kp.encKey)
+	ppGen, oldClientHalf, err := fetchLKS(ctx, c.G(), kp.encKey)
 	if err != nil {
 		return
 	}

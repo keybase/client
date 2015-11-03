@@ -9,6 +9,7 @@
 #import "KBInstallAction.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
+#import <GHKit/GHKit.h>
 
 @interface KBInstallAction ()
 @property id<KBInstallable> installable;
@@ -42,7 +43,7 @@
   if (_installable.componentStatus.error) {
     [status addObject:NSStringWithFormat(@"Error: %@", _installable.componentStatus.error.localizedDescription)];
   }
-  [status addObject:_installable.componentStatus.statusDescription];
+  [status gh_addObject:_installable.componentStatus.statusDescription];
   return status;
 }
 

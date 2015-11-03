@@ -166,6 +166,17 @@
     "type" : "enum",
     "name" : "DeviceType",
     "symbols" : [ "DESKTOP_0", "MOBILE_1" ]
+  }, {
+    "type" : "record",
+    "name" : "SecretResponse",
+    "doc" : "SecretResponse should be returned by DisplayAndPromptSecret.  Use either secret or phrase.",
+    "fields" : [ {
+      "name" : "secret",
+      "type" : "bytes"
+    }, {
+      "name" : "phrase",
+      "type" : "string"
+    } ]
   } ],
   "messages" : {
     "chooseProvisioningMethod" : {
@@ -202,7 +213,7 @@
         "name" : "otherDeviceType",
         "type" : "DeviceType"
       } ],
-      "response" : "bytes"
+      "response" : "SecretResponse"
     },
     "DisplaySecretExchanged" : {
       "doc" : "DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two\n   devices.",

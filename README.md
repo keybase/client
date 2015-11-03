@@ -1,16 +1,15 @@
 ## Keybase
 
-Welcome to the Keybase client repo.  All our client apps (OSX, Windows, Linux, iOS, and Android) are being actively developed in this repository. Please, dig around.
+Hi, and welcome to the Keybase client repo.  All our client apps (OSX, Windows, Linux, iOS, and Android) are being actively developed in this repository. Please, dig around.
 
-### However, if all you want to do is run Keybase...
+### Warnings
 
-**[Visit our release page!](https://keybase.io/download)** 
- 
-We're moving fast and can't help debug your build right now. Plus, some of the things in this repo are explorations, and the app you build from source just *might not do what it says it's doing*. So, if you just want to install Keybase on your computer, you should **[get the appropriate release](https://keybase.io/download)** for OSX, Linux, or Windows.
+We'd love you to read our source code.
+
+But - some of the things in this repo are explorations, and the app you build from source just *might not do what it says it's doing*. So, if you just want to install Keybase on your computer, you should **[monitor our releases](https://keybase.io/download)** for OSX, Linux, or Windows.
 
 ![Sharing](https://keybase.io/images/github/repo_share.png?)
 
-That said, we'd love you to read through our source code.
 
 ### Code Layout
 

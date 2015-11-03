@@ -13,15 +13,12 @@
 
 @interface KBFS : NSObject
 
-- (void)installWithSource:(NSString *)bundle destination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion;
+- (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion;
 
 /*!
  Installs or updates.
-
- If not present, installs and loads.
- If present and older version then unload, update and re-load.
 */
-- (void)installOrUpdateWithSource:(NSString *)bundle destination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion;
+- (void)installOrUpdateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion;
 
 /*!
  Uninstall.
@@ -33,6 +30,6 @@
  */
 - (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion;
 
-- (void)unloadWithKextLabel:(NSString *)kextID completion:(KBOnCompletion)completion;
+- (void)unloadKextID:(NSString *)kextID completion:(KBOnCompletion)completion;
 
 @end

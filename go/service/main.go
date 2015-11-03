@@ -8,7 +8,6 @@ import (
 	"net"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -275,8 +274,7 @@ func (d *Service) ListenLoop(l net.Listener) (err error) {
 		var c net.Conn
 		if c, err = l.Accept(); err != nil {
 
-			// net.errClosing isn't exported, so do this.. UGLY!
-			if strings.HasSuffix(err.Error(), "use of closed network connection") {
+			if libkb.IsSocketClosedError(err) {
 				err = nil
 			}
 

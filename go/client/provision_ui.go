@@ -80,21 +80,18 @@ func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keyba
 
 }
 
-func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
+func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) (keybase1.SecretResponse, error) {
+	var resp keybase1.SecretResponse
 	if p.role == libkb.KexRoleProvisioner {
 		// This is the provisioner device (device X)
 		// For command line app, all secrets are entered on the provisioner only:
 		p.parent.Output("Enter the verification code from your other device here:\n\n")
 		ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckNotEmpty)
 		if err != nil {
-			return nil, err
+			return resp, err
 		}
-		secret, err := libkb.NewKex2SecretFromPhrase(ret)
-		if err != nil {
-			return nil, err
-		}
-		sbytes := secret.Secret()
-		return sbytes[:], nil
+		resp.Phrase = ret
+		return resp, nil
 
 	}
 
@@ -123,10 +120,10 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 				}
 			}
 		}
-		return nil, nil
+		return resp, nil
 	}
 
-	return nil, libkb.InvalidArgumentError{Msg: fmt.Sprintf("invalid ProvisionUI role: %d", p.role)}
+	return resp, libkb.InvalidArgumentError{Msg: fmt.Sprintf("invalid ProvisionUI role: %d", p.role)}
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {

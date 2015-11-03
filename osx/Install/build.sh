@@ -16,7 +16,7 @@ action=$2
 xcode_configuration="Release"
 
 if [ "$run_mode" = "staging" ]; then
-  app_name="Keybase"
+  app_name="KeybaseStage"
   service_bin="kbstage"
   kbfs_bin="kbfsstage"
   appdmg="appdmg-staging.json"

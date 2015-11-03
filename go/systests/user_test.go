@@ -196,7 +196,11 @@ func TestSignupLogout(t *testing.T) {
 	svc := service.NewService(false, tc.G)
 	startCh := svc.GetStartChannel()
 	go func() {
-		stopCh <- svc.Run()
+		err := svc.Run()
+		if err != nil {
+			t.Logf("Running the service produced an error: %v", err)
+		}
+		stopCh <- err
 	}()
 
 	userInfo := randomUser("sgnup")

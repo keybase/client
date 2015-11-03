@@ -6,6 +6,7 @@
 package libkb
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -273,6 +274,18 @@ type nullui struct {
 	gctx *GlobalContext
 }
 
+func (n *nullui) Printf(f string, args ...interface{}) (int, error) {
+	return fmt.Printf(f, args...)
+}
+
+func (n *nullui) PrintfStderr(f string, args ...interface{}) (int, error) {
+	return fmt.Fprintf(os.Stderr, f, args...)
+}
+
+func (n *nullui) GetDumbOutputUI() DumbOutputUI {
+	return n
+}
+
 func (n *nullui) GetIdentifyUI() IdentifyUI {
 	return nil
 }
@@ -351,22 +364,24 @@ func (t *TestSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) 
 }
 
 type TestLoginUI struct {
-	Username     string
-	RevokeBackup bool
+	Username                 string
+	RevokeBackup             bool
+	CalledGetEmailOrUsername int
 }
 
-func (t TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
+func (t *TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
+	t.CalledGetEmailOrUsername++
 	return t.Username, nil
 }
 
-func (t TestLoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
+func (t *TestLoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
 	return t.RevokeBackup, nil
 }
 
-func (t TestLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
+func (t *TestLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
 
-func (t TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
+func (t *TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }

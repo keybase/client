@@ -326,14 +326,16 @@ func TestProvisionPaper(t *testing.T) {
 	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
 
-	secui := fu.NewSecretUI()
-	secui.BackupPassphrase = loginUI.PaperPhrase
-
+	secUI := fu.NewSecretUI()
+	secUI.BackupPassphrase = loginUI.PaperPhrase
+	provUI := newTestProvisionUIPaper()
+	provUI.verbose = true
+	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
 	ctx = &Context{
-		ProvisionUI: newTestProvisionUIPaper(),
+		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
-		SecretUI:    secui,
-		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "")
@@ -347,6 +349,16 @@ func TestProvisionPaper(t *testing.T) {
 
 	if err := AssertProvisioned(tc2); err != nil {
 		t.Fatal(err)
+	}
+
+	if provUI.calledChooseDeviceType != 0 {
+		t.Errorf("expected 0 calls to ChooseDeviceType, got %d", provUI.calledChooseDeviceType)
+	}
+	if provLoginUI.CalledGetEmailOrUsername != 0 {
+		t.Errorf("expected 0 calls to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
+	}
+	if secUI.CalledGetKBPassphrase {
+		t.Error("expected no calls to GetKeybasePassphrase, but it was called")
 	}
 }
 
@@ -462,9 +474,10 @@ func TestProvisionDupDevice(t *testing.T) {
 }
 
 type testProvisionUI struct {
-	secretCh chan kex2.Secret
-	method   keybase1.ProvisionMethod
-	verbose  bool
+	secretCh               chan kex2.Secret
+	method                 keybase1.ProvisionMethod
+	verbose                bool
+	calledChooseDeviceType int
 }
 
 func newTestProvisionUI() *testProvisionUI {
@@ -512,16 +525,18 @@ func (u *testProvisionUI) ChooseProvisioningMethod(_ context.Context, _ keybase1
 }
 
 func (u *testProvisionUI) ChooseDeviceType(_ context.Context, _ int) (keybase1.DeviceType, error) {
-	u.printf("ChooseProvisionerDevice")
+	u.printf("ChooseDeviceType")
+	u.calledChooseDeviceType++
 	return keybase1.DeviceType_DESKTOP, nil
 }
 
-func (u *testProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
+func (u *testProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1.DisplayAndPromptSecretArg) (keybase1.SecretResponse, error) {
 	u.printf("DisplayAndPromptSecret")
 	var ks kex2.Secret
 	copy(ks[:], arg.Secret)
 	u.secretCh <- ks
-	return nil, nil
+	var sr keybase1.SecretResponse
+	return sr, nil
 }
 
 func (u *testProvisionUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {

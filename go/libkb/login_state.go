@@ -47,7 +47,7 @@ type LoginContext interface {
 	CreateStreamCacheViaStretch(passphrase string) error
 	PassphraseStreamCache() *PassphraseStreamCache
 	ClearStreamCache()
-	SetStreamGeneration(gen PassphraseGeneration)
+	SetStreamGeneration(gen PassphraseGeneration, nilPPStreamOK bool)
 	GetStreamGeneration() PassphraseGeneration
 
 	CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error
@@ -325,8 +325,8 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 	return &loginAPIResult{sessionID, csrfToken, uid, uname, PassphraseGeneration(ppGen)}, nil
 }
 
-func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult) error {
-	lctx.SetStreamGeneration(res.ppGen)
+func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult, nilPPStreamOK bool) error {
+	lctx.SetStreamGeneration(res.ppGen, nilPPStreamOK)
 	return lctx.SaveState(res.sessionID, res.csrfToken, NewNormalizedUsername(res.username), res.uid, s.G().Env.GetDeviceID())
 }
 
@@ -424,7 +424,7 @@ func (s *LoginState) pubkeyLoginWithKey(lctx LoginContext, me *User, key Generic
 		return err
 	}
 
-	return s.saveLoginState(lctx, res)
+	return s.saveLoginState(lctx, res, true)
 }
 
 func (s *LoginState) checkLoggedIn(lctx LoginContext, username string, force bool) (loggedIn bool, err error) {
@@ -590,7 +590,7 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		return err
 	}
 
-	if err := s.saveLoginState(lctx, res); err != nil {
+	if err := s.saveLoginState(lctx, res, false); err != nil {
 		return err
 	}
 

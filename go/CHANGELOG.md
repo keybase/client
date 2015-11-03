@@ -1,3 +1,9 @@
+## 1.0.0-42 (2015-11-03)
+
+- Default to device provisioning via kex2
+- Provision via paper key no longer requires username or
+  passphrase
+
 ## 1.0.0-41 (2015-10-28)
 
 - Added QR code display to terminal when provisioner is a mobile device. 
