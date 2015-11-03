@@ -7,6 +7,7 @@ environment:
   global:
     GOPATH: c:\work\
     GO15VENDOREXPERIMENT: 1
+    KEYBASE_SERVER_URI: https://ci1.keybase.io
 
 # clone directory
 clone_folder: c:\work\src\github.com\keybase\client
@@ -22,7 +23,10 @@ clone_folder: c:\work\src\github.com\keybase\client
 before_build:
 
 # scripts to run after build
+# ...testing
 after_build:
+  - cd ..
+  - go test -timeout 30m ./...
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
