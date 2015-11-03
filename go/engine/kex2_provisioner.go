@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -14,23 +17,26 @@ import (
 // Kex2Provisioner is an engine.
 type Kex2Provisioner struct {
 	libkb.Contextified
-	secret     kex2.Secret
-	secretCh   chan kex2.Secret
-	me         *libkb.User
-	signingKey libkb.GenericKey
-	pps        *libkb.PassphraseStream
-	ctx        *Context
+	secret                kex2.Secret
+	secretCh              chan kex2.Secret
+	me                    *libkb.User
+	signingKey            libkb.GenericKey
+	pps                   *libkb.PassphraseStream
+	provisioneeDeviceName string
+	provisioneeDeviceType string
+	ctx                   *Context
 }
 
 // Kex2Provisioner implements kex2.Provisioner interface.
 var _ kex2.Provisioner = (*Kex2Provisioner)(nil)
 
 // NewKex2Provisioner creates a Kex2Provisioner engine.
-func NewKex2Provisioner(g *libkb.GlobalContext, secret kex2.Secret) *Kex2Provisioner {
+func NewKex2Provisioner(g *libkb.GlobalContext, secret kex2.Secret, pps *libkb.PassphraseStream) *Kex2Provisioner {
 	return &Kex2Provisioner{
 		Contextified: libkb.NewContextified(g),
 		secret:       secret,
 		secretCh:     make(chan kex2.Secret),
+		pps:          pps,
 	}
 }
 
@@ -58,13 +64,11 @@ func (e *Kex2Provisioner) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the provisioner engine.
-func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ Kex2Provisioner.Run()")
-	defer func() { e.G().Log.Debug("- Kex2Provisioner.Run() -> %s", libkb.ErrToOk(err)) }()
-
+func (e *Kex2Provisioner) Run(ctx *Context) error {
 	// before starting provisioning, need to load some information:
 
 	// load self:
+	var err error
 	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
@@ -80,10 +84,12 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	// get current passphrase stream:
-	e.pps, err = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
-	if err != nil {
-		return err
+	// get current passphrase stream if necessary:
+	if e.pps == nil {
+		e.pps, err = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+		if err != nil {
+			return err
+		}
 	}
 
 	// ctx needed by some kex2 functions
@@ -104,13 +110,20 @@ func (e *Kex2Provisioner) Run(ctx *Context) (err error) {
 		KexBaseArg:  karg,
 		Provisioner: e,
 	}
-	err = kex2.RunProvisioner(parg)
-
-	if err == nil {
-		ctx.ProvisionUI.ProvisionSuccess(context.TODO(), 0)
+	if err := kex2.RunProvisioner(parg); err != nil {
+		return err
 	}
 
-	return err
+	// succesfully provisioned the other device
+	sarg := keybase1.ProvisionerSuccessArg{
+		DeviceName: e.provisioneeDeviceName,
+		DeviceType: e.provisioneeDeviceType,
+	}
+	if err := ctx.ProvisionUI.ProvisionerSuccess(context.TODO(), sarg); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // AddSecret inserts a received secret into the provisioner's
@@ -170,6 +183,11 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 		return nil, err
 	}
 	e.G().Log.Debug("provisioner verified reverse sig")
+
+	// remember some device information for ProvisionUI.ProvisionerSuccess()
+	if err = e.rememberDeviceInfo(jw); err != nil {
+		return nil, err
+	}
 
 	// sign the whole thing with provisioner's signing key
 	s, _, _, err := libkb.SignJSON(jw, e.signingKey)
@@ -256,6 +274,24 @@ func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 
 	// put reverse_sig back in
 	jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(revsig))
+
+	return nil
+}
+
+// rememberDeviceInfo saves the device name and type in
+// Kex2Provisioner for later use.
+func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
+	name, err := jw.AtPath("body.device.name").GetString()
+	if err != nil {
+		return err
+	}
+	e.provisioneeDeviceName = name
+
+	dtype, err := jw.AtPath("body.device.type").GetString()
+	if err != nil {
+		return err
+	}
+	e.provisioneeDeviceType = dtype
 
 	return nil
 }

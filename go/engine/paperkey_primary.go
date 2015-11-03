@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // PaperKeyPrimary creates the initial paper backup key for a user.  It
 // differs from the PaperKey engine in that it already knows the
 // signing key and it doesn't offer to revoke any devices, plus it

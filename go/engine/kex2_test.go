@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -38,29 +41,39 @@ func TestKex2Provision(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		ctx := &Context{
-			ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
+
+		f := func(lctx libkb.LoginContext) error {
+
+			ctx := &Context{
+				ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
+				LoginContext: lctx,
+			}
+			deviceID, err := libkb.NewDeviceID()
+			if err != nil {
+				t.Errorf("provisionee device id error: %s", err)
+				return err
+			}
+			suffix, err := libkb.RandBytes(5)
+			if err != nil {
+				t.Errorf("provisionee device suffix error: %s", err)
+				return err
+			}
+			dname := fmt.Sprintf("device_%x", suffix)
+			device := &libkb.Device{
+				ID:          deviceID,
+				Description: &dname,
+				Type:        libkb.DeviceTypeDesktop,
+			}
+			provisionee := NewKex2Provisionee(tcY.G, device, secretY)
+			if err := RunEngine(provisionee, ctx); err != nil {
+				t.Errorf("provisionee error: %s", err)
+				return err
+			}
+			return nil
 		}
-		deviceID, err := libkb.NewDeviceID()
-		if err != nil {
-			t.Errorf("provisionee device id error: %s", err)
-			return
-		}
-		suffix, err := libkb.RandBytes(5)
-		if err != nil {
-			t.Errorf("provisionee device suffix error: %s", err)
-			return
-		}
-		dname := fmt.Sprintf("device_%x", suffix)
-		device := &libkb.Device{
-			ID:          deviceID,
-			Description: &dname,
-			Type:        libkb.DeviceTypeDesktop,
-		}
-		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
-		if err := RunEngine(provisionee, ctx); err != nil {
-			t.Errorf("provisionee error: %s", err)
-			return
+
+		if err := tcY.G.LoginState().ExternalFunc(f, "Test - Kex2Provision"); err != nil {
+			t.Errorf("kex2 provisionee error: %s", err)
 		}
 	}()
 
@@ -72,7 +85,7 @@ func TestKex2Provision(t *testing.T) {
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: &testProvisionUI{},
 		}
-		provisioner := NewKex2Provisioner(tcX.G, secretX)
+		provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 		go provisioner.AddSecret(secretY)
 		if err := RunEngine(provisioner, ctx); err != nil {
 			t.Errorf("provisioner error: %s", err)

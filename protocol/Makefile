@@ -21,15 +21,12 @@ build-stamp: \
 	json/ctl.json \
 	json/debugging.json \
 	json/device.json \
-	json/doctor.json \
-	json/doctor_ui.json \
 	json/favorite.json \
 	json/gpg_ui.json \
 	json/identify.json \
 	json/identify_ui.json \
 	json/kex2provisioner.json \
 	json/kex2provisionee.json \
-	json/locksmith_ui.json \
 	json/log_ui.json \
 	json/login.json \
 	json/login_ui.json \

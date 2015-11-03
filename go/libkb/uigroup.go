@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package libkb
 
 import "fmt"
@@ -5,10 +8,8 @@ import "fmt"
 type UIKind int
 
 const (
-	DoctorUIKind UIKind = iota
-	GPGUIKind
+	GPGUIKind UIKind = iota
 	IdentifyUIKind
-	LocksmithUIKind
 	LogUIKind
 	LoginUIKind
 	ProveUIKind
@@ -18,10 +19,6 @@ const (
 
 func (u UIKind) String() string {
 	switch u {
-	case DoctorUIKind:
-		return "DoctorUI"
-	case LocksmithUIKind:
-		return "LocksmithUI"
 	case GPGUIKind:
 		return "GPGUI"
 	case IdentifyUIKind:

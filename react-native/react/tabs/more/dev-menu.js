@@ -1,13 +1,14 @@
 'use strict'
 
-import React, { Component, StyleSheet, View } from 'react-native'
+import React from '../../base-react'
+import BaseComponent from '../../base-component'
 import { routeAppend } from '../../actions/router'
 import { pushNewProfile } from '../../actions/profile'
 import { pushNewSearch } from '../../actions/search'
 import { logout } from '../../actions/login2'
 import MenuList from './menu-list'
 
-export default class DevMenu extends Component {
+export default class DevMenu extends BaseComponent {
   render () {
     const menuItems = [
       {name: 'Login', onClick: () => {
@@ -37,9 +38,7 @@ export default class DevMenu extends Component {
       }}
     ]
     return (
-      <View style={styles.container}>
-        <MenuList menuItems={menuItems} />
-      </View>
+      <MenuList items={menuItems} />
     )
   }
 
@@ -70,9 +69,3 @@ DevMenu.propTypes = {
   pushNewSearch: React.PropTypes.func.isRequired,
   pushNewProfile: React.PropTypes.func.isRequired
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  }
-})

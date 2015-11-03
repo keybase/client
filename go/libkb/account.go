@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package libkb
 
 import (
@@ -336,31 +339,58 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername, tok
 	return
 }
 
-func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID) error {
-	cw := a.G().Env.GetConfigWriter()
-	if cw == nil {
-		return NoConfigWriterError{}
+// SaveState saves the logins state to memory, and to the user
+// config file.
+func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
+	saver := func(cw ConfigWriter) error {
+		return cw.Write()
 	}
+	return a.saveState(sessionID, csrf, username, uid, deviceID, saver)
+}
 
-	if err := a.LoginSession().Clear(); err != nil {
-		return err
+// SaveStateTmp saves the logins state to memory, and to a
+// temporary config file.
+func (a *Account) SaveStateTmp(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (filename string, err error) {
+	saver := func(cw ConfigWriter) error {
+		var serr error
+		filename, serr = cw.SaveTmp(deviceID.String())
+		return serr
 	}
-	salt, err := a.LoginSession().Salt()
+	if err := a.saveState(sessionID, csrf, username, uid, deviceID, saver); err != nil {
+		return "", err
+	}
+	return filename, nil
+}
+
+func (a *Account) saveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID, saver func(ConfigWriter) error) error {
+	cw, err := a.newUserConfigWriter(username, uid, deviceID)
 	if err != nil {
 		return err
 	}
-	var nilDeviceID keybase1.DeviceID
-	if err := cw.SetUserConfig(NewUserConfig(uid, username, salt, nilDeviceID), false); err != nil {
+	if err := saver(cw); err != nil {
 		return err
 	}
-	if err := cw.Write(); err != nil {
-		return err
-	}
-	if err := a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid); err != nil {
-		return err
+	return a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid, deviceID)
+}
+
+func (a *Account) newUserConfigWriter(username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (ConfigWriter, error) {
+	cw := a.G().Env.GetConfigWriter()
+	if cw == nil {
+		return nil, NoConfigWriterError{}
 	}
 
-	return nil
+	if err := a.LoginSession().Clear(); err != nil {
+		return nil, err
+	}
+	salt, err := a.LoginSession().Salt()
+	if err != nil {
+		return nil, err
+	}
+	if err := cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), false); err != nil {
+		return nil, err
+	}
+
+	return cw, nil
 }
 
 func (a *Account) Dump() {

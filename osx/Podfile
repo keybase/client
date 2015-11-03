@@ -1,41 +1,13 @@
-platform :osx, "10.9"
-use_frameworks!
+platform :osx, "10.10"
 
 target "Keybase" do
+  #use_frameworks!
   pod "ObjectiveSugar"
-end
-
-# Used by Keybase.app and extensions
-target "KBKit" do
-  pod "GHKit"
-  pod "ObjectiveSugar"
-  pod "GHKeychain"#, :path => "~/Projects/GHKeychain"
-
-  pod "Mantle"
-
-  #pod "Sparkle"
-
-  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
-
-  pod "YOLayout"#, :path => "~/Projects/YOLayout"
-
-  pod "ZXCVBN"
-  pod "AFNetworking"
-
-  pod "CocoaLumberjack"#, :git => "https://github.com/CocoaLumberjack/CocoaLumberjack.git", :branch => "swift_2.0"
-  pod "GHODictionary"
-
-  pod "MASPreferences"
-
-  pod "MDPSplitView"
-
-  # Local pods
-  pod "KBAppKit", :path => "."
+  pod "KBKit", :path => "KBKit"
 end
 
 # This runs as a privileged helper so keep dependencies
 # here to a minimum.
 target "keybase.Helper" do
-  pod "MPMessagePack"#, :path => "~/Projects/MPMessagePack"
+  pod "MPMessagePack"
 end
-

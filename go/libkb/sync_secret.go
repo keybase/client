@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // A module for syncing secrets with the server, such as SKB PGP keys,
 // and server-halves of our various secret keys.
 package libkb
@@ -66,6 +69,12 @@ type DeviceTypeSet map[string]bool
 var DefaultDeviceTypes = DeviceTypeSet{
 	DeviceTypeDesktop: true,
 	DeviceTypeMobile:  true,
+}
+
+var AllDeviceTypes = DeviceTypeSet{
+	DeviceTypeDesktop: true,
+	DeviceTypeMobile:  true,
+	DeviceTypePaper:   true,
 }
 
 func NewSecretSyncer(g *GlobalContext) *SecretSyncer {

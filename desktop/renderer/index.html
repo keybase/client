@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Keybase</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" href="../node_modules/react-select/dist/default.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      if (process.env.BROWSER_SYNC_CLIENT_URL) {
+        const current = document.currentScript
+        const script = document.createElement('script')
+        script.src = process.env.BROWSER_SYNC_CLIENT_URL
+        script.async = true
+        current.parentNode.insertBefore(script, current)
+      }
+
+      require("babel/register")({
+        extensions: [".desktop.js", ".es6", ".es", ".jsx", ".js"]
+      })
+      require("./index")
+    </script>
+  </body>
+</html>

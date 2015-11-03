@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package client
 
 import (
@@ -12,90 +15,56 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-type CmdLogin struct {
-	libkb.Contextified
-	Username  string
-	sessionID int
-}
-
-func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
-	return &CmdLogin{Contextified: libkb.NewContextified(g)}
-}
-
-func NewLoginUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
-	return keybase1.LoginUiProtocol(g.UI.GetLoginUI())
-}
-
-func NewLocksmithUIProtocol() rpc.Protocol {
-	return keybase1.LocksmithUiProtocol(GlobUI.GetLocksmithUI())
-}
-
-func (v *CmdLogin) client() (*keybase1.LoginClient, error) {
-	protocols := []rpc.Protocol{
-		NewLoginUIProtocol(v.G()),
-		NewSecretUIProtocol(v.G()),
-		NewLocksmithUIProtocol(),
-		NewGPGUIProtocol(v.G()),
-	}
-	if err := RegisterProtocols(protocols); err != nil {
-		return nil, err
-	}
-
-	c, err := GetLoginClient(v.G())
-	if err != nil {
-		return nil, err
-	}
-	return &c, nil
-}
-
-func (v *CmdLogin) Run() error {
-	cli, err := v.client()
-	if err != nil {
-		return err
-	}
-	v.sessionID, err = libkb.RandInt()
-	if err != nil {
-		return err
-	}
-	return cli.LoginWithPrompt(context.TODO(), keybase1.LoginWithPromptArg{
-		SessionID: v.sessionID,
-		Username:  v.Username,
-	})
-}
-
-func (v *CmdLogin) Cancel() error {
-	if v.sessionID == 0 {
-		return nil
-	}
-	cli, err := v.client()
-	if err != nil {
-		return err
-	}
-	return cli.CancelLogin(context.TODO(), v.sessionID)
-}
-
-func NewCmdLogin(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "login",
 		ArgumentHelp: "[username]",
 		Usage:        "Establish a session with the keybase server",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdLogin{}, "login", c)
+			cl.ChooseCommand(newCmdLogin(g), "login", c)
 		},
 	}
 }
 
-func (v *CmdLogin) ParseArgv(ctx *cli.Context) (err error) {
-	nargs := len(ctx.Args())
-	if nargs > 1 {
-		err = errors.New("Invalid arguments.")
-	} else if nargs == 1 {
-		v.Username = ctx.Args()[0]
-	}
-	return err
+type CmdLogin struct {
+	username string
+	libkb.Contextified
 }
 
-func (v *CmdLogin) GetUsage() libkb.Usage {
+func newCmdLogin(g *libkb.GlobalContext) *CmdLogin {
+	return &CmdLogin{Contextified: libkb.NewContextified(g)}
+}
+
+func (c *CmdLogin) Run() error {
+	protocols := []rpc.Protocol{
+		NewProvisionUIProtocol(c.G(), libkb.KexRoleProvisionee),
+		NewLoginUIProtocol(c.G()),
+		NewSecretUIProtocol(c.G()),
+		NewGPGUIProtocol(c.G()),
+	}
+	if err := RegisterProtocols(protocols); err != nil {
+		return err
+	}
+	client, err := GetLoginClient(c.G())
+	if err != nil {
+		return err
+	}
+	return client.Login(context.TODO(), keybase1.LoginArg{Username: c.username, DeviceType: libkb.DeviceTypeDesktop})
+}
+
+func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
+	nargs := len(ctx.Args())
+	if nargs > 1 {
+		return errors.New("Invalid arguments.")
+	}
+
+	if nargs == 1 {
+		c.username = ctx.Args()[0]
+	}
+	return nil
+}
+
+func (c *CmdLogin) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,

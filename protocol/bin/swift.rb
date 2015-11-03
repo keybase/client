@@ -121,9 +121,34 @@ def json_cast(type, optional=false)
   end
 end
 
-def json_return_cast(type)
-  return ".numberValue" if @use_nsnumber && ["int", "long", "float", "double", "boolean"].include?(type)
-  return json_cast(type)
+def json_return_statement(rpc_method, cname, type)
+  if @enums.include?(type)
+    return "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
+    try checkNull(response)
+    return #{cname}(rawValue: JSON(response).intValue)!"
+  end
+
+  cast = if @use_nsnumber && ["int", "long", "float", "double", "boolean"].include?(type)
+    ".numberValue"
+  else
+    json_cast(type)
+  end
+
+  if cast
+    returnStatement = "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
+    try checkNull(response)
+    return JSON(response)#{cast}"
+  else
+    returnStatement = "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
+    try checkNull(response)
+    return #{cname}.fromJSON(JSON(response))"
+  end
+end
+
+def json_return_statement_for_array(rpc_method, item_cname)
+  return "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
+  try checkNull(response)
+  return #{item_cname}.fromJSONArray(JSON(response).arrayValue)"
 end
 
 # def default_value(type)
@@ -207,11 +232,10 @@ def add_methods(impl, namespace, protocol, method, request_params, response_type
     returnType = ""
     returnStatement = "try self.sendRequest(\"#{rpc_method}\", args: args)"
   elsif response_type.kind_of?(Hash) # Array result
+    raise "Unsupported type: #{response_type["type"]}" if response_type["type"] != "array"
     item_cname = model_name(response_type["items"])
     returnType = " -> [#{item_cname}]"
-    returnStatement = "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
-    try checkNull(response)
-    return #{item_cname}.fromJSONArray(JSON(response).arrayValue)"
+    returnStatement = json_return_statement_for_array(rpc_method, item_cname)
   else # Dictionary
 
     if is_objc_primitive(response_type)
@@ -222,16 +246,7 @@ def add_methods(impl, namespace, protocol, method, request_params, response_type
 
     returnType = " -> #{cname}"
     #returnType += "?" if optional
-    cast = json_return_cast(response_type)
-    if cast
-      returnStatement = "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
-    try checkNull(response)
-    return JSON(response)#{cast}"
-    else
-      returnStatement = "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
-    try checkNull(response)
-    return #{cname}.fromJSON(JSON(response))"
-    end
+    returnStatement = json_return_statement(rpc_method, cname, response_type)
   end
 
   args_str = dict_params.length > 0 ? "[" + dict_params.join(", ") + "]" : "[String: AnyObject]()"

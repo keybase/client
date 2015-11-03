@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package client
 
 import (
@@ -22,7 +25,7 @@ func GetRPCServer(g *libkb.GlobalContext) (ret *rpc.Server, xp rpc.Transporter, 
 		ret = rpc.NewServer(xp, libkb.WrapError)
 	}
 	if err != nil {
-		DiagnoseSocketError(err)
+		DiagnoseSocketError(g.UI, err)
 	}
 	return
 }
@@ -140,14 +143,6 @@ func GetBTCClient(g *libkb.GlobalContext) (cli keybase1.BTCClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.BTCClient{Cli: rcli}
-	}
-	return
-}
-
-func GetDoctorClient() (cli keybase1.DoctorClient, err error) {
-	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
-		cli = keybase1.DoctorClient{Cli: rcli}
 	}
 	return
 }

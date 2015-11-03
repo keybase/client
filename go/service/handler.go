@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package service
 
 import (
@@ -89,10 +92,6 @@ func (h *BaseHandler) getLoginUICli() *keybase1.LoginUiClient {
 
 func (h *BaseHandler) getLoginUI(sessionID int) libkb.LoginUI {
 	return &LoginUI{sessionID, h.getLoginUICli()}
-}
-
-func (h *BaseHandler) getLocksmithUI(sessionID int) libkb.LocksmithUI {
-	return NewRemoteLocksmithUI(sessionID, h.rpcClient())
 }
 
 func (h *BaseHandler) getGPGUI(sessionID int) libkb.GPGUI {

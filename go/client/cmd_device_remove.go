@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package client
 
 import (
@@ -15,6 +18,7 @@ import (
 type CmdDeviceRemove struct {
 	id    keybase1.DeviceID
 	force bool
+	libkb.Contextified
 }
 
 func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
@@ -37,7 +41,7 @@ func (c *CmdDeviceRemove) Run() (err error) {
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(c.G()),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
@@ -49,7 +53,7 @@ func (c *CmdDeviceRemove) Run() (err error) {
 	})
 }
 
-func NewCmdDeviceRemove(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDeviceRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "remove",
 		ArgumentHelp: "<id>",
@@ -61,7 +65,7 @@ func NewCmdDeviceRemove(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceRemove{}, "remove", c)
+			cl.ChooseCommand(&CmdDeviceRemove{Contextified: libkb.NewContextified(g)}, "remove", c)
 		},
 	}
 }

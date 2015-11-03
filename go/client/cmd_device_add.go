@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package client
 
 import (
@@ -8,31 +11,27 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // CmdDeviceAdd is the 'device add' command.  It is used for
-// device provisioning to enter a secret phrase on an existing
-// device.
+// device provisioning on the provisioner/device X/C1.
 type CmdDeviceAdd struct {
-	phrase    string
-	sessionID int
+	libkb.Contextified
 }
 
-const cmdDevAddDesc = `When you are adding a new device to your account and you have an
+const cmdDevAddDesc = `When you are adding a new device to your account and you have an 
 existing device, you will be prompted to use this command on your
 existing device to authorize the new device.`
 
 // NewCmdDeviceAdd creates a new cli.Command.
-func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDeviceAdd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "add",
-		Usage:        "Authorize a new device",
-		Description:  cmdDevAddDesc,
-		ArgumentHelp: "<secret-phrase>",
+		Name:        "add",
+		Usage:       "Authorize a new device",
+		Description: cmdDevAddDesc,
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceAdd{}, "add", c)
+			cl.ChooseCommand(&CmdDeviceAdd{Contextified: libkb.NewContextified(g)}, "add", c)
 		},
 	}
 }
@@ -40,31 +39,26 @@ func NewCmdDeviceAdd(cl *libcmdline.CommandLine) cli.Command {
 // RunClient runs the command in client/server mode.
 func (c *CmdDeviceAdd) Run() error {
 	var err error
-	c.sessionID, err = libkb.RandInt()
-	if err != nil {
-		return err
-	}
 	cli, err := GetDeviceClient()
 	if err != nil {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
-		NewLocksmithUIProtocol(),
+		NewProvisionUIProtocol(c.G(), libkb.KexRoleProvisioner),
+		NewSecretUIProtocol(c.G()),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
 
-	return cli.DeviceAdd(context.TODO(), keybase1.DeviceAddArg{SecretPhrase: c.phrase, SessionID: c.sessionID})
+	return cli.DeviceAdd(context.TODO(), 0)
 }
 
 // ParseArgv gets the secret phrase from the command args.
 func (c *CmdDeviceAdd) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("Device add only takes one argument, the secret phrase.")
+	if len(ctx.Args()) != 0 {
+		return fmt.Errorf("device add takes zero arguments")
 	}
-	c.phrase = ctx.Args()[0]
 	return nil
 }
 

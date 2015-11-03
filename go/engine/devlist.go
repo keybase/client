@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -46,7 +49,7 @@ func (d *DevList) Run(ctx *Context) error {
 		if err = libkb.RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.LocalSession()); err != nil {
 			return
 		}
-		devs, err = a.SecretSyncer().ActiveDevices(libkb.DefaultDeviceTypes)
+		devs, err = a.SecretSyncer().ActiveDevices(libkb.AllDeviceTypes)
 	}, "DevList - ActiveDevices")
 	if aerr != nil {
 		return aerr
