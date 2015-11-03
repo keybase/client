@@ -15,6 +15,11 @@ type Socket interface {
 	DialSocket() (net.Conn, error)
 }
 
+type SocketInfo struct {
+	Contextified
+	file string
+}
+
 type SocketWrapper struct {
 	conn net.Conn
 	xp   rpc.Transporter
