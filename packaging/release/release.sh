@@ -5,12 +5,18 @@
 #
 # Call it with a mode and version number:  release.sh staging 1.1.12-102
 #
-# It does the following:
+# Before you call this, you need to:
+# 1. update the version number in go/libkb/version.go
+# 2. edit the CHANGELOG
+# 3. commit and push both of those things
 #
+# This script does the following:
 # 1. tags the client repo with a version tag
 # 2. update the kbstage brew formulas
-# 3. build the Linux packages (pulling on dist.keybase.io is manual)
+# 3. build the Linux packages
 #
+# After this script, you need to:
+# 1. SSH to dist.keybase.io and pull the server-ops repo, for Linux packages
 
 set -e -u -o pipefail
 
