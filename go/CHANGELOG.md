@@ -1,3 +1,7 @@
+## 1.0.0-43 (2015-11-03)
+
+- Rerelease for homebrew hashes
+
 ## 1.0.0-42 (2015-11-03)
 
 - Default to device provisioning via kex2
