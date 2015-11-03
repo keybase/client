@@ -9,12 +9,19 @@ import HardwareComputer from 'material-ui/lib/svg-icons/hardware/computer'
 import CommunicationVpnKey from 'material-ui/lib/svg-icons/communication/vpn-key'
 import ActionNoteAdd from 'material-ui/lib/svg-icons/action/note-add'
 
+import moment from 'moment'
 import View from 'react-flexbox'
+import { loadDevices } from '../../actions/devices'
 
 export default class Devices extends BaseComponent {
-
   constructor (props) {
     super(props)
+  }
+
+  componentWillMount () {
+    if (!this.props.devices && !this.props.waitingForServer) {
+      this.props.loadDevices()
+    }
   }
 
   connectNew () {
@@ -28,13 +35,76 @@ export default class Devices extends BaseComponent {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        title: 'Devices'
+        title: 'Devices',
+        mapStateToProps: state => {
+          const { devices, waitingForServer } = state.devices
+          return {
+            devices,
+            waitingForServer
+          }
+        },
+        props: {
+          loadDevices: () => store.dispatch(loadDevices())
+        }
       }
     }
   }
 
-  render () {
+  renderPhone(device) {
+    return (
+      <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
+        <div style={styles.device}>
+          <HardwarePhoneIphone style={styles.deviceIcon}/>
+          <h3 style={styles.line2}>{device.name}</h3>
+          <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
+          <div style={styles.line2}>TODO: Get Added info</div>
+          <div><a href="">Remove</a></div>
+        </div>
+      </div>
+    )
+  }
 
+  renderDesktop(device) {
+    return (
+      <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
+        <div style={styles.device}>
+          <HardwareComputer style={styles.deviceIcon} />
+          <h3 style={styles.line2}>{device.name}</h3>
+          <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
+          <div style={styles.line2}>TODO: Get Added info</div>
+          <div><a href=''>Remove</a></div>
+        </div>
+      </div>
+    )
+  }
+
+  renderPaperKey(device) {
+    return (
+      <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
+        <div style={styles.device}>
+          <CommunicationVpnKey style={styles.deviceIcon} />
+          <h3 style={styles.line2}>{device.name}</h3>
+          <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
+          <div>Paper key</div>
+          <div><a href="">Remove</a></div>
+        </div>
+      </div>
+    )
+  }
+
+  renderDevice(device) {
+    if (device.type == 'desktop') {
+      return this.renderDesktop(device)
+    } else if (device.type == 'phone') {
+      return this.renderPhone(device)
+    } else if (device.type == 'backup') {
+      return this.renderPaperKey(device)
+    } else {
+      console.error('Unknown device type: ' + device.type)
+    }
+  }
+
+  render () {
     return (
       <View column>
         <View row style={styles.deviceContainer}>
@@ -56,37 +126,10 @@ export default class Devices extends BaseComponent {
         </View>
 
         <View auto row style={styles.deviceContainer}>
-          <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
-            <div style={styles.device}>
-              <CommunicationVpnKey style={styles.deviceIcon} />
-              <h3 style={styles.line2}>This is Long Device Name</h3>
-              <div>Last used 08.05.15</div>
-              <div>Paper key</div>
-              <div><a href="">Remove</a></div>
-            </div>
-          </div>
-
-          <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
-            <div style={styles.device}>
-              <HardwareComputer style={styles.deviceIcon} />
-              <h3 style={styles.line2}>Caley Work</h3>
-              <div>Last used 08.03.15</div>
-              <div style={styles.line2}>Added by "This is a Long Device Name"</div>
-              <div><a href="">Remove</a></div>
-            </div>
-          </div>
-
-          <div style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
-            <div style={styles.device}>
-              <HardwarePhoneIphone style={styles.deviceIcon}/>
-              <h3 style={styles.line2}>Caley iPhone</h3>
-              <div>Last used 08.05.15</div>
-              <div style={styles.line2}>Added by "Caley Work"</div>
-              <div><a href="">Remove</a></div>
-            </div>
-          </div>
+          {
+            this.props.devices && this.props.devices.map(device => this.renderDevice(device))
+          }
         </View>
-
       </View>
     )
   }

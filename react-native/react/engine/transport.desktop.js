@@ -7,7 +7,9 @@ class DesktopTransport extends BaseTransport {
   constructor (incomingRPCCallback) {
     const paths = [
       // Hardcoded for now!
+      // OS X
       process.env.HOME + '/Library/Caches/KeybaseDevel/keybased.sock',
+      // Linux
       process.env.XDG_RUNTIME_DIR + '/keybase.devel/keybased.sock'
     ]
     let sockfile = null
