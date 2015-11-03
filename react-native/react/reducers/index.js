@@ -9,13 +9,12 @@ import devices from './devices'
 import search from './search'
 import profile from './profile'
 import config from './config'
-import tabbedRouter from './tabbed-router.js'
+import tabbedRouter from './tabbed-router'
 import {List} from 'immutable'
+import type { State } from '../constants/reducer-types'
 
 let history = List()
 let index = 0
-
-type State = { [key: string]: any }
 
 function timeTravel (state: State, action: any): State {
   if (action.type !== 'timetravel') {
@@ -24,24 +23,26 @@ function timeTravel (state: State, action: any): State {
     return state
   } else {
     const { direction } = action.payload
+
     if (direction === 'back') {
       return history.get(--index, state)
-    } else {
-      return history.get(++index, state)
     }
+    return history.get(++index, state)
   }
 }
 
+const reducer = combineReducers({
+  login,
+  login2,
+  devices,
+  tabbedRouter,
+  search,
+  profile,
+  config
+})
+
 export default function (state: State, action: any): State {
-  const nextState = combineReducers({
-    login,
-    login2,
-    devices,
-    tabbedRouter,
-    search,
-    profile,
-    config
-  })(state, action)
+  const nextState = reducer(state, action)
 
   // TODO move this __DEV__ to a module
   if (__DEV__) { // eslint-disable-line no-undef

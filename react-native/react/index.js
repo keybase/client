@@ -13,6 +13,21 @@ class Keybase extends Component {
     super()
   }
 
+  componentWillMount () {
+    this.subscriptions = []
+    // TODO move this __DEV__ to a module
+    if (__DEV__) { // eslint-disable-line no-undef
+      this.subscriptions = [
+        NativeAppEventEmitter.addListener('backInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'forward'}})),
+        NativeAppEventEmitter.addListener('forwardInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'back'}})),
+      ]
+    }
+  }
+
+  componentWillUnmount () {
+    this.subscriptions.forEach((s) => s.remove())
+  }
+
   render () {
     return (
       <Provider store={store}>

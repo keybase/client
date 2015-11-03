@@ -1,6 +1,6 @@
 'use strict'
 
-import React, { Component, TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet, NativeAppEventEmitter } from 'react-native'
+import React, { Component, TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet } from 'react-native'
 
 import { connect } from './base-redux'
 import MetaNavigator from './router/meta-navigator'
@@ -91,22 +91,10 @@ export default class Nav extends Component {
       startup: () => this.props.dispatch(startup()),
       navigateTo: uri => this.props.dispatch(navigateTo(uri)),
       navigateUp: () => this.props.dispatch(navigateUp()),
-      backInTime: () => this.props.dispatch({type: 'timetravel', payload: {direction: 'back'}}),
-      forwardInTime: () => this.props.dispatch({type: 'timetravel', payload: {direction: 'forward'}}),
       switchTab: tab => this.props.dispatch(switchTab(tab))
     }
 
     this.state.startup()
-  }
-
-  componentWillMount () {
-    this.backSubscription = NativeAppEventEmitter.addListener('backInTime', this.state.backInTime)
-    this.forwardSubscription = NativeAppEventEmitter.addListener('forwardInTime', this.state.forwardInTime)
-  }
-
-  componentWillUnmount () {
-    this.backSubscription.remove()
-    this.forwardSubscription.remove()
   }
 
   navBar () {
