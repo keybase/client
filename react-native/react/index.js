@@ -18,8 +18,8 @@ class Keybase extends Component {
     // TODO move this __DEV__ to a module
     if (__DEV__) { // eslint-disable-line no-undef
       this.subscriptions = [
-        NativeAppEventEmitter.addListener('backInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'forward'}})),
-        NativeAppEventEmitter.addListener('forwardInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'back'}})),
+        NativeAppEventEmitter.addListener('backInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'back'}})),
+        NativeAppEventEmitter.addListener('forwardInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'forward'}})),
       ]
     }
   }
