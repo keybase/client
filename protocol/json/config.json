@@ -259,7 +259,10 @@
       "name" : "bundleVersion",
       "type" : "string"
     }, {
-      "name" : "kextLabel",
+      "name" : "kextID",
+      "type" : "string"
+    }, {
+      "name" : "path",
       "type" : "string"
     }, {
       "name" : "kextStarted",

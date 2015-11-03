@@ -1,6 +1,3 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
-// this source code is governed by the included BSD license.
-
 package keybase1
 
 import (
@@ -395,7 +392,8 @@ type ServiceStatus struct {
 type FuseStatus struct {
 	Version       string        `codec:"version" json:"version"`
 	BundleVersion string        `codec:"bundleVersion" json:"bundleVersion"`
-	KextLabel     string        `codec:"kextLabel" json:"kextLabel"`
+	KextID        string        `codec:"kextID" json:"kextID"`
+	Path          string        `codec:"path" json:"path"`
 	KextStarted   bool          `codec:"kextStarted" json:"kextStarted"`
 	InstallStatus InstallStatus `codec:"installStatus" json:"installStatus"`
 	InstallAction InstallAction `codec:"installAction" json:"installAction"`

@@ -71,7 +71,8 @@ protocol config {
   record FuseStatus {
     string version;
     string bundleVersion;
-    string kextLabel;
+    string kextID;
+    string path;
     boolean kextStarted;
     InstallStatus installStatus;
     InstallAction installAction;

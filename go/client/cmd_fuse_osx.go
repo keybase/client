@@ -38,7 +38,6 @@ func NewCmdFuseStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 
 type CmdFuseStatus struct {
 	libkb.Contextified
-	kextID        string
 	bundleVersion string
 }
 
@@ -53,13 +52,12 @@ func (v *CmdFuseStatus) GetUsage() libkb.Usage {
 }
 
 func (v *CmdFuseStatus) ParseArgv(ctx *cli.Context) error {
-	v.kextID = ctx.String("kext-id")
 	v.bundleVersion = ctx.String("bundle-version")
 	return nil
 }
 
 func (v *CmdFuseStatus) Run() error {
-	status := KeybaseFuseStatus(v.kextID, v.bundleVersion)
+	status := KeybaseFuseStatus(v.bundleVersion)
 	out, err := json.MarshalIndent(status, "", "  ")
 	if err != nil {
 		return err
