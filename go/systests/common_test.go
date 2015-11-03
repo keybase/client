@@ -32,6 +32,16 @@ type baseNullUI struct {
 	g *libkb.GlobalContext
 }
 
+type dumbUI struct{}
+
+func (d dumbUI) Printf(format string, args ...interface{}) (int, error) {
+	return 0, nil
+}
+func (d dumbUI) PrintfStderr(format string, args ...interface{}) (int, error) {
+	return 0, nil
+}
+
+func (n *baseNullUI) GetDumbOutputUI() libkb.DumbOutputUI             { return dumbUI{} }
 func (n *baseNullUI) GetIdentifyUI() libkb.IdentifyUI                 { return nil }
 func (n *baseNullUI) GetIdentifySelfUI() libkb.IdentifyUI             { return nil }
 func (n *baseNullUI) GetIdentifyTrackUI(strict bool) libkb.IdentifyUI { return nil }

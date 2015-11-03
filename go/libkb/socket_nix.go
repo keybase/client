@@ -42,6 +42,6 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 }
 
 // net.errClosing isn't exported, so do this.. UGLY!
-func IsSocketClosedError(e error) (bool) {
+func IsSocketClosedError(e error) bool {
 	return strings.HasSuffix(e.Error(), "use of closed network connection")
 }

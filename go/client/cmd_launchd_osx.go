@@ -178,8 +178,7 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			// This is to bypass the logui protocol registration in main.go which is
 			// triggering a connection before our Run() is called. See that file for
 			// more info.
-			g.Env.SetSkipLogForward()
-
+			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.ChooseCommand(NewCmdLaunchdStatusRunner(g), "status", c)
 		},
 	}

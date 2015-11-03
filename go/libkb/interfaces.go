@@ -308,12 +308,18 @@ type TerminalUI interface {
 	PromptPassword(PromptDescriptor, string) (string, error)
 }
 
+type DumbOutputUI interface {
+	Printf(fmt string, args ...interface{}) (int, error)
+	PrintfStderr(fmt string, args ...interface{}) (int, error)
+}
+
 type UI interface {
 	GetIdentifyUI() IdentifyUI
 	GetIdentifyTrackUI(strict bool) IdentifyUI
 	GetLoginUI() LoginUI
 	GetSecretUI() SecretUI
 	GetTerminalUI() TerminalUI
+	GetDumbOutputUI() DumbOutputUI
 	GetProveUI() ProveUI
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI

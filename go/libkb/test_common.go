@@ -6,6 +6,7 @@
 package libkb
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -271,6 +272,18 @@ func (tc TestContext) Clone() (ret TestContext) {
 
 type nullui struct {
 	gctx *GlobalContext
+}
+
+func (n *nullui) Printf(f string, args ...interface{}) (int, error) {
+	return fmt.Printf(f, args...)
+}
+
+func (n *nullui) PrintfStderr(f string, args ...interface{}) (int, error) {
+	return fmt.Fprintf(os.Stderr, f, args...)
+}
+
+func (n *nullui) GetDumbOutputUI() DumbOutputUI {
+	return n
 }
 
 func (n *nullui) GetIdentifyUI() IdentifyUI {
