@@ -31,34 +31,13 @@ kbfs_version_tag="v$kbfs_version"
 
 clientdir="$GOPATH/src/github.com/keybase/client"
 kbfsdir="$GOPATH/src/github.com/keybase/kbfs"
-client_betadir=${CLIENT_BETADIR:-$GOPATH/src/github.com/keybase/client-beta}
 kbfs_betadir=${KBFS_BETADIR:-$GOPATH/src/github.com/keybase/kbfs-beta}
 brewdir=${BREWDIR:-$GOPATH/src/github.com/keybase/homebrew-beta}
 
-if [ ! -d "$clientdir" ]; then
-	echo "Need client repo, expecting it here: $clientdir"
-	exit 1
-fi
-
-if [ ! -d "$kbfsdir" ]; then
-	echo "Need kbfs repo, expecting it here: $kbfsdir"
-	exit 1
-fi
-
-if [ ! -d "$client_betadir" ]; then
-	echo "Need client-beta repo, expecting it here: $client_betadir"
-	exit 1
-fi
-
-if [ ! -d "$kbfs_betadir" ]; then
-	echo "Need kbfs-beta repo, expecting it here: $kbfs_betadir"
-	exit 1
-fi
-
-if [ ! -d "$brewdir" ]; then
-	echo "Need homebrew-beta repo, expecting it here: $brewdir"
-	exit 1
-fi
+"$clientdir/packaging/check_status_and_pull.sh" "$clientdir"
+"$clientdir/packaging/check_status_and_pull.sh" "$kbfsdir"
+"$clientdir/packaging/check_status_and_pull.sh" "$kbfs_betadir"
+"$clientdir/packaging/check_status_and_pull.sh" "$brewdir"
 
 src_version="$(egrep -o "([0-9]{1,}\.)+[0-9]{1,}" $kbfsdir/libkbfs/version.go)"
 build_number="$(egrep -o "const Build = \"\d+\"" $kbfsdir/libkbfs/version.go | egrep -o "\d+")"
@@ -74,14 +53,6 @@ echo "-------------------------------------------------------------------------"
 echo "Creating kbfsstage release for version $kbfs_version"
 echo "-------------------------------------------------------------------------"
 cd $kbfsdir
-git checkout master
-
-if ! git diff-index --quiet HEAD --; then
-	echo "There are changes in $kbfsdir"
-	exit 1
-fi
-
-git pull --ff-only
 if git tag -a $kbfs_version_tag -m $kbfs_version_tag ; then
 	echo "Tagged kbfs source with $kbfs_version_tag"
 	git push --tags
@@ -109,8 +80,6 @@ echo "sha256 of $src_url is $src_sha"
 echo "3. Updating kbfsstage brew formula"
 sed -e "s/%VERSION%/$kbfs_version/g" -e "s/%VERSION_TAG%/$kbfs_version_tag/g" -e "s/%SRC_SHA%/$src_sha/g" $brewdir/kbfsstage.rb.tmpl > $brewdir/kbfsstage.rb
 cd $brewdir
-git checkout master
-git pull --ff-only
 if git commit -a -m "New kbfsstage version $kbfs_version_tag" ; then
 	git push
 	echo "Done.  brew update && brew upgrade kbfsstage should install version $kbfs_version"
