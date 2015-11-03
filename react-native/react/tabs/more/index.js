@@ -83,3 +83,7 @@ More.propTypes = {
   pushNewSearch: React.PropTypes.func.isRequired,
   pushNewProfile: React.PropTypes.func.isRequired
 }
+
+MoreTabs.propTypes = {
+  items: React.PropTypes.object
+}

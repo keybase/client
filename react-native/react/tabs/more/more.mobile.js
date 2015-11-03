@@ -10,20 +10,18 @@ import { pushNewProfile } from '../../actions/profile'
 import Button from '../../common-adapters/button'
 import commonStyles from '../../styles/common'
 
-export default class More extends BaseComponent {
+export default class MoreTabs extends BaseComponent {
   constructor (props) {
     super(props)
   }
 
   componentWillMount () {
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
-    this.state = {
-      dataSource: ds.cloneWithRows(this.props.items)
-    }
+    this.dataSource = ds.cloneWithRows(this.props.items)
   }
 
   renderRow (rowData, sectionID, rowID) {
-    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
+    const sep = (rowID < (this.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
 
     return (
       <Button onPress={rowData.onClick}>
@@ -42,7 +40,7 @@ export default class More extends BaseComponent {
     return (
       <View style={styles.container}>
         <ListView
-        dataSource={this.state.dataSource}
+        dataSource={this.dataSource}
         renderRow={(...args) => { return this.renderRow(...args) }}
         />
       </View>
@@ -58,3 +56,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF'
   }
 })
+
+MoreTabs.propTypes = {
+  items: React.PropTypes.object
+}
