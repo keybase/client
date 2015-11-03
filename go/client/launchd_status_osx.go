@@ -158,11 +158,12 @@ func installStatus(version string, bundleVersion string, lastExitStatus string) 
 				keybase1.InstallAction_NONE,
 				&keybase1.StatusError{Message: fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version)}
 		}
+	} else if version != "" && bundleVersion == "" {
+		installStatus = keybase1.InstallStatus_INSTALLED
 	}
 
-	// If we had a version or last exit status (and the status was unknown) then a
-	// version is installed.
-	if installStatus == keybase1.InstallStatus_UNKNOWN && (version != "" || lastExitStatus != "") {
+	// If we have an unknown install status, then let's try to re-install.
+	if bundleVersion != "" && installStatus == keybase1.InstallStatus_UNKNOWN && (version != "" || lastExitStatus != "") {
 		installAction = keybase1.InstallAction_REINSTALL
 		installStatus = keybase1.InstallStatus_INSTALLED
 	}
