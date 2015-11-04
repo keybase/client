@@ -4,12 +4,9 @@
 package client
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -28,10 +25,6 @@ type CmdConfigSet struct {
 }
 
 type CmdConfigReset struct {
-	writer io.Writer
-}
-
-type CmdConfigInfo struct {
 	writer io.Writer
 }
 
@@ -61,13 +54,6 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdConfigReset) ParseArgv(ctx *cli.Context) error {
-	if v.writer == nil {
-		v.writer = GlobUI.OutputWriter()
-	}
-	return nil
-}
-
-func (v *CmdConfigInfo) ParseArgv(ctx *cli.Context) error {
 	if v.writer == nil {
 		v.writer = GlobUI.OutputWriter()
 	}
@@ -123,30 +109,6 @@ func (v *CmdConfigReset) Run() error {
 	return nil
 }
 
-func (v *CmdConfigInfo) Run() error {
-	configFile := G.Env.GetConfigFilename()
-	fmt.Fprintf(v.writer, "File: %s\n\n", configFile)
-
-	cli, err := GetConfigClient(G)
-	if err != nil {
-		return err
-	}
-	if err := RegisterProtocols(nil); err != nil {
-		return err
-	}
-
-	config, err := cli.GetConfig(context.TODO(), 0)
-	if err != nil {
-		return err
-	}
-	out, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Fprintf(v.writer, "%s", out)
-	return nil
-}
-
 func NewCmdConfig(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "config",
@@ -156,7 +118,6 @@ func NewCmdConfig(cl *libcmdline.CommandLine) cli.Command {
 			NewCmdConfigGet(cl),
 			NewCmdConfigSet(cl),
 			NewCmdConfigReset(cl),
-			NewCmdConfigInfo(cl),
 		},
 	}
 }
@@ -194,16 +155,6 @@ func NewCmdConfigReset(cl *libcmdline.CommandLine) cli.Command {
 	}
 }
 
-func NewCmdConfigInfo(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name:  "info",
-		Usage: "Show config file path",
-		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdConfigInfo{}, "info", c)
-		},
-	}
-}
-
 func (v *CmdConfigGet) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
@@ -217,12 +168,6 @@ func (v *CmdConfigSet) GetUsage() libkb.Usage {
 }
 
 func (v *CmdConfigReset) GetUsage() libkb.Usage {
-	return libkb.Usage{
-		Config: true,
-	}
-}
-
-func (v *CmdConfigInfo) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 	}
