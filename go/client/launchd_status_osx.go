@@ -160,6 +160,9 @@ func installStatus(version string, bundleVersion string, lastExitStatus string) 
 		}
 	} else if version != "" && bundleVersion == "" {
 		installStatus = keybase1.InstallStatus_INSTALLED
+	} else if version == "" && bundleVersion != "" {
+		installStatus = keybase1.InstallStatus_NOT_INSTALLED
+		installAction = keybase1.InstallAction_INSTALL
 	}
 
 	// If we have an unknown install status, then let's try to re-install.
