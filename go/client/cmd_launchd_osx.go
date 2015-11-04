@@ -59,8 +59,9 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			envVars["KEYBASE_LOG_FORMAT"] = "file"
 			envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
 
+			out := g.UI.GetTerminalUI().OutputWriter()
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
-			err := launchd.Install(plist, g.Log)
+			err := launchd.Install(plist, out)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -80,7 +81,8 @@ func NewCmdLaunchdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 			if len(args) < 1 {
 				g.Log.Fatalf("No label specified.")
 			}
-			err := launchd.Uninstall(args[0], g.Log)
+			out := g.UI.GetTerminalUI().OutputWriter()
+			err := launchd.Uninstall(args[0], out)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -93,18 +95,15 @@ func NewCmdLaunchdList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 	return cli.Command{
 		Name:  "list",
 		Usage: "List keybase launchd services",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "f, format",
+				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
+			},
+		},
 		Action: func(c *cli.Context) {
-			// TODO: Use ChooseCommand
-			var err error
-			err = launchd.ShowServices([]string{"keybase.service", "homebrew.mxcl.keybase"}, "Keybase", g.Log)
-			if err != nil {
-				g.Log.Fatalf("%v", err)
-			}
-			err = launchd.ShowServices([]string{"keybase.kbfs.", "homebrew.mxcl.kbfs"}, "KBFS", g.Log)
-			if err != nil {
-				g.Log.Fatalf("%v", err)
-			}
-			os.Exit(0)
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.ChooseCommand(NewCmdLaunchdListRunner(g), "list", c)
 		},
 	}
 }
@@ -120,7 +119,8 @@ func NewCmdLaunchdRestart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			if len(args) < 1 {
 				g.Log.Fatalf("No label specified.")
 			}
-			err := launchd.Restart(args[0], g.Log)
+			out := g.UI.GetTerminalUI().OutputWriter()
+			err := launchd.Restart(args[0], out)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -140,7 +140,8 @@ func NewCmdLaunchdStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			if len(args) < 1 {
 				g.Log.Fatalf("No label specified")
 			}
-			err := launchd.Start(args[0], g.Log)
+			out := g.UI.GetTerminalUI().OutputWriter()
+			err := launchd.Start(args[0], out)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -160,7 +161,8 @@ func NewCmdLaunchdStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			if len(args) < 1 {
 				g.Log.Fatalf("No label specified.")
 			}
-			err := launchd.Stop(args[0], g.Log)
+			out := g.UI.GetTerminalUI().OutputWriter()
+			err := launchd.Stop(args[0], out)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -177,6 +179,10 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "b, bundle-version",
 				Usage: "Bundle version",
 			},
+			cli.StringFlag{
+				Name:  "f, format",
+				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
+			},
 		},
 		ArgumentHelp: "<service-name>",
 		Usage:        "Status for keybase launchd service, including for installing or updating",
@@ -190,8 +196,49 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 	}
 }
 
+type CmdLaunchdList struct {
+	libkb.Contextified
+	format string
+}
+
+func NewCmdLaunchdListRunner(g *libkb.GlobalContext) *CmdLaunchdList {
+	return &CmdLaunchdList{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *CmdLaunchdList) GetUsage() libkb.Usage {
+	return libkb.Usage{}
+}
+
+func (v *CmdLaunchdList) ParseArgv(ctx *cli.Context) error {
+	v.format = ctx.String("format")
+	return nil
+}
+
+func (v *CmdLaunchdList) Run() error {
+	if v.format == "json" {
+		servicesStatus, err := ListServices()
+		if err != nil {
+			return err
+		}
+		out, err := json.MarshalIndent(servicesStatus, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stdout, "%s\n", out)
+	} else if v.format == "" {
+		return ShowServices(v.G().UI.GetTerminalUI().OutputWriter())
+	} else {
+		return fmt.Errorf("Invalid format: %s", v.format)
+	}
+	return nil
+}
+
 type CmdLaunchdStatus struct {
 	libkb.Contextified
+	format        string
+	label         string
 	name          string
 	bundleVersion string
 }
@@ -213,26 +260,29 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 	}
 	v.name = args[0]
 	v.bundleVersion = ctx.String("bundle-version")
+	v.format = ctx.String("format")
 	return nil
 }
 
 func (v *CmdLaunchdStatus) Run() error {
 	var st keybase1.ServiceStatus
 	if v.name == "service" {
-		st = KeybaseServiceStatus(v.G(), v.bundleVersion)
+		st = KeybaseServiceStatus(v.G(), v.label, v.bundleVersion)
 	} else if v.name == "kbfs" {
-		st = KBFSServiceStatus(v.G(), v.bundleVersion)
+		st = KBFSServiceStatus(v.G(), v.label, v.bundleVersion)
 	} else {
 		return fmt.Errorf("Invalid service name: %s", v.name)
 	}
 
-	out, err := json.MarshalIndent(st, "", "  ")
-	if err != nil {
-		return err
-	}
+	if v.format == "json" {
+		out, err := json.MarshalIndent(st, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stdout, "%s\n", out)
+	} else if v.format == "" {
 
-	// TODO: Terminal is not available when running from another program
-	// (/dev/tty is not configured).
-	fmt.Fprintf(os.Stdout, "%s\n", out)
+		fmt.Fprintf(os.Stdout, "%#v\n", st)
+	}
 	return nil
 }

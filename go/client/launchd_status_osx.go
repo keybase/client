@@ -7,6 +7,7 @@ package client
 
 import (
 	"fmt"
+	"io"
 	"path"
 	"time"
 
@@ -14,64 +15,50 @@ import (
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/net/context"
 )
 
-func KeybaseServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.ServiceStatus {
-	serviceLabel := libkb.DefaultServiceLabel(libkb.KeybaseServiceID, libkb.DefaultRunMode)
-	kbService := launchd.NewService(serviceLabel)
-	kbLaunchdStatus, err := kbService.Status()
-	if err != nil {
-		return errorStatus(err)
+func KeybaseServiceStatus(g *libkb.GlobalContext, label string, bundleVersion string) keybase1.ServiceStatus {
+	if label == "" {
+		label = libkb.DefaultServiceLabel(libkb.KeybaseServiceID, libkb.DefaultRunMode)
+	}
+	kbService := launchd.NewService(label)
+
+	st, done := ServiceStatusFromLaunchd(kbService, path.Join(g.Env.GetRuntimeDir(), "keybased.info"))
+	st.BundleVersion = bundleVersion
+	if done {
+		return st
 	}
 
-	st := keybase1.ServiceStatus{
-		BundleVersion: bundleVersion,
-		Label:         serviceLabel,
-		InstallStatus: keybase1.InstallStatus_UNKNOWN,
-		InstallAction: keybase1.InstallAction_UNKNOWN,
-	}
+	/*
+		var config keybase1.Config
+		if st.Pid != "" {
+			configClient, err := GetConfigClient(g)
+			if err != nil {
+				st.Status = errorStatus("INSTALL_ERROR", err.Error())
+				return st
+			}
 
-	if kbLaunchdStatus == nil {
-		st.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
-		st.InstallAction = keybase1.InstallAction_INSTALL
-	} else {
-		st.Label = kbLaunchdStatus.Label()
-		st.Pid = kbLaunchdStatus.Pid()
-		st.LastExitStatus = kbLaunchdStatus.LastExitStatus()
-	}
+			config, err = configClient.GetConfig(context.TODO(), 0)
+			if err != nil {
+				st.Status = errorStatus("INSTALL_ERROR", err.Error())
+				return st
+			}
 
-	var config keybase1.Config
-	if st.Pid != "" {
-		runtimeDir := g.Env.GetRuntimeDir()
-		_, err := libkb.WaitForServiceInfoFile(path.Join(runtimeDir, "keybased.info"), st.Pid, 5, 500*time.Millisecond, "launchd status for service")
-		if err != nil {
-			return errorStatus(err)
+			if config.Label != st.Label {
+				st.Status = errorStatus("INSTALL_ERROR", fmt.Sprintf("Service label mismatch: %s != %s", config.Label, st.Label))
+				return st
+			}
+
+			st.Version = config.Version
 		}
-
-		configClient, err := GetConfigClient(g)
-		if err != nil {
-			return errorStatus(err)
-		}
-
-		config, err = configClient.GetConfig(context.TODO(), 0)
-		if err != nil {
-			return errorStatus(err)
-		}
-
-		if config.Label != kbLaunchdStatus.Label() {
-			return errorStatus(fmt.Errorf("Service label mismatch: %s != %s", config.Label, kbLaunchdStatus.Label()))
-		}
-	}
-
-	st.Version = config.Version
+	*/
 
 	// Something must be wrong if this build doesn't match the package version.
 	buildVersion := libkb.VersionString()
 	if bundleVersion != "" && bundleVersion != buildVersion {
 		st.InstallAction = keybase1.InstallAction_NONE
 		st.InstallStatus = keybase1.InstallStatus_ERROR
-		st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Version mismatch: %s != %s", bundleVersion, buildVersion)}
+		st.Status = errorStatus("INSTALL_ERROR", fmt.Sprintf("Version mismatch: %s != %s", bundleVersion, buildVersion))
 		return st
 	}
 
@@ -82,52 +69,27 @@ func KeybaseServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1
 	return st
 }
 
-func KBFSServiceStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.ServiceStatus {
-	serviceLabel := libkb.DefaultServiceLabel(libkb.KBFSServiceID, libkb.DefaultRunMode)
-	kbfsService := launchd.NewService(serviceLabel)
-	kbfsLaunchdStatus, err := kbfsService.Status()
-	if err != nil {
-		return errorStatus(err)
+func KBFSServiceStatus(g *libkb.GlobalContext, label string, bundleVersion string) keybase1.ServiceStatus {
+	if label == "" {
+		label = libkb.DefaultServiceLabel(libkb.KBFSServiceID, libkb.DefaultRunMode)
 	}
+	kbfsService := launchd.NewService(label)
 
-	st := keybase1.ServiceStatus{
-		BundleVersion: bundleVersion,
-		Label:         serviceLabel,
-		InstallStatus: keybase1.InstallStatus_UNKNOWN,
-		InstallAction: keybase1.InstallAction_UNKNOWN,
-	}
-
-	var kbfsInfo *libkb.ServiceInfo
-	if kbfsLaunchdStatus == nil {
-		st.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
-		st.InstallAction = keybase1.InstallAction_INSTALL
+	st, done := ServiceStatusFromLaunchd(kbfsService, path.Join(g.Env.GetRuntimeDir(), "kbfs.info"))
+	st.BundleVersion = bundleVersion
+	if done {
 		return st
 	}
-
-	st.Label = kbfsLaunchdStatus.Label()
-	st.Pid = kbfsLaunchdStatus.Pid()
-	st.LastExitStatus = kbfsLaunchdStatus.LastExitStatus()
-
-	if kbfsLaunchdStatus.Pid() != "" {
-		runtimeDir := g.Env.GetRuntimeDir()
-		kbfsInfo, err = libkb.WaitForServiceInfoFile(path.Join(runtimeDir, "kbfs.info"), kbfsLaunchdStatus.Pid(), 5, 500*time.Millisecond, "launchd status for kbfs")
-		if err != nil {
-			return errorStatus(err)
-		}
-	}
-
-	// nil means not running or file wasn't found
-	if kbfsInfo == nil {
-		kbfsInfo = &libkb.ServiceInfo{}
-	}
-
-	st.Version = kbfsInfo.Version
 
 	installStatus, installAction, status := installStatus(st.Version, st.BundleVersion, st.LastExitStatus)
 	st.InstallStatus = installStatus
 	st.InstallAction = installAction
 	st.Status = status
 	return st
+}
+
+func errorStatus(name string, desc string) keybase1.Status {
+	return keybase1.Status{Code: libkb.SCGeneric, Name: name, Desc: desc}
 }
 
 func installStatus(version string, bundleVersion string, lastExitStatus string) (keybase1.InstallStatus, keybase1.InstallAction, keybase1.Status) {
@@ -138,14 +100,14 @@ func installStatus(version string, bundleVersion string, lastExitStatus string) 
 		if err != nil {
 			return keybase1.InstallStatus_ERROR,
 				keybase1.InstallAction_REINSTALL,
-				keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: err.Error()}
+				errorStatus("INSTALL_ERROR", err.Error())
 		}
 		bsv, err := semver.Make(bundleVersion)
 		// Invalid bundle bersion
 		if err != nil {
 			return keybase1.InstallStatus_ERROR,
 				keybase1.InstallAction_NONE,
-				keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: err.Error()}
+				errorStatus("INSTALL_ERROR", err.Error())
 		}
 		if bsv.GT(sv) {
 			installStatus = keybase1.InstallStatus_NEEDS_UPGRADE
@@ -156,7 +118,7 @@ func installStatus(version string, bundleVersion string, lastExitStatus string) 
 		} else if bsv.LT(sv) {
 			return keybase1.InstallStatus_ERROR,
 				keybase1.InstallAction_NONE,
-				keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version)}
+				errorStatus("INSTALL_ERROR", fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version))
 		}
 	} else if version != "" && bundleVersion == "" {
 		installStatus = keybase1.InstallStatus_INSTALLED
@@ -171,14 +133,98 @@ func installStatus(version string, bundleVersion string, lastExitStatus string) 
 		installStatus = keybase1.InstallStatus_INSTALLED
 	}
 
-	return installStatus, installAction, keybase1.Status{}
+	return installStatus, installAction, keybase1.Status{Name: "OK"}
 }
 
-func errorStatus(err error) keybase1.ServiceStatus {
-	return keybase1.ServiceStatus{
-		InstallStatus: keybase1.InstallStatus_ERROR,
-		Status:        keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: err.Error()},
+type ServicesStatus struct {
+	Service []keybase1.ServiceStatus `json:"service"`
+	Kbfs    []keybase1.ServiceStatus `json:"kbfs"`
+}
+
+func ServiceStatusFromLaunchd(ls launchd.Service, infoPath string) (keybase1.ServiceStatus, bool) {
+	status := keybase1.ServiceStatus{
+		Label: ls.Label(),
 	}
+
+	st, err := ls.LoadStatus()
+	if err != nil {
+		status.Status = errorStatus("LAUNCHD_ERROR", err.Error())
+		return status, true
+	}
+
+	if st == nil {
+		status.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
+		status.InstallAction = keybase1.InstallAction_INSTALL
+		status.Status = keybase1.Status{Name: "OK"}
+		return status, true
+	}
+
+	status.Label = st.Label()
+	status.Pid = st.Pid()
+	status.LastExitStatus = st.LastExitStatus()
+
+	// Check service info file (if present) and if the service is running (has a PID)
+	var serviceInfo *libkb.ServiceInfo
+	if infoPath != "" {
+		if status.Pid != "" {
+			serviceInfo, err = libkb.WaitForServiceInfoFile(infoPath, status.Pid, 5, 500*time.Millisecond, "service status")
+			if err != nil {
+				status.Status = errorStatus("LAUNCHD_ERROR", err.Error())
+				return status, true
+			}
+		}
+		if serviceInfo != nil {
+			status.Version = serviceInfo.Version
+		}
+	}
+
+	if status.Pid == "" {
+		status.Status = errorStatus("LAUNCHD_ERROR", fmt.Sprintf("%s is not running", st.Label()))
+		return status, true
+	}
+
+	return status, false
+}
+
+func ServiceStatusesFromLaunchd(ls []launchd.Service) []keybase1.ServiceStatus {
+	var c []keybase1.ServiceStatus
+	for _, l := range ls {
+		s, done := ServiceStatusFromLaunchd(l, "")
+		if !done {
+			s.Status = keybase1.Status{Name: "OK"}
+		}
+		c = append(c, s)
+	}
+	return c
+}
+
+// ListServicesInFormat returns keybase service info in a specified format.
+func ListServices() (*ServicesStatus, error) {
+	services, err := launchd.ListServices([]string{"keybase.service", "homebrew.mxcl.keybase"})
+	if err != nil {
+		return nil, err
+	}
+	kbfs, err := launchd.ListServices([]string{"keybase.kbfs.", "homebrew.mxcl.kbfs"})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ServicesStatus{
+		Service: ServiceStatusesFromLaunchd(services),
+		Kbfs:    ServiceStatusesFromLaunchd(kbfs)}, nil
+}
+
+// ShowServices outputs service info to writer.
+func ShowServices(out io.Writer) error {
+	err := launchd.ShowServices([]string{"keybase.service", "homebrew.mxcl.keybase"}, "Keybase", out)
+	if err != nil {
+		return err
+	}
+	err = launchd.ShowServices([]string{"keybase.kbfs.", "homebrew.mxcl.kbfs"}, "KBFS", out)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func DiagnoseSocketError(ui libkb.UI, err error) {
@@ -199,7 +245,7 @@ func DiagnoseSocketError(ui libkb.UI, err error) {
 		t.Printf("\n")
 	} else if len(services) == 1 {
 		service := services[0]
-		status, err := service.Status()
+		status, err := service.LoadStatus()
 		if err != nil {
 			t.Printf("Error checking service status(%s): %v\n\n", service.Label(), err)
 		} else {
