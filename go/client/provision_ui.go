@@ -58,9 +58,9 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 }
 
 func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keybase1.DeviceType, error) {
-	p.parent.Output("What type of device would you like to connect this device with?\n\n")
+	p.parent.Output("What type of device would you like to connect this computer with?\n\n")
 	p.parent.Output("(1) Desktop or laptop\n")
-	p.parent.Output("(2) Mobile phone\n")
+	p.parent.Output("(2) Mobile phone\n\n")
 
 	var res keybase1.DeviceType
 	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDeviceType, p.parent, "Choose a device type", 1, 2)
@@ -85,7 +85,9 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 	if p.role == libkb.KexRoleProvisioner {
 		// This is the provisioner device (device X)
 		// For command line app, all secrets are entered on the provisioner only:
-		p.parent.Output("Enter the verification code from your other device here:\n\n")
+		p.parent.Output("\nEnter the verification code from your other device here.  To get\n")
+		p.parent.Output("a verification code, run 'keybase login' on your other device.\n\n")
+
 		ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckNotEmpty)
 		if err != nil {
 			return resp, err
