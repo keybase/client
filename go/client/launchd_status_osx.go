@@ -169,6 +169,8 @@ func ServiceStatusFromLaunchd(ls launchd.Service, infoPath string) (keybase1.Ser
 		if status.Pid != "" {
 			serviceInfo, err = libkb.WaitForServiceInfoFile(infoPath, status.Pid, 5, 500*time.Millisecond, "service status")
 			if err != nil {
+				status.InstallStatus = keybase1.InstallStatus_ERROR
+				status.InstallAction = keybase1.InstallAction_REINSTALL
 				status.Status = errorStatus("LAUNCHD_ERROR", err.Error())
 				return status, true
 			}
@@ -179,6 +181,8 @@ func ServiceStatusFromLaunchd(ls launchd.Service, infoPath string) (keybase1.Ser
 	}
 
 	if status.Pid == "" {
+		status.InstallStatus = keybase1.InstallStatus_ERROR
+		status.InstallAction = keybase1.InstallAction_REINSTALL
 		status.Status = errorStatus("LAUNCHD_ERROR", fmt.Sprintf("%s is not running", st.Label()))
 		return status, true
 	}
@@ -187,7 +191,7 @@ func ServiceStatusFromLaunchd(ls launchd.Service, infoPath string) (keybase1.Ser
 }
 
 func ServiceStatusesFromLaunchd(ls []launchd.Service) []keybase1.ServiceStatus {
-	var c []keybase1.ServiceStatus
+	c := []keybase1.ServiceStatus{}
 	for _, l := range ls {
 		s, done := ServiceStatusFromLaunchd(l, "")
 		if !done {

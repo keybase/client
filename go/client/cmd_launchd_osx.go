@@ -59,9 +59,8 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			envVars["KEYBASE_LOG_FORMAT"] = "file"
 			envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
 
-			out := g.UI.GetTerminalUI().OutputWriter()
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
-			err := launchd.Install(plist, out)
+			err := launchd.Install(plist, os.Stdout)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -81,8 +80,7 @@ func NewCmdLaunchdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 			if len(args) < 1 {
 				g.Log.Fatalf("No label specified.")
 			}
-			out := g.UI.GetTerminalUI().OutputWriter()
-			err := launchd.Uninstall(args[0], out)
+			err := launchd.Uninstall(args[0], os.Stdout)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -119,8 +117,7 @@ func NewCmdLaunchdRestart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			if len(args) < 1 {
 				g.Log.Fatalf("No label specified.")
 			}
-			out := g.UI.GetTerminalUI().OutputWriter()
-			err := launchd.Restart(args[0], out)
+			err := launchd.Restart(args[0], os.Stdout)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -140,8 +137,7 @@ func NewCmdLaunchdStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			if len(args) < 1 {
 				g.Log.Fatalf("No label specified")
 			}
-			out := g.UI.GetTerminalUI().OutputWriter()
-			err := launchd.Start(args[0], out)
+			err := launchd.Start(args[0], os.Stdout)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -161,8 +157,7 @@ func NewCmdLaunchdStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			if len(args) < 1 {
 				g.Log.Fatalf("No label specified.")
 			}
-			out := g.UI.GetTerminalUI().OutputWriter()
-			err := launchd.Stop(args[0], out)
+			err := launchd.Stop(args[0], os.Stdout)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
