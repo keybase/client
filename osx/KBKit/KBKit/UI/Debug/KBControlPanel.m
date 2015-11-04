@@ -95,14 +95,8 @@
       [topView addSubview:[KBButton buttonWithText:NSStringFromKBRInstallAction(installable.componentStatus.installAction) style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self install:installable]; }]];
     }
 
-    if (installable.componentStatus.installStatus != KBRInstallStatusNotInstalled) {
+    if (installable.componentStatus.installStatus == KBRInstallStatusInstalled) {
       [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self uninstall:installable]; }]];
-    }
-
-    if (installable.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning) {
-      [topView addSubview:[KBButton buttonWithText:@"Start" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self start:installable]; }]];
-    } else if (installable.componentStatus.runtimeStatus == KBRuntimeStatusRunning) {
-      [topView addSubview:[KBButton buttonWithText:@"Stop" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self stop:installable]; }]];
     }
 
     [view addSubview:topView];

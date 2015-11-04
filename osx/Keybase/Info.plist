@@ -33,13 +33,13 @@
 	<key>KBFuseVersion</key>
 	<string>3.0.7</string>
 	<key>KBHelperBuild</key>
-	<string>25</string>
+	<string>30</string>
 	<key>KBHelperVersion</key>
 	<string>1.0.15</string>
 	<key>KBRunMode</key>
 	<string>staging</string>
 	<key>KBServiceBuild</key>
-	<string>41</string>
+	<string>43</string>
 	<key>KBServiceVersion</key>
 	<string>1.0.0</string>
 	<key>LSApplicationCategoryType</key>
@@ -55,7 +55,7 @@
 	<key>SMPrivilegedExecutables</key>
 	<dict>
 		<key>keybase.Helper</key>
-		<string>anchor apple generic and identifier &quot;keybase.Helper&quot; and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = &quot;99229SGT5K&quot;)</string>
+		<string>anchor apple generic and identifier "keybase.Helper" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "99229SGT5K")</string>
 	</dict>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>

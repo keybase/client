@@ -106,15 +106,28 @@
 }
 
 - (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions useBundle:(BOOL)useBundle {
-  if (!useBundle) return [self binName];
-  return [KBPath pathInDir:self.bundle.sharedSupportPath path:NSStringWithFormat(@"bin/%@", [self binName]) options:pathOptions];
+  if (!useBundle) return [self serviceBinName];
+  return [KBPath pathInDir:self.bundle.sharedSupportPath path:NSStringWithFormat(@"bin/%@", [self serviceBinName]) options:pathOptions];
 }
 
-- (NSString *)binName {
+- (NSString *)serviceBinName {
   switch(_runMode) {
     case KBRunModeDevel: return @"kbdev";
     case KBRunModeStaging: return @"kbstage";
     case KBRunModeProd: return @"keybase";
+  }
+}
+
+- (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions useBundle:(BOOL)useBundle {
+  if (!useBundle) return [self serviceBinName];
+  return [KBPath pathInDir:self.bundle.sharedSupportPath path:NSStringWithFormat(@"bin/%@", [self kbfsBinName]) options:pathOptions];
+}
+
+- (NSString *)kbfsBinName {
+  switch(_runMode) {
+    case KBRunModeDevel: return @"kbfsdev";
+    case KBRunModeStaging: return @"kbfsstage";
+    case KBRunModeProd: return @"kbfs";
   }
 }
 

@@ -15,6 +15,15 @@
 @implementation KBHelper
 
 - (void)handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId completion:(void (^)(NSError *error, id value))completion {
+  @try {
+    [self _handleRequestWithMethod:method params:params messageId:messageId completion:completion];
+  } @catch (NSException *e) {
+    KBLog(@"Exception: %@", e);
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Exception: %@", e), nil);
+  }
+}
+
+- (void)_handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId completion:(void (^)(NSError *error, id value))completion {
   KBLog(@"Request: %@(%@)", method, params ? params : @"");
 
   NSDictionary *args = [params count] == 1 ? params[0] : nil;

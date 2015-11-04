@@ -47,12 +47,6 @@
   return self;
 }
 
-//+ (void)lookupForConfig:(KBEnvConfig *)config completion:(void (^)(KBEnvironment *environment))completion {
-//  [KBService lookup:config completion:^(NSError *error, NSString *label) {
-//    completion([[KBEnvironment alloc] initWithConfig:config serviceLabel:label]);
-//  }];
-//}
-
 - (NSArray *)componentsForControlPanel {
   return _components;
 }
@@ -60,8 +54,7 @@
 - (NSArray *)installActionsNeeded {
   return [_installActions select:^BOOL(KBInstallAction *installAction) {
     return (!installAction.installable.isInstallDisabled &&
-            (installAction.installable.componentStatus.installStatus != KBRInstallStatusInstalled ||
-             installAction.installable.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning));
+            ([installAction.installable.componentStatus needsInstallOrUpgrade]));
   }];
 }
 

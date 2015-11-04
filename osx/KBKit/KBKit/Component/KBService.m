@@ -29,6 +29,7 @@
 @property KBEnvConfig *config;
 
 @property KBComponentStatus *componentStatus;
+@property KBRServiceStatus *serviceStatus;
 
 @property YOView *infoView;
 @end
@@ -48,7 +49,6 @@
   }
   return self;
 }
-
 
 - (KBRPClient *)client {
   if (!_client) {
@@ -94,42 +94,10 @@
   _infoView = view;
 }
 
-/*!
- Connect to the service and query for its label.
- */
-+ (void)lookup:(KBEnvConfig *)config completion:(void (^)(NSError *error, NSString *label))completion {
-  KBRPClient *client = [[KBRPClient alloc] initWithConfig:config options:0];
-
-  dispatch_block_t close = ^{
-    dispatch_async(dispatch_get_main_queue(), ^{ [client close]; });
-  };
-
-  NSString *defaultLabel = [config launchdServiceLabel];
-  [client open:^(NSError *error) {
-    if (error) {
-      completion(error, defaultLabel);
-      close();
-      return;
-    } else {
-      KBRConfigRequest *configRequest = [[KBRConfigRequest alloc] initWithClient:client];
-      [configRequest getConfig:^(NSError *error, KBRConfig *userConfig) {
-        if (error) {
-          completion(error, defaultLabel);
-          close();
-          return;
-        }
-        NSString *label = userConfig.label;
-        if ([NSString gh_isBlank:userConfig.label]) label = defaultLabel;
-        completion(nil, label);
-        close();
-      }];
-    }
-  }];
-}
-
 - (void)refreshComponent:(KBCompletion)completion {
   GHWeakSelf gself = self;
   [KBKeybaseLaunchd status:[_config serviceBinPathWithPathOptions:0 useBundle:YES] name:@"service" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
+    gself.serviceStatus = serviceStatus;
     gself.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     [self componentDidUpdate];
     completion(error);
@@ -145,7 +113,7 @@
 
 - (void)install:(KBCompletion)completion {
   NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
-  [KBKeybaseLaunchd install:binPath label:_label args:@[@"service"] completion:completion];
+  [KBKeybaseLaunchd install:binPath label:_label serviceBinPath:binPath args:@[@"service"] completion:completion];
 }
 
 - (void)uninstall:(KBCompletion)completion {

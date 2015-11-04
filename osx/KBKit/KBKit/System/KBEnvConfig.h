@@ -48,6 +48,7 @@ typedef NS_ENUM (NSInteger, KBRunMode) {
 - (NSBundle *)bundle;
 
 - (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions useBundle:(BOOL)useBundle;
+- (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions useBundle:(BOOL)useBundle;
 
 - (BOOL)validate:(NSError **)error;
 

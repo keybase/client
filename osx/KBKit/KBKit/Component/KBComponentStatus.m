@@ -15,28 +15,28 @@
 @property NSError *error;
 @property KBRInstallStatus installStatus;
 @property KBRInstallAction installAction;
-@property KBRuntimeStatus runtimeStatus;
 @property GHODictionary *info;
+@property NSString *label;
 @end
 
 @implementation KBComponentStatus
 
-+ (instancetype)componentStatusWithVersion:(KBSemVersion *)version bundleVersion:(KBSemVersion *)bundleVersion runtimeStatus:(KBRuntimeStatus)runtimeStatus info:(GHODictionary *)info {
++ (instancetype)componentStatusWithVersion:(KBSemVersion *)version bundleVersion:(KBSemVersion *)bundleVersion info:(GHODictionary *)info {
   if (version && bundleVersion) {
     if ([bundleVersion isGreaterThan:version]) {
-      return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNeedsUpgrade installAction:KBRInstallActionUpgrade runtimeStatus:runtimeStatus info:info error:nil];
+      return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNeedsUpgrade installAction:KBRInstallActionUpgrade info:info error:nil];
     } else {
-      return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone runtimeStatus:runtimeStatus info:info error:nil];
+      return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
     }
   } else if (version && !bundleVersion) {
-    return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone runtimeStatus:runtimeStatus info:info error:nil];
+    return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
   } else if (!version && bundleVersion) {
-    return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall runtimeStatus:runtimeStatus info:info error:nil];
+    return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:info error:nil];
   }
-  return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusUnknown installAction:KBRInstallActionNone runtimeStatus:runtimeStatus info:info error:nil];
+  return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusUnknown installAction:KBRInstallActionNone info:info error:nil];
 }
 
-+ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus runtimeStatus:(KBRuntimeStatus)runtimeStatus info:(GHODictionary *)info {
++ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus info:(GHODictionary *)info {
   KBRInstallAction installAction;
   switch (installStatus) {
     case KBRInstallStatusError: installAction = KBRInstallActionReinstall; break;
@@ -45,13 +45,12 @@
     case KBRInstallStatusNotInstalled: installAction = KBRInstallActionInstall; break;
     case KBRInstallStatusNeedsUpgrade: installAction = KBRInstallActionUpgrade; break;
   }
-  return [self componentStatusWithInstallStatus:installStatus installAction:installAction runtimeStatus:runtimeStatus info:info error:nil];
+  return [self componentStatusWithInstallStatus:installStatus installAction:installAction info:info error:nil];
 }
 
-+ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction runtimeStatus:(KBRuntimeStatus)runtimeStatus info:(GHODictionary *)info error:(NSError *)error {
++ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(GHODictionary *)info error:(NSError *)error {
   KBComponentStatus *componentStatus = [[KBComponentStatus alloc] init];
   componentStatus.installStatus = installStatus;
-  componentStatus.runtimeStatus = runtimeStatus;
   componentStatus.installAction = installAction;
   componentStatus.info = info;
   componentStatus.error = error;
@@ -62,8 +61,10 @@
   KBComponentStatus *componentStatus = [[KBComponentStatus alloc] init];
   componentStatus.installStatus = serviceStatus.installStatus;
   componentStatus.installAction = serviceStatus.installAction;
-  componentStatus.error = serviceStatus.error ? KBMakeError(-1, @"%@", serviceStatus.error.message) : nil;
-  componentStatus.runtimeStatus = ![serviceStatus.pid isEqualToString:@""] ? KBRuntimeStatusRunning : KBRuntimeStatusNotRunning;
+  if (serviceStatus.status.code > 0) {
+    componentStatus.error = KBMakeError(serviceStatus.status.code, @"%@", serviceStatus.status.desc);
+  }
+  componentStatus.label = serviceStatus.label;
 
   GHODictionary *info = [GHODictionary dictionary];
   info[@"Version"] = KBIfBlank(serviceStatus.version, nil);
@@ -72,9 +73,7 @@
     info[@"Bundle Version"] = KBIfBlank(serviceStatus.bundleVersion, nil);
   }
 
-  info[@"Label"] = serviceStatus.label;
-
-  //info[@"PID"] = KBIfBlank(serviceStatus.pid, nil);
+  info[@"PID"] = KBIfBlank(serviceStatus.pid, nil);
   info[@"Exit Status"] = KBIfBlank(serviceStatus.lastExitStatus, nil);
 
   componentStatus.info = info;
@@ -96,21 +95,16 @@
   }
 
   if (_info) [info addEntriesFromOrderedDictionary:_info];
+  info[@"Label"] = self.label;
   info[@"Install Status"] = NSStringFromKBRInstallStatus(self.installStatus);
-  info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(self.runtimeStatus);
   info[@"Install Action"] = NSStringFromKBRInstallAction(self.installAction);
   return info;
 }
 
 - (NSString *)statusDescription {
   NSMutableArray *str = [NSMutableArray array];
-
-  if (_runtimeStatus != KBRuntimeStatusNone) {
-    [str addObject:NSStringWithFormat(@"%@, %@", NSStringFromKBRuntimeStatus(_runtimeStatus), NSStringFromKBRInstallStatus(_installStatus))];
-  } else {
-    [str addObject:NSStringFromKBRInstallStatus(_installStatus)];
-  }
-
+  [str addObject:NSStringFromKBRInstallStatus(_installStatus)];
+  
   NSMutableArray *infos = [NSMutableArray array];
   for (id key in _info) {
     [infos addObject:NSStringWithFormat(@"%@: %@", key, _info[key])];
@@ -139,13 +133,5 @@ NSString *NSStringFromKBRInstallStatus(KBRInstallStatus status) {
     case KBRInstallStatusNotInstalled: return @"Not Installed";
     case KBRInstallStatusNeedsUpgrade: return @"Needs Upgrade";
     case KBRInstallStatusInstalled: return @"Installed";
-  }
-}
-
-NSString *NSStringFromKBRuntimeStatus(KBRuntimeStatus status) {
-  switch (status) {
-    case KBRuntimeStatusNone: return @"-";
-    case KBRuntimeStatusNotRunning: return @"Not Running";
-    case KBRuntimeStatusRunning: return @"Running";
   }
 }

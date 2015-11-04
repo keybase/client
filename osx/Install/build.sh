@@ -6,6 +6,7 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
 build_dest=$dir/build
+mkdir -p $build_dest
 
 run_mode=$1
 
@@ -20,11 +21,13 @@ if [ "$run_mode" = "staging" ]; then
   service_bin="kbstage"
   kbfs_bin="kbfsstage"
   appdmg="appdmg-staging.json"
+  tags="staging"
 elif [ "$run_mode" = "prod" ]; then
   app_name="Keybase"
   service_bin="keybase"
   kbfs_bin="kbfs"
   appdmg="appdmg.json"
+  tags="production"
 else
   echo "Invalid run mode: $run_mode"
   exit 1
@@ -32,18 +35,20 @@ fi
 
 code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
-# Clear existing build dir
-rm -rf $build_dest
-mkdir -p $build_dest
-
-# Copy from homebrew build for now
-cp /usr/local/opt/$service_bin/bin/$service_bin $build_dest
-cp /usr/local/opt/$kbfs_bin/bin/$kbfs_bin $build_dest
+# Build
+if [ ! -f $build_dest/$service_bin ]; then
+  echo "Building $build_dest/$service_bin"
+  GO15VENDOREXPERIMENT=1 go build -tags $tags -o $build_dest/$service_bin github.com/keybase/client/go/keybase
+fi
+if [ ! -f $build_dest/$kbfs_bin ]; then
+  echo "Building $build_dest/$kbfs_bin"
+  GO15VENDOREXPERIMENT=0 go build -tags $tags -o $build_dest/$kbfs_bin github.com/keybase/kbfs/kbfsfuse
+fi
 
 # Read the versions and build numbers
 echo "Checking version info for components"
-kb_service_version="`$build_dest/$service_bin version | cut -f1 -d '-'`"
-kb_service_build="`$build_dest/$service_bin version | cut -f2 -d '-'`"
+kb_service_version="`$build_dest/$service_bin version -S | cut -f1 -d '-'`"
+kb_service_build="`$build_dest/$service_bin version -S | cut -f2 -d '-'`"
 
 kbfs_version="`$build_dest/$kbfs_bin --version 2>&1 | cut -f1 -d '-'`"
 kbfs_build="`$build_dest/$kbfs_bin --version 2>&1 | cut -f2 -d '-'`"
@@ -55,13 +60,13 @@ plist=$dir/../Keybase/Info.plist
 app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
 app_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $plist`"
 
-HELPER_plist=$dir/../Helper/Info.plist
-KB_HELPER_VERSION="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $HELPER_plist`"
-KB_HELPER_BUILD="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $HELPER_plist`"
+helper_list=$dir/../Helper/Info.plist
+KB_HELPER_VERSION="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $helper_list`"
+KB_HELPER_BUILD="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $helper_list`"
 
-FUSE_plist=$dir/Fuse/osxfusefs.bundle/Contents/Info.plist
-fuse_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $FUSE_plist`"
-fuse_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $FUSE_plist`"
+fuse_plist=$dir/Fuse/3.x/osxfuse3.bundle/Contents/Info.plist
+fuse_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $fuse_plist`"
+fuse_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $fuse_plist`"
 
 echo "Version (Build):"
 echo "  $app_name.app: $app_version ($app_build)"
@@ -150,8 +155,8 @@ the (old) March 4th version of the certificate from your Keychain.
 $code_sign_identity
 
 "
-# Need to sign contents first (helper), then app bundle
-codesign --verbose --force --deep --sign "$code_sign_identity" $app_name.app/Contents/Library/LaunchServices/keybase.Helper
+
+#codesign --verbose --force --deep --sign "$code_sign_identity" $app_name.app/Contents/Library/LaunchServices/keybase.Helper
 codesign --verbose --force --deep --sign "$code_sign_identity" $app_name.app
 
 # Verify
@@ -161,6 +166,7 @@ codesign --verbose --force --deep --sign "$code_sign_identity" $app_name.app
 echo "Checking Helper..."
 spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
 
+dmg_name="$app_name-$app_version-$app_build.dmg"
 
 if [ "$action" == "install" ]; then
 
@@ -172,8 +178,6 @@ if [ "$action" == "install" ]; then
 
 
 elif [ "$action" == "dmg" ]; then
-
-  dmg_name="$app_name-$app_version-$app_build.dmg"
 
   rm -rf $dmg_name
 
