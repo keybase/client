@@ -7,6 +7,7 @@ import configureStore from './store/configure-store'
 import Nav from './nav'
 
 import { STATE_KEY } from './constants/reducer-types'
+import { SERIALIZE_RESTORE, SERIALIZE_SAVE, TIME_TRAVEL, TIME_TRAVEL_FORWARD, TIME_TRAVEL_BACK } from './constants/dev'
 
 const store = configureStore()
 
@@ -24,14 +25,14 @@ class Keybase extends Component {
           console.error('Error in reading state:', err)
         }
         if (stateJSON != null) {
-          store.dispatch({type: 'restoreState', payload: stateJSON})
+          store.dispatch({type: SERIALIZE_RESTORE, payload: stateJSON})
         }
       })
 
       this.subscriptions = [
-        NativeAppEventEmitter.addListener('backInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'back'}})),
-        NativeAppEventEmitter.addListener('forwardInTime', () => store.dispatch({type: 'timetravel', payload: {direction: 'forward'}})),
-        NativeAppEventEmitter.addListener('saveState', () => store.dispatch({type: 'saveState'})),
+        NativeAppEventEmitter.addListener('backInTime', () => store.dispatch({type: TIME_TRAVEL, payload: {direction: TIME_TRAVEL_BACK}})),
+        NativeAppEventEmitter.addListener('forwardInTime', () => store.dispatch({type: TIME_TRAVEL, payload: {direction: TIME_TRAVEL_FORWARD}})),
+        NativeAppEventEmitter.addListener('saveState', () => store.dispatch({type: SERIALIZE_SAVE})),
         NativeAppEventEmitter.addListener('clearState', () => AsyncStorage.removeItem(STATE_KEY))
       ]
     }
