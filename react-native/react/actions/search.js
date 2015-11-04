@@ -1,7 +1,6 @@
 'use strict'
 
 import * as SearchActions from '../constants/search-action-types'
-import * as ProfileActions from '../constants/profile-action-types'
 import { routeAppend, getCurrentURI } from './router'
 import { loadSummaries } from './profile'
 import engine from '../engine'
@@ -16,6 +15,10 @@ export function pushNewSearch () {
     dispatch(initSearch(getCurrentURI(getState())))
     dispatch(routeAppend('search'))
   }
+}
+
+export function selectService (base, service) {
+  return { type: SearchActions.SEARCH_SERVICE, base, service }
 }
 
 let next_nonce = 0

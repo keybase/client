@@ -16,7 +16,7 @@ typedef void (^KBOnServiceStatus)(NSError *error, KBRServiceStatus *serviceStatu
 
 @interface KBKeybaseLaunchd : NSObject
 
-+ (void)install:(NSString *)binPath label:(NSString *)label args:(NSArray *)args completion:(KBCompletion)completion;
++ (void)install:(NSString *)binPath label:(NSString *)label serviceBinPath:(NSString *)serviceBinPath args:(NSArray *)args completion:(KBCompletion)completion;
 
 + (void)status:(NSString *)binPath name:(NSString *)name bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnServiceStatus)completion;
 

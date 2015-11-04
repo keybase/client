@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package service
 
 import (
@@ -28,7 +31,7 @@ func (u *RemoteProvisionUI) ChooseDeviceType(ctx context.Context, _ int) (keybas
 	return u.cli.ChooseDeviceType(ctx, u.sessionID)
 }
 
-func (u *RemoteProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) ([]byte, error) {
+func (u *RemoteProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) (keybase1.SecretResponse, error) {
 	arg.SessionID = u.sessionID
 	return u.cli.DisplayAndPromptSecret(ctx, arg)
 }

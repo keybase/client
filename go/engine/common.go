@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -86,5 +89,40 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 	}
 
 	return &keypair{sigKey: sigKey, encKey: encKey}, nil
+}
 
+// fetchLKS gets the encrypted LKS client half from the server.
+// It uses encKey to decrypt it.  It also returns the passphrase
+// generation.
+func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (libkb.PassphraseGeneration, []byte, error) {
+	arg := libkb.APIArg{
+		Endpoint:    "passphrase/recover",
+		NeedSession: true,
+		Args: libkb.HTTPArgs{
+			"kid": encKey.GetKID(),
+		},
+	}
+	if ctx.LoginContext != nil {
+		arg.SessionR = ctx.LoginContext.LocalSession()
+	}
+	res, err := g.API.Get(arg)
+	if err != nil {
+		return 0, nil, err
+	}
+	ctext, err := res.Body.AtKey("ctext").GetString()
+	if err != nil {
+		return 0, nil, err
+	}
+	ppGen, err := res.Body.AtKey("passphrase_generation").GetInt()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	//  Now try to decrypt with the unlocked device key
+	msg, _, err := encKey.DecryptFromString(ctext)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return libkb.PassphraseGeneration(ppGen), msg, nil
 }

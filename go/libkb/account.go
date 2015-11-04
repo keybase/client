@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package libkb
 
 import (
@@ -123,10 +126,12 @@ func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStrea
 
 // SetStreamGeneration sets the passphrase generation on the cached stream
 // if it exists, and otherwise will wind up warning of a problem.
-func (a *Account) SetStreamGeneration(gen PassphraseGeneration) {
+func (a *Account) SetStreamGeneration(gen PassphraseGeneration, nilPPStreamOK bool) {
 	ps := a.PassphraseStreamRef()
 	if ps == nil {
-		a.G().Log.Warning("Passphrase stream was nil; unexpected")
+		if !nilPPStreamOK {
+			a.G().Log.Warning("Passphrase stream was nil; unexpected")
+		}
 	} else {
 		ps.SetGeneration(gen)
 	}
@@ -338,12 +343,11 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername, tok
 
 // SaveState saves the logins state to memory, and to the user
 // config file.
-func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID) error {
+func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
 	saver := func(cw ConfigWriter) error {
 		return cw.Write()
 	}
-	var nilDeviceID keybase1.DeviceID
-	return a.saveState(sessionID, csrf, username, uid, nilDeviceID, saver)
+	return a.saveState(sessionID, csrf, username, uid, deviceID, saver)
 }
 
 // SaveStateTmp saves the logins state to memory, and to a

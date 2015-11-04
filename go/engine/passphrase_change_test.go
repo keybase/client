@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -309,7 +312,7 @@ func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	beng := NewPaperKey(tc.G)
@@ -351,7 +354,7 @@ func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	beng := NewPaperKey(tc.G)
@@ -406,7 +409,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 	secretUI := libkb.TestSecretUI{}
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &secretUI,
 	}
 	beng := NewPaperKey(tc.G)
@@ -529,7 +532,7 @@ func TestPassphraseChangeLoggedOutBackupKeyPlusPGP(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	beng := NewPaperKey(tc.G)
@@ -603,7 +606,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 	secretUI := libkb.TestSecretUI{}
 	ctx = &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &secretUI,
 	}
 	beng := NewPaperKey(tc.G)

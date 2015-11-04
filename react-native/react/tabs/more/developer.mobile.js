@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React, { Component, StyleSheet, Navigator, TextInput, View, Text } from 'react-native'
 import { navigateUp } from '../../actions/router'

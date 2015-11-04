@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package service
 
 import (
@@ -5,7 +8,6 @@ import (
 	"net"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -169,7 +171,7 @@ func (d *Service) writeServiceInfo() error {
 	}
 
 	// Write runtime info file
-	rtInfo := libkb.KeybaseServiceInfo()
+	rtInfo := libkb.KeybaseServiceInfo(d.G())
 	return rtInfo.WriteFile(path.Join(runtimeDir, "keybased.info"))
 }
 
@@ -272,8 +274,7 @@ func (d *Service) ListenLoop(l net.Listener) (err error) {
 		var c net.Conn
 		if c, err = l.Accept(); err != nil {
 
-			// net.errClosing isn't exported, so do this.. UGLY!
-			if strings.HasSuffix(err.Error(), "use of closed network connection") {
+			if libkb.IsSocketClosedError(err) {
 				err = nil
 			}
 

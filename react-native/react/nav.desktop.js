@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import BaseComponent from './base-component'
 import { connect } from './base-redux'
@@ -9,7 +8,7 @@ import { StyleSheet } from 'react'
 import Folders from './tabs/folders'
 import Chat from './tabs/chat'
 import People from './tabs/people'
-import Devices from './tabs/devices/index.desktop'
+import Devices from './tabs/devices'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
@@ -29,7 +28,8 @@ const tabToRootRouteParse = {
 const menuItems = [
   { route: [FOLDER_TAB], text: 'Folders' },
   { route: [CHAT_TAB], text: 'Chat' },
-  { route: [PEOPLE_TAB], text: 'People' }
+  { route: [PEOPLE_TAB], text: 'People' },
+  { route: [DEVICES_TAB], text: 'Devices' }
 ]
 
 export default class Nav extends BaseComponent {

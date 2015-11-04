@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package systests
 
 import (
@@ -9,7 +12,7 @@ import (
 
 func setupTest(t *testing.T, nm string) *libkb.TestContext {
 	tc := libkb.SetupTest(t, nm)
-	tc.SetSocketFile(filepath.Join(tc.Tp.Home, libkb.SocketFile))
+	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "run"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {
 		t.Fatal(err)
 	}
@@ -18,7 +21,7 @@ func setupTest(t *testing.T, nm string) *libkb.TestContext {
 
 func cloneContext(prev *libkb.TestContext) *libkb.TestContext {
 	ret := prev.Clone()
-	ret.SetSocketFile(filepath.Join(ret.Tp.Home, libkb.SocketFile))
+	ret.SetRuntimeDir(filepath.Join(ret.Tp.Home, "run"))
 	if err := ret.G.ConfigureSocketInfo(); err != nil {
 		ret.T.Fatal(err)
 	}
@@ -29,6 +32,16 @@ type baseNullUI struct {
 	g *libkb.GlobalContext
 }
 
+type dumbUI struct{}
+
+func (d dumbUI) Printf(format string, args ...interface{}) (int, error) {
+	return 0, nil
+}
+func (d dumbUI) PrintfStderr(format string, args ...interface{}) (int, error) {
+	return 0, nil
+}
+
+func (n *baseNullUI) GetDumbOutputUI() libkb.DumbOutputUI             { return dumbUI{} }
 func (n *baseNullUI) GetIdentifyUI() libkb.IdentifyUI                 { return nil }
 func (n *baseNullUI) GetIdentifySelfUI() libkb.IdentifyUI             { return nil }
 func (n *baseNullUI) GetIdentifyTrackUI(strict bool) libkb.IdentifyUI { return nil }

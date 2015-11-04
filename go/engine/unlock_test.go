@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -27,7 +30,7 @@ func TestUnlock(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: fu.NewSecretUI(),
 	}
 
@@ -61,7 +64,7 @@ func TestUnlockNoop(t *testing.T) {
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  libkb.TestLoginUI{},
+		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: fu.NewSecretUI(),
 	}
 

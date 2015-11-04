@@ -66,6 +66,9 @@ export default function (state: RouterState = initialState, action: any): Router
     case routerTypes.NAVIGATE:
       return stateWithHistory.set('uri', parseUri(action.uri))
     case routerTypes.NAVIGATE_APPEND:
+      if (action.topRoute.constructor === Array) {
+        return stateWithHistory.update('uri', (uri) => uri.concat(action.topRoute.map(parsePath)))
+      }
       return stateWithHistory.update('uri', (uri) => uri.push(parsePath(action.topRoute)))
     case LoginConstants.needsLogin:
       return state.set('uri', parseUri(['login']))

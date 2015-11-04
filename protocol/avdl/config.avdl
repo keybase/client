@@ -23,6 +23,8 @@ protocol config {
     string version;
     string path;
     string configPath;
+    string versionShort;
+    string versionFull;
   }
 
   Config getConfig(int sessionID);

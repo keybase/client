@@ -54,7 +54,10 @@
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
 
-  if (_componentStatus.info) [info addEntriesFromOrderedDictionary:_componentStatus.info];
+  info[@"Mount"] = [self.config mountDir];
+
+  GHODictionary *statusInfo = [self.componentStatus statusInfo];
+  if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
   YOView *view = [[YOView alloc] init];
   KBDebugPropertiesView *propertiesView = [[KBDebugPropertiesView alloc] init];
@@ -79,7 +82,8 @@
   }
 
   NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
-  [KBKeybaseLaunchd install:binPath label:_label args:@[mountDir] completion:completion];
+  NSString *kbfsBinPath = [_config kbfsBinPathWithPathOptions:0 useBundle:YES];
+  [KBKeybaseLaunchd install:binPath label:_label serviceBinPath:kbfsBinPath args:@[mountDir] completion:completion];
 }
 
 - (void)uninstall:(KBCompletion)completion {

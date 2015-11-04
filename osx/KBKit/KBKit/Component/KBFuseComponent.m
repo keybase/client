@@ -11,6 +11,10 @@
 #import <MPMessagePack/MPXPCClient.h>
 #import "KBDebugPropertiesView.h"
 #import "KBSemVersion.h"
+#import "KBFormatter.h"
+#import "KBTask.h"
+
+#import <IOKit/kext/KextManager.h>
 
 @interface KBFuseComponent ()
 @property KBDebugPropertiesView *infoView;
@@ -18,6 +22,8 @@
 
 @property (nonatomic) MPXPCClient *helper;
 @end
+
+typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 @implementation KBFuseComponent
 
@@ -40,54 +46,68 @@
 
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
-
-  info[@"Version"] = KBOr([[self version] description], @"-");
-  info[@"Bundle Version"] = self.bundleVersion;
-
-  GHODictionary *statusInfo = [self componentStatusInfo];
+  GHODictionary *statusInfo = [self.componentStatus statusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
-
-  info[@"Location"] = @"/Library/Filesystems/osxfusefs.fs";
-
   if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
   [_infoView setProperties:info];
 }
 
-- (KBSemVersion *)bundleVersion {
-  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
++ (void)status:(NSString *)binPath bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnFuseStatus)completion {
+  NSString *bundleVersionFlag = NSStringWithFormat(@"--bundle-version=%@", [bundleVersion description]);
+  [KBTask execute:binPath args:@[@"fuse", @"status", bundleVersionFlag] completion:^(NSError *error, NSData *outData, NSData *errData) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    if (!outData) {
+      completion(KBMakeError(-1, @"No data for fuse status"), nil);
+      return;
+    }
+
+    id dict = [NSJSONSerialization JSONObjectWithData:outData options:NSJSONReadingMutableContainers error:&error];
+    if (error) {
+      DDLogError(@"Invalid data: %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
+      completion(error, nil);
+      return;
+    }
+    if (!dict) {
+      completion(KBMakeError(-1, @"Invalid data for fuse status"), nil);
+      return;
+    }
+
+    KBRFuseStatus *status = [MTLJSONAdapter modelOfClass:KBRFuseStatus.class fromJSONDictionary:dict error:&error];
+    completion(nil, status);
+  }];
 }
 
 - (void)refreshComponent:(KBCompletion)completion {
-  GHODictionary *info = [GHODictionary dictionary];
-  KBSemVersion *bundleVersion = self.bundleVersion;
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES];
-  helper.timeout = 10;
-  [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
-    if (error) {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusUnknown runtimeStatus:KBRuntimeStatusNone info:nil];
-      completion(error);
-    } else {
-      NSString *fuseRunningVersion = KBIfNull(versions[@"fuseRunningVersion"], nil);
-      NSString *fuseInstalledVersion = KBIfNull(versions[@"fuseInstalledVersion"], nil);
-      KBSemVersion *runningVersion = [KBSemVersion version:fuseRunningVersion];
-      KBSemVersion *installedVersion = [KBSemVersion version:fuseInstalledVersion];
-      self.version = runningVersion;
-      if (runningVersion) info[@"Version"] = [runningVersion description];
-      if (!runningVersion) {
-        KBRInstallStatus installStatus = installedVersion ? KBRInstallStatusInstalled : KBRInstallStatusNotInstalled;
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:installStatus runtimeStatus:KBRuntimeStatusNotRunning info:nil];
-        completion(nil);
-      } else if ([bundleVersion isGreaterThan:runningVersion]) {
-        if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
-        // TODO Support upgrades for Fuse
-        NSString *errorMsg = NSStringWithFormat(@"Upgrade available (%@ > %@) but currently unsupported", [bundleVersion description], [runningVersion description]);
-        self.componentStatus = [KBComponentStatus componentStatusWithError:KBMakeError(-1, @"%@", errorMsg)];
-        completion(nil);
-      } else {
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled runtimeStatus:KBRuntimeStatusRunning info:info];
-        completion(nil);
-      }
+  GHWeakSelf gself = self;
+  KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
+  [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
+
+    GHODictionary *info = [GHODictionary dictionary];
+    info[@"Version"] = KBIfBlank(fuseStatus.version, nil);
+
+    if (![fuseStatus.version isEqualToString:fuseStatus.bundleVersion]) {
+      info[@"Bundle Version"] = KBIfBlank(fuseStatus.bundleVersion, nil);
     }
+
+    if (![NSString gh_isBlank:fuseStatus.kextID]) {
+      info[@"Kext ID"] = KBIfBlank(fuseStatus.kextID, nil);
+      info[@"Kext Loaded"] = fuseStatus.kextStarted ? @"Yes" : @"No";
+    }
+    info[@"Path"] = KBIfBlank(fuseStatus.path, nil);
+
+    if (fuseStatus.status.code > 0) {
+      error = KBMakeError(fuseStatus.status.code, @"%@", fuseStatus.status.desc);
+    }
+
+    KBComponentStatus *componentStatus = [KBComponentStatus componentStatusWithInstallStatus:fuseStatus.installStatus installAction:fuseStatus.installAction info:info error:error];
+
+    gself.componentStatus = componentStatus;
+
+    [self componentDidUpdate];
+    completion(error);
   }];
 }
 
@@ -97,7 +117,21 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  [[self helper] sendRequest:@"kbfs_install" params:nil completion:^(NSError *error, id value) {
+  /*
+  // OSXFuse 2.x
+  NSString *source = [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"osxfusefs.bundle"];
+  NSString *destination = @"/Library/Filesystems/osxfusefs.fs";
+  NSString *kextID = @"com.github.osxfuse.filesystems.osxfusefs";
+  NSString *kextPath = @"/Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext";
+   */
+
+  // OSXFuse 3.x
+  NSString *source = [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"osxfuse3.bundle"];
+  NSString *destination = @"/Library/Filesystems/osxfuse.fs";
+  NSString *kextID = @"com.github.osxfuse.filesystems.osxfuse";
+  NSString *kextPath = @"/Library/Filesystems/osxfuse.fs/Contents/Extensions/10.11/osxfuse.kext";
+
+  [[self helper] sendRequest:@"kbfs_install" params:@[@{@"source": source, @"destination": destination, @"kextID": kextID, @"kextPath": kextPath}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
@@ -109,7 +143,10 @@
 }
 
 - (void)start:(KBCompletion)completion {
-  [[self helper] sendRequest:@"kbfs_load" params:nil completion:^(NSError *error, id value) {
+  NSString *kextID = @"com.github.osxfuse.filesystems.osxfusefs";
+  NSString *kextPath = @"/Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext";
+
+  [[self helper] sendRequest:@"kbfs_load" params:@[@{@"kextID": kextID, @"kextPath": kextPath}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

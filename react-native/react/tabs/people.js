@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React from '../base-react'
 import BaseComponent from '../base-component'

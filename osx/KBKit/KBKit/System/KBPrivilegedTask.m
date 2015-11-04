@@ -52,11 +52,14 @@
   }
 
   OSStatus status = noErr;
+  status = errAuthorizationDenied;
+  // Deprecated
+  /*
   const char *cmdPath = [cmd fileSystemRepresentation];
-
   FILE *pipe = NULL;
   char *const *cargs = [self convertArray:args];
   status = AuthorizationExecuteWithPrivileges(_authorizationRef, cmdPath, kAuthorizationFlagDefaults, cargs, &pipe);
+   */
   if (status != errAuthorizationSuccess) {
     if (error) *error = KBMakeError(status, @"Failed to run: %@", @(status));
     return NO;

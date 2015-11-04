@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // +build !production
 
 // this is the list of commands for the devel version of the
@@ -46,7 +49,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdTrack(cl),
 		NewCmdUnlock(cl),
 		NewCmdUntrack(cl),
-		NewCmdVersion(cl),
+		NewCmdVersion(cl, g),
 	}
 }
 

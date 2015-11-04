@@ -1,12 +1,12 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package client
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -123,24 +123,6 @@ func (v *CmdConfigReset) Run() error {
 func (v *CmdConfigInfo) Run() error {
 	configFile := G.Env.GetConfigFilename()
 	fmt.Fprintf(v.writer, "File: %s\n\n", configFile)
-
-	cli, err := GetConfigClient(G)
-	if err != nil {
-		return err
-	}
-	if err := RegisterProtocols(nil); err != nil {
-		return err
-	}
-
-	config, err := cli.GetConfig(context.TODO(), 0)
-	if err != nil {
-		return err
-	}
-	out, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Fprintf(v.writer, "%s", out)
 	return nil
 }
 

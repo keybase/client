@@ -28,15 +28,4 @@
 
 - (void)componentDidUpdate { }
 
-- (GHODictionary *)componentStatusInfo {
-  if (!_componentStatus) return [GHODictionary dictionary];
-  GHODictionary *info = [GHODictionary dictionary];
-
-  info[@"Status Error"] = _componentStatus.error.localizedDescription;
-  info[@"Install Status"] = NSStringFromKBRInstallStatus(_componentStatus.installStatus);
-  info[@"Runtime Status"] = NSStringFromKBRuntimeStatus(_componentStatus.runtimeStatus);
-
-  return info;
-}
-
 @end

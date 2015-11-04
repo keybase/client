@@ -1,5 +1,5 @@
 //
-//  KBLaunchServiceInstall.m
+//  KBInstallAction.m
 //  Keybase
 //
 //  Created by Gabriel on 5/7/15.
@@ -9,6 +9,7 @@
 #import "KBInstallAction.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
+#import <GHKit/GHKit.h>
 
 @interface KBInstallAction ()
 @property id<KBInstallable> installable;
@@ -26,15 +27,32 @@
   return _installable.name;
 }
 
-- (NSString *)statusDescription {
-  KBComponentStatus *status = _installable.componentStatus;
-  if (status.error) {
-    return NSStringWithFormat(@"Error: %@", status.error.localizedDescription);
-  } else if (_error) {
-    return NSStringWithFormat(@"Error: %@", _error.localizedDescription);
+- (NSString *)action {
+  if (_installable.isInstallDisabled) {
+    return NSStringFromKBRInstallAction(KBRInstallActionNone);
   } else {
-    return status.statusDescription;
+    return NSStringFromKBRInstallAction(_installable.componentStatus.installAction);
   }
+}
+
+- (NSArray *)statusDescription {
+  NSMutableArray *status = [NSMutableArray array];
+  if (_installable.isInstallDisabled) {
+    [status addObject:@"Install Disabled"];
+  }
+  if (_installable.componentStatus.error) {
+    [status addObject:NSStringWithFormat(@"Error: %@", _installable.componentStatus.error.localizedDescription)];
+  }
+  [status gh_addObject:_installable.componentStatus.statusDescription];
+  return status;
+}
+
+- (NSArray *)actionStatusDescription {
+  NSMutableArray *status = [NSMutableArray array];
+  if (_error) {
+    [status addObject:NSStringWithFormat(@"Error: %@", _error.localizedDescription)];
+  }
+  return status;
 }
 
 @end

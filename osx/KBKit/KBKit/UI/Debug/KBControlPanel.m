@@ -92,15 +92,11 @@
     [topView addSubview:[KBButton buttonWithText:@"Refresh" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self refresh]; }]];
 
     if ([installable.componentStatus needsInstallOrUpgrade]) {
-      [topView addSubview:[KBButton buttonWithText:installable.componentStatus.actionLabel style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self install:installable]; }]];
-    } else if (installable.componentStatus.installStatus == KBRInstallStatusInstalled) {
-      [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self uninstall:installable]; }]];
+      [topView addSubview:[KBButton buttonWithText:NSStringFromKBRInstallAction(installable.componentStatus.installAction) style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self install:installable]; }]];
     }
 
-    if (installable.componentStatus.runtimeStatus == KBRuntimeStatusNotRunning) {
-      [topView addSubview:[KBButton buttonWithText:@"Start" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self start:installable]; }]];
-    } else if (installable.componentStatus.runtimeStatus == KBRuntimeStatusRunning) {
-      [topView addSubview:[KBButton buttonWithText:@"Stop" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self stop:installable]; }]];
+    if (installable.componentStatus.installStatus == KBRInstallStatusInstalled) {
+      [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self uninstall:installable]; }]];
     }
 
     [view addSubview:topView];
@@ -123,7 +119,8 @@
 
 - (void)viewForComponent:(id<KBComponent>)component completion:(void (^)(NSView *view))completion {
   _selectedComponent = component;
-
+  completion([_selectedComponent componentView]);
+  /*
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
   [component refreshComponent:^(NSError *error) {
@@ -131,6 +128,7 @@
     [KBActivity setProgressEnabled:NO sender:self];
       completion([gself.selectedComponent componentView]);
   }];
+   */
 }
 
 - (void)refresh {

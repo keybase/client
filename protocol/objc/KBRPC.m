@@ -1482,26 +1482,26 @@
   }];
 }
 
-- (void)displayAndPromptSecret:(KBRDisplayAndPromptSecretRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion {
+- (void)displayAndPromptSecret:(KBRDisplayAndPromptSecretRequestParams *)params completion:(void (^)(NSError *error, KBRSecretResponse *secretResponse))completion {
   NSDictionary *rparams = @{@"secret": KBRValue(params.secret), @"phrase": KBRValue(params.phrase), @"otherDeviceType": @(params.otherDeviceType)};
   [self.client sendRequestWithMethod:@"keybase.1.provisionUi.DisplayAndPromptSecret" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    NSData *result = retval ? [MTLJSONAdapter modelOfClass:NSData.class fromJSONDictionary:retval error:&error] : nil;
+    KBRSecretResponse *result = retval ? [MTLJSONAdapter modelOfClass:KBRSecretResponse.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
 
-- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase otherDeviceType:(KBRDeviceType)otherDeviceType completion:(void (^)(NSError *error, NSData *bytes))completion {
+- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase otherDeviceType:(KBRDeviceType)otherDeviceType completion:(void (^)(NSError *error, KBRSecretResponse *secretResponse))completion {
   NSDictionary *rparams = @{@"secret": KBRValue(secret), @"phrase": KBRValue(phrase), @"otherDeviceType": @(otherDeviceType)};
   [self.client sendRequestWithMethod:@"keybase.1.provisionUi.DisplayAndPromptSecret" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    NSData *result = retval ? [MTLJSONAdapter modelOfClass:NSData.class fromJSONDictionary:retval error:&error] : nil;
+    KBRSecretResponse *result = retval ? [MTLJSONAdapter modelOfClass:KBRSecretResponse.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
@@ -4740,6 +4740,9 @@
 @end
 
 @implementation KBRStartProofResult
+@end
+
+@implementation KBRSecretResponse
 @end
 
 @implementation KBRVerifySessionRes

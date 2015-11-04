@@ -33,7 +33,7 @@ export function generatePaperKey () {
       'keybase.1.secretUi.getSecret': (param, response) => {
         console.log(param)
       },
-      'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase: paperKey}, response) => {
+      'keybase.1.loginUi.displayPaperKey': ({phrase: paperKey}, response) => {
         dispatch({
           type: types.PAPER_KEY_LOADED,
           payload: paperKey

@@ -10,42 +10,26 @@
 
 #import "KBHelperDefines.h"
 
-#define KBFUSE_BUNDLE (@"/Library/Filesystems/osxfusefs.fs")
-
-#define KEXT_LABEL (@"com.github.osxfuse.filesystems.osxfusefs")
-
 
 @interface KBFS : NSObject
 
-- (NSString *)bundleVersion;
-- (NSString *)installedVersion;
-- (NSString *)runningVersion;
-
-- (NSDictionary *)kextInfo;
-
-
-- (void)install:(KBOnCompletion)completion;
+- (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion;
 
 /*!
  Installs or updates.
-
- If not present, installs and loads.
- If present and older version then unload, update and re-load.
 */
-- (void)installOrUpdate:(KBOnCompletion)completion;
+- (void)installOrUpdateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion;
 
-- (void)uninstall:(KBOnCompletion)completion;
+/*!
+ Uninstall.
+ */
+- (void)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion;
 
 /*!
  Always loads the kext (no op if it is already loaded).
  */
-- (void)load:(KBOnCompletion)completion;
+- (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion;
 
-- (void)unload:(KBOnCompletion)completion;
-
-/*!
- Info about KBFS (kext info, etc).
- */
-- (void)info:(KBOnCompletion)completion;
+- (void)unloadKextID:(NSString *)kextID completion:(KBOnCompletion)completion;
 
 @end

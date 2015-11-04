@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // +build windows
 
 package libkb
@@ -5,11 +8,19 @@ package libkb
 import (
 	"bufio"
 	"fmt"
+	"path/filepath"
 	"sync"
 	"testing"
-
-	"github.com/keybase/client/go/logger"
 )
+
+func setupTest(t *testing.T, nm string) *TestContext {
+	tc := SetupTest(t, nm)
+	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "socket_windows_test"))
+	if err := tc.G.ConfigureSocketInfo(); err != nil {
+		t.Fatal(err)
+	}
+	return &tc
+}
 
 // It would be better to test across process boundaries, but this is better
 // than nothing: across gofuncs. We start a server func, then send it a string,
@@ -20,11 +31,11 @@ import (
 // open each others' named pipes.
 func TestWindowsNamedPipe(t *testing.T) {
 
-	var testContext = GlobalContext{
-		Log: logger.New("socket_windows_test"),
-	}
+	tc := setupTest(t, "socket_windows_test")
 
-	listenSocket, err := NewSocket(&testContext)
+	defer tc.Cleanup()
+
+	listenSocket, err := NewSocket(tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +64,7 @@ func TestWindowsNamedPipe(t *testing.T) {
 		}
 	}()
 
-	sendSocket, err := NewSocket(&testContext)
+	sendSocket, err := NewSocket(tc.G)
 	namedPipeClient(sendSocket, t)
 	wg.Wait()
 }

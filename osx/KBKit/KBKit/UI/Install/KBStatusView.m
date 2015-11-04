@@ -14,6 +14,7 @@
 #import "KBRunOver.h"
 
 @interface KBStatusView ()
+@property KBLabel *infoLabel;
 @property YOView *installStatusView;
 @property YOHBox *buttons;
 @property YOHBox *skipButtons;
@@ -28,16 +29,15 @@
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
   GHWeakSelf gself = self;
 
-  YOVBox *contentView = [YOVBox box:@{@"spacing": @(20)}];
+  YOVBox *contentView = [YOVBox box:@{@"spacing": @(20), @"insets": @(20)}];
   [self addSubview:contentView];
 
   KBLabel *header = [[KBLabel alloc] init];
   [header setText:@"Keybase Status" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [contentView addSubview:header];
 
-  KBLabel *infoLabel = [[KBLabel alloc] init];
-  [infoLabel setText:@"We need to install, update or start some components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [contentView addSubview:infoLabel];
+  _infoLabel = [[KBLabel alloc] init];
+  [contentView addSubview:_infoLabel];
 
   _installStatusView = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
   _installStatusView.identifier = @"InstallStatus";
@@ -54,7 +54,7 @@
   KBButton *refreshButton = [KBButton buttonWithText:@"Refresh" style:KBButtonStyleDefault];
   refreshButton.targetBlock = ^{ [gself refresh]; };
   [_buttons addSubview:refreshButton];
-  KBButton *nextButton = [KBButton buttonWithText:@"Update" style:KBButtonStylePrimary];
+  KBButton *nextButton = [KBButton buttonWithText:@"Apply" style:KBButtonStylePrimary];
   nextButton.targetBlock = ^{ [gself install]; };
   [_buttons addSubview:nextButton];  
 
@@ -78,12 +78,23 @@
   }];
 }
 
+- (NSArray *)checkBrew:(NSArray *)actions {
+  return [actions select:^BOOL(KBInstallAction *action) {
+    return [action.installable.componentStatus.label gh_startsWith:@"homebrew."];
+  }];
+}
+
 - (void)refresh {
   [KBActivity setProgressEnabled:YES sender:self];
   GHWeakSelf gself = self;
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall) {
     [KBActivity setProgressEnabled:NO sender:self];
+
+//    NSArray *brew = [gself checkBrew:gself.environment.installActions];
+//    if ([brew count] > 0) {
+//    }
+
     if (needsInstall) {
       [self showInstallActions:gself.environment.installActions];
     } else {
@@ -105,18 +116,21 @@
   NSArray *installViews = [_installStatusView.subviews copy];
   for (NSView *subview in installViews) [subview removeFromSuperview];
 
+  [_infoLabel setText:@"We need to install, update or start some components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+
   for (KBInstallAction *installAction in installActions) {
     NSString *name = installAction.name;
 
-    NSString *statusDescription = nil;
-    if (installAction.installable.isInstallDisabled) {
-      statusDescription = NSStringWithFormat(@"Install Disabled; %@", installAction.statusDescription);
-    } else {
-      statusDescription = installAction.statusDescription;
-    }
+    NSString *statusDescription = [installAction.statusDescription join:@"\n"];
 
     KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:statusDescription style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByWordWrapping];
     label.columnRatio = 0.5;
+
+    NSString *action = [installAction action];
+    if (action) {
+      [label addText:action style:KBTextStyleDefault options:KBTextOptionsStrong lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
+    }
+
     [_installStatusView addSubview:label];
   }
 

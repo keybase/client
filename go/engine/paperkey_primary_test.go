@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -22,7 +25,7 @@ func TestPaperKeyPrimary(t *testing.T) {
 	}
 
 	ctx := &Context{
-		LoginUI: libkb.TestLoginUI{},
+		LoginUI: &libkb.TestLoginUI{},
 	}
 	args := &PaperKeyPrimaryArgs{
 		Me:         me,

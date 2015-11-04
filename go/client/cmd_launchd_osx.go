@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // +build darwin
 
 package client
@@ -92,18 +95,15 @@ func NewCmdLaunchdList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 		Usage: "List keybase launchd services",
 		Action: func(c *cli.Context) {
 			// TODO: Use ChooseCommand
-			// This is broken and doesn't compile.  Commenting out to fix master.
-			/*
-				var err error
-				err = launchd.ShowServices("keybase.", "Keybase", g.Log)
-				if err != nil {
-					g.Log.Fatalf("%v", err)
-				}
-				err = launchd.ShowServices("kbfs.", "KBFS", g.Log)
-				if err != nil {
-					g.Log.Fatalf("%v", err)
-				}
-			*/
+			var err error
+			err = launchd.ShowServices([]string{"keybase.service", "homebrew.mxcl.keybase"}, "Keybase", g.Log)
+			if err != nil {
+				g.Log.Fatalf("%v", err)
+			}
+			err = launchd.ShowServices([]string{"keybase.kbfs.", "homebrew.mxcl.kbfs"}, "KBFS", g.Log)
+			if err != nil {
+				g.Log.Fatalf("%v", err)
+			}
 			os.Exit(0)
 		},
 	}
@@ -178,8 +178,7 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			// This is to bypass the logui protocol registration in main.go which is
 			// triggering a connection before our Run() is called. See that file for
 			// more info.
-			g.Env.SetSkipLogForward()
-
+			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.ChooseCommand(NewCmdLaunchdStatusRunner(g), "status", c)
 		},
 	}

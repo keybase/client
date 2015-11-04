@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -87,11 +90,19 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 		if err != nil {
 			// XXX ???
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
-		} else if receivedSecret != nil {
+		} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
 			e.G().Log.Debug("received secret, adding to provisioner")
 			var ks kex2.Secret
-			copy(ks[:], receivedSecret)
+			copy(ks[:], receivedSecret.Secret)
 			provisioner.AddSecret(ks)
+		} else if len(receivedSecret.Phrase) > 0 {
+			e.G().Log.Debug("received secret phrase, adding to provisioner")
+			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+			if err != nil {
+				e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+			} else {
+				provisioner.AddSecret(ks.Secret())
+			}
 		}
 	}()
 

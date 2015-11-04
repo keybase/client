@@ -41,6 +41,6 @@ bsync.init({
   })
 
   bsync
-    .watch('../react-mobile/react/**/*')
+    .watch('../react-native/react/**/*')
     .on('change', bsync.reload)
 })

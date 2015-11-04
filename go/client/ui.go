@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package client
 
 import (
@@ -480,8 +483,8 @@ func NewLoginUI(t libkb.TerminalUI, noPrompt bool) LoginUI {
 }
 
 func (l LoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
-	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username or email", false,
-		libkb.CheckEmailOrUsername)
+	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username", false,
+		libkb.CheckUsername)
 }
 
 func (l LoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
@@ -790,6 +793,10 @@ func sentencePunctuate(s string) string {
 // GetTerminalUI returns the main client UI, which happens to be a terminal UI
 func (ui *UI) GetTerminalUI() libkb.TerminalUI { return ui }
 
+// GetDumbOutput returns the main client UI, which happens to also be a
+// dumb output UI too.
+func (ui *UI) GetDumbOutputUI() libkb.DumbOutputUI { return ui }
+
 func (ui *UI) PromptYesNo(_ libkb.PromptDescriptor, p string, def libkb.PromptDefault) (ret bool, err error) {
 	return ui.Terminal.PromptYesNo(p, def)
 }
@@ -869,6 +876,10 @@ func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
 
 func (ui *UI) Println(a ...interface{}) (int, error) {
 	return fmt.Fprintln(ui.OutputWriter(), a...)
+}
+
+func (ui *UI) PrintfStderr(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(os.Stderr, format, a...)
 }
 
 //=====================================================

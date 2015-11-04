@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // +build darwin
 
 package client
@@ -170,7 +173,6 @@ func errorStatus(err error) keybase1.ServiceStatus {
 
 func DiagnoseSocketError(ui libkb.UI, err error) {
 	t := ui.GetTerminalUI()
-	// XXX making this change just to get master to build.  No idea what it should be.
 	services, err := launchd.ListServices([]string{"keybase."})
 	if err != nil {
 		t.Printf("Error checking launchd services: %v\n\n", err)

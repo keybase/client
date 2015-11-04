@@ -1,3 +1,6 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package engine
 
 import (
@@ -32,7 +35,7 @@ func TestReset(t *testing.T) {
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
-		LoginUI:  libkb.TestLoginUI{Username: fu.Username},
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
 	s := NewSignupEngine(&arg, tc.G)
 	err := RunEngine(s, ctx)
