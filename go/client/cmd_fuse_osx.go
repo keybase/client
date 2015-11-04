@@ -34,8 +34,7 @@ func NewCmdFuseStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		},
 		Usage: "Status for fuse, including for installing or updating",
 		Action: func(c *cli.Context) {
-			g.Env.SetSkipLogForward()
-
+			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.ChooseCommand(NewCmdFuseStatusRunner(g), "status", c)
 		},
 	}

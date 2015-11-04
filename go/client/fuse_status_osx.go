@@ -19,30 +19,6 @@ func KeybaseFuseStatus(bundleVersion string) keybase1.FuseStatus {
 
 	var kextInfo *kext.Info
 
-	// Check osxfuse 2.x
-	path2 := "/Library/Filesystems/osxfusefs.fs"
-	if _, err := os.Stat(path2); err == nil {
-		status.Path = path2
-		kextID2 := "com.github.osxfuse.filesystems.osxfusefs"
-		infov2, errv2 := kext.LoadInfo(kextID2)
-		if errv2 != nil {
-			status.InstallStatus = keybase1.InstallStatus_ERROR
-			status.InstallAction = keybase1.InstallAction_NONE
-			status.Error = &keybase1.StatusError{Message: errv2.Error()}
-			return status
-		}
-		if infov2 == nil {
-			status.InstallStatus = keybase1.InstallStatus_ERROR
-			status.InstallAction = keybase1.InstallAction_NONE
-			status.Error = &keybase1.StatusError{
-				Message: fmt.Sprintf("Fuse (2) installed (%s) but kext was not loaded (%s)", status.Path, kextID2)}
-			return status
-		}
-		// Installed (v2)
-		status.KextID = kextID2
-		kextInfo = infov2
-	}
-
 	// Check osxfuse 3.x
 	path3 := "/Library/Filesystems/osxfuse.fs"
 	if _, err := os.Stat(path3); err == nil {
@@ -62,9 +38,43 @@ func KeybaseFuseStatus(bundleVersion string) keybase1.FuseStatus {
 				Message: fmt.Sprintf("Fuse (3) installed (%s) but kext was not loaded (%s)", status.Path, kextID3)}
 			return status
 		}
+
 		// Installed (v3)
 		status.KextID = kextID3
 		kextInfo = infov3
+	}
+
+	// Check osxfuse 2.x
+	path2 := "/Library/Filesystems/osxfusefs.fs"
+	if _, err := os.Stat(path2); err == nil {
+
+		// Make sure Fuse2 isn't still lingering around
+		if status.KextID != "" {
+			status.InstallStatus = keybase1.InstallStatus_ERROR
+			status.InstallAction = keybase1.InstallAction_NONE
+			status.Error = &keybase1.StatusError{Message: "Fuse 2 and 3 both exist"}
+			return status
+		}
+
+		status.Path = path2
+		kextID2 := "com.github.osxfuse.filesystems.osxfusefs"
+		infov2, errv2 := kext.LoadInfo(kextID2)
+		if errv2 != nil {
+			status.InstallStatus = keybase1.InstallStatus_ERROR
+			status.InstallAction = keybase1.InstallAction_NONE
+			status.Error = &keybase1.StatusError{Message: errv2.Error()}
+			return status
+		}
+		if infov2 == nil {
+			status.InstallStatus = keybase1.InstallStatus_ERROR
+			status.InstallAction = keybase1.InstallAction_NONE
+			status.Error = &keybase1.StatusError{
+				Message: fmt.Sprintf("Fuse (2) installed (%s) but kext was not loaded (%s)", status.Path, kextID2)}
+			return status
+		}
+		// Installed (v2)
+		status.KextID = kextID2
+		kextInfo = infov2
 	}
 
 	// If neither is found, we have no install
