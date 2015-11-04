@@ -183,6 +183,12 @@ func (k *KeybaseDaemonRPC) OnConnectError(err error, wait time.Duration) {
 		err, wait)
 }
 
+// OnDoCommandError implements the ConnectionHandler interface.
+func (k *KeybaseDaemonRPC) OnDoCommandError(err error, wait time.Duration) {
+	k.log.Warning("KeybaseDaemonRPC: docommand error: %q; retrying in %s",
+		err, wait)
+}
+
 // OnDisconnected implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnDisconnected() {
 	k.log.Warning("KeybaseDaemonRPC is disconnected")

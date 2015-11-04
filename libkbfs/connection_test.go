@@ -31,6 +31,10 @@ func (ut *unitTester) OnConnectError(error, time.Duration) {
 	ut.numConnectErrors++
 }
 
+// OnDoCommandError implements the ConnectionHandler interace
+func (ut *unitTester) OnDoCommandError(error, time.Duration) {
+}
+
 // OnDisconnected implements the ConnectionHandler interface.
 func (ut *unitTester) OnDisconnected() {
 	ut.numDisconnects++

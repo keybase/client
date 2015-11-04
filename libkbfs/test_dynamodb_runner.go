@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -43,7 +44,7 @@ func NewTestDynamoDBRunner() (*TestDynamoDBRunner, error) {
 }
 
 func (tdr *TestDynamoDBRunner) tmpDir() string {
-	return os.TempDir() + LocalDynamoDBTmpDir
+	return filepath.Join(os.TempDir(), LocalDynamoDBTmpDir)
 }
 
 func (tdr *TestDynamoDBRunner) writePid(pid int) error {

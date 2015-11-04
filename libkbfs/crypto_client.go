@@ -67,6 +67,12 @@ func (c *CryptoClient) OnConnectError(err error, wait time.Duration) {
 		err, wait)
 }
 
+// OnDoCommandError implements the ConnectionHandler interface.
+func (c *CryptoClient) OnDoCommandError(err error, wait time.Duration) {
+	c.log.Warning("CryptoClient: docommand error: %q; retrying in %s",
+		err, wait)
+}
+
 // OnDisconnected implements the ConnectionHandler interface.
 func (c *CryptoClient) OnDisconnected() {
 	c.log.Warning("CryptoClient is disconnected")
