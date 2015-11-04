@@ -47,7 +47,9 @@ func (e *LoginCurrentDevice) Run(ctx *Context) error {
 	// already logged in?
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {
-		return nil
+		if len(e.username) == 0 || e.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
+			return nil
+		}
 	}
 
 	var config *libkb.UserConfig
