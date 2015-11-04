@@ -48,7 +48,8 @@ func KeybaseFuseStatus(bundleVersion string) keybase1.FuseStatus {
 	path2 := "/Library/Filesystems/osxfusefs.fs"
 	if _, err := os.Stat(path2); err == nil {
 
-		// Make sure Fuse2 isn't still lingering around
+		// If Fuse3 exists (above), and we also have Fuse2 then we have a borked
+		// install.
 		if st.KextID != "" {
 			st.InstallStatus = keybase1.InstallStatus_ERROR
 			st.InstallAction = keybase1.InstallAction_NONE
