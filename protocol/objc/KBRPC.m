@@ -1691,50 +1691,50 @@
   }];
 }
 
-- (void)getNewPassphrase:(KBRGetNewPassphraseRequestParams *)params completion:(void (^)(NSError *error, KBRGetNewPassphraseRes *getNewPassphraseRes))completion {
+- (void)getNewPassphrase:(KBRGetNewPassphraseRequestParams *)params completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion {
   NSDictionary *rparams = @{@"terminalPrompt": KBRValue(params.terminalPrompt), @"pinentryDesc": KBRValue(params.pinentryDesc), @"pinentryPrompt": KBRValue(params.pinentryPrompt), @"retryMessage": KBRValue(params.retryMessage), @"useSecretStore": @(params.useSecretStore)};
   [self.client sendRequestWithMethod:@"keybase.1.secretUi.getNewPassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRGetNewPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetNewPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
+    KBRGetPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
 
-- (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage useSecretStore:(BOOL)useSecretStore completion:(void (^)(NSError *error, KBRGetNewPassphraseRes *getNewPassphraseRes))completion {
+- (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage useSecretStore:(BOOL)useSecretStore completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion {
   NSDictionary *rparams = @{@"terminalPrompt": KBRValue(terminalPrompt), @"pinentryDesc": KBRValue(pinentryDesc), @"pinentryPrompt": KBRValue(pinentryPrompt), @"retryMessage": KBRValue(retryMessage), @"useSecretStore": @(useSecretStore)};
   [self.client sendRequestWithMethod:@"keybase.1.secretUi.getNewPassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRGetNewPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetNewPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
+    KBRGetPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
 
-- (void)getKeybasePassphrase:(KBRGetKeybasePassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion {
+- (void)getKeybasePassphrase:(KBRGetKeybasePassphraseRequestParams *)params completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion {
   NSDictionary *rparams = @{@"username": KBRValue(params.username), @"retry": KBRValue(params.retry)};
   [self.client sendRequestWithMethod:@"keybase.1.secretUi.getKeybasePassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+    KBRGetPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
 
-- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString *str))completion {
+- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion {
   NSDictionary *rparams = @{@"username": KBRValue(username), @"retry": KBRValue(retry)};
   [self.client sendRequestWithMethod:@"keybase.1.secretUi.getKeybasePassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+    KBRGetPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
@@ -4801,7 +4801,7 @@
 @implementation KBRSecretEntryRes
 @end
 
-@implementation KBRGetNewPassphraseRes
+@implementation KBRGetPassphraseRes
 @end
 
 @implementation KBRSession

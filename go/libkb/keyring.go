@@ -324,6 +324,40 @@ func (k *Keyrings) GetSecretKeyWithPrompt(lctx LoginContext, ska SecretKeyArg, s
 	return key, err
 }
 
+func (k *Keyrings) GetSecretKeyWithoutPrompt(lctx LoginContext, ska SecretKeyArg) (key GenericKey, err error) {
+	k.G().Log.Debug("+ GetSecretKeyWithoutPrompt()")
+	defer func() {
+		k.G().Log.Debug("- GetSecretKeyWithoutPrompt() -> %s", ErrToOk(err))
+	}()
+
+	key = k.cachedSecretKey(lctx, ska)
+	if key != nil {
+		k.G().Log.Debug("  found cached secret key")
+		return key, err
+	}
+
+	k.G().Log.Debug("  no cached secret key, trying via secretStore")
+
+	// not cached, so try to unlock without prompting
+	if ska.Me == nil {
+		err = NoUsernameError{}
+		return nil, err
+	}
+	secretStore := NewSecretStore(ska.Me.GetNormalizedName())
+
+	skb, _, err := k.GetSecretKeyLocked(lctx, ska)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err = skb.UnlockNoPrompt(lctx, secretStore, nil)
+	if key != nil && err == nil {
+		k.setCachedSecretKey(lctx, ska, key)
+	}
+
+	return key, err
+}
+
 func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(lctx LoginContext, ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
 	k.G().Log.Debug("+ GetSecretKeyAndSKBWithPrompt(%s)", reason)
 	defer func() {

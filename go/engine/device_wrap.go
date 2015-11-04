@@ -13,7 +13,8 @@ import (
 type DeviceWrap struct {
 	args *DeviceWrapArgs
 
-	signingKey libkb.GenericKey
+	signingKey    libkb.GenericKey
+	encryptionKey libkb.GenericKey
 	libkb.Contextified
 }
 
@@ -94,10 +95,15 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 	}
 
 	e.signingKey = kgEng.SigningKey()
+	e.encryptionKey = kgEng.EncryptionKey()
 
 	return nil
 }
 
 func (e *DeviceWrap) SigningKey() libkb.GenericKey {
 	return e.signingKey
+}
+
+func (e *DeviceWrap) EncryptionKey() libkb.GenericKey {
+	return e.encryptionKey
 }

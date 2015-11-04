@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"runtime/debug"
 	"testing"
 
 	"golang.org/x/crypto/nacl/box"
@@ -172,6 +173,7 @@ func cachedSecretKey(tc libkb.TestContext, ktype libkb.SecretKeyType) (key libkb
 func assertCachedSecretKey(tc libkb.TestContext, ktype libkb.SecretKeyType) {
 	skey, err := cachedSecretKey(tc, ktype)
 	if err != nil {
+		debug.PrintStack()
 		tc.T.Fatalf("error getting cached secret key: %s", err)
 	}
 	if skey == nil {
@@ -200,6 +202,12 @@ func TestCachedSecretKey(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "login")
 
+	assertCachedSecretKey(tc, libkb.DeviceSigningKeyType)
+	assertCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
+
+	Logout(tc)
+	u.LoginOrBust(tc)
+
 	assertNotCachedSecretKey(tc, libkb.DeviceSigningKeyType)
 	assertNotCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
 
@@ -217,7 +225,6 @@ func TestCachedSecretKey(t *testing.T) {
 	Logout(tc)
 	u.LoginOrBust(tc)
 
-	// login caches this...
-	assertCachedSecretKey(tc, libkb.DeviceSigningKeyType)
+	assertNotCachedSecretKey(tc, libkb.DeviceSigningKeyType)
 	assertNotCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
 }

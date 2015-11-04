@@ -181,8 +181,8 @@ func TestPassphraseChangeAfterPubkeyLogin(t *testing.T) {
 
 	secui := u.NewSecretUI()
 	u.LoginWithSecretUI(secui, tc.G)
-	if !secui.CalledGetSecret {
-		t.Errorf("get secret not called")
+	if !secui.CalledGetKBPassphrase {
+		t.Errorf("get keybase passphrase not called")
 	}
 
 	newPassphrase := "password1234"
@@ -279,6 +279,7 @@ func TestPassphraseChangeUnknownNoPSCache(t *testing.T) {
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
 	}, "clear stream cache")
 
 	newPassphrase := "password1234"

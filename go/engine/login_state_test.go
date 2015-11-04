@@ -95,14 +95,14 @@ func (m *GetSecretMock) GetSecret(arg keybase1.SecretEntryArg, _ *keybase1.Secre
 	return &keybase1.SecretEntryRes{Text: m.Passphrase, StoreSecret: storeSecret}, nil
 }
 
-func (m *GetSecretMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
+func (m *GetSecretMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
 	m.LastErr = errors.New("GetNewPassphrase unexpectedly called")
-	return keybase1.GetNewPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
+	return keybase1.GetPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
 }
 
-func (m *GetSecretMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
+func (m *GetSecretMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
 	m.LastErr = errors.New("GetKeybasePassphrase unexpectedly called")
-	return "invalid passphrase", m.LastErr
+	return keybase1.GetPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
 }
 
 func (m *GetSecretMock) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
@@ -180,43 +180,6 @@ func TestLoginNonexistent(t *testing.T) {
 	}
 }
 
-// Test that the login prompts for a passphrase for the pubkey first.
-func TestLoginWithPromptPubkey(t *testing.T) {
-	tc := SetupEngineTest(t, "login with prompt (pubkey)")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(tc, "lwpp")
-
-	Logout(tc)
-
-	mockGetSecret := &GetSecretMock{
-		Passphrase: fu.Passphrase,
-	}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetSecret, nil); err != nil {
-		t.Error(err)
-	}
-
-	mockGetSecret.CheckLastErr(t)
-
-	if !mockGetSecret.Called {
-		t.Errorf("secretUI.GetSecret() unexpectedly not called")
-	}
-
-	Logout(tc)
-
-	mockGetSecret.Called = false
-	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret, nil); err != nil {
-		t.Error(err)
-	}
-
-	if !mockGetSecret.Called {
-		t.Errorf("secretUI.GetSecret() unexpectedly not called")
-	}
-
-	// The interaction with the loginUI is covered by
-	// TestLoginWithPromptPassphrase below.
-}
-
 type GetUsernameMock struct {
 	Username string
 	Called   bool
@@ -251,27 +214,28 @@ func (m *GetUsernameMock) CheckLastErr(t *testing.T) {
 }
 
 type GetKeybasePassphraseMock struct {
-	Passphrase string
-	Called     bool
-	LastErr    error
+	Passphrase  string
+	StoreSecret bool
+	Called      bool
+	LastErr     error
 }
 
 func (m *GetKeybasePassphraseMock) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
 	return nil, errors.New("Fail pubkey login")
 }
 
-func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
+func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
 	m.LastErr = errors.New("GetNewPassphrase unexpectedly called")
-	return keybase1.GetNewPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
+	return keybase1.GetPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
 }
 
-func (m *GetKeybasePassphraseMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
+func (m *GetKeybasePassphraseMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
 	if m.Called {
 		m.LastErr = errors.New("GetKeybasePassphrase unexpectedly called more than once")
-		return "invalid passphrase", m.LastErr
+		return keybase1.GetPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
 	}
 	m.Called = true
-	return m.Passphrase, nil
+	return keybase1.GetPassphraseRes{Passphrase: m.Passphrase, StoreSecret: m.StoreSecret}, nil
 }
 
 func (m *GetKeybasePassphraseMock) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
@@ -399,18 +363,18 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
 	}
 
-	mockGetSecret := &GetSecretMock{
+	mockGetPassphrase := &GetKeybasePassphraseMock{
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
 	}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetSecret, nil); err != nil {
-		t.Error(err)
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetPassphrase, nil); err != nil {
+		t.Fatal(err)
 	}
 
-	mockGetSecret.CheckLastErr(t)
+	mockGetPassphrase.CheckLastErr(t)
 
-	if !mockGetSecret.Called {
-		t.Errorf("secretUI.GetSecret() unexpectedly not called")
+	if !mockGetPassphrase.Called {
+		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
 
 	Logout(tc)

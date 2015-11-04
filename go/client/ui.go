@@ -596,7 +596,7 @@ func (ui *UI) Shutdown() error {
 	return err
 }
 
-func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres keybase1.GetNewPassphraseRes, err error) {
+func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres keybase1.GetPassphraseRes, err error) {
 
 	arg := libkb.PromptArg{
 		TerminalPrompt: earg.TerminalPrompt,
@@ -645,15 +645,15 @@ func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres key
 	return
 }
 
-func (ui SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (text string, err error) {
+func (ui SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	desc := fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", arg.Username)
-	text, _, err = ui.ppprompt(libkb.PromptArg{
+	res.Passphrase, res.StoreSecret, err = ui.ppprompt(libkb.PromptArg{
 		TerminalPrompt: "keybase passphrase",
 		PinentryPrompt: "Your passphrase",
 		PinentryDesc:   desc,
 		Checker:        &libkb.CheckPassphraseSimple,
 		RetryMessage:   arg.Retry,
-		UseSecretStore: false,
+		UseSecretStore: true,
 	})
 	return
 }

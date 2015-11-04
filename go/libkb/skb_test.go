@@ -128,7 +128,7 @@ func TestBasicSecretStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	lks := makeTestLKSec(t, G)
-	expectedSecret, err := lks.GetSecret()
+	expectedSecret, err := lks.GetSecret(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func TestCorruptSecretStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	lks := makeTestLKSec(t, G)
-	expectedSecret, err := lks.GetSecret()
+	expectedSecret, err := lks.GetSecret(nil)
 	if err != nil {
 		t.Fatal(err)
 	}

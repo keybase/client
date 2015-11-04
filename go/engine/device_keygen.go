@@ -108,6 +108,10 @@ func (e *DeviceKeygen) SigningKey() libkb.NaclKeyPair {
 	return e.naclSignGen.GetKeyPair()
 }
 
+func (e *DeviceKeygen) EncryptionKey() libkb.NaclKeyPair {
+	return e.naclEncGen.GetKeyPair()
+}
+
 // Push pushes the generated keys to the api server and stores the
 // local key security server half on the api server as well.
 func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {

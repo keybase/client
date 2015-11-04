@@ -215,7 +215,7 @@ func (s *CmdSignup) prompt() (err error) {
 
 	f := s.fields.passphraseRetry
 	if f.Disabled || libkb.IsYes(f.GetValue()) {
-		var res keybase1.GetNewPassphraseRes
+		var res keybase1.GetPassphraseRes
 		res, err = s.G().UI.GetSecretUI().GetNewPassphrase(arg)
 		if err != nil {
 			return

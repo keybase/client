@@ -68,17 +68,17 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mockGetSecret := &GetSecretMock{
+	mockGetPassphrase := &GetKeybasePassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetSecret, nil); err != nil {
+	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetPassphrase, nil); err != nil {
 		t.Fatal(err)
 	}
 
-	mockGetSecret.CheckLastErr(t)
+	mockGetPassphrase.CheckLastErr(t)
 
-	if !mockGetSecret.Called {
-		t.Errorf("secretUI.GetSecret() unexpectedly not called")
+	if !mockGetPassphrase.Called {
+		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
 
 	if err = AssertDeviceID(tc.G); err != nil {
@@ -180,7 +180,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 	arg.StoreSecret = true
 	s := SignupFakeUserWithArg(tc, fu, arg)
 
-	secret, err := s.lks.GetSecret()
+	secret, err := s.lks.GetSecret(nil)
 	if err != nil {
 		t.Fatal(err)
 	}

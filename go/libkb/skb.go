@@ -378,7 +378,7 @@ func (s *SKB) lksUnlock(lctx LoginContext, pps *PassphraseStream, secretStorer S
 
 	if secretStorer != nil {
 		var secret []byte
-		secret, err = lks.GetSecret()
+		secret, err = lks.GetSecret(lctx)
 		if err != nil {
 			unlocked = nil
 			return

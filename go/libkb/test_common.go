@@ -348,14 +348,14 @@ func (t *TestSecretUI) GetSecret(p keybase1.SecretEntryArg, terminal *keybase1.S
 	}, nil
 }
 
-func (t *TestSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
+func (t *TestSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
 	t.CalledGetNewPassphrase = true
-	return keybase1.GetNewPassphraseRes{Passphrase: t.Passphrase}, nil
+	return keybase1.GetPassphraseRes{Passphrase: t.Passphrase}, nil
 }
 
-func (t *TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (string, error) {
+func (t *TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
 	t.CalledGetKBPassphrase = true
-	return t.Passphrase, nil
+	return keybase1.GetPassphraseRes{Passphrase: t.Passphrase}, nil
 }
 
 func (t *TestSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {

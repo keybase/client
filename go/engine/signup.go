@@ -175,7 +175,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 		// StoreSecret) as the username may change during the
 		// signup process.
 		secretStore := libkb.NewSecretStore(s.me.GetNormalizedName())
-		secret, err := s.lks.GetSecret()
+		secret, err := s.lks.GetSecret(a)
 		if err != nil {
 			return err
 		}
@@ -185,6 +185,10 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 			s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
 		}
 	}
+
+	// is there any reason *not* to do this?
+	ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, s.signingKey)
+	ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, eng.EncryptionKey())
 
 	s.G().Log.Debug("registered new device: %s", s.G().Env.GetDeviceID())
 	s.G().Log.Debug("eldest kid: %s", s.me.GetEldestKID())

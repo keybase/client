@@ -64,13 +64,13 @@ func (l *SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase
 }
 
 // GetNewPassphrase gets a new passphrase from pinentry
-func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (keybase1.GetNewPassphraseRes, error) {
+func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
 	arg.SessionID = l.sessionID
 	return l.cli.GetNewPassphrase(context.TODO(), arg)
 }
 
 // GetKeybasePassphrase gets the current keybase passphrase from pinentry.
-func (l *SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (string, error) {
+func (l *SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
 	arg.SessionID = l.sessionID
 	return l.cli.GetKeybasePassphrase(context.TODO(), arg)
 }

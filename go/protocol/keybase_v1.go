@@ -3829,7 +3829,7 @@ type SecretEntryRes struct {
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 }
 
-type GetNewPassphraseRes struct {
+type GetPassphraseRes struct {
 	Passphrase  string `codec:"passphrase" json:"passphrase"`
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 }
@@ -3862,8 +3862,8 @@ type GetPaperKeyPassphraseArg struct {
 
 type SecretUiInterface interface {
 	GetSecret(context.Context, GetSecretArg) (SecretEntryRes, error)
-	GetNewPassphrase(context.Context, GetNewPassphraseArg) (GetNewPassphraseRes, error)
-	GetKeybasePassphrase(context.Context, GetKeybasePassphraseArg) (string, error)
+	GetNewPassphrase(context.Context, GetNewPassphraseArg) (GetPassphraseRes, error)
+	GetKeybasePassphrase(context.Context, GetKeybasePassphraseArg) (GetPassphraseRes, error)
 	GetPaperKeyPassphrase(context.Context, GetPaperKeyPassphraseArg) (string, error)
 }
 
@@ -3948,12 +3948,12 @@ func (c SecretUiClient) GetSecret(ctx context.Context, __arg GetSecretArg) (res 
 	return
 }
 
-func (c SecretUiClient) GetNewPassphrase(ctx context.Context, __arg GetNewPassphraseArg) (res GetNewPassphraseRes, err error) {
+func (c SecretUiClient) GetNewPassphrase(ctx context.Context, __arg GetNewPassphraseArg) (res GetPassphraseRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SecretUiClient) GetKeybasePassphrase(ctx context.Context, __arg GetKeybasePassphraseArg) (res string, err error) {
+func (c SecretUiClient) GetKeybasePassphrase(ctx context.Context, __arg GetKeybasePassphraseArg) (res GetPassphraseRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.secretUi.getKeybasePassphrase", []interface{}{__arg}, &res)
 	return
 }

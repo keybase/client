@@ -487,7 +487,7 @@ typedef NS_ENUM (NSInteger, KBRDeviceType) {
 @property BOOL storeSecret;
 @end
 
-@interface KBRGetNewPassphraseRes : KBRObject
+@interface KBRGetPassphraseRes : KBRObject
 @property NSString *passphrase;
 @property BOOL storeSecret;
 @end
@@ -1777,17 +1777,13 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getSecretWithPinentry:(KBRSecretEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRSecretEntryRes *secretEntryRes))completion;
 
-- (void)getNewPassphrase:(KBRGetNewPassphraseRequestParams *)params completion:(void (^)(NSError *error, KBRGetNewPassphraseRes *getNewPassphraseRes))completion;
+- (void)getNewPassphrase:(KBRGetNewPassphraseRequestParams *)params completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion;
 
-- (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage useSecretStore:(BOOL)useSecretStore completion:(void (^)(NSError *error, KBRGetNewPassphraseRes *getNewPassphraseRes))completion;
+- (void)getNewPassphraseWithTerminalPrompt:(NSString *)terminalPrompt pinentryDesc:(NSString *)pinentryDesc pinentryPrompt:(NSString *)pinentryPrompt retryMessage:(NSString *)retryMessage useSecretStore:(BOOL)useSecretStore completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion;
 
-/*!
- This is used only for passphrase login, so we don't need to use the secret
- store.
- */
-- (void)getKeybasePassphrase:(KBRGetKeybasePassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getKeybasePassphrase:(KBRGetKeybasePassphraseRequestParams *)params completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion;
 
-- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, NSString *str))completion;
+- (void)getKeybasePassphraseWithUsername:(NSString *)username retry:(NSString *)retry completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion;
 
 - (void)getPaperKeyPassphrase:(KBRGetPaperKeyPassphraseRequestParams *)params completion:(void (^)(NSError *error, NSString *str))completion;
 

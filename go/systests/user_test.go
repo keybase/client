@@ -7,14 +7,15 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"io"
+	"testing"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	context "golang.org/x/net/context"
-	"io"
-	"testing"
 )
 
 type signupInfo struct {
@@ -69,13 +70,13 @@ func (n *signupUI) GetGPGUI() libkb.GPGUI {
 	return client.NewGPGUI(n.GetTerminalUI(), false)
 }
 
-func (n *signupSecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (res keybase1.GetNewPassphraseRes, err error) {
+func (n *signupSecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	res.Passphrase = n.info.passphrase
 	n.G().Log.Debug("| GetNewPassphrase: %v -> %v", arg, res)
 	return res, err
 }
 
-func (n *signupSecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (res string, err error) {
+func (n *signupSecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	err = fmt.Errorf("GetKeybasePassphrase unimplemented")
 	return res, err
 }

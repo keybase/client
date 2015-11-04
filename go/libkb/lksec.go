@@ -136,13 +136,13 @@ func (s *LKSec) Load(lctx LoginContext) (err error) {
 	return nil
 }
 
-func (s *LKSec) GetSecret() (secret []byte, err error) {
+func (s *LKSec) GetSecret(lctx LoginContext) (secret []byte, err error) {
 	s.G().Log.Debug("+ LKsec:GetSecret()")
 	defer func() {
 		s.G().Log.Debug("- LKSec::GetSecret() -> %s", ErrToOk(err))
 	}()
 
-	if err = s.Load(nil); err != nil {
+	if err = s.Load(lctx); err != nil {
 		return
 	}
 
