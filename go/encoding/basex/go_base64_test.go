@@ -24,28 +24,28 @@ type testpair struct {
 
 var pairs = []testpair{
 	// RFC 3548 examples
-	{"\x14\xfb\x9c\x03\xd9\x7e", "1BT2vGYLD"},
-	{"\x14\xfb\x9c\x03\xd9", "3NJeu1J"},
-	{"\x14\xfb\x9c\x03", "1Y7GPC"},
+	{"\x14\xfb\x9c\x03\xd9\x7e", "3tBXhHeJK"},
+	{"\x14\xfb\x9c\x03\xd9", "5jcJo1b"},
+	{"\x14\xfb\x9c\x03", "5Hs84X"},
 
 	// RFC 4648 examples
 	{"", ""},
-	{"f", "2m"},
-	{"fo", "8o8"},
-	{"foo", "1bQbp"},
-	{"foob", "3csAg9"},
-	{"fooba", "CZJRhmz"},
-	{"foobar", "1t1Zv2yaZ"},
+	{"f", "F5"},
+	{"fo", "GbF"},
+	{"foo", "Kz2Cw"},
+	{"foob", "MwvLQ7"},
+	{"fooba", "Q7brQYy"},
+	{"foobar", "F5A5dYcFq"},
 
 	// Wikipedia examples
-	{"sure.", "E2XFRyo"},
-	{"sure", "3xB2TW"},
-	{"sur", "1fnKT"},
-	{"su", "9nc"},
+	{"sure.", "T43Vrxb"},
+	{"sure", "QcPCf1"},
+	{"sur", "NQ1BM"},
+	{"su", "JaD"},
 	{"leasure.", "K8aUZhGUNaR"},
-	{"easure.", "4qq4WqChgZ"},
-	{"asure.", "1qXcNm9C1"},
-	{"sure.", "E2XFRyo"},
+	{"easure.", "GNKF4KoojD"},
+	{"asure.", "EPSm1BG31"},
+	{"sure.", "T43Vrxb"},
 }
 
 type encodingTest struct {
@@ -64,7 +64,7 @@ var encodingTests = []encodingTest{
 
 var bigtest = testpair{
 	"Twas brillig, and the slithy toves",
-	"GTsfDqyGri6QZNu9WnLkGjRiS73vQ4n9xVSxpZfC6Rhd92z",
+	"GTsfDqyGri6QZNu9WnLkGjRiS7QNBXEEevahZWGXkQbz7Gs",
 }
 
 func testEqual(t *testing.T, msg string, args ...interface{}) bool {
@@ -200,14 +200,14 @@ func TestNewLineCharacters(t *testing.T) {
 	// Each of these should decode to the string "sure", without errors.
 	const expected = "sure"
 	examples := []string{
-		"3xB2TW",
-		"3xB2TW\r",
-		"3xB2TW\n",
-		"3xB2TW\r\n",
-		"3xB2T\r\nW",
-		"3xB\r2T\nW",
-		"3xB\n2T\rW",
-		"3xB2T\nW",
+		"QcPCf1",
+		"QcPCf1\r",
+		"QcPCf1\n",
+		"QcPCf1\r\n",
+		"QcPCf\r\n1",
+		"QcP\rCf\n1",
+		"QcP\nCf\r1",
+		"QcPCf\n1",
 	}
 	for _, e := range examples {
 		buf, err := Base58StdEncoding.DecodeString(e)

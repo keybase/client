@@ -1,6 +1,6 @@
 
 {prng} = require 'crypto'
-{encoding} = require 'armor58'
+{encoding} = require('armorx').encoding.b58
 
 output_test_encode_vectors = () ->
   out = {
@@ -40,7 +40,7 @@ output_test_decode_vectors = () ->
     for j in [0...75] by 2
       b = prng(i)
       ji = junk_inserter j / 100
-      dec = ji encoding.std_encoding.encode b
+      dec = ji encoding.encode b
       out[b.toString('base64')] = dec
   output out, "testDecodeVectors1"
 
