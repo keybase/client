@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import BaseComponent from './base-component'
 import { connect } from './base-redux'

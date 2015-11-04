@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React, { Component, Text, TouchableHighlight, View, ScrollView, StyleSheet } from 'react-native'
 import Button from '../../common-adapters/button'

@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React from '../base-react'
 import { connect } from '../base-redux'

@@ -4,11 +4,7 @@ import BaseComponent from '../../base-component'
 import React from '../../base-react'
 import { List, ListItem } from 'material-ui'
 
-export default class MoreTabs extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
+export default class MenuList extends BaseComponent {
   render () {
     return (
       <List>
@@ -18,4 +14,12 @@ export default class MoreTabs extends BaseComponent {
       </List>
     )
   }
+}
+
+MenuList.propTypes = {
+  items: React.PropTypes.arrayOf(React.PropTypes.shape({
+    name: React.PropTypes.string.isRequired,
+    hasChildren: React.PropTypes.bool,
+    onClick: React.PropTypes.func.isRequired
+  }))
 }
