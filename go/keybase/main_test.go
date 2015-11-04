@@ -17,7 +17,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ThomasRooney/gexpect"
+	"github.com/keybase/gexpect"
 )
 
 // compileBinary compiles the keybase main binary via `go install`.  It installs

@@ -23,11 +23,6 @@
 			"revisionTime": "2015-06-05T22:16:32-04:00"
 		},
 		{
-			"path": "github.com/ThomasRooney/gexpect",
-			"revision": "67f0ed29c4037339afb2dbe91187d2e1012c3ade",
-			"revisionTime": "2015-06-08T10:50:56+01:00"
-		},
-		{
 			"path": "github.com/agl/ed25519",
 			"revision": "d2b94fd789ea21d12fac1a4443dd3a3f79cda72c",
 			"revisionTime": "2014-09-07T16:52:47-07:00"
@@ -71,6 +66,11 @@
 			"path": "github.com/keybase/cli",
 			"revision": "afca8e2de89ac3486e8e61af44d21da8cedb4487",
 			"revisionTime": "2015-09-21T11:51:56-05:00"
+		},
+		{
+			"path": "github.com/keybase/gexpect",
+			"revision": "ee89fae10da05b12dc601c00fb9a44c2da537a44",
+			"revisionTime": "2015-11-04T12:32:31-08:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
@@ -158,9 +158,9 @@
 			"revisionTime": "2015-10-05T10:18:12-07:00"
 		},
 		{
-			"path": "github.com/kr/pty",
-			"revision": "5cf931ef8f76dccd0910001d74a58a7fca84a83d",
-			"revisionTime": "2015-05-11T13:47:10-04:00"
+			"path": "github.com/keybase/pty",
+			"revision": "fe7bf4339680885ba71b3e0a2b07ff378a9020e4",
+			"revisionTime": "2015-11-04T12:44:15-08:00"
 		},
 		{
 			"path": "github.com/kr/text",
