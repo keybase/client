@@ -53,7 +53,9 @@ class KeyListener: UIViewController {
   override var keyCommands: [UIKeyCommand]? {
     return [
       UIKeyCommand(input: "[", modifierFlags: .Command, action: "goBackInTime:"),
-      UIKeyCommand(input: "]", modifierFlags: .Command, action: "goForwardInTime:")
+      UIKeyCommand(input: "]", modifierFlags: .Command, action: "goForwardInTime:"),
+      UIKeyCommand(input: "s", modifierFlags: [.Shift, .Command], action: "saveState:"),
+      UIKeyCommand(input: "c", modifierFlags: [.Shift, .Command], action: "clearState:")
     ]
   }
 
@@ -63,6 +65,14 @@ class KeyListener: UIViewController {
 
   func goForwardInTime(sender: UIKeyCommand){
     bridge.eventDispatcher.sendAppEventWithName("forwardInTime", body: true)
+  }
+
+  func saveState(sender: UIKeyCommand){
+    bridge.eventDispatcher.sendAppEventWithName("saveState", body: true)
+  }
+
+  func clearState(sender: UIKeyCommand){
+    bridge.eventDispatcher.sendAppEventWithName("clearState", body: true)
   }
 
 }

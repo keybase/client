@@ -12,19 +12,22 @@ import config from './config'
 import tabbedRouter from './tabbed-router'
 import {List} from 'immutable'
 import type { State } from '../constants/reducer-types'
+import serialize from './serialize'
+
+import { TIME_TRAVEL, TIME_TRAVEL_BACK } from '../constants/dev'
 
 let history = List()
 let index = 0
 
 function timeTravel (state: State, action: any): State {
-  if (action.type !== 'timetravel') {
+  if (action.type !== TIME_TRAVEL) {
     history = history.slice(0, index + 1).push(state)
     index = history.size - 1
     return state
   } else {
     const { direction } = action.payload
 
-    if (direction === 'back') {
+    if (direction === TIME_TRAVEL_BACK) {
       return history.get(--index, state)
     }
     return history.get(++index, state)
@@ -46,7 +49,7 @@ export default function (state: State, action: any): State {
 
   // TODO move this __DEV__ to a module
   if (__DEV__) { // eslint-disable-line no-undef
-    return timeTravel(nextState, action)
+    return serialize(timeTravel(nextState, action), action)
   }
 
   return nextState
