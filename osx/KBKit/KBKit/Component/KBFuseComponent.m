@@ -83,22 +83,26 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 - (void)refreshComponent:(KBCompletion)completion {
   GHWeakSelf gself = self;
   KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
-  [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *status) {
+  [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
 
     GHODictionary *info = [GHODictionary dictionary];
-    info[@"Version"] = KBIfBlank(status.version, nil);
+    info[@"Version"] = KBIfBlank(fuseStatus.version, nil);
 
-    if (![status.version isEqualToString:status.bundleVersion]) {
-      info[@"Bundle Version"] = KBIfBlank(status.bundleVersion, nil);
+    if (![fuseStatus.version isEqualToString:fuseStatus.bundleVersion]) {
+      info[@"Bundle Version"] = KBIfBlank(fuseStatus.bundleVersion, nil);
     }
 
-    if (![NSString gh_isBlank:status.kextID]) {
-      info[@"Kext ID"] = KBIfBlank(status.kextID, nil);
-      info[@"Kext Loaded"] = status.kextStarted ? @"Yes" : @"No";
+    if (![NSString gh_isBlank:fuseStatus.kextID]) {
+      info[@"Kext ID"] = KBIfBlank(fuseStatus.kextID, nil);
+      info[@"Kext Loaded"] = fuseStatus.kextStarted ? @"Yes" : @"No";
     }
-    info[@"Path"] = KBIfBlank(status.path, nil);
+    info[@"Path"] = KBIfBlank(fuseStatus.path, nil);
 
-    KBComponentStatus *componentStatus = [KBComponentStatus componentStatusWithInstallStatus:status.installStatus installAction:status.installAction runtimeStatus:KBRuntimeStatusNone info:info error:(status.error ? KBMakeError(-1, @"%@", status.error.message) : nil)];
+    if (fuseStatus.status.code > 0) {
+      error = KBMakeError(fuseStatus.status.code, @"%@", fuseStatus.status.desc);
+    }
+
+    KBComponentStatus *componentStatus = [KBComponentStatus componentStatusWithInstallStatus:fuseStatus.installStatus installAction:fuseStatus.installAction info:info error:error];
 
     gself.componentStatus = componentStatus;
 

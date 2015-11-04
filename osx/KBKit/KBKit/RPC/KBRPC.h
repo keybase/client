@@ -95,6 +95,8 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSString *version;
 @property NSString *path;
 @property NSString *configPath;
+@property NSString *versionShort;
+@property NSString *versionFull;
 @end
 
 typedef NS_ENUM (NSInteger, KBRInstallStatus) {
@@ -104,10 +106,6 @@ typedef NS_ENUM (NSInteger, KBRInstallStatus) {
 	KBRInstallStatusNeedsUpgrade = 3,
 	KBRInstallStatusInstalled = 4,
 };
-
-@interface KBRStatusError : KBRObject
-@property NSString *message;
-@end
 
 typedef NS_ENUM (NSInteger, KBRInstallAction) {
 	KBRInstallActionUnknown = 0,
@@ -125,7 +123,7 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 @property NSString *bundleVersion;
 @property KBRInstallStatus installStatus;
 @property KBRInstallAction installAction;
-@property KBRStatusError *error;
+@property KBRStatus *status;
 @end
 
 @interface KBRFuseStatus : KBRObject
@@ -136,7 +134,7 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 @property BOOL kextStarted;
 @property KBRInstallStatus installStatus;
 @property KBRInstallAction installAction;
-@property KBRStatusError *error;
+@property KBRStatus *status;
 @end
 
 @interface KBRED25519SignatureInfo : KBRObject
@@ -462,6 +460,11 @@ typedef NS_ENUM (NSInteger, KBRDeviceType) {
 	KBRDeviceTypeDesktop = 0,
 	KBRDeviceTypeMobile = 1,
 };
+
+@interface KBRSecretResponse : KBRObject
+@property NSData *secret;
+@property NSString *phrase;
+@end
 
 @interface KBRVerifySessionRes : KBRObject
 @property NSString *uid;
@@ -1702,9 +1705,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  It also can return a secret that the user enters into this device (from the other device). 
  If it does not return a secret, it will be canceled when this device receives the secret via kex2.
  */
-- (void)displayAndPromptSecret:(KBRDisplayAndPromptSecretRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)displayAndPromptSecret:(KBRDisplayAndPromptSecretRequestParams *)params completion:(void (^)(NSError *error, KBRSecretResponse *secretResponse))completion;
 
-- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase otherDeviceType:(KBRDeviceType)otherDeviceType completion:(void (^)(NSError *error, NSData *bytes))completion;
+- (void)displayAndPromptSecretWithSecret:(NSData *)secret phrase:(NSString *)phrase otherDeviceType:(KBRDeviceType)otherDeviceType completion:(void (^)(NSError *error, KBRSecretResponse *secretResponse))completion;
 
 /*!
  DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two

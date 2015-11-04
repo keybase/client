@@ -14,6 +14,7 @@
 #import "KBRunOver.h"
 
 @interface KBStatusView ()
+@property KBLabel *infoLabel;
 @property YOView *installStatusView;
 @property YOHBox *buttons;
 @property YOHBox *skipButtons;
@@ -35,9 +36,8 @@
   [header setText:@"Keybase Status" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [contentView addSubview:header];
 
-  KBLabel *infoLabel = [[KBLabel alloc] init];
-  [infoLabel setText:@"We need to install, update or start some components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-  [contentView addSubview:infoLabel];
+  _infoLabel = [[KBLabel alloc] init];
+  [contentView addSubview:_infoLabel];
 
   _installStatusView = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
   _installStatusView.identifier = @"InstallStatus";
@@ -78,12 +78,23 @@
   }];
 }
 
+- (NSArray *)checkBrew:(NSArray *)actions {
+  return [actions select:^BOOL(KBInstallAction *action) {
+    return [action.installable.componentStatus.label gh_startsWith:@"homebrew."];
+  }];
+}
+
 - (void)refresh {
   [KBActivity setProgressEnabled:YES sender:self];
   GHWeakSelf gself = self;
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall) {
     [KBActivity setProgressEnabled:NO sender:self];
+
+//    NSArray *brew = [gself checkBrew:gself.environment.installActions];
+//    if ([brew count] > 0) {
+//    }
+
     if (needsInstall) {
       [self showInstallActions:gself.environment.installActions];
     } else {
@@ -104,6 +115,8 @@
 - (void)showInstallActions:(NSArray *)installActions {
   NSArray *installViews = [_installStatusView.subviews copy];
   for (NSView *subview in installViews) [subview removeFromSuperview];
+
+  [_infoLabel setText:@"We need to install, update or start some components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
   for (KBInstallAction *installAction in installActions) {
     NSString *name = installAction.name;

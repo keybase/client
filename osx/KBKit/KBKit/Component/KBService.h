@@ -20,6 +20,4 @@
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label;
 
-+ (void)lookup:(KBEnvConfig *)config completion:(void (^)(NSError *error, NSString *label))completion;
-
 @end

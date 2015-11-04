@@ -66,7 +66,7 @@
 
   if (![NSFileManager.defaultManager fileExistsAtPath:PLIST_DEST isDirectory:nil] &&
       ![NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil]) {
-    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall runtimeStatus:KBRuntimeStatusNone info:info error:nil];
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:info error:nil];
     completion(nil);
     return;
   }
@@ -74,17 +74,17 @@
   MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
   [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall runtimeStatus:KBRuntimeStatusNone info:info error:error];
+      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall info:info error:error];
       completion(nil);
     } else {
       KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:KBIfNull(versions[@"build"], nil)];
       if (runningVersion) info[@"Version"] = [runningVersion description];
       if ([bundleVersion isGreaterThan:runningVersion]) {
         if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNeedsUpgrade installAction:KBRInstallActionUpgrade runtimeStatus:KBRuntimeStatusRunning info:info error:nil];
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNeedsUpgrade installAction:KBRInstallActionUpgrade info:info error:nil];
         completion(nil);
       } else {
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone runtimeStatus:KBRuntimeStatusRunning info:info error:nil];
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
         completion(nil);
       }
     }

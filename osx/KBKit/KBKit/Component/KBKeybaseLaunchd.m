@@ -19,9 +19,9 @@
 
 @implementation KBKeybaseLaunchd
 
-+ (void)install:(NSString *)binPath label:(NSString *)label args:(NSArray *)args completion:(KBCompletion)completion {
++ (void)install:(NSString *)binPath label:(NSString *)label serviceBinPath:(NSString *)serviceBinPath args:(NSArray *)args completion:(KBCompletion)completion {
   NSMutableArray *pargs = [NSMutableArray array];
-  [pargs addObjectsFromArray:@[@"launchd", @"install", label, binPath]];
+  [pargs addObjectsFromArray:@[@"launchd", @"install", label, serviceBinPath]];
   [pargs addObjectsFromArray:args];
   [KBTask execute:binPath args:pargs completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);

@@ -30,7 +30,7 @@ Create our own bundle from the kext and some support files:
 
 Sign the kext:
 
-    codesign --verbose --deep --sign "Developer ID Application: Keybase, Inc." osxfusefs.bundle/Support/osxfusefs.kext
+    codesign --verbose --sign "Developer ID Application: Keybase, Inc." osxfusefs.bundle/Support/osxfusefs.kext
 
 To verify kext signature:
 
