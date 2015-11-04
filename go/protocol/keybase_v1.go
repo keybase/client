@@ -2187,6 +2187,11 @@ type MetadataResponse struct {
 	MdBlocks [][]byte `codec:"mdBlocks" json:"mdBlocks"`
 }
 
+type FolderUsersResponse struct {
+	Readers []UID `codec:"readers" json:"readers"`
+	Writers []UID `codec:"writers" json:"writers"`
+}
+
 type AuthenticateArg struct {
 	User      UID    `codec:"user" json:"user"`
 	DeviceKID KID    `codec:"deviceKID" json:"deviceKID"`
@@ -2236,6 +2241,10 @@ type TruncateUnlockArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
 }
 
+type GetFolderUsersArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+}
+
 type PingArg struct {
 }
 
@@ -2249,6 +2258,7 @@ type MetadataInterface interface {
 	GetKey(context.Context, GetKeyArg) ([]byte, error)
 	TruncateLock(context.Context, string) (bool, error)
 	TruncateUnlock(context.Context, string) (bool, error)
+	GetFolderUsers(context.Context, string) (FolderUsersResponse, error)
 	Ping(context.Context) error
 }
 
@@ -2400,6 +2410,22 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getFolderUsers": {
+				MakeArg: func() interface{} {
+					ret := make([]GetFolderUsersArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetFolderUsersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetFolderUsersArg)(nil), args)
+						return
+					}
+					ret, err = i.GetFolderUsers(ctx, (*typedArgs)[0].FolderID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"ping": {
 				MakeArg: func() interface{} {
 					ret := make([]PingArg, 1)
@@ -2463,6 +2489,12 @@ func (c MetadataClient) TruncateLock(ctx context.Context, folderID string) (res 
 func (c MetadataClient) TruncateUnlock(ctx context.Context, folderID string) (res bool, err error) {
 	__arg := TruncateUnlockArg{FolderID: folderID}
 	err = c.Cli.Call(ctx, "keybase.1.metadata.truncateUnlock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) GetFolderUsers(ctx context.Context, folderID string) (res FolderUsersResponse, err error) {
+	__arg := GetFolderUsersArg{FolderID: folderID}
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getFolderUsers", []interface{}{__arg}, &res)
 	return
 }
 
