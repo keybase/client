@@ -12,6 +12,7 @@ import config from './config'
 import tabbedRouter from './tabbed-router'
 import {List} from 'immutable'
 import type { State } from '../constants/reducer-types'
+import { isDev } from '../constants/platform'
 import serialize from './serialize'
 
 import { TIME_TRAVEL, TIME_TRAVEL_BACK } from '../constants/dev'
@@ -45,8 +46,7 @@ const combinedReducer = combineReducers({
 })
 
 let reducer
-// TODO move this __DEV__ to a module
-if (__DEV__) { // eslint-disable-line no-undef
+if (isDev) {
   reducer = function (state: State, action: any): State {
     return (
       serialize(

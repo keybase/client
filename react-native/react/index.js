@@ -6,6 +6,7 @@ import { Provider, connect } from 'react-redux/native'
 import configureStore from './store/configure-store'
 import Nav from './nav'
 
+import { isDev } from './constants/platform'
 import { STATE_KEY } from './constants/reducer-types'
 import { SERIALIZE_RESTORE, SERIALIZE_SAVE, TIME_TRAVEL, TIME_TRAVEL_FORWARD, TIME_TRAVEL_BACK } from './constants/dev'
 
@@ -18,8 +19,7 @@ class Keybase extends Component {
 
   componentWillMount () {
     this.subscriptions = []
-    // TODO move this __DEV__ to a module
-    if (__DEV__) { // eslint-disable-line no-undef
+    if (isDev) {
       AsyncStorage.getItem(STATE_KEY, (err, stateJSON) => {
         if (err != null) {
           console.error('Error in reading state:', err)
