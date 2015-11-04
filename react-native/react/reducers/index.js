@@ -34,7 +34,7 @@ function timeTravel (state: State, action: any): State {
   }
 }
 
-const reducer = combineReducers({
+const combinedReducer = combineReducers({
   login,
   login2,
   devices,
@@ -44,13 +44,20 @@ const reducer = combineReducers({
   config
 })
 
-export default function (state: State, action: any): State {
-  const nextState = reducer(state, action)
-
-  // TODO move this __DEV__ to a module
-  if (__DEV__) { // eslint-disable-line no-undef
-    return serialize(timeTravel(nextState, action), action)
+let reducer
+// TODO move this __DEV__ to a module
+if (__DEV__) { // eslint-disable-line no-undef
+  reducer = function (state: State, action: any): State {
+    return (
+      serialize(
+        timeTravel(
+          combinedReducer(state, action),
+          action),
+        action)
+    )
   }
-
-  return nextState
+} else {
+  reducer = combinedReducer
 }
+
+export default reducer
