@@ -366,10 +366,6 @@ const (
 	InstallStatus_INSTALLED     InstallStatus = 4
 )
 
-type StatusError struct {
-	Message string `codec:"message" json:"message"`
-}
-
 type InstallAction int
 
 const (
@@ -388,7 +384,7 @@ type ServiceStatus struct {
 	BundleVersion  string        `codec:"bundleVersion" json:"bundleVersion"`
 	InstallStatus  InstallStatus `codec:"installStatus" json:"installStatus"`
 	InstallAction  InstallAction `codec:"installAction" json:"installAction"`
-	Error          *StatusError  `codec:"error,omitempty" json:"error,omitempty"`
+	Status         Status        `codec:"status" json:"status"`
 }
 
 type FuseStatus struct {
@@ -399,7 +395,7 @@ type FuseStatus struct {
 	KextStarted   bool          `codec:"kextStarted" json:"kextStarted"`
 	InstallStatus InstallStatus `codec:"installStatus" json:"installStatus"`
 	InstallAction InstallAction `codec:"installAction" json:"installAction"`
-	Error         *StatusError  `codec:"error,omitempty" json:"error,omitempty"`
+	Status        Status        `codec:"status" json:"status"`
 }
 
 type GetCurrentStatusArg struct {

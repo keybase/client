@@ -4627,9 +4627,6 @@
 @implementation KBRConfig
 @end
 
-@implementation KBRStatusError
-@end
-
 @implementation KBRServiceStatus
 @end
 

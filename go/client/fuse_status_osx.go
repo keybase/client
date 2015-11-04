@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-kext"
 )
 
 func KeybaseFuseStatus(bundleVersion string) keybase1.FuseStatus {
-	status := keybase1.FuseStatus{
+	st := keybase1.FuseStatus{
 		BundleVersion: bundleVersion,
 		InstallStatus: keybase1.InstallStatus_UNKNOWN,
 		InstallAction: keybase1.InstallAction_UNKNOWN,
@@ -22,25 +23,24 @@ func KeybaseFuseStatus(bundleVersion string) keybase1.FuseStatus {
 	// Check osxfuse 3.x
 	path3 := "/Library/Filesystems/osxfuse.fs"
 	if _, err := os.Stat(path3); err == nil {
-		status.Path = path3
+		st.Path = path3
 		kextID3 := "com.github.osxfuse.filesystems.osxfuse"
 		infov3, errv3 := kext.LoadInfo(kextID3)
 		if errv3 != nil {
-			status.InstallStatus = keybase1.InstallStatus_ERROR
-			status.InstallAction = keybase1.InstallAction_NONE
-			status.Error = &keybase1.StatusError{Message: errv3.Error()}
-			return status
+			st.InstallStatus = keybase1.InstallStatus_ERROR
+			st.InstallAction = keybase1.InstallAction_NONE
+			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: errv3.Error()}
+			return st
 		}
 		if infov3 == nil {
-			status.InstallStatus = keybase1.InstallStatus_ERROR
-			status.InstallAction = keybase1.InstallAction_NONE
-			status.Error = &keybase1.StatusError{
-				Message: fmt.Sprintf("Fuse (3) installed (%s) but kext was not loaded (%s)", status.Path, kextID3)}
-			return status
+			st.InstallStatus = keybase1.InstallStatus_ERROR
+			st.InstallAction = keybase1.InstallAction_NONE
+			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Fuse (3) installed (%s) but kext was not loaded (%s)", st.Path, kextID3)}
+			return st
 		}
 
 		// Installed (v3)
-		status.KextID = kextID3
+		st.KextID = kextID3
 		kextInfo = infov3
 	}
 
@@ -49,48 +49,47 @@ func KeybaseFuseStatus(bundleVersion string) keybase1.FuseStatus {
 	if _, err := os.Stat(path2); err == nil {
 
 		// Make sure Fuse2 isn't still lingering around
-		if status.KextID != "" {
-			status.InstallStatus = keybase1.InstallStatus_ERROR
-			status.InstallAction = keybase1.InstallAction_NONE
-			status.Error = &keybase1.StatusError{Message: "Fuse 2 and 3 both exist"}
-			return status
+		if st.KextID != "" {
+			st.InstallStatus = keybase1.InstallStatus_ERROR
+			st.InstallAction = keybase1.InstallAction_NONE
+			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: "Fuse 2 and 3 both exist"}
+			return st
 		}
 
-		status.Path = path2
+		st.Path = path2
 		kextID2 := "com.github.osxfuse.filesystems.osxfusefs"
 		infov2, errv2 := kext.LoadInfo(kextID2)
 		if errv2 != nil {
-			status.InstallStatus = keybase1.InstallStatus_ERROR
-			status.InstallAction = keybase1.InstallAction_NONE
-			status.Error = &keybase1.StatusError{Message: errv2.Error()}
-			return status
+			st.InstallStatus = keybase1.InstallStatus_ERROR
+			st.InstallAction = keybase1.InstallAction_NONE
+			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: errv2.Error()}
+			return st
 		}
 		if infov2 == nil {
-			status.InstallStatus = keybase1.InstallStatus_ERROR
-			status.InstallAction = keybase1.InstallAction_NONE
-			status.Error = &keybase1.StatusError{
-				Message: fmt.Sprintf("Fuse (2) installed (%s) but kext was not loaded (%s)", status.Path, kextID2)}
-			return status
+			st.InstallStatus = keybase1.InstallStatus_ERROR
+			st.InstallAction = keybase1.InstallAction_NONE
+			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Fuse (2) installed (%s) but kext was not loaded (%s)", st.Path, kextID2)}
+			return st
 		}
 		// Installed (v2)
-		status.KextID = kextID2
+		st.KextID = kextID2
 		kextInfo = infov2
 	}
 
 	// If neither is found, we have no install
-	if status.KextID == "" || kextInfo == nil {
-		status.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
-		status.InstallAction = keybase1.InstallAction_INSTALL
-		return status
+	if st.KextID == "" || kextInfo == nil {
+		st.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
+		st.InstallAction = keybase1.InstallAction_INSTALL
+		return st
 	}
 
-	status.Version = kextInfo.Version
-	status.KextStarted = kextInfo.Started
+	st.Version = kextInfo.Version
+	st.KextStarted = kextInfo.Started
 
-	installStatus, installAction, se := installStatus(status.Version, status.BundleVersion, "")
-	status.InstallStatus = installStatus
-	status.InstallAction = installAction
-	status.Error = se
+	installStatus, installAction, status := installStatus(st.Version, st.BundleVersion, "")
+	st.InstallStatus = installStatus
+	st.InstallAction = installAction
+	st.Status = status
 
-	return status
+	return st
 }

@@ -47,10 +47,6 @@ protocol config {
     INSTALLED_4
   }
 
-  record StatusError {
-    string message;
-  }
-
   enum InstallAction {
     UNKNOWN_0,
     NONE_1, // Nothing to do
@@ -67,7 +63,7 @@ protocol config {
     string bundleVersion;
     InstallStatus installStatus;
     InstallAction installAction;
-    union { null, StatusError } `error`;
+    Status status;
   }
 
   record FuseStatus {
@@ -78,7 +74,7 @@ protocol config {
     boolean kextStarted;
     InstallStatus installStatus;
     InstallAction installAction;
-    union { null, StatusError } `error`;
+    Status status;
   }
 
 }
