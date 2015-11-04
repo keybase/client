@@ -5,10 +5,6 @@ import React from '../../base-react'
 import { List, ListItem } from 'material-ui'
 
 export default class MenuList extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return (
       <List>

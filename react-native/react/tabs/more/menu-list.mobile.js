@@ -7,10 +7,6 @@ import Button from '../../common-adapters/button'
 import commonStyles from '../../styles/common'
 
 export default class MenuList extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   componentWillMount () {
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
     this.state = {
@@ -18,8 +14,12 @@ export default class MenuList extends BaseComponent {
     }
   }
 
+  renderSep (rowID) {
+    return (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
+  }
+
   renderRow (rowData, sectionID, rowID) {
-    const sep = (rowID < (this.state.dataSource.getRowCount() - 1)) ? <View style={commonStyles.separator} /> : null
+    const sep = this.renderSep(rowID)
 
     return (
       <Button onPress={rowData.onClick}>

@@ -26,7 +26,7 @@ export default class Account extends Component {
             {emailVerified ? 'Verified ✔' : 'Not Verified'}
           </Text>
           <TextInput style={commonStyles.textInput}
-            onChangeText={(email) => this.setState({email})}
+            onChangeText={email => this.setState({email})}
             defaultValue={email}/>
           {emailError && <Text style={[styles.errorInfo, {marginHorizontal: 10}]}>{emailError}</Text>}
         </View>
@@ -35,19 +35,19 @@ export default class Account extends Component {
           <Text style={{fontSize: 23, marginBottom: 20}}> Change Passphrase </Text>
           <TextInput style={commonStyles.textInput}
             returnKeyType='next'
-            onSubmitEditing={(event) => this.refs['newPassphrase'].focus()}
-            onChangeText={(oldPassphrase) => this.setState({oldPassphrase})}
+            onSubmitEditing={() => this.refs['newPassphrase'].focus()}
+            onChangeText={oldPassphrase => this.setState({oldPassphrase})}
             placeholder='Current passphrase'/>
           <TextInput style={commonStyles.textInput}
             returnKeyType='next'
             ref='newPassphrase'
-            onSubmitEditing={(event) => this.refs['newPassphraseRepeat'].focus()}
-            onChangeText={(newPassphrase) => this.setState({newPassphrase})}
+            onSubmitEditing={() => this.refs['newPassphraseRepeat'].focus()}
+            onChangeText={newPassphrase => this.setState({newPassphrase})}
             placeholder='New passphrase'/>
           <TextInput style={commonStyles.textInput}
             returnKeyType='next'
             ref='newPassphraseRepeat'
-            onChangeText={(newPassphraseRepeat) => this.setState({newPassphraseRepeat})}
+            onChangeText={newPassphraseRepeat => this.setState({newPassphraseRepeat})}
             placeholder='Confirm new passphrase'/>
 
           <View style={styles.saveContainer}>
