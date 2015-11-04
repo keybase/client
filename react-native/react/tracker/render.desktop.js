@@ -10,10 +10,6 @@ import Bio from './bio-render'
 import Proofs from './proofs-render'
 
 export default class Render extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return (
       <div style={{backgroundColor: 'red', display: 'flex', flex: 1, flexDirection: 'column'}}>

@@ -5,10 +5,6 @@ import React from '../base-react'
 import BaseComponent from '../base-component'
 
 export default class ProofsRender extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return (
       <div style={{backgroundColor: 'green', display: 'flex', flex: 1, flexDirection: 'column', overflowY: 'auto'}}>

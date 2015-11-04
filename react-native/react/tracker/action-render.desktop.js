@@ -5,10 +5,6 @@ import React from '../base-react'
 import BaseComponent from '../base-component'
 
 export default class ActionRender extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return (
       <div style={{display: 'flex', flex: 1, justifyContent: 'space-between'}}>
