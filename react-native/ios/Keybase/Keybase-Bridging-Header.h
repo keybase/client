@@ -3,5 +3,6 @@
 //
 
 #import "RCTBridgeModule.h"
+#import "RCTEventDispatcher.h"
 #import "Engine.h"
 #import "RCTRootView.h"

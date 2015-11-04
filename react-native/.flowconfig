@@ -14,6 +14,7 @@
 .*/react/local-debug.js
 
 # Ignoring these for now
+.*desktop.js
 .*/desktop/.*
 .*/node_modules/redux-devtools/.*
 .*/node_modules/react-redux/node_modules/invariant/.*
@@ -65,6 +66,7 @@ munge_underscores=true
 
 module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.png$' -> 'RelativeImageStub'
+module.name_mapper= '\.\/serialize' -> './serialize.mobile.js'
 
 suppress_type=$FlowIssue
 suppress_type=$FlowFixMe
