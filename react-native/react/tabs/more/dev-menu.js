@@ -35,6 +35,9 @@ export default class DevMenu extends BaseComponent {
       }},
       {name: 'Profile', hasChildren: true, onClick: () => {
         this.props.pushNewProfile('test12')
+      }},
+      {name: 'Tracker', hasChildren: true, onClick: () => {
+        this.props.routeAppend(['tracker'])
       }}
     ]
     return (
@@ -57,7 +60,8 @@ export default class DevMenu extends BaseComponent {
       subRoutes: {
         developer: require('./developer'),
         login: require('../../login'),
-        login2: require('../../login2')
+        login2: require('../../login2'),
+        tracker: require('../../tracker')
       }
     }
   }
