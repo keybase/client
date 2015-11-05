@@ -6,6 +6,7 @@
 
 import { createRouterState } from './reducers/router'
 import * as Tabs from './constants/tabs'
+import { isDev } from './constants/platform'
 
 let config = {
   overrideRouterState: null,
@@ -14,9 +15,7 @@ let config = {
   allowStartupFailure: false
 }
 
-/* eslint-disable no-undef */
-if (process.env.NODE_ENV === 'development' && false) {
-/* eslint-enable no-undef */
+if (isDev && false) {
   config.overrideRouterState = createRouterState(['devMenu', 'tracker'], [])
   config.overrideActiveTab = Tabs.MORE_TAB
   config.skipLoginRouteToRoot = true
