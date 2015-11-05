@@ -12,8 +12,8 @@ import Proofs from './proofs-render'
 export default class Render extends BaseComponent {
   render () {
     return (
-      <div style={{backgroundColor: 'red', display: 'flex', flex: 1, flexDirection: 'column'}}>
-        <Header />
+      <div style={{display: 'flex', flex: 1, flexDirection: 'column'}}>
+        <Header {...this.props} />
         <div style={{backgroundColor: 'green', display: 'flex', flex: 1, flexDirection: 'row', height: 480}}>
           <Bio />
           <Proofs />
@@ -23,3 +23,4 @@ export default class Render extends BaseComponent {
     )
   }
 }
+

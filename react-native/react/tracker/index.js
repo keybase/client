@@ -7,7 +7,10 @@ import Render from './render'
 
 export default class Tracker extends BaseComponent {
   render () {
-    return <Render username='test12'/>
+    return <Render
+      username='test12'
+      reason='You accessed /private/cecile'
+    />
   }
 
   static parseRoute (store, currentPath, nextPath) {
@@ -19,4 +22,5 @@ export default class Tracker extends BaseComponent {
   }
 }
 
-Tracker.propTypes = {}
+Tracker.propTypes = {
+}
