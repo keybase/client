@@ -62,7 +62,7 @@ func hmacSHA512(key []byte, data []byte) []byte {
 	return hasher.Sum(nil)[0:32]
 }
 
-func hashCryptoBlock(nonce *Nonce, ciphertext []byte) ([]byte, error) {
+func hashNonceAndAuthTag(nonce *Nonce, ciphertext []byte) ([]byte, error) {
 	var buf bytes.Buffer
 	buf.Write((*nonce)[:])
 	buf.Write(ciphertext[0:poly1305.TagSize])

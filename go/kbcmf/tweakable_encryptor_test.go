@@ -102,7 +102,7 @@ func (pes *testPublicEncryptStream) encryptBytes(b []byte) error {
 
 	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.sessionKey))
 	// Compute the MAC over the nonce and the ciphertext
-	sum, err := hashCryptoBlock(nonce, ciphertext)
+	sum, err := hashNonceAndAuthTag(nonce, ciphertext)
 	if err != nil {
 		return err
 	}

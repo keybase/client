@@ -77,7 +77,7 @@ func (pes *publicEncryptStream) encryptBytes(b []byte) error {
 	nonce := pes.numBlocks.newCounterNonce()
 	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.sessionKey))
 	// Compute the MAC over the nonce and the ciphertext
-	sum, err := hashCryptoBlock(nonce, ciphertext)
+	sum, err := hashNonceAndAuthTag(nonce, ciphertext)
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,8 @@ func (pes *publicEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPubli
 	eh.Nonce = make([]byte, nonceRandLen)
 	copy(eh.Nonce, nonce[:])
 
-	d := make(map[string]struct{})
+	// Make sure that each receiver only shows up in the set once.
+	receiversAsSet := make(map[string]struct{})
 
 	var i uint32
 
@@ -139,10 +140,10 @@ func (pes *publicEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPubli
 		for _, receiver := range group {
 			kid := receiver.ToKID()
 			kidString := hex.EncodeToString(kid)
-			if _, found := d[kidString]; found {
+			if _, found := receiversAsSet[kidString]; found {
 				return ErrRepeatedKey(kid)
 			}
-			d[kidString] = struct{}{}
+			receiversAsSet[kidString] = struct{}{}
 
 			pt := receiverKeysPlaintext{
 				GroupID:    gid,

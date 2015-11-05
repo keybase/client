@@ -12,7 +12,7 @@ type receiverKeysPlaintext struct {
 }
 
 type receiverKeysCiphertext struct {
-	KID  []byte `codec:"kid"`
+	KID  []byte `codec:"key_id"`
 	Keys []byte `codec:"keys"`
 }
 

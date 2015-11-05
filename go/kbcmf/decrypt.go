@@ -101,7 +101,7 @@ func (pds *publicDecryptStream) decode() error {
 		err = nil
 	}
 
-	// EOFs are only allowed in state 4; otherwise, it's a failure
+	// EOFs are only allowed in state 3; otherwise, it's a failure
 	if err == io.EOF {
 		if pds.state == 3 {
 			err = nil
@@ -186,7 +186,7 @@ func (pds *publicDecryptStream) processEncryptionBlock(bl *EncryptionBlock) (boo
 
 	nonce := blockNum.newCounterNonce()
 
-	if sum, err := hashCryptoBlock(nonce, bl.Ciphertext); err != nil {
+	if sum, err := hashNonceAndAuthTag(nonce, bl.Ciphertext); err != nil {
 		return false, err
 	} else if err := pds.checkMAC(bl, sum[:]); err != nil {
 		return false, err

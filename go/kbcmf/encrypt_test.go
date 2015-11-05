@@ -57,9 +57,7 @@ func (b boxPublicKey) ToRawBoxKeyPointer() *RawBoxKey {
 }
 
 func (b boxPublicKey) ToKID() []byte {
-	ret := append([]byte{0x01, 0x21}, b.key[:]...)
-	ret = append(ret, byte(0x0a))
-	return ret
+	return b.key[:]
 }
 
 func (b boxSecretKey) GetPublicKey() BoxPublicKey {
