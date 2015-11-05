@@ -1031,16 +1031,16 @@
 
 @implementation KBRNotifyCtlRequest
 
-- (void)toggleNotifications:(KBRToggleNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion {
+- (void)setNotifications:(KBRSetNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"channels": KBRValue(params.channels)};
-  [self.client sendRequestWithMethod:@"keybase.1.notifyCtl.toggleNotifications" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.notifyCtl.setNotifications" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)toggleNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion {
+- (void)setNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"channels": KBRValue(channels)};
-  [self.client sendRequestWithMethod:@"keybase.1.notifyCtl.toggleNotifications" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+  [self.client sendRequestWithMethod:@"keybase.1.notifyCtl.setNotifications" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -3452,7 +3452,7 @@
 }
 @end
 
-@implementation KBRToggleNotificationsRequestParams
+@implementation KBRSetNotificationsRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -3462,7 +3462,7 @@
 }
 
 + (instancetype)params {
-  KBRToggleNotificationsRequestParams *p = [[self alloc] init];
+  KBRSetNotificationsRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

@@ -170,7 +170,7 @@
     } ]
   } ],
   "messages" : {
-    "toggleNotifications" : {
+    "setNotifications" : {
       "request" : [ {
         "name" : "channels",
         "type" : "NotificationChannels"
