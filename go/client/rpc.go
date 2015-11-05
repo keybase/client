@@ -170,3 +170,12 @@ func GetFavoriteClient() (cli keybase1.FavoriteClient, err error) {
 	}
 	return
 }
+
+func GetNotifyCtlClient(g *libkb.GlobalContext) (cli keybase1.NotifyCtlClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.NotifyCtlClient{Cli: rcli}
+	return cli, nil
+}
