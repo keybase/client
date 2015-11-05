@@ -116,8 +116,10 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
    The secret half of the PGP key is written by default to the user's
    local Keybase keychain and encrypted with the "local key security"
    (LKS) protocol. (For more information, try 'keybase help keyring').
-   Also, by default, the public and secret halves of the new PGP key
-   is exported to the local GnuPG keyring, if one is found.
+   Also, by default, the public half of the new PGP key
+   is exported to the local GnuPG keyring, if one is found.  (For now,
+   you must export the secret half to gpg manually with a command like
+   'keybase pgp export -s | gpg --import'.)
 
    On subsequent secret key accesses --- say for PGP decryption or
    for signing --- access to the local GnuGP keyring is not required.
