@@ -32,8 +32,8 @@ Example JSON blob from the service:
 Example JSON reply to the service:
 ```js
 {
-  "password": "my_s3kr1t",
-  "checkbox_ticked": false
+  "secret": "my_s3kr1t",
+  "secret_storage": true
 }
 ```
 
