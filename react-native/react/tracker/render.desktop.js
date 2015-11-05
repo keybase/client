@@ -15,10 +15,10 @@ export default class Render extends BaseComponent {
       <div style={{display: 'flex', flex: 1, flexDirection: 'column'}}>
         <Header {...this.props} />
         <div style={{backgroundColor: 'green', display: 'flex', flex: 1, flexDirection: 'row', height: 480}}>
-          <Bio />
-          <Proofs />
+          <Bio {...this.props} />
+          <Proofs {...this.props} />
         </div>
-        <Action />
+        <Action {...this.props} />
       </div>
     )
   }

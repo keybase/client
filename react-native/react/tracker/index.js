@@ -8,8 +8,21 @@ import Render from './render'
 import { navigateUp } from '../actions/router'
 
 export default class Tracker extends BaseComponent {
+  constructor (props: any) {
+    super(props)
+
+    // this is TEMP since we don't have a store yet
+    this.state = {
+      shouldFollowChecked: props.shouldFollow
+    }
+  }
+
   render () {
-    return <Render {...this.props} />
+    // these non-prop values will be removed during integration
+    return <Render {...this.props}
+      shouldFollow={this.state.shouldFollowChecked}
+      followChecked={checked => this.setState({shouldFollowChecked: checked})}
+      />
   }
 
   static parseRoute (store, currentPath, nextPath) {
@@ -20,7 +33,11 @@ export default class Tracker extends BaseComponent {
         props: {
           reason: 'You accessed /private/cecile',
           username: 'test12',
-          onClose: () => store.dispatch(navigateUp()) // TODO
+          shouldFollow: true,
+          onClose: () => store.dispatch(navigateUp()), // TODO
+          onFollowHelp: () => window.open('https://keybase.io/docs/tracking'), // TODO
+          // TODO put back when we integrate
+          // followChecked: checked => this.setState({shouldFollowChecked: checked})
         }
       }
     }
