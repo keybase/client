@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "armor58": "0.0.1",
+    "armorx": "0.0.2",
     "iced-coffee-script": "^108.0.9"
   }
 }

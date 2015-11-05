@@ -30,8 +30,8 @@ func (e *encoder) Write(p []byte) (n int, err error) {
 		return 0, e.err
 	}
 
-	ibl := e.enc.inBlockLen
-	obl := e.enc.outBlockLen
+	ibl := e.enc.base256BlockLen
+	obl := e.enc.baseXBlockLen
 
 	// Leading fringe.
 	if e.nbuf > 0 {
@@ -88,15 +88,15 @@ func (e *encoder) Close() error {
 
 // NewEncoder returns a new baseX stream encoder.  Data written to
 // the returned writer will be encoded using enc and then written to w.
-// Encodings operate in enc.outBlockLen-byte blocks; when finished
+// Encodings operate in enc.baseXBlockLen-byte blocks; when finished
 // writing, the caller must Close the returned encoder to flush any
 // partially written blocks.
 func NewEncoder(enc *Encoding, w io.Writer) io.WriteCloser {
 	return &encoder{
 		enc: enc,
 		w:   w,
-		buf: make([]byte, enc.inBlockLen),
-		out: make([]byte, 128*enc.outBlockLen),
+		buf: make([]byte, enc.base256BlockLen),
+		out: make([]byte, 128*enc.baseXBlockLen),
 	}
 }
 
@@ -139,8 +139,8 @@ func (d *decoder) Read(p []byte) (int, error) {
 		return ret, nil
 	}
 
-	ibl := d.enc.inBlockLen
-	obl := d.enc.outBlockLen
+	ibl := d.enc.base256BlockLen
+	obl := d.enc.baseXBlockLen
 
 	nn := len(p) / ibl * obl
 	if nn < obl {
@@ -245,7 +245,7 @@ func newDecoder(enc *Encoding, r io.Reader, strict bool) io.Reader {
 	return &decoder{
 		enc:        enc,
 		r:          r,
-		buf:        make([]byte, 128*enc.inBlockLen),
-		scratchbuf: make([]byte, 128*enc.outBlockLen),
+		buf:        make([]byte, 128*enc.base256BlockLen),
+		scratchbuf: make([]byte, 128*enc.baseXBlockLen),
 	}
 }
