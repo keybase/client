@@ -15,11 +15,6 @@ import RemoveDevice from './remove-device'
 // [ ] - Add Icons
 
 export default class Devices extends Component {
-  loadDevices () {
-    if (!this.props.devices && !this.props.waitingForServer) {
-      this.props.loadDevices()
-    }
-  }
 
   renderDevice (device) {
     return (
@@ -48,16 +43,6 @@ export default class Devices extends Component {
   }
 
   render () {
-    const { devices } = this.props
-
-    if (!devices) {
-      return (
-        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          <Button onPress={() => this.loadDevices()} buttonStyle={{fontSize: 32, marginTop: 20, marginBottom: 20}} title='Load Devices' />
-        </View>
-      )
-    }
-
     return (
       <ScrollView>
         <View doc='Wrapper for new Actions (i.e. Connect a new device, Generate new paper key)'
@@ -71,37 +56,10 @@ export default class Devices extends Component {
         </View>
 
         <View doc='Wrapper for devices' style={styles.deviceWrapper}>
-          {devices.map((d) => this.renderDevice(d))}
+          {this.props.devices && this.props.devices.map((d) => this.renderDevice(d))}
         </View>
       </ScrollView>
     )
-  }
-
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        hideNavBar: true,
-        mapStateToProps: state => {
-          const { devices, waitingForServer } = state.devices
-          return {
-            devices,
-            waitingForServer
-          }
-        },
-        props: {
-          loadDevices: () => store.dispatch(loadDevices()),
-          showRemoveDevicePage: device => store.dispatch(routeAppend({path: 'removeDevice', device})),
-          showExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
-          showGenPaperKeyPage: () => store.dispatch(routeAppend('genPaperKey'))
-        }
-      },
-      subRoutes: {
-        codePage: CodePage,
-        genPaperKey: GenPaperKey,
-        regExistingDevice: ExistingDevice,
-        removeDevice: RemoveDevice
-      }
-    }
   }
 }
 

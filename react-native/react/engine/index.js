@@ -27,7 +27,11 @@ class Engine {
     )
 
     if (this.rpcClient.transport.needsConnect) {
-      this.rpcClient.transport.connect(err => console.log(err))
+      this.rpcClient.transport.connect(err => {
+        if (err) {
+          console.log(err)
+        }
+      })
     }
 
     this.setupListener()
