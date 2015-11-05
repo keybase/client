@@ -24,14 +24,6 @@ export default class Devices extends BaseComponent {
     }
   }
 
-  connectNew () {
-    console.log('Add device')
-  }
-
-  addPaperKey () {
-    console.log('Add paper key')
-  }
-
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
@@ -60,6 +52,6 @@ export default class Devices extends BaseComponent {
   }
 
   render () {
-    return <DevicesRender devices={this.props.devices} showRemoveDevicePage={this.props.showRemoveDevicePage} showExistingDevicePage={this.props.showExistingDevicePage} showGenPaperKeyPage={this.props.showGenPaperKeyPage} connectNew={this.connectNew} addPaperKey={this.addPaperKey}/ >
+    return <DevicesRender devices={this.props.devices} showRemoveDevicePage={this.props.showRemoveDevicePage} showExistingDevicePage={this.props.showExistingDevicePage} showGenPaperKeyPage={this.props.showGenPaperKeyPage} />
   }
 }

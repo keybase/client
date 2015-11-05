@@ -75,7 +75,7 @@ export default class DevicesRender extends BaseComponent {
     return (
       <View column>
         <View row style={styles.deviceContainer}>
-          <div style={Object.assign({}, styles.deviceOuter, styles.deviceAction)} onClick={() => this.connectNew()}>
+          <div style={Object.assign({}, styles.deviceOuter, styles.deviceAction)} onClick={() => this.props.showExistingDevicePage()}>
             <div style={styles.device}>
               <ActionNoteAdd style={styles.deviceIcon} />
               <h3>Connect a new device</h3>
@@ -83,7 +83,7 @@ export default class DevicesRender extends BaseComponent {
             </div>
           </div>
 
-          <div style={Object.assign({}, styles.deviceOuter, styles.deviceAction)} onClick={() => this.addPaperKey()}>
+          <div style={Object.assign({}, styles.deviceOuter, styles.deviceAction)} onClick={() => this.props.showGenPaperKeyPage()}>
             <div style={styles.device}>
               <CommunicationVpnKey style={styles.deviceIcon} />
               <h3>Generate a new paper key</h3>
