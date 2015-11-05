@@ -16,7 +16,7 @@ import (
 type SessionReader interface {
 	APIArgs() (token, csrf string)
 	IsLoggedIn() bool
-	Logout() error
+	Invalidate()
 }
 
 type Session struct {
@@ -287,11 +287,27 @@ func (s *Session) check() error {
 		}
 	} else {
 		s.G().Log.Notice("Stored session expired")
-		s.valid = false
+		s.Invalidate()
 	}
 
 	s.G().Log.Debug("- Checked session")
 	return nil
+}
+
+// Invalidate marks the session as invalid and posts a logout
+// notification.
+func (s *Session) Invalidate() {
+	s.G().Log.Debug("invalidating session")
+	s.clearState()
+	s.G().NotifyRouter.HandleLogout()
+}
+
+func (s *Session) clearState() {
+	s.valid = false
+	s.mtime = time.Time{}
+	s.token = ""
+	s.csrf = ""
+	s.checked = false
 }
 
 func (s *Session) HasSessionToken() bool {
@@ -310,11 +326,7 @@ func (s *Session) postLogout() error {
 		NeedSession: true,
 	})
 	if err == nil {
-		s.valid = false
-		s.mtime = time.Time{}
-		s.token = ""
-		s.csrf = ""
-		s.checked = false
+		s.clearState()
 	}
 	return err
 }

@@ -376,11 +376,11 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, status *jsonw.Wrappe
 	if !loggedIn {
 		return nil
 	}
-	a.G().Log.Debug("local session -> is logged in, remote -> not logged in.  logging user out:")
+	a.G().Log.Debug("local session -> is logged in, remote -> not logged in.  invalidating local session:")
 	if arg.SessionR != nil {
-		arg.SessionR.Logout()
+		arg.SessionR.Invalidate()
 	} else {
-		a.G().Logout()
+		a.G().LoginState().LocalSession(func(s *Session) { s.Invalidate() }, "api - checkSessionExpired")
 	}
 	return LoginRequiredError{Context: "your session has expired."}
 }

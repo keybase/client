@@ -299,6 +299,12 @@ func (e *Kex2Provisionee) APIArgs() (token, csrf string) {
 	return string(e.sessionToken), string(e.csrfToken)
 }
 
+// Invalidate implements libkb.SessionReader interface.
+func (e *Kex2Provisionee) Invalidate() {
+	e.sessionToken = ""
+	e.csrfToken = ""
+}
+
 // IsLoggedIn implements libkb.SessionReader interface.  For the
 // sake of kex2 provisionee, we are logged in because we have a
 // session token.
