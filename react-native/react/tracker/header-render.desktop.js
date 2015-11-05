@@ -14,7 +14,7 @@ export default class HeaderRender extends BaseComponent {
         title={this.props.reason}
         iconElementLeft={<div/>}
         iconElementRight={
-          <IconButton>
+          <IconButton onTouchTap={() => this.props.onClose()}>
             <NavigationClose />
           </IconButton>
         }
@@ -24,5 +24,6 @@ export default class HeaderRender extends BaseComponent {
 }
 
 HeaderRender.propTypes = {
-  reason: React.PropTypes.string.isRequired
+  reason: React.PropTypes.string.isRequired,
+  onClose: React.PropTypes.func.isRequired
 }
