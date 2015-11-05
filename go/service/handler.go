@@ -122,23 +122,14 @@ func (h *BaseHandler) getStreamUICli() *keybase1.StreamUiClient {
 	return &keybase1.StreamUiClient{Cli: h.rpcClient()}
 }
 
-func (h *BaseHandler) NewRemoteSelfIdentifyUI(sessionID int) *RemoteSelfIdentifyUI {
-	c := h.rpcClient()
-	return &RemoteSelfIdentifyUI{RemoteBaseIdentifyUI{
-		sessionID: sessionID,
-		uicli:     keybase1.IdentifyUiClient{Cli: c},
-		logUI:     h.getLogUI(sessionID),
-	}}
-}
-
 func (h *BaseHandler) NewRemoteIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI {
 	c := h.rpcClient()
-	return &RemoteIdentifyUI{RemoteBaseIdentifyUI{
+	return &RemoteIdentifyUI{
 		sessionID:    sessionID,
 		uicli:        keybase1.IdentifyUiClient{Cli: c},
 		logUI:        h.getLogUI(sessionID),
 		Contextified: libkb.NewContextified(g),
-	}}
+	}
 }
 
 func (h *BaseHandler) NewRemoteSkipPromptIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI {

@@ -317,6 +317,17 @@
 
 @end
 
+@implementation KBRDelegateUiCtlRequest
+
+- (void)registerIdentifyUI:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.delegateUiCtl.registerIdentifyUI" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRDeviceRequest
 
 - (void)deviceList:(void (^)(NSError *error, NSArray *items))completion {
@@ -453,7 +464,7 @@
 @implementation KBRIdentifyRequest
 
 - (void)identify:(KBRIdentifyRequestParams *)params completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
-  NSDictionary *rparams = @{@"userAssertion": KBRValue(params.userAssertion), @"trackStatement": @(params.trackStatement), @"forceRemoteCheck": @(params.forceRemoteCheck)};
+  NSDictionary *rparams = @{@"userAssertion": KBRValue(params.userAssertion), @"trackStatement": @(params.trackStatement), @"forceRemoteCheck": @(params.forceRemoteCheck), @"useDelegateUI": @(params.useDelegateUI)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -464,8 +475,8 @@
   }];
 }
 
-- (void)identifyWithUserAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
-  NSDictionary *rparams = @{@"userAssertion": KBRValue(userAssertion), @"trackStatement": @(trackStatement), @"forceRemoteCheck": @(forceRemoteCheck)};
+- (void)identifyWithUserAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck useDelegateUI:(BOOL)useDelegateUI completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
+  NSDictionary *rparams = @{@"userAssertion": KBRValue(userAssertion), @"trackStatement": @(trackStatement), @"forceRemoteCheck": @(forceRemoteCheck), @"useDelegateUI": @(useDelegateUI)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -479,6 +490,13 @@
 @end
 
 @implementation KBRIdentifyUiRequest
+
+- (void)delegateIdentifyUI:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.delegateIdentifyUI" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
 
 - (void)start:(KBRStartRequestParams *)params completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"username": KBRValue(params.username)};
@@ -2810,6 +2828,7 @@
     self.userAssertion = params[0][@"userAssertion"];
     self.trackStatement = [params[0][@"trackStatement"] boolValue];
     self.forceRemoteCheck = [params[0][@"forceRemoteCheck"] boolValue];
+    self.useDelegateUI = [params[0][@"useDelegateUI"] boolValue];
   }
   return self;
 }
@@ -2819,6 +2838,7 @@
   // Add default values
   p.trackStatement = false;
   p.forceRemoteCheck = false;
+  p.useDelegateUI = false;
   return p;
 }
 @end

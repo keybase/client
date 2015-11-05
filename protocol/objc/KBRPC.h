@@ -730,6 +730,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *userAssertion;
 @property BOOL trackStatement;
 @property BOOL forceRemoteCheck;
+@property BOOL useDelegateUI;
 @end
 @interface KBRStartRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1304,6 +1305,12 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @end
 
+@interface KBRDelegateUiCtlRequest : KBRRequest
+
+- (void)registerIdentifyUI:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRDeviceRequest : KBRRequest
 
 /*!
@@ -1368,11 +1375,13 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  */
 - (void)identify:(KBRIdentifyRequestParams *)params completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
 
-- (void)identifyWithUserAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
+- (void)identifyWithUserAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck useDelegateUI:(BOOL)useDelegateUI completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
 
 @end
 
 @interface KBRIdentifyUiRequest : KBRRequest
+
+- (void)delegateIdentifyUI:(void (^)(NSError *error, NSInteger n))completion;
 
 - (void)start:(KBRStartRequestParams *)params completion:(void (^)(NSError *error))completion;
 

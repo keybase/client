@@ -8,12 +8,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-type IDEngineArg struct {
-	UserAssertion    string
-	TrackStatement   bool // output a track statement
-	ForceRemoteCheck bool // don't use proof cache
-}
-
 type IDRes struct {
 	Outcome           *libkb.IdentifyOutcome
 	User              *libkb.User
@@ -23,12 +17,12 @@ type IDRes struct {
 
 // IDEnginge is the type used by cmd_id Run, daemon id handler.
 type IDEngine struct {
-	arg *IDEngineArg
+	arg *keybase1.IdentifyArg
 	res *IDRes
 	libkb.Contextified
 }
 
-func NewIDEngine(arg *IDEngineArg, g *libkb.GlobalContext) *IDEngine {
+func NewIDEngine(arg *keybase1.IdentifyArg, g *libkb.GlobalContext) *IDEngine {
 	return &IDEngine{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -106,21 +100,6 @@ func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 	ctx.IdentifyUI.Finish()
 
 	return res, nil
-}
-
-func (a IDEngineArg) Export() (res keybase1.IdentifyArg) {
-	return keybase1.IdentifyArg{
-		UserAssertion:  a.UserAssertion,
-		TrackStatement: a.TrackStatement,
-	}
-}
-
-func ImportIDEngineArg(a keybase1.IdentifyArg) (ret IDEngineArg) {
-	return IDEngineArg{
-		UserAssertion:    a.UserAssertion,
-		TrackStatement:   a.TrackStatement,
-		ForceRemoteCheck: a.ForceRemoteCheck,
-	}
 }
 
 func (ir *IDRes) Export() *keybase1.IdentifyRes {

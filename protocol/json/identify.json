@@ -321,6 +321,10 @@
         "name" : "forceRemoteCheck",
         "type" : "boolean",
         "default" : false
+      }, {
+        "name" : "useDelegateUI",
+        "type" : "boolean",
+        "default" : false
       } ],
       "response" : "IdentifyRes"
     }

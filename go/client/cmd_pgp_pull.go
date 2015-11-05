@@ -13,6 +13,7 @@ import (
 )
 
 type CmdPGPPull struct {
+	libkb.Contextified
 	userAsserts []string
 }
 
@@ -27,7 +28,7 @@ func (v *CmdPGPPull) Run() (err error) {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewIdentifyTrackUIProtocol(),
+		NewIdentifyTrackUIProtocol(v.G()),
 	}
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
@@ -38,14 +39,14 @@ func (v *CmdPGPPull) Run() (err error) {
 	})
 }
 
-func NewCmdPGPPull(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPPull(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "pull",
 		ArgumentHelp: "[<usernames...>]",
 		Usage:        "Download the latest PGP keys for people you track.",
 		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPPull{}, "pull", c)
+			cl.ChooseCommand(&CmdPGPPull{Contextified: libkb.NewContextified(g)}, "pull", c)
 		},
 		Description: `"keybase pgp pull" pulls down all of the PGP keys for the people
    you track. On success, it imports those keys into your local GnuPG keychain.

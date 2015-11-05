@@ -12,17 +12,13 @@ import (
 	"golang.org/x/net/context"
 )
 
-type RemoteBaseIdentifyUI struct {
+type RemoteIdentifyUI struct {
 	libkb.Contextified
 	sessionID  int
 	uicli      keybase1.IdentifyUiClient
 	logUI      libkb.LogUI
 	strict     bool
 	skipPrompt bool
-}
-
-type RemoteSelfIdentifyUI struct {
-	RemoteBaseIdentifyUI
 }
 
 type IdentifyHandler struct {
@@ -38,8 +34,7 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 }
 
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
-	iarg := engine.ImportIDEngineArg(arg)
-	res, err := h.identify(arg.SessionID, iarg, true)
+	res, err := h.identify(arg.SessionID, arg, true)
 	if err != nil {
 		return keybase1.IdentifyRes{}, err
 	}
@@ -47,7 +42,7 @@ func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) 
 }
 
 func (h *IdentifyHandler) IdentifyDefault(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
-	iarg := engine.IDEngineArg{UserAssertion: arg.UserAssertion, ForceRemoteCheck: arg.ForceRemoteCheck}
+	iarg := keybase1.IdentifyArg{UserAssertion: arg.UserAssertion, ForceRemoteCheck: arg.ForceRemoteCheck}
 	res, err := h.identify(arg.SessionID, iarg, true)
 	if err != nil {
 		return keybase1.IdentifyRes{}, err
@@ -55,22 +50,59 @@ func (h *IdentifyHandler) IdentifyDefault(_ context.Context, arg keybase1.Identi
 	return *(res.Export()), nil
 }
 
-func (h *IdentifyHandler) identify(sessionID int, iarg engine.IDEngineArg, doInteractive bool) (res *engine.IDRes, err error) {
+func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (ret *engine.Context, err error) {
+	var iui libkb.IdentifyUI
+
+	h.G().Log.Debug("+ makeContext(%d, %v)", sessionID, arg)
+	defer func() {
+		h.G().Log.Debug("- makeContext -> %v", err)
+	}()
+
+	if arg.UseDelegateUI {
+		h.G().Log.Debug("+ trying to delegate our UI")
+		iui, err = h.G().UIRouter.GetIdentifyUI()
+		if err != nil {
+			return nil, err
+		}
+		h.G().Log.Debug("- delegated UI with success=(%v)", (iui != nil))
+	}
+
+	// If we failed to delegate, we can still fallback and just log to the terminal.
+	if iui == nil {
+		h.G().Log.Debug("| using a remote UI as normal")
+		iui = h.NewRemoteIdentifyUI(sessionID, h.G())
+	}
+
+	if iui == nil {
+		err = libkb.NoUIError{Which: "Identify"}
+		return nil, err
+	}
+
 	logui := h.getLogUI(sessionID)
-	if iarg.TrackStatement {
+	if arg.TrackStatement {
 		logui = logger.NewNull()
 	}
+
 	ctx := engine.Context{
 		LogUI:      logui,
-		IdentifyUI: h.NewRemoteIdentifyUI(sessionID, h.G()),
+		IdentifyUI: iui,
 	}
-	eng := engine.NewIDEngine(&iarg, h.G())
-	err = engine.RunEngine(eng, &ctx)
-	res = eng.Result()
-	return
+	return &ctx, nil
 }
 
-func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) {
+func (h *IdentifyHandler) identify(sessionID int, arg keybase1.IdentifyArg, doInteractive bool) (res *engine.IDRes, err error) {
+	var ctx *engine.Context
+	ctx, err = h.makeContext(sessionID, arg)
+	if err != nil {
+		return nil, err
+	}
+	eng := engine.NewIDEngine(&arg, h.G())
+	err = engine.RunEngine(eng, ctx)
+	res = eng.Result()
+	return res, err
+}
+
+func (u *RemoteIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) {
 	u.uicli.FinishWebProofCheck(context.TODO(), keybase1.FinishWebProofCheckArg{
 		SessionID: u.sessionID,
 		Rp:        p,
@@ -79,7 +111,7 @@ func (u *RemoteBaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, lcr k
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) {
+func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) {
 	u.uicli.FinishSocialProofCheck(context.TODO(), keybase1.FinishSocialProofCheckArg{
 		SessionID: u.sessionID,
 		Rp:        p,
@@ -88,7 +120,7 @@ func (u *RemoteBaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lc
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (confirmed bool, err error) {
+func (u *RemoteIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (confirmed bool, err error) {
 	if u.skipPrompt {
 		u.G().Log.Debug("skipping Confirm for %q", io.Username)
 		return true, nil
@@ -96,27 +128,27 @@ func (u *RemoteBaseIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (confirmed 
 	return u.uicli.Confirm(context.TODO(), keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})
 }
 
-func (u *RemoteBaseIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) {
+func (u *RemoteIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) {
 	u.uicli.DisplayCryptocurrency(context.TODO(), keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
+func (u *RemoteIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
 	u.uicli.DisplayKey(context.TODO(), keybase1.DisplayKeyArg{SessionID: u.sessionID, Key: key})
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) ReportLastTrack(t *keybase1.TrackSummary) {
+func (u *RemoteIdentifyUI) ReportLastTrack(t *keybase1.TrackSummary) {
 	u.uicli.ReportLastTrack(context.TODO(), keybase1.ReportLastTrackArg{SessionID: u.sessionID, Track: t})
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) DisplayTrackStatement(s string) error {
+func (u *RemoteIdentifyUI) DisplayTrackStatement(s string) error {
 	return u.uicli.DisplayTrackStatement(context.TODO(), keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
 	// return
 }
 
-func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
+func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
 	u.uicli.LaunchNetworkChecks(context.TODO(), keybase1.LaunchNetworkChecksArg{
 		SessionID: u.sessionID,
 		Identity:  *id,
@@ -125,18 +157,14 @@ func (u *RemoteBaseIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *
 	return
 }
 
-func (u *RemoteBaseIdentifyUI) Start(username string) {
+func (u *RemoteIdentifyUI) Start(username string) {
 	u.uicli.Start(context.TODO(), keybase1.StartArg{SessionID: u.sessionID, Username: username})
 }
 
-func (u *RemoteBaseIdentifyUI) Finish() {
+func (u *RemoteIdentifyUI) Finish() {
 	u.uicli.Finish(context.TODO(), u.sessionID)
 }
 
-func (u *RemoteBaseIdentifyUI) SetStrict(b bool) {
+func (u *RemoteIdentifyUI) SetStrict(b bool) {
 	u.strict = b
-}
-
-type RemoteIdentifyUI struct {
-	RemoteBaseIdentifyUI
 }

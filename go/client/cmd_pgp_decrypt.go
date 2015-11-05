@@ -12,12 +12,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "decrypt",
 		Usage: "PGP decrypt messages or files for keybase users",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPDecrypt{}, "decrypt", c)
+			cl.ChooseCommand(&CmdPGPDecrypt{Contextified: libkb.NewContextified(g)}, "decrypt", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -56,6 +56,7 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine) cli.Command {
 }
 
 type CmdPGPDecrypt struct {
+	libkb.Contextified
 	UnixFilter
 	trackOptions keybase1.TrackOptions
 	signed       bool
@@ -69,8 +70,8 @@ func (c *CmdPGPDecrypt) Run() error {
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
-		NewSecretUIProtocol(G),
-		NewIdentifyTrackUIProtocol(),
+		NewSecretUIProtocol(c.G()),
+		NewIdentifyTrackUIProtocol(c.G()),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err

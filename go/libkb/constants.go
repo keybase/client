@@ -136,6 +136,7 @@ const (
 	SCIdentificationExpired  = 1702
 	SCSelfNotFound           = 1703
 	SCBadKexPhrase           = 1704
+	SCNoUIDelegation         = 1705
 )
 
 const (
