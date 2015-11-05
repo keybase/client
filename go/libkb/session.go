@@ -15,6 +15,8 @@ import (
 
 type SessionReader interface {
 	APIArgs() (token, csrf string)
+	IsLoggedIn() bool
+	Logout() error
 }
 
 type Session struct {

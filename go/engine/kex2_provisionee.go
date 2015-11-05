@@ -299,6 +299,18 @@ func (e *Kex2Provisionee) APIArgs() (token, csrf string) {
 	return string(e.sessionToken), string(e.csrfToken)
 }
 
+// IsLoggedIn implements libkb.SessionReader interface.  For the
+// sake of kex2 provisionee, we are logged in because we have a
+// session token.
+func (e *Kex2Provisionee) IsLoggedIn() bool {
+	return true
+}
+
+// Logout implements libkb.SessionReader interface.  Noop.
+func (e *Kex2Provisionee) Logout() error {
+	return nil
+}
+
 // Device returns the new device struct.
 func (e *Kex2Provisionee) Device() *libkb.Device {
 	return e.device

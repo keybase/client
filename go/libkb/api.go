@@ -331,7 +331,7 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	req.Header.Set("X-Keybase-Client", IdentifyAs)
 }
 
-func checkAppStatus(arg APIArg, jw *jsonw.Wrapper) (string, error) {
+func (a *InternalAPIEngine) checkAppStatus(arg APIArg, jw *jsonw.Wrapper) (string, error) {
 	var set []string
 
 	resName, err := jw.AtKey("name").GetString()
@@ -350,7 +350,39 @@ func checkAppStatus(arg APIArg, jw *jsonw.Wrapper) (string, error) {
 			return resName, nil
 		}
 	}
+
+	// check if there was a bad session error:
+	if err := a.checkSessionExpired(arg, jw); err != nil {
+		return "", err
+	}
+
 	return "", NewAppStatusError(jw)
+}
+
+func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, status *jsonw.Wrapper) error {
+	code, err := status.AtKey("code").GetInt()
+	if err != nil {
+		return fmt.Errorf("Cannot find status 'code' in reply")
+	}
+	if code != SCBadSession {
+		return nil
+	}
+	var loggedIn bool
+	if arg.SessionR != nil {
+		loggedIn = arg.SessionR.IsLoggedIn()
+	} else {
+		loggedIn = a.G().LoginState().LoggedIn()
+	}
+	if !loggedIn {
+		return nil
+	}
+	a.G().Log.Debug("local session -> is logged in, remote -> not logged in.  logging user out:")
+	if arg.SessionR != nil {
+		arg.SessionR.Logout()
+	} else {
+		a.G().Logout()
+	}
+	return LoginRequiredError{Context: "your session has expired."}
 }
 
 func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
@@ -448,13 +480,13 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 
 	// Check for an "OK" or whichever app-level replies were allowed by
 	// http.AppStatus
-	appStatus, err := checkAppStatus(arg, status)
+	appStatus, err := a.checkAppStatus(arg, status)
 	if err != nil {
 		return nil, err
 	}
 
 	body := jw
-	G.Log.Debug(fmt.Sprintf("- successful API call"))
+	a.G().Log.Debug("- successful API call")
 	return &APIRes{status, body, resp.StatusCode, appStatus}, err
 }
 
