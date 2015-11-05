@@ -19,7 +19,7 @@ export default class DevicesRender extends BaseComponent {
 
   renderPhone (device) {
     return (
-      <div key={device.deviceID} style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
+      <div key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
         <div style={styles.device}>
           <HardwarePhoneIphone style={styles.deviceIcon}/>
           <h3 style={styles.line2}>{device.name}</h3>
@@ -33,7 +33,7 @@ export default class DevicesRender extends BaseComponent {
 
   renderDesktop (device) {
     return (
-      <div key={device.deviceID} style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
+      <div key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
         <div style={styles.device}>
           <HardwareComputer style={styles.deviceIcon} />
           <h3 style={styles.line2}>{device.name}</h3>
@@ -47,7 +47,7 @@ export default class DevicesRender extends BaseComponent {
 
   renderPaperKey (device) {
     return (
-      <div key={device.deviceID} style={Object.assign({}, styles.deviceOuter, styles.deviceShow)}>
+      <div key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
         <div style={styles.device}>
           <CommunicationVpnKey style={styles.deviceIcon} />
           <h3 style={styles.line2}>{device.name}</h3>
@@ -75,19 +75,19 @@ export default class DevicesRender extends BaseComponent {
     return (
       <View column>
         <View row style={styles.deviceContainer}>
-          <div style={Object.assign({}, styles.deviceOuter, styles.deviceAction)} onClick={() => this.props.showExistingDevicePage()}>
+          <div style={{...styles.deviceOuter, ...styles.deviceAction}} onClick={() => this.props.showExistingDevicePage()}>
             <div style={styles.device}>
               <ActionNoteAdd style={styles.deviceIcon} />
               <h3>Connect a new device</h3>
-              <p style={Object.assign({}, styles.line4, styles.actionDesc)}>On another device, download Keybase then click here to enter your unique passphrase.</p>
+              <p style={{...styles.line4, ...styles.actionDesc}}>On another device, download Keybase then click here to enter your unique passphrase.</p>
             </div>
           </div>
 
-          <div style={Object.assign({}, styles.deviceOuter, styles.deviceAction)} onClick={() => this.props.showGenPaperKeyPage()}>
+          <div style={{...styles.deviceOuter, ...styles.deviceAction}} onClick={() => this.props.showGenPaperKeyPage()}>
             <div style={styles.device}>
               <CommunicationVpnKey style={styles.deviceIcon} />
               <h3>Generate a new paper key</h3>
-              <p style={Object.assign({}, styles.line4, styles.actionDesc)}>Portland Bushwick mumblecore.</p>
+              <p style={{...styles.line4, ...styles.actionDesc}}>Portland Bushwick mumblecore.</p>
             </div>
           </div>
         </View>
