@@ -179,7 +179,7 @@ func (s *LKSec) Decrypt(lctx LoginContext, src []byte) (res []byte, gen Passphra
 	}()
 
 	if err = s.Load(lctx); err != nil {
-		return nil, 0, fmt.Errorf("lksec decrypt Load err: %s", err)
+		return nil, 0, err
 	}
 	var nonce [24]byte
 	copy(nonce[:], src[0:24])
