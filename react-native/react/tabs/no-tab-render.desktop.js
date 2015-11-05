@@ -5,10 +5,6 @@ import React from '../base-react'
 import BaseComponent from '../base-component'
 
 export default class NoTabRender extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return (
       <div style={{flex: 1, justifyContent: 'center', backgroundColor: 'red'}}>

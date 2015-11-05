@@ -14,10 +14,6 @@ import { routeAppend } from '../../actions/router'
 import DevicesRender from './devices-render'
 
 export default class Devices extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   componentWillMount () {
     if (!this.props.devices && !this.props.waitingForServer) {
       this.props.loadDevices()

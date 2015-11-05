@@ -6,10 +6,6 @@ import BaseComponent from "../base-component"
 import FoldersRender from "./folders-render"
 
 export default class Folders extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return <FoldersRender />
   }

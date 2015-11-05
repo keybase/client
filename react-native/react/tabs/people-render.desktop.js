@@ -6,10 +6,6 @@ import BaseComponent from '../base-component'
 import Search from '../search/index.desktop'
 
 export default class PeopleRender extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return (
       <div>

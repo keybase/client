@@ -5,10 +5,6 @@ import React from 'react'
 import BaseComponent from '../base-component'
 
 export default class ChatRender extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return (
       <div>

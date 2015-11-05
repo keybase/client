@@ -6,10 +6,6 @@ import BaseComponent from '../base-component'
 import { Text, View } from 'react-native'
 
 export default class ChatRender extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return (
       <View style={{flex: 1, justifyContent: 'center'}}>
