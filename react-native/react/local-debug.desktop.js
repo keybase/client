@@ -15,7 +15,7 @@ let config = {
 }
 
 /* eslint-disable no-undef */
-if (process.env.NODE_ENV === 'development' && true) {
+if (process.env.NODE_ENV === 'development' && false) {
 /* eslint-enable no-undef */
   config.overrideRouterState = createRouterState(['devMenu', 'tracker'], [])
   config.overrideActiveTab = Tabs.MORE_TAB
