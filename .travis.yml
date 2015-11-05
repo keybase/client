@@ -10,6 +10,10 @@ install:
   - GO15VENDOREXPERIMENT=0 go get ./...
 script:
   - GO15VENDOREXPERIMENT=0 go build ./...
+  - go get -u github.com/golang/lint/golint
+  - go install github.com/golang/lint/golint
+  - make lint
+  - go vet ./...
   - cd libkbfs && go get -t && go test
   - cd ../bserver && go get -t && go test
   - cd ../mdserver && go get -t && go test
