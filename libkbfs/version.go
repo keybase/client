@@ -1,7 +1,7 @@
 package libkbfs
 
-// Current version (should be MAJOR.MINOR.PATCH)
+// Version is the current version (should be MAJOR.MINOR.PATCH)
 const Version = "1.0.0"
 
-// Build
+// Build is the current build number
 const Build = "23"

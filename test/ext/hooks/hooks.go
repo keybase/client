@@ -50,6 +50,7 @@ import (
 // Global engine delegate.
 var engine test.Engine
 
+// Init initializes the engine registry and creates the necessary engine.
 //export Init
 func Init(engineName *C.char) (ok bool) {
 	engineRegistry := make(map[string]test.Engine)
@@ -65,6 +66,7 @@ func Init(engineName *C.char) (ok bool) {
 	return true
 }
 
+// CreateUsers creates the specified set of users for the active engine.
 //export CreateUsers
 func CreateUsers(names *C.StringArray) *C.InterfaceArray {
 	userNames := arrayToStrings(names)
@@ -76,11 +78,13 @@ func CreateUsers(names *C.StringArray) *C.InterfaceArray {
 	return interfacesToArray(users)
 }
 
+// GetUID returns the UID of a given user from the engine.
 //export GetUID
 func GetUID(u interface{}) *C.char {
 	return C.CString(engine.GetUID(u).String())
 }
 
+// GetRootDir returns the root dir of the given folder.
 //export GetRootDir
 func GetRootDir(u interface{}, isPublic bool, writers *C.StringArray, readers *C.StringArray) (
 	dir interface{}, errString *C.char) {
@@ -96,6 +100,7 @@ func GetRootDir(u interface{}, isPublic bool, writers *C.StringArray, readers *C
 	return dir, errString
 }
 
+// CreateDir creates a subdirectory under the given parent node.
 //export CreateDir
 func CreateDir(u, parent interface{}, name *C.char) (dir interface{}, errString *C.char) {
 	var err error
@@ -106,6 +111,7 @@ func CreateDir(u, parent interface{}, name *C.char) (dir interface{}, errString 
 	return dir, errString
 }
 
+// CreateFile creates a file under the given parent node.
 //export CreateFile
 func CreateFile(u, parent interface{}, name *C.char) (file interface{}, errString *C.char) {
 	var err error
@@ -116,6 +122,7 @@ func CreateFile(u, parent interface{}, name *C.char) (file interface{}, errStrin
 	return file, errString
 }
 
+// CreateLink creates a symlink under the given parent node.
 //export CreateLink
 func CreateLink(u, parent interface{}, fromName, toPath *C.char) (errString *C.char) {
 	err := engine.CreateLink(u, parent, C.GoString(fromName), C.GoString(toPath))
@@ -125,6 +132,7 @@ func CreateLink(u, parent interface{}, fromName, toPath *C.char) (errString *C.c
 	return errString
 }
 
+// RemoveDir removes a directory from under the given dir.
 //export RemoveDir
 func RemoveDir(u, dir interface{}, name *C.char) (errString *C.char) {
 	err := engine.RemoveDir(u, dir, C.GoString(name))
@@ -134,6 +142,7 @@ func RemoveDir(u, dir interface{}, name *C.char) (errString *C.char) {
 	return errString
 }
 
+// RemoveEntry removes a file from under the given dir.
 //export RemoveEntry
 func RemoveEntry(u, dir interface{}, name *C.char) (errString *C.char) {
 	err := engine.RemoveEntry(u, dir, C.GoString(name))
@@ -143,6 +152,7 @@ func RemoveEntry(u, dir interface{}, name *C.char) (errString *C.char) {
 	return errString
 }
 
+// Rename renames an entry from one directory to another.
 //export Rename
 func Rename(u, srcDir interface{}, srcName *C.char, dstDir interface{}, dstName *C.char) (errString *C.char) {
 	err := engine.Rename(u, srcDir, C.GoString(srcName), dstDir, C.GoString(dstName))
@@ -152,6 +162,7 @@ func Rename(u, srcDir interface{}, srcName *C.char, dstDir interface{}, dstName 
 	return errString
 }
 
+// WriteFile writes data to the given file node.
 //export WriteFile
 func WriteFile(u, file interface{}, data *C.char, off int64, sync bool) (errString *C.char) {
 	err := engine.WriteFile(u, file, C.GoString(data), off, sync)
@@ -161,6 +172,7 @@ func WriteFile(u, file interface{}, data *C.char, off int64, sync bool) (errStri
 	return errString
 }
 
+// Sync syncs the given file node, flushing all recently-written data.
 //export Sync
 func Sync(u, file interface{}) (errString *C.char) {
 	err := engine.Sync(u, file)
@@ -170,6 +182,7 @@ func Sync(u, file interface{}) (errString *C.char) {
 	return errString
 }
 
+// ReadFile reads data out of the given file node.
 //export ReadFile
 func ReadFile(u, file interface{}, off, len int64) (data, errString *C.char) {
 	var err error
@@ -183,6 +196,7 @@ func ReadFile(u, file interface{}, off, len int64) (data, errString *C.char) {
 	return data, errString
 }
 
+// Lookup looks up the direntry for a given name out of the given parent.
 //export Lookup
 func Lookup(u, parent interface{}, name *C.char) (file interface{}, symPath, errString *C.char) {
 	var symP string
@@ -197,6 +211,7 @@ func Lookup(u, parent interface{}, name *C.char) (file interface{}, symPath, err
 	return file, symPath, errString
 }
 
+// GetDirChildren lists all the children of a given dir node.
 //export GetDirChildren
 func GetDirChildren(u, parent interface{}) (children *C.StringArray, errString *C.char) {
 	entries, err := engine.GetDirChildren(u, parent)
@@ -212,6 +227,8 @@ func GetDirChildren(u, parent interface{}) (children *C.StringArray, errString *
 	return stringsToArray(flattened), nil
 }
 
+// DisableUpdatesForTesting stops the given user from getting updates and
+// from doing conflict resolution.
 //export DisableUpdatesForTesting
 func DisableUpdatesForTesting(u, folder interface{}) (errString *C.char) {
 	err := engine.DisableUpdatesForTesting(u, folder)
@@ -221,6 +238,7 @@ func DisableUpdatesForTesting(u, folder interface{}) (errString *C.char) {
 	return errString
 }
 
+// SetEx toggles the executability of the given file.
 //export SetEx
 func SetEx(u, file interface{}, ex bool) (errString *C.char) {
 	err := engine.SetEx(u, file, ex)
@@ -230,11 +248,14 @@ func SetEx(u, file interface{}, ex bool) (errString *C.char) {
 	return errString
 }
 
+// ReenableUpdates re-enables CR and updates for the given user.
 //export ReenableUpdates
 func ReenableUpdates(u, folder interface{}) {
 	engine.ReenableUpdates(u, folder)
 }
 
+// SyncFromServer blocks until the user has finished CR and fetched the
+// latest updates from the server.
 //export SyncFromServer
 func SyncFromServer(u, folder interface{}) (errString *C.char) {
 	err := engine.SyncFromServer(u, folder)
@@ -244,11 +265,13 @@ func SyncFromServer(u, folder interface{}) (errString *C.char) {
 	return errString
 }
 
+// Shutdown shuts down the test for the given user.
 //export Shutdown
 func Shutdown(u interface{}) {
 	engine.Shutdown(u)
 }
 
+// PrintLog prints the logs for the last test.
 //export PrintLog
 func PrintLog() {
 	engine.PrintLog()
