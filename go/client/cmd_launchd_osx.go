@@ -20,7 +20,6 @@ import (
 func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "launchd",
-		Usage:        "Manage keybase launchd services",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			NewCmdLaunchdInstall(cl, g),

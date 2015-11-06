@@ -129,7 +129,6 @@ func (v *CmdConfigInfo) Run() error {
 func NewCmdConfig(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "config",
-		Usage:        "Get and set configuration options",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			NewCmdConfigGet(cl),

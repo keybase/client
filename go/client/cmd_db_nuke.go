@@ -63,8 +63,7 @@ func NewCmdDbNukeRunner(g *libkb.GlobalContext) *CmdDbNuke {
 
 func NewCmdDb(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "db",
-		Usage: "Manage the local database",
+		Name: "db",
 		Subcommands: []cli.Command{
 			NewCmdDbNuke(cl, g),
 		},
