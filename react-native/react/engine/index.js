@@ -79,7 +79,7 @@ class Engine {
   }
 
   listenGeneralIncomingRpc (method, listener) {
-    if (this.generalListeners[method] == null) {
+    if (!this.generalListeners[method]) {
       this.generalListeners[method] = []
     }
     this.generalListeners[method].push(listener)
@@ -150,7 +150,7 @@ class Engine {
       }
 
       callMap[method](param, wrappedResponse)
-    } else if (sessionID == null && this.generalListeners[method]) {
+    } else if (!sessionID && this.generalListeners[method]) {
       this._generalIncomingRpc(method, param, response)
     } else {
       console.log(`Unknown incoming rpc: ${sessionID} ${method}`)
