@@ -51,11 +51,14 @@ class Engine {
   }
 
   listenOnConnect (f) {
+    // The transport is already connected, so let's call this function right away
     if (!this.rpcClient.transport.needsConnect) {
       f()
-    } else {
-      this.onConnectFns.push(f)
     }
+
+    // Regardless if we were connected or not, we'll add this to the callback fns
+    // that should be called when we connect.
+    this.onConnectFns.push(f)
   }
 
   getSessionID () {
