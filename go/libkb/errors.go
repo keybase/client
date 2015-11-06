@@ -1147,3 +1147,11 @@ type RetryExhaustedError struct {
 func (e RetryExhaustedError) Error() string {
 	return "Prompt attempts exhausted."
 }
+
+//=============================================================================
+
+type PGPPullLoggedOutError struct{}
+
+func (e PGPPullLoggedOutError) Error() string {
+	return "When running `pgp pull` logged out, you must specify users to pull keys for"
+}

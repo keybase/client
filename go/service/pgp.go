@@ -38,7 +38,8 @@ func (h *PGPHandler) PGPPull(_ context.Context, arg keybase1.PGPPullArg) error {
 		UserAsserts: arg.UserAsserts,
 	}
 	ctx := engine.Context{
-		LogUI: h.getLogUI(arg.SessionID),
+		LogUI:      h.getLogUI(arg.SessionID),
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 	}
 	eng := engine.NewPGPPullEngine(&earg, h.G())
 	return engine.RunEngine(eng, &ctx)

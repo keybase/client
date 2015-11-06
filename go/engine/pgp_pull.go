@@ -17,6 +17,7 @@ type PGPPullEngineArg struct {
 type PGPPullEngine struct {
 	listTrackingEngine *ListTrackingEngine
 	userAsserts        []string
+	gpgClient          *libkb.GpgCLI
 	libkb.Contextified
 }
 
@@ -33,9 +34,7 @@ func (e *PGPPullEngine) Name() string {
 }
 
 func (e *PGPPullEngine) Prereqs() Prereqs {
-	return Prereqs{
-		Session: true,
-	}
+	return Prereqs{}
 }
 
 func (e *PGPPullEngine) RequiredUIs() []libkb.UIKind {
@@ -128,19 +127,70 @@ func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase1.UserSu
 	return matchedList, nil
 }
 
+func (e *PGPPullEngine) runLoggedOut(ctx *Context) error {
+	if len(e.userAsserts) == 0 {
+		return libkb.PGPPullLoggedOutError{}
+	}
+	for _, assertString := range e.userAsserts {
+		if err := e.processUserWhenLoggedOut(ctx, assertString); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
+	iarg := NewIdentifyTrackArg(u, false, true, keybase1.TrackOptions{
+		LocalOnly: true,
+	})
+	ieng := NewIdentify(iarg, e.G())
+	if err := RunEngine(ieng, ctx); err != nil {
+		e.G().Log.Info("identify run err: %s", err)
+		return err
+	}
+
+	// prompt if the identify is correct
+	outcome := ieng.Outcome().Export()
+	confirmed, err := ctx.IdentifyUI.Confirm(outcome)
+	if err != nil {
+		return err
+	}
+
+	if !confirmed {
+		e.G().Log.Warning("Not confirmed; skipping key import")
+		return nil
+	}
+
+	if err = e.exportKeysToGPG(ctx, ieng.User(), nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (e *PGPPullEngine) Run(ctx *Context) error {
+
+	e.gpgClient = libkb.NewGpgCLI(libkb.GpgCLIArg{
+		LogUI: ctx.LogUI,
+	})
+	err := e.gpgClient.Configure()
+	if err != nil {
+		return err
+	}
+
+	if ok, _ := IsLoggedIn(e, ctx); !ok {
+		return e.runLoggedOut(ctx)
+	}
+
 	summaries, err := e.getTrackedUserSummaries(ctx)
 	if err != nil {
 		return err
 	}
 
-	gpgClient := libkb.NewGpgCLI(libkb.GpgCLIArg{
-		LogUI: ctx.LogUI,
-	})
-	err = gpgClient.Configure()
-	if err != nil {
-		return err
-	}
+	return e.runLoggedIn(ctx, summaries)
+}
+
+func (e *PGPPullEngine) runLoggedIn(ctx *Context, summaries []keybase1.UserSummary) error {
 
 	// Loop over the list of all users we track.
 	for _, userSummary := range summaries {
@@ -160,19 +210,26 @@ func (e *PGPPullEngine) Run(ctx *Context) error {
 			continue
 		}
 
-		for _, bundle := range user.GetActivePGPKeys(false) {
-			// Check each key against the tracked set.
-			if !trackedFingerprints[bundle.GetFingerprint().String()] {
-				ctx.LogUI.Warning("Keybase says that %s owns key %s, but you have not tracked this fingerprint before.", user.GetName(), bundle.GetFingerprint())
-				continue
-			}
-
-			err = gpgClient.ExportKey(*bundle)
-			if err != nil {
-				return err
-			}
-			ctx.LogUI.Info("Imported key for %s.", user.GetName())
+		if err = e.exportKeysToGPG(ctx, user, trackedFingerprints); err != nil {
+			return err
 		}
+	}
+	return nil
+}
+
+func (e *PGPPullEngine) exportKeysToGPG(ctx *Context, user *libkb.User, tfp map[string]bool) error {
+	for _, bundle := range user.GetActivePGPKeys(false) {
+		// Check each key against the tracked set.
+		if tfp != nil && !tfp[bundle.GetFingerprint().String()] {
+			ctx.LogUI.Warning("Keybase says that %s owns key %s, but you have not tracked this fingerprint before.", user.GetName(), bundle.GetFingerprint())
+			continue
+		}
+
+		if err := e.gpgClient.ExportKey(*bundle); err != nil {
+			return err
+		}
+
+		ctx.LogUI.Info("Imported key for %s.", user.GetName())
 	}
 	return nil
 }
