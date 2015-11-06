@@ -58,6 +58,10 @@ type CommandLine interface {
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
 
+	GetTorMode() (TorMode, error)
+	GetTorHiddenAddress() string
+	GetTorProxy() string
+
 	// Lower-level functions
 	GetGString(string) string
 	GetString(string) string
@@ -131,6 +135,10 @@ type ConfigReader interface {
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
+
+	GetTorMode() (TorMode, error)
+	GetTorHiddenAddress() string
+	GetTorProxy() string
 }
 
 type ConfigWriter interface {
@@ -150,9 +158,6 @@ type ConfigWriter interface {
 
 type HTTPRequest interface {
 	SetEnvironment(env Env)
-}
-
-type ProofCheckers interface {
 }
 
 type Usage struct {

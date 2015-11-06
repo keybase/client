@@ -116,7 +116,7 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 	client, found := api.clients[key]
 	if !found {
 		G.Log.Debug("| Cli wasn't found; remaking for cookied=%v", cookied)
-		client = NewClient(api.config, cookied)
+		client = NewClient(api.G().Env, api.config, cookied)
 		api.clients[key] = client
 	}
 	api.clientsMu.Unlock()
@@ -316,12 +316,12 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) error {
 func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	if arg.NeedSession {
 		tok, csrf := a.sessionArgs(arg)
-		if len(tok) > 0 {
+		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
 			req.Header.Add("X-Keybase-Session", tok)
 		} else {
 			G.Log.Warning("fixHeaders:  need session, but session token empty")
 		}
-		if len(csrf) > 0 {
+		if len(csrf) > 0 && a.G().Env.GetTorMode().UseCSRF() {
 			req.Header.Add("X-CSRF-Token", csrf)
 		} else {
 			G.Log.Warning("fixHeaders:  need session, but session csrf empty")

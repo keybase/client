@@ -29,6 +29,8 @@ func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, ProofError) {
 	return &RedditChecker{p}, nil
 }
 
+func (rc *RedditChecker) GetTorError() ProofError { return nil }
+
 func (rc *RedditChecker) CheckHint(h SigHint) ProofError {
 	if strings.HasPrefix(strings.ToLower(h.apiURL), RedditSub) {
 		return nil

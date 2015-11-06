@@ -10,6 +10,7 @@ import (
 type ProofChecker interface {
 	CheckHint(h SigHint) ProofError
 	CheckStatus(h SigHint) ProofError
+	GetTorError() ProofError
 }
 
 //

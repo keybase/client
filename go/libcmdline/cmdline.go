@@ -4,6 +4,7 @@
 package libcmdline
 
 import (
+	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -186,6 +187,20 @@ func (p CommandLine) GetTimers() string {
 	return p.GetGString("timers")
 }
 
+func (p CommandLine) GetTorMode() (ret libkb.TorMode, err error) {
+	if s := p.GetGString("tor-mode"); s != "" {
+		ret, err = libkb.StringToTorMode(s)
+	}
+	return ret, err
+}
+
+func (p CommandLine) GetTorHiddenAddress() string {
+	return p.GetGString("tor-hidden-address")
+}
+func (p CommandLine) GetTorProxy() string {
+	return p.GetGString("tor-proxy")
+}
+
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {
@@ -351,6 +366,18 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "api-timeout",
 			Usage: "set the HTTP timeout for API calls to the keybase API server",
+		},
+		cli.StringFlag{
+			Name:  "tor-mode",
+			Usage: "set TOR mode to be 'leaky', 'none', or 'strict'. 'none' by default",
+		},
+		cli.StringFlag{
+			Name:  "tor-proxy",
+			Usage: "set TOR proxy; when Tor mode is on, default to http://localhost:9050",
+		},
+		cli.StringFlag{
+			Name:  "tor-hidden-address",
+			Usage: fmt.Sprintf("set TOR address of keybase server; defaults to %s", libkb.TorServerURI),
 		},
 	}
 	if extraFlags != nil {

@@ -919,6 +919,7 @@ type IdentityTable struct {
 	cryptocurrency   []*CryptocurrencyChainLink
 	checkResult      *CheckResult
 	eldest           keybase1.KID
+	Contextified
 }
 
 func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
@@ -995,8 +996,9 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 	return
 }
 
-func NewIdentityTable(eldest keybase1.KID, sc *SigChain, h *SigHints) (*IdentityTable, error) {
+func NewIdentityTable(g *GlobalContext, eldest keybase1.KID, sc *SigChain, h *SigHints) (*IdentityTable, error) {
 	ret := &IdentityTable{
+		Contextified:     NewContextified(g),
 		sigChain:         sc,
 		revocations:      make(map[keybase1.SigID]bool),
 		links:            make(map[keybase1.SigID]TypedChainLink),
@@ -1199,15 +1201,22 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 		return
 	}
 
+	var pc ProofChecker
+	pc, res.err = NewProofChecker(p)
+
+	if idt.G().Env.GetTorMode().Enabled() {
+		res.err = pc.GetTorError()
+		if res.err != nil {
+			return
+		}
+	}
+
 	if !forceRemoteCheck {
 		if res.cached = G.ProofCache.Get(sid); res.cached != nil {
 			res.err = res.cached.Status
 			return
 		}
 	}
-
-	var pc ProofChecker
-	pc, res.err = NewProofChecker(p)
 
 	if res.err != nil {
 		return

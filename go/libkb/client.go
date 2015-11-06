@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"h12.me/socks"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -75,6 +76,10 @@ func ShortCA(raw string) string {
 func (e *Env) GenClientConfigForInternalAPI() (*ClientConfig, error) {
 	serverURI := e.GetServerURI()
 
+	if e.GetTorMode().Enabled() {
+		serverURI = e.GetTorHiddenAddress()
+	}
+
 	if serverURI == "" {
 		err := fmt.Errorf("Cannot find a server URL")
 		return nil, err
@@ -124,19 +129,25 @@ func (e *Env) GenClientConfigForScrapers() (*ClientConfig, error) {
 	}, nil
 }
 
-func NewClient(config *ClientConfig, needCookie bool) *Client {
+func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 	var jar *cookiejar.Jar
-	if needCookie && (config == nil || config.UseCookies) {
+	if needCookie && (config == nil || config.UseCookies) && e.GetTorMode().UseCookies() {
 		jar, _ = cookiejar.New(nil)
 	}
 
 	var xprt *http.Transport
 	var timeout time.Duration
 
-	if config != nil && config.RootCAs != nil {
-		xprt = &http.Transport{
-			Proxy:           http.ProxyFromEnvironment,
-			TLSClientConfig: &tls.Config{RootCAs: config.RootCAs},
+	if (config != nil && config.RootCAs != nil) || e.GetTorMode().Enabled() {
+		xprt = &http.Transport{}
+		if config != nil && config.RootCAs != nil {
+			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
+		}
+		if e.GetTorMode().Enabled() {
+			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, e.GetTorProxy())
+			xprt.Dial = dialSocksProxy
+		} else {
+			xprt.Proxy = http.ProxyFromEnvironment
 		}
 	}
 	if config == nil || config.Timeout == 0 {

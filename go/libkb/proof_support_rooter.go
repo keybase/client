@@ -26,6 +26,8 @@ func NewRooterChecker(p RemoteProofChainLink) (*RooterChecker, ProofError) {
 	return &RooterChecker{p}, nil
 }
 
+func (rc *RooterChecker) GetTorError() ProofError { return nil }
+
 func (rc *RooterChecker) CheckHint(h SigHint) (err ProofError) {
 	G.Log.Debug("+ Rooter check hint: %v", h)
 	defer func() {

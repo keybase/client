@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	keybase1 "github.com/keybase/client/go/protocol"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -11,8 +12,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type NullConfiguration struct{}
@@ -54,6 +53,9 @@ func (n NullConfiguration) GetSplitLogOutput() (bool, bool)               { retu
 func (n NullConfiguration) GetLogFile() string                            { return "" }
 func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)      { return 0, false }
 func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)          { return 0, false }
+func (n NullConfiguration) GetTorMode() (TorMode, error)                  { return TorNone, nil }
+func (n NullConfiguration) GetTorHiddenAddress() string                   { return "" }
+func (n NullConfiguration) GetTorProxy() string                           { return "" }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -694,6 +696,40 @@ func (e *Env) GetLogFile() string {
 		func() string { return os.Getenv("KEYBASE_LOG_FILE") },
 		func() string { return e.config.GetLogFile() },
 		func() string { return filepath.Join(e.GetLogDir(), "keybase.log") },
+	)
+}
+
+func (e *Env) GetTorMode() TorMode {
+	var ret TorMode
+
+	pick := func(m TorMode, err error) {
+		if ret == TorNone && err == nil {
+			ret = m
+		}
+	}
+
+	pick(e.cmd.GetTorMode())
+	pick(StringToTorMode(os.Getenv("KEYBASE_TOR_MODE")))
+	pick(e.config.GetTorMode())
+
+	return ret
+}
+
+func (e *Env) GetTorHiddenAddress() string {
+	return e.GetString(
+		func() string { return e.cmd.GetTorHiddenAddress() },
+		func() string { return os.Getenv("KEYBASE_TOR_HIDDEN_ADDRESS") },
+		func() string { return e.config.GetTorHiddenAddress() },
+		func() string { return TorServerURI },
+	)
+}
+
+func (e *Env) GetTorProxy() string {
+	return e.GetString(
+		func() string { return e.cmd.GetTorProxy() },
+		func() string { return os.Getenv("KEYBASE_TOR_PROXY") },
+		func() string { return e.config.GetTorProxy() },
+		func() string { return TorProxy },
 	)
 }
 

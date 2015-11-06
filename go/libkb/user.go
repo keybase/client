@@ -410,7 +410,7 @@ func (u *User) MakeIDTable() error {
 	if kid.IsNil() {
 		return NoKeyError{"Expected a key but didn't find one"}
 	}
-	idt, err := NewIdentityTable(kid, u.sigChain(), u.sigHints)
+	idt, err := NewIdentityTable(u.G(), kid, u.sigChain(), u.sigHints)
 	if err != nil {
 		return err
 	}

@@ -23,6 +23,8 @@ func NewGithubChecker(p RemoteProofChainLink) (*GithubChecker, ProofError) {
 	return &GithubChecker{p}, nil
 }
 
+func (rc *GithubChecker) GetTorError() ProofError { return nil }
+
 func (rc *GithubChecker) CheckHint(h SigHint) ProofError {
 	given := strings.ToLower(h.apiURL)
 	u := strings.ToLower(rc.proof.GetRemoteUsername())
