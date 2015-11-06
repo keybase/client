@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"sync"
 	"time"
 
@@ -448,9 +447,6 @@ func (fbo *FolderBranchOps) initMDLocked(
 	}
 
 	newDblock := &DirBlock{
-		CommonBlock: CommonBlock{
-			Seed: rand.Int63(),
-		},
 		Children: make(map[string]DirEntry),
 	}
 
@@ -1490,17 +1486,10 @@ func (fbo *FolderBranchOps) createEntryLocked(
 	// has a unique block ID. This may not be needed once we have encryption.
 	if entryType == Dir {
 		newBlock = &DirBlock{
-			CommonBlock: CommonBlock{
-				Seed: rand.Int63(),
-			},
 			Children: make(map[string]DirEntry),
 		}
 	} else {
-		newBlock = &FileBlock{
-			CommonBlock: CommonBlock{
-				Seed: rand.Int63(),
-			},
-		}
+		newBlock = &FileBlock{}
 	}
 
 	de, err := fbo.syncBlockAndFinalizeLocked(ctx, md, newBlock, dirPath, name,
@@ -2097,11 +2086,7 @@ func (fbo *FolderBranchOps) newRightBlockLocked(
 	if err != nil {
 		return err
 	}
-	rblock := &FileBlock{
-		CommonBlock: CommonBlock{
-			Seed: rand.Int63(),
-		},
-	}
+	rblock := &FileBlock{}
 
 	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
 		BlockInfo: BlockInfo{
@@ -2211,7 +2196,6 @@ func (fbo *FolderBranchOps) writeDataLocked(
 				fblock = &FileBlock{
 					CommonBlock: CommonBlock{
 						IsInd: true,
-						Seed:  rand.Int63(),
 					},
 					IPtrs: []IndirectFilePtr{
 						{

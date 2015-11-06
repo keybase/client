@@ -900,11 +900,6 @@ type IndirectFilePtr struct {
 type CommonBlock struct {
 	// is this block so big it requires indirect pointers?
 	IsInd bool
-	// these two fields needed to randomize the hash key for unencrypted files
-	path    string `codec:",omitempty"`
-	BlockNo uint32 `codec:",omitempty"`
-	// XXX: just used for randomization until we have encryption
-	Seed int64
 }
 
 // DirBlock is the contents of a directory
