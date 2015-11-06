@@ -84,8 +84,8 @@ On signup - When you signup, you can also "select" a PGP key for use with keybas
 'keybase pgp export' - Doesn't access the GPG keyring at all, just outputs
   your currently provisioned PGP keys to standard output (or a file).
 
-'keybase pgp revoke' - Doesn't access the GPG keyring at all, just revokes
-  your signature of a PGP key.
+'keybase pgp drop' - Disassociates this PGP key from your account, but doesn't
+  access the GPG keyring, and doesn't perform a traditional PGP revocation.
 `,
 }
 

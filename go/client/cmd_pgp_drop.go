@@ -15,19 +15,19 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-type CmdPGPRevoke struct {
+type CmdPGPDrop struct {
 	id string
 }
 
-func (c *CmdPGPRevoke) ParseArgv(ctx *cli.Context) error {
+func (c *CmdPGPDrop) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("Revoke takes exactly one key.")
+		return fmt.Errorf("drop takes exactly one key")
 	}
 	c.id = ctx.Args()[0]
 	return nil
 }
 
-func (c *CmdPGPRevoke) Run() (err error) {
+func (c *CmdPGPDrop) Run() (err error) {
 	cli, err := GetRevokeClient()
 	if err != nil {
 		return err
@@ -45,19 +45,22 @@ func (c *CmdPGPRevoke) Run() (err error) {
 	})
 }
 
-func NewCmdPGPRevoke(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPDrop(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:         "revoke",
+		Name:         "drop",
 		ArgumentHelp: "<key-id>",
-		Usage:        "Revoke a PGP key",
+		Usage:        "Drop Keybase's use of a PGP key",
 		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPRevoke{}, "revoke", c)
+			cl.ChooseCommand(&CmdPGPDrop{}, "drop", c)
 		},
+		Description: `"keybase pgp drop" signs a statement saying the given PGP
+   key should no longer be associated with this account. It will **not** sign a PGP-style
+   revocation cert for this key; you'll have to do that on your own.`,
 	}
 }
 
-func (c *CmdPGPRevoke) GetUsage() libkb.Usage {
+func (c *CmdPGPDrop) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: true,
