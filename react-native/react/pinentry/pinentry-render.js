@@ -1,0 +1,32 @@
+'use strict'
+/* @flow */
+
+import React from 'react'
+import BaseComponent from '../base-component'
+import { TextField, RaisedButton } from 'material-ui'
+import View from 'react-flexbox'
+
+export default class PinentryRender extends BaseComponent {
+  componentWillMount () {
+    this.state = {
+      passphrase: ''
+    }
+  }
+
+  render () {
+    return (
+      <div>
+        <p>Please enter the Keybase passphrase for {this.props.user} (12+ characters)</p>
+        <TextField
+          ref='passphrase'
+          onChange={e => this.setState({passphrase: e.target.value})}
+          floatingLabelText='Your passphrase'
+          value={this.state.passphrase} />
+
+        <RaisedButton onClick={() => this.props.onCancel()} label='Cancel' />
+
+        <RaisedButton onClick={() => this.props.onSubmit(this.state.passphrase)} label='OK' />
+      </div>
+    )
+  }
+}

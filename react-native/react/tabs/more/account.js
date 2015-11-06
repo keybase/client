@@ -34,4 +34,3 @@ Account.propTypes = {
   passphraseError: React.PropTypes.string,
   emailError: React.PropTypes.string
 }
-
