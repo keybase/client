@@ -1,3 +1,8 @@
+## 1.0.0-45 (2015-11-06)
+
+- Added `--tor-mode` and related flags.
+- Made tricky commands less prominent in help.
+
 ## 1.0.0-44 (2015-11-06)
 
 - Fix passphrase change
