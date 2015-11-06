@@ -26,6 +26,14 @@ func NewWebChecker(p RemoteProofChainLink) (*WebChecker, ProofError) {
 	return &WebChecker{p}, nil
 }
 
+func (rc *WebChecker) GetTorError() ProofError {
+	urlBase := rc.proof.ToDisplayString()
+	if !strings.HasPrefix(urlBase, "https:") {
+		return ProofErrorHTTPOverTor
+	}
+	return nil
+}
+
 func (rc *WebChecker) CheckHint(h SigHint) ProofError {
 
 	files := webKeybaseFiles

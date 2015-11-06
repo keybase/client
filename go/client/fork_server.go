@@ -108,6 +108,9 @@ func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, er
 		"local-rpc-debug-unsafe",
 		"run-mode",
 		"timers",
+		"tor-mode",
+		"tor-proxy",
+		"tor-hidden-address",
 	}
 	args = append(args, arg0)
 

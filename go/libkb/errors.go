@@ -59,6 +59,18 @@ type ProofAPIError struct {
 	url string
 }
 
+var ProofErrorDNSOverTor = &ProofErrorImpl{
+	Status: keybase1.ProofStatus_TOR_SKIPPED,
+	Desc:   "DNS proofs aren't reliable over Tor",
+}
+
+var ProofErrorHTTPOverTor = &ProofErrorImpl{
+	Status: keybase1.ProofStatus_TOR_SKIPPED,
+	Desc:   "HTTP proof aren't reliable over Tor",
+}
+
+// Might be overkill, let's revisit...
+
 // Might be overkill, let's revisit...
 //func (e *ProofApiError) Error() string {
 //	return fmt.Sprintf("%s (url=%s; code=%d)", e.Desc, e.url, int(e.Status))

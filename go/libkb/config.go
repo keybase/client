@@ -415,6 +415,22 @@ func (f JSONConfigFile) GetDeviceID() (ret keybase1.DeviceID) {
 	return ret
 }
 
+func (f JSONConfigFile) GetTorMode() (ret TorMode, err error) {
+	if s, isSet := f.GetStringAtPath("tor.mode"); isSet {
+		ret, err = StringToTorMode(s)
+	}
+	return ret, err
+}
+
+func (f JSONConfigFile) GetTorHiddenAddress() string {
+	s, _ := f.GetStringAtPath("tor.hidden_address")
+	return s
+}
+func (f JSONConfigFile) GetTorProxy() string {
+	s, _ := f.GetStringAtPath("tor.proxy")
+	return s
+}
+
 func (f JSONConfigFile) GetProxy() string {
 	return f.GetTopLevelString("proxy")
 }
