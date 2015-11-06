@@ -11,8 +11,8 @@ export default function (state = initialState, action) {
   switch (action.type) {
     case Constants.initProfile:
       update = {
-        username: action.username,
-        avatar: action.avatar,
+        username: action.payload.username,
+        avatar: null,
         proofs: {},
         summary: {
           bio: null,
@@ -23,14 +23,14 @@ export default function (state = initialState, action) {
     case Constants.profileReceivedDisplayKey:
       update = {
         proofs: {
-          pgp: action.key
+          pgp: action.payload.key
         }
       }
       break
     case Constants.profileCheckingNetworks:
       update = {
         proofs: {
-          ...action.networks.reduce((a, b) => { a[b] = {}; return a }, {})
+          ...action.payload.networks.reduce((a, b) => { a[b] = {}; return a }, {})
         }
       }
       break
@@ -38,16 +38,16 @@ export default function (state = initialState, action) {
       update = {
         proofs: {
           ...{
-            [action.network]: action.update
+            [action.payload.network]: action.payload.update
           }
         }
       }
       break
     case Constants.profileSummaryLoaded:
-      return state.mergeDeep(action.summaries)
+      return state.mergeDeep(action.payload)
     default:
       return state
   }
 
-  return state.mergeDeep({ [action.username]: update })
+  return state.mergeDeep({ [action.payload.username]: update })
 }
