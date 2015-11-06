@@ -3,7 +3,6 @@
 
 import * as RouterConstants from '../constants/router'
 import Immutable, {List, Map} from 'immutable'
-// $FlowFixMe ignore this import for now
 import * as LoginConstants from '../constants/login2'
 
 export type URI = List<Map<string, string>>
@@ -56,18 +55,18 @@ export default function (state: RouterState = initialState, action: any): Router
     // or a child of it
     // we get rid of everything after it
     case RouterConstants.navigateUp:
-      return state.update('uri', (uri) => uri.count() > 1 ? uri.pop() : uri)
+      return state.update('uri', uri => uri.count() > 1 ? uri.pop() : uri)
     case RouterConstants.navigateBack:
       const lastUri = state.get('history').last() || parseUri([])
-      return state.update('history', (history) => history.count() > 1 ? history.pop() : parseUri([]))
+      return state.update('history', history => history.count() > 1 ? history.pop() : parseUri([]))
         .set('uri', lastUri)
     case RouterConstants.navigate:
-      return stateWithHistory.set('uri', parseUri(action.uri))
+      return stateWithHistory.set('uri', parseUri(action.payload))
     case RouterConstants.navigateAppend:
       if (action.topRoute.constructor === Array) {
-        return stateWithHistory.update('uri', (uri) => uri.concat(action.topRoute.map(parsePath)))
+        return stateWithHistory.update('uri', uri => uri.concat(action.payload.map(parsePath)))
       }
-      return stateWithHistory.update('uri', (uri) => uri.push(parsePath(action.topRoute)))
+      return stateWithHistory.update('uri', uri => uri.push(parsePath(action.payload)))
     case LoginConstants.needsLogin:
       return state.set('uri', parseUri(['login']))
     case LoginConstants.needsRegistering:

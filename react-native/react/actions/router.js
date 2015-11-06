@@ -63,13 +63,13 @@ export function navigateBack () {
 export function navigateTo (uri) {
   return {
     type: Constants.navigate,
-    uri: uri
+    payload: uri
   }
 }
 
 export function routeAppend (routeStr) {
   return {
     type: Constants.navigateAppend,
-    topRoute: routeStr
+    payload: routeStr
   }
 }
