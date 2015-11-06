@@ -72,15 +72,8 @@ var ProofErrorHTTPOverTor = &ProofErrorImpl{
 type TorSessionRequiredError struct{}
 
 func (t TorSessionRequiredError) Error() string {
-	return "We can't send out PII from Tor-Strict mode; but it's needed for this operation"
+	return "We can't send out PII in Tor-Strict mode; but it's needed for this operation"
 }
-
-// Might be overkill, let's revisit...
-
-// Might be overkill, let's revisit...
-//func (e *ProofApiError) Error() string {
-//	return fmt.Sprintf("%s (url=%s; code=%d)", e.Desc, e.url, int(e.Status))
-//}
 
 func NewProofAPIError(s keybase1.ProofStatus, u string, d string, a ...interface{}) *ProofAPIError {
 	base := NewProofError(s, d, a...)

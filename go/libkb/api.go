@@ -176,6 +176,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 
 	if !arg.G().Env.GetTorMode().UseSession() && arg.NeedSession {
 		err = TorSessionRequiredError{}
+		return
 	}
 
 	api.fixHeaders(arg, req)
