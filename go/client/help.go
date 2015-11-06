@@ -169,7 +169,7 @@ DESCRIPTION:
    {{.Description}}{{end}}{{ if .Subcommands }}
 
 COMMANDS:
-   {{range .Subcommands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
+   {{range .Subcommands}}{{if .Usage }}{{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ end }}
    {{end}}{{end}}{{if .Flags}}
 
 OPTIONS:
