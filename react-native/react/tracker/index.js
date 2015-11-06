@@ -35,7 +35,7 @@ export default class Tracker extends BaseComponent {
           username: 'test12',
           shouldFollow: true,
           onClose: () => store.dispatch(navigateUp()), // TODO
-          onFollowHelp: () => window.open('https://keybase.io/docs/tracking'), // TODO
+          onFollowHelp: () => window.open('https://keybase.io/docs/tracking') // TODO
           // TODO put back when we integrate
           // followChecked: checked => this.setState({shouldFollowChecked: checked})
         }
