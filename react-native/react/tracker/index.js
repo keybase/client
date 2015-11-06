@@ -32,8 +32,14 @@ export default class Tracker extends BaseComponent {
         // dummy data TODO
         props: {
           reason: 'You accessed /private/cecile',
-          state: 'warning',
+          state: currentPath.get('state'),
           username: 'test12',
+          avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/2571dc6108772dbe0816deef41b25705_200_200_square_200.jpeg',
+          fullname: 'Alice Bonhomme-Biaias',
+          followersCount: 81,
+          followingCount: 567,
+          followsYou: true,
+          location: 'New York, NY',
           shouldFollow: true,
           onClose: () => {
             console.log('onClose')

@@ -36,8 +36,14 @@ export default class DevMenu extends BaseComponent {
       {name: 'Profile', hasChildren: true, onClick: () => {
         this.props.pushNewProfile('test12')
       }},
-      {name: 'Tracker', hasChildren: true, onClick: () => {
-        this.props.routeAppend(['tracker'])
+      {name: 'Tracker (normal)', hasChildren: true, onClick: () => {
+        this.props.routeAppend([{path: 'tracker', state: 'normal'}])
+      }},
+      {name: 'Tracker (warning)', hasChildren: true, onClick: () => {
+        this.props.routeAppend([{path: 'tracker', state: 'warning'}])
+      }},
+      {name: 'Tracker (error)', hasChildren: true, onClick: () => {
+        this.props.routeAppend([{path: 'tracker', state: 'error'}])
       }}
     ]
     return (

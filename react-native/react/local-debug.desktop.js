@@ -16,7 +16,7 @@ let config = {
 }
 
 if (isDev && false) {
-  config.overrideRouterState = createRouterState(['devMenu', 'tracker'], [])
+  config.overrideRouterState = createRouterState(['devMenu', {path: 'tracker', state: 'normal'}], [])
   config.overrideActiveTab = Tabs.MORE_TAB
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
