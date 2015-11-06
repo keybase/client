@@ -12,9 +12,6 @@ export default class DevMenu extends BaseComponent {
   render () {
     const menuItems = [
       {name: 'Login', onClick: () => {
-        this.props.routeAppend(['login', {path: 'loginform', upLink: ['']}])
-      }},
-      {name: 'Login2', onClick: () => {
         this.props.routeAppend(['login2', {path: 'welcome', upLink: ['about'], upTitle: 'About'}])
       }},
       {name: 'Register', onClick: () => {
@@ -59,7 +56,6 @@ export default class DevMenu extends BaseComponent {
       },
       subRoutes: {
         developer: require('./developer'),
-        login: require('../../login'),
         login2: require('../../login2'),
         tracker: require('../../tracker')
       }

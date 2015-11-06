@@ -15,11 +15,14 @@ export default class SetPublicName extends Component {
     }
   }
 
-  submit () {
-    this.props.submit(this.state.deviceName)
+  onSubmit () {
+    this.props.onSubmit(this.state.deviceName)
   }
 
   render () {
+    const dupeName = this.props.existingDevices && this.props.existingDevices.indexOf(this.state.deviceName) !== -1
+    const enabled = this.state.deviceName.length && !dupeName
+
     return (
       <View style={{flex: 1, padding: 20}}>
         <Text style={commonStyles.h1}>Set a public name for this device</Text>
@@ -32,9 +35,9 @@ export default class SetPublicName extends Component {
           returnKeyType='next'
           autoCorrect={false}
           onChangeText={(deviceName) => this.setState({deviceName})}
-          onSubmitEditing={(event) => { this.submit() }}
+          onSubmitEditing={() => { this.onSubmit() }}
           />
-        <Button style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.submit()} enabled={this.state.deviceName.length}/>
+        <Button style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.onSubmit()} enabled={enabled}/>
       </View>
     )
   }
@@ -52,7 +55,7 @@ export default class SetPublicName extends Component {
           }
         },
         props: {
-          submit: deviceName => store.dispatch(setDeviceName(deviceName))
+          onSubmit: deviceName => store.dispatch(setDeviceName(deviceName))
         }
       }
     }
@@ -61,5 +64,6 @@ export default class SetPublicName extends Component {
 
 SetPublicName.propTypes = {
   deviceName: React.PropTypes.string,
-  submit: React.PropTypes.func.isRequired
+  existingDevices: React.PropTypes.array,
+  onSubmit: React.PropTypes.func.isRequired
 }

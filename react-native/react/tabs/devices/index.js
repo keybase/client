@@ -11,6 +11,7 @@ import RemoveDevice from './remove-device'
 
 import { loadDevices } from '../../actions/devices'
 import { routeAppend } from '../../actions/router'
+import { addANewDevice } from '../../actions/login2'
 import DevicesRender from './devices-render'
 
 export default class Devices extends BaseComponent {
@@ -38,9 +39,9 @@ export default class Devices extends BaseComponent {
         props: {
           loadDevices: () => store.dispatch(loadDevices()),
           showRemoveDevicePage: device => store.dispatch(routeAppend({path: 'removeDevice', device})),
-          showExistingDevicePage: () => store.dispatch(routeAppend('regExistingDevice')),
+          showExistingDevicePage: () => store.dispatch(addANewDevice()),
           showGenPaperKeyPage: () => store.dispatch(routeAppend('genPaperKey'))
-        },
+        }
       },
       subRoutes: {
         codePage: CodePage,

@@ -12,19 +12,22 @@ let config = {
   overrideRouterState: null,
   overrideActiveTab: null,
   skipLoginRouteToRoot: false,
-  allowStartupFailure: false
+  allowStartupFailure: false,
+  printRPC: false
 }
 
 if (isDev && false) {
-  config.overrideRouterState = createRouterState(['login2', 'register', 'regSetPublicName'], [])
-  config.overrideActiveTab = Tabs.MORE_TAB
+  config.overrideRouterState = createRouterState([], [])
+  config.overrideActiveTab = Tabs.DEVICES_TAB
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
+  config.printRPC = true
 }
 
 export const {
   overrideRouterState,
   overrideActiveTab,
   skipLoginRouteToRoot,
-  allowStartupFailure
+  allowStartupFailure,
+  printRPC
 } = config

@@ -29,10 +29,17 @@ export const cameraBrokenMode = 'cameraBrokenMode'
 export const needsLogin = 'needsLogin'
 export const needsRegistering = 'needsRegistering'
 export const doneRegistering = 'doneRegistering '
-export const actionRegisterSubmitUserPass = 'actionRegisterSubmitUserPass'
-export const actionRegisterUserPassSubmit = 'actionRegisterUserPassSubmit'
-export const actionRegisterUserPassDone = 'actionRegisterUserPassDone'
+
 export const actionUpdateForgotPasswordEmailAddress = 'actionUpdateForgotPasswordEmailAddress'
 export const actionSetForgotPasswordSubmitting = 'actionSetForgotPasswordSubmitting'
 export const actionForgotPasswordDone = 'actionForgotPasswordDone'
-export const deviceNameSet = 'deviceNameSet'
+
+export const actionAskUserPass = 'actionAskUserPass'
+export const actionSetUserPass = 'actionSetUserPass'
+
+export const actionAskDeviceName = 'actionAskDeviceName'
+export const actionSetDeviceName = 'actionSetDeviceName'
+
+export const actionRegisteredWithUserPass = 'actionRegisteredWithUserPass'
+export const actionRegisteredWithPaperKey = 'actionRegisteredWithPaperKey'
+export const actionRegisteredWithExistingDevice = 'actionRegisteredWithExistingDevice'
