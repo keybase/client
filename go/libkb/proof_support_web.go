@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -28,9 +29,12 @@ func NewWebChecker(p RemoteProofChainLink) (*WebChecker, ProofError) {
 
 func (rc *WebChecker) GetTorError() ProofError {
 	urlBase := rc.proof.ToDisplayString()
-	if !strings.HasPrefix(urlBase, "https:") {
+
+	u, err := url.Parse(urlBase)
+	if err != nil || u.Scheme != "https" {
 		return ProofErrorHTTPOverTor
 	}
+
 	return nil
 }
 
