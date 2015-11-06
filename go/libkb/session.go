@@ -297,17 +297,14 @@ func (s *Session) check() error {
 // Invalidate marks the session as invalid and posts a logout
 // notification.
 func (s *Session) Invalidate() {
-	s.G().Log.Debug("invalidating session")
-	s.clearState()
-	s.G().NotifyRouter.HandleLogout()
-}
-
-func (s *Session) clearState() {
+	s.G().Log.Debug("+ invalidating session")
 	s.valid = false
 	s.mtime = time.Time{}
 	s.token = ""
 	s.csrf = ""
 	s.checked = false
+	s.G().NotifyRouter.HandleLogout()
+	s.G().Log.Debug("- session invalidated")
 }
 
 func (s *Session) HasSessionToken() bool {
@@ -325,9 +322,10 @@ func (s *Session) postLogout() error {
 		Endpoint:    "logout",
 		NeedSession: true,
 	})
-	if err == nil {
-		s.clearState()
-	}
+
+	// Invalidate even if we hit an error.
+	s.Invalidate()
+
 	return err
 }
 

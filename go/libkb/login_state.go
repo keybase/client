@@ -153,9 +153,6 @@ func (s *LoginState) Logout() error {
 	err := s.loginHandle(func(a LoginContext) error {
 		return s.logout(a)
 	}, nil, "logout")
-	if err == nil {
-		s.G().NotifyRouter.HandleLogout()
-	}
 	return err
 }
 
