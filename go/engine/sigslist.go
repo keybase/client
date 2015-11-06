@@ -119,11 +119,11 @@ func (e *SigsList) JSON() (string, error) {
 		var key string
 		fp := s.GetPGPFingerprint()
 		if fp != nil {
-			key = fp.ToDisplayString(e.Verbose)
+			key = fp.ToDisplayString(true /* verbose */)
 		}
 		exp[i] = sigexp{
 			Seqno:   int64(s.GetSeqno()),
-			SigID:   s.GetSigID().ToDisplayString(e.Verbose),
+			SigID:   s.GetSigID().ToDisplayString(true /* verbose */),
 			Type:    s.Type(),
 			CTime:   s.GetCTime().Unix(),
 			Revoked: s.IsRevoked(),
