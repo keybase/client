@@ -1253,6 +1253,7 @@ type IdentifyOutcome struct {
 	NumProofSuccesses int           `codec:"numProofSuccesses" json:"numProofSuccesses"`
 	Revoked           []TrackDiff   `codec:"revoked" json:"revoked"`
 	TrackOptions      TrackOptions  `codec:"trackOptions" json:"trackOptions"`
+	ForPGPPull        bool          `codec:"forPGPPull" json:"forPGPPull"`
 }
 
 type IdentifyRes struct {
@@ -1363,6 +1364,7 @@ type CheckResult struct {
 type LinkCheckResult struct {
 	ProofId     int          `codec:"proofId" json:"proofId"`
 	ProofResult ProofResult  `codec:"proofResult" json:"proofResult"`
+	TorWarning  bool         `codec:"torWarning" json:"torWarning"`
 	Cached      *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
 	Diff        *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
 	RemoteDiff  *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`

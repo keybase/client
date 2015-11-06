@@ -53,6 +53,7 @@ protocol identifyUi {
   record LinkCheckResult {
     int proofId;
     ProofResult proofResult;
+    boolean torWarning;
     union { null, CheckResult } cached;
     union { null, TrackDiff } diff;
     union { null, TrackDiff } remoteDiff;

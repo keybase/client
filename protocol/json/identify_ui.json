@@ -258,6 +258,9 @@
     }, {
       "name" : "trackOptions",
       "type" : "TrackOptions"
+    }, {
+      "name" : "forPGPPull",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "record",
@@ -418,6 +421,9 @@
     }, {
       "name" : "proofResult",
       "type" : "ProofResult"
+    }, {
+      "name" : "torWarning",
+      "type" : "boolean"
     }, {
       "name" : "cached",
       "type" : [ "null", "CheckResult" ]

@@ -151,6 +151,7 @@ func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
 
 	// prompt if the identify is correct
 	outcome := ieng.Outcome().Export()
+	outcome.ForPGPPull = true
 	confirmed, err := ctx.IdentifyUI.Confirm(outcome)
 	if err != nil {
 		return err
