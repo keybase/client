@@ -110,7 +110,6 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 		}
 
 		s.passphrase = s.defaultPassphrase
-		s.prompter = NewPrompter(s.fields.ToList(), s.G().UI.GetTerminalUI())
 		s.doPrompt = false
 	} else {
 		s.doPrompt = true
