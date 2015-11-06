@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -25,8 +26,10 @@ func (v *CmdPGPPull) Run() (err error) {
 	if err != nil {
 		return err
 	}
-
-	if err = RegisterProtocols(nil); err != nil {
+	protocols := []rpc.Protocol{
+		NewIdentifyTrackUIProtocol(),
+	}
+	if err = RegisterProtocols(protocols); err != nil {
 		return err
 	}
 
