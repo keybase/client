@@ -15,11 +15,11 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-type CmdRevoke struct {
+type CmdPGPRevoke struct {
 	id string
 }
 
-func (c *CmdRevoke) ParseArgv(ctx *cli.Context) error {
+func (c *CmdPGPRevoke) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("Revoke takes exactly one key.")
 	}
@@ -27,7 +27,7 @@ func (c *CmdRevoke) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdRevoke) Run() (err error) {
+func (c *CmdPGPRevoke) Run() (err error) {
 	cli, err := GetRevokeClient()
 	if err != nil {
 		return err
@@ -45,19 +45,19 @@ func (c *CmdRevoke) Run() (err error) {
 	})
 }
 
-func NewCmdRevoke(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPRevoke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "revoke",
 		ArgumentHelp: "<key-id>",
-		Usage:        "Revoke a key",
+		Usage:        "Revoke a PGP key",
 		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdRevoke{}, "revoke", c)
+			cl.ChooseCommand(&CmdPGPRevoke{}, "revoke", c)
 		},
 	}
 }
 
-func (c *CmdRevoke) GetUsage() libkb.Usage {
+func (c *CmdPGPRevoke) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: true,
