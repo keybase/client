@@ -21,8 +21,8 @@ export default function (state = initialState, action) {
     case Constants.showDevices:
       return {
         ...state,
-        error: action.error,
-        devices: action.devices,
+        error: action.error && action.payload,
+        devices: action.error ? null : action.payload,
         waitingForServer: false
       }
     case Constants.deviceRemoved:
@@ -39,7 +39,7 @@ export default function (state = initialState, action) {
     case Constants.paperKeyLoaded:
       return {
         ...state,
-        error: action.error ? action.payload : null,
+        error: action.error && action.payload,
         paperKey: action.error ? null : action.payload
       }
     default:

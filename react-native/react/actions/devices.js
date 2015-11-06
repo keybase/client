@@ -13,8 +13,8 @@ export function loadDevices () {
     engine.rpc('device.deviceList', {}, {}, (error, devices) => {
       dispatch({
         type: Constants.showDevices,
-        devices,
-        error
+        payload: error || devices,
+        error: !!error
       })
     })
   }

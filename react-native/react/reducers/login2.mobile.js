@@ -80,10 +80,6 @@ export default function (state: LoginState = initialState, action: any): LoginSt
   let toMerge = null
 
   switch (action.type) {
-    case Constants.login:
-      const {username, passphrase} = action
-      toMerge = {userPass: {username, passphrase}}
-      break
     case ConfigConstants.startupLoaded:
       if (action.error) {
         return state
@@ -100,31 +96,25 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       toMerge = {codePage: {myDeviceRole}}
       break
     case Constants.setOtherDeviceCodeState:
-      toMerge = {codePage: {otherDeviceRole: action.otherDeviceRole}}
+      toMerge = {codePage: {otherDeviceRole: action.payload}}
       break
     case Constants.setCodeMode:
-      toMerge = {codePage: {mode: action.mode}}
-      break
-    case Constants.setCountdown:
-      toMerge = {codePage: {codeCountDown: action.countDown}}
+      toMerge = {codePage: {mode: action.payload}}
       break
     case Constants.setTextCode:
-      toMerge = {codePage: {textCode: action.text}}
+      toMerge = {codePage: {textCode: action.payload}}
       break
     case Constants.setQRCode:
-      toMerge = {codePage: {qrCode: action.qrCode}}
-      break
-    case Constants.qrGenerate:
-      toMerge = {codePage: {qrCode: action.qrCode}}
+      toMerge = {codePage: {qrCode: action.payload}}
       break
     case Constants.qrScanned:
-      toMerge = {codePage: {qrScanned: action.code}}
+      toMerge = {codePage: {qrScanned: action.payload}}
       break
     case Constants.actionUpdateForgotPasswordEmailAddress:
       toMerge = {
-        forgotPasswordEmailAddress: action.email,
+        forgotPasswordEmailAddress: action.error ? null : action.payload,
         forgotPasswordSuccess: false,
-        forgotPasswordError: null
+        forgotPasswordError: action.error ? action.payload : null
       }
       break
     case Constants.actionSetForgotPasswordSubmitting:
@@ -142,7 +132,7 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       }
       break
     case Constants.cameraBrokenMode:
-      toMerge = {codePage: {cameraBrokenMode: action.broken}}
+      toMerge = {codePage: {cameraBrokenMode: action.payload}}
       break
     case Constants.doneRegistering: {
       toMerge = {
@@ -155,22 +145,18 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       }
       break
     }
-    case Constants.actionAskUserPass:
-      const {title, subTitle, onSubmit} = action
-      toMerge = {userPass: {title, subTitle, onSubmit}}
-      break
     case Constants.actionSetUserPass: {
-      const {username, passphrase} = action
+      const {username, passphrase} = action.payload
       toMerge = {userPass: {username, passphrase}}
       break
     }
     case Constants.actionAskDeviceName: {
-      const {onSubmit, existingDevices} = action
+      const {onSubmit, existingDevices} = action.payload
       toMerge = {deviceName: {onSubmit, existingDevices}}
       break
     }
     case Constants.actionSetDeviceName:
-      const {deviceName} = action
+      const deviceName = action.payload
       toMerge = {deviceName: {deviceName}}
       break
     default:

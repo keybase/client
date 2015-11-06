@@ -12,22 +12,22 @@ export function startup () {
     engine.rpc('config.getConfig', {}, {}, (error, config) => {
       if (error) {
         dispatch({ type: Constants.startupLoaded, payload: error, error: true })
-      } else {
-        engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
-          if (error) {
-            dispatch({ type: Constants.startupLoaded, payload: error, error: true })
-          } else {
-            dispatch({
-              type: Constants.startupLoaded,
-              payload: { config, status }
-            })
-
-            if (status.loggedIn) {
-              dispatch(autoLogin())
-            }
-          }
-        })
+        return
       }
+      engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
+        if (error) {
+          dispatch({ type: Constants.startupLoaded, payload: error, error: true })
+          return
+        }
+        dispatch({
+          type: Constants.startupLoaded,
+          payload: { config, status }
+        })
+
+        if (status.loggedIn) {
+          dispatch(autoLogin())
+        }
+      })
     })
   }
 }
@@ -41,7 +41,7 @@ export function getDevSettings () {
     NativeModules.App.getDevConfig((devConfig) => {
       dispatch({
         type: Constants.devConfigLoaded,
-        devConfig
+        payload: { devConfig }
       })
     })
   }
@@ -54,15 +54,13 @@ export function saveDevSettings () {
     console.info(devConfig)
     NativeModules.App.setDevConfig(devConfig.configured)
 
-    return dispatch({
-      type: Constants.devConfigSaved
-    })
+    return dispatch({ type: Constants.devConfigSaved })
   }
 }
 
 export function updateDevSettings (updates) {
   return {
     type: Constants.devConfigUpdate,
-    updates
+    payload: { updates }
   }
 }
