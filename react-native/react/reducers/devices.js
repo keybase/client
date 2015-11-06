@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/devices'
+import * as Constants from '../constants/devices'
 
 const initialState = {
   waitingForServer: false,
@@ -12,31 +12,31 @@ const initialState = {
 
 export default function (state = initialState, action) {
   switch (action.type) {
-    case types.LOADING_DEVICES:
+    case Constants.loadingDevices:
       return {
         ...state,
         error: null,
         waitingForServer: true
       }
-    case types.SHOW_DEVICES:
+    case Constants.showDevices:
       return {
         ...state,
         error: action.error,
         devices: action.devices,
         waitingForServer: false
       }
-    case types.DEVICE_REMOVED:
+    case Constants.deviceRemoved:
       return {
         ...state,
         waitingForServer: false
       }
-    case types.PAPER_KEY_LOADING:
+    case Constants.paperKeyLoading:
       return {
         ...state,
         error: null,
         paperKey: null
       }
-    case types.PAPER_KEY_LOADED:
+    case Constants.paperKeyLoaded:
       return {
         ...state,
         error: action.error ? action.payload : null,

@@ -1,10 +1,11 @@
 'use strict'
 /* @flow */
 
-export const LOADING_DEVICES = 'LOADING_DEVICES'
-export const SHOW_DEVICES = 'SHOW_DEVICES'
+// Actions
+export const loadingDevices = 'devices:loadingDevices'
+export const showDevices = 'devices:showDevices'
 
-export const PAPER_KEY_LOADING = 'PAPER_KEY_LOADING'
-export const PAPER_KEY_LOADED = 'PAPER_KEY_LOADED'
+export const paperKeyLoading = 'devices:paperKeyLoading'
+export const paperKeyLoaded = 'devices:paperKeyLoaded'
 
-export const DEVICE_REMOVED = 'DEVICE_REMOVED'
+export const deviceRemoved = 'devices:deviceRemoved'

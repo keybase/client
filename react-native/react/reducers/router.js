@@ -1,10 +1,9 @@
 /* @flow */
 'use strict'
 
-import * as routerTypes from '../constants/router'
+import * as RouterConstants from '../constants/router'
 import Immutable, {List, Map} from 'immutable'
 // $FlowFixMe ignore this import for now
-import * as localDebug from '../local-debug'
 import * as LoginConstants from '../constants/login2'
 
 export type URI = List<Map<string, string>>
@@ -56,15 +55,15 @@ export default function (state: RouterState = initialState, action: any): Router
     // TODO(MM): change the history so if we go up to something that is already in the history,
     // or a child of it
     // we get rid of everything after it
-    case routerTypes.NAVIGATE_UP:
+    case RouterConstants.navigateUp:
       return state.update('uri', (uri) => uri.count() > 1 ? uri.pop() : uri)
-    case routerTypes.NAVIGATE_BACK:
+    case RouterConstants.navigateBack:
       const lastUri = state.get('history').last() || parseUri([])
       return state.update('history', (history) => history.count() > 1 ? history.pop() : parseUri([]))
         .set('uri', lastUri)
-    case routerTypes.NAVIGATE:
+    case RouterConstants.navigate:
       return stateWithHistory.set('uri', parseUri(action.uri))
-    case routerTypes.NAVIGATE_APPEND:
+    case RouterConstants.navigateAppend:
       if (action.topRoute.constructor === Array) {
         return stateWithHistory.update('uri', (uri) => uri.concat(action.topRoute.map(parsePath)))
       }

@@ -11,7 +11,7 @@ import CodePage from '../login2/register/code-page'
 import ExistingDevice from '../login2/register/existing-device'
 import SetPublicName from '../login2/register/set-public-name'
 import { switchTab } from './tabbed-router'
-import { DEVICES_TAB } from '../constants/tabs'
+import { devicesTab } from '../constants/tabs'
 import { loadDevices } from './devices'
 
 export function login () {
@@ -336,7 +336,7 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
     })
 
     dispatch(navigateTo([]))
-    dispatch(switchTab(DEVICES_TAB))
+    dispatch(switchTab(devicesTab))
   })
 }
 
@@ -422,7 +422,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       response.result()
       const uri = getCurrentURI(getState()).last()
 
-      const onDevicesTab = getCurrentTab(getState()) === DEVICES_TAB
+      const onDevicesTab = getCurrentTab(getState()) === devicesTab
       const onCodePage = uri && uri.getIn(['parseRoute']) &&
         uri.getIn(['parseRoute']).componentAtTop && uri.getIn(['parseRoute']).componentAtTop.component === CodePage
 

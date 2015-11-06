@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/profile'
+import * as Constants from '../constants/profile'
 import { routeAppend } from './router'
 import engine from '../engine'
 import { identify } from '../keybase_v1'
@@ -9,7 +9,7 @@ const enums = identify
 export function pushNewProfile (username) {
   return function (dispatch, getState) {
     dispatch({
-      type: types.INIT_PROFILE,
+      type: Constants.initProfile,
       username
     })
     dispatch(routeAppend({
@@ -26,7 +26,7 @@ export function refreshProfile (username) {
   return function (dispatch) {
     dispatch({
       username,
-      type: types.PROFILE_LOADING
+      type: Constants.profileLoading
     })
 
     const incomingMap = {
@@ -39,7 +39,7 @@ export function refreshProfile (username) {
 
         dispatch({
           username,
-          type: types.PROFILE_RECEIVED_DISPLAY_KEY,
+          type: Constants.profileReceivedDisplayKey,
           key: {...key, type: 'PGP', display}
         })
 
@@ -48,7 +48,7 @@ export function refreshProfile (username) {
       'keybase.1.identifyUi.launchNetworkChecks': ({identity: {proofs}}, response) => {
         dispatch({
           username,
-          type: types.PROFILE_CHECKING_NETWORKS,
+          type: Constants.profileCheckingNetworks,
           networks: proofs.map(p => p.proof.key)
         })
 
@@ -83,7 +83,7 @@ export function refreshProfile (username) {
 
         dispatch({
           username,
-          type: types.PROFILE_NETWORK_UPDATE,
+          type: Constants.profileNetworkUpdate,
           network,
           update: {
             display,
@@ -114,7 +114,7 @@ export function refreshProfile (username) {
           console.log('search results', results)
           dispatch({
             username,
-            type: types.PROFILE_LOADED,
+            type: Constants.profileLoaded,
             results,
             error
           })
@@ -130,7 +130,7 @@ export function loadSummaries (uids) {
   return function (dispatch) {
     dispatch({
       uids,
-      type: types.PROFILE_SUMMARY_LOADING
+      type: Constants.profileSummaryLoading
     })
 
     engine.rpc('user.loadUncheckedUserSummaries', {uids: uids}, {}, (error, response) => {
@@ -145,7 +145,7 @@ export function loadSummaries (uids) {
       })
 
       dispatch({
-        type: types.PROFILE_SUMMARY_LOADED,
+        type: Constants.profileSummaryLoaded,
         summaries,
         error
       })

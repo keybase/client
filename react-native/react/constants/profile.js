@@ -1,11 +1,12 @@
 'use strict'
 /* @flow */
 
-export const INIT_PROFILE = 'INIT_PROFILE'
-export const PROFILE_LOADING = 'PROFILE_LOADING'
-export const PROFILE_RECEIVED_DISPLAY_KEY = 'PROFILE_RECEIVED_DISPLAY_KEY'
-export const PROFILE_LOADED = 'PROFILE_LOADED'
-export const PROFILE_CHECKING_NETWORKS = 'PROFILE_CHECKING_NETWORKS'
-export const PROFILE_NETWORK_UPDATE = 'PROFILE_NETWORK_UPDATE'
-export const PROFILE_SUMMARY_LOADING = 'PROFILE_SUMMARY_LOADING'
-export const PROFILE_SUMMARY_LOADED = 'PROFILE_SUMMARY_LOADED'
+// Actions
+export const initProfile = 'profile:initProfile'
+export const profileLoading = 'profile:profileLoading'
+export const profileReceivedDisplayKey = 'profile:profileReceivedDisplayKey'
+export const profileLoaded = 'profile:profileLoaded'
+export const profileCheckingNetworks = 'profile:profileCheckingNetworks'
+export const profileNetworkUpdate = 'profile:profileNetworkUpdate'
+export const profileSummaryLoading = 'profile:profileSummaryLoading'
+export const profileSummaryLoaded = 'profile:profileSummaryLoaded'

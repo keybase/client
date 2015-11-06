@@ -1,7 +1,7 @@
 /* @flow */
 'use strict'
 
-import * as types from '../constants/search'
+import * as Constants from '../constants/search'
 import Immutable from 'immutable'
 
 import type { URI } from './router'
@@ -20,24 +20,24 @@ const initialState: SearchState = Immutable.Map()
 export default function (state: SearchState = initialState, action: any): SearchState {
   return state.update(action.base, oldValue => {
     switch (action.type) {
-      case types.INIT_SEARCH:
+      case Constants.initSearch:
         return Immutable.fromJS({
           base: action.base,
           waitingForServer: false,
           term: '',
           results: []
         })
-      case types.SEARCH_SERVICE:
+      case Constants.searchService:
         return oldValue.set('service', action.service)
-      case types.SEARCH_TERM:
+      case Constants.searchTerm:
         return oldValue.set('term', action.term)
-      case types.SEARCH_RUNNING:
+      case Constants.searchRunning:
         return oldValue.merge({
           nonce: action.nonce,
           error: null,
           waitingForServer: true
         })
-      case types.SEARCH_RESULTS:
+      case Constants.searchResults:
         return oldValue.merge({
           waitingForServer: false,
           results: action.results,

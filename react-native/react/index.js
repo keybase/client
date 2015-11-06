@@ -7,8 +7,8 @@ import configureStore from './store/configure-store'
 import Nav from './nav'
 
 import { isDev } from './constants/platform'
-import { STATE_KEY } from './constants/reducer'
-import { SERIALIZE_RESTORE, SERIALIZE_SAVE, TIME_TRAVEL, TIME_TRAVEL_FORWARD, TIME_TRAVEL_BACK } from './constants/dev'
+import { stateKey } from './constants/reducer'
+import { serializeRestore, serializeSave, timeTravel, timeTravelForward, timeTravelBack } from './constants/dev'
 
 const store = configureStore()
 
@@ -16,20 +16,20 @@ class Keybase extends Component {
   componentWillMount () {
     this.subscriptions = []
     if (isDev) {
-      AsyncStorage.getItem(STATE_KEY, (err, stateJSON) => {
+      AsyncStorage.getItem(stateKey, (err, stateJSON) => {
         if (err != null) {
           console.error('Error in reading state:', err)
         }
         if (stateJSON != null) {
-          store.dispatch({type: SERIALIZE_RESTORE, payload: stateJSON})
+          store.dispatch({type: serializeRestore, payload: stateJSON})
         }
       })
 
       this.subscriptions = [
-        NativeAppEventEmitter.addListener('backInTime', () => store.dispatch({type: TIME_TRAVEL, payload: {direction: TIME_TRAVEL_BACK}})),
-        NativeAppEventEmitter.addListener('forwardInTime', () => store.dispatch({type: TIME_TRAVEL, payload: {direction: TIME_TRAVEL_FORWARD}})),
-        NativeAppEventEmitter.addListener('saveState', () => store.dispatch({type: SERIALIZE_SAVE})),
-        NativeAppEventEmitter.addListener('clearState', () => AsyncStorage.removeItem(STATE_KEY))
+        NativeAppEventEmitter.addListener('backInTime', () => store.dispatch({type: timeTravel, payload: {direction: timeTravelBack}})),
+        NativeAppEventEmitter.addListener('forwardInTime', () => store.dispatch({type: timeTravel, payload: {direction: timeTravelForward}})),
+        NativeAppEventEmitter.addListener('saveState', () => store.dispatch({type: serializeSave})),
+        NativeAppEventEmitter.addListener('clearState', () => AsyncStorage.removeItem(stateKey))
       ]
     }
   }

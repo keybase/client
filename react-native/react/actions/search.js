@@ -1,13 +1,13 @@
 'use strict'
 
-import * as SearchActions from '../constants/search'
+import * as Constants from '../constants/search'
 import { routeAppend, getCurrentURI } from './router'
 import { loadSummaries } from './profile'
 import engine from '../engine'
 import * as _ from 'lodash'
 
 export function initSearch (base) {
-  return { type: SearchActions.INIT_SEARCH, base }
+  return { type: Constants.initSearch, base }
 }
 
 export function pushNewSearch () {
@@ -18,7 +18,7 @@ export function pushNewSearch () {
 }
 
 export function selectService (base, service) {
-  return { type: SearchActions.SEARCH_SERVICE, base, service }
+  return { type: Constants.searchService, base, service }
 }
 
 let next_nonce = 0
@@ -29,7 +29,7 @@ const submitSearch_debounced = _.debounce((base, term, dispatch, getState) => {
   dispatch({
     base,
     nonce,
-    type: SearchActions.SEARCH_RUNNING
+    type: Constants.searchRunning
   })
 
   const bad_nonce = () => (getState().search.getIn([base, 'nonce']) !== nonce)
@@ -56,13 +56,13 @@ const submitSearch_debounced = _.debounce((base, term, dispatch, getState) => {
     .then(results => {
       const trackingUsernames = new Set(results[0].map(u => u.uid))
       dispatch({
-        type: SearchActions.SEARCH_RESULTS,
+        type: Constants.searchResults,
         base,
         results: results[0].concat(results[1].filter(r => !trackingUsernames.has(r.uid)))
       })
     })
     .catch(err => dispatch({
-      type: SearchActions.SEARCH_RESULTS,
+      type: Constants.searchResults,
       base,
       error: err
     }))
@@ -75,7 +75,7 @@ export function submitSearch (base, term) {
       return dispatch(initSearch(base))
     }
     dispatch({
-      type: SearchActions.SEARCH_TERM,
+      type: Constants.searchTerm,
       base,
       term
     })

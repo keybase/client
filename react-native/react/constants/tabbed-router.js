@@ -1,4 +1,5 @@
 'use strict'
 /* @flow */
 
-export const SWITCH_TAB = 'SWITCH_TAB'
+// Actions
+export const switchTab = 'tabbed-router:switchTab'

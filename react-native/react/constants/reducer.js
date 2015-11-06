@@ -2,4 +2,4 @@
 /* @flow */
 
 export type State = { [key: string]: any }
-export const STATE_KEY = 'state'
+export const stateKey = 'reducer:stateKey'
