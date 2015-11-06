@@ -32,6 +32,10 @@ func (m TorMode) UseCSRF() bool {
 	return m != TorStrict
 }
 
+func (m TorMode) UseHeaders() bool {
+	return m != TorStrict
+}
+
 func StringToTorMode(s string) (ret TorMode, err error) {
 	switch s {
 	case "strict":
