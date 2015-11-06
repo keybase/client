@@ -37,6 +37,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 	ret := keybase1.LinkCheckResult{
 		ProofId:     l.position,
 		ProofResult: ExportProofError(l.err),
+		TorWarning:  l.torWarning,
 	}
 	if l.cached != nil {
 		ret.Cached = l.cached.Export()

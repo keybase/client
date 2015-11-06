@@ -1152,6 +1152,7 @@ type LinkCheckResult struct {
 	link              RemoteProofChainLink
 	trackedProofState keybase1.ProofState
 	position          int
+	torWarning        bool
 }
 
 func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
@@ -1159,6 +1160,7 @@ func (l LinkCheckResult) GetError() error         { return l.err }
 func (l LinkCheckResult) GetHint() *SigHint       { return l.hint }
 func (l LinkCheckResult) GetCached() *CheckResult { return l.cached }
 func (l LinkCheckResult) GetPosition() int        { return l.position }
+func (l LinkCheckResult) GetTorWarning() bool     { return l.torWarning }
 
 func ComputeRemoteDiff(tracked, observed keybase1.ProofState) TrackDiff {
 	if observed == tracked {
@@ -1209,9 +1211,8 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	}
 
 	if idt.G().Env.GetTorMode().Enabled() {
-		res.err = pc.GetTorError()
-		if res.err != nil {
-			return
+		if e := pc.GetTorError(); e != nil {
+			res.torWarning = true
 		}
 	}
 

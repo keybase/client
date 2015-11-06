@@ -198,6 +198,10 @@ func (w LinkCheckResultWrapper) GetDiff() *keybase1.TrackDiff {
 	return w.lcr.Diff
 }
 
+func (w LinkCheckResultWrapper) GetTorWarning() bool {
+	return w.lcr.TorWarning
+}
+
 func (w LinkCheckResultWrapper) GetError() error {
 	return libkb.ImportProofError(w.lcr.ProofResult)
 }
@@ -307,10 +311,16 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 	okColor := "yellow"
 
 	if err := lcr.GetError(); err == nil {
+		torWarning := ""
+		if lcr.GetTorWarning() {
+			okColor = "red"
+			torWarning = ", " + ColorString("bold", "but the result isn't reliable over Tor")
+		}
+
 		if s.GetProtocol() == "dns" {
 			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(okColor, "DNS") + " zone " +
-				ColorString(okColor, s.GetDomain()) +
+				ColorString(okColor, s.GetDomain()) + torWarning +
 				": found TXT entry " + lcr.GetHint().GetCheckText())
 		} else {
 			var color string
@@ -321,7 +331,7 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 			}
 			msg += (CHECK + " " + lcrs + "admin of " +
 				ColorString(color, s.GetHostname()) + " via " +
-				ColorString(color, strings.ToUpper(s.GetProtocol())) +
+				ColorString(color, strings.ToUpper(s.GetProtocol())) + torWarning +
 				": " + lcr.GetHint().GetHumanURL())
 		}
 	} else {

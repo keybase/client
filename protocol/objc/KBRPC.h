@@ -337,6 +337,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @interface KBRLinkCheckResult : KBRObject
 @property NSInteger proofId;
 @property KBRProofResult *proofResult;
+@property BOOL torWarning;
 @property KBRCheckResult *cached;
 @property KBRTrackDiff *diff;
 @property KBRTrackDiff *remoteDiff;
