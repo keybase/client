@@ -24,7 +24,7 @@ class DesktopTransport extends BaseTransport {
       console.error('No keybased socket file found!')
     }
     super(
-      { path: sockfile, robust: true },
+      { path: sockfile },
       null,
       incomingRPCCallback
     )
