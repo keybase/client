@@ -12,6 +12,7 @@ func GetHelpTopics() []cli.HelpTopic {
 		advancedHT,
 		gpgHT,
 		keyringHT,
+		torHT,
 	}
 }
 
@@ -126,6 +127,34 @@ the user can immediately use her new passphrase across all devices. However,
 the server cannot decrypt an LKS-protected secret key unless it also
 has access to the user's passphrase (or can crack it). More details
 are available on keybase.io in the docs section.
+`,
+}
+
+var torHT = cli.HelpTopic{
+	Name:  "tor",
+	Usage: "Description of how keybase works with Tor",
+	Body: `Keybase + Tor
+
+Using the --tor-mode flag, you can enable either "strict" mode or "leaky" mode.
+
+In either mode, we print warnings any time you identify another user with HTTP
+or DNS proofs, because your Tor exit node will be able to spoof these.
+
+In leaky mode, all server requests are made over Tor to the Keybase onion URL
+(http://fncuwbiisyh6ak3i.onion), but the client still sends your session ID and
+other authentication info as part of its requests. Features that require you to
+be logged in, like "keybase prove", still work as usual.
+
+In strict mode, the client tries to avoid identifying you even to the Keybase
+server. We strip all headers from API requests. Any commands that require
+authentication will fail.
+
+As usual with anonymity tools, there is a big list of caveats and warnings that
+apply. Our strict mode isn't audited, so it's possible that identifying
+information will creep in. A better guarantee would be to run the client inside
+of a Tails VM (https://tails.boum.org), with no identifying information
+available to the client at all. Even still, it's possible for your own behavior
+to identify you, like if you fetch the PGP keys of all of your friends.
 `,
 }
 
