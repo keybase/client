@@ -296,4 +296,14 @@ func TestSignupLogout(t *testing.T) {
 	if err := <-stopCh; err != nil {
 		t.Fatal(err)
 	}
+
+	// Check that we only get one notification, not two
+	select {
+	case _, ok := <-nh.logoutCh:
+		if ok {
+			t.Fatal("Received an extra logout notification!")
+		}
+	default:
+	}
+
 }

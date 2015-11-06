@@ -22,6 +22,7 @@ type setObj struct {
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
 type NotifyRouter struct {
+	Contextified
 	cm         *ConnectionManager
 	state      map[ConnectionID]keybase1.NotificationChannels
 	setCh      chan setObj
@@ -31,13 +32,14 @@ type NotifyRouter struct {
 
 // NewNotifyRouter makes a new notification router; we should only
 // make one of these per process.
-func NewNotifyRouter() *NotifyRouter {
+func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 	ret := &NotifyRouter{
-		cm:         NewConnectionManager(),
-		state:      make(map[ConnectionID]keybase1.NotificationChannels),
-		setCh:      make(chan setObj),
-		getCh:      make(chan getObj),
-		shutdownCh: make(chan struct{}),
+		Contextified: NewContextified(g),
+		cm:           NewConnectionManager(),
+		state:        make(map[ConnectionID]keybase1.NotificationChannels),
+		setCh:        make(chan setObj),
+		getCh:        make(chan getObj),
+		shutdownCh:   make(chan struct{}),
 	}
 	go ret.run()
 	return ret
@@ -89,6 +91,7 @@ func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChann
 // HandleLogout is called whenever the current user logged out. It will broadcast
 // the message to all connections who care about such a mesasge.
 func (n *NotifyRouter) HandleLogout() {
+	n.G().Log.Debug("+ Sending logout notfication")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Session` notification type
@@ -103,6 +106,7 @@ func (n *NotifyRouter) HandleLogout() {
 		}
 		return true
 	})
+	n.G().Log.Debug("- Logout notification sent")
 }
 
 // HandleUserChanged is called whenever we know that a given user has

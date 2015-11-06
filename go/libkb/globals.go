@@ -80,7 +80,7 @@ func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
 	g.Service = false
 	g.createLoginState()
-	g.NotifyRouter = NewNotifyRouter()
+	g.NotifyRouter = NewNotifyRouter(g)
 }
 
 // requires lock on loginStateMu before calling
