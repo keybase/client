@@ -7,10 +7,6 @@ import { submitDeviceName } from '../actions/login'
 import DevicePromptRender from './device-prompt-render'
 
 export default class DevicePrompt extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     const error = this.props.deviceNameError ? this.props.deviceNameError : ''
 

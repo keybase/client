@@ -6,9 +6,6 @@ import BaseComponent from '../base-component'
 import NoTabRender from './no-tab-render'
 
 export default class NoTab extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
   render () {
     return <NoTabRender />
   }

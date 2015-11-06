@@ -11,10 +11,6 @@ const tabBarProps = {
 }
 
 class TabBarItem extends Component {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     return this.props.children
   }
@@ -43,10 +39,6 @@ const NativeTabBar = requireNativeComponent(
 )
 
 export default class TabBar extends Component {
-  constructor (props) {
-    super(props)
-  }
-
   shouldComponentUpdate (nextProps, nextState) {
     // If the titles are the same, then we aren't going to rerender.
     const oldTabs = this.props.children

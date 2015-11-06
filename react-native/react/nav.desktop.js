@@ -33,10 +33,6 @@ const menuItems = [
 ]
 
 export default class Nav extends BaseComponent {
-  constructor(props) {
-    super(props)
-  }
-
   _renderContent (activeTab, rootComponent) {
     return (
       <div>

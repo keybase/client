@@ -34,10 +34,6 @@ const tabToRootComponent = {
 }
 
 class AndroidNavigator extends Component {
-  constructor (props) {
-    super(props)
-  }
-
   push (componentAtTop) {
     return false
   }

@@ -6,10 +6,6 @@ import Button from '../common-adapters/button'
 import enums from '../keybase_v1'
 
 export default class SelectSigner extends Component {
-  constructor (props) {
-    super(props)
-  }
-
   componentWillMount () {
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 

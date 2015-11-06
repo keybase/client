@@ -13,10 +13,6 @@ import { SERIALIZE_RESTORE, SERIALIZE_SAVE, TIME_TRAVEL, TIME_TRAVEL_FORWARD, TI
 const store = configureStore()
 
 class Keybase extends Component {
-  constructor () {
-    super()
-  }
-
   componentWillMount () {
     this.subscriptions = []
     if (isDev) {

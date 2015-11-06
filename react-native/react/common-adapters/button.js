@@ -5,10 +5,6 @@ import React, { Component, Text, TouchableHighlight, View } from 'react-native'
 import commonStyles, {buttonHighlight, disabledButtonHighlight} from '../styles/common'
 
 export default class Button extends Component {
-  constructor (props) {
-    super(props)
-  }
-
   render () {
     const enabled = this.props.hasOwnProperty('enabled') ? this.props.enabled : true
     const textStyles = [commonStyles.button, this.props.buttonStyle, enabled ? {} : commonStyles.disabledButton]

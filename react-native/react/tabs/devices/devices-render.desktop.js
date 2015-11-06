@@ -13,10 +13,6 @@ import moment from 'moment'
 import View from 'react-flexbox'
 
 export default class DevicesRender extends BaseComponent {
-  constructor (props) {
-    super(props)
-  }
-
   renderPhone (device) {
     return (
       <div key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
