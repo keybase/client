@@ -24,7 +24,7 @@ func (c *CmdShowNotifications) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdShowNotifications) Run() error {
-	_, err := GlobUI.Println("Showing notifications:")
+	_, err := c.G().UI.GetTerminalUI().Printf("Showing notifications:\n")
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (c *CmdShowNotifications) Run() error {
 		return err
 	}
 
-	_, err = GlobUI.Println("waiting for notifications...")
+	_, err = c.G().UI.GetTerminalUI().Printf("waiting for notifications...\n")
 	if err != nil {
 		return err
 	}
