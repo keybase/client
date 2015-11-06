@@ -174,6 +174,10 @@ func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*
 func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
 	resp *http.Response, jw *jsonw.Wrapper, err error) {
 
+	if !arg.G().Env.GetTorMode().UseSession() && arg.NeedSession {
+		err = TorSessionRequiredError{}
+	}
+
 	api.fixHeaders(arg, req)
 	cli := api.getCli(arg.NeedSession)
 
@@ -319,12 +323,12 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
 			req.Header.Add("X-Keybase-Session", tok)
 		} else {
-			G.Log.Warning("fixHeaders:  need session, but session token empty")
+			G.Log.Warning("fixHeaders: need session, but session token empty")
 		}
 		if len(csrf) > 0 && a.G().Env.GetTorMode().UseCSRF() {
 			req.Header.Add("X-CSRF-Token", csrf)
 		} else {
-			G.Log.Warning("fixHeaders:  need session, but session csrf empty")
+			G.Log.Warning("fixHeaders: need session, but session csrf empty")
 		}
 	}
 	req.Header.Set("User-Agent", UserAgent)

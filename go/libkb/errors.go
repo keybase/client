@@ -69,6 +69,12 @@ var ProofErrorHTTPOverTor = &ProofErrorImpl{
 	Desc:   "HTTP proof aren't reliable over Tor",
 }
 
+type TorSessionRequiredError struct{}
+
+func (t TorSessionRequiredError) Error() string {
+	return "We can't send out PII from Tor-Strict mode; but it's needed for this operation"
+}
+
 // Might be overkill, let's revisit...
 
 // Might be overkill, let's revisit...
