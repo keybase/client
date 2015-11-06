@@ -332,8 +332,10 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 			G.Log.Warning("fixHeaders: need session, but session csrf empty")
 		}
 	}
-	req.Header.Set("User-Agent", UserAgent)
-	req.Header.Set("X-Keybase-Client", IdentifyAs)
+	if a.G().Env.GetTorMode().UseHeaders() {
+		req.Header.Set("User-Agent", UserAgent)
+		req.Header.Set("X-Keybase-Client", IdentifyAs)
+	}
 }
 
 func (a *InternalAPIEngine) checkAppStatus(arg APIArg, jw *jsonw.Wrapper) (string, error) {
