@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<style>
+html {
+  font: 12px "Helvetica Neue", Helvetica, sans-serif;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+button {
+  display: block;
+  width: 100%;
+  height: 30px;
+  margin: 10px 0;
+}
+
+</style>
+
+<button type=button id=showMain>Main</button>
+<button type=button id=showTracker>Tracker popup</button>
+
+<script>
+const ipc = require('ipc');
+
+showMain.addEventListener('click', () => { ipc.send('showMain'); })
+showTracker.addEventListener('click', () => { ipc.send('showTracker'); })
+</script>
