@@ -1,3 +1,8 @@
+## 1.0.0-44 (2015-11-06)
+
+- Fix passphrase change
+- Fix 'pgp gen' documentation
+
 ## 1.0.0-43 (2015-11-03)
 
 - Rerelease for homebrew hashes
