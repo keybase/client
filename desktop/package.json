@@ -20,6 +20,7 @@
     "lodash": "^3.10.1",
     "material-ui": "^0.13.0",
     "node-framed-msgpack-rpc": "https://github.com/keybase/node-framed-msgpack-rpc.git#nojima/keybase-client-changes",
+    "node-notifier": "^4.3.1",
     "purepack": "https://github.com/keybase/purepack.git#nojima/keybase-client-changes",
     "react": "^0.14.0",
     "react-addons-create-fragment": "^0.14.0",

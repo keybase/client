@@ -9,7 +9,6 @@ import configureStore from '../../react-native/react/store/configure-store'
 import Nav from '../../react-native/react/nav'
 import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react'
 import injectTapEventPlugin from 'react-tap-event-plugin'
-import { enableNotifications, bindNotifications } from '../../react-native/react/native/notifications'
 const store = configureStore()
 
 class Keybase extends BaseComponent {
@@ -18,14 +17,6 @@ class Keybase extends BaseComponent {
 
     // Used by material-ui widgets.
     injectTapEventPlugin()
-
-    // Bind Notifications
-    enableNotifications()
-    this.unbindNotifications = bindNotifications()
-  }
-
-  componentWillUnmount () {
-    this.unbindNotifications()
   }
 
   render () {
