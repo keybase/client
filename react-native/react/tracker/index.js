@@ -53,7 +53,23 @@ export default class Tracker extends BaseComponent {
           onUnfollow: () => {
             console.log('onUnfollow')
             store.dispatch(navigateUp())
-          }
+          },
+          proofs: [
+            { platformIcon: '[TW]', platform: 'twitter', username: 'maxtaco', status: 'verified',
+              meta: 'new', platformLink: 'http://www.twitter.com/maxtaco', proofLink: 'https://twitter.com/maxtaco/status/433688676975927296' },
+            { platformIcon: '[GH]', platform: 'github', username: 'maxtaco', status: 'checking',
+              meta: null, platformLink: 'http://www.github.com/maxtaco', proofLink: 'https://gist.github.com/maxtaco/8847250' },
+            { platformIcon: '[re]', platform: 'reddit', username: 'maxtaco', status: 'unreachable',
+              meta: null, platformLink: 'https://www.reddit.com/user/maxtaco', proofLink: 'https://www.reddit.com/r/KeybaseProofs/comments/2clf9c/my_keybase_proof_redditmaxtaco_keybasemax/' },
+            { platformIcon: '[pgp]', platform: 'pgp', username: 'maxtaco', status: 'pending',
+              meta: 'unreachable', platformLink: 'https://keybase.io/max/key.asc', proofLink: 'http://www.twitter.com/maxtaco' },
+            { platformIcon: '[cb]', platform: 'coinbase', username: 'coinbase/maxtaco', status: 'deleted',
+              meta: 'deleted', platformLink: 'https://www.coinbase.com/maxtaco', proofLink: 'https://www.coinbase.com/maxtaco/public-key' },
+            { platformIcon: '[web]', platform: 'web', username: 'oneshallpass.com', status: 'verified',
+              meta: null, httpsProofLink: 'https://oneshallpass.com/.well-known/keybase.txt', dnsProofLink: 'https://keybase.io/max/sigchain#0e577a1475085a07ad10663400de1cd7c321d2349cf2446de112e2f2f51a928b0f' },
+            { platformIcon: '[web]', platform: 'web', username: 'somethingelse.com', status: 'verified',
+              meta: 'pending', httpProofLink: 'http://oneshallpass.com/.well-known/keybase.txt', dnsProofLink: 'https://keybase.io/max/sigchain#0e577a1475085a07ad10663400de1cd7c321d2349cf2446de112e2f2f51a928b0f' }
+          ]
           // TODO put back when we integrate
           // followChecked: checked => this.setState({shouldFollowChecked: checked})
         }
