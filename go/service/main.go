@@ -292,8 +292,7 @@ func (d *Service) ParseArgv(ctx *cli.Context) error {
 
 func NewCmdService(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "service",
-		Usage: "Run the keybase service",
+		Name: "service",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "chdir",
