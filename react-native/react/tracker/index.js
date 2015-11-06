@@ -32,10 +32,22 @@ export default class Tracker extends BaseComponent {
         // dummy data TODO
         props: {
           reason: 'You accessed /private/cecile',
+          state: 'warning',
           username: 'test12',
           shouldFollow: true,
-          onClose: () => store.dispatch(navigateUp()), // TODO
-          onFollowHelp: () => window.open('https://keybase.io/docs/tracking') // TODO
+          onClose: () => {
+            console.log('onClose')
+            store.dispatch(navigateUp())
+          }, // TODO
+          onFollowHelp: () => window.open('https://keybase.io/docs/tracking'), // TODO
+          onRefollow: () => {
+            console.log('onRefollow')
+            store.dispatch(navigateUp())
+          },
+          onUnfollow: () => {
+            console.log('onUnfollow')
+            store.dispatch(navigateUp())
+          }
           // TODO put back when we integrate
           // followChecked: checked => this.setState({shouldFollowChecked: checked})
         }
