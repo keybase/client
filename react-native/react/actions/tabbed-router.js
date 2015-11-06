@@ -5,6 +5,6 @@ import * as Constants from '../constants/tabbed-router'
 export function switchTab (tabName) {
   return {
     type: Constants.switchTab,
-    tabName
+    payload: tabName
   }
 }

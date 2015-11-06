@@ -42,7 +42,7 @@ const initialState: TabbedRouterState = Immutable.fromJS({
 export default function (state: TabbedRouterState = initialState, action: any): TabbedRouterState {
   switch (action.type) {
     case Constants.switchTab:
-      return state.set('activeTab', action.tabName)
+      return state.set('activeTab', action.payload)
     case LoginConstants.loginDone:
       if (LocalDebug.skipLoginRouteToRoot) {
         return state
