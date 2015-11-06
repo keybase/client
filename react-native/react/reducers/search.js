@@ -18,30 +18,34 @@ type SearchState = Immutable.Map<Base, SubSearchState>
 const initialState: SearchState = Immutable.Map()
 
 export default function (state: SearchState = initialState, action: any): SearchState {
-  return state.update(action.base, oldValue => {
+  if (!action.payload || !action.payload.base) {
+    return state
+  }
+
+  return state.update(action.payload.base, oldValue => {
     switch (action.type) {
       case Constants.initSearch:
         return Immutable.fromJS({
-          base: action.base,
+          base: action.payload.base,
           waitingForServer: false,
           term: '',
           results: []
         })
       case Constants.searchService:
-        return oldValue.set('service', action.service)
+        return oldValue.set('service', action.payload.service)
       case Constants.searchTerm:
-        return oldValue.set('term', action.term)
+        return oldValue.set('term', action.payload.term)
       case Constants.searchRunning:
         return oldValue.merge({
-          nonce: action.nonce,
+          nonce: action.payload.nonce,
           error: null,
           waitingForServer: true
         })
       case Constants.searchResults:
         return oldValue.merge({
           waitingForServer: false,
-          results: action.results,
-          error: action.error
+          results: action.payload.results,
+          error: action.payload.error
         })
     }
   })

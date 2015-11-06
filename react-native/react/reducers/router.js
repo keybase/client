@@ -63,7 +63,7 @@ export default function (state: RouterState = initialState, action: any): Router
     case RouterConstants.navigate:
       return stateWithHistory.set('uri', parseUri(action.payload))
     case RouterConstants.navigateAppend:
-      if (action.topRoute.constructor === Array) {
+      if (action.payload.constructor === Array) {
         return stateWithHistory.update('uri', uri => uri.concat(action.payload.map(parsePath)))
       }
       return stateWithHistory.update('uri', uri => uri.push(parsePath(action.payload)))
