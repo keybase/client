@@ -256,6 +256,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @interface KBRTrackOptions : KBRObject
 @property BOOL localOnly;
 @property BOOL bypassConfirm;
+@property BOOL importPGPKeys;
 @end
 
 @interface KBRIdentifyOutcome : KBRObject

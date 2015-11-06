@@ -36,9 +36,7 @@ func (e *TrackEngine) Name() string {
 }
 
 func (e *TrackEngine) Prereqs() Prereqs {
-	return Prereqs{
-		Device: true,
-	}
+	return Prereqs{}
 }
 
 func (e *TrackEngine) RequiredUIs() []libkb.UIKind {
@@ -55,6 +53,11 @@ func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *TrackEngine) Run(ctx *Context) error {
+
+	if ok, _ := IsLoggedIn(e, ctx); !ok {
+		e.arg.Options.LocalOnly = true
+	}
+
 	iarg := NewIdentifyTrackArg(e.arg.UserAssertion, true, e.arg.ForceRemoteCheck, e.arg.Options)
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {

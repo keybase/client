@@ -212,6 +212,9 @@
     }, {
       "name" : "bypassConfirm",
       "type" : "boolean"
+    }, {
+      "name" : "importPGPKeys",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "record",

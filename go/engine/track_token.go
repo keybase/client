@@ -45,9 +45,7 @@ func (e *TrackToken) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *TrackToken) Prereqs() Prereqs {
-	return Prereqs{
-		Session: true,
-	}
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
@@ -65,9 +63,18 @@ func (e *TrackToken) Run(ctx *Context) error {
 	if len(e.arg.Token) == 0 {
 		return fmt.Errorf("missing TrackToken argument")
 	}
-	if err := e.loadMe(); err != nil {
-		e.G().Log.Info("loadme err: %s", err)
+	loggedIn, err := IsLoggedIn(e, ctx)
+	if err != nil {
 		return err
+	}
+
+	if loggedIn {
+		if err := e.loadMe(); err != nil {
+			e.G().Log.Info("loadme err: %s", err)
+			return err
+		}
+	} else {
+		e.arg.Options.LocalOnly = true
 	}
 
 	outcome, err := e.G().IdentifyCache.Get(e.arg.Token)
@@ -84,10 +91,27 @@ func (e *TrackToken) Run(ctx *Context) error {
 		return err
 	}
 
+	if loggedIn {
+		if ok, err := IsProvisioned(e, ctx); !ok {
+			return libkb.DeviceRequiredError{}
+		} else if err != nil {
+			return err
+		}
+		e.storeTrack(ctx, outcome)
+	}
+
+	if e.arg.Options.ImportPGPKeys {
+		err = e.importPGPKeys(ctx)
+	}
+	return err
+}
+
+func (e *TrackToken) storeTrack(ctx *Context, outcome *libkb.IdentifyOutcome) error {
+	var err error
+
 	if e.arg.Me.Equal(e.them) {
 		return libkb.SelfTrackError{}
 	}
-
 	ska := libkb.SecretKeyArg{
 		Me:      e.arg.Me,
 		KeyType: libkb.DeviceSigningKeyType,
@@ -143,6 +167,32 @@ func (e *TrackToken) loadThem(username string) error {
 	}
 	e.them = them
 	return nil
+}
+
+func (e *TrackToken) importPGPKeys(ctx *Context) (err error) {
+	e.G().Log.Debug("+ importPGPKeys")
+	defer func() {
+		e.G().Log.Debug("- importPGPKeys -> %s", libkb.ErrToOk(err))
+	}()
+
+	keys := e.them.GetActivePGPKeys(true)
+	if len(keys) == 0 {
+		e.G().Log.Info("No PGP keys found for user")
+		return err
+	}
+
+	gpgClient := libkb.NewGpgCLI(libkb.GpgCLIArg{
+		LogUI: ctx.LogUI,
+	})
+	if err = gpgClient.Configure(); err != nil {
+		return err
+	}
+	for _, k := range keys {
+		if err = gpgClient.ExportKey(*k); err != nil {
+			return err
+		}
+	}
+	return err
 }
 
 func (e *TrackToken) storeLocalTrack() error {

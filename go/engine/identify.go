@@ -72,8 +72,7 @@ func (e *Identify) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *Identify) Prereqs() Prereqs {
-	// if WithTracking is on, we need to be logged in
-	return Prereqs{Device: e.arg.WithTracking}
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
@@ -158,10 +157,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 		return nil, libkb.SelfTrackError{}
 	}
 
-	if e.arg.WithTracking {
-		if e.me == nil {
-			return nil, libkb.LoginRequiredError{Context: "identify with tracking"}
-		}
+	if e.arg.WithTracking && e.me != nil {
 
 		tlink, err := e.me.TrackChainLinkFor(e.user.GetName(), e.user.GetUID())
 		if err != nil {

@@ -34,6 +34,10 @@ func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "y",
 				Usage: "Approve remote tracking without prompting.",
 			},
+			cli.BoolFlag{
+				Name:  "import, i",
+				Usage: "Import PGP keys after successful track",
+			},
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdTrack{}, "track", c)
@@ -46,7 +50,11 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 		return fmt.Errorf("Track only takes one argument, the user to track.")
 	}
 	v.user = ctx.Args()[0]
-	v.options = keybase1.TrackOptions{LocalOnly: ctx.Bool("local"), BypassConfirm: ctx.Bool("y")}
+	v.options = keybase1.TrackOptions{
+		LocalOnly:     ctx.Bool("local"),
+		BypassConfirm: ctx.Bool("y"),
+		ImportPGPKeys: ctx.Bool("import"),
+	}
 	return nil
 }
 

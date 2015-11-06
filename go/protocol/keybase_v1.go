@@ -1238,6 +1238,7 @@ const (
 type TrackOptions struct {
 	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
+	ImportPGPKeys bool `codec:"importPGPKeys" json:"importPGPKeys"`
 }
 
 type IdentifyOutcome struct {
