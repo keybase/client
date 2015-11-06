@@ -1204,6 +1204,10 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	var pc ProofChecker
 	pc, res.err = NewProofChecker(p)
 
+	if res.err != nil {
+		return
+	}
+
 	if idt.G().Env.GetTorMode().Enabled() {
 		res.err = pc.GetTorError()
 		if res.err != nil {
@@ -1216,10 +1220,6 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 			res.err = res.cached.Status
 			return
 		}
-	}
-
-	if res.err != nil {
-		return
 	}
 
 	// From this point on in the function, we'll be putting our results into
