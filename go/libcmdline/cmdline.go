@@ -369,11 +369,11 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "tor-mode",
-			Usage: "set TOR mode to be 'leaky', 'none', or 'strict'. 'none' by default",
+			Usage: "set TOR mode to be 'leaky', 'none', or 'strict'. 'none' by default. See 'help tor' for more details.",
 		},
 		cli.StringFlag{
 			Name:  "tor-proxy",
-			Usage: "set TOR proxy; when Tor mode is on, default to http://localhost:9050",
+			Usage: fmt.Sprintf("set TOR proxy; when Tor mode is on; defaults to %s when TOR is enabled", libkb.TorProxy),
 		},
 		cli.StringFlag{
 			Name:  "tor-hidden-address",
