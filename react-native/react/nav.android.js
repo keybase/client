@@ -15,7 +15,7 @@ import Startup from './tabs/start-up'
 
 import React, { Component, Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback } from 'react-native'
 
-import { FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB, STARTUP_TAB, prettify } from './constants/tabs'
+import { folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, prettify } from './constants/tabs'
 import { androidTabBarHeight } from './styles/native'
 
 import { switchTab } from './actions/tabbed-router'
@@ -25,12 +25,12 @@ import { startup } from './actions/config'
 import * as Constants from './constants/config'
 
 const tabToRootComponent = {
-  [FOLDER_TAB]: Folders,
-  [CHAT_TAB]: Chat,
-  [PEOPLE_TAB]: People,
-  [DEVICES_TAB]: Devices,
-  [MORE_TAB]: More,
-  [STARTUP_TAB]: Startup
+  [folderTab]: Folders,
+  [chatTab]: Chat,
+  [peopleTab]: People,
+  [devicesTab]: Devices,
+  [moreTab]: More,
+  [startupTab]: Startup
 }
 
 class AndroidNavigator extends Component {
@@ -114,8 +114,8 @@ export default class Nav extends Component {
       )
     }
 
-    if (activeTab === STARTUP_TAB) {
-      return this._renderContent(STARTUP_TAB)
+    if (activeTab === startupTab) {
+      return this._renderContent(startupTab)
     }
 
     const drawerContnet = (
@@ -166,34 +166,34 @@ export default class Nav extends Component {
             <TabBar style={{position: 'absolute', left: 0, right: 0, top: 0, bottom: 0}}>
                 <TabBar.Item
                   title='Folders'
-                  selected={activeTab === FOLDER_TAB}
-                  onPress={() => this.state.switchTab(FOLDER_TAB)}>
-                  {this._renderContent(FOLDER_TAB)}
+                  selected={activeTab === folderTab}
+                  onPress={() => this.state.switchTab(folderTab)}>
+                  {this._renderContent(folderTab)}
                 </TabBar.Item>
                 <TabBar.Item
                   title='Chat'
-                  selected={activeTab === CHAT_TAB}
-                  onPress={() => this.state.switchTab(CHAT_TAB)}>
-                  {this._renderContent(CHAT_TAB)}
+                  selected={activeTab === chatTab}
+                  onPress={() => this.state.switchTab(chatTab)}>
+                  {this._renderContent(chatTab)}
                 </TabBar.Item>
                 <TabBar.Item
                   title='People'
                   systemIcon='contacts'
-                  selected={activeTab === PEOPLE_TAB}
-                  onPress={() => this.state.switchTab(PEOPLE_TAB)}>
-                  {this._renderContent(PEOPLE_TAB)}
+                  selected={activeTab === peopleTab}
+                  onPress={() => this.state.switchTab(peopleTab)}>
+                  {this._renderContent(peopleTab)}
                 </TabBar.Item>
                 <TabBar.Item
                   title='Devices'
-                  selected={activeTab === DEVICES_TAB}
-                  onPress={() => this.state.switchTab(DEVICES_TAB)}>
-                  {this._renderContent(DEVICES_TAB)}
+                  selected={activeTab === devicesTab}
+                  onPress={() => this.state.switchTab(devicesTab)}>
+                  {this._renderContent(devicesTab)}
                 </TabBar.Item>
                 <TabBar.Item
                   title='more'
-                  selected={activeTab === MORE_TAB}
-                  onPress={() => this.state.switchTab(MORE_TAB)}>
-                  {this._renderContent(MORE_TAB)}
+                  selected={activeTab === moreTab}
+                  onPress={() => this.state.switchTab(moreTab)}>
+                  {this._renderContent(moreTab)}
                 </TabBar.Item>
             </TabBar>
           </View>

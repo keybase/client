@@ -1,11 +1,9 @@
 /* @flow */
 'use strict'
 
-import * as loginTypes from '../constants/login-action-types'
-import * as routerTypes from '../constants/router-action-types'
+import * as RouterConstants from '../constants/router'
 import Immutable, {List, Map} from 'immutable'
 // $FlowFixMe ignore this import for now
-import * as localDebug from '../local-debug'
 import * as LoginConstants from '../constants/login2'
 
 export type URI = List<Map<string, string>>
@@ -57,15 +55,15 @@ export default function (state: RouterState = initialState, action: any): Router
     // TODO(MM): change the history so if we go up to something that is already in the history,
     // or a child of it
     // we get rid of everything after it
-    case routerTypes.NAVIGATE_UP:
+    case RouterConstants.navigateUp:
       return state.update('uri', (uri) => uri.count() > 1 ? uri.pop() : uri)
-    case routerTypes.NAVIGATE_BACK:
+    case RouterConstants.navigateBack:
       const lastUri = state.get('history').last() || parseUri([])
       return state.update('history', (history) => history.count() > 1 ? history.pop() : parseUri([]))
         .set('uri', lastUri)
-    case routerTypes.NAVIGATE:
+    case RouterConstants.navigate:
       return stateWithHistory.set('uri', parseUri(action.uri))
-    case routerTypes.NAVIGATE_APPEND:
+    case RouterConstants.navigateAppend:
       if (action.topRoute.constructor === Array) {
         return stateWithHistory.update('uri', (uri) => uri.concat(action.topRoute.map(parsePath)))
       }
@@ -74,28 +72,6 @@ export default function (state: RouterState = initialState, action: any): Router
       return state.set('uri', parseUri(['login']))
     case LoginConstants.needsRegistering:
       return state.set('uri', parseUri(['register']))
-    // TODO(mm) remove these and replace them with NAVIGATE's
-    case loginTypes.START_LOGIN:
-      return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
-    case loginTypes.ASK_USER_PASS:
-      return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
-    case loginTypes.SUBMIT_USER_PASS:
-      return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
-    case loginTypes.ASK_DEVICE_NAME:
-      return stateWithHistory.set('uri', parseUri(['login', 'device-prompt']))
-    case loginTypes.SUBMIT_DEVICE_NAME:
-      return stateWithHistory.set('uri', parseUri(['login', 'device-prompt']))
-    case loginTypes.ASK_DEVICE_SIGNER:
-      return stateWithHistory.set('uri', parseUri(['login', 'device-signer']))
-    case loginTypes.SUBMIT_DEVICE_SIGNER:
-      return stateWithHistory.set('uri', parseUri(['login', 'device-signer']))
-    case loginTypes.SHOW_SECRET_WORDS:
-      return stateWithHistory.set('uri', parseUri(['login', 'show-secret-words']))
-    case loginTypes.LOGGED_IN:
-      if (localDebug.skipLoginRouteToRoot) {
-        return state
-      }
-      return stateWithHistory.set('uri', parseUri(['root']))
     default:
       return state
   }

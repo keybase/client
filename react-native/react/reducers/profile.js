@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/profile-action-types'
+import * as Constants from '../constants/profile'
 import Immutable from 'immutable'
 
 const initialState = Immutable.Map()
@@ -9,7 +9,7 @@ export default function (state = initialState, action) {
   let update = null
 
   switch (action.type) {
-    case types.INIT_PROFILE:
+    case Constants.initProfile:
       update = {
         username: action.username,
         avatar: action.avatar,
@@ -20,21 +20,21 @@ export default function (state = initialState, action) {
         }
       }
       break
-    case types.PROFILE_RECEIVED_DISPLAY_KEY:
+    case Constants.profileReceivedDisplayKey:
       update = {
         proofs: {
           pgp: action.key
         }
       }
       break
-    case types.PROFILE_CHECKING_NETWORKS:
+    case Constants.profileCheckingNetworks:
       update = {
         proofs: {
           ...action.networks.reduce((a, b) => { a[b] = {}; return a }, {})
         }
       }
       break
-    case types.PROFILE_NETWORK_UPDATE:
+    case Constants.profileNetworkUpdate:
       update = {
         proofs: {
           ...{
@@ -43,7 +43,7 @@ export default function (state = initialState, action) {
         }
       }
       break
-    case types.PROFILE_SUMMARY_LOADED:
+    case Constants.profileSummaryLoaded:
       return state.mergeDeep(action.summaries)
     default:
       return state

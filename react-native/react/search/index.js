@@ -6,7 +6,7 @@ import { pushNewProfile } from '../actions/profile'
 import React, { Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image } from 'react-native'
 import commonStyles from '../styles/common'
 import Immutable from 'immutable'
-import ScopeBar from './ScopeBar'
+import ScopeBar from './scopeBar'
 import { services as serviceIcons } from '../constants/images'
 
 function renderTextWithHighlight (text, highlight, style) {
