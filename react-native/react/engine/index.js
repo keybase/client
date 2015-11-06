@@ -16,7 +16,7 @@ class Engine {
     this.program = 'keybase.1'
     this.rpcClient = new RpcClient(
       new Transport(
-        (payload) => { this._rpcIncoming(payload) },
+        payload => { this._rpcIncoming(payload) },
         this._rpcWrite
       ),
       this.program
@@ -24,8 +24,10 @@ class Engine {
 
     if (this.rpcClient.transport.needsConnect) {
       this.rpcClient.transport.connect(err => {
-        if (err) {
-          console.log(err)
+        if (err != null) {
+          console.log('Error in connecting to transport rpc:', err)
+        } else {
+          this.onConnect()
         }
       })
     }
@@ -35,6 +37,25 @@ class Engine {
 
     // to find callMap for rpc callbacks
     this.sessionIDToIncomingCall = {}
+
+    // A call map for general listeners
+    // These are commands that the service can call at any point in time
+    this.generalListeners = {}
+
+    // A list of functions to call when we connect
+    this.onConnectFns = []
+  }
+
+  onConnect () {
+    this.onConnectFns.forEach(f => f())
+  }
+
+  listenOnConnect (f) {
+    if (!this.rpcClient.transport.needsConnect) {
+      f()
+    } else {
+      this.onConnectFns.push(f)
+    }
   }
 
   getSessionID () {
@@ -57,8 +78,27 @@ class Engine {
     )
   }
 
-  _rpcWrite (data) {
+  listenGeneralIncomingRpc (method, listener) {
+    if (this.generalListeners[method] == null) {
+      this.generalListeners[method] = []
+    }
+    this.generalListeners[method].push(listener)
+  }
+
+  unlistenGeneralIncomingRpc (method, listener) {
+    this.generalListeners[method] = (this.generalListeners[method] || []).filter(l => l !== listener)
+  }
+
+  _rpcWrte (data) {
     engine.runWithData(data)
+  }
+
+  _generalIncomingRpc (method, param, response) {
+    (this.generalListeners[method] || []).forEach(listener => {
+      // TODO(mm) does it make sense to ever pass the response?
+      // It'll be weird if there are multiple listeners
+      listener(param)
+    })
   }
 
   _rpcIncoming (payload) {
@@ -68,7 +108,7 @@ class Engine {
       response: response
     } = payload
 
-    const {sessionID: sessionID} = param
+    const {sessionID} = param
 
     const callMap = this.sessionIDToIncomingCall[sessionID]
 
@@ -110,6 +150,8 @@ class Engine {
       }
 
       callMap[method](param, wrappedResponse)
+    } else if (sessionID == null && this.generalListeners[method]) {
+      this._generalIncomingRpc(method, param, response)
     } else {
       console.log(`Unknown incoming rpc: ${sessionID} ${method}`)
     }
