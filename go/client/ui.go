@@ -124,7 +124,11 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (confirmed bool, 
 			", but they haven't proven their identity. Still track them?"
 		promptDefault = libkb.PromptDefaultNo
 	case keybase1.TrackStatus_NEW_FAIL_PROOFS:
-		prompt = "Some proofs failed; still track " + username + "?"
+		verb := "track"
+		if o.ForPGPPull {
+			verb = "pull PGP key for"
+		}
+		prompt = "Some proofs failed; still " + verb + " " + username + "?"
 		promptDefault = libkb.PromptDefaultNo
 	default:
 		prompt = "Is this the " + ColorString("bold", username) + " you wanted?"
@@ -159,7 +163,6 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (confirmed bool, 
 			return
 		}
 	}
-
 	confirmed = true
 	return
 }

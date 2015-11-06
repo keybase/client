@@ -271,6 +271,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property NSInteger numProofSuccesses;
 @property NSArray *revoked; /*of KBRTrackDiff*/
 @property KBRTrackOptions *trackOptions;
+@property BOOL forPGPPull;
 @end
 
 @interface KBRIdentifyRes : KBRObject

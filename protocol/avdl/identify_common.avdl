@@ -66,6 +66,7 @@ protocol identifyCommon {
 		int numProofSuccesses;
 		array<TrackDiff> revoked;
 		TrackOptions trackOptions;
+		boolean forPGPPull;
 	}
 
 	record IdentifyRes {

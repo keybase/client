@@ -258,6 +258,9 @@
     }, {
       "name" : "trackOptions",
       "type" : "TrackOptions"
+    }, {
+      "name" : "forPGPPull",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "record",

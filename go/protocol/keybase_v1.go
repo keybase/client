@@ -1253,6 +1253,7 @@ type IdentifyOutcome struct {
 	NumProofSuccesses int           `codec:"numProofSuccesses" json:"numProofSuccesses"`
 	Revoked           []TrackDiff   `codec:"revoked" json:"revoked"`
 	TrackOptions      TrackOptions  `codec:"trackOptions" json:"trackOptions"`
+	ForPGPPull        bool          `codec:"forPGPPull" json:"forPGPPull"`
 }
 
 type IdentifyRes struct {
