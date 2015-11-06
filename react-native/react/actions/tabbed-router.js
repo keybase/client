@@ -1,6 +1,6 @@
 'use strict'
 
-import { SWITCH_TAB } from '../constants/tabbed-router-action-types'
+import { SWITCH_TAB } from '../constants/tabbed-router'
 
 export function switchTab (tabName) {
   return {

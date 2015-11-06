@@ -8,7 +8,7 @@
 import Immutable from 'immutable'
 import routerReducer, { createRouterState } from './router'
 import {STARTUP_TAB, FOLDER_TAB, CHAT_TAB, PEOPLE_TAB, DEVICES_TAB, MORE_TAB} from '../constants/tabs'
-import * as actionTypes from '../constants/tabbed-router-action-types'
+import * as actionTypes from '../constants/tabbed-router'
 // $FlowFixMe ignore this import for now
 import * as LocalDebug from '../local-debug'
 import * as LoginConstants from '../constants/login2'

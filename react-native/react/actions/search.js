@@ -1,6 +1,6 @@
 'use strict'
 
-import * as SearchActions from '../constants/search-action-types'
+import * as SearchActions from '../constants/search'
 import { routeAppend, getCurrentURI } from './router'
 import { loadSummaries } from './profile'
 import engine from '../engine'

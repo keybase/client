@@ -2,8 +2,8 @@
 /* @flow */
 
 import { AsyncStorage } from 'react-native'
-import type { State } from '../constants/reducer-types'
-import { STATE_KEY } from '../constants/reducer-types'
+import type { State } from '../constants/reducer'
+import { STATE_KEY } from '../constants/reducer'
 import transit from 'transit-immutable-js'
 
 import { SERIALIZE_RESTORE, SERIALIZE_SAVE } from '../constants/dev'

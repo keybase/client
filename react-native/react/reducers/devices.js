@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/devices-action-types'
+import * as types from '../constants/devices'
 
 const initialState = {
   waitingForServer: false,

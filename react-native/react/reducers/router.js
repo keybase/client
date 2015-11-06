@@ -1,8 +1,7 @@
 /* @flow */
 'use strict'
 
-import * as loginTypes from '../constants/login-action-types'
-import * as routerTypes from '../constants/router-action-types'
+import * as routerTypes from '../constants/router'
 import Immutable, {List, Map} from 'immutable'
 // $FlowFixMe ignore this import for now
 import * as localDebug from '../local-debug'
@@ -74,28 +73,6 @@ export default function (state: RouterState = initialState, action: any): Router
       return state.set('uri', parseUri(['login']))
     case LoginConstants.needsRegistering:
       return state.set('uri', parseUri(['register']))
-    // TODO(mm) remove these and replace them with NAVIGATE's
-    case loginTypes.START_LOGIN:
-      return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
-    case loginTypes.ASK_USER_PASS:
-      return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
-    case loginTypes.SUBMIT_USER_PASS:
-      return stateWithHistory.set('uri', parseUri(['login', 'loginform']))
-    case loginTypes.ASK_DEVICE_NAME:
-      return stateWithHistory.set('uri', parseUri(['login', 'device-prompt']))
-    case loginTypes.SUBMIT_DEVICE_NAME:
-      return stateWithHistory.set('uri', parseUri(['login', 'device-prompt']))
-    case loginTypes.ASK_DEVICE_SIGNER:
-      return stateWithHistory.set('uri', parseUri(['login', 'device-signer']))
-    case loginTypes.SUBMIT_DEVICE_SIGNER:
-      return stateWithHistory.set('uri', parseUri(['login', 'device-signer']))
-    case loginTypes.SHOW_SECRET_WORDS:
-      return stateWithHistory.set('uri', parseUri(['login', 'show-secret-words']))
-    case loginTypes.LOGGED_IN:
-      if (localDebug.skipLoginRouteToRoot) {
-        return state
-      }
-      return stateWithHistory.set('uri', parseUri(['root']))
     default:
       return state
   }

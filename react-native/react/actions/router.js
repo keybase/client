@@ -1,6 +1,6 @@
 'use strict'
 
-import { NAVIGATE_UP, NAVIGATE, NAVIGATE_APPEND, NAVIGATE_BACK } from '../constants/router-action-types'
+import { NAVIGATE_UP, NAVIGATE, NAVIGATE_APPEND, NAVIGATE_BACK } from '../constants/router'
 
 /*
  * This is a helper to handle async actions which want to transition to a new route

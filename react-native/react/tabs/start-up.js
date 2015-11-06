@@ -2,7 +2,7 @@ import React, { Component, View, Text } from 'react-native'
 
 class RegisterPlaceHolder extends Component {
   render () {
-    return (<View><Text>TODO when kex2 is done import Registration from './login2/register'</Text></View>)
+    return (<View><Text>TODO when kex2 is done i m p o r t Registration from './login2/register'</Text></View>)
   }
 }
 

@@ -1,6 +1,6 @@
 'use strict'
 
-import * as types from '../constants/profile-action-types'
+import * as types from '../constants/profile'
 import { routeAppend } from './router'
 import engine from '../engine'
 import { identify } from '../keybase_v1'

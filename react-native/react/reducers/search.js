@@ -1,7 +1,7 @@
 /* @flow */
 'use strict'
 
-import * as types from '../constants/search-action-types'
+import * as types from '../constants/search'
 import Immutable from 'immutable'
 
 import type { URI } from './router'

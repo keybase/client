@@ -7,7 +7,7 @@ import configureStore from './store/configure-store'
 import Nav from './nav'
 
 import { isDev } from './constants/platform'
-import { STATE_KEY } from './constants/reducer-types'
+import { STATE_KEY } from './constants/reducer'
 import { SERIALIZE_RESTORE, SERIALIZE_SAVE, TIME_TRAVEL, TIME_TRAVEL_FORWARD, TIME_TRAVEL_BACK } from './constants/dev'
 
 const store = configureStore()
