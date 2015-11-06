@@ -66,7 +66,7 @@ var ProofErrorDNSOverTor = &ProofErrorImpl{
 
 var ProofErrorHTTPOverTor = &ProofErrorImpl{
 	Status: keybase1.ProofStatus_TOR_SKIPPED,
-	Desc:   "HTTP proof aren't reliable over Tor",
+	Desc:   "HTTP proofs aren't reliable over Tor",
 }
 
 type TorSessionRequiredError struct{}
