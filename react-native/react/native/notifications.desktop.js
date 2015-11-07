@@ -14,7 +14,7 @@ export function enableNotifications () {
   }
 
   engine.listenOnConnect(() => {
-    engine.rpc('notifyCtl.toggleNotifications', param, {}, (error, response) => {
+    engine.rpc('notifyCtl.setNotifications', param, {}, (error, response) => {
       if (error != null) {
         console.error('error in toggling notifications: ', error)
       } else {
