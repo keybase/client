@@ -166,7 +166,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	// Using conn.GetClient() here would cause problematic
 	// recursion.
 	c := keybase1.NotifyCtlClient{Cli: cancelableClient{rawClient}}
-	err := c.ToggleNotifications(ctx, keybase1.NotificationChannels{
+	err := c.SetNotifications(ctx, keybase1.NotificationChannels{
 		Session: true,
 		Users:   true,
 	})
