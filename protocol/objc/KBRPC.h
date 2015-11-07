@@ -873,7 +873,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *folderID;
 @property long revision;
 @end
-@interface KBRToggleNotificationsRequestParams : KBRRequestParams
+@interface KBRSetNotificationsRequestParams : KBRRequestParams
 @property KBRNotificationChannels *channels;
 @end
 @interface KBRUserChangedRequestParams : KBRRequestParams
@@ -1558,9 +1558,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRNotifyCtlRequest : KBRRequest
 
-- (void)toggleNotifications:(KBRToggleNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)setNotifications:(KBRSetNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)toggleNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion;
+- (void)setNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion;
 
 @end
 

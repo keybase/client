@@ -2554,30 +2554,30 @@ type NotificationChannels struct {
 	Users   bool `codec:"users" json:"users"`
 }
 
-type ToggleNotificationsArg struct {
+type SetNotificationsArg struct {
 	Channels NotificationChannels `codec:"channels" json:"channels"`
 }
 
 type NotifyCtlInterface interface {
-	ToggleNotifications(context.Context, NotificationChannels) error
+	SetNotifications(context.Context, NotificationChannels) error
 }
 
 func NotifyCtlProtocol(i NotifyCtlInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.notifyCtl",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"toggleNotifications": {
+			"setNotifications": {
 				MakeArg: func() interface{} {
-					ret := make([]ToggleNotificationsArg, 1)
+					ret := make([]SetNotificationsArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]ToggleNotificationsArg)
+					typedArgs, ok := args.(*[]SetNotificationsArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]ToggleNotificationsArg)(nil), args)
+						err = rpc.NewTypeError((*[]SetNotificationsArg)(nil), args)
 						return
 					}
-					err = i.ToggleNotifications(ctx, (*typedArgs)[0].Channels)
+					err = i.SetNotifications(ctx, (*typedArgs)[0].Channels)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2590,9 +2590,9 @@ type NotifyCtlClient struct {
 	Cli GenericClient
 }
 
-func (c NotifyCtlClient) ToggleNotifications(ctx context.Context, channels NotificationChannels) (err error) {
-	__arg := ToggleNotificationsArg{Channels: channels}
-	err = c.Cli.Call(ctx, "keybase.1.notifyCtl.toggleNotifications", []interface{}{__arg}, nil)
+func (c NotifyCtlClient) SetNotifications(ctx context.Context, channels NotificationChannels) (err error) {
+	__arg := SetNotificationsArg{Channels: channels}
+	err = c.Cli.Call(ctx, "keybase.1.notifyCtl.setNotifications", []interface{}{__arg}, nil)
 	return
 }
 

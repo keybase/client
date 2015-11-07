@@ -9,5 +9,5 @@ protocol notifyCtl {
   	boolean users;
   }
 
-  void toggleNotifications(NotificationChannels channels);
+  void setNotifications(NotificationChannels channels);
 }

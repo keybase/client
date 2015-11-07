@@ -241,7 +241,7 @@ func TestSignupLogout(t *testing.T) {
 			return err
 		}
 		ncli := keybase1.NotifyCtlClient{Cli: cli}
-		if err = ncli.ToggleNotifications(context.TODO(), keybase1.NotificationChannels{
+		if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
 			Session: true,
 			Users:   true,
 		}); err != nil {
