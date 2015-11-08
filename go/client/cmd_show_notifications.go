@@ -42,7 +42,7 @@ func (c *CmdShowNotifications) Run() error {
 	if err != nil {
 		return err
 	}
-	if err := cli.ToggleNotifications(context.TODO(), keybase1.NotificationChannels{Session: true, Users: true}); err != nil {
+	if err := cli.SetNotifications(context.TODO(), keybase1.NotificationChannels{Session: true, Users: true}); err != nil {
 		return err
 	}
 
