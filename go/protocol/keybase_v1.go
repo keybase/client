@@ -366,10 +366,6 @@ const (
 	InstallStatus_INSTALLED     InstallStatus = 4
 )
 
-type ServiceStatusError struct {
-	Message string `codec:"message" json:"message"`
-}
-
 type InstallAction int
 
 const (
@@ -381,14 +377,25 @@ const (
 )
 
 type ServiceStatus struct {
-	Version        string              `codec:"version" json:"version"`
-	Label          string              `codec:"label" json:"label"`
-	Pid            string              `codec:"pid" json:"pid"`
-	LastExitStatus string              `codec:"lastExitStatus" json:"lastExitStatus"`
-	BundleVersion  string              `codec:"bundleVersion" json:"bundleVersion"`
-	InstallStatus  InstallStatus       `codec:"installStatus" json:"installStatus"`
-	InstallAction  InstallAction       `codec:"installAction" json:"installAction"`
-	Error          *ServiceStatusError `codec:"error,omitempty" json:"error,omitempty"`
+	Version        string        `codec:"version" json:"version"`
+	Label          string        `codec:"label" json:"label"`
+	Pid            string        `codec:"pid" json:"pid"`
+	LastExitStatus string        `codec:"lastExitStatus" json:"lastExitStatus"`
+	BundleVersion  string        `codec:"bundleVersion" json:"bundleVersion"`
+	InstallStatus  InstallStatus `codec:"installStatus" json:"installStatus"`
+	InstallAction  InstallAction `codec:"installAction" json:"installAction"`
+	Status         Status        `codec:"status" json:"status"`
+}
+
+type FuseStatus struct {
+	Version       string        `codec:"version" json:"version"`
+	BundleVersion string        `codec:"bundleVersion" json:"bundleVersion"`
+	KextID        string        `codec:"kextID" json:"kextID"`
+	Path          string        `codec:"path" json:"path"`
+	KextStarted   bool          `codec:"kextStarted" json:"kextStarted"`
+	InstallStatus InstallStatus `codec:"installStatus" json:"installStatus"`
+	InstallAction InstallAction `codec:"installAction" json:"installAction"`
+	Status        Status        `codec:"status" json:"status"`
 }
 
 type GetCurrentStatusArg struct {

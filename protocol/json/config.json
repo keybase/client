@@ -217,13 +217,6 @@
     "doc" : "Install status describes state of install for a component or service.",
     "symbols" : [ "UNKNOWN_0", "ERROR_1", "NOT_INSTALLED_2", "NEEDS_UPGRADE_3", "INSTALLED_4" ]
   }, {
-    "type" : "record",
-    "name" : "ServiceStatusError",
-    "fields" : [ {
-      "name" : "message",
-      "type" : "string"
-    } ]
-  }, {
     "type" : "enum",
     "name" : "InstallAction",
     "symbols" : [ "UNKNOWN_0", "NONE_1", "UPGRADE_2", "REINSTALL_3", "INSTALL_4" ]
@@ -252,8 +245,36 @@
       "name" : "installAction",
       "type" : "InstallAction"
     }, {
-      "name" : "error",
-      "type" : [ "null", "ServiceStatusError" ]
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FuseStatus",
+    "fields" : [ {
+      "name" : "version",
+      "type" : "string"
+    }, {
+      "name" : "bundleVersion",
+      "type" : "string"
+    }, {
+      "name" : "kextID",
+      "type" : "string"
+    }, {
+      "name" : "path",
+      "type" : "string"
+    }, {
+      "name" : "kextStarted",
+      "type" : "boolean"
+    }, {
+      "name" : "installStatus",
+      "type" : "InstallStatus"
+    }, {
+      "name" : "installAction",
+      "type" : "InstallAction"
+    }, {
+      "name" : "status",
+      "type" : "Status"
     } ]
   } ],
   "messages" : {

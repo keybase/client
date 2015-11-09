@@ -4669,10 +4669,10 @@
 @implementation KBRConfig
 @end
 
-@implementation KBRServiceStatusError
+@implementation KBRServiceStatus
 @end
 
-@implementation KBRServiceStatus
+@implementation KBRFuseStatus
 @end
 
 @implementation KBRED25519SignatureInfo
