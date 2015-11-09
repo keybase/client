@@ -8,7 +8,7 @@ import (
 const encodeURL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
 func newBase64URLEncoding() *Encoding {
-	return NewEncoding(encodeURL, 3)
+	return NewEncoding(encodeURL, 3, "")
 }
 
 func TestHelloWorld(t *testing.T) {

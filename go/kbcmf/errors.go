@@ -29,11 +29,6 @@ var (
 	// ErrBadFrame indiciates improper msgpack framing
 	ErrBadFrame = errors.New("bad msgpack framing byte")
 
-	// ErrUnexpectedEOF is produced when an EOF happens unexpectedly when parsing an
-	// incoming encryption. Usually it means a message was truncated, but could indicate
-	// malicious truncation
-	ErrUnexpectedEOF = errors.New("unexpected EOF; the message was truncated")
-
 	// ErrInsufficientRandomness is generated when the encryption fails to collect
 	// enough randomness to proceed.  We're using the standard crypto/rand source
 	// of randomness, so this should never happen
@@ -46,8 +41,8 @@ var (
 	// Should never happen, so not exported.
 	errPacketUnderflow = errors.New("no negative packet numbers allowed")
 
-	// A temporary error that isn't exported
-	errAgain = errors.New("unavailable; try again")
+	// ErrBadArmorFrame shows up when the ASCII armor frame has non-ASCII
+	ErrBadArmorFrame = errors.New("bad frame found; had non-ASCII")
 )
 
 // ErrMACMismatch is generated when a MAC fails to check properly. It specifies
@@ -91,6 +86,29 @@ type ErrBadNonce struct {
 	byteLen int
 }
 
+// ErrBadArmorHeader shows up when we get the wrong value for our header
+type ErrBadArmorHeader struct {
+	wanted   string
+	received string
+}
+
+// ErrBadArmorFooter shows up when we get the wrong value for our header
+type ErrBadArmorFooter struct {
+	wanted   string
+	received string
+}
+
+func (e ErrBadArmorFooter) Error() string {
+	return fmt.Sprintf("Bad encryption armor footer; wanted '%s' but got '%s'",
+		e.wanted, e.received)
+}
+
+func (e ErrBadArmorHeader) Error() string {
+	return fmt.Sprintf("Bad encryption armor header; wanted '%s' but got '%s'",
+		e.wanted, e.received)
+}
+
+// = errors.New("bad armor header; unexpected text")
 func (e ErrWrongPacketTag) Error() string {
 	return fmt.Sprintf("In packet %d: wanted tag=%d; got tag=%d", e.seqno, e.wanted, e.received)
 }

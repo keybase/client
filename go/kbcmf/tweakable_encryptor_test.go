@@ -29,7 +29,7 @@ func (eo testEncryptionOptions) getBlockSize() int {
 	return eo.blockSize
 }
 
-type testPublicEncryptStream struct {
+type testEncryptStream struct {
 	output     io.Writer
 	header     *EncryptionHeader
 	sessionKey SymmetricKey
@@ -45,7 +45,7 @@ type testPublicEncryptStream struct {
 	err       error
 }
 
-func (pes *testPublicEncryptStream) Write(plaintext []byte) (int, error) {
+func (pes *testEncryptStream) Write(plaintext []byte) (int, error) {
 
 	if !pes.didHeader {
 		pes.didHeader = true
@@ -69,7 +69,7 @@ func (pes *testPublicEncryptStream) Write(plaintext []byte) (int, error) {
 	return ret, nil
 }
 
-func (pes *testPublicEncryptStream) macForAllGroups(b []byte) [][]byte {
+func (pes *testEncryptStream) macForAllGroups(b []byte) [][]byte {
 	var macs [][]byte
 	for _, key := range pes.macGroups {
 		mac := hmacSHA512(key[:], b)
@@ -78,7 +78,7 @@ func (pes *testPublicEncryptStream) macForAllGroups(b []byte) [][]byte {
 	return macs
 }
 
-func (pes *testPublicEncryptStream) encryptBlock() error {
+func (pes *testEncryptStream) encryptBlock() error {
 	var n int
 	var err error
 	n, err = pes.buffer.Read(pes.inblock[:])
@@ -88,7 +88,7 @@ func (pes *testPublicEncryptStream) encryptBlock() error {
 	return pes.encryptBytes(pes.inblock[0:n])
 }
 
-func (pes *testPublicEncryptStream) encryptBytes(b []byte) error {
+func (pes *testEncryptStream) encryptBytes(b []byte) error {
 
 	if err := pes.numBlocks.check(); err != nil {
 		return err
@@ -102,10 +102,7 @@ func (pes *testPublicEncryptStream) encryptBytes(b []byte) error {
 
 	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.sessionKey))
 	// Compute the MAC over the nonce and the ciphertext
-	sum, err := hashNonceAndAuthTag(nonce, ciphertext)
-	if err != nil {
-		return err
-	}
+	sum := hashNonceAndAuthTag(nonce, ciphertext)
 	macs := pes.macForAllGroups(sum)
 	block := EncryptionBlock{
 		Version:    PacketVersion1,
@@ -118,7 +115,7 @@ func (pes *testPublicEncryptStream) encryptBytes(b []byte) error {
 		pes.options.corruptEncryptionBlock(&block, pes.numBlocks)
 	}
 
-	if err = encodeNewPacket(pes.output, block); err != nil {
+	if err := encodeNewPacket(pes.output, block); err != nil {
 		return nil
 	}
 
@@ -126,7 +123,7 @@ func (pes *testPublicEncryptStream) encryptBytes(b []byte) error {
 	return nil
 }
 
-func (pes *testPublicEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) error {
+func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) error {
 	eh := &EncryptionHeader{
 		Version:   PacketVersion1,
 		Tag:       PacketTagEncryptionHeader,
@@ -224,7 +221,7 @@ func (pes *testPublicEncryptStream) init(sender BoxSecretKey, receivers [][]BoxP
 	return nil
 }
 
-func (pes *testPublicEncryptStream) Close() error {
+func (pes *testEncryptStream) Close() error {
 	for pes.buffer.Len() > 0 {
 		err := pes.encryptBlock()
 		if err != nil {
@@ -234,7 +231,7 @@ func (pes *testPublicEncryptStream) Close() error {
 	return pes.writeFooter()
 }
 
-func (pes *testPublicEncryptStream) writeFooter() error {
+func (pes *testEncryptStream) writeFooter() error {
 	var err error
 	if !pes.options.skipFooter {
 		err = pes.encryptBytes([]byte{})
@@ -244,8 +241,8 @@ func (pes *testPublicEncryptStream) writeFooter() error {
 
 // Options are available mainly for testing.  Can't think of a good reason for
 // end-users to have to specify options.
-func newTestPublicEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey, options testEncryptionOptions) (plaintext io.WriteCloser, err error) {
-	pes := &testPublicEncryptStream{
+func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey, options testEncryptionOptions) (plaintext io.WriteCloser, err error) {
+	pes := &testEncryptStream{
 		output:  ciphertext,
 		options: options,
 		inblock: make([]byte, options.getBlockSize()),
@@ -258,7 +255,7 @@ func newTestPublicEncryptStream(ciphertext io.Writer, sender BoxSecretKey, recei
 
 func testSeal(plaintext []byte, sender BoxSecretKey, receivers [][]BoxPublicKey, options testEncryptionOptions) (out []byte, err error) {
 	var buf bytes.Buffer
-	es, err := newTestPublicEncryptStream(&buf, sender, receivers, options)
+	es, err := newTestEncryptStream(&buf, sender, receivers, options)
 	if err != nil {
 		return nil, err
 	}

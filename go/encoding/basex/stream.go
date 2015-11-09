@@ -100,14 +100,6 @@ func NewEncoder(enc *Encoding, w io.Writer) io.WriteCloser {
 	}
 }
 
-// DecodeStringStrict returns the bytes represented by the baseX string s.
-// It uses the strict decoding strategy, not allowing any non-baseX-characters
-func (enc *Encoding) DecodeStringStrict(s string) ([]byte, error) {
-	dbuf := make([]byte, enc.DecodedLen(len(s)))
-	n, err := enc.DecodeStrict(dbuf, []byte(s))
-	return dbuf[:n], err
-}
-
 // DecodeString returns the bytes represented by the baseX string s.
 // It uses the liberal decoding strategy, ignoring any non-baseX-characters
 func (enc *Encoding) DecodeString(s string) ([]byte, error) {
@@ -186,7 +178,7 @@ func (d *decoder) Read(p []byte) (int, error) {
 	// the rest internally
 	if numBytesToOutput > len(p) {
 		var n int
-		n, d.err = d.enc.DecodeStrict(d.scratchbuf[:], d.buf[:numBytesToDecode])
+		n, d.err = d.enc.Decode(d.scratchbuf[:], d.buf[:numBytesToDecode])
 		d.out = d.scratchbuf[:n]
 		ret = copy(p, d.out)
 		d.out = d.out[ret:]
@@ -204,6 +196,7 @@ func (d *decoder) Read(p []byte) (int, error) {
 type filteringReader struct {
 	wrapped io.Reader
 	enc     *Encoding
+	nRead   int
 }
 
 func (r *filteringReader) Read(p []byte) (int, error) {
@@ -211,12 +204,22 @@ func (r *filteringReader) Read(p []byte) (int, error) {
 	for n > 0 {
 		offset := 0
 		for i, b := range p[:n] {
-			if r.enc.decodeMap[b] != 0xFF {
-				if i != offset {
-					p[offset] = b
-				}
-				offset++
+			dm := r.enc.decodeMap[b]
+			if dm == invalidByte {
+				return 0, CorruptInputError(r.nRead)
 			}
+			r.nRead++
+			if dm == skipByte {
+				continue
+			}
+
+			// We want this byte. We only need to rewrite it if
+			// offset is behind i (otherwise we'd just be writing the
+			// same byte again, over itself).
+			if i != offset {
+				p[offset] = b
+			}
+			offset++
 		}
 		if offset > 0 {
 			return offset, err
@@ -229,18 +232,12 @@ func (r *filteringReader) Read(p []byte) (int, error) {
 
 // NewDecoder constructs a new baseX stream decoder.
 func NewDecoder(enc *Encoding, r io.Reader) io.Reader {
-	return newDecoder(enc, r, false)
+	return newDecoder(enc, r)
 }
 
-// NewDecoderStrict constructs a new baseX stream decoder, but will return an
-// error on any non-base-X character input
-func NewDecoderStrict(enc *Encoding, r io.Reader) io.Reader {
-	return newDecoder(enc, r, true)
-}
-
-func newDecoder(enc *Encoding, r io.Reader, strict bool) io.Reader {
-	if !strict {
-		r = &filteringReader{r, enc}
+func newDecoder(enc *Encoding, r io.Reader) io.Reader {
+	if enc.hasSkipBytes() {
+		r = &filteringReader{r, enc, 0}
 	}
 	return &decoder{
 		enc:        enc,
