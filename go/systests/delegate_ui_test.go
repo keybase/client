@@ -191,13 +191,10 @@ func TestDelegateUI(t *testing.T) {
 		return nil
 	}
 
-	// Actually launch it in the background
-	go func() {
-		err := launchDelegateUI(dui)
-		if err != nil {
-			dui.ch <- err
-		}
-	}()
+	// Launch the delegate UI
+	if err := launchDelegateUI(dui); err != nil {
+		t.Fatal(err)
+	}
 
 	id := client.NewCmdIDRunner(tc1.G)
 	id.SetUser("t_alice")
