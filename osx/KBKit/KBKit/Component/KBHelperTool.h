@@ -10,7 +10,10 @@
 
 #import "KBComponent.h"
 #import "KBInstallable.h"
+#import <MPMessagePack/MPXPCClient.h>
 
 @interface KBHelperTool : KBInstallableComponent <KBComponent, KBInstallable>
+
+@property (readonly, nonatomic) MPXPCClient *helper;
 
 @end

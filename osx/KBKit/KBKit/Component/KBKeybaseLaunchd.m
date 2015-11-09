@@ -34,30 +34,17 @@
   }];
 }
 
++ (void)list:(NSString *)binPath name:(NSString *)name completion:(KBOnServiceStatuses)completion {
+  [KBTask executeForJSONWithCommand:binPath args:@[@"launchd", @"list", @"--format=json", name] completion:^(NSError *error, id value) {
+    NSArray *statuses = [MTLJSONAdapter modelsOfClass:KBRServiceStatus.class fromJSONArray:value[name] error:&error];
+    completion(nil, statuses);
+  }];
+}
+
 + (void)status:(NSString *)binPath name:(NSString *)name bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnServiceStatus)completion {
   NSString *bundleVersionFlag = NSStringWithFormat(@"--bundle-version=%@", [bundleVersion description]);
-  [KBTask execute:binPath args:@[@"launchd", @"status", bundleVersionFlag, name] completion:^(NSError *error, NSData *outData, NSData *errData) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    if (!outData) {
-      completion(KBMakeError(-1, @"No data for launchd status"), nil);
-      return;
-    }
-
-    id dict = [NSJSONSerialization JSONObjectWithData:outData options:NSJSONReadingMutableContainers error:&error];
-    if (error) {
-      DDLogError(@"Invalid data: %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
-      completion(error, nil);
-      return;
-    }
-    if (!dict) {
-      completion(KBMakeError(-1, @"Invalid data for launchd status"), nil);
-      return;
-    }
-
-    KBRServiceStatus *status = [MTLJSONAdapter modelOfClass:KBRServiceStatus.class fromJSONDictionary:dict error:&error];
+  [KBTask executeForJSONWithCommand:binPath args:@[@"launchd", @"status", @"--format=json", bundleVersionFlag, name] completion:^(NSError *error, id value) {
+    KBRServiceStatus *status = [MTLJSONAdapter modelOfClass:KBRServiceStatus.class fromJSONDictionary:value error:&error];
     completion(nil, status);
   }];
 }

@@ -15,4 +15,6 @@
 
 @interface KBHelper : MPXPCService
 
++ (int)run;
+
 @end

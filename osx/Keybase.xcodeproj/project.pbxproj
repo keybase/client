@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0008F0B21BEBFEC0003C123E /* kbfsstage in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0008F0AE1BEBFEA9003C123E /* kbfsstage */; };
+		0008F0B31BEBFEC0003C123E /* kbstage in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0008F0AF1BEBFEA9003C123E /* kbstage */; };
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
 		001392761B06B18A0082DEA8 /* gpgtools.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392721B06B18A0082DEA8 /* gpgtools.icns */; };
 		001C6B3C1B24F8630048F086 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001C6B3B1B24F8630048F086 /* icon.icns */; };
@@ -14,8 +16,9 @@
 		002A4B661BC6E9EF004073BA /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002A4B651BC6E9EF004073BA /* Import.swift */; };
 		002F2B5A1B3CC00F00779FED /* BlackTie-Regular.otf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 002F2B591B3CC00E00779FED /* BlackTie-Regular.otf */; };
 		003B40451B265F7B000B7D3B /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
-		003B40471B265F7B000B7D3B /* KBFS.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBFS.m */; };
+		003B40471B265F7B000B7D3B /* KBKext.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBKext.m */; };
 		003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454F1AE6D1CA00431829 /* KBHelperDefines.m */; };
+		003F6C941BEC287600638A74 /* KBHelperTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 003F6C931BEC287600638A74 /* KBHelperTest.m */; };
 		004624B81B2917AB00E218AC /* FinderSync.m in Sources */ = {isa = PBXBuildFile; fileRef = 004624B71B2917AB00E218AC /* FinderSync.m */; };
 		004624CE1B2A3BE300E218AC /* FinderSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 004624CD1B2A3BE300E218AC /* FinderSync.framework */; };
 		004EF2CB1B3340ED007822CE /* FontAwesome.otf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 004EF2C81B33409A007822CE /* FontAwesome.otf */; };
@@ -59,6 +62,8 @@
 			dstPath = bin;
 			dstSubfolderSpec = 12;
 			files = (
+				0008F0B21BEBFEC0003C123E /* kbfsstage in CopyFiles */,
+				0008F0B31BEBFEC0003C123E /* kbstage in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,6 +102,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0008F0AE1BEBFEA9003C123E /* kbfsstage */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = kbfsstage; sourceTree = "<group>"; };
+		0008F0AF1BEBFEA9003C123E /* kbstage */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = kbstage; sourceTree = "<group>"; };
 		001392701B06B18A0082DEA8 /* DmgBackground.pxm */ = {isa = PBXFileReference; lastKnownFileType = file; path = DmgBackground.pxm; sourceTree = "<group>"; };
 		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
 		001392721B06B18A0082DEA8 /* gpgtools.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = gpgtools.icns; sourceTree = "<group>"; };
@@ -111,11 +118,13 @@
 		002A4B641BC6E9EE004073BA /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
 		002A4B651BC6E9EF004073BA /* Import.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		002F2B591B3CC00E00779FED /* BlackTie-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BlackTie-Regular.otf"; sourceTree = "<group>"; };
-		003C454B1AE6CECD00431829 /* KBFS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFS.h; sourceTree = "<group>"; };
-		003C454C1AE6CECD00431829 /* KBFS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFS.m; sourceTree = "<group>"; };
+		003C454B1AE6CECD00431829 /* KBKext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKext.h; sourceTree = "<group>"; };
+		003C454C1AE6CECD00431829 /* KBKext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKext.m; sourceTree = "<group>"; };
 		003C454E1AE6D1CA00431829 /* KBHelperDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperDefines.h; sourceTree = "<group>"; };
 		003C454F1AE6D1CA00431829 /* KBHelperDefines.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelperDefines.m; sourceTree = "<group>"; };
 		003C45521AE6DF4700431829 /* KBHelperTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelperTest.m; sourceTree = "<group>"; };
+		003F6C921BEC287600638A74 /* KBHelperTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperTest.h; sourceTree = "<group>"; };
+		003F6C931BEC287600638A74 /* KBHelperTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelperTest.m; sourceTree = "<group>"; };
 		004624B11B2917AB00E218AC /* FinderSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FinderSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		004624B41B2917AB00E218AC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		004624B51B2917AB00E218AC /* FinderSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = FinderSync.entitlements; sourceTree = "<group>"; };
@@ -212,6 +221,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0008F0AD1BEBFEA9003C123E /* bin */ = {
+			isa = PBXGroup;
+			children = (
+				0008F0AE1BEBFEA9003C123E /* kbfsstage */,
+				0008F0AF1BEBFEA9003C123E /* kbstage */,
+			);
+			path = bin;
+			sourceTree = "<group>";
+		};
 		0013926F1B06B18A0082DEA8 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -275,6 +293,7 @@
 		00566A531A9BAD4800CA236E /* Install */ = {
 			isa = PBXGroup;
 			children = (
+				0008F0AD1BEBFEA9003C123E /* bin */,
 				00A420511AE6F88E0040CCDC /* Fuse */,
 				00566A581A9BAD4800CA236E /* build.sh */,
 				00566A5B1A9BAD4800CA236E /* README.md */,
@@ -290,11 +309,13 @@
 				0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */,
 				0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */,
 				0057B0C21AE57A7A00BFB0E7 /* main.m */,
-				003C454B1AE6CECD00431829 /* KBFS.h */,
-				003C454C1AE6CECD00431829 /* KBFS.m */,
+				003C454B1AE6CECD00431829 /* KBKext.h */,
+				003C454C1AE6CECD00431829 /* KBKext.m */,
 				003C454E1AE6D1CA00431829 /* KBHelperDefines.h */,
 				003C454F1AE6D1CA00431829 /* KBHelperDefines.m */,
 				0013928C1B0BE5DC0082DEA8 /* uninstall_helper */,
+				003F6C921BEC287600638A74 /* KBHelperTest.h */,
+				003F6C931BEC287600638A74 /* KBHelperTest.m */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -528,6 +549,7 @@
 			buildConfigurationList = 00CC43661A3A9E6C006118A9 /* Build configuration list for PBXNativeTarget "Keybase" */;
 			buildPhases = (
 				9E28B48782587568A0B4E727 /* Check Pods Manifest.lock */,
+				0008F0B41BEC08FA003C123E /* ShellScript */,
 				00CC43451A3A9E6C006118A9 /* Sources */,
 				00CC43461A3A9E6C006118A9 /* Frameworks */,
 				00CC43471A3A9E6C006118A9 /* Resources */,
@@ -695,6 +717,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		0008F0B41BEC08FA003C123E /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "sh $SRCROOT/Install/versions.sh";
+			showEnvVarsInLog = 0;
+		};
 		032BE19B253380E422A5C676 /* Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -793,10 +829,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				003B40471B265F7B000B7D3B /* KBFS.m in Sources */,
+				003B40471B265F7B000B7D3B /* KBKext.m in Sources */,
 				0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */,
 				003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */,
 				003B40451B265F7B000B7D3B /* KBHelper.m in Sources */,
+				003F6C941BEC287600638A74 /* KBHelperTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1147,8 +1184,7 @@
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = Keybase/Info.plist;
@@ -1156,7 +1192,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Keybase;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "b76f5071-31a5-4976-bb05-41a8be7bfe45";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -1170,8 +1206,7 @@
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = Keybase/Info.plist;
@@ -1179,7 +1214,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Keybase;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "b76f5071-31a5-4976-bb05-41a8be7bfe45";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 			};
 			name = Release;

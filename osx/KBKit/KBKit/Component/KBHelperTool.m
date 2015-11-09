@@ -13,7 +13,6 @@
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <ServiceManagement/ServiceManagement.h>
-#import <MPMessagePack/MPXPCClient.h>
 
 #import "KBSemVersion.h"
 #import "KBFormatter.h"
@@ -23,6 +22,7 @@
 
 @interface KBHelperTool ()
 @property KBDebugPropertiesView *infoView;
+@property (nonatomic) MPXPCClient *helper;
 @end
 
 @implementation KBHelperTool
@@ -48,6 +48,11 @@
   return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"] build:NSBundle.mainBundle.infoDictionary[@"KBHelperBuild"]];
 }
 
+- (MPXPCClient *)helper {
+  if (!_helper) _helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  return _helper;
+}
+
 - (void)componentDidUpdate {
   GHODictionary *info = [GHODictionary dictionary];
   GHODictionary *statusInfo = [self.componentStatus statusInfo];
@@ -71,8 +76,7 @@
     return;
   }
 
-  MPXPCClient *helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
-  [helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
+  [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall info:info error:error];
       completion(nil);
@@ -126,10 +130,22 @@
   if (!authRef) {
     return NO;
   }
+
+  NSString *helperPath = @"/Library/PrivilegedHelperTools/keybase.Helper";
+  // It's unsafe to update privileged helper tools.
+  // https://openradar.appspot.com/20446733
+  DDLogDebug(@"Removing %@", helperPath);
+  if ([NSFileManager.defaultManager fileExistsAtPath:helperPath]) {
+    char *tool = "/bin/rm";
+    char *args[] = {"-f", (char *)[helperPath UTF8String], NULL};
+    FILE *pipe = NULL;
+    AuthorizationExecuteWithPrivileges(authRef, tool, kAuthorizationFlagDefaults, args, &pipe);
+  }
+
   CFErrorRef cerror = NULL;
   Boolean success = SMJobBless(kSMDomainSystemLaunchd, (__bridge CFStringRef)name, authRef, &cerror);
 
-  AuthorizationFree(authRef, kAuthorizationFlagDefaults);
+  AuthorizationFree(authRef, kAuthorizationFlagDestroyRights);
 
   if (!success) {
     if (error) *error = (NSError *)CFBridgingRelease(cerror);
@@ -159,7 +175,7 @@
  */
 
 - (void)uninstall:(KBCompletion)completion {
-  completion(KBMakeError(-1, @"Uninstall for privileged helper is unsafe"));
+  completion(KBMakeError(-1, @"Unsupported")); // Uninstalling is unsafe
 //  NSError *error = nil;
 //  [self uninstallPrivilegedServiceWithName:@"keybase.Helper" error:&error];
 //  completion(error);

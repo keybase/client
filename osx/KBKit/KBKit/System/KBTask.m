@@ -44,4 +44,30 @@
   }
 }
 
++ (void)executeForJSONWithCommand:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error, id value))completion {
+  [self execute:command args:args completion:^(NSError *error, NSData *outData, NSData *errData) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    if (!outData) {
+      completion(KBMakeError(-1, @"No data for launchd status"), nil);
+      return;
+    }
+
+    id value = [NSJSONSerialization JSONObjectWithData:outData options:NSJSONReadingMutableContainers error:&error];
+    if (error) {
+      DDLogError(@"Invalid data: %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
+      completion(error, nil);
+      return;
+    }
+    if (!value) {
+      completion(KBMakeError(-1, @"Invalid JSON"), nil);
+      return;
+    }
+
+    completion(nil, value);
+  }];
+}
+
 @end

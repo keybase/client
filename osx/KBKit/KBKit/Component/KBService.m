@@ -81,6 +81,7 @@
   NSView *scrollView = [KBScrollView scrollViewWithDocumentView:propertiesView];
   [view addSubview:scrollView];
 
+  /*
   YOHBox *buttons = [YOHBox box:@{@"spacing": @(10)}];
   [buttons addSubview:[KBButton buttonWithText:@"Panic" style:KBButtonStyleDanger options:KBButtonOptionsToolbar dispatchBlock:^(KBButton *button, dispatch_block_t completion) {
     [self panic:^(NSError *error) {
@@ -88,8 +89,9 @@
     }];
   }]];
   [view addSubview:buttons];
+   */
 
-  view.viewLayout = [YOVBorderLayout layoutWithCenter:scrollView top:nil bottom:@[buttons] insets:UIEdgeInsetsZero spacing:10];
+  view.viewLayout = [YOVBorderLayout layoutWithCenter:scrollView top:nil bottom:nil insets:UIEdgeInsetsZero spacing:10];
 
   _infoView = view;
 }

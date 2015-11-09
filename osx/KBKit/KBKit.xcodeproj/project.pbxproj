@@ -135,8 +135,6 @@
 		00010D131BE19F8900A9C285 /* KBDebugViews.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB41BE19F8900A9C285 /* KBDebugViews.m */; };
 		00010D141BE19F8900A9C285 /* KBEnvSelectView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB51BE19F8900A9C285 /* KBEnvSelectView.h */; };
 		00010D151BE19F8900A9C285 /* KBEnvSelectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB61BE19F8900A9C285 /* KBEnvSelectView.m */; };
-		00010D161BE19F8900A9C285 /* KBFSStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB71BE19F8900A9C285 /* KBFSStatusView.h */; };
-		00010D171BE19F8900A9C285 /* KBFSStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB81BE19F8900A9C285 /* KBFSStatusView.m */; };
 		00010D181BE19F8900A9C285 /* KBStyleGuideView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB91BE19F8900A9C285 /* KBStyleGuideView.h */; };
 		00010D191BE19F8900A9C285 /* KBStyleGuideView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BBA1BE19F8900A9C285 /* KBStyleGuideView.m */; };
 		00010D1A1BE19F8900A9C285 /* KBDeviceAddView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BBC1BE19F8900A9C285 /* KBDeviceAddView.h */; };
@@ -493,8 +491,6 @@
 		00010BB41BE19F8900A9C285 /* KBDebugViews.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDebugViews.m; sourceTree = "<group>"; };
 		00010BB51BE19F8900A9C285 /* KBEnvSelectView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBEnvSelectView.h; sourceTree = "<group>"; };
 		00010BB61BE19F8900A9C285 /* KBEnvSelectView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBEnvSelectView.m; sourceTree = "<group>"; };
-		00010BB71BE19F8900A9C285 /* KBFSStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFSStatusView.h; sourceTree = "<group>"; };
-		00010BB81BE19F8900A9C285 /* KBFSStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFSStatusView.m; sourceTree = "<group>"; };
 		00010BB91BE19F8900A9C285 /* KBStyleGuideView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStyleGuideView.h; sourceTree = "<group>"; };
 		00010BBA1BE19F8900A9C285 /* KBStyleGuideView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStyleGuideView.m; sourceTree = "<group>"; };
 		00010BBC1BE19F8900A9C285 /* KBDeviceAddView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDeviceAddView.h; sourceTree = "<group>"; };
@@ -1022,8 +1018,6 @@
 				00010BB41BE19F8900A9C285 /* KBDebugViews.m */,
 				00010BB51BE19F8900A9C285 /* KBEnvSelectView.h */,
 				00010BB61BE19F8900A9C285 /* KBEnvSelectView.m */,
-				00010BB71BE19F8900A9C285 /* KBFSStatusView.h */,
-				00010BB81BE19F8900A9C285 /* KBFSStatusView.m */,
 				00010BB91BE19F8900A9C285 /* KBStyleGuideView.h */,
 				00010BBA1BE19F8900A9C285 /* KBStyleGuideView.m */,
 			);
@@ -1364,7 +1358,6 @@
 				00010D061BE19F8900A9C285 /* KBUserTrackStatus.h in Headers */,
 				00010CD81BE19F8900A9C285 /* KBPrefButton.h in Headers */,
 				00010D701BE19F8900A9C285 /* KBPGPDecryptFooterView.h in Headers */,
-				00010D161BE19F8900A9C285 /* KBFSStatusView.h in Headers */,
 				00010D1A1BE19F8900A9C285 /* KBDeviceAddView.h in Headers */,
 				00010DAC1BE19F8900A9C285 /* KBProofResult.h in Headers */,
 				00010C9B1BE19F8900A9C285 /* KBNotifications.h in Headers */,
@@ -1634,7 +1627,6 @@
 				00010D531BE19F8900A9C285 /* KBKeyImportView.m in Sources */,
 				00010CE11BE19F8900A9C285 /* KBPrefGeneralView.m in Sources */,
 				00010CE51BE19F8900A9C285 /* KBPrefOption.m in Sources */,
-				00010D171BE19F8900A9C285 /* KBFSStatusView.m in Sources */,
 				00010CD01BE19F8900A9C285 /* KBSemVersion.m in Sources */,
 				00010DE11BE19F8900A9C285 /* KBWaitFor.m in Sources */,
 				00010D7B1BE19F8900A9C285 /* KBPGPEncryptFilesView.m in Sources */,

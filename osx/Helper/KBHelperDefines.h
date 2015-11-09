@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 typedef NS_ENUM(NSInteger, KBHelperError) {
-  KBHelperErrorKBFS = -1000,
+  KBHelperErrorKext = -1000,
 };
 
 typedef void (^KBCompletion)(NSError *error);

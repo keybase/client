@@ -23,7 +23,6 @@
 @property NSMutableArray */*of id<KBComponent>*/components;
 @property NSArray */*of id<KBInstallable>*/installables;
 @property NSArray */*of KBInstallAction*/installActions;
-
 @property NSArray *services;
 @end
 
@@ -35,7 +34,7 @@
     _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel]];
 
     KBHelperTool *helperTool = [[KBHelperTool alloc] initWithConfig:config];
-    KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config];
+    KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool];
     _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel]];
 
     _installables = [NSArray arrayWithObjects:_service, helperTool, fuse, _kbfs, nil];

@@ -111,11 +111,21 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   DDLogInfo(@"Keybase.app Version: %@", info[@"CFBundleShortVersionString"]);
 
-  [self showInProgress:@"Loading"];
+  [self checkInstall:completion];
+}
 
+- (void)checkInstall:(KBCompletion)completion {
+  [self showInProgress:@"Loading"];
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall) {
-    [self showStatusView:environment completion:completion];
+  [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall, BOOL brewConflict) {
+    if (brewConflict) {
+      [self showBrewWarning:^{
+        [self checkInstall:completion];
+      }];
+      return;
+    }
+
+    [self showStatusView:self.environment completion:completion];
     /*
     if (needsInstall) {
       [self showStatusView:environment completion:completion];
@@ -230,6 +240,16 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   } close:^{
     [KBApp.app quitWithPrompt:NO sender:gself.errorView];
   }];
+}
+
+- (void)showBrewWarning:(dispatch_block_t)retry {
+  KBErrorStatusView *view = [[KBErrorStatusView alloc] init];
+  view.insets = UIEdgeInsetsMake(100, 100, 100, 100);
+  [view setText:@"We've detected that you already have Keybase installed via Homebrew." description:@"We recommend that you uninstall the Homebrew installation since running both at the same time can causes issues." title:@"Homebrew Install Found" retry:retry close:^{
+    [KBApp.app quitWithPrompt:NO sender:self];
+  }];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
+  [self setContentView:navigation mode:KBAppViewModeError];
 }
 
 - (void)showStatusView:(KBEnvironment *)environment completion:(KBCompletion)completion {

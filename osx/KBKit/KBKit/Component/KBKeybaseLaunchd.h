@@ -13,10 +13,13 @@
 #import <GHODictionary/GHODictionary.h>
 
 typedef void (^KBOnServiceStatus)(NSError *error, KBRServiceStatus *serviceStatus);
+typedef void (^KBOnServiceStatuses)(NSError *error, NSArray *serviceStatuses);
 
 @interface KBKeybaseLaunchd : NSObject
 
 + (void)install:(NSString *)binPath label:(NSString *)label serviceBinPath:(NSString *)serviceBinPath args:(NSArray *)args completion:(KBCompletion)completion;
+
++ (void)list:(NSString *)binPath name:(NSString *)name completion:(KBOnServiceStatuses)completion;
 
 + (void)status:(NSString *)binPath name:(NSString *)name bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnServiceStatus)completion;
 

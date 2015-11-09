@@ -22,7 +22,7 @@
 @property (readonly, getter=isLoading) BOOL loading;
 
 @property BOOL popup;
-@property (weak) KBWindow *fromWindow;
+@property (weak) NSWindow *fromWindow;
 
 - (BOOL)isLoadingUsername:(NSString *)username;
 

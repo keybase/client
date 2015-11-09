@@ -12,6 +12,10 @@
 
 @interface KBErrorStatusView : YOView
 
+@property UIEdgeInsets insets;
+
 - (void)setError:(NSError *)error title:(NSString *)title retry:(dispatch_block_t)retry close:(dispatch_block_t)close;
+
+- (void)setText:(NSString *)text description:(NSString *)description title:(NSString *)title retry:(dispatch_block_t)retry close:(dispatch_block_t)close;
 
 @end

@@ -12,6 +12,9 @@
 #import "KBInstallAction.h"
 #import "KBInstaller.h"
 #import "KBRunOver.h"
+#import "KBErrorStatusView.h"
+#import "KBApp.h"
+#import "KBKeybaseLaunchd.h"
 
 @interface KBStatusView ()
 @property KBLabel *infoLabel;
@@ -78,22 +81,13 @@
   }];
 }
 
-- (NSArray *)checkBrew:(NSArray *)actions {
-  return [actions select:^BOOL(KBInstallAction *action) {
-    return [action.installable.componentStatus.label gh_startsWith:@"homebrew."];
-  }];
-}
-
 - (void)refresh {
   [KBActivity setProgressEnabled:YES sender:self];
   GHWeakSelf gself = self;
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall) {
+  [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall, BOOL brewConflict) {
     [KBActivity setProgressEnabled:NO sender:self];
-
-//    NSArray *brew = [gself checkBrew:gself.environment.installActions];
-//    if ([brew count] > 0) {
-//    }
+    NSAssert(!brewConflict, @"Shouldn't get here with brew conflict");
 
     if (needsInstall) {
       [self showInstallActions:gself.environment.installActions];

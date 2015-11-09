@@ -8,7 +8,7 @@
 
 #import "KBSearchField.h"
 
-@interface KBSearchField ()
+@interface KBSearchField () <NSSearchFieldDelegate>
 @property NSSearchField *searchField;
 @end
 

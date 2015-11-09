@@ -15,7 +15,10 @@
 #import "KBWorkspace.h"
 
 #import "KBDefines.h"
+#import "KBKeybaseLaunchd.h"
+
 #import <ObjectiveSugar/ObjectiveSugar.h>
+#import <GHKit/GHKit.h>
 
 @implementation KBInstaller
 
@@ -53,9 +56,24 @@
   [rover run];
 }
 
-- (void)installStatusWithEnvironment:(KBEnvironment *)environment completion:(void (^)(BOOL needsInstall))completion {
+- (void)installStatusWithEnvironment:(KBEnvironment *)environment completion:(void (^)(BOOL needsInstall, BOOL brewConflict))completion {
   [self installStatus:environment.installActions completion:^{
-    completion([[environment installActionsNeeded] count] > 0);
+    [self checkBrew:environment completion:^(NSError *error, NSArray *brewServices) {
+      completion([[environment installActionsNeeded] count] > 0, [brewServices count] > 0);
+    }];
+  }];
+}
+
+- (void)checkBrew:(KBEnvironment *)environment completion:(void (^)(NSError *error, NSArray *services))completion {
+  NSString *binPath = [environment.config serviceBinPathWithPathOptions:0 useBundle:YES];
+  [KBKeybaseLaunchd list:binPath name:@"service" completion:^(NSError *error, NSArray *serviceStatuses) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    completion(nil, [serviceStatuses select:^BOOL(KBRServiceStatus *serviceStatus) {
+      return [serviceStatus.label gh_startsWith:@"homebrew."];
+    }]);
   }];
 }
 

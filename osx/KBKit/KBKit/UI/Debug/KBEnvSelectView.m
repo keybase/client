@@ -104,21 +104,6 @@
   [self selectEnvConfig:envConfig];
 }
 
-/*
-- (void)checkHomebrew:(void (^)(BOOL exists))completion {
-  NSString *launchAgentDir = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"LaunchAgents"];
-  NSString *plistDest = [launchAgentDir stringByAppendingPathComponent:@"homebrew.mxcl.keybase.plist"];
-
-  if ([NSFileManager.defaultManager fileExistsAtPath:plistDest isDirectory:nil]) {
-    completion(YES);
-    return;
-    //[KBLaunchCtl status:@"homebrew.mxcl.keybase" completion:^(KBServiceStatus *serviceStatus) { completion(serviceStatus); }];
-  }
-
-  completion(NO);
-}
- */
-
 - (void)selectEnvConfig:(KBEnvConfig *)envConfig {
   NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
   [userDefaults setObject:envConfig.title forKey:@"Env"];

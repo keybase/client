@@ -8,11 +8,35 @@
 
 #import "KBHelper.h"
 
-#import "KBFS.h"
+#import "KBKext.h"
 
 #import <MPMessagePack/MPXPCProtocol.h>
 
 @implementation KBHelper
+
++ (int)run {
+  NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
+  NSString *bundleVersion = NSBundle.mainBundle.infoDictionary[@"CFBundleVersion"];
+
+  KBLog(@"Starting keybase.Helper: %@-%@", version, bundleVersion);
+
+  xpc_connection_t service = xpc_connection_create_mach_service("keybase.Helper", dispatch_get_main_queue(), XPC_CONNECTION_MACH_SERVICE_LISTENER);
+  if (!service) {
+    KBLog(@"Failed to create service.");
+    return EXIT_FAILURE;
+  }
+
+  @try {
+    KBHelper *helper = [[KBHelper alloc] init];
+    [helper listen:service];
+
+    dispatch_main();
+  } @catch(NSException *e) {
+    KBLog(@"Exception: %@", e);
+  }
+
+  return 0;
+}
 
 - (void)handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId completion:(void (^)(NSError *error, id value))completion {
   @try {
@@ -23,25 +47,41 @@
   }
 }
 
-- (void)_handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId completion:(void (^)(NSError *error, id value))completion {
-  KBLog(@"Request: %@(%@)", method, params ? params : @"");
+- (NSString *)checkKextID:(NSString *)kextID {
+  NSString * const fuse2KextID = @"com.github.osxfuse.filesystems.osxfusefs";
+  NSString * const fuse3KextID = @"com.github.osxfuse.filesystems.osxfuse";
+  if ([kextID isEqualToString:fuse3KextID]) return fuse3KextID;
+  if ([kextID isEqualToString:fuse2KextID]) return fuse2KextID;
+  return nil;
+}
 
-  NSDictionary *args = [params count] == 1 ? params[0] : nil;
+- (void)_handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId completion:(void (^)(NSError *error, id value))completion {
+  NSDictionary *args = [params count] == 1 ? params[0] : @{};
+
+  KBLog(@"Request: %@(%@)", method, args);
+
+  if (![args isKindOfClass:NSDictionary.class]) {
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid args"), nil);
+    return;
+  }
 
   if ([method isEqualToString:@"version"]) {
     [self version:completion];
-  } else if ([method isEqualToString:@"kbfs_load"]) {
-    KBFS *kbfs = [[KBFS alloc] init];
-    [kbfs loadKextID:args[@"kextID"] path:args[@"kextPath"] completion:completion];
-  } else if ([method isEqualToString:@"kbfs_unload"]) {
-    KBFS *kbfs = [[KBFS alloc] init];
-    [kbfs unloadKextID:args[@"kextID"] completion:completion];
-  } else if ([method isEqualToString:@"kbfs_install"]) {
-    KBFS *kbfs = [[KBFS alloc] init];
-    [kbfs installOrUpdateWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
-  } else if ([method isEqualToString:@"kbfs_uninstall"]) {
-    KBFS *kbfs = [[KBFS alloc] init];
-    [kbfs uninstallWithDestination:args[@"destination"] kextID:args[@"kextID"] completion:completion];
+  } else if ([method isEqualToString:@"kext_load"]) {
+    [KBKext loadKextID:args[@"kextID"] path:args[@"kextPath"] completion:completion];
+  } else if ([method isEqualToString:@"kext_unload"]) {
+    // For some reason passing through args[@"kextID"] causes the helper to crash on kext_unload only.
+    // TODO: Figure out why. (Maybe string has to be const?)
+    NSString *kextID = [self checkKextID:args[@"kextID"]];
+    if (kextID) {
+      [KBKext unloadKextID:kextID force:YES completion:completion];
+    } else {
+      completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid kextID"), nil);
+    }
+  } else if ([method isEqualToString:@"kext_install"]) {
+    [KBKext installOrUpdateWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
+  } else if ([method isEqualToString:@"kext_uninstall"]) {
+    [KBKext uninstallWithDestination:args[@"destination"] kextID:args[@"kextID"] completion:completion];
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }

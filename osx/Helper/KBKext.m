@@ -1,45 +1,45 @@
 //
-//  KBFS.m
+//  KBKext.m
 //  Keybase
 //
 //  Created by Gabriel on 4/21/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBFS.h"
+#import "KBKext.h"
 
 #import <IOKit/kext/KextManager.h>
 
-@interface KBFS ()
+@interface KBKext ()
 @property NSString *path;
 @end
 
-@implementation KBFS
+@implementation KBKext
 
-- (NSDictionary *)kextInfo:(NSString *)label {
++ (NSDictionary *)kextInfo:(NSString *)label {
   NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[label], NULL);
   return kexts[label];
 }
 
-- (BOOL)isKextLoaded:(NSString *)label {
++ (BOOL)isKextLoaded:(NSString *)label {
   NSDictionary *kexts = (__bridge NSDictionary *)KextManagerCopyLoadedKextInfo((__bridge CFArrayRef)@[label], (__bridge CFArrayRef)@[@"OSBundleStarted"]);
   return [kexts[label][@"OSBundleStarted"] boolValue];
 }
 
-- (void)installOrUpdateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
++ (void)installOrUpdateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
   if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL]) {
-    completion(KBMakeError(KBHelperErrorKBFS, @"Update is currently unsupported."), @(0));
+    completion(KBMakeError(KBHelperErrorKext, @"Update is currently unsupported."), @(0));
   } else {
     [self installWithSource:source destination:destination kextID:kextID kextPath:kextPath completion:completion];
   }
 }
 
-- (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
++ (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
   KBLog(@"Install: %@ to %@", source, destination);
 
   NSError *error = nil;
   if (![NSFileManager.defaultManager copyItemAtPath:source toPath:destination error:&error]) {
-    if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to copy");
+    if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to copy");
     completion(error, @(0));
     return;
   }
@@ -56,10 +56,10 @@
   }];
 }
 
-- (void)updateAttributes:(NSDictionary *)attributes path:(NSString *)path completion:(KBCompletion)completion {
++ (void)updateAttributes:(NSDictionary *)attributes path:(NSString *)path completion:(KBCompletion)completion {
   NSError *error = nil;
   if (![NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:path error:&error]) {
-    if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to set attributes");
+    if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to set attributes");
     completion(error);
     return;
   }
@@ -68,7 +68,7 @@
   NSString *file;
   while ((file = [dirEnum nextObject])) {
     if (![NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:[path stringByAppendingPathComponent:file] error:&error]) {
-      if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to set attributes");
+      if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to set attributes");
       completion(error);
       return;
     }
@@ -77,7 +77,7 @@
   completion(nil);
 }
 
-- (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
++ (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
   [self uninstallWithDestination:destination kextID:kextID completion:^(NSError *error, id value) {
     if (error) {
       completion(error, @(0));
@@ -87,55 +87,62 @@
   }];
 }
 
-- (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion {
++ (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion {
   KBLog(@"Loading kextID: %@ (%@)", kextID, path);
   OSReturn status = KextManagerLoadKextWithIdentifier((__bridge CFStringRef)(kextID), (__bridge CFArrayRef)@[[NSURL fileURLWithPath:path]]);
   if (status != kOSReturnSuccess) {
-    NSError *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to load with status: %@", @(status));
-    completion(error, @(0));
+    NSError *error = KBMakeError(KBHelperErrorKext, @"KextManager failed to load with status: %@", @(status));
+    completion(error, nil);
   } else {
-    completion(nil, @(1));
+    completion(nil, nil);
   }
 }
 
-- (void)unloadKextID:(NSString *)kextID completion:(KBOnCompletion)completion {
++ (void)unloadKextID:(NSString *)kextID force:(BOOL)force completion:(KBOnCompletion)completion {
+  NSParameterAssert(kextID);
   KBLog(@"Unload kextID: %@ (%@)", kextID);
   NSError *error = nil;
-  BOOL unloaded = [self unloadKextID:kextID error:&error];
-  completion(error, @(unloaded));
+  [self unloadKextID:kextID force:force error:&error];
+  completion(error, nil);
 }
 
-- (BOOL)unloadKextID:(NSString *)label error:(NSError **)error {
-  OSReturn status = KextManagerUnloadKextWithIdentifier((__bridge CFStringRef)label);
++ (BOOL)unloadKextID:(NSString *)kextID force:(BOOL)force error:(NSError **)error {
+  BOOL isKextLoaded = [self isKextLoaded:kextID];
+  KBLog(@"Kext loaded? %@", @(isKextLoaded));
+  if (isKextLoaded || force) {
+    return [self _unloadKextID:kextID error:error];
+    return NO;
+  }
+  return NO;
+}
+
++ (BOOL)_unloadKextID:(NSString *)kextID error:(NSError **)error {
+  KBLog(@"Unloading kextID: %@", kextID);
+  OSReturn status = KextManagerUnloadKextWithIdentifier((__bridge CFStringRef)kextID);
+  KBLog(@"Unload kext status: %@", @(status));
   if (status != kOSReturnSuccess) {
-    if (error) *error = KBMakeError(KBHelperErrorKBFS, @"KextManager failed to unload with status: %@: %@", @(status), [self descriptionForStatus:status]);
+    if (error) *error = KBMakeError(KBHelperErrorKext, @"KextManager failed to unload with status: %@: %@", @(status), [KBKext descriptionForStatus:status]);
     return NO;
   }
   return YES;
 }
 
-- (void)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
-  if ([self isKextLoaded:kextID]) {
-    NSError *error = nil;
-    if (![self unloadKextID:kextID error:&error]) {
-      completion(error, @(NO));
-      return;
-    }
-  } else {
-    // Do an unload to be safe (in case isKextLoaded lied)
-    KextManagerUnloadKextWithIdentifier((__bridge CFStringRef)kextID);
++ (void)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
+  NSError *error = nil;
+  if (![self unloadKextID:kextID force:YES error:&error]) {
+    completion(error, nil);
+    return;
   }
 
-  NSError *error = nil;
   if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:&error]) {
-    if (!error) error = KBMakeError(KBHelperErrorKBFS, @"Failed to remove path: %@", destination);
-    completion(error, @(0));
+    if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to remove path: %@", destination);
+    completion(error, nil);
   } else {
-    completion(nil, @(1));
+    completion(nil, nil);
   }
 }
 
-- (NSString *)descriptionForStatus:(OSReturn)status {
++ (NSString *)descriptionForStatus:(OSReturn)status {
   switch (status) {
     case kOSMetaClassDuplicateClass:
       return @"A duplicate Libkern C++ classname was encountered during kext loading.";
