@@ -4,7 +4,6 @@
 import React from 'react'
 import BaseComponent from '../base-component'
 import { TextField, RaisedButton } from 'material-ui'
-import View from 'react-flexbox'
 
 export default class PinentryRender extends BaseComponent {
   componentWillMount () {
@@ -29,4 +28,10 @@ export default class PinentryRender extends BaseComponent {
       </div>
     )
   }
+}
+
+PinentryRender.propTypes = {
+  onSubmit: React.PropTypes.func.isRequired,
+  onCancel: React.PropTypes.func.isRequired,
+  user: React.PropTypes.string.isRequired
 }

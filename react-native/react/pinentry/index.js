@@ -16,14 +16,11 @@ export default class Pinentry extends BaseComponent {
         title: 'pinentry',
         props: {
           onSubmit: passphrase => console.log(`Passphrase submitted: ${passphrase}`),
-          onCancel: () => console.log('Pinentry canceled')
+          onCancel: () => console.log('Pinentry canceled'),
+          // Temp until implemented.
+          user: 'someusers'
         }
       }
     }
   }
-}
-
-Pinentry.propTypes = {
-  onSubmit: React.PropTypes.func.isRequired,
-  onCancel: React.PropTypes.func.isRequired
 }
