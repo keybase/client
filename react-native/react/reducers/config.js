@@ -69,7 +69,7 @@ export default function (state: ConfigState = initialState, action: any): Config
     case Constants.devConfigLoaded:
       return {
         ...state,
-        devConfig: action.devConfig
+        devConfig: action.payload.devConfig
       }
     case Constants.devConfigSaved:
       return {
@@ -84,7 +84,7 @@ export default function (state: ConfigState = initialState, action: any): Config
           ...state.devConfig,
           configured: {
             ...devConfigured,
-            ...action.updates
+            ...action.payload.updates
           }
         }
       }

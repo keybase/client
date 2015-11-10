@@ -10,7 +10,9 @@ export function pushNewProfile (username) {
   return function (dispatch, getState) {
     dispatch({
       type: Constants.initProfile,
-      username
+      payload: {
+        username
+      }
     })
     dispatch(routeAppend({
       path: 'profile',
@@ -25,8 +27,8 @@ export function pushNewProfile (username) {
 export function refreshProfile (username) {
   return function (dispatch) {
     dispatch({
-      username,
-      type: Constants.profileLoading
+      type: Constants.profileLoading,
+      payload: username
     })
 
     const incomingMap = {
@@ -38,18 +40,22 @@ export function refreshProfile (username) {
         const display = shortHex.split('').reduce((a, b, i) => a + ((i % 4) ? '' : ' ') + b)
 
         dispatch({
-          username,
           type: Constants.profileReceivedDisplayKey,
-          key: {...key, type: 'PGP', display}
+          payload: {
+            username,
+            key: {...key, type: 'PGP', display}
+          }
         })
 
         response.result()
       },
       'keybase.1.identifyUi.launchNetworkChecks': ({identity: {proofs}}, response) => {
         dispatch({
-          username,
           type: Constants.profileCheckingNetworks,
-          networks: proofs.map(p => p.proof.key)
+          payload: {
+            username,
+            networks: proofs.map(p => p.proof.key)
+          }
         })
 
         response.result()
@@ -82,13 +88,15 @@ export function refreshProfile (username) {
         }[proofState]
 
         dispatch({
-          username,
           type: Constants.profileNetworkUpdate,
-          network,
-          update: {
-            display,
-            warning,
-            error
+          payload: {
+            username,
+            network,
+            update: {
+              display,
+              warning,
+              error
+            }
           }
         })
 
@@ -113,10 +121,12 @@ export function refreshProfile (username) {
         } else {
           console.log('search results', results)
           dispatch({
-            username,
             type: Constants.profileLoaded,
-            results,
-            error
+            payload: {
+              username,
+              results,
+              error
+            }
           })
 
           dispatch(loadSummaries([results.user.uid]))
@@ -129,8 +139,8 @@ export function refreshProfile (username) {
 export function loadSummaries (uids) {
   return function (dispatch) {
     dispatch({
-      uids,
-      type: Constants.profileSummaryLoading
+      type: Constants.profileSummaryLoading,
+      payload: uids
     })
 
     engine.rpc('user.loadUncheckedUserSummaries', {uids: uids}, {}, (error, response) => {
@@ -146,8 +156,8 @@ export function loadSummaries (uids) {
 
       dispatch({
         type: Constants.profileSummaryLoaded,
-        summaries,
-        error
+        payload: error || summaries,
+        error: !!error
       })
     })
   }

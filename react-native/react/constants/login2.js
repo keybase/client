@@ -20,10 +20,8 @@ export const loginDone = 'login2:loginDone'
 export const logoutDone = 'login2:logoutDone'
 export const setOtherDeviceCodeState = 'login2:setOtherDeviceCodeState'
 export const setCodeMode = 'login2:setCodeMode'
-export const setCountdown = 'login2:setCountdown'
 export const setTextCode = 'login2:setTextCode'
 export const qrScanned = 'login2:qrScanned'
-export const qrGenerate = 'login2:qrGenerate'
 export const setQRCode = 'login2:setQRCode'
 export const cameraBrokenMode = 'login2:cameraBrokenMode'
 export const needsLogin = 'login2:needsLogin'
@@ -34,7 +32,6 @@ export const actionUpdateForgotPasswordEmailAddress = 'login2:actionUpdateForgot
 export const actionSetForgotPasswordSubmitting = 'login2:actionSetForgotPasswordSubmitting'
 export const actionForgotPasswordDone = 'login2:actionForgotPasswordDone'
 
-export const actionAskUserPass = 'login2:actionAskUserPass'
 export const actionSetUserPass = 'login2:actionSetUserPass'
 
 export const actionAskDeviceName = 'login2:actionAskDeviceName'

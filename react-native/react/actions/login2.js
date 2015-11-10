@@ -57,7 +57,7 @@ function setCodePageOtherDeviceRole (otherDeviceRole) {
     dispatch(setCodePageMode(defaultModeForDeviceRoles(store.myDeviceRole, otherDeviceRole, false)))
     dispatch({
       type: Constants.setOtherDeviceCodeState,
-      otherDeviceRole
+      payload: otherDeviceRole
     })
   }
 }
@@ -68,7 +68,7 @@ function generateQRCode (dispatch, getState) {
   if (store.mode === Constants.codePageModeShowCode && !store.qrCode && store.textCode) {
     dispatch({
       type: Constants.setQRCode,
-      qrCode: qrGenerate(store.textCode)
+      payload: qrGenerate(store.textCode)
     })
   }
 }
@@ -85,7 +85,7 @@ function setCodePageMode (mode) {
 
     dispatch({
       type: Constants.setCodeMode,
-      mode
+      payload: mode
     })
   }
 }
@@ -104,7 +104,7 @@ function setCameraBrokenMode (broken) {
   return (dispatch, getState) => {
     dispatch({
       type: Constants.cameraBrokenMode,
-      broken
+      payload: broken
     })
 
     const root = getState().login2.codePage
@@ -115,7 +115,7 @@ function setCameraBrokenMode (broken) {
 export function updateForgotPasswordEmail (email) {
   return {
     type: Constants.actionUpdateForgotPasswordEmailAddress,
-    email
+    payload: email
   }
 }
 
@@ -128,7 +128,8 @@ export function submitForgotPassword () {
     engine.rpc('login.recoverAccountFromEmailAddress', {email: getState().login2.forgotPasswordEmailAddress}, {}, (error, response) => {
       dispatch({
         type: Constants.actionForgotPasswordDone,
-        error
+        payload: error,
+        error: !!error
       })
     })
   }
@@ -173,8 +174,10 @@ function askForUserPass (title, subTitle, cb) {
       onSubmit: (username, passphrase) => {
         dispatch({
           type: Constants.actionSetUserPass,
-          username,
-          passphrase
+          payload: {
+            username,
+            passphrase
+          }
         })
 
         cb()
@@ -219,14 +222,16 @@ function askForDeviceName (existingDevices, cb) {
   return dispatch => {
     dispatch({
       type: Constants.actionAskDeviceName,
-      existingDevices,
-      onSubmit: (deviceName) => {
-        dispatch({
-          type: Constants.actionSetDeviceName,
-          deviceName
-        })
+      payload: {
+        existingDevices,
+        onSubmit: (deviceName) => {
+          dispatch({
+            type: Constants.actionSetDeviceName,
+            payload: deviceName
+          })
 
-        cb()
+          cb()
+        }
       }
     })
 
@@ -445,7 +450,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
     'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
       dispatch({
         type: Constants.setTextCode,
-        text: phrase
+        payload: phrase
       })
 
       generateQRCode(dispatch, getState)
