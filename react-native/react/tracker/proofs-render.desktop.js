@@ -16,25 +16,37 @@ export default class ProofsRender extends BaseComponent {
     window.open(platform ? proof.platformLink : proof.proofLink)
   }
 
-  metaColor (proof) {
+  metaColor (pp) {
     return {
       'new': 'orange',
-      'deleted': 'red',
-      'unreachable': 'red',
-      'pending': 'gray'
-    }[proof.meta]
+      deleted: 'red',
+      unreachable: 'red',
+      pending: 'gray'
+    }[pp.proof.meta]
   }
 
-  renderProof (proof) {
+  tempStatus (pp) {
+    return {
+      verified: '[v]',
+      checking: '[c]',
+      deleted: '[d]',
+      unreachable: '[u]',
+      pending: '[p]'
+    }[pp.proof.status]
+  }
+
+  renderPlatformProof (pp) {
+    const name = pp.platform.name === 'web' ? pp.platform.uri : pp.platform.name
+    console.log(name)
     return (
       <div style={{display: 'flex'}}>
-        <p title={proof.platform} style={{width: 40, marginRight: 10, cursor: 'pointer'}} onTouchTap={() => this.openLink(proof, true)}>{proof.platformIcon}</p>
+        <p title={name} style={{width: 40, marginRight: 10, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}>{pp.platform.icon}</p>
         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
-          <p style={{textDecoration: proof.status === deleted ? 'line-through' : 'inherit', marginBottom: 0, cursor: 'pointer'}} onTouchTap={() => this.openLink(proof, true)}> {proof.username}</p>
-          <span style={{backgroundColor: this.metaColor(proof)}}>{proof.meta}</span>
+          <p style={{textDecoration: pp.proof.status === deleted ? 'line-through' : 'inherit', marginBottom: 0, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}> {name}</p>
+          <span style={{backgroundColor: this.metaColor(pp)}}>{pp.proof.meta}</span>
         </div>
         <div style={{display: 'flex', flex: 1, justifyContent: 'flex-end', paddingRight: 20}}>
-          <p style={{cursor: 'pointer'}} onTouchTap={() => this.openLink(proof, false)}>{proof.status}</p>
+          <p style={{cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.proof.uri)}>{this.tempStatus(pp)}</p>
         </div>
       </div>
     )
@@ -43,20 +55,25 @@ export default class ProofsRender extends BaseComponent {
   render () {
     return (
       <div style={{display: 'flex', flex: 1, flexDirection: 'column', overflowY: 'auto'}}>
-        { this.props.proofs && this.props.proofs.map(proof => this.renderProof(proof)) }
+        { this.props.platformProofs && this.props.platformProofs.map(platformProof => this.renderPlatformProof(platformProof)) }
       </div>
     )
   }
 }
 
 ProofsRender.propTypes = {
-  proofs: React.PropTypes.arrayOf(React.PropTypes.shape({
-    platformIcon: React.PropTypes.string.isRequired,
-    platform: React.PropTypes.string.isRequired,
-    username: React.PropTypes.string.isRequired,
-    status: React.PropTypes.oneOf([verified, checking, deleted, unreachable, pending]).isRequired,
-    meta: React.PropTypes.string,
-    platformLink: React.PropTypes.string,
-    proofLink: React.PropTypes.string
+  platformProofs: React.PropTypes.arrayOf(React.PropTypes.shape({
+    platform: React.PropTypes.shape({
+      icon: React.PropTypes.string.isRequired,
+      name: React.PropTypes.string,
+      username: React.PropTypes.string,
+      uri: React.PropTypes.string
+    }).isRequired,
+    proof: React.PropTypes.shape({
+      title: React.PropTypes.string,
+      uri: React.PropTypes.string,
+      status: React.PropTypes.oneOf([verified, checking, deleted, unreachable, pending]).isRequired,
+      meta: React.PropTypes.string
+    }).isRequired
   })).isRequired
 }
