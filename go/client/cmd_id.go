@@ -32,6 +32,7 @@ func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 		v.user = ctx.Args()[0]
 	}
 	v.trackStatement = ctx.Bool("track-statement")
+	v.useDelegateUI = ctx.Bool("delegate-identify-ui")
 	return nil
 }
 
@@ -72,7 +73,7 @@ Or log in once on this device and run "keybase id" again.
 }
 
 func NewCmdID(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{
+	ret := cli.Command{
 		Name:         "id",
 		ArgumentHelp: "[username]",
 		Usage:        "Identify a user and check their signature chain",
@@ -87,6 +88,8 @@ func NewCmdID(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 			cl.ChooseCommand(NewCmdIDRunner(g), "id", c)
 		},
 	}
+	cmdIDAddFlags(&ret)
+	return ret
 }
 
 func NewCmdIDRunner(g *libkb.GlobalContext) *CmdID {
