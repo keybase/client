@@ -12,7 +12,7 @@ type messageHandler struct {
 }
 
 type task struct {
-	seqid      int
+	seqid      seqNumber
 	cancelFunc context.CancelFunc
 }
 
@@ -24,7 +24,7 @@ type receiver interface {
 }
 
 type callRetrieval struct {
-	seqid int
+	seqid seqNumber
 	ch    chan *call
 }
 
@@ -48,8 +48,8 @@ type receiveHandler struct {
 
 	// Task loop channels
 	taskBeginCh  chan *task
-	taskCancelCh chan int
-	taskEndCh    chan int
+	taskCancelCh chan seqNumber
+	taskEndCh    chan seqNumber
 
 	log             LogInterface
 	messageHandlers map[MethodType]messageHandler
@@ -67,8 +67,8 @@ func newReceiveHandler(enc encoder, dec byteReadingDecoder, rmCallCh chan callRe
 		closedCh:  make(chan struct{}),
 
 		taskBeginCh:  make(chan *task),
-		taskCancelCh: make(chan int),
-		taskEndCh:    make(chan int),
+		taskCancelCh: make(chan seqNumber),
+		taskEndCh:    make(chan seqNumber),
 
 		log:           l,
 		wrapErrorFunc: wef,
@@ -84,7 +84,7 @@ func newReceiveHandler(enc encoder, dec byteReadingDecoder, rmCallCh chan callRe
 }
 
 func (r *receiveHandler) taskLoop() {
-	tasks := make(map[int]context.CancelFunc)
+	tasks := make(map[seqNumber]context.CancelFunc)
 	for {
 		select {
 		case <-r.stopCh:

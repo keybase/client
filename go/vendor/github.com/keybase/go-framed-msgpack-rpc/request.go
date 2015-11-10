@@ -1,6 +1,8 @@
 package rpc
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 )
 
@@ -70,15 +72,22 @@ func (r *callRequest) LogCompletion(log LogInterface, err error) {
 }
 
 func (r *callRequest) Reply(enc encoder, log LogInterface) error {
-	v := []interface{}{
-		MethodResponse,
-		r.seqno,
-		r.err,
-		r.res,
-	}
-	err := enc.Encode(v)
-	if err != nil {
-		log.Warning("Reply error for %d: %s", r.seqno, err.Error())
+	var err error
+	select {
+	case <-r.ctx.Done():
+		err = fmt.Errorf("call canceled for seqno %d", r.seqno)
+		log.Warning(err.Error())
+	default:
+		v := []interface{}{
+			MethodResponse,
+			r.seqno,
+			r.err,
+			r.res,
+		}
+		err = enc.Encode(v)
+		if err != nil {
+			log.Warning("Reply error for %d: %s", r.seqno, err.Error())
+		}
 	}
 	return err
 }
