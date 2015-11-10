@@ -23,9 +23,9 @@ export default class PinentryRender extends BaseComponent {
           floatingLabelText='Your passphrase'
           value={this.state.passphrase} />
 
-        <RaisedButton onClick={() => this.props.onCancel()} label='Cancel' />
+        <RaisedButton style={{margin: 5}} onClick={() => this.props.onCancel()} label='Cancel' />
 
-        <RaisedButton onClick={() => this.props.onSubmit(this.state.passphrase)} label='OK' />
+        <RaisedButton style={{margin: 5}} onClick={() => this.props.onSubmit(this.state.passphrase)} label='OK' />
       </div>
     )
   }

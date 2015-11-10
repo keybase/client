@@ -22,3 +22,8 @@ export default class Pinentry extends BaseComponent {
     }
   }
 }
+
+Pinentry.propTypes = {
+  onSubmit: React.PropTypes.func.isRequired,
+  onCancel: React.PropTypes.func.isRequired
+}
