@@ -60,6 +60,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
+		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g)),
 	}
 	for _, proto := range protocols {
 		if err := srv.Register(proto); err != nil {
@@ -106,7 +107,10 @@ func (d *Service) Run() (err error) {
 		d.G().Shutdown()
 	}()
 
-	d.G().Service = true
+	// Sets this global context to "service" mode which will toggle a flag
+	// and will also set in motion various go-routine based managers
+	d.G().SetService()
+	d.G().SetUIRouter(NewUIRouter(d.G()))
 
 	err = d.writeServiceInfo()
 	if err != nil {

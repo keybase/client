@@ -333,6 +333,12 @@ type UI interface {
 	Shutdown() error
 }
 
+type UIRouter interface {
+	SetUI(ConnectionID, UIKind)
+	GetIdentifyUI() (IdentifyUI, error)
+	Shutdown()
+}
+
 type UIConsumer interface {
 	Name() string
 	RequiredUIs() []UIKind

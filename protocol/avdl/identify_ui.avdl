@@ -60,6 +60,11 @@ protocol identifyUi {
     union { null, SigHint } hint;
   }
 
+  // The IdentifyUI can be delegated to another process.  Call this function
+  // to initialize the delegated UI; it returns the sessionID to use in the
+  // following exchange. Return 0 on failure.
+  int delegateIdentifyUI();
+
   void start(int sessionID, string username);
   void displayKey(int sessionID, IdentifyKey key);
   void reportLastTrack(int sessionID, union { null, TrackSummary } track);

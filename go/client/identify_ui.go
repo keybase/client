@@ -14,13 +14,17 @@ type IdentifyUIServer struct {
 	ui libkb.IdentifyUI
 }
 
-func NewIdentifyUIProtocol() rpc.Protocol {
-	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{GlobUI.GetIdentifyUI()})
+func NewIdentifyUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{g.UI.GetIdentifyUI()})
 }
 
-func NewIdentifyTrackUIProtocol() rpc.Protocol {
-	ui := GlobUI.GetIdentifyTrackUI(true)
+func NewIdentifyTrackUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	ui := g.UI.GetIdentifyTrackUI(true)
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{ui})
+}
+
+func (i *IdentifyUIServer) DelegateIdentifyUI(_ context.Context) (int, error) {
+	return 0, libkb.UIDelegationUnavailableError{}
 }
 
 func (i *IdentifyUIServer) Confirm(_ context.Context, arg keybase1.ConfirmArg) (bool, error) {

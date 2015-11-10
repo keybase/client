@@ -439,6 +439,10 @@
     } ]
   } ],
   "messages" : {
+    "delegateIdentifyUI" : {
+      "request" : [ ],
+      "response" : "int"
+    },
     "start" : {
       "request" : [ {
         "name" : "sessionID",

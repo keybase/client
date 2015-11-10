@@ -53,7 +53,7 @@ func (c *CmdStress) rpcClient() (*rpc.Client, error) {
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
 		c.secretUIProtocol(),
-		NewIdentifyUIProtocol(),
+		NewIdentifyUIProtocol(G),
 		c.gpgUIProtocol(),
 		NewLoginUIProtocol(G),
 	}

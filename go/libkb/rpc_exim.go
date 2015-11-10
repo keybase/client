@@ -232,6 +232,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return DeviceRequiredError{}
 	case SCSibkeyAlreadyExists:
 		return SibkeyAlreadyExistsError{}
+	case SCNoUIDelegation:
+		return UIDelegationUnavailableError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -816,6 +818,14 @@ func (e SibkeyAlreadyExistsError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCSibkeyAlreadyExists,
 		Name: "SC_SIBKEY_ALREADY_EXISTS",
+		Desc: e.Error(),
+	}
+}
+
+func (e UIDelegationUnavailableError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNoUIDelegation,
+		Name: "SC_UI_DELEGATION_UNAVAILABLE",
 		Desc: e.Error(),
 	}
 }

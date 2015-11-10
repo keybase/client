@@ -682,11 +682,11 @@ func (e SelfTrackError) Error() string {
 //=============================================================================
 
 type NoUIError struct {
-	which string
+	Which string
 }
 
 func (e NoUIError) Error() string {
-	return fmt.Sprintf("no %s-UI was available", e.which)
+	return fmt.Sprintf("no %s-UI was available", e.Which)
 }
 
 //=============================================================================
@@ -1165,4 +1165,12 @@ type PGPPullLoggedOutError struct{}
 
 func (e PGPPullLoggedOutError) Error() string {
 	return "When running `pgp pull` logged out, you must specify users to pull keys for"
+}
+
+//=============================================================================
+
+type UIDelegationUnavailableError struct{}
+
+func (e UIDelegationUnavailableError) Error() string {
+	return "This process does not support UI delegation"
 }

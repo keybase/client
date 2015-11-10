@@ -35,7 +35,7 @@ type NotifyRouter struct {
 func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 	ret := &NotifyRouter{
 		Contextified: NewContextified(g),
-		cm:           NewConnectionManager(),
+		cm:           g.ConnectionManager,
 		state:        make(map[ConnectionID]keybase1.NotificationChannels),
 		setCh:        make(chan setObj),
 		getCh:        make(chan getObj),
@@ -47,7 +47,6 @@ func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 
 func (n *NotifyRouter) Shutdown() {
 	n.shutdownCh <- struct{}{}
-	n.cm.Shutdown()
 }
 
 func (n *NotifyRouter) setNotificationChannels(id ConnectionID, val keybase1.NotificationChannels) {
@@ -91,6 +90,9 @@ func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChann
 // HandleLogout is called whenever the current user logged out. It will broadcast
 // the message to all connections who care about such a mesasge.
 func (n *NotifyRouter) HandleLogout() {
+	if n == nil {
+		return
+	}
 	n.G().Log.Debug("+ Sending logout notfication")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
@@ -113,6 +115,9 @@ func (n *NotifyRouter) HandleLogout() {
 // changed (and must be cache-busted). It will broadcast the messages
 // to all curious listeners.
 func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
+	if n == nil {
+		return
+	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Users` notification type

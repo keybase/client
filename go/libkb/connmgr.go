@@ -73,8 +73,8 @@ func (c *ConnectionManager) run() {
 		case <-c.shutdownCh:
 			return
 		case addConnectionObj := <-c.addConnectionCh:
+			c.nxt++ // increment first, since 0 is reserved
 			nxt := c.nxt
-			c.nxt++
 			c.lookup[nxt] = addConnectionObj.xp
 			addConnectionObj.ch <- nxt
 		case lookupConnectionObj := <-c.lookupConnectionCh:

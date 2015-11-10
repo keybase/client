@@ -20,6 +20,7 @@ build-stamp: \
 	json/crypto.json \
 	json/ctl.json \
 	json/debugging.json \
+	json/delegate_ui_ctl.json \
 	json/device.json \
 	json/favorite.json \
 	json/gpg_ui.json \

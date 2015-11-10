@@ -75,9 +75,9 @@ func RegisterProtocols(prots []rpc.Protocol) (err error) {
 	return RegisterProtocolsWithContext(prots, G)
 }
 
-func GetIdentifyClient() (cli keybase1.IdentifyClient, err error) {
+func GetIdentifyClient(g *libkb.GlobalContext) (cli keybase1.IdentifyClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.IdentifyClient{Cli: rcli}
 	}
 	return

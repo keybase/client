@@ -13,6 +13,7 @@ import (
 )
 
 type CheckResult struct {
+	Contextified
 	Status ProofError // Or nil if it was a success
 	Time   time.Time  // When the last check was
 }
@@ -38,22 +39,26 @@ func (cr CheckResult) IsFresh() bool {
 
 	var interval time.Duration
 	if cr.Status == nil {
-		interval = G.Env.GetProofCacheLongDur()
+		interval = cr.G().Env.GetProofCacheLongDur()
 	} else if ProofErrorIsSoft(cr.Status) {
 		// don't use cache results for "soft" errors (500s, timeouts)
 		// see issue #140
 		return false
 	} else {
-		interval = G.Env.GetProofCacheMediumDur()
+		interval = cr.G().Env.GetProofCacheMediumDur()
 	}
 	return (time.Since(cr.Time) < interval)
 }
 
-func NewNowCheckResult(pe ProofError) *CheckResult {
-	return &CheckResult{pe, time.Now()}
+func NewNowCheckResult(g *GlobalContext, pe ProofError) *CheckResult {
+	return &CheckResult{
+		Contextified: NewContextified(g),
+		Status:       pe,
+		Time:         time.Now(),
+	}
 }
 
-func NewCheckResult(jw *jsonw.Wrapper) (res *CheckResult, err error) {
+func NewCheckResult(g *GlobalContext, jw *jsonw.Wrapper) (res *CheckResult, err error) {
 	var t int64
 	var code int
 	var desc string
@@ -69,21 +74,23 @@ func NewCheckResult(jw *jsonw.Wrapper) (res *CheckResult, err error) {
 	}
 	if err == nil {
 		res = &CheckResult{
-			Status: pe,
-			Time:   time.Unix(t, 0),
+			Contextified: NewContextified(g),
+			Status:       pe,
+			Time:         time.Unix(t, 0),
 		}
 	}
 	return
 }
 
 type ProofCache struct {
+	Contextified
 	capac int
 	lru   *lru.Cache
 	sync.RWMutex
 }
 
-func NewProofCache(capac int) *ProofCache {
-	return &ProofCache{capac: capac}
+func NewProofCache(g *GlobalContext, capac int) *ProofCache {
+	return &ProofCache{Contextified: NewContextified(g), capac: capac}
 }
 
 func (pc *ProofCache) setup() error {
@@ -114,7 +121,7 @@ func (pc *ProofCache) memGet(sid keybase1.SigID) *CheckResult {
 	}
 	cr, ok := tmp.(CheckResult)
 	if !ok {
-		G.Log.Errorf("Bad type assertion in ProofCache.Get")
+		pc.G().Log.Errorf("Bad type assertion in ProofCache.Get")
 		return nil
 	}
 	if !cr.IsFresh() {
@@ -156,30 +163,30 @@ func (pc *ProofCache) dbKey(sid keybase1.SigID) (DbKey, string) {
 func (pc *ProofCache) dbGet(sid keybase1.SigID) (cr *CheckResult) {
 	dbkey, sidstr := pc.dbKey(sid)
 
-	G.Log.Debug("+ ProofCache.dbGet(%s)", sidstr)
-	defer G.Log.Debug("- ProofCache.dbGet(%s) -> %v", sidstr, (cr != nil))
+	pc.G().Log.Debug("+ ProofCache.dbGet(%s)", sidstr)
+	defer pc.G().Log.Debug("- ProofCache.dbGet(%s) -> %v", sidstr, (cr != nil))
 
-	jw, err := G.LocalDb.Get(dbkey)
+	jw, err := pc.G().LocalDb.Get(dbkey)
 	if err != nil {
-		G.Log.Errorf("Error lookup up proof check in DB: %s", err)
+		pc.G().Log.Errorf("Error lookup up proof check in DB: %s", err)
 		return nil
 	}
 	if jw == nil {
-		G.Log.Debug("| Cached CheckResult for %s wasn't found ", sidstr)
+		pc.G().Log.Debug("| Cached CheckResult for %s wasn't found ", sidstr)
 		return nil
 	}
 
-	cr, err = NewCheckResult(jw)
+	cr, err = NewCheckResult(pc.G(), jw)
 	if err != nil {
-		G.Log.Errorf("Bad cached CheckResult for %s", sidstr)
+		pc.G().Log.Errorf("Bad cached CheckResult for %s", sidstr)
 		return nil
 	}
 
 	if !cr.IsFresh() {
-		if err := G.LocalDb.Delete(dbkey); err != nil {
-			G.Log.Errorf("Delete error: %s", err)
+		if err := pc.G().LocalDb.Delete(dbkey); err != nil {
+			pc.G().Log.Errorf("Delete error: %s", err)
 		}
-		G.Log.Debug("| Cached CheckResult for %s wasn't fresh", sidstr)
+		pc.G().Log.Debug("| Cached CheckResult for %s wasn't fresh", sidstr)
 		return nil
 	}
 
@@ -189,14 +196,18 @@ func (pc *ProofCache) dbGet(sid keybase1.SigID) (cr *CheckResult) {
 func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {
 	dbkey, _ := pc.dbKey(sid)
 	jw := cr.Pack()
-	return G.LocalDb.Put(dbkey, []DbKey{}, jw)
+	return pc.G().LocalDb.Put(dbkey, []DbKey{}, jw)
 }
 
 func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
 	if pc == nil {
 		return nil
 	}
-	cr := CheckResult{pe, time.Now()}
+	cr := CheckResult{
+		Contextified: pc.Contextified,
+		Status:       pe,
+		Time:         time.Now(),
+	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)
 }

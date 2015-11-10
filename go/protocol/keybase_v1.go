@@ -830,6 +830,41 @@ func (c DebuggingClient) Increment(ctx context.Context, __arg IncrementArg) (res
 	return
 }
 
+type RegisterIdentifyUIArg struct {
+}
+
+type DelegateUiCtlInterface interface {
+	RegisterIdentifyUI(context.Context) error
+}
+
+func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.delegateUiCtl",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"registerIdentifyUI": {
+				MakeArg: func() interface{} {
+					ret := make([]RegisterIdentifyUIArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RegisterIdentifyUI(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type DelegateUiCtlClient struct {
+	Cli GenericClient
+}
+
+func (c DelegateUiCtlClient) RegisterIdentifyUI(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerIdentifyUI", []interface{}{RegisterIdentifyUIArg{}}, nil)
+	return
+}
+
 type DeviceListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1284,6 +1319,7 @@ type IdentifyArg struct {
 	UserAssertion    string `codec:"userAssertion" json:"userAssertion"`
 	TrackStatement   bool   `codec:"trackStatement" json:"trackStatement"`
 	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	UseDelegateUI    bool   `codec:"useDelegateUI" json:"useDelegateUI"`
 }
 
 type IdentifyInterface interface {
@@ -1378,6 +1414,9 @@ type LinkCheckResult struct {
 	Hint        *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
+type DelegateIdentifyUIArg struct {
+}
+
 type StartArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
@@ -1431,6 +1470,7 @@ type FinishArg struct {
 }
 
 type IdentifyUiInterface interface {
+	DelegateIdentifyUI(context.Context) (int, error)
 	Start(context.Context, StartArg) error
 	DisplayKey(context.Context, DisplayKeyArg) error
 	ReportLastTrack(context.Context, ReportLastTrackArg) error
@@ -1447,6 +1487,17 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.identifyUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"delegateIdentifyUI": {
+				MakeArg: func() interface{} {
+					ret := make([]DelegateIdentifyUIArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.DelegateIdentifyUI(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"start": {
 				MakeArg: func() interface{} {
 					ret := make([]StartArg, 1)
@@ -1613,6 +1664,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 
 type IdentifyUiClient struct {
 	Cli GenericClient
+}
+
+func (c IdentifyUiClient) DelegateIdentifyUI(ctx context.Context) (res int, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.delegateIdentifyUI", []interface{}{DelegateIdentifyUIArg{}}, &res)
+	return
 }
 
 func (c IdentifyUiClient) Start(ctx context.Context, __arg StartArg) (err error) {

@@ -944,7 +944,7 @@ func (idt *IdentityTable) insertLink(l TypedChainLink) {
 }
 
 func (idt *IdentityTable) MarkCheckResult(err ProofError) {
-	idt.checkResult = NewNowCheckResult(err)
+	idt.checkResult = NewNowCheckResult(idt.G(), err)
 }
 
 func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
@@ -1176,7 +1176,7 @@ func ComputeRemoteDiff(tracked, observed keybase1.ProofState) TrackDiff {
 func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult) {
 	p := res.link
 
-	G.Log.Debug("+ RemoteCheckProof %s", p.ToDebugString())
+	idt.G().Log.Debug("+ RemoteCheckProof %s", p.ToDebugString())
 	doCache := false
 	sid := p.GetSigID()
 
@@ -1188,13 +1188,13 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 		}
 
 		if doCache {
-			G.Log.Debug("| Caching results under key=%s", sid)
-			if cacheErr := G.ProofCache.Put(sid, res.err); cacheErr != nil {
-				G.Log.Warning("proof cache put error: %s", cacheErr)
+			idt.G().Log.Debug("| Caching results under key=%s", sid)
+			if cacheErr := idt.G().ProofCache.Put(sid, res.err); cacheErr != nil {
+				idt.G().Log.Warning("proof cache put error: %s", cacheErr)
 			}
 		}
 
-		G.Log.Debug("- RemoteCheckProof %s", p.ToDebugString())
+		idt.G().Log.Debug("- RemoteCheckProof %s", p.ToDebugString())
 	}()
 
 	res.hint = idt.sigHints.Lookup(sid)
@@ -1217,7 +1217,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	}
 
 	if !forceRemoteCheck {
-		if res.cached = G.ProofCache.Get(sid); res.cached != nil {
+		if res.cached = idt.G().ProofCache.Get(sid); res.cached != nil {
 			res.err = res.cached.Status
 			return
 		}
@@ -1228,12 +1228,12 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	doCache = true
 
 	if res.err = pc.CheckHint(*res.hint); res.err != nil {
-		G.Log.Debug("| Hint failed with error: %s", res.err.Error())
+		idt.G().Log.Debug("| Hint failed with error: %s", res.err.Error())
 		return
 	}
 
 	if res.err = pc.CheckStatus(*res.hint); res.err != nil {
-		G.Log.Debug("| Check status failed with error: %s", res.err.Error())
+		idt.G().Log.Debug("| Check status failed with error: %s", res.err.Error())
 		return
 	}
 

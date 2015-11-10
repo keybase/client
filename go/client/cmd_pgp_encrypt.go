@@ -15,13 +15,13 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "encrypt",
 		ArgumentHelp: "<usernames...>",
 		Usage:        "PGP encrypt messages or files for keybase users",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPEncrypt{}, "encrypt", c)
+			cl.ChooseCommand(&CmdPGPEncrypt{Contextified: libkb.NewContextified(g)}, "encrypt", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -72,6 +72,7 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine) cli.Command {
 }
 
 type CmdPGPEncrypt struct {
+	libkb.Contextified
 	UnixFilter
 	recipients   []string
 	trackOptions keybase1.TrackOptions
@@ -88,8 +89,8 @@ func (c *CmdPGPEncrypt) Run() error {
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
-		NewSecretUIProtocol(G),
-		NewIdentifyTrackUIProtocol(),
+		NewSecretUIProtocol(c.G()),
+		NewIdentifyTrackUIProtocol(c.G()),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
