@@ -52,6 +52,19 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 	case 3:
 		return keybase1.ProvisionMethod_PASSPHRASE, nil
 	case 4:
+		p.parent.Output("\nIn order to use GPG to sign this install of Keybase, in the next step\n")
+		p.parent.Output("you will select one of your GPG keys.  The gpg client will be used to\n")
+		p.parent.Output("export the secret key and import it into keybase's local encrypted\n")
+		p.parent.Output("key store.\n\n")
+		err = p.parent.PromptForConfirmation("Would you like to continue?")
+		if err != nil {
+			if _, ok := err.(NotConfirmedError); ok {
+				p.parent.Output("\n\nWe have an issue for using gpg to sign the install without\nrequiring importing the secret key.  You can view it here:\n\n    https://github.com/keybase/client/issues/1308\n\nThanks!\n")
+				return res, libkb.CanceledError{M: "user canceled gpg provisioning"}
+			}
+			p.parent.Printf("error type: %T\n", err)
+			return res, err
+		}
 		return keybase1.ProvisionMethod_GPG, nil
 	}
 	return res, fmt.Errorf("invalid provision option: %d", ret)
