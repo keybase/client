@@ -4,27 +4,30 @@
  * @flow
  */
 
-import { createRouterState } from './reducers/router'
+import {createRouterState} from './reducers/router'
 import * as Tabs from './constants/tabs'
-import { isDev } from './constants/platform'
+import {isDev} from './constants/platform'
 
 let config = {
   overrideRouterState: null,
   overrideActiveTab: null,
   skipLoginRouteToRoot: false,
-  allowStartupFailure: false
+  allowStartupFailure: false,
+  printRPC: false
 }
 
-if (isDev && false) {
-  config.overrideRouterState = createRouterState(['devMenu', 'tracker'], [])
-  config.overrideActiveTab = Tabs.moreTab
+if (isDev && true) {
+  config.overrideRouterState = createRouterState([], [])
+  config.overrideActiveTab = Tabs.devicesTab
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
+  config.printRPC = true
 }
 
 export const {
   overrideRouterState,
   overrideActiveTab,
   skipLoginRouteToRoot,
-  allowStartupFailure
+  allowStartupFailure,
+  printRPC
 } = config

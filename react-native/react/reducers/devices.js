@@ -22,7 +22,7 @@ export default function (state = initialState, action) {
       return {
         ...state,
         error: action.error && action.payload,
-        devices: action.error ? null : action.payload,
+        devices: action.error ? [] : action.payload,
         waitingForServer: false
       }
     case Constants.deviceRemoved:

@@ -1,16 +1,16 @@
 'use strict'
 
-import React, { Component } from '../../base-react'
+import React, {Component} from '../../base-react'
 
 import CodePage from '../../login2/register/code-page'
 import GenPaperKey from './gen-paper-key'
 import ExistingDevice from '../../login2/register/existing-device'
 import RemoveDevice from './remove-device'
 
-import { loadDevices } from '../../actions/devices'
-import { routeAppend } from '../../actions/router'
-import { addANewDevice } from '../../actions/login2'
-import DevicesRender from './devices-render'
+import {loadDevices} from '../../actions/devices'
+import {routeAppend} from '../../actions/router'
+import {addANewDevice} from '../../actions/login2'
+import DevicesRender from './index.render'
 
 export default class Devices extends Component {
   componentWillMount () {
@@ -55,7 +55,7 @@ export default class Devices extends Component {
              waitingForServer={this.props.waitingForServer}
              showRemoveDevicePage={this.props.showRemoveDevicePage}
              showExistingDevicePage={this.props.showExistingDevicePage}
-             showGenPaperKeyPage={this.props.showGenPaperKeyPag}/>
+             showGenPaperKeyPage={this.props.showGenPaperKeyPage}/>
   }
 }
 
