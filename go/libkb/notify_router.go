@@ -32,9 +32,10 @@ type NotifyRouter struct {
 
 // NewNotifyRouter makes a new notification router; we should only
 // make one of these per process.
-func NewNotifyRouter(cm *ConnectionManager) *NotifyRouter {
+func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 	ret := &NotifyRouter{
-		cm:         cm,
+		Contextified : NewContextified(g),
+		cm:         g.ConnectionManager,
 		state:      make(map[ConnectionID]keybase1.NotificationChannels),
 		setCh:      make(chan setObj),
 		getCh:      make(chan getObj),

@@ -28,6 +28,9 @@ type delegateUI struct {
 	foundTwitter    bool
 }
 
+// delegateUI implements the keybase1.IdentifyUiInterface
+var _ keybase1.IdentifyUiInterface = (*delegateUI)(nil);
+
 func (d *delegateUI) checkDelegated() error {
 	if !d.delegated {
 		return d.setError(fmt.Errorf("Can't run UI since it wasn't properly delegated"))

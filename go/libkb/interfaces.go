@@ -336,6 +336,7 @@ type UI interface {
 type UIRouter interface {
 	SetUI(ConnectionID, UIKind)
 	GetIdentifyUI() (IdentifyUI, error)
+	Shutdown()
 }
 
 type UIConsumer interface {

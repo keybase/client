@@ -87,7 +87,7 @@ func (g *GlobalContext) Init() {
 func (g *GlobalContext) SetService() {
 	g.Service = true
 	g.ConnectionManager = NewConnectionManager()
-	g.NotifyRouter = NewNotifyRouter(g.ConnectionManager)
+	g.NotifyRouter = NewNotifyRouter(g)
 }
 
 func (g *GlobalContext) SetUIRouter(u UIRouter) {
@@ -238,6 +238,10 @@ func (g *GlobalContext) Shutdown() error {
 
 		if g.NotifyRouter != nil {
 			g.NotifyRouter.Shutdown()
+		}
+
+		if g.UIRouter != nil {
+			g.UIRouter.Shutdown()
 		}
 
 		if g.ConnectionManager != nil {
