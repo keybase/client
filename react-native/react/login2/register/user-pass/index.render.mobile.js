@@ -1,11 +1,11 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Text, TextInput, View } from 'react-native'
+import React, { Component, StyleSheet, Text, TextInput, View } from '../../../base-react'
 import Button from '../../../common-adapters/button'
 import commonStyles from '../../../styles/common'
 
-export default class UserPass extends Component {
+export default class UserPassRender extends Component {
   constructor (props) {
     super(props)
 
@@ -20,7 +20,7 @@ export default class UserPass extends Component {
   }
 
   render () {
-    const buttonEnabled = this.state.username.length && this.state.passphrase.length
+    const buttonEnabled = this.props.buttonEnabled(this.state.username, this.state.passphrase)
     return (
       <View style={styles.container}>
         <Text style={commonStyles.h1}>{this.props.title}</Text>
@@ -56,13 +56,14 @@ export default class UserPass extends Component {
   }
 }
 
-UserPass.propTypes = {
+UserPassRender.propTypes = {
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string,
   error: React.PropTypes.object,
   onSubmit: React.PropTypes.func.isRequired,
   title: React.PropTypes.string,
-  subTitle: React.PropTypes.string
+  subTitle: React.PropTypes.string,
+  buttonEnabled: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

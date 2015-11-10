@@ -12,19 +12,22 @@ let config = {
   overrideRouterState: null,
   overrideActiveTab: null,
   skipLoginRouteToRoot: false,
-  allowStartupFailure: false
+  allowStartupFailure: false,
+  printRPC: false
 }
 
 if (isDev && false) {
-  config.overrideRouterState = createRouterState(['devMenu', 'tracker'], [])
+  config.overrideRouterState = createRouterState(['devMenu', 'login2', 'register'], [])
   config.overrideActiveTab = Tabs.moreTab
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
+  config.printRPC = true
 }
 
 export const {
   overrideRouterState,
   overrideActiveTab,
   skipLoginRouteToRoot,
-  allowStartupFailure
+  allowStartupFailure,
+  printRPC
 } = config

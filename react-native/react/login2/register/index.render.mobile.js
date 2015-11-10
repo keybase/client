@@ -1,10 +1,9 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Text, View } from 'react-native'
-import { registerWithUserPass, registerWithPaperKey, registerWithExistingDevice } from '../../actions/login2'
+import React, { Component, StyleSheet, Text, View } from '../../base-react'
 
-export default class Register extends Component {
+export default class RegisterRender extends Component {
   render () {
     return (
       <View style={styles.container}>
@@ -15,21 +14,9 @@ export default class Register extends Component {
       </View>
     )
   }
-
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        props: {
-          gotoExistingDevicePage: () => store.dispatch(registerWithExistingDevice()),
-          gotoPaperKeyPage: () => store.dispatch(registerWithPaperKey()),
-          gotoUserPassPage: () => store.dispatch(registerWithUserPass())
-        }
-      }
-    }
-  }
 }
 
-Register.propTypes = {
+RegisterRender.propTypes = {
   gotoExistingDevicePage: React.PropTypes.func.isRequired,
   gotoPaperKeyPage: React.PropTypes.func.isRequired,
   gotoUserPassPage: React.PropTypes.func.isRequired

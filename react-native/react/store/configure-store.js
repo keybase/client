@@ -1,7 +1,8 @@
 'use strict'
 /* @flow */
 
-import { createStore, applyMiddleware } from 'redux'
+import configureStoreNative from './configure-store.native'
+import { applyMiddleware } from 'redux'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import rootReducer from '../reducers'
@@ -33,8 +34,8 @@ const loggerMiddleware = createLogger({
 const createStoreWithMiddleware = applyMiddleware(
   thunkMiddleware,
   loggerMiddleware
-)(createStore)
+)
 
 export default function configureStore (initialState: ?any) {
-  return createStoreWithMiddleware(rootReducer, initialState)
+  return configureStoreNative(rootReducer, initialState, createStoreWithMiddleware)
 }

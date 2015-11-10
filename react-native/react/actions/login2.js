@@ -340,8 +340,10 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
       payload: error || null
     })
 
-    dispatch(navigateTo([]))
-    dispatch(switchTab(devicesTab))
+    if (!error) {
+      dispatch(navigateTo([]))
+      dispatch(switchTab(devicesTab))
+    }
   })
 }
 

@@ -57,7 +57,7 @@ export default class DevicesRender extends Component {
   renderDevice (device) {
     if (device.type === 'desktop') {
       return this.renderDesktop(device)
-    } else if (device.type === 'phone') {
+    } else if (device.type === 'mobile') {
       return this.renderPhone(device)
     } else if (device.type === 'backup') {
       return this.renderPaperKey(device)

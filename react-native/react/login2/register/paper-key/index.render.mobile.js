@@ -1,11 +1,11 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Text, TextInput, View } from 'react-native'
+import React, { Component, StyleSheet, Text, TextInput, View } from '../../../base-react'
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
 
-export default class PaperKey extends Component {
+export default class PaperKeyRender extends Component {
   constructor (props) {
     super(props)
 
@@ -39,7 +39,7 @@ export default class PaperKey extends Component {
   }
 }
 
-PaperKey.propTypes = {
+PaperKeyRender.propTypes = {
   onSubmit: React.PropTypes.func.isRequired
 }
 

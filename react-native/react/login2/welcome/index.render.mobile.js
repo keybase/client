@@ -1,15 +1,11 @@
 'use strict'
 /* @flow */
 
-import React, { Component, LinkingIOS, StyleSheet, Text, View } from 'react-native'
+import React, { Component, LinkingIOS, StyleSheet, Text, View } from '../../base-react'
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
-import Login from './login'
-import Signup from './signup'
-import { routeAppend } from '../../actions/router'
-import { login } from '../../actions/login2'
 
-export default class Welcome extends Component {
+export default class WelcomeRender extends Component {
   render () {
     return (
       <View style={[styles.container, {marginTop: 64, marginBottom: 48}]}>
@@ -33,25 +29,9 @@ export default class Welcome extends Component {
       </View>
     )
   }
-
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        hideNavBar: true,
-        props: {
-          gotoLoginPage: () => store.dispatch(login()),
-          gotoSignupPage: () => store.dispatch(routeAppend('signup'))
-        }
-      },
-      subRoutes: {
-        'login': Login,
-        'signup': Signup
-      }
-    }
-  }
 }
 
-Welcome.propTypes = {
+WelcomeRender.propTypes = {
   gotoLoginPage: React.PropTypes.func.isRequired,
   gotoSignupPage: React.PropTypes.func.isRequired
 }

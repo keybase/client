@@ -4,7 +4,7 @@
 import * as Constants from '../constants/login2'
 import * as ConfigConstants from '../constants/config'
 import Immutable from 'immutable'
-import {Platform} from 'react-native'
+import { isMobile } from '../constants/platform'
 import {
   codePageDeviceRoleNewPhone,
   codePageDeviceRoleNewComputer,
@@ -85,12 +85,11 @@ export default function (state: LoginState = initialState, action: any): LoginSt
         return state
       }
       let myDeviceRole = null
-      const isPhone = (Platform.OS === 'ios' || Platform.OS === 'android')
 
       if (action.payload.status.registered) {
-        myDeviceRole = isPhone ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
+        myDeviceRole = isMobile ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
       } else {
-        myDeviceRole = isPhone ? codePageDeviceRoleNewPhone : codePageDeviceRoleNewComputer
+        myDeviceRole = isMobile ? codePageDeviceRoleNewPhone : codePageDeviceRoleNewComputer
       }
 
       toMerge = {codePage: {myDeviceRole}}

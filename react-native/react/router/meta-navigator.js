@@ -6,17 +6,18 @@
  */
 
 import React, { Component } from '../base-react'
-import Render from './meta-navigator-render'
+import Render from './meta-navigator.render'
 import Immutable from 'immutable'
 
 class MetaNavigator extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
 
+    // Mobile can set navigator
     this.state = {
+      navigator: null
     }
   }
-
   isParentOfRoute (routeParent, routeMaybeChild) {
     return (
       !Immutable.is(routeMaybeChild, routeParent) &&
@@ -25,26 +26,30 @@ class MetaNavigator extends Component {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
+    if (!this.state.navigator) {
+      return true
+    }
+
     const { store, rootComponent } = this.props
     const route = this.props.uri
     const nextRoute = nextProps.uri
 
     const { componentAtTop, routeStack: nextRouteStack } = this.getComponentAtTop(rootComponent, store, nextRoute)
-    if (nextProps === this.props && nextState === this.state) {
+    if (nextProps === this.props) {
       return false
     } else if (this.isParentOfRoute(route, nextRoute)) {
-      this.refs.navigator.push(componentAtTop)
+      this.state.navigator.push(componentAtTop)
       return true
     // TODO: also check to see if this route exists in the navigator's route
     } else if (this.isParentOfRoute(nextRoute, route)) {
-      const navRoutes = this.refs.navigator.getCurrentRoutes()
+      const navRoutes = this.state.navigator.getCurrentRoutes()
       const targetRoute = navRoutes.reverse().find(navRoute =>
           navRoute.component === componentAtTop.component && navRoute.title === componentAtTop.title
       )
-      this.refs.navigator.popToRoute(targetRoute)
+      this.state.navigator.popToRoute(targetRoute)
       return true
     } else {
-      this.refs.navigator.immediatelyResetRouteStack(nextRouteStack.toJS())
+      this.state.navigator.immediatelyResetRouteStack(nextRouteStack.toJS())
       return true
     }
   }
@@ -106,7 +111,17 @@ class MetaNavigator extends Component {
   }
 
   render () {
-    return Render.apply(this)
+    const { store, rootComponent, uri } = this.props
+    const { componentAtTop, routeStack } = this.getComponentAtTop(rootComponent, store, uri)
+
+    return (
+      <Render
+        componentAtTop={componentAtTop}
+        routeStack={routeStack}
+        setNavigator={navigator => this.setState({navigator})}
+        {...this.props}
+        />
+    )
   }
 }
 
