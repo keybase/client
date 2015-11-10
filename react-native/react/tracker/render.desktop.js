@@ -14,7 +14,7 @@ export default class Render extends BaseComponent {
     return (
       <div style={{display: 'flex', flex: 1, flexDirection: 'column'}}>
         <Header {...this.props} />
-        <div style={{backgroundColor: 'green', display: 'flex', flex: 1, flexDirection: 'row', height: 480}}>
+        <div style={{display: 'flex', flex: 1, flexDirection: 'row', height: 480}}>
           <Bio {...this.props} />
           <Proofs {...this.props} />
         </div>
