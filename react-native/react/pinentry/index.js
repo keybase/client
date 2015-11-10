@@ -15,8 +15,8 @@ export default class Pinentry extends BaseComponent {
       componentAtTop: {
         title: 'pinentry',
         props: {
-          onSubmit: passphrase => store.dispatch(submitPassphrase(passphrase)),
-          onCancel: name => store.dispatch(cancel()),
+          onSubmit: passphrase => console.log(`Passphrase submitted: ${passphrase}`),
+          onCancel: () => console.log('Pinentry canceled')
         }
       }
     }
