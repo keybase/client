@@ -39,4 +39,5 @@ const (
 	PromptDescriptorChooseDeviceType
 	PromptDescriptorProvisionPhrase
 	PromptDescriptorProvisionDeviceName
+	PromptDescriptorExportSecretKeyFromGPG
 )
