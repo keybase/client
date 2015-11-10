@@ -190,13 +190,14 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
-	// TODO: handle production mode when it exists
-	// in production mode, one must connect to a backend server in
-	// the dev.keybase.io domain
 	if libkb.G.Env.GetRunMode() == libkb.StagingRunMode &&
 		strings.HasSuffix(bserverAddr, "dev.keybase.io:443") &&
 		strings.HasSuffix(mdserverAddr, "dev.keybase.io:443") {
 		config.SetRootCerts([]byte(DevRootCerts))
+	} else if libkb.G.Env.GetRunMode() == libkb.ProductionRunMode &&
+		strings.HasSuffix(bserverAddr, "kbfs.keybase.io:443") &&
+		strings.HasSuffix(mdserverAddr, "kbfs.keybase.io:443") {
+		config.SetRootCerts([]byte(ProductionRootCerts))
 	}
 
 	mdServer, err := makeMDServer(config, serverRootDir, mdserverAddr)
