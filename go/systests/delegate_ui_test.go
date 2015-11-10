@@ -29,7 +29,7 @@ type delegateUI struct {
 }
 
 // delegateUI implements the keybase1.IdentifyUiInterface
-var _ keybase1.IdentifyUiInterface = (*delegateUI)(nil);
+var _ keybase1.IdentifyUiInterface = (*delegateUI)(nil)
 
 func (d *delegateUI) checkDelegated() error {
 	if !d.delegated {

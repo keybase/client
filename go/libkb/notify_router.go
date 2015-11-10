@@ -34,12 +34,12 @@ type NotifyRouter struct {
 // make one of these per process.
 func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 	ret := &NotifyRouter{
-		Contextified : NewContextified(g),
-		cm:         g.ConnectionManager,
-		state:      make(map[ConnectionID]keybase1.NotificationChannels),
-		setCh:      make(chan setObj),
-		getCh:      make(chan getObj),
-		shutdownCh: make(chan struct{}),
+		Contextified: NewContextified(g),
+		cm:           g.ConnectionManager,
+		state:        make(map[ConnectionID]keybase1.NotificationChannels),
+		setCh:        make(chan setObj),
+		getCh:        make(chan getObj),
+		shutdownCh:   make(chan struct{}),
 	}
 	go ret.run()
 	return ret
