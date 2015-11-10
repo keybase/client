@@ -1,3 +1,7 @@
+## 1.0.0-46 (2015-11-10)
+
+- Clarified GPG provisioning prompts.
+
 ## 1.0.0-45 (2015-11-06)
 
 - Added `--tor-mode` and related flags.
