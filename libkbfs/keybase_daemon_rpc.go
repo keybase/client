@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/client"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -16,6 +15,7 @@ import (
 // KeybaseDaemonRPC implements the KeybaseDaemon interface using RPC
 // calls.
 type KeybaseDaemonRPC struct {
+	libkb.Contextified
 	identifyClient keybase1.IdentifyInterface
 	userClient     keybase1.UserInterface
 	sessionClient  keybase1.SessionInterface
@@ -43,7 +43,7 @@ var _ KeybaseDaemon = (*KeybaseDaemonRPC)(nil)
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
 func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.Logger) *KeybaseDaemonRPC {
-	k := newKeybaseDaemonRPC(log)
+	k := newKeybaseDaemonRPC(kbCtx, log)
 	conn := NewSharedKeybaseConnection(kbCtx, config, k)
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
@@ -51,15 +51,16 @@ func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.L
 }
 
 // For testing.
-func newKeybaseDaemonRPCWithClient(client keybase1.GenericClient,
+func newKeybaseDaemonRPCWithClient(kbCtx *libkb.GlobalContext, client keybase1.GenericClient,
 	log logger.Logger) *KeybaseDaemonRPC {
-	k := newKeybaseDaemonRPC(log)
+	k := newKeybaseDaemonRPC(kbCtx,log)
 	k.fillClients(client)
 	return k
 }
 
-func newKeybaseDaemonRPC(log logger.Logger) *KeybaseDaemonRPC {
+func newKeybaseDaemonRPC(kbCtx *libkb.GlobalContext, log logger.Logger) *KeybaseDaemonRPC {
 	k := KeybaseDaemonRPC{
+		Contextified : libkb.NewContextified(kbCtx),
 		log:       log,
 		userCache: make(map[keybase1.UID]UserInfo),
 	}
@@ -150,7 +151,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	server *rpc.Server) error {
 	protocols := []rpc.Protocol{
 		client.NewLogUIProtocol(),
-		client.NewIdentifyUIProtocol(),
+		client.NewIdentifyUIProtocol(k.G()),
 		keybase1.NotifySessionProtocol(k),
 		keybase1.NotifyUsersProtocol(k),
 	}
@@ -202,7 +203,7 @@ func (k *KeybaseDaemonRPC) ShouldThrottle(err error) bool {
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 	UserInfo, error) {
-	arg := engine.IDEngineArg{UserAssertion: assertion}.Export()
+	arg := keybase1.IdentifyArg{UserAssertion: assertion}
 	res, err := k.identifyClient.Identify(ctx, arg)
 	if err != nil {
 		return UserInfo{}, err
