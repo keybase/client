@@ -23,6 +23,9 @@ export default class DevMenu extends Component {
       {name: 'Sign Out', onClick: () => {
         this.props.logout()
       }},
+      {name: 'Passphrase entry', onClick: () => {
+        this.props.routeAppend('pinentry')
+      }},
       {name: 'Developer', hasChildren: true, onClick: () => {
         this.props.routeAppend('developer')
       }},
@@ -62,6 +65,7 @@ export default class DevMenu extends Component {
       subRoutes: {
         developer: require('./developer'),
         login2: require('../../login2'),
+        pinentry: require('../../pinentry'),
         tracker: require('../../tracker')
       }
     }
