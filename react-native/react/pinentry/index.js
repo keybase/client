@@ -24,3 +24,5 @@ export default class Pinentry extends BaseComponent {
     }
   }
 }
+
+Pinentry.propTypes = PinentryRender.propTypes
