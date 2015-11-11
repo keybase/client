@@ -61,6 +61,8 @@ func RunEngine(e Engine, ctx *Context) (err error) {
 	e.G().Log.Debug("+ RunEngine(%s)", e.Name())
 	defer func() { e.G().Log.Debug("- RunEngine(%s) -> %s", e.Name(), libkb.ErrToOk(err)) }()
 
+	// TODO: check secret ui
+
 	if err = check(e, ctx); err != nil {
 		return err
 	}

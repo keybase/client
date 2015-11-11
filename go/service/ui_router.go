@@ -109,5 +109,6 @@ func (u *UIRouter) GetSecretUI() (libkb.SecretUI, error) {
 		return nil, nil
 	}
 	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
-	return &RemoteSecretUI{cli: keybase1.SecretUiClient{Cli: cli}}, nil
+	scli := keybase1.SecretUiClient{Cli: cli}
+	return &SecretUI{cli: &scli}, nil
 }

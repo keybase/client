@@ -337,6 +337,7 @@ type UI interface {
 type UIRouter interface {
 	SetUI(ConnectionID, UIKind)
 	GetIdentifyUI() (IdentifyUI, error)
+	GetSecretUI() (SecretUI, error)
 	Shutdown()
 }
 
