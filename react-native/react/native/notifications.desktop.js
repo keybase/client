@@ -73,7 +73,7 @@ export function enableNotifications () {
       engine,
       'keybase.1.identifyUi.delegateIdentifyUI',
       'keybase.1.identifyUi.finish',
-      (params) => { return { keybase: { 1: { identifyUi } } } }
+      (params) => { return { keybase: { '1': { identifyUi } } } }
     )
 
     identifyUIServer.listen()
@@ -85,7 +85,7 @@ const listeners = {
 }
 
 // Returns function that should be called to unbind listeners
-export function bindNotifications () {
+export function bindNotifications (): () => void {
   Object.keys(listeners).forEach(k => engine.listenGeneralIncomingRpc(k, listeners[k]))
   return () => {
     Object.keys(listeners).forEach(k => engine.unlistenGeneralIncomingRpc(k, listeners[k]))

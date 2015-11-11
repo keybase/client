@@ -14,20 +14,17 @@
 .*/react/local-debug.js
 
 # Ignoring these for now
-.*desktop.js
 .*/desktop/.*
 .*/node_modules/redux-devtools/.*
 .*/node_modules/react-redux/node_modules/invariant/.*
 .*/react/packager/.*
-.*/react/native/.*
 .*/react/purepack/.*
 .*/react/framed-msgpack-rpc/.*
 .*/react/iced-error/.*
 .*/react/debug/.*
-.*/react/engine/.*
 .*/react/tracker/.*
 
-# Ignore .*-render.js files
+# Ignore .*-render.platform.js files
 .*-render\.android\.js
 .*-render\.ios\.js
 .*-render\.mobile\.js

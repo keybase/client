@@ -1,8 +1,19 @@
 'use strict'
 /* @flow */
 
+type Endpoint = (params: any) => (Promise<any> | any)
+
+type ServerEndpoints = { [key: string]: (ServerEndpoints | Endpoint) }
+type FlatServerEndpoints = { [key: string]: Endpoint }
+
+type Engine = any
+
 export default class Server {
-  constructor (engine, startMethodName, endMethodName, endpointMapFn) {
+  startMethodName: string;
+  engine: Engine;
+  endpointsFn: (params: any, end: () => void) => FlatServerEndpoints;
+
+  constructor (engine: Engine, startMethodName: string, endMethodName: string, endpointMapFn: (params: any) => ServerEndpoints) {
     this.engine = engine
     this.startMethodName = startMethodName
 
@@ -29,15 +40,15 @@ export default class Server {
     this.engine.listenServerInit(this.startMethodName, (param, cbs) => this.init(param, cbs))
   }
 
-  init (params, {start, end}) {
+  init (params: any, {start, end}: {start: (endpoints: FlatServerEndpoints) => void, end: () => void}) {
     start(this.endpointsFn(params, end))
   }
 
-  parseEndpoint (endpointMap) {
+  parseEndpoint (endpointMap: ServerEndpoints): FlatServerEndpoints {
     return this.parseNextLevel('', '', endpointMap)
   }
 
-  parseNextLevel (separator, key, value) {
+  parseNextLevel (separator: string, key: string, value: any): FlatServerEndpoints {
     if (typeof value === 'object') {
       const submap = value
       return Object.keys(value).reduce(
@@ -45,11 +56,12 @@ export default class Server {
         {}
       )
     } else {
+      // $FlowIssue Computed property keys not supported
       return {[key]: value}
     }
   }
 
-  promisifyResponses (endpoints) {
+  promisifyResponses (endpoints: FlatServerEndpoints): FlatServerEndpoints {
     return Object.keys(endpoints).reduce(
       (memo, k) => {
         memo[k] = (param, response) => {
