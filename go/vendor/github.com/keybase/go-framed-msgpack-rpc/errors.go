@@ -75,7 +75,7 @@ type CanceledError struct {
 	p string
 }
 
-func newCanceledError(method string, seq int) CanceledError {
+func newCanceledError(method string, seq seqNumber) CanceledError {
 	return CanceledError{
 		p: fmt.Sprintf("call canceled: method %s, seqid %d", method, seq),
 	}
@@ -86,7 +86,7 @@ func (c CanceledError) Error() string {
 }
 
 type CallNotFoundError struct {
-	seqno int
+	seqno seqNumber
 }
 
 func (c CallNotFoundError) Error() string {

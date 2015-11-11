@@ -6,7 +6,7 @@ import (
 
 type message struct {
 	method          string
-	seqno           int
+	seqno           seqNumber
 	res             interface{}
 	err             interface{}
 	remainingFields int

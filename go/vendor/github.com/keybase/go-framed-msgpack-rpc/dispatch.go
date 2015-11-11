@@ -16,8 +16,7 @@ type dispatch struct {
 	writer encoder
 	reader byteReadingDecoder
 
-	// TODO: Use a separate type for seqid.
-	seqid int
+	seqid seqNumber
 
 	// Stops all loops when closed
 	stopCh chan struct{}
@@ -62,7 +61,7 @@ type call struct {
 	ch             chan error
 	doneCh         chan struct{}
 	method         string
-	seqid          int
+	seqid          seqNumber
 	arg            interface{}
 	res            interface{}
 	errorUnwrapper ErrorUnwrapper
@@ -92,7 +91,7 @@ func (c *call) Finish(err error) {
 }
 
 func (d *dispatch) callLoop() {
-	calls := make(map[int]*call)
+	calls := make(map[seqNumber]*call)
 	for {
 		select {
 		case <-d.stopCh:
@@ -111,7 +110,7 @@ func (d *dispatch) callLoop() {
 	}
 }
 
-func (d *dispatch) handleCall(calls map[int]*call, c *call) {
+func (d *dispatch) handleCall(calls map[seqNumber]*call, c *call) {
 	seqid := d.nextSeqid()
 	c.seqid = seqid
 	calls[c.seqid] = c
@@ -125,16 +124,16 @@ func (d *dispatch) handleCall(calls map[int]*call, c *call) {
 	go func() {
 		select {
 		case <-c.ctx.Done():
-			d.log.ClientCancel(seqid, c.method)
+			c.ch <- newCanceledError(c.method, seqid)
 			v := []interface{}{MethodCancel, seqid, c.method}
-			// TODO: Log Encode() error.
-			d.writer.Encode(v)
+			err := d.writer.Encode(v)
+			d.log.ClientCancel(seqid, c.method, err)
 		case <-c.doneCh:
 		}
 	}()
 }
 
-func (d *dispatch) nextSeqid() int {
+func (d *dispatch) nextSeqid() seqNumber {
 	ret := d.seqid
 	d.seqid++
 	return ret
@@ -147,14 +146,14 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	return <-call.ch
 }
 
-func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) (err error) {
+func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) error {
 	v := []interface{}{MethodNotify, name, arg}
-	err = d.writer.Encode(v)
+	err := d.writer.Encode(v)
 	if err != nil {
-		return
+		return err
 	}
 	d.log.ClientNotify(name, arg)
-	return
+	return nil
 }
 
 func (d *dispatch) Close(err error) chan struct{} {

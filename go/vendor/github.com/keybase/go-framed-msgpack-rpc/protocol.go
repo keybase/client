@@ -29,3 +29,5 @@ type Protocol struct {
 	Methods   map[string]ServeHandlerDescription
 	WrapError WrapErrorFunc
 }
+
+type seqNumber int
