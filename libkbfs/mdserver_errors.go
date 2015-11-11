@@ -3,9 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
-	"syscall"
 
-	"bazil.org/fuse"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-framed-msgpack-rpc"
@@ -170,11 +168,6 @@ func (e MDServerErrorUnauthorized) ToStatus() (s keybase1.Status) {
 	s.Name = "UNAUTHORIZED"
 	s.Desc = e.Error()
 	return
-}
-
-// Errno implements the fuse.ErrorNumber interface for MDServerErrorUnauthorized.
-func (e MDServerErrorUnauthorized) Errno() fuse.Errno {
-	return fuse.Errno(syscall.EACCES)
 }
 
 // MDServerErrorThrottle is returned when the server wants the client to backoff.
