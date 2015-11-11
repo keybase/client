@@ -100,6 +100,12 @@ func (d *delegateUI) DisplayTrackStatement(context.Context, keybase1.DisplayTrac
 	}
 	return nil
 }
+func (d *delegateUI) ReportTrackToken(context.Context, keybase1.ReportTrackTokenArg) error {
+	if err := d.checkStarted(); err != nil {
+		return err
+	}
+	return nil
+}
 func (d *delegateUI) FinishWebProofCheck(context.Context, keybase1.FinishWebProofCheckArg) error {
 	if err := d.checkStarted(); err != nil {
 		return err

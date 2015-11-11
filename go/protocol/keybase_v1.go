@@ -1460,6 +1460,11 @@ type DisplayCryptocurrencyArg struct {
 	C         Cryptocurrency `codec:"c" json:"c"`
 }
 
+type ReportTrackTokenArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	TrackToken string `codec:"trackToken" json:"trackToken"`
+}
+
 type ConfirmArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Outcome   IdentifyOutcome `codec:"outcome" json:"outcome"`
@@ -1479,6 +1484,7 @@ type IdentifyUiInterface interface {
 	FinishWebProofCheck(context.Context, FinishWebProofCheckArg) error
 	FinishSocialProofCheck(context.Context, FinishSocialProofCheckArg) error
 	DisplayCryptocurrency(context.Context, DisplayCryptocurrencyArg) error
+	ReportTrackToken(context.Context, ReportTrackTokenArg) error
 	Confirm(context.Context, ConfirmArg) (bool, error)
 	Finish(context.Context, int) error
 }
@@ -1626,6 +1632,22 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"reportTrackToken": {
+				MakeArg: func() interface{} {
+					ret := make([]ReportTrackTokenArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ReportTrackTokenArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ReportTrackTokenArg)(nil), args)
+						return
+					}
+					err = i.ReportTrackToken(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"confirm": {
 				MakeArg: func() interface{} {
 					ret := make([]ConfirmArg, 1)
@@ -1708,6 +1730,11 @@ func (c IdentifyUiClient) FinishSocialProofCheck(ctx context.Context, __arg Fini
 
 func (c IdentifyUiClient) DisplayCryptocurrency(ctx context.Context, __arg DisplayCryptocurrencyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) ReportTrackToken(ctx context.Context, __arg ReportTrackTokenArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportTrackToken", []interface{}{__arg}, nil)
 	return
 }
 

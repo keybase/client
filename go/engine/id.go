@@ -65,6 +65,12 @@ func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 	if err := RunEngine(ieng, ctx); err != nil {
 		return nil, err
 	}
+
+	// need to tell any ui clients the track token
+	if err := ctx.IdentifyUI.ReportTrackToken(ieng.TrackToken()); err != nil {
+		return nil, err
+	}
+
 	user := ieng.User()
 	res := &IDRes{Outcome: ieng.Outcome(), User: user, TrackToken: ieng.TrackToken(), ComputedKeyFamily: user.GetComputedKeyFamily()}
 

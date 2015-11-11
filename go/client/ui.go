@@ -48,6 +48,10 @@ func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
 	return ui.parent.Output(stmt)
 }
 
+func (ui BaseIdentifyUI) ReportTrackToken(_ libkb.IdentifyCacheToken) error {
+	return nil
+}
+
 func (ui BaseIdentifyUI) Finish() {
 }
 

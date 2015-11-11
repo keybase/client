@@ -767,6 +767,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property KBRCryptocurrency *c;
 @end
+@interface KBRReportTrackTokenRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@property NSString *trackToken;
+@end
 @interface KBRConfirmRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property KBRIdentifyOutcome *outcome;
@@ -1414,6 +1418,10 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)displayCryptocurrency:(KBRDisplayCryptocurrencyRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)displayCryptocurrencyWithC:(KBRCryptocurrency *)c completion:(void (^)(NSError *error))completion;
+
+- (void)reportTrackToken:(KBRReportTrackTokenRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)reportTrackTokenWithTrackToken:(NSString *)trackToken completion:(void (^)(NSError *error))completion;
 
 - (void)confirm:(KBRConfirmRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion;
 

@@ -610,6 +610,20 @@
   }];
 }
 
+- (void)reportTrackToken:(KBRReportTrackTokenRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"trackToken": KBRValue(params.trackToken)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportTrackToken" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)reportTrackTokenWithTrackToken:(NSString *)trackToken completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"trackToken": KBRValue(trackToken)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportTrackToken" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)confirm:(KBRConfirmRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion {
   NSDictionary *rparams = @{@"outcome": KBRValue(params.outcome)};
   [self.client sendRequestWithMethod:@"keybase.1.identifyUi.confirm" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -2977,6 +2991,23 @@
 
 + (instancetype)params {
   KBRDisplayCryptocurrencyRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRReportTrackTokenRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.trackToken = params[0][@"trackToken"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRReportTrackTokenRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

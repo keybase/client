@@ -532,6 +532,16 @@
       } ],
       "response" : "null"
     },
+    "reportTrackToken" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "trackToken",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
     "confirm" : {
       "request" : [ {
         "name" : "sessionID",
