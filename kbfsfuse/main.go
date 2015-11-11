@@ -17,11 +17,7 @@ import (
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var memprofile = flag.String("memprofile", "", "write memory profile to file")
-var local = flag.Bool("local", false,
-	"use a fake local user DB instead of Keybase")
-var localUserFlag = flag.String("localuser", "strib",
-	"fake local user (only valid when local=true)")
-var clientFlag = flag.Bool("client", defaultClientFlag, "connect as client to keybase daemon")
+var localUserFlag = flag.String("localuser", "", "fake local user")
 var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
 var runtimeDir = flag.String("runtime-dir", os.Getenv("KEYBASE_RUNTIME_DIR"), "runtime directory")
@@ -33,7 +29,7 @@ var bserverAddr = flag.String("bserver", defaultBServerURI, "host:port of the bl
 var mdserverAddr = flag.String("mdserver", defaultMDServerURI, "host:port of the metadata server")
 
 const usageStr = `Usage:
-  kbfsfuse [-client | -local [-localuser=<user>]] [-debug]
+  kbfsfuse [-localuser=<user>] [-debug]
     [-server-in-memory|-server-root=path/to/dir]
     [-bserver=host:port] [-mdserver=host:port] /path/to/mountpoint
 
@@ -52,14 +48,7 @@ func start() *libfuse.Error {
 		return libfuse.InitError("no mount specified")
 	}
 
-	var localUser libkb.NormalizedUsername
-	if *local {
-		localUser = libkb.NewNormalizedUsername(*localUserFlag)
-	} else if *clientFlag {
-		localUser = libkb.NormalizedUsername("")
-	} else {
-		return libfuse.InitError("either -client or -local must be used")
-	}
+	localUser := libkb.NewNormalizedUsername(*localUserFlag)
 
 	if *debug {
 		log := logger.NewWithCallDepth("FUSE", 1)
