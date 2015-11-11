@@ -3,9 +3,15 @@ require('babel/register')({
   extensions: ['.desktop.js', '.es6', '.es', '.jsx', '.js']
 })
 
-const app = require('app')
+const menubar = require('menubar')
 const ipc = require('ipc')
 const Window = require('./window')
+
+const mb = menubar({
+  index: `file://${__dirname}/../renderer/launcher.html`,
+  width: 200, height: 250,
+  preloadWindow: true
+})
 
 const trackerWindow = new Window('tracker', {
   width: 500, height: 300,
@@ -14,22 +20,11 @@ const trackerWindow = new Window('tracker', {
   frame: false
 })
 
-const launcherWindow = new Window('launcher', {
-  title: 'Keybase',
-  width: 200, height: 250,
-  x: 50, y: 50,
-  resizable: false,
-  fullscreen: false,
-  'use-content-size': true
-})
-
 const mainWindow = new Window('index', {
   width: 1600, height: 1200, openDevTools: true
 })
 
-app.on('ready', function () {
-  launcherWindow.show()
-  launcherWindow.window.on('closed', () => { app.quit() })
+mb.on('ready', function () {
   require('../../react-native/react/native/notifications').init()
 })
 
