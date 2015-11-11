@@ -1,11 +1,10 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 import NoTabRender from './no-tab-render'
 
-export default class NoTab extends BaseComponent {
+export default class NoTab extends Component {
   render () {
     return <NoTabRender />
   }

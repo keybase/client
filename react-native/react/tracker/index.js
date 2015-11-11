@@ -1,13 +1,11 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 import Render from './render'
-
 import { navigateUp } from '../actions/router'
 
-export default class Tracker extends BaseComponent {
+export default class Tracker extends Component {
   constructor (props: any) {
     super(props)
 

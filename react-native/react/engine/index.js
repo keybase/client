@@ -92,7 +92,7 @@ class Engine {
     this.generalListeners[method] = (this.generalListeners[method] || []).filter(l => l !== listener)
   }
 
-  _rpcWrte (data) {
+  _rpcWrite (data) {
     engine.runWithData(data)
   }
 

@@ -1,8 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 import { Paper } from 'material-ui'
 
 // TODO constants when integrating
@@ -10,7 +9,7 @@ const normal = 'normal'
 const warning = 'warning'
 const error = 'error'
 
-export default class BioRender extends BaseComponent {
+export default class BioRender extends Component {
   render () {
     let userFlag = ''
     if (this.props.state === warning) {

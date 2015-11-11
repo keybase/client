@@ -1,16 +1,15 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
+import React, { Component } from '../base-react'
 import { Checkbox, FloatingActionButton, FlatButton } from 'material-ui'
-import BaseComponent from '../base-component'
 
 // TODO constants when integrating
 const normal = 'normal'
 const warning = 'warning'
 const error = 'error'
 
-export default class ActionRender extends BaseComponent {
+export default class ActionRender extends Component {
   render () {
     if (this.props.state === normal) {
       return this.renderNormal()

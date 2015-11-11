@@ -1,15 +1,12 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 import { submitDeviceName } from '../actions/login'
 import DevicePromptRender from './device-prompt-render'
 
-export default class DevicePrompt extends BaseComponent {
+export default class DevicePrompt extends Component {
   render () {
-    const error = this.props.deviceNameError ? this.props.deviceNameError : ''
-
     return <DevicePromptRender deviceNameError={this.props.deviceNameError} onSubmit={(deviceName) => { this.props.onSubmit(deviceName) }} />
   }
 

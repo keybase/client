@@ -5,12 +5,11 @@
  * todo(mm) explain why we need a meta navigator
  */
 
-import BaseComponent from '../base-component'
-import React from '../base-react'
+import React, { Component } from '../base-react'
 import Render from './meta-navigator-render'
 import Immutable from 'immutable'
 
-class MetaNavigator extends BaseComponent {
+class MetaNavigator extends Component {
   constructor () {
     super()
 

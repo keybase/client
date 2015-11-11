@@ -1,16 +1,9 @@
 'use strict'
 
-import React from '../../base-react'
-import BaseComponent from '../../base-component'
+import React, { Component } from '../../base-react'
 import AboutRender from './about-render'
 
-export default class About extends BaseComponent {
-  constructor (props) {
-    super(props)
-
-    this.state = {}
-  }
-
+export default class About extends Component {
   // TODO get version from golang
   render () {
     return <AboutRender />

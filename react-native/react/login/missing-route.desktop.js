@@ -1,10 +1,9 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 
-export default class MissingRouteRender extends BaseComponent {
+export default class MissingRouteRender extends Component {
   render () {
     return (
       <div style={{flex: 1, justifyContent: 'center', backgroundColor: 'red'}}>

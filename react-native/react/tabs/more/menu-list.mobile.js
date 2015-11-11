@@ -1,12 +1,10 @@
 'use strict'
 
-import React from '../../base-react'
-import BaseComponent from '../../base-component'
-import { View, ListView, Text, StyleSheet } from 'react-native'
+import React, { Component, View, ListView, Text, StyleSheet } from '../../base-react'
 import Button from '../../common-adapters/button'
 import commonStyles from '../../styles/common'
 
-export default class MenuList extends BaseComponent {
+export default class MenuList extends Component {
   componentWillMount () {
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
     this.state = {

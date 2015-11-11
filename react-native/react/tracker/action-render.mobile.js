@@ -1,10 +1,9 @@
 'use strict'
 /* @flow */
 
-import React, { View, Text } from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component, View, Text } from '../base-react'
 
-export default class ActionRender extends BaseComponent {
+export default class ActionRender extends Component {
   render () {
     return (
       <View>
