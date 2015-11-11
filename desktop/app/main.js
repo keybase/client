@@ -10,7 +10,8 @@ const Window = require('./window')
 const mb = menubar({
   index: `file://${__dirname}/../renderer/launcher.html`,
   width: 200, height: 250,
-  preloadWindow: true
+  preloadWindow: true,
+  icon: 'Icon.png'
 })
 
 const trackerWindow = new Window('tracker', {
