@@ -15,7 +15,7 @@ export default class Search extends Component {
   }
 
   buildRows (results) {
-    console.log('esults: ', results)
+    console.log('results: ', results)
     const rows = !results ? [] : results.map((s) => {
       const { username } = s
       const row1 = `${username}${this.fullNameFromComponent(s)}`
