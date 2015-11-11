@@ -6,6 +6,10 @@ declare module 'Interpolation' {
   declare var exports: any;
 }
 
+declare module 'platform-constants' {
+  declare var exports: {isDev: boolean};
+}
+
 // Algebraic data types
 // This is a bit hacky, but it gives you strong gaurantees.
 
