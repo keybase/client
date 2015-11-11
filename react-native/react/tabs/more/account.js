@@ -1,10 +1,9 @@
 'use strict'
 
-import React from '../../base-react'
-import BaseComponent from '../../base-component'
+import React, { Component } from '../../base-react'
 import AccountComponent from './account-render'
 
-export default class Account extends BaseComponent {
+export default class Account extends Component {
 
   render () {
     return <AccountComponent {...this.props}/>

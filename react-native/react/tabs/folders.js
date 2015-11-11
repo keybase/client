@@ -1,11 +1,10 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from "../base-component"
-import FoldersRender from "./folders-render"
+import React, { Component } from '../base-react'
+import FoldersRender from './folders-render'
 
-export default class Folders extends BaseComponent {
+export default class Folders extends Component {
   render () {
     return <FoldersRender />
   }

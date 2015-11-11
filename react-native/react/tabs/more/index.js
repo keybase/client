@@ -1,12 +1,11 @@
 'use strict'
 
-import React from '../../base-react'
-import BaseComponent from '../../base-component'
+import React, { Component } from '../../base-react'
 import { navigateTo } from '../../actions/router'
 import MenuList from './menu-list'
 import { isDev } from '../../constants/platform'
 
-export default class More extends BaseComponent {
+export default class More extends Component {
   constructor (props) {
     super(props)
 

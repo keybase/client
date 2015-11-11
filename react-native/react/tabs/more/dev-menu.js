@@ -1,14 +1,13 @@
 'use strict'
 
-import React from '../../base-react'
-import BaseComponent from '../../base-component'
+import React, { Component } from '../../base-react'
 import { routeAppend } from '../../actions/router'
 import { pushNewProfile } from '../../actions/profile'
 import { pushNewSearch } from '../../actions/search'
 import { logout } from '../../actions/login2'
 import MenuList from './menu-list'
 
-export default class DevMenu extends BaseComponent {
+export default class DevMenu extends Component {
   render () {
     const menuItems = [
       {name: 'Login', onClick: () => {

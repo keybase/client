@@ -1,10 +1,9 @@
 'use strict'
 /* @flow */
 
-import React, { View, Text } from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component, View, Text } from '../base-react'
 
-export default class ProofsRender extends BaseComponent {
+export default class ProofsRender extends Component {
   render () {
     return (
       <View style={{backgroundColor: 'green', display: 'flex', flex: 1, flexDirection: 'column', overflowY: 'auto'}}>

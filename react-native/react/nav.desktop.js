@@ -1,6 +1,6 @@
 'use strict'
 
-import BaseComponent from './base-component'
+import { Component } from './base-react'
 import { connect } from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import React from 'react'
@@ -11,6 +11,7 @@ import Devices from './tabs/devices'
 import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
+import * as Constants from './constants/config'
 import { folderTab, chatTab, peopleTab, devicesTab, moreTab } from './constants/tabs'
 import { switchTab } from './actions/tabbed-router'
 import { Tab, Tabs, Styles } from 'material-ui'
@@ -24,7 +25,7 @@ const tabToRootRouteParse = {
   [moreTab]: More
 }
 
-export default class Nav extends BaseComponent {
+export default class Nav extends Component {
   _renderContent (activeTab, rootComponent) {
     return (
       <div>
@@ -33,7 +34,7 @@ export default class Nav extends BaseComponent {
             return state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject()
           })(MetaNavigator), {
             store: this.props.store,
-            rootComponent: rootComponent || tabToRootComponent[activeTab] || NoTab
+            rootComponent: rootComponent || NoTab
           }
         )}
       </div>
@@ -106,4 +107,19 @@ export default class Nav extends BaseComponent {
       </div>
     )
   }
+}
+
+Nav.propTypes = {
+  dispatch: React.PropTypes.func.isRequired,
+  tabbedRouter: React.PropTypes.object.isRequired,
+  store: React.PropTypes.object.isRequired,
+  config: React.PropTypes.shape({
+    navState: React.PropTypes.oneOf([
+      Constants.navStartingUp,
+      Constants.navNeedsRegistration,
+      Constants.navNeedsLogin,
+      Constants.navLoggedIn,
+      Constants.navErrorStartingUp]),
+    error: React.PropTypes.object
+  }).isRequired
 }

@@ -1,12 +1,10 @@
 'use strict'
 /* @flow */
 
-import React from '../../base-react'
-import BaseComponent from '../../base-component'
-import { Text, View, StyleSheet } from 'react-native'
+import React, { Component, Text, View, StyleSheet } from '../../base-react'
 import commonStyles from '../../styles/common'
 
-export default class ChatRender extends BaseComponent {
+export default class ChatRender extends Component {
   render () {
     return (
       <View style={styles.container}>

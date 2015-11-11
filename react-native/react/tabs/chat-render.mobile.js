@@ -1,11 +1,9 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
-import { Text, View } from 'react-native'
+import React, { Component, Text, View } from '../base-react'
 
-export default class ChatRender extends BaseComponent {
+export default class ChatRender extends Component {
   render () {
     return (
       <View style={{flex: 1, justifyContent: 'space-between', alignItems: 'stretch', padding: 0}}>

@@ -1,8 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 
 // TODO const when integrating
 const verified = 'verified'
@@ -11,7 +10,7 @@ const deleted = 'deleted'
 const unreachable = 'unreachable'
 const pending = 'pending'
 
-export default class ProofsRender extends BaseComponent {
+export default class ProofsRender extends Component {
   openLink (proof, platform) {
     window.open(platform ? proof.platformLink : proof.proofLink)
   }

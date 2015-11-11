@@ -1,8 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from '../../base-react'
-import BaseComponent from '../../base-component'
+import React, { Component } from '../../base-react'
 
 import CodePage from '../../login2/register/code-page'
 import GenPaperKey from './gen-paper-key'
@@ -14,7 +13,7 @@ import { routeAppend } from '../../actions/router'
 import { addANewDevice } from '../../actions/login2'
 import DevicesRender from './devices-render'
 
-export default class Devices extends BaseComponent {
+export default class Devices extends Component {
   componentWillMount () {
     if (!this.props.devices && !this.props.waitingForServer) {
       this.props.loadDevices()
@@ -51,4 +50,13 @@ export default class Devices extends BaseComponent {
   render () {
     return <DevicesRender devices={this.props.devices} showRemoveDevicePage={this.props.showRemoveDevicePage} showExistingDevicePage={this.props.showExistingDevicePage} showGenPaperKeyPage={this.props.showGenPaperKeyPage} />
   }
+}
+
+Devices.propTypes = {
+  devices: React.PropTypes.array,
+  waitingForServer: React.PropTypes.bool,
+  loadDevices: React.PropTypes.func.isRequired,
+  showRemoveDevicePage: React.PropTypes.func.isRequired,
+  showExistingDevicePage: React.PropTypes.func.isRequired,
+  showGenPaperKeyPage: React.PropTypes.func.isRequired
 }

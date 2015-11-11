@@ -1,10 +1,9 @@
 'use strict'
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 import PeopleRender from './people-render'
 
-export default class People extends BaseComponent {
+export default class People extends Component {
   constructor (props) {
     super(props)
     this.state = {count: 0}

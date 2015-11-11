@@ -1,15 +1,14 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 
 import Header from './header-render'
 import Action from './action-render'
 import Bio from './bio-render'
 import Proofs from './proofs-render'
 
-export default class Render extends BaseComponent {
+export default class Render extends Component {
   render () {
     return (
       <div style={{display: 'flex', flex: 1, flexDirection: 'column'}}>

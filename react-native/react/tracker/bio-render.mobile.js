@@ -1,10 +1,9 @@
 'use strict'
 /* @flow */
 
-import React, { View, Text } from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component, View, Text } from '../base-react'
 
-export default class BioRender extends BaseComponent {
+export default class BioRender extends Component {
   render () {
     return (
       <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginRight: 40}}>

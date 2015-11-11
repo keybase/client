@@ -1,18 +1,17 @@
 'use strict'
 /* @flow */
 
-import React from '../base-react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 import Search from '../search/index.desktop'
 
-export default class PeopleRender extends BaseComponent {
+export default class PeopleRender extends Component {
   render () {
     return (
       <div>
         <Search />
 
         <p> People goes here </p>
-        <p onClick={this.props.onCount}> Count: {this.props.count} </p>
+        <p> Count: 0</p>
         <p> I mean, it’s one banana, Michael. What could it cost? Ten dollars? </p>
       </div>
     )

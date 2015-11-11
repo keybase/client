@@ -146,7 +146,8 @@ Search.propTypes = {
   results: React.PropTypes.object,
   error: React.PropTypes.object,
   waitingForServer: React.PropTypes.bool.isRequired,
-  profile: React.PropTypes.object.isRequired
+  profile: React.PropTypes.object.isRequired,
+  selectService: React.PropTypes.func.isRequired
 }
 
 const styles = StyleSheet.create({

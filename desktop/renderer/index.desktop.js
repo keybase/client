@@ -1,8 +1,7 @@
 'use strict'
 /* @flow */
 
-import BaseComponent from '../../react-native/react/base-component'
-import React from 'react'
+import React, { Component } from '../../react-native/react/base-react'
 import ReactDOM from 'react-dom'
 import { Provider, connect } from 'react-redux'
 import configureStore from '../../react-native/react/store/configure-store'
@@ -12,7 +11,7 @@ import injectTapEventPlugin from 'react-tap-event-plugin'
 import { enableNotifications, bindNotifications } from '../../react-native/react/native/notifications'
 const store = configureStore()
 
-class Keybase extends BaseComponent {
+class Keybase extends Component {
   constructor () {
     super()
 

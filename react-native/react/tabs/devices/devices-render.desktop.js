@@ -1,8 +1,7 @@
 'use strict'
 /* @flow */
 
-import React from '../../base-react'
-import BaseComponent from '../../base-component'
+import React, { Component } from '../../base-react'
 
 import HardwarePhoneIphone from 'material-ui/lib/svg-icons/hardware/phone-iphone'
 import HardwareComputer from 'material-ui/lib/svg-icons/hardware/computer'
@@ -12,7 +11,7 @@ import ActionNoteAdd from 'material-ui/lib/svg-icons/action/note-add'
 import moment from 'moment'
 import View from 'react-flexbox'
 
-export default class DevicesRender extends BaseComponent {
+export default class DevicesRender extends Component {
   renderPhone (device) {
     return (
       <div key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
@@ -96,60 +95,68 @@ export default class DevicesRender extends BaseComponent {
   }
 }
 
+DevicesRender.propTypes = {
+  devices: React.PropTypes.array,
+  waitingForServer: React.PropTypes.bool.isRequired,
+  showRemoveDevicePage: React.PropTypes.func.isRequired,
+  showExistingDevicePage: React.PropTypes.func.isRequired,
+  showGenPaperKeyPage: React.PropTypes.func.isRequired
+}
+
 const styles = {
   deviceContainer: {
     flexWrap: 'wrap',
     justifyContent: 'flex-start'
   },
   deviceOuter: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 200,
     height: 200,
     margin: 10,
-    padding: 10,
+    padding: 10
   },
   device: {
     width: 200,
-    textAlign: "center",
+    textAlign: 'center'
   },
   deviceAction: {
     backgroundColor: '#efefef',
-    border: "dashed 2px #999",
-    cursor: "pointer",
+    border: 'dashed 2px #999',
+    cursor: 'pointer'
   },
   deviceShow: {
-    border: "solid 1px #999",
+    border: 'solid 1px #999'
   },
   deviceIcon: {
     width: 48,
     height: 48,
-    textAlign: "center"
+    textAlign: 'center'
   },
   actionDesc: {
   },
 
   // These might be good globals
   line1: {
-    overflow: "hidden",
-    display: "-webkit-box",
-    textOverflow: "ellipsis",
+    overflow: 'hidden',
+    display: '-webkit-box',
+    textOverflow: 'ellipsis',
     WebkitLineClamp: 1,
-    WebkitBoxOrient: "vertical",
+    WebkitBoxOrient: 'vertical'
   },
   line2: {
-    overflow: "hidden",
-    display: "-webkit-box",
-    textOverflow: "ellipsis",
+    overflow: 'hidden',
+    display: '-webkit-box',
+    textOverflow: 'ellipsis',
     WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
+    WebkitBoxOrient: 'vertical'
   },
   line4: {
-    overflow: "hidden",
-    display: "-webkit-box",
-    textOverflow: "ellipsis",
+    overflow: 'hidden',
+    display: '-webkit-box',
+    textOverflow: 'ellipsis',
     WebkitLineClamp: 4,
-    WebkitBoxOrient: "vertical",
+    WebkitBoxOrient: 'vertical'
   }
-};
+}

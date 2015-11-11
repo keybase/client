@@ -1,16 +1,8 @@
 'use strict'
 
 import React, { Component, Text, TouchableHighlight, View, ScrollView, StyleSheet } from 'react-native'
-import Button from '../../common-adapters/button'
 import moment from 'moment'
-import CodePage from '../../login2/register/code-page'
-import { loadDevices } from '../../actions/devices'
-import { addANewDevice } from '../../actions/login2'
-import { routeAppend } from '../../actions/router'
 import commonStyles from '../../styles/common'
-import GenPaperKey from './gen-paper-key'
-import ExistingDevice from '../../login2/register/existing-device'
-import RemoveDevice from './remove-device'
 
 // TODO
 // [ ] - Add Icons
@@ -67,7 +59,6 @@ export default class Devices extends Component {
 Devices.propTypes = {
   devices: React.PropTypes.array,
   waitingForServer: React.PropTypes.bool.isRequired,
-  loadDevices: React.PropTypes.func.isRequired,
   showRemoveDevicePage: React.PropTypes.func.isRequired,
   showExistingDevicePage: React.PropTypes.func.isRequired,
   showGenPaperKeyPage: React.PropTypes.func.isRequired
