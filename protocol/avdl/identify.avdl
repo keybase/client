@@ -9,6 +9,6 @@ protocol identify {
     If trackStatement is true, we'll return a generated JSON tracking statement.
     If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).
     */
-  IdentifyRes identify(int sessionID, string userAssertion, boolean trackStatement=false, boolean forceRemoteCheck=false, boolean useDelegateUI=false);
+  IdentifyRes identify(int sessionID, string userAssertion, boolean trackStatement=false, boolean forceRemoteCheck=false, boolean useDelegateUI=false, IdentifyReason reason);
 
 }

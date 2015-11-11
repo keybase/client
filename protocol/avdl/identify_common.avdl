@@ -53,6 +53,10 @@ protocol identifyCommon {
 		boolean bypassConfirm;
 	}
 
+	record IdentifyReason {
+		string reason;
+	}
+
 	record IdentifyOutcome {
 		string username;
 		union { null, Status } status;
@@ -67,6 +71,7 @@ protocol identifyCommon {
 		array<TrackDiff> revoked;
 		TrackOptions trackOptions;
 		boolean forPGPPull;
+		IdentifyReason reason;
 	}
 
 	record IdentifyRes {

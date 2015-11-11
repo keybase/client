@@ -464,7 +464,7 @@
 @implementation KBRIdentifyRequest
 
 - (void)identify:(KBRIdentifyRequestParams *)params completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
-  NSDictionary *rparams = @{@"userAssertion": KBRValue(params.userAssertion), @"trackStatement": @(params.trackStatement), @"forceRemoteCheck": @(params.forceRemoteCheck), @"useDelegateUI": @(params.useDelegateUI)};
+  NSDictionary *rparams = @{@"userAssertion": KBRValue(params.userAssertion), @"trackStatement": @(params.trackStatement), @"forceRemoteCheck": @(params.forceRemoteCheck), @"useDelegateUI": @(params.useDelegateUI), @"reason": KBRValue(params.reason)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -475,8 +475,8 @@
   }];
 }
 
-- (void)identifyWithUserAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck useDelegateUI:(BOOL)useDelegateUI completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
-  NSDictionary *rparams = @{@"userAssertion": KBRValue(userAssertion), @"trackStatement": @(trackStatement), @"forceRemoteCheck": @(forceRemoteCheck), @"useDelegateUI": @(useDelegateUI)};
+- (void)identifyWithUserAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck useDelegateUI:(BOOL)useDelegateUI reason:(KBRIdentifyReason *)reason completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion {
+  NSDictionary *rparams = @{@"userAssertion": KBRValue(userAssertion), @"trackStatement": @(trackStatement), @"forceRemoteCheck": @(forceRemoteCheck), @"useDelegateUI": @(useDelegateUI), @"reason": KBRValue(reason)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -2843,6 +2843,7 @@
     self.trackStatement = [params[0][@"trackStatement"] boolValue];
     self.forceRemoteCheck = [params[0][@"forceRemoteCheck"] boolValue];
     self.useDelegateUI = [params[0][@"useDelegateUI"] boolValue];
+    self.reason = [MTLJSONAdapter modelOfClass:KBRIdentifyReason.class fromJSONDictionary:params[0][@"reason"] error:nil];
   }
   return self;
 }
@@ -4721,6 +4722,9 @@
 @end
 
 @implementation KBRTrackOptions
+@end
+
+@implementation KBRIdentifyReason
 @end
 
 @implementation KBRIdentifyOutcome

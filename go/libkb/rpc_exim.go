@@ -345,6 +345,7 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 		NumProofSuccesses: ir.NumProofSuccesses(),
 		Revoked:           del,
 		TrackOptions:      ir.TrackOptions,
+		Reason:            ir.Reason,
 	}
 	return ret
 }

@@ -265,6 +265,10 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property BOOL bypassConfirm;
 @end
 
+@interface KBRIdentifyReason : KBRObject
+@property NSString *reason;
+@end
+
 @interface KBRIdentifyOutcome : KBRObject
 @property NSString *username;
 @property KBRStatus *status;
@@ -279,6 +283,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property NSArray *revoked; /*of KBRTrackDiff*/
 @property KBRTrackOptions *trackOptions;
 @property BOOL forPGPPull;
+@property KBRIdentifyReason *reason;
 @end
 
 @interface KBRIdentifyRes : KBRObject
@@ -731,6 +736,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property BOOL trackStatement;
 @property BOOL forceRemoteCheck;
 @property BOOL useDelegateUI;
+@property KBRIdentifyReason *reason;
 @end
 @interface KBRStartRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1379,7 +1385,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
  */
 - (void)identify:(KBRIdentifyRequestParams *)params completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
 
-- (void)identifyWithUserAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck useDelegateUI:(BOOL)useDelegateUI completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
+- (void)identifyWithUserAssertion:(NSString *)userAssertion trackStatement:(BOOL)trackStatement forceRemoteCheck:(BOOL)forceRemoteCheck useDelegateUI:(BOOL)useDelegateUI reason:(KBRIdentifyReason *)reason completion:(void (^)(NSError *error, KBRIdentifyRes *identifyRes))completion;
 
 @end
 

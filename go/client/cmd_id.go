@@ -41,6 +41,7 @@ func (v *CmdID) makeArg() keybase1.IdentifyArg {
 		UserAssertion:  v.user,
 		TrackStatement: v.trackStatement,
 		UseDelegateUI:  v.useDelegateUI,
+		Reason:         keybase1.IdentifyReason{Reason: "CLI id command"},
 	}
 }
 

@@ -1282,20 +1282,25 @@ type TrackOptions struct {
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
 }
 
+type IdentifyReason struct {
+	Reason string `codec:"reason" json:"reason"`
+}
+
 type IdentifyOutcome struct {
-	Username          string        `codec:"username" json:"username"`
-	Status            *Status       `codec:"status,omitempty" json:"status,omitempty"`
-	Warnings          []string      `codec:"warnings" json:"warnings"`
-	TrackUsed         *TrackSummary `codec:"trackUsed,omitempty" json:"trackUsed,omitempty"`
-	TrackStatus       TrackStatus   `codec:"trackStatus" json:"trackStatus"`
-	NumTrackFailures  int           `codec:"numTrackFailures" json:"numTrackFailures"`
-	NumTrackChanges   int           `codec:"numTrackChanges" json:"numTrackChanges"`
-	NumProofFailures  int           `codec:"numProofFailures" json:"numProofFailures"`
-	NumRevoked        int           `codec:"numRevoked" json:"numRevoked"`
-	NumProofSuccesses int           `codec:"numProofSuccesses" json:"numProofSuccesses"`
-	Revoked           []TrackDiff   `codec:"revoked" json:"revoked"`
-	TrackOptions      TrackOptions  `codec:"trackOptions" json:"trackOptions"`
-	ForPGPPull        bool          `codec:"forPGPPull" json:"forPGPPull"`
+	Username          string         `codec:"username" json:"username"`
+	Status            *Status        `codec:"status,omitempty" json:"status,omitempty"`
+	Warnings          []string       `codec:"warnings" json:"warnings"`
+	TrackUsed         *TrackSummary  `codec:"trackUsed,omitempty" json:"trackUsed,omitempty"`
+	TrackStatus       TrackStatus    `codec:"trackStatus" json:"trackStatus"`
+	NumTrackFailures  int            `codec:"numTrackFailures" json:"numTrackFailures"`
+	NumTrackChanges   int            `codec:"numTrackChanges" json:"numTrackChanges"`
+	NumProofFailures  int            `codec:"numProofFailures" json:"numProofFailures"`
+	NumRevoked        int            `codec:"numRevoked" json:"numRevoked"`
+	NumProofSuccesses int            `codec:"numProofSuccesses" json:"numProofSuccesses"`
+	Revoked           []TrackDiff    `codec:"revoked" json:"revoked"`
+	TrackOptions      TrackOptions   `codec:"trackOptions" json:"trackOptions"`
+	ForPGPPull        bool           `codec:"forPGPPull" json:"forPGPPull"`
+	Reason            IdentifyReason `codec:"reason" json:"reason"`
 }
 
 type IdentifyRes struct {
@@ -1315,11 +1320,12 @@ type RemoteProof struct {
 }
 
 type IdentifyArg struct {
-	SessionID        int    `codec:"sessionID" json:"sessionID"`
-	UserAssertion    string `codec:"userAssertion" json:"userAssertion"`
-	TrackStatement   bool   `codec:"trackStatement" json:"trackStatement"`
-	ForceRemoteCheck bool   `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
-	UseDelegateUI    bool   `codec:"useDelegateUI" json:"useDelegateUI"`
+	SessionID        int            `codec:"sessionID" json:"sessionID"`
+	UserAssertion    string         `codec:"userAssertion" json:"userAssertion"`
+	TrackStatement   bool           `codec:"trackStatement" json:"trackStatement"`
+	ForceRemoteCheck bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	UseDelegateUI    bool           `codec:"useDelegateUI" json:"useDelegateUI"`
+	Reason           IdentifyReason `codec:"reason" json:"reason"`
 }
 
 type IdentifyInterface interface {

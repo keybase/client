@@ -74,6 +74,8 @@ func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 	user := ieng.User()
 	res := &IDRes{Outcome: ieng.Outcome(), User: user, TrackToken: ieng.TrackToken(), ComputedKeyFamily: user.GetComputedKeyFamily()}
 
+	res.Outcome.Reason = e.arg.Reason
+
 	if !e.arg.TrackStatement {
 		ctx.IdentifyUI.Finish()
 		return res, nil

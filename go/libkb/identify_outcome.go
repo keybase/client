@@ -23,6 +23,7 @@ type IdentifyOutcome struct {
 	TrackEqual   bool // Whether the track statement was equal to what we saw
 	MeSet        bool // whether me was set at the time
 	TrackOptions keybase1.TrackOptions
+	Reason       keybase1.IdentifyReason
 }
 
 func NewIdentifyOutcome(m bool) *IdentifyOutcome {
