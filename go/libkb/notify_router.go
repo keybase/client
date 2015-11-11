@@ -76,6 +76,9 @@ func (n *NotifyRouter) run() {
 // established for this server.  The caller should pass in the Transporter
 // and also the channel that will get messages when the chanel closes.
 func (n *NotifyRouter) AddConnection(xp rpc.Transporter, ch chan error) ConnectionID {
+	if n == nil {
+		return 0
+	}
 	id := n.cm.AddConnection(xp, ch)
 	n.setNotificationChannels(id, keybase1.NotificationChannels{})
 	return id

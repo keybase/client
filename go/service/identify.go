@@ -60,9 +60,13 @@ func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (
 
 	if arg.UseDelegateUI {
 		h.G().Log.Debug("+ trying to delegate our UI")
-		iui, err = h.G().UIRouter.GetIdentifyUI()
-		if err != nil {
-			return nil, err
+		if h.G().UIRouter == nil {
+			h.G().Log.Warning("Can't delegate to a UI in standalone mode")
+		} else {
+			iui, err = h.G().UIRouter.GetIdentifyUI()
+			if err != nil {
+				return nil, err
+			}
 		}
 		h.G().Log.Debug("- delegated UI with success=(%v)", (iui != nil))
 	}
