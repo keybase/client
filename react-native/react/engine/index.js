@@ -42,6 +42,8 @@ class Engine {
     // These are commands that the service can call at any point in time
     this.generalListeners = {}
 
+    this.serverListeners = {}
+
     // A list of functions to call when we connect
     this.onConnectFns = []
   }
@@ -90,6 +92,24 @@ class Engine {
 
   unlistenGeneralIncomingRpc (method, listener) {
     this.generalListeners[method] = (this.generalListeners[method] || []).filter(l => l !== listener)
+  }
+
+  listenServerInit (method, listener) {
+    this.serverListeners[method] = listener
+  }
+
+  _serverInitIncomingRPC (method, param, response) {
+    const sid = this.getSessionID()
+    const cbs = {
+      start: callMap => {
+        this.sessionIDToIncomingCall[sid] = callMap
+        response.result(sid)
+      },
+      end: () => {
+        delete this.sessionIDToIncomingCall[sid]
+      }
+    }
+    this.serverListeners[method](param, cbs)
   }
 
   _rpcWrite (data) {
@@ -155,6 +175,8 @@ class Engine {
       callMap[method](param, wrappedResponse)
     } else if (!sessionID && this.generalListeners[method]) {
       this._generalIncomingRpc(method, param, response)
+    } else if (!sessionID && this.serverListeners[method]) {
+      this._serverInitIncomingRPC(method, param, response)
     } else {
       console.log(`Unknown incoming rpc: ${sessionID} ${method}`)
     }
