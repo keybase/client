@@ -359,6 +359,19 @@ func (ccs *crChains) mostRecentFromOriginal(original BlockPointer) (
 	return chain.mostRecent, nil
 }
 
+func (ccs *crChains) mostRecentFromOriginalOrSame(original BlockPointer) (
+	BlockPointer, error) {
+	ptr, err := ccs.mostRecentFromOriginal(original)
+	if err == nil {
+		// A satisfactory chain was found.
+		return ptr, nil
+	} else if _, ok := err.(NoChainFoundError); !ok {
+		// An unexpected error!
+		return BlockPointer{}, err
+	}
+	return original, nil
+}
+
 func (ccs *crChains) originalFromMostRecent(mostRecent BlockPointer) (
 	BlockPointer, error) {
 	chain, ok := ccs.byMostRecent[mostRecent]
@@ -366,6 +379,19 @@ func (ccs *crChains) originalFromMostRecent(mostRecent BlockPointer) (
 		return BlockPointer{}, NoChainFoundError{mostRecent}
 	}
 	return chain.original, nil
+}
+
+func (ccs *crChains) originalFromMostRecentOrSame(mostRecent BlockPointer) (
+	BlockPointer, error) {
+	ptr, err := ccs.originalFromMostRecent(mostRecent)
+	if err == nil {
+		// A satisfactory chain was found.
+		return ptr, nil
+	} else if _, ok := err.(NoChainFoundError); !ok {
+		// An unexpected error!
+		return BlockPointer{}, err
+	}
+	return mostRecent, nil
 }
 
 func (ccs *crChains) isCreated(original BlockPointer) bool {

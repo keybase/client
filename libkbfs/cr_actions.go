@@ -108,13 +108,9 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 		parentOrig = ri.originalOldParent
 		newName = ri.oldName
 	}
-	parentMostRecent := parentOrig
-	ptr, err := mergedChains.mostRecentFromOriginal(parentOrig)
-	if err == nil {
-		// A satisfactory chain was found.
-		parentMostRecent = ptr
-	} else if _, ok := err.(NoChainFoundError); !ok {
-		// An unexpected error!
+	parentMostRecent, err :=
+		mergedChains.mostRecentFromOriginalOrSame(parentOrig)
+	if err != nil {
 		return false, zeroPtr, err
 	}
 	cuea.sizeOnly = true
@@ -199,10 +195,20 @@ func crActionConvertSymlink(unmergedMostRecent BlockPointer,
 	// Add a fake unref so this rm doesn't get mistaken for one
 	// half of a rename operation.
 	ro.AddUnrefBlock(zeroPtr)
-	err := prependOpsToChain(mergedMostRecent, mergedChains,
-		ro, newCreateOp(toName, mergedMostRecent, Sym))
-	if err != nil {
-		return err
+	co := newCreateOp(toName, mergedMostRecent, Sym)
+
+	// If the chain already exists, just append the operations instead
+	// of prepending them.  We don't want to do any rms of nodes that
+	// the merged chain might also touch (e.g., a double rename
+	// situation).
+	chain, ok := mergedChains.byMostRecent[mergedMostRecent]
+	if ok {
+		chain.ops = append(chain.ops, ro, co)
+	} else {
+		err := prependOpsToChain(mergedMostRecent, mergedChains, ro, co)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

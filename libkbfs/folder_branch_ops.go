@@ -3273,7 +3273,7 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 			return
 		}
 		fbo.log.CDebugf(ctx, "notifyOneOp: create %s in node %p",
-			realOp.NewName, node)
+			realOp.NewName, node.GetID())
 		changes = append(changes, NodeChange{
 			Node:       node,
 			DirUpdated: []string{realOp.NewName},
@@ -3284,7 +3284,7 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 			return
 		}
 		fbo.log.CDebugf(ctx, "notifyOneOp: remove %s in node %p",
-			realOp.OldName, node)
+			realOp.OldName, node.GetID())
 		changes = append(changes, NodeChange{
 			Node:       node,
 			DirUpdated: []string{realOp.OldName},
@@ -3320,9 +3320,13 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 		}
 
 		if oldNode != nil {
+			var newNodeID NodeID
+			if newNode != nil {
+				newNodeID = newNode.GetID()
+			}
 			fbo.log.CDebugf(ctx, "notifyOneOp: rename %v from %s/%p to %s/%p",
-				realOp.Renamed, realOp.OldName, oldNode, realOp.NewName,
-				newNode)
+				realOp.Renamed, realOp.OldName, oldNode.GetID(), realOp.NewName,
+				newNodeID)
 
 			if newNode == nil {
 				if childNode :=
@@ -3366,7 +3370,7 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 			return
 		}
 		fbo.log.CDebugf(ctx, "notifyOneOp: sync %d writes in node %p",
-			len(realOp.Writes), node)
+			len(realOp.Writes), node.GetID())
 
 		changes = append(changes, NodeChange{
 			Node:        node,
@@ -3378,7 +3382,7 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 			return
 		}
 		fbo.log.CDebugf(ctx, "notifyOneOp: setAttr %s for file %s in node %p",
-			realOp.Attr, realOp.Name, node)
+			realOp.Attr, realOp.Name, node.GetID())
 
 		childPath :=
 			*fbo.nodeCache.PathFromNode(node).ChildPathNoPtr(realOp.Name)

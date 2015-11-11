@@ -140,6 +140,10 @@ type createOp struct {
 	// This op should never be persisted.
 	renamed bool
 
+	// If true, during conflict resolution the blocks of the file will
+	// be copied.
+	forceCopy bool
+
 	// If this is set, ths create op needs to be turned has been
 	// turned into a symlink creation locally to avoid a cycle during
 	// conflict resolution, and the following field represents the
