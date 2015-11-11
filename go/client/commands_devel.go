@@ -13,44 +13,12 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
-		NewCmdBTC(cl, g),
-		NewCmdCert(cl),
-		NewCmdCompatDecrypt(cl),
-		NewCmdCompatDir(cl),
-		NewCmdCompatEncrypt(cl),
-		NewCmdCompatPush(cl),
-		NewCmdCompatSign(cl),
-		NewCmdCompatVerify(cl),
-		NewCmdConfig(cl),
-		NewCmdCtl(cl, g),
-		NewCmdDb(cl, g),
-		NewCmdDevice(cl, g),
 		NewCmdFavorite(cl),
 		NewCmdFuse(cl, g),
-		NewCmdID(cl, g),
-		NewCmdLaunchd(cl, g),
-		NewCmdListTracking(cl),
-		NewCmdListTrackers(cl),
-		NewCmdLogin(cl, g),
-		NewCmdLogout(cl, g),
-		NewCmdPaperKey(cl),
-		NewCmdPassphrase(cl),
-		NewCmdPGP(cl, g),
-		NewCmdPing(cl),
-		NewCmdProve(cl),
-		NewCmdReset(cl),
-		NewCmdSearch(cl),
 		NewCmdShowNotifications(cl, g),
-		NewCmdSigs(cl),
-		NewCmdSignup(cl, g),
-		NewCmdStatus(cl),
 		NewCmdStress(cl),
-		NewCmdTrack(cl),
-		NewCmdUnlock(cl),
-		NewCmdUntrack(cl),
-		NewCmdVersion(cl, g),
 	}
 }
 

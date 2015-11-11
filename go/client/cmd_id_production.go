@@ -7,4 +7,8 @@
 // client.
 package client
 
+import (
+	"github.com/keybase/cli"
+)
+
 func cmdIDAddFlags(cmd *cli.Command) {}
