@@ -4,7 +4,6 @@
 package systests
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/client"
@@ -64,14 +63,20 @@ func TestSecretUI(t *testing.T) {
 	tc2.G.SetUI(loginCmdUI)
 	cmd := client.NewCmdLoginRunner(tc2.G)
 	err = cmd.Run()
-	check()
+	if err == nil {
+		t.Fatal("login worked, when it should have failed")
+	}
+
+	// check that delegate ui was called:
+	if !sui.getKeybasePassphrase {
+		t.Logf("secret ui: %+v", sui)
+		t.Error("delegate secret UI GetKeybasePassphrase was not called during login cmd")
+	}
 
 	stopper := client.NewCmdCtlStopRunner(tc1.G)
 	if err := stopper.Run(); err != nil {
 		t.Errorf("Error in stopping service: %v", err)
 	}
-
-	fmt.Printf("secret ui: %+v\n", sui)
 
 	// If the server failed, it's also an error
 	err = <-stopCh
@@ -121,14 +126,14 @@ func (u *loginCmdUI) GetLoginUI() libkb.LoginUI {
 	return &loginUI{Contextified: libkb.NewContextified(u.G())}
 }
 
+func (u *loginCmdUI) GetProvisionUI(libkb.KexRole) libkb.ProvisionUI {
+	return &provisionUI{Contextified: libkb.NewContextified(u.G())}
+}
+
 type loginUI struct {
 	libkb.Contextified
 }
 
-/*
-	GetEmailOrUsername(context.Context, int) (string, error)
-	PromptRevokePaperKeys(context.Context, PromptRevokePaperKeysArg) (bool, error)
-*/
 func (u *loginUI) DisplayPaperKeyPhrase(context.Context, keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
@@ -140,4 +145,30 @@ func (u *loginUI) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePa
 }
 func (u *loginUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return "t_alice", nil
+}
+
+type provisionUI struct {
+	libkb.Contextified
+}
+
+func (u *provisionUI) ChooseProvisioningMethod(context.Context, keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
+	return keybase1.ProvisionMethod_PASSPHRASE, nil
+}
+func (u *provisionUI) ChooseDeviceType(context.Context, int) (r keybase1.DeviceType, e error) {
+	return
+}
+func (u *provisionUI) DisplayAndPromptSecret(context.Context, keybase1.DisplayAndPromptSecretArg) (r keybase1.SecretResponse, e error) {
+	return
+}
+func (u *provisionUI) DisplaySecretExchanged(context.Context, int) error {
+	return nil
+}
+func (u *provisionUI) PromptNewDeviceName(context.Context, keybase1.PromptNewDeviceNameArg) (string, error) {
+	return "", nil
+}
+func (u *provisionUI) ProvisioneeSuccess(context.Context, keybase1.ProvisioneeSuccessArg) error {
+	return nil
+}
+func (u *provisionUI) ProvisionerSuccess(context.Context, keybase1.ProvisionerSuccessArg) error {
+	return nil
 }
