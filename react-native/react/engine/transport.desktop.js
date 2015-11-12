@@ -4,7 +4,7 @@ import BaseTransport from './rpc'
 import fs from 'fs'
 
 class DesktopTransport extends BaseTransport {
-  constructor (incomingRPCCallback) {
+  constructor (incomingRPCCallback, writeCallback, connectCallback) {
     const paths = [
       // Hardcoded for now!
       // OS X
@@ -23,8 +23,13 @@ class DesktopTransport extends BaseTransport {
     if (!sockfile) {
       console.error('No keybased socket file found!')
     }
+    let hooks = null
+    if (connectCallback) {
+      hooks = { connected: connectCallback }
+    }
+
     super(
-      { path: sockfile, robust: true },
+      { path: sockfile, hooks },
       null,
       incomingRPCCallback
     )
