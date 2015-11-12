@@ -36,7 +36,7 @@ UninstallDisplayIcon={app}\keybase.exe
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "{#MyGoPath}bin\windows_386\keybase.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MyGoPath}bin\keybase.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -50,11 +50,13 @@ Root: "HKCU"; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Keyba
 WelcomeLabel2=This will install [name/ver] on your computer.
 
 [Run]
-Filename: "{app}\keybase.exe"; Parameters: "service"; WorkingDir: "{app}"; Flags: postinstall runhidden nowait; Description: "Start Keybase service"
+Filename: "{app}\keybase.exe"; Parameters: "ctl watchdog"; WorkingDir: "{app}"; Flags: postinstall runhidden nowait; Description: "Start Keybase service"
 
 [UninstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
 
+[InstallDelete]
+Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
 
 [Code]
 // Simply invoking "Keybase.exe service" at startup results in an unsightly
@@ -72,7 +74,7 @@ begin
 
   lines[0] := 'Dim WinScriptHost';
   lines[1] := 'Set WinScriptHost = CreateObject("WScript.Shell")';
-  lines[2] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\{#MyAppExeName}" & Chr(34) & " service", 0');
+  lines[2] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\{#MyAppExeName}" & Chr(34) & " ctl watchdog", 0');
   lines[3] := 'Set WinScriptHost = Nothing';
 
   Result := SaveStringsToFile(filename,lines,true);
