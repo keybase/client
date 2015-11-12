@@ -2,18 +2,23 @@ import app from 'app'
 
 var visibleCount = 0
 
-export default function () {
-  if (++visibleCount === 1) {
-    app.dock.show()
+export default (() => {
+  if (!app.dock) {
+    return () => () => {}
   }
-  let alreadyHidden = false
-  return () => {
-    if (alreadyHidden) {
-      throw new Error('Tried to hide the dock icon twice')
+  return function () {
+    if (++visibleCount === 1) {
+      app.dock.show()
     }
-    alreadyHidden = true
-    if (--visibleCount === 0) {
-      app.dock.hide()
+    let alreadyHidden = false
+    return () => {
+      if (alreadyHidden) {
+        throw new Error('Tried to hide the dock icon twice')
+      }
+      alreadyHidden = true
+      if (--visibleCount === 0) {
+        app.dock.hide()
+      }
     }
   }
-}
+})()
