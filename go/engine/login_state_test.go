@@ -110,6 +110,10 @@ func (m *GetSecretMock) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg)
 	return "invalid passphrase", m.LastErr
 }
 
+func (m *GetSecretMock) GetPinSecret(p keybase1.PinEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+	return
+}
+
 func (m *GetSecretMock) CheckLastErr(t *testing.T) {
 	if m.LastErr != nil {
 		t.Fatal(m.LastErr)
@@ -247,6 +251,10 @@ func (m *GetKeybasePassphraseMock) CheckLastErr(t *testing.T) {
 	if m.LastErr != nil {
 		t.Fatal(m.LastErr)
 	}
+}
+
+func (m *GetKeybasePassphraseMock) GetPinSecret(p keybase1.PinEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+	return
 }
 
 // Test that the login falls back to a passphrase login if pubkey

@@ -321,3 +321,7 @@ func (c *CmdStress) GetNewPassphrase(_ context.Context, arg keybase1.GetNewPassp
 func (c *CmdStress) GetSecret(_ context.Context, arg keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {
 	return
 }
+
+func (c *CmdStress) GetPinSecret(_ context.Context, arg keybase1.GetPinSecretArg) (res keybase1.GetPassphraseRes, err error) {
+	return
+}
