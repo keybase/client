@@ -40,4 +40,5 @@ const (
 	PromptDescriptorProvisionPhrase
 	PromptDescriptorProvisionDeviceName
 	PromptDescriptorExportSecretKeyFromGPG
+	PromptDescriptorDeprovisionWhichUser
 )

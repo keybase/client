@@ -150,6 +150,10 @@ func (n *signupTerminalUI) PromptYesNo(pd libkb.PromptDescriptor, s string, def 
 	return ret, err
 }
 
+func (n *signupTerminalUI) PromptForConfirmation(prompt string) error {
+	return nil
+}
+
 func randomUser(prefix string) *signupInfo {
 	b := make([]byte, 5)
 	rand.Read(b)

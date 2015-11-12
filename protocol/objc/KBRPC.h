@@ -869,8 +869,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRLogoutRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBRResetRequestParams : KBRRequestParams
+@interface KBRDeprovisionRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@property NSString *username;
 @end
 @interface KBRRecoverAccountFromEmailAddressRequestParams : KBRRequestParams
 @property NSString *email;
@@ -1512,6 +1513,12 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @end
 
+@interface KBRKex2ProvisionerRequest : KBRRequest
+
+- (void)kexStart:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRKex2ProvisioneeRequest : KBRRequest
 
 - (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion;
@@ -1521,12 +1528,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)didCounterSign:(KBRDidCounterSignRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)didCounterSignWithSig:(NSData *)sig completion:(void (^)(NSError *error))completion;
-
-@end
-
-@interface KBRKex2ProvisionerRequest : KBRRequest
-
-- (void)kexStart:(void (^)(NSError *error))completion;
 
 @end
 
@@ -1567,7 +1568,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)logout:(void (^)(NSError *error))completion;
 
-- (void)reset:(void (^)(NSError *error))completion;
+- (void)deprovision:(KBRDeprovisionRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)deprovisionWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion;
 
 - (void)recoverAccountFromEmailAddress:(KBRRecoverAccountFromEmailAddressRequestParams *)params completion:(void (^)(NSError *error))completion;
 

@@ -2062,8 +2062,9 @@ type LogoutArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type ResetArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+type DeprovisionArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type RecoverAccountFromEmailAddressArg struct {
@@ -2083,7 +2084,7 @@ type LoginInterface interface {
 	Login(context.Context, LoginArg) error
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
 	Logout(context.Context, int) error
-	Reset(context.Context, int) error
+	Deprovision(context.Context, DeprovisionArg) error
 	RecoverAccountFromEmailAddress(context.Context, string) error
 	PaperKey(context.Context, int) error
 	Unlock(context.Context, int) error
@@ -2157,18 +2158,18 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"reset": {
+			"deprovision": {
 				MakeArg: func() interface{} {
-					ret := make([]ResetArg, 1)
+					ret := make([]DeprovisionArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]ResetArg)
+					typedArgs, ok := args.(*[]DeprovisionArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]ResetArg)(nil), args)
+						err = rpc.NewTypeError((*[]DeprovisionArg)(nil), args)
 						return
 					}
-					err = i.Reset(ctx, (*typedArgs)[0].SessionID)
+					err = i.Deprovision(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2251,9 +2252,8 @@ func (c LoginClient) Logout(ctx context.Context, sessionID int) (err error) {
 	return
 }
 
-func (c LoginClient) Reset(ctx context.Context, sessionID int) (err error) {
-	__arg := ResetArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.reset", []interface{}{__arg}, nil)
+func (c LoginClient) Deprovision(ctx context.Context, __arg DeprovisionArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.deprovision", []interface{}{__arg}, nil)
 	return
 }
 

@@ -206,6 +206,27 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 	return f.flush()
 }
 
+func (f *JSONConfigFile) NukeUser(nu NormalizedUsername) error {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+
+	if cu := f.getCurrentUser(); cu.Eq(nu) {
+		err := f.jw.DeleteValueAtPath("current_user")
+		if err != nil {
+			return err
+		}
+	}
+
+	if !f.jw.AtKey("users").AtKey(nu.String()).IsNil() {
+		err := f.jw.DeleteValueAtPath("users." + nu.String())
+		if err != nil {
+			return err
+		}
+	}
+
+	return f.flush()
+}
+
 // GetUserConfigForUsername sees if there's a UserConfig object for the given
 // username previously stored.
 func (f JSONConfigFile) GetUserConfigForUsername(nu NormalizedUsername) (*UserConfig, error) {

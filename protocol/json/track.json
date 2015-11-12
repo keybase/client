@@ -215,6 +215,13 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "IdentifyReason",
+    "fields" : [ {
+      "name" : "reason",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "IdentifyOutcome",
     "fields" : [ {
       "name" : "username",
@@ -261,6 +268,9 @@
     }, {
       "name" : "forPGPPull",
       "type" : "boolean"
+    }, {
+      "name" : "reason",
+      "type" : "IdentifyReason"
     } ]
   }, {
     "type" : "record",

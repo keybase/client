@@ -736,3 +736,7 @@ func (k *SKBKeyringFile) PushAndSave(skb *SKB) error {
 	}
 	return k.Save()
 }
+
+func (k *SKBKeyringFile) HasPGPKeys() bool {
+	return len(k.fpIndex) > 0
+}
