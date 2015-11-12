@@ -51,12 +51,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			label := args[0]
 			binPath := args[1]
 			plistArgs := args[2:]
-
-			envVars := make(map[string]string)
-			envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
-			envVars["KEYBASE_LABEL"] = label
-			envVars["KEYBASE_LOG_FORMAT"] = "file"
-			envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
+			envVars := defaultLaunchdEnvVars(g, label)
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
 			err := launchd.Install(plist, os.Stdout)
@@ -212,7 +207,7 @@ func (v *CmdLaunchdList) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdLaunchdList) Run() error {
 	if v.format == "json" {
-		servicesStatus, err := ListServices()
+		servicesStatus, err := listServices()
 		if err != nil {
 			return err
 		}
@@ -222,7 +217,7 @@ func (v *CmdLaunchdList) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else if v.format == "" {
-		return ShowServices(v.G().UI.GetTerminalUI().OutputWriter())
+		return showServices(v.G().UI.GetTerminalUI().OutputWriter())
 	} else {
 		return fmt.Errorf("Invalid format: %s", v.format)
 	}
@@ -261,9 +256,9 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 func (v *CmdLaunchdStatus) Run() error {
 	var st keybase1.ServiceStatus
 	if v.name == "service" {
-		st = KeybaseServiceStatus(v.G(), v.label, v.bundleVersion)
+		st = keybaseServiceStatus(v.G(), v.label, v.bundleVersion)
 	} else if v.name == "kbfs" {
-		st = KBFSServiceStatus(v.G(), v.label, v.bundleVersion)
+		st = kbfsServiceStatus(v.G(), v.label, v.bundleVersion)
 	} else {
 		return fmt.Errorf("Invalid service name: %s", v.name)
 	}

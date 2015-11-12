@@ -11,6 +11,10 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{}
+}
+
 func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{}
 }
