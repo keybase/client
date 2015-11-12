@@ -12,7 +12,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/launchd"
@@ -319,18 +318,6 @@ func BrewAutoInstall(g *libkb.GlobalContext) error {
 	ServiceStatusFromLaunchd(kbService, path.Join(g.Env.GetRuntimeDir(), "keybased.info"))
 
 	return nil
-}
-
-func waitForFile(path string, maxAttempts int, wait time.Duration, reason string) error {
-	attempt := 1
-	_, err := os.Stat(path)
-	for attempt < maxAttempts && os.IsNotExist(err) {
-		attempt++
-		time.Sleep(wait)
-		_, err = os.Stat(path)
-	}
-
-	return err
 }
 
 func defaultBrewServiceLabel(runMode libkb.RunMode) string {
