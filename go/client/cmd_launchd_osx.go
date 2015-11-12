@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/launchd"
@@ -279,4 +280,45 @@ func (v *CmdLaunchdStatus) Run() error {
 		fmt.Fprintf(os.Stdout, "%#v\n", st)
 	}
 	return nil
+}
+
+func BrewAutoInstall(g *libkb.GlobalContext) error {
+	label := defaultBrewServiceLabel(g.Env.GetRunMode())
+	if label == "" {
+		return fmt.Errorf("No service label to install")
+	}
+
+	plistPath := launchd.PlistDestination(label)
+	if _, err := os.Stat(plistPath); err == nil {
+		return nil
+	}
+
+	binPath, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		return err
+	}
+	plistArgs := []string{"service"}
+
+	envVars := make(map[string]string)
+	envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
+	envVars["KEYBASE_LABEL"] = label
+	envVars["KEYBASE_LOG_FORMAT"] = "file"
+	envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
+
+	plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
+	return launchd.Install(plist, os.Stdout)
+}
+
+func defaultBrewServiceLabel(runMode libkb.RunMode) string {
+	name := "homebrew.mxcl.keybase"
+	switch runMode {
+	case libkb.DevelRunMode:
+		return fmt.Sprintf("%s.devel", name)
+	case libkb.StagingRunMode:
+		return fmt.Sprintf("%s.staging", name)
+	case libkb.ProductionRunMode:
+		return name
+	default:
+		return ""
+	}
 }

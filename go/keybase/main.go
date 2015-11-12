@@ -107,6 +107,14 @@ func mainInner(g *libkb.GlobalContext) error {
 				return err
 			}
 		}
+
+		if libkb.IsBrewBuild {
+			err := client.BrewAutoInstall(g)
+			if err != nil {
+				g.Log.Errorf("Error trying to install service: %s", err)
+			}
+		}
+
 		// Whether or not we autoforked, we're now running in client-server
 		// mode (as opposed to standalone). Register a global LogUI so that
 		// calls to G.Log() in the daemon can be copied to us. This is
