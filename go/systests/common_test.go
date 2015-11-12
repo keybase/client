@@ -53,6 +53,7 @@ func (n *baseNullUI) GetGPGUI() libkb.GPGUI                           { return n
 func (n *baseNullUI) GetLogUI() libkb.LogUI                           { return n.g.Log }
 func (n *baseNullUI) GetIdentifyLubaUI() libkb.IdentifyUI             { return nil }
 func (n *baseNullUI) GetProvisionUI(libkb.KexRole) libkb.ProvisionUI  { return nil }
+func (n *baseNullUI) PromptForConfirmation(prompt string) error       { return nil }
 
 func (n *baseNullUI) Configure() error { return nil }
 func (n *baseNullUI) Shutdown() error  { return nil }

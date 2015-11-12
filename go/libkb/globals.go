@@ -123,6 +123,11 @@ func (g *GlobalContext) Logout() error {
 		return err
 	}
 
+	username := g.Env.GetUsername()
+	if clearSecretErr := ClearStoredSecret(username); clearSecretErr != nil {
+		g.Log.Warning("ClearStoredSecret error: %s", clearSecretErr)
+	}
+
 	if g.IdentifyCache != nil {
 		g.IdentifyCache.Shutdown()
 	}

@@ -319,6 +319,9 @@ func (n *nullui) GetProvisionUI(KexRole) ProvisionUI {
 func (n *nullui) Prompt(string, bool, Checker) (string, error) {
 	return "", nil
 }
+func (n *nullui) PromptForConfirmation(prompt string) error {
+	return nil
+}
 func (n *nullui) GetIdentifyLubaUI() IdentifyUI {
 	return nil
 }

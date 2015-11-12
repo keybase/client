@@ -144,6 +144,7 @@ type ConfigReader interface {
 type ConfigWriter interface {
 	SetUserConfig(cfg *UserConfig, overwrite bool) error
 	SwitchUser(un NormalizedUsername) error
+	NukeUser(un NormalizedUsername) error
 	SetDeviceID(keybase1.DeviceID) error
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
@@ -332,6 +333,7 @@ type UI interface {
 	GetGPGUI() GPGUI
 	GetProvisionUI(role KexRole) ProvisionUI
 	Configure() error
+	PromptForConfirmation(prompt string) error
 	Shutdown() error
 }
 

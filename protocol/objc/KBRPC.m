@@ -714,6 +714,17 @@
 
 @end
 
+@implementation KBRKex2ProvisionerRequest
+
+- (void)kexStart:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisioner.kexStart" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRKex2ProvisioneeRequest
 
 - (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion {
@@ -750,17 +761,6 @@
 - (void)didCounterSignWithSig:(NSData *)sig completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"sig": KBRValue(sig)};
   [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee.didCounterSign" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-@end
-
-@implementation KBRKex2ProvisionerRequest
-
-- (void)kexStart:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisioner.kexStart" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -834,9 +834,16 @@
   }];
 }
 
-- (void)reset:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.login.reset" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)deprovision:(KBRDeprovisionRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(params.username)};
+  [self.client sendRequestWithMethod:@"keybase.1.login.deprovision" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)deprovisionWithUsername:(NSString *)username completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(username)};
+  [self.client sendRequestWithMethod:@"keybase.1.login.deprovision" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -3334,6 +3341,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
   }
   return self;
 }
@@ -3345,7 +3353,7 @@
 }
 @end
 
-@implementation KBRResetRequestParams
+@implementation KBRDeprovisionRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
@@ -3355,7 +3363,7 @@
 }
 
 + (instancetype)params {
-  KBRResetRequestParams *p = [[self alloc] init];
+  KBRDeprovisionRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

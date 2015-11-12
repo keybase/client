@@ -32,9 +32,12 @@ func (h *LoginHandler) Logout(_ context.Context, sessionID int) error {
 	return h.G().Logout()
 }
 
-func (h *LoginHandler) Reset(_ context.Context, sessionID int) error {
-	eng := engine.NewResetEngine(h.G())
-	ctx := engine.Context{}
+func (h *LoginHandler) Deprovision(_ context.Context, arg keybase1.DeprovisionArg) error {
+	eng := engine.NewDeprovisionEngine(h.G(), arg.Username)
+	ctx := engine.Context{
+		LogUI:    h.getLogUI(arg.SessionID),
+		SecretUI: h.getSecretUI(arg.SessionID),
+	}
 	return engine.RunEngine(eng, &ctx)
 }
 
