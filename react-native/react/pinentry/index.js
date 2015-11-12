@@ -14,7 +14,10 @@ export default class Pinentry extends Component {
       componentAtTop: {
         title: 'pinentry',
         props: {
-          onSubmit: passphrase => console.log(`Passphrase submitted: ${passphrase}`),
+          onSubmit: passphrase => {
+            console.log(`Passphrase submitted:`)
+            console.log(passphrase)
+          },
           onCancel: () => console.log('Pinentry canceled'),
           // Mock out the RPC payload until implemented.
           payload: {
@@ -24,6 +27,10 @@ export default class Pinentry extends Component {
               secret_storage: {
                 value: true,
                 label: 'Store my passphrase for later use'
+              },
+              second_feature: {
+                value: false,
+                label: 'Test a second checkbox'
               }
             }
           }

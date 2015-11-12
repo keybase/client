@@ -9,6 +9,13 @@ export default class PinentryRender extends Component {
     this.state = {
       passphrase: ''
     }
+    for (let feature in this.props.payload.features) {
+      if (this.props.payload.features[feature].hasOwnProperty('value')) {
+        this.state[feature] = this.props.payload.features[feature].value
+      } else {
+        console.error('We were passed a payload with no value!')
+      }
+    }
   }
 
   render () {
@@ -21,21 +28,20 @@ export default class PinentryRender extends Component {
           floatingLabelText='Your passphrase'
           value={this.state.passphrase} />
 
-        {Object.keys(this.props.payload.features).map((feature, index) => {
-          console.log('feature is')
-          console.log(this.props.payload.features[feature])
+        {Object.keys(this.props.payload.features).map((feature, _) => {
           return <Checkbox
             name={feature}
             value={feature}
             label={this.props.payload.features[feature].label}
             defaultChecked={this.props.payload.features[feature].value}
             style={{marginTop: 30}}
+            onCheck={(_, checked) => { this.state[feature] = checked }}
           />
         })}
 
         <RaisedButton style={{margin: 5}} onClick={() => this.props.onCancel()} label='Cancel' />
 
-        <RaisedButton style={{margin: 5}} onClick={() => this.props.onSubmit(this.state.passphrase)} label='OK' />
+        <RaisedButton style={{margin: 5}} onClick={() => this.props.onSubmit(this.state)} label='OK' />
       </div>
     )
   }
