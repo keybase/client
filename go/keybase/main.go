@@ -106,12 +106,10 @@ func mainInner(g *libkb.GlobalContext) error {
 			if err = client.ForkServer(cl, g); err != nil {
 				return err
 			}
-		}
-
-		if libkb.IsBrewBuild {
+		} else if libkb.IsBrewBuild {
 			err := client.BrewAutoInstall(g)
 			if err != nil {
-				g.Log.Errorf("Error trying to install service: %s", err)
+				return err
 			}
 		}
 
