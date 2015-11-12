@@ -1,11 +1,10 @@
 'use strict'
 /* @flow */
 
-import React from 'react'
-import BaseComponent from '../base-component'
-import { TextField, RaisedButton } from 'material-ui'
+import React, { Component } from '../base-react'
+import { TextField, RaisedButton, Checkbox } from 'material-ui'
 
-export default class PinentryRender extends BaseComponent {
+export default class PinentryRender extends Component {
   componentWillMount () {
     this.state = {
       passphrase: ''
@@ -15,12 +14,24 @@ export default class PinentryRender extends BaseComponent {
   render () {
     return (
       <div>
-        <p>Please enter the Keybase passphrase for {this.props.user} (12+ characters)</p>
+        <p>{this.props.payload.prompt_text}</p>
         <TextField
           ref='passphrase'
           onChange={e => this.setState({passphrase: e.target.value})}
           floatingLabelText='Your passphrase'
           value={this.state.passphrase} />
+
+        {Object.keys(this.props.payload.features).map((feature, index) => {
+          console.log('feature is')
+          console.log(this.props.payload.features[feature])
+          return <Checkbox
+            name={feature}
+            value={feature}
+            label={this.props.payload.features[feature].label}
+            defaultChecked={this.props.payload.features[feature].value}
+            style={{marginTop: 30}}
+          />
+        })}
 
         <RaisedButton style={{margin: 5}} onClick={() => this.props.onCancel()} label='Cancel' />
 
@@ -33,5 +44,5 @@ export default class PinentryRender extends BaseComponent {
 PinentryRender.propTypes = {
   onSubmit: React.PropTypes.func.isRequired,
   onCancel: React.PropTypes.func.isRequired,
-  user: React.PropTypes.string.isRequired
+  payload: React.PropTypes.object.isRequired
 }

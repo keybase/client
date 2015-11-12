@@ -1,11 +1,10 @@
 'use strict'
 /* @flow */
 
-import React from 'react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 import PinentryRender from './pinentry-render'
 
-export default class Pinentry extends BaseComponent {
+export default class Pinentry extends Component {
   render () {
     return <PinentryRender {...this.props} />
   }
@@ -17,8 +16,17 @@ export default class Pinentry extends BaseComponent {
         props: {
           onSubmit: passphrase => console.log(`Passphrase submitted: ${passphrase}`),
           onCancel: () => console.log('Pinentry canceled'),
-          // Temp until implemented.
-          user: 'someusers'
+          // Mock out the RPC payload until implemented.
+          payload: {
+            window_title: 'Keybase',
+            prompt_text: 'Please enter the Keybase passphrase for cjb (12+ characters)',
+            features: {
+              secret_storage: {
+                value: true,
+                label: 'Store my passphrase for later use'
+              }
+            }
+          }
         }
       }
     }
