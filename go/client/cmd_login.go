@@ -42,7 +42,7 @@ func (c *CmdLogin) Run() error {
 		NewSecretUIProtocol(c.G()),
 		NewGPGUIProtocol(c.G()),
 	}
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 	client, err := GetLoginClient(c.G())
