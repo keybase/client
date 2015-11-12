@@ -41,6 +41,10 @@ class Engine {
     // These are commands that the service can call at any point in time
     this.generalListeners = {}
 
+    // A map of functions set up to serve as delegate UIs for things
+    // like FS operations
+    this.delegateUIs = {}
+
     // A list of functions to call when we connect
     this.onConnectFns = []
   }
@@ -87,6 +91,10 @@ class Engine {
     this.generalListeners[method].push(listener)
   }
 
+  listenDelegateUI (method, listener) {
+    this.delegateUIs[method] = listener
+  }
+
   unlistenGeneralIncomingRpc (method, listener) {
     this.generalListeners[method] = (this.generalListeners[method] || []).filter(l => l !== listener)
   }
@@ -101,6 +109,19 @@ class Engine {
       // It'll be weird if there are multiple listeners
       listener(param)
     })
+  }
+
+  _delegateUIIncomingRPC (method, param, response) {
+    const sid = this.getSessionID()
+    const cbs = {
+      start : (callMap) => {
+        this.sessionIDToIncomingCall[sid] = callMap
+        response.result(sid)
+      end : () => {
+        delete(this.sessionIDToIncomingCall[sid])
+      }
+    }
+    this.delegateUIs[method](param, cbs)
   }
 
   _rpcIncoming (payload) {
@@ -154,6 +175,8 @@ class Engine {
       callMap[method](param, wrappedResponse)
     } else if (!sessionID && this.generalListeners[method]) {
       this._generalIncomingRpc(method, param, response)
+    } else if (!sessionID && this.delegateUIs[method]) {
+      this._delegateUIIncomingRPC(method, params, response)
     } else {
       console.log(`Unknown incoming rpc: ${sessionID} ${method}`)
     }
