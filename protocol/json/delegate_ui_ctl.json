@@ -163,6 +163,10 @@
     "registerIdentifyUI" : {
       "request" : [ ],
       "response" : "null"
+    },
+    "registerSecretUI" : {
+      "request" : [ ],
+      "response" : "null"
     }
   }
 }

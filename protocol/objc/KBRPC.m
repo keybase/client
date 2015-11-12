@@ -326,6 +326,13 @@
   }];
 }
 
+- (void)registerSecretUI:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.delegateUiCtl.registerSecretUI" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRDeviceRequest
