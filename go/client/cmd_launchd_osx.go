@@ -288,26 +288,33 @@ func defaultEnvVars(g *libkb.GlobalContext, label string) map[string]string {
 	return envVars
 }
 
-func BrewAutoInstall(g *libkb.GlobalContext) error {
+func BrewAutoInstall(g *libkb.GlobalContext) (err error) {
+	g.Log.Debug("+ BrewAutoInstall for launchd")
+	defer func() {
+		g.Log.Debug("- BrewAutoInstall -> %v", err)
+	}()
 	label := defaultBrewServiceLabel(g.Env.GetRunMode())
 	if label == "" {
-		return fmt.Errorf("No service label to install")
+		err = fmt.Errorf("No service label to install")
+		return err
 	}
 
 	// Check if plist is installed. If so we're already installed and return.
 	plistPath := launchd.PlistDestination(label)
 	if _, err := os.Stat(plistPath); err == nil {
+		g.Log.Debug("| already installed at %s", plistPath)
 		return nil
 	}
 
 	// Get the full path to this executable using the brew opt bin directory.
 	binName := filepath.Base(os.Args[0])
 	binPath := filepath.Join("/usr/local/opt", binName, "bin", binName)
+	g.Log.Debug("| assembled binPath = %s", binPath)
 	plistArgs := []string{"service"}
 	envVars := defaultEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
-	err := launchd.Install(plist, ioutil.Discard)
+	err = launchd.Install(plist, ioutil.Discard)
 	if err != nil {
 		return err
 	}
