@@ -58,6 +58,13 @@ func TestSecretUI(t *testing.T) {
 	check()
 
 	// run login command
+	loginCmdUI := &loginCmdUI{
+		Contextified: libkb.NewContextified(tc2.G),
+	}
+	tc2.G.SetUI(loginCmdUI)
+	cmd := client.NewCmdLoginRunner(tc2.G)
+	err = cmd.Run()
+	check()
 
 	stopper := client.NewCmdCtlStopRunner(tc1.G)
 	if err := stopper.Run(); err != nil {
@@ -67,9 +74,8 @@ func TestSecretUI(t *testing.T) {
 	fmt.Printf("secret ui: %+v\n", sui)
 
 	// If the server failed, it's also an error
-	if err := <-stopCh; err != nil {
-		t.Fatal(err)
-	}
+	err = <-stopCh
+	check()
 }
 
 type secretUI struct {
@@ -104,4 +110,34 @@ func (s *secretUI) GetPaperKeyPassphrase(context.Context, keybase1.GetPaperKeyPa
 func (s *secretUI) GetSecret(context.Context, keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {
 	s.getSecret = true
 	return res, nil
+}
+
+type loginCmdUI struct {
+	baseNullUI
+	libkb.Contextified
+}
+
+func (u *loginCmdUI) GetLoginUI() libkb.LoginUI {
+	return &loginUI{Contextified: libkb.NewContextified(u.G())}
+}
+
+type loginUI struct {
+	libkb.Contextified
+}
+
+/*
+	GetEmailOrUsername(context.Context, int) (string, error)
+	PromptRevokePaperKeys(context.Context, PromptRevokePaperKeysArg) (bool, error)
+*/
+func (u *loginUI) DisplayPaperKeyPhrase(context.Context, keybase1.DisplayPaperKeyPhraseArg) error {
+	return nil
+}
+func (u *loginUI) DisplayPrimaryPaperKey(context.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
+	return nil
+}
+func (u *loginUI) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePaperKeysArg) (bool, error) {
+	return false, nil
+}
+func (u *loginUI) GetEmailOrUsername(context.Context, int) (string, error) {
+	return "t_alice", nil
 }

@@ -21,7 +21,7 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 		ArgumentHelp: "[username]",
 		Usage:        "Establish a session with the keybase server",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(newCmdLogin(g), "login", c)
+			cl.ChooseCommand(NewCmdLoginRunner(g), "login", c)
 		},
 	}
 }
@@ -31,7 +31,7 @@ type CmdLogin struct {
 	libkb.Contextified
 }
 
-func newCmdLogin(g *libkb.GlobalContext) *CmdLogin {
+func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
 	return &CmdLogin{Contextified: libkb.NewContextified(g)}
 }
 
