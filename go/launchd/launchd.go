@@ -294,8 +294,12 @@ func launchAgentDir() string {
 	return filepath.Join(launchdHomeDir(), "Library", "LaunchAgents")
 }
 
+func PlistDestination(label string) string {
+	return filepath.Join(launchAgentDir(), label+".plist")
+}
+
 func (s Service) plistDestination() string {
-	return filepath.Join(launchAgentDir(), s.label+".plist")
+	return PlistDestination(s.label)
 }
 
 func launchdHomeDir() string {

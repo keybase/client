@@ -833,8 +833,12 @@ func (c DebuggingClient) Increment(ctx context.Context, __arg IncrementArg) (res
 type RegisterIdentifyUIArg struct {
 }
 
+type RegisterSecretUIArg struct {
+}
+
 type DelegateUiCtlInterface interface {
 	RegisterIdentifyUI(context.Context) error
+	RegisterSecretUI(context.Context) error
 }
 
 func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
@@ -852,6 +856,17 @@ func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"registerSecretUI": {
+				MakeArg: func() interface{} {
+					ret := make([]RegisterSecretUIArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RegisterSecretUI(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -862,6 +877,11 @@ type DelegateUiCtlClient struct {
 
 func (c DelegateUiCtlClient) RegisterIdentifyUI(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerIdentifyUI", []interface{}{RegisterIdentifyUIArg{}}, nil)
+	return
+}
+
+func (c DelegateUiCtlClient) RegisterSecretUI(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerSecretUI", []interface{}{RegisterSecretUIArg{}}, nil)
 	return
 }
 

@@ -30,3 +30,8 @@ func (d *DelegateUICtlHandler) RegisterIdentifyUI(_ context.Context) error {
 	d.G().UIRouter.SetUI(d.id, libkb.IdentifyUIKind)
 	return nil
 }
+
+func (d *DelegateUICtlHandler) RegisterSecretUI(_ context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.SecretUIKind)
+	return nil
+}

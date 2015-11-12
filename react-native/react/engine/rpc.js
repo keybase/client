@@ -4,10 +4,10 @@ import EngineError from './errors'
 import rpc from 'framed-msgpack-rpc'
 
 const {
-  transport: { Transport: RpcTransport }
+  transport: { RobustTransport }
 } = rpc
 
-class BaseTransport extends RpcTransport {
+class BaseTransport extends RobustTransport {
   constructor (opts, writeCallback, incomingRPCCallback) {
     super(opts)
 
