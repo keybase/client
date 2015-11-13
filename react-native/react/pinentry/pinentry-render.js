@@ -9,7 +9,7 @@ export default class PinentryRender extends Component {
     this.state = {
       passphrase: ''
     }
-    for (let feature in this.props.payload.features) {
+    for (const feature in this.props.payload.features) {
       if (this.props.payload.features[feature].hasOwnProperty('value')) {
         this.state[feature] = this.props.payload.features[feature].value
       } else {
