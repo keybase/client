@@ -92,7 +92,7 @@ func (n *signupSecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *k
 }
 
 func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
-	err = fmt.Errorf("GetPinSecret unimplemented")
+	err = fmt.Errorf("GetPassphrase unimplemented")
 	return res, err
 }
 

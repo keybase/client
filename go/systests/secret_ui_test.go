@@ -88,7 +88,7 @@ type secretUI struct {
 	getNewPassphrase      bool
 	getPaperKeyPassphrase bool
 	getSecret             bool
-	getPinSecret          bool
+	getPassphrase         bool
 }
 
 // secretUI implements the keybase1.IdentifyUiInterface
@@ -119,7 +119,7 @@ func (s *secretUI) GetSecret(context.Context, keybase1.GetSecretArg) (res keybas
 }
 
 func (s *secretUI) GetPassphrase(context.Context, keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
-	s.getPinSecret = true
+	s.getPassphrase = true
 	return res, nil
 }
 
