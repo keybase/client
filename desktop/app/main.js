@@ -25,9 +25,15 @@ const mainWindow = new Window('index', {
   width: 1600, height: 1200, openDevTools: true
 })
 
-mb.on('ready', function () {
+mb.on('ready', () => {
   require('../../react-native/react/native/notifications').init()
 })
+
+// Work around an OS X bug that leaves a gap in the status bar if you exit
+// without removing your status bar icon.
+if (process.platform === 'darwin') {
+  mb.app.on('quit', () => { mb.tray.destroy() })
+}
 
 ipc.on('showMain', () => { mainWindow.show() })
 ipc.on('showTracker', () => { trackerWindow.show() })
