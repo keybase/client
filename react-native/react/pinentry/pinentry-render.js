@@ -22,7 +22,7 @@ export default class PinentryRender extends Component {
   render () {
     return (
       <div>
-        <p>{this.props.payload.prompt_text}</p>
+        <p>{this.props.payload.promptText}</p>
         <TextField
           ref='passphrase'
           onChange={e => this.setState({passphrase: e.target.value})}
