@@ -688,13 +688,13 @@ func (ui SecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) 
 	return
 }
 
-func (ui SecretUI) GetPinSecret(pin keybase1.PinEntryArg, term *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+func (ui SecretUI) GetPassphrase(pin keybase1.GUIEntryArg, term *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	// if this gets called, then the delegate ui wasn't available.
 	// so only use the terminal
 	if term == nil {
 		term = &keybase1.SecretEntryArg{
 			Prompt:         pin.Prompt,
-			UseSecretStore: pin.AllowSecretStorage,
+			UseSecretStore: pin.Features.SecretStorage.Allow,
 		}
 	}
 	s, err := ui.parent.Terminal.GetSecret(term)

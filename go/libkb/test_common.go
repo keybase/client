@@ -364,11 +364,11 @@ func (t *TestSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) 
 	return t.BackupPassphrase, nil
 }
 
-func (t *TestSecretUI) GetPinSecret(p keybase1.PinEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+func (t *TestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	t.CalledGetPinSecret = true
 	return keybase1.GetPassphraseRes{
 		Passphrase:  t.Passphrase,
-		StoreSecret: p.AllowSecretStorage && t.StoreSecret,
+		StoreSecret: p.Features.SecretStorage.Allow && t.StoreSecret,
 	}, nil
 }
 

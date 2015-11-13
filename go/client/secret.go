@@ -39,6 +39,6 @@ func (s *SecretUIServer) GetPaperKeyPassphrase(_ context.Context, arg keybase1.G
 	return s.eng.GetPaperKeyPassphrase(arg)
 }
 
-func (s *SecretUIServer) GetPinSecret(_ context.Context, arg keybase1.GetPinSecretArg) (keybase1.GetPassphraseRes, error) {
-	return s.eng.GetPinSecret(arg.Pinentry, arg.Terminal)
+func (s *SecretUIServer) GetPassphrase(_ context.Context, arg keybase1.GetPassphraseArg) (keybase1.GetPassphraseRes, error) {
+	return s.eng.GetPassphrase(arg.Pinentry, arg.Terminal)
 }

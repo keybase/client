@@ -322,6 +322,6 @@ func (c *CmdStress) GetSecret(_ context.Context, arg keybase1.GetSecretArg) (res
 	return
 }
 
-func (c *CmdStress) GetPinSecret(_ context.Context, arg keybase1.GetPinSecretArg) (res keybase1.GetPassphraseRes, err error) {
+func (c *CmdStress) GetPassphrase(_ context.Context, arg keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	return
 }

@@ -110,7 +110,7 @@ func (m *GetSecretMock) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg)
 	return "invalid passphrase", m.LastErr
 }
 
-func (m *GetSecretMock) GetPinSecret(p keybase1.PinEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+func (m *GetSecretMock) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	return
 }
 
@@ -253,7 +253,7 @@ func (m *GetKeybasePassphraseMock) CheckLastErr(t *testing.T) {
 	}
 }
 
-func (m *GetKeybasePassphraseMock) GetPinSecret(p keybase1.PinEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+func (m *GetKeybasePassphraseMock) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	return
 }
 

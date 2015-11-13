@@ -3952,11 +3952,19 @@ type GetPassphraseRes struct {
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 }
 
-type PinEntryArg struct {
-	WindowTitle        string `codec:"windowTitle" json:"windowTitle"`
-	Prompt             string `codec:"prompt" json:"prompt"`
-	AllowSecretStorage bool   `codec:"allowSecretStorage" json:"allowSecretStorage"`
-	SecretStorageLabel string `codec:"secretStorageLabel" json:"secretStorageLabel"`
+type SecretStorageFeature struct {
+	Allow bool   `codec:"allow" json:"allow"`
+	Label string `codec:"label" json:"label"`
+}
+
+type GUIEntryFeatures struct {
+	SecretStorage SecretStorageFeature `codec:"secretStorage" json:"secretStorage"`
+}
+
+type GUIEntryArg struct {
+	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
+	Prompt      string           `codec:"prompt" json:"prompt"`
+	Features    GUIEntryFeatures `codec:"features" json:"features"`
 }
 
 type GetSecretArg struct {
@@ -3985,9 +3993,9 @@ type GetPaperKeyPassphraseArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
-type GetPinSecretArg struct {
+type GetPassphraseArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Pinentry  PinEntryArg     `codec:"pinentry" json:"pinentry"`
+	Pinentry  GUIEntryArg     `codec:"pinentry" json:"pinentry"`
 	Terminal  *SecretEntryArg `codec:"terminal,omitempty" json:"terminal,omitempty"`
 }
 
@@ -3996,7 +4004,7 @@ type SecretUiInterface interface {
 	GetNewPassphrase(context.Context, GetNewPassphraseArg) (GetPassphraseRes, error)
 	GetKeybasePassphrase(context.Context, GetKeybasePassphraseArg) (GetPassphraseRes, error)
 	GetPaperKeyPassphrase(context.Context, GetPaperKeyPassphraseArg) (string, error)
-	GetPinSecret(context.Context, GetPinSecretArg) (GetPassphraseRes, error)
+	GetPassphrase(context.Context, GetPassphraseArg) (GetPassphraseRes, error)
 }
 
 func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
@@ -4067,18 +4075,18 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getPinSecret": {
+			"getPassphrase": {
 				MakeArg: func() interface{} {
-					ret := make([]GetPinSecretArg, 1)
+					ret := make([]GetPassphraseArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetPinSecretArg)
+					typedArgs, ok := args.(*[]GetPassphraseArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetPinSecretArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetPassphraseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetPinSecret(ctx, (*typedArgs)[0])
+					ret, err = i.GetPassphrase(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4111,8 +4119,8 @@ func (c SecretUiClient) GetPaperKeyPassphrase(ctx context.Context, __arg GetPape
 	return
 }
 
-func (c SecretUiClient) GetPinSecret(ctx context.Context, __arg GetPinSecretArg) (res GetPassphraseRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.secretUi.getPinSecret", []interface{}{__arg}, &res)
+func (c SecretUiClient) GetPassphrase(ctx context.Context, __arg GetPassphraseArg) (res GetPassphraseRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.secretUi.getPassphrase", []interface{}{__arg}, &res)
 	return
 }
 

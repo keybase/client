@@ -83,8 +83,8 @@ func (l *SecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) 
 }
 
 // GetPinSecret gets the current keybase passphrase from delegated pinentry.
-func (l *SecretUI) GetPinSecret(pinentry keybase1.PinEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return l.cli.GetPinSecret(context.TODO(), keybase1.GetPinSecretArg{SessionID: l.sessionID, Pinentry: pinentry, Terminal: terminal})
+func (l *SecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return l.cli.GetPassphrase(context.TODO(), keybase1.GetPassphraseArg{SessionID: l.sessionID, Pinentry: pinentry, Terminal: terminal})
 }
 
 func (h *BaseHandler) rpcClient() *rpc.Client {

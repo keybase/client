@@ -118,7 +118,7 @@ func (s *secretUI) GetSecret(context.Context, keybase1.GetSecretArg) (res keybas
 	return res, nil
 }
 
-func (s *secretUI) GetPinSecret(context.Context, keybase1.GetPinSecretArg) (res keybase1.GetPassphraseRes, err error) {
+func (s *secretUI) GetPassphrase(context.Context, keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	s.getPinSecret = true
 	return res, nil
 }

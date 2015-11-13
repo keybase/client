@@ -506,11 +506,19 @@ typedef NS_ENUM (NSInteger, KBRDeviceType) {
 @property BOOL storeSecret;
 @end
 
-@interface KBRPinEntryArg : KBRObject
+@interface KBRSecretStorageFeature : KBRObject
+@property BOOL allow;
+@property NSString *label;
+@end
+
+@interface KBRGUIEntryFeatures : KBRObject
+@property KBRSecretStorageFeature *secretStorage;
+@end
+
+@interface KBRGUIEntryArg : KBRObject
 @property NSString *windowTitle;
 @property NSString *prompt;
-@property BOOL allowSecretStorage;
-@property NSString *secretStorageLabel;
+@property KBRGUIEntryFeatures *features;
 @end
 
 @interface KBRSession : KBRObject
@@ -1087,9 +1095,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property NSString *username;
 @end
-@interface KBRGetPinSecretRequestParams : KBRRequestParams
+@interface KBRGetPassphraseRequestParams : KBRRequestParams
 @property NSInteger sessionID;
-@property KBRPinEntryArg *pinentry;
+@property KBRGUIEntryArg *pinentry;
 @property KBRSecretEntryArg *terminal;
 @end
 @interface KBRCurrentSessionRequestParams : KBRRequestParams
@@ -1832,9 +1840,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getPaperKeyPassphraseWithUsername:(NSString *)username completion:(void (^)(NSError *error, NSString *str))completion;
 
-- (void)getPinSecret:(KBRGetPinSecretRequestParams *)params completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion;
+- (void)getPassphrase:(KBRGetPassphraseRequestParams *)params completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion;
 
-- (void)getPinSecretWithPinentry:(KBRPinEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion;
+- (void)getPassphraseWithPinentry:(KBRGUIEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion;
 
 @end
 
