@@ -26,7 +26,7 @@ func TestCommandLine(t *testing.T) {
 	linkPath := filepath.Join(testDir, "kbtest")
 
 	// Install
-	err = installCommandLineForBin(binPath, linkPath, true)
+	err = installCommandLineForBinPath(binPath, linkPath, true)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
@@ -36,7 +36,7 @@ func TestCommandLine(t *testing.T) {
 	}
 
 	// Install again
-	err = installCommandLineForBin(binPath, linkPath, true)
+	err = installCommandLineForBinPath(binPath, linkPath, true)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}

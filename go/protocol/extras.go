@@ -344,7 +344,7 @@ func (s Status) Error() string {
 	return fmt.Sprintf("%s (%s/%d)", s.Desc, s.Name, s.Code)
 }
 
-func (s InstallStatus) ToString() string {
+func (s InstallStatus) String() string {
 	switch s {
 	case InstallStatus_UNKNOWN:
 		return "Unknown"
@@ -360,7 +360,7 @@ func (s InstallStatus) ToString() string {
 	return ""
 }
 
-func (s InstallAction) ToString() string {
+func (s InstallAction) String() string {
 	switch s {
 	case InstallAction_UNKNOWN:
 		return "Unknown"

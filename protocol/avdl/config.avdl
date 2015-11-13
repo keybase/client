@@ -66,6 +66,11 @@ protocol config {
     Status status;
   }
 
+  record ServicesStatus {
+    array<ServiceStatus> service;
+    array<ServiceStatus> kbfs;
+  }
+
   record FuseStatus {
     string version;
     string bundleVersion;
@@ -77,4 +82,8 @@ protocol config {
     Status status;
   }
 
+  record InstallComponent {
+    string name;
+    Status status;
+  }
 }

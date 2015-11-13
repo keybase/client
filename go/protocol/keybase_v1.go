@@ -387,6 +387,11 @@ type ServiceStatus struct {
 	Status         Status        `codec:"status" json:"status"`
 }
 
+type ServicesStatus struct {
+	Service []ServiceStatus `codec:"service" json:"service"`
+	Kbfs    []ServiceStatus `codec:"kbfs" json:"kbfs"`
+}
+
 type FuseStatus struct {
 	Version       string        `codec:"version" json:"version"`
 	BundleVersion string        `codec:"bundleVersion" json:"bundleVersion"`
@@ -396,6 +401,11 @@ type FuseStatus struct {
 	InstallStatus InstallStatus `codec:"installStatus" json:"installStatus"`
 	InstallAction InstallAction `codec:"installAction" json:"installAction"`
 	Status        Status        `codec:"status" json:"status"`
+}
+
+type InstallComponent struct {
+	Name   string `codec:"name" json:"name"`
+	Status Status `codec:"status" json:"status"`
 }
 
 type GetCurrentStatusArg struct {

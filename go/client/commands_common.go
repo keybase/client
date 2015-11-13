@@ -47,5 +47,6 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdVersion(cl, g),
 	}
 	ret = append(ret, getBuildSpecificCommands(cl, g)...)
+	ret = append(ret, getPlatformSpecificCommands(cl, g)...)
 	return ret
 }

@@ -9,10 +9,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol"
 )
 
 func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -27,11 +29,24 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "o, format",
 				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
 			},
+			cli.StringFlag{
+				Name:  "b, bin-path",
+				Usage: "Full path to the executable, if it would be ambiguous otherwise.",
+			},
+			cli.StringFlag{
+				Name:  "i, installer",
+				Usage: "Installer to use.",
+			},
+			cli.StringFlag{
+				Name:  "c, components",
+				Usage: "Components to install, comma separated. Specify 'cli' for command line, 'service' for service, kbfs for 'kbfs', or blank for all.",
+			},
 		},
 		ArgumentHelp: "",
 		Usage:        "",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
 			cl.ChooseCommand(NewCmdInstallRunner(g), "install", c)
 		},
 	}
@@ -39,8 +54,11 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 type CmdInstall struct {
 	libkb.Contextified
-	force  bool
-	format string
+	force      bool
+	format     string
+	binPath    string
+	installer  string
+	components []string
 }
 
 func NewCmdInstallRunner(g *libkb.GlobalContext) *CmdInstall {
@@ -56,13 +74,26 @@ func (v *CmdInstall) GetUsage() libkb.Usage {
 func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	v.force = ctx.Bool("force")
 	v.format = ctx.String("format")
+	v.binPath = ctx.String("bin-path")
+	v.installer = ctx.String("installer")
+	v.components = strings.Split(ctx.String("components"), ",")
+	if len(v.components) == 0 {
+		v.components = []string{"cli", "service", "kbfs"}
+	}
 	return nil
 }
 
 func (v *CmdInstall) Run() error {
-	status := install(v.G(), v.force)
+	var components []keybase1.InstallComponent
+	if v.installer == "auto" {
+		components = AutoInstallWithStatus(v.G(), v.binPath, v.force)
+	} else if v.installer == "" {
+		components = Install(v.G(), v.binPath, v.components, v.force)
+	} else {
+		return fmt.Errorf("Invalid install type: %s", v.installer)
+	}
 	if v.format == "json" {
-		out, err := json.MarshalIndent(status, "", "  ")
+		out, err := json.MarshalIndent(components, "", "  ")
 		if err != nil {
 			return err
 		}
