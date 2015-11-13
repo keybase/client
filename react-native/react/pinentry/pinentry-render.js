@@ -7,11 +7,12 @@ import { TextField, RaisedButton, Checkbox } from 'material-ui'
 export default class PinentryRender extends Component {
   componentWillMount () {
     this.state = {
-      passphrase: ''
+      passphrase: '',
+      features: {}
     }
     for (const feature in this.props.payload.features) {
       if (this.props.payload.features[feature].hasOwnProperty('value')) {
-        this.state[feature] = this.props.payload.features[feature].value
+        this.state.features[feature] = this.props.payload.features[feature].value
       } else {
         console.error('We were passed a payload with no value!')
       }
@@ -36,13 +37,13 @@ export default class PinentryRender extends Component {
             label={this.props.payload.features[feature].label}
             defaultChecked={this.props.payload.features[feature].value}
             style={{marginTop: 30}}
-            onCheck={(_, checked) => { this.state[feature] = checked }}
+            onCheck={(_, checked) => { this.state.features[feature] = checked }}
           />
         })}
 
         <RaisedButton style={{margin: 5}} onClick={() => this.props.onCancel()} label='Cancel' />
 
-        <RaisedButton style={{margin: 5}} onClick={() => this.props.onSubmit(this.state)} label='OK' />
+        <RaisedButton style={{margin: 5}} onClick={() => this.props.onSubmit(this.state.passphrase, this.state.features)} label='OK' />
       </div>
     )
   }

@@ -14,9 +14,9 @@ export default class Pinentry extends Component {
       componentAtTop: {
         title: 'pinentry',
         props: {
-          onSubmit: secret => {
-            console.log(`Secret submitted:`)
-            console.log(secret)
+          onSubmit: (passphrase, features) => {
+            console.log(`Passphrase submitted: ${passphrase}`)
+            console.log(features)
           },
           onCancel: () => console.log('Pinentry dialog canceled'),
           // Mock out the RPC payload until implemented.
