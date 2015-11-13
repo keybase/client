@@ -8,6 +8,8 @@ import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import MenuList from './menu-list'
 
+import TrackerPopupListener from './dev/tracker-popup-listener'
+
 class DevMenu extends Component {
   render () {
     const menuItems = [
@@ -35,6 +37,16 @@ class DevMenu extends Component {
       }},
       {name: 'Profile', hasChildren: true, onClick: () => {
         this.props.pushNewProfile('test12')
+      }},
+      {name: 'Tracker Popup listener', hasChildren: true, onClick: () => {
+        this.props.routeAppend({
+          parseRoute: {
+            componentAtTop: {
+              component: TrackerPopupListener,
+              mapStateToProps: state => { return {} }
+            }
+          }
+        })
       }},
       {name: 'Tracker (normal)', hasChildren: true, onClick: () => {
         this.props.routeAppend([{path: 'tracker', state: 'normal'}])
