@@ -21,6 +21,10 @@ func NewCmdFuse(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 	return cli.Command{}
 }
 
+func NewCmdCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{}
+}
+
 func BrewAutoInstall(g *libkb.GlobalContext) error {
 	return fmt.Errorf("Brew auto install only supported for OS X")
 }
