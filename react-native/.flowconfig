@@ -14,17 +14,21 @@
 .*/react/local-debug.js
 
 # Ignoring these for now
-.*desktop.js
 .*/desktop/.*
 .*/node_modules/redux-devtools/.*
 .*/node_modules/react-redux/node_modules/invariant/.*
 .*/react/packager/.*
-.*/react/native/.*
 .*/react/purepack/.*
 .*/react/framed-msgpack-rpc/.*
 .*/react/iced-error/.*
 .*/react/debug/.*
-.*/react/engine/.*
+.*/react/tracker/.*
+
+# Ignore .*-render.platform.js files
+.*-render\.android\.js
+.*-render\.ios\.js
+.*-render\.mobile\.js
+.*-render\.desktop\.js
 
 # Some react native errors in flow type
 .*/node_modules/react-native/Libraries/Animated/src/Interpolation.js
@@ -67,6 +71,8 @@ munge_underscores=true
 module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.png$' -> 'RelativeImageStub'
 module.name_mapper= '\.\/serialize' -> './serialize.mobile.js'
+module.name_mapper= '\.\/.*-render' -> 'View'
+module.name_mapper= '.*constants\/platform' -> 'platform-constants'
 
 suppress_type=$FlowIssue
 suppress_type=$FlowFixMe

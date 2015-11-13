@@ -106,7 +106,7 @@ func mainInner(g *libkb.GlobalContext) error {
 			if err = client.ForkServer(cl, g); err != nil {
 				return err
 			}
-		} else if libkb.IsBrewBuild {
+		} else if libkb.IsBrewBuild && fc != libcmdline.NoFork {
 			err := client.BrewAutoInstall(g)
 			if err != nil {
 				return err

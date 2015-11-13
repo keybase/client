@@ -91,6 +91,11 @@ func (n *signupSecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *k
 	return res, err
 }
 
+func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+	err = fmt.Errorf("GetPassphrase unimplemented")
+	return res, err
+}
+
 func (n *signupTerminalUI) Prompt(pd libkb.PromptDescriptor, s string) (ret string, err error) {
 	switch pd {
 	case client.PromptDescriptorSignupUsername:

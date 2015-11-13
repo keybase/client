@@ -9,6 +9,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"golang.org/x/crypto/nacl/box"
+	"io"
+	"io/ioutil"
 	"testing"
 )
 
@@ -128,7 +130,7 @@ func TestBiggishEncryptionOneReceiver(t *testing.T) {
 }
 
 type options struct {
-	writeSize int
+	readSize int
 }
 
 func randomMsg(t *testing.T, sz int) []byte {
@@ -145,9 +147,9 @@ func testRealEncryptor(t *testing.T, sz int) {
 		t.Fatal(err)
 	}
 	sndr := newBoxKey(t)
-	var out bytes.Buffer
+	var ciphertext bytes.Buffer
 	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
-	strm, err := NewPublicEncryptStream(&out, *sndr, receivers)
+	strm, err := NewEncryptStream(&ciphertext, *sndr, receivers)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -158,20 +160,11 @@ func testRealEncryptor(t *testing.T, sz int) {
 		t.Fatal(err)
 	}
 
-	var out2 bytes.Buffer
-	strm2, err := NewPublicDecryptStream(&out2, kr)
+	msg2, err := Open(ciphertext.Bytes(), kr)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	if _, err := strm2.Write(out.Bytes()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := strm2.Close(); err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(out2.Bytes(), msg) {
+	if !bytes.Equal(msg2, msg) {
 		t.Fatal("decryption mismatch")
 	}
 }
@@ -184,53 +177,56 @@ func TestRealEncryptorBig(t *testing.T) {
 	testRealEncryptor(t, 1024*1024*3)
 }
 
+func slowRead(r io.Reader, sz int) ([]byte, error) {
+	buf := make([]byte, sz)
+	var res []byte
+	for eof := false; !eof; {
+		n, err := r.Read(buf)
+		if n == 0 || err == io.EOF {
+			eof = true
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, buf[0:n]...)
+	}
+	return res, nil
+}
+
 func testRoundTrip(t *testing.T, msg []byte, receivers [][]BoxPublicKey, opts *options) {
 	sndr := newBoxKey(t)
-	var out bytes.Buffer
+	var ciphertext bytes.Buffer
 	if receivers == nil {
 		receivers = [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
 	}
-	strm, err := newTestPublicEncryptStream(&out, *sndr, receivers,
+	strm, err := newTestEncryptStream(&ciphertext, *sndr, receivers,
 		testEncryptionOptions{blockSize: 1024})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := strm.Write(msg); err != nil {
+	if _, err = strm.Write(msg); err != nil {
 		t.Fatal(err)
 	}
-	if err := strm.Close(); err != nil {
+	if err = strm.Close(); err != nil {
 		t.Fatal(err)
 	}
 
-	var out2 bytes.Buffer
-	strm2, err := NewPublicDecryptStream(&out2, kr)
+	plaintextStream, err := NewDecryptStream(&ciphertext, kr)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if opts != nil && opts.writeSize != 0 {
-		buf := out.Bytes()
-		for len(buf) > 0 {
-			end := opts.writeSize
-			if end > len(buf) {
-				end = len(buf)
-			}
-			if n, err := strm2.Write(buf[0:end]); err != nil {
-				t.Fatal(err)
-			} else {
-				buf = buf[n:]
-			}
-		}
+	var plaintext []byte
+	if opts != nil && opts.readSize != 0 {
+		plaintext, err = slowRead(plaintextStream, opts.readSize)
 	} else {
-		if _, err := strm2.Write(out.Bytes()); err != nil {
-			t.Fatal(err)
-		}
+		plaintext, err = ioutil.ReadAll(plaintextStream)
 	}
-
-	if err := strm2.Close(); err != nil {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(out2.Bytes(), msg) {
+	if !bytes.Equal(plaintext, msg) {
 		t.Fatal("decryption mismatch")
 	}
 }
@@ -298,7 +294,7 @@ func TestReceiverNotFound(t *testing.T) {
 		},
 	}
 
-	strm, err := newTestPublicEncryptStream(&out, *sndr, receivers,
+	strm, err := newTestEncryptStream(&out, *sndr, receivers,
 		testEncryptionOptions{blockSize: 1024})
 	if err != nil {
 		t.Fatal(err)
@@ -309,14 +305,9 @@ func TestReceiverNotFound(t *testing.T) {
 	if err := strm.Close(); err != nil {
 		t.Fatal(err)
 	}
-
-	var out2 bytes.Buffer
-	strm2, err := NewPublicDecryptStream(&out2, kr)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := strm2.Write(out.Bytes()); err != ErrNoDecryptionKey {
-		t.Fatal("exepcted an ErrNoDecryptionkey")
+	_, err = Open(out.Bytes(), kr)
+	if err != ErrNoDecryptionKey {
+		t.Fatalf("expected an ErrNoDecryptionkey; got %v", err)
 	}
 }
 
@@ -325,7 +316,7 @@ func TestTruncation(t *testing.T) {
 	var out bytes.Buffer
 	msg := []byte("this message is going to be truncated")
 	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
-	strm, err := newTestPublicEncryptStream(&out, *sndr, receivers,
+	strm, err := newTestEncryptStream(&out, *sndr, receivers,
 		testEncryptionOptions{blockSize: 1024})
 	if err != nil {
 		t.Fatal(err)
@@ -337,44 +328,36 @@ func TestTruncation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var out2 bytes.Buffer
-	strm2, err := NewPublicDecryptStream(&out2, kr)
-	if err != nil {
-		t.Fatal(err)
-	}
 	ciphertext := out.Bytes()
 	trunced1 := ciphertext[0 : len(ciphertext)-51]
-
-	if _, err := strm2.Write(trunced1); err != nil {
-		t.Fatal(err)
-	}
-	if err := strm2.Close(); err != ErrUnexpectedEOF {
-		t.Fatalf("Wanted an ErrUnexpectedEOF; got %v\n", err)
+	_, err = Open(trunced1, kr)
+	if err != io.ErrUnexpectedEOF {
+		t.Fatalf("Wanted an %v; but got %v\n", io.ErrUnexpectedEOF, err)
 	}
 }
 
-func TestMediumEncryptionOneReceiverSmallWrites(t *testing.T) {
+func TestMediumEncryptionOneReceiverSmallReads(t *testing.T) {
 	buf := make([]byte, 1024*10)
 	if _, err := rand.Read(buf); err != nil {
 		t.Fatal(err)
 	}
-	testRoundTrip(t, buf, nil, &options{writeSize: 1})
+	testRoundTrip(t, buf, nil, &options{readSize: 1})
 }
 
-func TestMediumEncryptionOneReceiverSmallishWrites(t *testing.T) {
+func TestMediumEncryptionOneReceiverSmallishReads(t *testing.T) {
 	buf := make([]byte, 1024*10)
 	if _, err := rand.Read(buf); err != nil {
 		t.Fatal(err)
 	}
-	testRoundTrip(t, buf, nil, &options{writeSize: 7})
+	testRoundTrip(t, buf, nil, &options{readSize: 7})
 }
 
-func TestMediumEncryptionOneReceiverMediumWrites(t *testing.T) {
+func TestMediumEncryptionOneReceiverMediumReads(t *testing.T) {
 	buf := make([]byte, 1024*10)
 	if _, err := rand.Read(buf); err != nil {
 		t.Fatal(err)
 	}
-	testRoundTrip(t, buf, nil, &options{writeSize: 79})
+	testRoundTrip(t, buf, nil, &options{readSize: 79})
 }
 
 func testSealAndOpen(t *testing.T, sz int) {
@@ -790,8 +773,8 @@ func TestMissingFooter(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if err != ErrUnexpectedEOF {
-		t.Fatalf("Wanted %v but got %v", ErrUnexpectedEOF, err)
+	if err != io.ErrUnexpectedEOF {
+		t.Fatalf("Wanted %v but got %v", io.ErrUnexpectedEOF, err)
 	}
 }
 

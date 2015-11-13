@@ -8,6 +8,7 @@ import (
 	"crypto/hmac"
 	"golang.org/x/crypto/nacl/secretbox"
 	"io"
+	"io/ioutil"
 )
 
 // Keyring is an interface used with decryption; it is call to recover
@@ -24,96 +25,127 @@ type Keyring interface {
 	LookupBoxPublicKey(kid []byte) BoxPublicKey
 }
 
-type publicDecryptStream struct {
-	output     io.Writer
+type decryptState int
+
+const (
+	stateHeader      decryptState = iota
+	stateBody        decryptState = iota
+	stateEndOfStream decryptState = iota
+)
+
+type decryptStream struct {
 	ring       Keyring
 	fmps       *framedMsgpackStream
 	err        error
-	state      int
+	state      decryptState
 	keys       *receiverKeysPlaintext
 	sessionKey SymmetricKey
+	buf        []byte
 }
 
-func (pds *publicDecryptStream) Write(b []byte) (n int, err error) {
-	if pds.err != nil {
-		return 0, pds.err
+func (ds *decryptStream) Read(b []byte) (n int, err error) {
+	for n == 0 && err == nil {
+		n, err = ds.read(b)
 	}
-	if n, pds.err = pds.fmps.Write(b); pds.err != nil {
-		return 0, pds.err
+	if err == io.EOF && ds.state != stateEndOfStream {
+		err = io.ErrUnexpectedEOF
 	}
-	if pds.err = pds.decode(); pds.err != nil {
-		return 0, pds.err
+	return n, err
+}
+
+func (ds *decryptStream) read(b []byte) (n int, err error) {
+
+	// Handle the case of a previous error. Just return the error
+	// again.
+	if ds.err != nil {
+		return 0, ds.err
 	}
+
+	// Handle the case first of a previous read that couldn't put all
+	// of its data into the outgoing buffer.
+	if len(ds.buf) > 0 {
+		n = copy(b, ds.buf)
+		ds.buf = ds.buf[n:]
+		return n, nil
+	}
+
+	// We have three states we can be in, but we can definitely
+	// fall through during one read, so be careful.
+
+	if ds.state == stateHeader {
+		if ds.err = ds.readHeader(); ds.err != nil {
+			return 0, ds.err
+		}
+		ds.state = stateBody
+	}
+
+	if ds.state == stateBody {
+		var last bool
+		n, last, ds.err = ds.readBlock(b)
+		if ds.err != nil {
+			return 0, ds.err
+		}
+
+		if last {
+			ds.state = stateEndOfStream
+		}
+	}
+
+	if ds.state == stateEndOfStream {
+		ds.err = ds.assertEndOfStream()
+		if ds.err != nil {
+			return 0, ds.err
+		}
+	}
+
 	return n, nil
 }
 
-func (pds *publicDecryptStream) Close() (err error) {
-	if pds.err != nil {
-		return pds.err
+func (ds *decryptStream) readHeader() error {
+	var hdr EncryptionHeader
+	seqno, err := ds.fmps.Read(&hdr)
+	if err != nil {
+		return err
 	}
-	if pds.err = pds.fmps.Close(); pds.err != nil {
-		return pds.err
-	}
-	pds.err = pds.decode()
-	return pds.err
+	hdr.seqno = seqno
+	return ds.processEncryptionHeader(&hdr)
 }
 
-func (pds *publicDecryptStream) decode() error {
-	var err error
+func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) {
+	var eb EncryptionBlock
 	var seqno PacketSeqno
-
-	for err == nil {
-		switch pds.state {
-		case 0:
-			var hdr EncryptionHeader
-			seqno, err = pds.fmps.Decode(&hdr)
-			if err == nil {
-				hdr.seqno = seqno
-				err = pds.processEncryptionHeader(&hdr)
-				if err == nil {
-					pds.state++
-				}
-			}
-		case 1:
-			var eb EncryptionBlock
-			seqno, err = pds.fmps.Decode(&eb)
-			var done bool
-			if err == nil {
-				eb.seqno = seqno
-				done, err = pds.processEncryptionBlock(&eb)
-				if err == nil && done {
-					pds.state++
-				}
-			}
-		case 2:
-			var i interface{}
-			_, err = pds.fmps.Decode(&i)
-			if err == nil {
-				err = ErrTrailingGarbage
-			}
-			if err == io.EOF {
-				pds.state++
-			}
-		}
+	seqno, err = ds.fmps.Read(&eb)
+	if err != nil {
+		return 0, false, err
+	}
+	eb.seqno = seqno
+	var plaintext []byte
+	plaintext, err = ds.processEncryptionBlock(&eb)
+	if err != nil {
+		return 0, false, err
+	}
+	if plaintext == nil {
+		return 0, true, err
 	}
 
-	if err == errAgain {
-		err = nil
-	}
+	// Copy as much as we can into the given outbuffer
+	n = copy(b, plaintext)
+	// Leave the remainder for a subsequent read
+	ds.buf = plaintext[n:]
 
-	// EOFs are only allowed in state 3; otherwise, it's a failure
-	if err == io.EOF {
-		if pds.state == 3 {
-			err = nil
-		} else {
-			err = ErrUnexpectedEOF
-		}
-	}
+	return n, false, err
+}
 
+func (ds *decryptStream) assertEndOfStream() error {
+	var i interface{}
+	_, err := ds.fmps.Read(&i)
+	if err == nil {
+		err = ErrTrailingGarbage
+	}
 	return err
 }
 
-func (pds *publicDecryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
+func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	if err := hdr.validate(); err != nil {
 		return err
 	}
@@ -121,11 +153,11 @@ func (pds *publicDecryptStream) processEncryptionHeader(hdr *EncryptionHeader) e
 	for _, r := range hdr.Receivers {
 		kids = append(kids, r.KID)
 	}
-	i, sk := pds.ring.LookupBoxSecretKey(kids)
+	i, sk := ds.ring.LookupBoxSecretKey(kids)
 	if sk == nil || i < 0 {
 		return ErrNoDecryptionKey
 	}
-	pk := pds.ring.LookupBoxPublicKey(hdr.Sender)
+	pk := ds.ring.LookupBoxPublicKey(hdr.Sender)
 	if pk == nil {
 		return ErrNoSenderKey
 	}
@@ -141,98 +173,88 @@ func (pds *publicDecryptStream) processEncryptionHeader(hdr *EncryptionHeader) e
 	if err = decodeFromBytes(&keys, keysPacked); err != nil {
 		return err
 	}
-	pds.keys = &keys
-	copy(pds.sessionKey[:], pds.keys.SessionKey)
+	ds.keys = &keys
+	copy(ds.sessionKey[:], ds.keys.SessionKey)
 
 	return nil
 }
 
-func (pds *publicDecryptStream) checkMAC(bl *EncryptionBlock, b []byte) error {
-	if pds.keys.GroupID < 0 {
-		if len(pds.keys.MACKey) != 0 {
+func (ds *decryptStream) checkMAC(bl *EncryptionBlock, b []byte) error {
+	if ds.keys.GroupID < 0 {
+		if len(ds.keys.MACKey) != 0 {
 			return ErrUnexpectedMAC(bl.seqno)
 		}
 		return nil
 	}
-	if len(bl.MACs) <= pds.keys.GroupID {
-		return ErrBadGroupID(pds.keys.GroupID)
+	if len(bl.MACs) <= ds.keys.GroupID {
+		return ErrBadGroupID(ds.keys.GroupID)
 	}
 
-	if len(pds.keys.MACKey) == 0 {
+	if len(ds.keys.MACKey) == 0 {
 		return ErrNoGroupMACKey
 	}
 
-	mac := hmacSHA512(pds.keys.MACKey, b)
-	if !hmac.Equal(mac, bl.MACs[pds.keys.GroupID]) {
+	mac := hmacSHA512(ds.keys.MACKey, b)
+	if !hmac.Equal(mac, bl.MACs[ds.keys.GroupID]) {
 		return ErrMACMismatch(bl.seqno)
 	}
 	return nil
 }
 
-func (pds *publicDecryptStream) processEncryptionBlock(bl *EncryptionBlock) (bool, error) {
+func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, error) {
 	if err := bl.validate(); err != nil {
-		return false, err
+		return nil, err
 	}
 
 	if bl.seqno <= 0 {
-		return false, errPacketUnderflow
+		return nil, errPacketUnderflow
 	}
 
 	blockNum := encryptionBlockNumber(bl.seqno - 1)
 
 	if err := blockNum.check(); err != nil {
-		return false, err
+		return nil, err
 	}
 
 	nonce := blockNum.newCounterNonce()
 
-	if sum, err := hashNonceAndAuthTag(nonce, bl.Ciphertext); err != nil {
-		return false, err
-	} else if err := pds.checkMAC(bl, sum[:]); err != nil {
-		return false, err
+	sum := hashNonceAndAuthTag(nonce, bl.Ciphertext)
+	if err := ds.checkMAC(bl, sum[:]); err != nil {
+		return nil, err
 	}
 
-	plaintext, ok := secretbox.Open([]byte{}, bl.Ciphertext, (*[24]byte)(nonce), (*[32]byte)(&pds.sessionKey))
+	plaintext, ok := secretbox.Open([]byte{}, bl.Ciphertext, (*[24]byte)(nonce), (*[32]byte)(&ds.sessionKey))
 	if !ok {
-		return false, ErrBadCiphertext(bl.seqno)
+		return nil, ErrBadCiphertext(bl.seqno)
 	}
 
 	// The encoding of the empty buffer implies the EOF.  But otherwise, all mechanisms are the same.
 	if len(plaintext) == 0 {
-		return true, nil
+		return nil, nil
 	}
-	_, err := pds.output.Write(plaintext)
-	return false, err
-
+	return plaintext, nil
 }
 
-// NewPublicDecryptStream starts a streaming decryption. You should give it an io.Writer
+// NewDecryptStream starts a streaming decryption. You should give it an io.Writer
 // to write plaintext output to, and also a Keyring to lookup private and public keys
 // as necessary. The stream will only ever write validated data.  It returns
 // an io.Writer that you can write the ciphertext stream to, and an error if anything
 // goes wrong in the construction process.
-func NewPublicDecryptStream(plaintext io.Writer, keyring Keyring) (ciphertext io.WriteCloser, err error) {
-	pds := &publicDecryptStream{
-		output: plaintext,
-		ring:   keyring,
-		fmps:   new(framedMsgpackStream),
+func NewDecryptStream(r io.Reader, keyring Keyring) (ds io.Reader, err error) {
+	ds = &decryptStream{
+		ring: keyring,
+		fmps: newFramedMsgpackStream(r),
 	}
-	return pds, nil
+	return ds, nil
 }
 
 // Open simply opens a ciphertext given the set of keys in the specified keyring.
 // It return a plaintext on sucess, and an error on failure.
 func Open(ciphertext []byte, keyring Keyring) (plaintext []byte, err error) {
-	var buf bytes.Buffer
-	ds, err := NewPublicDecryptStream(&buf, keyring)
+	buf := bytes.NewBuffer(ciphertext)
+	plaintextStream, err := NewDecryptStream(buf, keyring)
 	if err != nil {
 		return nil, err
 	}
-	if _, err := ds.Write(ciphertext); err != nil {
-		return nil, err
-	}
-	if err := ds.Close(); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return ioutil.ReadAll(plaintextStream)
 }

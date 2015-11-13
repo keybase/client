@@ -337,6 +337,7 @@ type TestSecretUI struct {
 	CalledGetKBPassphrase  bool
 	CalledGetBUPassphrase  bool
 	CalledGetNewPassphrase bool
+	CalledGetPassphrase    bool
 }
 
 func (t *TestSecretUI) GetSecret(p keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
@@ -361,6 +362,14 @@ func (t *TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (k
 func (t *TestSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
 	t.CalledGetBUPassphrase = true
 	return t.BackupPassphrase, nil
+}
+
+func (t *TestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	t.CalledGetPassphrase = true
+	return keybase1.GetPassphraseRes{
+		Passphrase:  t.Passphrase,
+		StoreSecret: p.Features.SecretStorage.Allow && t.StoreSecret,
+	}, nil
 }
 
 type TestLoginUI struct {

@@ -11,7 +11,10 @@ import (
 	"math/big"
 )
 
-// An Encoding is a radix X encoding/decoding scheme, defined by X-length
+const skipByte = byte(0xFF)
+const invalidByte = byte(0xFE)
+
+// Encoding is a radix X encoding/decoding scheme, defined by X-length
 // character alphabet.
 type Encoding struct {
 	encode                 []byte
@@ -22,6 +25,7 @@ type Encoding struct {
 	logOfBase              float64
 	baseBig                *big.Int
 	maxEncodedBitsPerBlock int
+	skipBytes              string
 }
 
 // NewEncoding returns a new Encoding defined by the given alphabet,
@@ -32,7 +36,7 @@ type Encoding struct {
 // input blocks, which encode to 26-byte output blocks with only .3 bits
 // wasted per block. The name of the game is to find a good rational
 // approximation of 8/log2(58), and 26/19 is pretty good!
-func NewEncoding(encoder string, base256BlockLen int) *Encoding {
+func NewEncoding(encoder string, base256BlockLen int, skipBytes string) *Encoding {
 
 	base := len(encoder)
 
@@ -58,11 +62,21 @@ func NewEncoding(encoder string, base256BlockLen int) *Encoding {
 		logOfBase:              logOfBase,
 		baseBig:                big.NewInt(int64(base)),
 		maxEncodedBitsPerBlock: maxEncodedBitsPerBlock,
+		skipBytes:              skipBytes,
 	}
 	copy(e.encode[:], encoder)
 
+	var skipMap [256]bool
+	for _, c := range skipBytes {
+		skipMap[c] = true
+	}
+
 	for i := 0; i < len(e.decodeMap); i++ {
-		e.decodeMap[i] = 0xFF
+		val := invalidByte
+		if skipMap[i] {
+			val = skipByte
+		}
+		e.decodeMap[i] = val
 	}
 	for i := 0; i < len(encoder); i++ {
 		e.decodeMap[encoder[i]] = byte(i)
@@ -92,6 +106,17 @@ func (enc *Encoding) Encode(dst, src []byte) {
 		}
 		enc.encodeBlock(dst[dp:dLim], src[sp:sLim])
 	}
+}
+
+func (enc *Encoding) hasSkipBytes() bool {
+	return len(enc.skipBytes) > 0
+}
+
+// IsValidByte returns true if the given byte is valid in this
+// decoding. Can be either from the main alphabet or the skip
+// alphabet to be considered valid.
+func (enc *Encoding) IsValidByte(b byte) bool {
+	return enc.decodeMap[b] != invalidByte
 }
 
 // extraBits returns the number of bits in the encoding that we'll need
@@ -147,20 +172,10 @@ func (enc *Encoding) encodeBlock(dst, src []byte) {
 	}
 }
 
-// DecodeStrict decodes src using the encoding enc.  It writes at most
-// DecodedLen(len(src)) bytes to dst and returns the number of bytes
-// written.  If src contains invalid baseX data, it will return the
-// number of bytes successfully written and CorruptInputError.  It can
-// also return an ErrInvalidEncodingLength error if there is a non-standard
-// number of bytes in this encoding
-func (enc *Encoding) DecodeStrict(dst, src []byte) (n int, err error) {
-	return enc.decode(dst, src, true)
-}
-
-func (enc *Encoding) decode(dst []byte, src []byte, strict bool) (n int, err error) {
+func (enc *Encoding) decode(dst []byte, src []byte) (n int, err error) {
 	dp, sp := 0, 0
 	for sp < len(src) {
-		di, si, err := enc.decodeBlock(dst[dp:], src[sp:], sp, strict)
+		di, si, err := enc.decodeBlock(dst[dp:], src[sp:], sp)
 		if err != nil {
 			return 0, err
 		}
@@ -170,9 +185,14 @@ func (enc *Encoding) decode(dst []byte, src []byte, strict bool) (n int, err err
 	return dp, nil
 }
 
-// Decode is like DecodeStrict, but first strips out all non-alphabet characters
+// Decode decodes src using the encoding enc.  It writes at most
+// DecodedLen(len(src)) bytes to dst and returns the number of bytes
+// written.  If src contains invalid baseX data, it will return the
+// number of bytes successfully written and CorruptInputError.  It can
+// also return an ErrInvalidEncodingLength error if there is a non-standard
+// number of bytes in this encoding
 func (enc *Encoding) Decode(dst, src []byte) (n int, err error) {
-	return enc.decode(dst, src, false)
+	return enc.decode(dst, src)
 }
 
 // CorruptInputError is returned when Decode() finds a non-alphabet character
@@ -186,7 +206,7 @@ func (e CorruptInputError) Error() string {
 // ErrInvalidEncodingLength is returned when a non-minimal encoding length is found
 var ErrInvalidEncodingLength = errors.New("invalid encoding length; either truncated or has trailing garbage")
 
-func (enc *Encoding) decodeBlock(dst []byte, src []byte, baseOffset int, strict bool) (int, int, error) {
+func (enc *Encoding) decodeBlock(dst []byte, src []byte, baseOffset int) (int, int, error) {
 	si := 0 // source index
 	numGoodChars := 0
 	res := new(big.Int)
@@ -195,10 +215,10 @@ func (enc *Encoding) decodeBlock(dst []byte, src []byte, baseOffset int, strict 
 		v := enc.decodeMap[b]
 		si++
 
-		if v == 0xFF {
-			if strict {
-				return 0, 0, CorruptInputError(i + baseOffset)
-			}
+		if v == invalidByte {
+			return 0, 0, CorruptInputError(i + baseOffset)
+		}
+		if v == skipByte {
 			continue
 		}
 

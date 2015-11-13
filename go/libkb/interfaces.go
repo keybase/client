@@ -276,6 +276,7 @@ type SecretUI interface {
 	GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error)
 	GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error)
 	GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error)
+	GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error)
 }
 
 type LogUI interface {

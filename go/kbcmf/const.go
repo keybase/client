@@ -31,3 +31,11 @@ const PacketVersion1 PacketVersion = 1
 
 // EncryptionBlockSize is by default 1MB and can't currently be tweaked.
 const EncryptionBlockSize int = 1048576
+
+// EncryptionArmorHeader is the header that marks the start of an encrypted
+// armored KB message
+const EncryptionArmorHeader = "BEGIN KBr ENCRYPTED MESSAGE"
+
+// EncryptionArmorFooter is the footer that marks the end of an encrypted
+// armored KB message
+const EncryptionArmorFooter = "END KBr ENCRYPTED MESSAGE"

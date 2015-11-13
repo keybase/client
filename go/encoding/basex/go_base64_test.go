@@ -323,10 +323,11 @@ func TestDecodeCorrupt(t *testing.T) {
 		{"AA=A", 2},
 		{"A=", 1},
 		{"A==", 1},
+		{"A䦕==", 1},
 	}
 	for _, tc := range testCases {
 		dbuf := make([]byte, Base58StdEncoding.DecodedLen(len(tc.input)))
-		_, err := Base58StdEncoding.DecodeStrict(dbuf, []byte(tc.input))
+		_, err := Base58StdEncodingStrict.Decode(dbuf, []byte(tc.input))
 		if tc.offset == -1 {
 			if err != nil {
 				t.Error("Decoder wrongly detected coruption in", tc.input)

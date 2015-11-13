@@ -1802,6 +1802,30 @@
   }];
 }
 
+- (void)getPassphrase:(KBRGetPassphraseRequestParams *)params completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion {
+  NSDictionary *rparams = @{@"pinentry": KBRValue(params.pinentry), @"terminal": KBRValue(params.terminal)};
+  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getPassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRGetPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)getPassphraseWithPinentry:(KBRGUIEntryArg *)pinentry terminal:(KBRSecretEntryArg *)terminal completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion {
+  NSDictionary *rparams = @{@"pinentry": KBRValue(pinentry), @"terminal": KBRValue(terminal)};
+  [self.client sendRequestWithMethod:@"keybase.1.secretUi.getPassphrase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRGetPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
 @end
 
 @implementation KBRSessionRequest
@@ -4208,6 +4232,24 @@
 }
 @end
 
+@implementation KBRGetPassphraseRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.pinentry = [MTLJSONAdapter modelOfClass:KBRGUIEntryArg.class fromJSONDictionary:params[0][@"pinentry"] error:nil];
+    self.terminal = [MTLJSONAdapter modelOfClass:KBRSecretEntryArg.class fromJSONDictionary:params[0][@"terminal"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRGetPassphraseRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRCurrentSessionRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -4836,6 +4878,15 @@
 @end
 
 @implementation KBRGetPassphraseRes
+@end
+
+@implementation KBRSecretStorageFeature
+@end
+
+@implementation KBRGUIEntryFeatures
+@end
+
+@implementation KBRGUIEntryArg
 @end
 
 @implementation KBRSession

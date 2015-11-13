@@ -10,7 +10,7 @@ import (
 
 func decode(strict bool, dst, src []byte) (int, error) {
 	if strict {
-		return Base58StdEncoding.DecodeStrict(dst, src)
+		return Base58StdEncodingStrict.Decode(dst, src)
 	}
 	return Base58StdEncoding.Decode(dst, src)
 }

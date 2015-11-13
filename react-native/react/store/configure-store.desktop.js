@@ -14,6 +14,6 @@ const createStoreWithMiddleware = compose(
   devTools()
 )(createStore)
 
-export default function configureStore (initialState) {
+export default function configureStore (initialState: ?any) {
   return createStoreWithMiddleware(rootReducer, initialState)
 }

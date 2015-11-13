@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-type publicEncryptStream struct {
+type encryptStream struct {
 	output     io.Writer
 	header     *EncryptionHeader
 	sessionKey SymmetricKey
@@ -25,63 +25,60 @@ type publicEncryptStream struct {
 	err       error
 }
 
-func (pes *publicEncryptStream) Write(plaintext []byte) (int, error) {
+func (es *encryptStream) Write(plaintext []byte) (int, error) {
 
-	if !pes.didHeader {
-		pes.didHeader = true
-		pes.err = encodeNewPacket(pes.output, pes.header)
+	if !es.didHeader {
+		es.didHeader = true
+		es.err = encodeNewPacket(es.output, es.header)
 	}
 
-	if pes.err != nil {
-		return 0, pes.err
+	if es.err != nil {
+		return 0, es.err
 	}
 
 	var ret int
-	if ret, pes.err = pes.buffer.Write(plaintext); pes.err != nil {
-		return 0, pes.err
+	if ret, es.err = es.buffer.Write(plaintext); es.err != nil {
+		return 0, es.err
 	}
-	for pes.buffer.Len() >= EncryptionBlockSize {
-		pes.err = pes.encryptBlock()
-		if pes.err != nil {
-			return 0, pes.err
+	for es.buffer.Len() >= EncryptionBlockSize {
+		es.err = es.encryptBlock()
+		if es.err != nil {
+			return 0, es.err
 		}
 	}
 	return ret, nil
 }
 
-func (pes *publicEncryptStream) macForAllGroups(b []byte) [][]byte {
+func (es *encryptStream) macForAllGroups(b []byte) [][]byte {
 	var macs [][]byte
-	for _, key := range pes.macGroups {
+	for _, key := range es.macGroups {
 		mac := hmacSHA512(key[:], b)
 		macs = append(macs, mac)
 	}
 	return macs
 }
 
-func (pes *publicEncryptStream) encryptBlock() error {
+func (es *encryptStream) encryptBlock() error {
 	var n int
 	var err error
-	n, err = pes.buffer.Read(pes.inblock[:])
+	n, err = es.buffer.Read(es.inblock[:])
 	if err != nil {
 		return nil
 	}
-	return pes.encryptBytes(pes.inblock[0:n])
+	return es.encryptBytes(es.inblock[0:n])
 }
 
-func (pes *publicEncryptStream) encryptBytes(b []byte) error {
+func (es *encryptStream) encryptBytes(b []byte) error {
 
-	if err := pes.numBlocks.check(); err != nil {
+	if err := es.numBlocks.check(); err != nil {
 		return err
 	}
 
-	nonce := pes.numBlocks.newCounterNonce()
-	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.sessionKey))
+	nonce := es.numBlocks.newCounterNonce()
+	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&es.sessionKey))
 	// Compute the MAC over the nonce and the ciphertext
-	sum, err := hashNonceAndAuthTag(nonce, ciphertext)
-	if err != nil {
-		return err
-	}
-	macs := pes.macForAllGroups(sum)
+	sum := hashNonceAndAuthTag(nonce, ciphertext)
+	macs := es.macForAllGroups(sum)
 	block := EncryptionBlock{
 		Version:    PacketVersion1,
 		Tag:        PacketTagEncryptionBlock,
@@ -89,23 +86,23 @@ func (pes *publicEncryptStream) encryptBytes(b []byte) error {
 		MACs:       macs,
 	}
 
-	if err = encodeNewPacket(pes.output, block); err != nil {
+	if err := encodeNewPacket(es.output, block); err != nil {
 		return nil
 	}
 
-	pes.numBlocks++
+	es.numBlocks++
 	return nil
 }
 
-func (pes *publicEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) error {
+func (es *encryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) error {
 	eh := &EncryptionHeader{
 		Version:   PacketVersion1,
 		Tag:       PacketTagEncryptionHeader,
 		Sender:    sender.GetPublicKey().ToKID(),
 		Receivers: make([]receiverKeysCiphertext, 0, len(receivers)),
 	}
-	pes.header = eh
-	if err := randomFill(pes.sessionKey[:]); err != nil {
+	es.header = eh
+	if err := randomFill(es.sessionKey[:]); err != nil {
 		return err
 	}
 
@@ -133,7 +130,7 @@ func (pes *publicEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPubli
 			if err := randomFill(macKey[:]); err != nil {
 				return err
 			}
-			pes.macGroups = append(pes.macGroups, macKey)
+			es.macGroups = append(es.macGroups, macKey)
 		} else {
 			gid = -1
 		}
@@ -147,7 +144,7 @@ func (pes *publicEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPubli
 
 			pt := receiverKeysPlaintext{
 				GroupID:    gid,
-				SessionKey: pes.sessionKey[:],
+				SessionKey: es.sessionKey[:],
 			}
 			if gid >= 0 {
 				pt.MACKey = macKey[:]
@@ -173,21 +170,21 @@ func (pes *publicEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPubli
 	return nil
 }
 
-func (pes *publicEncryptStream) Close() error {
-	for pes.buffer.Len() > 0 {
-		err := pes.encryptBlock()
+func (es *encryptStream) Close() error {
+	for es.buffer.Len() > 0 {
+		err := es.encryptBlock()
 		if err != nil {
 			return err
 		}
 	}
-	return pes.writeFooter()
+	return es.writeFooter()
 }
 
-func (pes *publicEncryptStream) writeFooter() error {
-	return pes.encryptBytes([]byte{})
+func (es *encryptStream) writeFooter() error {
+	return es.encryptBytes([]byte{})
 }
 
-// NewPublicEncryptStream creates a stream that consumes plaintext data.
+// NewEncryptStream creates a stream that consumes plaintext data.
 // It will write out encrypted data to the io.Writer passed in as ciphertext.
 // The encryption is from the specified sender, and is encrypted for the
 // given receivers.  Note that receivers as specified as two-dimensional array.
@@ -198,22 +195,22 @@ func (pes *publicEncryptStream) writeFooter() error {
 //
 // Returns an io.WriteClose that accepts plaintext data to be encrypted; and
 // also returns an error if initialization failed.
-func NewPublicEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey) (plaintext io.WriteCloser, err error) {
-	pes := &publicEncryptStream{
+func NewEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey) (plaintext io.WriteCloser, err error) {
+	es := &encryptStream{
 		output:  ciphertext,
 		inblock: make([]byte, EncryptionBlockSize),
 	}
-	if err := pes.init(sender, receivers); err != nil {
+	if err := es.init(sender, receivers); err != nil {
 		return nil, err
 	}
-	return pes, nil
+	return es, nil
 }
 
 // Seal a plaintext from the given sender, for the specified receiver groups.
 // Returns a ciphertext, or an error if something bad happened.
 func Seal(plaintext []byte, sender BoxSecretKey, receivers [][]BoxPublicKey) (out []byte, err error) {
 	var buf bytes.Buffer
-	es, err := NewPublicEncryptStream(&buf, sender, receivers)
+	es, err := NewEncryptStream(&buf, sender, receivers)
 	if err != nil {
 		return nil, err
 	}
