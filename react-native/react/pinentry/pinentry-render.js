@@ -30,6 +30,7 @@ export default class PinentryRender extends Component {
 
         {Object.keys(this.props.payload.features).map((feature, _) => {
           return <Checkbox
+            key={feature}
             name={feature}
             value={feature}
             label={this.props.payload.features[feature].label}
