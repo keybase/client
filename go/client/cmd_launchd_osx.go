@@ -8,7 +8,10 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/launchd"
@@ -51,12 +54,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			label := args[0]
 			binPath := args[1]
 			plistArgs := args[2:]
-
-			envVars := make(map[string]string)
-			envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
-			envVars["KEYBASE_LABEL"] = label
-			envVars["KEYBASE_LOG_FORMAT"] = "file"
-			envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
+			envVars := defaultEnvVars(g, label)
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
 			err := launchd.Install(plist, os.Stdout)
@@ -279,4 +277,66 @@ func (v *CmdLaunchdStatus) Run() error {
 		fmt.Fprintf(os.Stdout, "%#v\n", st)
 	}
 	return nil
+}
+
+func defaultEnvVars(g *libkb.GlobalContext, label string) map[string]string {
+	envVars := make(map[string]string)
+	envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
+	envVars["KEYBASE_LABEL"] = label
+	envVars["KEYBASE_LOG_FORMAT"] = "file"
+	envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
+	return envVars
+}
+
+func BrewAutoInstall(g *libkb.GlobalContext) (err error) {
+	g.Log.Debug("+ BrewAutoInstall for launchd")
+	defer func() {
+		g.Log.Debug("- BrewAutoInstall -> %v", err)
+	}()
+	label := defaultBrewServiceLabel(g.Env.GetRunMode())
+	if label == "" {
+		err = fmt.Errorf("No service label to install")
+		return err
+	}
+
+	// Check if plist is installed. If so we're already installed and return.
+	plistPath := launchd.PlistDestination(label)
+	if _, err := os.Stat(plistPath); err == nil {
+		g.Log.Debug("| already installed at %s", plistPath)
+		return nil
+	}
+
+	// Get the full path to this executable using the brew opt bin directory.
+	binName := filepath.Base(os.Args[0])
+	binPath := filepath.Join("/usr/local/opt", binName, "bin", binName)
+	g.Log.Debug("| assembled binPath = %s", binPath)
+	plistArgs := []string{"service"}
+	envVars := defaultEnvVars(g, label)
+
+	plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
+	err = launchd.Install(plist, ioutil.Discard)
+	if err != nil {
+		return err
+	}
+
+	// Get service install status. This causes us to pause (with timeout) until
+	// the service is up.
+	kbService := launchd.NewService(label)
+	ServiceStatusFromLaunchd(kbService, path.Join(g.Env.GetRuntimeDir(), "keybased.info"))
+
+	return nil
+}
+
+func defaultBrewServiceLabel(runMode libkb.RunMode) string {
+	name := "homebrew.mxcl.keybase"
+	switch runMode {
+	case libkb.DevelRunMode:
+		return fmt.Sprintf("%s.devel", name)
+	case libkb.StagingRunMode:
+		return fmt.Sprintf("%s.staging", name)
+	case libkb.ProductionRunMode:
+		return name
+	default:
+		return ""
+	}
 }

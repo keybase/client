@@ -61,14 +61,43 @@ func RunEngine(e Engine, ctx *Context) (err error) {
 	e.G().Log.Debug("+ RunEngine(%s)", e.Name())
 	defer func() { e.G().Log.Debug("- RunEngine(%s) -> %s", e.Name(), libkb.ErrToOk(err)) }()
 
+	if err = delegateUIs(e, ctx); err != nil {
+		return err
+	}
 	if err = check(e, ctx); err != nil {
 		return err
 	}
 	if err = runPrereqs(e, ctx); err != nil {
 		return err
 	}
+
 	err = e.Run(ctx)
 	return err
+}
+
+func delegateUIs(e Engine, ctx *Context) error {
+	if e.G().UIRouter == nil {
+		return nil
+	}
+
+	// currently, only doing this for SecretUI, but in future,
+	// perhaps should iterate over all registered UIs in UIRouter.
+
+	if !requiresUI(e, ctx, libkb.SecretUIKind) {
+		return nil
+	}
+
+	ui, err := e.G().UIRouter.GetSecretUI()
+	if err != nil {
+		return err
+	}
+
+	if ui != nil {
+		e.G().Log.Debug("using delegated secret UI for engine %q", e.Name())
+		ctx.SecretUI = ui
+	}
+
+	return nil
 }
 
 func check(c libkb.UIConsumer, ctx *Context) error {
@@ -92,4 +121,20 @@ func checkUI(c libkb.UIConsumer, ctx *Context) error {
 		}
 	}
 	return nil
+}
+
+func requiresUI(c libkb.UIConsumer, ctx *Context, kind libkb.UIKind) bool {
+	for _, ui := range c.RequiredUIs() {
+		if ui == kind {
+			return true
+		}
+	}
+
+	for _, sub := range c.SubConsumers() {
+		if requiresUI(sub, ctx, kind) {
+			return true
+		}
+	}
+
+	return false
 }

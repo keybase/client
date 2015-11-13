@@ -2,11 +2,16 @@
 /* @flow */
 
 import engine from '../engine'
-import { flattenCallMap, promisifyResponses } from '../engine/call-map-middleware'
+import listeners from './notification-listeners'
 import { createServer } from '../engine/server'
+import { flattenCallMap, promisifyResponses } from '../engine/call-map-middleware'
 
-export function enableNotifications () {
-  console.log('setting up notification')
+var initialized = false
+
+export function init () {
+  if (initialized) {
+    throw new Error('notifications were already initialized')
+  }
 
   const param = {
     channels: {
@@ -19,8 +24,6 @@ export function enableNotifications () {
     engine.rpc('notifyCtl.setNotifications', param, {}, (error, response) => {
       if (error != null) {
         console.error('error in toggling notifications: ', error)
-      } else {
-        console.log('Enabled Notifications')
       }
     })
 
@@ -77,20 +80,7 @@ export function enableNotifications () {
       params => promisifyResponses(flattenCallMap({ keybase: { '1': { identifyUi } } }))
     )
   })
-}
 
-const listeners = {
-  'keybase.1.NotifySession.loggedOut': logoutNotification
-}
-
-// Returns function that should be called to unbind listeners
-export function bindNotifications (): () => void {
   Object.keys(listeners).forEach(k => engine.listenGeneralIncomingRpc(k, listeners[k]))
-  return () => {
-    Object.keys(listeners).forEach(k => engine.unlistenGeneralIncomingRpc(k, listeners[k]))
-  }
-}
-
-function logoutNotification (param) {
-  new Notification('Logged Out') // eslint-disable-line
+  initialized = true
 }

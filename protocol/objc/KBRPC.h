@@ -1319,6 +1319,8 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)registerIdentifyUI:(void (^)(NSError *error))completion;
 
+- (void)registerSecretUI:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRDeviceRequest : KBRRequest

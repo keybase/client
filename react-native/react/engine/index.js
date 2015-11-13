@@ -17,7 +17,8 @@ class Engine {
     this.rpcClient = new RpcClient(
       new Transport(
         payload => { this._rpcIncoming(payload) },
-        this._rpcWrite
+        this._rpcWrite,
+        () => this.onConnect()
       ),
       this.program
     )
@@ -26,8 +27,6 @@ class Engine {
       this.rpcClient.transport.connect(err => {
         if (err != null) {
           console.log('Error in connecting to transport rpc:', err)
-        } else {
-          this.onConnect()
         }
       })
     }
