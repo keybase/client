@@ -2,7 +2,8 @@
 /* @flow */
 
 import engine from '../engine'
-import Server from '../engine/server'
+import { flattenCallMap, promisifyResponses } from '../engine/call-map-middleware'
+import { createServer } from '../engine/server'
 
 export function enableNotifications () {
   console.log('setting up notification')
@@ -69,14 +70,12 @@ export function enableNotifications () {
       }
     }
 
-    const identifyUIServer = new Server(
+    createServer(
       engine,
       'keybase.1.identifyUi.delegateIdentifyUI',
       'keybase.1.identifyUi.finish',
-      (params) => { return { keybase: { '1': { identifyUi } } } }
+      params => promisifyResponses(flattenCallMap({ keybase: { '1': { identifyUi } } }))
     )
-
-    identifyUIServer.listen()
   })
 }
 
