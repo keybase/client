@@ -1,11 +1,9 @@
 'use strict'
-/* @flow */
 
-import React from 'react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 import { TextField, RaisedButton } from 'material-ui'
 
-export default class PinentryRender extends BaseComponent {
+export default class PinentryRender extends Component {
   componentWillMount () {
     this.state = {
       passphrase: ''
