@@ -25,7 +25,7 @@ const mainWindow = new Window('index', {
   width: 1600, height: 1200, openDevTools: true
 })
 
-mb.on('ready', function () {
+mb.on('ready', () => {
   require('../../react-native/react/native/notifications').init()
 })
 
