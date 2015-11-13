@@ -21,14 +21,14 @@ export default class Pinentry extends Component {
           onCancel: () => console.log('Pinentry dialog canceled'),
           // Mock out the RPC payload until implemented.
           payload: {
-            window_title: 'Keybase',
-            prompt_text: 'Please enter the Keybase passphrase for cjb (12+ characters)',
+            windowTitle: 'Keybase',
+            promptText: 'Please enter the Keybase passphrase for cjb (12+ characters)',
             features: {
-              secret_storage: {
+              secretStorage: {
                 value: true,
                 label: 'Store my passphrase for later use'
               },
-              second_feature: {
+              secondFeature: {
                 value: false,
                 label: 'Test a second checkbox'
               }
