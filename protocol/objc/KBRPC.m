@@ -1086,6 +1086,24 @@
 
 @end
 
+@implementation KBRNotifyFSRequest
+
+- (void)fSActivity:(KBRFSActivityRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"notification": KBRValue(params.notification)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSActivity" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSActivityWithNotification:(KBRFSNotification *)notification completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"notification": KBRValue(notification)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSActivity" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRNotifySessionRequest
 
 - (void)loggedOut:(void (^)(NSError *error))completion {
@@ -3539,6 +3557,22 @@
 }
 @end
 
+@implementation KBRFSActivityRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.notification = [MTLJSONAdapter modelOfClass:KBRFSNotification.class fromJSONDictionary:params[0][@"notification"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSActivityRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRUserChangedRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -4832,6 +4866,9 @@
 @end
 
 @implementation KBRNotificationChannels
+@end
+
+@implementation KBRFSNotification
 @end
 
 @implementation KBRPGPSignOptions

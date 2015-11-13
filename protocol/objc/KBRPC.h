@@ -388,6 +388,26 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property BOOL users;
 @end
 
+typedef NS_ENUM (NSInteger, KBRFSStatusCode) {
+	KBRFSStatusCodeOk = 0,
+	KBRFSStatusCodeError = 1,
+};
+
+typedef NS_ENUM (NSInteger, KBRFSNotificationType) {
+	KBRFSNotificationTypeEncrypting = 0,
+	KBRFSNotificationTypeDecrypting = 1,
+	KBRFSNotificationTypeSigning = 2,
+	KBRFSNotificationTypeRekeying = 3,
+};
+
+@interface KBRFSNotification : KBRObject
+@property NSString *topLevelFolder;
+@property NSString *filename;
+@property NSString *status;
+@property KBRFSStatusCode statusCode;
+@property KBRFSNotificationType notificationType;
+@end
+
 typedef NS_ENUM (NSInteger, KBRSignMode) {
 	KBRSignModeAttached = 0,
 	KBRSignModeDetached = 1,
@@ -909,6 +929,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRSetNotificationsRequestParams : KBRRequestParams
 @property KBRNotificationChannels *channels;
+@end
+@interface KBRFSActivityRequestParams : KBRRequestParams
+@property KBRFSNotification *notification;
 @end
 @interface KBRUserChangedRequestParams : KBRRequestParams
 @property NSString *uid;
@@ -1611,6 +1634,14 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)setNotifications:(KBRSetNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)setNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRNotifyFSRequest : KBRRequest
+
+- (void)fSActivity:(KBRFSActivityRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)fSActivityWithNotification:(KBRFSNotification *)notification completion:(void (^)(NSError *error))completion;
 
 @end
 
