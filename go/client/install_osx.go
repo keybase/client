@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/blang/semver"
@@ -478,7 +479,12 @@ func binPath() (string, error) {
 		return filepath.Join("/usr/local/opt", binName, "bin", binName), nil
 	}
 
-	return filepath.Abs(os.Args[0])
+	path := os.Args[0]
+	if !strings.HasPrefix(path, "/") {
+		return path, fmt.Errorf("We need to be run with an absolute path to this executable to determine its full path.")
+	}
+
+	return path, nil
 }
 
 func binName() string {
@@ -486,11 +492,11 @@ func binName() string {
 }
 
 func kbfsBinPath(runMode libkb.RunMode) (string, error) {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	path, err := binPath()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, kbfsBinName(runMode)), nil
+	return filepath.Join(filepath.Dir(path), kbfsBinName(runMode)), nil
 }
 
 func kbfsBinName(runMode libkb.RunMode) string {
