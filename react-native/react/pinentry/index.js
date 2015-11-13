@@ -1,11 +1,9 @@
 'use strict'
-/* @flow */
 
-import React from 'react'
-import BaseComponent from '../base-component'
+import React, { Component } from '../base-react'
 import PinentryRender from './pinentry-render'
 
-export default class Pinentry extends BaseComponent {
+export default class Pinentry extends Component {
   render () {
     return <PinentryRender {...this.props} />
   }
