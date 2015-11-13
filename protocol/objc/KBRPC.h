@@ -518,6 +518,7 @@ typedef NS_ENUM (NSInteger, KBRDeviceType) {
 @interface KBRGUIEntryArg : KBRObject
 @property NSString *windowTitle;
 @property NSString *prompt;
+@property NSString *retryLabel;
 @property KBRGUIEntryFeatures *features;
 @end
 

@@ -3964,6 +3964,7 @@ type GUIEntryFeatures struct {
 type GUIEntryArg struct {
 	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
 	Prompt      string           `codec:"prompt" json:"prompt"`
+	RetryLabel  string           `codec:"retryLabel" json:"retryLabel"`
 	Features    GUIEntryFeatures `codec:"features" json:"features"`
 }
 
