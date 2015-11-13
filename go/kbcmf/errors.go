@@ -108,7 +108,6 @@ func (e ErrBadArmorHeader) Error() string {
 		e.wanted, e.received)
 }
 
-// = errors.New("bad armor header; unexpected text")
 func (e ErrWrongPacketTag) Error() string {
 	return fmt.Sprintf("In packet %d: wanted tag=%d; got tag=%d", e.seqno, e.wanted, e.received)
 }
