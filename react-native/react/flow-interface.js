@@ -6,6 +6,17 @@ declare module 'Interpolation' {
   declare var exports: any;
 }
 
+declare module 'platform-constants' {
+  declare var exports: {isDev: boolean};
+}
+
+declare module 'redux-devtools' {
+  declare var exports: any;
+}
+
+declare class Notification {
+}
+
 // Algebraic data types
 // This is a bit hacky, but it gives you strong gaurantees.
 
