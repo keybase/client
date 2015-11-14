@@ -29,7 +29,7 @@ func GetExtraFlags() []cli.Flag {
 
 // AutoForkServer just forks the server and sets the autoFork flag to true
 func AutoForkServer(g *libkb.GlobalContext, cl libkb.CommandLine) (bool, error) {
-	return ForkServer(g, cl, true /* isAutFork */)
+	return ForkServer(g, cl, true /* isAutoFork */)
 }
 
 // ForkServer forks a new background Keybase service, and waits until it's

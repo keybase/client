@@ -48,14 +48,14 @@ func (s *CmdCtlRestart) Run() error {
 		return err
 	}
 	if err = cli.Stop(context.TODO(), 0); err != nil {
-		G.Log.Warning("Stop failed: %s", err)
+		s.G().Log.Warning("Stop failed: %s", err)
 		return err
 	}
 
 	// Wait a few seconds before the server stops
-	G.Log.Info("Delaying for shutdown...")
+	s.G().Log.Info("Delaying for shutdown...")
 	time.Sleep(2 * time.Second)
-	G.Log.Info("Restart")
+	s.G().Log.Info("Restart")
 	_, err = ForkServer(s.G(), s.G().Env.GetCommandLine(), config.IsAutoForked)
 	return err
 }
