@@ -26,7 +26,7 @@ type Service struct {
 	stopCh       chan struct{}
 }
 
-func NewService(isDaemon bool, g *libkb.GlobalContext) *Service {
+func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 	return &Service{
 		Contextified: libkb.NewContextified(g),
 		isDaemon:     isDaemon,
@@ -316,7 +316,7 @@ func NewCmdService(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewService(true /* isDaemon */, g), "service", c)
+			cl.ChooseCommand(NewService(g, true /* isDaemon */), "service", c)
 			cl.SetService()
 		},
 	}

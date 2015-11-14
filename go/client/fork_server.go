@@ -28,16 +28,18 @@ func GetExtraFlags() []cli.Flag {
 }
 
 // AutoForkServer just forks the server and sets the autoFork flag to true
-func AutoForkServer(cl libkb.CommandLine, g *libkb.GlobalContext) error {
-	return ForkServer(cl, g, true /* isAutFork */)
+func AutoForkServer(g *libkb.GlobalContext, cl libkb.CommandLine) (bool, error) {
+	return ForkServer(g, cl, true /* isAutFork */)
 }
 
 // ForkServer forks a new background Keybase service, and waits until it's
 // pingable. It will only do something useful on Unixes; it won't work on
 // Windows (probably?). Returns an error if anything bad happens; otherwise,
-// assume that the server was successfully started up.
-func ForkServer(cl libkb.CommandLine, g *libkb.GlobalContext, isAutoFork bool) error {
-	srv := service.NewService(true /* isDaemon */, g)
+// assume that the server was successfully started up. Returns (true, nil) if
+// the server was actually forked, or (false, nil) if it was previously up.
+func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, isAutoFork bool) (bool, error) {
+	srv := service.NewService(g, true /* isDaemon */)
+	forked := false
 
 	// If we try to get an exclusive lock and succeed, it means we
 	// need to relaunch the daemon since it's dead
@@ -49,30 +51,31 @@ func ForkServer(cl libkb.CommandLine, g *libkb.GlobalContext, isAutoFork bool) e
 		err = spawnServer(cl, isAutoFork)
 		if err != nil {
 			g.Log.Errorf("Error in spawning server process: %s", err)
-			return err
+			return false, err
 		}
-		err = pingLoop()
+		err = pingLoop(g)
 		if err != nil {
 			g.Log.Errorf("Ping failure after server fork: %s", err)
-			return err
+			return false, err
 		}
+		forked = true
 	} else {
 		g.Log.Debug("The server is still up")
 		err = nil
 	}
 
-	return err
+	return forked, err
 }
 
-func pingLoop() error {
+func pingLoop(g *libkb.GlobalContext) error {
 	var err error
 	for i := 0; i < 10; i++ {
-		_, _, err = G.GetSocket(true)
+		_, _, err = g.GetSocket(true)
 		if err == nil {
-			G.Log.Debug("Connected (%d)", i)
+			g.Log.Debug("Connected (%d)", i)
 			return nil
 		}
-		G.Log.Debug("Failed to connect to socket (%d): %s", i, err)
+		g.Log.Debug("Failed to connect to socket (%d): %s", i, err)
 		err = nil
 		time.Sleep(200 * time.Millisecond)
 	}

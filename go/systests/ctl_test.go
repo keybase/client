@@ -57,7 +57,7 @@ func TestVersionAndStop(t *testing.T) {
 	defer tc.Cleanup()
 
 	stopCh := make(chan error)
-	svc := service.NewService(false, tc.G)
+	svc := service.NewService(tc.G, false)
 	startCh := svc.GetStartChannel()
 	go func() {
 		err := svc.Run()
