@@ -4,6 +4,7 @@
 package client
 
 import (
+	"fmt"
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -52,9 +53,12 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	}
 
 	g.Log.Debug("| version check %s v %s", semverClient, semverService)
-	if !semverClient.GT(semverService) {
+	if semverClient.EQ(semverService) {
 		g.Log.Debug("| versions check out")
 		return nil
+	} else if semverClient.LT(semverService) {
+		return fmt.Errorf("Unexpected version clash; client is at v%s, which *less than* server at v%s",
+			semverClient, semverService)
 	}
 
 	g.Log.Warning("Restarting after upgrade; service is running v%s, while v%s is available",
