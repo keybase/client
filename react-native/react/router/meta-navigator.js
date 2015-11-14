@@ -106,18 +106,15 @@ class MetaNavigator extends Component {
   }
 
   render () {
-    return Render.apply(this)
+    return <Render {...this.props} getComponentAtTop={this.getComponentAtTop.bind(this)} />
   }
 }
 
 MetaNavigator.propTypes = {
   uri: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
-  NavBar: React.PropTypes.object.isRequired,
   rootComponent: React.PropTypes.func.isRequired,
-  Navigator: React.PropTypes.object.isRequired,
-  globalRoutes: React.PropTypes.object,
-  navBarHeight: React.PropTypes.number.isRequired
+  globalRoutes: React.PropTypes.object
 }
 
 export default MetaNavigator

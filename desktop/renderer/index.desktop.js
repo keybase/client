@@ -25,10 +25,7 @@ class Keybase extends Component {
           <DevTools store={store} monitor={LogMonitor} visibleOnLoad/>
         </DebugPanel>
         <Provider store={store}>
-          {() => {
-            // TODO(mm): maybe not pass in store?
-            return React.createElement(connect(state => state)(Nav), {store: store})
-          }}
+        {React.createElement(connect(state => state)(Nav), {store: store})}
         </Provider>
       </div>
     )
