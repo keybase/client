@@ -34,6 +34,15 @@ func (s *CmdCtlRestart) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdCtlRestart) Run() error {
+	configCli, err := GetConfigClient(s.G())
+	if err != nil {
+		return err
+	}
+	config, err := configCli.GetConfig(context.TODO(), 0)
+	if err != nil {
+		return err
+	}
+
 	cli, err := GetCtlClient(s.G())
 	if err != nil {
 		return err
@@ -47,7 +56,7 @@ func (s *CmdCtlRestart) Run() error {
 	G.Log.Info("Delaying for shutdown...")
 	time.Sleep(2 * time.Second)
 	G.Log.Info("Restart")
-	return ForkServer(s.G().Env.GetCommandLine(), s.G())
+	return ForkServer(s.G().Env.GetCommandLine(), s.G(), config.IsAutoForked)
 }
 
 func (s *CmdCtlRestart) GetUsage() libkb.Usage {

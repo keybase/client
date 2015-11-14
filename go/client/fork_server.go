@@ -27,11 +27,16 @@ func GetExtraFlags() []cli.Flag {
 	}
 }
 
+// AutoForkServer just forks the server and sets the autoFork flag to true
+func AutoForkServer(cl libkb.CommandLine, g *libkb.GlobalContext) error {
+	return ForkServer(cl, g, true /* isAutFork */)
+}
+
 // ForkServer forks a new background Keybase service, and waits until it's
 // pingable. It will only do something useful on Unixes; it won't work on
 // Windows (probably?). Returns an error if anything bad happens; otherwise,
 // assume that the server was successfully started up.
-func ForkServer(cl libkb.CommandLine, g *libkb.GlobalContext) error {
+func ForkServer(cl libkb.CommandLine, g *libkb.GlobalContext, isAutoFork bool) error {
 	srv := service.NewService(true /* isDaemon */, g)
 
 	// If we try to get an exclusive lock and succeed, it means we
@@ -41,7 +46,7 @@ func ForkServer(cl libkb.CommandLine, g *libkb.GlobalContext) error {
 	if err == nil {
 		g.Log.Debug("Flocked! Server must have died")
 		srv.ReleaseLock()
-		err = spawnServer(cl)
+		err = spawnServer(cl, isAutoFork)
 		if err != nil {
 			g.Log.Errorf("Error in spawning server process: %s", err)
 			return err
@@ -74,7 +79,7 @@ func pingLoop() error {
 	return nil
 }
 
-func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, err error) {
+func makeServerCommandLine(cl libkb.CommandLine, isAutoFork bool) (arg0 string, args []string, err error) {
 	// ForkExec requires an absolute path to the binary. LookPath() gets this
 	// for us, or correctly leaves arg0 alone if it's already a path.
 	arg0, err = exec.LookPath(os.Args[0])
@@ -136,6 +141,10 @@ func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, er
 
 	G.Log.Debug("| Setting run directory for keybase service to %s", chdir)
 	args = append(args, "--chdir", chdir)
+
+	if isAutoFork {
+		args = append(args, "--auto-forked")
+	}
 
 	G.Log.Debug("| Made server args: %s %v", arg0, args)
 
