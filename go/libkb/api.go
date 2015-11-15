@@ -44,12 +44,12 @@ type Requester interface {
 	isExternal() bool
 }
 
-// Make a new InternalApiEngine and a new ExternalApiEngine, which share the
-// same network config (i.e., TOR and Proxy parameters)
-func NewAPIEngines(e *Env, g *GlobalContext) (*InternalAPIEngine, *ExternalAPIEngine, error) {
-	cliConfig, err := e.GenClientConfigForInternalAPI()
+// NewInternalAPIEngine makes an API engine for internally querying the keybase
+// API server
+func NewInternalAPIEngine(g *GlobalContext) (*InternalAPIEngine, error) {
+	cliConfig, err := g.Env.GenClientConfigForInternalAPI()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	i := &InternalAPIEngine{
@@ -59,11 +59,17 @@ func NewAPIEngines(e *Env, g *GlobalContext) (*InternalAPIEngine, *ExternalAPIEn
 			Contextified: NewContextified(g),
 		},
 	}
-	scraperConfig, err := e.GenClientConfigForScrapers()
+	return i, nil
+}
+
+// Make a new InternalApiEngine and a new ExternalApiEngine, which share the
+// same network config (i.e., TOR and Proxy parameters)
+func NewAPIEngines(g *GlobalContext) (*InternalAPIEngine, *ExternalAPIEngine, error) {
+	i, err := NewInternalAPIEngine(g)
 	if err != nil {
 		return nil, nil, err
 	}
-
+	scraperConfig, err := g.Env.GenClientConfigForScrapers()
 	x := &ExternalAPIEngine{
 		BaseAPIEngine{
 			config:       scraperConfig,

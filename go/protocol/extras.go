@@ -38,6 +38,12 @@ const (
 	DeviceIDSuffixHex = "18"
 )
 
+const (
+	KidLen     = 35   // bytes
+	KidSuffix  = 0x0a // a byte
+	KidVersion = 0x1
+)
+
 func Unquote(data []byte) string {
 	return strings.Trim(string(data), "\"")
 }
@@ -48,6 +54,27 @@ func Quote(s string) []byte {
 
 func KIDFromSlice(b []byte) KID {
 	return KID(hex.EncodeToString(b))
+}
+
+func KIDFromStringChecked(s string) (KID, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return KID(""), err
+	}
+
+	if len(b) != KidLen {
+		return KID(""), fmt.Errorf("KID wrong length; wanted %d but got %d bytes",
+			KidLen, len(b))
+	}
+	if b[len(b)-1] != KidSuffix {
+		return KID(""), fmt.Errorf("Bad KID suffix: got 0x%02x, wanted 0x%02x",
+			b[len(b)-1], KidSuffix)
+	}
+	if b[0] != KidVersion {
+		return KID(""), fmt.Errorf("Bad KID version; got 0x%02x but wanted 0x%02x",
+			b[0], KidVersion)
+	}
+	return KID(s), nil
 }
 
 func KIDFromString(s string) KID {
@@ -380,4 +407,17 @@ func (s ServiceStatus) NeedsInstall() bool {
 	return s.InstallAction == InstallAction_INSTALL ||
 		s.InstallAction == InstallAction_REINSTALL ||
 		s.InstallAction == InstallAction_UPGRADE
+}
+
+func (k *KID) UnmarshalJSON(b []byte) error {
+	kid, err := KIDFromStringChecked(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*k = KID(kid)
+	return nil
+}
+
+func (k *KID) MarshalJSON() ([]byte, error) {
+	return Quote(k.String()), nil
 }
