@@ -354,6 +354,7 @@ type Config struct {
 	ConfigPath   string `codec:"configPath" json:"configPath"`
 	VersionShort string `codec:"versionShort" json:"versionShort"`
 	VersionFull  string `codec:"versionFull" json:"versionFull"`
+	IsAutoForked bool   `codec:"isAutoForked" json:"isAutoForked"`
 }
 
 type InstallStatus int

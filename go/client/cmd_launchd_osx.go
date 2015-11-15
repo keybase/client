@@ -288,22 +288,22 @@ func defaultEnvVars(g *libkb.GlobalContext, label string) map[string]string {
 	return envVars
 }
 
-func BrewAutoInstall(g *libkb.GlobalContext) (err error) {
+func BrewAutoInstall(g *libkb.GlobalContext) (newProc bool, err error) {
 	g.Log.Debug("+ BrewAutoInstall for launchd")
 	defer func() {
-		g.Log.Debug("- BrewAutoInstall -> %v", err)
+		g.Log.Debug("- BrewAutoInstall -> %v, %v", newProc, err)
 	}()
 	label := defaultBrewServiceLabel(g.Env.GetRunMode())
 	if label == "" {
 		err = fmt.Errorf("No service label to install")
-		return err
+		return newProc, err
 	}
 
 	// Check if plist is installed. If so we're already installed and return.
 	plistPath := launchd.PlistDestination(label)
 	if _, err := os.Stat(plistPath); err == nil {
 		g.Log.Debug("| already installed at %s", plistPath)
-		return nil
+		return newProc, nil
 	}
 
 	// Get the full path to this executable using the brew opt bin directory.
@@ -316,7 +316,7 @@ func BrewAutoInstall(g *libkb.GlobalContext) (err error) {
 	plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
 	err = launchd.Install(plist, ioutil.Discard)
 	if err != nil {
-		return err
+		return newProc, err
 	}
 
 	// Get service install status. This causes us to pause (with timeout) until
@@ -324,7 +324,8 @@ func BrewAutoInstall(g *libkb.GlobalContext) (err error) {
 	kbService := launchd.NewService(label)
 	ServiceStatusFromLaunchd(kbService, path.Join(g.Env.GetRuntimeDir(), "keybased.info"))
 
-	return nil
+	newProc = true
+	return newProc, nil
 }
 
 func defaultBrewServiceLabel(runMode libkb.RunMode) string {
