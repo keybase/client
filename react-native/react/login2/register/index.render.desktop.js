@@ -9,16 +9,16 @@ export default class RegisterRender extends Component {
     return (
       <div style={{display: 'flex', flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
         <p>Register</p>
-        <p style={commonStyles.clickable} onClick={() => { this.props.gotoExistingDevicePage() }}>Use an existing device</p>
-        <p style={commonStyles.clickable} onClick={() => { this.props.gotoPaperKeyPage() }}>Use a paper key</p>
-        <p style={commonStyles.clickable} onClick={() => { this.props.gotoUserPassPage() }}>Use my keybase passphrase</p>
+        <p style={commonStyles.clickable} onClick={() => { this.props.onGotoExistingDevicePage() }}>Use an existing device</p>
+        <p style={commonStyles.clickable} onClick={() => { this.props.onGotoPaperKeyPage() }}>Use a paper key</p>
+        <p style={commonStyles.clickable} onClick={() => { this.props.onGotoUserPassPage() }}>Use my keybase passphrase</p>
       </div>
     )
   }
 }
 
 RegisterRender.propTypes = {
-  gotoExistingDevicePage: React.PropTypes.func.isRequired,
-  gotoPaperKeyPage: React.PropTypes.func.isRequired,
-  gotoUserPassPage: React.PropTypes.func.isRequired
+  onGotoExistingDevicePage: React.PropTypes.func.isRequired,
+  onGotoPaperKeyPage: React.PropTypes.func.isRequired,
+  onGotoUserPassPage: React.PropTypes.func.isRequired
 }

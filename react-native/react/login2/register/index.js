@@ -8,24 +8,22 @@ import Render from './index.render'
 export default class Register extends Component {
   render () {
     return (
-      <Render {...this.props}/>
+      <Render
+        onGotoExistingDevicePage={() => this.props.dispatch(registerWithExistingDevice())}
+        onGotoPaperKeyPage={() => this.props.dispatch(registerWithPaperKey())}
+        onGotoUserPassPage={() => this.props.dispatch(registerWithUserPass())}
+        {...this.props}
+      />
     )
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        props: {
-          gotoExistingDevicePage: () => store.dispatch(registerWithExistingDevice()),
-          gotoPaperKeyPage: () => store.dispatch(registerWithPaperKey()),
-          gotoUserPassPage: () => store.dispatch(registerWithUserPass())
-        }
-      }
-    }
+    return { componentAtTop: {} }
   }
 }
 
 Register.propTypes = {
+  dispatch: React.PropTypes.func.isRequired,
   gotoExistingDevicePage: React.PropTypes.func.isRequired,
   gotoPaperKeyPage: React.PropTypes.func.isRequired,
   gotoUserPassPage: React.PropTypes.func.isRequired
