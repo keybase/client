@@ -82,7 +82,7 @@ echo "
 xCode has trouble signing with Developer IDs properly so we need to re-sign.
 
 NOTE: If codesigning fails (ambiguous certificate) you need to manually delete
-the (old) March 4th version of the certificate from your Keychain.
+the (old) March 12th version of the certificate from your Keychain.
 
 Re-signing using identitiy:
 

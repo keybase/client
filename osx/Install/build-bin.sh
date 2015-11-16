@@ -26,14 +26,14 @@ else
 fi
 
 # Build stage
-if [ ! -f $bin_src/$service_bin ]; then
-  echo "Building $bin_src/$service_bin"
-  GO15VENDOREXPERIMENT=1 go build -tags "$tags" -o $bin_src/$service_bin github.com/keybase/client/go/keybase
-fi
-if [ ! -f $bin_src/$kbfs_bin ]; then
-  echo "Building $bin_src/$kbfs_bin"
-  GO15VENDOREXPERIMENT=0 go build -tags "$tags" -o $bin_src/$kbfs_bin github.com/keybase/kbfs/kbfsfuse
-fi
+#if [ ! -f $bin_src/$service_bin ]; then
+echo "Building $bin_src/$service_bin"
+GO15VENDOREXPERIMENT=1 go build -tags "$tags" -o $bin_src/$service_bin github.com/keybase/client/go/keybase
+#fi
+#if [ ! -f $bin_src/$kbfs_bin ]; then
+echo "Building $bin_src/$kbfs_bin"
+GO15VENDOREXPERIMENT=0 go build -tags "$tags" -o $bin_src/$kbfs_bin github.com/keybase/kbfs/kbfsfuse
+#fi
 
 # Read the versions and build numbers
 echo "Checking version info..."
