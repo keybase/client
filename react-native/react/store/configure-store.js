@@ -37,5 +37,5 @@ const createStoreWithMiddleware = applyMiddleware(
 )
 
 export default function configureStore (initialState: ?any) {
-  return configureStoreNative(rootReducer, initialState, createStoreWithMiddleware)
+  return configureStoreNative(createStoreWithMiddleware)(rootReducer, initialState)
 }
