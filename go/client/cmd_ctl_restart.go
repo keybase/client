@@ -34,20 +34,30 @@ func (s *CmdCtlRestart) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdCtlRestart) Run() error {
+	configCli, err := GetConfigClient(s.G())
+	if err != nil {
+		return err
+	}
+	config, err := configCli.GetConfig(context.TODO(), 0)
+	if err != nil {
+		return err
+	}
+
 	cli, err := GetCtlClient(s.G())
 	if err != nil {
 		return err
 	}
 	if err = cli.Stop(context.TODO(), 0); err != nil {
-		G.Log.Warning("Stop failed: %s", err)
+		s.G().Log.Warning("Stop failed: %s", err)
 		return err
 	}
 
 	// Wait a few seconds before the server stops
-	G.Log.Info("Delaying for shutdown...")
+	s.G().Log.Info("Delaying for shutdown...")
 	time.Sleep(2 * time.Second)
-	G.Log.Info("Restart")
-	return ForkServer(s.G().Env.GetCommandLine(), s.G())
+	s.G().Log.Info("Restart")
+	_, err = ForkServer(s.G(), s.G().Env.GetCommandLine(), config.IsAutoForked)
+	return err
 }
 
 func (s *CmdCtlRestart) GetUsage() libkb.Usage {

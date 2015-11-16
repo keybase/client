@@ -17,8 +17,8 @@ func getPlatformSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 	return []cli.Command{}
 }
 
-func AutoInstall(g *libkb.GlobalContext) error {
-	return fmt.Errorf("Auto install only supported for OS X")
+func AutoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bool, err error) {
+	return false, fmt.Errorf("Auto install only supported for OS X")
 }
 
 // DebugSocketError allows platforms to help the user diagnose and resolve

@@ -537,7 +537,7 @@ func kbfsMountPath(homeDir string, runMode libkb.RunMode) string {
 
 func AutoInstallWithStatus(g *libkb.GlobalContext, binPath string, force bool) []keybase1.InstallComponent {
 	status := []keybase1.InstallComponent{}
-	err := AutoInstall(g, binPath, force)
+	_, err := AutoInstall(g, binPath, force)
 	if err != nil {
 		status = append(status, keybase1.InstallComponent{Name: "service", Status: errorStatus("INSTALL_ERROR", err.Error())})
 	} else {
@@ -546,15 +546,15 @@ func AutoInstallWithStatus(g *libkb.GlobalContext, binPath string, force bool) [
 	return status
 }
 
-func AutoInstall(g *libkb.GlobalContext, binPath string, force bool) (err error) {
+func AutoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bool, err error) {
 	g.Log.Debug("+ AutoInstall for launchd")
 	defer func() {
-		g.Log.Debug("- BrewAutoInstall -> %v", err)
+		g.Log.Debug("- AutoInstall -> %v, %v", newProc, err)
 	}()
 	label := defaultServiceLabel(g.Env.GetRunMode())
 	if label == "" {
 		err = fmt.Errorf("No service label to install")
-		return err
+		return newProc, err
 	}
 
 	// Check if plist is installed. If so we're already installed and return.
@@ -562,10 +562,15 @@ func AutoInstall(g *libkb.GlobalContext, binPath string, force bool) (err error)
 	if _, err := os.Stat(plistPath); err == nil {
 		g.Log.Debug("| already installed at %s", plistPath)
 		if !force {
-			return nil
+			return newProc, nil
 		}
 	}
 
 	err = installService(g, binPath, true)
-	return err
+	if err != nil {
+		return newProc, err
+	}
+
+	newProc = true
+	return newProc, nil
 }

@@ -354,6 +354,7 @@ type Config struct {
 	ConfigPath   string `codec:"configPath" json:"configPath"`
 	VersionShort string `codec:"versionShort" json:"versionShort"`
 	VersionFull  string `codec:"versionFull" json:"versionFull"`
+	IsAutoForked bool   `codec:"isAutoForked" json:"isAutoForked"`
 }
 
 type InstallStatus int
@@ -2719,6 +2720,72 @@ type NotifyCtlClient struct {
 func (c NotifyCtlClient) SetNotifications(ctx context.Context, channels NotificationChannels) (err error) {
 	__arg := SetNotificationsArg{Channels: channels}
 	err = c.Cli.Call(ctx, "keybase.1.notifyCtl.setNotifications", []interface{}{__arg}, nil)
+	return
+}
+
+type FSStatusCode int
+
+const (
+	FSStatusCode_OK    FSStatusCode = 0
+	FSStatusCode_ERROR FSStatusCode = 1
+)
+
+type FSNotificationType int
+
+const (
+	FSNotificationType_ENCRYPTING FSNotificationType = 0
+	FSNotificationType_DECRYPTING FSNotificationType = 1
+	FSNotificationType_SIGNING    FSNotificationType = 2
+	FSNotificationType_REKEYING   FSNotificationType = 3
+)
+
+type FSNotification struct {
+	TopLevelFolder   string             `codec:"topLevelFolder" json:"topLevelFolder"`
+	Filename         string             `codec:"filename" json:"filename"`
+	Status           string             `codec:"status" json:"status"`
+	StatusCode       FSStatusCode       `codec:"statusCode" json:"statusCode"`
+	NotificationType FSNotificationType `codec:"notificationType" json:"notificationType"`
+}
+
+type FSActivityArg struct {
+	Notification FSNotification `codec:"notification" json:"notification"`
+}
+
+type NotifyFSInterface interface {
+	FSActivity(context.Context, FSNotification) error
+}
+
+func NotifyFSProtocol(i NotifyFSInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.NotifyFS",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"FSActivity": {
+				MakeArg: func() interface{} {
+					ret := make([]FSActivityArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FSActivityArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FSActivityArg)(nil), args)
+						return
+					}
+					err = i.FSActivity(ctx, (*typedArgs)[0].Notification)
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+		},
+	}
+}
+
+type NotifyFSClient struct {
+	Cli GenericClient
+}
+
+func (c NotifyFSClient) FSActivity(ctx context.Context, notification FSNotification) (err error) {
+	__arg := FSActivityArg{Notification: notification}
+	err = c.Cli.Call(ctx, "keybase.1.NotifyFS.FSActivity", []interface{}{__arg}, nil)
 	return
 }
 

@@ -92,7 +92,7 @@ func (c *CmdWatchdog) Run() (err error) {
 			break
 		}
 		// restart server case (is this the right command line?)
-		if err = ForkServer(c.G().Env.GetCommandLine(), c.G()); err != nil {
+		if _, err = ForkServer(c.G(), c.G().Env.GetCommandLine(), false); err != nil {
 			return err
 		}
 		countdown--

@@ -379,6 +379,18 @@ export default {
       'fatal': 7
     }
   },
+  'NotifyFS': {
+    'FSStatusCode': {
+      'ok': 0,
+      'error': 1
+    },
+    'FSNotificationType': {
+      'encrypting': 0,
+      'decrypting': 1,
+      'signing': 2,
+      'rekeying': 3
+    }
+  },
   'NotifySession': {},
   'NotifyUsers': {
     'LogLevel': {

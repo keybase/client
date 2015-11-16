@@ -25,8 +25,6 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdDb(cl, g),
 		NewCmdDevice(cl, g),
 		NewCmdID(cl, g),
-		NewCmdInstall(cl, g),
-		NewCmdLaunchd(cl, g),
 		NewCmdListTracking(cl),
 		NewCmdListTrackers(cl),
 		NewCmdLogin(cl, g),

@@ -34,6 +34,7 @@ build-stamp: \
 	json/metadata.json \
 	json/metadata_update.json \
 	json/notify_ctl.json \
+	json/notify_fs.json \
 	json/notify_session.json \
 	json/notify_users.json \
 	json/pgp.json \

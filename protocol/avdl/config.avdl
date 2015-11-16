@@ -25,6 +25,7 @@ protocol config {
     string configPath;
     string versionShort;
     string versionFull;
+    boolean isAutoForked;
   }
 
   Config getConfig(int sessionID);
