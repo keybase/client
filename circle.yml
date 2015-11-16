@@ -23,6 +23,7 @@ dependencies:
     #    background: true
     #    parallel: true
     - npm install
+    - npm install -g react-native-cli
     - wget https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz -O $HOME/go.tar.gz
     - (cd $HOME; tar -xzvf go.tar.gz)
     - mkdir $HOME/go-path
