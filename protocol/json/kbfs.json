@@ -1,45 +1,39 @@
 {
   "protocol" : "kbfs",
   "namespace" : "keybase.1",
-  "types" : [ ],
+  "types" : [ {
+    "type" : "enum",
+    "name" : "FSStatusCode",
+    "symbols" : [ "START_0", "FINISH_1", "ERROR_2" ]
+  }, {
+    "type" : "enum",
+    "name" : "FSNotificationType",
+    "symbols" : [ "ENCRYPTING_0", "DECRYPTING_1", "SIGNING_2", "REKEYING_3" ]
+  }, {
+    "type" : "record",
+    "name" : "FSNotification",
+    "fields" : [ {
+      "name" : "topLevelFolder",
+      "type" : "string"
+    }, {
+      "name" : "filename",
+      "type" : "string"
+    }, {
+      "name" : "status",
+      "type" : "string"
+    }, {
+      "name" : "statusCode",
+      "type" : "FSStatusCode"
+    }, {
+      "name" : "notificationType",
+      "type" : "FSNotificationType"
+    } ]
+  } ],
   "messages" : {
-    "Encrypting" : {
+    "FSEvent" : {
       "request" : [ {
-        "name" : "topLevelFolder",
-        "type" : "string"
-      }, {
-        "name" : "filename",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "Decrypting" : {
-      "request" : [ {
-        "name" : "topLevelFolder",
-        "type" : "string"
-      }, {
-        "name" : "filename",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "Signing" : {
-      "request" : [ {
-        "name" : "topLevelFolder",
-        "type" : "string"
-      }, {
-        "name" : "filename",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    },
-    "Rekeying" : {
-      "request" : [ {
-        "name" : "topLevelFolder",
-        "type" : "string"
-      }, {
-        "name" : "filename",
-        "type" : "string"
+        "name" : "event",
+        "type" : "FSNotification"
       } ],
       "response" : "null"
     }

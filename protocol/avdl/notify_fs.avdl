@@ -1,25 +1,6 @@
 @namespace("keybase.1")
 protocol NotifyFS {
-
-	enum FSStatusCode {
-		OK_0,
-		ERROR_1
-	}
-
-	enum FSNotificationType {
-		ENCRYPTING_0,
-		DECRYPTING_1,
-		SIGNING_2,
-		REKEYING_3
-	}
-
-	record FSNotification {
-		string topLevelFolder;
-		string filename;
-		string status;
-		FSStatusCode statusCode;
-		FSNotificationType notificationType;
-	}
+  	import idl "kbfs_common.avdl";
 
 	@notify("")
 	void FSActivity(FSNotification notification);

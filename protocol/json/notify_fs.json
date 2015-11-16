@@ -4,7 +4,7 @@
   "types" : [ {
     "type" : "enum",
     "name" : "FSStatusCode",
-    "symbols" : [ "OK_0", "ERROR_1" ]
+    "symbols" : [ "START_0", "FINISH_1", "ERROR_2" ]
   }, {
     "type" : "enum",
     "name" : "FSNotificationType",

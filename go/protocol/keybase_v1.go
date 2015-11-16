@@ -1786,97 +1786,55 @@ func (c IdentifyUiClient) Finish(ctx context.Context, sessionID int) (err error)
 	return
 }
 
-type EncryptingArg struct {
-	TopLevelFolder string `codec:"topLevelFolder" json:"topLevelFolder"`
-	Filename       string `codec:"filename" json:"filename"`
+type FSStatusCode int
+
+const (
+	FSStatusCode_START  FSStatusCode = 0
+	FSStatusCode_FINISH FSStatusCode = 1
+	FSStatusCode_ERROR  FSStatusCode = 2
+)
+
+type FSNotificationType int
+
+const (
+	FSNotificationType_ENCRYPTING FSNotificationType = 0
+	FSNotificationType_DECRYPTING FSNotificationType = 1
+	FSNotificationType_SIGNING    FSNotificationType = 2
+	FSNotificationType_REKEYING   FSNotificationType = 3
+)
+
+type FSNotification struct {
+	TopLevelFolder   string             `codec:"topLevelFolder" json:"topLevelFolder"`
+	Filename         string             `codec:"filename" json:"filename"`
+	Status           string             `codec:"status" json:"status"`
+	StatusCode       FSStatusCode       `codec:"statusCode" json:"statusCode"`
+	NotificationType FSNotificationType `codec:"notificationType" json:"notificationType"`
 }
 
-type DecryptingArg struct {
-	TopLevelFolder string `codec:"topLevelFolder" json:"topLevelFolder"`
-	Filename       string `codec:"filename" json:"filename"`
-}
-
-type SigningArg struct {
-	TopLevelFolder string `codec:"topLevelFolder" json:"topLevelFolder"`
-	Filename       string `codec:"filename" json:"filename"`
-}
-
-type RekeyingArg struct {
-	TopLevelFolder string `codec:"topLevelFolder" json:"topLevelFolder"`
-	Filename       string `codec:"filename" json:"filename"`
+type FSEventArg struct {
+	Event FSNotification `codec:"event" json:"event"`
 }
 
 type KbfsInterface interface {
-	Encrypting(context.Context, EncryptingArg) error
-	Decrypting(context.Context, DecryptingArg) error
-	Signing(context.Context, SigningArg) error
-	Rekeying(context.Context, RekeyingArg) error
+	FSEvent(context.Context, FSNotification) error
 }
 
 func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.kbfs",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"Encrypting": {
+			"FSEvent": {
 				MakeArg: func() interface{} {
-					ret := make([]EncryptingArg, 1)
+					ret := make([]FSEventArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]EncryptingArg)
+					typedArgs, ok := args.(*[]FSEventArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]EncryptingArg)(nil), args)
+						err = rpc.NewTypeError((*[]FSEventArg)(nil), args)
 						return
 					}
-					err = i.Encrypting(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"Decrypting": {
-				MakeArg: func() interface{} {
-					ret := make([]DecryptingArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]DecryptingArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]DecryptingArg)(nil), args)
-						return
-					}
-					err = i.Decrypting(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"Signing": {
-				MakeArg: func() interface{} {
-					ret := make([]SigningArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SigningArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]SigningArg)(nil), args)
-						return
-					}
-					err = i.Signing(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"Rekeying": {
-				MakeArg: func() interface{} {
-					ret := make([]RekeyingArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]RekeyingArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]RekeyingArg)(nil), args)
-						return
-					}
-					err = i.Rekeying(ctx, (*typedArgs)[0])
+					err = i.FSEvent(ctx, (*typedArgs)[0].Event)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1889,23 +1847,9 @@ type KbfsClient struct {
 	Cli GenericClient
 }
 
-func (c KbfsClient) Encrypting(ctx context.Context, __arg EncryptingArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.Encrypting", []interface{}{__arg}, nil)
-	return
-}
-
-func (c KbfsClient) Decrypting(ctx context.Context, __arg DecryptingArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.Decrypting", []interface{}{__arg}, nil)
-	return
-}
-
-func (c KbfsClient) Signing(ctx context.Context, __arg SigningArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.Signing", []interface{}{__arg}, nil)
-	return
-}
-
-func (c KbfsClient) Rekeying(ctx context.Context, __arg RekeyingArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.Rekeying", []interface{}{__arg}, nil)
+func (c KbfsClient) FSEvent(ctx context.Context, event FSNotification) (err error) {
+	__arg := FSEventArg{Event: event}
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEvent", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2845,30 +2789,6 @@ func (c NotifyCtlClient) SetNotifications(ctx context.Context, channels Notifica
 	__arg := SetNotificationsArg{Channels: channels}
 	err = c.Cli.Call(ctx, "keybase.1.notifyCtl.setNotifications", []interface{}{__arg}, nil)
 	return
-}
-
-type FSStatusCode int
-
-const (
-	FSStatusCode_OK    FSStatusCode = 0
-	FSStatusCode_ERROR FSStatusCode = 1
-)
-
-type FSNotificationType int
-
-const (
-	FSNotificationType_ENCRYPTING FSNotificationType = 0
-	FSNotificationType_DECRYPTING FSNotificationType = 1
-	FSNotificationType_SIGNING    FSNotificationType = 2
-	FSNotificationType_REKEYING   FSNotificationType = 3
-)
-
-type FSNotification struct {
-	TopLevelFolder   string             `codec:"topLevelFolder" json:"topLevelFolder"`
-	Filename         string             `codec:"filename" json:"filename"`
-	Status           string             `codec:"status" json:"status"`
-	StatusCode       FSStatusCode       `codec:"statusCode" json:"statusCode"`
-	NotificationType FSNotificationType `codec:"notificationType" json:"notificationType"`
 }
 
 type FSActivityArg struct {

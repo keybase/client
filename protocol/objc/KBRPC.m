@@ -656,58 +656,16 @@
 
 @implementation KBRKbfsRequest
 
-- (void)encrypting:(KBREncryptingRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(params.topLevelFolder), @"filename": KBRValue(params.filename)};
-  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Encrypting" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)fSEvent:(KBRFSEventRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"event": KBRValue(params.event)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSEvent" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)encryptingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(topLevelFolder), @"filename": KBRValue(filename)};
-  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Encrypting" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)decrypting:(KBRDecryptingRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(params.topLevelFolder), @"filename": KBRValue(params.filename)};
-  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Decrypting" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)decryptingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(topLevelFolder), @"filename": KBRValue(filename)};
-  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Decrypting" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)signing:(KBRSigningRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(params.topLevelFolder), @"filename": KBRValue(params.filename)};
-  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Signing" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)signingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(topLevelFolder), @"filename": KBRValue(filename)};
-  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Signing" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)rekeying:(KBRRekeyingRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(params.topLevelFolder), @"filename": KBRValue(params.filename)};
-  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Rekeying" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)rekeyingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(topLevelFolder), @"filename": KBRValue(filename)};
-  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Rekeying" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+- (void)fSEventWithEvent:(KBRFSNotification *)event completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"event": KBRValue(event)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSEvent" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -3156,69 +3114,17 @@
 }
 @end
 
-@implementation KBREncryptingRequestParams
+@implementation KBRFSEventRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.topLevelFolder = params[0][@"topLevelFolder"];
-    self.filename = params[0][@"filename"];
+    self.event = [MTLJSONAdapter modelOfClass:KBRFSNotification.class fromJSONDictionary:params[0][@"event"] error:nil];
   }
   return self;
 }
 
 + (instancetype)params {
-  KBREncryptingRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRDecryptingRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.topLevelFolder = params[0][@"topLevelFolder"];
-    self.filename = params[0][@"filename"];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRDecryptingRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRSigningRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.topLevelFolder = params[0][@"topLevelFolder"];
-    self.filename = params[0][@"filename"];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRSigningRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRRekeyingRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.topLevelFolder = params[0][@"topLevelFolder"];
-    self.filename = params[0][@"filename"];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRRekeyingRequestParams *p = [[self alloc] init];
+  KBRFSEventRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4984,6 +4890,9 @@
 @implementation KBRLinkCheckResult
 @end
 
+@implementation KBRFSNotification
+@end
+
 @implementation KBRPassphraseStream
 @end
 
@@ -5002,9 +4911,6 @@
 @end
 
 @implementation KBRNotificationChannels
-@end
-
-@implementation KBRFSNotification
 @end
 
 @implementation KBRPGPSignOptions

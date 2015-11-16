@@ -5,6 +5,8 @@
  */
 
 protocol kbfs {
+  	import idl "kbfs_common.avdl";
+
 	/* Idea is that kbfs would call the function below whenever these 
            actions are performed on a file.
 
@@ -14,9 +16,7 @@ protocol kbfs {
 	   It is just a starting point to get kbfs notifications
            through the daemon to the clients.
         */
-	void Encrypting(string topLevelFolder, string filename);
-	void Decrypting(string topLevelFolder, string filename);
-	void Signing(string topLevelFolder, string filename);
-	void Rekeying(string topLevelFolder, string filename);
+	void FSEvent(FSNotification event);
+
 }
 

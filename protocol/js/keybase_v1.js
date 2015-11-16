@@ -294,7 +294,19 @@ export default {
       'updateOk': 6
     }
   },
-  'kbfs': {},
+  'kbfs': {
+    'FSStatusCode': {
+      'start': 0,
+      'finish': 1,
+      'error': 2
+    },
+    'FSNotificationType': {
+      'encrypting': 0,
+      'decrypting': 1,
+      'signing': 2,
+      'rekeying': 3
+    }
+  },
   'Kex2Provisionee': {
     'LogLevel': {
       'none': 0,
@@ -382,8 +394,9 @@ export default {
   },
   'NotifyFS': {
     'FSStatusCode': {
-      'ok': 0,
-      'error': 1
+      'start': 0,
+      'finish': 1,
+      'error': 2
     },
     'FSNotificationType': {
       'encrypting': 0,

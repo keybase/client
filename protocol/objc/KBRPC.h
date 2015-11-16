@@ -368,6 +368,27 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property KBRSigHint *hint;
 @end
 
+typedef NS_ENUM (NSInteger, KBRFSStatusCode) {
+	KBRFSStatusCodeStart = 0,
+	KBRFSStatusCodeFinish = 1,
+	KBRFSStatusCodeError = 2,
+};
+
+typedef NS_ENUM (NSInteger, KBRFSNotificationType) {
+	KBRFSNotificationTypeEncrypting = 0,
+	KBRFSNotificationTypeDecrypting = 1,
+	KBRFSNotificationTypeSigning = 2,
+	KBRFSNotificationTypeRekeying = 3,
+};
+
+@interface KBRFSNotification : KBRObject
+@property NSString *topLevelFolder;
+@property NSString *filename;
+@property NSString *status;
+@property KBRFSStatusCode statusCode;
+@property KBRFSNotificationType notificationType;
+@end
+
 @interface KBRPassphraseStream : KBRObject
 @property NSData *passphraseStream;
 @property NSInteger generation;
@@ -398,26 +419,6 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property BOOL session;
 @property BOOL users;
 @property BOOL kbfs;
-@end
-
-typedef NS_ENUM (NSInteger, KBRFSStatusCode) {
-	KBRFSStatusCodeOk = 0,
-	KBRFSStatusCodeError = 1,
-};
-
-typedef NS_ENUM (NSInteger, KBRFSNotificationType) {
-	KBRFSNotificationTypeEncrypting = 0,
-	KBRFSNotificationTypeDecrypting = 1,
-	KBRFSNotificationTypeSigning = 2,
-	KBRFSNotificationTypeRekeying = 3,
-};
-
-@interface KBRFSNotification : KBRObject
-@property NSString *topLevelFolder;
-@property NSString *filename;
-@property NSString *status;
-@property KBRFSStatusCode statusCode;
-@property KBRFSNotificationType notificationType;
 @end
 
 typedef NS_ENUM (NSInteger, KBRSignMode) {
@@ -832,21 +833,8 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRFinishRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBREncryptingRequestParams : KBRRequestParams
-@property NSString *topLevelFolder;
-@property NSString *filename;
-@end
-@interface KBRDecryptingRequestParams : KBRRequestParams
-@property NSString *topLevelFolder;
-@property NSString *filename;
-@end
-@interface KBRSigningRequestParams : KBRRequestParams
-@property NSString *topLevelFolder;
-@property NSString *filename;
-@end
-@interface KBRRekeyingRequestParams : KBRRequestParams
-@property NSString *topLevelFolder;
-@property NSString *filename;
+@interface KBRFSEventRequestParams : KBRRequestParams
+@property KBRFSNotification *event;
 @end
 @interface KBRHelloRequestParams : KBRRequestParams
 @property NSString *uid;
@@ -1513,21 +1501,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRKbfsRequest : KBRRequest
 
-- (void)encrypting:(KBREncryptingRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)fSEvent:(KBRFSEventRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)encryptingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion;
-
-- (void)decrypting:(KBRDecryptingRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)decryptingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion;
-
-- (void)signing:(KBRSigningRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)signingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion;
-
-- (void)rekeying:(KBRRekeyingRequestParams *)params completion:(void (^)(NSError *error))completion;
-
-- (void)rekeyingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion;
+- (void)fSEventWithEvent:(KBRFSNotification *)event completion:(void (^)(NSError *error))completion;
 
 @end
 

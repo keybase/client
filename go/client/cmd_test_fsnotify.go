@@ -1,6 +1,8 @@
 package client
 
 import (
+	"time"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -29,6 +31,10 @@ func NewCmdTestFSNotify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "a, action",
 				Usage: "[encrypting|decrypting|signing|rekeying]",
 			},
+			cli.StringFlag{
+				Name:  "delay",
+				Usage: "delay between start and finish calls",
+			},
 		},
 	}
 }
@@ -38,6 +44,7 @@ type CmdTestFSNotify struct {
 	tlf      string
 	filename string
 	action   keybase1.FSNotificationType
+	delay    time.Duration
 }
 
 func (s *CmdTestFSNotify) ParseArgv(ctx *cli.Context) error {
@@ -64,6 +71,17 @@ func (s *CmdTestFSNotify) ParseArgv(ctx *cli.Context) error {
 		s.action = keybase1.FSNotificationType_REKEYING
 	}
 
+	delay := ctx.String("delay")
+	if len(delay) > 0 {
+		dur, err := time.ParseDuration(delay)
+		if err != nil {
+			return err
+		}
+		s.delay = dur
+	} else {
+		s.delay = 1 * time.Second
+	}
+
 	return nil
 }
 
@@ -80,18 +98,26 @@ func (s *CmdTestFSNotify) Run() (err error) {
 		return err
 	}
 
-	switch s.action {
-	case keybase1.FSNotificationType_ENCRYPTING:
-		err = cli.Encrypting(context.TODO(), keybase1.EncryptingArg{TopLevelFolder: s.tlf, Filename: s.filename})
-	case keybase1.FSNotificationType_DECRYPTING:
-		err = cli.Decrypting(context.TODO(), keybase1.DecryptingArg{TopLevelFolder: s.tlf, Filename: s.filename})
-	case keybase1.FSNotificationType_SIGNING:
-		err = cli.Signing(context.TODO(), keybase1.SigningArg{TopLevelFolder: s.tlf, Filename: s.filename})
-	case keybase1.FSNotificationType_REKEYING:
-		err = cli.Rekeying(context.TODO(), keybase1.RekeyingArg{TopLevelFolder: s.tlf, Filename: s.filename})
-	default:
-		panic("unknown action type")
+	arg := keybase1.FSNotification{
+		TopLevelFolder:   s.tlf,
+		Filename:         s.filename,
+		NotificationType: s.action,
+		StatusCode:       keybase1.FSStatusCode_START,
 	}
+	s.G().Log.Debug("sending start event")
+	err = cli.FSEvent(context.TODO(), arg)
+	if err != nil {
+		return err
+	}
+	s.G().Log.Debug("sleeping for %s", s.delay)
+	time.Sleep(s.delay)
+	arg.StatusCode = keybase1.FSStatusCode_FINISH
+	s.G().Log.Debug("sending finish event")
+	err = cli.FSEvent(context.TODO(), arg)
+	if err != nil {
+		return err
+	}
+	s.G().Log.Debug("done with event")
 
 	return err
 }
