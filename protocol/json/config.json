@@ -253,6 +253,22 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "ServicesStatus",
+    "fields" : [ {
+      "name" : "service",
+      "type" : {
+        "type" : "array",
+        "items" : "ServiceStatus"
+      }
+    }, {
+      "name" : "kbfs",
+      "type" : {
+        "type" : "array",
+        "items" : "ServiceStatus"
+      }
+    } ]
+  }, {
+    "type" : "record",
     "name" : "FuseStatus",
     "fields" : [ {
       "name" : "version",
@@ -275,6 +291,16 @@
     }, {
       "name" : "installAction",
       "type" : "InstallAction"
+    }, {
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "InstallComponent",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "string"
     }, {
       "name" : "status",
       "type" : "Status"

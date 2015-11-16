@@ -4779,7 +4779,15 @@
 @implementation KBRServiceStatus
 @end
 
+@implementation KBRServicesStatus
++ (NSValueTransformer *)serviceJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRServiceStatus.class]; }
++ (NSValueTransformer *)kbfsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRServiceStatus.class]; }
+@end
+
 @implementation KBRFuseStatus
+@end
+
+@implementation KBRInstallComponent
 @end
 
 @implementation KBRED25519SignatureInfo

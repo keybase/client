@@ -336,3 +336,48 @@ func FormatTime(t Time) string {
 	layout := "2006-01-02 15:04:05 MST"
 	return FromTime(t).Format(layout)
 }
+
+func (s Status) Error() string {
+	if s.Code == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%s (%s/%d)", s.Desc, s.Name, s.Code)
+}
+
+func (s InstallStatus) String() string {
+	switch s {
+	case InstallStatus_UNKNOWN:
+		return "Unknown"
+	case InstallStatus_ERROR:
+		return "Error"
+	case InstallStatus_NOT_INSTALLED:
+		return "Not Installed"
+	case InstallStatus_NEEDS_UPGRADE:
+		return "Needs upgrade"
+	case InstallStatus_INSTALLED:
+		return "Installed"
+	}
+	return ""
+}
+
+func (s InstallAction) String() string {
+	switch s {
+	case InstallAction_UNKNOWN:
+		return "Unknown"
+	case InstallAction_NONE:
+		return "None"
+	case InstallAction_UPGRADE:
+		return "Upgrade"
+	case InstallAction_REINSTALL:
+		return "Re-Install"
+	case InstallAction_INSTALL:
+		return "Install"
+	}
+	return ""
+}
+
+func (s ServiceStatus) NeedsInstall() bool {
+	return s.InstallAction == InstallAction_INSTALL ||
+		s.InstallAction == InstallAction_REINSTALL ||
+		s.InstallAction == InstallAction_UPGRADE
+}

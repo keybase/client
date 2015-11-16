@@ -142,7 +142,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	} else if libkb.IsBrewBuild {
 		// If we're running in Brew mode, we might need to install ourselves as a persistent
 		// service for future invocations of the command.
-		newProc, err = client.BrewAutoInstall(g)
+		newProc, err = client.AutoInstall(g, "", false)
 		if err != nil {
 			return err
 		}

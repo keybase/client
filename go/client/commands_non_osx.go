@@ -13,16 +13,12 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{}
+func getPlatformSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{}
 }
 
-func NewCmdFuse(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{}
-}
-
-func BrewAutoInstall(g *libkb.GlobalContext) (bool, error) {
-	return false, fmt.Errorf("Brew auto install only supported for OS X")
+func AutoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bool, err error) {
+	return false, fmt.Errorf("Auto install only supported for OS X")
 }
 
 // DebugSocketError allows platforms to help the user diagnose and resolve

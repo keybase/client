@@ -25,7 +25,6 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdDb(cl, g),
 		NewCmdDevice(cl, g),
 		NewCmdID(cl, g),
-		NewCmdLaunchd(cl, g),
 		NewCmdListTracking(cl),
 		NewCmdListTrackers(cl),
 		NewCmdLogin(cl, g),
@@ -46,5 +45,6 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdVersion(cl, g),
 	}
 	ret = append(ret, getBuildSpecificCommands(cl, g)...)
+	ret = append(ret, getPlatformSpecificCommands(cl, g)...)
 	return ret
 }
