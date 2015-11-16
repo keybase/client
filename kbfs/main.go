@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -14,11 +13,7 @@ import (
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var memprofile = flag.String("memprofile", "", "write memory profile to file")
-var local = flag.Bool("local", false,
-	"use a fake local user DB instead of Keybase")
-var localUserFlag = flag.String("localuser", "strib",
-	"fake local user (only valid when local=true)")
-var clientFlag = flag.Bool("client", false, "use keybase daemon")
+var localUserFlag = flag.String("localuser", "", "fake local user")
 var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
 var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
 var debug = flag.Bool("debug", false, "Print debug messages")
@@ -26,7 +21,7 @@ var bserverAddr = flag.String("bserver", "", "host:port of the block server (ex:
 var mdserverAddr = flag.String("mdserver", "", "host:port of the metadata server (ex: mdserver.dev.keybase.io:443)")
 
 const usageStr = `Usage:
-  kbfs [-client | -local [-localuser=<user>]]
+  kbfs [-localuser=<user>] [-debug]
     [-server-in-memory|-server-root=path/to/dir]
     [-bserver=host:port] [-mdserver=host:port] <command> [<args>]
 
@@ -48,16 +43,7 @@ func realMain() (exitStatus int) {
 		return
 	}
 
-	var localUser libkb.NormalizedUsername
-	if *local {
-		localUser = libkb.NewNormalizedUsername(*localUserFlag)
-	} else if *clientFlag {
-		localUser = libkb.NormalizedUsername("")
-	} else {
-		printError("kbfs", errors.New("either -client or -local must be used"))
-		exitStatus = 1
-		return
-	}
+	localUser := libkb.NewNormalizedUsername(*localUserFlag)
 
 	var serverRootDir *string
 	if !*serverInMemoryFlag {
