@@ -1,8 +1,9 @@
 'use strict'
 
 import * as Constants from '../constants/login2'
+import {isMobile} from '../constants/platform'
 import QRCodeGen from 'qrcode-generator'
-import { navigateTo, routeAppend, getCurrentURI, getCurrentTab } from './router'
+import {navigateTo, routeAppend, getCurrentURI, getCurrentTab} from './router'
 import engine from '../engine'
 import enums from '../keybase_v1'
 import UserPass from '../login2/register/user-pass'
@@ -10,9 +11,9 @@ import PaperKey from '../login2/register/paper-key'
 import CodePage from '../login2/register/code-page'
 import ExistingDevice from '../login2/register/existing-device'
 import SetPublicName from '../login2/register/set-public-name'
-import { switchTab } from './tabbed-router'
-import { devicesTab } from '../constants/tabs'
-import { loadDevices } from './devices'
+import {switchTab} from './tabbed-router'
+import {devicesTab} from '../constants/tabs'
+import {loadDevices} from './devices'
 
 export function login () {
   return (dispatch, getState) => {
@@ -91,7 +92,7 @@ function setCodePageMode (mode) {
 }
 
 function qrGenerate (code) {
-  const qr = QRCodeGen(3, 'L')
+  const qr = QRCodeGen(4, 'L')
   qr.addData(code)
   qr.make()
   let tag = qr.createImgTag(10)
@@ -199,7 +200,7 @@ function askForUserPass (title, subTitle, cb) {
 function askForPaperKey (cb) {
   return dispatch => {
     const props = {
-      onSubmit: (paperKey) => {
+      onSubmit: paperKey => {
         cb(paperKey)
       }
     }
@@ -329,8 +330,7 @@ export function registerWithPaperKey () {
 }
 
 function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle, successType) {
-  const mobile = true // TODO desktop also
-  const deviceType = mobile ? 'mobile' : 'desktop'
+  const deviceType = isMobile ? 'mobile' : 'desktop'
   const incomingMap = makeKex2IncomingMap(dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle)
 
   engine.rpc('login.login', {deviceType}, incomingMap, (error, response) => {
@@ -377,7 +377,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       }
     },
     'keybase.1.secretUi.getPaperKeyPassphrase': (param, response) => {
-      dispatch(askForPaperKey((paperKey) => {
+      dispatch(askForPaperKey(paperKey => {
         response.result(paperKey)
       }))
     },
@@ -445,7 +445,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       }
     },
     'keybase.1.provisionUi.chooseDeviceType': (param, response) => {
-      dispatch(askForOtherDeviceType((type) => {
+      dispatch(askForOtherDeviceType(type => {
         const typeMap = {
           [Constants.codePageDeviceRoleExistingPhone]: enums.provisionUi.DeviceType.mobile,
           [Constants.codePageDeviceRoleExistingComputer]: enums.provisionUi.DeviceType.desktop

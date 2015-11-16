@@ -15,7 +15,7 @@ export default class SetPublicNameRender extends Component {
           floatingLabelText='Nickname'
           value={this.props.deviceName}
           onEnterKeyDown={() => this.props.onSubmit()}
-          onChange={(event) => this.props.onChangeDeviceName(event.target.value)}
+          onChange={event => this.props.onChangeDeviceName(event.target.value)}
         />
         { this.props.nameTaken &&
           <p>{`The device name: ${this.props.deviceName} is already taken`}</p>

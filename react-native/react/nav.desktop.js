@@ -1,7 +1,7 @@
 'use strict'
 
-import { Component } from './base-react'
-import { connect } from './base-redux'
+import {Component} from './base-react'
+import {connect} from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import React from 'react'
 import Folders from './tabs/folders'
@@ -12,10 +12,11 @@ import NoTab from './tabs/no-tab'
 import More from './tabs/more'
 
 import * as Constants from './constants/config'
-import { folderTab, chatTab, peopleTab, devicesTab, moreTab } from './constants/tabs'
-import { switchTab } from './actions/tabbed-router'
-import { Tab, Tabs, Styles } from 'material-ui'
-let { Colors, Typography } = Styles
+import {folderTab, chatTab, peopleTab, devicesTab, moreTab} from './constants/tabs'
+import {switchTab} from './actions/tabbed-router'
+import {Tab, Tabs, Styles} from 'material-ui'
+import {startup} from './actions/config'
+let {Colors, Typography} = Styles
 
 const tabToRootRouteParse = {
   [folderTab]: Folders,
@@ -26,6 +27,12 @@ const tabToRootRouteParse = {
 }
 
 export default class Nav extends Component {
+  constructor (props) {
+    super(props)
+
+    this.props.dispatch(startup())
+  }
+
   _renderContent (activeTab, rootComponent) {
     return (
       <div>
@@ -48,41 +55,12 @@ export default class Nav extends Component {
   render () {
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
-    let styles = {
-      div: {
-        position: 'absolute',
-        left: 48,
-        backgroundColor: Colors.cyan500,
-        width: 0,
-        height: 48
-      },
-      headline: {
-        fontSize: 24,
-        lineHeight: '32px',
-        paddingTop: 16,
-        marginBottom: 12,
-        letterSpacing: 0,
-        fontWeight: Typography.fontWeightNormal,
-        color: Typography.textDarkBlack
-      },
-      iconButton: {
-        position: 'absolute',
-        left: 0,
-        backgroundColor: Colors.cyan500,
-        color: 'white',
-        marginRight: 0
-      },
-      iconStyle: {
-        color: Colors.white
-      },
-      tabs: {
-        position: 'relative'
-      },
-      tabsContainer: {
-        position: 'relative',
-        paddingLeft: 0,
-        width: '70%'
-      }
+    if (this.props.config.navState === Constants.navStartingUp) {
+      return (
+        <div style={{display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <h1>Loading...</h1>
+        </div>
+      )
     }
 
     return (
@@ -106,6 +84,43 @@ export default class Nav extends Component {
         </Tabs>
       </div>
     )
+  }
+}
+
+const styles = {
+  div: {
+    position: 'absolute',
+    left: 48,
+    backgroundColor: Colors.cyan500,
+    width: 0,
+    height: 48
+  },
+  headline: {
+    fontSize: 24,
+    lineHeight: '32px',
+    paddingTop: 16,
+    marginBottom: 12,
+    letterSpacing: 0,
+    fontWeight: Typography.fontWeightNormal,
+    color: Typography.textDarkBlack
+  },
+  iconButton: {
+    position: 'absolute',
+    left: 0,
+    backgroundColor: Colors.cyan500,
+    color: 'white',
+    marginRight: 0
+  },
+  iconStyle: {
+    color: Colors.white
+  },
+  tabs: {
+    position: 'relative'
+  },
+  tabsContainer: {
+    position: 'relative',
+    paddingLeft: 0,
+    width: '70%'
   }
 }
 
