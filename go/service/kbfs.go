@@ -22,20 +22,43 @@ func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KBFSHandler {
 		Contextified: libkb.NewContextified(g),
 	}
 }
+
 func (h *KBFSHandler) Encrypting(_ context.Context, arg keybase1.EncryptingArg) error {
 	h.G().NotifyRouter.HandleFSActivity(
 		keybase1.FSNotification{
-			TopLevelFolder: arg.TopLevelFolder,
-			Filename:       arg.Filename,
+			TopLevelFolder:   arg.TopLevelFolder,
+			Filename:         arg.Filename,
+			NotificationType: keybase1.FSNotificationType_ENCRYPTING,
 		})
 	return nil
 }
-func (h *KBFSHandler) Decrypting(context.Context, keybase1.DecryptingArg) error {
+
+func (h *KBFSHandler) Decrypting(_ context.Context, arg keybase1.DecryptingArg) error {
+	h.G().NotifyRouter.HandleFSActivity(
+		keybase1.FSNotification{
+			TopLevelFolder:   arg.TopLevelFolder,
+			Filename:         arg.Filename,
+			NotificationType: keybase1.FSNotificationType_DECRYPTING,
+		})
 	return nil
 }
-func (h *KBFSHandler) Signing(context.Context, keybase1.SigningArg) error {
+
+func (h *KBFSHandler) Signing(_ context.Context, arg keybase1.SigningArg) error {
+	h.G().NotifyRouter.HandleFSActivity(
+		keybase1.FSNotification{
+			TopLevelFolder:   arg.TopLevelFolder,
+			Filename:         arg.Filename,
+			NotificationType: keybase1.FSNotificationType_SIGNING,
+		})
 	return nil
 }
-func (h *KBFSHandler) Rekeying(context.Context, keybase1.RekeyingArg) error {
+
+func (h *KBFSHandler) Rekeying(_ context.Context, arg keybase1.RekeyingArg) error {
+	h.G().NotifyRouter.HandleFSActivity(
+		keybase1.FSNotification{
+			TopLevelFolder:   arg.TopLevelFolder,
+			Filename:         arg.Filename,
+			NotificationType: keybase1.FSNotificationType_REKEYING,
+		})
 	return nil
 }
