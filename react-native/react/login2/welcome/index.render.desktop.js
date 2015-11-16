@@ -1,8 +1,9 @@
 'use strict'
 /* @flow */
 
-import React, { Component } from '../../base-react'
+import React, {Component} from '../../base-react'
 import commonStyles from '../../styles/common'
+import shell from 'shell'
 
 export default class WelcomeRender extends Component {
   render () {
@@ -19,7 +20,7 @@ export default class WelcomeRender extends Component {
         </button>
         <div style={{display: 'flex', flex: 1, justifyContent: 'flex-end', alignItems: 'flex-end', padding: 10}}>
           <h2 style={{...commonStyles.h2, ...commonStyles.clickable}}
-            onClick={() => { window.open('https://github.com/keybase/keybase-issues') }}>Report a bug or problem</h2>
+            onClick={() => { shell.openExternal('https://github.com/keybase/keybase-issues') }}>Report a bug or problem</h2>
         </div>
       </div>
     )
