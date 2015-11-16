@@ -294,6 +294,7 @@ export default {
       'updateOk': 6
     }
   },
+  'kbfs': {},
   'Kex2Provisionee': {
     'LogLevel': {
       'none': 0,

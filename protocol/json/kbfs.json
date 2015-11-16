@@ -1,0 +1,47 @@
+{
+  "protocol" : "kbfs",
+  "namespace" : "keybase.1",
+  "types" : [ ],
+  "messages" : {
+    "Encrypting" : {
+      "request" : [ {
+        "name" : "topLevelFolder",
+        "type" : "string"
+      }, {
+        "name" : "filename",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "Decrypting" : {
+      "request" : [ {
+        "name" : "topLevelFolder",
+        "type" : "string"
+      }, {
+        "name" : "filename",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "Signing" : {
+      "request" : [ {
+        "name" : "topLevelFolder",
+        "type" : "string"
+      }, {
+        "name" : "filename",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "Rekeying" : {
+      "request" : [ {
+        "name" : "topLevelFolder",
+        "type" : "string"
+      }, {
+        "name" : "filename",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    }
+  }
+}

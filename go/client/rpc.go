@@ -179,3 +179,12 @@ func GetNotifyCtlClient(g *libkb.GlobalContext) (cli keybase1.NotifyCtlClient, e
 	cli = keybase1.NotifyCtlClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetKBFSClient(g *libkb.GlobalContext) (cli keybase1.KbfsClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.KbfsClient{Cli: rcli}
+	return cli, nil
+}

@@ -34,6 +34,7 @@ func (c *CmdShowNotifications) Run() error {
 	protocols := []rpc.Protocol{
 		keybase1.NotifySessionProtocol(display),
 		keybase1.NotifyUsersProtocol(display),
+		keybase1.NotifyFSProtocol(display),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
@@ -42,7 +43,7 @@ func (c *CmdShowNotifications) Run() error {
 	if err != nil {
 		return err
 	}
-	if err := cli.SetNotifications(context.TODO(), keybase1.NotificationChannels{Session: true, Users: true}); err != nil {
+	if err := cli.SetNotifications(context.TODO(), keybase1.NotificationChannels{Session: true, Users: true, Kbfs: true}); err != nil {
 		return err
 	}
 
@@ -89,4 +90,8 @@ func (d *notificationDisplay) LoggedOut(_ context.Context) error {
 
 func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) error {
 	return d.printf("User %s changed\n", uid)
+}
+
+func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {
+	return d.printf("KBFS notification: %+v\n", notification)
 }

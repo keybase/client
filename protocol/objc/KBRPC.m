@@ -654,6 +654,66 @@
 
 @end
 
+@implementation KBRKbfsRequest
+
+- (void)encrypting:(KBREncryptingRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(params.topLevelFolder), @"filename": KBRValue(params.filename)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Encrypting" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)encryptingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(topLevelFolder), @"filename": KBRValue(filename)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Encrypting" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)decrypting:(KBRDecryptingRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(params.topLevelFolder), @"filename": KBRValue(params.filename)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Decrypting" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)decryptingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(topLevelFolder), @"filename": KBRValue(filename)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Decrypting" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)signing:(KBRSigningRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(params.topLevelFolder), @"filename": KBRValue(params.filename)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Signing" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)signingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(topLevelFolder), @"filename": KBRValue(filename)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Signing" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)rekeying:(KBRRekeyingRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(params.topLevelFolder), @"filename": KBRValue(params.filename)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Rekeying" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)rekeyingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"topLevelFolder": KBRValue(topLevelFolder), @"filename": KBRValue(filename)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.Rekeying" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRKex2ProvisioneeRequest
 
 - (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion {
@@ -3091,6 +3151,74 @@
 
 + (instancetype)params {
   KBRFinishRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBREncryptingRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.topLevelFolder = params[0][@"topLevelFolder"];
+    self.filename = params[0][@"filename"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBREncryptingRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDecryptingRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.topLevelFolder = params[0][@"topLevelFolder"];
+    self.filename = params[0][@"filename"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDecryptingRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRSigningRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.topLevelFolder = params[0][@"topLevelFolder"];
+    self.filename = params[0][@"filename"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRSigningRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRRekeyingRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.topLevelFolder = params[0][@"topLevelFolder"];
+    self.filename = params[0][@"filename"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRRekeyingRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

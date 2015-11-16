@@ -1786,6 +1786,129 @@ func (c IdentifyUiClient) Finish(ctx context.Context, sessionID int) (err error)
 	return
 }
 
+type EncryptingArg struct {
+	TopLevelFolder string `codec:"topLevelFolder" json:"topLevelFolder"`
+	Filename       string `codec:"filename" json:"filename"`
+}
+
+type DecryptingArg struct {
+	TopLevelFolder string `codec:"topLevelFolder" json:"topLevelFolder"`
+	Filename       string `codec:"filename" json:"filename"`
+}
+
+type SigningArg struct {
+	TopLevelFolder string `codec:"topLevelFolder" json:"topLevelFolder"`
+	Filename       string `codec:"filename" json:"filename"`
+}
+
+type RekeyingArg struct {
+	TopLevelFolder string `codec:"topLevelFolder" json:"topLevelFolder"`
+	Filename       string `codec:"filename" json:"filename"`
+}
+
+type KbfsInterface interface {
+	Encrypting(context.Context, EncryptingArg) error
+	Decrypting(context.Context, DecryptingArg) error
+	Signing(context.Context, SigningArg) error
+	Rekeying(context.Context, RekeyingArg) error
+}
+
+func KbfsProtocol(i KbfsInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.kbfs",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"Encrypting": {
+				MakeArg: func() interface{} {
+					ret := make([]EncryptingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]EncryptingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]EncryptingArg)(nil), args)
+						return
+					}
+					err = i.Encrypting(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"Decrypting": {
+				MakeArg: func() interface{} {
+					ret := make([]DecryptingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DecryptingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DecryptingArg)(nil), args)
+						return
+					}
+					err = i.Decrypting(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"Signing": {
+				MakeArg: func() interface{} {
+					ret := make([]SigningArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SigningArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SigningArg)(nil), args)
+						return
+					}
+					err = i.Signing(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"Rekeying": {
+				MakeArg: func() interface{} {
+					ret := make([]RekeyingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RekeyingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RekeyingArg)(nil), args)
+						return
+					}
+					err = i.Rekeying(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type KbfsClient struct {
+	Cli GenericClient
+}
+
+func (c KbfsClient) Encrypting(ctx context.Context, __arg EncryptingArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.Encrypting", []interface{}{__arg}, nil)
+	return
+}
+
+func (c KbfsClient) Decrypting(ctx context.Context, __arg DecryptingArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.Decrypting", []interface{}{__arg}, nil)
+	return
+}
+
+func (c KbfsClient) Signing(ctx context.Context, __arg SigningArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.Signing", []interface{}{__arg}, nil)
+	return
+}
+
+func (c KbfsClient) Rekeying(ctx context.Context, __arg RekeyingArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.Rekeying", []interface{}{__arg}, nil)
+	return
+}
+
 type PassphraseStream struct {
 	PassphraseStream []byte `codec:"passphraseStream" json:"passphraseStream"`
 	Generation       int    `codec:"generation" json:"generation"`
@@ -2679,6 +2802,7 @@ func (c MetadataUpdateClient) MetadataUpdate(ctx context.Context, __arg Metadata
 type NotificationChannels struct {
 	Session bool `codec:"session" json:"session"`
 	Users   bool `codec:"users" json:"users"`
+	Kbfs    bool `codec:"kbfs" json:"kbfs"`
 }
 
 type SetNotificationsArg struct {

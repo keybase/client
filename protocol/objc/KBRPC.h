@@ -397,6 +397,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @interface KBRNotificationChannels : KBRObject
 @property BOOL session;
 @property BOOL users;
+@property BOOL kbfs;
 @end
 
 typedef NS_ENUM (NSInteger, KBRFSStatusCode) {
@@ -830,6 +831,22 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRFinishRequestParams : KBRRequestParams
 @property NSInteger sessionID;
+@end
+@interface KBREncryptingRequestParams : KBRRequestParams
+@property NSString *topLevelFolder;
+@property NSString *filename;
+@end
+@interface KBRDecryptingRequestParams : KBRRequestParams
+@property NSString *topLevelFolder;
+@property NSString *filename;
+@end
+@interface KBRSigningRequestParams : KBRRequestParams
+@property NSString *topLevelFolder;
+@property NSString *filename;
+@end
+@interface KBRRekeyingRequestParams : KBRRequestParams
+@property NSString *topLevelFolder;
+@property NSString *filename;
 @end
 @interface KBRHelloRequestParams : KBRRequestParams
 @property NSString *uid;
@@ -1491,6 +1508,26 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)confirmWithOutcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error, BOOL b))completion;
 
 - (void)finish:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRKbfsRequest : KBRRequest
+
+- (void)encrypting:(KBREncryptingRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)encryptingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion;
+
+- (void)decrypting:(KBRDecryptingRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)decryptingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion;
+
+- (void)signing:(KBRSigningRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)signingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion;
+
+- (void)rekeying:(KBRRekeyingRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)rekeyingWithTopLevelFolder:(NSString *)topLevelFolder filename:(NSString *)filename completion:(void (^)(NSError *error))completion;
 
 @end
 

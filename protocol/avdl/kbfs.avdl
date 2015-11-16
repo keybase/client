@@ -1,0 +1,22 @@
+@namespace("keybase.1")
+
+/*
+ * TODO: move 'favorite' protocol functions inside 'kbfs' protocol.
+ */
+
+protocol kbfs {
+	/* Idea is that kbfs would call the function below whenever these 
+           actions are performed on a file.
+
+	   Note that this list/interface is very temporary and highly likely 
+           to change significantly. 
+
+	   It is just a starting point to get kbfs notifications
+           through the daemon to the clients.
+        */
+	void Encrypting(string topLevelFolder, string filename);
+	void Decrypting(string topLevelFolder, string filename);
+	void Signing(string topLevelFolder, string filename);
+	void Rekeying(string topLevelFolder, string filename);
+}
+
