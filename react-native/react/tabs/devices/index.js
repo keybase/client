@@ -50,12 +50,27 @@ export default class Devices extends Component {
   }
 
   render () {
-    return <DevicesRender {... this.props}/>
+    const {
+      devices,
+      waitingForServer,
+      showRemoveDevicePage,
+      showExistingDevicePage,
+      showGenPaperKeyPage
+    } = this.props
+
+    return <DevicesRender {... {
+      devices,
+      waitingForServer,
+      showRemoveDevicePage,
+      showExistingDevicePage,
+      showGenPaperKeyPage
+    }}/>
   }
 }
 
 Devices.propTypes = {
   devices: React.PropTypes.array,
+  error: React.PropTypes.any,
   waitingForServer: React.PropTypes.bool,
   loadDevices: React.PropTypes.func.isRequired,
   showRemoveDevicePage: React.PropTypes.func.isRequired,
