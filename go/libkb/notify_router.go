@@ -145,7 +145,7 @@ func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Users` notification type
+		// If the connection wants the `Kbfs` notification type
 		if n.getNotificationChannels(id).Kbfs {
 			// In the background do...
 			go func() {
