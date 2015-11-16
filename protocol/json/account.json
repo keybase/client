@@ -19,6 +19,13 @@
         "type" : "boolean"
       } ],
       "response" : "null"
+    },
+    "passphrasePrompt" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "null"
     }
   }
 }

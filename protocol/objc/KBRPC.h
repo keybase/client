@@ -97,6 +97,7 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSString *configPath;
 @property NSString *versionShort;
 @property NSString *versionFull;
+@property BOOL isAutoForked;
 @end
 
 typedef NS_ENUM (NSInteger, KBRInstallStatus) {
@@ -126,6 +127,11 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 @property KBRStatus *status;
 @end
 
+@interface KBRServicesStatus : KBRObject
+@property NSArray *service; /*of KBRServiceStatus*/
+@property NSArray *kbfs; /*of KBRServiceStatus*/
+@end
+
 @interface KBRFuseStatus : KBRObject
 @property NSString *version;
 @property NSString *bundleVersion;
@@ -134,6 +140,11 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 @property BOOL kextStarted;
 @property KBRInstallStatus installStatus;
 @property KBRInstallAction installAction;
+@property KBRStatus *status;
+@end
+
+@interface KBRInstallComponent : KBRObject
+@property NSString *name;
 @property KBRStatus *status;
 @end
 
@@ -357,6 +368,27 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @property KBRSigHint *hint;
 @end
 
+typedef NS_ENUM (NSInteger, KBRFSStatusCode) {
+	KBRFSStatusCodeStart = 0,
+	KBRFSStatusCodeFinish = 1,
+	KBRFSStatusCodeError = 2,
+};
+
+typedef NS_ENUM (NSInteger, KBRFSNotificationType) {
+	KBRFSNotificationTypeEncrypting = 0,
+	KBRFSNotificationTypeDecrypting = 1,
+	KBRFSNotificationTypeSigning = 2,
+	KBRFSNotificationTypeRekeying = 3,
+};
+
+@interface KBRFSNotification : KBRObject
+@property NSString *topLevelFolder;
+@property NSString *filename;
+@property NSString *status;
+@property KBRFSStatusCode statusCode;
+@property KBRFSNotificationType notificationType;
+@end
+
 @interface KBRPassphraseStream : KBRObject
 @property NSData *passphraseStream;
 @property NSInteger generation;
@@ -386,6 +418,7 @@ typedef NS_ENUM (NSInteger, KBRTrackStatus) {
 @interface KBRNotificationChannels : KBRObject
 @property BOOL session;
 @property BOOL users;
+@property BOOL kbfs;
 @end
 
 typedef NS_ENUM (NSInteger, KBRSignMode) {
@@ -633,6 +666,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *passphrase;
 @property BOOL force;
 @end
+@interface KBRPassphrasePromptRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBREstablishSessionRequestParams : KBRRequestParams
 @property NSString *user;
 @property NSString *sid;
@@ -800,6 +836,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRFinishRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
+@interface KBRFSEventRequestParams : KBRRequestParams
+@property KBRFSNotification *event;
+@end
 @interface KBRHelloRequestParams : KBRRequestParams
 @property NSString *uid;
 @property NSString *token;
@@ -909,6 +948,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRSetNotificationsRequestParams : KBRRequestParams
 @property KBRNotificationChannels *channels;
+@end
+@interface KBRFSActivityRequestParams : KBRRequestParams
+@property KBRFSNotification *notification;
 @end
 @interface KBRUserChangedRequestParams : KBRRequestParams
 @property NSString *uid;
@@ -1228,6 +1270,8 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)passphraseChangeWithOldPassphrase:(NSString *)oldPassphrase passphrase:(NSString *)passphrase force:(BOOL)force completion:(void (^)(NSError *error))completion;
 
+- (void)passphrasePrompt:(void (^)(NSError *error))completion;
+
 @end
 
 @interface KBRBlockRequest : KBRRequest
@@ -1460,6 +1504,14 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @end
 
+@interface KBRKbfsRequest : KBRRequest
+
+- (void)fSEvent:(KBRFSEventRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)fSEventWithEvent:(KBRFSNotification *)event completion:(void (^)(NSError *error))completion;
+
+@end
+
 @interface KBRKex2ProvisioneeRequest : KBRRequest
 
 - (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion;
@@ -1611,6 +1663,14 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)setNotifications:(KBRSetNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)setNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRNotifyFSRequest : KBRRequest
+
+- (void)fSActivity:(KBRFSActivityRequestParams *)params completion:(void (^)(NSError *error))completion;
+
+- (void)fSActivityWithNotification:(KBRFSNotification *)notification completion:(void (^)(NSError *error))completion;
 
 @end
 

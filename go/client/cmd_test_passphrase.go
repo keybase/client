@@ -1,10 +1,12 @@
 package client
 
 import (
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 func NewCmdTestPassphrase(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -33,22 +35,18 @@ func (s *CmdTestPassphrase) Run() (err error) {
 	s.G().Log.Debug("+ CmdTestPassphrase.Run")
 	defer func() { s.G().Log.Debug("- CmdTestPassphrase.Run -> %s", libkb.ErrToOk(err)) }()
 
-	guiArg := keybase1.GUIEntryArg{
-		WindowTitle: "Keybase Test Passphrase",
-		Prompt:      "Enter a test passphrase",
-		Features: keybase1.GUIEntryFeatures{
-			SecretStorage: keybase1.SecretStorageFeature{
-				Allow: true,
-				Label: "store your test passphrase",
-			},
-		},
+	protocols := []rpc.Protocol{
+		NewSecretUIProtocol(s.G()),
 	}
-	res, err := s.G().UI.GetSecretUI().GetPassphrase(guiArg, nil)
+	if err = RegisterProtocols(protocols); err != nil {
+		return err
+	}
+
+	cli, err := GetAccountClient(s.G())
 	if err != nil {
 		return err
 	}
 
-	s.G().Log.Debug("result: %+v", res)
-
-	return nil
+	err = cli.PassphrasePrompt(context.TODO(), 0)
+	return err
 }

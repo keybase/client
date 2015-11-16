@@ -18,14 +18,15 @@ import (
 
 type Service struct {
 	libkb.Contextified
-	isDaemon bool
-	chdirTo  string
-	lockPid  *libkb.LockPIDFile
-	startCh  chan struct{}
-	stopCh   chan struct{}
+	isDaemon     bool
+	chdirTo      string
+	lockPid      *libkb.LockPIDFile
+	isAutoForked bool
+	startCh      chan struct{}
+	stopCh       chan struct{}
 }
 
-func NewService(isDaemon bool, g *libkb.GlobalContext) *Service {
+func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 	return &Service{
 		Contextified: libkb.NewContextified(g),
 		isDaemon:     isDaemon,
@@ -42,13 +43,14 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
-		keybase1.ConfigProtocol(NewConfigHandler(xp, g)),
+		keybase1.ConfigProtocol(NewConfigHandler(xp, g, d)),
 		keybase1.CryptoProtocol(NewCryptoHandler(xp, g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
 		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
+		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.ProveProtocol(NewProveHandler(xp, g)),
 		keybase1.SessionProtocol(NewSessionHandler(xp, g)),
@@ -106,6 +108,8 @@ func (d *Service) Run() (err error) {
 		}
 		d.G().Shutdown()
 	}()
+
+	d.G().Log.Debug("+ service starting up; autoForked=%v", d.isAutoForked)
 
 	// Sets this global context to "service" mode which will toggle a flag
 	// and will also set in motion various go-routine based managers
@@ -291,6 +295,7 @@ func (d *Service) ListenLoop(l net.Listener) (err error) {
 
 func (d *Service) ParseArgv(ctx *cli.Context) error {
 	d.chdirTo = ctx.String("chdir")
+	d.isAutoForked = ctx.Bool("auto-forked")
 	return nil
 }
 
@@ -306,9 +311,13 @@ func NewCmdService(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "label",
 				Usage: "Specifying a label can help identify services.",
 			},
+			cli.BoolFlag{
+				Name:  "auto-forked",
+				Usage: "Specify if this binary was auto-forked from the client",
+			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewService(true /* isDaemon */, g), "service", c)
+			cl.ChooseCommand(NewService(g, true /* isDaemon */), "service", c)
 			cl.SetService()
 		},
 	}

@@ -80,8 +80,25 @@ func mainInner(g *libkb.GlobalContext) error {
 
 	warnNonProd(g.Log, g.Env)
 
+	if err = configureProcesses(g, cl, &cmd); err != nil {
+		return err
+	}
+
+	return cmd.Run()
+}
+
+// AutoFork? Standalone? ClientServer? Brew service?  This function deals with the
+// various run configurations that we can run in.
+func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd *libcmdline.Command) (err error) {
+
+	g.Log.Debug("+ configureProcesses")
+	defer func() {
+		g.Log.Debug("- configureProcesses -> %v", err)
+	}()
+
+	// No need to configure if we're a service
 	if cl.IsService() {
-		return cmd.Run()
+		return err
 	}
 
 	// Start the server on the other end, possibly.
@@ -91,48 +108,86 @@ func mainInner(g *libkb.GlobalContext) error {
 	// operations.
 	if g.Env.GetStandalone() {
 		if cl.IsNoStandalone() {
-			return fmt.Errorf("Can't run command in standalone mode")
+			err = fmt.Errorf("Can't run command in standalone mode")
+			return err
 		}
-		if err := service.NewService(false /* isDaemon */, g).StartLoopbackServer(); err != nil {
+		err := service.NewService(g, false /* isDaemon */).StartLoopbackServer()
+		if err != nil {
 			if pflerr, ok := err.(libkb.PIDFileLockError); ok {
 				err = fmt.Errorf("Can't run in standalone mode with a service running (see %q)",
 					pflerr.Filename)
+				return err
 			}
+		}
+		return err
+	}
+
+	// After this point, we need to provide a remote logging story if necessary
+
+	// If this command specifically asks not to be forked, then we are done in this
+	// function. This sort of thing is true for the `ctl` commands and also the `version`
+	// command.
+	fc := cl.GetForkCmd()
+	if fc == libcmdline.NoFork {
+		return configureLogging(g, cl)
+	}
+
+	// If this command warrants an autofork, do it now.
+	var newProc bool
+	if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
+		newProc, err = client.AutoForkServer(g, cl)
+		if err != nil {
 			return err
 		}
-	} else {
-		// If this command warrants an autofork, do it now.
-		if fc := cl.GetForkCmd(); fc == libcmdline.ForceFork || (g.Env.GetAutoFork() && fc != libcmdline.NoFork) {
-			if err = client.ForkServer(cl, g); err != nil {
-				return err
-			}
-		} else if libkb.IsBrewBuild {
-			err := client.BrewAutoInstall(g)
-			if err != nil {
-				return err
-			}
-		}
-
-		// Whether or not we autoforked, we're now running in client-server
-		// mode (as opposed to standalone). Register a global LogUI so that
-		// calls to G.Log() in the daemon can be copied to us. This is
-		// something of a hack on the daemon side.
-		if !g.Env.GetDoLogForward() || cl.GetLogForward() == libcmdline.LogForwardNone {
-			g.Log.Debug("Disabling log forwarding")
-		} else {
-			// TODO This triggers a connection to the RPC server before cmd.Run() is
-			// called, so the command has no way to deal with errors on its own.
-			// This should probably be moved into RegisterProtocols?
-			// Also rpc.RegisterProtocolsWithContext seems to automatically add the
-			// LogUIProtocol?
-			err := registerGlobalLogUI(g)
-			if err != nil {
-				return err
-			}
+	} else if libkb.IsBrewBuild {
+		// If we're running in Brew mode, we might need to install ourselves as a persistent
+		// service for future invocations of the command.
+		newProc, err = client.AutoInstall(g, "", false)
+		if err != nil {
+			return err
 		}
 	}
 
-	return cmd.Run()
+	g.Log.Debug("| After forks; newProc=%v", newProc)
+	if err = configureLogging(g, cl); err != nil {
+		return err
+	}
+
+	// If we have created a new proc, then there's no need to keep going to the
+	// final step, which is to check for a version clashes.
+	if newProc {
+		return nil
+	}
+
+	// Finally, we'll restart the service if we see that it's out of date.
+	if err = client.FixVersionClash(g, cl); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func configureLogging(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error {
+
+	g.Log.Debug("+ configureLogging")
+	defer func() {
+		g.Log.Debug("- configureLogging")
+	}()
+	// Whether or not we autoforked, we're now running in client-server
+	// mode (as opposed to standalone). Register a global LogUI so that
+	// calls to G.Log() in the daemon can be copied to us. This is
+	// something of a hack on the daemon side.
+	if !g.Env.GetDoLogForward() || cl.GetLogForward() == libcmdline.LogForwardNone {
+		g.Log.Debug("Disabling log forwarding")
+		return nil
+	}
+
+	// TODO This triggers a connection to the RPC server before cmd.Run() is
+	// called, so the command has no way to deal with errors on its own.
+	// This should probably be moved into RegisterProtocols?
+	// Also rpc.RegisterProtocolsWithContext seems to automatically add the
+	// LogUIProtocol?
+	return registerGlobalLogUI(g)
 }
 
 func registerGlobalLogUI(g *libkb.GlobalContext) error {
@@ -150,6 +205,7 @@ func registerGlobalLogUI(g *libkb.GlobalContext) error {
 	if err != nil {
 		return err
 	}
+	g.Log.Debug("Setting remote log level: %v", logLevel)
 	arg := keybase1.SetLogLevelArg{Level: logLevel}
 	ctlClient.SetLogLevel(context.TODO(), arg)
 	return nil

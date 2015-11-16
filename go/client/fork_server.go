@@ -27,12 +27,19 @@ func GetExtraFlags() []cli.Flag {
 	}
 }
 
+// AutoForkServer just forks the server and sets the autoFork flag to true
+func AutoForkServer(g *libkb.GlobalContext, cl libkb.CommandLine) (bool, error) {
+	return ForkServer(g, cl, true /* isAutoFork */)
+}
+
 // ForkServer forks a new background Keybase service, and waits until it's
 // pingable. It will only do something useful on Unixes; it won't work on
 // Windows (probably?). Returns an error if anything bad happens; otherwise,
-// assume that the server was successfully started up.
-func ForkServer(cl libkb.CommandLine, g *libkb.GlobalContext) error {
-	srv := service.NewService(true /* isDaemon */, g)
+// assume that the server was successfully started up. Returns (true, nil) if
+// the server was actually forked, or (false, nil) if it was previously up.
+func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, isAutoFork bool) (bool, error) {
+	srv := service.NewService(g, true /* isDaemon */)
+	forked := false
 
 	// If we try to get an exclusive lock and succeed, it means we
 	// need to relaunch the daemon since it's dead
@@ -41,40 +48,41 @@ func ForkServer(cl libkb.CommandLine, g *libkb.GlobalContext) error {
 	if err == nil {
 		g.Log.Debug("Flocked! Server must have died")
 		srv.ReleaseLock()
-		err = spawnServer(cl)
+		err = spawnServer(cl, isAutoFork)
 		if err != nil {
 			g.Log.Errorf("Error in spawning server process: %s", err)
-			return err
+			return false, err
 		}
-		err = pingLoop()
+		err = pingLoop(g)
 		if err != nil {
 			g.Log.Errorf("Ping failure after server fork: %s", err)
-			return err
+			return false, err
 		}
+		forked = true
 	} else {
 		g.Log.Debug("The server is still up")
 		err = nil
 	}
 
-	return err
+	return forked, err
 }
 
-func pingLoop() error {
+func pingLoop(g *libkb.GlobalContext) error {
 	var err error
 	for i := 0; i < 10; i++ {
-		_, _, err = G.GetSocket(true)
+		_, _, err = g.GetSocket(true)
 		if err == nil {
-			G.Log.Debug("Connected (%d)", i)
+			g.Log.Debug("Connected (%d)", i)
 			return nil
 		}
-		G.Log.Debug("Failed to connect to socket (%d): %s", i, err)
+		g.Log.Debug("Failed to connect to socket (%d): %s", i, err)
 		err = nil
 		time.Sleep(200 * time.Millisecond)
 	}
 	return nil
 }
 
-func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, err error) {
+func makeServerCommandLine(cl libkb.CommandLine, isAutoFork bool) (arg0 string, args []string, err error) {
 	// ForkExec requires an absolute path to the binary. LookPath() gets this
 	// for us, or correctly leaves arg0 alone if it's already a path.
 	arg0, err = exec.LookPath(os.Args[0])
@@ -136,6 +144,10 @@ func makeServerCommandLine(cl libkb.CommandLine) (arg0 string, args []string, er
 
 	G.Log.Debug("| Setting run directory for keybase service to %s", chdir)
 	args = append(args, "--chdir", chdir)
+
+	if isAutoFork {
+		args = append(args, "--auto-forked")
+	}
 
 	G.Log.Debug("| Made server args: %s %v", arg0, args)
 

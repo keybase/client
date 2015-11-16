@@ -167,6 +167,9 @@
     }, {
       "name" : "users",
       "type" : "boolean"
+    }, {
+      "name" : "kbfs",
+      "type" : "boolean"
     } ]
   } ],
   "messages" : {

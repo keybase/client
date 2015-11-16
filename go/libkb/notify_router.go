@@ -136,3 +136,25 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 		return true
 	})
 }
+
+// HandleFSActivity is called for any KBFS notification. It will broadcast the messages
+// to all curious listeners.
+func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
+			// In the background do...
+			go func() {
+				// A send of a `FSActivity` RPC with the notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).FSActivity(context.TODO(), activity)
+			}()
+		}
+		return true
+	})
+}

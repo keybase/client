@@ -13,7 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func spawnServer(cl libkb.CommandLine) (err error) {
+func spawnServer(cl libkb.CommandLine, isAutoFork bool) (err error) {
 
 	var files []uintptr
 	var cmd string
@@ -52,7 +52,7 @@ func spawnServer(cl libkb.CommandLine) (err error) {
 		Files: files,
 	}
 
-	cmd, args, err = makeServerCommandLine(cl)
+	cmd, args, err = makeServerCommandLine(cl, isAutoFork)
 	if err != nil {
 		return err
 	}

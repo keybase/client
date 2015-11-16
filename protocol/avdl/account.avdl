@@ -8,4 +8,7 @@ protocol account {
     try to force a passphrase change.
     */
   void passphraseChange(int sessionID, string oldPassphrase, string passphrase, boolean force);
+
+  /* for testing secret ui delegate */
+  void passphrasePrompt(int sessionID);
 }

@@ -155,9 +155,9 @@ func GetCtlClient(g *libkb.GlobalContext) (cli keybase1.CtlClient, err error) {
 	return
 }
 
-func GetAccountClient() (cli keybase1.AccountClient, err error) {
+func GetAccountClient(g *libkb.GlobalContext) (cli keybase1.AccountClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.AccountClient{Cli: rcli}
 	}
 	return
@@ -177,5 +177,14 @@ func GetNotifyCtlClient(g *libkb.GlobalContext) (cli keybase1.NotifyCtlClient, e
 		return cli, err
 	}
 	cli = keybase1.NotifyCtlClient{Cli: rcli}
+	return cli, nil
+}
+
+func GetKBFSClient(g *libkb.GlobalContext) (cli keybase1.KbfsClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.KbfsClient{Cli: rcli}
 	return cli, nil
 }

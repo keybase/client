@@ -197,6 +197,7 @@ func Pluralize(n int, singular string, plural string, nshow bool) string {
 	return plural
 }
 
+// IsIn checks for needle in haystack, ci means case-insensitive.
 func IsIn(needle string, haystack []string, ci bool) bool {
 	for _, h := range haystack {
 		if (ci && Cicmp(h, needle)) || (!ci && h == needle) {

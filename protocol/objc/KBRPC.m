@@ -17,6 +17,13 @@
   }];
 }
 
+- (void)passphrasePrompt:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.account.passphrasePrompt" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRBlockRequest
@@ -654,6 +661,24 @@
 
 @end
 
+@implementation KBRKbfsRequest
+
+- (void)fSEvent:(KBRFSEventRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"event": KBRValue(params.event)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSEvent" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSEventWithEvent:(KBRFSNotification *)event completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"event": KBRValue(event)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSEvent" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRKex2ProvisioneeRequest
 
 - (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion {
@@ -1080,6 +1105,24 @@
 - (void)setNotificationsWithChannels:(KBRNotificationChannels *)channels completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"channels": KBRValue(channels)};
   [self.client sendRequestWithMethod:@"keybase.1.notifyCtl.setNotifications" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRNotifyFSRequest
+
+- (void)fSActivity:(KBRFSActivityRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"notification": KBRValue(params.notification)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSActivity" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSActivityWithNotification:(KBRFSNotification *)notification completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"notification": KBRValue(notification)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSActivity" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -2388,6 +2431,22 @@
 }
 @end
 
+@implementation KBRPassphrasePromptRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRPassphrasePromptRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBREstablishSessionRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -3078,6 +3137,22 @@
 }
 @end
 
+@implementation KBRFSEventRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.event = [MTLJSONAdapter modelOfClass:KBRFSNotification.class fromJSONDictionary:params[0][@"event"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSEventRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRHelloRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -3534,6 +3609,22 @@
 
 + (instancetype)params {
   KBRSetNotificationsRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFSActivityRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.notification = [MTLJSONAdapter modelOfClass:KBRFSNotification.class fromJSONDictionary:params[0][@"notification"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSActivityRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4745,7 +4836,15 @@
 @implementation KBRServiceStatus
 @end
 
+@implementation KBRServicesStatus
++ (NSValueTransformer *)serviceJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRServiceStatus.class]; }
++ (NSValueTransformer *)kbfsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRServiceStatus.class]; }
+@end
+
 @implementation KBRFuseStatus
+@end
+
+@implementation KBRInstallComponent
 @end
 
 @implementation KBRED25519SignatureInfo
@@ -4812,6 +4911,9 @@
 @end
 
 @implementation KBRLinkCheckResult
+@end
+
+@implementation KBRFSNotification
 @end
 
 @implementation KBRPassphraseStream

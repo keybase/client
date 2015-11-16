@@ -30,3 +30,34 @@ func (h *AccountHandler) PassphraseChange(_ context.Context, arg keybase1.Passph
 	}
 	return engine.RunEngine(eng, ctx)
 }
+
+func (h *AccountHandler) PassphrasePrompt(_ context.Context, sessionID int) error {
+	ui, err := h.G().UIRouter.GetSecretUI()
+	if err != nil {
+		return err
+	}
+	if ui == nil {
+		h.G().Log.Debug("delegate secret ui unavailable, falling back to standard one")
+		ui = h.getSecretUI(sessionID)
+	}
+
+	guiArg := keybase1.GUIEntryArg{
+		WindowTitle: "Keybase Test Passphrase",
+		Prompt:      "Enter a test passphrase",
+		Features: keybase1.GUIEntryFeatures{
+			SecretStorage: keybase1.SecretStorageFeature{
+				Allow: true,
+				Label: "store your test passphrase",
+			},
+		},
+	}
+
+	res, err := ui.GetPassphrase(guiArg, nil)
+	if err != nil {
+		return err
+	}
+
+	h.G().Log.Debug("result: %+v", res)
+
+	return nil
+}

@@ -14,7 +14,9 @@ import DevicesRender from './devices-render'
 
 export default class Devices extends Component {
   componentWillMount () {
-    if (!this.props.devices && !this.props.waitingForServer) {
+    const {devices, waitingForServer, error} = this.props
+
+    if (!devices && !waitingForServer && !error) {
       this.props.loadDevices()
     }
   }
@@ -24,10 +26,11 @@ export default class Devices extends Component {
       componentAtTop: {
         title: 'Devices',
         mapStateToProps: state => {
-          const { devices, waitingForServer } = state.devices
+          const { devices, waitingForServer, error } = state.devices
           return {
             devices,
-            waitingForServer
+            waitingForServer,
+            error
           }
         },
         props: {
@@ -47,12 +50,18 @@ export default class Devices extends Component {
   }
 
   render () {
-    return <DevicesRender devices={this.props.devices} showRemoveDevicePage={this.props.showRemoveDevicePage} showExistingDevicePage={this.props.showExistingDevicePage} showGenPaperKeyPage={this.props.showGenPaperKeyPage} />
+    return <DevicesRender
+             devices={this.props.devices}
+             waitingForServer={this.props.waitingForServer}
+             showRemoveDevicePage={this.props.showRemoveDevicePage}
+             showExistingDevicePage={this.props.showExistingDevicePage}
+             showGenPaperKeyPage={this.props.showGenPaperKeyPag}/>
   }
 }
 
 Devices.propTypes = {
   devices: React.PropTypes.array,
+  error: React.PropTypes.any,
   waitingForServer: React.PropTypes.bool,
   loadDevices: React.PropTypes.func.isRequired,
   showRemoveDevicePage: React.PropTypes.func.isRequired,

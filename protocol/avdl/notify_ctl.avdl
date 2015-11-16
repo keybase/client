@@ -7,6 +7,7 @@ protocol notifyCtl {
   record NotificationChannels {
   	boolean session;
   	boolean users;
+  	boolean kbfs;
   }
 
   void setNotifications(NotificationChannels channels);

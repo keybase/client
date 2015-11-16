@@ -1,0 +1,42 @@
+{
+  "protocol" : "NotifyFS",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "enum",
+    "name" : "FSStatusCode",
+    "symbols" : [ "START_0", "FINISH_1", "ERROR_2" ]
+  }, {
+    "type" : "enum",
+    "name" : "FSNotificationType",
+    "symbols" : [ "ENCRYPTING_0", "DECRYPTING_1", "SIGNING_2", "REKEYING_3" ]
+  }, {
+    "type" : "record",
+    "name" : "FSNotification",
+    "fields" : [ {
+      "name" : "topLevelFolder",
+      "type" : "string"
+    }, {
+      "name" : "filename",
+      "type" : "string"
+    }, {
+      "name" : "status",
+      "type" : "string"
+    }, {
+      "name" : "statusCode",
+      "type" : "FSStatusCode"
+    }, {
+      "name" : "notificationType",
+      "type" : "FSNotificationType"
+    } ]
+  } ],
+  "messages" : {
+    "FSActivity" : {
+      "notify" : "",
+      "request" : [ {
+        "name" : "notification",
+        "type" : "FSNotification"
+      } ],
+      "response" : "null"
+    }
+  }
+}

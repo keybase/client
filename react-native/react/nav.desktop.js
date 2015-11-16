@@ -26,15 +26,15 @@ const tabToRootRouteParse = {
 }
 
 export default class Nav extends Component {
-  _renderContent (activeTab, rootComponent) {
+  _renderContent (activeTab) {
     return (
       <div>
         {React.createElement(
           connect(state => {
-            return state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject()
+            return state.tabbedRouter.getIn(['tabs', activeTab]).toObject()
           })(MetaNavigator), {
             store: this.props.store,
-            rootComponent: rootComponent || NoTab
+            rootComponent: tabToRootRouteParse[activeTab] || NoTab
           }
         )}
       </div>
@@ -89,19 +89,19 @@ export default class Nav extends Component {
       <div style={styles.tabsContainer}>
         <Tabs valueLink={{value: activeTab, requestChange: this._handleTabsChange.bind(this)}}>
           <Tab label='More' value={moreTab} >
-            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
+            {this._renderContent(moreTab)}
           </Tab>
           <Tab label='Folders' value={folderTab} >
-            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
+            {this._renderContent(folderTab)}
           </Tab>
           <Tab label='Chat' value={chatTab}>
-            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
+            {this._renderContent(chatTab)}
           </Tab>
           <Tab label='People' value={peopleTab}>
-            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
+            {this._renderContent(peopleTab)}
           </Tab>
           <Tab label='Devices' value={devicesTab}>
-            {this._renderContent('#aaaaaa', tabToRootRouteParse[activeTab])}
+            {this._renderContent(devicesTab)}
           </Tab>
         </Tabs>
       </div>

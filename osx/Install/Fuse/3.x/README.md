@@ -16,15 +16,17 @@ If you get an error compiling you might have to run `brew link gettext --force` 
 
     cd ..
     rm -rf osxfuse.bundle
-    ditto /tmp/osxfuse/distribution/Core/Library/Filesystems/osxfuse.fs osxfuse.bundle
+    ditto /tmp/osxfuse/fsbundle/osxfuse.fs osxfuse.bundle
 
 Sign the kext:
 
-    codesign --verbose --deep --sign "Developer ID Application: Keybase, Inc." osxfuse.bundle
+    codesign --verbose --sign "Developer ID Application: Keybase, Inc." osxfuse.bundle/Contents/Extensions/10.10/osxfuse.kext
+    codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." osxfuse.bundle
 
 To verify kext signature:
 
-    codesign -dvvv osxfuse.bundle
+    codesign -dvvvv osxfuse.bundle/Contents/Extensions/10.10/osxfuse.kext
+    codesign -dvvvv osxfuse.bundle
 
 ### Manual Install
 
@@ -32,7 +34,7 @@ If you are upgrading you should uninstall first.
 
 To install:
 
-    sudo /bin/cp -RfX osxfuse3.bundle /Library/Filesystems/osxfuse.fs
+    sudo /bin/cp -RfX osxfuse.bundle /Library/Filesystems/osxfuse.fs
     sudo chmod +s /Library/Filesystems/osxfuse.fs/Contents/Resources/load_osxfuse
 
 ### Uninstall
@@ -49,7 +51,7 @@ Don't try to kextunload unless you have everything unmounted. Otherwise it will 
 
 After install if you are having problems loading the kext:
 
-    sudo kextutil -l /Library/Filesystems/osxfuse.fs/Contents/Extensions/10.11/osxfuse.kext
+    sudo kextutil -l /Library/Filesystems/osxfuse.fs/Contents/Extensions/10.10/osxfuse.kext
 
 View kext status:
 

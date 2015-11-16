@@ -26,6 +26,7 @@ build-stamp: \
 	json/gpg_ui.json \
 	json/identify.json \
 	json/identify_ui.json \
+	json/kbfs.json \
 	json/kex2provisioner.json \
 	json/kex2provisionee.json \
 	json/log_ui.json \
@@ -34,6 +35,7 @@ build-stamp: \
 	json/metadata.json \
 	json/metadata_update.json \
 	json/notify_ctl.json \
+	json/notify_fs.json \
 	json/notify_session.json \
 	json/notify_users.json \
 	json/pgp.json \

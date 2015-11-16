@@ -18,13 +18,15 @@ import (
 
 type ConfigHandler struct {
 	libkb.Contextified
-	xp rpc.Transporter
+	xp  rpc.Transporter
+	svc *Service
 }
 
-func NewConfigHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ConfigHandler {
+func NewConfigHandler(xp rpc.Transporter, g *libkb.GlobalContext, svc *Service) *ConfigHandler {
 	return &ConfigHandler{
 		Contextified: libkb.NewContextified(g),
 		xp:           xp,
+		svc:          svc,
 	}
 }
 
@@ -70,6 +72,9 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 
 	c.ConfigPath = h.G().Env.GetConfigFilename()
 	c.Label = h.G().Env.GetLabel()
+	if h.svc != nil {
+		c.IsAutoForked = h.svc.isAutoForked
+	}
 
 	return c, nil
 }

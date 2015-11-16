@@ -35,7 +35,7 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 		if err != nil {
 			panic(err)
 		}
-		(service.NewService(false, g)).StartLoopbackServer()
+		(service.NewService(g, false)).StartLoopbackServer()
 		Reset()
 	})
 }
