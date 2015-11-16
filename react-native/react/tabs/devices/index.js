@@ -50,21 +50,12 @@ export default class Devices extends Component {
   }
 
   render () {
-    const {
-      devices,
-      waitingForServer,
-      showRemoveDevicePage,
-      showExistingDevicePage,
-      showGenPaperKeyPage
-    } = this.props
-
-    return <DevicesRender {... {
-      devices,
-      waitingForServer,
-      showRemoveDevicePage,
-      showExistingDevicePage,
-      showGenPaperKeyPage
-    }}/>
+    return <DevicesRender
+             devices={this.props.devices}
+             waitingForServer={this.props.waitingForServer}
+             showRemoveDevicePage={this.props.showRemoveDevicePage}
+             showExistingDevicePage={this.props.showExistingDevicePage}
+             showGenPaperKeyPage={this.props.showGenPaperKeyPag}/>
   }
 }
 
