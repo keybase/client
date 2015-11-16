@@ -1,7 +1,7 @@
 'use strict'
 
 import React, { Component } from '../base-react'
-import PinentryRender from './pinentry-render'
+import PinentryRender from './pinentry.render'
 
 export default class Pinentry extends Component {
   render () {

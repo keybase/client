@@ -10,8 +10,7 @@
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 
-#import "RCTAssert.h"
-#import "RCTRedBox.h"
+#import "RCTLog.h"
 #import "RCTRootView.h"
 
 #define TIMEOUT_SECONDS 240
@@ -22,7 +21,6 @@
 @end
 
 @implementation KeybaseTests
-
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL(^)(UIView *view))test
 {

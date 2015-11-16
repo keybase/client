@@ -1,8 +1,8 @@
 export const services = {
-  keybase: require('image!service_keybase'),
-  twitter: require('image!service_twitter'),
-  github: require('image!service_github'),
-  reddit: require('image!service_reddit'),
-  coinbase: require('image!service_coinbase'),
-  hackernews: require('image!service_hackernews')
+  keybase: require('../images/service/keybase.png'),
+  twitter: require('../images/service/twitter.jpg'),
+  github: require('../images/service/github.jpg'),
+  reddit: require('../images/service/reddit.jpg'),
+  coinbase: require('../images/service/coinbase.jpg'),
+  hackernews: require('../images/service/hackernews.jpg')
 }

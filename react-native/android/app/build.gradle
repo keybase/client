@@ -25,8 +25,8 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'org.msgpack:msgpack:0.6.12'
-    compile 'com.android.support:appcompat-v7:23.0.0'
-    compile 'com.facebook.react:react-native:0.13.0'
+    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.facebook.react:react-native:0.14.+'
     debugCompile 'com.hanhuy.android:viewserver:1.0.3'
     compile project(':keybaselib')
     testCompile 'junit:junit:4.12'
