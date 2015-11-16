@@ -12,9 +12,8 @@ export default class Welcome extends Component {
   render () {
     return (
       <Render
-        gotoLoginPage={() => this.props.dispatch(login())}
-        gotoSignupPage={() => this.props.dispatch(routeAppend('signup'))}
-        {...this.props}
+        onGotoLoginPage={() => this.props.dispatch(login())}
+        onGotoSignupPage={() => this.props.dispatch(routeAppend('signup'))}
       />
     )
   }

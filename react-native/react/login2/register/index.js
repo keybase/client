@@ -12,7 +12,6 @@ export default class Register extends Component {
         onGotoExistingDevicePage={() => this.props.dispatch(registerWithExistingDevice())}
         onGotoPaperKeyPage={() => this.props.dispatch(registerWithPaperKey())}
         onGotoUserPassPage={() => this.props.dispatch(registerWithUserPass())}
-        {...this.props}
       />
     )
   }
@@ -23,8 +22,5 @@ export default class Register extends Component {
 }
 
 Register.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
-  gotoExistingDevicePage: React.PropTypes.func.isRequired,
-  gotoPaperKeyPage: React.PropTypes.func.isRequired,
-  gotoUserPassPage: React.PropTypes.func.isRequired
+  dispatch: React.PropTypes.func.isRequired
 }

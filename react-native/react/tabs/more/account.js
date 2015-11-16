@@ -6,7 +6,13 @@ import AccountComponent from './account-render'
 export default class Account extends Component {
 
   render () {
-    return <AccountComponent {...this.props}/>
+    return <AccountComponent
+      email={this.props.email}
+      emailVerified={this.props.emailVerified}
+      onSave={this.props.onSave}
+      passphraseError={this.props.passphraseError}
+      emailError={this.props.emailError}
+    />
   }
 
   static parseRoute () {

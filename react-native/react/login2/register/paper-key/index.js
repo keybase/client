@@ -8,7 +8,7 @@ export default class PaperKey extends Component {
   render () {
     return (
       <Render
-        {...this.props}
+        onSubmit={this.props.onSubmit}
       />
     )
   }

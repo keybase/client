@@ -27,11 +27,10 @@ export default class MetaNavigatorRender extends Component {
 }
 
 MetaNavigatorRender.propTypes = {
-  setNavigator: React.PropTypes.func.isRequired,
   NavBar: React.PropTypes.object.isRequired,
-  rootComponent: React.PropTypes.func.isRequired,
   Navigator: React.PropTypes.object.isRequired,
   componentAtTop: React.PropTypes.object.isRequired,
+  navBarHeight: React.PropTypes.number.isRequired,
   routeStack: React.PropTypes.object.isRequired,
-  navBarHeight: React.PropTypes.number.isRequired
+  setNavigator: React.PropTypes.func.isRequired
 }

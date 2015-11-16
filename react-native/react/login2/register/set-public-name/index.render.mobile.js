@@ -6,18 +6,6 @@ import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
 
 export default class SetPublicNameRender extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      deviceName: ''
-    }
-  }
-
-  onSubmit () {
-    this.props.onSubmit(this.state.deviceName)
-  }
-
   render () {
     return (
       <View style={{flex: 1, padding: 20}}>
@@ -26,25 +14,27 @@ export default class SetPublicNameRender extends Component {
         <TextInput
           style={[commonStyles.textInput, {marginTop: 10}]}
           placeholder='Device nickname'
-          value={this.state.deviceName}
+          value={this.props.deviceName}
           enablesReturnKeyAutomatically
           returnKeyType='next'
           autoCorrect={false}
-          onChangeText={(deviceName) => this.setState({deviceName})}
-          onSubmitEditing={() => { this.onSubmit() }}
+          onChangeText={deviceName => this.props.onChangeDeviceName(deviceName)}
+          onSubmitEditing={() => { this.props.onSubmit() }}
           />
 
-        { this.props.nameTaken(this.state.deviceName) &&
-          <Text>{`The device name: ${this.state.deviceName} is already taken`}</Text>
+        { this.props.nameTaken &&
+          <Text>{`The device name: ${this.props.deviceName} is already taken`}</Text>
         }
-        <Button style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.onSubmit()} enabled={this.props.submitEnabled(this.state.deviceName)}/>
+        <Button style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.props.onSubmit()} enabled={this.props.submitEnabled}/>
       </View>
     )
   }
 }
 
 SetPublicNameRender.propTypes = {
+  deviceName: React.PropTypes.string,
   onSubmit: React.PropTypes.func.isRequired,
+  onChangeDeviceName: React.PropTypes.func.isRequired,
   nameTaken: React.PropTypes.func.isRequired,
   submitEnabled: React.PropTypes.func.isRequired
 }

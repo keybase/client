@@ -2,25 +2,28 @@
 /* @flow */
 
 import React, {Component} from '../../../base-react'
-import {setDeviceName} from '../../../actions/login2'
 import Render from './index.render'
 
 export default class SetPublicName extends Component {
-  nameTaken (deviceName) {
-    return this.props.existingDevices && this.props.existingDevices.indexOf(deviceName) !== -1
-  }
+  constructor (props) {
+    super(props)
 
-  submitEnabled (deviceName) {
-    return deviceName && deviceName.length && !this.nameTaken(deviceName)
+    this.state = {
+      deviceName: null
+    }
   }
 
   render () {
+    const nameTaken = !!(this.props.existingDevices && this.props.existingDevices.indexOf(this.state.deviceName) !== -1)
+    const submitEnabled = !!(this.state.deviceName && this.state.deviceName.length && !nameTaken)
+
     return (
       <Render
-        onSubmit={ deviceName => this.props.dispatch(setDeviceName(deviceName)) }
-        nameTaken={ deviceName => this.nameTaken(deviceName) }
-        submitEnabled={ deviceName => this.submitEnabled(deviceName) }
-        {...this.props}
+        deviceName={this.state.deviceName}
+        onChangeDeviceName={deviceName => this.setState({deviceName})}
+        onSubmit={ () => this.props.onSubmit(this.state.deviceName) }
+        nameTaken={nameTaken}
+        submitEnabled={submitEnabled}
       />
     )
   }
@@ -47,4 +50,4 @@ SetPublicName.propTypes = {
   existingDevices: React.PropTypes.array,
   onSubmit: React.PropTypes.func.isRequired,
   dispatch: React.PropTypes.func.isRequired
- }
+}

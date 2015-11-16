@@ -224,7 +224,7 @@ function askForDeviceName (existingDevices, cb) {
       type: Constants.actionAskDeviceName,
       payload: {
         existingDevices,
-        onSubmit: (deviceName) => {
+        onSubmit: deviceName => {
           dispatch({
             type: Constants.actionSetDeviceName,
             payload: deviceName
@@ -386,10 +386,16 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       if (!passphrase) {
         dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
           const { passphrase } = getState().login2.userPass
-          response.result(passphrase)
+          response.result({
+            passphrase,
+            storeSecret: false
+          })
         }))
       } else {
-        response.result(passphrase)
+        response.result({
+          passphrase,
+          storeSecret: false
+        })
       }
     },
     'keybase.1.secretUi.getSecret': (param, response) => {

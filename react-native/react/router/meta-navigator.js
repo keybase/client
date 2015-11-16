@@ -116,10 +116,12 @@ class MetaNavigator extends Component {
 
     return (
       <Render
+        NavBar={this.props.NavBar}
+        Navigator={this.props.Navigator}
         componentAtTop={componentAtTop}
+        navBarHeight={this.props.navBarHeight}
         routeStack={routeStack}
         setNavigator={navigator => this.setState({navigator})}
-        {...this.props}
         />
     )
   }
@@ -128,11 +130,11 @@ class MetaNavigator extends Component {
 MetaNavigator.propTypes = {
   uri: React.PropTypes.object.isRequired,
   store: React.PropTypes.object.isRequired,
-  NavBar: React.PropTypes.object.isRequired,
+  NavBar: React.PropTypes.object,
   rootComponent: React.PropTypes.func.isRequired,
-  Navigator: React.PropTypes.object.isRequired,
+  Navigator: React.PropTypes.object,
   globalRoutes: React.PropTypes.object,
-  navBarHeight: React.PropTypes.number.isRequired
+  navBarHeight: React.PropTypes.number
 }
 
 export default MetaNavigator

@@ -5,19 +5,6 @@ import React, {Component, StyleSheet} from '../../../base-react'
 import {TextField, RaisedButton} from 'material-ui'
 
 export default class UserPassRender extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      username: props.username || 'test13',
-      passphrase: props.passphrase || 'okokokokokok'
-    }
-  }
-
-  onSubmit () {
-    this.props.onSubmit(this.state.username, this.state.passphrase)
-  }
-
   render () {
     return (
       <div style={styles.container}>
@@ -29,17 +16,17 @@ export default class UserPassRender extends Component {
           floatingLabelText='Username'
           onEnterKeyDown={(event) => this.refs['passphrase'].focus()}
           ref='username'
-          onChange={() => this.setState({username: this.refs.username.getValue()})}
-          value={this.state.username}
+          onChange={event => this.props.onChangeUsername(event.target.value)}
+          value={this.props.username}
         />
         <TextField
           hintText='Keybase Passphrase'
           floatingLabelText='Password'
           type='password'
           ref='passphrase'
-          onEnterKeyDown={() => this.onSubmit() }
-          onChange={() => this.setState({passphrase: this.refs.passphrase.getValue()})}
-          value={this.state.passphrase}
+          onEnterKeyDown={() => this.props.onSubmit() }
+          onChange={event => this.props.onChangePassphrase(event.target.value)}
+          value={this.props.passphrase}
         />
 
         {this.props.error && (
@@ -50,8 +37,8 @@ export default class UserPassRender extends Component {
           style={{alignSelf: 'flex-end', marginTop: 20}}
           label='Submit'
           primary
-          onClick={() => this.onSubmit()}
-          disabled={!this.props.buttonEnabled(this.state.username, this.state.passphrase)}
+          onClick={() => this.props.onSubmit()}
+          disabled={!this.props.buttonEnabled}
         />
       </div>
     )
@@ -61,11 +48,13 @@ export default class UserPassRender extends Component {
 UserPassRender.propTypes = {
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string,
+  onChangeUsername: React.PropTypes.func.isRequired,
+  onChangePassphrase: React.PropTypes.func.isRequired,
   error: React.PropTypes.object,
   onSubmit: React.PropTypes.func.isRequired,
   title: React.PropTypes.string,
   subTitle: React.PropTypes.string,
-  buttonEnabled: React.PropTypes.func.isRequired
+  buttonEnabled: React.PropTypes.bool.isRequired
 }
 
 const styles = StyleSheet.create({

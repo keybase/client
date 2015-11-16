@@ -5,18 +5,6 @@ import React, {Component} from '../../../base-react'
 import {TextField, RaisedButton} from 'material-ui'
 
 export default class SetPublicNameRender extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      deviceName: ''
-    }
-  }
-
-  onSubmit () {
-    this.props.onSubmit(this.state.deviceName)
-  }
-
   render () {
     return (
       <div style={{display: 'flex', flexDirection: 'column', flex: 1, padding: 20}}>
@@ -25,19 +13,19 @@ export default class SetPublicNameRender extends Component {
         <TextField
           hintText='Device Nickname'
           floatingLabelText='Nickname'
-          onEnterKeyDown={() => this.onSubmit()}
-          onChange={(event) => this.setState({deviceName: event.target.value})}
-          value={this.state.deviceName}
+          value={this.props.deviceName}
+          onEnterKeyDown={() => this.props.onSubmit()}
+          onChange={(event) => this.props.onChangeDeviceName(event.target.value)}
         />
-        { this.props.nameTaken(this.state.deviceName) &&
-          <p>{`The device name: ${this.state.deviceName} is already taken`}</p>
+        { this.props.nameTaken &&
+          <p>{`The device name: ${this.props.deviceName} is already taken`}</p>
         }
         <RaisedButton
           style={{alignSelf: 'flex-end', marginTop: 20}}
           label='Submit'
           primary
-          onClick={() => this.onSubmit()}
-          disabled={!this.props.submitEnabled(this.state.deviceName)}
+          onClick={() => this.props.onSubmit()}
+          disabled={!this.props.submitEnabled}
         />
       </div>
     )
@@ -45,8 +33,10 @@ export default class SetPublicNameRender extends Component {
 }
 
 SetPublicNameRender.propTypes = {
+  deviceName: React.PropTypes.string,
   onSubmit: React.PropTypes.func.isRequired,
-  nameTaken: React.PropTypes.func.isRequired,
-  submitEnabled: React.PropTypes.func.isRequired
+  onChangeDeviceName: React.PropTypes.func.isRequired,
+  nameTaken: React.PropTypes.bool.isRequired,
+  submitEnabled: React.PropTypes.bool.isRequired
 }
 
