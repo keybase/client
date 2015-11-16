@@ -1,11 +1,20 @@
 'use strict'
 
-import React from '../base-react'
+import React, { Component } from '../base-react'
 import { connect } from '../base-redux'
 
-export default function () {
-  const { store, rootComponent, uri } = this.props
-  const { componentAtTop } = this.getComponentAtTop(rootComponent, store, uri)
+export default class MetaNavigatorRender extends Component {
+  render () {
+    const { store, rootComponent, uri, getComponentAtTop } = this.props
+    const { componentAtTop } = getComponentAtTop(rootComponent, store, uri)
 
-  return React.createElement(connect(componentAtTop.mapStateToProps || (state => state))(componentAtTop.component), {...componentAtTop.props})
+    return React.createElement(connect(componentAtTop.mapStateToProps || (state => { return {} }))(componentAtTop.component), {...componentAtTop.props})
+  }
+}
+
+MetaNavigatorRender.propTypes = {
+  uri: React.PropTypes.object.isRequired,
+  store: React.PropTypes.object.isRequired,
+  getComponentAtTop: React.PropTypes.func.isRequired,
+  rootComponent: React.PropTypes.func.isRequired
 }

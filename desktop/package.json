@@ -30,11 +30,10 @@
     "react-dom": "^0.14.0",
     "react-flexbox": "^3.0.0",
     "react-redux": "^3.0.0",
-    "react-select": "^0.9.0",
     "react-tap-event-plugin": "^0.2.1",
     "reduce-reducers": "^0.1.1",
     "redux": "^3.0.2",
-    "redux-devtools": "^2.1.4",
+    "redux-devtools": "^2.1.5",
     "redux-logger": "^2.0.4",
     "redux-thunk": "^1.0.0",
     "webpack": "^1.12.2"
