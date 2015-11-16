@@ -16,8 +16,13 @@ type PassphraseChangeArg struct {
 	Force         bool   `codec:"force" json:"force"`
 }
 
+type PassphrasePromptArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type AccountInterface interface {
 	PassphraseChange(context.Context, PassphraseChangeArg) error
+	PassphrasePrompt(context.Context, int) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -40,6 +45,22 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"passphrasePrompt": {
+				MakeArg: func() interface{} {
+					ret := make([]PassphrasePromptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PassphrasePromptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PassphrasePromptArg)(nil), args)
+						return
+					}
+					err = i.PassphrasePrompt(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -50,6 +71,12 @@ type AccountClient struct {
 
 func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseChangeArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.passphraseChange", []interface{}{__arg}, nil)
+	return
+}
+
+func (c AccountClient) PassphrasePrompt(ctx context.Context, sessionID int) (err error) {
+	__arg := PassphrasePromptArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.account.passphrasePrompt", []interface{}{__arg}, nil)
 	return
 }
 

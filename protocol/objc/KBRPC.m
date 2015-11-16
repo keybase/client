@@ -17,6 +17,13 @@
   }];
 }
 
+- (void)passphrasePrompt:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.account.passphrasePrompt" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRBlockRequest
@@ -2419,6 +2426,22 @@
 
 + (instancetype)params {
   KBRPassphraseChangeRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRPassphrasePromptRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRPassphrasePromptRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }

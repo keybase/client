@@ -666,6 +666,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *passphrase;
 @property BOOL force;
 @end
+@interface KBRPassphrasePromptRequestParams : KBRRequestParams
+@property NSInteger sessionID;
+@end
 @interface KBREstablishSessionRequestParams : KBRRequestParams
 @property NSString *user;
 @property NSString *sid;
@@ -1266,6 +1269,8 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)passphraseChange:(KBRPassphraseChangeRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)passphraseChangeWithOldPassphrase:(NSString *)oldPassphrase passphrase:(NSString *)passphrase force:(BOOL)force completion:(void (^)(NSError *error))completion;
+
+- (void)passphrasePrompt:(void (^)(NSError *error))completion;
 
 @end
 
