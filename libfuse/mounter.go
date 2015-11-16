@@ -12,40 +12,54 @@ import (
 
 // Mounter defines interface for different mounting strategies
 type Mounter interface {
+	Dir() string
 	Mount() (*fuse.Conn, error)
 	Unmount() error
 }
 
 // DefaultMounter will only call fuse.Mount and fuse.Unmount directly
 type DefaultMounter struct {
-	Dir string
+	dir string
+}
+
+// NewDefaultMounter creates a default mounter.
+func NewDefaultMounter(dir string) DefaultMounter {
+	return DefaultMounter{dir: dir}
 }
 
 // Mount uses default mount
 func (m DefaultMounter) Mount() (*fuse.Conn, error) {
-	return fuse.Mount(m.Dir)
+	return fuse.Mount(m.dir)
 }
 
 // Unmount uses default unmount
 func (m DefaultMounter) Unmount() error {
-	return fuse.Unmount(m.Dir)
+	return fuse.Unmount(m.dir)
+}
+
+// Dir returns mount directory.
+func (m DefaultMounter) Dir() string {
+	return m.dir
 }
 
 // ForceMounter will try its best to get it a mount
 type ForceMounter struct {
-	Dir string
+	dir string
+}
+
+// NewForceMounter creates a force mounter.
+func NewForceMounter(dir string) ForceMounter {
+	return ForceMounter{dir: dir}
 }
 
 // Mount tries to mount and then unmount, re-mount if unsuccessful
 func (m ForceMounter) Mount() (*fuse.Conn, error) {
-	// Volume name option is only used on OSX (ignored on other platforms).
-	volName, err := volumeName(m.Dir)
+	options, err := getPlatformSpecificMountOptions(m)
 	if err != nil {
 		return nil, err
 	}
-	options := []fuse.MountOption{fuse.VolumeName(volName)}
 
-	c, err := fuse.Mount(m.Dir, options...)
+	c, err := fuse.Mount(m.dir, options...)
 	if err == nil {
 		return c, nil
 	}
@@ -54,14 +68,14 @@ func (m ForceMounter) Mount() (*fuse.Conn, error) {
 	// if unmounting errors here.
 	m.Unmount()
 
-	c, err = fuse.Mount(m.Dir, options...)
+	c, err = fuse.Mount(m.dir, options...)
 	return c, err
 }
 
 // Unmount tries to unmount normally and then force if unsuccessful
 func (m ForceMounter) Unmount() (err error) {
 	// Try unmount
-	err = fuse.Unmount(m.Dir)
+	err = fuse.Unmount(m.dir)
 	if err != nil {
 		// Unmount failed, so let's try and force it.
 		err = m.forceUnmount()
@@ -71,13 +85,18 @@ func (m ForceMounter) Unmount() (err error) {
 
 func (m ForceMounter) forceUnmount() (err error) {
 	if runtime.GOOS == "darwin" {
-		_, err = exec.Command("/usr/sbin/diskutil", "unmountDisk", "force", m.Dir).Output()
+		_, err = exec.Command("/usr/sbin/diskutil", "unmountDisk", "force", m.dir).Output()
 	} else if runtime.GOOS == "linux" {
-		_, err = exec.Command("umount", "-l", m.Dir).Output()
+		_, err = exec.Command("umount", "-l", m.dir).Output()
 	} else {
 		err = errors.New("Forced unmount is not supported on this platform yet")
 	}
 	return
+}
+
+// Dir returns mount directory.
+func (m ForceMounter) Dir() string {
+	return m.dir
 }
 
 // volumeName returns the directory (base) name
