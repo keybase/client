@@ -1,44 +1,33 @@
 import React, {Component, StyleSheet, Text, TextInput, View} from '../../../base-react'
-import {connect} from '../../../base-redux'
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
 
-class PaperKey extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      paperKey: ''
-    }
-  }
-
-  onSubmit () {
-    this.props.onSubmit(this.state.paperKey)
-  }
-
+export default class PaperKeyRender extends Component {
   render () {
     return (
       <View style={[styles.container, {backgroundColor: 'red', paddingTop: 200}]}>
         <Text style={[commonStyles.h1, {padding: 10}]}>Register with a paper key</Text>
         <Text style={[commonStyles.h2, {padding: 10, marginBottom: 20}]}>Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum Lorem ipsum </Text>
         <TextInput style={commonStyles.textInput}
-          value={this.state.paperKey}
+          value={this.props.paperKey}
           placeholder='Enter your paper key'
-          onSubmitEditing={() => this.onSubmit()}
-          onChangeText={paperKey => this.setState({paperKey})}
+          onSubmitEditing={() => this.props.onSubmit()}
+          onChangeText={paperKey => this.props.onChangePaperKey(paperKey)}
         />
         <Button
           style={{alignSelf: 'flex-end', marginRight: 10}}
-          onPress={() => this.onSubmit()}
+          onPress={() => this.props.onSubmit()}
           title='Submit & Log in'
-          enabled={this.state.paperKey}/>
+          enabled={this.props.paperKey}/>
       </View>
     )
   }
 }
 
-PaperKey.propTypes = {
-  onSubmit: React.PropTypes.func.isRequired
+PaperKeyRender.propTypes = {
+  onSubmit: React.PropTypes.func.isRequired,
+  onChangePaperKey: React.PropTypes.func.isRequired,
+  paperKey: React.PropTypes.string
 }
 
 const styles = StyleSheet.create({
@@ -47,15 +36,3 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start'
   }
 })
-
-export default connect(
-  state => state,
-  null,
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...ownProps,
-      ...ownProps.mapStateToProps(stateProps),
-      ...dispatchProps
-    }
-  }
-)(PaperKey)

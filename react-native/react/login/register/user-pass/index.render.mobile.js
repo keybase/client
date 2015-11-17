@@ -1,24 +1,9 @@
 import React, {Component, StyleSheet, Text, TextInput, View} from '../../../base-react'
-import {connect} from '../../../base-redux'
 import Button from '../../../common-adapters/button'
 import commonStyles from '../../../styles/common'
 
-class UserPass extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      username: props.username || 'test13',
-      passphrase: props.passphrase || 'okokokokokok'
-    }
-  }
-
-  onSubmit () {
-    this.props.onSubmit(this.state.username, this.state.passphrase)
-  }
-
+export default class UserPassRender extends Component {
   render () {
-    const buttonEnabled = this.state.username.length && this.state.passphrase.length
     return (
       <View style={styles.container}>
         <Text style={commonStyles.h1}>{this.props.title}</Text>
@@ -27,20 +12,20 @@ class UserPass extends Component {
           placeholder='Keybase Username'
           autoCorrect={false}
           enablesReturnKeyAutomatically
-          onChangeText={username => this.setState({username})}
+          onChangeText={username => this.props.onChangeUsername(username)}
           onSubmitEditing={event => this.refs['passphrase'].focus()}
           returnKeyType='next'
-          value={this.state.username}
+          value={this.props.username}
         />
         <TextInput style={[commonStyles.textInput]}
           autoCorrect={false}
           enablesReturnKeyAutomatically
-          onChangeText={passphrase => this.setState({passphrase})}
-          onSubmitEditing={() => this.onSubmit() }
+          onChangeText={passphrase => this.props.onChangePassphrase(passphrase)}
+          onSubmitEditing={() => this.props.onSubmit() }
           ref='passphrase'
           returnKeyType='done'
           secureTextEntry
-          value={this.state.passphrase}
+          value={this.props.passphrase}
           placeholder='Keybase Passphrase'
         />
 
@@ -48,19 +33,22 @@ class UserPass extends Component {
           <Text>{this.props.error.toString()}</Text>
         )}
 
-        <Button style={{alignSelf: 'flex-end', marginTop: 20}} buttonStyle={commonStyles.actionButton} onPress={() => this.onSubmit()} enabled={buttonEnabled} title='Submit'/>
+        <Button style={{alignSelf: 'flex-end', marginTop: 20}} buttonStyle={commonStyles.actionButton} onPress={() => this.props.onSubmit()} enabled={this.props.buttonEnabled} title='Submit'/>
       </View>
     )
   }
 }
 
-UserPass.propTypes = {
+UserPassRender.propTypes = {
+  onChangeUsername: React.PropTypes.func.isRequired,
+  onChangePassphrase: React.PropTypes.func.isRequired,
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string,
   error: React.PropTypes.object,
   onSubmit: React.PropTypes.func.isRequired,
   title: React.PropTypes.string,
-  subTitle: React.PropTypes.string
+  subTitle: React.PropTypes.string,
+  buttonEnabled: React.PropTypes.bool.isRequired
 }
 
 const styles = StyleSheet.create({
@@ -72,15 +60,3 @@ const styles = StyleSheet.create({
     padding: 20
   }
 })
-
-export default connect(
-  state => state,
-  null,
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...ownProps,
-      ...ownProps.mapStateToProps(stateProps),
-      ...dispatchProps
-    }
-  }
-)(UserPass)
