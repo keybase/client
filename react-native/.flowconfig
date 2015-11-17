@@ -22,7 +22,6 @@
 .*/react/framed-msgpack-rpc/.*
 .*/react/iced-error/.*
 .*/react/debug/.*
-.*/react/tracker/.*
 
 # Ignore .*-render.platform.js files
 .*-render\.android\.js
