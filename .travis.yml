@@ -9,11 +9,11 @@ services:
   - docker
 before_install:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
-     export DEBIAN_FRONTEND=noninteractive;
-     sudo apt-get update;
-     sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
+      export DEBIAN_FRONTEND=noninteractive;
+      sudo apt-get update;
+      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
-     brew install gnupg2
+      brew install gnupg2;
     fi
 install: true
 script:
