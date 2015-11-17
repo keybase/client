@@ -1,11 +1,18 @@
 'use strict'
+/* @flow */
 
+// $FlowIssue base-react
 import React, {Component} from '../base-react'
 import {AppBar, IconButton} from 'material-ui'
 import NavigationClose from 'material-ui/lib/svg-icons/navigation/close'
 
 export default class HeaderRender extends Component {
-  render () {
+  props: {
+    reason: string,
+    onClose: () => void
+  };
+
+  render (): ReactElement {
     return (
       <AppBar
         style={{userSelect: 'none', cursor: 'default'}}
