@@ -21,7 +21,7 @@ script:
       travis_retry docker run --name kbweb3000 -d -p 3000:3000 $CI_HOST/kbweb;
       cd go && ./test/check_or_start_kbweb.sh && GO15VENDOREXPERIMENT=1 travis_wait go test ./...;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
-      cd go && KEYBASE_SERVER_URI=https://ci1.keybase.io:443 GOVENDOREXPERIMENT=1 travis_Wait go test ./...;
+      cd go && KEYBASE_SERVER_URI=https://ci1.keybase.io:443 GOVENDOREXPERIMENT=1 travis_wait go test ./...;
     fi
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
