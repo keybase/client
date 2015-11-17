@@ -14,6 +14,10 @@ before_install:
       sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
       brew install gnupg2;
+      security create-keychain -p travis test.keychain;
+      security default-keychain -s test.keychain;
+      security unlock-keychain -p travis test.keychain;
+      security set-keychain-settings -t 3600 -u test.keychain;
     fi
 install: true
 script:
