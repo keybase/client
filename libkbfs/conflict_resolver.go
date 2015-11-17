@@ -1614,8 +1614,13 @@ func crMakeRevertedOps(sortedPaths []path, chains *crChains) ([]op, error) {
 				renameOriginal, ok := renames[crRenameHelperKey{
 					chain.original, cop.NewName}]
 				if !ok {
-					if cop.crSymPath != "" {
-						// We expect the rmOp to have been removed
+					if cop.crSymPath != "" || cop.Type == Sym {
+						// For symlinks created by the CR process, we
+						// expect the rmOp to have been removed.  For
+						// existing symlinks that were simply moved,
+						// there is no benefit in combining their
+						// create and rm ops back together since there
+						// is no corresponding node.
 						continue
 					}
 					return nil, fmt.Errorf("Couldn't find corresponding "+

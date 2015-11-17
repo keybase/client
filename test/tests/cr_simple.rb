@@ -177,6 +177,32 @@ module Test
     end
   end
 
+  # bob renames a non-conflicting symlink while unstaged
+  test :cr_unmerged_rename_symlink_in_dir, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkfile "a/b", "hello"
+      link "a/c", "b"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/d", "world"
+    end
+    as bob, sync: false do
+      rename "a/c", "a/e"
+      reenable_updates
+      lsdir "a/", { "b" => "FILE", "d" => "FILE", "e" => "SYM"}
+      read "a/d", "world"
+      read "a/e", "hello"
+    end
+    as alice do
+      lsdir "a/", { "b" => "FILE", "d" => "FILE", "e" => "SYM"}
+      read "a/d", "world"
+      read "a/e", "hello"
+    end
+  end
+
   # bob renames a non-conflicting file in the root dir while unstaged
   # TODO: unskip when KBFS-473 is fixed.
   test :cr_unmerged_rename_in_root, skip: true, writers: ["alice", "bob"] do |alice, bob|
