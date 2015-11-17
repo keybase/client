@@ -305,6 +305,16 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 		return nil, err
 	}
 	mountPath := kbfsMountPath(g.Env.GetHome(), runMode)
+
+	// Create mount dir if it doesn't exist
+	if _, err := os.Stat(mountPath); os.IsNotExist(err) {
+		// TODO Make dir hidden so it only shows when mounted?
+		err := os.MkdirAll(mountPath, libkb.PermDir)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	plistArgs := []string{mountPath}
 	envVars := defaultLaunchdEnvVars(g, label)
 
@@ -343,7 +353,10 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	var err error
 	status := []keybase1.InstallComponent{}
 
+	g.Log.Debug("Installing components: %s", components)
+
 	if libkb.IsIn("cli", components, false) {
+		g.Log.Debug("Installing command line: %s", binPath)
 		err = installCommandLine(g, binPath, true) // Always force CLI install
 		if err != nil {
 			status = append(status, keybase1.InstallComponent{Name: "cli", Status: errorStatus("INSTALL_ERROR", err.Error())})
@@ -353,6 +366,7 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	}
 
 	if libkb.IsIn("service", components, false) {
+		g.Log.Debug("Installing service: %s", binPath)
 		err = installService(g, binPath, force)
 		if err != nil {
 			status = append(status, keybase1.InstallComponent{Name: "service", Status: errorStatus("INSTALL_ERROR", err.Error())})
@@ -362,6 +376,7 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	}
 
 	if libkb.IsIn("kbfs", components, false) {
+		g.Log.Debug("Installing KBFS: %s", binPath)
 		err = installKBFS(g, binPath, force)
 		if err != nil {
 			status = append(status, keybase1.InstallComponent{Name: "kbfs", Status: errorStatus("INSTALL_ERROR", err.Error())})
@@ -525,7 +540,7 @@ func kbfsMountPath(homeDir string, runMode libkb.RunMode) string {
 		return filepath.Join(homeDir, "Keybase.devel")
 
 	case libkb.StagingRunMode:
-		return filepath.Join(homeDir, "Keybase.staging")
+		return filepath.Join(homeDir, "Keybase.stage")
 
 	case libkb.ProductionRunMode:
 		return filepath.Join(homeDir, "Keybase")

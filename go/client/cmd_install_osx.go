@@ -76,15 +76,17 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	v.format = ctx.String("format")
 	v.binPath = ctx.String("bin-path")
 	v.installer = ctx.String("installer")
-	v.components = strings.Split(ctx.String("components"), ",")
-	if len(v.components) == 0 {
+	if ctx.String("components") == "" {
 		v.components = []string{"cli", "service", "kbfs"}
+	} else {
+		v.components = strings.Split(ctx.String("components"), ",")
 	}
 	return nil
 }
 
 func (v *CmdInstall) Run() error {
 	var components []keybase1.InstallComponent
+	v.G().Log.Debug("Using installer: %s", v.installer)
 	if v.installer == "auto" {
 		components = AutoInstallWithStatus(v.G(), v.binPath, v.force)
 	} else if v.installer == "" {
