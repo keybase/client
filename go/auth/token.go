@@ -7,6 +7,8 @@
 package auth
 
 import (
+	"encoding/json"
+	"math"
 	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
@@ -16,30 +18,50 @@ import (
 
 const CurrentTokenVersion = 1
 
-type Token struct {
-	User          keybase1.UID
-	Username      libkb.NormalizedUsername
-	Key           keybase1.KID
-	TokenType     string
-	CreationTime  int64
-	ExpireIn      int
-	Tag           string
-	Version       int
-	ClientName    string
-	ClientVersion string
+type TokenKey struct {
+	UID      keybase1.UID             `json:"uid"`
+	Username libkb.NormalizedUsername `json:"username"`
+	KID      keybase1.KID             `json:"kid"`
 }
 
-func NewToken(user keybase1.UID, username libkb.NormalizedUsername, key keybase1.KID,
+type TokenBody struct {
+	Key     TokenKey `json:"key"`
+	Type    string   `json:"type"`
+	Version int      `json:"version"`
+}
+
+type TokenClient struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
+type Token struct {
+	Body         TokenBody   `json:"body"`
+	Client       TokenClient `json:"client"`
+	CreationTime int64       `json:"ctime"`
+	ExpireIn     int         `json:"expire_in"`
+	Tag          string      `json:"tag"`
+}
+
+func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.KID,
 	tokenType string, expireIn int, clientName string, clientVersion string) *Token {
 	return &Token{
-		User:          user,
-		Username:      username,
-		Key:           key,
-		TokenType:     tokenType,
-		CreationTime:  time.Now().Unix(),
-		ExpireIn:      expireIn,
-		ClientName:    clientName,
-		ClientVersion: clientVersion,
+		Body: TokenBody{
+			Key: TokenKey{
+				UID:      uid,
+				Username: username,
+				KID:      kid,
+			},
+			Type:    tokenType,
+			Version: CurrentTokenVersion,
+		},
+		Client: TokenClient{
+			Name:    clientName,
+			Version: clientVersion,
+		},
+		CreationTime: time.Now().Unix(),
+		ExpireIn:     expireIn,
+		Tag:          "signature",
 	}
 }
 
@@ -48,45 +70,44 @@ func ParseToken(token string) (*Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	t := &Token{}
-	if err := t.fromJSON(jw); err != nil {
+	var t Token
+	if err = jw.UnmarshalAgain(&t); err != nil {
 		return nil, err
 	}
-	return t, nil
+	return &t, nil
 }
 
-func (arg Token) Bytes() []byte {
-	var err error
-	var tmp []byte
-	if tmp, err = arg.toJSON().Marshal(); err != nil {
+func (t Token) Bytes() []byte {
+	bytes, err := json.Marshal(&t)
+	if err != nil {
 		return []byte{}
 	}
-	return tmp
+	return bytes
 }
 
-func (arg Token) String() string {
-	return string(arg.Bytes())
+func (t Token) String() string {
+	return string(t.Bytes())
 }
 
-func (arg Token) Verify(signature, tokenType string, maxExpireIn int) error {
-	key, err := libkb.ImportKeypairFromKID(arg.Key)
+func (t Token) Verify(signature, tokenType string, maxExpireIn int) error {
+	key, err := libkb.ImportKeypairFromKID(t.KID())
 	if err != nil {
 		return err
 	}
-	if _, err := key.VerifyString(signature, arg.Bytes()); err != nil {
+	if _, err := key.VerifyString(signature, t.Bytes()); err != nil {
 		return err
 	}
-	if tokenType != arg.TokenType {
+	if tokenType != t.Body.Type {
 		return InvalidTokenTypeError{
 			ExpectedTokenType: tokenType,
-			ReceivedTokenType: arg.TokenType,
+			ReceivedTokenType: t.Type(),
 		}
 	}
-	remaining := arg.TimeRemaining()
+	remaining := t.TimeRemaining()
 	if remaining > maxExpireIn {
 		return MaxTokenExpiresError{
-			CreationTime: arg.CreationTime,
-			ExpireIn:     arg.ExpireIn,
+			CreationTime: t.CreationTime,
+			ExpireIn:     t.ExpireIn,
 			Now:          time.Now().Unix(),
 			MaxExpireIn:  maxExpireIn,
 			Remaining:    remaining,
@@ -94,150 +115,44 @@ func (arg Token) Verify(signature, tokenType string, maxExpireIn int) error {
 	}
 	if remaining <= 0 {
 		return TokenExpiredError{
-			CreationTime: arg.CreationTime,
-			ExpireIn:     arg.ExpireIn,
+			CreationTime: t.CreationTime,
+			ExpireIn:     t.ExpireIn,
 			Now:          time.Now().Unix(),
 		}
 	}
 	return nil
 }
 
-func (arg Token) TimeRemaining() int {
-	now := time.Now().Unix()
-	expires := arg.CreationTime + int64(arg.ExpireIn)
-	return int(expires - now)
+func (t Token) TimeRemaining() int {
+	ctime := time.Unix(t.CreationTime, 0)
+	expires := ctime.Add(time.Duration(t.ExpireIn) * time.Second)
+	return int(math.Ceil(expires.Sub(time.Now()).Seconds()))
 }
 
-type keySection struct {
-	User     keybase1.UID
-	Username libkb.NormalizedUsername
-	Key      keybase1.KID
+func (t Token) UID() keybase1.UID {
+	return t.Body.Key.UID
 }
 
-func (arg keySection) toJSON() *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
-	ret.SetKey("kid", jsonw.NewString(arg.Key.String()))
-	ret.SetKey("uid", jsonw.NewString(arg.User.String()))
-	ret.SetKey("username", jsonw.NewString(arg.Username.String()))
-	return ret
+func (t Token) KID() keybase1.KID {
+	return t.Body.Key.KID
 }
 
-func (arg *keySection) fromJSON(key *jsonw.Wrapper) error {
-	kid, err := key.AtPath("kid").GetString()
-	if err != nil {
-		return err
-	}
-	uid, err := key.AtPath("uid").GetString()
-	if err != nil {
-		return err
-	}
-	name, err := key.AtPath("username").GetString()
-	if err != nil {
-		return err
-	}
-	arg.Key = keybase1.KID(kid)
-	arg.User = keybase1.UID(uid)
-	arg.Username = libkb.NormalizedUsername(name)
-	return nil
+func (t Token) Username() libkb.NormalizedUsername {
+	return t.Body.Key.Username
 }
 
-type clientSection struct {
-	Name    string
-	Version string
+func (t Token) Type() string {
+	return t.Body.Type
 }
 
-func (arg clientSection) toJSON() *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
-	ret.SetKey("name", jsonw.NewString(arg.Name))
-	ret.SetKey("version", jsonw.NewString(arg.Version))
-	return ret
+func (t Token) Version() int {
+	return t.Body.Version
 }
 
-func (arg *clientSection) fromJSON(client *jsonw.Wrapper) error {
-	name, err := client.AtPath("name").GetString()
-	if err != nil {
-		return err
-	}
-	version, err := client.AtPath("version").GetString()
-	if err != nil {
-		return err
-	}
-	arg.Name = name
-	arg.Version = version
-	return nil
+func (t Token) ClientName() string {
+	return t.Client.Name
 }
 
-func (arg Token) toJSON() *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
-	ret.SetKey("tag", jsonw.NewString("signature"))
-	ret.SetKey("ctime", jsonw.NewInt64(arg.CreationTime))
-	ret.SetKey("expire_in", jsonw.NewInt(arg.ExpireIn))
-
-	body := jsonw.NewDictionary()
-	body.SetKey("version", jsonw.NewInt(CurrentTokenVersion))
-	body.SetKey("type", jsonw.NewString(arg.TokenType))
-
-	key := keySection{
-		User:     arg.User,
-		Username: arg.Username,
-		Key:      arg.Key,
-	}.toJSON()
-	body.SetKey("key", key)
-	ret.SetKey("body", body)
-
-	client := clientSection{
-		Name:    arg.ClientName,
-		Version: arg.ClientVersion,
-	}.toJSON()
-	ret.SetKey("client", client)
-	return ret
-}
-
-func (arg *Token) fromJSON(token *jsonw.Wrapper) error {
-	tag, err := token.AtPath("tag").GetString()
-	if err != nil {
-		return err
-	}
-	ctime, err := token.AtPath("ctime").GetInt64()
-	if err != nil {
-		return err
-	}
-	expireIn, err := token.AtPath("expire_in").GetInt()
-	if err != nil {
-		return err
-	}
-
-	body := token.AtPath("body")
-	tokenType, err := body.AtPath("type").GetString()
-	if err != nil {
-		return err
-	}
-	version, err := body.AtPath("version").GetInt()
-	if err != nil {
-		return err
-	}
-
-	key := body.AtPath("key")
-	var ks keySection
-	if err := ks.fromJSON(key); err != nil {
-		return err
-	}
-
-	client := token.AtPath("client")
-	var cs clientSection
-	if err := cs.fromJSON(client); err != nil {
-		return err
-	}
-
-	arg.User = ks.User
-	arg.Username = ks.Username
-	arg.Key = ks.Key
-	arg.TokenType = tokenType
-	arg.CreationTime = ctime
-	arg.ExpireIn = expireIn
-	arg.Tag = tag
-	arg.Version = version
-	arg.ClientName = cs.Name
-	arg.ClientVersion = cs.Version
-	return nil
+func (t Token) ClientVersion() string {
+	return t.Client.Version
 }

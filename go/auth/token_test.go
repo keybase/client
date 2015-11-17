@@ -23,26 +23,26 @@ func TestTokenParse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if token.User != uid {
-		t.Fatal(fmt.Errorf("UID mismatch, expected: %s, got %s", uid, token.User))
+	if token.UID() != uid {
+		t.Fatal(fmt.Errorf("UID mismatch, expected: %s, got %s", uid, token.UID()))
 	}
-	if token.Key != kid {
-		t.Fatal(fmt.Errorf("KID mismatch, expected: %s, got %s", kid, token.Key))
+	if token.KID() != kid {
+		t.Fatal(fmt.Errorf("KID mismatch, expected: %s, got %s", kid, token.KID()))
 	}
-	if token.Username != name {
-		t.Fatal(fmt.Errorf("Username mismatch, expected: %s, got %s", name, token.Username))
+	if token.Username() != name {
+		t.Fatal(fmt.Errorf("Username mismatch, expected: %s, got %s", name, token.Username()))
 	}
-	if token.TokenType != "test" {
-		t.Fatal(fmt.Errorf("TokenType mismatch, expected: test, got %s", token.TokenType))
+	if token.Type() != "test" {
+		t.Fatal(fmt.Errorf("TokenType mismatch, expected: test, got %s", token.Type()))
 	}
 	if token.ExpireIn != expireIn {
 		t.Fatal(fmt.Errorf("ExpireIn mismatch, expected: %d, got %d", expireIn, token.ExpireIn))
 	}
-	if token.ClientName != "test" {
-		t.Fatal(fmt.Errorf("ClientName mismatch, expected: test, got %s", token.ClientName))
+	if token.ClientName() != "test" {
+		t.Fatal(fmt.Errorf("ClientName mismatch, expected: test, got %s", token.ClientName()))
 	}
-	if token.ClientVersion != "1" {
-		t.Fatal(fmt.Errorf("ClientVersion mismatch, expected: 1, got %s", token.ClientVersion))
+	if token.ClientVersion() != "1" {
+		t.Fatal(fmt.Errorf("ClientVersion mismatch, expected: 1, got %s", token.ClientVersion()))
 	}
 }
 
