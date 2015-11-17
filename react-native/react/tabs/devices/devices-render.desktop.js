@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React, { Component } from '../../base-react'
+import React, {Component} from '../../base-react'
 
 import HardwarePhoneIphone from 'material-ui/lib/svg-icons/hardware/phone-iphone'
 import HardwareComputer from 'material-ui/lib/svg-icons/hardware/computer'
@@ -57,7 +57,7 @@ export default class DevicesRender extends Component {
   renderDevice (device) {
     if (device.type === 'desktop') {
       return this.renderDesktop(device)
-    } else if (device.type === 'phone') {
+    } else if (device.type === 'mobile') {
       return this.renderPhone(device)
     } else if (device.type === 'backup') {
       return this.renderPaperKey(device)

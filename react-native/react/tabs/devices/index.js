@@ -1,7 +1,7 @@
 'use strict'
 
-import React, { Component } from '../../base-react'
-
+import React, {Component} from '../../base-react'
+import {connect} from '../../base-redux'
 import CodePage from '../../login2/register/code-page'
 import GenPaperKey from './gen-paper-key'
 import ExistingDevice from '../../login2/register/existing-device'
@@ -12,7 +12,7 @@ import { routeAppend } from '../../actions/router'
 import { addANewDevice } from '../../actions/login2'
 import DevicesRender from './devices-render'
 
-export default class Devices extends Component {
+class Devices extends Component {
   componentWillMount () {
     const {devices, waitingForServer, error} = this.props
 
@@ -24,21 +24,7 @@ export default class Devices extends Component {
   static parseRoute (store, currentPath, nextPath) {
     return {
       componentAtTop: {
-        title: 'Devices',
-        mapStateToProps: state => {
-          const { devices, waitingForServer, error } = state.devices
-          return {
-            devices,
-            waitingForServer,
-            error
-          }
-        },
-        props: {
-          loadDevices: () => store.dispatch(loadDevices()),
-          showRemoveDevicePage: device => store.dispatch(routeAppend({path: 'removeDevice', device})),
-          showExistingDevicePage: () => store.dispatch(addANewDevice()),
-          showGenPaperKeyPage: () => store.dispatch(routeAppend('genPaperKey'))
-        }
+        title: 'Devices'
       },
       subRoutes: {
         codePage: CodePage,
@@ -50,12 +36,14 @@ export default class Devices extends Component {
   }
 
   render () {
-    return <DevicesRender
-             devices={this.props.devices}
-             waitingForServer={this.props.waitingForServer}
-             showRemoveDevicePage={this.props.showRemoveDevicePage}
-             showExistingDevicePage={this.props.showExistingDevicePage}
-             showGenPaperKeyPage={this.props.showGenPaperKeyPag}/>
+    return (
+      <DevicesRender
+        devices={this.props.devices}
+        waitingForServer={this.props.waitingForServer}
+        showRemoveDevicePage={this.props.showRemoveDevicePage}
+        showExistingDevicePage={this.props.showExistingDevicePage}
+        showGenPaperKeyPage={this.props.showGenPaperKeyPage}/>
+    )
   }
 }
 
@@ -68,3 +56,21 @@ Devices.propTypes = {
   showExistingDevicePage: React.PropTypes.func.isRequired,
   showGenPaperKeyPage: React.PropTypes.func.isRequired
 }
+
+export default connect(
+  state => {
+    const {devices, waitingForServer, error} = state.devices
+    return {
+      devices,
+      waitingForServer,
+      error
+    }
+  },
+  dispatch => {
+    return {
+      loadDevices: () => dispatch(loadDevices()),
+      showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
+      showExistingDevicePage: () => dispatch(addANewDevice()),
+      showGenPaperKeyPage: () => dispatch(routeAppend('genPaperKey'))
+    }
+  })(Devices)
