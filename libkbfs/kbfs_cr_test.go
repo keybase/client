@@ -129,6 +129,7 @@ func TestBasicMDUpdate(t *testing.T) {
 		rootNode1.GetFolderBranch(), "Node 1")
 	checkStatus(t, ctx, kbfsOps2, false, userName1, nil,
 		rootNode2.GetFolderBranch(), "Node 2")
+	TestStateForTlf(t, ctx, config1, rootNode1.GetFolderBranch().Tlf)
 }
 
 func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
@@ -211,6 +212,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	if _, ok := entries["c"]; !ok {
 		t.Fatalf("User 2 doesn't see file c")
 	}
+	TestStateForTlf(t, ctx, config1, rootNode1.GetFolderBranch().Tlf)
 }
 
 func TestMultipleMDUpdates(t *testing.T) {
@@ -351,6 +353,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		rootNode1.GetFolderBranch(), "Node 1 (after unstage)")
 	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2, nil,
 		rootNode2.GetFolderBranch(), "Node 2 (after unstage)")
+	TestStateForTlf(t, ctx, config1B, rootNode1.GetFolderBranch().Tlf)
 }
 
 // Tests that multiple users can write to the same file sequentially
@@ -427,4 +430,5 @@ func TestMultiUserWrite(t *testing.T) {
 	}
 
 	readAndCompareData(t, config2, ctx, h, data3, userName2)
+	TestStateForTlf(t, ctx, config1, rootNode1.GetFolderBranch().Tlf)
 }

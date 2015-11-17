@@ -93,6 +93,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 			t.Errorf("Got an error doing concurrent MD gets: err=(%s)", err)
 		}
 	}
+	TestStateForTlf(t, ctx, config, dir)
 }
 
 // Test that a read can happen concurrently with a sync
@@ -152,6 +153,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	if err != nil {
 		t.Errorf("Sync got an error: %v", err)
 	}
+	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
 }
 
 // Test that a write can happen concurrently with a sync
@@ -239,6 +241,7 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 		t.Errorf("Unexpected number of cached clean blocks: %d\n",
 			numCleanBlocks)
 	}
+	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
 }
 
 // Test that a write can survive a folder BlockPointer update
@@ -287,6 +290,7 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	if g, e := de.Size, len(data); g != uint64(e) {
 		t.Errorf("Got wrong size %d; expected %d", g, e)
 	}
+	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
 }
 
 // Test that a write can happen concurrently with a sync when there
@@ -393,6 +397,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	if nr != 10 || !bytes.Equal(expectedData, buf2) {
 		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 	}
+	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
 }
 
 // Test that a write consisting of multiple blocks can be canceled

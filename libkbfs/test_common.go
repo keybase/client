@@ -450,3 +450,12 @@ type TestClock struct {
 func (tc TestClock) Now() time.Time {
 	return tc.T
 }
+
+// TestStateForTlf runs the state checker for the given TLF.
+func TestStateForTlf(t *testing.T, ctx context.Context,
+	config Config, tlf TlfID) {
+	sc := NewStateChecker(config)
+	if err := sc.CheckMergedState(ctx, tlf); err != nil {
+		t.Errorf("State check failed: %v", err)
+	}
+}
