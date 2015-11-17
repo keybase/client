@@ -77,12 +77,10 @@ func (t Token) String() string {
 }
 
 func VerifyToken(signature, tokenType string, maxExpireIn int) (*Token, error) {
-	_, token, _, err := libkb.NaclVerifyAndExtract(signature)
-	if err != nil {
+	var t *Token
+	if _, token, _, err := libkb.NaclVerifyAndExtract(signature); err != nil {
 		return nil, err
-	}
-	t, err := parseToken(token)
-	if err != nil {
+	} else if t, err = parseToken(token); err != nil {
 		return nil, err
 	}
 	if tokenType != t.Type() {
