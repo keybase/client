@@ -307,36 +307,54 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 }
 
 func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
-	body, err := base64.StdEncoding.DecodeString(sig)
+	var keyInSignature GenericKey
+	var fullSigBody []byte
+	keyInSignature, msg, fullSigBody, err = NaclVerifyAndExtract(sig)
 	if err != nil {
 		return
 	}
 
-	packet, err := DecodePacket(body)
-	if err != nil {
+	kidInSig := keyInSignature.GetKID()
+	kidWanted := k.GetKID()
+	if kidWanted.NotEqual(kidInSig) {
+		err = WrongKidError{kidInSig, kidWanted}
 		return
+	}
+
+	id = ComputeSigIDFromSigBody(fullSigBody)
+	return
+}
+
+// NaclVerifyAndExtract interprets the given string as a NaCl-signed messaged, in
+// the keybase NaclSigInfo (v1) format. It will check that the signature verified, and if so,
+// will return the key that was used for the verification, the payload of the signature,
+// the full body of the decoded SignInfo, and an error
+func NaclVerifyAndExtract(s string) (key GenericKey, payload []byte, fullBody []byte, err error) {
+	fullBody, err = base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	packet, err := DecodePacket(fullBody)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
 	naclSig, ok := packet.Body.(*NaclSigInfo)
 	if !ok {
 		err = UnmarshalError{"NACL signature"}
-		return
+		return nil, nil, nil, err
 	}
 
-	err = naclSig.Verify()
+	var nk *NaclSigningKeyPublic
+	err, nk = naclSig.Verify()
 	if err != nil {
-		return
+		return nil, nil, nil, err
 	}
 
-	nkid := keybase1.KIDFromSlice(naclSig.Kid)
-	if nkid.NotEqual(k.GetKID()) {
-		err = WrongKidError{nkid, k.GetKID()}
-		return
-	}
-
-	msg = naclSig.Payload
-	id = ComputeSigIDFromSigBody(body)
-	return
+	key = NaclSigningKeyPair{Public: *nk}
+	payload = naclSig.Payload
+	return key, payload, fullBody, nil
 }
 
 func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
@@ -396,15 +414,15 @@ func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
 	return &ret
 }
 
-func (s NaclSigInfo) Verify() error {
+func (s NaclSigInfo) Verify() (error, *NaclSigningKeyPublic) {
 	key := KIDToNaclSigningKeyPublic(s.Kid)
 	if key == nil {
-		return BadKeyError{}
+		return BadKeyError{}, nil
 	}
 	if !key.Verify(s.Payload, &s.Sig) {
-		return VerificationError{}
+		return VerificationError{}, nil
 	}
-	return nil
+	return nil, key
 }
 
 func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {

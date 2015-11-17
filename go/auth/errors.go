@@ -33,3 +33,48 @@ type BadKeyError struct {
 func (e BadKeyError) Error() string {
 	return fmt.Sprintf("Bad key error: %s not active for %s", e.kid, e.uid)
 }
+
+type InvalidTokenTypeError struct {
+	expected string
+	received string
+}
+
+func (e InvalidTokenTypeError) Error() string {
+	return fmt.Sprintf("Invalid token type, expected: %s, received: %s",
+		e.expected, e.received)
+}
+
+type MaxTokenExpiresError struct {
+	creationTime int64
+	expireIn     int
+	now          int64
+	maxExpireIn  int
+	remaining    int
+}
+
+func (e MaxTokenExpiresError) Error() string {
+	return fmt.Sprintf("Max token expiration exceeded, ctime/expire_in: %d/%d, "+
+		"now/max: %d/%d, remaining: %d", e.creationTime, e.expireIn,
+		e.now, e.maxExpireIn, e.remaining)
+}
+
+type TokenExpiredError struct {
+	creationTime int64
+	expireIn     int
+	now          int64
+}
+
+func (e TokenExpiredError) Error() string {
+	return fmt.Sprintf("Token expired, ctime/expire_in: %d/%d, now: %d",
+		e.creationTime, e.expireIn, e.now)
+}
+
+type InvalidTokenKeyError struct {
+	expected string
+	received string
+}
+
+func (e InvalidTokenKeyError) Error() string {
+	return fmt.Sprintf("Invalid token key, expected: %s, received: %s",
+		e.expected, e.received)
+}

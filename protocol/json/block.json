@@ -199,10 +199,7 @@
   "messages" : {
     "authenticateSession" : {
       "request" : [ {
-        "name" : "user",
-        "type" : "UID"
-      }, {
-        "name" : "sid",
+        "name" : "signature",
         "type" : "string"
       } ],
       "response" : "null"

@@ -113,6 +113,6 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 }
 
 // NewUserKeyAPIer returns a UserKeyAPIer implementation.
-func NewUserKeyAPI(log logger.Logger, api libkb.API) UserKeyAPIer {
+func NewUserKeyAPIer(log logger.Logger, api libkb.API) UserKeyAPIer {
 	return &userKeyAPI{log: log, api: api}
 }

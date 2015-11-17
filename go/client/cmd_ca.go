@@ -31,7 +31,7 @@ func (c *CmdCA) runPromptLoop() error {
 	var s string
 	re := regexp.MustCompile(`(\s|,|:)+`)
 
-	api := auth.NewUserKeyAPI(c.G().Log, c.G().API)
+	api := auth.NewUserKeyAPIer(c.G().Log, c.G().API)
 	ca := auth.NewCredentialAuthority(c.G().Log, api)
 
 	for {

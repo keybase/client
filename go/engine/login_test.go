@@ -116,7 +116,7 @@ func TestUserInfo(t *testing.T) {
 	var username libkb.NormalizedUsername
 	var err error
 	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
-		_, username, _, _, err = a.UserInfo()
+		_, username, _, _, _, err = a.UserInfo()
 	}, "TestUserInfo")
 	if aerr != nil {
 		t.Fatal(err)

@@ -8,7 +8,7 @@ protocol block {
     bytes buf;
   }
 
-// Fixed-size nonce to identify a reference to a block
+  // Fixed-size nonce to identify a reference to a block
   fixed BlockRefNonce(8);
 
   record BlockReference {
@@ -17,7 +17,7 @@ protocol block {
     UID chargedTo;
   }
 
-  void authenticateSession(UID user, string sid);
+  void authenticateSession(string signature);
 
   void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
   GetBlockRes getBlock(BlockIdCombo bid);
