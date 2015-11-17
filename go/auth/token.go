@@ -64,19 +64,6 @@ func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.
 		Tag:          "signature",
 	}
 }
-
-func ParseToken(token string) (*Token, error) {
-	jw, err := jsonw.Unmarshal([]byte(token))
-	if err != nil {
-		return nil, err
-	}
-	var t Token
-	if err = jw.UnmarshalAgain(&t); err != nil {
-		return nil, err
-	}
-	return &t, nil
-}
-
 func (t Token) Bytes() []byte {
 	bytes, err := json.Marshal(&t)
 	if err != nil {
@@ -89,23 +76,24 @@ func (t Token) String() string {
 	return string(t.Bytes())
 }
 
-func (t Token) Verify(signature, tokenType string, maxExpireIn int) error {
-	key, err := libkb.ImportKeypairFromKID(t.KID())
+func VerifyToken(signature, tokenType string, maxExpireIn int) (*Token, error) {
+	_, token, _, err := libkb.NaclVerifyAndExtract(signature)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if _, err := key.VerifyString(signature, t.Bytes()); err != nil {
-		return err
+	t, err := parseToken(token)
+	if err != nil {
+		return nil, err
 	}
-	if tokenType != t.Body.Type {
-		return InvalidTokenTypeError{
+	if tokenType != t.Type() {
+		return nil, InvalidTokenTypeError{
 			ExpectedTokenType: tokenType,
 			ReceivedTokenType: t.Type(),
 		}
 	}
 	remaining := t.TimeRemaining()
 	if remaining > maxExpireIn {
-		return MaxTokenExpiresError{
+		return nil, MaxTokenExpiresError{
 			CreationTime: t.CreationTime,
 			ExpireIn:     t.ExpireIn,
 			Now:          time.Now().Unix(),
@@ -114,13 +102,13 @@ func (t Token) Verify(signature, tokenType string, maxExpireIn int) error {
 		}
 	}
 	if remaining <= 0 {
-		return TokenExpiredError{
+		return nil, TokenExpiredError{
 			CreationTime: t.CreationTime,
 			ExpireIn:     t.ExpireIn,
 			Now:          time.Now().Unix(),
 		}
 	}
-	return nil
+	return t, nil
 }
 
 func (t Token) TimeRemaining() int {
@@ -155,4 +143,16 @@ func (t Token) ClientName() string {
 
 func (t Token) ClientVersion() string {
 	return t.Client.Version
+}
+
+func parseToken(token []byte) (*Token, error) {
+	jw, err := jsonw.Unmarshal(token)
+	if err != nil {
+		return nil, err
+	}
+	var t Token
+	if err = jw.UnmarshalAgain(&t); err != nil {
+		return nil, err
+	}
+	return &t, nil
 }
