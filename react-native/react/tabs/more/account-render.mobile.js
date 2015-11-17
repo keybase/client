@@ -1,11 +1,10 @@
 'use strict'
 
-import React, { Component, Text, TextInput, View, StyleSheet } from 'react-native'
+import React, {Component, Text, TextInput, View, StyleSheet} from '../../base-react'
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 
 export default class Account extends Component {
-
   constructor (props) {
     super(props)
 
@@ -18,7 +17,7 @@ export default class Account extends Component {
   }
 
   render () {
-    const { email, emailVerified, onSave, emailError, passphraseError } = this.props
+    const {email, emailVerified, onSave, emailError, passphraseError} = this.props
     return (
       <View style={styles.container}>
         <View style={styles.emailContainer}>
@@ -58,7 +57,7 @@ export default class Account extends Component {
                 style={styles.saveButton}
                 title='Save'
                 onPress={() => {
-                  const { email, oldPassphrase, newPassphrase, newPassphraseRepeat } = this.state
+                  const {email, oldPassphrase, newPassphrase, newPassphraseRepeat} = this.state
                   onSave(email, oldPassphrase, newPassphrase, newPassphraseRepeat)
                 }}/>
             </View>

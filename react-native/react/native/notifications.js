@@ -4,8 +4,8 @@
 import engine from '../engine'
 // $FlowIssue can't deal with platform files
 import listeners from './notification-listeners'
-import { createServer } from '../engine/server'
-import { flattenCallMap, promisifyResponses } from '../engine/call-map-middleware'
+import {createServer} from '../engine/server'
+import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 
 var initialized = false
 
@@ -78,7 +78,7 @@ export function init () {
       engine,
       'keybase.1.identifyUi.delegateIdentifyUI',
       'keybase.1.identifyUi.finish',
-      params => promisifyResponses(flattenCallMap({ keybase: { '1': { identifyUi } } }))
+      params => promisifyResponses(flattenCallMap({keybase: {'1': {identifyUi}}}))
     )
   })
 

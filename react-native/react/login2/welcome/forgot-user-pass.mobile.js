@@ -1,12 +1,13 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Text, TextInput, View } from 'react-native'
+import React, {Component, StyleSheet, Text, TextInput, View} from '../../base-react'
+import {connect} from '../../base-redux'
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
-import { updateForgotPasswordEmail, submitForgotPassword } from '../../actions/login2'
+import {updateForgotPasswordEmail, submitForgotPassword} from '../../actions/login2'
 
-export default class ForgotUserPass extends Component {
+class ForgotUserPass extends Component {
   render () {
     return (
       <View style={{ flex: 1, marginTop: 64, marginBottom: 48, justifyContent: 'flex-start' }}>
@@ -50,28 +51,8 @@ export default class ForgotUserPass extends Component {
     this.props.updateEmail('')
   }
 
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        mapStateToProps: state => {
-          const {
-              forgotPasswordEmailAddress: email,
-              forgotPasswordSubmitting: submitting,
-              forgotPasswordSuccess: success,
-              forgotPasswordError: error } = state.login2
-          return {
-            email,
-            submitting,
-            success,
-            error
-          }
-        },
-        props: {
-          updateEmail: email => store.dispatch(updateForgotPasswordEmail(email)),
-          submit: () => store.dipatch(submitForgotPassword())
-        }
-      }
-    }
+  static parseRoute () {
+    return {componentAtTop: {}}
   }
 }
 
@@ -91,3 +72,20 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end'
   }
 })
+
+export default connect(
+  state => {
+    const {
+      forgotPasswordEmailAddress: email,
+      forgotPasswordSubmitting: submitting,
+      forgotPasswordSuccess: success,
+      forgotPasswordError: error } = state.login2
+    return {email, submitting, success, error}
+  },
+  dispatch => {
+    return {
+      updateEmail: email => dispatch(updateForgotPasswordEmail(email)),
+      submit: () => dispatch(submitForgotPassword())
+    }
+  }
+)(ForgotUserPass)

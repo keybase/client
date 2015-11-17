@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import { combineReducers } from 'redux'
+import {combineReducers} from 'redux'
 // $FlowFixMe login2 isnt typed
 import login2 from './login2'
 import devices from './devices'
@@ -10,8 +10,8 @@ import profile from './profile'
 import config from './config'
 import tabbedRouter from './tabbed-router'
 import {List} from 'immutable'
-import type { State } from '../constants/reducer'
-import { isDev } from '../constants/platform'
+import type {State} from '../constants/reducer'
+import {isDev} from '../constants/platform'
 import serialize from './serialize'
 
 import * as Constants from '../constants/dev'

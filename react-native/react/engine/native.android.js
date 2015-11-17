@@ -1,7 +1,3 @@
 'use strict'
-/**
- * @providesModule Engine
- */
-
-import { NativeModules } from 'react-native'
+import {NativeModules} from '../base-react'
 export default NativeModules.KeybaseEngine

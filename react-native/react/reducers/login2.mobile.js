@@ -4,7 +4,7 @@
 import * as Constants from '../constants/login2'
 import * as ConfigConstants from '../constants/config'
 import Immutable from 'immutable'
-import {Platform} from 'react-native'
+import {Platform} from '../base-react'
 import {
   codePageDeviceRoleNewPhone,
   codePageDeviceRoleNewComputer,

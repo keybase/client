@@ -1,17 +1,10 @@
 'use strict'
 /* @flow */
 
-import React from 'react-native'
-import {
-  Component,
-  Image,
-  StyleSheet,
-  ScrollView,
-  Text,
-  View
-} from 'react-native'
+import React, {Component, Image, StyleSheet, ScrollView, Text, View} from '../base-react'
+import {connect} from '../base-redux'
 
-export default class Profile extends Component {
+class Profile extends Component {
   render () {
     const thumbnail = this.props.summary.get('thumbnail')
     return (
@@ -30,13 +23,9 @@ export default class Profile extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute (currentPath) {
     const username = currentPath.get('username')
-    return {
-      componentAtTop: {
-        mapStateToProps: state => state.profile.get(username).toObject()
-      }
-    }
+    return {componentAtTop: {props: {username}}}
   }
 }
 
@@ -70,3 +59,15 @@ const styles = StyleSheet.create({
     marginTop: 10
   }
 })
+
+export default connect(
+  state => state,
+  null,
+  (stateProps, dispatchProps, ownProps) => {
+    return {
+      ...ownProps,
+      ...stateProps.profile.get(ownProps.username).toObject(),
+      ...dispatchProps
+    }
+  }
+)(Profile)

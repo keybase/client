@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Text, View, StyleSheet } from '../../base-react'
+import React, {Component, Text, View, StyleSheet} from '../../base-react'
 import commonStyles from '../../styles/common'
 
 export default class ChatRender extends Component {

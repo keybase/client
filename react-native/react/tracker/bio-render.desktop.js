@@ -1,8 +1,8 @@
 'use strict'
 /* @flow */
 
-import React, { Component } from '../base-react'
-import { Paper } from 'material-ui'
+import React, {Component} from '../base-react'
+import {Paper} from 'material-ui'
 
 // TODO constants when integrating
 const normal = 'normal'

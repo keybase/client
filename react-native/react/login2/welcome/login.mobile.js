@@ -1,14 +1,15 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Text, TextInput, View } from 'react-native'
+import React, {Component, Text, TextInput, View} from '../../base-react'
+import {connect} from '../../base-redux'
 import commonStyles from '../../styles/common'
-import { login } from '../../actions/login2'
-import { routeAppend } from '../../actions/router'
+import {login} from '../../actions/login2'
+import {routeAppend} from '../../actions/router'
 import ForgotUserPass from './forgot-user-pass'
 import Button from '../../common-adapters/button'
 
-export default class Login extends Component {
+class Login extends Component {
   constructor (props) {
     super(props)
 
@@ -60,18 +61,9 @@ export default class Login extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute () {
     return {
-      componentAtTop: {
-        mapStateToProps: state => {
-          const { username, passphrase } = state.login2
-          return { username, passphrase }
-        },
-        props: {
-          showForgotUserPassPage: () => store.dispatch(routeAppend('forgotUserPass')),
-          login: (username, passphrase) => store.dispatch(login(username, passphrase))
-        }
-      },
+      componentAtTop: {},
       subRoutes: {
         forgotUserPass: ForgotUserPass
       }
@@ -85,3 +77,16 @@ Login.propTypes = {
   username: React.PropTypes.string,
   passphrase: React.PropTypes.string
 }
+
+export default connect(
+  state => {
+    const {username, passphrase} = state.login2
+    return {username, passphrase}
+  },
+  dispatch => {
+    return {
+      showForgotUserPassPage: () => dispatch(routeAppend('forgotUserPass')),
+      login: (username, passphrase) => dispatch(login(username, passphrase))
+    }
+  }
+)(Login)

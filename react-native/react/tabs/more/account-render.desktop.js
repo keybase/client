@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React, { Component } from '../../base-react'
+import React, {Component} from '../../base-react'
 
 export default class AccountComponent extends Component {
   render () {

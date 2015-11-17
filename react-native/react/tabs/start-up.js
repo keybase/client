@@ -1,4 +1,7 @@
-import React, { Component, View, Text } from 'react-native'
+'use strict'
+
+import React, {Component, View, Text} from '../base-react'
+import {connect} from '../base-redux'
 
 class RegisterPlaceHolder extends Component {
   render () {
@@ -6,16 +9,14 @@ class RegisterPlaceHolder extends Component {
   }
 }
 
-export default class Startup extends Component {
+class Startup extends Component {
   render () {
     return <View><Text>Loading...</Text></View>
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute () {
     return {
-      componentAtTop: {
-        hideNavBar: true
-      },
+      componentAtTop: {hideNavBar: true},
       subRoutes: {
         login: require('../login2/welcome'),
         // TODO when kex2 is done import Registration from './login2/register'
@@ -24,3 +25,5 @@ export default class Startup extends Component {
     }
   }
 }
+
+export default connect()(Startup)

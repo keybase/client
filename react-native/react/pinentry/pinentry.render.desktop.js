@@ -1,7 +1,7 @@
 'use strict'
 
-import React, { Component } from '../base-react'
-import { TextField, RaisedButton, Checkbox } from 'material-ui'
+import React, {Component} from '../base-react'
+import {TextField, RaisedButton, Checkbox} from 'material-ui'
 
 export default class PinentryRender extends Component {
   componentWillMount () {

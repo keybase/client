@@ -6,15 +6,16 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 
-import React, { Component, StyleSheet, Text, View, TextInput } from 'react-native'
-import { codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
-         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer } from '../../../constants/login2'
-import { codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText } from '../../../constants/login2'
+import React, {Component, StyleSheet, Text, View, TextInput} from '../../../base-react'
+import {connect} from '../../../base-redux'
+import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
+        codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login2'
+import {codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login2'
 import QR from './qr'
 import Button from '../../../common-adapters/button'
 import commonStyles from '../../../styles/common'
 
-export default class CodePage extends Component {
+class CodePage extends Component {
   constructor (props) {
     super(props)
 
@@ -29,7 +30,7 @@ export default class CodePage extends Component {
 
   controlStyle (mode) {
     if (this.props.mode === mode) {
-      return { backgroundColor: 'green' }
+      return {backgroundColor: 'green'}
     }
     return {}
   }
@@ -221,3 +222,14 @@ const styles = StyleSheet.create({
   }
 })
 
+export default connect(
+  state => state,
+  null,
+  (stateProps, dispatchProps, ownProps) => {
+    return {
+      ...ownProps,
+      ...ownProps.mapStateToProps(stateProps),
+      ...dispatchProps
+    }
+  }
+)(CodePage)

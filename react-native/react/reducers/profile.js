@@ -49,5 +49,5 @@ export default function (state = initialState, action) {
       return state
   }
 
-  return state.mergeDeep({ [action.payload.username]: update })
+  return state.mergeDeep({[action.payload.username]: update})
 }

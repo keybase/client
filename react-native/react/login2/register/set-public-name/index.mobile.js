@@ -1,12 +1,13 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Text, TextInput, View } from 'react-native'
+import React, {Component, Text, TextInput, View} from '../../../base-react'
+import {connect} from '../../../base-redux'
+import {setDeviceName} from '../../../actions/login2'
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
-import { setDeviceName } from '../../../actions/login2'
 
-export default class SetPublicName extends Component {
+class SetPublicName extends Component {
   constructor (props) {
     super(props)
 
@@ -42,21 +43,11 @@ export default class SetPublicName extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute () {
     return {
       componentAtTop: {
-        title: '',
         component: SetPublicName,
-        leftButtonTitle: '',
-        mapStateToProps: state => {
-          const { deviceName } = state.login2
-          return {
-            deviceName
-          }
-        },
-        props: {
-          onSubmit: deviceName => store.dispatch(setDeviceName(deviceName))
-        }
+        leftButtonTitle: ''
       }
     }
   }
@@ -67,3 +58,30 @@ SetPublicName.propTypes = {
   existingDevices: React.PropTypes.array,
   onSubmit: React.PropTypes.func.isRequired
 }
+
+/*
+export default connect(
+  state => {
+    const {deviceName} = state.login2
+    return {deviceName}
+  },
+  dispatch => {
+    return {onSubmit: deviceName => dispatch(setDeviceName(deviceName))}
+  }
+)(SetPublicName)
+*/
+
+// NOJIMA TODO this isn't consistent
+
+export default connect(
+  state => state,
+  null,
+  (stateProps, dispatchProps, ownProps) => {
+    return {
+      ...ownProps,
+      ...ownProps.mapStateToProps(stateProps),
+      ...dispatchProps
+    }
+  }
+)(SetPublicName)
+

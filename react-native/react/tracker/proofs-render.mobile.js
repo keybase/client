@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React, { Component, View, Text } from '../base-react'
+import React, {Component, View, Text} from '../base-react'
 
 export default class ProofsRender extends Component {
   render () {

@@ -5,7 +5,7 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, View } from 'react-native'
+import React, {Component, StyleSheet, View} from '../base-react'
 import ProgressIndicator from '../common-adapters/progress-indicator'
 import Welcome from './welcome'
 import Register from './register'
@@ -23,7 +23,7 @@ export default class Login extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute () {
     return {
       subRoutes: {
         welcome: Welcome,

@@ -1,8 +1,8 @@
 'use strict'
 /* @flow */
 
-import React, { Component } from '../base-react'
-import { AppBar, IconButton } from 'material-ui'
+import React, {Component} from '../base-react'
+import {AppBar, IconButton} from 'material-ui'
 import NavigationClose from 'material-ui/lib/svg-icons/navigation/close'
 
 export default class HeaderRender extends Component {

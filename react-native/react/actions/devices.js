@@ -2,7 +2,7 @@
 
 import * as Constants from '../constants/devices'
 import engine from '../engine'
-import { navigateUpOnUnchanged } from './router'
+import {navigateUpOnUnchanged} from './router'
 
 export function loadDevices () {
   return function (dispatch) {

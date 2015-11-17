@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import { StyleSheet } from 'react-native'
+import {StyleSheet} from '../base-react'
 import native from './native'
 
 const buttonHighlightCommon = {

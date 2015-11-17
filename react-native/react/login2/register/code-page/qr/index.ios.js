@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Image, StyleSheet, View } from 'react-native'
+import React, {Component, Image, StyleSheet, View} from '../../../../base-react'
 import Camera from 'react-native-camera'
 
 export default class QR extends Component {

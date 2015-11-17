@@ -1,11 +1,10 @@
 'use strict'
 /* @flow */
 
-import React, { Component } from '../base-react'
+import React, {Component} from '../base-react'
 import Select from 'react-select'
 
 export default class Search extends Component {
-
   constructor (props) {
     super(props)
 
@@ -17,10 +16,10 @@ export default class Search extends Component {
   buildRows (results) {
     console.log('results: ', results)
     const rows = !results ? [] : results.map((s) => {
-      const { username } = s
+      const {username} = s
       const row1 = `${username}${this.fullNameFromComponent(s)}`
       const row2 = s.components.map(c => this.userComponentText(c)).filter(c => c).join(' | ')
-      return { row1, row2, username }
+      return {row1, row2, username}
     })
     return rows
   }

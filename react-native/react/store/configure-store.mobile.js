@@ -1,12 +1,12 @@
 'use strict'
 /* @flow */
 
-import { createStore, applyMiddleware } from 'redux'
+import {createStore, applyMiddleware} from 'redux'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import rootReducer from '../reducers'
 import Immutable from 'immutable'
-import { isDev } from '../constants/platform'
+import {isDev} from '../constants/platform'
 
 // Transform objects from Immutable on printing
 const objToJS = (state) => {

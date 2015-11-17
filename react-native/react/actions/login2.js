@@ -2,7 +2,7 @@
 
 import * as Constants from '../constants/login2'
 import QRCodeGen from 'qrcode-generator'
-import { navigateTo, routeAppend, getCurrentURI, getCurrentTab } from './router'
+import {navigateTo, routeAppend, getCurrentURI, getCurrentTab} from './router'
 import engine from '../engine'
 import enums from '../keybase_v1'
 import UserPass from '../login2/register/user-pass'
@@ -10,9 +10,9 @@ import PaperKey from '../login2/register/paper-key'
 import CodePage from '../login2/register/code-page'
 import ExistingDevice from '../login2/register/existing-device'
 import SetPublicName from '../login2/register/set-public-name'
-import { switchTab } from './tabbed-router'
-import { devicesTab } from '../constants/tabs'
-import { loadDevices } from './devices'
+import {switchTab} from './tabbed-router'
+import {devicesTab} from '../constants/tabs'
+import {loadDevices} from './devices'
 
 export function login () {
   return (dispatch, getState) => {
@@ -171,6 +171,7 @@ function askForUserPass (title, subTitle, cb) {
     const props = {
       title,
       subTitle,
+      mapStateToProps: state => state.login2.userPass,
       onSubmit: (username, passphrase) => {
         dispatch({
           type: Constants.actionSetUserPass,
@@ -188,7 +189,6 @@ function askForUserPass (title, subTitle, cb) {
       parseRoute: {
         componentAtTop: {
           component: UserPass,
-          mapStateToProps: state => state.login2.userPass,
           props
         }
       }
@@ -199,6 +199,7 @@ function askForUserPass (title, subTitle, cb) {
 function askForPaperKey (cb) {
   return dispatch => {
     const props = {
+      mapStateToProps: state => state.login2,
       onSubmit: (paperKey) => {
         cb(paperKey)
       }
@@ -208,7 +209,6 @@ function askForPaperKey (cb) {
       parseRoute: {
         componentAtTop: {
           component: PaperKey,
-          mapStateToProps: state => state.login2,
           props
         }
       }
@@ -219,6 +219,7 @@ function askForPaperKey (cb) {
 // Show a device naming page, call cb() when done
 // existing devices are blacklisted
 function askForDeviceName (existingDevices, cb) {
+  // NOJIMA TODO WHAT IS GOIN ON HERE? are 2 calls happening, is one dead? AAAAAA<<<<<<<<<<<<<<<<
   return dispatch => {
     dispatch({
       type: Constants.actionAskDeviceName,
@@ -239,7 +240,9 @@ function askForDeviceName (existingDevices, cb) {
       parseRoute: {
         componentAtTop: {
           component: SetPublicName,
-          mapStateToProps: state => state.login2.deviceName
+          props: {
+            mapStateToProps: state => state.login2.deviceName
+          }
         }
       }
     }))
@@ -249,6 +252,7 @@ function askForDeviceName (existingDevices, cb) {
 function askForOtherDeviceType (cb) {
   return dispatch => {
     const props = {
+      mapStateToProps: state => state.login2.codePage,
       onSubmit: otherDeviceRole => {
         cb(otherDeviceRole)
       }
@@ -258,7 +262,6 @@ function askForOtherDeviceType (cb) {
       parseRoute: {
         componentAtTop: {
           component: ExistingDevice,
-          mapStateToProps: state => state.login2.codePage,
           props
         }
       }
@@ -268,14 +271,6 @@ function askForOtherDeviceType (cb) {
 
 function askForCodePage (cb) {
   return dispatch => {
-    const props = {
-      setCodePageMode: mode => dispatch(setCodePageMode(mode)),
-      qrScanned: code => cb(code.data),
-      setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
-      textEntered: text => cb(text),
-      doneRegistering: () => dispatch(doneRegistering())
-    }
-
     const mapStateToProps = state => {
       const {
         mode, codeCountDown, textCode, qrCode,
@@ -291,11 +286,19 @@ function askForCodePage (cb) {
       }
     }
 
+    const props = {
+      mapStateToProps,
+      setCodePageMode: mode => dispatch(setCodePageMode(mode)),
+      qrScanned: code => cb(code.data),
+      setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
+      textEntered: text => cb(text),
+      doneRegistering: () => dispatch(doneRegistering())
+    }
+
     dispatch(routeAppend({
       parseRoute: {
         componentAtTop: {
           component: CodePage,
-          mapStateToProps,
           props
         }
       }

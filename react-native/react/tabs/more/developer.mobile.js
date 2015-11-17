@@ -1,10 +1,10 @@
 'use strict'
 
-import React, { Component, StyleSheet, Navigator, TextInput, View, Text } from 'react-native'
-import { navigateUp } from '../../actions/router'
-import { getDevSettings, saveDevSettings, updateDevSettings } from '../../actions/config'
+import React, {Component, StyleSheet, Navigator, TextInput, View, Text} from '../../base-react'
+import {connect} from '../../base-redux'
+import {getDevSettings, saveDevSettings, updateDevSettings} from '../../actions/config'
 
-export default class Developer extends Component {
+class Developer extends Component {
   componentDidMount () {
     this.props.getDevSettings()
   }
@@ -47,25 +47,8 @@ export default class Developer extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        title: 'Developer',
-        rightButtonAction: () => store.dispatch(navigateUp()),
-        sceneConfig: Navigator.SceneConfigs.FloatFromBottom,
-        mapStateToProps: state => {
-          const { devConfig } = state.config
-          return {
-            devConfig
-          }
-        },
-        props: {
-          getDevSettings: () => store.dispatch(getDevSettings()),
-          saveDevSettings: () => store.dispatch(saveDevSettings()),
-          updateDevSettings: settings => store.dispatch(updateDevSettings(settings))
-        }
-      }
-    }
+  static parseRoute () {
+    return {componentAtTop: {title: 'Developer', sceneConfig: Navigator.SceneConfigs.FloatFromBottom}}
   }
 }
 
@@ -108,3 +91,17 @@ const styles = StyleSheet.create({
     color: 'blue'
   }
 })
+
+export default connect(
+  state => {
+    const {devConfig} = state.config
+    return {devConfig}
+  },
+  dispatch => {
+    return {
+      getDevSettings: () => dispatch(getDevSettings()),
+      saveDevSettings: () => dispatch(saveDevSettings()),
+      updateDevSettings: settings => dispatch(updateDevSettings(settings))
+    }
+  }
+)(Developer)

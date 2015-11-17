@@ -1,16 +1,11 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Text, View } from 'react-native'
+import React, {Component, Text, View} from '../../base-react'
+import {connect} from '../../base-redux'
 import commonStyles from '../../styles/common'
 
-export default class Signup extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {}
-  }
-
+class Signup extends Component {
   render () {
     return (
       <View style={{flex: 1, marginTop: 64, marginBottom: 48}}>
@@ -23,9 +18,11 @@ export default class Signup extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute () {
     return {}
   }
 }
 
 Signup.propTypes = { }
+
+export default connect()(Signup)

@@ -7,9 +7,9 @@ import GenPaperKey from './gen-paper-key'
 import ExistingDevice from '../../login2/register/existing-device'
 import RemoveDevice from './remove-device'
 
-import { loadDevices } from '../../actions/devices'
-import { routeAppend } from '../../actions/router'
-import { addANewDevice } from '../../actions/login2'
+import {loadDevices} from '../../actions/devices'
+import {routeAppend} from '../../actions/router'
+import {addANewDevice} from '../../actions/login2'
 import DevicesRender from './devices-render'
 
 class Devices extends Component {
@@ -21,11 +21,9 @@ class Devices extends Component {
     }
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute () {
     return {
-      componentAtTop: {
-        title: 'Devices'
-      },
+      componentAtTop: {title: 'Devices'},
       subRoutes: {
         codePage: CodePage,
         genPaperKey: GenPaperKey,
@@ -60,11 +58,7 @@ Devices.propTypes = {
 export default connect(
   state => {
     const {devices, waitingForServer, error} = state.devices
-    return {
-      devices,
-      waitingForServer,
-      error
-    }
+    return {devices, waitingForServer, error}
   },
   dispatch => {
     return {

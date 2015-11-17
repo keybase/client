@@ -1,15 +1,15 @@
 'use strict'
 /* @flow */
 
-import React, { Component, LinkingIOS, StyleSheet, Text, View } from 'react-native'
+import React, {Component, LinkingIOS, StyleSheet, Text, View} from '../../base-react'
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 import Login from './login'
 import Signup from './signup'
-import { routeAppend } from '../../actions/router'
-import { login } from '../../actions/login2'
+import {routeAppend} from '../../actions/router'
+import {login} from '../../actions/login2'
 
-export default class Welcome extends Component {
+class Welcome extends Component {
   render () {
     return (
       <View style={[styles.container, {marginTop: 64, marginBottom: 48}]}>
@@ -34,15 +34,9 @@ export default class Welcome extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute () {
     return {
-      componentAtTop: {
-        hideNavBar: true,
-        props: {
-          gotoLoginPage: () => store.dispatch(login()),
-          gotoSignupPage: () => store.dispatch(routeAppend('signup'))
-        }
-      },
+      componentAtTop: {hideNavBar: true},
       subRoutes: {
         'login': Login,
         'signup': Signup
@@ -65,3 +59,12 @@ const styles = StyleSheet.create({
   }
 })
 
+export default connect(
+  null,
+  dispatch => {
+    return {
+      gotoLoginPage: () => dispatch(login()),
+      gotoSignupPage: () => dispatch(routeAppend('signup'))
+    }
+  }
+)(Welcome)

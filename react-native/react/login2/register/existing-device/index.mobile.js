@@ -1,12 +1,13 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Text, TouchableHighlight, View } from 'react-native'
+import React, {Component, StyleSheet, Text, TouchableHighlight, View} from '../../../base-react'
+import {connect} from '../../../base-redux'
 
 import commonStyles from '../../../styles/common'
-import { codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer } from '../../../constants/login2'
+import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login2'
 
-export default class ExistingDevice extends Component {
+class ExistingDevice extends Component {
   render () {
     let otherDeviceComputer = null
     let otherDevicePhone = null
@@ -62,3 +63,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start'
   }
 })
+
+export default connect(
+  state => state,
+  null,
+  (stateProps, dispatchProps, ownProps) => {
+    return {
+      ...ownProps,
+      ...ownProps.mapStateToProps(stateProps),
+      ...dispatchProps
+    }
+  }
+)(ExistingDevice)

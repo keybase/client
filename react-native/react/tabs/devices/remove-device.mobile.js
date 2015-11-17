@@ -1,12 +1,13 @@
 'use strict'
 
-import React, { Component, Text, View } from 'react-native'
+import React, {Component, Text, View} from '../../base-react'
+import {connect} from '../../base-redux'
 import commonStyles from '../../styles/common'
-import { removeDevice } from '../../actions/devices'
-import { navigateUp } from '../../actions/router'
+import {removeDevice} from '../../actions/devices'
+import {navigateUp} from '../../actions/router'
 import Button from '../../common-adapters/button'
 
-export default class RemoveDevice extends Component {
+class RemoveDevice extends Component {
   constructor (props) {
     super(props)
 
@@ -32,22 +33,8 @@ export default class RemoveDevice extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        mapStateToProps: (state) => {
-          const { dispatch } = state
-          return {
-            dispatch
-          }
-        },
-        props: {
-          device: currentPath.get('device'),
-          navigateUp: () => store.dispatch(navigateUp()),
-          removeDevice: deviceID => store.dispatch(removeDevice(deviceID))
-        }
-      }
-    }
+  static parseRoute (currentPath) {
+    return {componentAtTop: {props: {device: currentPath.get('device')}}}
   }
 }
 
@@ -56,3 +43,13 @@ RemoveDevice.propTypes = {
   navigateUp: React.PropTypes.func.isRequired,
   removeDevice: React.PropTypes.func.isRequired
 }
+
+export default connect(
+  null,
+  dispatch => {
+    return {
+      navigateUp: () => dispatch(navigateUp()),
+      removeDevice: deviceID => dispatch(removeDevice(deviceID))
+    }
+  }
+)(RemoveDevice)

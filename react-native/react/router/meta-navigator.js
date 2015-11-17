@@ -81,7 +81,7 @@ class MetaNavigator extends Component {
     let componentAtTop = null
 
     while (parseNextRoute) {
-      const t = parseNextRoute(currentPath, nextPath, uri)
+      const t = parseNextRoute(currentPath, uri)
       componentAtTop = {
         ...t.componentAtTop,
         upLink: currentPath.get('upLink'),

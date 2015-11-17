@@ -15,9 +15,9 @@ import More from './tabs/more'
 const globalRoutes = {}
 
 import * as Constants from './constants/config'
-import { folderTab, chatTab, peopleTab, devicesTab, moreTab } from './constants/tabs'
-import { switchTab } from './actions/tabbed-router'
-import { Tab, Tabs, Styles } from 'material-ui'
+import {folderTab, chatTab, peopleTab, devicesTab, moreTab} from './constants/tabs'
+import {switchTab} from './actions/tabbed-router'
+import {Tab, Tabs, Styles} from 'material-ui'
 let { Colors, Typography } = Styles
 
 const tabs = {

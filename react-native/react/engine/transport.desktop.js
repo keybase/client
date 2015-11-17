@@ -33,11 +33,11 @@ class DesktopTransport extends BaseTransport {
     }
     let hooks = null
     if (connectCallback) {
-      hooks = { connected: connectCallback }
+      hooks = {connected: connectCallback}
     }
 
     super(
-      { path: sockfile, hooks },
+      {path: sockfile, hooks},
       null,
       incomingRPCCallback
     )

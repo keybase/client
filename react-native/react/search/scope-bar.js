@@ -1,8 +1,8 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Image, TouchableHighlight, Text, View } from 'react-native'
-import { services as serviceIcons } from '../constants/images'
+import React, {Component, StyleSheet, Image, TouchableHighlight, Text, View} from '../base-react'
+import {services as serviceIcons} from '../constants/images'
 
 const selectedColor = 'rgba(127, 127, 127, 0.2)'
 

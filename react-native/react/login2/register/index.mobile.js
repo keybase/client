@@ -1,10 +1,11 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Text, View } from 'react-native'
-import { registerWithUserPass, registerWithPaperKey, registerWithExistingDevice } from '../../actions/login2'
+import React, {Component, StyleSheet, Text, View} from '../../base-react'
+import {connect} from '../../base-redux'
+import {registerWithUserPass, registerWithPaperKey, registerWithExistingDevice} from '../../actions/login2'
 
-export default class Register extends Component {
+class Register extends Component {
   render () {
     return (
       <View style={styles.container}>
@@ -16,16 +17,8 @@ export default class Register extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        props: {
-          gotoExistingDevicePage: () => store.dispatch(registerWithExistingDevice()),
-          gotoPaperKeyPage: () => store.dispatch(registerWithPaperKey()),
-          gotoUserPassPage: () => store.dispatch(registerWithUserPass())
-        }
-      }
-    }
+  static parseRoute () {
+    return {componentAtTop: {}}
   }
 }
 
@@ -43,3 +36,13 @@ const styles = StyleSheet.create({
   }
 })
 
+export default connect(
+  null,
+  dispatch => {
+    return {
+      gotoExistingDevicePage: () => dispatch(registerWithExistingDevice()),
+      gotoPaperKeyPage: () => dispatch(registerWithPaperKey()),
+      gotoUserPassPage: () => dispatch(registerWithUserPass())
+    }
+  }
+)(Register)

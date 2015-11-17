@@ -1,10 +1,11 @@
 'use strict'
 
-import React, { Component, Text, View, StyleSheet } from 'react-native'
+import React, {Component, Text, View, StyleSheet} from '../../base-react'
+import {connect} from '../../base-redux'
 import commonStyles from '../../styles/common'
-import { generatePaperKey } from '../../actions/devices'
+import {generatePaperKey} from '../../actions/devices'
 
-export default class GenPaperKey extends Component {
+class GenPaperKey extends Component {
   constructor (props) {
     super(props)
 
@@ -25,21 +26,8 @@ export default class GenPaperKey extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        mapStateToProps: state => {
-          const { paperKey } = state.devices
-
-          return {
-            paperKey
-          }
-        },
-        props: {
-          generatePaperKey: () => store.dispatch(generatePaperKey())
-        }
-      }
-    }
+  static parseRoute () {
+    return {componentAtTop: {}}
   }
 }
 
@@ -58,3 +46,15 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   }
 })
+
+export default connect(
+  state => {
+    const {paperKey} = state.devices
+    return {paperKey}
+  },
+  dispatch => {
+    return {
+      generatePaperKey: () => dispatch(generatePaperKey())
+    }
+  }
+)(GenPaperKey)

@@ -1,9 +1,9 @@
 'use strict'
 
 import * as Constants from '../constants/profile'
-import { routeAppend } from './router'
+import {routeAppend} from './router'
 import engine from '../engine'
-import { identify } from '../keybase_v1'
+import {identify} from '../keybase_v1'
 const enums = identify
 
 export function pushNewProfile (username) {

@@ -1,9 +1,10 @@
 'use strict'
 
-import React, { Component } from '../base-react'
+import React, {Component} from '../base-react'
+import {connect} from '../base-redux'
 import PeopleRender from './people-render'
 
-export default class People extends Component {
+class People extends Component {
   constructor (props) {
     super(props)
     this.state = {count: 0}
@@ -20,11 +21,9 @@ export default class People extends Component {
     />
   }
 
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        title: 'People'
-      }
-    }
+  static parseRoute () {
+    return {componentAtTop: {title: 'People'}}
   }
 }
+
+export default connect()(People)

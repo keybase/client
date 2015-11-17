@@ -1,7 +1,7 @@
 'use strict'
 
-import React, { Component } from '../../base-react'
-import { List, ListItem } from 'material-ui'
+import React, {Component} from '../../base-react'
+import {List, ListItem} from 'material-ui'
 
 export default class MenuList extends Component {
   render () {

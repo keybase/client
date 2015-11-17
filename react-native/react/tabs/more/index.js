@@ -1,11 +1,12 @@
 'use strict'
 
-import React, { Component } from '../../base-react'
-import { navigateTo } from '../../actions/router'
+import React, {Component} from '../../base-react'
+import {connect} from '../../base-redux'
+import {navigateTo} from '../../actions/router'
 import MenuList from './menu-list'
-import { isDev } from '../../constants/platform'
+import {isDev} from '../../constants/platform'
 
-export default class More extends Component {
+class More extends Component {
   constructor (props) {
     super(props)
 
@@ -13,27 +14,13 @@ export default class More extends Component {
     // TODO: actually get this data
     this.state = {
       menuItems: [
-        {name: 'Account', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['account'])
-        }},
-        {name: 'Billing Settings', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['billing'])
-        }},
-        {name: 'App Preferences', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['app-prefs'])
-        }},
-        {name: `Invitations (${dummyInvitationCount})`, hasChildren: true, onClick: () => {
-          this.props.navigateTo(['invites'])
-        }},
-        {name: 'Notifications', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['notifs'])
-        }},
-        {name: 'Delete me', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['delete-me'])
-        }},
-        {name: 'About', hasChildren: true, onClick: () => {
-          this.props.navigateTo(['about'])
-        }}
+        {name: 'Account', hasChildren: true, onClick: () => { this.props.navigateTo(['account']) }},
+        {name: 'Billing Settings', hasChildren: true, onClick: () => { this.props.navigateTo(['billing']) }},
+        {name: 'App Preferences', hasChildren: true, onClick: () => { this.props.navigateTo(['app-prefs']) }},
+        {name: `Invitations (${dummyInvitationCount})`, hasChildren: true, onClick: () => { this.props.navigateTo(['invites']) }},
+        {name: 'Notifications', hasChildren: true, onClick: () => { this.props.navigateTo(['notifs']) }},
+        {name: 'Delete me', hasChildren: true, onClick: () => { this.props.navigateTo(['delete-me']) }},
+        {name: 'About', hasChildren: true, onClick: () => { this.props.navigateTo(['about']) }}
       ]
     }
 
@@ -50,14 +37,9 @@ export default class More extends Component {
     return <MenuList items={this.state.menuItems}/>
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute () {
     return {
-      componentAtTop: {
-        title: 'More',
-        props: {
-          navigateTo: uri => store.dispatch(navigateTo(uri))
-        }
-      },
+      componentAtTop: {title: 'More'},
       subRoutes: {
         about: require('./about'),
         account: require('./account'),
@@ -75,3 +57,12 @@ export default class More extends Component {
 More.propTypes = {
   navigateTo: React.PropTypes.func.isRequired
 }
+
+export default connect(
+  null,
+  dispatch => {
+    return {
+      navigateTo: uri => dispatch(navigateTo(uri))
+    }
+  }
+)(More)

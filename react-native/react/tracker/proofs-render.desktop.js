@@ -1,7 +1,7 @@
 'use strict'
 /* @flow */
 
-import React, { Component } from '../base-react'
+import React, {Component} from '../base-react'
 
 // TODO const when integrating
 const verified = 'verified'

@@ -1,13 +1,14 @@
 'use strict'
 
-import React, { Component } from '../../base-react'
-import { routeAppend } from '../../actions/router'
-import { pushNewProfile } from '../../actions/profile'
-import { pushNewSearch } from '../../actions/search'
-import { logout } from '../../actions/login2'
+import React, {Component} from '../../base-react'
+import {connect} from '../../base-redux'
+import {routeAppend} from '../../actions/router'
+import {pushNewProfile} from '../../actions/profile'
+import {pushNewSearch} from '../../actions/search'
+import {logout} from '../../actions/login2'
 import MenuList from './menu-list'
 
-export default class DevMenu extends Component {
+class DevMenu extends Component {
   render () {
     const menuItems = [
       {name: 'Login', onClick: () => {
@@ -50,18 +51,9 @@ export default class DevMenu extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath) {
+  static parseRoute () {
     return {
-      componentAtTop: {
-        title: 'Dev Menu',
-        mapStateToProps: state => { return {} },
-        props: {
-          routeAppend: uri => store.dispatch(routeAppend(uri)),
-          logout: () => store.dispatch(logout()),
-          pushNewSearch: () => store.dispatch(pushNewSearch()),
-          pushNewProfile: username => store.dispatch(pushNewProfile(username))
-        }
-      },
+      componentAtTop: {title: 'Dev Menu'},
       subRoutes: {
         developer: require('./developer'),
         login2: require('../../login2'),
@@ -78,3 +70,15 @@ DevMenu.propTypes = {
   pushNewSearch: React.PropTypes.func.isRequired,
   pushNewProfile: React.PropTypes.func.isRequired
 }
+
+export default connect(
+  null,
+  dispatch => {
+    return {
+      routeAppend: uri => dispatch(routeAppend(uri)),
+      logout: () => dispatch(logout()),
+      pushNewSearch: () => dispatch(pushNewSearch()),
+      pushNewProfile: username => dispatch(pushNewProfile(username))
+    }
+  }
+)(DevMenu)

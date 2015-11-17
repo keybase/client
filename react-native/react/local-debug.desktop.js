@@ -4,9 +4,9 @@
  * @flow
  */
 
-import { createRouterState } from './reducers/router'
+import {createRouterState} from './reducers/router'
 import * as Tabs from './constants/tabs'
-import { isDev } from './constants/platform'
+import {isDev} from './constants/platform'
 
 let config = {
   overrideRouterState: null,

@@ -6,14 +6,14 @@
 // sits on top and dispatches messages to the correct tab's router.
 
 import Immutable from 'immutable'
-import routerReducer, { createRouterState } from './router'
-import { startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab } from '../constants/tabs'
+import routerReducer, {createRouterState} from './router'
+import {startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab} from '../constants/tabs'
 import * as Constants from '../constants/tabbed-router'
 // $FlowFixMe ignore this import for now
 import * as LocalDebug from '../local-debug'
 import * as LoginConstants from '../constants/login2'
 
-import type { RouterState } from './router'
+import type {RouterState} from './router'
 
 type TabName = startupTab | folderTab | chatTab | peopleTab | devicesTab | moreTab
 type TabbedRouterState = MapADT2<'tabs', Immutable.Map<TabName, RouterState>, 'activeTab', TabName> // eslint-disable-line no-undef

@@ -1,12 +1,11 @@
 'use strict'
-/* @flow */
 
-import { AsyncStorage } from 'react-native'
-import type { State } from '../constants/reducer'
-import { stateKey } from '../constants/reducer'
+import {AsyncStorage} from '../base-react'
+import type {State} from '../constants/reducer'
+import {stateKey} from '../constants/reducer'
 import transit from 'transit-immutable-js'
 
-import { serializeRestore, serializeSave } from '../constants/dev'
+import {serializeRestore, serializeSave} from '../constants/dev'
 
 export default function (state: State, action: any): State {
   if (action.type === serializeRestore) {

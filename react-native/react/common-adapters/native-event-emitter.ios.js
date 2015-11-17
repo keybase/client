@@ -1,5 +1,5 @@
 'use strict'
 /* @flow */
 
-import { NativeAppEventEmitter } from 'react-native'
+import {NativeAppEventEmitter} from '../base-react'
 export default NativeAppEventEmitter

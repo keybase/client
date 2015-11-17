@@ -1,19 +1,15 @@
 'use strict'
 /* @flow */
 
-import React, { Component, Text, View } from 'react-native'
+import React, {Component, Text, View} from '../../../../base-react'
 
 export default class QR extends Component {
   render () {
     return (<View><Text>TODO: Implement</Text></View>)
   }
 
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        title: 'QR'
-      }
-    }
+  static parseRoute () {
+    return {componentAtTop: {title: 'QR'}}
   }
 }
 

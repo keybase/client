@@ -1,11 +1,12 @@
 'use strict'
 /* @flow */
 
-import React, { Component, StyleSheet, Text, TextInput, View } from 'react-native'
+import React, {Component, StyleSheet, Text, TextInput, View} from '../../../base-react'
+import {connect} from '../../../base-redux'
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
 
-export default class PaperKey extends Component {
+class PaperKey extends Component {
   constructor (props) {
     super(props)
 
@@ -50,3 +51,14 @@ const styles = StyleSheet.create({
   }
 })
 
+export default connect(
+  state => state,
+  null,
+  (stateProps, dispatchProps, ownProps) => {
+    return {
+      ...ownProps,
+      ...ownProps.mapStateToProps(stateProps),
+      ...dispatchProps
+    }
+  }
+)(PaperKey)

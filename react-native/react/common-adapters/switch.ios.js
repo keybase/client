@@ -1,5 +1,5 @@
 'use strict'
 /* @flow */
 
-import { SwitchIOS } from 'react-native'
+import {SwitchIOS} from '../base-react'
 export default SwitchIOS
