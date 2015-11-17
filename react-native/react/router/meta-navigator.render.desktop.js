@@ -5,13 +5,16 @@ import { connect } from '../base-redux'
 
 export default class MetaNavigatorRender extends Component {
   render () {
-    return React.createElement(
-      connect(this.props.componentAtTop.mapStateToProps || (state => state))(this.props.componentAtTop.component),
-        {...this.props.componentAtTop.props})
+    const { store, rootComponent, uri, getComponentAtTop } = this.props
+    const { componentAtTop } = getComponentAtTop(rootComponent, store, uri)
+
+    return React.createElement(connect(componentAtTop.mapStateToProps || (state => { return {} }))(componentAtTop.component), {...componentAtTop.props})
   }
 }
 
 MetaNavigatorRender.propTypes = {
-  componentAtTop: React.PropTypes.object.isRequired
+  uri: React.PropTypes.object.isRequired,
+  store: React.PropTypes.object.isRequired,
+  getComponentAtTop: React.PropTypes.func.isRequired,
+  rootComponent: React.PropTypes.func.isRequired
 }
-

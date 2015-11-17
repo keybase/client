@@ -111,16 +111,17 @@ class MetaNavigator extends Component {
   }
 
   render () {
-    const { store, rootComponent, uri } = this.props
-    const { routeStack } = this.getComponentAtTop(rootComponent, store, uri)
+    const { store, rootComponent, uri, NavBar, Navigator, navBarHeight } = this.props
 
     return (
       <Render
-        NavBar={this.props.NavBar}
-        Navigator={this.props.Navigator}
+        uri={uri}
+        store={store}
+        rootComponent={rootComponent}
+        NavBar={NavBar}
+        Navigator={Navigator}
         getComponentAtTop={this.getComponentAtTop.bind(this)}
-        navBarHeight={this.props.navBarHeight}
-        routeStack={routeStack}
+        navBarHeight={navBarHeight}
         setNavigator={navigator => this.setState({navigator})}
         />
     )

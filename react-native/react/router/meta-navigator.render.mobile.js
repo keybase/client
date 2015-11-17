@@ -1,17 +1,19 @@
 'use strict'
 
-import React, { Component, View } from '../base-react'
+import React, { View, Component } from '../base-react'
 import { connect } from '../base-redux'
 
 export default class MetaNavigatorRender extends Component {
   render () {
-    const { NavBar, Navigator } = this.props
+    const { store, rootComponent, uri, NavBar, Navigator, getComponentAtTop } = this.props
+
+    let {componentAtTop, routeStack} = getComponentAtTop(rootComponent, store, uri)
 
     return (
       <Navigator
         saveName='main'
         ref={this.props.setNavigator}
-        initialRouteStack={this.props.routeStack.toJS()}
+        initialRouteStack={routeStack.toJS()}
         configureScene={route => route.sceneConfig || Navigator.SceneConfigs.FloatFromRight }
         renderScene={(route, navigator) => {
           return (
@@ -20,17 +22,19 @@ export default class MetaNavigatorRender extends Component {
             </View>
           )
         }}
-        navigationBar={this.props.componentAtTop.hideNavBar ? null : NavBar}
+        navigationBar={componentAtTop.hideNavBar ? null : NavBar}
       />
     )
   }
 }
 
 MetaNavigatorRender.propTypes = {
+  uri: React.PropTypes.object.isRequired,
+  store: React.PropTypes.object.isRequired,
+  rootComponent: React.PropTypes.func.isRequired,
+  getComponentAtTop: React.PropTypes.func.isRequired,
   NavBar: React.PropTypes.object.isRequired,
   Navigator: React.PropTypes.object.isRequired,
-  componentAtTop: React.PropTypes.object.isRequired,
-  navBarHeight: React.PropTypes.number.isRequired,
-  routeStack: React.PropTypes.object.isRequired,
-  setNavigator: React.PropTypes.func.isRequired
+  setNavigator: React.PropTypes.func.isRequired,
+  navBarHeight: React.PropTypes.number.isRequired
 }
