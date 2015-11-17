@@ -232,6 +232,13 @@ func (co *createOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 }
 
 func (co *createOp) GetDefaultAction(mergedPath path) crAction {
+	if co.forceCopy {
+		return &renameUnmergedAction{
+			fromName: co.NewName,
+			toName:   co.NewName,
+			symPath:  co.crSymPath,
+		}
+	}
 	return &copyUnmergedEntryAction{
 		fromName: co.NewName,
 		toName:   co.NewName,

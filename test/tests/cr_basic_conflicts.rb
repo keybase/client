@@ -153,18 +153,19 @@ module Test
     as bob, sync: false do
       rename "a/b", "a/d"
       reenable_updates
-      lsdir "a/", { "c" => "FILE", "d" => "SYM" }
+      lsdir "a/", { "c" => "FILE", "d" => "FILE" }
       read "a/c", "hello"
       read "a/d", "hello"
     end
     as alice do
-      lsdir "a/", { "c" => "FILE", "d" => "SYM" }
+      lsdir "a/", { "c" => "FILE", "d" => "FILE" }
       read "a/c", "hello"
       read "a/d", "hello"
       write "a/c", "world"
     end
     as bob do
-      read "a/d", "world"
+      read "a/c", "world"
+      read "a/d", "hello"
     end
   end
 

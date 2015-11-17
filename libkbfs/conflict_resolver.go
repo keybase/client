@@ -938,10 +938,10 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 }
 
 // convertCreateIntoSymlink finds the create operation for the given
-// node in the chain, and makes it into one that creates a new
-// symlink.  It also removes the corresponding remove operation from
-// the old parent chain.
-func (cr *ConflictResolver) convertCreateIntoSymlink(ctx context.Context,
+// node in the chain, and makes it into one that creates a new symlink
+// (for directories) or a file copy.  It also removes the
+// corresponding remove operation from the old parent chain.
+func (cr *ConflictResolver) convertCreateIntoSymlinkOrCopy(ctx context.Context,
 	ptr BlockPointer, info renameInfo, chain *crChain, unmergedChains *crChains,
 	mergedChains *crChains, symPath string) error {
 	found := false
@@ -953,8 +953,12 @@ outer:
 				continue
 			}
 
-			cop.Type = Sym
-			cop.crSymPath = symPath
+			if cop.Type == Dir {
+				cop.Type = Sym
+				cop.crSymPath = symPath
+			} else {
+				cop.forceCopy = true
+			}
 			cop.renamed = false
 
 			newInfo := renameInfo{
@@ -1182,7 +1186,7 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 			cr.log.CDebugf(ctx, "Creating symlink %s at "+
 				"merged path %s", symPath, mergedPath)
 
-			err = cr.convertCreateIntoSymlink(ctx, ptr, info, chain,
+			err = cr.convertCreateIntoSymlinkOrCopy(ctx, ptr, info, chain,
 				unmergedChains, mergedChains, symPath)
 			if err != nil {
 				return nil, err
@@ -1316,8 +1320,8 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 		}
 		symPath += mergedInfo.newName
 
-		err = cr.convertCreateIntoSymlink(ctx, original, unmergedInfo, chain,
-			unmergedChains, mergedChains, symPath)
+		err = cr.convertCreateIntoSymlinkOrCopy(ctx, original, unmergedInfo,
+			chain, unmergedChains, mergedChains, symPath)
 		if err != nil {
 			return nil, err
 		}
