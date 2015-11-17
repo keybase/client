@@ -3,6 +3,8 @@ package libkbfs
 import (
 	"fmt"
 	"sync"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // ReporterSimple remembers the last maxErrors errors, or all errors
@@ -74,4 +76,9 @@ func (r *ReporterSimple) AllKnownErrors() []ReportedError {
 	copy(errors[:t], r.errors[s:])
 	copy(errors[t:], r.errors[:s])
 	return errors
+}
+
+// Notify implements the Reporter interface for ReporterSimple.
+func (r *ReporterSimple) Notify(notification keybase1.FSNotification) {
+
 }
