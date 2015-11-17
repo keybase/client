@@ -118,8 +118,10 @@ class Engine {
   _generalIncomingRpc (method, param, response) {
     (this.generalListeners[method] || []).forEach(listener => {
       // TODO(mm) does it make sense to ever pass the response?
-      // It'll be weird if there are multiple listeners
-      listener(param)
+      // It'll be weird if there are multiple listeners.
+      // We should get the response callback to work the first
+      // time through and fail the second time.
+      listener(param, response)
     })
   }
 
