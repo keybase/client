@@ -465,7 +465,7 @@ func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 		return nil, err
 	}
 	if key == nil {
-		return nil, libkb.NoKeyError{Msg: "failed to get synced secret key"}
+		return nil, libkb.NoKeyError{Msg: fmt.Sprintf("No synced secret PGP key stored on keybase.io for %s; please try logging in via GPG, an existing device, or a paper key", e.user.GetName())}
 	}
 
 	e.G().Log.Debug("got synced secret key")
