@@ -1,6 +1,5 @@
 'use strict'
 /**
- * @providesModule Meta Navigator
  * A Meta navigator for handling different navigators at the top level.
  * todo(mm) explain why we need a meta navigator
  */
@@ -14,9 +13,18 @@ class MetaNavigator extends Component {
   constructor (props) {
     super(props)
 
+    console.log('NOJ meta-nav will construct')
     this.state = {
       navigator: null
     }
+  }
+
+  componentWillMount () {
+    console.log('NOJ meta-nav will mount here')
+  }
+
+  componentWillUnmount () {
+    console.log('NOJ meta-nav will unmount here')
   }
 
   isParentOfRoute (routeParent, routeMaybeChild) {
