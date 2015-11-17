@@ -39,23 +39,12 @@ class Tracker extends Component {
           followsYou: true,
           location: 'New York, NY',
           shouldFollow: true,
-          platformProofs: [
-            { platform: {icon: '[TW]', name: 'twitter', username: 'maxtaco', uri: 'http://www.twitter.com/maxtaco'},
-              proof: {title: 'tweet', proof: 'https://twitter.com/maxtaco/status/433688676975927296', status: 'verified', meta: 'new'} },
-            { platform: { icon: '[GH]', name: 'github', username: 'maxtaco', uri: 'http://www.github.com/maxtaco' },
-              proof: {title: 'gist', proof: 'https://gist.github.com/maxtaco/8847250', status: 'checking', meta: null} },
-            { platform: {icon: '[re]', name: 'reddit', username: 'maxtaco', uri: 'https://www.reddit.com/user/maxtaco'},
-              proof: {title: 'post', proof: 'https://www.reddit.com/r/KeybaseProofs/comments/2clf9c/my_keybase_proof_redditmaxtaco_keybasemax/', status: 'unreachable', meta: null} },
-            { platform: {icon: '[pgp]', name: 'pgp', username: 'maxtaco', uri: 'https://keybase.io/max/key.asc'},
-              proof: {title: 'PGP Key', proof: 'http://www.twitter.com/maxtaco', status: 'pending', meta: 'unreachable'} },
-            { platform: {icon: '[cb]', name: 'coinbase', username: 'coinbase/maxtaco', uri: 'https://www.coinbase.com/maxtaco'},
-              proof: {title: 'post', proof: 'https://www.coinbase.com/maxtaco/public-key', status: 'deleted', meta: 'deleted'} },
-            { platform: {icon: '[web]', name: 'web', uri: 'oneshallpass.com'},
-              proof: {title: 'File', proof: 'https://oneshallpass.com/.well-known/keybase.txt', status: 'verified', meta: null} },
-            { platform: {icon: '[web]', name: 'web', uri: 'oneshallpass.com'},
-              proof: {title: 'DNS', proof: 'https://keybase.io/max/sigchain#0e577a1475085a07ad10663400de1cd7c321d2349cf2446de112e2f2f51a928b0f', status: 'verified', meta: null} },
-            { platform: {icon: '[web]', name: 'web', uri: 'somethingelse.com'},
-              proof: {title: 'File', proof: 'http://oneshallpass.com/.well-known/keybase.txt', status: 'verified', meta: 'pending'} }
+          proofsAndChecks: [
+            [
+              {"displayMarkup":"marcopolo","key":"github","mTime":1413928304000,"proofType":3,"sigID":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f","value":"marcopolo"},
+              {"cached":{"displayMarkup":"[cached 2015-11-17 13:47:48 PST]","proofResult":{"desc":"","state":1,"status":1},"time":1447796868323},"hint":{"apiUrl":"https://gist.githubusercontent.com/MarcoPolo/ab4113d4b3e8de4d4494/raw/21c3c064c2b4d25956c680b7c716bca28552326f/gistfile1.txt","checkText":"\n\nyMHSAnicfVFbSBRRGF7X0m0r6MHSRDAOKoqrnLntzCxiV0J6WIN8KcvlzJkz61TO\njLMXFZNYI5MgIQQtMs2oXoQQkjIKktio7IKklpBloiimRBQVkVozYm/R//Lzf//3\nffyX+MZEhzuhK/z+4LJRgROeDSxEHGV7R416IOlyHfDVg2NkJSmqFiSmYapaGPiA\nzECBhkTELMNBReEpCkmSoECFkzkiKwxCyAs5HgIPqNRDtsKykVCIFKq6hVlFQJUt\n9B/8yEqDxTQDERFkWhFpWsY0xpiyC1YQIQ9XiCFiaqiKWOwqZGLd0I/roMEDLDiq\nYmIPvdoOquHKiPQfSbjOsLEaIgVW1QFJ1WRrZUsUJWZI1TXgoywmDqu2nGIpRqQF\nBrIeQGoN1SQB1WZwvFeAVniAYZKoZSkKsiAxPCtiHioizyPrUJBiaQYJIhIVKCOJ\nYAV6vQgzFM0pWPISxcvIFCMRLytQwN6nWtOBj7HGREHLMqQGNRSOmAQ0PBw4vMaR\n4HYkrXXaT3O41236+8qkKZejc/bVi+mtrljzDlfLYGyya3gxB35p7pl94OrtSR/5\n4bx/K60gz5HVsXQjs3UuecPJhV2Fi0eT/VlvX6dNHyp94uKu5nR0xF5W74t21jRN\nRDKzd1YV535ln27vn0/ZFpsHed8fX5o944wPx6XxsYp37ETJ+v15J2pLiwfTJX7z\ngbGfMNedfSowVLDl2sfaiSNFI6k4PPkm/+7SzPLtBjnx7E3p8u+LTa7886fvLe4W\nesZJt9D2KKNvkE55PtPuPKcNNc9cp/38Utmd1OICmFLZ2f3h1+eilvKIvzpDD0Tj\noyV9yf5G0JrdPixPN14Z+ZZ+oc7tmWvqT0Of2sr3TP0BZx0Tyw==\n","humanUrl":"https://gist.github.com/ab4113d4b3e8de4d4494","remoteId":"ab4113d4b3e8de4d4494"},"proofId":1,"proofResult":{"desc":"","state":1,"status":1},"torWarning":false}
+
+            ]
           ]
           // TODO put back when we integrate
           // followChecked: checked => this.setState({shouldFollowChecked: checked})
