@@ -124,8 +124,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-keychain",
-			"revision": "041360662df035870dc6cafa8bbb357265d0da98",
-			"revisionTime": "2015-09-29T12:22:00-07:00"
+			"revision": "5b9b2fabbf4433c8c613329a87470b716abf12af",
+			"revisionTime": "2015-11-17T11:50:13-08:00"
 		},
 		{
 			"path": "github.com/keybase/go-logging",

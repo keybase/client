@@ -11,6 +11,19 @@ package keychain
 import "C"
 import "unsafe"
 
+var AccessibleKey = attrKey(C.CFTypeRef(C.kSecAttrAccessible))
+var accessibleTypeRef = map[Accessible]C.CFTypeRef{
+	AccessibleWhenUnlocked:                   C.CFTypeRef(C.kSecAttrAccessibleWhenUnlocked),
+	AccessibleAfterFirstUnlock:               C.CFTypeRef(C.kSecAttrAccessibleAfterFirstUnlock),
+	AccessibleAlways:                         C.CFTypeRef(C.kSecAttrAccessibleAlways),
+	AccessibleWhenUnlockedThisDeviceOnly:     C.CFTypeRef(C.kSecAttrAccessibleWhenUnlockedThisDeviceOnly),
+	AccessibleAfterFirstUnlockThisDeviceOnly: C.CFTypeRef(C.kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly),
+	AccessibleAccessibleAlwaysThisDeviceOnly: C.CFTypeRef(C.kSecAttrAccessibleAlwaysThisDeviceOnly),
+
+	// Only available in 10.10
+	//AccessibleWhenPasscodeSetThisDeviceOnly:  C.CFTypeRef(C.kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly),
+}
+
 var (
 	AccessKey = attrKey(C.CFTypeRef(C.kSecAttrAccess))
 )
@@ -27,7 +40,7 @@ func createAccess(label string, trustedApplications []string) (C.CFTypeRef, erro
 
 	var err error
 	var labelRef C.CFStringRef
-	if labelRef, err = stringToCFString(label); err != nil {
+	if labelRef, err = StringToCFString(label); err != nil {
 		return nil, err
 	}
 	defer C.CFRelease(C.CFTypeRef(labelRef))
@@ -43,7 +56,7 @@ func createAccess(label string, trustedApplications []string) (C.CFTypeRef, erro
 	}
 
 	var access C.SecAccessRef
-	trustedApplicationsArray := arrayToCFArray(trustedApplicationsRefs)
+	trustedApplicationsArray := ArrayToCFArray(trustedApplicationsRefs)
 	defer C.CFRelease(C.CFTypeRef(trustedApplicationsArray))
 	errCode := C.SecAccessCreate(labelRef, trustedApplicationsArray, &access)
 	err = checkError(errCode)
