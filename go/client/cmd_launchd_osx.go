@@ -95,6 +95,7 @@ func NewCmdLaunchdList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 		},
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
 			cl.ChooseCommand(NewCmdLaunchdListRunner(g), "list", c)
 		},
 	}
@@ -180,6 +181,7 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			// triggering a connection before our Run() is called. See that file for
 			// more info.
 			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
 			cl.ChooseCommand(NewCmdLaunchdStatusRunner(g), "status", c)
 		},
 	}
