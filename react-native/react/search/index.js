@@ -1,13 +1,13 @@
 'use strict'
-/* @flow */
 
-import { selectService, submitSearch } from '../actions/search'
-import { pushNewProfile } from '../actions/profile'
-import React, { Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image } from 'react-native'
+import React, {Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image} from '../base-react'
+import {connect} from '../base-redux'
+import {selectService, submitSearch} from '../actions/search'
+import {pushNewProfile} from '../actions/profile'
 import commonStyles from '../styles/common'
 import Immutable from 'immutable'
 import ScopeBar from './scope-bar'
-import { services as serviceIcons } from '../constants/images'
+import {services as serviceIcons} from '../constants/images'
 
 function renderTextWithHighlight (text, highlight, style) {
   const idx = text.toLowerCase().indexOf(highlight.toLowerCase())
@@ -25,7 +25,7 @@ function renderTextWithHighlight (text, highlight, style) {
   )
 }
 
-export default class Search extends Component {
+class Search extends Component {
   constructor (...args) {
     super(...args)
     this.dataSource = new ListView.DataSource({
@@ -119,21 +119,9 @@ export default class Search extends Component {
     )
   }
 
-  static parseRoute (store, currentPath, nextPath, uri) {
+  static parseRoute (_, uri) {
     const base = uri.pop()
-    return {
-      componentAtTop: {
-        mapStateToProps: (state) => ({
-          ...state.search.get(base).toObject(),
-          profile: state.profile
-        }),
-        props: {
-          submitSearch: (base, search) => store.dispatch(submitSearch(base, search)),
-          pushNewProfile: username => store.dispatch(pushNewProfile(username)),
-          selectService: (base, service) => store.dispatch(selectService(base, service))
-        }
-      }
-    }
+    return {componentAtTop: {props: {base}}}
   }
 }
 
@@ -226,3 +214,24 @@ const styles = StyleSheet.create({
     marginLeft: 3
   }
 })
+
+export default connect(
+  state => state,
+  dispatch => {
+    return {
+      submitSearch: (base, search) => dispatch(submitSearch(base, search)),
+      pushNewProfile: username => dispatch(pushNewProfile(username)),
+      selectService: (base, service) => dispatch(selectService(base, service))
+    }
+  },
+  (stateProps, dispatchProps, ownProps) => {
+    return {
+      ...ownProps,
+      ...{
+        profile: stateProps.profile,
+        ...stateProps.search.get(ownProps.base).toObject()
+      },
+      ...dispatchProps
+    }
+  }
+)(Search)

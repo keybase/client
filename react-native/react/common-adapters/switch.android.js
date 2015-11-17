@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
-import { SwitchAndroid } from 'react-native'
+import {SwitchAndroid} from '../base-react'
 export default SwitchAndroid

@@ -1,7 +1,7 @@
 'use strict'
 
 import BaseTransport from './rpc'
-import { Buffer } from 'buffer'
+import {Buffer} from 'buffer'
 
 class MobileTransport extends BaseTransport {
   constructor (incomingRPCCallback, rpcWriteCallback) {

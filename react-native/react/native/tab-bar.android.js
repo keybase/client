@@ -1,6 +1,6 @@
 'use strict'
 
-import React, { requireNativeComponent, PropTypes, Component } from 'react-native'
+import React, {requireNativeComponent, PropTypes, Component} from '../base-react'
 
 const tabBarProps = {
   name: 'TabBar',

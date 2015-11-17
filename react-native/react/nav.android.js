@@ -1,36 +1,36 @@
 'use strict'
 
 import TabBar from './native/tab-bar'
-import { connect } from './base-redux'
+import {connect} from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 
-import Folders from './tabs/folders'
-import Chat from './tabs/chat'
-import People from './tabs/people'
-import Devices from './tabs/devices'
-import NoTab from './tabs/no-tab'
-import More from './tabs/more'
-import Startup from './tabs/start-up'
+import Folders from './folders'
+import Chat from './chat'
+import People from './people'
+import Devices from './devices'
+import NoTab from './no-tab'
+import More from './more'
+import Startup from './start-up'
 
-import React, { Component, Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback } from 'react-native'
+import React, {Component, Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback} from './base-react'
 
-import { folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, prettify } from './constants/tabs'
-import { androidTabBarHeight } from './styles/native'
+import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, prettify} from './constants/tabs'
+import {androidTabBarHeight} from './styles/native'
 
-import { switchTab } from './actions/tabbed-router'
-import { navigateBack } from './actions/router'
-import { startup } from './actions/config'
+import {switchTab} from './actions/tabbed-router'
+import {navigateBack} from './actions/router'
+import {startup} from './actions/config'
 
 import * as Constants from './constants/config'
 
-const tabToRootComponent = {
-  [folderTab]: Folders,
-  [chatTab]: Chat,
-  [peopleTab]: People,
-  [devicesTab]: Devices,
-  [moreTab]: More,
-  [startupTab]: Startup
+const tabs = {
+  [folderTab]: {module: Folders, name: 'Folders'},
+  [chatTab]: {module: Chat, name: 'Chat'},
+  [peopleTab]: {module: People, name: 'People'},
+  [devicesTab]: {module: Devices, name: 'Devices'},
+  [moreTab]: {module: More, name: 'More'},
+  [startupTab]: {module: Startup, name: null}
 }
 
 class AndroidNavigator extends Component {
@@ -61,32 +61,24 @@ AndroidNavigator.propTypes = {
   renderScene: React.PropTypes.func.isRequired
 }
 
-export default class Nav extends Component {
+class Nav extends Component {
   constructor (props) {
     super(props)
-
-    this.state = {
-      switchTab: (tab) => this.props.dispatch(switchTab(tab)),
-      navigateBack: () => this.props.dispatch(navigateBack()),
-      startup: () => this.props.dispatch(startup())
-    }
-
-    this.state.startup()
+    this.props.startup()
   }
 
   _renderContent (activeTab) {
+    const {module} = tabs[activeTab]
     return (
       <View style={styles.tabContent} collapsable={false}>
-        {React.createElement(
-          connect(state => state.tabbedRouter.getIn(['tabs', activeTab]).toObject())(MetaNavigator),
-          { store: this.props.store,
-            rootComponent: tabToRootComponent[activeTab] || NoTab,
-            globalRoutes,
-            navBarHeight: 0,
-            Navigator: AndroidNavigator,
-            NavBar: <View/>
-          })
-        }
+        <MetaNavigator
+          rootComponent={module || NoTab}
+          tab={activeTab}
+          globalRoutes={globalRoutes}
+          navBarHeight={0}
+          Navigator={AndroidNavigator}
+          NavBar={<View/>}
+        />
       </View>
     )
   }
@@ -98,7 +90,7 @@ export default class Nav extends Component {
       if (currentRoute == null || currentRoute.count() <= 1) {
         return false
       }
-      this.state.navigateBack()
+      this.props.navigateBack()
       return true
     })
   }
@@ -164,37 +156,18 @@ export default class Nav extends Component {
             </View>
           <View collapsable={false} style={{flex: 2}}>
             <TabBar style={{position: 'absolute', left: 0, right: 0, top: 0, bottom: 0}}>
-                <TabBar.Item
-                  title='Folders'
-                  selected={activeTab === folderTab}
-                  onPress={() => this.state.switchTab(folderTab)}>
-                  {this._renderContent(folderTab)}
-                </TabBar.Item>
-                <TabBar.Item
-                  title='Chat'
-                  selected={activeTab === chatTab}
-                  onPress={() => this.state.switchTab(chatTab)}>
-                  {this._renderContent(chatTab)}
-                </TabBar.Item>
-                <TabBar.Item
-                  title='People'
-                  systemIcon='contacts'
-                  selected={activeTab === peopleTab}
-                  onPress={() => this.state.switchTab(peopleTab)}>
-                  {this._renderContent(peopleTab)}
-                </TabBar.Item>
-                <TabBar.Item
-                  title='Devices'
-                  selected={activeTab === devicesTab}
-                  onPress={() => this.state.switchTab(devicesTab)}>
-                  {this._renderContent(devicesTab)}
-                </TabBar.Item>
-                <TabBar.Item
-                  title='more'
-                  selected={activeTab === moreTab}
-                  onPress={() => this.state.switchTab(moreTab)}>
-                  {this._renderContent(moreTab)}
-                </TabBar.Item>
+              { Object.keys(tabs).map(tab => {
+                const {name} = tabs[tab]
+                return (
+                  name &&
+                  <TabBar.Item
+                    title={name}
+                    selected={activeTab === tab}
+                    onPress={() => this.props.switchTab(tab)}>
+                    {this._renderContent(tab)}
+                  </TabBar.Item>
+                ) })
+              }
             </TabBar>
           </View>
         </View>
@@ -205,9 +178,10 @@ export default class Nav extends Component {
 }
 
 Nav.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
+  switchTab: React.PropTypes.func.isRequired,
+  navigateBack: React.PropTypes.func.isRequired,
+  startup: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
-  store: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
     navState: React.PropTypes.oneOf([Constants.navStartingUp, Constants.navNeedsRegistration, Constants.navNeedsLogin, Constants.navLoggedIn])
   }).isRequired
@@ -252,3 +226,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end'
   }
 })
+
+export default connect(
+  store => store,
+  dispatch => {
+    return {
+      switchTab: tab => dispatch(switchTab(tab)),
+      navigateBack: () => dispatch(navigateBack()),
+      startup: () => dispatch(startup())
+    }
+  }
+)(Nav)

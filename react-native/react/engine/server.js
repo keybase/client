@@ -41,7 +41,7 @@
  *
  */
 
-import type { CallMap } from './call-map-middleware'
+import type {CallMap} from './call-map-middleware'
 
 type Engine = any
 

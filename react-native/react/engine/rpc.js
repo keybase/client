@@ -4,7 +4,7 @@ import EngineError from './errors'
 import rpc from 'framed-msgpack-rpc'
 
 const {
-  transport: { RobustTransport }
+  transport: {RobustTransport}
 } = rpc
 
 class BaseTransport extends RobustTransport {

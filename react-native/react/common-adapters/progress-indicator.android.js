@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
-import { ProgressBarAndroid } from 'react-native'
+import {ProgressBarAndroid} from '../base-react'
 export default ProgressBarAndroid
