@@ -193,6 +193,17 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (pps *PassphraseStream, er
 	s.G().Log.Debug("+ GetPassphraseStream() called")
 	defer func() { s.G().Log.Debug("- GetPassphraseStream() -> %s", ErrToOk(err)) }()
 
+	pps, err = s.GetPassphraseStreamForUser(ui, string(s.G().Env.GetUsername()))
+	return
+}
+
+// GetPassphraseStreamForUser either returns a cached, verified passphrase stream
+// (maybe from a previous login) or generates a new one via Login. It will
+// return the current Passphrase stream on success or an error on failure.
+func (s *LoginState) GetPassphraseStreamForUser(ui SecretUI, username string) (pps *PassphraseStream, err error) {
+	s.G().Log.Debug("+ GetPassphraseStreamForUser() called")
+	defer func() { s.G().Log.Debug("- GetPassphraseStreamForUser() -> %s", ErrToOk(err)) }()
+
 	pps, err = s.PassphraseStream()
 	if err != nil {
 		return nil, err
@@ -200,7 +211,10 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (pps *PassphraseStream, er
 	if pps != nil {
 		return pps, nil
 	}
-	if err = s.verifyPassphraseWithServer(ui); err != nil {
+	err = s.loginHandle(func(lctx LoginContext) error {
+		return s.loginWithPromptHelper(lctx, username, nil, ui, true)
+	}, nil, "LoginState - GetPassphraseStreamForUser")
+	if err != nil {
 		return nil, err
 	}
 	pps, err = s.PassphraseStream()

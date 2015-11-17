@@ -44,7 +44,7 @@ func TestLoginAndSwitch(t *testing.T) {
 	return
 }
 
-func TestLoginFakeUserNoKeys(t *testing.T) {
+func TestCreateFakeUserNoKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -231,12 +231,15 @@ func TestProvisionPassphraseFail(t *testing.T) {
 
 // If a user has no keys, provision via passphrase should work.
 func TestProvisionPassphraseNoKeys(t *testing.T) {
+	tcWeb := SetupEngineTest(t, "web")
+	defer tcWeb.Cleanup()
+
+	username, passphrase := createFakeUserWithNoKeys(tcWeb)
+
+	Logout(tcWeb)
+
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
-
-	username, passphrase := createFakeUserWithNoKeys(tc)
-
-	Logout(tc)
 
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
@@ -470,6 +473,48 @@ func TestProvisionDupDevice(t *testing.T) {
 
 	if err := AssertProvisioned(tcY); err == nil {
 		t.Fatal("device provisioned using existing name")
+	}
+}
+
+// If a user has no keys, provision via passphrase should work.
+// This tests when they have another account on the same machine.
+func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
+	tcWeb := SetupEngineTest(t, "login")
+
+	// create a "web" user with no keys
+	username, passphrase := createFakeUserWithNoKeys(tcWeb)
+	Logout(tcWeb)
+	tcWeb.Cleanup()
+
+	// create a new test context
+	tc := SetupEngineTest(t, "fake")
+	defer tc.Cleanup()
+
+	// create a user to fill up config with something
+	CreateAndSignupFakeUser(tc, "fake")
+	Logout(tc)
+
+	// now try to log in as the web user
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, username)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any keys, login should have fixed that:
+	testUserHasDeviceKey(tc)
+
+	// and they should have a paper backup key
+	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
+
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
 	}
 }
 
