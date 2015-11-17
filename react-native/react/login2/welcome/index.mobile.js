@@ -2,6 +2,7 @@
 /* @flow */
 
 import React, {Component, LinkingIOS, StyleSheet, Text, View} from '../../base-react'
+import {connect} from '../../base-redux'
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 import Login from './login'

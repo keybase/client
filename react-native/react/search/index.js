@@ -120,7 +120,7 @@ class Search extends Component {
     )
   }
 
-  static parseRoute ([, uri]) {
+  static parseRoute (_, uri) {
     const base = uri.pop()
     return {componentAtTop: {props: {base}}}
   }
