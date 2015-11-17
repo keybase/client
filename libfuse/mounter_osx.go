@@ -22,9 +22,7 @@ func getPlatformSpecificMountOptions(m Mounter) ([]fuse.MountOption, error) {
 		Mount:        "/Library/Filesystems/kbfuse.fs/Contents/Resources/mount_kbfuse",
 	}
 	// Allow both kbfuse and osxfuse 3.x locations by default.
-	options = append(options,
-		fuse.OSXFUSELocations(kbfusePath),
-		fuse.OSXFUSELocations(fuse.OSXFUSELocationV3))
+	options = append(options, fuse.OSXFUSELocations(kbfusePath, fuse.OSXFUSELocationV3))
 
 	// Volume name option is only used on OSX (ignored on other platforms).
 	volName, err := volumeName(m.Dir())
