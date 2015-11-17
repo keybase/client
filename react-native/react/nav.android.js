@@ -141,7 +141,7 @@ export default class Nav extends Component {
                   delayPressIn={0}
                   background={TouchableNativeFeedback.SelectableBackground()} >
                   <View>
-                    <Image style={[styles.toolbarImage, {marginTop: 4}]} resizeMode={'contain'} source={require('image!ic_menu_black_24dp')}/>
+                    <Image style={[styles.toolbarImage, {marginTop: 4}]} resizeMode={'contain'} source={require('./images/nav/ic_menu_black_24dp.png')}/>
                   </View>
                 </TouchableNativeFeedback>
               </View>
@@ -156,7 +156,7 @@ export default class Nav extends Component {
                     delayPressIn={0}
                     background={TouchableNativeFeedback.SelectableBackground()}>
                     <View>
-                      <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('image!ic_search_black_24dp')}/>
+                      <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('./images/nav/ic_search_black_24dp.png')}/>
                     </View>
                   </TouchableNativeFeedback>
                 </View>

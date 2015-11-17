@@ -5,8 +5,6 @@
   "scripts": {
     "start": "node_modules/react-native/packager/packager.sh",
     "pod-install": "cd ios; pod install",
-    "reactbundle-ios": "node node_modules/react-native/local-cli/cli.js bundle --minify --root react --out ios/Keybase/main.jsbundle --url \"/react/index.bundle?platform=ios&dev=\"",
-    "reactbundle-android": "node node_modules/react-native/local-cli/cli.js bundle --out \"android/app/src/main/assets/index.bundle\" --root react --platform android --url \"/index.bundle?platform=android&dev=\"",
     "gobuild-ios": "GO15VENDOREXPERIMENT=1 $GOPATH/bin/gomobile bind -target=ios -o ios/keybase.framework github.com/keybase/client/go/loopback",
     "gobuild-android": "GO15VENDOREXPERIMENT=1 $GOPATH/bin/gomobile bind -target=android -o android/keybaselib/keybaselib.aar github.com/keybase/client/go/loopback",
     "packager-wipe-cache": "node ./react/packager/wipe-cache.js",
@@ -14,14 +12,14 @@
   },
   "dependencies": {
     "buffer": "^3.5.1",
-    "framed-msgpack-rpc": "https://github.com/keybase/node-framed-msgpack-rpc.git#nojima/keybase-client-changes",
+    "framed-msgpack-rpc": "keybase/node-framed-msgpack-rpc#nojima/keybase-client-changes",
     "iced-runtime": "^1.0.3",
     "immutable": "^3.7.5",
     "lodash": "^3.10.1",
     "moment": "^2.10.6",
-    "purepack": "https://github.com/keybase/purepack.git#nojima/keybase-client-changes",
+    "purepack": "keybase/purepack#nojima/keybase-client-changes",
     "qrcode-generator": "^1.0.0",
-    "react-native": "git://github.com/keybase/react-native#packager-allows-mobile-files",
+    "react-native": "keybase/react-native#packager-allows-mobile-files-0-14-2",
     "react-native-camera": "^0.3.8",
     "react-redux": "^3.1.0",
     "redux": "^3.0.4",
@@ -37,7 +35,7 @@
     ]
   },
   "devDependencies": {
-    "babel-eslint": "^4.1.3",
+    "babel-eslint": "^4.1.5",
     "redux-devtools": "^2.1.5",
     "redux-logger": "^2.0.4"
   }
