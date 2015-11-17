@@ -11,6 +11,8 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
+const testMaxTokenExpireIn = 60
+
 func TestTokenParse(t *testing.T) {
 	uid := keybase1.UID("01")
 	kid := keybase1.KID("02")
@@ -57,10 +59,10 @@ func TestTokenVerify(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := token.Verify("nope"); err == nil {
+	if err := token.Verify("nope", "test", testMaxTokenExpireIn); err == nil {
 		t.Fatal(fmt.Errorf("expected verification failure"))
 	}
-	if err := token.Verify(sig); err != nil {
+	if err := token.Verify(sig, "test", testMaxTokenExpireIn); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -78,7 +80,7 @@ func TestTokenExpired(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = token.Verify(sig)
+	err = token.Verify(sig, "test", testMaxTokenExpireIn)
 	_, expired := err.(TokenExpiredError)
 	if !expired {
 		t.Fatal(fmt.Errorf("expected token expired error"))
@@ -92,15 +94,35 @@ func TestMaxExpires(t *testing.T) {
 	}
 	uid := keybase1.UID("01")
 	name := libkb.NormalizedUsername("alice")
-	expireIn := MaxExpireIn + 1
+	expireIn := testMaxTokenExpireIn + 1
 	token := NewToken(uid, name, keyPair.GetKID(), "test", expireIn, "test", "1")
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = token.Verify(sig)
+	err = token.Verify(sig, "test", testMaxTokenExpireIn)
 	_, maxExpires := err.(MaxTokenExpiresError)
 	if !maxExpires {
 		t.Fatal(fmt.Errorf("expected max token expires error"))
+	}
+}
+
+func TestTokenTypeInvalid(t *testing.T) {
+	keyPair, err := libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+	uid := keybase1.UID("01")
+	name := libkb.NormalizedUsername("alice")
+	expireIn := 10
+	token := NewToken(uid, name, keyPair.GetKID(), "test", expireIn, "test", "1")
+	sig, _, err := keyPair.SignToString(token.Bytes())
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = token.Verify(sig, "nope", testMaxTokenExpireIn)
+	_, invalid := err.(InvalidTokenTypeError)
+	if !invalid {
+		t.Fatal(fmt.Errorf("expected invalid token type error"))
 	}
 }

@@ -14,10 +14,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-const (
-	CurrentTokenVersion = 1
-	MaxExpireIn         = 24 * 60 * 60 // 1 day
-)
+const CurrentTokenVersion = 1
 
 type Token struct {
 	User          keybase1.UID
@@ -71,7 +68,7 @@ func (arg Token) String() string {
 	return string(arg.Bytes())
 }
 
-func (arg Token) Verify(signature string) error {
+func (arg Token) Verify(signature, tokenType string, maxExpireIn int) error {
 	key, err := libkb.ImportKeypairFromKID(arg.Key)
 	if err != nil {
 		return err
@@ -79,13 +76,19 @@ func (arg Token) Verify(signature string) error {
 	if _, err := key.VerifyString(signature, arg.Bytes()); err != nil {
 		return err
 	}
+	if tokenType != arg.TokenType {
+		return InvalidTokenTypeError{
+			ExpectedTokenType: tokenType,
+			ReceivedTokenType: arg.TokenType,
+		}
+	}
 	remaining := arg.TimeRemaining()
-	if remaining > MaxExpireIn {
+	if remaining > maxExpireIn {
 		return MaxTokenExpiresError{
 			CreationTime: arg.CreationTime,
 			ExpireIn:     arg.ExpireIn,
 			Now:          time.Now().Unix(),
-			MaxExpireIn:  MaxExpireIn,
+			MaxExpireIn:  maxExpireIn,
 			Remaining:    remaining,
 		}
 	}

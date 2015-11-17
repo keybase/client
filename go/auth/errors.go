@@ -5,6 +5,16 @@ package auth
 
 import "fmt"
 
+type InvalidTokenTypeError struct {
+	ExpectedTokenType string
+	ReceivedTokenType string
+}
+
+func (e InvalidTokenTypeError) Error() string {
+	return fmt.Sprintf("Invalid token type, expected: %s, received: %s",
+		e.ExpectedTokenType, e.ReceivedTokenType)
+}
+
 type MaxTokenExpiresError struct {
 	CreationTime int64
 	ExpireIn     int
