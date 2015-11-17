@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	libkb "github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 const testMaxTokenExpireIn = 60
@@ -18,8 +17,8 @@ func TestTokenVerifyToken(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	uid := keybase1.UID("01")
 	name := libkb.NormalizedUsername("alice")
+	uid := libkb.UsernameToUID(name.String())
 	expireIn := 10
 	token := NewToken(uid, name, keyPair.GetKID(), "test", expireIn, "test", "1")
 	sig, _, err := keyPair.SignToString(token.Bytes())
@@ -62,8 +61,8 @@ func TestTokenExpired(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	uid := keybase1.UID("01")
 	name := libkb.NormalizedUsername("alice")
+	uid := libkb.UsernameToUID(name.String())
 	expireIn := 0
 	token := NewToken(uid, name, keyPair.GetKID(), "test", expireIn, "test", "1")
 	sig, _, err := keyPair.SignToString(token.Bytes())
@@ -82,8 +81,8 @@ func TestMaxExpires(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	uid := keybase1.UID("01")
 	name := libkb.NormalizedUsername("alice")
+	uid := libkb.UsernameToUID(name.String())
 	expireIn := testMaxTokenExpireIn + 1
 	token := NewToken(uid, name, keyPair.GetKID(), "test", expireIn, "test", "1")
 	sig, _, err := keyPair.SignToString(token.Bytes())
@@ -102,8 +101,8 @@ func TestTokenTypeInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	uid := keybase1.UID("01")
 	name := libkb.NormalizedUsername("alice")
+	uid := libkb.UsernameToUID(name.String())
 	expireIn := 10
 	token := NewToken(uid, name, keyPair.GetKID(), "test", expireIn, "test", "1")
 	sig, _, err := keyPair.SignToString(token.Bytes())
