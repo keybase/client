@@ -1,20 +1,32 @@
 sudo: required
+os:
+  - linux
+  - osx
 language: go
 go:
   - 1.5
 services:
   - docker
 before_install:
-  - export DEBIAN_FRONTEND=noninteractive
-  - sudo apt-get update; sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine
+  - if [ $TRAVIS_OS_NAME == 'linux' ]; then
+     export DEBIAN_FRONTEND=noninteractive;
+     sudo apt-get update;
+     sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
+    fi
 install: true
 script:
-  - docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST
-  - docker pull $CI_HOST/kbweb
-  - travis_retry docker run --name kbweb3000 -d -p 3000:3000 $CI_HOST/kbweb
-  - cd go && ./test/check_or_start_kbweb.sh && GO15VENDOREXPERIMENT=1 travis_wait go test ./...
+  - if [ $TRAVIS_OS_NAME == 'linux' ]; then
+      docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
+      docker pull $CI_HOST/kbweb;
+      travis_retry docker run --name kbweb3000 -d -p 3000:3000 $CI_HOST/kbweb;
+      cd go && ./test/check_or_start_kbweb.sh && GO15VENDOREXPERIMENT=1 travis_wait go test ./...;
+    elif [ $TRAVIS_OS_NAME == 'osx' ]; then
+      cd go && KEYBASE_SERVER_URI=https://ci1.keybase.io:443 GOVENDOREXPERIMENT=1 travis_Wait go test ./...;
+    fi
 after_failure:
-  - docker logs kbweb3000
+  - if [ $TRAVIS_OS_NAME == 'linux' ]; then
+      docker logs kbweb3000
+    fi
 notifications:
   slack:
     rooms:
