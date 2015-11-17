@@ -9,6 +9,7 @@ cd $dir
 # CFBundleVersion is the build number, for example, "12345" or "1.2.3 (build 12345AB)"
 
 plist=$dir/../Keybase/Info.plist
+echo "Plist: $plist"
 app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
 app_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $plist`"
 
@@ -16,7 +17,7 @@ helper_list=$dir/../Helper/Info.plist
 kb_helper_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $helper_list`"
 kb_helper_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $helper_list`"
 
-fuse_plist=$dir/Fuse/3.x/osxfuse3.bundle/Contents/Info.plist
+fuse_plist=$dir/Fuse/kbfuse/kbfuse.bundle/Contents/Info.plist
 fuse_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $fuse_plist`"
 fuse_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $fuse_plist`"
 

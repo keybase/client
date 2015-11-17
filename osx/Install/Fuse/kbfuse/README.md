@@ -4,16 +4,15 @@ Checkout the OSXFuse (osxfuse-3.0.7) version:
 
     rm -rf osxfuse
     git clone --recursive -b osxfuse-3.0.7 git://github.com/osxfuse/osxfuse.git osxfuse
-    cd osxfuse
 
 Run script to search/replace osxfuse to kbfuse:
 
-    TODO
+    sh rename.sh
 
 Clean and build the distribution:
 
     sudo rm -rf /tmp/kbfuse*
-
+    cd kbfuse
     ./build.sh -t fsbundle
 
 If you get an error compiling you might have to run `brew link gettext --force` (see https://github.com/osxfuse/osxfuse/issues/149).
