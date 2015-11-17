@@ -9,7 +9,6 @@
 import React, {Component} from '../../../base-react'
 import { codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
          codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer } from '../../../constants/login2'
-import { codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText } from '../../../constants/login2'
 import Render from './index.render'
 
 export default class CodePage extends Component {
@@ -35,7 +34,7 @@ export default class CodePage extends Component {
 const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer]
 
 CodePage.propTypes = {
-  mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]),
+  mode: React.PropTypes.string,
   textCode: React.PropTypes.string,
   qrCode: React.PropTypes.string,
   myDeviceRole: React.PropTypes.oneOf(validRoles),

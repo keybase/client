@@ -137,6 +137,7 @@ export default class CodePageRender extends Component {
           hintText='Type code here'
           floatingLabelText='Code'
           value={this.state.enterText}
+          multiLine
           onChange={event => this.setState({enterText: event.target.value})}
         />
         <RaisedButton
@@ -152,7 +153,7 @@ export default class CodePageRender extends Component {
   renderShowCodeAndEnterText () {
     return (
       <div style={{display: 'flex', flexDirection: 'row', flex: 1, backgroundColor: 'green', alignItems: 'center', justifyContent: 'center', padding: 20}}>
-        {this.renderEnterText()}
+        {this.renderCode()}
         <div style={{display: 'flex', flexDirection: 'column', backgroundColor: 'green', alignItems: 'center', justifyContent: 'center', padding: 20}}>
           <p>|</p>
           <p>or</p>

@@ -42,7 +42,7 @@ function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, brokenMode) {
     case Constants.codePageDeviceRoleExistingPhone + Constants.codePageDeviceRoleNewComputer:
       return Constants.codePageModeScanCode
     case Constants.codePageDeviceRoleNewComputer + Constants.codePageDeviceRoleExistingPhone:
-      return Constants.codePageModeShowCode
+      return Constants.codePageModeShowCodeOrEnterText
 
     case Constants.codePageDeviceRoleExistingPhone + Constants.codePageDeviceRoleNewPhone:
       return brokenMode ? Constants.codePageModeShowText : Constants.codePageModeShowCode
@@ -66,7 +66,9 @@ function setCodePageOtherDeviceRole (otherDeviceRole) {
 function generateQRCode (dispatch, getState) {
   const store = getState().login2.codePage
 
-  if (store.mode === Constants.codePageModeShowCode && !store.qrCode && store.textCode) {
+  const goodMode = store.mode === Constants.codePageModeShowCode || store.mode === Constants.codePageModeShowCodeOrEnterText
+
+  if (goodMode && !store.qrCode && store.textCode) {
     dispatch({
       type: Constants.setQRCode,
       payload: qrGenerate(store.textCode)
