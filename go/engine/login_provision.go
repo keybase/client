@@ -345,6 +345,15 @@ func (e *LoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.Gen
 // addEldestDeviceKey makes the device keys the eldest keys for
 // e.user.
 func (e *LoginProvision) addEldestDeviceKey(ctx *Context) error {
+	e.G().Log.Debug("addEldestDeviceKey: setting username to %q", e.arg.Username)
+	nu := libkb.NewNormalizedUsername(e.arg.Username)
+	if err := e.G().Env.GetConfigWriter().SwitchUser(nu); err != nil {
+		e.G().Log.Debug("SwitchUser error: %s", err)
+	}
+	e.G().LoginState().Account(func(a *libkb.Account) {
+		a.EnsureUsername(nu)
+	}, "LoginProvision.addEldestDeviceKey")
+
 	args, err := e.makeDeviceWrapArgs(ctx)
 	if err != nil {
 		return err
@@ -416,7 +425,7 @@ func (e *LoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error)
 		}
 		return cached.PassphraseStream(), nil
 	}
-	return e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+	return e.G().LoginState().GetPassphraseStreamForUser(ctx.SecretUI, e.arg.Username)
 }
 
 // deviceName gets a new device name from the user.
@@ -452,6 +461,7 @@ func (e *LoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 		}
 		e.arg.Username = username
 	}
+	e.G().Log.Debug("LoginProvision: loading user %s", e.arg.Username)
 	arg := libkb.NewLoadUserByNameArg(e.G(), e.arg.Username)
 	arg.PublicKeyOptional = true
 	return libkb.LoadUser(arg)
