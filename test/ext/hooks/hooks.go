@@ -277,6 +277,16 @@ func PrintLog() {
 	engine.PrintLog()
 }
 
+// CheckState checks the state of the given folder for consistency.
+//export CheckState
+func CheckState(u, folder interface{}) (errString *C.char) {
+	err := engine.CheckState(u, folder)
+	if err != nil {
+		errString = C.CString(err.Error())
+	}
+	return errString
+}
+
 // Helper to convert from C.StringArray to []string
 func arrayToStrings(arg *C.StringArray) (strings []string) {
 	strings = make([]string, int(arg.size))

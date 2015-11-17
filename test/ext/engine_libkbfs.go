@@ -273,3 +273,11 @@ func (k *LibKBFS) Shutdown(u User) {
 func (k *LibKBFS) PrintLog() {
 	k.log.PrintLog()
 }
+
+// CheckState implements the Engine interface.
+func (k *LibKBFS) CheckState(u User, dir Node) (err error) {
+	config := u.(*libkbfs.ConfigLocal)
+	d := dir.(libkbfs.Node)
+	sc := libkbfs.NewStateChecker(config)
+	return sc.CheckMergedState(context.Background(), d.GetFolderBranch().Tlf)
+}

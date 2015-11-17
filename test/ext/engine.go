@@ -68,4 +68,7 @@ type Engine interface {
 	// PrintLog is called by the test harness when the engine should
 	// print out all accumulated log output to stdout.
 	PrintLog()
+	// CheckState can be called to verify that the state of a folder
+	// is consistent.
+	CheckState(u User, dir Node) (err error)
 }

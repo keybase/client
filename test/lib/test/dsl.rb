@@ -214,6 +214,14 @@ module Test
           end
         end
 
+        # check that state is consistent
+        def self.check_state(opts=nil)
+          raise_unless_expected(opts, __method__) do
+            err = Engine.check_state(@user, @root_dir)
+            raise err if err
+          end
+        end
+
         # helper to support conditional exceptions
         def self.raise_unless_expected(opts, prefix)
           caught = false
