@@ -283,6 +283,11 @@ func (ro *rmOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 			// this rm op for the original node.
 			return &dropUnmergedAction{op: ro}, nil
 		}
+	case *rmOp:
+		if realMergedOp.OldName == ro.OldName {
+			// Both removed the same file.
+			return &dropUnmergedAction{op: ro}, nil
+		}
 	}
 	return nil, nil
 }

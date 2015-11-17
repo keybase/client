@@ -493,4 +493,26 @@ module Test
       read "a/b/d", "world"
     end
   end
+
+  # alice and bob both delete the same file
+  test :cr_unmerged_both_rmfile, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkfile "a/b", "hello"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/c", "world"
+      rm "a/b"
+    end
+    as bob, sync: false do
+      rm "a/b"
+      reenable_updates
+      lsdir "a/", { "c" => "FILE" }
+    end
+    as alice do
+      lsdir "a/", { "c" => "FILE" }
+    end
+  end
 end
