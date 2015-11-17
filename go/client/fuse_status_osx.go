@@ -28,13 +28,13 @@ func KeybaseFuseStatus(bundleVersion string) keybase1.FuseStatus {
 		info, err := kext.LoadInfo(kextID)
 		if err != nil {
 			st.InstallStatus = keybase1.InstallStatus_ERROR
-			st.InstallAction = keybase1.InstallAction_NONE
+			st.InstallAction = keybase1.InstallAction_REINSTALL
 			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: err.Error()}
 			return st
 		}
 		if info == nil {
 			st.InstallStatus = keybase1.InstallStatus_ERROR
-			st.InstallAction = keybase1.InstallAction_NONE
+			st.InstallAction = keybase1.InstallAction_REINSTALL
 			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Fuse installed (%s) but kext was not loaded (%s)", st.Path, kextID)}
 			return st
 		}
