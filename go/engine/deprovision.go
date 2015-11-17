@@ -79,6 +79,10 @@ func (e *DeprovisionEngine) Run(ctx *Context) (err error) {
 		ctx.LogUI.Warning("To do that yourself, use `keybase device remove` from a logged in device.")
 	}
 
+	if clearSecretErr := libkb.ClearStoredSecret(e.username); clearSecretErr != nil {
+		e.G().Log.Warning("ClearStoredSecret error: %s", clearSecretErr)
+	}
+
 	// XXX: Delete the user's secret keyring. It's very important that we never
 	// do this to the wrong user. Please do not copy this code :)
 	ctx.LogUI.Info("Deleting %s's secret keys file...", e.username.String())
