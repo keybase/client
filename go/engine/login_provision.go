@@ -345,15 +345,6 @@ func (e *LoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.Gen
 // addEldestDeviceKey makes the device keys the eldest keys for
 // e.user.
 func (e *LoginProvision) addEldestDeviceKey(ctx *Context) error {
-	e.G().Log.Debug("addEldestDeviceKey: setting username to %q", e.arg.Username)
-	nu := libkb.NewNormalizedUsername(e.arg.Username)
-	if err := e.G().Env.GetConfigWriter().SwitchUser(nu); err != nil {
-		e.G().Log.Debug("SwitchUser error: %s", err)
-	}
-	e.G().LoginState().Account(func(a *libkb.Account) {
-		a.EnsureUsername(nu)
-	}, "LoginProvision.addEldestDeviceKey")
-
 	args, err := e.makeDeviceWrapArgs(ctx)
 	if err != nil {
 		return err
