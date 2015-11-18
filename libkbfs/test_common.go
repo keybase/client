@@ -339,6 +339,9 @@ func RevokeDeviceForLocalUserOrBust(t *testing.T, config Config,
 	if kbd.currentUID == uid && index < user.CurrentCryptPublicKeyIndex {
 		user.CurrentCryptPublicKeyIndex--
 	}
+	if kbd.currentUID == uid && index < user.CurrentVerifyingKeyIndex {
+		user.CurrentVerifyingKeyIndex--
+	}
 
 	// kbd is just a copy, but kbd.localUsers is the same map
 	kbd.localUsers[uid] = user
@@ -365,6 +368,11 @@ func SwitchDeviceForLocalUserOrBust(t *testing.T, config Config, index int) {
 		t.Fatalf("Wrong crypt public key index: %d", index)
 	}
 	user.CurrentCryptPublicKeyIndex = index
+
+	if index >= len(user.VerifyingKeys) {
+		t.Fatalf("Wrong verifying key index: %d", index)
+	}
+	user.CurrentVerifyingKeyIndex = index
 
 	// kbd is just a copy, but kbd.localUsers is the same map
 	kbd.localUsers[uid] = user

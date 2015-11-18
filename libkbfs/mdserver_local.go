@@ -94,19 +94,15 @@ func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID, checkWrite bo
 		// and check that the UID is listed.
 		return true, nil
 	}
-	device, err := md.getCurrentDeviceKID(ctx)
-	if err != nil {
-		return false, err
-	}
 	user, err := md.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return false, err
 	}
-	isWriter := rmds.MD.IsWriter(user, device)
+	isWriter := rmds.MD.GetTlfHandle().IsWriter(user)
 	if checkWrite {
 		return isWriter, nil
 	}
-	return isWriter || rmds.MD.IsReader(user, device), nil
+	return isWriter || rmds.MD.GetTlfHandle().IsReader(user), nil
 }
 
 // Helper to aid in enforcement that only specified public keys can access TLF metdata.

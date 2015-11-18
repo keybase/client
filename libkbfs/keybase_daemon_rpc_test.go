@@ -76,6 +76,7 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 			Username:        "fake username",
 			Token:           c.session.Token,
 			DeviceSubkeyKid: c.session.CryptPublicKey.KID,
+			DeviceSibkeyKid: c.session.VerifyingKey.KID,
 		}
 
 		c.currentSessionCalled = true
@@ -154,10 +155,13 @@ func testCurrentSession(
 func TestKeybaseDaemonSessionCache(t *testing.T) {
 	k := MakeLocalUserCryptPublicKeyOrBust(
 		libkb.NormalizedUsername("fake username"))
+	v := MakeLocalUserVerifyingKeyOrBust(
+		libkb.NormalizedUsername("fake username"))
 	session := SessionInfo{
 		UID:            keybase1.UID("fake uid"),
 		Token:          "fake token",
 		CryptPublicKey: k,
+		VerifyingKey:   v,
 	}
 
 	client := &fakeKeybaseClient{session: session}

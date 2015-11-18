@@ -93,6 +93,13 @@ func (c *CryptoLocal) Sign(ctx context.Context, msg []byte) (
 	return
 }
 
+// SignToString implements the Crypto interface for CryptoLocal.
+func (c *CryptoLocal) SignToString(ctx context.Context, msg []byte) (
+	signature string, err error) {
+	signature, _, err = c.signingKey.kp.SignToString(msg)
+	return
+}
+
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoLocal.
 func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,

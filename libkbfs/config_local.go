@@ -55,11 +55,18 @@ type LocalUser struct {
 	Asserts []string
 	// Index into UserInfo.CryptPublicKeys.
 	CurrentCryptPublicKeyIndex int
+	// Index into UserInfo.VerifyingKeys.
+	CurrentVerifyingKeyIndex int
 }
 
 // GetCurrentCryptPublicKey returns this LocalUser's public encryption key.
 func (lu *LocalUser) GetCurrentCryptPublicKey() CryptPublicKey {
 	return lu.CryptPublicKeys[lu.CurrentCryptPublicKeyIndex]
+}
+
+// GetCurrentVerifyingKey returns this LocalUser's public signing key.
+func (lu *LocalUser) GetCurrentVerifyingKey() VerifyingKey {
+	return lu.VerifyingKeys[lu.CurrentVerifyingKeyIndex]
 }
 
 func verifyingKeysToPublicKeys(keys []VerifyingKey) []keybase1.PublicKey {
@@ -133,6 +140,7 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 				CryptPublicKeys: []CryptPublicKey{cryptPublicKey},
 			},
 			CurrentCryptPublicKeyIndex: 0,
+			CurrentVerifyingKeyIndex:   0,
 		}
 	}
 	return localUsers

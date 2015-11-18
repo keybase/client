@@ -53,6 +53,16 @@ func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
 	return s.CryptPublicKey, nil
 }
 
+// GetCurrentVerifyingKey implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetCurrentVerifyingKey(ctx context.Context) (
+	VerifyingKey, error) {
+	s, err := k.session(ctx)
+	if err != nil {
+		return VerifyingKey{}, err
+	}
+	return s.VerifyingKey, nil
+}
+
 // ResolveAssertion implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveAssertion(ctx context.Context, username string) (
 	keybase1.UID, error) {

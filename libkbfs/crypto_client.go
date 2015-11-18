@@ -108,6 +108,20 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	return
 }
 
+// SignToString implements the Crypto interface for CryptoClient.
+func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
+	signature string, err error) {
+	defer func() {
+		c.log.CDebugf(ctx, "Signed %d-byte message: err=%v", len(msg), err)
+	}()
+	signature, err = c.client.SignToString(ctx, keybase1.SignToStringArg{
+		SessionID: 0,
+		Msg:       msg,
+		Reason:    "kbfs backend auth",
+	})
+	return
+}
+
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoClient.
 func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,

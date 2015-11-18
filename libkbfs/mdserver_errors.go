@@ -155,11 +155,16 @@ func (e MDServerErrorLocked) ToStatus() (s keybase1.Status) {
 
 // MDServerErrorUnauthorized is returned when a device requests a key half which doesn't belong to it.
 type MDServerErrorUnauthorized struct {
+	Err error
 }
 
 // Error implements the Error interface for MDServerErrorUnauthorized.
 func (e MDServerErrorUnauthorized) Error() string {
-	return "Unauthorized"
+	msg := "Unauthorized"
+	if e.Err != nil {
+		msg += ": " + e.Err.Error()
+	}
+	return msg
 }
 
 // ToStatus implements the ExportableError interface for MDServerErrorUnauthorized.

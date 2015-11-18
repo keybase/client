@@ -11,6 +11,17 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	// BServerTokenType is the expected token type for bserver authentication.
+	BServerTokenType = "kbfs_bserver_auth"
+	// BServerTokenExpireIn is the TTL to use when constructing an authentication token.
+	BServerTokenExpireIn = 2 * 60 * 60 // 2 hours
+	// BServerClientName is the client name to include in an authentication token.
+	BServerClientName = "libkbfs_bserver_remote"
+	// BServerClientVersion is the client version to include in an authentication token.
+	BServerClientVersion = "1" // TODO: use some TBD build version
+)
+
 // BlockServerRemote implements the BlockServer interface and
 // represents a remote KBFS block server.
 type BlockServerRemote struct {
@@ -19,10 +30,14 @@ type BlockServerRemote struct {
 	client     keybase1.BlockInterface
 	log        logger.Logger
 	blkSrvAddr string
+	authToken  *AuthToken
 }
 
 // Test that BlockServerRemote fully implements the BlockServer interface.
 var _ BlockServer = (*BlockServerRemote)(nil)
+
+// Test that BlockServerRemote fully implements the AuthTokenRefreshHandler interface.
+var _ AuthTokenRefreshHandler = (*BlockServerRemote)(nil)
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
@@ -34,6 +49,9 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	}
 	bs.log.Debug("BlockServerRemote new instance "+
 		"server addr %s", blkSrvAddr)
+	bs.authToken = NewAuthToken(config,
+		BServerTokenType, BServerTokenExpireIn,
+		BServerClientName, BServerClientVersion, bs)
 	conn := NewTLSConnection(config, blkSrvAddr, bServerErrorUnwrapper{}, bs)
 	bs.client = keybase1.BlockClient{Cli: conn.GetClient()}
 	bs.shutdownFn = conn.Shutdown
@@ -59,33 +77,37 @@ func (b *BlockServerRemote) RemoteAddress() string {
 // OnConnect implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	conn *Connection, client keybase1.GenericClient, _ *rpc.Server) error {
-	token, err := b.config.KBPKI().GetCurrentToken(ctx)
-	if err != nil {
-		b.log.CWarningf(ctx, "BlockServerRemote: error getting session %q", err)
-		return err
-	}
-
-	uid, err := b.config.KBPKI().GetCurrentUID(ctx)
+	// get a new signature
+	signature, err := b.authToken.Sign(ctx)
 	if err != nil {
 		return err
 	}
 
-	arg := keybase1.AuthenticateSessionArg{
-		User: uid,
-		Sid:  token,
-	}
-
-	b.log.CDebugf(ctx, "BlockServerRemote.OnConnect establish session for "+
-		"uid %s", uid.String())
 	// Using b.client here would cause problematic recursion.
 	c := keybase1.BlockClient{Cli: cancelableClient{client}}
-	return c.AuthenticateSession(ctx, arg)
+	return c.AuthenticateSession(ctx, signature)
+}
+
+// RefreshAuthToken implements the AuthTokenRefreshHandler interface.
+func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
+	// get a new signature
+	signature, err := b.authToken.Sign(ctx)
+	if err != nil {
+		b.log.Debug("BlockServerRemote: error signing auth token: %v", err)
+	}
+	// update authentication
+	if err := b.client.AuthenticateSession(ctx, signature); err != nil {
+		b.log.Debug("BlockServerRemote: error refreshing auth token: %v", err)
+	}
 }
 
 // OnConnectError implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnectError(err error, wait time.Duration) {
 	b.log.Warning("BlockServerRemote: connection error: %v; retrying in %s",
 		err, wait)
+	if b.authToken != nil {
+		b.authToken.Shutdown()
+	}
 	// TODO: it might make sense to show something to the user if this is
 	// due to authentication, for example.
 }
@@ -99,6 +121,9 @@ func (b *BlockServerRemote) OnDoCommandError(err error, wait time.Duration) {
 // OnDisconnected implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnDisconnected() {
 	b.log.Warning("BlockServerRemote is disconnected")
+	if b.authToken != nil {
+		b.authToken.Shutdown()
+	}
 }
 
 // ShouldThrottle implements the ConnectionHandler interface.
@@ -264,5 +289,8 @@ func (b *BlockServerRemote) getNotDoneRefs(refs []keybase1.BlockReference, done 
 func (b *BlockServerRemote) Shutdown() {
 	if b.shutdownFn != nil {
 		b.shutdownFn()
+	}
+	if b.authToken != nil {
+		b.authToken.Shutdown()
 	}
 }

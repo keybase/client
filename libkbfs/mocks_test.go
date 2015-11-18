@@ -594,6 +594,17 @@ func (_mr *_MockKBPKIRecorder) GetCurrentCryptPublicKey(arg0 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentCryptPublicKey", arg0)
 }
 
+func (_m *MockKBPKI) GetCurrentVerifyingKey(ctx context.Context) (VerifyingKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentVerifyingKey", ctx)
+	ret0, _ := ret[0].(VerifyingKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) GetCurrentVerifyingKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentVerifyingKey", arg0)
+}
+
 func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, input string) (protocol.UID, error) {
 	ret := _m.ctrl.Call(_m, "ResolveAssertion", ctx, input)
 	ret0, _ := ret[0].(protocol.UID)
@@ -1159,6 +1170,17 @@ func (_m *MockCrypto) Sign(ctx context.Context, msg []byte) (SignatureInfo, erro
 
 func (_mr *_MockCryptoRecorder) Sign(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sign", arg0, arg1)
+}
+
+func (_m *MockCrypto) SignToString(ctx context.Context, msg []byte) (string, error) {
+	ret := _m.ctrl.Call(_m, "SignToString", ctx, msg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) SignToString(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SignToString", arg0, arg1)
 }
 
 func (_m *MockCrypto) Verify(msg []byte, sigInfo SignatureInfo) error {

@@ -278,6 +278,9 @@ type KBPKI interface {
 	// GetCurrentCryptPublicKey gets the crypt public key for the
 	// currently-active device.
 	GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error)
+	// GetCurrentVerifyingKey gets the public key used for signing for the
+	// currently-active device.
+	GetCurrentVerifyingKey(ctx context.Context) (VerifyingKey, error)
 
 	// ResolveAssertion loads a user by assertion (could also be a
 	// username).
@@ -487,6 +490,9 @@ type Crypto interface {
 
 	// Sign signs the msg with the current device's private key.
 	Sign(ctx context.Context, msg []byte) (sigInfo SignatureInfo, err error)
+	// Sign signs the msg with the current device's private key and output
+	// the full serialized NaclSigInfo.
+	SignToString(ctx context.Context, msg []byte) (signature string, err error)
 	// Verify verifies that sig matches msg being signed with the
 	// private key that corresponds to verifyingKey.
 	Verify(msg []byte, sigInfo SignatureInfo) error

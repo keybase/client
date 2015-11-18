@@ -39,6 +39,7 @@ type SessionInfo struct {
 	UID            keybase1.UID
 	Token          string
 	CryptPublicKey CryptPublicKey
+	VerifyingKey   VerifyingKey
 }
 
 // All section references below are to https://keybase.io/blog/crypto

@@ -272,18 +272,24 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 	if err != nil {
 		return SessionInfo{}, err
 	}
-	// Import the KID to validate it.
+	// Import the KIDs to validate them.
 	deviceSubkey, err := libkb.ImportKeypairFromKID(res.DeviceSubkeyKid)
+	if err != nil {
+		return SessionInfo{}, err
+	}
+	deviceSibkey, err := libkb.ImportKeypairFromKID(res.DeviceSibkeyKid)
 	if err != nil {
 		return SessionInfo{}, err
 	}
 	k.log.CDebugf(ctx, "got device subkey %s",
 		deviceSubkey.GetKID().ToShortIDString())
 	cryptPublicKey := CryptPublicKey{deviceSubkey.GetKID()}
+	verifyingKey := VerifyingKey{deviceSibkey.GetKID()}
 	s := SessionInfo{
 		UID:            keybase1.UID(res.Uid),
 		Token:          res.Token,
 		CryptPublicKey: cryptPublicKey,
+		VerifyingKey:   verifyingKey,
 	}
 
 	k.setCachedCurrentSession(s)
