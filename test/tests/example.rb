@@ -55,8 +55,8 @@ module Test
     as alice do
       mkfile "a/b", "hello world"
       mkdir "a/e"
-      link "a/e/b.link", "a/b"
-      link "a/f", "a/e"
+      link "a/e/b.link", "../b"
+      link "a/f", "e"
       lsdir "a/", { "b" => "FILE", "e" => "DIR", "f" => "SYM" }
       lsdir "a/", { "b" => "DIR", "e" => "DIR", "f" => "SYM" }, error: "b of type DIR not found"
       # lsdir looks for files in the directory that match regexs from left to right in this hash.
@@ -64,7 +64,7 @@ module Test
       # if it doesn't find a match it throws an error. also, if any files remain that weren't
       # matched an error is also thrown.
       lsdir "a/", { "." => "FILE", "[a-z]{1}" => "DIR", "[a-f]{1}" => "SYM" }
-      lsdir "a/", { "b" => "FILE", "e" => "DIR" }, error: "unexpected f of type SYM found"
+      lsdir "a/", { "b" => "FILE", "e" => "DIR" }, error: "unexpected f of type SYM found in a/"
       lsdir "a/e", { "b.link" => "SYM" }
       lsdir "a/f", { "b.link" => "SYM" }
     end

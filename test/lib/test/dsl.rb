@@ -1,4 +1,5 @@
 require "colorize"
+require "pathname"
 require "test/engine"
 
 #
@@ -165,7 +166,7 @@ module Test
             if left.size > 0
               node = left.keys[0]
               type = left[node]
-              raise "unexpected #{node} of type #{type} found"
+              raise "unexpected #{node} of type #{type} found in #{name}"
             end
           end
         end
@@ -239,7 +240,7 @@ module Test
         end
 
         # helper to take a step in a walk down a directory path
-        def self.next_node(parent, name, create, is_file)
+        def self.next_node(parent, name, create, is_file, parent_path)
           node, sym_path, err = Engine.lookup(@user, parent, name)
           if err
             if create
@@ -252,7 +253,8 @@ module Test
             raise err if err
           elsif sym_path && sym_path.size != 0
             # follow the symlink
-            node = get_node(sym_path, create, is_file)
+            path = Pathname.new(File.join(parent_path, sym_path)).cleanpath()
+            node = get_node(path.to_s(), create, is_file)
           end
           node
         end
@@ -263,10 +265,12 @@ module Test
           nodes = path.split("/")
           name = nodes.pop
           parent = @root_dir
+          parent_path = ""
           nodes.each do |node|
-            parent = next_node(parent, node, create, false)
+            parent = next_node(parent, node, create, false, parent_path)
+            parent_path += node + "/"
           end
-          next_node(parent, name, create, is_file)
+          next_node(parent, name, create, is_file, parent_path)
         end
 
         yield(@user)

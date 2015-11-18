@@ -6,14 +6,15 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 	"sort"
+	"time"
 )
 
 // LibKBFS implements the Engine interface for direct test harness usage of libkbfs.
 type LibKBFS struct {
 	// hack: hold references on behalf of the test harness
-	refs map[libkbfs.Config]map[libkbfs.Node]bool
+	refs map[libkbfs.Config]map[libkbfs.NodeID]bool
 	// channels used to re-enable updates if disabled
-	updateChannels map[libkbfs.Config]map[libkbfs.Node]chan<- struct{}
+	updateChannels map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{}
 	// test object, mostly for logging
 	log *MemoryLog
 }
@@ -24,13 +25,18 @@ var _ Engine = (*LibKBFS)(nil)
 // Init implements the Engine interface.
 func (k *LibKBFS) Init() {
 	// Initialize reference holder and channels maps
-	k.refs = make(map[libkbfs.Config]map[libkbfs.Node]bool)
-	k.updateChannels = make(map[libkbfs.Config]map[libkbfs.Node]chan<- struct{})
-	k.log = &MemoryLog{}
+	k.refs = make(map[libkbfs.Config]map[libkbfs.NodeID]bool)
+	k.updateChannels =
+		make(map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{})
 }
 
 // CreateUsers implements the Engine interface.
 func (k *LibKBFS) CreateUsers(users ...string) map[string]User {
+	// Start a new log for this test.  TODO: Turn this into a proper
+	// "test init" method that can print out the test name and set
+	// other config options.
+	k.log = &MemoryLog{}
+	k.log.Log("\n------------------------------------------")
 	userMap := make(map[string]User)
 	normalized := make([]libkb.NormalizedUsername, len(users))
 	for i, name := range users {
@@ -38,9 +44,12 @@ func (k *LibKBFS) CreateUsers(users ...string) map[string]User {
 	}
 	// create the first user specially
 	config := libkbfs.MakeTestConfigOrBust(k.log, normalized...)
+	// TODO: pass this in from each test
+	clock := libkbfs.TestClock{T: time.Time{}}
+	config.SetClock(clock)
 	userMap[users[0]] = config
-	k.refs[config] = make(map[libkbfs.Node]bool)
-	k.updateChannels[config] = make(map[libkbfs.Node]chan<- struct{})
+	k.refs[config] = make(map[libkbfs.NodeID]bool)
+	k.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
 
 	if len(normalized) == 1 {
 		return userMap
@@ -49,9 +58,10 @@ func (k *LibKBFS) CreateUsers(users ...string) map[string]User {
 	// create the rest of the users as copies of the original config
 	for i, name := range normalized[1:] {
 		c := libkbfs.ConfigAsUser(config, name)
+		c.SetClock(clock)
 		userMap[users[i+1]] = c
-		k.refs[c] = make(map[libkbfs.Node]bool)
-		k.updateChannels[c] = make(map[libkbfs.Node]chan<- struct{})
+		k.refs[c] = make(map[libkbfs.NodeID]bool)
+		k.updateChannels[c] = make(map[libkbfs.NodeID]chan<- struct{})
 	}
 	return userMap
 }
@@ -95,7 +105,7 @@ func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []string, readers []
 	if err != nil {
 		return dir, err
 	}
-	k.refs[config][dir.(libkbfs.Node)] = true
+	k.refs[config][dir.(libkbfs.Node).GetID()] = true
 	return dir, nil
 }
 
@@ -107,7 +117,7 @@ func (k *LibKBFS) CreateDir(u User, parentDir Node, name string) (dir Node, err 
 	if err != nil {
 		return dir, err
 	}
-	k.refs[config][dir.(libkbfs.Node)] = true
+	k.refs[config][dir.(libkbfs.Node).GetID()] = true
 	return dir, nil
 }
 
@@ -119,7 +129,7 @@ func (k *LibKBFS) CreateFile(u User, parentDir Node, name string) (file Node, er
 	if err != nil {
 		return file, err
 	}
-	k.refs[config][file.(libkbfs.Node)] = true
+	k.refs[config][file.(libkbfs.Node).GetID()] = true
 	return file, nil
 }
 
@@ -192,7 +202,7 @@ func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPat
 		return file, symPath, err
 	}
 	if file != nil {
-		k.refs[config][file.(libkbfs.Node)] = true
+		k.refs[config][file.(libkbfs.Node).GetID()] = true
 	}
 	if entry.Type == libkbfs.Sym {
 		symPath = entry.SymPath
@@ -226,26 +236,36 @@ func (k *LibKBFS) SetEx(u User, file Node, ex bool) (err error) {
 func (k *LibKBFS) DisableUpdatesForTesting(u User, dir Node) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	d := dir.(libkbfs.Node)
-	if _, ok := k.updateChannels[config][d]; ok {
+	if _, ok := k.updateChannels[config][d.GetID()]; ok {
 		// Updates are already disabled.
 		return nil
 	}
 	var c chan<- struct{}
 	c, err = libkbfs.DisableUpdatesForTesting(config, d.GetFolderBranch())
-	if err == nil {
-		k.updateChannels[config][d] = c
+	if err != nil {
+		return err
 	}
-	return err
+	k.updateChannels[config][d.GetID()] = c
+	// Also stop conflict resolution.
+	err = libkbfs.DisableCRForTesting(config, d.GetFolderBranch())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ReenableUpdates implements the Engine interface.
 func (k *LibKBFS) ReenableUpdates(u User, dir Node) {
 	config := u.(*libkbfs.ConfigLocal)
 	d := dir.(libkbfs.Node)
-	if c, ok := k.updateChannels[config][d]; ok {
+	err := libkbfs.RestartCRForTesting(config, d.GetFolderBranch())
+	if err != nil {
+		panic(err)
+	}
+	if c, ok := k.updateChannels[config][d.GetID()]; ok {
 		c <- struct{}{}
 		close(c)
-		delete(k.updateChannels, config)
+		delete(k.updateChannels[config], d.GetID())
 	}
 }
 
@@ -260,10 +280,10 @@ func (k *LibKBFS) SyncFromServer(u User, dir Node) (err error) {
 func (k *LibKBFS) Shutdown(u User) {
 	config := u.(*libkbfs.ConfigLocal)
 	// drop references
-	k.refs[config] = make(map[libkbfs.Node]bool)
+	k.refs[config] = make(map[libkbfs.NodeID]bool)
 	delete(k.refs, config)
 	// clear update channels
-	k.updateChannels[config] = make(map[libkbfs.Node]chan<- struct{})
+	k.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
 	delete(k.updateChannels, config)
 	// shutdown
 	config.Shutdown()
