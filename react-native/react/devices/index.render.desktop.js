@@ -9,6 +9,7 @@ import ActionNoteAdd from 'material-ui/lib/svg-icons/action/note-add'
 
 import moment from 'moment'
 import View from 'react-flexbox'
+import commonStyles from '../styles/common'
 
 export default class DevicesRender extends Component {
   renderPhone (device) {
@@ -19,7 +20,7 @@ export default class DevicesRender extends Component {
           <h3 style={styles.line2}>{device.name}</h3>
           <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
           <div style={styles.line2}>TODO: Get Added info</div>
-          <div><a href=''>Remove</a></div>
+          <p style={{...commonStyles.clickable, textDecoration: 'underline'}} onClick={() => this.props.showRemoveDevicePage(device)}>Remove</p>
         </div>
       </div>
     )
@@ -33,7 +34,7 @@ export default class DevicesRender extends Component {
           <h3 style={styles.line2}>{device.name}</h3>
           <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
           <div style={styles.line2}>TODO: Get Added info</div>
-          <div><a href=''>Remove</a></div>
+          <p style={{...commonStyles.clickable, textDecoration: 'underline'}} onClick={() => this.props.showRemoveDevicePage(device)}>Remove</p>
         </div>
       </div>
     )
@@ -47,7 +48,7 @@ export default class DevicesRender extends Component {
           <h3 style={styles.line2}>{device.name}</h3>
           <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
           <div>Paper key</div>
-          <div><a href=''>Remove</a></div>
+          <p style={{...commonStyles.clickable, textDecoration: 'underline'}} onClick={() => this.props.showRemoveDevicePage(device)}>Remove</p>
         </div>
       </div>
     )
