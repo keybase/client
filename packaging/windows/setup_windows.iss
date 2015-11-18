@@ -2,13 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Keybase"
+#ifndef MyAppVersion
 #define MyAppVersion "1.0"
+#endif
 #define MyAppPublisher "Keybase, Inc."
 #define MyAppURL "http://www.keybase.io/"
-#define MyAppExeName "keybase.exe"
+#define MyExeName "keybase.exe"
 #define MyGoPath GetEnv('GOPATH')
-#if MyGoPath == ""
+#ifndef MyGoPath
 #define MyGoPath "c:\work\"
+#endif
+#ifndef MyExePathName
+#define MyExePathName MyGoPath + "bin\windows_386\" + MyExeName
 #endif
 
 [Setup]
@@ -23,6 +28,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
+AppCopyright=Copyright (c) 2015, Keybase
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
@@ -31,17 +37,22 @@ SetupIconFile={#MyGoPath}src\github.com\keybase\keybase\public\images\favicon.ic
 Compression=lzma
 SolidCompression=yes
 UninstallDisplayIcon={app}\keybase.exe
+VersionInfoVersion={#MyAppVersion}
+; Comment this out for development
+; (there doesn't seem to be a way to make it conditional)
+SignTool=SignCommand
+
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "{#MyGoPath}bin\keybase.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MyExePathName}"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{group}\{#MyAppName} CMD"; Filename: "cmd.exe"; WorkingDir: "{app}"; IconFilename: "{app}\{#MyAppExeName}"; Parameters: "/K ""set PATH=%PATH%;{app}"""
+Name: "{group}\{#MyAppName} CMD"; Filename: "cmd.exe"; WorkingDir: "{app}"; IconFilename: "{app}\{#MyExeName}"; Parameters: "/K ""set PATH=%PATH%;{app}"""
 
 [Registry]
 Root: "HKCU"; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Keybase.exe"; ValueType: string; ValueData: "{app}\Keybase.exe"; Flags: uninsdeletekey
@@ -74,7 +85,7 @@ begin
 
   lines[0] := 'Dim WinScriptHost';
   lines[1] := 'Set WinScriptHost = CreateObject("WScript.Shell")';
-  lines[2] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\{#MyAppExeName}" & Chr(34) & " ctl watchdog", 0');
+  lines[2] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\{#MyExeName}" & Chr(34) & " ctl watchdog", 0');
   lines[3] := 'Set WinScriptHost = Nothing';
 
   Result := SaveStringsToFile(filename,lines,true);
@@ -91,14 +102,14 @@ var
 begin
   WbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
   WMIService := WbemLocator.ConnectServer('localhost', 'root\CIMV2');
-  WbemObjectSet := WMIService.ExecQuery(ExpandConstant('SELECT * FROM Win32_Process Where Name="{#MyAppExeName}"'));
+  WbemObjectSet := WMIService.ExecQuery(ExpandConstant('SELECT * FROM Win32_Process Where Name="{#MyExeName}"'));
   
   // Fairly simple check just to see if a process is running named Keybase.exe
   // No point in trying to stop it otherwise (it will hang).
   if not VarIsNull(WbemObjectSet) and (WbemObjectSet.Count > 0) then
   begin
     // Launch Keybase ctl stop and wait for it to terminate
-    CommandName := ExpandConstant('{app}\{#MyAppExeName}');
+    CommandName := ExpandConstant('{app}\{#MyExeName}');
     Exec(CommandName, 'ctl stop', '', SW_SHOW,
       ewWaitUntilTerminated, ResultCode);
   end;
