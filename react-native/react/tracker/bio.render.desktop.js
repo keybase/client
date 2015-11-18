@@ -40,8 +40,8 @@ export default class BioRender extends Component {
         <Paper style={{overflow: 'hidden'}} zDepth={1} circle>
           <img src={userInfo && userInfo.avatar} style={{width: 100, height: 100}}/>
         </Paper>
-        <p style={{height: 0}}>{username && (username + userFlag)}</p>
-        <p style={{height: 0}}>{'TODO get full name...'}</p>
+        <p style={{height: 0}}>Username: {username && (username + userFlag)}</p>
+        <p style={{height: 0}}>{userInfo && userInfo.fullname}</p>
         <div style={{display: 'flex', alignSelf: 'stretch', justifyContent: 'space-around', paddingLeft: 20, paddingRight: 20}}>
           <p style={{height: 0}}>{userInfo ? userInfo.followingCount : '-'} Following</p>
           <p style={{height: 0}}>{userInfo ? userInfo.followersCount : '-'} Followers</p>
