@@ -7,15 +7,17 @@
 //
 
 #import "KBInstallable.h"
+#import <GHKit/GHKit.h>
+#import <ObjectiveSugar/ObjectiveSugar.h>
 
-@interface KBInstallableComponent ()
+@interface KBInstallable ()
 @property KBEnvConfig *config;
 @end
 
-@implementation KBInstallableComponent
+@implementation KBInstallable
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config {
-  if ((self = [super init])) {
+- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name info:(NSString *)info image:(NSImage *)image {
+  if ((self = [super initWithName:name info:info image:image])) {
     _config = config;
   }
   return self;
@@ -27,5 +29,50 @@
 }
 
 - (void)componentDidUpdate { }
+
+- (KBInstallRuntimeStatus)runtimeStatus {
+  return KBInstallRuntimeStatusNone;
+}
+
+- (NSArray *)statusDescription {
+  NSMutableArray *status = [NSMutableArray array];
+  if (self.isInstallDisabled) {
+    [status addObject:@"Install Disabled"];
+  }
+  if (self.componentStatus.error) {
+    [status addObject:NSStringWithFormat(@"Error: %@", self.componentStatus.error.localizedDescription)];
+  }
+  [status gh_addObject:self.componentStatus.statusDescription];
+  return status;
+}
+
+- (NSString *)action {
+  if (self.isInstallDisabled) {
+    return NSStringFromKBRInstallAction(KBRInstallActionNone);
+  } else {
+    return NSStringFromKBRInstallAction(self.componentStatus.installAction);
+  }
+}
+
+- (void)refreshComponent:(KBCompletion)completion {
+  completion(nil);
+}
+
+- (void)install:(KBCompletion)completion {
+  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
+}
+
+
+- (void)uninstall:(KBCompletion)completion {
+  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
+}
+
+- (void)start:(KBCompletion)completion {
+  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
+}
+
+- (void)stop:(KBCompletion)completion {
+  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
+}
 
 @end

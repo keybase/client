@@ -45,11 +45,9 @@
     [gself select:selection.object];
   };
   _listView.onMenuSelect = ^NSMenu *(KBTableView *tableView, NSIndexPath *indexPath) {
-    id<KBComponent> component = [tableView.dataSource objectAtIndexPath:indexPath];
-    if (![component conformsToProtocol:@protocol(KBInstallable)]) return nil;
-
+    //id<KBComponent> component = [tableView.dataSource objectAtIndexPath:indexPath];
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
-    [menu addItemWithTitle:@"Uninstall" action:@selector(uninstallSelected:) keyEquivalent:@""];
+    //[menu addItemWithTitle:@"Uninstall" action:@selector(uninstallSelected:) keyEquivalent:@""];
     return menu;
   };
   [_splitView addSubview:_listView];
@@ -86,9 +84,9 @@
   view.viewLayout = borderLayout;
   [borderLayout setCenter:contentView];
 
-  if ([component conformsToProtocol:@protocol(KBInstallable)]) {
+  if ([component isKindOfClass:KBInstallable.class]) {
     YOHBox *topView = [YOHBox box:@{@"spacing": @(10)}];
-    id<KBInstallable> installable = (id<KBInstallable>)component;
+    KBInstallable *installable = (KBInstallable *)component;
     [topView addSubview:[KBButton buttonWithText:@"Refresh" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self refresh]; }]];
 
     if ([installable.componentStatus needsInstallOrUpgrade]) {
@@ -97,13 +95,20 @@
 
     if (installable.componentStatus.installStatus == KBRInstallStatusInstalled) {
       [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self uninstall:installable]; }]];
+      [topView addSubview:[KBButton buttonWithText:@"Re-Install" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self install:installable]; }]];
     }
 
-    /*
-    [topView addSubview:[KBButton buttonWithText:@"Start" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self start:installable]; }]];
-
-    [topView addSubview:[KBButton buttonWithText:@"Stop" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self stop:installable]; }]];
-     */
+    switch ([installable runtimeStatus]) {
+      case KBInstallRuntimeStatusStopped: {
+        [topView addSubview:[KBButton buttonWithText:@"Start" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self start:installable]; }]];
+        break;
+      }
+      case KBInstallRuntimeStatusStarted: {
+        [topView addSubview:[KBButton buttonWithText:@"Stop" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self stop:installable]; }]];
+        break;
+      }
+      case KBInstallRuntimeStatusNone: break;
+    }
 
     [view addSubview:topView];
     [borderLayout addToTop:topView];
@@ -147,7 +152,7 @@
   }];
 }
 
-- (void)install:(id<KBInstallable>)installable {
+- (void)install:(KBInstallable *)installable {
   [KBActivity setProgressEnabled:YES sender:self];
   [installable install:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
@@ -156,7 +161,7 @@
   }];
 }
 
-- (void)start:(id<KBInstallable>)installable {
+- (void)start:(KBInstallable *)installable {
   [KBActivity setProgressEnabled:YES sender:self];
   [installable start:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
@@ -165,7 +170,7 @@
   }];
 }
 
-- (void)stop:(id<KBInstallable>)installable {
+- (void)stop:(KBInstallable *)installable {
   [KBActivity setProgressEnabled:YES sender:self];
   [installable stop:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
@@ -177,12 +182,12 @@
 - (void)uninstallSelected:(id)sender {
   NSIndexPath *indexPathToUninstall = _listView.menuIndexPath;
   if (!indexPathToUninstall) return;
-  id<KBInstallable> component = [_listView.dataSource objectAtIndexPath:indexPathToUninstall];
+  KBInstallable *component = [_listView.dataSource objectAtIndexPath:indexPathToUninstall];
   if (!component) return;
   [self uninstall:component];
 }
 
-- (void)uninstall:(id<KBInstallable>)installable {
+- (void)uninstall:(KBInstallable *)installable {
   [KBActivity setProgressEnabled:YES sender:self];
   [installable uninstall:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];

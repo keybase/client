@@ -14,14 +14,13 @@
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <KBKit/KBDefines.h>
-#import <KBKit/KBInstallAction.h>
 
 @interface KBEnvironment ()
 @property KBEnvConfig *config;
 @property KBService *service;
 @property KBFSService *kbfs;
 @property NSMutableArray */*of id<KBComponent>*/components;
-@property NSArray */*of id<KBInstallable>*/installables;
+@property NSArray */*of KBInstallable*/installables;
 @property NSArray *services;
 @end
 

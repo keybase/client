@@ -38,7 +38,6 @@ If you are upgrading you should uninstall first.
 To install:
 
     sudo /bin/cp -RfX kbfuse.bundle /Library/Filesystems/kbfuse.fs
-    sudo chmod +s /Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse
 
 ### Uninstall
 

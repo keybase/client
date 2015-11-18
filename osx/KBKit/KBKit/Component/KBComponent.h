@@ -24,10 +24,8 @@
 
 @end
 
-@interface KBComponent : NSObject
+@interface KBComponent : NSObject <KBComponent>
 
-- (void)refreshComponent:(KBCompletion)completion;
-
-- (NSView *)componentView;
+- (instancetype)initWithName:(NSString *)name info:(NSString *)info image:(NSImage *)image;
 
 @end

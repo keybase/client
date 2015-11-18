@@ -17,7 +17,7 @@
 @property (readonly) KBEnvConfig *config;
 @property (readonly) KBService *service;
 @property (readonly) KBFSService *kbfs;
-@property (readonly) NSArray */*of id<KBInstallable>*/installables;
+@property (readonly) NSArray */*of KBInstallable*/installables;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 

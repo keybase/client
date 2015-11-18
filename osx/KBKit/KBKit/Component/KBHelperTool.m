@@ -26,16 +26,11 @@
 
 @implementation KBHelperTool
 
-- (NSString *)name {
-  return @"Privileged Helper";
-}
-
-- (NSString *)info {
-  return @"Runs privileged tasks";
-}
-
-- (NSImage *)image {
-  return [KBIcons imageForIcon:KBIconExtension];
+- (instancetype)initWithConfig:(KBEnvConfig *)config {
+  if ((self = [self initWithConfig:config name:@"Privileged Helper" info:@"Runs privileged tasks" image:[KBIcons imageForIcon:KBIconExtension]])) {
+    
+  }
+  return self;
 }
 
 - (NSView *)componentView {
@@ -182,20 +177,5 @@
   }
 }
  */
-
-- (void)uninstall:(KBCompletion)completion {
-  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported")); // Uninstalling is unsafe
-//  NSError *error = nil;
-//  [self uninstallPrivilegedServiceWithName:@"keybase.Helper" error:&error];
-//  completion(error);
-}
-
-- (void)start:(KBCompletion)completion {
-  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
-}
-
-- (void)stop:(KBCompletion)completion {
-  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
-}
 
 @end

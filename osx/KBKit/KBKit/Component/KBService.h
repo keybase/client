@@ -14,7 +14,7 @@
 #import "KBRPC.h"
 #import "KBRPClient.h"
 
-@interface KBService : NSObject <KBComponent, KBInstallable>
+@interface KBService : KBInstallable
 
 @property (readonly, nonatomic) KBRPClient *client;
 

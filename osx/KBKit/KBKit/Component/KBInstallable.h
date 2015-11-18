@@ -12,34 +12,40 @@
 #import <KBKit/KBComponent.h>
 #import <KBKit/KBComponentStatus.h>
 
+typedef NS_ENUM (NSInteger, KBInstallRuntimeStatus) {
+  KBInstallRuntimeStatusNone,
+  KBInstallRuntimeStatusStarted,
+  KBInstallRuntimeStatusStopped,
+};
+
 typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
-@protocol KBInstallable <KBComponent>
+@interface KBInstallable : KBComponent
+
+@property (readonly) KBEnvConfig *config;
+
+@property (nonatomic) KBComponentStatus *componentStatus;
+@property NSError *error;
+
+@property (getter=isInstallDisabled) BOOL installDisabled;
+
+- (instancetype)initWithConfig:(KBEnvConfig *)config name:(NSString *)name info:(NSString *)info image:(NSImage *)image;
+
+// Called when component updated
+- (void)componentDidUpdate;
 
 - (BOOL)isInstallDisabled;
 
-- (KBComponentStatus *)componentStatus;
-
-- (void)refreshComponent:(KBCompletion)completion;
-
 - (void)install:(KBCompletion)completion;
 - (void)uninstall:(KBCompletion)completion;
+- (void)refreshComponent:(KBCompletion)completion;
 
 - (void)start:(KBCompletion)completion;
 - (void)stop:(KBCompletion)completion;
 
-@end
+- (KBInstallRuntimeStatus)runtimeStatus;
 
-@interface KBInstallableComponent : KBComponent
-
-@property (nonatomic) KBComponentStatus *componentStatus;
-@property (readonly) KBEnvConfig *config;
-
-@property (getter=isInstallDisabled) BOOL installDisabled;
-
-- (instancetype)initWithConfig:(KBEnvConfig *)config;
-
-// Called when component updated
-- (void)componentDidUpdate;
+- (NSArray *)statusDescription;
+- (NSString *)action;
 
 @end

@@ -74,12 +74,12 @@
     // TODO: Figure out why. (Maybe string has to be const?)
     NSString *kextID = [self checkKextID:args[@"kextID"]];
     if (kextID) {
-      [KBKext unloadKextID:kextID force:YES completion:completion];
+      [KBKext unloadKextID:kextID completion:completion];
     } else {
       completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid kextID"), nil);
     }
   } else if ([method isEqualToString:@"kext_install"]) {
-    [KBKext installOrUpdateWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
+    [KBKext installWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
   } else if ([method isEqualToString:@"kext_uninstall"]) {
     [KBKext uninstallWithDestination:args[@"destination"] kextID:args[@"kextID"] completion:completion];
   } else {

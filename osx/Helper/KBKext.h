@@ -16,11 +16,6 @@
 + (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion;
 
 /*!
- Installs or updates.
-*/
-+ (void)installOrUpdateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion;
-
-/*!
  Uninstall.
  */
 + (void)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion;
@@ -30,6 +25,6 @@
  */
 + (void)loadKextID:(NSString *)kextID path:(NSString *)path completion:(KBOnCompletion)completion;
 
-+ (void)unloadKextID:(NSString *)kextID force:(BOOL)force completion:(KBOnCompletion)completion;
++ (void)unloadKextID:(NSString *)kextID completion:(KBOnCompletion)completion;
 
 @end

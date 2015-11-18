@@ -8,7 +8,6 @@
 
 #import "KBConsoleView.h"
 
-#import "KBInstallAction.h"
 #import "KBLogFormatter.h"
 #import "KBRPC.h"
 #import "KBApp.h"

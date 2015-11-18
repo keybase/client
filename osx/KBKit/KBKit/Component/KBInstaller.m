@@ -10,7 +10,6 @@
 
 #import "KBRunOver.h"
 #import "KBInstallable.h"
-#import "KBInstallAction.h"
 #import "KBWorkspace.h"
 
 #import "KBDefines.h"
@@ -28,14 +27,13 @@
 
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.enumerator = [environment.installables objectEnumerator];
-  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
+  rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
     DDLogDebug(@"Install: %@", installable.name);
     [installable install:^(NSError *error) {
-      // TODO Remove error from definition
-      NSAssert(!error, @"Error shouldn't be set here, use componentStatus");
-      [installable refreshComponent:^(NSError *error) {
+      installable.error = error;
+      [installable refreshComponent:^(NSError *refreshError) {
         // TODO Remove error from definition
-        NSAssert(!error, @"Error shouldn't be set here, use componentStatus");
+        NSAssert(!refreshError, @"Error shouldn't be set here, use componentStatus");
         runCompletion(installable);
       }];
     }];
@@ -53,11 +51,11 @@
 - (void)refreshStatus:(NSArray *)installables completion:(dispatch_block_t)completion {
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.enumerator = [installables objectEnumerator];
-  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
+  rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
     DDLogDebug(@"Checking %@", installable.name);
-    [installable refreshComponent:^(NSError *error) {
+    [installable refreshComponent:^(NSError *refreshError) {
       // TODO Remove error from definition
-      NSAssert(!error, @"Error shouldn't be set here, use componentStatus");
+      NSAssert(!refreshError, @"Error shouldn't be set here, use componentStatus");
       runCompletion(installable);
     }];
   };
@@ -76,7 +74,7 @@
 - (void)uninstall:(NSArray *)installables completion:(dispatch_block_t)completion {
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.enumerator = [installables reverseObjectEnumerator];
-  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
+  rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
     [installable uninstall:^(NSError *error) {
       // TODO Set error
       runCompletion(installable);

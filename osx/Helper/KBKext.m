@@ -26,17 +26,15 @@
   return [kexts[label][@"OSBundleStarted"] boolValue];
 }
 
-+ (void)installOrUpdateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
-  if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL]) {
-    completion(KBMakeError(KBHelperErrorKext, @"Update is currently unsupported."), @(0));
-  } else {
-    [self installWithSource:source destination:destination kextID:kextID kextPath:kextPath completion:completion];
-  }
-}
-
 + (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
   KBLog(@"Install: %@ to %@", source, destination);
 
+  [self uninstallWithDestination:destination kextID:kextID completion:^(NSError *error, id value) {
+    [self _installWithSource:source destination:destination kextID:kextID kextPath:kextPath completion:completion];
+  }];
+}
+
++ (void)_installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
   NSError *error = nil;
   if (![NSFileManager.defaultManager copyItemAtPath:source toPath:destination error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to copy");
@@ -98,22 +96,20 @@
   }
 }
 
-+ (void)unloadKextID:(NSString *)kextID force:(BOOL)force completion:(KBOnCompletion)completion {
++ (void)unloadKextID:(NSString *)kextID completion:(KBOnCompletion)completion {
   NSParameterAssert(kextID);
   KBLog(@"Unload kextID: %@ (%@)", kextID);
   NSError *error = nil;
-  [self unloadKextID:kextID force:force error:&error];
+  [self unloadKextID:kextID error:&error];
   completion(error, nil);
 }
 
-+ (BOOL)unloadKextID:(NSString *)kextID force:(BOOL)force error:(NSError **)error {
++ (BOOL)unloadKextID:(NSString *)kextID error:(NSError **)error {
   BOOL isKextLoaded = [self isKextLoaded:kextID];
   KBLog(@"Kext loaded? %@", @(isKextLoaded));
-  if (isKextLoaded || force) {
-    return [self _unloadKextID:kextID error:error];
-    return NO;
-  }
-  return NO;
+  if (!isKextLoaded) return YES;
+
+  return [self _unloadKextID:kextID error:error];
 }
 
 + (BOOL)_unloadKextID:(NSString *)kextID error:(NSError **)error {
@@ -129,7 +125,7 @@
 
 + (void)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
   NSError *error = nil;
-  if (![self unloadKextID:kextID force:YES error:&error]) {
+  if (![self unloadKextID:kextID error:&error]) {
     completion(error, nil);
     return;
   }
