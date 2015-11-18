@@ -15,6 +15,6 @@ type TimeAndWriterConflictRenamer struct {
 // TimeAndWriterConflictRenamer.
 func (cr TimeAndWriterConflictRenamer) GetConflictSuffix(op op) string {
 	now := cr.config.Clock().Now()
-	nowString := now.Format(time.UnixDate)
+	nowString := now.Format(time.RFC3339Nano)
 	return fmt.Sprintf(".conflict.%s.%s", op.getWriterName(), nowString)
 }

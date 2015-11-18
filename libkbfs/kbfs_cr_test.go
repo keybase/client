@@ -278,6 +278,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
+	DisableCRForTesting(config1, rootNode1.GetFolderBranch())
+
 	// Now when user 1 tries to write to file 1 and sync, it will
 	// become unmerged.  Because this happens in the same goroutine as
 	// the above Sync, we can be sure that the updater on client 1
@@ -306,6 +308,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	defer config1B.Shutdown()
 	config2B := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer config2B.Shutdown()
+
+	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
 	readAndCompareData(t, config1B, ctx, h, data1, userName1)
 	readAndCompareData(t, config2B, ctx, h, data2, userName2)

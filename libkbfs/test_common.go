@@ -441,6 +441,36 @@ func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
 	return c, nil
 }
 
+// DisableCRForTesting stops conflict resolution for the given folder.
+// RestartCRForTesting should be called to restart it.
+func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
+	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
+	if !ok {
+		return errors.New("Unexpected KBFSOps type")
+	}
+
+	ops := kbfsOps.getOps(folderBranch)
+	ops.cr.Stop()
+	return nil
+}
+
+// RestartCRForTesting re-enables conflict resolution for the given
+// folder.
+func RestartCRForTesting(config Config, folderBranch FolderBranch) error {
+	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
+	if !ok {
+		return errors.New("Unexpected KBFSOps type")
+	}
+
+	ops := kbfsOps.getOps(folderBranch)
+	ops.cr.Restart()
+	// Start a resolution for anything we've missed.
+	if ops.staged {
+		ops.cr.Resolve(ops.getCurrMDRevision(), MetadataRevisionUninitialized)
+	}
+	return nil
+}
+
 // TestClock returns a set time as the current time.
 type TestClock struct {
 	T time.Time

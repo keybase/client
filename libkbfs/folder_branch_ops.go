@@ -865,6 +865,13 @@ func (fbo *FolderBranchOps) getEntryLocked(ctx context.Context,
 	return dblock, de, err
 }
 
+func (fbo *FolderBranchOps) getEntry(ctx context.Context, md *RootMetadata,
+	file path) (*DirBlock, DirEntry, error) {
+	fbo.blockLock.RLock()
+	defer fbo.blockLock.RUnlock()
+	return fbo.getEntryLocked(ctx, md, file)
+}
+
 // Lookup implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, de DirEntry, err error) {
@@ -1067,30 +1074,14 @@ func (fbo *FolderBranchOps) cacheBlockIfNotYetDirtyLocked(
 
 type localBcache map[BlockPointer]*DirBlock
 
-// writerLock must be taken by caller.
-func (fbo *FolderBranchOps) incrementMDLocked(md *RootMetadata) (err error) {
-	// no need to take headLock here, since we already have
-	// writerLock; no one else will be modifying the MD.
-	md.PrevRoot, err = fbo.head.MetadataID(fbo.config)
-	if err != nil {
-		return err
-	}
-	// bump revision
-	if md.Revision < MetadataRevisionInitial {
-		md.Revision = MetadataRevisionInitial
-	} else {
-		md.Revision++
-	}
-	return nil
-}
-
 // TODO: deal with multiple nodes for indirect blocks
 //
-// entryType must not be Sym.  writerLock must be taken by caller.
-func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
-	md *RootMetadata, newBlock Block, dir path, name string,
+// entryType must not be Sym.
+func (fbo *FolderBranchOps) syncBlock(ctx context.Context, uid keybase1.UID,
+	md *RootMetadata, head *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
-	lbc localBcache) (path, DirEntry, *blockPutState, error) {
+	lbc localBcache) (
+	path, DirEntry, *blockPutState, error) {
 	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return path{}, DirEntry{}, nil, err
@@ -1129,7 +1120,7 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 		if prevIdx < 0 {
 			// root dir, update the MD instead
 			de = md.data.Dir
-			err := fbo.incrementMDLocked(md)
+			err := md.increment(fbo.config, head)
 			if err != nil {
 				return path{}, DirEntry{}, nil, err
 			}
@@ -1145,21 +1136,22 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 			var ok bool
 			prevDblock, ok = lbc[prevDir.tailPointer()]
 			if !ok {
-				// If the block isn't in the local bcache, we have to
-				// fetch it, possibly from the network.  Take
-				// blockLock to make this safe, but we don't need to
-				// hold it throughout the entire syncBlock execution
-				// because we are only fetching directory blocks.
-				// Directory blocks are only ever modified while
-				// holding writerLock, so it's safe to release the
-				// blockLock in between fetches.
-				fbo.blockLock.RLock()
-				prevDblock, err = fbo.getDirLocked(ctx, md, prevDir, write)
+				prevDblock, err = func() (*DirBlock, error) {
+					// If the block isn't in the local bcache, we have to
+					// fetch it, possibly from the network.  Take
+					// blockLock to make this safe, but we don't need to
+					// hold it throughout the entire syncBlock execution
+					// because we are only fetching directory blocks.
+					// Directory blocks are only ever modified while
+					// holding writerLock, so it's safe to release the
+					// blockLock in between fetches.
+					fbo.blockLock.RLock()
+					defer fbo.blockLock.RUnlock()
+					return fbo.getDirLocked(ctx, md, prevDir, write)
+				}()
 				if err != nil {
-					fbo.blockLock.RUnlock()
 					return path{}, DirEntry{}, nil, err
 				}
-				fbo.blockLock.RUnlock()
 			}
 
 			// modify the direntry for currName; make one
@@ -1248,6 +1240,27 @@ func (fbo *FolderBranchOps) syncBlockLocked(ctx context.Context,
 		doSetTime = nextDoSetTime
 	}
 
+	return newPath, newDe, bps, nil
+}
+
+// entryType must not be Sym.  writerLock must be taken by caller.
+func (fbo *FolderBranchOps) syncBlockUsingHeadLocked(ctx context.Context,
+	md *RootMetadata, newBlock Block, dir path, name string,
+	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
+	lbc localBcache) (path, DirEntry, *blockPutState, error) {
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		return path{}, DirEntry{}, nil, err
+	}
+
+	// no need to take headLock here when reading fbo.head, since we
+	// already have writerLock; no one else will be modifying the MD.
+	newPath, newDe, bps, err := fbo.syncBlock(ctx, uid, md, fbo.head, newBlock,
+		dir, name, entryType, mtime, ctime, stopAt, lbc)
+	if err != nil {
+		return path{}, DirEntry{}, nil, err
+	}
+
 	// do the block changes need their own blocks?
 	bsplit := fbo.config.BlockSplitter()
 	if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
@@ -1323,8 +1336,6 @@ func (fbo *FolderBranchOps) doBlockPuts(ctx context.Context,
 // both writerLock and blockLocked should be taken by the caller
 func (fbo *FolderBranchOps) finalizeBlocksLocked(bps *blockPutState) error {
 	bcache := fbo.config.BlockCache()
-	fbo.cacheLock.Lock()
-	defer fbo.cacheLock.Unlock()
 	for _, blockState := range bps.blockStates {
 		newPtr := blockState.blockPtr
 		// only cache this block if we made a brand new block, not if
@@ -1442,8 +1453,8 @@ func (fbo *FolderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer) (
 	DirEntry, error) {
-	_, de, bps, err := fbo.syncBlockLocked(ctx, md, newBlock, dir, name,
-		entryType, mtime, ctime, zeroPtr, nil)
+	_, de, bps, err := fbo.syncBlockUsingHeadLocked(ctx, md, newBlock, dir,
+		name, entryType, mtime, ctime, zeroPtr, nil)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -1806,7 +1817,7 @@ func (fbo *FolderBranchOps) renameLocked(
 	}
 
 	md.AddOp(newRenameOp(oldName, oldParent.tailPointer(), newName,
-		newParent.tailPointer(), newDe.BlockPointer))
+		newParent.tailPointer(), newDe.BlockPointer, newDe.Type))
 
 	lbc := make(localBcache)
 	// look up in the old path
@@ -1913,7 +1924,7 @@ func (fbo *FolderBranchOps) renameLocked(
 
 		// The old one is not the common ancestor, so we need to sync it.
 		// TODO: optimize by pushing blocks from both paths in parallel
-		newOldPath, _, oldBps, err = fbo.syncBlockLocked(
+		newOldPath, _, oldBps, err = fbo.syncBlockUsingHeadLocked(
 			ctx, md, oldPBlock, *oldParent.parentPath(), oldParent.tailName(),
 			Dir, true, true, commonAncestor, lbc)
 		if err != nil {
@@ -1921,7 +1932,7 @@ func (fbo *FolderBranchOps) renameLocked(
 		}
 	}
 
-	newNewPath, _, newBps, err := fbo.syncBlockLocked(
+	newNewPath, _, newBps, err := fbo.syncBlockUsingHeadLocked(
 		ctx, md, newPBlock, *newParent.parentPath(), newParent.tailName(),
 		Dir, true, true, zeroPtr, lbc)
 	if err != nil {
@@ -2856,8 +2867,8 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 	fbo.blockLock.RUnlock()
 
 	newPath, _, newBps, err :=
-		fbo.syncBlockLocked(ctx, md, fblock, *parentPath, file.tailName(),
-			File, true, true, zeroPtr, lbc)
+		fbo.syncBlockUsingHeadLocked(ctx, md, fblock, *parentPath,
+			file.tailName(), File, true, true, zeroPtr, lbc)
 	if err != nil {
 		return true, err
 	}
@@ -3077,7 +3088,7 @@ func (fbo *FolderBranchOps) searchForNodesInDirLocked(ctx context.Context,
 		}
 
 		// otherwise, recurse if this represents an updated block
-		if _, ok := newPtrs[de.BlockPointer]; ok {
+		if _, ok := newPtrs[de.BlockPointer]; de.Type == Dir && ok {
 			childPath := *currDir.ChildPathNoPtr(name)
 			childPath.path[len(childPath.path)-1].BlockPointer = de.BlockPointer
 			n, err := fbo.searchForNodesInDirLocked(ctx, cache, newPtrs, md,
@@ -3364,13 +3375,7 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 
 		// find the node for the actual change; requires looking up
 		// the child entry to get the BlockPointer, unfortunately.
-		var de DirEntry
-		var err error
-		func() {
-			fbo.blockLock.RLock()
-			defer fbo.blockLock.RUnlock()
-			_, de, err = fbo.getEntryLocked(ctx, md, childPath)
-		}()
+		_, de, err := fbo.getEntry(ctx, md, childPath)
 		if err != nil {
 			return
 		}
@@ -3470,6 +3475,10 @@ func (fbo *FolderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 
 	for _, rmd := range rmds {
 		// check that we're applying the expected MD revision
+		if rmd.Revision <= fbo.getCurrMDRevisionLocked() {
+			// Already caught up!
+			continue
+		}
 		if rmd.Revision != fbo.getCurrMDRevisionLocked()+1 {
 			return MDUpdateApplyError{rmd.Revision,
 				fbo.getCurrMDRevisionLocked()}
@@ -3715,7 +3724,7 @@ func (fbo *FolderBranchOps) RekeyForTesting(
 		return nil
 	}
 
-	err = fbo.incrementMDLocked(md)
+	err = md.increment(fbo.config, fbo.head)
 	if err != nil {
 		return err
 	}
@@ -3746,7 +3755,12 @@ func (fbo *FolderBranchOps) SyncFromServer(
 	}
 
 	if fbo.staged {
-		return errors.New("Can't sync from server while unmerged.")
+		fbo.cr.Wait(ctx)
+		// If we are still staged after the wait, then we have a problem.
+		if fbo.staged {
+			return errors.New("Conflict resolution didn't take us out of " +
+				"staging.")
+		}
 	}
 
 	if fbo.getState() != cleanState {

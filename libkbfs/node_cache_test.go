@@ -301,6 +301,32 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 	}
 }
 
+// Tests that a child can be unlinked completely from the parent, and
+// then re-added with a new pointer and still work.
+func TestNodeCacheUnlinkThenRelink(t *testing.T) {
+	id := FakeTlfID(42, false)
+	branch := BranchName("testBranch")
+	ncs, _, childNode1, childNode2, _, path2 :=
+		setupNodeCache(t, id, branch, false)
+	childPtr2 := path2[2].BlockPointer
+
+	// unlink child2
+	ncs.Unlink(childPtr2, ncs.PathFromNode(childNode2))
+	newChildName := "newChildName"
+	newChildPtr2 := BlockPointer{ID: fakeBlockID(22)}
+	ncs.UpdatePointer(childPtr2, newChildPtr2)
+	ncs.GetOrCreate(newChildPtr2, newChildName, childNode1)
+
+	path := ncs.PathFromNode(childNode2)
+	path2[2].BlockPointer = newChildPtr2
+	path2[2].Name = newChildName
+	checkNodeCachePath(t, id, branch, path, path2)
+
+	if g, e := childNode2.GetBasename(), newChildName; g != e {
+		t.Errorf("Expected basename %s, got %s", e, g)
+	}
+}
+
 // Tests that PathFromNode works correctly
 func TestNodeCachePathFromNode(t *testing.T) {
 	id := FakeTlfID(42, false)

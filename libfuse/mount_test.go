@@ -58,6 +58,13 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 
 type fileInfoCheck func(fi os.FileInfo) error
 
+func mustBeFileWithSize(fi os.FileInfo, size int64) error {
+	if fi.Size() != size {
+		return fmt.Errorf("Bad file size: %d", fi.Size())
+	}
+	return nil
+}
+
 func mustBeDir(fi os.FileInfo) error {
 	if !fi.IsDir() {
 		return fmt.Errorf("not a directory: %v", fi)
@@ -625,10 +632,7 @@ func TestRename(t *testing.T) {
 
 	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe"), map[string]fileInfoCheck{
 		"new": func(fi os.FileInfo) error {
-			if fi.Size() != int64(len(input)) {
-				return fmt.Errorf("Bad file size: %d", fi.Size())
-			}
-			return nil
+			return mustBeFileWithSize(fi, int64(len(input)))
 		},
 	})
 
@@ -813,10 +817,7 @@ func TestWriteThenRename(t *testing.T) {
 	// check that the new path has the right length still
 	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe"), map[string]fileInfoCheck{
 		"new": func(fi os.FileInfo) error {
-			if fi.Size() != int64(len(input)) {
-				return fmt.Errorf("Bad file size: %d", fi.Size())
-			}
-			return nil
+			return mustBeFileWithSize(fi, int64(len(input)))
 		},
 	})
 
@@ -876,10 +877,7 @@ func TestWriteThenRenameCrossDir(t *testing.T) {
 	// check that the new path has the right length still
 	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe", "two"), map[string]fileInfoCheck{
 		"new": func(fi os.FileInfo) error {
-			if fi.Size() != int64(len(input)) {
-				return fmt.Errorf("Bad file size: %d", fi.Size())
-			}
-			return nil
+			return mustBeFileWithSize(fi, int64(len(input)))
 		},
 	})
 
@@ -2193,10 +2191,7 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 
 	checkDir(t, mydir2, map[string]fileInfoCheck{
 		"b": func(fi os.FileInfo) error {
-			if fi.Size() != int64(len(input1)) {
-				return fmt.Errorf("Bad file size: %d", fi.Size())
-			}
-			return nil
+			return mustBeFileWithSize(fi, int64(len(input1)))
 		},
 	})
 
@@ -2430,6 +2425,10 @@ func TestUnstageFile(t *testing.T) {
 		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't pause user 2 updates")
+	}
+	err = libkbfs.DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable user 2 CR")
 	}
 
 	// user1 writes a file and makes a few directories

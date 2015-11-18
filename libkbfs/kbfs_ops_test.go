@@ -3469,8 +3469,7 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 		// Turn off the conflict resolver to avoid unexpected mock
 		// calls.  Recreate the input channel to make sure the later
 		// Shutdown() call works.
-		ops.cr.Shutdown()
-		ops.cr.inputChan = make(chan conflictInput)
+		ops.cr.Stop()
 		expectedPath, _ = expectSyncBlockUnmerged(t, config, nil, uid, id,
 			"", p, rmd, false, 0, 0, 0, &newRmd, blocks)
 	} else {

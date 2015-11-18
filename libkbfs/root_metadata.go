@@ -367,6 +367,23 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.data.Changes.Ops = nil
 }
 
+// incrementMD makes this MD the immediate follower of the given
+// currMD.  It assumes md was deep-copied from currMD.
+func (md *RootMetadata) increment(config Config, currMD *RootMetadata) error {
+	var err error
+	md.PrevRoot, err = currMD.MetadataID(config)
+	if err != nil {
+		return err
+	}
+	// bump revision
+	if md.Revision < MetadataRevisionInitial {
+		md.Revision = MetadataRevisionInitial
+	} else {
+		md.Revision++
+	}
+	return nil
+}
+
 // RootMetadataSigned is the top-level MD object stored in MD server
 type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key

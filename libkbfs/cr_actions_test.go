@@ -7,10 +7,10 @@ import (
 
 func TestCRActionsCollapseNoChange(t *testing.T) {
 	al := crActionList{
-		&copyUnmergedEntryAction{"old1", "new1", ""},
-		&copyUnmergedEntryAction{"old2", "new2", ""},
-		&renameUnmergedAction{"old3", "new3"},
-		&renameMergedAction{"old4", "new4"},
+		&copyUnmergedEntryAction{"old1", "new1", "", false, false},
+		&copyUnmergedEntryAction{"old2", "new2", "", false, false},
+		&renameUnmergedAction{"old3", "new3", ""},
+		&renameMergedAction{"old4", "new4", "", BlockPointer{}},
 		&copyUnmergedAttrAction{"old5", "new5", []attrChange{mtimeAttr}},
 	}
 
@@ -23,8 +23,8 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 func TestCRActionsCollapseEntry(t *testing.T) {
 	al := crActionList{
 		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}},
-		&copyUnmergedEntryAction{"old", "new", ""},
-		&renameUnmergedAction{"old", "new"},
+		&copyUnmergedEntryAction{"old", "new", "", false, false},
+		&renameUnmergedAction{"old", "new", ""},
 	}
 
 	expected := crActionList{

@@ -84,6 +84,19 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[ptr]
 	if ok {
+		// If the entry happens to be unlinked, we may be in a
+		// situation where a node got unlinked and then recreated, but
+		// someone held onto a node the whole time and so it never got
+		// removed from the cache.  In that case, just stitch it back
+		// together.
+		if parent != nil && entry.core.parent == nil {
+			entry.core.cachedPath = path{}
+			entry.core.parent, ok = parent.(*nodeStandard)
+			if !ok {
+				return nil, ParentNodeNotFoundError{BlockPointer{}}
+			}
+			entry.core.pathNode.Name = name
+		}
 		return makeNodeStandardForEntry(entry), nil
 	}
 

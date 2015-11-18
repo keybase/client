@@ -20,7 +20,7 @@ type Folder struct {
 	name         string
 	folderBranch libkbfs.FolderBranch
 
-	// Protects the fields below.
+	// Protects the nodes map.
 	mu sync.Mutex
 	// Map KBFS nodes to FUSE nodes, to be able to handle multiple
 	// lookups and incoming change notifications. A node is present
@@ -31,6 +31,13 @@ type Folder struct {
 	// Children must call folder.forgetChildLocked on receiving the
 	// FUSE Forget request.
 	nodes map[libkbfs.NodeID]fs.Node
+
+	// Protects the updateChan.
+	updateMu sync.Mutex
+	// updateChan is non-nil when the user disables updates via the
+	// file system.  Sending a struct{}{} on this channel will unpause
+	// the updates.
+	updateChan chan<- struct{}
 }
 
 // forgetNode forgets a formerly active child with basename name.
@@ -220,27 +227,39 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
-	if req.Name == libkbfs.ErrorFile {
+	switch req.Name {
+	case libkbfs.ErrorFile:
 		return NewErrorFile(d.folder.fs, resp), nil
-	}
 
-	if req.Name == MetricsFileName {
+	case MetricsFileName:
 		return NewMetricsFile(d.folder.fs, resp), nil
-	}
 
-	if req.Name == StatusFileName {
+	case StatusFileName:
 		return NewStatusFile(d.folder, resp), nil
-	}
 
-	if req.Name == UnstageFileName {
+	case UnstageFileName:
 		resp.EntryValid = 0
 		child := &UnstageFile{
 			folder: d.folder,
 		}
 		return child, nil
-	}
 
-	if req.Name == RekeyFileName {
+	case DisableUpdatesFileName:
+		resp.EntryValid = 0
+		child := &UpdatesFile{
+			folder: d.folder,
+		}
+		return child, nil
+
+	case EnableUpdatesFileName:
+		resp.EntryValid = 0
+		child := &UpdatesFile{
+			folder: d.folder,
+			enable: true,
+		}
+		return child, nil
+
+	case RekeyFileName:
 		resp.EntryValid = 0
 		child := &RekeyFile{
 			folder: d.folder,

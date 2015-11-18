@@ -39,7 +39,7 @@ module Test
     end
     as bob, sync: false do
       write "a/b", "uh oh"
-      reenable_updates error: "Can't sync from server while unmerged."
+      reenable_updates error: "Conflict resolution didn't take us out of staging."
       # Can uncomment out the below when conflict resolution is complete.
       # lsdir "a/", { "b" => "FILE", "b.conflict.*" => "FILE" }
     end

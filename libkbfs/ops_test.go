@@ -75,10 +75,10 @@ func TestOpInversion(t *testing.T) {
 	}
 
 	// rename
-	rop := newRenameOp("old", oldPtr1, "new", oldPtr2, filePtr)
+	rop := newRenameOp("old", oldPtr1, "new", oldPtr2, filePtr, File)
 	rop.AddUpdate(oldPtr1, newPtr1)
 	rop.AddUpdate(oldPtr2, newPtr2)
-	expectedIOp3 := newRenameOp("new", newPtr2, "old", newPtr1, filePtr)
+	expectedIOp3 := newRenameOp("new", newPtr2, "old", newPtr1, filePtr, File)
 	expectedIOp3.AddUpdate(newPtr1, oldPtr1)
 	expectedIOp3.AddUpdate(newPtr2, oldPtr2)
 

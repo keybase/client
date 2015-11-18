@@ -830,7 +830,7 @@ type Clock interface {
 
 // ConflictRenamer deals with names for conflicting directory entries.
 type ConflictRenamer interface {
-	// GetConflictResolver returns the appropriate suffix for the
+	// GetConflictSuffix returns the appropriate suffix for the
 	// given op causing a conflict.
 	GetConflictSuffix(op op) string
 }
@@ -961,6 +961,13 @@ type fileBlockDeepCopier func(context.Context, string, BlockPointer) (
 // crAction represents a specific action to take as part of the
 // conflict resolution process.
 type crAction interface {
+	// swapUnmergedBlock should be called before do(), and if it
+	// returns true, the caller must use the merged block
+	// corresponding to the returned BlockPointer instead of
+	// unmergedBlock when calling do().  If BlockPointer{} is zeroPtr
+	// (and true is returned), just swap in the regular mergedBlock.
+	swapUnmergedBlock(unmergedChains *crChains, mergedChains *crChains,
+		unmergedBlock *DirBlock) (bool, BlockPointer, error)
 	// do modifies the given merged block in place to resolve the
 	// conflict, and potential uses the provided blockCopyFetchers to
 	// obtain copies of other blocks (along with new BlockPointers)
@@ -986,8 +993,8 @@ type crAction interface {
 	//   each of those ops; that must happen in a later phase.
 	// * mergedBlock can be nil if the chain is for a file.
 	updateOps(unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer,
-		mergedBlock *DirBlock, unmergedChains *crChains,
-		mergedChains *crChains) error
+		unmergedBlock *DirBlock, mergedBlock *DirBlock,
+		unmergedChains *crChains, mergedChains *crChains) error
 	// String returns a string representation for this crAction, used
 	// for debugging.
 	String() string
