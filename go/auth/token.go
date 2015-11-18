@@ -144,7 +144,7 @@ func (t Token) ClientVersion() string {
 }
 
 func parseToken(token []byte) (*Token, error) {
-        decoder := json.NewDecoder(bytes.NewReader(token))
+	decoder := json.NewDecoder(bytes.NewReader(token))
 	decoder.UseNumber()
 	var t Token
 	if err := decoder.Decode(&t); err != nil {
