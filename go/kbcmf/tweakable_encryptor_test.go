@@ -11,15 +11,17 @@ import (
 )
 
 type testEncryptionOptions struct {
-	blockSize                     int
-	skipFooter                    bool
-	corruptEncryptionBlock        func(bl *EncryptionBlock, ebn encryptionBlockNumber)
-	corruptNonce                  func(n *Nonce, ebn encryptionBlockNumber)
-	corruptMacKey                 func(k *SymmetricKey, i int)
-	corruptReceiverKeysPlaintext  func(rk *receiverKeysPlaintext, gid int, rid int)
-	corruptReceiverKeysCiphertext func(rk *receiverKeysCiphertext, gid int, rid int)
-	corruptHeaderNonce            func(n *Nonce, gid int, rid int)
-	corruptHeader                 func(eh *EncryptionHeader)
+	blockSize                          int
+	skipFooter                         bool
+	corruptEncryptionBlock             func(bl *EncryptionBlock, ebn encryptionBlockNumber)
+	corruptNonce                       func(n *Nonce, ebn encryptionBlockNumber)
+	corruptMacKey                      func(k *SymmetricKey, i int)
+	corruptReceiverKeysPlaintext       func(rk *receiverKeysPlaintext, gid int, rid int)
+	corruptReceiverKeysPlaintextPacked func(b []byte, gid int, rid int)
+	corruptReceiverKeysCiphertext      func(rk *receiverKeysCiphertexts, gid int, rid int)
+	corruptHeaderNonce                 func(n *Nonce, gid int, rid int, slot int)
+	corruptHeader                      func(eh *EncryptionHeader)
+	corruptHeaderPacked                func(b []byte)
 }
 
 func (eo testEncryptionOptions) getBlockSize() int {
@@ -49,7 +51,15 @@ func (pes *testEncryptStream) Write(plaintext []byte) (int, error) {
 
 	if !pes.didHeader {
 		pes.didHeader = true
-		pes.err = encodeNewPacket(pes.output, pes.header)
+		var buf bytes.Buffer
+		pes.err = encodeNewPacket(&buf, pes.header)
+		b := buf.Bytes()
+		if pes.options.corruptHeaderPacked != nil {
+			pes.options.corruptHeaderPacked(b)
+		}
+		if pes.err == nil {
+			_, pes.err = pes.output.Write(b)
+		}
 	}
 
 	if pes.err != nil {
@@ -124,11 +134,23 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 }
 
 func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) error {
+
+	ephemeralKey, err := receivers[0][0].CreateEphemeralKey()
+	if err != nil {
+		return err
+	}
+
+	// If we have a NULL Sender key, then we really want an ephemeral key
+	// as the main encryption key.
+	if sender == nil {
+		sender = ephemeralKey
+	}
+
 	eh := &EncryptionHeader{
 		Version:   PacketVersion1,
 		Tag:       PacketTagEncryptionHeader,
-		Sender:    sender.GetPublicKey().ToKID(),
-		Receivers: make([]receiverKeysCiphertext, 0, len(receivers)),
+		Sender:    ephemeralKey.GetPublicKey().ToKID(),
+		Receivers: make([]receiverKeysCiphertexts, 0, len(receivers)),
 	}
 	pes.header = eh
 	if err := randomFill(pes.sessionKey[:]); err != nil {
@@ -188,24 +210,40 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicK
 			}
 
 			pte, err := encodeToBytes(pt)
+			if pes.options.corruptReceiverKeysPlaintextPacked != nil {
+				pes.options.corruptReceiverKeysPlaintextPacked(pte, gid, rid)
+			}
 			if err != nil {
 				return err
 			}
 			nonce.writeCounter32(i)
+			i++
 
 			if pes.options.corruptHeaderNonce != nil {
-				pes.options.corruptHeaderNonce(&nonce, gid, rid)
+				pes.options.corruptHeaderNonce(&nonce, gid, rid, 0)
 			}
 
+			ske, err := ephemeralKey.Box(receiver, &nonce, sender.GetPublicKey().ToKID())
+			if err != nil {
+				return err
+			}
+
+			if pes.options.corruptHeaderNonce != nil {
+				pes.options.corruptHeaderNonce(&nonce, gid, rid, 1)
+			}
+
+			nonce.writeCounter32(i)
 			i++
+
 			ptec, err := sender.Box(receiver, &nonce, pte)
 			if err != nil {
 				return err
 			}
 
-			rkc := receiverKeysCiphertext{
-				KID:  kid,
-				Keys: ptec,
+			rkc := receiverKeysCiphertexts{
+				KID:    kid,
+				Keys:   ptec,
+				Sender: ske,
 			}
 
 			if pes.options.corruptReceiverKeysCiphertext != nil {

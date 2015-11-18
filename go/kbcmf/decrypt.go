@@ -11,20 +11,6 @@ import (
 	"io/ioutil"
 )
 
-// Keyring is an interface used with decryption; it is call to recover
-// public or private keys during the decryption process. Calls can block
-// on network action.
-type Keyring interface {
-	// LookupBoxSecretKey looks in the Keyring for the secret key corresponding
-	// to one of the given Key IDs.  Returns the index and the key on success,
-	// or -1 and nil on failure.
-	LookupBoxSecretKey(kids [][]byte) (int, BoxSecretKey)
-
-	// LookupBoxPublicKey returns a public key given the specified key ID.
-	// For most cases, the key ID will be the key itself.
-	LookupBoxPublicKey(kid []byte) BoxPublicKey
-}
-
 type decryptState int
 
 const (
@@ -149,6 +135,11 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	if err := hdr.validate(); err != nil {
 		return err
 	}
+	ephemeralKey := ds.ring.ImportEphemeralKey(hdr.Sender)
+	if ephemeralKey == nil {
+		return ErrBadEphemeralKey
+	}
+
 	var kids [][]byte
 	for _, r := range hdr.Receivers {
 		kids = append(kids, r.KID)
@@ -157,13 +148,29 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	if sk == nil || i < 0 {
 		return ErrNoDecryptionKey
 	}
-	pk := ds.ring.LookupBoxPublicKey(hdr.Sender)
-	if pk == nil {
-		return ErrNoSenderKey
-	}
+
+	// Decrypt the sender's public key
 	var nonce Nonce
 	copy(nonce[:], hdr.Nonce)
-	nonce.writeCounter32(uint32(i))
+	nonce.writeCounter32(uint32(2 * i))
+	senderPublicKey, err := sk.Unbox(ephemeralKey, &nonce, hdr.Receivers[i].Sender)
+	if err != nil {
+		return err
+	}
+
+	// Lookup the sender's secret key in our keyring, and import
+	// it for use. However, if the sender key is the same as the ephemeral
+	// key, then assume "anonymous mode", so use the already imported anonymous
+	// key.
+	pk := ephemeralKey
+	if !hmac.Equal(hdr.Sender, senderPublicKey) {
+		pk = ds.ring.LookupBoxPublicKey(senderPublicKey)
+		if pk == nil {
+			return ErrNoSenderKey
+		}
+	}
+
+	nonce.writeCounter32(uint32(2*i + 1))
 	keysPacked, err := sk.Unbox(pk, &nonce, hdr.Receivers[i].Keys)
 	if err != nil {
 		return err
