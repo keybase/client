@@ -12,7 +12,7 @@
 #import "KBRPC.h"
 #import "KBComponent.h"
 
-@interface KBControlPanel : YOView
+@interface KBControlPanel : YOView <NSWindowDelegate>
 
 @property KBNavigationView *navigation;
 @property KBRPClient *client;

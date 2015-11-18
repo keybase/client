@@ -1,7 +1,6 @@
 platform :osx, "10.10"
 
 target "Keybase" do
-  #use_frameworks!
   pod "ObjectiveSugar"
   pod "KBKit", :path => "KBKit"
 end

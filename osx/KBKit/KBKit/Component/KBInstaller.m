@@ -8,112 +8,81 @@
 
 #import "KBInstaller.h"
 
-//#include <launch.h>
 #import "KBRunOver.h"
 #import "KBInstallable.h"
 #import "KBInstallAction.h"
 #import "KBWorkspace.h"
 
 #import "KBDefines.h"
-#import "KBKeybaseLaunchd.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <GHKit/GHKit.h>
 
 @implementation KBInstaller
 
-- (void)installWithEnvironment:(KBEnvironment *)environment completion:(void (^)(NSArray *installActions))completion {
-  NSArray *installActionsNeeded = [environment installActionsNeeded];
-  [self install:installActionsNeeded completion:^{
-    completion(installActionsNeeded);
-  }];
-}
-
-- (void)install:(NSArray *)installActions completion:(dispatch_block_t)completion {
+- (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force completion:(dispatch_block_t)completion {
   // Ensure application support dir is available
   [KBWorkspace applicationSupport:nil create:YES error:nil]; // TODO Handle error
 
+  // TODO force
+
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.enumerator = [installActions objectEnumerator];
-  rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
-    DDLogDebug(@"Install: %@", installAction.name);
-    [installAction.installable install:^(NSError *error) {
-      installAction.attempted = YES;
-      installAction.error = error; // Error can be nil
-      if (!error) {
-        [installAction.installable refreshComponent:^(NSError *error) {
-          installAction.error = error; // Error can be nil
-          runCompletion(installAction);
-        }];
-      } else {
-        runCompletion(installAction);
-      }
+  rover.enumerator = [environment.installables objectEnumerator];
+  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
+    DDLogDebug(@"Install: %@", installable.name);
+    [installable install:^(NSError *error) {
+      // TODO Remove error from definition
+      NSAssert(!error, @"Error shouldn't be set here, use componentStatus");
+      [installable refreshComponent:^(NSError *error) {
+        // TODO Remove error from definition
+        NSAssert(!error, @"Error shouldn't be set here, use componentStatus");
+        runCompletion(installable);
+      }];
     }];
   };
-  rover.completion = ^(NSArray *installActions) {
+  rover.completion = ^(NSArray *installables) {
     completion();
   };
   [rover run];
 }
 
-- (void)installStatusWithEnvironment:(KBEnvironment *)environment completion:(void (^)(BOOL needsInstall, BOOL brewConflict))completion {
-  [self installStatus:environment.installActions completion:^{
-    [self checkBrew:environment completion:^(NSError *error, NSArray *brewServices) {
-      completion([[environment installActionsNeeded] count] > 0, [brewServices count] > 0);
-    }];
-  }];
+- (void)refreshStatusWithEnvironment:(KBEnvironment *)environment completion:(dispatch_block_t)completion {
+  [self refreshStatus:environment.installables completion:completion];
 }
 
-- (void)checkBrew:(KBEnvironment *)environment completion:(void (^)(NSError *error, NSArray *services))completion {
-  NSString *binPath = [environment.config serviceBinPathWithPathOptions:0 useBundle:YES];
-  [KBKeybaseLaunchd list:binPath name:@"service" completion:^(NSError *error, NSArray *serviceStatuses) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    completion(nil, [serviceStatuses select:^BOOL(KBRServiceStatus *serviceStatus) {
-      return [serviceStatus.label gh_startsWith:@"homebrew."];
-    }]);
-  }];
-}
-
-- (void)installStatus:(NSArray *)installActions completion:(dispatch_block_t)completion {
+- (void)refreshStatus:(NSArray *)installables completion:(dispatch_block_t)completion {
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.enumerator = [installActions objectEnumerator];
-  rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
-    DDLogDebug(@"Checking %@", installAction.installable.name);
-    [installAction.installable refreshComponent:^(NSError *error) {
-      // Clear install outcome (since we're refreshing) and set error if one
-      installAction.attempted = NO;
-      installAction.error = error; // Error can be nil
-      runCompletion(installAction);
+  rover.enumerator = [installables objectEnumerator];
+  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
+    DDLogDebug(@"Checking %@", installable.name);
+    [installable refreshComponent:^(NSError *error) {
+      // TODO Remove error from definition
+      NSAssert(!error, @"Error shouldn't be set here, use componentStatus");
+      runCompletion(installable);
     }];
   };
-  rover.completion = ^(NSArray *installActions) {
+  rover.completion = ^(NSArray *installables) {
     completion();
   };
   [rover run];
 }
 
-- (void)uninstallWithEnvironment:(KBEnvironment *)environment completion:(void (^)(NSArray *installActions))completion {
-  NSArray *installActions = [environment.installables map:^(id<KBInstallable> i) {
-    return [KBInstallAction installActionWithInstallable:i]; }];
-  [self uninstall:installActions completion:^{
-    completion(installActions);
+- (void)uninstallWithEnvironment:(KBEnvironment *)environment completion:(dispatch_block_t)completion {
+  [self uninstall:environment.installables completion:^{
+    completion();
   }];
 }
 
-- (void)uninstall:(NSArray *)installActions completion:(dispatch_block_t)completion {
+- (void)uninstall:(NSArray *)installables completion:(dispatch_block_t)completion {
   KBRunOver *rover = [[KBRunOver alloc] init];
-  rover.enumerator = [installActions reverseObjectEnumerator];
-  rover.runBlock = ^(KBInstallAction *installAction, KBRunCompletion runCompletion) {
-    [installAction.installable uninstall:^(NSError *error) {
-      installAction.attempted = YES;
-      installAction.error = error; // Error can be nil
-      runCompletion(installAction);
+  rover.enumerator = [installables reverseObjectEnumerator];
+  rover.runBlock = ^(id<KBInstallable> installable, KBRunCompletion runCompletion) {
+    [installable uninstall:^(NSError *error) {
+      // TODO Set error
+      runCompletion(installable);
     }];
   };
-  rover.completion = ^(NSArray *outputs) {
+  rover.completion = ^(NSArray *installables) {
     completion();
   };
   [rover run];

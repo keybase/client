@@ -1,5 +1,5 @@
 //
-//  KBErrorStatusView.h
+//  KBStatusView.h
 //  Keybase
 //
 //  Created by Gabriel on 3/6/15.
@@ -10,7 +10,7 @@
 
 #import <Tikppa/Tikppa.h>
 
-@interface KBErrorStatusView : YOView
+@interface KBStatusView : YOView
 
 @property UIEdgeInsets insets;
 

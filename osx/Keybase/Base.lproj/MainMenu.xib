@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9059" systemVersion="14F1021" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="9059" systemVersion="14F27" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="9059"/>
     </dependencies>
@@ -31,16 +31,6 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
-                            <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW">
-                                <connections>
-                                    <action selector="preferences:" target="Voe-Tx-rLC" id="QrA-LT-P7E"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
-                            <menuItem title="Check for Updates..." id="e8t-Jg-KlZ">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                            </menuItem>
-                            <menuItem isSeparatorItem="YES" id="wg0-Lt-lRQ"/>
                             <menuItem title="Services" id="NMo-om-nkz">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Services" systemMenu="services" id="hz9-B4-Xy5"/>
@@ -636,70 +626,6 @@
                         </items>
                     </menu>
                 </menuItem>
-                <menuItem title="PGP" id="yus-Qe-iK0">
-                    <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="PGP" systemMenu="font" id="h7H-nr-b12">
-                        <items>
-                            <menuItem title="Encrypt (Text)" id="l8d-br-Xgs">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="encrypt:" target="sgt-hv-QAE" id="rZu-OB-e7e"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Encrypt (Files)" id="1JV-DW-i8f">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="encryptFile:" target="sgt-hv-QAE" id="1y8-xb-GfA"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem isSeparatorItem="YES" id="8ty-P6-xxk"/>
-                            <menuItem title="Decrypt (Text)" id="lpk-oF-x7E">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="decrypt:" target="sgt-hv-QAE" id="Al0-ke-4Wd"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Decrypt (Files)" id="HxN-b5-eLU">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="decryptFile:" target="sgt-hv-QAE" id="2dg-4q-Sea"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem isSeparatorItem="YES" id="XZ7-Yo-hya"/>
-                            <menuItem title="Sign (Text)" id="haB-7X-NaD">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="sign:" target="sgt-hv-QAE" id="dLy-ya-e7D"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Sign (File)" id="asn-dM-5tl">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="signFile:" target="sgt-hv-QAE" id="tcY-aS-54R"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Sign (Files)" id="z6n-6L-HKn">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="signFiles:" target="sgt-hv-QAE" id="Pla-Ot-dT5"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem isSeparatorItem="YES" id="YkX-ax-9J9"/>
-                            <menuItem title="Verify" id="OiT-4T-sgp" userLabel="Verify">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="verify:" target="sgt-hv-QAE" id="BWe-re-ugZ"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Verify (File)" id="AYr-WI-Hzf">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <connections>
-                                    <action selector="verifyFile:" target="sgt-hv-QAE" id="2w8-Pe-6Ja"/>
-                                </connections>
-                            </menuItem>
-                        </items>
-                    </menu>
-                </menuItem>
                 <menuItem title="Window" id="aUF-d1-5bR">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Window" systemMenu="window" id="Td7-aD-5lo">
@@ -739,5 +665,69 @@
                 </menuItem>
             </items>
         </menu>
+        <menuItem title="PGP" id="yus-Qe-iK0">
+            <modifierMask key="keyEquivalentModifierMask"/>
+            <menu key="submenu" title="PGP" systemMenu="font" id="h7H-nr-b12">
+                <items>
+                    <menuItem title="Encrypt (Text)" id="l8d-br-Xgs">
+                        <modifierMask key="keyEquivalentModifierMask"/>
+                        <connections>
+                            <action selector="encrypt:" target="sgt-hv-QAE" id="rZu-OB-e7e"/>
+                        </connections>
+                    </menuItem>
+                    <menuItem title="Encrypt (Files)" id="1JV-DW-i8f">
+                        <modifierMask key="keyEquivalentModifierMask"/>
+                        <connections>
+                            <action selector="encryptFile:" target="sgt-hv-QAE" id="1y8-xb-GfA"/>
+                        </connections>
+                    </menuItem>
+                    <menuItem isSeparatorItem="YES" id="8ty-P6-xxk"/>
+                    <menuItem title="Decrypt (Text)" id="lpk-oF-x7E">
+                        <modifierMask key="keyEquivalentModifierMask"/>
+                        <connections>
+                            <action selector="decrypt:" target="sgt-hv-QAE" id="Al0-ke-4Wd"/>
+                        </connections>
+                    </menuItem>
+                    <menuItem title="Decrypt (Files)" id="HxN-b5-eLU">
+                        <modifierMask key="keyEquivalentModifierMask"/>
+                        <connections>
+                            <action selector="decryptFile:" target="sgt-hv-QAE" id="2dg-4q-Sea"/>
+                        </connections>
+                    </menuItem>
+                    <menuItem isSeparatorItem="YES" id="XZ7-Yo-hya"/>
+                    <menuItem title="Sign (Text)" id="haB-7X-NaD">
+                        <modifierMask key="keyEquivalentModifierMask"/>
+                        <connections>
+                            <action selector="sign:" target="sgt-hv-QAE" id="dLy-ya-e7D"/>
+                        </connections>
+                    </menuItem>
+                    <menuItem title="Sign (File)" id="asn-dM-5tl">
+                        <modifierMask key="keyEquivalentModifierMask"/>
+                        <connections>
+                            <action selector="signFile:" target="sgt-hv-QAE" id="tcY-aS-54R"/>
+                        </connections>
+                    </menuItem>
+                    <menuItem title="Sign (Files)" id="z6n-6L-HKn">
+                        <modifierMask key="keyEquivalentModifierMask"/>
+                        <connections>
+                            <action selector="signFiles:" target="sgt-hv-QAE" id="Pla-Ot-dT5"/>
+                        </connections>
+                    </menuItem>
+                    <menuItem isSeparatorItem="YES" id="YkX-ax-9J9"/>
+                    <menuItem title="Verify" id="OiT-4T-sgp" userLabel="Verify">
+                        <modifierMask key="keyEquivalentModifierMask"/>
+                        <connections>
+                            <action selector="verify:" target="sgt-hv-QAE" id="BWe-re-ugZ"/>
+                        </connections>
+                    </menuItem>
+                    <menuItem title="Verify (File)" id="AYr-WI-Hzf">
+                        <modifierMask key="keyEquivalentModifierMask"/>
+                        <connections>
+                            <action selector="verifyFile:" target="sgt-hv-QAE" id="2w8-Pe-6Ja"/>
+                        </connections>
+                    </menuItem>
+                </items>
+            </menu>
+        </menuItem>
     </objects>
 </document>

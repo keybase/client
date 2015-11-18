@@ -10,9 +10,9 @@
 
 #import "KBDebugPropertiesView.h"
 #import "KBSemVersion.h"
-#import "KBServiceConfig.h"
 #import "KBRPC.h"
 #import "KBSemVersion.h"
+#import "KBTask.h"
 #import "KBKeybaseLaunchd.h"
 
 @interface KBService ()
@@ -22,7 +22,6 @@
 @property NSString *info;
 @property (getter=isInstallDisabled) BOOL installDisabled;
 
-@property KBServiceConfig *serviceConfig;
 @property NSString *label;
 @property KBSemVersion *bundleVersion;
 
@@ -42,7 +41,6 @@
     _name = @"Service";
     _info = @"The Keybase service";
 
-    _serviceConfig = [[KBServiceConfig alloc] initWithConfig:_config];
     _label = label;
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
     _bundleVersion = [KBSemVersion version:info[@"KBServiceVersion"] build:info[@"KBServiceBuild"]];
@@ -115,7 +113,9 @@
 
 - (void)install:(KBCompletion)completion {
   NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
-  [KBKeybaseLaunchd install:binPath label:_label serviceBinPath:binPath args:@[@"service"] completion:completion];
+  [KBTask execute:binPath args:@[@"-d", @"install", @"--components=cli,service"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+    completion(error);
+  }];
 }
 
 - (void)uninstall:(KBCompletion)completion {

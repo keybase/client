@@ -35,6 +35,8 @@
 
 - (void)open;
 
+- (void)openControlPanel;
+
 - (NSWindow *)mainWindow;
 
 - (KBService *)service;

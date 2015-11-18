@@ -1,21 +1,21 @@
 //
-//  KBErrorStatusView.m
+//  KBStatusView.m
 //  Keybase
 //
 //  Created by Gabriel on 3/6/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBErrorStatusView.h"
+#import "KBStatusView.h"
 
-@interface KBErrorStatusView ()
+@interface KBStatusView ()
 @property KBLabel *titleLabel;
 @property KBLabel *label;
 @property KBLabel *descriptionLabel;
 @property YOHBox *buttons;
 @end
 
-@implementation KBErrorStatusView
+@implementation KBStatusView
 
 - (void)viewInit {
   [super viewInit];
@@ -82,7 +82,7 @@
   }
 
   if (close) {
-    KBButton *closeButton = [KBButton buttonWithText:@"Quit" style:KBButtonStyleDefault];
+    KBButton *closeButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];
     closeButton.targetBlock = close;
     [_buttons addSubview:closeButton];
   }

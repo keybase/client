@@ -113,12 +113,6 @@
     [window center];
     [window makeKeyAndOrderFront:nil];
   }
-
-  //#ifdef DEBUG
-  //  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-  //    envSelectView.onSelect([KBEnvironment env:KBEnvManual]);
-  //  });
-  //#endif
 }
 
 - (void)openWithEnvironment:(KBEnvironment *)environment {
@@ -130,9 +124,11 @@
 //  [componentsForControlPanel addObject:[[KBStyleGuideView alloc] init]];
   [_controlPanel addComponents:componentsForControlPanel];
 
-  [_controlPanel open:_appView];
-
   [_appView openWithEnvironment:environment completion:^(NSError *error) {}];
+}
+
+- (void)openControlPanel {
+  [_controlPanel open:_appView];
 }
 
 - (void)_test {

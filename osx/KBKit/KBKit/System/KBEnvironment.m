@@ -22,9 +22,9 @@
 @property KBFSService *kbfs;
 @property NSMutableArray */*of id<KBComponent>*/components;
 @property NSArray */*of id<KBInstallable>*/installables;
-@property NSArray */*of KBInstallAction*/installActions;
 @property NSArray *services;
 @end
+
 
 @implementation KBEnvironment
 
@@ -38,23 +38,15 @@
     _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel]];
 
     _installables = [NSArray arrayWithObjects:_service, helperTool, fuse, _kbfs, nil];
+
     _services = [NSArray arrayWithObjects:_service, _kbfs, nil];
     _components = [NSMutableArray arrayWithObjects:_service, _kbfs, helperTool, fuse, nil];
-
-    _installActions = [_installables map:^(id<KBInstallable> i) { return [KBInstallAction installActionWithInstallable:i]; }];
   }
   return self;
 }
 
 - (NSArray *)componentsForControlPanel {
   return _components;
-}
-
-- (NSArray *)installActionsNeeded {
-  return [_installActions select:^BOOL(KBInstallAction *installAction) {
-    return (!installAction.installable.isInstallDisabled &&
-            ([installAction.installable.componentStatus needsInstallOrUpgrade]));
-  }];
 }
 
 @end

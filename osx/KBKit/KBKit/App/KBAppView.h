@@ -21,13 +21,15 @@
 
 - (void)openWithEnvironment:(KBEnvironment *)environment completion:(KBCompletion)completion;
 
-- (KBWindow *)openWindow;
+- (void)openWindow;
 
 - (void)showLogin;
 - (void)logout:(BOOL)prompt;
 
 - (void)showInProgress:(NSString *)title;
 - (void)checkStatus;
+
+- (void)showInstallStatusView:(KBCompletion)completion;
 
 - (NSString *)APIURLString:(NSString *)path;
 

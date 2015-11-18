@@ -61,8 +61,6 @@ NSString *KBNSStringWithFormat(NSString *formatString, ...);
 
 NSString *KBNSStringByStrippingHTML(NSString *str);
 
-#define LINK_SOURCE (@"/usr/local/bin/keybase")
-
 BOOL KBIsErrorName(NSError *error, NSString *name);
 
 

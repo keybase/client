@@ -22,7 +22,6 @@
 
 @interface KBHelperTool ()
 @property KBDebugPropertiesView *infoView;
-@property (nonatomic) MPXPCClient *helper;
 @end
 
 @implementation KBHelperTool
@@ -49,8 +48,8 @@
 }
 
 - (MPXPCClient *)helper {
-  if (!_helper) _helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
-  return _helper;
+  // Always use a new helper tool since it can be interrupted if stale or updated.
+  return [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
 }
 
 - (void)componentDidUpdate {
@@ -96,6 +95,16 @@
 }
 
 - (void)install:(KBCompletion)completion {
+  [self refreshComponent:^(NSError *error) {
+    if (self.componentStatus && [self.componentStatus needsInstallOrUpgrade]) {
+      [self _install:completion];
+    } else {
+      completion(nil);
+    }
+  }];
+}
+
+- (void)_install:(KBCompletion)completion {
   NSError *error = nil;
   if ([self installPrivilegedServiceWithName:@"keybase.Helper" error:&error]) {
     completion(nil);
@@ -175,7 +184,7 @@
  */
 
 - (void)uninstall:(KBCompletion)completion {
-  completion(KBMakeError(-1, @"Unsupported")); // Uninstalling is unsafe
+  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported")); // Uninstalling is unsafe
 //  NSError *error = nil;
 //  [self uninstallPrivilegedServiceWithName:@"keybase.Helper" error:&error];
 //  completion(error);

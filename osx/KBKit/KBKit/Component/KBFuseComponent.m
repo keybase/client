@@ -33,7 +33,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (NSString *)name {
-  return @"OSXFuse";
+  return @"Fuse";
 }
 
 - (NSString *)info {
@@ -117,46 +117,53 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)install:(KBCompletion)completion {
-  /*
-  // OSXFuse 2.x
-  NSString *source = [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"osxfusefs.bundle"];
-  NSString *destination = @"/Library/Filesystems/osxfusefs.fs";
-  NSString *kextID = @"com.github.osxfuse.filesystems.osxfusefs";
-  NSString *kextPath = @"/Library/Filesystems/osxfusefs.fs/Support/osxfusefs.kext";
-   */
+  [self refreshComponent:^(NSError *error) {
+    if (self.componentStatus && [self.componentStatus needsInstallOrUpgrade]) {
+      [self _install:completion];
+    } else {
+      completion(nil);
+    }
+  }];
+}
 
-  // OSXFuse 3.x
-  NSString *source = [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"osxfuse3.bundle"];
-  NSString *destination = @"/Library/Filesystems/osxfuse.fs";
-  NSString *kextID = @"com.github.osxfuse.filesystems.osxfuse";
-  NSString *kextPath = @"/Library/Filesystems/osxfuse.fs/Contents/Extensions/10.11/osxfuse.kext";
-
-  [self.helperTool.helper sendRequest:@"kext_install" params:@[@{@"source": source, @"destination": destination, @"kextID": kextID, @"kextPath": kextPath}] completion:^(NSError *error, id value) {
+- (void)_install:(KBCompletion)completion {
+  [self.helperTool.helper sendRequest:@"kext_install" params:@[@{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  NSString *destination = @"/Library/Filesystems/osxfuse.fs";
-  NSString *kextID = @"com.github.osxfuse.filesystems.osxfuse";
-  [self.helperTool.helper sendRequest:@"kext_uninstall" params:@[@{@"destination": destination, @"kextID": kextID}] completion:^(NSError *error, id value) {
+  [self.helperTool.helper sendRequest:@"kext_uninstall" params:@[@{@"destination": self.destination, @"kextID": self.kextID}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)start:(KBCompletion)completion {
-  NSString *kextID = @"com.github.osxfuse.filesystems.osxfuse";
-  NSString *kextPath = @"/Library/Filesystems/osxfuse.fs/Contents/Extensions/10.11/osxfuse.kext";
-  [self.helperTool.helper sendRequest:@"kext_load" params:@[@{@"kextID": kextID, @"kextPath": kextPath}] completion:^(NSError *error, id value) {
+  [self.helperTool.helper sendRequest:@"kext_load" params:@[@{@"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)stop:(KBCompletion)completion {
-  NSString *kextID = @"com.github.osxfuse.filesystems.osxfuse";
-  [self.helperTool.helper sendRequest:@"kext_unload" params:@[@{@"kextID": kextID}] completion:^(NSError *error, id value) {
+  [self.helperTool.helper sendRequest:@"kext_unload" params:@[@{@"kextID": self.kextID}] completion:^(NSError *error, id value) {
     completion(error);
   }];
+}
+
+- (NSString *)source {
+  return [NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"kbfuse.bundle"];
+}
+
+- (NSString *)destination {
+  return @"/Library/Filesystems/kbfuse.fs";
+}
+
+- (NSString *)kextID {
+  return @"com.github.kbfuse.filesystems.kbfuse";
+}
+
+- (NSString *)kextPath {
+  return @"/Library/Filesystems/kbfuse.fs/Contents/Extensions/10.10/kbfuse.kext";
 }
 
 @end

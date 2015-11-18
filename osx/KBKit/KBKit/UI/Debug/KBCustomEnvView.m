@@ -11,16 +11,10 @@
 #import "KBDefines.h"
 #import "KBPath.h"
 
-#import "KBServiceConfig.h"
-#import "KBFSConfig.h"
-
 @interface KBCustomEnvView ()
 @property KBTextField *homeDirField;
 @property KBTextField *socketFileField;
 @property KBTextField *mountDirField;
-@property KBLabel *serviceCLI;
-@property KBLabel *kbfsCLI;
-//@property KBButton *develButton;
 @end
 
 @implementation KBCustomEnvView
@@ -45,22 +39,6 @@
   _mountDirField.onChange = ^{ [gself update]; };
   [self addSubview:_mountDirField];
 
-//  _develButton = [KBButton buttonWithText:@"Dev Mode (Localhost)" style:KBButtonStyleCheckbox];
-//  _develButton.state = NSOnState;
-//  [self addSubview:_develButton];
-
-//  KBLabel *serviceLabel = [KBLabel labelWithText:@"Service Command" style:KBTextStyleHeader];
-//  [self addSubview:serviceLabel];
-//  _serviceCLI = [KBLabel label];
-//  _serviceCLI.selectable = YES;
-//  [self addSubview:_serviceCLI];
-
-//  KBLabel *kbfsLabel = [KBLabel labelWithText:@"KBFS Command" style:KBTextStyleHeader];
-//  [self addSubview:kbfsLabel];
-//  _kbfsCLI = [KBLabel label];
-//  _kbfsCLI.selectable = YES;
-//  [self addSubview:_kbfsCLI];
-
   YOSelf yself = self;
   self.viewLayout = [YOLayout layoutWithLayoutBlock:^CGSize(id<YOLayout> layout, CGSize size) {
     CGFloat x = 10;
@@ -71,20 +49,15 @@
     x = 10;
     x += [layout sizeToFitVerticalInFrame:CGRectMake(x, y + 9, col, 0) view:mountDirLabel].size.width + 10;
     y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.mountDirField].size.height + 10;
-//    y += [layout sizeToFitInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.develButton].size.height + 10;
     x = 10;
     y += 20;
-    //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:serviceLabel].size.height + 10;
-    //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.serviceCLI].size.height + 20;
-    //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:kbfsLabel].size.height + 10;
-    //y += [layout sizeToFitVerticalInFrame:CGRectMake(x, y, size.width - x - 10, 0) view:yself.kbfsCLI].size.height + 10;
 
     return size;
   }];
 }
 
 - (void)update {
-  [self updateCLI:[self config]];
+
 }
 
 - (KBEnvConfig *)config {
@@ -96,22 +69,6 @@
 - (void)setConfig:(KBEnvConfig *)config {
   _homeDirField.text = [KBPath path:config.homeDir options:KBPathOptionsTilde];
   _mountDirField.text = [KBPath path:config.mountDir options:KBPathOptionsTilde];
-  [self updateCLI:config];
-  [self setNeedsLayout];
-}
-
-- (void)updateCLI:(KBEnvConfig *)config {
-
-  KBServiceConfig *serviceConfig = [[KBServiceConfig alloc] initWithConfig:config];
-  NSString *serviceCLI = NSStringWithFormat(@"%@", [serviceConfig commandLineWithPathOptions:KBPathOptionsEscape]);
-
-  KBFSConfig *kbfsConfig = [[KBFSConfig alloc] initWithConfig:config];
-  NSString *kbfsCLI = NSStringWithFormat(@"%@", [kbfsConfig commandLineWithPathOptions:KBPathOptionsEscape]);
-
-  [_serviceCLI setText:serviceCLI style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-
-  [_kbfsCLI setText:kbfsCLI style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-
   [self setNeedsLayout];
 }
 

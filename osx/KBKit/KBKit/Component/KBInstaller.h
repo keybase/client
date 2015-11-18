@@ -13,13 +13,9 @@
 
 @interface KBInstaller : NSObject
 
-- (void)installStatus:(NSArray *)installActions completion:(dispatch_block_t)completion;
-- (void)install:(NSArray *)installActions completion:(dispatch_block_t)completion;
-- (void)uninstall:(NSArray *)installables completion:(dispatch_block_t)completion;
+- (void)refreshStatusWithEnvironment:(KBEnvironment *)environment completion:(dispatch_block_t)completion;
 
-- (void)installStatusWithEnvironment:(KBEnvironment *)environment completion:(void (^)(BOOL needsInstall, BOOL brewConflict))completion;
-
-- (void)installWithEnvironment:(KBEnvironment *)environment completion:(void (^)(NSArray *installActions))completion;
-- (void)uninstallWithEnvironment:(KBEnvironment *)environment completion:(void (^)(NSArray *installActions))completion;
+- (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force completion:(dispatch_block_t)completion;
+- (void)uninstallWithEnvironment:(KBEnvironment *)environment completion:(dispatch_block_t)completion;
 
 @end

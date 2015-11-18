@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 
 @interface KBWorkspace : NSObject
 
@@ -17,5 +18,9 @@
 + (NSUserDefaults *)userDefaults;
 
 + (void)setupLogging;
+
++ (NSWindow *)windowWithContentView:(NSView<NSWindowDelegate> *)contentView;
+
++ (NSWindow *)createMainWindow:(NSView<NSWindowDelegate> *)view;
 
 @end

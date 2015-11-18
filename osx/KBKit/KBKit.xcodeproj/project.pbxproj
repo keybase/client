@@ -27,8 +27,6 @@
 		00010CA21BE19F8900A9C285 /* KBComponent.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B391BE19F8800A9C285 /* KBComponent.m */; };
 		00010CA31BE19F8900A9C285 /* KBComponentStatus.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B3A1BE19F8800A9C285 /* KBComponentStatus.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00010CA41BE19F8900A9C285 /* KBComponentStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B3B1BE19F8800A9C285 /* KBComponentStatus.m */; };
-		00010CA51BE19F8900A9C285 /* KBFSConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B3C1BE19F8800A9C285 /* KBFSConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		00010CA61BE19F8900A9C285 /* KBFSConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B3D1BE19F8800A9C285 /* KBFSConfig.m */; };
 		00010CA71BE19F8900A9C285 /* KBFSService.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B3E1BE19F8800A9C285 /* KBFSService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00010CA81BE19F8900A9C285 /* KBFSService.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B3F1BE19F8800A9C285 /* KBFSService.m */; };
 		00010CA91BE19F8900A9C285 /* KBFuseComponent.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B401BE19F8800A9C285 /* KBFuseComponent.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -47,8 +45,6 @@
 		00010CB61BE19F8900A9C285 /* KBLaunchdPlist.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B4D1BE19F8800A9C285 /* KBLaunchdPlist.m */; };
 		00010CB71BE19F8900A9C285 /* KBService.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B4E1BE19F8800A9C285 /* KBService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00010CB81BE19F8900A9C285 /* KBService.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B4F1BE19F8800A9C285 /* KBService.m */; };
-		00010CB91BE19F8900A9C285 /* KBServiceConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B501BE19F8800A9C285 /* KBServiceConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		00010CBA1BE19F8900A9C285 /* KBServiceConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B511BE19F8800A9C285 /* KBServiceConfig.m */; };
 		00010CBB1BE19F8900A9C285 /* KBUninstaller.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B521BE19F8800A9C285 /* KBUninstaller.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		00010CBC1BE19F8900A9C285 /* KBUninstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010B531BE19F8800A9C285 /* KBUninstaller.m */; };
 		00010CBD1BE19F8900A9C285 /* KBFileReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010B551BE19F8800A9C285 /* KBFileReader.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -127,8 +123,6 @@
 		00010D0B1BE19F8900A9C285 /* KBConsoleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BAC1BE19F8900A9C285 /* KBConsoleView.m */; };
 		00010D0C1BE19F8900A9C285 /* KBControlPanel.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BAD1BE19F8900A9C285 /* KBControlPanel.h */; };
 		00010D0D1BE19F8900A9C285 /* KBControlPanel.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BAE1BE19F8900A9C285 /* KBControlPanel.m */; };
-		00010D0E1BE19F8900A9C285 /* KBCustomEnvView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BAF1BE19F8900A9C285 /* KBCustomEnvView.h */; };
-		00010D0F1BE19F8900A9C285 /* KBCustomEnvView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB01BE19F8900A9C285 /* KBCustomEnvView.m */; };
 		00010D101BE19F8900A9C285 /* KBDebugPropertiesView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB11BE19F8900A9C285 /* KBDebugPropertiesView.h */; };
 		00010D111BE19F8900A9C285 /* KBDebugPropertiesView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BB21BE19F8900A9C285 /* KBDebugPropertiesView.m */; };
 		00010D121BE19F8900A9C285 /* KBDebugViews.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BB31BE19F8900A9C285 /* KBDebugViews.h */; };
@@ -175,12 +169,12 @@
 		00010D3D1BE19F8900A9C285 /* KBFolderUsersView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE01BE19F8900A9C285 /* KBFolderUsersView.m */; };
 		00010D3E1BE19F8900A9C285 /* KBUserPermission.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE11BE19F8900A9C285 /* KBUserPermission.h */; };
 		00010D3F1BE19F8900A9C285 /* KBUserPermission.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE21BE19F8900A9C285 /* KBUserPermission.m */; };
-		00010D401BE19F8900A9C285 /* KBStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE41BE19F8900A9C285 /* KBStatusView.h */; };
-		00010D411BE19F8900A9C285 /* KBStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE51BE19F8900A9C285 /* KBStatusView.m */; };
+		00010D401BE19F8900A9C285 /* KBInstallStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE41BE19F8900A9C285 /* KBInstallStatusView.h */; };
+		00010D411BE19F8900A9C285 /* KBInstallStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE51BE19F8900A9C285 /* KBInstallStatusView.m */; };
 		00010D421BE19F8900A9C285 /* KBComposeTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE61BE19F8900A9C285 /* KBComposeTextView.h */; };
 		00010D431BE19F8900A9C285 /* KBComposeTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE71BE19F8900A9C285 /* KBComposeTextView.m */; };
-		00010D441BE19F8900A9C285 /* KBErrorStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE81BE19F8900A9C285 /* KBErrorStatusView.h */; };
-		00010D451BE19F8900A9C285 /* KBErrorStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE91BE19F8900A9C285 /* KBErrorStatusView.m */; };
+		00010D441BE19F8900A9C285 /* KBStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BE81BE19F8900A9C285 /* KBStatusView.h */; };
+		00010D451BE19F8900A9C285 /* KBStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BE91BE19F8900A9C285 /* KBStatusView.m */; };
 		00010D461BE19F8900A9C285 /* KBErrorView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BEA1BE19F8900A9C285 /* KBErrorView.h */; };
 		00010D471BE19F8900A9C285 /* KBErrorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010BEB1BE19F8900A9C285 /* KBErrorView.m */; };
 		00010D481BE19F8900A9C285 /* KBFatalErrorView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00010BEC1BE19F8900A9C285 /* KBFatalErrorView.h */; };
@@ -343,6 +337,8 @@
 		00010DEB1BE1A0B900A9C285 /* KBEnvConfigTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE51BE1A0B900A9C285 /* KBEnvConfigTest.m */; };
 		00010DEC1BE1A0B900A9C285 /* KBFormatterTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE61BE1A0B900A9C285 /* KBFormatterTest.m */; };
 		00010DEF1BE1A0B900A9C285 /* KBSemVersionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE91BE1A0B900A9C285 /* KBSemVersionTest.m */; };
+		008949981BFBB60C00CB605A /* KBCustomEnvView.m in Sources */ = {isa = PBXBuildFile; fileRef = 008949961BFBB60C00CB605A /* KBCustomEnvView.m */; };
+		008949991BFBB60C00CB605A /* KBCustomEnvView.h in Headers */ = {isa = PBXBuildFile; fileRef = 008949971BFBB60C00CB605A /* KBCustomEnvView.h */; };
 		00B82BD21BE9424600C1FC72 /* KBTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 00B82BD01BE9424600C1FC72 /* KBTask.h */; };
 		00B82BD31BE9424600C1FC72 /* KBTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B82BD11BE9424600C1FC72 /* KBTask.m */; };
 		38A713FFC5FC7A9ABE7CC5B5 /* Pods_KBKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 760C2694B64DCD2BA5ADD378 /* Pods_KBKit.framework */; };
@@ -382,8 +378,6 @@
 		00010B391BE19F8800A9C285 /* KBComponent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBComponent.m; sourceTree = "<group>"; };
 		00010B3A1BE19F8800A9C285 /* KBComponentStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBComponentStatus.h; sourceTree = "<group>"; };
 		00010B3B1BE19F8800A9C285 /* KBComponentStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBComponentStatus.m; sourceTree = "<group>"; };
-		00010B3C1BE19F8800A9C285 /* KBFSConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFSConfig.h; sourceTree = "<group>"; };
-		00010B3D1BE19F8800A9C285 /* KBFSConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFSConfig.m; sourceTree = "<group>"; };
 		00010B3E1BE19F8800A9C285 /* KBFSService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFSService.h; sourceTree = "<group>"; };
 		00010B3F1BE19F8800A9C285 /* KBFSService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFSService.m; sourceTree = "<group>"; };
 		00010B401BE19F8800A9C285 /* KBFuseComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFuseComponent.h; sourceTree = "<group>"; };
@@ -402,8 +396,6 @@
 		00010B4D1BE19F8800A9C285 /* KBLaunchdPlist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLaunchdPlist.m; sourceTree = "<group>"; };
 		00010B4E1BE19F8800A9C285 /* KBService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBService.h; sourceTree = "<group>"; };
 		00010B4F1BE19F8800A9C285 /* KBService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBService.m; sourceTree = "<group>"; };
-		00010B501BE19F8800A9C285 /* KBServiceConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBServiceConfig.h; sourceTree = "<group>"; };
-		00010B511BE19F8800A9C285 /* KBServiceConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBServiceConfig.m; sourceTree = "<group>"; };
 		00010B521BE19F8800A9C285 /* KBUninstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUninstaller.h; sourceTree = "<group>"; };
 		00010B531BE19F8800A9C285 /* KBUninstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUninstaller.m; sourceTree = "<group>"; };
 		00010B551BE19F8800A9C285 /* KBFileReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFileReader.h; sourceTree = "<group>"; };
@@ -483,8 +475,6 @@
 		00010BAC1BE19F8900A9C285 /* KBConsoleView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBConsoleView.m; sourceTree = "<group>"; };
 		00010BAD1BE19F8900A9C285 /* KBControlPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBControlPanel.h; sourceTree = "<group>"; };
 		00010BAE1BE19F8900A9C285 /* KBControlPanel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBControlPanel.m; sourceTree = "<group>"; };
-		00010BAF1BE19F8900A9C285 /* KBCustomEnvView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCustomEnvView.h; sourceTree = "<group>"; };
-		00010BB01BE19F8900A9C285 /* KBCustomEnvView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCustomEnvView.m; sourceTree = "<group>"; };
 		00010BB11BE19F8900A9C285 /* KBDebugPropertiesView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDebugPropertiesView.h; sourceTree = "<group>"; };
 		00010BB21BE19F8900A9C285 /* KBDebugPropertiesView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBDebugPropertiesView.m; sourceTree = "<group>"; };
 		00010BB31BE19F8900A9C285 /* KBDebugViews.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBDebugViews.h; sourceTree = "<group>"; };
@@ -531,12 +521,12 @@
 		00010BE01BE19F8900A9C285 /* KBFolderUsersView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFolderUsersView.m; sourceTree = "<group>"; };
 		00010BE11BE19F8900A9C285 /* KBUserPermission.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBUserPermission.h; sourceTree = "<group>"; };
 		00010BE21BE19F8900A9C285 /* KBUserPermission.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBUserPermission.m; sourceTree = "<group>"; };
-		00010BE41BE19F8900A9C285 /* KBStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStatusView.h; sourceTree = "<group>"; };
-		00010BE51BE19F8900A9C285 /* KBStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStatusView.m; sourceTree = "<group>"; };
+		00010BE41BE19F8900A9C285 /* KBInstallStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstallStatusView.h; sourceTree = "<group>"; };
+		00010BE51BE19F8900A9C285 /* KBInstallStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstallStatusView.m; sourceTree = "<group>"; };
 		00010BE61BE19F8900A9C285 /* KBComposeTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBComposeTextView.h; sourceTree = "<group>"; };
 		00010BE71BE19F8900A9C285 /* KBComposeTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBComposeTextView.m; sourceTree = "<group>"; };
-		00010BE81BE19F8900A9C285 /* KBErrorStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBErrorStatusView.h; sourceTree = "<group>"; };
-		00010BE91BE19F8900A9C285 /* KBErrorStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBErrorStatusView.m; sourceTree = "<group>"; };
+		00010BE81BE19F8900A9C285 /* KBStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBStatusView.h; sourceTree = "<group>"; };
+		00010BE91BE19F8900A9C285 /* KBStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBStatusView.m; sourceTree = "<group>"; };
 		00010BEA1BE19F8900A9C285 /* KBErrorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBErrorView.h; sourceTree = "<group>"; };
 		00010BEB1BE19F8900A9C285 /* KBErrorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBErrorView.m; sourceTree = "<group>"; };
 		00010BEC1BE19F8900A9C285 /* KBFatalErrorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBFatalErrorView.h; sourceTree = "<group>"; };
@@ -700,6 +690,8 @@
 		00010DE61BE1A0B900A9C285 /* KBFormatterTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFormatterTest.m; sourceTree = "<group>"; };
 		00010DE91BE1A0B900A9C285 /* KBSemVersionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSemVersionTest.m; sourceTree = "<group>"; };
 		00010DF01BE1AC3D00A9C285 /* KBKit.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = KBKit.podspec; sourceTree = "<group>"; };
+		008949961BFBB60C00CB605A /* KBCustomEnvView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCustomEnvView.m; sourceTree = "<group>"; };
+		008949971BFBB60C00CB605A /* KBCustomEnvView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCustomEnvView.h; sourceTree = "<group>"; };
 		00B82BD01BE9424600C1FC72 /* KBTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTask.h; sourceTree = "<group>"; };
 		00B82BD11BE9424600C1FC72 /* KBTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTask.m; sourceTree = "<group>"; };
 		0B241DD368CEEC403E93FDBB /* Pods-KBKit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KBKit.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KBKit/Pods-KBKit.debug.xcconfig"; sourceTree = "<group>"; };
@@ -816,8 +808,6 @@
 				00010B391BE19F8800A9C285 /* KBComponent.m */,
 				00010B3A1BE19F8800A9C285 /* KBComponentStatus.h */,
 				00010B3B1BE19F8800A9C285 /* KBComponentStatus.m */,
-				00010B3C1BE19F8800A9C285 /* KBFSConfig.h */,
-				00010B3D1BE19F8800A9C285 /* KBFSConfig.m */,
 				00010B3E1BE19F8800A9C285 /* KBFSService.h */,
 				00010B3F1BE19F8800A9C285 /* KBFSService.m */,
 				00010B401BE19F8800A9C285 /* KBFuseComponent.h */,
@@ -836,8 +826,6 @@
 				00010B4D1BE19F8800A9C285 /* KBLaunchdPlist.m */,
 				00010B4E1BE19F8800A9C285 /* KBService.h */,
 				00010B4F1BE19F8800A9C285 /* KBService.m */,
-				00010B501BE19F8800A9C285 /* KBServiceConfig.h */,
-				00010B511BE19F8800A9C285 /* KBServiceConfig.m */,
 				00010B521BE19F8800A9C285 /* KBUninstaller.h */,
 				00010B531BE19F8800A9C285 /* KBUninstaller.m */,
 			);
@@ -976,8 +964,8 @@
 				00010BE31BE19F8900A9C285 /* Install */,
 				00010BE61BE19F8900A9C285 /* KBComposeTextView.h */,
 				00010BE71BE19F8900A9C285 /* KBComposeTextView.m */,
-				00010BE81BE19F8900A9C285 /* KBErrorStatusView.h */,
-				00010BE91BE19F8900A9C285 /* KBErrorStatusView.m */,
+				00010BE81BE19F8900A9C285 /* KBStatusView.h */,
+				00010BE91BE19F8900A9C285 /* KBStatusView.m */,
 				00010BEA1BE19F8900A9C285 /* KBErrorView.h */,
 				00010BEB1BE19F8900A9C285 /* KBErrorView.m */,
 				00010BEC1BE19F8900A9C285 /* KBFatalErrorView.h */,
@@ -1004,14 +992,14 @@
 		00010BA81BE19F8900A9C285 /* Debug */ = {
 			isa = PBXGroup;
 			children = (
+				008949971BFBB60C00CB605A /* KBCustomEnvView.h */,
+				008949961BFBB60C00CB605A /* KBCustomEnvView.m */,
 				00010BA91BE19F8900A9C285 /* KBAppDebug.h */,
 				00010BAA1BE19F8900A9C285 /* KBAppDebug.m */,
 				00010BAB1BE19F8900A9C285 /* KBConsoleView.h */,
 				00010BAC1BE19F8900A9C285 /* KBConsoleView.m */,
 				00010BAD1BE19F8900A9C285 /* KBControlPanel.h */,
 				00010BAE1BE19F8900A9C285 /* KBControlPanel.m */,
-				00010BAF1BE19F8900A9C285 /* KBCustomEnvView.h */,
-				00010BB01BE19F8900A9C285 /* KBCustomEnvView.m */,
 				00010BB11BE19F8900A9C285 /* KBDebugPropertiesView.h */,
 				00010BB21BE19F8900A9C285 /* KBDebugPropertiesView.m */,
 				00010BB31BE19F8900A9C285 /* KBDebugViews.h */,
@@ -1079,8 +1067,8 @@
 		00010BE31BE19F8900A9C285 /* Install */ = {
 			isa = PBXGroup;
 			children = (
-				00010BE41BE19F8900A9C285 /* KBStatusView.h */,
-				00010BE51BE19F8900A9C285 /* KBStatusView.m */,
+				00010BE41BE19F8900A9C285 /* KBInstallStatusView.h */,
+				00010BE51BE19F8900A9C285 /* KBInstallStatusView.m */,
 			);
 			path = Install;
 			sourceTree = "<group>";
@@ -1333,13 +1321,13 @@
 				00010DE01BE19F8900A9C285 /* KBWaitFor.h in Headers */,
 				00010CAF1BE19F8900A9C285 /* KBInstallAction.h in Headers */,
 				00010CE81BE19F8900A9C285 /* KBPrefTextField.h in Headers */,
-				00010D441BE19F8900A9C285 /* KBErrorStatusView.h in Headers */,
+				00010D441BE19F8900A9C285 /* KBStatusView.h in Headers */,
 				00010D501BE19F8900A9C285 /* KBGPGKeysView.h in Headers */,
 				00010DBA1BE19F8900A9C285 /* KBSearcher.h in Headers */,
 				00010CB51BE19F8900A9C285 /* KBLaunchdPlist.h in Headers */,
 				00010D341BE19F8900A9C285 /* KBFolderAddView.h in Headers */,
 				00010CDA1BE19F8900A9C285 /* KBPrefCheckbox.h in Headers */,
-				00010D401BE19F8900A9C285 /* KBStatusView.h in Headers */,
+				00010D401BE19F8900A9C285 /* KBInstallStatusView.h in Headers */,
 				00010CDE1BE19F8900A9C285 /* KBPrefFileView.h in Headers */,
 				00010D001BE19F8900A9C285 /* KBLaunchdStatus.h in Headers */,
 				00010C931BE19F8900A9C285 /* KBAppDefines.h in Headers */,
@@ -1347,7 +1335,6 @@
 				00010D801BE19F8900A9C285 /* KBPGPKeyGenView.h in Headers */,
 				00010D481BE19F8900A9C285 /* KBFatalErrorView.h in Headers */,
 				00010D7E1BE19F8900A9C285 /* KBPGPEncryptView.h in Headers */,
-				00010CB91BE19F8900A9C285 /* KBServiceConfig.h in Headers */,
 				00010DCA1BE19F8900A9C285 /* KBUserInfoView.h in Headers */,
 				00010DC01BE19F8900A9C285 /* KBTrackView.h in Headers */,
 				00010DB21BE19F8900A9C285 /* KBProveInstructionsView.h in Headers */,
@@ -1386,7 +1373,6 @@
 				00010D6C1BE19F8900A9C285 /* KBPGPDecrypted.h in Headers */,
 				00010CE41BE19F8900A9C285 /* KBPrefOption.h in Headers */,
 				00010D821BE19F8900A9C285 /* KBPGPOutputFileView.h in Headers */,
-				00010CA51BE19F8900A9C285 /* KBFSConfig.h in Headers */,
 				00010D981BE19F8900A9C285 /* KBPGPVerify.h in Headers */,
 				00010D8A1BE19F8900A9C285 /* KBPGPSigner.h in Headers */,
 				00010D0A1BE19F8900A9C285 /* KBConsoleView.h in Headers */,
@@ -1414,6 +1400,7 @@
 				00010CDC1BE19F8900A9C285 /* KBPreferences.h in Headers */,
 				00010D421BE19F8900A9C285 /* KBComposeTextView.h in Headers */,
 				00010CC51BE19F8900A9C285 /* KBStream.h in Headers */,
+				008949991BFBB60C00CB605A /* KBCustomEnvView.h in Headers */,
 				00010DB01BE19F8900A9C285 /* KBProveInputView.h in Headers */,
 				00010DA21BE19F8900A9C285 /* KBPGPVerifyView.h in Headers */,
 				00010D7C1BE19F8900A9C285 /* KBPGPEncryptFooterView.h in Headers */,
@@ -1440,7 +1427,6 @@
 				00010D321BE19F8900A9C285 /* KBFileSelectView.h in Headers */,
 				00010D221BE19F8900A9C285 /* KBDeviceSetupPromptView.h in Headers */,
 				00010CA91BE19F8900A9C285 /* KBFuseComponent.h in Headers */,
-				00010D0E1BE19F8900A9C285 /* KBCustomEnvView.h in Headers */,
 				00010D581BE19F8900A9C285 /* KBUserKeyView.h in Headers */,
 				00010CFA1BE19F8900A9C285 /* KBEnvConfig.h in Headers */,
 				00010DA41BE19F8900A9C285 /* KBAlertView.h in Headers */,
@@ -1631,13 +1617,12 @@
 				00010DE11BE19F8900A9C285 /* KBWaitFor.m in Sources */,
 				00010D7B1BE19F8900A9C285 /* KBPGPEncryptFilesView.m in Sources */,
 				00010DAD1BE19F8900A9C285 /* KBProofResult.m in Sources */,
-				00010D411BE19F8900A9C285 /* KBStatusView.m in Sources */,
+				00010D411BE19F8900A9C285 /* KBInstallStatusView.m in Sources */,
 				00010D3F1BE19F8900A9C285 /* KBUserPermission.m in Sources */,
 				00010D011BE19F8900A9C285 /* KBLaunchdStatus.m in Sources */,
 				00010DE31BE19F8900A9C285 /* KBWork.m in Sources */,
 				00010CCA1BE19F8900A9C285 /* KBDefines.m in Sources */,
 				00010C9C1BE19F8900A9C285 /* KBNotifications.m in Sources */,
-				00010CA61BE19F8900A9C285 /* KBFSConfig.m in Sources */,
 				00010D711BE19F8900A9C285 /* KBPGPDecryptFooterView.m in Sources */,
 				00010D951BE19F8900A9C285 /* KBPGPTextView.m in Sources */,
 				00010D391BE19F8900A9C285 /* KBFoldersView.m in Sources */,
@@ -1659,7 +1644,7 @@
 				00010DC51BE19F8900A9C285 /* KBUserHeaderView.m in Sources */,
 				00010DA31BE19F8900A9C285 /* KBPGPVerifyView.m in Sources */,
 				00010C961BE19F8900A9C285 /* KBAppExtension.m in Sources */,
-				00010D451BE19F8900A9C285 /* KBErrorStatusView.m in Sources */,
+				00010D451BE19F8900A9C285 /* KBStatusView.m in Sources */,
 				00010D3B1BE19F8900A9C285 /* KBFolderUsersListView.m in Sources */,
 				00010CAC1BE19F8900A9C285 /* KBHelperTool.m in Sources */,
 				00010CC81BE19F8900A9C285 /* KBWriter.m in Sources */,
@@ -1680,7 +1665,6 @@
 				00010DCB1BE19F8900A9C285 /* KBUserInfoView.m in Sources */,
 				00010D6D1BE19F8900A9C285 /* KBPGPDecrypted.m in Sources */,
 				00010CB81BE19F8900A9C285 /* KBService.m in Sources */,
-				00010D0F1BE19F8900A9C285 /* KBCustomEnvView.m in Sources */,
 				00010D351BE19F8900A9C285 /* KBFolderAddView.m in Sources */,
 				00010C981BE19F8900A9C285 /* KBAppToolbar.m in Sources */,
 				00010D651BE19F8900A9C285 /* KBFileListEditView.m in Sources */,
@@ -1760,6 +1744,7 @@
 				00010D2F1BE19F8900A9C285 /* KBFileListView.m in Sources */,
 				00010DC91BE19F8900A9C285 /* KBUserInfoLabels.m in Sources */,
 				00010CE71BE19F8900A9C285 /* KBPrefPopUpView.m in Sources */,
+				008949981BFBB60C00CB605A /* KBCustomEnvView.m in Sources */,
 				00010CE91BE19F8900A9C285 /* KBPrefTextField.m in Sources */,
 				00010D511BE19F8900A9C285 /* KBGPGKeysView.m in Sources */,
 				00010DD11BE19F8900A9C285 /* KBUserProfileView.m in Sources */,
@@ -1783,7 +1768,6 @@
 				00010D631BE19F8900A9C285 /* KBPaperKeyDisplayView.m in Sources */,
 				00010DD71BE19F8900A9C285 /* KBUserView.m in Sources */,
 				00010C9A1BE19F8900A9C285 /* KBAppView.m in Sources */,
-				00010CBA1BE19F8900A9C285 /* KBServiceConfig.m in Sources */,
 				00010D431BE19F8900A9C285 /* KBComposeTextView.m in Sources */,
 				00010D2B1BE19F8900A9C285 /* KBFileIcon.m in Sources */,
 				00010CD71BE19F8900A9C285 /* KBPrefAdvancedView.m in Sources */,

@@ -13,7 +13,7 @@
 @implementation KBHelperTest
 
 - (void)testKextUnload:(void (^)(NSError *error, id value))completion {
-  NSString *kextID = @"com.github.osxfuse.filesystems.osxfuse";
+  NSString *kextID = @"com.github.kbfuse.filesystems.kbfuse";
   KBHelper *helper = [[KBHelper alloc] init];
   [helper handleRequestWithMethod:@"kext_unload" params:@[@{@"kextID": kextID}] messageId:@(1) completion:completion];
 }

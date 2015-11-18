@@ -1,22 +1,21 @@
 //
-//  KBStatusView.m
+//  KBInstallStatusView.m
 //  Keybase
 //
 //  Created by Gabriel on 5/10/15.
 //  Copyright (c) 2015 Gabriel Handford. All rights reserved.
 //
 
-#import "KBStatusView.h"
+#import "KBInstallStatusView.h"
 
 #import "KBHeaderLabelView.h"
 #import "KBInstallAction.h"
 #import "KBInstaller.h"
 #import "KBRunOver.h"
-#import "KBErrorStatusView.h"
 #import "KBApp.h"
 #import "KBKeybaseLaunchd.h"
 
-@interface KBStatusView ()
+@interface KBInstallStatusView ()
 @property KBLabel *infoLabel;
 @property YOView *installStatusView;
 @property YOHBox *buttons;
@@ -25,7 +24,7 @@
 @property (nonatomic) KBEnvironment *environment;
 @end
 
-@implementation KBStatusView
+@implementation KBInstallStatusView
 
 - (void)viewInit {
   [super viewInit];
@@ -46,18 +45,23 @@
   _installStatusView.identifier = @"InstallStatus";
   [contentView addSubview:_installStatusView];
 
+  YOHBox *debugView = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
+  [debugView addSubview:[KBButton buttonWithText:@"Open Control Panel" style:KBButtonStyleLink options:0 targetBlock:^{ [self controlPanel]; }]];
+  [contentView addSubview:debugView];
+
   _buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
   [contentView addSubview:_buttons];
-  KBButton *closeButton = [KBButton buttonWithText:@"Quit" style:KBButtonStyleDefault];
-  closeButton.targetBlock = ^{ [NSApp terminate:0]; };
+  KBButton *closeButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];
+  closeButton.targetBlock = ^{ [self.window close]; };
+  //  quitButton = ^{ [NSApp terminate:0]; };
   [_buttons addSubview:closeButton];
-  KBButton *skipButton = [KBButton buttonWithText:@"Skip" style:KBButtonStyleDefault];
-  skipButton.targetBlock = ^{ [gself skip]; };
-  [_buttons addSubview:skipButton];
+//  KBButton *skipButton = [KBButton buttonWithText:@"Skip" style:KBButtonStyleDefault];
+//  skipButton.targetBlock = ^{ [gself skip]; };
+//  [_buttons addSubview:skipButton];
   KBButton *refreshButton = [KBButton buttonWithText:@"Refresh" style:KBButtonStyleDefault];
   refreshButton.targetBlock = ^{ [gself refresh]; };
   [_buttons addSubview:refreshButton];
-  KBButton *nextButton = [KBButton buttonWithText:@"Apply" style:KBButtonStylePrimary];
+  KBButton *nextButton = [KBButton buttonWithText:@"Install" style:KBButtonStylePrimary];
   nextButton.targetBlock = ^{ [gself install]; };
   [_buttons addSubview:nextButton];  
 
@@ -68,32 +72,25 @@
   //
 }
 
+- (void)controlPanel {
+  [KBApp.app openControlPanel];
+}
+
 - (void)install {
   [KBActivity setProgressEnabled:YES sender:self];
-  GHWeakSelf gself = self;
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installWithEnvironment:_environment completion:^(NSArray *installActions) {
+  [installer installWithEnvironment:_environment force:NO completion:^() {
     [KBActivity setProgressEnabled:NO sender:self];
-    [self showInstallActions:gself.environment.installActions];
-    if ([[gself.environment installActionsNeeded] count] == 0) {
-      self.completion();
-    }
+    [self showInstallables];
   }];
 }
 
 - (void)refresh {
   [KBActivity setProgressEnabled:YES sender:self];
-  GHWeakSelf gself = self;
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall, BOOL brewConflict) {
+  [installer refreshStatusWithEnvironment:_environment completion:^() {
     [KBActivity setProgressEnabled:NO sender:self];
-    NSAssert(!brewConflict, @"Shouldn't get here with brew conflict");
-
-    if (needsInstall) {
-      [self showInstallActions:gself.environment.installActions];
-    } else {
-      self.completion();
-    }
+    [self showInstallables];
   }];
 }
 
@@ -103,24 +100,44 @@
 
 - (void)setEnvironment:(KBEnvironment *)environment {
   _environment = environment;
-  [self showInstallActions:[_environment installActions]];
+  [self showInstallables];
 }
 
-- (void)showInstallActions:(NSArray *)installActions {
+- (NSArray *)statusDescription:(id<KBInstallable>)installable {
+  NSMutableArray *status = [NSMutableArray array];
+  if (installable.isInstallDisabled) {
+    [status addObject:@"Install Disabled"];
+  }
+  if (installable.componentStatus.error) {
+    [status addObject:NSStringWithFormat(@"Error: %@", installable.componentStatus.error.localizedDescription)];
+  }
+  [status gh_addObject:installable.componentStatus.statusDescription];
+  return status;
+}
+
+- (NSString *)action:(id<KBInstallable>)installable {
+  if (installable.isInstallDisabled) {
+    return NSStringFromKBRInstallAction(KBRInstallActionNone);
+  } else {
+    return NSStringFromKBRInstallAction(installable.componentStatus.installAction);
+  }
+}
+
+- (void)showInstallables {
   NSArray *installViews = [_installStatusView.subviews copy];
   for (NSView *subview in installViews) [subview removeFromSuperview];
 
-  [_infoLabel setText:@"We need to install, update or start some components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
+  [_infoLabel setText:@"Here is the status of all the Keybase components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
-  for (KBInstallAction *installAction in installActions) {
-    NSString *name = installAction.name;
+  for (id<KBInstallable> installable in _environment.installables) {
+    NSString *name = installable.name;
 
-    NSString *statusDescription = [installAction.statusDescription join:@"\n"];
+    NSString *statusDescription = [[self statusDescription:installable] join:@"\n"];
 
     KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:statusDescription style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByWordWrapping];
     label.columnRatio = 0.5;
 
-    NSString *action = [installAction action];
+    NSString *action = [self action:installable];
     if (action) {
       [label addText:action style:KBTextStyleDefault options:KBTextOptionsStrong lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
     }

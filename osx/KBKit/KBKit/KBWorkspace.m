@@ -15,6 +15,7 @@
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
+#import <Tikppa/Tikppa.h>
 
 @implementation KBWorkspace
 
@@ -67,6 +68,34 @@
       if (yes) [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:URLString]];
     }];
   }
+}
+
++ (NSWindow *)windowWithContentView:(NSView<NSWindowDelegate> *)contentView {
+  NSWindow *window = [[NSWindow alloc] init];
+  window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask;
+  window.hasShadow = YES;
+  window.titleVisibility = NSWindowTitleHidden;
+  window.titlebarAppearsTransparent = YES;
+  window.movableByWindowBackground = YES;
+  window.delegate = contentView;
+  [window setContentView:contentView];
+  return window;
+}
+
++ (NSWindow *)createMainWindow:(NSView<NSWindowDelegate> *)view {
+  KBWindow *window = [KBWindow windowWithContentView:view size:CGSizeMake(800, 600) retain:YES];
+  window.minSize = CGSizeMake(600, 600);
+  //window.maxSize = CGSizeMake(600, 900);
+  window.delegate = view; // Overrides default delegate
+  window.titleVisibility = NO;
+  window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask;
+
+  window.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
+  //window.restorable = YES;
+  //window.restorationClass = self.class;
+  //window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:window.navigation];
+  //[window setLevel:NSStatusWindowLevel];
+  return window;
 }
 
 @end

@@ -8,16 +8,15 @@
 
 #import "KBFSService.h"
 #import "KBDebugPropertiesView.h"
-#import "KBFSConfig.h"
 #import "KBKeybaseLaunchd.h"
 #import "KBSemVersion.h"
+#import "KBTask.h"
 
 @interface KBFSService ()
 @property NSString *name;
 @property NSString *info;
 @property (getter=isInstallDisabled) BOOL installDisabled;
 
-@property KBFSConfig *kbfsConfig;
 @property NSString *label;
 @property KBSemVersion *bundleVersion;
 @property KBComponentStatus *componentStatus;
@@ -34,7 +33,6 @@
     _config = config;
     _name = @"KBFS";
     _info = @"The filesystem";
-    _kbfsConfig = [[KBFSConfig alloc] initWithConfig:_config];
     _label = label;
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
     _bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
@@ -74,6 +72,7 @@
 }
 
 - (void)install:(KBCompletion)completion {
+  /*
   NSString *mountDir = [self.config mountDir];
   NSError *error = nil;
   if (![KBPath ensureDirectory:mountDir error:&error]) {
@@ -84,6 +83,11 @@
   NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
   NSString *kbfsBinPath = [_config kbfsBinPathWithPathOptions:0 useBundle:YES];
   [KBKeybaseLaunchd install:binPath label:_label serviceBinPath:kbfsBinPath args:@[mountDir] completion:completion];
+   */
+  NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
+  [KBTask execute:binPath args:@[@"-d", @"install", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+    completion(error);
+  }];
 }
 
 - (void)uninstall:(KBCompletion)completion {

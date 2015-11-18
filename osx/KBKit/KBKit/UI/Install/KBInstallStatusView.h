@@ -1,5 +1,5 @@
 //
-//  KKBStatusView.h
+//  KBInstallStatusView.h
 //  Keybase
 //
 //  Created by Gabriel on 5/10/15.
@@ -13,7 +13,7 @@
 #import "KBRPC.h"
 #import "KBInstaller.h"
 
-@interface KBStatusView : YOView
+@interface KBInstallStatusView : YOView
 
 @property KBNavigationView *navigation;
 @property KBRPClient *client;

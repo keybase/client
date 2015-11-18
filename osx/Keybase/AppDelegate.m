@@ -28,11 +28,7 @@
 
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   //_statusItem.title = @"Keybase";
-#ifdef DEBUG
-  _statusItem.image = [NSImage imageNamed:@"StatusIconDev"];
-#else
-  _statusItem.image = [NSImage imageNamed:@"StatusIconBW"];
-#endif
+  _statusItem.image = [NSImage imageNamed:@"StatusIcon"]; //StatusIconDev //StatusIconBW
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
 
@@ -70,6 +66,7 @@
 - (NSMenu *)loadMenu {
   NSMenu *menu = [[NSMenu alloc] init];
 
+  /*
   [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
 
   KBRGetCurrentStatusRes *userStatus = self.app.appView.userStatus;
@@ -82,7 +79,9 @@
       [menu addItem:[NSMenuItem separatorItem]];
     }
   }
+   */
 
+  [menu addItemWithTitle:@"Status" action:@selector(showInstallStatus:) keyEquivalent:@""];
   [menu addItem:[NSMenuItem separatorItem]];
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
   return menu;
@@ -90,6 +89,11 @@
 
 - (IBAction)preferences:(id)sender {
   [self.app.preferences openWithUserDefaults:[KBWorkspace userDefaults] sender:self.app.appView];
+}
+
+- (IBAction)showInstallStatus:(id)sender {
+  [self.app.appView showInstallStatusView:^(NSError *error) {}];
+  [self.app.appView openWindow];
 }
 
 - (IBAction)login:(id)sender {
@@ -101,7 +105,7 @@
 }
 
 - (IBAction)quit:(id)sender {
-  [self.app quitWithPrompt:YES sender:sender];
+  [self.app quitWithPrompt:NO sender:sender];
 }
 
 #pragma mark Preferences

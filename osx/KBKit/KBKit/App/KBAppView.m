@@ -26,14 +26,16 @@
 #import "KBDebugViews.h"
 #import "KBAppProgressView.h"
 #import "KBSecretPromptView.h"
-#import "KBStatusView.h"
+#import "KBInstallStatusView.h"
 #import "KBAppDebug.h"
 #import "KBNotifications.h"
-#import "KBErrorStatusView.h"
+#import "KBStatusView.h"
+#import "KBTask.h"
+#import "KBWorkspace.h"
 
 typedef NS_ENUM (NSInteger, KBAppViewMode) {
   KBAppViewModeInProgress = 1,
-  KBAppViewModeError,
+  KBAppViewModeStatus,
   KBAppViewModeInstaller,
   KBAppViewModeLogin,
   KBAppViewModeSignup,
@@ -46,7 +48,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property (readonly) YOView *contentView;
 
 @property KBAppProgressView *appProgressView;
-@property KBErrorStatusView *errorView;
 
 @property KBUsersAppView *usersAppView;
 @property KBDevicesAppView *devicesAppView;
@@ -65,7 +66,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 @property KBEnvironment *environment;
 @property KBRConfig *userConfig;
 @property KBRGetCurrentStatusRes *userStatus;
-
 @end
 
 #define TITLE_HEIGHT (32)
@@ -111,28 +111,14 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
   DDLogInfo(@"Keybase.app Version: %@", info[@"CFBundleShortVersionString"]);
 
-  [self checkInstall:completion];
+  [self install:completion];
 }
 
-- (void)checkInstall:(KBCompletion)completion {
+- (void)install:(KBCompletion)completion {
   [self showInProgress:@"Loading"];
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installStatusWithEnvironment:_environment completion:^(BOOL needsInstall, BOOL brewConflict) {
-    if (brewConflict) {
-      [self showBrewWarning:^{
-        [self checkInstall:completion];
-      }];
-      return;
-    }
-
-    [self showStatusView:self.environment completion:completion];
-    /*
-    if (needsInstall) {
-      [self showStatusView:environment completion:completion];
-    } else {
-      [self connect:completion];
-    }
-     */
+  [installer installWithEnvironment:_environment force:NO completion:^() {
+    [self showInstallStatusView:completion];
   }];
 }
 
@@ -229,32 +215,40 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)showErrorView:(NSString *)title error:(NSError *)error {
-  if (_errorView  || self.mode != KBAppViewModeError) {
-    _errorView = [[KBErrorStatusView alloc] init];
-    KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:_errorView title:_title];
-    [self setContentView:navigation mode:KBAppViewModeError];
-  }
+  KBStatusView *errorView = [[KBStatusView alloc] init];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:errorView title:_title];
+  [self setContentView:navigation mode:KBAppViewModeStatus];
   GHWeakSelf gself = self;
-  [_errorView setError:error title:title retry:^{
+  [errorView setError:error title:title retry:^{
     [gself showConnect:^(NSError *error) {}];
   } close:^{
-    [KBApp.app quitWithPrompt:NO sender:gself.errorView];
+    [KBApp.app quitWithPrompt:NO sender:self];
   }];
 }
 
 - (void)showBrewWarning:(dispatch_block_t)retry {
-  KBErrorStatusView *view = [[KBErrorStatusView alloc] init];
+  KBStatusView *view = [[KBStatusView alloc] init];
   view.insets = UIEdgeInsetsMake(100, 100, 100, 100);
   [view setText:@"We've detected that you already have Keybase installed via Homebrew." description:@"We recommend that you uninstall the Homebrew installation since running both at the same time can causes issues." title:@"Homebrew Install Found" retry:retry close:^{
     [KBApp.app quitWithPrompt:NO sender:self];
   }];
   KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
-  [self setContentView:navigation mode:KBAppViewModeError];
+  [self setContentView:navigation mode:KBAppViewModeStatus];
 }
 
-- (void)showStatusView:(KBEnvironment *)environment completion:(KBCompletion)completion {
+- (void)showWelcome {
   KBStatusView *view = [[KBStatusView alloc] init];
-  [view setEnvironment:environment];
+  view.insets = UIEdgeInsetsMake(100, 100, 100, 100);
+  [view setText:@"Thanks for installing Keybase." description:@"Cliche echo park synth, shoreditch crucifix church-key hoodie. Banh mi kitsch portland pitchfork iPhone mlkshk keffiyeh bitters stumptown polaroid listicle. Chambray ethical brunch, dreamcatcher lomo single-origin coffee yuccie irony beard. Microdosing knausgaard raw denim ethical fashion axe. Waistcoat cornhole brooklyn, truffaut bushwick meh keffiyeh. Blog schlitz next level banh mi, umami hella ugh tote bag paleo cliche lo-fi 8-bit ennui kinfolk. Shabby chic fap fixie keytar." title:@"Welcome to Keybase" retry:nil close:^{
+    [self.window close];
+  }];
+  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:_title];
+  [self setContentView:navigation mode:KBAppViewModeStatus];
+}
+
+- (void)showInstallStatusView:(KBCompletion)completion {
+  KBInstallStatusView *view = [[KBInstallStatusView alloc] init];
+  [view setEnvironment:self.environment];
   view.completion = ^() {
     [self showConnect:completion];
   };
@@ -381,6 +375,10 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   // Don't change if we are in the installer
   if (_mode == KBAppViewModeInstaller) return;
 
+  [self showWelcome];
+  return;
+
+  /*
   if (userStatus.loggedIn && userStatus.user) {
     // Show profile if logging in or we are already showing profile, refresh it
     if (_mode != KBAppViewModeMain || _toolbar.selectedItem == KBAppViewItemProfile) {
@@ -389,6 +387,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   } else if (_mode != KBAppViewModeLogin || _mode != KBAppViewModeSignup) {
     [self showLogin];
   }
+   */
 }
 
 - (void)signupViewDidSignup:(KBSignupView *)signupView {
@@ -462,24 +461,6 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   }
 }
 
-- (KBWindow *)createWindow {
-  NSAssert(!self.superview, @"Already has superview");
-  KBWindow *window = [KBWindow windowWithContentView:self size:CGSizeMake(800, 600) retain:YES];
-  window.minSize = CGSizeMake(600, 600);
-  //window.restorable = YES;
-  //window.maxSize = CGSizeMake(600, 900);
-  window.delegate = self; // Overrides default delegate
-  window.titleVisibility = NO;
-  window.styleMask = NSClosableWindowMask | NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask;
-
-  window.backgroundColor = KBAppearance.currentAppearance.secondaryBackgroundColor;
-  window.restorable = YES;
-  //window.restorationClass = self.class;
-  //window.navigation.titleView = [KBTitleView titleViewWithTitle:@"Keybase" navigation:window.navigation];
-  //[window setLevel:NSStatusWindowLevel];
-  return window;
-}
-
 - (NSRect)window:(NSWindow *)window willPositionSheet:(NSWindow *)sheet usingRect:(NSRect)rect {
   CGFloat sheetPosition = 0;
   if (_mode == KBAppViewModeMain) sheetPosition = 74;
@@ -488,17 +469,22 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   return rect;
 }
 
+/*
 - (BOOL)windowShouldClose:(id)sender {
   [KBApp.app quitWithPrompt:YES sender:self];
   return NO;
 }
+ */
 
-- (KBWindow *)openWindow {
-  NSAssert(!self.window, @"Already has window");
-  KBWindow *window = [self createWindow];
-  [window center];
-  [window makeKeyAndOrderFront:nil];
-  return window;
+- (void)openWindow {
+  if (self.window) {
+    [NSApplication.sharedApplication activateIgnoringOtherApps:YES];
+    [self.window orderFrontRegardless];
+  } else {
+    NSWindow *window = [KBWorkspace createMainWindow:self];
+    [window center];
+    [window makeKeyAndOrderFront:nil];
+  }
 }
 
 //- (void)encodeRestorableStateWithCoder:(NSCoder *)coder { }
