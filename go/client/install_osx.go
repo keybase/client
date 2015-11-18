@@ -356,7 +356,7 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	g.Log.Debug("Installing components: %s", components)
 
 	if libkb.IsIn("cli", components, false) {
-		g.Log.Debug("Installing command line: %s", binPath)
+		g.Log.Debug("Checking command line")
 		err = installCommandLine(g, binPath, true) // Always force CLI install
 		if err != nil {
 			status = append(status, keybase1.InstallComponent{Name: "cli", Status: errorStatus("INSTALL_ERROR", err.Error())})
@@ -366,7 +366,6 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	}
 
 	if libkb.IsIn("service", components, false) {
-		g.Log.Debug("Installing service: %s", binPath)
 		err = installService(g, binPath, force)
 		if err != nil {
 			status = append(status, keybase1.InstallComponent{Name: "service", Status: errorStatus("INSTALL_ERROR", err.Error())})
@@ -376,7 +375,6 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	}
 
 	if libkb.IsIn("kbfs", components, false) {
-		g.Log.Debug("Installing KBFS: %s", binPath)
 		err = installKBFS(g, binPath, force)
 		if err != nil {
 			status = append(status, keybase1.InstallComponent{Name: "kbfs", Status: errorStatus("INSTALL_ERROR", err.Error())})

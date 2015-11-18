@@ -86,7 +86,6 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdInstall) Run() error {
 	var components []keybase1.InstallComponent
-	v.G().Log.Debug("Using installer: %s", v.installer)
 	if v.installer == "auto" {
 		components = AutoInstallWithStatus(v.G(), v.binPath, v.force)
 	} else if v.installer == "" {
@@ -100,6 +99,10 @@ func (v *CmdInstall) Run() error {
 			return err
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
+	} else {
+		for _, c := range components {
+			v.G().UI.GetDumbOutputUI().Printf("%s: %s %s\n", c.Name, c.Status.Name, c.Status.Desc)
+		}
 	}
 	return nil
 }
