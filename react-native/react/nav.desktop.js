@@ -4,12 +4,12 @@ import {Component} from './base-react'
 import {connect} from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import React from 'react'
-import Folders from './tabs/folders'
-import Chat from './tabs/chat'
-import People from './tabs/people'
-import Devices from './tabs/devices'
-import NoTab from './tabs/no-tab'
-import More from './tabs/more'
+import Folders from './folders'
+import Chat from './chat'
+import People from './people'
+import Devices from './devices'
+import NoTab from './no-tab'
+import More from './more'
 // TODO global routes
 // import globalRoutes from './router/global-routes'
 const globalRoutes = {}
@@ -17,6 +17,7 @@ const globalRoutes = {}
 import * as Constants from './constants/config'
 import {folderTab, chatTab, peopleTab, devicesTab, moreTab} from './constants/tabs'
 import {switchTab} from './actions/tabbed-router'
+import {startup} from './actions/config'
 import {Tab, Tabs, Styles} from 'material-ui'
 let { Colors, Typography } = Styles
 
@@ -29,12 +30,26 @@ const tabs = {
 }
 
 class Nav extends Component {
+  constructor (props) {
+    super(props)
+
+    this.props.dispatch(startup())
+  }
+
   _handleTabsChange (e, key, payload) {
     this.props.dispatch(switchTab(e))
   }
 
   render () {
     const activeTab = this.props.tabbedRouter.get('activeTab')
+
+    if (this.props.config.navState === Constants.navStartingUp) {
+      return (
+        <div style={{display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <h1>Loading...</h1>
+        </div>
+      )
+    }
 
     return (
       <div style={styles.tabsContainer}>

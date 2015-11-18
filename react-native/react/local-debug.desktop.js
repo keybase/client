@@ -1,7 +1,6 @@
 'use strict'
 /*
  * File to stash local debug changes to. Never check this in with changes
- * @flow
  */
 
 import {createRouterState} from './reducers/router'
@@ -12,19 +11,22 @@ let config = {
   overrideRouterState: null,
   overrideActiveTab: null,
   skipLoginRouteToRoot: false,
-  allowStartupFailure: false
+  allowStartupFailure: false,
+  printRPC: false
 }
 
 if (isDev && true) {
   config.overrideRouterState = createRouterState([], [])
-  config.overrideActiveTab = Tabs.foldersTab
+  config.overrideActiveTab = Tabs.devicesTab
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
+  config.printRPC = true
 }
 
 export const {
   overrideRouterState,
   overrideActiveTab,
   skipLoginRouteToRoot,
-  allowStartupFailure
+  allowStartupFailure,
+  printRPC
 } = config

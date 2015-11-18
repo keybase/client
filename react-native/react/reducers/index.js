@@ -2,8 +2,8 @@
 /* @flow */
 
 import {combineReducers} from 'redux'
-// $FlowFixMe login2 isnt typed
-import login2 from './login2'
+// $FlowFixMe login isnt typed
+import login from './login'
 import devices from './devices'
 import search from './search'
 import profile from './profile'
@@ -35,7 +35,7 @@ function timeTravel (state: State, action: any): State {
 }
 
 const combinedReducer = combineReducers({
-  login2,
+  login,
   devices,
   tabbedRouter,
   search,

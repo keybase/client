@@ -2,7 +2,7 @@
 
 import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
-import PinentryRender from './pinentry.render'
+import PinentryRender from './index.render'
 
 class Pinentry extends Component {
   render () {

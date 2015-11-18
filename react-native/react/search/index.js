@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React, {Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image} from '../base-react'
 import {connect} from '../base-redux'

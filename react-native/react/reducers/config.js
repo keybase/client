@@ -1,8 +1,7 @@
-/* @flow */
 'use strict'
 
 import * as Constants from '../constants/config'
-import * as LoginConstants from '../constants/login2'
+import * as LoginConstants from '../constants/login'
 import type {NavState} from '../constants/config'
 
 type ConfigState = {
@@ -59,7 +58,8 @@ export default function (state: ConfigState = initialState, action: any): Config
     case LoginConstants.loginDone:
       return {
         ...state,
-        navState: Constants.navLoggedIn
+        error: action.error ? action.payload : null,
+        navState: action.error ? Constants.navErrorStartingUp : Constants.navLoggedIn
       }
     case Constants.devConfigLoading:
       return {

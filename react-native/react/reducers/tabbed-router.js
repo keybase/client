@@ -11,7 +11,7 @@ import {startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab} from '..
 import * as Constants from '../constants/tabbed-router'
 // $FlowFixMe ignore this import for now
 import * as LocalDebug from '../local-debug'
-import * as LoginConstants from '../constants/login2'
+import * as LoginConstants from '../constants/login'
 
 import type {RouterState} from './router'
 
@@ -44,7 +44,7 @@ export default function (state: TabbedRouterState = initialState, action: any): 
     case Constants.switchTab:
       return state.set('activeTab', action.payload)
     case LoginConstants.loginDone:
-      if (LocalDebug.skipLoginRouteToRoot) {
+      if (LocalDebug.skipLoginRouteToRoot || action.error) {
         return state
       }
       return state.set('activeTab', folderTab)

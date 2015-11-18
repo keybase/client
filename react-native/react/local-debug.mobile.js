@@ -1,7 +1,6 @@
 'use strict'
 /*
  * File to stash local debug changes to. Never check this in with changes
- * @flow
  */
 
 import {createRouterState} from './reducers/router'

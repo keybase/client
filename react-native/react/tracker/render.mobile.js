@@ -1,12 +1,11 @@
 'use strict'
-/* @flow */
 
 import React, {Component, View} from '../base-react'
 
-import Header from './header-render'
-import Action from './action-render'
-import Bio from './bio-render'
-import Proofs from './proofs-render'
+import Header from './header.render'
+import Action from './action.render'
+import Bio from './bio.render'
+import Proofs from './proofs.render'
 
 export default class Render extends Component {
   render () {

@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React, {AppRegistry, Component, NativeAppEventEmitter, AsyncStorage} from './base-react'
 import {Provider} from 'react-redux/native'

@@ -2,7 +2,7 @@
 
 // Handles sending requests to objc (then go) and back
 
-import engine from './native'
+import engine from './index.native'
 import Transport from './transport'
 import rpc from 'framed-msgpack-rpc'
 import {printRPC} from '../local-debug'

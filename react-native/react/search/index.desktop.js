@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 import React, {Component} from '../base-react'
 import Select from 'react-select'

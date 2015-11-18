@@ -1,8 +1,7 @@
 'use strict'
-/* @flow */
 
 import {StyleSheet} from '../base-react'
-import native from './native'
+import native, {styles as nativeStyles} from './common.native'
 
 const buttonHighlightCommon = {
   padding: 0,
@@ -68,7 +67,8 @@ export default StyleSheet.create({
   },
   centerText: {
     textAlign: 'center'
-  }
+  },
+  ...nativeStyles
 })
 
 // non stylesheet styles

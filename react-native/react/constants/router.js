@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 export const navigate = 'router:navigate'
 export const navigateAppend = 'router:navigateAppend'
