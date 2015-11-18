@@ -2504,3 +2504,526 @@ func TestUnstageFile(t *testing.T) {
 	}
 	testStateForPrivateFolder(t, config1, "user1,user2")
 }
+
+func TestSimpleCRNoConflict(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
+		"user2")
+	mnt1, fs1, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2, fs2, cancelFn2 := makeFS(t, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
+	// both users read the root dir first
+	root1 := path.Join(mnt1.Dir, PrivateName, "user1,user2")
+	root2 := path.Join(mnt2.Dir, PrivateName, "user1,user2")
+	checkDir(t, root1, map[string]fileInfoCheck{})
+	checkDir(t, root2, map[string]fileInfoCheck{})
+
+	// disable updates for user 2
+	disableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
+		DisableUpdatesFileName)
+	if err := ioutil.WriteFile(disableUpdatesFile,
+		[]byte("off"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// user1 writes a file and makes a few directories
+	const input1 = "input round one"
+	file1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "file1")
+	if err := ioutil.WriteFile(file1, []byte(input1), 0644); err != nil {
+		t.Fatal(err)
+	}
+	dir1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "dir")
+	if err := os.Mkdir(dir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	subdir1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "dir", "subdir1")
+	if err := os.Mkdir(subdir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// user2 does similar
+	const input2 = "input round two two two"
+	file2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "file2")
+	if err := ioutil.WriteFile(file2, []byte(input2), 0644); err != nil {
+		t.Fatal(err)
+	}
+	dir2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "dir")
+	if err := os.Mkdir(dir2, 0755); err != nil {
+		t.Fatal(err)
+	}
+	subdir2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "dir", "subdir2")
+	if err := os.Mkdir(subdir2, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// verify that they don't see each other's files
+	checkDir(t, root1, map[string]fileInfoCheck{
+		"file1": func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input1)))
+		},
+		"dir": mustBeDir,
+	})
+	checkDir(t, dir1, map[string]fileInfoCheck{
+		"subdir1": mustBeDir,
+	})
+	checkDir(t, root2, map[string]fileInfoCheck{
+		"file2": func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input2)))
+		},
+		"dir": mustBeDir,
+	})
+	checkDir(t, dir2, map[string]fileInfoCheck{
+		"subdir2": mustBeDir,
+	})
+
+	// now re-enable user 2 updates and CR, and the merge should happen
+	enableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
+		EnableUpdatesFileName)
+	if err := ioutil.WriteFile(enableUpdatesFile,
+		[]byte("on"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	syncFolderToServer(t, "user1,user2", fs2)
+	syncFolderToServer(t, "user1,user2", fs1)
+
+	// They should see identical folders now (conflict-free merge)
+	checkDir(t, root1, map[string]fileInfoCheck{
+		"file1": func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input1)))
+		},
+		"file2": func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input2)))
+		},
+		"dir": mustBeDir,
+	})
+	checkDir(t, dir1, map[string]fileInfoCheck{
+		"subdir1": mustBeDir,
+		"subdir2": mustBeDir,
+	})
+	checkDir(t, root2, map[string]fileInfoCheck{
+		"file1": func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input1)))
+		},
+		"file2": func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input2)))
+		},
+		"dir": mustBeDir,
+	})
+	checkDir(t, dir2, map[string]fileInfoCheck{
+		"subdir1": mustBeDir,
+		"subdir2": mustBeDir,
+	})
+
+	buf, err := ioutil.ReadFile(file1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+	file2u1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "file2")
+	buf, err = ioutil.ReadFile(file2u1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input2; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+
+	file1u2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "file1")
+	buf, err = ioutil.ReadFile(file1u2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+	buf, err = ioutil.ReadFile(file2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input2; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}
+
+func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
+		"user2")
+	mnt1, fs1, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2, fs2, cancelFn2 := makeFS(t, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
+	now := time.Now()
+	clock := libkbfs.TestClock{T: now}
+	config2.SetClock(clock)
+
+	// both users read the root dir first
+	root1 := path.Join(mnt1.Dir, PrivateName, "user1,user2")
+	root2 := path.Join(mnt2.Dir, PrivateName, "user1,user2")
+	checkDir(t, root1, map[string]fileInfoCheck{})
+	checkDir(t, root2, map[string]fileInfoCheck{})
+
+	// disable updates for user 2
+	disableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
+		DisableUpdatesFileName)
+	if err := ioutil.WriteFile(disableUpdatesFile,
+		[]byte("off"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// user1 creates and writes a file
+	file1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "f")
+	f1, err := os.Create(file1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f1.Close()
+
+	const input1 = "hello"
+	{
+		n, err := f1.WriteAt([]byte(input1), 0)
+		if err != nil || n != len(input1) {
+			t.Fatal(err)
+		}
+		if err := f1.Sync(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// user2 creates and writes a file
+	file2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "f")
+	f2, err := os.Create(file2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f2.Close()
+
+	const input2 = "ohell"
+	{
+		n, err := f2.WriteAt([]byte(input2), 0)
+		if err != nil || n != len(input2) {
+			t.Fatal(err)
+		}
+		if err := f2.Sync(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// now re-enable user 2 updates and CR, and the merge should happen
+	enableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
+		EnableUpdatesFileName)
+	if err := ioutil.WriteFile(enableUpdatesFile,
+		[]byte("on"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	syncFolderToServer(t, "user1,user2", fs2)
+	syncFolderToServer(t, "user1,user2", fs1)
+
+	// They should both be able to read their past writes.
+	{
+		buf := make([]byte, len(input1))
+		n, err := f1.ReadAt(buf, 0)
+		if err != nil || n != len(input1) {
+			t.Fatal(err)
+		}
+		if g, e := string(buf), input1; g != e {
+			t.Errorf("Unexpected read on f2: %s vs %s", g, e)
+		}
+	}
+	{
+		buf := make([]byte, len(input2))
+		n, err := f2.ReadAt(buf, 0)
+		if err != nil || n != len(input2) {
+			t.Fatal(err)
+		}
+		if g, e := string(buf), input2; g != e {
+			t.Errorf("Unexpected read on f2: %s vs %s", g, e)
+		}
+	}
+
+	// They should see the conflict.
+	nowString := now.Format(time.RFC3339Nano)
+	checkDir(t, root1, map[string]fileInfoCheck{
+		"f": func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input1)))
+		},
+		"f.conflict.user2." + nowString: func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input2)))
+		},
+	})
+	checkDir(t, root2, map[string]fileInfoCheck{
+		"f": func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input1)))
+		},
+		"f.conflict.user2." + nowString: func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input2)))
+		},
+	})
+
+	input3 := " world"
+	{
+		n, err := f1.WriteAt([]byte(input3), int64(len(input1)))
+		if err != nil || n != len(input3) {
+			t.Fatal(err)
+		}
+		if err := f1.Sync(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	syncFolderToServer(t, "user1,user2", fs2)
+
+	input4 := " dlrow"
+	{
+		n, err := f2.WriteAt([]byte(input4), int64(len(input2)))
+		if err != nil || n != len(input4) {
+			t.Fatal(err)
+		}
+		if err := f2.Sync(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	syncFolderToServer(t, "user1,user2", fs1)
+
+	buf, err := ioutil.ReadFile(file1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1+input3; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+	buf, err = ioutil.ReadFile(file2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1+input3; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+
+	filec1 := path.Join(mnt1.Dir, PrivateName, "user1,user2",
+		"f.conflict.user2."+nowString)
+	filec2 := path.Join(mnt1.Dir, PrivateName, "user1,user2",
+		"f.conflict.user2."+nowString)
+	buf, err = ioutil.ReadFile(filec1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input2+input4; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+	buf, err = ioutil.ReadFile(filec2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input2+input4; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}
+
+func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
+		"user2")
+	mnt1, fs1, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2, fs2, cancelFn2 := makeFS(t, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+
+	if !mnt2.Conn.Protocol().HasInvalidate() {
+		t.Skip("Old FUSE protocol")
+	}
+
+	now := time.Now()
+	clock := libkbfs.TestClock{T: now}
+	config2.SetClock(clock)
+
+	// both users read the root dir first
+	root1 := path.Join(mnt1.Dir, PrivateName, "user1,user2")
+	root2 := path.Join(mnt2.Dir, PrivateName, "user1,user2")
+	checkDir(t, root1, map[string]fileInfoCheck{})
+	checkDir(t, root2, map[string]fileInfoCheck{})
+
+	// disable updates for user 2
+	disableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
+		DisableUpdatesFileName)
+	if err := ioutil.WriteFile(disableUpdatesFile,
+		[]byte("off"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// user1 creates and writes a file
+	file1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "f")
+	f1, err := os.Create(file1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f1.Close()
+
+	const input1 = "hello"
+	{
+		n, err := f1.WriteAt([]byte(input1), 0)
+		if err != nil || n != len(input1) {
+			t.Fatal(err)
+		}
+		if err := f1.Sync(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// user2 creates a directory and writes a file to it
+	dir2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "f")
+	if err := os.Mkdir(dir2, 0755); err != nil {
+		t.Fatal(err)
+	}
+	file2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "f", "foo")
+	f2, err := os.Create(file2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f2.Close()
+
+	const input2 = "ohell"
+	{
+		n, err := f2.WriteAt([]byte(input2), 0)
+		if err != nil || n != len(input2) {
+			t.Fatal(err)
+		}
+		if err := f2.Sync(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// now re-enable user 2 updates and CR, and the merge should happen
+	enableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
+		EnableUpdatesFileName)
+	if err := ioutil.WriteFile(enableUpdatesFile,
+		[]byte("on"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	syncFolderToServer(t, "user1,user2", fs2)
+	syncFolderToServer(t, "user1,user2", fs1)
+
+	// They should both be able to read their past writes.
+	{
+		buf := make([]byte, len(input1))
+		n, err := f1.ReadAt(buf, 0)
+		if err != nil || n != len(input1) {
+			t.Fatal(err)
+		}
+		if g, e := string(buf), input1; g != e {
+			t.Errorf("Unexpected read on f2: %s vs %s", g, e)
+		}
+	}
+	{
+		buf := make([]byte, len(input2))
+		n, err := f2.ReadAt(buf, 0)
+		if err != nil || n != len(input2) {
+			t.Fatal(err)
+		}
+		if g, e := string(buf), input2; g != e {
+			t.Errorf("Unexpected read on f2: %s vs %s", g, e)
+		}
+	}
+
+	// They should see the conflict.
+	nowString := now.Format(time.RFC3339Nano)
+	checkDir(t, root1, map[string]fileInfoCheck{
+		"f.conflict.user1." + nowString: func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input1)))
+		},
+		"f": mustBeDir,
+	})
+	checkDir(t, root2, map[string]fileInfoCheck{
+		"f.conflict.user1." + nowString: func(fi os.FileInfo) error {
+			return mustBeFileWithSize(fi, int64(len(input1)))
+		},
+		"f": mustBeDir,
+	})
+
+	input3 := " world"
+	{
+		n, err := f1.WriteAt([]byte(input3), int64(len(input1)))
+		if err != nil || n != len(input3) {
+			t.Fatal(err)
+		}
+		if err := f1.Sync(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	syncFolderToServer(t, "user1,user2", fs2)
+
+	input4 := " dlrow"
+	{
+		n, err := f2.WriteAt([]byte(input4), int64(len(input2)))
+		if err != nil || n != len(input4) {
+			t.Fatal(err)
+		}
+		if err := f2.Sync(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	syncFolderToServer(t, "user1,user2", fs1)
+
+	file2u1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "f", "foo")
+	buf, err := ioutil.ReadFile(file2u1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input2+input4; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+	buf, err = ioutil.ReadFile(file2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input2+input4; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+
+	filec1 := path.Join(mnt1.Dir, PrivateName, "user1,user2",
+		"f.conflict.user1."+nowString)
+	filec2 := path.Join(mnt2.Dir, PrivateName, "user1,user2",
+		"f.conflict.user1."+nowString)
+	buf, err = ioutil.ReadFile(filec1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1+input3; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+	buf, err = ioutil.ReadFile(filec2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := string(buf), input1+input3; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}

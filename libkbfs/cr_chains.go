@@ -476,6 +476,47 @@ func (ccs *crChains) removeChain(ptr BlockPointer) {
 	delete(ccs.byMostRecent, ptr)
 }
 
+// copyOpAndRevertUnrefsToOriginals returns a shallow copy of the op,
+// modifying each custom BlockPointer field to reference the original
+// version of the corresponding blocks.
+func (ccs *crChains) copyOpAndRevertUnrefsToOriginals(currOp op) op {
+	var unrefs []*BlockPointer
+	var newOp op
+	switch realOp := currOp.(type) {
+	case *createOp:
+		newCreateOp := *realOp
+		unrefs = append(unrefs, &newCreateOp.Dir.Unref)
+		newOp = &newCreateOp
+	case *rmOp:
+		newRmOp := *realOp
+		unrefs = append(unrefs, &newRmOp.Dir.Unref)
+		newOp = &newRmOp
+	case *renameOp:
+		newRenameOp := *realOp
+		unrefs = append(unrefs, &newRenameOp.OldDir.Unref,
+			&newRenameOp.NewDir.Unref, &newRenameOp.Renamed)
+		newOp = &newRenameOp
+	case *syncOp:
+		newSyncOp := *realOp
+		unrefs = append(unrefs, &newSyncOp.File.Unref)
+		newOp = &newSyncOp
+	case *setAttrOp:
+		newSetAttrOp := *realOp
+		unrefs = append(unrefs, &newSetAttrOp.Dir.Unref, &newSetAttrOp.File)
+		newOp = &newSetAttrOp
+	case *gcOp:
+		// No need to copy a gcOp, it won't be modified
+		newOp = realOp
+	}
+	for _, unref := range unrefs {
+		original, ok := ccs.originals[*unref]
+		if ok {
+			*unref = original
+		}
+	}
+	return newOp
+}
+
 // changeOriginal converts the original of a chain to a different original.
 func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 	newOriginal BlockPointer) error {

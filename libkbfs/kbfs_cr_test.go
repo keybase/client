@@ -1,7 +1,9 @@
 package libkbfs
 
 import (
+	"reflect"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
@@ -436,4 +438,230 @@ func TestMultiUserWrite(t *testing.T) {
 	readAndCompareData(t, config2, ctx, h, data3, userName2)
 	config1.KBFSOps().SyncFromServer(ctx, rootNode1.GetFolderBranch())
 	TestStateForTlf(t, ctx, config1, rootNode1.GetFolderBranch().Tlf)
+}
+
+// Tests that two users can make independent writes while forked, and
+// conflict resolution will merge them correctly.
+func TestBasicCRNoConflict(t *testing.T) {
+	// simulate two users
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer config1.Shutdown()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer config2.Shutdown()
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, uid1)
+	h.Writers = append(h.Writers, uid2)
+
+	// user1 creates a file in a shared dir
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// look it up on user2
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err :=
+		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+
+	// disable updates on user 2
+	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+
+	// User 1 makes a new file
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// User 2 makes a new different file
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// re-enable updates, and wait for CR to complete
+	c <- struct{}{}
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	// Make sure they both see the same set of children
+	expectedChildren := []string{"a", "b", "c"}
+	children1, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
+	if err != nil {
+		t.Fatalf("Couldn't get children: %v", err)
+	}
+
+	children2, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
+	if err != nil {
+		t.Fatalf("Couldn't get children: %v", err)
+	}
+
+	if g, e := len(children1), len(expectedChildren); g != e {
+		t.Errorf("Wrong number of children: %d vs %d", g, e)
+	}
+
+	for _, child := range expectedChildren {
+		if _, ok := children1[child]; !ok {
+			t.Errorf("Couldn't find child %s", child)
+		}
+	}
+
+	if !reflect.DeepEqual(children1, children2) {
+		t.Fatalf("Users 1 and 2 see different children: %v vs %v",
+			children1, children2)
+	}
+}
+
+// Tests that two users can make independent writes while forked, and
+// conflict resolution will merge them correctly.
+func TestBasicCRFileConflict(t *testing.T) {
+	// simulate two users
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer config1.Shutdown()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer config2.Shutdown()
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	now := time.Now()
+	config2.SetClock(&TestClock{now})
+
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, uid1)
+	h.Writers = append(h.Writers, uid2)
+
+	// user1 creates a file in a shared dir
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	if err != nil {
+		t.Fatalf("Couldn't create dir: %v", err)
+	}
+	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// look it up on user2
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err :=
+		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup dir: %v", err)
+	}
+	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, "b")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+
+	// disable updates on user 2
+	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+
+	// User 1 writes the file
+	data1 := []byte{1, 2, 3, 4, 5}
+	err = kbfsOps1.Write(ctx, fileB1, data1, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps1.Sync(ctx, fileB1)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// User 2 makes a new different file
+	data2 := []byte{5, 4, 3, 2, 1}
+	err = kbfsOps2.Write(ctx, fileB2, data2, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps2.Sync(ctx, fileB2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// re-enable updates, and wait for CR to complete
+	c <- struct{}{}
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	// Make sure they both see the same set of children
+	expectedChildren := []string{
+		"b",
+		"b.conflict.u2." + now.Format(time.RFC3339Nano),
+	}
+	children1, err := kbfsOps1.GetDirChildren(ctx, dirA1)
+	if err != nil {
+		t.Fatalf("Couldn't get children: %v", err)
+	}
+
+	children2, err := kbfsOps2.GetDirChildren(ctx, dirA2)
+	if err != nil {
+		t.Fatalf("Couldn't get children: %v", err)
+	}
+
+	if g, e := len(children1), len(expectedChildren); g != e {
+		t.Errorf("Wrong number of children: %d vs %d", g, e)
+	}
+
+	for _, child := range expectedChildren {
+		if _, ok := children1[child]; !ok {
+			t.Errorf("Couldn't find child %s", child)
+		}
+	}
+
+	if !reflect.DeepEqual(children1, children2) {
+		t.Fatalf("Users 1 and 2 see different children: %v vs %v",
+			children1, children2)
+	}
 }

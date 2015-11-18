@@ -3927,3 +3927,65 @@ func (fbo *FolderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 		}
 	}
 }
+
+// finalizeResolution caches all the blocks, and writes the new MD to
+// the merged branch, failing if there is a conflict.  It also sends
+// out the given newOps notifications locally.  This is used for
+// completing conflict resolution.
+func (fbo *FolderBranchOps) finalizeResolution(ctx context.Context,
+	md *RootMetadata, bps *blockPutState, newOps []op) error {
+	// Take the writer lock.
+	fbo.writerLock.Lock()
+	defer fbo.writerLock.Unlock()
+
+	// Put the blocks into the cache so that, even if we fail below,
+	// future attempts may reuse the blocks.
+	err := func() error {
+		fbo.blockLock.Lock()
+		defer fbo.blockLock.Unlock()
+		return fbo.finalizeBlocksLocked(bps)
+	}()
+	if err != nil {
+		return err
+	}
+
+	// Last chance to get pre-empted.
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
+	// Put the MD.  If there's a conflict, abort the whole process and
+	// let CR restart itself.
+	err = fbo.config.MDOps().Put(ctx, md)
+	doUnmergedPut := fbo.isRevisionConflict(err)
+	if doUnmergedPut {
+		fbo.log.CDebugf(ctx, "Got a conflict after resolution; aborting CR")
+		return err
+	}
+	if err != nil {
+		return err
+	}
+	err = fbo.config.MDServer().PruneBranch(ctx, fbo.id(), fbo.bid)
+	if err != nil {
+		return err
+	}
+
+	// Set the head to the new MD.
+	fbo.headLock.Lock()
+	defer fbo.headLock.Unlock()
+	err = fbo.setHeadLocked(ctx, md)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't set local MD head after a "+
+			"successful put: %v", err)
+		return err
+	}
+	fbo.setStagedLocked(false, NullBranchID)
+
+	// notifyOneOp for every fixed-up merged op.
+	for _, op := range newOps {
+		fbo.notifyOneOp(ctx, op, md)
+	}
+	return nil
+}
