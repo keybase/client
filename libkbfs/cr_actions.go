@@ -376,7 +376,7 @@ func crActionCopyFile(ctx context.Context, copier fileBlockDeepCopier,
 		fromEntry.SymPath = toSymPath
 	}
 
-	// We only rename files.
+	// We only rename files (or make symlinks to directories).
 	if fromEntry.Type == Dir {
 		// Just fill in the last path node, we don't have the full path.
 		return BlockPointer{}, "", NotFileError{path{path: []pathNode{{
@@ -385,10 +385,14 @@ func crActionCopyFile(ctx context.Context, copier fileBlockDeepCopier,
 		}}}}
 	}
 
-	// Fetch the top block.
-	ptr, err := copier(ctx, toName, fromEntry.BlockPointer)
-	if err != nil {
-		return BlockPointer{}, "", err
+	var ptr BlockPointer
+	if toSymPath == "" {
+		// Fetch the top block for copyable files.
+		var err error
+		ptr, err = copier(ctx, toName, fromEntry.BlockPointer)
+		if err != nil {
+			return BlockPointer{}, "", err
+		}
 	}
 
 	// Make sure the name is unique.
@@ -445,10 +449,28 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 		fixupNamesInOps(rua.fromName, rua.toName, unmergedChain.ops,
 			unmergedChains)
 
-	// Prepend a rename for the unmerged copy to the merged set of
-	// operations, with another create for the merged file, for local
-	// playback.
-	if !unmergedChain.isFile() {
+	// The newly renamed entry:
+	newMergedEntry, ok := mergedBlock.Children[rua.toName]
+	if !ok {
+		return NoSuchNameError{rua.toName}
+	}
+
+	if unmergedChain.isFile() {
+		// Replace the updates on all file operations
+		for _, op := range unmergedChain.ops {
+			switch realOp := op.(type) {
+			case *syncOp:
+				realOp.File.Unref = newMergedEntry.BlockPointer
+				realOp.File.Ref = newMergedEntry.BlockPointer
+			case *setAttrOp:
+				realOp.File = newMergedEntry.BlockPointer
+			}
+		}
+	} else {
+		// Prepend a rename for the unmerged copy to the merged set of
+		// operations, with another create for the merged file, for local
+		// playback.
+
 		// The entry that got renamed in the unmerged branch:
 		unmergedEntry, ok := unmergedBlock.Children[rua.fromName]
 		if !ok {
@@ -459,12 +481,6 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 		mergedEntry, ok := mergedBlock.Children[rua.fromName]
 		if !ok {
 			return NoSuchNameError{rua.fromName}
-		}
-
-		// The newly renamed entry:
-		newMergedEntry, ok := mergedBlock.Children[rua.toName]
-		if !ok {
-			return NoSuchNameError{rua.toName}
 		}
 
 		rop := newRenameOp(rua.fromName, mergedMostRecent, rua.toName,
@@ -487,12 +503,16 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 		for _, op := range unmergedChain.ops {
 			if co, ok := op.(*createOp); ok && co.NewName == rua.toName {
 				found = true
+				if len(co.RefBlocks) > 0 {
+					co.RefBlocks[0] = newMergedEntry.BlockPointer
+				}
 				break
 			}
 		}
 		if !found {
-			err = prependOpsToChain(unmergedMostRecent, unmergedChains,
-				newCreateOp(rua.toName, unmergedMostRecent, mergedEntry.Type))
+			co := newCreateOp(rua.toName, unmergedMostRecent, mergedEntry.Type)
+			co.AddRefBlock(newMergedEntry.BlockPointer)
+			err = prependOpsToChain(unmergedMostRecent, unmergedChains, co)
 			if err != nil {
 				return err
 			}
@@ -503,7 +523,7 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 }
 
 func (rua *renameUnmergedAction) String() string {
-	return fmt.Sprintf("renameUnmerged: %s -> %s", rua.fromName, rua.toName)
+	return fmt.Sprintf("renameUnmerged: %s -> %s %s", rua.fromName, rua.toName, rua.symPath)
 }
 
 // renameMergedAction says that the merged copy of a file needs to be

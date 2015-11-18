@@ -407,7 +407,8 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 	}
 
 	var newUnmergedPaths []path
-	for _, op := range unmergedChain.ops {
+	toDrop := make(map[int]bool)
+	for i, op := range unmergedChain.ops {
 		cop, ok := op.(*createOp)
 		if !ok || cop.Type != Dir || len(cop.Refs()) == 0 || cop.renamed {
 			continue
@@ -419,6 +420,7 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 			continue
 		}
 		unmergedOriginal := cop.Refs()[0]
+		toDrop[i] = true
 
 		cr.log.CDebugf(ctx, "Merging name %s in %v (unmerged original %v "+
 			"changed to %v)", cop.NewName, unmergedChain.mostRecent,
@@ -450,6 +452,21 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 		// Then add this create's path.
 		newUnmergedPaths = append(newUnmergedPaths, newPath)
 	}
+
+	// Remove the unneeded create ops
+	if len(toDrop) > 0 {
+		newOps := make([]op, 0, len(unmergedChain.ops)-len(toDrop))
+		for i, op := range unmergedChain.ops {
+			if !toDrop[i] {
+				newOps = append(newOps, op)
+			} else {
+				cr.log.CDebugf(ctx,
+					"Dropping double create unmerged operation: %s", op)
+			}
+		}
+		unmergedChain.ops = newOps
+	}
+
 	return newUnmergedPaths, nil
 }
 
@@ -1031,6 +1048,7 @@ outer:
 			if cop.Type == Dir {
 				cop.Type = Sym
 				cop.crSymPath = symPath
+				cop.RefBlocks = nil
 			} else {
 				cop.forceCopy = true
 			}
@@ -1577,6 +1595,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	if err != nil {
 		return BlockPointer{}, err
 	}
+	cr.log.CDebugf(ctx, "Deep copying file %s: %v", name, newPtr)
 	if fblock.IsInd {
 		newID, err := cr.config.Crypto().MakeTemporaryBlockID()
 		if err != nil {
@@ -1862,6 +1881,34 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+
+	// We also need to add in any creates that happened within
+	// newly-created directories (which aren't being merged with other
+	// newly-created directories), to ensure that the overall Refs are
+	// correct and that future CR processes can check those create ops
+	// for conflicts.
+	for original, chain := range unmergedChains.byOriginal {
+		if !unmergedChains.isCreated(original) ||
+			mergedChains.isCreated(original) {
+			continue
+		}
+		for _, op := range chain.ops {
+			if cop, ok := op.(*createOp); ok && !cop.renamed {
+				// Shallowly copy the create op and update its
+				// directory to the most recent pointer -- this won't
+				// work with the usual revert ops process because that
+				// skips chains which are newly-created within this
+				// branch.
+				newCreateOp := *cop
+				newCreateOp.Dir.Unref = chain.mostRecent
+				newCreateOp.Dir.Ref = chain.mostRecent
+				cr.log.CDebugf(ctx, "Adding createOp %s to ops %s", &newCreateOp, ops)
+				ops = append(ops, &newCreateOp)
+			}
+			// TODO: deal with renames?
+		}
+	}
+
 	cr.log.CDebugf(ctx, "Remote notifications: %v", ops)
 	for _, op := range ops {
 		newMD.AddOp(op)
@@ -1879,7 +1926,8 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 // the ops to use the new most recent pointers instead.  It returns a
 // new slice of these operations with room in the first slot for a
 // dummy operation containing all the updates.
-func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer) (
+func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
+	chains *crChains) (
 	[]op, error) {
 	newOps := make([]op, 0, len(oldOps)+1)
 	newOps = append(newOps, nil) // placeholder for dummy op
@@ -1889,10 +1937,37 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer) (
 		switch realOp := op.(type) {
 		case *createOp:
 			updatesToFix = append(updatesToFix, &realOp.Dir)
-			// TODO: fix up Ref?
+			// Since the created node was made exclusively during this
+			// branch, we can use the most recent pointer for that
+			// node as its ref.
+			refs := realOp.Refs()
+			realOp.RefBlocks = make([]BlockPointer, len(refs))
+			for i, ptr := range refs {
+				mostRecent, err := chains.mostRecentFromOriginalOrSame(ptr)
+				if err != nil {
+					return nil, err
+				}
+				realOp.RefBlocks[i] = mostRecent
+				ptrsToFix = append(ptrsToFix, &realOp.RefBlocks[i])
+			}
+			// The leading gcOp will take care of the updates.
+			realOp.Updates = nil
 		case *rmOp:
 			updatesToFix = append(updatesToFix, &realOp.Dir)
-			// TODO: fix up Unref?
+			// Since the rm'd node was made exclusively during this
+			// branch, we can use the original pointer for that
+			// node as its unref.
+			unrefs := realOp.Unrefs()
+			realOp.UnrefBlocks = make([]BlockPointer, len(unrefs))
+			for i, ptr := range unrefs {
+				original, err := chains.originalFromMostRecentOrSame(ptr)
+				if err != nil {
+					return nil, err
+				}
+				realOp.UnrefBlocks[i] = original
+			}
+			// The leading gcOp will take care of the updates.
+			realOp.Updates = nil
 		case *renameOp:
 			updatesToFix = append(updatesToFix, &realOp.OldDir, &realOp.NewDir)
 			ptrsToFix = append(ptrsToFix, &realOp.Renamed)
@@ -1904,9 +1979,12 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer) (
 			// TODO: fix up Unref?
 		case *syncOp:
 			updatesToFix = append(updatesToFix, &realOp.File)
+			realOp.Updates = nil
 		case *setAttrOp:
 			updatesToFix = append(updatesToFix, &realOp.Dir)
 			ptrsToFix = append(ptrsToFix, &realOp.File)
+			// The leading gcOp will take care of the updates.
+			realOp.Updates = nil
 		}
 
 		for _, update := range updatesToFix {
@@ -2134,8 +2212,9 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 // put to the server as a result of this resolution (for later
 // caching).
 func (cr *ConflictResolver) syncBlocks(ctx context.Context, md *RootMetadata,
-	mergedChains *crChains, resolvedPaths map[BlockPointer]path,
-	lbc localBcache, newFileBlocks fileBlockMap) (
+	unmergedChains *crChains, mergedChains *crChains,
+	resolvedPaths map[BlockPointer]path, lbc localBcache,
+	newFileBlocks fileBlockMap) (
 	map[BlockPointer]BlockPointer, *blockPutState, error) {
 	// Construct a tree out of the merged paths, and do a sync at each leaf.
 	var root *crPathTreeNode
@@ -2224,24 +2303,66 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, md *RootMetadata,
 	}
 
 	oldOps := md.data.Changes.Ops
-	updates := make(map[BlockPointer]BlockPointer)
-	for _, update := range oldOps[len(oldOps)-1].AllUpdates() {
-		// The unref should represent the most recent pointer for the
-		// block.  However, the other ops will be using the original
-		// pointer as the unref, so use that as the key.
-		oldPtr := update.Unref
-		chain, ok := mergedChains.byMostRecent[oldPtr]
-		if ok {
-			oldPtr = chain.original
-		}
-		updates[oldPtr] = update.Ref
+	gcOp, ok := oldOps[len(oldOps)-1].(*gcOp)
+	if !ok {
+		return nil, nil, fmt.Errorf("dummy op is not gc: %s",
+			oldOps[len(oldOps)-1])
 	}
-	newOps, err := crFixOpPointers(oldOps[:len(oldOps)-1], updates)
+
+	// Create an update map, and fix up the gc ops.
+	updates := make(map[BlockPointer]BlockPointer)
+	for i, update := range gcOp.Updates {
+		// The unref should represent the most recent merged pointer
+		// for the block.  However, the other ops will be using the
+		// original pointer as the unref, so use that as the key.
+		updates[update.Unref] = update.Ref
+		chain, ok := mergedChains.byMostRecent[update.Unref]
+		if ok {
+			updates[chain.original] = update.Ref
+		}
+
+		// Fix the gc updates to make sure they all unref the most
+		// recent block pointer.  In cases where the two users create
+		// the same directory independently, the update might
+		// currently unref the unmerged most recent pointer.
+		if chain, ok := unmergedChains.byMostRecent[update.Unref]; ok {
+			// In case there was no merged chain above, map the
+			// original to the ref again.
+			updates[chain.original] = update.Ref
+
+			mergedMostRecent, err :=
+				mergedChains.mostRecentFromOriginalOrSame(chain.original)
+			if err != nil {
+				return nil, nil, err
+			}
+			cr.log.CDebugf(ctx, "Fixing gcOp update from unmerged most "+
+				"recent %v to merged most recent %v",
+				update.Unref, mergedMostRecent)
+			update.Unref = mergedMostRecent
+			gcOp.Updates[i] = update
+			updates[update.Unref] = update.Ref
+		}
+	}
+
+	for unref, ref := range updates {
+		cr.log.CDebugf(ctx, "FixOp update: %v -> %v", unref, ref)
+	}
+
+	newOps, err := crFixOpPointers(oldOps[:len(oldOps)-1], updates,
+		unmergedChains)
 	if err != nil {
 		return nil, nil, err
 	}
-	newOps[0] = oldOps[len(oldOps)-1] // move the dummy ops to the front
+
+	newOps[0] = gcOp // move the dummy ops to the front
 	md.data.Changes.Ops = newOps
+
+	for _, op := range newOps {
+		cr.log.CDebugf(ctx, "%s: refs: %v", op, op.Refs())
+		for _, update := range op.AllUpdates() {
+			cr.log.CDebugf(ctx, "%s: update: %v -> %v", op, update.Unref, update.Ref)
+		}
+	}
 
 	// do the block changes need their own blocks?
 	bsplit := cr.config.BlockSplitter()
@@ -2336,7 +2457,7 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	newOps, err := crFixOpPointers(ops, updates)
+	newOps, err := crFixOpPointers(ops, updates, mergedChains)
 	if err != nil {
 		return nil, err
 	}
@@ -2384,8 +2505,8 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 		return err
 	}
 
-	updates, bps, err := cr.syncBlocks(ctx, md, mergedChains, resolvedPaths,
-		lbc, newFileBlocks)
+	updates, bps, err := cr.syncBlocks(ctx, md, unmergedChains, mergedChains,
+		resolvedPaths, lbc, newFileBlocks)
 	if err != nil {
 		return err
 	}
