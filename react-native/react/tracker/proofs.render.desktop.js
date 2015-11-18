@@ -61,13 +61,11 @@ export default class ProofsRender extends Component {
     return this.mapTagToName(identify.ProofState, p) || 'ERROR, proof state not recognized'
   }
 
-  prettyProofType (p: ProofType): string {
-    return this.mapTagToName(identify.ProofType, p) || 'ERROR, proof type not recognized'
+  prettyName (p: RemoteProof): string {
+    return p.value
   }
 
   renderPlatformProof (proof: RemoteProof, lcr: ?LinkCheckResult): ReactElement {
-    const prettyProofType = this.prettyProofType(proof.proofType)
-
     const onTouchTap = () => {
       if (lcr && lcr.hint) {
         console.log('should open hint link:', lcr.hint.humanUrl)
@@ -80,10 +78,14 @@ export default class ProofsRender extends Component {
 
     const prettyProofState = lcr && this.prettyProofState(lcr.proofResult.state) || 'pending'
 
-    const name = prettyProofType
+    const name = this.prettyName(proof)
+    const type = this.mapTagToName(identify.ProofType, proof.proofType) || 'ERROR, proof type not recognized'
+
     return (
       <div style={{display: 'flex'}}>
-        <p title={name} style={{width: 40, marginRight: 10, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}>{pp.platform.icon}</p>
+        <p title={type} style={{width: 40, marginRight: 10, cursor: 'pointer'}} onTouchTap={onTouchTap}>
+          Icon for: {type}
+        </p>
         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
           <p style={{textDecoration: pp.proof.status === deleted ? 'line-through' : 'inherit', marginBottom: 0, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}> {name}</p>
           <span style={{backgroundColor: this.metaColor(pp)}}>{pp.proof.meta}</span>
