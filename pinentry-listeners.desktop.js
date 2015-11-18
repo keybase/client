@@ -1,7 +1,5 @@
-import BrowserWindow from 'browser-window'
-
 export default {
-  'keybase.1.secretUi.getPassphrase': (payload, response) => {
+  'keybase.1.secretUi.getPassphrase': (payload) => {
     console.log('Asked for passphrase')
     /*
     Payload looks like:
@@ -25,24 +23,13 @@ export default {
       console.error('payload.pinentry.prompt does not exist')
     }
 
-    var props = payload.pinentry
-    // Here's where we should spawn a BrowserWindow with the Pinentry component,
-    // passing in props.  For now, it's stubbed out.
-
-    var pinentryWindow = new BrowserWindow({
-      width: 500, height: 300,
-      //resizable: false,
-      fullscreen: false
-    })
-    console.log(pinentryWindow)
-    pinentryWindow.loadUrl(`file://${__dirname}/pinentry.wrapper.html`)
-    pinentryWindow.show()
-
-    const reply = {
-      'passphrase': 'fooBARbaz',
-      'storeSecret': false
+    var props = {}
+    props.prompt = payload.pinentry.prompt
+    props.retryLabel = payload.pinentry.retryLabel
+    props.windowTitle = payload.pinentry.windowTitle
+    props.features = {}
+    for (const feature in payload.pinentry.features) {
+      props.features[feature] = payload.pinentry.features[feature]
     }
-    response.result(reply)
-    console.log('Sent passphrase back')
   }
 }
