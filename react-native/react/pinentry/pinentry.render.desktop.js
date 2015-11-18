@@ -10,10 +10,10 @@ export default class PinentryRender extends Component {
       features: {}
     }
     for (const feature in this.props.payload.features) {
-      if (this.props.payload.features[feature].hasOwnProperty('value')) {
-        this.state.features[feature] = this.props.payload.features[feature].value
+      if (this.props.payload.features[feature].hasOwnProperty('allow')) {
+        this.state.features[feature] = this.props.payload.features[feature].allow
       } else {
-        console.error('We were passed a payload with no value!')
+        console.error('We were passed a payload with no allow field!')
       }
     }
   }

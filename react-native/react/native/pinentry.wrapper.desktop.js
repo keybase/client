@@ -4,18 +4,24 @@ import Pinentry from '../pinentry'
 import ipc from 'ipc'
 
 class PinentryWrapper extends Component {
-  componentWillMount () {
-    ipc.send('sendProps')
-    ipc.on('sendingProps', function (props) {
-      console.log('received sendingProps')
-      this.props = props
-      console.log(this.props)
+  constructor (props) {
+    super(props)
+
+    this.state = {}
+    ipc.on('sendingProps', (props) => {
+      const payload = {
+        payload: props
+      }
+      this.setState(payload)
     })
+    ipc.send('sendProps')
   }
+
   render () {
-    if (this.props.features) {
-      return <Pinentry />
+    if ('payload' in this.state) {
+      return <Pinentry {...this.state}/>
     }
+    return <div/>
   }
 }
 
