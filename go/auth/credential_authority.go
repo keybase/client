@@ -8,9 +8,10 @@ import (
 	"time"
 )
 
-const PollWait = 5 * time.Second
-const UserTimeout = 5 * time.Minute
-const CacheTimeout = 8 * time.Minute
+const (
+	userTimeout  = 5 * time.Minute
+	cacheTimeout = 8 * time.Minute
+)
 
 // CredentialAuthority should be allocated as a singleton object. It validates UID<->Username<->ActiveKey
 // triples for all users across a service. It keeps a cache and subscribes for updates,
@@ -157,7 +158,6 @@ func (v *CredentialAuthority) run() {
 
 // pollOnce polls the API server once for which users have changed.
 func (v *CredentialAuthority) pollOnce() error {
-
 	var err error
 	var uids []keybase1.UID
 	err = v.runWithCancel(func(ctx context.Context) error {
@@ -177,7 +177,6 @@ func (v *CredentialAuthority) pollOnce() error {
 // If it gets one, it uses context-based cancelation to cancel the outstanding API call
 // (or sleep in the case of Poll()'ing).
 func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error) error {
-
 	ctx, cancel := context.WithCancel(context.Background())
 	doneCh := make(chan struct{})
 	var err error
@@ -199,7 +198,6 @@ func (v *CredentialAuthority) runWithCancel(body func(ctx context.Context) error
 // pollLoop() keeps running until the CA is shut down via Shutdown(). It calls Poll()
 // on the UserKeyAPIer once per iteration.
 func (v *CredentialAuthority) pollLoop() {
-
 	var err error
 	for err != ErrShutdown {
 		err = v.pollOnce()
@@ -240,7 +238,7 @@ func (v *CredentialAuthority) runLoop() {
 // We'll get an entry in the cleanSchedule once for ever call to GetUser() on
 // the API server.
 func (v *CredentialAuthority) clean() {
-	cutoff := v.eng.Now().Add(-CacheTimeout)
+	cutoff := v.eng.Now().Add(-cacheTimeout)
 	for i, e := range v.cleanSchedule {
 		if e.ctime.After(cutoff) {
 			v.cleanSchedule = v.cleanSchedule[i:]
@@ -335,7 +333,7 @@ func (u *user) repopulate() error {
 // isPopulated returned true if this user is populated and current enough to
 // trust.
 func (u *user) isPopulated() bool {
-	return u.isOK && u.Now().Sub(u.ctime) <= UserTimeout
+	return u.isOK && u.Now().Sub(u.ctime) <= userTimeout
 }
 
 // check that a user matches the given username and has the given key as one of
@@ -391,8 +389,10 @@ func (u *user) checkKey(kid keybase1.KID) error {
 	return err
 }
 
-// Check takes as input a UID, a username and a kid that should refer to a current
-// valid triple, perhaps extracted from a signed authentication statement.
+// Check is the main point of entry to this library. It takes as input a UID, a
+// username and a kid that should refer to a current valid triple, perhaps
+// extracted from a signed authentication statement. It returns an error if the
+// check fails, and nil otherwise.
 func (v *CredentialAuthority) Check(ctx context.Context, uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.KID) (err error) {
 	retCh := make(chan error)
 	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, retCh: retCh}

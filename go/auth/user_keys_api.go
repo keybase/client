@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+const (
+	pollWait = 5 * time.Second
+)
+
 type pubsubMessage struct {
 	UID             keybase1.UID `json:"uid"`
 	LatestSyncStamp int          `json:"latest_sync_stamp"`
@@ -76,7 +80,7 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 	select {
 	case <-ctx.Done():
 		return nil, ErrCanceled
-	case <-time.After(PollWait):
+	case <-time.After(pollWait):
 	}
 
 	var psb pubsubResponse

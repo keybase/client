@@ -106,7 +106,7 @@ func (ts *testState) GetUser(_ context.Context, uid keybase1.UID) (libkb.Normali
 }
 
 func (ts *testState) PollForChanges(_ context.Context) ([]keybase1.UID, error) {
-	ts.sleep(PollWait)
+	ts.sleep(pollWait)
 
 	ts.Lock()
 	defer ts.Unlock()
@@ -190,7 +190,7 @@ func TestSimple(t *testing.T) {
 
 	// Advance the clock PollWait duration, so that our polling of the server
 	// has a chance to complete.
-	S.tick(PollWait)
+	S.tick(pollWait)
 
 	// wait for the first eviction
 	uid := <-S.evictCh
@@ -216,7 +216,7 @@ func TestSimple(t *testing.T) {
 	if S.numGets != 2 {
 		t.Fatal("expected 2 gets")
 	}
-	S.tick(UserTimeout + time.Millisecond)
+	S.tick(userTimeout + time.Millisecond)
 	err = C.Check(context.TODO(), u0.uid, u0.username, key1)
 	if err != nil {
 		t.Fatal(err)
@@ -225,9 +225,9 @@ func TestSimple(t *testing.T) {
 		t.Fatal("expected 3 gets")
 	}
 
-	S.tick(CacheTimeout + time.Millisecond)
+	S.tick(cacheTimeout + time.Millisecond)
 
-	// u0 should now be gone since we haven't touched him in over CacheTimeout
+	// u0 should now be gone since we haven't touched him in over cacheTimeout
 	// duration.
 	uid = <-S.evictCh
 	if uid != u0.uid {
@@ -247,7 +247,7 @@ func TestSimple(t *testing.T) {
 		if S.numGets != ng {
 			t.Fatalf("expected %d gets, got %d", ng, S.numGets)
 		}
-		S.tick(UserTimeout + time.Millisecond)
+		S.tick(userTimeout + time.Millisecond)
 
 		select {
 		case uid = <-S.evictCh:
@@ -256,7 +256,7 @@ func TestSimple(t *testing.T) {
 		}
 	}
 
-	S.tick(CacheTimeout - UserTimeout + 3*time.Millisecond)
+	S.tick(cacheTimeout - userTimeout + 3*time.Millisecond)
 	uid = <-S.evictCh
 	if uid != u1.uid {
 		t.Fatalf("Got wrong eviction: wanted %s but got %s\n", u1.uid, uid)
