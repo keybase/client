@@ -18,7 +18,7 @@ func TestTokenVerifyToken(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := libkb.NormalizedUsername("alice")
+	name := libkb.NewNormalizedUsername("alice")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 10
 	tokenType := "test"
@@ -47,7 +47,7 @@ func TestTokenExpired(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := libkb.NormalizedUsername("bob")
+	name := libkb.NewNormalizedUsername("bob")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 0
 	tokenType := "test"
@@ -70,7 +70,7 @@ func TestMaxExpires(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := libkb.NormalizedUsername("charlie")
+	name := libkb.NewNormalizedUsername("charlie")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := testMaxTokenExpireIn + 1
 	tokenType := "test"
@@ -93,7 +93,7 @@ func TestTokenTypeInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := libkb.NormalizedUsername("dana")
+	name := libkb.NewNormalizedUsername("dana")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 10
 	tokenType := "test"
