@@ -679,17 +679,6 @@
 
 @end
 
-@implementation KBRKex2ProvisionerRequest
-
-- (void)kexStart:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisioner.kexStart" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-@end
-
 @implementation KBRKex2ProvisioneeRequest
 
 - (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion {
@@ -726,6 +715,17 @@
 - (void)didCounterSignWithSig:(NSData *)sig completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"sig": KBRValue(sig)};
   [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee.didCounterSign" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRKex2ProvisionerRequest
+
+- (void)kexStart:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisioner.kexStart" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -3286,6 +3286,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
   }
   return self;
 }
@@ -3334,7 +3335,6 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.username = params[0][@"username"];
   }
   return self;
 }

@@ -19,9 +19,9 @@ func NewCmdTestFSNotify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cl.ChooseCommand(&CmdTestFSNotify{Contextified: libkb.NewContextified(g)}, "test-fsnotify", c)
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "t, tlf",
-				Usage: "top level folder",
+			cli.BoolFlag{
+				Name:  "p, public",
+				Usage: "public top level folder",
 			},
 			cli.StringFlag{
 				Name:  "f, filename",
@@ -29,7 +29,7 @@ func NewCmdTestFSNotify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			},
 			cli.StringFlag{
 				Name:  "a, action",
-				Usage: "[encrypting|decrypting|signing|rekeying]",
+				Usage: "[encrypting|decrypting|signing|verifying|rekeying]",
 			},
 			cli.StringFlag{
 				Name:  "delay",
@@ -41,17 +41,14 @@ func NewCmdTestFSNotify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 
 type CmdTestFSNotify struct {
 	libkb.Contextified
-	tlf      string
-	filename string
-	action   keybase1.FSNotificationType
-	delay    time.Duration
+	publicTLF bool
+	filename  string
+	action    keybase1.FSNotificationType
+	delay     time.Duration
 }
 
 func (s *CmdTestFSNotify) ParseArgv(ctx *cli.Context) error {
-	s.tlf = ctx.String("tlf")
-	if len(s.tlf) == 0 {
-		s.tlf = "private/t_alice"
-	}
+	s.publicTLF = ctx.Bool("public")
 
 	s.filename = ctx.String("filename")
 	if len(s.filename) == 0 {
@@ -67,6 +64,8 @@ func (s *CmdTestFSNotify) ParseArgv(ctx *cli.Context) error {
 		s.action = keybase1.FSNotificationType_DECRYPTING
 	case "signing":
 		s.action = keybase1.FSNotificationType_SIGNING
+	case "verifying":
+		s.action = keybase1.FSNotificationType_VERIFYING
 	case "rekeying":
 		s.action = keybase1.FSNotificationType_REKEYING
 	}
@@ -99,10 +98,10 @@ func (s *CmdTestFSNotify) Run() (err error) {
 	}
 
 	arg := keybase1.FSNotification{
-		TopLevelFolder:   s.tlf,
-		Filename:         s.filename,
-		NotificationType: s.action,
-		StatusCode:       keybase1.FSStatusCode_START,
+		PublicTopLevelFolder: s.publicTLF,
+		Filename:             s.filename,
+		NotificationType:     s.action,
+		StatusCode:           keybase1.FSStatusCode_START,
 	}
 	s.G().Log.Debug("sending start event")
 	err = cli.FSEvent(context.TODO(), arg)

@@ -304,7 +304,8 @@ export default {
       'encrypting': 0,
       'decrypting': 1,
       'signing': 2,
-      'rekeying': 3
+      'verifying': 3,
+      'rekeying': 4
     }
   },
   'Kex2Provisionee': {
@@ -402,7 +403,8 @@ export default {
       'encrypting': 0,
       'decrypting': 1,
       'signing': 2,
-      'rekeying': 3
+      'verifying': 3,
+      'rekeying': 4
     }
   },
   'NotifySession': {},

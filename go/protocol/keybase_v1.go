@@ -1827,15 +1827,16 @@ const (
 	FSNotificationType_ENCRYPTING FSNotificationType = 0
 	FSNotificationType_DECRYPTING FSNotificationType = 1
 	FSNotificationType_SIGNING    FSNotificationType = 2
-	FSNotificationType_REKEYING   FSNotificationType = 3
+	FSNotificationType_VERIFYING  FSNotificationType = 3
+	FSNotificationType_REKEYING   FSNotificationType = 4
 )
 
 type FSNotification struct {
-	TopLevelFolder   string             `codec:"topLevelFolder" json:"topLevelFolder"`
-	Filename         string             `codec:"filename" json:"filename"`
-	Status           string             `codec:"status" json:"status"`
-	StatusCode       FSStatusCode       `codec:"statusCode" json:"statusCode"`
-	NotificationType FSNotificationType `codec:"notificationType" json:"notificationType"`
+	PublicTopLevelFolder bool               `codec:"publicTopLevelFolder" json:"publicTopLevelFolder"`
+	Filename             string             `codec:"filename" json:"filename"`
+	Status               string             `codec:"status" json:"status"`
+	StatusCode           FSStatusCode       `codec:"statusCode" json:"statusCode"`
+	NotificationType     FSNotificationType `codec:"notificationType" json:"notificationType"`
 }
 
 type FSEventArg struct {

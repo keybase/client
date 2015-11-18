@@ -11,11 +11,12 @@ protocol kbfsCommon {
 		ENCRYPTING_0,
 		DECRYPTING_1,
 		SIGNING_2,
-		REKEYING_3
+		VERIFYING_3,
+		REKEYING_4
 	}
 
 	record FSNotification {
-		string topLevelFolder;
+		boolean publicTopLevelFolder;
 		string filename;
 		string status;
 		FSStatusCode statusCode;

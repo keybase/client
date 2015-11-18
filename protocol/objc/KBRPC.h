@@ -378,11 +378,12 @@ typedef NS_ENUM (NSInteger, KBRFSNotificationType) {
 	KBRFSNotificationTypeEncrypting = 0,
 	KBRFSNotificationTypeDecrypting = 1,
 	KBRFSNotificationTypeSigning = 2,
-	KBRFSNotificationTypeRekeying = 3,
+	KBRFSNotificationTypeVerifying = 3,
+	KBRFSNotificationTypeRekeying = 4,
 };
 
 @interface KBRFSNotification : KBRObject
-@property NSString *topLevelFolder;
+@property BOOL publicTopLevelFolder;
 @property NSString *filename;
 @property NSString *status;
 @property KBRFSStatusCode statusCode;
@@ -1513,12 +1514,6 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @end
 
-@interface KBRKex2ProvisionerRequest : KBRRequest
-
-- (void)kexStart:(void (^)(NSError *error))completion;
-
-@end
-
 @interface KBRKex2ProvisioneeRequest : KBRRequest
 
 - (void)hello:(KBRHelloRequestParams *)params completion:(void (^)(NSError *error, NSString *helloRes))completion;
@@ -1528,6 +1523,12 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 - (void)didCounterSign:(KBRDidCounterSignRequestParams *)params completion:(void (^)(NSError *error))completion;
 
 - (void)didCounterSignWithSig:(NSData *)sig completion:(void (^)(NSError *error))completion;
+
+@end
+
+@interface KBRKex2ProvisionerRequest : KBRRequest
+
+- (void)kexStart:(void (^)(NSError *error))completion;
 
 @end
 

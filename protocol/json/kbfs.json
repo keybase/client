@@ -8,13 +8,13 @@
   }, {
     "type" : "enum",
     "name" : "FSNotificationType",
-    "symbols" : [ "ENCRYPTING_0", "DECRYPTING_1", "SIGNING_2", "REKEYING_3" ]
+    "symbols" : [ "ENCRYPTING_0", "DECRYPTING_1", "SIGNING_2", "VERIFYING_3", "REKEYING_4" ]
   }, {
     "type" : "record",
     "name" : "FSNotification",
     "fields" : [ {
-      "name" : "topLevelFolder",
-      "type" : "string"
+      "name" : "publicTopLevelFolder",
+      "type" : "boolean"
     }, {
       "name" : "filename",
       "type" : "string"
