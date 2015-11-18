@@ -24,6 +24,7 @@ module Test
       read "a/b", "hello"
       read "a/c", "world"
       read "a/d", "uh oh"
+      check_state
     end
   end
 
@@ -53,6 +54,7 @@ module Test
       read "a/c", "world"
       lsdir "a/d", { "e" => "FILE" }
       read "a/d/e", "uh oh"
+      check_state
     end
   end
 
@@ -80,6 +82,7 @@ module Test
       read "a/b", "hello"
       read "a/c", "world"
       read "a/d", "hello"
+      check_state
     end
   end
 
@@ -103,6 +106,7 @@ module Test
     as alice do
       lsdir "a/", { "b" => "EXEC", "c" => "FILE"}
       read "a/c", "world"
+      check_state
     end
   end
 
@@ -126,6 +130,7 @@ module Test
     as alice do
       lsdir "a/", { "c" => "FILE"}
       read "a/c", "world"
+      check_state
     end
   end
 
@@ -149,6 +154,7 @@ module Test
     as alice do
       lsdir "a/", { "c" => "FILE"}
       read "a/c", "world"
+      check_state
     end
   end
 
@@ -174,6 +180,7 @@ module Test
       lsdir "a/", { "c" => "FILE", "d" => "FILE"}
       read "a/c", "world"
       read "a/d", "hello"
+      check_state
     end
   end
 
@@ -200,6 +207,7 @@ module Test
       lsdir "a/", { "b" => "FILE", "d" => "FILE", "e" => "SYM"}
       read "a/d", "world"
       read "a/e", "hello"
+      check_state
     end
   end
 
@@ -228,6 +236,7 @@ module Test
       lsdir "a/", { "c" => "FILE"}
       read "a/c", "world"
       read "d", "hello"
+      check_state
     end
   end
 
@@ -256,6 +265,7 @@ module Test
       lsdir "d/", { "e" => "FILE" }
       read "a/c", "world"
       read "d/e", "hello"
+      check_state
     end
   end
 
@@ -286,6 +296,7 @@ module Test
       read "a/c", "world"
       lsdir "a/d", { "e" => "FILE" }
       read "a/d/e", "uh oh"
+      check_state
     end
   end
 
@@ -313,6 +324,7 @@ module Test
       read "a/b", "hello"
       read "a/c", "world"
       read "a/d", "hello"
+      check_state
     end
   end
 
@@ -336,6 +348,7 @@ module Test
     as alice do
       lsdir "a/", { "b" => "EXEC", "c" => "FILE"}
       read "a/c", "world"
+      check_state
     end
   end
 
@@ -359,6 +372,7 @@ module Test
     as alice do
       lsdir "a/", { "c" => "FILE"}
       read "a/c", "world"
+      check_state
     end
   end
 
@@ -382,6 +396,7 @@ module Test
     as alice do
       lsdir "a/", { "c" => "FILE"}
       read "a/c", "world"
+      check_state
     end
   end
 
@@ -407,6 +422,7 @@ module Test
       lsdir "a/", { "c" => "FILE", "d" => "FILE"}
       read "a/c", "world"
       read "a/d", "hello"
+      check_state
     end
   end
 
@@ -435,6 +451,7 @@ module Test
       lsdir "a/", { "c" => "FILE"}
       read "a/c", "world"
       read "d", "hello"
+      check_state
     end
   end
 
@@ -464,6 +481,7 @@ module Test
       lsdir "d/", { "e" => "FILE" }
       read "a/c", "world"
       read "d/e", "hello"
+      check_state
     end
   end
 
@@ -491,6 +509,7 @@ module Test
       lsdir "a/b", { "c" => "FILE", "d" => "FILE" }
       read "a/b/c", "hello"
       read "a/b/d", "world"
+      check_state
     end
   end
 
@@ -513,6 +532,7 @@ module Test
     end
     as alice do
       lsdir "a/", { "c" => "FILE" }
+      check_state
     end
   end
 end
