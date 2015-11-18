@@ -2,8 +2,9 @@
 
 import React, {Component} from '../base-react'
 
+export type ProofsAndChecks = Array<[RemoteProof, ?LinkCheckResult]>
 export type ProofsProps = {
-  proofsAndChecks: Array<[RemoteProof, LinkCheckResult]>
+  proofsAndChecks: ProofsAndChecks
 }
 
 export default class ProofsRender extends Component {
