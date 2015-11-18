@@ -2,16 +2,39 @@
 
 import React, {Component} from '../base-react'
 
-// TODO const when integrating
-const verified = 'verified'
-const checking = 'checking'
-const deleted = 'deleted'
-const unreachable = 'unreachable'
-const pending = 'pending'
+export type ProofsProps = {
+  proofsAndChecks: Array<[RemoteProof, LinkCheckResult]>
+}
 
 export default class ProofsRender extends Component {
-  openLink (proof, platform) {
-    window.open(platform ? proof.platformLink : proof.proofLink)
+  props: ProofsProps;
+
+  // TODO hook this up
+  openLink (url: string): void {
+    window.open(url)
+  }
+
+  metaColor (lcr: ?LinkCheckResult): string {
+    const colors = {
+      none: 'red',
+      ok: 'green',
+      tempFailure: 'yellow',
+      permFailure: 'red',
+      looking: 'gray',
+      superseded: 'gray',
+      posted: 'gray',
+      revoked: 'red'
+    }
+
+    if (!lcr) {
+      return colors.looking
+    }
+
+    return colors[this.mapTagToName(identify.ProofState, lcr.proofResult.state) || 'looking']
+  }
+
+  mapTagToName (obj: any, tag: any): ?string {
+    return Object.keys(obj).filter(x => obj[x] === tag)[0]
   }
 
   metaColor (pp) {
@@ -33,9 +56,30 @@ export default class ProofsRender extends Component {
     }[pp.proof.status]
   }
 
-  renderPlatformProof (pp) {
-    const name = pp.platform.name === 'web' ? pp.platform.uri : pp.platform.name
-    console.log(name)
+  prettyProofState (p: ProofState): string {
+    return this.mapTagToName(identify.ProofState, p) || 'ERROR, proof state not recognized'
+  }
+
+  prettyProofType (p: ProofType): string {
+    return this.mapTagToName(identify.ProofType, p) || 'ERROR, proof type not recognized'
+  }
+
+  renderPlatformProof (proof: RemoteProof, lcr: ?LinkCheckResult): ReactElement {
+    const prettyProofType = this.prettyProofType(proof.proofType)
+
+    const onTouchTap = () => {
+      if (lcr && lcr.hint) {
+        console.log('should open hint link:', lcr.hint.humanUrl)
+      } else if (lcr && !lcr.hint) {
+        console.log('No hint found for lcr!')
+      } else {
+        console.log('Link Check Result is loading...')
+      }
+    }
+
+    const prettyProofState = lcr && this.prettyProofState(lcr.proofResult.state) || 'pending'
+
+    const name = prettyProofType
     return (
       <div style={{display: 'flex'}}>
         <p title={name} style={{width: 40, marginRight: 10, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}>{pp.platform.icon}</p>

@@ -6,11 +6,13 @@ import React, {Component} from '../base-react'
 import {AppBar, IconButton} from 'material-ui'
 import NavigationClose from 'material-ui/lib/svg-icons/navigation/close'
 
+export type HeaderProps = {
+  reason: string,
+  onClose: () => void
+}
+
 export default class HeaderRender extends Component {
-  props: {
-    reason: string,
-    onClose: () => void
-  };
+  props: HeaderProps;
 
   render (): ReactElement {
     return (

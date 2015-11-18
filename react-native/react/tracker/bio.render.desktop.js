@@ -8,8 +8,8 @@ import {Paper} from 'material-ui'
 import type {User} from '../constants/types/flow-types'
 
 export type BioProps = {
-  user: ?User,
-  state: 'warning' | 'error' | 'pending',
+  username: ?string,
+  state: 'normal' | 'warning' | 'error' | 'pending',
   userInfo: ?{
     fullname: string,
     followersCount: number,
@@ -26,7 +26,7 @@ export default class BioRender extends Component {
   render (): ReactElement {
     let userFlag = ''
 
-    const { user, state, userInfo } = this.props
+    const { username, state, userInfo } = this.props
 
     if (state === 'warning') {
       userFlag = ' (warning)'
@@ -38,7 +38,7 @@ export default class BioRender extends Component {
         <Paper style={{overflow: 'hidden'}} zDepth={1} circle>
           <img src={userInfo && userInfo.avatar} style={{width: 100, height: 100}}/>
         </Paper>
-        <p style={{height: 0}}>{user && (user.username + userFlag)}</p>
+        <p style={{height: 0}}>{username && (username + userFlag)}</p>
         <p style={{height: 0}}>{'TODO get full name...'}</p>
         <div style={{display: 'flex', alignSelf: 'stretch', justifyContent: 'space-around', paddingLeft: 20, paddingRight: 20}}>
           <p style={{height: 0}}>{userInfo ? userInfo.followingCount : '-'} Following</p>
