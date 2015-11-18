@@ -7,13 +7,13 @@
 package auth
 
 import (
+	"bytes"
 	"encoding/json"
 	"math"
 	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	jsonw "github.com/keybase/go-jsonw"
 )
 
 const CurrentTokenVersion = 1
@@ -144,12 +144,10 @@ func (t Token) ClientVersion() string {
 }
 
 func parseToken(token []byte) (*Token, error) {
-	jw, err := jsonw.Unmarshal(token)
-	if err != nil {
-		return nil, err
-	}
+        decoder := json.NewDecoder(bytes.NewReader(token))
+	decoder.UseNumber()
 	var t Token
-	if err = jw.UnmarshalAgain(&t); err != nil {
+	if err := decoder.Decode(&t); err != nil {
 		return nil, err
 	}
 	return &t, nil
