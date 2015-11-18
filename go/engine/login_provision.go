@@ -191,18 +191,18 @@ func (e *LoginProvision) device(ctx *Context) error {
 
 // gpg attempts to provision the device via a gpg key.
 func (e *LoginProvision) gpg(ctx *Context) error {
-	bundle, err := e.chooseAndUnlockGPGKey(ctx)
+	gpgKey, err := e.chooseGPGKey(ctx)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("imported private gpg key %s", bundle.GetKID())
+	e.G().Log.Debug("using gpg key %s (%s)", gpgKey.GetFingerprintP(), gpgKey.GetKID())
 
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the gpg key in bundle.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
-		if err := e.makeDeviceKeysWithSigner(ctx, bundle); err != nil {
+		if err := e.makeDeviceKeysWithSigner(ctx, gpgKey); err != nil {
 			return err
 		}
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
@@ -588,10 +588,9 @@ func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
 	return e.paperKey(ctx)
 }
 
-// chooseAndUnlockGPGKey asks the user to select a gpg key to use,
-// then checks if the fingerprint exists on keybase.io, and
-// finally uses gpg to unlock it.
-func (e *LoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBundle, error) {
+// chooseGPGKey asks the user to select a gpg key to use, then
+// checks if the fingerprint exists on keybase.io.
+func (e *LoginProvision) chooseGPGKey(ctx *Context) (*libkb.GPGKey, error) {
 	// choose a private gpg key to use
 	fp, err := e.selectGPGKey(ctx)
 	if err != nil {
@@ -606,21 +605,14 @@ func (e *LoginProvision) chooseAndUnlockGPGKey(ctx *Context) (*libkb.PGPKeyBundl
 		return nil, err
 	}
 
-	// import it with gpg
-	cli, err := e.gpgClient()
-	if err != nil {
-		return nil, err
-	}
-	bundle, err := cli.ImportKey(true, *fp)
+	// get KID for the pgp key
+	kid, err := e.user.GetComputedKeyFamily().FindKIDFromFingerprint(*fp)
 	if err != nil {
 		return nil, err
 	}
 
-	// unlock it
-	if err := bundle.Unlock("sign new device", ctx.SecretUI); err != nil {
-		return nil, err
-	}
-	return bundle, nil
+	// create a GPGKey shell around gpg cli with fp, kid
+	return libkb.NewGPGKey(e.G(), fp, kid), nil
 }
 
 // selectGPGKey creates an index of the private gpg keys and

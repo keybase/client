@@ -461,6 +461,14 @@ func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid keybase1.KID) (Gener
 	return key, nil
 }
 
+func (ckf ComputedKeyFamily) FindKIDFromFingerprint(fp PGPFingerprint) (kid keybase1.KID, err error) {
+	kid, ok := ckf.kf.pgp2kid[fp]
+	if !ok {
+		return kid, NoKeyError{fmt.Sprintf("No key found in key family for %q", fp)}
+	}
+	return kid, nil
+}
+
 // TclToKeybaseTime turns a TypedChainLink into a KeybaseTime tuple, looking
 // inside the chainlink for the Unix wallclock and the global MerkleChain seqno.
 func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {

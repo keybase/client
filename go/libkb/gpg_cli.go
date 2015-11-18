@@ -170,6 +170,35 @@ func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {
 	return PickFirstError(e1, e2, e3)
 }
 
+func (g *GpgCLI) Sign(fp PGPFingerprint, payload []byte) (string, error) {
+	arg := RunGpg2Arg{
+		Arguments: []string{"--armor", "--sign", "--default-key", fp.String()},
+		Stdout:    true,
+		Stdin:     true,
+	}
+
+	res := g.Run2(arg)
+	if res.Err != nil {
+		return "", res.Err
+	}
+
+	res.Stdin.Write(payload)
+	res.Stdin.Close()
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(res.Stdout)
+	armored := buf.String()
+
+	// Convert to posix style on windows
+	armored = PosixLineEndings(armored)
+
+	if err := res.Wait(); err != nil {
+		return "", err
+	}
+
+	return armored, nil
+}
+
 type RunGpg2Arg struct {
 	Arguments []string
 	Stdin     bool
