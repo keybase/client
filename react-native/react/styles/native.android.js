@@ -7,3 +7,7 @@ export default {
   navBarHeight: 60,
   tabBarHeight: 48
 }
+
+export const styles = {
+}
+

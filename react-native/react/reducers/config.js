@@ -59,7 +59,8 @@ export default function (state: ConfigState = initialState, action: any): Config
     case LoginConstants.loginDone:
       return {
         ...state,
-        navState: Constants.navLoggedIn
+        error: action.error ? action.payload : null,
+        navState: action.error ? Constants.navErrorStartingUp : Constants.navLoggedIn
       }
     case Constants.devConfigLoading:
       return {

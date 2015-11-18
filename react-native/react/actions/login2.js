@@ -1,8 +1,9 @@
 'use strict'
 
 import * as Constants from '../constants/login2'
+import {isMobile} from '../constants/platform'
 import QRCodeGen from 'qrcode-generator'
-import { navigateTo, routeAppend, getCurrentURI, getCurrentTab } from './router'
+import {navigateTo, routeAppend, getCurrentURI, getCurrentTab} from './router'
 import engine from '../engine'
 import enums from '../keybase_v1'
 import UserPass from '../login2/register/user-pass'
@@ -10,9 +11,9 @@ import PaperKey from '../login2/register/paper-key'
 import CodePage from '../login2/register/code-page'
 import ExistingDevice from '../login2/register/existing-device'
 import SetPublicName from '../login2/register/set-public-name'
-import { switchTab } from './tabbed-router'
-import { devicesTab } from '../constants/tabs'
-import { loadDevices } from './devices'
+import {switchTab} from './tabbed-router'
+import {devicesTab} from '../constants/tabs'
+import {loadDevices} from './devices'
 
 export function login () {
   return (dispatch, getState) => {
@@ -41,7 +42,7 @@ function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, brokenMode) {
     case Constants.codePageDeviceRoleExistingPhone + Constants.codePageDeviceRoleNewComputer:
       return Constants.codePageModeScanCode
     case Constants.codePageDeviceRoleNewComputer + Constants.codePageDeviceRoleExistingPhone:
-      return Constants.codePageModeShowCode
+      return Constants.codePageModeShowCodeOrEnterText
 
     case Constants.codePageDeviceRoleExistingPhone + Constants.codePageDeviceRoleNewPhone:
       return brokenMode ? Constants.codePageModeShowText : Constants.codePageModeShowCode
@@ -65,7 +66,9 @@ function setCodePageOtherDeviceRole (otherDeviceRole) {
 function generateQRCode (dispatch, getState) {
   const store = getState().login2.codePage
 
-  if (store.mode === Constants.codePageModeShowCode && !store.qrCode && store.textCode) {
+  const goodMode = store.mode === Constants.codePageModeShowCode || store.mode === Constants.codePageModeShowCodeOrEnterText
+
+  if (goodMode && !store.qrCode && store.textCode) {
     dispatch({
       type: Constants.setQRCode,
       payload: qrGenerate(store.textCode)
@@ -91,7 +94,7 @@ function setCodePageMode (mode) {
 }
 
 function qrGenerate (code) {
-  const qr = QRCodeGen(3, 'L')
+  const qr = QRCodeGen(4, 'L')
   qr.addData(code)
   qr.make()
   let tag = qr.createImgTag(10)
@@ -199,7 +202,7 @@ function askForUserPass (title, subTitle, cb) {
 function askForPaperKey (cb) {
   return dispatch => {
     const props = {
-      onSubmit: (paperKey) => {
+      onSubmit: paperKey => {
         cb(paperKey)
       }
     }
@@ -224,7 +227,7 @@ function askForDeviceName (existingDevices, cb) {
       type: Constants.actionAskDeviceName,
       payload: {
         existingDevices,
-        onSubmit: (deviceName) => {
+        onSubmit: deviceName => {
           dispatch({
             type: Constants.actionSetDeviceName,
             payload: deviceName
@@ -329,8 +332,7 @@ export function registerWithPaperKey () {
 }
 
 function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle, successType) {
-  const mobile = true // TODO desktop also
-  const deviceType = mobile ? 'mobile' : 'desktop'
+  const deviceType = isMobile ? 'mobile' : 'desktop'
   const incomingMap = makeKex2IncomingMap(dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle)
 
   engine.rpc('login.login', {deviceType}, incomingMap, (error, response) => {
@@ -340,8 +342,10 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
       payload: error || null
     })
 
-    dispatch(navigateTo([]))
-    dispatch(switchTab(devicesTab))
+    if (!error) {
+      dispatch(navigateTo([]))
+      dispatch(switchTab(devicesTab))
+    }
   })
 }
 
@@ -375,7 +379,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       }
     },
     'keybase.1.secretUi.getPaperKeyPassphrase': (param, response) => {
-      dispatch(askForPaperKey((paperKey) => {
+      dispatch(askForPaperKey(paperKey => {
         response.result(paperKey)
       }))
     },
@@ -384,10 +388,16 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       if (!passphrase) {
         dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
           const { passphrase } = getState().login2.userPass
-          response.result(passphrase)
+          response.result({
+            passphrase,
+            storeSecret: false
+          })
         }))
       } else {
-        response.result(passphrase)
+        response.result({
+          passphrase,
+          storeSecret: false
+        })
       }
     },
     'keybase.1.secretUi.getSecret': (param, response) => {
@@ -437,7 +447,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       }
     },
     'keybase.1.provisionUi.chooseDeviceType': (param, response) => {
-      dispatch(askForOtherDeviceType((type) => {
+      dispatch(askForOtherDeviceType(type => {
         const typeMap = {
           [Constants.codePageDeviceRoleExistingPhone]: enums.provisionUi.DeviceType.mobile,
           [Constants.codePageDeviceRoleExistingComputer]: enums.provisionUi.DeviceType.desktop

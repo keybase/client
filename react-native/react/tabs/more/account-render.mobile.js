@@ -4,7 +4,7 @@ import React, { Component, Text, TextInput, View, StyleSheet } from 'react-nativ
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 
-export default class Account extends Component {
+export default class AccountRender extends Component {
 
   constructor (props) {
     super(props)
@@ -69,7 +69,7 @@ export default class Account extends Component {
   }
 }
 
-Account.propTypes = {
+AccountRender.propTypes = {
   email: React.PropTypes.string.isRequired,
   emailVerified: React.PropTypes.bool.isRequired,
   onSave: React.PropTypes.func.isRequired,

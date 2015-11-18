@@ -9,3 +9,7 @@ export default {
   navBarHeight: NavigatorNavigationBarStyles.General.TotalNavHeight,
   tabBarHeight: 48
 }
+
+export const styles = {
+}
+

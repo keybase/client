@@ -11,6 +11,7 @@ export const codePageModeScanCode = 'codePageModeScanCode'
 export const codePageModeShowCode = 'codePageModeShowCode'
 export const codePageModeEnterText = 'codePageModeEnterText'
 export const codePageModeShowText = 'codePageModeShowText'
+export const codePageModeShowCodeOrEnterText = 'codePageModeShowCodeOrEnterText'
 
 export const countDownTime = 5 * 60
 
