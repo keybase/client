@@ -1,10 +1,17 @@
 'use strict'
+/* @flow */
 
+// $FlowIssue base-react
 import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
+// $FlowIssue platform dependent files
 import Render from './render'
 import {navigateUp} from '../actions/router'
 
+import type { BioProps } from './bio.render.desktop'
+import type { User, IdentifyOutcome } from '../constants/types/flow-types'
+
+export default class Tracker extends Component {
 class Tracker extends Component {
   constructor (props: any) {
     super(props)
@@ -24,20 +31,32 @@ class Tracker extends Component {
   }
 
   static parseRoute (currentPath) {
+    const user: User = {
+      uid: {},
+      username: 'test123'
+    }
+
+    const bioDummyData: BioProps = {
+      user: user,
+      state: currentPath.get('state'),
+      userInfo: {
+        fullname: 'Alice Bonhomme-Biaias',
+        followersCount: 81,
+        followingCount: 567,
+        followsYou: true,
+        location: 'New York, NY',
+        avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/2571dc6108772dbe0816deef41b25705_200_200_square_200.jpeg'
+      }
+    }
+
     return {
       componentAtTop: {
         title: 'Tracker',
         // dummy data TODO
         props: {
+          ...bioDummyData,
           reason: 'You accessed /private/cecile',
-          state: currentPath.get('state'),
           username: 'test12',
-          avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/2571dc6108772dbe0816deef41b25705_200_200_square_200.jpeg',
-          fullname: 'Alice Bonhomme-Biaias',
-          followersCount: 81,
-          followingCount: 567,
-          followsYou: true,
-          location: 'New York, NY',
           shouldFollow: true,
           proofsAndChecks: [
             [

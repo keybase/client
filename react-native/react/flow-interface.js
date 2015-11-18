@@ -14,6 +14,14 @@ declare module 'redux-devtools' {
   declare var exports: any;
 }
 
+declare module 'material-ui' {
+  declare var exports: any;
+}
+
+declare module 'material-ui/lib/svg-icons/navigation/close' {
+  declare var exports: any;
+}
+
 declare class Notification {
 }
 
