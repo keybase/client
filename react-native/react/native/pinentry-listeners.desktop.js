@@ -1,4 +1,5 @@
 import BrowserWindow from 'browser-window'
+import ipc from 'ipc'
 
 export default {
   'keybase.1.secretUi.getPassphrase': (payload, response) => {
@@ -29,6 +30,10 @@ export default {
     // Here's where we should spawn a BrowserWindow with the Pinentry component,
     // passing in props.  For now, it's stubbed out.
 
+    ipc.on('sendProps', function (event, arg) {
+      console.log('received sendProps')
+      event.sender.send('sendingProps', props)
+    })
     var pinentryWindow = new BrowserWindow({
       width: 500, height: 300,
       //resizable: false,
