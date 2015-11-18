@@ -7,9 +7,11 @@ import {Paper} from 'material-ui'
 
 import type {User} from '../constants/types/flow-types'
 
+import type { SimpleProofState } from './common-types'
+
 export type BioProps = {
   username: ?string,
-  state: 'normal' | 'warning' | 'error' | 'pending',
+  state: SimpleProofState,
   userInfo: ?{
     fullname: string,
     followersCount: number,

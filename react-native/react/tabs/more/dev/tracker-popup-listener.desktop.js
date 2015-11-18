@@ -20,6 +20,16 @@ import type { ActionProps } from '../../../tracker/action.render.desktop'
 import type { HeaderProps } from '../../../tracker/header.render.desktop'
 import type { ProofsProps, ProofsAndChecks } from '../../../tracker/proofs.render.desktop'
 import type { TrackerProps } from '../../../tracker/render.desktop'
+import type { SimpleProofState } from '../../../tracker/common-types'
+
+type ComponentState = {
+  outstandingReqs: Array<RemoteProof>,
+  overallProofStatus: SimpleProofState,
+  bioProps: BioProps,
+  actionProps: ActionProps,
+  headerProps: HeaderProps,
+  proofsProps: ProofsProps
+}
 
 export default class TrackerPopupListener extends Component {
 
@@ -28,14 +38,12 @@ export default class TrackerPopupListener extends Component {
   // * Get UserInfo (for BioProps)
   //
 
-  state: {
-    outstandingReqs: Array<RemoteProof>,
-    overallProofStatus: string,
-    bioProps: BioProps,
-    actionProps: ActionProps,
-    headerProps: HeaderProps,
-    proofsProps: ProofsProps
-  };
+  state: ComponentState;
+
+  // Get some type safety here
+  setState (object: ComponentState): void {
+    super.setState(object)
+  }
 
   constructor (props: {}) {
     super(props)
@@ -97,7 +105,9 @@ export default class TrackerPopupListener extends Component {
       }
       return proofAndCheck
     })
-    this.setState({proofsProps: {
+    this.setState({
+      ...this.state,
+      proofsProps: {
       ...this.state.proofsProps,
       proofsAndChecks
     }})
@@ -133,7 +143,7 @@ export default class TrackerPopupListener extends Component {
 
     const anyPending: boolean = proofsAndChecks.reduce((acc, [p, lcr]) => acc || !lcr, false)
 
-    let overallProofStatus: string = 'error'
+    let overallProofStatus: SimpleProofState = 'error'
 
     if (allOk) {
       overallProofStatus = 'normal'
@@ -146,6 +156,7 @@ export default class TrackerPopupListener extends Component {
     }
 
     this.setState({
+      ...this.state,
       overallProofStatus,
       bioProps: {
         ...this.state.bioProps,
@@ -172,6 +183,7 @@ export default class TrackerPopupListener extends Component {
       start: (params: {sessionID: number, username: string}) => {
         const {username} = params
         this.setState({
+          ...this.state,
           bioProps: {
             ...this.state.bioProps,
             username
@@ -193,7 +205,9 @@ export default class TrackerPopupListener extends Component {
       launchNetworkChecks: (params: {sessionID: number, identity: Identity, user: User}) => {
         console.log('launch network checks', params)
         const proofsAndChecks: ProofsAndChecks = params.identity.proofs.map(p => [p.proof, null])
-        this.setState({proofsProps: {
+        this.setState({
+          ...this.state,
+          proofsProps: {
           ...this.state.proofsProps,
           proofsAndChecks
         }})

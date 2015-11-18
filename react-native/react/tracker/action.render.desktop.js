@@ -5,15 +5,12 @@
 import React, {Component} from '../base-react'
 import {Checkbox, FloatingActionButton, FlatButton} from 'material-ui'
 
-import type { User } from '../constants/types/flow-types'
+import { normal, warning } from './common-types'
 
-// TODO constants when integrating
-const normal = 'normal'
-const warning = 'warning'
-const error = 'error'
+import type { SimpleProofState } from './common-types'
 
 export type ActionProps = {
-  state: 'normal' | 'warning' | 'error' | 'pending',
+  state: SimpleProofState,
   username: ?string,
   shouldFollow: ?boolean,
   onClose: () => void,
@@ -31,7 +28,7 @@ export default class ActionRender extends Component {
 
     if (state === 'pending' || !username) {
       return this.renderPending()
-    } else if (this.props.state === normal)  {
+    } else if (this.props.state === normal) {
       return this.renderNormal(username)
     } else {
       return this.renderChanged(username)
