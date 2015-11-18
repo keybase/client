@@ -662,6 +662,13 @@ func (fbo *FolderBranchOps) getBlockLocked(ctx context.Context,
 
 	// fetch the block, and add to cache
 	block := newBlock()
+
+	// if this is a file block, then send a read notification
+	if _, ok := block.(*FileBlock); ok {
+		fbo.config.Reporter().Notify(readNotification(dir, false))
+		defer fbo.config.Reporter().Notify(readNotification(dir, true))
+	}
+
 	bops := fbo.config.BlockOps()
 	if err := bops.Get(ctx, md, dir.tailPointer(), block); err != nil {
 		return nil, err
@@ -2644,6 +2651,10 @@ func (fbo *FolderBranchOps) syncLocked(ctx context.Context, file path) (
 		}
 	}()
 
+	// notify the daemon that a write is being performed
+	fbo.config.Reporter().Notify(writeNotification(file, false))
+	defer fbo.config.Reporter().Notify(writeNotification(file, true))
+
 	// update the parent directories, and write all the new blocks out
 	// to disk
 	fblock, err := fbo.getFileLocked(ctx, md, file, write)
@@ -3716,6 +3727,10 @@ func (fbo *FolderBranchOps) RekeyForTesting(
 	if err != nil {
 		return err
 	}
+
+	// send rekey finish notification
+	handle := md.GetTlfHandle()
+	fbo.config.Reporter().Notify(rekeyNotification(ctx, fbo.config, handle, true))
 
 	return nil
 }

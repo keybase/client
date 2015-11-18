@@ -1,8 +1,9 @@
 package libkbfs
 
 import (
-	"fmt"
+	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -11,18 +12,97 @@ import (
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
-	kbpki KBPKI
+	log          logger.Logger
+	kbpki        KBPKI
+	notifyBuffer chan *keybase1.FSNotification
 }
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
-func NewReporterKBPKI(clock Clock, maxErrors int, kbpki KBPKI) *ReporterKBPKI {
-	return &ReporterKBPKI{
+func NewReporterKBPKI(clock Clock, maxErrors int, kbpki KBPKI, bufSize int, log logger.Logger) *ReporterKBPKI {
+	r := &ReporterKBPKI{
 		ReporterSimple: NewReporterSimple(clock, maxErrors),
+		log:            log,
 		kbpki:          kbpki,
+		notifyBuffer:   make(chan *keybase1.FSNotification, bufSize),
 	}
+	go r.send()
+	return r
 }
 
 // Notify implements the Reporter interface for ReporterSimple.
-func (r *ReporterKBPKI) Notify(notification keybase1.FSNotification) {
-	fmt.Printf("ReporterKBPKI: Notify -> %+v\n", notification)
+func (r *ReporterKBPKI) Notify(notification *keybase1.FSNotification) {
+	select {
+	case r.notifyBuffer <- notification:
+		r.log.Debug("ReporterKBPKI: Notify -> %+v", notification)
+	default:
+		r.log.Debug("ReporterKBPKI: notify buffer full, dropping %+v", notification)
+	}
+}
+
+// send takes notifications out of notifyBuffer and sends them to
+// the keybase daemon.
+func (r *ReporterKBPKI) send() {
+	var notification *keybase1.FSNotification
+	for {
+		notification = <-r.notifyBuffer
+		r.log.Debug("ReporterKBPKI: sending notification %+v", notification)
+		if err := r.kbpki.Notify(context.TODO(), notification); err != nil {
+			r.log.Debug("ReporterKBPKI: error sending notification: %s", err)
+		}
+	}
+}
+
+// writeNotification creates FSNotifications from paths for file
+// write events.
+func writeNotification(file path, finish bool) *keybase1.FSNotification {
+	n := baseNotification(file, finish)
+	if file.Tlf.IsPublic() {
+		n.NotificationType = keybase1.FSNotificationType_SIGNING
+	} else {
+		n.NotificationType = keybase1.FSNotificationType_ENCRYPTING
+	}
+	return n
+}
+
+// readNotification creates FSNotifications from paths for file
+// read events.
+func readNotification(file path, finish bool) *keybase1.FSNotification {
+	n := baseNotification(file, finish)
+	if file.Tlf.IsPublic() {
+		n.NotificationType = keybase1.FSNotificationType_VERIFYING
+	} else {
+		n.NotificationType = keybase1.FSNotificationType_DECRYPTING
+	}
+	return n
+}
+
+// rekeyNotification creates FSNotifications from TlfHandles for rekey
+// events.
+func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, finish bool) *keybase1.FSNotification {
+	code := keybase1.FSStatusCode_START
+	if finish {
+		code = keybase1.FSStatusCode_FINISH
+	}
+
+	return &keybase1.FSNotification{
+		PublicTopLevelFolder: handle.IsPublic(),
+		Filename:             handle.ToString(ctx, config),
+		StatusCode:           code,
+		NotificationType:     keybase1.FSNotificationType_REKEYING,
+	}
+}
+
+// baseNotification creates a basic FSNotification without a
+// NotificationType from a path.
+func baseNotification(file path, finish bool) *keybase1.FSNotification {
+	code := keybase1.FSStatusCode_START
+	if finish {
+		code = keybase1.FSStatusCode_FINISH
+	}
+
+	return &keybase1.FSNotification{
+		PublicTopLevelFolder: file.Tlf.IsPublic(),
+		Filename:             file.String(),
+		StatusCode:           code,
+	}
 }

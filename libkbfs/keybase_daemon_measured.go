@@ -16,6 +16,7 @@ type KeybaseDaemonMeasured struct {
 	favoriteAddTimer      metrics.Timer
 	favoriteDeleteTimer   metrics.Timer
 	favoriteListTimer     metrics.Timer
+	notifyTimer           metrics.Timer
 }
 
 var _ KeybaseDaemon = KeybaseDaemonMeasured{}
@@ -29,6 +30,7 @@ func NewKeybaseDaemonMeasured(delegate KeybaseDaemon, r metrics.Registry) Keybas
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteAdd", r)
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteDelete", r)
 	favoriteListTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteList", r)
+	notifyTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.Notify", r)
 	return KeybaseDaemonMeasured{
 		delegate:              delegate,
 		identifyTimer:         identifyTimer,
@@ -37,6 +39,7 @@ func NewKeybaseDaemonMeasured(delegate KeybaseDaemon, r metrics.Registry) Keybas
 		favoriteAddTimer:      favoriteAddTimer,
 		favoriteDeleteTimer:   favoriteDeleteTimer,
 		favoriteListTimer:     favoriteListTimer,
+		notifyTimer:           notifyTimer,
 	}
 }
 
@@ -94,6 +97,14 @@ func (k KeybaseDaemonMeasured) FavoriteList(ctx context.Context, sessionID int) 
 		favorites, err = k.delegate.FavoriteList(ctx, sessionID)
 	})
 	return favorites, err
+}
+
+// Notify implements the KeybaseDaemon interface for KeybaseDaemonMeasured.
+func (k KeybaseDaemonMeasured) Notify(ctx context.Context, notification *keybase1.FSNotification) (err error) {
+	k.notifyTimer.Time(func() {
+		err = k.delegate.Notify(ctx, notification)
+	})
+	return err
 }
 
 // Shutdown implements the KeybaseDaemon interface for

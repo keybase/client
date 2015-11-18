@@ -480,17 +480,6 @@ func (_mr *_MockKeybaseDaemonRecorder) LoadUserPlusKeys(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUserPlusKeys", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) CurrentUID(ctx context.Context, sessionID int) (protocol.UID, error) {
-	ret := _m.ctrl.Call(_m, "CurrentUID", ctx, sessionID)
-	ret0, _ := ret[0].(protocol.UID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKeybaseDaemonRecorder) CurrentUID(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "CurrentUID", arg0, arg1)
-}
-
 func (_m *MockKeybaseDaemon) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
 	ret := _m.ctrl.Call(_m, "CurrentSession", ctx, sessionID)
 	ret0, _ := ret[0].(SessionInfo)
@@ -531,6 +520,16 @@ func (_m *MockKeybaseDaemon) FavoriteList(ctx context.Context, sessionID int) ([
 
 func (_mr *_MockKeybaseDaemonRecorder) FavoriteList(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteList", arg0, arg1)
+}
+
+func (_m *MockKeybaseDaemon) Notify(ctx context.Context, notification *protocol.FSNotification) error {
+	ret := _m.ctrl.Call(_m, "Notify", ctx, notification)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKeybaseDaemonRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0, arg1)
 }
 
 func (_m *MockKeybaseDaemon) Shutdown() {
@@ -669,6 +668,16 @@ func (_mr *_MockKBPKIRecorder) FavoriteList(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteList", arg0)
 }
 
+func (_m *MockKBPKI) Notify(ctx context.Context, notification *protocol.FSNotification) error {
+	ret := _m.ctrl.Call(_m, "Notify", ctx, notification)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBPKIRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0, arg1)
+}
+
 // Mock of KeyManager interface
 type MockKeyManager struct {
 	ctrl     *gomock.Controller
@@ -771,6 +780,14 @@ func (_m *MockReporter) AllKnownErrors() []ReportedError {
 
 func (_mr *_MockReporterRecorder) AllKnownErrors() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AllKnownErrors")
+}
+
+func (_m *MockReporter) Notify(notification *protocol.FSNotification) {
+	_m.ctrl.Call(_m, "Notify", notification)
+}
+
+func (_mr *_MockReporterRecorder) Notify(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0)
 }
 
 // Mock of MDCache interface
@@ -2548,16 +2565,24 @@ func (_m *MockcrAction) EXPECT() *_MockcrActionRecorder {
 	return _m.recorder
 }
 
-func (_m *MockcrAction) do(config Config, unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer, unmergedOps []op, mergedOps []op, unmergedBlock *DirBlock, mergedBlock *DirBlock) ([]op, []op, error) {
-	ret := _m.ctrl.Call(_m, "do", config, unmergedMostRecent, mergedMostRecent, unmergedOps, mergedOps, unmergedBlock, mergedBlock)
-	ret0, _ := ret[0].([]op)
-	ret1, _ := ret[1].([]op)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+func (_m *MockcrAction) do(ctx context.Context, unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier, unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
+	ret := _m.ctrl.Call(_m, "do", ctx, unmergedCopier, mergedCopier, unmergedBlock, mergedBlock)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-func (_mr *_MockcrActionRecorder) do(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "do", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+func (_mr *_MockcrActionRecorder) do(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "do", arg0, arg1, arg2, arg3, arg4)
+}
+
+func (_m *MockcrAction) updateOps(unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer, mergedBlock *DirBlock, unmergedChains *crChains, mergedChains *crChains) error {
+	ret := _m.ctrl.Call(_m, "updateOps", unmergedMostRecent, mergedMostRecent, mergedBlock, unmergedChains, mergedChains)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockcrActionRecorder) updateOps(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "updateOps", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockcrAction) String() string {

@@ -79,6 +79,6 @@ func (r *ReporterSimple) AllKnownErrors() []ReportedError {
 }
 
 // Notify implements the Reporter interface for ReporterSimple.
-func (r *ReporterSimple) Notify(notification keybase1.FSNotification) {
-
+func (r *ReporterSimple) Notify(_ *keybase1.FSNotification) {
+	// ignore notifications
 }

@@ -20,6 +20,7 @@ type KeybaseDaemonRPC struct {
 	userClient     keybase1.UserInterface
 	sessionClient  keybase1.SessionInterface
 	favoriteClient keybase1.FavoriteInterface
+	kbfsClient     keybase1.KbfsInterface
 	shutdownFn     func()
 	log            logger.Logger
 
@@ -53,16 +54,16 @@ func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.L
 // For testing.
 func newKeybaseDaemonRPCWithClient(kbCtx *libkb.GlobalContext, client keybase1.GenericClient,
 	log logger.Logger) *KeybaseDaemonRPC {
-	k := newKeybaseDaemonRPC(kbCtx,log)
+	k := newKeybaseDaemonRPC(kbCtx, log)
 	k.fillClients(client)
 	return k
 }
 
 func newKeybaseDaemonRPC(kbCtx *libkb.GlobalContext, log logger.Logger) *KeybaseDaemonRPC {
 	k := KeybaseDaemonRPC{
-		Contextified : libkb.NewContextified(kbCtx),
-		log:       log,
-		userCache: make(map[keybase1.UID]UserInfo),
+		Contextified: libkb.NewContextified(kbCtx),
+		log:          log,
+		userCache:    make(map[keybase1.UID]UserInfo),
 	}
 	return &k
 }
@@ -72,6 +73,7 @@ func (k *KeybaseDaemonRPC) fillClients(client keybase1.GenericClient) {
 	k.userClient = keybase1.UserClient{Cli: client}
 	k.sessionClient = keybase1.SessionClient{Cli: client}
 	k.favoriteClient = keybase1.FavoriteClient{Cli: client}
+	k.kbfsClient = keybase1.KbfsClient{Cli: client}
 }
 
 func (k *KeybaseDaemonRPC) filterKeys(ctx context.Context, uid keybase1.UID, keys []keybase1.PublicKey) ([]VerifyingKey, []CryptPublicKey, error) {
@@ -302,6 +304,11 @@ func (k *KeybaseDaemonRPC) FavoriteDelete(ctx context.Context, folder keybase1.F
 // FavoriteList implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
 	return k.favoriteClient.FavoriteList(ctx, sessionID)
+}
+
+// Notify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
+func (k *KeybaseDaemonRPC) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
+	return k.kbfsClient.FSEvent(ctx, *notification)
 }
 
 // Shutdown implements the KeybaseDaemon interface for KeybaseDaemonRPC.

@@ -135,3 +135,8 @@ func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, erro
 	const sessionID = 0
 	return k.config.KeybaseDaemon().FavoriteList(ctx, sessionID)
 }
+
+// Notify implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
+	return k.config.KeybaseDaemon().Notify(ctx, notification)
+}

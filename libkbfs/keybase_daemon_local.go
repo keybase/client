@@ -167,6 +167,11 @@ func (k KeybaseDaemonLocal) FavoriteList(
 	return k.favoriteStore.FavoriteList(sessionID)
 }
 
+// Notify implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
+	return nil
+}
+
 // Shutdown implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k KeybaseDaemonLocal) Shutdown() {
 	k.favoriteStore.Shutdown()

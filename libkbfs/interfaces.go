@@ -258,6 +258,9 @@ type KeybaseDaemon interface {
 	// FavoriteList returns the current list of favorites.
 	FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error)
 
+	// Notify sends a filesystem notification.
+	Notify(ctx context.Context, notification *keybase1.FSNotification) error
+
 	// TODO: Add CryptoClient methods, too.
 
 	// Shutdown frees any resources associated with this
@@ -309,6 +312,9 @@ type KBPKI interface {
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.
 	FavoriteList(ctx context.Context) ([]keybase1.Folder, error)
+
+	// Notify sends a filesystem notification.
+	Notify(ctx context.Context, notification *keybase1.FSNotification) error
 }
 
 // KeyManager fetches and constructs the keys needed for KBFS file
@@ -372,7 +378,7 @@ type Reporter interface {
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError
 	// Notify sends the given notification to any sink
-	Notify(notification keybase1.FSNotification)
+	Notify(notification *keybase1.FSNotification)
 }
 
 // MDCache gets and puts plaintext top-level metadata into the cache.

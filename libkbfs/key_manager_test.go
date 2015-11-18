@@ -68,6 +68,9 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 	config.mockCrypto.EXPECT().GetTLFCryptKeyServerHalfID(gomock.Any(), gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalfID{}, nil)
 	// now put the key into the cache
 	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, newKeyGen, TLFCryptKey{}).Return(nil)
+
+	// Ignore Notify calls for now
+	config.mockRep.EXPECT().Notify(gomock.Any()).AnyTimes()
 }
 
 func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
