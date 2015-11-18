@@ -1,6 +1,12 @@
 'use strict'
+/* @flow */
 
+// $FlowIssue base-react
 import React, {Component} from '../base-react'
+
+import {identify} from '../keybase_v1'
+
+import type {RemoteProof, LinkCheckResult, ProofState, ProofStatus} from '../constants/types/flow-types'
 
 export type ProofsAndChecks = Array<[RemoteProof, ?LinkCheckResult]>
 export type ProofsProps = {
@@ -38,31 +44,20 @@ export default class ProofsRender extends Component {
     return Object.keys(obj).filter(x => obj[x] === tag)[0]
   }
 
-  metaColor (pp) {
-    return {
-      'new': 'orange',
-      deleted: 'red',
-      unreachable: 'red',
-      pending: 'gray'
-    }[pp.proof.meta]
-  }
-
-  tempStatus (pp) {
-    return {
-      verified: '[v]',
-      checking: '[c]',
-      deleted: '[d]',
-      unreachable: '[u]',
-      pending: '[p]'
-    }[pp.proof.status]
-  }
-
   prettyProofState (p: ProofState): string {
     return this.mapTagToName(identify.ProofState, p) || 'ERROR, proof state not recognized'
   }
 
+  prettyProofStatus (p: ProofStatus): string {
+    return this.mapTagToName(identify.ProofStatus, p) || 'ERROR, proof status not recognized'
+  }
+
   prettyName (p: RemoteProof): string {
     return p.value
+  }
+
+  tempStatus (lcr: ?LinkCheckResult): string {
+    return lcr && this.prettyProofStatus(lcr.proofResult.status) || 'Pending'
   }
 
   renderPlatformProof (proof: RemoteProof, lcr: ?LinkCheckResult): ReactElement {
@@ -87,38 +82,25 @@ export default class ProofsRender extends Component {
           Icon for: {type}
         </p>
         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
-          <p style={{textDecoration: pp.proof.status === deleted ? 'line-through' : 'inherit', marginBottom: 0, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}> {name}</p>
-          <span style={{backgroundColor: this.metaColor(pp)}}>{pp.proof.meta}</span>
+          <p style={{textDecoration: lcr && lcr.proofResult.state === identify.ProofState.permFailure ? 'line-through' : 'inherit', marginBottom: 0, cursor: 'pointer'}} onTouchTap={onTouchTap}> {name}</p>
+          <span style={{backgroundColor: this.metaColor(lcr)}}>{prettyProofState}</span>
         </div>
         <div style={{display: 'flex', flex: 1, justifyContent: 'flex-end', paddingRight: 20}}>
-          <p style={{cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.proof.uri)}>{this.tempStatus(pp)}</p>
+          <p style={{cursor: 'pointer'}} onTouchTap={onTouchTap}>{this.tempStatus(lcr)}</p>
         </div>
       </div>
     )
   }
 
-  render () {
+  render (): ReactElement {
     return (
       <div style={{display: 'flex', flex: 1, flexDirection: 'column', overflowY: 'auto'}}>
-        { this.props.platformProofs && this.props.platformProofs.map(platformProof => this.renderPlatformProof(platformProof)) }
+        { this.props.proofsAndChecks.map(([p, lcr]) => this.renderPlatformProof(p, lcr)) }
       </div>
     )
   }
 }
 
 ProofsRender.propTypes = {
-  platformProofs: React.PropTypes.arrayOf(React.PropTypes.shape({
-    platform: React.PropTypes.shape({
-      icon: React.PropTypes.string.isRequired,
-      name: React.PropTypes.string,
-      username: React.PropTypes.string,
-      uri: React.PropTypes.string
-    }).isRequired,
-    proof: React.PropTypes.shape({
-      title: React.PropTypes.string,
-      uri: React.PropTypes.string,
-      status: React.PropTypes.oneOf([verified, checking, deleted, unreachable, pending]).isRequired,
-      meta: React.PropTypes.string
-    }).isRequired
-  })).isRequired
+  proofsAndChecks: React.PropTypes.any
 }

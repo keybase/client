@@ -2,25 +2,25 @@
 /* @flow */
 
 // $FlowIssue with platform components
-import React, { Component } from '../../../base-react'
-import Tracker from '../../../tracker'
+import React, {Component} from '../../base-react'
+import Tracker from '../../tracker'
 
-import engine from '../../../engine'
-import { createServer } from '../../../engine/server'
-import { flattenCallMap, promisifyResponses } from '../../../engine/call-map-middleware'
+import engine from '../../engine'
+import { createServer } from '../../engine/server'
+import { flattenCallMap, promisifyResponses } from '../../engine/call-map-middleware'
 
 import * as _ from 'lodash'
 
-import type { IdentifyKey, TrackSummary, Identity, RemoteProof, LinkCheckResult, Cryptocurrency, IdentifyOutcome, User, UserSummary} from '../../../constants/types/flow-types'
+import type { IdentifyKey, TrackSummary, Identity, RemoteProof, LinkCheckResult, Cryptocurrency, IdentifyOutcome, User, UserSummary} from '../../constants/types/flow-types'
 
-import { identify } from '../../../keybase_v1'
+import { identify } from '../../keybase_v1.js'
 
-import type { BioProps } from '../../../tracker/bio.render.desktop'
-import type { ActionProps } from '../../../tracker/action.render.desktop'
-import type { HeaderProps } from '../../../tracker/header.render.desktop'
-import type { ProofsProps, ProofsAndChecks } from '../../../tracker/proofs.render.desktop'
-import type { TrackerProps } from '../../../tracker/render.desktop'
-import type { SimpleProofState } from '../../../tracker/common-types'
+import type { BioProps } from '../../tracker/bio.render.desktop'
+import type { ActionProps } from '../../tracker/action.render.desktop'
+import type { HeaderProps } from '../../tracker/header.render.desktop'
+import type { ProofsProps, ProofsAndChecks } from '../../tracker/proofs.render.desktop'
+import type { TrackerProps } from '../../tracker/render.desktop'
+import type { SimpleProofState } from '../../tracker/common-types'
 
 type ComponentState = {
   outstandingReqs: Array<RemoteProof>,
