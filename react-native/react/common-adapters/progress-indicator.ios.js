@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
-import { ActivityIndicatorIOS } from 'react-native'
+import {ActivityIndicatorIOS} from '../base-react'
 export default ActivityIndicatorIOS

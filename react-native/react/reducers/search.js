@@ -4,7 +4,7 @@
 import * as Constants from '../constants/search'
 import Immutable from 'immutable'
 
-import type { URI } from './router'
+import type {URI} from './router'
 
 type Base = URI
 

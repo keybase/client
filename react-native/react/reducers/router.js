@@ -3,7 +3,7 @@
 
 import * as RouterConstants from '../constants/router'
 import Immutable, {List, Map} from 'immutable'
-import * as LoginConstants from '../constants/login2'
+import * as LoginConstants from '../constants/login'
 
 export type URI = List<Map<string, string>>
 type History = List<URI>

@@ -5,15 +5,17 @@
  * todo(mm) explain why we need a meta navigator
  */
 
-import React, { Component } from '../base-react'
-import Render from './meta-navigator-render'
+import React, {Component} from '../base-react'
+import Render from './meta-navigator.render'
 import Immutable from 'immutable'
+import {connect} from '../base-redux'
 
 class MetaNavigator extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
 
     this.state = {
+      navigator: null
     }
   }
 
@@ -25,31 +27,41 @@ class MetaNavigator extends Component {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
-    const { store, rootComponent } = this.props
+    if (nextProps === this.props) {
+      return false
+    }
+
+    if (!this.state.navigator) {
+      return true
+    }
+
     const route = this.props.uri
     const nextRoute = nextProps.uri
 
-    const { componentAtTop, routeStack: nextRouteStack } = this.getComponentAtTop(rootComponent, store, nextRoute)
-    if (nextProps === this.props && nextState === this.state) {
+    if (route === nextRoute) {
       return false
-    } else if (this.isParentOfRoute(route, nextRoute)) {
-      this.refs.navigator.push(componentAtTop)
+    }
+
+    const {rootComponent} = this.props
+    const {componentAtTop, routeStack: nextRouteStack} = this.getComponentAtTop(rootComponent, nextRoute)
+    if (this.isParentOfRoute(route, nextRoute)) {
+      this.state.navigator.push(componentAtTop)
       return true
     // TODO: also check to see if this route exists in the navigator's route
     } else if (this.isParentOfRoute(nextRoute, route)) {
-      const navRoutes = this.refs.navigator.getCurrentRoutes()
+      const navRoutes = this.state.navigator.getCurrentRoutes()
       const targetRoute = navRoutes.reverse().find(navRoute =>
           navRoute.component === componentAtTop.component && navRoute.title === componentAtTop.title
       )
-      this.refs.navigator.popToRoute(targetRoute)
+      this.state.navigator.popToRoute(targetRoute)
       return true
     } else {
-      this.refs.navigator.immediatelyResetRouteStack(nextRouteStack.toJS())
+      this.state.navigator.immediatelyResetRouteStack(nextRouteStack.toJS())
       return true
     }
   }
 
-  getComponentAtTop (rootComponent, store, uri) {
+  getComponentAtTop (rootComponent, uri) {
     let currentPath = uri.first() || Immutable.Map()
     let nextPath = uri.rest().first() || Immutable.Map()
     let restPath = uri.rest().rest()
@@ -60,7 +72,7 @@ class MetaNavigator extends Component {
     let componentAtTop = null
 
     while (parseNextRoute) {
-      const t = parseNextRoute(store, currentPath, nextPath, uri)
+      const t = parseNextRoute(currentPath, uri)
       componentAtTop = {
         ...t.componentAtTop,
         upLink: currentPath.get('upLink'),
@@ -106,15 +118,38 @@ class MetaNavigator extends Component {
   }
 
   render () {
-    return <Render {...this.props} getComponentAtTop={this.getComponentAtTop.bind(this)} />
+    const {rootComponent, uri, NavBar, Navigator, navBarHeight} = this.props
+    return (
+      <Render
+        uri={uri}
+        rootComponent={rootComponent}
+        NavBar={NavBar}
+        Navigator={Navigator}
+        getComponentAtTop={(rootComponent, uri) => this.getComponentAtTop(rootComponent, uri)}
+        navBarHeight={navBarHeight}
+        setNavigator={navigator => this.setState({navigator})}
+      />
+    )
   }
 }
 
 MetaNavigator.propTypes = {
   uri: React.PropTypes.object.isRequired,
-  store: React.PropTypes.object.isRequired,
   rootComponent: React.PropTypes.func.isRequired,
-  globalRoutes: React.PropTypes.object
+  globalRoutes: React.PropTypes.object,
+  NavBar: React.PropTypes.object,
+  Navigator: React.PropTypes.func,
+  navBarHeight: React.PropTypes.number
 }
 
-export default MetaNavigator
+export default connect(
+  state => state,
+  null,
+  (stateProps, dispatchProps, ownProps) => {
+    return {
+      ...ownProps,
+      ...stateProps.tabbedRouter.getIn(['tabs', ownProps.tab]).toObject(),
+      ...dispatchProps
+    }
+  }
+)(MetaNavigator)

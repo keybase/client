@@ -1,37 +1,37 @@
 'use strict'
 
-import React, { Component, TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import React, {Component, TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet} from './base-react'
+import {connect} from './base-redux'
 
-import { connect } from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 
-import Folders from './tabs/folders'
-import Chat from './tabs/chat'
-import People from './tabs/people'
-import Devices from './tabs/devices'
-import NoTab from './tabs/no-tab'
-import More from './tabs/more'
-import Startup from './tabs/start-up'
+import Folders from './folders'
+import Chat from './chat'
+import People from './people'
+import Devices from './devices'
+import NoTab from './no-tab'
+import More from './more'
+import Startup from './start-up'
 
-import { switchTab } from './actions/tabbed-router'
-import { navigateTo, navigateUp } from './actions/router'
-import { startup } from './actions/config'
+import {switchTab} from './actions/tabbed-router'
+import {navigateTo, navigateUp} from './actions/router'
+import {startup} from './actions/config'
 
 import * as Constants from './constants/config'
 
-import { constants as styleConstants } from './styles/common'
+import {constants as styleConstants} from './styles/common'
 
-import { folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab } from './constants/tabs'
+import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab} from './constants/tabs'
 import Button from './common-adapters/button'
 
-const tabToRootComponent = {
-  [folderTab]: Folders,
-  [chatTab]: Chat,
-  [peopleTab]: People,
-  [devicesTab]: Devices,
-  [moreTab]: More,
-  [startupTab]: Startup
+const tabs = {
+  [folderTab]: {module: Folders, name: 'Folders'},
+  [chatTab]: {module: Chat, name: 'Chat'},
+  [peopleTab]: {module: People, name: 'People'},
+  [devicesTab]: {module: Devices, name: 'Devices'},
+  [moreTab]: {module: More, name: 'More'},
+  [startupTab]: {module: Startup}
 }
 
 function NavigationBarRouteMapper (navigateTo, navigateUp) {
@@ -83,40 +83,34 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
   }
 }
 
-export default class Nav extends Component {
+class Nav extends Component {
   constructor (props) {
     super(props)
 
-    this.state = {
-      startup: () => this.props.dispatch(startup()),
-      navigateTo: uri => this.props.dispatch(navigateTo(uri)),
-      navigateUp: () => this.props.dispatch(navigateUp()),
-      switchTab: tab => this.props.dispatch(switchTab(tab))
-    }
-
-    this.state.startup()
+    this.props.startup()
   }
 
   navBar () {
-    return (<Navigator.NavigationBar
-             style={styles.navBar}
-             routeMapper={NavigationBarRouteMapper(this.state.navigateTo, this.state.navigateUp)}/>)
+    return (
+      <Navigator.NavigationBar
+        style={styles.navBar}
+        routeMapper={NavigationBarRouteMapper(this.props.navigateTo, this.props.navigateUp)}/>
+    )
   }
 
   _renderContent () {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
+    const tab = this.props.tabbedRouter.get('activeTab')
+    const {module} = tabs[tab]
     return (
       <View style={styles.tabContent}>
-        {React.createElement(
-          connect(state => state.tabbedRouter.getIn(['tabs', state.tabbedRouter.get('activeTab')]).toObject())(MetaNavigator), {
-            store: this.props.store,
-            rootComponent: tabToRootComponent[activeTab] || NoTab,
-            globalRoutes,
-            Navigator: Navigator,
-            NavBar: this.navBar(),
-            navBarHeight: styleConstants.navBarHeight
-          }
-        )}
+        <MetaNavigator
+          tab={tab}
+          globalRoutes={globalRoutes}
+          rootComponent={module || NoTab}
+          Navigator={Navigator}
+          NavBar={this.navBar()}
+          navBarHeight={styleConstants.navBarHeight}
+        />
       </View>
     )
   }
@@ -150,7 +144,7 @@ export default class Nav extends Component {
       return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <Text>Error Loading: {this.props.config.error.toString()}</Text>
-          <Button title='Retry' onPress={() => this.state.startup()} isAction />
+          <Button title='Retry' onPress={() => this.props.startup()} isAction />
         </View>
       )
     }
@@ -161,41 +155,20 @@ export default class Nav extends Component {
 
     return (
       <View style={{flex: 1}}>
-        <TabBarIOS
-          tintColor='black'
-          translucent={false}
-          >
-          <TabBarIOS.Item
-            title='Folders'
-            selected={activeTab === folderTab}
-            onPress={() => this.state.switchTab(folderTab)}>
-            {this._renderContent()}
-          </TabBarIOS.Item>
-          <TabBarIOS.Item
-            title='Chat'
-            selected={activeTab === chatTab}
-            onPress={() => this.state.switchTab(chatTab)}>
-            {this._renderContent()}
-          </TabBarIOS.Item>
-          <TabBarIOS.Item
-            title='People'
-            systemIcon='contacts'
-            selected={activeTab === peopleTab}
-            onPress={() => this.state.switchTab(peopleTab)}>
-            {this._renderContent()}
-          </TabBarIOS.Item>
-          <TabBarIOS.Item
-            title='Devices'
-            selected={activeTab === devicesTab}
-            onPress={() => this.state.switchTab(devicesTab)}>
-            {this._renderContent()}
-          </TabBarIOS.Item>
-          <TabBarIOS.Item
-            systemIcon='more'
-            selected={activeTab === moreTab}
-            onPress={() => this.state.switchTab(moreTab)}>
-            {this._renderContent()}
-          </TabBarIOS.Item>
+        <TabBarIOS tintColor='black' translucent={false}>
+        { Object.keys(tabs).map(tab => {
+          const {name} = tabs[tab]
+
+          return (name &&
+            <TabBarIOS.Item
+              key={tab}
+              title={name}
+              selected={activeTab === tab}
+              onPress={() => this.props.switchTab(tab)}>
+              {activeTab === tab && this._renderContent()}
+            </TabBarIOS.Item>
+          ) })
+        }
         </TabBarIOS>
       </View>
     )
@@ -203,9 +176,11 @@ export default class Nav extends Component {
 }
 
 Nav.propTypes = {
-  dispatch: React.PropTypes.func.isRequired,
+  switchTab: React.PropTypes.func.isRequired,
+  navigateUp: React.PropTypes.func.isRequired,
+  navigateTo: React.PropTypes.func.isRequired,
+  startup: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
-  store: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
     navState: React.PropTypes.oneOf([
       Constants.navStartingUp,
@@ -244,3 +219,15 @@ const styles = StyleSheet.create({
     color: 'blue'
   }
 })
+
+export default connect(
+  store => store,
+  dispatch => {
+    return {
+      switchTab: tab => dispatch(switchTab(tab)),
+      navigateUp: () => dispatch(navigateUp()),
+      navigateTo: uri => dispatch(navigateTo(uri)),
+      startup: () => dispatch(startup())
+    }
+  }
+)(Nav)

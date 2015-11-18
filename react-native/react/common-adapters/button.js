@@ -1,7 +1,6 @@
 'use strict'
-/* @flow */
 
-import React, { Component, Text, TouchableHighlight, View } from 'react-native'
+import React, {Component, Text, TouchableHighlight, View} from '../base-react'
 import commonStyles, {buttonHighlight, disabledButtonHighlight} from '../styles/common'
 
 export default class Button extends Component {

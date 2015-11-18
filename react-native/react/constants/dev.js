@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 export const isDev = true
 

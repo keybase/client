@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 // Actions
 export const initProfile = 'profile:initProfile'

@@ -1,5 +1,4 @@
 'use strict'
-/* @flow */
 
 export const initSearch = 'search:initSearch'
 export const searchTerm = 'search:searchTerm'

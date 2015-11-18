@@ -1,8 +1,8 @@
 
 export type Endpoint = (params: any) => (Promise<any> | any)
 
-export type NestedCallMap = { [key: string]: (NestedCallMap | Endpoint) }
-export type CallMap = { [key: string]: Endpoint }
+export type NestedCallMap = {[key: string]: (NestedCallMap | Endpoint)}
+export type CallMap = {[key: string]: Endpoint}
 
 export function flattenCallMap (endpointMap: NestedCallMap): CallMap {
   return flattenNextLevel('', '', endpointMap)
