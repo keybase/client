@@ -64,6 +64,7 @@ func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.
 		Tag:          "signature",
 	}
 }
+
 func (t Token) Bytes() []byte {
 	bytes, err := json.Marshal(&t)
 	if err != nil {
