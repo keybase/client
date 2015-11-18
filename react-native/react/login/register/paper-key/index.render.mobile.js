@@ -1,11 +1,10 @@
 'use strict'
 
 import React, {Component, StyleSheet, Text, TextInput, View} from '../../../base-react'
-import {connect} from '../../../base-redux'
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
 
-class PaperKey extends Component {
+export default class PaperKeyRender extends Component {
   constructor (props) {
     super(props)
 
@@ -39,7 +38,7 @@ class PaperKey extends Component {
   }
 }
 
-PaperKey.propTypes = {
+PaperKeyRender.propTypes = {
   onSubmit: React.PropTypes.func.isRequired
 }
 
@@ -49,15 +48,3 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start'
   }
 })
-
-export default connect(
-  state => state,
-  null,
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...ownProps,
-      ...ownProps.mapStateToProps(stateProps),
-      ...dispatchProps
-    }
-  }
-)(PaperKey)
