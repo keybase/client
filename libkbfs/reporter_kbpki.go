@@ -12,24 +12,24 @@ import (
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
+	config       Config
 	log          logger.Logger
-	kbpki        KBPKI
 	notifyBuffer chan *keybase1.FSNotification
 }
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
-func NewReporterKBPKI(clock Clock, maxErrors int, kbpki KBPKI, bufSize int, log logger.Logger) *ReporterKBPKI {
+func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 	r := &ReporterKBPKI{
-		ReporterSimple: NewReporterSimple(clock, maxErrors),
-		log:            log,
-		kbpki:          kbpki,
+		ReporterSimple: NewReporterSimple(config.Clock(), maxErrors),
+		config:         config,
+		log:            config.MakeLogger(""),
 		notifyBuffer:   make(chan *keybase1.FSNotification, bufSize),
 	}
 	go r.send()
 	return r
 }
 
-// Notify implements the Reporter interface for ReporterSimple.
+// Notify implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) Notify(notification *keybase1.FSNotification) {
 	select {
 	case r.notifyBuffer <- notification:
@@ -46,7 +46,7 @@ func (r *ReporterKBPKI) send() {
 	for {
 		notification = <-r.notifyBuffer
 		r.log.Debug("ReporterKBPKI: sending notification %+v", notification)
-		if err := r.kbpki.Notify(context.TODO(), notification); err != nil {
+		if err := r.config.KBPKI().Notify(context.TODO(), notification); err != nil {
 			r.log.Debug("ReporterKBPKI: error sending notification: %s", err)
 		}
 	}

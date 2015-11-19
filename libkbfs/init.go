@@ -239,7 +239,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	k := NewKBPKIClient(config)
 	config.SetKBPKI(k)
 
-	config.SetReporter(NewReporterKBPKI(config.Clock(), 10, k, 1000, config.MakeLogger("")))
+	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
 	if localUser == "" {
 		c := NewCryptoClient(config, libkb.G, config.MakeLogger(""))
