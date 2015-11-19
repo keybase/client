@@ -1423,6 +1423,96 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 	return newUnmergedPaths, nil
 }
 
+func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
+	unmergedChains *crChains, mergedChains *crChains) error {
+	for _, unmergedChain := range unmergedChains.byMostRecent {
+		original := unmergedChain.original
+		// First check for nodes that have been deleted in the unmerged
+		// branch, but modified in the merged branch, and drop those
+		// unmerged operations.
+		for _, untypedOp := range unmergedChain.ops {
+			ro, ok := untypedOp.(*rmOp)
+			if !ok {
+				continue
+			}
+
+			// Perhaps the rm target has been renamed somewhere else,
+			// before eventually being deleted.  In this case, we have
+			// to look up the original by iterating over
+			// renamedOriginals.
+			if len(ro.Unrefs()) == 0 {
+				for original, info := range unmergedChains.renamedOriginals {
+					if info.originalOldParent == unmergedChain.original &&
+						info.oldName == ro.OldName &&
+						unmergedChains.isDeleted(original) {
+						ro.AddUnrefBlock(original)
+						break
+					}
+				}
+			}
+
+			for _, ptr := range ro.Unrefs() {
+				unrefOriginal, err :=
+					unmergedChains.originalFromMostRecentOrSame(ptr)
+				if err != nil {
+					return err
+				}
+
+				if c, ok := mergedChains.byOriginal[unrefOriginal]; ok {
+					ro.dropThis = true
+					// Need to prepend a create here to the merged parent,
+					// in order catch any conflicts.
+					parentOriginal := original
+					name := ro.OldName
+					if newParent, newName, ok :=
+						mergedChains.renamedParentAndName(unrefOriginal); ok {
+						// It was renamed in the merged branch, so
+						// recreate with the new parent and new name.
+						parentOriginal = newParent
+						name = newName
+					} else if info, ok :=
+						unmergedChains.renamedOriginals[unrefOriginal]; ok {
+						// It was only renamed in the old parent, so
+						// use the old parent and original name.
+						parentOriginal = info.originalOldParent
+						name = info.oldName
+					}
+					chain, ok := mergedChains.byOriginal[parentOriginal]
+					if !ok {
+						return fmt.Errorf("Couldn't find chain for parent %v "+
+							"of merged entry %v we're trying to recreate",
+							parentOriginal, unrefOriginal)
+					}
+					t := Dir
+					if c.isFile() {
+						// TODO: how to fix this up for executables
+						// and symlinks?  Only matters for checking
+						// conflicts if something with the same name
+						// is created on the unmerged branch.
+						t = File
+					}
+					co := newCreateOp(name, chain.original, t)
+					co.Dir.Ref = chain.original
+					co.AddRefBlock(c.mostRecent)
+					writerName, err :=
+						cr.config.KBPKI().GetNormalizedUsername(
+							ctx, mergedChains.mostRecentMD.data.LastWriter)
+					if err != nil {
+						return err
+					}
+					co.setWriterName(writerName)
+					chain.ops = append([]op{co}, chain.ops...)
+					cr.log.CDebugf(ctx, "Re-created rm'd merge-modified node "+
+						"%v with operation %s in parent %v", unrefOriginal, co,
+						parentOriginal)
+				}
+			}
+
+		}
+	}
+	return nil
+}
+
 // getActionsToMerge returns the set of actions needed to merge each
 // unmerged chain of operations, in a map keyed by the tail pointer of
 // the corresponding merged path.
@@ -1445,35 +1535,6 @@ func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
 			// deleted in the unmerged branch and thus has no
 			// corresponding merged path yet.
 			continue
-		}
-
-		// First check for nodes that have been deleted in the unmerged
-		// branch, but modified in the merged branch, and drop those
-		// unmerged operations.
-		for _, op := range unmergedChain.ops {
-			ro, ok := op.(*rmOp)
-			if !ok {
-				continue
-			}
-
-			for _, ptr := range ro.Unrefs() {
-				unrefOriginal := ptr
-				if ptrChain, ok := unmergedChains.byMostRecent[ptr]; ok {
-					unrefOriginal = ptrChain.original
-				}
-
-				if _, ok := mergedChains.byOriginal[unrefOriginal]; ok {
-					ro.dropThis = true
-				}
-			}
-
-			// Or perhaps the rm target has been renamed somewhere else.
-			if len(ro.Unrefs()) == 0 {
-				// TODO: Use mergedChains.renamedOriginals to look up
-				// whether it has changed in the merged branch, and
-				// potentially use symlinks to resolve the conflict if
-				// necessary.
-			}
 		}
 
 		actions, err := unmergedChain.getActionsToMerge(
@@ -1548,6 +1609,13 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 		return nil, nil, err
 	}
 	newUnmergedPaths = append(newUnmergedPaths, moreNewUnmergedPaths...)
+
+	// Recreate any modified merged nodes that were rm'd in the
+	// unmerged branch.
+	if err := cr.addMergedRecreates(
+		ctx, unmergedChains, mergedChains); err != nil {
+		return nil, nil, err
+	}
 
 	actionMap, err :=
 		cr.getActionsToMerge(unmergedChains, mergedChains, mergedPaths)

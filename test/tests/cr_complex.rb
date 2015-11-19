@@ -555,4 +555,35 @@ module Test
       read "a/c", "hello"
     end
   end
+
+  # bob creates a directory with the same name that alice used for a
+  # file that used to exist at that location, but bob first moved it
+  test :cr_merged_recreated_and_unmerged_moved_file, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkdir "a"
+      write "a/b", "hello"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/b", "world"
+    end
+    as bob, sync: false do
+      rename "a/b", "a/d/b"
+      rm "a/d/b"
+      write "a/d/b/c", "uh oh"
+      reenable_updates
+      lsdir "a/", { "d$" => "DIR", "b$" => "FILE" }
+      lsdir "a/d", { "b$" => "DIR" }
+      read "a/b", "world"
+      read "a/d/b/c", "uh oh"
+    end
+    as alice do
+      lsdir "a/", { "d$" => "DIR", "b$" => "FILE" }
+      lsdir "a/d", { "b$" => "DIR" }
+      read "a/b", "world"
+      read "a/d/b/c", "uh oh"
+    end
+  end
 end

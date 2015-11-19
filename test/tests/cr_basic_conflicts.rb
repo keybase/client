@@ -78,6 +78,35 @@ module Test
     end
   end
 
+  # bob creates a directory with the same name that alice used for a
+  # file that used to exist at that location
+  test :cr_conflict_cause_rename_of_merged_recreated_file, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkdir "a"
+      write "a/b", "hello"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/b", "world"
+    end
+    as bob, sync: false do
+      rm "a/b"
+      write "a/b/c", "uh oh"
+      reenable_updates
+      lsdir "a/", { "b$" => "DIR", "b.conflict.alice.0001-01-01T00:00:00Z" => "FILE" }
+      read "a/b.conflict.alice.0001-01-01T00:00:00Z", "world"
+      read "a/b/c", "uh oh"
+    end
+    as alice do
+      lsdir "a/", { "b$" => "DIR", "b.conflict.alice.0001-01-01T00:00:00Z" => "FILE" }
+      read "a/b.conflict.alice.0001-01-01T00:00:00Z", "world"
+      read "a/b/c", "uh oh"
+      check_state
+    end
+  end
+
   # bob renames an existing directory over one created by alice.
   # TODO: it would be better if this weren't a conflict.
   test :cr_conflict_unmerged_renamed_dir, writers: ["alice", "bob"] do |alice, bob|
