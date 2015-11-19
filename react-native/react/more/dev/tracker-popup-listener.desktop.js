@@ -11,7 +11,7 @@ import { flattenCallMap, promisifyResponses } from '../../engine/call-map-middle
 
 import * as _ from 'lodash'
 
-import type { IdentifyKey, TrackSummary, Identity, RemoteProof, LinkCheckResult, Cryptocurrency, IdentifyOutcome, User, UserSummary} from '../../constants/types/flow-types'
+import type {IdentifyKey, TrackSummary, Identity, RemoteProof, LinkCheckResult, Cryptocurrency, IdentifyOutcome, User, UserSummary} from '../../constants/types/flow-types'
 
 import { identify } from '../../keybase_v1.js'
 
@@ -87,7 +87,7 @@ export default class TrackerPopupListener extends Component {
         onClose: () => {
           // TODO
           console.log('onClose from header')
-        } 
+        }
       },
 
       proofsProps: {
@@ -108,13 +108,13 @@ export default class TrackerPopupListener extends Component {
     this.setState({
       ...this.state,
       proofsProps: {
-      ...this.state.proofsProps,
-      proofsAndChecks
-    }})
+        ...this.state.proofsProps,
+        proofsAndChecks
+      }
+    })
   }
 
   updateOverallProofStatus (proofsAndChecks: ProofsAndChecks): void {
-    console.log("updating proof status:", proofsAndChecks)
     const allOk: boolean = proofsAndChecks.reduce((acc, [p, lcr]) => {
       if (!lcr) {
         return false
@@ -135,8 +135,8 @@ export default class TrackerPopupListener extends Component {
       if (!lcr) {
         return false
       }
-      const isOk: boolean = lcr.proofResult.state === identify.ProofState.ok 
-      const isTempFailure: boolean = lcr.proofResult.state === identify.ProofState.tempFailure 
+      const isOk: boolean = lcr.proofResult.state === identify.ProofState.ok
+      const isTempFailure: boolean = lcr.proofResult.state === identify.ProofState.tempFailure
 
       return acc || !(isOk || isTempFailure)
     }, false)
@@ -151,7 +151,7 @@ export default class TrackerPopupListener extends Component {
       overallProofStatus = 'warning'
     } else if (anyError) {
       overallProofStatus = 'error'
-    } else if (anyError) {
+    } else if (anyPending) {
       overallProofStatus = 'pending'
     }
 
@@ -212,7 +212,6 @@ export default class TrackerPopupListener extends Component {
 
           })
           onlyUser.thumbnail
-
         })
       }
 
@@ -301,7 +300,7 @@ export default class TrackerPopupListener extends Component {
       headerProps: this.state.headerProps,
       bioProps: this.state.bioProps,
       proofsProps: this.state.proofsProps,
-      actionProps: this.state.actionProps,
+      actionProps: this.state.actionProps
     }
 
     return <Tracker {...trackerProps}/>

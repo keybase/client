@@ -42,3 +42,9 @@ export default class Render extends Component {
   }
 }
 
+Render.propTypes = {
+  headerProps: React.PropTypes.any,
+  bioProps: React.PropTypes.any,
+  proofsProps: React.PropTypes.any,
+  actionProps: React.PropTypes.any
+}

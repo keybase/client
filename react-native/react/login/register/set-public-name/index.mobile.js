@@ -2,7 +2,7 @@
 
 import React, {Component, Text, TextInput, View} from '../../../base-react'
 import {connect} from '../../../base-redux'
-import {setDeviceName} from '../../../actions/login'
+// import {setDeviceName} from '../../../actions/login'
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
 

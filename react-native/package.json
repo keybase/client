@@ -31,8 +31,12 @@
   "standard": {
     "parser": "babel-eslint",
     "ignore": [
-      "keybase_v1.js"
-    ]
+      "keybase_v1.js",
+      "flow-interface.js",
+      "immutable-interface.js",
+      "flow-types.js"
+    ],
+    "globals": ["ReactElement"]
   },
   "devDependencies": {
     "babel-eslint": "^4.1.5",

@@ -5,8 +5,6 @@
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
 
-import type {User} from '../constants/types/flow-types'
-
 import type { SimpleProofState } from './common-types'
 
 export type BioProps = {
@@ -54,7 +52,7 @@ export default class BioRender extends Component {
 }
 
 BioRender.propTypes = {
-  user: React.PropTypes.any,
+  username: React.PropTypes.any,
   state: React.PropTypes.any,
   userInfo: React.PropTypes.any
 }
