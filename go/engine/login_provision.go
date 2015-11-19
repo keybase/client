@@ -601,18 +601,7 @@ func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
 // checks if the fingerprint exists on keybase.io.
 func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	// choose a private gpg key to use
-	fp, err := e.selectGPGKey(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if fp == nil {
-		return nil, libkb.NoKeyError{Msg: "selectGPGKey returned nil fingerprint"}
-	}
-
-	// see if public key on keybase, and if so load the user
-	if err := e.checkUserByPGPFingerprint(ctx, fp); err != nil {
-		return nil, err
-	}
+	fp, err := e.selectAndCheckGPGKey(ctx)
 
 	// get KID for the pgp key
 	kid, err := e.user.GetComputedKeyFamily().FindKIDFromFingerprint(*fp)
@@ -629,16 +618,8 @@ func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
 // finally uses gpg to unlock it and import it to lksec.
 func (e *LoginProvision) chooseAndImportGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	// choose a private gpg key to use
-	fp, err := e.selectGPGKey(ctx)
+	fp, err := e.selectAndCheckGPGKey(ctx)
 	if err != nil {
-		return nil, err
-	}
-	if fp == nil {
-		return nil, libkb.NoKeyError{Msg: "selectGPGKey returned nil fingerprint"}
-	}
-
-	// see if public key on keybase, and if so load the user
-	if err := e.checkUserByPGPFingerprint(ctx, fp); err != nil {
 		return nil, err
 	}
 
@@ -657,6 +638,24 @@ func (e *LoginProvision) chooseAndImportGPGKey(ctx *Context) (libkb.GenericKey, 
 		return nil, err
 	}
 	return bundle, nil
+}
+
+func (e *LoginProvision) selectAndCheckGPGKey(ctx *Context) (*libkb.PGPFingerprint, error) {
+	// choose a private gpg key to use
+	fp, err := e.selectGPGKey(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if fp == nil {
+		return nil, libkb.NoKeyError{Msg: "selectGPGKey returned nil fingerprint"}
+	}
+
+	// see if public key on keybase, and if so load the user
+	if err := e.checkUserByPGPFingerprint(ctx, fp); err != nil {
+		return nil, err
+	}
+
+	return fp, nil
 }
 
 // selectGPGKey creates an index of the private gpg keys and
