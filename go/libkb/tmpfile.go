@@ -4,20 +4,20 @@
 package libkb
 
 import (
-	"encoding/base32"
+	"fmt"
 	"os"
-	"strings"
 )
 
 // TempFile creates a termporary file. Use mode=0 for default permissions.
 func TempFile(prefix string, mode os.FileMode) (string, *os.File, error) {
-	buf, err := RandBytes(20)
+	if prefix == "" {
+		return "", nil, fmt.Errorf("Prefix was an empty string")
+	}
+	filename, err := RandString(fmt.Sprintf("%s.", prefix), 20)
 	if err != nil {
 		return "", nil, err
 	}
-	suffix := base32.StdEncoding.EncodeToString(buf)
 	flags := os.O_WRONLY | os.O_CREATE | os.O_EXCL
-	filename := strings.Join([]string{prefix, suffix}, ".")
 	if mode == 0 {
 		mode = PermFile
 	}

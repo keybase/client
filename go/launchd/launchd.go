@@ -363,6 +363,8 @@ func (p Plist) plist() string {
   <string>` + logFile + `</string>
   <key>StandardOutPath</key>
   <string>` + logFile + `</string>
+	<key>WorkingDirectory</key>
+	<string>/tmp</string>
 </dict>
 </plist>`
 }

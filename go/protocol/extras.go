@@ -379,8 +379,6 @@ func (s InstallStatus) String() string {
 		return "Error"
 	case InstallStatus_NOT_INSTALLED:
 		return "Not Installed"
-	case InstallStatus_NEEDS_UPGRADE:
-		return "Needs upgrade"
 	case InstallStatus_INSTALLED:
 		return "Installed"
 	}

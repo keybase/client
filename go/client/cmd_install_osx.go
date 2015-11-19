@@ -42,7 +42,7 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Components to install, comma separated. Specify 'cli' for command line, 'service' for service, kbfs for 'kbfs', or blank for all.",
 			},
 		},
-		ArgumentHelp: "",
+		ArgumentHelp: "Installer",
 		Usage:        "",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
@@ -85,7 +85,7 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdInstall) Run() error {
-	var components []keybase1.InstallComponent
+	var components []keybase1.ComponentStatus
 	if v.installer == "auto" {
 		components = AutoInstallWithStatus(v.G(), v.binPath, v.force)
 	} else if v.installer == "" {
@@ -101,7 +101,72 @@ func (v *CmdInstall) Run() error {
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else {
 		for _, c := range components {
-			v.G().UI.GetDumbOutputUI().Printf("%s: %s %s\n", c.Name, c.Status.Name, c.Status.Desc)
+			v.G().Log.Info("Installer for %s: %s %s", c.Name, c.Status.Name, c.Status.Desc)
+		}
+	}
+	return nil
+}
+
+func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name: "uninstall",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "o, format",
+				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
+			},
+			cli.StringFlag{
+				Name:  "c, components",
+				Usage: "Components to uninstall, comma separated. Specify 'cli' for command line, 'service' for service, kbfs for 'kbfs', or blank for all.",
+			},
+		},
+		ArgumentHelp: "",
+		Usage:        "Uninstaller",
+		Action: func(c *cli.Context) {
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(NewCmdUninstallRunner(g), "uninstall", c)
+		},
+	}
+}
+
+type CmdUninstall struct {
+	libkb.Contextified
+	format     string
+	components []string
+}
+
+func NewCmdUninstallRunner(g *libkb.GlobalContext) *CmdUninstall {
+	return &CmdUninstall{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *CmdUninstall) GetUsage() libkb.Usage {
+	return libkb.Usage{}
+}
+
+func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
+	v.format = ctx.String("format")
+	if ctx.String("components") == "" {
+		v.components = []string{"cli", "service", "kbfs"}
+	} else {
+		v.components = strings.Split(ctx.String("components"), ",")
+	}
+	return nil
+}
+
+func (v *CmdUninstall) Run() error {
+	components := Uninstall(v.G(), v.components)
+	if v.format == "json" {
+		out, err := json.MarshalIndent(components, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stdout, "%s\n", out)
+	} else {
+		for _, c := range components {
+			v.G().Log.Info("Uninstaller for %s: %s %s", c.Name, c.Status.Name, c.Status.Desc)
 		}
 	}
 	return nil
