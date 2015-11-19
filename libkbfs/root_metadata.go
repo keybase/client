@@ -180,9 +180,27 @@ func (md RootMetadata) Data() *PrivateMetadata {
 	return &md.data
 }
 
-// DeepCopy returns a complete copy of this RootMetadata (but with
-// cleared block change lists and cleared serialized metadata).
-func (md RootMetadata) DeepCopy() RootMetadata {
+// increment makes this MD the immediate follower of the given
+// currMD.  It assumes md was deep-copied from currMD.
+func (md *RootMetadata) increment(config Config, currMD *RootMetadata) error {
+	var err error
+	md.PrevRoot, err = currMD.MetadataID(config)
+	if err != nil {
+		return err
+	}
+	// bump revision
+	if md.Revision < MetadataRevisionInitial {
+		md.Revision = MetadataRevisionInitial
+	} else {
+		md.Revision = currMD.Revision + 1
+	}
+	return nil
+}
+
+// MakeSuccessor returns a complete copy of this RootMetadata (but
+// with cleared block change lists and cleared serialized metadata),
+// with the revision incremented and a correct backpointer.
+func (md RootMetadata) MakeSuccessor(config Config) (RootMetadata, error) {
 	newMd := md
 	// no need to copy the serialized metadata, if it exists
 	newMd.Writers = make([]keybase1.UID, len(md.Writers))
@@ -196,7 +214,10 @@ func (md RootMetadata) DeepCopy() RootMetadata {
 	// no need to deep copy the full data since we just cleared the
 	// block changes.
 	newMd.data.TLFPrivateKey = md.data.TLFPrivateKey.DeepCopy()
-	return newMd
+	if err := newMd.increment(config, &md); err != nil {
+		return RootMetadata{}, err
+	}
+	return newMd, nil
 }
 
 func (md RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFKeyBundle, error) {
@@ -365,23 +386,6 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.UnrefBytes = 0
 	md.data.Changes.sizeEstimate = 0
 	md.data.Changes.Ops = nil
-}
-
-// incrementMD makes this MD the immediate follower of the given
-// currMD.  It assumes md was deep-copied from currMD.
-func (md *RootMetadata) increment(config Config, currMD *RootMetadata) error {
-	var err error
-	md.PrevRoot, err = currMD.MetadataID(config)
-	if err != nil {
-		return err
-	}
-	// bump revision
-	if md.Revision < MetadataRevisionInitial {
-		md.Revision = MetadataRevisionInitial
-	} else {
-		md.Revision = currMD.Revision + 1
-	}
-	return nil
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server

@@ -444,8 +444,8 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 	return newUnmergedPaths, nil
 }
 
-// findDirsToMerge finds directories that were created in both the
-// unmerged and merged branches, and resets the original unmerged
+// findCreatedDirsToMerge finds directories that were created in both
+// the unmerged and merged branches, and resets the original unmerged
 // pointer to match the original merged pointer. It returns a slice of
 // new unmerged paths that need to be combined with the unmergedPaths
 // slice.
