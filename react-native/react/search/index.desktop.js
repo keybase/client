@@ -12,7 +12,7 @@ export default class Search extends Component {
 
   buildRows (results) {
     console.log('results: ', results)
-    const rows = !results ? [] : results.map((s) => {
+    const rows = !results ? [] : results.map(s => {
       const {username} = s
       const row1 = `${username}${this.fullNameFromComponent(s)}`
       const row2 = s.components.map(c => this.userComponentText(c)).filter(c => c).join(' | ')
@@ -24,7 +24,7 @@ export default class Search extends Component {
   onServiceResponse (response) {
     let rows = this.buildRows(response.results)
     console.log('Rows: ', rows)
-    let options = rows.map((rowData) => {
+    let options = rows.map(rowData => {
       return {value: rowData.username, label: rowData.username, row1: rowData.row1, row2: rowData.row2}
     })
     this.state.callback(null, {options: options, complete: false})

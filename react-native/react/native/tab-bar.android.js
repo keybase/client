@@ -41,8 +41,8 @@ export default class TabBar extends Component {
     // If the titles are the same, then we aren't going to rerender.
     const oldTabs = this.props.children
     const newTabs = nextProps.children
-    const oldTitles = oldTabs.map((t) => t.props.title)
-    const newTitles = newTabs.map((t) => t.props.title)
+    const oldTitles = oldTabs.map(t => t.props.title)
+    const newTitles = newTabs.map(t => t.props.title)
     if (oldTitles.length !== newTitles.length) {
       return true
     }
@@ -57,13 +57,13 @@ export default class TabBar extends Component {
 
   render () {
     const tabs = this.props.children
-    const titles = tabs.map((t) => t.props.title)
-    const selectedStates = tabs.map((t) => (t.props.selected || false))
+    const titles = tabs.map(t => t.props.title)
+    const selectedStates = tabs.map(t => (t.props.selected || false))
     return (
       <NativeTabBar
         titles={titles}
         selectedStates={selectedStates}
-        onSelect={(e) => {
+        onSelect={e => {
           const selectedTab = tabs[e.nativeEvent.selectedTab]
           if (selectedTab != null && selectedTab.props.onPress) {
             selectedTab.props.onPress()

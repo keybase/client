@@ -26,7 +26,7 @@ export default class PinentryRender extends Component {
           floatingLabelText='Your passphrase'
           value={this.state.passphrase} />
 
-        {Object.keys(this.props.payload.features).map((feature) => {
+        {Object.keys(this.props.payload.features).map(feature => {
           return <Checkbox
             key={feature}
             name={feature}

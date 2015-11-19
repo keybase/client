@@ -27,15 +27,15 @@ class UserPass extends Component {
           placeholder='Keybase Username'
           autoCorrect={false}
           enablesReturnKeyAutomatically
-          onChangeText={(username) => this.setState({username})}
-          onSubmitEditing={(event) => this.refs['passphrase'].focus()}
+          onChangeText={username => this.setState({username})}
+          onSubmitEditing={event => this.refs['passphrase'].focus()}
           returnKeyType='next'
           value={this.state.username}
         />
         <TextInput style={[commonStyles.textInput]}
           autoCorrect={false}
           enablesReturnKeyAutomatically
-          onChangeText={(passphrase) => this.setState({passphrase})}
+          onChangeText={passphrase => this.setState({passphrase})}
           onSubmitEditing={() => this.onSubmit() }
           ref='passphrase'
           returnKeyType='done'

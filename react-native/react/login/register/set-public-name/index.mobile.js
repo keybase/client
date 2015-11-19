@@ -32,7 +32,7 @@ class SetPublicName extends Component {
           enablesReturnKeyAutomatically
           returnKeyType='next'
           autoCorrect={false}
-          onChangeText={(deviceName) => this.setState({deviceName})}
+          onChangeText={deviceName => this.setState({deviceName})}
           onSubmitEditing={() => { this.onSubmit() }}
           />
         <Button style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.onSubmit()} enabled={enabled}/>

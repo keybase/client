@@ -27,7 +27,7 @@ class Login extends Component {
         <Text style={[commonStyles.h2, {marginBottom: 40}]}>Already a keybase user? Welcome back!</Text>
         <TextInput
           style={commonStyles.textInput}
-          onChangeText={(username) => this.setState({username})}
+          onChangeText={username => this.setState({username})}
           onSubmitEditing={() => this.refs.passphrase.focus()}
           value={this.state.username}
           autoCorrect={false}
@@ -38,7 +38,7 @@ class Login extends Component {
         <TextInput
           ref='passphrase'
           style={commonStyles.textInput}
-          onChangeText={(passphrase) => this.setState({passphrase})}
+          onChangeText={passphrase => this.setState({passphrase})}
           onSubmitEditing={() => this.submitLogin()}
           value={this.state.passphrase}
           autoCorrect={false}

@@ -97,7 +97,7 @@ class CodePage extends Component {
     return (
       <QR
         scanning
-        onBarCodeRead={(code) => this.props.qrScanned(code)}
+        onBarCodeRead={code => this.props.qrScanned(code)}
         qrCode={this.props.qrCode}>
 
         <Text style={styles.text}>Use this phone to scan the QR code displayed on your other device</Text>
@@ -139,7 +139,7 @@ class CodePage extends Component {
         <Text style={commonStyles.h1}>Type the verification code from your other device into here</Text>
         <TextInput
           style={[commonStyles.textInput, {height: 100, marginTop: 40}]}
-          onChangeText={(enterText) => this.setState({enterText})}
+          onChangeText={enterText => this.setState({enterText})}
           autoCapitalize={'none'}
           placeholder='Type code here'
           value={this.state.enterText}

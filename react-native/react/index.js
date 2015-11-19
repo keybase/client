@@ -32,7 +32,7 @@ class Keybase extends Component {
   }
 
   componentWillUnmount () {
-    this.subscriptions.forEach((s) => s.remove())
+    this.subscriptions.forEach(s => s.remove())
   }
 
   render () {

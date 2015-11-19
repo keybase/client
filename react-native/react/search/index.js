@@ -97,7 +97,7 @@ class Search extends Component {
           autoCapitalize='none'
           autoFocus
           clearButtonMode='always'
-          onChangeText={(search) => this.onInput(search)}
+          onChangeText={search => this.onInput(search)}
         />
         <View style={styles.divider}/>
         <ListView style={{flex: 1}}

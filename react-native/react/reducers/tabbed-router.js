@@ -53,8 +53,8 @@ export default function (state: TabbedRouterState = initialState, action: any): 
     case LoginConstants.needsRegistering:
       // TODO set the active tab to be startupTab here.
       // see: https://github.com/keybase/client/pull/1202#issuecomment-150346720
-      return state.set('activeTab', moreTab).updateIn(['tabs', startupTab], (routerState) => routerReducer(routerState, action))
+      return state.set('activeTab', moreTab).updateIn(['tabs', startupTab], routerState => routerReducer(routerState, action))
     default:
-      return state.updateIn(['tabs', state.get('activeTab')], (routerState) => routerReducer(routerState, action))
+      return state.updateIn(['tabs', state.get('activeTab')], routerState => routerReducer(routerState, action))
   }
 }
