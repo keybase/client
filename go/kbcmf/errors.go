@@ -51,6 +51,10 @@ var (
 	// ErrBadReceivers shows up when you pass a bad receivers object -- either one
 	// that was empty, or one that had an empty group.
 	ErrBadReceivers = errors.New("bad receivers argument")
+
+	// ErrBadSenderKey is returned if a key with the wrong number of bytes
+	// is discovered in the encryption header.
+	ErrBadSenderKey = errors.New("bad sender key; must be 32 bytes")
 )
 
 // ErrMACMismatch is generated when a MAC fails to check properly. It specifies

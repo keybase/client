@@ -1097,7 +1097,7 @@ func TestCorruptHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if err != ErrBadEphemeralKey {
+	if err != ErrBadSenderKey {
 		t.Fatalf("Bad error: wanted %v but got %v", ErrBadEphemeralKey, err)
 	}
 

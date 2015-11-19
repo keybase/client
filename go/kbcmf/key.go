@@ -63,7 +63,7 @@ type Keyring interface {
 	LookupBoxPublicKey(kid []byte) BoxPublicKey
 
 	// ImportEphemeralKey imports the ephemeral key into
-	// BoxPublicKey format.  This key has never been seen before, so
+	// BoxPublicKey format. This key has never been seen before, so
 	// will be ephemeral.
 	ImportEphemeralKey(kid []byte) BoxPublicKey
 }

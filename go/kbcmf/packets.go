@@ -39,6 +39,13 @@ type EncryptionBlock struct {
 	seqno      PacketSeqno
 }
 
+func verifyRawKey(k []byte) error {
+	if len(k) != len(RawBoxKey{}) {
+		return ErrBadSenderKey
+	}
+	return nil
+}
+
 func (h *EncryptionHeader) validate() error {
 	if h.Tag != PacketTagEncryptionHeader {
 		return ErrWrongPacketTag{h.seqno, PacketTagEncryptionHeader, h.Tag}
@@ -51,6 +58,11 @@ func (h *EncryptionHeader) validate() error {
 	if len(h.Nonce) != len(Nonce{})-4 {
 		return ErrBadNonce{h.seqno, len(h.Nonce)}
 	}
+
+	if err := verifyRawKey(h.Sender); err != nil {
+		return err
+	}
+
 	return nil
 }
 
