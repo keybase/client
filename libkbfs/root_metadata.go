@@ -379,7 +379,7 @@ func (md *RootMetadata) increment(config Config, currMD *RootMetadata) error {
 	if md.Revision < MetadataRevisionInitial {
 		md.Revision = MetadataRevisionInitial
 	} else {
-		md.Revision++
+		md.Revision = currMD.Revision + 1
 	}
 	return nil
 }

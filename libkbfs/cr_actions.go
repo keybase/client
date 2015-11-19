@@ -122,22 +122,19 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 	return true, parentMostRecent, nil
 }
 
-func uniqifyName(block *DirBlock, name string) (string, error) {
-	newName := name
-	// Just try a bunch of times
-	unique := false
-	for i := 0; i < 100; i++ {
+func uniquifyName(block *DirBlock, name string) (string, error) {
+	if _, ok := block.Children[name]; !ok {
+		return name, nil
+	}
+
+	for i := 1; i <= 100; i++ {
+		newName := fmt.Sprintf("%s_(%d)", name, i)
 		if _, ok := block.Children[newName]; !ok {
-			unique = true
-			break
+			return newName, nil
 		}
-		i++
-		newName = fmt.Sprintf("%s_(%d)", name, i)
 	}
-	if !unique {
-		return "", fmt.Errorf("Couldn't find a unique name for %s", name)
-	}
-	return newName, nil
+
+	return "", fmt.Errorf("Couldn't find a unique name for %s", name)
 }
 
 func (cuea *copyUnmergedEntryAction) do(ctx context.Context,
@@ -154,9 +151,9 @@ func (cuea *copyUnmergedEntryAction) do(ctx context.Context,
 		unmergedEntry.SymPath = cuea.symPath
 	}
 
-	// Make sure this entry is unique, otherwise try again
+	// Make sure this entry is unique.
 	if cuea.unique {
-		newName, err := uniqifyName(mergedBlock, cuea.toName)
+		newName, err := uniquifyName(mergedBlock, cuea.toName)
 		if err != nil {
 			return err
 		}
@@ -389,7 +386,7 @@ func crActionCopyFile(ctx context.Context, copier fileBlockDeepCopier,
 	}
 
 	// Make sure the name is unique.
-	name, err := uniqifyName(toBlock, toName)
+	name, err := uniquifyName(toBlock, toName)
 	if err != nil {
 		return BlockPointer{}, "", err
 	}

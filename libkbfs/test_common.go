@@ -450,7 +450,7 @@ func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
 	}
 
 	ops := kbfsOps.getOps(folderBranch)
-	ops.cr.Stop()
+	ops.cr.Pause()
 	return nil
 }
 

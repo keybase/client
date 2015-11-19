@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
@@ -154,26 +155,33 @@ func (cr *ConflictResolver) Wait(ctx context.Context) error {
 	}
 }
 
+// shutdownLocked requires that the caller hold shutdownLock for writing.
+func (cr *ConflictResolver) shutdownLocked() {
+	cr.shutdown = true
+	close(cr.inputChan)
+}
+
 // Shutdown cancels any ongoing resolutions and stops any background
 // goroutines.
 func (cr *ConflictResolver) Shutdown() {
 	cr.shutdownLock.Lock()
 	defer cr.shutdownLock.Unlock()
-	cr.shutdown = true
-	close(cr.inputChan)
+	cr.shutdownLocked()
 }
 
-// Stop cancels any ongoing resolutions and prevents any new ones from
+// Pause cancels any ongoing resolutions and prevents any new ones from
 // starting.
-func (cr *ConflictResolver) Stop() {
-	cr.Shutdown()
+func (cr *ConflictResolver) Pause() {
+	cr.shutdownLock.Lock()
+	defer cr.shutdownLock.Unlock()
+	cr.shutdownLocked()
 	cr.inputChan = make(chan conflictInput)
 }
 
 // Restart re-enables conflict resolution.
 func (cr *ConflictResolver) Restart() {
-	cr.shutdownLock.RLock()
-	defer cr.shutdownLock.RUnlock()
+	cr.shutdownLock.Lock()
+	defer cr.shutdownLock.Unlock()
 	if !cr.shutdown {
 		return
 	}
@@ -293,6 +301,15 @@ func (sp crSortedPaths) Swap(i, j int) {
 	sp[j], sp[i] = sp[i], sp[j]
 }
 
+// getPathsFromChains returns a sorted slice of most recent paths to
+// all the nodes in the given CR chains that were directly modified
+// during a branch, and which existed at both the start and the end of
+// the branch.  This represents the paths that need to be checked for
+// conflicts.  The paths are sorted by descending path length.  It
+// uses the corresponding node cache when looking up paths, which must
+// at least contain the most recent root node of the branch.  Note
+// that if a path cannot be found, the corresponding chain is
+// completely removed from the set of CR chains.
 func (cr *ConflictResolver) getPathsFromChains(ctx context.Context,
 	chains *crChains, nodeCache NodeCache) ([]path, error) {
 	newPtrs := make(map[BlockPointer]bool)
@@ -344,6 +361,12 @@ func (cr *ConflictResolver) getPathsFromChains(ctx context.Context,
 	return paths, nil
 }
 
+// checkPathForMerge checks whether the given unmerged chain and path
+// contains any newly-created subdirectories that were created
+// simultaneously in the merged branch as well.  If so, it recursively
+// checks that directory as well.  It returns a slice of any new
+// unmerged paths that need to be checked for conflicts later in
+// conflict resolution, for all subdirectories of the given path.
 func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 	unmergedChain *crChain, unmergedPath path, unmergedChains *crChains,
 	mergedChains *crChains) ([]path, error) {
@@ -412,7 +435,10 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 		if err != nil {
 			return nil, err
 		}
+		// Add any further subdirectories that need merging under this
+		// subdirectory.
 		newUnmergedPaths = append(newUnmergedPaths, newPaths...)
+		// Then add this create's path.
 		newUnmergedPaths = append(newUnmergedPaths, newPath)
 	}
 	return newUnmergedPaths, nil
@@ -927,12 +953,12 @@ func (cr *ConflictResolver) fixRenameCycles(ctx context.Context,
 	// `a/b/a` where the second a is a symlink to "../".
 	//
 	// To calculate what the symlink should be, consider the following:
-	//   * The unmerged path for the new patent of ptr P is u_1/u_2/.../u_n
+	//   * The unmerged path for the new parent of ptr P is u_1/u_2/.../u_n
 	//   * u_i is the largest i <= n such that the corresponding block
 	//     can be mapped to a node in merged branch (pointer m_j).
 	//   * The full path to m_j in the merged branch is m_1/m_2/m_3/.../m_j
 	//   * For a rename cycle to occur, some m_x where x <= j must be a
-	//     descedent of P's original pointer.
+	//     descendant of P's original pointer.
 	//   * The full merged path to the parent of the second copy of P will
 	//     then be: m_1/m_2/.../m_x/.../m_j/u_i+1/.../u_n.
 	//   * Then, the symlink to put under P's name in u_n is "../"*((n-i)+(j-x))
@@ -1032,6 +1058,7 @@ func (cr *ConflictResolver) fixRenameCycles(ctx context.Context,
 			}
 
 			found := false
+		outer:
 			for _, op := range chain.ops {
 				switch cop := op.(type) {
 				case *createOp:
@@ -1049,10 +1076,7 @@ func (cr *ConflictResolver) fixRenameCycles(ctx context.Context,
 					// the merged branch later. No need to copy
 					// since this createOp must have been created
 					// as part of conflict resolution.
-					symPath := "./"
-					for j := 0; j < walkBack; j++ {
-						symPath += "../"
-					}
+					symPath := "./" + strings.Repeat("../", walkBack)
 					cop.Type = Sym
 					cop.crSymPath = symPath
 					cr.log.CDebugf(ctx, "Creating symlink %s at "+
@@ -1073,7 +1097,7 @@ func (cr *ConflictResolver) fixRenameCycles(ctx context.Context,
 						}
 						unmergedStart := len(unmergedPath.path) -
 							unmergedWalkBack
-						copy(p.path[0:mergedLen], mergedPath.path)
+						copy(p.path[:mergedLen], mergedPath.path)
 						copy(p.path[mergedLen:],
 							unmergedPath.path[unmergedStart:])
 						mergedPaths[unmergedPath.tailPointer()] = p
@@ -1146,7 +1170,7 @@ func (cr *ConflictResolver) fixRenameCycles(ctx context.Context,
 					}
 
 					found = true
-					break
+					break outer
 				}
 			}
 			if !found {

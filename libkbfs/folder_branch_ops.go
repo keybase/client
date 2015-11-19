@@ -422,7 +422,7 @@ func (fbo *FolderBranchOps) getMDForWriteLocked(ctx context.Context) (
 	}
 
 	// Make a copy of the MD for changing.  The caller must pass this
-	// into syncBlockLocked or the changes will be lost.
+	// into syncBlockUsingHeadLocked or the changes will be lost.
 	newMd := md.DeepCopy()
 	return &newMd, nil
 }
@@ -1074,19 +1074,24 @@ func (fbo *FolderBranchOps) cacheBlockIfNotYetDirtyLocked(
 
 type localBcache map[BlockPointer]*DirBlock
 
-// TODO: deal with multiple nodes for indirect blocks
+// syncBlock updates, and readies, the blocks along the path for the
+// given write, up to the root of the tree or stopAt (if specified).
+// When it updates the root of the tree, it also modifies the given
+// head object with a new revision number and root block ID.  It first
+// checks the provided lbc for blocks that may have been modified by
+// previous syncBlock calls or the FS calls themselves.  It returns
+// the updated path to the changed directory, the new or updated
+// directory entry created as part of the call, and a summary of all
+// the blocks that now must be put to the block server.
 //
 // entryType must not be Sym.
+//
+// TODO: deal with multiple nodes for indirect blocks
 func (fbo *FolderBranchOps) syncBlock(ctx context.Context, uid keybase1.UID,
 	md *RootMetadata, head *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
 	lbc localBcache) (
 	path, DirEntry, *blockPutState, error) {
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
-	if err != nil {
-		return path{}, DirEntry{}, nil, err
-	}
-
 	// now ready each dblock and write the DirEntry for the next one
 	// in the path
 	currBlock := newBlock
@@ -1132,7 +1137,7 @@ func (fbo *FolderBranchOps) syncBlock(ctx context.Context, uid keybase1.UID,
 
 			// first, check the localBcache, which could contain
 			// blocks that were modified across multiple calls to
-			// syncBlockLocked.
+			// syncBlockUsingHeadLocked.
 			var ok bool
 			prevDblock, ok = lbc[prevDir.tailPointer()]
 			if !ok {
@@ -1837,7 +1842,7 @@ func (fbo *FolderBranchOps) renameLocked(
 		if len(oldGrandparent.path) > 0 {
 			// Update the old parent's mtime/ctime, unless the
 			// oldGrandparent is the same as newParent (in which case, the
-			// syncBlockLocked call will take care of it).
+			// syncBlockUsingHeadLocked call will take care of it).
 			if oldGrandparent.tailPointer().ID != newParent.tailPointer().ID {
 				b, err := fbo.getDirLocked(ctx, md, oldGrandparent, write)
 				if err != nil {
@@ -1911,14 +1916,14 @@ func (fbo *FolderBranchOps) renameLocked(
 			// nothing to do (syncBlock will take care of everything)
 		} else {
 			// If the old one is common and the new one is not, then
-			// the last syncBlockLocked call will need to access
+			// the last syncBlockUsingHeadLocked call will need to access
 			// the old one.
 			lbc[oldParent.tailPointer()] = oldPBlock
 		}
 	} else {
 		if newIsCommon {
 			// If the new one is common, then the first
-			// syncBlockLocked call will need to access it.
+			// syncBlockUsingHeadLocked call will need to access it.
 			lbc[newParent.tailPointer()] = newPBlock
 		}
 
