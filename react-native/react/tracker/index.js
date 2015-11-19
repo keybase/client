@@ -88,11 +88,9 @@ export default connect(
     }
 
     const proofsProps: ProofsProps = {
-      proofsAndChecks: [
-        [
-          {"displayMarkup":"marcopolo","key":"github","mTime":1413928304000,"proofType":3,"sigID":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f","value":"marcopolo"}, //eslint-disable-line
-          {"cached":{"displayMarkup":"[cached 2015-11-17 13:47:48 PST]","proofResult":{"desc":"","state":1,"status":1},"time":1447796868323},"hint":{"apiUrl":"https://gist.githubusercontent.com/MarcoPolo/ab4113d4b3e8de4d4494/raw/21c3c064c2b4d25956c680b7c716bca28552326f/gistfile1.txt","checkText":"\n\nyMHSAnicfVFbSBRRGF7X0m0r6MHSRDAOKoqrnLntzCxiV0J6WIN8KcvlzJkz61TO\njLMXFZNYI5MgIQQtMs2oXoQQkjIKktio7IKklpBloiimRBQVkVozYm/R//Lzf//3\nffyX+MZEhzuhK/z+4LJRgROeDSxEHGV7R416IOlyHfDVg2NkJSmqFiSmYapaGPiA\nzECBhkTELMNBReEpCkmSoECFkzkiKwxCyAs5HgIPqNRDtsKykVCIFKq6hVlFQJUt\n9B/8yEqDxTQDERFkWhFpWsY0xpiyC1YQIQ9XiCFiaqiKWOwqZGLd0I/roMEDLDiq\nYmIPvdoOquHKiPQfSbjOsLEaIgVW1QFJ1WRrZUsUJWZI1TXgoywmDqu2nGIpRqQF\nBrIeQGoN1SQB1WZwvFeAVniAYZKoZSkKsiAxPCtiHioizyPrUJBiaQYJIhIVKCOJ\nYAV6vQgzFM0pWPISxcvIFCMRLytQwN6nWtOBj7HGREHLMqQGNRSOmAQ0PBw4vMaR\n4HYkrXXaT3O41236+8qkKZejc/bVi+mtrljzDlfLYGyya3gxB35p7pl94OrtSR/5\n4bx/K60gz5HVsXQjs3UuecPJhV2Fi0eT/VlvX6dNHyp94uKu5nR0xF5W74t21jRN\nRDKzd1YV535ln27vn0/ZFpsHed8fX5o944wPx6XxsYp37ETJ+v15J2pLiwfTJX7z\ngbGfMNedfSowVLDl2sfaiSNFI6k4PPkm/+7SzPLtBjnx7E3p8u+LTa7886fvLe4W\nesZJt9D2KKNvkE55PtPuPKcNNc9cp/38Utmd1OICmFLZ2f3h1+eilvKIvzpDD0Tj\noyV9yf5G0JrdPixPN14Z+ZZ+oc7tmWvqT0Of2sr3TP0BZx0Tyw==\n","humanUrl":"https://gist.github.com/ab4113d4b3e8de4d4494","remoteId":"ab4113d4b3e8de4d4494"},"proofId":1,"proofResult":{"desc":"","state":1,"status":1},"torWarning":false} //eslint-disable-line
-        ]
+      proofs: [
+        {"name":"marcopolo","type":"github","id":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'normal', humanUrl: "github.com/marcopolo", color: 'green'}, //eslint-disable-line
+        {"name":"open_sourcery","type":"twitter","id":"76363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'pending', humanUrl: "twitter.com/open_sourcery", color: 'gray'}, //eslint-disable-line
       ]
     }
 

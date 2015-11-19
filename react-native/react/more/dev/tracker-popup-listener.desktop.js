@@ -11,14 +11,16 @@ import { flattenCallMap, promisifyResponses } from '../../engine/call-map-middle
 
 import * as _ from 'lodash'
 
-import type {IdentifyKey, TrackSummary, Identity, RemoteProof, LinkCheckResult, Cryptocurrency, IdentifyOutcome, User, UserSummary} from '../../constants/types/flow-types'
-
 import { identify } from '../../keybase_v1.js'
+import { normal, warning, error, pending } from '../../tracker/common-types'
+
+import type {IdentifyKey, TrackSummary, Identity, RemoteProof, LinkCheckResult, Cryptocurrency, IdentifyOutcome, User, UserSummary, ProofState} from '../../constants/types/flow-types'
+
 
 import type { BioProps } from '../../tracker/bio.render.desktop'
 import type { ActionProps } from '../../tracker/action.render.desktop'
 import type { HeaderProps } from '../../tracker/header.render.desktop'
-import type { ProofsProps, ProofsAndChecks } from '../../tracker/proofs.render.desktop'
+import type { ProofsProps, Proof } from '../../tracker/proofs.render.desktop'
 import type { TrackerProps } from '../../tracker/render.desktop'
 import type { SimpleProofState } from '../../tracker/common-types'
 
@@ -91,63 +93,96 @@ export default class TrackerPopupListener extends Component {
       },
 
       proofsProps: {
-        proofsAndChecks: []
+        proofs: []
       }
     }
   }
 
+  mapTagToName (obj: any, tag: any): ?string {
+    return Object.keys(obj).filter(x => obj[x] === tag)[0]
+  }
+
+  stateToColor (state: SimpleProofState): string {
+    if (state === normal) {
+      return 'green'
+    } else if (state === warning) {
+      return 'yellow'
+    } else if (state === error) {
+      return 'red'
+    }
+
+    return 'gray'
+  }
+
+  proofStatusToSimpleProofState (proofState: ProofState): SimpleProofState {
+    const statusName: ?string = this.mapTagToName(identify.ProofState, proofState)
+    switch (statusName) {
+      case 'ok':
+        return normal
+      case 'tempFailure':
+      case 'superseded':
+      case 'posted':
+        return warning
+      case 'revoked':
+      case 'permFailure':
+        return error
+      case 'looking':
+      case 'none':
+      default:
+        return pending
+    }
+  }
+
+  remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
+    const proofStatus: SimpleProofState = lcr && this.proofStatusToSimpleProofState(lcr.proofResult.state) || pending
+
+    let proofType: string = ''
+    if (rp.proofType === identify.ProofType.genericWebSite || rp.proofType === identify.ProofType.dns) {
+      proofType = 'web'
+    } else {
+      proofType = this.mapTagToName(identify.ProofType, rp.proofType) || ''
+    }
+
+    return {
+      state: proofStatus,
+      id: rp.sigID,
+      type: proofType,
+      color: this.stateToColor(proofStatus),
+      name: rp.displayMarkup,
+      humanUrl: (lcr && lcr.hint && lcr.hint.humanUrl)
+    }
+  }
+
   updateProofsAndChecks (rp: RemoteProof, lcr: LinkCheckResult): void {
-    const oldProofsAndChecks = this.state.proofsProps.proofsAndChecks
-    const proofsAndChecks = oldProofsAndChecks.map(proofAndCheck => {
-      const [p] = proofAndCheck
-      if (_.isEqual(p, rp)) {
-        return [p, lcr]
+    const oldProofs = this.state.proofsProps.proofs
+    const proofs = oldProofs.map(proof => {
+      if (proof.id === rp.sigID) {
+        return this.remoteProofToProof(rp, lcr)
       }
-      return proofAndCheck
+      return proof
     })
     this.setState({
       ...this.state,
       proofsProps: {
-        ...this.state.proofsProps,
-        proofsAndChecks
+        proofs
       }
     })
   }
 
-  updateOverallProofStatus (proofsAndChecks: ProofsAndChecks): void {
-    const allOk: boolean = proofsAndChecks.reduce((acc, [p, lcr]) => {
-      if (!lcr) {
-        return false
-      }
-      return acc && lcr.proofResult.state === identify.ProofState.ok
-    }, true)
+  updateOverallProofStatus (proofs: Array<Proof>): void {
+    const allOk: boolean = proofs.reduce((acc, p) => acc && p.state === normal, true)
 
-    // TODO figure out the logic for what is a warning and what is an error
-    const allWarningsOrOk: boolean = proofsAndChecks.reduce((acc, [p, lcr]) => {
-      if (!lcr) {
-        return true
-      }
-      return acc && (lcr.proofResult.state === identify.ProofState.ok ||
-                     lcr.proofResult.state === identify.ProofState.tempFailure)
-    }, true)
+    const anyWarnings: boolean = proofs.reduce((acc, p) => acc || p.state === warning, true)
 
-    const anyError: boolean = proofsAndChecks.reduce((acc, [p, lcr]) => {
-      if (!lcr) {
-        return false
-      }
-      const isOk: boolean = lcr.proofResult.state === identify.ProofState.ok
-      const isTempFailure: boolean = lcr.proofResult.state === identify.ProofState.tempFailure
+    const anyError: boolean = proofs.reduce((acc, p) => acc || p.state === error, false)
 
-      return acc || !(isOk || isTempFailure)
-    }, false)
-
-    const anyPending: boolean = proofsAndChecks.reduce((acc, [p, lcr]) => acc || !lcr, false)
+    const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === pending, false)
 
     let overallProofStatus: SimpleProofState = 'error'
 
     if (allOk) {
       overallProofStatus = 'normal'
-    } else if (allWarningsOrOk) {
+    } else if (anyWarnings) {
       overallProofStatus = 'warning'
     } else if (anyError) {
       overallProofStatus = 'error'
@@ -245,12 +280,11 @@ export default class TrackerPopupListener extends Component {
           // The user information
           loadUserInfo(params.user.uid)
 
-          const proofsAndChecks: ProofsAndChecks = params.identity.proofs.map(p => [p.proof, null])
+          const proofs: Array<Proof> = params.identity.proofs.map(rp => this.remoteProofToProof(rp.proof))
           this.setState({
             ...this.state,
             proofsProps: {
-              ...this.state.proofsProps,
-              proofsAndChecks
+              proofs
             }})
         },
 
@@ -278,8 +312,7 @@ export default class TrackerPopupListener extends Component {
         },
         finish: (params: {sessionID: number}) => {
           // Check if there were any errors in the proofs
-          const proofsAndChecks = this.state.proofsProps.proofsAndChecks
-          this.updateOverallProofStatus(proofsAndChecks)
+          this.updateOverallProofStatus(this.state.proofsProps.proofs)
           console.log('finish', params)
         }
       }
