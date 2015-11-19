@@ -1,0 +1,8 @@
+{
+    "extends": "standard",
+    "rules": {
+        "standard/object-curly-even-spacing": [2, "never"],
+        "standard/array-bracket-even-spacing": [2, "never"],
+        "standard/computed-property-even-spacing": [2, "never"]
+    }
+}
