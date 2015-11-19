@@ -94,13 +94,15 @@ See [the objC style guide](../osx/STYLEGUIDE.md)
 ### Javascript settings
 
 ```
-npm install -g standard
-npm install -g babel-eslint
 npm install -g flow
 ```
 
 See [the JS style guide](standardjs.com)
+We're extending standard to be more strict in some cases (see our .eslintrc)
+
 Visit [standardjs.com](http://standardjs.com/#text-editor-plugins) to find plugins for your editor of choice
+We're including local plugins which requires you to run eslint locally as well (see https://github.com/eslint/eslint/issues/1238)
+For vim uses you likely should use this script: https://github.com/eslint/eslint/issues/1238#issuecomment-139471958
 
 Currently we're using ES6/7 extensions through babel (https://babeljs.io/docs/learn-es2015/)
 
@@ -110,6 +112,15 @@ All files and folders should use the naming convention:
 
 ```
 /this-is-a-folder/a-file.js
+
+/my-component/index.js (common component)
+/my-component/index.mobile.js (shared ios/android component)
+/my-component/index.desktop.js (electron component)
+
+/smart-component/index.js (smart component)
+/smart-component/index.render.android.js (android version)
+/smart-component/index.render.ios.js (ios version)
+/smart-component/index.render.desktop.js (electron version)
 ```
 
 If you run into weird issues with your packager this may be due to a stale cache. Run this command to wipe your local cache
