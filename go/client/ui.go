@@ -694,7 +694,7 @@ func (ui SecretUI) GetPassphrase(pin keybase1.GUIEntryArg, term *keybase1.Secret
 	if term == nil {
 		term = &keybase1.SecretEntryArg{
 			Prompt:         pin.Prompt,
-			UseSecretStore: pin.Features.SecretStorage.Allow,
+			UseSecretStore: pin.Features.StoreSecret.Value,
 		}
 	}
 	s, err := ui.parent.Terminal.GetSecret(term)

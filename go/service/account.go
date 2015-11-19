@@ -45,7 +45,7 @@ func (h *AccountHandler) PassphrasePrompt(_ context.Context, sessionID int) erro
 		WindowTitle: "Keybase Test Passphrase",
 		Prompt:      "Enter a test passphrase",
 		Features: keybase1.GUIEntryFeatures{
-			SecretStorage: keybase1.SecretStorageFeature{
+			StoreSecret: keybase1.SecretStorageFeature{
 				Allow: true,
 				Label: "store your test passphrase",
 			},

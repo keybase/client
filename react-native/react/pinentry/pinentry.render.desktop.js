@@ -10,12 +10,15 @@ export default class PinentryRender extends Component {
       features: {}
     }
     for (const feature in this.props.payload.features) {
+      console.log(feature)
       if (this.props.payload.features[feature].hasOwnProperty('allow')) {
+        console.log(this.props.payload.features[feature].allow)
         this.state.features[feature] = this.props.payload.features[feature].allow
       } else {
         console.error('We were passed a payload with no allow field!')
       }
     }
+    console.log(this.state)
   }
 
   render () {
@@ -34,7 +37,7 @@ export default class PinentryRender extends Component {
             name={feature}
             value={feature}
             label={this.props.payload.features[feature].label}
-            defaultChecked={this.props.payload.features[feature].value}
+            defaultChecked={this.props.payload.features[feature].allow}
             style={{marginTop: 30}}
             onCheck={(_, checked) => { this.state.features[feature] = checked }}
           />

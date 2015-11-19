@@ -27,27 +27,28 @@ export default {
     }
 
     var props = payload.pinentry
-    // Here's where we should spawn a BrowserWindow with the Pinentry component,
-    // passing in props.  For now, it's stubbed out.
-
-    ipc.on('sendProps', function (event, arg) {
-      console.log('received sendProps')
-      event.sender.send('sendingProps', props)
-    })
+    console.log(props)
     var pinentryWindow = new BrowserWindow({
       width: 500, height: 300,
       //resizable: false,
       fullscreen: false
     })
-    console.log(pinentryWindow)
+    pinentryWindow.hide()
     pinentryWindow.loadUrl(`file://${__dirname}/pinentry.wrapper.html`)
-    pinentryWindow.show()
 
-    const reply = {
-      'passphrase': 'fooBARbaz',
-      'storeSecret': false
-    }
-    response.result(reply)
-    console.log('Sent passphrase back')
+    ipc.on('needProps', function (event, arg) {
+      event.sender.send('gotProps', props)
+    })
+
+    ipc.on('pinentryReady', function (event, arg) {
+      pinentryWindow.show()
+    })
+
+    ipc.on('pinentryResult', function (event, arg) {
+      response.result(arg)
+      console.log(arg)
+      console.log('Sent passphrase back')
+      //pinentryWindow.close()
+    })
   }
 }
