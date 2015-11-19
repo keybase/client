@@ -60,10 +60,10 @@ const submitSearch_debounced = _.debounce((base, term, dispatch, getState) => {
 
   Promise.all([
     doRPC('user.listTracking', {filter: term}, {}).then(results => {
-      return results.map(r => ({ uid: r.uid, username: r.username, tracking: true }))
+      return results.map(r => ({uid: r.uid, username: r.username, tracking: true}))
     }),
     doRPC('user.search', {query: term}, {}).then(results => {
-      return results.map(r => ({ uid: r.uid, username: r.username }))
+      return results.map(r => ({uid: r.uid, username: r.username}))
     })
   ])
     .then(results => {

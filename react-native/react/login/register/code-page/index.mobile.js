@@ -62,19 +62,19 @@ class CodePage extends Component {
     switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
       case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
       case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
-        controls = [ codePageModeScanCode, codePageModeShowText ]
+        controls = [codePageModeScanCode, codePageModeShowText]
         break
       case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone: // fallthrough
       case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
         if (this.props.cameraBrokenMode) {
-          controls = [ codePageModeShowText, codePageModeEnterText ]
+          controls = [codePageModeShowText, codePageModeEnterText]
         } else {
-          controls = [ codePageModeShowCode, codePageModeScanCode ]
+          controls = [codePageModeShowCode, codePageModeScanCode]
         }
         break
       case codePageDeviceRoleNewComputer + codePageDeviceRoleExistingPhone: // fallthrough
       case codePageDeviceRoleExistingComputer + codePageDeviceRoleNewPhone:
-        controls = [ codePageModeShowCode, codePageModeEnterText ]
+        controls = [codePageModeShowCode, codePageModeEnterText]
         break
     }
 
