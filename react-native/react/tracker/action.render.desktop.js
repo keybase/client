@@ -5,9 +5,9 @@
 import React, {Component} from '../base-react'
 import {Checkbox, FloatingActionButton, FlatButton} from 'material-ui'
 
-import { normal, warning } from './common-types'
+import { normal, warning } from '../constants/tracker'
 
-import type { SimpleProofState } from './common-types'
+import type { SimpleProofState } from '../constants/tracker'
 
 export type ActionProps = {
   state: SimpleProofState,

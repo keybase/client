@@ -5,7 +5,7 @@
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
 
-import type { SimpleProofState } from './common-types'
+import type { SimpleProofState } from '../constants/tracker'
 
 export type BioProps = {
   username: ?string,

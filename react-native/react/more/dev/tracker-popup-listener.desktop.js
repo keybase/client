@@ -12,7 +12,7 @@ import { flattenCallMap, promisifyResponses } from '../../engine/call-map-middle
 import * as _ from 'lodash'
 
 import { identify } from '../../keybase_v1.js'
-import { normal, warning, error, pending } from '../../tracker/common-types'
+import { normal, warning, error, pending } from '../../constants/tracker'
 
 import type {IdentifyKey, TrackSummary, Identity, RemoteProof, LinkCheckResult, Cryptocurrency, IdentifyOutcome, User, UserSummary, ProofState} from '../../constants/types/flow-types'
 
@@ -22,7 +22,7 @@ import type { ActionProps } from '../../tracker/action.render.desktop'
 import type { HeaderProps } from '../../tracker/header.render.desktop'
 import type { ProofsProps, Proof } from '../../tracker/proofs.render.desktop'
 import type { TrackerProps } from '../../tracker/render.desktop'
-import type { SimpleProofState } from '../../tracker/common-types'
+import type { SimpleProofState } from '../../constants/tracker'
 
 type ComponentState = {
   outstandingReqs: Array<RemoteProof>,

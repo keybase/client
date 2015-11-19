@@ -4,8 +4,8 @@
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
 
-import {error, pending} from './common-types'
-import type {SimpleProofState} from './common-types'
+import {error, pending} from '../constants/tracker'
+import type {SimpleProofState} from '../constants/tracker'
 
 export type Proof = {
   id: string,
