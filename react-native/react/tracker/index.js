@@ -19,7 +19,11 @@ class Tracker extends Component {
 
   render () {
     // these non-prop values will be removed during integration
-    return <Render {...this.props}/>
+    return <Render
+             bioProps={this.props.bioProps}
+             headerProps={this.props.headerProps}
+             actionProps={this.props.actionProps}
+             proofsProps={this.props.proofsProps}/>
   }
 
   static parseRoute (currentPath) {
@@ -35,7 +39,12 @@ class Tracker extends Component {
   }
 }
 
-Tracker.propTypes = { }
+Tracker.propTypes = {
+  bioProps: React.PropTypes.any.isRequired,
+  headerProps: React.PropTypes.any.isRequired,
+  actionProps: React.PropTypes.any.isRequired,
+  proofsProps: React.PropTypes.any.isRequired
+}
 
 export default connect(
   null,
