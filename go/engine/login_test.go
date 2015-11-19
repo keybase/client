@@ -366,8 +366,8 @@ func TestProvisionPaper(t *testing.T) {
 }
 
 // Provision device using a private GPG key (not synced to keybase
-// server).
-func TestProvisionGPG(t *testing.T) {
+// server), import private key to lksec.
+func TestProvisionGPGImport(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -388,7 +388,51 @@ func TestProvisionGPG(t *testing.T) {
 
 	// run login on new device
 	ctx := &Context{
-		ProvisionUI: newTestProvisionUIGPG(),
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "")
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tc2)
+
+	// highly possible they didn't have a paper key, so make sure they have one now:
+	hasOnePaperDev(tc2, u1)
+
+	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Provision device using a private GPG key (not synced to keybase
+// server), use gpg to sign (no private key import).
+func TestProvisionGPGSign(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGSign(),
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
@@ -551,9 +595,15 @@ func newTestProvisionUIPaper() *testProvisionUI {
 	return ui
 }
 
-func newTestProvisionUIGPG() *testProvisionUI {
+func newTestProvisionUIGPGImport() *testProvisionUI {
 	ui := newTestProvisionUI()
-	ui.method = keybase1.ProvisionMethod_GPG
+	ui.method = keybase1.ProvisionMethod_GPG_IMPORT
+	return ui
+}
+
+func newTestProvisionUIGPGSign() *testProvisionUI {
+	ui := newTestProvisionUI()
+	ui.method = keybase1.ProvisionMethod_GPG_SIGN
 	return ui
 }
 

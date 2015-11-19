@@ -149,7 +149,7 @@ func TestTrackAfterRevoke(t *testing.T) {
 
 	// Login on device tc2.  It will use gpg to sign the device.
 	ctx := &Context{
-		ProvisionUI: newTestProvisionUIGPG(),
+		ProvisionUI: newTestProvisionUIGPGImport(),
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u.Username},

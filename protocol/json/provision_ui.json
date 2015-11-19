@@ -161,7 +161,7 @@
   }, {
     "type" : "enum",
     "name" : "ProvisionMethod",
-    "symbols" : [ "DEVICE_0", "GPG_1", "PAPER_KEY_2", "PASSPHRASE_3" ]
+    "symbols" : [ "DEVICE_0", "PAPER_KEY_1", "PASSPHRASE_2", "GPG_IMPORT_3", "GPG_SIGN_4" ]
   }, {
     "type" : "enum",
     "name" : "DeviceType",

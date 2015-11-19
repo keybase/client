@@ -636,9 +636,10 @@ export default {
     },
     'ProvisionMethod': {
       'device': 0,
-      'gpg': 1,
-      'paperKey': 2,
-      'passphrase': 3
+      'paperKey': 1,
+      'passphrase': 2,
+      'gpgImport': 3,
+      'gpgSign': 4
     },
     'DeviceType': {
       'desktop': 0,

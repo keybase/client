@@ -190,19 +190,28 @@ func (e *LoginProvision) device(ctx *Context) error {
 }
 
 // gpg attempts to provision the device via a gpg key.
-func (e *LoginProvision) gpg(ctx *Context) error {
-	gpgKey, err := e.chooseGPGKey(ctx)
+func (e *LoginProvision) gpg(ctx *Context, method keybase1.ProvisionMethod) error {
+	var getKey func(*Context) (libkb.GenericKey, error)
+	switch method {
+	case keybase1.ProvisionMethod_GPG_SIGN:
+		getKey = e.chooseGPGKey
+	case keybase1.ProvisionMethod_GPG_IMPORT:
+		getKey = e.chooseAndImportGPGKey
+	default:
+		return fmt.Errorf("invalid gpg provisioning method: %v", method)
+	}
+	key, err := getKey(ctx)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("using gpg key %s (%s)", gpgKey.GetFingerprintP(), gpgKey.GetKID())
+	e.G().Log.Debug("using gpg key %s", key.GetKID())
 
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the gpg key in bundle.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
-		if err := e.makeDeviceKeysWithSigner(ctx, gpgKey); err != nil {
+		if err := e.makeDeviceKeysWithSigner(ctx, key); err != nil {
 			return err
 		}
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
@@ -555,8 +564,8 @@ func (e *LoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMethod
 	switch method {
 	case keybase1.ProvisionMethod_DEVICE:
 		return e.device(ctx)
-	case keybase1.ProvisionMethod_GPG:
-		return e.gpg(ctx)
+	case keybase1.ProvisionMethod_GPG_IMPORT, keybase1.ProvisionMethod_GPG_SIGN:
+		return e.gpg(ctx, method)
 	case keybase1.ProvisionMethod_PAPER_KEY:
 		return e.paper(ctx)
 	case keybase1.ProvisionMethod_PASSPHRASE:
@@ -590,7 +599,7 @@ func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
 
 // chooseGPGKey asks the user to select a gpg key to use, then
 // checks if the fingerprint exists on keybase.io.
-func (e *LoginProvision) chooseGPGKey(ctx *Context) (*libkb.GPGKey, error) {
+func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	// choose a private gpg key to use
 	fp, err := e.selectGPGKey(ctx)
 	if err != nil {
@@ -613,6 +622,41 @@ func (e *LoginProvision) chooseGPGKey(ctx *Context) (*libkb.GPGKey, error) {
 
 	// create a GPGKey shell around gpg cli with fp, kid
 	return libkb.NewGPGKey(e.G(), fp, kid), nil
+}
+
+// chooseAndImportGPGKey asks the user to select a gpg key to use,
+// then checks if the fingerprint exists on keybase.io, and
+// finally uses gpg to unlock it and import it to lksec.
+func (e *LoginProvision) chooseAndImportGPGKey(ctx *Context) (libkb.GenericKey, error) {
+	// choose a private gpg key to use
+	fp, err := e.selectGPGKey(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if fp == nil {
+		return nil, libkb.NoKeyError{Msg: "selectGPGKey returned nil fingerprint"}
+	}
+
+	// see if public key on keybase, and if so load the user
+	if err := e.checkUserByPGPFingerprint(ctx, fp); err != nil {
+		return nil, err
+	}
+
+	// import it with gpg
+	cli, err := e.gpgClient()
+	if err != nil {
+		return nil, err
+	}
+	bundle, err := cli.ImportKey(true, *fp)
+	if err != nil {
+		return nil, err
+	}
+
+	// unlock it
+	if err := bundle.Unlock("sign new device", ctx.SecretUI); err != nil {
+		return nil, err
+	}
+	return bundle, nil
 }
 
 // selectGPGKey creates an index of the private gpg keys and

@@ -3709,9 +3709,10 @@ type ProvisionMethod int
 
 const (
 	ProvisionMethod_DEVICE     ProvisionMethod = 0
-	ProvisionMethod_GPG        ProvisionMethod = 1
-	ProvisionMethod_PAPER_KEY  ProvisionMethod = 2
-	ProvisionMethod_PASSPHRASE ProvisionMethod = 3
+	ProvisionMethod_PAPER_KEY  ProvisionMethod = 1
+	ProvisionMethod_PASSPHRASE ProvisionMethod = 2
+	ProvisionMethod_GPG_IMPORT ProvisionMethod = 3
+	ProvisionMethod_GPG_SIGN   ProvisionMethod = 4
 )
 
 type DeviceType int

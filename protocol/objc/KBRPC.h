@@ -497,9 +497,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 typedef NS_ENUM (NSInteger, KBRProvisionMethod) {
 	KBRProvisionMethodDevice = 0,
-	KBRProvisionMethodGpg = 1,
-	KBRProvisionMethodPaperKey = 2,
-	KBRProvisionMethodPassphrase = 3,
+	KBRProvisionMethodPaperKey = 1,
+	KBRProvisionMethodPassphrase = 2,
+	KBRProvisionMethodGpgImport = 3,
+	KBRProvisionMethodGpgSign = 4,
 };
 
 typedef NS_ENUM (NSInteger, KBRDeviceType) {
