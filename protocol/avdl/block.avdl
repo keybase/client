@@ -8,15 +8,22 @@ protocol block {
     bytes buf;
   }
 
-  void establishSession(UID user, string sid);
+// Fixed-size nonce to identify a reference to a block
+  fixed BlockRefNonce(8);
+
+  record BlockReference {
+    BlockIdCombo bid;
+    BlockRefNonce nonce;
+    UID chargedTo;
+  }
+
+  void authenticateSession(UID user, string sid);
 
   void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
   GetBlockRes getBlock(BlockIdCombo bid);
 
-  // Fixed-size nonce to identify a reference to a block
-  fixed BlockRefNonce(8);
-
-  void incBlockReference(BlockIdCombo bid, BlockRefNonce nonce, string folder, UID chargedTo);
-  void decBlockReference(BlockIdCombo bid, BlockRefNonce nonce, string folder, UID chargedTo);
+  void addReference(string folder, BlockReference ref);
+  void delReference(string folder, BlockReference ref);
+  array<BlockReference> archiveReference(string folder, array<BlockReference> refs);
   
 }

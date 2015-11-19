@@ -163,7 +163,13 @@ type GetBlockRes struct {
 }
 
 type BlockRefNonce [8]byte
-type EstablishSessionArg struct {
+type BlockReference struct {
+	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
+	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
+	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
+}
+
+type AuthenticateSessionArg struct {
 	User UID    `codec:"user" json:"user"`
 	Sid  string `codec:"sid" json:"sid"`
 }
@@ -179,44 +185,46 @@ type GetBlockArg struct {
 	Bid BlockIdCombo `codec:"bid" json:"bid"`
 }
 
-type IncBlockReferenceArg struct {
-	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
-	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
-	Folder    string        `codec:"folder" json:"folder"`
-	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
+type AddReferenceArg struct {
+	Folder string         `codec:"folder" json:"folder"`
+	Ref    BlockReference `codec:"ref" json:"ref"`
 }
 
-type DecBlockReferenceArg struct {
-	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
-	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
-	Folder    string        `codec:"folder" json:"folder"`
-	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
+type DelReferenceArg struct {
+	Folder string         `codec:"folder" json:"folder"`
+	Ref    BlockReference `codec:"ref" json:"ref"`
+}
+
+type ArchiveReferenceArg struct {
+	Folder string           `codec:"folder" json:"folder"`
+	Refs   []BlockReference `codec:"refs" json:"refs"`
 }
 
 type BlockInterface interface {
-	EstablishSession(context.Context, EstablishSessionArg) error
+	AuthenticateSession(context.Context, AuthenticateSessionArg) error
 	PutBlock(context.Context, PutBlockArg) error
 	GetBlock(context.Context, BlockIdCombo) (GetBlockRes, error)
-	IncBlockReference(context.Context, IncBlockReferenceArg) error
-	DecBlockReference(context.Context, DecBlockReferenceArg) error
+	AddReference(context.Context, AddReferenceArg) error
+	DelReference(context.Context, DelReferenceArg) error
+	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
 }
 
 func BlockProtocol(i BlockInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.block",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"establishSession": {
+			"authenticateSession": {
 				MakeArg: func() interface{} {
-					ret := make([]EstablishSessionArg, 1)
+					ret := make([]AuthenticateSessionArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]EstablishSessionArg)
+					typedArgs, ok := args.(*[]AuthenticateSessionArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]EstablishSessionArg)(nil), args)
+						err = rpc.NewTypeError((*[]AuthenticateSessionArg)(nil), args)
 						return
 					}
-					err = i.EstablishSession(ctx, (*typedArgs)[0])
+					err = i.AuthenticateSession(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -253,34 +261,50 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"incBlockReference": {
+			"addReference": {
 				MakeArg: func() interface{} {
-					ret := make([]IncBlockReferenceArg, 1)
+					ret := make([]AddReferenceArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]IncBlockReferenceArg)
+					typedArgs, ok := args.(*[]AddReferenceArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]IncBlockReferenceArg)(nil), args)
+						err = rpc.NewTypeError((*[]AddReferenceArg)(nil), args)
 						return
 					}
-					err = i.IncBlockReference(ctx, (*typedArgs)[0])
+					err = i.AddReference(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"decBlockReference": {
+			"delReference": {
 				MakeArg: func() interface{} {
-					ret := make([]DecBlockReferenceArg, 1)
+					ret := make([]DelReferenceArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]DecBlockReferenceArg)
+					typedArgs, ok := args.(*[]DelReferenceArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]DecBlockReferenceArg)(nil), args)
+						err = rpc.NewTypeError((*[]DelReferenceArg)(nil), args)
 						return
 					}
-					err = i.DecBlockReference(ctx, (*typedArgs)[0])
+					err = i.DelReference(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"archiveReference": {
+				MakeArg: func() interface{} {
+					ret := make([]ArchiveReferenceArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ArchiveReferenceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ArchiveReferenceArg)(nil), args)
+						return
+					}
+					ret, err = i.ArchiveReference(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -293,8 +317,8 @@ type BlockClient struct {
 	Cli GenericClient
 }
 
-func (c BlockClient) EstablishSession(ctx context.Context, __arg EstablishSessionArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.establishSession", []interface{}{__arg}, nil)
+func (c BlockClient) AuthenticateSession(ctx context.Context, __arg AuthenticateSessionArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.authenticateSession", []interface{}{__arg}, nil)
 	return
 }
 
@@ -309,13 +333,18 @@ func (c BlockClient) GetBlock(ctx context.Context, bid BlockIdCombo) (res GetBlo
 	return
 }
 
-func (c BlockClient) IncBlockReference(ctx context.Context, __arg IncBlockReferenceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.incBlockReference", []interface{}{__arg}, nil)
+func (c BlockClient) AddReference(ctx context.Context, __arg AddReferenceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.addReference", []interface{}{__arg}, nil)
 	return
 }
 
-func (c BlockClient) DecBlockReference(ctx context.Context, __arg DecBlockReferenceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.decBlockReference", []interface{}{__arg}, nil)
+func (c BlockClient) DelReference(ctx context.Context, __arg DelReferenceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.delReference", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BlockClient) ArchiveReference(ctx context.Context, __arg ArchiveReferenceArg) (res []BlockReference, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.archiveReference", []interface{}{__arg}, &res)
 	return
 }
 
