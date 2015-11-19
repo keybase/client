@@ -322,7 +322,7 @@ func (log *Standard) logToExternalLoggers(level keybase1.LogLevel, format string
 	}
 
 	for _, externalLogger := range log.externalLoggers {
-		go externalLogger.Log(level, format, args)
+		externalLogger.Log(level, format, args)
 	}
 }
 
