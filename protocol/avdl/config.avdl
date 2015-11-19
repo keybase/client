@@ -13,6 +13,12 @@ protocol config {
 
   GetCurrentStatusRes getCurrentStatus(int sessionID);
 
+  enum ForkType {
+    NONE_0,
+    AUTO_1,
+    WATCHDOG_2
+  }
+
   record Config {
     string serverURI;
     string socketFile;
@@ -26,6 +32,7 @@ protocol config {
     string versionShort;
     string versionFull;
     boolean isAutoForked;
+    ForkType forkType;
   }
 
   Config getConfig(int sessionID);

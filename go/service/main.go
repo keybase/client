@@ -18,12 +18,12 @@ import (
 
 type Service struct {
 	libkb.Contextified
-	isDaemon     bool
-	chdirTo      string
-	lockPid      *libkb.LockPIDFile
-	isAutoForked bool
-	startCh      chan struct{}
-	stopCh       chan struct{}
+	isDaemon bool
+	chdirTo  string
+	lockPid  *libkb.LockPIDFile
+	ForkType keybase1.ForkType
+	startCh  chan struct{}
+	stopCh   chan keybase1.ExitCode
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -31,7 +31,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		Contextified: libkb.NewContextified(g),
 		isDaemon:     isDaemon,
 		startCh:      make(chan struct{}),
-		stopCh:       make(chan struct{}),
+		stopCh:       make(chan keybase1.ExitCode),
 	}
 }
 
@@ -109,7 +109,7 @@ func (d *Service) Run() (err error) {
 		d.G().Shutdown()
 	}()
 
-	d.G().Log.Debug("+ service starting up; autoForked=%v", d.isAutoForked)
+	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
 
 	// Sets this global context to "service" mode which will toggle a flag
 	// and will also set in motion various go-routine based managers
@@ -141,7 +141,9 @@ func (d *Service) Run() (err error) {
 	if l, err = d.ConfigRPCServer(); err != nil {
 		return
 	}
-	if err = d.ListenLoopWithStopper(l); err != nil {
+	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
+
+	if err != nil {
 		return
 	}
 	return
@@ -262,18 +264,18 @@ func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
 	return
 }
 
-func (d *Service) Stop() {
-	d.stopCh <- struct{}{}
+func (d *Service) Stop(exitCode keybase1.ExitCode) {
+	d.stopCh <- exitCode
 }
 
-func (d *Service) ListenLoopWithStopper(l net.Listener) (err error) {
+func (d *Service) ListenLoopWithStopper(l net.Listener) (exitCode keybase1.ExitCode, err error) {
 	ch := make(chan error)
 	go func() {
 		ch <- d.ListenLoop(l)
 	}()
-	<-d.stopCh
+	exitCode = <-d.stopCh
 	l.Close()
-	return <-ch
+	return exitCode, <-ch
 }
 
 func (d *Service) ListenLoop(l net.Listener) (err error) {
@@ -295,7 +297,11 @@ func (d *Service) ListenLoop(l net.Listener) (err error) {
 
 func (d *Service) ParseArgv(ctx *cli.Context) error {
 	d.chdirTo = ctx.String("chdir")
-	d.isAutoForked = ctx.Bool("auto-forked")
+	if ctx.Bool("auto-forked") {
+		d.ForkType = keybase1.ForkType_AUTO
+	} else if ctx.Bool("watchdog-forked") {
+		d.ForkType = keybase1.ForkType_WATCHDOG
+	}
 	return nil
 }
 
@@ -314,6 +320,10 @@ func NewCmdService(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cli.BoolFlag{
 				Name:  "auto-forked",
 				Usage: "Specify if this binary was auto-forked from the client",
+			},
+			cli.BoolFlag{
+				Name:  "watchdog-forked",
+				Usage: "Specify if this binary was started by the watchdog",
 			},
 		},
 		Action: func(c *cli.Context) {

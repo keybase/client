@@ -41,7 +41,9 @@ func main() {
 	}
 	if err != nil {
 		g.Log.Error(err.Error())
-		os.Exit(2)
+	}
+	if g.ExitCode != keybase1.ExitCode_OK {
+		os.Exit(int(g.ExitCode))
 	}
 }
 

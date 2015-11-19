@@ -73,7 +73,10 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 	c.ConfigPath = h.G().Env.GetConfigFilename()
 	c.Label = h.G().Env.GetLabel()
 	if h.svc != nil {
-		c.IsAutoForked = h.svc.isAutoForked
+		if h.svc.ForkType == keybase1.ForkType_AUTO {
+			c.IsAutoForked = true
+		}
+		c.ForkType = h.svc.ForkType
 	}
 
 	return c, nil

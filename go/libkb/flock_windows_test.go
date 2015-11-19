@@ -43,10 +43,10 @@ func TestLockPIDFile_windows(t *testing.T) {
 	} else if err != nil {
 		t.Fatalf("LockPIDFile failed: %v", err)
 	} else {
-		// External process should be blocked from reading the file
-		exitcode, err := run("cmd", "/c", "type", "TestLockPIDWin")
-		if err == nil && exitcode == 0 {
-			t.Fatalf("LockPIDFile: expected error accessing locked file")
+		// External process should be blocked from deleting the file
+		run("cmd", "/c", "del", "TestLockPIDWin")
+		if !exists("TestLockPIDWin") {
+			t.Fatalf("LockPIDFile: expected error deleting locked file")
 		}
 	}
 	lpFile.Close()

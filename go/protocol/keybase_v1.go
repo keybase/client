@@ -369,19 +369,28 @@ type GetCurrentStatusRes struct {
 	User       *User `codec:"user,omitempty" json:"user,omitempty"`
 }
 
+type ForkType int
+
+const (
+	ForkType_NONE     ForkType = 0
+	ForkType_AUTO     ForkType = 1
+	ForkType_WATCHDOG ForkType = 2
+)
+
 type Config struct {
-	ServerURI    string `codec:"serverURI" json:"serverURI"`
-	SocketFile   string `codec:"socketFile" json:"socketFile"`
-	Label        string `codec:"label" json:"label"`
-	RunMode      string `codec:"runMode" json:"runMode"`
-	GpgExists    bool   `codec:"gpgExists" json:"gpgExists"`
-	GpgPath      string `codec:"gpgPath" json:"gpgPath"`
-	Version      string `codec:"version" json:"version"`
-	Path         string `codec:"path" json:"path"`
-	ConfigPath   string `codec:"configPath" json:"configPath"`
-	VersionShort string `codec:"versionShort" json:"versionShort"`
-	VersionFull  string `codec:"versionFull" json:"versionFull"`
-	IsAutoForked bool   `codec:"isAutoForked" json:"isAutoForked"`
+	ServerURI    string   `codec:"serverURI" json:"serverURI"`
+	SocketFile   string   `codec:"socketFile" json:"socketFile"`
+	Label        string   `codec:"label" json:"label"`
+	RunMode      string   `codec:"runMode" json:"runMode"`
+	GpgExists    bool     `codec:"gpgExists" json:"gpgExists"`
+	GpgPath      string   `codec:"gpgPath" json:"gpgPath"`
+	Version      string   `codec:"version" json:"version"`
+	Path         string   `codec:"path" json:"path"`
+	ConfigPath   string   `codec:"configPath" json:"configPath"`
+	VersionShort string   `codec:"versionShort" json:"versionShort"`
+	VersionFull  string   `codec:"versionFull" json:"versionFull"`
+	IsAutoForked bool     `codec:"isAutoForked" json:"isAutoForked"`
+	ForkType     ForkType `codec:"forkType" json:"forkType"`
 }
 
 type InstallStatus int
@@ -618,8 +627,17 @@ func (c CryptoClient) UnboxBytes32(ctx context.Context, __arg UnboxBytes32Arg) (
 	return
 }
 
+type ExitCode int
+
+const (
+	ExitCode_OK      ExitCode = 0
+	ExitCode_NOTOK   ExitCode = 2
+	ExitCode_RESTART ExitCode = 4
+)
+
 type StopArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	ExitCode  ExitCode `codec:"exitCode" json:"exitCode"`
 }
 
 type LogRotateArg struct {
@@ -640,7 +658,7 @@ type DbNukeArg struct {
 }
 
 type CtlInterface interface {
-	Stop(context.Context, int) error
+	Stop(context.Context, StopArg) error
 	LogRotate(context.Context, int) error
 	SetLogLevel(context.Context, SetLogLevelArg) error
 	Reload(context.Context, int) error
@@ -662,7 +680,7 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]StopArg)(nil), args)
 						return
 					}
-					err = i.Stop(ctx, (*typedArgs)[0].SessionID)
+					err = i.Stop(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -739,8 +757,7 @@ type CtlClient struct {
 	Cli GenericClient
 }
 
-func (c CtlClient) Stop(ctx context.Context, sessionID int) (err error) {
-	__arg := StopArg{SessionID: sessionID}
+func (c CtlClient) Stop(ctx context.Context, __arg StopArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil)
 	return
 }
