@@ -430,5 +430,6 @@ func TestMultiUserWrite(t *testing.T) {
 	}
 
 	readAndCompareData(t, config2, ctx, h, data3, userName2)
+	config1.KBFSOps().SyncFromServer(ctx, rootNode1.GetFolderBranch())
 	TestStateForTlf(t, ctx, config1, rootNode1.GetFolderBranch().Tlf)
 }
