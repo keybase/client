@@ -172,7 +172,7 @@ func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {
 
 func (g *GpgCLI) Sign(fp PGPFingerprint, payload []byte) (string, error) {
 	arg := RunGpg2Arg{
-		Arguments: []string{"--armor", "--sign", "--default-key", fp.String()},
+		Arguments: []string{"--armor", "--sign", "-u", fp.String()},
 		Stdout:    true,
 		Stdin:     true,
 	}
