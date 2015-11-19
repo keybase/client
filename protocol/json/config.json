@@ -269,6 +269,19 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "FuseMountInfo",
+    "fields" : [ {
+      "name" : "path",
+      "type" : "string"
+    }, {
+      "name" : "fstype",
+      "type" : "string"
+    }, {
+      "name" : "output",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "FuseStatus",
     "fields" : [ {
       "name" : "version",
@@ -291,6 +304,12 @@
     }, {
       "name" : "installAction",
       "type" : "InstallAction"
+    }, {
+      "name" : "mountInfos",
+      "type" : {
+        "type" : "array",
+        "items" : "FuseMountInfo"
+      }
     }, {
       "name" : "status",
       "type" : "Status"

@@ -62,7 +62,7 @@ func (v *CmdFuseStatus) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdFuseStatus) Run() error {
-	status := KeybaseFuseStatus(v.bundleVersion)
+	status := KeybaseFuseStatus(v.G(), v.bundleVersion)
 	out, err := json.MarshalIndent(status, "", "  ")
 	if err != nil {
 		return err
