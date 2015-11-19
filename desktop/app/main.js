@@ -22,7 +22,9 @@ const trackerWindow = new Window('tracker', {
 })
 
 const mainWindow = new Window('index', {
-  width: 1600, height: 1200, openDevTools: true
+  width: 1600,
+  height: 1200,
+  openDevTools: true
 })
 
 mb.on('ready', () => {
