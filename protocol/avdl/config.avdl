@@ -72,6 +72,12 @@ protocol config {
     array<ServiceStatus> kbfs;
   }
 
+  record FuseMountInfo {
+    string path;
+    string fstype;
+    string output; // Output from mount, may be platform specific
+  }
+
   record FuseStatus {
     string version;
     string bundleVersion;
@@ -80,6 +86,7 @@ protocol config {
     boolean kextStarted;
     InstallStatus installStatus;
     InstallAction installAction;
+    array<FuseMountInfo> mountInfos;
     Status status;
   }
 
