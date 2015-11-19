@@ -6,30 +6,30 @@
 	<dict>
 		<key>Resources/License.rtf</key>
 		<data>
-		rZ80/0vkA8yPj8GfIE8Z/O0jDAk=
+		Es6l/kcGe97peVZCHMaTDD72IgY=
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		byPUprhfB4+gy+Is+p0suw/EzGI=
+		bsLqUMjvQGrH1Hd6Ci35U7jVBLM=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		zGIFAXF0K7+qia8VHs1GIHgKXwQ=
+		oHECDmgLyM3pOeBdCWzov1UW7rE=
 		</data>
 		<key>version.plist</key>
 		<data>
-		eTlloQ8QDnlXRF5a47NfRcnsAaA=
+		Q8CGSEcrfQW8qvsIDg3jyvFei58=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
 		<key>Extensions/10.10/kbfuse.kext/Contents/Info.plist</key>
 		<data>
-		isr9naE5W8lUIqi9WANuuyhlFoI=
+		SpyQ2PWjc34Wp9lBcKCGe3o7008=
 		</data>
 		<key>Extensions/10.10/kbfuse.kext/Contents/MacOS/kbfuse</key>
 		<data>
-		0F7BXzcz9TQCMR9Jaoo02BeWuTw=
+		QUVrqYnA0qcK75G5HBOAPEadXbk=
 		</data>
 		<key>Extensions/10.10/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
 		<data>
@@ -37,19 +37,19 @@
 		</data>
 		<key>Resources/License.rtf</key>
 		<data>
-		rZ80/0vkA8yPj8GfIE8Z/O0jDAk=
+		Es6l/kcGe97peVZCHMaTDD72IgY=
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		byPUprhfB4+gy+Is+p0suw/EzGI=
+		bsLqUMjvQGrH1Hd6Ci35U7jVBLM=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		zGIFAXF0K7+qia8VHs1GIHgKXwQ=
+		oHECDmgLyM3pOeBdCWzov1UW7rE=
 		</data>
 		<key>version.plist</key>
 		<data>
-		eTlloQ8QDnlXRF5a47NfRcnsAaA=
+		Q8CGSEcrfQW8qvsIDg3jyvFei58=
 		</data>
 	</dict>
 	<key>rules</key>

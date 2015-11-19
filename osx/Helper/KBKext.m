@@ -27,15 +27,15 @@
 }
 
 + (void)installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
-  KBLog(@"Install: %@ to %@", source, destination);
-
-  [self uninstallWithDestination:destination kextID:kextID completion:^(NSError *error, id value) {
-    [self _installWithSource:source destination:destination kextID:kextID kextPath:kextPath completion:completion];
-  }];
-}
-
-+ (void)_installWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
   NSError *error = nil;
+
+  // Uninstall if installed
+  if (![self uninstallWithDestination:destination kextID:kextID error:&error]) {
+    if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to uninstall");
+    completion(error, @(0));
+    return;
+  }
+
   if (![NSFileManager.defaultManager copyItemAtPath:source toPath:destination error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to copy");
     completion(error, @(0));
@@ -125,17 +125,24 @@
 
 + (void)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
   NSError *error = nil;
-  if (![self unloadKextID:kextID error:&error]) {
-    completion(error, nil);
+  if (![self uninstallWithDestination:destination kextID:kextID error:&error]) {
+    completion(error, @(0));
     return;
   }
+  completion(nil, @(0));
+}
 
-  if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:&error]) {
-    if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to remove path: %@", destination);
-    completion(error, nil);
-  } else {
-    completion(nil, nil);
++ (BOOL)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID error:(NSError **)error {
+  if (![self unloadKextID:kextID error:error]) {
+    return NO;
   }
+
+  if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:error]) {
+    if (error) *error = KBMakeError(KBHelperErrorKext, @"Failed to remove path: %@", destination);
+    return NO;
+  }
+
+  return YES;
 }
 
 + (NSString *)descriptionForStatus:(OSReturn)status {
