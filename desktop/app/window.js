@@ -19,7 +19,7 @@ export default class Window {
 
     this.window = new BrowserWindow(this.opts)
     this.releaseDockIcon = showDockIcon()
-    this.window.loadUrl(`file://${__dirname}/../renderer/${this.filename}.html`)
+    this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
 
     this.window.on('closed', () => {
       this.window = null

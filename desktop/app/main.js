@@ -5,7 +5,7 @@ require('babel/register')({
 })
 
 const menubar = require('menubar')
-const ipc = require('ipc')
+const ipc = require('electron').ipcMain
 const Window = require('./window')
 const splash = require('./splash')
 

@@ -20,7 +20,7 @@ button {
 <button type=button id=quit>Quit</button>
 
 <script>
-const ipc = require('ipc');
+const ipc = require('electron').ipcRenderer;
 
 showMain.addEventListener('click', () => { ipc.send('showMain'); })
 showTracker.addEventListener('click', () => { ipc.send('showTracker'); })
