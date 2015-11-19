@@ -24,7 +24,7 @@ class Login extends Component {
 
   render () {
     return (
-      <View style={{ flex: 1, marginTop: 64, marginBottom: 48, justifyContent: 'flex-start' }}>
+      <View style={{flex: 1, marginTop: 64, marginBottom: 48, justifyContent: 'flex-start'}}>
         <Text style={commonStyles.h1}>Log in -</Text>
         <Text style={[commonStyles.h2, {marginBottom: 40}]}>Already a keybase user? Welcome back!</Text>
         <TextInput

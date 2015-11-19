@@ -19,7 +19,7 @@ import {folderTab, chatTab, peopleTab, devicesTab, moreTab} from './constants/ta
 import {switchTab} from './actions/tabbed-router'
 import {startup} from './actions/config'
 import {Tab, Tabs, Styles} from 'material-ui'
-let { Colors, Typography } = Styles
+let {Colors, Typography} = Styles
 
 const tabs = {
   [moreTab]: {module: More, name: 'More'},
@@ -54,7 +54,7 @@ class Nav extends Component {
       <div style={styles.tabsContainer}>
         <Tabs valueLink={{value: activeTab, requestChange: this._handleTabsChange.bind(this)}}>
           { Object.keys(tabs).map(tab => {
-            const { module, name } = tabs[tab]
+            const {module, name} = tabs[tab]
             return (
               <Tab label={name} value={tab} key={tab} >
                 { activeTab === tab &&

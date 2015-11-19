@@ -101,6 +101,10 @@ export default class Search extends Component {
   }
 }
 
+Search.propTypes = {
+  term: React.PropTypes.string
+}
+
 const styles = {
   container: {
     display: 'flex',

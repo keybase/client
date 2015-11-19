@@ -1,7 +1,7 @@
 'use strict'
 
 import * as Constants from '../../constants/config'
-import { autoLogin } from '../login'
+import {autoLogin} from '../login'
 import engine from '../../engine'
 import * as native from './index.native'
 
@@ -18,17 +18,17 @@ export function startup () {
 
     engine.rpc('config.getConfig', {}, incomingMap, (error, config) => {
       if (error) {
-        dispatch({ type: Constants.startupLoaded, payload: error, error: true })
+        dispatch({type: Constants.startupLoaded, payload: error, error: true})
         return
       }
       engine.rpc('config.getCurrentStatus', {}, incomingMap, (error, status) => {
         if (error) {
-          dispatch({ type: Constants.startupLoaded, payload: error, error: true })
+          dispatch({type: Constants.startupLoaded, payload: error, error: true})
           return
         }
         dispatch({
           type: Constants.startupLoaded,
-          payload: { config, status }
+          payload: {config, status}
         })
 
         if (status.loggedIn) {

@@ -12,7 +12,7 @@ export function getDevSettings () {
     NativeModules.App.getDevConfig((devConfig) => {
       dispatch({
         type: Constants.devConfigLoaded,
-        payload: { devConfig }
+        payload: {devConfig}
       })
     })
   }

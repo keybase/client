@@ -98,8 +98,8 @@ function qrGenerate (code) {
   qr.addData(code)
   qr.make()
   let tag = qr.createImgTag(10)
-  const [ , src, , ] = tag.split(' ')
-  const [ , qrCode ] = src.split('\"')
+  const src = tag.split(' ')[1]
+  const qrCode = src.split('\"')[1]
   return qrCode
 }
 
@@ -277,7 +277,8 @@ function askForCodePage (cb) {
     const mapStateToProps = state => {
       const {
         mode, codeCountDown, textCode, qrCode,
-        myDeviceRole, otherDeviceRole, cameraBrokenMode } = state.login.codePage
+        myDeviceRole, otherDeviceRole, cameraBrokenMode
+      } = state.login.codePage
       return {
         mode,
         codeCountDown,
@@ -371,10 +372,10 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       response.result(provisionMethod)
     },
     'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
-      const { username } = getState().login.userPass
+      const {username} = getState().login.userPass
       if (!username) {
         dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
-          const { username } = getState().login.userPass
+          const {username} = getState().login.userPass
           response.result(username)
         }))
       } else {
@@ -387,10 +388,10 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       }))
     },
     'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {
-      const { passphrase } = getState().login.userPass
+      const {passphrase} = getState().login.userPass
       if (!passphrase) {
         dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
-          const { passphrase } = getState().login.userPass
+          const {passphrase} = getState().login.userPass
           response.result({
             passphrase,
             storeSecret: false
@@ -404,10 +405,10 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       }
     },
     'keybase.1.secretUi.getSecret': (param, response) => {
-      const { passphrase } = getState().login.userPass
+      const {passphrase} = getState().login.userPass
       if (!passphrase) {
         dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
-          const { passphrase } = getState().login.userPass
+          const {passphrase} = getState().login.userPass
           response.result({
             text: passphrase,
             canceled: false,
@@ -423,9 +424,9 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       }
     },
     'keybase.1.provisionUi.PromptNewDeviceName': (param, response) => {
-      const { existingDevices } = param
+      const {existingDevices} = param
       dispatch(askForDeviceName(existingDevices, () => {
-        const { deviceName } = getState().login.deviceName
+        const {deviceName} = getState().login.deviceName
         response.result(deviceName)
       }))
     },

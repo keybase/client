@@ -9,7 +9,7 @@ import {updateForgotPasswordEmail, submitForgotPassword} from '../../actions/log
 class ForgotUserPass extends Component {
   render () {
     return (
-      <View style={{ flex: 1, marginTop: 64, marginBottom: 48, justifyContent: 'flex-start' }}>
+      <View style={{flex: 1, marginTop: 64, marginBottom: 48, justifyContent: 'flex-start'}}>
         {this.props.success ? (
           <View>
             <Text style={commonStyles.h1}>Email sent!</Text>
@@ -78,7 +78,8 @@ export default connect(
       forgotPasswordEmailAddress: email,
       forgotPasswordSubmitting: submitting,
       forgotPasswordSuccess: success,
-      forgotPasswordError: error } = state.login
+      forgotPasswordError: error
+    } = state.login
     return {email, submitting, success, error}
   },
   dispatch => {
