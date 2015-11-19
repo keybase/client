@@ -782,12 +782,12 @@ func (_mr *_MockReporterRecorder) AllKnownErrors() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AllKnownErrors")
 }
 
-func (_m *MockReporter) Notify(notification *protocol.FSNotification) {
-	_m.ctrl.Call(_m, "Notify", notification)
+func (_m *MockReporter) Notify(ctx context.Context, notification *protocol.FSNotification) {
+	_m.ctrl.Call(_m, "Notify", ctx, notification)
 }
 
-func (_mr *_MockReporterRecorder) Notify(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0)
+func (_mr *_MockReporterRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0, arg1)
 }
 
 func (_m *MockReporter) Shutdown() {

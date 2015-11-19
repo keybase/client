@@ -31,7 +31,11 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 }
 
 // Notify implements the Reporter interface for ReporterKBPKI.
-func (r *ReporterKBPKI) Notify(notification *keybase1.FSNotification) {
+//
+// TODO: might be useful to get the debug tags out of ctx and store
+//       them in the notifyBuffer as well so that send() can put
+//       them back in its context.
+func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNotification) {
 	select {
 	case r.notifyBuffer <- notification:
 		r.log.Debug("ReporterKBPKI: Notify -> %+v", notification)

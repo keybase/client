@@ -378,7 +378,7 @@ type Reporter interface {
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError
 	// Notify sends the given notification to any sink.
-	Notify(notification *keybase1.FSNotification)
+	Notify(ctx context.Context, notification *keybase1.FSNotification)
 	// Shutdown frees any resources allocated by a Reporter.
 	Shutdown()
 }

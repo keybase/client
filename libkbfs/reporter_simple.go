@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sync"
 
+	"golang.org/x/net/context"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -79,7 +81,7 @@ func (r *ReporterSimple) AllKnownErrors() []ReportedError {
 }
 
 // Notify implements the Reporter interface for ReporterSimple.
-func (r *ReporterSimple) Notify(_ *keybase1.FSNotification) {
+func (r *ReporterSimple) Notify(_ context.Context, _ *keybase1.FSNotification) {
 	// ignore notifications
 }
 

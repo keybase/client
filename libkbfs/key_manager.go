@@ -257,7 +257,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	}
 
 	// send rekey start notification
-	km.config.Reporter().Notify(rekeyNotification(ctx, km.config, handle, false))
+	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, handle, false))
 
 	// For addNewDevice, we only use the ephemeral keys; incKeyGen
 	// needs all of them.  ePrivKey will be discarded at the end of the
