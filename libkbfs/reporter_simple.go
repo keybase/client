@@ -82,3 +82,8 @@ func (r *ReporterSimple) AllKnownErrors() []ReportedError {
 func (r *ReporterSimple) Notify(_ *keybase1.FSNotification) {
 	// ignore notifications
 }
+
+// Shutdown implements the Reporter interface for ReporterSimple.
+func (r *ReporterSimple) Shutdown() {
+
+}

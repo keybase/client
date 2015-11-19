@@ -790,6 +790,14 @@ func (_mr *_MockReporterRecorder) Notify(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0)
 }
 
+func (_m *MockReporter) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockReporterRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
 // Mock of MDCache interface
 type MockMDCache struct {
 	ctrl     *gomock.Controller

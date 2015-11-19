@@ -15,6 +15,7 @@ type ReporterKBPKI struct {
 	config       Config
 	log          logger.Logger
 	notifyBuffer chan *keybase1.FSNotification
+	canceler     func()
 }
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
@@ -39,14 +40,20 @@ func (r *ReporterKBPKI) Notify(notification *keybase1.FSNotification) {
 	}
 }
 
+// Shutdown implements the Reporter interface for ReporterKBPKI.
+func (r *ReporterKBPKI) Shutdown() {
+	r.canceler()
+	close(r.notifyBuffer)
+}
+
 // send takes notifications out of notifyBuffer and sends them to
 // the keybase daemon.
 func (r *ReporterKBPKI) send() {
-	var notification *keybase1.FSNotification
-	for {
-		notification = <-r.notifyBuffer
+	for notification := range r.notifyBuffer {
 		r.log.Debug("ReporterKBPKI: sending notification %+v", notification)
-		if err := r.config.KBPKI().Notify(context.TODO(), notification); err != nil {
+		var ctx context.Context
+		ctx, r.canceler = context.WithCancel(context.Background())
+		if err := r.config.KBPKI().Notify(ctx, notification); err != nil {
 			r.log.Debug("ReporterKBPKI: error sending notification: %s", err)
 		}
 	}

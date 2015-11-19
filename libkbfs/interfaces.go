@@ -377,8 +377,10 @@ type Reporter interface {
 	Report(level ReportingLevel, message fmt.Stringer)
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError
-	// Notify sends the given notification to any sink
+	// Notify sends the given notification to any sink.
 	Notify(notification *keybase1.FSNotification)
+	// Shutdown frees any resources allocated by a Reporter.
+	Shutdown()
 }
 
 // MDCache gets and puts plaintext top-level metadata into the cache.
