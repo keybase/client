@@ -2725,9 +2725,6 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	// TODO: Make sure all refs/unrefs/updates in the resolved MD
-	// object reflect reality.
-
 	// TODO: If conflict resolution fails after some blocks were put,
 	// remember these and include them in the later resolution so they
 	// don't count against the quota forever.  (Though of course if we
