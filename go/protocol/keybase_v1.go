@@ -1558,6 +1558,11 @@ type LinkCheckResult struct {
 	Hint        *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
+type ConfirmResult struct {
+	IdentityConfirmed bool `codec:"identityConfirmed" json:"identityConfirmed"`
+	RemoteConfirmed   bool `codec:"remoteConfirmed" json:"remoteConfirmed"`
+}
+
 type DelegateIdentifyUIArg struct {
 }
 
@@ -1629,7 +1634,7 @@ type IdentifyUiInterface interface {
 	FinishSocialProofCheck(context.Context, FinishSocialProofCheckArg) error
 	DisplayCryptocurrency(context.Context, DisplayCryptocurrencyArg) error
 	ReportTrackToken(context.Context, ReportTrackTokenArg) error
-	Confirm(context.Context, ConfirmArg) (bool, error)
+	Confirm(context.Context, ConfirmArg) (ConfirmResult, error)
 	Finish(context.Context, int) error
 }
 
@@ -1882,7 +1887,7 @@ func (c IdentifyUiClient) ReportTrackToken(ctx context.Context, __arg ReportTrac
 	return
 }
 
-func (c IdentifyUiClient) Confirm(ctx context.Context, __arg ConfirmArg) (res bool, err error) {
+func (c IdentifyUiClient) Confirm(ctx context.Context, __arg ConfirmArg) (res ConfirmResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identifyUi.confirm", []interface{}{__arg}, &res)
 	return
 }

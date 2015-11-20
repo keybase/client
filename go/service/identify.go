@@ -124,10 +124,10 @@ func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lcr ke
 	return
 }
 
-func (u *RemoteIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (confirmed bool, err error) {
+func (u *RemoteIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	if u.skipPrompt {
 		u.G().Log.Debug("skipping Confirm for %q", io.Username)
-		return true, nil
+		return keybase1.ConfirmResult{IdentityConfirmed: true}, nil
 	}
 	return u.uicli.Confirm(context.TODO(), keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})
 }

@@ -27,7 +27,7 @@ func (i *IdentifyUIServer) DelegateIdentifyUI(_ context.Context) (int, error) {
 	return 0, libkb.UIDelegationUnavailableError{}
 }
 
-func (i *IdentifyUIServer) Confirm(_ context.Context, arg keybase1.ConfirmArg) (bool, error) {
+func (i *IdentifyUIServer) Confirm(_ context.Context, arg keybase1.ConfirmArg) (keybase1.ConfirmResult, error) {
 	return i.ui.Confirm(&arg.Outcome)
 }
 
