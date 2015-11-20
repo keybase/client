@@ -19,11 +19,11 @@ func (k KeychainSecretStore) getServiceName() string {
 }
 
 func (k KeychainSecretStore) getAccessGroup() string {
+	// GetStoredSecretAccessGroup MUST be "" for the simulator
 	return k.G().Env.GetStoredSecretAccessGroup()
 }
 
 func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
-	// GetStoredSecretAccessGroup MUST be "" for the simulator
 	item := keychain.NewGenericPassword(k.getServiceName(), k.accountName, "", secret, k.getAccessGroup())
 	item.SetSynchronizable(keychain.SynchronizableNo)
 	item.SetAccessible(keychain.AccessibleWhenUnlockedThisDeviceOnly)
