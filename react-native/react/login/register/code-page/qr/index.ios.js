@@ -8,7 +8,7 @@ export default class QR extends Component {
         <Camera
           style={[styles.camera, this.props.style]}
           ref='cam'
-          onBarCodeRead={(data) => this.props.onBarCodeRead(data)}>
+          onBarCodeRead={data => this.props.onBarCodeRead(data)}>
           {this.props.children}
         </Camera>
       )

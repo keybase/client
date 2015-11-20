@@ -18,7 +18,7 @@ import * as Constants from '../constants/router'
 export function appendRouteOnUnchanged (asyncAction) {
   return function (dispatch, getState) {
     const oldRoute = getCurrentURI(getState())
-    asyncAction(dispatch, getState, (nextPath) => {
+    asyncAction(dispatch, getState, nextPath => {
       if (oldRoute === getCurrentURI(getState())) {
         dispatch(routeAppend(nextPath))
       }

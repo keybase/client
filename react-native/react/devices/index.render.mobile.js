@@ -44,7 +44,7 @@ export default class DevicesRender extends Component {
         </View>
 
         <View doc='Wrapper for devices' style={styles.deviceWrapper}>
-          {this.props.devices && this.props.devices.map((d) => this.renderDevice(d))}
+          {this.props.devices && this.props.devices.map(d => this.renderDevice(d))}
         </View>
       </ScrollView>
     )

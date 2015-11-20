@@ -61,7 +61,7 @@ export function removeDevice (deviceID) {
       }
     }
 
-    engine.rpc('revoke.revokeDevice', {deviceID, force: false}, incomingMap, (error) => {
+    engine.rpc('revoke.revokeDevice', {deviceID, force: false}, incomingMap, error => {
       dispatch({
         type: Constants.deviceRemoved,
         payload: error,

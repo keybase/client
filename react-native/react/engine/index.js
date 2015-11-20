@@ -68,7 +68,7 @@ class Engine {
   setupListener () {
     this.subscription = NativeEventEmitter.addListener(
       engine.eventName,
-      (payload) => {
+      payload => {
         if (!payload) {
           return
         }
