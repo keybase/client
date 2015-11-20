@@ -2,7 +2,7 @@
 <script>
 const ipc = require('electron').ipcRenderer;
 
-ipc.on('notify', (title, opts) => {
-  new Notification(title, opts);
+ipc.on('notify', (event, title, opts) => {
+    new Notification(title, opts);
 });
 </script>
