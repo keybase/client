@@ -30,7 +30,14 @@ class PinentryWrapper extends Component {
 
   render () {
     if ('payload' in this.state) {
-      return <Pinentry onSubmit={this.onSubmit} onCancel={this.onCancel} {...this.state} />
+      return <Pinentry
+        onSubmit={this.onSubmit}
+        onCancel={this.onCancel}
+        features={this.state.payload.features}
+        prompt={this.state.payload.prompt}
+        retryLabel={this.state.payload.retryLabel}
+        windowTitle={this.state.payload.windowTitle}
+      />
     }
     return <div/>
   }
