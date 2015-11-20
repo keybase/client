@@ -35,7 +35,7 @@ func TestNameCmp(t *testing.T) {
 }
 
 func TestCombineErrors(t *testing.T) {
-	err := CombineErrors(fmt.Errorf("error 1"), nil, fmt.Errorf("error3"))
+	err := CombineErrors(fmt.Errorf("error1"), nil, fmt.Errorf("error3"))
 	expected := "There were multiple errors: error1; error3"
 	if err.Error() != expected {
 		t.Errorf("Wrong output for combine errors: %#v != %#v", err.Error(), expected)

@@ -3,15 +3,17 @@
 
 // +build darwin
 
-package libkb
+package mounter
 
 import (
 	"regexp"
 	"strings"
 	"syscall"
+
+	"github.com/keybase/client/go/libkb"
 )
 
-func IsMounted(g *GlobalContext, dir string) (bool, error) {
+func IsMounted(g *libkb.GlobalContext, dir string) (bool, error) {
 	mountInfo, err := getMountInfo(dir)
 	if err != nil {
 		return false, err

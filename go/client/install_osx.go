@@ -17,6 +17,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/mounter"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -549,12 +550,12 @@ func uninstallKBFS(g *libkb.GlobalContext) error {
 	if _, err := os.Stat(mountPath); os.IsNotExist(err) {
 		return nil
 	}
-	mounted, err := libkb.IsMounted(g, mountPath)
+	mounted, err := mounter.IsMounted(g, mountPath)
 	if err != nil {
 		return err
 	}
 	if mounted {
-		err = libkb.Unmount(g, mountPath, false)
+		err = mounter.Unmount(g, mountPath, false)
 		if err != nil {
 			return err
 		}

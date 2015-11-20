@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"

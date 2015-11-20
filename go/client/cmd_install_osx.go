@@ -121,7 +121,7 @@ func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Uninstaller",
+		Usage:        "Uninstalls Keybase services, KBFS and command line tools.",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)

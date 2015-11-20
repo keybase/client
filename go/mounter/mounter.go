@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package mounter
 
 import (
 	"errors"
@@ -9,11 +9,13 @@ import (
 	"os/exec"
 	"runtime"
 
+	"github.com/keybase/client/go/libkb"
+
 	"bazil.org/fuse"
 )
 
 // Unmount tries to unmount normally and then if force if unsuccessful.
-func Unmount(g *GlobalContext, dir string, force bool) error {
+func Unmount(g *libkb.GlobalContext, dir string, force bool) error {
 	if !force {
 		mounted, err := IsMounted(g, dir)
 		if err != nil {
@@ -37,7 +39,7 @@ func Unmount(g *GlobalContext, dir string, force bool) error {
 	return err
 }
 
-func ForceUnmount(g *GlobalContext, dir string) (err error) {
+func ForceUnmount(g *libkb.GlobalContext, dir string) (err error) {
 	if runtime.GOOS == "darwin" {
 		_, err = exec.Command("/usr/sbin/diskutil", "unmountDisk", "force", dir).Output()
 	} else if runtime.GOOS == "linux" {
