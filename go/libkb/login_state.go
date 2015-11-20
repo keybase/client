@@ -618,7 +618,7 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		if err != nil {
 			return err
 		}
-		secretStore := NewSecretStore(NewNormalizedUsername(username))
+		secretStore := NewSecretStore(s.G(), NewNormalizedUsername(username))
 		// Ignore any errors storing the secret.
 		storeSecretErr := secretStore.StoreSecret(secret)
 		if storeSecretErr != nil {
@@ -798,7 +798,7 @@ func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) e
 	}
 
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
-		secretRetriever := NewSecretStore(me.GetNormalizedName())
+		secretRetriever := NewSecretStore(s.G(), me.GetNormalizedName())
 		ska := SecretKeyArg{
 			Me:      me,
 			KeyType: DeviceSigningKeyType,
@@ -826,7 +826,7 @@ func (s *LoginState) loginWithPassphrase(lctx LoginContext, username, passphrase
 	getSecretKeyFn := func(keyrings *Keyrings, me *User) (GenericKey, error) {
 		var secretStorer SecretStorer
 		if storeSecret {
-			secretStorer = NewSecretStore(me.GetNormalizedName())
+			secretStorer = NewSecretStore(s.G(), me.GetNormalizedName())
 		}
 		key, err := keyrings.GetSecretKeyWithPassphrase(lctx, me, passphrase, secretStorer)
 		if err != nil {

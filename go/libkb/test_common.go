@@ -163,13 +163,13 @@ func (tc *TestContext) ResetLoginState() {
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {
-	usernames, err := GetUsersWithStoredSecrets()
+	usernames, err := GetUsersWithStoredSecrets(tc.G)
 	if err != nil {
 		return err
 	}
 	for _, username := range usernames {
 		nu := NewNormalizedUsername(username)
-		err = ClearStoredSecret(nu)
+		err = ClearStoredSecret(tc.G, nu)
 		if err != nil {
 			return err
 		}

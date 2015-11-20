@@ -333,7 +333,7 @@ func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username st
 }
 
 func userHasStoredSecretViaSecretStore(tc *libkb.TestContext, username string) bool {
-	secretStore := libkb.NewSecretStore(libkb.NewNormalizedUsername(username))
+	secretStore := libkb.NewSecretStore(tc.G, libkb.NewNormalizedUsername(username))
 	if secretStore == nil {
 		tc.T.Errorf("SecretStore for %s unexpectedly nil", username)
 		return false
@@ -399,7 +399,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 
 	Logout(tc)
 
-	if err := libkb.ClearStoredSecret(fu.NormalizedUsername()); err != nil {
+	if err := libkb.ClearStoredSecret(tc.G, fu.NormalizedUsername()); err != nil {
 		t.Error(err)
 	}
 
@@ -508,7 +508,7 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := libkb.ClearStoredSecret(fu.NormalizedUsername()); err != nil {
+	if err := libkb.ClearStoredSecret(tc.G, fu.NormalizedUsername()); err != nil {
 		t.Error(err)
 	}
 
@@ -549,7 +549,7 @@ func TestSignupWithStoreThenLogin(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := libkb.ClearStoredSecret(fu.NormalizedUsername()); err != nil {
+	if err := libkb.ClearStoredSecret(tc.G, fu.NormalizedUsername()); err != nil {
 		t.Error(err)
 	}
 

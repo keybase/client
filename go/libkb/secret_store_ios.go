@@ -5,17 +5,26 @@
 
 package libkb
 
-import (
-	keychain "github.com/keybase/go-keychain"
-)
+import keychain "github.com/keybase/go-keychain"
 
 type KeychainSecretStore struct {
+	Contextified
 	accountName string
 }
 
-func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
+var _ SecretStore = KeychainSecretStore{}
+
+func (k KeychainSecretStore) getServiceName() string {
+	return k.G().Env.GetStoredSecretServiceName()
+}
+
+func (k KeychainSecretStore) getAccessGroup() string {
 	// GetStoredSecretAccessGroup MUST be "" for the simulator
-	item := keychain.NewGenericPassword(G.Env.GetStoredSecretServiceName(), k.accountName, "", secret, G.Env.GetStoredSecretAccessGroup())
+	return k.G().Env.GetStoredSecretAccessGroup()
+}
+
+func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
+	item := keychain.NewGenericPassword(k.getServiceName(), k.accountName, "", secret, k.getAccessGroup())
 	item.SetSynchronizable(keychain.SynchronizableNo)
 	item.SetAccessible(keychain.AccessibleWhenUnlockedThisDeviceOnly)
 
@@ -24,25 +33,28 @@ func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 }
 
 func (k KeychainSecretStore) RetrieveSecret() ([]byte, error) {
-	return keychain.GetGenericPassword(G.Env.GetStoredSecretServiceName(), k.accountName, "", "")
+	return keychain.GetGenericPassword(k.getServiceName(), k.accountName, "", "")
 }
 
 func (k KeychainSecretStore) ClearSecret() (err error) {
-	query := keychain.NewGenericPassword(G.Env.GetStoredSecretServiceName(), k.accountName, "", nil, "")
+	query := keychain.NewGenericPassword(k.getServiceName(), k.accountName, "", nil, "")
 	query.SetMatchLimit(keychain.MatchLimitAll)
 	return keychain.DeleteItem(query)
 }
 
-func NewSecretStore(username NormalizedUsername) SecretStore {
-	return KeychainSecretStore{string(username)}
+func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
+	return KeychainSecretStore{
+		Contextified: NewContextified(g),
+		accountName:  username.String(),
+	}
 }
 
 func HasSecretStore() bool {
 	return true
 }
 
-func GetUsersWithStoredSecrets() ([]string, error) {
-	return keychain.GetAccountsForService(G.Env.GetStoredSecretServiceName())
+func GetUsersWithStoredSecrets(g *GlobalContext) ([]string, error) {
+	return keychain.GetAccountsForService(g.Env.GetStoredSecretServiceName())
 }
 
 func GetTerminalPrompt() string {

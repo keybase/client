@@ -5,8 +5,9 @@ package engine
 
 import (
 	"fmt"
-	"github.com/keybase/client/go/libkb"
 	"os"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 // XXX: THIS ENGINE DELETES SECRET KEYS. Deleting the wrong secret keys can
@@ -79,7 +80,7 @@ func (e *DeprovisionEngine) Run(ctx *Context) (err error) {
 		ctx.LogUI.Warning("To do that yourself, use `keybase device remove` from a logged in device.")
 	}
 
-	if clearSecretErr := libkb.ClearStoredSecret(e.username); clearSecretErr != nil {
+	if clearSecretErr := libkb.ClearStoredSecret(e.G(), e.username); clearSecretErr != nil {
 		e.G().Log.Warning("ClearStoredSecret error: %s", clearSecretErr)
 	}
 

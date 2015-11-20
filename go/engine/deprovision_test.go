@@ -63,7 +63,7 @@ func TestDeprovision(t *testing.T) {
 	}
 
 	if libkb.HasSecretStore() {
-		secretStore := libkb.NewSecretStore(fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret()
 		if err != nil {
 			t.Fatal(err)
@@ -103,7 +103,7 @@ func TestDeprovision(t *testing.T) {
 	}
 
 	if libkb.HasSecretStore() {
-		secretStore := libkb.NewSecretStore(fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret()
 		if err == nil {
 			t.Errorf("Unexpectedly got secret %v", secret)
@@ -148,7 +148,7 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 	}
 
 	if libkb.HasSecretStore() {
-		secretStore := libkb.NewSecretStore(fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret()
 		if err != nil {
 			t.Fatal(err)
@@ -193,7 +193,7 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 	}
 
 	if libkb.HasSecretStore() {
-		secretStore := libkb.NewSecretStore(fu.NormalizedUsername())
+		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret()
 		if err == nil {
 			t.Errorf("Unexpectedly got secret %v", secret)
