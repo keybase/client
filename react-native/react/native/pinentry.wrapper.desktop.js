@@ -10,33 +10,24 @@ class PinentryWrapper extends Component {
     super(props)
 
     this.state = {}
-    ipc.on('gotProps', (props) => {
-      console.log('received gotProps')
-      const payload = {
-        payload: props
-      }
+    ipc.on('pinentryGotProps', props => {
+      const payload = {payload: props}
       this.setState(payload)
-      console.log('foo')
       ipc.send('pinentryReady')
     })
-    console.log('sending needProps')
-    ipc.send('needProps')
+    ipc.send('pinentryNeedProps')
   }
 
   onSubmit (passphrase, features) {
-    console.log('in onSubmit')
-    let result = {
-      passphrase: passphrase
-    }
+    let result = {passphrase: passphrase}
     for (const feature in features) {
       result[feature] = features[feature]
     }
-    console.log(result)
     ipc.send('pinentryResult', result)
   }
 
   onCancel () {
-    console.log('in onClear')
+    ipc.send('pinentryResult', {error: 'User canceled'})
   }
 
   render () {

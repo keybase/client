@@ -1,3 +1,5 @@
+/* @flow */
+
 import BrowserWindow from 'browser-window'
 import ipc from 'ipc'
 
@@ -18,26 +20,17 @@ export default {
       }
     }
     */
-    if (!('pinentry' in payload)) {
-      console.error('Passphrase payload has no pinentry object.')
-    } else if (!('features' in payload.pinentry)) {
-      console.error('payload.pinentry.features does not exist')
-    } else if (!('prompt' in payload.pinentry)) {
-      console.error('payload.pinentry.prompt does not exist')
-    }
-
-    var props = payload.pinentry
-    console.log(props)
+    const props = payload.pinentry
     var pinentryWindow = new BrowserWindow({
       width: 500, height: 300,
-      //resizable: false,
+      resizable: false,
       fullscreen: false
     })
     pinentryWindow.hide()
     pinentryWindow.loadUrl(`file://${__dirname}/pinentry.wrapper.html`)
 
-    ipc.on('needProps', function (event, arg) {
-      event.sender.send('gotProps', props)
+    ipc.on('pinentryNeedProps', function (event, arg) {
+      event.sender.send('pinentryGotProps', props)
     })
 
     ipc.on('pinentryReady', function (event, arg) {
@@ -45,13 +38,15 @@ export default {
     })
 
     ipc.on('pinentryResult', function (event, arg) {
-      if ('secretStorage' in arg) {
+      if ('error' in arg) {
+        response.error(arg)
+      } else if ('secretStorage' in arg) {
         // The core expects a GetPassphraseArg back.
         arg.storeSecret = arg.secretStorage
+        response.result(arg)
+        console.log(arg)
+        console.log('Sent passphrase back')
       }
-      response.result(arg)
-      console.log(arg)
-      console.log('Sent passphrase back')
       pinentryWindow.close()
     })
   }

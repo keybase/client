@@ -1,5 +1,3 @@
-'use strict'
-
 import React, { Component } from '../base-react'
 import { TextField, RaisedButton, Checkbox } from 'material-ui'
 
@@ -10,15 +8,8 @@ export default class PinentryRender extends Component {
       features: {}
     }
     for (const feature in this.props.payload.features) {
-      console.log(feature)
-      if (this.props.payload.features[feature].hasOwnProperty('allow')) {
-        console.log(this.props.payload.features[feature].allow)
-        this.state.features[feature] = this.props.payload.features[feature].allow
-      } else {
-        console.error('We were passed a payload with no allow field!')
-      }
+      this.state.features[feature] = this.props.payload.features[feature].allow
     }
-    console.log(this.state)
   }
 
   render () {
