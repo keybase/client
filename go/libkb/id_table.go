@@ -422,15 +422,12 @@ func trackedKeyFromJSON(jw *jsonw.Wrapper) (TrackedKey, error) {
 		return TrackedKey{}, err
 	}
 	ret.KID = kid
-	// TODO: Should we tolerate missing fingerprints? Will "body.track.key"
-	// ever be a non-PGP key, for example? I'm *very* hesitant about defining a
-	// new type that's basically a FOKID, right after we did all that work to
-	// delete FOKID.
+
+	// It's ok if key_fingerprint doesn't exist.  But if it does, then include it:
 	fp, err := GetPGPFingerprint(jw.AtKey("key_fingerprint"))
-	if err != nil {
-		return TrackedKey{}, err
+	if err == nil && fp != nil {
+		ret.Fingerprint = *fp
 	}
-	ret.Fingerprint = *fp
 	return ret, nil
 }
 
