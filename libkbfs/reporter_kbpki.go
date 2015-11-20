@@ -60,6 +60,7 @@ func (r *ReporterKBPKI) send() {
 		if err := r.config.KBPKI().Notify(ctx, notification); err != nil {
 			r.log.Debug("ReporterKBPKI: error sending notification: %s", err)
 		}
+		r.canceler()
 	}
 }
 
