@@ -60,6 +60,11 @@ protocol identifyUi {
     union { null, SigHint } hint;
   }
 
+  record ConfirmResult {
+    boolean identityConfirmed; // true if the user answers yes to "Is this the user you wanted?"
+    boolean remoteConfirmed;   // true if the user answers yes to "Publicly write tracking statement to server?"
+  }
+
   // The IdentifyUI can be delegated to another process.  Call this function
   // to initialize the delegated UI; it returns the sessionID to use in the
   // following exchange. Return 0 on failure.
@@ -75,6 +80,6 @@ protocol identifyUi {
   void finishSocialProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
   void displayCryptocurrency(int sessionID, Cryptocurrency c);
   void reportTrackToken(int sessionID, string trackToken);
-  boolean confirm(int sessionID, IdentifyOutcome outcome);
+  ConfirmResult confirm(int sessionID, IdentifyOutcome outcome);
   void finish(int sessionID);
 }
