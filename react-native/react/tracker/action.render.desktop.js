@@ -5,7 +5,7 @@
 import React, {Component} from '../base-react'
 import {Checkbox, FloatingActionButton, FlatButton} from 'material-ui'
 
-import { normal, warning } from '../constants/tracker'
+import { normal, warning, pending } from '../constants/tracker'
 
 import type { SimpleProofState } from '../constants/tracker'
 
@@ -26,7 +26,7 @@ export default class ActionRender extends Component {
   render (): ReactElement {
     const { username, state } = this.props
 
-    if (state === 'pending' || !username) {
+    if (state === pending || !username) {
       return this.renderPending()
     } else if (this.props.state === normal) {
       return this.renderNormal(username)

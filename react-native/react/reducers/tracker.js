@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 import * as Constants from '../constants/tracker'
@@ -74,16 +73,16 @@ export default function (state: State = initialState, action: Action): State {
       const anyError: boolean = proofs.reduce((acc, p) => acc || p.state === error, false)
       const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === pending, false)
 
-      let proofState: SimpleProofState = 'error'
+      let proofState: SimpleProofState = error
 
       if (allOk) {
-        proofState = 'normal'
+        proofState = normal
       } else if (anyWarnings) {
-        proofState = 'warning'
+        proofState = warning
       } else if (anyError) {
-        proofState = 'error'
+        proofState = error
       } else if (anyPending) {
-        proofState = 'pending'
+        proofState = pending
       }
 
       return {
@@ -91,7 +90,7 @@ export default function (state: State = initialState, action: Action): State {
         proofState
       }
 
-    case Constants.setProofs: 
+    case Constants.setProofs:
       if (!action.payload) {
         return state
       }

@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 // Simple state of the overall proof result
