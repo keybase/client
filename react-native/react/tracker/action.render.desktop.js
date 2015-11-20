@@ -17,7 +17,7 @@ export type ActionProps = {
   onRefollow: () => void,
   onUnfollow: () => void,
   onFollowHelp: () => void,
-  followChecked: () => void
+  onFollowChecked: () => void
 }
 
 export default class ActionRender extends Component {
@@ -67,7 +67,7 @@ export default class ActionRender extends Component {
                 label={'Follow ' + username}
                 checked={this.props.shouldFollow}
                 onCheck={() => {
-                  this.props.followChecked(!this.props.shouldFollow)
+                  this.props.onFollowChecked(!this.props.shouldFollow)
                 }}
                 />
               </div>
@@ -83,11 +83,11 @@ export default class ActionRender extends Component {
 
 ActionRender.propTypes = {
   state: React.PropTypes.any.isRequired,
-  username: React.PropTypes.string.isRequired,
+  username: React.PropTypes.string,
   shouldFollow: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
   onRefollow: React.PropTypes.func.isRequired,
   onUnfollow: React.PropTypes.func.isRequired,
   onFollowHelp: React.PropTypes.func.isRequired,
-  followChecked: React.PropTypes.func.isRequired
+  onFollowChecked: React.PropTypes.func.isRequired
 }

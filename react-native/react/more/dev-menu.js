@@ -38,15 +38,8 @@ class DevMenu extends Component {
       {name: 'Profile', hasChildren: true, onClick: () => {
         this.props.pushNewProfile('test12')
       }},
-      {name: 'Tracker Popup listener', hasChildren: true, onClick: () => {
-        this.props.routeAppend({
-          parseRoute: {
-            componentAtTop: {
-              component: TrackerPopupListener,
-              mapStateToProps: state => { return {} }
-            }
-          }
-        })
+      {name: 'Tracker Listener', hasChildren: true, onClick: () => {
+        this.props.routeAppend([{path: 'tracker'}])
       }},
       {name: 'Tracker (normal)', hasChildren: true, onClick: () => {
         this.props.routeAppend([{path: 'tracker', state: 'normal'}])

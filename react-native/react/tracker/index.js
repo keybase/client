@@ -7,118 +7,138 @@ import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 // $FlowIssue platform dependent files
 import Render from './render'
-import {navigateUp} from '../actions/router'
 
-import type {BioProps} from './bio.render.desktop'
-import type {ActionProps} from './action.render.desktop'
-import type {HeaderProps} from './header.render.desktop'
-import type {ProofsProps} from './proofs.render.desktop'
-import type {User} from '../constants/types/flow-types'
+import * as trackerActions from '../actions/tracker'
+import { bindActionCreators } from 'redux'
+
+import type {UserInfo} from './bio.render.desktop'
+import type {Proof} from './proofs.render.desktop'
+import type {SimpleProofState} from '../constants/tracker'
+
+type TrackerProps = {
+  serverStarted: boolean,
+  proofState: SimpleProofState,
+  username: ?string,
+  shouldFollow: ?boolean,
+  reason: string,
+  userInfo: UserInfo,
+  proofs: Array<Proof>,
+  onCloseFromHeader: () => void,
+  onCloseFromActionBar: () => void,
+  onRefollow: () => void,
+  onUnfollow: () => void,
+  onFollowHelp: () => void,
+  onFollowChecked: () => void,
+  registerIdentifyUi: () => void
+}
 
 class Tracker extends Component {
+  props: TrackerProps;
+
+  componentWillMount () {
+    if (!this.props.serverStarted) {
+      console.log('starting server')
+      this.props.registerIdentifyUi()
+    }
+  }
 
   render () {
     // these non-prop values will be removed during integration
     return <Render
-             bioProps={this.props.bioProps}
-             headerProps={this.props.headerProps}
-             actionProps={this.props.actionProps}
-             proofsProps={this.props.proofsProps}/>
+             bioProps={{
+               username: this.props.username,
+               state: this.props.proofState,
+               userInfo: this.props.userInfo
+             }}
+             headerProps={{
+               reason: this.props.reason,
+               onClose: this.props.onCloseFromHeader
+             }}
+             actionProps={{
+               state: this.props.proofState,
+               username: this.props.username,
+               shouldFollow: this.props.shouldFollow,
+               onClose: this.props.onCloseFromActionBar,
+               onRefollow: this.props.onRefollow,
+               onUnfollow: this.props.onUnfollow,
+               onFollowHelp: this.props.onFollowHelp,
+               onFollowChecked: this.props.onFollowChecked
+             }}
+             proofsProps={{
+               proofs: this.props.proofs
+             }}/>
   }
 
   static parseRoute (currentPath) {
+    if (currentPath.get('state')) {
+      return {
+        componentAtTop: {
+          title: 'Tracker',
+          props: {
+            ...mockData,
+            proofState: currentPath.get('state')
+          }
+        }
+      }
+    }
+
     return {
       componentAtTop: {
         title: 'Tracker',
         props: {
-          state: currentPath.get('state'),
-          dummyData: true
         }
       }
     }
   }
 }
 
+
+const mockData = {
+  username: 'max',
+  proofState: 'pending',
+  reason: 'You accessed /private/cecile',
+  userInfo: {
+    fullname: 'Alice Bonhomme-Biaias',
+    followersCount: 81,
+    followingCount: 567,
+    followsYou: true,
+    location: 'New York, NY',
+    avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/2571dc6108772dbe0816deef41b25705_200_200_square_200.jpeg'
+  },
+  shouldFollow: true,
+  proofs: [
+    {"name":"marcopolo","type":"github","id":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'normal', humanUrl: "github.com/marcopolo", color: 'green'}, //eslint-disable-line
+    {"name":"open_sourcery","type":"twitter","id":"76363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'pending', humanUrl: "twitter.com/open_sourcery", color: 'gray'}, //eslint-disable-line
+  ]
+}
+
 Tracker.propTypes = {
-  bioProps: React.PropTypes.any.isRequired,
-  headerProps: React.PropTypes.any.isRequired,
-  actionProps: React.PropTypes.any.isRequired,
-  proofsProps: React.PropTypes.any.isRequired
+  serverStarted: React.PropTypes.any,
+  proofState: React.PropTypes.any,
+  username: React.PropTypes.any,
+  shouldFollow: React.PropTypes.any,
+  reason: React.PropTypes.any,
+  userInfo: React.PropTypes.any,
+  proofs: React.PropTypes.any,
+  onCloseFromHeader: React.PropTypes.any,
+  onCloseFromActionBar: React.PropTypes.any,
+  onRefollow: React.PropTypes.any,
+  onUnfollow: React.PropTypes.any,
+  onFollowHelp: React.PropTypes.any,
+  onFollowChecked: React.PropTypes.any,
+  registerIdentifyUi: React.PropTypes.any
 }
 
 export default connect(
-  null,
+  state => state.tracker,
   dispatch => {
-    const user: User = {
-      uid: {},
-      username: 'test123'
-    }
-
-    const bioProps: BioProps = {
-      username: user.username,
-      state: 'pending',
-      userInfo: {
-        fullname: 'Alice Bonhomme-Biaias',
-        followersCount: 81,
-        followingCount: 567,
-        followsYou: true,
-        location: 'New York, NY',
-        avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/2571dc6108772dbe0816deef41b25705_200_200_square_200.jpeg'
-      }
-    }
-
-    const actionProps: ActionProps = {
-      state: 'pending',
-      username: user.username,
-      shouldFollow: true,
-      onClose: () => {
-        console.log('onClose')
-        dispatch(navigateUp())
-      }, // TODO
-      onRefollow: () => {
-        console.log('onRefollow')
-        dispatch(navigateUp())
-      },
-      onUnfollow: () => {
-        console.log('onUnfollow')
-        dispatch(navigateUp())
-      },
-      onFollowHelp: () => window.open('https://keybase.io/docs/tracking'), // TODO
-      // followChecked: checked => this.setState({shouldFollowChecked: checked})
-      followChecked: checked => console.log('follow checked:', checked)
-    }
-
-    const headerProps: HeaderProps = {
-      reason: 'You accessed /private/cecile',
-      onClose: () => {
-        console.log('onClose')
-        dispatch(navigateUp())
-      }
-    }
-
-    const proofsProps: ProofsProps = {
-      proofs: [
-        {"name":"marcopolo","type":"github","id":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'normal', humanUrl: "github.com/marcopolo", color: 'green'}, //eslint-disable-line
-        {"name":"open_sourcery","type":"twitter","id":"76363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'pending', humanUrl: "twitter.com/open_sourcery", color: 'gray'}, //eslint-disable-line
-      ]
-    }
-
-    return {
-      bioProps,
-      actionProps,
-      headerProps,
-      proofsProps
-    }
+    return bindActionCreators(trackerActions, dispatch)
   },
   (stateProps, dispatchProps, ownProps) => {
-    if (ownProps.dummyData) {
-      const state = ownProps.state
-      dispatchProps.actionProps.state = state
-      dispatchProps.bioProps.state = state
-      return dispatchProps
+    return {
+      ...stateProps,
+      ...dispatchProps,
+      ...ownProps
     }
-
-    return ownProps
   }
-
 )(Tracker)

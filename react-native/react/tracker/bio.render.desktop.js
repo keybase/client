@@ -7,17 +7,19 @@ import {Paper} from 'material-ui'
 
 import type { SimpleProofState } from '../constants/tracker'
 
+export type UserInfo = {
+  fullname: string,
+  followersCount: number,
+  followingCount: number,
+  followsYou: boolean,
+  avatar: string,
+  location: string
+}
+
 export type BioProps = {
   username: ?string,
   state: SimpleProofState,
-  userInfo: ?{
-    fullname: string,
-    followersCount: number,
-    followingCount: number,
-    followsYou: boolean,
-    avatar: string,
-    location: string
-  }
+  userInfo: ?UserInfo
 }
 
 export default class BioRender extends Component {

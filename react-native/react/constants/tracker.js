@@ -11,4 +11,21 @@ export const error: SimpleProofState = 'error'
 export const pending: SimpleProofState = 'pending'
 
 // Actions
-export const updateTracker = 'tracker:updateTracker'
+export const registerIdentifyUi = 'tracker:registerIdentifyUi'
+export const markActiveIdentifyUi = 'tracker:markActive'
+
+export const updateUsername = 'tracker:updateUsername'
+export const updateUserInfo = 'tracker:updateUserInfo'
+
+export const setProofs = 'tracker:setProofs'
+export const updateProof = 'tracker:updateProof'
+
+export const updateProofState = 'tracker:udpateProofState'
+
+export const onCloseFromActionBar = 'tracker:onCloseFromActionBar'
+export const onCloseFromHeader = 'tracker:onCloseFromHeader'
+
+export const onRefollow = 'tracker:onRefollow'
+export const onUnfollow = 'tracker:onUnfollow'
+export const onFollowHelp = 'tracker:onFollowHelp'
+export const onFollowChecked = 'tracker:onFollowChecked'
