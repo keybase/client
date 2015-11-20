@@ -1,6 +1,5 @@
-import * as Constants from '../constants/login'
-import {isMobile} from '../constants/platform'
-import QRCodeGen from 'qrcode-generator'
+import * as Constants from '../../constants/login'
+import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend, getCurrentURI, getCurrentTab} from '../router'
 import engine from '../../engine'
 import enums from '../../keybase_v1'
@@ -259,6 +258,7 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
 
     if (!error) {
       dispatch(navigateTo([]))
+      dispatch(loadDevices())
       dispatch(switchTab(devicesTab))
     }
   })
