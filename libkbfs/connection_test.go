@@ -86,7 +86,7 @@ func (ut *unitTester) Err() error {
 func TestReconnectBasic(t *testing.T) {
 	config := NewConfigLocal()
 	unitTester := &unitTester{doneChan: make(chan bool)}
-	conn := newConnectionWithTransport(config, unitTester, unitTester, libkb.ErrorUnwrapper{})
+	conn := newConnectionWithTransport(config, unitTester, unitTester, libkb.ErrorUnwrapper{}, true)
 	defer conn.Shutdown()
 	timeout := time.After(2 * time.Second)
 	select {
@@ -149,7 +149,7 @@ func TestDoCommandThrottle(t *testing.T) {
 	unitTester := &unitTester{doneChan: make(chan bool)}
 
 	throttleErr := errors.New("throttle")
-	conn := newConnectionWithTransport(config, unitTester, unitTester, testErrorUnwrapper{})
+	conn := newConnectionWithTransport(config, unitTester, unitTester, testErrorUnwrapper{}, true)
 	defer conn.Shutdown()
 	<-unitTester.doneChan
 
