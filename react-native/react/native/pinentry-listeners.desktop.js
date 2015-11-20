@@ -22,9 +22,9 @@ export default {
     var pinentryWindow = new BrowserWindow({
       width: 500, height: 300,
       resizable: false,
-      fullscreen: false
+      fullscreen: false,
+      show: false
     })
-    pinentryWindow.hide()
     pinentryWindow.loadUrl(`file://${__dirname}/pinentry.wrapper.html`)
 
     ipc.on('pinentryNeedProps', function (event, arg) {
