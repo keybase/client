@@ -31,10 +31,10 @@
   if ((self = [super init])) {
     _config = config;
     _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel]];
+    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel]];
 
     KBHelperTool *helperTool = [[KBHelperTool alloc] initWithConfig:config];
     KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool];
-    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel]];
 
     _installables = [NSArray arrayWithObjects:_service, helperTool, fuse, _kbfs, nil];
 

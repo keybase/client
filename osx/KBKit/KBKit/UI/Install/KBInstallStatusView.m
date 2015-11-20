@@ -33,8 +33,10 @@
   YOVBox *contentView = [YOVBox box:@{@"spacing": @(20), @"insets": @(20)}];
   [self addSubview:contentView];
 
+  NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
+
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Keybase Status" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [header setText:NSStringWithFormat(@"Keybase Status (%@)", runMode) style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [contentView addSubview:header];
 
   _infoLabel = [[KBLabel alloc] init];

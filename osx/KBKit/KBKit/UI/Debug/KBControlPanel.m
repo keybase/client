@@ -91,23 +91,24 @@
 
     if ([installable.componentStatus needsInstallOrUpgrade]) {
       [topView addSubview:[KBButton buttonWithText:NSStringFromKBRInstallAction(installable.componentStatus.installAction) style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self install:installable]; }]];
+    } else {
+      [topView addSubview:[KBButton buttonWithText:@"Re-Install" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self install:installable]; }]];
     }
 
     if (installable.componentStatus.installStatus == KBRInstallStatusInstalled) {
       [topView addSubview:[KBButton buttonWithText:@"Uninstall" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self uninstall:installable]; }]];
-      [topView addSubview:[KBButton buttonWithText:@"Re-Install" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self install:installable]; }]];
-    }
 
-    switch ([installable runtimeStatus]) {
-      case KBInstallRuntimeStatusStopped: {
-        [topView addSubview:[KBButton buttonWithText:@"Start" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self start:installable]; }]];
-        break;
+      switch ([installable runtimeStatus]) {
+        case KBInstallRuntimeStatusStopped: {
+          [topView addSubview:[KBButton buttonWithText:@"Start" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self start:installable]; }]];
+          break;
+        }
+        case KBInstallRuntimeStatusStarted: {
+          [topView addSubview:[KBButton buttonWithText:@"Stop" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self stop:installable]; }]];
+          break;
+        }
+        case KBInstallRuntimeStatusNone: break;
       }
-      case KBInstallRuntimeStatusStarted: {
-        [topView addSubview:[KBButton buttonWithText:@"Stop" style:KBButtonStyleDefault options:KBButtonOptionsToolbar targetBlock:^{ [self stop:installable]; }]];
-        break;
-      }
-      case KBInstallRuntimeStatusNone: break;
     }
 
     [view addSubview:topView];
@@ -146,7 +147,7 @@
   if (!_selectedComponent) return;
   [KBActivity setProgressEnabled:YES sender:self];
   GHWeakSelf gself = self;
-  [_selectedComponent refreshComponent:^(NSError *error) {
+  [_selectedComponent refreshComponent:^(KBComponentStatus *cs) {
     [KBActivity setProgressEnabled:NO sender:self];
     [self select:gself.selectedComponent];
   }];

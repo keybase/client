@@ -163,6 +163,6 @@
   return self;
 }
 
-- (void)refreshComponent:(KBCompletion)completion { completion(nil); }
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion { completion(nil); }
 
 @end

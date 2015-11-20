@@ -74,7 +74,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   }];
 }
 
-- (void)refreshComponent:(KBCompletion)completion {
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
   [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
 
@@ -101,7 +101,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
     self.componentStatus = componentStatus;
 
     [self componentDidUpdate];
-    completion(nil);
+    completion(self.componentStatus);
   }];
 }
 
@@ -111,8 +111,14 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)install:(KBCompletion)completion {
-  [self refreshComponent:^(NSError *error) {
-    if (self.componentStatus && [self.componentStatus needsInstallOrUpgrade]) {
+  [self refreshComponent:^(KBComponentStatus *cs) {
+    // Upgrades currently unsupported for Fuse
+    if (cs.installAction == KBRInstallActionUpgrade) {
+      completion(nil);
+      return;
+    }
+
+    if ([cs needsInstallOrUpgrade]) {
       [self _install:completion];
     } else {
       completion(nil);

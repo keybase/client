@@ -71,7 +71,10 @@ if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem servi
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"uninstall", _label] completion:completion];
+  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
+  [KBTask execute:binPath args:@[@"-d", @"uninstall", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+    completion(error);
+  }];
 }
 
 - (void)start:(KBCompletion)completion {
@@ -82,12 +85,12 @@ if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem servi
   [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"stop", _label] completion:completion];
 }
 
-- (void)refreshComponent:(KBCompletion)completion {
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] name:@"kbfs" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
     self.serviceStatus = serviceStatus;
     self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     [self componentDidUpdate];
-    completion(error);
+    completion(self.componentStatus);
   }];
 }
 

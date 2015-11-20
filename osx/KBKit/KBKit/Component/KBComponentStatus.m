@@ -24,7 +24,7 @@
 + (instancetype)componentStatusWithVersion:(KBSemVersion *)version bundleVersion:(KBSemVersion *)bundleVersion info:(GHODictionary *)info {
   if (version && bundleVersion) {
     if ([bundleVersion isGreaterThan:version]) {
-      return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNeedsUpgrade installAction:KBRInstallActionUpgrade info:info error:nil];
+      return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
     } else {
       return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
     }
@@ -34,18 +34,6 @@
     return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:info error:nil];
   }
   return [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusUnknown installAction:KBRInstallActionNone info:info error:nil];
-}
-
-+ (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus info:(GHODictionary *)info {
-  KBRInstallAction installAction;
-  switch (installStatus) {
-    case KBRInstallStatusError: installAction = KBRInstallActionReinstall; break;
-    case KBRInstallStatusUnknown: installAction = KBRInstallActionUnknown; break;
-    case KBRInstallStatusInstalled: installAction = KBRInstallActionNone; break;
-    case KBRInstallStatusNotInstalled: installAction = KBRInstallActionInstall; break;
-    case KBRInstallStatusNeedsUpgrade: installAction = KBRInstallActionUpgrade; break;
-  }
-  return [self componentStatusWithInstallStatus:installStatus installAction:installAction info:info error:nil];
 }
 
 + (instancetype)componentStatusWithInstallStatus:(KBRInstallStatus)installStatus installAction:(KBRInstallAction)installAction info:(GHODictionary *)info error:(NSError *)error {
@@ -131,7 +119,6 @@ NSString *NSStringFromKBRInstallStatus(KBRInstallStatus status) {
     case KBRInstallStatusError: return @"Error";
     case KBRInstallStatusUnknown: return @"Unknown";
     case KBRInstallStatusNotInstalled: return @"Not Installed";
-    case KBRInstallStatusNeedsUpgrade: return @"Needs Upgrade";
     case KBRInstallStatusInstalled: return @"Installed";
   }
 }

@@ -54,7 +54,7 @@
   }
 }
 
-- (void)refreshComponent:(KBCompletion)completion {
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   completion(nil);
 }
 

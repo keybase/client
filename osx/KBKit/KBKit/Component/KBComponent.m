@@ -29,7 +29,7 @@
 
 - (void)install:(KBCompletion)completion { completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported")); }
 
-- (void)refreshComponent:(KBCompletion)completion { completion(nil); }
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion { completion(nil); }
 
 @end
 

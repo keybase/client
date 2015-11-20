@@ -38,7 +38,7 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 - (void)install:(KBCompletion)completion;
 - (void)uninstall:(KBCompletion)completion;
-- (void)refreshComponent:(KBCompletion)completion;
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion;
 
 - (void)start:(KBCompletion)completion;
 - (void)stop:(KBCompletion)completion;

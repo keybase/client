@@ -74,12 +74,12 @@
   return [NSString gh_isBlank:self.serviceStatus.pid] ? KBInstallRuntimeStatusStopped : KBInstallRuntimeStatusStarted;
 }
 
-- (void)refreshComponent:(KBCompletion)completion {
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] name:@"service" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
     self.serviceStatus = serviceStatus;
     self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     [self componentDidUpdate];
-    completion(error);
+    completion(self.componentStatus);
   }];
 }
 
@@ -98,7 +98,10 @@
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"uninstall", _label] completion:completion];
+  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
+  [KBTask execute:binPath args:@[@"-d", @"uninstall", @"--components=cli,service"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+    completion(error);
+  }];
 }
 
 - (void)load:(KBCompletion)completion {

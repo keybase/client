@@ -31,9 +31,7 @@
     DDLogDebug(@"Install: %@", installable.name);
     [installable install:^(NSError *error) {
       installable.error = error;
-      [installable refreshComponent:^(NSError *refreshError) {
-        // TODO Remove error from definition
-        NSAssert(!refreshError, @"Error shouldn't be set here, use componentStatus");
+      [installable refreshComponent:^(KBComponentStatus *cs) {
         runCompletion(installable);
       }];
     }];
@@ -53,9 +51,7 @@
   rover.enumerator = [installables objectEnumerator];
   rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
     DDLogDebug(@"Checking %@", installable.name);
-    [installable refreshComponent:^(NSError *refreshError) {
-      // TODO Remove error from definition
-      NSAssert(!refreshError, @"Error shouldn't be set here, use componentStatus");
+    [installable refreshComponent:^(KBComponentStatus *cs) {
       runCompletion(installable);
     }];
   };

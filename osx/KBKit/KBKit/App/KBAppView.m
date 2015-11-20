@@ -515,7 +515,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
   return [[KBAppDebug alloc] init];
 }
 
-- (void)refreshComponent:(KBCompletion)completion {
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   completion(nil);
 }
 

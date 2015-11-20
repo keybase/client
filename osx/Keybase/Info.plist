@@ -37,7 +37,7 @@
 	<key>KBHelperVersion</key>
 	<string>1.0.17</string>
 	<key>KBRunMode</key>
-	<string>staging</string>
+	<string>prod</string>
 	<key>KBServiceBuild</key>
 	<string>47</string>
 	<key>KBServiceVersion</key>
