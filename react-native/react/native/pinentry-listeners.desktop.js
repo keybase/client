@@ -45,10 +45,14 @@ export default {
     })
 
     ipc.on('pinentryResult', function (event, arg) {
+      if ('secretStorage' in arg) {
+        // The core expects a GetPassphraseArg back.
+        arg.storeSecret = arg.secretStorage
+      }
       response.result(arg)
       console.log(arg)
       console.log('Sent passphrase back')
-      //pinentryWindow.close()
+      pinentryWindow.close()
     })
   }
 }
