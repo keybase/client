@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet} from '../../../base-react'
 import {TextField, RaisedButton} from 'material-ui'
 
@@ -13,7 +11,7 @@ export default class UserPassRender extends Component {
         <TextField
           hintText='Keybase Username'
           floatingLabelText='Username'
-          onEnterKeyDown={(event) => this.refs['passphrase'].focus()}
+          onEnterKeyDown={event => this.refs['passphrase'].focus()}
           ref='username'
           onChange={event => this.props.onChangeUsername(event.target.value)}
           value={this.props.username}

@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet} from '../../../base-react'
 import {TextField, RaisedButton} from 'material-ui'
 

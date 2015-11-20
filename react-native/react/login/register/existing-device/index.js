@@ -1,9 +1,7 @@
-'use strict'
-
 import React, {Component} from '../../../base-react'
 import {connect} from '../../../base-redux'
 import Render from './index.render'
-import { codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer } from '../../../constants/login'
+import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 
 class ExistingDevice extends Component {
   render () {

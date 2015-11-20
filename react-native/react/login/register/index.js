@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component} from '../../base-react'
 import {connect} from '../../base-redux'
 import {registerWithUserPass, registerWithPaperKey, registerWithExistingDevice} from '../../actions/login'
@@ -17,7 +15,7 @@ class Register extends Component {
   }
 
   static parseRoute (store, currentPath, nextPath) {
-    return { componentAtTop: {} }
+    return {componentAtTop: {}}
   }
 }
 

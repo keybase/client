@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component} from '../base-react'
 import Welcome from './welcome'
 import Register from './register'

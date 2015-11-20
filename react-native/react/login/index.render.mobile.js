@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet, View} from '../base-react'
 import ProgressIndicator from '../common-adapters/progress-indicator'
 

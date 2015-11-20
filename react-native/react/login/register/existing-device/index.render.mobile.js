@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet, Text, TouchableHighlight, View} from '../../../base-react'
 import commonStyles from '../../../styles/common'
 

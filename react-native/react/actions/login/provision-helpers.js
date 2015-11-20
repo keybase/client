@@ -1,6 +1,5 @@
-'use strict'
-
 import * as Constants from '../../constants/login'
+import QRCodeGen from 'qrcode-generator'
 
 export function defaultModeForDeviceRoles (myDeviceRole, otherDeviceRole, brokenMode) {
   switch (myDeviceRole + otherDeviceRole) {
@@ -32,9 +31,7 @@ export function qrGenerate (code) {
   qr.addData(code)
   qr.make()
   let tag = qr.createImgTag(10)
-  const [ , src, , ] = tag.split(' ')
-  const [ , qrCode ] = src.split('\"')
+  const src = tag.split(' ')[1]
+  const qrCode = src.split('\"')[1]
   return qrCode
 }
-
-

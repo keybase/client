@@ -14,7 +14,7 @@ import commonStyles from '../../../styles/common'
 export default class CodePageRender extends Component {
   controlStyle (mode) {
     if (this.props.mode === mode) {
-      return { backgroundColor: 'green' }
+      return {backgroundColor: 'green'}
     }
     return {}
   }

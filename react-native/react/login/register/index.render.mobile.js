@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet, Text, View} from '../../base-react'
 
 export default class RegisterRender extends Component {
