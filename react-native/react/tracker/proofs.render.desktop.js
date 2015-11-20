@@ -1,4 +1,5 @@
 import React, {Component} from '../base-react'
+import commonStyles, {colors} from '../styles/common'
 
 // TODO const when integrating
 const verified = 'verified'
@@ -14,10 +15,10 @@ export default class ProofsRender extends Component {
 
   metaColor (pp) {
     return {
-      'new': 'orange',
-      deleted: 'red',
-      unreachable: 'red',
-      pending: 'gray'
+      'new': colors.orange,
+      deleted: colors.red,
+      unreachable: colors.red,
+      pending: colors.grey
     }[pp.proof.meta]
   }
 
@@ -32,25 +33,47 @@ export default class ProofsRender extends Component {
   }
 
   renderPlatformProof (pp) {
-    const name = pp.platform.name === 'web' ? pp.platform.uri : pp.platform.name
-    console.log(name)
+    const name = pp.platform.name === 'web' ? pp.platform.uri : pp.platform.username
+
+    const icon = {
+      '[TW]': 'fa-twitter',
+      '[GH]': 'fa-github',
+      '[re]': 'fa-reddit',
+      '[pgp]': 'fa-key',
+      '[cb]': 'fa-btc',
+      '[web]': 'fa-globe'
+    }[pp.platform.icon]
+
+    const statusColor = {
+      verified: colors.lightBlue,
+      checking: colors.grey,
+      deleted: colors.orange,
+      unreachable: colors.orange,
+      pending: colors.orange
+    }[pp.proof.status]
+
     return (
-      <div style={{display: 'flex'}}>
-        <p title={name} style={{width: 40, marginRight: 10, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}>{pp.platform.icon}</p>
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
-          <p style={{textDecoration: pp.proof.status === deleted ? 'line-through' : 'inherit', marginBottom: 0, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}> {name}</p>
-          <span style={{backgroundColor: this.metaColor(pp)}}>{pp.proof.meta}</span>
+      <div style={styles.row}>
+        <i style={styles.platform} className={'fa ' + icon} title={name} onTouchTap={() => this.openLink(pp.platform.uri)}></i>
+        <div style={styles.usernameContainer}>
+          <span
+            style={{...styles.username, ...{textDecoration: pp.proof.status === deleted ? 'line-through' : 'inherit'}}}
+            onTouchTap={() => this.openLink(pp.platform.uri)}>{name}</span>
+          {pp.proof.meta && <span style={{...styles.meta, backgroundColor: this.metaColor(pp)}}>{pp.proof.meta}</span>}
         </div>
-        <div style={{display: 'flex', flex: 1, justifyContent: 'flex-end', paddingRight: 20}}>
-          <p style={{cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.proof.uri)}>{this.tempStatus(pp)}</p>
-        </div>
+        <span className='fa fa-certificate' style={{...styles.status, color: statusColor}} onTouchTap={() => this.openLink(pp.proof.uri)}></span>
       </div>
     )
   }
 
   render () {
     return (
-      <div style={{display: 'flex', flex: 1, flexDirection: 'column', overflowY: 'auto'}}>
+      <div style={styles.container}>
+        <div styles={styles.userContainer}>
+          <span>keybase.io/</span>
+          <span style={styles.keybaseUsername}>{this.props.username}</span>
+        </div>
+        <div style={styles.hr}></div>
         { this.props.platformProofs && this.props.platformProofs.map(platformProof => this.renderPlatformProof(platformProof)) }
       </div>
     )
@@ -71,5 +94,72 @@ ProofsRender.propTypes = {
       status: React.PropTypes.oneOf([verified, checking, deleted, unreachable, pending]).isRequired,
       meta: React.PropTypes.string
     }).isRequired
-  })).isRequired
+  })).isRequired,
+  username: React.PropTypes.string.isRequired
 }
+
+const styles = {
+  container: {
+    ...commonStyles.flexBoxColumn,
+    backgroundColor: 'white',
+    border: '5px solid ' + colors.greyBackground,
+    borderLeft: 0,
+    borderRight: 0,
+    paddingLeft: 25,
+    paddingTop: 15,
+    paddingRight: 26,
+    flex: 1,
+    overflowY: 'auto'
+  },
+  userContainer: {
+    fontSize: 15
+  },
+  keybaseUsername: {
+    ...commonStyles.fontBold,
+    color: colors.orange
+  },
+  hr: {
+    ...commonStyles.hr,
+    width: 41,
+    margin: '12px 0 0 0'
+  },
+  row: {
+    ...commonStyles.flexBoxRow,
+    flex: 1,
+    lineHeight: '21px',
+    marginTop: 10,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start'
+  },
+  platform: {
+    height: 16,
+    width: 16,
+    color: '#444444',
+    marginRight: 12
+  },
+  usernameContainer: {
+    ...commonStyles.flexBoxColumn,
+    alignItems: 'flex-start',
+    flex: 1,
+    lineHeight: '15px'
+  },
+  meta: {
+    ...commonStyles.fontBold,
+    color: 'white',
+    fontSize: 9,
+    height: 13,
+    lineHeight: '13px',
+    marginTop: 2,
+    paddingLeft: 4,
+    paddingRight: 4,
+    textTransform: 'uppercase'
+  },
+  username: {
+    ...commonStyles.clickable,
+    color: colors.lightBlue
+  },
+  status: {
+    ...commonStyles.clickable
+  }
+}
+
