@@ -57,6 +57,13 @@ func KIDFromSlice(b []byte) KID {
 }
 
 func KIDFromStringChecked(s string) (KID, error) {
+
+	// It's OK to have a 0-length KID. That means, no such key
+	// (or NULL kid).
+	if len(s) == 0 {
+		return KID(""), nil
+	}
+
 	b, err := hex.DecodeString(s)
 	if err != nil {
 		return KID(""), err
