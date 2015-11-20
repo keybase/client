@@ -107,6 +107,90 @@ module Test
     end
   end
 
+  # bob renames a file over one modified by alice.
+  test :cr_conflict_unmerged_rename_file_over_modified_file, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      write "a/b", "hello"
+      write "a/c", "world"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/b", "uh oh"
+    end
+    as bob, sync: false do
+      rename "a/c", "a/b"
+      reenable_updates
+      lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
+      read "a/b", "uh oh"
+      read "a/b.conflict.bob.0001-01-01T00:00:00Z", "world"
+    end
+    as alice do
+      lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
+      read "a/b", "uh oh"
+      read "a/b.conflict.bob.0001-01-01T00:00:00Z", "world"
+      check_state
+    end
+  end
+
+  # bob renames a file from a new directory over one modified by alice.
+  test :cr_conflict_unmerged_rename_file_in_new_dir_over_modified_file, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      write "a/b", "hello"
+      write "a/c", "world"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/b", "uh oh"
+    end
+    as bob, sync: false do
+      rename "a/c", "e/c"
+      rename "e/c", "a/b"
+      reenable_updates
+      lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
+      lsdir "e/", {}
+      read "a/b", "uh oh"
+      read "a/b.conflict.bob.0001-01-01T00:00:00Z", "world"
+    end
+    as alice do
+      lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
+      lsdir "e/", {}
+      read "a/b", "uh oh"
+      read "a/b.conflict.bob.0001-01-01T00:00:00Z", "world"
+      check_state
+    end
+  end
+
+  # bob renames a directory over a file modified by alice.
+  test :cr_conflict_unmerged_rename_dir_over_modified_file, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      write "a/b", "hello"
+      write "a/c/d", "world"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/b", "uh oh"
+    end
+    as bob, sync: false do
+      rename "a/c", "a/b"
+      reenable_updates
+      lsdir "a/", { "b$" => "DIR", "b.conflict.alice.0001-01-01T00:00:00Z" => "FILE"  }
+      read "a/b/d", "world"
+      read "a/b.conflict.alice.0001-01-01T00:00:00Z", "uh oh"
+    end
+    as alice do
+      lsdir "a/", { "b$" => "DIR", "b.conflict.alice.0001-01-01T00:00:00Z" => "FILE"  }
+      read "a/b/d", "world"
+      read "a/b.conflict.alice.0001-01-01T00:00:00Z", "uh oh"
+      check_state
+    end
+  end
+
   # bob renames an existing directory over one created by alice.
   # TODO: it would be better if this weren't a conflict.
   test :cr_conflict_unmerged_renamed_dir, writers: ["alice", "bob"] do |alice, bob|
@@ -169,6 +253,60 @@ module Test
       read "a/d/c", "hello"
       read "a/d.conflict.bob.0001-01-01T00:00:00Z/e", "world"
       read "a/d/f", "uh oh"
+      check_state
+    end
+  end
+
+  # alice renames a file over one modified by bob.
+  test :cr_conflict_merged_rename_file_over_modified_file, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      write "a/b", "hello"
+      write "a/c", "world"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      rename "a/c", "a/b"
+    end
+    as bob, sync: false do
+      write "a/b", "uh oh"
+      reenable_updates
+      lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
+      read "a/b", "world"
+      read "a/b.conflict.bob.0001-01-01T00:00:00Z", "uh oh"
+    end
+    as alice do
+      lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
+      read "a/b", "world"
+      read "a/b.conflict.bob.0001-01-01T00:00:00Z", "uh oh"
+      check_state
+    end
+  end
+
+  # alice renames a directory over a file modified by bob.
+  test :cr_conflict_merged_rename_dir_over_modified_file, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      write "a/b", "hello"
+      write "a/c/d", "world"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      rename "a/c", "a/b"
+    end
+    as bob, sync: false do
+      write "a/b", "uh oh"
+      reenable_updates
+      lsdir "a/", { "b$" => "DIR", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
+      read "a/b/d", "world"
+      read "a/b.conflict.bob.0001-01-01T00:00:00Z", "uh oh"
+    end
+    as alice do
+      lsdir "a/", { "b$" => "DIR", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
+      read "a/b/d", "world"
+      read "a/b.conflict.bob.0001-01-01T00:00:00Z", "uh oh"
       check_state
     end
   end

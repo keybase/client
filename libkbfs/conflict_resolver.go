@@ -1920,6 +1920,13 @@ func crMakeRevertedOps(sortedPaths []path, chains *crChains) ([]op, error) {
 				// -- they will be fixed up later.
 				rop.AddUpdate(ri.originalOldParent, ri.originalOldParent)
 				rop.AddUpdate(ri.originalNewParent, ri.originalNewParent)
+				for _, ptr := range cop.Unrefs() {
+					origPtr, err := chains.originalFromMostRecentOrSame(ptr)
+					if err != nil {
+						return nil, err
+					}
+					rop.AddUnrefBlock(origPtr)
+				}
 				op = rop
 			} else {
 				op = chains.copyOpAndRevertUnrefsToOriginals(op)
@@ -2044,7 +2051,8 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
 			for i := range realOp.Updates {
 				ptrsToFix = append(ptrsToFix, &realOp.Updates[i].Ref)
 			}
-			// TODO: fix up Unref?
+			// Note: Unrefs from the original renameOp are now in a
+			// separate rm operation.
 		case *syncOp:
 			updatesToFix = append(updatesToFix, &realOp.File)
 			realOp.Updates = nil

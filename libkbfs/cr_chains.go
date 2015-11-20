@@ -227,6 +227,22 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			ndr = realOp.OldDir.Ref
 		}
 
+		if len(realOp.Unrefs()) > 0 {
+			// Something was overwritten; make an explicit rm for it
+			// so we can check for conflicts.
+			roOverwrite := newRmOp(realOp.NewName, ndu)
+			roOverwrite.setWriterName(realOp.getWriterName())
+			roOverwrite.Dir.Ref = ndr
+			err = ccs.addOp(ndr, roOverwrite)
+			if err != nil {
+				return err
+			}
+			// Transfer any unrefs over.
+			for _, ptr := range realOp.Unrefs() {
+				roOverwrite.AddUnrefBlock(ptr)
+			}
+		}
+
 		co := newCreateOp(realOp.NewName, ndu, realOp.RenamedType)
 		co.setWriterName(realOp.getWriterName())
 		co.renamed = true

@@ -269,6 +269,60 @@ module Test
     end
   end
 
+  # bob renames a file over an existing file
+  test :cr_unmerged_rename_file_over_file, writers: ["alice", "bob"] do |alice, bob|
+   as alice do
+      mkfile "a/b", "hello"
+      mkfile "a/c", "world"
+   end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/d", "just another file"
+    end
+    as bob, sync: false do
+      rename "a/c", "a/b"
+      reenable_updates
+      lsdir "a/", { "b" => "FILE", "d" => "FILE" }
+      read "a/b", "world"
+      read "a/d", "just another file"
+    end
+    as alice do
+      lsdir "a/", { "b" => "FILE", "d" => "FILE" }
+      read "a/b", "world"
+      read "a/d", "just another file"
+      check_state
+    end
+  end
+
+  # bob renames a directory over an existing file
+  test :cr_unmerged_rename_dir_over_file, writers: ["alice", "bob"] do |alice, bob|
+   as alice do
+      mkfile "a/b", "hello"
+      mkfile "a/c/d", "world"
+   end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/e", "just another file"
+    end
+    as bob, sync: false do
+      rename "a/c", "a/b"
+      reenable_updates
+      lsdir "a/", { "b" => "DIR", "e" => "FILE" }
+      read "a/b/d", "world"
+      read "a/e", "just another file"
+    end
+    as alice do
+      lsdir "a/", { "b" => "DIR", "e" => "FILE" }
+      read "a/b/d", "world"
+      read "a/e", "just another file"
+      check_state
+    end
+  end
+
   # alice makes a non-conflicting dir (containing a file) while bob is
   # unstaged
   test :cr_merged_dir, writers: ["alice", "bob"] do |alice, bob|

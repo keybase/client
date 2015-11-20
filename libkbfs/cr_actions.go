@@ -506,12 +506,18 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 				if len(co.RefBlocks) > 0 {
 					co.RefBlocks[0] = newMergedEntry.BlockPointer
 				}
+				if unmergedEntry.BlockPointer != newMergedEntry.BlockPointer {
+					co.AddUnrefBlock(unmergedEntry.BlockPointer)
+				}
 				break
 			}
 		}
 		if !found {
 			co := newCreateOp(rua.toName, unmergedMostRecent, mergedEntry.Type)
 			co.AddRefBlock(newMergedEntry.BlockPointer)
+			if unmergedEntry.BlockPointer != newMergedEntry.BlockPointer {
+				co.AddUnrefBlock(unmergedEntry.BlockPointer)
+			}
 			err = prependOpsToChain(unmergedMostRecent, unmergedChains, co)
 			if err != nil {
 				return err
