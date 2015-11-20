@@ -106,7 +106,7 @@ func (d *Service) Run() (err error) {
 		if d.startCh != nil {
 			close(d.startCh)
 		}
-		d.G().Shutdown()
+		d.G().Log.Debug("From Service.Run(): exit with code %d\n", d.G().ExitCode)
 	}()
 
 	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
@@ -141,12 +141,10 @@ func (d *Service) Run() (err error) {
 	if l, err = d.ConfigRPCServer(); err != nil {
 		return
 	}
+
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
-	if err != nil {
-		return
-	}
-	return
+	return err
 }
 
 func (d *Service) StartLoopbackServer() error {
@@ -256,11 +254,6 @@ func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
 		close(d.startCh)
 		d.startCh = nil
 	}
-
-	d.G().PushShutdownHook(func() error {
-		return l.Close()
-	})
-
 	return
 }
 
@@ -275,6 +268,7 @@ func (d *Service) ListenLoopWithStopper(l net.Listener) (exitCode keybase1.ExitC
 	}()
 	exitCode = <-d.stopCh
 	l.Close()
+	d.G().Log.Debug("Left listen loop w/ exit code %d\n", exitCode)
 	return exitCode, <-ch
 }
 

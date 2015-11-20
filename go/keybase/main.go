@@ -28,6 +28,10 @@ type Canceler interface {
 	Cancel() error
 }
 
+type Stopper interface {
+	Stop(exitcode keybase1.ExitCode)
+}
+
 func main() {
 
 	g := G
@@ -215,11 +219,20 @@ func registerGlobalLogUI(g *libkb.GlobalContext) error {
 
 func HandleSignals() {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, os.Kill)
 	for {
 		s := <-c
 		if s != nil {
 			G.Log.Debug("trapped signal %v", s)
+
+			// if the current command has a Stop function, then call it.
+			// It will do its own stopping of the process and calling
+			// shutdown
+			if stop, ok := cmd.(Stopper); ok {
+				G.Log.Debug("Stopping command cleanly via stopper")
+				stop.Stop(keybase1.ExitCode_OK)
+				return
+			}
 
 			// if the current command has a Cancel function, then call it:
 			if canc, ok := cmd.(Canceler); ok {

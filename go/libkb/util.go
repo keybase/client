@@ -10,6 +10,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"math"
 	"math/big"
@@ -19,9 +21,6 @@ import (
 	"strings"
 	"time"
 	"unicode"
-
-	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func ErrToOk(err error) string {
