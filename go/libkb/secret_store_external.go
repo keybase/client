@@ -7,6 +7,10 @@ package libkb
 
 import "sync"
 
+// TODO: Make this implementation use GetStoredSecretServiceName(), as
+// otherwise tests will clobber each other's passwords. See
+// https://keybase.atlassian.net/browse/CORE-1934 .
+
 // ExternalKeyStore is the interface for the actual (external) keystore.
 type ExternalKeyStore interface {
 	RetrieveSecret(username string) ([]byte, error)
