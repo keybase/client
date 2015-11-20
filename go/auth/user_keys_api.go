@@ -12,18 +12,23 @@ const (
 	pollWait = 5 * time.Second
 )
 
-type pubsubMessage struct {
-	UID             keybase1.UID `json:"uid"`
-	LatestSyncStamp int          `json:"latest_sync_stamp"`
+type pubsubMessageInner struct {
+	UID keybase1.UID `json:"uid"`
+}
+
+type pubsubMessageOuter struct {
+	SyncStamp int                `json:"sync_stamp"`
+	Message   pubsubMessageInner `json:"message"`
 }
 
 type serverState struct {
-	InstanceID string `json:"instance_id"`
+	InstanceID      string `json:"instance_id"`
+	LatestSyncStamp int    `json:"latest_sync_stamp"`
 }
 
 type pubsubResponse struct {
-	ServerState serverState     `json:"server_state"`
-	Messages    []pubsubMessage `json:"messages"`
+	ServerState serverState          `json:"server_state"`
+	Messages    []pubsubMessageOuter `json:"messages"`
 }
 
 var _ UserKeyAPIer = (*userKeyAPI)(nil)
@@ -68,7 +73,7 @@ func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (un libkb.No
 		kids = append(kids, k)
 	}
 
-	return "", nil, nil
+	return un, kids, nil
 }
 
 func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, err error) {
@@ -84,13 +89,14 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 	}
 
 	var psb pubsubResponse
+	args := libkb.HTTPArgs{
+		"feed":            libkb.S{Val: "user.key_change"},
+		"last_sync_stamp": libkb.I{Val: u.lastSyncPoint},
+		"instance_id":     libkb.S{Val: u.instanceID},
+	}
 	err = u.api.GetDecode(libkb.APIArg{
 		Endpoint: "pubsub/poll",
-		Args: libkb.HTTPArgs{
-			"feed":            libkb.S{Val: "user.key_change"},
-			"last_sync_stamp": libkb.I{Val: u.lastSyncPoint},
-			"instance_id":     libkb.S{Val: u.instanceID},
-		},
+		Args:     args,
 	}, &psb)
 
 	if err != nil {
@@ -98,10 +104,15 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 	}
 
 	for _, message := range psb.Messages {
-		uids = append(uids, message.UID)
-		u.lastSyncPoint = message.LatestSyncStamp
+		uids = append(uids, message.Message.UID)
 	}
+	u.lastSyncPoint = psb.ServerState.LatestSyncStamp
 	u.instanceID = psb.ServerState.InstanceID
 
 	return uids, err
+}
+
+// NewUserKeyAPIer returns a UserKeyAPIer implementation.
+func NewUserKeyAPI(log logger.Logger, api libkb.API) UserKeyAPIer {
+	return &userKeyAPI{log: log, api: api}
 }
