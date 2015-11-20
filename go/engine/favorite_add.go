@@ -31,7 +31,9 @@ func (e *FavoriteAdd) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *FavoriteAdd) Prereqs() Prereqs {
-	return Prereqs{}
+	return Prereqs{
+		Device: true,
+	}
 }
 
 // RequiredUIs returns the required UIs.
@@ -49,6 +51,14 @@ func (e *FavoriteAdd) Run(ctx *Context) error {
 	if e.arg == nil {
 		return fmt.Errorf("FavoriteAdd arg is nil")
 	}
-	e.G().FavoriteCache.Add(e.arg.Folder)
-	return nil
+	_, err := e.G().API.Post(libkb.APIArg{
+		Endpoint:    "kbfs/favorite/add",
+		NeedSession: true,
+		Args: libkb.HTTPArgs{
+			"tlf_name": libkb.S{Val: e.arg.Folder.Name},
+			"private":  libkb.B{Val: e.arg.Folder.Private},
+			"status":   libkb.S{Val: "favorite"},
+		},
+	})
+	return err
 }
