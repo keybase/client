@@ -2521,6 +2521,22 @@ func (fbo *folderBranchOps) writeDataLocked(
 	return nil
 }
 
+// writerLock must be taken by caller.
+func (fbo *folderBranchOps) clearDeCacheEntryLocked(parentPtr BlockPointer,
+	filePtr BlockPointer) {
+	// Clear the old deCache entry
+	if deMap, ok := fbo.deCache[parentPtr]; ok {
+		if _, ok := deMap[filePtr]; ok {
+			delete(deMap, filePtr)
+			if len(deMap) == 0 {
+				delete(fbo.deCache, parentPtr)
+			} else {
+				fbo.deCache[parentPtr] = deMap
+			}
+		}
+	}
+}
+
 func (fbo *folderBranchOps) Write(
 	ctx context.Context, file Node, data []byte, off int64) (err error) {
 	fbo.log.CDebugf(ctx, "Write %p %d %d", file.GetID(), len(data), off)
@@ -2566,8 +2582,14 @@ func (fbo *folderBranchOps) Write(
 		// the most obviously correct way.
 		dataCopy := make([]byte, len(data))
 		copy(dataCopy, data)
+		fbo.log.CDebugf(ctx, "Deferring a write to file %v",
+			filePath.tailPointer())
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, rmd *RootMetadata, f path) error {
+				// Clear the old deCache entry
+				fbo.clearDeCacheEntryLocked(
+					f.parentPath().tailPointer(), filePath.tailPointer())
+				// Write the data again
 				return fbo.writeDataLocked(
 					ctx, rmd, f, dataCopy, off, false)
 			})
@@ -2727,8 +2749,13 @@ func (fbo *folderBranchOps) Truncate(
 		// dirty blocks that are in the process of syncing.  So,
 		// we have to redo this truncate once the sync is complete,
 		// using the new file path.
+		fbo.log.CDebugf(ctx, "Deferring a truncate to file %v",
+			filePath.tailPointer())
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, rmd *RootMetadata, f path) error {
+				// Clear the old deCache entry
+				fbo.clearDeCacheEntryLocked(
+					f.parentPath().tailPointer(), filePath.tailPointer())
 				return fbo.truncateLocked(ctx, rmd, f, size, false)
 			})
 	}
@@ -2888,6 +2915,19 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context, file path) (
 	// implies we are using a cached path, which implies the node has
 	// been unlinked.  In that case, we can safely ignore this sync.
 	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
+		fbo.log.CDebugf(ctx, "Skipping sync for a removed file %v",
+			file.tailPointer())
+		// Unfortunately the parent pointer in the path is probably
+		// wrong now, so we have to iterate through the decache to
+		// find the entry to remove.
+		for parentPtr, deMap := range fbo.deCache {
+			for filePtr := range deMap {
+				if filePtr == file.tailPointer() {
+					fbo.clearDeCacheEntryLocked(parentPtr, filePtr)
+				}
+			}
+		}
+		fbo.transitionState(cleanState)
 		return true, nil
 	}
 
@@ -3130,12 +3170,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context, file path) (
 				dblock.Children[file.tailName()] = de
 				lbc[parentPath.tailPointer()] = dblock
 				doDeleteDe = true
-				delete(deMap, filePtr)
-				if len(deMap) == 0 {
-					delete(fbo.deCache, parentPtr)
-				} else {
-					fbo.deCache[parentPtr] = deMap
-				}
+				fbo.clearDeCacheEntryLocked(parentPtr, filePtr)
 			}
 		}
 
@@ -3198,13 +3233,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context, file path) (
 		// top-most block is always in copyFileBlocks and is always
 		// dirtied during a write/truncate.
 		if doDeleteDe {
-			deMap := fbo.deCache[parentPtr]
-			delete(deMap, filePtr)
-			if len(deMap) == 0 {
-				delete(fbo.deCache, parentPtr)
-			} else {
-				fbo.deCache[parentPtr] = deMap
-			}
+			fbo.clearDeCacheEntryLocked(parentPtr, filePtr)
 		}
 
 		// we can get rid of all the sync state that might have
@@ -4098,6 +4127,11 @@ func (fbo *folderBranchOps) SyncFromServer(
 	}
 
 	if fbo.getState() != cleanState {
+		for parent, deMap := range fbo.deCache {
+			for file := range deMap {
+				fbo.log.CDebugf(ctx, "DeCache entry left: %v -> %v", parent, file)
+			}
+		}
 		return errors.New("Can't sync from server while dirty.")
 	}
 

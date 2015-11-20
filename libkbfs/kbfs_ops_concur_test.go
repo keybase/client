@@ -225,6 +225,15 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 		t.Errorf("Unexpected number of cached clean blocks: %d\n",
 			numCleanBlocks)
 	}
+
+	// Final sync to clean up
+	go func() {
+		m.start <- struct{}{}
+		m.enter <- struct{}{}
+	}()
+	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+		t.Errorf("Couldn't sync the final write")
+	}
 	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
 }
 
