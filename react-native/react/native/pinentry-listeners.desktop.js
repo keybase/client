@@ -29,7 +29,7 @@ export default {
 
     ipc.on('pinentryNeedProps', function (event, arg) {
       // Is this the pinentry window we just created?
-      if (pinentryWindow2.webContents === event.sender) {
+      if (pinentryWindow.webContents === event.sender) {
         event.sender.send('pinentryGotProps', props)
       }
     })
