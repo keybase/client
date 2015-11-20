@@ -428,8 +428,9 @@ func (fbo *FolderBranchOps) getMDForWriteLocked(ctx context.Context) (
 			NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
 	}
 
-	// Make a copy of the MD for changing.  The caller must pass this
-	// into syncBlockAndCheckEmbed or the changes will be lost.
+	// Make a new successor of the current MD to hold the coming
+	// writes.  The caller must pass this into syncBlockAndCheckEmbed
+	// or the changes will be lost.
 	newMd, err := md.MakeSuccessor(fbo.config)
 	if err != nil {
 		return nil, err
@@ -3731,11 +3732,6 @@ func (fbo *FolderBranchOps) RekeyForTesting(
 	if !rekeyDone {
 		fbo.log.CDebugf(ctx, "No rekey necessary")
 		return nil
-	}
-
-	err = md.increment(fbo.config, fbo.head)
-	if err != nil {
-		return err
 	}
 
 	// add an empty operation to satisfy assumptions elsewhere

@@ -143,6 +143,9 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 func (cr *ConflictResolver) Wait(ctx context.Context) error {
 	c := make(chan struct{}, 1)
 	go func() {
+		// TODO: From the WaitGroup documentation, it's unclear what
+		// happens if you call Wait() when there are no outstanding
+		// CRs, so we might want to avoid calling Wait in that case.
 		cr.inputGroup.Wait()
 		c <- struct{}{}
 	}()
