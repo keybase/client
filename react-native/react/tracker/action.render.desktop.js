@@ -2,9 +2,11 @@
 
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
-import {Checkbox, FloatingActionButton, FlatButton} from 'material-ui'
+import {FlatButton} from 'material-ui'
 
-import {normal, pending} from '../constants/tracker'
+import commonStyles from '../styles/common'
+
+import {normal, pending, warning, error} from '../constants/tracker'
 
 import type {SimpleProofState} from '../constants/tracker'
 
@@ -31,7 +33,7 @@ export default class ActionRender extends Component {
     } else if (this.props.state === normal) {
       return this.renderNormal(username)
     } else {
-      return this.renderChanged(username)
+      return this.renderChanged()
     }
   }
 
@@ -41,42 +43,36 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderChanged (username: string): ReactElement {
-    //const title = this.props.state === warning ? `(warning) ${username} added some verifications`
-    //  : `(error) Some of ${username}'s verifications are compromised or have changed.`
+  renderChanged (): ReactElement {
     const title = this.props.renderChangedTitle
+    // UPDATE THIS NOJIMA NOW TEMP
+    /* const title = this.props.state === warning ? `${this.props.username} added some idenitity proofs.`
+      : `Some of ${this.props.username}'s proofs are compromised or have changed.`
+      */
     return (
-      <div style={{display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', padding: 10, backgroundColor: '#E0E0E0'}}>
-        <p>{title}</p>
-        <div style={{alignSelf: 'stretch', display: 'flex', flex: 1, justifyContent: 'space-between', padding: 10, backgroundColor: '#E0E0E0'}}>
-          <FlatButton style={{alignSelf: 'center'}} label={'Unfollow ' + username} primary onTouchTap={() => this.props.onUnfollow()} />
-          <FlatButton style={{alignSelf: 'center'}} label='Refollow' primary onTouchTap={() => this.props.onRefollow()} />
+      <div style={{...styles.normalContainer, ...this.props.style}}>
+        <i style={this.props.state === warning ? styles.flagWarning : styles.flagError} className='fa fa-flag'></i>
+        <div style={styles.textContainer}>
+          <span style={styles.changedMessage}>{title}</span>
         </div>
+        <FlatButton style={styles.secondary} label='Untrack' primary onTouchTap={() => this.props.onUnfollow()} />
+        <FlatButton style={styles.primary} label='Retrack' primary onTouchTap={() => this.props.onRefollow()} />
       </div>
     )
   }
 
   renderNormal (username: string): ReactElement {
     return (
-      <div style={{display: 'flex', flex: 1, justifyContent: 'space-between', padding: 10, backgroundColor: '#E0E0E0'}}>
-        <div style={{display: 'flex', flexDirection: 'column'}}>
-          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'flex-start'}}>
-            <div style={{minWidth: 200} /* the checkbox does width 100% which is super annoying, fix this when styling */}>
-              <Checkbox
-                style={{marginRight: -15}}
-                value='follow'
-                label={'Follow ' + username}
-                checked={this.props.shouldFollow}
-                onCheck={() => {
-                  this.props.onFollowChecked(!this.props.shouldFollow)
-                }}
-                />
-              </div>
-            <FloatingActionButton mini style={{fontSize: 25}} onTouchTap={() => this.props.onFollowHelp() }>?</FloatingActionButton>
-          </div>
-          {!this.props.shouldFollow && <p>You'll see this card every time you access the folder</p>}
+      <div style={{...styles.normalContainer, ...this.props.style}}>
+        <div style={{...styles.textContainer, ...(this.props.shouldFollow ? {display: 'none'} : {})}}>
+          <span style={styles.youShouldFollow}>You'll see this card every time you access the folder.</span>
         </div>
-        <FlatButton style={{alignSelf: 'center'}} label='Close' primary onTouchTap={() => this.props.onClose()} />
+        <div onClick={() => this.props.onFollowChecked(!this.props.shouldFollow)}>
+          <i style={styles.check} className={`fa ${this.props.shouldFollow ? 'fa-check-square-o' : 'fa-square-o'}`}></i>
+          <span style={styles.track}>Track</span>
+          <i style={styles.eye} className='fa fa-eye'></i>
+        </div>
+        <FlatButton style={styles.primary} label='Close' primary onTouchTap={() => this.props.onClose()} />
       </div>
     )
   }
@@ -89,6 +85,80 @@ ActionRender.propTypes = {
   onClose: React.PropTypes.func.isRequired,
   onRefollow: React.PropTypes.func.isRequired,
   onUnfollow: React.PropTypes.func.isRequired,
-  onFollowHelp: React.PropTypes.func.isRequired,
-  onFollowChecked: React.PropTypes.func.isRequired
+  onFollowChecked: React.PropTypes.func.isRequired,
+  renderChangedTitle: React.PropTypes.string.isRequired,
+  style: React.PropTypes.object.isRequired
+}
+
+const button = {
+  borderRadius: 61,
+  color: 'white',
+  fontSize: 18,
+  fontWeight: 'normal',
+  height: 32,
+  lineHeight: '32px',
+  textTransform: 'none',
+  width: 123
+}
+
+const styles = {
+  normalContainer: {
+    ...commonStyles.flexBoxRow,
+    alignItems: 'center',
+    backgroundColor: 'white',
+    justifyContent: 'flex-end',
+    paddingLeft: 15,
+    paddingRight: 15
+  },
+  textContainer: {
+    ...commonStyles.flexBoxRow,
+    justifyContent: 'center',
+    marginRight: 15,
+    flex: 1,
+    fontSize: 13,
+    lineHeight: '17px'
+  },
+  youShouldFollow: {
+    ...commonStyles.noSelect,
+    color: '#858596',
+    maxWidth: 182,
+    textAlign: 'center'
+  },
+  changedMessage: {
+    ...commonStyles.noSelect,
+    ...commonStyles.fontBold,
+    color: '#4444',
+    textAlign: 'center'
+  },
+  check: {
+    marginRight: 3,
+    width: 17
+  },
+  track: {
+    color: '#444444',
+    fontSize: 15,
+    marginRight: 3
+  },
+  eye: {
+    color: '#444444',
+    marginRight: 17,
+    width: 14
+  },
+  primary: {
+    ...button,
+    backgroundColor: '#86e2f9'
+  },
+  secondary: {
+    ...button,
+    backgroundColor: '#ffa9a9',
+    marginRight: 7
+  },
+  flagWarning: {
+    color: '#f5a623',
+    width: 20
+  },
+  flagError: {
+    color: '#d0021b',
+    width: 20
+  }
 }
