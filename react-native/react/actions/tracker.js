@@ -20,8 +20,6 @@ export function registerIdentifyUi (): (dispatch: Dispatch) => void {
     engine.rpc('delegateUiCtl.registerIdentifyUI', {}, {}, (error, response) => {
       if (error != null) {
         console.error('error in registering identify ui: ', error)
-      } else {
-        console.log('Registered identify ui')
       }
     })
 
@@ -70,7 +68,6 @@ export function onFollowHelp (): Action {
 }
 
 export function onCloseFromActionBar (): Action {
-  console.log('onClose from action bar')
   return {
     type: Constants.onCloseFromActionBar
   }
@@ -95,8 +92,6 @@ function loadUserInfo (uid: any): (dispatch: Dispatch) => void {
         console.log('Did not get back a user summary')
         return
       }
-
-      console.log('Got back user Summary: ', onlyUser)
 
       dispatch(updateUserInfo({
         fullname: onlyUser.fullName,
@@ -126,17 +121,13 @@ function serverCallMap (dispatch: Dispatch): CallMap {
         type: Constants.updateUsername,
         payload: {username}
       })
-      console.log('starting identify ui server instance')
     },
     displayKey: (params: {sessionID: number, key: IdentifyKey}) => {
-      console.log('displaying key', params)
     },
     reportLastTrack: (params: {sessionID: number, track: ?TrackSummary}) => {
-      console.log('Report last track', params)
     },
 
     launchNetworkChecks: (params: {sessionID: number, identity: Identity, user: User}) => {
-      console.log('launch network checks', params)
       // This is the first spot that we have access to the user, so let's use that to get
       // The user information
       dispatch(loadUserInfo(params.user.uid))
@@ -150,29 +141,22 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     },
 
     displayTrackStatement: (params: {sessionID: number, stmt: string}) => {
-      console.log('display track statements', params)
     },
 
     finishWebProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
       dispatch(updateProof(params.rp, params.lcr))
-      console.log('finish web proof', params)
     },
     finishSocialProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
       dispatch(updateProof(params.rp, params.lcr))
-      console.log('finish social proof', params)
     },
     displayCryptocurrency: (params: {sessionID: number, c: Cryptocurrency}) => {
-      console.log('finish displayCryptocurrency', params)
     },
     reportTrackToken: (params: {sessionID: number, trackToken: string}) => {
-      console.log('finish report track token', params)
     },
     confirm: (params: {sessionID: number, outcome: IdentifyOutcome}): bool => {
-      console.log('confirm', params)
       return false
     },
     finish: (params: {sessionID: number}) => {
-      console.log('finish', params)
 
 
       // Check if there were any errors in the proofs
