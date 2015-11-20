@@ -28,7 +28,10 @@ export default {
     pinentryWindow.loadUrl(`file://${__dirname}/pinentry.wrapper.html`)
 
     ipc.on('pinentryNeedProps', function (event, arg) {
-      event.sender.send('pinentryGotProps', props)
+      // Is this the pinentry window we just created?
+      if (pinentryWindow2.webContents === event.sender) {
+        event.sender.send('pinentryGotProps', props)
+      }
     })
 
     ipc.on('pinentryReady', function (event, arg) {
