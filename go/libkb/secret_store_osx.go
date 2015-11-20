@@ -12,10 +12,13 @@ import (
 )
 
 type KeychainSecretStore struct {
+	Contextified
 	accountName NormalizedUsername
 }
 
-func (kss *KeychainSecretStore) StoreSecret(secret []byte) (err error) {
+var _ SecretStore = KeychainSecretStore{}
+
+func (kss KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 	G.Log.Debug("+ StoreSecret(%s, %d)", kss.accountName, len(secret))
 	defer func() {
 		G.Log.Debug("- StoreSecret -> %s", ErrToOk(err))
@@ -32,7 +35,7 @@ func (kss *KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 	return
 }
 
-func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
+func (kss KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 	G.Log.Debug("+ RetrieveSecret(%s)", kss.accountName)
 	defer func() {
 		G.Log.Debug("- RetrieveSecret -> %s", ErrToOk(err))
@@ -56,7 +59,7 @@ func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 	return
 }
 
-func (kss *KeychainSecretStore) ClearSecret() (err error) {
+func (kss KeychainSecretStore) ClearSecret() (err error) {
 	G.Log.Debug("+ ClearSecret(%s)", kss.accountName)
 	defer func() {
 		G.Log.Debug("- ClearSecret -> %s", ErrToOk(err))
@@ -75,8 +78,11 @@ func (kss *KeychainSecretStore) ClearSecret() (err error) {
 	return
 }
 
-func NewSecretStore(username NormalizedUsername) SecretStore {
-	return &KeychainSecretStore{username}
+func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
+	return KeychainSecretStore{
+		Contextified: NewContextified(g),
+		accountName:  username,
+	}
 }
 
 func HasSecretStore() bool {

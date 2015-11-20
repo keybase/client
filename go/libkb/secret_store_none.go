@@ -5,7 +5,7 @@
 
 package libkb
 
-func NewSecretStore(username NormalizedUsername) SecretStore {
+func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	return nil
 }
 

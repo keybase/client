@@ -131,7 +131,7 @@ func (e *PaperKeyGen) makeEncKey(seed []byte) error {
 func (e *PaperKeyGen) getClientHalfFromSecretStore() ([]byte, libkb.PassphraseGeneration, error) {
 	zeroGen := libkb.PassphraseGeneration(0)
 
-	secretStore := libkb.NewSecretStore(e.arg.Me.GetNormalizedName())
+	secretStore := libkb.NewSecretStore(e.G(), e.arg.Me.GetNormalizedName())
 	if secretStore == nil {
 		return nil, zeroGen, errors.New("No secret store available")
 	}

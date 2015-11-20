@@ -5,13 +5,14 @@
 
 package libkb
 
-import (
-	keychain "github.com/keybase/go-keychain"
-)
+import keychain "github.com/keybase/go-keychain"
 
 type KeychainSecretStore struct {
+	Contextified
 	accountName string
 }
+
+var _ SecretStore = KeychainSecretStore{}
 
 func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 	// GetStoredSecretAccessGroup MUST be "" for the simulator
@@ -33,8 +34,11 @@ func (k KeychainSecretStore) ClearSecret() (err error) {
 	return keychain.DeleteItem(query)
 }
 
-func NewSecretStore(username NormalizedUsername) SecretStore {
-	return KeychainSecretStore{string(username)}
+func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
+	return KeychainSecretStore{
+		Contextified: NewContextified(g),
+		accountName:  string(username),
+	}
 }
 
 func HasSecretStore() bool {

@@ -341,7 +341,7 @@ func (k *Keyrings) GetSecretKeyWithoutPrompt(lctx LoginContext, ska SecretKeyArg
 		err = NoUsernameError{}
 		return nil, err
 	}
-	secretStore := NewSecretStore(ska.Me.GetNormalizedName())
+	secretStore := NewSecretStore(k.G(), ska.Me.GetNormalizedName())
 
 	skb, _, err := k.GetSecretKeyLocked(lctx, ska)
 	if err != nil {
@@ -369,7 +369,7 @@ func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(lctx LoginContext, ska SecretKey
 	var secretStore SecretStore
 	if ska.Me != nil {
 		skb.SetUID(ska.Me.GetUID())
-		secretStore = NewSecretStore(ska.Me.GetNormalizedName())
+		secretStore = NewSecretStore(k.G(), ska.Me.GetNormalizedName())
 	}
 	if key, err = skb.PromptAndUnlock(lctx, reason, which, secretStore, secretUI, nil, ska.Me); err != nil {
 		key = nil

@@ -54,6 +54,9 @@ func TestSecretStoreOps(t *testing.T) {
 		t.Skip("Skipping test since there is no secret store")
 	}
 
+	tc := SetupTest(t, "secret store ops")
+	defer tc.Cleanup()
+
 	prefix := generateTestPrefix(t)
 
 	username := prefix + "username"
@@ -61,7 +64,7 @@ func TestSecretStoreOps(t *testing.T) {
 	expectedSecret1 := []byte("test secret 1")
 	expectedSecret2 := []byte("test secret 2")
 
-	secretStore := NewSecretStore(nu)
+	secretStore := NewSecretStore(tc.G, nu)
 
 	var err error
 
@@ -131,6 +134,9 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 		t.Skip("Skipping test since there is no secret store")
 	}
 
+	tc := SetupTest(t, "get users with stored secrets")
+	defer tc.Cleanup()
+
 	prefix := generateTestPrefix(t)
 
 	usernames, err := getUsersWithPrefixAndStoredSecrets(prefix)
@@ -144,7 +150,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	expectedUsernames := make([]string, 10)
 	for i := 0; i < len(expectedUsernames); i++ {
 		expectedUsernames[i] = fmt.Sprintf("%saccount with unicode テスト %d", prefix, i)
-		secretStore := NewSecretStore(NewNormalizedUsername(expectedUsernames[i]))
+		secretStore := NewSecretStore(tc.G, NewNormalizedUsername(expectedUsernames[i]))
 		if err := secretStore.StoreSecret([]byte{}); err != nil {
 			t.Error(err)
 		}
@@ -166,7 +172,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	}
 
 	for i := 0; i < len(expectedUsernames); i++ {
-		secretStore := NewSecretStore(NewNormalizedUsername(expectedUsernames[i]))
+		secretStore := NewSecretStore(tc.G, NewNormalizedUsername(expectedUsernames[i]))
 		err = secretStore.ClearSecret()
 		if err != nil {
 			t.Error(err)

@@ -60,7 +60,7 @@ func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email s
 }
 
 func (h *LoginHandler) ClearStoredSecret(_ context.Context, arg keybase1.ClearStoredSecretArg) error {
-	return libkb.ClearStoredSecret(libkb.NewNormalizedUsername(arg.Username))
+	return libkb.ClearStoredSecret(h.G(), libkb.NewNormalizedUsername(arg.Username))
 }
 
 func (h *LoginHandler) PaperKey(_ context.Context, sessionID int) error {

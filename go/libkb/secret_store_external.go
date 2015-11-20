@@ -40,6 +40,8 @@ type secretStoreAccountName struct {
 	accountName      string
 }
 
+var _ SecretStore = secretStoreAccountName{}
+
 func (s secretStoreAccountName) StoreSecret(secret []byte) (err error) {
 	return s.externalKeyStore.StoreSecret(s.accountName, secret)
 }
@@ -52,7 +54,7 @@ func (s secretStoreAccountName) ClearSecret() (err error) {
 	return s.externalKeyStore.ClearSecret(s.accountName)
 }
 
-func NewSecretStore(username NormalizedUsername) SecretStore {
+func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
 		return nil

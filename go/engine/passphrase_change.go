@@ -394,7 +394,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 		blocks = append(blocks, syncKeys...)
 	}
 
-	secretRetriever := libkb.NewSecretStore(c.me.GetNormalizedName())
+	secretRetriever := libkb.NewSecretStore(c.G(), c.me.GetNormalizedName())
 
 	// avoid duplicates:
 	keys := make(map[keybase1.KID]libkb.GenericKey)
