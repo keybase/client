@@ -1,5 +1,3 @@
-'use strict'
-
 import {AsyncStorage} from '../base-react'
 import type {State} from '../constants/reducer'
 import {stateKey} from '../constants/reducer'

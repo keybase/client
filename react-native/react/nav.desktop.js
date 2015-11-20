@@ -1,5 +1,3 @@
-'use strict'
-
 import {Component} from './base-react'
 import {connect} from './base-redux'
 import MetaNavigator from './router/meta-navigator'

@@ -1,5 +1,3 @@
-'use strict'
-
 import {OS_DESKTOP} from './platform.shared'
 
 export const isDev = process.env.NODE_ENV === 'development'

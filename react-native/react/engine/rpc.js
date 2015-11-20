@@ -1,5 +1,3 @@
-'use strict'
-
 import EngineError from './errors'
 import rpc from 'framed-msgpack-rpc'
 

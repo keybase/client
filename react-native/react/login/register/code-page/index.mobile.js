@@ -1,4 +1,3 @@
-'use strict'
 /*
  * Screen to scan/show qrcode/text code. Goes into various modes with various options depending on if
  * you're a phone/computer and if you're the existing device or the new device

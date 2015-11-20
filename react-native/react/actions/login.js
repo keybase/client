@@ -1,5 +1,3 @@
-'use strict'
-
 import * as Constants from '../constants/login'
 import {isMobile} from '../constants/platform'
 import QRCodeGen from 'qrcode-generator'

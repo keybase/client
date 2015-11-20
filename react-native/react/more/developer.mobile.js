@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet, Navigator, TextInput, View, Text} from '../base-react'
 import {connect} from '../base-redux'
 import {getDevSettings, saveDevSettings, updateDevSettings} from '../actions/config'

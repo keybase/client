@@ -1,5 +1,3 @@
-'use strict'
-
 import * as Constants from '../constants/devices'
 import engine from '../engine'
 import {navigateUpOnUnchanged} from './router'

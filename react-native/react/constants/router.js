@@ -1,5 +1,3 @@
-'use strict'
-
 export const navigate = 'router:navigate'
 export const navigateAppend = 'router:navigateAppend'
 export const navigateUp = 'router:navigateUp'

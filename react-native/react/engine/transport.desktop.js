@@ -1,5 +1,3 @@
-'use strict'
-
 import BaseTransport from './rpc'
 import fs from 'fs'
 

@@ -1,5 +1,4 @@
 /* @flow */
-'use strict'
 // Tab Nav Reducer.
 // This expands the router to work on multiple tabs.
 // The router works just as before except this layer

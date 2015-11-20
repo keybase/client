@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, Image, StyleSheet, ScrollView, Text, View} from '../base-react'
 import {connect} from '../base-redux'
 

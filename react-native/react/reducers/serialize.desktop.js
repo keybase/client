@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 import type {State} from '../constants/reducer'

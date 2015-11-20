@@ -1,5 +1,3 @@
-'use strict'
-
 import * as Constants from '../../constants/config'
 import {autoLogin} from '../login'
 import engine from '../../engine'

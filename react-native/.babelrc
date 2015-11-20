@@ -1,4 +1,4 @@
-// Keep in sync with packager/transformer.js
+// Our overrides
 {
   "retainLines": true,
   "compact": true,
@@ -6,9 +6,8 @@
   "whitelist": [
     "es6.arrowFunctions",
     "es6.blockScoping",
-    // This is the only place where we differ from transformer.js
-    "es6.constants",
     "es6.classes",
+    "es6.constants",
     "es6.destructuring",
     "es6.modules",
     "es6.forOf",
@@ -22,6 +21,7 @@
     "es7.objectRestSpread",
     "flow",
     "react",
+    "react.displayName",
     "regenerator"
   ],
   "sourceMaps": false

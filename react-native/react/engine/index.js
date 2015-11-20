@@ -1,5 +1,3 @@
-'use strict'
-
 // Handles sending requests to objc (then go) and back
 
 import engine from './index.native'

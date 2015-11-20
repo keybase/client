@@ -1,5 +1,3 @@
-'use strict'
-
 import * as Constants from '../constants/tabbed-router'
 
 export function switchTab (tabName) {

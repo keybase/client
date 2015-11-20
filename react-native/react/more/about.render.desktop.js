@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component} from '../base-react'
 
 export default class ChatRender extends Component {
