@@ -173,9 +173,9 @@ type Connection struct {
 // NewTLSConnection returns a connection that tries to connect to the
 // given server address with TLS.
 func NewTLSConnection(config Config, srvAddr string,
-	errorUnwrapper rpc.ErrorUnwrapper, handler ConnectionHandler) *Connection {
+	errorUnwrapper rpc.ErrorUnwrapper, handler ConnectionHandler, connectNow bool) *Connection {
 	transport := &ConnectionTransportTLS{config: config, srvAddr: srvAddr}
-	return newConnectionWithTransport(config, handler, transport, errorUnwrapper)
+	return newConnectionWithTransport(config, handler, transport, errorUnwrapper, connectNow)
 }
 
 // NewSharedKeybaseConnection returns a connection that tries to
@@ -183,21 +183,24 @@ func NewTLSConnection(config Config, srvAddr string,
 func NewSharedKeybaseConnection(kbCtx *libkb.GlobalContext, config Config,
 	handler ConnectionHandler) *Connection {
 	transport := &SharedKeybaseTransport{kbCtx: kbCtx}
-	return newConnectionWithTransport(config, handler, transport, libkb.ErrorUnwrapper{})
+	return newConnectionWithTransport(config, handler, transport, libkb.ErrorUnwrapper{}, true)
 }
 
 // Separate from New*Connection functions above to allow for unit
 // testing.
 func newConnectionWithTransport(config Config,
 	handler ConnectionHandler, transport ConnectionTransport,
-	errorUnwrapper rpc.ErrorUnwrapper) *Connection {
+	errorUnwrapper rpc.ErrorUnwrapper, connectNow bool) *Connection {
 	connection := &Connection{
 		config:         config,
 		handler:        handler,
 		transport:      transport,
 		errorUnwrapper: errorUnwrapper,
 	}
-	connection.getReconnectChan() // start connecting
+	if connectNow {
+		// start connecting now
+		connection.getReconnectChan()
+	}
 	return connection
 }
 

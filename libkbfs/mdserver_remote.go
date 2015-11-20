@@ -57,7 +57,7 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 	mdServer.authToken = NewAuthToken(config,
 		MdServerTokenType, MdServerTokenExpireIn,
 		MdServerClientName, MdServerClientVersion, mdServer)
-	conn := NewTLSConnection(config, srvAddr, MDServerErrorUnwrapper{}, mdServer)
+	conn := NewTLSConnection(config, srvAddr, MDServerErrorUnwrapper{}, mdServer, true)
 	mdServer.conn = conn
 	mdServer.client = keybase1.MetadataClient{Cli: conn.GetClient()}
 	return mdServer

@@ -117,7 +117,7 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 	signature, err = c.client.SignToString(ctx, keybase1.SignToStringArg{
 		SessionID: 0,
 		Msg:       msg,
-		Reason:    "kbfs backend auth",
+		Reason:    "KBFS Authentication",
 	})
 	return
 }
