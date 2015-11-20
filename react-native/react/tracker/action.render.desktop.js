@@ -5,9 +5,9 @@
 import React, {Component} from '../base-react'
 import {Checkbox, FloatingActionButton, FlatButton} from 'material-ui'
 
-import { normal, warning, pending } from '../constants/tracker'
+import {normal, warning, pending} from '../constants/tracker'
 
-import type { SimpleProofState } from '../constants/tracker'
+import type {SimpleProofState} from '../constants/tracker'
 
 export type ActionProps = {
   state: SimpleProofState,
@@ -24,7 +24,7 @@ export default class ActionRender extends Component {
   props: ActionProps;
 
   render (): ReactElement {
-    const { username, state } = this.props
+    const {username, state} = this.props
 
     if (state === pending || !username) {
       return this.renderPending()

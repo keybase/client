@@ -9,7 +9,7 @@ import {connect} from '../base-redux'
 import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
-import { bindActionCreators } from 'redux'
+import {bindActionCreators} from 'redux'
 
 import type {UserInfo} from './bio.render.desktop'
 import type {Proof} from './proofs.render.desktop'

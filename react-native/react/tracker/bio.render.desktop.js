@@ -5,7 +5,7 @@
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
 
-import type { SimpleProofState } from '../constants/tracker'
+import type {SimpleProofState} from '../constants/tracker'
 
 export type UserInfo = {
   fullname: string,
@@ -28,7 +28,7 @@ export default class BioRender extends Component {
   render (): ReactElement {
     let userFlag = ''
 
-    const { username, state, userInfo } = this.props
+    const {username, state, userInfo} = this.props
 
     if (state === 'warning') {
       userFlag = ' (warning)'

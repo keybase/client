@@ -13,10 +13,10 @@ import Bio from './bio.render'
 // $FlowIssue platform files
 import Proofs from './proofs.render'
 
-import type { BioProps } from './bio.render.desktop'
-import type { ActionProps } from './action.render.desktop'
-import type { HeaderProps } from './header.render.desktop'
-import type { ProofsProps } from './proofs.render.desktop'
+import type {BioProps} from './bio.render.desktop'
+import type {ActionProps} from './action.render.desktop'
+import type {HeaderProps} from './header.render.desktop'
+import type {ProofsProps} from './proofs.render.desktop'
 
 export type TrackerProps = {
   bioProps: BioProps,
