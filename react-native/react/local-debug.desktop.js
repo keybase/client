@@ -15,8 +15,8 @@ let config = {
 }
 
 if (isDev && true) {
-  config.overrideRouterState = createRouterState([], [])
-  config.overrideActiveTab = Tabs.devicesTab
+  config.overrideRouterState = createRouterState(['devMenu', {path: 'tracker', state: 'normal'}], [])
+  config.overrideActiveTab = Tabs.moreTab
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
   config.printRPC = true

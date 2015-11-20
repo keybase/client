@@ -1,6 +1,8 @@
 import React, {Component} from '../base-react'
 import {Checkbox, FloatingActionButton, FlatButton} from 'material-ui'
 
+import commonStyles from '../styles/common'
+
 // TODO constants when integrating
 const normal = 'normal'
 const warning = 'warning'
@@ -30,7 +32,7 @@ export default class ActionRender extends Component {
   }
   renderNormal () {
     return (
-      <div style={{display: 'flex', flex: 1, justifyContent: 'space-between', padding: 10, backgroundColor: '#E0E0E0'}}>
+      <div style={styles.container}>
         <div style={{display: 'flex', flexDirection: 'column'}}>
           <div style={{display: 'flex', alignItems: 'center', justifyContent: 'flex-start'}}>
             <div style={{minWidth: 200} /* the checkbox does width 100% which is super annoying, fix this when styling */}>
@@ -63,4 +65,13 @@ ActionRender.propTypes = {
   onUnfollow: React.PropTypes.func.isRequired,
   onFollowHelp: React.PropTypes.func.isRequired,
   followChecked: React.PropTypes.func.isRequired
+}
+
+const styles = {
+  container: {
+    ...commonStyles.flexBoxRow,
+    justifyContent: 'space-between',
+    padding: 10,
+    backgroundColor: '#E0E0E0'
+  }
 }
