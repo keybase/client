@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -763,7 +764,9 @@ func (e *Env) GetStoredSecretServiceName() string {
 		panic("Invalid run mode")
 	}
 	if e.Test.Devel {
-		serviceName = serviceName + "-test"
+		// Append DevelName so that tests won't clobber each
+		// other's keychain entries on shutdown.
+		serviceName += fmt.Sprintf("-test (%s)", e.Test.DevelName)
 	}
 	return serviceName
 }
