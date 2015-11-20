@@ -1,4 +1,4 @@
-import { spawn } from 'child_process'
+import {spawn} from 'child_process'
 import electron from 'electron-prebuilt'
 import browserSync from 'browser-sync'
 import browserSyncConnectUtils from 'browser-sync/lib/connect-utils'
