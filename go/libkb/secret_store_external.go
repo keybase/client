@@ -67,7 +67,7 @@ func HasSecretStore() bool {
 	return getGlobalExternalKeyStore() != nil
 }
 
-func GetUsersWithStoredSecrets() ([]string, error) {
+func GetUsersWithStoredSecrets(g *GlobalContext) ([]string, error) {
 	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
 		return nil, nil

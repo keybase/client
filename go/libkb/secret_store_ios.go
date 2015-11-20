@@ -45,7 +45,7 @@ func HasSecretStore() bool {
 	return true
 }
 
-func GetUsersWithStoredSecrets() ([]string, error) {
+func GetUsersWithStoredSecrets(g *GlobalContext) ([]string, error) {
 	return keychain.GetAccountsForService(G.Env.GetStoredSecretServiceName())
 }
 

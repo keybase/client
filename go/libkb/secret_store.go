@@ -41,7 +41,7 @@ func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, erro
 		}
 	}
 
-	storedSecretUsernames, err := GetUsersWithStoredSecrets()
+	storedSecretUsernames, err := GetUsersWithStoredSecrets(g)
 	if err != nil {
 		return nil, err
 	}

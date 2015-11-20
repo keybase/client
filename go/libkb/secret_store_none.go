@@ -13,7 +13,7 @@ func HasSecretStore() bool {
 	return false
 }
 
-func GetUsersWithStoredSecrets() ([]string, error) {
+func GetUsersWithStoredSecrets(g *GlobalContext) ([]string, error) {
 	return nil, nil
 }
 

@@ -112,8 +112,8 @@ func TestSecretStoreOps(t *testing.T) {
 	}
 }
 
-func getUsersWithPrefixAndStoredSecrets(prefix string) ([]string, error) {
-	usernames, err := GetUsersWithStoredSecrets()
+func getUsersWithPrefixAndStoredSecrets(g *GlobalContext, prefix string) ([]string, error) {
+	usernames, err := GetUsersWithStoredSecrets(g)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 
 	prefix := generateTestPrefix(t)
 
-	usernames, err := getUsersWithPrefixAndStoredSecrets(prefix)
+	usernames, err := getUsersWithPrefixAndStoredSecrets(tc.G, prefix)
 	if err != nil {
 		t.Error(err)
 	}
@@ -156,7 +156,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 		}
 	}
 
-	usernames, err = getUsersWithPrefixAndStoredSecrets(prefix)
+	usernames, err = getUsersWithPrefixAndStoredSecrets(tc.G, prefix)
 	if err != nil {
 		t.Error(err)
 	}
@@ -179,7 +179,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 		}
 	}
 
-	usernames, err = getUsersWithPrefixAndStoredSecrets(prefix)
+	usernames, err = getUsersWithPrefixAndStoredSecrets(tc.G, prefix)
 	if err != nil {
 		t.Error(err)
 	}
