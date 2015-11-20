@@ -18,7 +18,6 @@ module Test
     as eve do
       read "foo.txt", "hello world"
       rm "foo.txt", error: "eve does not have write access to directory alice,bob#eve"
-      check_state
     end
   end
 
@@ -94,7 +93,6 @@ module Test
       rm "a/f"
       lsdir "a/", { "foo.exe" => "EXEC" }
       rm "a/foo.exe"
-      check_state
     end
   end
 end

@@ -8,7 +8,6 @@ module Test
       rename "a/c", "a/b"
       lsdir "a/", { "b" => "FILE" }
       read "a/b", "world"
-      check_state
     end
   end
 
@@ -20,7 +19,6 @@ module Test
       rename "a/c", "a/b"
       lsdir "a/", { "b" => "DIR" }
       read "a/b/d", "world"
-      check_state
     end
   end
 end

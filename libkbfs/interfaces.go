@@ -225,8 +225,10 @@ type KBFSOps interface {
 	// folder-branch is currently unmerged or dirty locally.
 	SyncFromServer(ctx context.Context, folderBranch FolderBranch) error
 	// Shutdown is called to clean up any resources associated with
-	// this KBFSOps instance.
-	Shutdown()
+	// this KBFSOps instance.  If checkState is true, all known folder
+	// state will be checked for consistency (this should only be done
+	// as part of tests using local servers).
+	Shutdown(checkState bool) error
 }
 
 // KeybaseDaemon is an interface for communicating with the local
@@ -923,8 +925,11 @@ type Config interface {
 	// objects, which is to use the default registry.
 	MetricsRegistry() metrics.Registry
 	SetMetricsRegistry(metrics.Registry)
-	// Shutdown is called to free config resources.
-	Shutdown()
+	// Shutdown is called to free config resources.  If checkState is
+	// true, all known folder state will be checked for consistency
+	// (this should only be done as part of tests using local
+	// servers).
+	Shutdown(checkState bool) error
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

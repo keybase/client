@@ -217,14 +217,6 @@ module Test
           end
         end
 
-        # check that state is consistent
-        def self.check_state(opts=nil)
-          raise_unless_expected(opts, __method__) do
-            err = Engine.check_state(@user, @root_dir)
-            raise err if err
-          end
-        end
-
         # helper to support conditional exceptions
         def self.raise_unless_expected(opts, prefix)
           caught = false
@@ -289,7 +281,17 @@ module Test
     else
       printf "%-50s: %s\n", @test, "success".green
     ensure
-      @users.each{|user| Engine.shutdown(user) }
+      @users.each{|user|
+        err = Engine.shutdown(user)
+        # Show failure on shutdown only if this test hasn't already failed.
+        if err and not e then
+          @@failures += 1
+          msg = "shutdown failed: " + err
+          printf "%-50s: %s\n", @test, msg.red
+          Engine.print_log()
+          e = err
+        end
+      }
     end
   end
 

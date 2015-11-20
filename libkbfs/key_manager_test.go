@@ -257,10 +257,10 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, u1, u2)
-	defer config1.Shutdown()
+	defer config1.Shutdown(false)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
-	defer config2.Shutdown()
+	defer config2.Shutdown(false)
 	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -285,7 +285,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	}
 
 	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
-	defer config2Dev2.Shutdown()
+	defer config2Dev2.Shutdown(false)
 
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.
@@ -317,7 +317,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 
 	// add a third device for user 2
 	config2Dev3 := ConfigAsUser(config1.(*ConfigLocal), u2)
-	defer config2Dev3.Shutdown()
+	defer config2Dev3.Shutdown(false)
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
 	AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)

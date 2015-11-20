@@ -262,9 +262,24 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by folderBranchOps.
-func (fbo *folderBranchOps) Shutdown() {
+func (fbo *folderBranchOps) Shutdown(checkState bool) error {
+	if checkState {
+		// Make sure we're up to date first
+		ctx := context.TODO()
+		if err := fbo.SyncFromServer(ctx, fbo.folderBranch); err != nil {
+			return err
+		}
+
+		// Check the state for consistency before shutting down.
+		sc := NewStateChecker(fbo.config)
+		if err := sc.CheckMergedState(ctx, fbo.id()); err != nil {
+			return err
+		}
+	}
+
 	close(fbo.shutdownChan)
 	fbo.cr.Shutdown()
+	return nil
 }
 
 func (fbo *folderBranchOps) id() TlfID {

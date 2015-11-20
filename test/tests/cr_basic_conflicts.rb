@@ -22,7 +22,6 @@ module Test
       lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE" }
       read "a/b", "world"
       read "a/b.conflict.bob.0001-01-01T00:00:00Z", "uh oh"
-      check_state
     end
   end
 
@@ -48,7 +47,6 @@ module Test
       lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE" }
       read "a/b", "world"
       read "a/b.conflict.bob.0001-01-01T00:00:00Z", "uh oh"
-      check_state
     end
   end
 
@@ -74,7 +72,6 @@ module Test
       lsdir "a/", { "b$" => "DIR", "b.conflict.alice.0001-01-01T00:00:00Z" => "FILE" }
       read "a/b.conflict.alice.0001-01-01T00:00:00Z", "world"
       read "a/b/c", "uh oh"
-      check_state
     end
   end
 
@@ -103,7 +100,6 @@ module Test
       lsdir "a/", { "b$" => "DIR", "b.conflict.alice.0001-01-01T00:00:00Z" => "FILE" }
       read "a/b.conflict.alice.0001-01-01T00:00:00Z", "world"
       read "a/b/c", "uh oh"
-      check_state
     end
   end
 
@@ -130,7 +126,6 @@ module Test
       lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
       read "a/b", "uh oh"
       read "a/b.conflict.bob.0001-01-01T00:00:00Z", "world"
-      check_state
     end
   end
 
@@ -160,7 +155,6 @@ module Test
       lsdir "e/", {}
       read "a/b", "uh oh"
       read "a/b.conflict.bob.0001-01-01T00:00:00Z", "world"
-      check_state
     end
   end
 
@@ -187,7 +181,6 @@ module Test
       lsdir "a/", { "b$" => "DIR", "b.conflict.alice.0001-01-01T00:00:00Z" => "FILE"  }
       read "a/b/d", "world"
       read "a/b.conflict.alice.0001-01-01T00:00:00Z", "uh oh"
-      check_state
     end
   end
 
@@ -221,7 +214,6 @@ module Test
       read "a/d.conflict.bob.0001-01-01T00:00:00Z/c", "hello"
       read "a/d/e", "world"
       read "a/d.conflict.bob.0001-01-01T00:00:00Z/f", "uh oh"
-      check_state
     end
   end
 
@@ -253,7 +245,6 @@ module Test
       read "a/d/c", "hello"
       read "a/d.conflict.bob.0001-01-01T00:00:00Z/e", "world"
       read "a/d/f", "uh oh"
-      check_state
     end
   end
 
@@ -280,7 +271,6 @@ module Test
       lsdir "a/", { "b$" => "FILE", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
       read "a/b", "world"
       read "a/b.conflict.bob.0001-01-01T00:00:00Z", "uh oh"
-      check_state
     end
   end
 
@@ -307,7 +297,6 @@ module Test
       lsdir "a/", { "b$" => "DIR", "b.conflict.bob.0001-01-01T00:00:00Z" => "FILE"  }
       read "a/b/d", "world"
       read "a/b.conflict.bob.0001-01-01T00:00:00Z", "uh oh"
-      check_state
     end
   end
 
@@ -338,7 +327,6 @@ module Test
     as bob do
       read "a/c", "world"
       read "a/d", "hello"
-      check_state
     end
   end
 
@@ -370,7 +358,6 @@ module Test
     as bob do
       read "a/c", "world"
       read "a/d", "hello"
-      check_state
     end
   end
 
@@ -402,7 +389,6 @@ module Test
     as bob do
       read "a/c", "world"
       read "a/d", "world"
-      check_state
     end
   end
 
@@ -434,7 +420,6 @@ module Test
     end
     as bob do
       read "a/e/f", "world"
-      check_state
     end
   end
 
@@ -471,7 +456,6 @@ module Test
     end
     as bob do
       read "a/b/c/d/f/foo2", "world"
-      check_state
     end
   end
 
@@ -508,7 +492,6 @@ module Test
     end
     as bob do
       read "a/b/c/d/f/foo2", "world"
-      check_state
     end
   end
 
@@ -541,7 +524,6 @@ module Test
     end
     as bob do
       read "a/g/foo2", "world"
-      check_state
     end
   end
 
@@ -576,7 +558,6 @@ module Test
     end
     as bob do
       read "a/b/c/h/foo2", "world"
-      check_state
     end
   end
 
@@ -634,7 +615,6 @@ module Test
       lsdir "a/d", { "e" => "FILE" }
       lsdir "a/d.conflict.bob.0001-01-01T00:00:00Z_\(1\)", { "c" => "FILE", "f" => "FILE" }
       read "a/d/e", "world"
-      check_state
     end
   end
 
@@ -680,7 +660,6 @@ module Test
       read "a/b", "another write"
       read "a/b.conflict.bob.0001-01-01T00:00:00Z", "uh oh"
       read "a/b.conflict.bob.0001-01-01T00:00:00Z_\(1\)", "uh oh again!"
-      check_state
     end
   end
 
@@ -717,7 +696,6 @@ module Test
     end
     as bob do
       read "a/b/c/b/d", "hello"
-      check_state
     end
   end
 
@@ -755,7 +733,6 @@ module Test
     end
     as bob do
       read "a/b/c/b/d", "hello"
-      check_state
     end
   end
 
@@ -795,7 +772,6 @@ module Test
     end
     as bob do
       read "a/b/c/b.conflict.bob.0001-01-01T00:00:00Z/d", "hello"
-      check_state
     end
   end
 end

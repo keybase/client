@@ -24,7 +24,6 @@ module Test
       lsdir "d/", { "e" => "FILE" }
       read "a/c", "world"
       read "d/e", "hello"
-      check_state
     end
   end
 
@@ -53,7 +52,6 @@ module Test
       lsdir "d/", { "e" => "FILE" }
       read "a/c", "world"
       read "d/e", "hello"
-      check_state
     end
   end
 
@@ -84,7 +82,6 @@ module Test
     end
     as bob do
       read "a/b/a/c", "hello"
-      check_state
     end
   end
 
@@ -118,7 +115,6 @@ module Test
     end
     as bob do
       read "a/b/c/a/d", "hello"
-      check_state
     end
   end
 
@@ -148,7 +144,6 @@ module Test
     end
     as bob do
       read "a/b/c/d/e/f/g/h/i/a/j", "hello"
-      check_state
     end
   end
 
@@ -185,7 +180,6 @@ module Test
       lsdir "g/e", { "b" => "DIR" }
       lsdir "g/e/b", {}
       lsdir "g/d", { "a" => "DIR" }
-      check_state
     end
   end
 
@@ -213,7 +207,6 @@ module Test
       lsdir "a", {}
       lsdir "b", { "bar" => "FILE" }
       read "b/bar", "goodbye"
-      check_state
     end
   end
 
@@ -237,7 +230,6 @@ module Test
     as alice do
       lsdir "a/", { "b" => "EXEC"}
       read "a/b", "goodbye"
-      check_state
     end
   end
 
@@ -261,7 +253,6 @@ module Test
     as alice do
       lsdir "a/", { "b" => "EXEC"}
       read "a/b", "goodbye"
-      check_state
     end
   end
 
@@ -285,7 +276,6 @@ module Test
     as alice do
       lsdir "a/", { "b" => "FILE"}
       read "a/b", "goodbye"
-      check_state
     end
   end
 
@@ -309,7 +299,6 @@ module Test
     as alice do
       lsdir "a/", { "b" => "FILE"}
       read "a/b", "goodbye"
-      check_state
     end
   end
 
@@ -336,7 +325,6 @@ module Test
     as alice do
       lsdir "a/b/c/d", { "f" => "FILE"}
       read "a/b/c/d/f", "goodbye"
-      check_state
     end
   end
 
@@ -363,7 +351,6 @@ module Test
     as alice do
       lsdir "a/b/c/d", { "f" => "FILE"}
       read "a/b/c/d/f", "goodbye"
-      check_state
     end
   end
 
@@ -391,7 +378,6 @@ module Test
       lsdir "a", {}
       lsdir "b", { "bar" => "FILE" }
       read "b/bar", "goodbye"
-      check_state
     end
   end
 
@@ -444,7 +430,6 @@ module Test
       lsdir "a/b", { "c" => "FILE", "d" => "FILE" }
       read "a/b/c", "hello"
       read "a/b/d", "goodbye"
-      check_state
     end
   end
 
@@ -473,7 +458,6 @@ module Test
       lsdir "b", { "c" => "FILE", "d" => "FILE" }
       read "b/c", "hello"
       read "b/d", "goodbye"
-      check_state
     end
   end
 
@@ -502,7 +486,6 @@ module Test
       lsdir "b", { "c" => "FILE", "d" => "FILE" }
       read "b/c", "hello"
       read "b/d", "goodbye"
-      check_state
     end
   end
 

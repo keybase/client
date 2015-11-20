@@ -19,6 +19,8 @@ type LibKBFS struct {
 	updateChannels map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{}
 	// test object, mostly for logging
 	log *MemoryLog
+	// whether we've already checked the state on shutdown
+	checkedState bool
 }
 
 // Check that LibKBFS fully implements the Engine interface.
@@ -35,6 +37,7 @@ func (k *LibKBFS) Init() {
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(blockSize int64, blockChangeSize int64,
 	users ...string) map[string]User {
+	k.checkedState = false
 	// Start a new log for this test.
 	k.log = &MemoryLog{}
 	k.log.Log("\n------------------------------------------")
@@ -299,7 +302,7 @@ func (k *LibKBFS) SyncFromServer(u User, dir Node) (err error) {
 }
 
 // Shutdown implements the Engine interface.
-func (k *LibKBFS) Shutdown(u User) {
+func (k *LibKBFS) Shutdown(u User) error {
 	config := u.(*libkbfs.ConfigLocal)
 	// drop references
 	k.refs[config] = make(map[libkbfs.Node]bool)
@@ -308,18 +311,15 @@ func (k *LibKBFS) Shutdown(u User) {
 	k.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
 	delete(k.updateChannels, config)
 	// shutdown
-	config.Shutdown()
+	checkState := !k.checkedState
+	k.checkedState = true
+	if err := config.Shutdown(checkState); err != nil {
+		return err
+	}
+	return nil
 }
 
 // PrintLog implements the Engine interface.
 func (k *LibKBFS) PrintLog() {
 	k.log.PrintLog()
-}
-
-// CheckState implements the Engine interface.
-func (k *LibKBFS) CheckState(u User, dir Node) (err error) {
-	config := u.(*libkbfs.ConfigLocal)
-	d := dir.(libkbfs.Node)
-	sc := libkbfs.NewStateChecker(config)
-	return sc.CheckMergedState(context.Background(), d.GetFolderBranch().Tlf)
 }

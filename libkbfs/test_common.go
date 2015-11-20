@@ -488,11 +488,10 @@ func (tc TestClock) Now() time.Time {
 	return tc.T
 }
 
-// TestStateForTlf runs the state checker for the given TLF.
-func TestStateForTlf(t *testing.T, ctx context.Context,
-	config Config, tlf TlfID) {
-	sc := NewStateChecker(config)
-	if err := sc.CheckMergedState(ctx, tlf); err != nil {
-		t.Errorf("State check failed: %v", err)
+// ShutdownConfigOrBust shuts down the given config, but fails the
+// test if there's an error.
+func ShutdownConfigOrBust(t *testing.T, config Config, checkState bool) {
+	if err := config.Shutdown(checkState); err != nil {
+		t.Errorf(err.Error())
 	}
 }

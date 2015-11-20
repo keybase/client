@@ -122,9 +122,8 @@ module Test
     attach_function :DisableUpdatesForTesting, [:interface, :interface], :string
     attach_function :ReenableUpdates, [:interface, :interface], :void
     attach_function :SyncFromServer, [:interface, :interface], :string
-    attach_function :Shutdown, [:interface], :void
+    attach_function :Shutdown, [:interface], :string
     attach_function :PrintLog, [], :void
-    attach_function :CheckState, [:interface, :interface], :string
 
     # initialize. TODO: support other engines.
     raise "unable to load engine" unless Init("libkbfs")
@@ -223,10 +222,6 @@ module Test
 
     def self.print_log()
       PrintLog()
-    end
-
-    def self.check_state(u, dir)
-      CheckState(u, dir)
     end
   end
 end

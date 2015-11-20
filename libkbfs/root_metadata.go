@@ -397,6 +397,7 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.RefBytes = 0
 	md.UnrefBytes = 0
 	md.data.Changes.sizeEstimate = 0
+	md.data.Changes.Pointer = zeroPtr
 	md.data.Changes.Ops = nil
 }
 

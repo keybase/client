@@ -269,24 +269,18 @@ func SyncFromServer(u, folder interface{}) (errString *C.char) {
 
 // Shutdown shuts down the test for the given user.
 //export Shutdown
-func Shutdown(u interface{}) {
-	engine.Shutdown(u)
+func Shutdown(u interface{}) (errString *C.char) {
+	err := engine.Shutdown(u)
+	if err != nil {
+		errString = C.CString(err.Error())
+	}
+	return errString
 }
 
 // PrintLog prints the logs for the last test.
 //export PrintLog
 func PrintLog() {
 	engine.PrintLog()
-}
-
-// CheckState checks the state of the given folder for consistency.
-//export CheckState
-func CheckState(u, folder interface{}) (errString *C.char) {
-	err := engine.CheckState(u, folder)
-	if err != nil {
-		errString = C.CString(err.Error())
-	}
-	return errString
 }
 
 // Helper to convert from C.StringArray to []string

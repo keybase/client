@@ -28,10 +28,13 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by KBFSOpsStandard.
-func (fs *KBFSOpsStandard) Shutdown() {
+func (fs *KBFSOpsStandard) Shutdown(checkState bool) error {
 	for _, ops := range fs.ops {
-		ops.Shutdown()
+		if err := ops.Shutdown(checkState); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // GetFavorites implements the KBFSOps interface for

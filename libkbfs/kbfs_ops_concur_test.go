@@ -47,7 +47,7 @@ func kbfsOpsConcurInit(t *testing.T, users ...libkb.NormalizedUsername) (
 // then get it from the MD cache.
 func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer config.Shutdown()
+	defer ShutdownConfigOrBust(t, config, true)
 	m := NewMDOpsConcurTest(uid)
 	config.SetMDOps(m)
 
@@ -85,13 +85,12 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 			t.Errorf("Got an error doing concurrent MD gets: err=(%s)", err)
 		}
 	}
-	TestStateForTlf(t, ctx, config, dir)
 }
 
 // Test that a read can happen concurrently with a sync
 func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer config.Shutdown()
+	defer ShutdownConfigOrBust(t, config, true)
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
@@ -141,13 +140,12 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	if err != nil {
 		t.Errorf("Sync got an error: %v", err)
 	}
-	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
 }
 
 // Test that a write can happen concurrently with a sync
 func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer config.Shutdown()
+	defer ShutdownConfigOrBust(t, config, true)
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
@@ -234,7 +232,6 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
 		t.Errorf("Couldn't sync the final write")
 	}
-	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
 }
 
 // staller is a pair of channels. Whenever something is to be
@@ -558,7 +555,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 // regression test for KBFS-558.
 func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer config.Shutdown()
+	defer ShutdownConfigOrBust(t, config, true)
 
 	km := &mdRecordingKeyManager{delegate: config.KeyManager()}
 
@@ -775,14 +772,13 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	if g, e := de.Size, len(data); g != uint64(e) {
 		t.Errorf("Got wrong size %d; expected %d", g, e)
 	}
-	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
 }
 
 // Test that a write can happen concurrently with a sync when there
 // are multiple blocks in the file.
 func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer config.Shutdown()
+	defer ShutdownConfigOrBust(t, config, true)
 
 	// make blocks small
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
@@ -878,7 +874,15 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	if nr != 10 || !bytes.Equal(expectedData, buf2) {
 		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 	}
-	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
+
+	// Final sync to clean up
+	go func() {
+		m.start <- struct{}{}
+		m.enter <- struct{}{}
+	}()
+	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+		t.Errorf("Couldn't sync the final write")
+	}
 }
 
 // Test that a write consisting of multiple blocks can be canceled
@@ -888,7 +892,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		t.Skip("Skipping because we are not putting blocks in parallel.")
 	}
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer config.Shutdown()
+	defer ShutdownConfigOrBust(t, config, false)
 
 	// give it a remote block server with a fake client
 	fc := NewFakeBServerClient(nil, nil, nil)
@@ -999,7 +1003,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 // cancel the remaining puts.
 func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer config.Shutdown()
+	defer ShutdownConfigOrBust(t, config, false)
 
 	// give it a mock'd block server
 	ctr := NewSafeTestReporter(t)

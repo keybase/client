@@ -71,11 +71,8 @@ type Engine interface {
 	SyncFromServer(u User, dir Node) (err error)
 	// Shutdown is called by the test harness when it is done with the
 	// given user.
-	Shutdown(u User)
+	Shutdown(u User) error
 	// PrintLog is called by the test harness when the engine should
 	// print out all accumulated log output to stdout.
 	PrintLog()
-	// CheckState can be called to verify that the state of a folder
-	// is consistent.
-	CheckState(u User, dir Node) (err error)
 }
