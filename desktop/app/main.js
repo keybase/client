@@ -1,3 +1,4 @@
+'use strict'
 // This file is ES5; it's loaded before Babel.
 require('babel/register')({
   extensions: ['.desktop.js', '.es6', '.es', '.jsx', '.js']
@@ -6,6 +7,7 @@ require('babel/register')({
 const menubar = require('menubar')
 const ipc = require('ipc')
 const Window = require('./window')
+const splash = require('./splash')
 
 const mb = menubar({
   index: `file://${__dirname}/../renderer/launcher.html`,
@@ -37,3 +39,5 @@ if (process.platform === 'darwin') {
 
 ipc.on('showMain', () => { mainWindow.show() })
 ipc.on('showTracker', () => { trackerWindow.show() })
+
+splash()
