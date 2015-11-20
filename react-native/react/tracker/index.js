@@ -10,7 +10,9 @@ import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
+import {warning} from '../constants/tracker'
 
+import type {RenderProps} from './render.desktop'
 import type {UserInfo} from './bio.render.desktop'
 import type {Proof} from './proofs.render.desktop'
 import type {SimpleProofState} from '../constants/tracker'
@@ -43,30 +45,36 @@ class Tracker extends Component {
   }
 
   render () {
-    // these non-prop values will be removed during integration
-    return <Render
-             bioProps={{
-               username: this.props.username,
-               state: this.props.proofState,
-               userInfo: this.props.userInfo
-             }}
-             headerProps={{
-               reason: this.props.reason,
-               onClose: this.props.onCloseFromHeader
-             }}
-             actionProps={{
-               state: this.props.proofState,
-               username: this.props.username,
-               shouldFollow: this.props.shouldFollow,
-               onClose: this.props.onCloseFromActionBar,
-               onRefollow: this.props.onRefollow,
-               onUnfollow: this.props.onUnfollow,
-               onFollowHelp: this.props.onFollowHelp,
-               onFollowChecked: this.props.onFollowChecked
-             }}
-             proofsProps={{
-               proofs: this.props.proofs
-             }}/>
+    const renderChangedTitle = this.props.proofState === warning ? `(warning) ${this.props.username} added some verifications`
+      : `(error) Some of ${this.props.username}'s verifications are compromised or have changed.`
+
+    const renderProps: RenderProps = {
+      bioProps: {
+        username: this.props.username,
+        state: this.props.proofState,
+        userInfo: this.props.userInfo
+      },
+      headerProps: {
+        reason: this.props.reason,
+        onClose: this.props.onCloseFromHeader
+      },
+      actionProps: {
+        state: this.props.proofState,
+        username: this.props.username,
+        renderChangedTitle,
+        shouldFollow: this.props.shouldFollow,
+        onClose: this.props.onCloseFromActionBar,
+        onRefollow: this.props.onRefollow,
+        onUnfollow: this.props.onUnfollow,
+        onFollowHelp: this.props.onFollowHelp,
+        onFollowChecked: this.props.onFollowChecked
+      },
+      proofsProps: {
+        proofs: this.props.proofs
+      }
+    }
+
+    return <Render {...renderProps}/>
   }
 
   static parseRoute (currentPath) {

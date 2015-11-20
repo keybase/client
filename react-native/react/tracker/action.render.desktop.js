@@ -5,7 +5,7 @@
 import React, {Component} from '../base-react'
 import {Checkbox, FloatingActionButton, FlatButton} from 'material-ui'
 
-import {normal, warning, pending} from '../constants/tracker'
+import {normal, pending} from '../constants/tracker'
 
 import type {SimpleProofState} from '../constants/tracker'
 
@@ -13,6 +13,7 @@ export type ActionProps = {
   state: SimpleProofState,
   username: ?string,
   shouldFollow: ?boolean,
+  renderChangedTitle: string,
   onClose: () => void,
   onRefollow: () => void,
   onUnfollow: () => void,
@@ -42,8 +43,9 @@ export default class ActionRender extends Component {
   }
 
   renderChanged (username: string): ReactElement {
-    const title = this.props.state === warning ? `(warning) ${username} added some verifications`
-      : `(error) Some of ${username}'s verifications are compromised or have changed.`
+    //const title = this.props.state === warning ? `(warning) ${username} added some verifications`
+    //  : `(error) Some of ${username}'s verifications are compromised or have changed.`
+    const title = this.props.renderChangedTitle
     return (
       <div style={{display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', padding: 10, backgroundColor: '#E0E0E0'}}>
         <p>{title}</p>

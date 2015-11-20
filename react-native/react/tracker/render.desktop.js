@@ -18,7 +18,7 @@ import type {ActionProps} from './action.render.desktop'
 import type {HeaderProps} from './header.render.desktop'
 import type {ProofsProps} from './proofs.render.desktop'
 
-export type TrackerProps = {
+export type RenderProps = {
   bioProps: BioProps,
   actionProps: ActionProps,
   headerProps: HeaderProps,
@@ -26,7 +26,7 @@ export type TrackerProps = {
 }
 
 export default class Render extends Component {
-  props: TrackerProps;
+  props: RenderProps;
 
   render (): ReactElement {
     return (
