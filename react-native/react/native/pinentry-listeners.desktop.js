@@ -1,5 +1,3 @@
-/* @flow */
-
 import BrowserWindow from 'browser-window'
 import ipc from 'ipc'
 

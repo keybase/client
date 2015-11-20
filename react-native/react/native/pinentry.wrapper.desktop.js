@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component} from '../base-react'
 import ReactDOM from 'react-dom'
 import Pinentry from '../pinentry'
