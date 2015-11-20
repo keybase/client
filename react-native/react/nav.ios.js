@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet} from './base-react'
 import {connect} from './base-redux'
 

@@ -1,5 +1,4 @@
 /* @flow */
-'use strict'
 
 import * as RouterConstants from '../constants/router'
 import Immutable, {List, Map} from 'immutable'

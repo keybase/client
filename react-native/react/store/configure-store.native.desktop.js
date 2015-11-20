@@ -1,5 +1,3 @@
-'use strict'
-
 import {createStore, compose} from 'redux'
 import {devTools} from 'redux-devtools'
 

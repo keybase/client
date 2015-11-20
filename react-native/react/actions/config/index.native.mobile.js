@@ -1,5 +1,3 @@
-'use strict'
-
 import {NativeModules} from 'react-native'
 import * as Constants from '../../constants/config'
 

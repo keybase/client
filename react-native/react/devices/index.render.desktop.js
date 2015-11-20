@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component} from '../base-react'
 
 import HardwarePhoneIphone from 'material-ui/lib/svg-icons/hardware/phone-iphone'

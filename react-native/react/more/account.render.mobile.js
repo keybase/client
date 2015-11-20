@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, Text, TextInput, View, StyleSheet} from '../base-react'
 import commonStyles from '../styles/common'
 import Button from '../common-adapters/button'

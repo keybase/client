@@ -1,5 +1,3 @@
-'use strict'
-
 import * as Constants from '../constants/profile'
 import {routeAppend} from './router'
 import engine from '../engine'

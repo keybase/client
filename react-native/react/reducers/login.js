@@ -1,5 +1,4 @@
 /* @flow */
-'use strict'
 
 import * as Constants from '../constants/login'
 import * as ConfigConstants from '../constants/config'

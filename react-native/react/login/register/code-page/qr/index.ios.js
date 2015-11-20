@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, Image, StyleSheet, View} from '../../../../base-react'
 import Camera from 'react-native-camera'
 

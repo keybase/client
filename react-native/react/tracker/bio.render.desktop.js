@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
 

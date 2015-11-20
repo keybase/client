@@ -2,8 +2,6 @@
  * Login based on kex2. This will replace login/ when we integrate the FE/BE
  */
 
-'use strict'
-
 import React, {Component, StyleSheet, View} from '../base-react'
 import ProgressIndicator from '../common-adapters/progress-indicator'
 import Welcome from './welcome'

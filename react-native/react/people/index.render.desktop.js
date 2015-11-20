@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component} from '../base-react'
 import Search from '../search/index.desktop'
 

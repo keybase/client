@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet, Text, View} from '../../base-react'
 import {connect} from '../../base-redux'
 import {registerWithUserPass, registerWithPaperKey, registerWithExistingDevice} from '../../actions/login'

@@ -1,11 +1,6 @@
-'use strict'
-
 import React, {Component, Text, TouchableHighlight, View, ScrollView, StyleSheet} from '../base-react'
 import moment from 'moment'
 import commonStyles from '../styles/common'
-
-// TODO
-// [ ] - Add Icons
 
 export default class DevicesRender extends Component {
 

@@ -1,5 +1,3 @@
-'use strict'
-
 import configureStoreNative from './configure-store.native'
 import {applyMiddleware} from 'redux'
 import thunkMiddleware from 'redux-thunk'

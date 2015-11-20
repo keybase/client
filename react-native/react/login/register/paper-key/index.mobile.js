@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet, Text, TextInput, View} from '../../../base-react'
 import {connect} from '../../../base-redux'
 import commonStyles from '../../../styles/common'

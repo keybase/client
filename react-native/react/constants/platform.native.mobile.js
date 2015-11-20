@@ -1,5 +1,3 @@
-'use strict'
-
 import {Platform} from 'react-native'
 import {OS_ANDROID, OS_IOS} from './platform.shared'
 

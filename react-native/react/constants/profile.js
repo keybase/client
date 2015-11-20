@@ -1,5 +1,3 @@
-'use strict'
-
 // Actions
 export const initProfile = 'profile:initProfile'
 export const profileLoading = 'profile:profileLoading'

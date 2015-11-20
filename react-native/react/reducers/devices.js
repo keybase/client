@@ -1,5 +1,3 @@
-'use strict'
-
 import * as Constants from '../constants/devices'
 
 const initialState = {

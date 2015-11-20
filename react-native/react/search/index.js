@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image} from '../base-react'
 import {connect} from '../base-redux'
 import {selectService, submitSearch} from '../actions/search'

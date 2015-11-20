@@ -1,5 +1,3 @@
-'use strict'
-
 import * as Constants from '../constants/search'
 import {routeAppend, getCurrentURI} from './router'
 import {loadSummaries} from './profile'

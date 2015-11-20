@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, Text, TextInput, View} from '../../../base-react'
 import {connect} from '../../../base-redux'
 import {setDeviceName} from '../../../actions/login'

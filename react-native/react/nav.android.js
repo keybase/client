@@ -1,5 +1,3 @@
-'use strict'
-
 import TabBar from './native/tab-bar'
 import {connect} from './base-redux'
 import MetaNavigator from './router/meta-navigator'
