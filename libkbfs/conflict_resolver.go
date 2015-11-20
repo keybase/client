@@ -1574,10 +1574,19 @@ type crRenameHelperKey struct {
 	name           string
 }
 
+// crMakeRevertedOps changes the BlockPointers of the corresponding
+// operations for the given set of paths back to their originals,
+// which allows other parts of conflict resolution to more easily
+// build up the local and remote notifications needed.  Also, it
+// reverts rm/create pairs back into complete rename operations, for
+// the purposes of notification, so this should only be called after
+// all conflicts and actions have been resolved.  It returns the
+// complete slice of reverted operations.
 func crMakeRevertedOps(sortedPaths []path, chains *crChains) ([]op, error) {
 	var ops []op
 	// Build a map of directory {original, name} -> renamed original.
-	// This will help us map create ops to
+	// This will help us map create ops to the corresponding old
+	// parent.
 	renames := make(map[crRenameHelperKey]BlockPointer)
 	for original, ri := range chains.renamedOriginals {
 		renames[crRenameHelperKey{ri.originalNewParent, ri.newName}] = original
@@ -1723,13 +1732,6 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer) (
 	return newOps, nil
 }
 
-type crPathTreeNode struct {
-	ptr        BlockPointer
-	parent     *crPathTreeNode
-	children   map[string]*crPathTreeNode
-	mergedPath path
-}
-
 // resolveOnePath figures out the new merged path, in the resolved
 // folder, for a given unmerged pointer.  For each node on the path,
 // see if the node has been renamed.  If so, see if there's a
@@ -1837,6 +1839,25 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	return resolvedPaths, nil
 }
 
+// crPathTreeNode represents a particular node in the part of the FS
+// tree affected by the conflict resolution, which needs to be sync'd.
+type crPathTreeNode struct {
+	ptr        BlockPointer
+	parent     *crPathTreeNode
+	children   map[string]*crPathTreeNode
+	mergedPath path
+}
+
+// syncTree, given a node in part of the FS tree that needs to be
+// sync'd, either calls FolderBranchOps.syncBlock on it if the node
+// has no children of its own, or it calls syncTree recursively for
+// all children.  When calling itself recursively on its children, it
+// instructs each child to sync only up to this node, except for the
+// last child which may sync back to the given stopAt pointer.  This
+// ensures that the sync process will ready blocks that are complete
+// (with all child changes applied) before readying any parent blocks.
+// syncTree returns the merged blockPutState for itself and all of its
+// children.
 func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 	node *crPathTreeNode, stopAt BlockPointer, lbc localBcache,
 	newFileBlocks fileBlockMap) (*blockPutState, error) {
@@ -1896,7 +1917,7 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 			}
 		}
 
-		return bps, err
+		return bps, nil
 	}
 
 	// If there is more than one child, use this node as the stopAt
@@ -1919,6 +1940,13 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 	return bps, nil
 }
 
+// syncBlocks takes in the complete set of paths affected by this
+// conflict resolution, and organizes them into a tree, which it then
+// syncs using syncTree.  It also puts all the resulting blocks to the
+// servers.  It returns a map describing how blocks were updated in
+// the merged branch, as well as the complete set of blocks that were
+// put to the server as a result of this resolution (for later
+// caching).
 func (cr *ConflictResolver) syncBlocks(ctx context.Context, md *RootMetadata,
 	mergedChains *crChains, resolvedPaths map[BlockPointer]path,
 	lbc localBcache, newFileBlocks fileBlockMap) (
@@ -2050,6 +2078,9 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, md *RootMetadata,
 	return updates, bps, nil
 }
 
+// getOpsForLocalNotification returns the set of operations that this
+// node will need to send local notifications for, in order to
+// transition from the staged state to the merged state.
 func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	md *RootMetadata, unmergedChains *crChains, mergedChains *crChains,
 	updates map[BlockPointer]BlockPointer) ([]op, error) {
@@ -2126,6 +2157,9 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	return newOps, err
 }
 
+// finalizeResolution finishes the resolution process, making the
+// resolution visible to any nodes on the merged branch, and taking
+// the local node out of staged mode.
 func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 	md *RootMetadata, unmergedChains *crChains, mergedChains *crChains,
 	updates map[BlockPointer]BlockPointer, bps *blockPutState) error {
@@ -2142,6 +2176,9 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 	return cr.fbo.finalizeResolution(ctx, md, bps, newOps)
 }
 
+// completeResolution pushes all the resolved blocks to the servers,
+// computes all remote and local notifications, and finalizes the
+// resolution process.
 func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	unmergedChains *crChains, mergedChains *crChains, unmergedPaths []path,
 	mergedPaths map[BlockPointer]path, lbc localBcache,
