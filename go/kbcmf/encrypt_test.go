@@ -15,17 +15,20 @@ import (
 )
 
 type boxPublicKey struct {
-	key RawBoxKey
+	key  RawBoxKey
+	hide bool
 }
 
 type boxSecretKey struct {
 	pub    boxPublicKey
 	key    RawBoxKey
 	isInit bool
+	hide   bool
 }
 
 type keyring struct {
-	keys map[string]BoxSecretKey
+	keys     map[string]BoxSecretKey
+	iterable bool
 }
 
 func newKeyring() *keyring {
@@ -55,6 +58,22 @@ func (r *keyring) ImportEphemeralKey(kid []byte) BoxPublicKey {
 	return ret
 }
 
+func (r *keyring) GetAllSecretKeys() (ret []BoxSecretKey) {
+	if r.iterable {
+		for _, v := range r.keys {
+			ret = append(ret, v)
+		}
+	}
+	return ret
+}
+
+func (r *keyring) makeIterable() *keyring {
+	return &keyring{
+		keys:     r.keys,
+		iterable: true,
+	}
+}
+
 func (r *keyring) LookupBoxSecretKey(kids [][]byte) (int, BoxSecretKey) {
 	for i, kid := range kids {
 		if key, _ := r.keys[hex.EncodeToString(kid)]; key != nil {
@@ -72,8 +91,28 @@ func (b boxPublicKey) ToKID() []byte {
 	return b.key[:]
 }
 
+func (b boxPublicKey) HideIdentity() bool { return b.hide }
+
 func (b boxSecretKey) GetPublicKey() BoxPublicKey {
-	return b.pub
+	ret := b.pub
+	ret.hide = b.hide
+	return ret
+}
+
+type boxPrecomputedSharedKey RawBoxKey
+
+func (b boxSecretKey) Precompute(pk BoxPublicKey) BoxPrecomputedSharedKey {
+	var res boxPrecomputedSharedKey
+	box.Precompute((*[32]byte)(&res), (*[32]byte)(pk.ToRawBoxKeyPointer()), (*[32]byte)(&b.key))
+	return res
+}
+
+func (b boxPrecomputedSharedKey) Unbox(nonce *Nonce, msg []byte) ([]byte, error) {
+	out, ok := box.OpenAfterPrecomputation([]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&b))
+	if !ok {
+		return nil, errPublicKeyDecryptionFailed
+	}
+	return out, nil
 }
 
 func (b boxSecretKey) Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) ([]byte, error) {
@@ -100,7 +139,7 @@ func (b boxPublicKey) CreateEphemeralKey() (BoxSecretKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := &boxSecretKey{}
+	ret := &boxSecretKey{hide: b.hide}
 	copy(ret.key[:], (*sk)[:])
 	copy(ret.pub.key[:], (*pk)[:])
 	ret.isInit = true
@@ -108,6 +147,20 @@ func (b boxPublicKey) CreateEphemeralKey() (BoxSecretKey, error) {
 }
 
 func (b boxSecretKey) IsNull() bool { return !b.isInit }
+
+func newHiddenBoxKeyNoInsert(t *testing.T) BoxSecretKey {
+	ret, err := (boxPublicKey{hide: true}).CreateEphemeralKey()
+	if err != nil {
+		t.Fatalf("In gen key: %s", err)
+	}
+	return ret
+}
+
+func newHiddenBoxKey(t *testing.T) BoxSecretKey {
+	ret := newHiddenBoxKeyNoInsert(t)
+	kr.insert(ret)
+	return ret
+}
 
 func newBoxKeyNoInsert(t *testing.T) BoxSecretKey {
 	ret, err := (boxPublicKey{}).CreateEphemeralKey()
@@ -1181,5 +1234,113 @@ func TestAnonymousSender(t *testing.T) {
 	_, err = Open(ciphertext, kr)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestAllAnonymous(t *testing.T) {
+	receivers := [][]BoxPublicKey{
+		[]BoxPublicKey{
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		},
+		[]BoxPublicKey{
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		},
+		[]BoxPublicKey{
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+			newHiddenBoxKey(t).GetPublicKey(),
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		},
+	}
+	plaintext := randomMsg(t, 1024*3)
+	ciphertext, err := Seal(plaintext, nil, receivers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = Open(ciphertext, kr)
+	if err != ErrNoDecryptionKey {
+		t.Fatalf("Got %v but wanted %v", err, ErrNoDecryptionKey)
+	}
+	_, err = Open(ciphertext, kr.makeIterable())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	receivers[2][1] = newHiddenBoxKeyNoInsert(t).GetPublicKey()
+	ciphertext, err = Seal(plaintext, nil, receivers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = Open(ciphertext, kr.makeIterable())
+	if err != ErrNoDecryptionKey {
+		t.Fatalf("Got %v but wanted %v", err, ErrNoDecryptionKey)
+	}
+}
+
+func TestCorruptSenderKey(t *testing.T) {
+	receivers := [][]BoxPublicKey{{newHiddenBoxKey(t).GetPublicKey()}}
+	plaintext := randomMsg(t, 1024*3)
+	teo := testEncryptionOptions{
+		corruptHeaderSenderKey: func(k []byte, gid int, rid int) []byte {
+			return k[0 : len(k)-1]
+		},
+	}
+	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = Open(ciphertext, kr)
+	if err != ErrBadSenderKey {
+		t.Fatalf("Got %v but wanted %v", err, ErrBadSenderKey)
+	}
+}
+
+func TestCiphertextSwapKeys(t *testing.T) {
+	receivers := [][]BoxPublicKey{
+		[]BoxPublicKey{
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+			newHiddenBoxKey(t).GetPublicKey(),
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		},
+	}
+	plaintext := randomMsg(t, 1024*3)
+	teo := testEncryptionOptions{
+		corruptHeader: func(h *EncryptionHeader) {
+			h.Receivers[1].Keys, h.Receivers[0].Keys = h.Receivers[0].Keys, h.Receivers[1].Keys
+		},
+	}
+	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = Open(ciphertext, kr)
+	if err != errPublicKeyDecryptionFailed {
+		t.Fatalf("Got %v but wanted %v", err, errPublicKeyDecryptionFailed)
+	}
+}
+
+func TestCiphertextSwapSenders(t *testing.T) {
+	receivers := [][]BoxPublicKey{
+		[]BoxPublicKey{
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+			newHiddenBoxKey(t).GetPublicKey(),
+			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		},
+	}
+	plaintext := randomMsg(t, 1024*3)
+	teo := testEncryptionOptions{
+		corruptHeader: func(h *EncryptionHeader) {
+			h.Receivers[1].Sender, h.Receivers[0].Sender = h.Receivers[0].Sender, h.Receivers[1].Sender
+		},
+	}
+	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = Open(ciphertext, kr)
+	if err != errPublicKeyDecryptionFailed {
+		t.Fatalf("Got %v but wanted %v", err, errPublicKeyDecryptionFailed)
 	}
 }

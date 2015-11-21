@@ -103,6 +103,8 @@ func (es *encryptStream) checkReceivers(r [][]BoxPublicKey) error {
 		return ErrBadReceivers
 	}
 
+	tot := uint64(0)
+
 	// Make sure that each receiver only shows up in the set once.
 	receiversAsSet := make(map[string]struct{})
 
@@ -121,8 +123,15 @@ func (es *encryptStream) checkReceivers(r [][]BoxPublicKey) error {
 				return ErrRepeatedKey(kid)
 			}
 			receiversAsSet[kidString] = struct{}{}
+			tot++
 		}
 	}
+
+	// Don't allow more than 2^31 receivers
+	if tot >= 0x7fffffff {
+		return ErrBadReceivers
+	}
+
 	return nil
 }
 
@@ -209,10 +218,15 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) e
 			}
 
 			rkc := receiverKeysCiphertexts{
-				KID:    receiver.ToKID(),
 				Keys:   ptec,
 				Sender: ske,
 			}
+
+			// Don't specify the receivers if this public key wants to hide
+			if !receiver.HideIdentity() {
+				rkc.KID = receiver.ToKID()
+			}
+
 			eh.Receivers = append(eh.Receivers, rkc)
 		}
 	}

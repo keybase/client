@@ -21,6 +21,7 @@ type testEncryptionOptions struct {
 	corruptReceiverKeysCiphertext      func(rk *receiverKeysCiphertexts, gid int, rid int)
 	corruptHeaderNonce                 func(n *Nonce, gid int, rid int, slot int)
 	corruptHeader                      func(eh *EncryptionHeader)
+	corruptHeaderSenderKey             func(sk []byte, git int, rid int) []byte
 	corruptHeaderPacked                func(b []byte)
 }
 
@@ -223,7 +224,12 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicK
 				pes.options.corruptHeaderNonce(&nonce, gid, rid, 0)
 			}
 
-			ske, err := ephemeralKey.Box(receiver, &nonce, sender.GetPublicKey().ToKID())
+			skp := sender.GetPublicKey().ToKID()
+			if pes.options.corruptHeaderSenderKey != nil {
+				skp = pes.options.corruptHeaderSenderKey(skp, gid, rid)
+			}
+
+			ske, err := ephemeralKey.Box(receiver, &nonce, skp)
 			if err != nil {
 				return err
 			}

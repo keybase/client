@@ -131,6 +131,48 @@ func (ds *decryptStream) assertEndOfStream() error {
 	return err
 }
 
+func (ds *decryptStream) tryVisibileReceivers(hdr *EncryptionHeader, nonce *Nonce, ephemeralKey BoxPublicKey) (BoxSecretKey, []byte, int, error) {
+	var kids [][]byte
+	for _, r := range hdr.Receivers {
+		if r.KID != nil {
+			kids = append(kids, r.KID)
+		}
+	}
+
+	i, sk := ds.ring.LookupBoxSecretKey(kids)
+	if i < 0 || sk == nil {
+		return nil, nil, -1, nil
+	}
+
+	// Decrypt the sender's public key
+	nonce.writeCounter32(uint32(2 * i))
+	senderPublicRawKey, err := sk.Unbox(ephemeralKey, nonce, hdr.Receivers[i].Sender)
+	if err != nil {
+		return nil, nil, -1, err
+	}
+	return sk, senderPublicRawKey, i, err
+}
+
+func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, nonce *Nonce, ephemeralKey BoxPublicKey) (BoxSecretKey, []byte, int, error) {
+	secretKeys := ds.ring.GetAllSecretKeys()
+	var bpsk BoxPrecomputedSharedKey
+
+	for _, secretKey := range secretKeys {
+		bpsk = secretKey.Precompute(ephemeralKey)
+
+		for i, r := range hdr.Receivers {
+			// Decrypt the sender's public key
+			nonce.writeCounter32(uint32(2 * i))
+			senderPublicRawKey, err := bpsk.Unbox(nonce, r.Sender)
+			if err == nil {
+				return secretKey, senderPublicRawKey, i, nil
+			}
+		}
+	}
+
+	return nil, nil, -1, nil
+}
+
 func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	if err := hdr.validate(); err != nil {
 		return err
@@ -140,25 +182,23 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 		return ErrBadEphemeralKey
 	}
 
-	var kids [][]byte
-	for _, r := range hdr.Receivers {
-		kids = append(kids, r.KID)
-	}
-	i, sk := ds.ring.LookupBoxSecretKey(kids)
-	if sk == nil || i < 0 {
-		return ErrNoDecryptionKey
-	}
-
-	// Decrypt the sender's public key
 	var nonce Nonce
 	copy(nonce[:], hdr.Nonce)
-	nonce.writeCounter32(uint32(2 * i))
-	senderPublicKey, err := sk.Unbox(ephemeralKey, &nonce, hdr.Receivers[i].Sender)
+
+	secretKey, senderPublicRawKey, i, err := ds.tryVisibileReceivers(hdr, &nonce, ephemeralKey)
 	if err != nil {
 		return err
 	}
-
-	if err := verifyRawKey(senderPublicKey); err != nil {
+	if secretKey == nil {
+		secretKey, senderPublicRawKey, i, err = ds.tryHiddenReceivers(hdr, &nonce, ephemeralKey)
+	}
+	if err != nil {
+		return err
+	}
+	if secretKey == nil || i < 0 {
+		return ErrNoDecryptionKey
+	}
+	if err := verifyRawKey(senderPublicRawKey); err != nil {
 		return err
 	}
 
@@ -167,15 +207,16 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	// key, then assume "anonymous mode", so use the already imported anonymous
 	// key.
 	pk := ephemeralKey
-	if !hmac.Equal(hdr.Sender, senderPublicKey) {
-		pk = ds.ring.LookupBoxPublicKey(senderPublicKey)
+	if !hmac.Equal(hdr.Sender, senderPublicRawKey) {
+		pk = ds.ring.LookupBoxPublicKey(senderPublicRawKey)
 		if pk == nil {
 			return ErrNoSenderKey
 		}
 	}
 
 	nonce.writeCounter32(uint32(2*i + 1))
-	keysPacked, err := sk.Unbox(pk, &nonce, hdr.Receivers[i].Keys)
+
+	keysPacked, err := secretKey.Unbox(pk, &nonce, hdr.Receivers[i].Keys)
 	if err != nil {
 		return err
 	}
