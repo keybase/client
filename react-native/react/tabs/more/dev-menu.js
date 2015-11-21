@@ -1,11 +1,30 @@
 'use strict'
 
 import React, { Component } from '../../base-react'
+import {connect} from 'redux'
 import { routeAppend } from '../../actions/router'
 import { pushNewProfile } from '../../actions/profile'
 import { pushNewSearch } from '../../actions/search'
 import { logout } from '../../actions/login2'
 import MenuList from './menu-list'
+
+import RemoteWindow from '../../native/remote-window'
+
+class Foo extends Component {
+  render () {
+    const payload = { 
+      features: { 
+        secretStorage: { allow: true, label: 'store your test passphrase' }
+      },
+      prompt: 'Enter a test passphrase',
+      retryLabel: '',
+      windowTitle: 'Keybase Test Passphrase'
+    }
+    return <RemoteWindow 
+             component='pinentry'
+             payload={payload}/>
+  }
+}
 
 export default class DevMenu extends Component {
   render () {
@@ -43,6 +62,9 @@ export default class DevMenu extends Component {
       }},
       {name: 'Tracker (error)', hasChildren: true, onClick: () => {
         this.props.routeAppend([{path: 'tracker', state: 'error'}])
+      }},
+      {name: 'Remote Window', hasChildren: true, onClick: () => {
+        this.props.routeAppend([{parseRoute: { componentAtTop: { component: Foo } }}])
       }}
     ]
     return (

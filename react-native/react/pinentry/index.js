@@ -3,6 +3,8 @@
 import React, { Component } from '../base-react'
 import PinentryRender from './pinentry.render'
 
+import remoteConnect from '../native/remote-connect'
+
 export default class Pinentry extends Component {
   render () {
     return <PinentryRender {...this.props} />
@@ -40,3 +42,23 @@ export default class Pinentry extends Component {
 }
 
 Pinentry.propTypes = PinentryRender.propTypes
+
+export const RemoteComponent = remoteConnect(
+  state => { return {} },
+  dispatch => {
+    // TODO move these actions in their proper place
+    const onSubmit = () => { return {type: 'pinentry:onSubmit'} }
+    const onCancel = () => { return {type: 'pinentry:onCancel'} }
+    return {
+      onSubmit: () => dispatch(onSubmit()),
+      onCancel: () => dispatch(onCancel())
+    }
+  },
+  (stateProps, dispatchProps, ownProps) => {
+    return {
+      ...stateProps,
+      ...dispatchProps,
+      ...ownProps
+    }
+  }
+)(Pinentry)

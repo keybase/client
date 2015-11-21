@@ -1,6 +1,3 @@
-'use strict'
-/* @flow */
-
 import engine from '../engine'
 import pinentryListeners from './pinentry-listeners'
 
