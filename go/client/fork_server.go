@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
 )
 
@@ -29,7 +30,7 @@ func GetExtraFlags() []cli.Flag {
 
 // AutoForkServer just forks the server and sets the autoFork flag to true
 func AutoForkServer(g *libkb.GlobalContext, cl libkb.CommandLine) (bool, error) {
-	return ForkServer(g, cl, true /* isAutoFork */)
+	return ForkServer(g, cl, keybase1.ForkType_AUTO)
 }
 
 // ForkServer forks a new background Keybase service, and waits until it's
@@ -37,7 +38,7 @@ func AutoForkServer(g *libkb.GlobalContext, cl libkb.CommandLine) (bool, error) 
 // Windows (probably?). Returns an error if anything bad happens; otherwise,
 // assume that the server was successfully started up. Returns (true, nil) if
 // the server was actually forked, or (false, nil) if it was previously up.
-func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, isAutoFork bool) (bool, error) {
+func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.ForkType) (bool, error) {
 	srv := service.NewService(g, true /* isDaemon */)
 	forked := false
 
@@ -48,7 +49,7 @@ func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, isAutoFork bool) (
 	if err == nil {
 		g.Log.Debug("Flocked! Server must have died")
 		srv.ReleaseLock()
-		err = spawnServer(cl, isAutoFork)
+		_, err = spawnServer(cl, forkType)
 		if err != nil {
 			g.Log.Errorf("Error in spawning server process: %s", err)
 			return false, err
@@ -82,7 +83,7 @@ func pingLoop(g *libkb.GlobalContext) error {
 	return nil
 }
 
-func makeServerCommandLine(cl libkb.CommandLine, isAutoFork bool) (arg0 string, args []string, err error) {
+func makeServerCommandLine(cl libkb.CommandLine, forkType keybase1.ForkType) (arg0 string, args []string, err error) {
 	// ForkExec requires an absolute path to the binary. LookPath() gets this
 	// for us, or correctly leaves arg0 alone if it's already a path.
 	arg0, err = exec.LookPath(os.Args[0])
@@ -145,8 +146,10 @@ func makeServerCommandLine(cl libkb.CommandLine, isAutoFork bool) (arg0 string, 
 	G.Log.Debug("| Setting run directory for keybase service to %s", chdir)
 	args = append(args, "--chdir", chdir)
 
-	if isAutoFork {
+	if forkType == keybase1.ForkType_AUTO {
 		args = append(args, "--auto-forked")
+	} else if forkType == keybase1.ForkType_WATCHDOG {
+		args = append(args, "--watchdog-forked")
 	}
 
 	G.Log.Debug("| Made server args: %s %v", arg0, args)

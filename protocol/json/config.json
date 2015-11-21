@@ -175,6 +175,10 @@
       "type" : [ "null", "User" ]
     } ]
   }, {
+    "type" : "enum",
+    "name" : "ForkType",
+    "symbols" : [ "NONE_0", "AUTO_1", "WATCHDOG_2" ]
+  }, {
     "type" : "record",
     "name" : "Config",
     "fields" : [ {
@@ -213,6 +217,9 @@
     }, {
       "name" : "isAutoForked",
       "type" : "boolean"
+    }, {
+      "name" : "forkType",
+      "type" : "ForkType"
     } ]
   }, {
     "type" : "enum",

@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func NewCmdCtlRestart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -47,16 +48,20 @@ func (s *CmdCtlRestart) Run() error {
 	if err != nil {
 		return err
 	}
-	if err = cli.Stop(context.TODO(), 0); err != nil {
+	if err = cli.Stop(context.TODO(), keybase1.StopArg{ExitCode: keybase1.ExitCode_RESTART}); err != nil {
 		s.G().Log.Warning("Stop failed: %s", err)
 		return err
 	}
 
-	// Wait a few seconds before the server stops
-	s.G().Log.Info("Delaying for shutdown...")
-	time.Sleep(2 * time.Second)
-	s.G().Log.Info("Restart")
-	_, err = ForkServer(s.G(), s.G().Env.GetCommandLine(), config.IsAutoForked)
+	// If the watchdog started this process, it will do the restarting.
+	// Otherwise we have to.
+	if config.ForkType != keybase1.ForkType_WATCHDOG {
+		// Wait a few seconds before the server stops
+		s.G().Log.Info("Delaying for shutdown...")
+		time.Sleep(2 * time.Second)
+		s.G().Log.Info("Restart")
+		_, err = ForkServer(s.G(), s.G().Env.GetCommandLine(), config.ForkType)
+	}
 	return err
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
 
@@ -39,7 +40,7 @@ func (s *CmdCtlStop) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	return cli.Stop(context.TODO(), 0)
+	return cli.Stop(context.TODO(), keybase1.StopArg{ExitCode: keybase1.ExitCode_OK})
 }
 
 func (s *CmdCtlStop) GetUsage() libkb.Usage {

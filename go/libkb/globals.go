@@ -60,6 +60,7 @@ type GlobalContext struct {
 	ConnectionManager *ConnectionManager // keep tabs on all active client connections
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	UIRouter          UIRouter           // How to route UIs
+	ExitCode          keybase1.ExitCode  // Value to return to OS on Exit()
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -270,6 +271,8 @@ func (g *GlobalContext) Shutdown() error {
 		}
 
 		err = epick.Error()
+
+		g.Log.Debug("exiting shutdown code=%d; err=%v", g.ExitCode, err)
 	})
 
 	// Make a little bit of a statement if we wind up here a second time
