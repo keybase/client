@@ -8,6 +8,11 @@ import Nav from '../../react-native/react/nav'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import {isDev} from '../../react-native/react/constants/platform'
 
+// For Remote Components
+import remote from 'remote'
+const ipc = remote.require('ipc')
+// import ipc from 'ipc'
+
 let DevTools = null
 let DebugPanel = null
 let LogMonitor = null
@@ -27,6 +32,24 @@ class Keybase extends Component {
 
     // Used by material-ui widgets.
     injectTapEventPlugin()
+
+    // For remote window components
+    ipc.removeAllListeners('dispatchAction')
+    ipc.removeAllListeners('stateChange')
+    ipc.removeAllListeners('subscribeStore')
+    ipc.on('dispatchAction', (event, action) => {
+      console.log('I want to dispatch', action)
+      store.dispatch(action)
+    })
+
+    ipc.on('subscribeStore', event => {
+      event.sender.send('stateChange', store.getState())
+      store.subscribe(() => {
+        // TODO: use transit
+        console.log('telling someone that the state has changed')
+        event.sender.send('stateChange', store.getState())
+      })
+    })
   }
 
   renderNav () {
