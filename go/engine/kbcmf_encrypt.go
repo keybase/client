@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -66,46 +67,45 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	ks := newDeviceKeyset()
-
+	var receivers [][]libkb.NaclDHKeyPublic
 	uplus := kf.UsersPlusDeviceKeys()
 	for _, up := range uplus {
+		var receiver []libkb.NaclDHKeyPublic
 		for _, k := range up.Keys {
-			ks.Add(k)
+			if !k.IsSibkey {
+				gk, err := libkb.ImportKeypairFromKID(k.KID)
+				if err != nil {
+					return err
+				}
+				pk, ok := gk.(libkb.NaclDHKeyPair)
+				if !ok {
+					return errors.New("Invalid public key")
+				}
+
+				receiver = append(receiver, pk.Public)
+			}
 		}
+		receivers = append(receivers, receiver)
 	}
 
-	recipients := ks.Sorted()
-	return libkb.KBCMFEncrypt(e.arg.Source, e.arg.Sink, recipients)
-}
-
-// deviceKeyset maintains a set of device keys, preserving insertion order.
-type deviceKeyset struct {
-	index []keybase1.KID
-	keys  map[keybase1.KID]keybase1.PublicKey
-}
-
-// newDeviceKeyset creates an empty deviceKeyset.
-func newDeviceKeyset() *deviceKeyset {
-	return &deviceKeyset{keys: make(map[keybase1.KID]keybase1.PublicKey)}
-}
-
-// Add adds bundle to the deviceKeyset.  If a key already exists, it
-// will be ignored.
-func (k *deviceKeyset) Add(pk keybase1.PublicKey) {
-	kid := pk.KID
-	if _, ok := k.keys[kid]; ok {
-		return
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	if err != nil {
+		return err
 	}
-	k.keys[kid] = pk
-	k.index = append(k.index, kid)
-}
 
-// Sorted returns the unique keys in insertion order.
-func (k *deviceKeyset) Sorted() []keybase1.PublicKey {
-	var sorted []keybase1.PublicKey
-	for _, kid := range k.index {
-		sorted = append(sorted, k.keys[kid])
+	ska := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	return sorted
+	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "command-line signature")
+	if err != nil {
+		return err
+	}
+
+	sender, ok := key.(libkb.NaclDHKeyPair)
+	if !ok {
+		return errors.New("Key unexpectedly not a device encryption key")
+	}
+
+	return libkb.KBCMFEncrypt(e.arg.Source, e.arg.Sink, receivers, sender)
 }

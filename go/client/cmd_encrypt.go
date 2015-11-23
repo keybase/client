@@ -65,6 +65,7 @@ func (c *CmdEncrypt) Run() error {
 
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
+		NewSecretUIProtocol(c.G()),
 		NewIdentifyTrackUIProtocol(c.G()),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
