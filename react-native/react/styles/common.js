@@ -15,6 +15,15 @@ const buttonCommon = {
   color: 'black'
 }
 
+const flexBox = {
+  display: 'flex'
+}
+
+const flexGrow = {
+  ...flexBox,
+  flex: 1
+}
+
 export default StyleSheet.create({
   button: {
     ...buttonCommon
@@ -65,6 +74,14 @@ export default StyleSheet.create({
   },
   centerText: {
     textAlign: 'center'
+  },
+  flexBoxColumn: {
+    ...flexBox,
+    flexDirection: 'column'
+  },
+  flexBoxRow: {
+    ...flexBox,
+    flexDirection: 'row'
   },
   ...nativeStyles
 })
