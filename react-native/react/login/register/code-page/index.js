@@ -21,6 +21,7 @@ class CodePage extends Component {
   render () {
     return (
       <Render
+        enterText={this.state.enterText}
         onChangeText={enterText => this.setState({enterText})}
         mode={this.props.mode}
         textCode={this.props.textCode}
