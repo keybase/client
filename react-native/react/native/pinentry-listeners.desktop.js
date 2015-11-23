@@ -1,3 +1,6 @@
+import BrowserWindow from 'browser-window'
+import ipc from 'ipc'
+
 export default {
   'keybase.1.secretUi.getPassphrase': (payload, response) => {
     console.log('Asked for passphrase')
@@ -15,22 +18,36 @@ export default {
       }
     }
     */
-    if (!('pinentry' in payload)) {
-      console.error('Passphrase payload has no pinentry object.')
-    } else if (!('features' in payload.pinentry)) {
-      console.error('payload.pinentry.features does not exist')
-    } else if (!('prompt' in payload.pinentry)) {
-      console.error('payload.pinentry.prompt does not exist')
-    }
+    const props = payload.pinentry
+    var pinentryWindow = new BrowserWindow({
+      width: 500, height: 300,
+      resizable: false,
+      fullscreen: false,
+      show: false
+    })
+    pinentryWindow.loadUrl(`file://${__dirname}/pinentry.wrapper.html`)
 
-    var props = payload.pinentry
-    // Here's where we should spawn a BrowserWindow with the Pinentry component,
-    // passing in props.  For now, it's stubbed out.
-    const reply = {
-      'passphrase': 'fooBARbaz',
-      'storeSecret': false
-    }
-    response.result(reply)
-    console.log('Sent passphrase back')
+    ipc.on('pinentryNeedProps', function (event, arg) {
+      // Is this the pinentry window we just created?
+      if (pinentryWindow.webContents === event.sender) {
+        event.sender.send('pinentryGotProps', props)
+      }
+    })
+
+    ipc.on('pinentryReady', function (event, arg) {
+      pinentryWindow.show()
+    })
+
+    ipc.on('pinentryResult', function (event, arg) {
+      if ('error' in arg) {
+        response.error(arg)
+      } else if ('secretStorage' in arg) {
+        // The core expects a GetPassphraseArg back.
+        arg.storeSecret = arg.secretStorage
+        response.result(arg)
+        console.log('Sent passphrase back')
+      }
+      pinentryWindow.close()
+    })
   }
 }

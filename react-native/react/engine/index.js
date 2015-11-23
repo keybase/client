@@ -115,13 +115,48 @@ class Engine {
     engine.runWithData(data)
   }
 
+  _wrapResponseOnceOnly (method, param, response) {
+    let once = false
+    const wrappedResponse = {
+      result: (...args) => {
+        if (once) {
+          if (printRPC) {
+            console.log('RPC ▼ result bailing on additional calls: ', method, param, ...args)
+          }
+          return
+        }
+        once = true
+
+        if (printRPC) {
+          console.log('RPC ▼ result: ', method, param, ...args)
+        }
+
+        response.result(...args)
+      },
+      error: (...args) => {
+        if (once) {
+          if (printRPC) {
+            console.log('RPC ▼ error bailing on additional calls: ', method, param, ...args)
+          }
+          return
+        }
+        once = true
+
+        if (printRPC) {
+          console.log('RPC ▼ error: ', method, param, ...args)
+        }
+
+        response.error(...args)
+      }
+    }
+    return wrappedResponse
+  }
+
   _generalIncomingRpc (method, param, response) {
     (this.generalListeners[method] || []).forEach(listener => {
-      // TODO(mm) does it make sense to ever pass the response?
-      // It'll be weird if there are multiple listeners.
-      // We should get the response callback to work the first
-      // time through and fail the second time.
-      listener(param, response)
+      // make wrapper so we only call this once
+      const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
+      listener(param, wrappedResponse)
     })
   }
 
@@ -138,41 +173,7 @@ class Engine {
 
     if (callMap && callMap[method]) {
       // make wrapper so we only call this once
-      let once = false
-
-      const wrappedResponse = {
-        result: (...args) => {
-          if (once) {
-            if (printRPC) {
-              console.log('RPC ▼ result bailing on additional calls: ', method, param, ...args)
-            }
-            return
-          }
-          once = true
-
-          if (printRPC) {
-            console.log('RPC ▼ result: ', method, param, ...args)
-          }
-
-          response.result(...args)
-        },
-        error: (...args) => {
-          if (once) {
-            if (printRPC) {
-              console.log('RPC ▼ error bailing on additional calls: ', method, param, ...args)
-            }
-            return
-          }
-          once = true
-
-          if (printRPC) {
-            console.log('RPC ▼ error: ', method, param, ...args)
-          }
-
-          response.error(...args)
-        }
-      }
-
+      const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
       callMap[method](param, wrappedResponse)
     } else if (!sessionID && this.generalListeners[method]) {
       this._generalIncomingRpc(method, param, response)
