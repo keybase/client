@@ -47,6 +47,9 @@ export default {
         response.result(arg)
         console.log('Sent passphrase back')
       }
+      ipc.removeAllListeners('pinentryNeedProps')
+      ipc.removeAllListeners('pinentryReady')
+      ipc.removeAllListeners('pinentryResult')
       pinentryWindow.close()
     })
   }
