@@ -4,8 +4,7 @@
 package service
 
 import (
-	"io"
-
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -28,16 +27,17 @@ func (h *KBCMFHandler) KbcmfEncrypt(_ context.Context, arg keybase1.KbcmfEncrypt
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-
-	_, err := io.Copy(snk, src)
-	if err != nil {
-		return err
+	earg := &engine.KBCMFEncryptArg{
+		Recips:       arg.Opts.Recipients,
+		Sink:         snk,
+		Source:       src,
+		TrackOptions: arg.Opts.TrackOptions,
 	}
 
-	err = snk.Close()
-	if err != nil {
-		return err
+	ctx := &engine.Context{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
-
-	return nil
+	eng := engine.NewKBCMFEncrypt(earg, h.G())
+	return engine.RunEngine(eng, ctx)
 }

@@ -17,8 +17,9 @@ import (
 
 type CmdEncrypt struct {
 	libkb.Contextified
-	filter     UnixFilter
-	recipients []string
+	filter       UnixFilter
+	recipients   []string
+	trackOptions keybase1.TrackOptions
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -32,6 +33,14 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			}, "encrypt", c)
 		},
 		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "l, local",
+				Usage: "Only track locally, don't send a statement to the server.",
+			},
+			cli.BoolFlag{
+				Name:  "y",
+				Usage: "Approve remote tracking without prompting.",
+			},
 			cli.StringFlag{
 				Name:  "m, message",
 				Usage: "Provide the message on the command line.",
@@ -56,6 +65,7 @@ func (c *CmdEncrypt) Run() error {
 
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
+		NewIdentifyTrackUIProtocol(c.G()),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
@@ -66,7 +76,11 @@ func (c *CmdEncrypt) Run() error {
 		return err
 	}
 
-	arg := keybase1.KbcmfEncryptArg{Source: src, Sink: snk, Recipients: c.recipients}
+	opts := keybase1.KBCMFEncryptOptions{
+		Recipients:   c.recipients,
+		TrackOptions: c.trackOptions,
+	}
+	arg := keybase1.KbcmfEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.KbcmfEncrypt(context.TODO(), arg)
 
 	cerr := c.filter.Close(err)
@@ -92,6 +106,11 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	infile := ctx.String("infile")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
+	}
+
+	c.trackOptions = keybase1.TrackOptions{
+		LocalOnly:     ctx.Bool("local"),
+		BypassConfirm: ctx.Bool("y"),
 	}
 
 	return nil

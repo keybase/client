@@ -1898,11 +1898,16 @@ func (c IdentifyUiClient) Finish(ctx context.Context, sessionID int) (err error)
 	return
 }
 
+type KBCMFEncryptOptions struct {
+	Recipients   []string     `codec:"recipients" json:"recipients"`
+	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+}
+
 type KbcmfEncryptArg struct {
-	SessionID  int      `codec:"sessionID" json:"sessionID"`
-	Source     Stream   `codec:"source" json:"source"`
-	Sink       Stream   `codec:"sink" json:"sink"`
-	Recipients []string `codec:"recipients" json:"recipients"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Source    Stream              `codec:"source" json:"source"`
+	Sink      Stream              `codec:"sink" json:"sink"`
+	Opts      KBCMFEncryptOptions `codec:"opts" json:"opts"`
 }
 
 type KbcmfInterface interface {
