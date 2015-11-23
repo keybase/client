@@ -3,9 +3,11 @@
 - Allow provision via GPG command line tool so secret
   key does not need to be imported.
 - Improve error message for no synced PGP key
-  (keybase-issues#1854)
+  (Bug keybase/keybase-issues#1854)
 - Fix username bug during passphrase provision
-  (keybase-issues#1855)
+  (Bug keybase/keybase-issues#1855)
+- Auto-restart the service if the client is newer
+  (PR keybase/client#1336)
 
 ## 1.0.0-47 (2015-11-12)
 
