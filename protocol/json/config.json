@@ -177,7 +177,7 @@
   }, {
     "type" : "enum",
     "name" : "ForkType",
-    "symbols" : [ "NONE_0", "AUTO_1", "WATCHDOG_2" ]
+    "symbols" : [ "NONE_0", "AUTO_1", "WATCHDOG_2", "LAUNCHD_3" ]
   }, {
     "type" : "record",
     "name" : "Config",

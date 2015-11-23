@@ -150,6 +150,8 @@ func makeServerCommandLine(cl libkb.CommandLine, forkType keybase1.ForkType) (ar
 		args = append(args, "--auto-forked")
 	} else if forkType == keybase1.ForkType_WATCHDOG {
 		args = append(args, "--watchdog-forked")
+	} else if forkType == keybase1.ForkType_LAUNCHD {
+		args = append(args, "--launchd-forked")
 	}
 
 	G.Log.Debug("| Made server args: %s %v", arg0, args)
