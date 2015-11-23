@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	// BServerTokenType is the expected token type for bserver authentication.
-	BServerTokenType = "kbfs_bserver_auth"
+	// BServerTokenServer is the expected server type for bserver authentication.
+	BServerTokenServer = "kbfs_block"
 	// BServerTokenExpireIn is the TTL to use when constructing an authentication token.
 	BServerTokenExpireIn = 2 * 60 * 60 // 2 hours
 	// BServerClientName is the client name to include in an authentication token.
 	BServerClientName = "libkbfs_bserver_remote"
 	// BServerClientVersion is the client version to include in an authentication token.
-	BServerClientVersion = "1" // TODO: use some TBD build version
+	BServerClientVersion = Version + "-" + Build
 )
 
 // BlockServerRemote implements the BlockServer interface and
@@ -50,7 +50,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	bs.log.Debug("BlockServerRemote new instance "+
 		"server addr %s", blkSrvAddr)
 	bs.authToken = NewAuthToken(config,
-		BServerTokenType, BServerTokenExpireIn,
+		BServerTokenServer, BServerTokenExpireIn,
 		BServerClientName, BServerClientVersion, bs)
 	// This will connect only on-demand due to the last argument.
 	conn := NewTLSConnection(config, blkSrvAddr, bServerErrorUnwrapper{}, bs, false)

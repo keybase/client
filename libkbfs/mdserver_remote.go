@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	// MdServerTokenType is the expected token type for mdserver authentication.
-	MdServerTokenType = "kbfs_mdserver_auth"
+	// MdServerTokenServer is the expected server type for mdserver authentication.
+	MdServerTokenServer = "kbfs_md"
 	// MdServerTokenExpireIn is the TTL to use when constructing an authentication token.
 	MdServerTokenExpireIn = 2 * 60 * 60 // 2 hours
 	// MdServerClientName is the client name to include in an authentication token.
 	MdServerClientName = "libkbfs_mdserver_remote"
 	// MdServerClientVersion is the client version to include in an authentication token.
-	MdServerClientVersion = "1" // TODO: use some TBD build version
+	MdServerClientVersion = Version + "-" + Build
 )
 
 // MDServerRemote is an implementation of the MDServer interface.
@@ -55,7 +55,7 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 		log:       config.MakeLogger(""),
 	}
 	mdServer.authToken = NewAuthToken(config,
-		MdServerTokenType, MdServerTokenExpireIn,
+		MdServerTokenServer, MdServerTokenExpireIn,
 		MdServerClientName, MdServerClientVersion, mdServer)
 	conn := NewTLSConnection(config, srvAddr, MDServerErrorUnwrapper{}, mdServer, true)
 	mdServer.conn = conn
