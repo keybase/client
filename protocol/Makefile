@@ -65,6 +65,10 @@ objc-build-stamp: build-stamp
 	ruby ./bin/objc.rb
 	date > $@
 
+js/flow-types.js: build-stamp
+	@mkdir -p js/
+	node ./bin/flow.js
+
 js/keybase_v1.js: build-stamp
 	@mkdir -p js/
 	node ./bin/js.js
@@ -79,6 +83,6 @@ clean:
 deps:
 	npm install
 
-build: build-stamp ../go/protocol/keybase_v1.go js/keybase_v1.js
+build: build-stamp ../go/protocol/keybase_v1.go js/keybase_v1.js js/flow-types.js
 
 .PHONY: test setup config

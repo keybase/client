@@ -1,11 +1,14 @@
 import notify from '../../../desktop/app/hidden-window-notifications'
-import enums from '../../react/keybase_v1'
+import enums from '../../react/constants/types/keybase_v1'
+import type {FSNotification} from '../../react/constants/types/flow-types'
 
 export default {
   'keybase.1.NotifySession.loggedOut': () => {
     notify('Logged Out')
   },
-  'keybase.1.NotifyFS.FSActivity': ({notification}) => {
+  'keybase.1.NotifyFS.FSActivity': (params: {notification: FSNotification}):void => {
+    const {notification} = params
+
     const action = {
       [enums.kbfs.FSNotificationType.encrypting]: 'Encrypting',
       [enums.kbfs.FSNotificationType.decrypting]: 'Decrypting',

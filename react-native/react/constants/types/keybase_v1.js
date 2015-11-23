@@ -1,0 +1,1 @@
+../../../../protocol/js/keybase_v1.js
