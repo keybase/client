@@ -288,6 +288,15 @@ func (b *BlockServerRemote) getNotDoneRefs(refs []keybase1.BlockReference, done 
 	return notDone
 }
 
+// GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
+func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
+	res, err := b.client.GetUserQuotaInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return UserQuotaInfoDecode(res, b.config)
+}
+
 // Shutdown implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Shutdown() {
 	if b.shutdownFn != nil {

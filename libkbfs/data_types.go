@@ -1096,3 +1096,49 @@ func (m MergeStatus) String() string {
 		return "unknown"
 	}
 }
+
+//UsageStat is a tuple containing quota usage and amount of archived bytes
+type UsageStat struct {
+	Usage    int64
+	Archived int64
+}
+
+//UserQuotaInfo contains a user's quota usage information
+type UserQuotaInfo struct {
+	Folders map[string]*UsageStat
+	Total   UsageStat
+	Limit   int64
+}
+
+// Accum combines changes to the existing UserQuotaInfo object using accumulation function accumF.
+func (u *UserQuotaInfo) Accum(another *UserQuotaInfo, accumF func(int64, int64) int64) {
+	if another == nil {
+		return
+	}
+	u.Total.Usage = accumF(u.Total.Usage, another.Total.Usage)
+	u.Total.Archived = accumF(u.Total.Archived, another.Total.Archived)
+	for f, change := range another.Folders {
+		if _, ok := u.Folders[f]; !ok {
+			u.Folders[f] = &UsageStat{}
+		}
+		u.Folders[f].Usage = accumF(u.Folders[f].Usage, change.Usage)
+		u.Folders[f].Archived = accumF(u.Folders[f].Archived, change.Archived)
+	}
+}
+
+// ToBytes marshals this UserQuotaInfo
+func (u *UserQuotaInfo) ToBytes(config Config) (out []byte) {
+	out, _ = config.Codec().Encode(u)
+	return
+}
+
+// UserQuotaInfoDecode decodes b into a UserQuotaInfo
+func UserQuotaInfoDecode(b []byte, config Config) (*UserQuotaInfo, error) {
+	var info UserQuotaInfo
+	err := config.Codec().Decode(b, &info)
+	if err != nil {
+		return nil, err
+	}
+
+	return &info, nil
+}
