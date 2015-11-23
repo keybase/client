@@ -6,8 +6,8 @@ export default {
   'keybase.1.NotifySession.loggedOut': () => {
     notify('Logged Out')
   },
-  'keybase.1.NotifyFS.FSActivity': (params: {notification: FSNotification}):void => {
-    const {notification} = params
+  'keybase.1.NotifyFS.FSActivity': params => {
+    const notification: FSNotification = params.notification
 
     const action = {
       [enums.kbfs.FSNotificationType.encrypting]: 'Encrypting',
