@@ -602,6 +602,9 @@ func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
 func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	// choose a private gpg key to use
 	fp, err := e.selectAndCheckGPGKey(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	// get KID for the pgp key
 	kid, err := e.user.GetComputedKeyFamily().FindKIDFromFingerprint(*fp)
