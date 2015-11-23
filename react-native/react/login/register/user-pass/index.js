@@ -16,6 +16,9 @@ export default class UserPass extends Component {
     const buttonEnabled = !!(this.state.username && this.state.username.length && this.state.passphrase && this.state.passphrase.length)
     return (
       <Render
+        title={this.props.title}
+        subTitle={this.props.subTitle}
+        error={this.props.error}
         username={this.state.username}
         passphrase={this.state.passphrase}
         onChangeUsername={username => this.setState({username})}

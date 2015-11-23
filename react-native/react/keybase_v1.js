@@ -64,6 +64,18 @@ export default {
     }
   },
   'debugging': {},
+  'delegateUiCtl': {
+    'LogLevel': {
+      'none': 0,
+      'debug': 1,
+      'info': 2,
+      'notice': 3,
+      'warn': 4,
+      'error': 5,
+      'critical': 6,
+      'fatal': 7
+    }
+  },
   'device': {
     'LogLevel': {
       'none': 0,
@@ -282,6 +294,20 @@ export default {
       'updateOk': 6
     }
   },
+  'kbfs': {
+    'FSStatusCode': {
+      'start': 0,
+      'finish': 1,
+      'error': 2
+    },
+    'FSNotificationType': {
+      'encrypting': 0,
+      'decrypting': 1,
+      'signing': 2,
+      'verifying': 3,
+      'rekeying': 4
+    }
+  },
   'Kex2Provisionee': {
     'LogLevel': {
       'none': 0,
@@ -365,6 +391,20 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    }
+  },
+  'NotifyFS': {
+    'FSStatusCode': {
+      'start': 0,
+      'finish': 1,
+      'error': 2
+    },
+    'FSNotificationType': {
+      'encrypting': 0,
+      'decrypting': 1,
+      'signing': 2,
+      'verifying': 3,
+      'rekeying': 4
     }
   },
   'NotifySession': {},
@@ -596,9 +636,10 @@ export default {
     },
     'ProvisionMethod': {
       'device': 0,
-      'gpg': 1,
-      'paperKey': 2,
-      'passphrase': 3
+      'paperKey': 1,
+      'passphrase': 2,
+      'gpgImport': 3,
+      'gpgSign': 4
     },
     'DeviceType': {
       'desktop': 0,
