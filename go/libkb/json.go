@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -96,7 +97,7 @@ func (f *JSONFile) Save(pretty bool, mode os.FileMode) error {
 // SaveTmp saves the config to a temporary file.  It returns the
 // filename and any error.
 func (f *JSONFile) SaveTmp(suffix string) (string, error) {
-	filename := path.Join(path.Dir(f.filename), fmt.Sprintf("keybase_config_%s.json", suffix))
+	filename := path.Join(filepath.Dir(f.filename), fmt.Sprintf("keybase_config_%s.json", suffix))
 	if err := f.save(filename, true, 0); err != nil {
 		return "", err
 	}
