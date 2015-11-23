@@ -3,6 +3,11 @@
 	"ignore": "test",
 	"package": [
 		{
+			"path": "bazil.org/fuse",
+			"revision": "70f2bea820ccbf0b4e72e44dbcb28fe333635085",
+			"revisionTime": "2015-09-10T16:50:43-07:00"
+		},
+		{
 			"path": "code.google.com/p/rsc/gf256",
 			"revision": "2d8aa6027fab",
 			"revisionTime": "2014-11-30T16:07:12-05:00"

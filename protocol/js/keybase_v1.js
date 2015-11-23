@@ -44,7 +44,6 @@ export default {
       'unknown': 0,
       'error': 1,
       'notInstalled': 2,
-      'needsUpgrade': 3,
       'installed': 4
     },
     'InstallAction': {

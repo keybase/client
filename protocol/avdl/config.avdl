@@ -51,7 +51,6 @@ protocol config {
     UNKNOWN_0,
     ERROR_1,
     NOT_INSTALLED_2,
-    NEEDS_UPGRADE_3,
     INSTALLED_4
   }
 
@@ -97,7 +96,11 @@ protocol config {
     Status status;
   }
 
-  record InstallComponent {
+  /**
+    ComponentStatus defines a components status.
+    Names can be "cli," "service", "kbfs".
+   */
+  record ComponentStatus {
     string name;
     Status status;
   }

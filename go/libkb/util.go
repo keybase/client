@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
+	"encoding/base32"
 	"encoding/hex"
 	"fmt"
 	"github.com/keybase/client/go/logger"
@@ -334,4 +335,59 @@ func MakeURI(prot string, host string) string {
 		prot += ":"
 	}
 	return prot + "//" + host
+}
+
+// RemoveNilErrors returns error slice with ni errors removed.
+func RemoveNilErrors(errs []error) []error {
+	var r []error
+	for _, err := range errs {
+		if err != nil {
+			r = append(r, err)
+		}
+	}
+	return r
+}
+
+// CombineErrors returns a single error for multiple errors, or nil if none.
+func CombineErrors(errs ...error) error {
+	errs = RemoveNilErrors(errs)
+	if len(errs) == 0 {
+		return nil
+	} else if len(errs) == 1 {
+		return errs[0]
+	}
+
+	msgs := []string{}
+	for _, err := range errs {
+		msgs = append(msgs, err.Error())
+	}
+	return fmt.Errorf("There were multiple errors: %s", strings.Join(msgs, "; "))
+}
+
+// IsDirEmpty returns whether directory has any files.
+func IsDirEmpty(dir string) (bool, error) {
+	f, err := os.Open(dir)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	_, err = f.Readdir(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err // Either not empty or error, suits both cases
+}
+
+// RandString returns random (base32) string with prefix.
+func RandString(prefix string, numbytes int) (string, error) {
+	buf, err := RandBytes(numbytes)
+	if err != nil {
+		return "", err
+	}
+	str := base32.StdEncoding.EncodeToString(buf)
+	if prefix != "" {
+		str = strings.Join([]string{prefix, str}, "")
+	}
+	return str, nil
 }

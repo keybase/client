@@ -428,7 +428,6 @@ const (
 	InstallStatus_UNKNOWN       InstallStatus = 0
 	InstallStatus_ERROR         InstallStatus = 1
 	InstallStatus_NOT_INSTALLED InstallStatus = 2
-	InstallStatus_NEEDS_UPGRADE InstallStatus = 3
 	InstallStatus_INSTALLED     InstallStatus = 4
 )
 
@@ -476,7 +475,7 @@ type FuseStatus struct {
 	Status        Status          `codec:"status" json:"status"`
 }
 
-type InstallComponent struct {
+type ComponentStatus struct {
 	Name   string `codec:"name" json:"name"`
 	Status Status `codec:"status" json:"status"`
 }

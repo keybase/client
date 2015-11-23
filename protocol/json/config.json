@@ -225,7 +225,7 @@
     "type" : "enum",
     "name" : "InstallStatus",
     "doc" : "Install status describes state of install for a component or service.",
-    "symbols" : [ "UNKNOWN_0", "ERROR_1", "NOT_INSTALLED_2", "NEEDS_UPGRADE_3", "INSTALLED_4" ]
+    "symbols" : [ "UNKNOWN_0", "ERROR_1", "NOT_INSTALLED_2", "INSTALLED_4" ]
   }, {
     "type" : "enum",
     "name" : "InstallAction",
@@ -323,7 +323,8 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "InstallComponent",
+    "name" : "ComponentStatus",
+    "doc" : "ComponentStatus defines a components status.\n    Names can be \"cli,\" \"service\", \"kbfs\".",
     "fields" : [ {
       "name" : "name",
       "type" : "string"
