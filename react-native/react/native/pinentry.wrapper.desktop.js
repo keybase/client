@@ -1,6 +1,6 @@
 import React, {Component} from '../base-react'
 import ReactDOM from 'react-dom'
-import Pinentry from '../pinentry'
+import {Pinentry} from '../pinentry'
 import ipc from 'ipc'
 
 class PinentryWrapper extends Component {

@@ -22,11 +22,7 @@ export default class PinentryRender extends Component {
           floatingLabelText='Your passphrase'
           value={this.state.passphrase} />
 
-<<<<<<< HEAD:react-native/react/pinentry/index.render.desktop.js
-        {Object.keys(this.props.payload.features).map(feature => {
-=======
-        {Object.keys(this.props.features).map((feature) => {
->>>>>>> 07f201d0c8bfa43669077af82286235f47b36b94:react-native/react/pinentry/pinentry.render.desktop.js
+        {Object.keys(this.props.features).map(feature => {
           return <Checkbox
             key={feature}
             name={feature}
