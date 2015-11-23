@@ -1,4 +1,3 @@
-'use strict'
 // This file is ES5; it's loaded before Babel.
 require('babel/register')({
   extensions: ['.desktop.js', '.es6', '.es', '.jsx', '.js']

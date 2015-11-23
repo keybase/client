@@ -167,6 +167,18 @@ export type GetBlockRes = {
   buf: bytes;
 }
 
+export type block_BlockReference = {
+  bid: BlockIdCombo;
+  nonce: BlockRefNonce;
+  chargedTo: UID;
+}
+
+export type BlockReference = {
+  bid: BlockIdCombo;
+  nonce: BlockRefNonce;
+  chargedTo: UID;
+}
+
 export type BTC_Time = {
 }
 
@@ -335,6 +347,7 @@ export type config_Config = {
   configPath: string;
   versionShort: string;
   versionFull: string;
+  isAutoForked: boolean;
 }
 
 export type Config = {
@@ -349,6 +362,7 @@ export type Config = {
   configPath: string;
   versionShort: string;
   versionFull: string;
+  isAutoForked: boolean;
 }
 
 export type config_InstallStatus = 'UNKNOWN_0' | 'ERROR_1' | 'NOT_INSTALLED_2' | 'NEEDS_UPGRADE_3' | 'INSTALLED_4'
@@ -381,6 +395,28 @@ export type ServiceStatus = {
   status: Status;
 }
 
+export type config_ServicesStatus = {
+  service: Array<ServiceStatus>;
+  kbfs: Array<ServiceStatus>;
+}
+
+export type ServicesStatus = {
+  service: Array<ServiceStatus>;
+  kbfs: Array<ServiceStatus>;
+}
+
+export type config_FuseMountInfo = {
+  path: string;
+  fstype: string;
+  output: string;
+}
+
+export type FuseMountInfo = {
+  path: string;
+  fstype: string;
+  output: string;
+}
+
 export type config_FuseStatus = {
   version: string;
   bundleVersion: string;
@@ -389,6 +425,7 @@ export type config_FuseStatus = {
   kextStarted: boolean;
   installStatus: InstallStatus;
   installAction: InstallAction;
+  mountInfos: Array<FuseMountInfo>;
   status: Status;
 }
 
@@ -400,6 +437,17 @@ export type FuseStatus = {
   kextStarted: boolean;
   installStatus: InstallStatus;
   installAction: InstallAction;
+  mountInfos: Array<FuseMountInfo>;
+  status: Status;
+}
+
+export type config_InstallComponent = {
+  name: string;
+  status: Status;
+}
+
+export type InstallComponent = {
+  name: string;
   status: Status;
 }
 
@@ -1108,6 +1156,10 @@ export type identifyUi_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type identifyUi_IdentifyReason = {
+  reason: string;
+}
+
 export type identifyUi_IdentifyOutcome = {
   username: string;
   status: ?Status;
@@ -1122,6 +1174,7 @@ export type identifyUi_IdentifyOutcome = {
   revoked: Array<TrackDiff>;
   trackOptions: TrackOptions;
   forPGPPull: boolean;
+  reason: IdentifyReason;
 }
 
 export type identifyUi_IdentifyRes = {
@@ -1248,6 +1301,30 @@ export type LinkCheckResult = {
   diff: ?TrackDiff;
   remoteDiff: ?TrackDiff;
   hint: ?SigHint;
+}
+
+export type kbfs_FSStatusCode = 'START_0' | 'FINISH_1' | 'ERROR_2'
+
+export type FSStatusCode = 'START_0' | 'FINISH_1' | 'ERROR_2'
+
+export type kbfs_FSNotificationType = 'ENCRYPTING_0' | 'DECRYPTING_1' | 'SIGNING_2' | 'VERIFYING_3' | 'REKEYING_4'
+
+export type FSNotificationType = 'ENCRYPTING_0' | 'DECRYPTING_1' | 'SIGNING_2' | 'VERIFYING_3' | 'REKEYING_4'
+
+export type kbfs_FSNotification = {
+  publicTopLevelFolder: boolean;
+  filename: string;
+  status: string;
+  statusCode: FSStatusCode;
+  notificationType: FSNotificationType;
+}
+
+export type FSNotification = {
+  publicTopLevelFolder: boolean;
+  filename: string;
+  status: string;
+  statusCode: FSStatusCode;
+  notificationType: FSNotificationType;
 }
 
 export type Kex2Provisionee_Time = {
@@ -1830,11 +1907,25 @@ export type notifyCtl_LogLevel = 'NONE_0' | 'DEBUG_1' | 'INFO_2' | 'NOTICE_3' | 
 export type notifyCtl_NotificationChannels = {
   session: boolean;
   users: boolean;
+  kbfs: boolean;
 }
 
 export type NotificationChannels = {
   session: boolean;
   users: boolean;
+  kbfs: boolean;
+}
+
+export type NotifyFS_FSStatusCode = 'START_0' | 'FINISH_1' | 'ERROR_2'
+
+export type NotifyFS_FSNotificationType = 'ENCRYPTING_0' | 'DECRYPTING_1' | 'SIGNING_2' | 'VERIFYING_3' | 'REKEYING_4'
+
+export type NotifyFS_FSNotification = {
+  publicTopLevelFolder: boolean;
+  filename: string;
+  status: string;
+  statusCode: FSStatusCode;
+  notificationType: FSNotificationType;
 }
 
 export type NotifyUsers_Time = {
@@ -2005,6 +2096,10 @@ export type pgp_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type pgp_IdentifyReason = {
+  reason: string;
+}
+
 export type pgp_IdentifyOutcome = {
   username: string;
   status: ?Status;
@@ -2019,6 +2114,7 @@ export type pgp_IdentifyOutcome = {
   revoked: Array<TrackDiff>;
   trackOptions: TrackOptions;
   forPGPPull: boolean;
+  reason: IdentifyReason;
 }
 
 export type pgp_IdentifyRes = {
@@ -2242,6 +2338,10 @@ export type prove_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type prove_IdentifyReason = {
+  reason: string;
+}
+
 export type prove_IdentifyOutcome = {
   username: string;
   status: ?Status;
@@ -2256,6 +2356,7 @@ export type prove_IdentifyOutcome = {
   revoked: Array<TrackDiff>;
   trackOptions: TrackOptions;
   forPGPPull: boolean;
+  reason: IdentifyReason;
 }
 
 export type prove_IdentifyRes = {
@@ -2440,9 +2541,9 @@ export type provisionUi_Stream = {
 
 export type provisionUi_LogLevel = 'NONE_0' | 'DEBUG_1' | 'INFO_2' | 'NOTICE_3' | 'WARN_4' | 'ERROR_5' | 'CRITICAL_6' | 'FATAL_7'
 
-export type provisionUi_ProvisionMethod = 'DEVICE_0' | 'GPG_1' | 'PAPER_KEY_2' | 'PASSPHRASE_3'
+export type provisionUi_ProvisionMethod = 'DEVICE_0' | 'PAPER_KEY_1' | 'PASSPHRASE_2' | 'GPG_IMPORT_3' | 'GPG_SIGN_4'
 
-export type ProvisionMethod = 'DEVICE_0' | 'GPG_1' | 'PAPER_KEY_2' | 'PASSPHRASE_3'
+export type ProvisionMethod = 'DEVICE_0' | 'PAPER_KEY_1' | 'PASSPHRASE_2' | 'GPG_IMPORT_3' | 'GPG_SIGN_4'
 
 export type provisionUi_DeviceType = 'DESKTOP_0' | 'MOBILE_1'
 
@@ -3232,6 +3333,10 @@ export type track_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type track_IdentifyReason = {
+  reason: string;
+}
+
 export type track_IdentifyOutcome = {
   username: string;
   status: ?Status;
@@ -3246,6 +3351,7 @@ export type track_IdentifyOutcome = {
   revoked: Array<TrackDiff>;
   trackOptions: TrackOptions;
   forPGPPull: boolean;
+  reason: IdentifyReason;
 }
 
 export type track_IdentifyRes = {

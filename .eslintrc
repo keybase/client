@@ -1,6 +1,9 @@
 {
     "parser": "babel-eslint",
     "extends": ["standard", "standard-react"],
+    "plugins": [
+        "flow-vars"
+    ],
     "rules": {
         "standard/object-curly-even-spacing": [2, "never"],
         "standard/array-bracket-even-spacing": [2, "never"],
