@@ -8,8 +8,6 @@ import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import MenuList from './menu-list'
 
-import TrackerPopupListener from './dev/tracker-popup-listener'
-
 class DevMenu extends Component {
   render () {
     const menuItems = [
