@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol kbcmf {
+  import idl "common.avdl";
+
+  void kbcmfEncrypt(int sessionID, Stream source, Stream sink, array<string> recipients /* user assertions */);
+}

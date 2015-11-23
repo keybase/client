@@ -303,6 +303,18 @@ export default {
       'updateOk': 6
     }
   },
+  'kbcmf': {
+    'LogLevel': {
+      'none': 0,
+      'debug': 1,
+      'info': 2,
+      'notice': 3,
+      'warn': 4,
+      'error': 5,
+      'critical': 6,
+      'fatal': 7
+    }
+  },
   'kbfs': {
     'FSStatusCode': {
       'start': 0,

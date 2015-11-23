@@ -5,11 +5,14 @@ package client
 
 import (
 	"errors"
-	"io"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type CmdEncrypt struct {
@@ -46,13 +49,25 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 }
 
 func (c *CmdEncrypt) Run() error {
-	err := c.filter.FilterOpen()
+	cli, err := GetKBCMFClient()
 	if err != nil {
 		return err
 	}
 
-	// TODO: Actually encrypt.
-	_, err = io.Copy(c.filter.sink, c.filter.source)
+	protocols := []rpc.Protocol{
+		NewStreamUIProtocol(),
+	}
+	if err := RegisterProtocols(protocols); err != nil {
+		return err
+	}
+
+	snk, src, err := c.filter.ClientFilterOpen()
+	if err != nil {
+		return err
+	}
+
+	arg := keybase1.KbcmfEncryptArg{Source: src, Sink: snk, Recipients: c.recipients}
+	err = cli.KbcmfEncrypt(context.TODO(), arg)
 
 	cerr := c.filter.Close(err)
 	return libkb.PickFirstError(err, cerr)
