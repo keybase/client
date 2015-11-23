@@ -25,34 +25,6 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "l, local",
-				Usage: "Only track locally, don't send a statement to the server.",
-			},
-			cli.BoolFlag{
-				Name:  "y",
-				Usage: "Approve remote tracking without prompting.",
-			},
-			cli.BoolFlag{
-				Name:  "skip-track",
-				Usage: "Don't track.",
-			},
-			cli.BoolFlag{
-				Name:  "no-self",
-				Usage: "Don't encrypt for self.",
-			},
-			cli.BoolFlag{
-				Name:  "s, sign",
-				Usage: "Sign in addition to encrypting.",
-			},
-			cli.StringFlag{
-				Name:  "m, message",
-				Usage: "Provide the message on the command line.",
-			},
-			cli.StringFlag{
-				Name:  "k, key",
-				Usage: "Specify a key to use (otherwise most recent PGP key is used).",
-			},
-			cli.BoolFlag{
 				Name:  "b, binary",
 				Usage: "Output in binary (rather than ASCII/armored).",
 			},
@@ -61,8 +33,36 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Usage: "Specify an input file.",
 			},
 			cli.StringFlag{
+				Name:  "k, key",
+				Usage: "Specify a key to use (otherwise most recent PGP key is used).",
+			},
+			cli.BoolFlag{
+				Name:  "l, local",
+				Usage: "Only track locally, don't send a statement to the server.",
+			},
+			cli.StringFlag{
+				Name:  "m, message",
+				Usage: "Provide the message on the command line.",
+			},
+			cli.BoolFlag{
+				Name:  "no-self",
+				Usage: "Don't encrypt for self.",
+			},
+			cli.StringFlag{
 				Name:  "o, outfile",
 				Usage: "Specify an outfile (stdout by default).",
+			},
+			cli.BoolFlag{
+				Name:  "s, sign",
+				Usage: "Sign in addition to encrypting.",
+			},
+			cli.BoolFlag{
+				Name:  "skip-track",
+				Usage: "Don't track.",
+			},
+			cli.BoolFlag{
+				Name:  "y",
+				Usage: "Approve remote tracking without prompting.",
 			},
 		},
 		Description: `If encrypting with signatures, "keybase pgp encrypt" requires an

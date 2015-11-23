@@ -20,13 +20,21 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cl.ChooseCommand(&CmdPGPDecrypt{Contextified: libkb.NewContextified(g)}, "decrypt", c)
 		},
 		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "i, infile",
+				Usage: "Specify an input file.",
+			},
 			cli.BoolFlag{
 				Name:  "l, local",
 				Usage: "Only track locally, don't send a statement to the server.",
 			},
-			cli.BoolFlag{
-				Name:  "y",
-				Usage: "Approve remote tracking without prompting.",
+			cli.StringFlag{
+				Name:  "m, message",
+				Usage: "Provide the message on the command line.",
+			},
+			cli.StringFlag{
+				Name:  "o, outfile",
+				Usage: "Specify an outfile (stdout by default).",
 			},
 			cli.BoolFlag{
 				Name:  "s, signed",
@@ -36,17 +44,9 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Name:  "S, signed-by",
 				Usage: "Assert signed by the given user (can use user assertion format).",
 			},
-			cli.StringFlag{
-				Name:  "m, message",
-				Usage: "Provide the message on the command line.",
-			},
-			cli.StringFlag{
-				Name:  "i, infile",
-				Usage: "Specify an input file.",
-			},
-			cli.StringFlag{
-				Name:  "o, outfile",
-				Usage: "Specify an outfile (stdout by default).",
+			cli.BoolFlag{
+				Name:  "y",
+				Usage: "Approve remote tracking without prompting.",
 			},
 		},
 		Description: `Use of this command requires at least one PGP secret key imported
@@ -94,6 +94,9 @@ func (c *CmdPGPDecrypt) Run() error {
 }
 
 func (c *CmdPGPDecrypt) ParseArgv(ctx *cli.Context) error {
+	if len(ctx.Args()) > 0 {
+		return UnexpectedArgsError("pgp decrypt")
+	}
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
