@@ -529,7 +529,8 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 }
 
 func (rua *renameUnmergedAction) String() string {
-	return fmt.Sprintf("renameUnmerged: %s -> %s %s", rua.fromName, rua.toName, rua.symPath)
+	return fmt.Sprintf("renameUnmerged: %s -> %s %s", rua.fromName, rua.toName,
+		rua.symPath)
 }
 
 // renameMergedAction says that the merged copy of a file needs to be
