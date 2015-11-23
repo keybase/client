@@ -4,6 +4,17 @@ import {socketPath} from '../constants/platform.native.desktop'
 
 export default class DesktopTransport extends BaseTransport {
   constructor (incomingRPCCallback, writeCallback, connectCallback) {
+    let hooks = null
+    if (connectCallback) {
+      hooks = {connected: connectCallback}
+    }
+
+    super({hooks}, null, incomingRPCCallback)
+    this.needsConnect = true
+    this.needsBase64 = false
+  }
+
+  _connect_critical_section (cb) {
     let sockfile = null
 
     let exists = fs.existsSync(socketPath)
@@ -14,17 +25,12 @@ export default class DesktopTransport extends BaseTransport {
       console.error('No keybased socket file found!')
     }
 
-    let hooks = null
-    if (connectCallback) {
-      hooks = {connected: connectCallback}
-    }
+    this.net_opts.path = sockfile
 
-    super(
-      {path: sockfile, hooks},
-      null,
-      incomingRPCCallback
-    )
-    this.needsConnect = true
-    this.needsBase64 = false
+    if (sockfile) {
+      super._connect_critical_section(cb)
+    } else {
+      cb(new Error('No socketfile'))
+    }
   }
 }
