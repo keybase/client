@@ -342,6 +342,9 @@
       "request" : [ {
         "name" : "folderID",
         "type" : "string"
+      }, {
+        "name" : "signature",
+        "type" : "string"
       } ],
       "response" : "FolderUsersResponse"
     },

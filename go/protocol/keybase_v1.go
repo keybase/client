@@ -2548,7 +2548,8 @@ type TruncateUnlockArg struct {
 }
 
 type GetFolderUsersArg struct {
-	FolderID string `codec:"folderID" json:"folderID"`
+	FolderID  string `codec:"folderID" json:"folderID"`
+	Signature string `codec:"signature" json:"signature"`
 }
 
 type PingArg struct {
@@ -2564,7 +2565,7 @@ type MetadataInterface interface {
 	GetKey(context.Context, GetKeyArg) ([]byte, error)
 	TruncateLock(context.Context, string) (bool, error)
 	TruncateUnlock(context.Context, string) (bool, error)
-	GetFolderUsers(context.Context, string) (FolderUsersResponse, error)
+	GetFolderUsers(context.Context, GetFolderUsersArg) (FolderUsersResponse, error)
 	Ping(context.Context) error
 }
 
@@ -2727,7 +2728,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetFolderUsersArg)(nil), args)
 						return
 					}
-					ret, err = i.GetFolderUsers(ctx, (*typedArgs)[0].FolderID)
+					ret, err = i.GetFolderUsers(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2799,8 +2800,7 @@ func (c MetadataClient) TruncateUnlock(ctx context.Context, folderID string) (re
 	return
 }
 
-func (c MetadataClient) GetFolderUsers(ctx context.Context, folderID string) (res FolderUsersResponse, err error) {
-	__arg := GetFolderUsersArg{FolderID: folderID}
+func (c MetadataClient) GetFolderUsers(ctx context.Context, __arg GetFolderUsersArg) (res FolderUsersResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.getFolderUsers", []interface{}{__arg}, &res)
 	return
 }

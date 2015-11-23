@@ -28,6 +28,6 @@ protocol metadata {
   bytes getKey(bytes keyHalfID, string deviceKID, map<string> logTags);
   boolean truncateLock(string folderID);
   boolean truncateUnlock(string folderID);
-  FolderUsersResponse getFolderUsers(string folderID);
+  FolderUsersResponse getFolderUsers(string folderID, string signature);
   void ping();
 }
