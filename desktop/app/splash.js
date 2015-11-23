@@ -1,10 +1,8 @@
-'use strict'
-
 // Checks to see if we've launched before (we touch started.txt). If not, write the file and open a browser
 import {socketRoot} from '../../react-native/react/constants/platform.native.desktop'
 import path from 'path'
 
-const helpURL = 'https://keybase.io/docs/cli_kbstage'
+const helpURL = 'https://keybase.io/getting-started'
 const filePath = path.join(socketRoot, 'started.txt')
 import fs from 'fs'
 import {shell} from 'electron'

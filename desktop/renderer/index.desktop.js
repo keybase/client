@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 import React, {Component} from '../../react-native/react/base-react'
