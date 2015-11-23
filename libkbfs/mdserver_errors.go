@@ -40,13 +40,16 @@ type MDServerError struct {
 func (e MDServerError) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeMDServerError
 	s.Name = "SERVER_ERROR"
-	s.Desc = e.Err.Error()
+	s.Desc = e.Error()
 	return
 }
 
 // Error implements the Error interface for MDServerError.
 func (e MDServerError) Error() string {
-	return e.Err.Error()
+	if e.Err != nil {
+		return e.Err.Error()
+	}
+	return "Generic error"
 }
 
 // MDServerErrorBadRequest is a generic client-side error.
