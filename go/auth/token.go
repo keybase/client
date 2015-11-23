@@ -16,7 +16,14 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-const CurrentTokenVersion = 1
+const (
+	TokenType           = "auth"
+	CurrentTokenVersion = 1
+)
+
+type TokenAuth struct {
+	Server string `json:"server"`
+}
 
 type TokenKey struct {
 	UID      keybase1.UID             `json:"uid"`
@@ -25,9 +32,10 @@ type TokenKey struct {
 }
 
 type TokenBody struct {
-	Key     TokenKey `json:"key"`
-	Type    string   `json:"type"`
-	Version int      `json:"version"`
+	Auth    TokenAuth `json:"auth"`
+	Key     TokenKey  `json:"key"`
+	Type    string    `json:"type"`
+	Version int       `json:"version"`
 }
 
 type TokenClient struct {
@@ -44,15 +52,18 @@ type Token struct {
 }
 
 func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.KID,
-	tokenType string, expireIn int, clientName string, clientVersion string) *Token {
+	server string, expireIn int, clientName string, clientVersion string) *Token {
 	return &Token{
 		Body: TokenBody{
+			Auth: TokenAuth{
+				Server: server,
+			},
 			Key: TokenKey{
 				UID:      uid,
 				Username: username,
 				KID:      kid,
 			},
-			Type:    tokenType,
+			Type:    TokenType,
 			Version: CurrentTokenVersion,
 		},
 		Client: TokenClient{
@@ -77,7 +88,7 @@ func (t Token) String() string {
 	return string(t.Bytes())
 }
 
-func VerifyToken(signature, tokenType string, maxExpireIn int) (*Token, error) {
+func VerifyToken(signature, server string, maxExpireIn int) (*Token, error) {
 	var t *Token
 	key, token, _, err := libkb.NaclVerifyAndExtract(signature)
 	if err != nil {
@@ -92,10 +103,16 @@ func VerifyToken(signature, tokenType string, maxExpireIn int) (*Token, error) {
 			received: t.KID().String(),
 		}
 	}
-	if tokenType != t.Type() {
+	if TokenType != t.Type() {
 		return nil, InvalidTokenTypeError{
-			expected: tokenType,
+			expected: TokenType,
 			received: t.Type(),
+		}
+	}
+	if server != t.Server() {
+		return nil, InvalidTokenServerError{
+			expected: server,
+			received: t.Server(),
 		}
 	}
 	remaining := t.TimeRemaining()
@@ -122,6 +139,10 @@ func (t Token) TimeRemaining() int {
 	ctime := time.Unix(t.CreationTime, 0)
 	expires := ctime.Add(time.Duration(t.ExpireIn) * time.Second)
 	return int(math.Ceil(expires.Sub(time.Now()).Seconds()))
+}
+
+func (t Token) Server() string {
+	return t.Body.Auth.Server
 }
 
 func (t Token) UID() keybase1.UID {

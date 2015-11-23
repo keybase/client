@@ -21,24 +21,24 @@ func TestTokenVerifyToken(t *testing.T) {
 	name := libkb.NewNormalizedUsername("alice")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 10
-	tokenType := "test"
+	server := "test"
 	clientName := "test_client"
 	clientVersion := "41651"
-	token := NewToken(uid, name, keyPair.GetKID(), tokenType, expireIn, clientName, clientVersion)
+	token := NewToken(uid, name, keyPair.GetKID(), server, expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = VerifyToken("nope", tokenType, testMaxTokenExpireIn)
+	_, err = VerifyToken("nope", server, testMaxTokenExpireIn)
 	if err == nil {
 		t.Fatal(fmt.Errorf("expected verification failure"))
 	}
-	token, err = VerifyToken(sig, tokenType, testMaxTokenExpireIn)
+	token, err = VerifyToken(sig, server, testMaxTokenExpireIn)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err = checkToken(token, uid, name, keyPair.GetKID(),
-		tokenType, expireIn, clientName, clientVersion); err != nil {
+		server, expireIn, clientName, clientVersion); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -51,15 +51,15 @@ func TestTokenExpired(t *testing.T) {
 	name := libkb.NewNormalizedUsername("bob")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 0
-	tokenType := "test"
+	server := "test"
 	clientName := "test_client"
 	clientVersion := "21021"
-	token := NewToken(uid, name, keyPair.GetKID(), tokenType, expireIn, clientName, clientVersion)
+	token := NewToken(uid, name, keyPair.GetKID(), server, expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = VerifyToken(sig, tokenType, testMaxTokenExpireIn)
+	_, err = VerifyToken(sig, server, testMaxTokenExpireIn)
 	_, expired := err.(TokenExpiredError)
 	if !expired {
 		t.Fatal(fmt.Errorf("expected token expired error"))
@@ -74,22 +74,22 @@ func TestMaxExpires(t *testing.T) {
 	name := libkb.NewNormalizedUsername("charlie")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := testMaxTokenExpireIn + 1
-	tokenType := "test"
+	server := "test"
 	clientName := "test_client"
 	clientVersion := "93021"
-	token := NewToken(uid, name, keyPair.GetKID(), tokenType, expireIn, clientName, clientVersion)
+	token := NewToken(uid, name, keyPair.GetKID(), server, expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = VerifyToken(sig, tokenType, testMaxTokenExpireIn)
+	_, err = VerifyToken(sig, server, testMaxTokenExpireIn)
 	_, maxExpires := err.(MaxTokenExpiresError)
 	if !maxExpires {
 		t.Fatal(fmt.Errorf("expected max token expires error"))
 	}
 }
 
-func TestTokenTypeInvalid(t *testing.T) {
+func TestTokenServerInvalid(t *testing.T) {
 	keyPair, err := libkb.GenerateNaclSigningKeyPair()
 	if err != nil {
 		t.Fatal(err)
@@ -97,31 +97,31 @@ func TestTokenTypeInvalid(t *testing.T) {
 	name := libkb.NewNormalizedUsername("dana")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 10
-	tokenType := "test"
+	server := "test"
 	clientName := "test_client"
 	clientVersion := "20192"
-	token := NewToken(uid, name, keyPair.GetKID(), tokenType, expireIn, clientName, clientVersion)
+	token := NewToken(uid, name, keyPair.GetKID(), server, expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
 	_, err = VerifyToken(sig, "nope", testMaxTokenExpireIn)
-	_, invalid := err.(InvalidTokenTypeError)
+	_, invalid := err.(InvalidTokenServerError)
 	if !invalid {
-		t.Fatal(fmt.Errorf("expected invalid token type error"))
+		t.Fatal(fmt.Errorf("expected invalid token server error"))
 	}
-	token, err = VerifyToken(sig, tokenType, testMaxTokenExpireIn)
+	token, err = VerifyToken(sig, server, testMaxTokenExpireIn)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err = checkToken(token, uid, name, keyPair.GetKID(),
-		tokenType, expireIn, clientName, clientVersion); err != nil {
+		server, expireIn, clientName, clientVersion); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func checkToken(token *Token, uid keybase1.UID, username libkb.NormalizedUsername,
-	kid keybase1.KID, tokenType string, expireIn int, clientName, clientVersion string) error {
+	kid keybase1.KID, server string, expireIn int, clientName, clientVersion string) error {
 	if token.UID() != uid {
 		return fmt.Errorf("UID mismatch, expected: %s, got %s",
 			uid, token.UID())
@@ -134,9 +134,13 @@ func checkToken(token *Token, uid keybase1.UID, username libkb.NormalizedUsernam
 		return fmt.Errorf("Username mismatch, expected: %s, got %s",
 			username, token.Username())
 	}
-	if token.Type() != tokenType {
+	if token.Type() != TokenType {
 		return fmt.Errorf("TokenType mismatch, expected: %s, got %s",
-			tokenType, token.Type())
+			TokenType, token.Type())
+	}
+	if token.Server() != server {
+		return fmt.Errorf("Server mismatch, expected: %s, got %s",
+			server, token.Server())
 	}
 	if token.ExpireIn != expireIn {
 		return fmt.Errorf("ExpireIn mismatch, expected: %d, got %d",
