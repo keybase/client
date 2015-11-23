@@ -8,6 +8,9 @@
   (Bug keybase/keybase-issues#1855)
 - Auto-restart the service if the client is newer
   (PR keybase/client#1336)
+- Rename `keybase reset` to `keybase deprovision`, make it more interactive,
+  and have it delete all of your local account data, including keys.
+  (PR keybase/client#1330)
 
 ## 1.0.0-47 (2015-11-12)
 
