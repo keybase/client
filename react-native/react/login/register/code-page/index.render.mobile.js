@@ -4,7 +4,6 @@
  */
 
 import React, {Component, StyleSheet, Text, View, TextInput} from '../../../base-react'
-import {connect} from '../../../base-redux'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import {codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
@@ -12,19 +11,7 @@ import QR from './qr'
 import Button from '../../../common-adapters/button'
 import commonStyles from '../../../styles/common'
 
-class CodePage extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      enterText: ''
-    }
-  }
-
-  componentWillUnmount () {
-    this.props.doneRegistering()
-  }
-
+export default class CodePageRender extends Component {
   controlStyle (mode) {
     if (this.props.mode === mode) {
       return {backgroundColor: 'green'}
@@ -139,13 +126,13 @@ class CodePage extends Component {
         <Text style={commonStyles.h1}>Type the verification code from your other device into here</Text>
         <TextInput
           style={[commonStyles.textInput, {height: 100, marginTop: 40}]}
-          onChangeText={enterText => this.setState({enterText})}
+          onChangeText={enterText => this.props.onChangeText(enterText)}
           autoCapitalize={'none'}
           placeholder='Type code here'
-          value={this.state.enterText}
+          value={this.props.enterText}
           multiline />
         <Button style={{alignSelf: 'flex-end'}} title='Submit' action onPress={() => {
-          this.props.textEntered(this.state.enterText)
+          this.props.textEntered()
         }}/>
       </View>
     )
@@ -176,18 +163,19 @@ class CodePage extends Component {
 
 const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer]
 
-CodePage.propTypes = {
-  mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]),
+CodePageRender.propTypes = {
+  mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]).isRequired,
   textCode: React.PropTypes.string,
   qrCode: React.PropTypes.string,
-  myDeviceRole: React.PropTypes.oneOf(validRoles),
-  otherDeviceRole: React.PropTypes.oneOf(validRoles),
+  myDeviceRole: React.PropTypes.oneOf(validRoles).isRequired,
+  otherDeviceRole: React.PropTypes.oneOf(validRoles).isRequired,
   cameraBrokenMode: React.PropTypes.bool.isRequired,
   setCodePageMode: React.PropTypes.func.isRequired,
   qrScanned: React.PropTypes.func.isRequired,
   setCameraBrokenMode: React.PropTypes.func.isRequired,
   textEntered: React.PropTypes.func.isRequired,
-  doneRegistering: React.PropTypes.func.isRequired
+  onChangeText: React.PropTypes.func.isRequired,
+  enterText: React.PropTypes.string
 }
 
 const styles = StyleSheet.create({
@@ -218,15 +206,3 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 1, height: 1}
   }
 })
-
-export default connect(
-  state => state,
-  null,
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...ownProps,
-      ...ownProps.mapStateToProps(stateProps),
-      ...dispatchProps
-    }
-  }
-)(CodePage)

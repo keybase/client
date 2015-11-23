@@ -1,5 +1,6 @@
 import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
+
 import CodePage from '../login/register/code-page'
 import GenPaperKey from './gen-paper-key'
 import ExistingDevice from '../login/register/existing-device'
@@ -33,12 +34,12 @@ class Devices extends Component {
 
   render () {
     return (
-      <Render
-        devices={this.props.devices}
-        waitingForServer={this.props.waitingForServer}
-        showRemoveDevicePage={this.props.showRemoveDevicePage}
-        showExistingDevicePage={this.props.showExistingDevicePage}
-        showGenPaperKeyPage={this.props.showGenPaperKeyPage}/>
+    <Render
+      devices={this.props.devices}
+      waitingForServer={this.props.waitingForServer}
+      showRemoveDevicePage={this.props.showRemoveDevicePage}
+      showExistingDevicePage={this.props.showExistingDevicePage}
+      showGenPaperKeyPage={this.props.showGenPaperKeyPage}/>
     )
   }
 }
