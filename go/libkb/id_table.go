@@ -438,6 +438,8 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 
 	var res []TrackedKey
 
+	// note that this section is the eldest key.
+	// it can contain pgp or nacl keys.
 	keyJSON := l.payloadJSON.AtPath("body.track.key")
 	if !keyJSON.IsNil() {
 		tracked, err := trackedKeyFromJSON(keyJSON)

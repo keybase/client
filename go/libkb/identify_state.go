@@ -104,9 +104,11 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 	for _, kid := range found {
 		var diff TrackDiff
 		if s.track != nil && !trackedMap[kid] {
+			G.Log.Warning("TrackDiffNew")
 			diff = TrackDiffNew{}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 		} else if s.track != nil {
+			G.Log.Warning("TrackDiffNone")
 			diff = TrackDiffNone{}
 		}
 		display(kid, diff)
@@ -114,6 +116,7 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 
 	for _, kid := range tracked {
 		if !foundMap[kid] {
+			G.Log.Warning("TrackDiffRevoked")
 			fp := s.u.GetKeyFamily().kid2pgp[kid]
 			diff := TrackDiffRevoked{fp}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
