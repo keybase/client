@@ -31,6 +31,7 @@ const mainWindow = new Window('index', {
 
 mb.on('ready', () => {
   require('../../react-native/react/native/notifications').init()
+  require('../../react-native/react/native/pinentry').init()
 })
 
 // Work around an OS X bug that leaves a gap in the status bar if you exit
