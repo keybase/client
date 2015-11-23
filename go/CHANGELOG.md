@@ -1,7 +1,7 @@
 ## 1.0.1-0 (2015-11-23)
 
-- Allow provision via GPG command line tool so secret
-  key does not need to be imported.
+- Allow provision via GPG command line tool so secret key does not need to be imported.
+  (PR keybase/client#1359)
 - Improve error message for no synced PGP key
   (Bug keybase/keybase-issues#1854)
 - Fix username bug during passphrase provision
