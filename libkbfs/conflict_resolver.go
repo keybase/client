@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
 
@@ -1859,9 +1860,9 @@ type crPathTreeNode struct {
 // syncTree returns the merged blockPutState for itself and all of its
 // children.
 func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
-	node *crPathTreeNode, stopAt BlockPointer, lbc localBcache,
-	newFileBlocks fileBlockMap) (*blockPutState, error) {
-	// If this has no children, then sync it, as for back as stopAt.
+	uid keybase1.UID, node *crPathTreeNode, stopAt BlockPointer,
+	lbc localBcache, newFileBlocks fileBlockMap) (*blockPutState, error) {
+	// If this has no children, then sync it, as far back as stopAt.
 	if len(node.children) == 0 {
 		// Look for the directory block or the new file block.
 		var block Block
@@ -1886,11 +1887,6 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 					"parent %v", node.mergedPath.tailName(), node.parent.ptr)
 			}
 			entryType = File // TODO: FIXME for Ex and Sym
-		}
-
-		uid, err := cr.config.KBPKI().GetCurrentUID(ctx)
-		if err != nil {
-			return nil, err
 		}
 
 		// TODO: fix mtime and ctime?
@@ -1930,7 +1926,7 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 		if count == len(node.children) {
 			localStopAt = stopAt
 		}
-		childBps, err := cr.syncTree(ctx, newMD, child, localStopAt, lbc,
+		childBps, err := cr.syncTree(ctx, newMD, uid, child, localStopAt, lbc,
 			newFileBlocks)
 		if err != nil {
 			return nil, err
@@ -2024,9 +2020,15 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, md *RootMetadata,
 		}
 	}
 
+	uid, err := cr.config.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Now do a depth-first walk, and syncBlock back up to the fork on
 	// every branch
-	bps, err := cr.syncTree(ctx, md, root, BlockPointer{}, lbc, newFileBlocks)
+	bps, err := cr.syncTree(ctx, md, uid, root, BlockPointer{},
+		lbc, newFileBlocks)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2054,11 +2056,6 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, md *RootMetadata,
 	// do the block changes need their own blocks?
 	bsplit := cr.config.BlockSplitter()
 	if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
-		uid, err := cr.config.KBPKI().GetCurrentUID(ctx)
-		if err != nil {
-			return nil, nil, err
-		}
-
 		err = cr.fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes, uid)
 		if err != nil {
 			return nil, nil, err
