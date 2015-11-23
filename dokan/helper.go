@@ -1,0 +1,87 @@
+// Copyright 2015 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
+// +build windows
+
+package dokan
+
+/*
+#include "bridge.h"
+*/
+import "C"
+
+import (
+	"errors"
+	"syscall"
+	"time"
+)
+
+func packTime(t time.Time) C.FILETIME {
+	ft := syscall.NsecToFiletime(t.UnixNano())
+	return C.FILETIME{dwLowDateTime: C.DWORD(ft.LowDateTime), dwHighDateTime: C.DWORD(ft.HighDateTime)}
+}
+func unpackTime(c C.FILETIME) time.Time {
+	ft := syscall.Filetime{LowDateTime: uint32(c.dwLowDateTime), HighDateTime: uint32(c.dwHighDateTime)}
+	// This is valid, see docs and code for package time.
+	return time.Unix(0, ft.Nanoseconds())
+}
+
+func getfs(fi C.PDOKAN_FILE_INFO) FileSystem {
+	return fsTableGet(uint32(fi.DokanOptions.GlobalContext))
+}
+
+func getfi(fi C.PDOKAN_FILE_INFO) File {
+	return fsTableGetFile(uint32(fi.Context))
+}
+
+func fiStore(pfi C.PDOKAN_FILE_INFO, fi File, err error) C.NTSTATUS {
+	debug("->", fi, err)
+	if fi != nil {
+		pfi.Context = C.ULONG64(fsTableStoreFile(uint32(pfi.DokanOptions.GlobalContext), fi))
+	}
+	return errToNT(err)
+}
+
+func errToNT(err error) C.NTSTATUS {
+	// NTSTATUS constants are defined as unsigned but the type is signed
+	// and the values overflow on purpose. This is horrible.
+	var code uint32
+	if err != nil {
+		debug("ERROR:", err)
+		n, ok := err.(NtError)
+		if ok {
+			code = uint32(n)
+		} else {
+			code = uint32(0xC0000001)
+		}
+	}
+	return C.NTSTATUS(code)
+}
+
+type dokanCtx struct {
+	ptr  *C.struct_kbfs_libdokan_ctx
+	slot uint32
+}
+
+func allocCtx(slot uint32) *dokanCtx {
+	return &dokanCtx{C.kbfs_libdokan_alloc_ctx(C.ULONG64(slot)), slot}
+}
+
+func (ctx *dokanCtx) Run(driveLetter byte) error {
+	if isDebug {
+		ctx.ptr.dokan_options.Options |= C.kbfs_libdokan_debug
+	}
+	C.kbfs_libdokan_set_drive_letter(ctx.ptr, (C.char)(driveLetter))
+	ec := C.kbfs_libdokan_run(ctx.ptr)
+	if ec != 0 {
+		return errors.New("Dokan failed")
+	}
+	return nil
+}
+
+func (ctx *dokanCtx) Free() {
+	debug("dokanCtx.Free")
+	C.kbfs_libdokan_free(ctx.ptr)
+	fsTableFree(ctx.slot)
+}
