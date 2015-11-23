@@ -438,18 +438,6 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 
 	var res []TrackedKey
 
-	// note that this section is the eldest key.
-	// it can contain pgp or nacl keys.
-	keyJSON := l.payloadJSON.AtPath("body.track.key")
-	if !keyJSON.IsNil() {
-		tracked, err := trackedKeyFromJSON(keyJSON)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, tracked)
-		set[tracked.KID] = true
-	}
-
 	pgpKeysJSON := l.payloadJSON.AtPath("body.track.pgp_keys")
 	if !pgpKeysJSON.IsNil() {
 		n, err := pgpKeysJSON.Len()
@@ -469,6 +457,18 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 		}
 	}
 	return res, nil
+}
+
+func (l *TrackChainLink) GetEldestKID() (kid keybase1.KID, err error) {
+	keyJSON := l.payloadJSON.AtPath("body.track.key")
+	if keyJSON.IsNil() {
+		return kid, nil
+	}
+	tracked, err := trackedKeyFromJSON(keyJSON)
+	if err != nil {
+		return kid, err
+	}
+	return tracked.KID, nil
 }
 
 func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {

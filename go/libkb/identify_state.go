@@ -91,6 +91,17 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 		dhook(k)
 	}
 
+	// first check the eldest key
+	observedEldest := s.u.GetEldestKID()
+	if s.track != nil {
+		trackedEldest := s.track.GetEldestKID()
+		if observedEldest != trackedEldest {
+			diff := TrackDiffNewEldest{tracked: trackedEldest, observed: observedEldest}
+			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
+			display(observedEldest, diff)
+		}
+	}
+
 	found := s.u.GetActivePGPKIDs(true)
 	foundMap := mapify(found)
 	var tracked []keybase1.KID
@@ -104,11 +115,9 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 	for _, kid := range found {
 		var diff TrackDiff
 		if s.track != nil && !trackedMap[kid] {
-			G.Log.Warning("TrackDiffNew")
 			diff = TrackDiffNew{}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 		} else if s.track != nil {
-			G.Log.Warning("TrackDiffNone")
 			diff = TrackDiffNone{}
 		}
 		display(kid, diff)
@@ -116,7 +125,6 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 
 	for _, kid := range tracked {
 		if !foundMap[kid] {
-			G.Log.Warning("TrackDiffRevoked")
 			fp := s.u.GetKeyFamily().kid2pgp[kid]
 			diff := TrackDiffRevoked{fp}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)

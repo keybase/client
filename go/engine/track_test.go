@@ -154,7 +154,7 @@ func TestTrackMultiple(t *testing.T) {
 func TestTrackNewUserWithPGP(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPSibkey(tc, "track")
+	fu := createFakeUserWithPGPSibkey(tc)
 	Logout(tc)
 
 	tracker := CreateAndSignupFakeUser(tc, "track")

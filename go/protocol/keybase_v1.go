@@ -1425,6 +1425,7 @@ const (
 	TrackDiffType_REMOTE_FAIL    TrackDiffType = 6
 	TrackDiffType_REMOTE_WORKING TrackDiffType = 7
 	TrackDiffType_REMOTE_CHANGED TrackDiffType = 8
+	TrackDiffType_NEW_ELDEST     TrackDiffType = 9
 )
 
 type TrackDiff struct {

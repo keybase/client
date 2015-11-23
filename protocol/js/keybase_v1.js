@@ -205,7 +205,8 @@ export default {
       'new': 5,
       'remoteFail': 6,
       'remoteWorking': 7,
-      'remoteChanged': 8
+      'remoteChanged': 8,
+      'newEldest': 9
     },
     'TrackStatus': {
       'newOk': 1,
@@ -296,7 +297,8 @@ export default {
       'new': 5,
       'remoteFail': 6,
       'remoteWorking': 7,
-      'remoteChanged': 8
+      'remoteChanged': 8,
+      'newEldest': 9
     },
     'TrackStatus': {
       'newOk': 1,
@@ -608,7 +610,8 @@ export default {
       'new': 5,
       'remoteFail': 6,
       'remoteWorking': 7,
-      'remoteChanged': 8
+      'remoteChanged': 8,
+      'newEldest': 9
     },
     'TrackStatus': {
       'newOk': 1,
@@ -704,7 +707,8 @@ export default {
       'new': 5,
       'remoteFail': 6,
       'remoteWorking': 7,
-      'remoteChanged': 8
+      'remoteChanged': 8,
+      'newEldest': 9
     },
     'TrackStatus': {
       'newOk': 1,
@@ -919,7 +923,8 @@ export default {
       'new': 5,
       'remoteFail': 6,
       'remoteWorking': 7,
-      'remoteChanged': 8
+      'remoteChanged': 8,
+      'newEldest': 9
     },
     'TrackStatus': {
       'newOk': 1,
