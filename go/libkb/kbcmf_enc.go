@@ -28,7 +28,7 @@ func (n naclBoxSecretKey) GetPublicKey() kbcmf.BoxPublicKey {
 	return naclBoxPublicKey(n.Public)
 }
 
-func (b naclBoxSecretKey) Box(receiver kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) ([]byte, error) {
+func (n naclBoxSecretKey) Box(receiver kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) ([]byte, error) {
 	ret := box.Seal([]byte{}, msg, (*[24]byte)(nonce),
 		(*[32]byte)(receiver.ToRawBoxKeyPointer()), (*[32]byte)(b.Private))
 	return ret, nil
@@ -36,7 +36,7 @@ func (b naclBoxSecretKey) Box(receiver kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, m
 
 var errPublicKeyDecryptionFailed = errors.New("public key decryption failed")
 
-func (b naclBoxSecretKey) Unbox(sender kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) ([]byte, error) {
+func (n naclBoxSecretKey) Unbox(sender kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) ([]byte, error) {
 	out, ok := box.Open([]byte{}, msg, (*[24]byte)(nonce),
 		(*[32]byte)(sender.ToRawBoxKeyPointer()), (*[32]byte)(b.Private))
 	if !ok {
