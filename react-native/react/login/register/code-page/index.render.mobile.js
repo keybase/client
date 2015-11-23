@@ -164,11 +164,11 @@ export default class CodePageRender extends Component {
 const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer]
 
 CodePageRender.propTypes = {
-  mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]),
+  mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]).isRequired,
   textCode: React.PropTypes.string,
   qrCode: React.PropTypes.string,
-  myDeviceRole: React.PropTypes.oneOf(validRoles),
-  otherDeviceRole: React.PropTypes.oneOf(validRoles),
+  myDeviceRole: React.PropTypes.oneOf(validRoles).isRequired,
+  otherDeviceRole: React.PropTypes.oneOf(validRoles).isRequired,
   cameraBrokenMode: React.PropTypes.bool.isRequired,
   setCodePageMode: React.PropTypes.func.isRequired,
   qrScanned: React.PropTypes.func.isRequired,
