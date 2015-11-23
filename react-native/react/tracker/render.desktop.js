@@ -13,6 +13,8 @@ import Bio from './bio.render'
 // $FlowIssue platform files
 import Proofs from './proofs.render'
 
+import commonStyles from '../styles/common'
+
 import type {BioProps} from './bio.render.desktop'
 import type {ActionProps} from './action.render.desktop'
 import type {HeaderProps} from './header.render.desktop'
@@ -30,13 +32,13 @@ export default class Render extends Component {
 
   render (): ReactElement {
     return (
-      <div style={{display: 'flex', flex: 1, flexDirection: 'column'}}>
-        <Header {...this.props.headerProps} />
-        <div style={{display: 'flex', flex: 1, flexDirection: 'row', height: 480}}>
-          <Bio {...this.props.bioProps} />
-          <Proofs {...this.props.proofsProps} />
+      <div style={styles.container}>
+        <Header style={styles.header} {...this.props.headerProps} />
+        <div style={styles.bodyContainer}>
+          <Bio style={styles.bio} {...this.props.bioProps} />
+          <Proofs style={styles.proofs} {...this.props.proofsProps} />
         </div>
-        <Action {...this.props.actionProps} />
+        <Action style={styles.action} {...this.props.actionProps} />
       </div>
     )
   }
@@ -47,4 +49,28 @@ Render.propTypes = {
   bioProps: React.PropTypes.any,
   proofsProps: React.PropTypes.any,
   actionProps: React.PropTypes.any
+}
+
+const styles = {
+  container: {
+    ...commonStyles.flexBoxColumn,
+    width: 520,
+    height: 332,
+    fontFamily: 'Noto Sans'
+  },
+  header: {
+    height: 34
+  },
+  bodyContainer: {
+    ...commonStyles.flexBoxRow,
+    height: 242
+  },
+  bio: {
+    width: 202
+  },
+  proofs: {
+  },
+  action: {
+    height: 56
+  }
 }
