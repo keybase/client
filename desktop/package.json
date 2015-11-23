@@ -16,6 +16,7 @@
     "babel-loader": "^5.3.2",
     "babel-runtime": "^5.8.25",
     "core-decorators": "^0.4.1",
+    "font-awesome": "^4.4.0",
     "immutable": "^3.7.5",
     "lodash": "^3.10.1",
     "material-ui": "^0.13.0",
