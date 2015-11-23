@@ -1,7 +1,6 @@
 /* @flow */
 
 import {combineReducers} from 'redux'
-// $FlowFixMe login isnt typed
 import login from './login'
 import devices from './devices'
 import search from './search'
