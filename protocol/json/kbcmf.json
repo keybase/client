@@ -326,6 +326,13 @@
       "name" : "trackOptions",
       "type" : "TrackOptions"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "KBCMFDecryptOptions",
+    "fields" : [ {
+      "name" : "trackOptions",
+      "type" : "TrackOptions"
+    } ]
   } ],
   "messages" : {
     "kbcmfEncrypt" : {
@@ -341,6 +348,22 @@
       }, {
         "name" : "opts",
         "type" : "KBCMFEncryptOptions"
+      } ],
+      "response" : "null"
+    },
+    "kbcmfDecrypt" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "source",
+        "type" : "Stream"
+      }, {
+        "name" : "sink",
+        "type" : "Stream"
+      }, {
+        "name" : "opts",
+        "type" : "KBCMFDecryptOptions"
       } ],
       "response" : "null"
     }

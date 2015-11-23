@@ -10,4 +10,10 @@ protocol kbcmf {
   }
 
   void kbcmfEncrypt(int sessionID, Stream source, Stream sink, KBCMFEncryptOptions opts);
+
+  record KBCMFDecryptOptions {
+    TrackOptions trackOptions;
+  }
+
+  void kbcmfDecrypt(int sessionID, Stream source, Stream sink, KBCMFDecryptOptions opts);
 }

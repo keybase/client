@@ -1903,6 +1903,10 @@ type KBCMFEncryptOptions struct {
 	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
 }
 
+type KBCMFDecryptOptions struct {
+	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+}
+
 type KbcmfEncryptArg struct {
 	SessionID int                 `codec:"sessionID" json:"sessionID"`
 	Source    Stream              `codec:"source" json:"source"`
@@ -1910,8 +1914,16 @@ type KbcmfEncryptArg struct {
 	Opts      KBCMFEncryptOptions `codec:"opts" json:"opts"`
 }
 
+type KbcmfDecryptArg struct {
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Source    Stream              `codec:"source" json:"source"`
+	Sink      Stream              `codec:"sink" json:"sink"`
+	Opts      KBCMFDecryptOptions `codec:"opts" json:"opts"`
+}
+
 type KbcmfInterface interface {
 	KbcmfEncrypt(context.Context, KbcmfEncryptArg) error
+	KbcmfDecrypt(context.Context, KbcmfDecryptArg) error
 }
 
 func KbcmfProtocol(i KbcmfInterface) rpc.Protocol {
@@ -1934,6 +1946,22 @@ func KbcmfProtocol(i KbcmfInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"kbcmfDecrypt": {
+				MakeArg: func() interface{} {
+					ret := make([]KbcmfDecryptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]KbcmfDecryptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]KbcmfDecryptArg)(nil), args)
+						return
+					}
+					err = i.KbcmfDecrypt(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1944,6 +1972,11 @@ type KbcmfClient struct {
 
 func (c KbcmfClient) KbcmfEncrypt(ctx context.Context, __arg KbcmfEncryptArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.kbcmf.kbcmfEncrypt", []interface{}{__arg}, nil)
+	return
+}
+
+func (c KbcmfClient) KbcmfDecrypt(ctx context.Context, __arg KbcmfDecryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbcmf.kbcmfDecrypt", []interface{}{__arg}, nil)
 	return
 }
 

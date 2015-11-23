@@ -10,16 +10,6 @@ import (
 
 // compatibility with node client commands:
 
-func NewCmdCompatDecrypt(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name: "decrypt",
-		Action: func(c *cli.Context) {
-			GlobUI.Println("Use `keybase pgp decrypt` instead.")
-		},
-		Description: "Use `keybase pgp decrypt` instead.",
-	}
-}
-
 func NewCmdCompatSign(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name: "sign",

@@ -23,6 +23,24 @@ func NewKBCMFHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KBCMFHandler {
 	}
 }
 
+func (h *KBCMFHandler) KbcmfDecrypt(_ context.Context, arg keybase1.KbcmfDecryptArg) error {
+	cli := h.getStreamUICli()
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
+	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
+	earg := &engine.KBCMFDecryptArg{
+		Sink:         snk,
+		Source:       src,
+		TrackOptions: arg.Opts.TrackOptions,
+	}
+
+	ctx := &engine.Context{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+		SecretUI:   h.getSecretUI(arg.SessionID),
+	}
+	eng := engine.NewKBCMFDecrypt(earg, h.G())
+	return engine.RunEngine(eng, ctx)
+}
+
 func (h *KBCMFHandler) KbcmfEncrypt(_ context.Context, arg keybase1.KbcmfEncryptArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
