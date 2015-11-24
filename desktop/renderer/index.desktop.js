@@ -9,9 +9,7 @@ import injectTapEventPlugin from 'react-tap-event-plugin'
 import {isDev} from '../../react-native/react/constants/platform'
 
 // For Remote Components
-import remote from 'remote'
-const ipc = remote.require('ipc')
-// import ipc from 'ipc'
+import {ipcMain} from 'remote'
 
 let DevTools = null
 let DebugPanel = null
@@ -34,14 +32,15 @@ class Keybase extends Component {
     injectTapEventPlugin()
 
     // For remote window components
-    ipc.removeAllListeners('dispatchAction')
-    ipc.removeAllListeners('stateChange')
-    ipc.removeAllListeners('subscribeStore')
-    ipc.on('dispatchAction', (event, action) => {
+    ipcMain.removeAllListeners('dispatchAction')
+    ipcMain.removeAllListeners('stateChange')
+    ipcMain.removeAllListeners('subscribeStore')
+
+    ipcMain.on('dispatchAction', (event, action) => {
       store.dispatch(action)
     })
 
-    ipc.on('subscribeStore', event => {
+    ipcMain.on('subscribeStore', event => {
       event.sender.send('stateChange', store.getState())
       store.subscribe(() => {
         // TODO: use transit

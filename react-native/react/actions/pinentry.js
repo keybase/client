@@ -1,5 +1,4 @@
 import * as Constants from '../constants/pinentry'
-import ipc from 'ipc'
 
 export function onSubmit (passphrase, features) {
   console.log(`Passphrase submitted: ${passphrase}`)
@@ -9,8 +8,7 @@ export function onSubmit (passphrase, features) {
     result[feature] = features[feature]
   }
   return dispatch => {
-    ipc.send('pinentryResult', result)
-
+    // TODO: send result to someone who's listening
     dispatch({type: Constants.onSubmit})
   }
 }
@@ -18,8 +16,7 @@ export function onSubmit (passphrase, features) {
 export function onCancel () {
   console.log('Pinentry dialog canceled')
   return dispatch => {
-    ipc.send('pinentryResult', {error: 'User canceled'})
-
+    // TODO: send result to someone who's listening
     dispatch({type: Constants.onCancel})
   }
 }

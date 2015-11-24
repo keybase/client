@@ -2,18 +2,18 @@ import React, {Component} from '../base-react'
 import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
 import remote from 'remote'
-import ipc from 'ipc'
+import {ipcRenderer} from 'electron'
 
 const currentWindow = remote.getCurrentWindow()
 
 class RemoteStore {
   constructor () {
-    ipc.on('stateChange', arg => {
+    ipcRenderer.on('stateChange', arg => {
       this.internalState = arg
       this._publishChange()
     })
 
-    ipc.send('subscribeStore')
+    ipcRenderer.send('subscribeStore')
 
     this.listeners = []
     this.internalState = {}
@@ -28,7 +28,7 @@ class RemoteStore {
     if (action.constructor === Function) {
       action(a => this.dispatch(a))
     } else {
-      ipc.send('dispatchAction', action)
+      ipcRenderer.send('dispatchAction', action)
     }
   }
 
@@ -75,7 +75,7 @@ class RemoteComponentLoader extends Component {
   }
 
   componentWillUnmount () {
-    ipc.removeAllListeners('hasProps')
+    ipcRenderer.removeAllListeners('hasProps')
   }
 
   render () {
