@@ -30,12 +30,12 @@ func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "m, message",
-				Usage: "Provide the message on the command line.",
-			},
-			cli.StringFlag{
 				Name:  "i, infile",
 				Usage: "Specify an input file.",
+			},
+			cli.StringFlag{
+				Name:  "m, message",
+				Usage: "Provide the message on the command line.",
 			},
 			cli.StringFlag{
 				Name:  "o, outfile",
