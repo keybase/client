@@ -18,7 +18,7 @@ export default class ActionRender extends Component {
   }
 
   renderChanged () {
-    const title = this.props.state === warning ? `${this.props.username} added some idenitity proofs.`
+    const title = this.props.state === warning ? `${this.props.username} added some identity proofs.`
       : `Some of ${this.props.username}'s proofs are compromised or have changed.`
     return (
       <div style={{...styles.normalContainer, ...this.props.style}}>
