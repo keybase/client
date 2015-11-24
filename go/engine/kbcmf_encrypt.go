@@ -4,7 +4,6 @@
 package engine
 
 import (
-	"errors"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -77,12 +76,12 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 				if err != nil {
 					return err
 				}
-				pk, ok := gk.(libkb.NaclDHKeyPair)
+				kp, ok := gk.(libkb.NaclDHKeyPair)
 				if !ok {
-					return errors.New("Invalid public key")
+					return libkb.KeyCannotEncryptError{}
 				}
 
-				receiver = append(receiver, pk.Public)
+				receiver = append(receiver, kp.Public)
 			}
 		}
 		receivers = append(receivers, receiver)
@@ -97,15 +96,16 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "command-line signature")
+	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(
+		ctx.LoginContext, ska, ctx.SecretUI,
+		"encrypting a message/file")
 	if err != nil {
 		return err
 	}
-
-	sender, ok := key.(libkb.NaclDHKeyPair)
-	if !ok {
-		return errors.New("Key unexpectedly not a device encryption key")
+	kp, ok := encryptionKey.(libkb.NaclDHKeyPair)
+	if !ok || kp.Private == nil {
+		return libkb.KeyCannotDecryptError{}
 	}
 
-	return libkb.KBCMFEncrypt(e.arg.Source, e.arg.Sink, receivers, sender)
+	return libkb.KBCMFEncrypt(e.arg.Source, e.arg.Sink, receivers, kp)
 }

@@ -4,21 +4,17 @@
 package engine
 
 import (
-	"errors"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type KBCMFDecryptArg struct {
-	Source       io.Reader
-	Sink         io.WriteCloser
-	TrackOptions keybase1.TrackOptions
+	Source io.Reader
+	Sink   io.WriteCloser
 }
 
-// KBCMFDecrypt decrypts data read from a source into a sink.  It will
-// track them if necessary.
+// KBCMFDecrypt decrypts data read from a source into a sink.
 type KBCMFDecrypt struct {
 	arg *KBCMFDecryptArg
 	libkb.Contextified
@@ -63,15 +59,17 @@ func (e *KBCMFDecrypt) Run(ctx *Context) (err error) {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "command-line signature")
+	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(
+		ctx.LoginContext, ska, ctx.SecretUI,
+		"decrypting a message/file")
 	if err != nil {
 		return err
 	}
 
-	deviceEncryptionKey, ok := key.(libkb.NaclDHKeyPair)
-	if !ok {
-		return errors.New("Key unexpectedly not a device encryption key")
+	kp, ok := encryptionKey.(libkb.NaclDHKeyPair)
+	if !ok || kp.Private == nil {
+		return libkb.KeyCannotDecryptError{}
 	}
 
-	return libkb.KBCMFDecrypt(e.arg.Source, e.arg.Sink, deviceEncryptionKey)
+	return libkb.KBCMFDecrypt(e.arg.Source, e.arg.Sink, kp)
 }
