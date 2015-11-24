@@ -46,7 +46,7 @@ func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 }
 
 func (c *CmdDecrypt) Run() error {
-	cli, err := GetKBCMFClient()
+	cli, err := GetKBCMFClient(c.G())
 	if err != nil {
 		return err
 	}
