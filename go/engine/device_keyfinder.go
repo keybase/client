@@ -10,8 +10,6 @@ import (
 	"github.com/keybase/client/go/protocol"
 )
 
-// TODO: Combine this with pgp_keyfinder.go?
-
 // DeviceKeyfinder is an engine to find device keys for users (loaded by
 // assertions), possibly tracking them if necessary.
 type DeviceKeyfinder struct {
@@ -108,11 +106,8 @@ func (e *DeviceKeyfinder) trackUsers(ctx *Context) {
 	// need to track any users we aren't tracking
 	for _, u := range e.arg.Users {
 		if err := e.trackUser(ctx, u); err != nil {
-			// ignore self track errors
-			if _, ok := err.(libkb.SelfTrackError); !ok {
-				e.runerr = err
-				return
-			}
+			e.runerr = err
+			return
 		}
 	}
 }
@@ -160,7 +155,13 @@ func (e *DeviceKeyfinder) trackUser(ctx *Context, username string) error {
 		Options:       e.arg.TrackOptions,
 	}
 	eng := NewTrackEngine(arg, e.G())
-	if err := RunEngine(eng, ctx); err != nil {
+	err := RunEngine(eng, ctx)
+	// ignore self track errors
+	if _, ok := err.(libkb.SelfTrackError); ok {
+		e.addUser(e.me, false)
+		return nil
+	}
+	if err != nil {
 		return err
 	}
 	e.addUser(eng.User(), true)
