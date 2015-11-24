@@ -131,7 +131,7 @@ func (ds *decryptStream) assertEndOfStream() error {
 	return err
 }
 
-func (ds *decryptStream) tryVisibileReceivers(hdr *EncryptionHeader, nonce *Nonce, ephemeralKey BoxPublicKey) (BoxSecretKey, []byte, int, error) {
+func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, nonce *Nonce, ephemeralKey BoxPublicKey) (BoxSecretKey, []byte, int, error) {
 	var kids [][]byte
 	for _, r := range hdr.Receivers {
 		if r.KID != nil {
@@ -185,7 +185,7 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	var nonce Nonce
 	copy(nonce[:], hdr.Nonce)
 
-	secretKey, senderPublicRawKey, i, err := ds.tryVisibileReceivers(hdr, &nonce, ephemeralKey)
+	secretKey, senderPublicRawKey, i, err := ds.tryVisibleReceivers(hdr, &nonce, ephemeralKey)
 	if err != nil {
 		return err
 	}
