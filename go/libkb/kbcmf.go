@@ -11,6 +11,8 @@ import (
 	"golang.org/x/crypto/nacl/box"
 )
 
+// This file wraps types from naclwrap.go in kbcmf interfaces.
+
 type naclBoxPublicKey NaclDHKeyPublic
 
 var _ kbcmf.BoxPublicKey = naclBoxPublicKey{}
