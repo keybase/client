@@ -2,9 +2,9 @@
 module Test
   # bob renames a non-conflicting file into a new directory while unstaged
   test :cr_unmerged_rename_into_new_dir, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkfile "a/b", "hello"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -30,9 +30,9 @@ module Test
   # alice renames a non-conflicting file into a new directory while
   # bob is unstaged.
   test :cr_merged_rename_into_new_dir, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkfile "a/b", "hello"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -57,10 +57,10 @@ module Test
 
   # bob causes a simple rename cycle while unstaged
   test :cr_rename_cycle, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a"
       mkdir "b"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -87,10 +87,10 @@ module Test
 
   # bob causes a complicated rename cycle while unstaged
   test :cr_complex_rename_cycle, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a"
       mkdir "b"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -120,10 +120,10 @@ module Test
 
   # bob causes a complicated and large rename cycle while unstaged
   test :cr_complex_large_rename_cycle, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a/b/c"
       mkdir "d/e/f"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -149,9 +149,9 @@ module Test
 
   # bob and alice do a lot of complex renames cycle while unstaged
   test :cr_complex_rename_no_cycle, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a/b/c/d/e/f/g"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -185,11 +185,11 @@ module Test
 
   # bob renames a file while unmerged, at the same time alice writes to it
   test :cr_unmerged_rename_with_parallel_write, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a"
       mkdir "b"
       write "a/foo", "hello"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -356,11 +356,11 @@ module Test
 
   # bob writes a file while unmerged, at the same time alice renames it
   test :cr_merged_rename_with_parallel_write, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a"
       mkdir "b"
       write "a/foo", "hello"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -383,9 +383,9 @@ module Test
 
   # bob has two back-to-back resolutions
   test :cr_double_resolution, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a/b"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -435,9 +435,9 @@ module Test
 
   # bob makes files in a directory renamed by alice
   test :cr_unmerged_make_files_in_renamed_dir, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a/b"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -463,9 +463,9 @@ module Test
 
   # bob makes files in a directory renamed by alice
   test :cr_merged_make_files_in_renamed_dir, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a/b"
-   end
+    end
     as bob do
       disable_updates
     end

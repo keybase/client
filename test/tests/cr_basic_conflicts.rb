@@ -297,11 +297,11 @@ module Test
 
   # bob causes a rename cycle with a conflict while unstaged
   test :cr_rename_cycle_with_conflict, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a"
       mkdir "a/b"
       mkdir "a/c"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -333,11 +333,11 @@ module Test
 
   # bob causes a rename cycle with two conflicts while unstaged
   test :cr_rename_cycle_with_two_conflicts, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a"
       mkdir "a/b"
       mkdir "a/c"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -370,11 +370,11 @@ module Test
 
   # bob causes a rename cycle with two conflicts while unstaged
   test :cr_rename_cycle_with_conflict_and_merged_dir, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkdir "a"
       mkdir "a/b"
       mkdir "a/c"
-   end
+    end
     as bob do
       disable_updates
     end
