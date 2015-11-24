@@ -1320,6 +1320,150 @@ export type ConfirmResult = {
   remoteConfirmed: boolean;
 }
 
+export type kbcmf_Time = {
+}
+
+export type kbcmf_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type kbcmf_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type kbcmf_UID = {
+}
+
+export type kbcmf_DeviceID = {
+}
+
+export type kbcmf_SigID = {
+}
+
+export type kbcmf_KID = {
+}
+
+export type kbcmf_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type kbcmf_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type kbcmf_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type kbcmf_User = {
+  uid: UID;
+  username: string;
+}
+
+export type kbcmf_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type kbcmf_Stream = {
+  fd: int;
+}
+
+export type kbcmf_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type kbcmf_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
+
+export type kbcmf_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
+
+export type kbcmf_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+
+export type kbcmf_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */
+
+export type kbcmf_TrackDiff = {
+  type: TrackDiffType;
+  displayMarkup: string;
+}
+
+export type kbcmf_TrackSummary = {
+  username: string;
+  time: Time;
+  isRemote: boolean;
+}
+
+export type kbcmf_TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
+
+export type kbcmf_TrackOptions = {
+  localOnly: boolean;
+  bypassConfirm: boolean;
+}
+
+export type kbcmf_IdentifyReason = {
+  reason: string;
+}
+
+export type kbcmf_IdentifyOutcome = {
+  username: string;
+  status?: ?Status;
+  warnings: Array<string>;
+  trackUsed?: ?TrackSummary;
+  trackStatus: TrackStatus;
+  numTrackFailures: int;
+  numTrackChanges: int;
+  numProofFailures: int;
+  numRevoked: int;
+  numProofSuccesses: int;
+  revoked: Array<TrackDiff>;
+  trackOptions: TrackOptions;
+  forPGPPull: boolean;
+  reason: IdentifyReason;
+}
+
+export type kbcmf_IdentifyRes = {
+  user?: ?User;
+  publicKeys: Array<PublicKey>;
+  outcome: IdentifyOutcome;
+  trackToken: string;
+}
+
+export type kbcmf_RemoteProof = {
+  proofType: ProofType;
+  key: string;
+  value: string;
+  displayMarkup: string;
+  sigID: SigID;
+  mTime: Time;
+}
+
+export type kbcmf_KBCMFEncryptOptions = {
+  recipients: Array<string>;
+  trackOptions: TrackOptions;
+}
+
+export type KBCMFEncryptOptions = {
+  recipients: Array<string>;
+  trackOptions: TrackOptions;
+}
+
 export type kbfs_FSStatusCode = 0 /* 'START_0' */ | 1 /* 'FINISH_1' */ | 2 /* 'ERROR_2' */
 
 export type FSStatusCode = 0 /* 'START_0' */ | 1 /* 'FINISH_1' */ | 2 /* 'ERROR_2' */

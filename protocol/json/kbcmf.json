@@ -326,13 +326,6 @@
       "name" : "trackOptions",
       "type" : "TrackOptions"
     } ]
-  }, {
-    "type" : "record",
-    "name" : "KBCMFDecryptOptions",
-    "fields" : [ {
-      "name" : "trackOptions",
-      "type" : "TrackOptions"
-    } ]
   } ],
   "messages" : {
     "kbcmfEncrypt" : {
@@ -361,9 +354,6 @@
       }, {
         "name" : "sink",
         "type" : "Stream"
-      }, {
-        "name" : "opts",
-        "type" : "KBCMFDecryptOptions"
       } ],
       "response" : "null"
     }

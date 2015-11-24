@@ -15,9 +15,8 @@ import (
 
 type CmdDecrypt struct {
 	libkb.Contextified
-	filter       UnixFilter
-	recipients   []string
-	trackOptions keybase1.TrackOptions
+	filter     UnixFilter
+	recipients []string
 }
 
 func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -30,14 +29,6 @@ func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			}, "decrypt", c)
 		},
 		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "l, local",
-				Usage: "Only track locally, don't send a statement to the server.",
-			},
-			cli.BoolFlag{
-				Name:  "y",
-				Usage: "Approve remote tracking without prompting.",
-			},
 			cli.StringFlag{
 				Name:  "m, message",
 				Usage: "Provide the message on the command line.",
@@ -74,10 +65,7 @@ func (c *CmdDecrypt) Run() error {
 		return err
 	}
 
-	opts := keybase1.KBCMFDecryptOptions{
-		TrackOptions: c.trackOptions,
-	}
-	arg := keybase1.KbcmfDecryptArg{Source: src, Sink: snk, Opts: opts}
+	arg := keybase1.KbcmfDecryptArg{Source: src, Sink: snk}
 	err = cli.KbcmfDecrypt(context.TODO(), arg)
 
 	cerr := c.filter.Close(err)
@@ -98,11 +86,6 @@ func (c *CmdDecrypt) ParseArgv(ctx *cli.Context) error {
 	infile := ctx.String("infile")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
-	}
-
-	c.trackOptions = keybase1.TrackOptions{
-		LocalOnly:     ctx.Bool("local"),
-		BypassConfirm: ctx.Bool("y"),
 	}
 
 	return nil

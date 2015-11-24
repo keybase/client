@@ -1903,10 +1903,6 @@ type KBCMFEncryptOptions struct {
 	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
 }
 
-type KBCMFDecryptOptions struct {
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
-}
-
 type KbcmfEncryptArg struct {
 	SessionID int                 `codec:"sessionID" json:"sessionID"`
 	Source    Stream              `codec:"source" json:"source"`
@@ -1915,10 +1911,9 @@ type KbcmfEncryptArg struct {
 }
 
 type KbcmfDecryptArg struct {
-	SessionID int                 `codec:"sessionID" json:"sessionID"`
-	Source    Stream              `codec:"source" json:"source"`
-	Sink      Stream              `codec:"sink" json:"sink"`
-	Opts      KBCMFDecryptOptions `codec:"opts" json:"opts"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Source    Stream `codec:"source" json:"source"`
+	Sink      Stream `codec:"sink" json:"sink"`
 }
 
 type KbcmfInterface interface {
