@@ -22,7 +22,7 @@ func KBCMFEncrypt(
 		}
 		receiverBoxKeys = append(receiverBoxKeys, t)
 	}
-	plainsink, err := newKeybaseEncryptArmor62Stream(
+	plainsink, err := kbcmf.NewEncryptArmor62Stream(
 		sink, naclBoxSecretKey(sender), receiverBoxKeys)
 	if err != nil {
 		return err

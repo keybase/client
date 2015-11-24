@@ -4,49 +4,10 @@
 package libkb
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/kbcmf"
 )
-
-// TODO: Combine this code with the equivalent in kbcmf.
-
-// ErrBadArmorHeader shows up when we get the wrong value for our header
-type ErrBadArmorHeader struct {
-	wanted   string
-	received string
-}
-
-// ErrBadArmorFooter shows up when we get the wrong value for our header
-type ErrBadArmorFooter struct {
-	wanted   string
-	received string
-}
-
-func (e ErrBadArmorHeader) Error() string {
-	return fmt.Sprintf("Bad encryption armor header; wanted '%s' but got '%s'",
-		e.wanted, e.received)
-}
-
-func (e ErrBadArmorFooter) Error() string {
-	return fmt.Sprintf("Bad encryption armor footer; wanted '%s' but got '%s'",
-		e.wanted, e.received)
-}
-
-func checkArmor62Frame(frame kbcmf.Frame) error {
-	if hdr, err := frame.GetHeader(); err != nil {
-		return err
-	} else if hdr != keybaseEncryptionArmorHeader {
-		return ErrBadArmorHeader{keybaseEncryptionArmorHeader, hdr}
-	}
-	if ftr, err := frame.GetFooter(); err != nil {
-		return err
-	} else if ftr != keybaseEncryptionArmorFooter {
-		return ErrBadArmorFooter{keybaseEncryptionArmorFooter, ftr}
-	}
-	return nil
-}
 
 func KBCMFDecrypt(
 	source io.Reader, sink io.WriteCloser,
@@ -62,7 +23,7 @@ func KBCMFDecrypt(
 		return err
 	}
 
-	err = checkArmor62Frame(frame)
+	err = kbcmf.CheckArmor62Frame(frame)
 	if err != nil {
 		return err
 	}

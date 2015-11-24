@@ -60,11 +60,11 @@ func TestKbcmfEncDec(t *testing.T) {
 	}
 
 	ciphertext := buf.String()
-	if !strings.HasPrefix(ciphertext, keybaseEncryptionArmorHeader) {
+	if !strings.HasPrefix(ciphertext, kbcmf.EncryptionArmorHeader) {
 		t.Errorf("ciphertext doesn't have header: %s", ciphertext)
 	}
 
-	if !strings.HasSuffix(ciphertext, keybaseEncryptionArmorFooter+".\n") {
+	if !strings.HasSuffix(ciphertext, kbcmf.EncryptionArmorFooter+".\n") {
 		t.Errorf("ciphertext doesn't have footer: %s", ciphertext)
 	}
 

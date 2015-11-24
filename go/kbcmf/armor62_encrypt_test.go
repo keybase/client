@@ -6,9 +6,10 @@ package kbcmf
 import (
 	"bytes"
 	"crypto/rand"
-	"github.com/keybase/client/go/encoding/basex"
 	"io/ioutil"
 	"testing"
+
+	"github.com/keybase/client/go/encoding/basex"
 )
 
 func encryptArmor62RandomData(t *testing.T, sz int) ([]byte, string) {
@@ -60,7 +61,7 @@ func TestDearmor62DecryptSlowReader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := checkArmor62Frame(frame); err != nil {
+	if err := CheckArmor62Frame(frame); err != nil {
 		t.Fatal(err)
 	}
 
