@@ -4,33 +4,10 @@
 package libkb
 
 import (
-	"bytes"
 	"io"
 
 	"github.com/keybase/client/go/kbcmf"
 )
-
-type naclKeyring NaclDHKeyPair
-
-func (n naclKeyring) LookupBoxSecretKey(kids [][]byte) (int, kbcmf.BoxSecretKey) {
-	k := (naclBoxSecretKey)(n)
-	for i, kid := range kids {
-		if bytes.Compare(k.Public[:], kid) == 0 {
-			return i, k
-		}
-	}
-
-	return -1, nil
-}
-
-func (n naclKeyring) LookupBoxPublicKey(kid []byte) kbcmf.BoxPublicKey {
-	if len(kid) != NaclDHKeysize {
-		return nil
-	}
-	var pk naclBoxPublicKey
-	copy(pk[:], kid)
-	return pk
-}
 
 func KBCMFDecrypt(source io.Reader, sink io.WriteCloser, deviceEncryptionKey NaclDHKeyPair) error {
 	// TODO: Verify header and footer from frame.

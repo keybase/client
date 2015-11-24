@@ -4,46 +4,10 @@
 package libkb
 
 import (
-	"errors"
 	"io"
-
-	"golang.org/x/crypto/nacl/box"
 
 	"github.com/keybase/client/go/kbcmf"
 )
-
-type naclBoxPublicKey NaclDHKeyPublic
-
-func (b naclBoxPublicKey) ToRawBoxKeyPointer() *kbcmf.RawBoxKey {
-	return (*kbcmf.RawBoxKey)(&b)
-}
-
-func (b naclBoxPublicKey) ToKID() []byte {
-	return b[:]
-}
-
-type naclBoxSecretKey NaclDHKeyPair
-
-func (n naclBoxSecretKey) GetPublicKey() kbcmf.BoxPublicKey {
-	return naclBoxPublicKey(n.Public)
-}
-
-func (n naclBoxSecretKey) Box(receiver kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) ([]byte, error) {
-	ret := box.Seal([]byte{}, msg, (*[24]byte)(nonce),
-		(*[32]byte)(receiver.ToRawBoxKeyPointer()), (*[32]byte)(n.Private))
-	return ret, nil
-}
-
-var errPublicKeyDecryptionFailed = errors.New("public key decryption failed")
-
-func (n naclBoxSecretKey) Unbox(sender kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) ([]byte, error) {
-	out, ok := box.Open([]byte{}, msg, (*[24]byte)(nonce),
-		(*[32]byte)(sender.ToRawBoxKeyPointer()), (*[32]byte)(n.Private))
-	if !ok {
-		return nil, errPublicKeyDecryptionFailed
-	}
-	return out, nil
-}
 
 func KBCMFEncrypt(source io.Reader, sink io.WriteCloser, recipients [][]NaclDHKeyPublic, sender NaclDHKeyPair) error {
 	var r [][]kbcmf.BoxPublicKey
