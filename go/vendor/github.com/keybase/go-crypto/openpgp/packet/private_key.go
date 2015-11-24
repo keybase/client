@@ -78,9 +78,17 @@ func (pk *PrivateKey) parse(r io.Reader) (err error) {
 		if s2kType == 254 {
 			pk.sha1Checksum = true
 		}
+		// S2K == nil implies that we got a "GNU Dummy" S2K. For instance,
+		// because our master secret key is on a USB key in a vault somewhere.
+		// In that case, there is no further data to consume here.
+		if pk.s2k == nil {
+			return
+		}
 	default:
 		return errors.UnsupportedError("deprecated s2k function in private key")
 	}
+
+
 
 	if pk.Encrypted {
 		blockSize := pk.cipher.blockSize()
@@ -188,6 +196,10 @@ func serializeDSAPrivateKey(w io.Writer, priv *dsa.PrivateKey) error {
 // Decrypt decrypts an encrypted private key using a passphrase.
 func (pk *PrivateKey) Decrypt(passphrase []byte) error {
 	if !pk.Encrypted {
+		return nil
+	}
+	// For GNU Dummy S2K, there's no key here, so don't do anything.
+	if pk.s2k == nil {
 		return nil
 	}
 

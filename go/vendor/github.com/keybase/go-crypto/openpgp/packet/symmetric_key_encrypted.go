@@ -48,6 +48,9 @@ func (ske *SymmetricKeyEncrypted) parse(r io.Reader) error {
 	if err != nil {
 		return err
 	}
+	if ske.s2k == nil {
+		return errors.UnsupportedError("can't use dummy S2K for symmetric key encryption")
+	}
 
 	encryptedKey := make([]byte, maxSessionKeySizeInBytes)
 	// The session key may follow. We just have to try and read to find
