@@ -625,12 +625,14 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		if err != nil {
 			// Ignore any errors storing the secret.
 			s.G().Log.Debug("(ignoring) error getting lksec secret for SecretStore: %s", err)
+			return nil
 		}
 		secretStore := NewSecretStore(s.G(), NewNormalizedUsername(username))
 		storeSecretErr := secretStore.StoreSecret(secret)
 		if storeSecretErr != nil {
 			// Ignore any errors storing the secret.
 			s.G().Log.Debug("(ignoring) StoreSecret error: %s", storeSecretErr)
+			return nil
 		}
 	}
 
