@@ -1,3 +1,5 @@
+## 1.0.2-0 (2015-11-24)
+
 - Emergency fix for coinbase proofs
    (Commit: 1e2539e58f3666f4fc357ca9c7192212b4b23999)
 - Fix keybase-issues#1878, spurious key ownership error.
