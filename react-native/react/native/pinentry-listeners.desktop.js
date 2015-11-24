@@ -1,5 +1,5 @@
 import BrowserWindow from 'browser-window'
-import ipc from 'ipc'
+import {ipcMain} from 'electron'
 
 export default {
   'keybase.1.secretUi.getPassphrase': (payload, response) => {
@@ -27,20 +27,20 @@ export default {
     })
     pinentryWindow.loadUrl(`file://${__dirname}/pinentry.wrapper.html`)
 
-    const pinentryNeedProps = function (event, arg) {
+    const pinentryNeedProps = (event, arg) => {
       // Is this the pinentry window we just created?
       if (pinentryWindow.webContents === event.sender) {
         event.sender.send('pinentryGotProps', props)
       }
     }
-    ipc.on('pinentryNeedProps', pinentryNeedProps)
+    ipcMain.on('pinentryNeedProps', pinentryNeedProps)
 
-    const pinentryReady = function (event, arg) {
+    const pinentryReady = (event, arg) => {
       pinentryWindow.show()
     }
-    ipc.on('pinentryReady', pinentryReady)
+    ipcMain.on('pinentryReady', pinentryReady)
 
-    const pinentryResult = function (event, arg) {
+    const pinentryResult = (event, arg) => {
       if ('error' in arg) {
         response.error(arg)
       } else if ('secretStorage' in arg) {
@@ -50,11 +50,11 @@ export default {
         console.log('Sent passphrase back')
       }
 
-      ipc.removeListener('pinentryNeedProps', pinentryNeedProps)
-      ipc.removeListener('pinentryReady', pinentryReady)
-      ipc.removeListener('pinentryResult', pinentryResult)
+      ipcMain.removeListener('pinentryNeedProps', pinentryNeedProps)
+      ipcMain.removeListener('pinentryReady', pinentryReady)
+      ipcMain.removeListener('pinentryResult', pinentryResult)
       pinentryWindow.close()
     }
-    ipc.on('pinentryResult', pinentryResult)
+    ipcMain.on('pinentryResult', pinentryResult)
   }
 }
