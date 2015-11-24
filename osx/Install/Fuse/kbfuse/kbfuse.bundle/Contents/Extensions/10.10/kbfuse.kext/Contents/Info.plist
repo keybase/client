@@ -19,7 +19,7 @@
 	<key>CFBundleSignature</key>
 	<string>FUSE</string>
 	<key>CFBundleVersion</key>
-	<string>3.0.7</string>
+	<string>3.0.9</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>

@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 // $FlowIssue base-react

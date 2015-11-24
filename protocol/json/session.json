@@ -173,6 +173,9 @@
     }, {
       "name" : "deviceSubkeyKid",
       "type" : "KID"
+    }, {
+      "name" : "deviceSibkeyKid",
+      "type" : "KID"
     } ]
   } ],
   "messages" : {

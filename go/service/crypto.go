@@ -27,6 +27,10 @@ func (c *CryptoHandler) SignED25519(_ context.Context, arg keybase1.SignED25519A
 	return engine.SignED25519(c.G(), c.getSecretUI(arg.SessionID), arg)
 }
 
+func (c *CryptoHandler) SignToString(_ context.Context, arg keybase1.SignToStringArg) (string, error) {
+	return engine.SignToString(c.G(), c.getSecretUI(arg.SessionID), arg)
+}
+
 func (c *CryptoHandler) UnboxBytes32(_ context.Context, arg keybase1.UnboxBytes32Arg) (keybase1.Bytes32, error) {
 	return engine.UnboxBytes32(c.G(), c.getSecretUI(arg.SessionID), arg)
 }

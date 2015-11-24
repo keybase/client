@@ -1,18 +1,20 @@
 ### Building KBFuse for Keybase
 
-Checkout the OSXFuse (osxfuse-3.0.7) version:
+Checkout the OSXFuse (osxfuse-3.0.9) version:
 
     rm -rf osxfuse
-    git clone --recursive -b osxfuse-3.0.7 git://github.com/osxfuse/osxfuse.git osxfuse
+    git clone --recursive -b osxfuse-3.0.9 git://github.com/osxfuse/osxfuse.git osxfuse
 
 Run script to search/replace osxfuse to kbfuse:
 
+    sh rename.sh
+    # HACK: Run again if it errors (it gets confused)
     sh rename.sh
 
 Clean and build the distribution:
 
     sudo rm -rf /tmp/kbfuse*
-    cd kbfuse
+    cd osxfuse
     ./build.sh -t fsbundle
 
 If you get an error compiling you might have to run `brew link gettext --force` (see https://github.com/osxfuse/osxfuse/issues/149).
@@ -38,7 +40,6 @@ If you are upgrading you should uninstall first.
 To install:
 
     sudo /bin/cp -RfX kbfuse.bundle /Library/Filesystems/kbfuse.fs
-    sudo chmod +s /Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse
 
 ### Uninstall
 

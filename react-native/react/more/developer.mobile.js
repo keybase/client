@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet, Navigator, TextInput, View, Text} from '../base-react'
 import {connect} from '../base-redux'
 import {getDevSettings, saveDevSettings, updateDevSettings} from '../actions/config'
@@ -26,7 +24,7 @@ class Developer extends Component {
         </View>
       )
     }
-    let settingNodes = this.props.devConfig.keys.map((key) => {
+    let settingNodes = this.props.devConfig.keys.map(key => {
       return (
         <View style={styles.group} key={key}>
           <Text style={styles.label}>{key.replace(/(?!^)(?=[A-Z][a-z])/g, ' ')}</Text>
@@ -35,7 +33,7 @@ class Developer extends Component {
             value={this.props.devConfig.configured[key]}
             style={styles.input}
             clearButtonMode='always'
-            onChangeText={ (val) => this.props.updateDevSettings({ [key]: val || null }) }
+            onChangeText={ val => this.props.updateDevSettings({[key]: val || null}) }
           />
         </View>
       )

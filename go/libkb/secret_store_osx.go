@@ -12,35 +12,42 @@ import (
 )
 
 type KeychainSecretStore struct {
+	Contextified
 	accountName NormalizedUsername
 }
 
-func (kss *KeychainSecretStore) StoreSecret(secret []byte) (err error) {
-	G.Log.Debug("+ StoreSecret(%s, %d)", kss.accountName, len(secret))
+var _ SecretStore = KeychainSecretStore{}
+
+func (k KeychainSecretStore) getServiceName() string {
+	return k.G().Env.GetStoredSecretServiceName()
+}
+
+func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
+	k.G().Log.Debug("+ StoreSecret(%s, %d)", k.accountName, len(secret))
 	defer func() {
-		G.Log.Debug("- StoreSecret -> %s", ErrToOk(err))
+		k.G().Log.Debug("- StoreSecret -> %s", ErrToOk(err))
 	}()
 
 	// base64-encode to make it easy to work with Keychain Access.
 	encodedSecret := base64.StdEncoding.EncodeToString(secret)
 	attributes := kc.GenericPasswordAttributes{
-		ServiceName: G.Env.GetStoredSecretServiceName(),
-		AccountName: kss.accountName.String(),
+		ServiceName: k.getServiceName(),
+		AccountName: k.accountName.String(),
 		Password:    []byte(encodedSecret),
 	}
 	err = kc.RemoveAndAddGenericPassword(&attributes)
 	return
 }
 
-func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
-	G.Log.Debug("+ RetrieveSecret(%s)", kss.accountName)
+func (k KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
+	k.G().Log.Debug("+ RetrieveSecret(%s)", k.accountName)
 	defer func() {
-		G.Log.Debug("- RetrieveSecret -> %s", ErrToOk(err))
+		k.G().Log.Debug("- RetrieveSecret -> %s", ErrToOk(err))
 	}()
 
 	attributes := kc.GenericPasswordAttributes{
-		ServiceName: G.Env.GetStoredSecretServiceName(),
-		AccountName: kss.accountName.String(),
+		ServiceName: k.getServiceName(),
+		AccountName: k.accountName.String(),
 	}
 
 	encodedSecret, err := kc.FindGenericPassword(&attributes)
@@ -56,15 +63,15 @@ func (kss *KeychainSecretStore) RetrieveSecret() (secret []byte, err error) {
 	return
 }
 
-func (kss *KeychainSecretStore) ClearSecret() (err error) {
-	G.Log.Debug("+ ClearSecret(%s)", kss.accountName)
+func (k KeychainSecretStore) ClearSecret() (err error) {
+	k.G().Log.Debug("+ ClearSecret(%s)", k.accountName)
 	defer func() {
-		G.Log.Debug("- ClearSecret -> %s", ErrToOk(err))
+		k.G().Log.Debug("- ClearSecret -> %s", ErrToOk(err))
 	}()
 
 	attributes := kc.GenericPasswordAttributes{
-		ServiceName: G.Env.GetStoredSecretServiceName(),
-		AccountName: kss.accountName.String(),
+		ServiceName: k.getServiceName(),
+		AccountName: k.accountName.String(),
 	}
 
 	err = kc.FindAndRemoveGenericPassword(&attributes)
@@ -75,16 +82,19 @@ func (kss *KeychainSecretStore) ClearSecret() (err error) {
 	return
 }
 
-func NewSecretStore(username NormalizedUsername) SecretStore {
-	return &KeychainSecretStore{username}
+func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
+	return KeychainSecretStore{
+		Contextified: NewContextified(g),
+		accountName:  username,
+	}
 }
 
 func HasSecretStore() bool {
 	return true
 }
 
-func GetUsersWithStoredSecrets() ([]string, error) {
-	return kc.GetAllAccountNames(G.Env.GetStoredSecretServiceName())
+func GetUsersWithStoredSecrets(g *GlobalContext) ([]string, error) {
+	return kc.GetAllAccountNames(g.Env.GetStoredSecretServiceName())
 }
 
 func GetTerminalPrompt() string {

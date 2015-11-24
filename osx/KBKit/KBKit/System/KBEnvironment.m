@@ -14,14 +14,13 @@
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <KBKit/KBDefines.h>
-#import <KBKit/KBInstallAction.h>
 
 @interface KBEnvironment ()
 @property KBEnvConfig *config;
 @property KBService *service;
 @property KBFSService *kbfs;
 @property NSMutableArray */*of id<KBComponent>*/components;
-@property NSArray */*of id<KBInstallable>*/installables;
+@property NSArray */*of KBInstallable*/installables;
 @property NSArray *services;
 @end
 
@@ -32,10 +31,10 @@
   if ((self = [super init])) {
     _config = config;
     _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel]];
+    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel]];
 
     KBHelperTool *helperTool = [[KBHelperTool alloc] initWithConfig:config];
     KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool];
-    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel]];
 
     _installables = [NSArray arrayWithObjects:_service, helperTool, fuse, _kbfs, nil];
 

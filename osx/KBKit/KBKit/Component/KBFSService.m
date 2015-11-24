@@ -13,15 +13,9 @@
 #import "KBTask.h"
 
 @interface KBFSService ()
-@property NSString *name;
-@property NSString *info;
-@property (getter=isInstallDisabled) BOOL installDisabled;
-
 @property NSString *label;
 @property KBSemVersion *bundleVersion;
-@property KBComponentStatus *componentStatus;
-
-@property KBEnvConfig *config;
+@property KBRServiceStatus *serviceStatus;
 
 @property YOView *infoView;
 @end
@@ -29,19 +23,12 @@
 @implementation KBFSService
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label {
-  if ((self = [self init])) {
-    _config = config;
-    _name = @"KBFS";
-    _info = @"The filesystem";
+if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem service" image:[KBIcons imageForIcon:KBIconNetwork]])) {
     _label = label;
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
     _bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
   }
   return self;
-}
-
-- (NSImage *)image {
-  return [KBIcons imageForIcon:KBIconNetwork];
 }
 
 - (NSView *)componentView {
@@ -71,43 +58,39 @@
   _infoView = view;
 }
 
-- (void)install:(KBCompletion)completion {
-  /*
-  NSString *mountDir = [self.config mountDir];
-  NSError *error = nil;
-  if (![KBPath ensureDirectory:mountDir error:&error]) {
-    completion(error);
-    return;
-  }
+- (KBInstallRuntimeStatus)runtimeStatus {
+  if (!self.serviceStatus) return KBInstallRuntimeStatusNone;
+  return [NSString gh_isBlank:self.serviceStatus.pid] ? KBInstallRuntimeStatusStopped : KBInstallRuntimeStatusStarted;
+}
 
-  NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
-  NSString *kbfsBinPath = [_config kbfsBinPathWithPathOptions:0 useBundle:YES];
-  [KBKeybaseLaunchd install:binPath label:_label serviceBinPath:kbfsBinPath args:@[mountDir] completion:completion];
-   */
-  NSString *binPath = [_config serviceBinPathWithPathOptions:0 useBundle:YES];
+- (void)install:(KBCompletion)completion {
+  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
   [KBTask execute:binPath args:@[@"-d", @"install", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[_config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"uninstall", _label] completion:completion];
+  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
+  [KBTask execute:binPath args:@[@"-d", @"uninstall", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+    completion(error);
+  }];
 }
 
 - (void)start:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[_config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"start", _label] completion:completion];
+  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"start", _label] completion:completion];
 }
 
 - (void)stop:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[_config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"stop", _label] completion:completion];
+  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"stop", _label] completion:completion];
 }
 
-- (void)refreshComponent:(KBCompletion)completion {
-  GHWeakSelf gself = self;
-  [KBKeybaseLaunchd status:[_config serviceBinPathWithPathOptions:0 useBundle:YES] name:@"kbfs" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
-    gself.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
+  [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] name:@"kbfs" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
+    self.serviceStatus = serviceStatus;
+    self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     [self componentDidUpdate];
-    completion(error);
+    completion(self.componentStatus);
   }];
 }
 

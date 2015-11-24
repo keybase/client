@@ -67,7 +67,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	if err != nil {
 		return err
 	}
-	err = ctlCli.Stop(context.TODO(), 0)
+	err = ctlCli.Stop(context.TODO(), keybase1.StopArg{})
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	g.Log.Info("Waiting for shutdown...")
 	time.Sleep(1 * time.Second)
 
-	if serviceConfig.IsAutoForked {
+	if serviceConfig.ForkType == keybase1.ForkType_AUTO {
 		g.Log.Info("Restarting service...")
 		_, err = AutoForkServer(g, cl)
 	}

@@ -6,6 +6,8 @@
 package libkb
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -163,13 +165,13 @@ func (tc *TestContext) ResetLoginState() {
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {
-	usernames, err := GetUsersWithStoredSecrets()
+	usernames, err := GetUsersWithStoredSecrets(tc.G)
 	if err != nil {
 		return err
 	}
 	for _, username := range usernames {
 		nu := NewNormalizedUsername(username)
-		err = ClearStoredSecret(nu)
+		err = ClearStoredSecret(tc.G, nu)
 		if err != nil {
 			return err
 		}
@@ -179,7 +181,7 @@ func (tc TestContext) ClearAllStoredSecrets() error {
 
 var setupTestMu sync.Mutex
 
-func setupTestContext(tb testing.TB, nm string, tcPrev *TestContext) (tc TestContext, err error) {
+func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
 
@@ -191,13 +193,20 @@ func setupTestContext(tb testing.TB, nm string, tcPrev *TestContext) (tc TestCon
 		g.Log = logger.NewTestLogger(tb)
 	}
 
+	buf := make([]byte, 5)
+	if _, err = rand.Read(buf); err != nil {
+		return
+	}
+	// Uniquify name, since multiple tests may use the same name.
+	name = fmt.Sprintf("%s %s", name, hex.EncodeToString(buf))
+
 	g.Init()
-	g.Log.Debug("SetupTest %s", nm)
+	g.Log.Debug("SetupTest %s", name)
 
 	// Set up our testing parameters.  We might add others later on
 	if tcPrev != nil {
 		tc.Tp = tcPrev.Tp
-	} else if tc.Tp.Home, err = ioutil.TempDir(os.TempDir(), nm); err != nil {
+	} else if tc.Tp.Home, err = ioutil.TempDir(os.TempDir(), name); err != nil {
 		return
 	}
 
@@ -207,6 +216,7 @@ func setupTestContext(tb testing.TB, nm string, tcPrev *TestContext) (tc TestCon
 
 	tc.Tp.Debug = false
 	tc.Tp.Devel = true
+	tc.Tp.DevelName = name
 
 	g.Env.Test = tc.Tp
 
@@ -247,9 +257,9 @@ func setupTestContext(tb testing.TB, nm string, tcPrev *TestContext) (tc TestCon
 	return
 }
 
-func SetupTest(tb testing.TB, nm string) (tc TestContext) {
+func SetupTest(tb testing.TB, name string) (tc TestContext) {
 	var err error
-	tc, err = setupTestContext(tb, nm, nil)
+	tc, err = setupTestContext(tb, name, nil)
 	if err != nil {
 		tb.Fatal(err)
 	}

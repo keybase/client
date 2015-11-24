@@ -35,11 +35,15 @@ export default {
       'critical': 6,
       'fatal': 7
     },
+    'ForkType': {
+      'none': 0,
+      'auto': 1,
+      'watchdog': 2
+    },
     'InstallStatus': {
       'unknown': 0,
       'error': 1,
       'notInstalled': 2,
-      'needsUpgrade': 3,
       'installed': 4
     },
     'InstallAction': {
@@ -61,6 +65,11 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ExitCode': {
+      'ok': 0,
+      'notok': 2,
+      'restart': 4
     }
   },
   'debugging': {},
@@ -636,9 +645,10 @@ export default {
     },
     'ProvisionMethod': {
       'device': 0,
-      'gpg': 1,
-      'paperKey': 2,
-      'passphrase': 3
+      'paperKey': 1,
+      'passphrase': 2,
+      'gpgImport': 3,
+      'gpgSign': 4
     },
     'DeviceType': {
       'desktop': 0,

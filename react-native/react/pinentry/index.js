@@ -1,10 +1,8 @@
-'use strict'
-
 import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 import PinentryRender from './index.render'
 
-class Pinentry extends Component {
+export class Pinentry extends Component {
   render () {
     return <PinentryRender {...this.props} />
   }

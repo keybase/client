@@ -12,7 +12,7 @@
 #import "KBInstallable.h"
 #import "KBHelperTool.h"
 
-@interface KBFuseComponent : KBInstallableComponent <KBComponent, KBInstallable>
+@interface KBFuseComponent : KBInstallable
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool;
 

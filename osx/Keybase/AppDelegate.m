@@ -28,7 +28,14 @@
 
   _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
   //_statusItem.title = @"Keybase";
-  _statusItem.image = [NSImage imageNamed:@"StatusIcon"]; //StatusIconDev //StatusIconBW
+
+#if DEBUG
+  NSString *statusBarName = @"StatusIconDev";
+#else
+  NSString *statusBarName = @"StatusIcon";
+#endif
+
+  _statusItem.image = [NSImage imageNamed:statusBarName];
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
 
@@ -81,7 +88,8 @@
   }
    */
 
-  [menu addItemWithTitle:@"Status" action:@selector(showInstallStatus:) keyEquivalent:@""];
+  NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
+  [menu addItemWithTitle:NSStringWithFormat(@"Status (%@)", runMode) action:@selector(showInstallStatus:) keyEquivalent:@""];
   [menu addItem:[NSMenuItem separatorItem]];
   [menu addItemWithTitle:@"Quit" action:@selector(quit:) keyEquivalent:@""];
   return menu;

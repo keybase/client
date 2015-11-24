@@ -1,6 +1,4 @@
-'use strict'
 /**
- * @providesModule Meta Navigator
  * A Meta navigator for handling different navigators at the top level.
  * todo(mm) explain why we need a meta navigator
  */

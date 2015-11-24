@@ -3,6 +3,11 @@
 	"ignore": "test",
 	"package": [
 		{
+			"path": "bazil.org/fuse",
+			"revision": "70f2bea820ccbf0b4e72e44dbcb28fe333635085",
+			"revisionTime": "2015-09-10T16:50:43-07:00"
+		},
+		{
 			"path": "code.google.com/p/rsc/gf256",
 			"revision": "2d8aa6027fab",
 			"revisionTime": "2014-11-30T16:07:12-05:00"
@@ -33,6 +38,21 @@
 			"revisionTime": "2014-09-07T16:52:47-07:00"
 		},
 		{
+			"path": "github.com/akavel/rsrc/binutil",
+			"revision": "59b2acb86e3659d46e181b8ee3eb1638995deb96",
+			"revisionTime": "2015-07-03T16:15:20+02:00"
+		},
+		{
+			"path": "github.com/akavel/rsrc/coff",
+			"revision": "59b2acb86e3659d46e181b8ee3eb1638995deb96",
+			"revisionTime": "2015-07-03T16:15:20+02:00"
+		},
+		{
+			"path": "github.com/akavel/rsrc/ico",
+			"revision": "59b2acb86e3659d46e181b8ee3eb1638995deb96",
+			"revisionTime": "2015-07-03T16:15:20+02:00"
+		},
+		{
 			"path": "github.com/andybalholm/cascadia",
 			"revision": "6122e68c2642b7b75c538a63b15168c6c80fb757",
 			"revisionTime": "2015-06-01T17:10:55-07:00"
@@ -56,6 +76,11 @@
 			"path": "github.com/hashicorp/golang-lru",
 			"revision": "995efda3e073b6946b175ed93901d729ad47466a",
 			"revisionTime": "2015-05-12T11:15:40-07:00"
+		},
+		{
+			"path": "github.com/josephspurrier/goversioninfo",
+			"revision": "0ec0f16b6f6fd29a6ef146fddab80417dbcfa7e8",
+			"revisionTime": "2015-09-01T19:20:23-04:00"
 		},
 		{
 			"path": "github.com/kballard/go-shellquote",

@@ -19,6 +19,7 @@
 @property KBDebugPropertiesView *infoView;
 @property KBSemVersion *version;
 @property KBHelperTool *helperTool;
+@property KBRFuseStatus *fuseStatus;
 @end
 
 typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
@@ -26,22 +27,10 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 @implementation KBFuseComponent
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool {
-  if ((self = [super initWithConfig:config])) {
+  if ((self = [self initWithConfig:config name:@"Fuse" info:@"Extensions for KBFS" image:[NSImage imageNamed:@"Fuse.icns"]])) {
     _helperTool = helperTool;
   }
   return self;
-}
-
-- (NSString *)name {
-  return @"Fuse";
-}
-
-- (NSString *)info {
-  return @"Extensions for KBFS";
-}
-
-- (NSImage *)image {
-  return [NSImage imageNamed:@"Fuse.icns"];
 }
 
 - (NSView *)componentView {
@@ -85,8 +74,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   }];
 }
 
-- (void)refreshComponent:(KBCompletion)completion {
-  GHWeakSelf gself = self;
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
   [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
 
@@ -109,16 +97,28 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
     KBComponentStatus *componentStatus = [KBComponentStatus componentStatusWithInstallStatus:fuseStatus.installStatus installAction:fuseStatus.installAction info:info error:error];
 
-    gself.componentStatus = componentStatus;
+    self.fuseStatus = fuseStatus;
+    self.componentStatus = componentStatus;
 
     [self componentDidUpdate];
-    completion(error);
+    completion(self.componentStatus);
   }];
 }
 
+- (KBInstallRuntimeStatus)runtimeStatus {
+  if (!self.fuseStatus) return KBInstallRuntimeStatusNone;
+  return self.fuseStatus.kextStarted ? KBInstallRuntimeStatusStarted : KBInstallRuntimeStatusStopped;
+}
+
 - (void)install:(KBCompletion)completion {
-  [self refreshComponent:^(NSError *error) {
-    if (self.componentStatus && [self.componentStatus needsInstallOrUpgrade]) {
+  [self refreshComponent:^(KBComponentStatus *cs) {
+    // Upgrades currently unsupported for Fuse
+    if (cs.installAction == KBRInstallActionUpgrade) {
+      completion(nil);
+      return;
+    }
+
+    if ([cs needsInstallOrUpgrade]) {
       [self _install:completion];
     } else {
       completion(nil);

@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 // $FlowIssue with platform specific files

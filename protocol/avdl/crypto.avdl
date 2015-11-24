@@ -20,6 +20,11 @@ protocol crypto {
     */
   ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
 
+  /**
+    Same as the above except the full marsheled and encoded NaclSigInfo.
+    */
+  string signToString(int sessionID, bytes msg, string reason);
+
   fixed Bytes32(32);
   // 32 + fixed-size nacl/box overhead.
   fixed EncryptedBytes32(48);

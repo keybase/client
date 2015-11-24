@@ -3,7 +3,10 @@
 
 package libkb
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 type cmpTest struct {
 	a, b string
@@ -28,5 +31,13 @@ func TestNameCmp(t *testing.T) {
 		if eq != test.eq {
 			t.Errorf("name compare %q == %q => %v, expected %v", test.a, test.b, eq, test.eq)
 		}
+	}
+}
+
+func TestCombineErrors(t *testing.T) {
+	err := CombineErrors(fmt.Errorf("error1"), nil, fmt.Errorf("error3"))
+	expected := "There were multiple errors: error1; error3"
+	if err.Error() != expected {
+		t.Errorf("Wrong output for combine errors: %#v != %#v", err.Error(), expected)
 	}
 }

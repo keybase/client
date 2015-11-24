@@ -29,7 +29,7 @@ export function promisifyResponses (endpoints: CallMap): CallMap {
 
         // Did the endpoint return a promise or not?
         if (!!rMaybePromise && rMaybePromise.constructor === Promise) {
-          rMaybePromise.then((v) => response.result(v))
+          rMaybePromise.then(v => response.result(v))
         } else {
           response.result(rMaybePromise)
         }

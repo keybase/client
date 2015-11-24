@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 import {combineReducers} from 'redux'
@@ -25,7 +24,7 @@ function timeTravel (state: State, action: any): State {
     index = history.size - 1
     return state
   } else {
-    const { direction } = action.payload
+    const {direction} = action.payload
 
     if (direction === Constants.timeTravelBack) {
       return history.get(--index, state)

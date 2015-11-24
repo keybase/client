@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image} from '../base-react'
 import {connect} from '../base-redux'
 import {selectService, submitSearch} from '../actions/search'
@@ -99,7 +97,7 @@ class Search extends Component {
           autoCapitalize='none'
           autoFocus
           clearButtonMode='always'
-          onChangeText={(search) => this.onInput(search)}
+          onChangeText={search => this.onInput(search)}
         />
         <View style={styles.divider}/>
         <ListView style={{flex: 1}}

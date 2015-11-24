@@ -78,6 +78,12 @@ typedef NS_ENUM (NSInteger, KBRLogLevel) {
 @property NSData *buf;
 @end
 
+@interface KBRBlockReference : KBRObject
+@property KBRBlockIdCombo *bid;
+@property NSData *nonce;
+@property NSString *chargedTo;
+@end
+
 @interface KBRGetCurrentStatusRes : KBRObject
 @property BOOL configured;
 @property BOOL registered;
@@ -104,7 +110,6 @@ typedef NS_ENUM (NSInteger, KBRInstallStatus) {
 	KBRInstallStatusUnknown = 0,
 	KBRInstallStatusError = 1,
 	KBRInstallStatusNotInstalled = 2,
-	KBRInstallStatusNeedsUpgrade = 3,
 	KBRInstallStatusInstalled = 4,
 };
 
@@ -132,6 +137,12 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 @property NSArray *kbfs; /*of KBRServiceStatus*/
 @end
 
+@interface KBRFuseMountInfo : KBRObject
+@property NSString *path;
+@property NSString *fstype;
+@property NSString *output;
+@end
+
 @interface KBRFuseStatus : KBRObject
 @property NSString *version;
 @property NSString *bundleVersion;
@@ -140,10 +151,11 @@ typedef NS_ENUM (NSInteger, KBRInstallAction) {
 @property BOOL kextStarted;
 @property KBRInstallStatus installStatus;
 @property KBRInstallAction installAction;
+@property NSArray *mountInfos; /*of KBRFuseMountInfo*/
 @property KBRStatus *status;
 @end
 
-@interface KBRInstallComponent : KBRObject
+@interface KBRComponentStatus : KBRObject
 @property NSString *name;
 @property KBRStatus *status;
 @end
@@ -378,11 +390,12 @@ typedef NS_ENUM (NSInteger, KBRFSNotificationType) {
 	KBRFSNotificationTypeEncrypting = 0,
 	KBRFSNotificationTypeDecrypting = 1,
 	KBRFSNotificationTypeSigning = 2,
-	KBRFSNotificationTypeRekeying = 3,
+	KBRFSNotificationTypeVerifying = 3,
+	KBRFSNotificationTypeRekeying = 4,
 };
 
 @interface KBRFSNotification : KBRObject
-@property NSString *topLevelFolder;
+@property BOOL publicTopLevelFolder;
 @property NSString *filename;
 @property NSString *status;
 @property KBRFSStatusCode statusCode;
@@ -496,9 +509,10 @@ typedef NS_ENUM (NSInteger, KBRPromptOverwriteType) {
 
 typedef NS_ENUM (NSInteger, KBRProvisionMethod) {
 	KBRProvisionMethodDevice = 0,
-	KBRProvisionMethodGpg = 1,
-	KBRProvisionMethodPaperKey = 2,
-	KBRProvisionMethodPassphrase = 3,
+	KBRProvisionMethodPaperKey = 1,
+	KBRProvisionMethodPassphrase = 2,
+	KBRProvisionMethodGpgImport = 3,
+	KBRProvisionMethodGpgSign = 4,
 };
 
 typedef NS_ENUM (NSInteger, KBRDeviceType) {
@@ -669,7 +683,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRPassphrasePromptRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @end
-@interface KBREstablishSessionRequestParams : KBRRequestParams
+@interface KBRAuthenticateSessionRequestParams : KBRRequestParams
 @property NSString *user;
 @property NSString *sid;
 @end
@@ -682,17 +696,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRGetBlockRequestParams : KBRRequestParams
 @property KBRBlockIdCombo *bid;
 @end
-@interface KBRIncBlockReferenceRequestParams : KBRRequestParams
-@property KBRBlockIdCombo *bid;
-@property NSData *nonce;
+@interface KBRAddReferenceRequestParams : KBRRequestParams
 @property NSString *folder;
-@property NSString *chargedTo;
+@property KBRBlockReference *ref;
 @end
-@interface KBRDecBlockReferenceRequestParams : KBRRequestParams
-@property KBRBlockIdCombo *bid;
-@property NSData *nonce;
+@interface KBRDelReferenceRequestParams : KBRRequestParams
 @property NSString *folder;
-@property NSString *chargedTo;
+@property KBRBlockReference *ref;
+@end
+@interface KBRArchiveReferenceRequestParams : KBRRequestParams
+@property NSString *folder;
+@property NSArray *refs;
 @end
 @interface KBRRegisterBTCRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -1277,9 +1291,9 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRBlockRequest : KBRRequest
 
-- (void)establishSession:(KBREstablishSessionRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)authenticateSession:(KBRAuthenticateSessionRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)establishSessionWithUser:(NSString *)user sid:(NSString *)sid completion:(void (^)(NSError *error))completion;
+- (void)authenticateSessionWithUser:(NSString *)user sid:(NSString *)sid completion:(void (^)(NSError *error))completion;
 
 - (void)putBlock:(KBRPutBlockRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -1289,13 +1303,17 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getBlockWithBid:(KBRBlockIdCombo *)bid completion:(void (^)(NSError *error, KBRGetBlockRes *getBlockRes))completion;
 
-- (void)incBlockReference:(KBRIncBlockReferenceRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)addReference:(KBRAddReferenceRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)incBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce folder:(NSString *)folder chargedTo:(NSString *)chargedTo completion:(void (^)(NSError *error))completion;
+- (void)addReferenceWithFolder:(NSString *)folder ref:(KBRBlockReference *)ref completion:(void (^)(NSError *error))completion;
 
-- (void)decBlockReference:(KBRDecBlockReferenceRequestParams *)params completion:(void (^)(NSError *error))completion;
+- (void)delReference:(KBRDelReferenceRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)decBlockReferenceWithBid:(KBRBlockIdCombo *)bid nonce:(NSData *)nonce folder:(NSString *)folder chargedTo:(NSString *)chargedTo completion:(void (^)(NSError *error))completion;
+- (void)delReferenceWithFolder:(NSString *)folder ref:(KBRBlockReference *)ref completion:(void (^)(NSError *error))completion;
+
+- (void)archiveReference:(KBRArchiveReferenceRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion;
+
+- (void)archiveReferenceWithFolder:(NSString *)folder refs:(NSArray *)refs completion:(void (^)(NSError *error, NSArray *items))completion;
 
 @end
 

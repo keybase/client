@@ -64,6 +64,27 @@ func SignED25519(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 	return
 }
 
+// SignToString signs the given message with the current user's private
+// signing key and outputs the serialized NaclSigInfo string.
+func SignToString(g *libkb.GlobalContext, secretUI libkb.SecretUI,
+	arg keybase1.SignToStringArg) (
+	sig string, err error) {
+	signingKey, err := getMySecretKey(
+		g, secretUI, libkb.DeviceSigningKeyType, arg.Reason)
+	if err != nil {
+		return
+	}
+
+	kp, ok := signingKey.(libkb.NaclSigningKeyPair)
+	if !ok || kp.Private == nil {
+		err = libkb.KeyCannotSignError{}
+		return
+	}
+
+	sig, _, err = kp.SignToString(arg.Msg)
+	return
+}
+
 // UnboxBytes32 decrypts the given message with the current user's
 // private encryption key and the given nonce and peer public key.
 func UnboxBytes32(g *libkb.GlobalContext, secretUI libkb.SecretUI,

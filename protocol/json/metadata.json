@@ -214,13 +214,7 @@
   "messages" : {
     "authenticate" : {
       "request" : [ {
-        "name" : "user",
-        "type" : "UID"
-      }, {
-        "name" : "deviceKID",
-        "type" : "KID"
-      }, {
-        "name" : "sid",
+        "name" : "signature",
         "type" : "string"
       } ],
       "response" : "int"
@@ -318,6 +312,9 @@
       "request" : [ {
         "name" : "keyHalfID",
         "type" : "bytes"
+      }, {
+        "name" : "deviceKID",
+        "type" : "string"
       }, {
         "name" : "logTags",
         "type" : {

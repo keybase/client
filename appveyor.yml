@@ -1,7 +1,4 @@
 install:
-  - cmd: rd C:\Go /s /q
-  - cmd: appveyor DownloadFile https://storage.googleapis.com/golang/go1.5.1.windows-amd64.zip
-  - cmd: 7z x go1.5.1.windows-amd64.zip -oC:\ >nul
 
 environment:
   global:
@@ -24,9 +21,13 @@ before_build:
 
 # scripts to run after build
 # ...testing
+# Note we do a ping, do save time if the test server is down.
+# Most of the rest of this is to avoid running tests on vendored dirs.
 after_build:
+  - keybase ping
   - cd ..
-  - go test -timeout 30m ./...
+  - go list ./... | find /V "vendor" > testlist.txt
+  - for /f %%i in (testlist.txt) do go test -timeout 30m %%i
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:

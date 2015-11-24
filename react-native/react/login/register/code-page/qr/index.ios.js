@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, Image, StyleSheet, View} from '../../../../base-react'
 import Camera from 'react-native-camera'
 
@@ -10,7 +8,7 @@ export default class QR extends Component {
         <Camera
           style={[styles.camera, this.props.style]}
           ref='cam'
-          onBarCodeRead={(data) => this.props.onBarCodeRead(data)}>
+          onBarCodeRead={data => this.props.onBarCodeRead(data)}>
           {this.props.children}
         </Camera>
       )

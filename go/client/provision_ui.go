@@ -52,18 +52,29 @@ func (p ProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg keybase1.
 	case 3:
 		return keybase1.ProvisionMethod_PASSPHRASE, nil
 	case 4:
-		p.parent.Output("\nThe keybase CLI needs access to your GPG key to authorize this installation. It will\n")
-		p.parent.Output("export your secret key from GPG, and save to keybase's local encrypted keyring. This way,\n")
-		p.parent.Output("it can be used in `keybase pgp sign` and `keybase pgp decrypt` going forward.\n")
-		ok, err := p.parent.PromptYesNo(PromptDescriptorExportSecretKeyFromGPG, "Would you like to continue?", libkb.PromptDefaultYes)
-		if !ok || err != nil {
-			p.parent.Output("\nWe have an issue for using gpg to sign your install without\n")
-			p.parent.Output("requiring a secret key import:\n\n")
-			p.parent.Output("  https://github.com/keybase/client/issues/1308\n\n")
-			p.parent.Output("Register a :+1: if you want to expedite its development.\n\n")
-			return res, libkb.CanceledError{M: "user canceled gpg provisioning"}
+		p.parent.Output(`In order to authorize this installation, keybase needs to sign this installation
+with your GPG secret key.
+
+You have two options.
+
+(1) Keybase can use GPG commands to sign the installation.
+
+(2) Keybase can export your secret key from GPG and save it to keybase's local encrypted
+    keyring. This way, it can be used in 'keybase pgp sign' and 'keybase pgp decrypt' 
+    going forward.
+`)
+		gret, err := PromptSelectionOrCancel(PromptDescriptorChooseGPGMethod, p.parent, "Which do you prefer?", 1, 2)
+		if err != nil {
+			if err == ErrInputCanceled {
+				return res, libkb.CanceledError{M: "user canceled input"}
+			}
+			return res, err
 		}
-		return keybase1.ProvisionMethod_GPG, nil
+		if gret == 1 {
+			return keybase1.ProvisionMethod_GPG_SIGN, nil
+		} else if gret == 2 {
+			return keybase1.ProvisionMethod_GPG_IMPORT, nil
+		}
 	}
 	return res, fmt.Errorf("invalid provision option: %d", ret)
 }

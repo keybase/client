@@ -447,6 +447,16 @@
       "name" : "hint",
       "type" : [ "null", "SigHint" ]
     } ]
+  }, {
+    "type" : "record",
+    "name" : "ConfirmResult",
+    "fields" : [ {
+      "name" : "identityConfirmed",
+      "type" : "boolean"
+    }, {
+      "name" : "remoteConfirmed",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
     "delegateIdentifyUI" : {
@@ -560,7 +570,7 @@
         "name" : "outcome",
         "type" : "IdentifyOutcome"
       } ],
-      "response" : "boolean"
+      "response" : "ConfirmResult"
     },
     "finish" : {
       "request" : [ {

@@ -1,4 +1,3 @@
-'use strict'
 /*
  * File to stash local debug changes to. Never check this in with changes
  */
@@ -15,7 +14,7 @@ let config = {
   printRPC: false
 }
 
-if (isDev && true) {
+if (isDev && false) {
   config.overrideRouterState = createRouterState([], [])
   config.overrideActiveTab = Tabs.devicesTab
   config.skipLoginRouteToRoot = true

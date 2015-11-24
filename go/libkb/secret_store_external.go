@@ -7,6 +7,10 @@ package libkb
 
 import "sync"
 
+// TODO: Make this implementation use GetStoredSecretServiceName(), as
+// otherwise tests will clobber each other's passwords. See
+// https://keybase.atlassian.net/browse/CORE-1934 .
+
 // ExternalKeyStore is the interface for the actual (external) keystore.
 type ExternalKeyStore interface {
 	RetrieveSecret(username string) ([]byte, error)
@@ -40,6 +44,8 @@ type secretStoreAccountName struct {
 	accountName      string
 }
 
+var _ SecretStore = secretStoreAccountName{}
+
 func (s secretStoreAccountName) StoreSecret(secret []byte) (err error) {
 	return s.externalKeyStore.StoreSecret(s.accountName, secret)
 }
@@ -52,7 +58,7 @@ func (s secretStoreAccountName) ClearSecret() (err error) {
 	return s.externalKeyStore.ClearSecret(s.accountName)
 }
 
-func NewSecretStore(username NormalizedUsername) SecretStore {
+func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
 		return nil
@@ -65,7 +71,7 @@ func HasSecretStore() bool {
 	return getGlobalExternalKeyStore() != nil
 }
 
-func GetUsersWithStoredSecrets() ([]string, error) {
+func GetUsersWithStoredSecrets(g *GlobalContext) ([]string, error) {
 	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
 		return nil, nil

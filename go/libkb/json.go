@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -96,7 +97,7 @@ func (f *JSONFile) Save(pretty bool, mode os.FileMode) error {
 // SaveTmp saves the config to a temporary file.  It returns the
 // filename and any error.
 func (f *JSONFile) SaveTmp(suffix string) (string, error) {
-	filename := path.Join(os.TempDir(), fmt.Sprintf("keybase_config_%s.json", suffix))
+	filename := path.Join(filepath.Dir(f.filename), fmt.Sprintf("keybase_config_%s.json", suffix))
 	if err := f.save(filename, true, 0); err != nil {
 		return "", err
 	}
@@ -167,9 +168,14 @@ func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err err
 	return
 }
 
-func (f *JSONFile) SwapTmp(filename string) error {
-	if err := MakeParentDirs(f.filename); err != nil {
+func (f *JSONFile) SwapTmp(filename string) (err error) {
+	f.G().Log.Debug("+ SwapTmp()")
+	defer func() { f.G().Log.Debug("- SwapTmp() -> %s", ErrToOk(err)) }()
+	f.G().Log.Debug("| SwapTmp: making parent directories for %q", f.filename)
+	if err = MakeParentDirs(f.filename); err != nil {
 		return err
 	}
-	return os.Rename(filename, f.filename)
+	f.G().Log.Debug("| SwapTmp: renaming %q => %q", filename, f.filename)
+	err = os.Rename(filename, f.filename)
+	return err
 }

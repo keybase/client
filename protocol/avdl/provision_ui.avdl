@@ -5,9 +5,10 @@ protocol provisionUi {
 
   enum ProvisionMethod {
     DEVICE_0,
-    GPG_1,
-    PAPER_KEY_2,
-    PASSPHRASE_3
+    PAPER_KEY_1,
+    PASSPHRASE_2,
+    GPG_IMPORT_3,
+    GPG_SIGN_4
   }
   /**
     Called during device provisioning for the user to select a

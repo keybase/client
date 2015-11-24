@@ -13,6 +13,12 @@ protocol config {
 
   GetCurrentStatusRes getCurrentStatus(int sessionID);
 
+  enum ForkType {
+    NONE_0,
+    AUTO_1,
+    WATCHDOG_2
+  }
+
   record Config {
     string serverURI;
     string socketFile;
@@ -26,6 +32,7 @@ protocol config {
     string versionShort;
     string versionFull;
     boolean isAutoForked;
+    ForkType forkType;
   }
 
   Config getConfig(int sessionID);
@@ -44,7 +51,6 @@ protocol config {
     UNKNOWN_0,
     ERROR_1,
     NOT_INSTALLED_2,
-    NEEDS_UPGRADE_3,
     INSTALLED_4
   }
 
@@ -72,6 +78,12 @@ protocol config {
     array<ServiceStatus> kbfs;
   }
 
+  record FuseMountInfo {
+    string path;
+    string fstype;
+    string output; // Output from mount, may be platform specific
+  }
+
   record FuseStatus {
     string version;
     string bundleVersion;
@@ -80,10 +92,15 @@ protocol config {
     boolean kextStarted;
     InstallStatus installStatus;
     InstallAction installAction;
+    array<FuseMountInfo> mountInfos;
     Status status;
   }
 
-  record InstallComponent {
+  /**
+    ComponentStatus defines a components status.
+    Names can be "cli," "service", "kbfs".
+   */
+  record ComponentStatus {
     string name;
     Status status;
   }

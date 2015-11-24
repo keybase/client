@@ -45,7 +45,7 @@ func (rc *CoinbaseChecker) CheckStatus(h SigHint) ProofError {
 	if err != nil {
 		return XapiError(err, h.apiURL)
 	}
-	csssel := "div#public_key_content pre.statement"
+	csssel := "pre.statement"
 	div := res.GoQuery.Find(csssel)
 	if div.Length() == 0 {
 		return NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find a div $(%s)", csssel)

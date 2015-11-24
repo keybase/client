@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, View} from '../base-react'
 
 import Header from './header.render'

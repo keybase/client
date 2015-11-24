@@ -1,7 +1,23 @@
+## 1.0.2-0 (2015-11-24)
+
+- Emergency fix for coinbase proofs
+   (Commit: 1e2539e58f3666f4fc357ca9c7192212b4b23999)
+- Fix keybase-issues#1878, spurious key ownership error.
+   (Commit: f1b6e135fdf3741ce823148e9e3f395f485cf734)
+
+## 1.0.1-0 (2015-11-23)
+
+- Allow provision via GPG command line tool so secret key does not need to be imported.
+  (PR keybase/client#1359)
 - Improve error message for no synced PGP key
-  (keybase-issues#1854)
+  (Bug keybase/keybase-issues#1854)
 - Fix username bug during passphrase provision
-  (keybase-issues#1855)
+  (Bug keybase/keybase-issues#1855)
+- Auto-restart the service if the client is newer
+  (PR keybase/client#1336)
+- Rename `keybase reset` to `keybase deprovision`, make it more interactive,
+  and have it delete all of your local account data, including keys.
+  (PR keybase/client#1330)
 
 ## 1.0.0-47 (2015-11-12)
 

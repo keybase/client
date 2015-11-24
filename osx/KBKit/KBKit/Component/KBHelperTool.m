@@ -26,16 +26,11 @@
 
 @implementation KBHelperTool
 
-- (NSString *)name {
-  return @"Privileged Helper";
-}
-
-- (NSString *)info {
-  return @"Runs privileged tasks";
-}
-
-- (NSImage *)image {
-  return [KBIcons imageForIcon:KBIconExtension];
+- (instancetype)initWithConfig:(KBEnvConfig *)config {
+  if ((self = [self initWithConfig:config name:@"Privileged Helper" info:@"Runs privileged tasks" image:[KBIcons imageForIcon:KBIconExtension]])) {
+    
+  }
+  return self;
 }
 
 - (NSView *)componentView {
@@ -63,7 +58,7 @@
   [_infoView setProperties:info];
 }
 
-- (void)refreshComponent:(KBCompletion)completion {
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
   KBSemVersion *bundleVersion = [self bundleVersion];
   info[@"Bundle Version"] = [bundleVersion description];
@@ -71,32 +66,32 @@
   if (![NSFileManager.defaultManager fileExistsAtPath:PLIST_DEST isDirectory:nil] &&
       ![NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil]) {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:info error:nil];
-    completion(nil);
+    completion(self.componentStatus);
     return;
   }
 
   [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall info:info error:error];
-      completion(nil);
+      completion(self.componentStatus);
     } else {
       KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:KBIfNull(versions[@"build"], nil)];
       if (runningVersion) info[@"Version"] = [runningVersion description];
       if ([bundleVersion isGreaterThan:runningVersion]) {
         if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNeedsUpgrade installAction:KBRInstallActionUpgrade info:info error:nil];
-        completion(nil);
+        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
+        completion(self.componentStatus);
       } else {
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
-        completion(nil);
+        completion(self.componentStatus);
       }
     }
   }];
 }
 
 - (void)install:(KBCompletion)completion {
-  [self refreshComponent:^(NSError *error) {
-    if (self.componentStatus && [self.componentStatus needsInstallOrUpgrade]) {
+  [self refreshComponent:^(KBComponentStatus *cs) {
+    if ([cs needsInstallOrUpgrade]) {
       [self _install:completion];
     } else {
       completion(nil);
@@ -182,20 +177,5 @@
   }
 }
  */
-
-- (void)uninstall:(KBCompletion)completion {
-  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported")); // Uninstalling is unsafe
-//  NSError *error = nil;
-//  [self uninstallPrivilegedServiceWithName:@"keybase.Helper" error:&error];
-//  completion(error);
-}
-
-- (void)start:(KBCompletion)completion {
-  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
-}
-
-- (void)stop:(KBCompletion)completion {
-  completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
-}
 
 @end

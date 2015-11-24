@@ -158,12 +158,19 @@
     "type" : "enum",
     "name" : "LogLevel",
     "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
+  }, {
+    "type" : "enum",
+    "name" : "ExitCode",
+    "symbols" : [ "OK_0", "NOTOK_2", "RESTART_4" ]
   } ],
   "messages" : {
     "stop" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
+      }, {
+        "name" : "exitCode",
+        "type" : "ExitCode"
       } ],
       "response" : "null"
     },

@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, Text, View} from '../../../../base-react'
 
 export default class QR extends Component {

@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 export type OSType = 'electron' | 'android' | 'ios'

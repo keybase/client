@@ -9,7 +9,6 @@
 #import "KBInstallStatusView.h"
 
 #import "KBHeaderLabelView.h"
-#import "KBInstallAction.h"
 #import "KBInstaller.h"
 #import "KBRunOver.h"
 #import "KBApp.h"
@@ -34,8 +33,10 @@
   YOVBox *contentView = [YOVBox box:@{@"spacing": @(20), @"insets": @(20)}];
   [self addSubview:contentView];
 
+  NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
+
   KBLabel *header = [[KBLabel alloc] init];
-  [header setText:@"Keybase Status" style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [header setText:NSStringWithFormat(@"Keybase Status (%@)", runMode) style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
   [contentView addSubview:header];
 
   _infoLabel = [[KBLabel alloc] init];
@@ -103,41 +104,21 @@
   [self showInstallables];
 }
 
-- (NSArray *)statusDescription:(id<KBInstallable>)installable {
-  NSMutableArray *status = [NSMutableArray array];
-  if (installable.isInstallDisabled) {
-    [status addObject:@"Install Disabled"];
-  }
-  if (installable.componentStatus.error) {
-    [status addObject:NSStringWithFormat(@"Error: %@", installable.componentStatus.error.localizedDescription)];
-  }
-  [status gh_addObject:installable.componentStatus.statusDescription];
-  return status;
-}
-
-- (NSString *)action:(id<KBInstallable>)installable {
-  if (installable.isInstallDisabled) {
-    return NSStringFromKBRInstallAction(KBRInstallActionNone);
-  } else {
-    return NSStringFromKBRInstallAction(installable.componentStatus.installAction);
-  }
-}
-
 - (void)showInstallables {
   NSArray *installViews = [_installStatusView.subviews copy];
   for (NSView *subview in installViews) [subview removeFromSuperview];
 
   [_infoLabel setText:@"Here is the status of all the Keybase components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 
-  for (id<KBInstallable> installable in _environment.installables) {
+  for (KBInstallable *installable in _environment.installables) {
     NSString *name = installable.name;
 
-    NSString *statusDescription = [[self statusDescription:installable] join:@"\n"];
+    NSString *statusDescription = [[installable statusDescription] join:@"\n"];
 
     KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:statusDescription style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByWordWrapping];
     label.columnRatio = 0.5;
 
-    NSString *action = [self action:installable];
+    NSString *action = [installable action];
     if (action) {
       [label addText:action style:KBTextStyleDefault options:KBTextOptionsStrong lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
     }

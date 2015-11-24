@@ -1,5 +1,3 @@
-'use strict'
-
 // Actions
 export const loadingDevices = 'devices:loadingDevices'
 export const showDevices = 'devices:showDevices'

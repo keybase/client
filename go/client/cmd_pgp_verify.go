@@ -23,29 +23,30 @@ func NewCmdPGPVerify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			cl.ChooseCommand(&CmdPGPVerify{Contextified: libkb.NewContextified(g)}, "verify", c)
 		},
 		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "l, local",
-				Usage: "Only track locally, don't send a statement to the server.",
-			},
-			cli.BoolFlag{
-				Name:  "y",
-				Usage: "Approve remote tracking without prompting.",
-			},
-			cli.StringFlag{
-				Name:  "m, message",
-				Usage: "Provide the message on the command line.",
-			},
-			cli.StringFlag{
-				Name:  "i, infile",
-				Usage: "Specify an input file.",
-			},
 			cli.StringFlag{
 				Name:  "d, detached",
 				Usage: "Specify a detached signature file.",
 			},
 			cli.StringFlag{
+				Name:  "i, infile",
+				Usage: "Specify an input file.",
+			},
+			cli.BoolFlag{
+				Name:  "l, local",
+				Usage: "Only track locally, don't send a statement to the server.",
+			},
+
+			cli.StringFlag{
+				Name:  "m, message",
+				Usage: "Provide the message on the command line.",
+			},
+			cli.StringFlag{
 				Name:  "S, signed-by",
 				Usage: "Assert signed by the given user (can use user assertion format).",
+			},
+			cli.BoolFlag{
+				Name:  "y",
+				Usage: "Approve remote tracking without prompting.",
 			},
 		},
 	}
@@ -92,6 +93,10 @@ func (c *CmdPGPVerify) Run() error {
 }
 
 func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
+	if len(ctx.Args()) > 0 {
+		return UnexpectedArgsError("pgp verify")
+	}
+
 	msg := ctx.String("message")
 	infile := ctx.String("infile")
 	if err := c.FilterInit(msg, infile, "/dev/null"); err != nil {

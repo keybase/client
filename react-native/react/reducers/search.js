@@ -1,5 +1,4 @@
 /* @flow */
-'use strict'
 
 import * as Constants from '../constants/search'
 import Immutable from 'immutable'

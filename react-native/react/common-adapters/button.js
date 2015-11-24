@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, Text, TouchableHighlight, View} from '../base-react'
 import commonStyles, {buttonHighlight, disabledButtonHighlight} from '../styles/common'
 

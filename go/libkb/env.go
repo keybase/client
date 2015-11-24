@@ -4,7 +4,7 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type NullConfiguration struct{}
@@ -108,8 +110,12 @@ type TestParameters struct {
 	GPGHome        string
 	GPGOptions     []string
 	Debug          bool
-	Devel          bool // Whether we are in Devel Mode
-	RuntimeDir     string
+	// Whether we are in Devel Mode
+	Devel bool
+	// If we're in dev mode, the name for this test, with a random
+	// suffix.
+	DevelName  string
+	RuntimeDir string
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -758,7 +764,9 @@ func (e *Env) GetStoredSecretServiceName() string {
 		panic("Invalid run mode")
 	}
 	if e.Test.Devel {
-		serviceName = serviceName + "-test"
+		// Append DevelName so that tests won't clobber each
+		// other's keychain entries on shutdown.
+		serviceName += fmt.Sprintf("-test (%s)", e.Test.DevelName)
 	}
 	return serviceName
 }

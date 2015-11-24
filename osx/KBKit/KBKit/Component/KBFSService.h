@@ -12,7 +12,7 @@
 #import <KBKit/KBInstallable.h>
 #import <KBKit/KBEnvConfig.h>
 
-@interface KBFSService : NSObject <KBComponent, KBInstallable>
+@interface KBFSService : KBInstallable
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label;
 

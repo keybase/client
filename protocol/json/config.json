@@ -175,6 +175,10 @@
       "type" : [ "null", "User" ]
     } ]
   }, {
+    "type" : "enum",
+    "name" : "ForkType",
+    "symbols" : [ "NONE_0", "AUTO_1", "WATCHDOG_2" ]
+  }, {
     "type" : "record",
     "name" : "Config",
     "fields" : [ {
@@ -213,12 +217,15 @@
     }, {
       "name" : "isAutoForked",
       "type" : "boolean"
+    }, {
+      "name" : "forkType",
+      "type" : "ForkType"
     } ]
   }, {
     "type" : "enum",
     "name" : "InstallStatus",
     "doc" : "Install status describes state of install for a component or service.",
-    "symbols" : [ "UNKNOWN_0", "ERROR_1", "NOT_INSTALLED_2", "NEEDS_UPGRADE_3", "INSTALLED_4" ]
+    "symbols" : [ "UNKNOWN_0", "ERROR_1", "NOT_INSTALLED_2", "INSTALLED_4" ]
   }, {
     "type" : "enum",
     "name" : "InstallAction",
@@ -269,6 +276,19 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "FuseMountInfo",
+    "fields" : [ {
+      "name" : "path",
+      "type" : "string"
+    }, {
+      "name" : "fstype",
+      "type" : "string"
+    }, {
+      "name" : "output",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "FuseStatus",
     "fields" : [ {
       "name" : "version",
@@ -292,12 +312,19 @@
       "name" : "installAction",
       "type" : "InstallAction"
     }, {
+      "name" : "mountInfos",
+      "type" : {
+        "type" : "array",
+        "items" : "FuseMountInfo"
+      }
+    }, {
       "name" : "status",
       "type" : "Status"
     } ]
   }, {
     "type" : "record",
-    "name" : "InstallComponent",
+    "name" : "ComponentStatus",
+    "doc" : "ComponentStatus defines a components status.\n    Names can be \"cli,\" \"service\", \"kbfs\".",
     "fields" : [ {
       "name" : "name",
       "type" : "string"

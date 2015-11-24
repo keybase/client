@@ -3,6 +3,7 @@
 export type int = number
 export type double = number
 export type bytes = any
+export type BlockRefNonce = any
 export type ED25519PublicKey = any
 export type ED25519Signature = any
 export type Time = number
@@ -163,6 +164,18 @@ export type GetBlockRes = {
   buf: bytes;
 }
 
+export type block_BlockReference = {
+  bid: BlockIdCombo;
+  nonce: BlockRefNonce;
+  chargedTo: UID;
+}
+
+export type BlockReference = {
+  bid: BlockIdCombo;
+  nonce: BlockRefNonce;
+  chargedTo: UID;
+}
+
 export type BTC_Time = {
 }
 
@@ -319,6 +332,10 @@ export type GetCurrentStatusRes = {
   user?: ?User;
 }
 
+export type config_ForkType = 0 /* 'NONE_0' */ | 1 /* 'AUTO_1' */ | 2 /* 'WATCHDOG_2' */
+
+export type ForkType = 0 /* 'NONE_0' */ | 1 /* 'AUTO_1' */ | 2 /* 'WATCHDOG_2' */
+
 export type config_Config = {
   serverURI: string;
   socketFile: string;
@@ -331,6 +348,8 @@ export type config_Config = {
   configPath: string;
   versionShort: string;
   versionFull: string;
+  isAutoForked: boolean;
+  forkType: ForkType;
 }
 
 export type Config = {
@@ -345,11 +364,13 @@ export type Config = {
   configPath: string;
   versionShort: string;
   versionFull: string;
+  isAutoForked: boolean;
+  forkType: ForkType;
 }
 
-export type config_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'NEEDS_UPGRADE_3' */ | 4 /* 'INSTALLED_4' */
+export type config_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
 
-export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'NEEDS_UPGRADE_3' */ | 4 /* 'INSTALLED_4' */
+export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
 
 export type config_InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
 
@@ -377,6 +398,28 @@ export type ServiceStatus = {
   status: Status;
 }
 
+export type config_ServicesStatus = {
+  service: Array<ServiceStatus>;
+  kbfs: Array<ServiceStatus>;
+}
+
+export type ServicesStatus = {
+  service: Array<ServiceStatus>;
+  kbfs: Array<ServiceStatus>;
+}
+
+export type config_FuseMountInfo = {
+  path: string;
+  fstype: string;
+  output: string;
+}
+
+export type FuseMountInfo = {
+  path: string;
+  fstype: string;
+  output: string;
+}
+
 export type config_FuseStatus = {
   version: string;
   bundleVersion: string;
@@ -385,6 +428,7 @@ export type config_FuseStatus = {
   kextStarted: boolean;
   installStatus: InstallStatus;
   installAction: InstallAction;
+  mountInfos: Array<FuseMountInfo>;
   status: Status;
 }
 
@@ -396,6 +440,17 @@ export type FuseStatus = {
   kextStarted: boolean;
   installStatus: InstallStatus;
   installAction: InstallAction;
+  mountInfos: Array<FuseMountInfo>;
+  status: Status;
+}
+
+export type config_ComponentStatus = {
+  name: string;
+  status: Status;
+}
+
+export type ComponentStatus = {
+  name: string;
   status: Status;
 }
 
@@ -479,6 +534,10 @@ export type ctl_Stream = {
 }
 
 export type ctl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type ctl_ExitCode = 0 /* 'OK_0' */ | 1 /* 'NOTOK_2' */ | 2 /* 'RESTART_4' */
+
+export type ExitCode = 0 /* 'OK_0' */ | 1 /* 'NOTOK_2' */ | 2 /* 'RESTART_4' */
 
 export type debugging_FirstStepResult = {
   valPlusTwo: int;
@@ -1104,6 +1163,10 @@ export type identifyUi_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type identifyUi_IdentifyReason = {
+  reason: string;
+}
+
 export type identifyUi_IdentifyOutcome = {
   username: string;
   status?: ?Status;
@@ -1118,6 +1181,7 @@ export type identifyUi_IdentifyOutcome = {
   revoked: Array<TrackDiff>;
   trackOptions: TrackOptions;
   forPGPPull: boolean;
+  reason: IdentifyReason;
 }
 
 export type identifyUi_IdentifyRes = {
@@ -1244,6 +1308,40 @@ export type LinkCheckResult = {
   diff?: ?TrackDiff;
   remoteDiff?: ?TrackDiff;
   hint?: ?SigHint;
+}
+
+export type identifyUi_ConfirmResult = {
+  identityConfirmed: boolean;
+  remoteConfirmed: boolean;
+}
+
+export type ConfirmResult = {
+  identityConfirmed: boolean;
+  remoteConfirmed: boolean;
+}
+
+export type kbfs_FSStatusCode = 0 /* 'START_0' */ | 1 /* 'FINISH_1' */ | 2 /* 'ERROR_2' */
+
+export type FSStatusCode = 0 /* 'START_0' */ | 1 /* 'FINISH_1' */ | 2 /* 'ERROR_2' */
+
+export type kbfs_FSNotificationType = 0 /* 'ENCRYPTING_0' */ | 1 /* 'DECRYPTING_1' */ | 2 /* 'SIGNING_2' */ | 3 /* 'VERIFYING_3' */ | 4 /* 'REKEYING_4' */
+
+export type FSNotificationType = 0 /* 'ENCRYPTING_0' */ | 1 /* 'DECRYPTING_1' */ | 2 /* 'SIGNING_2' */ | 3 /* 'VERIFYING_3' */ | 4 /* 'REKEYING_4' */
+
+export type kbfs_FSNotification = {
+  publicTopLevelFolder: boolean;
+  filename: string;
+  status: string;
+  statusCode: FSStatusCode;
+  notificationType: FSNotificationType;
+}
+
+export type FSNotification = {
+  publicTopLevelFolder: boolean;
+  filename: string;
+  status: string;
+  statusCode: FSStatusCode;
+  notificationType: FSNotificationType;
 }
 
 export type Kex2Provisionee_Time = {
@@ -1826,11 +1924,25 @@ export type notifyCtl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'IN
 export type notifyCtl_NotificationChannels = {
   session: boolean;
   users: boolean;
+  kbfs: boolean;
 }
 
 export type NotificationChannels = {
   session: boolean;
   users: boolean;
+  kbfs: boolean;
+}
+
+export type NotifyFS_FSStatusCode = 0 /* 'START_0' */ | 1 /* 'FINISH_1' */ | 2 /* 'ERROR_2' */
+
+export type NotifyFS_FSNotificationType = 0 /* 'ENCRYPTING_0' */ | 1 /* 'DECRYPTING_1' */ | 2 /* 'SIGNING_2' */ | 3 /* 'VERIFYING_3' */ | 4 /* 'REKEYING_4' */
+
+export type NotifyFS_FSNotification = {
+  publicTopLevelFolder: boolean;
+  filename: string;
+  status: string;
+  statusCode: FSStatusCode;
+  notificationType: FSNotificationType;
 }
 
 export type NotifyUsers_Time = {
@@ -2001,6 +2113,10 @@ export type pgp_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type pgp_IdentifyReason = {
+  reason: string;
+}
+
 export type pgp_IdentifyOutcome = {
   username: string;
   status?: ?Status;
@@ -2015,6 +2131,7 @@ export type pgp_IdentifyOutcome = {
   revoked: Array<TrackDiff>;
   trackOptions: TrackOptions;
   forPGPPull: boolean;
+  reason: IdentifyReason;
 }
 
 export type pgp_IdentifyRes = {
@@ -2238,6 +2355,10 @@ export type prove_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type prove_IdentifyReason = {
+  reason: string;
+}
+
 export type prove_IdentifyOutcome = {
   username: string;
   status?: ?Status;
@@ -2252,6 +2373,7 @@ export type prove_IdentifyOutcome = {
   revoked: Array<TrackDiff>;
   trackOptions: TrackOptions;
   forPGPPull: boolean;
+  reason: IdentifyReason;
 }
 
 export type prove_IdentifyRes = {
@@ -2436,9 +2558,9 @@ export type provisionUi_Stream = {
 
 export type provisionUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type provisionUi_ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'GPG_1' */ | 2 /* 'PAPER_KEY_2' */ | 3 /* 'PASSPHRASE_3' */
+export type provisionUi_ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASSPHRASE_2' */ | 3 /* 'GPG_IMPORT_3' */ | 4 /* 'GPG_SIGN_4' */
 
-export type ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'GPG_1' */ | 2 /* 'PAPER_KEY_2' */ | 3 /* 'PASSPHRASE_3' */
+export type ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASSPHRASE_2' */ | 3 /* 'GPG_IMPORT_3' */ | 4 /* 'GPG_SIGN_4' */
 
 export type provisionUi_DeviceType = 0 /* 'DESKTOP_0' */ | 1 /* 'MOBILE_1' */
 
@@ -2831,6 +2953,7 @@ export type session_Session = {
   username: string;
   token: string;
   deviceSubkeyKid: KID;
+  deviceSibkeyKid: KID;
 }
 
 export type Session = {
@@ -2838,6 +2961,7 @@ export type Session = {
   username: string;
   token: string;
   deviceSubkeyKid: KID;
+  deviceSibkeyKid: KID;
 }
 
 export type signup_Time = {
@@ -3228,6 +3352,10 @@ export type track_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type track_IdentifyReason = {
+  reason: string;
+}
+
 export type track_IdentifyOutcome = {
   username: string;
   status?: ?Status;
@@ -3242,6 +3370,7 @@ export type track_IdentifyOutcome = {
   revoked: Array<TrackDiff>;
   trackOptions: TrackOptions;
   forPGPPull: boolean;
+  reason: IdentifyReason;
 }
 
 export type track_IdentifyRes = {

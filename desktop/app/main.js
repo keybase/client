@@ -4,8 +4,9 @@ require('babel/register')({
 })
 
 const menubar = require('menubar')
-const ipc = require('ipc')
+const ipc = require('electron').ipcMain
 const Window = require('./window')
+const splash = require('./splash')
 
 const mb = menubar({
   index: `file://${__dirname}/../renderer/launcher.html`,
@@ -22,11 +23,14 @@ const trackerWindow = new Window('tracker', {
 })
 
 const mainWindow = new Window('index', {
-  width: 1600, height: 1200, openDevTools: true
+  width: 1600,
+  height: 1200,
+  openDevTools: true
 })
 
 mb.on('ready', () => {
   require('../../react-native/react/native/notifications').init()
+  require('../../react-native/react/native/pinentry').init()
 })
 
 // Work around an OS X bug that leaves a gap in the status bar if you exit
@@ -37,3 +41,5 @@ if (process.platform === 'darwin') {
 
 ipc.on('showMain', () => { mainWindow.show() })
 ipc.on('showTracker', () => { trackerWindow.show() })
+
+splash()

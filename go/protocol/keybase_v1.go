@@ -163,9 +163,14 @@ type GetBlockRes struct {
 }
 
 type BlockRefNonce [8]byte
-type EstablishSessionArg struct {
-	User UID    `codec:"user" json:"user"`
-	Sid  string `codec:"sid" json:"sid"`
+type BlockReference struct {
+	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
+	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
+	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
+}
+
+type AuthenticateSessionArg struct {
+	Signature string `codec:"signature" json:"signature"`
 }
 
 type PutBlockArg struct {
@@ -179,44 +184,46 @@ type GetBlockArg struct {
 	Bid BlockIdCombo `codec:"bid" json:"bid"`
 }
 
-type IncBlockReferenceArg struct {
-	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
-	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
-	Folder    string        `codec:"folder" json:"folder"`
-	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
+type AddReferenceArg struct {
+	Folder string         `codec:"folder" json:"folder"`
+	Ref    BlockReference `codec:"ref" json:"ref"`
 }
 
-type DecBlockReferenceArg struct {
-	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
-	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
-	Folder    string        `codec:"folder" json:"folder"`
-	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
+type DelReferenceArg struct {
+	Folder string         `codec:"folder" json:"folder"`
+	Ref    BlockReference `codec:"ref" json:"ref"`
+}
+
+type ArchiveReferenceArg struct {
+	Folder string           `codec:"folder" json:"folder"`
+	Refs   []BlockReference `codec:"refs" json:"refs"`
 }
 
 type BlockInterface interface {
-	EstablishSession(context.Context, EstablishSessionArg) error
+	AuthenticateSession(context.Context, string) error
 	PutBlock(context.Context, PutBlockArg) error
 	GetBlock(context.Context, BlockIdCombo) (GetBlockRes, error)
-	IncBlockReference(context.Context, IncBlockReferenceArg) error
-	DecBlockReference(context.Context, DecBlockReferenceArg) error
+	AddReference(context.Context, AddReferenceArg) error
+	DelReference(context.Context, DelReferenceArg) error
+	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
 }
 
 func BlockProtocol(i BlockInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.block",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"establishSession": {
+			"authenticateSession": {
 				MakeArg: func() interface{} {
-					ret := make([]EstablishSessionArg, 1)
+					ret := make([]AuthenticateSessionArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]EstablishSessionArg)
+					typedArgs, ok := args.(*[]AuthenticateSessionArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]EstablishSessionArg)(nil), args)
+						err = rpc.NewTypeError((*[]AuthenticateSessionArg)(nil), args)
 						return
 					}
-					err = i.EstablishSession(ctx, (*typedArgs)[0])
+					err = i.AuthenticateSession(ctx, (*typedArgs)[0].Signature)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -253,34 +260,50 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"incBlockReference": {
+			"addReference": {
 				MakeArg: func() interface{} {
-					ret := make([]IncBlockReferenceArg, 1)
+					ret := make([]AddReferenceArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]IncBlockReferenceArg)
+					typedArgs, ok := args.(*[]AddReferenceArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]IncBlockReferenceArg)(nil), args)
+						err = rpc.NewTypeError((*[]AddReferenceArg)(nil), args)
 						return
 					}
-					err = i.IncBlockReference(ctx, (*typedArgs)[0])
+					err = i.AddReference(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"decBlockReference": {
+			"delReference": {
 				MakeArg: func() interface{} {
-					ret := make([]DecBlockReferenceArg, 1)
+					ret := make([]DelReferenceArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]DecBlockReferenceArg)
+					typedArgs, ok := args.(*[]DelReferenceArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]DecBlockReferenceArg)(nil), args)
+						err = rpc.NewTypeError((*[]DelReferenceArg)(nil), args)
 						return
 					}
-					err = i.DecBlockReference(ctx, (*typedArgs)[0])
+					err = i.DelReference(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"archiveReference": {
+				MakeArg: func() interface{} {
+					ret := make([]ArchiveReferenceArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ArchiveReferenceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ArchiveReferenceArg)(nil), args)
+						return
+					}
+					ret, err = i.ArchiveReference(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -293,8 +316,9 @@ type BlockClient struct {
 	Cli GenericClient
 }
 
-func (c BlockClient) EstablishSession(ctx context.Context, __arg EstablishSessionArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.establishSession", []interface{}{__arg}, nil)
+func (c BlockClient) AuthenticateSession(ctx context.Context, signature string) (err error) {
+	__arg := AuthenticateSessionArg{Signature: signature}
+	err = c.Cli.Call(ctx, "keybase.1.block.authenticateSession", []interface{}{__arg}, nil)
 	return
 }
 
@@ -309,13 +333,18 @@ func (c BlockClient) GetBlock(ctx context.Context, bid BlockIdCombo) (res GetBlo
 	return
 }
 
-func (c BlockClient) IncBlockReference(ctx context.Context, __arg IncBlockReferenceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.incBlockReference", []interface{}{__arg}, nil)
+func (c BlockClient) AddReference(ctx context.Context, __arg AddReferenceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.addReference", []interface{}{__arg}, nil)
 	return
 }
 
-func (c BlockClient) DecBlockReference(ctx context.Context, __arg DecBlockReferenceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.decBlockReference", []interface{}{__arg}, nil)
+func (c BlockClient) DelReference(ctx context.Context, __arg DelReferenceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.delReference", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BlockClient) ArchiveReference(ctx context.Context, __arg ArchiveReferenceArg) (res []BlockReference, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.archiveReference", []interface{}{__arg}, &res)
 	return
 }
 
@@ -369,19 +398,28 @@ type GetCurrentStatusRes struct {
 	User       *User `codec:"user,omitempty" json:"user,omitempty"`
 }
 
+type ForkType int
+
+const (
+	ForkType_NONE     ForkType = 0
+	ForkType_AUTO     ForkType = 1
+	ForkType_WATCHDOG ForkType = 2
+)
+
 type Config struct {
-	ServerURI    string `codec:"serverURI" json:"serverURI"`
-	SocketFile   string `codec:"socketFile" json:"socketFile"`
-	Label        string `codec:"label" json:"label"`
-	RunMode      string `codec:"runMode" json:"runMode"`
-	GpgExists    bool   `codec:"gpgExists" json:"gpgExists"`
-	GpgPath      string `codec:"gpgPath" json:"gpgPath"`
-	Version      string `codec:"version" json:"version"`
-	Path         string `codec:"path" json:"path"`
-	ConfigPath   string `codec:"configPath" json:"configPath"`
-	VersionShort string `codec:"versionShort" json:"versionShort"`
-	VersionFull  string `codec:"versionFull" json:"versionFull"`
-	IsAutoForked bool   `codec:"isAutoForked" json:"isAutoForked"`
+	ServerURI    string   `codec:"serverURI" json:"serverURI"`
+	SocketFile   string   `codec:"socketFile" json:"socketFile"`
+	Label        string   `codec:"label" json:"label"`
+	RunMode      string   `codec:"runMode" json:"runMode"`
+	GpgExists    bool     `codec:"gpgExists" json:"gpgExists"`
+	GpgPath      string   `codec:"gpgPath" json:"gpgPath"`
+	Version      string   `codec:"version" json:"version"`
+	Path         string   `codec:"path" json:"path"`
+	ConfigPath   string   `codec:"configPath" json:"configPath"`
+	VersionShort string   `codec:"versionShort" json:"versionShort"`
+	VersionFull  string   `codec:"versionFull" json:"versionFull"`
+	IsAutoForked bool     `codec:"isAutoForked" json:"isAutoForked"`
+	ForkType     ForkType `codec:"forkType" json:"forkType"`
 }
 
 type InstallStatus int
@@ -390,7 +428,6 @@ const (
 	InstallStatus_UNKNOWN       InstallStatus = 0
 	InstallStatus_ERROR         InstallStatus = 1
 	InstallStatus_NOT_INSTALLED InstallStatus = 2
-	InstallStatus_NEEDS_UPGRADE InstallStatus = 3
 	InstallStatus_INSTALLED     InstallStatus = 4
 )
 
@@ -420,18 +457,25 @@ type ServicesStatus struct {
 	Kbfs    []ServiceStatus `codec:"kbfs" json:"kbfs"`
 }
 
-type FuseStatus struct {
-	Version       string        `codec:"version" json:"version"`
-	BundleVersion string        `codec:"bundleVersion" json:"bundleVersion"`
-	KextID        string        `codec:"kextID" json:"kextID"`
-	Path          string        `codec:"path" json:"path"`
-	KextStarted   bool          `codec:"kextStarted" json:"kextStarted"`
-	InstallStatus InstallStatus `codec:"installStatus" json:"installStatus"`
-	InstallAction InstallAction `codec:"installAction" json:"installAction"`
-	Status        Status        `codec:"status" json:"status"`
+type FuseMountInfo struct {
+	Path   string `codec:"path" json:"path"`
+	Fstype string `codec:"fstype" json:"fstype"`
+	Output string `codec:"output" json:"output"`
 }
 
-type InstallComponent struct {
+type FuseStatus struct {
+	Version       string          `codec:"version" json:"version"`
+	BundleVersion string          `codec:"bundleVersion" json:"bundleVersion"`
+	KextID        string          `codec:"kextID" json:"kextID"`
+	Path          string          `codec:"path" json:"path"`
+	KextStarted   bool            `codec:"kextStarted" json:"kextStarted"`
+	InstallStatus InstallStatus   `codec:"installStatus" json:"installStatus"`
+	InstallAction InstallAction   `codec:"installAction" json:"installAction"`
+	MountInfos    []FuseMountInfo `codec:"mountInfos" json:"mountInfos"`
+	Status        Status          `codec:"status" json:"status"`
+}
+
+type ComponentStatus struct {
 	Name   string `codec:"name" json:"name"`
 	Status Status `codec:"status" json:"status"`
 }
@@ -551,6 +595,12 @@ type SignED25519Arg struct {
 	Reason    string `codec:"reason" json:"reason"`
 }
 
+type SignToStringArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Msg       []byte `codec:"msg" json:"msg"`
+	Reason    string `codec:"reason" json:"reason"`
+}
+
 type UnboxBytes32Arg struct {
 	SessionID        int              `codec:"sessionID" json:"sessionID"`
 	EncryptedBytes32 EncryptedBytes32 `codec:"encryptedBytes32" json:"encryptedBytes32"`
@@ -561,6 +611,7 @@ type UnboxBytes32Arg struct {
 
 type CryptoInterface interface {
 	SignED25519(context.Context, SignED25519Arg) (ED25519SignatureInfo, error)
+	SignToString(context.Context, SignToStringArg) (string, error)
 	UnboxBytes32(context.Context, UnboxBytes32Arg) (Bytes32, error)
 }
 
@@ -580,6 +631,22 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SignED25519(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"signToString": {
+				MakeArg: func() interface{} {
+					ret := make([]SignToStringArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SignToStringArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SignToStringArg)(nil), args)
+						return
+					}
+					ret, err = i.SignToString(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -613,13 +680,27 @@ func (c CryptoClient) SignED25519(ctx context.Context, __arg SignED25519Arg) (re
 	return
 }
 
+func (c CryptoClient) SignToString(ctx context.Context, __arg SignToStringArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.crypto.signToString", []interface{}{__arg}, &res)
+	return
+}
+
 func (c CryptoClient) UnboxBytes32(ctx context.Context, __arg UnboxBytes32Arg) (res Bytes32, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.crypto.unboxBytes32", []interface{}{__arg}, &res)
 	return
 }
 
+type ExitCode int
+
+const (
+	ExitCode_OK      ExitCode = 0
+	ExitCode_NOTOK   ExitCode = 2
+	ExitCode_RESTART ExitCode = 4
+)
+
 type StopArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	ExitCode  ExitCode `codec:"exitCode" json:"exitCode"`
 }
 
 type LogRotateArg struct {
@@ -640,7 +721,7 @@ type DbNukeArg struct {
 }
 
 type CtlInterface interface {
-	Stop(context.Context, int) error
+	Stop(context.Context, StopArg) error
 	LogRotate(context.Context, int) error
 	SetLogLevel(context.Context, SetLogLevelArg) error
 	Reload(context.Context, int) error
@@ -662,7 +743,7 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]StopArg)(nil), args)
 						return
 					}
-					err = i.Stop(ctx, (*typedArgs)[0].SessionID)
+					err = i.Stop(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -739,8 +820,7 @@ type CtlClient struct {
 	Cli GenericClient
 }
 
-func (c CtlClient) Stop(ctx context.Context, sessionID int) (err error) {
-	__arg := StopArg{SessionID: sessionID}
+func (c CtlClient) Stop(ctx context.Context, __arg StopArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil)
 	return
 }
@@ -1478,6 +1558,11 @@ type LinkCheckResult struct {
 	Hint        *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
+type ConfirmResult struct {
+	IdentityConfirmed bool `codec:"identityConfirmed" json:"identityConfirmed"`
+	RemoteConfirmed   bool `codec:"remoteConfirmed" json:"remoteConfirmed"`
+}
+
 type DelegateIdentifyUIArg struct {
 }
 
@@ -1549,7 +1634,7 @@ type IdentifyUiInterface interface {
 	FinishSocialProofCheck(context.Context, FinishSocialProofCheckArg) error
 	DisplayCryptocurrency(context.Context, DisplayCryptocurrencyArg) error
 	ReportTrackToken(context.Context, ReportTrackTokenArg) error
-	Confirm(context.Context, ConfirmArg) (bool, error)
+	Confirm(context.Context, ConfirmArg) (ConfirmResult, error)
 	Finish(context.Context, int) error
 }
 
@@ -1802,7 +1887,7 @@ func (c IdentifyUiClient) ReportTrackToken(ctx context.Context, __arg ReportTrac
 	return
 }
 
-func (c IdentifyUiClient) Confirm(ctx context.Context, __arg ConfirmArg) (res bool, err error) {
+func (c IdentifyUiClient) Confirm(ctx context.Context, __arg ConfirmArg) (res ConfirmResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identifyUi.confirm", []interface{}{__arg}, &res)
 	return
 }
@@ -2417,9 +2502,7 @@ type FolderUsersResponse struct {
 }
 
 type AuthenticateArg struct {
-	User      UID    `codec:"user" json:"user"`
-	DeviceKID KID    `codec:"deviceKID" json:"deviceKID"`
-	Sid       string `codec:"sid" json:"sid"`
+	Signature string `codec:"signature" json:"signature"`
 }
 
 type PutMetadataArg struct {
@@ -2456,6 +2539,7 @@ type PutKeysArg struct {
 
 type GetKeyArg struct {
 	KeyHalfID []byte            `codec:"keyHalfID" json:"keyHalfID"`
+	DeviceKID string            `codec:"deviceKID" json:"deviceKID"`
 	LogTags   map[string]string `codec:"logTags" json:"logTags"`
 }
 
@@ -2475,7 +2559,7 @@ type PingArg struct {
 }
 
 type MetadataInterface interface {
-	Authenticate(context.Context, AuthenticateArg) (int, error)
+	Authenticate(context.Context, string) (int, error)
 	PutMetadata(context.Context, PutMetadataArg) error
 	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
 	RegisterForUpdates(context.Context, RegisterForUpdatesArg) error
@@ -2503,7 +2587,7 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]AuthenticateArg)(nil), args)
 						return
 					}
-					ret, err = i.Authenticate(ctx, (*typedArgs)[0])
+					ret, err = i.Authenticate(ctx, (*typedArgs)[0].Signature)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2671,7 +2755,8 @@ type MetadataClient struct {
 	Cli GenericClient
 }
 
-func (c MetadataClient) Authenticate(ctx context.Context, __arg AuthenticateArg) (res int, err error) {
+func (c MetadataClient) Authenticate(ctx context.Context, signature string) (res int, err error) {
+	__arg := AuthenticateArg{Signature: signature}
 	err = c.Cli.Call(ctx, "keybase.1.metadata.authenticate", []interface{}{__arg}, &res)
 	return
 }
@@ -3709,9 +3794,10 @@ type ProvisionMethod int
 
 const (
 	ProvisionMethod_DEVICE     ProvisionMethod = 0
-	ProvisionMethod_GPG        ProvisionMethod = 1
-	ProvisionMethod_PAPER_KEY  ProvisionMethod = 2
-	ProvisionMethod_PASSPHRASE ProvisionMethod = 3
+	ProvisionMethod_PAPER_KEY  ProvisionMethod = 1
+	ProvisionMethod_PASSPHRASE ProvisionMethod = 2
+	ProvisionMethod_GPG_IMPORT ProvisionMethod = 3
+	ProvisionMethod_GPG_SIGN   ProvisionMethod = 4
 )
 
 type DeviceType int
@@ -4279,6 +4365,7 @@ type Session struct {
 	Username        string `codec:"username" json:"username"`
 	Token           string `codec:"token" json:"token"`
 	DeviceSubkeyKid KID    `codec:"deviceSubkeyKid" json:"deviceSubkeyKid"`
+	DeviceSibkeyKid KID    `codec:"deviceSibkeyKid" json:"deviceSibkeyKid"`
 }
 
 type CurrentSessionArg struct {

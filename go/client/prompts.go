@@ -36,6 +36,7 @@ const (
 	PromptDescriptorSignupDevice
 	PromptDescriptorSignupCode
 	PromptDescriptorChooseProvisioningMethod
+	PromptDescriptorChooseGPGMethod
 	PromptDescriptorChooseDeviceType
 	PromptDescriptorProvisionPhrase
 	PromptDescriptorProvisionDeviceName

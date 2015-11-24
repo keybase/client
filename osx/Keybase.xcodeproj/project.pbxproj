@@ -30,6 +30,8 @@
 		009E13711B27B39300C72B28 /* ActionViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 009E13701B27B39300C72B28 /* ActionViewController.xib */; };
 		009E137D1B28A91F00C72B28 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E137C1B28A91F00C72B28 /* AppDelegate.m */; };
 		009E167D1B28AF6800C72B28 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43551A3A9E6C006118A9 /* MainMenu.xib */; };
+		00AA041F1BFEAC470047E448 /* keybase in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00AA041C1BFEAC2A0047E448 /* keybase */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		00AA04201BFEAC4E0047E448 /* kbfs in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00AA041B1BFEAC2A0047E448 /* kbfs */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		00CC43521A3A9E6C006118A9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43511A3A9E6C006118A9 /* main.m */; };
 		00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43531A3A9E6C006118A9 /* Images.xcassets */; };
 		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
@@ -61,6 +63,8 @@
 			dstPath = bin;
 			dstSubfolderSpec = 12;
 			files = (
+				00AA041F1BFEAC470047E448 /* keybase in CopyFiles */,
+				00AA04201BFEAC4E0047E448 /* kbfs in CopyFiles */,
 				0008F0B21BEBFEC0003C123E /* kbfsstage in CopyFiles */,
 				0008F0B31BEBFEC0003C123E /* kbstage in CopyFiles */,
 			);
@@ -151,6 +155,8 @@
 		009E13701B27B39300C72B28 /* ActionViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ActionViewController.xib; sourceTree = "<group>"; };
 		009E137B1B28A91F00C72B28 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		009E137C1B28A91F00C72B28 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		00AA041B1BFEAC2A0047E448 /* kbfs */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = kbfs; sourceTree = "<group>"; };
+		00AA041C1BFEAC2A0047E448 /* keybase */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = keybase; sourceTree = "<group>"; };
 		00AA750F1B27635D0069A6CC /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00AA75121B27635D0069A6CC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00CC43491A3A9E6C006118A9 /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -221,6 +227,8 @@
 		0008F0AD1BEBFEA9003C123E /* bin */ = {
 			isa = PBXGroup;
 			children = (
+				00AA041B1BFEAC2A0047E448 /* kbfs */,
+				00AA041C1BFEAC2A0047E448 /* keybase */,
 				0008F0AE1BEBFEA9003C123E /* kbfsstage */,
 				0008F0AF1BEBFEA9003C123E /* kbstage */,
 			);
@@ -1174,7 +1182,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 599E726F94990224093FA179 /* Pods-Keybase.debug.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDev;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;

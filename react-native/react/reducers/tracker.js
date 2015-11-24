@@ -3,7 +3,7 @@
 import * as Constants from '../constants/tracker'
 import {normal, warning, error, pending} from '../constants/tracker'
 
-import {identify} from '../keybase_v1'
+import {identify} from '../constants/types/keybase_v1'
 
 import type {UserInfo} from '../tracker/bio.render.desktop'
 import type {Proof} from '../tracker/proofs.render.desktop'

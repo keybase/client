@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 import engine from '../engine'
@@ -15,7 +14,8 @@ export function init () {
   const param = {
     channels: {
       session: true,
-      users: true
+      users: true,
+      kbfs: true
     }
   }
 

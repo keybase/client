@@ -11,16 +11,16 @@ export default class Window {
 
   show () {
     if (this.window) {
-      if (this.opts.show !== false) {
+      if (!this.window.isFocused()) {
         this.window.focus()
       }
       return
     }
+
     this.window = new BrowserWindow(this.opts)
-    if (this.opts.show !== false) {
-      this.releaseDockIcon = showDockIcon()
-    }
-    this.window.loadUrl(`file://${__dirname}/../renderer/${this.filename}.html`)
+    this.releaseDockIcon = showDockIcon()
+    this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
+
     this.window.on('closed', () => {
       this.window = null
       if (this.releaseDockIcon) {
@@ -28,6 +28,7 @@ export default class Window {
         this.releaseDockIcon = null
       }
     })
+
     if (this.opts.openDevTools) {
       this.window.openDevTools()
     }

@@ -1,4 +1,3 @@
-'use strict'
 /* @flow */
 
 // $FlowIssue base-react
@@ -99,7 +98,6 @@ class Tracker extends Component {
     }
   }
 }
-
 
 const mockData = {
   username: 'max',

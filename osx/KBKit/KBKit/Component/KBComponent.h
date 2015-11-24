@@ -12,6 +12,8 @@
 #import "KBDefines.h"
 #import "KBComponentStatus.h"
 
+typedef void (^KBRefreshComponentCompletion)(KBComponentStatus *componentStatus);
+
 @protocol KBComponent <NSObject>
 
 - (NSString *)name;
@@ -20,14 +22,12 @@
 
 - (NSView *)componentView;
 
-- (void)refreshComponent:(KBCompletion)completion;
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion;
 
 @end
 
-@interface KBComponent : NSObject
+@interface KBComponent : NSObject <KBComponent>
 
-- (void)refreshComponent:(KBCompletion)completion;
-
-- (NSView *)componentView;
+- (instancetype)initWithName:(NSString *)name info:(NSString *)info image:(NSImage *)image;
 
 @end

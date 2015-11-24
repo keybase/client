@@ -33,9 +33,17 @@ class AppDelegate: UIResponder {
       let SecurityAccessGroupOverride = false
     #endif
 
+    var home = AppDefault.HomeDirectory.stringValue ?? ""
+    if home == "" {
+      home = NSHomeDirectory()
+    } else {
+      let root = (NSHomeDirectory() as NSString).stringByAppendingPathComponent("Library")
+      home = (root as NSString).stringByAppendingPathComponent(home)
+    }
+
     engine = Engine(settings: [
       "runmode": AppDefault.RunMode.stringValue!,
-      "homedir": (NSHomeDirectory() as NSString).stringByAppendingPathComponent(AppDefault.HomeDirectory.stringValue ?? ""),
+      "homedir": home,
       "serverURI": AppDefault.APIServer.stringValue ?? "",
       "SecurityAccessGroupOverride": SecurityAccessGroupOverride
     ])

@@ -13,6 +13,7 @@ import (
 func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	ret := []cli.Command{
 		NewCmdBTC(cl, g),
+		NewCmdCA(cl, g),
 		NewCmdCert(cl),
 		NewCmdCompatDecrypt(cl),
 		NewCmdCompatDir(cl),

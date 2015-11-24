@@ -23,21 +23,21 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>47</string>
+	<string>48</string>
 	<key>KBFSBuild</key>
 	<string>23</string>
 	<key>KBFSVersion</key>
 	<string>1.0.0</string>
 	<key>KBFuseBuild</key>
-	<string>3.0.7</string>
+	<string>3.0.9</string>
 	<key>KBFuseVersion</key>
-	<string>3.0.7</string>
+	<string>3.0.9</string>
 	<key>KBHelperBuild</key>
-	<string>56</string>
+	<string>60</string>
 	<key>KBHelperVersion</key>
-	<string>1.0.15</string>
+	<string>1.0.17</string>
 	<key>KBRunMode</key>
-	<string>staging</string>
+	<string>prod</string>
 	<key>KBServiceBuild</key>
 	<string>47</string>
 	<key>KBServiceVersion</key>

@@ -36,11 +36,11 @@ func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keyba
 	var token string
 	var username libkb.NormalizedUsername
 	var uid keybase1.UID
-	var deviceSubkey libkb.GenericKey
+	var deviceSubkey, deviceSibkey libkb.GenericKey
 	var err error
 
 	aerr := h.G().LoginState().Account(func(a *libkb.Account) {
-		uid, username, token, deviceSubkey, err = a.UserInfo()
+		uid, username, token, deviceSubkey, deviceSibkey, err = a.UserInfo()
 	}, "Service - SessionHandler - UserInfo")
 	if aerr != nil {
 		return s, aerr
@@ -56,6 +56,7 @@ func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keyba
 	s.Username = username.String()
 	s.Token = token
 	s.DeviceSubkeyKid = deviceSubkey.GetKID()
+	s.DeviceSibkeyKid = deviceSibkey.GetKID()
 
 	return s, nil
 }

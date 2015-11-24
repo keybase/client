@@ -1,5 +1,3 @@
-'use strict'
-
 import {NativeModules} from 'react-native'
 import * as Constants from '../../constants/config'
 
@@ -9,10 +7,10 @@ export function getDevSettings () {
       type: Constants.devConfigLoading
     })
 
-    NativeModules.App.getDevConfig((devConfig) => {
+    NativeModules.App.getDevConfig(devConfig => {
       dispatch({
         type: Constants.devConfigLoaded,
-        payload: { devConfig }
+        payload: {devConfig}
       })
     })
   }

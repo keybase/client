@@ -1,5 +1,3 @@
-'use strict'
-
 export const startupTab = 'tabs:startupTab'
 export const folderTab = 'tabs:folderTab'
 export const chatTab = 'tabs:chatTab'

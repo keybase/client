@@ -1,5 +1,3 @@
-'use strict'
-
 import configureStoreNative from './configure-store.native'
 import {applyMiddleware} from 'redux'
 import thunkMiddleware from 'redux-thunk'
@@ -9,7 +7,7 @@ import Immutable from 'immutable'
 import {isDev} from '../constants/platform'
 
 // Transform objects from Immutable on printing
-const objToJS = (state) => {
+const objToJS = state => {
   var newState = {}
 
   Object.keys(state).forEach(i => {

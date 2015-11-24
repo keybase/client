@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component} from '../base-react'
 import {List, ListItem} from 'material-ui'
 
@@ -7,7 +5,7 @@ export default class MenuList extends Component {
   render () {
     return (
       <List>
-        {this.props.items.map((title) => {
+        {this.props.items.map(title => {
           return <ListItem key={title.name} onClick={title.onClick}>{title.name}</ListItem>
         })}
       </List>

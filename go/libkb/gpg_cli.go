@@ -14,6 +14,7 @@ import (
 type GpgCLI struct {
 	path    string
 	options []string
+	version string
 
 	mutex *sync.Mutex
 
@@ -100,6 +101,7 @@ type RunGpgRes struct {
 }
 
 func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error) {
+	g.outputVersion()
 	var cmd string
 	var which string
 	if secret {
@@ -154,6 +156,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 }
 
 func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {
+	g.outputVersion()
 	arg := RunGpg2Arg{
 		Arguments: []string{"--import"},
 		Stdin:     true,
@@ -168,6 +171,59 @@ func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {
 	e2 := res.Stdin.Close()
 	e3 := res.Wait()
 	return PickFirstError(e1, e2, e3)
+}
+
+func (g *GpgCLI) Sign(fp PGPFingerprint, payload []byte) (string, error) {
+	g.outputVersion()
+	arg := RunGpg2Arg{
+		Arguments: []string{"--armor", "--sign", "-u", fp.String()},
+		Stdout:    true,
+		Stdin:     true,
+	}
+
+	res := g.Run2(arg)
+	if res.Err != nil {
+		return "", res.Err
+	}
+
+	res.Stdin.Write(payload)
+	res.Stdin.Close()
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(res.Stdout)
+	armored := buf.String()
+
+	// Convert to posix style on windows
+	armored = PosixLineEndings(armored)
+
+	if err := res.Wait(); err != nil {
+		return "", err
+	}
+
+	return armored, nil
+}
+
+func (g *GpgCLI) Version() (string, error) {
+	if len(g.version) > 0 {
+		return g.version, nil
+	}
+
+	args := append(g.options, "--version")
+	out, err := exec.Command(g.path, args...).Output()
+	if err != nil {
+		return "", err
+	}
+	g.version = string(out)
+	return g.version, nil
+}
+
+func (g *GpgCLI) outputVersion() {
+	v, err := g.Version()
+	if err != nil {
+		g.logUI.Debug("error getting GPG version: %s", err)
+		return
+	}
+	g.logUI.Debug("GPG version:\n%s", v)
 }
 
 type RunGpg2Arg struct {

@@ -51,6 +51,20 @@
       } ],
       "response" : "ED25519SignatureInfo"
     },
+    "signToString" : {
+      "doc" : "Same as the above except the full marsheled and encoded NaclSigInfo.",
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "msg",
+        "type" : "bytes"
+      }, {
+        "name" : "reason",
+        "type" : "string"
+      } ],
+      "response" : "string"
+    },
     "unboxBytes32" : {
       "doc" : "Decrypt exactly 32 bytes using nacl/box with the given nonce, the given\n    peer's public key, and the device's private encryption key, and return the\n    decrypted data. The 'reason' parameter is used as part of the\n    SecretEntryArg object passed into secretUi.getSecret().",
       "request" : [ {

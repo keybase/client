@@ -1,5 +1,3 @@
-'use strict'
-
 export const initSearch = 'search:initSearch'
 export const searchTerm = 'search:searchTerm'
 export const searchService = 'search:searchService'

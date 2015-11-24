@@ -1,5 +1,3 @@
-'use strict'
-
 import React, {Component, StyleSheet, Text, TextInput, View} from '../../base-react'
 import {connect} from '../../base-redux'
 import commonStyles from '../../styles/common'
@@ -9,7 +7,7 @@ import {updateForgotPasswordEmail, submitForgotPassword} from '../../actions/log
 class ForgotUserPass extends Component {
   render () {
     return (
-      <View style={{ flex: 1, marginTop: 64, marginBottom: 48, justifyContent: 'flex-start' }}>
+      <View style={{flex: 1, marginTop: 64, marginBottom: 48, justifyContent: 'flex-start'}}>
         {this.props.success ? (
           <View>
             <Text style={commonStyles.h1}>Email sent!</Text>
@@ -24,7 +22,7 @@ class ForgotUserPass extends Component {
         <TextInput
           style={commonStyles.textInput}
           value={this.props.email}
-          onChangeText={(email) => this.props.updateEmail(email) }
+          onChangeText={email => this.props.updateEmail(email) }
           onSubmitEditing={() => this.props.submit()}
           autoCorrect={false}
           autoFocus
@@ -78,7 +76,8 @@ export default connect(
       forgotPasswordEmailAddress: email,
       forgotPasswordSubmitting: submitting,
       forgotPasswordSuccess: success,
-      forgotPasswordError: error } = state.login
+      forgotPasswordError: error
+    } = state.login
     return {email, submitting, success, error}
   },
   dispatch => {

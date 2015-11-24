@@ -182,14 +182,24 @@
     "type" : "fixed",
     "name" : "BlockRefNonce",
     "size" : 8
+  }, {
+    "type" : "record",
+    "name" : "BlockReference",
+    "fields" : [ {
+      "name" : "bid",
+      "type" : "BlockIdCombo"
+    }, {
+      "name" : "nonce",
+      "type" : "BlockRefNonce"
+    }, {
+      "name" : "chargedTo",
+      "type" : "UID"
+    } ]
   } ],
   "messages" : {
-    "establishSession" : {
+    "authenticateSession" : {
       "request" : [ {
-        "name" : "user",
-        "type" : "UID"
-      }, {
-        "name" : "sid",
+        "name" : "signature",
         "type" : "string"
       } ],
       "response" : "null"
@@ -217,37 +227,41 @@
       } ],
       "response" : "GetBlockRes"
     },
-    "incBlockReference" : {
+    "addReference" : {
       "request" : [ {
-        "name" : "bid",
-        "type" : "BlockIdCombo"
-      }, {
-        "name" : "nonce",
-        "type" : "BlockRefNonce"
-      }, {
         "name" : "folder",
         "type" : "string"
       }, {
-        "name" : "chargedTo",
-        "type" : "UID"
+        "name" : "ref",
+        "type" : "BlockReference"
       } ],
       "response" : "null"
     },
-    "decBlockReference" : {
+    "delReference" : {
       "request" : [ {
-        "name" : "bid",
-        "type" : "BlockIdCombo"
-      }, {
-        "name" : "nonce",
-        "type" : "BlockRefNonce"
-      }, {
         "name" : "folder",
         "type" : "string"
       }, {
-        "name" : "chargedTo",
-        "type" : "UID"
+        "name" : "ref",
+        "type" : "BlockReference"
       } ],
       "response" : "null"
+    },
+    "archiveReference" : {
+      "request" : [ {
+        "name" : "folder",
+        "type" : "string"
+      }, {
+        "name" : "refs",
+        "type" : {
+          "type" : "array",
+          "items" : "BlockReference"
+        }
+      } ],
+      "response" : {
+        "type" : "array",
+        "items" : "BlockReference"
+      }
     }
   }
 }

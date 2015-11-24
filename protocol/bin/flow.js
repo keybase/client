@@ -10,6 +10,7 @@ var typePrelude = `/* @flow */
 export type int = number
 export type double = number
 export type bytes = any
+export type BlockRefNonce = any
 export type ED25519PublicKey = any
 export type ED25519Signature = any
 export type Time = number
@@ -26,6 +27,9 @@ function load (file) {
 
 var seenTypes = {
   Time: true, // from prelude
+  BlockRefNonce: true, // from prelude
+  ED25519PublicKey: true, // from prelude
+  ED25519Signature: true, // from prelude
   SigID: true // from prelude
 }
 

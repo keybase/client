@@ -8,7 +8,6 @@
 
 #import "KBConsoleView.h"
 
-#import "KBInstallAction.h"
 #import "KBLogFormatter.h"
 #import "KBRPC.h"
 #import "KBApp.h"
@@ -164,6 +163,6 @@
   return self;
 }
 
-- (void)refreshComponent:(KBCompletion)completion { completion(nil); }
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion { completion(nil); }
 
 @end
