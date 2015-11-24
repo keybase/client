@@ -10,7 +10,8 @@ import (
 )
 
 // NewDearmor62DecryptStream makes a new stream that dearmors and decrypts the given
-// Reader stream. Pass it a keyring so that it can lookup
+// Reader stream. Pass it a keyring so that it can lookup private and public keys
+// as necessary
 func NewDearmor62DecryptStream(ciphertext io.Reader, kr Keyring) (plaintext io.Reader, frame Frame, err error) {
 	dearmored, frame, err := NewArmor62DecoderStream(ciphertext)
 	if err != nil {
