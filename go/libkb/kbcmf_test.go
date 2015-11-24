@@ -19,6 +19,8 @@ func (ob outputBuffer) Close() error {
 	return nil
 }
 
+// Encrypt a message, and make sure recipients can decode it, and
+// non-recipients can't decode it.
 func TestKbcmfEncDec(t *testing.T) {
 	senderKP, err := GenerateNaclDHKeyPair()
 	if err != nil {
@@ -85,11 +87,15 @@ func TestKbcmfEncDec(t *testing.T) {
 		}
 	}
 
-	buf.Reset()
-	err = KBCMFDecrypt(
-		strings.NewReader(ciphertext),
-		&buf, nonReceiverKP)
-	if err != kbcmf.ErrNoDecryptionKey {
-		t.Fatal(err)
+	// Sender is a non-recipient, too.
+	nonReceiverKPs := []NaclDHKeyPair{nonReceiverKP, senderKP}
+
+	for _, kp := range nonReceiverKPs {
+		buf.Reset()
+		err = KBCMFDecrypt(
+			strings.NewReader(ciphertext), &buf, kp)
+		if err != kbcmf.ErrNoDecryptionKey {
+			t.Fatal(err)
+		}
 	}
 }
