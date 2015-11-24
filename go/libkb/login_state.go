@@ -607,7 +607,14 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 	}
 
 	s.G().Log.Debug("passphraseLogin success")
-	if storeSecret {
+
+	// If storeSecret is set and there is a device ID, then try to store the secret.
+	//
+	// Ignore most of the errors.
+	//
+	// Can get here without a device ID during device provisioning as this is used to establish a login
+	// session before the device keys are generated.
+	if storeSecret && !s.G().Env.GetDeviceID().IsNil() {
 		s.G().Log.Debug("passphraseLogin: storeSecret set, so saving secret in secret store")
 		pps := lctx.PassphraseStreamCache().PassphraseStream()
 		if pps == nil {
