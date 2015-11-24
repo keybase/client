@@ -616,13 +616,14 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		lks := NewLKSec(pps, res.uid, s.G())
 		secret, err := lks.GetSecret(lctx)
 		if err != nil {
-			return err
+			// Ignore any errors storing the secret.
+			s.G().Log.Debug("(ignoring) error getting lksec secret for SecretStore: %s", err)
 		}
 		secretStore := NewSecretStore(s.G(), NewNormalizedUsername(username))
-		// Ignore any errors storing the secret.
 		storeSecretErr := secretStore.StoreSecret(secret)
 		if storeSecretErr != nil {
-			s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
+			// Ignore any errors storing the secret.
+			s.G().Log.Debug("(ignoring) StoreSecret error: %s", storeSecretErr)
 		}
 	}
 

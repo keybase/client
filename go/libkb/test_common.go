@@ -369,7 +369,7 @@ func (t *TestSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.
 
 func (t *TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
 	t.CalledGetKBPassphrase = true
-	return keybase1.GetPassphraseRes{Passphrase: t.Passphrase}, nil
+	return keybase1.GetPassphraseRes{Passphrase: t.Passphrase, StoreSecret: t.StoreSecret}, nil
 }
 
 func (t *TestSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
