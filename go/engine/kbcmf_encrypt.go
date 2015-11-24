@@ -102,7 +102,7 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	kp, ok := encryptionKey.(libkb.NaclDHKeyPair)
+	kp, ok := key.(libkb.NaclDHKeyPair)
 	if !ok || kp.Private == nil {
 		return libkb.KeyCannotDecryptError{}
 	}
