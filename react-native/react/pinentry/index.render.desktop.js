@@ -20,7 +20,8 @@ export default class PinentryRender extends Component {
           ref='passphrase'
           onChange={e => this.setState({passphrase: e.target.value})}
           floatingLabelText='Your passphrase'
-          value={this.state.passphrase} />
+          value={this.state.passphrase}
+          autoFocus />
 
         {Object.keys(this.props.features).map(feature => {
           return <Checkbox
