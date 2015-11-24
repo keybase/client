@@ -19,7 +19,7 @@ cover:
 
 test:
 	test/check_or_start_kbweb.sh
-	go test ./...
+	go test $$(go list ./... | grep -v /vendor/ )
 	test/pause_kbweb.sh
 
 testclean:
