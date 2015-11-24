@@ -77,9 +77,6 @@ type WriterMetadata struct {
 	SerializedPrivateMetadata []byte `codec:"data"`
 	// For public TLFs (since those don't have any keys at all).
 	Writers []keybase1.UID
-	// For private TLFs. Key generations for this metadata. The
-	// most recent one is last in the array.
-	Keys []TLFKeyBundle
 	// The directory ID, signed over to make verification easier
 	ID TlfID
 	// The branch ID, currently only set if this is in unmerged per-device history.
@@ -109,8 +106,9 @@ type ReaderMetadata struct {
 	Revision MetadataRevision
 	// Pointer to the previous root block ID
 	PrevRoot MdID
-	// For private TLFs. Readers for this metadata.
-	Readers []TLFKeyBundle
+	// For private TLFs. Key generations for this metadata. The
+	// most recent one is last in the array.
+	Keys []TLFKeyBundle
 }
 
 // RootMetadata is the MD that is signed by the writer.
@@ -182,7 +180,6 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 	md := RootMetadata{
 		WriterMetadata: WriterMetadata{
 			Writers: writers,
-			Keys:    keys,
 			ID:      id,
 			BID:     BranchID{},
 			data:    PrivateMetadata{},
@@ -193,6 +190,7 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 		},
 		ReaderMetadata: ReaderMetadata{
 			Revision: MetadataRevisionInitial,
+			Keys:     keys,
 		},
 	}
 	return &md

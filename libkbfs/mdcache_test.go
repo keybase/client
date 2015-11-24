@@ -47,11 +47,11 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	mStatus MergeStatus, h *TlfHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
 		WriterMetadata: WriterMetadata{
-			ID:   tlf,
-			Keys: make([]TLFKeyBundle, 1, 1),
+			ID: tlf,
 		},
 		ReaderMetadata: ReaderMetadata{
 			Revision: rev,
+			Keys:     make([]TLFKeyBundle, 1, 1),
 		},
 	}
 	k := TLFKeyBundle{}
