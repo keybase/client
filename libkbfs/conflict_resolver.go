@@ -1952,23 +1952,21 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	ops, err := crMakeRevertedOps(unmergedPaths, unmergedChains)
-	if err != nil {
-		return nil, err
-	}
 
 	// We also need to add in any creates that happened within
 	// newly-created directories (which aren't being merged with other
 	// newly-created directories), to ensure that the overall Refs are
 	// correct and that future CR processes can check those create ops
 	// for conflicts.
+	var newPaths []path
 	for original, chain := range unmergedChains.byOriginal {
 		if !unmergedChains.isCreated(original) ||
 			mergedChains.isCreated(original) {
 			continue
 		}
-		for _, op := range chain.ops {
-			if cop, ok := op.(*createOp); ok && !cop.renamed {
+		added := false
+		for i, op := range chain.ops {
+			if cop, ok := op.(*createOp); ok {
 				// Shallowly copy the create op and update its
 				// directory to the most recent pointer -- this won't
 				// work with the usual revert ops process because that
@@ -1977,11 +1975,27 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 				newCreateOp := *cop
 				newCreateOp.Dir.Unref = chain.mostRecent
 				newCreateOp.Dir.Ref = chain.mostRecent
-				cr.log.CDebugf(ctx, "Adding createOp %s to ops %s", &newCreateOp, ops)
-				ops = append(ops, &newCreateOp)
+				chain.ops[i] = &newCreateOp
+				if !added {
+					newPaths = append(newPaths, path{
+						FolderBranch: cr.fbo.folderBranch,
+						path: []pathNode{{
+							BlockPointer: chain.mostRecent}},
+					})
+					added = true
+				}
 			}
-			// TODO: deal with renames?
 		}
+	}
+	if len(newPaths) > 0 {
+		// Put the new paths at the beginning so they are processed
+		// last in sorted order.
+		unmergedPaths = append(newPaths, unmergedPaths...)
+	}
+
+	ops, err := crMakeRevertedOps(unmergedPaths, unmergedChains)
+	if err != nil {
+		return nil, err
 	}
 
 	cr.log.CDebugf(ctx, "Remote notifications: %v", ops)
@@ -2091,8 +2105,9 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
 // see if the node has been renamed.  If so, see if there's a
 // resolution for it yet.  If there is, complete the path using that
 // resolution.  If not, recurse.
-func (cr *ConflictResolver) resolveOnePath(unmergedMostRecent BlockPointer,
-	unmergedChains *crChains, mergedChains *crChains, resolvedChains *crChains,
+func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
+	unmergedMostRecent BlockPointer, unmergedChains *crChains,
+	mergedChains *crChains, resolvedChains *crChains,
 	mergedPaths map[BlockPointer]path,
 	resolvedPaths map[BlockPointer]path) (path, error) {
 	if p, ok := resolvedPaths[unmergedMostRecent]; ok {
@@ -2104,8 +2119,38 @@ func (cr *ConflictResolver) resolveOnePath(unmergedMostRecent BlockPointer,
 	// branch.
 	resolvedPath, ok := mergedPaths[unmergedMostRecent]
 	if !ok {
-		return path{}, fmt.Errorf("resolveOnePath: Couldn't find merged path "+
-			"for %v", unmergedMostRecent)
+		var ptrsToAppend []BlockPointer
+		var namesToAppend []string
+		next := unmergedMostRecent
+		for len(mergedPaths[next].path) == 0 {
+			newPtrs := make(map[BlockPointer]bool)
+			ptrs := []BlockPointer{unmergedMostRecent}
+			for ptr := range unmergedChains.byMostRecent {
+				newPtrs[ptr] = true
+			}
+
+			nodeMap, err := cr.fbo.searchForNodes(ctx, cr.fbo.nodeCache, ptrs,
+				newPtrs, unmergedChains.mostRecentMD)
+			if err != nil {
+				return path{}, err
+			}
+			n := nodeMap[unmergedMostRecent]
+			if n == nil {
+				return path{}, fmt.Errorf("resolveOnePath: Couldn't find "+
+					"merged path for %v", unmergedMostRecent)
+			}
+			p := cr.fbo.nodeCache.PathFromNode(n)
+			ptrsToAppend = append(ptrsToAppend, next)
+			namesToAppend = append(namesToAppend, p.tailName())
+			next = p.parentPath().tailPointer()
+		}
+		resolvedPath = mergedPaths[next]
+		for i, ptr := range ptrsToAppend {
+			resolvedPath.path = append(resolvedPath.path, pathNode{
+				BlockPointer: ptr,
+				Name:         namesToAppend[i],
+			})
+		}
 	}
 
 	i := len(resolvedPath.path) - 1
@@ -2130,7 +2175,7 @@ func (cr *ConflictResolver) resolveOnePath(unmergedMostRecent BlockPointer,
 		}
 
 		// Is the new parent resolved yet?
-		parentPath, err := cr.resolveOnePath(unmergedNewParent,
+		parentPath, err := cr.resolveOnePath(ctx, unmergedNewParent,
 			unmergedChains, mergedChains, resolvedChains, mergedPaths,
 			resolvedPaths)
 		if err != nil {
@@ -2173,7 +2218,7 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 
 	resolvedPaths := make(map[BlockPointer]path)
 	for ptr, oldP := range mergedPaths {
-		p, err := cr.resolveOnePath(ptr, unmergedChains, mergedChains,
+		p, err := cr.resolveOnePath(ctx, ptr, unmergedChains, mergedChains,
 			resolvedChains, mergedPaths, resolvedPaths)
 		if err != nil {
 			return nil, err
@@ -2417,6 +2462,19 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, md *RootMetadata,
 			update.Unref = mergedMostRecent
 			gcOp.Updates[i] = update
 			updates[update.Unref] = update.Ref
+		}
+	}
+
+	// For all chains that were created only in the unmerged branch,
+	// make sure we update all the pointers to their most recent
+	// version.
+	for original, chain := range unmergedChains.byOriginal {
+		if !unmergedChains.isCreated(original) ||
+			mergedChains.isCreated(original) {
+			continue
+		}
+		if _, ok := updates[chain.original]; !ok {
+			updates[chain.original] = chain.mostRecent
 		}
 	}
 

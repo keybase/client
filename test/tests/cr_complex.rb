@@ -569,4 +569,32 @@ module Test
       read "a/d/b/c", "uh oh"
     end
   end
+
+  test :cr_unmerged_create_file_in_renamed_dir, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkdir "a/b"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/c", "touch"
+    end
+    as bob, sync: false do
+      mkdir "a/d"
+      rename "a/b", "a/d/e"
+      write "a/d/e/f", "hello"
+      reenable_updates
+      lsdir "a/", { "c" => "FILE", "d" => "DIR" }
+      lsdir "a/d/", { "e" => "DIR" }
+      lsdir "a/d/e", { "f" => "FILE" }
+      read "a/d/e/f", "hello"
+    end
+    as alice do
+      lsdir "a/", { "c" => "FILE", "d" => "DIR" }
+      lsdir "a/d/", { "e" => "DIR" }
+      lsdir "a/d/e", { "f" => "FILE" }
+      read "a/d/e/f", "hello"
+    end
+  end
 end
