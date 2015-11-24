@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/keybase/client/go/kbcmf"
 )
 
 type outputBuffer struct {
@@ -40,7 +42,7 @@ func TestKbcmfEncDec(t *testing.T) {
 		receiverPKs = append(receiverPKs, tPK)
 	}
 
-	_, err = GenerateNaclDHKeyPair()
+	nonReceiverKP, err := GenerateNaclDHKeyPair()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,12 +57,39 @@ func TestKbcmfEncDec(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	output := buf.String()
-	if !strings.HasPrefix(output, keybaseEncryptionArmorHeader) {
-		t.Errorf("output doesn't have header: %s", output)
+	ciphertext := buf.String()
+	if !strings.HasPrefix(ciphertext, keybaseEncryptionArmorHeader) {
+		t.Errorf("ciphertext doesn't have header: %s", ciphertext)
 	}
 
-	if !strings.HasSuffix(output, keybaseEncryptionArmorFooter+".\n") {
-		t.Errorf("output doesn't have footer: %s", output)
+	if !strings.HasSuffix(ciphertext, keybaseEncryptionArmorFooter+".\n") {
+		t.Errorf("ciphertext doesn't have footer: %s", ciphertext)
+	}
+
+	for i := 0; i < len(receiverKPs); i++ {
+		for j := 0; j < len(receiverKPs[i]); j++ {
+			buf.Reset()
+			err = KBCMFDecrypt(
+				strings.NewReader(ciphertext),
+				&buf, receiverKPs[i][j])
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			plaintext := buf.String()
+			if plaintext != message {
+				t.Errorf("expected %s, got %s",
+					message, plaintext)
+			}
+
+		}
+	}
+
+	buf.Reset()
+	err = KBCMFDecrypt(
+		strings.NewReader(ciphertext),
+		&buf, nonReceiverKP)
+	if err != kbcmf.ErrNoDecryptionKey {
+		t.Fatal(err)
 	}
 }
