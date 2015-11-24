@@ -177,14 +177,10 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicK
 
 	for gid, group := range receivers {
 		var macKey SymmetricKey
-		if len(receivers) > 1 {
-			if err := randomFill(macKey[:]); err != nil {
-				return err
-			}
-			pes.macGroups = append(pes.macGroups, macKey)
-		} else {
-			gid = -1
+		if err := randomFill(macKey[:]); err != nil {
+			return err
 		}
+		pes.macGroups = append(pes.macGroups, macKey)
 
 		if pes.options.corruptMacKey != nil {
 			pes.options.corruptMacKey(&macKey, gid)
@@ -199,11 +195,9 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicK
 			d[kidString] = struct{}{}
 
 			pt := receiverKeysPlaintext{
-				GroupID:    gid,
+				GroupID:    (gid | groupIDMask),
 				SessionKey: pes.sessionKey[:],
-			}
-			if gid >= 0 {
-				pt.MACKey = macKey[:]
+				MACKey:     macKey[:],
 			}
 
 			if pes.options.corruptReceiverKeysPlaintext != nil {

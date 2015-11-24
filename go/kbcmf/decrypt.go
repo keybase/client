@@ -232,14 +232,10 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 }
 
 func (ds *decryptStream) checkMAC(bl *EncryptionBlock, b []byte) error {
-	if ds.keys.GroupID < 0 {
-		if len(ds.keys.MACKey) != 0 {
-			return ErrUnexpectedMAC(bl.seqno)
-		}
-		return nil
-	}
-	if len(bl.MACs) <= ds.keys.GroupID {
-		return ErrBadGroupID(ds.keys.GroupID)
+	gid := (ds.keys.GroupID ^ groupIDMask)
+
+	if len(bl.MACs) <= gid {
+		return ErrBadGroupID(gid)
 	}
 
 	if len(ds.keys.MACKey) == 0 {
@@ -247,7 +243,7 @@ func (ds *decryptStream) checkMAC(bl *EncryptionBlock, b []byte) error {
 	}
 
 	mac := hmacSHA512(ds.keys.MACKey, b)
-	if !hmac.Equal(mac, bl.MACs[ds.keys.GroupID]) {
+	if !hmac.Equal(mac, bl.MACs[gid]) {
 		return ErrMACMismatch(bl.seqno)
 	}
 	return nil
@@ -270,14 +266,14 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 
 	nonce := blockNum.newCounterNonce()
 
-	sum := hashNonceAndAuthTag(nonce, bl.Ciphertext)
-	if err := ds.checkMAC(bl, sum[:]); err != nil {
-		return nil, err
-	}
-
 	plaintext, ok := secretbox.Open([]byte{}, bl.Ciphertext, (*[24]byte)(nonce), (*[32]byte)(&ds.sessionKey))
 	if !ok {
 		return nil, ErrBadCiphertext(bl.seqno)
+	}
+
+	sum := hashNonceAndAuthTag(nonce, bl.Ciphertext)
+	if err := ds.checkMAC(bl, sum[:]); err != nil {
+		return nil, err
 	}
 
 	// The encoding of the empty buffer implies the EOF.  But otherwise, all mechanisms are the same.

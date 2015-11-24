@@ -127,7 +127,8 @@ func (es *encryptStream) checkReceivers(r [][]BoxPublicKey) error {
 		}
 	}
 
-	// Don't allow more than 2^31 receivers
+	// Don't allow more than 2^31 receivers. This also means BTW we can
+	// only have at most (2^31-1) receiver groups.
 	if tot >= 0x7fffffff {
 		return ErrBadReceivers
 	}
@@ -180,14 +181,11 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) e
 
 	for gid, group := range receivers {
 		var macKey SymmetricKey
-		if len(receivers) > 1 {
-			if err := randomFill(macKey[:]); err != nil {
-				return err
-			}
-			es.macGroups = append(es.macGroups, macKey)
-		} else {
-			gid = -1
+		if err := randomFill(macKey[:]); err != nil {
+			return err
 		}
+		es.macGroups = append(es.macGroups, macKey)
+
 		for _, receiver := range group {
 
 			// Next encode the ultimate sender key for the receiver,
@@ -200,11 +198,9 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) e
 			}
 
 			pt := receiverKeysPlaintext{
-				GroupID:    gid,
+				GroupID:    (gid | groupIDMask),
 				SessionKey: es.sessionKey[:],
-			}
-			if gid >= 0 {
-				pt.MACKey = macKey[:]
+				MACKey:     macKey[:],
 			}
 			pte, err := encodeToBytes(pt)
 			if err != nil {

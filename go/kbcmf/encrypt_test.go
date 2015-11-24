@@ -662,7 +662,7 @@ func TestCorruptReceiverKeysPlaintextG1R0(t *testing.T) {
 	teo := testEncryptionOptions{
 		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
 			if gid == 1 && rid == 0 {
-				rkp.GroupID = 100
+				rkp.GroupID = (100 | groupIDMask)
 			}
 		},
 	}
@@ -692,7 +692,7 @@ func TestCorruptReceiverKeysPlaintextG1R0(t *testing.T) {
 	teo = testEncryptionOptions{
 		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
 			if gid == 1 && rid == 0 {
-				rkp.GroupID = 0
+				rkp.GroupID = groupIDMask
 			}
 		},
 	}
@@ -774,8 +774,8 @@ func TestCorruptReceiverKeysPlaintextOneGroup(t *testing.T) {
 	// First try to supply a bogus group ID that's out of bounds.
 	teo := testEncryptionOptions{
 		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == -1 && rid == 0 {
-				rkp.GroupID = 100
+			if gid == 0 && rid == 0 {
+				rkp.GroupID = (100 | groupIDMask)
 			}
 		},
 	}
@@ -797,30 +797,10 @@ func TestCorruptReceiverKeysPlaintextOneGroup(t *testing.T) {
 		t.Fatalf("Wrong bad group (wanted 100, got %d)", badgroup)
 	}
 
-	// Now supply the wrong group ID
+	// Now zero out the MAC key.
 	teo = testEncryptionOptions{
 		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == -1 && rid == 0 {
-				rkp.GroupID = 0
-			}
-		},
-	}
-	ciphertext, err = testSeal(msg, sender, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if bgid, ok := err.(ErrBadGroupID); !ok {
-		t.Fatalf("Wanted MAC mismatch error but got %v", err)
-	} else if int(bgid) != 0 {
-		t.Fatalf("Wanted a failure in group %d, but got %d", 0, bgid)
-	}
-
-	// Now zero out the MAC key even though one was explicitly promised for
-	// this operation.
-	teo = testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == -1 && rid == 0 {
+			if gid == 0 && rid == 0 {
 				rkp.MACKey = make([]byte, 32)
 			}
 		},
@@ -830,8 +810,8 @@ func TestCorruptReceiverKeysPlaintextOneGroup(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if eum, ok := err.(ErrUnexpectedMAC); !ok {
-		t.Fatalf("Got wrong error; wanted 'Unexpected MAC' but got %v", err)
+	if eum, ok := err.(ErrMACMismatch); !ok {
+		t.Fatalf("Got wrong error; wanted 'MAC mismatch' but got %v", err)
 	} else if int(eum) != 1 {
 		t.Fatalf("Got wrong packet; wanted %d but got %d", 1, eum)
 	}
@@ -839,7 +819,7 @@ func TestCorruptReceiverKeysPlaintextOneGroup(t *testing.T) {
 	// Finally let's corrupt the session key
 	teo = testEncryptionOptions{
 		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == -1 && rid == 0 {
+			if gid == 0 && rid == 0 {
 				sk := make([]byte, len(rkp.SessionKey))
 				copy(sk, rkp.SessionKey)
 				sk[3] ^= 1
@@ -915,7 +895,7 @@ func TestCorruptEncryption(t *testing.T) {
 	}
 	_, err = Open(ciphertext, kr)
 	if mm, ok := err.(ErrBadCiphertext); !ok {
-		t.Fatalf("Got wrong error; wanted 'Bad Ciphertext' but got %v", err)
+		t.Fatalf("Got wrong error; wanted 'Bad ciphertext; failed Poly1305' but got %v", err)
 	} else if int(mm) != 3 {
 		t.Fatalf("Wanted a failure in packet %d but got %d", 3, mm)
 	}
@@ -1010,8 +990,8 @@ func TestCorruptEncryption(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if emm, ok := err.(ErrMACMismatch); !ok {
-		t.Fatalf("Expected a 'mac mismatch' error but got %v", err)
+	if emm, ok := err.(ErrBadCiphertext); !ok {
+		t.Fatalf("Expected a 'bad ciphertext' error but got %v", err)
 	} else if int(emm) != 1 {
 		t.Fatalf("Wanted error packet %d but got %d", 1, emm)
 	}
@@ -1041,7 +1021,7 @@ func TestCorruptEncryption(t *testing.T) {
 	}
 	_, err = Open(ciphertext, kr)
 	if ebct, ok := err.(ErrBadCiphertext); !ok {
-		t.Fatalf("Expected a 'bad ciphertext' error but got %v", err)
+		t.Fatalf("Expected a 'ErrBadCiphertext' error but got %v", err)
 	} else if int(ebct) != 1 {
 		t.Fatalf("Wanted error packet %d but got %d", 1, ebct)
 	}
