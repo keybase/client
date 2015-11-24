@@ -15,15 +15,18 @@ func TestKBCMFEncrypt(t *testing.T) {
 	tc := SetupEngineTest(t, "KBCMFEncrypt")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "kbcmf")
+	u1 := CreateAndSignupFakeUser(tc, "kbcmf")
+	u2 := CreateAndSignupFakeUser(tc, "kbcmf")
+	u3 := CreateAndSignupFakeUser(tc, "kbcmf")
+
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
 
 	sink := libkb.NewBufferCloser()
 	arg := &KBCMFEncryptArg{
-		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Recips: []string{u1.Username, u2.Username, u3.Username},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 		TrackOptions: keybase1.TrackOptions{
