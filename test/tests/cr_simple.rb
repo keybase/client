@@ -207,10 +207,10 @@ module Test
 
   # bob renames a non-conflicting file across directories while unstaged
   test :cr_unmerged_rename_across_dirs, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkfile "a/b", "hello"
       mkdir "d"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -415,10 +415,10 @@ module Test
   # alice renames a non-conflicting file across directories while bob
   # is unstaged
   test :cr_merged_rename_across_dirs, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkfile "a/b", "hello"
       mkdir "d"
-   end
+    end
     as bob do
       disable_updates
     end
