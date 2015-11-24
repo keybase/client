@@ -100,8 +100,8 @@ func (c closeForwarder) Close() error {
 	return nil
 }
 
-const encryptionArmorHeader = "BEGIN KEYBASE ENCRYPTED MESSAGE"
-const encryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
+const keybaseEncryptionArmorHeader = "BEGIN KEYBASE ENCRYPTED MESSAGE"
+const keybaseEncryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
 
 // Like NewEncryptArmor62Stream except we use our own header and
 // footer.  newKeybaseEncryptArmor62Stream creates a stream that
@@ -116,7 +116,9 @@ func newKeybaseEncryptArmor62Stream(
 	receivers [][]kbcmf.BoxPublicKey) (
 	plaintext io.WriteCloser, err error) {
 	enc, err := kbcmf.NewArmor62EncoderStream(
-		ciphertext, encryptionArmorHeader, encryptionArmorFooter)
+		ciphertext,
+		keybaseEncryptionArmorHeader,
+		keybaseEncryptionArmorFooter)
 	if err != nil {
 		return nil, err
 	}
