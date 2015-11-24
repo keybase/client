@@ -67,7 +67,7 @@ export default class ActionRender extends Component {
         <div style={{...styles.textContainer, ...(this.props.shouldFollow ? {display: 'none'} : {})}}>
           <span style={styles.youShouldFollow}>You'll see this card every time you access the folder.</span>
         </div>
-        <div onClick={() => this.props.onFollowChecked(!this.props.shouldFollow)}>
+        <div style={styles.checkContainer} onClick={() => this.props.onFollowChecked(!this.props.shouldFollow)}>
           <i style={styles.check} className={`fa ${this.props.shouldFollow ? 'fa-check-square-o' : 'fa-square-o'}`}></i>
           <span style={styles.track}>Track</span>
           <i style={styles.eye} className='fa fa-eye'></i>
@@ -104,6 +104,7 @@ const button = {
 const styles = {
   normalContainer: {
     ...commonStyles.flexBoxRow,
+    ...commonStyles.noSelect,
     alignItems: 'center',
     backgroundColor: 'white',
     justifyContent: 'flex-end',
@@ -119,16 +120,17 @@ const styles = {
     lineHeight: '17px'
   },
   youShouldFollow: {
-    ...commonStyles.noSelect,
     color: '#858596',
     maxWidth: 182,
     textAlign: 'center'
   },
   changedMessage: {
-    ...commonStyles.noSelect,
     ...commonStyles.fontBold,
     color: '#4444',
     textAlign: 'center'
+  },
+  checkContainer: {
+    ...commonStyles.clickable
   },
   check: {
     marginRight: 3,
