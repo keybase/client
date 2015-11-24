@@ -22,7 +22,6 @@
 .*/react/framed-msgpack-rpc/.*
 .*/react/iced-error/.*
 .*/react/debug/.*
-.*/react/tracker/.*
 
 # Ignore .*-render.platform.js files
 .*-render\.android\.js
@@ -72,7 +71,6 @@ module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.png$' -> 'RelativeImageStub'
 module.name_mapper= '\.\/serialize' -> './serialize.mobile.js'
 module.name_mapper= '\.\/.*-render' -> 'View'
-module.name_mapper= '.*constants\/platform' -> 'platform-constants'
 
 suppress_type=$FlowIssue
 suppress_type=$FlowFixMe
