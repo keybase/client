@@ -27,18 +27,20 @@ export default {
     })
     pinentryWindow.loadUrl(`file://${__dirname}/pinentry.wrapper.html`)
 
-    ipc.on('pinentryNeedProps', function (event, arg) {
+    const pinentryNeedProps = function (event, arg) {
       // Is this the pinentry window we just created?
       if (pinentryWindow.webContents === event.sender) {
         event.sender.send('pinentryGotProps', props)
       }
-    })
+    }
+    ipc.on('pinentryNeedProps', pinentryNeedProps)
 
-    ipc.on('pinentryReady', function (event, arg) {
+    const pinentryReady = function (event, arg) {
       pinentryWindow.show()
-    })
+    }
+    ipc.on('pinentryReady', pinentryReady)
 
-    ipc.on('pinentryResult', function (event, arg) {
+    const pinentryResult = function (event, arg) {
       if ('error' in arg) {
         response.error(arg)
       } else if ('secretStorage' in arg) {
@@ -47,10 +49,12 @@ export default {
         response.result(arg)
         console.log('Sent passphrase back')
       }
-      ipc.removeAllListeners('pinentryNeedProps')
-      ipc.removeAllListeners('pinentryReady')
-      ipc.removeAllListeners('pinentryResult')
+
+      ipc.removeListener('pinentryNeedProps', pinentryNeedProps)
+      ipc.removeListener('pinentryReady', pinentryReady)
+      ipc.removeListener('pinentryResult', pinentryResult)
       pinentryWindow.close()
-    })
+    }
+    ipc.on('pinentryResult', pinentryResult)
   }
 }
