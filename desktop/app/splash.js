@@ -11,7 +11,7 @@ export default () => {
   fs.stat(filePath, (err, stats) => {
     if (err) {
       try {
-        fs.writeFileSync(filePath, 'hello world')
+        fs.writeFileSync(filePath, 'This file gets created on first run of the app')
       }
       catch (e) {
         console.error(`Couldn't mark splash screen shown: ${e}`)
