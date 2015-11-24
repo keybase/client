@@ -28,9 +28,8 @@ func (h *KBCMFHandler) KbcmfDecrypt(_ context.Context, arg keybase1.KbcmfDecrypt
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 	earg := &engine.KBCMFDecryptArg{
-		Sink:         snk,
-		Source:       src,
-		TrackOptions: arg.Opts.TrackOptions,
+		Sink:   snk,
+		Source: src,
 	}
 
 	ctx := &engine.Context{
