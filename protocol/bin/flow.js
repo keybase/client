@@ -10,8 +10,11 @@ var typePrelude = `/* @flow */
 export type int = number
 export type double = number
 export type bytes = any
+export type BlockRefNonce = any
 export type ED25519PublicKey = any
 export type ED25519Signature = any
+export type Time = number
+export type SigID = string
 `
 
 function jsonOnly (file) {
@@ -22,7 +25,13 @@ function load (file) {
   return fs.readFileAsync(path.join(root, file)).then(JSON.parse)
 }
 
-var seenTypes = {}
+var seenTypes = {
+  Time: true, // from prelude
+  BlockRefNonce: true, // from prelude
+  ED25519PublicKey: true, // from prelude
+  ED25519Signature: true, // from prelude
+  SigID: true // from prelude
+}
 
 function analyze (json) {
   return json.types.map(function (t) {
@@ -84,7 +93,7 @@ function parseInnerType (t) {
 }
 
 function parseEnum (t) {
-  return parseUnion(t.symbols.map(s => `'${s}'`))
+  return parseUnion(t.symbols.map((s, i) => `${i} /* '${s}' */`))
 }
 
 function parseMaybe (t) {
@@ -100,7 +109,13 @@ function parseRecord (t) {
   var objectMapType = '{\n'
   t.fields.forEach(function (f) {
     var innerType = parseInnerType(f.type)
-    objectMapType += `  ${f.name}: ${innerType};\n`
+
+    // If we have a maybe type, let's also make the key optional
+    if (innerType[0] === '?') {
+      objectMapType += `  ${f.name}?: ${innerType};\n`
+    } else {
+      objectMapType += `  ${f.name}: ${innerType};\n`
+    }
   })
   objectMapType += '}'
 

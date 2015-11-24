@@ -1,75 +1,67 @@
+/* @flow */
+
+// $FlowIssue base-react
 import React, {Component} from '../base-react'
 
-// TODO const when integrating
-const verified = 'verified'
-const checking = 'checking'
-const deleted = 'deleted'
-const unreachable = 'unreachable'
-const pending = 'pending'
+import {error, pending} from '../constants/tracker'
+import type {SimpleProofState} from '../constants/tracker'
+
+export type Proof = {
+  id: string,
+  type: string,
+  state: SimpleProofState,
+  humanUrl: ?string,
+  name: string,
+  color: string
+}
+
+export type ProofsProps = {
+  proofs: Array<Proof>
+}
 
 export default class ProofsRender extends Component {
-  openLink (proof, platform) {
-    window.open(platform ? proof.platformLink : proof.proofLink)
+  props: ProofsProps;
+
+  // TODO hook this up
+  openLink (url: string): void {
+    window.open(url)
   }
 
-  metaColor (pp) {
-    return {
-      'new': 'orange',
-      deleted: 'red',
-      unreachable: 'red',
-      pending: 'gray'
-    }[pp.proof.meta]
-  }
+  renderProofRow (proof: Proof): ReactElement {
+    const onTouchTap = () => {
+      if (proof.state !== pending) {
+        console.log('should open hint link:', proof.humanUrl)
+        proof.humanUrl && this.openLink(proof.humanUrl)
+      } else {
+        console.log('Proof is loading...')
+      }
+    }
 
-  tempStatus (pp) {
-    return {
-      verified: '[v]',
-      checking: '[c]',
-      deleted: '[d]',
-      unreachable: '[u]',
-      pending: '[p]'
-    }[pp.proof.status]
-  }
-
-  renderPlatformProof (pp) {
-    const name = pp.platform.name === 'web' ? pp.platform.uri : pp.platform.name
-    console.log(name)
     return (
       <div style={{display: 'flex'}}>
-        <p title={name} style={{width: 40, marginRight: 10, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}>{pp.platform.icon}</p>
+        <p title={proof.type} style={{width: 40, marginRight: 10, cursor: 'pointer'}} onTouchTap={onTouchTap}>
+          Icon for: {proof.type}
+        </p>
         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
-          <p style={{textDecoration: pp.proof.status === deleted ? 'line-through' : 'inherit', marginBottom: 0, cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.platform.uri)}> {name}</p>
-          <span style={{backgroundColor: this.metaColor(pp)}}>{pp.proof.meta}</span>
+          <p style={{textDecoration: proof.state === error ? 'line-through' : 'inherit', marginBottom: 0, cursor: 'pointer'}} onTouchTap={onTouchTap}>{proof.name}</p>
+          <span style={{backgroundColor: proof.color}}>{proof.state}</span>
         </div>
         <div style={{display: 'flex', flex: 1, justifyContent: 'flex-end', paddingRight: 20}}>
-          <p style={{cursor: 'pointer'}} onTouchTap={() => this.openLink(pp.proof.uri)}>{this.tempStatus(pp)}</p>
+          <p style={{cursor: 'pointer'}} onTouchTap={onTouchTap}>{proof.state}</p>
         </div>
       </div>
     )
   }
 
-  render () {
+  render (): ReactElement {
     return (
       <div style={{display: 'flex', flex: 1, flexDirection: 'column', overflowY: 'auto'}}>
-        { this.props.platformProofs && this.props.platformProofs.map(platformProof => this.renderPlatformProof(platformProof)) }
+        {this.props.proofs.map(p => this.renderProofRow(p))}
       </div>
     )
   }
 }
 
 ProofsRender.propTypes = {
-  platformProofs: React.PropTypes.arrayOf(React.PropTypes.shape({
-    platform: React.PropTypes.shape({
-      icon: React.PropTypes.string.isRequired,
-      name: React.PropTypes.string,
-      username: React.PropTypes.string,
-      uri: React.PropTypes.string
-    }).isRequired,
-    proof: React.PropTypes.shape({
-      title: React.PropTypes.string,
-      uri: React.PropTypes.string,
-      status: React.PropTypes.oneOf([verified, checking, deleted, unreachable, pending]).isRequired,
-      meta: React.PropTypes.string
-    }).isRequired
-  })).isRequired
+  proofs: React.PropTypes.any
 }

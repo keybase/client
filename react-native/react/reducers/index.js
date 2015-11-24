@@ -11,6 +11,7 @@ import {List} from 'immutable'
 import type {State} from '../constants/reducer'
 import {isDev} from '../constants/platform'
 import serialize from './serialize'
+import tracker from './tracker'
 
 import * as Constants from '../constants/dev'
 
@@ -38,7 +39,8 @@ const combinedReducer = combineReducers({
   tabbedRouter,
   search,
   profile,
-  config
+  config,
+  tracker
 })
 
 let reducer

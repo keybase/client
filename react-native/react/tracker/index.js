@@ -1,89 +1,150 @@
+/* @flow */
+
+// $FlowIssue base-react
 import React, {Component} from '../base-react'
+// $FlowIssue base-redux
 import {connect} from '../base-redux'
+// $FlowIssue platform dependent files
 import Render from './render'
-import {navigateUp} from '../actions/router'
+
+import * as trackerActions from '../actions/tracker'
+import {bindActionCreators} from 'redux'
+import {warning} from '../constants/tracker'
+
+import type {RenderProps} from './render.desktop'
+import type {UserInfo} from './bio.render.desktop'
+import type {Proof} from './proofs.render.desktop'
+import type {SimpleProofState} from '../constants/tracker'
+
+type TrackerProps = {
+  serverStarted: boolean,
+  proofState: SimpleProofState,
+  username: ?string,
+  shouldFollow: ?boolean,
+  reason: string,
+  userInfo: UserInfo,
+  proofs: Array<Proof>,
+  onCloseFromHeader: () => void,
+  onCloseFromActionBar: () => void,
+  onRefollow: () => void,
+  onUnfollow: () => void,
+  onFollowHelp: () => void,
+  onFollowChecked: () => void,
+  registerIdentifyUi: () => void
+}
 
 class Tracker extends Component {
-  constructor (props: any) {
-    super(props)
+  props: TrackerProps;
 
-    // this is TEMP since we don't have a store yet
-    this.state = {
-      shouldFollowChecked: props.shouldFollow
+  componentWillMount () {
+    if (!this.props.serverStarted) {
+      console.log('starting server')
+      this.props.registerIdentifyUi()
     }
   }
 
   render () {
-    // these non-prop values will be removed during integration
-    return <Render {...this.props}
-      shouldFollow={this.state.shouldFollowChecked}
-      followChecked={checked => this.setState({shouldFollowChecked: checked})}
-      />
+    const renderChangedTitle = this.props.proofState === warning ? `(warning) ${this.props.username} added some verifications`
+      : `(error) Some of ${this.props.username}'s verifications are compromised or have changed.`
+
+    const renderProps: RenderProps = {
+      bioProps: {
+        username: this.props.username,
+        state: this.props.proofState,
+        userInfo: this.props.userInfo
+      },
+      headerProps: {
+        reason: this.props.reason,
+        onClose: this.props.onCloseFromHeader
+      },
+      actionProps: {
+        state: this.props.proofState,
+        username: this.props.username,
+        renderChangedTitle,
+        shouldFollow: this.props.shouldFollow,
+        onClose: this.props.onCloseFromActionBar,
+        onRefollow: this.props.onRefollow,
+        onUnfollow: this.props.onUnfollow,
+        onFollowHelp: this.props.onFollowHelp,
+        onFollowChecked: this.props.onFollowChecked
+      },
+      proofsProps: {
+        proofs: this.props.proofs
+      }
+    }
+
+    return <Render {...renderProps}/>
   }
 
   static parseRoute (currentPath) {
+    if (currentPath.get('state')) {
+      return {
+        componentAtTop: {
+          title: 'Tracker',
+          props: {
+            ...mockData,
+            proofState: currentPath.get('state')
+          }
+        }
+      }
+    }
+
     return {
       componentAtTop: {
         title: 'Tracker',
-        // dummy data TODO
         props: {
-          reason: 'You accessed /private/cecile',
-          state: currentPath.get('state'),
-          username: 'test12',
-          avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/2571dc6108772dbe0816deef41b25705_200_200_square_200.jpeg',
-          fullname: 'Alice Bonhomme-Biaias',
-          followersCount: 81,
-          followingCount: 567,
-          followsYou: true,
-          location: 'New York, NY',
-          shouldFollow: true,
-          platformProofs: [
-            {platform: {icon: '[TW]', name: 'twitter', username: 'maxtaco', uri: 'http://www.twitter.com/maxtaco'},
-             proof: {title: 'tweet', proof: 'https://twitter.com/maxtaco/status/433688676975927296', status: 'verified', meta: 'new'}},
-            {platform: {icon: '[GH]', name: 'github', username: 'maxtaco', uri: 'http://www.github.com/maxtaco'},
-             proof: {title: 'gist', proof: 'https://gist.github.com/maxtaco/8847250', status: 'checking', meta: null}},
-            {platform: {icon: '[re]', name: 'reddit', username: 'maxtaco', uri: 'https://www.reddit.com/user/maxtaco'},
-             proof: {title: 'post', proof: 'https://www.reddit.com/r/KeybaseProofs/comments/2clf9c/my_keybase_proof_redditmaxtaco_keybasemax/', status: 'unreachable', meta: null}},
-            {platform: {icon: '[pgp]', name: 'pgp', username: 'maxtaco', uri: 'https://keybase.io/max/key.asc'},
-             proof: {title: 'PGP Key', proof: 'http://www.twitter.com/maxtaco', status: 'pending', meta: 'unreachable'}},
-            {platform: {icon: '[cb]', name: 'coinbase', username: 'coinbase/maxtaco', uri: 'https://www.coinbase.com/maxtaco'},
-             proof: {title: 'post', proof: 'https://www.coinbase.com/maxtaco/public-key', status: 'deleted', meta: 'deleted'}},
-            {platform: {icon: '[web]', name: 'web', uri: 'oneshallpass.com'},
-             proof: {title: 'File', proof: 'https://oneshallpass.com/.well-known/keybase.txt', status: 'verified', meta: null}},
-            {platform: {icon: '[web]', name: 'web', uri: 'oneshallpass.com'},
-             proof: {title: 'DNS', proof: 'https://keybase.io/max/sigchain#0e577a1475085a07ad10663400de1cd7c321d2349cf2446de112e2f2f51a928b0f', status: 'verified', meta: null}},
-            {platform: {icon: '[web]', name: 'web', uri: 'somethingelse.com'},
-             proof: {title: 'File', proof: 'http://oneshallpass.com/.well-known/keybase.txt', status: 'verified', meta: 'pending'}}
-          ]
-          // TODO put back when we integrate
-          // followChecked: checked => this.setState({shouldFollowChecked: checked})
         }
       }
     }
   }
 }
 
+const mockData = {
+  username: 'max',
+  proofState: 'pending',
+  reason: 'You accessed /private/cecile',
+  userInfo: {
+    fullname: 'Alice Bonhomme-Biaias',
+    followersCount: 81,
+    followingCount: 567,
+    followsYou: true,
+    location: 'New York, NY',
+    avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/2571dc6108772dbe0816deef41b25705_200_200_square_200.jpeg'
+  },
+  shouldFollow: true,
+  proofs: [
+    {"name":"marcopolo","type":"github","id":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'normal', humanUrl: "github.com/marcopolo", color: 'green'}, //eslint-disable-line
+    {"name":"open_sourcery","type":"twitter","id":"76363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'pending', humanUrl: "twitter.com/open_sourcery", color: 'gray'}, //eslint-disable-line
+  ]
+}
+
 Tracker.propTypes = {
-  shouldFollow: React.PropTypes.bool
+  serverStarted: React.PropTypes.any,
+  proofState: React.PropTypes.any,
+  username: React.PropTypes.any,
+  shouldFollow: React.PropTypes.any,
+  reason: React.PropTypes.any,
+  userInfo: React.PropTypes.any,
+  proofs: React.PropTypes.any,
+  onCloseFromHeader: React.PropTypes.any,
+  onCloseFromActionBar: React.PropTypes.any,
+  onRefollow: React.PropTypes.any,
+  onUnfollow: React.PropTypes.any,
+  onFollowHelp: React.PropTypes.any,
+  onFollowChecked: React.PropTypes.any,
+  registerIdentifyUi: React.PropTypes.any
 }
 
 export default connect(
-  null,
+  state => state.tracker,
   dispatch => {
+    return bindActionCreators(trackerActions, dispatch)
+  },
+  (stateProps, dispatchProps, ownProps) => {
     return {
-      onClose: () => {
-        console.log('onClose')
-        dispatch(navigateUp())
-      }, // TODO
-      onFollowHelp: () => window.open('https://keybase.io/docs/tracking'), // TODO
-      onRefollow: () => {
-        console.log('onRefollow')
-        dispatch(navigateUp())
-      },
-      onUnfollow: () => {
-        console.log('onUnfollow')
-        dispatch(navigateUp())
-      }
+      ...stateProps,
+      ...dispatchProps,
+      ...ownProps
     }
   }
 )(Tracker)

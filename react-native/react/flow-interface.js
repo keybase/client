@@ -6,11 +6,15 @@ declare module 'Interpolation' {
   declare var exports: any;
 }
 
-declare module 'platform-constants' {
-  declare var exports: {isDev: boolean};
+declare module 'redux-devtools' {
+  declare var exports: any;
 }
 
-declare module 'redux-devtools' {
+declare module 'material-ui' {
+  declare var exports: any;
+}
+
+declare module 'material-ui/lib/svg-icons/navigation/close' {
   declare var exports: any;
 }
 

@@ -1,34 +1,62 @@
+/* @flow */
+
+// $FlowIssue base-react
 import React, {Component} from '../base-react'
 import {Checkbox, FloatingActionButton, FlatButton} from 'material-ui'
 
-// TODO constants when integrating
-const normal = 'normal'
-const warning = 'warning'
-const error = 'error'
+import {normal, pending} from '../constants/tracker'
+
+import type {SimpleProofState} from '../constants/tracker'
+
+export type ActionProps = {
+  state: SimpleProofState,
+  username: ?string,
+  shouldFollow: ?boolean,
+  renderChangedTitle: string,
+  onClose: () => void,
+  onRefollow: () => void,
+  onUnfollow: () => void,
+  onFollowHelp: () => void,
+  onFollowChecked: () => void
+}
 
 export default class ActionRender extends Component {
-  render () {
-    if (this.props.state === normal) {
-      return this.renderNormal()
+  props: ActionProps;
+
+  render (): ReactElement {
+    const {username, state} = this.props
+
+    if (state === pending || !username) {
+      return this.renderPending()
+    } else if (this.props.state === normal) {
+      return this.renderNormal(username)
     } else {
-      return this.renderChanged()
+      return this.renderChanged(username)
     }
   }
 
-  renderChanged () {
-    const title = this.props.state === warning ? `(warning) ${this.props.username} added some verifications`
-      : `(error) Some of ${this.props.username}'s verifications are compromised or have changed.`
+  renderPending (): ReactElement {
+    return (
+      <div><p> Loading... </p></div>
+    )
+  }
+
+  renderChanged (username: string): ReactElement {
+    //const title = this.props.state === warning ? `(warning) ${username} added some verifications`
+    //  : `(error) Some of ${username}'s verifications are compromised or have changed.`
+    const title = this.props.renderChangedTitle
     return (
       <div style={{display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', padding: 10, backgroundColor: '#E0E0E0'}}>
         <p>{title}</p>
         <div style={{alignSelf: 'stretch', display: 'flex', flex: 1, justifyContent: 'space-between', padding: 10, backgroundColor: '#E0E0E0'}}>
-          <FlatButton style={{alignSelf: 'center'}} label={'Unfollow ' + this.props.username} primary onTouchTap={() => this.props.onUnfollow()} />
+          <FlatButton style={{alignSelf: 'center'}} label={'Unfollow ' + username} primary onTouchTap={() => this.props.onUnfollow()} />
           <FlatButton style={{alignSelf: 'center'}} label='Refollow' primary onTouchTap={() => this.props.onRefollow()} />
         </div>
       </div>
     )
   }
-  renderNormal () {
+
+  renderNormal (username: string): ReactElement {
     return (
       <div style={{display: 'flex', flex: 1, justifyContent: 'space-between', padding: 10, backgroundColor: '#E0E0E0'}}>
         <div style={{display: 'flex', flexDirection: 'column'}}>
@@ -37,10 +65,10 @@ export default class ActionRender extends Component {
               <Checkbox
                 style={{marginRight: -15}}
                 value='follow'
-                label={'Follow ' + this.props.username}
+                label={'Follow ' + username}
                 checked={this.props.shouldFollow}
                 onCheck={() => {
-                  this.props.followChecked(!this.props.shouldFollow)
+                  this.props.onFollowChecked(!this.props.shouldFollow)
                 }}
                 />
               </div>
@@ -55,12 +83,12 @@ export default class ActionRender extends Component {
 }
 
 ActionRender.propTypes = {
-  state: React.PropTypes.oneOf([normal, warning, error]).isRequired,
-  username: React.PropTypes.string.isRequired,
+  state: React.PropTypes.any.isRequired,
+  username: React.PropTypes.string,
   shouldFollow: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
   onRefollow: React.PropTypes.func.isRequired,
   onUnfollow: React.PropTypes.func.isRequired,
   onFollowHelp: React.PropTypes.func.isRequired,
-  followChecked: React.PropTypes.func.isRequired
+  onFollowChecked: React.PropTypes.func.isRequired
 }
