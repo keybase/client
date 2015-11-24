@@ -4,11 +4,8 @@
 package libkb
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
 	"testing"
 )
 
@@ -41,14 +38,6 @@ func (tss *TestSecretStore) ClearSecret() error {
 	return nil
 }
 
-func generateTestPrefix(t *testing.T) string {
-	buf := make([]byte, 5)
-	if _, err := rand.Read(buf); err != nil {
-		t.Fatal(err)
-	}
-	return fmt.Sprintf("test_%s_", hex.EncodeToString(buf))
-}
-
 func TestSecretStoreOps(t *testing.T) {
 	if !HasSecretStore() {
 		t.Skip("Skipping test since there is no secret store")
@@ -57,10 +46,7 @@ func TestSecretStoreOps(t *testing.T) {
 	tc := SetupTest(t, "secret store ops")
 	defer tc.Cleanup()
 
-	prefix := generateTestPrefix(t)
-
-	username := prefix + "username"
-	nu := NewNormalizedUsername(username)
+	nu := NewNormalizedUsername("username")
 	expectedSecret1 := []byte("test secret 1")
 	expectedSecret2 := []byte("test secret 2")
 
@@ -112,23 +98,6 @@ func TestSecretStoreOps(t *testing.T) {
 	}
 }
 
-func getUsersWithPrefixAndStoredSecrets(g *GlobalContext, prefix string) ([]string, error) {
-	usernames, err := GetUsersWithStoredSecrets(g)
-	if err != nil {
-		return nil, err
-	}
-
-	var testUsernames []string
-
-	for _, username := range usernames {
-		if strings.HasPrefix(username, prefix) {
-			testUsernames = append(testUsernames, username)
-		}
-	}
-
-	return testUsernames, nil
-}
-
 func TestGetUsersWithStoredSecrets(t *testing.T) {
 	if !HasSecretStore() {
 		t.Skip("Skipping test since there is no secret store")
@@ -137,9 +106,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	tc := SetupTest(t, "get users with stored secrets")
 	defer tc.Cleanup()
 
-	prefix := generateTestPrefix(t)
-
-	usernames, err := getUsersWithPrefixAndStoredSecrets(tc.G, prefix)
+	usernames, err := GetUsersWithStoredSecrets(tc.G)
 	if err != nil {
 		t.Error(err)
 	}
@@ -149,14 +116,14 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 
 	expectedUsernames := make([]string, 10)
 	for i := 0; i < len(expectedUsernames); i++ {
-		expectedUsernames[i] = fmt.Sprintf("%saccount with unicode テスト %d", prefix, i)
+		expectedUsernames[i] = fmt.Sprintf("account with unicode テスト %d", i)
 		secretStore := NewSecretStore(tc.G, NewNormalizedUsername(expectedUsernames[i]))
 		if err := secretStore.StoreSecret([]byte{}); err != nil {
 			t.Error(err)
 		}
 	}
 
-	usernames, err = getUsersWithPrefixAndStoredSecrets(tc.G, prefix)
+	usernames, err = GetUsersWithStoredSecrets(tc.G)
 	if err != nil {
 		t.Error(err)
 	}
@@ -179,7 +146,7 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 		}
 	}
 
-	usernames, err = getUsersWithPrefixAndStoredSecrets(tc.G, prefix)
+	usernames, err = GetUsersWithStoredSecrets(tc.G)
 	if err != nil {
 		t.Error(err)
 	}
