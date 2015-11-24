@@ -35,7 +35,7 @@ class RemoteStore {
   subscribe (listener) {
     this.listeners.push(listener)
     return listener => {
-      this.listeners = this.listerns.filter(l => l !== listener)
+      this.listeners = this.listeners.filter(l => l !== listener)
     }
   }
 
