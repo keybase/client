@@ -32,7 +32,7 @@ func (c closeForwarder) Close() error {
 // receivers represents a mutually distrustful set of receivers, and will each
 // get their own pairwise-MAC keys.
 //
-// The ciphertext is additionally armored with the recommended armor62-style format
+// The ciphertext is additionally armored with the recommended armor62-style format.
 //
 // Returns an io.WriteCloser that accepts plaintext data to be encrypted; and
 // also returns an error if initialization failed.
