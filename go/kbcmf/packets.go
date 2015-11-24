@@ -13,29 +13,29 @@ type receiverKeysPlaintext struct {
 
 type receiverKeysCiphertexts struct {
 	KID    []byte `codec:"key_id,omitempty"`
-	Sender []byte `codec:"sender"`
 	Keys   []byte `codec:"keys"`
+	Sender []byte `codec:"sender"`
 }
 
 // EncryptionHeader is the first packet in an encrypted message.
 // It contains the encryptions of the session keys, and various
 // message metadata.
 type EncryptionHeader struct {
-	Version   PacketVersion             `codec:"vers"`
-	Tag       PacketTag                 `codec:"tag"`
 	Nonce     []byte                    `codec:"nonce"`
 	Receivers []receiverKeysCiphertexts `codec:"rcvrs"`
 	Sender    []byte                    `codec:"sender"`
+	Tag       PacketTag                 `codec:"tag"`
+	Version   PacketVersion             `codec:"vers"`
 	seqno     PacketSeqno
 }
 
 // EncryptionBlock contains a block of encrypted data. It cointains
 // the ciphertext, and any necessary MACs.
 type EncryptionBlock struct {
-	Version    PacketVersion `codec:"vers"`
-	Tag        PacketTag     `codec:"tag"`
 	Ciphertext []byte        `codec:"ctext"`
 	MACs       [][]byte      `codec:"macs"`
+	Tag        PacketTag     `codec:"tag"`
+	Version    PacketVersion `codec:"vers"`
 	seqno      PacketSeqno
 }
 
