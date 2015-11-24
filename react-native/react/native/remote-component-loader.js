@@ -64,6 +64,10 @@ class RemoteComponentLoader extends Component {
 
   componentDidMount () {
     currentWindow.on('hasProps', props => {
+      // If we've received props, and the loaded state was false
+      if (this.state.loaded === false) {
+        currentWindow.show()
+      }
       this.setState({props: props, loaded: true})
     })
 

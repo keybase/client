@@ -5,19 +5,19 @@ const BrowserWindow = remote.require('browser-window')
 
 export default class RemoteComponent extends Component {
   componentWillMount () {
-    // TODO: create the external popup window
-    this.remoteWindow = new BrowserWindow({
-      width: 500, height: 300,
-      // resizable: false,
-      fullscreen: false
-    })
+    const windowsOpts = {...this.props.windowsOpts, width: 500, height: 300, fullscreen: false}
+    this.remoteWindow = new BrowserWindow(windowsOpts)
+    this.closed = false
 
     this.remoteWindow.hide()
 
-    this.remoteWindow.on('needProps', event => {
-      console.log('here with needProps')
-      this.remoteWindow.show()
+    this.remoteWindow.on('needProps', () => {
       this.remoteWindow.emit('hasProps', {...this.props})
+    })
+
+    // Remember if we close, it's an error to try to close an already closed window
+    this.remoteWindow.on('close', () => {
+      this.closed = true
     })
 
     const componentRequireName = this.props.component
@@ -26,17 +26,18 @@ export default class RemoteComponent extends Component {
   }
 
   componentWillUnmount () {
-    this.remoteWindow.close()
+    if (!this.closed) {
+      this.remoteWindow.close()
+      this.closed = true
+    }
   }
 
   render () {
-    console.log('rendering our remote window')
     return (<div/>)
   }
 
   shouldComponentUpdate (nextProps) {
     if (this.props !== nextProps && this.remoteWindow) {
-      console.log('props have changed:', this.props, nextProps)
       this.remoteWindow.emit('hasProps', {...this.props})
     }
     // Always return false because this isn't a real component
@@ -45,5 +46,6 @@ export default class RemoteComponent extends Component {
 }
 
 RemoteComponent.propTypes = {
-  component: React.PropTypes.string
+  component: React.PropTypes.string,
+  windowsOpts: React.PropTypes.object
 }
