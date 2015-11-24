@@ -1,6 +1,8 @@
 import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
+import {bindActionCreators} from 'redux'
 import PinentryRender from './index.render'
+import * as actions from '../actions/pinentry'
 
 export class Pinentry extends Component {
   render () {
@@ -17,11 +19,6 @@ Pinentry.propTypes = PinentryRender.propTypes
 export default connect(
   state => {
     return {
-      onSubmit: (passphrase, features) => {
-        console.log(`Passphrase submitted: ${passphrase}`)
-        console.log(features)
-      },
-      onCancel: () => console.log('Pinentry dialog canceled'),
       // Mock out the RPC payload until implemented.
       payload: {
         windowTitle: 'Keybase',
@@ -38,5 +35,8 @@ export default connect(
         }
       }
     }
+  },
+  dispatch => {
+    return bindActionCreators(actions, dispatch)
   }
 )(Pinentry)

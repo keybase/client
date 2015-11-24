@@ -5,6 +5,23 @@ import {pushNewProfile} from '../actions/profile'
 import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import MenuList from './menu-list'
+import RemoteComponent from '../native/remote-component'
+
+class Foo extends Component {
+  render () {
+    const payload = {
+      features: {
+        secretStorage: {allow: true, label: 'store your test passphrase'}
+      },
+      prompt: 'Enter a test passphrase',
+      retryLabel: '',
+      windowTitle: 'Keybase Test Passphrase'
+    }
+    return <RemoteComponent
+             component='pinentry'
+             {...payload}/>
+  }
+}
 
 class DevMenu extends Component {
   render () {
@@ -45,6 +62,9 @@ class DevMenu extends Component {
       }},
       {name: 'Tracker (error)', hasChildren: true, onClick: () => {
         this.props.routeAppend([{path: 'tracker', state: 'error'}])
+      }},
+      {name: 'Remote Window', hasChildren: true, onClick: () => {
+        this.props.routeAppend([{parseRoute: { componentAtTop: { component: Foo } }}])
       }}
     ]
     return (
