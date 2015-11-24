@@ -5,8 +5,9 @@ package libkb
 
 import (
 	"fmt"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"net"
+
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 // NewSocket() (Socket, err) is defined in the various platform-specific socket_*.go files.
@@ -55,7 +56,7 @@ func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, e
 		needWrapper = true
 	} else if g.SocketWrapper.xp != nil && !g.SocketWrapper.xp.IsConnected() {
 		// need reconnect
-		G.Log.Info("rpc transport disconnected, reconnecting...")
+		G.Log.Debug("rpc transport disconnected, reconnecting...")
 		needWrapper = true
 	}
 

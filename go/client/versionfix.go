@@ -72,7 +72,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 		return err
 	}
 	time.Sleep(10 * time.Millisecond)
-	g.Log.Info("Waiting for shutdown...")
+	g.Log.Debug("Waiting for shutdown...")
 	time.Sleep(1 * time.Second)
 
 	if serviceConfig.ForkType == keybase1.ForkType_AUTO {
