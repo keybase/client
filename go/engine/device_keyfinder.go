@@ -10,6 +10,8 @@ import (
 	"github.com/keybase/client/go/protocol"
 )
 
+// TODO: Combine this with pgp_keyfinder.go?
+
 // DeviceKeyfinder is an engine to find device keys for users (loaded by
 // assertions), possibly tracking them if necessary.
 type DeviceKeyfinder struct {
