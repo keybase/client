@@ -168,9 +168,14 @@ func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err err
 	return
 }
 
-func (f *JSONFile) SwapTmp(filename string) error {
-	if err := MakeParentDirs(f.filename); err != nil {
+func (f *JSONFile) SwapTmp(filename string) (err error) {
+	f.G().Log.Debug("+ SwapTmp()")
+	defer func() { f.G().Log.Debug("- SwapTmp() -> %s", ErrToOk(err)) }()
+	f.G().Log.Debug("| SwapTmp: making parent directories for %q", f.filename)
+	if err = MakeParentDirs(f.filename); err != nil {
 		return err
 	}
-	return os.Rename(filename, f.filename)
+	f.G().Log.Debug("| SwapTmp: renaming %q => %q", filename, f.filename)
+	err = os.Rename(filename, f.filename)
+	return err
 }
