@@ -9,16 +9,21 @@ import (
 	"github.com/keybase/client/go/kbcmf"
 )
 
-func KBCMFEncrypt(source io.Reader, sink io.WriteCloser, recipients [][]NaclDHKeyPublic, sender NaclDHKeyPair) error {
-	var r [][]kbcmf.BoxPublicKey
-	for _, recipient := range recipients {
-		var ur []kbcmf.BoxPublicKey
-		for _, k := range recipient {
-			ur = append(ur, naclBoxPublicKey(k))
+// KBCMFEncrypt reads from the given source, encrypts it for the given
+// receivers from the given sender, armors it, and writes it to sink.
+func KBCMFEncrypt(
+	source io.Reader, sink io.WriteCloser,
+	receivers [][]NaclDHKeyPublic, sender NaclDHKeyPair) error {
+	var receiverBoxKeys [][]kbcmf.BoxPublicKey
+	for _, receiverPublicKeys := range receivers {
+		var t []kbcmf.BoxPublicKey
+		for _, k := range receiverPublicKeys {
+			t = append(t, naclBoxPublicKey(k))
 		}
-		r = append(r, ur)
+		receiverBoxKeys = append(receiverBoxKeys, t)
 	}
-	plainsink, err := kbcmf.NewEncryptArmor62Stream(sink, naclBoxSecretKey(sender), r)
+	plainsink, err := newKeybaseEncryptArmor62Stream(
+		sink, naclBoxSecretKey(sender), receiverBoxKeys)
 	if err != nil {
 		return err
 	}
@@ -27,12 +32,15 @@ func KBCMFEncrypt(source io.Reader, sink io.WriteCloser, recipients [][]NaclDHKe
 	if err != nil {
 		return err
 	}
+
 	G.Log.Debug("Encrypt: wrote %d bytes", n)
+
 	if err := plainsink.Close(); err != nil {
 		return err
 	}
 	if err := sink.Close(); err != nil {
 		return err
 	}
+
 	return nil
 }

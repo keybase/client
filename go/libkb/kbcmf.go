@@ -6,12 +6,13 @@ package libkb
 import (
 	"bytes"
 	"errors"
+	"io"
 
 	"github.com/keybase/client/go/kbcmf"
 	"golang.org/x/crypto/nacl/box"
 )
 
-// This file wraps types from naclwrap.go in kbcmf interfaces.
+// Wrap types from naclwrap.go in kbcmf interfaces.
 
 type naclBoxPublicKey NaclDHKeyPublic
 
@@ -81,4 +82,47 @@ func (n naclKeyring) LookupBoxPublicKey(kid []byte) kbcmf.BoxPublicKey {
 	}
 	copy(pk[:], kid)
 	return pk
+}
+
+// TODO: Undupe this code with the one in kbcmf.
+type closeForwarder []io.WriteCloser
+
+func (c closeForwarder) Write(b []byte) (int, error) {
+	return c[0].Write(b)
+}
+
+func (c closeForwarder) Close() error {
+	for _, w := range c {
+		if e := w.Close(); e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
+const encryptionArmorHeader = "BEGIN KEYBASE ENCRYPTED MESSAGE"
+const encryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
+
+// Like NewEncryptArmor62Stream except we use our own header and
+// footer.  newKeybaseEncryptArmor62Stream creates a stream that
+// consumes plaintext data.  It will write out encrypted data to the
+// io.Writer passed in as ciphertext.  The ciphertext is additionally
+// armored with the recommended armor62-style format.
+//
+// Returns an io.WriteCloser that accepts plaintext data to be
+// encrypted; and also returns an error if initialization failed.
+func newKeybaseEncryptArmor62Stream(
+	ciphertext io.Writer, sender kbcmf.BoxSecretKey,
+	receivers [][]kbcmf.BoxPublicKey) (
+	plaintext io.WriteCloser, err error) {
+	enc, err := kbcmf.NewArmor62EncoderStream(
+		ciphertext, encryptionArmorHeader, encryptionArmorFooter)
+	if err != nil {
+		return nil, err
+	}
+	out, err := kbcmf.NewEncryptStream(enc, sender, receivers)
+	if err != nil {
+		return nil, err
+	}
+	return closeForwarder([]io.WriteCloser{out, enc}), nil
 }
