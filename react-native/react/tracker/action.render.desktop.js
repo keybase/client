@@ -45,10 +45,7 @@ export default class ActionRender extends Component {
 
   renderChanged (): ReactElement {
     const title = this.props.renderChangedTitle
-    // UPDATE THIS NOJIMA NOW TEMP
-    /* const title = this.props.state === warning ? `${this.props.username} added some idenitity proofs.`
-      : `Some of ${this.props.username}'s proofs are compromised or have changed.`
-      */
+
     return (
       <div style={{...styles.normalContainer, ...this.props.style}}>
         <i style={this.props.state === warning ? styles.flagWarning : styles.flagError} className='fa fa-flag'></i>
