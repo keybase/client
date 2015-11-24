@@ -1,4 +1,6 @@
+## 1.0.3-0 (2015-11-24)
 
+- Fix no device ID during gpg/pgp provisioning (PR: keybase/client#1400)
 - Add Support for GNU S2K Dummy mode (PR: keybase/client#1397)
 
 ## 1.0.2-0 (2015-11-24)
