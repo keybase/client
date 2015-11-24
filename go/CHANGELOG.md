@@ -1,3 +1,7 @@
+
+- Emergency fix for coinbase proofs
+   (Commit: 1e2539e58f3666f4fc357ca9c7192212b4b23999)
+
 ## 1.0.1-0 (2015-11-23)
 
 - Allow provision via GPG command line tool so secret key does not need to be imported.
