@@ -47,6 +47,7 @@ class RemoteStore {
 }
 
 const store = new RemoteStore()
+store.dispatch = store.dispatch.bind(store)
 
 class RemoteComponentLoader extends Component {
   constructor (props) {

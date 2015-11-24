@@ -38,7 +38,6 @@ class Keybase extends Component {
     ipc.removeAllListeners('stateChange')
     ipc.removeAllListeners('subscribeStore')
     ipc.on('dispatchAction', (event, action) => {
-      console.log('I want to dispatch', action)
       store.dispatch(action)
     })
 
@@ -46,7 +45,6 @@ class Keybase extends Component {
       event.sender.send('stateChange', store.getState())
       store.subscribe(() => {
         // TODO: use transit
-        console.log('telling someone that the state has changed')
         event.sender.send('stateChange', store.getState())
       })
     })
