@@ -1,3 +1,6 @@
+
+- Add Support for GNU S2K Dummy mode (PR: keybase/client#1397)
+
 ## 1.0.2-0 (2015-11-24)
 
 - Emergency fix for coinbase proofs
