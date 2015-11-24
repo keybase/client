@@ -15,8 +15,7 @@ type PrivateMetadata struct {
 	// the last KB user who wrote this metadata
 	LastWriter keybase1.UID
 
-	// m_f as described in 4.1.1 of https://keybase.io/blog/crypto
-	// .
+	// m_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
 	TLFPrivateKey TLFPrivateKey
 	// The block changes done as part of the update that created this MD
 	Changes BlockChanges
@@ -34,13 +33,20 @@ func (pm PrivateMetadata) Equals(other PrivateMetadata) bool {
 		pm.Changes.Equals(other.Changes)
 }
 
-// MetadataFlags bitmask.
+// ReaderFlags bitfield.
+type ReaderFlags byte
+
+// Possible flags set in the ReaderFlags bitfield.
+const (
+	ReaderFlagRekey ReaderFlags = 1 << iota
+)
+
+// MetadataFlags bitfield.
 type MetadataFlags byte
 
-// Possible flags set in the MetdataFlags bitmask.
+// Possible flags set in the MetadataFlags bitfield.
 const (
-	MetadataFlagRekey MetadataFlags = 1 << iota
-	MetadataFlagUnmerged
+	MetadataFlagUnmerged MetadataFlags = 1 << iota
 )
 
 // MetadataRevision is the type for the revision number.
@@ -66,8 +72,7 @@ const (
 	MetadataRevisionInitial = MetadataRevision(1)
 )
 
-// RootMetadata is the MD that is signed by the writer.
-type RootMetadata struct {
+type WriterMetadata struct {
 	// Serialized, possibly encrypted, version of the PrivateMetadata
 	SerializedPrivateMetadata []byte `codec:"data"`
 	// For public TLFs (since those don't have any keys at all).
@@ -75,16 +80,12 @@ type RootMetadata struct {
 	// For private TLFs. Key generations for this metadata. The
 	// most recent one is last in the array.
 	Keys []TLFKeyBundle
-	// Pointer to the previous root block ID
-	PrevRoot MdID
 	// The directory ID, signed over to make verification easier
 	ID TlfID
 	// The branch ID, currently only set if this is in unmerged per-device history.
 	BID BranchID
-	// The revision number
-	Revision MetadataRevision
 	// Flags
-	Flags MetadataFlags
+	WFlags MetadataFlags
 	// Estimated disk usage at this revision
 	DiskUsage uint64
 
@@ -101,6 +102,24 @@ type RootMetadata struct {
 	mdID MdID
 }
 
+type ReaderMetadata struct {
+	// Flags
+	RFlags ReaderFlags
+	// The revision number
+	Revision MetadataRevision
+	// Pointer to the previous root block ID
+	PrevRoot MdID
+	// For private TLFs. Readers for this metadata.
+	Readers []TLFKeyBundle
+}
+
+// RootMetadata is the MD that is signed by the writer.
+type RootMetadata struct {
+	WriterMetadata
+	ReaderMetadata
+	WriterMetadataSigInfo SignatureInfo
+}
+
 // GetKeyGeneration returns the current key generation for the current block.
 func (md *RootMetadata) GetKeyGeneration() KeyGen {
 	return KeyGen(len(md.Keys))
@@ -109,7 +128,7 @@ func (md *RootMetadata) GetKeyGeneration() KeyGen {
 // MergedStatus returns the status of this update -- has it been
 // merged into the main folder or not?
 func (md *RootMetadata) MergedStatus() MergeStatus {
-	if md.Flags&MetadataFlagUnmerged != 0 {
+	if md.WFlags&MetadataFlagUnmerged != 0 {
 		return Unmerged
 	}
 	return Merged
@@ -117,7 +136,7 @@ func (md *RootMetadata) MergedStatus() MergeStatus {
 
 // IsRekeySet returns true if the rekey bit is set.
 func (md *RootMetadata) IsRekeySet() bool {
-	return md.Flags&MetadataFlagRekey != 0
+	return md.RFlags&ReaderFlagRekey != 0
 }
 
 // IsWriter returns whether or not the user+device is an authorized writer.
@@ -161,16 +180,20 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 		keys = make([]TLFKeyBundle, 0, 1)
 	}
 	md := RootMetadata{
-		Writers: writers,
-		Keys:    keys,
-		ID:      id,
-		BID:     BranchID{},
-		data:    PrivateMetadata{},
-		// need to keep the dir handle around long
-		// enough to rekey the metadata for the first
-		// time
-		cachedTlfHandle: d,
-		Revision:        MetadataRevisionInitial,
+		WriterMetadata: WriterMetadata{
+			Writers: writers,
+			Keys:    keys,
+			ID:      id,
+			BID:     BranchID{},
+			data:    PrivateMetadata{},
+			// need to keep the dir handle around long
+			// enough to rekey the metadata for the first
+			// time
+			cachedTlfHandle: d,
+		},
+		ReaderMetadata: ReaderMetadata{
+			Revision: MetadataRevisionInitial,
+		},
 	}
 	return &md
 }

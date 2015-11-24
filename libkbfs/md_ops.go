@@ -323,7 +323,7 @@ func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata) error {
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PutUnmerged(ctx context.Context, rmd *RootMetadata, bid BranchID) error {
-	rmd.Flags |= MetadataFlagUnmerged
+	rmd.WFlags |= MetadataFlagUnmerged
 	rmd.BID = bid
 	return md.Put(ctx, rmd)
 }

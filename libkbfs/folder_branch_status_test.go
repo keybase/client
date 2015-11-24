@@ -97,7 +97,7 @@ func TestFBStatusAllFields(t *testing.T) {
 	// make a new root metadata
 	u, id, h := makeID(t, config, false)
 	md := NewRootMetadataForTest(h, id)
-	md.Flags = MetadataFlagUnmerged
+	md.WFlags = MetadataFlagUnmerged
 	md.data.LastWriter = u
 
 	// make two nodes with expected PathFromNode calls

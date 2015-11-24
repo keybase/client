@@ -46,14 +46,18 @@ func expectUsernameCalls(handle *TlfHandle, config *ConfigMock) {
 func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	mStatus MergeStatus, h *TlfHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
-		ID:       tlf,
-		Revision: rev,
-		Keys:     make([]TLFKeyBundle, 1, 1),
+		WriterMetadata: WriterMetadata{
+			ID:   tlf,
+			Keys: make([]TLFKeyBundle, 1, 1),
+		},
+		ReaderMetadata: ReaderMetadata{
+			Revision: rev,
+		},
 	}
 	k := TLFKeyBundle{}
 	rmd.Keys[0] = k
 	if mStatus == Unmerged {
-		rmd.Flags |= MetadataFlagUnmerged
+		rmd.WFlags |= MetadataFlagUnmerged
 	}
 
 	// put the md

@@ -72,7 +72,7 @@ func (m *MDOpsConcurTest) Put(ctx context.Context, md *RootMetadata) error {
 }
 
 func (m *MDOpsConcurTest) PutUnmerged(ctx context.Context, md *RootMetadata, bid BranchID) error {
-	md.Flags |= MetadataFlagUnmerged
+	md.WFlags |= MetadataFlagUnmerged
 	md.BID = bid
 	return m.Put(ctx, md)
 }
