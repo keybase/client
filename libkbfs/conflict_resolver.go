@@ -2478,10 +2478,6 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, md *RootMetadata,
 		}
 	}
 
-	for unref, ref := range updates {
-		cr.log.CDebugf(ctx, "FixOp update: %v -> %v", unref, ref)
-	}
-
 	newOps, err := crFixOpPointers(oldOps[:len(oldOps)-1], updates,
 		unmergedChains)
 	if err != nil {
@@ -2491,10 +2487,13 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, md *RootMetadata,
 	newOps[0] = gcOp // move the dummy ops to the front
 	md.data.Changes.Ops = newOps
 
+	// TODO: only perform this loop if debugging is enabled.
 	for _, op := range newOps {
-		cr.log.CDebugf(ctx, "%s: refs: %v", op, op.Refs())
+		cr.log.CDebugf(ctx, "remote op %s: refs: %v", op, op.Refs())
+		cr.log.CDebugf(ctx, "remote op %s: unrefs: %v", op, op.Unrefs())
 		for _, update := range op.AllUpdates() {
-			cr.log.CDebugf(ctx, "%s: update: %v -> %v", op, update.Unref, update.Ref)
+			cr.log.CDebugf(ctx, "remote op %s: update: %v -> %v", op,
+				update.Unref, update.Ref)
 		}
 	}
 
