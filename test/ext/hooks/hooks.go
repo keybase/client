@@ -66,11 +66,11 @@ func Init(engineName *C.char) (ok bool) {
 	return true
 }
 
-// CreateUsers creates the specified set of users for the active engine.
-//export CreateUsers
-func CreateUsers(names *C.StringArray) *C.InterfaceArray {
+// InitTest creates the specified set of users for the active engine.
+//export InitTest
+func InitTest(blockSize int64, names *C.StringArray) *C.InterfaceArray {
 	userNames := arrayToStrings(names)
-	userMap := engine.CreateUsers(userNames...)
+	userMap := engine.InitTest(blockSize, userNames...)
 	users := make([]interface{}, len(userMap))
 	for i, name := range userNames {
 		users[i] = userMap[name]

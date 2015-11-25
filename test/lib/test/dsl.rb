@@ -20,7 +20,11 @@ module Test
     users = opts[:writers]
     users += opts[:readers] if opts[:readers]
     num_writers = opts[:writers].size
-    @users = Engine.create_users(users)
+    block_size = 0
+    if opts[:block_size] then
+      block_size = opts[:block_size]
+    end
+    @users = Engine.init_test(block_size, users)
     @is_public = opts[:is_public] || false
     @writers = @users[0, num_writers].map{|user| Engine.get_uid(user) }
     @readers = []

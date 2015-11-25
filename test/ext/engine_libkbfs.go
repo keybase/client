@@ -1,12 +1,14 @@
 package test
 
 import (
+	"fmt"
+	"sort"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
-	"sort"
-	"time"
 )
 
 // LibKBFS implements the Engine interface for direct test harness usage of libkbfs.
@@ -30,11 +32,9 @@ func (k *LibKBFS) Init() {
 		make(map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{})
 }
 
-// CreateUsers implements the Engine interface.
-func (k *LibKBFS) CreateUsers(users ...string) map[string]User {
-	// Start a new log for this test.  TODO: Turn this into a proper
-	// "test init" method that can print out the test name and set
-	// other config options.
+// InitTest implements the Engine interface.
+func (k *LibKBFS) InitTest(blockSize int64, users ...string) map[string]User {
+	// Start a new log for this test.
 	k.log = &MemoryLog{}
 	k.log.Log("\n------------------------------------------")
 	userMap := make(map[string]User)
@@ -44,6 +44,19 @@ func (k *LibKBFS) CreateUsers(users ...string) map[string]User {
 	}
 	// create the first user specially
 	config := libkbfs.MakeTestConfigOrBust(k.log, normalized...)
+
+	// Set the block size, if any
+	if blockSize > 0 {
+		// TODO: config option for max embed size.
+		bsplit, err := libkbfs.NewBlockSplitterSimple(blockSize,
+			8*1024, config.Codec())
+		if err != nil {
+			panic(fmt.Sprintf("Couldn't make block splitter for block size %d:"+
+				" %v", blockSize, err))
+		}
+		config.SetBlockSplitter(bsplit)
+	}
+
 	// TODO: pass this in from each test
 	clock := libkbfs.TestClock{T: time.Time{}}
 	config.SetClock(clock)
