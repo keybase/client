@@ -188,6 +188,16 @@ func (k TLFEphemeralPublicKey) String() string {
 	return hex.EncodeToString(k.PublicKey[:])
 }
 
+type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
+
+func (tepk TLFEphemeralPublicKeys) DeepCopy() TLFEphemeralPublicKeys {
+	keys := make(TLFEphemeralPublicKeys, len(tepk))
+	for i, k := range tepk {
+		keys[i] = k.DeepCopy()
+	}
+	return keys
+}
+
 // TLFCryptKeyServerHalf (s_u^{f,0,i}) is the masked, server-side half
 // of a TLFCryptKey, which can be recovered only with both
 // halves. (See 4.1.1.)

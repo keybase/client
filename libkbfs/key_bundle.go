@@ -208,23 +208,22 @@ type TLFWriterKeyBundle struct {
 	// existing data), we track multiple ephemeral public keys; the
 	// one used by a particular device is specified by EPubKeyIndex in
 	// its TLFCryptoKeyInfo struct.
-	TLFEphemeralPublicKeys []TLFEphemeralPublicKey `codec:"ePubKey"`
+	TLFEphemeralPublicKeys TLFEphemeralPublicKeys `codec:"ePubKey"`
 }
 
 // DeepCopy returns a complete copy of this TLFWriterKeyBundle.
 func (tkb TLFWriterKeyBundle) DeepCopy() TLFWriterKeyBundle {
-	newTkb := tkb
-	newTkb.WKeys = make(map[keybase1.UID]UserCryptKeyBundle)
-	for u, m := range tkb.WKeys {
-		newTkb.WKeys[u] = m.DeepCopy()
+	return TLFWriterKeyBundle{
+		WKeys:                  tkb.WKeys.DeepCopy(),
+		TLFPublicKey:           tkb.TLFPublicKey.DeepCopy(),
+		TLFEphemeralPublicKeys: tkb.TLFEphemeralPublicKeys.DeepCopy(),
 	}
-	newTkb.TLFPublicKey = tkb.TLFPublicKey.DeepCopy()
-	newTkb.TLFEphemeralPublicKeys =
-		make([]TLFEphemeralPublicKey, len(tkb.TLFEphemeralPublicKeys))
-	for i, k := range tkb.TLFEphemeralPublicKeys {
-		newTkb.TLFEphemeralPublicKeys[i] = k.DeepCopy()
-	}
-	return newTkb
+}
+
+// IsWriter returns true if the given user device is in the writer set.
+func (tkb TLFWriterKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
+	_, ok := tkb.WKeys[user][deviceKID]
+	return ok
 }
 
 // TLFKeyBundle is a bundle of all the keys for a top-level folder.
@@ -239,18 +238,6 @@ func (tkb TLFKeyBundle) DeepCopy() TLFKeyBundle {
 		TLFWriterKeyBundle: tkb.TLFWriterKeyBundle.DeepCopy(),
 		TLFReaderKeyBundle: tkb.TLFReaderKeyBundle.DeepCopy(),
 	}
-}
-
-// IsWriter returns true if the given user device is in the writer set.
-func (tkb TLFKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := tkb.WKeys[user][deviceKID]
-	return ok
-}
-
-// IsReader returns true if the given user device is in the reader set.
-func (tkb TLFKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := tkb.RKeys[user][deviceKID]
-	return ok
 }
 
 type serverKeyMap map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf
