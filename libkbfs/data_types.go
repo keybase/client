@@ -42,7 +42,7 @@ type SessionInfo struct {
 	VerifyingKey   VerifyingKey
 }
 
-// All section references below are to https://keybase.io/blog/crypto
+// All section references below are to https://keybase.io/blog/kbfs-crypto
 // (version 1.3).
 
 // A VerifyingKey is a public key that can be used to verify a

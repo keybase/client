@@ -2,7 +2,7 @@ package libkbfs
 
 import keybase1 "github.com/keybase/client/go/protocol"
 
-// All section references below are to https://keybase.io/blog/crypto
+// All section references below are to https://keybase.io/blog/kbfs-crypto
 // (version 1.3).
 
 // TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
@@ -199,10 +199,10 @@ type TLFWriterKeyBundle struct {
 	// Maps from each writer to their crypt key bundle.
 	WKeys TLFKeyMap
 
-	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto.
+	// M_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
 	TLFPublicKey TLFPublicKey `codec:"pubKey"`
 
-	// M_e as described in 4.1.1 of https://keybase.io/blog/crypto.
+	// M_e as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
 	// Because devices can be added into the key generation after it
 	// is initially created (so those devices can get access to
 	// existing data), we track multiple ephemeral public keys; the
