@@ -79,7 +79,7 @@ type WriterMetadata struct {
 	Writers []keybase1.UID
 	// For private TLFs. Key generations for this metadata. The
 	// most recent one is last in the array.
-	Keys TLFKeyGenerations
+	WKeys TLFWriterKeyGenerations
 	// The directory ID, signed over to make verification easier
 	ID TlfID
 	// The branch ID, currently only set if this is in unmerged per-device history.
@@ -123,7 +123,7 @@ type RootMetadata struct {
 
 // GetKeyGeneration returns the current key generation for the current block.
 func (md *RootMetadata) GetKeyGeneration() KeyGen {
-	return md.Keys.GetKeyGeneration()
+	return md.WKeys.GetKeyGeneration()
 }
 
 // MergedStatus returns the status of this update -- has it been
@@ -150,7 +150,7 @@ func (md *RootMetadata) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool
 		}
 		return false
 	}
-	return md.Keys.IsWriter(user, deviceKID)
+	return md.WKeys.IsWriter(user, deviceKID)
 }
 
 // IsReader returns whether or not the user+device is an authorized reader.
@@ -168,9 +168,9 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 	if id.IsPublic() {
 		writers = make([]keybase1.UID, 0, 1)
 	}
-	var keys TLFKeyGenerations
+	var keys TLFWriterKeyGenerations
 	if id.IsPublic() {
-		keys = make(TLFKeyGenerations, 0, 1)
+		keys = make(TLFWriterKeyGenerations, 0, 1)
 	}
 	md := RootMetadata{
 		WriterMetadata: WriterMetadata{
@@ -178,7 +178,7 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 			ID:      id,
 			BID:     BranchID{},
 			data:    PrivateMetadata{},
-			Keys:    keys,
+			WKeys:   keys,
 			// need to keep the dir handle around long
 			// enough to rekey the metadata for the first
 			// time
@@ -186,6 +186,7 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 		},
 		ReaderMetadata: ReaderMetadata{
 			Revision: MetadataRevisionInitial,
+			RKeys:    make(TLFReaderKeyGenerations, 0, 1),
 		},
 	}
 	return &md
@@ -221,7 +222,7 @@ func (md RootMetadata) MakeSuccessor(config Config) (RootMetadata, error) {
 	// no need to copy the serialized metadata, if it exists
 	newMd.Writers = make([]keybase1.UID, len(md.Writers))
 	copy(newMd.Writers, md.Writers)
-	newMd.Keys = md.Keys.DeepCopy()
+	newMd.WKeys = md.WKeys.DeepCopy()
 	newMd.RKeys = md.RKeys.DeepCopy()
 	newMd.ClearBlockChanges()
 	newMd.ClearMetadataID()
@@ -243,10 +244,13 @@ func (md RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFKeyBundle, error) {
 		return nil, InvalidKeyGenerationError{md.GetTlfHandle(), keyGen}
 	}
 	i := int(keyGen - FirstValidKeyGen)
-	if i >= len(md.Keys) {
+	if i >= len(md.WKeys) || i >= len(md.RKeys) {
 		return nil, NewKeyGenerationError{md.GetTlfHandle(), keyGen}
 	}
-	return &md.Keys[i], nil
+	return &TLFKeyBundle{
+		md.WKeys[i],
+		md.RKeys[i],
+	}, nil
 }
 
 // GetTLFCryptKeyInfo returns the TLFCryptKeyInfo entry for the given user
@@ -292,11 +296,11 @@ func (md RootMetadata) LatestKeyGeneration() KeyGen {
 	if md.ID.IsPublic() {
 		return PublicKeyGen
 	}
-	if len(md.Keys) == 0 {
+	if len(md.WKeys) == 0 {
 		// Return an invalid value.
 		return KeyGen(0)
 	}
-	return FirstValidKeyGen + KeyGen(len(md.Keys)-1)
+	return FirstValidKeyGen + KeyGen(len(md.WKeys)-1)
 }
 
 // AddNewKeys makes a new key generation for this RootMetadata using the
@@ -305,7 +309,8 @@ func (md *RootMetadata) AddNewKeys(keys TLFKeyBundle) error {
 	if md.ID.IsPublic() {
 		return InvalidPublicTLFOperation{md.ID, "AddNewKeys"}
 	}
-	md.Keys = append(md.Keys, keys)
+	md.WKeys = append(md.WKeys, keys.TLFWriterKeyBundle)
+	md.RKeys = append(md.RKeys, keys.TLFReaderKeyBundle)
 	return nil
 }
 
@@ -322,15 +327,16 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 		h.Writers = make([]keybase1.UID, len(md.Writers))
 		copy(h.Writers, md.Writers)
 	} else {
-		tkb := &md.Keys[len(md.Keys)-1]
-		for w := range tkb.WKeys {
+		wtkb := md.WKeys[len(md.WKeys)-1]
+		rtkb := md.RKeys[len(md.RKeys)-1]
+		for w := range wtkb.WKeys {
 			h.Writers = append(h.Writers, w)
 		}
-		for r := range tkb.RKeys {
+		for r := range rtkb.RKeys {
 			// TODO: Return an error instead if r is
 			// PublicUID. Maybe return an error if r is in
 			// WKeys also.
-			if _, ok := tkb.WKeys[r]; !ok &&
+			if _, ok := wtkb.WKeys[r]; !ok &&
 				r != keybase1.PublicUID {
 				h.Readers = append(h.Readers, r)
 			}

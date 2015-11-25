@@ -80,12 +80,12 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 
 	// Make a tkb with empty UserCryptKeyBundles
 	tkb := TLFKeyBundle{
-		TLFWriterKeyBundle: TLFWriterKeyBundle{
-			WKeys: make(map[keybase1.UID]UserCryptKeyBundle),
-			TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+		TLFWriterKeyBundle: &TLFWriterKeyBundle{
+			WKeys: make(TLFKeyMap),
+			TLFEphemeralPublicKeys: make(TLFEphemeralPublicKeys, 1),
 		},
-		TLFReaderKeyBundle: TLFReaderKeyBundle{
-			RKeys: make(map[keybase1.UID]UserCryptKeyBundle),
+		TLFReaderKeyBundle: &TLFReaderKeyBundle{
+			RKeys: make(TLFKeyMap),
 		},
 	}
 

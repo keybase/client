@@ -292,13 +292,13 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	}
 
 	newClientKeys := TLFKeyBundle{
-		TLFWriterKeyBundle: TLFWriterKeyBundle{
-			WKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
+		TLFWriterKeyBundle: &TLFWriterKeyBundle{
+			WKeys:        make(TLFKeyMap),
 			TLFPublicKey: pubKey,
 			// TLFEphemeralPublicKeys will be filled in by updateKeyBundle
 		},
-		TLFReaderKeyBundle: TLFReaderKeyBundle{
-			RKeys: make(map[keybase1.UID]UserCryptKeyBundle),
+		TLFReaderKeyBundle: &TLFReaderKeyBundle{
+			RKeys: make(TLFKeyMap),
 		},
 	}
 	err = md.AddNewKeys(newClientKeys)

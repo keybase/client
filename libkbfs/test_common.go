@@ -272,7 +272,7 @@ func NewFolderWithIDAndWriter(t *testing.T, id TlfID, revision MetadataRevision,
 	rmd.Revision = revision
 	rmd.data.LastWriter = h.Writers[0]
 	if !public {
-		AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
+		AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
 	}
 
 	rmds := &RootMetadataSigned{}
@@ -419,14 +419,14 @@ func testWithCanceledContext(t *testing.T, ctx context.Context,
 // MakeDirRKeyBundle creates a new bundle with a reader key.
 func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
 	return TLFKeyBundle{
-		TLFReaderKeyBundle: TLFReaderKeyBundle{
-			RKeys: map[keybase1.UID]UserCryptKeyBundle{
+		TLFReaderKeyBundle: &TLFReaderKeyBundle{
+			RKeys: TLFKeyMap{
 				uid: {
 					cryptPublicKey.KID: TLFCryptKeyInfo{},
 				},
 			},
 		},
-		TLFWriterKeyBundle: TLFWriterKeyBundle{
+		TLFWriterKeyBundle: &TLFWriterKeyBundle{
 			TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
 		},
 	}
@@ -435,13 +435,16 @@ func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBu
 // MakeDirWKeyBundle creates a new bundle with a writer key.
 func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
 	return TLFKeyBundle{
-		TLFWriterKeyBundle: TLFWriterKeyBundle{
-			WKeys: map[keybase1.UID]UserCryptKeyBundle{
+		TLFWriterKeyBundle: &TLFWriterKeyBundle{
+			WKeys: TLFKeyMap{
 				uid: {
 					cryptPublicKey.KID: TLFCryptKeyInfo{},
 				},
 			},
 			TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+		},
+		TLFReaderKeyBundle: &TLFReaderKeyBundle{
+			RKeys: make(TLFKeyMap, 0),
 		},
 	}
 }

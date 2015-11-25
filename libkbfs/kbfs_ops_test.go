@@ -216,7 +216,7 @@ func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	keybase1.UID, TlfID, *RootMetadata) {
 	uid, id, h := makeID(t, config, false)
 	rmd := NewRootMetadataForTest(h, id)
-	AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
+	AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
 
 	ops := getOps(config, id)
 	ops.head = rmd
@@ -296,7 +296,7 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) (
 	if !rmd.ID.IsPublic() {
 		config.mockKeyman.EXPECT().Rekey(gomock.Any(), rmd).
 			Do(func(ctx context.Context, rmd *RootMetadata) {
-			AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
+			AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
 		}).Return(true, nil)
 	}
 	rootPtr = BlockPointer{
