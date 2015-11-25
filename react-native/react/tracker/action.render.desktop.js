@@ -4,14 +4,15 @@
 import React, {Component} from '../base-react'
 import {FlatButton} from 'material-ui'
 
+// $FlowIssue styles
 import commonStyles from '../styles/common'
 
-import {normal, pending, warning, error} from '../constants/tracker'
-
+import {normal, pending, warning} from '../constants/tracker'
 import type {SimpleProofState} from '../constants/tracker'
 
 export type ActionProps = {
   state: SimpleProofState,
+  style: Object,
   username: ?string,
   shouldFollow: ?boolean,
   renderChangedTitle: string,

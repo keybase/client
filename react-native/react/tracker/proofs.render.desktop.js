@@ -2,22 +2,27 @@
 
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
+// $FlowIssue styles
 import commonStyles, {colors} from '../styles/common'
 
-import {error, pending} from '../constants/tracker'
-import type {SimpleProofState} from '../constants/tracker'
+import {pending, deleted} from '../constants/tracker'
+import {metaNew, metaDeleted, metaUnreachable, metaPending} from '../constants/tracker'
+
+import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
 export type Proof = {
   id: string,
   type: string,
   state: SimpleProofState,
+  meta: SimpleProofMeta,
   humanUrl: ?string,
   name: string,
   color: string
 }
 
 export type ProofsProps = {
-  proofs: Array<Proof>
+  proofs: Array<Proof>,
+  username: string
 }
 
 export default class ProofsRender extends Component {
@@ -30,10 +35,14 @@ export default class ProofsRender extends Component {
 
   renderProofRow (proof: Proof): ReactElement {
     const metaColor = {
-      'new': colors.orange,
-      deleted: colors.red,
-      unreachable: colors.red,
-      pending: colors.grey
+      // $FlowIssue no computed
+      [metaNew]: colors.orange,
+      // $FlowIssue no computed
+      [metaDeleted]: colors.red,
+      // $FlowIssue no computed
+      [metaUnreachable]: colors.red,
+      // $FlowIssue no computed
+      [metaPending]: colors.grey
     }[proof.meta]
 
     const onTouchTap = () => {
@@ -46,28 +55,29 @@ export default class ProofsRender extends Component {
     }
 
     const icon = {
-      '[TW]': 'fa-twitter',
-      '[GH]': 'fa-github',
-      '[re]': 'fa-reddit',
-      '[pgp]': 'fa-key',
-      '[cb]': 'fa-btc',
-      '[web]': 'fa-globe'
+      'twitter': 'fa-twitter',
+      'github': 'fa-github',
+      'reddit': 'fa-reddit',
+      'pgp': 'fa-key',
+      'coinbase': 'fa-btc',
+      'web': 'fa-globe'
     }[proof.type]
 
     const statusColor = {
-      verified: colors.lightBlue,
+      normal: colors.lightBlue,
       checking: colors.grey,
       deleted: colors.orange,
-      unreachable: colors.orange,
+      warning: colors.orange,
+      error: colors.red,
       pending: colors.orange
-    }[proof.status]
+    }[proof.state]
 
     return (
       <div style={styles.row}>
         <i style={styles.platform} className={'fa ' + icon} title={proof.type} onTouchTap={onTouchTap}></i>
         <div style={styles.usernameContainer}>
           <span
-            style={{...styles.username, ...{textDecoration: proof.status === 'deleted' ? 'line-through' : 'inherit'}}} /* deleted not in model? */
+            style={{...styles.username, ...{textDecoration: proof.status === deleted ? 'line-through' : 'inherit'}}} /* deleted not in model? */
             onTouchTap={onTouchTap}>{proof.name}</span>
           {proof.meta && <span style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</span>}
         </div>
@@ -122,7 +132,6 @@ const styles = {
   },
   row: {
     ...commonStyles.flexBoxRow,
-    flex: 1,
     lineHeight: '21px',
     marginTop: 10,
     alignItems: 'flex-start',

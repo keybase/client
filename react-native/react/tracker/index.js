@@ -46,8 +46,8 @@ class Tracker extends Component {
   }
 
   render () {
-    const renderChangedTitle = this.props.proofState === warning ? `(warning) ${this.props.username} added some verifications`
-      : `(error) Some of ${this.props.username}'s verifications are compromised or have changed.`
+    const renderChangedTitle = this.props.proofState === warning ? `${this.props.username} added some identity proofs.`
+      : `Some of ${this.props.username}'s proofs are compromised or have changed.`
 
     const renderProps: RenderProps = {
       bioProps: {
@@ -71,6 +71,7 @@ class Tracker extends Component {
         onFollowChecked: this.props.onFollowChecked
       },
       proofsProps: {
+        username: this.props.username,
         proofs: this.props.proofs
       }
     }
