@@ -59,12 +59,7 @@ func (e *DeviceKeyfinder) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceKeyfinder) Run(ctx *Context) error {
-	err := e.setup(ctx)
-	if err != nil {
-		return err
-	}
-
-	err = e.verifyUsers(ctx)
+	err := e.verifyUsers(ctx)
 	if err != nil {
 		return err
 	}
@@ -83,20 +78,16 @@ func (e *DeviceKeyfinder) UsersPlusDeviceKeys() []*UserPlusDeviceKeys {
 	return e.uplus
 }
 
-func (e *DeviceKeyfinder) setup(ctx *Context) error {
-	ok, err := IsLoggedIn(e, ctx)
+func (e *DeviceKeyfinder) verifyUsers(ctx *Context) error {
+	loggedIn, err := IsLoggedIn(e, ctx)
 	if err != nil {
 		return err
 	}
 
-	e.loggedIn = ok
-	return nil
-}
-
-func (e *DeviceKeyfinder) verifyUsers(ctx *Context) error {
-	if e.loggedIn && !e.arg.SkipTrack {
+	if loggedIn && !e.arg.SkipTrack {
 		return e.trackUsers(ctx)
 	}
+
 	return e.identifyUsers(ctx)
 }
 
