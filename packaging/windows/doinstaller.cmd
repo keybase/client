@@ -9,13 +9,15 @@
 For %%A in ("%1") do Set Folder=%%~dpA
 :: Capture the version - this is the only way to store it in a .cmd variable
 for /f %%i in ('%Folder%winresource.exe -v') do set BUILDVER=%%i
+echo %BUILDVER%
+
 
 :: Other alternate time servers:
 ::   http://timestamp.verisign.com/scripts/timstamp.dll
 ::   http://timestamp.globalsign.com/scripts/timestamp.dll
 ::   http://tsa.starfieldtech.com
 ::   http://timestamp.comodoca.com/authenticode
-SignTool.exe sign /fd sha256 /a /f %2 /p %3 /tr http://tsa.starfieldtech.com %1
+SignTool.exe sign /fd sha256 /a /f %2 /p %3 /tr http://timestamp.globalsign.com/scripts/timestamp.dll %1
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
