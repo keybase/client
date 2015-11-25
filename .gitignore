@@ -32,3 +32,5 @@ go/keybase/keybase
 
 # Xcode
 xcshareddata
+
+build
