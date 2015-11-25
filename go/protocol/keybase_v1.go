@@ -2492,11 +2492,6 @@ type MetadataResponse struct {
 	MdBlocks [][]byte `codec:"mdBlocks" json:"mdBlocks"`
 }
 
-type FolderUsersResponse struct {
-	Readers []UID `codec:"readers" json:"readers"`
-	Writers []UID `codec:"writers" json:"writers"`
-}
-
 type AuthenticateArg struct {
 	Signature string `codec:"signature" json:"signature"`
 }
@@ -2547,7 +2542,7 @@ type TruncateUnlockArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
 }
 
-type GetFolderUsersArg struct {
+type GetFolderHandleArg struct {
 	FolderID  string `codec:"folderID" json:"folderID"`
 	Signature string `codec:"signature" json:"signature"`
 }
@@ -2565,7 +2560,7 @@ type MetadataInterface interface {
 	GetKey(context.Context, GetKeyArg) ([]byte, error)
 	TruncateLock(context.Context, string) (bool, error)
 	TruncateUnlock(context.Context, string) (bool, error)
-	GetFolderUsers(context.Context, GetFolderUsersArg) (FolderUsersResponse, error)
+	GetFolderHandle(context.Context, GetFolderHandleArg) ([]byte, error)
 	Ping(context.Context) error
 }
 
@@ -2717,18 +2712,18 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getFolderUsers": {
+			"getFolderHandle": {
 				MakeArg: func() interface{} {
-					ret := make([]GetFolderUsersArg, 1)
+					ret := make([]GetFolderHandleArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetFolderUsersArg)
+					typedArgs, ok := args.(*[]GetFolderHandleArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetFolderUsersArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetFolderHandleArg)(nil), args)
 						return
 					}
-					ret, err = i.GetFolderUsers(ctx, (*typedArgs)[0])
+					ret, err = i.GetFolderHandle(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2800,8 +2795,8 @@ func (c MetadataClient) TruncateUnlock(ctx context.Context, folderID string) (re
 	return
 }
 
-func (c MetadataClient) GetFolderUsers(ctx context.Context, __arg GetFolderUsersArg) (res FolderUsersResponse, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.metadata.getFolderUsers", []interface{}{__arg}, &res)
+func (c MetadataClient) GetFolderHandle(ctx context.Context, __arg GetFolderHandleArg) (res []byte, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getFolderHandle", []interface{}{__arg}, &res)
 	return
 }
 

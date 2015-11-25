@@ -194,22 +194,6 @@
         "items" : "bytes"
       }
     } ]
-  }, {
-    "type" : "record",
-    "name" : "FolderUsersResponse",
-    "fields" : [ {
-      "name" : "readers",
-      "type" : {
-        "type" : "array",
-        "items" : "UID"
-      }
-    }, {
-      "name" : "writers",
-      "type" : {
-        "type" : "array",
-        "items" : "UID"
-      }
-    } ]
   } ],
   "messages" : {
     "authenticate" : {
@@ -338,7 +322,7 @@
       } ],
       "response" : "boolean"
     },
-    "getFolderUsers" : {
+    "getFolderHandle" : {
       "request" : [ {
         "name" : "folderID",
         "type" : "string"
@@ -346,7 +330,7 @@
         "name" : "signature",
         "type" : "string"
       } ],
-      "response" : "FolderUsersResponse"
+      "response" : "bytes"
     },
     "ping" : {
       "request" : [ ],
