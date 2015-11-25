@@ -13,10 +13,9 @@ import (
 // DeviceKeyfinder is an engine to find device keys for users (loaded by
 // assertions), possibly tracking them if necessary.
 type DeviceKeyfinder struct {
-	arg      *DeviceKeyfinderArg
-	uplus    []*UserPlusDeviceKeys
-	loggedIn bool
 	libkb.Contextified
+	arg     DeviceKeyfinderArg
+	userMap map[keybase1.UID]UserPlusDeviceKeys
 }
 
 type DeviceKeyfinderArg struct {
@@ -27,11 +26,19 @@ type DeviceKeyfinderArg struct {
 	TrackOptions keybase1.TrackOptions
 }
 
+type UserPlusDeviceKeys struct {
+	User      *libkb.User
+	Index     int
+	IsTracked bool
+	Keys      []keybase1.PublicKey
+}
+
 // NewDeviceKeyfinder creates a DeviceKeyfinder engine.
-func NewDeviceKeyfinder(arg *DeviceKeyfinderArg, g *libkb.GlobalContext) *DeviceKeyfinder {
+func NewDeviceKeyfinder(g *libkb.GlobalContext, arg DeviceKeyfinderArg) *DeviceKeyfinder {
 	return &DeviceKeyfinder{
-		arg:          arg,
 		Contextified: libkb.NewContextified(g),
+		arg:          arg,
+		userMap:      make(map[keybase1.UID]UserPlusDeviceKeys),
 	}
 }
 
@@ -65,17 +72,8 @@ func (e *DeviceKeyfinder) Run(ctx *Context) error {
 		return err
 	}
 
-	// TODO: Remove duplicates in e.uplus.
-
 	if e.arg.FindForSelf {
-		found := false
-		for _, u := range e.uplus {
-			if u.User.GetUID() == e.arg.Me.GetUID() {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !e.hasUser(e.arg.Me) {
 			e.addUser(e.arg.Me, false)
 		}
 	}
@@ -90,8 +88,8 @@ func (e *DeviceKeyfinder) Run(ctx *Context) error {
 
 // UsersPlusDeviceKeys returns the users found while running the engine,
 // plus their device keys.
-func (e *DeviceKeyfinder) UsersPlusDeviceKeys() []*UserPlusDeviceKeys {
-	return e.uplus
+func (e *DeviceKeyfinder) UsersPlusDeviceKeys() map[keybase1.UID]UserPlusDeviceKeys {
+	return e.userMap
 }
 
 func (e *DeviceKeyfinder) verifyUsers(ctx *Context) error {
@@ -131,17 +129,18 @@ func (e *DeviceKeyfinder) identifyUsers(ctx *Context) error {
 
 func (e *DeviceKeyfinder) loadKeys(ctx *Context) error {
 	// get the device keys for all the users
-	for _, x := range e.uplus {
+	for uid, uwk := range e.userMap {
 		var keys []keybase1.PublicKey
-		ckf := x.User.GetComputedKeyFamily()
+		ckf := uwk.User.GetComputedKeyFamily()
 		if ckf != nil {
 			keys = ckf.ExportDeviceKeys()
 		}
 
 		if len(keys) == 0 {
-			return fmt.Errorf("User %s doesn't have a device key", x.User.GetName())
+			return fmt.Errorf("User %s doesn't have a device key", uwk.User.GetName())
 		}
-		x.Keys = keys
+		uwk.Keys = keys
+		e.userMap[uid] = uwk
 	}
 
 	return nil
@@ -181,12 +180,20 @@ func (e *DeviceKeyfinder) identifyUser(ctx *Context, user string) error {
 	return nil
 }
 
-type UserPlusDeviceKeys struct {
-	User      *libkb.User
-	IsTracked bool
-	Keys      []keybase1.PublicKey
+func (e *DeviceKeyfinder) hasUser(user *libkb.User) bool {
+	_, ok := e.userMap[user.GetUID()]
+	return ok
 }
 
 func (e *DeviceKeyfinder) addUser(user *libkb.User, tracked bool) {
-	e.uplus = append(e.uplus, &UserPlusDeviceKeys{User: user, IsTracked: tracked})
+	if e.hasUser(user) {
+		return
+	}
+
+	index := len(e.userMap)
+	e.userMap[user.GetUID()] = UserPlusDeviceKeys{
+		User:      user,
+		Index:     index,
+		IsTracked: tracked,
+	}
 }

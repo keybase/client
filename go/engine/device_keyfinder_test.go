@@ -25,13 +25,13 @@ func TestDeviceKeyfinder(t *testing.T) {
 	}
 
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
-	arg := &DeviceKeyfinderArg{
+	arg := DeviceKeyfinderArg{
 		Users: []string{u1.Username, u2.Username, u3.Username},
 		TrackOptions: keybase1.TrackOptions{
 			BypassConfirm: true,
 		},
 	}
-	eng := NewDeviceKeyfinder(arg, tc.G)
+	eng := NewDeviceKeyfinder(tc.G, arg)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -55,11 +55,11 @@ func TestDeviceKeyfinderNoTrack(t *testing.T) {
 	}
 
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
-	arg := &DeviceKeyfinderArg{
+	arg := DeviceKeyfinderArg{
 		Users:     []string{u1.Username, u2.Username, u3.Username},
 		SkipTrack: true,
 	}
-	eng := NewDeviceKeyfinder(arg, tc.G)
+	eng := NewDeviceKeyfinder(tc.G, arg)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -84,10 +84,10 @@ func TestDeviceKeyfinderLoggedOut(t *testing.T) {
 	}
 
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: &libkb.TestSecretUI{}}
-	arg := &DeviceKeyfinderArg{
+	arg := DeviceKeyfinderArg{
 		Users: []string{u1.Username, u2.Username, u3.Username},
 	}
-	eng := NewDeviceKeyfinder(arg, tc.G)
+	eng := NewDeviceKeyfinder(tc.G, arg)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

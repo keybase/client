@@ -61,13 +61,13 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	kfarg := &DeviceKeyfinderArg{
+	kfarg := DeviceKeyfinderArg{
 		Me:           me,
 		Users:        e.arg.Recips,
 		TrackOptions: e.arg.TrackOptions,
 	}
 
-	kf := NewDeviceKeyfinder(kfarg, e.G())
+	kf := NewDeviceKeyfinder(e.G(), kfarg)
 	if err := RunEngine(kf, ctx); err != nil {
 		return err
 	}
