@@ -65,6 +65,8 @@ func (c *CmdDecrypt) Run() error {
 		return err
 	}
 
+	// TODO: If we fail to decrypt, try to detect which devices
+	// might have worked for the user.
 	arg := keybase1.KbcmfDecryptArg{Source: src, Sink: snk}
 	err = cli.KbcmfDecrypt(context.TODO(), arg)
 
