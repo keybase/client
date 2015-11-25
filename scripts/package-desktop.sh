@@ -15,12 +15,13 @@ cd $build_dir
 rsync -av -L ../desktop . --exclude node_modules
 rsync -av -L ../react-native/react react-native --exclude node_modules
 # Copy icon files
-cp $dir/../osx/Install/appdmg/Keybase.icns .
+cp ../osx/Install/appdmg/Keybase.icns .
 
-# Copy package.json, which shouldn't include devDepencies, which makes the app
-# bundle too large. Also need the main to point one directory up.
-cp $dir/package-desktop.json package.json
-npm install
+# Copy and modify package.json to point to main from one dir up
+cp desktop/package.json .
+json -I -f package.json -e 'this.main="desktop/app/main.js"'
+
+npm install --production
 
 # Package the app
 electron-packager . Keybase \
