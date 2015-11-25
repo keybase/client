@@ -93,13 +93,6 @@ type WriterMetadata struct {
 	RefBytes uint64
 	// The total number of bytes in unreferenced blocks
 	UnrefBytes uint64
-
-	// The plaintext, deserialized PrivateMetadata
-	data PrivateMetadata
-	// A cached copy of the directory handle calculated for this MD.
-	cachedTlfHandle *TlfHandle
-	// The cached ID for this MD structure (hash)
-	mdID MdID
 }
 
 type ReaderMetadata struct {
@@ -119,6 +112,13 @@ type RootMetadata struct {
 	WriterMetadata
 	ReaderMetadata
 	WriterMetadataSigInfo SignatureInfo
+
+	// The plaintext, deserialized PrivateMetadata
+	data PrivateMetadata
+	// A cached copy of the directory handle calculated for this MD.
+	cachedTlfHandle *TlfHandle
+	// The cached ID for this MD structure (hash)
+	mdID MdID
 }
 
 // GetKeyGeneration returns the current key generation for the current block.
@@ -177,17 +177,17 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 			Writers: writers,
 			ID:      id,
 			BID:     BranchID{},
-			data:    PrivateMetadata{},
 			WKeys:   keys,
-			// need to keep the dir handle around long
-			// enough to rekey the metadata for the first
-			// time
-			cachedTlfHandle: d,
 		},
 		ReaderMetadata: ReaderMetadata{
 			Revision: MetadataRevisionInitial,
 			RKeys:    make(TLFReaderKeyGenerations, 0, 1),
 		},
+		data: PrivateMetadata{},
+		// need to keep the dir handle around long
+		// enough to rekey the metadata for the first
+		// time
+		cachedTlfHandle: d,
 	}
 	return &md
 }
