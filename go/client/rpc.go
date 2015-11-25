@@ -46,6 +46,14 @@ func GetConfigClient(g *libkb.GlobalContext) (cli keybase1.ConfigClient, err err
 	return
 }
 
+func GetKBCMFClient(g *libkb.GlobalContext) (cli keybase1.KbcmfClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
+		cli = keybase1.KbcmfClient{Cli: rcli}
+	}
+	return
+}
+
 func GetLoginClient(g *libkb.GlobalContext) (cli keybase1.LoginClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {

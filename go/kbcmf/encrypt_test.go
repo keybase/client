@@ -8,10 +8,11 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"golang.org/x/crypto/nacl/box"
 	"io"
 	"io/ioutil"
 	"testing"
+
+	"golang.org/x/crypto/nacl/box"
 )
 
 type boxPublicKey struct {

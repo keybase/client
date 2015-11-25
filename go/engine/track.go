@@ -4,7 +4,7 @@
 package engine
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -72,7 +72,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		return err
 	}
 	if !result.IdentityConfirmed {
-		return fmt.Errorf("Track not confirmed")
+		return errors.New("Track not confirmed")
 	}
 
 	// if they didn't specify local only on the command line, then if they answer no to posting

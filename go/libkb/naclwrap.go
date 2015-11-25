@@ -62,6 +62,8 @@ type NaclSigningKeyPair struct {
 	Private *NaclSigningKeyPrivate
 }
 
+var _ GenericKey = NaclSigningKeyPair{}
+
 type NaclDHKeyPublic [NaclDHKeysize]byte
 type NaclDHKeyPrivate [NaclDHKeysize]byte
 
@@ -69,6 +71,8 @@ type NaclDHKeyPair struct {
 	Public  NaclDHKeyPublic
 	Private *NaclDHKeyPrivate
 }
+
+var _ GenericKey = NaclDHKeyPair{}
 
 func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
 	kid := keybase1.KIDFromString(s)
