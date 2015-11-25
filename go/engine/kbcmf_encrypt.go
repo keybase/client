@@ -62,6 +62,7 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 		return err
 	}
 
+	// TODO: Add switch to not encrypt for oneself.
 	meAssertion := fmt.Sprintf("uid:%s", me.GetUID())
 	users := append([]string{meAssertion}, e.arg.Recips...)
 	kfarg := DeviceKeyfinderArg{
