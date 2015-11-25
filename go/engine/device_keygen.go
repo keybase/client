@@ -185,10 +185,10 @@ func (e *DeviceKeygen) localSave(ctx *Context) {
 		return
 	}
 
-	if e.runErr = e.naclSignGen.SaveLKS(e.args.Lks, ctx.LoginContext); e.runErr != nil {
+	if e.runErr = e.naclSignGen.SaveLKS(e.G(), e.args.Lks, ctx.LoginContext); e.runErr != nil {
 		return
 	}
-	if e.runErr = e.naclEncGen.SaveLKS(e.args.Lks, ctx.LoginContext); e.runErr != nil {
+	if e.runErr = e.naclEncGen.SaveLKS(e.G(), e.args.Lks, ctx.LoginContext); e.runErr != nil {
 		return
 	}
 }

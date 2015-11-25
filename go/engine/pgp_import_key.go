@@ -107,7 +107,7 @@ func (e *PGPKeyImportEngine) saveLKS(ctx *Context) (err error) {
 			return err
 		}
 	}
-	_, err = libkb.WriteLksSKBToKeyring(e.bundle, lks, ctx.LoginContext)
+	_, err = libkb.WriteLksSKBToKeyring(e.G(), e.bundle, lks, ctx.LoginContext)
 	return
 }
 

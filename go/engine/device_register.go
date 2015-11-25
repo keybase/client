@@ -66,7 +66,7 @@ func (d *DeviceRegister) Run(ctx *Context) error {
 		if err := wr.SetDeviceID(d.deviceID); err != nil {
 			return err
 		}
-		if err := wr.Write(); err != nil {
+		if err := wr.Save(); err != nil {
 			return err
 		}
 		ctx.LogUI.Debug("Setting Device ID to %s", d.deviceID)

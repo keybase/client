@@ -61,18 +61,18 @@ func CanEncrypt(key GenericKey) bool {
 	}
 }
 
-func WriteLksSKBToKeyring(k GenericKey, lks *LKSec, lctx LoginContext) (*SKB, error) {
+func WriteLksSKBToKeyring(g *GlobalContext, k GenericKey, lks *LKSec, lctx LoginContext) (*SKB, error) {
 	skb, err := k.ToLksSKB(lks)
 	if err != nil {
 		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
 	}
-	if err := skbPushAndSave(skb, lctx); err != nil {
+	if err := skbPushAndSave(g, skb, lctx); err != nil {
 		return nil, err
 	}
 	return skb, nil
 }
 
-func skbPushAndSave(skb *SKB, lctx LoginContext) error {
+func skbPushAndSave(g *GlobalContext, skb *SKB, lctx LoginContext) error {
 	if lctx != nil {
 		kr, err := lctx.Keyring()
 		if err != nil {
@@ -81,7 +81,7 @@ func skbPushAndSave(skb *SKB, lctx LoginContext) error {
 		return kr.PushAndSave(skb)
 	}
 	var err error
-	kerr := G.LoginState().Keyring(func(ring *SKBKeyringFile) {
+	kerr := g.LoginState().Keyring(func(ring *SKBKeyringFile) {
 		err = ring.PushAndSave(skb)
 	}, "PushAndSave")
 	if kerr != nil {
