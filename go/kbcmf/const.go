@@ -39,3 +39,7 @@ const EncryptionArmorHeader = "BEGIN KBr ENCRYPTED MESSAGE"
 // EncryptionArmorFooter is the footer that marks the end of an encrypted
 // armored KB message
 const EncryptionArmorFooter = "END KBr ENCRYPTED MESSAGE"
+
+// groupIDMask is OR'ed into group IDs, so that they all are encoded as full
+// 32-bit integers
+const groupIDMask = 0x80000000

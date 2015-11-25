@@ -19,7 +19,7 @@ func encryptArmor62RandomData(t *testing.T, sz int) ([]byte, string) {
 	sndr := newBoxKey(t)
 	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
 
-	ciphertext, err := EncryptArmor62Seal(msg, *sndr, receivers)
+	ciphertext, err := EncryptArmor62Seal(msg, sndr, receivers)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestDearmor62DecryptSlowReader(t *testing.T) {
 	sndr := newBoxKey(t)
 	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
 
-	ciphertext, err := EncryptArmor62Seal(msg, *sndr, receivers)
+	ciphertext, err := EncryptArmor62Seal(msg, sndr, receivers)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -24,11 +24,24 @@ type BoxPublicKey interface {
 	// ToRawBoxKeyPointer returns this public key as a *[32]byte,
 	// for use with nacl.box.Seal
 	ToRawBoxKeyPointer() *RawBoxKey
+
+	// CreateEmphemeralKey creates an ephemeral key of the same type,
+	// but totally random.
+	CreateEphemeralKey() (BoxSecretKey, error)
+
+	// HideIdentity returns true if we should hide the identity of this
+	// key in our output message format.
+	HideIdentity() bool
 }
 
 // Nonce is a NaCl-style nonce, with 24 bytes of data, some of which can be
 // counter values, and some of which can be truly random values.
 type Nonce [24]byte
+
+// BoxPrecomputedSharedKey results from a Precomputation below.
+type BoxPrecomputedSharedKey interface {
+	Unbox(nonce *Nonce, msg []byte) ([]byte, error)
+}
 
 // BoxSecretKey is the secret key corresponding to a BoxPublicKey
 type BoxSecretKey interface {
@@ -41,6 +54,32 @@ type BoxSecretKey interface {
 	// abd the give public key as the sender key.
 	Unbox(sender BoxPublicKey, nonce *Nonce, msg []byte) ([]byte, error)
 
-	// GetPublicKey gets the public key associated with this secret key
+	// GetPublicKey gets the public key associated with this secret key.
 	GetPublicKey() BoxPublicKey
+
+	// Precompute computes a DH with the given key
+	Precompute(sender BoxPublicKey) BoxPrecomputedSharedKey
+}
+
+// Keyring is an interface used with decryption; it is call to recover
+// public or private keys during the decryption process. Calls can block
+// on network action.
+type Keyring interface {
+	// LookupBoxSecretKey looks in the Keyring for the secret key corresponding
+	// to one of the given Key IDs.  Returns the index and the key on success,
+	// or -1 and nil on failure.
+	LookupBoxSecretKey(kids [][]byte) (int, BoxSecretKey)
+
+	// LookupBoxPublicKey returns a public key given the specified key ID.
+	// For most cases, the key ID will be the key itself.
+	LookupBoxPublicKey(kid []byte) BoxPublicKey
+
+	// GetAllSecretKeys returns all keys, needed if we want to support
+	// "hidden" receivers via trial and error
+	GetAllSecretKeys() []BoxSecretKey
+
+	// ImportEphemeralKey imports the ephemeral key into
+	// BoxPublicKey format. This key has never been seen before, so
+	// will be ephemeral.
+	ImportEphemeralKey(kid []byte) BoxPublicKey
 }
