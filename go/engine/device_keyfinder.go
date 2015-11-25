@@ -21,7 +21,6 @@ type DeviceKeyfinder struct {
 type DeviceKeyfinderArg struct {
 	Me           *libkb.User
 	Users        []string
-	FindForSelf  bool
 	SkipTrack    bool
 	TrackOptions keybase1.TrackOptions
 }
@@ -70,12 +69,6 @@ func (e *DeviceKeyfinder) Run(ctx *Context) error {
 	err := e.verifyUsers(ctx)
 	if err != nil {
 		return err
-	}
-
-	if e.arg.FindForSelf {
-		if !e.hasUser(e.arg.Me) {
-			e.addUser(e.arg.Me, false)
-		}
 	}
 
 	err = e.loadKeys(ctx)

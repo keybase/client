@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -61,9 +62,11 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 		return err
 	}
 
+	meAssertion := fmt.Sprintf("uid:%s", me.GetUID())
+	users := append([]string{meAssertion}, e.arg.Recips...)
 	kfarg := DeviceKeyfinderArg{
 		Me:           me,
-		Users:        e.arg.Recips,
+		Users:        users,
 		TrackOptions: e.arg.TrackOptions,
 	}
 
