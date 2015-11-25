@@ -19,9 +19,9 @@ type DeviceKeyfinder struct {
 }
 
 type DeviceKeyfinderArg struct {
+	Users []string
+	// If nil, no tracking is done.
 	Me           *libkb.User
-	Users        []string
-	SkipTrack    bool
 	TrackOptions keybase1.TrackOptions
 }
 
@@ -86,34 +86,15 @@ func (e *DeviceKeyfinder) UsersPlusDeviceKeys() map[keybase1.UID]UserPlusDeviceK
 }
 
 func (e *DeviceKeyfinder) verifyUsers(ctx *Context) error {
-	loggedIn, err := IsLoggedIn(e, ctx)
-	if err != nil {
-		return err
-	}
-
-	if loggedIn && !e.arg.SkipTrack {
-		return e.trackUsers(ctx)
-	}
-
-	return e.identifyUsers(ctx)
-}
-
-func (e *DeviceKeyfinder) trackUsers(ctx *Context) error {
-	// need to track any users we aren't tracking
 	for _, u := range e.arg.Users {
-		if err := e.trackUser(ctx, u); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (e *DeviceKeyfinder) identifyUsers(ctx *Context) error {
-	// need to identify all the users
-	for _, u := range e.arg.Users {
-		if err := e.identifyUser(ctx, u); err != nil {
-			return err
+		if e.arg.Me != nil {
+			if err := e.trackUser(ctx, u); err != nil {
+				return err
+			}
+		} else {
+			if err := e.identifyUser(ctx, u); err != nil {
+				return err
+			}
 		}
 	}
 
