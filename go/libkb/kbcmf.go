@@ -17,21 +17,44 @@ type naclBoxPublicKey NaclDHKeyPublic
 
 var _ kbcmf.BoxPublicKey = naclBoxPublicKey{}
 
+func (b naclBoxPublicKey) ToKID() []byte {
+	return b[:]
+}
+
 func (b naclBoxPublicKey) ToRawBoxKeyPointer() *kbcmf.RawBoxKey {
 	return (*kbcmf.RawBoxKey)(&b)
 }
 
-func (b naclBoxPublicKey) ToKID() []byte {
-	return b[:]
+func (b naclBoxPublicKey) CreateEphemeralKey() (kbcmf.BoxSecretKey, error) {
+	kp, err := GenerateNaclDHKeyPair()
+	if err != nil {
+		return nil, err
+	}
+
+	return naclBoxSecretKey(kp), nil
+}
+
+func (b naclBoxPublicKey) HideIdentity() bool {
+	return false
+}
+
+type naclBoxPrecomputedSharedKey [32]byte
+
+var _ kbcmf.BoxPrecomputedSharedKey = naclBoxPrecomputedSharedKey{}
+
+func (k naclBoxPrecomputedSharedKey) Unbox(nonce *kbcmf.Nonce, msg []byte) (
+	[]byte, error) {
+	ret, ok := box.OpenAfterPrecomputation(
+		[]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&k))
+	if !ok {
+		return nil, errPublicKeyDecryptionFailed
+	}
+	return ret, nil
 }
 
 type naclBoxSecretKey NaclDHKeyPair
 
 var _ kbcmf.BoxSecretKey = naclBoxSecretKey{}
-
-func (n naclBoxSecretKey) GetPublicKey() kbcmf.BoxPublicKey {
-	return naclBoxPublicKey(n.Public)
-}
 
 func (n naclBoxSecretKey) Box(
 	receiver kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) (
@@ -54,6 +77,19 @@ func (n naclBoxSecretKey) Unbox(
 		return nil, errPublicKeyDecryptionFailed
 	}
 	return ret, nil
+}
+
+func (n naclBoxSecretKey) GetPublicKey() kbcmf.BoxPublicKey {
+	return naclBoxPublicKey(n.Public)
+}
+
+func (n naclBoxSecretKey) Precompute(
+	sender kbcmf.BoxPublicKey) kbcmf.BoxPrecomputedSharedKey {
+	var res naclBoxPrecomputedSharedKey
+	box.Precompute((*[32]byte)(&res),
+		(*[32]byte)(sender.ToRawBoxKeyPointer()),
+		(*[32]byte)(n.Private))
+	return res
 }
 
 // A secret key also functions as a keyring with a single key.
@@ -81,4 +117,12 @@ func (n naclKeyring) LookupBoxPublicKey(kid []byte) kbcmf.BoxPublicKey {
 	}
 	copy(pk[:], kid)
 	return pk
+}
+
+func (n naclKeyring) GetAllSecretKeys() []kbcmf.BoxSecretKey {
+	return []kbcmf.BoxSecretKey{naclBoxSecretKey(n)}
+}
+
+func (n naclKeyring) ImportEphemeralKey(kid []byte) kbcmf.BoxPublicKey {
+	return n.LookupBoxPublicKey(kid)
 }
