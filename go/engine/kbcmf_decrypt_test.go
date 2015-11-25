@@ -23,8 +23,9 @@ func TestKBCMFDecrypt(t *testing.T) {
 		SecretUI:   fu.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
 	}
+	// Should encrypt for self, too.
 	arg := &KBCMFEncryptArg{
-		Recips: []string{fu.Username},
+		Recips: []string{},
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 	}
