@@ -22,6 +22,7 @@ type DeviceKeyfinder struct {
 type DeviceKeyfinderArg struct {
 	Me           *libkb.User
 	Users        []string
+	FindForSelf  bool
 	SkipTrack    bool
 	TrackOptions keybase1.TrackOptions
 }
@@ -62,6 +63,21 @@ func (e *DeviceKeyfinder) Run(ctx *Context) error {
 	err := e.verifyUsers(ctx)
 	if err != nil {
 		return err
+	}
+
+	// TODO: Remove duplicates in e.uplus.
+
+	if e.arg.FindForSelf {
+		found := false
+		for _, u := range e.uplus {
+			if u.User.GetUID() == e.arg.Me.GetUID() {
+				found = true
+				break
+			}
+		}
+		if !found {
+			e.addUser(e.arg.Me, false)
+		}
 	}
 
 	err = e.loadKeys(ctx)
