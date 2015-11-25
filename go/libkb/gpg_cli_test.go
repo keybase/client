@@ -34,7 +34,7 @@ func TestGPGImportSecret(t *testing.T) {
 	if err := tc.GenerateGPGKeyring("no@no.no"); err != nil {
 		t.Fatal(err)
 	}
-	cli := NewGpgCLI(GpgCLIArg{})
+	cli := NewGpgCLI(tc.G, nil)
 	if err := cli.Configure(); err != nil {
 		t.Fatal(err)
 	}

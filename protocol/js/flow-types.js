@@ -843,6 +843,10 @@ export type gpgUi_Stream = {
 
 export type gpgUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type gpgUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type gpgUi_GPGKey = {
   algorithm: string;
   keyID: string;
@@ -1584,6 +1588,8 @@ export type login_Stream = {
 }
 
 export type login_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type login_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type login_ConfiguredAccount = {
   username: string;

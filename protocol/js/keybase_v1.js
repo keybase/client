@@ -119,6 +119,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'identify': {
@@ -352,6 +356,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'loginUi': {

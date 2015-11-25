@@ -31,6 +31,7 @@ type LoginProvision struct {
 type LoginProvisionArg struct {
 	DeviceType string // desktop or mobile
 	Username   string // optional
+	ClientType keybase1.ClientType
 }
 
 // NewLoginProvision creates a LoginProvision engine.  username
@@ -613,7 +614,7 @@ func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	}
 
 	// create a GPGKey shell around gpg cli with fp, kid
-	return libkb.NewGPGKey(e.G(), fp, kid), nil
+	return libkb.NewGPGKey(e.G(), fp, kid, ctx.GPGUI, e.arg.ClientType), nil
 }
 
 // chooseAndImportGPGKey asks the user to select a gpg key to use,

@@ -171,9 +171,7 @@ func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
 
 func (e *PGPPullEngine) Run(ctx *Context) error {
 
-	e.gpgClient = libkb.NewGpgCLI(libkb.GpgCLIArg{
-		LogUI: ctx.LogUI,
-	})
+	e.gpgClient = libkb.NewGpgCLI(e.G(), ctx.LogUI)
 	err := e.gpgClient.Configure()
 	if err != nil {
 		return err

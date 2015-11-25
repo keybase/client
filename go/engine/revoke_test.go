@@ -155,7 +155,7 @@ func TestTrackAfterRevoke(t *testing.T) {
 		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
 		GPGUI:       &gpgtestui{},
 	}
-	li := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "")
+	li := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}

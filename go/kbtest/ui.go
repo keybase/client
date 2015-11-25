@@ -44,3 +44,7 @@ func (g *gpgtestui) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 func (g *gpgtestui) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	return true, nil
 }
+
+func (g *gpgtestui) Sign(_ context.Context, _ keybase1.SignArg) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}

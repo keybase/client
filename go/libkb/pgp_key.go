@@ -58,6 +58,15 @@ func PGPFingerprintFromHex(s string) (*PGPFingerprint, error) {
 	return ret, err
 }
 
+func PGPFingerprintFromSlice(b []byte) (*PGPFingerprint, error) {
+	if len(b) != PGPFingerprintLen {
+		return nil, fmt.Errorf("Bad fingerprint; wrong length: %d", PGPFingerprintLen)
+	}
+	var fp PGPFingerprint
+	copy(fp[:], b)
+	return &fp, nil
+}
+
 func PGPFingerprintFromHexNoError(s string) *PGPFingerprint {
 	if len(s) == 0 {
 		return nil

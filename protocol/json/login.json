@@ -159,6 +159,10 @@
     "name" : "LogLevel",
     "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
   }, {
+    "type" : "enum",
+    "name" : "ClientType",
+    "symbols" : [ "CLI_0", "GUI_1" ]
+  }, {
     "type" : "record",
     "name" : "ConfiguredAccount",
     "fields" : [ {
@@ -182,7 +186,7 @@
       }
     },
     "login" : {
-      "doc" : "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile.  username is optional.  \n    If the current device isn't provisioned, this function will \n    provision it.",
+      "doc" : "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile.  username is optional.\n    If the current device isn't provisioned, this function will\n    provision it.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -192,6 +196,9 @@
       }, {
         "name" : "username",
         "type" : "string"
+      }, {
+        "name" : "clientType",
+        "type" : "ClientType"
       } ],
       "response" : "null"
     },

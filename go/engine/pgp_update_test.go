@@ -61,9 +61,7 @@ func TestPGPUpdate(t *testing.T) {
 	// Modify the key by deleting the subkey.
 	bundle.Subkeys = []openpgp.Subkey{}
 
-	gpgCLI := libkb.NewGpgCLI(libkb.GpgCLIArg{
-		LogUI: tc.G.UI.GetLogUI(),
-	})
+	gpgCLI := libkb.NewGpgCLI(tc.G, tc.G.UI.GetLogUI())
 	err := gpgCLI.Configure()
 	if err != nil {
 		t.Fatal("Error initializing GpgCLI", err)

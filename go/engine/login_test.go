@@ -155,7 +155,7 @@ func TestLogin(t *testing.T) {
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "")
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 
 	var wg sync.WaitGroup
 
@@ -215,7 +215,7 @@ func TestProvisionPassphraseFail(t *testing.T) {
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "")
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	err := RunEngine(eng, ctx)
 	if err == nil {
 		t.Fatal("expected login to fail, but it ran without error")
@@ -248,7 +248,7 @@ func TestProvisionPassphraseNoKeys(t *testing.T) {
 		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "")
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -283,7 +283,7 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 		SecretUI:    u1.NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "")
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -341,7 +341,7 @@ func TestProvisionPaper(t *testing.T) {
 		LoginUI:     provLoginUI,
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "")
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -394,7 +394,7 @@ func TestProvisionGPGImport(t *testing.T) {
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "")
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -438,7 +438,7 @@ func TestProvisionGPGSign(t *testing.T) {
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "")
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -487,7 +487,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "")
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -530,7 +530,7 @@ func TestProvisionDupDevice(t *testing.T) {
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "")
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 
 	var wg sync.WaitGroup
 
@@ -595,7 +595,7 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, username)
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, username, keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

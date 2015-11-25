@@ -360,7 +360,7 @@ func (g *GlobalContext) OutputBytes(b []byte) {
 
 func (g *GlobalContext) GetGpgClient() *GpgCLI {
 	if g.GpgClient == nil {
-		g.GpgClient = NewGpgCLI(GpgCLIArg{})
+		g.GpgClient = NewGpgCLI(g, nil)
 	}
 	return g.GpgClient
 }

@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -45,6 +46,18 @@ func (g *gpgtestui) WantToAddGPGKey(_ context.Context, _ int) (bool, error) {
 func (g *gpgtestui) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error) {
 	g.keyChosenCount++
 	return true, nil
+}
+
+func (g *gpgtestui) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+	fp, err := libkb.PGPFingerprintFromSlice(arg.Fingerprint)
+	if err != nil {
+		return "", err
+	}
+	cli := libkb.G.GetGpgClient()
+	if err := cli.Configure(); err != nil {
+		return "", err
+	}
+	return cli.Sign(*fp, arg.Msg)
 }
 
 type gpgcanceltestui struct {
