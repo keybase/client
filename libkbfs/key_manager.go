@@ -291,11 +291,15 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 		return true, nil
 	}
 
-	newClientKeys := TLFWriterKeyBundle{
-		WKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
-		RKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
-		TLFPublicKey: pubKey,
-		// TLFEphemeralPublicKeys will be filled in by updateKeyBundle
+	newClientKeys := TLFKeyBundle{
+		TLFWriterKeyBundle: TLFWriterKeyBundle{
+			WKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
+			TLFPublicKey: pubKey,
+			// TLFEphemeralPublicKeys will be filled in by updateKeyBundle
+		},
+		TLFReaderKeyBundle: TLFReaderKeyBundle{
+			RKeys: make(map[keybase1.UID]UserCryptKeyBundle),
+		},
 	}
 	err = md.AddNewKeys(newClientKeys)
 	if err != nil {

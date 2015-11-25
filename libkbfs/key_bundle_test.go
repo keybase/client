@@ -18,7 +18,7 @@ func testKeyBundleGetKeysOrBust(t *testing.T, config Config, uid keybase1.UID,
 }
 
 func testKeyBundleCheckKeys(t *testing.T, config Config, uid keybase1.UID,
-	tkb TLFWriterKeyBundle, ePubKey TLFEphemeralPublicKey,
+	tkb TLFKeyBundle, ePubKey TLFEphemeralPublicKey,
 	tlfCryptKey TLFCryptKey, serverMap serverKeyMap) {
 	ctx := context.Background()
 	// Check that every user can recover the crypt key
@@ -79,10 +79,14 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 	}
 
 	// Make a tkb with empty UserCryptKeyBundles
-	tkb := TLFWriterKeyBundle{
-		WKeys: make(map[keybase1.UID]UserCryptKeyBundle),
-		RKeys: make(map[keybase1.UID]UserCryptKeyBundle),
-		TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+	tkb := TLFKeyBundle{
+		TLFWriterKeyBundle: TLFWriterKeyBundle{
+			WKeys: make(map[keybase1.UID]UserCryptKeyBundle),
+			TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+		},
+		TLFReaderKeyBundle: TLFReaderKeyBundle{
+			RKeys: make(map[keybase1.UID]UserCryptKeyBundle),
+		},
 	}
 
 	// Generate keys

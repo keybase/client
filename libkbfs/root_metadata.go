@@ -234,7 +234,7 @@ func (md RootMetadata) MakeSuccessor(config Config) (RootMetadata, error) {
 	return newMd, nil
 }
 
-func (md RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFWriterKeyBundle, error) {
+func (md RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFKeyBundle, error) {
 	if md.ID.IsPublic() {
 		return nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
 	}
@@ -301,7 +301,7 @@ func (md RootMetadata) LatestKeyGeneration() KeyGen {
 
 // AddNewKeys makes a new key generation for this RootMetadata using the
 // given TLFKeyBundle.
-func (md *RootMetadata) AddNewKeys(keys TLFWriterKeyBundle) error {
+func (md *RootMetadata) AddNewKeys(keys TLFKeyBundle) error {
 	if md.ID.IsPublic() {
 		return InvalidPublicTLFOperation{md.ID, "AddNewKeys"}
 	}

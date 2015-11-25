@@ -54,7 +54,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 			Revision: rev,
 		},
 	}
-	k := TLFWriterKeyBundle{}
+	k := TLFKeyBundle{}
 	rmd.Keys[0] = k
 	if mStatus == Unmerged {
 		rmd.WFlags |= MetadataFlagUnmerged
