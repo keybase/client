@@ -589,15 +589,23 @@ func chooseBinPath(bp string) (string, error) {
 	return binPath()
 }
 
+func brewPath(formula string) (string, error) {
+	// Get the homebrew install path prefix for this formula
+	prefixOutput, err := exec.Command("brew", "--prefix", formula).Output()
+	if err != nil {
+		return "", err
+	}
+	prefix := strings.TrimSpace(string(prefixOutput))
+	return prefix, nil
+}
+
 func binPath() (string, error) {
 	if libkb.IsBrewBuild {
-		binName := filepath.Base(os.Args[0])
-		// Get the homebrew install path prefix for this formula (binName)
-		prefixOutput, err := exec.Command("brew", "--prefix", binName).Output()
+		binName := binName()
+		prefix, err := brewPath(binName)
 		if err != nil {
 			return "", err
 		}
-		prefix := strings.TrimSpace(string(prefixOutput))
 		return filepath.Join(prefix, "bin", binName), nil
 	}
 
@@ -614,11 +622,22 @@ func binName() string {
 }
 
 func kbfsBinPath(runMode libkb.RunMode, binPath string) (string, error) {
+	// If it's brew lookup path by formula name
+	kbfsBinName := kbfsBinName(runMode)
+	if libkb.IsBrewBuild {
+		prefix, err := brewPath(kbfsBinName)
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(prefix, "bin", kbfsBinName), nil
+	}
+
+	// Use the same directory as the binPath
 	path, err := chooseBinPath(binPath)
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(filepath.Dir(path), kbfsBinName(runMode)), nil
+	return filepath.Join(filepath.Dir(path), kbfsBinName), nil
 }
 
 func kbfsBinName(runMode libkb.RunMode) string {
