@@ -76,8 +76,8 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	var receivers [][]libkb.NaclDHKeyPublic
 	uplus := kf.UsersPlusDeviceKeys()
+	receivers := make([][]libkb.NaclDHKeyPublic, len(uplus))
 	for _, up := range uplus {
 		var receiver []libkb.NaclDHKeyPublic
 		for _, k := range up.Keys {
@@ -94,7 +94,7 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 				receiver = append(receiver, kp.Public)
 			}
 		}
-		receivers = append(receivers, receiver)
+		receivers[up.Index] = receiver
 	}
 
 	ska := libkb.SecretKeyArg{
