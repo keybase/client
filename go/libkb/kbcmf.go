@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"bytes"
-	"errors"
 
 	"github.com/keybase/client/go/kbcmf"
 	"golang.org/x/crypto/nacl/box"
@@ -47,7 +46,7 @@ func (k naclBoxPrecomputedSharedKey) Unbox(nonce *kbcmf.Nonce, msg []byte) (
 	ret, ok := box.OpenAfterPrecomputation(
 		[]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&k))
 	if !ok {
-		return nil, errPublicKeyDecryptionFailed
+		return nil, DecryptionError{}
 	}
 	return ret, nil
 }
@@ -65,8 +64,6 @@ func (n naclBoxSecretKey) Box(
 	return ret, nil
 }
 
-var errPublicKeyDecryptionFailed = errors.New("public key decryption failed")
-
 func (n naclBoxSecretKey) Unbox(
 	sender kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) (
 	[]byte, error) {
@@ -74,7 +71,7 @@ func (n naclBoxSecretKey) Unbox(
 		(*[32]byte)(sender.ToRawBoxKeyPointer()),
 		(*[32]byte)(n.Private))
 	if !ok {
-		return nil, errPublicKeyDecryptionFailed
+		return nil, DecryptionError{}
 	}
 	return ret, nil
 }
