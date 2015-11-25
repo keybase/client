@@ -16,7 +16,6 @@ type DeviceKeyfinder struct {
 	arg      *DeviceKeyfinderArg
 	uplus    []*UserPlusDeviceKeys
 	loggedIn bool
-	runerr   error
 	libkb.Contextified
 }
 
@@ -60,10 +59,22 @@ func (e *DeviceKeyfinder) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceKeyfinder) Run(ctx *Context) error {
-	e.setup(ctx)
-	e.verifyUsers(ctx)
-	e.loadKeys(ctx)
-	return e.runerr
+	err := e.setup(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = e.verifyUsers(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = e.loadKeys(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UsersPlusDeviceKeys returns the users found while running the engine,
@@ -72,64 +83,46 @@ func (e *DeviceKeyfinder) UsersPlusDeviceKeys() []*UserPlusDeviceKeys {
 	return e.uplus
 }
 
-func (e *DeviceKeyfinder) setup(ctx *Context) {
-	if e.runerr != nil {
-		return
-	}
-
+func (e *DeviceKeyfinder) setup(ctx *Context) error {
 	ok, err := IsLoggedIn(e, ctx)
 	if err != nil {
-		e.runerr = err
-		return
+		return err
 	}
+
 	e.loggedIn = ok
+	return nil
 }
 
-func (e *DeviceKeyfinder) verifyUsers(ctx *Context) {
-	if e.runerr != nil {
-		return
-	}
-
+func (e *DeviceKeyfinder) verifyUsers(ctx *Context) error {
 	if e.loggedIn && !e.arg.SkipTrack {
-		e.trackUsers(ctx)
-	} else {
-		e.identifyUsers(ctx)
+		return e.trackUsers(ctx)
 	}
+	return e.identifyUsers(ctx)
 }
 
-func (e *DeviceKeyfinder) trackUsers(ctx *Context) {
-	if e.runerr != nil {
-		return
-	}
-
+func (e *DeviceKeyfinder) trackUsers(ctx *Context) error {
 	// need to track any users we aren't tracking
 	for _, u := range e.arg.Users {
 		if err := e.trackUser(ctx, u); err != nil {
-			e.runerr = err
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
-func (e *DeviceKeyfinder) identifyUsers(ctx *Context) {
-	if e.runerr != nil {
-		return
-	}
-
+func (e *DeviceKeyfinder) identifyUsers(ctx *Context) error {
 	// need to identify all the users
 	for _, u := range e.arg.Users {
 		if err := e.identifyUser(ctx, u); err != nil {
-			e.runerr = err
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
-func (e *DeviceKeyfinder) loadKeys(ctx *Context) {
-	if e.runerr != nil {
-		return
-	}
-
+func (e *DeviceKeyfinder) loadKeys(ctx *Context) error {
 	// get the device keys for all the users
 	for _, x := range e.uplus {
 		var keys []keybase1.PublicKey
@@ -139,11 +132,12 @@ func (e *DeviceKeyfinder) loadKeys(ctx *Context) {
 		}
 
 		if len(keys) == 0 {
-			e.runerr = fmt.Errorf("User %s doesn't have a device key", x.User.GetName())
-			return
+			return fmt.Errorf("User %s doesn't have a device key", x.User.GetName())
 		}
 		x.Keys = keys
 	}
+
+	return nil
 }
 
 func (e *DeviceKeyfinder) trackUser(ctx *Context, username string) error {
