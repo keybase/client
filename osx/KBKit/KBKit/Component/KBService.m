@@ -91,15 +91,17 @@
 }
 
 - (void)install:(KBCompletion)completion {
+  NSString *components = @"cli,service";
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
-  [KBTask execute:binPath args:@[@"-d", @"install", @"--components=cli,service"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask execute:binPath args:@[@"-d", @"install", NSStringWithFormat(@"--components=%@", components)] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
+  NSString *components = @"cli,service";
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
-  [KBTask execute:binPath args:@[@"-d", @"uninstall", @"--components=cli,service"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask execute:binPath args:@[@"-d", @"uninstall", NSStringWithFormat(@"--components=%@", components)] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }

@@ -48,4 +48,16 @@
   return _components;
 }
 
++ (instancetype)environmentForRunModeString:(NSString *)runModeString {
+  NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
+  if ([runMode isEqualToString:@"prod"]) {
+    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeProd]];
+  } else if ([runMode isEqualToString:@"staging"]) {
+    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeStaging]];
+  } else if ([runMode isEqualToString:@"devel"]) {
+    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel]];
+  }
+  return nil;
+}
+
 @end

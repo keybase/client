@@ -80,7 +80,7 @@
 - (void)install {
   [KBActivity setProgressEnabled:YES sender:self];
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installWithEnvironment:_environment force:NO completion:^() {
+  [installer installWithEnvironment:_environment force:NO completion:^(NSArray *installables) {
     [KBActivity setProgressEnabled:NO sender:self];
     [self showInstallables];
   }];

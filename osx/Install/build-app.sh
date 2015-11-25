@@ -5,17 +5,24 @@ set -e # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
-run_mode=$1
-action=$2
+action=$1
 
 bin_src=$dir/bin
 
 build_dest=$dir/build
+mkdir -p $build_dest
 
 # Flirting with custom configuration but xcodebuild archive will only do Release
 # configuration.
 xcode_configuration="Release"
 code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
+
+plist=$dir/../Keybase/Info.plist
+echo "Plist: $plist"
+run_mode="`/usr/libexec/plistBuddy -c "Print :KBRunMode" $plist`"
+app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
+app_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $plist`"
+echo "Run Mode: $run_mode"
 
 if [ "$run_mode" = "staging" ]; then
   app_name="KeybaseStage"
@@ -28,15 +35,8 @@ else
   exit 1
 fi
 
-plist=$dir/../Keybase/Info.plist
-/usr/libexec/plistBuddy -c "Set :KBRunMode '${run_mode}'" $plist
-app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
-app_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $plist`"
-
-echo "Set Run Mode: $run_mode"
-
-echo "Cleaning..."
-set -o pipefail && xcodebuild clean -scheme Keybase -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration | xcpretty -c
+#echo "Cleaning..."
+#set -o pipefail && xcodebuild clean -scheme Keybase -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration | xcpretty -c
 
 #
 # Archive

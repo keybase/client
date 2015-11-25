@@ -23,9 +23,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>48</string>
+	<string>49</string>
 	<key>KBFSBuild</key>
-	<string>23</string>
+	<string>25</string>
 	<key>KBFSVersion</key>
 	<string>1.0.0</string>
 	<key>KBFuseBuild</key>
@@ -37,17 +37,17 @@
 	<key>KBHelperVersion</key>
 	<string>1.0.17</string>
 	<key>KBRunMode</key>
-	<string>prod</string>
+	<string>devel</string>
 	<key>KBServiceBuild</key>
-	<string>47</string>
+	<string>0</string>
 	<key>KBServiceVersion</key>
-	<string>1.0.0</string>
+	<string>1.0.3</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
-	<false/>
+	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2015 Keybase. All rights reserved.</string>
 	<key>NSMainNibFile</key>
@@ -59,13 +59,5 @@
 		<key>keybase.Helper</key>
 		<string>anchor apple generic and identifier "keybase.Helper" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = "99229SGT5K")</string>
 	</dict>
-	<key>SUEnableAutomaticChecks</key>
-	<true/>
-	<key>SUEnableSystemProfiling</key>
-	<false/>
-	<key>SUFeedURL</key>
-	<string>https://keybase-app.s3.amazonaws.com/appcast.xml</string>
-	<key>SUScheduledCheckInterval</key>
-	<integer>86400</integer>
 </dict>
 </plist>

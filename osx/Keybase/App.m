@@ -1,22 +1,19 @@
 //
-//  AppDelegate.m
+//  App.m
 //  Keybase
 //
-//  Created by Gabriel on 12/11/14.
-//  Copyright (c) 2014 Gabriel Handford. All rights reserved.
+//  Created by Gabriel on 11/23/15.
+//  Copyright © 2015 Keybase. All rights reserved.
 //
 
-#import "AppDelegate.h"
+#import "App.h"
 
-#import <KBKit/KBWorkspace.h>
-#import <KBKit/KBNotifications.h>
-
-@interface AppDelegate ()
+@interface App ()
 @property NSStatusItem *statusItem;
-@property NSDictionary *config;
+@property KBApp *app;
 @end
 
-@implementation AppDelegate
+@implementation App
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
@@ -39,6 +36,8 @@
   //_statusItem.alternateImage = [NSImage imageNamed:@""]; // Highlighted
   _statusItem.highlightMode = YES; // Blue background when selected
 
+  _app = [[KBApp alloc] init];
+
   [self updateMenu];
 
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(statusChanged:) name:KBStatusDidChangeNotification object:nil];
@@ -46,16 +45,8 @@
   [_app open];
 }
 
-- (void)applicationWillTerminate:(NSNotification *)notification {
-
-}
-
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)application {
-  return NO;
-}
-
 + (instancetype)sharedDelegate {
-  return (AppDelegate *)[NSApp delegate];
+  return (App *)[NSApp delegate];
 }
 
 - (BOOL)setError:(NSError *)error sender:(NSView *)sender completion:(void (^)(NSModalResponse))completion {
@@ -74,18 +65,18 @@
   NSMenu *menu = [[NSMenu alloc] init];
 
   /*
-  [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
+   [menu addItemWithTitle:@"Preferences" action:@selector(preferences:) keyEquivalent:@""];
 
-  KBRGetCurrentStatusRes *userStatus = self.app.appView.userStatus;
-  if (userStatus) {
-    if (userStatus.loggedIn && userStatus.user) {
-      [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", userStatus.user.username) action:@selector(logout:) keyEquivalent:@""];
-      [menu addItem:[NSMenuItem separatorItem]];
-    } else {
-      [menu addItemWithTitle:@"Log In" action:@selector(login:) keyEquivalent:@""];
-      [menu addItem:[NSMenuItem separatorItem]];
-    }
-  }
+   KBRGetCurrentStatusRes *userStatus = self.app.appView.userStatus;
+   if (userStatus) {
+   if (userStatus.loggedIn && userStatus.user) {
+   [menu addItemWithTitle:NSStringWithFormat(@"Log Out (%@)", userStatus.user.username) action:@selector(logout:) keyEquivalent:@""];
+   [menu addItem:[NSMenuItem separatorItem]];
+   } else {
+   [menu addItemWithTitle:@"Log In" action:@selector(login:) keyEquivalent:@""];
+   [menu addItem:[NSMenuItem separatorItem]];
+   }
+   }
    */
 
   NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
@@ -120,21 +111,21 @@
 
 - (id)preferencesValueForIdentifier:(NSString *)identifier {
   /*
-  if ([identifier isEqualTo:@"Preferences.Sparkle.AutoUpdate"]) {
-    return @(SUUpdater.sharedUpdater.automaticallyChecksForUpdates);
-  }
+   if ([identifier isEqualTo:@"Preferences.Sparkle.AutoUpdate"]) {
+   return @(SUUpdater.sharedUpdater.automaticallyChecksForUpdates);
+   }
 
-  if ([identifier isEqualTo:@"Preferences.Sparkle.CheckInterval"]) {
-    return @(SUUpdater.sharedUpdater.updateCheckInterval);
-  }
+   if ([identifier isEqualTo:@"Preferences.Sparkle.CheckInterval"]) {
+   return @(SUUpdater.sharedUpdater.updateCheckInterval);
+   }
 
-  if ([identifier isEqualTo:@"Preferences.Sparkle.AutoDownload"]) {
-    return @(SUUpdater.sharedUpdater.automaticallyDownloadsUpdates);
-  }
+   if ([identifier isEqualTo:@"Preferences.Sparkle.AutoDownload"]) {
+   return @(SUUpdater.sharedUpdater.automaticallyDownloadsUpdates);
+   }
 
-  if ([identifier isEqualTo:@"Preferences.Sparkle.SendsProfile"]) {
-    return @(SUUpdater.sharedUpdater.sendsSystemProfile);
-  }
+   if ([identifier isEqualTo:@"Preferences.Sparkle.SendsProfile"]) {
+   return @(SUUpdater.sharedUpdater.sendsSystemProfile);
+   }
    */
 
   if ([identifier isEqualTo:@"Preferences.LaunchAtLogin"]) {
@@ -146,14 +137,14 @@
 
 - (BOOL)setPrefencesValue:(id)value forIdentifier:(NSString *)identifier synchronize:(BOOL)synchronize {
   /*
-  if ([identifier isEqualTo:@"Preferences.Sparkle.AutoUpdate"]) {
-    SUUpdater.sharedUpdater.automaticallyChecksForUpdates = [value boolValue];
-  } else if ([identifier isEqualTo:@"Preferences.Sparkle.CheckInterval"]) {
-    SUUpdater.sharedUpdater.updateCheckInterval = [value doubleValue];
-  } else if ([identifier isEqualTo:@"Preferences.Sparkle.AutoDownload"]) {
-    SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = [value boolValue];
-  } else if ([identifier isEqualTo:@"Preferences.Sparkle.SendsProfile"]) {
-    SUUpdater.sharedUpdater.sendsSystemProfile = [value boolValue];
+   if ([identifier isEqualTo:@"Preferences.Sparkle.AutoUpdate"]) {
+   SUUpdater.sharedUpdater.automaticallyChecksForUpdates = [value boolValue];
+   } else if ([identifier isEqualTo:@"Preferences.Sparkle.CheckInterval"]) {
+   SUUpdater.sharedUpdater.updateCheckInterval = [value doubleValue];
+   } else if ([identifier isEqualTo:@"Preferences.Sparkle.AutoDownload"]) {
+   SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = [value boolValue];
+   } else if ([identifier isEqualTo:@"Preferences.Sparkle.SendsProfile"]) {
+   SUUpdater.sharedUpdater.sendsSystemProfile = [value boolValue];
    */
   if ([identifier isEqualTo:@"Preferences.LaunchAtLogin"]) {
     [self setLoginEnabled:[value boolValue] forURL:[NSURL fileURLWithPath:NSBundle.mainBundle.executablePath]];
@@ -219,5 +210,6 @@
     }
   }];
 }
+
 
 @end

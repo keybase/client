@@ -10,6 +10,8 @@
 		0008F0B21BEBFEC0003C123E /* kbfsstage in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0008F0AE1BEBFEA9003C123E /* kbfsstage */; };
 		0008F0B31BEBFEC0003C123E /* kbstage in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0008F0AF1BEBFEA9003C123E /* kbstage */; };
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
+		001408061C054A8200B39DAF /* kbfsdev in CopyFiles */ = {isa = PBXBuildFile; fileRef = 001408041C054A7400B39DAF /* kbfsdev */; };
+		001408071C054A8200B39DAF /* kbdev in CopyFiles */ = {isa = PBXBuildFile; fileRef = 001408051C054A7400B39DAF /* kbdev */; };
 		001C6B3C1B24F8630048F086 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001C6B3B1B24F8630048F086 /* icon.icns */; };
 		001C6B401B24F8630048F086 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 001C6B3F1B24F8630048F086 /* ShareViewController.m */; };
 		002A4B661BC6E9EF004073BA /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002A4B651BC6E9EF004073BA /* Import.swift */; };
@@ -28,10 +30,11 @@
 		009E136B1B27B39300C72B28 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 009E136A1B27B39300C72B28 /* icon.icns */; };
 		009E136F1B27B39300C72B28 /* ActionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E136E1B27B39300C72B28 /* ActionViewController.m */; };
 		009E13711B27B39300C72B28 /* ActionViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 009E13701B27B39300C72B28 /* ActionViewController.xib */; };
-		009E137D1B28A91F00C72B28 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E137C1B28A91F00C72B28 /* AppDelegate.m */; };
 		009E167D1B28AF6800C72B28 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43551A3A9E6C006118A9 /* MainMenu.xib */; };
-		00AA041F1BFEAC470047E448 /* keybase in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00AA041C1BFEAC2A0047E448 /* keybase */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		00AA04201BFEAC4E0047E448 /* kbfs in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00AA041B1BFEAC2A0047E448 /* kbfs */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		00AA041F1BFEAC470047E448 /* keybase in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00AA041C1BFEAC2A0047E448 /* keybase */; };
+		00AA04201BFEAC4E0047E448 /* kbfs in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00AA041B1BFEAC2A0047E448 /* kbfs */; };
+		00AA04391C03D6A00047E448 /* App.m in Sources */ = {isa = PBXBuildFile; fileRef = 00AA04381C03D6A00047E448 /* App.m */; };
+		00AA043C1C03D6AF0047E448 /* Installer.m in Sources */ = {isa = PBXBuildFile; fileRef = 00AA043B1C03D6AF0047E448 /* Installer.m */; };
 		00CC43521A3A9E6C006118A9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43511A3A9E6C006118A9 /* main.m */; };
 		00CC43541A3A9E6C006118A9 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43531A3A9E6C006118A9 /* Images.xcassets */; };
 		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
@@ -67,6 +70,8 @@
 				00AA04201BFEAC4E0047E448 /* kbfs in CopyFiles */,
 				0008F0B21BEBFEC0003C123E /* kbfsstage in CopyFiles */,
 				0008F0B31BEBFEC0003C123E /* kbstage in CopyFiles */,
+				001408061C054A8200B39DAF /* kbfsdev in CopyFiles */,
+				001408071C054A8200B39DAF /* kbdev in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -111,6 +116,8 @@
 		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
 		001392731B06B18A0082DEA8 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		0013928C1B0BE5DC0082DEA8 /* uninstall_helper */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = uninstall_helper; sourceTree = "<group>"; };
+		001408041C054A7400B39DAF /* kbfsdev */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = kbfsdev; sourceTree = "<group>"; };
+		001408051C054A7400B39DAF /* kbdev */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = kbdev; sourceTree = "<group>"; };
 		001C6B371B24F8630048F086 /* Share.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Share.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		001C6B3A1B24F8630048F086 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		001C6B3B1B24F8630048F086 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
@@ -153,10 +160,12 @@
 		009E136D1B27B39300C72B28 /* ActionViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActionViewController.h; sourceTree = "<group>"; };
 		009E136E1B27B39300C72B28 /* ActionViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ActionViewController.m; sourceTree = "<group>"; };
 		009E13701B27B39300C72B28 /* ActionViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ActionViewController.xib; sourceTree = "<group>"; };
-		009E137B1B28A91F00C72B28 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		009E137C1B28A91F00C72B28 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		00AA041B1BFEAC2A0047E448 /* kbfs */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = kbfs; sourceTree = "<group>"; };
 		00AA041C1BFEAC2A0047E448 /* keybase */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = keybase; sourceTree = "<group>"; };
+		00AA04371C03D6A00047E448 /* App.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = App.h; sourceTree = "<group>"; };
+		00AA04381C03D6A00047E448 /* App.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = App.m; sourceTree = "<group>"; };
+		00AA043A1C03D6AF0047E448 /* Installer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Installer.h; sourceTree = "<group>"; };
+		00AA043B1C03D6AF0047E448 /* Installer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Installer.m; sourceTree = "<group>"; };
 		00AA750F1B27635D0069A6CC /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00AA75121B27635D0069A6CC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00CC43491A3A9E6C006118A9 /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -227,6 +236,8 @@
 		0008F0AD1BEBFEA9003C123E /* bin */ = {
 			isa = PBXGroup;
 			children = (
+				001408041C054A7400B39DAF /* kbfsdev */,
+				001408051C054A7400B39DAF /* kbdev */,
 				00AA041B1BFEAC2A0047E448 /* kbfs */,
 				00AA041C1BFEAC2A0047E448 /* keybase */,
 				0008F0AE1BEBFEA9003C123E /* kbfsstage */,
@@ -404,8 +415,10 @@
 		00CC434B1A3A9E6C006118A9 /* Keybase */ = {
 			isa = PBXGroup;
 			children = (
-				009E137B1B28A91F00C72B28 /* AppDelegate.h */,
-				009E137C1B28A91F00C72B28 /* AppDelegate.m */,
+				00AA04371C03D6A00047E448 /* App.h */,
+				00AA04381C03D6A00047E448 /* App.m */,
+				00AA043A1C03D6AF0047E448 /* Installer.h */,
+				00AA043B1C03D6AF0047E448 /* Installer.m */,
 				00CC434C1A3A9E6C006118A9 /* Supporting Files */,
 				002A4B651BC6E9EF004073BA /* Import.swift */,
 				002A4B641BC6E9EE004073BA /* Keybase-Bridging-Header.h */,
@@ -859,8 +872,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				002A4B661BC6E9EF004073BA /* Import.swift in Sources */,
-				009E137D1B28A91F00C72B28 /* AppDelegate.m in Sources */,
+				00AA04391C03D6A00047E448 /* App.m in Sources */,
 				00CC43521A3A9E6C006118A9 /* main.m in Sources */,
+				00AA043C1C03D6AF0047E448 /* Installer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

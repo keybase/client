@@ -18,8 +18,6 @@ build() {
   GO15VENDOREXPERIMENT=1 go build -tags "$tags" -o $bin_src/$service_bin github.com/keybase/client/go/keybase
   echo "Building $bin_src/$kbfs_bin"
   GO15VENDOREXPERIMENT=0 go build -tags "$tags" -o $bin_src/$kbfs_bin github.com/keybase/kbfs/kbfsfuse
-
-
 }
 
 update_version() {
@@ -44,6 +42,7 @@ update_version() {
   /usr/libexec/plistBuddy -c "Set :KBFSBuild '${kbfs_build}'" $plist
 }
 
+build devel kbdev kbfsdev
 build staging kbstage kbfsstage
 build production keybase kbfs
 update_version keybase kbfs

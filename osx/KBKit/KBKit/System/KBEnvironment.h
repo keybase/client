@@ -23,4 +23,6 @@
 
 - (NSArray *)componentsForControlPanel;
 
++ (instancetype)environmentForRunModeString:(NSString *)runModeString;
+
 @end
