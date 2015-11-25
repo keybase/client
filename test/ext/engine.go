@@ -16,9 +16,14 @@ type Engine interface {
 	// Init is called by the test harness once prior to using a KBFS interface implementation.
 	Init()
 	// InitTest is called by the test harness to initialize user
-	// instances and set up the configuration of the test.  If
-	// blockSize is zero, the engine defaults are used.
-	InitTest(blockSize int64, users ...string) map[string]User
+	// instances and set up the configuration of the test.
+	// blockChange indicates the maximum size of each data block.
+	// blockChangeSize indicates the maximum size the list of block
+	// changes can be in each MD update, before it is written to a
+	// dedicated data block instead. If blockSize or blockChangeSize
+	// are zero, the engine defaults are used.
+	InitTest(blockSize int64, blockChangeSize int64,
+		users ...string) map[string]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
 	// GetRootDir is called by the test harness to get a handle to the TLF from the given user's

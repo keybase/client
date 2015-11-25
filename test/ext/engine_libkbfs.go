@@ -33,7 +33,8 @@ func (k *LibKBFS) Init() {
 }
 
 // InitTest implements the Engine interface.
-func (k *LibKBFS) InitTest(blockSize int64, users ...string) map[string]User {
+func (k *LibKBFS) InitTest(blockSize int64, blockChangeSize int64,
+	users ...string) map[string]User {
 	// Start a new log for this test.
 	k.log = &MemoryLog{}
 	k.log.Log("\n------------------------------------------")
@@ -45,14 +46,23 @@ func (k *LibKBFS) InitTest(blockSize int64, users ...string) map[string]User {
 	// create the first user specially
 	config := libkbfs.MakeTestConfigOrBust(k.log, normalized...)
 
-	// Set the block size, if any
-	if blockSize > 0 {
+	// Set the block sizes, if any
+	if blockSize > 0 || blockChangeSize > 0 {
+		if blockSize == 0 {
+			blockSize = 64 * 1024
+		}
+		if blockChangeSize < 0 {
+			panic("Can't handle negative blockChangeSize")
+		}
+		if blockChangeSize == 0 {
+			blockChangeSize = 8 * 1024
+		}
 		// TODO: config option for max embed size.
 		bsplit, err := libkbfs.NewBlockSplitterSimple(blockSize,
-			8*1024, config.Codec())
+			uint64(blockChangeSize), config.Codec())
 		if err != nil {
-			panic(fmt.Sprintf("Couldn't make block splitter for block size %d:"+
-				" %v", blockSize, err))
+			panic(fmt.Sprintf("Couldn't make block splitter for block size %d,"+
+				" blockChangeSize %d: %v", blockSize, blockChangeSize, err))
 		}
 		config.SetBlockSplitter(bsplit)
 	}

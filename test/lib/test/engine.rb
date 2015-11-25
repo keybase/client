@@ -99,7 +99,7 @@ module Test
 
     # exported function mappings
     attach_function :Init, [:string], :bool
-    attach_function :InitTest, [:long_long, :strings], :interfaces
+    attach_function :InitTest, [:long_long, :long_long, :strings], :interfaces
     attach_function :GetUID, [:interface], :string
     attach_function :GetRootDir, [:interface, :bool, :strings, :strings], :get_root_dir_return
     attach_function :CreateDir, [:interface, :interface, :string], :create_dir_return
@@ -127,8 +127,8 @@ module Test
     #
     # cleaner interfaces for the above
     #
-    def self.init_test(block_size, users)
-      InitTest(block_size, StringArray.from_a(users)).to_a
+    def self.init_test(block_size, block_change_size, users)
+      InitTest(block_size, block_change_size, StringArray.from_a(users)).to_a
     end
 
     def self.get_uid(u)

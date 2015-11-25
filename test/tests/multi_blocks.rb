@@ -62,4 +62,27 @@ module Test
       read "a/c", "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
     end
   end
+
+  # When block changes are unembedded, make sure other users can read
+  # and apply them.
+  test :read_unembedded_block_changes, block_change_size: 5, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      write "a/b", "hello"
+    end
+    as bob do
+      read "a/b", "hello"
+      write "a/c", "hello2"
+      write "a/d", "hello3"
+      write "a/e", "hello4"
+      write "a/f", "hello5"
+    end
+    as alice do
+      lsdir "a", { "b" => "FILE", "c" => "FILE", "d" => "FILE", "e" => "FILE", "f" => "FILE" }
+      read "a/b", "hello"
+      read "a/c", "hello2"
+      read "a/d", "hello3"
+      read "a/e", "hello4"
+      read "a/f", "hello5"
+    end
+  end
 end
