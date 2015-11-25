@@ -93,6 +93,9 @@ can switch to doing something custom instead.
 
 #### What about Windows and Linux?
 
+Electron for Windows also contains a Squirrel client (though it doesn't work
+on XP), so the searching-for-updates side should be identical to OS X.
+
 OS X uses a native app to install binaries from inside the app bundle onto the
 user's system, due to necessities around code signing and privileges.  We don't
 know whether Windows has similar concerns.  If it doesn't, it's possible that
