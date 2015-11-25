@@ -56,7 +56,13 @@ func (e *KBCMFEncrypt) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	if err != nil {
+		return err
+	}
+
 	kfarg := &DeviceKeyfinderArg{
+		Me:           me,
 		Users:        e.arg.Recips,
 		TrackOptions: e.arg.TrackOptions,
 	}
@@ -85,11 +91,6 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 			}
 		}
 		receivers = append(receivers, receiver)
-	}
-
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
-		return err
 	}
 
 	ska := libkb.SecretKeyArg{

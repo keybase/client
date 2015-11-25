@@ -16,12 +16,12 @@ type DeviceKeyfinder struct {
 	arg      *DeviceKeyfinderArg
 	uplus    []*UserPlusDeviceKeys
 	loggedIn bool
-	me       *libkb.User
 	runerr   error
 	libkb.Contextified
 }
 
 type DeviceKeyfinderArg struct {
+	Me           *libkb.User
 	Users        []string
 	SkipTrack    bool
 	TrackOptions keybase1.TrackOptions
@@ -91,7 +91,6 @@ func (e *DeviceKeyfinder) verifyUsers(ctx *Context) {
 	}
 
 	if e.loggedIn && !e.arg.SkipTrack {
-		e.loadMe()
 		e.trackUsers(ctx)
 	} else {
 		e.identifyUsers(ctx)
@@ -150,7 +149,7 @@ func (e *DeviceKeyfinder) loadKeys(ctx *Context) {
 func (e *DeviceKeyfinder) trackUser(ctx *Context, username string) error {
 	e.G().Log.Debug("tracking user %q", username)
 	arg := &TrackEngineArg{
-		Me:            e.me,
+		Me:            e.arg.Me,
 		UserAssertion: username,
 		Options:       e.arg.TrackOptions,
 	}
@@ -158,7 +157,7 @@ func (e *DeviceKeyfinder) trackUser(ctx *Context, username string) error {
 	err := RunEngine(eng, ctx)
 	// ignore self track errors
 	if _, ok := err.(libkb.SelfTrackError); ok {
-		e.addUser(e.me, false)
+		e.addUser(e.arg.Me, false)
 		return nil
 	}
 	if err != nil {
@@ -185,21 +184,6 @@ type UserPlusDeviceKeys struct {
 	User      *libkb.User
 	IsTracked bool
 	Keys      []keybase1.PublicKey
-}
-
-func (e *DeviceKeyfinder) loadMe() {
-	if e.runerr != nil {
-		return
-	}
-	if e.me != nil {
-		return
-	}
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
-		e.runerr = err
-		return
-	}
-	e.me = me
 }
 
 func (e *DeviceKeyfinder) addUser(user *libkb.User, tracked bool) {
