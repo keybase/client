@@ -23,6 +23,8 @@ func KBCMFDecrypt(
 		return err
 	}
 
+	// TODO: Check header inline, and only warn if the footer
+	// doesn't match.
 	err = kbcmf.CheckArmor62Frame(frame)
 	if err != nil {
 		return err
