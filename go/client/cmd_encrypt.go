@@ -33,6 +33,8 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			}, "encrypt", c)
 		},
 		Flags: []cli.Flag{
+			// TODO: Support anonymous receiver mode.
+			// TODO: Make self-encryption optional.
 			cli.StringFlag{
 				Name:  "i, infile",
 				Usage: "Specify an input file.",
