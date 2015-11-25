@@ -114,12 +114,88 @@ func (uckb UserCryptKeyBundle) GetKIDs() []keybase1.KID {
 	return keys
 }
 
+type TLFKeyGenerations []TLFWriterKeyBundle
+
+// DeepCopy returns a complete copy of this TLFKeyGenerations.
+func (tkg TLFKeyGenerations) DeepCopy() TLFKeyGenerations {
+	keys := make(TLFKeyGenerations, len(tkg))
+	for i, k := range tkg {
+		keys[i] = k.DeepCopy()
+	}
+	return keys
+}
+
+// GetKeyGeneration returns the current key generation for this TLF.
+func (tkg TLFKeyGenerations) GetKeyGeneration() KeyGen {
+	return KeyGen(len(tkg))
+}
+
+// IsWriter returns whether or not the user+device is an authorized writer
+// for the latest generation.
+func (tkg TLFKeyGenerations) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
+	keyGen := tkg.GetKeyGeneration()
+	if keyGen < 1 {
+		return false
+	}
+	return tkg[keyGen-1].IsWriter(user, deviceKID)
+}
+
+type TLFKeyMap map[keybase1.UID]UserCryptKeyBundle
+
+// DeepCopy returns a complete copy of this TLFKeyMap
+func (tkm TLFKeyMap) DeepCopy() TLFKeyMap {
+	keys := make(TLFKeyMap, len(tkm))
+	for u, m := range tkm {
+		keys[u] = m.DeepCopy()
+	}
+	return keys
+}
+
+type TLFReaderKeyBundle TLFKeyMap
+
+// DeepCopy returns a complete copy of this TLFReaderKeyBundle.
+func (trb TLFReaderKeyBundle) DeepCopy() TLFReaderKeyBundle {
+	return TLFReaderKeyBundle(TLFKeyMap(trb).DeepCopy())
+}
+
+// IsReader returns true if the given user device is in the reader set.
+func (trb TLFReaderKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+	_, ok := trb[user][deviceKID]
+	return ok
+}
+
+type TLFReaderKeyGenerations []TLFReaderKeyBundle
+
+// GetKeyGeneration returns the current key generation for this TLF.
+func (tkg TLFReaderKeyGenerations) GetKeyGeneration() KeyGen {
+	return KeyGen(len(tkg))
+}
+
+// DeepCopy returns a complete copy of this TLFReaderKeyGenerations.
+func (trg TLFReaderKeyGenerations) DeepCopy() TLFReaderKeyGenerations {
+	keys := make(TLFReaderKeyGenerations, len(trg))
+	for i, k := range trg {
+		keys[i] = k.DeepCopy()
+	}
+	return keys
+}
+
+// IsReader returns whether or not the user+device is an authorized reader
+// for the latest generation.
+func (tkg TLFReaderKeyGenerations) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+	keyGen := tkg.GetKeyGeneration()
+	if keyGen < 1 {
+		return false
+	}
+	return tkg[keyGen-1].IsReader(user, deviceKID)
+}
+
 // TLFKeyBundle is a bundle of all the keys for a top-level folder.
-type TLFKeyBundle struct {
+type TLFWriterKeyBundle struct {
 	// Maps from each writer to their crypt key bundle.
-	WKeys map[keybase1.UID]UserCryptKeyBundle
+	WKeys TLFKeyMap
 	// Maps from each reader to their crypt key bundle.
-	RKeys map[keybase1.UID]UserCryptKeyBundle
+	RKeys TLFKeyMap
 
 	// M_f as described in 4.1.1 of https://keybase.io/blog/crypto.
 	TLFPublicKey TLFPublicKey `codec:"pubKey"`
@@ -133,8 +209,14 @@ type TLFKeyBundle struct {
 	TLFEphemeralPublicKeys []TLFEphemeralPublicKey `codec:"ePubKey"`
 }
 
+// TLFKeyBundle is a bundle of all the keys for a top-level folder.
+type TLFKeyBundle struct {
+	*TLFWriterKeyBundle
+	TLFReaderKeyBundle
+}
+
 // DeepCopy returns a complete copy of this TLFKeyBundle.
-func (tkb TLFKeyBundle) DeepCopy() TLFKeyBundle {
+func (tkb TLFWriterKeyBundle) DeepCopy() TLFWriterKeyBundle {
 	newTkb := tkb
 	newTkb.WKeys = make(map[keybase1.UID]UserCryptKeyBundle)
 	for u, m := range tkb.WKeys {
@@ -154,13 +236,13 @@ func (tkb TLFKeyBundle) DeepCopy() TLFKeyBundle {
 }
 
 // IsWriter returns true if the given user device is in the writer set.
-func (tkb *TLFKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
+func (tkb TLFWriterKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
 	_, ok := tkb.WKeys[user][deviceKID]
 	return ok
 }
 
 // IsReader returns true if the given user device is in the reader set.
-func (tkb *TLFKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+func (tkb TLFWriterKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
 	_, ok := tkb.RKeys[user][deviceKID]
 	return ok
 }
@@ -193,7 +275,7 @@ func fillInDevicesAndServerMap(crypto Crypto, newIndex int,
 // in the provided lists has complete TLF crypt key info, and uses the
 // new ephemeral key pair to generate the info if it doesn't yet
 // exist.
-func (tkb *TLFKeyBundle) fillInDevices(crypto Crypto,
+func (tkb *TLFWriterKeyBundle) fillInDevices(crypto Crypto,
 	wKeys map[keybase1.UID][]CryptPublicKey,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
 	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (
@@ -219,7 +301,7 @@ func (tkb *TLFKeyBundle) fillInDevices(crypto Crypto,
 
 // GetTLFCryptKeyInfo returns the TLFCryptKeyInfo entry for the given user
 // and device.
-func (tkb TLFKeyBundle) GetTLFCryptKeyInfo(user keybase1.UID,
+func (tkb TLFWriterKeyBundle) GetTLFCryptKeyInfo(user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (TLFCryptKeyInfo, bool, error) {
 	key := currentCryptPublicKey.KID
 	if u, ok1 := tkb.WKeys[user]; ok1 {
@@ -234,7 +316,7 @@ func (tkb TLFKeyBundle) GetTLFCryptKeyInfo(user keybase1.UID,
 
 // GetTLFEphemeralPublicKey returns the ephemeral public key used for
 // the TLFCryptKeyInfo for the given user and device.
-func (tkb TLFKeyBundle) GetTLFEphemeralPublicKey(user keybase1.UID,
+func (tkb TLFWriterKeyBundle) GetTLFEphemeralPublicKey(user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
 	key := currentCryptPublicKey.KID
 

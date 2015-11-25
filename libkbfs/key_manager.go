@@ -291,7 +291,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 		return true, nil
 	}
 
-	newClientKeys := TLFKeyBundle{
+	newClientKeys := TLFWriterKeyBundle{
 		WKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
 		RKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
 		TLFPublicKey: pubKey,

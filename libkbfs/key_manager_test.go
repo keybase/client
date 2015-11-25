@@ -117,7 +117,7 @@ func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
 
 	_, id, h := makeID(t, config, false)
 	rmd := NewRootMetadataForTest(h, id)
-	AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
+	AddNewKeysOrBust(t, rmd, TLFWriterKeyBundle{})
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -133,7 +133,7 @@ func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 
 	_, id, h := makeID(t, config, false)
 	rmd := NewRootMetadataForTest(h, id)
-	AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
+	AddNewKeysOrBust(t, rmd, TLFWriterKeyBundle{})
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -149,8 +149,8 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 
 	_, id, h := makeID(t, config, false)
 	rmd := NewRootMetadataForTest(h, id)
-	AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
-	AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
+	AddNewKeysOrBust(t, rmd, TLFWriterKeyBundle{})
+	AddNewKeysOrBust(t, rmd, TLFWriterKeyBundle{})
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectCachedGetTLFCryptKey(config, rmd, keyGen)

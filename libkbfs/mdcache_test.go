@@ -47,14 +47,14 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	mStatus MergeStatus, h *TlfHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
 		WriterMetadata: WriterMetadata{
-			ID: tlf,
+			ID:   tlf,
+			Keys: make(TLFKeyGenerations, 1, 1),
 		},
 		ReaderMetadata: ReaderMetadata{
 			Revision: rev,
-			Keys:     make([]TLFKeyBundle, 1, 1),
 		},
 	}
-	k := TLFKeyBundle{}
+	k := TLFWriterKeyBundle{}
 	rmd.Keys[0] = k
 	if mStatus == Unmerged {
 		rmd.WFlags |= MetadataFlagUnmerged

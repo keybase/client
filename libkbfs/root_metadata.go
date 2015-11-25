@@ -77,6 +77,9 @@ type WriterMetadata struct {
 	SerializedPrivateMetadata []byte `codec:"data"`
 	// For public TLFs (since those don't have any keys at all).
 	Writers []keybase1.UID
+	// For private TLFs. Key generations for this metadata. The
+	// most recent one is last in the array.
+	Keys TLFKeyGenerations
 	// The directory ID, signed over to make verification easier
 	ID TlfID
 	// The branch ID, currently only set if this is in unmerged per-device history.
@@ -106,9 +109,9 @@ type ReaderMetadata struct {
 	Revision MetadataRevision
 	// Pointer to the previous root block ID
 	PrevRoot MdID
-	// For private TLFs. Key generations for this metadata. The
+	// For private TLFs. Reader key generations for this metadata. The
 	// most recent one is last in the array.
-	Keys []TLFKeyBundle
+	RKeys TLFReaderKeyGenerations
 }
 
 // RootMetadata is the MD that is signed by the writer.
@@ -120,7 +123,7 @@ type RootMetadata struct {
 
 // GetKeyGeneration returns the current key generation for the current block.
 func (md *RootMetadata) GetKeyGeneration() KeyGen {
-	return KeyGen(len(md.Keys))
+	return md.Keys.GetKeyGeneration()
 }
 
 // MergedStatus returns the status of this update -- has it been
@@ -147,11 +150,7 @@ func (md *RootMetadata) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool
 		}
 		return false
 	}
-	keyGen := md.GetKeyGeneration()
-	if keyGen < 1 {
-		return false
-	}
-	return md.Keys[keyGen-1].IsWriter(user, deviceKID)
+	return md.Keys.IsWriter(user, deviceKID)
 }
 
 // IsReader returns whether or not the user+device is an authorized reader.
@@ -159,11 +158,7 @@ func (md *RootMetadata) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool
 	if md.ID.IsPublic() {
 		return true
 	}
-	keyGen := md.GetKeyGeneration()
-	if keyGen < 1 {
-		return false
-	}
-	return md.Keys[keyGen-1].IsReader(user, deviceKID)
+	return md.RKeys.IsReader(user, deviceKID)
 }
 
 // NewRootMetadata constructs a new RootMetadata object with the given
@@ -173,9 +168,9 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 	if id.IsPublic() {
 		writers = make([]keybase1.UID, 0, 1)
 	}
-	var keys []TLFKeyBundle
+	var keys TLFKeyGenerations
 	if id.IsPublic() {
-		keys = make([]TLFKeyBundle, 0, 1)
+		keys = make(TLFKeyGenerations, 0, 1)
 	}
 	md := RootMetadata{
 		WriterMetadata: WriterMetadata{
@@ -183,6 +178,7 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 			ID:      id,
 			BID:     BranchID{},
 			data:    PrivateMetadata{},
+			Keys:    keys,
 			// need to keep the dir handle around long
 			// enough to rekey the metadata for the first
 			// time
@@ -190,7 +186,6 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 		},
 		ReaderMetadata: ReaderMetadata{
 			Revision: MetadataRevisionInitial,
-			Keys:     keys,
 		},
 	}
 	return &md
@@ -226,10 +221,8 @@ func (md RootMetadata) MakeSuccessor(config Config) (RootMetadata, error) {
 	// no need to copy the serialized metadata, if it exists
 	newMd.Writers = make([]keybase1.UID, len(md.Writers))
 	copy(newMd.Writers, md.Writers)
-	newMd.Keys = make([]TLFKeyBundle, len(md.Keys))
-	for i, k := range md.Keys {
-		newMd.Keys[i] = k.DeepCopy()
-	}
+	newMd.Keys = md.Keys.DeepCopy()
+	newMd.RKeys = md.RKeys.DeepCopy()
 	newMd.ClearBlockChanges()
 	newMd.ClearMetadataID()
 	// no need to deep copy the full data since we just cleared the
@@ -241,7 +234,7 @@ func (md RootMetadata) MakeSuccessor(config Config) (RootMetadata, error) {
 	return newMd, nil
 }
 
-func (md RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFKeyBundle, error) {
+func (md RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFWriterKeyBundle, error) {
 	if md.ID.IsPublic() {
 		return nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
 	}
@@ -308,7 +301,7 @@ func (md RootMetadata) LatestKeyGeneration() KeyGen {
 
 // AddNewKeys makes a new key generation for this RootMetadata using the
 // given TLFKeyBundle.
-func (md *RootMetadata) AddNewKeys(keys TLFKeyBundle) error {
+func (md *RootMetadata) AddNewKeys(keys TLFWriterKeyBundle) error {
 	if md.ID.IsPublic() {
 		return InvalidPublicTLFOperation{md.ID, "AddNewKeys"}
 	}
