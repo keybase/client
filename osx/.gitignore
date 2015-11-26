@@ -21,7 +21,6 @@ DerivedData
 Pods
 
 Install/build/*
-Install/Updater/site/*.html
 Install/bin
 osxfuse
 *.bottle.tar.gz

@@ -27,14 +27,14 @@
 
 @implementation KBEnvironment
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config {
+- (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath {
   if ((self = [super init])) {
     _config = config;
-    _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel]];
-    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel]];
+    _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel] servicePath:servicePath];
+    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel] servicePath:servicePath];
 
     KBHelperTool *helperTool = [[KBHelperTool alloc] initWithConfig:config];
-    KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool];
+    KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
 
     _installables = [NSArray arrayWithObjects:_service, helperTool, fuse, _kbfs, nil];
 
@@ -48,14 +48,13 @@
   return _components;
 }
 
-+ (instancetype)environmentForRunModeString:(NSString *)runModeString {
-  NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
-  if ([runMode isEqualToString:@"prod"]) {
-    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeProd]];
-  } else if ([runMode isEqualToString:@"staging"]) {
-    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeStaging]];
-  } else if ([runMode isEqualToString:@"devel"]) {
-    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel]];
++ (instancetype)environmentForRunModeString:(NSString *)runModeString servicePath:(NSString *)servicePath {
+  if ([runModeString isEqualToString:@"prod"]) {
+    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeProd] servicePath:servicePath];
+  } else if ([runModeString isEqualToString:@"staging"]) {
+    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeStaging] servicePath:servicePath];
+  } else if ([runModeString isEqualToString:@"devel"]) {
+    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel] servicePath:servicePath];
   }
   return nil;
 }

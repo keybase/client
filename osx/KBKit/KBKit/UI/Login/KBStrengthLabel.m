@@ -8,9 +8,7 @@
 
 #import "KBStrengthLabel.h"
 
-
-#import <ZXCVBN/BBPasswordStrength.h>
-
+//#import <ZXCVBN/BBPasswordStrength.h>
 
 @implementation KBStrengthLabel
 
@@ -43,6 +41,7 @@
     return;
   }
 
+  /*
   BBPasswordStrength *strength = [[BBPasswordStrength alloc] initWithPassword:password];
 
   NSUInteger score = [strength score];
@@ -62,6 +61,7 @@
   NSString *text = ([password length] > 0 ? [self scoreLabelForScore:strength.score length:password.length] : @"");
 
   [self setText:text font:[NSFont systemFontOfSize:12] color:color alignment:NSRightTextAlignment lineBreakMode:NSLineBreakByClipping];
+   */
 }
 
 @end

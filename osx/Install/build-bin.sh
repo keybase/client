@@ -6,6 +6,7 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
 bin_src=$dir/bin
+mkdir -p $bin_src
 plist=$dir/../Keybase/Info.plist
 
 

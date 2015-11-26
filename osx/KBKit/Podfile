@@ -10,7 +10,6 @@ target "KBKit" do
   pod "GHKeychain"
   pod "Mantle"
   pod "MPMessagePack"
-  pod "ZXCVBN"
   pod "GHODictionary"
   pod "MASPreferences"
   pod "MDPSplitView"

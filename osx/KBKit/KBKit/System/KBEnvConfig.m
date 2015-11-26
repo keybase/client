@@ -105,9 +105,9 @@
   return [KBPath pathInDir:homeDir path:cachePath options:options];
 }
 
-- (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions useBundle:(BOOL)useBundle {
-  if (!useBundle) return [self serviceBinName];
-  return [KBPath pathInDir:self.bundle.sharedSupportPath path:NSStringWithFormat(@"bin/%@", [self serviceBinName]) options:pathOptions];
+- (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
+  if (!servicePath) return [self serviceBinName];
+  return [KBPath pathInDir:servicePath path:[self serviceBinName] options:pathOptions];
 }
 
 - (NSString *)serviceBinName {
@@ -118,9 +118,9 @@
   }
 }
 
-- (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions useBundle:(BOOL)useBundle {
-  if (!useBundle) return [self serviceBinName];
-  return [KBPath pathInDir:self.bundle.sharedSupportPath path:NSStringWithFormat(@"bin/%@", [self kbfsBinName]) options:pathOptions];
+- (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
+  if (!servicePath) return [self serviceBinName];
+  return [KBPath pathInDir:servicePath path:[self kbfsBinName] options:pathOptions];
 }
 
 - (NSString *)kbfsBinName {
@@ -163,10 +163,6 @@
   NSString *logDir = [KBPath path:@"~/Library/Logs" options:0];
   // Be careful of logging. I've seen launchd create these as root, and cause the service to fail.
   return NSStringWithFormat(@"%@/%@.log", logDir, label);
-}
-
-- (NSBundle *)bundle {
-  return NSBundle.mainBundle;
 }
 
 - (BOOL)validate:(NSError **)error {

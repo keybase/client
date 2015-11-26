@@ -19,11 +19,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.0.2</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>49</string>
+	<string>50</string>
 	<key>KBFSBuild</key>
 	<string>25</string>
 	<key>KBFSVersion</key>
@@ -36,8 +36,6 @@
 	<string>60</string>
 	<key>KBHelperVersion</key>
 	<string>1.0.17</string>
-	<key>KBRunMode</key>
-	<string>devel</string>
 	<key>KBServiceBuild</key>
 	<string>0</string>
 	<key>KBServiceVersion</key>

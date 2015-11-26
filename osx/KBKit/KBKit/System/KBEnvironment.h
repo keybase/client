@@ -19,10 +19,10 @@
 @property (readonly) KBFSService *kbfs;
 @property (readonly) NSArray */*of KBInstallable*/installables;
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config;
+- (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath;
 
 - (NSArray *)componentsForControlPanel;
 
-+ (instancetype)environmentForRunModeString:(NSString *)runModeString;
++ (instancetype)environmentForRunModeString:(NSString *)runModeString servicePath:(NSString *)servicePath;
 
 @end

@@ -20,14 +20,16 @@
 @property KBSemVersion *version;
 @property KBHelperTool *helperTool;
 @property KBRFuseStatus *fuseStatus;
+@property NSString *servicePath;
 @end
 
 typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 @implementation KBFuseComponent
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool {
+- (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
   if ((self = [self initWithConfig:config name:@"Fuse" info:@"Extensions for KBFS" image:[NSImage imageNamed:@"Fuse.icns"]])) {
+    _servicePath = servicePath;
     _helperTool = helperTool;
   }
   return self;
@@ -76,7 +78,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
-  [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
+  [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
 
     GHODictionary *info = [GHODictionary dictionary];
     info[@"Version"] = KBIfBlank(fuseStatus.version, nil);

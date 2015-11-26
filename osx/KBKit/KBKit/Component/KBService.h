@@ -18,6 +18,6 @@
 
 @property (readonly, nonatomic) KBRPClient *client;
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label;
+- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath;
 
 @end

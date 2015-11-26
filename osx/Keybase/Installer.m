@@ -9,13 +9,33 @@
 #import "Installer.h"
 
 #import <KBKit/KBKit.h>
+#import <GBCli/GBCli.h>
+
+@interface Installer ()
+@property NSString *servicePath;
+@property NSString *runMode;
+@end
 
 @implementation Installer
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   [KBWorkspace setupLogging];
-  Installer *installer = [[Installer alloc] init];
-  [installer install:^(NSError *error) {
+
+  NSArray *args = NSProcessInfo.processInfo.arguments;
+  GBSettings *settings = [GBSettings settingsWithName:@"CLI" parent:nil];
+  [settings setObject:@"/Users/gabe/Projects/go/src/github.com/keybase/client/osx/Install/bin" forKey:@"service-path"];
+  [settings setObject:@"prod" forKey:@"run-mode"];
+  GBCommandLineParser *parser = [[GBCommandLineParser alloc] init];
+  [parser registerOption:@"service-path" shortcut:'s' requirement:GBValueOptional];
+  [parser registerOption:@"run-mode" shortcut:'r' requirement:GBValueRequired];
+  [parser registerSettings:settings];
+  NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
+  [parser parseOptionsWithArguments:subargs commandLine:args[0]];
+  self.runMode = [settings objectForKey:@"run-mode"];
+  NSAssert(self.runMode, @"No run mode");
+  self.servicePath = [settings objectForKey:@"service-path"];
+
+  [self install:^(NSError *error) {
     [self quit:self];
   }];
 }
@@ -29,8 +49,8 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
-  KBEnvironment *environment = [KBEnvironment environmentForRunModeString:runMode];
+  NSString *runMode = self.runMode; //NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
+  KBEnvironment *environment = [KBEnvironment environmentForRunModeString:runMode servicePath:self.servicePath];
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installWithEnvironment:environment force:NO completion:^(NSArray *installables) {
     for (KBInstallable *installable in installables) {

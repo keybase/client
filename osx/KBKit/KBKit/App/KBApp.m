@@ -94,19 +94,20 @@
 
 - (void)selectEnv:(void (^)(KBEnvironment *env))completion {
   NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
+  NSString *servicePath = [KBPath pathInDir:NSBundle.mainBundle.sharedSupportPath path:@"bin" options:0];
   if ([runMode isEqualToString:@"prod"]) {
-    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeProd]]];
+    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeProd] servicePath:servicePath]];
   } else if ([runMode isEqualToString:@"staging"]) {
-    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeStaging]]];
+    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeStaging] servicePath:servicePath]];
   } else if ([runMode isEqualToString:@"devel"]) {
-    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel]]];
+    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel] servicePath:servicePath]];
   } else {
     KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
     KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
     KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(900, 600) retain:YES];
     envSelectView.onSelect = ^(KBEnvConfig *envConfig) {
       [window close];
-      KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig];
+      KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath];
       [self openWithEnvironment:environment];
     };
     window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask;
