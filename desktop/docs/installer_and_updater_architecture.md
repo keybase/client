@@ -91,10 +91,11 @@ We'd like to start by adding an endpoint to the API server that returns HTTP
 responses compatible with the [Squirrel.Server protocol](https://github.com/Squirrel/Squirrel.Mac#update-json-format)
 which Electron will ping.
 
-There's a complication, though: while the service can ask for updates *as
-a given user* inside an authenticated request, Squirrel updates don't
-authenticate.  This might require us to have the Keybase service tell
-the client about a new upgrade instead.
+There's a complication, though: while the service can ask for updates **as
+a given user** inside an authenticated request, Squirrel update requests don't
+follow our API, and so don't authenticate as a Keybase user.  This might
+require us to have the Keybase service tell the client about a new upgrade
+instead.
 
 #### How do we apply updates?
 
