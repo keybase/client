@@ -7,6 +7,7 @@ const menubar = require('menubar')
 const ipc = require('electron').ipcMain
 const Window = require('./window')
 const splash = require('./splash')
+const installer = require('./installer')
 
 const mb = menubar({
   index: `file://${__dirname}/../renderer/launcher.html`,
@@ -42,4 +43,7 @@ if (process.platform === 'darwin') {
 ipc.on('showMain', () => { mainWindow.show() })
 ipc.on('showTracker', () => { trackerWindow.show() })
 
-splash()
+installer((err) => {
+  if (err) console.log("Error: ", err)
+  splash()
+})
