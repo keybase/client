@@ -20,19 +20,18 @@ import (
 // Kex2Provisionee is an engine.
 type Kex2Provisionee struct {
 	libkb.Contextified
-	device        *libkb.Device
-	secret        kex2.Secret
-	secretCh      chan kex2.Secret
-	eddsa         libkb.NaclKeyPair
-	dh            libkb.NaclKeyPair
-	uid           keybase1.UID
-	username      string
-	sessionToken  keybase1.SessionToken
-	csrfToken     keybase1.CsrfToken
-	pps           keybase1.PassphraseStream
-	lks           *libkb.LKSec
-	tmpConfigFile string
-	ctx           *Context
+	device       *libkb.Device
+	secret       kex2.Secret
+	secretCh     chan kex2.Secret
+	eddsa        libkb.NaclKeyPair
+	dh           libkb.NaclKeyPair
+	uid          keybase1.UID
+	username     string
+	sessionToken keybase1.SessionToken
+	csrfToken    keybase1.CsrfToken
+	pps          keybase1.PassphraseStream
+	lks          *libkb.LKSec
+	ctx          *Context
 }
 
 // Kex2Provisionee implements kex2.Provisionee, libkb.UserBasic,
@@ -174,6 +173,7 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 	defer func() { e.G().Log.Debug("- HandleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
 
 	// load self user (to load merkle root)
+	e.G().Log.Debug("| running for username %s", e.username)
 	loadArg := libkb.NewLoadUserByNameArg(e.G(), e.username)
 	loadArg.LoginContext = e.ctx.LoginContext
 	_, err = libkb.LoadUser(loadArg)
@@ -229,11 +229,20 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 		return err
 	}
 
-	// swap the temporary config file into place
-	if err = e.swapConfig(); err != nil {
+	return nil
+}
+
+// saveLoginState stores the user's login state. The user config
+// file is stored in a temporary location, since we're usually in a
+// "config file transaction" at this point.
+func (e *Kex2Provisionee) saveLoginState() error {
+	if err := e.ctx.LoginContext.LoadLoginSession(e.username); err != nil {
 		return err
 	}
-
+	err := e.ctx.LoginContext.SaveState(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), e.uid, e.device.ID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -478,42 +487,17 @@ func (e *Kex2Provisionee) pushLKSServerHalf() error {
 	return nil
 }
 
-// saveLoginState stores the user's login state.  The user config
-// file is stored in a temporary location.  It must be put in
-// place with swapConfig.
-func (e *Kex2Provisionee) saveLoginState() error {
-	if err := e.ctx.LoginContext.LoadLoginSession(e.username); err != nil {
-		return err
-	}
-	filename, err := e.ctx.LoginContext.SaveStateTmp(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), e.uid, e.device.ID)
-	if err != nil {
-		return err
-	}
-	e.tmpConfigFile = filename
-	return nil
-
-}
-
 // saveKeys writes the device keys to LKSec.
 func (e *Kex2Provisionee) saveKeys() error {
-	_, err := libkb.WriteLksSKBToKeyring(e.eddsa, e.lks, e.ctx.LoginContext)
+	_, err := libkb.WriteLksSKBToKeyring(e.G(), e.eddsa, e.lks, e.ctx.LoginContext)
 	if err != nil {
 		return err
 	}
-	_, err = libkb.WriteLksSKBToKeyring(e.dh, e.lks, e.ctx.LoginContext)
+	_, err = libkb.WriteLksSKBToKeyring(e.G(), e.dh, e.lks, e.ctx.LoginContext)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-// swapConfig puts the temporary config file into place.
-func (e *Kex2Provisionee) swapConfig() error {
-	wr := e.G().Env.GetConfigWriter()
-	if wr == nil {
-		return errors.New("couldn't get config writer")
-	}
-	return wr.SwapTmp(e.tmpConfigFile)
 }
 
 func firstValues(vals url.Values) map[string]string {

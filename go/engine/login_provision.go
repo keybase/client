@@ -73,6 +73,20 @@ func (e *LoginProvision) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *LoginProvision) Run(ctx *Context) error {
+
+	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
+	if err != nil {
+		return err
+	}
+
+	// From this point on, if there's an error, we abort the
+	// transaction.
+	defer func() {
+		if tx != nil {
+			tx.Abort()
+		}
+	}()
+
 	if err := e.checkArg(); err != nil {
 		return err
 	}
@@ -95,6 +109,14 @@ func (e *LoginProvision) Run(ctx *Context) error {
 	if err := e.displaySuccess(ctx); err != nil {
 		return err
 	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// Zero out the TX so that we don't abort it in the defer()
+	// exit.
+	tx = nil
 
 	return nil
 }

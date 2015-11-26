@@ -126,7 +126,7 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUs
 func (s *Session) save() error {
 	mtime := time.Now()
 	s.GetDictionary().SetKey("mtime", jsonw.NewInt64(mtime.Unix()))
-	if err := s.file.Save(true, 0); err != nil {
+	if err := s.file.Save(); err != nil {
 		return err
 	}
 	s.mtime = mtime

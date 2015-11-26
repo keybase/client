@@ -6,7 +6,6 @@ package libkb
 import (
 	"errors"
 	"fmt"
-
 	keybase1 "github.com/keybase/client/go/protocol"
 	triplesec "github.com/keybase/go-triplesec"
 )
@@ -349,32 +348,11 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
 // SaveState saves the logins state to memory, and to the user
 // config file.
 func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
-	saver := func(cw ConfigWriter) error {
-		return cw.Write()
-	}
-	return a.saveState(sessionID, csrf, username, uid, deviceID, saver)
-}
-
-// SaveStateTmp saves the logins state to memory, and to a
-// temporary config file.
-func (a *Account) SaveStateTmp(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (filename string, err error) {
-	saver := func(cw ConfigWriter) error {
-		var serr error
-		filename, serr = cw.SaveTmp(deviceID.String())
-		return serr
-	}
-	if err := a.saveState(sessionID, csrf, username, uid, deviceID, saver); err != nil {
-		return "", err
-	}
-	return filename, nil
-}
-
-func (a *Account) saveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID, saver func(ConfigWriter) error) error {
 	cw, err := a.newUserConfigWriter(username, uid, deviceID)
 	if err != nil {
 		return err
 	}
-	if err := saver(cw); err != nil {
+	if err := cw.Save(); err != nil {
 		return err
 	}
 	return a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid, deviceID)
