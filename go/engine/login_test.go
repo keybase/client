@@ -453,6 +453,49 @@ func TestProvisionGPGSign(t *testing.T) {
 	}
 }
 
+func TestProvisionGPGSignFailedSign(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGSign(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgTestUIBadSign{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("expected a failure in login")
+	}
+
+	cf := tc2.G.Env.GetConfigFilename()
+	jf := libkb.NewJSONConfigFile(tc2.G, cf)
+	if err := jf.Load(true); err != nil {
+		t.Fatal(err)
+	}
+	devid := jf.GetDeviceID()
+	if !devid.IsNil() {
+		t.Fatalf("got a non-nil Device ID after failed GPG provision (%v)", devid)
+	}
+}
+
 // Provision device using a private GPG key (not synced to keybase
 // server), use gpg to sign (no private key import).
 // Enable secret storage.  keybase-issues#1822

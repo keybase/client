@@ -60,12 +60,12 @@ func (g *gpgtestui) Sign(_ context.Context, arg keybase1.SignArg) (string, error
 	return cli.Sign(*fp, arg.Msg)
 }
 
-type gpgcanceltestui struct {
-	*gpgtestui
+type gpgTestUIBadSign struct {
+	gpgtestui
 }
 
-func (g *gpgcanceltestui) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
-	return keybase1.SelectKeyRes{}, nil
+func (g *gpgTestUIBadSign) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+	return "", libkb.GpgError{M: "Artificial GPG failure for testing"}
 }
 
 // doesn't push secret to api server
