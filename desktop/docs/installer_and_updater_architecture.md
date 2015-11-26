@@ -26,7 +26,7 @@ always signed and they can perform privileged operations.
 
 We distribute the Keybase.app bundle inside a DMG.  Any time you launch
 Keybase.app, it launches Electron, which launches the native installer binary
-straight away.  It waits on the native installer binary exiting.  The native
+straight away.  It blocks on the native installer binary exiting.  The native
 installer binary checks the app bundle it's inside, and:
 
 * If the installer sees that the app bundle doesn't contain any newer
