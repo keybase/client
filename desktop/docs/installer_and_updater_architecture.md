@@ -1,14 +1,14 @@
 ## Installer and Updater Architecture
 
-(Background: Gabriel talked to cjb about how the installer works and should
-work in future, and we wrote up notes for everyone to review.)
+(Background: Gabriel talked to cjb about how the install/update flow works
+today and should work in future, and we wrote up notes for everyone to review.)
 
 ### Installer
 
 Let's start with OS X, because it's the most challenging environment as well as
 the one that's had the most work done on it.
 
-We have many components to keep up to date, some requiring special privileges:
+We have components to keep up to date, some requiring special privileges:
 
 1. The Go client/service binary
 2. The Electron app
@@ -17,28 +17,34 @@ We have many components to keep up to date, some requiring special privileges:
 
 Here's the plan:
 
-* We have a single "app bundle" containing all of the items above, called
-  Keybase.app.  It also contains a native installer binary and a privileged
-  helper, which handles installing 3 and 4.
+We have a single "app bundle" containing all of the items above, called
+Keybase.app.  It also contains a native installer binary and a privileged
+helper, which handles installing 3 and 4.
 
-* On OS X, app bundles look like normal executables to the user, but they're
-  always signed and they can perform privileged operations.
+On OS X, app bundles look like normal executables to the user, but they're
+always signed and they can perform privileged operations.
 
-* We distribute the Keybase.app bundle inside a DMG.  When you click on the app
-* If the installer sees that the app bundle it's inside doesn't contain any
-  newer components than are already installed, it exits very quickly, and the
+We distribute the Keybase.app bundle inside a DMG.  Any time you launch
+Keybase.app, it launches Electron, which launches the native installer binary
+straight away.  It waits on the native installer binary exiting.  The native
+installer binary checks the app bundle it's inside, and:
+
+* If the installer sees that the app bundle doesn't contain any newer
+  components than are installed on the system, it exits very quickly, and the
   fact that it ran is invisible to the user.  It does not have user-facing UI.
 
 * If the installer sees that the app bundle it's inside *does* contain new
-  components, it installs them before restarting the app.
+  components, it installs them before restarting the services and allowing
+  Electron to continue with new code.
 
-* In this sense, the installer is also the updater.  To update, we replace
-  the entire "Keybase.app" bundle with a new one, and relaunch Keybase.app,
-  which triggers Electron to start the installer before continuing.
+In this sense, the installer is also the updater.  To update, we replace
+the entire "Keybase.app" bundle with a new one and relaunch Keybase.app,
+which triggers Electron to start the installer, which performs an install,
+before continuing.
 
 Some of the installation steps are done by the privileged helper, because they
 have to be.  But most are done by our own Go code, by running `keybase install`
-using the new `keybase` binary that we're updating to.  Here are the full
+using the new `keybase` Go binary that we're updating to.  Here are the full
 commands:
 ```sh
 # Keybase service install (launchd):
@@ -67,12 +73,12 @@ keybase fuse status
 The design above limits the updater's responsibilities to:
 * check for a new version
 * download it
-* ask the user for permission to upgrade, or do so automatically if they've
+* ask the user for permission to update, or do so automatically if they've
   said they don't want to be asked every time
-* check signatures on the new upgrade, ask for admin permission if needed to
+* check signatures on the new upgrade, ask for admin permissions if needed to
   perform the install
 * replace the old app bundle on disk with the newly-downloaded one
-* restart the app, triggering the installer to notice new components
+* restart the app, triggering the installer to notice and install new services
 
 #### How do we find out about updates?
 
@@ -84,6 +90,11 @@ ping an API server endpoint asking for updates.
 We'd like to start by adding an endpoint to the API server that returns HTTP
 responses compatible with the [Squirrel.Server protocol](https://github.com/Squirrel/Squirrel.Mac#update-json-format)
 which Electron will ping.
+
+There's a complication, though: while the service can ask for updates *as
+a given user* inside an authenticated request, Squirrel updates don't
+authenticate.  This might require us to have the Keybase service tell
+the client about a new upgrade instead.
 
 #### How do we apply updates?
 
@@ -100,7 +111,8 @@ OS X uses a native app to install binaries from inside the app bundle onto the
 user's system, due to necessities around code signing and privileges.  We don't
 know whether Windows has similar concerns.  If it doesn't, it's possible that
 `keybase install` by itself is a sufficient installer, after we write a Windows
-backend for it.
+backend for it.  We could instead use Windows NuGet packages, which Squirrel
+knows how to manage on Windows.
 
 The Linux world has a culture around letting your OS perform package management
 for you, so we would expect to just push e.g. .deb package updates to our own
@@ -112,22 +124,23 @@ a system upgrade if we notice that they're lagging behind.
 We should have a script (see Gabriel's `scripts/package-desktop.sh`) that
 creates and signs an app bundle from the repo at a specified commit hash.
 We have to sign the bundle even if it's just for internal use -- that's just
-how app bundles work.
+how OS X app bundles work.
 
 We'd run the script from cron once a day on the most recent commit, and on
-demand when we're ready to cut a new stable release and push it out.
+demand whenever we're ready to cut a new stable release and push it out.
 
 #### How do we give nightlies to some users and not others?
 
 We'd like to have a new "feature flag" model on the API server.  You can assign
-flags (text strings) to users, and they're returned by the API server with
-every result.  The service stores the flags (e.g. in `config.json`) and makes
-them available to clients over RPC.
+flags (an array of strings) to users, and they would be returned by the API
+server with the result to every API request (should it be less often?).  The
+local Keybase Go service stores each registered user's flags (e.g. in
+`config.json`) and makes them available to the service's clients over RPC.
 
 Keybase staff would have the "nightly" feature flag active, and the Squirrel
 server endpoint will give a nightly build URL out to nightly users if they ask
-for one.  They should also be able to maintain a stable build Keybase install
-too.
+for one.  (They should also be able to maintain a separate stable build Keybase
+install too.)
 
 People who have been invited to the KBFS beta can get a "kbfs_active" feature
 flag.  We can check for that before exposing KBFS UI to them or trying to mount
