@@ -96,7 +96,7 @@ func NewCmdProve(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "prove",
 		ArgumentHelp: "<service> [service username]",
-		Usage:        "Generate a new proof.",
+		Usage:        "Generate a new proof",
 		Description:  description,
 		Flags: []cli.Flag{
 			cli.StringFlag{
