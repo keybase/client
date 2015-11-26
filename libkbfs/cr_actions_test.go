@@ -12,7 +12,7 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 		&copyUnmergedEntryAction{"old2", "new2", "", false, false,
 			DirEntry{}, nil},
 		&renameUnmergedAction{"old3", "new3", ""},
-		&renameMergedAction{"old4", "new4", "", BlockPointer{}},
+		&renameMergedAction{"old4", "new4", ""},
 		&copyUnmergedAttrAction{"old5", "new5", []attrChange{mtimeAttr}},
 	}
 

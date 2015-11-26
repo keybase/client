@@ -1988,6 +1988,33 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 					})
 					added = true
 				}
+				if cop.Type == Dir || len(cop.Refs()) == 0 {
+					continue
+				}
+				// Make sure to add any direct file blocks too,
+				// originating in later syncs.
+				ptr, err :=
+					unmergedChains.mostRecentFromOriginalOrSame(cop.Refs()[0])
+				if err != nil {
+					return nil, err
+				}
+				file := path{
+					FolderBranch: cr.fbo.folderBranch,
+					path:         []pathNode{{BlockPointer: ptr}},
+				}
+				fblock, err := cr.fbo.getFileBlockForReading(ctx,
+					unmergedChains.mostRecentMD, ptr, file.Branch, file)
+				if err != nil {
+					return nil, err
+				}
+				if fblock.IsInd {
+					newCreateOp.RefBlocks = make([]BlockPointer,
+						len(fblock.IPtrs)+1)
+					newCreateOp.RefBlocks[0] = cop.Refs()[0]
+					for j, iptr := range fblock.IPtrs {
+						newCreateOp.RefBlocks[j+1] = iptr.BlockPointer
+					}
+				}
 			}
 		}
 	}
@@ -2004,6 +2031,7 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 
 	cr.log.CDebugf(ctx, "Remote notifications: %v", ops)
 	for _, op := range ops {
+		cr.log.CDebugf(ctx, "%s: refs %v", op, op.Refs())
 		newMD.AddOp(op)
 	}
 
@@ -2299,6 +2327,7 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 					bps.addNewBlock(iptr.BlockPointer, nil, ReadyBlockData{})
 					// TODO: add block updates to the op chain for these guys
 					// (need encoded size!)
+					newMD.AddRefBlock(iptr.BlockInfo)
 				}
 			}
 		}

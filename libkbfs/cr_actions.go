@@ -559,12 +559,18 @@ func (rua *renameUnmergedAction) String() string {
 }
 
 // renameMergedAction says that the merged copy of a file needs to be
-// renamed, and the file blocks should be copied.
+// renamed, and the unmerged entry should be added to the merged block
+// under the old from name.  Merged file blocks do not have to be
+// copied, because renaming a merged file can only happen when the
+// conflict is with a non-file in the unmerged branch; thus, there can
+// be no shared blocks between the two.
+//
+// Note that symPath below refers to the unmerged entry that is being
+// copied into the merged block.
 type renameMergedAction struct {
 	fromName string
 	toName   string
 	symPath  string
-	oldPtr   BlockPointer
 }
 
 func (rma *renameMergedAction) swapUnmergedBlock(
@@ -576,27 +582,32 @@ func (rma *renameMergedAction) swapUnmergedBlock(
 func (rma *renameMergedAction) do(ctx context.Context,
 	unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier,
 	unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
-	ptr, name, err := crActionCopyFile(ctx, mergedCopier, rma.fromName,
-		rma.toName, "", mergedBlock, mergedBlock)
-	if err != nil {
-		return err
-	}
-	// Save these for updating the ops later.
-	rma.oldPtr = ptr
-	rma.toName = name
-
-	unmergedEntry, ok := unmergedBlock.Children[rma.fromName]
+	// Find the merged entry
+	mergedEntry, ok := mergedBlock.Children[rma.fromName]
 	if !ok {
 		return NoSuchNameError{rma.fromName}
 	}
 
-	// convert the unmerged entry into a symbolic link
+	// Make sure this entry is unique.
+	newName, err := uniquifyName(mergedBlock, rma.toName)
+	if err != nil {
+		return err
+	}
+	rma.toName = newName
+
+	mergedBlock.Children[rma.toName] = mergedEntry
+
+	// Add the unmerged entry as the new "fromName".
+	unmergedEntry, ok := unmergedBlock.Children[rma.fromName]
+	if !ok {
+		return NoSuchNameError{rma.fromName}
+	}
 	if rma.symPath != "" {
 		unmergedEntry.Type = Sym
 		unmergedEntry.SymPath = rma.symPath
 	}
-
 	mergedBlock.Children[rma.fromName] = unmergedEntry
+
 	return nil
 }
 
@@ -644,11 +655,6 @@ func (rma *renameMergedAction) updateOps(unmergedMostRecent BlockPointer,
 		// playback.
 		rop := newRenameOp(rma.fromName, unmergedMostRecent, rma.toName,
 			unmergedMostRecent, mergedEntry.BlockPointer, mergedEntry.Type)
-		// For remote notifications, we need to transform the entry's
-		// pointer into the new (de-dup'd) pointer.  mergedEntry is
-		// not yet the final pointer (that happens during syncBlock),
-		// but a later stage will convert it.
-		rop.AddUpdate(rma.oldPtr, mergedEntry.BlockPointer)
 		err := prependOpsToChain(unmergedMostRecent, unmergedChains, rop,
 			newCreateOp(rma.fromName, unmergedMostRecent, unmergedEntry.Type))
 		if err != nil {
