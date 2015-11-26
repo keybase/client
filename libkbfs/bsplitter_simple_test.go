@@ -71,6 +71,19 @@ func TestBsplitterSplitOne(t *testing.T) {
 	}
 }
 
+func TestBsplitterOverwriteMaxSizeBlock(t *testing.T) {
+	bsplit := &BlockSplitterSimple{5, 10}
+	fblock := NewFileBlock().(*FileBlock)
+	fblock.Contents = []byte{10, 9, 8, 7, 6}
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8}
+
+	if n := bsplit.CopyUntilSplit(fblock, false, data, 0); n != 5 {
+		t.Errorf("Did not copy expected number of bytes: %d", n)
+	} else if !bytes.Equal(fblock.Contents, []byte{1, 2, 3, 4, 5}) {
+		t.Errorf("Wrong file contents after copy: %v", fblock.Contents)
+	}
+}
+
 func TestBsplitterBlockTooBig(t *testing.T) {
 	bsplit := &BlockSplitterSimple{3, 10}
 	fblock := NewFileBlock().(*FileBlock)

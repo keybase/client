@@ -10,6 +10,22 @@ module Test
     end
   end
 
+  # alice writes a file, and bob overwrites it with a multi-block file
+  test :overwrite_multiblock_file, block_size: 20, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      write "a/b", "hello"
+    end
+    as bob do
+      write "a/b", "0123456789" * 15
+    end
+    as alice do
+      read "a/b", "0123456789" * 15
+    end
+    as bob do
+      read "a/b", "0123456789" * 15
+    end
+  end
+
   # bob removes a multiblock file written by alice (checks that state
   # is cleaned up)
   test :rm_multiblock_file, block_size: 20, writers: ["alice", "bob"] do |alice, bob|

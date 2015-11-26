@@ -82,19 +82,21 @@ func (b *BlockSplitterSimple) CopyUntilSplit(
 	if currLen < (off + n) {
 		moreNeeded := (n + off) - currLen
 		// Reduce the number of additional bytes if it will take this block
-		// over maxSize
-		// If it is already over maxSize w/o any added bytes, just give up
+		// over maxSize.
 		if moreNeeded+currLen > b.maxSize {
 			moreNeeded = b.maxSize - currLen
-			if moreNeeded <= 0 {
+			if moreNeeded < 0 {
+				// If it is already over maxSize w/o any added bytes,
+				// just give up.
 				return 0
 			}
 			// only copy to the end of the block
 			toCopy = b.maxSize - off
 		}
 
-		block.Contents = append(block.Contents,
-			make([]byte, moreNeeded, moreNeeded)...)
+		if moreNeeded > 0 {
+			block.Contents = append(block.Contents, make([]byte, moreNeeded)...)
+		}
 	}
 
 	// we may have filled out the block above, but we still can't copy anything
