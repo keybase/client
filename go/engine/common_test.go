@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
@@ -162,7 +163,7 @@ func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalConte
 		SecretUI:    secui,
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
-	li := NewLogin(g, libkb.DeviceTypeDesktop, fu.Username)
+	li := NewLogin(g, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI)
 	return RunEngine(li, ctx)
 }
 

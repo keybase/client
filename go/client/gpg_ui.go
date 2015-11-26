@@ -19,12 +19,13 @@ func NewGPGUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 }
 
 type GPGUI struct {
+	libkb.Contextified
 	parent   libkb.TerminalUI
 	noPrompt bool
 }
 
-func NewGPGUI(t libkb.TerminalUI, np bool) GPGUI {
-	return GPGUI{t, np}
+func NewGPGUI(g *libkb.GlobalContext, t libkb.TerminalUI, np bool) GPGUI {
+	return GPGUI{Contextified: libkb.NewContextified(g), parent: t, noPrompt: np}
 }
 
 func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, error) {
@@ -77,4 +78,16 @@ func (g GPGUI) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error)
 		return false, nil
 	}
 	return g.parent.PromptYesNo(PromptDescriptorGPGConfirmDuplicateKey, "You've already selected this public key for use on Keybase. Would you like to update it on Keybase?", libkb.PromptDefaultYes)
+}
+
+func (g GPGUI) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+	fp, err := libkb.PGPFingerprintFromSlice(arg.Fingerprint)
+	if err != nil {
+		return "", err
+	}
+	cli := g.G().GetGpgClient()
+	if err := cli.Configure(); err != nil {
+		return "", err
+	}
+	return cli.Sign(*fp, arg.Msg)
 }

@@ -67,7 +67,7 @@ func (n *signupUI) GetLoginUI() libkb.LoginUI {
 }
 
 func (n *signupUI) GetGPGUI() libkb.GPGUI {
-	return client.NewGPGUI(n.GetTerminalUI(), false)
+	return client.NewGPGUI(n.G(), n.GetTerminalUI(), false)
 }
 
 func (n *signupSecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (res keybase1.GetPassphraseRes, err error) {

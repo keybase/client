@@ -64,9 +64,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 		return fmt.Errorf("You have more than one PGP key. To update all of them, use --all.")
 	}
 
-	gpgCLI := libkb.NewGpgCLI(libkb.GpgCLIArg{
-		LogUI: ctx.LogUI,
-	})
+	gpgCLI := libkb.NewGpgCLI(e.G(), ctx.LogUI)
 	err = gpgCLI.Configure()
 	if err != nil {
 		return err

@@ -81,4 +81,9 @@ protocol Common {
 		CRITICAL_6,
 		FATAL_7
 	}
+
+	enum ClientType {
+		CLI_0,
+		GUI_1
+	}
 }

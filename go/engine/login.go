@@ -7,8 +7,8 @@ package engine
 
 import (
 	"errors"
-
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 var errNoConfig = errors.New("No user config available")
@@ -19,16 +19,18 @@ type Login struct {
 	libkb.Contextified
 	deviceType string
 	username   string
+	clientType keybase1.ClientType
 }
 
 // NewLogin creates a Login engine.  username is optional.
 // deviceType should be libkb.DeviceTypeDesktop or
 // libkb.DeviceTypeMobile.
-func NewLogin(g *libkb.GlobalContext, deviceType, username string) *Login {
+func NewLogin(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType) *Login {
 	return &Login{
 		Contextified: libkb.NewContextified(g),
 		deviceType:   deviceType,
 		username:     username,
+		clientType:   ct,
 	}
 }
 
@@ -78,6 +80,7 @@ func (e *Login) Run(ctx *Context) error {
 	darg := &LoginProvisionArg{
 		DeviceType: e.deviceType,
 		Username:   e.username,
+		ClientType: e.clientType,
 	}
 	deng := NewLoginProvision(e.G(), darg)
 	return RunEngine(deng, ctx)

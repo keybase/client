@@ -1174,6 +1174,13 @@ func (c FavoriteClient) FavoriteList(ctx context.Context, sessionID int) (res []
 	return
 }
 
+type ClientType int
+
+const (
+	ClientType_CLI ClientType = 0
+	ClientType_GUI ClientType = 1
+)
+
 type GPGKey struct {
 	Algorithm  string        `codec:"algorithm" json:"algorithm"`
 	KeyID      string        `codec:"keyID" json:"keyID"`
@@ -1205,11 +1212,17 @@ type SelectKeyArg struct {
 	Keys      []GPGKey `codec:"keys" json:"keys"`
 }
 
+type SignArg struct {
+	Msg         []byte `codec:"msg" json:"msg"`
+	Fingerprint []byte `codec:"fingerprint" json:"fingerprint"`
+}
+
 type GpgUiInterface interface {
 	WantToAddGPGKey(context.Context, int) (bool, error)
 	ConfirmDuplicateKeyChosen(context.Context, int) (bool, error)
 	SelectKeyAndPushOption(context.Context, SelectKeyAndPushOptionArg) (SelectKeyRes, error)
 	SelectKey(context.Context, SelectKeyArg) (string, error)
+	Sign(context.Context, SignArg) (string, error)
 }
 
 func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
@@ -1280,6 +1293,22 @@ func GpgUiProtocol(i GpgUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"sign": {
+				MakeArg: func() interface{} {
+					ret := make([]SignArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SignArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SignArg)(nil), args)
+						return
+					}
+					ret, err = i.Sign(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1307,6 +1336,11 @@ func (c GpgUiClient) SelectKeyAndPushOption(ctx context.Context, __arg SelectKey
 
 func (c GpgUiClient) SelectKey(ctx context.Context, __arg SelectKeyArg) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.gpgUi.selectKey", []interface{}{__arg}, &res)
+	return
+}
+
+func (c GpgUiClient) Sign(ctx context.Context, __arg SignArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.gpgUi.sign", []interface{}{__arg}, &res)
 	return
 }
 
@@ -2211,9 +2245,10 @@ type GetConfiguredAccountsArg struct {
 }
 
 type LoginArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	DeviceType string `codec:"deviceType" json:"deviceType"`
-	Username   string `codec:"username" json:"username"`
+	SessionID  int        `codec:"sessionID" json:"sessionID"`
+	DeviceType string     `codec:"deviceType" json:"deviceType"`
+	Username   string     `codec:"username" json:"username"`
+	ClientType ClientType `codec:"clientType" json:"clientType"`
 }
 
 type ClearStoredSecretArg struct {

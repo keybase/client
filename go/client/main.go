@@ -12,6 +12,6 @@ var G = libkb.G
 var GlobUI *UI
 
 func InitUI() {
-	GlobUI = &UI{}
+	GlobUI = &UI{Contextified: libkb.NewContextified(G)}
 	G.SetUI(GlobUI)
 }

@@ -19,6 +19,7 @@ import (
 )
 
 type UI struct {
+	libkb.Contextified
 	Terminal    *Terminal
 	SecretEntry *SecretEntry
 }
@@ -410,7 +411,7 @@ func (ui *UI) GetLogUI() libkb.LogUI {
 }
 
 func (ui *UI) GetGPGUI() libkb.GPGUI {
-	return NewGPGUI(ui.GetTerminalUI(), false)
+	return NewGPGUI(ui.G(), ui.GetTerminalUI(), false)
 }
 
 func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
