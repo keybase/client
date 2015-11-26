@@ -408,11 +408,11 @@ func (a AppStatusError) Error() string {
 //=============================================================================
 
 type GpgError struct {
-	m string
+	M string
 }
 
 func (e GpgError) Error() string {
-	return fmt.Sprintf("GPG error: %s", e.m)
+	return fmt.Sprintf("GPG error: %s", e.M)
 }
 
 func ErrorToGpgError(e error) GpgError {
