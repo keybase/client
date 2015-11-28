@@ -99,8 +99,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "00b6b19a18594ef73187d6c1d98c8acb11a55b07",
-			"revisionTime": "2015-11-24T14:07:52-05:00"
+			"revision": "17da0855f3fa1809de0b060efff88f21ca39b3fa",
+			"revisionTime": "2015-11-30T12:02:06-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
@@ -124,13 +124,13 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "00b6b19a18594ef73187d6c1d98c8acb11a55b07",
-			"revisionTime": "2015-11-24T14:07:52-05:00"
+			"revision": "17da0855f3fa1809de0b060efff88f21ca39b3fa",
+			"revisionTime": "2015-11-30T12:02:06-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
-			"revision": "00b6b19a18594ef73187d6c1d98c8acb11a55b07",
-			"revisionTime": "2015-11-24T14:07:52-05:00"
+			"revision": "17da0855f3fa1809de0b060efff88f21ca39b3fa",
+			"revisionTime": "2015-11-30T12:02:06-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-framed-msgpack-rpc",

@@ -147,8 +147,8 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 	// If we have no candidate subkey then we assume that it's ok to sign
 	// with the primary key.
 	i := e.primaryIdentity()
-	if !i.SelfSignature.FlagsValid || i.SelfSignature.FlagSign &&
-		!i.SelfSignature.KeyExpired(now) {
+	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagSign &&
+		!i.SelfSignature.KeyExpired(now)) && e.PrivateKey.PrivateKey != nil {
 		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature}, true
 	}
 
@@ -224,7 +224,7 @@ func (el EntityList) KeysByIdUsage(id uint64, requiredUsage byte) (keys []Key) {
 func (el EntityList) DecryptionKeys() (keys []Key) {
 	for _, e := range el {
 		for _, subKey := range e.Subkeys {
-			if subKey.PrivateKey != nil && (!subKey.Sig.FlagsValid || subKey.Sig.FlagEncryptStorage || subKey.Sig.FlagEncryptCommunications) {
+			if subKey.PrivateKey != nil && subKey.PrivateKey.PrivateKey != nil && (!subKey.Sig.FlagsValid || subKey.Sig.FlagEncryptStorage || subKey.Sig.FlagEncryptCommunications) {
 				keys = append(keys, Key{e, subKey.PublicKey, subKey.PrivateKey, subKey.Sig})
 			}
 		}
@@ -539,9 +539,11 @@ func (e *Entity) SerializePrivate(w io.Writer, config *packet.Config) (err error
 		if err != nil {
 			return
 		}
-		err = ident.SelfSignature.SignUserId(ident.UserId.Id, e.PrimaryKey, e.PrivateKey, config)
-		if err != nil {
-			return
+		if e.PrivateKey.PrivateKey != nil {
+			err = ident.SelfSignature.SignUserId(ident.UserId.Id, e.PrimaryKey, e.PrivateKey, config)
+			if err != nil {
+				return
+			}
 		}
 		err = ident.SelfSignature.Serialize(w)
 		if err != nil {
@@ -553,9 +555,11 @@ func (e *Entity) SerializePrivate(w io.Writer, config *packet.Config) (err error
 		if err != nil {
 			return
 		}
-		err = subkey.Sig.SignKey(subkey.PublicKey, e.PrivateKey, config)
-		if err != nil {
-			return
+		if e.PrivateKey.PrivateKey != nil {
+			err = subkey.Sig.SignKey(subkey.PublicKey, e.PrivateKey, config)
+			if err != nil {
+				return
+			}
 		}
 		err = subkey.Sig.Serialize(w)
 		if err != nil {
