@@ -15,7 +15,7 @@ func platformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	case "darwin":
 		darwinUpgradeInstructions(g, upgradeURI)
 	case "windows":
-		// TODO
+		windowsUpgradeInstructions(g, upgradeURI)
 	}
 }
 
@@ -60,6 +60,10 @@ func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	// TODO: non-brew update instructions
 }
 
+func windowsUpgradeInstructions(g *GlobalContext, upgradeURI string) {
+
+	g.Log.Warning("To upgrade, download the latest Keybase installer from " + upgradeURI)
+}
 func printUpgradeCommand(g *GlobalContext, command string) {
 	g.Log.Warning("To upgrade, run the following command:")
 	g.Log.Warning("    " + command)
