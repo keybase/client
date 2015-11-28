@@ -13,7 +13,7 @@ type Backend interface {
 	Log(Level, int, *Record) error
 }
 
-// Set backend replaces the backend currently set with the given new logging
+// SetBackend replaces the backend currently set with the given new logging
 // backend.
 func SetBackend(backends ...Backend) LeveledBackend {
 	var backend Backend

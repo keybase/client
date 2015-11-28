@@ -28,6 +28,11 @@
 			"revisionTime": "2015-06-05T22:16:32-04:00"
 		},
 		{
+			"path": "github.com/ThomasRooney/gexpect",
+			"revision": "198e633498deb21c513a0344282eda5c98f7969a",
+			"revisionTime": "2015-11-18T11:02:55Z"
+		},
+		{
 			"path": "github.com/agl/ed25519",
 			"revision": "d2b94fd789ea21d12fac1a4443dd3a3f79cda72c",
 			"revisionTime": "2014-09-07T16:52:47-07:00"
@@ -93,11 +98,6 @@
 			"revisionTime": "2015-09-21T11:51:56-05:00"
 		},
 		{
-			"path": "github.com/keybase/gexpect",
-			"revision": "ee89fae10da05b12dc601c00fb9a44c2da537a44",
-			"revisionTime": "2015-11-04T12:32:31-08:00"
-		},
-		{
 			"path": "github.com/keybase/go-crypto/openpgp",
 			"revision": "00b6b19a18594ef73187d6c1d98c8acb11a55b07",
 			"revisionTime": "2015-11-24T14:07:52-05:00"
@@ -153,11 +153,6 @@
 			"revisionTime": "2015-11-17T11:50:13-08:00"
 		},
 		{
-			"path": "github.com/keybase/go-logging",
-			"revision": "5bdfcf4cc17c3cefffc209f5780a259bafcd057e",
-			"revisionTime": "2015-10-15T11:08:39-07:00"
-		},
-		{
 			"path": "github.com/keybase/go-osxkeychain",
 			"revision": "895167325dc959eeb550354611609b1191f3403f",
 			"revisionTime": "2015-09-29T10:58:21-05:00"
@@ -188,9 +183,9 @@
 			"revisionTime": "2015-10-05T10:18:12-07:00"
 		},
 		{
-			"path": "github.com/keybase/pty",
-			"revision": "fe7bf4339680885ba71b3e0a2b07ff378a9020e4",
-			"revisionTime": "2015-11-04T12:44:15-08:00"
+			"path": "github.com/kr/pty",
+			"revision": "f7ee69f31298ecbe5d2b349c711e2547a617d398",
+			"revisionTime": "2015-10-07T16:04:24-07:00"
 		},
 		{
 			"path": "github.com/kr/text",
@@ -201,6 +196,11 @@
 			"path": "github.com/natefinch/npipe",
 			"revision": "0938d701e50e580f5925c773055eb6d6b32a0cbc",
 			"revisionTime": "2014-10-08T16:43:58+02:00"
+		},
+		{
+			"path": "github.com/op/go-logging",
+			"revision": "f2de3fa73ede49624df5ca7467011ac4fcd43635",
+			"revisionTime": "2015-11-24T23:46:48+01:00"
 		},
 		{
 			"path": "github.com/syndtr/goleveldb/leveldb",

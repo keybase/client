@@ -199,7 +199,7 @@ func (b *ChannelMemoryBackend) insertRecord(rec *Record) {
 	if b.maxSize > 0 && b.size >= b.maxSize {
 		b.head = b.head.next
 	} else {
-		b.size += 1
+		b.size++
 	}
 }
 

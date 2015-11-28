@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	logging "github.com/keybase/go-logging"
+	logging "github.com/op/go-logging"
 	"golang.org/x/net/context"
 )
 

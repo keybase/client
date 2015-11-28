@@ -31,16 +31,16 @@ const (
 	// -- The attributes are combined to produce various colors (e.g., Blue + Green will create Cyan).
 	//    Clearing all foreground or background colors results in black; setting all creates white.
 	// See https://msdn.microsoft.com/en-us/library/windows/desktop/ms682088(v=vs.85).aspx#_win32_character_attributes.
-	FOREGROUND_BLACK     WORD = 0x0000
-	FOREGROUND_BLUE      WORD = 0x0001
-	FOREGROUND_GREEN     WORD = 0x0002
-	FOREGROUND_CYAN      WORD = 0x0003
-	FOREGROUND_RED       WORD = 0x0004
-	FOREGROUND_MAGENTA   WORD = 0x0005
-	FOREGROUND_YELLOW    WORD = 0x0006
-	FOREGROUND_WHITE     WORD = 0x0007
-	FOREGROUND_INTENSITY WORD = 0x0008
-	FOREGROUND_MASK      WORD = 0x000F
+	fgBlack     WORD = 0x0000
+	fgBlue      WORD = 0x0001
+	fgGreen     WORD = 0x0002
+	fgCyan      WORD = 0x0003
+	fgRed       WORD = 0x0004
+	fgMagenta   WORD = 0x0005
+	fgYellow    WORD = 0x0006
+	fgWhite     WORD = 0x0007
+	fgIntensity WORD = 0x0008
+	fgMask      WORD = 0x000F
 )
 
 // LogBackend utilizes the standard log module.
@@ -63,30 +63,28 @@ func (b *LogBackend) Log(level Level, calldepth int, rec *Record) error {
 		// For some reason, the Go logger arbitrarily decided "2" was the correct
 		// call depth...
 		err := b.Logger.Output(calldepth+2, buf.String())
-		setConsoleTextAttribute(b.Handle, FOREGROUND_WHITE)
+		setConsoleTextAttribute(b.Handle, fgWhite)
 		return err
-	} else {
-		return b.Logger.Output(calldepth+2, rec.Formatted(calldepth+1))
 	}
-	panic("should not be reached")
+	return b.Logger.Output(calldepth+2, rec.Formatted(calldepth+1))
 }
 
 func init() {
 	colors = []WORD{
-		INFO:     FOREGROUND_WHITE,
-		CRITICAL: FOREGROUND_MAGENTA,
-		ERROR:    FOREGROUND_RED,
-		WARNING:  FOREGROUND_YELLOW,
-		NOTICE:   FOREGROUND_GREEN,
-		DEBUG:    FOREGROUND_CYAN,
+		INFO:     fgWhite,
+		CRITICAL: fgMagenta,
+		ERROR:    fgRed,
+		WARNING:  fgYellow,
+		NOTICE:   fgGreen,
+		DEBUG:    fgCyan,
 	}
 	boldcolors = []WORD{
-		INFO:     FOREGROUND_WHITE | FOREGROUND_INTENSITY,
-		CRITICAL: FOREGROUND_MAGENTA | FOREGROUND_INTENSITY,
-		ERROR:    FOREGROUND_RED | FOREGROUND_INTENSITY,
-		WARNING:  FOREGROUND_YELLOW | FOREGROUND_INTENSITY,
-		NOTICE:   FOREGROUND_GREEN | FOREGROUND_INTENSITY,
-		DEBUG:    FOREGROUND_CYAN | FOREGROUND_INTENSITY,
+		INFO:     fgWhite | fgIntensity,
+		CRITICAL: fgMagenta | fgIntensity,
+		ERROR:    fgRed | fgIntensity,
+		WARNING:  fgYellow | fgIntensity,
+		NOTICE:   fgGreen | fgIntensity,
+		DEBUG:    fgCyan | fgIntensity,
 	}
 }
 

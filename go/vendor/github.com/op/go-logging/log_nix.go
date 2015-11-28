@@ -20,7 +20,7 @@ var boldcolors []string
 type color int
 
 const (
-	colorBlack = (iota + 30)
+	colorBlack = iota + 30
 	colorRed
 	colorGreen
 	colorYellow
@@ -41,6 +41,7 @@ func NewLogBackend(out io.Writer, prefix string, flag int) *LogBackend {
 	return &LogBackend{Logger: log.New(out, prefix, flag)}
 }
 
+// Log implements the Backend interface.
 func (b *LogBackend) Log(level Level, calldepth int, rec *Record) error {
 	if b.Color {
 		buf := &bytes.Buffer{}
@@ -50,10 +51,9 @@ func (b *LogBackend) Log(level Level, calldepth int, rec *Record) error {
 		// For some reason, the Go logger arbitrarily decided "2" was the correct
 		// call depth...
 		return b.Logger.Output(calldepth+2, buf.String())
-	} else {
-		return b.Logger.Output(calldepth+2, rec.Formatted(calldepth+1))
 	}
-	panic("should not be reached")
+
+	return b.Logger.Output(calldepth+2, rec.Formatted(calldepth+1))
 }
 
 func colorSeq(color color) string {
