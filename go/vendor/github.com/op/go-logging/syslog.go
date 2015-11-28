@@ -31,6 +31,7 @@ func NewSyslogBackendPriority(prefix string, priority syslog.Priority) (b *Syslo
 	return &SyslogBackend{w}, err
 }
 
+// Log implements the Backend interface.
 func (b *SyslogBackend) Log(level Level, calldepth int, rec *Record) error {
 	line := rec.Formatted(calldepth + 1)
 	switch level {

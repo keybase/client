@@ -29,7 +29,7 @@ var log = logging.MustGetLogger("example")
 // which is dependent on the log level. Many fields have a custom output
 // formatting too, eg. the time returns the hour down to the milli second.
 var format = logging.MustStringFormatter(
-	"%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}",
+	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 )
 
 // Password is just an example type implementing the Redactor interface. Any
@@ -57,7 +57,7 @@ func main() {
 	// Set the backends to be used.
 	logging.SetBackend(backend1Leveled, backend2Formatter)
 
-	log.Debug("debug %s", Password("secret"))
+	log.Debugf("debug %s", Password("secret"))
 	log.Info("info")
 	log.Notice("notice")
 	log.Warning("warning")
