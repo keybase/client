@@ -5,7 +5,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/cache/favcache"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -77,23 +76,29 @@ func (c diskFavoriteClient) Shutdown() {
 }
 
 type memoryFavoriteClient struct {
-	favorites *favcache.Cache
+	favorites map[string]keybase1.Folder
 }
 
 var _ favoriteStore = memoryFavoriteClient{}
 
 func (c memoryFavoriteClient) FavoriteAdd(folder keybase1.Folder) error {
-	c.favorites.Add(folder)
+	c.favorites[folder.ToString()] = folder
 	return nil
 }
 
 func (c memoryFavoriteClient) FavoriteDelete(folder keybase1.Folder) error {
-	c.favorites.Delete(folder)
+	delete(c.favorites, folder.ToString())
 	return nil
 }
 
 func (c memoryFavoriteClient) FavoriteList(sessionID int) ([]keybase1.Folder, error) {
-	return c.favorites.List(), nil
+	folders := make([]keybase1.Folder, len(c.favorites))
+	i := 0
+	for _, v := range c.favorites {
+		folders[i] = v
+		i++
+	}
+	return folders, nil
 }
 
 func (c memoryFavoriteClient) Shutdown() {}
@@ -194,7 +199,9 @@ func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []LocalUser, favDBFile 
 // a set of possible users, and one user that should be "logged in".
 // Any storage (e.g. the favorites) is kept in memory only.
 func NewKeybaseDaemonMemory(currentUID keybase1.UID, users []LocalUser) KeybaseDaemonLocal {
-	favoriteStore := memoryFavoriteClient{favcache.New()}
+	favoriteStore := memoryFavoriteClient{
+		favorites: make(map[string]keybase1.Folder),
+	}
 	return newKeybaseDaemonLocal(currentUID, users, favoriteStore)
 }
 
