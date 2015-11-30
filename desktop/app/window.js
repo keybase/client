@@ -9,7 +9,7 @@ export default class Window {
     this.releaseDockIcon = null
   }
 
-  show () {
+  show (shouldShowDockIcon) {
     if (this.window) {
       if (!this.window.isFocused()) {
         this.window.focus()
@@ -18,7 +18,7 @@ export default class Window {
     }
 
     this.window = new BrowserWindow(this.opts)
-    this.releaseDockIcon = showDockIcon()
+    this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
     this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
 
     this.window.on('closed', () => {

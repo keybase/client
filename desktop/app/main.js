@@ -39,7 +39,7 @@ if (process.platform === 'darwin') {
   mb.app.on('quit', () => { mb.tray.destroy() })
 }
 
-ipc.on('showMain', () => { mainWindow.show() })
-ipc.on('showTracker', () => { trackerWindow.show() })
+ipc.on('showMain', () => { mainWindow.show(true) })
+ipc.on('showTracker', () => { trackerWindow.show(true) })
 
 splash()
