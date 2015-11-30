@@ -95,7 +95,7 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 	observedEldest := s.u.GetEldestKID()
 	if s.track != nil {
 		trackedEldest := s.track.GetEldestKID()
-		if observedEldest != trackedEldest {
+		if observedEldest.NotEqual(trackedEldest) {
 			diff := TrackDiffNewEldest{tracked: trackedEldest, observed: observedEldest}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 			display(observedEldest, diff)
