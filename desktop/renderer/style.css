@@ -1,4 +1,4 @@
-// Noto Sans
+/* Noto Sans */
 @font-face {
 	font-family: "Noto Sans";
 	font-style: normal;
@@ -24,7 +24,7 @@
     src: url(fonts/NotoSans-BoldItalic.ttf);
 }
 
-// Roboto
+/* Roboto */
 @font-face {
     font-family: 'Roboto';
     font-weight: 300;
