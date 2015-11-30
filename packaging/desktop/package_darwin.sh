@@ -10,8 +10,18 @@ build_dir="$dir/build"
 mkdir -p $build_dir
 
 app_name=Keybase
-app_version=1.0.2
-app_build=1
+app_version=$1
+app_build=$2
+
+if [ "$app_version" = "" ]; then
+  echo "No app version specified"
+  exit 1
+fi
+
+if [ "$app_build" = "" ]; then
+  echo "No build version specified"
+  exit 1
+fi
 
 out_dir="$build_dir/Keybase-darwin-x64"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
@@ -29,8 +39,8 @@ clean() {
 
 clean_deps() {
   rm -rf $installer_app
-  rm $keybase_bin
-  rm $kbfs_bin
+  rm -f $keybase_bin
+  rm -f $kbfs_bin
 }
 
 check_deps() {
@@ -58,7 +68,7 @@ build() {
   cp desktop/package.json .
   json -I -f package.json -e 'this.main="desktop/app/main.js"'
 
-  npm install --production
+  npm install #--production
 }
 
 # Build Keybase.app
@@ -89,6 +99,12 @@ package_app() {
   cp -R $installer_app $resources_dir/Installer.app
 }
 
+sign() {
+  cd $out_dir
+  code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
+  codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
+}
+
 # Create dmg from Keybase.app
 package_dmg() {
   cd $out_dir
@@ -110,6 +126,7 @@ check_deps
 build
 package_electron
 package_app
+sign
 package_dmg
 
 open $out_dir
