@@ -1325,3 +1325,29 @@ func TestCiphertextSwapSenders(t *testing.T) {
 		t.Fatalf("Got %v but wanted %v", err, errPublicKeyDecryptionFailed)
 	}
 }
+
+func TestBadGroupIDTopBit(t *testing.T) {
+	receivers := [][]BoxPublicKey{
+		[]BoxPublicKey{
+			newHiddenBoxKey(t).GetPublicKey(),
+		},
+	}
+	plaintext := randomMsg(t, 1024*3)
+	teo := testEncryptionOptions{
+		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
+			if gid == 0 && rid == 0 {
+				rkp.GroupID ^= groupIDMask
+			}
+		},
+	}
+	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = Open(ciphertext, kr)
+	if berr, ok := err.(ErrBadGroupID); !ok {
+		t.Fatalf("Got %v but wanted %v", err, ErrBadGroupID(0))
+	} else if int(berr) != 0 {
+		t.Fatalf("Wanted bad group id 0; got %d", int(berr))
+	}
+}

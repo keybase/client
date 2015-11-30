@@ -232,9 +232,12 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 }
 
 func (ds *decryptStream) checkMAC(bl *EncryptionBlock, b []byte) error {
+	if (ds.keys.GroupID & groupIDMask) != groupIDMask {
+		return ErrBadGroupID(ds.keys.GroupID)
+	}
 	gid := (ds.keys.GroupID ^ groupIDMask)
 
-	if len(bl.MACs) <= gid {
+	if int64(len(bl.MACs)) <= int64(gid) {
 		return ErrBadGroupID(gid)
 	}
 
