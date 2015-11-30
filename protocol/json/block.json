@@ -159,6 +159,10 @@
     "name" : "LogLevel",
     "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
   }, {
+    "type" : "enum",
+    "name" : "ClientType",
+    "symbols" : [ "CLI_0", "GUI_1" ]
+  }, {
     "type" : "record",
     "name" : "BlockIdCombo",
     "fields" : [ {
@@ -217,6 +221,12 @@
       }, {
         "name" : "buf",
         "type" : "bytes"
+      }, {
+        "name" : "logTags",
+        "type" : {
+          "type" : "map",
+          "values" : "string"
+        }
       } ],
       "response" : "null"
     },
@@ -224,6 +234,12 @@
       "request" : [ {
         "name" : "bid",
         "type" : "BlockIdCombo"
+      }, {
+        "name" : "logTags",
+        "type" : {
+          "type" : "map",
+          "values" : "string"
+        }
       } ],
       "response" : "GetBlockRes"
     },
@@ -234,6 +250,12 @@
       }, {
         "name" : "ref",
         "type" : "BlockReference"
+      }, {
+        "name" : "logTags",
+        "type" : {
+          "type" : "map",
+          "values" : "string"
+        }
       } ],
       "response" : "null"
     },
@@ -244,6 +266,12 @@
       }, {
         "name" : "ref",
         "type" : "BlockReference"
+      }, {
+        "name" : "logTags",
+        "type" : {
+          "type" : "map",
+          "values" : "string"
+        }
       } ],
       "response" : "null"
     },
@@ -256,6 +284,12 @@
         "type" : {
           "type" : "array",
           "items" : "BlockReference"
+        }
+      }, {
+        "name" : "logTags",
+        "type" : {
+          "type" : "map",
+          "values" : "string"
         }
       } ],
       "response" : {

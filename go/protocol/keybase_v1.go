@@ -152,6 +152,13 @@ const (
 	LogLevel_FATAL    LogLevel = 7
 )
 
+type ClientType int
+
+const (
+	ClientType_CLI ClientType = 0
+	ClientType_GUI ClientType = 1
+)
+
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
@@ -174,35 +181,40 @@ type AuthenticateSessionArg struct {
 }
 
 type PutBlockArg struct {
-	Bid      BlockIdCombo `codec:"bid" json:"bid"`
-	Folder   string       `codec:"folder" json:"folder"`
-	BlockKey string       `codec:"blockKey" json:"blockKey"`
-	Buf      []byte       `codec:"buf" json:"buf"`
+	Bid      BlockIdCombo      `codec:"bid" json:"bid"`
+	Folder   string            `codec:"folder" json:"folder"`
+	BlockKey string            `codec:"blockKey" json:"blockKey"`
+	Buf      []byte            `codec:"buf" json:"buf"`
+	LogTags  map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type GetBlockArg struct {
-	Bid BlockIdCombo `codec:"bid" json:"bid"`
+	Bid     BlockIdCombo      `codec:"bid" json:"bid"`
+	LogTags map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type AddReferenceArg struct {
-	Folder string         `codec:"folder" json:"folder"`
-	Ref    BlockReference `codec:"ref" json:"ref"`
+	Folder  string            `codec:"folder" json:"folder"`
+	Ref     BlockReference    `codec:"ref" json:"ref"`
+	LogTags map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type DelReferenceArg struct {
-	Folder string         `codec:"folder" json:"folder"`
-	Ref    BlockReference `codec:"ref" json:"ref"`
+	Folder  string            `codec:"folder" json:"folder"`
+	Ref     BlockReference    `codec:"ref" json:"ref"`
+	LogTags map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type ArchiveReferenceArg struct {
-	Folder string           `codec:"folder" json:"folder"`
-	Refs   []BlockReference `codec:"refs" json:"refs"`
+	Folder  string            `codec:"folder" json:"folder"`
+	Refs    []BlockReference  `codec:"refs" json:"refs"`
+	LogTags map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type BlockInterface interface {
 	AuthenticateSession(context.Context, string) error
 	PutBlock(context.Context, PutBlockArg) error
-	GetBlock(context.Context, BlockIdCombo) (GetBlockRes, error)
+	GetBlock(context.Context, GetBlockArg) (GetBlockRes, error)
 	AddReference(context.Context, AddReferenceArg) error
 	DelReference(context.Context, DelReferenceArg) error
 	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
@@ -255,7 +267,7 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetBlockArg)(nil), args)
 						return
 					}
-					ret, err = i.GetBlock(ctx, (*typedArgs)[0].Bid)
+					ret, err = i.GetBlock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -327,8 +339,7 @@ func (c BlockClient) PutBlock(ctx context.Context, __arg PutBlockArg) (err error
 	return
 }
 
-func (c BlockClient) GetBlock(ctx context.Context, bid BlockIdCombo) (res GetBlockRes, err error) {
-	__arg := GetBlockArg{Bid: bid}
+func (c BlockClient) GetBlock(ctx context.Context, __arg GetBlockArg) (res GetBlockRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.getBlock", []interface{}{__arg}, &res)
 	return
 }
@@ -1174,13 +1185,6 @@ func (c FavoriteClient) FavoriteList(ctx context.Context, sessionID int) (res []
 	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
 	return
 }
-
-type ClientType int
-
-const (
-	ClientType_CLI ClientType = 0
-	ClientType_GUI ClientType = 1
-)
 
 type GPGKey struct {
 	Algorithm  string        `codec:"algorithm" json:"algorithm"`

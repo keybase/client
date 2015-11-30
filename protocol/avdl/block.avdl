@@ -19,11 +19,11 @@ protocol block {
 
   void authenticateSession(string signature);
 
-  void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
-  GetBlockRes getBlock(BlockIdCombo bid);
+  void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf, map<string> logTags);
+  GetBlockRes getBlock(BlockIdCombo bid, map<string> logTags);
 
-  void addReference(string folder, BlockReference ref);
-  void delReference(string folder, BlockReference ref);
-  array<BlockReference> archiveReference(string folder, array<BlockReference> refs);
+  void addReference(string folder, BlockReference ref, map<string> logTags);
+  void delReference(string folder, BlockReference ref, map<string> logTags);
+  array<BlockReference> archiveReference(string folder, array<BlockReference> refs, map<string> logTags);
   
 }
