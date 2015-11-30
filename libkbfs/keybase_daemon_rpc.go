@@ -205,7 +205,13 @@ func (k *KeybaseDaemonRPC) ShouldThrottle(err error) bool {
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 	UserInfo, error) {
-	arg := keybase1.IdentifyArg{UserAssertion: assertion}
+	// setting UseDelegateUI to true here will cause daemon to use
+	// registered identify ui providers instead of terminal if any
+	// are available.  If not, then it will use the terminal UI.
+	arg := keybase1.IdentifyArg{
+		UserAssertion: assertion,
+		UseDelegateUI: true,
+	}
 	res, err := k.identifyClient.Identify(ctx, arg)
 	if err != nil {
 		return UserInfo{}, err
