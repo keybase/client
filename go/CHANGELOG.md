@@ -1,6 +1,6 @@
 ## 1.0.4-0 (2015-11-30)
 
-- Save exported GPG key to local encrypted keyring (PR: keybase/client#1422)
+- Save exported GPG key to local encrypted keyring (PR: keybase/client#1419)
 - Fix ugly warnings when eldest key not PGP key (PR: keybase/client#1422)
 - Further bugfixes for S2K Dummy mode (PR: keybase/client#1420)
 - Better handling of shell out to GPG during provisioning (PR: keybase/client#1405)
