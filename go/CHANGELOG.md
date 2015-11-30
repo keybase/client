@@ -7,6 +7,7 @@
 - Avoid half-provisioned state by doing provisioning work in a transaction-like pattern
    (PR: keybase/client#1406)
 - Allow `keybase prove web` to work as in online documentation (PR: keybase/client#1418)
+- Workaround for login after sigchain reset (Commmit: 4088eb8c61b856da7dfadf9631bed19270644a80)
 
 ## 1.0.3-0 (2015-11-24)
 
