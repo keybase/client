@@ -149,8 +149,7 @@ func urlReencode(s string) string {
 
 type RedditServiceType struct{ BaseServiceType }
 
-func (t RedditServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
-func (t RedditServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+func (t RedditServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 func (t RedditServiceType) CheckUsername(s string) (err error) {
 	if !regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`).MatchString(s) {

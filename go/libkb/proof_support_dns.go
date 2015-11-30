@@ -85,8 +85,7 @@ func (rc *DNSChecker) CheckStatus(h SigHint) ProofError {
 
 type DNSServiceType struct{ BaseServiceType }
 
-func (t DNSServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
-func (t DNSServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+func (t DNSServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 func ParseDNS(s string) (ret string, err error) {
 	if strings.HasPrefix(s, "dns://") {

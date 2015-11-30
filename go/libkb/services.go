@@ -13,7 +13,6 @@ import (
 
 type ServiceType interface {
 	AllStringKeys() []string
-	PrimaryStringKeys() []string
 	CheckUsername(string) error
 	NormalizeUsername(string) (string, error)
 	ToChecker() Checker
@@ -94,10 +93,6 @@ func (t BaseServiceType) BaseToChecker(st ServiceType, hint string) Checker {
 }
 
 func (t BaseServiceType) BaseAllStringKeys(st ServiceType) []string {
-	return []string{st.GetTypeName()}
-}
-
-func (t BaseServiceType) BasePrimaryStringKeys(st ServiceType) []string {
 	return []string{st.GetTypeName()}
 }
 
