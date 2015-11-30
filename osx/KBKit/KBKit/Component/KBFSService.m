@@ -14,6 +14,7 @@
 
 @interface KBFSService ()
 @property NSString *label;
+@property NSString *servicePath;
 @property KBSemVersion *bundleVersion;
 @property KBRServiceStatus *serviceStatus;
 
@@ -22,10 +23,11 @@
 
 @implementation KBFSService
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label {
-if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem service" image:[KBIcons imageForIcon:KBIconNetwork]])) {
+- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath {
+  if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem service" image:[KBIcons imageForIcon:KBIconNetwork]])) {
     _label = label;
-    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+    _servicePath = servicePath;
+    NSDictionary *info = NSBundle.mainBundle.infoDictionary;
     _bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
   }
   return self;
@@ -64,29 +66,29 @@ if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem servi
 }
 
 - (void)install:(KBCompletion)completion {
-  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
+  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath];
   [KBTask execute:binPath args:@[@"-d", @"install", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
+  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath];
   [KBTask execute:binPath args:@[@"-d", @"uninstall", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }
 
 - (void)start:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"start", _label] completion:completion];
+  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] args:@[@"launchd", @"start", _label] completion:completion];
 }
 
 - (void)stop:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"stop", _label] completion:completion];
+  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] args:@[@"launchd", @"stop", _label] completion:completion];
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
-  [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] name:@"kbfs" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
+  [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] name:@"kbfs" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
     self.serviceStatus = serviceStatus;
     self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     [self componentDidUpdate];

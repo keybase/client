@@ -7,12 +7,19 @@ const menubar = require('menubar')
 const ipc = require('electron').ipcMain
 const Window = require('./window')
 const splash = require('./splash')
+const installer = require('./installer')
+const app = require('electron').app
+const path = require('path')
+
+const appPath = app.getAppPath()
+const menubarIconPath = path.resolve(appPath, "Icon.png")
 
 const mb = menubar({
   index: `file://${__dirname}/../renderer/launcher.html`,
   width: 200, height: 250,
   preloadWindow: true,
-  icon: 'Icon.png'
+  icon: menubarIconPath,
+  showDockIcon: true
 })
 
 const trackerWindow = new Window('tracker', {
@@ -42,4 +49,7 @@ if (process.platform === 'darwin') {
 ipc.on('showMain', () => { mainWindow.show() })
 ipc.on('showTracker', () => { trackerWindow.show() })
 
-splash()
+installer((err) => {
+  if (err) console.log("Error: ", err)
+  splash()
+})

@@ -58,6 +58,15 @@ func PGPFingerprintFromHex(s string) (*PGPFingerprint, error) {
 	return ret, err
 }
 
+func PGPFingerprintFromSlice(b []byte) (*PGPFingerprint, error) {
+	if len(b) != PGPFingerprintLen {
+		return nil, fmt.Errorf("Bad fingerprint; wrong length: %d", PGPFingerprintLen)
+	}
+	var fp PGPFingerprint
+	copy(fp[:], b)
+	return &fp, nil
+}
+
 func PGPFingerprintFromHexNoError(s string) *PGPFingerprint {
 	if len(s) == 0 {
 		return nil
@@ -500,30 +509,38 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 	return
 }
 
-func (k *PGPKeyBundle) Unlock(reason string, secretUI SecretUI) error {
-	if !k.PrivateKey.Encrypted {
+func unlockPrivateKey(k *packet.PrivateKey, pw string) error {
+	if !k.Encrypted {
 		return nil
 	}
+	err := k.Decrypt([]byte(pw))
+	if err != nil && strings.HasSuffix(err.Error(), "private key checksum failure") {
+		// XXX this is gross, the openpgp library should return a better
+		// error if the PW was incorrectly specified
+		err = PassphraseError{}
+	}
+	return err
+}
+
+func (k *PGPKeyBundle) unlockAllPrivateKeys(pw string) error {
+	if err := unlockPrivateKey(k.PrivateKey, pw); err != nil {
+		return err
+	}
+	for _, subkey := range k.Subkeys {
+		if err := unlockPrivateKey(subkey.PrivateKey, pw); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k *PGPKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 
 	unlocker := func(pw string, _ bool) (ret GenericKey, err error) {
-
-		if err = k.PrivateKey.Decrypt([]byte(pw)); err == nil {
-
-			// Also decrypt all subkeys (with the same password)
-			for _, subkey := range k.Subkeys {
-				if priv := subkey.PrivateKey; priv == nil {
-				} else if err = priv.Decrypt([]byte(pw)); err != nil {
-					break
-				}
-			}
-			ret = k
-
-			// XXX this is gross, the openpgp library should return a better
-			// error if the PW was incorrectly specified
-		} else if strings.HasSuffix(err.Error(), "private key checksum failure") {
-			err = PassphraseError{}
+		if err = k.unlockAllPrivateKeys(pw); err != nil {
+			return nil, err
 		}
-		return
+		return k, nil
 	}
 
 	_, err := KeyUnlocker{

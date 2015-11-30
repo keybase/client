@@ -2,6 +2,7 @@ platform :osx, "10.10"
 
 target "Keybase" do
   pod "ObjectiveSugar"
+  pod "GBCli"
   pod "KBKit", :path => "KBKit"
 end
 

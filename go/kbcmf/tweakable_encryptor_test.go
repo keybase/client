@@ -11,15 +11,18 @@ import (
 )
 
 type testEncryptionOptions struct {
-	blockSize                     int
-	skipFooter                    bool
-	corruptEncryptionBlock        func(bl *EncryptionBlock, ebn encryptionBlockNumber)
-	corruptNonce                  func(n *Nonce, ebn encryptionBlockNumber)
-	corruptMacKey                 func(k *SymmetricKey, i int)
-	corruptReceiverKeysPlaintext  func(rk *receiverKeysPlaintext, gid int, rid int)
-	corruptReceiverKeysCiphertext func(rk *receiverKeysCiphertext, gid int, rid int)
-	corruptHeaderNonce            func(n *Nonce, gid int, rid int)
-	corruptHeader                 func(eh *EncryptionHeader)
+	blockSize                          int
+	skipFooter                         bool
+	corruptEncryptionBlock             func(bl *EncryptionBlock, ebn encryptionBlockNumber)
+	corruptNonce                       func(n *Nonce, ebn encryptionBlockNumber)
+	corruptMacKey                      func(k *SymmetricKey, i int)
+	corruptReceiverKeysPlaintext       func(rk *receiverKeysPlaintext, gid int, rid int)
+	corruptReceiverKeysPlaintextPacked func(b []byte, gid int, rid int)
+	corruptReceiverKeysCiphertext      func(rk *receiverKeysCiphertexts, gid int, rid int)
+	corruptHeaderNonce                 func(n *Nonce, gid int, rid int, slot int)
+	corruptHeader                      func(eh *EncryptionHeader)
+	corruptHeaderSenderKey             func(sk []byte, git int, rid int) []byte
+	corruptHeaderPacked                func(b []byte)
 }
 
 func (eo testEncryptionOptions) getBlockSize() int {
@@ -31,6 +34,7 @@ func (eo testEncryptionOptions) getBlockSize() int {
 
 type testEncryptStream struct {
 	output     io.Writer
+	encoder    encoder
 	header     *EncryptionHeader
 	sessionKey SymmetricKey
 	buffer     bytes.Buffer
@@ -49,7 +53,14 @@ func (pes *testEncryptStream) Write(plaintext []byte) (int, error) {
 
 	if !pes.didHeader {
 		pes.didHeader = true
-		pes.err = encodeNewPacket(pes.output, pes.header)
+		var b []byte
+		b, pes.err = encodeToBytes(pes.header)
+		if pes.options.corruptHeaderPacked != nil {
+			pes.options.corruptHeaderPacked(b)
+		}
+		if pes.err == nil {
+			_, pes.err = pes.output.Write(b)
+		}
 	}
 
 	if pes.err != nil {
@@ -115,7 +126,7 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 		pes.options.corruptEncryptionBlock(&block, pes.numBlocks)
 	}
 
-	if err := encodeNewPacket(pes.output, block); err != nil {
+	if err := pes.encoder.Encode(block); err != nil {
 		return nil
 	}
 
@@ -124,11 +135,23 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 }
 
 func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) error {
+
+	ephemeralKey, err := receivers[0][0].CreateEphemeralKey()
+	if err != nil {
+		return err
+	}
+
+	// If we have a NULL Sender key, then we really want an ephemeral key
+	// as the main encryption key.
+	if sender == nil {
+		sender = ephemeralKey
+	}
+
 	eh := &EncryptionHeader{
 		Version:   PacketVersion1,
 		Tag:       PacketTagEncryptionHeader,
-		Sender:    sender.GetPublicKey().ToKID(),
-		Receivers: make([]receiverKeysCiphertext, 0, len(receivers)),
+		Sender:    ephemeralKey.GetPublicKey().ToKID(),
+		Receivers: make([]receiverKeysCiphertexts, 0, len(receivers)),
 	}
 	pes.header = eh
 	if err := randomFill(pes.sessionKey[:]); err != nil {
@@ -154,14 +177,10 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicK
 
 	for gid, group := range receivers {
 		var macKey SymmetricKey
-		if len(receivers) > 1 {
-			if err := randomFill(macKey[:]); err != nil {
-				return err
-			}
-			pes.macGroups = append(pes.macGroups, macKey)
-		} else {
-			gid = -1
+		if err := randomFill(macKey[:]); err != nil {
+			return err
 		}
+		pes.macGroups = append(pes.macGroups, macKey)
 
 		if pes.options.corruptMacKey != nil {
 			pes.options.corruptMacKey(&macKey, gid)
@@ -176,11 +195,9 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicK
 			d[kidString] = struct{}{}
 
 			pt := receiverKeysPlaintext{
-				GroupID:    gid,
+				GroupID:    (uint32(gid) | groupIDMask),
 				SessionKey: pes.sessionKey[:],
-			}
-			if gid >= 0 {
-				pt.MACKey = macKey[:]
+				MACKey:     macKey[:],
 			}
 
 			if pes.options.corruptReceiverKeysPlaintext != nil {
@@ -188,24 +205,45 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicK
 			}
 
 			pte, err := encodeToBytes(pt)
+			if pes.options.corruptReceiverKeysPlaintextPacked != nil {
+				pes.options.corruptReceiverKeysPlaintextPacked(pte, gid, rid)
+			}
 			if err != nil {
 				return err
 			}
 			nonce.writeCounter32(i)
+			i++
 
 			if pes.options.corruptHeaderNonce != nil {
-				pes.options.corruptHeaderNonce(&nonce, gid, rid)
+				pes.options.corruptHeaderNonce(&nonce, gid, rid, 0)
 			}
 
+			skp := sender.GetPublicKey().ToKID()
+			if pes.options.corruptHeaderSenderKey != nil {
+				skp = pes.options.corruptHeaderSenderKey(skp, gid, rid)
+			}
+
+			ske, err := ephemeralKey.Box(receiver, &nonce, skp)
+			if err != nil {
+				return err
+			}
+
+			if pes.options.corruptHeaderNonce != nil {
+				pes.options.corruptHeaderNonce(&nonce, gid, rid, 1)
+			}
+
+			nonce.writeCounter32(i)
 			i++
+
 			ptec, err := sender.Box(receiver, &nonce, pte)
 			if err != nil {
 				return err
 			}
 
-			rkc := receiverKeysCiphertext{
-				KID:  kid,
-				Keys: ptec,
+			rkc := receiverKeysCiphertexts{
+				KID:    kid,
+				Keys:   ptec,
+				Sender: ske,
 			}
 
 			if pes.options.corruptReceiverKeysCiphertext != nil {
@@ -244,6 +282,7 @@ func (pes *testEncryptStream) writeFooter() error {
 func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey, options testEncryptionOptions) (plaintext io.WriteCloser, err error) {
 	pes := &testEncryptStream{
 		output:  ciphertext,
+		encoder: newEncoder(ciphertext),
 		options: options,
 		inblock: make([]byte, options.getBlockSize()),
 	}

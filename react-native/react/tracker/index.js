@@ -4,16 +4,18 @@
 import React, {Component} from '../base-react'
 // $FlowIssue base-redux
 import {connect} from '../base-redux'
-// $FlowIssue platform dependent files
 import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
 import {warning} from '../constants/tracker'
 
-import type {RenderProps} from './render.desktop'
-import type {UserInfo} from './bio.render.desktop'
-import type {Proof} from './proofs.render.desktop'
+// $FlowIssue platform dependent files
+import type {RenderProps} from './render'
+// $FlowIssue platform dependent files
+import type {UserInfo} from './bio.render'
+// $FlowIssue platform dependent files
+import type {Proof} from './proofs.render'
 import type {SimpleProofState} from '../constants/tracker'
 
 type TrackerProps = {

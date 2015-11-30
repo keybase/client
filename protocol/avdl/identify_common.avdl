@@ -13,7 +13,8 @@ protocol identifyCommon {
 		NEW_5,
 		REMOTE_FAIL_6,
 		REMOTE_WORKING_7,
-		REMOTE_CHANGED_8
+		REMOTE_CHANGED_8,
+		NEW_ELDEST_9
 	}
 
 	record TrackDiff {

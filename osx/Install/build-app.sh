@@ -5,38 +5,42 @@ set -e # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
-run_mode=$1
-action=$2
-
 bin_src=$dir/bin
 
 build_dest=$dir/build
+mkdir -p $build_dest
+
+# Update versions
+sh versions.sh
 
 # Flirting with custom configuration but xcodebuild archive will only do Release
 # configuration.
 xcode_configuration="Release"
 code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
 
-if [ "$run_mode" = "staging" ]; then
-  app_name="KeybaseStage"
-  appdmg="appdmg-staging.json"
-elif [ "$run_mode" = "prod" ]; then
-  app_name="Keybase"
-  appdmg="appdmg.json"
-else
-  echo "Invalid run mode: $run_mode"
-  exit 1
-fi
-
 plist=$dir/../Keybase/Info.plist
-/usr/libexec/plistBuddy -c "Set :KBRunMode '${run_mode}'" $plist
+echo "Plist: $plist"
+#run_mode="`/usr/libexec/plistBuddy -c "Print :KBRunMode" $plist`"
 app_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $plist`"
 app_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $plist`"
+#echo "Run Mode: $run_mode"
 
-echo "Set Run Mode: $run_mode"
+# if [ "$run_mode" = "staging" ]; then
+#   app_name="KeybaseStage"
+#   appdmg="appdmg-staging.json"
+# elif [ "$run_mode" = "prod" ]; then
+#   app_name="Keybase"
+#   appdmg="appdmg.json"
+# else
+#   echo "Invalid run mode: $run_mode"
+#   exit 1
+# fi
 
-echo "Cleaning..."
-set -o pipefail && xcodebuild clean -scheme Keybase -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration | xcpretty -c
+app_name="Keybase"
+appdmg="appdmg.json"
+
+#echo "Cleaning..."
+#set -o pipefail && xcodebuild clean -scheme Keybase -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration | xcpretty -c
 
 #
 # Archive
@@ -104,37 +108,3 @@ echo "Checking Helper..."
 codesign -dvvvv $app_name.app/Contents/Library/LaunchServices/keybase.Helper
 echo " "
 spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
-
-dmg_name="$app_name-$app_version-$app_build.dmg"
-
-if [ "$action" == "install" ]; then
-
-  if [ -f /Applications/$app_name.app ]; then
-    trash /Applications/$app_name.app
-  fi
-  ditto $app_name.app /Applications/$app_name.app
-
-elif [ "$action" == "dmg" ]; then
-
-  rm -rf $dmg_name
-
-  cp ../appdmg/* .
-
-  appdmg $appdmg $dmg_name
-
-else
-
-  echo "
-  To open the build dir:
-
-    open build
-
-  To open the DMG:
-
-    open build/$dmg_name
-
-  The build was archived to:
-
-    $archive_hold_path
-  "
-fi

@@ -1,6 +1,6 @@
 {
-  "name": "Keybase",
-  "version": "1.0.0",
+  "name": "keybase",
+  "version": "1.0.1",
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -21,7 +21,10 @@
     "lodash": "^3.10.1",
     "material-ui": "^0.13.3",
     "menubar": "^2.3.0",
+    "moment": "^2.10.6",
+    "nslog": "^3.0.0",
     "purepack": "keybase/purepack#nojima/keybase-client-changes",
+    "qrcode-generator": "^1.0.0",
     "react": "^0.14.3",
     "react-addons-create-fragment": "^0.14.3",
     "react-addons-pure-render-mixin": "^0.14.3",
@@ -43,7 +46,7 @@
     "browser-sync": "^2.10.0",
     "electron-compile": "^1.0.1",
     "electron-packager": "^5.1.0",
-    "electron-prebuilt": "^0.35.0",
+    "electron-prebuilt": "^0.35.2",
     "electron-rebuild": "^1.0.0",
     "eslint": "^1.9.0",
     "eslint-config-standard": "^4.4.0",

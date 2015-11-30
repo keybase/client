@@ -422,15 +422,12 @@ func trackedKeyFromJSON(jw *jsonw.Wrapper) (TrackedKey, error) {
 		return TrackedKey{}, err
 	}
 	ret.KID = kid
-	// TODO: Should we tolerate missing fingerprints? Will "body.track.key"
-	// ever be a non-PGP key, for example? I'm *very* hesitant about defining a
-	// new type that's basically a FOKID, right after we did all that work to
-	// delete FOKID.
+
+	// It's ok if key_fingerprint doesn't exist.  But if it does, then include it:
 	fp, err := GetPGPFingerprint(jw.AtKey("key_fingerprint"))
-	if err != nil {
-		return TrackedKey{}, err
+	if err == nil && fp != nil {
+		ret.Fingerprint = *fp
 	}
-	ret.Fingerprint = *fp
 	return ret, nil
 }
 
@@ -440,16 +437,6 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 	set := make(map[keybase1.KID]bool)
 
 	var res []TrackedKey
-
-	keyJSON := l.payloadJSON.AtPath("body.track.key")
-	if !keyJSON.IsNil() {
-		tracked, err := trackedKeyFromJSON(keyJSON)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, tracked)
-		set[tracked.KID] = true
-	}
 
 	pgpKeysJSON := l.payloadJSON.AtPath("body.track.pgp_keys")
 	if !pgpKeysJSON.IsNil() {
@@ -470,6 +457,18 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 		}
 	}
 	return res, nil
+}
+
+func (l *TrackChainLink) GetEldestKID() (kid keybase1.KID, err error) {
+	keyJSON := l.payloadJSON.AtPath("body.track.key")
+	if keyJSON.IsNil() {
+		return kid, nil
+	}
+	tracked, err := trackedKeyFromJSON(keyJSON)
+	if err != nil {
+		return kid, err
+	}
+	return tracked.KID, nil
 }
 
 func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {

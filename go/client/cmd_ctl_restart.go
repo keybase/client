@@ -53,9 +53,9 @@ func (s *CmdCtlRestart) Run() error {
 		return err
 	}
 
-	// If the watchdog started this process, it will do the restarting.
+	// If the watchdog or launchd started this process, it will do the restarting.
 	// Otherwise we have to.
-	if config.ForkType != keybase1.ForkType_WATCHDOG {
+	if config.ForkType != keybase1.ForkType_WATCHDOG && config.ForkType != keybase1.ForkType_LAUNCHD {
 		// Wait a few seconds before the server stops
 		s.G().Log.Info("Delaying for shutdown...")
 		time.Sleep(2 * time.Second)

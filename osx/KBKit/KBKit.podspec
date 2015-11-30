@@ -18,7 +18,6 @@ Pod::Spec.new do |s|
   s.dependency "GHKeychain"
   s.dependency "Mantle"
   s.dependency "MPMessagePack"
-  s.dependency "ZXCVBN"
   s.dependency "GHODictionary"
   s.dependency "MASPreferences"
   s.dependency "MDPSplitView"

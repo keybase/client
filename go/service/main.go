@@ -50,6 +50,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
+		keybase1.KbcmfProtocol(NewKBCMFHandler(xp, g)),
 		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.ProveProtocol(NewProveHandler(xp, g)),
@@ -295,6 +296,8 @@ func (d *Service) ParseArgv(ctx *cli.Context) error {
 		d.ForkType = keybase1.ForkType_AUTO
 	} else if ctx.Bool("watchdog-forked") {
 		d.ForkType = keybase1.ForkType_WATCHDOG
+	} else if ctx.Bool("launchd-forked") {
+		d.ForkType = keybase1.ForkType_LAUNCHD
 	}
 	return nil
 }

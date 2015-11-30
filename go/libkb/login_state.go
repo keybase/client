@@ -58,7 +58,6 @@ type LoginContext interface {
 	LocalSession() *Session
 	EnsureUsername(username NormalizedUsername)
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
-	SaveStateTmp(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (string, error)
 
 	Keyring() (*SKBKeyringFile, error)
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
@@ -607,7 +606,14 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 	}
 
 	s.G().Log.Debug("passphraseLogin success")
-	if storeSecret {
+
+	// If storeSecret is set and there is a device ID, then try to store the secret.
+	//
+	// Ignore most of the errors.
+	//
+	// Can get here without a device ID during device provisioning as this is used to establish a login
+	// session before the device keys are generated.
+	if storeSecret && !s.G().Env.GetDeviceID().IsNil() {
 		s.G().Log.Debug("passphraseLogin: storeSecret set, so saving secret in secret store")
 		pps := lctx.PassphraseStreamCache().PassphraseStream()
 		if pps == nil {
@@ -616,13 +622,16 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		lks := NewLKSec(pps, res.uid, s.G())
 		secret, err := lks.GetSecret(lctx)
 		if err != nil {
-			return err
+			// Ignore any errors storing the secret.
+			s.G().Log.Debug("(ignoring) error getting lksec secret for SecretStore: %s", err)
+			return nil
 		}
 		secretStore := NewSecretStore(s.G(), NewNormalizedUsername(username))
-		// Ignore any errors storing the secret.
 		storeSecretErr := secretStore.StoreSecret(secret)
 		if storeSecretErr != nil {
-			s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
+			// Ignore any errors storing the secret.
+			s.G().Log.Debug("(ignoring) StoreSecret error: %s", storeSecretErr)
+			return nil
 		}
 	}
 

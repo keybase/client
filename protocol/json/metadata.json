@@ -159,6 +159,10 @@
     "name" : "LogLevel",
     "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
   }, {
+    "type" : "enum",
+    "name" : "ClientType",
+    "symbols" : [ "CLI_0", "GUI_1" ]
+  }, {
     "type" : "record",
     "name" : "BlockIdCombo",
     "fields" : [ {
@@ -192,22 +196,6 @@
       "type" : {
         "type" : "array",
         "items" : "bytes"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "FolderUsersResponse",
-    "fields" : [ {
-      "name" : "readers",
-      "type" : {
-        "type" : "array",
-        "items" : "UID"
-      }
-    }, {
-      "name" : "writers",
-      "type" : {
-        "type" : "array",
-        "items" : "UID"
       }
     } ]
   } ],
@@ -338,12 +326,15 @@
       } ],
       "response" : "boolean"
     },
-    "getFolderUsers" : {
+    "getFolderHandle" : {
       "request" : [ {
         "name" : "folderID",
         "type" : "string"
+      }, {
+        "name" : "signature",
+        "type" : "string"
       } ],
-      "response" : "FolderUsersResponse"
+      "response" : "bytes"
     },
     "ping" : {
       "request" : [ ],

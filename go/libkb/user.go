@@ -444,9 +444,20 @@ func (u *User) VerifySelfSigByKey() (ret bool) {
 	return
 }
 
-func (u *User) HasActiveKey() bool {
+func (u *User) HasActiveKey() (ret bool) {
+	u.G().Log.Debug("+ HasActiveKey")
+	defer func() {
+		u.G().Log.Debug("- HasActiveKey -> %v", ret)
+	}()
+	if u.GetEldestKID().IsNil() {
+		u.G().Log.Debug("| no eldest KID; must have reset or be new")
+		ret = false
+		return
+	}
 	if ckf := u.GetComputedKeyFamily(); ckf != nil {
-		return ckf.HasActiveKey()
+		u.G().Log.Debug("| Checking user's ComputedKeyFamily")
+		ret = ckf.HasActiveKey()
+		return
 	}
 
 	if u.sigChain() == nil {

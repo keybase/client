@@ -12,6 +12,7 @@ import (
 
 type encryptStream struct {
 	output     io.Writer
+	encoder    encoder
 	header     *EncryptionHeader
 	sessionKey SymmetricKey
 	buffer     bytes.Buffer
@@ -29,7 +30,7 @@ func (es *encryptStream) Write(plaintext []byte) (int, error) {
 
 	if !es.didHeader {
 		es.didHeader = true
-		es.err = encodeNewPacket(es.output, es.header)
+		es.err = es.encoder.Encode(es.header)
 	}
 
 	if es.err != nil {
@@ -86,7 +87,7 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 		MACs:       macs,
 	}
 
-	if err := encodeNewPacket(es.output, block); err != nil {
+	if err := es.encoder.Encode(block); err != nil {
 		return nil
 	}
 
@@ -94,12 +95,70 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 	return nil
 }
 
+// Do some sanity checking on the receiver group. Check that receivers
+// aren't sent to twice; check that there aren't any empty receiver
+// groups. In particular, we need r[0][0] to be a valid PublicKey.
+func (es *encryptStream) checkReceivers(r [][]BoxPublicKey) error {
+
+	if len(r) == 0 {
+		return ErrBadReceivers
+	}
+
+	tot := uint64(0)
+
+	// Make sure that each receiver only shows up in the set once.
+	receiversAsSet := make(map[string]struct{})
+
+	for _, g := range r {
+
+		if len(g) == 0 {
+			return ErrBadReceivers
+		}
+
+		for _, receiver := range g {
+
+			// Make sure this key hasn't been used before
+			kid := receiver.ToKID()
+			kidString := hex.EncodeToString(kid)
+			if _, found := receiversAsSet[kidString]; found {
+				return ErrRepeatedKey(kid)
+			}
+			receiversAsSet[kidString] = struct{}{}
+			tot++
+		}
+	}
+
+	// Don't allow more than 2^31 receivers. This also means BTW we can
+	// only have at most (2^31-1) receiver groups.
+	if tot >= 0x7fffffff {
+		return ErrBadReceivers
+	}
+
+	return nil
+}
+
 func (es *encryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) error {
+
+	if err := es.checkReceivers(receivers); err != nil {
+		return err
+	}
+
+	ephemeralKey, err := receivers[0][0].CreateEphemeralKey()
+	if err != nil {
+		return err
+	}
+
+	// If we have a nil Sender key, then we really want the ephemeral key
+	// as the main encryption key.
+	if sender == nil {
+		sender = ephemeralKey
+	}
+
 	eh := &EncryptionHeader{
 		Version:   PacketVersion1,
 		Tag:       PacketTagEncryptionHeader,
-		Sender:    sender.GetPublicKey().ToKID(),
-		Receivers: make([]receiverKeysCiphertext, 0, len(receivers)),
+		Sender:    ephemeralKey.GetPublicKey().ToKID(),
+		Receivers: make([]receiverKeysCiphertexts, 0, len(receivers)),
 	}
 	es.header = eh
 	if err := randomFill(es.sessionKey[:]); err != nil {
@@ -119,35 +178,30 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) e
 	eh.Nonce = make([]byte, nonceRandLen)
 	copy(eh.Nonce, nonce[:])
 
-	// Make sure that each receiver only shows up in the set once.
-	receiversAsSet := make(map[string]struct{})
-
 	var i uint32
 
 	for gid, group := range receivers {
 		var macKey SymmetricKey
-		if len(receivers) > 1 {
-			if err := randomFill(macKey[:]); err != nil {
+		if err := randomFill(macKey[:]); err != nil {
+			return err
+		}
+		es.macGroups = append(es.macGroups, macKey)
+
+		for _, receiver := range group {
+
+			// Next encode the ultimate sender key for the receiver,
+			// using the ephemeral key.
+			nonce.writeCounter32(i)
+			i++
+			ske, err := ephemeralKey.Box(receiver, &nonce, sender.GetPublicKey().ToKID())
+			if err != nil {
 				return err
 			}
-			es.macGroups = append(es.macGroups, macKey)
-		} else {
-			gid = -1
-		}
-		for _, receiver := range group {
-			kid := receiver.ToKID()
-			kidString := hex.EncodeToString(kid)
-			if _, found := receiversAsSet[kidString]; found {
-				return ErrRepeatedKey(kid)
-			}
-			receiversAsSet[kidString] = struct{}{}
 
 			pt := receiverKeysPlaintext{
-				GroupID:    gid,
+				GroupID:    (uint32(gid) | groupIDMask),
 				SessionKey: es.sessionKey[:],
-			}
-			if gid >= 0 {
-				pt.MACKey = macKey[:]
+				MACKey:     macKey[:],
 			}
 			pte, err := encodeToBytes(pt)
 			if err != nil {
@@ -160,10 +214,16 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) e
 				return err
 			}
 
-			rkc := receiverKeysCiphertext{
-				KID:  kid,
-				Keys: ptec,
+			rkc := receiverKeysCiphertexts{
+				Keys:   ptec,
+				Sender: ske,
 			}
+
+			// Don't specify the receivers if this public key wants to hide
+			if !receiver.HideIdentity() {
+				rkc.KID = receiver.ToKID()
+			}
+
 			eh.Receivers = append(eh.Receivers, rkc)
 		}
 	}
@@ -198,6 +258,7 @@ func (es *encryptStream) writeFooter() error {
 func NewEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey) (plaintext io.WriteCloser, err error) {
 	es := &encryptStream{
 		output:  ciphertext,
+		encoder: newEncoder(ciphertext),
 		inblock: make([]byte, EncryptionBlockSize),
 	}
 	if err := es.init(sender, receivers); err != nil {

@@ -56,7 +56,7 @@ func NewCmdPGPUpdate(cl *libcmdline.CommandLine) cli.Command {
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPUpdate{}, "update", c)
 		},
-		Description: `'keybase pgp update' pushed updated PGP public keys to the server.
+		Description: `'keybase pgp update' pushes updated PGP public keys to the server.
    Public PGP keys are exported from your local GPG keyring and sent
    to the Keybase server, where they will supersede PGP keys that have been
    previously updated. This feature is for updating PGP subkeys, identities,

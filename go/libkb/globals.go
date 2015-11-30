@@ -23,7 +23,6 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/keybase/client/go/cache/favcache"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -31,20 +30,19 @@ import (
 type ShutdownHook func() error
 
 type GlobalContext struct {
-	Log               logger.Logger   // Handles all logging
-	Env               *Env            // Env variables, cmdline args & config
-	Keyrings          *Keyrings       // Gpg Keychains holding keys
-	API               API             // How to make a REST call to the server
-	ResolveCache      *ResolveCache   // cache of resolve results
-	LocalDb           *JSONLocalDb    // Local DB for cache
-	MerkleClient      *MerkleClient   // client for querying server's merkle sig tree
-	XAPI              ExternalAPI     // for contacting Twitter, Github, etc.
-	Output            io.Writer       // where 'Stdout'-style output goes
-	ProofCache        *ProofCache     // where to cache proof results
-	FavoriteCache     *favcache.Cache // where to cache favorite folders
-	GpgClient         *GpgCLI         // A standard GPG-client (optional)
-	ShutdownHooks     []ShutdownHook  // on shutdown, fire these...
-	SocketInfo        Socket          // which socket to bind/connect to
+	Log               logger.Logger  // Handles all logging
+	Env               *Env           // Env variables, cmdline args & config
+	Keyrings          *Keyrings      // Gpg Keychains holding keys
+	API               API            // How to make a REST call to the server
+	ResolveCache      *ResolveCache  // cache of resolve results
+	LocalDb           *JSONLocalDb   // Local DB for cache
+	MerkleClient      *MerkleClient  // client for querying server's merkle sig tree
+	XAPI              ExternalAPI    // for contacting Twitter, Github, etc.
+	Output            io.Writer      // where 'Stdout'-style output goes
+	ProofCache        *ProofCache    // where to cache proof results
+	GpgClient         *GpgCLI        // A standard GPG-client (optional)
+	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
+	SocketInfo        Socket         // which socket to bind/connect to
 	socketWrapperMu   sync.RWMutex
 	SocketWrapper     *SocketWrapper     // only need one connection per
 	LoopbackListener  *LoopbackListener  // If we're in loopback mode, we'll connect through here
@@ -132,7 +130,6 @@ func (g *GlobalContext) Logout() error {
 	}
 	g.IdentifyCache = NewIdentifyCache()
 	g.UserCache = NewUserCache(g.Env.GetUserCacheMaxAge())
-	g.FavoriteCache = favcache.New()
 
 	// get a clean LoginState:
 	g.createLoginStateLocked()
@@ -204,7 +201,6 @@ func (g *GlobalContext) ConfigureCaches() error {
 	g.IdentifyCache = NewIdentifyCache()
 	g.UserCache = NewUserCache(g.Env.GetUserCacheMaxAge())
 	g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
-	g.FavoriteCache = favcache.New()
 
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic
@@ -360,7 +356,7 @@ func (g *GlobalContext) OutputBytes(b []byte) {
 
 func (g *GlobalContext) GetGpgClient() *GpgCLI {
 	if g.GpgClient == nil {
-		g.GpgClient = NewGpgCLI(GpgCLIArg{})
+		g.GpgClient = NewGpgCLI(g, nil)
 	}
 	return g.GpgClient
 }

@@ -151,6 +151,20 @@ func TestTrackMultiple(t *testing.T) {
 	trackAlice(tc, fu)
 }
 
+func TestTrackNewUserWithPGP(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	fu := createFakeUserWithPGPSibkey(tc)
+	Logout(tc)
+
+	tracker := CreateAndSignupFakeUser(tc, "track")
+	t.Logf("first track:")
+	runTrack(tc, tracker, fu.Username)
+
+	t.Logf("second track:")
+	runTrack(tc, tracker, fu.Username)
+}
+
 // see issue #578
 func TestTrackRetrack(t *testing.T) {
 	tc := SetupEngineTest(t, "track")

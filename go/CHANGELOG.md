@@ -1,4 +1,17 @@
+## 1.0.4-0 (2015-11-30)
 
+- Save exported GPG key to local encrypted keyring (PR: keybase/client#1419)
+- Fix ugly warnings when eldest key not PGP key (PR: keybase/client#1422)
+- Further bugfixes for S2K Dummy mode (PR: keybase/client#1420)
+- Better handling of shell out to GPG during provisioning (PR: keybase/client#1405)
+- Avoid half-provisioned state by doing provisioning work in a transaction-like pattern
+   (PR: keybase/client#1406)
+- Allow `keybase prove web` to work as in online documentation (PR: keybase/client#1418)
+- Workaround for login after sigchain reset (Commmit: 4088eb8c61b856da7dfadf9631bed19270644a80)
+
+## 1.0.3-0 (2015-11-24)
+
+- Fix no device ID during gpg/pgp provisioning (PR: keybase/client#1400)
 - Add Support for GNU S2K Dummy mode (PR: keybase/client#1397)
 
 ## 1.0.2-0 (2015-11-24)

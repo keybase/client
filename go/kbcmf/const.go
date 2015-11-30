@@ -34,8 +34,12 @@ const EncryptionBlockSize int = 1048576
 
 // EncryptionArmorHeader is the header that marks the start of an encrypted
 // armored KB message
-const EncryptionArmorHeader = "BEGIN KBr ENCRYPTED MESSAGE"
+const EncryptionArmorHeader = "BEGIN KEYBASE ENCRYPTED MESSAGE"
 
 // EncryptionArmorFooter is the footer that marks the end of an encrypted
 // armored KB message
-const EncryptionArmorFooter = "END KBr ENCRYPTED MESSAGE"
+const EncryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
+
+// groupIDMask is OR'ed into group IDs, so that they all are encoded as full
+// 32-bit integers
+const groupIDMask uint32 = 0x80000000

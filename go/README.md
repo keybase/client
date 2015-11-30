@@ -26,9 +26,8 @@ our [production site](https://keybase.io) or our [staging server](https://stage0
 
 #### Mac
 
-    brew tap keybase/beta
     brew update
-    brew install keybase/beta/keybase
+    brew install keybase
 
 #### Linux
 

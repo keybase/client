@@ -26,9 +26,6 @@ var (
 	// stream.  This would indicate a very big message, and results in an error here.
 	ErrPacketOverflow = errors.New("no more than 2^32 packets in a message are supported")
 
-	// ErrBadFrame indiciates improper msgpack framing
-	ErrBadFrame = errors.New("bad msgpack framing byte")
-
 	// ErrInsufficientRandomness is generated when the encryption fails to collect
 	// enough randomness to proceed.  We're using the standard crypto/rand source
 	// of randomness, so this should never happen
@@ -43,6 +40,18 @@ var (
 
 	// ErrBadArmorFrame shows up when the ASCII armor frame has non-ASCII
 	ErrBadArmorFrame = errors.New("bad frame found; had non-ASCII")
+
+	// ErrBadEphemeralKey is for when an ephemeral key fails to be properly
+	// imported.
+	ErrBadEphemeralKey = errors.New("bad ephermal key in header")
+
+	// ErrBadReceivers shows up when you pass a bad receivers object -- either one
+	// that was empty, or one that had an empty group.
+	ErrBadReceivers = errors.New("bad receivers argument")
+
+	// ErrBadSenderKey is returned if a key with the wrong number of bytes
+	// is discovered in the encryption header.
+	ErrBadSenderKey = errors.New("bad sender key; must be 32 bytes")
 )
 
 // ErrMACMismatch is generated when a MAC fails to check properly. It specifies

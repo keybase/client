@@ -8,7 +8,9 @@ package client
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -281,7 +283,7 @@ func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.Se
 	envVars := defaultLaunchdEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
-	err := launchd.Install(plist, os.Stdout)
+	err := launchd.Install(plist, ioutil.Discard)
 	if err != nil {
 		return nil, err
 	}
@@ -294,8 +296,8 @@ func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.Se
 
 // Uninstall keybase all services for this run mode.
 func uninstallKeybaseServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), os.Stdout)
-	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), os.Stdout)
+	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), ioutil.Discard)
+	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), ioutil.Discard)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -321,7 +323,7 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 	envVars := defaultLaunchdEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars)
-	err = launchd.Install(plist, os.Stdout)
+	err = launchd.Install(plist, ioutil.Discard)
 	if err != nil {
 		return nil, err
 	}
@@ -333,8 +335,8 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 }
 
 func uninstallKBFSServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), os.Stdout)
-	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), os.Stdout)
+	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), ioutil.Discard)
+	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), ioutil.Discard)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -448,11 +450,11 @@ func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 		return err
 	}
 	g.Log.Debug("Using binPath: %s", bp)
-	g.Log.Info("Checking service")
+	g.Log.Debug("Checking service")
 	keybaseStatus := keybaseServiceStatus(g, "", "")
-	g.Log.Info("Service: %s", keybaseStatus.InstallStatus.String())
+	g.Log.Debug("Service: %s", keybaseStatus.InstallStatus.String())
 	if keybaseStatus.NeedsInstall() || force {
-		g.Log.Info("Installing Keybase service")
+		g.Log.Debug("Installing Keybase service")
 		uninstallKeybaseServices(g.Env.GetRunMode())
 		_, err := installKeybaseService(g, bp)
 		if err != nil {
@@ -587,11 +589,24 @@ func chooseBinPath(bp string) (string, error) {
 	return binPath()
 }
 
+func brewPath(formula string) (string, error) {
+	// Get the homebrew install path prefix for this formula
+	prefixOutput, err := exec.Command("brew", "--prefix", formula).Output()
+	if err != nil {
+		return "", err
+	}
+	prefix := strings.TrimSpace(string(prefixOutput))
+	return prefix, nil
+}
+
 func binPath() (string, error) {
 	if libkb.IsBrewBuild {
-		// Use the brew opt bin directory.
-		binName := filepath.Base(os.Args[0])
-		return filepath.Join("/usr/local/opt", binName, "bin", binName), nil
+		binName := binName()
+		prefix, err := brewPath(binName)
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(prefix, "bin", binName), nil
 	}
 
 	path := os.Args[0]
@@ -607,11 +622,22 @@ func binName() string {
 }
 
 func kbfsBinPath(runMode libkb.RunMode, binPath string) (string, error) {
+	// If it's brew lookup path by formula name
+	kbfsBinName := kbfsBinName(runMode)
+	if libkb.IsBrewBuild {
+		prefix, err := brewPath(kbfsBinName)
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(prefix, "bin", kbfsBinName), nil
+	}
+
+	// Use the same directory as the binPath
 	path, err := chooseBinPath(binPath)
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(filepath.Dir(path), kbfsBinName(runMode)), nil
+	return filepath.Join(filepath.Dir(path), kbfsBinName), nil
 }
 
 func kbfsBinName(runMode libkb.RunMode) string {

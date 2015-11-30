@@ -11,20 +11,6 @@ import (
 	"io/ioutil"
 )
 
-// Keyring is an interface used with decryption; it is call to recover
-// public or private keys during the decryption process. Calls can block
-// on network action.
-type Keyring interface {
-	// LookupBoxSecretKey looks in the Keyring for the secret key corresponding
-	// to one of the given Key IDs.  Returns the index and the key on success,
-	// or -1 and nil on failure.
-	LookupBoxSecretKey(kids [][]byte) (int, BoxSecretKey)
-
-	// LookupBoxPublicKey returns a public key given the specified key ID.
-	// For most cases, the key ID will be the key itself.
-	LookupBoxPublicKey(kid []byte) BoxPublicKey
-}
-
 type decryptState int
 
 const (
@@ -145,26 +131,92 @@ func (ds *decryptStream) assertEndOfStream() error {
 	return err
 }
 
+func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, nonce *Nonce, ephemeralKey BoxPublicKey) (BoxSecretKey, []byte, int, error) {
+	var kids [][]byte
+	for _, r := range hdr.Receivers {
+		if r.KID != nil {
+			kids = append(kids, r.KID)
+		}
+	}
+
+	i, sk := ds.ring.LookupBoxSecretKey(kids)
+	if i < 0 || sk == nil {
+		return nil, nil, -1, nil
+	}
+
+	// Decrypt the sender's public key
+	nonce.writeCounter32(uint32(2 * i))
+	senderPublicRawKey, err := sk.Unbox(ephemeralKey, nonce, hdr.Receivers[i].Sender)
+	if err != nil {
+		return nil, nil, -1, err
+	}
+	return sk, senderPublicRawKey, i, err
+}
+
+func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, nonce *Nonce, ephemeralKey BoxPublicKey) (BoxSecretKey, []byte, int, error) {
+	secretKeys := ds.ring.GetAllSecretKeys()
+	var bpsk BoxPrecomputedSharedKey
+
+	for _, secretKey := range secretKeys {
+		bpsk = secretKey.Precompute(ephemeralKey)
+
+		for i, r := range hdr.Receivers {
+			// Decrypt the sender's public key
+			nonce.writeCounter32(uint32(2 * i))
+			senderPublicRawKey, err := bpsk.Unbox(nonce, r.Sender)
+			if err == nil {
+				return secretKey, senderPublicRawKey, i, nil
+			}
+		}
+	}
+
+	return nil, nil, -1, nil
+}
+
 func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	if err := hdr.validate(); err != nil {
 		return err
 	}
-	var kids [][]byte
-	for _, r := range hdr.Receivers {
-		kids = append(kids, r.KID)
+	ephemeralKey := ds.ring.ImportEphemeralKey(hdr.Sender)
+	if ephemeralKey == nil {
+		return ErrBadEphemeralKey
 	}
-	i, sk := ds.ring.LookupBoxSecretKey(kids)
-	if sk == nil || i < 0 {
-		return ErrNoDecryptionKey
-	}
-	pk := ds.ring.LookupBoxPublicKey(hdr.Sender)
-	if pk == nil {
-		return ErrNoSenderKey
-	}
+
 	var nonce Nonce
 	copy(nonce[:], hdr.Nonce)
-	nonce.writeCounter32(uint32(i))
-	keysPacked, err := sk.Unbox(pk, &nonce, hdr.Receivers[i].Keys)
+
+	secretKey, senderPublicRawKey, i, err := ds.tryVisibleReceivers(hdr, &nonce, ephemeralKey)
+	if err != nil {
+		return err
+	}
+	if secretKey == nil {
+		secretKey, senderPublicRawKey, i, err = ds.tryHiddenReceivers(hdr, &nonce, ephemeralKey)
+	}
+	if err != nil {
+		return err
+	}
+	if secretKey == nil || i < 0 {
+		return ErrNoDecryptionKey
+	}
+	if err := verifyRawKey(senderPublicRawKey); err != nil {
+		return err
+	}
+
+	// Lookup the sender's public key in our keyring, and import
+	// it for use. However, if the sender key is the same as the ephemeral
+	// key, then assume "anonymous mode", so use the already imported anonymous
+	// key.
+	pk := ephemeralKey
+	if !hmac.Equal(hdr.Sender, senderPublicRawKey) {
+		pk = ds.ring.LookupBoxPublicKey(senderPublicRawKey)
+		if pk == nil {
+			return ErrNoSenderKey
+		}
+	}
+
+	nonce.writeCounter32(uint32(2*i + 1))
+
+	keysPacked, err := secretKey.Unbox(pk, &nonce, hdr.Receivers[i].Keys)
 	if err != nil {
 		return err
 	}
@@ -180,14 +232,13 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 }
 
 func (ds *decryptStream) checkMAC(bl *EncryptionBlock, b []byte) error {
-	if ds.keys.GroupID < 0 {
-		if len(ds.keys.MACKey) != 0 {
-			return ErrUnexpectedMAC(bl.seqno)
-		}
-		return nil
-	}
-	if len(bl.MACs) <= ds.keys.GroupID {
+	if (ds.keys.GroupID & groupIDMask) != groupIDMask {
 		return ErrBadGroupID(ds.keys.GroupID)
+	}
+	gid := (ds.keys.GroupID ^ groupIDMask)
+
+	if gid < 0 || int64(len(bl.MACs)) <= int64(gid) {
+		return ErrBadGroupID(gid)
 	}
 
 	if len(ds.keys.MACKey) == 0 {
@@ -195,7 +246,7 @@ func (ds *decryptStream) checkMAC(bl *EncryptionBlock, b []byte) error {
 	}
 
 	mac := hmacSHA512(ds.keys.MACKey, b)
-	if !hmac.Equal(mac, bl.MACs[ds.keys.GroupID]) {
+	if !hmac.Equal(mac, bl.MACs[gid]) {
 		return ErrMACMismatch(bl.seqno)
 	}
 	return nil
@@ -218,14 +269,14 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 
 	nonce := blockNum.newCounterNonce()
 
-	sum := hashNonceAndAuthTag(nonce, bl.Ciphertext)
-	if err := ds.checkMAC(bl, sum[:]); err != nil {
-		return nil, err
-	}
-
 	plaintext, ok := secretbox.Open([]byte{}, bl.Ciphertext, (*[24]byte)(nonce), (*[32]byte)(&ds.sessionKey))
 	if !ok {
 		return nil, ErrBadCiphertext(bl.seqno)
+	}
+
+	sum := hashNonceAndAuthTag(nonce, bl.Ciphertext)
+	if err := ds.checkMAC(bl, sum[:]); err != nil {
+		return nil, err
 	}
 
 	// The encoding of the empty buffer implies the EOF.  But otherwise, all mechanisms are the same.

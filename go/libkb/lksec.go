@@ -108,7 +108,7 @@ func (s *LKSec) Load(lctx LoginContext) (err error) {
 		s.G().Log.Debug("| Fetching secret key")
 		devid := s.G().Env.GetDeviceID()
 		if devid.IsNil() {
-			err = fmt.Errorf("no device id set")
+			err = fmt.Errorf("lksec load: no device id set, thus can't fetch secret key")
 			return err
 		}
 

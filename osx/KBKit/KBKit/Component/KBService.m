@@ -19,6 +19,7 @@
 @property KBRPClient *client;
 
 @property NSString *label;
+@property NSString *servicePath;
 @property KBSemVersion *bundleVersion;
 
 @property KBRServiceStatus *serviceStatus;
@@ -28,10 +29,11 @@
 
 @implementation KBService
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label {
+- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath {
   if ((self = [self initWithConfig:config name:@"Service" info:@"The Keybase service" image:[KBIcons imageForIcon:KBIconNetwork]])) {
     _label = label;
-    NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
+    _servicePath = servicePath;
+    NSDictionary *info = NSBundle.mainBundle.infoDictionary;
     _bundleVersion = [KBSemVersion version:info[@"KBServiceVersion"] build:info[@"KBServiceBuild"]];
   }
   return self;
@@ -75,7 +77,7 @@
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
-  [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] name:@"service" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
+  [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] name:@"service" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
     self.serviceStatus = serviceStatus;
     self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     [self componentDidUpdate];
@@ -91,25 +93,27 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
-  [KBTask execute:binPath args:@[@"-d", @"install", @"--components=cli,service"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  NSString *components = @"cli,service";
+  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath];
+  [KBTask execute:binPath args:@[@"-d", @"install", NSStringWithFormat(@"--components=%@", components)] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 useBundle:YES];
-  [KBTask execute:binPath args:@[@"-d", @"uninstall", @"--components=cli,service"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  NSString *components = @"cli,service";
+  NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath];
+  [KBTask execute:binPath args:@[@"-d", @"uninstall", NSStringWithFormat(@"--components=%@", components)] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }
 
 - (void)load:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"start", _label] completion:completion];
+  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] args:@[@"launchd", @"start", _label] completion:completion];
 }
 
 - (void)unload:(KBCompletion)completion {
-  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 useBundle:YES] args:@[@"launchd", @"stop", _label] completion:completion];
+  [KBKeybaseLaunchd run:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] args:@[@"launchd", @"stop", _label] completion:completion];
 }
 
 @end

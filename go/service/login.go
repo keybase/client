@@ -90,6 +90,6 @@ func (h *LoginHandler) Login(_ context.Context, arg keybase1.LoginArg) error {
 		SecretUI:    h.getSecretUI(arg.SessionID),
 		GPGUI:       h.getGPGUI(arg.SessionID),
 	}
-	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.Username)
+	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.Username, arg.ClientType)
 	return engine.RunEngine(eng, ctx)
 }

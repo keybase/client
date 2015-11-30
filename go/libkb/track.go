@@ -122,6 +122,14 @@ func (l TrackLookup) GetTrackedKeys() []TrackedKey {
 	return ret
 }
 
+func (l TrackLookup) GetEldestKID() keybase1.KID {
+	ret, err := l.link.GetEldestKID()
+	if err != nil {
+		G.Log.Warning("Error in lookup of eldest KID: %s", err)
+	}
+	return ret
+}
+
 func (l TrackLookup) IsRemote() bool {
 	return l.link.IsRemote()
 }
@@ -294,6 +302,27 @@ func (t TrackDiffRemoteChanged) GetTrackDiffType() keybase1.TrackDiffType {
 }
 func (t TrackDiffRemoteChanged) IsSameAsTracked() bool {
 	return false
+}
+
+type TrackDiffNewEldest struct {
+	tracked  keybase1.KID
+	observed keybase1.KID
+}
+
+func (t TrackDiffNewEldest) BreaksTracking() bool {
+	return true
+}
+func (t TrackDiffNewEldest) IsSameAsTracked() bool {
+	return false
+}
+func (t TrackDiffNewEldest) GetTrackDiffType() keybase1.TrackDiffType {
+	return keybase1.TrackDiffType_NEW_ELDEST
+}
+func (t TrackDiffNewEldest) ToDisplayString() string {
+	return fmt.Sprintf("Changed from %s to %s", t.tracked, t.observed)
+}
+func (t TrackDiffNewEldest) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
 }
 
 func NewTrackLookup(link *TrackChainLink) *TrackLookup {

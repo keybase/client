@@ -7,7 +7,7 @@
 //
 
 #import "KBSignupView.h"
-#import "KBStrengthLabel.h"
+//#import "KBStrengthLabel.h"
 #import "KBDefines.h"
 #import "KBPaperKeyDisplayView.h"
 
@@ -18,7 +18,7 @@
 @property KBTextField *passwordField;
 @property KBTextField *passwordConfirmField;
 @property KBLabel *usernameStatusLabel;
-@property KBStrengthLabel *strengthLabel;
+//@property KBStrengthLabel *strengthLabel;
 @property KBLabel *passwordConfirmLabel;
 @property KBHoverView *popover;
 @property NSView *popoverTarget;
@@ -106,9 +106,9 @@
   _usernameStatusLabel = [[KBLabel alloc] init];
   [contentView addSubview:_usernameStatusLabel];
 
-  _strengthLabel = [[KBStrengthLabel alloc] init];
-  // TODO: Strength label interfers with caps lock view
-  [contentView addSubview:_strengthLabel];
+//  _strengthLabel = [[KBStrengthLabel alloc] init];
+//  // TODO: Strength label interfers with caps lock view
+//  [contentView addSubview:_strengthLabel];
 
   _passwordConfirmLabel = [[KBLabel alloc] init];
   [contentView addSubview:_passwordConfirmLabel];
@@ -128,7 +128,7 @@
     y += padding;
 
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordField].size.height;
-    [layout setFrame:CGRectMake(size.width - 120 - 45, y - 22, 120, 24) view:yself.strengthLabel];
+//    [layout setFrame:CGRectMake(size.width - 120 - 45, y - 22, 120, 24) view:yself.strengthLabel];
     y += padding;
 
     y += [layout centerWithSize:CGSizeMake(300, 0) frame:CGRectMake(40, y, size.width - 80, 0) view:yself.passwordConfirmField].size.height;
@@ -193,8 +193,8 @@
 }
 
 - (void)checkPassword {
-  NSString *password = _passwordField.text;
-  [_strengthLabel setPassword:password];
+  //NSString *password = _passwordField.text;
+  //[_strengthLabel setPassword:password];
   [self setNeedsLayout];
 }
 
@@ -293,7 +293,7 @@
     self.usernameField.text = nil;
     self.deviceNameField.text = nil;
     self.usernameStatusLabel.attributedText = nil;
-    self.strengthLabel.attributedText = nil;
+    //self.strengthLabel.attributedText = nil;
 
     [self.delegate signupViewDidSignup:self];
     if (self.completion) self.completion(self);

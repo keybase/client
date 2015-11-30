@@ -103,11 +103,9 @@ func (v *CmdConfigSet) Run() error {
 		} else {
 			cw.SetStringAtPath(v.key, v.value)
 		}
-		cw.Write()
 	} else {
 		cw := G.Env.GetConfigWriter()
 		cw.DeleteAtPath(v.key)
-		cw.Write()
 	}
 	return nil
 }
@@ -116,7 +114,6 @@ func (v *CmdConfigReset) Run() error {
 	// Clear out file
 	cw := G.Env.GetConfigWriter()
 	cw.Reset()
-	cw.Write()
 	return nil
 }
 

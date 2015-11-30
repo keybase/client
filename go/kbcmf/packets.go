@@ -6,36 +6,44 @@ package kbcmf
 import ()
 
 type receiverKeysPlaintext struct {
-	GroupID    int    `codec:"gid"`
+	GroupID    uint32 `codec:"gid"`
 	MACKey     []byte `codec:"mac,omitempty"`
 	SessionKey []byte `codec:"sess"`
 }
 
-type receiverKeysCiphertext struct {
-	KID  []byte `codec:"key_id"`
-	Keys []byte `codec:"keys"`
+type receiverKeysCiphertexts struct {
+	KID    []byte `codec:"key_id,omitempty"`
+	Keys   []byte `codec:"keys"`
+	Sender []byte `codec:"sender"`
 }
 
 // EncryptionHeader is the first packet in an encrypted message.
 // It contains the encryptions of the session keys, and various
 // message metadata.
 type EncryptionHeader struct {
-	Version   PacketVersion            `codec:"vers"`
-	Tag       PacketTag                `codec:"tag"`
-	Nonce     []byte                   `codec:"nonce"`
-	Receivers []receiverKeysCiphertext `codec:"rcvrs"`
-	Sender    []byte                   `codec:"sender"`
+	Nonce     []byte                    `codec:"nonce"`
+	Receivers []receiverKeysCiphertexts `codec:"rcvrs"`
+	Sender    []byte                    `codec:"sender"`
+	Tag       PacketTag                 `codec:"tag"`
+	Version   PacketVersion             `codec:"vers"`
 	seqno     PacketSeqno
 }
 
 // EncryptionBlock contains a block of encrypted data. It cointains
 // the ciphertext, and any necessary MACs.
 type EncryptionBlock struct {
-	Version    PacketVersion `codec:"vers"`
-	Tag        PacketTag     `codec:"tag"`
 	Ciphertext []byte        `codec:"ctext"`
 	MACs       [][]byte      `codec:"macs"`
+	Tag        PacketTag     `codec:"tag"`
+	Version    PacketVersion `codec:"vers"`
 	seqno      PacketSeqno
+}
+
+func verifyRawKey(k []byte) error {
+	if len(k) != len(RawBoxKey{}) {
+		return ErrBadSenderKey
+	}
+	return nil
 }
 
 func (h *EncryptionHeader) validate() error {
@@ -50,6 +58,11 @@ func (h *EncryptionHeader) validate() error {
 	if len(h.Nonce) != len(Nonce{})-4 {
 		return ErrBadNonce{h.seqno, len(h.Nonce)}
 	}
+
+	if err := verifyRawKey(h.Sender); err != nil {
+		return err
+	}
+
 	return nil
 }
 

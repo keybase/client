@@ -38,3 +38,6 @@ func (r *RemoteGPGUI) WantToAddGPGKey(ctx context.Context, _ int) (bool, error) 
 func (r *RemoteGPGUI) ConfirmDuplicateKeyChosen(ctx context.Context, _ int) (bool, error) {
 	return r.uicli.ConfirmDuplicateKeyChosen(ctx, r.sessionID)
 }
+func (r *RemoteGPGUI) Sign(ctx context.Context, arg keybase1.SignArg) (string, error) {
+	return r.uicli.Sign(ctx, arg)
+}

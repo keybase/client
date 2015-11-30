@@ -91,6 +91,17 @@ func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 		dhook(k)
 	}
 
+	// first check the eldest key
+	observedEldest := s.u.GetEldestKID()
+	if s.track != nil {
+		trackedEldest := s.track.GetEldestKID()
+		if observedEldest.NotEqual(trackedEldest) {
+			diff := TrackDiffNewEldest{tracked: trackedEldest, observed: observedEldest}
+			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
+			display(observedEldest, diff)
+		}
+	}
+
 	found := s.u.GetActivePGPKIDs(true)
 	foundMap := mapify(found)
 	var tracked []keybase1.KID

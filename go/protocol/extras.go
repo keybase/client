@@ -426,3 +426,11 @@ func (k *KID) UnmarshalJSON(b []byte) error {
 func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
+
+func (f Folder) ToString() string {
+	prefix := "public/"
+	if f.Private {
+		prefix = "private/"
+	}
+	return prefix + f.Name
+}

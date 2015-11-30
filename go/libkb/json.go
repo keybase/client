@@ -6,21 +6,28 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
+	jsonw "github.com/keybase/go-jsonw"
 	"io"
 	"os"
-	"path"
-	"path/filepath"
-
-	jsonw "github.com/keybase/go-jsonw"
+	"sync"
 )
 
+type jsonFileTransaction struct {
+	f       *JSONFile
+	tmpname string
+}
+
+var _ ConfigWriterTransacter = (*jsonFileTransaction)(nil)
+
 type JSONFile struct {
+	Contextified
 	filename string
 	which    string
 	jw       *jsonw.Wrapper
 	exists   bool
-	dirty    bool
-	Contextified
+
+	txMutex sync.Mutex
+	tx      *jsonFileTransaction
 }
 
 func NewJSONFile(g *GlobalContext, filename, which string) *JSONFile {
@@ -70,38 +77,64 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	return nil
 }
 
-func (f *JSONFile) MaybeSave(pretty bool, mode os.FileMode) (err error) {
-	if f != nil && f.dirty {
-		err = f.Save(pretty, mode)
-	}
-	return
-}
-
 func (f *JSONFile) Nuke() error {
 	f.G().Log.Debug("+ nuke file %s", f.filename)
-
 	err := os.Remove(f.filename)
 	f.G().Log.Debug("- nuke file %s -> %s", f.filename, ErrToOk(err))
-
 	return err
 }
 
-func (f *JSONFile) Save(pretty bool, mode os.FileMode) error {
-	if err := f.save(f.filename, pretty, mode); err != nil {
-		return err
+func (f *JSONFile) getFilename() string {
+	tx := f.getTx()
+	if tx != nil {
+		return tx.tmpname
 	}
-	f.dirty = false
+	return f.filename
+}
+
+func (f *JSONFile) BeginTransaction() (ConfigWriterTransacter, error) {
+	tx, err := newJSONFileTransaction(f)
+	if err != nil {
+		return nil, err
+	}
+	err = f.setTx(tx)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func (f *JSONFile) setTx(tx *jsonFileTransaction) error {
+	f.txMutex.Lock()
+	defer f.txMutex.Unlock()
+	if f.tx != nil && tx != nil {
+		return fmt.Errorf("Provision transaction already in progress")
+	}
+	f.tx = tx
 	return nil
 }
 
-// SaveTmp saves the config to a temporary file.  It returns the
-// filename and any error.
-func (f *JSONFile) SaveTmp(suffix string) (string, error) {
-	filename := path.Join(filepath.Dir(f.filename), fmt.Sprintf("keybase_config_%s.json", suffix))
-	if err := f.save(filename, true, 0); err != nil {
-		return "", err
+func (f *JSONFile) getTx() *jsonFileTransaction {
+	f.txMutex.Lock()
+	defer f.txMutex.Unlock()
+	return f.tx
+}
+
+func newJSONFileTransaction(f *JSONFile) (*jsonFileTransaction, error) {
+	ret := &jsonFileTransaction{f: f}
+	sffx, err := RandString("", 15)
+	if err != nil {
+		return nil, err
 	}
-	return filename, nil
+	ret.tmpname = f.filename + "." + sffx
+	return ret, nil
+}
+
+func (f *JSONFile) Save() error {
+	if err := f.save(f.getFilename(), true, 0); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err error) {
@@ -161,21 +194,27 @@ func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err err
 		f.G().Log.Errorf("Error flushing %s file %s: %s", f.which, filename, err)
 		return err
 	}
-
-	f.G().Log.Debug("Wrote %s file to %s", f.which, filename)
-
 	f.G().Log.Debug("- saved %s file %s", f.which, filename)
 	return
 }
 
-func (f *JSONFile) SwapTmp(filename string) (err error) {
-	f.G().Log.Debug("+ SwapTmp()")
-	defer func() { f.G().Log.Debug("- SwapTmp() -> %s", ErrToOk(err)) }()
-	f.G().Log.Debug("| SwapTmp: making parent directories for %q", f.filename)
-	if err = MakeParentDirs(f.filename); err != nil {
+func (f *jsonFileTransaction) Abort() error {
+	f.f.G().Log.Debug("+ Aborting config rewrite %s", f.tmpname)
+	err := os.Remove(f.tmpname)
+	f.f.setTx(nil)
+	f.f.G().Log.Debug("- Abort -> %v\n", err)
+	return err
+}
+
+func (f *jsonFileTransaction) Commit() (err error) {
+	f.f.G().Log.Debug("+ Commit config rewrite %s", f.tmpname)
+	defer func() { f.f.G().Log.Debug("- Commit config rewrite %s", ErrToOk(err)) }()
+	f.f.G().Log.Debug("| Commit: making parent directories for %q", f.f.filename)
+	if err = MakeParentDirs(f.f.filename); err != nil {
 		return err
 	}
-	f.G().Log.Debug("| SwapTmp: renaming %q => %q", filename, f.filename)
-	err = os.Rename(filename, f.filename)
+	f.f.G().Log.Debug("| Commit : renaming %q => %q", f.tmpname, f.f.filename)
+	err = os.Rename(f.tmpname, f.f.filename)
+	f.f.setTx(nil)
 	return err
 }

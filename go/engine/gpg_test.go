@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -47,12 +48,24 @@ func (g *gpgtestui) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, e
 	return true, nil
 }
 
-type gpgcanceltestui struct {
-	*gpgtestui
+func (g *gpgtestui) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+	fp, err := libkb.PGPFingerprintFromSlice(arg.Fingerprint)
+	if err != nil {
+		return "", err
+	}
+	cli := libkb.G.GetGpgClient()
+	if err := cli.Configure(); err != nil {
+		return "", err
+	}
+	return cli.Sign(*fp, arg.Msg)
 }
 
-func (g *gpgcanceltestui) SelectKeyAndPushOption(arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
-	return keybase1.SelectKeyRes{}, nil
+type gpgTestUIBadSign struct {
+	gpgtestui
+}
+
+func (g *gpgTestUIBadSign) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+	return "", libkb.GpgError{M: "Artificial GPG failure for testing"}
 }
 
 // doesn't push secret to api server

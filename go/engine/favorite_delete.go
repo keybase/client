@@ -31,7 +31,9 @@ func (e *FavoriteDelete) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *FavoriteDelete) Prereqs() Prereqs {
-	return Prereqs{}
+	return Prereqs{
+		Device: true,
+	}
 }
 
 // RequiredUIs returns the required UIs.
@@ -49,6 +51,13 @@ func (e *FavoriteDelete) Run(ctx *Context) error {
 	if e.arg == nil {
 		return fmt.Errorf("FavoriteDelete arg is nil")
 	}
-	e.G().FavoriteCache.Delete(e.arg.Folder)
-	return nil
+	_, err := e.G().API.Post(libkb.APIArg{
+		Endpoint:    "kbfs/favorite/delete",
+		NeedSession: true,
+		Args: libkb.HTTPArgs{
+			"tlf_name": libkb.S{Val: e.arg.Folder.Name},
+			"private":  libkb.B{Val: e.arg.Folder.Private},
+		},
+	})
+	return err
 }

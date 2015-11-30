@@ -8,10 +8,10 @@ package s2k // import "github.com/keybase/go-crypto/openpgp/s2k"
 
 import (
 	"crypto"
+	"github.com/keybase/go-crypto/openpgp/errors"
 	"hash"
 	"io"
 	"strconv"
-	"github.com/keybase/go-crypto/openpgp/errors"
 )
 
 // Config collects configuration parameters for s2k key-stretching

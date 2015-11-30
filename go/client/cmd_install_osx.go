@@ -42,8 +42,8 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Components to install, comma separated. Specify 'cli' for command line, 'service' for service, kbfs for 'kbfs', or blank for all.",
 			},
 		},
-		ArgumentHelp: "Installer",
-		Usage:        "",
+		ArgumentHelp: "",
+		Usage:        "Installs Keybase components",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -121,7 +121,7 @@ func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Uninstalls Keybase services, KBFS and command line tools.",
+		Usage:        "Uninstalls Keybase components",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -149,7 +149,7 @@ func (v *CmdUninstall) GetUsage() libkb.Usage {
 func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 	v.format = ctx.String("format")
 	if ctx.String("components") == "" {
-		v.components = []string{"cli", "service", "kbfs"}
+		v.components = []string{"service", "kbfs"}
 	} else {
 		v.components = strings.Split(ctx.String("components"), ",")
 	}

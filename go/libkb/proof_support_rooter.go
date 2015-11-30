@@ -159,8 +159,7 @@ func (rc *RooterChecker) CheckStatus(h SigHint) (perr ProofError) {
 
 type RooterServiceType struct{ BaseServiceType }
 
-func (t RooterServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
-func (t RooterServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+func (t RooterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 func (t RooterServiceType) CheckUsername(s string) (err error) {
 	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s) {

@@ -12,6 +12,7 @@ import (
 )
 
 type GpgCLI struct {
+	Contextified
 	path    string
 	options []string
 	version string
@@ -21,18 +22,14 @@ type GpgCLI struct {
 	logUI LogUI
 }
 
-type GpgCLIArg struct {
-	LogUI LogUI // If nil, use the global
-}
-
-func NewGpgCLI(arg GpgCLIArg) *GpgCLI {
-	logUI := arg.LogUI
+func NewGpgCLI(g *GlobalContext, logUI LogUI) *GpgCLI {
 	if logUI == nil {
-		logUI = G.Log
+		logUI = g.Log
 	}
 	return &GpgCLI{
-		mutex: new(sync.Mutex),
-		logUI: logUI,
+		Contextified: NewContextified(g),
+		mutex:        new(sync.Mutex),
+		logUI:        logUI,
 	}
 }
 
@@ -85,19 +82,6 @@ func (g *GpgCLI) Path() string {
 		return g.path
 	}
 	return ""
-}
-
-type RunGpgArg struct {
-	Arguments []string
-	Stdin     bool
-	Stderr    io.WriteCloser
-	Stdout    io.WriteCloser
-}
-
-type RunGpgRes struct {
-	Stdin io.WriteCloser
-	Err   error
-	Wait  func() error
 }
 
 func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error) {
@@ -315,66 +299,9 @@ func (g *GpgCLI) MakeCmd(args []string) *exec.Cmd {
 	} else {
 		nargs = args
 	}
+	if g.G().Service {
+		nargs = append([]string{"--no-tty"}, nargs...)
+	}
 	g.logUI.Debug("| running Gpg: %s %v", g.path, nargs)
 	return exec.Command(g.path, nargs...)
-}
-
-func (g *GpgCLI) Run(arg RunGpgArg) (res RunGpgRes) {
-
-	cmd := g.MakeCmd(arg.Arguments)
-
-	waited := false
-
-	var stdout, stderr io.ReadCloser
-
-	if arg.Stdin {
-		if res.Stdin, res.Err = cmd.StdinPipe(); res.Err != nil {
-			return
-		}
-	}
-	if stdout, res.Err = cmd.StdoutPipe(); res.Err != nil {
-		return
-	}
-	if stderr, res.Err = cmd.StderrPipe(); res.Err != nil {
-		return
-	}
-
-	if res.Err = cmd.Start(); res.Err != nil {
-		return
-	}
-
-	waitfn := func() error {
-		if !waited {
-			waited = true
-			return cmd.Wait()
-		}
-		return nil
-	}
-
-	if arg.Stdin {
-		res.Wait = waitfn
-	} else {
-		defer waitfn()
-	}
-
-	var e1, e2, e3 error
-
-	if arg.Stdout != nil {
-		_, e1 = io.Copy(arg.Stdout, stdout)
-	} else {
-		e1 = DrainPipe(stdout, func(s string) { g.logUI.Info(s) })
-	}
-
-	if arg.Stderr != nil {
-		_, e2 = io.Copy(arg.Stderr, stderr)
-	} else {
-		e2 = DrainPipe(stderr, func(s string) { g.logUI.Warning(s) })
-	}
-
-	if !arg.Stdin {
-		e3 = waitfn()
-	}
-
-	res.Err = PickFirstError(e1, e2, e3)
-	return
 }

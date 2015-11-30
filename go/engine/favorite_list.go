@@ -11,6 +11,7 @@ import (
 // FavoriteList is an engine.
 type FavoriteList struct {
 	libkb.Contextified
+	result FavoritesResult
 }
 
 // NewFavoriteList creates a FavoriteList engine.
@@ -27,7 +28,9 @@ func (e *FavoriteList) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *FavoriteList) Prereqs() Prereqs {
-	return Prereqs{}
+	return Prereqs{
+		Device: true,
+	}
 }
 
 // RequiredUIs returns the required UIs.
@@ -40,12 +43,21 @@ func (e *FavoriteList) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
+type FavoritesResult struct {
+	Favorites []keybase1.Folder `json:"favorites"`
+	Ignored   []keybase1.Folder `json:"ignored"`
+}
+
 // Run starts the engine.
 func (e *FavoriteList) Run(ctx *Context) error {
-	return nil
+	return e.G().API.GetDecode(libkb.APIArg{
+		Endpoint:    "kbfs/favorite/list",
+		NeedSession: true,
+		Args:        libkb.HTTPArgs{},
+	}, &e.result)
 }
 
 // Favorites returns the list of favorites that Run generated.
 func (e *FavoriteList) Favorites() []keybase1.Folder {
-	return e.G().FavoriteCache.List()
+	return e.result.Favorites
 }

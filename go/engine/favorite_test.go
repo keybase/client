@@ -13,49 +13,52 @@ import (
 func TestFavoriteAdd(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
+	CreateAndSignupFakeUser(tc, "fav")
 
-	if err := addfav("t_alice,t_bob", tc); err != nil {
-		t.Fatal(err)
+	addfav("t_alice,t_bob", true, tc)
+	if len(listfav(tc)) != 1 {
+		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
 	}
-	if len(tc.G.FavoriteCache.List()) != 1 {
-		t.Errorf("cache len: %d, expected 1", len(tc.G.FavoriteCache.List()))
+
+	// Add the same share again. The number shouldn't change.
+	addfav("t_alice,t_bob", true, tc)
+	if len(listfav(tc)) != 1 {
+		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
+	}
+
+	// Add a public share of the same name, make sure both are represented.
+	addfav("t_alice,t_bob", false, tc)
+	if len(listfav(tc)) != 2 {
+		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
 	}
 }
 
 func TestFavoriteDelete(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
+	CreateAndSignupFakeUser(tc, "fav")
 
-	if err := addfav("t_alice,t_bob", tc); err != nil {
-		t.Fatal(err)
+	addfav("t_alice,t_bob", true, tc)
+	addfav("t_alice,t_charlie", true, tc)
+	if len(listfav(tc)) != 2 {
+		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
 	}
-	if err := addfav("t_alice,t_charlie", tc); err != nil {
-		t.Fatal(err)
+	rmfav("t_alice,t_bob", true, tc)
+	if len(listfav(tc)) != 1 {
+		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
 	}
-	if len(tc.G.FavoriteCache.List()) != 2 {
-		t.Errorf("cache len: %d, expected 2", len(tc.G.FavoriteCache.List()))
-	}
-	if err := rmfav("t_alice,t_bob", tc); err != nil {
-		t.Fatal(err)
-	}
-	if len(tc.G.FavoriteCache.List()) != 1 {
-		t.Errorf("cache len: %d, expected 1", len(tc.G.FavoriteCache.List()))
-	}
-	if tc.G.FavoriteCache.List()[0].Name != "t_alice,t_charlie" {
-		t.Errorf("cache entry: %q, expected %q", tc.G.FavoriteCache.List()[0].Name, "t_alice,t_charlie")
+	if listfav(tc)[0].Name != "t_alice,t_charlie" {
+		t.Errorf("favorites entry: %q, expected %q", listfav(tc)[0].Name, "t_alice,t_charlie")
 	}
 }
 
 func TestFavoriteList(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
+	CreateAndSignupFakeUser(tc, "fav")
 
-	if err := addfav("t_alice,t_charlie", tc); err != nil {
-		t.Fatal(err)
-	}
-	if err := addfav("t_alice,t_bob", tc); err != nil {
-		t.Fatal(err)
-	}
+	addfav("t_alice,t_charlie", true, tc)
+	addfav("t_alice,t_bob", true, tc)
 
 	ctx := &Context{}
 	eng := NewFavoriteList(tc.G)
@@ -74,20 +77,36 @@ func TestFavoriteList(t *testing.T) {
 	}
 }
 
-func addfav(name string, tc libkb.TestContext) error {
+func addfav(name string, private bool, tc libkb.TestContext) {
 	ctx := &Context{}
 	arg := keybase1.FavoriteAddArg{
-		Folder: keybase1.Folder{Name: name},
+		Folder: keybase1.Folder{Name: name, Private: private},
 	}
 	eng := NewFavoriteAdd(&arg, tc.G)
-	return RunEngine(eng, ctx)
+	err := RunEngine(eng, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
 }
 
-func rmfav(name string, tc libkb.TestContext) error {
+func rmfav(name string, private bool, tc libkb.TestContext) {
 	ctx := &Context{}
 	arg := keybase1.FavoriteDeleteArg{
-		Folder: keybase1.Folder{Name: name},
+		Folder: keybase1.Folder{Name: name, Private: private},
 	}
 	eng := NewFavoriteDelete(&arg, tc.G)
-	return RunEngine(eng, ctx)
+	err := RunEngine(eng, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+}
+
+func listfav(tc libkb.TestContext) []keybase1.Folder {
+	ctx := &Context{}
+	eng := NewFavoriteList(tc.G)
+	err := RunEngine(eng, ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	return eng.Favorites()
 }

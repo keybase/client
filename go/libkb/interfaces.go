@@ -141,6 +141,11 @@ type ConfigReader interface {
 	GetTorProxy() string
 }
 
+type ConfigWriterTransacter interface {
+	Commit() error
+	Abort() error
+}
+
 type ConfigWriter interface {
 	SetUserConfig(cfg *UserConfig, overwrite bool) error
 	SwitchUser(un NormalizedUsername) error
@@ -152,9 +157,8 @@ type ConfigWriter interface {
 	SetNullAtPath(string) error
 	DeleteAtPath(string)
 	Reset()
-	Write() error
-	SaveTmp(suffix string) (string, error)
-	SwapTmp(filename string) error
+	Save() error
+	BeginTransaction() (ConfigWriterTransacter, error)
 }
 
 type HTTPRequest interface {

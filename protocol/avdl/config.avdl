@@ -16,7 +16,8 @@ protocol config {
   enum ForkType {
     NONE_0,
     AUTO_1,
-    WATCHDOG_2
+    WATCHDOG_2,
+    LAUNCHD_3
   }
 
   record Config {
