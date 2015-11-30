@@ -8,17 +8,12 @@ import (
 	"io"
 )
 
-func encodeNewPacket(w io.Writer, p interface{}) error {
-	buf, err := encodeToBytes(p)
-	if err != nil {
-		return err
-	}
-	l, err := encodeToBytes(len(buf))
-	if err != nil {
-		return err
-	}
-	_, err = w.Write(append(l, buf...))
-	return err
+type encoder interface {
+	Encode(v interface{}) error
+}
+
+func newEncoder(w io.Writer) encoder {
+	return codec.NewEncoder(w, codecHandle())
 }
 
 func encodeToBytes(i interface{}) ([]byte, error) {
@@ -41,13 +36,6 @@ func newFramedMsgpackStream(r io.Reader) *framedMsgpackStream {
 }
 
 func (r *framedMsgpackStream) Read(i interface{}) (ret PacketSeqno, err error) {
-	var frame int
-	if err = r.decoder.Decode(&frame); err != nil {
-		return ret, err
-	}
-	if frame == 0 {
-		return 0, ErrBadFrame
-	}
 	if err = r.decoder.Decode(i); err != nil {
 		return ret, err
 	}

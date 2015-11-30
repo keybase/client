@@ -26,9 +26,6 @@ var (
 	// stream.  This would indicate a very big message, and results in an error here.
 	ErrPacketOverflow = errors.New("no more than 2^32 packets in a message are supported")
 
-	// ErrBadFrame indiciates improper msgpack framing
-	ErrBadFrame = errors.New("bad msgpack framing byte")
-
 	// ErrInsufficientRandomness is generated when the encryption fails to collect
 	// enough randomness to proceed.  We're using the standard crypto/rand source
 	// of randomness, so this should never happen
