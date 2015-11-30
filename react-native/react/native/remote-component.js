@@ -16,6 +16,7 @@ export default class RemoteComponent extends Component {
     // Remember if we close, it's an error to try to close an already closed window
     this.remoteWindow.on('close', () => {
       this.closed = true
+      this.props.onRemoteClose && this.props.onRemoteClose()
     })
 
     const componentRequireName = this.props.component
@@ -44,6 +45,7 @@ export default class RemoteComponent extends Component {
 }
 
 RemoteComponent.propTypes = {
-  component: React.PropTypes.string,
-  windowsOpts: React.PropTypes.object
+  component: React.PropTypes.string.isRequired,
+  windowsOpts: React.PropTypes.object,
+  onRemoteClose: React.PropTypes.func
 }

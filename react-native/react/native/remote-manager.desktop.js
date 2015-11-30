@@ -52,6 +52,7 @@ class RemoteManager extends Component {
             height: 700
           }}
           waitForState
+          onRemoteClose={() => this.setState({showTrackerPopup: false})}
           component='tracker'/>
       )
     }
