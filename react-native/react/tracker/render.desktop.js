@@ -3,14 +3,10 @@
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
 
-// $FlowIssue platform specific
-import Header from './header.render'
-// $FlowIssue platform specific
-import Action from './action.render'
-// $FlowIssue platform specific
-import Bio from './bio.render'
-// $FlowIssue platform specific
-import Proofs from './proofs.render'
+import Header from './header.render.desktop'
+import Action from './action.render.desktop'
+import Bio from './bio.render.desktop'
+import Proofs from './proofs.render.desktop'
 
 import type {BioProps} from './bio.render.desktop'
 import type {ActionProps} from './action.render.desktop'
