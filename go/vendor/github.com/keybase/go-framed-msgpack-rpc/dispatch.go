@@ -114,8 +114,7 @@ func (d *dispatch) handleCall(calls map[seqNumber]*call, c *call) {
 	seqid := d.nextSeqid()
 	c.seqid = seqid
 	calls[c.seqid] = c
-	v := []interface{}{MethodCall, seqid, c.method, c.arg}
-	err := d.writer.Encode(v)
+	err := d.dispatchMessage(c.ctx, MethodCall, seqid, c.method, c.arg)
 	if err != nil {
 		c.Finish(err)
 		return
@@ -125,8 +124,7 @@ func (d *dispatch) handleCall(calls map[seqNumber]*call, c *call) {
 		select {
 		case <-c.ctx.Done():
 			c.ch <- newCanceledError(c.method, seqid)
-			v := []interface{}{MethodCancel, seqid, c.method}
-			err := d.writer.Encode(v)
+			err := d.writer.Encode([]interface{}{MethodCancel, seqid, c.method})
 			d.log.ClientCancel(seqid, c.method, err)
 		case <-c.doneCh:
 		}
@@ -147,8 +145,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 }
 
 func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) error {
-	v := []interface{}{MethodNotify, name, arg}
-	err := d.writer.Encode(v)
+	err := d.dispatchMessage(ctx, MethodNotify, name, arg)
 	if err != nil {
 		return err
 	}
@@ -159,6 +156,11 @@ func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) err
 func (d *dispatch) Close(err error) chan struct{} {
 	close(d.stopCh)
 	return d.closedCh
+}
+
+func (d *dispatch) dispatchMessage(ctx context.Context, args ...interface{}) error {
+	rpcTags, _ := RpcTagsFromContext(ctx)
+	return d.writer.Encode(append(args, rpcTags))
 }
 
 func wrapError(f WrapErrorFunc, e error) interface{} {

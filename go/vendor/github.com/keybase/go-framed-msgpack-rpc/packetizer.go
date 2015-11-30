@@ -36,13 +36,14 @@ func (p *packetHandler) getMessage(l int) (err error) {
 
 	// Interpret the byte as the length field of a fixarray of up
 	// to 15 elements: see
-	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-array
-	// . Do this so we can decode directly into the expected
-	// fields without copying.
+	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-array.
+	// The target type information isn't known until we decode the first few
+	// fields, so this abstraction violation is needed to be able to decode
+	// them without copying.
 	if nb >= 0x91 && nb <= 0x9f {
 		err = p.receiver.Receive(nb - 0x90)
 	} else {
-		err = NewPacketizerError("wrong message structure prefix (%d)", nb)
+		err = NewPacketizerError("wrong message structure prefix (0x%x)", nb)
 	}
 
 	return err

@@ -4,9 +4,11 @@ import (
 	"golang.org/x/net/context"
 )
 
+type HandlerFunc func(ctx context.Context, arg interface{}) (ret interface{}, err error)
+
 type ServeHandlerDescription struct {
 	MakeArg    func() interface{}
-	Handler    func(ctx context.Context, arg interface{}) (ret interface{}, err error)
+	Handler    HandlerFunc
 	MethodType MethodType
 }
 
