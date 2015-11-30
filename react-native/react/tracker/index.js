@@ -4,18 +4,17 @@
 import React, {Component} from '../base-react'
 // $FlowIssue base-redux
 import {connect} from '../base-redux'
+// $FlowIssue .desktop issue
 import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
 import {warning} from '../constants/tracker'
 
-// $FlowIssue platform dependent files
-import type {RenderProps} from './render'
-// $FlowIssue platform dependent files
-import type {UserInfo} from './bio.render'
-// $FlowIssue platform dependent files
-import type {Proof} from './proofs.render'
+// TODO move these into render.type.js
+import type {RenderProps} from './render.desktop'
+import type {UserInfo} from './bio.render.desktop'
+import type {Proof} from './proofs.render.desktop'
 import type {SimpleProofState} from '../constants/tracker'
 
 type TrackerProps = {
@@ -52,15 +51,18 @@ class Tracker extends Component {
     const renderProps: RenderProps = {
       bioProps: {
         username: this.props.username,
+        style: {},
         userInfo: this.props.userInfo
       },
       headerProps: {
         reason: this.props.reason,
+        style: {},
         onClose: this.props.onCloseFromHeader
       },
       actionProps: {
         state: this.props.proofState,
         username: this.props.username,
+        style: {},
         renderChangedTitle,
         shouldFollow: this.props.shouldFollow,
         onClose: this.props.onCloseFromActionBar,
@@ -71,6 +73,7 @@ class Tracker extends Component {
       },
       proofsProps: {
         username: this.props.username,
+        style: {},
         proofs: this.props.proofs
       }
     }

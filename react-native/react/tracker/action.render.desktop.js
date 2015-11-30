@@ -12,8 +12,8 @@ import type {SimpleProofState} from '../constants/tracker'
 
 export type ActionProps = {
   state: SimpleProofState,
-  style: Object,
   username: ?string,
+  style: Object,
   shouldFollow: ?boolean,
   renderChangedTitle: string,
   onClose: () => void,

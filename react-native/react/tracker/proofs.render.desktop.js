@@ -22,7 +22,7 @@ export type Proof = {
 
 export type ProofsProps = {
   proofs: Array<Proof>,
-  username: string
+  username: ?string
 }
 
 export default class ProofsRender extends Component {
