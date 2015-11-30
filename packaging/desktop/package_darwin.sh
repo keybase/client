@@ -40,7 +40,7 @@ check_deps() {
   fi
 
   if [ ! -f $keybase_bin ] || [ ! -f $kbfs_bin ]; then
-    echo "We need to build the keybase binaries, running osx/Install/build-bin.sh"
+    echo "We need to build the Keybase binaries, running osx/Install/build-bin.sh"
     sh $client_dir/osx/Install/build-bin.sh
   fi
 }
@@ -71,7 +71,7 @@ package_electron() {
     --asar=true \
     --platform=darwin \
     --arch=x64 \
-    --version=0.35.1 \
+    --version=0.35.2 \
     --app-bundle-id=keybase.Electron \
     --helper-bundle-id=keybase.ElectronHelper \
     --icon=Keybase.icns \
@@ -106,9 +106,9 @@ package_dmg() {
 
 # clean
 # clean_deps
-# check_deps
-# build
-# package_electron
+check_deps
+build
+package_electron
 package_app
 package_dmg
 
