@@ -66,7 +66,11 @@ class RemoteComponentLoader extends Component {
   componentWillMount () {
     currentWindow.on('hasProps', props => {
       // Maybe we need to wait for the state to arrive at the beginning
-      if (props.waitForState && !this.state.loaded) {
+      if (props.waitForState &&
+          // Make sure we only do this if we haven't loaded the state yet
+          !this.state.loaded &&
+          // Only do this if the store hasn't been filled yet.
+          Object.keys(store.getState()).length === 0) {
         const unsub = store.subscribe(() => {
           currentWindow.show()
           this.setState({props: props, loaded: true})
