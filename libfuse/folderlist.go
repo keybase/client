@@ -168,10 +168,8 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 		// feed work
 		for _, fav := range favs {
 			if fl.public != fav.Public {
-				fl.fs.log.CDebugf(ctx, "FL ReadDirAll skipped (%s)", fav.Name)
 				continue
 			}
-			fl.fs.log.CDebugf(ctx, "FL ReadDirAll (%s)", fav.Name)
 			work <- fav
 		}
 		close(work)
