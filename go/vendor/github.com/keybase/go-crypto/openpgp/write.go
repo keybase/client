@@ -60,19 +60,24 @@ func armoredDetachSign(w io.Writer, signer *Entity, message io.Reader, sigType p
 }
 
 func detachSign(w io.Writer, signer *Entity, message io.Reader, sigType packet.SignatureType, config *packet.Config) (err error) {
-	if signer.PrivateKey == nil {
+	signerSubkey, ok := signer.signingKey(config.Now())
+	if !ok {
+		err = errors.InvalidArgumentError("no valid signing keys")
+		return
+	}
+	if signerSubkey.PrivateKey == nil {
 		return errors.InvalidArgumentError("signing key doesn't have a private key")
 	}
-	if signer.PrivateKey.Encrypted {
+	if signerSubkey.PrivateKey.Encrypted {
 		return errors.InvalidArgumentError("signing key is encrypted")
 	}
 
 	sig := new(packet.Signature)
 	sig.SigType = sigType
-	sig.PubKeyAlgo = signer.PrivateKey.PubKeyAlgo
+	sig.PubKeyAlgo = signerSubkey.PrivateKey.PubKeyAlgo
 	sig.Hash = config.Hash()
 	sig.CreationTime = config.Now()
-	sig.IssuerKeyId = &signer.PrivateKey.KeyId
+	sig.IssuerKeyId = &signerSubkey.PrivateKey.KeyId
 
 	h, wrappedHash, err := hashForSignature(sig.Hash, sig.SigType)
 	if err != nil {
@@ -80,7 +85,7 @@ func detachSign(w io.Writer, signer *Entity, message io.Reader, sigType packet.S
 	}
 	io.Copy(wrappedHash, message)
 
-	err = sig.Sign(h, signer.PrivateKey, config)
+	err = sig.Sign(h, signerSubkey.PrivateKey, config)
 	if err != nil {
 		return
 	}
@@ -375,4 +380,72 @@ func (c noOpCloser) Write(data []byte) (n int, err error) {
 
 func (c noOpCloser) Close() error {
 	return nil
+}
+
+// AttachedSign is like openpgp.Encrypt (as in p.crypto/openpgp/write.go), but
+// don't encrypt at all, just sign the literal unencrypted data.
+// Unfortunately we need to duplicate some code here that's already
+// in write.go
+func AttachedSign(out io.WriteCloser, signed Entity, hints *FileHints,
+	config *packet.Config) (in io.WriteCloser, err error) {
+
+	if hints == nil {
+		hints = &FileHints{}
+	}
+
+	if config == nil {
+		config = &packet.Config{}
+	}
+
+	var signer *packet.PrivateKey
+
+	signKey, ok := signed.signingKey(config.Now())
+	if !ok {
+		err = errors.InvalidArgumentError("no valid signing keys")
+		return
+	}
+	signer = signKey.PrivateKey
+	if signer == nil {
+		err = errors.InvalidArgumentError("no valid signing keys")
+		return
+	}
+	if signer.Encrypted {
+		err = errors.InvalidArgumentError("signing key must be decrypted")
+		return
+	}
+
+	hasher := crypto.SHA512
+
+	ops := &packet.OnePassSignature{
+		SigType:    packet.SigTypeBinary,
+		Hash:       hasher,
+		PubKeyAlgo: signer.PubKeyAlgo,
+		KeyId:      signer.KeyId,
+		IsLast:     true,
+	}
+
+	if err = ops.Serialize(out); err != nil {
+		return
+	}
+
+	var epochSeconds uint32
+	if !hints.ModTime.IsZero() {
+		epochSeconds = uint32(hints.ModTime.Unix())
+	}
+
+	// We don't want the literal serializer to closer the output stream
+	// since we're going to need to write to it when we finish up the
+	// signature stuff.
+	in, err = packet.SerializeLiteral(noOpCloser{out}, hints.IsBinary, hints.FileName, epochSeconds)
+
+	if err != nil {
+		return
+	}
+
+	// If we need to write a signature packet after the literal
+	// data then we need to stop literalData from closing
+	// encryptedData.
+	in = signatureWriter{out, in, hasher, hasher.New(), signer, config}
+
+	return
 }
