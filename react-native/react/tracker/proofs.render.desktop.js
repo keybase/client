@@ -5,8 +5,8 @@ import React, {Component} from '../base-react'
 // $FlowIssue styles
 import commonStyles, {colors} from '../styles/common'
 
-import {pending, deleted} from '../constants/tracker'
-import {metaNew, metaDeleted, metaUnreachable, metaPending} from '../constants/tracker'
+import {checking, revoked} from '../constants/tracker'
+import {metaNew, metaUpgraded} from '../constants/tracker'
 
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
@@ -14,7 +14,7 @@ export type Proof = {
   id: string,
   type: string,
   state: SimpleProofState,
-  meta: SimpleProofMeta,
+  meta: ?SimpleProofMeta,
   humanUrl: ?string,
   name: string,
   color: string
@@ -34,19 +34,15 @@ export default class ProofsRender extends Component {
   }
 
   renderProofRow (proof: Proof): ReactElement {
-    const metaColor = {
+    const metaColor = proof.meta ? {
       // $FlowIssue no computed
       [metaNew]: colors.orange,
       // $FlowIssue no computed
-      [metaDeleted]: colors.red,
-      // $FlowIssue no computed
-      [metaUnreachable]: colors.red,
-      // $FlowIssue no computed
-      [metaPending]: colors.grey
-    }[proof.meta]
+      [metaUpgraded]: colors.orange
+    }[proof.meta] : null
 
     const onTouchTap = () => {
-      if (proof.state !== pending) {
+      if (proof.state !== checking) {
         console.log('should open hint link:', proof.humanUrl)
         proof.humanUrl && this.openLink(proof.humanUrl)
       } else {
@@ -66,10 +62,9 @@ export default class ProofsRender extends Component {
     const statusColor = {
       normal: colors.lightBlue,
       checking: colors.grey,
-      deleted: colors.orange,
+      revoked: colors.orange,
       warning: colors.orange,
-      error: colors.red,
-      pending: colors.orange
+      error: colors.red
     }[proof.state]
 
     return (
@@ -77,7 +72,7 @@ export default class ProofsRender extends Component {
         <i style={styles.platform} className={'fa ' + icon} title={proof.type} onTouchTap={onTouchTap}></i>
         <div style={styles.usernameContainer}>
           <span
-            style={{...styles.username, ...{textDecoration: proof.status === deleted ? 'line-through' : 'inherit'}}} /* deleted not in model? */
+            style={{...styles.username, ...{textDecoration: proof.status === revoked ? 'line-through' : 'inherit'}}}
             onTouchTap={onTouchTap}>{proof.name}</span>
           {proof.meta && <span style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</span>}
         </div>

@@ -7,7 +7,7 @@ import {FlatButton} from 'material-ui'
 // $FlowIssue styles
 import commonStyles from '../styles/common'
 
-import {normal, pending, warning} from '../constants/tracker'
+import {normal, checking, warning} from '../constants/tracker'
 import type {SimpleProofState} from '../constants/tracker'
 
 export type ActionProps = {
@@ -29,7 +29,7 @@ export default class ActionRender extends Component {
   render (): ReactElement {
     const {username, state} = this.props
 
-    if (state === pending || !username) {
+    if (state === checking || !username) {
       return this.renderPending()
     } else if (this.props.state === normal) {
       return this.renderNormal(username)

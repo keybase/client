@@ -5,7 +5,6 @@ import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
 // $FlowIssue commonStyles
 import commonStyles, {colors} from '../styles/common'
-import type {SimpleProofState} from '../constants/tracker'
 
 export type UserInfo = {
   fullname: string,
@@ -18,7 +17,6 @@ export type UserInfo = {
 
 export type BioProps = {
   username: ?string,
-  state: SimpleProofState,
   userInfo: ?UserInfo
 }
 
@@ -45,7 +43,6 @@ export default class BioRender extends Component {
 
 BioRender.propTypes = {
   username: React.PropTypes.any,
-  state: React.PropTypes.any,
   userInfo: React.PropTypes.any
 }
 

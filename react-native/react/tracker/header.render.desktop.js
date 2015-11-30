@@ -3,10 +3,12 @@
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
 import path from 'path'
+// $FlowIssue styles
 import commonStyles from '../styles/common'
 
 export type HeaderProps = {
   reason: string,
+  style: Object,
   onClose: () => void
 }
 

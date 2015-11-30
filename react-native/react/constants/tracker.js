@@ -1,21 +1,18 @@
 /* @flow */
 
 // Simple state of the overall proof result
-export type SimpleProofState = 'normal' | 'warning' | 'error' | 'pending' | 'deleted' | 'checking'
-export type SimpleProofMeta = 'new' | 'deleted' | 'unreachable' | 'pending'
+export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'
+export type SimpleProofMeta = 'upgraded' | 'new'
 
 // Constants
 export const normal: SimpleProofState = 'normal'
 export const warning: SimpleProofState = 'warning'
 export const error: SimpleProofState = 'error'
 export const checking: SimpleProofState = 'checking'
-export const pending: SimpleProofState = 'pending'
-export const deleted: SimpleProofState = 'deleted'
+export const revoked: SimpleProofState = 'revoked'
 
+export const metaUpgraded: SimpleProofMeta = 'upgraded'
 export const metaNew: SimpleProofMeta = 'new'
-export const metaDeleted: SimpleProofMeta = 'deleted'
-export const metaUnreachable: SimpleProofMeta = 'unreachable'
-export const metaPending: SimpleProofMeta = 'pending'
 
 // Actions
 export const registerIdentifyUi = 'tracker:registerIdentifyUi'

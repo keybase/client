@@ -52,7 +52,6 @@ class Tracker extends Component {
     const renderProps: RenderProps = {
       bioProps: {
         username: this.props.username,
-        state: this.props.proofState,
         userInfo: this.props.userInfo
       },
       headerProps: {
@@ -104,7 +103,7 @@ class Tracker extends Component {
 
 const mockData = {
   username: 'max',
-  proofState: 'pending',
+  proofState: 'checking',
   reason: 'You accessed /private/cecile',
   userInfo: {
     fullname: 'Alice Bonhomme-Biaias',
@@ -116,8 +115,8 @@ const mockData = {
   },
   shouldFollow: true,
   proofs: [
-    {"name":"marcopolo","type":"github","id":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'normal', humanUrl: "github.com/marcopolo", color: 'green'}, //eslint-disable-line
-    {"name":"open_sourcery","type":"twitter","id":"76363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'pending', humanUrl: "twitter.com/open_sourcery", color: 'gray'}, //eslint-disable-line
+    {"name":"marcopolo","type":"github","id":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'normal', humanUrl: "github.com/marcopolo", color: 'green', meta: 'new'}, //eslint-disable-line
+    {"name":"open_sourcery","type":"twitter","id":"76363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'checking', humanUrl: "twitter.com/open_sourcery", color: 'gray'}, //eslint-disable-line
   ]
 }
 
