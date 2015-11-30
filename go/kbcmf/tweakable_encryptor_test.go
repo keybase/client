@@ -34,6 +34,7 @@ func (eo testEncryptionOptions) getBlockSize() int {
 
 type testEncryptStream struct {
 	output     io.Writer
+	encoder    encoder
 	header     *EncryptionHeader
 	sessionKey SymmetricKey
 	buffer     bytes.Buffer
@@ -52,9 +53,8 @@ func (pes *testEncryptStream) Write(plaintext []byte) (int, error) {
 
 	if !pes.didHeader {
 		pes.didHeader = true
-		var buf bytes.Buffer
-		pes.err = encodeNewPacket(&buf, pes.header)
-		b := buf.Bytes()
+		var b []byte
+		b, pes.err = encodeToBytes(pes.header)
 		if pes.options.corruptHeaderPacked != nil {
 			pes.options.corruptHeaderPacked(b)
 		}
@@ -126,7 +126,7 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 		pes.options.corruptEncryptionBlock(&block, pes.numBlocks)
 	}
 
-	if err := encodeNewPacket(pes.output, block); err != nil {
+	if err := pes.encoder.Encode(block); err != nil {
 		return nil
 	}
 
@@ -282,6 +282,7 @@ func (pes *testEncryptStream) writeFooter() error {
 func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey, options testEncryptionOptions) (plaintext io.WriteCloser, err error) {
 	pes := &testEncryptStream{
 		output:  ciphertext,
+		encoder: newEncoder(ciphertext),
 		options: options,
 		inblock: make([]byte, options.getBlockSize()),
 	}

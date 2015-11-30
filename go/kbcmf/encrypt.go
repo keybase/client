@@ -12,6 +12,7 @@ import (
 
 type encryptStream struct {
 	output     io.Writer
+	encoder    encoder
 	header     *EncryptionHeader
 	sessionKey SymmetricKey
 	buffer     bytes.Buffer
@@ -29,7 +30,7 @@ func (es *encryptStream) Write(plaintext []byte) (int, error) {
 
 	if !es.didHeader {
 		es.didHeader = true
-		es.err = encodeNewPacket(es.output, es.header)
+		es.err = es.encoder.Encode(es.header)
 	}
 
 	if es.err != nil {
@@ -86,7 +87,7 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 		MACs:       macs,
 	}
 
-	if err := encodeNewPacket(es.output, block); err != nil {
+	if err := es.encoder.Encode(block); err != nil {
 		return nil
 	}
 
@@ -257,6 +258,7 @@ func (es *encryptStream) writeFooter() error {
 func NewEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey) (plaintext io.WriteCloser, err error) {
 	es := &encryptStream{
 		output:  ciphertext,
+		encoder: newEncoder(ciphertext),
 		inblock: make([]byte, EncryptionBlockSize),
 	}
 	if err := es.init(sender, receivers); err != nil {

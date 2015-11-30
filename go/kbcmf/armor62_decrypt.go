@@ -43,6 +43,8 @@ func Dearmor62DecryptOpen(ciphertext string, kr Keyring) (plaintext []byte, err 
 	return out, nil
 }
 
+// CheckArmor62Frame checks that the frame matches our standard
+// keybase begin/end frame
 func CheckArmor62Frame(frame Frame) error {
 	if hdr, err := frame.GetHeader(); err != nil {
 		return err

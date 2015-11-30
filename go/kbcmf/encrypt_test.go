@@ -1198,7 +1198,7 @@ func TestSealAndOpenTrailingGarbage(t *testing.T) {
 	}
 	var buf bytes.Buffer
 	buf.Write(ciphertext)
-	encodeNewPacket(&buf, randomMsg(t, 14))
+	newEncoder(&buf).Encode(randomMsg(t, 14))
 	_, err = Open(buf.Bytes(), kr)
 	if err != ErrTrailingGarbage {
 		t.Fatalf("Wanted 'ErrTrailingGarbage' but got %v", err)
