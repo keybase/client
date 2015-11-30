@@ -1,3 +1,9 @@
+- Further bugfixes for S2K Dummy mode (PR: keybase/client#1420)
+- Better handling of shell out to GPG during provisioning (PR: keybase/client#1405)
+- Avoid half-provisioned state by doing provisioning work in a transaction-like pattern
+   (PR: keybase/client#1406)
+- Allow `keybase prove web` to work as in online documentation (PR: keybase/client#1418)
+
 ## 1.0.3-0 (2015-11-24)
 
 - Fix no device ID during gpg/pgp provisioning (PR: keybase/client#1400)
