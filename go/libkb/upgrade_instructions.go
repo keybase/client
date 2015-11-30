@@ -8,18 +8,18 @@ import (
 	"runtime"
 )
 
-func platformSpecificUpgradeInstructions() {
+func platformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	switch runtime.GOOS {
 	case "linux":
-		linuxUpgradeInstructions()
+		linuxUpgradeInstructions(g)
 	case "darwin":
-		darwinUpgradeInstructions()
+		darwinUpgradeInstructions(g, upgradeURI)
 	case "windows":
 		// TODO
 	}
 }
 
-func linuxUpgradeInstructions() {
+func linuxUpgradeInstructions(g *GlobalContext) {
 	hasPackageManager := func(name string) bool {
 		// Not all package managers are in /usr/bin. (openSUSE for example puts
 		// Yast in /usr/sbin.) Better to just do the full check now than to get
@@ -36,15 +36,15 @@ func linuxUpgradeInstructions() {
 	}
 
 	if hasPackageManager("apt-get") {
-		printUpgradeCommand("sudo apt-get update && sudo apt-get install " + packageName)
+		printUpgradeCommand(g, "sudo apt-get update && sudo apt-get install "+packageName)
 	} else if hasPackageManager("dnf") {
-		printUpgradeCommand("sudo dnf upgrade " + packageName)
+		printUpgradeCommand(g, "sudo dnf upgrade "+packageName)
 	} else if hasPackageManager("yum") {
-		printUpgradeCommand("sudo yum upgrade " + packageName)
+		printUpgradeCommand(g, "sudo yum upgrade "+packageName)
 	}
 }
 
-func darwinUpgradeInstructions() {
+func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	packageName := "keybase"
 	if DefaultRunMode == DevelRunMode {
 		packageName = "keybase/beta/kbdev"
@@ -53,12 +53,14 @@ func darwinUpgradeInstructions() {
 	}
 
 	if IsBrewBuild {
-		printUpgradeCommand("brew update && brew upgrade " + packageName)
+		printUpgradeCommand(g, "brew update && brew upgrade "+packageName)
+	} else {
+		g.Log.Warning("  Please download a new version from " + upgradeURI)
 	}
 	// TODO: non-brew update instructions
 }
 
-func printUpgradeCommand(command string) {
-	G.Log.Warning("To upgrade, run the following command:")
-	G.Log.Warning("    " + command)
+func printUpgradeCommand(g *GlobalContext, command string) {
+	g.Log.Warning("To upgrade, run the following command:")
+	g.Log.Warning("    " + command)
 }

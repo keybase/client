@@ -88,8 +88,6 @@ func (pk *PrivateKey) parse(r io.Reader) (err error) {
 		return errors.UnsupportedError("deprecated s2k function in private key")
 	}
 
-
-
 	if pk.Encrypted {
 		blockSize := pk.cipher.blockSize()
 		if blockSize == 0 {

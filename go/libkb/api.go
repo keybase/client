@@ -144,7 +144,7 @@ func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*
 
 	if sendJSON {
 		if len(arg.getHTTPArgs()) > 0 {
-			panic("PreparePost:  sending JSON, but http args exist and they will be ignored.  Fix your APIArg.")
+			panic("PreparePost: sending JSON, but http args exist and they will be ignored. Fix your APIArg.")
 		}
 		jsonString, err := json.Marshal(arg.JSONPayload)
 		if err != nil {
@@ -310,13 +310,14 @@ var lastUpgradeWarning *time.Time
 
 func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) error {
 	u := resp.Header.Get("X-Keybase-Client-Upgrade-To")
+	p := resp.Header.Get("X-Keybase-Upgrade-URI")
 	if len(u) > 0 {
 		now := time.Now()
 		lastUpgradeWarningMu.Lock()
 		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
-			G.Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
+			a.G().Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
 				u, Version)
-			platformSpecificUpgradeInstructions()
+			platformSpecificUpgradeInstructions(a.G(), p)
 			lastUpgradeWarning = &now
 		}
 		lastUpgradeWarningMu.Unlock()
