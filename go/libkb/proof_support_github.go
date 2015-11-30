@@ -68,8 +68,7 @@ func (rc *GithubChecker) CheckStatus(h SigHint) ProofError {
 
 type GithubServiceType struct{ BaseServiceType }
 
-func (t GithubServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
-func (t GithubServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+func (t GithubServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 func (t GithubServiceType) CheckUsername(s string) (err error) {
 	if !regexp.MustCompile(`^@?(?i:[a-z0-9][a-z0-9-]{0,38})$`).MatchString(s) {

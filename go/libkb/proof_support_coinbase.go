@@ -74,8 +74,7 @@ func (rc *CoinbaseChecker) CheckStatus(h SigHint) ProofError {
 
 type CoinbaseServiceType struct{ BaseServiceType }
 
-func (t CoinbaseServiceType) AllStringKeys() []string     { return t.BaseAllStringKeys(t) }
-func (t CoinbaseServiceType) PrimaryStringKeys() []string { return t.BasePrimaryStringKeys(t) }
+func (t CoinbaseServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 func (t CoinbaseServiceType) CheckUsername(s string) (err error) {
 	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{2,16})$`).MatchString(s) {

@@ -13,7 +13,6 @@ import (
 
 type ServiceType interface {
 	AllStringKeys() []string
-	PrimaryStringKeys() []string
 	CheckUsername(string) error
 	NormalizeUsername(string) (string, error)
 	ToChecker() Checker
@@ -35,7 +34,7 @@ type ServiceType interface {
 var _stDispatch = make(map[string]ServiceType)
 
 func RegisterServiceType(st ServiceType) {
-	for _, k := range st.PrimaryStringKeys() {
+	for _, k := range st.AllStringKeys() {
 		_stDispatch[k] = st
 	}
 }
@@ -94,10 +93,6 @@ func (t BaseServiceType) BaseToChecker(st ServiceType, hint string) Checker {
 }
 
 func (t BaseServiceType) BaseAllStringKeys(st ServiceType) []string {
-	return []string{st.GetTypeName()}
-}
-
-func (t BaseServiceType) BasePrimaryStringKeys(st ServiceType) []string {
 	return []string{st.GetTypeName()}
 }
 
