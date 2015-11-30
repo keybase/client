@@ -6,7 +6,7 @@ package kbcmf
 import ()
 
 type receiverKeysPlaintext struct {
-	GroupID    int    `codec:"gid"`
+	GroupID    uint32 `codec:"gid"`
 	MACKey     []byte `codec:"mac,omitempty"`
 	SessionKey []byte `codec:"sess"`
 }

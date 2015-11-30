@@ -195,7 +195,7 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicK
 			d[kidString] = struct{}{}
 
 			pt := receiverKeysPlaintext{
-				GroupID:    (gid | groupIDMask),
+				GroupID:    (uint32(gid) | groupIDMask),
 				SessionKey: pes.sessionKey[:],
 				MACKey:     macKey[:],
 			}

@@ -42,4 +42,4 @@ const EncryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
 
 // groupIDMask is OR'ed into group IDs, so that they all are encoded as full
 // 32-bit integers
-const groupIDMask = 0x80000000
+const groupIDMask uint32 = 0x80000000

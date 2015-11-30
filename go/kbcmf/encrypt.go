@@ -198,7 +198,7 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) e
 			}
 
 			pt := receiverKeysPlaintext{
-				GroupID:    (gid | groupIDMask),
+				GroupID:    (uint32(gid) | groupIDMask),
 				SessionKey: es.sessionKey[:],
 				MACKey:     macKey[:],
 			}
