@@ -204,6 +204,71 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	}
 }
 
+// TestPGPDecryptSignedIdentify tests that the signer is
+// identified regardless of AssertSigned, SignedBy args.
+func TestPGPDecryptSignedIdentify(t *testing.T) {
+	tcRecipient := SetupEngineTest(t, "PGPDecrypt - Recipient")
+	defer tcRecipient.Cleanup()
+	recipient := createFakeUserWithPGPSibkey(tcRecipient)
+	Logout(tcRecipient)
+
+	tcSigner := SetupEngineTest(t, "PGPDecrypt - Signer")
+	defer tcSigner.Cleanup()
+	signer := createFakeUserWithPGPSibkey(tcSigner)
+
+	// encrypt a message
+	msg := "We pride ourselves on being meticulous; no issue is too small."
+	ctx := decengctx(signer, tcSigner)
+	sink := libkb.NewBufferCloser()
+	arg := &PGPEncryptArg{
+		Recips:       []string{recipient.Username},
+		Source:       strings.NewReader(msg),
+		Sink:         sink,
+		BinaryOutput: true,
+		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+	}
+	enc := NewPGPEncrypt(arg, tcSigner.G)
+	if err := RunEngine(enc, ctx); err != nil {
+		t.Fatal(err)
+	}
+	out := sink.Bytes()
+
+	t.Logf("encrypted data: %x", out)
+
+	// signer logs out, recipient logs in:
+	t.Logf("signer (%q) logging out", signer.Username)
+	Logout(tcSigner)
+	libkb.G = tcRecipient.G
+	t.Logf("recipient (%q) logging in", recipient.Username)
+	recipient.LoginOrBust(tcRecipient)
+
+	idUI := &FakeIdentifyUI{}
+	ctx = &Context{IdentifyUI: idUI, SecretUI: recipient.NewSecretUI(), LogUI: tcRecipient.G.UI.GetLogUI()}
+
+	// decrypt it
+	decoded := libkb.NewBufferCloser()
+	decarg := &PGPDecryptArg{
+		Source:       bytes.NewReader(out),
+		Sink:         decoded,
+		AssertSigned: false,
+		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+	}
+	dec := NewPGPDecrypt(decarg, tcRecipient.G)
+	if err := RunEngine(dec, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if idUI.User == nil {
+		t.Fatal("identify ui user is nil")
+	}
+	if idUI.User.Username != signer.Username {
+		t.Errorf("idUI username: %q, expected %q", idUI.User.Username, signer.Username)
+	}
+	if idUI.Outcome == nil {
+		t.Fatal("identify ui outcome is nil")
+	}
+}
+
 func TestPGPDecryptLong(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
