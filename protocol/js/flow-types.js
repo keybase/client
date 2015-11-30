@@ -1887,6 +1887,8 @@ export type metadata_Stream = {
 
 export type metadata_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type metadata_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type metadata_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -1912,16 +1914,6 @@ export type metadata_MetadataResponse = {
 export type MetadataResponse = {
   folderID: string;
   mdBlocks: Array<bytes>;
-}
-
-export type metadata_FolderUsersResponse = {
-  readers: Array<UID>;
-  writers: Array<UID>;
-}
-
-export type FolderUsersResponse = {
-  readers: Array<UID>;
-  writers: Array<UID>;
 }
 
 export type metadataUpdate_Time = {

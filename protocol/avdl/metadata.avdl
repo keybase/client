@@ -14,11 +14,6 @@ protocol metadata {
          array<bytes> mdBlocks;
   }
 
-  record FolderUsersResponse {
-	 array<UID> readers;
-	 array<UID> writers;
-  }
-
   int authenticate(string signature);
   void putMetadata(bytes mdBlock, map<string> logTags);
   MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);
@@ -28,6 +23,6 @@ protocol metadata {
   bytes getKey(bytes keyHalfID, string deviceKID, map<string> logTags);
   boolean truncateLock(string folderID);
   boolean truncateUnlock(string folderID);
-  FolderUsersResponse getFolderUsers(string folderID);
+  bytes getFolderHandle(string folderID, string signature);
   void ping();
 }
