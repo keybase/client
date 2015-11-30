@@ -64,10 +64,14 @@ build() {
   # Copy icon files
   cp $client_dir/osx/Install/appdmg/Keybase.icns .
 
+  # Move menubar icon into app path
+  mv $build_dir/desktop/Icon*.png $build_dir
+
   # Copy and modify package.json to point to main from one dir up
   cp desktop/package.json .
   json -I -f package.json -e 'this.main="desktop/app/main.js"'
 
+  # Including dev dependencies for debug, we should use --production when doing real releases
   npm install #--production
 }
 
