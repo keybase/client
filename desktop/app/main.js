@@ -13,7 +13,8 @@ const mb = menubar({
   index: `file://${__dirname}/../renderer/launcher.html`,
   width: 200, height: 250,
   preloadWindow: true,
-  icon: 'Icon.png'
+  icon: 'Icon.png',
+  showDockIcon: true
 })
 
 const trackerWindow = new Window('tracker', {
