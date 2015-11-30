@@ -38,7 +38,8 @@ export default {
     'ForkType': {
       'none': 0,
       'auto': 1,
-      'watchdog': 2
+      'watchdog': 2,
+      'launchd': 3
     },
     'InstallStatus': {
       'unknown': 0,

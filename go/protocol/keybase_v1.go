@@ -404,6 +404,7 @@ const (
 	ForkType_NONE     ForkType = 0
 	ForkType_AUTO     ForkType = 1
 	ForkType_WATCHDOG ForkType = 2
+	ForkType_LAUNCHD  ForkType = 3
 )
 
 type Config struct {

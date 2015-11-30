@@ -296,6 +296,8 @@ func (d *Service) ParseArgv(ctx *cli.Context) error {
 		d.ForkType = keybase1.ForkType_AUTO
 	} else if ctx.Bool("watchdog-forked") {
 		d.ForkType = keybase1.ForkType_WATCHDOG
+	} else if ctx.Bool("launchd-forked") {
+		d.ForkType = keybase1.ForkType_LAUNCHD
 	}
 	return nil
 }
