@@ -237,7 +237,7 @@ func (ds *decryptStream) checkMAC(bl *EncryptionBlock, b []byte) error {
 	}
 	gid := (ds.keys.GroupID ^ groupIDMask)
 
-	if int64(len(bl.MACs)) <= int64(gid) {
+	if gid < 0 || int64(len(bl.MACs)) <= int64(gid) {
 		return ErrBadGroupID(gid)
 	}
 
