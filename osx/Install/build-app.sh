@@ -5,8 +5,6 @@ set -e # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
-action=$1
-
 bin_src=$dir/bin
 
 build_dest=$dir/build
@@ -110,37 +108,3 @@ echo "Checking Helper..."
 codesign -dvvvv $app_name.app/Contents/Library/LaunchServices/keybase.Helper
 echo " "
 spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
-
-dmg_name="$app_name-$app_version-$app_build.dmg"
-
-if [ "$action" == "install" ]; then
-
-  if [ -f /Applications/$app_name.app ]; then
-    trash /Applications/$app_name.app
-  fi
-  ditto $app_name.app /Applications/$app_name.app
-
-elif [ "$action" == "dmg" ]; then
-
-  rm -rf $dmg_name
-
-  cp ../appdmg/* .
-
-  appdmg $appdmg $dmg_name
-
-else
-
-  echo "
-  To open the build dir:
-
-    open build
-
-  To open the DMG:
-
-    open build/$dmg_name
-
-  The build was archived to:
-
-    $archive_hold_path
-  "
-fi
