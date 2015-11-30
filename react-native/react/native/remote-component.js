@@ -5,11 +5,9 @@ const BrowserWindow = remote.require('browser-window')
 
 export default class RemoteComponent extends Component {
   componentWillMount () {
-    const windowsOpts = {width: 500, height: 300, fullscreen: false, ...this.props.windowsOpts,}
+    const windowsOpts = {width: 500, height: 300, fullscreen: false, show: false, ...this.props.windowsOpts}
     this.remoteWindow = new BrowserWindow(windowsOpts)
     this.closed = false
-
-    this.remoteWindow.hide()
 
     this.remoteWindow.on('needProps', () => {
       this.remoteWindow.emit('hasProps', {...this.props})
