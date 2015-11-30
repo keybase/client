@@ -35,7 +35,7 @@ type ServiceType interface {
 var _stDispatch = make(map[string]ServiceType)
 
 func RegisterServiceType(st ServiceType) {
-	for _, k := range st.PrimaryStringKeys() {
+	for _, k := range st.AllStringKeys() {
 		_stDispatch[k] = st
 	}
 }
