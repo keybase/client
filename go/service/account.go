@@ -42,12 +42,12 @@ func (h *AccountHandler) PassphrasePrompt(_ context.Context, sessionID int) erro
 	}
 
 	guiArg := keybase1.GUIEntryArg{
-		WindowTitle: "Keybase Test Passphrase",
-		Prompt:      "Enter a test passphrase",
+		WindowTitle: "Passphrase needed",
+		Prompt:      "Please enter the passphrase to unlock your secret key",
 		Features: keybase1.GUIEntryFeatures{
 			SecretStorage: keybase1.SecretStorageFeature{
 				Allow: true,
-				Label: "store your test passphrase",
+				Label: "Save in Keychain",
 			},
 		},
 	}
