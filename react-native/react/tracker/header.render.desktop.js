@@ -3,17 +3,16 @@
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
 import path from 'path'
-// $FlowIssue styles
 import commonStyles from '../styles/common'
+import type {Styled} from '../styles/common'
 
 export type HeaderProps = {
   reason: string,
-  style: Object,
   onClose: () => void
 }
 
 export default class HeaderRender extends Component {
-  props: HeaderProps;
+  props: HeaderProps & Styled;
 
   render (): ReactElement {
     return (

@@ -108,3 +108,6 @@ export const buttonHighlight = 'white'
 export const disabledButtonHighlight = 'black'
 export const constants = native
 
+export type Styled = {
+  style: Object
+}

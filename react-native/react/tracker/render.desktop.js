@@ -24,7 +24,6 @@ export type RenderProps = {
   proofsProps: ProofsProps
 }
 
-// $FlowIssue styles
 import commonStyles from '../styles/common'
 
 export default class Render extends Component {

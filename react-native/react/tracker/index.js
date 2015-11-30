@@ -51,18 +51,15 @@ class Tracker extends Component {
     const renderProps: RenderProps = {
       bioProps: {
         username: this.props.username,
-        style: {},
         userInfo: this.props.userInfo
       },
       headerProps: {
         reason: this.props.reason,
-        style: {},
         onClose: this.props.onCloseFromHeader
       },
       actionProps: {
         state: this.props.proofState,
         username: this.props.username,
-        style: {},
         renderChangedTitle,
         shouldFollow: this.props.shouldFollow,
         onClose: this.props.onCloseFromActionBar,
@@ -73,7 +70,6 @@ class Tracker extends Component {
       },
       proofsProps: {
         username: this.props.username,
-        style: {},
         proofs: this.props.proofs
       }
     }

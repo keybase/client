@@ -2,7 +2,6 @@
 
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
-// $FlowIssue styles
 import commonStyles, {colors} from '../styles/common'
 
 import {checking, revoked} from '../constants/tracker'

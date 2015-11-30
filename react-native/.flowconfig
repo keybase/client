@@ -6,7 +6,6 @@
 .*/react/nav.android.js
 .*/react/nav.ios.js
 .*/react/common-adapters/.*
-.*/react/styles/.*
 .*/react/login/.*
 .*/react/login2/.*
 .*/react/profile/.*

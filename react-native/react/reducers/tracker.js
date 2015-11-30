@@ -39,7 +39,7 @@ const initialState: State = {
     followersCount: -1,
     followingCount: -1,
     followsYou: false,
-    avatar: 'TODO: get this information',
+    avatar: null,
     location: 'TODO: get this information'
   }
 }

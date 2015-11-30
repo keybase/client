@@ -3,15 +3,17 @@
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
-// $FlowIssue commonStyles
 import commonStyles, {colors} from '../styles/common'
+import type {Styled} from '../styles/common'
+
+import path from 'path'
 
 export type UserInfo = {
   fullname: string,
   followersCount: number,
   followingCount: number,
   followsYou: boolean,
-  avatar: string,
+  avatar: ?string,
   location: string
 }
 
@@ -19,17 +21,18 @@ export type BioProps = {
   username: ?string,
   userInfo: ?UserInfo
 }
+const noAvatar = `file:///${path.resolve('../react-native/react/images/no-avatar@2x.png')}`
 
 export default class BioRender extends Component {
-  props: BioProps;
+  props: BioProps & Styled;
 
   render (): ReactElement {
     const {userInfo} = this.props
 
     return (
       <div style={styles.container}>
-        <Paper style={styles.avatar} zDepth={1} circle>
-          <img src={userInfo && userInfo.avatar} style={styles.avatar}/>
+        <Paper style={styles.avatarContainer} zDepth={1} circle>
+          <img src={(userInfo && userInfo.avatar) || noAvatar} style={styles.avatar}/>
         </Paper>
         {userInfo && userInfo.followsYou && <span style={styles.followsYou}>Tracks you</span>}
         <p style={styles.fullname}>{userInfo && userInfo.fullname}</p>
@@ -55,12 +58,17 @@ const styles = {
     paddingTop: 12,
     width: 202
   },
-  avatar: {
+  avatarContainer: {
     border: '3px solid #cccccc',
     height: 100,
     minHeight: 100,
     overflow: 'hidden',
+    boxSizing: 'content-box',
     width: 100
+  },
+  avatar: {
+    width: 100,
+    height: 100
   },
   followsYou: {
     ...commonStyles.fontBold,

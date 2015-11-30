@@ -4,8 +4,8 @@
 import React, {Component} from '../base-react'
 import {FlatButton} from 'material-ui'
 
-// $FlowIssue styles
 import commonStyles from '../styles/common'
+import type {Styled} from '../styles/common'
 
 import {normal, checking, warning} from '../constants/tracker'
 import type {SimpleProofState} from '../constants/tracker'
@@ -13,7 +13,6 @@ import type {SimpleProofState} from '../constants/tracker'
 export type ActionProps = {
   state: SimpleProofState,
   username: ?string,
-  style: Object,
   shouldFollow: ?boolean,
   renderChangedTitle: string,
   onClose: () => void,
@@ -24,7 +23,7 @@ export type ActionProps = {
 }
 
 export default class ActionRender extends Component {
-  props: ActionProps;
+  props: ActionProps & Styled;
 
   render (): ReactElement {
     const {username, state} = this.props
