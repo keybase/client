@@ -12,7 +12,7 @@ import (
 //       file, update that script.
 
 // Version as MAJOR.MINOR.PATCH
-const Version = "1.0.3"
+const Version = "1.0.4"
 
 // Build number
 const Build = "0"
