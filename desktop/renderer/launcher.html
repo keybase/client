@@ -16,13 +16,11 @@ button {
 </style>
 
 <button type=button id=showMain>Main</button>
-<button type=button id=showTracker>Tracker popup</button>
 <button type=button id=quit>Quit</button>
 
 <script>
 const ipc = require('electron').ipcRenderer;
 
 showMain.addEventListener('click', () => { ipc.send('showMain'); })
-showTracker.addEventListener('click', () => { ipc.send('showTracker'); })
 quit.addEventListener('click', () => { require('remote').require('app').quit(); })
 </script>

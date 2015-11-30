@@ -15,13 +15,6 @@ const mb = menubar({
   icon: 'Icon.png'
 })
 
-const trackerWindow = new Window('tracker', {
-  width: 500, height: 300,
-  resizable: false,
-  fullscreen: false,
-  frame: false
-})
-
 const mainWindow = new Window('index', {
   width: 1600,
   height: 1200,
@@ -40,6 +33,5 @@ if (process.platform === 'darwin') {
 }
 
 ipc.on('showMain', () => { mainWindow.show(true) })
-ipc.on('showTracker', () => { trackerWindow.show(true) })
 
 splash()
