@@ -4,8 +4,10 @@
 package engine
 
 import (
+	"bytes"
 	"crypto/rand"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"sync"
 	"testing"
@@ -407,6 +409,12 @@ func TestProvisionGPGImport(t *testing.T) {
 	if err := AssertProvisioned(tc2); err != nil {
 		t.Fatal(err)
 	}
+
+	// since they imported their pgp key, they should be able to pgp sign something:
+	if err := signString(tc2, "sign me", u1.NewSecretUI()); err != nil {
+		t.Error("pgp sign failed after gpg provision w/ import")
+		t.Fatal(err)
+	}
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -449,6 +457,12 @@ func TestProvisionGPGSign(t *testing.T) {
 	hasOnePaperDev(tc2, u1)
 
 	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// since they *did not* import a pgp key, they should *not* be able to pgp sign something:
+	if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
+		t.Error("pgp sign worked after gpg provision w/o import")
 		t.Fatal(err)
 	}
 }
@@ -775,4 +789,23 @@ func (p *paperLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.Dis
 func (p *paperLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	p.PaperPhrase = arg.Phrase
 	return nil
+}
+
+func signString(tc libkb.TestContext, input string, secUI libkb.SecretUI) error {
+	var sink bytes.Buffer
+
+	earg := PGPSignArg{
+		Sink:   libkb.NopWriteCloser{W: &sink},
+		Source: ioutil.NopCloser(bytes.NewBufferString(input)),
+		Opts: keybase1.PGPSignOptions{
+			Mode: keybase1.SignMode_ATTACHED,
+		},
+	}
+
+	eng := NewPGPSignEngine(&earg, tc.G)
+	ctx := Context{
+		SecretUI: secUI,
+	}
+
+	return RunEngine(eng, &ctx)
 }

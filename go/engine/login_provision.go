@@ -219,7 +219,7 @@ func (e *LoginProvision) gpg(ctx *Context, method keybase1.ProvisionMethod) erro
 	case keybase1.ProvisionMethod_GPG_SIGN:
 		getKey = e.chooseGPGKey
 	case keybase1.ProvisionMethod_GPG_IMPORT:
-		getKey = e.chooseAndImportGPGKey
+		getKey = e.chooseAndExportGPGKey
 	default:
 		return fmt.Errorf("invalid gpg provisioning method: %v", method)
 	}
@@ -241,6 +241,16 @@ func (e *LoginProvision) gpg(ctx *Context, method keybase1.ProvisionMethod) erro
 			// not a fatal error, session will stay in memory
 			e.G().Log.Warning("error saving session file: %s", err)
 		}
+
+		if method == keybase1.ProvisionMethod_GPG_IMPORT {
+			// store the key in lksec
+			_, err := libkb.WriteLksSKBToKeyring(e.G(), key, e.lks, lctx)
+			if err != nil {
+				e.G().Log.Warning("error saving exported gpg key in lksec: %s", err)
+				return err
+			}
+		}
+
 		return nil
 	}
 
@@ -639,10 +649,13 @@ func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	return libkb.NewGPGKey(e.G(), fp, kid, ctx.GPGUI, e.arg.ClientType), nil
 }
 
-// chooseAndImportGPGKey asks the user to select a gpg key to use,
-// then checks if the fingerprint exists on keybase.io, and
-// finally uses gpg to unlock it and import it to lksec.
-func (e *LoginProvision) chooseAndImportGPGKey(ctx *Context) (libkb.GenericKey, error) {
+// chooseAndExportGPGKey asks the user to select a gpg key to use,
+// then checks if the fingerprint exists on keybase.io.
+// It uses gpg commands to export the private key from gpg's
+// keyring, then unlocks it with the SecretUI.
+//
+// Note that the key is not imported into lksec here.
+func (e *LoginProvision) chooseAndExportGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	// choose a private gpg key to use
 	fp, err := e.selectAndCheckGPGKey(ctx)
 	if err != nil {
