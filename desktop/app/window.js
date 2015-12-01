@@ -16,24 +16,11 @@ export default class Window {
     app.on('ready', () => {
       this.window = new BrowserWindow({show: false, ...this.opts})
       this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
+      this.bindWindowListeners()
     })
   }
 
-  show (shouldShowDockIcon) {
-    if (this.window) {
-      if (!this.window.isVisible()) {
-        this.window.show()
-      }
-      if (!this.window.isFocused()) {
-        this.window.focus()
-      }
-      return
-    }
-
-    this.window = new BrowserWindow(this.opts)
-    this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
-    this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
-
+  bindWindowListeners () {
     // We don't really want to close the window since it'll keep track of the main app state.
     // So instead we'll hide it
     this.window.on('close', event => {
@@ -53,6 +40,24 @@ export default class Window {
         this.releaseDockIcon = null
       }
     })
+  }
+
+  show (shouldShowDockIcon) {
+    if (this.window) {
+      if (!this.window.isVisible()) {
+        this.window.show()
+      }
+      if (!this.window.isFocused()) {
+        this.window.focus()
+      }
+      return
+    }
+
+    this.window = new BrowserWindow(this.opts)
+    this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
+    this.bindWindowListeners()
+
+    this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
 
     if (this.opts.openDevTools) {
       this.window.openDevTools()
