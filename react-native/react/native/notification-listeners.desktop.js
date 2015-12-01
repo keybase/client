@@ -27,14 +27,14 @@ export default {
       [enums.kbfs.FSStatusCode.error]: 'Errored'
     }[notification.statusCode]
 
-    const basedir = notification.filename.split('/')[0]
+    const basedir = notification.filename.split(path.sep)[0]
     let tlf
     if (notification.publicTopLevelFolder) {
       // Public filenames look like cjb#public/foo.txt
-      tlf = '/public/' + basedir.replace('#public', '')
+      tlf = `/public/${basedir.replace('#public', '')}`
     } else {
       // Private filenames look like cjb/foo.txt
-      tlf = '/private/' + basedir
+      tlf = `/private/${basedir}`
     }
 
     const title = `KBFS: ${action} ${state}`
