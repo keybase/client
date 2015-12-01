@@ -15,6 +15,10 @@
 #ifndef MyExePathName
 #define MyExePathName MyGoPath + "\src\github.com\keybase\client\go\keybase\" + MyExeName
 #endif
+#define MyGoArch GetEnv('GOARCH')
+#ifndef MyGoArch
+#define MyGoArch "amd64"
+#endif
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -32,7 +36,7 @@ AppCopyright=Copyright (c) 2015, Keybase
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-OutputBaseFilename=keybase_setup{#MyAppVersion}
+OutputBaseFilename=keybase_setup_{#MyAppVersion}_{#MyGoArch}
 SetupIconFile={#MyGoPath}\src\github.com\keybase\keybase\public\images\favicon.ico
 Compression=lzma
 SolidCompression=yes

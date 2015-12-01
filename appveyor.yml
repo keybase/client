@@ -24,10 +24,9 @@ before_build:
 # Note we do a ping, do save time if the test server is down.
 # Most of the rest of this is to avoid running tests on vendored dirs.
 after_build:
-  - keybase ping
   - cd ..
   - go list ./... | find /V "vendor" > testlist.txt
-  - for /f %%i in (testlist.txt) do go test -timeout 30m %%i
+  - for /f %%i in (testlist.txt) do go test -timeout 30m %%i || exit /b %errorlevel%
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
