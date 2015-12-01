@@ -52,15 +52,16 @@ export default {
       const delay = 20000
       const now = new Date()
 
+      // If we haven't notified for {action,state,tlf} or it was >20s ago, do it.
       if (!(tlf in sentNotifications[action][state]) || now - sentNotifications[action][state][tlf] > delay) {
         sentNotifications[action][state][tlf] = now
         return true
       }
+
       // We've already notified recently, ignore this one.
       return false
     }
 
-    // Get the top-level dir name
     if (rateLimitAllowsNotify(action, state, tlf)) {
       notify(title, {body})
     }
