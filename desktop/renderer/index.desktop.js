@@ -38,7 +38,7 @@ class Keybase extends Component {
     ipcMain.removeAllListeners('subscribeStore')
 
     ipcMain.on('dispatchAction', (event, action) => {
-      store.dispatch(action)
+      setImmediate(() => store.dispatch(action))
     })
 
     ipcMain.on('subscribeStore', event => {
