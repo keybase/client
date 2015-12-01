@@ -59,7 +59,7 @@ export default class ActionRender extends Component {
           <span style={styles.track}>Track</span>
           <i style={styles.eye} className='fa fa-eye'></i>
         </div>
-        <FlatButton style={styles.primary} label='Close' primary onTouchTap={() => this.props.onClose()} />
+        <FlatButton style={styles.primary} label='Close' primary onClick={() => this.props.onClose()} />
       </div>
     )
   }
