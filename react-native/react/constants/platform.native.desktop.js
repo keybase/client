@@ -18,6 +18,10 @@ function findSocketRoot () {
     'linux': `${process.env.XDG_RUNTIME_DIR}/keybase.${runMode}/`
   }
 
+  if (runMode === 'prod') {
+    paths['linux'] = `${process.env.XDG_RUNTIME_DIR}/keybase/`
+  }
+
   return paths[process.platform]
 }
 
