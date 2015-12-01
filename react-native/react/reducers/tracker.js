@@ -21,7 +21,8 @@ type State = {
   shouldFollow: ?boolean,
   reason: string,
   userInfo: UserInfo,
-  proofs: Array<Proof>
+  proofs: Array<Proof>,
+  closed: boolean
 }
 
 const initialProofState = checking
@@ -34,6 +35,7 @@ const initialState: State = {
   shouldFollow: true,
   proofs: [],
   reason: '', // TODO: get the reason
+  closed: true,
   userInfo: {
     fullname: 'TODO: get this information',
     followersCount: -1,
@@ -59,7 +61,8 @@ export default function (state: State = initialState, action: Action): State {
     case Constants.onCloseFromActionBar: // fallthrough // TODO
     case Constants.onCloseFromHeader:
       return {
-        ...state
+        ...state,
+        closed: true
       }
     case Constants.onRefollow: // TODO
       return {
@@ -138,15 +141,19 @@ export default function (state: State = initialState, action: Action): State {
       }
 
     case Constants.registerIdentifyUi:
+      const serverStarted = action.payload && !!action.payload.started || false
       return {
         ...state,
-        serverStarted: action.payload && !!action.payload.started || false
+        serverStarted
       }
 
     case Constants.markActiveIdentifyUi:
+      const serverActive = action.payload && !!action.payload.active || false
       return {
         ...state,
-        serverActive: action.payload && !!action.payload.active || false
+        serverActive,
+        // The server wasn't active and now it is, we reset closed state
+        closed: !state.serverActive && serverActive ? false : state.closed
       }
 
     default:

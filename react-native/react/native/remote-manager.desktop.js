@@ -6,7 +6,7 @@ import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 
 import {bindActionCreators} from 'redux'
-import {registerIdentifyUi} from '../actions/tracker'
+import {registerIdentifyUi, onCloseFromHeader} from '../actions/tracker'
 import RemoteComponent from './remote-component'
 
 export type RemoteManagerProps = {
@@ -44,7 +44,7 @@ class RemoteManager extends Component {
   }
 
   render () {
-    if (this.state.showTrackerPopup) {
+    if (!this.props.trackerClosed) {
       return (
         <RemoteComponent
           windowsOpts={{
@@ -54,7 +54,7 @@ class RemoteManager extends Component {
             resizable: false
           }}
           waitForState
-          onRemoteClose={() => this.setState({showTrackerPopup: false})}
+          onRemoteClose={this.props.onCloseFromHeader}
           component='tracker'/>
       )
     }
@@ -65,17 +65,20 @@ class RemoteManager extends Component {
 
 RemoteManager.propTypes = {
   registerIdentifyUi: React.PropTypes.any,
-  trackerServerStarted: React.PropTypes.any,
-  trackerServerActive: React.PropTypes.any
+  onCloseFromHeader: React.PropTypes.any,
+  trackerServerStarted: React.PropTypes.bool,
+  trackerServerActive: React.PropTypes.bool,
+  trackerClosed: React.PropTypes.bool
 }
 
 export default connect(
   state => {
     return {
       trackerServerStarted: state.tracker.serverStarted,
-      trackerServerActive: state.tracker.serverActive
+      trackerServerActive: state.tracker.serverActive,
+      trackerClosed: state.tracker.closed
     }
   },
-  dispatch => { return bindActionCreators({registerIdentifyUi}, dispatch) }
+  dispatch => { return bindActionCreators({registerIdentifyUi, onCloseFromHeader}, dispatch) }
 )(RemoteManager)
 

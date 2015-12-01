@@ -20,8 +20,10 @@ export default class RemoteComponent extends Component {
 
     // Remember if we close, it's an error to try to close an already closed window
     this.remoteWindow.on('close', () => {
-      this.closed = true
-      this.props.onRemoteClose && this.props.onRemoteClose()
+      if (!this.closed) {
+        this.closed = true
+        this.props.onRemoteClose && this.props.onRemoteClose()
+      }
     })
 
     const componentRequireName = this.props.component
@@ -31,8 +33,8 @@ export default class RemoteComponent extends Component {
 
   componentWillUnmount () {
     if (!this.closed) {
-      this.remoteWindow.close()
       this.closed = true
+      this.remoteWindow.close()
     }
   }
 
