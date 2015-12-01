@@ -41,9 +41,8 @@
   }];
 }
 
-+ (void)status:(NSString *)binPath name:(NSString *)name bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnServiceStatus)completion {
-  NSString *bundleVersionFlag = NSStringWithFormat(@"--bundle-version=%@", [bundleVersion description]);
-  [KBTask executeForJSONWithCommand:binPath args:@[@"launchd", @"status", @"--format=json", bundleVersionFlag, name] completion:^(NSError *error, id value) {
++ (void)status:(NSString *)binPath name:(NSString *)name completion:(KBOnServiceStatus)completion {
+  [KBTask executeForJSONWithCommand:binPath args:@[@"launchd", @"status", @"--format=json", name] completion:^(NSError *error, id value) {
     KBRServiceStatus *status = [MTLJSONAdapter modelOfClass:KBRServiceStatus.class fromJSONDictionary:value error:&error];
     completion(nil, status);
   }];

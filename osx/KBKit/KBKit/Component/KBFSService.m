@@ -15,7 +15,6 @@
 @interface KBFSService ()
 @property NSString *label;
 @property NSString *servicePath;
-@property KBSemVersion *bundleVersion;
 @property KBRServiceStatus *serviceStatus;
 
 @property YOView *infoView;
@@ -27,8 +26,6 @@
   if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem service" image:[KBIcons imageForIcon:KBIconNetwork]])) {
     _label = label;
     _servicePath = servicePath;
-    NSDictionary *info = NSBundle.mainBundle.infoDictionary;
-    _bundleVersion = [KBSemVersion version:info[@"KBFSVersion"] build:info[@"KBFSBuild"]];
   }
   return self;
 }
@@ -88,7 +85,7 @@
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
-  [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] name:@"kbfs" bundleVersion:_bundleVersion completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
+  [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] name:@"kbfs" completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
     self.serviceStatus = serviceStatus;
     self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
     [self componentDidUpdate];

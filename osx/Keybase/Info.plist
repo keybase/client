@@ -24,10 +24,6 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>50</string>
-	<key>KBFSBuild</key>
-	<string>25</string>
-	<key>KBFSVersion</key>
-	<string>1.0.0</string>
 	<key>KBFuseBuild</key>
 	<string>3.0.9</string>
 	<key>KBFuseVersion</key>
@@ -36,10 +32,6 @@
 	<string>60</string>
 	<key>KBHelperVersion</key>
 	<string>1.0.17</string>
-	<key>KBServiceBuild</key>
-	<string>0</string>
-	<key>KBServiceVersion</key>
-	<string>1.0.3</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
