@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 )
@@ -16,6 +17,7 @@ type GpgCLI struct {
 	path    string
 	options []string
 	version string
+	tty     string
 
 	mutex *sync.Mutex
 
@@ -31,6 +33,10 @@ func NewGpgCLI(g *GlobalContext, logUI LogUI) *GpgCLI {
 		mutex:        new(sync.Mutex),
 		logUI:        logUI,
 	}
+}
+
+func (g *GpgCLI) SetTTY(t string) {
+	g.tty = t
 }
 
 func (g *GpgCLI) Configure() (err error) {
@@ -303,5 +309,9 @@ func (g *GpgCLI) MakeCmd(args []string) *exec.Cmd {
 		nargs = append([]string{"--no-tty"}, nargs...)
 	}
 	g.logUI.Debug("| running Gpg: %s %v", g.path, nargs)
-	return exec.Command(g.path, nargs...)
+	ret := exec.Command(g.path, nargs...)
+	if g.tty != "" {
+		ret.Env = append(os.Environ(), "GPG_TTY="+g.tty)
+	}
+	return ret
 }

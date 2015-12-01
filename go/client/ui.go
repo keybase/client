@@ -15,13 +15,20 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/spotty"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"sync"
 )
 
 type UI struct {
 	libkb.Contextified
 	Terminal    *Terminal
 	SecretEntry *SecretEntry
+
+	// ttyMutex protects the TTY variable, which may be accessed from
+	// multiple goroutines
+	ttyMutex sync.Mutex
+	tty      *string
 }
 
 // The UI class also fulfills the TerminalUI interface from libkb
@@ -410,8 +417,28 @@ func (ui *UI) GetLogUI() libkb.LogUI {
 	return G.Log
 }
 
+func (ui *UI) getTTY() string {
+	ui.ttyMutex.Lock()
+	defer ui.ttyMutex.Unlock()
+
+	if ui.tty == nil {
+		tty, err := spotty.Discover()
+		if err != nil {
+			ui.GetLogUI().Notice("Error in looking up TTY for GPG: %s", err.Error())
+		} else if tty != "" {
+			ui.GetLogUI().Debug("Setting GPG_TTY to %s", tty)
+		} else {
+			ui.GetLogUI().Debug("Can't set GPG_TTY; discover failed")
+		}
+		ui.tty = &tty
+	}
+	ret := *ui.tty
+
+	return ret
+}
+
 func (ui *UI) GetGPGUI() libkb.GPGUI {
-	return NewGPGUI(ui.G(), ui.GetTerminalUI(), false)
+	return NewGPGUI(ui.G(), ui.GetTerminalUI(), false, ui.getTTY())
 }
 
 func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
@@ -589,11 +616,11 @@ func (ui *UI) Configure() error {
 	if err != nil {
 		// XXX this is only temporary so that SecretEntry will still work
 		// when this is run without a terminal.
-		ui.SecretEntry = NewSecretEntry(nil)
+		ui.SecretEntry = NewSecretEntry(ui.G(), nil, "")
 		return err
 	}
 	ui.Terminal = t
-	ui.SecretEntry = NewSecretEntry(ui.Terminal)
+	ui.SecretEntry = NewSecretEntry(ui.G(), ui.Terminal, ui.getTTY())
 	return nil
 }
 
