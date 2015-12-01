@@ -15,7 +15,7 @@ import (
 
 func sameFile(ss1 *syscall.Stat_t, fi os.FileInfo) bool {
 	if ss2, ok := fi.Sys().(*syscall.Stat_t); ok {
-		return ss2.Dev == ss1.Dev && ss2.Rdev == ss1.Rdev && ss1.Ino == ss2.Ino
+		return ss1.Dev == ss2.Dev && ss1.Rdev == ss2.Rdev && ss1.Ino == ss2.Ino
 	}
 	return false
 }
