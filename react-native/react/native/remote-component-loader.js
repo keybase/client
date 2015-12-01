@@ -41,7 +41,7 @@ class RemoteStore {
 
   _publishChange () {
     this.listeners.forEach(l => {
-      l()
+      setImmediate(l)
     })
   }
 }
@@ -82,7 +82,7 @@ class RemoteComponentLoader extends Component {
         if (this.state.loaded === false) {
           currentWindow.show()
         }
-        this.setState({props: props, loaded: true})
+        setImmediate(() => this.setState({props: props, loaded: true}))
       }
     })
 
