@@ -211,7 +211,7 @@ func (r *receiveHandler) receiveResponse() (err error) {
 		}
 	}
 
-	call.Finish(apperr)
+	_ = call.Finish(apperr)
 
 	return
 }
