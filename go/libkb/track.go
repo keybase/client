@@ -35,6 +35,11 @@ func NewTrackSet() *TrackSet {
 
 func (ts TrackSet) Add(t TrackIDComponent) {
 	ts.ids[t.ToIDString()] = t
+	// One ID might also imply another for the purpose of TrackSet subtraction
+	// (namely, HTTPS implies HTTP).
+	for _, impliedID := range t.ToImpliedIDStrings() {
+		ts.services[impliedID] = true
+	}
 	if t.LastWriterWins() {
 		k, _ := t.ToKeyValuePair()
 		ts.services[k] = true
@@ -69,12 +74,6 @@ func (ts TrackSet) HasMember(t TrackIDComponent) bool {
 		_, found = ts.services[k]
 	} else {
 		_, found = ts.ids[t.ToIDString()]
-		// One ID might also imply another for the purpose of subtraction
-		// (namely, HTTPS implies HTTP).
-		for _, impliedID := range t.ToImpliedIDStrings() {
-			_, implied := ts.ids[impliedID]
-			found = found || implied
-		}
 	}
 	return found
 }
