@@ -1,5 +1,7 @@
 /* @flow */
 
+import {showAllTrackers} from '../local-debug'
+
 import * as Constants from '../constants/tracker'
 import {normal, warning, error, checking} from '../constants/tracker'
 import {metaNew, metaUpgraded} from '../constants/tracker'
@@ -149,12 +151,28 @@ export default function (state: State = initialState, action: Action): State {
 
     case Constants.markActiveIdentifyUi:
       const serverActive = action.payload && !!action.payload.active || false
+      // The server wasn't active and now it is, we reset closed state
+      const closed = (showAllTrackers && !state.serverActive && serverActive) ? false : state.closed
       return {
         ...state,
         serverActive,
-        // The server wasn't active and now it is, we reset closed state
-        closed: !state.serverActive && serverActive ? false : state.closed
+        closed
       }
+
+    case Constants.decideToShowTracker:
+      // The tracker is already open
+      if (!state.closed) {
+        return state
+      }
+
+      // If the proof state isn't normal and isn't checking, we'll show the tracker
+      if (state.proofState !== normal && state.proofState !== checking) {
+        return {
+          ...state,
+          closed: false
+        }
+      }
+      return state
 
     default:
       return state

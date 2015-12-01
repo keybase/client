@@ -33,3 +33,5 @@ export const onRefollow = 'tracker:onRefollow'
 export const onUnfollow = 'tracker:onUnfollow'
 export const onFollowHelp = 'tracker:onFollowHelp'
 export const onFollowChecked = 'tracker:onFollowChecked'
+
+export const decideToShowTracker = 'tracker:decideToShowTracker'

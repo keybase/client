@@ -146,10 +146,12 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     finishWebProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
       dispatch(updateProof(params.rp, params.lcr))
       dispatch({type: Constants.updateProofState})
+      dispatch({type: Constants.decideToShowTracker})
     },
     finishSocialProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
       dispatch(updateProof(params.rp, params.lcr))
       dispatch({type: Constants.updateProofState})
+      dispatch({type: Constants.decideToShowTracker})
     },
     displayCryptocurrency: (params: {sessionID: number, c: Cryptocurrency}) => {
     },

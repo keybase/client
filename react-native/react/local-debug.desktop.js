@@ -12,7 +12,8 @@ let config = {
   skipLoginRouteToRoot: false,
   allowStartupFailure: false,
   printRPC: false,
-  showDevTools: false
+  showDevTools: false,
+  showAllTrackers: false
 }
 
 if (isDev && false) {
@@ -22,6 +23,7 @@ if (isDev && false) {
   config.allowStartupFailure = true
   config.printRPC = true
   config.showDevTools = true
+  config.showAllTrackers = true
 }
 
 export const {
@@ -30,5 +32,6 @@ export const {
   skipLoginRouteToRoot,
   allowStartupFailure,
   printRPC,
-  showDevTools
+  showDevTools,
+  showAllTrackers
 } = config
