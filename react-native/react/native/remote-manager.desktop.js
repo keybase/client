@@ -48,8 +48,9 @@ class RemoteManager extends Component {
       return (
         <RemoteComponent
           windowsOpts={{
-            width: 700,
-            height: 700
+            height: 332 + 20, // title bar for now
+            width: 520,
+            resizable: false
           }}
           waitForState
           onRemoteClose={() => this.setState({showTrackerPopup: false})}
