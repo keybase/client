@@ -1,6 +1,7 @@
 ## 1.0.5-0 (2015-12-01)
 
 - Fix bug where cancelled RPC calls would cause hangs (PR: keybase/client#1433)
+- Add experimental encrypt/decrypt commands (PR: keybase/client#1429)
 
 ## 1.0.4-0 (2015-11-30)
 
