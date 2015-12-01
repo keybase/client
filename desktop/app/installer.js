@@ -9,7 +9,7 @@ export default (callback) => {
   const appPath = app.getAppPath()
   const resourcesPath = path.resolve(appPath, "..")
   const servicePath = path.resolve(appPath, "..", "..", "SharedSupport", "bin")
-  const installerExec = path.resolve(resourcesPath, "Installer.app", "Contents", "MacOS", "Keybase")
+  const installerExec = path.resolve(resourcesPath, "KeybaseInstaller.app", "Contents", "MacOS", "Keybase")
 
   fs.access(installerExec, fs.X_OK , function (err) {
     if (err) {

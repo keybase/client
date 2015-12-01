@@ -23,10 +23,12 @@
 
   NSArray *args = NSProcessInfo.processInfo.arguments;
   GBSettings *settings = [GBSettings settingsWithName:@"CLI" parent:nil];
-  [settings setObject:@"/Users/gabe/Projects/go/src/github.com/keybase/client/osx/Install/bin" forKey:@"service-path"];
+#if DEBUG
+  [settings setObject:@"/Applications/Keybase.app/Contents/SharedSupport/bin" forKey:@"service-path"];
   [settings setObject:@"prod" forKey:@"run-mode"];
+#endif
   GBCommandLineParser *parser = [[GBCommandLineParser alloc] init];
-  [parser registerOption:@"service-path" shortcut:'s' requirement:GBValueOptional];
+  [parser registerOption:@"service-path" shortcut:'s' requirement:GBValueRequired];
   [parser registerOption:@"run-mode" shortcut:'r' requirement:GBValueRequired];
   [parser registerSettings:settings];
   NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
