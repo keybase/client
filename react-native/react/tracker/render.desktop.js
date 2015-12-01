@@ -8,17 +8,7 @@ import Action from './action.render.desktop'
 import Bio from './bio.render.desktop'
 import Proofs from './proofs.render.desktop'
 
-import type {BioProps} from './bio.render.desktop'
-import type {ActionProps} from './action.render.desktop'
-import type {HeaderProps} from './header.render.desktop'
-import type {ProofsProps} from './proofs.render.desktop'
-
-export type RenderProps = {
-  bioProps: BioProps,
-  actionProps: ActionProps,
-  headerProps: HeaderProps,
-  proofsProps: ProofsProps
-}
+import type {RenderProps} from './render.types'
 
 import commonStyles from '../styles/common'
 

@@ -7,22 +7,7 @@ import commonStyles, {colors} from '../styles/common'
 import {checking, revoked} from '../constants/tracker'
 import {metaNew, metaUpgraded} from '../constants/tracker'
 
-import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
-
-export type Proof = {
-  id: string,
-  type: string,
-  state: SimpleProofState,
-  meta: ?SimpleProofMeta,
-  humanUrl: ?string,
-  name: string,
-  color: string
-}
-
-export type ProofsProps = {
-  proofs: Array<Proof>,
-  username: ?string
-}
+import type {Proof, ProofsProps} from './proofs.render.types'
 
 export default class ProofsRender extends Component {
   props: ProofsProps;

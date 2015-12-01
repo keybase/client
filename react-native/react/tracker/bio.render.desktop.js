@@ -8,19 +8,8 @@ import type {Styled} from '../styles/common'
 
 import path from 'path'
 
-export type UserInfo = {
-  fullname: string,
-  followersCount: number,
-  followingCount: number,
-  followsYou: boolean,
-  avatar: ?string,
-  location: string
-}
+import type {BioProps} from './bio.render.types'
 
-export type BioProps = {
-  username: ?string,
-  userInfo: ?UserInfo
-}
 const noAvatar = `file:///${path.resolve('../react-native/react/images/no-avatar@2x.png')}`
 
 export default class BioRender extends Component {

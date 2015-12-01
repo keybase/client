@@ -6,8 +6,8 @@ import {metaNew, metaUpgraded} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase_v1'
 
-import type {UserInfo} from '../tracker/bio.render.desktop'
-import type {Proof} from '../tracker/proofs.render.desktop'
+import type {UserInfo} from '../tracker/bio.render.types'
+import type {Proof} from '../tracker/proofs.render.types'
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
 import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType} from '../constants/types/flow-types'
