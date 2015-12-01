@@ -1,5 +1,6 @@
 import notify from '../../../desktop/app/hidden-window-notifications'
 import enums from '../../react/constants/types/keybase_v1'
+import path from 'path'
 import type {FSNotification} from '../../react/constants/types/flow-types'
 
 // TODO: Once we have access to the Redux store from the thread running
