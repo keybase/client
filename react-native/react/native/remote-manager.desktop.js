@@ -23,7 +23,7 @@ class RemoteManager extends Component {
   props: RemoteManagerProps;
   state: State;
 
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.state = {
       showTrackerPopup: false
@@ -48,8 +48,10 @@ class RemoteManager extends Component {
       return (
         <RemoteComponent
           windowsOpts={{
-            width: 700,
-            height: 700
+            height: 332,
+            width: 520,
+            frame: false,
+            resizable: false
           }}
           waitForState
           onRemoteClose={() => this.setState({showTrackerPopup: false})}

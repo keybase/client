@@ -226,10 +226,18 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
 }
 
 function updateProof (proofs: Array<Proof>, rp: RemoteProof, lcr: LinkCheckResult): Array<Proof> {
-  return proofs.map(proof => {
+  let found = false
+  let updated = proofs.map(proof => {
     if (proof.id === rp.sigID) {
+      found = true
       return remoteProofToProof(rp, lcr)
     }
     return proof
   })
+
+  if (!found) {
+    updated.push(remoteProofToProof(rp, lcr))
+  }
+
+  return updated
 }

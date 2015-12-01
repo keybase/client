@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node node_modules/babel/bin/babel-node.js start.js"
+    "start": "node node_modules/babel/bin/babel-node.js start.js",
+    "postinstall": "./node_modules/.bin/electron-rebuild"
   },
   "keywords": [],
   "author": "",

@@ -1,5 +1,6 @@
 import React, {Component} from '../base-react'
 import remote from 'remote'
+import {showDevTools} from '../local-debug'
 
 const BrowserWindow = remote.require('browser-window')
 
@@ -8,6 +9,10 @@ export default class RemoteComponent extends Component {
     const windowsOpts = {width: 500, height: 300, fullscreen: false, show: false, ...this.props.windowsOpts}
     this.remoteWindow = new BrowserWindow(windowsOpts)
     this.closed = false
+
+    if (showDevTools) {
+      this.remoteWindow.toggleDevTools()
+    }
 
     this.remoteWindow.on('needProps', () => {
       this.remoteWindow.emit('hasProps', {...this.props})

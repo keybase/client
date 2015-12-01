@@ -22,15 +22,13 @@ export default class Render extends Component {
     const actionProps = {...this.props.actionProps, style: styles.action}
 
     return (
-      <div style={{display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', height: 800, backgroundColor: '#F2F2F2'}}>
-        <div style={styles.container}>
-          <Header {...headerProps} />
-          <div style={styles.bodyContainer}>
-            <Bio {...bioProps} />
-            <Proofs {...proofsProps} />
-          </div>
-          <Action {...actionProps} />
+      <div style={styles.container}>
+        <Header {...headerProps} />
+        <div style={styles.bodyContainer}>
+          <Bio {...bioProps} />
+          <Proofs {...proofsProps} />
         </div>
+        <Action {...actionProps} />
       </div>
     )
   }
