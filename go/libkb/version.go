@@ -15,7 +15,7 @@ import (
 const Version = "1.0.4"
 
 // Build number
-const Build = "0"
+const Build = "3"
 
 // VersionString returns semantic version string.
 func VersionString() string {

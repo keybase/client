@@ -228,10 +228,9 @@ func (v *CmdLaunchdList) Run() error {
 
 type CmdLaunchdStatus struct {
 	libkb.Contextified
-	format        string
-	label         string
-	name          string
-	bundleVersion string
+	format string
+	label  string
+	name   string
 }
 
 func NewCmdLaunchdStatusRunner(g *libkb.GlobalContext) *CmdLaunchdStatus {
@@ -250,7 +249,6 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 		return fmt.Errorf("No service name specified.")
 	}
 	v.name = args[0]
-	v.bundleVersion = ctx.String("bundle-version")
 	v.format = ctx.String("format")
 	return nil
 }
@@ -258,9 +256,9 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 func (v *CmdLaunchdStatus) Run() error {
 	var st keybase1.ServiceStatus
 	if v.name == "service" {
-		st = keybaseServiceStatus(v.G(), v.label, v.bundleVersion)
+		st = keybaseServiceStatus(v.G(), v.label)
 	} else if v.name == "kbfs" {
-		st = kbfsServiceStatus(v.G(), v.label, v.bundleVersion)
+		st = kbfsServiceStatus(v.G(), v.label)
 	} else {
 		return fmt.Errorf("Invalid service name: %s", v.name)
 	}
