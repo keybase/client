@@ -106,19 +106,5 @@ func FindPinentry(log logger.Logger) (string, error) {
 }
 
 func (pe *Pinentry) GetTerminalName() {
-	tty, err := os.Readlink("/proc/self/fd/0")
-	if err != nil {
-		pe.log.Debug("| Can't find terminal name via /proc lookup: %s", err)
-
-		// try /dev/tty
-		tty = "/dev/tty"
-		_, err = os.Stat("/dev/tty")
-		if err != nil {
-			pe.log.Debug("| stat /dev/tty failed: %s", err)
-			return
-		}
-	}
-
-	pe.log.Debug("| found tty=%s", tty)
-	pe.tty = tty
+	// Noop on all platforms but windows
 }

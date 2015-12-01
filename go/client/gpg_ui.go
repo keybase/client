@@ -22,10 +22,11 @@ type GPGUI struct {
 	libkb.Contextified
 	parent   libkb.TerminalUI
 	noPrompt bool
+	tty      string
 }
 
-func NewGPGUI(g *libkb.GlobalContext, t libkb.TerminalUI, np bool) GPGUI {
-	return GPGUI{Contextified: libkb.NewContextified(g), parent: t, noPrompt: np}
+func NewGPGUI(g *libkb.GlobalContext, t libkb.TerminalUI, np bool, tty string) GPGUI {
+	return GPGUI{Contextified: libkb.NewContextified(g), parent: t, noPrompt: np, tty: tty}
 }
 
 func (g GPGUI) SelectKeyID(_ context.Context, keys []keybase1.GPGKey) (string, error) {
@@ -89,5 +90,6 @@ func (g GPGUI) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
 	if err := cli.Configure(); err != nil {
 		return "", err
 	}
+	cli.SetTTY(g.tty)
 	return cli.Sign(*fp, arg.Msg)
 }
