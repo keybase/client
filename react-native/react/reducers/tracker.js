@@ -56,6 +56,19 @@ export default function (state: State = initialState, action: Action): State {
         ...state,
         shouldFollow
       }
+    case Constants.onCloseFromActionBar: // fallthrough // TODO
+    case Constants.onCloseFromHeader:
+      return {
+        ...state
+      }
+    case Constants.onRefollow: // TODO
+      return {
+        ...state
+      }
+    case Constants.onUnfollow: // TODO
+      return {
+        ...state
+      }
     case Constants.updateUsername:
       if (!action.payload) {
         return state
@@ -70,7 +83,7 @@ export default function (state: State = initialState, action: Action): State {
     case Constants.updateProofState:
       const proofs = state.proofs
       const allOk: boolean = proofs.reduce((acc, p) => acc && p.state === normal, true)
-      const anyWarnings: boolean = proofs.reduce((acc, p) => acc || p.state === warning, true)
+      const anyWarnings: boolean = proofs.reduce((acc, p) => acc || p.state === warning, false)
       const anyError: boolean = proofs.reduce((acc, p) => acc || p.state === error, false)
       const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === checking, false)
 
