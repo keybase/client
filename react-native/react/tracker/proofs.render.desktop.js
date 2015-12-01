@@ -40,6 +40,8 @@ export default class ProofsRender extends Component {
       'reddit': 'fa-reddit',
       'pgp': 'fa-key',
       'coinbase': 'fa-btc',
+      'hackernews': 'fa-hacker-news',
+      'rooter': 'fa-shopping-basket',
       'web': 'fa-globe'
     }[proof.type]
 
@@ -52,7 +54,7 @@ export default class ProofsRender extends Component {
     }[proof.state]
 
     return (
-      <div style={styles.row}>
+      <div style={styles.row} key={proof.id}>
         <i style={styles.platform} className={'fa ' + icon} title={proof.type} onTouchTap={onTouchTap}></i>
         <div style={styles.usernameContainer}>
           <span
