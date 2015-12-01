@@ -57,9 +57,16 @@ func newDispatch(enc encoder, dec byteReadingDecoder, callRetrievalCh chan callR
 }
 
 type call struct {
-	ctx            context.Context
-	ch             chan error
-	doneCh         chan struct{}
+	ctx context.Context
+
+	// resultCh serializes the possible results generated for this
+	// call, with the first one becoming the true result.
+	resultCh chan error
+
+	// doneCh is closed when the true result for this call is
+	// chosen.
+	doneCh chan struct{}
+
 	method         string
 	seqid          seqNumber
 	arg            interface{}
@@ -71,7 +78,7 @@ type call struct {
 func newCall(ctx context.Context, m string, arg interface{}, res interface{}, u ErrorUnwrapper, p Profiler) *call {
 	return &call{
 		ctx:            ctx,
-		ch:             make(chan error),
+		resultCh:       make(chan error),
 		doneCh:         make(chan struct{}),
 		method:         m,
 		arg:            arg,
@@ -81,12 +88,15 @@ func newCall(ctx context.Context, m string, arg interface{}, res interface{}, u 
 	}
 }
 
-func (c *call) Finish(err error) {
-	// Ensure we only send a response if something is waiting on c.ch
+// Finish tries to set the given error as the result of this call, and
+// returns whether or not this was successful.
+func (c *call) Finish(err error) bool {
 	select {
-	case c.ch <- err:
+	case c.resultCh <- err:
 		close(c.doneCh)
+		return true
 	case <-c.doneCh:
+		return false
 	}
 }
 
@@ -96,7 +106,7 @@ func (d *dispatch) callLoop() {
 		select {
 		case <-d.stopCh:
 			for _, c := range calls {
-				c.Finish(io.EOF)
+				_ = c.Finish(io.EOF)
 			}
 			close(d.closedCh)
 			return
@@ -117,14 +127,25 @@ func (d *dispatch) handleCall(calls map[seqNumber]*call, c *call) {
 	v := []interface{}{MethodCall, seqid, c.method, c.arg}
 	err := d.writer.Encode(v)
 	if err != nil {
-		c.Finish(err)
+		setResult := c.Finish(err)
+		if !setResult {
+			panic("c.Finish unexpectedly returned false")
+		}
 		return
 	}
 	d.log.ClientCall(seqid, c.method, c.arg)
 	go func() {
 		select {
 		case <-c.ctx.Done():
-			c.ch <- newCanceledError(c.method, seqid)
+			setResult := c.Finish(newCanceledError(c.method, seqid))
+			if !setResult {
+				// The result of the call has already
+				// been processed.
+				return
+			}
+			// TODO: Remove c from calls:
+			// https://github.com/keybase/go-framed-msgpack-rpc/issues/30
+			// .
 			v := []interface{}{MethodCancel, seqid, c.method}
 			err := d.writer.Encode(v)
 			d.log.ClientCancel(seqid, c.method, err)
@@ -143,7 +164,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	profiler := d.log.StartProfiler("call %s", name)
 	call := newCall(ctx, name, arg, res, u, profiler)
 	d.callCh <- call
-	return <-call.ch
+	return <-call.resultCh
 }
 
 func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) error {
