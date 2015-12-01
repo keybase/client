@@ -5,10 +5,6 @@
 
 package spotty
 
-import (
-	"errors"
-)
-
 // Discover does nothing on Windows
 func Discover() (string, error) {
 	return "", nil
