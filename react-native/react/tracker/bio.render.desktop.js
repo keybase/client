@@ -3,50 +3,31 @@
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
+import commonStyles, {colors} from '../styles/common'
+import type {Styled} from '../styles/common'
 
-import type {SimpleProofState} from '../constants/tracker'
+import path from 'path'
 
-export type UserInfo = {
-  fullname: string,
-  followersCount: number,
-  followingCount: number,
-  followsYou: boolean,
-  avatar: string,
-  location: string
-}
+import type {BioProps} from './bio.render.types'
 
-export type BioProps = {
-  username: ?string,
-  state: SimpleProofState,
-  userInfo: ?UserInfo
-}
+const noAvatar = `file:///${path.resolve('../react-native/react/images/no-avatar@2x.png')}`
 
 export default class BioRender extends Component {
-  props: BioProps;
+  props: BioProps & Styled;
 
   render (): ReactElement {
-    let userFlag = ''
+    const {userInfo} = this.props
 
-    const {username, state, userInfo} = this.props
-
-    if (state === 'warning') {
-      userFlag = ' (warning)'
-    } else if (state === 'error') {
-      userFlag = ' (error)'
-    }
     return (
-      <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', marginRight: 40, minWidth: 300, marginTop: 40}}>
-        <Paper style={{overflow: 'hidden'}} zDepth={1} circle>
-          <img src={userInfo && userInfo.avatar} style={{width: 100, height: 100}}/>
+      <div style={styles.container}>
+        <Paper style={styles.avatarContainer} zDepth={1} circle>
+          <img src={(userInfo && userInfo.avatar) || noAvatar} style={styles.avatar}/>
         </Paper>
-        <p style={{height: 0}}>Username: {username && (username + userFlag)}</p>
-        <p style={{height: 0}}>{userInfo && userInfo.fullname}</p>
-        <div style={{display: 'flex', alignSelf: 'stretch', justifyContent: 'space-around', paddingLeft: 20, paddingRight: 20}}>
-          <p style={{height: 0}}>{userInfo ? userInfo.followingCount : '-'} Following</p>
-          <p style={{height: 0}}>{userInfo ? userInfo.followersCount : '-'} Followers</p>
-        </div>
-        <p style={{height: 0}}>{userInfo ? userInfo.location : 'Loading...'}</p>
-        {userInfo && userInfo.followsYou && <p style={{height: 0}}>Follows you</p>}
+        {userInfo && userInfo.followsYou && <span style={styles.followsYou}>Tracks you</span>}
+        <p style={styles.fullname}>{userInfo && userInfo.fullname}</p>
+        <p style={styles.location}>{userInfo && userInfo.location}</p>
+        <p style={styles.following}>Tracking: {userInfo && userInfo.followingCount}</p>
+        <p style={styles.followers}>Trackers: {userInfo && userInfo.followersCount}</p>
       </div>
     )
   }
@@ -54,6 +35,70 @@ export default class BioRender extends Component {
 
 BioRender.propTypes = {
   username: React.PropTypes.any,
-  state: React.PropTypes.any,
   userInfo: React.PropTypes.any
+}
+
+const styles = {
+  container: {
+    ...commonStyles.flexBoxColumn,
+    alignItems: 'center',
+    backgroundColor: colors.greyBackground,
+    justifyContent: 'flex-start',
+    paddingTop: 12,
+    width: 202
+  },
+  avatarContainer: {
+    border: '3px solid #cccccc',
+    height: 100,
+    minHeight: 100,
+    overflow: 'hidden',
+    boxSizing: 'content-box',
+    width: 100
+  },
+  avatar: {
+    width: 100,
+    height: 100
+  },
+  followsYou: {
+    ...commonStyles.fontBold,
+    backgroundColor: '#CCCCCC',
+    color: '#4A4A4A',
+    width: 70,
+    height: 12,
+    fontSize: 9,
+    lineHeight: '12px',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    marginTop: -10
+  },
+  fullname: {
+    ...commonStyles.fontBold,
+    color: colors.lightBlue,
+    fontSize: 18,
+    lineHeight: '22px',
+    margin: 0,
+    marginTop: 4,
+    textAlign: 'center'
+  },
+  location: {
+    fontSize: 13,
+    color: '#8283A3',
+    lineHeight: '17px',
+    margin: 0,
+    marginTop: 4
+  },
+  following: {
+    color: colors.lightBlue,
+    fontSize: 13,
+    lineHeight: '16px',
+    margin: 0,
+    marginTop: 4
+  },
+  followers: {
+    color: colors.lightBlue,
+    fontSize: 13,
+    lineHeight: '16px',
+    margin: 0,
+    marginTop: 4
+  }
 }

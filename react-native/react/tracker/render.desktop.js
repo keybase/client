@@ -3,39 +3,34 @@
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
 
-import Header from './header.render'
-import Action from './action.render'
-import Bio from './bio.render'
-import Proofs from './proofs.render'
+import Header from './header.render.desktop'
+import Action from './action.render.desktop'
+import Bio from './bio.render.desktop'
+import Proofs from './proofs.render.desktop'
 
-// $FlowIssue platform files
-import type {BioProps} from './bio.render'
-// $FlowIssue platform files
-import type {ActionProps} from './action.render'
-// $FlowIssue platform files
-import type {HeaderProps} from './header.render'
-// $FlowIssue platform files
-import type {ProofsProps} from './proofs.render'
+import type {RenderProps} from './render.types'
 
-export type RenderProps = {
-  bioProps: BioProps,
-  actionProps: ActionProps,
-  headerProps: HeaderProps,
-  proofsProps: ProofsProps
-}
+import commonStyles from '../styles/common'
 
 export default class Render extends Component {
   props: RenderProps;
 
   render (): ReactElement {
+    const headerProps = {...this.props.headerProps, style: styles.header}
+    const bioProps = {...this.props.bioProps, style: styles.bio}
+    const proofsProps = {...this.props.proofsProps, style: styles.proofs}
+    const actionProps = {...this.props.actionProps, style: styles.action}
+
     return (
-      <div style={{display: 'flex', flex: 1, flexDirection: 'column'}}>
-        <Header {...this.props.headerProps} />
-        <div style={{display: 'flex', flex: 1, flexDirection: 'row', height: 480}}>
-          <Bio {...this.props.bioProps} />
-          <Proofs {...this.props.proofsProps} />
+      <div style={{display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', height: 800, backgroundColor: '#F2F2F2'}}>
+        <div style={styles.container}>
+          <Header {...headerProps} />
+          <div style={styles.bodyContainer}>
+            <Bio {...bioProps} />
+            <Proofs {...proofsProps} />
+          </div>
+          <Action {...actionProps} />
         </div>
-        <Action {...this.props.actionProps} />
       </div>
     )
   }
@@ -46,4 +41,30 @@ Render.propTypes = {
   bioProps: React.PropTypes.any,
   proofsProps: React.PropTypes.any,
   actionProps: React.PropTypes.any
+}
+
+const styles = {
+  container: {
+    ...commonStyles.flexBoxColumn,
+    backgroundColor: 'white',
+    fontFamily: 'Noto Sans',
+    fontSize: 15,
+    height: 332,
+    width: 520
+  },
+  header: {
+    height: 34
+  },
+  bodyContainer: {
+    ...commonStyles.flexBoxRow,
+    height: 242
+  },
+  bio: {
+    width: 202
+  },
+  proofs: {
+  },
+  action: {
+    height: 56
+  }
 }

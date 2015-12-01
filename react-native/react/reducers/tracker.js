@@ -1,16 +1,16 @@
 /* @flow */
 
 import * as Constants from '../constants/tracker'
-import {normal, warning, error, pending} from '../constants/tracker'
+import {normal, warning, error, checking} from '../constants/tracker'
+import {metaNew, metaUpgraded} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase_v1'
-// $FlowIssue platform dependent files
-import type {UserInfo} from '../tracker/bio.render'
-// $FlowIssue platform dependent files
-import type {Proof} from '../tracker/proofs.render'
-import type {SimpleProofState} from '../constants/tracker'
 
-import type {Identity, RemoteProof, LinkCheckResult, ProofState} from '../constants/types/flow-types'
+import type {UserInfo} from '../tracker/bio.render.types'
+import type {Proof} from '../tracker/proofs.render.types'
+import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
+
+import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 type State = {
@@ -24,7 +24,7 @@ type State = {
   proofs: Array<Proof>
 }
 
-const initialProofState = pending
+const initialProofState = checking
 
 const initialState: State = {
   serverStarted: false,
@@ -39,7 +39,7 @@ const initialState: State = {
     followersCount: -1,
     followingCount: -1,
     followsYou: false,
-    avatar: 'TODO: get this information',
+    avatar: null,
     location: 'TODO: get this information'
   }
 }
@@ -72,7 +72,7 @@ export default function (state: State = initialState, action: Action): State {
       const allOk: boolean = proofs.reduce((acc, p) => acc && p.state === normal, true)
       const anyWarnings: boolean = proofs.reduce((acc, p) => acc || p.state === warning, true)
       const anyError: boolean = proofs.reduce((acc, p) => acc || p.state === error, false)
-      const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === pending, false)
+      const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === checking, false)
 
       let proofState: SimpleProofState = error
 
@@ -83,7 +83,7 @@ export default function (state: State = initialState, action: Action): State {
       } else if (anyError) {
         proofState = error
       } else if (anyPending) {
-        proofState = pending
+        proofState = checking
       }
 
       return {
@@ -172,12 +172,35 @@ function proofStateToSimpleProofState (proofState: ProofState): SimpleProofState
     case 'looking':
     case 'none':
     default:
-      return pending
+      return checking
   }
 }
 
+function trackDiffToSimpleProofMeta (diff: identifyUi_TrackDiffType): ?SimpleProofMeta {
+  return {
+    // $FlowIssue no computed
+    [0]: null, /* 'NONE_0' */
+    // $FlowIssue no computed
+    [1]: null, /* 'ERROR_1' */
+    // $FlowIssue no computed
+    [2]: null, /* 'CLASH_2' */
+    // $FlowIssue no computed
+    [3]: null, /* 'REVOKED_3' */
+    // $FlowIssue no computed
+    [4]: metaUpgraded, /* 'UPGRADED_4' */
+    // $FlowIssue no computed
+    [5]: metaNew, /* 'NEW_5' */
+    // $FlowIssue no computed
+    [6]: null, /* 'REMOTE_FAIL_6' */
+    // $FlowIssue no computed
+    [7]: null, /* 'REMOTE_WORKING_7' */
+    // $FlowIssue no computed
+    [8]: null /* 'REMOTE_CHANGED_8' */
+  }[diff]
+}
+
 function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
-  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state) || pending
+  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state) || checking
 
   let proofType: string = ''
   if (rp.proofType === identify.ProofType.genericWebSite || rp.proofType === identify.ProofType.dns) {
@@ -186,9 +209,15 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
   }
 
+  let meta = trackDiffToSimpleProofMeta(0)
+  if (lcr && lcr.diff && lcr.diff.type) {
+    meta = trackDiffToSimpleProofMeta(lcr.diff.type)
+  }
+
   return {
     state: proofState,
     id: rp.sigID,
+    meta: meta,
     type: proofType,
     color: stateToColor(proofState),
     name: rp.displayMarkup,

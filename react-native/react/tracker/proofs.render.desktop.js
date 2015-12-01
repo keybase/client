@@ -2,22 +2,12 @@
 
 // $FlowIssue base-react
 import React, {Component} from '../base-react'
+import commonStyles, {colors} from '../styles/common'
 
-import {error, pending} from '../constants/tracker'
-import type {SimpleProofState} from '../constants/tracker'
+import {checking, revoked} from '../constants/tracker'
+import {metaNew, metaUpgraded} from '../constants/tracker'
 
-export type Proof = {
-  id: string,
-  type: string,
-  state: SimpleProofState,
-  humanUrl: ?string,
-  name: string,
-  color: string
-}
-
-export type ProofsProps = {
-  proofs: Array<Proof>
-}
+import type {Proof, ProofsProps} from './proofs.render.types'
 
 export default class ProofsRender extends Component {
   props: ProofsProps;
@@ -28,8 +18,15 @@ export default class ProofsRender extends Component {
   }
 
   renderProofRow (proof: Proof): ReactElement {
+    const metaColor = proof.meta ? {
+      // $FlowIssue no computed
+      [metaNew]: colors.orange,
+      // $FlowIssue no computed
+      [metaUpgraded]: colors.orange
+    }[proof.meta] : null
+
     const onTouchTap = () => {
-      if (proof.state !== pending) {
+      if (proof.state !== checking) {
         console.log('should open hint link:', proof.humanUrl)
         proof.humanUrl && this.openLink(proof.humanUrl)
       } else {
@@ -37,25 +34,45 @@ export default class ProofsRender extends Component {
       }
     }
 
+    const icon = {
+      'twitter': 'fa-twitter',
+      'github': 'fa-github',
+      'reddit': 'fa-reddit',
+      'pgp': 'fa-key',
+      'coinbase': 'fa-btc',
+      'web': 'fa-globe'
+    }[proof.type]
+
+    const statusColor = {
+      normal: colors.lightBlue,
+      checking: colors.grey,
+      revoked: colors.orange,
+      warning: colors.orange,
+      error: colors.red
+    }[proof.state]
+
     return (
-      <div style={{display: 'flex'}}>
-        <p title={proof.type} style={{width: 40, marginRight: 10, cursor: 'pointer'}} onTouchTap={onTouchTap}>
-          Icon for: {proof.type}
-        </p>
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
-          <p style={{textDecoration: proof.state === error ? 'line-through' : 'inherit', marginBottom: 0, cursor: 'pointer'}} onTouchTap={onTouchTap}>{proof.name}</p>
-          <span style={{backgroundColor: proof.color}}>{proof.state}</span>
+      <div style={styles.row}>
+        <i style={styles.platform} className={'fa ' + icon} title={proof.type} onTouchTap={onTouchTap}></i>
+        <div style={styles.usernameContainer}>
+          <span
+            style={{...styles.username, ...{textDecoration: proof.status === revoked ? 'line-through' : 'inherit'}}}
+            onTouchTap={onTouchTap}>{proof.name}</span>
+          {proof.meta && <span style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</span>}
         </div>
-        <div style={{display: 'flex', flex: 1, justifyContent: 'flex-end', paddingRight: 20}}>
-          <p style={{cursor: 'pointer'}} onTouchTap={onTouchTap}>{proof.state}</p>
-        </div>
+        <span className='fa fa-certificate' style={{...styles.status, color: statusColor}} onTouchTap={onTouchTap}></span>
       </div>
     )
   }
 
   render (): ReactElement {
     return (
-      <div style={{display: 'flex', flex: 1, flexDirection: 'column', overflowY: 'auto'}}>
+      <div style={styles.container}>
+        <div styles={styles.userContainer}>
+          <span>keybase.io/</span>
+          <span style={styles.keybaseUsername}>{this.props.username}</span>
+        </div>
+        <div style={styles.hr}></div>
         {this.props.proofs.map(p => this.renderProofRow(p))}
       </div>
     )
@@ -63,5 +80,71 @@ export default class ProofsRender extends Component {
 }
 
 ProofsRender.propTypes = {
-  proofs: React.PropTypes.any
+  proofs: React.PropTypes.any,
+  username: React.PropTypes.string.isRequired
 }
+
+const styles = {
+  container: {
+    ...commonStyles.flexBoxColumn,
+    backgroundColor: 'white',
+    border: '5px solid ' + colors.greyBackground,
+    borderLeft: 0,
+    borderRight: 0,
+    paddingLeft: 25,
+    paddingTop: 15,
+    paddingRight: 26,
+    flex: 1,
+    overflowY: 'auto'
+  },
+  userContainer: {
+    fontSize: 15
+  },
+  keybaseUsername: {
+    ...commonStyles.fontBold,
+    color: colors.orange
+  },
+  hr: {
+    ...commonStyles.hr,
+    width: 41,
+    margin: '12px 0 0 0'
+  },
+  row: {
+    ...commonStyles.flexBoxRow,
+    lineHeight: '21px',
+    marginTop: 10,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start'
+  },
+  platform: {
+    height: 16,
+    width: 16,
+    color: '#444444',
+    marginRight: 12
+  },
+  usernameContainer: {
+    ...commonStyles.flexBoxColumn,
+    alignItems: 'flex-start',
+    flex: 1,
+    lineHeight: '15px'
+  },
+  meta: {
+    ...commonStyles.fontBold,
+    color: 'white',
+    fontSize: 9,
+    height: 13,
+    lineHeight: '13px',
+    marginTop: 2,
+    paddingLeft: 4,
+    paddingRight: 4,
+    textTransform: 'uppercase'
+  },
+  username: {
+    ...commonStyles.clickable,
+    color: colors.lightBlue
+  },
+  status: {
+    ...commonStyles.clickable
+  }
+}
+

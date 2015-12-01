@@ -8,7 +8,7 @@ import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 import type {CallMap} from '../engine/call-map-middleware'
 import type {UserSummary} from '../constants/types/flow-types'
 import type {Action, Dispatch} from '../constants/types/flux'
-import type {UserInfo} from '../tracker/bio.render'
+import type {UserInfo} from '../tracker/bio.render.types'
 
 import type {Identity, IdentifyKey, TrackSummary, User, Cryptocurrency, IdentifyOutcome, RemoteProof, LinkCheckResult} from '../constants/types/flow-types'
 

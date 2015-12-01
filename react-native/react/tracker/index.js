@@ -4,18 +4,17 @@
 import React, {Component} from '../base-react'
 // $FlowIssue base-redux
 import {connect} from '../base-redux'
+// $FlowIssue .desktop issue
 import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
 import {warning} from '../constants/tracker'
 
-// $FlowIssue platform dependent files
-import type {RenderProps} from './render'
-// $FlowIssue platform dependent files
-import type {UserInfo} from './bio.render'
-// $FlowIssue platform dependent files
-import type {Proof} from './proofs.render'
+// TODO move these into render.type.js
+import type {RenderProps} from './render.types'
+import type {UserInfo} from './bio.render.types'
+import type {Proof} from './proofs.render.types'
 import type {SimpleProofState} from '../constants/tracker'
 
 type TrackerProps = {
@@ -39,13 +38,12 @@ class Tracker extends Component {
   props: TrackerProps;
 
   render () {
-    const renderChangedTitle = this.props.proofState === warning ? `(warning) ${this.props.username} added some verifications`
-      : `(error) Some of ${this.props.username}'s verifications are compromised or have changed.`
+    const renderChangedTitle = this.props.proofState === warning ? `${this.props.username} added some identity proofs.`
+      : `Some of ${this.props.username}'s proofs are compromised or have changed.`
 
     const renderProps: RenderProps = {
       bioProps: {
         username: this.props.username,
-        state: this.props.proofState,
         userInfo: this.props.userInfo
       },
       headerProps: {
@@ -64,6 +62,7 @@ class Tracker extends Component {
         onFollowChecked: this.props.onFollowChecked
       },
       proofsProps: {
+        username: this.props.username,
         proofs: this.props.proofs
       }
     }
@@ -96,7 +95,7 @@ class Tracker extends Component {
 
 const mockData = {
   username: 'max',
-  proofState: 'pending',
+  proofState: 'checking',
   reason: 'You accessed /private/cecile',
   userInfo: {
     fullname: 'Alice Bonhomme-Biaias',
@@ -108,8 +107,8 @@ const mockData = {
   },
   shouldFollow: true,
   proofs: [
-    {"name":"marcopolo","type":"github","id":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'normal', humanUrl: "github.com/marcopolo", color: 'green'}, //eslint-disable-line
-    {"name":"open_sourcery","type":"twitter","id":"76363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'pending', humanUrl: "twitter.com/open_sourcery", color: 'gray'}, //eslint-disable-line
+    {"name":"marcopolo","type":"github","id":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'normal', humanUrl: "github.com/marcopolo", color: 'green', meta: 'new'}, //eslint-disable-line
+    {"name":"open_sourcery","type":"twitter","id":"76363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'checking', humanUrl: "twitter.com/open_sourcery", color: 'gray'}, //eslint-disable-line
   ]
 }
 
