@@ -33,14 +33,14 @@ const initialState: State = {
   proofState: initialProofState,
   shouldFollow: true,
   proofs: [],
-  reason: 'TODO: get the reason',
+  reason: '', // TODO: get the reason
   userInfo: {
     fullname: 'TODO: get this information',
     followersCount: -1,
     followingCount: -1,
     followsYou: false,
     avatar: null,
-    location: 'TODO: get this information'
+    location: '' // TODO: get this information
   }
 }
 

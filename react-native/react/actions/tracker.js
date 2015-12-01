@@ -96,7 +96,7 @@ function loadUserInfo (uid: any): (dispatch: Dispatch) => void {
         fullname: onlyUser.fullName,
         avatar: onlyUser.thumbnail,
         // TODO: get this data from somewhere
-        location: 'TODO: get location data',
+        location: '', // TODO: get location data
         followersCount: -1,
         followingCount: -1,
         followsYou: false
