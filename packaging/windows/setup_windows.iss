@@ -13,7 +13,7 @@
 #define MyGoPath "c:\work\"
 #endif
 #ifndef MyExePathName
-#define MyExePathName MyGoPath + "bin\windows_386\" + MyExeName
+#define MyExePathName MyGoPath + "\src\github.com\keybase\client\go\keybase\" + MyExeName
 #endif
 
 [Setup]
@@ -33,11 +33,14 @@ DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputBaseFilename=keybase_setup{#MyAppVersion}
-SetupIconFile={#MyGoPath}src\github.com\keybase\keybase\public\images\favicon.ico
+SetupIconFile={#MyGoPath}\src\github.com\keybase\keybase\public\images\favicon.ico
 Compression=lzma
 SolidCompression=yes
 UninstallDisplayIcon={app}\keybase.exe
 VersionInfoVersion={#MyAppVersion}
+DisableDirPage=auto
+DisableProgramGroupPage=auto
+CreateUninstallRegKey=no
 ; Comment this out for development
 ; (there doesn't seem to be a way to make it conditional)
 SignTool=SignCommand
@@ -92,13 +95,12 @@ begin
   exit;
 end;
 
-procedure StopKeybaseService();
+function IsKeybaseRunning : Boolean;
 var
   WMIService: Variant;
   WbemLocator: Variant;
   WbemObjectSet: Variant;
-  ResultCode: Integer;
-  CommandName: string;
+
 begin
   WbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
   WMIService := WbemLocator.ConnectServer('localhost', 'root\CIMV2');
@@ -106,12 +108,30 @@ begin
   
   // Fairly simple check just to see if a process is running named Keybase.exe
   // No point in trying to stop it otherwise (it will hang).
-  if not VarIsNull(WbemObjectSet) and (WbemObjectSet.Count > 0) then
+  Result := not VarIsNull(WbemObjectSet) and (WbemObjectSet.Count > 0);
+end;
+ 
+procedure StopKeybaseService();
+var
+  ResultCode: Integer;
+  CommandName: string;
+  i: Integer;
+
+begin
+  if IsKeybaseRunning() then
   begin
     // Launch Keybase ctl stop and wait for it to terminate
     CommandName := ExpandConstant('{app}\{#MyExeName}');
     Exec(CommandName, 'ctl stop', '', SW_SHOW,
       ewWaitUntilTerminated, ResultCode);
+    Sleep(500);
+  end;
+  for i := 1 to 5 do 
+  begin
+    if IsKeybaseRunning() then
+      Sleep(500)
+    else
+      break;
   end;
 end;
  
@@ -129,4 +149,9 @@ begin
     begin
          StopKeybaseService();
     end
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+    StopKeybaseService();
 end;
