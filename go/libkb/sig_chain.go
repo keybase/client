@@ -495,6 +495,8 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 
 	if ckf.kf == nil || eldest.IsNil() {
 		sc.G().Log.Debug("| VerifyWithKey short-circuit, since no Key available")
+		sc.localCki = NewComputedKeyInfos()
+		ckf.cki = sc.localCki
 		return
 	}
 	links, err := sc.GetCurrentSubchain(eldest)
@@ -827,6 +829,14 @@ func (l *SigChainLoader) Store() (err error) {
 	return
 }
 
+func (l *SigChainLoader) merkleTreeEldestMatchesLastLinkEldest() bool {
+	lastLink := l.chain.GetLastLink()
+	if lastLink == nil {
+		return false
+	}
+	return lastLink.ToEldestKID().Equal(l.leaf.eldest)
+}
+
 // Load is the main entry point into the SigChain loader.  It runs through
 // all of the steps to load a chain in from storage, to refresh it against
 // the server, and to verify its integrity.
@@ -880,12 +890,19 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		if err = l.LoadFromServer(); err != nil {
 			return
 		}
-	}
-
-	if !current {
 	} else if l.chain.GetComputedKeyInfos() == nil {
+		// The chain tip doesn't have a cached cki, probably because new
+		// signatures have shown up since the last time we loaded it.
 		l.G().Log.Debug("| Need to reverify chain since we don't have ComputedKeyInfos")
+	} else if !l.merkleTreeEldestMatchesLastLinkEldest() {
+		// CheckFreshness above might've decided our chain tip hasn't moved,
+		// but we might still need to proceed with the rest of the load if the
+		// eldest KID has changed.
+		l.G().Log.Debug("| Merkle leaf doesn't match the chain tip.")
 	} else {
+		// The chain tip has a cached cki, AND the current eldest kid matches
+		// it. Use what's cached and short circuit.
+		l.G().Log.Debug("| Short-circuiting chain verification.")
 		return
 	}
 
