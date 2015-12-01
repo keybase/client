@@ -15,6 +15,7 @@ import (
 // tracking statement, or a PGP Fingerprint!
 type TrackIDComponent interface {
 	ToIDString() string
+	ToImpliedIDStrings() []string
 	ToKeyValuePair() (string, string)
 	GetProofState() keybase1.ProofState
 	LastWriterWins() bool
@@ -68,6 +69,12 @@ func (ts TrackSet) HasMember(t TrackIDComponent) bool {
 		_, found = ts.services[k]
 	} else {
 		_, found = ts.ids[t.ToIDString()]
+		// One ID might also imply another for the purpose of subtraction
+		// (namely, HTTPS implies HTTP).
+		for _, impliedID := range t.ToImpliedIDStrings() {
+			_, implied := ts.ids[impliedID]
+			found = found || implied
+		}
 	}
 	return found
 }

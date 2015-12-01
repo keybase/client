@@ -677,6 +677,10 @@ func (p PGPFingerprint) ToIDString() string {
 	return p.String()
 }
 
+func (p PGPFingerprint) ToImpliedIDStrings() []string {
+	return []string{}
+}
+
 func (p PGPFingerprint) ToKeyValuePair() (string, string) {
 	return "fingerprint", p.ToIDString()
 }
