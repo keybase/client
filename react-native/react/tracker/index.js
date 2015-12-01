@@ -12,9 +12,9 @@ import {bindActionCreators} from 'redux'
 import {warning} from '../constants/tracker'
 
 // TODO move these into render.type.js
-import type {RenderProps} from './render.desktop'
-import type {UserInfo} from './bio.render.desktop'
-import type {Proof} from './proofs.render.desktop'
+import type {RenderProps} from './render.types'
+import type {UserInfo} from './bio.render.types'
+import type {Proof} from './proofs.render.types'
 import type {SimpleProofState} from '../constants/tracker'
 
 type TrackerProps = {

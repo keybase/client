@@ -10,17 +10,7 @@ import type {Styled} from '../styles/common'
 import {normal, checking, warning} from '../constants/tracker'
 import type {SimpleProofState} from '../constants/tracker'
 
-export type ActionProps = {
-  state: SimpleProofState,
-  username: ?string,
-  shouldFollow: ?boolean,
-  renderChangedTitle: string,
-  onClose: () => void,
-  onRefollow: () => void,
-  onUnfollow: () => void,
-  onFollowHelp: () => void,
-  onFollowChecked: () => void
-}
+import type {ActionProps} from './action.render.types'
 
 export default class ActionRender extends Component {
   props: ActionProps & Styled;

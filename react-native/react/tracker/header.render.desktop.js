@@ -6,10 +6,7 @@ import path from 'path'
 import commonStyles from '../styles/common'
 import type {Styled} from '../styles/common'
 
-export type HeaderProps = {
-  reason: string,
-  onClose: () => void
-}
+import type {HeaderProps} from './header.render.types'
 
 export default class HeaderRender extends Component {
   props: HeaderProps & Styled;
