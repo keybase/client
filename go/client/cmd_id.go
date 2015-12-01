@@ -49,9 +49,9 @@ func (v *CmdID) Run() error {
 	var cli keybase1.IdentifyClient
 	protocols := []rpc.Protocol{}
 
-	if !v.useDelegateUI {
-		protocols = append(protocols, NewIdentifyUIProtocol(v.G()))
-	}
+	// always register this, even if ui is delegated, so that
+	// fallback to terminal UI works.
+	protocols = append(protocols, NewIdentifyUIProtocol(v.G()))
 	cli, err := GetIdentifyClient(v.G())
 	if err != nil {
 		return err
