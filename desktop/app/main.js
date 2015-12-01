@@ -10,6 +10,7 @@ const splash = require('./splash')
 const installer = require('./installer')
 const app = require('electron').app
 const path = require('path')
+const showDevTools = require('../../react-native/react/local-debug.desktop').showDevTools
 
 const appPath = app.getAppPath()
 const menubarIconPath = path.resolve(appPath, "Icon.png")
@@ -39,9 +40,16 @@ if (process.platform === 'darwin') {
   mb.app.on('quit', () => { mb.tray.destroy() })
 }
 
-ipc.on('showMain', () => { mainWindow.show(true) })
+ipc.on('showMain', () => {
+  mainWindow.show(true)
+  if (showDevTools && mainWindow.window) {
+    mainWindow.window.toggleDevTools()
+  }
+})
 
-installer((err) => {
-  if (err) console.log("Error: ", err)
+installer(err => {
+  if (err) {
+    console.log('Error: ', err)
+  }
   splash()
 })
