@@ -38,13 +38,6 @@ type TrackerProps = {
 class Tracker extends Component {
   props: TrackerProps;
 
-  componentWillMount () {
-    if (!this.props.serverStarted) {
-      console.log('starting server')
-      this.props.registerIdentifyUi()
-    }
-  }
-
   render () {
     const renderChangedTitle = this.props.proofState === warning ? `(warning) ${this.props.username} added some verifications`
       : `(error) Some of ${this.props.username}'s verifications are compromised or have changed.`

@@ -9,6 +9,7 @@ import injectTapEventPlugin from 'react-tap-event-plugin'
 import {isDev} from '../../react-native/react/constants/platform'
 
 // For Remote Components
+import RemoteManager from '../../react-native/react/native/remote-manager'
 import {ipcMain} from 'remote'
 
 let DevTools = null
@@ -52,7 +53,10 @@ class Keybase extends Component {
   renderNav () {
     return (
       <Provider store={store}>
-        <Nav />
+        <div>
+          <RemoteManager />
+          <Nav />
+        </div>
       </Provider>
     )
   }

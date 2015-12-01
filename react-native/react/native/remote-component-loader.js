@@ -8,7 +8,7 @@ const currentWindow = remote.getCurrentWindow()
 
 class RemoteStore {
   constructor () {
-    ipcRenderer.on('stateChange', arg => {
+    ipcRenderer.on('stateChange', (event, arg) => {
       this.internalState = arg
       this._publishChange()
     })
@@ -59,16 +59,31 @@ class RemoteComponentLoader extends Component {
       throw new TypeError('Remote Component not passed through hash')
     }
 
-    this.Component = require('../' + componentToLoad).default
+    const component = require('../' + componentToLoad)
+    this.Component = component.default || component
   }
 
-  componentDidMount () {
+  componentWillMount () {
     currentWindow.on('hasProps', props => {
-      // If we've received props, and the loaded state was false
-      if (this.state.loaded === false) {
-        currentWindow.show()
+      // Maybe we need to wait for the state to arrive at the beginning
+      if (props.waitForState &&
+          // Make sure we only do this if we haven't loaded the state yet
+          !this.state.loaded &&
+          // Only do this if the store hasn't been filled yet.
+          Object.keys(store.getState()).length === 0) {
+        const unsub = store.subscribe(() => {
+          currentWindow.show()
+          this.setState({props: props, loaded: true})
+          unsub()
+        })
+      } else {
+        // If we've received props, and the loaded state was false
+        // That means we should show the window
+        if (this.state.loaded === false) {
+          currentWindow.show()
+        }
+        this.setState({props: props, loaded: true})
       }
-      this.setState({props: props, loaded: true})
     })
 
     currentWindow.emit('needProps')
