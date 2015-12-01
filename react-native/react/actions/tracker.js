@@ -137,6 +137,7 @@ function serverCallMap (dispatch: Dispatch): CallMap {
           identity: params.identity
         }
       })
+      dispatch({type: Constants.updateProofState})
     },
 
     displayTrackStatement: (params: {sessionID: number, stmt: string}) => {
@@ -144,9 +145,11 @@ function serverCallMap (dispatch: Dispatch): CallMap {
 
     finishWebProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
       dispatch(updateProof(params.rp, params.lcr))
+      dispatch({type: Constants.updateProofState})
     },
     finishSocialProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
       dispatch(updateProof(params.rp, params.lcr))
+      dispatch({type: Constants.updateProofState})
     },
     displayCryptocurrency: (params: {sessionID: number, c: Cryptocurrency}) => {
     },
