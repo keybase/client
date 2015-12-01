@@ -15,7 +15,7 @@ const envedPathOSX = {
 function findSocketRoot () {
   const paths = {
     'darwin': `${process.env.HOME}/Library/Caches/${envedPathOSX[runMode]}/`,
-    'linux': `${process.env.XDG_RUNTIME_DIR}/keybase.${runMode}/`
+    'linux': runMode === 'prod' ? `${process.env.XDG_RUNTIME_DIR}/keybase/` : `${process.env.XDG_RUNTIME_DIR}/keybase.${runMode}/`
   }
 
   return paths[process.platform]
