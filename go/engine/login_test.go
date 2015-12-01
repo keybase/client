@@ -66,13 +66,8 @@ func TestCreateFakeUserNoKeys(t *testing.T) {
 	}
 
 	ckf := me.GetComputedKeyFamily()
-	if ckf != nil {
-		t.Errorf("user has a computed key family.  they shouldn't...")
-
-		active := me.GetComputedKeyFamily().HasActiveKey()
-		if active {
-			t.Errorf("user has an active key, but they should have no keys")
-		}
+	if ckf.HasActiveKey() {
+		t.Errorf("user has an active key, but they should have no keys")
 	}
 }
 
