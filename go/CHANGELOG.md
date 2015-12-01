@@ -1,3 +1,7 @@
+## 1.0.4-4 (2015-12-01)
+
+- Fix bug where cancelled RPC calls would cause hangs (PR: keybase/client#1433)
+
 ## 1.0.4-0 (2015-11-30)
 
 - Save exported GPG key to local encrypted keyring (PR: keybase/client#1419)
