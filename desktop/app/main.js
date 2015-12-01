@@ -22,13 +22,6 @@ const mb = menubar({
   showDockIcon: true
 })
 
-const trackerWindow = new Window('tracker', {
-  width: 500, height: 300,
-  resizable: false,
-  fullscreen: false,
-  frame: false
-})
-
 const mainWindow = new Window('index', {
   width: 1600,
   height: 1200,
@@ -46,8 +39,7 @@ if (process.platform === 'darwin') {
   mb.app.on('quit', () => { mb.tray.destroy() })
 }
 
-ipc.on('showMain', () => { mainWindow.show() })
-ipc.on('showTracker', () => { trackerWindow.show() })
+ipc.on('showMain', () => { mainWindow.show(true) })
 
 installer((err) => {
   if (err) console.log("Error: ", err)

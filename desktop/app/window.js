@@ -1,5 +1,6 @@
 import BrowserWindow from 'browser-window'
 import showDockIcon from './dockIcon'
+import {app} from 'electron'
 
 export default class Window {
   constructor (filename, opts) {
@@ -7,10 +8,22 @@ export default class Window {
     this.opts = opts || {}
     this.window = null
     this.releaseDockIcon = null
+
+    app.on('before-quit', () => {
+      this.window && this.window.destroy()
+    })
+
+    app.on('ready', () => {
+      this.window = new BrowserWindow({show: false, ...this.opts})
+      this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
+    })
   }
 
-  show () {
+  show (shouldShowDockIcon) {
     if (this.window) {
+      if (!this.window.isVisible()) {
+        this.window.show()
+      }
       if (!this.window.isFocused()) {
         this.window.focus()
       }
@@ -18,8 +31,20 @@ export default class Window {
     }
 
     this.window = new BrowserWindow(this.opts)
-    this.releaseDockIcon = showDockIcon()
+    this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
     this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
+
+    // We don't really want to close the window since it'll keep track of the main app state.
+    // So instead we'll hide it
+    this.window.on('close', event => {
+      // Prevent an actual close
+      event.preventDefault()
+      this.window.hide()
+      if (this.releaseDockIcon) {
+        this.releaseDockIcon()
+        this.releaseDockIcon = null
+      }
+    })
 
     this.window.on('closed', () => {
       this.window = null
