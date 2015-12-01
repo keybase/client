@@ -137,6 +137,7 @@ function serverCallMap (dispatch: Dispatch): CallMap {
           identity: params.identity
         }
       })
+      dispatch({type: Constants.updateProofState})
     },
 
     displayTrackStatement: (params: {sessionID: number, stmt: string}) => {
