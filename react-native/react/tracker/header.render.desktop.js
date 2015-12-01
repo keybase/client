@@ -16,7 +16,9 @@ export default class HeaderRender extends Component {
       <div style={{...this.props.style, ...styles.container}}>
         <img style={styles.logo} src={`file:///${path.resolve('../react-native/react/images/service/keybase.png')}`}/>
         <p style={styles.reason}>{this.props.reason}</p>
-        <i style={styles.close} className='fa fa-times' onTouchTap={() => this.props.onClose()}></i>
+        <div style={styles.close} onClick={() => this.props.onClose()}>
+          <i className='fa fa-times' ></i>
+        </div>
       </div>
     )
   }
@@ -31,6 +33,7 @@ HeaderRender.propTypes = {
 const styles = {
   container: {
     ...commonStyles.flexBoxRow,
+    ...commonStyles.windowDragging,
     paddingLeft: 15,
     paddingRight: 9,
     alignItems: 'center'
@@ -46,6 +49,7 @@ const styles = {
   },
   close: {
     ...commonStyles.clickable,
+    ...commonStyles.windowDraggingClickable,
     color: '#D0D4DA'
   }
 }
