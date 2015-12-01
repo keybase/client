@@ -11,7 +11,8 @@ let config = {
   overrideActiveTab: null,
   skipLoginRouteToRoot: false,
   allowStartupFailure: false,
-  printRPC: false
+  printRPC: false,
+  showDevTools: false
 }
 
 if (isDev && false) {
@@ -20,6 +21,7 @@ if (isDev && false) {
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
   config.printRPC = true
+  config.showDevTools = true
 }
 
 export const {
@@ -27,5 +29,6 @@ export const {
   overrideActiveTab,
   skipLoginRouteToRoot,
   allowStartupFailure,
-  printRPC
+  printRPC,
+  showDevTools
 } = config
