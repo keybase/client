@@ -19,7 +19,7 @@ export const updateUserInfo = 'tracker:updateUserInfo'
 export const setProofs = 'tracker:setProofs'
 export const updateProof = 'tracker:updateProof'
 
-export const updateProofState = 'tracker:udpateProofState'
+export const updateProofState = 'tracker:updateProofState'
 
 export const onCloseFromActionBar = 'tracker:onCloseFromActionBar'
 export const onCloseFromHeader = 'tracker:onCloseFromHeader'
