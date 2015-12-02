@@ -40,10 +40,10 @@ const initialState: State = {
   trackers: {}
 }
 
-function initialTrackerState (): TrackerState {
+function initialTrackerState (username: string): TrackerState {
   return {
     serverActive: false,
-    username: null,
+    username,
     proofState: initialProofState,
     shouldFollow: true,
     proofs: [],
@@ -219,7 +219,7 @@ export default function (state: State = initialState, action: Action): State {
           trackers: {
             ...state.trackers,
             // $FlowIssue computed
-            [username]: initialTrackerState()
+            [username]: initialTrackerState(username)
           }
         }
       default:
