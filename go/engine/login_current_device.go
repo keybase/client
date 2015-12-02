@@ -72,6 +72,20 @@ func (e *LoginCurrentDevice) Run(ctx *Context) error {
 		return errNoDevice
 	}
 
+	// Make sure the device ID is still valid.
+	me, err := libkb.LoadMe(libkb.LoadUserArg{
+		PublicKeyOptional: true,
+		ForceReload:       true,
+	})
+	if err != nil {
+		e.G().Log.Debug("error loading user profile: %#v", err)
+		return err
+	}
+	if !me.HasDeviceInCurrentInstall() {
+		e.G().Log.Debug("current device is not valid")
+		return errNoDevice
+	}
+
 	// at this point, there is a user config either for the current user or for e.username
 	// and it has a device id, so this should be a provisioned device.  Thus, they should
 	// just login normally.
