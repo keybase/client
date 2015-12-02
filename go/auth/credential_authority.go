@@ -31,8 +31,8 @@ type CredentialAuthority struct {
 // checkArgs are sent over the checkCh to the core loop of a CredentialAuthority
 type checkArg struct {
 	uid      keybase1.UID
-	username libkb.NormalizedUsername
-	kid      keybase1.KID
+	username *libkb.NormalizedUsername
+	kid      *keybase1.KID
 	retCh    chan error
 }
 
@@ -349,12 +349,16 @@ func (u *user) check(ca checkArg) {
 		return
 	}
 
-	if err = u.checkUsername(ca.username); err != nil {
-		return
+	if ca.username != nil {
+		if err = u.checkUsername(*ca.username); err != nil {
+			return
+		}
 	}
 
-	if err = u.checkKey(ca.kid); err != nil {
-		return
+	if ca.kid != nil {
+		if err = u.checkKey(*ca.kid); err != nil {
+			return
+		}
 	}
 
 	return
@@ -389,17 +393,31 @@ func (u *user) checkKey(kid keybase1.KID) error {
 	return err
 }
 
-// Check is the main point of entry to this library. It takes as input a UID, a
+// CheckUserKey is the main point of entry to this library. It takes as input a UID, a
 // username and a kid that should refer to a current valid triple, perhaps
 // extracted from a signed authentication statement. It returns an error if the
-// check fails, and nil otherwise.
-func (v *CredentialAuthority) Check(ctx context.Context, uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.KID) (err error) {
+// check fails, and nil otherwise. If username or kid are nil they aren't checked.
+func (v *CredentialAuthority) CheckUserKey(ctx context.Context, uid keybase1.UID,
+	username *libkb.NormalizedUsername, kid *keybase1.KID) (err error) {
 	retCh := make(chan error)
 	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, retCh: retCh}
 	select {
 	case <-ctx.Done():
 		err = ErrCanceled
 	case err = <-retCh:
+	}
+	return err
+}
+
+// CheckUsers is used to validate all provided UIDs are known.
+func (v *CredentialAuthority) CheckUsers(ctx context.Context, users []keybase1.UID) (err error) {
+	for _, uid := range users {
+		if uid == keybase1.PUBLIC_UID {
+			continue
+		}
+		if err = v.CheckUserKey(ctx, uid, nil, nil); err != nil {
+			break
+		}
 	}
 	return err
 }

@@ -63,7 +63,7 @@ func (c *CmdCA) runPromptLoop() error {
 			continue
 		}
 
-		if e2 := ca.Check(context.TODO(), uid, un, kid); e2 != nil {
+		if e2 := ca.CheckUserKey(context.TODO(), uid, &un, &kid); e2 != nil {
 			c.G().Log.Errorf("Bad check: %s", e2)
 		}
 

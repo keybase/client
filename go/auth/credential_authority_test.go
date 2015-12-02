@@ -3,7 +3,6 @@ package auth
 import (
 	"crypto/rand"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	libkb "github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -94,12 +93,19 @@ func newTestState() *testState {
 	}
 }
 
+type userNotFoundError struct {
+}
+
+func (e userNotFoundError) Error() string {
+	return "user not found"
+}
+
 func (ts *testState) GetUser(_ context.Context, uid keybase1.UID) (libkb.NormalizedUsername, []keybase1.KID, error) {
 	ts.Lock()
 	defer ts.Unlock()
 	u := ts.users[uid]
 	if u == nil {
-		return libkb.NormalizedUsername(""), nil, errors.New("user not found")
+		return libkb.NormalizedUsername(""), nil, userNotFoundError{}
 	}
 	ts.numGets++
 	return u.username, u.keys, nil
@@ -169,14 +175,14 @@ func TestSimple(t *testing.T) {
 		t.Fatal("expected 0 gets")
 	}
 
-	err := C.Check(context.TODO(), u0.uid, u0.username, key0)
+	err := C.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if S.numGets != 1 {
 		t.Fatal("expected 1 get")
 	}
-	err = C.Check(context.TODO(), u0.uid, u0.username, key0)
+	err = C.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +204,7 @@ func TestSimple(t *testing.T) {
 		t.Fatalf("Wrong UID on eviction: %s != %s\n", uid, u0.uid)
 	}
 
-	err = C.Check(context.TODO(), u0.uid, u0.username, key0)
+	err = C.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key0)
 	if err == nil {
 		t.Fatal("Expected an error")
 	} else if bke, ok := err.(BadKeyError); !ok {
@@ -209,7 +215,7 @@ func TestSimple(t *testing.T) {
 		t.Fatalf("Expected a bad key error on key %s (not %s)", key0, bke.kid)
 	}
 
-	err = C.Check(context.TODO(), u0.uid, u0.username, key1)
+	err = C.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +223,7 @@ func TestSimple(t *testing.T) {
 		t.Fatal("expected 2 gets")
 	}
 	S.tick(userTimeout + time.Millisecond)
-	err = C.Check(context.TODO(), u0.uid, u0.username, key1)
+	err = C.CheckUserKey(context.TODO(), u0.uid, &u0.username, &key1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -239,7 +245,7 @@ func TestSimple(t *testing.T) {
 
 	ng := 3
 	for i := 0; i < 10; i++ {
-		err = C.Check(context.TODO(), u1.uid, u1.username, u1.keys[0])
+		err = C.CheckUserKey(context.TODO(), u1.uid, &u1.username, &u1.keys[0])
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -264,7 +270,7 @@ func TestSimple(t *testing.T) {
 
 	// Make a new user -- u2!
 	u2 := S.newTestUser(4)
-	err = C.Check(context.TODO(), u2.uid, u2.username, u2.keys[0])
+	err = C.CheckUserKey(context.TODO(), u2.uid, &u2.username, &u2.keys[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,4 +286,42 @@ func TestSimple(t *testing.T) {
 		t.Fatalf("Got wrong eviction: wanted %s but got %s\n", u2.uid, uid)
 	}
 
+}
+
+func TestCheckUsers(t *testing.T) {
+	S, C := newTestSetup()
+
+	var users, usersWithDud []keybase1.UID
+	for i := 0; i < 10; i++ {
+		u := S.newTestUser(2)
+		users = append(users, u.uid)
+		usersWithDud = append(usersWithDud, u.uid)
+	}
+	usersWithDud = append(usersWithDud, libkb.UsernameToUID(genUsername()))
+
+	if S.numGets != 0 {
+		t.Fatal("expected 0 gets")
+	}
+
+	err := C.CheckUsers(context.TODO(), users)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if S.numGets != 10 {
+		t.Fatal("expected 10 gets")
+	}
+	err = C.CheckUsers(context.TODO(), users)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if S.numGets != 10 {
+		t.Fatal("expected 10 gets")
+	}
+
+	err = C.CheckUsers(context.TODO(), usersWithDud)
+	if err == nil {
+		t.Fatal("Expected an error")
+	} else if _, ok := err.(userNotFoundError); !ok {
+		t.Fatal("Expected a user not found error")
+	}
 }
