@@ -2,8 +2,6 @@
 <html>
   <head>
     <title>Keybase</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
-    <link rel="stylesheet" type="text/css" href="../node_modules/font-awesome/css/font-awesome.min.css" />
   </head>
   <body>
     <div id="app"></div>
@@ -20,6 +18,10 @@
         extensions: [".desktop.js", ".es6", ".es", ".jsx", ".js"]
       })
       require("./index")
+
+      var injector = require('../../react-native/react/native/inject-styles')
+      injector(document, path.resolve(__dirname, './style.css'))
+      injector(document, path.resolve(__dirname, '../node_modules/font-awesome/css/font-awesome.min.css'))
     </script>
   </body>
 </html>
