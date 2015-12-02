@@ -48,7 +48,7 @@ function initialTrackerState (): TrackerState {
     shouldFollow: true,
     proofs: [],
     reason: '', // TODO: get the reason
-    closed: false,
+    closed: true,
     lastTrack: null,
     userInfo: {
       fullname: '', // TODO get this info,
@@ -73,10 +73,14 @@ function updateUserState (rootState: State, trackerState: TrackerState, action: 
       return {
         shouldFollow
       }
-    case Constants.onCloseFromActionBar: // fallthrough // TODO
-    case Constants.onCloseFromHeader:
+    case Constants.onCloseFromActionBar:
       return {
         closed: true
+      }
+    case Constants.onCloseFromHeader:
+      return {
+        closed: true,
+        shouldFollow: false // don't follow if they close x out the window
       }
     case Constants.onRefollow: // TODO
       return rootState
@@ -178,25 +182,14 @@ export default function (state: State = initialState, action: Action): State {
       return state
     }
 
-    if (userState.closed) {
-      let trackers = {
-        ...state.trackers
-      }
-      delete trackers[username]
-      return {
-        ...state,
-        trackers
-      }
-    } else {
-      return {
-        ...state,
-        trackers: {
-          ...state.trackers,
-          // $FlowIssue computed
-          [action.payload.username]: {
-            ...trackerState,
-            ...userState
-          }
+    return {
+      ...state,
+      trackers: {
+        ...state.trackers,
+        // $FlowIssue computed
+        [action.payload.username]: {
+          ...trackerState,
+          ...userState
         }
       }
     }

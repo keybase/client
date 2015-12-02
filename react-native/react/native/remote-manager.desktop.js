@@ -34,20 +34,22 @@ class RemoteManager extends Component {
     }
   }
 
+  windowStates (trackers) {
+    return Object.keys(trackers).map(user => {
+      return `${user}:${trackers[user].closed ? 0 : 1}`
+    }).join(',')
+  }
+
   shouldComponentUpdate (nextProps, nextState) {
-    if (Object.keys(nextProps.trackers).join(',') !== Object.keys(this.props.trackers).join(',')) {
+    // different window states
+    if (this.windowStates(nextProps.trackers) !== this.windowStates(this.props.trackers)) {
       return true
     }
 
-    return true
+    return false
   }
 
   componentWillReceiveProps (nextProps) {
-    // No new trackers
-    if (Object.keys(nextProps.trackers).join(',') === Object.keys(this.props.trackers).join(',')) {
-      return
-    }
-
     let popups = {}
 
     Object.keys(nextProps.trackers).forEach(username => {
@@ -79,7 +81,7 @@ class RemoteManager extends Component {
   render () {
     return (
       <div>
-      {Object.keys(this.state.popups).map(username => this.state.popups[username])}
+      {Object.keys(this.state.popups).filter(username => !this.props.trackers[username].closed).map(username => this.state.popups[username])}
       </div>
     )
   }
@@ -94,7 +96,6 @@ RemoteManager.propTypes = {
 
 export default connect(
   state => {
-    console.log('NOJ', state.tracker.trackers)
     return {
       trackerServerStarted: state.tracker.serverStarted,
       trackers: state.tracker.trackers

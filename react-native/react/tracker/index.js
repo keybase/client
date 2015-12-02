@@ -38,7 +38,7 @@ class Tracker extends Component {
   props: TrackerProps;
 
   render () {
-    if (this.props.isClosed) {
+    if (this.props.closed) {
       return <div />
     }
 
@@ -131,7 +131,7 @@ Tracker.propTypes = {
   onFollowHelp: React.PropTypes.any,
   onFollowChecked: React.PropTypes.any,
   registerIdentifyUi: React.PropTypes.any,
-  isClosed: React.PropTypes.bool.isRequired
+  closed: React.PropTypes.bool.isRequired
 }
 
 export default connect(
@@ -140,12 +140,10 @@ export default connect(
     return bindActionCreators(trackerActions, dispatch)
   },
   (stateProps, dispatchProps, ownProps) => {
-    const isClosed = !stateProps.trackers[ownProps.username]
     return {
       ...stateProps.trackers[ownProps.username],
       ...dispatchProps,
-      ...ownProps,
-      isClosed
+      ...ownProps
     }
   }
 )(Tracker)
