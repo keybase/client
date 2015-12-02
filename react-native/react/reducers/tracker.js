@@ -143,7 +143,7 @@ function updateUserState (rootState: State, trackerState: TrackerState, action: 
     case Constants.markActiveIdentifyUi:
       const serverActive = action.payload && !!action.payload.active || false
       // The server wasn't active and now it is, we reset closed state
-      const closed = (showAllTrackers && !rootState.serverActive && serverActive) ? false : trackerState.closed
+      const closed = (showAllTrackers && !trackerState.serverActive && serverActive) ? false : trackerState.closed
       return {
         serverActive,
         closed
