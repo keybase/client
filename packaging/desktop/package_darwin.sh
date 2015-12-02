@@ -8,6 +8,7 @@ cd $dir
 client_dir="$dir/../.."
 build_dir="$dir/build"
 tmp_dir="$dir/tmp"
+node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
 keybase_version=$1
@@ -67,7 +68,7 @@ build() {
 
   # Copy and modify package.json to point to main from one dir up
   cp desktop/package.json .
-  json -I -f package.json -e 'this.main="desktop/app/main.js"'
+  $node_bin/json -I -f package.json -e 'this.main="desktop/app/main.js"'
 
   echo "Npm install (including dev dependencies)"
   # Including dev dependencies for debug, we should use --production when doing real releases
@@ -81,7 +82,7 @@ package_electron() {
 
   echo "Running Electron packager"
   # Package the app
-  electron-packager . $app_name \
+  $node_bin/electron-packager . $app_name \
     --asar=true \
     --platform=darwin \
     --arch=x64 \
@@ -121,7 +122,7 @@ package_dmg() {
   cp $osx_installer/appdmg/Keybase.icns .
 
   rm -rf $dmg_name
-  appdmg $appdmg $dmg_name
+  $node_bin/appdmg $appdmg $dmg_name
 }
 
 clean
