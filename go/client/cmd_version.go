@@ -111,7 +111,7 @@ func (v *CmdVersion) runLocal() {
 	case modeNormal:
 		dui.Printf("%s%s\n", prfx, libkb.VersionString())
 	case modeVerbose:
-		libkb.VersionMessage(func(s string) { dui.Printf("%s\n", s) })
+		v.G().VersionMessage(func(s string) { dui.Printf("%s\n", s) })
 	}
 }
 

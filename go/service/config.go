@@ -60,7 +60,7 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 	c.VersionShort = libkb.Version
 
 	var v []string
-	libkb.VersionMessage(func(s string) {
+	h.G().VersionMessage(func(s string) {
 		v = append(v, s)
 	})
 	c.VersionFull = strings.Join(v, "\n")
