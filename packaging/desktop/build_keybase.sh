@@ -20,11 +20,12 @@ fi
 src_url="https://github.com/keybase/client/archive/v$version.tar.gz"
 
 curl -O -J -L $src_url
-echo "Unpacking"
-tar zxpf client-$version.tar.gz
-rm client-$version.tar.gz
+tgz="client-$version.tar.gz"
+echo "Unpacking $tgz"
+tar zxpf $tgz
+rm $tgz
 echo "Creating GOPATH"
-go_dir=$build_dir/go
+go_dir=/tmp/go
 mkdir -p $go_dir/src/github.com/keybase
 mv client-$version $go_dir/src/github.com/keybase/client
 
@@ -39,3 +40,5 @@ build() {
 }
 
 build production keybase
+
+rm -rf $go_dir
