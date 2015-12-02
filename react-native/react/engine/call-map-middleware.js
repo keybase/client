@@ -1,3 +1,4 @@
+/* @flow */
 
 export type Endpoint = (params: any) => (Promise<any> | any)
 
@@ -16,7 +17,6 @@ function flattenNextLevel (separator: string, key: string, value: any): CallMap 
         {}
     )
   } else {
-    // $FlowIssue Computed property keys not supported
     return {[key]: value}
   }
 }

@@ -1,6 +1,5 @@
 /* @flow */
 
-// $FlowIssue base-react
 import React, {Component} from '../base-react'
 import commonStyles, {colors} from '../styles/common'
 
@@ -19,9 +18,7 @@ export default class ProofsRender extends Component {
 
   renderProofRow (proof: Proof): ReactElement {
     const metaColor = proof.meta ? {
-      // $FlowIssue no computed
       [metaNew]: colors.orange,
-      // $FlowIssue no computed
       [metaUpgraded]: colors.orange
     }[proof.meta] : null
 

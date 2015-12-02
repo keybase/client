@@ -1,0 +1,4 @@
+declare export default react
+declare export var StyleSheet: {
+  create: (x: any) => any
+};

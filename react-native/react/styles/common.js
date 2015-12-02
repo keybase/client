@@ -1,3 +1,4 @@
+/* @flow */
 import {StyleSheet} from '../base-react'
 import native, {styles as nativeStyles} from './common.native'
 

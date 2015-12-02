@@ -1,0 +1,6 @@
+declare export default {
+  navBarHeight: number;
+  tabBarHeight: number;
+}
+
+declare export var styles: Object

@@ -1,6 +1,5 @@
 /* @flow */
 
-// $FlowIssue base-react
 import React, {Component} from '../base-react'
 import path from 'path'
 import commonStyles from '../styles/common'

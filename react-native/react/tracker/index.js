@@ -1,8 +1,6 @@
 /* @flow */
 
-// $FlowIssue base-react
 import React, {Component} from '../base-react'
-// $FlowIssue base-redux
 import {connect} from '../base-redux'
 // $FlowIssue .desktop issue
 import Render from './render'

@@ -1,3 +1,5 @@
+/* @flow */
+
 export type NavState = 'navStartingUp' | 'navNeedsRegistration' | 'navNeedsLogin' | 'navLoggedIn' | 'navErrorStartingUp'
 
 // Constants

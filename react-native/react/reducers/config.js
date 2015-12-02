@@ -1,3 +1,5 @@
+/* @flow */
+
 import * as Constants from '../constants/config'
 import * as LoginConstants from '../constants/login'
 import type {NavState} from '../constants/config'
