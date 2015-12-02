@@ -200,20 +200,6 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     }
   }
 
-  /*
-  dispatch({
-    type: Constants.markActiveIdentifyUi,
-    payload: {
-      active: true
-    }
-  })
-
-  dispatch({
-    type: Constants.reportLastTrack,
-    payload: null
-  })
-  */
-
   return promisifyResponses(flattenCallMap({keybase: {'1': {identifyUi}}}))
 }
 
