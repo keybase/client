@@ -14,7 +14,7 @@ export default class HeaderRender extends Component {
   render (): ReactElement {
     return (
       <div style={{...this.props.style, ...styles.container}}>
-        <img style={styles.logo} src={`file:///${path.resolve('../react-native/react/images/service/keybase.png')}`}/>
+        <img style={styles.logo} src={`file://${path.resolve(__dirname, '..', 'images', 'service' , 'keybase.png')}`}/>
         <p style={styles.reason}>{this.props.reason}</p>
         <div style={styles.close} onClick={() => this.props.onClose()}>
           <i className='fa fa-times' ></i>
