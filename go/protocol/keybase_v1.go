@@ -1493,6 +1493,13 @@ type RemoteProof struct {
 	MTime         Time      `codec:"mTime" json:"mTime"`
 }
 
+type IdentifySource int
+
+const (
+	IdentifySource_CLI  IdentifySource = 0
+	IdentifySource_KBFS IdentifySource = 1
+)
+
 type IdentifyArg struct {
 	SessionID        int            `codec:"sessionID" json:"sessionID"`
 	UserAssertion    string         `codec:"userAssertion" json:"userAssertion"`
@@ -1500,7 +1507,7 @@ type IdentifyArg struct {
 	ForceRemoteCheck bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 	UseDelegateUI    bool           `codec:"useDelegateUI" json:"useDelegateUI"`
 	Reason           IdentifyReason `codec:"reason" json:"reason"`
-	Source           string         `codec:"source" json:"source"`
+	Source           IdentifySource `codec:"source" json:"source"`
 }
 
 type IdentifyInterface interface {

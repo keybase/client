@@ -317,6 +317,10 @@
       "name" : "mTime",
       "type" : "Time"
     } ]
+  }, {
+    "type" : "enum",
+    "name" : "IdentifySource",
+    "symbols" : [ "CLI_0", "KBFS_1" ]
   } ],
   "messages" : {
     "identify" : {
@@ -344,7 +348,7 @@
         "type" : "IdentifyReason"
       }, {
         "name" : "source",
-        "type" : "string"
+        "type" : "IdentifySource"
       } ],
       "response" : "IdentifyRes"
     }

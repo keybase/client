@@ -1072,6 +1072,10 @@ export type RemoteProof = {
   mTime: Time;
 }
 
+export type identify_IdentifySource = 0 /* 'CLI_0' */ | 1 /* 'KBFS_1' */
+
+export type IdentifySource = 0 /* 'CLI_0' */ | 1 /* 'KBFS_1' */
+
 export type identifyUi_Time = {
 }
 

@@ -220,6 +220,10 @@ export default {
       'updateBroken': 4,
       'updateNewProofs': 5,
       'updateOk': 6
+    },
+    'IdentifySource': {
+      'cli': 0,
+      'kbfs': 1
     }
   },
   'identifyUi': {
