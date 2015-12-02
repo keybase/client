@@ -10,17 +10,17 @@ build_dir="$dir/build"
 tmp_dir="$dir/tmp"
 
 app_name=Keybase
-app_version=$1
-app_build=$2
-version=$app_version-$app_build
+keybase_version=$1
+app_version=$keybase_version
+comment=$2
 
-if [ "$app_version" = "" ]; then
-  echo "No app version specified"
+if [ "$keybase_version" = "" ]; then
+  echo "No keybase version specified"
   exit 1
 fi
 
-if [ "$app_build" = "" ]; then
-  echo "No build version specified"
+if [ "$comment" = "" ]; then
+  echo "No comment specified"
   exit 1
 fi
 
@@ -28,7 +28,7 @@ out_dir="$build_dir/Keybase-darwin-x64"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
-keybase_url="https://github.com/keybase/client/releases/download/v$version/keybase-$version.tgz"
+keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version.tgz"
 kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v1.0.0-27/kbfs-1.0.0-27.tgz"
 installer_url="https://github.com/keybase/client/releases/download/v1.0.4-4/KeybaseInstaller-1.1.0-0.tgz"
 
@@ -90,7 +90,7 @@ package_electron() {
     --helper-bundle-id=keybase.ElectronHelper \
     --icon=Keybase.icns \
     --app-version=$app_version \
-    --build-version=$app_version-$app_build
+    --build-version=$app_version+$comment
 }
 
 # Adds the keybase binaries and Installer.app bundle to Keybase.app
@@ -112,7 +112,7 @@ sign() {
 # Create dmg from Keybase.app
 package_dmg() {
   cd $out_dir
-  dmg_name="$app_name-$app_version-$app_build.dmg"
+  dmg_name="$app_name-$app_version+$comment.dmg"
   appdmg="appdmg.json"
 
   osx_installer="$client_dir/osx/Install"
