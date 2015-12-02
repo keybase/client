@@ -211,6 +211,7 @@ func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
 	arg := keybase1.IdentifyArg{
 		UserAssertion: assertion,
 		UseDelegateUI: true,
+		Source:        libkb.IdentifySourceKBFS,
 	}
 	res, err := k.identifyClient.Identify(ctx, arg)
 	if err != nil {
