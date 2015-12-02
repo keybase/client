@@ -343,3 +343,7 @@ const (
 	KexRoleProvisioner KexRole = iota
 	KexRoleProvisionee
 )
+
+const (
+	IdentifySourceKBFS = "kbfs"
+)
