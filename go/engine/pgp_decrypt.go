@@ -48,7 +48,7 @@ func (e *PGPDecrypt) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PGPDecrypt) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{libkb.SecretUIKind, libkb.LogUIKind}
+	return []libkb.UIKind{libkb.SecretUIKind, libkb.LogUIKind, libkb.PgpUIKind}
 }
 
 // SubConsumers returns the other UI consumers for this engine.

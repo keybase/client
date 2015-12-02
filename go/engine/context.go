@@ -15,6 +15,7 @@ type Context struct {
 	LoginUI     libkb.LoginUI
 	SecretUI    libkb.SecretUI
 	IdentifyUI  libkb.IdentifyUI
+	PgpUI       libkb.PgpUI
 	ProveUI     libkb.ProveUI
 	ProvisionUI libkb.ProvisionUI
 
@@ -33,6 +34,8 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 		return c.SecretUI != nil
 	case libkb.IdentifyUIKind:
 		return c.IdentifyUI != nil
+	case libkb.PgpUIKind:
+		return c.PgpUI != nil
 	case libkb.ProveUIKind:
 		return c.ProveUI != nil
 	case libkb.ProvisionUIKind:

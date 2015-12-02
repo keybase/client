@@ -298,6 +298,10 @@ type GPGUI interface {
 	keybase1.GpgUiInterface
 }
 
+type PgpUI interface {
+	keybase1.PGPUiInterface
+}
+
 type ProvisionUI interface {
 	keybase1.ProvisionUiInterface
 }

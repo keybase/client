@@ -136,6 +136,7 @@ func TestPGPEncryptSelfTwice(t *testing.T) {
 	}
 	dec := NewPGPDecrypt(decarg, tc.G)
 	ctx.LogUI = tc.G.UI.GetLogUI()
+	ctx.PgpUI = &TestPgpUI{}
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}

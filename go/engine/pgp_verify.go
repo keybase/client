@@ -54,7 +54,7 @@ func (e *PGPVerify) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PGPVerify) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{libkb.PgpUIKind}
 }
 
 // SubConsumers returns the other UI consumers for this engine.

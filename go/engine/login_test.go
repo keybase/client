@@ -329,7 +329,6 @@ func TestProvisionPaper(t *testing.T) {
 	secUI := fu.NewSecretUI()
 	secUI.BackupPassphrase = loginUI.PaperPhrase
 	provUI := newTestProvisionUIPaper()
-	provUI.verbose = true
 	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
 	ctx = &Context{
 		ProvisionUI: provUI,

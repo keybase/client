@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -18,6 +20,7 @@ func decengctx(fu *FakeUser, tc libkb.TestContext) *Context {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
+		PgpUI:      &TestPgpUI{},
 	}
 }
 
@@ -184,7 +187,12 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	recipient.LoginOrBust(tcRecipient)
 
 	rtrackUI := &FakeIdentifyUI{}
-	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI(), LogUI: tcRecipient.G.UI.GetLogUI()}
+	ctx = &Context{
+		IdentifyUI: rtrackUI,
+		SecretUI:   recipient.NewSecretUI(),
+		LogUI:      tcRecipient.G.UI.GetLogUI(),
+		PgpUI:      &TestPgpUI{},
+	}
 
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
@@ -243,7 +251,12 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 	recipient.LoginOrBust(tcRecipient)
 
 	idUI := &FakeIdentifyUI{}
-	ctx = &Context{IdentifyUI: idUI, SecretUI: recipient.NewSecretUI(), LogUI: tcRecipient.G.UI.GetLogUI()}
+	ctx = &Context{
+		IdentifyUI: idUI,
+		SecretUI:   recipient.NewSecretUI(),
+		LogUI:      tcRecipient.G.UI.GetLogUI(),
+		PgpUI:      &TestPgpUI{},
+	}
 
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
@@ -371,4 +384,13 @@ func TestPGPDecryptClearsign(t *testing.T) {
 			t.Errorf("%s: signature status entity is nil", test.name)
 		}
 	}
+}
+
+type TestPgpUI struct {
+	outputCalled bool
+}
+
+func (t *TestPgpUI) OutputSignatureSuccess(context.Context, keybase1.OutputSignatureSuccessArg) error {
+	t.outputCalled = true
+	return nil
 }

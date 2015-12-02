@@ -21,6 +21,7 @@ func TestPGPVerify(t *testing.T) {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
+		PgpUI:      &TestPgpUI{},
 	}
 
 	msg := "If you wish to stop receiving notifications from this topic, please click or visit the link below to unsubscribe:"
@@ -129,5 +130,12 @@ func verify(ctx *Context, tc libkb.TestContext, msg, sig, name string, valid boo
 	if s.CalledGetKBPassphrase {
 		tc.T.Errorf("%s: called get kb passphrase, shouldn't have", name)
 		s.CalledGetKBPassphrase = false // reset it for next caller
+	}
+	p, ok := ctx.PgpUI.(*TestPgpUI)
+	if !ok {
+		tc.T.Fatalf("%s: invalid pgp ui: %T", name, ctx.PgpUI)
+	}
+	if !p.outputCalled {
+		tc.T.Errorf("%s: did not output signature success", name)
 	}
 }

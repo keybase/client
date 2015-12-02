@@ -705,6 +705,22 @@ export default {
       'clear': 2
     }
   },
+  'pgpUi': {
+    'LogLevel': {
+      'none': 0,
+      'debug': 1,
+      'info': 2,
+      'notice': 3,
+      'warn': 4,
+      'error': 5,
+      'critical': 6,
+      'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    }
+  },
   'prove': {
     'LogLevel': {
       'none': 0,
