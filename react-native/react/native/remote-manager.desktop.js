@@ -67,6 +67,7 @@ class RemoteManager extends Component {
             component='tracker'
             username={username}
             substore='tracker'
+            key={username}
             />
         )
       } else {

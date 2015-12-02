@@ -62,7 +62,7 @@ function initialTrackerState (): TrackerState {
 }
 
 // Just mutating the substate of the tracker
-function updateUserState (rootState: State, trackerState: TrackerState, action: Action) {
+function updateUserState (rootState: State, trackerState: TrackerState, action: Action): State | Object {
   switch (action.type) {
     case Constants.onFollowChecked:
       if (action.payload == null) {
@@ -118,7 +118,7 @@ function updateUserState (rootState: State, trackerState: TrackerState, action: 
       const identity: Identity = action.payload.identity
 
       return {
-        proofs: identity.proofs.map(rp => remoteProofToProof(rp.proof)) || []
+        proofs: identity.proofs.map(rp => remoteProofToProof(rp.proof))
       }
 
     case Constants.updateProof:
@@ -129,7 +129,7 @@ function updateUserState (rootState: State, trackerState: TrackerState, action: 
       const rp: RemoteProof = action.payload.remoteProof
       const lcr: LinkCheckResult = action.payload.linkCheckResult
       return {
-        proofs: updateProof(trackerState.proofs, rp, lcr) || []
+        proofs: updateProof(trackerState.proofs, rp, lcr)
       }
 
     case Constants.updateUserInfo:
@@ -319,5 +319,5 @@ function updateProof (proofs: Array<Proof>, rp: RemoteProof, lcr: LinkCheckResul
     updated.push(remoteProofToProof(rp, lcr))
   }
 
-  return updated || []
+  return updated
 }
