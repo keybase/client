@@ -8,9 +8,9 @@
 
 3. In `keybase/client/packaging/desktop`, run:
 
-			package_darwin.sh 1.0.4-4 <comment>
+			package_darwin.sh 1.0.4-4 1.0.0-28 <comment>
 
-This will look for a keybase v1.0.4-4 release and build an app with that same version. The comment can be a commit sha or something to signify a new build when the keybase version is unchanged.
+This will look for a keybase v1.0.4-4 release and build an app with that same version. The second arg is the kbfs version. The comment can be a commit sha or something to signify a new build when the keybase version is unchanged.
 
 ### Building keybase
 

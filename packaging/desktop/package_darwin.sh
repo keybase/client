@@ -13,10 +13,16 @@ node_bin="$dir/node_modules/.bin"
 app_name=Keybase
 keybase_version=$1
 app_version=$keybase_version
-comment=$2
+kbfs_version=$2
+comment=$3
 
 if [ "$keybase_version" = "" ]; then
   echo "No keybase version specified"
+  exit 1
+fi
+
+if [ "$kbfs_version" = "" ]; then
+  echo "No kbfs version specified"
   exit 1
 fi
 
@@ -30,7 +36,7 @@ shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version.tgz"
-kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v1.0.0-27/kbfs-1.0.0-27.tgz"
+kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version.tgz"
 installer_url="https://github.com/keybase/client/releases/download/v1.0.4-4/KeybaseInstaller-1.1.0-0.tgz"
 
 keybase_bin="$tmp_dir/keybase"
@@ -53,8 +59,7 @@ get_deps() {
   curl -J -L -Ss $installer_url | tar zx
 }
 
-# Setup and build product for packaging
-build() {
+sync() {
   cd $build_dir
   echo "Creating project"
   # Copy files from desktop and react-native project here
@@ -65,7 +70,10 @@ build() {
 
   # Move menubar icon into app path
   mv $build_dir/desktop/Icon*.png $build_dir
+}
 
+build() {
+  cd $build_dir
   # Copy and modify package.json to point to main from one dir up
   cp desktop/package.json .
   $node_bin/json -I -f package.json -e 'this.main="desktop/app/main.js"'
@@ -127,6 +135,7 @@ package_dmg() {
 
 clean
 get_deps
+sync
 build
 package_electron
 package_app
