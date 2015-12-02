@@ -4,8 +4,10 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/golang/groupcache/singleflight"
 	"golang.org/x/net/context"
 	"stathat.com/c/ramcache"
 
@@ -29,6 +31,7 @@ type IdentifyHandler struct {
 	*BaseHandler
 	libkb.Contextified
 	resultCache *ramcache.Ramcache
+	callGroup   singleflight.Group
 }
 
 func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHandler {
@@ -44,34 +47,47 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 }
 
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
-	if arg.Source == keybase1.IdentifySource_KBFS {
-		h.G().Log.Debug("KBFS Identify: checking result cache for %q", arg.UserAssertion)
-		x, err := h.resultCache.Get(arg.UserAssertion)
-		if err == nil {
-			exp, ok := x.(*keybase1.IdentifyRes)
-			if ok {
-				h.G().Log.Debug("KBFS Identify: found cached result for %q", arg.UserAssertion)
-				return *exp, nil
+	var do = func() (interface{}, error) {
+		if arg.Source == keybase1.IdentifySource_KBFS {
+			h.G().Log.Debug("KBFS Identify: checking result cache for %q", arg.UserAssertion)
+			x, err := h.resultCache.Get(arg.UserAssertion)
+			if err == nil {
+				exp, ok := x.(*keybase1.IdentifyRes)
+				if ok {
+					h.G().Log.Debug("KBFS Identify: found cached result for %q", arg.UserAssertion)
+					return *exp, nil
+				}
+			}
+			h.G().Log.Debug("KBFS Identify: no cached result for %q", arg.UserAssertion)
+		}
+
+		res, err := h.identify(arg.SessionID, arg)
+		if err != nil {
+			return keybase1.IdentifyRes{}, err
+		}
+		exp := res.Export()
+
+		if len(arg.UserAssertion) > 0 {
+			if err := h.resultCache.Set(arg.UserAssertion, exp); err != nil {
+				h.G().Log.Debug("Identify: result cache set error: %s", err)
+			} else {
+				h.G().Log.Debug("Identify: storing result for %q in result cache", arg.UserAssertion)
 			}
 		}
-		h.G().Log.Debug("KBFS Identify: no cached result for %q", arg.UserAssertion)
+
+		return *exp, nil
 	}
 
-	res, err := h.identify(arg.SessionID, arg)
+	v, err := h.callGroup.Do(arg.UserAssertion, do)
 	if err != nil {
 		return keybase1.IdentifyRes{}, err
 	}
-
-	exp := res.Export()
-	if len(arg.UserAssertion) > 0 {
-		if err := h.resultCache.Set(arg.UserAssertion, exp); err != nil {
-			h.G().Log.Debug("Identify: result cache set error: %s", err)
-		} else {
-			h.G().Log.Debug("Identify: storing result for %q in result cache", arg.UserAssertion)
-		}
+	res, ok := v.(keybase1.IdentifyRes)
+	if !ok {
+		return keybase1.IdentifyRes{}, fmt.Errorf("invalid type returned by do: %T", v)
 	}
 
-	return *exp, nil
+	return res, nil
 }
 
 func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (ret *engine.Context, err error) {
