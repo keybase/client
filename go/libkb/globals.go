@@ -176,14 +176,21 @@ func (g *GlobalContext) ConfigureKeyring() error {
 	return nil
 }
 
-func VersionMessage(linefn func(string)) {
+type GitHashGetter interface {
+	Hash() string
+}
+
+func (g *GlobalContext) VersionMessage(linefn func(string)) {
 	linefn(fmt.Sprintf("Keybase CLI %s", VersionString()))
 	linefn(fmt.Sprintf("- Built with %s", runtime.Version()))
+	if h, ok := interface{}(g).(GitHashGetter); ok {
+		linefn(fmt.Sprintf("- Git hash: %s", h.Hash()))
+	}
 	linefn("- Visit https://keybase.io for more details")
 }
 
 func (g *GlobalContext) StartupMessage() {
-	VersionMessage(func(s string) { g.Log.Debug(s) })
+	g.VersionMessage(func(s string) { g.Log.Debug(s) })
 }
 
 func (g *GlobalContext) ConfigureAPI() error {
