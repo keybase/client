@@ -124,6 +124,10 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     displayKey: (params: {sessionID: number, key: IdentifyKey}) => {
     },
     reportLastTrack: (params: {sessionID: number, track: ?TrackSummary}) => {
+      dispatch({
+        type: Constants.reportLastTrack,
+        payload: params.track
+      })
     },
 
     launchNetworkChecks: (params: {sessionID: number, identity: Identity, user: User}) => {
@@ -180,6 +184,11 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     payload: {
       active: true
     }
+  })
+
+  dispatch({
+    type: Constants.reportLastTrack,
+    payload: null
   })
 
   return promisifyResponses(flattenCallMap({ keybase: { '1': { identifyUi } } }))

@@ -1,5 +1,6 @@
 /* @flow */
 
+// $FlowIssue platform files
 import {showAllTrackers} from '../local-debug'
 
 import * as Constants from '../constants/tracker'
@@ -12,7 +13,7 @@ import type {UserInfo} from '../tracker/bio.render.types'
 import type {Proof} from '../tracker/proofs.render.types'
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
-import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType} from '../constants/types/flow-types'
+import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 type State = {
@@ -24,7 +25,8 @@ type State = {
   reason: string,
   userInfo: UserInfo,
   proofs: Array<Proof>,
-  closed: boolean
+  closed: boolean,
+  lastTrack: ?TrackSummary
 }
 
 const initialProofState = checking
@@ -38,6 +40,7 @@ const initialState: State = {
   proofs: [],
   reason: '', // TODO: get the reason
   closed: true,
+  lastTrack: null,
   userInfo: {
     fullname: 'TODO: get this information',
     followersCount: -1,
@@ -159,14 +162,19 @@ export default function (state: State = initialState, action: Action): State {
         closed
       }
 
+    case Constants.reportLastTrack:
+      return {
+        ...state,
+        lastTrack: action.payload
+      }
+
     case Constants.decideToShowTracker:
       // The tracker is already open
       if (!state.closed) {
         return state
       }
 
-      // If the proof state isn't normal and isn't checking, we'll show the tracker
-      if (state.proofState !== normal && state.proofState !== checking) {
+      if (state.proofState !== checking && (state.proofState !== normal || !state.lastTrack)) {
         return {
           ...state,
           closed: false
