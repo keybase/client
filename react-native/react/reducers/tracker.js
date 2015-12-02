@@ -62,11 +62,11 @@ function initialTrackerState (): TrackerState {
 }
 
 // Just mutating the substate of the tracker
-function updateUserState (rootState: State, trackerState: TrackerState, action: Action): State | Object {
+function updateUserState (state: TrackerState, action: Action): State | Object {
   switch (action.type) {
     case Constants.onFollowChecked:
       if (action.payload == null) {
-        return rootState
+        return state
       }
       const shouldFollow: boolean = action.payload.shouldFollow
 
@@ -83,12 +83,12 @@ function updateUserState (rootState: State, trackerState: TrackerState, action: 
         shouldFollow: false // don't follow if they close x out the window
       }
     case Constants.onRefollow: // TODO
-      return rootState
+      return state
     case Constants.onUnfollow: // TODO
-      return rootState
+      return state
 
     case Constants.updateProofState:
-      const proofs = trackerState.proofs
+      const proofs = state.proofs
       const allOk: boolean = proofs.reduce((acc, p) => acc && p.state === normal, true)
       const anyWarnings: boolean = proofs.reduce((acc, p) => acc || p.state === warning, false)
       const anyError: boolean = proofs.reduce((acc, p) => acc || p.state === error, false)
@@ -112,7 +112,7 @@ function updateUserState (rootState: State, trackerState: TrackerState, action: 
 
     case Constants.setProofs:
       if (!action.payload) {
-        return rootState
+        return state
       }
 
       const identity: Identity = action.payload.identity
@@ -123,18 +123,18 @@ function updateUserState (rootState: State, trackerState: TrackerState, action: 
 
     case Constants.updateProof:
       if (!action.payload) {
-        return rootState
+        return state
       }
 
       const rp: RemoteProof = action.payload.remoteProof
       const lcr: LinkCheckResult = action.payload.linkCheckResult
       return {
-        proofs: updateProof(trackerState.proofs, rp, lcr)
+        proofs: updateProof(state.proofs, rp, lcr)
       }
 
     case Constants.updateUserInfo:
       if (!action.payload) {
-        return rootState
+        return state
       }
       return {
         userInfo: action.payload.userInfo
@@ -143,7 +143,7 @@ function updateUserState (rootState: State, trackerState: TrackerState, action: 
     case Constants.markActiveIdentifyUi:
       const serverActive = action.payload && !!action.payload.active || false
       // The server wasn't active and now it is, we reset closed state
-      const closed = (showAllTrackers && !trackerState.serverActive && serverActive) ? false : trackerState.closed
+      const closed = (showAllTrackers && !state.serverActive && serverActive) ? false : state.closed
       return {
         serverActive,
         closed
@@ -156,19 +156,19 @@ function updateUserState (rootState: State, trackerState: TrackerState, action: 
 
     case Constants.decideToShowTracker:
       // The tracker is already open
-      if (!trackerState.closed) {
-        return rootState
+      if (!state.closed) {
+        return state
       }
 
-      if (trackerState.proofState !== checking && (trackerState.proofState !== normal || !trackerState.lastTrack)) {
+      if (state.proofState !== checking && (state.proofState !== normal || !state.lastTrack)) {
         return {
           closed: false
         }
       }
-      return rootState
+      return state
 
     default:
-      return rootState
+      return state
   }
 }
 
@@ -177,8 +177,8 @@ export default function (state: State = initialState, action: Action): State {
   const trackerState = username ? state.trackers[username] : null
 
   if (trackerState) {
-    const userState = updateUserState(state, trackerState, action)
-    if (userState === state) {
+    const userState = updateUserState(trackerState, action)
+    if (userState === trackerState) {
       return state
     }
 
