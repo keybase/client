@@ -1500,6 +1500,7 @@ type IdentifyArg struct {
 	ForceRemoteCheck bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 	UseDelegateUI    bool           `codec:"useDelegateUI" json:"useDelegateUI"`
 	Reason           IdentifyReason `codec:"reason" json:"reason"`
+	Source           string         `codec:"source" json:"source"`
 }
 
 type IdentifyInterface interface {
