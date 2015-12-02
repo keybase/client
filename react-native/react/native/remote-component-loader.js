@@ -9,7 +9,7 @@ const currentWindow = remote.getCurrentWindow()
 class RemoteStore {
   constructor (props) {
     ipcRenderer.on('stateChange', (event, arg) => {
-      this.internalState = arg
+      this.internalState = props.substore ? {[props.substore]: arg} : arg
       this._publishChange()
     })
 

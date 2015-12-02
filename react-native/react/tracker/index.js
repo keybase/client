@@ -135,7 +135,7 @@ Tracker.propTypes = {
 }
 
 export default connect(
-  state => state,
+  state => state.tracker,
   dispatch => {
     return bindActionCreators(trackerActions, dispatch)
   },
