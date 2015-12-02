@@ -1,6 +1,6 @@
 ## Building Keybase.app and DMG
 
-1. Set the run mode by editing `react-native/react/constants/platform.native.desktop.js` and set the `const runMode`. *TODO: Make this configurable/scripted*
+1. Set the run mode by editing `react-native/react/constants/platform.native.desktop.js` and set the `const runMode` and `const isDev`. *TODO: Make this configurable/scripted*
 
 2. Install script dependencies:
 
