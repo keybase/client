@@ -14,7 +14,7 @@ export type RemoteManagerProps = {
   registerIdentifyUi: () => void,
   onCloseFromHeader: () => void,
   trackerServerStarted: boolean,
-  trackerServerActive: boolean
+  trackers: any
 }
 
 class RemoteManager extends Component {
@@ -23,7 +23,7 @@ class RemoteManager extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      showTrackerPopup: false
+      popups: {}
     }
   }
 
@@ -34,29 +34,54 @@ class RemoteManager extends Component {
     }
   }
 
-  componentWillReceiveProps (nextProps) {
-    if (!this.props.trackerServerActive && nextProps.trackerServerActive) {
-      this.setState({showTrackerPopup: true})
+  shouldComponentUpdate (nextProps, nextState) {
+    if (Object.keys(nextProps.trackers).join(',') !== Object.keys(this.props.trackers).join(',')) {
+      return true
     }
+
+    return true
+  }
+
+  componentWillReceiveProps (nextProps) {
+    // No new trackers
+    if (Object.keys(nextProps.trackers).join(',') === Object.keys(this.props.trackers).join(',')) {
+      return
+    }
+
+    let popups = {}
+
+    Object.keys(nextProps.trackers).forEach(username => {
+      if (!this.state.popups[username]) {
+        popups[username] = (
+          <RemoteComponent
+            windowsOpts={{
+              height: 332,
+              width: 520,
+              frame: false,
+              resizable: false
+            }}
+            waitForState
+            onRemoteClose={this.props.onCloseFromHeader}
+            component='tracker'
+            username={username}
+            substore='tracker'
+            />
+        )
+      } else {
+        // keep existing ones
+        popups[username] = this.state.popups[username]
+      }
+    })
+
+    this.setState({popups})
   }
 
   render () {
-    if (!this.props.trackerClosed) {
-      return (
-        <RemoteComponent
-          windowsOpts={{
-            height: 332,
-            width: 520,
-            frame: false,
-            resizable: false
-          }}
-          waitForState
-          onRemoteClose={this.props.onCloseFromHeader}
-          component='tracker'/>
-      )
-    }
-
-    return (<div/>)
+    return (
+      <div>
+      {Object.keys(this.state.popups).map(username => this.state.popups[username])}
+      </div>
+    )
   }
 }
 
@@ -64,16 +89,15 @@ RemoteManager.propTypes = {
   registerIdentifyUi: React.PropTypes.any,
   onCloseFromHeader: React.PropTypes.any,
   trackerServerStarted: React.PropTypes.bool,
-  trackerServerActive: React.PropTypes.bool,
-  trackerClosed: React.PropTypes.bool
+  trackers: React.PropTypes.any
 }
 
 export default connect(
   state => {
+    console.log('NOJ', state.tracker.trackers)
     return {
       trackerServerStarted: state.tracker.serverStarted,
-      trackerServerActive: state.tracker.serverActive,
-      trackerClosed: state.tracker.closed
+      trackers: state.tracker.trackers
     }
   },
   dispatch => { return bindActionCreators({registerIdentifyUi, onCloseFromHeader}, dispatch) }

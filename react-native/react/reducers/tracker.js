@@ -16,8 +16,7 @@ import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
-type State = {
-  serverStarted: boolean,
+type TrackerState = {
   serverActive: boolean,
   proofState: SimpleProofState,
   username: ?string,
@@ -29,67 +28,63 @@ type State = {
   lastTrack: ?TrackSummary
 }
 
+type State = {
+  serverStarted: boolean,
+  trackers: {[key: string]: TrackerState}
+}
+
 const initialProofState = checking
 
 const initialState: State = {
   serverStarted: false,
-  serverActive: false,
-  username: null,
-  proofState: initialProofState,
-  shouldFollow: true,
-  proofs: [],
-  reason: '', // TODO: get the reason
-  closed: true,
-  lastTrack: null,
-  userInfo: {
-    fullname: 'TODO: get this information',
-    followersCount: -1,
-    followingCount: -1,
-    followsYou: false,
-    avatar: null,
-    location: '' // TODO: get this information
+  trackers: {}
+}
+
+function initialTrackerState (): TrackerState {
+  return {
+    serverActive: false,
+    username: null,
+    proofState: initialProofState,
+    shouldFollow: true,
+    proofs: [],
+    reason: '', // TODO: get the reason
+    closed: false,
+    lastTrack: null,
+    userInfo: {
+      fullname: '', // TODO get this info,
+      followersCount: -1,
+      followingCount: -1,
+      followsYou: false,
+      avatar: null,
+      location: '' // TODO: get this information
+    }
   }
 }
 
-export default function (state: State = initialState, action: Action): State {
+// Just mutating the substate of the tracker
+function updateUserState (rootState: State, trackerState: TrackerState, action: Action) {
   switch (action.type) {
     case Constants.onFollowChecked:
       if (action.payload == null) {
-        return state
+        return rootState
       }
-      const shouldFollow: boolean = action.payload
+      const shouldFollow: boolean = action.payload.shouldFollow
 
       return {
-        ...state,
         shouldFollow
       }
     case Constants.onCloseFromActionBar: // fallthrough // TODO
     case Constants.onCloseFromHeader:
       return {
-        ...state,
         closed: true
       }
     case Constants.onRefollow: // TODO
-      return {
-        ...state
-      }
+      return rootState
     case Constants.onUnfollow: // TODO
-      return {
-        ...state
-      }
-    case Constants.updateUsername:
-      if (!action.payload) {
-        return state
-      }
-      const username = action.payload.username
-
-      return {
-        ...state,
-        username
-      }
+      return rootState
 
     case Constants.updateProofState:
-      const proofs = state.proofs
+      const proofs = trackerState.proofs
       const allOk: boolean = proofs.reduce((acc, p) => acc && p.state === normal, true)
       const anyWarnings: boolean = proofs.reduce((acc, p) => acc || p.state === warning, false)
       const anyError: boolean = proofs.reduce((acc, p) => acc || p.state === error, false)
@@ -108,82 +103,128 @@ export default function (state: State = initialState, action: Action): State {
       }
 
       return {
-        ...state,
         proofState
       }
 
     case Constants.setProofs:
       if (!action.payload) {
-        return state
+        return rootState
       }
 
       const identity: Identity = action.payload.identity
 
       return {
-        ...state,
-        proofs: identity.proofs.map(rp => remoteProofToProof(rp.proof))
+        proofs: identity.proofs.map(rp => remoteProofToProof(rp.proof)) || []
       }
 
     case Constants.updateProof:
       if (!action.payload) {
-        return state
+        return rootState
       }
 
       const rp: RemoteProof = action.payload.remoteProof
       const lcr: LinkCheckResult = action.payload.linkCheckResult
       return {
-        ...state,
-        proofs: updateProof(state.proofs, rp, lcr)
+        proofs: updateProof(trackerState.proofs, rp, lcr) || []
       }
 
     case Constants.updateUserInfo:
       if (!action.payload) {
-        return state
+        return rootState
       }
       return {
-        ...state,
-        userInfo: action.payload
-      }
-
-    case Constants.registerIdentifyUi:
-      const serverStarted = action.payload && !!action.payload.started || false
-      return {
-        ...state,
-        serverStarted
+        userInfo: action.payload.userInfo
       }
 
     case Constants.markActiveIdentifyUi:
       const serverActive = action.payload && !!action.payload.active || false
       // The server wasn't active and now it is, we reset closed state
-      const closed = (showAllTrackers && !state.serverActive && serverActive) ? false : state.closed
+      const closed = (showAllTrackers && !rootState.serverActive && serverActive) ? false : trackerState.closed
       return {
-        ...state,
         serverActive,
         closed
       }
 
     case Constants.reportLastTrack:
       return {
-        ...state,
-        lastTrack: action.payload
+        lastTrack: action.payload && action.payload.track
       }
 
     case Constants.decideToShowTracker:
       // The tracker is already open
-      if (!state.closed) {
-        return state
+      if (!trackerState.closed) {
+        return rootState
       }
 
-      if (state.proofState !== checking && (state.proofState !== normal || !state.lastTrack)) {
+      if (trackerState.proofState !== checking && (trackerState.proofState !== normal || !trackerState.lastTrack)) {
         return {
-          ...state,
           closed: false
         }
       }
-      return state
+      return rootState
 
     default:
+      return rootState
+  }
+}
+
+export default function (state: State = initialState, action: Action): State {
+  const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
+  const trackerState = username ? state.trackers[username] : null
+
+  if (trackerState) {
+    const userState = updateUserState(state, trackerState, action)
+    if (userState === state) {
       return state
+    }
+
+    if (userState.closed) {
+      let trackers = {
+        ...state.trackers
+      }
+      delete trackers[username]
+      return {
+        ...state,
+        trackers
+      }
+    } else {
+      return {
+        ...state,
+        trackers: {
+          ...state.trackers,
+          // $FlowIssue computed
+          [action.payload.username]: {
+            ...trackerState,
+            ...userState
+          }
+        }
+      }
+    }
+  } else {
+    switch (action.type) {
+      case Constants.registerIdentifyUi:
+        const serverStarted = action.payload && !!action.payload.started || false
+        return {
+          ...state,
+          serverStarted
+        }
+      case Constants.updateUsername:
+        if (!action.payload) {
+          return state
+        }
+        const username = action.payload.username
+
+        return {
+          ...state,
+          trackers: {
+            ...state.trackers,
+            // $FlowIssue computed
+            [username]: initialTrackerState()
+          }
+        }
+      default:
+        return state
+    }
   }
 }
 
@@ -285,5 +326,5 @@ function updateProof (proofs: Array<Proof>, rp: RemoteProof, lcr: LinkCheckResul
     updated.push(remoteProofToProof(rp, lcr))
   }
 
-  return updated
+  return updated || []
 }

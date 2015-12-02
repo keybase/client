@@ -37,48 +37,56 @@ export function registerIdentifyUi (): (dispatch: Dispatch) => void {
   }
 }
 
-export function onFollowChecked (newFollowCheckedValue: boolean): Action {
+export function onFollowChecked (newFollowCheckedValue: boolean, username: string): Action {
   console.log('follow checked:', newFollowCheckedValue)
   return {
     type: Constants.onFollowChecked,
-    payload: newFollowCheckedValue
+    payload: {
+      shouldFollow: newFollowCheckedValue,
+      username
+    }
   }
 }
 
-export function onRefollow (): Action {
+export function onRefollow (username: string): Action {
   console.log('onRefollow')
   return {
-    type: Constants.onRefollow
+    type: Constants.onRefollow,
+    payload: {username}
   }
 }
 
-export function onUnfollow (): Action {
+export function onUnfollow (username: string): Action {
   console.log('onUnfollow')
   return {
-    type: Constants.onUnfollow
+    type: Constants.onUnfollow,
+    payload: {username}
   }
 }
 
-export function onFollowHelp (): Action {
+export function onFollowHelp (username: string): Action {
   window.open('https://keybase.io/docs/tracking') // TODO
   return {
-    type: Constants.onFollowHelp
+    type: Constants.onFollowHelp,
+    payload: {username}
   }
 }
 
-export function onCloseFromActionBar (): Action {
+export function onCloseFromActionBar (username: string): Action {
   return {
-    type: Constants.onCloseFromActionBar
+    type: Constants.onCloseFromActionBar,
+    payload: {username}
   }
 }
 
-export function onCloseFromHeader (): Action {
+export function onCloseFromHeader (username: string): Action {
   return {
-    type: Constants.onCloseFromHeader
+    type: Constants.onCloseFromHeader,
+    payload: {username}
   }
 }
 
-function loadUserInfo (uid: any): (dispatch: Dispatch) => void {
+function loadUserInfo (uid: any, username:string): (dispatch: Dispatch) => void {
   return dispatch => {
     engine.rpc('user.loadUncheckedUserSummaries', {uids: [uid]}, {}, (error: ?any, response: Array<UserSummary>) => {
       if (error) {
@@ -100,22 +108,28 @@ function loadUserInfo (uid: any): (dispatch: Dispatch) => void {
         followersCount: -1,
         followingCount: -1,
         followsYou: false
-      }))
+      }, username))
     })
   }
 }
 
-function updateUserInfo (userInfo: UserInfo): Action {
+function updateUserInfo (userInfo: UserInfo, username: string): Action {
   return {
     type: Constants.updateUserInfo,
-    payload: userInfo
+    payload: {
+      userInfo,
+      username
+    }
   }
 }
 
 function serverCallMap (dispatch: Dispatch): CallMap {
+  const sessionIDToUsername: Map<number, string> = {
+  }
   const identifyUi = {
     start: (params: {sessionID: number, username: string}) => {
-      const {username} = params
+      const {username, sessionID} = params
+      sessionIDToUsername[sessionID] = username
       dispatch({
         type: Constants.updateUsername,
         payload: {username}
@@ -124,38 +138,46 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     displayKey: (params: {sessionID: number, key: IdentifyKey}) => {
     },
     reportLastTrack: (params: {sessionID: number, track: ?TrackSummary}) => {
+      const username = sessionIDToUsername[params.sessionID]
       dispatch({
         type: Constants.reportLastTrack,
-        payload: params.track
+        payload: {
+          username,
+          track: params.track
+        }
       })
     },
 
     launchNetworkChecks: (params: {sessionID: number, identity: Identity, user: User}) => {
+      const username = sessionIDToUsername[params.sessionID]
       // This is the first spot that we have access to the user, so let's use that to get
       // The user information
-      dispatch(loadUserInfo(params.user.uid))
+      dispatch(loadUserInfo(params.user.uid, username))
 
       dispatch({
         type: Constants.setProofs,
         payload: {
-          identity: params.identity
+          identity: params.identity,
+          username
         }
       })
-      dispatch({type: Constants.updateProofState})
+      dispatch({type: Constants.updateProofState, payload: {username}})
     },
 
     displayTrackStatement: (params: {sessionID: number, stmt: string}) => {
     },
 
     finishWebProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
-      dispatch(updateProof(params.rp, params.lcr))
-      dispatch({type: Constants.updateProofState})
-      dispatch({type: Constants.decideToShowTracker})
+      const username = sessionIDToUsername[params.sessionID]
+      dispatch(updateProof(params.rp, params.lcr, username))
+      dispatch({type: Constants.updateProofState, payload: {username}})
+      dispatch({type: Constants.decideToShowTracker, payload: {username}})
     },
     finishSocialProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
-      dispatch(updateProof(params.rp, params.lcr))
-      dispatch({type: Constants.updateProofState})
-      dispatch({type: Constants.decideToShowTracker})
+      const username = sessionIDToUsername[params.sessionID]
+      dispatch(updateProof(params.rp, params.lcr, username))
+      dispatch({type: Constants.updateProofState, payload: {username}})
+      dispatch({type: Constants.decideToShowTracker, payload: {username}})
     },
     displayCryptocurrency: (params: {sessionID: number, c: Cryptocurrency}) => {
     },
@@ -165,20 +187,21 @@ function serverCallMap (dispatch: Dispatch): CallMap {
       return false
     },
     finish: (params: {sessionID: number}) => {
-
-
+      const username = sessionIDToUsername[params.sessionID]
       // Check if there were any errors in the proofs
-      dispatch({type: Constants.updateProofState})
+      dispatch({type: Constants.updateProofState, payload: {username}})
 
       dispatch({
         type: Constants.markActiveIdentifyUi,
         payload: {
-          active: false
+          active: false,
+          username
         }
       })
     }
   }
 
+  /*
   dispatch({
     type: Constants.markActiveIdentifyUi,
     payload: {
@@ -190,13 +213,14 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     type: Constants.reportLastTrack,
     payload: null
   })
+  */
 
-  return promisifyResponses(flattenCallMap({ keybase: { '1': { identifyUi } } }))
+  return promisifyResponses(flattenCallMap({keybase: {'1': {identifyUi}}}))
 }
 
-function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult): Action {
+function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult, username: string): Action {
   return {
     type: Constants.updateProof,
-    payload: {remoteProof, linkCheckResult}
+    payload: {remoteProof, linkCheckResult, username}
   }
 }

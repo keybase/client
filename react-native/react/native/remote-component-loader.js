@@ -7,13 +7,13 @@ import {ipcRenderer} from 'electron'
 const currentWindow = remote.getCurrentWindow()
 
 class RemoteStore {
-  constructor () {
+  constructor (props) {
     ipcRenderer.on('stateChange', (event, arg) => {
       this.internalState = arg
       this._publishChange()
     })
 
-    ipcRenderer.send('subscribeStore')
+    ipcRenderer.send('subscribeStore', props.substore)
 
     this.listeners = []
     this.internalState = {}
@@ -46,15 +46,18 @@ class RemoteStore {
   }
 }
 
-const store = new RemoteStore()
-store.dispatch = store.dispatch.bind(store)
-
 class RemoteComponentLoader extends Component {
   constructor (props) {
     super(props)
     this.state = {loaded: false}
 
-    const componentToLoad = window.location.hash.substring(1)
+    const payload = window.location.hash.substring(1).split(':')
+    const substore = payload && payload.length > 1 && payload[1]
+    this.store = new RemoteStore({substore})
+    this.store.dispatch = this.store.dispatch.bind(this.store)
+
+    const componentToLoad = payload && payload.length && payload[0]
+
     if (!componentToLoad) {
       throw new TypeError('Remote Component not passed through hash')
     }
@@ -70,8 +73,8 @@ class RemoteComponentLoader extends Component {
           // Make sure we only do this if we haven't loaded the state yet
           !this.state.loaded &&
           // Only do this if the store hasn't been filled yet.
-          Object.keys(store.getState()).length === 0) {
-        const unsub = store.subscribe(() => {
+          Object.keys(this.store.getState()).length === 0) {
+        const unsub = this.store.subscribe(() => {
           currentWindow.show()
           this.setState({props: props, loaded: true})
           unsub()
@@ -99,7 +102,7 @@ class RemoteComponentLoader extends Component {
       return <div>loading</div>
     }
     return (
-      <Provider store={store}>
+      <Provider store={this.store}>
         <Component {...this.state.props}/>
       </Provider>
     )

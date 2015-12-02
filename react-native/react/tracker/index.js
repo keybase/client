@@ -38,6 +38,10 @@ class Tracker extends Component {
   props: TrackerProps;
 
   render () {
+    if (this.props.isClosed) {
+      return <div />
+    }
+
     const renderChangedTitle = this.props.proofState === warning ? `${this.props.username} added some identity proofs.`
       : `Some of ${this.props.username}'s proofs are compromised or have changed.`
 
@@ -48,18 +52,18 @@ class Tracker extends Component {
       },
       headerProps: {
         reason: this.props.reason,
-        onClose: this.props.onCloseFromHeader
+        onClose: () => this.props.onCloseFromHeader(this.props.username)
       },
       actionProps: {
         state: this.props.proofState,
         username: this.props.username,
         renderChangedTitle,
         shouldFollow: this.props.shouldFollow,
-        onClose: this.props.onCloseFromActionBar,
-        onRefollow: this.props.onRefollow,
-        onUnfollow: this.props.onUnfollow,
-        onFollowHelp: this.props.onFollowHelp,
-        onFollowChecked: this.props.onFollowChecked
+        onClose: () => this.props.onCloseFromActionBar(this.props.username),
+        onRefollow: () => this.props.onRefollow(this.props.username),
+        onUnfollow: () => this.props.onUnfollow(this.props.username),
+        onFollowHelp: () => this.props.onFollowHelp(this.props.username),
+        onFollowChecked: checked => this.props.onFollowChecked(checked, this.props.username)
       },
       proofsProps: {
         username: this.props.username,
@@ -126,19 +130,22 @@ Tracker.propTypes = {
   onUnfollow: React.PropTypes.any,
   onFollowHelp: React.PropTypes.any,
   onFollowChecked: React.PropTypes.any,
-  registerIdentifyUi: React.PropTypes.any
+  registerIdentifyUi: React.PropTypes.any,
+  isClosed: React.PropTypes.bool.isRequired
 }
 
 export default connect(
-  state => state.tracker,
+  state => state,
   dispatch => {
     return bindActionCreators(trackerActions, dispatch)
   },
   (stateProps, dispatchProps, ownProps) => {
+    const isClosed = !stateProps.trackers[ownProps.username]
     return {
-      ...stateProps,
+      ...stateProps.trackers[ownProps.username],
       ...dispatchProps,
-      ...ownProps
+      ...ownProps,
+      isClosed
     }
   }
 )(Tracker)
