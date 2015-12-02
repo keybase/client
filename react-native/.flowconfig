@@ -1,5 +1,8 @@
 [ignore]
 
+# TODO: unignore react-native when we upgrade to .16
+.*/node_modules/react-native
+
 # TODO: unignore these:
 .*/react/index.js
 .*/react/router/global-routes.js
