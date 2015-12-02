@@ -1,5 +1,8 @@
 /* @flow */
 
+// $FlowIssue platform files
+import {showAllTrackers} from '../local-debug'
+
 import * as Constants from '../constants/tracker'
 import {normal, warning, error, checking} from '../constants/tracker'
 import {metaNew, metaUpgraded} from '../constants/tracker'
@@ -10,7 +13,7 @@ import type {UserInfo} from '../tracker/bio.render.types'
 import type {Proof} from '../tracker/proofs.render.types'
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
-import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType} from '../constants/types/flow-types'
+import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 type State = {
@@ -22,7 +25,8 @@ type State = {
   reason: string,
   userInfo: UserInfo,
   proofs: Array<Proof>,
-  closed: boolean
+  closed: boolean,
+  lastTrack: ?TrackSummary
 }
 
 const initialProofState = checking
@@ -36,6 +40,7 @@ const initialState: State = {
   proofs: [],
   reason: '', // TODO: get the reason
   closed: true,
+  lastTrack: null,
   userInfo: {
     fullname: 'TODO: get this information',
     followersCount: -1,
@@ -149,12 +154,33 @@ export default function (state: State = initialState, action: Action): State {
 
     case Constants.markActiveIdentifyUi:
       const serverActive = action.payload && !!action.payload.active || false
+      // The server wasn't active and now it is, we reset closed state
+      const closed = (showAllTrackers && !state.serverActive && serverActive) ? false : state.closed
       return {
         ...state,
         serverActive,
-        // The server wasn't active and now it is, we reset closed state
-        closed: !state.serverActive && serverActive ? false : state.closed
+        closed
       }
+
+    case Constants.reportLastTrack:
+      return {
+        ...state,
+        lastTrack: action.payload
+      }
+
+    case Constants.decideToShowTracker:
+      // The tracker is already open
+      if (!state.closed) {
+        return state
+      }
+
+      if (state.proofState !== checking && (state.proofState !== normal || !state.lastTrack)) {
+        return {
+          ...state,
+          closed: false
+        }
+      }
+      return state
 
     default:
       return state

@@ -26,6 +26,8 @@ export const updateProof = 'tracker:updateProof'
 
 export const updateProofState = 'tracker:updateProofState'
 
+export const reportLastTrack = 'tracker:reportLastTrack'
+
 export const onCloseFromActionBar = 'tracker:onCloseFromActionBar'
 export const onCloseFromHeader = 'tracker:onCloseFromHeader'
 
@@ -33,3 +35,5 @@ export const onRefollow = 'tracker:onRefollow'
 export const onUnfollow = 'tracker:onUnfollow'
 export const onFollowHelp = 'tracker:onFollowHelp'
 export const onFollowChecked = 'tracker:onFollowChecked'
+
+export const decideToShowTracker = 'tracker:decideToShowTracker'
