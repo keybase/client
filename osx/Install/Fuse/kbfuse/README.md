@@ -48,7 +48,7 @@ Don't try to kextunload unless you have everything unmounted.
     // Check for any mounts (if there are you need to umount)
     mount -t kbfuse
 
-    sudo kextunload -b com.github.osxfuse.filesystems.osxfuse
+    sudo kextunload -b com.github.kbfuse.filesystems.kbfuse
     sudo rm -rf /Library/Filesystems/kbfuse.fs
 
 ### Verifying
