@@ -19,7 +19,7 @@ import type {Action} from '../constants/types/flux'
 type TrackerState = {
   serverActive: boolean,
   proofState: SimpleProofState,
-  username: ?string,
+  username: string,
   shouldFollow: ?boolean,
   reason: string,
   userInfo: UserInfo,

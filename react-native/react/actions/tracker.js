@@ -124,8 +124,7 @@ function updateUserInfo (userInfo: UserInfo, username: string): Action {
 }
 
 function serverCallMap (dispatch: Dispatch): CallMap {
-  const sessionIDToUsername: Map<number, string> = {
-  }
+  const sessionIDToUsername: { [key: number]: string } = {}
   const identifyUi = {
     start: (params: {sessionID: number, username: string}) => {
       const {username, sessionID} = params
