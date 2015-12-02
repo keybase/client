@@ -146,10 +146,10 @@ func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 }
 
 func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
-	md *RootMetadata, info map[keybase1.UID]UserCryptKeyBundle,
+	md *RootMetadata, keyInfoMap UserDeviceKeyInfoMap,
 	expectedKeys map[keybase1.UID][]CryptPublicKey) bool {
 	for u, keys := range expectedKeys {
-		kids, ok := info[u]
+		kids, ok := keyInfoMap[u]
 		if !ok {
 			// Currently there probably shouldn't be any new users
 			// in the handle, but don't error just in case we ever
@@ -169,9 +169,9 @@ func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
 }
 
 func (km *KeyManagerStandard) checkForRemovedDevice(ctx context.Context,
-	md *RootMetadata, info map[keybase1.UID]UserCryptKeyBundle,
+	md *RootMetadata, keyInfoMap UserDeviceKeyInfoMap,
 	expectedKeys map[keybase1.UID][]CryptPublicKey) bool {
-	for u, kids := range info {
+	for u, kids := range keyInfoMap {
 		keys, ok := expectedKeys[u]
 		if !ok {
 			// Currently there probably shouldn't be any users removed
@@ -202,7 +202,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	km.log.CDebugf(ctx, "Rekey %s", md.ID)
 	defer func() { km.log.CDebugf(ctx, "Rekey %s done: %v", md.ID, err) }()
 
-	currKeyGen := md.GetKeyGeneration()
+	currKeyGen := md.LatestKeyGeneration()
 	if md.ID.IsPublic() || currKeyGen == PublicKeyGen {
 		return false, InvalidPublicTLFOperation{md.ID, "rekey"}
 	}
@@ -293,19 +293,19 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 
 	newClientKeys := TLFKeyBundle{
 		TLFWriterKeyBundle: &TLFWriterKeyBundle{
-			WKeys:        make(TLFKeyMap),
+			WKeys:        make(UserDeviceKeyInfoMap),
 			TLFPublicKey: pubKey,
 			// TLFEphemeralPublicKeys will be filled in by updateKeyBundle
 		},
 		TLFReaderKeyBundle: &TLFReaderKeyBundle{
-			RKeys: make(TLFKeyMap),
+			RKeys: make(UserDeviceKeyInfoMap),
 		},
 	}
 	err = md.AddNewKeys(newClientKeys)
 	if err != nil {
 		return false, err
 	}
-	currKeyGen = md.GetKeyGeneration()
+	currKeyGen = md.LatestKeyGeneration()
 	err = km.updateKeyBundle(ctx, md, currKeyGen, wKeys, rKeys, ePubKey,
 		ePrivKey, tlfCryptKey)
 	if err != nil {

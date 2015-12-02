@@ -78,14 +78,14 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 		t.Fatalf("Couldn't get uid for user 3: %v", err)
 	}
 
-	// Make a tkb with empty UserCryptKeyBundles
+	// Make a tkb with empty reader and writer key maps
 	tkb := TLFKeyBundle{
 		TLFWriterKeyBundle: &TLFWriterKeyBundle{
-			WKeys: make(TLFKeyMap),
+			WKeys: make(UserDeviceKeyInfoMap),
 			TLFEphemeralPublicKeys: make(TLFEphemeralPublicKeys, 1),
 		},
 		TLFReaderKeyBundle: &TLFReaderKeyBundle{
-			RKeys: make(TLFKeyMap),
+			RKeys: make(UserDeviceKeyInfoMap),
 		},
 	}
 

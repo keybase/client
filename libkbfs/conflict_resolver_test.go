@@ -51,9 +51,7 @@ func TestCRInput(t *testing.T) {
 		WriterMetadata: WriterMetadata{
 			WFlags: MetadataFlagUnmerged,
 		},
-		ReaderMetadata: ReaderMetadata{
-			Revision: unmergedHead,
-		},
+		Revision: unmergedHead,
 	}
 	// serve all the MDs from the cache
 	for i := unmergedHead; i >= branchPoint+1; i-- {
@@ -62,9 +60,7 @@ func TestCRInput(t *testing.T) {
 				WriterMetadata: WriterMetadata{
 					WFlags: MetadataFlagUnmerged,
 				},
-				ReaderMetadata: ReaderMetadata{
-					Revision: i,
-				},
+				Revision: i,
 			}, nil)
 	}
 	for i := MetadataRevisionInitial; i <= branchPoint; i++ {
@@ -76,7 +72,7 @@ func TestCRInput(t *testing.T) {
 
 	for i := branchPoint + 1; i <= mergedHead; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
-			&RootMetadata{ReaderMetadata: ReaderMetadata{Revision: i}}, nil)
+			&RootMetadata{Revision: i}, nil)
 	}
 	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
@@ -114,17 +110,13 @@ func TestCRInputFracturedRange(t *testing.T) {
 		WriterMetadata: WriterMetadata{
 			WFlags: MetadataFlagUnmerged,
 		},
-		ReaderMetadata: ReaderMetadata{
-			Revision: unmergedHead,
-		},
+		Revision: unmergedHead,
 	}
 	// serve all the MDs from the cache
 	for i := unmergedHead; i >= branchPoint+1; i-- {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Unmerged).Return(
 			&RootMetadata{
-				ReaderMetadata: ReaderMetadata{
-					Revision: i,
-				},
+				Revision: i,
 				WriterMetadata: WriterMetadata{
 					WFlags: MetadataFlagUnmerged,
 				},
@@ -143,7 +135,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 		// be fetched from the server.
 		if i != skipCacheRevision {
 			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
-				&RootMetadata{ReaderMetadata: ReaderMetadata{Revision: i}}, nil)
+				&RootMetadata{Revision: i}, nil)
 		} else {
 			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
 				nil, NoSuchMDError{cr.fbo.id(), i, Merged})
@@ -151,7 +143,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 	}
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(),
 		skipCacheRevision, skipCacheRevision).Return(
-		[]*RootMetadata{{ReaderMetadata: ReaderMetadata{Revision: skipCacheRevision}}}, nil)
+		[]*RootMetadata{{Revision: skipCacheRevision}}, nil)
 	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
 			nil, NoSuchMDError{cr.fbo.id(), i, Merged})

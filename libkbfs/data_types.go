@@ -188,8 +188,10 @@ func (k TLFEphemeralPublicKey) String() string {
 	return hex.EncodeToString(k.PublicKey[:])
 }
 
+// TLFEphemeralPublicKeys stores a list of TLFEphemeralPublicKey
 type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
 
+// DeepCopy makes a complete copy of a TLFEphemeralPublicKeys
 func (tepk TLFEphemeralPublicKeys) DeepCopy() TLFEphemeralPublicKeys {
 	keys := make(TLFEphemeralPublicKeys, len(tepk))
 	for i, k := range tepk {

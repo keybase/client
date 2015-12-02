@@ -50,10 +50,8 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 			ID:    tlf,
 			WKeys: make(TLFWriterKeyGenerations, 1, 1),
 		},
-		ReaderMetadata: ReaderMetadata{
-			Revision: rev,
-			RKeys:    make(TLFReaderKeyGenerations, 0),
-		},
+		Revision: rev,
+		RKeys:    make(TLFReaderKeyGenerations, 1, 1),
 	}
 	k := NewTLFKeyBundle()
 	rmd.WKeys[0] = k.TLFWriterKeyBundle
