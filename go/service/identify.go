@@ -78,6 +78,9 @@ func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) 
 		return *exp, nil
 	}
 
+	// If there is already an identify in progress for arg.UserAssertion, using callGroup here will
+	// just wait for that one to finish and use its result instead of spawning a concurrent identify
+	// call for the same user assertion.
 	v, err := h.callGroup.Do(arg.UserAssertion, do)
 	if err != nil {
 		return keybase1.IdentifyRes{}, err
