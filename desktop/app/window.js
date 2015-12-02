@@ -14,9 +14,7 @@ export default class Window {
     })
 
     app.on('ready', () => {
-      this.window = new BrowserWindow({show: false, ...this.opts})
-      this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
-      this.bindWindowListeners()
+      this.createWindow()
     })
   }
 
@@ -42,6 +40,16 @@ export default class Window {
     })
   }
 
+  createWindow() {
+    if (this.window) {
+      return
+    }
+
+    this.window = new BrowserWindow({show: false, ...this.opts})
+    this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
+    this.bindWindowListeners()
+  }
+
   show (shouldShowDockIcon) {
     if (this.window) {
       if (!this.window.isVisible()) {
@@ -53,10 +61,7 @@ export default class Window {
       return
     }
 
-    this.window = new BrowserWindow(this.opts)
-    this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
-    this.bindWindowListeners()
-
+    this.createWindow()
     this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
 
     if (this.opts.openDevTools) {
