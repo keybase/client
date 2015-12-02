@@ -4,12 +4,16 @@
 package service
 
 import (
+	"time"
+
+	"golang.org/x/net/context"
+	"stathat.com/c/ramcache"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"golang.org/x/net/context"
 )
 
 type RemoteIdentifyUI struct {
@@ -24,30 +28,48 @@ type RemoteIdentifyUI struct {
 type IdentifyHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	resultCache *ramcache.Ramcache
 }
 
 func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHandler {
+	c := ramcache.New()
+	c.TTL = 5 * time.Minute
+	c.MaxAge = 5 * time.Minute
+
 	return &IdentifyHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
+		resultCache:  c,
 	}
 }
 
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
-	res, err := h.identify(arg.SessionID, arg, true)
-	if err != nil {
-		return keybase1.IdentifyRes{}, err
+	if arg.Source == keybase1.IdentifySource_KBFS {
+		h.G().Log.Debug("KBFS Identify: checking result cache for %q", arg.UserAssertion)
+		x, err := h.resultCache.Get(arg.UserAssertion)
+		if err == nil {
+			exp, ok := x.(*keybase1.IdentifyRes)
+			if ok {
+				h.G().Log.Debug("KBFS Identify: found cached result for %q", arg.UserAssertion)
+				return *exp, nil
+			}
+		}
+		h.G().Log.Debug("KBFS Identify: no cached result for %q", arg.UserAssertion)
 	}
-	return *(res.Export()), nil
-}
 
-func (h *IdentifyHandler) IdentifyDefault(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
-	iarg := keybase1.IdentifyArg{UserAssertion: arg.UserAssertion, ForceRemoteCheck: arg.ForceRemoteCheck}
-	res, err := h.identify(arg.SessionID, iarg, true)
+	res, err := h.identify(arg.SessionID, arg)
 	if err != nil {
 		return keybase1.IdentifyRes{}, err
 	}
-	return *(res.Export()), nil
+
+	exp := res.Export()
+	if err := h.resultCache.Set(arg.UserAssertion, exp); err != nil {
+		h.G().Log.Debug("Identify: result cache set error: %s", err)
+	} else {
+		h.G().Log.Debug("Identify: storing result for %q in result cache", arg.UserAssertion)
+	}
+
+	return *exp, nil
 }
 
 func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (ret *engine.Context, err error) {
@@ -94,7 +116,7 @@ func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (
 	return &ctx, nil
 }
 
-func (h *IdentifyHandler) identify(sessionID int, arg keybase1.IdentifyArg, doInteractive bool) (res *engine.IDRes, err error) {
+func (h *IdentifyHandler) identify(sessionID int, arg keybase1.IdentifyArg) (res *engine.IDRes, err error) {
 	var ctx *engine.Context
 	ctx, err = h.makeContext(sessionID, arg)
 	if err != nil {
