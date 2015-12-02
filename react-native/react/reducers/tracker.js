@@ -62,7 +62,7 @@ function initialTrackerState (): TrackerState {
 }
 
 // Just mutating the substate of the tracker
-function updateUserState (state: TrackerState, action: Action): State | Object {
+function updateUserState (state: TrackerState, action: Action): TrackerState {
   switch (action.type) {
     case Constants.onFollowChecked:
       if (action.payload == null) {
@@ -71,14 +71,17 @@ function updateUserState (state: TrackerState, action: Action): State | Object {
       const shouldFollow: boolean = action.payload.shouldFollow
 
       return {
+        ...state,
         shouldFollow
       }
     case Constants.onCloseFromActionBar:
       return {
+        ...state,
         closed: true
       }
     case Constants.onCloseFromHeader:
       return {
+        ...state,
         closed: true,
         shouldFollow: false // don't follow if they close x out the window
       }
@@ -107,6 +110,7 @@ function updateUserState (state: TrackerState, action: Action): State | Object {
       }
 
       return {
+        ...state,
         proofState
       }
 
@@ -118,6 +122,7 @@ function updateUserState (state: TrackerState, action: Action): State | Object {
       const identity: Identity = action.payload.identity
 
       return {
+        ...state,
         proofs: identity.proofs.map(rp => remoteProofToProof(rp.proof))
       }
 
@@ -129,6 +134,7 @@ function updateUserState (state: TrackerState, action: Action): State | Object {
       const rp: RemoteProof = action.payload.remoteProof
       const lcr: LinkCheckResult = action.payload.linkCheckResult
       return {
+        ...state,
         proofs: updateProof(state.proofs, rp, lcr)
       }
 
@@ -137,6 +143,7 @@ function updateUserState (state: TrackerState, action: Action): State | Object {
         return state
       }
       return {
+        ...state,
         userInfo: action.payload.userInfo
       }
 
@@ -145,12 +152,14 @@ function updateUserState (state: TrackerState, action: Action): State | Object {
       // The server wasn't active and now it is, we reset closed state
       const closed = (showAllTrackers && !state.serverActive && serverActive) ? false : state.closed
       return {
+        ...state,
         serverActive,
         closed
       }
 
     case Constants.reportLastTrack:
       return {
+        ...state,
         lastTrack: action.payload && action.payload.track
       }
 
@@ -162,6 +171,7 @@ function updateUserState (state: TrackerState, action: Action): State | Object {
 
       if (state.proofState !== checking && (state.proofState !== normal || !state.lastTrack)) {
         return {
+          ...state,
           closed: false
         }
       }
@@ -177,8 +187,8 @@ export default function (state: State = initialState, action: Action): State {
   const trackerState = username ? state.trackers[username] : null
 
   if (trackerState) {
-    const userState = updateUserState(trackerState, action)
-    if (userState === trackerState) {
+    const newTrackerState = updateUserState(trackerState, action)
+    if (newTrackerState === trackerState) {
       return state
     }
 
@@ -187,10 +197,7 @@ export default function (state: State = initialState, action: Action): State {
       trackers: {
         ...state.trackers,
         // $FlowIssue computed
-        [action.payload.username]: {
-          ...trackerState,
-          ...userState
-        }
+        [action.payload.username]: newTrackerState
       }
     }
   } else {
