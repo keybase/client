@@ -648,6 +648,18 @@ func (h *TlfHandle) Equal(rhs *TlfHandle, config Config) bool {
 	return bytes.Equal(h.ToBytes(config), rhs.ToBytes(config))
 }
 
+// Users returns a list of all reader and writer UIDs for the tlf.
+func (h *TlfHandle) Users() []keybase1.UID {
+	var users []keybase1.UID
+	for _, uid := range h.Writers {
+		users = append(users, uid)
+	}
+	for _, uid := range h.Readers {
+		users = append(users, uid)
+	}
+	return users
+}
+
 // Favorite is a top-level favorited folder name.
 type Favorite struct {
 	Name   string
