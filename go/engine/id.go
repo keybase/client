@@ -61,20 +61,24 @@ func (e *IDEngine) Result() *IDRes {
 
 func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 	iarg := NewIdentifyArg(e.arg.UserAssertion, e.arg.TrackStatement, e.arg.ForceRemoteCheck)
+	iarg.Source = e.arg.Source
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
 		return nil, err
+	}
+
+	user := ieng.User()
+	res := &IDRes{Outcome: ieng.Outcome(), User: user, TrackToken: ieng.TrackToken(), ComputedKeyFamily: user.GetComputedKeyFamily()}
+	res.Outcome.Reason = e.arg.Reason
+
+	if ieng.DidShortCircuit() {
+		return res, nil
 	}
 
 	// need to tell any ui clients the track token
 	if err := ctx.IdentifyUI.ReportTrackToken(ieng.TrackToken()); err != nil {
 		return nil, err
 	}
-
-	user := ieng.User()
-	res := &IDRes{Outcome: ieng.Outcome(), User: user, TrackToken: ieng.TrackToken(), ComputedKeyFamily: user.GetComputedKeyFamily()}
-
-	res.Outcome.Reason = e.arg.Reason
 
 	if !e.arg.TrackStatement {
 		ctx.IdentifyUI.Finish()

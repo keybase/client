@@ -63,10 +63,12 @@ func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) 
 	}
 
 	exp := res.Export()
-	if err := h.resultCache.Set(arg.UserAssertion, exp); err != nil {
-		h.G().Log.Debug("Identify: result cache set error: %s", err)
-	} else {
-		h.G().Log.Debug("Identify: storing result for %q in result cache", arg.UserAssertion)
+	if len(arg.UserAssertion) > 0 {
+		if err := h.resultCache.Set(arg.UserAssertion, exp); err != nil {
+			h.G().Log.Debug("Identify: result cache set error: %s", err)
+		} else {
+			h.G().Log.Debug("Identify: storing result for %q in result cache", arg.UserAssertion)
+		}
 	}
 
 	return *exp, nil

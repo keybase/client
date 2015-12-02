@@ -12,13 +12,14 @@ import (
 
 // Identify is an engine to identify a user.
 type Identify struct {
-	arg        *IdentifyArg
-	user       *libkb.User
-	me         *libkb.User
-	userExpr   libkb.AssertionExpression
-	outcome    *libkb.IdentifyOutcome
-	trackInst  *libkb.TrackInstructions
-	trackToken libkb.IdentifyCacheToken
+	arg              *IdentifyArg
+	user             *libkb.User
+	me               *libkb.User
+	userExpr         libkb.AssertionExpression
+	outcome          *libkb.IdentifyOutcome
+	trackInst        *libkb.TrackInstructions
+	trackToken       libkb.IdentifyCacheToken
+	selfShortCircuit bool
 	libkb.Contextified
 }
 
@@ -32,6 +33,8 @@ type IdentifyArg struct {
 	// These options are sent to the ui based on command line options.
 	// For normal identify, safe to leave these in their default zero state.
 	TrackOptions keybase1.TrackOptions
+
+	Source keybase1.IdentifySource
 }
 
 func NewIdentifyArg(targetUsername string, withTracking, forceRemoteCheck bool) *IdentifyArg {
@@ -106,6 +109,10 @@ func (e *Identify) Run(ctx *Context) error {
 
 		if e.user.Equal(e.me) {
 			e.arg.WithTracking = false
+			if e.arg.Source == keybase1.IdentifySource_KBFS {
+				// if this is a self identify from kbfs, then short-circuit the identify process:
+				return e.shortCircuitSelfID(ctx)
+			}
 		} else {
 			e.arg.WithTracking = true
 		}
@@ -290,4 +297,20 @@ func (e *Identify) findBestComponent(expr libkb.AssertionExpression) string {
 		}
 	}
 	return ""
+}
+
+func (e *Identify) shortCircuitSelfID(ctx *Context) error {
+	e.G().Log.Debug("Identify: short-circuiting self identification")
+	e.selfShortCircuit = true
+
+	// don't really need anything but username here
+	e.outcome = libkb.NewIdentifyOutcome(e.arg.WithTracking)
+	e.outcome.Username = e.user.GetName()
+
+	return nil
+}
+
+// DidShortCircuit returns true if shortCircuitSelfID happened.
+func (e *Identify) DidShortCircuit() bool {
+	return e.selfShortCircuit
 }
