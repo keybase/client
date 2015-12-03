@@ -11,6 +11,8 @@ const installer = require('./installer')
 const app = require('electron').app
 const path = require('path')
 const showDevTools = require('../../react-native/react/local-debug.desktop').showDevTools
+const shell = require('electron').shell
+const helpURL = require('../../react-native/react/constants/urls').helpURL
 
 const appPath = app.getAppPath()
 const menubarIconPath = path.resolve(appPath, "Icon.png")
@@ -45,6 +47,10 @@ ipc.on('showMain', () => {
   if (showDevTools && mainWindow.window) {
     mainWindow.window.toggleDevTools()
   }
+})
+
+ipc.on('showHelp', () => {
+  shell.openExternal(helpURL)
 })
 
 installer(err => {
