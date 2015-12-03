@@ -139,8 +139,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "ea5ba68758df7c171f045227f9c5981419437e6e",
-			"revisionTime": "2015-12-01T10:28:27-08:00"
+			"revision": "5f85a2a031aa3a8ebd07895a3576fc9f30ea774a",
+			"revisionTime": "2015-12-02T18:35:35-08:00"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
