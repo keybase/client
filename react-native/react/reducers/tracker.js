@@ -61,7 +61,6 @@ function initialTrackerState (username: string): TrackerState {
   }
 }
 
-// Just mutating the substate of the tracker
 function updateUserState (state: TrackerState, action: Action): TrackerState {
   switch (action.type) {
     case Constants.onFollowChecked:

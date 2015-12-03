@@ -38,7 +38,7 @@ export function registerIdentifyUi (): (dispatch: Dispatch) => void {
   }
 }
 
-export function pushDebugTracker (username: string): void {
+export function pushDebugTracker (username: string): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch({
       type: Constants.updateUsername,
