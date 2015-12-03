@@ -1,4 +1,5 @@
 /* @flow */
+// $FlowIssue Pulling non react things from react
 import {StyleSheet} from '../base-react'
 import native, {styles as nativeStyles} from './common.native'
 

@@ -12,7 +12,8 @@ export type RemoteManagerProps = {
   registerIdentifyUi: () => void,
   onCloseFromHeader: () => void,
   trackerServerStarted: boolean,
-  trackerServerActive: boolean
+  trackerServerActive: boolean,
+  trackerClosed: boolean
 }
 
 class RemoteManager extends Component {
