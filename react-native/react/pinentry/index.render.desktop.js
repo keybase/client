@@ -9,10 +9,24 @@ export default class PinentryRender extends Component {
   componentWillMount () {
     this.state = {
       passphrase: '',
-      features: {}
+      features: {},
+      showTyping: false
     }
     for (const feature in this.props.features) {
       this.state.features[feature] = this.props.features[feature].allow
+    }
+  }
+
+  onCheck (feature, checked) {
+    this.setState({
+      features: {
+        ...this.state.features,
+        [feature]: checked
+      }
+    })
+
+    if (feature === 'showTyping') {
+      this.setState({showTyping: checked})
     }
   }
 
@@ -32,7 +46,7 @@ export default class PinentryRender extends Component {
               <div style={styles.checkContainer}>
                 {Object.keys(this.props.features).map(feature => {
                   return (
-                  <div style={styles.checkWrapper}>
+                  <div>
                     <Checkbox
                       labelStyle={styles.checkLabel}
                       iconStyle={styles.checkIcon}
@@ -41,8 +55,8 @@ export default class PinentryRender extends Component {
                       value={feature}
                       label={this.props.features[feature].label}
                       defaultChecked={this.props.features[feature].allow}
-                      style={{marginTop: 30}}
-                      onCheck={(_, checked) => { this.state.features[feature] = checked }}/>
+                      style={styles.checkbox}
+                      onCheck={(_, checked) => this.onCheck(feature, checked)}/>
                   </div>
                   )
                 })}
@@ -52,6 +66,7 @@ export default class PinentryRender extends Component {
                 onChange={e => this.setState({passphrase: e.target.value})}
                 floatingLabelText='Your passphrase'
                 value={this.state.passphrase}
+                type={this.state.showTyping ? 'text' : 'password'}
                 autoFocus />
             </div>
           </div>
@@ -121,6 +136,10 @@ const styles = {
     position: 'absolute',
     right: 0,
     top: 20
+  },
+  checkbox: {
+    marginTop: 30,
+    marginLeft: 10
   },
   checkLabel: {
     ...commonStyles.noWrapCheckboxLabel,

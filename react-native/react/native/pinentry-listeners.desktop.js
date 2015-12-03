@@ -63,15 +63,7 @@ export default {
       if ('error' in arg) {
         response.error(arg)
       } else {
-        let result = {passphrase: arg.passphrase}
-
-        for (const feature in arg.features) {
-          if (feature.respond) {
-            result[feature] = arg.features[feature]
-          }
-        }
-
-        response.result(result)
+        response.result({passphrase: arg.passphrase, ...arg.features})
         console.log('Sent passphrase back')
       }
 
