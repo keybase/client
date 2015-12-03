@@ -5,7 +5,6 @@ import (
 	"io"
 	"net"
 	"strings"
-	"sync"
 
 	"github.com/ugorji/go/codec"
 )
@@ -16,6 +15,7 @@ type Transporter interface {
 	getDispatcher() (dispatcher, error)
 	getReceiver() (receiver, error)
 	Run() error
+	RunAsync() error
 	IsConnected() bool
 }
 
@@ -49,13 +49,13 @@ type transport struct {
 	packetizer       packetizer
 	log              LogInterface
 	wrapError        WrapErrorFunc
-	startOnce        sync.Once
 	encodeCh         chan []byte
 	encodeResultCh   chan error
 	readByteCh       chan struct{}
 	readByteResultCh chan byteResult
 	decodeCh         chan interface{}
 	decodeResultCh   chan error
+	startCh          chan struct{}
 	stopCh           chan struct{}
 }
 
@@ -65,6 +65,9 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
 		l = NewSimpleLogFactory(nil, nil)
 	}
 	log := l.NewLog(cdec.RemoteAddr())
+
+	startCh := make(chan struct{}, 1)
+	startCh <- struct{}{}
 
 	ret := &transport{
 		cdec:             cdec,
@@ -76,6 +79,7 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
 		readByteResultCh: make(chan byteResult),
 		decodeCh:         make(chan interface{}),
 		decodeResultCh:   make(chan error),
+		startCh:          startCh,
 		stopCh:           make(chan struct{}),
 	}
 	enc := newFramedMsgpackEncoder(ret.encodeCh, ret.encodeResultCh)
@@ -96,14 +100,36 @@ func (t *transport) IsConnected() bool {
 	}
 }
 
-func (t *transport) Run() (err error) {
+func (t *transport) Run() error {
 	if !t.IsConnected() {
 		return DisconnectedError{}
 	}
-	t.startOnce.Do(func() {
-		err = t.run()
-	})
-	return
+
+	select {
+	case <-t.startCh:
+		return t.run()
+	default:
+		return nil
+	}
+}
+
+func (t *transport) RunAsync() error {
+	if !t.IsConnected() {
+		return DisconnectedError{}
+	}
+
+	select {
+	case <-t.startCh:
+		go func() {
+			err := t.run()
+			if err != nil {
+				t.log.Warning("asynchronous t.run() failed with %v", err)
+			}
+		}()
+	default:
+	}
+
+	return nil
 }
 
 func (t *transport) run() (err error) {
