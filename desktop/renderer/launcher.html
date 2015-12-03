@@ -15,12 +15,14 @@ button {
 
 </style>
 
+<button type=button id=showHelp>Help</button>
 <button type=button id=showMain>Main</button>
 <button type=button id=quit>Quit</button>
 
 <script>
 const ipc = require('electron').ipcRenderer;
 
+showHelp.addEventListener('click', () => { ipc.send('showHelp'); })
 showMain.addEventListener('click', () => { ipc.send('showMain'); })
 quit.addEventListener('click', () => { require('remote').require('app').quit(); })
 </script>
