@@ -135,6 +135,7 @@ function updateUserInfo (userInfo: UserInfo, username: string): Action {
   }
 }
 
+// TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
 function serverCallMap (dispatch: Dispatch): CallMap {
   const sessionIDToUsername: { [key: number]: string } = {}
   const identifyUi = {
