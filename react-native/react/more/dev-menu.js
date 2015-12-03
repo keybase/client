@@ -4,6 +4,7 @@ import {routeAppend} from '../actions/router'
 import {pushNewProfile} from '../actions/profile'
 import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
+import {pushDebugTracker} from '../actions/tracker'
 import MenuList from './menu-list'
 import RemoteComponent from '../native/remote-component'
 
@@ -52,7 +53,7 @@ class DevMenu extends Component {
         this.props.pushNewProfile('test12')
       }},
       {name: 'Tracker Listener', hasChildren: true, onClick: () => {
-        this.props.routeAppend([{path: 'tracker'}])
+        this.props.showTrackerListener('max')
       }},
       {name: 'Tracker (normal)', hasChildren: true, onClick: () => {
         this.props.routeAppend([{path: 'tracker', state: 'normal'}])
@@ -64,7 +65,7 @@ class DevMenu extends Component {
         this.props.routeAppend([{path: 'tracker', state: 'error'}])
       }},
       {name: 'Remote Window', hasChildren: true, onClick: () => {
-        this.props.routeAppend([{parseRoute: { componentAtTop: { component: Foo } }}])
+        this.props.routeAppend([{parseRoute: {componentAtTop: {component: Foo}}}])
       }}
     ]
     return (
@@ -89,7 +90,8 @@ DevMenu.propTypes = {
   routeAppend: React.PropTypes.func.isRequired,
   logout: React.PropTypes.func.isRequired,
   pushNewSearch: React.PropTypes.func.isRequired,
-  pushNewProfile: React.PropTypes.func.isRequired
+  pushNewProfile: React.PropTypes.func.isRequired,
+  showTrackerListener: React.PropTypes.func.isRequired
 }
 
 export default connect(
@@ -99,7 +101,8 @@ export default connect(
       routeAppend: uri => dispatch(routeAppend(uri)),
       logout: () => dispatch(logout()),
       pushNewSearch: () => dispatch(pushNewSearch()),
-      pushNewProfile: username => dispatch(pushNewProfile(username))
+      pushNewProfile: username => dispatch(pushNewProfile(username)),
+      showTrackerListener: username => dispatch(pushDebugTracker(username))
     }
   }
 )(DevMenu)

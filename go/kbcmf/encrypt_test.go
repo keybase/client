@@ -1099,26 +1099,6 @@ func TestCorruptHeader(t *testing.T) {
 		t.Fatalf("got wrong received in error message: %d", ebv.received)
 	}
 
-	// Test bad Nonce length
-	teo = testEncryptionOptions{
-		blockSize: 1024,
-		corruptHeader: func(eh *EncryptionHeader) {
-			eh.Nonce = make([]byte, 24)
-		},
-	}
-	ciphertext, err = testSeal(msg, sender, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if ebn, ok := err.(ErrBadNonce); !ok {
-		t.Fatalf("Got wrong error; wanted 'Bad Nonce' but got %v", err)
-	} else if int(ebn.seqno) != 0 {
-		t.Fatalf("Wanted a failure in packet %d but got %d", 0, ebn.seqno)
-	} else if ebn.byteLen != 24 {
-		t.Fatalf("got wrong byte len in message: %d", ebn.byteLen)
-	}
-
 	// Test Bad Sender Key
 	teo = testEncryptionOptions{
 		blockSize: 1024,

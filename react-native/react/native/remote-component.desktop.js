@@ -27,8 +27,9 @@ export default class RemoteComponent extends Component {
     })
 
     const componentRequireName = this.props.component
+    const substore = this.props.substore
 
-    this.remoteWindow.loadUrl(`file://${__dirname}/remoteComponent.html#${componentRequireName || ''}`)
+    this.remoteWindow.loadUrl(`file://${__dirname}/remoteComponent.html#${componentRequireName || ''}:${substore || ''}`)
   }
 
   componentWillUnmount () {
@@ -53,6 +54,7 @@ export default class RemoteComponent extends Component {
 
 RemoteComponent.propTypes = {
   component: React.PropTypes.string.isRequired,
+  substore: React.PropTypes.string,
   windowsOpts: React.PropTypes.object,
   onRemoteClose: React.PropTypes.func
 }

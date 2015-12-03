@@ -183,7 +183,7 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	}
 
 	var nonce Nonce
-	copy(nonce[:], hdr.Nonce)
+	keyToNonce(&nonce, ephemeralKey)
 
 	secretKey, senderPublicRawKey, i, err := ds.tryVisibleReceivers(hdr, &nonce, ephemeralKey)
 	if err != nil {

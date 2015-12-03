@@ -41,8 +41,8 @@ export default class ActionRender extends Component {
         <div style={styles.textContainer}>
           <span style={styles.changedMessage}>{title}</span>
         </div>
-        <FlatButton style={styles.secondary} label='Untrack' primary onTouchTap={() => this.props.onUnfollow()} />
-        <FlatButton style={styles.primary} label='Retrack' primary onTouchTap={() => this.props.onRefollow()} />
+        <FlatButton style={commonStyles.secondaryButton} label='Untrack' onClick={() => this.props.onUnfollow()} />
+        <FlatButton style={commonStyles.primaryButton} label='Retrack' primary onClick={() => this.props.onRefollow()} />
       </div>
     )
   }
@@ -58,7 +58,7 @@ export default class ActionRender extends Component {
           <span style={styles.track}>Track</span>
           <i style={styles.eye} className='fa fa-eye'></i>
         </div>
-        <FlatButton style={styles.primary} label='Close' primary onClick={() => this.props.onClose()} />
+        <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onClose()} />
       </div>
     )
   }
@@ -74,17 +74,6 @@ ActionRender.propTypes = {
   onFollowChecked: React.PropTypes.func.isRequired,
   renderChangedTitle: React.PropTypes.string.isRequired,
   style: React.PropTypes.object.isRequired
-}
-
-const button = {
-  borderRadius: 61,
-  color: 'white',
-  fontSize: 18,
-  fontWeight: 'normal',
-  height: 32,
-  lineHeight: '32px',
-  textTransform: 'none',
-  width: 123
 }
 
 const styles = {
@@ -131,15 +120,6 @@ const styles = {
     color: '#444444',
     marginRight: 17,
     width: 14
-  },
-  primary: {
-    ...button,
-    backgroundColor: '#86e2f9'
-  },
-  secondary: {
-    ...button,
-    backgroundColor: '#ffa9a9',
-    marginRight: 7
   },
   flagWarning: {
     color: '#f5a623',

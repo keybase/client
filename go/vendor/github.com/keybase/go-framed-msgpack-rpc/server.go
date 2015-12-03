@@ -29,10 +29,11 @@ func (s *Server) AddCloseListener(ch chan error) error {
 	return nil
 }
 
+// TODO: Split into Run and RunAsync, and update callers. See
+// https://github.com/keybase/go-framed-msgpack-rpc/issues/39 .
 func (s *Server) Run(bg bool) error {
 	if bg {
-		go s.xp.Run()
-		return nil
+		return s.xp.RunAsync()
 	}
 	return s.xp.Run()
 }

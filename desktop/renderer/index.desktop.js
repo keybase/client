@@ -41,11 +41,19 @@ class Keybase extends Component {
       setImmediate(() => store.dispatch(action))
     })
 
-    ipcMain.on('subscribeStore', event => {
-      event.sender.send('stateChange', store.getState())
+    ipcMain.on('subscribeStore', (event, substore) => {
+      const getStore = () => {
+        if (substore) {
+          return store.getState()[substore] || {}
+        } else {
+          return store.getState() || {}
+        }
+      }
+
+      event.sender.send('stateChange', getStore())
       store.subscribe(() => {
         // TODO: use transit
-        event.sender.send('stateChange', store.getState())
+        event.sender.send('stateChange', getStore())
       })
     })
   }

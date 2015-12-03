@@ -15,18 +15,24 @@ export default {
     const notification: FSNotification = params.notification
 
     const action = {
-      [enums.kbfs.FSNotificationType.encrypting]: 'Encrypting',
-      [enums.kbfs.FSNotificationType.decrypting]: 'Decrypting',
-      [enums.kbfs.FSNotificationType.signing]: 'Signing',
-      [enums.kbfs.FSNotificationType.verifying]: 'Verifying',
+      [enums.kbfs.FSNotificationType.encrypting]: 'Encrypting and uploading',
+      [enums.kbfs.FSNotificationType.decrypting]: 'Decrypting, verifying, and downloading',
+      [enums.kbfs.FSNotificationType.signing]: 'Signing and uploading',
+      [enums.kbfs.FSNotificationType.verifying]: 'Verifying and downloading',
       [enums.kbfs.FSNotificationType.rekeying]: 'Rekeying'
     }[notification.notificationType]
 
     const state = {
-      [enums.kbfs.FSStatusCode.start]: 'Starting',
-      [enums.kbfs.FSStatusCode.finish]: 'Finished',
-      [enums.kbfs.FSStatusCode.error]: 'Errored'
+      [enums.kbfs.FSStatusCode.start]: 'starting',
+      [enums.kbfs.FSStatusCode.finish]: 'finished',
+      [enums.kbfs.FSStatusCode.error]: 'errored'
     }[notification.statusCode]
+
+    if (notification.statusCode === enums.kbfs.FSStatusCode.finish) {
+      // Since we're aggregating dir operations and not showing state,
+      // let's ignore file-finished notifications.
+      return
+    }
 
     const basedir = notification.filename.split(path.sep)[0]
     let tlf
@@ -38,7 +44,11 @@ export default {
       tlf = `/private/${basedir}`
     }
 
-    const title = `KBFS: ${action} ${state}`
+    let title = `KBFS: ${action}`
+    // Don't show starting or finished, but do show error.
+    if (notification.statusCode === enums.kbfs.FSStatusCode.error) {
+      title += ` ${state}`
+    }
     const body = `Files in ${tlf} ${notification.status}`
 
     function rateLimitAllowsNotify(action, state, tlf) {

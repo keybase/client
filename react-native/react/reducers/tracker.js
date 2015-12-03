@@ -16,11 +16,10 @@ import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
-type State = {
-  serverStarted: boolean,
+export type TrackerState = {
   serverActive: boolean,
   proofState: SimpleProofState,
-  username: ?string,
+  username: string,
   shouldFollow: ?boolean,
   reason: string,
   userInfo: UserInfo,
@@ -29,64 +28,66 @@ type State = {
   lastTrack: ?TrackSummary
 }
 
+type State = {
+  serverStarted: boolean,
+  trackers: {[key: string]: TrackerState}
+}
+
 const initialProofState = checking
 
 const initialState: State = {
   serverStarted: false,
-  serverActive: false,
-  username: null,
-  proofState: initialProofState,
-  shouldFollow: true,
-  proofs: [],
-  reason: '', // TODO: get the reason
-  closed: true,
-  lastTrack: null,
-  userInfo: {
-    fullname: 'TODO: get this information',
-    followersCount: -1,
-    followingCount: -1,
-    followsYou: false,
-    avatar: null,
-    location: '' // TODO: get this information
+  trackers: {}
+}
+
+function initialTrackerState (username: string): TrackerState {
+  return {
+    serverActive: false,
+    username,
+    proofState: initialProofState,
+    shouldFollow: true,
+    proofs: [],
+    reason: '', // TODO: get the reason
+    closed: true,
+    lastTrack: null,
+    userInfo: {
+      fullname: '', // TODO get this info,
+      followersCount: -1,
+      followingCount: -1,
+      followsYou: false,
+      avatar: null,
+      location: '' // TODO: get this information
+    }
   }
 }
 
-export default function (state: State = initialState, action: Action): State {
+function updateUserState (state: TrackerState, action: Action): TrackerState {
   switch (action.type) {
     case Constants.onFollowChecked:
       if (action.payload == null) {
         return state
       }
-      const shouldFollow: boolean = action.payload
+      const shouldFollow: boolean = action.payload.shouldFollow
 
       return {
         ...state,
         shouldFollow
       }
-    case Constants.onCloseFromActionBar: // fallthrough // TODO
-    case Constants.onCloseFromHeader:
+    case Constants.onCloseFromActionBar:
       return {
         ...state,
         closed: true
       }
-    case Constants.onRefollow: // TODO
-      return {
-        ...state
-      }
-    case Constants.onUnfollow: // TODO
-      return {
-        ...state
-      }
-    case Constants.updateUsername:
-      if (!action.payload) {
-        return state
-      }
-      const username = action.payload.username
-
+    case Constants.onCloseFromHeader:
       return {
         ...state,
-        username
+        closed: true,
+        shouldFollow: false // don't follow if they close x out the window
       }
+    case Constants.onRefollow: // TODO
+      return state
+    case Constants.onUnfollow: // TODO
+      return state
 
     case Constants.updateProofState:
       const proofs = state.proofs
@@ -142,14 +143,7 @@ export default function (state: State = initialState, action: Action): State {
       }
       return {
         ...state,
-        userInfo: action.payload
-      }
-
-    case Constants.registerIdentifyUi:
-      const serverStarted = action.payload && !!action.payload.started || false
-      return {
-        ...state,
-        serverStarted
+        userInfo: action.payload.userInfo
       }
 
     case Constants.markActiveIdentifyUi:
@@ -165,7 +159,7 @@ export default function (state: State = initialState, action: Action): State {
     case Constants.reportLastTrack:
       return {
         ...state,
-        lastTrack: action.payload
+        lastTrack: action.payload && action.payload.track
       }
 
     case Constants.decideToShowTracker:
@@ -184,6 +178,51 @@ export default function (state: State = initialState, action: Action): State {
 
     default:
       return state
+  }
+}
+
+export default function (state: State = initialState, action: Action): State {
+  const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
+  const trackerState = username ? state.trackers[username] : null
+
+  if (trackerState) {
+    const newTrackerState = updateUserState(trackerState, action)
+    if (newTrackerState === trackerState) {
+      return state
+    }
+
+    return {
+      ...state,
+      trackers: {
+        ...state.trackers,
+        // $FlowIssue computed
+        [action.payload.username]: newTrackerState
+      }
+    }
+  } else {
+    switch (action.type) {
+      case Constants.registerIdentifyUi:
+        const serverStarted = action.payload && !!action.payload.started || false
+        return {
+          ...state,
+          serverStarted
+        }
+      case Constants.updateUsername:
+        if (!action.payload) {
+          return state
+        }
+        const username = action.payload.username
+
+        return {
+          ...state,
+          trackers: {
+            ...state.trackers,
+            [username]: initialTrackerState(username)
+          }
+        }
+      default:
+        return state
+    }
   }
 }
 
