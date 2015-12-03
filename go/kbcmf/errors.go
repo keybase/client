@@ -88,13 +88,6 @@ type ErrBadVersion struct {
 	received PacketVersion
 }
 
-// ErrBadNonce is produced when a header nonce is of the wrong size;
-// it should be 20 bytes.
-type ErrBadNonce struct {
-	seqno   PacketSeqno
-	byteLen int
-}
-
 // ErrBadArmorHeader shows up when we get the wrong value for our header
 type ErrBadArmorHeader struct {
 	wanted   string
@@ -122,9 +115,6 @@ func (e ErrWrongPacketTag) Error() string {
 }
 func (e ErrBadVersion) Error() string {
 	return fmt.Sprintf("In packet %d: unsupported version (%d)", e.seqno, e.received)
-}
-func (e ErrBadNonce) Error() string {
-	return fmt.Sprintf("In packet %d: bad nonce; wrong lengh (%d)", e.seqno, e.byteLen)
 }
 func (e ErrBadCiphertext) Error() string {
 	return fmt.Sprintf("In packet %d: bad ciphertext; failed Poly1305", e)
