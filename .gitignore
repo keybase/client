@@ -34,3 +34,5 @@ go/keybase/keybase
 xcshareddata
 
 build
+
+npm-debug.log

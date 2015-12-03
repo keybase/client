@@ -25,7 +25,7 @@ export default class HeaderRender extends Component {
 }
 
 HeaderRender.propTypes = {
-  reason: React.PropTypes.string.isRequired,
+  reason: React.PropTypes.string,
   onClose: React.PropTypes.func.isRequired,
   style: React.PropTypes.object.isRequired
 }

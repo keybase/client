@@ -19,6 +19,7 @@
       })
       require("./index")
 
+      var path = require('path')
       var injector = require('../../react-native/react/native/inject-styles')
       injector(document, path.resolve(__dirname, './style.css'))
       injector(document, path.resolve(__dirname, '../node_modules/font-awesome/css/font-awesome.min.css'))
