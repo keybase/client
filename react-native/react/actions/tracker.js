@@ -129,8 +129,19 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     start: (params: {sessionID: number, username: string}) => {
       const {username, sessionID} = params
       sessionIDToUsername[sessionID] = username
+
       dispatch({
         type: Constants.updateUsername,
+        payload: {username}
+      })
+
+      dispatch({
+        type: Constants.markActiveIdentifyUi,
+        payload: {username, active: true}
+      })
+
+      dispatch({
+        type: Constants.reportLastTrack,
         payload: {username}
       })
     },
