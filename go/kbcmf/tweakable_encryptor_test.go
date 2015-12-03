@@ -158,18 +158,8 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicK
 		return err
 	}
 
-	// Only fill the first 20 bytes of the nonce. The remaining 4
-	// we'll increment with every call to Box
-	nonceRandLen := 20
 	var nonce Nonce
-	if err := randomFill(nonce[:nonceRandLen]); err != nil {
-		return err
-	}
-
-	// We don't necessarily have to copy our header nonce into place,
-	// but if feels safer, since we modify the nonce below
-	eh.Nonce = make([]byte, nonceRandLen)
-	copy(eh.Nonce, nonce[:])
+	keyToNonce(&nonce, ephemeralKey.GetPublicKey())
 
 	d := make(map[string]struct{})
 

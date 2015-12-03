@@ -21,11 +21,10 @@ type receiverKeysCiphertexts struct {
 // It contains the encryptions of the session keys, and various
 // message metadata.
 type EncryptionHeader struct {
-	Nonce     []byte                    `codec:"nonce"`
+	Version   PacketVersion             `codec:"vers"`
+	Tag       PacketTag                 `codec:"tag"`
 	Receivers []receiverKeysCiphertexts `codec:"rcvrs"`
 	Sender    []byte                    `codec:"sender"`
-	Tag       PacketTag                 `codec:"tag"`
-	Version   PacketVersion             `codec:"vers"`
 	seqno     PacketSeqno
 }
 
@@ -52,11 +51,6 @@ func (h *EncryptionHeader) validate() error {
 	}
 	if h.Version != PacketVersion1 {
 		return ErrBadVersion{h.seqno, h.Version}
-	}
-	// We leave off 4 bytes of the nonce, since it's a counter
-	// incremented for each public key
-	if len(h.Nonce) != len(Nonce{})-4 {
-		return ErrBadNonce{h.seqno, len(h.Nonce)}
 	}
 
 	if err := verifyRawKey(h.Sender); err != nil {
