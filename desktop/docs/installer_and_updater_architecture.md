@@ -1,8 +1,5 @@
 ## Installer and Updater Architecture
 
-(Background: Gabriel talked to cjb about how the installer works and should
-work in future, and we wrote up notes for everyone to review.)
-
 ### Installer
 
 Let's start with OS X, because it's the most challenging environment as well as
@@ -79,33 +76,28 @@ The design above limits the updater's responsibilities to:
 There are many possibilities here.  The service could find out (it is notified
 of available upgrades by the API server in response to every request it makes)
 and tell the Electron client over RPC.  Or the Electron client could regularly
-ping an API server endpoint asking for updates.
+ping an API server endpoint asking for updates.  Or the Electron client could
+ping a [Squirrel.Server protocol](https://github.com/Squirrel/Squirrel.Mac#update-json-format)
+server, which is something its `auto-updater` module already knows how to do.
 
-We'd like to start by adding an endpoint to the API server that returns HTTP
-responses compatible with the [Squirrel.Server protocol](https://github.com/Squirrel/Squirrel.Mac#update-json-format)
-which Electron will ping.
+We'd like to start by just building our own updater in Go, though.  It allows
+us to avoid a .NET 4.5 dependency on Windows, and to do authenticated upgrade
+requests that return different versions based on which Keybase user you're
+logged in as, which a Squirrel server (because it has no state) wouldn't.
 
 #### How do we apply updates?
 
-We can point Electron's built-in autoupdater at our Squirrel endpoint URL, and
-it should perform all of the bullet points above by itself.  If necessary, we
-can switch to doing something custom instead.
+We'll start by writing our own Go code for the steps in the bullet points above.
 
 #### What about Windows and Linux?
 
-Electron for Windows also contains a Squirrel client (though it doesn't work
-on XP), so the searching-for-updates side should be identical to OS X.
+The Go code that we write for OS X will probably be reasonably portable to
+Windows.  We'd make a separate `keybase install` backend for Windows.
 
-OS X uses a native app to install binaries from inside the app bundle onto the
-user's system, due to necessities around code signing and privileges.  We don't
-know whether Windows has similar concerns.  If it doesn't, it's possible that
-`keybase install` by itself is a sufficient installer, after we write a Windows
-backend for it.
-
-The Linux world has a culture around letting your OS perform package management
-for you, so we would expect to just push e.g. .deb package updates to our own
-APT repository, and we can pop up notifications to remind the user to perform
-a system upgrade if we notice that they're lagging behind.
+Linux will be different -- Linux has a culture around letting your OS perform
+package management for you, so we would expect to just push e.g. .deb package
+updates to our own APT repository, and we can pop up notifications to remind
+the user to perform a system upgrade if we notice that they're lagging behind.
 
 #### How do we handle CI, Nightlies and Releases?
 
