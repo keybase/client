@@ -5,7 +5,12 @@ export const isDev = process.env.NODE_ENV === 'development'
 export const OS = OS_DESKTOP
 export const isMobile = false
 
-const runMode = process.env.KEYBASE_RUN_MODE || 'devel'
+const runMode = process.env.KEYBASE_RUN_MODE || 'prod'
+
+if (isDev) {
+  console.log(`Run mode: ${runMode}`)
+}
+
 const envedPathOSX = {
   staging: 'KeybaseStaging',
   devel: 'KeybaseDevel',

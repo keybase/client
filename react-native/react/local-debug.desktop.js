@@ -13,7 +13,8 @@ let config = {
   allowStartupFailure: false,
   printRPC: false,
   showDevTools: false,
-  showAllTrackers: false
+  showAllTrackers: false,
+  reduxDevToolsSelect: state => state // only watch a subset of the store
 }
 
 if (isDev && false) {
@@ -24,6 +25,7 @@ if (isDev && false) {
   config.printRPC = true
   config.showDevTools = true
   config.showAllTrackers = true
+  config.reduxDevToolsSelect = state => state.tracker
 }
 
 export const {
@@ -33,5 +35,6 @@ export const {
   allowStartupFailure,
   printRPC,
   showDevTools,
-  showAllTrackers
+  showAllTrackers,
+  reduxDevToolsSelect
 } = config

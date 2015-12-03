@@ -7,6 +7,7 @@ import configureStore from '../../react-native/react/store/configure-store'
 import Nav from '../../react-native/react/nav'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import {isDev} from '../../react-native/react/constants/platform'
+import {reduxDevToolsSelect} from '../../react-native/react/local-debug.desktop'
 
 // For Remote Components
 import RemoteManager from '../../react-native/react/native/remote-manager'
@@ -74,7 +75,7 @@ class Keybase extends Component {
       return (
         <div>
           <DebugPanel top right bottom>
-            <DevTools store={store} monitor={LogMonitor} visibleOnLoad/>
+            <DevTools store={store} monitor={LogMonitor} visibleOnLoad={false} select={reduxDevToolsSelect}/>
           </DebugPanel>
           {this.renderNav()}
         </div>
