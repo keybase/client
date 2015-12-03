@@ -1,6 +1,5 @@
 /* @flow */
 
-// $FlowIssue base-react
 import React, {Component} from '../base-react'
 
 import Header from './header.render.desktop'

@@ -1,3 +1,5 @@
+/* @flow */
+
 import React, {Component} from '../base-react'
 import commonStyles from '../styles/common'
 

@@ -22,17 +22,11 @@ const emptyRouterState: RouterState = LocalDebug.overrideRouterState ? LocalDebu
 const initialState: TabbedRouterState = Immutable.fromJS({
   // a map from tab name to router obj
   tabs: {
-    // $FlowIssue flow doesn't support computed keys
     [startupTab]: emptyRouterState,
-    // $FlowIssue flow doesn't support computed keys
     [folderTab]: emptyRouterState,
-    // $FlowIssue flow doesn't support computed keys
     [chatTab]: emptyRouterState,
-    // $FlowIssue flow doesn't support computed keys
     [peopleTab]: emptyRouterState,
-    // $FlowIssue flow doesn't support computed keys
     [devicesTab]: emptyRouterState,
-    // $FlowIssue flow doesn't support computed keys
     [moreTab]: emptyRouterState
   },
   activeTab: LocalDebug.overrideActiveTab ? LocalDebug.overrideActiveTab : moreTab

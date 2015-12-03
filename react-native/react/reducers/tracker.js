@@ -16,7 +16,7 @@ import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
-type TrackerState = {
+export type TrackerState = {
   serverActive: boolean,
   proofState: SimpleProofState,
   username: string,
@@ -217,7 +217,6 @@ export default function (state: State = initialState, action: Action): State {
           ...state,
           trackers: {
             ...state.trackers,
-            // $FlowIssue computed
             [username]: initialTrackerState(username)
           }
         }
@@ -264,23 +263,14 @@ function proofStateToSimpleProofState (proofState: ProofState): SimpleProofState
 
 function trackDiffToSimpleProofMeta (diff: identifyUi_TrackDiffType): ?SimpleProofMeta {
   return {
-    // $FlowIssue no computed
     [0]: null, /* 'NONE_0' */
-    // $FlowIssue no computed
     [1]: null, /* 'ERROR_1' */
-    // $FlowIssue no computed
     [2]: null, /* 'CLASH_2' */
-    // $FlowIssue no computed
     [3]: null, /* 'REVOKED_3' */
-    // $FlowIssue no computed
     [4]: metaUpgraded, /* 'UPGRADED_4' */
-    // $FlowIssue no computed
     [5]: metaNew, /* 'NEW_5' */
-    // $FlowIssue no computed
     [6]: null, /* 'REMOTE_FAIL_6' */
-    // $FlowIssue no computed
     [7]: null, /* 'REMOTE_WORKING_7' */
-    // $FlowIssue no computed
     [8]: null /* 'REMOTE_CHANGED_8' */
   }[diff]
 }

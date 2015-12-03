@@ -1,11 +1,13 @@
 [ignore]
 
+# TODO: unignore react-native when we upgrade to .16
+.*/node_modules/react-native
+
 # TODO: unignore these:
 .*/react/index.js
 .*/react/router/global-routes.js
 .*/react/nav.android.js
 .*/react/nav.ios.js
-.*/react/common-adapters/.*
 .*/react/login/.*
 .*/react/login2/.*
 .*/react/profile/.*
@@ -68,8 +70,7 @@ munge_underscores=true
 
 module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.png$' -> 'RelativeImageStub'
-module.name_mapper= '\.\/serialize' -> './serialize.mobile.js'
-module.name_mapper= '\.\/.*-render' -> 'View'
+module.name_mapper='^\..*base-react$' -> 'React'
 
 suppress_type=$FlowIssue
 suppress_type=$FlowFixMe
@@ -81,4 +82,4 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowFixedInNextDeploy
 suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
 
 [version]
-0.17.0
+0.19.0

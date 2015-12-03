@@ -1,8 +1,6 @@
 /* @flow */
 
-// $FlowIssue base-react
 import React, {Component} from '../base-react'
-// $FlowIssue base-redux
 import {connect} from '../base-redux'
 
 import {bindActionCreators} from 'redux'
@@ -10,11 +8,13 @@ import {registerIdentifyUi, onCloseFromHeader} from '../actions/tracker'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 
+import type {TrackerState} from '../reducers/tracker'
+
 export type RemoteManagerProps = {
   registerIdentifyUi: () => void,
   onCloseFromHeader: () => void,
   trackerServerStarted: boolean,
-  trackers: any
+  trackers: {[key: string]: TrackerState}
 }
 
 class RemoteManager extends Component {
