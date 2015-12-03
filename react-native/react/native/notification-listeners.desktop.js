@@ -23,9 +23,9 @@ export default {
     }[notification.notificationType]
 
     const state = {
-      [enums.kbfs.FSStatusCode.start]: 'Starting',
-      [enums.kbfs.FSStatusCode.finish]: 'Finished',
-      [enums.kbfs.FSStatusCode.error]: 'Errored'
+      [enums.kbfs.FSStatusCode.start]: 'starting',
+      [enums.kbfs.FSStatusCode.finish]: 'finished',
+      [enums.kbfs.FSStatusCode.error]: 'errored'
     }[notification.statusCode]
 
     if (notification.statusCode === enums.kbfs.FSStatusCode.finish) {
