@@ -6,21 +6,24 @@ package kbcmf
 import ()
 
 type receiverKeysPlaintext struct {
+	_struct    bool   `codec:",toarray"`
 	GroupID    uint32 `codec:"gid"`
 	MACKey     []byte `codec:"mac,omitempty"`
 	SessionKey []byte `codec:"sess"`
 }
 
 type receiverKeysCiphertexts struct {
-	KID    []byte `codec:"key_id,omitempty"`
-	Keys   []byte `codec:"keys"`
-	Sender []byte `codec:"sender"`
+	_struct bool   `codec:",toarray"`
+	KID     []byte `codec:"key_id"`
+	Keys    []byte `codec:"keys"`
+	Sender  []byte `codec:"sender"`
 }
 
 // EncryptionHeader is the first packet in an encrypted message.
 // It contains the encryptions of the session keys, and various
 // message metadata.
 type EncryptionHeader struct {
+	_struct   bool                      `codec:",toarray"`
 	Version   PacketVersion             `codec:"vers"`
 	Tag       PacketTag                 `codec:"tag"`
 	Receivers []receiverKeysCiphertexts `codec:"rcvrs"`
@@ -31,10 +34,11 @@ type EncryptionHeader struct {
 // EncryptionBlock contains a block of encrypted data. It cointains
 // the ciphertext, and any necessary MACs.
 type EncryptionBlock struct {
+	_struct    bool          `codec:",toarray"`
+	Version    PacketVersion `codec:"vers"`
+	Tag        PacketTag     `codec:"tag"`
 	Ciphertext []byte        `codec:"ctext"`
 	MACs       [][]byte      `codec:"macs"`
-	Tag        PacketTag     `codec:"tag"`
-	Version    PacketVersion `codec:"vers"`
 	seqno      PacketSeqno
 }
 
