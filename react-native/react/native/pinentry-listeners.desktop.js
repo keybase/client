@@ -9,8 +9,8 @@ export default {
     Payload looks like:
     { pinentry:
       { features:
-        { secretStorage:
-          { allow: true, label: 'store your test passphrase' }
+        { storeSecret:
+          { allow: true, label: 'store your test passphrase', respond: true }
         },
         prompt: 'Enter a test passphrase',
         retryLabel: '',
@@ -65,17 +65,12 @@ export default {
       } else {
         let result = {passphrase: arg.passphrase}
 
-        if ('secretStorage' in arg) {
-          result.storeSecret = arg.secretStorage
-        } else {
-          result.storeSecret = false
-        }
-        /* TODO something nice like this */
-        /*
         for (const feature in arg.features) {
-          result[feature] = arg.features[feature]
+          if (feature.respond) {
+            result[feature] = arg.features[feature]
+          }
         }
-        */
+
         response.result(result)
         console.log('Sent passphrase back')
       }

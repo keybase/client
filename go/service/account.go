@@ -45,9 +45,13 @@ func (h *AccountHandler) PassphrasePrompt(_ context.Context, sessionID int) erro
 		WindowTitle: "Passphrase needed",
 		Prompt:      "Please enter the passphrase to unlock your secret key",
 		Features: keybase1.GUIEntryFeatures{
-			SecretStorage: keybase1.SecretStorageFeature{
+			StoreSecret: keybase1.Feature{
 				Allow: true,
 				Label: "Save in Keychain",
+			},
+			ShowTyping: keybase1.Feature{
+				Allow: true,
+				Label: "Show typing",
 			},
 		},
 	}

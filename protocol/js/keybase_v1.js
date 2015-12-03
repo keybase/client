@@ -10,6 +10,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'BTC': {
@@ -22,6 +26,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'config': {
@@ -34,6 +42,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     },
     'ForkType': {
       'none': 0,
@@ -67,6 +79,10 @@ export default {
       'critical': 6,
       'fatal': 7
     },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
     'ExitCode': {
       'ok': 0,
       'notok': 2,
@@ -84,6 +100,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'device': {
@@ -96,6 +116,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'favorite': {
@@ -108,6 +132,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'gpgUi': {
@@ -237,6 +265,10 @@ export default {
       'critical': 6,
       'fatal': 7
     },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
     'ProofState': {
       'none': 0,
       'ok': 1,
@@ -329,6 +361,10 @@ export default {
       'critical': 6,
       'fatal': 7
     },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
     'ProofState': {
       'none': 0,
       'ok': 1,
@@ -398,7 +434,8 @@ export default {
       'new': 5,
       'remoteFail': 6,
       'remoteWorking': 7,
-      'remoteChanged': 8
+      'remoteChanged': 8,
+      'newEldest': 9
     },
     'TrackStatus': {
       'newOk': 1,
@@ -433,6 +470,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'Kex2Provisioner': {},
@@ -446,6 +487,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'login': {
@@ -474,6 +519,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'metadata': {
@@ -502,6 +551,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'notifyCtl': {
@@ -514,6 +567,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'NotifyFS': {
@@ -541,6 +598,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'pgp': {
@@ -553,6 +614,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     },
     'ProofState': {
       'none': 0,
@@ -651,6 +716,10 @@ export default {
       'critical': 6,
       'fatal': 7
     },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
     'ProofState': {
       'none': 0,
       'ok': 1,
@@ -743,6 +812,10 @@ export default {
       'critical': 6,
       'fatal': 7
     },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
     'PromptOverwriteType': {
       'social': 0,
       'site': 1
@@ -758,6 +831,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     },
     'ProvisionMethod': {
       'device': 0,
@@ -781,6 +858,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'revoke': {
@@ -793,6 +874,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'secretUi': {
@@ -805,6 +890,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'session': {
@@ -817,6 +906,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'signup': {
@@ -829,6 +922,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'sigs': {
@@ -841,6 +938,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'streamUi': {
@@ -853,6 +954,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'test': {},
@@ -866,6 +971,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     },
     'ProofState': {
       'none': 0,
@@ -959,6 +1068,10 @@ export default {
       'critical': 6,
       'fatal': 7
     },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
     'PromptDefault': {
       'none': 0,
       'yes': 1,
@@ -975,6 +1088,10 @@ export default {
       'error': 5,
       'critical': 6,
       'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   }
 }

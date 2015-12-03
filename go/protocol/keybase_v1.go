@@ -152,6 +152,13 @@ const (
 	LogLevel_FATAL    LogLevel = 7
 )
 
+type ClientType int
+
+const (
+	ClientType_CLI ClientType = 0
+	ClientType_GUI ClientType = 1
+)
+
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
@@ -1174,13 +1181,6 @@ func (c FavoriteClient) FavoriteList(ctx context.Context, sessionID int) (res []
 	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
 	return
 }
-
-type ClientType int
-
-const (
-	ClientType_CLI ClientType = 0
-	ClientType_GUI ClientType = 1
-)
 
 type GPGKey struct {
 	Algorithm  string        `codec:"algorithm" json:"algorithm"`
@@ -4304,13 +4304,15 @@ type GetPassphraseRes struct {
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 }
 
-type SecretStorageFeature struct {
-	Allow bool   `codec:"allow" json:"allow"`
-	Label string `codec:"label" json:"label"`
+type Feature struct {
+	Allow   bool   `codec:"allow" json:"allow"`
+	Respond bool   `codec:"respond" json:"respond"`
+	Label   string `codec:"label" json:"label"`
 }
 
 type GUIEntryFeatures struct {
-	SecretStorage SecretStorageFeature `codec:"secretStorage" json:"secretStorage"`
+	StoreSecret Feature `codec:"storeSecret" json:"storeSecret"`
+	ShowTyping  Feature `codec:"showTyping" json:"showTyping"`
 }
 
 type GUIEntryArg struct {
