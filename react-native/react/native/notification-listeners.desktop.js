@@ -28,6 +28,12 @@ export default {
       [enums.kbfs.FSStatusCode.error]: 'Errored'
     }[notification.statusCode]
 
+    if (notification.statusCode === enums.kbfs.FSStatusCode.finish) {
+      // Since we're aggregating dir operations and not showing state,
+      // let's ignore file-finished notifications.
+      return
+    }
+
     const basedir = notification.filename.split(path.sep)[0]
     let tlf
     if (notification.publicTopLevelFolder) {
@@ -38,7 +44,11 @@ export default {
       tlf = `/private/${basedir}`
     }
 
-    const title = `KBFS: ${action} ${state}`
+    let title = `KBFS: ${action}`
+    // Don't show starting or finished, but do show error.
+    if (notification.statusCode === enums.kbfs.FSStatusCode.error) {
+      title += ` ${state}`
+    }
     const body = `Files in ${tlf} ${notification.status}`
 
     function rateLimitAllowsNotify(action, state, tlf) {
