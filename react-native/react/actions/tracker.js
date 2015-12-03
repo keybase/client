@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/tracker'
+import {routeAppend} from './router'
 import engine from '../engine'
 import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
@@ -34,6 +35,17 @@ export function registerIdentifyUi (): (dispatch: Dispatch) => void {
         started: true
       }
     })
+  }
+}
+
+export function pushDebugTracker (username: string): void {
+  return dispatch => {
+    dispatch({
+      type: Constants.updateUsername,
+      payload: {username}
+    })
+
+    dispatch(routeAppend([{path: 'tracker', username}]))
   }
 }
 

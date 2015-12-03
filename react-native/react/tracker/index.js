@@ -91,6 +91,7 @@ class Tracker extends Component {
       componentAtTop: {
         title: 'Tracker',
         props: {
+          username: currentPath.get('username')
         }
       }
     }
