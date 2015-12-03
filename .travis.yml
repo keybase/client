@@ -29,6 +29,10 @@ script:
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
       cd go && KEYBASE_SERVER_URI=http://ci1.keybase.io GO15VENDOREXPERIMENT=1 travis_wait go test -timeout 30m $(go list ./... | grep -v /vendor/);
     fi
+after_success:
+  - if [ $TRAVIS_OS_NAME == 'osx' ] && [ $TRAVIS_BRANCH == 'master' ]; then
+      ./packaging/keybase.sh
+    fi
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       docker logs kbweb3000;
