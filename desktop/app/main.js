@@ -59,3 +59,20 @@ installer(err => {
   }
   splash()
 })
+
+// Simple ipc logging for debugging remote windows
+
+ipc.on('console.log', (event, args) => {
+  console.log('From remote console.log')
+  console.log.apply(console, args)
+})
+
+ipc.on('console.warn', (event, arg) => {
+  console.log('From remote console.warn')
+  console.log.apply(console, args)
+})
+
+ipc.on('console.error', (event, args) => {
+  console.log('From remote console.error')
+  console.log.apply(console, args)
+})

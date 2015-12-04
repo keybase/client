@@ -73,11 +73,24 @@ export function onRefollow (username: string): Action {
   }
 }
 
-export function onUnfollow (username: string): Action {
-  console.log('onUnfollow')
-  return {
-    type: Constants.onUnfollow,
-    payload: {username}
+export function onUnfollow (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+  return (dispatch, getState) => {
+    engine.rpc('track.untrack', {username}, {}, (err, response) => {
+      if (err) {
+        console.log('err untracking', err)
+      } else {
+        dispatch({
+          type: Constants.reportLastTrack,
+          payload: {username}
+        })
+        console.log('success in untracking')
+      }
+    })
+
+    dispatch({
+      type: Constants.onUnfollow,
+      payload: {username}
+    })
   }
 }
 
