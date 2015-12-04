@@ -61,7 +61,6 @@ func NewUser(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
 	return &User{
 		basics:       o.AtKey("basics"),
 		publicKeys:   o.AtKey("public_keys"),
-		sigs:         o.AtKey("sigs"),
 		pictures:     o.AtKey("pictures"),
 		keyFamily:    kf,
 		id:           uid,
@@ -185,30 +184,6 @@ func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 		return
 	}
 	return ckf.GetEncryptionSubkeyForDevice(did)
-}
-
-func (u *User) GetServerSeqno() (i int, err error) {
-	i = -1
-
-	u.G().Log.Debug("+ Get server seqno for user: %s", u.name)
-	res, err := u.G().API.Get(APIArg{
-		Endpoint:    "user/lookup",
-		NeedSession: false,
-		Args: HTTPArgs{
-			"username": S{u.name},
-			"fields":   S{"sigs"},
-		},
-		Contextified: u.Contextified,
-	})
-	if err != nil {
-		return
-	}
-	i, err = res.Body.AtKey("them").AtKey("sigs").AtKey("last").AtKey("seqno").GetInt()
-	if err != nil {
-		return
-	}
-	u.G().Log.Debug("- Server seqno: %s -> %d", u.name, i)
-	return i, err
 }
 
 func (u *User) CheckBasicsFreshness(server int64) (current bool, err error) {
