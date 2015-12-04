@@ -63,5 +63,5 @@ installer(err => {
 // Simple ipc logging for debugging remote windows
 
 ipc.on('console.log', (event, arg) => {
-  console.log('from remote .log:', arg)
+  console.log.apply(console, ['from remote .log:'].concat(arg))
 })
