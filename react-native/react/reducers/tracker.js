@@ -71,7 +71,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       if (action.payload == null) {
         return state
       }
-      const shouldFollow: boolean = action.payload.shouldFollow
+      let shouldFollow: boolean = action.payload.shouldFollow
 
       return {
         ...state,
@@ -115,8 +115,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 
       let proofState: SimpleProofState = error
 
+      shouldFollow = false
+
       if (allOk) {
         proofState = normal
+        shouldFollow = true
       } else if (anyWarnings) {
         proofState = warning
       } else if (anyError) {
@@ -127,6 +130,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 
       return {
         ...state,
+        shouldFollow,
         proofState
       }
 
