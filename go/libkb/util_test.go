@@ -41,3 +41,10 @@ func TestCombineErrors(t *testing.T) {
 		t.Errorf("Wrong output for combine errors: %#v != %#v", err.Error(), expected)
 	}
 }
+
+func TestWriteVersion(t *testing.T) {
+	err := WriteVersion("1.2.3", 400, "")
+	if err != nil {
+		t.Errorf("%s", err)
+	}
+}

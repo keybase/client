@@ -12,16 +12,6 @@
 
 This will look for a keybase v1.0.4-4 release and build an app with that same version. The second arg is the kbfs version. The comment can be a commit sha or something to signify a new build when the keybase version is unchanged.
 
-### Building keybase
-
-This is temporary, I will move this into packaging/release so it's automatic when releases happen.
-
-1. In `keybase/client/packaging/desktop`, run:
-
-			build_keybase.sh 1.0.4-4
-
-2. Draft a release at https://github.com/keybase/client/releases with name `v1.0.4-4` and upload the generated file `build_keybase/keybase-1.0.4-4.tgz`. The packager will look for keybase there.
-
 ### Building kbfs
 
 1. Because the repo is private, you need to export kbfs to the beta repo. See `keybase/client/packaging/export/` for details.
