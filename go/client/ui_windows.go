@@ -75,17 +75,17 @@ var codesWin = map[byte]WORD{
 
 // Return our writer so we can override Write()
 func (ui *UI) OutputWriter() io.Writer {
-	return &ColorWriter{os.Stdout, io.Stdout.Fd()}
+	return &ColorWriter{os.Stdout, os.Stdout.Fd()}
 }
 
 // Return our writer so we can override Write()
 func (ui *UI) ErrorWriter() io.Writer {
-	return &ColorWriter{os.Stderr, io.Stderr.Fd()}
+	return &ColorWriter{os.Stderr, os.Stderr.Fd()}
 }
 
 type ColorWriter struct {
 	w  io.Writer
-	fd int
+	fd uintptr
 }
 
 // Rough emulation of Ansi terminal codes.
