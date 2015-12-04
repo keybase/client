@@ -6,6 +6,18 @@ import {ipcRenderer} from 'electron'
 
 const currentWindow = remote.getCurrentWindow()
 
+window.console.log = (...args) => {
+  ipcRenderer.send('console.log', args.join(' '))
+}
+
+window.console.error = (...args) => {
+  ipcRenderer.send('console.log', 'ERR: ' + args.join(' '))
+}
+
+window.console.warn = (...args) => {
+  ipcRenderer.send('console.log', 'WARNING: ' + args.join(' '))
+}
+
 class RemoteStore {
   constructor (props) {
     ipcRenderer.on('stateChange', (event, arg) => {

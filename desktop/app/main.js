@@ -59,3 +59,9 @@ installer(err => {
   }
   splash()
 })
+
+// Simple ipc logging for debugging remote windows
+
+ipc.on('console.log', (event, arg) => {
+  console.log('from remote .log:', arg)
+})
