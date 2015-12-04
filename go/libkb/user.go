@@ -20,7 +20,6 @@ type User struct {
 	// Raw JSON element read from the server or our local DB.
 	basics     *jsonw.Wrapper
 	publicKeys *jsonw.Wrapper
-	sigs       *jsonw.Wrapper
 	pictures   *jsonw.Wrapper
 
 	// Processed fields
@@ -259,7 +258,6 @@ func (u *User) StoreTopLevel() error {
 	jw.SetKey("id", UIDWrapper(u.id))
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
-	jw.SetKey("sigs", u.sigs)
 	jw.SetKey("pictures", u.pictures)
 
 	err := u.G().LocalDb.Put(
@@ -370,6 +368,13 @@ func (u *User) SyncSecrets() error {
 // May return an empty KID
 func (u *User) GetEldestKID() (ret keybase1.KID) {
 	return u.leaf.eldest
+}
+
+func (u *User) GetPublicChainTail() *MerkleTriple {
+	if u.sigChainMem == nil {
+		return nil
+	}
+	return u.sigChain().GetCurrentTailTriple()
 }
 
 func (u *User) IDTable() *IdentityTable {
