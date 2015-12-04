@@ -44,6 +44,10 @@ func (e *LoginCurrentDevice) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *LoginCurrentDevice) Run(ctx *Context) error {
+	e.G().Log.Debug("+- LoginCurrentDevice.Run")
+	defer func() {
+		e.G().Log.Debug("- LoginCurrentDevice.Run")
+	}()
 	// already logged in?
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {
@@ -53,11 +57,19 @@ func (e *LoginCurrentDevice) Run(ctx *Context) error {
 	}
 
 	var config *libkb.UserConfig
+	loadUserArg := libkb.LoadUserArg{
+		PublicKeyOptional: true,
+		ForceReload:       true,
+	}
 	if len(e.username) == 0 {
+		e.G().Log.Debug("| using current username")
 		config, err = e.G().Env.GetConfig().GetUserConfig()
+		loadUserArg.Self = true
 	} else {
+		e.G().Log.Debug("| using new username %s", e.username)
 		nu := libkb.NewNormalizedUsername(e.username)
 		config, err = e.G().Env.GetConfig().GetUserConfigForUsername(nu)
+		loadUserArg.Name = e.username
 	}
 	if err != nil {
 		e.G().Log.Debug("error getting user config: %s (%T)", err, err)
@@ -67,21 +79,19 @@ func (e *LoginCurrentDevice) Run(ctx *Context) error {
 		e.G().Log.Debug("user config is nil")
 		return errNoConfig
 	}
-	if config.GetDeviceID().IsNil() {
+	deviceID := config.GetDeviceID()
+	if deviceID.IsNil() {
 		e.G().Log.Debug("no device in user config")
 		return errNoDevice
 	}
 
 	// Make sure the device ID is still valid.
-	me, err := libkb.LoadMe(libkb.LoadUserArg{
-		PublicKeyOptional: true,
-		ForceReload:       true,
-	})
+	me, err := libkb.LoadUser(loadUserArg)
 	if err != nil {
 		e.G().Log.Debug("error loading user profile: %#v", err)
 		return err
 	}
-	if !me.HasDeviceInCurrentInstall() {
+	if !me.HasDeviceInCurrentInstall(deviceID) {
 		e.G().Log.Debug("current device is not valid")
 		return errNoDevice
 	}
