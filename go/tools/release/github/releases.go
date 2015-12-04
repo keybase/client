@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	ReleaseListURI = "/repos/%s/%s/releases%s"
+	ReleaseListPath   = "/repos/%s/%s/releases%s"
+	ReleaseLatestPath = "/repos/%s/%s/releases/latest%s"
 )
 
 type Release struct {
@@ -51,12 +52,20 @@ func Releases(user, repo, token string) ([]Release, error) {
 		token = "?access_token=" + token
 	}
 	var releases []Release
-	err := Get(fmt.Sprintf(ReleaseListURI, user, repo, token), &releases)
+	err := Get(GithubAPIURL, fmt.Sprintf(ReleaseListPath, user, repo, token), &releases)
 	if err != nil {
 		return nil, err
 	}
 
 	return releases, nil
+}
+
+func LatestRelease(user, repo, token string) (*Release, error) {
+	if token != "" {
+		token = "?access_token=" + token
+	}
+	var release Release
+	return &release, Get(GithubAPIURL, fmt.Sprintf(ReleaseLatestPath, user, repo, token), &release)
 }
 
 func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {

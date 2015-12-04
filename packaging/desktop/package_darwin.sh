@@ -15,6 +15,7 @@ keybase_version=$1
 app_version=$keybase_version
 kbfs_version=$2
 comment=$3
+keybase_binpath=$4 # Optional
 
 if [ "$keybase_version" = "" ]; then
   echo "No keybase version specified"
@@ -54,7 +55,14 @@ clean() {
 get_deps() {
   cd $tmp_dir
   echo "Downloading dependencies"
-  curl -J -L -Ss $keybase_url | tar zx
+
+  if [ ! "$keybase_binpath" = "" ]; then
+    echo "Using local keybase binpath: $keybase_binpath"
+    cp $keybase_binpath .
+  else
+    curl -J -L -Ss $keybase_url | tar zx
+  fi
+
   curl -J -L -Ss $kbfs_url | tar zx
   curl -J -L -Ss $installer_url | tar zx
 }
@@ -105,9 +113,11 @@ package_electron() {
 # Adds the keybase binaries and Installer.app bundle to Keybase.app
 package_app() {
   cd $build_dir
+  echo "Copying keybase binaries"
   mkdir -p $shared_support_dir/bin
   cp $keybase_bin $shared_support_dir/bin
   cp $kbfs_bin $shared_support_dir/bin
+  echo "Copying installer"
   mkdir -p $resources_dir
   cp -R $installer_app $resources_dir/KeybaseInstaller.app
 }
