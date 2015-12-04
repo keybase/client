@@ -274,6 +274,7 @@ func (e *Identify) loadExpr(assertion string) error {
 	if err != nil {
 		return fmt.Errorf("assertion parse error: %s", err)
 	}
+	fmt.Printf("assertion: %q, expr: %q\n", assertion, expr)
 	e.userExpr = expr
 	return nil
 }

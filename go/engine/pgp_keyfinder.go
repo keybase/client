@@ -92,10 +92,18 @@ func (e *PGPKeyfinder) verifyUsers(ctx *Context) {
 
 	if e.loggedIn && !e.arg.SkipTrack {
 		e.loadMe()
-		e.trackUsers(ctx)
-	} else {
-		e.identifyUsers(ctx)
 	}
+
+	e.loadUsers(ctx)
+
+	/*
+		if e.loggedIn && !e.arg.SkipTrack {
+			e.loadMe()
+			e.trackUsers(ctx)
+		} else {
+			e.identifyUsers(ctx)
+		}
+	*/
 }
 
 func (e *PGPKeyfinder) trackUsers(ctx *Context) {
@@ -127,6 +135,24 @@ func (e *PGPKeyfinder) identifyUsers(ctx *Context) {
 			return
 		}
 	}
+}
+
+// don't identify or track, just load the users
+func (e *PGPKeyfinder) loadUsers(ctx *Context) {
+	if e.runerr != nil {
+		return
+	}
+
+	for _, u := range e.arg.Users {
+		arg := libkb.NewLoadUserByNameArg(e.G(), u)
+		user, err := libkb.LoadUser(arg)
+		if err != nil {
+			e.runerr = err
+			return
+		}
+		e.addUser(user, false)
+	}
+
 }
 
 func (e *PGPKeyfinder) loadKeys(ctx *Context) {

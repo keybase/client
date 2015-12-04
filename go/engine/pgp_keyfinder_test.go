@@ -26,7 +26,7 @@ func TestPGPKeyfinder(t *testing.T) {
 
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 	arg := &PGPKeyfinderArg{
-		Users:     []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Users:     []string{"t_alice", "t_bob", "t_charlie"},
 		SkipTrack: true,
 	}
 	eng := NewPGPKeyfinder(arg, tc.G)
@@ -50,7 +50,7 @@ func TestPGPKeyfinderLoggedOut(t *testing.T) {
 
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: &libkb.TestSecretUI{}}
 	arg := &PGPKeyfinderArg{
-		Users: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Users: []string{"t_alice", "t_bob", "t_charlie"},
 	}
 	eng := NewPGPKeyfinder(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {

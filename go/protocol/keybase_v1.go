@@ -3201,6 +3201,7 @@ type PGPEncryptOptions struct {
 	NoSelf       bool         `codec:"noSelf" json:"noSelf"`
 	BinaryOut    bool         `codec:"binaryOut" json:"binaryOut"`
 	KeyQuery     string       `codec:"keyQuery" json:"keyQuery"`
+	SkipTrack    bool         `codec:"skipTrack" json:"skipTrack"`
 	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
 }
 

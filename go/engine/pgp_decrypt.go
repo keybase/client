@@ -88,23 +88,45 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 	if len(e.arg.SignedBy) > 0 {
 		e.arg.AssertSigned = true
 	}
-	if !e.arg.AssertSigned {
-		e.G().Log.Debug("Not checking signature status (AssertSigned == false)")
-		return nil
-	}
-
-	e.G().Log.Debug("PGPDecrypt: signStatus: %+v", e.signStatus)
 
 	if !e.signStatus.IsSigned {
+		if !e.arg.AssertSigned {
+			return nil
+		}
 		return libkb.BadSigError{E: "no signature in message"}
 	}
 	if !e.signStatus.Verified {
 		return e.signStatus.SignatureError
 	}
 
-	e.G().Log.Debug("| checkSignedBy")
-	if err = e.checkSignedBy(ctx); err != nil {
-		return err
+	// message is signed and verified
+
+	if len(e.arg.SignedBy) > 0 {
+		// identify the SignedBy assertion
+		arg := NewIdentifyArg(e.arg.SignedBy, false, false)
+		eng := NewIdentify(arg, e.G())
+		if err := RunEngine(eng, ctx); err != nil {
+			return err
+		}
+		signByUser := eng.User()
+		if signByUser == nil {
+			// this shouldn't happen (engine should return an error in this state)
+			// but just in case:
+			return libkb.ErrNilUser
+		}
+
+		if !signByUser.Equal(e.owner) {
+			return libkb.BadSigError{
+				E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.owner.GetName(), e.arg.SignedBy),
+			}
+		}
+	} else {
+		// identify the signer
+		arg := NewIdentifyArg(e.owner.GetName(), false, false)
+		eng := NewIdentify(arg, e.G())
+		if err := RunEngine(eng, ctx); err != nil {
+			return err
+		}
 	}
 
 	if e.signStatus.Entity == nil {

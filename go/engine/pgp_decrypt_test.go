@@ -251,11 +251,12 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 	recipient.LoginOrBust(tcRecipient)
 
 	idUI := &FakeIdentifyUI{}
+	pgpUI := &TestPgpUI{}
 	ctx = &Context{
 		IdentifyUI: idUI,
 		SecretUI:   recipient.NewSecretUI(),
 		LogUI:      tcRecipient.G.UI.GetLogUI(),
-		PgpUI:      &TestPgpUI{},
+		PgpUI:      pgpUI,
 	}
 
 	// decrypt it
@@ -277,8 +278,8 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 	if idUI.User.Username != signer.Username {
 		t.Errorf("idUI username: %q, expected %q", idUI.User.Username, signer.Username)
 	}
-	if idUI.Outcome == nil {
-		t.Fatal("identify ui outcome is nil")
+	if pgpUI.OutputCount != 1 {
+		t.Errorf("PgpUI output called %d times, expected 1", pgpUI.OutputCount)
 	}
 }
 
@@ -387,10 +388,10 @@ func TestPGPDecryptClearsign(t *testing.T) {
 }
 
 type TestPgpUI struct {
-	outputCalled bool
+	OutputCount int
 }
 
 func (t *TestPgpUI) OutputSignatureSuccess(context.Context, keybase1.OutputSignatureSuccessArg) error {
-	t.outputCalled = true
+	t.OutputCount++
 	return nil
 }

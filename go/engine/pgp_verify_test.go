@@ -135,7 +135,7 @@ func verify(ctx *Context, tc libkb.TestContext, msg, sig, name string, valid boo
 	if !ok {
 		tc.T.Fatalf("%s: invalid pgp ui: %T", name, ctx.PgpUI)
 	}
-	if !p.outputCalled {
+	if p.OutputCount == 0 {
 		tc.T.Errorf("%s: did not output signature success", name)
 	}
 }

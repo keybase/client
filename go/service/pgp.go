@@ -57,6 +57,7 @@ func (h *PGPHandler) PGPEncrypt(_ context.Context, arg keybase1.PGPEncryptArg) e
 		NoSelf:       arg.Opts.NoSelf,
 		BinaryOutput: arg.Opts.BinaryOut,
 		KeyQuery:     arg.Opts.KeyQuery,
+		SkipTrack:    arg.Opts.SkipTrack,
 		TrackOptions: arg.Opts.TrackOptions,
 	}
 	ctx := &engine.Context{

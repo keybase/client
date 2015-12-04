@@ -80,6 +80,7 @@ type CmdPGPEncrypt struct {
 	noSelf       bool
 	keyQuery     string
 	binaryOut    bool
+	skipTrack    bool
 }
 
 func (c *CmdPGPEncrypt) Run() error {
@@ -105,6 +106,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		NoSelf:       c.noSelf,
 		BinaryOut:    c.binaryOut,
 		KeyQuery:     c.keyQuery,
+		SkipTrack:    c.skipTrack,
 		TrackOptions: c.trackOptions,
 	}
 	arg := keybase1.PGPEncryptArg{Source: src, Sink: snk, Opts: opts}
@@ -131,6 +133,7 @@ func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {
 		BypassConfirm: ctx.Bool("y"),
 	}
 	c.sign = ctx.Bool("sign")
+	c.skipTrack = ctx.Bool("skip-track")
 	c.keyQuery = ctx.String("key")
 	c.binaryOut = ctx.Bool("binary")
 	return nil

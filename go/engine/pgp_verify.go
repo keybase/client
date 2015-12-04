@@ -92,6 +92,7 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 		Source:       e.peek,
 		Sink:         libkb.NopWriteCloser{W: ioutil.Discard},
 		AssertSigned: true,
+		SignedBy:     e.arg.SignedBy,
 		TrackOptions: e.arg.TrackOptions,
 	}
 	eng := NewPGPDecrypt(arg, e.G())
@@ -100,10 +101,6 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 	}
 	e.signStatus = eng.SignatureStatus()
 	e.owner = eng.Owner()
-
-	if err := e.checkSignedBy(ctx); err != nil {
-		return err
-	}
 
 	return nil
 }

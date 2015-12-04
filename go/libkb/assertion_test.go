@@ -123,3 +123,23 @@ func TestAssertions2(t *testing.T) {
 		}
 	}
 }
+
+func TestAssertions3(t *testing.T) {
+	a := "t_bob+twitter:kbtester1"
+	goodProofsets := []ProofSet{
+		*NewProofSet([]Proof{
+			{"twitter", "kbtester1"},
+			{"keybase", "t_bob"},
+		}),
+	}
+	expr, err := AssertionParseAndOnly(a)
+	if err != nil {
+		t.Errorf("Error parsing %s: %s", a, err)
+	} else {
+		for i, proofset := range goodProofsets {
+			if !expr.MatchSet(proofset) {
+				t.Errorf("proofset %d failed to match", i)
+			}
+		}
+	}
+}
