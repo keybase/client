@@ -91,8 +91,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         closed: true,
         shouldFollow: false // don't follow if they close x out the window
       }
-    case Constants.onRefollow: // TODO
-      return state
+    case Constants.onRefollow:
+      return {
+        ...state,
+        closed: true
+      }
     case Constants.onUnfollow: // TODO
       return state
 

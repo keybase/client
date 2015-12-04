@@ -63,10 +63,13 @@ export function onFollowChecked (newFollowCheckedValue: boolean, username: strin
 }
 
 export function onRefollow (username: string): Action {
-  console.log('onRefollow')
-  return {
-    type: Constants.onRefollow,
-    payload: {username}
+  return (dispatch, getState) => {
+    console.log('onRefollow')
+    trackUser(username, getState())
+    dispatch({
+      type: Constants.onRefollow,
+      payload: {username}
+    })
   }
 }
 
