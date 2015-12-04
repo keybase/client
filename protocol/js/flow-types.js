@@ -3039,13 +3039,15 @@ export type GetPassphraseRes = {
 
 export type secretUi_Feature = {
   allow: boolean;
-  respond: boolean;
+  defaultValue: boolean;
+  readonly: boolean;
   label: string;
 }
 
 export type Feature = {
   allow: boolean;
-  respond: boolean;
+  defaultValue: boolean;
+  readonly: boolean;
   label: string;
 }
 
@@ -3062,6 +3064,8 @@ export type GUIEntryFeatures = {
 export type secretUi_GUIEntryArg = {
   windowTitle: string;
   prompt: string;
+  submitLabel: string;
+  cancelLabel: string;
   retryLabel: string;
   features: GUIEntryFeatures;
 }
@@ -3069,6 +3073,8 @@ export type secretUi_GUIEntryArg = {
 export type GUIEntryArg = {
   windowTitle: string;
   prompt: string;
+  submitLabel: string;
+  cancelLabel: string;
   retryLabel: string;
   features: GUIEntryFeatures;
 }

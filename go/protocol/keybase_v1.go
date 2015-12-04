@@ -4305,9 +4305,10 @@ type GetPassphraseRes struct {
 }
 
 type Feature struct {
-	Allow   bool   `codec:"allow" json:"allow"`
-	Respond bool   `codec:"respond" json:"respond"`
-	Label   string `codec:"label" json:"label"`
+	Allow        bool   `codec:"allow" json:"allow"`
+	DefaultValue bool   `codec:"defaultValue" json:"defaultValue"`
+	Readonly     bool   `codec:"readonly" json:"readonly"`
+	Label        string `codec:"label" json:"label"`
 }
 
 type GUIEntryFeatures struct {
@@ -4318,6 +4319,8 @@ type GUIEntryFeatures struct {
 type GUIEntryArg struct {
 	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
 	Prompt      string           `codec:"prompt" json:"prompt"`
+	SubmitLabel string           `codec:"submitLabel" json:"submitLabel"`
+	CancelLabel string           `codec:"cancelLabel" json:"cancelLabel"`
 	RetryLabel  string           `codec:"retryLabel" json:"retryLabel"`
 	Features    GUIEntryFeatures `codec:"features" json:"features"`
 }

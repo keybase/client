@@ -22,7 +22,7 @@ class PinentryWrapper extends Component {
 
     let toRespond = {}
     for (const f in payloadFeatures) {
-      if (payloadFeatures[f].respond) {
+      if (payloadFeatures[f].allow && !payloadFeatures[f].readonly) {
         toRespond[f] = features[f]
       }
     }
@@ -43,6 +43,8 @@ class PinentryWrapper extends Component {
         prompt={this.state.payload.prompt}
         retryLabel={this.state.payload.retryLabel}
         windowTitle={this.state.payload.windowTitle}
+        cancelLabel={this.state.payload.cancelLabel}
+        submitLabel={this.state.payload.submitLabel}
       />
     }
     return <div/>

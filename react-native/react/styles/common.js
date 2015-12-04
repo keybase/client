@@ -24,7 +24,8 @@ export const colors = {
   grey: 'grey',
   orange: '#FA855E',
   red: 'red',
-  greyBackground: '#F7F7F6'
+  greyBackground: '#F7F7F6',
+  error: '#d0021b'
 }
 
 export default StyleSheet.create({

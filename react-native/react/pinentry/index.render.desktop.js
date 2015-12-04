@@ -13,7 +13,7 @@ export default class PinentryRender extends Component {
       showTyping: false
     }
     for (const feature in this.props.features) {
-      this.state.features[feature] = this.props.features[feature].allow
+      this.state.features[feature] = this.props.features[feature].defaultValue
     }
   }
 
@@ -68,11 +68,12 @@ export default class PinentryRender extends Component {
                 value={this.state.passphrase}
                 type={this.state.showTyping ? 'text' : 'password'}
                 autoFocus />
+              <p style={styles.error}>{this.props.retryLabel}</p>
             </div>
           </div>
           <div style={styles.action}>
-            <FlatButton style={commonStyles.secondaryButton} label='Cancel' onClick={() => this.props.onCancel()} />
-            <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onSubmit(this.state.passphrase, this.state.features)} />
+            <FlatButton style={commonStyles.secondaryButton} label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
+            <FlatButton style={commonStyles.primaryButton} label={this.props.submitLabel || 'Close'} primary onClick={() => this.props.onSubmit(this.state.passphrase, this.state.features)} />
           </div>
         </div>
       </div>
@@ -86,6 +87,8 @@ PinentryRender.propTypes = {
   features: React.PropTypes.object.isRequired,
   prompt: React.PropTypes.string.isRequired,
   retryLabel: React.PropTypes.string.isRequired,
+  cancelLabel: React.PropTypes.string,
+  submitLabel: React.PropTypes.string,
   windowTitle: React.PropTypes.string.isRequired
 }
 
@@ -106,8 +109,13 @@ const styles = {
     paddingLeft: 9,
     paddingRight: 15,
     paddingTop: 14,
-    paddingBottom: 27,
+    paddingBottom: 6,
     backgroundColor: colors.greyBackground
+  },
+  error: {
+    height: 21,
+    color: colors.error,
+    margin: 0
   },
   body: {
     ...commonStyles.flexBoxColumn,

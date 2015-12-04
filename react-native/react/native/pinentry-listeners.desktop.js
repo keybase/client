@@ -5,21 +5,20 @@ import {showDevTools} from '../local-debug.desktop'
 export default {
   'keybase.1.secretUi.getPassphrase': (payload, response) => {
     console.log('Asked for passphrase')
-    /*
-    Payload looks like:
-    { pinentry:
-      { features:
-        { storeSecret:
-          { allow: true, label: 'store your test passphrase', respond: true }
-        },
-        prompt: 'Enter a test passphrase',
-        retryLabel: '',
-        windowTitle: 'Keybase Test Passphrase' },
-        sessionID: 0
+
+    // filtered features
+    let features = {}
+    for (const feature in payload.pinentry.features) {
+      if (payload.pinentry.features[feature].allow) {
+        features[feature] = payload.pinentry.features[feature]
       }
     }
-    */
-    const props = payload.pinentry
+
+    const props = {
+      ...payload.pinentry,
+      features
+    }
+
     let pinentryWindow = new BrowserWindow({
       width: 513, height: 230 + 20 /* TEMP workaround for header mouse clicks in osx */,
       resizable: true,
