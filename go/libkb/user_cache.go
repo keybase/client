@@ -49,7 +49,13 @@ func (c *UserCache) Get(uid keybase1.UID) (*keybase1.UserPlusKeys, error) {
 
 // Insert adds a user to the cache, keyed on UID.
 func (c *UserCache) Insert(up *keybase1.UserPlusKeys) error {
-	return c.cache.Set(string(up.Uid), up)
+	tmp := *up
+	copy := &tmp
+	copy.Uvv.CachedAt = keybase1.Time(time.Now().Unix())
+
+	// TODO: Don't overwrite an existing entry that's just as fresh
+	// as the current entry, and that does have a `LastIdentifiedAt` time
+	return c.cache.Set(string(up.Uid), copy)
 }
 
 // Shutdown stops any goroutines in the cache.

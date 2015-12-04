@@ -46,6 +46,10 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 	}
 }
 
+func (h *IdentifyHandler) Identify2(_ context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
+	return res, nil
+}
+
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
 	var do = func() (interface{}, error) {
 		if arg.Source == keybase1.IdentifySource_KBFS {

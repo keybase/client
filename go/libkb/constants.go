@@ -66,10 +66,12 @@ const (
 	UserCacheMaxAge      = 5 * time.Minute
 	PGPFingerprintHexLen = 40
 
-	ProofCacheSize      = 0x1000
-	ProofCacheLongDur   = 6 * time.Hour
-	ProofCacheMediumDur = 30 * time.Minute
-	ProofCacheShortDur  = 1 * time.Minute
+	ProofCacheSize            = 0x1000
+	ProofCacheLongDur         = 6 * time.Hour
+	ProofCacheMediumDur       = 30 * time.Minute
+	ProofCacheShortDur        = 1 * time.Minute
+	IdentifyCacheLongTimeout  = 6 * time.Hour
+	IdentifyCacheShortTimeout = 1 * time.Minute
 
 	SigShortIDBytes = 27
 )
@@ -109,6 +111,7 @@ const (
 	SCCanceled               = 237
 	SCReloginRequired        = 274
 	SCBadSignupUsernameTaken = 701
+	SCMissingResult          = 801
 	SCKeyNotFound            = 901
 	SCKeyInUse               = 907
 	SCKeyBadGen              = 913

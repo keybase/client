@@ -106,15 +106,31 @@ func (r *RemoteProofLinks) TrackSet() *TrackSet {
 	return ret
 }
 
-// AddProofsToSet adds the active proofs to an existing ProofSet.
-func (r *RemoteProofLinks) AddProofsToSet(existing *ProofSet) {
+// AddProofsToSet adds the active proofs to an existing ProofSet, if they're one of the
+// given OkStates. If okStates is nil, then we check only against keybase1.ProofState_OK.
+func (r *RemoteProofLinks) AddProofsToSet(existing *ProofSet, okStates []keybase1.ProofState) {
+	if okStates == nil {
+		okStates = []keybase1.ProofState{keybase1.ProofState_OK}
+	}
+	isOkState := func(s1 keybase1.ProofState) bool {
+		for _, s2 := range okStates {
+			if s1 == s2 {
+				return true
+			}
+		}
+		return false
+	}
 	for _, a := range r.active() {
-		if a.state != keybase1.ProofState_OK {
+		if !isOkState(a.state) {
 			continue
 		}
-		k, v := a.link.ToKeyValuePair()
-		existing.Add(Proof{Key: k, Value: v})
+		AddToProofSetNoChecks(a.link, existing)
 	}
+}
+
+func AddToProofSetNoChecks(r RemoteProofChainLink, ps *ProofSet) {
+	k, v := r.ToKeyValuePair()
+	ps.Add(Proof{Key: k, Value: v})
 }
 
 func (r *RemoteProofLinks) active() []ProofLinkWithState {

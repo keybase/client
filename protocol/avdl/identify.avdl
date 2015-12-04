@@ -16,4 +16,10 @@ protocol identify {
     */
   IdentifyRes identify(int sessionID, string userAssertion, boolean trackStatement=false, boolean forceRemoteCheck=false, boolean useDelegateUI=false, IdentifyReason reason, IdentifySource source);
 
+  record Identify2Res {
+    UserPlusKeys upk;
+  }
+
+  Identify2Res identify2(int sessionID, UID uid, string userAssertion, IdentifyReason reason, boolean useDelegateUI=false);
+
 }

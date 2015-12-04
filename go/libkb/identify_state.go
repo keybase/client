@@ -12,11 +12,17 @@ type IdentifyState struct {
 }
 
 func NewIdentifyState(res *IdentifyOutcome, u *User) IdentifyState {
+	if res == nil {
+		res = &IdentifyOutcome{}
+	}
 	return IdentifyState{res: res, u: u}
 }
 
-func (s *IdentifyState) CreateTrackLookup(t *TrackChainLink) {
+func (s *IdentifyState) SetTrackLookup(t *TrackChainLink) {
 	s.track = NewTrackLookup(t)
+	if s.res != nil {
+		s.res.TrackUsed = s.track
+	}
 }
 
 func (s *IdentifyState) TrackLookup() *TrackLookup {
@@ -27,7 +33,11 @@ func (s *IdentifyState) HasPreviousTrack() bool {
 	return s.track != nil
 }
 
-func (s *IdentifyState) ComputeRevokedProofs() {
+func (s *IdentifyState) Result() *IdentifyOutcome {
+	return s.res
+}
+
+func (s *IdentifyState) computeRevokedProofs() {
 	if s.track == nil {
 		return
 	}
@@ -48,7 +58,7 @@ func (s *IdentifyState) ComputeRevokedProofs() {
 	}
 }
 
-func (s *IdentifyState) InitResultList() {
+func (s *IdentifyState) initResultList() {
 	idt := s.u.IDTable()
 	if idt == nil {
 		return
@@ -60,7 +70,7 @@ func (s *IdentifyState) InitResultList() {
 	}
 }
 
-func (s *IdentifyState) ComputeTrackDiffs() {
+func (s *IdentifyState) computeTrackDiffs() {
 	if s.track == nil {
 		return
 	}
@@ -72,7 +82,14 @@ func (s *IdentifyState) ComputeTrackDiffs() {
 	}
 }
 
-func (s *IdentifyState) ComputeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
+func (s *IdentifyState) Precompute(dhook func(keybase1.IdentifyKey)) {
+	s.computeKeyDiffs(dhook)
+	s.initResultList()
+	s.computeTrackDiffs()
+	s.computeRevokedProofs()
+}
+
+func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 	mapify := func(v []keybase1.KID) map[keybase1.KID]bool {
 		ret := make(map[keybase1.KID]bool)
 		for _, k := range v {

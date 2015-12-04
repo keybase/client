@@ -90,4 +90,7 @@ protocol identifyCommon {
 		SigID sigID;
 		Time mTime;
 	}
+
+	@typedef("string")
+	record TrackToken {}
 }

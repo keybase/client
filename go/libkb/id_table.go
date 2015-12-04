@@ -1117,13 +1117,18 @@ func (idt *IdentityTable) Len() int {
 	return len(idt.Order)
 }
 
-func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui IdentifyUI) {
+type CheckCompletedListener interface {
+	CheckCompleted(lcr *LinkCheckResult)
+	Done()
+}
+
+func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) {
 	var wg sync.WaitGroup
 	for _, lcr := range is.res.ProofChecks {
 		wg.Add(1)
 		go func(l *LinkCheckResult) {
 			defer wg.Done()
-			idt.identifyActiveProof(l, is, forceRemoteCheck, ui)
+			idt.identifyActiveProof(l, is, forceRemoteCheck, ui, ccl)
 		}(lcr)
 	}
 
@@ -1133,12 +1138,18 @@ func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui I
 
 	// wait for all goroutines to complete before exiting
 	wg.Wait()
+	if ccl != nil {
+		ccl.Done()
+	}
 }
 
 //=========================================================================
 
-func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI) {
+func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) {
 	idt.proofRemoteCheck(is.HasPreviousTrack(), forceRemoteCheck, lcr)
+	if ccl != nil {
+		ccl.CheckCompleted(lcr)
+	}
 	lcr.link.DisplayCheck(ui, *lcr)
 }
 
@@ -1154,12 +1165,13 @@ type LinkCheckResult struct {
 	torWarning        bool
 }
 
-func (l LinkCheckResult) GetDiff() TrackDiff      { return l.diff }
-func (l LinkCheckResult) GetError() error         { return l.err }
-func (l LinkCheckResult) GetHint() *SigHint       { return l.hint }
-func (l LinkCheckResult) GetCached() *CheckResult { return l.cached }
-func (l LinkCheckResult) GetPosition() int        { return l.position }
-func (l LinkCheckResult) GetTorWarning() bool     { return l.torWarning }
+func (l LinkCheckResult) GetDiff() TrackDiff            { return l.diff }
+func (l LinkCheckResult) GetError() error               { return l.err }
+func (l LinkCheckResult) GetHint() *SigHint             { return l.hint }
+func (l LinkCheckResult) GetCached() *CheckResult       { return l.cached }
+func (l LinkCheckResult) GetPosition() int              { return l.position }
+func (l LinkCheckResult) GetTorWarning() bool           { return l.torWarning }
+func (l LinkCheckResult) GetLink() RemoteProofChainLink { return l.link }
 
 func ComputeRemoteDiff(tracked, observed keybase1.ProofState) TrackDiff {
 	if observed == tracked {

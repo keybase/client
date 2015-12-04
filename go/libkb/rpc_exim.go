@@ -74,6 +74,10 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 	}
 }
 
+func (is IdentifyState) ExportToUncheckedIdentity() *keybase1.Identity {
+	return is.res.ExportToUncheckedIdentity()
+}
+
 func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 	tmp := keybase1.Identity{
 		Status: ExportErrorAsStatus(ir.Error),
@@ -230,6 +234,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ReloginRequiredError{}
 	case SCDeviceRequired:
 		return DeviceRequiredError{}
+	case SCMissingResult:
+		return IdentifyDidNotCompleteError{}
 	case SCSibkeyAlreadyExists:
 		return SibkeyAlreadyExistsError{}
 	case SCNoUIDelegation:
@@ -654,6 +660,32 @@ func (u *User) Export() *keybase1.User {
 	}
 }
 
+func (u *User) ExportToVersionVector(idTime keybase1.Time) keybase1.UserVersionVector {
+	idv, _ := u.GetIDVersion()
+	return keybase1.UserVersionVector{
+		Id:               idv,
+		SigHints:         u.GetSigHintsVersion(),
+		SigChain:         int64(u.GetSigChainLastKnownSeqno()),
+		LastIdentifiedAt: idTime,
+	}
+}
+
+func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys {
+	ret := keybase1.UserPlusKeys{
+		Uid:      u.GetUID(),
+		Username: u.GetName(),
+	}
+	ckf := u.GetComputedKeyFamily()
+	if ckf != nil {
+		// DeviceKeys is poorly named, so let's deprecate it.
+		ret.DeviceKeys = ckf.Export()
+		ret.Keys = ret.DeviceKeys
+	}
+
+	ret.Uvv = u.ExportToVersionVector(idTime)
+	return ret
+}
+
 //=============================================================================
 
 func (a PGPGenArg) ExportTo(ret *keybase1.PGPKeyGenArg) {
@@ -811,6 +843,14 @@ func (e DeviceRequiredError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDeviceRequired,
 		Name: "SC_DEVICE_REQUIRED",
+		Desc: e.Error(),
+	}
+}
+
+func (e IdentifyDidNotCompleteError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCMissingResult,
+		Name: "SC_MISSING_RESULT",
 		Desc: e.Error(),
 	}
 }

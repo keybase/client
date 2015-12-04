@@ -163,6 +163,50 @@
     "name" : "ClientType",
     "symbols" : [ "CLI_0", "GUI_1" ]
   }, {
+    "type" : "record",
+    "name" : "UserVersionVector",
+    "fields" : [ {
+      "name" : "id",
+      "type" : "long"
+    }, {
+      "name" : "sigHints",
+      "type" : "int"
+    }, {
+      "name" : "sigChain",
+      "type" : "long"
+    }, {
+      "name" : "cachedAt",
+      "type" : "Time"
+    }, {
+      "name" : "lastIdentifiedAt",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UserPlusKeys",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "deviceKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "keys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "uvv",
+      "type" : "UserVersionVector"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "ProofState",
     "symbols" : [ "NONE_0", "OK_1", "TEMP_FAILURE_2", "PERM_FAILURE_3", "LOOKING_4", "SUPERSEDED_5", "POSTED_6", "REVOKED_7" ]
@@ -317,6 +361,11 @@
       "name" : "mTime",
       "type" : "Time"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "TrackToken",
+    "fields" : [ ],
+    "typedef" : "string"
   } ],
   "messages" : {
     "track" : {

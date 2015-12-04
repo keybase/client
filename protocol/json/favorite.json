@@ -164,6 +164,50 @@
     "symbols" : [ "CLI_0", "GUI_1" ]
   }, {
     "type" : "record",
+    "name" : "UserVersionVector",
+    "fields" : [ {
+      "name" : "id",
+      "type" : "long"
+    }, {
+      "name" : "sigHints",
+      "type" : "int"
+    }, {
+      "name" : "sigChain",
+      "type" : "long"
+    }, {
+      "name" : "cachedAt",
+      "type" : "Time"
+    }, {
+      "name" : "lastIdentifiedAt",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UserPlusKeys",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "deviceKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "keys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "uvv",
+      "type" : "UserVersionVector"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "Folder",
     "doc" : "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested.",
     "fields" : [ {

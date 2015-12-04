@@ -322,19 +322,6 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID, cacheOK bool) (keybase
 		return up, fmt.Errorf("Nil UID")
 	}
 
-	if cacheOK {
-		up, err := g.UserCache.Get(uid)
-		if err == nil {
-			return *up, nil
-		}
-		if err != nil {
-			// not going to bail on cache error, just log it:
-			if _, ok := err.(NotFoundError); !ok {
-				g.Log.Debug("UserCache Get error: %s", err)
-			}
-		}
-	}
-
 	arg := NewLoadUserArg(g)
 	arg.UID = uid
 	arg.PublicKeyOptional = true
@@ -351,11 +338,6 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID, cacheOK bool) (keybase
 	up.Username = u.GetNormalizedName().String()
 	if u.GetComputedKeyFamily() != nil {
 		up.DeviceKeys = u.GetComputedKeyFamily().ExportDeviceKeys()
-	}
-
-	err = g.UserCache.Insert(&up)
-	if err != nil {
-		g.Log.Debug("UserCache Set error: %s", err)
 	}
 
 	return up, nil
