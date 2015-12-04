@@ -134,6 +134,9 @@ func (n *signupTerminalUI) Write(b []byte) (int, error) {
 func (n *signupTerminalUI) OutputWriter() io.Writer {
 	return n
 }
+func (n *signupTerminalUI) ErrorWriter() io.Writer {
+	return n
+}
 
 func (n *signupTerminalUI) PromptYesNo(pd libkb.PromptDescriptor, s string, def libkb.PromptDefault) (ret bool, err error) {
 	switch pd {
