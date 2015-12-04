@@ -52,19 +52,6 @@ export default {
       'auto': 1,
       'watchdog': 2,
       'launchd': 3
-    },
-    'InstallStatus': {
-      'unknown': 0,
-      'error': 1,
-      'notInstalled': 2,
-      'installed': 4
-    },
-    'InstallAction': {
-      'unknown': 0,
-      'none': 1,
-      'upgrade': 2,
-      'reinstall': 3,
-      'install': 4
     }
   },
   'crypto': {},
@@ -348,6 +335,35 @@ export default {
       'updateBroken': 4,
       'updateNewProofs': 5,
       'updateOk': 6
+    }
+  },
+  'install': {
+    'LogLevel': {
+      'none': 0,
+      'debug': 1,
+      'info': 2,
+      'notice': 3,
+      'warn': 4,
+      'error': 5,
+      'critical': 6,
+      'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
+    'InstallStatus': {
+      'unknown': 0,
+      'error': 1,
+      'notInstalled': 2,
+      'installed': 4
+    },
+    'InstallAction': {
+      'unknown': 0,
+      'none': 1,
+      'upgrade': 2,
+      'reinstall': 3,
+      'install': 4
     }
   },
   'kbcmf': {
@@ -1092,6 +1108,22 @@ export default {
       'none': 0,
       'yes': 1,
       'no': 2
+    }
+  },
+  'update': {
+    'LogLevel': {
+      'none': 0,
+      'debug': 1,
+      'info': 2,
+      'notice': 3,
+      'warn': 4,
+      'error': 5,
+      'critical': 6,
+      'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
     }
   },
   'user': {

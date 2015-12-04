@@ -1,5 +1,5 @@
 {
-  "protocol" : "config",
+  "protocol" : "install",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -163,100 +163,116 @@
     "name" : "ClientType",
     "symbols" : [ "CLI_0", "GUI_1" ]
   }, {
-    "type" : "record",
-    "name" : "GetCurrentStatusRes",
-    "fields" : [ {
-      "name" : "configured",
-      "type" : "boolean"
-    }, {
-      "name" : "registered",
-      "type" : "boolean"
-    }, {
-      "name" : "loggedIn",
-      "type" : "boolean"
-    }, {
-      "name" : "user",
-      "type" : [ "null", "User" ]
-    } ]
+    "type" : "enum",
+    "name" : "InstallStatus",
+    "doc" : "Install status describes state of install for a component or service.",
+    "symbols" : [ "UNKNOWN_0", "ERROR_1", "NOT_INSTALLED_2", "INSTALLED_4" ]
   }, {
     "type" : "enum",
-    "name" : "ForkType",
-    "symbols" : [ "NONE_0", "AUTO_1", "WATCHDOG_2", "LAUNCHD_3" ]
+    "name" : "InstallAction",
+    "symbols" : [ "UNKNOWN_0", "NONE_1", "UPGRADE_2", "REINSTALL_3", "INSTALL_4" ]
   }, {
     "type" : "record",
-    "name" : "Config",
+    "name" : "ServiceStatus",
     "fields" : [ {
-      "name" : "serverURI",
-      "type" : "string"
-    }, {
-      "name" : "socketFile",
+      "name" : "version",
       "type" : "string"
     }, {
       "name" : "label",
       "type" : "string"
     }, {
-      "name" : "runMode",
+      "name" : "pid",
       "type" : "string"
     }, {
-      "name" : "gpgExists",
-      "type" : "boolean"
-    }, {
-      "name" : "gpgPath",
+      "name" : "lastExitStatus",
       "type" : "string"
     }, {
+      "name" : "bundleVersion",
+      "type" : "string"
+    }, {
+      "name" : "installStatus",
+      "type" : "InstallStatus"
+    }, {
+      "name" : "installAction",
+      "type" : "InstallAction"
+    }, {
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ServicesStatus",
+    "fields" : [ {
+      "name" : "service",
+      "type" : {
+        "type" : "array",
+        "items" : "ServiceStatus"
+      }
+    }, {
+      "name" : "kbfs",
+      "type" : {
+        "type" : "array",
+        "items" : "ServiceStatus"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FuseMountInfo",
+    "fields" : [ {
+      "name" : "path",
+      "type" : "string"
+    }, {
+      "name" : "fstype",
+      "type" : "string"
+    }, {
+      "name" : "output",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "FuseStatus",
+    "fields" : [ {
       "name" : "version",
+      "type" : "string"
+    }, {
+      "name" : "bundleVersion",
+      "type" : "string"
+    }, {
+      "name" : "kextID",
       "type" : "string"
     }, {
       "name" : "path",
       "type" : "string"
     }, {
-      "name" : "configPath",
-      "type" : "string"
-    }, {
-      "name" : "versionShort",
-      "type" : "string"
-    }, {
-      "name" : "versionFull",
-      "type" : "string"
-    }, {
-      "name" : "isAutoForked",
+      "name" : "kextStarted",
       "type" : "boolean"
     }, {
-      "name" : "forkType",
-      "type" : "ForkType"
+      "name" : "installStatus",
+      "type" : "InstallStatus"
+    }, {
+      "name" : "installAction",
+      "type" : "InstallAction"
+    }, {
+      "name" : "mountInfos",
+      "type" : {
+        "type" : "array",
+        "items" : "FuseMountInfo"
+      }
+    }, {
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ComponentStatus",
+    "doc" : "ComponentStatus defines a components status.\n    Names can be \"cli,\" \"service\", \"kbfs\".",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "status",
+      "type" : "Status"
     } ]
   } ],
-  "messages" : {
-    "getCurrentStatus" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "GetCurrentStatusRes"
-    },
-    "getConfig" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "Config"
-    },
-    "setUserConfig" : {
-      "doc" : "Change user config.\n    For example, to update primary picture source:\n      key=picture.source, value=twitter (or github)",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "username",
-        "type" : "string"
-      }, {
-        "name" : "key",
-        "type" : "string"
-      }, {
-        "name" : "value",
-        "type" : "string"
-      } ],
-      "response" : "null"
-    }
-  }
+  "messages" : { }
 }

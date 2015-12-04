@@ -196,3 +196,12 @@ func GetKBFSClient(g *libkb.GlobalContext) (cli keybase1.KbfsClient, err error) 
 	cli = keybase1.KbfsClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetUpdateClient(g *libkb.GlobalContext) (cli keybase1.UpdateClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.UpdateClient{Cli: rcli}
+	return cli, nil
+}

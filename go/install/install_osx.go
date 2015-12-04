@@ -3,7 +3,7 @@
 
 // +build darwin
 
-package client
+package install
 
 import (
 	"fmt"
@@ -32,7 +32,7 @@ const (
 	AppKBFSLabel     ServiceLabel = "keybase.kbfs"
 )
 
-func keybaseServiceStatus(g *libkb.GlobalContext, label string) keybase1.ServiceStatus {
+func KeybaseServiceStatus(g *libkb.GlobalContext, label string) keybase1.ServiceStatus {
 	if label == "" {
 		label = defaultServiceLabel(g.Env.GetRunMode())
 	}
@@ -44,14 +44,14 @@ func keybaseServiceStatus(g *libkb.GlobalContext, label string) keybase1.Service
 		return st
 	}
 
-	installStatus, installAction, status := installStatus(st.Version, st.BundleVersion, st.LastExitStatus)
+	installStatus, installAction, status := Status(st.Version, st.BundleVersion, st.LastExitStatus)
 	st.InstallStatus = installStatus
 	st.InstallAction = installAction
 	st.Status = status
 	return st
 }
 
-func kbfsServiceStatus(g *libkb.GlobalContext, label string) keybase1.ServiceStatus {
+func KBFSServiceStatus(g *libkb.GlobalContext, label string) keybase1.ServiceStatus {
 	if label == "" {
 		label = defaultKBFSLabel(g.Env.GetRunMode())
 	}
@@ -68,7 +68,7 @@ func kbfsServiceStatus(g *libkb.GlobalContext, label string) keybase1.ServiceSta
 		return st
 	}
 
-	installStatus, installAction, status := installStatus(st.Version, st.BundleVersion, st.LastExitStatus)
+	installStatus, installAction, status := Status(st.Version, st.BundleVersion, st.LastExitStatus)
 	st.InstallStatus = installStatus
 	st.InstallAction = installAction
 	st.Status = status
@@ -79,7 +79,7 @@ func errorStatus(name string, desc string) keybase1.Status {
 	return keybase1.Status{Code: libkb.SCGeneric, Name: name, Desc: desc}
 }
 
-func installStatus(version string, bundleVersion string, lastExitStatus string) (keybase1.InstallStatus, keybase1.InstallAction, keybase1.Status) {
+func Status(version string, bundleVersion string, lastExitStatus string) (keybase1.InstallStatus, keybase1.InstallAction, keybase1.Status) {
 	installStatus := keybase1.InstallStatus_UNKNOWN
 	installAction := keybase1.InstallAction_UNKNOWN
 	if version != "" && bundleVersion != "" {
@@ -184,7 +184,7 @@ func serviceStatusesFromLaunchd(ls []launchd.Service) []keybase1.ServiceStatus {
 	return c
 }
 
-func listServices() (*keybase1.ServicesStatus, error) {
+func ListServices() (*keybase1.ServicesStatus, error) {
 	services, err := launchd.ListServices([]string{"keybase.service", "homebrew.mxcl.keybase"})
 	if err != nil {
 		return nil, err
@@ -199,7 +199,7 @@ func listServices() (*keybase1.ServicesStatus, error) {
 		Kbfs:    serviceStatusesFromLaunchd(kbfs)}, nil
 }
 
-func showServices(out io.Writer) error {
+func ShowServices(out io.Writer) error {
 	err := launchd.ShowServices([]string{"keybase.service", "homebrew.mxcl.keybase"}, "Keybase", out)
 	if err != nil {
 		return err
@@ -211,42 +211,7 @@ func showServices(out io.Writer) error {
 	return nil
 }
 
-func DiagnoseSocketError(ui libkb.UI, err error) {
-	t := ui.GetTerminalUI()
-	services, err := launchd.ListServices([]string{"keybase."})
-	if err != nil {
-		t.Printf("Error checking launchd services: %v\n\n", err)
-		return
-	}
-
-	if len(services) == 0 {
-		t.Printf("\nThere are no Keybase services installed. You may need to re-install.\n")
-	} else if len(services) > 1 {
-		t.Printf("\nWe found multiple services:\n")
-		for _, service := range services {
-			t.Printf("  " + service.StatusDescription() + "\n")
-		}
-		t.Printf("\n")
-	} else if len(services) == 1 {
-		service := services[0]
-		status, err := service.LoadStatus()
-		if err != nil {
-			t.Printf("Error checking service status(%s): %v\n\n", service.Label(), err)
-		} else {
-			if status == nil || !status.IsRunning() {
-				t.Printf("\nWe found a Keybase service (%s) but it's not running.\n", service.Label())
-				cmd := fmt.Sprintf("keybase launchd start %s", service.Label())
-				t.Printf("You might try starting it: " + cmd + "\n\n")
-			} else {
-				t.Printf("\nWe couldn't connect but there is a Keybase service (%s) running (%s).\n\n", status.Label(), status.Pid())
-				cmd := fmt.Sprintf("keybase launchd restart %s", service.Label())
-				t.Printf("You might try restarting it: " + cmd + "\n\n")
-			}
-		}
-	}
-}
-
-func defaultLaunchdEnvVars(g *libkb.GlobalContext, label string) map[string]string {
+func DefaultLaunchdEnvVars(g *libkb.GlobalContext, label string) map[string]string {
 	envVars := make(map[string]string)
 	envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
 	envVars["KEYBASE_LABEL"] = label
@@ -276,7 +241,7 @@ func serviceInfoPath(g *libkb.GlobalContext) string {
 func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.ServiceStatus, error) {
 	label := defaultServiceLabel(g.Env.GetRunMode())
 	plistArgs := []string{"service"}
-	envVars := defaultLaunchdEnvVars(g, label)
+	envVars := DefaultLaunchdEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
 	err := launchd.Install(plist, ioutil.Discard)
@@ -331,7 +296,7 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 	}
 
 	plistArgs := []string{"-mount-type=force", mountPath}
-	envVars := defaultLaunchdEnvVars(g, label)
+	envVars := DefaultLaunchdEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars)
 	err = launchd.Install(plist, ioutil.Discard)
@@ -465,7 +430,7 @@ func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 	}
 	g.Log.Debug("Using binPath: %s", bp)
 	g.Log.Info("Checking service")
-	keybaseStatus := keybaseServiceStatus(g, "")
+	keybaseStatus := KeybaseServiceStatus(g, "")
 	g.Log.Info("Service: %s (Action: %s)", keybaseStatus.InstallStatus.String(), keybaseStatus.InstallAction.String())
 	if keybaseStatus.NeedsInstall() || force {
 		g.Log.Info("Installing Keybase service")
@@ -486,7 +451,7 @@ func installKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
 		return err
 	}
 	g.Log.Info("Checking KBFS")
-	kbfsStatus := kbfsServiceStatus(g, "")
+	kbfsStatus := KBFSServiceStatus(g, "")
 	g.Log.Info("KBFS: %s (Action: %s)", kbfsStatus.InstallStatus.String(), kbfsStatus.InstallAction.String())
 	if kbfsStatus.NeedsInstall() || force {
 		g.Log.Info("Installing KBFS")

@@ -69,7 +69,7 @@ func ErrToOk(err error) string {
 	return "ERROR: " + err.Error()
 }
 
-// exists returns whether the given file or directory exists or not
+// FileExists returns whether the given file or directory exists or not
 func FileExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -193,11 +193,12 @@ type SafeWriter interface {
 func SafeWriteToFile(t SafeWriter, mode os.FileMode) error {
 	fn := t.GetFilename()
 	G.Log.Debug(fmt.Sprintf("+ Writing to %s", fn))
-	tmpfn, tmp, err := TempFile(fn, mode)
+	tmpfn, tmp, err := OpenTempFile(fn, "", mode)
 	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil {
 		return err
 	}
+	defer tmp.Close()
 
 	_, err = t.WriteTo(tmp)
 	if err == nil {
