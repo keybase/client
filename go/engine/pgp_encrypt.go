@@ -116,9 +116,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 	}
 
 	kfarg := &PGPKeyfinderArg{
-		Users:        usernames,
-		SkipTrack:    e.arg.SkipTrack,
-		TrackOptions: e.arg.TrackOptions,
+		Usernames: usernames,
 	}
 
 	kf := NewPGPKeyfinder(kfarg, e.G())

@@ -68,7 +68,7 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 
 	e.G().Log.Debug("| ScanKeys")
 
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
+	sk, err := NewScanKeys(ctx.SecretUI, e.G())
 	if err != nil {
 		return err
 	}

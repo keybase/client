@@ -107,7 +107,7 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 
 // runDetached verifies a detached signature
 func (e *PGPVerify) runDetached(ctx *Context) error {
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
+	sk, err := NewScanKeys(ctx.SecretUI, e.G())
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 		return err
 	}
 
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
+	sk, err := NewScanKeys(ctx.SecretUI, e.G())
 	if err != nil {
 		return err
 	}

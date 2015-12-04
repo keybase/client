@@ -6,7 +6,6 @@ package libkb
 import (
 	"fmt"
 	"regexp"
-	"runtime/debug"
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -297,7 +296,6 @@ func (a AssertionUID) Check() (err error) {
 
 func (a AssertionSocial) Check() (err error) {
 	if ok, found := _socialNetworks[strings.ToLower(a.Key)]; !ok || !found {
-		debug.PrintStack()
 		err = fmt.Errorf("Unknown social network: %s", a.Key)
 	}
 	return
