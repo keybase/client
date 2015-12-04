@@ -5,21 +5,20 @@ import {showDevTools} from '../local-debug.desktop'
 export default {
   'keybase.1.secretUi.getPassphrase': (payload, response) => {
     console.log('Asked for passphrase')
-    /*
-    Payload looks like:
-    { pinentry:
-      { features:
-        { secretStorage:
-          { allow: true, label: 'store your test passphrase' }
-        },
-        prompt: 'Enter a test passphrase',
-        retryLabel: '',
-        windowTitle: 'Keybase Test Passphrase' },
-        sessionID: 0
+
+    // filtered features
+    let features = {}
+    for (const feature in payload.pinentry.features) {
+      if (payload.pinentry.features[feature].allow) {
+        features[feature] = payload.pinentry.features[feature]
       }
     }
-    */
-    const props = payload.pinentry
+
+    const props = {
+      ...payload.pinentry,
+      features
+    }
+
     let pinentryWindow = new BrowserWindow({
       width: 513, height: 230 + 20 /* TEMP workaround for header mouse clicks in osx */,
       resizable: true,
@@ -63,20 +62,7 @@ export default {
       if ('error' in arg) {
         response.error(arg)
       } else {
-        let result = {passphrase: arg.passphrase}
-
-        if ('secretStorage' in arg) {
-          result.storeSecret = arg.secretStorage
-        } else {
-          result.storeSecret = false
-        }
-        /* TODO something nice like this */
-        /*
-        for (const feature in arg.features) {
-          result[feature] = arg.features[feature]
-        }
-        */
-        response.result(result)
+        response.result({passphrase: arg.passphrase, ...arg.features})
         console.log('Sent passphrase back')
       }
 

@@ -9,10 +9,24 @@ export default class PinentryRender extends Component {
   componentWillMount () {
     this.state = {
       passphrase: '',
-      features: {}
+      features: {},
+      showTyping: false
     }
     for (const feature in this.props.features) {
-      this.state.features[feature] = this.props.features[feature].allow
+      this.state.features[feature] = this.props.features[feature].defaultValue
+    }
+  }
+
+  onCheck (feature, checked) {
+    this.setState({
+      features: {
+        ...this.state.features,
+        [feature]: checked
+      }
+    })
+
+    if (feature === 'showTyping') {
+      this.setState({showTyping: checked})
     }
   }
 
@@ -32,7 +46,7 @@ export default class PinentryRender extends Component {
               <div style={styles.checkContainer}>
                 {Object.keys(this.props.features).map(feature => {
                   return (
-                  <div style={styles.checkWrapper}>
+                  <div>
                     <Checkbox
                       labelStyle={styles.checkLabel}
                       iconStyle={styles.checkIcon}
@@ -41,8 +55,8 @@ export default class PinentryRender extends Component {
                       value={feature}
                       label={this.props.features[feature].label}
                       defaultChecked={this.props.features[feature].allow}
-                      style={{marginTop: 30}}
-                      onCheck={(_, checked) => { this.state.features[feature] = checked }}/>
+                      style={styles.checkbox}
+                      onCheck={(_, checked) => this.onCheck(feature, checked)}/>
                   </div>
                   )
                 })}
@@ -52,12 +66,14 @@ export default class PinentryRender extends Component {
                 onChange={e => this.setState({passphrase: e.target.value})}
                 floatingLabelText='Your passphrase'
                 value={this.state.passphrase}
+                type={this.state.showTyping ? 'text' : 'password'}
                 autoFocus />
+              <p style={styles.error}>{this.props.retryLabel}</p>
             </div>
           </div>
           <div style={styles.action}>
-            <FlatButton style={commonStyles.secondaryButton} label='Cancel' onClick={() => this.props.onCancel()} />
-            <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onSubmit(this.state.passphrase, this.state.features)} />
+            <FlatButton style={commonStyles.secondaryButton} label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
+            <FlatButton style={commonStyles.primaryButton} label={this.props.submitLabel || 'Close'} primary onClick={() => this.props.onSubmit(this.state.passphrase, this.state.features)} />
           </div>
         </div>
       </div>
@@ -71,6 +87,8 @@ PinentryRender.propTypes = {
   features: React.PropTypes.object.isRequired,
   prompt: React.PropTypes.string.isRequired,
   retryLabel: React.PropTypes.string.isRequired,
+  cancelLabel: React.PropTypes.string,
+  submitLabel: React.PropTypes.string,
   windowTitle: React.PropTypes.string.isRequired
 }
 
@@ -91,8 +109,13 @@ const styles = {
     paddingLeft: 9,
     paddingRight: 15,
     paddingTop: 14,
-    paddingBottom: 27,
+    paddingBottom: 6,
     backgroundColor: colors.greyBackground
+  },
+  error: {
+    height: 21,
+    color: colors.error,
+    margin: 0
   },
   body: {
     ...commonStyles.flexBoxColumn,
@@ -121,6 +144,10 @@ const styles = {
     position: 'absolute',
     right: 0,
     top: 20
+  },
+  checkbox: {
+    marginTop: 30,
+    marginLeft: 10
   },
   checkLabel: {
     ...commonStyles.noWrapCheckboxLabel,

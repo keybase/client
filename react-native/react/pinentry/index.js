@@ -24,8 +24,10 @@ export default connect(
         windowTitle: 'Keybase',
         promptText: 'Please enter the Keybase passphrase for cjb (12+ characters)',
         features: {
-          secretStorage: {
-            value: true,
+          storeSecret: {
+            defaultValue: true,
+            allow: true,
+            readonly: false,
             label: 'Store my passphrase for later use'
           },
           secondFeature: {

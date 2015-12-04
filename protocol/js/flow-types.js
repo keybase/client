@@ -144,6 +144,10 @@ export type block_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2
 
 export type LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type block_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type block_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -247,6 +251,8 @@ export type BTC_Stream = {
 
 export type BTC_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type BTC_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type config_Time = {
 }
 
@@ -317,6 +323,8 @@ export type config_Stream = {
 }
 
 export type config_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type config_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type config_GetCurrentStatusRes = {
   configured: boolean;
@@ -535,6 +543,8 @@ export type ctl_Stream = {
 
 export type ctl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type ctl_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type ctl_ExitCode = 0 /* 'OK_0' */ | 1 /* 'NOTOK_2' */ | 2 /* 'RESTART_4' */
 
 export type ExitCode = 0 /* 'OK_0' */ | 1 /* 'NOTOK_2' */ | 2 /* 'RESTART_4' */
@@ -618,6 +628,8 @@ export type delegateUiCtl_Stream = {
 
 export type delegateUiCtl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type delegateUiCtl_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type device_Time = {
 }
 
@@ -689,6 +701,8 @@ export type device_Stream = {
 
 export type device_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type device_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type favorite_Time = {
 }
 
@@ -759,6 +773,8 @@ export type favorite_Stream = {
 }
 
 export type favorite_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type favorite_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type favorite_Folder = {
   name: string;
@@ -844,8 +860,6 @@ export type gpgUi_Stream = {
 export type gpgUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type gpgUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
-
-export type ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type gpgUi_GPGKey = {
   algorithm: string;
@@ -1147,6 +1161,8 @@ export type identifyUi_Stream = {
 
 export type identifyUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type identifyUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type identifyUi_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
 export type identifyUi_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
@@ -1401,13 +1417,15 @@ export type kbcmf_Stream = {
 
 export type kbcmf_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type kbcmf_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type kbcmf_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
 export type kbcmf_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
 
 export type kbcmf_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
 
-export type kbcmf_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */
+export type kbcmf_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
 export type kbcmf_TrackDiff = {
   type: TrackDiffType;
@@ -1569,6 +1587,8 @@ export type Kex2Provisionee_Stream = {
 
 export type Kex2Provisionee_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type Kex2Provisionee_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type Kex2Provisionee_PassphraseStream = {
   passphraseStream: bytes;
   generation: int;
@@ -1667,6 +1687,8 @@ export type logUi_Stream = {
 }
 
 export type logUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type logUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type login_Time = {
 }
@@ -1821,6 +1843,8 @@ export type loginUi_Stream = {
 }
 
 export type loginUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type loginUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type metadata_Time = {
 }
@@ -1993,6 +2017,8 @@ export type metadataUpdate_Stream = {
 
 export type metadataUpdate_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type metadataUpdate_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type metadataUpdate_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -2068,6 +2094,8 @@ export type notifyCtl_Stream = {
 }
 
 export type notifyCtl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type notifyCtl_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type notifyCtl_NotificationChannels = {
   session: boolean;
@@ -2164,6 +2192,8 @@ export type NotifyUsers_Stream = {
 
 export type NotifyUsers_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type NotifyUsers_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type pgp_Time = {
 }
 
@@ -2234,6 +2264,8 @@ export type pgp_Stream = {
 }
 
 export type pgp_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type pgp_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type pgp_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
@@ -2477,6 +2509,8 @@ export type prove_Stream = {
 
 export type prove_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type prove_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type prove_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
 export type prove_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
@@ -2631,6 +2665,8 @@ export type proveUi_Stream = {
 
 export type proveUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type proveUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type proveUi_PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
 
 export type PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
@@ -2705,6 +2741,8 @@ export type provisionUi_Stream = {
 }
 
 export type provisionUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type provisionUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type provisionUi_ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASSPHRASE_2' */ | 3 /* 'GPG_IMPORT_3' */ | 4 /* 'GPG_SIGN_4' */
 
@@ -2795,6 +2833,8 @@ export type quota_Stream = {
 
 export type quota_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type quota_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type quota_VerifySessionRes = {
   uid: UID;
   sid: string;
@@ -2880,6 +2920,8 @@ export type revoke_Stream = {
 
 export type revoke_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type revoke_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type secretUi_Time = {
 }
 
@@ -2951,6 +2993,8 @@ export type secretUi_Stream = {
 
 export type secretUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type secretUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type secretUi_SecretEntryArg = {
   desc: string;
   prompt: string;
@@ -2993,27 +3037,35 @@ export type GetPassphraseRes = {
   storeSecret: boolean;
 }
 
-export type secretUi_SecretStorageFeature = {
+export type secretUi_Feature = {
   allow: boolean;
+  defaultValue: boolean;
+  readonly: boolean;
   label: string;
 }
 
-export type SecretStorageFeature = {
+export type Feature = {
   allow: boolean;
+  defaultValue: boolean;
+  readonly: boolean;
   label: string;
 }
 
 export type secretUi_GUIEntryFeatures = {
-  secretStorage: SecretStorageFeature;
+  storeSecret: Feature;
+  showTyping: Feature;
 }
 
 export type GUIEntryFeatures = {
-  secretStorage: SecretStorageFeature;
+  storeSecret: Feature;
+  showTyping: Feature;
 }
 
 export type secretUi_GUIEntryArg = {
   windowTitle: string;
   prompt: string;
+  submitLabel: string;
+  cancelLabel: string;
   retryLabel: string;
   features: GUIEntryFeatures;
 }
@@ -3021,6 +3073,8 @@ export type secretUi_GUIEntryArg = {
 export type GUIEntryArg = {
   windowTitle: string;
   prompt: string;
+  submitLabel: string;
+  cancelLabel: string;
   retryLabel: string;
   features: GUIEntryFeatures;
 }
@@ -3095,6 +3149,8 @@ export type session_Stream = {
 }
 
 export type session_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type session_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type session_Session = {
   uid: UID;
@@ -3183,6 +3239,8 @@ export type signup_Stream = {
 
 export type signup_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type signup_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type signup_SignupRes = {
   passphraseOk: boolean;
   postOk: boolean;
@@ -3265,6 +3323,8 @@ export type sigs_Stream = {
 }
 
 export type sigs_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type sigs_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type sigs_Sig = {
   seqno: int;
@@ -3395,6 +3455,8 @@ export type streamUi_Stream = {
 
 export type streamUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type streamUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type test_Test = {
   reply: string;
 }
@@ -3473,6 +3535,8 @@ export type track_Stream = {
 }
 
 export type track_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type track_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type track_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
@@ -3608,6 +3672,8 @@ export type ui_Stream = {
 
 export type ui_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
+export type ui_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
 export type ui_PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
 
 export type PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
@@ -3682,6 +3748,8 @@ export type user_Stream = {
 }
 
 export type user_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type user_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type user_Tracker = {
   tracker: UID;

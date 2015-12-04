@@ -17,11 +17,17 @@ class PinentryWrapper extends Component {
   }
 
   onSubmit (passphrase, features) {
-    let result = {passphrase: passphrase}
-    for (const feature in features) {
-      result[feature] = features[feature]
+    // only send the features with respond back
+    const payloadFeatures = this.state.payload && this.state.payload.features
+
+    let toRespond = {}
+    for (const f in payloadFeatures) {
+      if (payloadFeatures[f].allow && !payloadFeatures[f].readonly) {
+        toRespond[f] = features[f]
+      }
     }
-    ipc.send('pinentryResult', result)
+
+    ipc.send('pinentryResult', {passphrase, features: toRespond})
   }
 
   onCancel () {
@@ -31,12 +37,14 @@ class PinentryWrapper extends Component {
   render () {
     if ('payload' in this.state) {
       return <Pinentry
-        onSubmit={this.onSubmit}
-        onCancel={this.onCancel}
+        onSubmit={(passphrase, features) => this.onSubmit(passphrase, features)}
+        onCancel={() => this.onCancel()}
         features={this.state.payload.features}
         prompt={this.state.payload.prompt}
         retryLabel={this.state.payload.retryLabel}
         windowTitle={this.state.payload.windowTitle}
+        cancelLabel={this.state.payload.cancelLabel}
+        submitLabel={this.state.payload.submitLabel}
       />
     }
     return <div/>

@@ -160,6 +160,10 @@
     "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
   }, {
     "type" : "enum",
+    "name" : "ClientType",
+    "symbols" : [ "CLI_0", "GUI_1" ]
+  }, {
+    "type" : "enum",
     "name" : "ProofState",
     "symbols" : [ "NONE_0", "OK_1", "TEMP_FAILURE_2", "PERM_FAILURE_3", "LOOKING_4", "SUPERSEDED_5", "POSTED_6", "REVOKED_7" ]
   }, {
@@ -174,7 +178,7 @@
   }, {
     "type" : "enum",
     "name" : "TrackDiffType",
-    "symbols" : [ "NONE_0", "ERROR_1", "CLASH_2", "REVOKED_3", "UPGRADED_4", "NEW_5", "REMOTE_FAIL_6", "REMOTE_WORKING_7", "REMOTE_CHANGED_8" ]
+    "symbols" : [ "NONE_0", "ERROR_1", "CLASH_2", "REVOKED_3", "UPGRADED_4", "NEW_5", "REMOTE_FAIL_6", "REMOTE_WORKING_7", "REMOTE_CHANGED_8", "NEW_ELDEST_9" ]
   }, {
     "type" : "record",
     "name" : "TrackDiff",
