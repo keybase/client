@@ -98,6 +98,7 @@ func resolveUsername(au AssertionURL) (res ResolveResult) {
 
 	ha := HTTPArgsFromKeyValuePair(key, S{val})
 	ha.Add("multi", I{1})
+	ha.Add("fields", S{"basics,public_keys,pictures"})
 	ares, res.err = G.API.Get(APIArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,

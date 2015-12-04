@@ -689,6 +689,7 @@ func (c ChainLink) ToMerkleTriple() *MerkleTriple {
 	return &MerkleTriple{
 		Seqno:  c.GetSeqno(),
 		LinkID: c.id,
+		SigID:  c.GetSigID(),
 	}
 }
 
