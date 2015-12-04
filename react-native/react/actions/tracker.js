@@ -88,14 +88,15 @@ export function onFollowHelp (username: string): Action {
 
 function trackUser (username: string, state: {tracker: RootTrackerState}): Promise<boolean> {
   const trackers = state.tracker.trackers
-  const shouldFollow = trackers[username] && trackers[username].shouldFollow
-  const trackToken = trackers[username] && trackers[username].trackToken
+  const trackerState = trackers[username]
+  const {shouldFollow, trackToken} = (trackerState || {})
+
   const options: TrackOptions = {
     localOnly: false,
     bypassConfirm: false
   }
 
-  if (trackToken && shouldFollow) {
+  if (trackerState && trackToken && shouldFollow) {
     return new Promise((resolve, reject) => {
       engine.rpc('track.trackWithToken', {trackToken, options}, {}, (err, response) => {
         if (err) {
