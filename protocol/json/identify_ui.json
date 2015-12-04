@@ -478,6 +478,12 @@
     }, {
       "name" : "twitter",
       "type" : "string"
+    }, {
+      "name" : "youFollowThem",
+      "type" : "boolean"
+    }, {
+      "name" : "theyFollowYou",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "record",

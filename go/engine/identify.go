@@ -329,7 +329,7 @@ func (e *Identify) DidShortCircuit() bool {
 func (e *Identify) displayUserCard(ctx *Context) {
 	arg := libkb.APIArg{
 		Endpoint:     "user/card",
-		NeedSession:  false,
+		NeedSession:  e.me != nil,
 		Contextified: libkb.NewContextified(e.G()),
 		Args:         libkb.HTTPArgs{"uid": libkb.S{Val: e.user.GetUID().String()}},
 	}
@@ -347,6 +347,8 @@ func (e *Identify) displayUserCard(ctx *Context) {
 			Website  string `json:"website"`
 			Twitter  string `json:"twitter"`
 		} `json:"profile"`
+		YouFollowThem bool `json:"you_follow_them"`
+		TheyFollowYou bool `json:"they_follow_you"`
 	}
 
 	if err := e.G().API.GetDecode(arg, &card); err != nil {
@@ -354,4 +356,25 @@ func (e *Identify) displayUserCard(ctx *Context) {
 		return
 	}
 
+	e.G().Log.Debug("user card: %+v", card)
+
+	uid, err := keybase1.UIDFromString(card.Profile.UID)
+	if err != nil {
+		e.G().Log.Warning("card profile uid error: %s", err)
+	}
+
+	kcard := keybase1.UserCard{
+		Following:     card.FollowSummary.Following,
+		Followers:     card.FollowSummary.Followers,
+		Uid:           uid,
+		FullName:      card.Profile.FullName,
+		Location:      card.Profile.Location,
+		Bio:           card.Profile.Bio,
+		Website:       card.Profile.Website,
+		Twitter:       card.Profile.Twitter,
+		YouFollowThem: card.YouFollowThem,
+		TheyFollowYou: card.TheyFollowYou,
+	}
+
+	ctx.IdentifyUI.DisplayUserCard(kcard)
 }

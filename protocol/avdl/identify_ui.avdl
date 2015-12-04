@@ -69,6 +69,8 @@ protocol identifyUi {
     string bio;
     string website;
     string twitter;
+    boolean youFollowThem;
+    boolean theyFollowYou;
   }
 
   record ConfirmResult {

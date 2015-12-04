@@ -1603,14 +1603,16 @@ type LinkCheckResult struct {
 }
 
 type UserCard struct {
-	Following int    `codec:"following" json:"following"`
-	Followers int    `codec:"followers" json:"followers"`
-	Uid       UID    `codec:"uid" json:"uid"`
-	FullName  string `codec:"fullName" json:"fullName"`
-	Location  string `codec:"location" json:"location"`
-	Bio       string `codec:"bio" json:"bio"`
-	Website   string `codec:"website" json:"website"`
-	Twitter   string `codec:"twitter" json:"twitter"`
+	Following     int    `codec:"following" json:"following"`
+	Followers     int    `codec:"followers" json:"followers"`
+	Uid           UID    `codec:"uid" json:"uid"`
+	FullName      string `codec:"fullName" json:"fullName"`
+	Location      string `codec:"location" json:"location"`
+	Bio           string `codec:"bio" json:"bio"`
+	Website       string `codec:"website" json:"website"`
+	Twitter       string `codec:"twitter" json:"twitter"`
+	YouFollowThem bool   `codec:"youFollowThem" json:"youFollowThem"`
+	TheyFollowYou bool   `codec:"theyFollowYou" json:"theyFollowYou"`
 }
 
 type ConfirmResult struct {

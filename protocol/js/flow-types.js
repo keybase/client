@@ -1345,6 +1345,8 @@ export type identifyUi_UserCard = {
   bio: string;
   website: string;
   twitter: string;
+  youFollowThem: boolean;
+  theyFollowYou: boolean;
 }
 
 export type UserCard = {
@@ -1356,6 +1358,8 @@ export type UserCard = {
   bio: string;
   website: string;
   twitter: string;
+  youFollowThem: boolean;
+  theyFollowYou: boolean;
 }
 
 export type identifyUi_ConfirmResult = {
