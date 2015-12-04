@@ -25,10 +25,11 @@ export type TrackerState = {
   userInfo: UserInfo,
   proofs: Array<Proof>,
   closed: boolean,
+  trackToken: ?string,
   lastTrack: ?TrackSummary
 }
 
-type State = {
+export type State = {
   serverStarted: boolean,
   trackers: {[key: string]: TrackerState}
 }
@@ -50,6 +51,7 @@ function initialTrackerState (username: string): TrackerState {
     reason: '', // TODO: get the reason
     closed: true,
     lastTrack: null,
+    trackToken: null,
     userInfo: {
       fullname: '', // TODO get this info,
       followersCount: -1,
@@ -72,6 +74,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         shouldFollow
+      }
+    case Constants.updateTrackToken:
+      return {
+        ...state,
+        trackToken: action.payload && action.payload.trackToken
       }
     case Constants.onCloseFromActionBar:
       return {
@@ -195,8 +202,7 @@ export default function (state: State = initialState, action: Action): State {
       ...state,
       trackers: {
         ...state.trackers,
-        // $FlowIssue computed
-        [action.payload.username]: newTrackerState
+        [username]: newTrackerState
       }
     }
   } else {

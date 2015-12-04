@@ -6,12 +6,14 @@ import engine from '../engine'
 import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 
+import type {State as RootTrackerState} from '../reducers/tracker'
+
 import type {CallMap} from '../engine/call-map-middleware'
 import type {UserSummary} from '../constants/types/flow-types'
 import type {Action, Dispatch} from '../constants/types/flux'
 import type {UserInfo} from '../tracker/bio.render.types'
 
-import type {Identity, IdentifyKey, TrackSummary, User, Cryptocurrency, IdentifyOutcome, RemoteProof, LinkCheckResult} from '../constants/types/flow-types'
+import type {Identity, IdentifyKey, TrackSummary, User, Cryptocurrency, IdentifyOutcome, RemoteProof, LinkCheckResult, TrackOptions} from '../constants/types/flow-types'
 
 // TODO make actions for all the call back stuff.
 
@@ -84,10 +86,40 @@ export function onFollowHelp (username: string): Action {
   }
 }
 
-export function onCloseFromActionBar (username: string): Action {
-  return {
-    type: Constants.onCloseFromActionBar,
-    payload: {username}
+function trackUser (username: string, state: {tracker: RootTrackerState}): Promise<boolean> {
+  const trackers = state.tracker.trackers
+  const shouldFollow = trackers[username] && trackers[username].shouldFollow
+  const trackToken = trackers[username] && trackers[username].trackToken
+  const options: TrackOptions = {
+    localOnly: false,
+    bypassConfirm: false
+  }
+
+  if (trackToken && shouldFollow) {
+    return new Promise((resolve, reject) => {
+      engine.rpc('track.trackWithToken', {trackToken, options}, {}, (err, response) => {
+        if (err) {
+          console.log('error: Track with token: ', err)
+          reject(err)
+        }
+
+        console.log('Finished tracking', response)
+        resolve(true)
+      })
+    })
+  }
+
+  return Promise.resolve(false)
+}
+
+export function onCloseFromActionBar (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+  return (dispatch, getState) => {
+    trackUser(username, getState())
+
+    dispatch({
+      type: Constants.onCloseFromActionBar,
+      payload: {username}
+    })
   }
 }
 
@@ -205,6 +237,9 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     displayCryptocurrency: (params: {sessionID: number, c: Cryptocurrency}) => {
     },
     reportTrackToken: (params: {sessionID: number, trackToken: string}) => {
+      const username = sessionIDToUsername[params.sessionID]
+      const {trackToken} = params
+      dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
     },
     confirm: (params: {sessionID: number, outcome: IdentifyOutcome}): bool => {
       return false

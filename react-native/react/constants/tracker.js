@@ -37,3 +37,5 @@ export const onFollowHelp = 'tracker:onFollowHelp'
 export const onFollowChecked = 'tracker:onFollowChecked'
 
 export const decideToShowTracker = 'tracker:decideToShowTracker'
+
+export const updateTrackToken = 'tracker:updateTrackToken'
