@@ -4,16 +4,17 @@
 package client
 
 import (
+	"fmt"
 	humanize "github.com/dustin/go-humanize"
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
+	"io"
 )
 
 type PgpUI struct {
-	parent *UI
+	w io.Writer
 }
 
 func NewPgpUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
@@ -22,11 +23,18 @@ func NewPgpUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 
 func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSignatureSuccessArg) error {
 	signedAt := keybase1.FromTime(arg.SignedAt)
-	if signedAt.IsZero() {
-		p.parent.Printf("Signature verified. Signed by %s.\n", arg.Username)
-	} else {
-		p.parent.Printf("Signature verified. Signed by %s %s (%s).\n", arg.Username, humanize.Time(signedAt), signedAt)
+	un := ColorString("bold", arg.Username)
+	output := func(fmtString string, args ...interface{}) {
+		s := fmt.Sprintf(fmtString, args...)
+		s = ColorString("green", s)
+		p.w.Write([]byte(s))
 	}
-	p.parent.Printf("PGP Fingerprint: %s.\n", arg.Fingerprint)
+
+	if signedAt.IsZero() {
+		output("Signature verified. Signed by %s.\n", un)
+	} else {
+		output("Signature verified. Signed by %s %s (%s).\n", un, humanize.Time(signedAt), signedAt)
+	}
+	output("PGP Fingerprint: %s.\n", arg.Fingerprint)
 	return nil
 }

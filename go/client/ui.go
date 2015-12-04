@@ -448,7 +448,8 @@ func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
 }
 
 func (ui *UI) GetPgpUI() libkb.PgpUI {
-	return PgpUI{parent: ui}
+	// PGPUI goes to stderr so it doesn't munge up stdout
+	return PgpUI{w: ui.ErrorWriter()}
 }
 
 //============================================================
@@ -614,7 +615,7 @@ type SecretUI struct {
 }
 
 func (ui SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	return ui.parent.SecretEntry.Get(pinentry, term, ui.parent)
+	return ui.parent.SecretEntry.Get(pinentry, term, ui.parent.ErrorWriter())
 }
 
 func (ui *UI) Configure() error {
@@ -928,6 +929,14 @@ func (ui *UI) DefaultTabWriter() *tabwriter.Writer {
 func (ui *UI) Output(s string) error {
 	_, err := ui.OutputWriter().Write([]byte(s))
 	return err
+}
+
+func (ui *UI) OutputWriter() io.Writer {
+	return os.Stdout
+}
+
+func (ui *UI) ErrorWriter() io.Writer {
+	return os.Stderr
 }
 
 func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
