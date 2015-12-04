@@ -101,6 +101,7 @@ func (log *Standard) initLogging() {
 	// to point to the appropriate log file.
 	initLoggingBackendOnce.Do(func() {
 		logBackend := logging.NewLogBackend(os.Stderr, "", 0)
+		logBackend.Color = true
 		logging.SetBackend(logBackend)
 		logging.SetLevel(logging.INFO, log.module)
 	})
