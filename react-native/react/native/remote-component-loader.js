@@ -6,6 +6,12 @@ import {ipcRenderer} from 'electron'
 
 const currentWindow = remote.getCurrentWindow()
 
+window.console.log = (...args) => ipcRenderer.send('console.log', args)
+
+window.console.warn = (...args) => ipcRenderer.send('console.warn', args)
+
+window.console.error = (...args) => ipcRenderer.send('console.error', args)
+
 class RemoteStore {
   constructor (props) {
     ipcRenderer.on('stateChange', (event, arg) => {
@@ -26,7 +32,7 @@ class RemoteStore {
   dispatch (action) {
     // TODO use our middlewares
     if (action.constructor === Function) {
-      action(a => this.dispatch(a))
+      action(a => this.dispatch(a), () => this.getState())
     } else {
       ipcRenderer.send('dispatchAction', action)
     }
