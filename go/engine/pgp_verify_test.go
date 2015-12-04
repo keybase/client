@@ -104,9 +104,8 @@ func signEnc(ctx *Context, tc libkb.TestContext, msg string) string {
 
 func verify(ctx *Context, tc libkb.TestContext, msg, sig, name string, valid bool) {
 	arg := &PGPVerifyArg{
-		Source:       strings.NewReader(msg),
-		Signature:    []byte(sig),
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Source:    strings.NewReader(msg),
+		Signature: []byte(sig),
 	}
 	eng := NewPGPVerify(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {

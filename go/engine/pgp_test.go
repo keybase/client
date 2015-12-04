@@ -227,7 +227,6 @@ func (p *pgpPair) doDecrypt(msg string, arg *PGPDecryptArg) (int, int) {
 	ctx := decengctx(p.recipient, p.tcR)
 	arg.Source = strings.NewReader(msg)
 	arg.Sink = libkb.NewBufferCloser()
-	arg.TrackOptions = keybase1.TrackOptions{BypassConfirm: true}
 	dec := NewPGPDecrypt(arg, p.tcR.G)
 	if err := RunEngine(dec, ctx); err != nil {
 		debug.PrintStack()
@@ -239,8 +238,7 @@ func (p *pgpPair) doDecrypt(msg string, arg *PGPDecryptArg) (int, int) {
 func (p *pgpPair) verify(msg string) (int, int) {
 	ctx := decengctx(p.recipient, p.tcR)
 	arg := &PGPVerifyArg{
-		Source:       strings.NewReader(msg),
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Source: strings.NewReader(msg),
 	}
 	eng := NewPGPVerify(arg, p.tcR.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -252,9 +250,8 @@ func (p *pgpPair) verify(msg string) (int, int) {
 func (p *pgpPair) verifyAssertSignedBySender(msg string) (int, int) {
 	ctx := decengctx(p.recipient, p.tcR)
 	arg := &PGPVerifyArg{
-		Source:       strings.NewReader(msg),
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
-		SignedBy:     p.sender.Username,
+		Source:   strings.NewReader(msg),
+		SignedBy: p.sender.Username,
 	}
 	eng := NewPGPVerify(arg, p.tcR.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -266,8 +263,7 @@ func (p *pgpPair) verifyAssertSignedBySender(msg string) (int, int) {
 func (p *pgpPair) verifySelf(msg string) (int, int) {
 	ctx := decengctx(p.sender, p.tcS)
 	arg := &PGPVerifyArg{
-		Source:       strings.NewReader(msg),
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Source: strings.NewReader(msg),
 	}
 	eng := NewPGPVerify(arg, p.tcS.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -279,9 +275,8 @@ func (p *pgpPair) verifySelf(msg string) (int, int) {
 func (p *pgpPair) verifyAssertSignedBySelf(msg string) (int, int) {
 	ctx := decengctx(p.sender, p.tcS)
 	arg := &PGPVerifyArg{
-		Source:       strings.NewReader(msg),
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
-		SignedBy:     p.sender.Username,
+		Source:   strings.NewReader(msg),
+		SignedBy: p.sender.Username,
 	}
 	eng := NewPGPVerify(arg, p.tcS.G)
 	if err := RunEngine(eng, ctx); err != nil {

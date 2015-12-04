@@ -200,7 +200,6 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 		Source:       bytes.NewReader(out),
 		Sink:         decoded,
 		AssertSigned: true,
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
 	}
 	dec := NewPGPDecrypt(decarg, tcRecipient.G)
 	if err := RunEngine(dec, ctx); err != nil {
@@ -265,7 +264,6 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 		Source:       bytes.NewReader(out),
 		Sink:         decoded,
 		AssertSigned: false,
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
 	}
 	dec := NewPGPDecrypt(decarg, tcRecipient.G)
 	if err := RunEngine(dec, ctx); err != nil {
