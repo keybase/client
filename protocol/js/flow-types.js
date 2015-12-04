@@ -2380,6 +2380,7 @@ export type pgp_PGPEncryptOptions = {
   noSelf: boolean;
   binaryOut: boolean;
   keyQuery: string;
+  skipTrack: boolean;
   trackOptions: TrackOptions;
 }
 
@@ -2389,6 +2390,7 @@ export type PGPEncryptOptions = {
   noSelf: boolean;
   binaryOut: boolean;
   keyQuery: string;
+  skipTrack: boolean;
   trackOptions: TrackOptions;
 }
 
@@ -2409,24 +2411,20 @@ export type PGPSigVerification = {
 export type pgp_PGPDecryptOptions = {
   assertSigned: boolean;
   signedBy: string;
-  trackOptions: TrackOptions;
 }
 
 export type PGPDecryptOptions = {
   assertSigned: boolean;
   signedBy: string;
-  trackOptions: TrackOptions;
 }
 
 export type pgp_PGPVerifyOptions = {
   signedBy: string;
-  trackOptions: TrackOptions;
   signature: bytes;
 }
 
 export type PGPVerifyOptions = {
   signedBy: string;
-  trackOptions: TrackOptions;
   signature: bytes;
 }
 
@@ -2463,6 +2461,79 @@ export type PGPCreateUids = {
   useDefault: boolean;
   ids: Array<PGPIdentity>;
 }
+
+export type pgpUi_Time = {
+}
+
+export type pgpUi_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type pgpUi_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type pgpUi_UID = {
+}
+
+export type pgpUi_DeviceID = {
+}
+
+export type pgpUi_SigID = {
+}
+
+export type pgpUi_KID = {
+}
+
+export type pgpUi_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type pgpUi_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type pgpUi_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type pgpUi_User = {
+  uid: UID;
+  username: string;
+}
+
+export type pgpUi_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type pgpUi_Stream = {
+  fd: int;
+}
+
+export type pgpUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type pgpUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type prove_Time = {
 }

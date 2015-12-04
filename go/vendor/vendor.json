@@ -109,8 +109,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
-			"revision": "67d171e99a58463b40209d86a5438f5b708d8ad0",
-			"revisionTime": "2015-10-12T10:46:00-04:00"
+			"revision": "37775caa3ccd71d0bd7bab8bcd6af282b577dc22",
+			"revisionTime": "2015-12-04T17:01:02-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/clearsign",

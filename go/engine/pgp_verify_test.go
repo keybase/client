@@ -21,6 +21,7 @@ func TestPGPVerify(t *testing.T) {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
+		PgpUI:      &TestPgpUI{},
 	}
 
 	msg := "If you wish to stop receiving notifications from this topic, please click or visit the link below to unsubscribe:"
@@ -103,9 +104,8 @@ func signEnc(ctx *Context, tc libkb.TestContext, msg string) string {
 
 func verify(ctx *Context, tc libkb.TestContext, msg, sig, name string, valid bool) {
 	arg := &PGPVerifyArg{
-		Source:       strings.NewReader(msg),
-		Signature:    []byte(sig),
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Source:    strings.NewReader(msg),
+		Signature: []byte(sig),
 	}
 	eng := NewPGPVerify(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -129,5 +129,12 @@ func verify(ctx *Context, tc libkb.TestContext, msg, sig, name string, valid boo
 	if s.CalledGetKBPassphrase {
 		tc.T.Errorf("%s: called get kb passphrase, shouldn't have", name)
 		s.CalledGetKBPassphrase = false // reset it for next caller
+	}
+	p, ok := ctx.PgpUI.(*TestPgpUI)
+	if !ok {
+		tc.T.Fatalf("%s: invalid pgp ui: %T", name, ctx.PgpUI)
+	}
+	if p.OutputCount == 0 {
+		tc.T.Errorf("%s: did not output signature success", name)
 	}
 }

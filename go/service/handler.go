@@ -123,6 +123,10 @@ func (h *BaseHandler) getProvisionUI(sessionID int) libkb.ProvisionUI {
 	return NewRemoteProvisionUI(sessionID, h.rpcClient())
 }
 
+func (h *BaseHandler) getPgpUI(sessionID int) libkb.PgpUI {
+	return NewRemotePgpUI(sessionID, h.rpcClient())
+}
+
 func (h *BaseHandler) getStreamUICli() *keybase1.StreamUiClient {
 	return &keybase1.StreamUiClient{Cli: h.rpcClient()}
 }

@@ -174,6 +174,7 @@ type FakeIdentifyUI struct {
 	Keys            map[libkb.PGPFingerprint]*keybase1.TrackDiff
 	DisplayKeyCalls int
 	Outcome         *keybase1.IdentifyOutcome
+	StartCount      int
 	sync.Mutex
 }
 
@@ -219,6 +220,9 @@ func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) {
 func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) {
 }
 func (ui *FakeIdentifyUI) Start(username string) {
+	ui.Lock()
+	defer ui.Unlock()
+	ui.StartCount++
 }
 func (ui *FakeIdentifyUI) Finish() {}
 func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {

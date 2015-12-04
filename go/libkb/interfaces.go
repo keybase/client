@@ -298,6 +298,10 @@ type GPGUI interface {
 	keybase1.GpgUiInterface
 }
 
+type PgpUI interface {
+	keybase1.PGPUiInterface
+}
+
 type ProvisionUI interface {
 	keybase1.ProvisionUiInterface
 }
@@ -315,6 +319,7 @@ type PromptDescriptor int
 type TerminalUI interface {
 	OutputWriter() io.Writer
 	Output(string) error
+	ErrorWriter() io.Writer
 	Printf(fmt string, args ...interface{}) (int, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	Prompt(PromptDescriptor, string) (string, error)
@@ -338,6 +343,7 @@ type UI interface {
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
 	GetProvisionUI(role KexRole) ProvisionUI
+	GetPgpUI() PgpUI
 	Configure() error
 	Shutdown() error
 }

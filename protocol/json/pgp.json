@@ -359,6 +359,9 @@
       "name" : "keyQuery",
       "type" : "string"
     }, {
+      "name" : "skipTrack",
+      "type" : "boolean"
+    }, {
       "name" : "trackOptions",
       "type" : "TrackOptions"
     } ]
@@ -388,9 +391,6 @@
     }, {
       "name" : "signedBy",
       "type" : "string"
-    }, {
-      "name" : "trackOptions",
-      "type" : "TrackOptions"
     } ]
   }, {
     "type" : "record",
@@ -398,9 +398,6 @@
     "fields" : [ {
       "name" : "signedBy",
       "type" : "string"
-    }, {
-      "name" : "trackOptions",
-      "type" : "TrackOptions"
     }, {
       "name" : "signature",
       "type" : "bytes"

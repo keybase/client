@@ -5,11 +5,7 @@
 
 package engine
 
-import (
-	"testing"
-
-	"github.com/keybase/client/go/libkb"
-)
+import "testing"
 
 func TestPGPKeyfinder(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPKeyfinder")
@@ -20,14 +16,9 @@ func TestPGPKeyfinder(t *testing.T) {
 	trackAlice(tc, u)
 	defer untrackAlice(tc, u)
 
-	trackUI := &FakeIdentifyUI{
-		Proofs: make(map[string]string),
-	}
-
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
+	ctx := &Context{}
 	arg := &PGPKeyfinderArg{
-		Users:     []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
-		SkipTrack: true,
+		Usernames: []string{"t_alice", "t_bob", "t_charlie"},
 	}
 	eng := NewPGPKeyfinder(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -44,13 +35,9 @@ func TestPGPKeyfinderLoggedOut(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPKeyfinder")
 	defer tc.Cleanup()
 
-	trackUI := &FakeIdentifyUI{
-		Proofs: make(map[string]string),
-	}
-
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: &libkb.TestSecretUI{}}
+	ctx := &Context{}
 	arg := &PGPKeyfinderArg{
-		Users: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Usernames: []string{"t_alice", "t_bob", "t_charlie"},
 	}
 	eng := NewPGPKeyfinder(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {

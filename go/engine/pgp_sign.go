@@ -128,6 +128,5 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 			p.G().Log.Debug("Empty source file.")
 		}
 	}
-
 	return
 }

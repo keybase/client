@@ -125,7 +125,7 @@ func (e *encoding) Close() (err error) {
 	var b64ChecksumBytes [4]byte
 	base64.StdEncoding.Encode(b64ChecksumBytes[:], checksumBytes[:])
 
-	return writeSlices(e.out, blockEnd, b64ChecksumBytes[:], newline, armorEnd, e.blockType, armorEndOfLine)
+	return writeSlices(e.out, blockEnd, b64ChecksumBytes[:], newline, armorEnd, e.blockType, armorEndOfLine, []byte{'\n'})
 }
 
 // Encode returns a WriteCloser which will encode the data written to it in

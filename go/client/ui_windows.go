@@ -17,8 +17,6 @@ var (
 	setConsoleTextAttributeProc = kernel32DLL.NewProc("SetConsoleTextAttribute")
 )
 
-var CW ColorWriter
-
 type WORD uint16
 
 const (
@@ -77,10 +75,17 @@ var codesWin = map[byte]WORD{
 
 // Return our writer so we can override Write()
 func (ui *UI) OutputWriter() io.Writer {
-	return &CW
+	return &ColorWriter{os.Stdout, os.Stdout.Fd()}
+}
+
+// Return our writer so we can override Write()
+func (ui *UI) ErrorWriter() io.Writer {
+	return &ColorWriter{os.Stderr, os.Stderr.Fd()}
 }
 
 type ColorWriter struct {
+	w  io.Writer
+	fd uintptr
 }
 
 // Rough emulation of Ansi terminal codes.
@@ -101,7 +106,7 @@ func (cw *ColorWriter) Write(p []byte) (n int, err error) {
 			controlIndex = nextIndex + 2
 		}
 
-		os.Stdout.Write(p[0:nextIndex])
+		cw.w.Write(p[0:nextIndex])
 
 		if controlIndex != -1 {
 			// The control code is written as separate ascii digits. usually 2,
@@ -115,7 +120,7 @@ func (cw *ColorWriter) Write(p []byte) (n int, err error) {
 				controlIndex++
 			}
 			if code, ok := codesWin[controlCode]; ok {
-				setConsoleTextAttribute(os.Stdout.Fd(), code)
+				setConsoleTextAttribute(cw.fd, code)
 			}
 			nextIndex = controlIndex + 1
 		}

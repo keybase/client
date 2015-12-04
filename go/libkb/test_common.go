@@ -323,6 +323,9 @@ func (n *nullui) GetGPGUI() GPGUI {
 func (n *nullui) GetLogUI() LogUI {
 	return n.gctx.Log
 }
+func (n *nullui) GetPgpUI() PgpUI {
+	return nil
+}
 func (n *nullui) GetProvisionUI(KexRole) ProvisionUI {
 	return nil
 }

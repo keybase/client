@@ -447,6 +447,11 @@ func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
 	return ProvisionUI{parent: ui, role: role}
 }
 
+func (ui *UI) GetPgpUI() libkb.PgpUI {
+	// PGPUI goes to stderr so it doesn't munge up stdout
+	return PgpUI{w: ui.ErrorWriter()}
+}
+
 //============================================================
 
 type ProveUI struct {
@@ -610,7 +615,7 @@ type SecretUI struct {
 }
 
 func (ui SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	return ui.parent.SecretEntry.Get(pinentry, term, ui.parent)
+	return ui.parent.SecretEntry.Get(pinentry, term, ui.parent.ErrorWriter())
 }
 
 func (ui *UI) Configure() error {

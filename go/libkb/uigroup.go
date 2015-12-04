@@ -15,6 +15,7 @@ const (
 	ProveUIKind
 	SecretUIKind
 	ProvisionUIKind
+	PgpUIKind
 )
 
 func (u UIKind) String() string {
@@ -33,6 +34,8 @@ func (u UIKind) String() string {
 		return "SecretUI"
 	case ProvisionUIKind:
 		return "ProvisionUI"
+	case PgpUIKind:
+		return "PgpUI"
 	}
 	panic(fmt.Sprintf("unhandled uikind: %d", u))
 }
