@@ -70,6 +70,11 @@ func (i *IdentifyUIServer) ReportTrackToken(_ context.Context, arg keybase1.Repo
 	return nil
 }
 
+func (i *IdentifyUIServer) DisplayUserCard(_ context.Context, arg keybase1.DisplayUserCardArg) error {
+	i.ui.DisplayUserCard(arg.Card)
+	return nil
+}
+
 func (i *IdentifyUIServer) Start(_ context.Context, arg keybase1.StartArg) error {
 	i.ui.Start(arg.Username)
 	return nil

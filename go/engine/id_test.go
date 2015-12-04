@@ -229,6 +229,8 @@ func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keyba
 func (ui *FakeIdentifyUI) DisplayTrackStatement(string) (err error) {
 	return
 }
+func (ui *FakeIdentifyUI) DisplayUserCard(keybase1.UserCard) {
+}
 func (ui *FakeIdentifyUI) ReportTrackToken(libkb.IdentifyCacheToken) error {
 	return nil
 }

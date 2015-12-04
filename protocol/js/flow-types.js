@@ -1336,6 +1336,28 @@ export type LinkCheckResult = {
   hint?: ?SigHint;
 }
 
+export type identifyUi_UserCard = {
+  following: int;
+  followers: int;
+  uid: UID;
+  fullName: string;
+  location: string;
+  bio: string;
+  website: string;
+  twitter: string;
+}
+
+export type UserCard = {
+  following: int;
+  followers: int;
+  uid: UID;
+  fullName: string;
+  location: string;
+  bio: string;
+  website: string;
+  twitter: string;
+}
+
 export type identifyUi_ConfirmResult = {
   identityConfirmed: boolean;
   remoteConfirmed: boolean;

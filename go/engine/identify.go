@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -194,7 +195,17 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	is.ComputeRevokedProofs()
 
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		e.displayUserCard(ctx)
+		wg.Done()
+	}()
+
 	e.user.IDTable().Identify(is, e.arg.ForceRemoteCheck, ctx.IdentifyUI)
+
+	wg.Wait()
 
 	base := e.user.BaseProofSet()
 	res.AddProofsToSet(base)
@@ -313,4 +324,34 @@ func (e *Identify) shortCircuitSelfID(ctx *Context) error {
 // DidShortCircuit returns true if shortCircuitSelfID happened.
 func (e *Identify) DidShortCircuit() bool {
 	return e.selfShortCircuit
+}
+
+func (e *Identify) displayUserCard(ctx *Context) {
+	arg := libkb.APIArg{
+		Endpoint:     "user/card",
+		NeedSession:  false,
+		Contextified: libkb.NewContextified(e.G()),
+		Args:         libkb.HTTPArgs{"uid": libkb.S{Val: e.user.GetUID().String()}},
+	}
+
+	var card struct {
+		FollowSummary struct {
+			Following int `json:"following"`
+			Followers int `json:"followers"`
+		} `json:"follow_summary"`
+		Profile struct {
+			UID      string `json:"uid"`
+			FullName string `json:"full_name"`
+			Location string `json:"location"`
+			Bio      string `json:"bio"`
+			Website  string `json:"website"`
+			Twitter  string `json:"twitter"`
+		} `json:"profile"`
+	}
+
+	if err := e.G().API.GetDecode(arg, &card); err != nil {
+		e.G().Log.Warning("error getting user/card for %s: %s\n", e.user.GetUID(), err)
+		return
+	}
+
 }

@@ -242,6 +242,7 @@ type IdentifyUI interface {
 	ReportLastTrack(*keybase1.TrackSummary)
 	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User)
 	DisplayTrackStatement(string) error
+	DisplayUserCard(keybase1.UserCard)
 	ReportTrackToken(IdentifyCacheToken) error
 	SetStrict(b bool)
 	Finish()

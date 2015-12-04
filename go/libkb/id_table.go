@@ -1127,12 +1127,12 @@ func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui I
 		}(lcr)
 	}
 
-	// wait for all goroutines to complete before exiting
-	wg.Wait()
-
 	if acc := idt.ActiveCryptocurrency(); acc != nil {
 		acc.Display(ui)
 	}
+
+	// wait for all goroutines to complete before exiting
+	wg.Wait()
 }
 
 //=========================================================================

@@ -1602,6 +1602,17 @@ type LinkCheckResult struct {
 	Hint        *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
+type UserCard struct {
+	Following int    `codec:"following" json:"following"`
+	Followers int    `codec:"followers" json:"followers"`
+	Uid       UID    `codec:"uid" json:"uid"`
+	FullName  string `codec:"fullName" json:"fullName"`
+	Location  string `codec:"location" json:"location"`
+	Bio       string `codec:"bio" json:"bio"`
+	Website   string `codec:"website" json:"website"`
+	Twitter   string `codec:"twitter" json:"twitter"`
+}
+
 type ConfirmResult struct {
 	IdentityConfirmed bool `codec:"identityConfirmed" json:"identityConfirmed"`
 	RemoteConfirmed   bool `codec:"remoteConfirmed" json:"remoteConfirmed"`
@@ -1658,6 +1669,11 @@ type ReportTrackTokenArg struct {
 	TrackToken string `codec:"trackToken" json:"trackToken"`
 }
 
+type DisplayUserCardArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Card      UserCard `codec:"card" json:"card"`
+}
+
 type ConfirmArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Outcome   IdentifyOutcome `codec:"outcome" json:"outcome"`
@@ -1678,6 +1694,7 @@ type IdentifyUiInterface interface {
 	FinishSocialProofCheck(context.Context, FinishSocialProofCheckArg) error
 	DisplayCryptocurrency(context.Context, DisplayCryptocurrencyArg) error
 	ReportTrackToken(context.Context, ReportTrackTokenArg) error
+	DisplayUserCard(context.Context, DisplayUserCardArg) error
 	Confirm(context.Context, ConfirmArg) (ConfirmResult, error)
 	Finish(context.Context, int) error
 }
@@ -1841,6 +1858,22 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"displayUserCard": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayUserCardArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayUserCardArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayUserCardArg)(nil), args)
+						return
+					}
+					err = i.DisplayUserCard(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"confirm": {
 				MakeArg: func() interface{} {
 					ret := make([]ConfirmArg, 1)
@@ -1928,6 +1961,11 @@ func (c IdentifyUiClient) DisplayCryptocurrency(ctx context.Context, __arg Displ
 
 func (c IdentifyUiClient) ReportTrackToken(ctx context.Context, __arg ReportTrackTokenArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportTrackToken", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) DisplayUserCard(ctx context.Context, __arg DisplayUserCardArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayUserCard", []interface{}{__arg}, nil)
 	return
 }
 

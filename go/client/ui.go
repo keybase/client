@@ -12,11 +12,12 @@ import (
 
 	"golang.org/x/net/context"
 
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/spotty"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"sync"
 )
 
 type UI struct {
@@ -38,6 +39,8 @@ type BaseIdentifyUI struct {
 }
 
 func (ui BaseIdentifyUI) SetStrict(b bool) {}
+
+func (ui BaseIdentifyUI) DisplayUserCard(keybase1.UserCard) {}
 
 type IdentifyUI struct {
 	BaseIdentifyUI

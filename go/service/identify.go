@@ -207,6 +207,11 @@ func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keyb
 	return
 }
 
+func (u *RemoteIdentifyUI) DisplayUserCard(card keybase1.UserCard) {
+	u.uicli.DisplayUserCard(context.TODO(), keybase1.DisplayUserCardArg{SessionID: u.sessionID, Card: card})
+	return
+}
+
 func (u *RemoteIdentifyUI) Start(username string) {
 	u.uicli.Start(context.TODO(), keybase1.StartArg{SessionID: u.sessionID, Username: username})
 }
