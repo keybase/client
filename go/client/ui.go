@@ -931,14 +931,6 @@ func (ui *UI) Output(s string) error {
 	return err
 }
 
-func (ui *UI) OutputWriter() io.Writer {
-	return os.Stdout
-}
-
-func (ui *UI) ErrorWriter() io.Writer {
-	return os.Stderr
-}
-
 func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
 	return fmt.Fprintf(ui.OutputWriter(), format, a...)
 }

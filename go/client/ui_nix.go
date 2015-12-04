@@ -13,3 +13,7 @@ import (
 func (ui *UI) OutputWriter() io.Writer {
 	return os.Stdout
 }
+
+func (ui *UI) ErrorWriter() io.Writer {
+	return os.Stderr
+}
