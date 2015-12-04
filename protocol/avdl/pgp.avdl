@@ -53,14 +53,12 @@ protocol pgp {
   record PGPDecryptOptions {
     boolean assertSigned;
     string signedBy; // assert that signature made by this user
-    TrackOptions trackOptions;
   }
 
   PGPSigVerification pgpDecrypt(int sessionID, Stream source, Stream sink, PGPDecryptOptions opts);
 
   record PGPVerifyOptions {
     string signedBy; // assert that signature made by this user
-    TrackOptions trackOptions;
     bytes signature; // detached signature data (binary or armored), can be empty
   }
 

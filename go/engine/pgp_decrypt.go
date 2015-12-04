@@ -8,7 +8,6 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type PGPDecryptArg struct {
@@ -16,7 +15,6 @@ type PGPDecryptArg struct {
 	Sink         io.WriteCloser
 	AssertSigned bool
 	SignedBy     string
-	TrackOptions keybase1.TrackOptions
 }
 
 // PGPDecrypt decrypts data read from source into sink for the
@@ -144,35 +142,4 @@ func (e *PGPDecrypt) SignatureStatus() *libkb.SignatureStatus {
 
 func (e *PGPDecrypt) Owner() *libkb.User {
 	return e.owner
-}
-
-func (e *PGPDecrypt) checkSignedBy(ctx *Context) error {
-	if len(e.arg.SignedBy) == 0 {
-		// no assertion necessary
-		return nil
-	}
-
-	e.G().Log.Debug("checking signed by assertion: %q", e.arg.SignedBy)
-
-	// load the user in SignedBy
-	arg := NewIdentifyArg(e.arg.SignedBy, false, false)
-	eng := NewIdentify(arg, e.G())
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-	signByUser := eng.User()
-	if signByUser == nil {
-		// this shouldn't happen (engine should return an error in this state)
-		// but just in case:
-		return libkb.ErrNilUser
-	}
-
-	// check if it is equal to signature owner
-	if !e.owner.Equal(signByUser) {
-		return libkb.BadSigError{
-			E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.owner.GetName(), e.arg.SignedBy),
-		}
-	}
-
-	return nil
 }

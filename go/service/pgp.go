@@ -11,6 +11,22 @@ import (
 	"golang.org/x/net/context"
 )
 
+type RemotePgpUI struct {
+	sessionID int
+	cli       keybase1.PGPUiClient
+}
+
+func NewRemotePgpUI(sessionID int, c *rpc.Client) *RemotePgpUI {
+	return &RemotePgpUI{
+		sessionID: sessionID,
+		cli:       keybase1.PGPUiClient{Cli: c},
+	}
+}
+
+func (u *RemotePgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSignatureSuccessArg) error {
+	return u.cli.OutputSignatureSuccess(ctx, arg)
+}
+
 type PGPHandler struct {
 	*BaseHandler
 	libkb.Contextified
@@ -77,12 +93,12 @@ func (h *PGPHandler) PGPDecrypt(_ context.Context, arg keybase1.PGPDecryptArg) (
 		Source:       src,
 		AssertSigned: arg.Opts.AssertSigned,
 		SignedBy:     arg.Opts.SignedBy,
-		TrackOptions: arg.Opts.TrackOptions,
 	}
 	ctx := &engine.Context{
 		SecretUI:   h.getSecretUI(arg.SessionID),
 		IdentifyUI: h.NewRemoteSkipPromptIdentifyUI(arg.SessionID, h.G()),
 		LogUI:      h.getLogUI(arg.SessionID),
+		PgpUI:      h.getPgpUI(arg.SessionID),
 	}
 	eng := engine.NewPGPDecrypt(earg, h.G())
 	err := engine.RunEngine(eng, ctx)
@@ -97,10 +113,9 @@ func (h *PGPHandler) PGPVerify(_ context.Context, arg keybase1.PGPVerifyArg) (ke
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	earg := &engine.PGPVerifyArg{
-		Source:       src,
-		Signature:    arg.Opts.Signature,
-		SignedBy:     arg.Opts.SignedBy,
-		TrackOptions: arg.Opts.TrackOptions,
+		Source:    src,
+		Signature: arg.Opts.Signature,
+		SignedBy:  arg.Opts.SignedBy,
 	}
 	ctx := &engine.Context{
 		SecretUI:   h.getSecretUI(arg.SessionID),

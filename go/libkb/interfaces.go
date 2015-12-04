@@ -342,6 +342,7 @@ type UI interface {
 	GetLogUI() LogUI
 	GetGPGUI() GPGUI
 	GetProvisionUI(role KexRole) ProvisionUI
+	GetPgpUI() PgpUI
 	Configure() error
 	Shutdown() error
 }

@@ -447,6 +447,10 @@ func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
 	return ProvisionUI{parent: ui, role: role}
 }
 
+func (ui *UI) GetPgpUI() libkb.PgpUI {
+	return PgpUI{parent: ui}
+}
+
 //============================================================
 
 type ProveUI struct {

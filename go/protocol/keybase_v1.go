@@ -3213,15 +3213,13 @@ type PGPSigVerification struct {
 }
 
 type PGPDecryptOptions struct {
-	AssertSigned bool         `codec:"assertSigned" json:"assertSigned"`
-	SignedBy     string       `codec:"signedBy" json:"signedBy"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+	AssertSigned bool   `codec:"assertSigned" json:"assertSigned"`
+	SignedBy     string `codec:"signedBy" json:"signedBy"`
 }
 
 type PGPVerifyOptions struct {
-	SignedBy     string       `codec:"signedBy" json:"signedBy"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
-	Signature    []byte       `codec:"signature" json:"signature"`
+	SignedBy  string `codec:"signedBy" json:"signedBy"`
+	Signature []byte `codec:"signature" json:"signature"`
 }
 
 type KeyInfo struct {

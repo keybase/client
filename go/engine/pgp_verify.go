@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/clearsign"
@@ -19,10 +18,9 @@ import (
 )
 
 type PGPVerifyArg struct {
-	Source       io.Reader
-	Signature    []byte
-	SignedBy     string
-	TrackOptions keybase1.TrackOptions
+	Source    io.Reader
+	Signature []byte
+	SignedBy  string
 }
 
 // PGPVerify is an engine.
@@ -93,7 +91,6 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 		Sink:         libkb.NopWriteCloser{W: ioutil.Discard},
 		AssertSigned: true,
 		SignedBy:     e.arg.SignedBy,
-		TrackOptions: e.arg.TrackOptions,
 	}
 	eng := NewPGPDecrypt(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {

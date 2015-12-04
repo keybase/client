@@ -60,7 +60,6 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	iarg.AllowSelf = e.arg.AllowSelfIdentify
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
-		e.G().Log.Info("identify run err: %s", err)
 		return err
 	}
 

@@ -31,11 +31,6 @@ func NewCmdPGPVerify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 				Name:  "i, infile",
 				Usage: "Specify an input file.",
 			},
-			cli.BoolFlag{
-				Name:  "l, local",
-				Usage: "Only track locally, don't send a statement to the server.",
-			},
-
 			cli.StringFlag{
 				Name:  "m, message",
 				Usage: "Provide the message on the command line.",
@@ -44,10 +39,6 @@ func NewCmdPGPVerify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 				Name:  "S, signed-by",
 				Usage: "Assert signed by the given user (can use user assertion format).",
 			},
-			cli.BoolFlag{
-				Name:  "y",
-				Usage: "Approve remote tracking without prompting.",
-			},
 		},
 	}
 }
@@ -55,7 +46,6 @@ func NewCmdPGPVerify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 type CmdPGPVerify struct {
 	libkb.Contextified
 	UnixFilter
-	trackOptions     keybase1.TrackOptions
 	detachedFilename string
 	detachedData     []byte
 	signedBy         string
@@ -81,9 +71,8 @@ func (c *CmdPGPVerify) Run() error {
 	arg := keybase1.PGPVerifyArg{
 		Source: src,
 		Opts: keybase1.PGPVerifyOptions{
-			TrackOptions: c.trackOptions,
-			Signature:    c.detachedData,
-			SignedBy:     c.signedBy,
+			Signature: c.detachedData,
+			SignedBy:  c.signedBy,
 		},
 	}
 	_, err = cli.PGPVerify(context.TODO(), arg)
@@ -101,10 +90,6 @@ func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
 	infile := ctx.String("infile")
 	if err := c.FilterInit(msg, infile, "/dev/null"); err != nil {
 		return err
-	}
-	c.trackOptions = keybase1.TrackOptions{
-		LocalOnly:     ctx.Bool("local"),
-		BypassConfirm: ctx.Bool("y"),
 	}
 	c.signedBy = ctx.String("signed-by")
 	c.detachedFilename = ctx.String("detached")

@@ -2411,24 +2411,20 @@ export type PGPSigVerification = {
 export type pgp_PGPDecryptOptions = {
   assertSigned: boolean;
   signedBy: string;
-  trackOptions: TrackOptions;
 }
 
 export type PGPDecryptOptions = {
   assertSigned: boolean;
   signedBy: string;
-  trackOptions: TrackOptions;
 }
 
 export type pgp_PGPVerifyOptions = {
   signedBy: string;
-  trackOptions: TrackOptions;
   signature: bytes;
 }
 
 export type PGPVerifyOptions = {
   signedBy: string;
-  trackOptions: TrackOptions;
   signature: bytes;
 }
 
