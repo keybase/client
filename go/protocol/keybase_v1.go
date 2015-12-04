@@ -152,6 +152,13 @@ const (
 	LogLevel_FATAL    LogLevel = 7
 )
 
+type ClientType int
+
+const (
+	ClientType_CLI ClientType = 0
+	ClientType_GUI ClientType = 1
+)
+
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
@@ -1174,13 +1181,6 @@ func (c FavoriteClient) FavoriteList(ctx context.Context, sessionID int) (res []
 	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
 	return
 }
-
-type ClientType int
-
-const (
-	ClientType_CLI ClientType = 0
-	ClientType_GUI ClientType = 1
-)
 
 type GPGKey struct {
 	Algorithm  string        `codec:"algorithm" json:"algorithm"`
@@ -5113,6 +5113,7 @@ type UserSummary struct {
 	IdVersion    int    `codec:"idVersion" json:"idVersion"`
 	FullName     string `codec:"fullName" json:"fullName"`
 	Bio          string `codec:"bio" json:"bio"`
+	Location     string `codec:"location" json:"location"`
 	Proofs       Proofs `codec:"proofs" json:"proofs"`
 	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
 	TrackTime    Time   `codec:"trackTime" json:"trackTime"`

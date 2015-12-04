@@ -36,6 +36,7 @@ protocol user {
     int idVersion;
     string fullName;
     string bio;
+    string location;
     Proofs proofs;
     string sigIDDisplay;
     Time trackTime;
