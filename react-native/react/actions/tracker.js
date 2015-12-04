@@ -76,6 +76,10 @@ export function onUnfollow (username: string): (dispatch: Dispatch, getState: ()
       if (err) {
         console.log('err untracking', err)
       } else {
+        dispatch({
+          type: Constants.reportLastTrack,
+          payload: {username}
+        })
         console.log('success in untracking')
       }
     })
