@@ -46,7 +46,7 @@ func (d *DeviceRegister) SubConsumers() []libkb.UIConsumer {
 func (d *DeviceRegister) Prereqs() Prereqs { return Prereqs{} }
 
 func (d *DeviceRegister) Run(ctx *Context) error {
-	if d.args.Me.HasDeviceInCurrentInstall() {
+	if d.args.Me.HasCurrentDeviceInCurrentInstall() {
 		return ErrDeviceAlreadyRegistered
 	}
 

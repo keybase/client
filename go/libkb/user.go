@@ -571,20 +571,25 @@ func (u *User) DeviceNames() ([]string, error) {
 
 // Returns whether or not the current install has an active device
 // sibkey.
-func (u *User) HasDeviceInCurrentInstall() bool {
+func (u *User) HasDeviceInCurrentInstall(did keybase1.DeviceID) bool {
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
 		return false
 	}
-	did := u.G().Env.GetDeviceID()
-	if did.IsNil() {
-		return false
-	}
+
 	_, err := ckf.GetSibkeyForDevice(did)
 	if err != nil {
 		return false
 	}
 	return true
+}
+
+func (u *User) HasCurrentDeviceInCurrentInstall() bool {
+	did := u.G().Env.GetDeviceID()
+	if did.IsNil() {
+		return false
+	}
+	return u.HasDeviceInCurrentInstall(did)
 }
 
 func (u *User) SigningKeyPub() (GenericKey, error) {
