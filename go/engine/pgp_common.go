@@ -21,13 +21,4 @@ func OutputSignatureSuccess(ctx *Context, fingerprint libkb.PGPFingerprint, owne
 		SignedAt:    keybase1.TimeFromSeconds(signatureTime.Unix()),
 	}
 	ctx.PgpUI.OutputSignatureSuccess(context.TODO(), arg)
-
-	/*
-		if signatureTime.IsZero() {
-			ctx.LogUI.Notice("Signature verified. Signed by %s.", owner.GetName())
-		} else {
-			ctx.LogUI.Notice("Signature verified. Signed by %s %s (%s).", owner.GetName(), humanize.Time(signatureTime), signatureTime)
-		}
-		ctx.LogUI.Notice("PGP Fingerprint: %s.", fingerprint)
-	*/
 }
