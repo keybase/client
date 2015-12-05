@@ -1,6 +1,6 @@
 import BrowserWindow from 'browser-window'
 import showDockIcon from './dockIcon'
-import {app} from 'electron'
+import {app, ipcMain} from 'electron'
 
 export default class Window {
   constructor (filename, opts) {
@@ -15,6 +15,12 @@ export default class Window {
 
     app.on('ready', () => {
       this.createWindow()
+    })
+
+    ipcMain.on('listendForRemoteWindowClosed', (event, remoteWindowId) => {
+      BrowserWindow.fromId(remoteWindowId).on('close', () => {
+        event.sender.send('remoteWindowClosed', remoteWindowId)
+      })
     })
   }
 
