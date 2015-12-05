@@ -160,7 +160,7 @@ func (ts *testState) Evicted(uid keybase1.UID) {
 
 func newTestSetup() (*testState, *CredentialAuthority) {
 	s := newTestState()
-	c := newCredentialAuthorityWithEngine(logger.New("test"), s, s)
+	c := newCredentialAuthorityWithEngine(logger.New("test", libkb.ErrorWriter()), s, s)
 	return s, c
 }
 

@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -929,6 +930,14 @@ func (ui *UI) DefaultTabWriter() *tabwriter.Writer {
 func (ui *UI) Output(s string) error {
 	_, err := ui.OutputWriter().Write([]byte(s))
 	return err
+}
+
+func (ui *UI) OutputWriter() io.Writer {
+	return libkb.OutputWriter()
+}
+
+func (ui *UI) ErrorWriter() io.Writer {
+	return libkb.ErrorWriter()
 }
 
 func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {

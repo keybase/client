@@ -175,6 +175,9 @@ type stringFormatter struct {
 // "%{color:bold}%{time:15:04:05} %{level:-8s}%{color:reset} %{message}" will
 // just colorize the time and level, leaving the message uncolored.
 //
+// Colors on Windows is unfortunately not supported right now and is currently
+// a no-op.
+//
 // There's also a couple of experimental 'verbs'. These are exposed to get
 // feedback and needs a bit of tinkering. Hence, they might change in the
 // future.

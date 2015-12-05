@@ -3,17 +3,17 @@
 
 // +build !windows
 
-package client
+package libkb
 
 import (
 	"io"
 	"os"
 )
 
-func (ui *UI) OutputWriter() io.Writer {
+func OutputWriter() io.Writer {
 	return os.Stdout
 }
 
-func (ui *UI) ErrorWriter() io.Writer {
+func ErrorWriter() io.Writer {
 	return os.Stderr
 }

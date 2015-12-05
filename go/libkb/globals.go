@@ -63,7 +63,7 @@ type GlobalContext struct {
 
 func NewGlobalContext() *GlobalContext {
 	return &GlobalContext{
-		Log: logger.New("keybase"),
+		Log: logger.New("keybase", ErrorWriter()),
 	}
 }
 
