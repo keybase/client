@@ -457,11 +457,11 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 	if len(toDrop) > 0 {
 		newOps := make([]op, 0, len(unmergedChain.ops)-len(toDrop))
 		for i, op := range unmergedChain.ops {
-			if !toDrop[i] {
-				newOps = append(newOps, op)
-			} else {
+			if toDrop[i] {
 				cr.log.CDebugf(ctx,
 					"Dropping double create unmerged operation: %s", op)
+			} else {
+				newOps = append(newOps, op)
 			}
 		}
 		unmergedChain.ops = newOps
@@ -1423,6 +1423,9 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 	return newUnmergedPaths, nil
 }
 
+// addMergedRecreates drops any unmerged operations that remove a node
+// that was modified in the merged branch, and adds a create op to the
+// merged chain so that the node will be re-created locally.
 func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 	unmergedChains *crChains, mergedChains *crChains) error {
 	for _, unmergedChain := range unmergedChains.byMostRecent {
