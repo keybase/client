@@ -126,7 +126,7 @@ func timeEqualFuzzy(a, b time.Time, skew time.Duration) bool {
 
 func TestStatRoot(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -142,7 +142,7 @@ func TestStatRoot(t *testing.T) {
 
 func TestStatPrivate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -158,7 +158,7 @@ func TestStatPrivate(t *testing.T) {
 
 func TestStatPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -174,7 +174,7 @@ func TestStatPublic(t *testing.T) {
 
 func TestStatMyFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -190,7 +190,7 @@ func TestStatMyFolder(t *testing.T) {
 
 func TestStatNonexistentFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -202,7 +202,7 @@ func TestStatNonexistentFolder(t *testing.T) {
 
 func TestStatAlias(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -255,7 +255,7 @@ func TestStatAliasCausesNoIdentifies(t *testing.T) {
 
 func TestStatMyPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -271,7 +271,7 @@ func TestStatMyPublic(t *testing.T) {
 
 func TestReaddirRoot(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -284,7 +284,7 @@ func TestReaddirRoot(t *testing.T) {
 
 func TestReaddirPrivate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -310,7 +310,7 @@ func TestReaddirPrivate(t *testing.T) {
 
 func TestReaddirPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -337,7 +337,7 @@ func TestReaddirPublic(t *testing.T) {
 
 func TestReaddirMyFolderEmpty(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -347,7 +347,7 @@ func TestReaddirMyFolderEmpty(t *testing.T) {
 
 func TestReaddirMyFolderWithFiles(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -393,7 +393,7 @@ func testOneCreateThenRead(t *testing.T, p string) {
 
 func TestCreateThenRead(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -408,7 +408,7 @@ func TestCreateThenRead(t *testing.T) {
 // with).
 func TestMultipleCreateThenRead(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -421,7 +421,7 @@ func TestMultipleCreateThenRead(t *testing.T) {
 
 func TestReadUnflushed(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -449,7 +449,7 @@ func TestReadUnflushed(t *testing.T) {
 
 func TestMountAgain(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 
 	const input = "hello, world\n"
 	const filename = "myfile"
@@ -481,7 +481,7 @@ func TestMountAgain(t *testing.T) {
 
 func TestCreateExecutable(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -501,7 +501,7 @@ func TestCreateExecutable(t *testing.T) {
 
 func TestMkdir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -521,7 +521,7 @@ func TestMkdir(t *testing.T) {
 
 func TestMkdirAndCreateDeep(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	const input = "hello, world\n"
 
 	func() {
@@ -562,7 +562,7 @@ func TestMkdirAndCreateDeep(t *testing.T) {
 
 func TestSymlink(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 
 	func() {
 		mnt, _, cancelFn := makeFS(t, config)
@@ -594,7 +594,7 @@ func TestSymlink(t *testing.T) {
 
 func TestRename(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -631,7 +631,7 @@ func TestRename(t *testing.T) {
 
 func TestRenameOverwrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -669,7 +669,7 @@ func TestRenameOverwrite(t *testing.T) {
 
 func TestRenameCrossDir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -711,7 +711,7 @@ func TestRenameCrossDir(t *testing.T) {
 
 func TestRenameCrossFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -764,7 +764,7 @@ func TestRenameCrossFolder(t *testing.T) {
 
 func TestWriteThenRename(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -817,7 +817,7 @@ func TestWriteThenRename(t *testing.T) {
 
 func TestWriteThenRenameCrossDir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -876,7 +876,7 @@ func TestWriteThenRenameCrossDir(t *testing.T) {
 
 func TestRemoveFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -900,7 +900,7 @@ func TestRemoveFile(t *testing.T) {
 
 func TestRemoveDir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -923,7 +923,7 @@ func TestRemoveDir(t *testing.T) {
 
 func TestRemoveDirNotEmpty(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -949,7 +949,7 @@ func TestRemoveDirNotEmpty(t *testing.T) {
 
 func TestRemoveFileWhileOpenWriting(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -983,7 +983,7 @@ func TestRemoveFileWhileOpenWriting(t *testing.T) {
 
 func TestRemoveFileWhileOpenReading(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1026,13 +1026,13 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
-	defer libkbfs.ShutdownConfigOrBust(t, config1, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config1)
 	mnt1, fs1, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	defer libkbfs.ShutdownConfigOrBust(t, config2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config2)
 	mnt2, _, cancelFn2 := makeFS(t, config2)
 	defer mnt2.Close()
 	defer cancelFn2()
@@ -1083,13 +1083,13 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
-	defer libkbfs.ShutdownConfigOrBust(t, config1, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config1)
 	mnt1, fs1, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	defer libkbfs.ShutdownConfigOrBust(t, config2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config2)
 	mnt2, _, cancelFn2 := makeFS(t, config2)
 	defer mnt2.Close()
 	defer cancelFn2()
@@ -1156,7 +1156,7 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 
 func TestTruncateGrow(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1191,7 +1191,7 @@ func TestTruncateGrow(t *testing.T) {
 
 func TestTruncateShrink(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1226,7 +1226,7 @@ func TestTruncateShrink(t *testing.T) {
 
 func TestChmodExec(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1252,7 +1252,7 @@ func TestChmodExec(t *testing.T) {
 
 func TestChmodNonExec(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1278,7 +1278,7 @@ func TestChmodNonExec(t *testing.T) {
 
 func TestChmodDir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1300,7 +1300,7 @@ func TestChmodDir(t *testing.T) {
 
 func TestSetattrFileMtime(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1383,7 +1383,7 @@ func TestSetattrFileMtimeAfterWrite(t *testing.T) {
 
 func TestSetattrFileMtimeNow(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1422,7 +1422,7 @@ func TestSetattrFileMtimeNow(t *testing.T) {
 
 func TestSetattrDirMtime(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1451,7 +1451,7 @@ func TestSetattrDirMtime(t *testing.T) {
 
 func TestSetattrDirMtimeNow(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1489,7 +1489,7 @@ func TestSetattrDirMtimeNow(t *testing.T) {
 
 func TestFsync(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1514,7 +1514,7 @@ func TestFsync(t *testing.T) {
 
 func TestReaddirMyPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1534,7 +1534,7 @@ func TestReaddirMyPublic(t *testing.T) {
 
 func TestReaddirOtherFolderAsReader(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	func() {
 		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
@@ -1547,7 +1547,7 @@ func TestReaddirOtherFolderAsReader(t *testing.T) {
 	}()
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, c2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, c2)
 	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1573,7 +1573,7 @@ func TestReaddirMissingOtherFolderAsReader(t *testing.T) {
 
 func TestStatOtherFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	func() {
 		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
@@ -1586,7 +1586,7 @@ func TestStatOtherFolder(t *testing.T) {
 	}()
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, c2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, c2)
 	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1604,10 +1604,10 @@ func TestStatOtherFolder(t *testing.T) {
 func TestStatOtherFolderFirstUse(t *testing.T) {
 	// This triggers a different error than with the warmup.
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, c2, false)
+	defer libkbfs.ShutdownConfigOrBust(t, c2)
 	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1624,7 +1624,7 @@ func TestStatOtherFolderFirstUse(t *testing.T) {
 
 func TestStatOtherFolderPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	func() {
 		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
@@ -1637,7 +1637,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 	}()
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, c2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, c2)
 	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1655,7 +1655,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 
 func TestReadPublicFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	const input = "hello, world\n"
 	func() {
 		mnt, _, cancelFn := makeFS(t, config)
@@ -1669,7 +1669,7 @@ func TestReadPublicFile(t *testing.T) {
 	}()
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, c2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, c2)
 	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1685,7 +1685,7 @@ func TestReadPublicFile(t *testing.T) {
 
 func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	func() {
 		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
@@ -1698,7 +1698,7 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 	}()
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, c2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, c2)
 	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1724,7 +1724,7 @@ func TestReaddirMissingFolderPublicAsAnyone(t *testing.T) {
 
 func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	func() {
 		mnt, _, cancelFn := makeFS(t, config)
 		defer mnt.Close()
@@ -1737,7 +1737,7 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 	}()
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, c2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, c2)
 	mnt, _, cancelFn := makeFS(t, c2)
 	defer mnt.Close()
 	defer cancelFn()
@@ -1778,7 +1778,7 @@ func syncPublicFolderToServer(t *testing.T, tlf string, fs *FS) {
 
 func TestInvalidateDataOnWrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt1, _, cancelFn1 := makeFS(t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
@@ -1833,7 +1833,7 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 
 func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt1, _, cancelFn1 := makeFS(t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
@@ -1888,7 +1888,7 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 
 func TestInvalidateDataOnTruncate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt1, _, cancelFn1 := makeFS(t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
@@ -1943,7 +1943,7 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 
 func TestInvalidateDataOnLocalWrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, fs, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -2013,7 +2013,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 
 func TestInvalidateEntryOnDelete(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt1, _, cancelFn1 := makeFS(t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
@@ -2080,7 +2080,7 @@ func testForErrorText(t *testing.T, path string, expectedErr error,
 func TestErrorFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	config.SetReporter(libkbfs.NewReporterSimple(config.Clock(), 0))
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -2354,7 +2354,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 
 func TestStatusFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
-	defer libkbfs.ShutdownConfigOrBust(t, config, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
@@ -2507,13 +2507,13 @@ func TestSimpleCRNoConflict(t *testing.T) {
 	mnt1, fs1, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
-	defer libkbfs.ShutdownConfigOrBust(t, config1, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config1)
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	mnt2, fs2, cancelFn2 := makeFS(t, config2)
 	defer mnt2.Close()
 	defer cancelFn2()
-	defer libkbfs.ShutdownConfigOrBust(t, config2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config2)
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")
@@ -2661,13 +2661,13 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	mnt1, fs1, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
-	defer libkbfs.ShutdownConfigOrBust(t, config1, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config1)
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	mnt2, fs2, cancelFn2 := makeFS(t, config2)
 	defer mnt2.Close()
 	defer cancelFn2()
-	defer libkbfs.ShutdownConfigOrBust(t, config2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config2)
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")
@@ -2848,13 +2848,13 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	mnt1, fs1, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
-	defer libkbfs.ShutdownConfigOrBust(t, config1, false)
+	defer libkbfs.ShutdownConfigOrBust(t, config1)
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	mnt2, fs2, cancelFn2 := makeFS(t, config2)
 	defer mnt2.Close()
 	defer cancelFn2()
-	defer libkbfs.ShutdownConfigOrBust(t, config2, true)
+	defer libkbfs.ShutdownConfigOrBust(t, config2)
 
 	if !mnt2.Conn.Protocol().HasInvalidate() {
 		t.Skip("Old FUSE protocol")

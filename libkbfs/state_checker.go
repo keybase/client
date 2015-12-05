@@ -94,7 +94,8 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		return err
 	}
 	if len(rmds) == 0 {
-		return fmt.Errorf("No state to check for folder %s", tlf)
+		sc.log.CDebugf(ctx, "No state to check for folder %s", tlf)
+		return nil
 	}
 
 	// Re-embed block changes.

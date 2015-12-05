@@ -632,3 +632,11 @@ func (md *MDServerLocal) copy(config Config) *MDServerLocal {
 	return &MDServerLocal{config, md.handleDb, md.mdDb, md.branchDb, md.mutex,
 		md.observers, md.sessionHeads, md.shutdown, md.shutdownLock}
 }
+
+// isShutdown returns whether the logical, shared MDServer instance
+// has been shut down.
+func (md *MDServerLocal) isShutdown() bool {
+	md.shutdownLock.RLock()
+	defer md.shutdownLock.RUnlock()
+	return *md.shutdown
+}

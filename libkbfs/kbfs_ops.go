@@ -28,9 +28,9 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by KBFSOpsStandard.
-func (fs *KBFSOpsStandard) Shutdown(checkState bool) error {
+func (fs *KBFSOpsStandard) Shutdown() error {
 	for _, ops := range fs.ops {
-		if err := ops.Shutdown(checkState); err != nil {
+		if err := ops.Shutdown(); err != nil {
 			return err
 		}
 	}

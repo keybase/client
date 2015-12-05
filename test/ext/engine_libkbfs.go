@@ -19,8 +19,6 @@ type LibKBFS struct {
 	updateChannels map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{}
 	// test object, mostly for logging
 	log *MemoryLog
-	// whether we've already checked the state on shutdown
-	checkedState bool
 }
 
 // Check that LibKBFS fully implements the Engine interface.
@@ -37,7 +35,6 @@ func (k *LibKBFS) Init() {
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(blockSize int64, blockChangeSize int64,
 	users ...string) map[string]User {
-	k.checkedState = false
 	// Start a new log for this test.
 	k.log = &MemoryLog{}
 	k.log.Log("\n------------------------------------------")
@@ -311,9 +308,7 @@ func (k *LibKBFS) Shutdown(u User) error {
 	k.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
 	delete(k.updateChannels, config)
 	// shutdown
-	checkState := !k.checkedState
-	k.checkedState = true
-	if err := config.Shutdown(checkState); err != nil {
+	if err := config.Shutdown(); err != nil {
 		return err
 	}
 	return nil

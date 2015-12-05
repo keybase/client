@@ -429,14 +429,14 @@ func (_mr *_MockKBFSOpsRecorder) SyncFromServer(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFromServer", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) Shutdown(checkState bool) error {
-	ret := _m.ctrl.Call(_m, "Shutdown", checkState)
+func (_m *MockKBFSOps) Shutdown() error {
+	ret := _m.ctrl.Call(_m, "Shutdown")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKBFSOpsRecorder) Shutdown(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown", arg0)
+func (_mr *_MockKBFSOpsRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
 // Mock of KeybaseDaemon interface
@@ -2414,14 +2414,24 @@ func (_mr *_MockConfigRecorder) SetMetricsRegistry(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMetricsRegistry", arg0)
 }
 
-func (_m *MockConfig) Shutdown(checkState bool) error {
-	ret := _m.ctrl.Call(_m, "Shutdown", checkState)
+func (_m *MockConfig) Shutdown() error {
+	ret := _m.ctrl.Call(_m, "Shutdown")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockConfigRecorder) Shutdown(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown", arg0)
+func (_mr *_MockConfigRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
+func (_m *MockConfig) CheckStateOnShutdown() bool {
+	ret := _m.ctrl.Call(_m, "CheckStateOnShutdown")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) CheckStateOnShutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckStateOnShutdown")
 }
 
 // Mock of NodeCache interface

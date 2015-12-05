@@ -409,8 +409,8 @@ func (c *ConfigLocal) SetMetricsRegistry(r metrics.Registry) {
 }
 
 // Shutdown implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) Shutdown(checkState bool) error {
-	if err := c.KBFSOps().Shutdown(checkState); err != nil {
+func (c *ConfigLocal) Shutdown() error {
+	if err := c.KBFSOps().Shutdown(); err != nil {
 		return err
 	}
 	c.MDServer().Shutdown()
@@ -420,4 +420,12 @@ func (c *ConfigLocal) Shutdown(checkState bool) error {
 	c.Crypto().Shutdown()
 	c.Reporter().Shutdown()
 	return nil
+}
+
+// CheckStateOnShutdown implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) CheckStateOnShutdown() bool {
+	if md, ok := c.MDServer().(*MDServerLocal); ok {
+		return !md.isShutdown()
+	}
+	return false
 }

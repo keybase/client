@@ -97,7 +97,7 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 
 func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	config.ctr.CheckForFailures()
-	config.KBFSOps().(*KBFSOpsStandard).Shutdown(false)
+	config.KBFSOps().(*KBFSOpsStandard).Shutdown()
 	mockCtrl.Finish()
 }
 

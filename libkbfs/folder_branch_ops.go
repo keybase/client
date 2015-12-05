@@ -262,18 +262,24 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by folderBranchOps.
-func (fbo *folderBranchOps) Shutdown(checkState bool) error {
-	if checkState {
-		// Make sure we're up to date first
+func (fbo *folderBranchOps) Shutdown() error {
+	if fbo.config.CheckStateOnShutdown() {
 		ctx := context.TODO()
-		if err := fbo.SyncFromServer(ctx, fbo.folderBranch); err != nil {
-			return err
-		}
+		if fbo.getState() == dirtyState {
+			fbo.log.CDebugf(ctx, "Skipping state-checking due to dirty state")
+		} else if fbo.getStaged() {
+			fbo.log.CDebugf(ctx, "Skipping state-checking due to being staged")
+		} else {
+			// Make sure we're up to date first
+			if err := fbo.SyncFromServer(ctx, fbo.folderBranch); err != nil {
+				return err
+			}
 
-		// Check the state for consistency before shutting down.
-		sc := NewStateChecker(fbo.config)
-		if err := sc.CheckMergedState(ctx, fbo.id()); err != nil {
-			return err
+			// Check the state for consistency before shutting down.
+			sc := NewStateChecker(fbo.config)
+			if err := sc.CheckMergedState(ctx, fbo.id()); err != nil {
+				return err
+			}
 		}
 	}
 

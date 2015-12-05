@@ -101,3 +101,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.noBGFlush = true
 	return config
 }
+
+// CheckStateOnShutdown implements the Config interface for ConfigLocal.
+func (c *ConfigMock) CheckStateOnShutdown() bool {
+	return false
+}

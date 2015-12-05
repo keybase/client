@@ -58,11 +58,11 @@ func testKeyBundleCheckKeys(t *testing.T, config Config, uid keybase1.UID,
 
 func TestKeyBundleFillInDevices(t *testing.T) {
 	config1 := MakeTestConfigOrBust(t, "u1", "u2", "u3")
-	defer config1.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config1)
 	config2 := ConfigAsUser(config1, "u2")
-	defer config2.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config2)
 	config3 := ConfigAsUser(config1, "u3")
-	defer config3.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config3)
 
 	ctx := context.Background()
 	u1, err := config1.KBPKI().GetCurrentUID(ctx)
@@ -112,7 +112,7 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 	// Add a device key for user 1
 	devIndex := AddDeviceForLocalUserOrBust(t, config1, u1)
 	config1B := ConfigAsUser(config1, "u1")
-	defer config1B.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config1B)
 	SwitchDeviceForLocalUserOrBust(t, config1B, devIndex)
 	newCryptPublicKey, err := config1B.KBPKI().GetCurrentCryptPublicKey(ctx)
 	if err != nil {

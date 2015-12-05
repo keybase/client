@@ -72,20 +72,20 @@ func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 
 func TestBcachePut(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
-	defer config.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config)
 	testBcachePut(t, fakeBlockID(1), config.BlockCache(), TransientEntry)
 	testBcachePut(t, fakeBlockID(2), config.BlockCache(), PermanentEntry)
 }
 
 func TestBcachePutDirty(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
-	defer config.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config)
 	testBcachePutDirty(t, fakeBlockID(1), config.BlockCache())
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
 	config := blockCacheTestInit(t, 2)
-	defer config.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config)
 	bcache := config.BlockCache()
 	id1 := fakeBlockID(1)
 	testBcachePut(t, id1, bcache, TransientEntry)
@@ -118,7 +118,7 @@ func TestBcachePutPastCapacity(t *testing.T) {
 
 func TestBcachePutDuplicateDirty(t *testing.T) {
 	config := blockCacheTestInit(t, 2)
-	defer config.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config)
 	bcache := config.BlockCache()
 	// put one under the default block pointer and branch name (clean)
 	id1 := fakeBlockID(1)
@@ -166,7 +166,7 @@ func TestBcachePutDuplicateDirty(t *testing.T) {
 
 func TestBcacheCheckPtrSuccess(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
-	defer config.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
@@ -214,7 +214,7 @@ func TestBcacheCheckPtrPermanent(t *testing.T) {
 
 func TestBcacheCheckPtrNotFound(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
-	defer config.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
@@ -240,7 +240,7 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 
 func TestBcacheDeletePermanent(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
-	defer config.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config)
 	bcache := config.BlockCache()
 
 	id1 := fakeBlockID(1)
@@ -263,7 +263,7 @@ func TestBcacheDeletePermanent(t *testing.T) {
 
 func TestBcacheDeleteDirty(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
-	defer config.Shutdown(false)
+	defer ShutdownConfigOrBust(t, config)
 	bcache := config.BlockCache()
 
 	id1 := fakeBlockID(1)
