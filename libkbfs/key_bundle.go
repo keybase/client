@@ -105,6 +105,15 @@ func (uckb UserCryptKeyBundle) fillInDeviceInfo(crypto Crypto,
 	return serverMap, nil
 }
 
+// GetKIDs returns the KIDs for the given bundle.
+func (uckb UserCryptKeyBundle) GetKIDs() []keybase1.KID {
+	var keys []keybase1.KID
+	for k := range uckb {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 // TLFKeyBundle is a bundle of all the keys for a top-level folder.
 type TLFKeyBundle struct {
 	// Maps from each writer to their crypt key bundle.
@@ -239,4 +248,14 @@ func (tkb TLFKeyBundle) GetTLFEphemeralPublicKey(user keybase1.UID,
 	}
 
 	return tkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
+}
+
+// GetTLFCryptPublicKeys returns the public crypt keys for the given user.
+func (tkb TLFKeyBundle) GetTLFCryptPublicKeys(user keybase1.UID) ([]keybase1.KID, bool) {
+	if u, ok1 := tkb.WKeys[user]; ok1 {
+		return u.GetKIDs(), true
+	} else if u, ok1 = tkb.RKeys[user]; ok1 {
+		return u.GetKIDs(), true
+	}
+	return nil, false
 }

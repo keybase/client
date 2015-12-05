@@ -248,6 +248,18 @@ func (md RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
 	return tkb.GetTLFCryptKeyInfo(user, currentCryptPublicKey)
 }
 
+// GetTLFCryptPublicKeys returns the public crypt keys for the given user
+// at the given key generation.
+func (md RootMetadata) GetTLFCryptPublicKeys(keyGen KeyGen, user keybase1.UID) (
+	[]keybase1.KID, bool) {
+	tkb, err := md.getTLFKeyBundle(keyGen)
+	if err != nil {
+		return nil, false
+	}
+
+	return tkb.GetTLFCryptPublicKeys(user)
+}
+
 // GetTLFEphemeralPublicKey returns the ephemeral public key used for
 // the TLFCryptKeyInfo for the given user and device.
 func (md RootMetadata) GetTLFEphemeralPublicKey(
