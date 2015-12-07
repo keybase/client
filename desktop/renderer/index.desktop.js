@@ -30,6 +30,20 @@ class Keybase extends Component {
   constructor () {
     super()
 
+    this.state = {
+      panelShowing: false
+    }
+
+    if (isDev) {
+      if (typeof window !== 'undefined') {
+        window.addEventListener('keydown', event => {
+          if (event.ctrlKey && event.keyCode === 72) {
+            this.setState({panelShowing: !this.state.panelShowing})
+          }
+        })
+      }
+    }
+
     // Used by material-ui widgets.
     injectTapEventPlugin()
 
@@ -62,7 +76,7 @@ class Keybase extends Component {
   renderNav () {
     return (
       <Provider store={store}>
-        <div>
+        <div style={{display: 'flex', flex: 1}}>
           <RemoteManager />
           <Nav />
         </div>
@@ -73,11 +87,11 @@ class Keybase extends Component {
   render () {
     if (isDev) {
       return (
-        <div>
-          <DebugPanel top right bottom>
+        <div style={{position: 'absolute', width: '100%', height: '100%', display: 'flex'}}>
+          {this.renderNav()}
+          <DebugPanel style={{height: '100%', width: this.state.panelShowing ? '30%' : 0, position: 'relative', maxHeight: 'initial'}}>
             <DevTools store={store} monitor={LogMonitor} visibleOnLoad={false} select={reduxDevToolsSelect}/>
           </DebugPanel>
-          {this.renderNav()}
         </div>
       )
     } else {

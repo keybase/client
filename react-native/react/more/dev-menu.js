@@ -66,6 +66,12 @@ class DevMenu extends Component {
       }},
       {name: 'Remote Window', hasChildren: true, onClick: () => {
         this.props.routeAppend([{parseRoute: {componentAtTop: {component: Foo}}}])
+      }},
+      {name: 'Components', hasChildren: true, onClick: () => {
+        this.props.routeAppend(['components'])
+      }},
+      {name: 'Stylesheet', hasChildren: true, onClick: () => {
+        this.props.routeAppend(['styleSheet'])
       }}
     ]
     return (
@@ -80,7 +86,9 @@ class DevMenu extends Component {
         developer: require('./developer'),
         login: require('../login'),
         pinentry: require('../pinentry'),
-        tracker: require('../tracker')
+        tracker: require('../tracker'),
+        components: require('./component-sheet'),
+        styleSheet: require('./style-sheet')
       }
     }
   }
