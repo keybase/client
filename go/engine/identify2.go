@@ -12,13 +12,19 @@ import (
 
 var locktab libkb.LockTable
 
+type identify2TestArgs struct {
+	noMe     bool                  // don't load ME
+	tcl      *libkb.TrackChainLink // the track chainlink to use
+	selfLoad bool                  // on if this is a self load
+}
+
 //
 // TODOs:
-//   - mocked out proof checkers for some sort of testing ability
-//     - this probably means something other than NewProofChecker() in ID table,
-//       and replacing it with a Mock instead.
 //   - think harder about what we're caching in failure cases; right now we're only
 //     caching full successes.
+//   - Better error typing for various failures.
+//   - Work back in the identify card
+//   - test caching paths
 //
 
 // Identify2 is the Identify engine used in KBFS and as a subroutine
@@ -27,8 +33,10 @@ type Identify2 struct {
 	libkb.Contextified
 
 	arg        *keybase1.Identify2Arg
+	testArgs   *identify2TestArgs
 	trackToken keybase1.TrackToken
 	cachedRes  *keybase1.UserPlusKeys
+	cache      *libkb.UserCache
 
 	me   *libkb.User
 	them *libkb.User
@@ -69,12 +77,12 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("+ Identify2.runSingle(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
 
 	e.G().Log.Debug("+ acquire singleflight lock")
-	lock := locktab.LockOnName(e.arg.Uid.String())
+	lock := locktab.AcquireOnName(e.arg.Uid.String())
 	e.G().Log.Debug("- acquired")
 
 	defer func() {
 		if lock != nil {
-			lock.Unlock()
+			lock.Release()
 		}
 		e.G().Log.Debug("- Identify2.Run -> %v", err)
 	}()
@@ -84,7 +92,7 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 	}
 
 	if !e.useAnyAssertions() && e.checkFastCacheHit() {
-		e.G().Log.Debug("| was a self load")
+		e.G().Log.Debug("| hit fast cache")
 		return nil
 	}
 
@@ -119,7 +127,8 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 	// First we check that all remote assertions as present for the user,
 	// whether or not the remote check actually suceeds (hnece the
 	// ProofState_NONE check).
-	if err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_NONE}); err != nil {
+	okStates := []keybase1.ProofState{keybase1.ProofState_NONE, keybase1.ProofState_OK}
+	if err = e.checkRemoteAssertions(okStates); err != nil {
 		e.G().Log.Debug("| Early fail due to missing remote assertions")
 		return err
 	}
@@ -144,20 +153,28 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 }
 
 func (e *Identify2) runIDTableIdentify(ctx *Context, lock *libkb.NamedLock) (err error) {
+	e.G().Log.Debug("+ runIDTableIdentify")
+	defer func() {
+		e.G().Log.Debug("- runIDTableIdentify -> %v", err)
+	}()
 	e.them.IDTable().Identify(e.state, false /* ForceRemoteCheck */, ctx.IdentifyUI, nil)
 	e.insertTrackToken(ctx)
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
 	if err == nil {
 		e.maybeCacheResult()
 	}
-	lock.Unlock()
+	ctx.IdentifyUI.Finish()
+	lock.Release()
+	if err == nil {
+		err = e.state.Result().GetError()
+	}
 	return err
 }
 
 func (e *Identify2) maybeCacheResult() {
-	if e.state.Result().IsOK() {
+	if e.state.Result().IsOK() && e.getCache() != nil {
 		v := e.toUserPlusKeys()
-		e.G().UserCache.Insert(&v)
+		e.getCache().Insert(&v)
 	}
 }
 
@@ -178,19 +195,22 @@ func (e *Identify2) insertTrackToken(ctx *Context) (err error) {
 }
 
 type checkCompletedListener struct {
+	libkb.Contextified
 	sync.Mutex
 	err       error
 	ch        chan error
 	needed    libkb.AssertionAnd
-	received  libkb.ProofSet
+	received  *libkb.ProofSet
 	completed bool
 	responded bool
 }
 
-func newCheckCompletedListener(ch chan error, proofs libkb.AssertionAnd) *checkCompletedListener {
+func newCheckCompletedListener(g *libkb.GlobalContext, ch chan error, proofs libkb.AssertionAnd) *checkCompletedListener {
 	ret := &checkCompletedListener{
-		ch:     ch,
-		needed: proofs,
+		Contextified: libkb.NewContextified(g),
+		ch:           ch,
+		needed:       proofs,
+		received:     libkb.NewProofSet(nil),
 	}
 	return ret
 }
@@ -198,20 +218,29 @@ func newCheckCompletedListener(ch chan error, proofs libkb.AssertionAnd) *checkC
 func (c *checkCompletedListener) CheckCompleted(lcr *libkb.LinkCheckResult) {
 	c.Lock()
 	defer c.Unlock()
-	libkb.AddToProofSetNoChecks(lcr.GetLink(), &c.received)
+
+	c.G().Log.Debug("+ CheckCompleted for %s", lcr.GetLink().ToIDString())
+	libkb.AddToProofSetNoChecks(lcr.GetLink(), c.received)
 
 	if err := lcr.GetError(); err != nil {
+		c.G().Log.Debug("| got error -> ", err)
 		c.err = err
 	}
 
 	// note(maxtaco): this is a little ugly in that it's O(n^2) where n is the number
 	// of identities in the assertion. But I can't imagine n > 3, so this is fine
 	// for now.
-	c.completed = c.needed.MatchSet(c.received)
+	matched := c.needed.MatchSet(*c.received)
+	c.G().Log.Debug("| matched -> %v", matched)
+	if matched {
+		c.completed = true
+	}
 
 	if c.err != nil || c.completed {
+		c.G().Log.Debug("| maybe responding")
 		c.respond()
 	}
+	c.G().Log.Debug("- CheckCompleted")
 }
 
 func (c *checkCompletedListener) Done() {
@@ -222,7 +251,9 @@ func (c *checkCompletedListener) Done() {
 
 func (c *checkCompletedListener) respond() {
 	if c.ch != nil {
+		c.G().Log.Debug("| responding")
 		if !c.completed && c.err == nil {
+			c.G().Log.Debug("| Did not complete assertions")
 			c.err = libkb.IdentifyDidNotCompleteError{}
 		}
 		c.ch <- c.err
@@ -231,11 +262,14 @@ func (c *checkCompletedListener) respond() {
 }
 
 func (e *Identify2) partiallyAsyncIdentify(ctx *Context, ch chan error, lock *libkb.NamedLock) {
-	ccl := newCheckCompletedListener(ch, e.remoteAssertion)
+	e.G().Log.Debug("+ partiallyAsyncIdentify")
+	ccl := newCheckCompletedListener(e.G(), ch, e.remoteAssertion)
 	e.them.IDTable().Identify(e.state, false /* ForceRemoteCheck */, ctx.IdentifyUI, ccl)
 	e.insertTrackToken(ctx)
 	e.maybeCacheResult()
-	lock.Unlock()
+	ctx.IdentifyUI.Finish()
+	lock.Release()
+	e.G().Log.Debug("- partiallyAsyncIdentify")
 }
 
 func (e *Identify2) checkLocalAssertions() error {
@@ -246,9 +280,9 @@ func (e *Identify2) checkLocalAssertions() error {
 }
 
 func (e *Identify2) checkRemoteAssertions(okStates []keybase1.ProofState) error {
-	var ps libkb.ProofSet
-	e.state.Result().AddProofsToSet(&ps, okStates)
-	if !e.remoteAssertion.MatchSet(ps) {
+	ps := libkb.NewProofSet(nil)
+	e.state.Result().AddProofsToSet(ps, okStates)
+	if !e.remoteAssertion.MatchSet(*ps) {
 		return libkb.UnmetAssertionError{User: e.them.GetName(), Remote: true}
 	}
 	return nil
@@ -266,7 +300,7 @@ func (e *Identify2) finishIdentify(ctx *Context, lock *libkb.NamedLock) (err err
 	switch {
 	case e.useTracking:
 		e.G().Log.Debug("| Case 1: Using Tracking")
-		e.runIDTableIdentify(ctx, lock)
+		err = e.runIDTableIdentify(ctx, lock)
 	case !e.useRemoteAssertions():
 		e.G().Log.Debug("| Case 2: No tracking, without remote assertions")
 		go e.runIDTableIdentify(ctx, lock)
@@ -321,19 +355,28 @@ func (e *Identify2) startIdentifyUI(ctx *Context) (err error) {
 	return nil
 }
 
+func (e *Identify2) getTrackChainLink() (*libkb.TrackChainLink, error) {
+	if e.testArgs != nil && e.testArgs.tcl != nil {
+		return e.testArgs.tcl, nil
+	}
+	if e.me == nil {
+		return nil, nil
+	}
+	return e.me.TrackChainLinkFor(e.them.GetName(), e.them.GetUID())
+}
+
 func (e *Identify2) createIdentifyState() (err error) {
 	e.state = libkb.NewIdentifyState(nil, e.them)
-	if e.me == nil {
-		return nil
-	}
-	tlink, err := e.me.TrackChainLinkFor(e.them.GetName(), e.them.GetUID())
+
+	tcl, err := e.getTrackChainLink()
 	if err != nil {
-		return nil
+		return err
 	}
-	if tlink != nil {
+	if tcl != nil {
 		e.useTracking = true
-		e.state.SetTrackLookup(tlink)
+		e.state.SetTrackLookup(tcl)
 	}
+
 	return nil
 }
 
@@ -350,10 +393,19 @@ func (e *Identify2) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *Identify2) isSelfLoad() bool {
+	if e.testArgs != nil && e.testArgs.selfLoad {
+		return true
+	}
 	return e.me != nil && e.them != nil && e.me.Equal(e.them)
 }
 
 func (e *Identify2) loadMe(ctx *Context) (err error) {
+
+	// Short circuit loadMe for testing
+	if e.testArgs != nil && e.testArgs.noMe {
+		return nil
+	}
+
 	var ok bool
 	ok, err = IsLoggedIn(e, ctx)
 	if err != nil || !ok {
@@ -384,7 +436,10 @@ func (e *Identify2) loadUsers(ctx *Context) (err error) {
 }
 
 func (e *Identify2) checkFastCacheHit() bool {
-	u, _ := e.G().UserCache.Get(e.them.GetUID())
+	if e.getCache() == nil {
+		return false
+	}
+	u, _ := e.getCache().Get(e.arg.Uid)
 	if u == nil {
 		return false
 	}
@@ -401,8 +456,11 @@ func (e *Identify2) checkFastCacheHit() bool {
 }
 
 func (e *Identify2) checkSlowCacheHit() bool {
+	if e.getCache() == nil {
+		return false
+	}
 
-	u, _ := e.G().UserCache.Get(e.them.GetUID())
+	u, _ := e.getCache().Get(e.them.GetUID())
 	if u == nil {
 		return false
 	}
@@ -425,4 +483,11 @@ func (e *Identify2) Result() *keybase1.Identify2Res {
 
 func (e *Identify2) toUserPlusKeys() keybase1.UserPlusKeys {
 	return e.them.ExportToUserPlusKeys(e.getIdentifyTime())
+}
+
+func (e *Identify2) getCache() *libkb.UserCache {
+	if e.cache != nil {
+		return e.cache
+	}
+	return e.G().UserCache
 }

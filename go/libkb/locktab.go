@@ -22,8 +22,8 @@ func (l *NamedLock) decref() {
 	l.refs--
 }
 
-func (l *NamedLock) Unlock() {
-	G.Log.Debug("+ LockTable.Unlock(%s)", l.name)
+func (l *NamedLock) Release() {
+	G.Log.Debug("+ LockTable.Release(%s)", l.name)
 	l.Unlock()
 	l.parent.Lock()
 	l.decref()
@@ -46,7 +46,7 @@ func (t *LockTable) init() {
 	}
 }
 
-func (t *LockTable) LockOnName(s string) (ret *NamedLock) {
+func (t *LockTable) AcquireOnName(s string) (ret *NamedLock) {
 	G.Log.Debug("+ LockTable.Lock(%s)", s)
 	t.Lock()
 	t.init()

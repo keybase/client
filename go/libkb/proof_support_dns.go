@@ -155,7 +155,7 @@ func (t DNSServiceType) LastWriterWins() bool { return false }
 func init() {
 	RegisterServiceType(DNSServiceType{})
 	RegisterSocialNetwork("dns")
-	RegisterProofCheckHook("dns",
+	RegisterMakeProofCheckerFunc("dns",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewDNSChecker(l)
 		})
