@@ -120,6 +120,12 @@ func (e *TrackToken) Run(ctx *Context) error {
 	} else {
 		err = e.storeRemoteTrack(ctx)
 	}
+
+	if err == nil {
+		e.G().NotifyRouter.HandleUserChanged(e.arg.Me.GetUID())
+		e.G().NotifyRouter.HandleUserChanged(e.them.GetUID())
+	}
+
 	return err
 }
 
