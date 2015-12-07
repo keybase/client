@@ -1,6 +1,7 @@
 import BrowserWindow from 'browser-window'
 import {ipcMain} from 'electron'
 import {showDevTools} from '../local-debug.desktop'
+import {statusCodes} from '../constants/types/go'
 
 export default {
   'keybase.1.secretUi.getPassphrase': (payload, response) => {
@@ -20,7 +21,7 @@ export default {
     }
 
     let pinentryWindow = new BrowserWindow({
-      width: 513, height: 230 + 20 /* TEMP workaround for header mouse clicks in osx */,
+      width: 513, height: 250,
       resizable: true,
       fullscreen: false,
       show: false,
@@ -46,12 +47,28 @@ export default {
         pinentryWindow.show()
       }
     }
+
+    const pinentryResize = (event, arg) => {
+      if (pinentryWindow) {
+        pinentryWindow.setSize(pinentryWindow.getSize()[0], arg)
+      }
+    }
+
     ipcMain.on('pinentryReady', pinentryReady)
+    ipcMain.on('pinentryResize', pinentryResize)
 
     function unregister () {
       ipcMain.removeListener('pinentryNeedProps', pinentryNeedProps)
       ipcMain.removeListener('pinentryReady', pinentryReady)
       ipcMain.removeListener('pinentryResult', pinentryResult)
+      ipcMain.removeListener('pinentryResize', pinentryResize)
+    }
+
+    function sendError (response) {
+      response.error({
+        code: statusCodes.SCCanceled,
+        desc: 'Input canceled'
+      })
     }
 
     const pinentryResult = (event, arg) => {
@@ -60,7 +77,8 @@ export default {
       }
 
       if ('error' in arg) {
-        response.error(arg)
+        console.log('Sending error back')
+        sendError(response)
       } else {
         response.result({passphrase: arg.passphrase, ...arg.features})
         console.log('Sent passphrase back')
@@ -77,7 +95,7 @@ export default {
     const onClose = () => {
       if (pinentryWindow) {
         if (response) {
-          response.error({error: 'User canceled'})
+          sendError(response)
         }
 
         unregister()

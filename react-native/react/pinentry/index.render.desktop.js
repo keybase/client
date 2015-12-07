@@ -14,6 +14,10 @@ export default class PinentryRender extends Component {
     }
     for (const feature in this.props.features) {
       this.state.features[feature] = this.props.features[feature].defaultValue
+
+      if (feature === 'showTyping') {
+        this.state.showTyping = this.props.features[feature].defaultValue
+      }
     }
   }
 
@@ -36,7 +40,7 @@ export default class PinentryRender extends Component {
         <div style={styles.container}>
           <Header
             style={styles.header}
-            title='Passphrase needed'
+            title={this.props.windowTitle}
             onClose={() => this.props.onCancel()}
           />
           <div style={styles.bodyContainer}>
@@ -54,7 +58,7 @@ export default class PinentryRender extends Component {
                       name={feature}
                       value={feature}
                       label={this.props.features[feature].label}
-                      defaultChecked={this.props.features[feature].allow}
+                      defaultChecked={this.props.features[feature].defaultValue}
                       style={styles.checkbox}
                       onCheck={(_, checked) => this.onCheck(feature, checked)}/>
                   </div>
@@ -98,7 +102,6 @@ const styles = {
     backgroundColor: 'white',
     fontFamily: 'Noto Sans',
     fontSize: 15,
-    height: 184,
     width: 513
   },
   header: {
@@ -128,6 +131,7 @@ const styles = {
     alignItems: 'center',
     height: 49,
     paddingTop: 9,
+    paddingBottom: 9,
     paddingRight: 15
   },
   logo: {
@@ -143,7 +147,7 @@ const styles = {
     justifyContent: 'flex-end',
     position: 'absolute',
     right: 0,
-    top: 20
+    bottom: 55
   },
   checkbox: {
     marginTop: 30,
