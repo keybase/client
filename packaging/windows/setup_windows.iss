@@ -44,7 +44,7 @@ UninstallDisplayIcon={app}\keybase.exe
 VersionInfoVersion={#MyAppVersion}
 DisableDirPage=auto
 DisableProgramGroupPage=auto
-CreateUninstallRegKey=no
+; CreateUninstallRegKey=no
 ; Comment this out for development
 ; (there doesn't seem to be a way to make it conditional)
 SignTool=SignCommand
