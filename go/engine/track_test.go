@@ -201,8 +201,8 @@ func TestTrackRetrack(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !secretUI.CalledGetSecret {
-		t.Errorf("expected get secret call")
+	if !secretUI.CalledGetPassphrase {
+		t.Errorf("expected get passphrase call")
 	}
 
 	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
