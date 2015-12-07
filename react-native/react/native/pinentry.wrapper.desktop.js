@@ -16,6 +16,21 @@ class PinentryWrapper extends Component {
     ipc.send('pinentryNeedProps')
   }
 
+  sendResize () {
+    // Kinda gross but can't figure out a good way to get this working
+    setTimeout(() => {
+      ipc.send('pinentryResize', window.pinentry.scrollHeight)
+    }, 100)
+  }
+
+  componentDidMount () {
+    this.sendResize()
+  }
+
+  componentDidUpdate () {
+    this.sendResize()
+  }
+
   onSubmit (passphrase, features) {
     // only send the features with respond back
     const payloadFeatures = this.state.payload && this.state.payload.features
