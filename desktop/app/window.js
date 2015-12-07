@@ -53,6 +53,8 @@ export default class Window {
   }
 
   show (shouldShowDockIcon) {
+    this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
+
     if (this.window) {
       if (!this.window.isVisible()) {
         this.window.show()
@@ -64,7 +66,6 @@ export default class Window {
     }
 
     this.createWindow()
-    this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
 
     if (this.opts.openDevTools) {
       this.window.openDevTools()

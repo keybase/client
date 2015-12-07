@@ -69,6 +69,8 @@ installer(err => {
   splash()
 })
 
+app.dock.hide()
+
 // Don't quit the app, instead try to close all windows
 app.on('before-quit', event => {
   const windows = BrowserWindow.getAllWindows()
