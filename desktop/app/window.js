@@ -13,6 +13,15 @@ export default class Window {
       this.createWindow()
     })
 
+    // Listen for remote windows to show a dock icon for, we'll bind the on close to
+    // hide the dock icon too
+    ipcMain.on('showDockIconForRemoteWindow', (event, remoteWindowId) => {
+      const remoteReleaseDockIcon = showDockIcon()
+      BrowserWindow.fromId(remoteWindowId).on('close', () => {
+        remoteReleaseDockIcon()
+      })
+    })
+
     ipcMain.on('listendForRemoteWindowClosed', (event, remoteWindowId) => {
       BrowserWindow.fromId(remoteWindowId).on('close', () => {
         event.sender.send('remoteWindowClosed', remoteWindowId)
