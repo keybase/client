@@ -17,7 +17,7 @@ type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootT
 
 // TODO make actions for all the call back stuff.
 
-export function registerIdentifyUi (): (dispatch: Dispatch) => void {
+export function registerIdentifyUi (): (dispatch: Dispatch) => TrackerActionCreator {
   return (dispatch, getState) => {
     engine.rpc('delegateUiCtl.registerIdentifyUI', {}, {}, (error, response) => {
       if (error != null) {
