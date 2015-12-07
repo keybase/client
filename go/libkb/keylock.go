@@ -49,6 +49,9 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 		if _, ok := err.(PassphraseError); ok {
 			// keep trying
 			emsg = "Failed to unlock key; bad passphrase"
+		} else {
+			// unretryable error
+			return nil, err
 		}
 	}
 
