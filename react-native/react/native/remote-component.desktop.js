@@ -1,6 +1,7 @@
 import React, {Component} from '../base-react'
 import remote from 'remote'
 import {showDevTools} from '../local-debug'
+import {ipcRenderer} from 'electron'
 
 const BrowserWindow = remote.require('browser-window')
 
@@ -18,11 +19,15 @@ export default class RemoteComponent extends Component {
       this.remoteWindow.emit('hasProps', {...this.props})
     })
 
+    ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindow.id)
+
     // Remember if we close, it's an error to try to close an already closed window
-    this.remoteWindow.on('close', () => {
-      if (!this.closed) {
-        this.closed = true
-        this.props.onRemoteClose && this.props.onRemoteClose()
+    ipcRenderer.on('remoteWindowClosed', (event, remoteWindowId) => {
+      if (remoteWindowId === this.remoteWindow.id) {
+        if (!this.closed) {
+          this.closed = true
+          this.props.onRemoteClose && this.props.onRemoteClose()
+        }
       }
     })
 

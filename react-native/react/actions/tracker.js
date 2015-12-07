@@ -15,6 +15,8 @@ import type {UserInfo} from '../tracker/bio.render.types'
 
 import type {Identity, IdentifyKey, TrackSummary, User, Cryptocurrency, IdentifyOutcome, RemoteProof, LinkCheckResult, TrackOptions} from '../constants/types/flow-types'
 
+type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void
+
 // TODO make actions for all the call back stuff.
 
 export function registerIdentifyUi (): (dispatch: Dispatch) => void {
@@ -62,7 +64,7 @@ export function onFollowChecked (newFollowCheckedValue: boolean, username: strin
   }
 }
 
-export function onRefollow (username: string): Action {
+export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     console.log('onRefollow')
     trackUser(username, getState())
@@ -73,7 +75,7 @@ export function onRefollow (username: string): Action {
   }
 }
 
-export function onUnfollow (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+export function onUnfollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     engine.rpc('track.untrack', {username}, {}, (err, response) => {
       if (err) {

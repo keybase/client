@@ -67,7 +67,7 @@ ipc.on('console.log', (event, args) => {
   console.log.apply(console, args)
 })
 
-ipc.on('console.warn', (event, arg) => {
+ipc.on('console.warn', (event, args) => {
   console.log('From remote console.warn')
   console.log.apply(console, args)
 })
