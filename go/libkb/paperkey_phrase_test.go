@@ -11,7 +11,11 @@ func TestPaperKeyPhrase(t *testing.T) {
 		t.Fatal(err)
 	}
 	q := NewPaperKeyPhrase(p.String())
-	if q.Version() != 0 {
-		t.Errorf("version: %d, expected 0", q.Version())
+	version, err := q.Version()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if version != 0 {
+		t.Errorf("version: %d, expected 0", version)
 	}
 }
