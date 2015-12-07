@@ -3901,6 +3901,7 @@ export type user_UserSummary = {
   idVersion: int;
   fullName: string;
   bio: string;
+  location: string;
   proofs: Proofs;
   sigIDDisplay: string;
   trackTime: Time;
@@ -3913,6 +3914,7 @@ export type UserSummary = {
   idVersion: int;
   fullName: string;
   bio: string;
+  location: string;
   proofs: Proofs;
   sigIDDisplay: string;
   trackTime: Time;

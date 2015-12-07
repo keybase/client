@@ -139,6 +139,7 @@ type Summary struct {
 	IDVersion int          `json:"id_version"`
 	FullName  string       `json:"full_name"`
 	Bio       string       `json:"bio"`
+	Location  string       `json:"location"`
 	Proofs    *Proofs      `json:"remote_proofs,omitempty"`
 }
 
@@ -150,6 +151,7 @@ func (s Summary) Export() keybase1.UserSummary {
 		IdVersion: s.IDVersion,
 		FullName:  s.FullName,
 		Bio:       s.Bio,
+		Location:  s.Location,
 		Proofs:    s.Proofs.Export(),
 	}
 }

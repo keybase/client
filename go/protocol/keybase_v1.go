@@ -5201,6 +5201,7 @@ type UserSummary struct {
 	IdVersion    int    `codec:"idVersion" json:"idVersion"`
 	FullName     string `codec:"fullName" json:"fullName"`
 	Bio          string `codec:"bio" json:"bio"`
+	Location     string `codec:"location" json:"location"`
 	Proofs       Proofs `codec:"proofs" json:"proofs"`
 	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
 	TrackTime    Time   `codec:"trackTime" json:"trackTime"`
