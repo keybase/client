@@ -38,7 +38,7 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 }
 
 func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
-	return npipe.Dial(s.file)
+	return npipe.DialTimeout(s.file, 10)
 }
 
 func IsSocketClosedError(e error) bool {
