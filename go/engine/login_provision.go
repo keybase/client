@@ -756,7 +756,7 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 }
 
 func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
-	passphrase, err := getPaperKeyPassphrase(ctx.SecretUI, "")
+	passphrase, err := libkb.GetPaperKeyPassphrase(ctx.SecretUI, "")
 	if err != nil {
 		return nil, err
 	}

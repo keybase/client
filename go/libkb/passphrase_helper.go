@@ -1,13 +1,29 @@
-package engine
+package libkb
 
 import (
 	"fmt"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-func getPaperKeyPassphrase(ui libkb.SecretUI, username string) (string, error) {
+func GetKeybasePassphrase(ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
+	arg := defaultPassphraseArg()
+	arg.WindowTitle = "Keybase passphrase"
+	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
+	arg.RetryLabel = retryMsg
+	// Checker -> libkb.CheckPassphraseSimple
+	return ui.GetPassphrase(arg, nil)
+}
+
+func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
+	arg := defaultPassphraseArg()
+	arg.WindowTitle = title
+	arg.Prompt = prompt
+	arg.RetryLabel = retryMsg
+	return ui.GetPassphrase(arg, nil)
+}
+
+func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
 	arg := defaultPassphraseArg()
 	arg.WindowTitle = "Paper backup key passphrase"
 	if len(username) == 0 {
@@ -16,6 +32,7 @@ func getPaperKeyPassphrase(ui libkb.SecretUI, username string) (string, error) {
 	arg.Prompt = fmt.Sprintf("Please enter a paper backup key passphrase for %s", username)
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
+	// Checker -> libkb.CheckPassphraseSimple
 	res, err := ui.GetPassphrase(arg, nil)
 	if err != nil {
 		return "", err

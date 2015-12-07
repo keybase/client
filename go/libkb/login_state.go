@@ -653,11 +653,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 		}
 
 		s.G().Log.Debug("| stretchPassphraseIfNecessary: getting keybase passphrase via ui")
-		arg := keybase1.GetKeybasePassphraseArg{
-			Username: un,
-			Retry:    retry,
-		}
-		res, err := ui.GetKeybasePassphrase(arg)
+		res, err := GetKeybasePassphrase(ui, un, retry)
 		if err != nil {
 			return false, err
 		}
