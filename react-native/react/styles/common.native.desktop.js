@@ -3,6 +3,10 @@ export default {
   tabBarHeight: 0
 }
 
+const flexBox = {
+  display: 'flex'
+}
+
 const button = {
   borderRadius: 61,
   color: 'white',
@@ -39,5 +43,24 @@ export const styles = {
   },
   noSelect: {
     WebkitUserSelect: 'none'
+  },
+  flexBoxColumn: {
+    ...flexBox,
+    flexDirection: 'column'
+  },
+  flexBoxRow: {
+    ...flexBox,
+    flexDirection: 'row'
+  },
+  fontBold: {
+    fontFamily: 'Noto Sans Bold'
+  },
+  fontItalic: {
+    fontFamily: 'Noto Sans Italic'
+  },
+  hr: {
+    minHeight: 1,
+    maxHeight: 1,
+    backgroundColor: 'rgba(0,0,0,0.1)'
   }
 }
