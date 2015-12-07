@@ -158,6 +158,11 @@
 			"revisionTime": "2015-11-17T11:50:13-08:00"
 		},
 		{
+			"path": "github.com/keybase/go-logging",
+			"revision": "2da2aba05a96db6143502dd25a69f828034613e8",
+			"revisionTime": "2015-12-07T11:02:23-08:00"
+		},
+		{
 			"path": "github.com/keybase/go-osxkeychain",
 			"revision": "895167325dc959eeb550354611609b1191f3403f",
 			"revisionTime": "2015-09-29T10:58:21-05:00"
@@ -201,11 +206,6 @@
 			"path": "github.com/natefinch/npipe",
 			"revision": "0938d701e50e580f5925c773055eb6d6b32a0cbc",
 			"revisionTime": "2014-10-08T16:43:58+02:00"
-		},
-		{
-			"path": "github.com/op/go-logging",
-			"revision": "f2de3fa73ede49624df5ca7467011ac4fcd43635",
-			"revisionTime": "2015-11-24T23:46:48+01:00"
 		},
 		{
 			"path": "github.com/syndtr/goleveldb/leveldb",

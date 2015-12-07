@@ -3,7 +3,7 @@
 
 // +build windows
 
-package client
+package libkb
 
 import (
 	"bytes"
@@ -74,12 +74,12 @@ var codesWin = map[byte]WORD{
 }
 
 // Return our writer so we can override Write()
-func (ui *UI) OutputWriter() io.Writer {
+func OutputWriter() io.Writer {
 	return &ColorWriter{os.Stdout, os.Stdout.Fd()}
 }
 
 // Return our writer so we can override Write()
-func (ui *UI) ErrorWriter() io.Writer {
+func ErrorWriter() io.Writer {
 	return &ColorWriter{os.Stderr, os.Stderr.Fd()}
 }
 
