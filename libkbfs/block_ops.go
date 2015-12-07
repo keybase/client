@@ -1,6 +1,10 @@
 package libkbfs
 
-import "golang.org/x/net/context"
+import (
+	"fmt"
+
+	"golang.org/x/net/context"
+)
 
 // BlockOpsStandard implements the BlockOps interface by relaying
 // requests to the block server.
@@ -16,6 +20,13 @@ func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
 	bserv := b.config.BlockServer()
 	buf, blockServerHalf, err := bserv.Get(ctx, blockPtr.ID, blockPtr)
 	if err != nil {
+		// Temporary code to track down bad block
+		// requests. Remove when not needed anymore.
+		if _, ok := err.(BServerErrorBadRequest); ok {
+			panic(fmt.Sprintf("Bad BServer request detected: err=%s, blockPtr=%s",
+				err, blockPtr))
+		}
+
 		return err
 	}
 

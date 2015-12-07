@@ -347,6 +347,18 @@ type BlockPointer struct {
 	RefNonce BlockRefNonce `codec:"r,omitempty"`
 }
 
+func (p BlockPointer) String() string {
+	s := fmt.Sprintf("BlockPointer{ID: %s, KeyGen: %d, DataVer: %d, Creator: %s", p.ID, p.KeyGen, p.DataVer, p.Creator)
+	if len(p.Writer) > 0 {
+		s += fmt.Sprintf(", Writer: %s", p.Writer)
+	}
+	if p.RefNonce != zeroBlockRefNonce {
+		s += fmt.Sprintf(", RefNonce: %s", p.RefNonce)
+	}
+	s += "}"
+	return s
+}
+
 // BlockInfo contains all information about a block in KBFS and its
 // contents.
 //
