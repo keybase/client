@@ -9,10 +9,6 @@ export default class Window {
     this.window = null
     this.releaseDockIcon = null
 
-    app.on('before-quit', () => {
-      this.window && this.window.destroy()
-    })
-
     app.on('ready', () => {
       this.createWindow()
     })
@@ -46,7 +42,7 @@ export default class Window {
     })
   }
 
-  createWindow() {
+  createWindow () {
     if (this.window) {
       return
     }
