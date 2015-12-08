@@ -68,7 +68,6 @@ Root: "HKCU"; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Keyba
 WelcomeLabel2=This will install [name/ver] on your computer.
 
 [Run]
-Filename: "{app}\keybase.exe"; Parameters: "ctl watchdog"; WorkingDir: "{app}"; Flags: postinstall runhidden nowait; Description: "Start Keybase service"
 
 [UninstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
@@ -140,10 +139,14 @@ begin
 end;
  
 procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+
 begin
   if  CurStep=ssPostInstall then
     begin
-         CreateStartupScript();
+      CreateStartupScript();
+      ExecAsOriginalUser(ExpandConstant('{app}\{#MyExeName}'), 'ctl watchdog', '', SW_HIDE, ewNoWait, ResultCode);
     end
 end;
 
