@@ -120,6 +120,7 @@ func (s *secretUI) GetSecret(context.Context, keybase1.GetSecretArg) (res keybas
 
 func (s *secretUI) GetPassphrase(context.Context, keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	s.getPassphrase = true
+	res.Passphrase = "XXXXXXXXXXXX"
 	return res, nil
 }
 

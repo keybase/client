@@ -92,7 +92,8 @@ func (n *signupSecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *k
 }
 
 func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
-	err = fmt.Errorf("GetPassphrase unimplemented")
+	res.Passphrase = n.info.passphrase
+	n.G().Log.Debug("| GetPassphrase: %v -> %v", p, res)
 	return res, err
 }
 
@@ -165,7 +166,7 @@ func randomUser(prefix string) *signupInfo {
 	return &signupInfo{
 		username:   username,
 		email:      username + "@noemail.keybase.io",
-		passphrase: sffx,
+		passphrase: sffx + sffx,
 	}
 }
 
