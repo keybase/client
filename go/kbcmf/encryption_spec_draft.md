@@ -30,10 +30,8 @@ array that looks like this:
 [
   # format name
   "sillybox",
-  # major version
-  1,
-  # minor version
-  0,
+  # major and minor version
+  [1, 0]
   # mode (0 = encryption)
   0,
   # ephemeral sender public key (NaCl crypto_box key, 32 bytes)

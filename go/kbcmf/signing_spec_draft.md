@@ -28,10 +28,8 @@ that looks like this:
 [
   # format name
   "sillybox",
-  # major version
-  1,
-  # minor version
-  0,
+  # major and minor version
+  [1, 0]
   # mode (1 = attached signing)
   1,
   # long-term signing key (NaCl crypto_sign key, 32 bytes)
@@ -93,10 +91,8 @@ header.
 [
   # format name
   "sillybox",
-  # major version
-  1,
-  # minor version
-  0,
+  # major and minor version
+  [1, 0]
   # mode (2 = detached signing)
   2,
   # long-term signing key (NaCl crypto_sign key, 32 bytes)
