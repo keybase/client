@@ -147,7 +147,7 @@ export function onCloseFromHeader (username: string): Action {
   }
 }
 
-function updateUserInfo (userCard: UserCard, username: string, getState: Function): Action {
+function updateUserInfo (userCard: UserCard, username: string, getState: () => {tracker: RootTrackerState}): Action {
   const serverURI = getState().config.config.serverURI
   return {
     type: Constants.updateUserInfo,
