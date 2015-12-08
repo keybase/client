@@ -7,7 +7,7 @@ properties on top of a plain NaCl signature:
   fitting the whole thing in RAM, and without requiring a second pass to output
   attached plaintext.
 - Abuse resistance. Alice might use the same signing key for many applications
-  besides Sillybox. Mallory might [try to
+  besides SaltPack. Mallory might [try to
   trick](https://blog.sandstorm.io/news/2015-05-01-is-that-ascii-or-protobuf.html)
   Alice into signing messages that are meaningful to other applications. Alice
   should avoid signing any bytes that Mallory could control.
@@ -27,7 +27,7 @@ that looks like this:
 # attached signing header packet
 [
   # format name
-  "sillybox",
+  "saltpack",
   # major and minor version
   [1, 0]
   # mode (1 = attached signing)
@@ -75,8 +75,8 @@ the concatenation of these values:
   packet is zero
 - the SHA512 of the payload bytes
 
-Some applications might use the Sillybox format, but don't want signature
-compatibility with other Sillybox applications. In addition to changing the
+Some applications might use the SaltPack format, but don't want signature
+compatibility with other SaltPack applications. In addition to changing the
 format name at the start of the header, these applications should use a
 different value for SOME_NULL_TERMINATED_CONSTANT_TODO.
 
@@ -90,7 +90,7 @@ header.
 # detached signing packet
 [
   # format name
-  "sillybox",
+  "saltpack",
   # major and minor version
   [1, 0]
   # mode (2 = detached signing)

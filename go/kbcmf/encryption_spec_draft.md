@@ -12,10 +12,10 @@ Building on what NaCl gives us, there are several other properties we want:
 - Streaming. We want to be able to decrypt a message of any size without
   needing to fit the whole thing in RAM.
 - Abuse resistance. Alice might use the same encryption key for many
-  applications besides Sillybox. Mallory might [try to
+  applications besides Saltpack. Mallory might [try to
   trick](https://blog.sandstorm.io/news/2015-05-01-is-that-ascii-or-protobuf.html)
   Alice into decrypting ciphertexts from other applications, by formatting them
-  as part of a Sillybox message. Alice shouldn't be able to decrypt these
+  as part of a SaltPack message. Alice shouldn't be able to decrypt these
   messages at all.
 
 ## Format
@@ -29,7 +29,7 @@ array that looks like this:
 # encryption header packet
 [
   # format name
-  "sillybox",
+  "saltpack",
   # major and minor version
   [1, 0]
   # mode (0 = encryption)
@@ -135,8 +135,8 @@ to make sure we never reuse them. The `P` prefix makes the probability of nonce
 reuse negligible.
 
 We also want to prevent abuse of the decryption key. Alice might use Bob's
-public key to encrypt many kinds of messages, besides just Sillybox messages.
-If Mallory intercepted one of these, she could assemble a fake Sillybox message
+public key to encrypt many kinds of messages, besides just SaltPack messages.
+If Mallory intercepted one of these, she could assemble a fake SaltPack message
 using the intercepted box, in the hope that Bob might reveal something about
 its contents by decrypting it. The `P` prefix makes this sort of attack
 infeasible, because the only way Mallory can choose `P` is by trying
@@ -144,7 +144,7 @@ infeasible, because the only way Mallory can choose `P` is by trying
 Bob will never decrypt the intercepted boxes, because the nonce he uses won't
 match.
 
-Some applications might use the Sillybox format, but don't want decryption
-compatibility with other Sillybox applications. In addition to changing the
+Some applications might use the SaltPack format, but don't want decryption
+compatibility with other SaltPack applications. In addition to changing the
 format name at the start of the header, these applications should use a
 different value for SOME_NULL_TERMINATED_CONSTANT_TODO.
