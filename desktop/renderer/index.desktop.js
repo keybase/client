@@ -9,6 +9,8 @@ import injectTapEventPlugin from 'react-tap-event-plugin'
 import {isDev} from '../../react-native/react/constants/platform'
 import {reduxDevToolsSelect} from '../../react-native/react/local-debug.desktop'
 
+import ListenForNotifications from '../../react-native/react/native/notifications'
+
 // For Remote Components
 import RemoteManager from '../../react-native/react/native/remote-manager'
 import {ipcMain} from 'remote'
@@ -25,6 +27,10 @@ if (isDev) {
 }
 
 const store = configureStore()
+
+function NotifyPopup (title: string, opts: Object): void {
+  new Notification(title, opts) //eslint-disable-line
+}
 
 class Keybase extends Component {
   constructor () {
@@ -71,6 +77,9 @@ class Keybase extends Component {
         event.sender.send('stateChange', getStore())
       })
     })
+
+    // Handle notifications from the service
+    ListenForNotifications(NotifyPopup)
   }
 
   renderNav () {

@@ -39,7 +39,6 @@ mb.on('after-create-window', () => {
 })
 
 mb.on('ready', () => {
-  require('../../react-native/react/native/notifications').init()
   require('../../react-native/react/native/pinentry').init()
 })
 

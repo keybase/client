@@ -1,8 +1,0 @@
-<!DOCTYPE html>
-<script>
-const ipc = require('electron').ipcRenderer
-
-ipc.on('notify', (event, title, opts) => {
-  new Notification(title, opts)
-})
-</script>

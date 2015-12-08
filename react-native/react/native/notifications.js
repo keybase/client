@@ -2,11 +2,14 @@
 
 import engine from '../engine'
 // $FlowIssue can't deal with platform files
-import listeners from './notification-listeners'
+import ListenerCreator from './notification-listeners'
 
 var initialized = false
 
-export function init () {
+// A function that can display a notification
+type NotifyFn = (title: string, opts: Object) => void
+
+export default function (notify: NotifyFn) {
   if (initialized) {
     throw new Error('notifications were already initialized')
   }
@@ -27,6 +30,7 @@ export function init () {
     })
   })
 
+  const listeners = ListenerCreator(notify)
   Object.keys(listeners).forEach(k => engine.listenGeneralIncomingRpc(k, listeners[k]))
   initialized = true
 }
