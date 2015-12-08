@@ -9,12 +9,17 @@ export default class Window {
     this.window = null
     this.releaseDockIcon = null
 
-    app.on('before-quit', () => {
-      this.window && this.window.destroy()
-    })
-
     app.on('ready', () => {
       this.createWindow()
+    })
+
+    // Listen for remote windows to show a dock icon for, we'll bind the on close to
+    // hide the dock icon too
+    ipcMain.on('showDockIconForRemoteWindow', (event, remoteWindowId) => {
+      const remoteReleaseDockIcon = showDockIcon()
+      BrowserWindow.fromId(remoteWindowId).on('close', () => {
+        remoteReleaseDockIcon()
+      })
     })
 
     ipcMain.on('listendForRemoteWindowClosed', (event, remoteWindowId) => {
@@ -46,7 +51,7 @@ export default class Window {
     })
   }
 
-  createWindow() {
+  createWindow () {
     if (this.window) {
       return
     }
@@ -57,6 +62,8 @@ export default class Window {
   }
 
   show (shouldShowDockIcon) {
+    this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
+
     if (this.window) {
       if (!this.window.isVisible()) {
         this.window.show()
@@ -68,7 +75,6 @@ export default class Window {
     }
 
     this.createWindow()
-    this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
 
     if (this.opts.openDevTools) {
       this.window.openDevTools()

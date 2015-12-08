@@ -119,7 +119,7 @@
         const ipc = require('electron').ipcRenderer
         showHelp.addEventListener('click', () => { ipc.send('showHelp') })
         showMain.addEventListener('click', () => { ipc.send('showMain') })
-        quit.addEventListener('click', () => { require('remote').require('app').quit() })
+        quit.addEventListener('click', () => { require('remote').require('app').emit('destroy') })
 
         function fixAnchors() {
         var tags = document.getElementsByTagName('a');
