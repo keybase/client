@@ -18,9 +18,9 @@ class PinentryWrapper extends Component {
 
   sendResize () {
     // Kinda gross but can't figure out a good way to get this working
-    setTimeout(() => {
+    setImmediate(() => {
       ipc.send('pinentryResize', window.pinentry.scrollHeight)
-    }, 100)
+    })
   }
 
   componentDidMount () {
