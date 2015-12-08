@@ -19,6 +19,7 @@ export default class RemoteComponent extends Component {
       this.remoteWindow.emit('hasProps', {...this.props})
     })
 
+    ipcRenderer.send('showDockIconForRemoteWindow', this.remoteWindow.id)
     ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindow.id)
 
     // Remember if we close, it's an error to try to close an already closed window
