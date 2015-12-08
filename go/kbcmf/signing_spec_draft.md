@@ -1,4 +1,4 @@
-# Signing
+# SaltPack Signing
 
 ## Properties
 As with the encryption format, we want our signing format to have several
