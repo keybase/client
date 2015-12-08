@@ -49,9 +49,26 @@
   attributes[NSFileGroupOwnerAccountID] = @(0);
 
   [self updateAttributes:attributes path:destination completion:^(NSError *error) {
-    if (error) completion(error, @(0));
-    else [self loadKextID:kextID path:kextPath completion:completion];
+    if (error) {
+      completion(error, @(0));
+    } else {
+      // This is not fatal, but would prevent load_kbfuse from working if it did
+      if (![self updateLoaderFileAttributes:destination error:&error]) {
+        KBLog(@"Failed to update loader file attributes: %@", error);
+      }
+      [self loadKextID:kextID path:kextPath completion:completion];
+    }
   }];
+}
+
++ (BOOL)updateLoaderFileAttributes:(NSString *)destination error:(NSError **)error {
+  NSString *path = [NSString stringWithFormat:@"%@/Contents/Resources/load_kbfuse", destination];
+  NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:NULL];
+  NSMutableDictionary *attributes = [NSMutableDictionary dictionaryWithDictionary:fileAttributes];
+  attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:04755];
+  attributes[NSFileOwnerAccountID] = @(0);
+  attributes[NSFileGroupOwnerAccountID] = @(0);
+  return [NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:path error:error];
 }
 
 + (void)updateAttributes:(NSDictionary *)attributes path:(NSString *)path completion:(KBCompletion)completion {

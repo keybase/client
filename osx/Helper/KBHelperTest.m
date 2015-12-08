@@ -9,6 +9,7 @@
 #import "KBHelperTest.h"
 
 #import "KBHelper.h"
+#import "KBKext.h"
 
 @implementation KBHelperTest
 
@@ -18,13 +19,20 @@
   [helper handleRequestWithMethod:@"kext_unload" params:@[@{@"kextID": kextID}] messageId:@(1) completion:completion];
 }
 
+- (void)testUpdateLoaderFileAttributes:(void (^)(NSError *error, id value))completion {
+  NSError *error = nil;
+  BOOL ok = [KBKext updateLoaderFileAttributes:@"/Library/Filesystems/kbfuse.fs" error:&error];
+  completion(error, @(ok));
+}
+
 - (void)test:(void (^)(NSError *error, id value))completion {
-  [self testKextUnload:completion];
+  //[self testKextUnload:completion];
+  [self testUpdateLoaderFileAttributes:completion];
 }
 
 + (int)test {
   KBHelperTest *test = [[KBHelperTest alloc] init];
-  [test testKextUnload:^(NSError *error, id value) {
+  [test test:^(NSError *error, id value) {
     KBLog(@"Result: %@, %@", error, value);
     exit(0);
   }];
