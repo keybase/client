@@ -113,7 +113,7 @@ also the nonce for the payload box, see below.
 
 All NaCl nonces are 24 bytes. Define the pre-nonce `P` to be the first 20 bytes
 of the SHA512 of the concatenation of these values:
-- SOME_NULL_TERMINATED_CONSTANT_TODO
+- b"SALTPACKPREFIX\0"
 - b"NONCE\0"
 - the ephemeral public key
 
@@ -147,4 +147,6 @@ match.
 Some applications might use the SaltPack format, but don't want decryption
 compatibility with other SaltPack applications. In addition to changing the
 format name at the start of the header, these applications should use a
-different value for SOME_NULL_TERMINATED_CONSTANT_TODO.
+[different null-terminated context
+string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
+place of `b"SALTPACKPREFIX\0"`.

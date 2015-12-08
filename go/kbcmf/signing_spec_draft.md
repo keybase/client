@@ -59,7 +59,7 @@ private key is used to sign payloads.
 
 The delegation signature is made with the sender's long-term signing key. The
 signed text is the concatenation of these values:
-- SOME_NULL_TERMINATED_CONSTANT_TODO
+- b"SALTPACKPREFIX\0"
 - b"DELEGATION\0"
 - the ephemeral public signing key
 
@@ -69,7 +69,7 @@ long-term key that might be meaningful to another application.
 
 Payload signatures are made with the ephemeral signing key. The signed text is
 the concatenation of these values:
-- SOME_NULL_TERMINATED_CONSTANT_TODO
+- b"SALTPACKPREFIX\0"
 - b"ATTACHED\0"
 - the packet number as an 8-byte big-endian uint, where the first payload
   packet is zero
@@ -78,7 +78,9 @@ the concatenation of these values:
 Some applications might use the SaltPack format, but don't want signature
 compatibility with other SaltPack applications. In addition to changing the
 format name at the start of the header, these applications should use a
-different value for SOME_NULL_TERMINATED_CONSTANT_TODO.
+[different null-terminated context
+string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
+place of `b"SALTPACKPREFIX\0"`.
 
 ### Detached
 
@@ -109,6 +111,6 @@ header.
 The delegation signature for the ephemeral signing key is the same as in the
 attached format. The message signature is made with the ephemeral signing key.
 The signed text is the concatenation of these values:
-- SOME_NULL_TERMINATED_CONSTANT_TODO
+- b"SALTPACKPREFIX\0"
 - b"DETACHED\0"
-- The SHA512 of the message plaintext.
+- the SHA512 of the message plaintext
