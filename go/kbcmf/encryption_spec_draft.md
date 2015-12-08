@@ -105,8 +105,8 @@ to a single person, rather than requiring a separate MAC for every recipient
 device, to save space when recipients have many devices.
 
 The MACs are computed over the first 16 bytes of each payload box (the Poly1305
-authenticator) concatenated with the packet number. The packet number is a
-24-byte big-endian uint, where the first payload packet is zero. This value is
+authenticator) concatenated with the packet number. The packet number is an
+64-bit big-endian uint, where the first payload packet is zero. This value is
 also the nonce for the payload box, see below.
 
 ### Nonces
@@ -120,15 +120,15 @@ of the SHA512 of the concatenation of these values:
 Also define `R` to be the index of the recipient in question, in the recipients
 list.
 
-The nonce for each sender key box is `P` concatenated with the 4-byte
+The nonce for each sender key box is `P` concatenated with the 32-bit
 big-endian unsigned representation of `2*R`.
 
-The nonce for each message keys box is `P` concatenated with the 4-byte
+The nonce for each message keys box is `P` concatenated with the 32-bit
 big-endian unsigned representation of `2*R + 1`.
 
-The nonce for each payload box is the 24-byte big-endian unsigned
-representation of the packet number, where the first payload packet is number
-0. We don't use `P` here.
+The nonce for each payload box is 16 zero bytes concatenated with the 64-bit
+big-endian unsigned representation of the packet number, where the first
+payload packet is number 0. We don't use `P` here.
 
 Because the first two nonces are used with one or two long-term keys, we need
 to make sure we never reuse them. The `P` prefix makes the probability of nonce
