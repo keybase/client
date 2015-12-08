@@ -178,7 +178,7 @@ func TestLoginNonexistent(t *testing.T) {
 
 	Logout(tc)
 
-	secretUI := &libkb.TestSecretUI{}
+	secretUI := &libkb.TestSecretUI{Passphrase: "XXXXXXXXXXXX"}
 	err := tc.G.LoginState().LoginWithPrompt("nonexistent", nil, secretUI, nil)
 	if _, ok := err.(libkb.AppStatusError); !ok {
 		t.Errorf("error type: %T, expected libkb.AppStatusError", err)
