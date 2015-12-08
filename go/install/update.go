@@ -332,7 +332,7 @@ var UpdateCheckDuration = (24 * time.Hour)
 func UpdaterStartTicker(g *libkb.GlobalContext) *Updater {
 	config := DefaultUpdaterConfig(g)
 	if config == nil {
-		g.Log.Errorf("No updater available for this environment")
+		g.Log.Info("No updater available for this environment")
 		return nil
 	}
 	updater := NewUpdater(g, *config, sources.NewKeybaseUpdateSource(g))
