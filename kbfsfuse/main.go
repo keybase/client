@@ -51,7 +51,7 @@ func start() *libfuse.Error {
 	localUser := libkb.NewNormalizedUsername(*localUserFlag)
 
 	if *debug {
-		log := logger.NewWithCallDepth("FUSE", 1)
+		log := logger.NewWithCallDepth("FUSE", 1, os.Stderr)
 		log.Configure("", true, "")
 		fuse.Debug = func(msg interface{}) {
 			log.Debug("%s", msg)

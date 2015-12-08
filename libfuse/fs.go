@@ -34,7 +34,7 @@ type FS struct {
 
 // NewFS creates an FS
 func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
-	log := logger.New("kbfsfuse")
+	log := logger.New("kbfsfuse", os.Stderr)
 	if debug {
 		// Turn on debugging.  TODO: allow a proper log file and
 		// style to be specified.

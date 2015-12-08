@@ -173,7 +173,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 		}
 		// Add log depth so that context-based messages get the right
 		// file printed out.
-		lg := logger.NewWithCallDepth(mname, 1)
+		lg := logger.NewWithCallDepth(mname, 1, os.Stderr)
 		if debug {
 			// Turn on debugging.  TODO: allow a proper log file and
 			// style to be specified.
@@ -220,7 +220,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 
 	client.InitUI()
 	if err := client.GlobUI.Configure(); err != nil {
-		lg := logger.NewWithCallDepth("", 1)
+		lg := logger.NewWithCallDepth("", 1, os.Stderr)
 		lg.Warning("problem configuring UI: %s", err)
 		lg.Warning("ignoring for now...")
 	}
