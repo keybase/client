@@ -82,6 +82,8 @@
     [KBKext installWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
   } else if ([method isEqualToString:@"kext_uninstall"]) {
     [KBKext uninstallWithDestination:args[@"destination"] kextID:args[@"kextID"] completion:completion];
+  } else if ([method isEqualToString:@"trash"]) {
+    [self trash:args[@"path"] completion:completion];
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }
@@ -95,6 +97,22 @@
                              @"build": build,
                              };
   completion(nil, response);
+}
+
+- (void)trash:(NSString *)path completion:(void (^)(NSError *error, id value))completion {
+  NSError *error = nil;
+  // The caller should check the path too but let's be safer and prevent some bad paths
+  if (!path || ![path hasPrefix:@"/"] || [path isEqualToString:@"/"]) {
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid path"), nil);
+    return;
+  }
+
+  NSURL *outURL = nil;
+  if (![NSFileManager.defaultManager trashItemAtURL:[NSURL fileURLWithPath:path] resultingItemURL:&outURL error:&error]) {
+    completion(error, nil);
+  } else {
+    completion(nil, [outURL absoluteString]);
+  }
 }
 
 @end
