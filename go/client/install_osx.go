@@ -408,6 +408,9 @@ func installCommandLine(g *libkb.GlobalContext, binPath string, force bool) erro
 		return err
 	}
 	linkPath := filepath.Join("/usr/local/bin", binName())
+	if linkPath == bp {
+		return fmt.Errorf("We can't symlink to ourselves: %s", bp)
+	}
 	g.Log.Info("Checking %s (%s)", linkPath, bp)
 	err = installCommandLineForBinPath(bp, linkPath, force)
 	if err != nil {

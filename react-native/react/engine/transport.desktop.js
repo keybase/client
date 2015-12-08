@@ -5,7 +5,10 @@ export default class DesktopTransport extends BaseTransport {
   constructor (incomingRPCCallback, writeCallback, connectCallback) {
     let hooks = null
     if (connectCallback) {
-      hooks = {connected: connectCallback}
+      hooks = {connected: () => {
+        this.needsConnect = false
+        connectCallback()
+      }}
     }
 
     super({path: socketPath, hooks}, null, incomingRPCCallback)

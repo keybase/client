@@ -1,28 +1,139 @@
 <!DOCTYPE html>
-<style>
-html {
-  font: 12px "Helvetica Neue", Helvetica, sans-serif;
-  -webkit-user-select: none;
-  cursor: default;
-}
+<html>
+  <head>
+    <title>Keybase</title>
+    <link href="./style.css" rel="stylesheet">
+    <link href="../node_modules/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+      body {
+        box-sizing: border-box;
+        display: flex;
+        color: #BFBEBE;
+        flex-direction: column;
+        border-radius: 5px;
+        -webkit-user-select: none;
+        cursor: default;
+        margin: 0;
+        height: 230px;
+      }
 
-button {
-  display: block;
-  width: 100%;
-  height: 30px;
-  margin: 10px 0;
-}
+      .header {
+        display: flex;
+        flex-direction: row;
+        background-color: #EDEDED;
+        padding: 5px;
+        height: 30px;
+        border-bottom: solid 1px #CDCDD0;
+        align-items: center;
+      }
 
-</style>
+      .header .logo {
+        width: 24px;
+        height: 24px;
+      }
 
-<button type=button id=showHelp>Help</button>
-<button type=button id=showMain>Main</button>
-<button type=button id=quit>Quit</button>
+      .header .title {
+        font-size: 14px;
+      }
 
-<script>
-const ipc = require('electron').ipcRenderer;
+      .vDivider {
+        background-color: #CDCDD0;
+        width: 1px;
+        height: 80%;
+        margin-left: 10px;
+        margin-right: 10px;
+      }
 
-showHelp.addEventListener('click', () => { ipc.send('showHelp'); })
-showMain.addEventListener('click', () => { ipc.send('showMain'); })
-quit.addEventListener('click', () => { require('remote').require('app').emit('destroy'); })
-</script>
+      .content {
+        display: flex;
+        flex-direction: column;
+        color: black;
+        border-bottom: solid 1px #CDCDD0;
+        padding: 15px;
+        align-items: center;
+      }
+
+      .content button {
+        width: 70%;
+        height: 30px;
+        font-family: "Noto Sans";
+      }
+
+      .content button:nth-child(1n+2) {
+        margin-top: 10px;
+      }
+
+      .footer {
+        height: 10px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        background-color: #EDEDED;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <img class="logo" src="../Icon@2x.png" alt="">
+      <div class="vDivider"></div>
+      <a class="title" href="https://keybase.io">keybase.io</a>
+    </div>
+    <div class="content">
+      <button class="hidden" type=button id=showMain>Main</button>
+      <button type=button id=showHelp>Help</button>
+      <button type=button id=quit>Quit</button>
+    </div>
+    <div class="footer">
+    </div>
+
+    <script>
+      function getParams() {
+        var parts = window.location.hash.substr(1).split('=')
+        var params = {}
+        for (var i = 1 ; i < parts.length ; i+=2) {
+          params[parts[i-1]] = parts[i]
+        }
+        return params
+      }
+
+      var params = getParams()
+
+      if (params.debug) {
+        showMain.style.display = 'block'
+      }
+
+      if (window.require !== undefined) {
+        require("babel/register")({
+          extensions: [".desktop.js", ".es6", ".es", ".jsx", ".js"]
+        })
+        var shell = require('electron').shell
+        var path = require('path')
+        var injector = require('../../react-native/react/native/inject-styles')
+        injector(document, path.resolve(__dirname, './style.css'))
+        injector(document, path.resolve(__dirname, '../node_modules/font-awesome/css/font-awesome.min.css'))
+
+        const ipc = require('electron').ipcRenderer
+        showHelp.addEventListener('click', () => { ipc.send('showHelp') })
+        showMain.addEventListener('click', () => { ipc.send('showMain') })
+        quit.addEventListener('click', () => { require('remote').require('app').emit('destroy') })
+
+        function fixAnchors() {
+        var tags = document.getElementsByTagName('a');
+          for (var i = 0 ; i < tags.length ; ++i) {
+            var a = tags[i]
+            a.addEventListener('click', function(event) {
+              event.preventDefault()
+              shell.openExternal(event.target.href)
+            })
+          }
+        }
+
+        fixAnchors()
+      }
+    </script>
+  </body>
+</html>

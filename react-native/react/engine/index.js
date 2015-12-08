@@ -178,7 +178,7 @@ class Engine {
     } else if (!sessionID && this.serverListeners[method]) {
       this._serverInitIncomingRPC(method, param, response)
     } else {
-      console.log(`Unknown incoming rpc: ${sessionID} ${method}`)
+      console.log(`Unknown incoming rpc: ${sessionID} ${method} ${param}`)
     }
   }
 

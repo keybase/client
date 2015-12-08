@@ -340,7 +340,6 @@ func (e *Identify) displayUserCard(ctx *Context) {
 			Followers int `json:"followers"`
 		} `json:"follow_summary"`
 		Profile struct {
-			UID      string `json:"uid"`
 			FullName string `json:"full_name"`
 			Location string `json:"location"`
 			Bio      string `json:"bio"`
@@ -358,15 +357,10 @@ func (e *Identify) displayUserCard(ctx *Context) {
 
 	e.G().Log.Debug("user card: %+v", card)
 
-	uid, err := keybase1.UIDFromString(card.Profile.UID)
-	if err != nil {
-		e.G().Log.Warning("card profile uid error: %s", err)
-	}
-
 	kcard := keybase1.UserCard{
 		Following:     card.FollowSummary.Following,
 		Followers:     card.FollowSummary.Followers,
-		Uid:           uid,
+		Uid:           e.user.GetUID(),
 		FullName:      card.Profile.FullName,
 		Location:      card.Profile.Location,
 		Bio:           card.Profile.Bio,

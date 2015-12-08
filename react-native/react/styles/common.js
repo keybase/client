@@ -17,10 +17,6 @@ const buttonCommon = {
   color: 'black'
 }
 
-const flexBox = {
-  display: 'flex'
-}
-
 export const colors = {
   lightBlue: '#00BFF0',
   grey: 'grey',
@@ -80,28 +76,6 @@ export default StyleSheet.create({
   },
   centerText: {
     textAlign: 'center'
-  },
-  flexBoxColumn: {
-    ...flexBox,
-    flexDirection: 'column'
-  },
-  flexBoxRow: {
-    ...flexBox,
-    flexDirection: 'row'
-  },
-  fontBold: {
-    fontFamily: 'Noto Sans Bold'
-  },
-  fontItalic: {
-    fontFamily: 'Noto Sans Italic'
-  },
-  noSelect: {
-    WebkitUserSelect: 'none'
-  },
-  hr: {
-    minHeight: 1,
-    maxHeight: 1,
-    backgroundColor: 'rgba(0,0,0,0.1)'
   },
   ...nativeStyles
 })

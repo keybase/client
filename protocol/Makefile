@@ -70,10 +70,12 @@ objc-build-stamp: build-stamp
 js/flow-types.js: build-stamp
 	@mkdir -p js/
 	node ./bin/flow.js
+	cp ./js/flow-types.js ../react-native/react/constants/types
 
 js/keybase_v1.js: build-stamp
 	@mkdir -p js/
 	node ./bin/js.js
+	cp ./js/keybase_v1.js ../react-native/react/constants/types
 
 swift-build-stamp: build-stamp
 	ruby ./bin/swift.rb

@@ -12,6 +12,7 @@ const installer = require('./installer')
 const app = require('electron').app
 const path = require('path')
 const showDevTools = require('../../react-native/react/local-debug.desktop').showDevTools
+const isDev = require('../../react-native/react/local-debug.desktop').isDev
 const shell = require('electron').shell
 const helpURL = require('../../react-native/react/constants/urls').helpURL
 
@@ -19,8 +20,8 @@ const appPath = app.getAppPath()
 const menubarIconPath = path.resolve(appPath, 'Icon.png')
 
 const mb = menubar({
-  index: `file://${__dirname}/../renderer/launcher.html`,
-  width: 200, height: 250,
+  index: `file://${__dirname}/../renderer/launcher.html#debug=${isDev}`,
+  width: 150, height: 192,
   preloadWindow: true,
   icon: menubarIconPath,
   showDockIcon: true
@@ -32,8 +33,13 @@ const mainWindow = new Window('index', {
   openDevTools: true
 })
 
+mb.on('after-create-window', () => {
+  if (showDevTools) {
+    mb.window.openDevTools()
+  }
+})
+
 mb.on('ready', () => {
-  require('../../react-native/react/native/notifications').init()
   require('../../react-native/react/native/pinentry').init()
 
 
