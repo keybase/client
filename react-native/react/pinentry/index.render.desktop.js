@@ -6,7 +6,9 @@ import path from 'path'
 import commonStyles, {colors} from '../styles/common'
 
 export default class PinentryRender extends Component {
-  componentWillMount () {
+  constructor (props) {
+    super(props)
+
     this.state = {
       passphrase: '',
       features: {},
