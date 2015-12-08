@@ -137,11 +137,12 @@ reuse negligible.
 We also want to prevent abuse of the decryption key. Alice might use Bob's
 public key to encrypt many kinds of messages, besides just Sillybox messages.
 If Mallory intercepted one of these, she could assemble a fake Sillybox message
-that contained the intercepted box, in the hope that Bob might reveal something
-about its contents by decrypting it. The `P` prefix makes this attack
-difficult, because the only way Mallory can select it is by hashing 2^160
-ephemeral keys. Bob will never decrypt the fake message, because the nonce
-won't match.
+using the intercepted box, in the hope that Bob might reveal something about
+its contents by decrypting it. The `P` prefix makes this sort of attack
+infeasible, because the only way Mallory can choose `P` is by trying
+2<sup>160</sup> ephemeral keys, until one gives the hash she wants. Otherwise
+Bob will never decrypt the intercepted boxes, because the nonce he uses won't
+match.
 
 Some applications might use the Sillybox format, but don't want decryption
 compatibility with other Sillybox applications. In addition to changing the
