@@ -766,7 +766,7 @@ func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 		return nil, err
 	}
 	if version != libkb.PaperKeyVersion {
-		e.G().Log.Debug("paper version mismatch:  generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
+		e.G().Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
 		return nil, libkb.KeyVersionError{}
 	}
 

@@ -52,7 +52,7 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 		return nil, err
 	}
 	if version != libkb.PaperKeyVersion {
-		g.Log.Debug("paper version mismatch:  generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
+		g.Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
 		return nil, libkb.KeyVersionError{}
 	}
 
