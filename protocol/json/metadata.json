@@ -417,6 +417,13 @@
       } ],
       "response" : "bytes"
     },
+    "getFoldersForRekey" : {
+      "request" : [ {
+        "name" : "deviceKID",
+        "type" : "KID"
+      } ],
+      "response" : "null"
+    },
     "ping" : {
       "request" : [ ],
       "response" : "null"

@@ -33,6 +33,8 @@ type checkArg struct {
 	uid      keybase1.UID
 	username *libkb.NormalizedUsername
 	kid      *keybase1.KID
+	sibkeys  []keybase1.KID
+	subkeys  []keybase1.KID
 	retCh    chan error
 }
 
@@ -59,7 +61,8 @@ type cleanItem struct {
 type user struct {
 	uid      keybase1.UID
 	username libkb.NormalizedUsername
-	keys     map[keybase1.KID]struct{}
+	sibkeys  map[keybase1.KID]struct{}
+	subkeys  map[keybase1.KID]struct{}
 	isOK     bool
 	ctime    time.Time
 	ca       *CredentialAuthority
@@ -73,7 +76,8 @@ type user struct {
 func newUser(uid keybase1.UID, ca *CredentialAuthority) *user {
 	ret := &user{
 		uid:     uid,
-		keys:    make(map[keybase1.KID]struct{}),
+		sibkeys: make(map[keybase1.KID]struct{}),
+		subkeys: make(map[keybase1.KID]struct{}),
 		ca:      ca,
 		checkCh: make(chan checkArg),
 		stopCh:  make(chan struct{}),
@@ -87,7 +91,8 @@ func newUser(uid keybase1.UID, ca *CredentialAuthority) *user {
 // server authority.
 type UserKeyAPIer interface {
 	// GetUser looks up the username and KIDS active for the given user.
-	GetUser(context.Context, keybase1.UID) (libkb.NormalizedUsername, []keybase1.KID, error)
+	GetUser(context.Context, keybase1.UID) (
+		un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, err error)
 	// PollForChanges returns the UIDs that have recently changed on the server
 	// side. It will be called in a poll loop.
 	PollForChanges(context.Context) ([]keybase1.UID, error)
@@ -316,14 +321,17 @@ func (u *user) repopulate() error {
 		u.ca.cleanItemCh <- cleanItem{uid: u.uid, ctime: ctime}
 	}()
 
-	un, keys, err := u.ca.getUserFromServer(u.uid)
+	un, sibkeys, subkeys, err := u.ca.getUserFromServer(u.uid)
 	if err != nil {
 		u.isOK = false
 		return err
 	}
 	u.username = un
-	for _, k := range keys {
-		u.keys[k] = struct{}{}
+	for _, k := range sibkeys {
+		u.sibkeys[k] = struct{}{}
+	}
+	for _, k := range subkeys {
+		u.subkeys[k] = struct{}{}
 	}
 	u.isOK = true
 	u.ctime = ctime
@@ -361,18 +369,31 @@ func (u *user) check(ca checkArg) {
 		}
 	}
 
+	if ca.sibkeys != nil {
+		if err = u.compareSibkeys(ca.sibkeys); err != nil {
+			return
+		}
+	}
+
+	if ca.subkeys != nil {
+		if err = u.compareSubkeys(ca.subkeys); err != nil {
+			return
+		}
+	}
+
 	return
 }
 
 // getUserFromServer runs the UserKeyAPIer GetUser() API call while paying
 // attention to any shutdown events that might interrupt it.
-func (v *CredentialAuthority) getUserFromServer(uid keybase1.UID) (un libkb.NormalizedUsername, kids []keybase1.KID, err error) {
+func (v *CredentialAuthority) getUserFromServer(uid keybase1.UID) (
+	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, err error) {
 	err = v.runWithCancel(func(ctx context.Context) error {
 		var err error
-		un, kids, err = v.api.GetUser(ctx, uid)
+		un, sibkeys, subkeys, err = v.api.GetUser(ctx, uid)
 		return err
 	})
-	return un, kids, err
+	return un, sibkeys, subkeys, err
 }
 
 // checkUsername checks that a username is a match for this user.
@@ -384,11 +405,36 @@ func (u *user) checkUsername(un libkb.NormalizedUsername) error {
 	return err
 }
 
+// compareSibkeys returns true if the passed set of sibkeys is equal.
+func (u *user) compareSibkeys(sibkeys []keybase1.KID) error {
+	return compareKeys(sibkeys, u.sibkeys)
+}
+
+// compareSubkeys returns true if the passed set of subkeys is equal.
+func (u *user) compareSubkeys(subkeys []keybase1.KID) error {
+	return compareKeys(subkeys, u.subkeys)
+}
+
+// Helper method for the two above.
+func compareKeys(keys []keybase1.KID, expected map[keybase1.KID]struct{}) error {
+	if len(keys) != len(expected) {
+		return KeysNotEqualError{}
+	}
+	for _, kid := range keys {
+		if _, ok := expected[kid]; !ok {
+			return KeysNotEqualError{}
+		}
+	}
+	return nil
+}
+
 // checkKey checks that the given key is still valid for this user.
 func (u *user) checkKey(kid keybase1.KID) error {
 	var err error
-	if _, ok := u.keys[kid]; !ok {
-		err = BadKeyError{u.uid, kid}
+	if _, ok := u.sibkeys[kid]; !ok {
+		if _, ok := u.subkeys[kid]; !ok {
+			err = BadKeyError{u.uid, kid}
+		}
 	}
 	return err
 }
@@ -418,6 +464,20 @@ func (v *CredentialAuthority) CheckUsers(ctx context.Context, users []keybase1.U
 		if err = v.CheckUserKey(ctx, uid, nil, nil); err != nil {
 			break
 		}
+	}
+	return err
+}
+
+// CompareUserKeys compares the passed sets to the sets known by the API server.
+// It returns true if the sets are equal.
+func (v *CredentialAuthority) CompareUserKeys(ctx context.Context, uid keybase1.UID, sibkeys, subkeys []keybase1.KID) (
+	err error) {
+	retCh := make(chan error)
+	v.checkCh <- checkArg{uid: uid, sibkeys: sibkeys, subkeys: subkeys, retCh: retCh}
+	select {
+	case <-ctx.Done():
+		err = ErrCanceled
+	case err = <-retCh:
 	}
 	return err
 }

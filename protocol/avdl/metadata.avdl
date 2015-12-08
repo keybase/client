@@ -24,5 +24,6 @@ protocol metadata {
   boolean truncateLock(string folderID);
   boolean truncateUnlock(string folderID);
   bytes getFolderHandle(string folderID, string signature);
+  void getFoldersForRekey(KID deviceKID);
   void ping();
 }

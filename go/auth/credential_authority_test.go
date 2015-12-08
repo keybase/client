@@ -16,7 +16,8 @@ import (
 type testUser struct {
 	uid      keybase1.UID
 	username libkb.NormalizedUsername
-	keys     []keybase1.KID
+	sibkeys  []keybase1.KID
+	subkeys  []keybase1.KID
 }
 
 type testState struct {
@@ -55,10 +56,12 @@ func newTestUser(nKeys int) *testUser {
 	ret := testUser{
 		username: libkb.NewNormalizedUsername(un),
 		uid:      libkb.UsernameToUID(un),
-		keys:     make([]keybase1.KID, nKeys),
+		sibkeys:  make([]keybase1.KID, nKeys),
+		subkeys:  make([]keybase1.KID, nKeys),
 	}
 	for i := 0; i < nKeys; i++ {
-		ret.keys[i] = genKID()
+		ret.sibkeys[i] = genKID()
+		ret.subkeys[i] = genKID()
 	}
 	return &ret
 }
@@ -100,15 +103,16 @@ func (e userNotFoundError) Error() string {
 	return "user not found"
 }
 
-func (ts *testState) GetUser(_ context.Context, uid keybase1.UID) (libkb.NormalizedUsername, []keybase1.KID, error) {
+func (ts *testState) GetUser(_ context.Context, uid keybase1.UID) (
+	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, err error) {
 	ts.Lock()
 	defer ts.Unlock()
 	u := ts.users[uid]
 	if u == nil {
-		return libkb.NormalizedUsername(""), nil, userNotFoundError{}
+		return libkb.NormalizedUsername(""), nil, nil, userNotFoundError{}
 	}
 	ts.numGets++
-	return u.username, u.keys, nil
+	return u.username, u.sibkeys, u.subkeys, nil
 }
 
 func (ts *testState) PollForChanges(_ context.Context) ([]keybase1.UID, error) {
@@ -168,8 +172,8 @@ func TestSimple(t *testing.T) {
 	S, C := newTestSetup()
 	u0 := S.newTestUser(4)
 
-	key0 := u0.keys[0]
-	key1 := u0.keys[1]
+	key0 := u0.sibkeys[0]
+	key1 := u0.sibkeys[1]
 
 	if S.numGets != 0 {
 		t.Fatal("expected 0 gets")
@@ -191,7 +195,7 @@ func TestSimple(t *testing.T) {
 	}
 
 	S.mutateUser(u0.uid, func(u *testUser) {
-		u.keys = u.keys[1:]
+		u.sibkeys = u.sibkeys[1:]
 	})
 
 	// Advance the clock PollWait duration, so that our polling of the server
@@ -245,7 +249,7 @@ func TestSimple(t *testing.T) {
 
 	ng := 3
 	for i := 0; i < 10; i++ {
-		err = C.CheckUserKey(context.TODO(), u1.uid, &u1.username, &u1.keys[0])
+		err = C.CheckUserKey(context.TODO(), u1.uid, &u1.username, &u1.sibkeys[0])
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -270,7 +274,7 @@ func TestSimple(t *testing.T) {
 
 	// Make a new user -- u2!
 	u2 := S.newTestUser(4)
-	err = C.CheckUserKey(context.TODO(), u2.uid, &u2.username, &u2.keys[0])
+	err = C.CheckUserKey(context.TODO(), u2.uid, &u2.username, &u2.sibkeys[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,4 +328,42 @@ func TestCheckUsers(t *testing.T) {
 	} else if _, ok := err.(userNotFoundError); !ok {
 		t.Fatal("Expected a user not found error")
 	}
+	C.Shutdown()
+}
+
+func TestCompareKeys(t *testing.T) {
+	S, C := newTestSetup()
+	u := S.newTestUser(10)
+
+	err := C.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, u.subkeys)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = C.CompareUserKeys(context.TODO(), u.uid, nil, u.subkeys)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = C.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	missingSibkey := u.sibkeys[1:]
+	err = C.CompareUserKeys(context.TODO(), u.uid, missingSibkey, u.subkeys)
+	if err == nil {
+		t.Fatal("Expected an error")
+	} else if _, ok := err.(KeysNotEqualError); !ok {
+		t.Fatal("Expected keys not equal error")
+	}
+
+	missingSubkey := u.subkeys[1:]
+	err = C.CompareUserKeys(context.TODO(), u.uid, u.sibkeys, missingSubkey)
+	if err == nil {
+		t.Fatal("Expected an error")
+	} else if _, ok := err.(KeysNotEqualError); !ok {
+		t.Fatal("Expected keys not equal error")
+	}
+	C.Shutdown()
 }

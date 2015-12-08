@@ -264,6 +264,16 @@
         "type" : "long"
       } ],
       "response" : "null"
+    },
+    "folderNeedsRekey" : {
+      "request" : [ {
+        "name" : "folderID",
+        "type" : "string"
+      }, {
+        "name" : "revision",
+        "type" : "long"
+      } ],
+      "response" : "null"
     }
   }
 }
