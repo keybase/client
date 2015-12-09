@@ -31,7 +31,7 @@ bsync.init({
 }, (err, bs) => {
   if (err) return console.error(err)
 
-  spawn(electron, ['.'].concat(process.argv.slice(2)), {
+    spawn(electron, ['./dist/bundle.js'].concat(process.argv.slice(2)), {
     env: {
       NODE_ENV: 'development',
       BROWSER_SYNC_CLIENT_URL: getClientUrl(bs.options),
