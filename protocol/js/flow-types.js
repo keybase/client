@@ -1046,6 +1046,12 @@ export type identify_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* '
 
 export type ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
 
+export type identify_TrackToken = {
+}
+
+export type TrackToken = {
+}
+
 export type identify_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
 export type TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
@@ -1132,14 +1138,14 @@ export type identify_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type identify_RemoteProof = {
@@ -1158,12 +1164,6 @@ export type RemoteProof = {
   displayMarkup: string;
   sigID: SigID;
   mTime: Time;
-}
-
-export type identify_TrackToken = {
-}
-
-export type TrackToken = {
 }
 
 export type identify_IdentifySource = 0 /* 'CLI_0' */ | 1 /* 'KBFS_1' */
@@ -1273,6 +1273,9 @@ export type identifyUi_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'L
 
 export type identifyUi_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
 
+export type identifyUi_TrackToken = {
+}
+
 export type identifyUi_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
 export type identifyUi_TrackDiff = {
@@ -1318,7 +1321,7 @@ export type identifyUi_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type identifyUi_RemoteProof = {
@@ -1328,9 +1331,6 @@ export type identifyUi_RemoteProof = {
   displayMarkup: string;
   sigID: SigID;
   mTime: Time;
-}
-
-export type identifyUi_TrackToken = {
 }
 
 export type identifyUi_ProofResult = {
@@ -1441,6 +1441,32 @@ export type LinkCheckResult = {
   diff?: ?TrackDiff;
   remoteDiff?: ?TrackDiff;
   hint?: ?SigHint;
+}
+
+export type identifyUi_UserCard = {
+  following: int;
+  followers: int;
+  uid: UID;
+  fullName: string;
+  location: string;
+  bio: string;
+  website: string;
+  twitter: string;
+  youFollowThem: boolean;
+  theyFollowYou: boolean;
+}
+
+export type UserCard = {
+  following: int;
+  followers: int;
+  uid: UID;
+  fullName: string;
+  location: string;
+  bio: string;
+  website: string;
+  twitter: string;
+  youFollowThem: boolean;
+  theyFollowYou: boolean;
 }
 
 export type identifyUi_ConfirmResult = {
@@ -1707,6 +1733,9 @@ export type kbcmf_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_
 
 export type kbcmf_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
 
+export type kbcmf_TrackToken = {
+}
+
 export type kbcmf_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
 export type kbcmf_TrackDiff = {
@@ -1752,7 +1781,7 @@ export type kbcmf_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type kbcmf_RemoteProof = {
@@ -1762,9 +1791,6 @@ export type kbcmf_RemoteProof = {
   displayMarkup: string;
   sigID: SigID;
   mTime: Time;
-}
-
-export type kbcmf_TrackToken = {
 }
 
 export type kbcmf_KBCMFEncryptOptions = {
@@ -2702,6 +2728,9 @@ export type pgp_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2'
 
 export type pgp_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
 
+export type pgp_TrackToken = {
+}
+
 export type pgp_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
 export type pgp_TrackDiff = {
@@ -2747,7 +2776,7 @@ export type pgp_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type pgp_RemoteProof = {
@@ -2757,9 +2786,6 @@ export type pgp_RemoteProof = {
   displayMarkup: string;
   sigID: SigID;
   mTime: Time;
-}
-
-export type pgp_TrackToken = {
 }
 
 export type pgp_SignMode = 0 /* 'ATTACHED_0' */ | 1 /* 'DETACHED_1' */ | 2 /* 'CLEAR_2' */
@@ -2786,6 +2812,7 @@ export type pgp_PGPEncryptOptions = {
   noSelf: boolean;
   binaryOut: boolean;
   keyQuery: string;
+  skipTrack: boolean;
   trackOptions: TrackOptions;
 }
 
@@ -2795,6 +2822,7 @@ export type PGPEncryptOptions = {
   noSelf: boolean;
   binaryOut: boolean;
   keyQuery: string;
+  skipTrack: boolean;
   trackOptions: TrackOptions;
 }
 
@@ -2815,24 +2843,20 @@ export type PGPSigVerification = {
 export type pgp_PGPDecryptOptions = {
   assertSigned: boolean;
   signedBy: string;
-  trackOptions: TrackOptions;
 }
 
 export type PGPDecryptOptions = {
   assertSigned: boolean;
   signedBy: string;
-  trackOptions: TrackOptions;
 }
 
 export type pgp_PGPVerifyOptions = {
   signedBy: string;
-  trackOptions: TrackOptions;
   signature: bytes;
 }
 
 export type PGPVerifyOptions = {
   signedBy: string;
-  trackOptions: TrackOptions;
   signature: bytes;
 }
 
@@ -2868,6 +2892,95 @@ export type pgp_PGPCreateUids = {
 export type PGPCreateUids = {
   useDefault: boolean;
   ids: Array<PGPIdentity>;
+}
+
+export type pgpUi_Time = {
+}
+
+export type pgpUi_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type pgpUi_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type pgpUi_UID = {
+}
+
+export type pgpUi_DeviceID = {
+}
+
+export type pgpUi_SigID = {
+}
+
+export type pgpUi_KID = {
+}
+
+export type pgpUi_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type pgpUi_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type pgpUi_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type pgpUi_User = {
+  uid: UID;
+  username: string;
+}
+
+export type pgpUi_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type pgpUi_Stream = {
+  fd: int;
+}
+
+export type pgpUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type pgpUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type pgpUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type pgpUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
 }
 
 export type prove_Time = {
@@ -2965,6 +3078,9 @@ export type prove_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_
 
 export type prove_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
 
+export type prove_TrackToken = {
+}
+
 export type prove_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
 export type prove_TrackDiff = {
@@ -3010,7 +3126,7 @@ export type prove_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type prove_RemoteProof = {
@@ -3020,9 +3136,6 @@ export type prove_RemoteProof = {
   displayMarkup: string;
   sigID: SigID;
   mTime: Time;
-}
-
-export type prove_TrackToken = {
 }
 
 export type prove_CheckProofStatus = {
@@ -3572,27 +3685,35 @@ export type GetPassphraseRes = {
   storeSecret: boolean;
 }
 
-export type secretUi_SecretStorageFeature = {
+export type secretUi_Feature = {
   allow: boolean;
+  defaultValue: boolean;
+  readonly: boolean;
   label: string;
 }
 
-export type SecretStorageFeature = {
+export type Feature = {
   allow: boolean;
+  defaultValue: boolean;
+  readonly: boolean;
   label: string;
 }
 
 export type secretUi_GUIEntryFeatures = {
-  secretStorage: SecretStorageFeature;
+  storeSecret: Feature;
+  showTyping: Feature;
 }
 
 export type GUIEntryFeatures = {
-  secretStorage: SecretStorageFeature;
+  storeSecret: Feature;
+  showTyping: Feature;
 }
 
 export type secretUi_GUIEntryArg = {
   windowTitle: string;
   prompt: string;
+  submitLabel: string;
+  cancelLabel: string;
   retryLabel: string;
   features: GUIEntryFeatures;
 }
@@ -3600,6 +3721,8 @@ export type secretUi_GUIEntryArg = {
 export type GUIEntryArg = {
   windowTitle: string;
   prompt: string;
+  submitLabel: string;
+  cancelLabel: string;
   retryLabel: string;
   features: GUIEntryFeatures;
 }
@@ -4149,6 +4272,9 @@ export type track_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_
 
 export type track_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
 
+export type track_TrackToken = {
+}
+
 export type track_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
 export type track_TrackDiff = {
@@ -4194,7 +4320,7 @@ export type track_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type track_RemoteProof = {
@@ -4204,9 +4330,6 @@ export type track_RemoteProof = {
   displayMarkup: string;
   sigID: SigID;
   mTime: Time;
-}
-
-export type track_TrackToken = {
 }
 
 export type ui_Time = {

@@ -68,7 +68,7 @@ type GlobalContext struct {
 
 func NewGlobalContext() *GlobalContext {
 	return &GlobalContext{
-		Log: logger.New("keybase", ErrorWriter()),
+		Log:                 logger.New("keybase", ErrorWriter()),
 		ProofCheckerFactory: defaultProofCheckerFactory,
 	}
 }

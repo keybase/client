@@ -1592,6 +1592,19 @@ type LinkCheckResult struct {
 	Hint        *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
+type UserCard struct {
+	Following     int    `codec:"following" json:"following"`
+	Followers     int    `codec:"followers" json:"followers"`
+	Uid           UID    `codec:"uid" json:"uid"`
+	FullName      string `codec:"fullName" json:"fullName"`
+	Location      string `codec:"location" json:"location"`
+	Bio           string `codec:"bio" json:"bio"`
+	Website       string `codec:"website" json:"website"`
+	Twitter       string `codec:"twitter" json:"twitter"`
+	YouFollowThem bool   `codec:"youFollowThem" json:"youFollowThem"`
+	TheyFollowYou bool   `codec:"theyFollowYou" json:"theyFollowYou"`
+}
+
 type ConfirmResult struct {
 	IdentityConfirmed bool `codec:"identityConfirmed" json:"identityConfirmed"`
 	RemoteConfirmed   bool `codec:"remoteConfirmed" json:"remoteConfirmed"`
@@ -1648,6 +1661,11 @@ type ReportTrackTokenArg struct {
 	TrackToken TrackToken `codec:"trackToken" json:"trackToken"`
 }
 
+type DisplayUserCardArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Card      UserCard `codec:"card" json:"card"`
+}
+
 type ConfirmArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Outcome   IdentifyOutcome `codec:"outcome" json:"outcome"`
@@ -1668,6 +1686,7 @@ type IdentifyUiInterface interface {
 	FinishSocialProofCheck(context.Context, FinishSocialProofCheckArg) error
 	DisplayCryptocurrency(context.Context, DisplayCryptocurrencyArg) error
 	ReportTrackToken(context.Context, ReportTrackTokenArg) error
+	DisplayUserCard(context.Context, DisplayUserCardArg) error
 	Confirm(context.Context, ConfirmArg) (ConfirmResult, error)
 	Finish(context.Context, int) error
 }
@@ -1831,6 +1850,22 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"displayUserCard": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayUserCardArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayUserCardArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayUserCardArg)(nil), args)
+						return
+					}
+					err = i.DisplayUserCard(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"confirm": {
 				MakeArg: func() interface{} {
 					ret := make([]ConfirmArg, 1)
@@ -1918,6 +1953,11 @@ func (c IdentifyUiClient) DisplayCryptocurrency(ctx context.Context, __arg Displ
 
 func (c IdentifyUiClient) ReportTrackToken(ctx context.Context, __arg ReportTrackTokenArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportTrackToken", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) DisplayUserCard(ctx context.Context, __arg DisplayUserCardArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayUserCard", []interface{}{__arg}, nil)
 	return
 }
 
@@ -3223,6 +3263,7 @@ type PGPEncryptOptions struct {
 	NoSelf       bool         `codec:"noSelf" json:"noSelf"`
 	BinaryOut    bool         `codec:"binaryOut" json:"binaryOut"`
 	KeyQuery     string       `codec:"keyQuery" json:"keyQuery"`
+	SkipTrack    bool         `codec:"skipTrack" json:"skipTrack"`
 	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
 }
 
@@ -3234,15 +3275,13 @@ type PGPSigVerification struct {
 }
 
 type PGPDecryptOptions struct {
-	AssertSigned bool         `codec:"assertSigned" json:"assertSigned"`
-	SignedBy     string       `codec:"signedBy" json:"signedBy"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+	AssertSigned bool   `codec:"assertSigned" json:"assertSigned"`
+	SignedBy     string `codec:"signedBy" json:"signedBy"`
 }
 
 type PGPVerifyOptions struct {
-	SignedBy     string       `codec:"signedBy" json:"signedBy"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
-	Signature    []byte       `codec:"signature" json:"signature"`
+	SignedBy  string `codec:"signedBy" json:"signedBy"`
+	Signature []byte `codec:"signature" json:"signature"`
 }
 
 type KeyInfo struct {
@@ -3669,6 +3708,50 @@ func (c PGPClient) PGPSelect(ctx context.Context, __arg PGPSelectArg) (err error
 
 func (c PGPClient) PGPUpdate(ctx context.Context, __arg PGPUpdateArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpUpdate", []interface{}{__arg}, nil)
+	return
+}
+
+type OutputSignatureSuccessArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	Fingerprint string `codec:"fingerprint" json:"fingerprint"`
+	Username    string `codec:"username" json:"username"`
+	SignedAt    Time   `codec:"signedAt" json:"signedAt"`
+}
+
+type PGPUiInterface interface {
+	OutputSignatureSuccess(context.Context, OutputSignatureSuccessArg) error
+}
+
+func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.pgpUi",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"outputSignatureSuccess": {
+				MakeArg: func() interface{} {
+					ret := make([]OutputSignatureSuccessArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]OutputSignatureSuccessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]OutputSignatureSuccessArg)(nil), args)
+						return
+					}
+					err = i.OutputSignatureSuccess(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type PGPUiClient struct {
+	Cli GenericClient
+}
+
+func (c PGPUiClient) OutputSignatureSuccess(ctx context.Context, __arg OutputSignatureSuccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureSuccess", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4373,18 +4456,23 @@ type GetPassphraseRes struct {
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 }
 
-type SecretStorageFeature struct {
-	Allow bool   `codec:"allow" json:"allow"`
-	Label string `codec:"label" json:"label"`
+type Feature struct {
+	Allow        bool   `codec:"allow" json:"allow"`
+	DefaultValue bool   `codec:"defaultValue" json:"defaultValue"`
+	Readonly     bool   `codec:"readonly" json:"readonly"`
+	Label        string `codec:"label" json:"label"`
 }
 
 type GUIEntryFeatures struct {
-	SecretStorage SecretStorageFeature `codec:"secretStorage" json:"secretStorage"`
+	StoreSecret Feature `codec:"storeSecret" json:"storeSecret"`
+	ShowTyping  Feature `codec:"showTyping" json:"showTyping"`
 }
 
 type GUIEntryArg struct {
 	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
 	Prompt      string           `codec:"prompt" json:"prompt"`
+	SubmitLabel string           `codec:"submitLabel" json:"submitLabel"`
+	CancelLabel string           `codec:"cancelLabel" json:"cancelLabel"`
 	RetryLabel  string           `codec:"retryLabel" json:"retryLabel"`
 	Features    GUIEntryFeatures `codec:"features" json:"features"`
 }

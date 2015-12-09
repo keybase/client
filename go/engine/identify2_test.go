@@ -101,6 +101,7 @@ func (i *identify2Tester) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User
 func (i *identify2Tester) DisplayTrackStatement(string) (err error)               { return }
 func (i *identify2Tester) ReportTrackToken(keybase1.TrackToken) (err error)       { return }
 func (i *identify2Tester) SetStrict(b bool)                                       { return }
+func (i *identify2Tester) DisplayUserCard(keybase1.UserCard)                      { return }
 
 func (i *identify2Tester) Finish() {
 	i.finishCh <- struct{}{}
