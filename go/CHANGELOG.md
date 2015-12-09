@@ -1,3 +1,7 @@
+## 1.0.6
+- libkb: Load optimizations; don't load unneeded fields (PR: keybase/client#1473)
+- engine: bugfix for user switching (PR: keybase/client#1474)
+
 ## 1.0.5-0 (2015-12-01)
 
 - Fix bug where cancelled RPC calls would cause hangs (PR: keybase/client#1433)
