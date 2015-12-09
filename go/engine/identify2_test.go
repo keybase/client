@@ -128,7 +128,7 @@ func (i *identify2Tester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, tim
 			return nil, libkb.TimeoutError{}
 		}
 
-		thenTime := time.Unix(int64(then), 0)
+		thenTime := keybase1.FromTime(then)
 		if i.now.Sub(thenTime) > timeout {
 			stats.timeout++
 			return nil, libkb.TimeoutError{}
@@ -141,7 +141,7 @@ func (i *identify2Tester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, tim
 func (i *identify2Tester) Insert(up *keybase1.UserPlusKeys) error {
 	tmp := *up
 	copy := &tmp
-	copy.Uvv.CachedAt = keybase1.Time(i.now.Unix())
+	copy.Uvv.CachedAt = keybase1.ToTime(i.now)
 	i.cache[up.Uid] = copy
 	return nil
 }
@@ -397,6 +397,69 @@ func TestIdentify2Cache(t *testing.T) {
 	run()
 	// A new slow-path hit; we have to use the slow path with assertions
 	if !i.fastStats.eq(2, 2, 1, 0) || !i.slowStats.eq(2, 1, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+}
+
+func TestIdentify2LocalAssertions(t *testing.T) {
+	tc := SetupEngineTest(t, "TestIdentify2LocalAssertions")
+	i := newIdentify2Tester(tc.G)
+	tc.G.ProofCheckerFactory = i
+	arg := &keybase1.Identify2Arg{
+		Uid: tracyUID,
+	}
+	run := func() {
+		eng := NewIdentify2(tc.G, arg)
+		eng.testArgs = &identify2TestArgs{
+			cache: i,
+			clock: func() time.Time { return i.now },
+		}
+		ctx := Context{IdentifyUI: i}
+		err := eng.Run(&ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// First time we'll cause an ID, so we need to start & finish
+	arg.UserAssertion = "4ff50d580914427227bb14c821029e2c7cf0d488@fingerprint"
+	run()
+	<-i.startCh
+	<-i.finishCh
+
+	// Don't attempt to hit fast cache, since we're using local assertions.
+	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(0, 0, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+
+	i.incNow(time.Second)
+	run()
+	// A new slow-path hit
+	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(1, 0, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+
+	arg.UserAssertion += "+tacovontaco@twitter"
+	i.incNow(time.Second)
+	run()
+	// A new slow-path hit
+	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(2, 0, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+
+	i.incNow(libkb.Identify2CacheLongTimeout)
+	run()
+	<-i.startCh
+	<-i.finishCh
+	// A new slow-path timeout
+	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(2, 1, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+
+	i.incNow(time.Second)
+	run()
+	// A new slow-path hit
+	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(3, 1, 1, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 }

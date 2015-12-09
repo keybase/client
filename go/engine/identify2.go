@@ -48,8 +48,6 @@ type Identify2 struct {
 	state        libkb.IdentifyState
 	useTracking  bool
 	identifyKeys []keybase1.IdentifyKey
-
-	ranAtTime time.Time
 }
 
 var _ (Engine) = (*Identify2)(nil)
@@ -125,7 +123,7 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 	}
 
 	// First we check that all remote assertions as present for the user,
-	// whether or not the remote check actually suceeds (hnece the
+	// whether or not the remote check actually suceeds (hence the
 	// ProofState_NONE check).
 	okStates := []keybase1.ProofState{keybase1.ProofState_NONE, keybase1.ProofState_OK}
 	if err = e.checkRemoteAssertions(okStates); err != nil {
@@ -147,8 +145,6 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 	if err = e.finishIdentify(ctx, l2); err != nil {
 		return err
 	}
-
-	e.ranAtTime = e.getNow()
 	return nil
 }
 
@@ -340,10 +336,6 @@ func (e *Identify2) useRemoteAssertions() bool {
 	return e.remoteAssertion.Len() > 0
 }
 
-func (e *Identify2) getIdentifyTime() keybase1.Time {
-	return keybase1.Time(e.ranAtTime.Unix())
-}
-
 func (e *Identify2) runIdentifyPrecomputation() (err error) {
 	f := func(k keybase1.IdentifyKey) {
 		e.identifyKeys = append(e.identifyKeys, k)
@@ -483,7 +475,7 @@ func (e *Identify2) Result() *keybase1.Identify2Res {
 }
 
 func (e *Identify2) toUserPlusKeys() keybase1.UserPlusKeys {
-	return e.them.ExportToUserPlusKeys(e.getIdentifyTime())
+	return e.them.ExportToUserPlusKeys(keybase1.ToTime(e.getNow()))
 }
 
 func (e *Identify2) getCache() libkb.Identify2Cacher {
