@@ -29,7 +29,7 @@ func NewDefaultMounter(dir string) DefaultMounter {
 
 // Mount uses default mount
 func (m DefaultMounter) Mount() (*fuse.Conn, error) {
-	return fuse.Mount(m.dir)
+	return fuseMountDir(m.dir)
 }
 
 // Unmount uses default unmount
@@ -54,12 +54,7 @@ func NewForceMounter(dir string) ForceMounter {
 
 // Mount tries to mount and then unmount, re-mount if unsuccessful
 func (m ForceMounter) Mount() (*fuse.Conn, error) {
-	options, err := getPlatformSpecificMountOptions(m)
-	if err != nil {
-		return nil, err
-	}
-
-	c, err := fuse.Mount(m.dir, options...)
+	c, err := fuseMountDir(m.dir)
 	if err == nil {
 		return c, nil
 	}
@@ -68,7 +63,7 @@ func (m ForceMounter) Mount() (*fuse.Conn, error) {
 	// if unmounting errors here.
 	m.Unmount()
 
-	c, err = fuse.Mount(m.dir, options...)
+	c, err = fuseMountDir(m.dir)
 	return c, err
 }
 
@@ -97,6 +92,14 @@ func (m ForceMounter) forceUnmount() (err error) {
 // Dir returns mount directory.
 func (m ForceMounter) Dir() string {
 	return m.dir
+}
+
+func fuseMountDir(dir string) (*fuse.Conn, error) {
+	options, err := getPlatformSpecificMountOptions(dir)
+	if err != nil {
+		return nil, err
+	}
+	return fuse.Mount(dir, options...)
 }
 
 // volumeName returns the directory (base) name

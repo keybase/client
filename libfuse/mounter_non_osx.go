@@ -4,6 +4,6 @@ package libfuse
 
 import "bazil.org/fuse"
 
-func getPlatformSpecificMountOptions(m Mounter) ([]fuse.MountOption, error) {
+func getPlatformSpecificMountOptions(dir string) ([]fuse.MountOption, error) {
 	return []fuse.MountOption{}, nil
 }
