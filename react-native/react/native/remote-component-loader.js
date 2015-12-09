@@ -7,9 +7,7 @@ import {ipcRenderer} from 'electron'
 const currentWindow = remote.getCurrentWindow()
 
 window.console.log = (...args) => ipcRenderer.send('console.log', args)
-
 window.console.warn = (...args) => ipcRenderer.send('console.warn', args)
-
 window.console.error = (...args) => ipcRenderer.send('console.error', args)
 
 class RemoteStore {
@@ -52,24 +50,39 @@ class RemoteStore {
   }
 }
 
+function getQueryVariable(variable) {
+  var query = window.location.search.substring(1)
+    var vars = query.split("&")
+    for (var i=0;i<vars.length;i++) {
+      var pair = vars[i].split("=")
+        if(pair[0] == variable){
+          return pair[1]
+        }
+    }
+  return false
+}
+
 class RemoteComponentLoader extends Component {
   constructor (props) {
     super(props)
     this.state = {loaded: false}
 
-    const payload = window.location.hash.substring(1).split(':')
-    const substore = payload && payload.length > 1 && payload[1]
+    const substore = getQueryVariable('substore')
     this.store = new RemoteStore({substore})
     this.store.dispatch = this.store.dispatch.bind(this.store)
 
-    const componentToLoad = payload && payload.length && payload[0]
+    const componentToLoad = getQueryVariable('component')
 
     if (!componentToLoad) {
       throw new TypeError('Remote Component not passed through hash')
     }
 
-    const component = require('../' + componentToLoad)
-    this.Component = component.default || component
+    const component = {
+      tracker: require('../tracker'),
+      pinentry: require('../pinentry')
+    }
+
+    this.Component = component[componentToLoad] || <p>Error</p>
   }
 
   componentWillMount () {

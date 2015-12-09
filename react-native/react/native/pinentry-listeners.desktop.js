@@ -1,6 +1,7 @@
-import BrowserWindow from 'browser-window'
+import {BrowserWindow} from 'electron'
 import {ipcMain} from 'electron'
-import {showDevTools} from '../local-debug.desktop'
+import {showDevTools, isDev} from '../local-debug'
+import path from 'path'
 
 export default {
   'keybase.1.secretUi.getPassphrase': (payload, response) => {
@@ -31,7 +32,8 @@ export default {
       pinentryWindow.toggleDevTools()
     }
 
-    pinentryWindow.loadUrl(`file://${__dirname}/pinentry.wrapper.html`)
+    const hot = process.env.HOT === 'true'
+    pinentryWindow.loadUrl(`file://${path.resolve('../react-native/react/native/pinentry.wrapper.html')}?hot=${!!hot}`)
 
     const pinentryNeedProps = (event, arg) => {
       // Is this the pinentry window we just created?
