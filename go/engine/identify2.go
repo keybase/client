@@ -16,6 +16,8 @@ type identify2TestArgs struct {
 	noMe     bool                  // don't load ME
 	tcl      *libkb.TrackChainLink // the track chainlink to use
 	selfLoad bool                  // on if this is a self load
+	cache    libkb.Identify2Cacher
+	clock    func() time.Time
 }
 
 //
@@ -24,8 +26,6 @@ type identify2TestArgs struct {
 //     caching full successes.
 //   - Better error typing for various failures.
 //   - Work back in the identify card
-//   - test caching paths
-//   - better cache interface
 //
 
 // Identify2 is the Identify engine used in KBFS and as a subroutine
@@ -37,7 +37,6 @@ type Identify2 struct {
 	testArgs   *identify2TestArgs
 	trackToken keybase1.TrackToken
 	cachedRes  *keybase1.UserPlusKeys
-	cache      *libkb.Identify2Cache
 
 	me   *libkb.User
 	them *libkb.User
@@ -149,8 +148,15 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	e.ranAtTime = time.Now()
+	e.ranAtTime = e.getNow()
 	return nil
+}
+
+func (e *Identify2) getNow() time.Time {
+	if e.testArgs != nil && e.testArgs.clock != nil {
+		return e.testArgs.clock()
+	}
+	return time.Now()
 }
 
 func (e *Identify2) runIDTableIdentify(ctx *Context, lock *libkb.NamedLock) (err error) {
@@ -481,8 +487,8 @@ func (e *Identify2) toUserPlusKeys() keybase1.UserPlusKeys {
 }
 
 func (e *Identify2) getCache() libkb.Identify2Cacher {
-	if e.cache != nil {
-		return e.cache
+	if e.testArgs != nil && e.testArgs.cache != nil {
+		return e.testArgs.cache
 	}
 	return e.G().Identify2Cache
 }

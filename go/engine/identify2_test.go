@@ -6,6 +6,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 	"strings"
 	"testing"
+	"time"
 )
 
 func importTrackingLink(t *testing.T) *libkb.TrackChainLink {
@@ -32,11 +33,26 @@ func TestIdentify2ImportTrackingLink(t *testing.T) {
 	}
 }
 
+type cacheStats struct {
+	hit     int
+	timeout int
+	miss    int
+	notime  int
+}
+
+func (c cacheStats) eq(h, t, m, n int) bool {
+	return h == c.hit && t == c.timeout && m == c.miss && n == c.notime
+}
+
 type identify2Tester struct {
 	libkb.Contextified
 	finishCh        chan struct{}
 	startCh         chan struct{}
 	checkStatusHook func(libkb.SigHint) libkb.ProofError
+	cache           map[keybase1.UID](*keybase1.UserPlusKeys)
+	slowStats       cacheStats
+	fastStats       cacheStats
+	now             time.Time
 }
 
 func newIdentify2Tester(g *libkb.GlobalContext) *identify2Tester {
@@ -44,6 +60,8 @@ func newIdentify2Tester(g *libkb.GlobalContext) *identify2Tester {
 		Contextified: libkb.NewContextified(g),
 		finishCh:     make(chan struct{}),
 		startCh:      make(chan struct{}, 1),
+		cache:        make(map[keybase1.UID](*keybase1.UserPlusKeys)),
+		now:          time.Now(),
 	}
 }
 
@@ -91,6 +109,45 @@ func (i *identify2Tester) Finish() {
 func (i *identify2Tester) Start(string) {
 	i.startCh <- struct{}{}
 }
+
+func (i *identify2Tester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, timeout time.Duration) (*keybase1.UserPlusKeys, error) {
+	res := i.cache[uid]
+	stats := &i.slowStats
+	if timeout == libkb.Identify2CacheShortTimeout {
+		stats = &i.fastStats
+	}
+	if res == nil {
+		stats.miss++
+		return nil, nil
+	}
+	if gctf != nil {
+		then := gctf(*res)
+		if then == 0 {
+			stats.notime++
+			return nil, libkb.TimeoutError{}
+		}
+
+		thenTime := time.Unix(int64(then), 0)
+		if i.now.Sub(thenTime) > timeout {
+			stats.timeout++
+			return nil, libkb.TimeoutError{}
+		}
+	}
+	stats.hit++
+	return res, nil
+}
+
+func (i *identify2Tester) Insert(up *keybase1.UserPlusKeys) error {
+	tmp := *up
+	copy := &tmp
+	copy.Uvv.CachedAt = keybase1.Time(i.now.Unix())
+	i.cache[up.Uid] = copy
+	return nil
+}
+
+func (i *identify2Tester) Shutdown() {}
+
+var _ libkb.Identify2Cacher = (*identify2Tester)(nil)
 
 func TestIdentify2WithoutTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "identify2WithoutTrack")
@@ -264,6 +321,82 @@ func TestIdentify2WithFailedAssertion(t *testing.T) {
 	}
 	if starts != 1 {
 		t.Fatalf("Expected the UI to have started")
+	}
+	<-i.finishCh
+}
+
+func (i *identify2Tester) incNow(d time.Duration) {
+	i.now = i.now.Add(d)
+}
+
+func TestIdentify2Cache(t *testing.T) {
+	tc := SetupEngineTest(t, "identify2WithoutTrack")
+	i := newIdentify2Tester(tc.G)
+	tc.G.ProofCheckerFactory = i
+	arg := &keybase1.Identify2Arg{
+		Uid: tracyUID,
+	}
+	run := func() {
+		eng := NewIdentify2(tc.G, arg)
+		eng.testArgs = &identify2TestArgs{
+			cache: i,
+			clock: func() time.Time { return i.now },
+		}
+		ctx := Context{IdentifyUI: i}
+		err := eng.Run(&ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// First time we'll cause an ID, so we need to finish
+	run()
+	<-i.startCh
+	<-i.finishCh
+
+	if !i.fastStats.eq(0, 0, 1, 0) || !i.slowStats.eq(0, 0, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+
+	i.incNow(time.Second)
+	run()
+
+	// A new fast-path hit
+	if !i.fastStats.eq(1, 0, 1, 0) || !i.slowStats.eq(0, 0, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+
+	i.incNow(time.Second + libkb.Identify2CacheShortTimeout)
+	run()
+
+	// A new fast-path timeout and a new slow-path hit
+	if !i.fastStats.eq(1, 1, 1, 0) || !i.slowStats.eq(1, 0, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+
+	i.incNow(time.Second + libkb.Identify2CacheLongTimeout)
+	run()
+	<-i.startCh
+	<-i.finishCh
+
+	// A new slow-path timeout and a new slow-path timeout
+	if !i.fastStats.eq(1, 2, 1, 0) || !i.slowStats.eq(1, 1, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+
+	i.incNow(time.Second)
+	run()
+	// A new fast-path hit
+	if !i.fastStats.eq(2, 2, 1, 0) || !i.slowStats.eq(1, 1, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+
+	arg.UserAssertion = "tacovontaco@twitter"
+	i.incNow(time.Second)
+	run()
+	// A new slow-path hit; we have to use the slow path with assertions
+	if !i.fastStats.eq(2, 2, 1, 0) || !i.slowStats.eq(2, 1, 1, 0) {
+		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 }
 
