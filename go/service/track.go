@@ -9,12 +9,15 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
+	"time"
 )
 
 // TrackHandler is the RPC handler for the track interface.
 type TrackHandler struct {
 	*BaseHandler
 	libkb.Contextified
+
+	lastCheckTime time.Time
 }
 
 // NewTrackHandler creates a TrackHandler for the xp transport.
@@ -63,4 +66,13 @@ func (h *TrackHandler) Untrack(_ context.Context, arg keybase1.UntrackArg) error
 	}
 	eng := engine.NewUntrackEngine(&earg, h.G())
 	return engine.RunEngine(eng, &ctx)
+}
+
+func (h *TrackHandler) CheckTracking(_ context.Context, sessionID int) error {
+	// Rate-limited to once every thirty seconds.
+	if !h.G().RateLimits.GetPermission(libkb.CheckTrackingRateLimit, 30*time.Second) {
+		h.G().Log.Warning("Skipping CheckTracking due to rate limit.")
+		return nil
+	}
+	return libkb.CheckTracking(h.G())
 }

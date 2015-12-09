@@ -62,6 +62,7 @@ type GlobalContext struct {
 	UIRouter            UIRouter            // How to route UIs
 	ProofCheckerFactory ProofCheckerFactory // Makes new ProofCheckers
 	ExitCode            keybase1.ExitCode   // Value to return to OS on Exit()
+	RateLimits          *RateLimits         // tracks the last time certain actions were taken
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -86,6 +87,7 @@ func (g *GlobalContext) Init() {
 	g.Service = false
 	g.createLoginState()
 	g.Resolver = NewResolver(g)
+	g.RateLimits = NewRateLimits(g)
 }
 
 func (g *GlobalContext) SetService() {

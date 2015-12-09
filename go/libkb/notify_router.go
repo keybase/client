@@ -137,6 +137,29 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 	})
 }
 
+// HandleTrackingChanged is called whenever we have a new tracking or
+// untracking chain link related to a given user. It will broadcast the
+// messages to all curious listeners.
+func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Tracking` notification type
+		if n.getNotificationChannels(id).Tracking {
+			// In the background do...
+			go func() {
+				// A send of a `TrackingChanged` RPC with the user's UID
+				(keybase1.NotifyTrackingClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).TrackingChanged(context.TODO(), uid)
+			}()
+		}
+		return true
+	})
+}
+
 // HandleFSActivity is called for any KBFS notification. It will broadcast the messages
 // to all curious listeners.
 func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {

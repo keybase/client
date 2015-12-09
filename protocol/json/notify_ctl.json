@@ -218,6 +218,9 @@
     }, {
       "name" : "kbfs",
       "type" : "boolean"
+    }, {
+      "name" : "tracking",
+      "type" : "boolean"
     } ]
   } ],
   "messages" : {

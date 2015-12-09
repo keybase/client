@@ -1,4 +1,5 @@
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
+- Periodic polling for new tracking statements (PR: keybase/client#1500)
 
 ## 1.0.6-1
 - Fix verify command (PR: keybase/client#1522)
