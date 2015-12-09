@@ -1,9 +1,11 @@
 import React, {Component} from '../base-react'
-import remote from 'remote'
 import {showDevTools} from '../local-debug'
-import {ipcRenderer} from 'electron'
+import {remote, ipcRenderer} from 'electron'
+import path from 'path'
+import resolveAssets from '../../../desktop/resolve-assets'
+import hotPath from '../../../desktop/hot-path'
 
-const BrowserWindow = remote.require('browser-window')
+const {BrowserWindow} = remote
 
 export default class RemoteComponent extends Component {
   componentWillMount () {
@@ -34,8 +36,7 @@ export default class RemoteComponent extends Component {
 
     const componentRequireName = this.props.component
     const substore = this.props.substore
-
-    this.remoteWindow.loadUrl(`file://${__dirname}/remoteComponent.html#${componentRequireName || ''}:${substore || ''}`)
+    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&substore=${substore || ''}&src=file://${hotPath('remote-component-loader.bundle.js')}`)
   }
 
   componentWillUnmount () {

@@ -1,38 +1,24 @@
-// This file is ES5; it's loaded before Babel.
-require('babel/register')({
-  extensions: ['.desktop.js', '.es6', '.es', '.jsx', '.js']
-})
+import menubar from 'menubar'
+import {BrowserWindow, ipcMain as ipc, shell} from 'electron'
+import Window from './window'
+import splash from './splash'
+import installer from './installer'
+import {app} from 'electron'
+import {showDevTools} from '../../react-native/react/local-debug.desktop'
+import {isDev} from '../../react-native/react/constants/platform'
+import {helpURL} from '../../react-native/react/constants/urls'
+import resolveAssets from '../resolve-assets'
+import hotPath from '../hot-path'
+import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 
-const menubar = require('menubar')
-const ipc = require('electron').ipcMain
-const BrowserWindow = require('electron').BrowserWindow
-const Window = require('./window')
-const splash = require('./splash')
-const installer = require('./installer')
-const app = require('electron').app
-const path = require('path')
-const showDevTools = require('../../react-native/react/local-debug.desktop').showDevTools
-const isDev = require('../../react-native/react/local-debug.desktop').isDev
-const shell = require('electron').shell
-const helpURL = require('../../react-native/react/constants/urls').helpURL
-
-const ListenLogUi = require('../../react-native/react/native/listen-log-ui')
-
-const appPath = app.getAppPath()
-const menubarIconPath = path.resolve(appPath, 'Icon.png')
+const menubarIconPath = resolveAssets('./Icon.png')
 
 const mb = menubar({
-  index: `file://${__dirname}/../renderer/launcher.html#debug=${isDev}`,
-  width: 150, height: 192,
+  index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}&debug=${!!isDev}`,
+  width: 150, height: isDev ? 192 : 160,
   preloadWindow: true,
   icon: menubarIconPath,
   showDockIcon: true
-})
-
-const mainWindow = new Window('index', {
-  width: 1600,
-  height: 1200,
-  openDevTools: true
 })
 
 mb.on('after-create-window', () => {
@@ -53,8 +39,18 @@ mb.on('ready', () => {
 // Work around an OS X bug that leaves a gap in the status bar if you exit
 // without removing your status bar icon.
 if (process.platform === 'darwin') {
-  mb.app.on('destroy', () => { mb.tray.destroy() })
+  mb.app.on('destroy', () => {
+    mb.tray && mb.tray.destroy()
+  })
 }
+
+const mainWindow = new Window(
+  resolveAssets(`./renderer/index.html?src=${hotPath('index.bundle.js')}`), {
+    width: 1600,
+    height: 1200,
+    openDevTools: true
+  }
+)
 
 ipc.on('showMain', () => {
   mainWindow.show(true)
