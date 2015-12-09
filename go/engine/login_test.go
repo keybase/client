@@ -296,6 +296,41 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 	}
 }
 
+// If a user has (only) a synced pgp key, provision via passphrase
+// should work, if they specify email address as username.
+func TestProvisionPassphraseSyncedPGPEmail(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	u1 := createFakeUserWithPGPOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc = SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Email},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any device keys, login should have fixed that:
+	testUserHasDeviceKey(tc)
+
+	// and they should have a paper backup key
+	hasOnePaperDev(tc, u1)
+
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestProvisionPaper(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -658,6 +693,32 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
 
 	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Login via email address should work. Issue CORE-2017.
+func TestLoginByEmail(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+
+	// login via username should work:
+	ctx := &Context{
+		SecretUI: u1.NewSecretUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+	}
+	li := NewLoginCurrentDevice(tc.G, u1.Username)
+	if err := RunEngine(li, ctx); err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+
+	// and login via email:
+	li = NewLoginCurrentDevice(tc.G, u1.Email)
+	if err := RunEngine(li, ctx); err != nil {
 		t.Fatal(err)
 	}
 }
