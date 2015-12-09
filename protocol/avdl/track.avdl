@@ -14,7 +14,7 @@ protocol track {
   /**
     Track with token returned from identify.
     */
-  void trackWithToken(int sessionID, string trackToken, TrackOptions options);
+  void trackWithToken(int sessionID, TrackToken trackToken, TrackOptions options);
 
   void untrack(int sessionID, string username);
 }

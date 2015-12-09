@@ -5,11 +5,9 @@ package libkb
 
 import (
 	"fmt"
-	"io"
-	"time"
-
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	"io"
 )
 
 type UserBasic interface {
@@ -679,14 +677,6 @@ func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeys) bool {
 	}
 	scv := u.GetSigChainLastKnownSeqno()
 	if upk.Uvv.SigChain == 0 || int64(scv) != upk.Uvv.SigChain {
-		return false
-	}
-	then := upk.Uvv.LastIdentifiedAt
-	if then == 0 {
-		return false
-	}
-	thenTime := time.Unix(int64(then), 0)
-	if time.Now().Sub(thenTime) > IdentifyCacheLongTimeout {
 		return false
 	}
 	return true

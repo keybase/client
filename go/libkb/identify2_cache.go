@@ -11,17 +11,25 @@ import (
 	"stathat.com/c/ramcache"
 )
 
-// UserCache stores User objects in memory for a fixed amount of
+// Identify2Cache stores User objects in memory for a fixed amount of
 // time.
-type UserCache struct {
+type Identify2Cache struct {
 	cache *ramcache.Ramcache
 }
 
-// NewUserCache creates a UserCache and sets the object max age to
+type Identify2Cacher interface {
+	Get(keybase1.UID, GetCheckTimeFunc, time.Duration) (*keybase1.UserPlusKeys, error)
+	Insert(up *keybase1.UserPlusKeys) error
+	Shutdown()
+}
+
+type GetCheckTimeFunc func(keybase1.UserPlusKeys) keybase1.Time
+
+// NewIdentify2Cache creates a Identify2Cache and sets the object max age to
 // maxAge.  Once a user is inserted, after maxAge duration passes,
 // the user will be removed from the cache.
-func NewUserCache(maxAge time.Duration) *UserCache {
-	res := &UserCache{
+func NewIdentify2Cache(maxAge time.Duration) *Identify2Cache {
+	res := &Identify2Cache{
 		cache: ramcache.New(),
 	}
 	res.cache.MaxAge = maxAge
@@ -29,13 +37,12 @@ func NewUserCache(maxAge time.Duration) *UserCache {
 	return res
 }
 
-// Get returns a user object.  If none exists for uid, it will
-// return NotFoundError.
-func (c *UserCache) Get(uid keybase1.UID) (*keybase1.UserPlusKeys, error) {
+// Get returns a user object.  If none exists for uid, it will return nil.
+func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, timeout time.Duration) (*keybase1.UserPlusKeys, error) {
 	v, err := c.cache.Get(string(uid))
 	if err != nil {
 		if err == ramcache.ErrNotFound {
-			return nil, NotFoundError{}
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -44,11 +51,23 @@ func (c *UserCache) Get(uid keybase1.UID) (*keybase1.UserPlusKeys, error) {
 		return nil, fmt.Errorf("invalid type in cache: %T", v)
 	}
 
+	if gctf != nil {
+		then := gctf(*up)
+		if then == 0 {
+			return nil, TimeoutError{}
+		}
+
+		thenTime := time.Unix(int64(then), 0)
+		if time.Now().Sub(thenTime) > timeout {
+			return nil, TimeoutError{}
+		}
+	}
+
 	return up, nil
 }
 
 // Insert adds a user to the cache, keyed on UID.
-func (c *UserCache) Insert(up *keybase1.UserPlusKeys) error {
+func (c *Identify2Cache) Insert(up *keybase1.UserPlusKeys) error {
 	tmp := *up
 	copy := &tmp
 	copy.Uvv.CachedAt = keybase1.Time(time.Now().Unix())
@@ -59,6 +78,6 @@ func (c *UserCache) Insert(up *keybase1.UserPlusKeys) error {
 }
 
 // Shutdown stops any goroutines in the cache.
-func (c *UserCache) Shutdown() {
+func (c *Identify2Cache) Shutdown() {
 	c.cache.Shutdown()
 }

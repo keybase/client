@@ -1369,6 +1369,7 @@ const (
 	ProofType_ROOTER           ProofType = 100001
 )
 
+type TrackToken string
 type TrackDiffType int
 
 const (
@@ -1436,7 +1437,7 @@ type IdentifyRes struct {
 	User       *User           `codec:"user,omitempty" json:"user,omitempty"`
 	PublicKeys []PublicKey     `codec:"publicKeys" json:"publicKeys"`
 	Outcome    IdentifyOutcome `codec:"outcome" json:"outcome"`
-	TrackToken string          `codec:"trackToken" json:"trackToken"`
+	TrackToken TrackToken      `codec:"trackToken" json:"trackToken"`
 }
 
 type RemoteProof struct {
@@ -1448,7 +1449,6 @@ type RemoteProof struct {
 	MTime         Time      `codec:"mTime" json:"mTime"`
 }
 
-type TrackToken string
 type IdentifySource int
 
 const (
@@ -1644,8 +1644,8 @@ type DisplayCryptocurrencyArg struct {
 }
 
 type ReportTrackTokenArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	TrackToken string `codec:"trackToken" json:"trackToken"`
+	SessionID  int        `codec:"sessionID" json:"sessionID"`
+	TrackToken TrackToken `codec:"trackToken" json:"trackToken"`
 }
 
 type ConfirmArg struct {
@@ -5011,7 +5011,7 @@ type TrackArg struct {
 
 type TrackWithTokenArg struct {
 	SessionID  int          `codec:"sessionID" json:"sessionID"`
-	TrackToken string       `codec:"trackToken" json:"trackToken"`
+	TrackToken TrackToken   `codec:"trackToken" json:"trackToken"`
 	Options    TrackOptions `codec:"options" json:"options"`
 }
 

@@ -81,7 +81,7 @@ func (i *identify2Tester) DisplayKey(keybase1.IdentifyKey)                      
 func (i *identify2Tester) ReportLastTrack(*keybase1.TrackSummary)                 { return }
 func (i *identify2Tester) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) { return }
 func (i *identify2Tester) DisplayTrackStatement(string) (err error)               { return }
-func (i *identify2Tester) ReportTrackToken(libkb.IdentifyCacheToken) (err error)  { return }
+func (i *identify2Tester) ReportTrackToken(keybase1.TrackToken) (err error)       { return }
 func (i *identify2Tester) SetStrict(b bool)                                       { return }
 
 func (i *identify2Tester) Finish() {

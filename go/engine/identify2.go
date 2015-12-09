@@ -25,6 +25,7 @@ type identify2TestArgs struct {
 //   - Better error typing for various failures.
 //   - Work back in the identify card
 //   - test caching paths
+//   - better cache interface
 //
 
 // Identify2 is the Identify engine used in KBFS and as a subroutine
@@ -36,7 +37,7 @@ type Identify2 struct {
 	testArgs   *identify2TestArgs
 	trackToken keybase1.TrackToken
 	cachedRes  *keybase1.UserPlusKeys
-	cache      *libkb.UserCache
+	cache      *libkb.Identify2Cache
 
 	me   *libkb.User
 	them *libkb.User
@@ -183,12 +184,12 @@ func (e *Identify2) insertTrackToken(ctx *Context) (err error) {
 	defer func() {
 		e.G().Log.Debug("- insertTrackToken -> %v", err)
 	}()
-	var ict libkb.IdentifyCacheToken
-	ict, err = e.G().IdentifyCache.Insert(e.state.Result())
+	var tt keybase1.TrackToken
+	tt, err = e.G().TrackCache.Insert(e.state.Result())
 	if err != nil {
 		return err
 	}
-	if err = ctx.IdentifyUI.ReportTrackToken(ict); err != nil {
+	if err = ctx.IdentifyUI.ReportTrackToken(tt); err != nil {
 		return err
 	}
 	return nil
@@ -420,7 +421,7 @@ func (e *Identify2) loadThem(ctx *Context) (err error) {
 	arg.UID = e.arg.Uid
 	e.them, err = libkb.LoadUser(arg)
 	if e.them == nil {
-		panic("Expected e.them to be true after successful loadUser")
+		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in identify2"}
 	}
 	return err
 }
@@ -439,16 +440,9 @@ func (e *Identify2) checkFastCacheHit() bool {
 	if e.getCache() == nil {
 		return false
 	}
-	u, _ := e.getCache().Get(e.arg.Uid)
+	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.CachedAt }
+	u, _ := e.getCache().Get(e.arg.Uid, fn, libkb.Identify2CacheShortTimeout)
 	if u == nil {
-		return false
-	}
-	then := u.Uvv.CachedAt
-	if then == 0 {
-		return false
-	}
-	thenTime := time.Unix(int64(then), 0)
-	if time.Now().Sub(thenTime) > libkb.IdentifyCacheLongTimeout {
 		return false
 	}
 	e.cachedRes = u
@@ -460,7 +454,8 @@ func (e *Identify2) checkSlowCacheHit() bool {
 		return false
 	}
 
-	u, _ := e.getCache().Get(e.them.GetUID())
+	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.LastIdentifiedAt }
+	u, _ := e.getCache().Get(e.them.GetUID(), fn, libkb.Identify2CacheLongTimeout)
 	if u == nil {
 		return false
 	}
@@ -485,9 +480,9 @@ func (e *Identify2) toUserPlusKeys() keybase1.UserPlusKeys {
 	return e.them.ExportToUserPlusKeys(e.getIdentifyTime())
 }
 
-func (e *Identify2) getCache() *libkb.UserCache {
+func (e *Identify2) getCache() libkb.Identify2Cacher {
 	if e.cache != nil {
 		return e.cache
 	}
-	return e.G().UserCache
+	return e.G().Identify2Cache
 }

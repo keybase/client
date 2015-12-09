@@ -66,12 +66,12 @@ const (
 	UserCacheMaxAge      = 5 * time.Minute
 	PGPFingerprintHexLen = 40
 
-	ProofCacheSize            = 0x1000
-	ProofCacheLongDur         = 6 * time.Hour
-	ProofCacheMediumDur       = 30 * time.Minute
-	ProofCacheShortDur        = 1 * time.Minute
-	IdentifyCacheLongTimeout  = 6 * time.Hour
-	IdentifyCacheShortTimeout = 1 * time.Minute
+	ProofCacheSize             = 0x1000
+	ProofCacheLongDur          = 6 * time.Hour
+	ProofCacheMediumDur        = 30 * time.Minute
+	ProofCacheShortDur         = 1 * time.Minute
+	Identify2CacheLongTimeout  = 6 * time.Hour
+	Identify2CacheShortTimeout = 1 * time.Minute
 
 	SigShortIDBytes = 27
 )

@@ -19,7 +19,7 @@ type Identify struct {
 	userExpr         libkb.AssertionExpression
 	outcome          *libkb.IdentifyOutcome
 	trackInst        *libkb.TrackInstructions
-	trackToken       libkb.IdentifyCacheToken
+	trackToken       keybase1.TrackToken
 	selfShortCircuit bool
 	libkb.Contextified
 }
@@ -130,12 +130,12 @@ func (e *Identify) Run(ctx *Context) error {
 	// inform the ui what to do with the remote tracking prompt:
 	e.outcome.TrackOptions = e.arg.TrackOptions
 
-	e.G().Log.Debug("inserting identify outcome for %q in IdentifyCache", e.user.GetName())
-	key, err := e.G().IdentifyCache.Insert(e.outcome)
+	e.G().Log.Debug("inserting identify outcome for %q in TrackCache", e.user.GetName())
+	key, err := e.G().TrackCache.Insert(e.outcome)
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("IdentifyCache key: %q", key)
+	e.G().Log.Debug("TrackCache key: %q", key)
 	e.trackToken = key
 
 	return nil
@@ -149,7 +149,7 @@ func (e *Identify) Outcome() *libkb.IdentifyOutcome {
 	return e.outcome
 }
 
-func (e *Identify) TrackToken() libkb.IdentifyCacheToken {
+func (e *Identify) TrackToken() keybase1.TrackToken {
 	return e.trackToken
 }
 

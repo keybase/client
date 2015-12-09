@@ -434,3 +434,7 @@ func (f Folder) ToString() string {
 	}
 	return prefix + f.Name
 }
+
+func (t TrackToken) String() string {
+	return string(t)
+}

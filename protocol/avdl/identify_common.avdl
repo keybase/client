@@ -4,6 +4,9 @@ protocol identifyCommon {
 	import idl "common.avdl";
 	import idl "prove_common.avdl";
 
+	@typedef("string")
+	record TrackToken {}
+
 	enum TrackDiffType {
 		NONE_0,
 		ERROR_1,
@@ -79,7 +82,7 @@ protocol identifyCommon {
 		union { null, User } user;
 		array<PublicKey> publicKeys;
 		IdentifyOutcome outcome;
-		string trackToken;
+		TrackToken trackToken;
 	}
 
 	record RemoteProof {
@@ -90,7 +93,4 @@ protocol identifyCommon {
 		SigID sigID;
 		Time mTime;
 	}
-
-	@typedef("string")
-	record TrackToken {}
 }

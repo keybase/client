@@ -198,8 +198,8 @@ func (u *RemoteIdentifyUI) DisplayTrackStatement(s string) error {
 	return u.uicli.DisplayTrackStatement(context.TODO(), keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
 }
 
-func (u *RemoteIdentifyUI) ReportTrackToken(token libkb.IdentifyCacheToken) error {
-	return u.uicli.ReportTrackToken(context.TODO(), keybase1.ReportTrackTokenArg{TrackToken: string(token), SessionID: u.sessionID})
+func (u *RemoteIdentifyUI) ReportTrackToken(token keybase1.TrackToken) error {
+	return u.uicli.ReportTrackToken(context.TODO(), keybase1.ReportTrackTokenArg{TrackToken: token, SessionID: u.sessionID})
 }
 
 func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
