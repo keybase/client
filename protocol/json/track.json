@@ -408,6 +408,13 @@
         "type" : "string"
       } ],
       "response" : "null"
+    },
+    "checkTracking" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "null"
     }
   }
 }

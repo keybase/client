@@ -20,6 +20,7 @@ type SigChain struct {
 	idVerified        bool
 	allKeys           bool
 	loadedFromLinkOne bool
+	wasFullyCached    bool
 
 	// If we've locally delegated a key, it won't be reflected in our
 	// loaded chain, so we need to make a note of it here.
@@ -167,6 +168,10 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 		}
 		if link.GetSeqno() <= low {
 			continue
+		}
+		if selfUID.Equal(link.GetUID()) {
+			sc.G().Log.Debug("| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
+			link.isOwnNewLinkFromServer = true
 		}
 		links = append(links, link)
 		if !foundTail && t != nil {
@@ -902,7 +907,8 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	} else {
 		// The chain tip has a cached cki, AND the current eldest kid matches
 		// it. Use what's cached and short circuit.
-		l.G().Log.Debug("| Short-circuiting chain verification.")
+		l.G().Log.Debug("| Sigchain was fully cached. Short-circuiting verification.")
+		ret.wasFullyCached = true
 		return
 	}
 

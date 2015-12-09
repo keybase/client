@@ -3103,9 +3103,10 @@ func (c MetadataUpdateClient) MetadataUpdate(ctx context.Context, __arg Metadata
 }
 
 type NotificationChannels struct {
-	Session bool `codec:"session" json:"session"`
-	Users   bool `codec:"users" json:"users"`
-	Kbfs    bool `codec:"kbfs" json:"kbfs"`
+	Session  bool `codec:"session" json:"session"`
+	Users    bool `codec:"users" json:"users"`
+	Kbfs     bool `codec:"kbfs" json:"kbfs"`
+	Tracking bool `codec:"tracking" json:"tracking"`
 }
 
 type SetNotificationsArg struct {
@@ -3224,6 +3225,48 @@ type NotifySessionClient struct {
 
 func (c NotifySessionClient) LoggedOut(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}}, nil)
+	return
+}
+
+type TrackingChangedArg struct {
+	Uid UID `codec:"uid" json:"uid"`
+}
+
+type NotifyTrackingInterface interface {
+	TrackingChanged(context.Context, UID) error
+}
+
+func NotifyTrackingProtocol(i NotifyTrackingInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.NotifyTracking",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"trackingChanged": {
+				MakeArg: func() interface{} {
+					ret := make([]TrackingChangedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TrackingChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TrackingChangedArg)(nil), args)
+						return
+					}
+					err = i.TrackingChanged(ctx, (*typedArgs)[0].Uid)
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+		},
+	}
+}
+
+type NotifyTrackingClient struct {
+	Cli GenericClient
+}
+
+func (c NotifyTrackingClient) TrackingChanged(ctx context.Context, uid UID) (err error) {
+	__arg := TrackingChangedArg{Uid: uid}
+	err = c.Cli.Call(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg}, nil)
 	return
 }
 
@@ -5135,10 +5178,15 @@ type UntrackArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
+type CheckTrackingArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type TrackInterface interface {
 	Track(context.Context, TrackArg) error
 	TrackWithToken(context.Context, TrackWithTokenArg) error
 	Untrack(context.Context, UntrackArg) error
+	CheckTracking(context.Context, int) error
 }
 
 func TrackProtocol(i TrackInterface) rpc.Protocol {
@@ -5193,6 +5241,22 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"checkTracking": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckTrackingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CheckTrackingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CheckTrackingArg)(nil), args)
+						return
+					}
+					err = i.CheckTracking(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5213,6 +5277,12 @@ func (c TrackClient) TrackWithToken(ctx context.Context, __arg TrackWithTokenArg
 
 func (c TrackClient) Untrack(ctx context.Context, __arg UntrackArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.track.untrack", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TrackClient) CheckTracking(ctx context.Context, sessionID int) (err error) {
+	__arg := CheckTrackingArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.track.checkTracking", []interface{}{__arg}, nil)
 	return
 }
 

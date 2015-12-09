@@ -40,6 +40,7 @@ type TypedChainLink interface {
 	VerifyReverseSig(ckf ComputedKeyFamily) error
 	GetMerkleSeqno() int
 	GetDevice() *Device
+	DoOwnNewLinkFromServerNotifications(g *GlobalContext)
 }
 
 //=========================================================================
@@ -97,6 +98,8 @@ func (g *GenericChainLink) extractPGPFullHash(loc string) string {
 	}
 	return ""
 }
+
+func (g *GenericChainLink) DoOwnNewLinkFromServerNotifications(glob *GlobalContext) {}
 
 //
 //=========================================================================
@@ -379,9 +382,10 @@ func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 //
 type TrackChainLink struct {
 	GenericChainLink
-	whom    string
-	untrack *UntrackChainLink
-	local   bool
+	whomUsername string
+	whomUID      keybase1.UID
+	untrack      *UntrackChainLink
+	local        bool
 }
 
 func (l TrackChainLink) IsRemote() bool {
@@ -389,25 +393,32 @@ func (l TrackChainLink) IsRemote() bool {
 }
 
 func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
-	var whom string
-	whom, err = b.payloadJSON.AtPath("body.track.basics.username").GetString()
+	var whomUsername string
+	whomUsername, err = b.payloadJSON.AtPath("body.track.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
-	} else {
-		ret = &TrackChainLink{b, whom, nil, false}
+		return
 	}
+
+	whomUID, err := GetUID(b.payloadJSON.AtPath("body.track.id"))
+	if err != nil {
+		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
+		return
+	}
+
+	ret = &TrackChainLink{b, whomUsername, whomUID, nil, false}
 	return
 }
 
 func (l *TrackChainLink) Type() string { return "track" }
 
 func (l *TrackChainLink) ToDisplayString() string {
-	return l.whom
+	return l.whomUsername
 }
 
 func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(l)
-	tab.tracks[l.whom] = append(tab.tracks[l.whom], l)
+	tab.tracks[l.whomUsername] = append(tab.tracks[l.whomUsername], l)
 }
 
 type TrackedKey struct {
@@ -508,6 +519,11 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 		}
 	}
 	return
+}
+
+func (l *TrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {
+	g.Log.Debug("Post notification for new TrackChainLink")
+	g.NotifyRouter.HandleTrackingChanged(l.whomUID)
 }
 
 //
@@ -707,25 +723,33 @@ func (s *DeviceChainLink) insertIntoTable(tab *IdentityTable) {
 
 type UntrackChainLink struct {
 	GenericChainLink
-	whom string
+	whomUsername string
+	whomUID      keybase1.UID
 }
 
 func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error) {
-	var whom string
-	whom, err = b.payloadJSON.AtPath("body.untrack.basics.username").GetString()
+	var whomUsername string
+	whomUsername, err = b.payloadJSON.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
-	} else {
-		ret = &UntrackChainLink{b, whom}
+		return
 	}
+
+	whomUID, err := GetUID(b.payloadJSON.AtPath("body.untrack.id"))
+	if err != nil {
+		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
+		return
+	}
+
+	ret = &UntrackChainLink{b, whomUsername, whomUID}
 	return
 }
 
 func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(u)
-	if list, found := tab.tracks[u.whom]; !found {
+	if list, found := tab.tracks[u.whomUsername]; !found {
 		G.Log.Debug("| Useless untrack of %s; no previous tracking statement found",
-			u.whom)
+			u.whomUsername)
 	} else {
 		for _, obj := range list {
 			obj.untrack = u
@@ -734,12 +758,17 @@ func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 }
 
 func (u *UntrackChainLink) ToDisplayString() string {
-	return u.whom
+	return u.whomUsername
 }
 
 func (u *UntrackChainLink) Type() string { return "untrack" }
 
 func (u *UntrackChainLink) IsRevocationIsh() bool { return true }
+
+func (u *UntrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {
+	g.Log.Debug("Post notification for new UntrackChainLink")
+	g.NotifyRouter.HandleTrackingChanged(u.whomUID)
+}
 
 //
 //=========================================================================
@@ -1026,6 +1055,10 @@ func (idt *IdentityTable) populate() error {
 		tcl.insertIntoTable(idt)
 		if w != nil {
 			w.Warn()
+		}
+		if link.isOwnNewLinkFromServer {
+			link.isOwnNewLinkFromServer = false
+			tcl.DoOwnNewLinkFromServerNotifications(idt.G())
 		}
 	}
 	G.Log.Debug("- Populate ID Table")
