@@ -560,11 +560,11 @@ func (h ProtocolDowngradeError) Error() string {
 //=============================================================================
 
 type BadUsernameError struct {
-	n string
+	N string
 }
 
 func (e BadUsernameError) Error() string {
-	return "Bad username: '" + e.n + "'"
+	return "Bad username: '" + e.N + "'"
 }
 
 //=============================================================================

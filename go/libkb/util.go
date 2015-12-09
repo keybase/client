@@ -429,3 +429,8 @@ func RandString(prefix string, numbytes int) (string, error) {
 	}
 	return str, nil
 }
+
+func Trace(log logger.Logger, msg string, f func() error) func() {
+	log.Debug("+ %s", msg)
+	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
+}

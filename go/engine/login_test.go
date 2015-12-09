@@ -697,32 +697,6 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 	}
 }
 
-// Login via email address should work. Issue CORE-2017.
-func TestLoginByEmail(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-
-	u1 := CreateAndSignupFakeUser(tc, "login")
-	Logout(tc)
-
-	// login via username should work:
-	ctx := &Context{
-		SecretUI: u1.NewSecretUI(),
-		LoginUI:  &libkb.TestLoginUI{},
-	}
-	li := NewLoginCurrentDevice(tc.G, u1.Username)
-	if err := RunEngine(li, ctx); err != nil {
-		t.Fatal(err)
-	}
-	Logout(tc)
-
-	// and login via email:
-	li = NewLoginCurrentDevice(tc.G, u1.Email)
-	if err := RunEngine(li, ctx); err != nil {
-		t.Fatal(err)
-	}
-}
-
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod

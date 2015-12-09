@@ -163,6 +163,15 @@ func (s *LoginState) ExternalFunc(f loginHandler, name string) error {
 	return s.loginHandle(f, nil, name)
 }
 
+func (s *LoginState) VerifyEmailAddress(email string, secretUI SecretUI, after afterFn) (err error) {
+	defer Trace(s.G().Log, "VerifyEmailAddress", func() error { return err })()
+
+	err = s.loginHandle(func(lctx LoginContext) error {
+		return s.tryPassphrasePromptLogin(lctx, email, secretUI)
+	}, after, "loginWithPassphrase")
+	return err
+}
+
 func (s *LoginState) Shutdown() error {
 	var err error
 	aerr := s.Account(func(a *Account) {

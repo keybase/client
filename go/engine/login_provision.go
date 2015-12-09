@@ -309,7 +309,18 @@ func (e *LoginProvision) paper(ctx *Context) error {
 // synced pgp key.  Any other situations require different
 // provisioning methods.
 func (e *LoginProvision) passphrase(ctx *Context) error {
-	// prompt for the username (if not provided) and load the user:
+	// prompt for the username (if not provided):
+	if err := e.promptUsername(ctx); err != nil {
+		return err
+	}
+
+	// check if they provided a username or email address.
+	// If email address, checkUsername will get a login session
+	// in order to get the username.
+	if err := e.checkUsername(ctx); err != nil {
+		return err
+	}
+
 	var err error
 	e.user, err = e.loadUser(ctx)
 	if err != nil {
@@ -486,14 +497,47 @@ func (e *LoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 	return nil
 }
 
-// loadUser will prompt for username (if not provided) and load the user.
+// promptUsername will ask the user for the username (if
+// necessary).
+func (e *LoginProvision) promptUsername(ctx *Context) error {
+	if len(e.arg.Username) != 0 {
+		return nil
+	}
+	username, err := ctx.LoginUI.GetEmailOrUsername(context.TODO(), 0)
+	if err != nil {
+		return err
+	}
+	e.arg.Username = username
+	return nil
+}
+
+// If e.arg.Username looks like an email address, it will get a
+// login session in order to map the email address to a keybase user.
+func (e *LoginProvision) checkUsername(ctx *Context) error {
+	if len(e.arg.Username) == 0 {
+		return libkb.NoUsernameError{}
+	}
+	if libkb.CheckUsername.F(e.arg.Username) {
+		return nil
+	}
+	if !libkb.CheckEmail.F(e.arg.Username) {
+		return libkb.BadUsernameError{N: e.arg.Username}
+	}
+
+	// e.arg.Username looks like an email address
+	e.G().Log.Debug("username %q looks like an email address, must get login session to get user", e.arg.Username)
+	// need to login with it in order to get the username
+	var afterLogin = func(lctx libkb.LoginContext) error {
+		e.arg.Username = lctx.LocalSession().GetUsername().String()
+		return nil
+	}
+	return e.G().LoginState().VerifyEmailAddress(e.arg.Username, ctx.SecretUI, afterLogin)
+}
+
+// loadUser will load the user by name specified in e.arg.Username.
 func (e *LoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 	if len(e.arg.Username) == 0 {
-		username, err := ctx.LoginUI.GetEmailOrUsername(context.TODO(), 0)
-		if err != nil {
-			return nil, err
-		}
-		e.arg.Username = username
+		return nil, libkb.NoUsernameError{}
 	}
 	e.G().Log.Debug("LoginProvision: loading user %s", e.arg.Username)
 	arg := libkb.NewLoadUserByNameArg(e.G(), e.arg.Username)
