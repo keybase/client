@@ -19,6 +19,10 @@ func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore boo
 	arg.WindowTitle = title
 	arg.Prompt = prompt
 	arg.RetryLabel = retryMsg
+	// apparently allowSecretStore can be true even though HasSecretStore()
+	// is false (in the case of mocked secret store tests on linux, for
+	// example). So, pass this through:
+	arg.Features.StoreSecret.Allow = allowSecretStore
 	return getPassphraseUntilCheck(ui, arg, &CheckPassphraseSimple)
 }
 
