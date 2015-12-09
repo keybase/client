@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"syscall"
 	"time"
 
@@ -94,21 +94,15 @@ func (u *Updater) pathForFilename(filename string) string {
 	return path.Join(os.TempDir(), "KeybaseUpdates", filename)
 }
 
-func isFileScheme(url string) (string, bool) {
-	scheme := "file://"
-	if strings.HasPrefix(url, scheme) {
-		fpath := url[len(scheme):]
-		return fpath, true
+func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool, err error) {
+	url, err := url.Parse(asset.Url)
+	if err != nil {
+		return
 	}
 
-	return "", false
-}
-
-func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool, err error) {
-	url := asset.DownloadURL
-	if lpath, b := isFileScheme(url); b {
-		u.G().Log.Info("Using local path: %s", lpath)
-		fpath = lpath
+	if url.Scheme == "file" {
+		fpath = url.Path
+		u.G().Log.Info("Using local path: %s", fpath)
 		return
 	}
 
@@ -126,13 +120,13 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 		}
 	}
 
-	req, _ := http.NewRequest("GET", url, nil)
+	req, _ := http.NewRequest("GET", url.String(), nil)
 	u.G().Log.Info("Using etag: %s", etag)
 	if etag != "" {
 		req.Header.Set("If-None-Match", etag)
 	}
 	client := &http.Client{}
-	u.G().Log.Info("Request %#v", url)
+	u.G().Log.Info("Request %#v", url.String())
 	resp, err := client.Do(req)
 	if err != nil {
 		return

@@ -16,6 +16,7 @@ type Source string
 const (
 	KeybaseSource Source = "keybase"
 	GithubSource         = "github"
+	RemoteSource         = "remote"
 	DefaultSource        = ""
 )
 
@@ -27,6 +28,8 @@ func UpdateSourceForName(g *libkb.GlobalContext, name string) (UpdateSource, err
 		return NewKeybaseUpdateSource(g), nil
 	case string(GithubSource):
 		return NewGithubUpdateSource(g), nil
+	case string(RemoteSource):
+		return NewRemoteUpdateSource(g), nil
 	}
 
 	return nil, fmt.Errorf("Invalid update source: %s", name)

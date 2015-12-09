@@ -3923,12 +3923,12 @@ export type update_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type update_Asset = {
   name: string;
-  downloadURL: string;
+  url: string;
 }
 
 export type Asset = {
   name: string;
-  downloadURL: string;
+  url: string;
 }
 
 export type update_Update = {
@@ -3951,6 +3951,7 @@ export type update_UpdateConfig = {
   destinationPath: string;
   source: string;
   URL: string;
+  channel: string;
 }
 
 export type UpdateConfig = {
@@ -3959,6 +3960,7 @@ export type UpdateConfig = {
   destinationPath: string;
   source: string;
   URL: string;
+  channel: string;
 }
 
 export type update_UpdateResult = {

@@ -4,15 +4,14 @@
 package sources
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
+
+type updateResponse struct {
+	Status keybase1.Status `codec:"status" json:"status"`
+	Update keybase1.Update `codec:"update" json:"update"`
+}
 
 // KeybaseUpdateSource finds releases/updates from custom url (used primarily for testing)
 type KeybaseUpdateSource struct {
@@ -26,44 +25,26 @@ func NewKeybaseUpdateSource(g *libkb.GlobalContext) KeybaseUpdateSource {
 }
 
 func (k KeybaseUpdateSource) FindUpdate(config keybase1.UpdateConfig) (update *keybase1.Update, err error) {
-	if config.URL == "" {
-		err = fmt.Errorf("No source URL for remote")
-		return
+	APIArgs := libkb.HTTPArgs{
+		"version":  libkb.S{Val: config.Version},
+		"os_name":  libkb.S{Val: config.OsName},
+		"run_mode": libkb.S{Val: string(k.G().Env.GetRunMode())},
+		"channel":  libkb.S{Val: config.Channel},
 	}
-	u, err := url.Parse(config.URL)
+
+	var res updateResponse
+	err = k.G().API.GetDecode(libkb.APIArg{
+		Endpoint: "update.json",
+		Args:     APIArgs,
+	}, res)
 	if err != nil {
 		return
 	}
-	data := url.Values{}
-	data.Set("version", config.Version)
-	data.Add("osname", config.OsName)
-	data.Add("runmode", string(k.G().Env.GetRunMode()))
-	u.RawQuery = data.Encode()
-
-	urlstr := u.String()
-	req, err := http.NewRequest("GET", urlstr, nil)
-	client := &http.Client{}
-	k.G().Log.Info("Request %#v", urlstr)
-	resp, err := client.Do(req)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if err != nil {
+	if res.Status.Code != libkb.SCOk {
+		err = libkb.AppStatusError{Code: res.Status.Code, Name: res.Status.Name, Desc: res.Status.Desc}
 		return
 	}
+	update = &res.Update
 
-	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("Updater remote returned bad status %v", resp.Status)
-		return
-	}
-
-	var r io.Reader = resp.Body
-	var obj keybase1.Update
-	if err = json.NewDecoder(r).Decode(&obj); err != nil {
-		err = fmt.Errorf("Bad updater remote response %s", err)
-		return
-	}
-	update = &obj
-
-	return update, nil
+	return
 }

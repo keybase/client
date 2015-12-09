@@ -28,8 +28,8 @@ func (u testUpdateSource) FindUpdate(config keybase1.UpdateConfig) (release *key
 		Name:        "Test",
 		Description: "Bug fixes",
 		Asset: keybase1.Asset{
-			Name:        "Test-1.0.1.zip",
-			DownloadURL: "https://keybase-app.s3.amazonaws.com/Test-1.0.1.zip",
+			Name: "Test-1.0.1.zip",
+			Url:  "https://keybase-app.s3.amazonaws.com/Test-1.0.1.zip",
 		}}, nil
 }
 
@@ -67,7 +67,12 @@ func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
 func TestUpdateDownloadAsset(t *testing.T) {
 	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
 
-	asset := keybase1.Asset{Name: "Test-1.0.1.zip", DownloadURL: "https://keybase-app.s3.amazonaws.com/Test-1.0.1.zip"}
+	asset := keybase1.Asset{Name: "Test-1.0.1.zip", Url: "https://keybase-app.s3.amazonaws.com/Test-1.0.1.zip"}
+
+	// Clear any cached file
+	assetPath := u.pathForFilename(asset.Name)
+	os.Remove(assetPath)
+
 	dlpath, cached, err := u.downloadAsset(asset)
 	if err != nil {
 		t.Error(err)

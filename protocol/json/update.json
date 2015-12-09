@@ -170,7 +170,7 @@
       "name" : "name",
       "type" : "string"
     }, {
-      "name" : "downloadURL",
+      "name" : "url",
       "type" : "string"
     } ]
   }, {
@@ -207,6 +207,9 @@
       "type" : "string"
     }, {
       "name" : "URL",
+      "type" : "string"
+    }, {
+      "name" : "channel",
       "type" : "string"
     } ]
   }, {

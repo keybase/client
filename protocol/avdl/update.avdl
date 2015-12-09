@@ -9,7 +9,7 @@ protocol update {
    */
   record Asset {
     string name;
-    string downloadURL;
+    string url;
   }
 
   record Update {
@@ -28,6 +28,7 @@ protocol update {
     string destinationPath;
     string source; // Source to check, empty string for default
     string URL; // Custom source URL
+    string channel; // Update channel, empty string for default
   }
 
   record UpdateResult {

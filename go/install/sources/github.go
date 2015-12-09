@@ -38,7 +38,7 @@ func (g GithubUpdateSource) FindUpdate(config keybase1.UpdateConfig) (update *ke
 	var asset *keybase1.Asset
 	for _, a := range ghRelease.Assets {
 		if strings.HasPrefix(a.Name, "Keybase-") && strings.HasSuffix(a.Name, fmt.Sprintf("-%s.zip", runtime.GOOS)) {
-			asset = &keybase1.Asset{Name: a.Name, DownloadURL: a.BrowserDownloadURL}
+			asset = &keybase1.Asset{Name: a.Name, Url: a.BrowserDownloadURL}
 			break
 		}
 	}

@@ -122,7 +122,7 @@ func (v *CmdUpdate) Run() error {
 	if res.Update == nil {
 		v.G().Log.Info("No update")
 	} else {
-		v.G().Log.Info("Update: %s", res.Update.Asset.DownloadURL)
+		v.G().Log.Info("Update: %s", res.Update.Asset.Url)
 	}
 	return nil
 }

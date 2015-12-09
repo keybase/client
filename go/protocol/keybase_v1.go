@@ -5186,8 +5186,8 @@ func (c UiClient) PromptYesNo(ctx context.Context, __arg PromptYesNoArg) (res bo
 }
 
 type Asset struct {
-	Name        string `codec:"name" json:"name"`
-	DownloadURL string `codec:"downloadURL" json:"downloadURL"`
+	Name string `codec:"name" json:"name"`
+	Url  string `codec:"url" json:"url"`
 }
 
 type Update struct {
@@ -5203,6 +5203,7 @@ type UpdateConfig struct {
 	DestinationPath string `codec:"destinationPath" json:"destinationPath"`
 	Source          string `codec:"source" json:"source"`
 	URL             string `codec:"URL" json:"URL"`
+	Channel         string `codec:"channel" json:"channel"`
 }
 
 type UpdateResult struct {

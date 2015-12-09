@@ -94,8 +94,8 @@ func DoAuthRequest(method, url, bodyType, token string, headers map[string]strin
 	return resp, nil
 }
 
-func Get(APIURL string, path string, v interface{}) error {
-	resp, err := http.Get(APIURL + path)
+func Get(url string, v interface{}) error {
+	resp, err := http.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

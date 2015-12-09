@@ -4,6 +4,7 @@ package github
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -47,25 +48,38 @@ type ReleaseCreate struct {
 	Prerelease      bool   `json:"prerelease"`
 }
 
-func Releases(user, repo, token string) ([]Release, error) {
-	if token != "" {
-		token = "?access_token=" + token
+func githubURL(host string, token string) (u *url.URL, err error) {
+	u, err = url.Parse(host)
+	if err != nil {
+		return
 	}
-	var releases []Release
-	err := Get(GithubAPIURL, fmt.Sprintf(ReleaseListPath, user, repo, token), &releases)
+	data := url.Values{}
+	data.Set("access_token", token)
+	u.RawQuery = data.Encode()
+	return
+}
+
+func Releases(user, repo, token string) (releases []Release, err error) {
+	u, err := githubURL(GithubAPIURL, token)
 	if err != nil {
 		return nil, err
 	}
-
-	return releases, nil
+	u.Path = fmt.Sprintf(ReleaseListPath, user, repo, token)
+	err = Get(u.String(), &releases)
+	if err != nil {
+		return
+	}
+	return
 }
 
-func LatestRelease(user, repo, token string) (*Release, error) {
-	if token != "" {
-		token = "?access_token=" + token
+func LatestRelease(user, repo, token string) (release *Release, err error) {
+	u, err := githubURL(GithubAPIURL, token)
+	if err != nil {
+		return
 	}
-	var release Release
-	return &release, Get(GithubAPIURL, fmt.Sprintf(ReleaseLatestPath, user, repo, token), &release)
+	u.Path = fmt.Sprintf(ReleaseLatestPath, user, repo, token)
+	err = Get(u.String(), &release)
+	return
 }
 
 func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {
