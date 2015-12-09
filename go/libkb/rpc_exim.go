@@ -771,7 +771,7 @@ func (e NoDeviceError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDeviceNotFound,
 		Name: "DEVICE_NOT_FOUND",
-		Desc: e.Error(),
+		Desc: e.Reason,
 	}
 }
 
