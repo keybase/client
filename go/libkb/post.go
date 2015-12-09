@@ -94,7 +94,6 @@ func PostAuthProof(arg PostAuthProofArg) (*PostAuthProofRes, error) {
 	var tmp PostAuthProofRes
 	if err = res.Body.UnmarshalAgain(&tmp); err == nil {
 		ret = &tmp
-		G.Log.Warning("post auth: %s", res.Body.MarshalPretty())
 	}
 	return ret, err
 }
