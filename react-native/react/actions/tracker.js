@@ -7,6 +7,7 @@ import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 
 import type {State as RootTrackerState} from '../reducers/tracker'
+import type {ConfigState} from '../reducers/config'
 
 import type {CallMap} from '../engine/call-map-middleware'
 import type {Action, Dispatch} from '../constants/types/flux'
@@ -17,7 +18,7 @@ type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootT
 
 // TODO make actions for all the call back stuff.
 
-export function registerIdentifyUi (): (dispatch: Dispatch) => TrackerActionCreator {
+export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
     engine.rpc('delegateUiCtl.registerIdentifyUI', {}, {}, (error, response) => {
       if (error != null) {
@@ -147,8 +148,9 @@ export function onCloseFromHeader (username: string): Action {
   }
 }
 
-function updateUserInfo (userCard: UserCard, username: string, getState: () => {tracker: RootTrackerState}): Action {
-  const serverURI = getState().config.config.serverURI
+function updateUserInfo (userCard: UserCard, username: string, getState: () => {tracker: RootTrackerState, config: ConfigState}): Action {
+  const config = getState().config.config
+  const serverURI = config && config.serverURI
   return {
     type: Constants.updateUserInfo,
     payload: {
