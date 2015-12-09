@@ -2,6 +2,8 @@
 - libkb: Load optimizations; don't load unneeded fields (PR: keybase/client#1473)
 - engine: bugfix for user switching (PR: keybase/client#1474)
 - Fix goroutine leak in RPC calls (PR: keybase/client#1462)
+- fix buggy "No device found No device found" error message
+   (Commit: 8b96270704ac840ee22837f5c404948206742791)
 
 ## 1.0.5-0 (2015-12-01)
 
