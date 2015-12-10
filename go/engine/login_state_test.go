@@ -218,48 +218,6 @@ func (m *GetUsernameMock) CheckLastErr(t *testing.T) {
 	}
 }
 
-/*
-type GetKeybasePassphraseMock struct {
-	Passphrase  string
-	StoreSecret bool
-	Called      bool
-	LastErr     error
-}
-
-func (m *GetKeybasePassphraseMock) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	return nil, errors.New("Fail pubkey login")
-}
-
-func (m *GetKeybasePassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	m.LastErr = errors.New("GetNewPassphrase unexpectedly called")
-	return keybase1.GetPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
-}
-
-func (m *GetKeybasePassphraseMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
-	if m.Called {
-		m.LastErr = errors.New("GetKeybasePassphrase unexpectedly called more than once")
-		return keybase1.GetPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
-	}
-	m.Called = true
-	return keybase1.GetPassphraseRes{Passphrase: m.Passphrase, StoreSecret: m.StoreSecret}, nil
-}
-
-func (m *GetKeybasePassphraseMock) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	m.LastErr = errors.New("GetBackupPassphrase unexpectedly called")
-	return "invalid passphrase", m.LastErr
-}
-
-func (m *GetKeybasePassphraseMock) CheckLastErr(t *testing.T) {
-	if m.LastErr != nil {
-		t.Fatal(m.LastErr)
-	}
-}
-
-func (m *GetKeybasePassphraseMock) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
-	return
-}
-*/
-
 // Test that the login falls back to a passphrase login if pubkey
 // login fails.
 func TestLoginWithPromptPassphrase(t *testing.T) {
