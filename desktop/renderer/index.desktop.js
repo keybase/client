@@ -10,6 +10,7 @@ import {isDev} from '../../react-native/react/constants/platform'
 import {reduxDevToolsSelect} from '../../react-native/react/local-debug.desktop'
 
 import ListenForNotifications from '../../react-native/react/native/notifications'
+import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 
 // For Remote Components
 import RemoteManager from '../../react-native/react/native/remote-manager'
@@ -80,6 +81,9 @@ class Keybase extends Component {
 
     // Handle notifications from the service
     ListenForNotifications(NotifyPopup)
+
+    // Handle logUi.log
+    ListenLogUi()
   }
 
   renderNav () {
