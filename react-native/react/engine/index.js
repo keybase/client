@@ -173,6 +173,8 @@ class Engine {
       // make wrapper so we only call this once
       const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
       callMap[method](param, wrappedResponse)
+    } else if (callMap && method === 'keybase.1.logUi.log') {
+      console.log('keybase.1.logUi.log:', param.text.data)
     } else if (!sessionID && this.generalListeners[method]) {
       this._generalIncomingRpc(method, param, response)
     } else if (!sessionID && this.serverListeners[method]) {

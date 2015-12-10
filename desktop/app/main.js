@@ -16,6 +16,8 @@ const isDev = require('../../react-native/react/local-debug.desktop').isDev
 const shell = require('electron').shell
 const helpURL = require('../../react-native/react/constants/urls').helpURL
 
+const ListenLogUi = require('../../react-native/react/native/listen-log-ui')
+
 const appPath = app.getAppPath()
 const menubarIconPath = path.resolve(appPath, 'Icon.png')
 
@@ -116,3 +118,6 @@ ipc.on('console.error', (event, args) => {
   console.log('From remote console.error')
   console.log.apply(console, args)
 })
+
+// Handle logUi.log
+ListenLogUi()
