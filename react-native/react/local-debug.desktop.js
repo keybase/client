@@ -17,7 +17,7 @@ let config = {
   reduxDevToolsSelect: state => state // only watch a subset of the store
 }
 
-if (isDev && true) {
+if (isDev && false) {
   config.overrideRouterState = createRouterState([], [])
   config.overrideActiveTab = Tabs.devicesTab
   config.skipLoginRouteToRoot = true
@@ -25,7 +25,7 @@ if (isDev && true) {
   config.printRPC = true
   config.showDevTools = true
   config.showAllTrackers = true
-  config.reduxDevToolsSelect = state => state
+  config.reduxDevToolsSelect = state => state.tracker
 }
 
 export const {

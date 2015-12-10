@@ -20,7 +20,6 @@ export default (callback) => {
 
     var cmd = [installerExec, "--service-path="+servicePath, "--run-mode=prod"].join(" ");
     exec(cmd, function(err, stdout, stderr) {
-      console.log("Installer: ", err, stdout, stderr);
       nslog("Installer: ", err, stdout, stderr);
       callback(err);
     });

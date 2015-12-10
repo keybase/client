@@ -9,7 +9,6 @@ export default class Window {
     this.releaseDockIcon = null
 
     app.on('before-quit', () => {
-      console.log('eeeee')
       this.window && this.window.destroy()
     })
 

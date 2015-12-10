@@ -1,12 +1,13 @@
+// Builds our code, serves changes if NO_SERVER is false
 const path = require('path')
 const express = require('express')
 const webpack = require('webpack')
 const config = Object.assign({}, require('./webpack.config.development'))
 
 const PORT = 4000
-
 const compiler = webpack(config)
-// Just to help us debug. If you use the webserver it's all in memory and harder to reason about
+
+// Just build output files and don't run a hot server
 const NO_SERVER = (process.env.NO_SERVER && process.env.NO_SERVER == 'true') || false
 
 if (NO_SERVER) {
@@ -25,7 +26,6 @@ if (NO_SERVER) {
       console.log(jsonStats.warnings.join('\n'))
       return
     }
-
     console.log(stats)
   })
 } else {
@@ -42,9 +42,7 @@ if (NO_SERVER) {
 
   app.use(require('webpack-hot-middleware')(compiler))
 
-  app.get('*', (req, res) => {
-    res.json({})
-  })
+  app.get('*', (req, res) => { res.json({}) })
 
   app.listen(PORT, 'localhost', err => {
     if (err) {
@@ -55,4 +53,3 @@ if (NO_SERVER) {
     console.log(`Listening at http://localhost:${PORT}`)
   })
 }
-
