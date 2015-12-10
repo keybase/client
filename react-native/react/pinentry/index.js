@@ -2,7 +2,7 @@ import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 import {bindActionCreators} from 'redux'
 import PinentryRender from './index.render'
-import * as actions from '../actions/pinentry'
+import {sessionDecoratedActions} from '../actions/pinentry'
 
 export class Pinentry extends Component {
   render () {
@@ -17,28 +17,11 @@ export class Pinentry extends Component {
 Pinentry.propTypes = PinentryRender.propTypes
 
 export default connect(
-  state => {
-    return {
-      // Mock out the RPC payload until implemented.
-      payload: {
-        windowTitle: 'Keybase',
-        promptText: 'Please enter the Keybase passphrase for cjb (12+ characters)',
-        features: {
-          storeSecret: {
-            defaultValue: true,
-            allow: true,
-            readonly: false,
-            label: 'Store my passphrase for later use'
-          },
-          secondFeature: {
-            value: false,
-            label: 'Test a second checkbox'
-          }
-        }
-      }
-    }
+  (state, ownProps) => {
+    const sessionID = ownProps.sessionID
+    return state.pinentry.pinentryStates[sessionID]
   },
-  dispatch => {
-    return bindActionCreators(actions, dispatch)
+  (dispatch, ownProps) => {
+    return bindActionCreators(sessionDecoratedActions(ownProps.sessionID), dispatch)
   }
 )(Pinentry)
