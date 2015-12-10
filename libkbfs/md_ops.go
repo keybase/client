@@ -47,7 +47,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		}
 
 		// Make sure the last writer is really a valid writer
-		writer := rmds.MD.data.LastWriter
+		writer := rmds.MD.data.LastWriterChanged
 		if !handle.IsWriter(writer) {
 			return MDMismatchError{
 				handle.ToString(ctx, md.config),
@@ -260,18 +260,26 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 	if err != nil {
 		return nil, err
 	}
-	rmd.data.LastWriter = me
 
-	// First encode (and maybe encrypt) the root data
 	codec := md.config.Codec()
 	crypto := md.config.Crypto()
+
+	handle := rmd.GetTlfHandle()
 	if rmd.ID.IsPublic() {
+		rmd.data.LastWriterChanged = me
+
+		// Encode the private metadata
+
 		encodedPrivateMetadata, err := codec.Encode(rmd.data)
 		if err != nil {
 			return nil, err
 		}
 		rmd.SerializedPrivateMetadata = encodedPrivateMetadata
-	} else {
+	} else if handle.IsWriter(me) {
+		rmd.data.LastWriterChanged = me
+
+		// Encrypt and encode the private metadata
+
 		k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
 		if err != nil {
 			return nil, err
@@ -289,8 +297,26 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 
 		rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
 	}
+	if rmd.ID.IsPublic() || handle.IsWriter(me) {
 
-	// encode the metadata and sign it
+		// Sign the writer metadata
+
+		buf, err := codec.Encode(rmd.WriterMetadata)
+		if err != nil {
+			return nil, err
+		}
+
+		sigInfo, err := crypto.Sign(ctx, buf)
+		if err != nil {
+			return nil, err
+		}
+		rmd.WriterMetadataSigInfo = sigInfo
+	}
+
+	// Record the last user to modify this metadata
+	rmd.LastUserChanged = me
+
+	// encode the root metadata and sign it
 	buf, err := codec.Encode(rmd)
 	if err != nil {
 		return nil, err

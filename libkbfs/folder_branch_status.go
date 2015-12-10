@@ -144,7 +144,7 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 
 	if fbsk.md != nil {
 		fbs.Staged = (fbsk.md.WFlags & MetadataFlagUnmerged) != 0
-		name, err := fbsk.config.KBPKI().GetNormalizedUsername(ctx, fbsk.md.data.LastWriter)
+		name, err := fbsk.config.KBPKI().GetNormalizedUsername(ctx, fbsk.md.data.LastWriterChanged)
 		if err != nil {
 			return FolderBranchStatus{}, nil, err
 		}

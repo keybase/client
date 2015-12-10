@@ -66,13 +66,9 @@ func verifyMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned,
 
 func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	id TlfID) {
-	packedData := []byte{4, 3, 2, 1}
-	config.mockCodec.EXPECT().Encode(rmds.MD.data).Return(packedData, nil)
-	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
-		Return([]byte{0}, nil)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Times(3).Return([]byte{}, nil)
 
-	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).
-		Return(SignatureInfo{}, nil)
+	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Times(2).Return(SignatureInfo{}, nil)
 
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil)
 }
@@ -84,9 +80,9 @@ func putMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned,
 		&rmds.MD.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
 
 	packedData := []byte{4, 3, 2, 1}
-	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).Times(2)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).Times(3).Return([]byte{}, nil)
 
-	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Return(SignatureInfo{}, nil)
+	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Times(2).Return(SignatureInfo{}, nil)
 
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil)
 }

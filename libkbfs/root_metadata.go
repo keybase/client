@@ -12,8 +12,9 @@ import (
 type PrivateMetadata struct {
 	// directory entry for the root directory block
 	Dir DirEntry
-	// the last KB user who wrote this metadata
-	LastWriter keybase1.UID
+	// the last KB user with writer permissions to this TLF
+	// who wrote this metadata
+	LastWriterChanged keybase1.UID
 
 	// m_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
 	TLFPrivateKey TLFPrivateKey
@@ -28,7 +29,7 @@ type PrivateMetadata struct {
 // Equals returns true if the given PrivateMetadata is equal to this
 // PrivateMetadata.
 func (pm PrivateMetadata) Equals(other PrivateMetadata) bool {
-	return pm.Dir == other.Dir && pm.LastWriter == other.LastWriter &&
+	return pm.Dir == other.Dir && pm.LastWriterChanged == other.LastWriterChanged &&
 		pm.TLFPrivateKey == other.TLFPrivateKey &&
 		pm.Changes.Equals(other.Changes)
 }
@@ -106,12 +107,8 @@ type RootMetadata struct {
 	// that it's only been changed by writers.
 	WriterMetadataSigInfo SignatureInfo
 
-	// The plaintext, deserialized PrivateMetadata
-	data PrivateMetadata
-	// A cached copy of the directory handle calculated for this MD.
-	cachedTlfHandle *TlfHandle
-	// The cached ID for this MD structure (hash)
-	mdID MdID
+	// The last KB user who wrote this metadata
+	LastUserChanged keybase1.UID
 	// Flags
 	Flags MetadataFlags
 	// The revision number
@@ -123,6 +120,13 @@ type RootMetadata struct {
 	// WriterMetadata.WKeys. If there are no readers, each generation
 	// is empty.
 	RKeys TLFReaderKeyGenerations `codec:",omitempty"`
+
+	// The plaintext, deserialized PrivateMetadata
+	data PrivateMetadata
+	// A cached copy of the directory handle calculated for this MD.
+	cachedTlfHandle *TlfHandle
+	// The cached ID for this MD structure (hash)
+	mdID MdID
 }
 
 // MergedStatus returns the status of this update -- has it been
