@@ -862,6 +862,10 @@ export default {
     'DeviceType': {
       'desktop': 0,
       'mobile': 1
+    },
+    'ChooseType': {
+      'existingDevice': 0,
+      'newDevice': 1
     }
   },
   'quota': {

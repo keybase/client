@@ -124,7 +124,8 @@ func (e *LoginProvision) Run(ctx *Context) error {
 // device provisions this device with an existing device using the
 // kex2 protocol.
 func (e *LoginProvision) device(ctx *Context) error {
-	provisionerType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), 0)
+	arg := keybase1.ChooseDeviceTypeArg{Kind: keybase1.ChooseType_EXISTING_DEVICE}
+	provisionerType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), arg)
 	if err != nil {
 		return err
 	}

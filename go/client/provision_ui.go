@@ -79,12 +79,20 @@ You have two options.
 	return res, fmt.Errorf("invalid provision option: %d", ret)
 }
 
-func (p ProvisionUI) ChooseDeviceType(ctx context.Context, sessionID int) (keybase1.DeviceType, error) {
-	p.parent.Output("What type of device would you like to connect this computer with?\n\n")
+func (p ProvisionUI) ChooseDeviceType(ctx context.Context, arg keybase1.ChooseDeviceTypeArg) (keybase1.DeviceType, error) {
+	var res keybase1.DeviceType
+	switch arg.Kind {
+	case keybase1.ChooseType_EXISTING_DEVICE:
+		p.parent.Output("What is your existing device?")
+	case keybase1.ChooseType_NEW_DEVICE:
+		p.parent.Output("What kind of device are you adding?")
+	default:
+		return res, fmt.Errorf("Invalid ChooseType: %v", arg.Kind)
+	}
+	p.parent.Output("\n\n")
 	p.parent.Output("(1) Desktop or laptop\n")
 	p.parent.Output("(2) Mobile phone\n\n")
 
-	var res keybase1.DeviceType
 	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDeviceType, p.parent, "Choose a device type", 1, 2)
 	if err != nil {
 		if err == ErrInputCanceled {

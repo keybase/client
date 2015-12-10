@@ -4007,6 +4007,13 @@ const (
 	DeviceType_MOBILE  DeviceType = 1
 )
 
+type ChooseType int
+
+const (
+	ChooseType_EXISTING_DEVICE ChooseType = 0
+	ChooseType_NEW_DEVICE      ChooseType = 1
+)
+
 type SecretResponse struct {
 	Secret []byte `codec:"secret" json:"secret"`
 	Phrase string `codec:"phrase" json:"phrase"`
@@ -4018,7 +4025,8 @@ type ChooseProvisioningMethodArg struct {
 }
 
 type ChooseDeviceTypeArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	Kind      ChooseType `codec:"kind" json:"kind"`
 }
 
 type DisplayAndPromptSecretArg struct {
@@ -4051,7 +4059,7 @@ type ProvisionerSuccessArg struct {
 
 type ProvisionUiInterface interface {
 	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
-	ChooseDeviceType(context.Context, int) (DeviceType, error)
+	ChooseDeviceType(context.Context, ChooseDeviceTypeArg) (DeviceType, error)
 	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) (SecretResponse, error)
 	DisplaySecretExchanged(context.Context, int) error
 	PromptNewDeviceName(context.Context, PromptNewDeviceNameArg) (string, error)
@@ -4090,7 +4098,7 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ChooseDeviceTypeArg)(nil), args)
 						return
 					}
-					ret, err = i.ChooseDeviceType(ctx, (*typedArgs)[0].SessionID)
+					ret, err = i.ChooseDeviceType(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4188,8 +4196,7 @@ func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg C
 	return
 }
 
-func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, sessionID int) (res DeviceType, err error) {
-	__arg := ChooseDeviceTypeArg{SessionID: sessionID}
+func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, __arg ChooseDeviceTypeArg) (res DeviceType, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseDeviceType", []interface{}{__arg}, &res)
 	return
 }

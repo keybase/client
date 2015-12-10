@@ -50,7 +50,8 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("+ DeviceAdd.Run()")
 	defer func() { e.G().Log.Debug("- DeviceAdd.Run() -> %s", libkb.ErrToOk(err)) }()
 
-	provisioneeType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), 0)
+	arg := keybase1.ChooseDeviceTypeArg{Kind: keybase1.ChooseType_NEW_DEVICE}
+	provisioneeType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), arg)
 	if err != nil {
 		return err
 	}

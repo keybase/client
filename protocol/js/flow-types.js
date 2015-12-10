@@ -2849,6 +2849,10 @@ export type provisionUi_DeviceType = 0 /* 'DESKTOP_0' */ | 1 /* 'MOBILE_1' */
 
 export type DeviceType = 0 /* 'DESKTOP_0' */ | 1 /* 'MOBILE_1' */
 
+export type provisionUi_ChooseType = 0 /* 'EXISTING_DEVICE_0' */ | 1 /* 'NEW_DEVICE_1' */
+
+export type ChooseType = 0 /* 'EXISTING_DEVICE_0' */ | 1 /* 'NEW_DEVICE_1' */
+
 export type provisionUi_SecretResponse = {
   secret: bytes;
   phrase: string;
