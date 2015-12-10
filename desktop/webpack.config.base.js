@@ -28,7 +28,7 @@ module.exports = {
     fallback: path.join(__dirname, 'node_modules'),
   },
   resolveLoader: {
-    fallback: path.join(__dirname, 'node_modules')
+    modulesDirectories: [path.join(__dirname, 'node_modules')]
   },
   plugins: [
     new webpack.DefinePlugin({
