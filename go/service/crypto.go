@@ -7,7 +7,6 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -15,7 +14,7 @@ type CryptoHandler struct {
 	libkb.Contextified
 }
 
-func NewCryptoHandler(xp rpc.Transporter, g *libkb.GlobalContext) *CryptoHandler {
+func NewCryptoHandler(g *libkb.GlobalContext) *CryptoHandler {
 	return &CryptoHandler{
 		Contextified: libkb.NewContextified(g),
 	}
