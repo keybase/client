@@ -39,35 +39,29 @@ func (c *CryptoHandler) getDelegatedSecretUI() libkb.SecretUI {
 	return ui
 }
 
-type secretUIError struct{}
-
-func (secretUIError) Error() string {
-	return "Cannot fulfill SecretUI method"
-}
-
-// A libkb.SecretUI implementation that always returns an error.
+// A libkb.SecretUI implementation that always returns a LoginRequiredError.
 type errorSecretUI struct{}
 
 var _ libkb.SecretUI = errorSecretUI{}
 
 func (errorSecretUI) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	return nil, secretUIError{}
+	return nil, libkb.LoginRequiredError{}
 }
 
 func (errorSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, secretUIError{}
+	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{}
 }
 
 func (errorSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, secretUIError{}
+	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{}
 }
 
 func (errorSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	return "", secretUIError{}
+	return "", libkb.LoginRequiredError{}
 }
 
 func (errorSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, secretUIError{}
+	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{}
 }
 
 func (c *CryptoHandler) getSecretUI() libkb.SecretUI {
