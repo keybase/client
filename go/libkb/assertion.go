@@ -81,6 +81,16 @@ func (a AssertionAnd) MatchSet(ps ProofSet) bool {
 	return true
 }
 
+func (a AssertionAnd) HasFactor(pf Proof) bool {
+	ps := NewProofSet([]Proof{pf})
+	for _, f := range a.factors {
+		if f.MatchSet(*ps) {
+			return true
+		}
+	}
+	return false
+}
+
 func (a AssertionAnd) String() string {
 	v := make([]string, len(a.factors))
 	for i, f := range a.factors {

@@ -128,9 +128,13 @@ func (r *RemoteProofLinks) AddProofsToSet(existing *ProofSet, okStates []keybase
 	}
 }
 
-func AddToProofSetNoChecks(r RemoteProofChainLink, ps *ProofSet) {
+func RemoteProofChainLinkToProof(r RemoteProofChainLink) Proof {
 	k, v := r.ToKeyValuePair()
-	ps.Add(Proof{Key: k, Value: v})
+	return Proof{Key: k, Value: v}
+}
+
+func AddToProofSetNoChecks(r RemoteProofChainLink, ps *ProofSet) {
+	ps.Add(RemoteProofChainLinkToProof(r))
 }
 
 func (r *RemoteProofLinks) active() []ProofLinkWithState {

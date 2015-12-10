@@ -408,7 +408,7 @@
       } ],
       "response" : "IdentifyRes"
     },
-    "identify2" : {
+    "identify2WithUID" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

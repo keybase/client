@@ -12,7 +12,7 @@ import (
 
 var locktab libkb.LockTable
 
-type identify2TestArgs struct {
+type Identify2WithUIDTestArgs struct {
 	noMe     bool                  // don't load ME
 	tcl      *libkb.TrackChainLink // the track chainlink to use
 	selfLoad bool                  // on if this is a self load
@@ -28,13 +28,13 @@ type identify2TestArgs struct {
 //   - Work back in the identify card
 //
 
-// Identify2 is the Identify engine used in KBFS and as a subroutine
+// Identify2WithUID is the Identify engine used in KBFS and as a subroutine
 // of command-line crypto.
-type Identify2 struct {
+type Identify2WithUID struct {
 	libkb.Contextified
 
-	arg        *keybase1.Identify2Arg
-	testArgs   *identify2TestArgs
+	arg        *keybase1.Identify2WithUIDArg
+	testArgs   *Identify2WithUIDTestArgs
 	trackToken keybase1.TrackToken
 	cachedRes  *keybase1.UserPlusKeys
 
@@ -48,42 +48,65 @@ type Identify2 struct {
 	state        libkb.IdentifyState
 	useTracking  bool
 	identifyKeys []keybase1.IdentifyKey
+
+	resultCh chan<- error
+
+	// For eagerly checking remote Assertions as they come in, these
+	// member variables maintain state, protected by the remotesMutex.
+	remotesMutex     sync.Mutex
+	remotesReceived  *libkb.ProofSet
+	remotesError     error
+	remotesCompleted bool
 }
 
-var _ (Engine) = (*Identify2)(nil)
+var _ (Engine) = (*Identify2WithUID)(nil)
+var _ (libkb.CheckCompletedListener) = (*Identify2WithUID)(nil)
 
 // Name is the unique engine name.
-func (e *Identify2) Name() string {
-	return "Identify2"
+func (e *Identify2WithUID) Name() string {
+	return "Identify2WithUID"
 }
 
-func NewIdentify2(g *libkb.GlobalContext, arg *keybase1.Identify2Arg) *Identify2 {
-	return &Identify2{
+func NewIdentify2WithUID(g *libkb.GlobalContext, arg *keybase1.Identify2WithUIDArg) *Identify2WithUID {
+	return &Identify2WithUID{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
 	}
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *Identify2) Prereqs() Prereqs {
+func (e *Identify2WithUID) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // Run then engine
-func (e *Identify2) Run(ctx *Context) (err error) {
+func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
-	e.G().Log.Debug("+ Identify2.runSingle(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+
+	// Only the first send matters, but we don't want to block the subsequent no-op
+	// sends. This code will break when we have more than 100 unblocking opportunities.
+	ch := make(chan error, 100)
+
+	e.resultCh = ch
+	go e.run(ctx)
+	err = <-ch
+	e.G().Log.Debug("- Identify2WithUID.Run() -> %v", err)
+	return err
+}
+
+func (e *Identify2WithUID) run(ctx *Context) {
+	err := e.runReturnError(ctx)
+	e.unblock(err)
+}
+
+func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 
 	e.G().Log.Debug("+ acquire singleflight lock")
 	lock := locktab.AcquireOnName(e.arg.Uid.String())
 	e.G().Log.Debug("- acquired")
 
-	defer func() {
-		if lock != nil {
-			lock.Release()
-		}
-		e.G().Log.Debug("- Identify2.Run -> %v", err)
-	}()
+	defer lock.Release()
 
 	if e.loadAssertion(); err != nil {
 		return err
@@ -94,7 +117,7 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 		return nil
 	}
 
-	e.G().Log.Debug("| Identify2.loadUsers")
+	e.G().Log.Debug("| Identify2WithUID.loadUsers")
 	if err = e.loadUsers(ctx); err != nil {
 		return err
 	}
@@ -113,7 +136,7 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 		return nil
 	}
 
-	e.G().Log.Debug("| Identify2.createIdentifyState")
+	e.G().Log.Debug("| Identify2WithUID.createIdentifyState")
 	if err = e.createIdentifyState(); err != nil {
 		return err
 	}
@@ -136,52 +159,40 @@ func (e *Identify2) Run(ctx *Context) (err error) {
 		return nil
 	}
 
-	if err = e.startIdentifyUI(ctx); err != nil {
+	// If we're not using tracking and we're not using remote assertions,
+	// we can unblock the RPC caller here, and perform the identifyUI operations
+	// in the background.
+	if !e.useTracking && !e.useRemoteAssertions() {
+		e.unblock(nil)
+	}
+
+	if err = e.runIdentifyUI(ctx); err != nil {
 		return err
 	}
 
-	l2 := lock
-	lock = nil
-	if err = e.finishIdentify(ctx, l2); err != nil {
-		return err
-	}
 	return nil
 }
 
-func (e *Identify2) getNow() time.Time {
+func (e *Identify2WithUID) getNow() time.Time {
 	if e.testArgs != nil && e.testArgs.clock != nil {
 		return e.testArgs.clock()
 	}
 	return time.Now()
 }
 
-func (e *Identify2) runIDTableIdentify(ctx *Context, lock *libkb.NamedLock) (err error) {
-	e.G().Log.Debug("+ runIDTableIdentify")
-	defer func() {
-		e.G().Log.Debug("- runIDTableIdentify -> %v", err)
-	}()
-	e.them.IDTable().Identify(e.state, false /* ForceRemoteCheck */, ctx.IdentifyUI, nil)
-	e.insertTrackToken(ctx)
-	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
-	if err == nil {
-		e.maybeCacheResult()
-	}
-	ctx.IdentifyUI.Finish()
-	lock.Release()
-	if err == nil {
-		err = e.state.Result().GetError()
-	}
-	return err
+func (e *Identify2WithUID) unblock(err error) {
+	e.G().Log.Debug("| unblocking...")
+	e.resultCh <- err
 }
 
-func (e *Identify2) maybeCacheResult() {
+func (e *Identify2WithUID) maybeCacheResult() {
 	if e.state.Result().IsOK() && e.getCache() != nil {
 		v := e.toUserPlusKeys()
 		e.getCache().Insert(&v)
 	}
 }
 
-func (e *Identify2) insertTrackToken(ctx *Context) (err error) {
+func (e *Identify2WithUID) insertTrackToken(ctx *Context) (err error) {
 	e.G().Log.Debug("+ insertTrackToken")
 	defer func() {
 		e.G().Log.Debug("- insertTrackToken -> %v", err)
@@ -197,92 +208,59 @@ func (e *Identify2) insertTrackToken(ctx *Context) (err error) {
 	return nil
 }
 
-type checkCompletedListener struct {
-	libkb.Contextified
-	sync.Mutex
-	err       error
-	ch        chan error
-	needed    libkb.AssertionAnd
-	received  *libkb.ProofSet
-	completed bool
-	responded bool
-}
+// CCLCheckCompleted is triggered whenever a remote proof check completes.
+// We get these calls as a result of being a "CheckCompletedListener".
+// When each result comes in, we check against our pool of needed remote
+// assertions. If the set is complete, or if one that we need errors,
+// we can unblock the caller.
+func (e *Identify2WithUID) CCLCheckCompleted(lcr *libkb.LinkCheckResult) {
+	e.remotesMutex.Lock()
+	defer e.remotesMutex.Unlock()
 
-func newCheckCompletedListener(g *libkb.GlobalContext, ch chan error, proofs libkb.AssertionAnd) *checkCompletedListener {
-	ret := &checkCompletedListener{
-		Contextified: libkb.NewContextified(g),
-		ch:           ch,
-		needed:       proofs,
-		received:     libkb.NewProofSet(nil),
+	e.G().Log.Debug("+ CheckCompleted for %s", lcr.GetLink().ToIDString())
+	defer e.G().Log.Debug("- CheckCompleted")
+
+	if !e.useRemoteAssertions() || e.useTracking {
+		e.G().Log.Debug("| Early out, since not using remote assertions or is tracking")
+		return
 	}
-	return ret
-}
 
-func (c *checkCompletedListener) CheckCompleted(lcr *libkb.LinkCheckResult) {
-	c.Lock()
-	defer c.Unlock()
+	pf := libkb.RemoteProofChainLinkToProof(lcr.GetLink())
+	e.remotesReceived.Add(pf)
 
-	c.G().Log.Debug("+ CheckCompleted for %s", lcr.GetLink().ToIDString())
-	libkb.AddToProofSetNoChecks(lcr.GetLink(), c.received)
+	if !e.remoteAssertion.HasFactor(pf) {
+		e.G().Log.Debug("| Proof isn't needed in our remote-assertion early-out check: %v", pf)
+		return
+	}
 
 	if err := lcr.GetError(); err != nil {
-		c.G().Log.Debug("| got error -> ", err)
-		c.err = err
+		e.G().Log.Debug("| got error -> %v", err)
+		e.remotesError = err
 	}
 
 	// note(maxtaco): this is a little ugly in that it's O(n^2) where n is the number
 	// of identities in the assertion. But I can't imagine n > 3, so this is fine
 	// for now.
-	matched := c.needed.MatchSet(*c.received)
-	c.G().Log.Debug("| matched -> %v", matched)
+	matched := e.remoteAssertion.MatchSet(*e.remotesReceived)
+	e.G().Log.Debug("| matched -> %v", matched)
 	if matched {
-		c.completed = true
+		e.remotesCompleted = true
 	}
 
-	if c.err != nil || c.completed {
-		c.G().Log.Debug("| maybe responding")
-		c.respond()
-	}
-	c.G().Log.Debug("- CheckCompleted")
-}
-
-func (c *checkCompletedListener) Done() {
-	c.Lock()
-	defer c.Unlock()
-	c.respond()
-}
-
-func (c *checkCompletedListener) respond() {
-	if c.ch != nil {
-		c.G().Log.Debug("| responding")
-		if !c.completed && c.err == nil {
-			c.G().Log.Debug("| Did not complete assertions")
-			c.err = libkb.IdentifyDidNotCompleteError{}
-		}
-		c.ch <- c.err
-		c.ch = nil
+	if e.remotesError != nil || e.remotesCompleted {
+		e.G().Log.Debug("| unblocking, with err = %v", e.remotesError)
+		e.unblock(e.remotesError)
 	}
 }
 
-func (e *Identify2) partiallyAsyncIdentify(ctx *Context, ch chan error, lock *libkb.NamedLock) {
-	e.G().Log.Debug("+ partiallyAsyncIdentify")
-	ccl := newCheckCompletedListener(e.G(), ch, e.remoteAssertion)
-	e.them.IDTable().Identify(e.state, false /* ForceRemoteCheck */, ctx.IdentifyUI, ccl)
-	e.insertTrackToken(ctx)
-	e.maybeCacheResult()
-	ctx.IdentifyUI.Finish()
-	lock.Release()
-	e.G().Log.Debug("- partiallyAsyncIdentify")
-}
-
-func (e *Identify2) checkLocalAssertions() error {
+func (e *Identify2WithUID) checkLocalAssertions() error {
 	if !e.localAssertion.MatchSet(*e.them.BaseProofSet()) {
 		return libkb.UnmetAssertionError{User: e.them.GetName(), Remote: false}
 	}
 	return nil
 }
 
-func (e *Identify2) checkRemoteAssertions(okStates []keybase1.ProofState) error {
+func (e *Identify2WithUID) checkRemoteAssertions(okStates []keybase1.ProofState) error {
 	ps := libkb.NewProofSet(nil)
 	e.state.Result().AddProofsToSet(ps, okStates)
 	if !e.remoteAssertion.MatchSet(*ps) {
@@ -291,33 +269,7 @@ func (e *Identify2) checkRemoteAssertions(okStates []keybase1.ProofState) error 
 	return nil
 }
 
-func (e *Identify2) finishIdentify(ctx *Context, lock *libkb.NamedLock) (err error) {
-
-	e.G().Log.Debug("+ finishIdentify")
-	defer func() {
-		e.G().Log.Debug("- finishIdentify -> %v", err)
-	}()
-
-	ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export())
-
-	switch {
-	case e.useTracking:
-		e.G().Log.Debug("| Case 1: Using Tracking")
-		err = e.runIDTableIdentify(ctx, lock)
-	case !e.useRemoteAssertions():
-		e.G().Log.Debug("| Case 2: No tracking, without remote assertions")
-		go e.runIDTableIdentify(ctx, lock)
-	default:
-		e.G().Log.Debug("| Case 3: No tracking, with remote assertions")
-		ch := make(chan error)
-		go e.partiallyAsyncIdentify(ctx, ch, lock)
-		err = <-ch
-	}
-
-	return err
-}
-
-func (e *Identify2) loadAssertion() (err error) {
+func (e *Identify2WithUID) loadAssertion() (err error) {
 	e.themAssertion, err = libkb.AssertionParseAndOnly(e.arg.UserAssertion)
 	if err == nil {
 		e.remoteAssertion, e.localAssertion = libkb.CollectAssertions(e.themAssertion)
@@ -325,18 +277,18 @@ func (e *Identify2) loadAssertion() (err error) {
 	return err
 }
 
-func (e *Identify2) useAnyAssertions() bool {
+func (e *Identify2WithUID) useAnyAssertions() bool {
 	return e.useLocalAssertions() || e.useRemoteAssertions()
 }
 
-func (e *Identify2) useLocalAssertions() bool {
+func (e *Identify2WithUID) useLocalAssertions() bool {
 	return e.localAssertion.Len() > 0
 }
-func (e *Identify2) useRemoteAssertions() bool {
+func (e *Identify2WithUID) useRemoteAssertions() bool {
 	return e.remoteAssertion.Len() > 0
 }
 
-func (e *Identify2) runIdentifyPrecomputation() (err error) {
+func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 	f := func(k keybase1.IdentifyKey) {
 		e.identifyKeys = append(e.identifyKeys, k)
 	}
@@ -344,17 +296,33 @@ func (e *Identify2) runIdentifyPrecomputation() (err error) {
 	return nil
 }
 
-func (e *Identify2) startIdentifyUI(ctx *Context) (err error) {
-	e.G().Log.Debug("+ Identify(%s)", e.them.GetName())
+func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
+	e.G().Log.Debug("+ runIdentifyUI(%s)", e.them.GetName())
+
 	ctx.IdentifyUI.Start(e.them.GetName())
 	for _, k := range e.identifyKeys {
 		ctx.IdentifyUI.DisplayKey(k)
 	}
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName()))
-	return nil
+	ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export())
+
+	e.remotesReceived = libkb.NewProofSet(nil)
+
+	e.them.IDTable().Identify(e.state, false /* ForceRemoteCheck */, ctx.IdentifyUI, e)
+	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
+	e.insertTrackToken(ctx)
+	e.maybeCacheResult()
+	ctx.IdentifyUI.Finish()
+
+	if err == nil {
+		err = e.state.Result().GetError()
+	}
+
+	e.G().Log.Debug("- runIdentifyUI(%s) -> %v", e.them.GetName(), err)
+	return err
 }
 
-func (e *Identify2) getTrackChainLink() (*libkb.TrackChainLink, error) {
+func (e *Identify2WithUID) getTrackChainLink() (*libkb.TrackChainLink, error) {
 	if e.testArgs != nil && e.testArgs.tcl != nil {
 		return e.testArgs.tcl, nil
 	}
@@ -364,7 +332,7 @@ func (e *Identify2) getTrackChainLink() (*libkb.TrackChainLink, error) {
 	return e.me.TrackChainLinkFor(e.them.GetName(), e.them.GetUID())
 }
 
-func (e *Identify2) createIdentifyState() (err error) {
+func (e *Identify2WithUID) createIdentifyState() (err error) {
 	e.state = libkb.NewIdentifyState(nil, e.them)
 
 	tcl, err := e.getTrackChainLink()
@@ -380,25 +348,25 @@ func (e *Identify2) createIdentifyState() (err error) {
 }
 
 // RequiredUIs returns the required UIs.
-func (e *Identify2) RequiredUIs() []libkb.UIKind {
+func (e *Identify2WithUID) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.IdentifyUIKind,
 	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *Identify2) SubConsumers() []libkb.UIConsumer {
+func (e *Identify2WithUID) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *Identify2) isSelfLoad() bool {
+func (e *Identify2WithUID) isSelfLoad() bool {
 	if e.testArgs != nil && e.testArgs.selfLoad {
 		return true
 	}
 	return e.me != nil && e.them != nil && e.me.Equal(e.them)
 }
 
-func (e *Identify2) loadMe(ctx *Context) (err error) {
+func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
 
 	// Short circuit loadMe for testing
 	if e.testArgs != nil && e.testArgs.noMe {
@@ -414,17 +382,17 @@ func (e *Identify2) loadMe(ctx *Context) (err error) {
 	return err
 }
 
-func (e *Identify2) loadThem(ctx *Context) (err error) {
+func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	arg := libkb.NewLoadUserArg(e.G())
 	arg.UID = e.arg.Uid
 	e.them, err = libkb.LoadUser(arg)
 	if e.them == nil {
-		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in identify2"}
+		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
 	}
 	return err
 }
 
-func (e *Identify2) loadUsers(ctx *Context) (err error) {
+func (e *Identify2WithUID) loadUsers(ctx *Context) (err error) {
 	if err = e.loadMe(ctx); err != nil {
 		return err
 	}
@@ -434,7 +402,7 @@ func (e *Identify2) loadUsers(ctx *Context) (err error) {
 	return nil
 }
 
-func (e *Identify2) checkFastCacheHit() bool {
+func (e *Identify2WithUID) checkFastCacheHit() bool {
 	if e.getCache() == nil {
 		return false
 	}
@@ -447,7 +415,7 @@ func (e *Identify2) checkFastCacheHit() bool {
 	return true
 }
 
-func (e *Identify2) checkSlowCacheHit() bool {
+func (e *Identify2WithUID) checkSlowCacheHit() bool {
 	if e.getCache() == nil {
 		return false
 	}
@@ -464,7 +432,7 @@ func (e *Identify2) checkSlowCacheHit() bool {
 	return true
 }
 
-func (e *Identify2) Result() *keybase1.Identify2Res {
+func (e *Identify2WithUID) Result() *keybase1.Identify2Res {
 	res := &keybase1.Identify2Res{}
 	if e.cachedRes != nil {
 		res.Upk = *e.cachedRes
@@ -474,11 +442,11 @@ func (e *Identify2) Result() *keybase1.Identify2Res {
 	return res
 }
 
-func (e *Identify2) toUserPlusKeys() keybase1.UserPlusKeys {
+func (e *Identify2WithUID) toUserPlusKeys() keybase1.UserPlusKeys {
 	return e.them.ExportToUserPlusKeys(keybase1.ToTime(e.getNow()))
 }
 
-func (e *Identify2) getCache() libkb.Identify2Cacher {
+func (e *Identify2WithUID) getCache() libkb.Identify2Cacher {
 	if e.testArgs != nil && e.testArgs.cache != nil {
 		return e.testArgs.cache
 	}

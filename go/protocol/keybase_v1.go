@@ -1470,7 +1470,7 @@ type IdentifyArg struct {
 	Source           IdentifySource `codec:"source" json:"source"`
 }
 
-type Identify2Arg struct {
+type Identify2WithUIDArg struct {
 	SessionID     int            `codec:"sessionID" json:"sessionID"`
 	Uid           UID            `codec:"uid" json:"uid"`
 	UserAssertion string         `codec:"userAssertion" json:"userAssertion"`
@@ -1480,7 +1480,7 @@ type Identify2Arg struct {
 
 type IdentifyInterface interface {
 	Identify(context.Context, IdentifyArg) (IdentifyRes, error)
-	Identify2(context.Context, Identify2Arg) (Identify2Res, error)
+	Identify2WithUID(context.Context, Identify2WithUIDArg) (Identify2Res, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
@@ -1503,18 +1503,18 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"identify2": {
+			"identify2WithUID": {
 				MakeArg: func() interface{} {
-					ret := make([]Identify2Arg, 1)
+					ret := make([]Identify2WithUIDArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]Identify2Arg)
+					typedArgs, ok := args.(*[]Identify2WithUIDArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]Identify2Arg)(nil), args)
+						err = rpc.NewTypeError((*[]Identify2WithUIDArg)(nil), args)
 						return
 					}
-					ret, err = i.Identify2(ctx, (*typedArgs)[0])
+					ret, err = i.Identify2WithUID(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1532,8 +1532,8 @@ func (c IdentifyClient) Identify(ctx context.Context, __arg IdentifyArg) (res Id
 	return
 }
 
-func (c IdentifyClient) Identify2(ctx context.Context, __arg Identify2Arg) (res Identify2Res, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify.identify2", []interface{}{__arg}, &res)
+func (c IdentifyClient) Identify2WithUID(ctx context.Context, __arg Identify2WithUIDArg) (res Identify2Res, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identify.identify2WithUID", []interface{}{__arg}, &res)
 	return
 }
 

@@ -46,7 +46,7 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 	}
 }
 
-func (h *IdentifyHandler) Identify2(_ context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
+func (h *IdentifyHandler) Identify2WithUID(_ context.Context, arg keybase1.Identify2WithUIDArg) (res keybase1.Identify2Res, err error) {
 	return res, nil
 }
 

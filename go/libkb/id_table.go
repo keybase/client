@@ -1118,8 +1118,7 @@ func (idt *IdentityTable) Len() int {
 }
 
 type CheckCompletedListener interface {
-	CheckCompleted(lcr *LinkCheckResult)
-	Done()
+	CCLCheckCompleted(lcr *LinkCheckResult)
 }
 
 func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) {
@@ -1138,9 +1137,6 @@ func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui I
 
 	// wait for all goroutines to complete before exiting
 	wg.Wait()
-	if ccl != nil {
-		ccl.Done()
-	}
 }
 
 //=========================================================================
@@ -1148,7 +1144,7 @@ func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui I
 func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) {
 	idt.proofRemoteCheck(is.HasPreviousTrack(), forceRemoteCheck, lcr)
 	if ccl != nil {
-		ccl.CheckCompleted(lcr)
+		ccl.CCLCheckCompleted(lcr)
 	}
 	lcr.link.DisplayCheck(ui, *lcr)
 }
