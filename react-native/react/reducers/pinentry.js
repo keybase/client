@@ -13,7 +13,7 @@ export type PinentryState = {
   features: GUIEntryFeatures,
   prompt: string,
   windowTitle: string,
-  cancelled: boolean,
+  canceled: boolean,
   submitted: boolean,
   submitLabel: ?string,
   cancelLabel: ?string,
@@ -32,11 +32,11 @@ export type RootPinentryState = {
 
 type EnabledFeatures = {[key: string]: Feature}
 
-const intialState: RootPinentryState = {
+const initialState: RootPinentryState = {
   started: 0
 }
 
-export default function (state: RootPinentryState = intialState, action: PinentryActions): RootPinentryState {
+export default function (state: RootPinentryState = initialState, action: PinentryActions): RootPinentryState {
   const sessionID: ?number = (action.payload && action.payload.sessionID != null) ? action.payload.sessionID : null
   switch (action.type) {
     case Constants.registerPinentryListener:
@@ -60,7 +60,7 @@ export default function (state: RootPinentryState = intialState, action: Pinentr
 
         const newPinentryState: PinentryState = {
           closed: false,
-          cancelled: false,
+          canceled: false,
           submitted: false,
           ...action.payload,
           features: enabledFeatures
@@ -89,7 +89,7 @@ export default function (state: RootPinentryState = intialState, action: Pinentr
 function updatePinentryState (state: PinentryState, action: PinentryActions): PinentryState {
   switch (action.type) {
     case Constants.onCancel:
-      return {...state, cancelled: true, closed: true}
+      return {...state, canceled: true, closed: true}
     case Constants.onSubmit:
       return {...state, submitted: true, closed: true}
     default:
