@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
@@ -87,9 +89,9 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 func (v *CmdInstall) Run() error {
 	var components []keybase1.ComponentStatus
 	if v.installer == "auto" {
-		components = AutoInstallWithStatus(v.G(), v.binPath, v.force)
+		components = install.AutoInstallWithStatus(v.G(), v.binPath, v.force)
 	} else if v.installer == "" {
-		components = Install(v.G(), v.binPath, v.components, v.force)
+		components = install.Install(v.G(), v.binPath, v.components, v.force)
 	} else {
 		return fmt.Errorf("Invalid install type: %s", v.installer)
 	}
@@ -157,7 +159,7 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdUninstall) Run() error {
-	components := Uninstall(v.G(), v.components)
+	components := install.Uninstall(v.G(), v.components)
 	if v.format == "json" {
 		out, err := json.MarshalIndent(components, "", "  ")
 		if err != nil {
@@ -170,4 +172,39 @@ func (v *CmdUninstall) Run() error {
 		}
 	}
 	return nil
+}
+
+func DiagnoseSocketError(ui libkb.UI, err error) {
+	t := ui.GetTerminalUI()
+	services, err := launchd.ListServices([]string{"keybase."})
+	if err != nil {
+		t.Printf("Error checking launchd services: %v\n\n", err)
+		return
+	}
+
+	if len(services) == 0 {
+		t.Printf("\nThere are no Keybase services installed. You may need to re-install.\n")
+	} else if len(services) > 1 {
+		t.Printf("\nWe found multiple services:\n")
+		for _, service := range services {
+			t.Printf("  " + service.StatusDescription() + "\n")
+		}
+		t.Printf("\n")
+	} else if len(services) == 1 {
+		service := services[0]
+		status, err := service.LoadStatus()
+		if err != nil {
+			t.Printf("Error checking service status(%s): %v\n\n", service.Label(), err)
+		} else {
+			if status == nil || !status.IsRunning() {
+				t.Printf("\nWe found a Keybase service (%s) but it's not running.\n", service.Label())
+				cmd := fmt.Sprintf("keybase launchd start %s", service.Label())
+				t.Printf("You might try starting it: " + cmd + "\n\n")
+			} else {
+				t.Printf("\nWe couldn't connect but there is a Keybase service (%s) running (%s).\n\n", status.Label(), status.Pid())
+				cmd := fmt.Sprintf("keybase launchd restart %s", service.Label())
+				t.Printf("You might try restarting it: " + cmd + "\n\n")
+			}
+		}
+	}
 }

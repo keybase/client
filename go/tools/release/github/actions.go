@@ -28,7 +28,7 @@ func CreateRelease(token string, repo string, tag string, name string) error {
 	reader := bytes.NewReader(payload)
 
 	uri := fmt.Sprintf("/repos/keybase/%s/releases", repo)
-	resp, err := DoAuthRequest("POST", APIURL+uri, "application/json", token, nil, reader)
+	resp, err := DoAuthRequest("POST", GithubAPIURL+uri, "application/json", token, nil, reader)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -75,7 +75,7 @@ func Upload(token string, repo string, tag string, name string, file string) err
 }
 
 func DownloadSource(token string, repo string, tag string) error {
-	url := APIURL + fmt.Sprintf("/repos/keybase/%s/tarball/%s", repo, tag)
+	url := GithubAPIURL + fmt.Sprintf("/repos/keybase/%s/tarball/%s", repo, tag)
 	name := fmt.Sprintf("%s-%s.tar.gz", repo, tag)
 	log.Printf("Url: %s", url)
 	return Download(token, url, name)
@@ -98,7 +98,7 @@ func DownloadAsset(token string, repo string, tag string, name string) error {
 		return fmt.Errorf("could not find asset named %s", name)
 	}
 
-	url := APIURL + fmt.Sprintf(AssetDownloadURI, "keybase", repo, assetID)
+	url := GithubAPIURL + fmt.Sprintf(AssetDownloadURI, "keybase", repo, assetID)
 	return Download(token, url, name)
 }
 

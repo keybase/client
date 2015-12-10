@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-kext"
@@ -63,7 +64,7 @@ func KeybaseFuseStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.Fu
 	st.Version = kextInfo.Version
 	st.KextStarted = kextInfo.Started
 
-	installStatus, installAction, status := installStatus(st.Version, st.BundleVersion, "")
+	installStatus, installAction, status := install.Status(st.Version, st.BundleVersion, "")
 	st.InstallStatus = installStatus
 	st.InstallAction = installAction
 	st.Status = status

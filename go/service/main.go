@@ -10,6 +10,7 @@ import (
 	"path"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -24,6 +25,7 @@ type Service struct {
 	ForkType keybase1.ForkType
 	startCh  chan struct{}
 	stopCh   chan keybase1.ExitCode
+	updater  *install.Updater
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -61,6 +63,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.RevokeProtocol(NewRevokeHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
+		keybase1.UpdateProtocol(NewUpdateHandler(xp, g)),
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g)),
@@ -142,6 +145,8 @@ func (d *Service) Run() (err error) {
 	if l, err = d.ConfigRPCServer(); err != nil {
 		return
 	}
+
+	d.updater = install.UpdaterStartTicker(d.G())
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
