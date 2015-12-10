@@ -93,7 +93,7 @@ class RemoteManager extends Component {
 
   pinentryRemoteComponents () {
     const windowOpts = {
-      width: 513, height: 230 + 20 /* TEMP workaround for header mouse clicks in osx */,
+      width: 513, height: 250 + 20 /* TEMP workaround for header mouse clicks in osx */,
       resizable: true,
       fullscreen: false,
       show: false,
