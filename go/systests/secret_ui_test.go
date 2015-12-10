@@ -68,9 +68,9 @@ func TestSecretUI(t *testing.T) {
 	}
 
 	// check that delegate ui was called:
-	if !sui.getKeybasePassphrase {
+	if !sui.getPassphrase {
 		t.Logf("secret ui: %+v", sui)
-		t.Error("delegate secret UI GetKeybasePassphrase was not called during login cmd")
+		t.Error("delegate secret UI GetPassphrase was not called during login cmd")
 	}
 
 	stopper := client.NewCmdCtlStopRunner(tc1.G)
@@ -120,6 +120,7 @@ func (s *secretUI) GetSecret(context.Context, keybase1.GetSecretArg) (res keybas
 
 func (s *secretUI) GetPassphrase(context.Context, keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	s.getPassphrase = true
+	res.Passphrase = "XXXXXXXXXXXX"
 	return res, nil
 }
 

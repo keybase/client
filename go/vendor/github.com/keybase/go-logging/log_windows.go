@@ -95,7 +95,6 @@ func (b *LogBackend) Log(level Level, calldepth int, rec *Record) error {
 	return b.Logger.Output(calldepth+2, rec.Formatted(calldepth+1))
 }
 
-
 // setConsoleTextAttribute sets the attributes of characters written to the
 // console screen buffer by the WriteFile or WriteConsole function.
 // See http://msdn.microsoft.com/en-us/library/windows/desktop/ms686047(v=vs.85).aspx.
@@ -103,4 +102,3 @@ func setConsoleTextAttribute(f file, attribute uint16) bool {
 	ok, _, _ := setConsoleTextAttributeProc.Call(f.Fd(), uintptr(attribute), 0)
 	return ok != 0
 }
-

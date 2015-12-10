@@ -756,13 +756,17 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 }
 
 func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
-	passphrase, err := ctx.SecretUI.GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg{})
+	passphrase, err := libkb.GetPaperKeyPassphrase(ctx.SecretUI, "")
 	if err != nil {
 		return nil, err
 	}
 	paperPhrase := libkb.NewPaperKeyPhrase(passphrase)
-	if paperPhrase.Version() != libkb.PaperKeyVersion {
-		e.G().Log.Debug("paper version mismatch:  generated paper key version = %d, libkb version = %d", paperPhrase.Version(), libkb.PaperKeyVersion)
+	version, err := paperPhrase.Version()
+	if err != nil {
+		return nil, err
+	}
+	if version != libkb.PaperKeyVersion {
+		e.G().Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
 		return nil, libkb.KeyVersionError{}
 	}
 

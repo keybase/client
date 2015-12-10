@@ -205,17 +205,17 @@ func (s *CmdSignup) prompt() (err error) {
 		s.G().Log.Debug("| Prompter failed\n")
 		return
 	}
-	arg := keybase1.GetNewPassphraseArg{
-		TerminalPrompt: "Pick a strong passphrase",
-		PinentryDesc:   "Pick a strong passphrase (12+ characters)",
-		PinentryPrompt: "Passphrase",
-		UseSecretStore: libkb.HasSecretStore(),
-	}
 
 	f := s.fields.passphraseRetry
 	if f.Disabled || libkb.IsYes(f.GetValue()) {
+		// note that since this is running in the client, it is not
+		// possible to use a delegated SecretUI.
+		//
+		// TODO: this should move to the daemon so that it can
+		// use a delegated secret ui when available.
+		//
 		var res keybase1.GetPassphraseRes
-		res, err = s.G().UI.GetSecretUI().GetNewPassphrase(arg)
+		res, err = libkb.GetSignupPassphrase(s.G().UI.GetSecretUI())
 		if err != nil {
 			return
 		}

@@ -327,7 +327,7 @@ func TestProvisionPaper(t *testing.T) {
 	defer tc2.Cleanup()
 
 	secUI := fu.NewSecretUI()
-	secUI.BackupPassphrase = loginUI.PaperPhrase
+	secUI.Passphrase = loginUI.PaperPhrase
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
 	ctx = &Context{

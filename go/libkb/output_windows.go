@@ -9,12 +9,15 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"sync"
 	"syscall"
 )
 
 var (
 	kernel32DLL                 = syscall.NewLazyDLL("kernel32.dll")
 	setConsoleTextAttributeProc = kernel32DLL.NewProc("SetConsoleTextAttribute")
+	stdOutMutex                 sync.Mutex
+	stdErrMutex                 sync.Mutex
 )
 
 type WORD uint16
@@ -75,23 +78,36 @@ var codesWin = map[byte]WORD{
 
 // Return our writer so we can override Write()
 func OutputWriter() io.Writer {
-	return &ColorWriter{os.Stdout, os.Stdout.Fd()}
+	return &ColorWriter{os.Stdout, os.Stdout.Fd(), &stdOutMutex}
 }
 
 // Return our writer so we can override Write()
 func ErrorWriter() io.Writer {
-	return &ColorWriter{os.Stderr, os.Stderr.Fd()}
+	return &ColorWriter{os.Stderr, os.Stderr.Fd(), &stdErrMutex}
 }
 
 type ColorWriter struct {
-	w  io.Writer
-	fd uintptr
+	w     io.Writer
+	fd    uintptr
+	mutex *sync.Mutex
 }
 
 // Rough emulation of Ansi terminal codes.
 // Parse the string, pick out the codes, and convert to
-// calls to SetConsoleTextAttribute
+// calls to SetConsoleTextAttribute.
+//
+// This function must mix calls to SetConsoleTextAttribute
+// with separate Write() calls, so to prevent pieces of colored
+// strings from being interleaved by unsynchronized goroutines,
+// we unfortunately must lock a mutex.
+//
+// Notice this is only necessary for what is now called
+// "legacy" terminal mode:
+// https://technet.microsoft.com/en-us/library/mt427362.aspx?f=255&MSPPError=-2147217396
 func (cw *ColorWriter) Write(p []byte) (n int, err error) {
+	cw.mutex.Lock()
+	defer cw.mutex.Unlock()
+
 	var totalWritten = len(p)
 	ctlStart := []byte{0x1b, '['}
 

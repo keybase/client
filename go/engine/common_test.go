@@ -245,8 +245,8 @@ func testEngineWithSecretStore(
 	}
 	runEngine(tc, fu, &testSecretUI)
 
-	if !testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly not called")
+	if !testSecretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly not called")
 	}
 
 	tc.ResetLoginState()
@@ -254,7 +254,7 @@ func testEngineWithSecretStore(
 	testSecretUI = libkb.TestSecretUI{}
 	runEngine(tc, fu, &testSecretUI)
 
-	if testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly called")
+	if testSecretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly called")
 	}
 }

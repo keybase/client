@@ -59,7 +59,7 @@ build() {
   echo "Checking version"
   version_build=`GO15VENDOREXPERIMENT=1 go run $go_dir/src/github.com/keybase/client/go/tools/release/release.go version`
   echo "Version build: $version_build"
-  if [ "$version" = "$version_build" ]; then
+  if [ ! "$version" = "$version_build" ]; then
     echo "Version mismatch: $version != $version_build"
     exit 2
   fi
@@ -74,7 +74,7 @@ create_release() {
   echo "Creating release"
   $release_bin create
   echo "Uploading release"
-  $release_bin --file="$tgz" upload
+  $release_bin --src="$tgz" upload
 }
 
 check_release

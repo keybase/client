@@ -56,4 +56,3 @@ func doFmtVerbLevelColor(layout string, level Level, output io.Writer) {
 		output.Write([]byte(colors[level]))
 	}
 }
-
