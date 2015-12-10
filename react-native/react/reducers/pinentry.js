@@ -2,7 +2,7 @@
 
 import * as Constants from '../constants/pinentry'
 
-import type {GUIEntryFeatures, GUIEntryArg} from '../constants/types/flow-types'
+import type {Feature, GUIEntryFeatures, GUIEntryArg} from '../constants/types/flow-types'
 import type {PinentryActions, NewPinentryAction, RegisterPinentryListenerAction} from  '../constants/pinentry'
 
 // TODO: have a root state that maps session id to pinentry popup
@@ -30,6 +30,8 @@ export type RootPinentryState = {
   started: 0
 }
 
+type EnabledFeatures = {[key: string]: Feature}
+
 const intialState: RootPinentryState = {
   started: 0
 }
@@ -49,9 +51,13 @@ export default function (state: RootPinentryState = intialState, action: Pinentr
       }
     case Constants.newPinentry:
       if (state.started === 1 && action.payload && sessionID != null) {
-        const enabledFeatures = Object.keys(action.payload.features).filter(f => action.payload.features[f].allow).reduce((m, f) => {
-          return {...m, f: action.payload.features[f]}
-        }, {})
+        const features = action.payload.features
+        // Long form function to add annotation to help flow
+        const reducer = function (m, f): EnabledFeatures {
+          return {...m, f: features[f]}
+        }
+        const enabledFeatures = Object.keys(features).filter(f => features[f].allow).reduce(reducer, ({}: EnabledFeatures))
+
         const newPinentryState: PinentryState = {
           closed: false,
           cancelled: false,

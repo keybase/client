@@ -5,16 +5,18 @@ import {connect} from '../base-redux'
 
 import {bindActionCreators} from 'redux'
 import {registerIdentifyUi, onCloseFromHeader} from '../actions/tracker'
-import {registerPinentryListener, onCancel as pinentyOnCancel} from '../actions/pinentry'
+import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../actions/pinentry'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 
+import type {GUIEntryFeatures} from '../constants/types/flow-types'
 import type {TrackerState} from '../reducers/tracker'
 import type {PinentryState} from '../reducers/pinentry'
 
 export type RemoteManagerProps = {
   registerPinentryListener: () => void,
-  pinentyOnCancel: () => void,
+  pinentryOnCancel: (sessionID: number) => void,
+  pinentryOnSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
   registerIdentifyUi: () => void,
   onCloseFromHeader: () => void,
   trackerServerStarted: boolean,
@@ -90,7 +92,6 @@ class RemoteManager extends Component {
   }
 
   pinentryRemoteComponents () {
-
     const windowOpts = {
       width: 513, height: 230 + 20 /* TEMP workaround for header mouse clicks in osx */,
       resizable: true,
@@ -101,15 +102,20 @@ class RemoteManager extends Component {
 
     const {pinentryStates} = this.props
 
-    return Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map(pSessionID => {
+    return Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map((pSessionID) => {
+      const sid = parseInt(pSessionID, 10)
+      const onCancel = () => this.props.pinentryOnCancel(sid)
+      const onSubmit = this.props.pinentryOnSubmit.bind(null, sid)
       return (
         <RemoteComponent
           windowsOpts={windowOpts}
           waitForState
-          onRemoteClose={() => this.props.pinentyOnCancel(pSessionID)}
+          onRemoteClose={onCancel}
           component='pinentry'
-          sessionID={parseInt(pSessionID)}
-          key={'pinentry:'+pSessionID} />
+          key={'pinentry:' + pSessionID}
+          onSubmit={onSubmit}
+          onCancel={onCancel}
+          sessionID={sid} />
       )
     })
   }
@@ -125,7 +131,8 @@ class RemoteManager extends Component {
 }
 
 RemoteManager.propTypes = {
-  pinentyOnCancel: React.PropTypes.any,
+  pinentryOnCancel: React.PropTypes.any,
+  pinentryOnSubmit: React.PropTypes.any,
   registerPinentryListener: React.PropTypes.any,
   registerIdentifyUi: React.PropTypes.any,
   onCloseFromHeader: React.PropTypes.any,
@@ -142,6 +149,6 @@ export default connect(
       pinentryStates: state.pinentry.pinentryStates || {}
     }
   },
-  dispatch => bindActionCreators({registerIdentifyUi, onCloseFromHeader, registerPinentryListener, pinentyOnCancel}, dispatch)
+  dispatch => bindActionCreators({registerIdentifyUi, onCloseFromHeader, registerPinentryListener, pinentryOnCancel, pinentryOnSubmit}, dispatch)
 )(RemoteManager)
 
