@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	APIURL = "https://api.github.com"
+	GithubAPIURL = "https://api.github.com"
 )
 
 // materializeFile takes a physical file or stream (named pipe, user input,
@@ -94,8 +94,8 @@ func DoAuthRequest(method, url, bodyType, token string, headers map[string]strin
 	return resp, nil
 }
 
-func Get(uri string, v interface{}) error {
-	resp, err := http.Get(APIURL + uri)
+func Get(url string, v interface{}) error {
+	resp, err := http.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

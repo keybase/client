@@ -376,92 +376,6 @@ export type Config = {
   forkType: ForkType;
 }
 
-export type config_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
-
-export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
-
-export type config_InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
-
-export type InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
-
-export type config_ServiceStatus = {
-  version: string;
-  label: string;
-  pid: string;
-  lastExitStatus: string;
-  bundleVersion: string;
-  installStatus: InstallStatus;
-  installAction: InstallAction;
-  status: Status;
-}
-
-export type ServiceStatus = {
-  version: string;
-  label: string;
-  pid: string;
-  lastExitStatus: string;
-  bundleVersion: string;
-  installStatus: InstallStatus;
-  installAction: InstallAction;
-  status: Status;
-}
-
-export type config_ServicesStatus = {
-  service: Array<ServiceStatus>;
-  kbfs: Array<ServiceStatus>;
-}
-
-export type ServicesStatus = {
-  service: Array<ServiceStatus>;
-  kbfs: Array<ServiceStatus>;
-}
-
-export type config_FuseMountInfo = {
-  path: string;
-  fstype: string;
-  output: string;
-}
-
-export type FuseMountInfo = {
-  path: string;
-  fstype: string;
-  output: string;
-}
-
-export type config_FuseStatus = {
-  version: string;
-  bundleVersion: string;
-  kextID: string;
-  path: string;
-  kextStarted: boolean;
-  installStatus: InstallStatus;
-  installAction: InstallAction;
-  mountInfos: Array<FuseMountInfo>;
-  status: Status;
-}
-
-export type FuseStatus = {
-  version: string;
-  bundleVersion: string;
-  kextID: string;
-  path: string;
-  kextStarted: boolean;
-  installStatus: InstallStatus;
-  installAction: InstallAction;
-  mountInfos: Array<FuseMountInfo>;
-  status: Status;
-}
-
-export type config_ComponentStatus = {
-  name: string;
-  status: Status;
-}
-
-export type ComponentStatus = {
-  name: string;
-  status: Status;
-}
-
 export type crypto_ED25519SignatureInfo = {
   sig: ED25519Signature;
   publicKey: ED25519PublicKey;
@@ -1370,6 +1284,165 @@ export type identifyUi_ConfirmResult = {
 export type ConfirmResult = {
   identityConfirmed: boolean;
   remoteConfirmed: boolean;
+}
+
+export type install_Time = {
+}
+
+export type install_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type install_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type install_UID = {
+}
+
+export type install_DeviceID = {
+}
+
+export type install_SigID = {
+}
+
+export type install_KID = {
+}
+
+export type install_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type install_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type install_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type install_User = {
+  uid: UID;
+  username: string;
+}
+
+export type install_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type install_Stream = {
+  fd: int;
+}
+
+export type install_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type install_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type install_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
+
+export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
+
+export type install_InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
+
+export type InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
+
+export type install_ServiceStatus = {
+  version: string;
+  label: string;
+  pid: string;
+  lastExitStatus: string;
+  bundleVersion: string;
+  installStatus: InstallStatus;
+  installAction: InstallAction;
+  status: Status;
+}
+
+export type ServiceStatus = {
+  version: string;
+  label: string;
+  pid: string;
+  lastExitStatus: string;
+  bundleVersion: string;
+  installStatus: InstallStatus;
+  installAction: InstallAction;
+  status: Status;
+}
+
+export type install_ServicesStatus = {
+  service: Array<ServiceStatus>;
+  kbfs: Array<ServiceStatus>;
+}
+
+export type ServicesStatus = {
+  service: Array<ServiceStatus>;
+  kbfs: Array<ServiceStatus>;
+}
+
+export type install_FuseMountInfo = {
+  path: string;
+  fstype: string;
+  output: string;
+}
+
+export type FuseMountInfo = {
+  path: string;
+  fstype: string;
+  output: string;
+}
+
+export type install_FuseStatus = {
+  version: string;
+  bundleVersion: string;
+  kextID: string;
+  path: string;
+  kextStarted: boolean;
+  installStatus: InstallStatus;
+  installAction: InstallAction;
+  mountInfos: Array<FuseMountInfo>;
+  status: Status;
+}
+
+export type FuseStatus = {
+  version: string;
+  bundleVersion: string;
+  kextID: string;
+  path: string;
+  kextStarted: boolean;
+  installStatus: InstallStatus;
+  installAction: InstallAction;
+  mountInfos: Array<FuseMountInfo>;
+  status: Status;
+}
+
+export type install_ComponentStatus = {
+  name: string;
+  status: Status;
+}
+
+export type ComponentStatus = {
+  name: string;
+  status: Status;
 }
 
 export type kbcmf_Time = {
@@ -3778,6 +3851,129 @@ export type ui_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 export type ui_PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
 
 export type PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
+
+export type update_Time = {
+}
+
+export type update_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type update_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type update_UID = {
+}
+
+export type update_DeviceID = {
+}
+
+export type update_SigID = {
+}
+
+export type update_KID = {
+}
+
+export type update_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type update_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type update_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type update_User = {
+  uid: UID;
+  username: string;
+}
+
+export type update_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type update_Stream = {
+  fd: int;
+}
+
+export type update_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type update_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type update_Asset = {
+  name: string;
+  url: string;
+}
+
+export type Asset = {
+  name: string;
+  url: string;
+}
+
+export type update_Update = {
+  version: string;
+  name: string;
+  description: string;
+  asset: Asset;
+}
+
+export type Update = {
+  version: string;
+  name: string;
+  description: string;
+  asset: Asset;
+}
+
+export type update_UpdateConfig = {
+  version: string;
+  osName: string;
+  destinationPath: string;
+  source: string;
+  URL: string;
+  channel: string;
+}
+
+export type UpdateConfig = {
+  version: string;
+  osName: string;
+  destinationPath: string;
+  source: string;
+  URL: string;
+  channel: string;
+}
+
+export type update_UpdateResult = {
+  update?: ?Update;
+}
+
+export type UpdateResult = {
+  update?: ?Update;
+}
 
 export type user_Time = {
 }

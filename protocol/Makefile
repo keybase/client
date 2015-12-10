@@ -26,6 +26,7 @@ build-stamp: \
 	json/gpg_ui.json \
 	json/identify.json \
 	json/identify_ui.json \
+	json/install.json \
 	json/kbcmf.json \
 	json/kbfs.json \
 	json/kex2provisioner.json \
@@ -54,6 +55,7 @@ build-stamp: \
 	json/test.json \
 	json/track.json \
 	json/ui.json \
+	json/update.json \
 	json/user.json
 	@mkdir -p json
 	date > $@

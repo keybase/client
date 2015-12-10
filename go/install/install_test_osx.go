@@ -3,7 +3,7 @@
 
 // +build darwin
 
-package client
+package install
 
 import (
 	"io/ioutil"
