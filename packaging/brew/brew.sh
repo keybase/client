@@ -23,6 +23,8 @@ cd $(brew --repository)
 git checkout master
 brew update
 git checkout -b $version_branch
+# this next step could be automated by copying the keybase.rb file from 
+# keybase/homebrew-beta repo:
 brew edit keybase
 brew audit keybase
 brew tests
