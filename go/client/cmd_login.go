@@ -79,10 +79,10 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		c.username = ctx.Args()[0]
 		if libkb.CheckEmail.F(c.username) {
-			return errors.New("Please login again via `keybase login existingUsername`")
+			return errors.New("Please login again via `keybase login [username]`")
 		}
 		if !libkb.CheckUsername.F(c.username) {
-			return errors.New("Invalid username format. Please login again via `keybase login existingUsername`")
+			return errors.New("Invalid username format. Please login again via `keybase login [username]`")
 		}
 	}
 	if ctx.Bool("emulate-gui") {
