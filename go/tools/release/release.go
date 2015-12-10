@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	gh "github.com/keybase/client/go/tools/release/github"
@@ -47,6 +48,20 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	case "latest-version":
+		release, err := gh.LatestRelease("keybase", *repo, githubToken())
+		if _, ok := err.(*gh.ErrNotFound); ok {
+			// No release
+		} else if err != nil {
+			log.Fatal(err)
+		} else {
+			if strings.HasPrefix(release.TagName, "v") {
+				version := release.TagName[1:]
+				fmt.Printf("%s", version)
+			}
+		}
+	case "os-name":
+		fmt.Printf("%s", runtime.GOOS)
 	case "url":
 		release, err := gh.ReleaseOfTag("keybase", *repo, tag(*version), githubToken())
 		if _, ok := err.(*gh.ErrNotFound); ok {
@@ -62,9 +77,11 @@ func main() {
 			log.Fatal(err)
 		}
 	case "upload":
-		defaultDest := fmt.Sprintf("keybase-%s-%s.tgz", *version, runtime.GOOS)
+		if *src == "" {
+			log.Fatal("Need to specify src")
+		}
 		if *dest == "" {
-			dest = &defaultDest
+			dest = src
 		}
 		log.Printf("Uploading %s as %s (%s)", *src, *dest, tag(*version))
 		err := gh.Upload(githubToken(), *repo, tag(*version), *dest, *src)

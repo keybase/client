@@ -11,21 +11,39 @@ tmp_dir="$dir/tmp"
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
-keybase_version=$1
-app_version=$keybase_version
-kbfs_version=$2
-comment=$3
-keybase_binpath=$4 # Optional
+#keybase_version=$1
+#kbfs_version=$2
+#comment=$3
+
+echo "Loading release tool"
+go install github.com/keybase/client/go/tools/release
+release_bin="$GOPATH/bin/release"
 
 if [ "$keybase_version" = "" ]; then
-  echo "No keybase version specified"
+  keybase_version=`$release_bin --repo=client latest-version`
+  echo "Using latest keybase version: $keybase_version"
+fi
+
+if [ "$kbfs_version" = "" ]; then
+  kbfs_version=`$release_bin --repo=kbfs-beta latest-version`
+  echo "Using latest kbfs-beta version: $kbfs_version"
+fi
+
+if [ "$keybase_version" = "" ]; then
+  echo "No keybase version available"
   exit 1
 fi
 
 if [ "$kbfs_version" = "" ]; then
-  echo "No kbfs version specified"
+  echo "No kbfs version available"
   exit 1
 fi
+
+# if [ "$comment" = "" ]; then
+#   comment=`git rev-parse --short HEAD`
+#   echo "Using comment: $comment"
+# fi
+# comment="+$comment"
 
 out_dir="$build_dir/Keybase-darwin-x64"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
@@ -39,6 +57,10 @@ keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
 installer_app="$tmp_dir/KeybaseInstaller.app"
 
+app_version=$keybase_version
+dmg_name="${app_name}App-${app_version}${comment}.dmg"
+zip_name="${app_name}App-${app_version}${comment}.zip"
+
 clean() {
   echo "Cleaning"
   rm -rf $build_dir
@@ -51,9 +73,9 @@ get_deps() {
   cd $tmp_dir
   echo "Downloading dependencies"
 
-  if [ ! "$keybase_binpath" = "" ]; then
-    echo "Using local keybase binpath: $keybase_binpath"
-    cp $keybase_binpath .
+  if [ ! "$KEYBASE_BINPATH" = "" ]; then
+    echo "Using local keybase binpath: $KEYBASE_BINPATH"
+    cp $KEYBASE_BINPATH .
   else
     curl -J -L -Ss $keybase_url | tar zx
   fi
@@ -80,6 +102,7 @@ build() {
   # Copy and modify package.json to point to main from one dir up
   cp desktop/package.json .
   $node_bin/json -I -f package.json -e 'this.main="desktop/app/main.js"'
+  $node_bin/json -I -f package.json -e "this.version=\"$keybase_version\""
 
   echo "Npm install (including dev dependencies)"
   # Including dev dependencies for debug, we should use --production when doing real releases
@@ -91,18 +114,22 @@ package_electron() {
   cd $build_dir
   rm -rf $out_dir
 
+  # Get electron version from current prebuilt plist version
+  electron_plist="node_modules/electron-prebuilt/dist/Electron.app/Contents/Info.plist"
+  electron_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $electron_plist`"
+
   echo "Running Electron packager"
   # Package the app
   $node_bin/electron-packager . $app_name \
     --asar=true \
     --platform=darwin \
     --arch=x64 \
-    --version=0.35.4 \
+    --version=$electron_version \
     --app-bundle-id=keybase.Electron \
     --helper-bundle-id=keybase.ElectronHelper \
     --icon=Keybase.icns \
     --app-version=$app_version \
-    --build-version=$app_version+$comment
+    --build-version=$app_version$comment
 }
 
 # Adds the keybase binaries and Installer.app bundle to Keybase.app
@@ -126,11 +153,6 @@ sign() {
 # Create dmg from Keybase.app
 package_dmg() {
   cd $out_dir
-  if [ ! "$comment" = "" ]; then
-    dmg_name="$app_name-$app_version-$comment.dmg"
-  else
-    dmg_name="$app_name-$app_version.dmg"
-  fi
   appdmg="appdmg.json"
 
   osx_installer="$client_dir/osx/Install"
@@ -142,6 +164,18 @@ package_dmg() {
   $node_bin/appdmg $appdmg $dmg_name
 }
 
+create_zip() {
+  cd $out_dir
+  echo "Creating $zip_name"
+  zip -r $zip_name $app_name.app
+}
+
+upload_all() {
+  cd $out_dir
+  $release_bin --src="$zip_name" upload
+  $release_bin --src="$dmg_name" upload
+}
+
 clean
 get_deps
 sync
@@ -150,4 +184,4 @@ package_electron
 package_app
 sign
 package_dmg
-open $out_dir
+create_zip

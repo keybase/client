@@ -5,6 +5,11 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
+auto="0"
+if [ "$0" == "auto" ]; then
+  auto="1"
+fi
+
 clientdir="$GOPATH/src/github.com/keybase/client"
 version_file="$clientdir/go/libkb/version.go"
 
@@ -38,11 +43,15 @@ revert() {
   git checkout "$version_file"
 }
 
-echo "\nDo you want commit and tag ($tag)?"
-select res in "Commit" "Revert" "Quit"; do
-    case $res in
-        Commit ) commit_tag; break;;
-        Revert ) revert; break;;
-        Quit ) exit;;
-    esac
-done
+if [ "$auto" = "1" ]; then
+  commit_tag
+else
+  echo "\nDo you want commit and tag ($tag)?"
+  select res in "Commit" "Revert" "Quit"; do
+      case $res in
+          Commit ) commit_tag; break;;
+          Revert ) revert; break;;
+          Quit ) exit;;
+      esac
+  done
+fi

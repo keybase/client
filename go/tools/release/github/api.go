@@ -104,7 +104,7 @@ func Get(url string, v interface{}) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("github did not response with 200 OK but with %v", resp.Status)
+		return fmt.Errorf("%s responded with %v", url, resp.Status)
 	}
 
 	var r io.Reader = resp.Body

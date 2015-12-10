@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	ReleaseListPath   = "/repos/%s/%s/releases%s"
-	ReleaseLatestPath = "/repos/%s/%s/releases/latest%s"
+	ReleaseListPath   = "/repos/%s/%s/releases"
+	ReleaseLatestPath = "/repos/%s/%s/releases/latest"
 )
 
 type Release struct {
@@ -64,7 +64,7 @@ func Releases(user, repo, token string) (releases []Release, err error) {
 	if err != nil {
 		return nil, err
 	}
-	u.Path = fmt.Sprintf(ReleaseListPath, user, repo, token)
+	u.Path = fmt.Sprintf(ReleaseListPath, user, repo)
 	err = Get(u.String(), &releases)
 	if err != nil {
 		return
@@ -77,7 +77,7 @@ func LatestRelease(user, repo, token string) (release *Release, err error) {
 	if err != nil {
 		return
 	}
-	u.Path = fmt.Sprintf(ReleaseLatestPath, user, repo, token)
+	u.Path = fmt.Sprintf(ReleaseLatestPath, user, repo)
 	err = Get(u.String(), &release)
 	return
 }

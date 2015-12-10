@@ -71,10 +71,11 @@ build() {
 
 create_release() {
   cd "$build_dir"
+  osname=`$release_bin os-name`
   echo "Creating release"
   $release_bin create
   echo "Uploading release"
-  $release_bin --src="$tgz" upload
+  $release_bin --src="$tgz" --dest="keybase-$version-$osname.tgz" upload
 }
 
 check_release
