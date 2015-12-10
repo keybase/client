@@ -430,64 +430,6 @@ type Config struct {
 	ForkType     ForkType `codec:"forkType" json:"forkType"`
 }
 
-type InstallStatus int
-
-const (
-	InstallStatus_UNKNOWN       InstallStatus = 0
-	InstallStatus_ERROR         InstallStatus = 1
-	InstallStatus_NOT_INSTALLED InstallStatus = 2
-	InstallStatus_INSTALLED     InstallStatus = 4
-)
-
-type InstallAction int
-
-const (
-	InstallAction_UNKNOWN   InstallAction = 0
-	InstallAction_NONE      InstallAction = 1
-	InstallAction_UPGRADE   InstallAction = 2
-	InstallAction_REINSTALL InstallAction = 3
-	InstallAction_INSTALL   InstallAction = 4
-)
-
-type ServiceStatus struct {
-	Version        string        `codec:"version" json:"version"`
-	Label          string        `codec:"label" json:"label"`
-	Pid            string        `codec:"pid" json:"pid"`
-	LastExitStatus string        `codec:"lastExitStatus" json:"lastExitStatus"`
-	BundleVersion  string        `codec:"bundleVersion" json:"bundleVersion"`
-	InstallStatus  InstallStatus `codec:"installStatus" json:"installStatus"`
-	InstallAction  InstallAction `codec:"installAction" json:"installAction"`
-	Status         Status        `codec:"status" json:"status"`
-}
-
-type ServicesStatus struct {
-	Service []ServiceStatus `codec:"service" json:"service"`
-	Kbfs    []ServiceStatus `codec:"kbfs" json:"kbfs"`
-}
-
-type FuseMountInfo struct {
-	Path   string `codec:"path" json:"path"`
-	Fstype string `codec:"fstype" json:"fstype"`
-	Output string `codec:"output" json:"output"`
-}
-
-type FuseStatus struct {
-	Version       string          `codec:"version" json:"version"`
-	BundleVersion string          `codec:"bundleVersion" json:"bundleVersion"`
-	KextID        string          `codec:"kextID" json:"kextID"`
-	Path          string          `codec:"path" json:"path"`
-	KextStarted   bool            `codec:"kextStarted" json:"kextStarted"`
-	InstallStatus InstallStatus   `codec:"installStatus" json:"installStatus"`
-	InstallAction InstallAction   `codec:"installAction" json:"installAction"`
-	MountInfos    []FuseMountInfo `codec:"mountInfos" json:"mountInfos"`
-	Status        Status          `codec:"status" json:"status"`
-}
-
-type ComponentStatus struct {
-	Name   string `codec:"name" json:"name"`
-	Status Status `codec:"status" json:"status"`
-}
-
 type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1980,6 +1922,78 @@ func (c IdentifyUiClient) Finish(ctx context.Context, sessionID int) (err error)
 	__arg := FinishArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finish", []interface{}{__arg}, nil)
 	return
+}
+
+type InstallStatus int
+
+const (
+	InstallStatus_UNKNOWN       InstallStatus = 0
+	InstallStatus_ERROR         InstallStatus = 1
+	InstallStatus_NOT_INSTALLED InstallStatus = 2
+	InstallStatus_INSTALLED     InstallStatus = 4
+)
+
+type InstallAction int
+
+const (
+	InstallAction_UNKNOWN   InstallAction = 0
+	InstallAction_NONE      InstallAction = 1
+	InstallAction_UPGRADE   InstallAction = 2
+	InstallAction_REINSTALL InstallAction = 3
+	InstallAction_INSTALL   InstallAction = 4
+)
+
+type ServiceStatus struct {
+	Version        string        `codec:"version" json:"version"`
+	Label          string        `codec:"label" json:"label"`
+	Pid            string        `codec:"pid" json:"pid"`
+	LastExitStatus string        `codec:"lastExitStatus" json:"lastExitStatus"`
+	BundleVersion  string        `codec:"bundleVersion" json:"bundleVersion"`
+	InstallStatus  InstallStatus `codec:"installStatus" json:"installStatus"`
+	InstallAction  InstallAction `codec:"installAction" json:"installAction"`
+	Status         Status        `codec:"status" json:"status"`
+}
+
+type ServicesStatus struct {
+	Service []ServiceStatus `codec:"service" json:"service"`
+	Kbfs    []ServiceStatus `codec:"kbfs" json:"kbfs"`
+}
+
+type FuseMountInfo struct {
+	Path   string `codec:"path" json:"path"`
+	Fstype string `codec:"fstype" json:"fstype"`
+	Output string `codec:"output" json:"output"`
+}
+
+type FuseStatus struct {
+	Version       string          `codec:"version" json:"version"`
+	BundleVersion string          `codec:"bundleVersion" json:"bundleVersion"`
+	KextID        string          `codec:"kextID" json:"kextID"`
+	Path          string          `codec:"path" json:"path"`
+	KextStarted   bool            `codec:"kextStarted" json:"kextStarted"`
+	InstallStatus InstallStatus   `codec:"installStatus" json:"installStatus"`
+	InstallAction InstallAction   `codec:"installAction" json:"installAction"`
+	MountInfos    []FuseMountInfo `codec:"mountInfos" json:"mountInfos"`
+	Status        Status          `codec:"status" json:"status"`
+}
+
+type ComponentStatus struct {
+	Name   string `codec:"name" json:"name"`
+	Status Status `codec:"status" json:"status"`
+}
+
+type InstallInterface interface {
+}
+
+func InstallProtocol(i InstallInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name:    "keybase.1.install",
+		Methods: map[string]rpc.ServeHandlerDescription{},
+	}
+}
+
+type InstallClient struct {
+	Cli GenericClient
 }
 
 type KBCMFEncryptOptions struct {
@@ -5175,6 +5189,100 @@ type UiClient struct {
 
 func (c UiClient) PromptYesNo(ctx context.Context, __arg PromptYesNoArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ui.promptYesNo", []interface{}{__arg}, &res)
+	return
+}
+
+type Asset struct {
+	Name string `codec:"name" json:"name"`
+	Url  string `codec:"url" json:"url"`
+}
+
+type Update struct {
+	Version     string `codec:"version" json:"version"`
+	Name        string `codec:"name" json:"name"`
+	Description string `codec:"description" json:"description"`
+	Asset       Asset  `codec:"asset" json:"asset"`
+}
+
+type UpdateConfig struct {
+	Version         string `codec:"version" json:"version"`
+	OsName          string `codec:"osName" json:"osName"`
+	DestinationPath string `codec:"destinationPath" json:"destinationPath"`
+	Source          string `codec:"source" json:"source"`
+	URL             string `codec:"URL" json:"URL"`
+	Channel         string `codec:"channel" json:"channel"`
+}
+
+type UpdateResult struct {
+	Update *Update `codec:"update,omitempty" json:"update,omitempty"`
+}
+
+type UpdateArg struct {
+	Config    UpdateConfig `codec:"config" json:"config"`
+	CheckOnly bool         `codec:"checkOnly" json:"checkOnly"`
+}
+
+type UpdateNotificationArg struct {
+	Update Update `codec:"update" json:"update"`
+}
+
+type UpdateInterface interface {
+	Update(context.Context, UpdateArg) (UpdateResult, error)
+	UpdateNotification(context.Context, Update) error
+}
+
+func UpdateProtocol(i UpdateInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.update",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"update": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdateArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdateArg)(nil), args)
+						return
+					}
+					ret, err = i.Update(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"updateNotification": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdateNotificationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpdateNotificationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdateNotificationArg)(nil), args)
+						return
+					}
+					err = i.UpdateNotification(ctx, (*typedArgs)[0].Update)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type UpdateClient struct {
+	Cli GenericClient
+}
+
+func (c UpdateClient) Update(ctx context.Context, __arg UpdateArg) (res UpdateResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.update.update", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UpdateClient) UpdateNotification(ctx context.Context, update Update) (err error) {
+	__arg := UpdateNotificationArg{Update: update}
+	err = c.Cli.Call(ctx, "keybase.1.update.updateNotification", []interface{}{__arg}, nil)
 	return
 }
 

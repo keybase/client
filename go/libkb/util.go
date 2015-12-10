@@ -193,7 +193,7 @@ type SafeWriter interface {
 func SafeWriteToFile(t SafeWriter, mode os.FileMode) error {
 	fn := t.GetFilename()
 	G.Log.Debug(fmt.Sprintf("+ Writing to %s", fn))
-	tmpfn, tmp, err := TempFile(fn, mode)
+	tmpfn, tmp, err := OpenTempFile(fn, "", mode)
 	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil {
 		return err

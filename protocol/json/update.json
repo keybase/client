@@ -1,5 +1,5 @@
 {
-  "protocol" : "config",
+  "protocol" : "update",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -164,97 +164,77 @@
     "symbols" : [ "CLI_0", "GUI_1" ]
   }, {
     "type" : "record",
-    "name" : "GetCurrentStatusRes",
+    "name" : "Asset",
+    "doc" : "Asset describes a downloadable file.",
     "fields" : [ {
-      "name" : "configured",
-      "type" : "boolean"
+      "name" : "name",
+      "type" : "string"
     }, {
-      "name" : "registered",
-      "type" : "boolean"
-    }, {
-      "name" : "loggedIn",
-      "type" : "boolean"
-    }, {
-      "name" : "user",
-      "type" : [ "null", "User" ]
+      "name" : "url",
+      "type" : "string"
     } ]
   }, {
-    "type" : "enum",
-    "name" : "ForkType",
-    "symbols" : [ "NONE_0", "AUTO_1", "WATCHDOG_2", "LAUNCHD_3" ]
-  }, {
     "type" : "record",
-    "name" : "Config",
+    "name" : "Update",
     "fields" : [ {
-      "name" : "serverURI",
-      "type" : "string"
-    }, {
-      "name" : "socketFile",
-      "type" : "string"
-    }, {
-      "name" : "label",
-      "type" : "string"
-    }, {
-      "name" : "runMode",
-      "type" : "string"
-    }, {
-      "name" : "gpgExists",
-      "type" : "boolean"
-    }, {
-      "name" : "gpgPath",
-      "type" : "string"
-    }, {
       "name" : "version",
       "type" : "string"
     }, {
-      "name" : "path",
+      "name" : "name",
       "type" : "string"
     }, {
-      "name" : "configPath",
+      "name" : "description",
       "type" : "string"
     }, {
-      "name" : "versionShort",
+      "name" : "asset",
+      "type" : "Asset"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UpdateConfig",
+    "doc" : "Configuration for checking and applying updates.",
+    "fields" : [ {
+      "name" : "version",
       "type" : "string"
     }, {
-      "name" : "versionFull",
+      "name" : "osName",
       "type" : "string"
     }, {
-      "name" : "isAutoForked",
-      "type" : "boolean"
+      "name" : "destinationPath",
+      "type" : "string"
     }, {
-      "name" : "forkType",
-      "type" : "ForkType"
+      "name" : "source",
+      "type" : "string"
+    }, {
+      "name" : "URL",
+      "type" : "string"
+    }, {
+      "name" : "channel",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UpdateResult",
+    "fields" : [ {
+      "name" : "update",
+      "type" : [ "null", "Update" ]
     } ]
   } ],
   "messages" : {
-    "getCurrentStatus" : {
+    "update" : {
       "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
+        "name" : "config",
+        "type" : "UpdateConfig"
+      }, {
+        "name" : "checkOnly",
+        "type" : "boolean"
       } ],
-      "response" : "GetCurrentStatusRes"
+      "response" : "UpdateResult"
     },
-    "getConfig" : {
+    "updateNotification" : {
       "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "Config"
-    },
-    "setUserConfig" : {
-      "doc" : "Change user config.\n    For example, to update primary picture source:\n      key=picture.source, value=twitter (or github)",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "username",
-        "type" : "string"
-      }, {
-        "name" : "key",
-        "type" : "string"
-      }, {
-        "name" : "value",
-        "type" : "string"
+        "name" : "update",
+        "type" : "Update"
       } ],
       "response" : "null"
     }
