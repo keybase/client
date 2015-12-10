@@ -40,9 +40,6 @@ mb.on('after-create-window', () => {
 })
 
 mb.on('ready', () => {
-  require('../../react-native/react/native/pinentry').init()
-
-
   // prevent the menubar's window from dying when we quit
   mb.window.on('close', event => {
     mb.hideWindow()
