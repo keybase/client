@@ -26,11 +26,6 @@ if [ "$kbfs_version" = "" ]; then
   exit 1
 fi
 
-if [ "$comment" = "" ]; then
-  echo "No comment specified"
-  exit 1
-fi
-
 out_dir="$build_dir/Keybase-darwin-x64"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
@@ -94,7 +89,7 @@ package_electron() {
     --asar=true \
     --platform=darwin \
     --arch=x64 \
-    --version=0.35.2 \
+    --version=0.35.4 \
     --app-bundle-id=keybase.Electron \
     --helper-bundle-id=keybase.ElectronHelper \
     --icon=Keybase.icns \
@@ -121,7 +116,11 @@ sign() {
 # Create dmg from Keybase.app
 package_dmg() {
   cd $out_dir
-  dmg_name="$app_name-$app_version-$comment.dmg"
+  if [ ! "$comment" = "" ]; then
+    dmg_name="$app_name-$app_version-$comment.dmg"
+  else
+    dmg_name="$app_name-$app_version.dmg"
+  fi
   appdmg="appdmg.json"
 
   osx_installer="$client_dir/osx/Install"
