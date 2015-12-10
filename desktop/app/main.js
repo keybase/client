@@ -75,7 +75,9 @@ installer(err => {
   splash()
 })
 
-app.dock.hide()
+if (app.dock) {
+  app.dock.hide()
+}
 
 // Don't quit the app, instead try to close all windows
 app.on('before-quit', event => {
