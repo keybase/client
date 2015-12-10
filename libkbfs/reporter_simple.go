@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 
 	"golang.org/x/net/context"
@@ -42,10 +43,13 @@ func (r *ReporterSimple) Report(level ReportingLevel, message fmt.Stringer) {
 	defer r.lock.Unlock()
 
 	if level >= RptE {
+		stack := make([]uintptr, 20)
+		n := runtime.Callers(2, stack)
 		re := ReportedError{
 			Level: level,
 			Time:  r.clock.Now(),
 			Error: message,
+			Stack: stack[:n],
 		}
 		r.currErrorIndex++
 		if r.maxErrors < 1 {

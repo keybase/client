@@ -1002,7 +1002,7 @@ type ReportedError struct {
 	Level ReportingLevel
 	Time  time.Time
 	Error fmt.Stringer
-	// TODO: stacktrace would be nice
+	Stack []uintptr
 }
 
 // MergeStatus represents the merge status of a TLF.

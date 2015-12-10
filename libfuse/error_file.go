@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"bazil.org/fuse"
+	"github.com/go-errors/errors"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -13,6 +14,17 @@ type jsonReportedError struct {
 	Level libkbfs.ReportingLevel
 	Time  time.Time
 	Error string
+	Stack []errors.StackFrame
+}
+
+func convertStack(stack []uintptr) []errors.StackFrame {
+	frames := make([]errors.StackFrame, len(stack))
+	for i, pc := range stack {
+		// TODO: Handle panics correctly, as described in the
+		// docs for runtime.Callers().
+		frames[i] = errors.NewStackFrame(pc)
+	}
+	return frames
 }
 
 func getEncodedErrors(fs *FS) (data []byte, t time.Time, err error) {
@@ -22,6 +34,7 @@ func getEncodedErrors(fs *FS) (data []byte, t time.Time, err error) {
 		jsonErrors[i].Level = e.Level
 		jsonErrors[i].Time = e.Time
 		jsonErrors[i].Error = e.Error.String()
+		jsonErrors[i].Stack = convertStack(e.Stack)
 	}
 	data, err = json.MarshalIndent(jsonErrors, "", "  ")
 	if err != nil {
