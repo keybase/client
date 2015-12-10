@@ -20,7 +20,7 @@ import path from 'path'
 
 showHelp.addEventListener('click', () => { ipcRenderer.send('showHelp') })
 showMain.addEventListener('click', () => { ipcRenderer.send('showMain') })
-quit.addEventListener('click', () => { app.quit() })
+quit.addEventListener('click', () => { app.emit('destroy') })
 
 function fixAnchors() {
 var tags = document.getElementsByTagName('a');

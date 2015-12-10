@@ -17,7 +17,7 @@ let config = {
   reduxDevToolsSelect: state => state // only watch a subset of the store
 }
 
-if (isDev && false) {
+if (isDev && true) {
   config.overrideRouterState = createRouterState([], [])
   config.overrideActiveTab = Tabs.devicesTab
   config.skipLoginRouteToRoot = true

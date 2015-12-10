@@ -50,7 +50,6 @@ module.exports = {
   },
   entry: {
     index: './renderer/index.desktop.js',
-    pinentry: '../react-native/react/native/pinentry.wrapper.desktop.js',
     main: './app/main.js',
     launcher: './renderer/launcher.js',
     'remote-component-loader': '../react-native/react/native/remote-component-loader.js'

@@ -1,5 +1,5 @@
 import menubar from 'menubar'
-import {ipcMain as ipc, shell} from 'electron'
+import {BrowserWindow, ipcMain as ipc, shell} from 'electron'
 import Window from './window'
 import splash from './splash'
 import installer from './installer'
