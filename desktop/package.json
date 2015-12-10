@@ -48,7 +48,7 @@
     "babel-plugin-react-transform": "^1.1.1",
     "browser-sync": "^2.10.0",
     "electron-compile": "^1.0.1",
-    "electron-prebuilt": "^0.35.4",
+    "electron-prebuilt": "https://github.com/mafintosh/electron-prebuilt",
     "electron-rebuild": "^1.0.0",
     "eslint": "^1.10.3",
     "eslint-config-standard": "^4.4.0",
