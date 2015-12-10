@@ -12,9 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"path/filepath"
 	"runtime"
-	"syscall"
 	"time"
 
 	"github.com/keybase/client/go/install/sources"
@@ -199,46 +197,7 @@ func (u *Updater) checkUpdate(sourcePath string, destinationPath string) error {
 		return fmt.Errorf("Destination is a directory")
 	}
 
-	//
-	// Get the uid, gid of the destination and make sure our src matches.
-	//
-	// Updating the modification time of the application is important because the
-	// system will be aware a new version of your app is available.
-	// Finder will report the correct file size and other metadata for it, URL
-	// schemes your app may register will be updated, etc.
-	//
-	// This might fail if the app is owned by root/admin, in which case we should
-	// get the priviledged helper tool involved.
-	//
-
-	// Get uid, gid of destination
-	uid := destFileInfo.Sys().(*syscall.Stat_t).Uid
-	gid := destFileInfo.Sys().(*syscall.Stat_t).Gid
-	u.G().Log.Info("Destination: %s, Uid: %d, Gid: %d", destinationPath, uid, gid)
-
-	walk := func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		err = os.Chown(path, int(uid), int(gid))
-		if err != nil {
-			return err
-		}
-		t := time.Now()
-		err = os.Chtimes(path, t, t)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	u.G().Log.Info("Touching, chowning files in %s", sourcePath)
-	err = filepath.Walk(sourcePath, walk)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return u.checkPlatformSpecificUpdate(sourcePath, destinationPath)
 }
 
 func (u *Updater) apply(src string, dest string) error {
