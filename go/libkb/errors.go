@@ -569,6 +569,14 @@ func (e BadUsernameError) Error() string {
 
 //=============================================================================
 
+type BadNameError string
+
+func (e BadNameError) Error() string {
+	return fmt.Sprintf("Bad username or email: %s", string(e))
+}
+
+//=============================================================================
+
 type NoUsernameError struct{}
 
 func (e NoUsernameError) Error() string {

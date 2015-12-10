@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 
@@ -258,6 +259,35 @@ func TestProvisionPassphraseNoKeys(t *testing.T) {
 
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// Test bad name input (not valid username or email address).
+func TestProvisionPassphraseBadName(t *testing.T) {
+	tcWeb := SetupEngineTest(t, "web")
+	defer tcWeb.Cleanup()
+
+	_, passphrase := createFakeUserWithNoKeys(tcWeb)
+
+	Logout(tcWeb)
+
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: strings.Repeat("X", 20)},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("Provision via passphrase should have failed with bad name.")
+	}
+	if _, ok := err.(libkb.BadNameError); !ok {
+		t.Fatalf("Provision via passphrase err type: %T, expected libkb.BadNameError", err)
 	}
 }
 

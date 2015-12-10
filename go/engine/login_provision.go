@@ -309,19 +309,19 @@ func (e *LoginProvision) paper(ctx *Context) error {
 // synced pgp key.  Any other situations require different
 // provisioning methods.
 func (e *LoginProvision) passphrase(ctx *Context) error {
-	// prompt for the username (if not provided):
-	if err := e.promptUsername(ctx); err != nil {
+	// prompt for the email or username
+	emailOrUsername, err := e.promptEmailOrUsername(ctx)
+	if err != nil {
 		return err
 	}
 
 	// check if they provided a username or email address.
-	// If email address, checkUsername will get a login session
+	// If email address, checkEmailOrUsername will get a login session
 	// in order to get the username.
-	if err := e.checkUsername(ctx); err != nil {
+	if err := e.checkEmailOrUsername(ctx, emailOrUsername); err != nil {
 		return err
 	}
 
-	var err error
 	e.user, err = e.loadUser(ctx)
 	if err != nil {
 		return err
@@ -470,7 +470,7 @@ func (e *LoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error)
 		}
 		return cached.PassphraseStream(), nil
 	}
-	return e.G().LoginState().GetPassphraseStreamForUser(ctx.SecretUI, e.arg.Username)
+	return e.G().LoginState().GetPassphraseStreamForUser(ctx.SecretUI, e.username)
 }
 
 // deviceName gets a new device name from the user.
@@ -497,50 +497,46 @@ func (e *LoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 	return nil
 }
 
-// promptUsername will ask the user for the username (if
-// necessary).
-func (e *LoginProvision) promptUsername(ctx *Context) error {
+// promptEmailOrUsername will ask the user for an email address or
+// username (if necessary).
+func (e *LoginProvision) promptEmailOrUsername(ctx *Context) (string, error) {
 	if len(e.arg.Username) != 0 {
-		return nil
+		return e.arg.Username, nil
 	}
-	username, err := ctx.LoginUI.GetEmailOrUsername(context.TODO(), 0)
-	if err != nil {
-		return err
-	}
-	e.arg.Username = username
-	return nil
+	return ctx.LoginUI.GetEmailOrUsername(context.TODO(), 0)
 }
 
-// If e.arg.Username looks like an email address, it will get a
+// If emailOrUsername looks like an email address, it will get a
 // login session in order to map the email address to a keybase user.
-func (e *LoginProvision) checkUsername(ctx *Context) error {
-	if len(e.arg.Username) == 0 {
+func (e *LoginProvision) checkEmailOrUsername(ctx *Context, emailOrUsername string) error {
+	if len(emailOrUsername) == 0 {
 		return libkb.NoUsernameError{}
 	}
-	if libkb.CheckUsername.F(e.arg.Username) {
+	if libkb.CheckUsername.F(emailOrUsername) {
+		e.username = emailOrUsername
 		return nil
 	}
-	if !libkb.CheckEmail.F(e.arg.Username) {
-		return libkb.BadUsernameError{N: e.arg.Username}
+	if !libkb.CheckEmail.F(emailOrUsername) {
+		return libkb.BadNameError(emailOrUsername)
 	}
 
-	// e.arg.Username looks like an email address
-	e.G().Log.Debug("username %q looks like an email address, must get login session to get user", e.arg.Username)
+	// emailOrUsername looks like an email address
+	e.G().Log.Debug("%q looks like an email address, must get login session to get user", emailOrUsername)
 	// need to login with it in order to get the username
 	var afterLogin = func(lctx libkb.LoginContext) error {
-		e.arg.Username = lctx.LocalSession().GetUsername().String()
+		e.username = lctx.LocalSession().GetUsername().String()
 		return nil
 	}
-	return e.G().LoginState().VerifyEmailAddress(e.arg.Username, ctx.SecretUI, afterLogin)
+	return e.G().LoginState().VerifyEmailAddress(emailOrUsername, ctx.SecretUI, afterLogin)
 }
 
-// loadUser will load the user by name specified in e.arg.Username.
+// loadUser will load the user by name specified in e.username.
 func (e *LoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
-	if len(e.arg.Username) == 0 {
+	if len(e.username) == 0 {
 		return nil, libkb.NoUsernameError{}
 	}
-	e.G().Log.Debug("LoginProvision: loading user %s", e.arg.Username)
-	arg := libkb.NewLoadUserByNameArg(e.G(), e.arg.Username)
+	e.G().Log.Debug("LoginProvision: loading user %s", e.username)
+	arg := libkb.NewLoadUserByNameArg(e.G(), e.username)
 	arg.PublicKeyOptional = true
 	return libkb.LoadUser(arg)
 }
@@ -791,7 +787,7 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 	e.G().Log.Debug("found user (%s, %s) for key %s", username, uid, fp)
 
 	// if so, will have username from that
-	e.arg.Username = username
+	e.username = username
 	e.user, err = e.loadUser(ctx)
 	if err != nil {
 		return err
