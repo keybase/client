@@ -784,7 +784,7 @@ func (u *testProvisionUI) ChooseProvisioningMethod(_ context.Context, _ keybase1
 	return u.method, nil
 }
 
-func (u *testProvisionUI) ChooseDeviceType(_ context.Context, _ int) (keybase1.DeviceType, error) {
+func (u *testProvisionUI) ChooseDeviceType(_ context.Context, _ keybase1.ChooseDeviceTypeArg) (keybase1.DeviceType, error) {
 	u.printf("ChooseDeviceType")
 	u.calledChooseDeviceType++
 	return keybase1.DeviceType_DESKTOP, nil

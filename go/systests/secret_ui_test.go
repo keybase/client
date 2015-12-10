@@ -161,7 +161,7 @@ type provisionUI struct {
 func (u *provisionUI) ChooseProvisioningMethod(context.Context, keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
 	return keybase1.ProvisionMethod_PASSPHRASE, nil
 }
-func (u *provisionUI) ChooseDeviceType(context.Context, int) (r keybase1.DeviceType, e error) {
+func (u *provisionUI) ChooseDeviceType(context.Context, keybase1.ChooseDeviceTypeArg) (r keybase1.DeviceType, e error) {
 	return
 }
 func (u *provisionUI) DisplayAndPromptSecret(context.Context, keybase1.DisplayAndPromptSecretArg) (r keybase1.SecretResponse, e error) {
