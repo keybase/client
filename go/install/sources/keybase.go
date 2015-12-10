@@ -40,10 +40,7 @@ func (k KeybaseUpdateSource) FindUpdate(config keybase1.UpdateConfig) (update *k
 	if err != nil {
 		return
 	}
-	if res.Status.Code != libkb.SCOk {
-		err = libkb.AppStatusError{Code: res.Status.Code, Name: res.Status.Name, Desc: res.Status.Desc}
-		return
-	}
+
 	update = &res.Update
 
 	return
