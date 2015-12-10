@@ -79,8 +79,6 @@ func (c *CryptoHandler) getSecretUI() libkb.SecretUI {
 	return errorSecretUI{}
 }
 
-// TODO: Remove sessionID from args.
-
 func (c *CryptoHandler) SignED25519(_ context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
 	return engine.SignED25519(c.G(), c.getSecretUI(), arg)
 }
