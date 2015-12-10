@@ -40,47 +40,51 @@ func (c *CryptoHandler) getDelegatedSecretUI() libkb.SecretUI {
 }
 
 // A libkb.SecretUI implementation that always returns a LoginRequiredError.
-type errorSecretUI struct{}
+type errorSecretUI struct {
+	reason string
+}
 
 var _ libkb.SecretUI = errorSecretUI{}
 
-func (errorSecretUI) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	return nil, libkb.LoginRequiredError{}
+func (e errorSecretUI) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
+	return nil, libkb.LoginRequiredError{e.reason}
 }
 
-func (errorSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{}
+func (e errorSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{e.reason}
 }
 
-func (errorSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{}
+func (e errorSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{e.reason}
 }
 
-func (errorSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	return "", libkb.LoginRequiredError{}
+func (e errorSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
+	return "", libkb.LoginRequiredError{e.reason}
 }
 
-func (errorSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{}
+func (e errorSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{e.reason}
 }
 
-func (c *CryptoHandler) getSecretUI() libkb.SecretUI {
+func (c *CryptoHandler) getSecretUI(reason string) libkb.SecretUI {
 	secretUI := c.getDelegatedSecretUI()
 	if secretUI != nil {
 		return secretUI
 	}
 
-	return errorSecretUI{}
+	// Return an errorSecretUI instead of triggering an error
+	// since we may not need a SecretUI at all.
+	return errorSecretUI{reason}
 }
 
 func (c *CryptoHandler) SignED25519(_ context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
-	return engine.SignED25519(c.G(), c.getSecretUI(), arg)
+	return engine.SignED25519(c.G(), c.getSecretUI(arg.Reason), arg)
 }
 
 func (c *CryptoHandler) SignToString(_ context.Context, arg keybase1.SignToStringArg) (string, error) {
-	return engine.SignToString(c.G(), c.getSecretUI(), arg)
+	return engine.SignToString(c.G(), c.getSecretUI(arg.Reason), arg)
 }
 
 func (c *CryptoHandler) UnboxBytes32(_ context.Context, arg keybase1.UnboxBytes32Arg) (keybase1.Bytes32, error) {
-	return engine.UnboxBytes32(c.G(), c.getSecretUI(), arg)
+	return engine.UnboxBytes32(c.G(), c.getSecretUI(arg.Reason), arg)
 }
