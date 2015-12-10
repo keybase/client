@@ -34,7 +34,7 @@ type GlobalContext struct {
 	Env               *Env           // Env variables, cmdline args & config
 	Keyrings          *Keyrings      // Gpg Keychains holding keys
 	API               API            // How to make a REST call to the server
-	ResolveCache      *ResolveCache  // cache of resolve results
+	Resolver            *Resolver      // cache of resolve results
 	LocalDb           *JSONLocalDb   // Local DB for cache
 	MerkleClient      *MerkleClient  // client for querying server's merkle sig tree
 	XAPI              ExternalAPI    // for contacting Twitter, Github, etc.
@@ -85,6 +85,7 @@ func (g *GlobalContext) Init() {
 	g.Env = NewEnv(nil, nil)
 	g.Service = false
 	g.createLoginState()
+	g.Resolver = NewResolver(g)
 }
 
 func (g *GlobalContext) SetService() {
@@ -201,7 +202,7 @@ func (g *GlobalContext) ConfigureAPI() error {
 }
 
 func (g *GlobalContext) ConfigureCaches() error {
-	g.ResolveCache = NewResolveCache()
+	g.Resolver.EnableCaching()
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
