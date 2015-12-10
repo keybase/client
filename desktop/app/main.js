@@ -11,10 +11,7 @@ import {helpURL} from '../../react-native/react/constants/urls'
 
 const appPath = app.getAppPath()
 const menubarIconPath = path.resolve('./Icon.png')
-
 const hot = process.env.HOT === 'true'
-
-console.log('bbbb:', isDev)
 
 const mb = menubar({
   index: `file://${path.resolve('./renderer/launcher.html')}?debug=${!!isDev}&hot=${!!hot}`,

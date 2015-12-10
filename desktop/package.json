@@ -3,12 +3,11 @@
   "version": "1.0.1",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_ENV=development electron .",
-    "start-hot": "HOT=true NODE_ENV=development electron ./dist/main.bundle.js",
+    "start-hot": "HOT=true NODE_ENV=development node client.js",
+    "start-cold": "NODE_ENV=development electron ./dist/main.bundle.js",
     "build-dev": "NODE_ENV=development NO_SERVER=true DEBUG='express:*' node server.js",
+    "build-prod": "NODE_ENV=production NO_SERVER=true DEBUG='express:*' node server.js",
     "hot-server": "HOT=true NODE_ENV=development DEBUG='express:*' node server.js",
-    "olddebug": "(node-inspector &) && open http://127.0.0.1:8080/?ws=127.0.0.1:8080&port=5858 && node node_modules/babel/bin/babel-node.js start.js --debug=5858",
     "postinstall": "./node_modules/.bin/electron-rebuild"
   },
   "keywords": [],

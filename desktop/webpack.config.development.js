@@ -6,16 +6,15 @@ const config = Object.assign({}, baseConfig)
 const NO_SOURCE_MAPS = process.env.NO_SOURCE_MAPS === 'true'
 
 config.debug = true
-// TEMP config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-eval-source-map'
-config.devtool = undefined
-//config.entry = ['webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr']
+config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-eval-source-map'
 config.pathinfo = true
 config.output.publicPath = 'http://localhost:4000/dist/'
-config.bail = true // TEMP
+// Uncomment to figure out packaging bugs
+// config.bail = true
 
 config.plugins.push(
   new webpack.HotModuleReplacementPlugin(),
-  // TEMP   new webpack.NoErrorsPlugin(),
+  new webpack.NoErrorsPlugin(),
   new webpack.DefinePlugin({
     '__DEV__': true
     })
