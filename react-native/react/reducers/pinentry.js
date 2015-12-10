@@ -86,7 +86,7 @@ export default function (state: RootPinentryState = intialState, action: Pinentr
   }
 }
 
-function updatePinentryState (state: PinentryState, action: NewPinentryAction | RegisterPinentryListenerAction): PinentryState {
+function updatePinentryState (state: PinentryState, action: PinentryActions): PinentryState {
   switch (action.type) {
     case Constants.onCancel:
       return {...state, cancelled: true, closed: true}
