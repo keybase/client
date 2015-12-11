@@ -21,11 +21,8 @@ func NewCryptoHandler(g *libkb.GlobalContext) *CryptoHandler {
 }
 
 func (c *CryptoHandler) getDelegatedSecretUI() libkb.SecretUI {
-	if c.G().UIRouter == nil {
-		c.G().Log.Debug("no UIRouter to get SecretUI from")
-		return nil
-	}
-
+	// We should only ever be called in service mode, so UIRouter
+	// should be non-nil.
 	ui, err := c.G().UIRouter.GetSecretUI()
 	if err != nil {
 		c.G().Log.Debug("UIRouter.GetSecretUI() returned %v", err)

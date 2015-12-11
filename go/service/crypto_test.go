@@ -55,12 +55,6 @@ func TestCryptoSecretUI(t *testing.T) {
 
 	c := NewCryptoHandler(tc.G)
 
-	// Should return errorSecretUI because there is no UIRouter.
-	secretUI := c.getSecretUI("")
-	if _, ok := secretUI.(errorSecretUI); !ok {
-		t.Error("secretUI %v is not an errorSecretUI", secretUI)
-	}
-
 	// Should return errorSecretUI because UIRouter returned an
 	// error.
 	tc.G.SetUIRouter(fakeUIRouter{secretUIErr: errors.New("fake error")})
