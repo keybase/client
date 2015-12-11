@@ -163,6 +163,50 @@
     "name" : "ClientType",
     "symbols" : [ "CLI_0", "GUI_1" ]
   }, {
+    "type" : "record",
+    "name" : "UserVersionVector",
+    "fields" : [ {
+      "name" : "id",
+      "type" : "long"
+    }, {
+      "name" : "sigHints",
+      "type" : "int"
+    }, {
+      "name" : "sigChain",
+      "type" : "long"
+    }, {
+      "name" : "cachedAt",
+      "type" : "Time"
+    }, {
+      "name" : "lastIdentifiedAt",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UserPlusKeys",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "deviceKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "keys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "uvv",
+      "type" : "UserVersionVector"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "PromptOverwriteType",
     "symbols" : [ "SOCIAL_0", "SITE_1" ]

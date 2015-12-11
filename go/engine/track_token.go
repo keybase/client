@@ -25,7 +25,7 @@ type TrackToken struct {
 }
 
 type TrackTokenArg struct {
-	Token   libkb.IdentifyCacheToken
+	Token   keybase1.TrackToken
 	Me      *libkb.User
 	Options keybase1.TrackOptions
 }
@@ -70,7 +70,7 @@ func (e *TrackToken) Run(ctx *Context) error {
 		return err
 	}
 
-	outcome, err := e.G().IdentifyCache.Get(e.arg.Token)
+	outcome, err := e.G().TrackCache.Get(e.arg.Token)
 	if err != nil {
 		return err
 	}

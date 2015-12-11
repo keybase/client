@@ -207,7 +207,7 @@ func (t RooterServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 func init() {
 	RegisterServiceType(RooterServiceType{})
 	RegisterSocialNetwork("rooter")
-	RegisterProofCheckHook("rooter",
+	RegisterMakeProofCheckerFunc("rooter",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewRooterChecker(l)
 		})

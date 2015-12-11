@@ -211,7 +211,7 @@ func (t WebServiceType) LastWriterWins() bool { return false }
 func init() {
 	RegisterServiceType(WebServiceType{})
 	RegisterSocialNetwork("web")
-	RegisterProofCheckHook("http",
+	RegisterMakeProofCheckerFunc("http",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewWebChecker(l)
 		})

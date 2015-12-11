@@ -212,7 +212,7 @@ func (t RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 func init() {
 	RegisterServiceType(RedditServiceType{})
 	RegisterSocialNetwork("reddit")
-	RegisterProofCheckHook("reddit",
+	RegisterMakeProofCheckerFunc("reddit",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewRedditChecker(l)
 		})

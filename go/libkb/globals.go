@@ -48,8 +48,8 @@ type GlobalContext struct {
 	LoopbackListener  *LoopbackListener  // If we're in loopback mode, we'll connect through here
 	XStreams          *ExportedStreams   // a table of streams we've exported to the daemon (or vice-versa)
 	Timers            *TimerSet          // Which timers are currently configured on
-	IdentifyCache     *IdentifyCache     // cache of IdentifyOutcomes
-	UserCache         *UserCache         // cache of Users
+	TrackCache        *TrackCache        // cache of IdentifyOutcomes for tracking purposes
+	Identify2Cache    Identify2Cacher    // cache of Identify2 results for fast-pathing identify2 RPCS
 	UI                UI                 // Interact with the UI
 	Service           bool               // whether we're in server mode
 	shutdownOnce      sync.Once          // whether we've shut down or not
@@ -59,13 +59,15 @@ type GlobalContext struct {
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
-	UIRouter UIRouter
-	ExitCode keybase1.ExitCode // Value to return to OS on Exit()
+	UIRouter            UIRouter            // How to route UIs
+	ProofCheckerFactory ProofCheckerFactory // Makes new ProofCheckers
+	ExitCode            keybase1.ExitCode   // Value to return to OS on Exit()
 }
 
 func NewGlobalContext() *GlobalContext {
 	return &GlobalContext{
-		Log: logger.New("keybase", ErrorWriter()),
+		Log:                 logger.New("keybase", ErrorWriter()),
+		ProofCheckerFactory: defaultProofCheckerFactory,
 	}
 }
 
@@ -124,14 +126,14 @@ func (g *GlobalContext) Logout() error {
 		return err
 	}
 
-	if g.IdentifyCache != nil {
-		g.IdentifyCache.Shutdown()
+	if g.TrackCache != nil {
+		g.TrackCache.Shutdown()
 	}
-	if g.UserCache != nil {
-		g.UserCache.Shutdown()
+	if g.Identify2Cache != nil {
+		g.Identify2Cache.Shutdown()
 	}
-	g.IdentifyCache = NewIdentifyCache()
-	g.UserCache = NewUserCache(g.Env.GetUserCacheMaxAge())
+	g.TrackCache = NewTrackCache()
+	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 
 	// get a clean LoginState:
 	g.createLoginStateLocked()
@@ -200,8 +202,8 @@ func (g *GlobalContext) ConfigureAPI() error {
 
 func (g *GlobalContext) ConfigureCaches() error {
 	g.ResolveCache = NewResolveCache()
-	g.IdentifyCache = NewIdentifyCache()
-	g.UserCache = NewUserCache(g.Env.GetUserCacheMaxAge())
+	g.TrackCache = NewTrackCache()
+	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
 
 	// We consider the local DB as a cache; it's caching our
@@ -257,11 +259,11 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(g.LoginState().Shutdown())
 		}
 
-		if g.IdentifyCache != nil {
-			g.IdentifyCache.Shutdown()
+		if g.TrackCache != nil {
+			g.TrackCache.Shutdown()
 		}
-		if g.UserCache != nil {
-			g.UserCache.Shutdown()
+		if g.Identify2Cache != nil {
+			g.Identify2Cache.Shutdown()
 		}
 
 		for _, hook := range g.ShutdownHooks {
@@ -298,6 +300,10 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 		return err
 	}
 	return g.ConfigureUsage(usage)
+}
+
+func (g *GlobalContext) NewProofChecker(l RemoteProofChainLink) (ProofChecker, ProofError) {
+	return g.ProofCheckerFactory.MakeProofChecker(l)
 }
 
 func (g *GlobalContext) ConfigureUsage(usage Usage) error {

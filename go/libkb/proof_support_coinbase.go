@@ -119,7 +119,7 @@ func (t CoinbaseServiceType) CheckProofText(text string, id keybase1.SigID, sig 
 func init() {
 	RegisterServiceType(CoinbaseServiceType{})
 	RegisterSocialNetwork("coinbase")
-	RegisterProofCheckHook("coinbase",
+	RegisterMakeProofCheckerFunc("coinbase",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewCoinbaseChecker(l)
 		})

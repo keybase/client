@@ -23,7 +23,7 @@ type ProofError interface {
 
 func ProofErrorIsSoft(pe ProofError) bool {
 	s := pe.GetProofStatus()
-	return s >= keybase1.ProofStatus_BASE_ERROR && s < keybase1.ProofStatus_BASE_HARD_ERROR
+	return (s >= keybase1.ProofStatus_BASE_ERROR && s < keybase1.ProofStatus_BASE_HARD_ERROR)
 }
 
 func ProofErrorToState(pe ProofError) keybase1.ProofState {
@@ -180,12 +180,12 @@ func (e UnexpectedKeyError) Error() string {
 //=============================================================================
 
 type UserNotFoundError struct {
-	uid keybase1.UID
-	msg string
+	UID keybase1.UID
+	Msg string
 }
 
 func (u UserNotFoundError) Error() string {
-	return fmt.Sprintf("User %s wasn't found (%s)", u.uid, u.msg)
+	return fmt.Sprintf("User %s wasn't found (%s)", u.UID, u.Msg)
 }
 
 //=============================================================================
@@ -766,6 +766,8 @@ func (e ProofNotFoundForUsernameError) Error() string {
 
 //=============================================================================
 
+//=============================================================================
+
 type KeyGenError struct {
 	Msg string
 }
@@ -1106,6 +1108,14 @@ func (e IdentifyTimeoutError) Error() string {
 
 //=============================================================================
 
+type IdentifyDidNotCompleteError struct{}
+
+func (e IdentifyDidNotCompleteError) Error() string {
+	return "Identification did not complete."
+}
+
+//=============================================================================
+
 type NotLatestSubchainError struct {
 	Msg string
 }
@@ -1181,4 +1191,19 @@ type UIDelegationUnavailableError struct{}
 
 func (e UIDelegationUnavailableError) Error() string {
 	return "This process does not support UI delegation"
+}
+
+//=============================================================================
+
+type UnmetAssertionError struct {
+	User   string
+	Remote bool
+}
+
+func (e UnmetAssertionError) Error() string {
+	which := "local"
+	if e.Remote {
+		which = "remote"
+	}
+	return fmt.Sprintf("Unmet %s assertions for user %q", which, e.User)
 }

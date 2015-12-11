@@ -159,6 +159,22 @@ const (
 	ClientType_GUI ClientType = 1
 )
 
+type UserVersionVector struct {
+	Id               int64 `codec:"id" json:"id"`
+	SigHints         int   `codec:"sigHints" json:"sigHints"`
+	SigChain         int64 `codec:"sigChain" json:"sigChain"`
+	CachedAt         Time  `codec:"cachedAt" json:"cachedAt"`
+	LastIdentifiedAt Time  `codec:"lastIdentifiedAt" json:"lastIdentifiedAt"`
+}
+
+type UserPlusKeys struct {
+	Uid        UID               `codec:"uid" json:"uid"`
+	Username   string            `codec:"username" json:"username"`
+	DeviceKeys []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
+	Keys       []PublicKey       `codec:"keys" json:"keys"`
+	Uvv        UserVersionVector `codec:"uvv" json:"uvv"`
+}
+
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
@@ -1353,6 +1369,7 @@ const (
 	ProofType_ROOTER           ProofType = 100001
 )
 
+type TrackToken string
 type TrackDiffType int
 
 const (
@@ -1420,7 +1437,7 @@ type IdentifyRes struct {
 	User       *User           `codec:"user,omitempty" json:"user,omitempty"`
 	PublicKeys []PublicKey     `codec:"publicKeys" json:"publicKeys"`
 	Outcome    IdentifyOutcome `codec:"outcome" json:"outcome"`
-	TrackToken string          `codec:"trackToken" json:"trackToken"`
+	TrackToken TrackToken      `codec:"trackToken" json:"trackToken"`
 }
 
 type RemoteProof struct {
@@ -1439,6 +1456,10 @@ const (
 	IdentifySource_KBFS IdentifySource = 1
 )
 
+type Identify2Res struct {
+	Upk UserPlusKeys `codec:"upk" json:"upk"`
+}
+
 type IdentifyArg struct {
 	SessionID        int            `codec:"sessionID" json:"sessionID"`
 	UserAssertion    string         `codec:"userAssertion" json:"userAssertion"`
@@ -1449,8 +1470,17 @@ type IdentifyArg struct {
 	Source           IdentifySource `codec:"source" json:"source"`
 }
 
+type Identify2WithUIDArg struct {
+	SessionID     int            `codec:"sessionID" json:"sessionID"`
+	Uid           UID            `codec:"uid" json:"uid"`
+	UserAssertion string         `codec:"userAssertion" json:"userAssertion"`
+	Reason        IdentifyReason `codec:"reason" json:"reason"`
+	UseDelegateUI bool           `codec:"useDelegateUI" json:"useDelegateUI"`
+}
+
 type IdentifyInterface interface {
 	Identify(context.Context, IdentifyArg) (IdentifyRes, error)
+	Identify2WithUID(context.Context, Identify2WithUIDArg) (Identify2Res, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
@@ -1473,6 +1503,22 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"identify2WithUID": {
+				MakeArg: func() interface{} {
+					ret := make([]Identify2WithUIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]Identify2WithUIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]Identify2WithUIDArg)(nil), args)
+						return
+					}
+					ret, err = i.Identify2WithUID(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1483,6 +1529,11 @@ type IdentifyClient struct {
 
 func (c IdentifyClient) Identify(ctx context.Context, __arg IdentifyArg) (res IdentifyRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identify.identify", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IdentifyClient) Identify2WithUID(ctx context.Context, __arg Identify2WithUIDArg) (res Identify2Res, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identify.identify2WithUID", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1606,8 +1657,8 @@ type DisplayCryptocurrencyArg struct {
 }
 
 type ReportTrackTokenArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	TrackToken string `codec:"trackToken" json:"trackToken"`
+	SessionID  int        `codec:"sessionID" json:"sessionID"`
+	TrackToken TrackToken `codec:"trackToken" json:"trackToken"`
 }
 
 type DisplayUserCardArg struct {
@@ -5048,7 +5099,7 @@ type TrackArg struct {
 
 type TrackWithTokenArg struct {
 	SessionID  int          `codec:"sessionID" json:"sessionID"`
-	TrackToken string       `codec:"trackToken" json:"trackToken"`
+	TrackToken TrackToken   `codec:"trackToken" json:"trackToken"`
 	Options    TrackOptions `codec:"options" json:"options"`
 }
 
@@ -5316,12 +5367,6 @@ type UserSummary struct {
 	Proofs       Proofs `codec:"proofs" json:"proofs"`
 	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
 	TrackTime    Time   `codec:"trackTime" json:"trackTime"`
-}
-
-type UserPlusKeys struct {
-	Uid        UID         `codec:"uid" json:"uid"`
-	Username   string      `codec:"username" json:"username"`
-	DeviceKeys []PublicKey `codec:"deviceKeys" json:"deviceKeys"`
 }
 
 type SearchComponent struct {

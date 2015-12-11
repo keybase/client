@@ -19,7 +19,7 @@ type Identify struct {
 	userExpr         libkb.AssertionExpression
 	outcome          *libkb.IdentifyOutcome
 	trackInst        *libkb.TrackInstructions
-	trackToken       libkb.IdentifyCacheToken
+	trackToken       keybase1.TrackToken
 	selfShortCircuit bool
 	libkb.Contextified
 }
@@ -130,12 +130,12 @@ func (e *Identify) Run(ctx *Context) error {
 	// inform the ui what to do with the remote tracking prompt:
 	e.outcome.TrackOptions = e.arg.TrackOptions
 
-	e.G().Log.Debug("inserting identify outcome for %q in IdentifyCache", e.user.GetName())
-	key, err := e.G().IdentifyCache.Insert(e.outcome)
+	e.G().Log.Debug("inserting identify outcome for %q in TrackCache", e.user.GetName())
+	key, err := e.G().TrackCache.Insert(e.outcome)
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("IdentifyCache key: %q", key)
+	e.G().Log.Debug("TrackCache key: %q", key)
 	e.trackToken = key
 
 	return nil
@@ -149,7 +149,7 @@ func (e *Identify) Outcome() *libkb.IdentifyOutcome {
 	return e.outcome
 }
 
-func (e *Identify) TrackToken() libkb.IdentifyCacheToken {
+func (e *Identify) TrackToken() keybase1.TrackToken {
 	return e.trackToken
 }
 
@@ -158,7 +158,7 @@ func (e *Identify) TrackInstructions() *libkb.TrackInstructions {
 }
 
 func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
-	res := libkb.NewIdentifyOutcome(e.arg.WithTracking)
+	res := libkb.NewIdentifyOutcome()
 	res.Username = e.user.GetName()
 	is := libkb.NewIdentifyState(res, e.user)
 
@@ -176,8 +176,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 			return nil, err
 		}
 		if tlink != nil {
-			is.CreateTrackLookup(tlink)
-			res.TrackUsed = is.TrackLookup()
+			is.SetTrackLookup(tlink)
 		}
 	}
 
@@ -189,10 +188,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 
 	e.G().Log.Debug("+ Identify(%s)", e.user.GetName())
 
-	is.ComputeKeyDiffs(ctx.IdentifyUI.DisplayKey)
-	is.InitResultList()
-	is.ComputeTrackDiffs()
-	is.ComputeRevokedProofs()
+	is.Precompute(ctx.IdentifyUI.DisplayKey)
 
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
 
@@ -203,12 +199,12 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 		wg.Done()
 	}()
 
-	e.user.IDTable().Identify(is, e.arg.ForceRemoteCheck, ctx.IdentifyUI)
+	e.user.IDTable().Identify(is, e.arg.ForceRemoteCheck, ctx.IdentifyUI, nil)
 
 	wg.Wait()
 
 	base := e.user.BaseProofSet()
-	res.AddProofsToSet(base)
+	res.AddProofsToSet(base, []keybase1.ProofState{keybase1.ProofState_OK})
 	if !e.userExpr.MatchSet(*base) {
 		return nil, fmt.Errorf("User %s didn't match given assertion", e.user.GetName())
 	}
@@ -258,7 +254,7 @@ func (e *Identify) loadUserArg() (*libkb.LoadUserArg, error) {
 	// That is, it might be the keybase assertion (if there), or otherwise,
 	// something that's unique like Twitter or Github, and lastly,
 	// something like DNS that is more likely ambiguous...
-	b := e.findBestComponent(e.userExpr)
+	b := libkb.FindBestIdentifyComponent(e.userExpr)
 	if len(b) == 0 {
 		return nil, fmt.Errorf("Cannot lookup user with %q", e.arg.TargetUsername)
 	}
@@ -278,44 +274,12 @@ func (e *Identify) loadExpr(assertion string) error {
 	return nil
 }
 
-func (e *Identify) findBestComponent(expr libkb.AssertionExpression) string {
-	urls := expr.CollectUrls(nil)
-	if len(urls) == 0 {
-		return ""
-	}
-
-	var uid, kb, soc, fp libkb.AssertionURL
-
-	for _, u := range urls {
-		if u.IsUID() {
-			uid = u
-			break
-		}
-
-		if u.IsKeybase() {
-			kb = u
-		} else if u.IsFingerprint() && fp == nil {
-			fp = u
-		} else if u.IsSocial() && soc == nil {
-			soc = u
-		}
-	}
-
-	order := []libkb.AssertionURL{uid, kb, fp, soc, urls[0]}
-	for _, p := range order {
-		if p != nil {
-			return p.String()
-		}
-	}
-	return ""
-}
-
 func (e *Identify) shortCircuitSelfID(ctx *Context) error {
 	e.G().Log.Debug("Identify: short-circuiting self identification")
 	e.selfShortCircuit = true
 
 	// don't really need anything but username here
-	e.outcome = libkb.NewIdentifyOutcome(e.arg.WithTracking)
+	e.outcome = libkb.NewIdentifyOutcome()
 	e.outcome.Username = e.user.GetName()
 
 	return nil

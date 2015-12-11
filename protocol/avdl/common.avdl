@@ -86,4 +86,26 @@ protocol Common {
 		CLI_0,
 		GUI_1
 	}
+
+	record UserVersionVector {
+	    long id;
+	    int sigHints;
+	    long sigChain;
+	    Time cachedAt;
+	    Time lastIdentifiedAt;
+	}
+
+	record UserPlusKeys {
+	    UID uid;
+	    string username;
+
+	    // This is a misnomer; it's actually all keys, including PGP; let's deprecate
+	    // this field in a few versions
+	    array<PublicKey> deviceKeys;
+
+	    // A duplicate of deviceKeys above, but with a better name
+	    array<PublicKey> keys;
+
+	    UserVersionVector uvv;
+	}
 }

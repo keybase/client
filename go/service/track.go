@@ -42,7 +42,7 @@ func (h *TrackHandler) Track(_ context.Context, arg keybase1.TrackArg) error {
 
 func (h *TrackHandler) TrackWithToken(_ context.Context, arg keybase1.TrackWithTokenArg) error {
 	earg := engine.TrackTokenArg{
-		Token:   libkb.ImportIdentifyCacheToken(arg.TrackToken),
+		Token:   arg.TrackToken,
 		Options: arg.Options,
 	}
 	ctx := engine.Context{

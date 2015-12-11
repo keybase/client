@@ -198,7 +198,7 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 	}
 
 	if f.jw.AtKey("users").AtKey(nu.String()).IsNil() {
-		return UserNotFoundError{msg: nu.String()}
+		return UserNotFoundError{Msg: nu.String()}
 	}
 
 	f.jw.SetKey("current_user", jsonw.NewString(nu.String()))

@@ -8,15 +8,16 @@ import (
 	"fmt"
 	"time"
 
+	keybase1 "github.com/keybase/client/go/protocol"
 	"stathat.com/c/ramcache"
 )
 
-type IdentifyCache struct {
+type TrackCache struct {
 	cache *ramcache.Ramcache
 }
 
-func NewIdentifyCache() *IdentifyCache {
-	res := &IdentifyCache{
+func NewTrackCache() *TrackCache {
+	res := &TrackCache{
 		cache: ramcache.New(),
 	}
 	res.cache.TTL = 10 * time.Minute
@@ -24,7 +25,7 @@ func NewIdentifyCache() *IdentifyCache {
 	return res
 }
 
-func (c *IdentifyCache) Get(key IdentifyCacheToken) (*IdentifyOutcome, error) {
+func (c *TrackCache) Get(key keybase1.TrackToken) (*IdentifyOutcome, error) {
 	v, err := c.cache.Get(string(key))
 	if err != nil {
 		if err == ramcache.ErrNotFound {
@@ -39,7 +40,7 @@ func (c *IdentifyCache) Get(key IdentifyCacheToken) (*IdentifyOutcome, error) {
 	return outcome, nil
 }
 
-func (c *IdentifyCache) Insert(outcome *IdentifyOutcome) (IdentifyCacheToken, error) {
+func (c *TrackCache) Insert(outcome *IdentifyOutcome) (keybase1.TrackToken, error) {
 	rb, err := RandBytes(16)
 	if err != nil {
 		return "", err
@@ -48,23 +49,13 @@ func (c *IdentifyCache) Insert(outcome *IdentifyOutcome) (IdentifyCacheToken, er
 	if err := c.cache.Set(key, outcome); err != nil {
 		return "", err
 	}
-	return IdentifyCacheToken(key), nil
+	return keybase1.TrackToken(key), nil
 }
 
-func (c *IdentifyCache) Delete(key IdentifyCacheToken) error {
+func (c *TrackCache) Delete(key keybase1.TrackToken) error {
 	return c.cache.Delete(string(key))
 }
 
-func (c *IdentifyCache) Shutdown() {
+func (c *TrackCache) Shutdown() {
 	c.cache.Shutdown()
-}
-
-type IdentifyCacheToken string
-
-func (t IdentifyCacheToken) Export() string {
-	return string(t)
-}
-
-func ImportIdentifyCacheToken(t string) IdentifyCacheToken {
-	return IdentifyCacheToken(t)
 }

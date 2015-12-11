@@ -59,7 +59,7 @@ func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
 	return ui.parent.Output(stmt)
 }
 
-func (ui BaseIdentifyUI) ReportTrackToken(_ libkb.IdentifyCacheToken) error {
+func (ui BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
 	return nil
 }
 
