@@ -1,28 +1,29 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8"/>
     <title>Keybase</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="../node_modules/font-awesome/css/font-awesome.css" />
   </head>
   <body>
     <div id="app"></div>
     <script>
-      if (process.env.BROWSER_SYNC_CLIENT_URL) {
-        const current = document.currentScript
-        const script = document.createElement('script')
-        script.src = process.env.BROWSER_SYNC_CLIENT_URL
-        script.async = true
-        current.parentNode.insertBefore(script, current)
+      function getQueryVariable(variable) {
+        var query = window.location.search.substring(1)
+          var vars = query.split("&")
+          for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=")
+              if(pair[0] == variable){
+                return pair[1]
+              }
+          }
+        return false
       }
-
-      require("babel/register")({
-        extensions: [".desktop.js", ".es6", ".es", ".jsx", ".js"]
-      })
-      require("./index")
-
-      var path = require('path')
-      var injector = require('../../react-native/react/native/inject-styles')
-      injector(document, path.resolve(__dirname, './style.css'))
-      injector(document, path.resolve(__dirname, '../node_modules/font-awesome/css/font-awesome.min.css'))
+      var script = document.createElement('script')
+      script.type = 'text/javascript'
+      script.src = getQueryVariable('hot') === 'true' ? 'http://localhost:4000/dist/index.bundle.js' : '../dist/index.bundle.js'
+      document.getElementsByTagName('head')[0].appendChild(script)
     </script>
   </body>
 </html>
