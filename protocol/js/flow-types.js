@@ -1,6 +1,7 @@
 /* @flow */
 
 export type int = number
+export type long = number
 export type double = number
 export type bytes = any
 export type BlockRefNonce = any
