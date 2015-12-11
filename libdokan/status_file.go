@@ -45,4 +45,3 @@ func NewStatusFile(folder *Folder) *SpecialReadFile {
 		},
 	}
 }
-

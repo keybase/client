@@ -14,6 +14,6 @@ type specialWriteFile struct {
 	emptyFile
 }
 
-func (f *specialWriteFile)GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
+func (f *specialWriteFile) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
 	return defaultFileInformation()
 }

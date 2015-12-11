@@ -48,4 +48,3 @@ func NewErrorFile(fs *FS) *SpecialReadFile {
 		},
 	}
 }
-
