@@ -199,6 +199,38 @@
       "name" : "chargedTo",
       "type" : "UID"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "UsageStat",
+    "fields" : [ {
+      "name" : "usage",
+      "type" : "long"
+    }, {
+      "name" : "archived",
+      "type" : "long"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "GetQuotaStatsRes",
+    "fields" : [ {
+      "name" : "total",
+      "type" : "UsageStat"
+    }, {
+      "name" : "limit",
+      "type" : "long"
+    }, {
+      "name" : "folderNames",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "folderUsage",
+      "type" : {
+        "type" : "array",
+        "items" : "UsageStat"
+      }
+    } ]
   } ],
   "messages" : {
     "authenticateSession" : {
@@ -266,6 +298,10 @@
         "type" : "array",
         "items" : "BlockReference"
       }
+    },
+    "getQuotaStats" : {
+      "request" : [ ],
+      "response" : "GetQuotaStatsRes"
     }
   }
 }

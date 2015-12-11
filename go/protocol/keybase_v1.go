@@ -176,6 +176,18 @@ type BlockReference struct {
 	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
 }
 
+type UsageStat struct {
+	Usage    int64 `codec:"usage" json:"usage"`
+	Archived int64 `codec:"archived" json:"archived"`
+}
+
+type GetQuotaStatsRes struct {
+	Total       UsageStat   `codec:"total" json:"total"`
+	Limit       int64       `codec:"limit" json:"limit"`
+	FolderNames []string    `codec:"folderNames" json:"folderNames"`
+	FolderUsage []UsageStat `codec:"folderUsage" json:"folderUsage"`
+}
+
 type AuthenticateSessionArg struct {
 	Signature string `codec:"signature" json:"signature"`
 }
@@ -206,6 +218,9 @@ type ArchiveReferenceArg struct {
 	Refs   []BlockReference `codec:"refs" json:"refs"`
 }
 
+type GetQuotaStatsArg struct {
+}
+
 type BlockInterface interface {
 	AuthenticateSession(context.Context, string) error
 	PutBlock(context.Context, PutBlockArg) error
@@ -213,6 +228,7 @@ type BlockInterface interface {
 	AddReference(context.Context, AddReferenceArg) error
 	DelReference(context.Context, DelReferenceArg) error
 	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
+	GetQuotaStats(context.Context) (GetQuotaStatsRes, error)
 }
 
 func BlockProtocol(i BlockInterface) rpc.Protocol {
@@ -315,6 +331,17 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getQuotaStats": {
+				MakeArg: func() interface{} {
+					ret := make([]GetQuotaStatsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetQuotaStats(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -352,6 +379,11 @@ func (c BlockClient) DelReference(ctx context.Context, __arg DelReferenceArg) (e
 
 func (c BlockClient) ArchiveReference(ctx context.Context, __arg ArchiveReferenceArg) (res []BlockReference, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.archiveReference", []interface{}{__arg}, &res)
+	return
+}
+
+func (c BlockClient) GetQuotaStats(ctx context.Context) (res GetQuotaStatsRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.getQuotaStats", []interface{}{GetQuotaStatsArg{}}, &res)
 	return
 }
 

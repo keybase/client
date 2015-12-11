@@ -180,6 +180,30 @@ export type BlockReference = {
   chargedTo: UID;
 }
 
+export type block_UsageStat = {
+  usage: long;
+  archived: long;
+}
+
+export type UsageStat = {
+  usage: long;
+  archived: long;
+}
+
+export type block_GetQuotaStatsRes = {
+  total: UsageStat;
+  limit: long;
+  folderNames: Array<string>;
+  folderUsage: Array<UsageStat>;
+}
+
+export type GetQuotaStatsRes = {
+  total: UsageStat;
+  limit: long;
+  folderNames: Array<string>;
+  folderUsage: Array<UsageStat>;
+}
+
 export type BTC_Time = {
 }
 
