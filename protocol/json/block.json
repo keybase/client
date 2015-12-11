@@ -299,9 +299,9 @@
         "items" : "BlockReference"
       }
     },
-    "getQuotaStats" : {
+    "getUserQuotaInfo" : {
       "request" : [ ],
-      "response" : "GetQuotaStatsRes"
+      "response" : "bytes"
     }
   }
 }

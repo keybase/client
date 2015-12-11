@@ -218,7 +218,7 @@ type ArchiveReferenceArg struct {
 	Refs   []BlockReference `codec:"refs" json:"refs"`
 }
 
-type GetQuotaStatsArg struct {
+type GetUserQuotaInfoArg struct {
 }
 
 type BlockInterface interface {
@@ -228,7 +228,7 @@ type BlockInterface interface {
 	AddReference(context.Context, AddReferenceArg) error
 	DelReference(context.Context, DelReferenceArg) error
 	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
-	GetQuotaStats(context.Context) (GetQuotaStatsRes, error)
+	GetUserQuotaInfo(context.Context) ([]byte, error)
 }
 
 func BlockProtocol(i BlockInterface) rpc.Protocol {
@@ -331,13 +331,13 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getQuotaStats": {
+			"getUserQuotaInfo": {
 				MakeArg: func() interface{} {
-					ret := make([]GetQuotaStatsArg, 1)
+					ret := make([]GetUserQuotaInfoArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.GetQuotaStats(ctx)
+					ret, err = i.GetUserQuotaInfo(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -382,8 +382,8 @@ func (c BlockClient) ArchiveReference(ctx context.Context, __arg ArchiveReferenc
 	return
 }
 
-func (c BlockClient) GetQuotaStats(ctx context.Context) (res GetQuotaStatsRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.getQuotaStats", []interface{}{GetQuotaStatsArg{}}, &res)
+func (c BlockClient) GetUserQuotaInfo(ctx context.Context) (res []byte, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.getUserQuotaInfo", []interface{}{GetUserQuotaInfoArg{}}, &res)
 	return
 }
 
