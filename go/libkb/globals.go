@@ -34,7 +34,7 @@ type GlobalContext struct {
 	Env               *Env           // Env variables, cmdline args & config
 	Keyrings          *Keyrings      // Gpg Keychains holding keys
 	API               API            // How to make a REST call to the server
-	Resolver            *Resolver      // cache of resolve results
+	Resolver          *Resolver      // cache of resolve results
 	LocalDb           *JSONLocalDb   // Local DB for cache
 	MerkleClient      *MerkleClient  // client for querying server's merkle sig tree
 	XAPI              ExternalAPI    // for contacting Twitter, Github, etc.
