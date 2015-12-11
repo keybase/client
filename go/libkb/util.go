@@ -27,7 +27,7 @@ import (
 
 // VersionString returns semantic version string
 func VersionString() string {
-	return fmt.Sprintf("%s-%d", Version, Build)
+	return fmt.Sprintf("%s-%s", Version, Build)
 }
 
 func ErrToOk(err error) string {

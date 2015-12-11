@@ -2,4 +2,4 @@
 package libkb
 
 const Version = "1.0.6"
-const Build = 0
+const Build = "0"

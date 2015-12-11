@@ -30,6 +30,7 @@ var repo = flag.String("repo", "client", "Repository in keybase")
 var version = flag.String("version", "", "Version for tag")
 var src = flag.String("src", "", "Path to source file")
 var dest = flag.String("dest", "", "Path to destination file")
+var pkg = flag.String("pkg", "", "Package name")
 
 func main() {
 	flag.Parse()
@@ -45,7 +46,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = WriteVersion(ver, build+1, *dest)
+		err = WriteVersion(ver, build+1, *pkg, *dest)
 		if err != nil {
 			log.Fatal(err)
 		}
