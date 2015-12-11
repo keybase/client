@@ -8,6 +8,7 @@ package install
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -243,7 +244,7 @@ func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.Se
 	envVars := DefaultLaunchdEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
-	err := launchd.Install(plist, g.Log)
+	err := launchd.Install(plist, ioutil.Discard)
 	if err != nil {
 		return nil, err
 	}
@@ -255,9 +256,9 @@ func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.Se
 }
 
 // Uninstall keybase all services for this run mode.
-func uninstallKeybaseServices(g *libkb.GlobalContext, runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), g.Log)
-	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), g.Log)
+func uninstallKeybaseServices(runMode libkb.RunMode) error {
+	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), ioutil.Discard)
+	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), ioutil.Discard)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -298,7 +299,7 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 	envVars := DefaultLaunchdEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars)
-	err = launchd.Install(plist, g.Log)
+	err = launchd.Install(plist, ioutil.Discard)
 	if err != nil {
 		return nil, err
 	}
@@ -309,9 +310,9 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 	return &st, nil
 }
 
-func uninstallKBFSServices(g *libkb.GlobalContext, runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), g.Log)
-	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), g.Log)
+func uninstallKBFSServices(runMode libkb.RunMode) error {
+	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), ioutil.Discard)
+	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), ioutil.Discard)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -433,7 +434,7 @@ func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 	g.Log.Info("Service: %s (Action: %s)", keybaseStatus.InstallStatus.String(), keybaseStatus.InstallAction.String())
 	if keybaseStatus.NeedsInstall() || force {
 		g.Log.Info("Installing Keybase service")
-		uninstallKeybaseServices(g, g.Env.GetRunMode())
+		uninstallKeybaseServices(g.Env.GetRunMode())
 		_, err := installKeybaseService(g, bp)
 		if err != nil {
 			g.Log.Errorf("Error installing Keybase service: %s", err)
@@ -454,7 +455,7 @@ func installKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
 	g.Log.Info("KBFS: %s (Action: %s)", kbfsStatus.InstallStatus.String(), kbfsStatus.InstallAction.String())
 	if kbfsStatus.NeedsInstall() || force {
 		g.Log.Info("Installing KBFS")
-		uninstallKBFSServices(g, g.Env.GetRunMode())
+		uninstallKBFSServices(g.Env.GetRunMode())
 		_, err := installKBFSService(g, bp)
 		if err != nil {
 			g.Log.Errorf("Error installing KBFS: %s", err)
@@ -517,11 +518,11 @@ func uninstallCommandLine(g *libkb.GlobalContext) error {
 }
 
 func uninstallService(g *libkb.GlobalContext) error {
-	return uninstallKeybaseServices(g, g.Env.GetRunMode())
+	return uninstallKeybaseServices(g.Env.GetRunMode())
 }
 
 func uninstallKBFS(g *libkb.GlobalContext) error {
-	err := uninstallKBFSServices(g, g.Env.GetRunMode())
+	err := uninstallKBFSServices(g.Env.GetRunMode())
 	if err != nil {
 		return err
 	}
