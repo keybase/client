@@ -25,7 +25,7 @@ func (c *CryptoHandler) getDelegatedSecretUI() libkb.SecretUI {
 	// should be non-nil.
 	ui, err := c.G().UIRouter.GetSecretUI()
 	if err != nil {
-		c.G().Log.Debug("UIRouter.GetSecretUI() returned %v", err)
+		c.G().Log.Debug("UIRouter.GetSecretUI() returned an error %v", err)
 		return nil
 	}
 
