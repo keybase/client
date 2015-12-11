@@ -37,6 +37,7 @@ export default class PinentryRender extends Component {
   }
 
   render () {
+    const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
     return (
       <div style={{...commonStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', backgroundColor: 'blue'}}>
         <div style={styles.container}>
@@ -73,13 +74,14 @@ export default class PinentryRender extends Component {
                 floatingLabelText='Your passphrase'
                 value={this.state.passphrase}
                 type={this.state.showTyping ? 'text' : 'password'}
+                onEnterKeyDown={submitPassphrase}
                 autoFocus />
               <p style={styles.error}>{this.props.retryLabel}</p>
             </div>
           </div>
           <div style={styles.action}>
             <FlatButton style={commonStyles.secondaryButton} label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
-            <FlatButton style={commonStyles.primaryButton} label={this.props.submitLabel || 'Close'} primary onClick={() => this.props.onSubmit(this.state.passphrase, this.state.features)} />
+            <FlatButton style={commonStyles.primaryButton} label={this.props.submitLabel || 'Close'} primary onClick={submitPassphrase} />
           </div>
         </div>
       </div>
