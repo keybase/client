@@ -681,7 +681,11 @@ func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	}
 
 	// get KID for the pgp key
-	kid, err := e.user.GetComputedKeyFamily().FindKIDFromFingerprint(*fp)
+	kf := e.user.GetComputedKeyFamily()
+	if kf == nil {
+		return nil, libkb.KeyFamilyError{Msg: "no key family for user"}
+	}
+	kid, err := kf.FindKIDFromFingerprint(*fp)
 	if err != nil {
 		return nil, err
 	}
