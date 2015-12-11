@@ -6,7 +6,7 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
 auto="0"
-if [ "$0" == "auto" ]; then
+if [ "$1" == "auto" ]; then
   auto="1"
 fi
 
