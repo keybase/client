@@ -176,18 +176,6 @@ type BlockReference struct {
 	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
 }
 
-type UsageStat struct {
-	Usage    int64 `codec:"usage" json:"usage"`
-	Archived int64 `codec:"archived" json:"archived"`
-}
-
-type GetQuotaStatsRes struct {
-	Total       UsageStat   `codec:"total" json:"total"`
-	Limit       int64       `codec:"limit" json:"limit"`
-	FolderNames []string    `codec:"folderNames" json:"folderNames"`
-	FolderUsage []UsageStat `codec:"folderUsage" json:"folderUsage"`
-}
-
 type AuthenticateSessionArg struct {
 	Signature string `codec:"signature" json:"signature"`
 }
