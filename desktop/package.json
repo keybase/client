@@ -23,7 +23,7 @@
     "immutable": "^3.7.5",
     "lodash": "^3.10.1",
     "material-ui": "^0.13.3",
-    "menubar": "^2.3.0",
+    "menubar": "keybase/menubar",
     "moment": "^2.10.6",
     "nslog": "^3.0.0",
     "purepack": "keybase/purepack#nojima/keybase-client-changes",
