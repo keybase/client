@@ -4,29 +4,19 @@ import Window from './window'
 import splash from './splash'
 import installer from './installer'
 import {app} from 'electron'
-import path from 'path'
 import {showDevTools} from '../../react-native/react/local-debug.desktop'
 import {isDev} from '../../react-native/react/constants/platform'
 import {helpURL} from '../../react-native/react/constants/urls'
+import resolveAssets from '../resolve-assets'
+import hotPath from '../hot-path'
 
-const appPath = app.getAppPath()
-const menubarIconPath = path.resolve('./Icon.png')
-const hot = process.env.HOT === 'true'
-
+const menubarIconPath = resolveAssets('./Icon.png')
 const mb = menubar({
-  index: `file://${path.resolve('./renderer/launcher.html')}?debug=${!!isDev}&hot=${!!hot}`,
-  width: 150, height: 192,
+  index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}&debug=${!!isDev}`,
+  width: 150, height: isDev ? 192 : 160,
   preloadWindow: true,
   icon: menubarIconPath,
   showDockIcon: true
-})
-
-const mainWindowURL = path.resolve(`./renderer/index.html?hot=${!!hot}`)
-
-const mainWindow = new Window(mainWindowURL, {
-  width: 1600,
-  height: 1200,
-  openDevTools: true
 })
 
 mb.on('after-create-window', () => {
@@ -48,8 +38,17 @@ mb.on('ready', () => {
 // without removing your status bar icon.
 if (process.platform === 'darwin') {
   mb.app.on('destroy', () => {
-    mb.tray && mb.tray.destroy() })
+    mb.tray && mb.tray.destroy()
+  })
 }
+
+const mainWindow = new Window(
+  resolveAssets(`./renderer/index.html?src=${hotPath('index.bundle.js')}`), {
+    width: 1600,
+    height: 1200,
+    openDevTools: true
+  }
+)
 
 ipc.on('showMain', () => {
   mainWindow.show(true)

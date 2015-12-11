@@ -5,7 +5,6 @@ import path from 'path';
 import fs from 'fs';
 
 export default (callback) => {
-
   const appPath = app.getAppPath()
   const resourcesPath = path.resolve(appPath, "..")
   const servicePath = path.resolve(appPath, "..", "..", "SharedSupport", "bin")

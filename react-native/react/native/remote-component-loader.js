@@ -4,6 +4,8 @@ import {Provider} from 'react-redux'
 import remote from 'remote'
 import {ipcRenderer} from 'electron'
 
+import commonStyles from '../styles/common'
+
 const currentWindow = remote.getCurrentWindow()
 
 window.console.log = (...args) => ipcRenderer.send('console.log', args)
@@ -50,15 +52,15 @@ class RemoteStore {
   }
 }
 
-function getQueryVariable(variable) {
+function getQueryVariable (variable) {
   var query = window.location.search.substring(1)
-    var vars = query.split("&")
-    for (var i=0;i<vars.length;i++) {
-      var pair = vars[i].split("=")
-        if(pair[0] == variable){
-          return pair[1]
-        }
+  var vars = query.split('&')
+  for (var i = 0; i < vars.length; i++) {
+    var pair = vars[i].split('=')
+    if (pair[0] === variable) {
+      return pair[1]
     }
+  }
   return false
 }
 
@@ -73,16 +75,16 @@ class RemoteComponentLoader extends Component {
 
     const componentToLoad = getQueryVariable('component')
 
-    if (!componentToLoad) {
-      throw new TypeError('Remote Component not passed through hash')
-    }
-
     const component = {
       tracker: require('../tracker'),
       pinentry: require('../pinentry')
     }
 
-    this.Component = component[componentToLoad] || <p>Error</p>
+    if (!componentToLoad || !component[componentToLoad]) {
+      throw new TypeError('Invalid Remote Component passed through')
+    }
+
+    this.Component = component[componentToLoad]
   }
 
   componentWillMount () {
@@ -118,7 +120,7 @@ class RemoteComponentLoader extends Component {
   render () {
     const Component = this.Component
     if (!this.state.loaded) {
-      return <div>loading</div>
+      return <div style={commonStyles.loadingContainer}></div>
     }
     return (
       <Provider store={this.store}>

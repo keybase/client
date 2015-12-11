@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <title>Keybase</title>
     <link rel="stylesheet" href="./style.css" />
-    <link rel="stylesheet" href="../node_modules/font-awesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="../node_modules/font-awesome/css/font-awesome.min.css" />
   </head>
   <body>
     <div id="app"></div>
@@ -21,8 +21,7 @@
         return false
       }
       var script = document.createElement('script')
-      script.type = 'text/javascript'
-      script.src = getQueryVariable('hot') === 'true' ? 'http://localhost:4000/dist/index.bundle.js' : '../dist/index.bundle.js'
+      script.src = getQueryVariable('src')
       document.getElementsByTagName('head')[0].appendChild(script)
     </script>
   </body>

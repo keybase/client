@@ -10,14 +10,14 @@ config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-eval-source-map'
 config.pathinfo = true
 config.output.publicPath = 'http://localhost:4000/dist/'
 // Uncomment to figure out packaging bugs
-//config.bail = true
+config.bail = true
 
 config.plugins.push(
   new webpack.HotModuleReplacementPlugin(),
   new webpack.NoErrorsPlugin(),
   new webpack.DefinePlugin({
     '__DEV__': true
-    })
+  })
 )
 
 config.target = webpackTargetElectronRenderer(config)

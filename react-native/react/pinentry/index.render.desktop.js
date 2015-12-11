@@ -2,7 +2,7 @@ import React, {Component} from '../base-react'
 import {TextField, FlatButton, Checkbox} from 'material-ui'
 import Header from '../common-adapters/header'
 import path from 'path'
-
+import resolveAssets from '../../../desktop/resolve-assets'
 import commonStyles, {colors} from '../styles/common'
 
 export default class PinentryRender extends Component {
@@ -46,7 +46,7 @@ export default class PinentryRender extends Component {
             onClose={() => this.props.onCancel()}
           />
           <div style={styles.bodyContainer}>
-            <img style={styles.logo} src={`file:///${path.resolve('../react-native/react/images/service/keybase.png')}`}/>
+            <img style={styles.logo} src={`file:///${resolveAssets('../react-native/react/images/service/keybase.png')}`}/>
             <div style={styles.body}>
               <p style={styles.prompt}>{this.props.prompt}</p>
               <div style={styles.checkContainer}>
