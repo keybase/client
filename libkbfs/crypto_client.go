@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"time"
 
-	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -52,12 +51,6 @@ func newCryptoClientWithClient(codec Codec, client keybase1.GenericClient,
 func (c *CryptoClient) OnConnect(ctx context.Context,
 	conn *Connection, _ keybase1.GenericClient,
 	server *rpc.Server) error {
-	err := server.Register(client.NewSecretUIProtocol(libkb.G))
-	if err != nil {
-		if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -92,9 +85,8 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	}()
 
 	ed25519SigInfo, err := c.client.SignED25519(ctx, keybase1.SignED25519Arg{
-		SessionID: 0,
-		Msg:       msg,
-		Reason:    "to use kbfs",
+		Msg:    msg,
+		Reason: "to use kbfs",
 	})
 	if err != nil {
 		return
@@ -115,9 +107,8 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 		c.log.CDebugf(ctx, "Signed %d-byte message: err=%v", len(msg), err)
 	}()
 	signature, err = c.client.SignToString(ctx, keybase1.SignToStringArg{
-		SessionID: 0,
-		Msg:       msg,
-		Reason:    "KBFS Authentication",
+		Msg:    msg,
+		Reason: "KBFS Authentication",
 	})
 	return
 }
@@ -148,7 +139,6 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	copy(nonce[:], encryptedClientHalf.Nonce)
 
 	decryptedClientHalf, err := c.client.UnboxBytes32(ctx, keybase1.UnboxBytes32Arg{
-		SessionID:        0,
 		EncryptedBytes32: encryptedData,
 		Nonce:            nonce,
 		PeersPublicKey:   keybase1.BoxPublicKey(publicKey.PublicKey),
