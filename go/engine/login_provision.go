@@ -533,9 +533,7 @@ func (e *LoginProvision) checkEmailOrUsername(ctx *Context, emailOrUsername stri
 // loadUser will load the user by name specified in e.username.
 func (e *LoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 	if len(e.username) == 0 {
-		// XXX temp:
-		// 		return nil, libkb.NoUsernameError{}
-		e.username = e.arg.Username
+		return nil, libkb.NoUsernameError{}
 	}
 	e.G().Log.Debug("LoginProvision: loading user %s", e.username)
 	arg := libkb.NewLoadUserByNameArg(e.G(), e.username)
@@ -792,7 +790,7 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 		return libkb.NotFoundError{Msg: fmt.Sprintf("No keybase user found for PGP fingerprint %s; please try a different GPG key or another provisioning method", fp)}
 	}
 
-	e.G().Log.Debug("found user (%s, %s) for key %s", username, uid, fp)
+	e.G().Log.Debug("found user (%q, %q) for key %s", username, uid, fp)
 
 	// if so, will have username from that
 	e.username = username
