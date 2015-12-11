@@ -44,23 +44,23 @@ type errorSecretUI struct {
 var _ libkb.SecretUI = errorSecretUI{}
 
 func (e errorSecretUI) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	return nil, libkb.LoginRequiredError{e.reason}
+	return nil, libkb.LoginRequiredError{Context: e.reason}
 }
 
 func (e errorSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{e.reason}
+	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{Context: e.reason}
 }
 
 func (e errorSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{e.reason}
+	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{Context: e.reason}
 }
 
 func (e errorSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	return "", libkb.LoginRequiredError{e.reason}
+	return "", libkb.LoginRequiredError{Context: e.reason}
 }
 
 func (e errorSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{e.reason}
+	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{Context: e.reason}
 }
 
 func (c *CryptoHandler) getSecretUI(reason string) libkb.SecretUI {
