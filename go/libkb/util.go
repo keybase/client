@@ -25,8 +25,13 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
+var CustomBuild string
+
 // VersionString returns semantic version string
 func VersionString() string {
+	if CustomBuild != "" {
+		return fmt.Sprintf("%s-%s", Version, CustomBuild)
+	}
 	return fmt.Sprintf("%s-%s", Version, Build)
 }
 
