@@ -57,8 +57,10 @@ type GlobalContext struct {
 	loginState        *LoginState        // What phase of login the user's in
 	ConnectionManager *ConnectionManager // keep tabs on all active client connections
 	NotifyRouter      *NotifyRouter      // How to route notifications
-	UIRouter          UIRouter           // How to route UIs
-	ExitCode          keybase1.ExitCode  // Value to return to OS on Exit()
+	// How to route UIs. Nil if we're in standalone mode or in
+	// tests, and non-nil in service mode.
+	UIRouter UIRouter
+	ExitCode keybase1.ExitCode // Value to return to OS on Exit()
 }
 
 func NewGlobalContext() *GlobalContext {
