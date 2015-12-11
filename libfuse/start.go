@@ -58,7 +58,7 @@ func Start(mounter Mounter, options StartOptions) *Error {
 	defer libkbfs.Shutdown(options.MemProfile)
 
 	if options.RuntimeDir != "" {
-		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.Build, options.Label, os.Getpid())
+		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.Build(), options.Label, os.Getpid())
 		err = info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"))
 		if err != nil {
 			return InitError(err.Error())

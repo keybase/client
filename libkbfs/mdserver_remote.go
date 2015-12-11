@@ -20,7 +20,7 @@ const (
 	// MdServerClientName is the client name to include in an authentication token.
 	MdServerClientName = "libkbfs_mdserver_remote"
 	// MdServerClientVersion is the client version to include in an authentication token.
-	MdServerClientVersion = Version + "-" + Build
+	MdServerClientVersion = Version + "-" + DefaultBuild
 )
 
 // MDServerRemote is an implementation of the MDServer interface.

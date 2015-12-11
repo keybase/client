@@ -19,7 +19,7 @@ const (
 	// BServerClientName is the client name to include in an authentication token.
 	BServerClientName = "libkbfs_bserver_remote"
 	// BServerClientVersion is the client version to include in an authentication token.
-	BServerClientVersion = Version + "-" + Build
+	BServerClientVersion = Version + "-" + DefaultBuild
 )
 
 // BlockServerRemote implements the BlockServer interface and

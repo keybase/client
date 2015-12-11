@@ -64,3 +64,19 @@ func LogTagsFromContextToMap(ctx context.Context) (tags map[string]string) {
 	}
 	return tags
 }
+
+// CustomBuild can be set at compile time to override Build
+var CustomBuild string
+
+// Build returns the custom or default build
+func Build() string {
+	if CustomBuild != "" {
+		return CustomBuild
+	}
+	return DefaultBuild
+}
+
+// VersionString returns semantic version string
+func VersionString() string {
+	return fmt.Sprintf("%s-%s", Version, Build())
+}
