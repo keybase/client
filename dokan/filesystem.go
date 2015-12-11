@@ -25,6 +25,7 @@ type FileSystem interface {
 	Mounted() error
 }
 
+// CreateData contains all the info needed to create a file.
 type CreateData struct {
 	DesiredAccess     uint32
 	FileAttributes    uint32
