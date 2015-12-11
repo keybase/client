@@ -540,19 +540,16 @@ type EncryptedBytes32 [48]byte
 type BoxNonce [24]byte
 type BoxPublicKey [32]byte
 type SignED25519Arg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Msg       []byte `codec:"msg" json:"msg"`
-	Reason    string `codec:"reason" json:"reason"`
+	Msg    []byte `codec:"msg" json:"msg"`
+	Reason string `codec:"reason" json:"reason"`
 }
 
 type SignToStringArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Msg       []byte `codec:"msg" json:"msg"`
-	Reason    string `codec:"reason" json:"reason"`
+	Msg    []byte `codec:"msg" json:"msg"`
+	Reason string `codec:"reason" json:"reason"`
 }
 
 type UnboxBytes32Arg struct {
-	SessionID        int              `codec:"sessionID" json:"sessionID"`
 	EncryptedBytes32 EncryptedBytes32 `codec:"encryptedBytes32" json:"encryptedBytes32"`
 	Nonce            BoxNonce         `codec:"nonce" json:"nonce"`
 	PeersPublicKey   BoxPublicKey     `codec:"peersPublicKey" json:"peersPublicKey"`
