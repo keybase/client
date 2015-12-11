@@ -463,11 +463,11 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 		return nil, err
 	}
 
-	for name, et := range children {
+	for name, ei := range children {
 		fde := fuse.Dirent{
 			Name: name,
 		}
-		switch et {
+		switch ei.Type {
 		case libkbfs.File, libkbfs.Exec:
 			fde.Type = fuse.DT_File
 		case libkbfs.Dir:

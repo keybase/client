@@ -136,7 +136,7 @@ func (fs *KBFSOpsStandard) GetRootNode(ctx context.Context,
 
 // GetDirChildren implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetDirChildren(ctx context.Context, dir Node) (
-	map[string]EntryType, error) {
+	map[string]EntryInfo, error) {
 	ops := fs.getOpsByNode(dir)
 	return ops.GetDirChildren(ctx, dir)
 }

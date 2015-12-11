@@ -54,9 +54,9 @@ type Engine interface {
 	// its name for the given user. In the case of a symlink the symPath will be set and
 	// the node will be nil.
 	Lookup(u User, parentDir Node, name string) (file Node, symPath string, err error)
-	// GetDirChildren is called by the test harness as the given user to return a map of child nodes
+	// GetDirChildrenTypes is called by the test harness as the given user to return a map of child nodes
 	// and their type names.
-	GetDirChildren(u User, parentDir Node) (children map[string]string, err error)
+	GetDirChildrenTypes(u User, parentDir Node) (children map[string]string, err error)
 	// SetEx is called by the test harness as the given user to set/unset the executable bit on the
 	// given file.
 	SetEx(u User, file Node, ex bool) (err error)

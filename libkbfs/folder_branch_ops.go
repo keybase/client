@@ -486,10 +486,12 @@ func (fbo *FolderBranchOps) initMDLocked(
 	now := fbo.nowUnixNano()
 	md.data.Dir = DirEntry{
 		BlockInfo: info,
-		Type:      Dir,
-		Size:      uint64(plainSize),
-		Mtime:     now,
-		Ctime:     now,
+		EntryInfo: EntryInfo{
+			Type:  Dir,
+			Size:  uint64(plainSize),
+			Mtime: now,
+			Ctime: now,
+		},
 	}
 	md.AddOp(newCreateOp("", BlockPointer{}, Dir))
 	md.AddRefBlock(md.data.Dir.BlockInfo)
@@ -817,7 +819,7 @@ func (fbo *FolderBranchOps) updateDirBlock(ctx context.Context,
 
 // GetDirChildren implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
-	children map[string]EntryType, err error) {
+	children map[string]EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "GetDirChildren %p", dir.GetID())
 	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
 
@@ -843,9 +845,9 @@ func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 		return
 	}
 
-	children = make(map[string]EntryType)
+	children = make(map[string]EntryInfo)
 	for k, de := range block.Children {
-		children[k] = de.Type
+		children[k] = de.EntryInfo
 	}
 	return
 }
@@ -1185,8 +1187,10 @@ func (fbo *FolderBranchOps) syncBlock(ctx context.Context, uid keybase1.UID,
 				// below as well, since we should only be creating a
 				// new directory entry when doSetTime is true.
 				de = DirEntry{
-					Type: entryType,
-					Size: 0,
+					EntryInfo: EntryInfo{
+						Type: entryType,
+						Size: 0,
+					},
 				}
 				// If we're creating a new directory entry, the
 				// parent's times must be set as well.
@@ -1616,11 +1620,13 @@ func (fbo *FolderBranchOps) createLinkLocked(
 	// Create a direntry for the link, and then sync
 	now := fbo.nowUnixNano()
 	dblock.Children[fromName] = DirEntry{
-		Type:    Sym,
-		Size:    uint64(len(toPath)),
-		SymPath: toPath,
-		Mtime:   now,
-		Ctime:   now,
+		EntryInfo: EntryInfo{
+			Type:    Sym,
+			Size:    uint64(len(toPath)),
+			SymPath: toPath,
+			Mtime:   now,
+			Ctime:   now,
+		},
 	}
 
 	_, err = fbo.syncBlockAndFinalizeLocked(

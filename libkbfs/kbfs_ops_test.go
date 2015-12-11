@@ -391,10 +391,12 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		BlockInfo: BlockInfo{
 			EncodedSize: 15,
 		},
-		Type:  Dir,
-		Size:  10,
-		Mtime: 1,
-		Ctime: 2,
+		EntryInfo: EntryInfo{
+			Type:  Dir,
+			Size:  10,
+			Mtime: 1,
+			Ctime: 2,
+		},
 	}
 
 	config.mockMdops.EXPECT().GetUnmergedForHandle(gomock.Any(), h).Return(
@@ -482,8 +484,8 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 
 	rootID := fakeBlockID(42)
 	dirBlock := NewDirBlock().(*DirBlock)
-	dirBlock.Children["a"] = DirEntry{Type: File}
-	dirBlock.Children["b"] = DirEntry{Type: Dir}
+	dirBlock.Children["a"] = DirEntry{EntryInfo: EntryInfo{Type: File}}
+	dirBlock.Children["b"] = DirEntry{EntryInfo: EntryInfo{Type: Dir}}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	testPutBlockInCache(config, node.BlockPointer, id, dirBlock)
@@ -496,11 +498,11 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	} else if len(children) != 2 {
 		t.Errorf("Got bad children back: %v", children)
 	}
-	for c, et := range children {
+	for c, ei := range children {
 		if de, ok := dirBlock.Children[c]; !ok {
 			t.Errorf("No such child: %s", c)
-		} else if de.Type != et {
-			t.Errorf("Wrong type for child %s: %v", c, et)
+		} else if de.EntryInfo != ei {
+			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
 		}
 	}
 }
@@ -599,8 +601,8 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	aID := fakeBlockID(43)
 	bID := fakeBlockID(44)
 	dirBlock := NewDirBlock().(*DirBlock)
-	dirBlock.Children["a"] = DirEntry{Type: Exec}
-	dirBlock.Children["b"] = DirEntry{Type: Sym}
+	dirBlock.Children["a"] = DirEntry{EntryInfo: EntryInfo{Type: Exec}}
+	dirBlock.Children["b"] = DirEntry{EntryInfo: EntryInfo{Type: Sym}}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
 	bNode := pathNode{makeBP(bID, rmd, config, u), "b"}
@@ -616,11 +618,11 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 		t.Errorf("Got bad children back: %v", children)
 	}
 
-	for c, et := range children {
+	for c, ei := range children {
 		if de, ok := dirBlock.Children[c]; !ok {
 			t.Errorf("No such child: %s", c)
-		} else if de.Type != et {
-			t.Errorf("Wrong type for child %s: %v", c, et)
+		} else if de.EntryInfo != ei {
+			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
 		}
 	}
 }
@@ -640,7 +642,9 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, u),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
@@ -680,7 +684,9 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, u),
-		Type:      Sym,
+		EntryInfo: EntryInfo{
+			Type: Sym,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
@@ -716,7 +722,9 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, u),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
@@ -751,7 +759,9 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	bInfo.DataVer = 10
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: bInfo,
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
@@ -788,7 +798,9 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, u),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
@@ -1093,7 +1105,9 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
@@ -1202,7 +1216,9 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, u),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
@@ -1248,12 +1264,16 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, uid),
-		Type:      entryType,
+		EntryInfo: EntryInfo{
+			Type: entryType,
+		},
 	}
 	bBlock := NewFileBlock()
 	if entryType == Dir {
@@ -1353,7 +1373,9 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 			BlockPointer: BlockPointer{ID: fileID, KeyGen: 1},
 			EncodedSize:  10,
 		},
-		Size: 20,
+		EntryInfo: EntryInfo{
+			Size: 20,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -1444,17 +1466,23 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, u),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, u),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	bBlock := NewDirBlock().(*DirBlock)
 	bBlock.Children["c"] = DirEntry{
 		BlockInfo: makeBIFromID(cID, u),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
@@ -1486,7 +1514,9 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, u),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	bBlock := NewDirBlock().(*DirBlock)
@@ -1521,12 +1551,16 @@ func TestRenameInDirSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
@@ -1601,16 +1635,22 @@ func TestRenameInDirOverEntrySuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	aBlock.Children["c"] = DirEntry{
 		BlockInfo: makeBIFromID(cID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	cBlock := NewFileBlock().(*FileBlock)
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
@@ -1687,7 +1727,9 @@ func TestRenameInRootSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
@@ -1759,12 +1801,16 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
@@ -1775,7 +1821,9 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	dID := fakeBlockID(40)
 	rootBlock.Children["d"] = DirEntry{
 		BlockInfo: makeBIFromID(dID, uid),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	dBlock := NewDirBlock().(*DirBlock)
 	dNode := pathNode{makeBP(dID, rmd, config, uid), "d"}
@@ -1868,16 +1916,22 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	aBlock.Children["d"] = DirEntry{
 		BlockInfo: makeBIFromID(dID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	dBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
@@ -1961,17 +2015,23 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      Dir,
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
 	}
 	aBlock := NewDirBlock().(*DirBlock)
 	aBlock.Children["d"] = DirEntry{
 		BlockInfo: makeBIFromID(dID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	dBlock := NewDirBlock().(*DirBlock)
 	dBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
@@ -2410,7 +2470,9 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
-		Type: File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
@@ -2476,7 +2538,9 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
-		Type: File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
@@ -2535,7 +2599,9 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
-		Type: File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
@@ -2594,7 +2660,9 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
-		Type: File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{}
@@ -2704,7 +2772,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 			BlockPointer: filePtr,
 			EncodedSize:  1,
 		},
-		Size: 10,
+		EntryInfo: EntryInfo{
+			Size: 10,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -2794,7 +2864,9 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
-		Type: File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
@@ -2853,7 +2925,9 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: makeBIFromID(fileID, u),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
@@ -2892,7 +2966,9 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
-		Type: File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
@@ -2945,7 +3021,9 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	fileInfo := makeBIFromID(fileID, uid)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: fileInfo,
-		Size:      10,
+		EntryInfo: EntryInfo{
+			Size: 10,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -3025,7 +3103,9 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	fileInfo := makeBIFromID(fileID, uid)
 	rootBlock.Children["f"] = DirEntry{
 		BlockInfo: fileInfo,
-		Size:      10,
+		EntryInfo: EntryInfo{
+			Size: 10,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -3100,7 +3180,9 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
-		Type: File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
@@ -3158,8 +3240,10 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Size:      1,
-		Type:      entryType,
+		EntryInfo: EntryInfo{
+			Size: 1,
+			Type: entryType,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
@@ -3318,7 +3402,9 @@ func TestSetMtimeSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, uid), "a"}
@@ -3381,8 +3467,10 @@ func TestSetMtimeNull(t *testing.T) {
 	oldMtime := time.Now().UnixNano()
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, u),
-		Type:      File,
-		Mtime:     oldMtime,
+		EntryInfo: EntryInfo{
+			Type:  File,
+			Mtime: oldMtime,
+		},
 	}
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
@@ -3442,7 +3530,9 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	aBlock := NewFileBlock().(*FileBlock)
 	aBlock.Contents = []byte{1, 2, 3, 4, 5}
@@ -3590,7 +3680,9 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(fileID, uid),
-		Size:      20,
+		EntryInfo: EntryInfo{
+			Size: 20,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -3703,11 +3795,15 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	rootBlock.Children["b"] = DirEntry{
 		BlockInfo: makeBIFromID(bID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	aBlock := NewFileBlock().(*FileBlock)
 	aBlock.Contents = []byte{1, 2, 3, 4, 5}
@@ -3826,7 +3922,9 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(fileID, uid),
-		Size:      20,
+		EntryInfo: EntryInfo{
+			Size: 20,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -4007,7 +4105,9 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(fileID, uid),
-		Size:      20,
+		EntryInfo: EntryInfo{
+			Size: 20,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	fileBlock.IsInd = true
@@ -4161,7 +4261,9 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	rootBlock := NewDirBlock().(*DirBlock)
 	rootBlock.Children["a"] = DirEntry{
 		BlockInfo: makeBIFromID(aID, uid),
-		Type:      File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	aBlock := NewFileBlock().(*FileBlock)
 	aBlock.Contents = []byte{1, 2, 3, 4, 5}
@@ -4296,7 +4398,9 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 			BlockPointer: makeBP(fileID, rmd, config, uid),
 			EncodedSize:  1,
 		},
-		Type: File,
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
 	}
 	fileBlock := NewFileBlock().(*FileBlock)
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}

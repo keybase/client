@@ -43,8 +43,9 @@ package main
 import "C"
 
 import (
-	test "github.com/keybase/kbfs/test/ext"
 	"unsafe"
+
+	test "github.com/keybase/kbfs/test/ext"
 )
 
 // Global engine delegate.
@@ -212,10 +213,10 @@ func Lookup(u, parent interface{}, name *C.char) (file interface{}, symPath, err
 	return file, symPath, errString
 }
 
-// GetDirChildren lists all the children of a given dir node.
-//export GetDirChildren
-func GetDirChildren(u, parent interface{}) (children *C.StringArray, errString *C.char) {
-	entries, err := engine.GetDirChildren(u, parent)
+// GetDirChildrenTypes lists all the children of a given dir node.
+//export GetDirChildrenTypes
+func GetDirChildrenTypes(u, parent interface{}) (children *C.StringArray, errString *C.char) {
+	entries, err := engine.GetDirChildrenTypes(u, parent)
 	if err != nil {
 		errString = C.CString(err.Error())
 		return children, errString

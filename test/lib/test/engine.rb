@@ -112,7 +112,7 @@ module Test
     attach_function :WriteFile, [:interface, :interface, :string, :long_long, :bool], :string
     attach_function :Sync, [:interface, :interface], :string
     attach_function :ReadFile, [:interface, :interface, :long_long, :long_long], :read_file_return
-    attach_function :GetDirChildren, [:interface, :interface], :strings, :string
+    attach_function :GetDirChildrenTypes, [:interface, :interface], :strings, :string
     attach_function :SetEx, [:interface, :interface, :bool], :string
     attach_function :DisableUpdatesForTesting, [:interface, :interface], :string
     attach_function :ReenableUpdates, [:interface, :interface], :void
@@ -186,9 +186,9 @@ module Test
       [ r[:r0], r[:r1] ]
     end
 
-    def self.get_dir_children(u, dir)
+    def self.get_dir_children_types(u, dir)
       entries = {}
-      children, err = GetDirChildren(u, dir)
+      children, err = GetDirChildrenTypes(u, dir)
       return [ entries, err ] if err
       children.to_a.each_slice(2) do |name, type|
         entries[name] = type

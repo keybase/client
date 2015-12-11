@@ -109,10 +109,10 @@ type KBFSOps interface {
 	GetRootNode(ctx context.Context, folderBranch FolderBranch) (
 		Node, DirEntry, *TlfHandle, error)
 	// GetDirChildren returns a map of children in the directory,
-	// mapped to their EntryType, if the logged-in user has read
+	// mapped to their EntryInfo, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access
 	// operation.
-	GetDirChildren(ctx context.Context, dir Node) (map[string]EntryType, error)
+	GetDirChildren(ctx context.Context, dir Node) (map[string]EntryInfo, error)
 	// Lookup returns the Node and directory entry associated with a
 	// given name in a directory, if the logged-in user has read
 	// permissions to the top-level folder.  The returned Node is nil

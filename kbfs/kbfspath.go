@@ -218,7 +218,9 @@ func (p kbfsPath) getNode(ctx context.Context, config libkbfs.Config) (n libkbfs
 
 	if p.pathType != tlfPath {
 		de = libkbfs.DirEntry{
-			Type: libkbfs.Dir,
+			EntryInfo: libkbfs.EntryInfo{
+				Type: libkbfs.Dir,
+			},
 		}
 		return
 	}

@@ -885,9 +885,9 @@ func (et EntryType) String() string {
 	return "<invalid EntryType>"
 }
 
-// DirEntry is the MD for each child in a directory
-type DirEntry struct {
-	BlockInfo
+// EntryInfo is the (non-block-related) info a directory knows about
+// its child.
+type EntryInfo struct {
 	Type    EntryType
 	Size    uint64
 	SymPath string `codec:",omitempty"` // must be within the same root dir
@@ -895,6 +895,12 @@ type DirEntry struct {
 	Mtime int64
 	// Ctime is in unix nanoseconds
 	Ctime int64
+}
+
+// DirEntry is all the data info a directory know about its child.
+type DirEntry struct {
+	BlockInfo
+	EntryInfo
 }
 
 // IsInitialized returns true if this DirEntry has been initialized.

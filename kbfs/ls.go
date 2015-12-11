@@ -141,8 +141,8 @@ func lsHelper(ctx context.Context, config libkbfs.Config, p kbfsPath, hasMultipl
 			if hasMultiple {
 				printHeader(p)
 			}
-			for name, entryType := range children {
-				handleEntry(name, entryType)
+			for name, entryInfo := range children {
+				handleEntry(name, entryInfo.Type)
 			}
 		} else {
 			_, name, err := p.dirAndBasename()

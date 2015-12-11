@@ -151,7 +151,7 @@ module Test
         def self.lsdir(name, files, opts=nil)
           raise_unless_expected(opts, __method__) do
             folder = get_node(name, false, false)
-            entries, err = Engine.get_dir_children(@user, folder)
+            entries, err = Engine.get_dir_children_types(@user, folder)
             raise err if err
             # make sure all expected files are found
             left = entries.clone

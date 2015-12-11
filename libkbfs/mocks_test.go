@@ -227,9 +227,9 @@ func (_mr *_MockKBFSOpsRecorder) GetRootNode(arg0, arg1 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootNode", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) GetDirChildren(ctx context.Context, dir Node) (map[string]EntryType, error) {
+func (_m *MockKBFSOps) GetDirChildren(ctx context.Context, dir Node) (map[string]EntryInfo, error) {
 	ret := _m.ctrl.Call(_m, "GetDirChildren", ctx, dir)
-	ret0, _ := ret[0].(map[string]EntryType)
+	ret0, _ := ret[0].(map[string]EntryInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2595,6 +2595,18 @@ func (_m *MockcrAction) EXPECT() *_MockcrActionRecorder {
 	return _m.recorder
 }
 
+func (_m *MockcrAction) swapUnmergedBlock(unmergedChains *crChains, mergedChains *crChains, unmergedBlock *DirBlock) (bool, BlockPointer, error) {
+	ret := _m.ctrl.Call(_m, "swapUnmergedBlock", unmergedChains, mergedChains, unmergedBlock)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(BlockPointer)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockcrActionRecorder) swapUnmergedBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "swapUnmergedBlock", arg0, arg1, arg2)
+}
+
 func (_m *MockcrAction) do(ctx context.Context, unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier, unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
 	ret := _m.ctrl.Call(_m, "do", ctx, unmergedCopier, mergedCopier, unmergedBlock, mergedBlock)
 	ret0, _ := ret[0].(error)
@@ -2605,14 +2617,14 @@ func (_mr *_MockcrActionRecorder) do(arg0, arg1, arg2, arg3, arg4 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "do", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockcrAction) updateOps(unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer, mergedBlock *DirBlock, unmergedChains *crChains, mergedChains *crChains) error {
-	ret := _m.ctrl.Call(_m, "updateOps", unmergedMostRecent, mergedMostRecent, mergedBlock, unmergedChains, mergedChains)
+func (_m *MockcrAction) updateOps(unmergedMostRecent BlockPointer, mergedMostRecent BlockPointer, unmergedBlock *DirBlock, mergedBlock *DirBlock, unmergedChains *crChains, mergedChains *crChains) error {
+	ret := _m.ctrl.Call(_m, "updateOps", unmergedMostRecent, mergedMostRecent, unmergedBlock, mergedBlock, unmergedChains, mergedChains)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockcrActionRecorder) updateOps(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "updateOps", arg0, arg1, arg2, arg3, arg4)
+func (_mr *_MockcrActionRecorder) updateOps(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "updateOps", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 func (_m *MockcrAction) String() string {

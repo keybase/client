@@ -233,19 +233,19 @@ func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPat
 	return file, symPath, nil
 }
 
-// GetDirChildren implements the Engine interface.
-func (k *LibKBFS) GetDirChildren(u User, parentDir Node) (children map[string]string, err error) {
+// GetDirChildrenTypes implements the Engine interface.
+func (k *LibKBFS) GetDirChildrenTypes(u User, parentDir Node) (childrenTypes map[string]string, err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	var entries map[string]libkbfs.EntryType
+	var entries map[string]libkbfs.EntryInfo
 	entries, err = kbfsOps.GetDirChildren(context.Background(), parentDir.(libkbfs.Node))
 	if err != nil {
-		return children, err
+		return childrenTypes, err
 	}
-	children = make(map[string]string)
-	for name, entryType := range entries {
-		children[name] = entryType.String()
+	childrenTypes = make(map[string]string)
+	for name, entryInfo := range entries {
+		childrenTypes[name] = entryInfo.Type.String()
 	}
-	return children, nil
+	return childrenTypes, nil
 }
 
 // SetEx implements the Engine interface.
