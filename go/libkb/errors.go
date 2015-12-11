@@ -219,14 +219,14 @@ func (e BadSigError) Error() string {
 //=============================================================================
 
 type NotFoundError struct {
-	msg string
+	Msg string
 }
 
 func (e NotFoundError) Error() string {
-	if len(e.msg) == 0 {
+	if len(e.Msg) == 0 {
 		return "Not found"
 	}
-	return e.msg
+	return e.Msg
 }
 
 //=============================================================================
