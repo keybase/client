@@ -60,14 +60,6 @@ mkdir foo
 notepad bar.txt
 ```
 
-## Issue: lack of readdirplus in libkbfs
-
-Currently kbfsdokan returns file sizes as 0 in FindFiles (readdir). The alternatives are
-
-+ A) return zero in FindFiles and the correct in GetFileInformation
-+ B) stat everything (slow) in FindFiles
-+ C) add support for readdirplus (i.e. readdir with stat) to libkbfs
-
 ## Issue: symbolic links only inside the current directory
 
 This is quite simple to fix, the only issue is to escape unix paths properly and safely

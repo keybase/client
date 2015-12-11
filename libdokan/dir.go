@@ -293,25 +293,9 @@ func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) erro
 
 	var ns dokan.NamedStat
 	ns.NumberOfLinks = 1
-	for name, et := range children {
+	for name, de := range children {
 		ns.Name = name
-		switch et {
-		case libkbfs.File, libkbfs.Exec:
-			// FIXME kbfs does not provide file sizes here, windows kind of would like
-			// them. Either return 0 for size here or stat each file (expensive...).
-			ns.FileAttributes = fileAttributeNormal
-			if !d.folder.fs.omitFindFilesStat {
-				_, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, name)
-				if err == nil {
-					ns.FileSize = int64(de.Size)
-				}
-			}
-		case libkbfs.Dir:
-			ns.FileAttributes = fileAttributeDirectory
-		case libkbfs.Sym:
-			ns.FileAttributes = fileAttributeReparsePoint
-			ns.ReparsePointTag = reparsePointTagSymlink
-		}
+		fillStat(&ns.Stat, &de)
 		err = callback(&ns)
 		if err != nil {
 			return err

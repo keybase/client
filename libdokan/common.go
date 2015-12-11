@@ -55,7 +55,13 @@ func deToStat(de libkbfs.DirEntry, err error) (*dokan.Stat, error) {
 	if err != nil {
 		return nil, errToDokan(err)
 	}
-	a := dokan.Stat{}
+	st := &dokan.Stat{}
+	fillStat(st, &de.EntryInfo)
+	return st, nil
+}
+
+// fillStat fill a dokan.Stat from a libkbfs.DirEntry
+func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 	a.FileSize = int64(de.Size)
 	a.LastWrite = time.Unix(0, de.Mtime)
 	a.LastAccess = a.LastWrite
@@ -70,7 +76,6 @@ func deToStat(de libkbfs.DirEntry, err error) (*dokan.Stat, error) {
 		a.FileAttributes = fileAttributeReparsePoint
 		a.ReparsePointTag = reparsePointTagSymlink
 	}
-	return &a, nil
 }
 
 // errToDokan makes some libkbfs errors easier to digest in dokan. Not needed in most places.

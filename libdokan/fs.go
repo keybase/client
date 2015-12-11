@@ -39,8 +39,6 @@ type FS struct {
 
 	// mounted can be used to wait till the filesystem is mounted.
 	mounted sync.WaitGroup
-	// omitFindFilesStat - whether to stat everything (slow) in FindFiles
-	omitFindFilesStat bool
 
 	root *Root
 }
