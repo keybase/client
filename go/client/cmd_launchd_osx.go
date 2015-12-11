@@ -55,7 +55,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			envVars := install.DefaultLaunchdEnvVars(g, label)
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
-			err := launchd.Install(plist, os.Stdout)
+			err := launchd.Install(plist, g.Log)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -278,13 +278,13 @@ func (v *CmdLaunchdAction) ParseArgv(ctx *cli.Context) error {
 func (v *CmdLaunchdAction) Run() error {
 	switch v.action {
 	case "start":
-		return launchd.Start(v.label, os.Stdout)
+		return launchd.Start(v.label, v.G().Log)
 	case "restart":
-		return launchd.Restart(v.label, os.Stdout)
+		return launchd.Restart(v.label, v.G().Log)
 	case "stop":
-		return launchd.Stop(v.label, os.Stdout)
+		return launchd.Stop(v.label, v.G().Log)
 	case "uninstall":
-		return launchd.Uninstall(v.label, os.Stdout)
+		return launchd.Uninstall(v.label, v.G().Log)
 	}
 
 	return nil

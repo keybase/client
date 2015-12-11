@@ -17,24 +17,24 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 )
 
 // Service defines a service
 type Service struct {
 	label  string
-	writer io.Writer
+	logger logger.Logger
 }
 
 // NewService constructs a launchd service.
 func NewService(label string) Service {
 	return Service{
-		label:  label,
-		writer: os.Stdout,
+		label: label,
 	}
 }
 
-func (s *Service) SetWriter(writer io.Writer) {
-	s.writer = writer
+func (s *Service) SetLogger(logger logger.Logger) {
+	s.logger = logger
 }
 
 // Label for service
@@ -66,7 +66,7 @@ func (s Service) Load(restart bool) error {
 	if restart {
 		exec.Command("/bin/launchctl", "unload", plistDest).Output()
 	}
-	fmt.Fprintf(s.writer, "Loading %s\n", s.label)
+	s.logger.Info("Loading %s", s.label)
 	_, err := exec.Command("/bin/launchctl", "load", "-w", plistDest).Output()
 	return err
 }
@@ -74,7 +74,7 @@ func (s Service) Load(restart bool) error {
 // Unload will unload the service
 func (s Service) Unload() error {
 	plistDest := s.plistDestination()
-	fmt.Fprintf(s.writer, "Unloading %s\n", s.label)
+	s.logger.Info("Unloading %s", s.label)
 	_, err := exec.Command("/bin/launchctl", "unload", plistDest).Output()
 	return err
 }
@@ -87,7 +87,7 @@ func (s Service) Install(p Plist) (err error) {
 	plist := p.plist()
 	plistDest := s.plistDestination()
 
-	fmt.Fprintf(s.writer, "Saving %s\n", plistDest)
+	s.logger.Info("Saving %s", plistDest)
 	file := libkb.NewFile(plistDest, []byte(plist), 0644)
 	err = file.Save()
 	if err != nil {
@@ -107,7 +107,7 @@ func (s Service) Uninstall() (err error) {
 
 	plistDest := s.plistDestination()
 	if _, err := os.Stat(plistDest); err == nil {
-		fmt.Fprintf(s.writer, "Removing %s\n", plistDest)
+		s.logger.Info("Removing %s", plistDest)
 		err = os.Remove(plistDest)
 	}
 	return
@@ -241,52 +241,53 @@ func ShowServices(filters []string, name string, out io.Writer) (err error) {
 }
 
 // Install will install a service
-func Install(plist Plist, writer io.Writer) (err error) {
+func Install(plist Plist, logger logger.Logger) (err error) {
 	service := NewService(plist.label)
-	service.SetWriter(writer)
+	service.SetLogger(logger)
 	return service.Install(plist)
 }
 
 // Uninstall will uninstall a keybase service
-func Uninstall(label string, writer io.Writer) error {
+func Uninstall(label string, logger logger.Logger) error {
 	service := NewService(label)
-	service.SetWriter(writer)
+	service.SetLogger(logger)
 	return service.Uninstall()
 }
 
 // Start will start a keybase service
-func Start(label string, writer io.Writer) error {
+func Start(label string, logger logger.Logger) error {
 	service := NewService(label)
+	service.SetLogger(logger)
 	return service.Load(false)
 }
 
 // Stop will stop a keybase service
-func Stop(label string, writer io.Writer) error {
+func Stop(label string, logger logger.Logger) error {
 	service := NewService(label)
-	service.SetWriter(writer)
+	service.SetLogger(logger)
 	return service.Unload()
 }
 
 // ShowStatus shows status info for a service
-func ShowStatus(label string, writer io.Writer) error {
+func ShowStatus(label string, logger logger.Logger) error {
 	service := NewService(label)
-	service.SetWriter(writer)
+	service.SetLogger(logger)
 	status, err := service.LoadStatus()
 	if err != nil {
 		return err
 	}
 	if status != nil {
-		fmt.Fprintf(writer, "%s\n", status.Description())
+		logger.Info("%s", status.Description())
 	} else {
-		fmt.Fprintf(writer, "No service found with label: %s\n", label)
+		logger.Info("No service found with label: %s", label)
 	}
 	return nil
 }
 
 // Restart restarts a service
-func Restart(label string, writer io.Writer) error {
+func Restart(label string, logger logger.Logger) error {
 	service := NewService(label)
-	service.SetWriter(writer)
+	service.SetLogger(logger)
 	return service.Load(true)
 }
 
