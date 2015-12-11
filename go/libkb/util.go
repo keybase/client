@@ -25,14 +25,20 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
+// CustomBuild can be set at compile time to override Build
 var CustomBuild string
+
+// Build returns the custom or default build
+func Build() string {
+	if CustomBuild != "" {
+		return CustomBuild
+	}
+	return DefaultBuild
+}
 
 // VersionString returns semantic version string
 func VersionString() string {
-	if CustomBuild != "" {
-		return fmt.Sprintf("%s-%s", Version, CustomBuild)
-	}
-	return fmt.Sprintf("%s-%s", Version, Build)
+	return fmt.Sprintf("%s-%s", Version, Build())
 }
 
 func ErrToOk(err error) string {
