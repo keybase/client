@@ -53,18 +53,3 @@ mkdir -p $EXPORT
 tar xpf $SRC/$EXPORT.tar -C $EXPORT ${DIRS[@]}
 
 rm $SRC/$EXPORT.tar
-
-echo "
-Now you should add, commit, tag and push the changes in the $EXPORT-beta repository.
-
-    cd $DEST
-    git add .
-    git commit -m \"Importing from $TAG\"
-    git push
-
-If you tagged:
-
-    git tag -a $TAG -m $TAG
-    git push --tags
-
-"

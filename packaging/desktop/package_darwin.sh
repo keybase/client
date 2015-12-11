@@ -8,6 +8,9 @@ cd $dir
 client_dir="$dir/../.."
 build_dir="$dir/build"
 tmp_dir="$dir/tmp"
+
+# Ensure we have packaging tools
+npm install
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
@@ -50,7 +53,7 @@ shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-darwin.tgz"
-kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version.tgz"
+kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
 installer_url="https://github.com/keybase/client/releases/download/v1.0.5-6/KeybaseInstaller-1.1.1.tgz"
 
 keybase_bin="$tmp_dir/keybase"
@@ -77,9 +80,11 @@ get_deps() {
     echo "Using local keybase binpath: $KEYBASE_BINPATH"
     cp $KEYBASE_BINPATH .
   else
+    echo "Getting $keybase_url"
     curl -J -L -Ss $keybase_url | tar zx
   fi
 
+  echo "Getting $kbfs_url"
   curl -J -L -Ss $kbfs_url | tar zx
   curl -J -L -Ss $installer_url | tar zx
 }
