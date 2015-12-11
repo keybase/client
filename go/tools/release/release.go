@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/keybase/client/go/libkb"
 	gh "github.com/keybase/client/go/tools/release/github"
 )
 
@@ -28,7 +27,7 @@ func tag(version string) string {
 }
 
 var repo = flag.String("repo", "client", "Repository in keybase")
-var version = flag.String("version", libkb.VersionString(), "Version for tag")
+var version = flag.String("version", "", "Version for tag")
 var src = flag.String("src", "", "Path to source file")
 var dest = flag.String("dest", "", "Path to destination file")
 
@@ -41,13 +40,16 @@ func main() {
 	action := flag.Arg(0)
 
 	switch action {
-	case "version":
-		fmt.Printf("%s", libkb.VersionString())
 	case "increment-build":
-		err := libkb.WriteVersion(libkb.Version, libkb.Build+1, *src)
+		ver, build, err := SplitVersion(*version)
 		if err != nil {
 			log.Fatal(err)
 		}
+		err = WriteVersion(ver, build+1, *dest)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%s-%d", ver, build+1)
 	case "latest-version":
 		release, err := gh.LatestRelease("keybase", *repo, githubToken())
 		if _, ok := err.(*gh.ErrNotFound); ok {
