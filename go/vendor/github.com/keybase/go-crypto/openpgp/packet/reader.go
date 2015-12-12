@@ -46,7 +46,6 @@ func (r *Reader) Next() (p Packet, err error) {
 			return nil, err
 		}
 	}
-
 	return nil, io.EOF
 }
 
