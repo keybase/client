@@ -34,13 +34,21 @@ func (res *ResolveResult) GetError() error {
 	return res.err
 }
 
-func (r *Resolver) Resolve(input string) (res ResolveResult) {
+func (r *Resolver) ResolveWithBody(input string) ResolveResult {
+	return r.resolve(input, true)
+}
+
+func (r *Resolver) Resolve(input string) ResolveResult {
+	return r.resolve(input, false)
+}
+
+func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
 	r.G().Log.Debug("+ Resolving username %s", input)
 	var au AssertionURL
 	if au, res.err = ParseAssertionURL(input, false); res.err != nil {
 		return
 	}
-	res = r.resolveURL(au, input)
+	res = r.resolveURL(au, input, withBody)
 	return
 }
 
@@ -55,10 +63,10 @@ func (r *Resolver) ResolveFullExpression(input string) (res ResolveResult) {
 		res.err = ResolutionError{Input: input, Msg: "Cannot find a resolvable factor"}
 		return res
 	}
-	return r.resolveURL(u, input)
+	return r.resolveURL(u, input, false)
 }
 
-func (r *Resolver) resolveURL(au AssertionURL, input string) ResolveResult {
+func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool) ResolveResult {
 	// A standard keybase UID, so it's already resolved
 	if tmp := au.ToUID(); tmp.Exists() {
 		return ResolveResult{uid: tmp}
@@ -70,7 +78,7 @@ func (r *Resolver) resolveURL(au AssertionURL, input string) ResolveResult {
 		return *p
 	}
 
-	res := r.resolveURLViaServerLookup(au, input)
+	res := r.resolveURLViaServerLookup(au, input, withBody)
 
 	// Cache for a shorter period of time if it's not a Keybase identity
 	res.mutable = !au.IsKeybase()
@@ -79,7 +87,7 @@ func (r *Resolver) resolveURL(au AssertionURL, input string) ResolveResult {
 	return res
 }
 
-func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string) (res ResolveResult) {
+func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, withBody bool) (res ResolveResult) {
 
 	var key, val string
 	var ares *APIRes
@@ -95,7 +103,11 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string) (res
 
 	ha := HTTPArgsFromKeyValuePair(key, S{val})
 	ha.Add("multi", I{1})
-	ha.Add("fields", S{"basics,public_keys,pictures"})
+	fields := "basics"
+	if withBody {
+		fields += ",public_keys,pictures"
+	}
+	ha.Add("fields", S{fields})
 	ares, res.err = r.G().API.Get(APIArg{
 		Endpoint:    "user/lookup",
 		NeedSession: false,
