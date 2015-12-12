@@ -17,6 +17,5 @@ func getPlatformSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 		NewCmdInstall(cl, g),
 		NewCmdLaunchd(cl, g),
 		NewCmdUninstall(cl, g),
-		NewCmdUpdate(cl, g),
 	}
 }

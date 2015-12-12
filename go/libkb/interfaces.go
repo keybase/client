@@ -135,6 +135,7 @@ type ConfigReader interface {
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
+	GetUpdatePreferences() *keybase1.UpdatePreferences
 
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
@@ -156,6 +157,8 @@ type ConfigWriter interface {
 	SetIntAtPath(string, int) error
 	SetNullAtPath(string) error
 	DeleteAtPath(string)
+	SetUpdatePreferenceAuto(bool) error
+	SetUpdatePreferenceSkip(string) error
 	Reset()
 	Save() error
 	BeginTransaction() (ConfigWriterTransacter, error)
@@ -306,6 +309,10 @@ type ProvisionUI interface {
 	keybase1.ProvisionUiInterface
 }
 
+type UpdateUI interface {
+	keybase1.UpdateUiInterface
+}
+
 type PromptDefault int
 
 const (
@@ -344,6 +351,7 @@ type UI interface {
 	GetGPGUI() GPGUI
 	GetProvisionUI(role KexRole) ProvisionUI
 	GetPgpUI() PgpUI
+	GetUpdateUI() UpdateUI
 	Configure() error
 	Shutdown() error
 }
@@ -355,6 +363,7 @@ type UIRouter interface {
 	// error is nil.
 	GetIdentifyUI() (IdentifyUI, error)
 	GetSecretUI() (SecretUI, error)
+	GetUpdateUI() (UpdateUI, error)
 
 	Shutdown()
 }

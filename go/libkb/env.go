@@ -58,6 +58,9 @@ func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)          { retu
 func (n NullConfiguration) GetTorMode() (TorMode, error)                  { return TorNone, nil }
 func (n NullConfiguration) GetTorHiddenAddress() string                   { return "" }
 func (n NullConfiguration) GetTorProxy() string                           { return "" }
+func (n NullConfiguration) GetUpdatePreferences() *keybase1.UpdatePreferences {
+	return nil
+}
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -803,4 +806,8 @@ func (c AppConfig) GetServerURI() string {
 
 func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 	return c.SecurityAccessGroupOverride, c.SecurityAccessGroupOverride
+}
+
+func (e *Env) GetUpdatePreferences() *keybase1.UpdatePreferences {
+	return e.config.GetUpdatePreferences()
 }

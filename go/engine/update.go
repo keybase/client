@@ -34,7 +34,9 @@ func (u *UpdateEngine) Prereqs() Prereqs {
 }
 
 func (u *UpdateEngine) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{
+		libkb.UpdateUIKind,
+	}
 }
 
 func (u *UpdateEngine) SubConsumers() []libkb.UIConsumer {
@@ -57,7 +59,7 @@ func (u *UpdateEngine) Run(ctx *Context) (err error) {
 	if u.checkOnly {
 		update, err = updater.CheckForUpdate()
 	} else {
-		update, err = updater.Update()
+		update, err = updater.Update(ctx.UpdateUI)
 	}
 	if err != nil {
 		return

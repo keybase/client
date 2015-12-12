@@ -31,6 +31,11 @@ protocol update {
     string channel; // Update channel, empty string for default
   }
 
+  record UpdatePreferences {
+    boolean auto;
+    string skip; // As a semantic version to skip
+  }
+
   record UpdateResult {
     union { null, Update } update;
   }

@@ -1,0 +1,36 @@
+{
+  "protocol" : "updateUi",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "UpdatePromptRes",
+    "fields" : [ {
+      "name" : "doInstall",
+      "type" : "boolean"
+    }, {
+      "name" : "alwaysAutoInstall",
+      "type" : "boolean"
+    }, {
+      "name" : "skipVersion",
+      "type" : "boolean"
+    }, {
+      "name" : "repromptInSeconds",
+      "type" : "int"
+    } ]
+  } ],
+  "messages" : {
+    "updatePrompt" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "desc",
+        "type" : "string"
+      }, {
+        "name" : "version",
+        "type" : "string"
+      } ],
+      "response" : "UpdatePromptRes"
+    }
+  }
+}

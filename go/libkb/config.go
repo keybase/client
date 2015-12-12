@@ -567,3 +567,24 @@ func (f JSONConfigFile) GetSplitLogOutput() (bool, bool) {
 func (f JSONConfigFile) GetSecurityAccessGroupOverride() (bool, bool) {
 	return false, false
 }
+
+func (f JSONConfigFile) GetUpdatePreferences() *keybase1.UpdatePreferences {
+	jw := f.jw.AtKey("updates")
+	if jw.IsNil() {
+		return nil
+	}
+	var ret keybase1.UpdatePreferences
+	if err := jw.UnmarshalAgain(&ret); err != nil {
+		f.G().Log.Warning("Bad config value for 'updates': %s", jw.MarshalToDebug())
+		return nil
+	}
+	return &ret
+}
+
+func (f *JSONConfigFile) SetUpdatePreferenceAuto(b bool) error {
+	return f.SetBoolAtPath("updates.auto", b)
+}
+
+func (f *JSONConfigFile) SetUpdatePreferenceSkip(v string) error {
+	return f.SetStringAtPath("updates.skip", v)
+}

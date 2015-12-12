@@ -258,6 +258,16 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "UpdatePreferences",
+    "fields" : [ {
+      "name" : "auto",
+      "type" : "boolean"
+    }, {
+      "name" : "skip",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "UpdateResult",
     "fields" : [ {
       "name" : "update",

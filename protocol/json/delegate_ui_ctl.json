@@ -215,6 +215,10 @@
     "registerSecretUI" : {
       "request" : [ ],
       "response" : "null"
+    },
+    "registerUpdateUI" : {
+      "request" : [ ],
+      "response" : "null"
     }
   }
 }

@@ -521,6 +521,47 @@ func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRe
 
 //============================================================
 
+type UpdateUI struct {
+	terminal libkb.TerminalUI
+	noPrompt bool
+}
+
+func (u UpdateUI) UpdatePrompt(_ context.Context, arg keybase1.UpdatePromptArg) (res keybase1.UpdatePromptRes, err error) {
+	if u.noPrompt {
+		res.DoInstall = true
+		return res, err
+	}
+	u.terminal.Printf("There is a new update available (version %s)\n", arg.Version)
+	if len(arg.Desc) != 0 {
+		u.terminal.Printf("  %s\n", arg.Desc)
+	}
+	prompt := "Install update?"
+	res.DoInstall, err = u.terminal.PromptYesNo(PromptDescriptorUpdateDo, prompt, libkb.PromptDefaultYes)
+	if err != nil {
+		return res, err
+	}
+	if res.DoInstall {
+		prompt = "Auto-update in the future?"
+		res.AlwaysAutoInstall, err = u.terminal.PromptYesNo(PromptDescriptorUpdateAuto, prompt, libkb.PromptDefaultYes)
+	} else {
+		prompt = "Skip this version entirely?"
+		res.SkipVersion, err = u.terminal.PromptYesNo(PromptDescriptorUpdateSkipVersion, prompt, libkb.PromptDefaultYes)
+	}
+	return res, err
+}
+
+func (ui *UI) GetUpdateUI() libkb.UpdateUI {
+	return UpdateUI{terminal: ui.GetTerminalUI()}
+}
+
+func NewUpdateUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.UpdateUiProtocol(g.UI.GetUpdateUI())
+}
+
+var _ libkb.UpdateUI = UpdateUI{}
+
+//============================================================
+
 type LoginUI struct {
 	parent   libkb.TerminalUI
 	noPrompt bool

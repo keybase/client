@@ -12,13 +12,16 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/install/sources"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	zip "github.com/keybase/client/go/tools/zip"
+	context "golang.org/x/net/context"
 
 	"github.com/blang/semver"
 )
@@ -61,6 +64,19 @@ func (u *Updater) CheckForUpdate() (update *keybase1.Update, err error) {
 	if err != nil {
 		return
 	}
+
+	if up := u.G().Env.GetUpdatePreferences(); up != nil {
+		u.G().Log.Debug("Update preferences: %v", up)
+		if len(up.Skip) != 0 {
+			if skip, err := semver.Make(up.Skip); err != nil {
+				u.G().Log.Warning("Bad 'skipVersion' in config file: %q", up.Skip)
+			} else if skip.GE(updateSemVersion) {
+				u.G().Log.Debug("Skipping updated version via config preference: %q", update.Version)
+				return nil, nil
+			}
+		}
+	}
+
 	if updateSemVersion.EQ(currentSemVersion) {
 		// Versions are the same, we are up to date
 		return
@@ -164,8 +180,15 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 }
 
 func (u *Updater) unpack(filename string) (string, error) {
+
+	u.G().Log.Debug("unpack %s", filename)
+	if !strings.HasSuffix(filename, ".zip") {
+		u.G().Log.Debug("File isn't compressed, so won't unzip: %q", filename)
+		return filename, nil
+	}
+
 	unzipDest := fmt.Sprintf("%s.unzipped", filename)
-	u.G().Log.Info("Unzipping %s", filename)
+	u.G().Log.Info("Unzipping %q -> %q", filename, unzipDest)
 	err := zip.Unzip(filename, unzipDest)
 	if err != nil {
 		return "", err
@@ -223,7 +246,7 @@ func (u *Updater) apply(src string, dest string) error {
 }
 
 // Update checks, downloads and performs an update.
-func (u *Updater) Update() (update *keybase1.Update, err error) {
+func (u *Updater) Update(ui libkb.UpdateUI) (update *keybase1.Update, err error) {
 	update, err = u.CheckForUpdate()
 	if err != nil {
 		return
@@ -233,14 +256,56 @@ func (u *Updater) Update() (update *keybase1.Update, err error) {
 		return
 	}
 
-	err = u.ApplyUpdate(update)
+	err = u.ApplyUpdate(ui, update)
 	return
 }
 
-func (u *Updater) ApplyUpdate(update *keybase1.Update) (err error) {
+func (u *Updater) PromptForGoAhead(ui libkb.UpdateUI) (err error) {
+
+	u.G().Log.Debug("+ Update.PromptForGoAhead")
+	defer func() {
+		u.G().Log.Debug("- Update.PromptForGoAhead -> %v", err)
+	}()
+
+	if up := u.G().Env.GetUpdatePreferences(); up != nil && up.Auto {
+		u.G().Log.Debug("| going ahead with auto-updates")
+		return nil
+	}
+
+	if ui == nil {
+		return libkb.NoUIError{Which: "UpdateUI"}
+	}
+
+	upa := keybase1.UpdatePromptArg{
+		Version: u.config.Version,
+	}
+	var upr keybase1.UpdatePromptRes
+	upr, err = ui.UpdatePrompt(context.TODO(), upa)
+	if err != nil {
+		return err
+	}
+	cw := u.G().Env.GetConfigWriter()
+
+	if upr.AlwaysAutoInstall {
+		cw.SetUpdatePreferenceAuto(true)
+	} else if upr.SkipVersion {
+		cw.SetUpdatePreferenceSkip(u.config.Version)
+	}
+	if !upr.DoInstall {
+		err = libkb.CanceledError{M: "user canceled update"}
+	}
+	return err
+
+}
+
+func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update *keybase1.Update) (err error) {
 	downloadPath, _, err := u.downloadAsset(update.Asset)
 	if err != nil {
 		return
+	}
+
+	if err = u.PromptForGoAhead(ui); err != nil {
+		return err
 	}
 
 	unzipPath, err := u.unpack(downloadPath)
@@ -268,15 +333,18 @@ func (u *Updater) ApplyUpdate(update *keybase1.Update) (err error) {
 
 // DefaultUpdaterConfig returns update config for this environment
 func DefaultUpdaterConfig(g *libkb.GlobalContext) *keybase1.UpdateConfig {
-	if runtime.GOOS == "darwin" {
-		if g.Env.GetRunMode() == libkb.ProductionRunMode {
-			return &keybase1.UpdateConfig{
-				DestinationPath: "/Applications/Keybase.app",
-				Version:         libkb.VersionString(),
-			}
-		}
+	ret := &keybase1.UpdateConfig{
+		Version: libkb.VersionString(),
+		Channel: "main", // The default channel
 	}
-	return nil
+	switch {
+	case runtime.GOOS == "darwin" && g.Env.GetRunMode() == libkb.ProductionRunMode:
+		ret.DestinationPath = "/Applications/Keybase.app"
+	case g.Env.GetRunMode() == libkb.DevelRunMode:
+		d := filepath.Join(os.TempDir(), "keybase")
+		ret.DestinationPath = d
+	}
+	return ret
 }
 
 var UpdateAutomatically = true
@@ -294,8 +362,13 @@ func UpdaterStartTicker(g *libkb.GlobalContext) *Updater {
 }
 
 func (u *Updater) updateTick() {
-	if UpdateAutomatically {
-		update, err := u.Update()
+	ui, _ := u.G().UIRouter.GetUpdateUI()
+	auto := false
+	if up := u.G().Env.GetUpdatePreferences(); up != nil && up.Auto {
+		auto = true
+	}
+	if UpdateAutomatically && (ui != nil || auto) {
+		update, err := u.Update(ui)
 		if err != nil {
 			u.G().Log.Errorf("Error trying to update: %s", err)
 		} else if update != nil {

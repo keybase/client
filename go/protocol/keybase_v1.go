@@ -977,9 +977,13 @@ type RegisterIdentifyUIArg struct {
 type RegisterSecretUIArg struct {
 }
 
+type RegisterUpdateUIArg struct {
+}
+
 type DelegateUiCtlInterface interface {
 	RegisterIdentifyUI(context.Context) error
 	RegisterSecretUI(context.Context) error
+	RegisterUpdateUI(context.Context) error
 }
 
 func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
@@ -1008,6 +1012,17 @@ func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"registerUpdateUI": {
+				MakeArg: func() interface{} {
+					ret := make([]RegisterUpdateUIArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RegisterUpdateUI(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1023,6 +1038,11 @@ func (c DelegateUiCtlClient) RegisterIdentifyUI(ctx context.Context) (err error)
 
 func (c DelegateUiCtlClient) RegisterSecretUI(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerSecretUI", []interface{}{RegisterSecretUIArg{}}, nil)
+	return
+}
+
+func (c DelegateUiCtlClient) RegisterUpdateUI(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerUpdateUI", []interface{}{RegisterUpdateUIArg{}}, nil)
 	return
 }
 
@@ -5418,6 +5438,11 @@ type UpdateConfig struct {
 	Channel         string `codec:"channel" json:"channel"`
 }
 
+type UpdatePreferences struct {
+	Auto bool   `codec:"auto" json:"auto"`
+	Skip string `codec:"skip" json:"skip"`
+}
+
 type UpdateResult struct {
 	Update *Update `codec:"update,omitempty" json:"update,omitempty"`
 }
@@ -5488,6 +5513,56 @@ func (c UpdateClient) Update(ctx context.Context, __arg UpdateArg) (res UpdateRe
 func (c UpdateClient) UpdateNotification(ctx context.Context, update Update) (err error) {
 	__arg := UpdateNotificationArg{Update: update}
 	err = c.Cli.Call(ctx, "keybase.1.update.updateNotification", []interface{}{__arg}, nil)
+	return
+}
+
+type UpdatePromptRes struct {
+	DoInstall         bool `codec:"doInstall" json:"doInstall"`
+	AlwaysAutoInstall bool `codec:"alwaysAutoInstall" json:"alwaysAutoInstall"`
+	SkipVersion       bool `codec:"skipVersion" json:"skipVersion"`
+	RepromptInSeconds int  `codec:"repromptInSeconds" json:"repromptInSeconds"`
+}
+
+type UpdatePromptArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Desc      string `codec:"desc" json:"desc"`
+	Version   string `codec:"version" json:"version"`
+}
+
+type UpdateUiInterface interface {
+	UpdatePrompt(context.Context, UpdatePromptArg) (UpdatePromptRes, error)
+}
+
+func UpdateUiProtocol(i UpdateUiInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.updateUi",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"updatePrompt": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdatePromptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpdatePromptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdatePromptArg)(nil), args)
+						return
+					}
+					ret, err = i.UpdatePrompt(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type UpdateUiClient struct {
+	Cli GenericClient
+}
+
+func (c UpdateUiClient) UpdatePrompt(ctx context.Context, __arg UpdatePromptArg) (res UpdatePromptRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.updateUi.updatePrompt", []interface{}{__arg}, &res)
 	return
 }
 

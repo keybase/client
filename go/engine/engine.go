@@ -83,18 +83,22 @@ func delegateUIs(e Engine, ctx *Context) error {
 	// currently, only doing this for SecretUI, but in future,
 	// perhaps should iterate over all registered UIs in UIRouter.
 
-	if !requiresUI(e, ctx, libkb.SecretUIKind) {
-		return nil
+	if requiresUI(e, ctx, libkb.SecretUIKind) {
+		if ui, err := e.G().UIRouter.GetSecretUI(); err != nil {
+			return err
+		} else if ui != nil {
+			e.G().Log.Debug("using delegated secret UI for engine %q", e.Name())
+			ctx.SecretUI = ui
+		}
 	}
 
-	ui, err := e.G().UIRouter.GetSecretUI()
-	if err != nil {
-		return err
-	}
-
-	if ui != nil {
-		e.G().Log.Debug("using delegated secret UI for engine %q", e.Name())
-		ctx.SecretUI = ui
+	if requiresUI(e, ctx, libkb.UpdateUIKind) {
+		if ui, err := e.G().UIRouter.GetUpdateUI(); err != nil {
+			return err
+		} else if ui != nil {
+			e.G().Log.Debug("using delegated update UI for engine %q", e.Name())
+			ctx.UpdateUI = ui
+		}
 	}
 
 	return nil

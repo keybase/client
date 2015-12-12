@@ -4668,12 +4668,36 @@ export type UpdateConfig = {
   channel: string;
 }
 
+export type update_UpdatePreferences = {
+  auto: boolean;
+  skip: string;
+}
+
+export type UpdatePreferences = {
+  auto: boolean;
+  skip: string;
+}
+
 export type update_UpdateResult = {
   update?: ?Update;
 }
 
 export type UpdateResult = {
   update?: ?Update;
+}
+
+export type updateUi_UpdatePromptRes = {
+  doInstall: boolean;
+  alwaysAutoInstall: boolean;
+  skipVersion: boolean;
+  repromptInSeconds: int;
+}
+
+export type UpdatePromptRes = {
+  doInstall: boolean;
+  alwaysAutoInstall: boolean;
+  skipVersion: boolean;
+  repromptInSeconds: int;
 }
 
 export type user_Time = {

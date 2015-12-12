@@ -1,0 +1,13 @@
+
+@namespace("keybase.1")
+protocol updateUi {
+
+	record UpdatePromptRes {
+		boolean doInstall;
+		boolean alwaysAutoInstall;
+		boolean skipVersion;
+		int repromptInSeconds;
+	}
+
+	UpdatePromptRes updatePrompt(int sessionID, string desc, string version);
+}

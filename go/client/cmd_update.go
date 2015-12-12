@@ -45,7 +45,6 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		ArgumentHelp: "",
 		Usage:        "Update Keybase",
 		Action: func(c *cli.Context) {
-			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.ChooseCommand(NewCmdUpdateRunner(g), "update", c)
 		},
@@ -67,7 +66,10 @@ func NewCmdUpdateRunner(g *libkb.GlobalContext) *CmdUpdate {
 }
 
 func (v *CmdUpdate) GetUsage() libkb.Usage {
-	return libkb.Usage{}
+	return libkb.Usage{
+		API:    true,
+		Config: true,
+	}
 }
 
 func (v *CmdUpdate) ParseArgv(ctx *cli.Context) error {
@@ -99,13 +101,15 @@ func (v *CmdUpdate) Run() error {
 		return fmt.Errorf("Update is not supported for brew install. Use \"brew update && brew upgrade keybase\" instead.")
 	}
 
-	client, err := GetUpdateClient(v.G())
-	if err != nil {
+	protocols := []rpc.Protocol{
+		NewUpdateUIProtocol(v.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
 
-	protocols := []rpc.Protocol{}
-	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
+	client, err := GetUpdateClient(v.G())
+	if err != nil {
 		return err
 	}
 

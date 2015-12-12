@@ -1191,6 +1191,7 @@ export default {
       'gui': 1
     }
   },
+  'updateUi': {},
   'user': {
     'LogLevel': {
       'none': 0,

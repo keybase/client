@@ -42,4 +42,7 @@ const (
 	PromptDescriptorProvisionDeviceName
 	PromptDescriptorExportSecretKeyFromGPG
 	PromptDescriptorDeprovisionWhichUser
+	PromptDescriptorUpdateDo
+	PromptDescriptorUpdateAuto
+	PromptDescriptorUpdateSkipVersion
 )
