@@ -8,7 +8,7 @@
 - Installer tweak: don't prompt to start service (windows)
 - Ansi color code support for terminal (Windows)
 - EdDSA for OpenPGP support (PR: keybase/client#1519)
-- Resolve RPC support (PR: keybase/client#1498)
+- Resolve RPC support (PR: keybase/client#1520)
 
 ## 1.0.5-0 (2015-12-01)
 
