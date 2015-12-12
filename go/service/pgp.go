@@ -121,6 +121,7 @@ func (h *PGPHandler) PGPVerify(_ context.Context, arg keybase1.PGPVerifyArg) (ke
 		SecretUI:   h.getSecretUI(arg.SessionID),
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		LogUI:      h.getLogUI(arg.SessionID),
+		PgpUI:      h.getPgpUI(arg.SessionID),
 	}
 	eng := engine.NewPGPVerify(earg, h.G())
 	err := engine.RunEngine(eng, ctx)
