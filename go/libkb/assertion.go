@@ -411,10 +411,10 @@ func RegisterSocialNetwork(s string) {
 	_socialNetworks[s] = true
 }
 
-func FindBestIdentifyComponent(e AssertionExpression) string {
+func FindBestIdentifyComponentURL(e AssertionExpression) AssertionURL {
 	urls := e.CollectUrls(nil)
 	if len(urls) == 0 {
-		return ""
+		return nil
 	}
 
 	var uid, kb, soc, fp AssertionURL
@@ -437,10 +437,18 @@ func FindBestIdentifyComponent(e AssertionExpression) string {
 	order := []AssertionURL{uid, kb, fp, soc, urls[0]}
 	for _, p := range order {
 		if p != nil {
-			return p.String()
+			return p
 		}
 	}
-	return ""
+	return nil
+}
+
+func FindBestIdentifyComponent(e AssertionExpression) string {
+	u := FindBestIdentifyComponentURL(e)
+	if u == nil {
+		return ""
+	}
+	return u.String()
 }
 
 func CollectAssertions(e AssertionExpression) (remotes AssertionAnd, locals AssertionAnd) {

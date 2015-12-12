@@ -10,6 +10,12 @@ protocol identify {
   }
 
   /**
+   * Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
+   * an error.
+   */
+  UID Resolve(string assertion);
+
+  /**
     Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
     If trackStatement is true, we'll return a generated JSON tracking statement.
     If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).

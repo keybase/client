@@ -1460,6 +1460,10 @@ type Identify2Res struct {
 	Upk UserPlusKeys `codec:"upk" json:"upk"`
 }
 
+type ResolveArg struct {
+	Assertion string `codec:"assertion" json:"assertion"`
+}
+
 type IdentifyArg struct {
 	SessionID        int            `codec:"sessionID" json:"sessionID"`
 	UserAssertion    string         `codec:"userAssertion" json:"userAssertion"`
@@ -1479,6 +1483,7 @@ type Identify2WithUIDArg struct {
 }
 
 type IdentifyInterface interface {
+	Resolve(context.Context, string) (UID, error)
 	Identify(context.Context, IdentifyArg) (IdentifyRes, error)
 	Identify2WithUID(context.Context, Identify2WithUIDArg) (Identify2Res, error)
 }
@@ -1487,6 +1492,22 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.identify",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"Resolve": {
+				MakeArg: func() interface{} {
+					ret := make([]ResolveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ResolveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ResolveArg)(nil), args)
+						return
+					}
+					ret, err = i.Resolve(ctx, (*typedArgs)[0].Assertion)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"identify": {
 				MakeArg: func() interface{} {
 					ret := make([]IdentifyArg, 1)
@@ -1525,6 +1546,12 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 
 type IdentifyClient struct {
 	Cli GenericClient
+}
+
+func (c IdentifyClient) Resolve(ctx context.Context, assertion string) (res UID, err error) {
+	__arg := ResolveArg{Assertion: assertion}
+	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve", []interface{}{__arg}, &res)
+	return
 }
 
 func (c IdentifyClient) Identify(ctx context.Context, __arg IdentifyArg) (res IdentifyRes, err error) {
