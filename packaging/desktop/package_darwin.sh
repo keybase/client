@@ -1,12 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
-set -e # Fail on error
+set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
 client_dir="$dir/../.."
-build_dir="$dir/build"
+build_dir=${BUILD_DIR:-"$dir/build"}
+save_dir=${SAVE_DIR:-}
 tmp_dir="$dir/tmp"
 
 # Ensure we have packaging tools
@@ -14,22 +15,35 @@ npm install
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
-#keybase_version=$1
-#kbfs_version=$2
-#comment=$3
+keybase_version=""
+kbfs_version=""
+comment=""
+
+KEYBASE_BINPATH=${KEYBASE_BINPATH:-}
+KBFS_BINPATH=${KBFS_BINPATH:-}
 
 echo "Loading release tool"
 go install github.com/keybase/client/go/tools/release
 release_bin="$GOPATH/bin/release"
 
 if [ "$keybase_version" = "" ]; then
-  keybase_version=`$release_bin --repo=client latest-version`
-  echo "Using latest keybase version: $keybase_version"
+  if [ ! "$KEYBASE_BINPATH" = "" ]; then
+    keybase_version=`$KEYBASE_BINPATH version -S`
+    echo "Using keybase (bin) version: $keybase_version"
+  else
+    keybase_version=`$release_bin --repo=client latest-version`
+    echo "Using latest keybase version: $keybase_version"
+  fi
 fi
 
 if [ "$kbfs_version" = "" ]; then
-  kbfs_version=`$release_bin --repo=kbfs-beta latest-version`
-  echo "Using latest kbfs-beta version: $kbfs_version"
+  if [ ! "$KBFS_BINPATH" = "" ]; then
+    kbfs_version=`$KBFS_BINPATH -version`
+    echo "Using kbfs (bin) version: $kbfs_version"
+  else
+    kbfs_version=`$release_bin --repo=kbfs-beta latest-version`
+    echo "Using latest kbfs-beta version: $kbfs_version"
+  fi
 fi
 
 if [ "$keybase_version" = "" ]; then
@@ -84,8 +98,13 @@ get_deps() {
     curl -J -L -Ss $keybase_url | tar zx
   fi
 
-  echo "Getting $kbfs_url"
-  curl -J -L -Ss $kbfs_url | tar zx
+  if [ ! "$KBFS_BINPATH" = "" ]; then
+    echo "Using local kbfs binpath: $KBFS_BINPATH"
+    cp $KBFS_BINPATH .
+  else
+    echo "Getting $kbfs_url"
+    curl -J -L -Ss $kbfs_url | tar zx
+  fi
   curl -J -L -Ss $installer_url | tar zx
 }
 
@@ -172,13 +191,20 @@ package_dmg() {
 create_zip() {
   cd $out_dir
   echo "Creating $zip_name"
-  zip -r $zip_name $app_name.app
+  #zip -r $zip_name $app_name.app
+  ditto -c -k --sequesterRsrc --keepParent $app_name.app $zip_name
 }
 
-upload_all() {
+save() {
   cd $out_dir
-  $release_bin --src="$zip_name" upload
-  $release_bin --src="$dmg_name" upload
+  if [ ! "$save_dir" = "" ]; then
+    mkdir -p $save_dir
+    echo "Saved files to $save_dir"
+    mv $dmg_name $save_dir
+    mv $zip_name $save_dir
+  else
+    echo "Saved files to $out_dir"
+  fi
 }
 
 clean
@@ -190,3 +216,4 @@ package_app
 sign
 package_dmg
 create_zip
+save

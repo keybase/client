@@ -52,16 +52,13 @@ func main() {
 		}
 		fmt.Printf("%s-%d", ver, build+1)
 	case "latest-version":
-		release, err := gh.LatestRelease("keybase", *repo, githubToken())
-		if _, ok := err.(*gh.ErrNotFound); ok {
-			// No release
-		} else if err != nil {
+		tag, err := gh.LatestTag("keybase", *repo, githubToken())
+		if err != nil {
 			log.Fatal(err)
-		} else {
-			if strings.HasPrefix(release.TagName, "v") {
-				version := release.TagName[1:]
-				fmt.Printf("%s", version)
-			}
+		}
+		if strings.HasPrefix(tag.Name, "v") {
+			version := tag.Name[1:]
+			fmt.Printf("%s", version)
 		}
 	case "os-name":
 		fmt.Printf("%s", runtime.GOOS)
@@ -75,6 +72,9 @@ func main() {
 			fmt.Printf("%s", release.URL)
 		}
 	case "create":
+		if *version == "" {
+			log.Fatal("No version")
+		}
 		err := gh.CreateRelease(githubToken(), *repo, tag(*version), tag(*version))
 		if err != nil {
 			log.Fatal(err)
@@ -82,6 +82,9 @@ func main() {
 	case "upload":
 		if *src == "" {
 			log.Fatal("Need to specify src")
+		}
+		if *version == "" {
+			log.Fatal("No version")
 		}
 		if *dest == "" {
 			dest = src

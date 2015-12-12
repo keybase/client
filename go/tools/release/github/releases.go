@@ -4,7 +4,6 @@ package github
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -46,17 +45,6 @@ type ReleaseCreate struct {
 	Body            string `json:"body"`
 	Draft           bool   `json:"draft"`
 	Prerelease      bool   `json:"prerelease"`
-}
-
-func githubURL(host string, token string) (u *url.URL, err error) {
-	u, err = url.Parse(host)
-	if err != nil {
-		return
-	}
-	data := url.Values{}
-	data.Set("access_token", token)
-	u.RawQuery = data.Encode()
-	return
 }
 
 func Releases(user, repo, token string) (releases []Release, err error) {
