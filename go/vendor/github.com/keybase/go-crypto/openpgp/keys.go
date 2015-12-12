@@ -346,7 +346,6 @@ EachPacket:
 		} else if err != nil {
 			return nil, err
 		}
-
 		switch pkt := p.(type) {
 		case *packet.UserId:
 			current = new(Identity)

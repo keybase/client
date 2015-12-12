@@ -43,6 +43,7 @@ type Signature struct {
 	RSASignature         parsedMPI
 	DSASigR, DSASigS     parsedMPI
 	ECDSASigR, ECDSASigS parsedMPI
+	EdDSASigR, EdDSASigS parsedMPI
 
 	// rawSubpackets contains the unparsed subpackets, in order.
 	rawSubpackets []outputSubpacket
@@ -96,7 +97,7 @@ func (sig *Signature) parse(r io.Reader) (err error) {
 	sig.SigType = SignatureType(buf[0])
 	sig.PubKeyAlgo = PublicKeyAlgorithm(buf[1])
 	switch sig.PubKeyAlgo {
-	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly, PubKeyAlgoDSA, PubKeyAlgoECDSA:
+	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly, PubKeyAlgoDSA, PubKeyAlgoECDSA, PubKeyAlgoEdDSA:
 	default:
 		err = errors.UnsupportedError("public key algorithm " + strconv.Itoa(int(sig.PubKeyAlgo)))
 		return
@@ -159,6 +160,11 @@ func (sig *Signature) parse(r io.Reader) (err error) {
 		sig.DSASigR.bytes, sig.DSASigR.bitLength, err = readMPI(r)
 		if err == nil {
 			sig.DSASigS.bytes, sig.DSASigS.bitLength, err = readMPI(r)
+		}
+	case PubKeyAlgoEdDSA:
+		sig.EdDSASigR.bytes, sig.EdDSASigR.bitLength, err = readMPI(r)
+		if err == nil {
+			sig.EdDSASigS.bytes, sig.EdDSASigS.bitLength, err = readMPI(r)
 		}
 	case PubKeyAlgoECDSA:
 		sig.ECDSASigR.bytes, sig.ECDSASigR.bitLength, err = readMPI(r)
@@ -579,6 +585,9 @@ func (sig *Signature) Serialize(w io.Writer) (err error) {
 	case PubKeyAlgoDSA:
 		sigLength = 2 + len(sig.DSASigR.bytes)
 		sigLength += 2 + len(sig.DSASigS.bytes)
+	case PubKeyAlgoEdDSA:
+		sigLength = 2 + len(sig.EdDSASigR.bytes)
+		sigLength += 2 + len(sig.EdDSASigS.bytes)
 	case PubKeyAlgoECDSA:
 		sigLength = 2 + len(sig.ECDSASigR.bytes)
 		sigLength += 2 + len(sig.ECDSASigS.bytes)
@@ -619,6 +628,8 @@ func (sig *Signature) Serialize(w io.Writer) (err error) {
 		err = writeMPIs(w, sig.RSASignature)
 	case PubKeyAlgoDSA:
 		err = writeMPIs(w, sig.DSASigR, sig.DSASigS)
+	case PubKeyAlgoEdDSA:
+		err = writeMPIs(w, sig.EdDSASigR, sig.EdDSASigS)
 	case PubKeyAlgoECDSA:
 		err = writeMPIs(w, sig.ECDSASigR, sig.ECDSASigS)
 	default:
