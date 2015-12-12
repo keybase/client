@@ -111,6 +111,7 @@ const (
 	SCCanceled               = 237
 	SCReloginRequired        = 274
 	SCResolutionFailed       = 275
+	SCProfileNotPublic       = 276
 	SCBadSignupUsernameTaken = 701
 	SCMissingResult          = 801
 	SCKeyNotFound            = 901
