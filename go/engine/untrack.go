@@ -123,7 +123,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 	}
 
 	if uid.IsNil() {
-		res := libkb.ResolveUID(e.arg.Username)
+		res := e.G().Resolver.Resolve(e.arg.Username)
 		if err = res.GetError(); err != nil {
 			return
 		}

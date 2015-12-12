@@ -1207,3 +1207,14 @@ func (e UnmetAssertionError) Error() string {
 	}
 	return fmt.Sprintf("Unmet %s assertions for user %q", which, e.User)
 }
+
+//=============================================================================
+
+type ResolutionError struct {
+	Input string
+	Msg   string
+}
+
+func (e ResolutionError) Error() string {
+	return fmt.Sprintf("In resolving '%s': %s", e.Input, e.Msg)
+}

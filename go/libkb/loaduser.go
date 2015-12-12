@@ -81,7 +81,7 @@ func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 		return rres, fmt.Errorf("resolveUID:  no uid or name")
 	}
 
-	if rres = ResolveUID(arg.Name); rres.err != nil {
+	if rres = arg.G().Resolver.Resolve(arg.Name); rres.err != nil {
 		return rres, rres.err
 	}
 
