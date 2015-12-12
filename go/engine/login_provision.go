@@ -573,7 +573,7 @@ func (e *LoginProvision) hasGPGPrivate() bool {
 		return false
 	}
 
-	e.G().Log.Debug("have gpg.  num private keys: %d", index.Len())
+	e.G().Log.Debug("have gpg. num private keys: %d", index.Len())
 
 	return index.Len() > 0
 }
