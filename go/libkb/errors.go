@@ -559,6 +559,16 @@ func (h ProtocolDowngradeError) Error() string {
 
 //=============================================================================
 
+type ProfileNotPublicError struct {
+	msg string
+}
+
+func (p ProfileNotPublicError) Error() string {
+	return p.msg
+}
+
+//=============================================================================
+
 type BadUsernameError struct {
 	N string
 }
