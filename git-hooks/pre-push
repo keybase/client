@@ -28,9 +28,6 @@ check_go_fmt() {
 }
 
 check_go_vet() {
-	gofiles=$(git ls-files | grep '.go$' | grep -v go/vendor/)
-	[ -z "$gofiles" ] && return 0
-
 	warnings=$(go vet $(go list ./... | grep -v vendor) 2>&1)
 	[ -z "$warnings" ] && return 0
 
