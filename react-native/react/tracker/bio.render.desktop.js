@@ -6,10 +6,11 @@ import commonStyles, {colors} from '../styles/common'
 import type {Styled} from '../styles/common'
 
 import path from 'path'
+import resolveAssets from '../../../desktop/resolve-assets'
 
 import type {BioProps} from './bio.render.types'
 
-const noAvatar = `file:///${path.resolve('../react-native/react/images/no-avatar@2x.png')}`
+const noAvatar = `file:///${resolveAssets('../react-native/react/images/no-avatar@2x.png')}`
 
 export default class BioRender extends Component {
   props: BioProps & Styled;

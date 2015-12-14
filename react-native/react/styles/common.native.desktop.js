@@ -62,5 +62,8 @@ export const styles = {
     minHeight: 1,
     maxHeight: 1,
     backgroundColor: 'rgba(0,0,0,0.1)'
+  },
+  loadingContainer: {
+    backgroundColor: '#F7F7F7'
   }
 }

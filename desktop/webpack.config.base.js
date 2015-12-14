@@ -10,11 +10,10 @@ module.exports = {
       query: {
         optional: ['runtime'],
         stage: 2
-      },
-      exclude: /node_modules/
-    },{
-        test: /\.json?$/,
-        loader: 'json'
+      }
+    }, {
+      test: /\.json?$/,
+      loader: 'json'
     }]
   },
   output: {
@@ -25,7 +24,7 @@ module.exports = {
   resolve: {
     extensions: ['', '.desktop.js', '.js', '.jsx', '.json'],
     packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main'],
-    fallback: path.join(__dirname, 'node_modules'),
+    fallback: path.join(__dirname, 'node_modules')
   },
   resolveLoader: {
     modulesDirectories: [path.join(__dirname, 'node_modules')]
@@ -49,7 +48,7 @@ module.exports = {
     __dirname: true
   },
   entry: {
-    index: './renderer/index.desktop.js',
+    index: './renderer/index.js',
     main: './app/main.js',
     launcher: './renderer/launcher.js',
     'remote-component-loader': '../react-native/react/native/remote-component-loader.js'

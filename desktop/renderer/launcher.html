@@ -32,8 +32,7 @@
         return false
       }
       var script = document.createElement('script')
-      script.type = 'text/javascript'
-      script.src = getQueryVariable('hot') === 'true' ? 'http://localhost:4000/dist/launcher.bundle.js' : '../dist/launcher.bundle.js'
+      script.src = getQueryVariable('src')
       document.getElementsByTagName('head')[0].appendChild(script)
     </script>
   </body>

@@ -4,6 +4,7 @@ import React, {Component} from '../base-react'
 import path from 'path'
 import type {Styled} from '../styles/common'
 import Header from '../common-adapters/header'
+import resolveAssets from '../../../desktop/resolve-assets'
 
 import type {HeaderProps} from './header.render.types'
 
@@ -14,7 +15,7 @@ export default class HeaderRender extends Component {
     return (
       <Header
         style={{...this.props.style, ...styles.header}}
-        icon={`file:///${path.resolve(__dirname, '../images/service/keybase.png')}`}
+        icon={`file://${resolveAssets('../react-native/react/images/service/keybase.png')}`}
         title={this.props.reason}
         onClose={this.props.onClose}
       />

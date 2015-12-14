@@ -58,7 +58,9 @@ class Keybase extends Component {
     ipcMain.removeAllListeners('stateChange')
     ipcMain.removeAllListeners('subscribeStore')
 
-    ipcMain.on('dispatchAction', (event, action) => {
+    ipcMain.on('dispatchAction', (event, incomingAction) => {
+      // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
+      const action = {...incomingAction}
       setImmediate(() => store.dispatch(action))
     })
 
