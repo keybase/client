@@ -1,4 +1,6 @@
-## 1.0.6.1
+- Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
+
+## 1.0.6-1
 - Fix verify command (PR: keybase/client#1522)
 - Fix coinbase proof instructions (PR: keybase/client#1521)
 
@@ -7,7 +9,7 @@
 - engine: bugfix for user switching (PR: keybase/client#1474)
 - Fix goroutine leak in RPC calls (PR: keybase/client#1462)
 - Fix buggy "No device found No device found" error message
-  - (Commit: 8b96270704ac840ee22837f5c404948206742791)
+   (Commit: 8b96270704ac840ee22837f5c404948206742791)
 - Fix PGP command line identify/track, flags (PR: keybase/client#1475)
 - Installer tweak: don't prompt to start service (windows)
 - Ansi color code support for terminal (Windows)
