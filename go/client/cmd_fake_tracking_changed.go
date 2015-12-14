@@ -47,7 +47,6 @@ func (c *CmdFakeTrackingChanged) Run() (err error) {
 func NewCmdFakeTrackingChanged(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "fake-tracking-changed",
-		Usage: "fire off a fake tracking changed notification",
 		Flags: []cli.Flag{},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdFakeTrackingChangedRunner(g), "fake-tracking-changed", c)
