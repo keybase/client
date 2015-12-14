@@ -4,7 +4,7 @@ import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 
 import {bindActionCreators} from 'redux'
-import {registerIdentifyUi, onCloseFromHeader} from '../actions/tracker'
+import {registerIdentifyUi, onCloseFromHeader, startTimer, stopTimer} from '../actions/tracker'
 import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../actions/pinentry'
 import {registerTrackerChangeListener} from '../actions/tracker'
 // $FlowIssue platform files
@@ -21,6 +21,8 @@ export type RemoteManagerProps = {
   registerIdentifyUi: () => void,
   onCloseFromHeader: () => void,
   trackerServerStarted: boolean,
+  startTimer: (dispatch: Dispatch, getState: any) => void,
+  stopTimer: () => Action,
   trackers: {[key: string]: TrackerState},
   pinentryStates: {[key: string]: PinentryState}
 }
@@ -81,6 +83,8 @@ class RemoteManager extends Component {
             component='tracker'
             username={username}
             substore='tracker'
+            startTimer={this.props.startTimer}
+            stopTimer={this.props.stopTimer}
             key={username}
             />
         )
@@ -139,6 +143,8 @@ RemoteManager.propTypes = {
   registerIdentifyUi: React.PropTypes.any,
   onCloseFromHeader: React.PropTypes.any,
   trackerServerStarted: React.PropTypes.bool,
+  startTimer: React.PropTypes.any,
+  stopTimer: React.PropTypes.any,
   trackers: React.PropTypes.any,
   pinentryStates: React.PropTypes.any
 }
@@ -151,5 +157,5 @@ export default connect(
       pinentryStates: state.pinentry.pinentryStates || {}
     }
   },
-  dispatch => bindActionCreators({registerIdentifyUi, onCloseFromHeader, registerPinentryListener, registerTrackerChangeListener, pinentryOnCancel, pinentryOnSubmit}, dispatch)
+  dispatch => bindActionCreators({registerIdentifyUi, startTimer, stopTimer, onCloseFromHeader, registerPinentryListener, registerTrackerChangeListener, pinentryOnCancel, pinentryOnSubmit}, dispatch)
 )(RemoteManager)

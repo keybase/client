@@ -18,6 +18,28 @@ type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootT
 
 // TODO make actions for all the call back stuff.
 
+export function startTimer (): (dispatch: Dispatch, getState: any) => void {
+  return (dispatch, getState) => {
+    dispatch({type: Constants.startTimer})
+    const timerActive = getState().tracker.timerActive
+    if (timerActive === 1) {
+      const intervalId = setInterval(() => {
+        const timerActive = getState().tracker.timerActive
+        if (timerActive <= 0) {
+          clearInterval(intervalId)
+        }
+        engine.rpc('track.checkTracking')
+      }, 60000)
+    }
+  }
+}
+
+export function stopTimer (): Action {
+  return {
+    type: Constants.stopTimer
+  }
+}
+
 export function registerTrackerChangeListener (): (dispatch: Dispatch) => void {
   return dispatch => {
     const param = {

@@ -38,15 +38,12 @@ class Tracker extends Component {
   props: TrackerProps;
 
   componentWillMount () {
-    this.onemin = setInterval(function () {
-      engine.rpc('track.checkTracking')
-    }, 60000)
+    this.props.startTimer()
   }
 
   componentWillUnmount () {
-    if (this.onemin) {
-      clearInterval(this.onemin)
-    }
+    console.log('in ComponentWillUnmount')
+    this.props.stopTimer()
   }
 
   render () {

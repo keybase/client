@@ -41,3 +41,6 @@ export const decideToShowTracker = 'tracker:decideToShowTracker'
 export const updateTrackToken = 'tracker:updateTrackToken'
 
 export const userUpdated = 'tracker:userUpdated'
+
+export const startTimer = 'tracker:startTimer'
+export const stopTimer = 'tracker:stopTimer'
