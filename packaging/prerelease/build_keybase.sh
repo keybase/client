@@ -18,10 +18,3 @@ GO15VENDOREXPERIMENT=1 go build -a -tags "production" -ldflags "-X github.com/ke
 
 version=`$build_dir/keybase version -S`
 echo "Keybase version: $version"
-
-echo "Building kbfs"
-GO15VENDOREXPERIMENT=0 go get github.com/keybase/kbfs/kbfsfuse
-GO15VENDOREXPERIMENT=0 go build -a -tags "production" -ldflags "-X github.com/keybase/kbfs/libkbfs.CustomBuild=$build" -o $build_dir/kbfs github.com/keybase/kbfs/kbfsfuse
-
-kbfs_version=`$build_dir/kbfs -version`
-echo "KBFS version: $kbfs_version"
