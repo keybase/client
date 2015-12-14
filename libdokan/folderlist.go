@@ -41,6 +41,9 @@ func (fl *FolderList) open(fi *dokan.FileInfo, path []string, caf *createData) (
 	defer func() { fl.fs.reportErr(ctx, err) }()
 
 	if len(path) == 0 {
+		if caf.mayNotBeDirectory() {
+			return nil, true, dokan.ErrFileIsADirectory
+		}
 		return fl, true, nil
 	}
 

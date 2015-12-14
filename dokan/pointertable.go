@@ -63,6 +63,7 @@ func fsTableStoreFile(global uint32, fi File) uint32 {
 		}
 		_, exist := fiTable[fiIdx]
 		if !exist {
+			debug("FID alloc", fiIdx, fi)
 			fiTable[fiIdx] = fi
 			return fiIdx
 		}
@@ -73,12 +74,13 @@ func fsTableGetFile(file uint32) File {
 	fsTableLock.Lock()
 	var fi = fiTable[file]
 	fsTableLock.Unlock()
+	debug("FID get", file, fi)
 	return fi
 }
 
 func fsTableFreeFile(global uint32, file uint32) {
 	fsTableLock.Lock()
-	debug("fsTableFreeFile", global, file, "=>", fiTable[file], "# of open files:", len(fiTable))
+	debug("FID free", global, file, "=>", fiTable[file], "# of open files:", len(fiTable))
 	delete(fiTable, file)
 	fsTableLock.Unlock()
 }
