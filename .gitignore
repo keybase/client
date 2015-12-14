@@ -1,1 +1,7 @@
 kbfsfuse/kbfsfuse
+kbfsfuse/kbfs_branches/
+kbfsfuse/kbfs_handles/
+kbfsfuse/kbfs_key/
+kbfsfuse/kbfs_md/
+serverutil/dynamodb/
+serverutil/dynamodb_local.tgz
