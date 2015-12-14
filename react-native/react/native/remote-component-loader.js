@@ -55,7 +55,7 @@ class RemoteStore {
 class RemoteComponentLoader extends Component {
   constructor (props) {
     super(props)
-    this.state = {loaded: false}
+    this.state = {loaded: false, unmounted: false}
 
     const payload = window.location.hash.substring(1).split(':')
     const substore = payload && payload.length > 1 && payload[1]
@@ -95,7 +95,21 @@ class RemoteComponentLoader extends Component {
       }
     })
 
+    ipcRenderer.on('remoteUnmount', () => {
+      setImmediate(() => this.setState({unmounted: true}))
+      // Hide the window since we've effective told it to close
+      currentWindow.hide()
+    })
+    ipcRenderer.send('registerRemoteUnmount', currentWindow.id)
+
     currentWindow.emit('needProps')
+  }
+
+  componentDidUpdate (prevProps, prevState) {
+    if (!prevState.unmounted && this.state.unmounted) {
+      // Close the window now that the remote-components unmount lifecycle method has finished
+      currentWindow.close()
+    }
   }
 
   componentWillUnmount () {
@@ -106,6 +120,9 @@ class RemoteComponentLoader extends Component {
     const Component = this.Component
     if (!this.state.loaded) {
       return <div>loading</div>
+    }
+    if (this.state.unmounted) {
+      return <div/>
     }
     return (
       <Provider store={this.store}>

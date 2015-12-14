@@ -41,7 +41,7 @@ export default class RemoteComponent extends Component {
   componentWillUnmount () {
     if (!this.closed) {
       this.closed = true
-      this.remoteWindow.close()
+      ipcRenderer.send('remoteUnmount', this.remoteWindow.id)
     }
   }
 
