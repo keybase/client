@@ -216,8 +216,13 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 		Unmerged:      mStatus == Unmerged,
 		LogTags:       LogTagsFromContextToMap(ctx),
 	}
+
+	var err error
 	if id == NullTlfID {
-		arg.FolderHandle = handle.ToBytes(md.config)
+		arg.FolderHandle, err = handle.ToBytes(md.config)
+		if err != nil {
+			return id, nil, err
+		}
 	} else {
 		arg.FolderID = id.String()
 	}

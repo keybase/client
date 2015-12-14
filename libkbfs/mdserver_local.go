@@ -125,7 +125,11 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return id, nil, errors.New("MD server already shut down")
 	}
 
-	handleBytes := handle.ToBytes(md.config)
+	handleBytes, err := handle.ToBytes(md.config)
+	if err != nil {
+		return id, nil, err
+	}
+
 	buf, err := md.handleDb.Get(handleBytes, nil)
 	if err != nil && err != leveldb.ErrNotFound {
 		return id, nil, MDServerError{err}

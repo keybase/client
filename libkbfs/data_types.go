@@ -649,18 +649,17 @@ func (h *TlfHandle) ToString(ctx context.Context, config Config) string {
 }
 
 // ToBytes marshals this TlfHandle.
-func (h *TlfHandle) ToBytes(config Config) (out []byte) {
+func (h *TlfHandle) ToBytes(config Config) (out []byte, err error) {
 	h.cacheMutex.Lock()
 	defer h.cacheMutex.Unlock()
 	if len(h.cachedBytes) > 0 {
-		return h.cachedBytes
+		return h.cachedBytes, nil
 	}
 
-	var err error
 	if out, err = config.Codec().Encode(h); err != nil {
 		h.cachedBytes = out
 	}
-	return
+	return out, err
 }
 
 // ToKBFolder converts a TlfHandle into a keybase1.Folder,
@@ -674,7 +673,9 @@ func (h *TlfHandle) ToKBFolder(ctx context.Context, config Config) keybase1.Fold
 
 // Equal returns true if two TlfHandles are equal.
 func (h *TlfHandle) Equal(rhs *TlfHandle, config Config) bool {
-	return bytes.Equal(h.ToBytes(config), rhs.ToBytes(config))
+	hBytes, _ := h.ToBytes(config)
+	rhsBytes, _ := rhs.ToBytes(config)
+	return bytes.Equal(hBytes, rhsBytes)
 }
 
 // Users returns a list of all reader and writer UIDs for the tlf.
@@ -1127,9 +1128,8 @@ func (u *UserQuotaInfo) Accum(another *UserQuotaInfo, accumF func(int64, int64) 
 }
 
 // ToBytes marshals this UserQuotaInfo
-func (u *UserQuotaInfo) ToBytes(config Config) (out []byte) {
-	out, _ = config.Codec().Encode(u)
-	return
+func (u *UserQuotaInfo) ToBytes(config Config) ([]byte, error) {
+	return config.Codec().Encode(u)
 }
 
 // UserQuotaInfoDecode decodes b into a UserQuotaInfo
