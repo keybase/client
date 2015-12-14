@@ -18,9 +18,10 @@ import (
 type CmdTrack struct {
 	user    string
 	options keybase1.TrackOptions
+	libkb.Contextified
 }
 
-func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdTrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "track",
 		ArgumentHelp: "<username>",
@@ -36,9 +37,21 @@ func NewCmdTrack(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdTrack{}, "track", c)
+			cl.ChooseCommand(NewCmdTrackRunner(g), "track", c)
 		},
 	}
+}
+
+func NewCmdTrackRunner(g *libkb.GlobalContext) *CmdTrack {
+	return &CmdTrack{Contextified: libkb.NewContextified(g)}
+}
+
+func (v *CmdTrack) SetUser(user string) {
+	v.user = user
+}
+
+func (v *CmdTrack) SetOptions(options keybase1.TrackOptions) {
+	v.options = options
 }
 
 func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
@@ -51,16 +64,16 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdTrack) Run() error {
-	cli, err := GetTrackClient()
+	cli, err := GetTrackClient(v.G())
 	if err != nil {
 		return err
 	}
 
 	protocols := []rpc.Protocol{
-		NewIdentifyTrackUIProtocol(G),
-		NewSecretUIProtocol(G),
+		NewIdentifyTrackUIProtocol(v.G()),
+		NewSecretUIProtocol(v.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
 

@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -146,6 +147,8 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
+	d.checkTrackingEveryHour()
+
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
@@ -185,6 +188,17 @@ func (d *Service) writeServiceInfo() error {
 	// Write runtime info file
 	rtInfo := libkb.KeybaseServiceInfo(d.G())
 	return rtInfo.WriteFile(path.Join(runtimeDir, "keybased.info"))
+}
+
+func (d *Service) checkTrackingEveryHour() {
+	ticker := time.NewTicker(1 * time.Hour)
+	go func() {
+		for {
+			<-ticker.C
+			d.G().Log.Debug("Checking tracks on an hour timer.")
+			libkb.CheckTracking(d.G())
+		}
+	}()
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and

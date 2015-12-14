@@ -99,9 +99,9 @@ func GetProveClient() (cli keybase1.ProveClient, err error) {
 	return
 }
 
-func GetTrackClient() (cli keybase1.TrackClient, err error) {
+func GetTrackClient(g *libkb.GlobalContext) (cli keybase1.TrackClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.TrackClient{Cli: rcli}
 	}
 	return

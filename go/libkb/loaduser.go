@@ -11,14 +11,15 @@ import (
 )
 
 type LoadUserArg struct {
-	UID               keybase1.UID
-	Name              string // Can also be an assertion like foo@twitter
-	PublicKeyOptional bool
-	NoCacheResult     bool // currently ignore
-	Self              bool
-	ForceReload       bool
-	AllKeys           bool
-	LoginContext      LoginContext
+	UID                      keybase1.UID
+	Name                     string // Can also be an assertion like foo@twitter
+	PublicKeyOptional        bool
+	NoCacheResult            bool // currently ignore
+	Self                     bool
+	ForceReload              bool
+	AllKeys                  bool
+	LoginContext             LoginContext
+	AbortIfSigchainUnchanged bool
 	Contextified
 }
 
@@ -157,6 +158,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	if err = ret.LoadSigChains(arg.AllKeys, &ret.leaf, arg.Self); err != nil {
 		return
+	}
+
+	if arg.AbortIfSigchainUnchanged && ret.sigChain().wasFullyCached {
+		return nil, nil
 	}
 
 	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id, arg.G()); err != nil {
