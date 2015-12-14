@@ -36,7 +36,7 @@ func TestEmptyFS(t *testing.T) {
 func testShouldNotExist(t *testing.T) {
 	_, err := os.Open(`T:\should-not-exist`)
 	if !os.IsNotExist(err) {
-		t.Fatal("Opening non-existant file:", err)
+		t.Fatal("Opening non-existent file:", err)
 	}
 }
 
@@ -118,6 +118,7 @@ func isNearTime(t0, t1 time.Time) bool {
 	if t1.Before(t0) {
 		t0, t1 = t1, t0
 	}
+	// TODO consider a less flaky way to do this.
 	return t1.Sub(t0) < time.Second
 }
 
