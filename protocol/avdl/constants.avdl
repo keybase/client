@@ -1,0 +1,48 @@
+@namespace("keybase.1")
+protocol constants {
+
+  enum StatusCode {
+    SCOk_0,
+    SCLoginRequired_201,
+    SCBadSession_202,
+    SCBadLoginPassword_204,
+    SCNotFound_205,
+    SCGeneric_218,
+    SCAlreadyLoggedIn_235,
+    SCCanceled_237,
+    SCReloginRequired_274,
+    SCResolutionFailed_275,
+    SCProfileNotPublic_276,
+    SCBadSignupUsernameTaken_701,
+    SCMissingResult_801,
+    SCKeyNotFound_901,
+    SCKeyInUse_907,
+    SCKeyBadGen_913,
+    SCKeyNoSecret_914,
+    SCKeyBadUIDs_915,
+    SCKeyNoActive_916,
+    SCKeyNoSig_917,
+    SCKeyBadSig_918,
+    SCKeyBadEldest_919,
+    SCKeyNoEldest_920,
+    SCKeyDuplicateUpdate_921,
+    SCSibkeyAlreadyExists_922,
+    SCDecryptionKeyNotFound_924,
+    SCBadTrackSession_1301,
+    SCDeviceNotFound_1409,
+    SCDeviceMismatch_1410,
+    SCDeviceRequired_1411,
+    SCStreamExists_1501,
+    SCStreamNotFound_1502,
+    SCStreamWrongKind_1503,
+    SCStreamEOF_1504,
+    SCAPINetworkError_1601,
+    SCTimeout_1602,
+    SCProofError_1701,
+    SCIdentificationExpired_1702,
+    SCSelfNotFound_1703,
+    SCBadKexPhrase_1704,
+    SCNoUIDelegation_1705
+  }
+
+}
