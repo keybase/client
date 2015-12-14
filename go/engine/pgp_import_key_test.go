@@ -122,6 +122,82 @@ func TestIssue454(t *testing.T) {
 	}
 }
 
+// Issue CORE-2063:  check that generated secret key is exported
+// to user's GPG keyring.
+func TestPGPImportGPGExport(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpexp")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "pgp")
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: u.NewSecretUI()}
+
+	// before running, they should have no pgp keys in key family or in gpg
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(me.GetActivePGPKeys(false)) != 0 {
+		t.Fatalf("active pgp keys: %d, expected 0", len(me.GetActivePGPKeys(false)))
+	}
+	gpgPrivate, err := numPrivateGPGKeys(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gpgPrivate != 0 {
+		t.Fatalf("private gpg keys: %d, expected 0", gpgPrivate)
+	}
+
+	// this is similar to how cmd_pgp_gen works:
+	genArg := &libkb.PGPGenArg{
+		PrimaryBits: 1024,
+		SubkeyBits:  1024,
+	}
+	if err := genArg.MakeAllIds(); err != nil {
+		t.Fatal(err)
+	}
+	arg := PGPKeyImportEngineArg{
+		Gen:        genArg,
+		PushSecret: true,
+		AllowMulti: true,
+		DoExport:   true,
+		Ctx:        tc.G,
+	}
+	eng := NewPGPKeyImportEngine(arg)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// after running, they should have one pgp keys in key family and in gpg
+	me, err = libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(me.GetActivePGPKeys(false)) != 1 {
+		t.Errorf("active pgp keys: %d, expected 1", len(me.GetActivePGPKeys(false)))
+	}
+	gpgPrivate, err = numPrivateGPGKeys(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gpgPrivate != 1 {
+		t.Errorf("private gpg keys: %d, expected 1", gpgPrivate)
+	}
+}
+
+func numPrivateGPGKeys(g *libkb.GlobalContext) (int, error) {
+	gpg := g.GetGpgClient()
+	if err := gpg.Configure(); err != nil {
+		return 0, err
+	}
+
+	index, _, err := gpg.Index(true, "")
+	if err != nil {
+		return 0, err
+	}
+
+	return index.Len(), nil
+}
+
 func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PGPFingerprint, keybase1.KID, string) {
 	bundle, err := tc.MakePGPKey(email)
 	if err != nil {

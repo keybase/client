@@ -214,7 +214,7 @@ func (k *PGPKeyBundle) Encode() (ret string, err error) {
 		return k.ArmoredPublicKey, nil
 	}
 	buf := bytes.Buffer{}
-	err = k.EncodeToStream(NopWriteCloser{&buf})
+	err = k.EncodeToStream(NopWriteCloser{&buf}, false)
 	if err == nil {
 		ret = string(buf.Bytes())
 		k.ArmoredPublicKey = ret
@@ -248,23 +248,27 @@ func PGPKeyRawToArmored(raw []byte, priv bool) (ret string, err error) {
 	return
 }
 
-func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser) (err error) {
-
+func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser, private bool) error {
 	// See Issue #32
-	var writer io.WriteCloser
-	writer, err = armor.Encode(wc, "PGP PUBLIC KEY BLOCK", PGPArmorHeaders)
-
+	which := "PUBLIC"
+	if private {
+		which = "PRIVATE"
+	}
+	writer, err := armor.Encode(wc, fmt.Sprintf("PGP %s KEY BLOCK", which), PGPArmorHeaders)
 	if err != nil {
-		return
+		return err
 	}
 
-	if err = k.Entity.Serialize(writer); err != nil {
-		return
+	if private {
+		err = k.Entity.SerializePrivate(writer, nil)
+	} else {
+		err = k.Entity.Serialize(writer)
 	}
-	if err = writer.Close(); err != nil {
-		return
+	if err != nil {
+		return err
 	}
-	return
+
+	return writer.Close()
 }
 
 func cleanPGPInput(s string) string {
