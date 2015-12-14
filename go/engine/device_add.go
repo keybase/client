@@ -4,8 +4,6 @@
 package engine
 
 import (
-	"errors"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kex2"
@@ -119,7 +117,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	// run provisioner
 	if err = RunEngine(provisioner, ctx); err != nil {
 		if err == kex2.ErrHelloTimeout {
-			return errors.New("Failed to provision device: are you sure you typed the secret properly?")
+			return libkb.CanceledError{M: "Failed to provision device: are you sure you typed the secret properly?"}
 		}
 		return err
 	}
