@@ -172,7 +172,7 @@ clean
 get_deps
 package_electron
 package_app
-#TEMP sign
+sign
 package_dmg
 create_zip
 save
