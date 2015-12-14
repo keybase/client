@@ -1,116 +1,112 @@
 # SaltPack Binary Signing Format
 
-## Properties
-As with the encryption format, we want our signing format to have several
+As with the encryption format, we want our signing format to have some
 properties on top of a plain NaCl signature:
 - Streaming. We want to be able to verify a message of any size, without
   fitting the whole thing in RAM, and without requiring a second pass to output
-  attached plaintext.
+  attached plaintext. But we sould only ever output verified data.
 - Abuse resistance. Alice might use the same signing key for many applications
-  besides SaltPack. Mallory might [try to
-  trick](https://blog.sandstorm.io/news/2015-05-01-is-that-ascii-or-protobuf.html)
-  Alice into signing messages that are meaningful to other applications. Alice
-  should avoid signing any bytes that Mallory could control.
+  besides SaltPack. Mallory (an attacker) could [try to trick Alice into signing
+  messages](https://blog.sandstorm.io/news/2015-05-01-is-that-ascii-or-protobuf.html)
+  that are meaningful to other applications. Alice should avoid signing bytes
+  that Mallory could have chosen.
 
-## Format
+We define two signing formats: one attached and one detached. The attached
+format will have a header packet and payload packets similar to the [encryption
+format](saltpack_encryption.md), with an empty packet at the end of the
+message. The detached format will contain just a header packet, with no
+payload.
 
-We define two signing formats, one attached and one detached.
+Both formats will hash a random nonce along with the plaintext, and then sign
+the resulting hash. The goal for this nonce is to guarantee that we always sign
+bytes that are unpredictable to an attacker. Without the nonce, an attacker
+giving us plaintexts to sign might be able to find one whose hash had some
+desirable substring, which could be meaningful to another application.
 
-### Attached
+## Attached Format
 
 An attached signature is a header packet, followed by any number of non-empty
-payload packets, followed by an empty payload packet. The default max size for
-each payload is 1MB. An attached signing header packet is a MessagePack array
-that looks like this:
+payload packets, followed by an empty payload packet. An attached signing
+header packet is a MessagePack array that looks like this:
 
-```yaml
-# attached signing header packet
+```
 [
-  # format name
-  "saltpack",
-  # major and minor version
-  [1, 0]
-  # mode (1 = attached signing)
-  1,
-  # long-term signing key (NaCl crypto_sign key, 32 bytes)
-  b"ababab...",
-  # ephemeral signing key (NaCl crypto_sign key, 32 bytes)
-  b"cdcdcd...",
-  # delegation signature (NaCl crypto_sign, detached, 64 bytes)
-  b"2f2f2f...",
+    format_name,
+    version,
+    mode,
+    sender_public,
+    nonce,
 ]
 ```
 
-An attached signing payload packet is a MessagePack array that looks like this:
+- **format_name** is the string "SaltPack".
+- **version** is a list of the major and minor versions, currently `[1, 0]`.
+- **mode** is the number 1, for attached signing. (0 is encryption, and 2 is
+  detached signing.)
+- **sender_public** is the sender's long-term NaCl signing public key, 32 bytes.
+- **nonce** is 16 random bytes.
 
-```yaml
-# attached signing payload packet
+Payload packets are MessagePack arrays that looks like this:
+
+```
 [
-  # payload signature (NaCl crypto_sign, detached, 64 bytes)
-  b"e3e3e3...",
-  # payload bytes
-  b"I hereby claim..."
+    payload_chunk,
+    signature,
 ]
 ```
 
-When signing a message, the sender generates a random ephemeral signing
-keypair. The ephemeral public key goes in the header above, and the ephemeral
-private key is used to sign payloads.
+- **payload_chunk** is a chunk of the plaintext bytes, max size 1 MB.
+- **signature** is a detached NaCl signature, 64 bytes.
 
-The delegation signature is made with the sender's long-term signing key. The
-signed text is the concatenation of these values:
-- b"SALTPACKPREFIX\0"
-- b"DELEGATION\0"
-- the ephemeral public signing key
+To make each signature, the sender first takes the SHA512 hash of the
+concatenation of three values:
+- the **nonce** from above
+- the packet sequence number, as an 8-byte big-endian unsigned integer, where
+  the first payload packet is zero
+- the **payload_chunk**
 
-Note that this text doesn't contain any bytes that an attacker could control.
-This should keep Mallory from tricking Alice into making signatures with her
-long-term key that might be meaningful to another application.
-
-Payload signatures are made with the ephemeral signing key. The signed text is
-the concatenation of these values:
-- b"SALTPACKPREFIX\0"
-- b"ATTACHED\0"
-- the packet number as an 8-byte big-endian uint, where the first payload
-  packet is zero
-- the SHA512 of the payload bytes
+What the sender signs is the concatenation of three other values:
+- `"SaltPack\0"`
+- `"attached\0"`
+- the SHA512 hash above
 
 Some applications might use the SaltPack format, but don't want signature
 compatibility with other SaltPack applications. In addition to changing the
 format name at the start of the header, these applications should use a
 [different null-terminated context
 string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
-place of `b"SALTPACKPREFIX\0"`.
+place of `"SaltPack\0"`.
 
-### Detached
+## Detached Format
 
-A detached signature is one packet, similar to the header of an attached
-signature. There are no payload packets, and there's an extra signature in the
-header.
+A detached signature is similar to an attached signature header packet by
+itself, with an extra signature field at the end.
 
-```yaml
-# detached signing packet
+```
 [
-  # format name
-  "saltpack",
-  # major and minor version
-  [1, 0]
-  # mode (2 = detached signing)
-  2,
-  # long-term signing key (NaCl crypto_sign key, 32 bytes)
-  b"ababab...",
-  # ephemeral signing key (NaCl crypto_sign key, 32 bytes)
-  b"cdcdcd...",
-  # delegation signature (NaCl crypto_sign, detached, 64 bytes)
-  b"2f2f2f...",
-  # message signature (NaCl crypto_sign, detached, 64 bytes)
-  b"9d9d9d...",
+    format_name,
+    version,
+    mode,
+    sender_public,
+    nonce,
+    signature,
 ]
 ```
 
-The delegation signature for the ephemeral signing key is the same as in the
-attached format. The message signature is made with the ephemeral signing key.
-The signed text is the concatenation of these values:
-- b"SALTPACKPREFIX\0"
-- b"DETACHED\0"
-- the SHA512 of the message plaintext
+- **format_name** is the string "SaltPack".
+- **version** is a list of the major and minor versions, currently `[1, 0]`.
+- **mode** is the number 2, for attached signing. (0 is encryption, and 1 is
+  attached signing.)
+- **sender_public** is the sender's long-term NaCl signing public key, 32 bytes.
+- **nonce** is 16 random bytes.
+- **signature** a detached NaCl signature, 64 bytes
+
+To make the signature, the sender first takes the SHA512 hash of the
+concatenation of two values:
+- the **nonce** from above
+- the entire plaintext
+
+What the sender signs is the concatenation of three other values:
+- `"SaltPack\0"`
+- `"detached\0"`
+- the SHA512 hash above
