@@ -80,6 +80,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         trackToken: action.payload && action.payload.trackToken
       }
+    case Constants.userUpdated:
+      return {
+        ...state,
+        closed: true
+      }
     case Constants.onCloseFromActionBar:
       return {
         ...state,

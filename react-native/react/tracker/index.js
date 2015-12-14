@@ -4,6 +4,7 @@ import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 // $FlowIssue .desktop issue
 import Render from './render'
+import engine from '../engine'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
@@ -35,6 +36,18 @@ type TrackerProps = {
 
 class Tracker extends Component {
   props: TrackerProps;
+
+  componentWillMount () {
+    this.onemin = setInterval(function () {
+      engine.rpc('track.checkTracking')
+    }, 60000)
+  }
+
+  componentWillUnmount () {
+    if (this.onemin) {
+      clearInterval(this.onemin)
+    }
+  }
 
   render () {
     if (this.props.closed) {

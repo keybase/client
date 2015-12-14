@@ -18,6 +18,30 @@ type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootT
 
 // TODO make actions for all the call back stuff.
 
+export function registerTrackerChangeListener (): (dispatch: Dispatch) => void {
+  return dispatch => {
+    const param = {
+      channels: {
+        tracking: true
+      }
+    }
+    engine.listenOnConnect(() => {
+      engine.rpc('notifyCtl.setNotifications', param, {}, (error, response) => {
+        if (error != null) {
+          console.error('error in toggling notifications: ', error)
+        }
+      })
+    })
+
+    engine.listenGeneralIncomingRpc('keybase.1.NotifyTracking.trackingChanged', function (args) {
+      dispatch({
+        type: Constants.userUpdated,
+        payload: args
+      })
+    })
+  }
+}
+
 export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
     engine.rpc('delegateUiCtl.registerIdentifyUI', {}, {}, (error, response) => {

@@ -6,6 +6,7 @@ import {connect} from '../base-redux'
 import {bindActionCreators} from 'redux'
 import {registerIdentifyUi, onCloseFromHeader} from '../actions/tracker'
 import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../actions/pinentry'
+import {registerTrackerChangeListener} from '../actions/tracker'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 
@@ -39,6 +40,7 @@ class RemoteManager extends Component {
       console.log('starting identify ui server')
       this.props.registerIdentifyUi()
       this.props.registerPinentryListener()
+      this.props.registerTrackerChangeListener()
     }
   }
 
@@ -149,6 +151,5 @@ export default connect(
       pinentryStates: state.pinentry.pinentryStates || {}
     }
   },
-  dispatch => bindActionCreators({registerIdentifyUi, onCloseFromHeader, registerPinentryListener, pinentryOnCancel, pinentryOnSubmit}, dispatch)
+  dispatch => bindActionCreators({registerIdentifyUi, onCloseFromHeader, registerPinentryListener, registerTrackerChangeListener, pinentryOnCancel, pinentryOnSubmit}, dispatch)
 )(RemoteManager)
-
