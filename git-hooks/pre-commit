@@ -10,6 +10,8 @@
 #
 # This script does not handle file names that contain spaces.
 
+# Please keep the pre-push hook in sync with this file.
+
 check_go_fmt() {
 	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/)
 	[ -z "$gofiles" ] && return 0
