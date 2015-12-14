@@ -1,6 +1,6 @@
 ## 1.0.6.1
-- Fix verify command
-- Fix coinbase proof instructions
+- Fix verify command (PR: keybase/client#1522)
+- Fix coinbase proof instructions (PR: keybase/client#1521)
 
 ## 1.0.6
 - libkb: Load optimizations; don't load unneeded fields (PR: keybase/client#1473)
