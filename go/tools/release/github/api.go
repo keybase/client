@@ -23,7 +23,9 @@ func githubURL(host string, token string) (u *url.URL, err error) {
 		return
 	}
 	data := url.Values{}
-	data.Set("access_token", token)
+	if token != "" {
+		data.Set("access_token", token)
+	}
 	u.RawQuery = data.Encode()
 	return
 }
