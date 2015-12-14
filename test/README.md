@@ -29,4 +29,4 @@ To install [Bundler](http://bundler.io/):
 
 `bundle exec rake test` will execute all tests without re-building.
 
-`bundle exec rake test[conflict]` can be used to execute a single test case.
+`bundle exec rake "test[conflict]"` can be used to execute a single test case.
