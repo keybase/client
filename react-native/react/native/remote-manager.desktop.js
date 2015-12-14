@@ -102,7 +102,7 @@ class RemoteManager extends Component {
 
     const {pinentryStates} = this.props
 
-    return Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map((pSessionID) => {
+    return Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map(pSessionID => {
       const sid = parseInt(pSessionID, 10)
       const onCancel = () => this.props.pinentryOnCancel(sid)
       const onSubmit = this.props.pinentryOnSubmit.bind(null, sid)

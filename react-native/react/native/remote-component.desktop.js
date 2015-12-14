@@ -1,7 +1,6 @@
 import React, {Component} from '../base-react'
 import {showDevTools} from '../local-debug'
 import {remote, ipcRenderer} from 'electron'
-import path from 'path'
 import resolveAssets from '../../../desktop/resolve-assets'
 import hotPath from '../../../desktop/hot-path'
 
@@ -36,7 +35,7 @@ export default class RemoteComponent extends Component {
 
     const componentRequireName = this.props.component
     const substore = this.props.substore
-    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&substore=${substore || ''}&src=file://${hotPath('remote-component-loader.bundle.js')}`)
+    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&substore=${substore || ''}&src=${hotPath('remote-component-loader.bundle.js')}`)
   }
 
   componentWillUnmount () {
