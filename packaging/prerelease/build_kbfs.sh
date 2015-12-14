@@ -17,7 +17,7 @@ commit_short=`git log -1 --pretty=format:%h`
 build="$date_last_commit+$commit_short"
 
 echo "Building kbfs"
-GO15VENDOREXPERIMENT=0 go get github.com/keybase/kbfs/kbfsfuse
+GO15VENDOREXPERIMENT=0 go get -u github.com/keybase/kbfs/kbfsfuse
 GO15VENDOREXPERIMENT=0 go build -a -tags "production" -ldflags "-X github.com/keybase/kbfs/libkbfs.CustomBuild=$build" -o $build_dir/kbfs github.com/keybase/kbfs/kbfsfuse
 
 kbfs_version=`$build_dir/kbfs -version`
