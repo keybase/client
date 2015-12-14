@@ -1,5 +1,7 @@
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
 - Periodic polling for new tracking statements (PR: keybase/client#1500)
+- Testing command for fake new tracking notifications
+  (Commit: 540c01b9017502f95e4723f36a906684ff1f4ce6)
 - terminal: dumb down miniline to not allow arrow movement,
   which doesn't work across all terminals, in particular,
   those that don't support ESC-u and ESC-e position saving.
