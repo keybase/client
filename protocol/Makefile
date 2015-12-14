@@ -17,6 +17,7 @@ build-stamp: \
 	json/block.json \
 	json/btc.json \
 	json/config.json \
+	json/constants.json \
 	json/crypto.json \
 	json/ctl.json \
 	json/debugging.json \

@@ -7,6 +7,7 @@ import type {GUIEntryFeatures, GUIEntryArg} from '../constants/types/flow-types'
 import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
 
 import type {Dispatch} from '../constants/types/flux'
+import {constants} from '../constants/types/keybase_v1'
 
 // TODO: there has to be a better way.
 const uglySessionIDResponseMapper: {[key: number]: Function} = {}
@@ -49,7 +50,10 @@ export function onSubmit (sessionID: number, passphrase: string, features: GUIEn
 export function onCancel (sessionID: number): (dipatch: Dispatch) => void {
   return dispatch => {
     dispatch({type: Constants.onCancel, payload: {sessionID}})
-    uglyResponse(sessionID, null, {error: 'User canceled'})
+    uglyResponse(sessionID, null, {
+      code: constants.StatusCode.sccanceled,
+      desc: 'Input canceled'
+    })
   }
 }
 
