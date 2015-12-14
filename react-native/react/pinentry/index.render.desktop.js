@@ -1,7 +1,6 @@
 import React, {Component} from '../base-react'
 import {TextField, FlatButton, Checkbox} from 'material-ui'
 import Header from '../common-adapters/header'
-import path from 'path'
 import resolveAssets from '../../../desktop/resolve-assets'
 import commonStyles, {colors} from '../styles/common'
 

@@ -38,7 +38,7 @@ export default class RemoteComponent extends Component {
 
     const componentRequireName = this.props.component
     const substore = this.props.substore
-    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&substore=${substore || ''}&src=${hotPath('remote-component-loader.bundle.js')}`)
+    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&substore=${substore || ''}&src=${hotPath('remote-component-loader.bundle.js')}&autoResize=${this.props.autoResize}`)
   }
 
   componentWillUnmount () {
@@ -65,5 +65,6 @@ RemoteComponent.propTypes = {
   component: React.PropTypes.string.isRequired,
   substore: React.PropTypes.string,
   windowsOpts: React.PropTypes.object,
-  onRemoteClose: React.PropTypes.func
+  onRemoteClose: React.PropTypes.func,
+  autoResize: React.PropTypes.bool
 }

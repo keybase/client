@@ -34,7 +34,10 @@ export const colors = {
   freshGreen: '#90d05c',
   robinsEggBlue: '#86e2f9',
   lightTeal: '#8ad2e6',
-  error: '#d0021b'
+  error: '#d0021b',
+  backgroundBlue: '#20C0EE',
+  codeBackground: '#F6F6F4',
+  darkGreyBackground: '#444444'
 }
 
 const buttons = {

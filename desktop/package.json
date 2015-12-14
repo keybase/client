@@ -27,6 +27,7 @@
     "framed-msgpack-rpc": "keybase/node-framed-msgpack-rpc#nojima/keybase-client-changes",
     "immutable": "^3.7.5",
     "lodash": "^3.10.1",
+    "marked": "^0.3.5",
     "material-ui": "^0.13.3",
     "menubar": "keybase/menubar",
     "moment": "^2.10.6",

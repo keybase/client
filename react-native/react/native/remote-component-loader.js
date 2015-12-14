@@ -32,7 +32,11 @@ function getQueryVariable (variable) {
 class RemoteComponentLoader extends Component {
   constructor (props) {
     super(props)
-    this.state = {loaded: false, unmounted: false}
+    this.state = {
+      loaded: false,
+      unmounted: false,
+      autoResize: getQueryVariable('autoResize') === 'true'
+    }
 
     const substore = getQueryVariable('substore')
     this.store = new RemoteStore({substore})
@@ -41,7 +45,8 @@ class RemoteComponentLoader extends Component {
 
     const component = {
       tracker: require('../tracker'),
-      pinentry: require('../pinentry')
+      pinentry: require('../pinentry'),
+      update: require('../update')
     }
 
     if (!componentToLoad || !component[componentToLoad]) {
@@ -89,6 +94,18 @@ class RemoteComponentLoader extends Component {
       // Close the window now that the remote-component's unmount
       // lifecycle method has finished
       currentWindow.close()
+    } else if (this.state.autoResize) {
+      this.resizeWindow()
+    }
+  }
+
+  resizeWindow () {
+    currentWindow.setSize(window.remoteComponent.scrollWidth, window.remoteComponent.scrollHeight)
+  }
+
+  componentDidMount () {
+    if (this.state.autoResize) {
+      this.resizeWindow()
     }
   }
 
