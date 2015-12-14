@@ -876,6 +876,9 @@ func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
 		},
 	}
 	err = NewPrompter([]*Field{field}, ui.GetTerminalUI()).Run()
+	if err != nil {
+		return -1, err
+	}
 	if p := field.Value; p == nil {
 		err = ErrInputCanceled
 	} else {
@@ -901,6 +904,9 @@ func PromptSelectionOrCancel(pd libkb.PromptDescriptor, ui libkb.TerminalUI, pro
 		PromptDescriptor: pd,
 	}
 	err = NewPrompter([]*Field{field}, ui).Run()
+	if err != nil {
+		return -1, err
+	}
 	if p := field.Value; p == nil || *p == "q" {
 		err = ErrInputCanceled
 	} else {
