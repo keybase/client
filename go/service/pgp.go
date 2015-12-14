@@ -191,27 +191,12 @@ func (h *PGPHandler) PGPExportByKID(_ context.Context, arg keybase1.PGPExportByK
 func (h *PGPHandler) PGPExportByFingerprint(_ context.Context, arg keybase1.PGPExportByFingerprintArg) (ret []keybase1.KeyInfo, err error) {
 	return h.export(arg.SessionID, engine.NewPGPKeyExportByFingerprintEngine(arg, h.G()))
 }
-func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) (err error) {
+func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) error {
+	ctx := &engine.Context{LogUI: h.getLogUI(arg.SessionID), SecretUI: h.getSecretUI(arg.SessionID)}
 	earg := engine.ImportPGPKeyImportEngineArg(arg)
-	return h.keygen(arg.SessionID, earg, true)
-}
-
-func (h *PGPHandler) keygen(sessionID int, earg engine.PGPKeyImportEngineArg, doInteractive bool) (err error) {
-	ctx := &engine.Context{LogUI: h.getLogUI(sessionID), SecretUI: h.getSecretUI(sessionID)}
 	earg.Gen.AddDefaultUID()
 	eng := engine.NewPGPKeyImportEngine(earg)
-	err = engine.RunEngine(eng, ctx)
-	return err
-}
-
-func (h *PGPHandler) PGPKeyGenDefault(_ context.Context, arg keybase1.PGPKeyGenDefaultArg) (err error) {
-	earg := engine.PGPKeyImportEngineArg{
-		Gen: &libkb.PGPGenArg{
-			Ids:         libkb.ImportPGPIdentities(arg.CreateUids.Ids),
-			NoDefPGPUid: !arg.CreateUids.UseDefault,
-		},
-	}
-	return h.keygen(arg.SessionID, earg, false)
+	return engine.RunEngine(eng, ctx)
 }
 
 func (h *PGPHandler) PGPDeletePrimary(_ context.Context, sessionID int) (err error) {
