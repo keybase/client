@@ -78,18 +78,6 @@
   </head>
   <body>
     <div id="root"/>
-    <div class="header">
-      <img class="logo" src="../Icon@2x.png" alt="">
-      <div class="vDivider"></div>
-      <a class="title" href="https://keybase.io">keybase.io</a>
-    </div>
-    <div class="content">
-      <button class="hidden" type=button id=showMain>Main</button>
-      <button type=button id=showHelp>Help</button>
-      <button type=button id=quit>Quit</button>
-    </div>
-    <div class="footer">
-    </div>
 
     <script>
       function getParams() {
@@ -103,43 +91,18 @@
 
       var params = getParams()
 
-      if (params.debug) {
-        showMain.style.display = 'block'
-      }
-
       if (window.require !== undefined) {
         require("babel/register")({
           extensions: [".desktop.js", ".es6", ".es", ".jsx", ".js"]
         })
-        var shell = require('electron').shell
         var path = require('path')
         var injector = require('../../react-native/react/native/inject-styles')
         injector(document, path.resolve(__dirname, './style.css'))
         injector(document, path.resolve(__dirname, '../node_modules/font-awesome/css/font-awesome.min.css'))
 
-        const ipc = require('electron').ipcRenderer
-        showHelp.addEventListener('click', () => { ipc.send('showHelp') })
-        showMain.addEventListener('click', () => { ipc.send('showMain') })
-        quit.addEventListener('click', () => { require('remote').require('app').emit('destroy') })
-
-        const Menubar = require('../../react-native/react/native/remote-menubar')
-
         const React = require('react')
-        require('react-dom').render(React.createElement(Menubar, {}), document.getElementById('root'))
-
-        // TODO Remove/fix
-        function fixAnchors() {
-        var tags = document.getElementsByTagName('a');
-          for (var i = 0 ; i < tags.length ; ++i) {
-            var a = tags[i]
-            a.addEventListener('click', function(event) {
-              event.preventDefault()
-              shell.openExternal(event.target.href)
-            })
-          }
-        }
-
-        fixAnchors()
+        const Menubar = require('../../react-native/react/native/remote-menubar')
+        require('react-dom').render(React.createElement(Menubar, params), document.getElementById('root'))
       }
     </script>
   </body>

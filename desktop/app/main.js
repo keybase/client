@@ -23,7 +23,7 @@ const menubarIconPath = path.resolve(appPath, 'Icon.png')
 
 const mb = menubar({
   index: `file://${__dirname}/../renderer/launcher.html#debug=${isDev}`,
-  width: 150, height: 192,
+  width: 200, height: 250,
   preloadWindow: true,
   icon: menubarIconPath,
   showDockIcon: true
@@ -46,9 +46,7 @@ mb.on('ready', () => {
 
 // In case the subscribe store comes before the remote store is ready
 ipc.on('subscribeStore', event => {
-  console.log('got a subscribe store')
   ipc.on('remoteStoreReady', () => {
-    console.log('got a remote store ready')
     event.sender.send('resubscribeStore')
   })
 })

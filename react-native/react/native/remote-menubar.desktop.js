@@ -5,7 +5,7 @@ import {remote} from 'electron'
 import React, {Component} from '../base-react'
 
 import {Provider} from 'react-redux'
-import RemoteStore from './remote-store'
+import RemoteStore from './remote-store.desktop'
 
 import Menubar from '../menubar'
 

@@ -10,14 +10,17 @@ import {remote} from 'electron'
 import commonStyles, {colors} from '../styles/common'
 
 export default class Render extends Component {
-  render () {
+  props: {
+    debug?: boolean
+  };
+
+  render (): ReactElement {
     return (
       <div>
         <Header/>
         <OpeningMessage/>
         <FolderList/>
-        <Footer/>
-        <div>{Object.keys(this.props)}</div>
+        <Footer debug={this.props.debug || false}/>
       </div>
     )
   }
@@ -37,12 +40,11 @@ class Header extends Component {
 
 class OpeningMessage extends Component {
   render () {
-    const showMain = () => ipcRenderer.send('showMain')
     return (
       <div>
         <div> Success! Some cool message goes here on two lines. </div>
         <div>
-          <FlatButton style={commonStyles.primaryButton} label='getStarted' onClick={showMain} />
+          <FlatButton style={commonStyles.primaryButton} label='getStarted'/>
         </div>
       </div>
     )
@@ -58,14 +60,20 @@ class FolderList extends Component {
 }
 
 class Footer extends Component {
+  props: {
+    debug: boolean
+  };
+
   render () {
+    const showMain = () => ipcRenderer.send('showMain')
     const showHelp = () => ipcRenderer.send('showHelp')
     const quit = () => remote.app.emit('destroy')
     return (
       <div>
         <div> Footer lives here </div>
-        <FlatButton style={commonStyles.primaryButton} label={'help'} onClick={showHelp} />
-        <FlatButton style={commonStyles.primaryButton} label={'quit'} onClick={quit} />
+        {this.props.debug && <FlatButton style={commonStyles.primaryButton} label='main' onClick={showMain} />}
+        <FlatButton style={commonStyles.primaryButton} label='help' onClick={showHelp} />
+        <FlatButton style={commonStyles.primaryButton} label='quit' onClick={quit} />
       </div>
     )
   }

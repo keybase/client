@@ -6,6 +6,10 @@ declare module 'Interpolation' {
   declare var exports: any;
 }
 
+declare module 'electron' {
+  declare var exports: any;
+}
+
 declare module 'redux-devtools' {
   declare var exports: any;
 }

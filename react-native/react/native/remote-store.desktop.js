@@ -1,7 +1,13 @@
+/* @flow */
 import {ipcRenderer} from 'electron'
 
+import type {Action, Dispatch} from '../constants/types/flux'
+
 export default class RemoteStore {
-  constructor (props) {
+  listeners: Array<Function>;
+  internalState: any;
+
+  constructor (props: {substore?: ?string}) {
     ipcRenderer.on('stateChange', (event, arg) => {
       this.internalState = props.substore ? {[props.substore]: arg} : arg
       this._publishChange()
@@ -17,11 +23,11 @@ export default class RemoteStore {
     this.internalState = {}
   }
 
-  getState () {
+  getState (): any {
     return this.internalState
   }
 
-  dispatch (action) {
+  dispatch (action: any) {
     // TODO use our middlewares
     if (action.constructor === Function) {
       action(a => this.dispatch(a), () => this.getState())
@@ -30,7 +36,7 @@ export default class RemoteStore {
     }
   }
 
-  subscribe (listener) {
+  subscribe (listener: Function): () => void {
     this.listeners.push(listener)
     return listener => {
       this.listeners = this.listeners.filter(l => l !== listener)
