@@ -108,52 +108,13 @@ get_deps() {
   curl -J -L -Ss $installer_url | tar zx
 }
 
-sync() {
-  cd $build_dir
-  echo "Creating project"
-  # Copy files from desktop and react-native project here
-  rsync -av -L $client_dir/desktop . --exclude node_modules
-  rsync -av -L $client_dir/react-native/react react-native --exclude node_modules
-  # Copy icon files
-  cp $client_dir/osx/Install/appdmg/Keybase.icns .
-
-  # Move menubar icon into app path
-  mv $build_dir/desktop/Icon*.png $build_dir
-}
-
-build() {
-  cd $build_dir
-  # Copy and modify package.json to point to main from one dir up
-  cp desktop/package.json .
-  $node_bin/json -I -f package.json -e 'this.main="desktop/app/main.js"'
-  $node_bin/json -I -f package.json -e "this.version=\"$keybase_version\""
-
-  echo "Npm install (including dev dependencies)"
-  # Including dev dependencies for debug, we should use --production when doing real releases
-  npm install #--production
-}
-
 # Build Keybase.app
 package_electron() {
-  cd $build_dir
-  rm -rf $out_dir
+  cd $client_dir
+  cd desktop
 
-  # Get electron version from current prebuilt plist version
-  electron_plist="node_modules/electron-prebuilt/dist/Electron.app/Contents/Info.plist"
-  electron_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $electron_plist`"
-
-  echo "Running Electron packager"
-  # Package the app
-  $node_bin/electron-packager . $app_name \
-    --asar=true \
-    --platform=darwin \
-    --arch=x64 \
-    --version=$electron_version \
-    --app-bundle-id=keybase.Electron \
-    --helper-bundle-id=keybase.ElectronHelper \
-    --icon=Keybase.icns \
-    --app-version=$app_version \
-    --build-version=$app_version$comment
+  npm run package appVersion=$app_version comment=$comment
+  rsync -av release/darwin-x64/Keybase-darwin-x64 $build_dir
 }
 
 # Adds the keybase binaries and Installer.app bundle to Keybase.app
@@ -209,11 +170,9 @@ save() {
 
 clean
 get_deps
-sync
-build
 package_electron
 package_app
-sign
+#TEMP sign
 package_dmg
 create_zip
 save

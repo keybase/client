@@ -16,13 +16,13 @@ const shouldBuildAll = argv.all || false
 const appVersion = argv.appVersion || '0.0.0'
 const comment = argv.comment || ''
 
+del.sync('dist')
 del.sync('build')
 
 fs.copySync('./Icon.png', 'build/desktop/Icon.png')
 fs.copySync('./Icon@2x.png', 'build/desktop/Icon@2x.png')
 fs.copySync('../react-native/react/native', 'build/react-native/react/native', {filter: f => f.endsWith('.html')})
 fs.copySync('../react-native/react/images', 'build/react-native/react/images')
-fs.copySync('./dist', 'build/desktop/dist', {filter: f => f.endsWith('.js')})
 fs.copySync('./node_modules/font-awesome/css/font-awesome.min.css', 'build/desktop/node_modules/font-awesome/css/font-awesome.min.css')
 fs.copySync('./node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'build/desktop/node_modules/font-awesome/fonts/fontawesome-webfont.woff2')
 fs.copySync('./node_modules/nslog/package.json', 'build/desktop/node_modules/nslog/package.json')
@@ -82,7 +82,12 @@ if (version) {
 function startPack () {
   console.log('start pack...')
   webpack(cfg, (err, stats) => {
-    if (err) return console.error(err)
+    if (err) {
+      return console.error(err)
+    }
+
+    fs.copySync('./dist', 'build/desktop/dist', {filter: f => f.endsWith('.js')})
+
     del('release')
     .then(paths => {
       if (shouldBuildAll) {
