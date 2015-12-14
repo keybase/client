@@ -69,8 +69,8 @@ func (h *TrackHandler) Untrack(_ context.Context, arg keybase1.UntrackArg) error
 }
 
 func (h *TrackHandler) CheckTracking(_ context.Context, sessionID int) error {
-	// Rate-limited to once every thirty seconds.
-	if !h.G().RateLimits.GetPermission(libkb.CheckTrackingRateLimit, 30*time.Second) {
+	// Rate-limited to once every fifty seconds.
+	if !h.G().RateLimits.GetPermission(libkb.CheckTrackingRateLimit, 50*time.Second) {
 		h.G().Log.Debug("Skipping CheckTracking due to rate limit.")
 		return nil
 	}
