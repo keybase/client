@@ -68,6 +68,17 @@ var CheckDeviceName = Checker{
 	Hint: "between 3 and 64 characters long",
 }
 
+var CheckKex2SecretPhrase = Checker{
+	F: func(s string) bool {
+		if err := validPhrase(s, Kex2PhraseEntropy); err != nil {
+			G.Log.Debug("invalid kex2 phrase: %s", err)
+			return false
+		}
+		return true
+	},
+	Hint: "It looks like there was a typo in the secret phrase. Please try again.",
+}
+
 func IsYes(s string) bool {
 	s = strings.ToLower(strings.TrimSpace(s))
 	return s == "y" || s == "yes"

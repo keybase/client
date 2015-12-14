@@ -5,15 +5,20 @@ package libkb
 
 import (
 	"crypto/rand"
+	"fmt"
 	"math"
 	"math/big"
+	"strings"
 )
 
 // SecWordList returns an array of words from secwords.  It
 // returns enough words to satisfy the desired entropy.
 func SecWordList(entropy int) ([]string, error) {
-	n := math.Ceil(float64(entropy) / math.Log2(float64(len(secwords))))
-	return secWordListN(int(n))
+	return secWordListN(secWordCount(entropy))
+}
+
+func secWordCount(entropy int) int {
+	return int(math.Ceil(float64(entropy) / math.Log2(float64(len(secwords)))))
 }
 
 // secWordListN returns n random words from secwords.
@@ -28,6 +33,28 @@ func secWordListN(n int) ([]string, error) {
 		res = append(res, secwords[x.Int64()])
 	}
 	return res, nil
+}
+
+func validPhrase(p string, entropy int) error {
+	numWords := secWordCount(entropy)
+	words := strings.Split(p, " ")
+	if len(words) != numWords {
+		return fmt.Errorf("phrase had %d words, expected %d", len(words), numWords)
+	}
+	for _, w := range words {
+		if !validWord(w) {
+			return fmt.Errorf("word %q is not a valid word", w)
+		}
+	}
+	return nil
+}
+
+func validWord(w string) bool {
+	x, ok := secwordSet[w]
+	if !ok {
+		return false
+	}
+	return x
 }
 
 // Wordlist from BIP0039:
@@ -2082,4 +2109,13 @@ var secwords = []string{
 	"zero",
 	"zone",
 	"zoo",
+}
+
+var secwordSet map[string]bool
+
+func init() {
+	secwordSet = make(map[string]bool)
+	for _, w := range secwords {
+		secwordSet[w] = true
+	}
 }
