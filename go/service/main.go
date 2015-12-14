@@ -146,8 +146,6 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
-	d.updater = install.UpdaterStartTicker(d.G())
-
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
