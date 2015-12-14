@@ -347,6 +347,19 @@ type BlockPointer struct {
 	RefNonce BlockRefNonce `codec:"r,omitempty"`
 }
 
+// IsValid returns whether the block pointer is valid. A zero block
+// pointer is considered invalid.
+func (p BlockPointer) IsValid() bool {
+	if !p.ID.IsValid() {
+		return false
+	}
+
+	// TODO: Should also check KeyGen, DataVer, and Creator. (A
+	// bunch of tests use invalid values for one of these.)
+
+	return true
+}
+
 func (p BlockPointer) String() string {
 	s := fmt.Sprintf("BlockPointer{ID: %s, KeyGen: %d, DataVer: %d, Creator: %s", p.ID, p.KeyGen, p.DataVer, p.Creator)
 	if len(p.Writer) > 0 {
@@ -696,6 +709,16 @@ type pathNode struct {
 	Name string
 }
 
+func (n pathNode) isValid() bool {
+	return n.BlockPointer.IsValid()
+}
+
+// DebugString returns a string representation of the node with all
+// pointer information.
+func (n pathNode) DebugString() string {
+	return fmt.Sprintf("%s(ptr=%s)", n.Name, n.BlockPointer)
+}
+
 // BranchName is the name given to a KBFS branch, for a particular
 // top-level folder.  Currently, the notion of a "branch" is
 // client-side only, and can be used to specify which root to use for
@@ -717,6 +740,14 @@ type FolderBranch struct {
 	Branch BranchName // master branch, by default
 }
 
+func (fb FolderBranch) String() string {
+	s := fb.Tlf.String()
+	if len(fb.Branch) > 0 {
+		s += fmt.Sprintf("(branch=%s)", fb.Branch)
+	}
+	return s
+}
+
 // path represents the full KBFS path to a particular location, so
 // that a flush can traverse backwards and fix up ids along the way.
 type path struct {
@@ -727,13 +758,23 @@ type path struct {
 // isValid() returns true if the path has at least one node (for the
 // root).
 func (p path) isValid() bool {
-	return len(p.path) >= 1
+	if len(p.path) < 1 {
+		return false
+	}
+
+	for _, n := range p.path {
+		if !n.isValid() {
+			return false
+		}
+	}
+
+	return true
 }
 
 // hasValidParent() returns true if this path is valid and
 // parentPath() is a valid path.
 func (p path) hasValidParent() bool {
-	return len(p.path) >= 2
+	return len(p.path) >= 2 && p.parentPath().isValid()
 }
 
 // tailName returns the name of the final node in the Path. Must be
@@ -746,6 +787,16 @@ func (p path) tailName() string {
 // Must be called with a valid path.
 func (p path) tailPointer() BlockPointer {
 	return p.path[len(p.path)-1].BlockPointer
+}
+
+// DebugString returns a string representation of the path with all
+// branch and pointer information.
+func (p path) DebugString() string {
+	debugNames := make([]string, 0, len(p.path))
+	for _, node := range p.path {
+		debugNames = append(debugNames, node.DebugString())
+	}
+	return fmt.Sprintf("%s:%s", p.FolderBranch, strings.Join(debugNames, "/"))
 }
 
 // String implements the fmt.Stringer interface for Path.

@@ -65,12 +65,36 @@ func (e BadTLFNameError) Error() string {
 	return fmt.Sprintf("TLF name %s is in an incorrect format", e.Name)
 }
 
-// InvalidPathError indicates an invalid (i.e., empty) path was encountered.
-type InvalidPathError struct{}
+// InvalidBlockPointerError indicates an invalid block pointer was
+// encountered.
+type InvalidBlockPointerError struct {
+	ptr BlockPointer
+}
+
+// Error implements the error interface for InvalidPathError.
+func (e InvalidBlockPointerError) Error() string {
+	return fmt.Sprintf("Invalid block pointer %s", e.ptr)
+}
+
+// InvalidPathError indicates an invalid path was encountered.
+type InvalidPathError struct {
+	p path
+}
 
 // Error implements the error interface for InvalidPathError.
 func (e InvalidPathError) Error() string {
-	return "Invalid path"
+	return fmt.Sprintf("Invalid path %s", e.p.DebugString())
+}
+
+// InvalidParentPathError indicates a path without a valid parent was
+// encountered.
+type InvalidParentPathError struct {
+	p path
+}
+
+// Error implements the error interface for InvalidParentPathError.
+func (e InvalidParentPathError) Error() string {
+	return fmt.Sprintf("Path with invalid parent %s", e.p.DebugString())
 }
 
 // DirNotEmptyError indicates that the user tried to unlink a

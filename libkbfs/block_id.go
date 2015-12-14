@@ -15,13 +15,19 @@ var _ encoding.BinaryUnmarshaler = (*BlockID)(nil)
 const MaxBlockIDStringLength = MaxHashStringLength
 
 // BlockIDFromString creates a BlockID from the given string. If the
-// returned error is nil, the returned Hash is valid.
+// returned error is nil, the returned BlockID is valid.
 func BlockIDFromString(dataStr string) (BlockID, error) {
 	h, err := HashFromString(dataStr)
 	if err != nil {
 		return BlockID{}, err
 	}
 	return BlockID{h}, nil
+}
+
+// IsValid returns whether the block ID is valid. A zero block ID is
+// considered invalid.
+func (id BlockID) IsValid() bool {
+	return id.h.IsValid()
 }
 
 // Bytes returns the bytes of the block ID.

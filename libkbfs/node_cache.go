@@ -1,6 +1,9 @@
 package libkbfs
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 type nodeCacheEntry struct {
 	core     *nodeCore
@@ -76,6 +79,12 @@ func makeNodeStandardForEntry(entry *nodeCacheEntry) *nodeStandard {
 // GetOrCreate implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) GetOrCreate(
 	ptr BlockPointer, name string, parent Node) (Node, error) {
+	if !ptr.IsValid() {
+		// Temporary code to track down bad block
+		// pointers. Remove when not needed anymore.
+		panic(InvalidBlockPointerError{ptr})
+	}
+
 	if name == "" {
 		return nil, EmptyNameError{ptr}
 	}
@@ -118,6 +127,16 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 
 // Get implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Get(ptr BlockPointer) Node {
+	if ptr == (BlockPointer{}) {
+		return nil
+	}
+
+	// Temporary code to track down bad block pointers. Remove (or
+	// return an error) when not needed anymore.
+	if !ptr.IsValid() {
+		panic(InvalidBlockPointerError{ptr})
+	}
+
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[ptr]
@@ -130,6 +149,18 @@ func (ncs *nodeCacheStandard) Get(ptr BlockPointer) Node {
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdatePointer(
 	oldPtr BlockPointer, newPtr BlockPointer) {
+	if oldPtr == (BlockPointer{}) && newPtr == (BlockPointer{}) {
+		return
+	}
+
+	if !oldPtr.IsValid() {
+		panic(fmt.Sprintf("invalid oldPtr %s with newPtr %s", oldPtr, newPtr))
+	}
+
+	if !newPtr.IsValid() {
+		panic(fmt.Sprintf("invalid newPtr %s with oldPtr %s", newPtr, oldPtr))
+	}
+
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[oldPtr]
@@ -145,6 +176,16 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 // Move implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Move(
 	ptr BlockPointer, newParent Node, newName string) error {
+	if ptr == (BlockPointer{}) {
+		return nil
+	}
+
+	// Temporary code to track down bad block pointers. Remove (or
+	// return an error) when not needed anymore.
+	if !ptr.IsValid() {
+		panic(InvalidBlockPointerError{ptr})
+	}
+
 	if newName == "" {
 		return EmptyNameError{ptr}
 	}
@@ -168,6 +209,16 @@ func (ncs *nodeCacheStandard) Move(
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Unlink(ptr BlockPointer, oldPath path) {
+	if ptr == (BlockPointer{}) {
+		return
+	}
+
+	// Temporary code to track down bad block pointers. Remove (or
+	// return an error) when not needed anymore.
+	if !ptr.IsValid() {
+		panic(InvalidBlockPointerError{ptr})
+	}
+
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	entry, ok := ncs.nodes[ptr]

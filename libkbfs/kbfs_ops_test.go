@@ -207,6 +207,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	_, id, rmd := makeIDAndRMD(t, config)
+	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
 	rmd.data.Dir.Type = Dir
 
 	n, de, h, err := config.KBFSOps().
@@ -389,6 +390,9 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 	rmd.data.Dir = DirEntry{
 		BlockInfo: BlockInfo{
+			BlockPointer: BlockPointer{
+				ID: fakeBlockID(1),
+			},
 			EncodedSize: 15,
 		},
 		EntryInfo: EntryInfo{
@@ -4355,12 +4359,12 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 	// InvalidPathError{}.
 
 	err := config.KBFSOps().SetEx(ctx, n, true)
-	if err != (InvalidPathError{}) {
+	if _, ok := err.(InvalidParentPathError); !ok {
 		t.Errorf("Unexpected error on SetEx: %v", err)
 	}
 
 	err = config.KBFSOps().SetMtime(ctx, n, &time.Time{})
-	if err != (InvalidPathError{}) {
+	if _, ok := err.(InvalidParentPathError); !ok {
 		t.Errorf("Unexpected error on SetMtime: %v", err)
 	}
 

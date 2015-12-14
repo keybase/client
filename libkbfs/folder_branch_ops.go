@@ -648,8 +648,10 @@ type makeNewBlock func() Block
 func (fbo *FolderBranchOps) getBlockLocked(ctx context.Context,
 	md *RootMetadata, dir path, newBlock makeNewBlock, rtype reqType) (
 	Block, error) {
+	// Callers should have already done this check, but it doesn't
+	// hurt to do it again.
 	if !dir.isValid() {
-		return nil, InvalidPathError{}
+		return nil, InvalidPathError{dir}
 	}
 	bcache := fbo.config.BlockCache()
 	if block, err := bcache.Get(dir.tailPointer(), dir.Branch); err == nil {
@@ -817,6 +819,14 @@ func (fbo *FolderBranchOps) updateDirBlock(ctx context.Context,
 	return block
 }
 
+func (fbo *FolderBranchOps) pathFromNode(n Node) (path, error) {
+	p := fbo.nodeCache.PathFromNode(n)
+	if !p.isValid() {
+		return path{}, InvalidPathError{p}
+	}
+	return p, nil
+}
+
 // GetDirChildren implements the KBFSOps interface for FolderBranchOps
 func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	children map[string]EntryInfo, err error) {
@@ -835,7 +845,11 @@ func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
-	dirPath := fbo.nodeCache.PathFromNode(dir)
+	dirPath, err := fbo.pathFromNode(dir)
+	if err != nil {
+		return
+	}
+
 	var block *DirBlock
 	fbo.execReadThenWrite(func(rtype reqType) error {
 		block, err = fbo.getDirLocked(ctx, md, dirPath, rtype)
@@ -857,7 +871,7 @@ func (fbo *FolderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 func (fbo *FolderBranchOps) getEntryLocked(ctx context.Context,
 	md *RootMetadata, file path) (*DirBlock, DirEntry, error) {
 	if !file.hasValidParent() {
-		return nil, DirEntry{}, InvalidPathError{}
+		return nil, DirEntry{}, InvalidParentPathError{file}
 	}
 
 	parentPath := file.parentPath()
@@ -903,7 +917,11 @@ func (fbo *FolderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
-	dirPath := fbo.nodeCache.PathFromNode(dir)
+	dirPath, err := fbo.pathFromNode(dir)
+	if err != nil {
+		return
+	}
+
 	childPath := *dirPath.ChildPathNoPtr(name)
 	_, de, err = fbo.getEntryLocked(ctx, md, childPath)
 	if err != nil {
@@ -941,9 +959,8 @@ func (fbo *FolderBranchOps) Stat(ctx context.Context, node Node) (
 
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
-	nodePath := fbo.nodeCache.PathFromNode(node)
-	if !nodePath.isValid() {
-		err = InvalidPathError{}
+	nodePath, err := fbo.pathFromNode(node)
+	if err != nil {
 		return
 	}
 
@@ -1497,14 +1514,24 @@ func (fbo *FolderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, err
 	}
 
-	fbo.blockLock.RLock()
-	dirPath := fbo.nodeCache.PathFromNode(dir)
-	dblock, err := fbo.getDirLocked(ctx, md, dirPath, write)
+	dirPath, dblock, err := func() (path, *DirBlock, error) {
+		fbo.blockLock.RLock()
+		defer fbo.blockLock.RUnlock()
+
+		dirPath, err := fbo.pathFromNode(dir)
+		if err != nil {
+			return path{}, nil, err
+		}
+
+		dblock, err := fbo.getDirLocked(ctx, md, dirPath, write)
+		if err != nil {
+			return path{}, nil, err
+		}
+		return dirPath, dblock, nil
+	}()
 	if err != nil {
-		fbo.blockLock.RUnlock()
 		return nil, DirEntry{}, err
 	}
-	fbo.blockLock.RUnlock()
 
 	// does name already exist?
 	if _, ok := dblock.Children[name]; ok {
@@ -1600,7 +1627,11 @@ func (fbo *FolderBranchOps) createLinkLocked(
 	}
 
 	fbo.blockLock.RLock()
-	dirPath := fbo.nodeCache.PathFromNode(dir)
+	dirPath, err := fbo.pathFromNode(dir)
+	if err != nil {
+		return DirEntry{}, err
+	}
+
 	dblock, err := fbo.getDirLocked(ctx, md, dirPath, write)
 	if err != nil {
 		fbo.blockLock.RUnlock()
@@ -1748,7 +1779,11 @@ func (fbo *FolderBranchOps) RemoveDir(
 		return err
 	}
 
-	dirPath := fbo.nodeCache.PathFromNode(dir)
+	dirPath, err := fbo.pathFromNode(dir)
+	if err != nil {
+		return err
+	}
+
 	err = func() error {
 		fbo.blockLock.RLock()
 		defer fbo.blockLock.RUnlock()
@@ -1799,7 +1834,11 @@ func (fbo *FolderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 		return err
 	}
 
-	dirPath := fbo.nodeCache.PathFromNode(dir)
+	dirPath, err := fbo.pathFromNode(dir)
+	if err != nil {
+		return err
+	}
+
 	return fbo.removeEntryLocked(ctx, md, dirPath, name)
 }
 
@@ -1989,8 +2028,15 @@ func (fbo *FolderBranchOps) Rename(
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
 
-	oldParentPath := fbo.nodeCache.PathFromNode(oldParent)
-	newParentPath := fbo.nodeCache.PathFromNode(newParent)
+	oldParentPath, err := fbo.pathFromNode(oldParent)
+	if err != nil {
+		return err
+	}
+
+	newParentPath, err := fbo.pathFromNode(newParent)
+	if err != nil {
+		return err
+	}
 
 	// only works for paths within the same topdir
 	if oldParentPath.FolderBranch != newParentPath.FolderBranch {
@@ -2104,7 +2150,11 @@ func (fbo *FolderBranchOps) Read(
 
 	fbo.blockLock.RLock()
 	defer fbo.blockLock.RUnlock()
-	filePath := fbo.nodeCache.PathFromNode(file)
+	filePath, err := fbo.pathFromNode(file)
+	if err != nil {
+		return 0, err
+	}
+
 	return fbo.readLocked(ctx, filePath, dest, off)
 }
 
@@ -2329,7 +2379,11 @@ func (fbo *FolderBranchOps) Write(
 
 	fbo.blockLock.Lock()
 	defer fbo.blockLock.Unlock()
-	filePath := fbo.nodeCache.PathFromNode(file)
+	filePath, err := fbo.pathFromNode(file)
+	if err != nil {
+		return err
+	}
+
 	fbo.blockWriteLocked = true
 	defer func() {
 		fbo.blockWriteLocked = false
@@ -2495,7 +2549,11 @@ func (fbo *FolderBranchOps) Truncate(
 
 	fbo.blockLock.Lock()
 	defer fbo.blockLock.Unlock()
-	filePath := fbo.nodeCache.PathFromNode(file)
+	filePath, err := fbo.pathFromNode(file)
+	if err != nil {
+		return err
+	}
+
 	fbo.blockWriteLocked = true
 	defer func() {
 		fbo.blockWriteLocked = false
@@ -2578,7 +2636,11 @@ func (fbo *FolderBranchOps) SetEx(
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	filePath := fbo.nodeCache.PathFromNode(file)
+	filePath, err := fbo.pathFromNode(file)
+	if err != nil {
+		return
+	}
+
 	return fbo.setExLocked(ctx, filePath, ex)
 }
 
@@ -2631,7 +2693,11 @@ func (fbo *FolderBranchOps) SetMtime(
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	filePath := fbo.nodeCache.PathFromNode(file)
+	filePath, err := fbo.pathFromNode(file)
+	if err != nil {
+		return err
+	}
+
 	return fbo.setMtimeLocked(ctx, filePath, mtime)
 }
 
@@ -2975,7 +3041,11 @@ func (fbo *FolderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 
 	fbo.writerLock.Lock()
 	defer fbo.writerLock.Unlock()
-	filePath := fbo.nodeCache.PathFromNode(file)
+	filePath, err := fbo.pathFromNode(file)
+	if err != nil {
+		return err
+	}
+
 	stillDirty, err := fbo.syncLocked(ctx, filePath)
 	if err != nil {
 		return err
@@ -3203,18 +3273,26 @@ func (fbo *FolderBranchOps) searchForNode(ctx context.Context,
 }
 
 func (fbo *FolderBranchOps) unlinkFromCache(op op, oldDir BlockPointer,
-	node Node, name string) {
+	node Node, name string) error {
 	// The entry could be under any one of the unref'd blocks, and
 	// it's safe to perform this when the pointer isn't real, so just
 	// try them all to avoid the overhead of looking up the right
 	// pointer in the old version of the block.
-	childPath := fbo.nodeCache.PathFromNode(node).ChildPathNoPtr(name)
+	p, err := fbo.pathFromNode(node)
+	if err != nil {
+		return err
+	}
+
+	childPath := p.ChildPathNoPtr(name)
+
 	// revert the parent pointer
 	childPath.path[len(childPath.path)-2].BlockPointer = oldDir
 	for _, ptr := range op.Unrefs() {
 		childPath.path[len(childPath.path)-1].BlockPointer = ptr
 		fbo.nodeCache.Unlink(ptr, *childPath)
 	}
+
+	return nil
 }
 
 // cacheLock must be taken by the caller.
@@ -3298,7 +3376,11 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 
 		// If this node exists, then the child node might exist too,
 		// and we need to unlink it in the node cache.
-		fbo.unlinkFromCache(op, realOp.Dir.Unref, node, realOp.OldName)
+		err := fbo.unlinkFromCache(op, realOp.Dir.Unref, node, realOp.OldName)
+		if err != nil {
+			fbo.log.CErrorf(ctx, "Couldn't unlink from cache: %v", err)
+			return
+		}
 	case *renameOp:
 		oldNode := fbo.nodeCache.Get(realOp.OldDir.Ref)
 		if oldNode != nil {
@@ -3362,10 +3444,14 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 				} else {
 					unrefPtr = realOp.OldDir.Unref
 				}
-				fbo.unlinkFromCache(op, unrefPtr, newNode, realOp.NewName)
-				err :=
-					fbo.nodeCache.Move(realOp.Renamed, newNode, realOp.NewName)
+				err := fbo.unlinkFromCache(op, unrefPtr, newNode, realOp.NewName)
 				if err != nil {
+					fbo.log.CErrorf(ctx, "Couldn't unlink from cache: %v", err)
+					return
+				}
+				err = fbo.nodeCache.Move(realOp.Renamed, newNode, realOp.NewName)
+				if err != nil {
+					fbo.log.CErrorf(ctx, "Couldn't move node in cache: %v", err)
 					return
 				}
 			}
@@ -3390,8 +3476,11 @@ func (fbo *FolderBranchOps) notifyOneOp(ctx context.Context, op op,
 		fbo.log.CDebugf(ctx, "notifyOneOp: setAttr %s for file %s in node %p",
 			realOp.Attr, realOp.Name, node.GetID())
 
-		childPath :=
-			*fbo.nodeCache.PathFromNode(node).ChildPathNoPtr(realOp.Name)
+		p, err := fbo.pathFromNode(node)
+		if err != nil {
+			return
+		}
+		childPath := *p.ChildPathNoPtr(realOp.Name)
 
 		// find the node for the actual change; requires looking up
 		// the child entry to get the BlockPointer, unfortunately.
