@@ -122,7 +122,7 @@ func TestIssue454(t *testing.T) {
 	}
 }
 
-// Issue CORE-2063:  check that generated secret key is exported
+// Issue CORE-2063: check that generated secret key is exported
 // to user's GPG keyring.
 func TestPGPImportGPGExport(t *testing.T) {
 	tc := SetupEngineTest(t, "pgpexp")
