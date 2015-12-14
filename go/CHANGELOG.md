@@ -1,5 +1,9 @@
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
 - Periodic polling for new tracking statements (PR: keybase/client#1500)
+- terminal: dumb down miniline to not allow arrow movement,
+  which doesn't work across all terminals, in particular,
+  those that don't support ESC-u and ESC-e position saving.
+  (Commit: ba3cd333dfcc8180a64219470ef48d7dfba207f9)
 
 ## 1.0.6-1
 - Fix verify command (PR: keybase/client#1522)
