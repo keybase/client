@@ -148,6 +148,8 @@ const (
 	ErrObjectPathNotFound = NtError(0xC000003A)
 	// ErrNotSupported - not supported.
 	ErrNotSupported = NtError(0xC00000BB)
+	// ErrFileIsADirectory - file is a directory.
+	ErrFileIsADirectory = NtError(0xC00000BA)
 	// ErrFileAlreadyExists - file already exists - fatal.
 	ErrFileAlreadyExists = NtError(0xC000003A)
 	// StatusObjectNameExists - already exists, may be non-fatal...
