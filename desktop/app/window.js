@@ -1,6 +1,5 @@
-import BrowserWindow from 'browser-window'
 import showDockIcon from './dockIcon'
-import {app, ipcMain} from 'electron'
+import {app, ipcMain, BrowserWindow} from 'electron'
 
 export default class Window {
   constructor (filename, opts) {
@@ -57,7 +56,7 @@ export default class Window {
     }
 
     this.window = new BrowserWindow({show: false, ...this.opts})
-    this.window.loadURL(`file://${__dirname}/../renderer/${this.filename}.html`)
+    this.window.loadURL(`file://${this.filename}`)
     this.bindWindowListeners()
   }
 
