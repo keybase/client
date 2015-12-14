@@ -77,6 +77,7 @@
     </style>
   </head>
   <body>
+    <div id="root"/>
     <div class="header">
       <img class="logo" src="../Icon@2x.png" alt="">
       <div class="vDivider"></div>
@@ -121,6 +122,12 @@
         showMain.addEventListener('click', () => { ipc.send('showMain') })
         quit.addEventListener('click', () => { require('remote').require('app').emit('destroy') })
 
+        const Menubar = require('../../react-native/react/native/remote-menubar')
+
+        const React = require('react')
+        require('react-dom').render(React.createElement(Menubar, {}), document.getElementById('root'))
+
+        // TODO Remove/fix
         function fixAnchors() {
         var tags = document.getElementsByTagName('a');
           for (var i = 0 ; i < tags.length ; ++i) {

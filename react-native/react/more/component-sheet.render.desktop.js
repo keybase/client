@@ -4,6 +4,8 @@ import commonStyles from '../styles/common'
 import Header from '../common-adapters/header'
 import path from 'path'
 
+import Menubar from '../menubar'
+
 const Container = props => {
   return (
     <Paper zDepth={5} style={{margin: 20}}>
@@ -25,6 +27,9 @@ export default class Render extends Component {
   render () {
     return (
       <div style={{...commonStyles.flexBoxColumn, flex: 1, overflowY: 'auto'}}>
+        <Container title='Menubar'>
+          <Menubar/>
+        </Container>
         <Container title='Header No Close'>
           <Header icon={`file:///${path.resolve(__dirname, '../images/service/keybase.png')}`} title='Title'/>
         </Container>

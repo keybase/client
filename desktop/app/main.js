@@ -29,12 +29,6 @@ const mb = menubar({
   showDockIcon: true
 })
 
-const mainWindow = new Window('index', {
-  width: 1600,
-  height: 1200,
-  openDevTools: true
-})
-
 mb.on('after-create-window', () => {
   if (showDevTools) {
     mb.window.openDevTools()
@@ -50,11 +44,26 @@ mb.on('ready', () => {
   })
 })
 
+// In case the subscribe store comes before the remote store is ready
+ipc.on('subscribeStore', event => {
+  console.log('got a subscribe store')
+  ipc.on('remoteStoreReady', () => {
+    console.log('got a remote store ready')
+    event.sender.send('resubscribeStore')
+  })
+})
+
 // Work around an OS X bug that leaves a gap in the status bar if you exit
 // without removing your status bar icon.
 if (process.platform === 'darwin') {
   mb.app.on('destroy', () => { mb.tray.destroy() })
 }
+
+const mainWindow = new Window('index', {
+  width: 1600,
+  height: 1200,
+  openDevTools: true
+})
 
 ipc.on('showMain', () => {
   mainWindow.show(true)

@@ -13,6 +13,7 @@ import ListenForNotifications from '../../react-native/react/native/notification
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 
 // For Remote Components
+import {ipcRenderer} from 'electron'
 import RemoteManager from '../../react-native/react/native/remote-manager'
 import {ipcMain} from 'remote'
 
@@ -78,6 +79,8 @@ class Keybase extends Component {
         event.sender.send('stateChange', getStore())
       })
     })
+
+    ipcRenderer.send('remoteStoreReady')
 
     // Handle notifications from the service
     ListenForNotifications(NotifyPopup)
