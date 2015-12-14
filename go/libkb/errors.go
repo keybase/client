@@ -219,14 +219,14 @@ func (e BadSigError) Error() string {
 //=============================================================================
 
 type NotFoundError struct {
-	msg string
+	Msg string
 }
 
 func (e NotFoundError) Error() string {
-	if len(e.msg) == 0 {
+	if len(e.Msg) == 0 {
 		return "Not found"
 	}
-	return e.msg
+	return e.Msg
 }
 
 //=============================================================================
@@ -555,6 +555,16 @@ type ProtocolDowngradeError struct {
 
 func (h ProtocolDowngradeError) Error() string {
 	return h.msg
+}
+
+//=============================================================================
+
+type ProfileNotPublicError struct {
+	msg string
+}
+
+func (p ProfileNotPublicError) Error() string {
+	return p.msg
 }
 
 //=============================================================================
@@ -1206,4 +1216,15 @@ func (e UnmetAssertionError) Error() string {
 		which = "remote"
 	}
 	return fmt.Sprintf("Unmet %s assertions for user %q", which, e.User)
+}
+
+//=============================================================================
+
+type ResolutionError struct {
+	Input string
+	Msg   string
+}
+
+func (e ResolutionError) Error() string {
+	return fmt.Sprintf("In resolving '%s': %s", e.Input, e.Msg)
 }

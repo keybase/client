@@ -8,6 +8,7 @@ fs.readdirAsync(root).filter(jsonOnly).map(load).map(analyze).reduce(collectType
 var typePrelude = `/* @flow */
 
 export type int = number
+export type long = number
 export type double = number
 export type bytes = any
 export type BlockRefNonce = any

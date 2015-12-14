@@ -121,7 +121,7 @@ type timedoutError struct{}
 // Error returns the string representation of this error
 func (t timedoutError) Error() string { return "operation timed out" }
 
-// Temporary returns if the error is retriable
+// Temporary returns if the error is retryable
 func (t timedoutError) Temporary() bool { return true }
 
 // Timeout returns if this error is a timeout
@@ -162,6 +162,11 @@ var ErrAgain = errors.New("no data were ready to read")
 
 // ErrBadSecret indicates that the secret received was invalid.
 var ErrBadSecret = errors.New("bad secret")
+
+// ErrHelloTimeout indicates that the Hello() part of the
+// protocol timed out.  Most likely due to an incorrect
+// secret phrase from the user.
+var ErrHelloTimeout = errors.New("hello timeout")
 
 func (c *Conn) setReadError(e error) error {
 	c.errMutex.Lock()

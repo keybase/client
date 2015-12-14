@@ -34,7 +34,10 @@ func main() {
 		log.Printf("Error parsing version %v", err)
 		os.Exit(3)
 	}
-	fv.Build = libkb.Build
+	if int, err := fmt.Sscanf(libkb.Build(), "%d", &fv.Build); int != 1 || err != nil {
+		log.Printf("Error parsing build %v", err)
+		os.Exit(3)
+	}
 
 	if *printverPtr {
 		fmt.Printf("%d.%d.%d.%d", fv.Major, fv.Minor, fv.Patch, fv.Build)

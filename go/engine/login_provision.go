@@ -573,7 +573,7 @@ func (e *LoginProvision) hasGPGPrivate() bool {
 		return false
 	}
 
-	e.G().Log.Debug("have gpg.  num private keys: %d", index.Len())
+	e.G().Log.Debug("have gpg. num private keys: %d", index.Len())
 
 	return index.Len() > 0
 }
@@ -681,7 +681,11 @@ func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	}
 
 	// get KID for the pgp key
-	kid, err := e.user.GetComputedKeyFamily().FindKIDFromFingerprint(*fp)
+	kf := e.user.GetComputedKeyFamily()
+	if kf == nil {
+		return nil, libkb.KeyFamilyError{Msg: "no key family for user"}
+	}
+	kid, err := kf.FindKIDFromFingerprint(*fp)
 	if err != nil {
 		return nil, err
 	}
@@ -784,7 +788,13 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 		e.G().Log.Debug("error finding user for fp %s: %s", fp, err)
 		return err
 	}
-	e.G().Log.Debug("found user (%s, %s) for key %s", username, uid, fp)
+
+	// even if there was no error, make sure it found something
+	if len(username) == 0 {
+		return libkb.NotFoundError{Msg: fmt.Sprintf("No keybase user found for PGP fingerprint %s; please try a different GPG key or another provisioning method", fp)}
+	}
+
+	e.G().Log.Debug("found user (%q, %q) for key %s", username, uid, fp)
 
 	// if so, will have username from that
 	e.username = username

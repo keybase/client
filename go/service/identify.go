@@ -50,6 +50,11 @@ func (h *IdentifyHandler) Identify2WithUID(_ context.Context, arg keybase1.Ident
 	return res, nil
 }
 
+func (h *IdentifyHandler) Resolve(_ context.Context, arg string) (keybase1.UID, error) {
+	rres := h.G().Resolver.ResolveFullExpression(arg)
+	return rres.GetUID(), rres.GetError()
+}
+
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
 	var do = func() (interface{}, error) {
 		if arg.Source == keybase1.IdentifySource_KBFS {

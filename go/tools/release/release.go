@@ -14,9 +14,9 @@ import (
 	gh "github.com/keybase/client/go/tools/release/github"
 )
 
-func githubToken() string {
+func githubToken(required bool) string {
 	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
+	if token == "" && required {
 		log.Fatal("No GITHUB_TOKEN set")
 	}
 	return token
@@ -52,21 +52,18 @@ func main() {
 		}
 		fmt.Printf("%s-%d", ver, build+1)
 	case "latest-version":
-		release, err := gh.LatestRelease("keybase", *repo, githubToken())
-		if _, ok := err.(*gh.ErrNotFound); ok {
-			// No release
-		} else if err != nil {
+		tag, err := gh.LatestTag("keybase", *repo, githubToken(false))
+		if err != nil {
 			log.Fatal(err)
-		} else {
-			if strings.HasPrefix(release.TagName, "v") {
-				version := release.TagName[1:]
-				fmt.Printf("%s", version)
-			}
+		}
+		if strings.HasPrefix(tag.Name, "v") {
+			version := tag.Name[1:]
+			fmt.Printf("%s", version)
 		}
 	case "os-name":
 		fmt.Printf("%s", runtime.GOOS)
 	case "url":
-		release, err := gh.ReleaseOfTag("keybase", *repo, tag(*version), githubToken())
+		release, err := gh.ReleaseOfTag("keybase", *repo, tag(*version), githubToken(false))
 		if _, ok := err.(*gh.ErrNotFound); ok {
 			// No release
 		} else if err != nil {
@@ -75,7 +72,10 @@ func main() {
 			fmt.Printf("%s", release.URL)
 		}
 	case "create":
-		err := gh.CreateRelease(githubToken(), *repo, tag(*version), tag(*version))
+		if *version == "" {
+			log.Fatal("No version")
+		}
+		err := gh.CreateRelease(githubToken(true), *repo, tag(*version), tag(*version))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -83,16 +83,19 @@ func main() {
 		if *src == "" {
 			log.Fatal("Need to specify src")
 		}
+		if *version == "" {
+			log.Fatal("No version")
+		}
 		if *dest == "" {
 			dest = src
 		}
 		log.Printf("Uploading %s as %s (%s)", *src, *dest, tag(*version))
-		err := gh.Upload(githubToken(), *repo, tag(*version), *dest, *src)
+		err := gh.Upload(githubToken(true), *repo, tag(*version), *dest, *src)
 		if err != nil {
 			log.Fatal(err)
 		}
 	case "download-source":
-		err := gh.DownloadSource(githubToken(), *repo, tag(*version))
+		err := gh.DownloadSource(githubToken(false), *repo, tag(*version))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -102,7 +105,7 @@ func main() {
 			src = &defaultSrc
 		}
 		log.Printf("Downloading %s (%s)", *src, tag(*version))
-		err := gh.DownloadAsset(githubToken(), *repo, tag(*version), *src)
+		err := gh.DownloadAsset(githubToken(false), *repo, tag(*version), *src)
 		if err != nil {
 			log.Fatal(err)
 		}

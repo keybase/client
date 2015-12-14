@@ -526,6 +526,137 @@ func TestProvisionGPGSign(t *testing.T) {
 	}
 }
 
+// Provision device first trying a private GPG key that is not associated
+// with a keybase account.
+func TestProvisionGPGUnknown(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	otherEmail := "gpg@gpg.com"
+	u1 := createFakeUserWithPGPMultSubset(t, tc, otherEmail)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// run login on new device, selecting the key for otherEmail for signing,
+	// which isn't associated with a keybase account.
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGSign(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       newGPGSelectEmailUI(otherEmail),
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, u1.Username, keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatalf("No provisioning error, expected an error using gpg key for %s", otherEmail)
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Fatalf("provisioning error type: %T, expected libkb.NotFoundError", err)
+	}
+
+	// run login again, selecting the correct key
+	ctx.GPGUI = newGPGSelectEmailUI(u1.Email)
+	eng = NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// make sure everything is ok
+
+	testUserHasDeviceKey(tc2)
+
+	// highly possible they didn't have a paper key, so make sure they have one now:
+	hasOnePaperDev(tc2, u1)
+
+	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// since they *did not* import a pgp key, they should *not* be able to pgp sign something:
+	if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
+		t.Error("pgp sign worked after gpg provision w/o import")
+		t.Fatal(err)
+	}
+}
+
+// Provision device first trying a private GPG key that is not associated
+// with a keybase account, selecting the import private to kb
+// lksec option.
+func TestProvisionGPGImportUnknown(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	otherEmail := "gpg@gpg.com"
+	u1 := createFakeUserWithPGPMultSubset(t, tc, otherEmail)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// run login on new device, selecting the key for otherEmail for signing,
+	// which isn't associated with a keybase account.
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       newGPGSelectEmailUI(otherEmail),
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, u1.Username, keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatalf("No provisioning error, expected an error using gpg key for %s", otherEmail)
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Fatalf("provisioning error type: %T, expected libkb.NotFoundError", err)
+	}
+
+	// run login again, selecting the correct key
+	ctx.GPGUI = newGPGSelectEmailUI(u1.Email)
+	eng = NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// make sure everything is ok
+
+	testUserHasDeviceKey(tc2)
+
+	// highly possible they didn't have a paper key, so make sure they have one now:
+	hasOnePaperDev(tc2, u1)
+
+	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// since they imported their pgp key, they should be able to pgp sign something:
+	if err := signString(tc2, "sign me", u1.NewSecretUI()); err != nil {
+		t.Error("pgp sign failed after gpg provision w/ import")
+		t.Fatal(err)
+	}
+}
+
 func TestProvisionGPGSignFailedSign(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()

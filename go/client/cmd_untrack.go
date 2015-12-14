@@ -17,15 +17,16 @@ import (
 
 type CmdUntrack struct {
 	user string
+	libkb.Contextified
 }
 
-func NewCmdUntrack(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdUntrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "untrack",
 		ArgumentHelp: "<username>",
 		Usage:        "Untrack a user",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdUntrack{}, "untrack", c)
+			cl.ChooseCommand(&CmdUntrack{Contextified: libkb.NewContextified(g)}, "untrack", c)
 		},
 	}
 }
@@ -39,7 +40,7 @@ func (v *CmdUntrack) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdUntrack) Run() error {
-	cli, err := GetTrackClient()
+	cli, err := GetTrackClient(v.G())
 	if err != nil {
 		return err
 	}

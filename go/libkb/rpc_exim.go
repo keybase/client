@@ -240,6 +240,14 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return SibkeyAlreadyExistsError{}
 	case SCNoUIDelegation:
 		return UIDelegationUnavailableError{}
+	case SCProfileNotPublic:
+		return ProfileNotPublicError{msg: s.Desc}
+	case SCResolutionFailed:
+		var input string
+		if len(s.Fields) > 0 && s.Fields[0].Key == "input" {
+			input = s.Fields[0].Value
+		}
+		return ResolutionError{Msg: s.Desc, Input: input}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -868,5 +876,24 @@ func (e UIDelegationUnavailableError) ToStatus() keybase1.Status {
 		Code: SCNoUIDelegation,
 		Name: "SC_UI_DELEGATION_UNAVAILABLE",
 		Desc: e.Error(),
+	}
+}
+
+func (e ResolutionError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCResolutionFailed,
+		Name: "SC_RESOLUTION_FAILED",
+		Desc: e.Msg,
+		Fields: []keybase1.StringKVPair{
+			{"input", e.Input},
+		},
+	}
+}
+
+func (e ProfileNotPublicError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCProfileNotPublic,
+		Name: "SC_PROFILE_NOT_PUBLIC",
+		Desc: e.msg,
 	}
 }

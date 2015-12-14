@@ -5,6 +5,12 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
+# For Keybase
+# "$GOPATH/src/github.com/keybase/client/" "$GOPATH/src/github.com/keybase/client/go/libkb/version.go" "client" "libkb" $@
+
+# For KBFS
+# "$GOPATH/src/github.com/keybase/kbfs/" "$GOPATH/src/github.com/keybase/kbfs/libkbfs/version.go" "kbfs" "libkbfs" $@
+
 repodir=${1:-$GOPATH/src/github.com/keybase/client}
 version_file=${2:-$repodir/go/libkb/version.go}
 repo=${3:-client}

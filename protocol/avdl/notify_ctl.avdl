@@ -5,9 +5,10 @@ protocol notifyCtl {
   import idl "common.avdl";
 
   record NotificationChannels {
-  	boolean session;
-  	boolean users;
-  	boolean kbfs;
+    boolean session;
+    boolean users;
+    boolean kbfs;
+    boolean tracking;
   }
 
   void setNotifications(NotificationChannels channels);

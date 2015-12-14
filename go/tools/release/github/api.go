@@ -9,12 +9,26 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 )
 
 const (
 	GithubAPIURL = "https://api.github.com"
 )
+
+func githubURL(host string, token string) (u *url.URL, err error) {
+	u, err = url.Parse(host)
+	if err != nil {
+		return
+	}
+	data := url.Values{}
+	if token != "" {
+		data.Set("access_token", token)
+	}
+	u.RawQuery = data.Encode()
+	return
+}
 
 // materializeFile takes a physical file or stream (named pipe, user input,
 // ...) and returns an io.Reader and the number of bytes that can be read

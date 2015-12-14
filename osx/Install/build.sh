@@ -37,7 +37,6 @@ app_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $plist`"
 # fi
 
 app_name="KeybaseInstaller"
-appdmg="appdmg.json"
 
 #echo "Cleaning..."
 #set -o pipefail && xcodebuild clean -scheme Keybase -workspace $dir/../Keybase.xcworkspace -configuration $xcode_configuration | xcpretty -c

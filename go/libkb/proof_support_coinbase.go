@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -83,6 +84,29 @@ func (t CoinbaseServiceType) CheckUsername(s string) (err error) {
 	return
 }
 
+func coinbaseUserURL(s string) string {
+	return "https://coinbase.com/" + s
+}
+
+func coinbaseSettingsURL(s string) string {
+	return coinbaseUserURL(s) + "#settings"
+}
+
+func (t CoinbaseServiceType) NormalizeUsername(s string) (ret string, err error) {
+	ret = strings.ToLower(s)
+	_, err = G.XAPI.GetHTML(APIArg{
+		Endpoint:    coinbaseUserURL(ret),
+		NeedSession: false,
+	})
+	if err != nil {
+		if ae, ok := err.(*APIError); ok && ae.Code == 404 {
+			err = ProfileNotPublicError{fmt.Sprintf("%s isn't public! Change your settings at %s",
+				coinbaseUserURL(ret), coinbaseSettingsURL(ret))}
+		}
+	}
+	return ret, err
+}
+
 func (t CoinbaseServiceType) ToChecker() Checker {
 	return t.BaseToChecker(t, "alphanumeric, between 2 and 16 characters")
 }
@@ -97,7 +121,7 @@ func (t CoinbaseServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 
 func (t CoinbaseServiceType) PostInstructions(un string) *Markup {
 	return FmtMarkup(`Please update your Coinbase profile to show this proof.
-Click here: https://coinbase.com/` + un + `/public-key`)
+Click here: ` + coinbaseSettingsURL(un))
 
 }
 

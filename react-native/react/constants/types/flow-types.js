@@ -1,6 +1,7 @@
 /* @flow */
 
 export type int = number
+export type long = number
 export type double = number
 export type bytes = any
 export type BlockRefNonce = any
@@ -439,6 +440,10 @@ export type Config = {
   isAutoForked: boolean;
   forkType: ForkType;
 }
+
+export type constants_StatusCode = 0 /* 'SCOk_0' */ | 1 /* 'SCLoginRequired_201' */ | 2 /* 'SCBadSession_202' */ | 3 /* 'SCBadLoginPassword_204' */ | 4 /* 'SCNotFound_205' */ | 5 /* 'SCGeneric_218' */ | 6 /* 'SCAlreadyLoggedIn_235' */ | 7 /* 'SCCanceled_237' */ | 8 /* 'SCReloginRequired_274' */ | 9 /* 'SCResolutionFailed_275' */ | 10 /* 'SCProfileNotPublic_276' */ | 11 /* 'SCBadSignupUsernameTaken_701' */ | 12 /* 'SCMissingResult_801' */ | 13 /* 'SCKeyNotFound_901' */ | 14 /* 'SCKeyInUse_907' */ | 15 /* 'SCKeyBadGen_913' */ | 16 /* 'SCKeyNoSecret_914' */ | 17 /* 'SCKeyBadUIDs_915' */ | 18 /* 'SCKeyNoActive_916' */ | 19 /* 'SCKeyNoSig_917' */ | 20 /* 'SCKeyBadSig_918' */ | 21 /* 'SCKeyBadEldest_919' */ | 22 /* 'SCKeyNoEldest_920' */ | 23 /* 'SCKeyDuplicateUpdate_921' */ | 24 /* 'SCSibkeyAlreadyExists_922' */ | 25 /* 'SCDecryptionKeyNotFound_924' */ | 26 /* 'SCBadTrackSession_1301' */ | 27 /* 'SCDeviceNotFound_1409' */ | 28 /* 'SCDeviceMismatch_1410' */ | 29 /* 'SCDeviceRequired_1411' */ | 30 /* 'SCStreamExists_1501' */ | 31 /* 'SCStreamNotFound_1502' */ | 32 /* 'SCStreamWrongKind_1503' */ | 33 /* 'SCStreamEOF_1504' */ | 34 /* 'SCAPINetworkError_1601' */ | 35 /* 'SCTimeout_1602' */ | 36 /* 'SCProofError_1701' */ | 37 /* 'SCIdentificationExpired_1702' */ | 38 /* 'SCSelfNotFound_1703' */ | 39 /* 'SCBadKexPhrase_1704' */ | 40 /* 'SCNoUIDelegation_1705' */
+
+export type StatusCode = 0 /* 'SCOk_0' */ | 1 /* 'SCLoginRequired_201' */ | 2 /* 'SCBadSession_202' */ | 3 /* 'SCBadLoginPassword_204' */ | 4 /* 'SCNotFound_205' */ | 5 /* 'SCGeneric_218' */ | 6 /* 'SCAlreadyLoggedIn_235' */ | 7 /* 'SCCanceled_237' */ | 8 /* 'SCReloginRequired_274' */ | 9 /* 'SCResolutionFailed_275' */ | 10 /* 'SCProfileNotPublic_276' */ | 11 /* 'SCBadSignupUsernameTaken_701' */ | 12 /* 'SCMissingResult_801' */ | 13 /* 'SCKeyNotFound_901' */ | 14 /* 'SCKeyInUse_907' */ | 15 /* 'SCKeyBadGen_913' */ | 16 /* 'SCKeyNoSecret_914' */ | 17 /* 'SCKeyBadUIDs_915' */ | 18 /* 'SCKeyNoActive_916' */ | 19 /* 'SCKeyNoSig_917' */ | 20 /* 'SCKeyBadSig_918' */ | 21 /* 'SCKeyBadEldest_919' */ | 22 /* 'SCKeyNoEldest_920' */ | 23 /* 'SCKeyDuplicateUpdate_921' */ | 24 /* 'SCSibkeyAlreadyExists_922' */ | 25 /* 'SCDecryptionKeyNotFound_924' */ | 26 /* 'SCBadTrackSession_1301' */ | 27 /* 'SCDeviceNotFound_1409' */ | 28 /* 'SCDeviceMismatch_1410' */ | 29 /* 'SCDeviceRequired_1411' */ | 30 /* 'SCStreamExists_1501' */ | 31 /* 'SCStreamNotFound_1502' */ | 32 /* 'SCStreamWrongKind_1503' */ | 33 /* 'SCStreamEOF_1504' */ | 34 /* 'SCAPINetworkError_1601' */ | 35 /* 'SCTimeout_1602' */ | 36 /* 'SCProofError_1701' */ | 37 /* 'SCIdentificationExpired_1702' */ | 38 /* 'SCSelfNotFound_1703' */ | 39 /* 'SCBadKexPhrase_1704' */ | 40 /* 'SCNoUIDelegation_1705' */
 
 export type crypto_ED25519SignatureInfo = {
   sig: ED25519Signature;
@@ -1552,6 +1557,22 @@ export type install_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO
 
 export type install_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type install_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type install_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
 export type install_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
 
 export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
@@ -2524,12 +2545,14 @@ export type notifyCtl_NotificationChannels = {
   session: boolean;
   users: boolean;
   kbfs: boolean;
+  tracking: boolean;
 }
 
 export type NotificationChannels = {
   session: boolean;
   users: boolean;
   kbfs: boolean;
+  tracking: boolean;
 }
 
 export type NotifyFS_FSStatusCode = 0 /* 'START_0' */ | 1 /* 'FINISH_1' */ | 2 /* 'ERROR_2' */
@@ -2542,6 +2565,95 @@ export type NotifyFS_FSNotification = {
   status: string;
   statusCode: FSStatusCode;
   notificationType: FSNotificationType;
+}
+
+export type NotifyTracking_Time = {
+}
+
+export type NotifyTracking_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type NotifyTracking_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type NotifyTracking_UID = {
+}
+
+export type NotifyTracking_DeviceID = {
+}
+
+export type NotifyTracking_SigID = {
+}
+
+export type NotifyTracking_KID = {
+}
+
+export type NotifyTracking_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type NotifyTracking_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type NotifyTracking_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type NotifyTracking_User = {
+  uid: UID;
+  username: string;
+}
+
+export type NotifyTracking_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type NotifyTracking_Stream = {
+  fd: int;
+}
+
+export type NotifyTracking_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type NotifyTracking_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type NotifyTracking_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type NotifyTracking_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
 }
 
 export type NotifyUsers_Time = {
@@ -4497,6 +4609,22 @@ export type update_Stream = {
 export type update_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type update_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type update_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type update_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
 
 export type update_Asset = {
   name: string;

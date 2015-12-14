@@ -17,6 +17,7 @@ build-stamp: \
 	json/block.json \
 	json/btc.json \
 	json/config.json \
+	json/constants.json \
 	json/crypto.json \
 	json/ctl.json \
 	json/debugging.json \
@@ -39,6 +40,7 @@ build-stamp: \
 	json/notify_ctl.json \
 	json/notify_fs.json \
 	json/notify_session.json \
+	json/notify_tracking.json \
 	json/notify_users.json \
 	json/pgp.json \
 	json/pgp_ui.json \

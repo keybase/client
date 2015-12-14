@@ -33,8 +33,8 @@ package {{.Package}}
 // Version is the current version (should be MAJOR.MINOR.PATCH)
 const Version = "{{.Version}}"
 
-// Build is the current build number
-const Build = "{{.Build}}"
+// DefaultBuild is the default build number
+const DefaultBuild = "{{.Build}}"
 
 `)
 	if err != nil {

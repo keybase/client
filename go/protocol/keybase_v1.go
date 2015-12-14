@@ -544,6 +544,66 @@ func (c ConfigClient) SetUserConfig(ctx context.Context, __arg SetUserConfigArg)
 	return
 }
 
+type StatusCode int
+
+const (
+	StatusCode_SCOk                     StatusCode = 0
+	StatusCode_SCLoginRequired          StatusCode = 201
+	StatusCode_SCBadSession             StatusCode = 202
+	StatusCode_SCBadLoginPassword       StatusCode = 204
+	StatusCode_SCNotFound               StatusCode = 205
+	StatusCode_SCGeneric                StatusCode = 218
+	StatusCode_SCAlreadyLoggedIn        StatusCode = 235
+	StatusCode_SCCanceled               StatusCode = 237
+	StatusCode_SCReloginRequired        StatusCode = 274
+	StatusCode_SCResolutionFailed       StatusCode = 275
+	StatusCode_SCProfileNotPublic       StatusCode = 276
+	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
+	StatusCode_SCMissingResult          StatusCode = 801
+	StatusCode_SCKeyNotFound            StatusCode = 901
+	StatusCode_SCKeyInUse               StatusCode = 907
+	StatusCode_SCKeyBadGen              StatusCode = 913
+	StatusCode_SCKeyNoSecret            StatusCode = 914
+	StatusCode_SCKeyBadUIDs             StatusCode = 915
+	StatusCode_SCKeyNoActive            StatusCode = 916
+	StatusCode_SCKeyNoSig               StatusCode = 917
+	StatusCode_SCKeyBadSig              StatusCode = 918
+	StatusCode_SCKeyBadEldest           StatusCode = 919
+	StatusCode_SCKeyNoEldest            StatusCode = 920
+	StatusCode_SCKeyDuplicateUpdate     StatusCode = 921
+	StatusCode_SCSibkeyAlreadyExists    StatusCode = 922
+	StatusCode_SCDecryptionKeyNotFound  StatusCode = 924
+	StatusCode_SCBadTrackSession        StatusCode = 1301
+	StatusCode_SCDeviceNotFound         StatusCode = 1409
+	StatusCode_SCDeviceMismatch         StatusCode = 1410
+	StatusCode_SCDeviceRequired         StatusCode = 1411
+	StatusCode_SCStreamExists           StatusCode = 1501
+	StatusCode_SCStreamNotFound         StatusCode = 1502
+	StatusCode_SCStreamWrongKind        StatusCode = 1503
+	StatusCode_SCStreamEOF              StatusCode = 1504
+	StatusCode_SCAPINetworkError        StatusCode = 1601
+	StatusCode_SCTimeout                StatusCode = 1602
+	StatusCode_SCProofError             StatusCode = 1701
+	StatusCode_SCIdentificationExpired  StatusCode = 1702
+	StatusCode_SCSelfNotFound           StatusCode = 1703
+	StatusCode_SCBadKexPhrase           StatusCode = 1704
+	StatusCode_SCNoUIDelegation         StatusCode = 1705
+)
+
+type ConstantsInterface interface {
+}
+
+func ConstantsProtocol(i ConstantsInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name:    "keybase.1.constants",
+		Methods: map[string]rpc.ServeHandlerDescription{},
+	}
+}
+
+type ConstantsClient struct {
+	Cli GenericClient
+}
+
 type ED25519PublicKey [32]byte
 type ED25519Signature [64]byte
 type ED25519SignatureInfo struct {
@@ -1460,6 +1520,10 @@ type Identify2Res struct {
 	Upk UserPlusKeys `codec:"upk" json:"upk"`
 }
 
+type ResolveArg struct {
+	Assertion string `codec:"assertion" json:"assertion"`
+}
+
 type IdentifyArg struct {
 	SessionID        int            `codec:"sessionID" json:"sessionID"`
 	UserAssertion    string         `codec:"userAssertion" json:"userAssertion"`
@@ -1479,6 +1543,7 @@ type Identify2WithUIDArg struct {
 }
 
 type IdentifyInterface interface {
+	Resolve(context.Context, string) (UID, error)
 	Identify(context.Context, IdentifyArg) (IdentifyRes, error)
 	Identify2WithUID(context.Context, Identify2WithUIDArg) (Identify2Res, error)
 }
@@ -1487,6 +1552,22 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.identify",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"Resolve": {
+				MakeArg: func() interface{} {
+					ret := make([]ResolveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ResolveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ResolveArg)(nil), args)
+						return
+					}
+					ret, err = i.Resolve(ctx, (*typedArgs)[0].Assertion)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"identify": {
 				MakeArg: func() interface{} {
 					ret := make([]IdentifyArg, 1)
@@ -1525,6 +1606,12 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 
 type IdentifyClient struct {
 	Cli GenericClient
+}
+
+func (c IdentifyClient) Resolve(ctx context.Context, assertion string) (res UID, err error) {
+	__arg := ResolveArg{Assertion: assertion}
+	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve", []interface{}{__arg}, &res)
+	return
 }
 
 func (c IdentifyClient) Identify(ctx context.Context, __arg IdentifyArg) (res IdentifyRes, err error) {
@@ -3076,9 +3163,10 @@ func (c MetadataUpdateClient) MetadataUpdate(ctx context.Context, __arg Metadata
 }
 
 type NotificationChannels struct {
-	Session bool `codec:"session" json:"session"`
-	Users   bool `codec:"users" json:"users"`
-	Kbfs    bool `codec:"kbfs" json:"kbfs"`
+	Session  bool `codec:"session" json:"session"`
+	Users    bool `codec:"users" json:"users"`
+	Kbfs     bool `codec:"kbfs" json:"kbfs"`
+	Tracking bool `codec:"tracking" json:"tracking"`
 }
 
 type SetNotificationsArg struct {
@@ -3197,6 +3285,48 @@ type NotifySessionClient struct {
 
 func (c NotifySessionClient) LoggedOut(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}}, nil)
+	return
+}
+
+type TrackingChangedArg struct {
+	Uid      UID    `codec:"uid" json:"uid"`
+	Username string `codec:"username" json:"username"`
+}
+
+type NotifyTrackingInterface interface {
+	TrackingChanged(context.Context, TrackingChangedArg) error
+}
+
+func NotifyTrackingProtocol(i NotifyTrackingInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.NotifyTracking",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"trackingChanged": {
+				MakeArg: func() interface{} {
+					ret := make([]TrackingChangedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TrackingChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TrackingChangedArg)(nil), args)
+						return
+					}
+					err = i.TrackingChanged(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+		},
+	}
+}
+
+type NotifyTrackingClient struct {
+	Cli GenericClient
+}
+
+func (c NotifyTrackingClient) TrackingChanged(ctx context.Context, __arg TrackingChangedArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg}, nil)
 	return
 }
 
@@ -3364,11 +3494,6 @@ type PGPKeyGenArg struct {
 	PushSecret  bool          `codec:"pushSecret" json:"pushSecret"`
 }
 
-type PGPKeyGenDefaultArg struct {
-	SessionID  int           `codec:"sessionID" json:"sessionID"`
-	CreateUids PGPCreateUids `codec:"createUids" json:"createUids"`
-}
-
 type PGPDeletePrimaryArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -3398,7 +3523,6 @@ type PGPInterface interface {
 	PGPExportByFingerprint(context.Context, PGPExportByFingerprintArg) ([]KeyInfo, error)
 	PGPExportByKID(context.Context, PGPExportByKIDArg) ([]KeyInfo, error)
 	PGPKeyGen(context.Context, PGPKeyGenArg) error
-	PGPKeyGenDefault(context.Context, PGPKeyGenDefaultArg) error
 	PGPDeletePrimary(context.Context, int) error
 	PGPSelect(context.Context, PGPSelectArg) error
 	PGPUpdate(context.Context, PGPUpdateArg) error
@@ -3568,22 +3692,6 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"pgpKeyGenDefault": {
-				MakeArg: func() interface{} {
-					ret := make([]PGPKeyGenDefaultArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PGPKeyGenDefaultArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]PGPKeyGenDefaultArg)(nil), args)
-						return
-					}
-					err = i.PGPKeyGenDefault(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"pgpDeletePrimary": {
 				MakeArg: func() interface{} {
 					ret := make([]PGPDeletePrimaryArg, 1)
@@ -3687,11 +3795,6 @@ func (c PGPClient) PGPExportByKID(ctx context.Context, __arg PGPExportByKIDArg) 
 
 func (c PGPClient) PGPKeyGen(ctx context.Context, __arg PGPKeyGenArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGen", []interface{}{__arg}, nil)
-	return
-}
-
-func (c PGPClient) PGPKeyGenDefault(ctx context.Context, __arg PGPKeyGenDefaultArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 
@@ -5108,10 +5211,21 @@ type UntrackArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
+type CheckTrackingArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type FakeTrackingChangedArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type TrackInterface interface {
 	Track(context.Context, TrackArg) error
 	TrackWithToken(context.Context, TrackWithTokenArg) error
 	Untrack(context.Context, UntrackArg) error
+	CheckTracking(context.Context, int) error
+	FakeTrackingChanged(context.Context, FakeTrackingChangedArg) error
 }
 
 func TrackProtocol(i TrackInterface) rpc.Protocol {
@@ -5166,6 +5280,38 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"checkTracking": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckTrackingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CheckTrackingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CheckTrackingArg)(nil), args)
+						return
+					}
+					err = i.CheckTracking(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"fakeTrackingChanged": {
+				MakeArg: func() interface{} {
+					ret := make([]FakeTrackingChangedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FakeTrackingChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FakeTrackingChangedArg)(nil), args)
+						return
+					}
+					err = i.FakeTrackingChanged(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5186,6 +5332,17 @@ func (c TrackClient) TrackWithToken(ctx context.Context, __arg TrackWithTokenArg
 
 func (c TrackClient) Untrack(ctx context.Context, __arg UntrackArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.track.untrack", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TrackClient) CheckTracking(ctx context.Context, sessionID int) (err error) {
+	__arg := CheckTrackingArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.track.checkTracking", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TrackClient) FakeTrackingChanged(ctx context.Context, __arg FakeTrackingChangedArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.track.fakeTrackingChanged", []interface{}{__arg}, nil)
 	return
 }
 

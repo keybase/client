@@ -298,6 +298,7 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 
 func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.G().Log.Debug("+ runIdentifyUI(%s)", e.them.GetName())
+	e.remotesReceived = libkb.NewProofSet(nil)
 
 	ctx.IdentifyUI.Start(e.them.GetName())
 	for _, k := range e.identifyKeys {
@@ -305,14 +306,12 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	}
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName()))
 	ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export())
-
-	e.remotesReceived = libkb.NewProofSet(nil)
-
 	e.them.IDTable().Identify(e.state, false /* ForceRemoteCheck */, ctx.IdentifyUI, e)
+	ctx.IdentifyUI.Finish()
+
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
 	e.insertTrackToken(ctx)
 	e.maybeCacheResult()
-	ctx.IdentifyUI.Finish()
 
 	if err == nil {
 		err = e.state.Result().GetError()

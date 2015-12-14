@@ -31,11 +31,20 @@ func (c *CmdShowNotifications) Run() error {
 
 	display := newNotificationDisplay(c.G())
 
+	// NB: Make sure to edit both of these at the same time.
 	protocols := []rpc.Protocol{
 		keybase1.NotifySessionProtocol(display),
 		keybase1.NotifyUsersProtocol(display),
 		keybase1.NotifyFSProtocol(display),
+		keybase1.NotifyTrackingProtocol(display),
 	}
+	channels := keybase1.NotificationChannels{
+		Session:  true,
+		Users:    true,
+		Kbfs:     true,
+		Tracking: true,
+	}
+
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
@@ -43,7 +52,7 @@ func (c *CmdShowNotifications) Run() error {
 	if err != nil {
 		return err
 	}
-	if err := cli.SetNotifications(context.TODO(), keybase1.NotificationChannels{Session: true, Users: true, Kbfs: true}); err != nil {
+	if err := cli.SetNotifications(context.TODO(), channels); err != nil {
 		return err
 	}
 
@@ -94,4 +103,8 @@ func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) e
 
 func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {
 	return d.printf("KBFS notification: %+v\n", notification)
+}
+
+func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.TrackingChangedArg) error {
+	return d.printf("Tracking changed for %s (%s)\n", arg.Username, arg.Uid)
 }

@@ -118,7 +118,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 		p.parent.Output("\nEnter the verification code from your other device here.  To get\n")
 		p.parent.Output("a verification code, run 'keybase login' on your other device.\n\n")
 
-		ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckNotEmpty)
+		ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckKex2SecretPhrase)
 		if err != nil {
 			return resp, err
 		}

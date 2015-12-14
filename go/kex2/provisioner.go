@@ -15,7 +15,8 @@ import (
 
 type provisioner struct {
 	baseDevice
-	arg ProvisionerArg
+	arg           ProvisionerArg
+	helloReceived bool
 }
 
 // Provisioner is an interface that abstracts out the crypto and session
@@ -30,10 +31,14 @@ type Provisioner interface {
 // to run its course
 type ProvisionerArg struct {
 	KexBaseArg
-	Provisioner Provisioner
+	Provisioner  Provisioner
+	HelloTimeout time.Duration
 }
 
 func newProvisioner(arg ProvisionerArg) *provisioner {
+	if arg.HelloTimeout == 0 {
+		arg.HelloTimeout = arg.Timeout
+	}
 	ret := &provisioner{
 		baseDevice: baseDevice{
 			start: make(chan struct{}),
@@ -149,6 +154,9 @@ func (p *provisioner) runProtocolWithCancel() (err error) {
 		p.canceled = true
 		return ErrCanceled
 	case err = <-ch:
+		if _, ok := err.(rpc.CanceledError); ok && !p.helloReceived {
+			return ErrHelloTimeout
+		}
 		return err
 	}
 }
@@ -160,13 +168,16 @@ func (p *provisioner) runProtocol() (err error) {
 	if err != nil {
 		return
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), p.arg.HelloTimeout)
+	defer cancel()
 	var res keybase1.HelloRes
-	if res, err = cli.Hello(context.TODO(), helloArg); err != nil {
+	if res, err = cli.Hello(ctx, helloArg); err != nil {
 		return
 	}
 	if p.canceled {
 		return ErrCanceled
 	}
+	p.helloReceived = true
 	var counterSigned []byte
 	if counterSigned, err = p.arg.Provisioner.CounterSign(res); err != nil {
 		return err

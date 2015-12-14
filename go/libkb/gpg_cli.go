@@ -145,7 +145,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 	return bundle, nil
 }
 
-func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {
+func (g *GpgCLI) ExportKey(k PGPKeyBundle, private bool) (err error) {
 	g.outputVersion()
 	arg := RunGpg2Arg{
 		Arguments: []string{"--import"},
@@ -157,7 +157,7 @@ func (g *GpgCLI) ExportKey(k PGPKeyBundle) (err error) {
 		return res.Err
 	}
 
-	e1 := k.EncodeToStream(res.Stdin)
+	e1 := k.EncodeToStream(res.Stdin, private)
 	e2 := res.Stdin.Close()
 	e3 := res.Wait()
 	return PickFirstError(e1, e2, e3)
