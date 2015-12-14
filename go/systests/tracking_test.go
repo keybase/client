@@ -45,19 +45,19 @@ func (*identifyUI) SetStrict(b bool)                                            
 func (*identifyUI) Finish()                                                               {}
 
 type trackingNotifyHandler struct {
-	trackingCh chan keybase1.UID
+	trackingCh chan keybase1.TrackingChangedArg
 	errCh      chan error
 }
 
 func newTrackingNotifyHandler() *trackingNotifyHandler {
 	return &trackingNotifyHandler{
-		trackingCh: make(chan keybase1.UID),
+		trackingCh: make(chan keybase1.TrackingChangedArg),
 		errCh:      make(chan error),
 	}
 }
 
-func (h *trackingNotifyHandler) TrackingChanged(_ context.Context, uid keybase1.UID) error {
-	h.trackingCh <- uid
+func (h *trackingNotifyHandler) TrackingChanged(_ context.Context, arg keybase1.TrackingChangedArg) error {
+	h.trackingCh <- arg
 	return nil
 }
 
@@ -162,11 +162,14 @@ func TestTrackingNotifications(t *testing.T) {
 	select {
 	case err := <-nh.errCh:
 		t.Fatalf("Error before notify: %v", err)
-	case uid := <-nh.trackingCh:
+	case arg := <-nh.trackingCh:
 		tAliceUID := keybase1.UID("295a7eea607af32040647123732bc819")
-		tc.G.Log.Debug("Got tracking changed notification (%s)", uid)
-		if !tAliceUID.Equal(uid) {
-			t.Fatalf("Bad UID back: %s != %s", tAliceUID, uid)
+		tc.G.Log.Debug("Got tracking changed notification (%#v)", arg)
+		if "t_alice" != arg.Username {
+			t.Fatalf("Bad username back: %s != %s", "t_alice", arg.Username)
+		}
+		if !tAliceUID.Equal(arg.Uid) {
+			t.Fatalf("Bad UID back: %s != %s", tAliceUID, arg.Uid)
 		}
 	}
 

@@ -140,9 +140,13 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 // HandleTrackingChanged is called whenever we have a new tracking or
 // untracking chain link related to a given user. It will broadcast the
 // messages to all curious listeners.
-func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID) {
+func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string) {
 	if n == nil {
 		return
+	}
+	arg := keybase1.TrackingChangedArg{
+		Uid:      uid,
+		Username: username,
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
@@ -153,7 +157,7 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID) {
 				// A send of a `TrackingChanged` RPC with the user's UID
 				(keybase1.NotifyTrackingClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).TrackingChanged(context.TODO(), uid)
+				}).TrackingChanged(context.TODO(), arg)
 			}()
 		}
 		return true

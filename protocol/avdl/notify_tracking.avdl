@@ -4,5 +4,5 @@ protocol NotifyTracking {
   import idl "common.avdl";
 
   @notify("")
-  void trackingChanged(UID uid);
+  void trackingChanged(UID uid, string username);
 }
