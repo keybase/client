@@ -1,4 +1,4 @@
-# SaltPack Encryption
+# SaltPack Binary Encryption Format
 
 ## Properties
 NaCl boxes have several properties that we want to keep:

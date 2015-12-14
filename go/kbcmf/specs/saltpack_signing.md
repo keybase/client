@@ -1,4 +1,4 @@
-# SaltPack Signing
+# SaltPack Binary Signing Format
 
 ## Properties
 As with the encryption format, we want our signing format to have several
