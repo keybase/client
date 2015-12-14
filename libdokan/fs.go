@@ -89,10 +89,10 @@ type createData dokan.CreateData
 
 // isCreation checks the flags whether a file creation is wanted, return false when caf=nil.
 func (caf *createData) isCreateDirectory() bool {
-	return caf.isCreation() && caf.CreateOptions&file_directory_file != 0
+	return caf.isCreation() && caf.CreateOptions&fileDirectoryFile != 0
 }
 
-const file_directory_file = 1
+const fileDirectoryFile = 1
 
 // isCreation checks the flags whether a file creation is wanted, return false when caf=nil.
 func (caf *createData) isCreation() bool {
@@ -124,6 +124,10 @@ func (caf *createData) isOpenReparsePoint() bool {
 	return caf != nil && caf.FileAttributes&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
 }
 
+func (caf *createData) mayNotBeDirectory() bool {
+	return caf.CreateOptions&dokan.FILE_NON_DIRECTORY_FILE != 0
+}
+
 // CreateFile called from dokan, may be a file or directory.
 func (f *FS) CreateFile(fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
 	return f.openRaw(fi, (*createData)(cd))
@@ -144,6 +148,9 @@ func (f *FS) open(fi *dokan.FileInfo, ps []string, caf *createData) (dokan.File,
 	case len(ps) < 1:
 		return nil, false, dokan.ErrObjectNameNotFound
 	case len(ps) == 1 && ps[0] == ``:
+		if caf.mayNotBeDirectory() {
+			return nil, true, dokan.ErrFileIsADirectory
+		}
 		return f.root, true, nil
 	case libkbfs.ErrorFile == ps[len(ps)-1]:
 		return NewErrorFile(f), false, nil
@@ -158,7 +165,10 @@ func (f *FS) open(fi *dokan.FileInfo, ps []string, caf *createData) (dokan.File,
 }
 
 func pathSplit(raw string) ([]string, error) {
-	if raw == "" || raw[0] != '\\' {
+	if raw == `` {
+		raw = `\`
+	}
+	if raw[0] != '\\' {
 		return nil, dokan.ErrObjectNameNotFound
 	}
 	return strings.Split(raw[1:], `\`), nil

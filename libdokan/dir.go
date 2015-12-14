@@ -224,6 +224,9 @@ func openDir(d *Dir, fi *dokan.FileInfo, path []string, caf *createData) (dokan.
 			path[0] = de.SymPath
 		}
 	}
+	if caf.mayNotBeDirectory() {
+		return nil, true, dokan.ErrFileIsADirectory
+	}
 	return d, true, nil
 }
 
