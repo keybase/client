@@ -19,5 +19,7 @@ protocol track {
   void untrack(int sessionID, string username);
 
   void checkTracking(int sessionID);
+
+  void fakeTrackingChanged(int sessionID, string username);
 }
 

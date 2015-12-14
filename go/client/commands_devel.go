@@ -19,6 +19,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		NewCmdDecrypt(cl, g),
 		NewCmdEncrypt(cl, g),
 		NewCmdFavorite(cl),
+		NewCmdFakeTrackingChanged(cl, g),
 		NewCmdShowNotifications(cl, g),
 		NewCmdStress(cl),
 		NewCmdTestPassphrase(cl, g),

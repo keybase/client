@@ -5155,11 +5155,17 @@ type CheckTrackingArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type FakeTrackingChangedArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type TrackInterface interface {
 	Track(context.Context, TrackArg) error
 	TrackWithToken(context.Context, TrackWithTokenArg) error
 	Untrack(context.Context, UntrackArg) error
 	CheckTracking(context.Context, int) error
+	FakeTrackingChanged(context.Context, FakeTrackingChangedArg) error
 }
 
 func TrackProtocol(i TrackInterface) rpc.Protocol {
@@ -5230,6 +5236,22 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"fakeTrackingChanged": {
+				MakeArg: func() interface{} {
+					ret := make([]FakeTrackingChangedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FakeTrackingChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FakeTrackingChangedArg)(nil), args)
+						return
+					}
+					err = i.FakeTrackingChanged(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5256,6 +5278,11 @@ func (c TrackClient) Untrack(ctx context.Context, __arg UntrackArg) (err error) 
 func (c TrackClient) CheckTracking(ctx context.Context, sessionID int) (err error) {
 	__arg := CheckTrackingArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.track.checkTracking", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TrackClient) FakeTrackingChanged(ctx context.Context, __arg FakeTrackingChangedArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.track.fakeTrackingChanged", []interface{}{__arg}, nil)
 	return
 }
 

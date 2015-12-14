@@ -76,3 +76,14 @@ func (h *TrackHandler) CheckTracking(_ context.Context, sessionID int) error {
 	}
 	return libkb.CheckTracking(h.G())
 }
+
+func (h *TrackHandler) FakeTrackingChanged(_ context.Context, arg keybase1.FakeTrackingChangedArg) error {
+	user, err := libkb.LoadUser(libkb.LoadUserArg{
+		Name: arg.Username,
+	})
+	if err != nil {
+		return err
+	}
+	h.G().NotifyRouter.HandleTrackingChanged(user.GetUID())
+	return nil
+}
