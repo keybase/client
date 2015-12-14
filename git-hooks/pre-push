@@ -5,8 +5,11 @@
 
 # git gofmt pre-push hook
 #
-# To use, store as .git/hooks/pre-push inside your repository and make sure
-# it has execute permissions.
+# To use, store as .git/hooks/pre-push inside your repository and make
+# sure it has execute permissions. This can be used instead of the
+# pre-commit hook for workflows where the cleanliness of each
+# individual commit doesn't matter (e.g., ones that squash commits
+# before pushing).
 #
 # This script does not handle file names that contain spaces.
 
