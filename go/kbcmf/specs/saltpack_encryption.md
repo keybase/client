@@ -135,10 +135,11 @@ The purpose of the **tag_boxes** is to prevent recipients from reusing the
 header packet and the symmetric message key to forge new messages that appear
 to be from the same sender to other recipients. (Recipients can forge messages
 that appear to be sent to them only, not messages that appear to be sent to
-anyone else.) Stripping the authenticator tag from the **payload_secretbox** is
-a safety measure. To open the secretbox, recipients must first open the tag
-box, verifying that the payload packet was written by the original sender,
-before prepending the tag to **payload_secretbox** and opening that.
+anyone else.) To open a **payload_secretbox**, recipients must first open their
+corresponding tag box, which proves that the packet was written by the original
+sender, before prepending the tag to secretbox and opening that. Stripping the
+tag from the secretbox is a safety measure, to prevent implementations from
+skipping this verification step.
 
 ### Nonces
 
