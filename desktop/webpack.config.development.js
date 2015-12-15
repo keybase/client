@@ -27,10 +27,9 @@ if (process.env.HOT === 'true') {
 
   Object.keys(config.entry).forEach(k => {
     if (k !== 'main') { // node-only thread can't be hot loaded...
-      config.entry[k] = [HMR].concat(config.entry[k])
+      config.entry[k] = [HMR].concat(config.entry[k]) // Note: all entry points need `if (module.hot) {module.hot.accept()}` to allow hot auto loads to work
     }
   })
 }
-
 config.target = webpackTargetElectronRenderer(config)
 module.exports = config
