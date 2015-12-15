@@ -39,7 +39,7 @@
 }
 
 - (KBSemVersion *)bundleVersion {
-  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"] build:NSBundle.mainBundle.infoDictionary[@"KBHelperBuild"]];
+  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"] build:nil];
 }
 
 - (MPXPCClient *)helper {
