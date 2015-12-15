@@ -7,7 +7,10 @@ if (!app) {
 }
 
 let root = process.cwd()
-if (process.env.NODE_ENV === 'production') {
+
+/* eslint-disable no-undef */ // Injected by webpack
+if (!__DEV__) {
+/* eslint-enable no-undef */
   root = path.join(app.getAppPath(), 'desktop')
 }
 
