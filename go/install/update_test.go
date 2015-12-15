@@ -27,7 +27,7 @@ type testUpdateSource struct{}
 type nullUpdateUI struct{}
 
 func (u nullUpdateUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg) (keybase1.UpdatePromptRes, error) {
-	return keybase1.UpdatePromptRes{DoInstall: true}, nil
+	return keybase1.UpdatePromptRes{Action: keybase1.UpdateAction_UPDATE}, nil
 }
 
 func (u testUpdateSource) FindUpdate(config keybase1.UpdateConfig) (release *keybase1.Update, err error) {
