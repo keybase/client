@@ -185,9 +185,7 @@ A payload packet is a MessagePack list with these contents:
 ```
 
 - **payload_secretbox** is a NaCl secretbox containing a chunk of the plaintext
-  bytes, max size 1 MB. It's encrypted with the **message_key**. The nonce is
-  16 null bytes followed by the packet sequence number as a 64-bit big-endian
-  unsigned integer, where the first payload packet is zero.
+  bytes, max size 1 MB. It's encrypted with the **message_key**.
 - **macs** is a list of NaCl MACs (HMAC-SHA512, first 32 bytes). The indices in
   this list correspond to the different **mac_group** numbers of the
   recipients.
