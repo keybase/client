@@ -42,7 +42,6 @@ class Tracker extends Component {
   }
 
   componentWillUnmount () {
-    console.log('in ComponentWillUnmount')
     this.props.stopTimer()
   }
 
