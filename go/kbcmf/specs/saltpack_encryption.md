@@ -133,10 +133,9 @@ public key to encrypt many kinds of messages, besides just SaltPack messages.
 If Mallory intercepted one of these, she could assemble a fake SaltPack message
 using the intercepted box, in the hope that Bob might reveal something about
 its contents by decrypting it. The `P` prefix makes this sort of attack
-infeasible, because the only way Mallory can choose `P` is by trying
-2<sup>160</sup> ephemeral keys, until one gives the hash she wants. Otherwise
-Bob will never decrypt the intercepted boxes, because the nonce he uses won't
-match.
+infeasible, because the only way Mallory can choose `P` is by finding an
+ephemeral key that gives the hash she wants. Otherwise Bob will never decrypt
+the intercepted boxes, because the nonce he uses won't match.
 
 Some applications might use the SaltPack format, but don't want decryption
 compatibility with other SaltPack applications. In addition to changing the
