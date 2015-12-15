@@ -136,7 +136,7 @@ group is 1. Then as Bob decrypts each payload packet, he verifies the MAC at
 index 1 in the payload packet's list of MACs. See [Payload
 Packets](#payload-packets) for how those MACs are computed.
 
-### Nonces
+### Random Nonces
 
 All NaCl nonces are 24 bytes. Define the pre-nonce `P` to be the first 20 bytes
 of the SHA512 of the concatenation of these values:
@@ -148,24 +148,23 @@ of the SHA512 of the concatenation of these values:
 Also define `R` to be the index of the recipient tuple in question, in the
 recipients list.
 
-The nonce for each sender key box is `P` concatenated with the 32-bit
+The nonce for each **sender_box** is `P` concatenated with the 32-bit
 big-endian unsigned representation of `2*R`.
 
-The nonce for each message keys box is `P` concatenated with the 32-bit
-big-endian unsigned representation of `2*R + 1`.
+The nonce for each **keys_box** is `P` concatenated with the 32-bit big-endian
+unsigned representation of `2*R + 1`.
 
-Because the first two nonces are used with one or two long-term keys, we need
-to make sure we never reuse them. The `P` prefix makes the probability of nonce
-reuse negligible.
+These nonces are used with long-term keys, so we need to make sure we never
+reuse them. Because the ephemeral keypair is generated at random for each
+message, nonce reuse should be very unlikely.
 
 We also want to prevent abuse of the decryption key. Alice might use Bob's
 public key to encrypt many kinds of messages, besides just SaltPack messages.
 If Mallory intercepted one of these, she could assemble a fake SaltPack message
 using the intercepted box, in the hope that Bob might reveal something about
 its contents by decrypting it. The `P` prefix makes this sort of attack
-infeasible, because the only way Mallory can choose `P` is by finding an
-ephemeral key that gives the hash she wants. Otherwise Bob will never decrypt
-the intercepted boxes, because the nonce he uses won't match.
+difficult. Unless Mallory can compute enough hashes to choose a 20-byte prefix,
+she can't control the nonce that Bob uses to decrypt.
 
 Some applications might use the SaltPack format, but don't want decryption
 compatibility with other SaltPack applications. In addition to changing the
