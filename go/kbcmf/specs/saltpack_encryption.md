@@ -29,26 +29,33 @@ our messages to have:
 
 ## Design
 
-- Alice creates a random 32-byte symmetric key for the payload of the message.
-  Each recipient gets a copy of this symmetric key encrypted with their public
-  key.
-- Alice splits the plaintext into 1 MB chunks and encrypts them with the
-  symmetric key. The nonce for each payload includes a sequence number, so
-  packets can't be dropped or reordered. The last packet is empty, to signify
-  the end of the message and detect truncation.
-- Alice also creates independent random 32-byte MAC keys for each recipient,
-  encrypted alongside the symmetric key above. She uses these to authenticate
-  each chunk of the message to each recipient. If Alice sends a message to Bob
-  and Charlie, this stops Bob from forging new messages that appears to also be
-  from Alice to Charlie, because Bob doesn't know Charlie's MAC key.
-  - Multiple devices belonging to the same recipient may share the same MAC
-    key.
-- To avoid revealing her public key to eavesdroppers, Alice generates an
-  ephemeral asymmetric keypair. She encrypts her real public key for each
-  recipient, using the ephemeral private key, and she sends the ephemeral
-  public key in the clear.
+At a high-level, the message is encrypted once using a symmetric key shared
+across all recipients. It is then MAC'ed for each recipient individually, to
+preserve the intent of the original sender, and to prevent recipients from
+maliciously altering the message. For example, if Alice is sending to Bob and
+Charlie, Bob should not be able to rewrite the message and pass it to Charlie
+without Charlie detecting the attack.
 
-## Format
+The message is chunked into 1MB chunks. A sequential nonce used for the
+encryption and MAC's ensures that the 1MB chunks cannot be reordered. The end
+of the message is marked with an empty chunk — encrypted and MAC'ed the same
+way — to prevent truncation attacks.
+
+Though the scheme is designed with the intent of having multiple per-device
+keys for each recipient, the implementation treats all recipient keys
+equivalently.  That is, sending a message to five recipients with four
+keys each is handled the same as sending to one recipient with twenty keys,
+or twenty recipients with one key each.
+
+Finally, the scheme accommodates anonymous receivers and anonymous senders. Thus,
+each message needs an emphemeral sender public key, used only for this one message,
+to hide the sender's true identity. Some implementations of the scheme can
+choose to reveal the keys of the receivers to make user-friendlier errors
+messages on decryption failures (e.g., "Can't decrypt this message on your
+phone, but try your laptop.")  If the sender wants to decrypt the message
+at a later date, she simply adds her public keys to the list of recipients.
+
+## Implementation
 
 An encrypted message is a series of concatenated MessagePack objects. The first
 is a header packet, followed by any number of non-empty payload packets, and
