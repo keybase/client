@@ -188,6 +188,9 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	libkb.G.ConfigureCaches()
 	libkb.G.ConfigureMerkleClient()
 
+	lg := logger.NewWithCallDepth("", 1, os.Stderr)
+	lg.Info("KBFS version %s", VersionString())
+
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
 	if libkb.G.Env.GetRunMode() == libkb.StagingRunMode &&
