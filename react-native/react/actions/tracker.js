@@ -20,12 +20,15 @@ type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootT
 
 export function startTimer (): (dispatch: Dispatch, getState: any) => void {
   return (dispatch, getState) => {
+    // Increments timerActive as a count of open tracker popups.
     dispatch({type: Constants.startTimer})
     const timerActive = getState().tracker.timerActive
     if (timerActive === 1) {
+      // We're transitioning from 0->1, no tracker popups to one, start timer.
       const intervalId = setInterval(() => {
         const timerActive = getState().tracker.timerActive
         if (timerActive <= 0) {
+          // All popups are closed now.
           clearInterval(intervalId)
         }
         engine.rpc('track.checkTracking')
