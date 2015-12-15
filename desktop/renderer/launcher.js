@@ -2,6 +2,10 @@ import {shell, ipcRenderer, remote} from 'electron'
 const app = remote.app
 import {showMainWindow} from '../../react-native/react/local-debug.desktop'
 
+if (module.hot) {
+  module.hot.accept()
+}
+
 /* eslint-disable no-undef*/
 if (showMainWindow) {
   showMain.style.display = 'block'
@@ -21,7 +25,3 @@ for (var i = 0; i < tags.length; ++i) {
     shell.openExternal(event.target.href)
   })
 }
-
-//quit.value = "yo"
-console.log('aaa')
-

@@ -41,8 +41,6 @@ if (NO_SERVER) {
 
   app.use(require('webpack-hot-middleware')(compiler))
 
-  app.get('*', (req, res) => { res.json({}) })
-
   app.listen(PORT, 'localhost', err => {
     if (err) {
       console.log(err)

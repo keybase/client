@@ -20,6 +20,10 @@ let DevTools = null
 let DebugPanel = null
 let LogMonitor = null
 
+if (module.hot) {
+  module.hot.accept()
+}
+
 if (isDev) {
   const RDT = require('redux-devtools/lib/react')
   DevTools = RDT.DevTools

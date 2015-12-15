@@ -14,6 +14,7 @@ config.output.publicPath = 'http://localhost:4000/dist/'
 // config.bail = true
 
 config.plugins.push(
+  new webpack.optimize.OccurenceOrderPlugin(),
   new webpack.HotModuleReplacementPlugin(),
   new webpack.NoErrorsPlugin(),
   new webpack.DefinePlugin({
