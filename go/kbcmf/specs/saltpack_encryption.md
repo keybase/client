@@ -140,12 +140,13 @@ Packets](#payload-packets) for how those MACs are computed.
 
 All NaCl nonces are 24 bytes. Define the pre-nonce `P` to be the first 20 bytes
 of the SHA512 of the concatenation of these values:
-- `"SaltPack\0"`
+- `"SaltPack\0"` (`\0` is a [null
+  byte](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html))
 - `"nonce\0"`
 - the ephemeral public key
 
-Also define `R` to be the index of the recipient in question, in the recipients
-list.
+Also define `R` to be the index of the recipient tuple in question, in the
+recipients list.
 
 The nonce for each sender key box is `P` concatenated with the 32-bit
 big-endian unsigned representation of `2*R`.
@@ -178,21 +179,26 @@ A payload packet is a MessagePack list with these contents:
 
 ```
 [
-    payload,
+    payload_secretbox,
     macs,
 ]
 ```
 
-- **payload** is a NaCl secretbox containing a chunk of the plaintext bytes,
-  max size 1 MB. It's encrypted with the **message_key**. The nonce is 16 null
-  bytes followed by the packet sequence number as an 8-byte big-endian unsigned
-  integer, where the first payload packet is zero.
+- **payload_secretbox** is a NaCl secretbox containing a chunk of the plaintext
+  bytes, max size 1 MB. It's encrypted with the **message_key**. The nonce is
+  16 null bytes followed by the packet sequence number as a 64-bit big-endian
+  unsigned integer, where the first payload packet is zero.
 - **macs** is a list of NaCl MACs (HMAC-SHA512, first 32 bytes). The indices in
   this list correspond to the different **mac_group** numbers of the
   recipients.
 
-MACs are computed over the packet sequence number (same as the **payload**
-nonce above) concatenated with the first 16 bytes of the **payload** (the
+The nonce for each **payload_secretbox** is 16 null bytes followed by a 64-bit
+unsigned big-endian sequence number, where the first payload packet is sequence
+number 0. These nonces don't need to be random, because the **message_key** is
+unique for each message.
+
+MACs are computed over the packet sequence number (same as the in the nonce
+above) concatenated with the first 16 bytes of **payload_secretbox** (the
 Poly1305 tag). The goal of the MACs is to prevent any of the recipients from
-changing the message, since all of the **payload** secretboxes are made with
-the **message_key** that all the recipeints share.
+changing the message, since all of the payload secretboxes are made with the
+**message_key** that all the recipeints share.
