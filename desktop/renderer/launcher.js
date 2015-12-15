@@ -1,8 +1,9 @@
 import {shell, ipcRenderer, remote} from 'electron'
 const app = remote.app
+import {showMainWindow} from '../../react-native/react/local-debug.desktop'
 
 /* eslint-disable no-undef*/
-if (getQueryVariable('debug') === 'true') {
+if (showMainWindow) {
   showMain.style.display = 'block'
 }
 
