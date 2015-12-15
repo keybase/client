@@ -183,3 +183,53 @@ format name at the start of the header, these applications should use a
 [different null-terminated context
 string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
 place of `"SaltPack\0"`.
+
+## Example
+
+```yaml
+# header packet
+[
+  # format name
+  "SaltBox",
+  # major and minor version
+  [1, 0],
+  # mode (encryption)
+  0,
+  # ephemeral public key
+  LfqrHp8MXAjgaRgwDVc354+xT+KbCZaAgXXRL7bLWwI=,
+  # recipient tuples
+  [
+    # the first recipient
+    [
+      # recipient public key (null in this case, for an anonymous recipient)
+      null,
+      # sender box
+      7SJhM/1gyKpJFlpwXRWag0t2tI5l9ZrI337BcWrnjGZQugVYj7t8Re7MpJjBpcnt,
+      # key box
+      43kXP5KE+t7XizlTqpCJRWLp3Hf/+3g9dgYyu27++MXEq44AYhY5pLpzjJGzNaHk,
+    ],
+  ],
+]
+
+# payload packet
+[
+  # tag boxes
+  [
+    # the first recipient's tag box
+    60e3MFjj9yd4IF23eLXaWk5Vfk3+YkjQdDU/zNu3M7A=
+  ],
+  # payload secretbox, with the tag stripped
+  kEzDRKm2P6hB/U7+cnPco2AI+CiCI6+VDEZx1JVoPLtKY3pN2Ncr,
+]
+
+# empty payload packet
+[
+  # tag boxes
+  [
+    # the first recipient's tag box
+    MD8+n5xxYKbt/z0DlmjQHRvt9k0TYjpJXDzr+azv1cc=
+  ],
+  # the empty stripped payload secretbox (a zero-length byte string)
+  ''
+]
+```
