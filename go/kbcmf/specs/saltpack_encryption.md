@@ -193,7 +193,7 @@ place of `"SaltPack\0"`.
   "SaltBox",
   # major and minor version
   [1, 0],
-  # mode (encryption)
+  # mode (0 = encryption)
   0,
   # ephemeral public key
   LfqrHp8MXAjgaRgwDVc354+xT+KbCZaAgXXRL7bLWwI=,
@@ -230,6 +230,6 @@ place of `"SaltPack\0"`.
     MD8+n5xxYKbt/z0DlmjQHRvt9k0TYjpJXDzr+azv1cc=
   ],
   # the empty stripped payload secretbox (a zero-length byte string)
-  ''
+  ""
 ]
 ```

@@ -53,13 +53,13 @@ Payload packets are MessagePack arrays that looks like this:
 
 ```
 [
-    payload_chunk,
     signature,
+    payload_chunk,
 ]
 ```
 
-- **payload_chunk** is a chunk of the plaintext bytes, max size 1 MB.
 - **signature** is a detached NaCl signature, 64 bytes.
+- **payload_chunk** is a chunk of the plaintext bytes, max size 1 MB.
 
 To make each signature, the sender first takes the SHA512 hash of the
 concatenation of three values:
@@ -114,3 +114,59 @@ The sender then signs the concatenation of three values:
 - `"SaltPack\0"`
 - `"detached signature\0"`
 - the SHA512 hash above
+
+## Example
+
+An attached signature:
+
+```yaml
+# header packet
+[
+  # format name
+  "SaltBox",
+  # major and minor version
+  [1, 0],
+  # mode (1 = attached signing)
+  1,
+  # sender public key
+  +Wv5iclX59CYwIApHt/FLEu/olkyXvDa55kEZlNHP80=,
+  # nonce
+  2664Qy9MgsPnX1SsVAcUxw==,
+]
+
+# payload packet
+[
+  # signature
+  lD+n7GkGjQb1lFnmjZj0TOQAoVQsJdYXiRbvXdtStit8iVco2b4hWPvSiEelGxQIAD9JoeJS6Objw7qD3+o8AQ==,
+  # payload chunk
+  "The Magic Words are Squeamish Ossifrage",
+]
+
+# empty payload packet
+[
+  # signature
+  0tdb3ItnxTRYzDgn/AUg/2+uHYvAPd+y9PtSnx4ToDMTLorWxQM4ZTQb849s7buQT4CIQL9w6TXxoPARXSzYCQ==,
+  # empty payload chunk (a zero-length byte string)
+  "",
+]
+```
+
+A detached signature:
+
+```yaml
+# header packet (the only packet)
+[
+  # format name
+  "SaltBox",
+  # major and minor version
+  [1, 0],
+  # mode (2 = detached signing)
+  2,
+  # sender public key
+  kbjTB6b/p7TkXe41O9FlvcyppPmdPiBhTt95HhioWls=,
+  # nonce
+  58uObqp8j9IxRflCOI0tbw==,
+  # signature
+  hid+jLqgC1O7CBRDjpsmC/M20b5Fam15KhktLquKu2Gy+KZcKv74qGr7x9wytK0LX87lBoC829qXXJI1JCb6Dg==,
+]
+```
