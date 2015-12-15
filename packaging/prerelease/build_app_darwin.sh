@@ -33,5 +33,5 @@ save_dir="/tmp/build_desktop"
 SAVE_DIR=$save_dir KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" ./package_darwin.sh
 
 if [ ! "$PKG_ONLY" = "1" ] && [ ! "$NOPULL" = "1" ]; then
-  s3cmd sync --skip-existing --acl-public $save_dir/* s3://keybase-app/
+  s3cmd sync --skip-existing --acl-public --disable-multipart $save_dir/* s3://keybase-app/
 fi

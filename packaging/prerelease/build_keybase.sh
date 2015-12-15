@@ -12,10 +12,10 @@ mkdir -p $build_dir
 date_last_commit=`date -r $(git log -n1 --format="%at") +%Y%m%d%H%M%S`
 commit_short=`git log -1 --pretty=format:%h`
 build="$date_last_commit+$commit_short"
-KEYBASE_BUILD=${KEYBASE_BUILD:-$build}
+keybase_build=${KEYBASE_BUILD:-$build}
 
-echo "Building keybase"
-GO15VENDOREXPERIMENT=1 go build -a -tags "production" -ldflags "-X github.com/keybase/client/go/libkb.CustomBuild=$KEYBASE_BUILD" -o $build_dir/keybase github.com/keybase/client/go/keybase
+echo "Building $build_dir/keybase ($keybase_build)"
+GO15VENDOREXPERIMENT=1 go build -a -tags "production" -ldflags "-X github.com/keybase/client/go/libkb.CustomBuild=$keybase_build" -o $build_dir/keybase github.com/keybase/client/go/keybase
 
 version=`$build_dir/keybase version -S`
 echo "Keybase version: $version"

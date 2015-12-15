@@ -165,14 +165,17 @@ create_zip() {
 
 save() {
   cd $out_dir
-  if [ ! "$save_dir" = "" ]; then
+  if [ "$save_dir" = "" ]; then
+    echo "Saved files to $out_dir"
+  else
     mkdir -p $save_dir
+    cd $save_dir
     echo "Saved files to $save_dir"
     mv $dmg_name $save_dir
     mv $zip_name $save_dir
-  else
-    echo "Saved files to $out_dir"
   fi
+
+  $release_bin -version $app_version -src $zip_name update-json > update.json
 }
 
 clean
