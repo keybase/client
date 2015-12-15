@@ -5422,11 +5422,20 @@ type Asset struct {
 	Url  string `codec:"url" json:"url"`
 }
 
+type UpdateType int
+
+const (
+	UpdateType_NORMAL   UpdateType = 0
+	UpdateType_BUGFIX   UpdateType = 1
+	UpdateType_CRITICAL UpdateType = 2
+)
+
 type Update struct {
-	Version     string `codec:"version" json:"version"`
-	Name        string `codec:"name" json:"name"`
-	Description string `codec:"description" json:"description"`
-	Asset       Asset  `codec:"asset" json:"asset"`
+	Version     string     `codec:"version" json:"version"`
+	Name        string     `codec:"name" json:"name"`
+	Description string     `codec:"description" json:"description"`
+	Type        UpdateType `codec:"type" json:"type"`
+	Asset       Asset      `codec:"asset" json:"asset"`
 }
 
 type UpdateConfig struct {
@@ -5436,11 +5445,6 @@ type UpdateConfig struct {
 	Source          string `codec:"source" json:"source"`
 	URL             string `codec:"URL" json:"URL"`
 	Channel         string `codec:"channel" json:"channel"`
-}
-
-type UpdatePreferences struct {
-	Auto bool   `codec:"auto" json:"auto"`
-	Skip string `codec:"skip" json:"skip"`
 }
 
 type UpdateResult struct {
@@ -5516,17 +5520,24 @@ func (c UpdateClient) UpdateNotification(ctx context.Context, update Update) (er
 	return
 }
 
+type UpdateAction int
+
+const (
+	UpdateAction_UPDATE UpdateAction = 0
+	UpdateAction_SKIP   UpdateAction = 1
+	UpdateAction_SNOOZE UpdateAction = 2
+	UpdateAction_CANCEL UpdateAction = 3
+)
+
 type UpdatePromptRes struct {
-	DoInstall         bool `codec:"doInstall" json:"doInstall"`
-	AlwaysAutoInstall bool `codec:"alwaysAutoInstall" json:"alwaysAutoInstall"`
-	SkipVersion       bool `codec:"skipVersion" json:"skipVersion"`
-	RepromptInSeconds int  `codec:"repromptInSeconds" json:"repromptInSeconds"`
+	Action            UpdateAction `codec:"action" json:"action"`
+	AlwaysAutoInstall bool         `codec:"alwaysAutoInstall" json:"alwaysAutoInstall"`
+	SnoozeUntil       Time         `codec:"snoozeUntil" json:"snoozeUntil"`
 }
 
 type UpdatePromptArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Desc      string `codec:"desc" json:"desc"`
-	Version   string `codec:"version" json:"version"`
+	Update    Update `codec:"update" json:"update"`
 }
 
 type UpdateUiInterface interface {

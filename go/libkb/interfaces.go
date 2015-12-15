@@ -135,7 +135,10 @@ type ConfigReader interface {
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
-	GetUpdatePreferences() *keybase1.UpdatePreferences
+
+	GetUpdatePreferenceAuto() (bool, bool)
+	GetUpdatePreferenceSkip() string
+	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
@@ -159,6 +162,7 @@ type ConfigWriter interface {
 	DeleteAtPath(string)
 	SetUpdatePreferenceAuto(bool) error
 	SetUpdatePreferenceSkip(string) error
+	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	Reset()
 	Save() error
 	BeginTransaction() (ConfigWriterTransacter, error)

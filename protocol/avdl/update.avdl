@@ -5,21 +5,6 @@ protocol update {
   import idl "common.avdl";
 
   /**
-   Asset describes a downloadable file.
-   */
-  record Asset {
-    string name;
-    string url;
-  }
-
-  record Update {
-    string version; // Sematic version, e.g. 1.2.3-400
-    string name;
-    string description;
-    Asset asset;
-  }
-
-  /**
     Configuration for checking and applying updates.
     */
   record UpdateConfig {
@@ -29,11 +14,6 @@ protocol update {
     string source; // Source to check, empty string for default
     string URL; // Custom source URL
     string channel; // Update channel, empty string for default
-  }
-
-  record UpdatePreferences {
-    boolean auto;
-    string skip; // As a semantic version to skip
   }
 
   record UpdateResult {

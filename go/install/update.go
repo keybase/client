@@ -49,6 +49,17 @@ func (u Updater) Config() keybase1.UpdateConfig {
 func (u *Updater) CheckForUpdate() (update *keybase1.Update, err error) {
 	u.G().Log.Info("Checking for update, current version is %s", u.config.Version)
 
+	if snz := u.G().Env.GetUpdatePreferenceSnoozeUntil(); snz > 0 {
+		snoozeUntil := keybase1.FromTime(snz)
+		if time.Now().Before(snoozeUntil) {
+			u.G().Log.Info("Snoozing until %s", snoozeUntil)
+			return nil, nil
+		}
+		u.G().Log.Debug("Snooze expired at %s", snoozeUntil)
+		// Clear out the snooze
+		u.G().Env.GetConfigWriter().SetUpdatePreferenceSnoozeUntil(keybase1.Time(0))
+	}
+
 	currentSemVersion, err := semver.Make(u.config.Version)
 	if err != nil {
 		return
@@ -65,15 +76,13 @@ func (u *Updater) CheckForUpdate() (update *keybase1.Update, err error) {
 		return
 	}
 
-	if up := u.G().Env.GetUpdatePreferences(); up != nil {
-		u.G().Log.Debug("Update preferences: %v", up)
-		if len(up.Skip) != 0 {
-			if skip, err := semver.Make(up.Skip); err != nil {
-				u.G().Log.Warning("Bad 'skipVersion' in config file: %q", up.Skip)
-			} else if skip.GE(updateSemVersion) {
-				u.G().Log.Debug("Skipping updated version via config preference: %q", update.Version)
-				return nil, nil
-			}
+	if skp := u.G().Env.GetUpdatePreferenceSkip(); len(skp) != 0 {
+		u.G().Log.Debug("Update preference: skip %s", skp)
+		if vers, err := semver.Make(skp); err != nil {
+			u.G().Log.Warning("Bad 'skipVersion' in config file: %q", skp)
+		} else if vers.GE(updateSemVersion) {
+			u.G().Log.Debug("Skipping updated version via config preference: %q", update.Version)
+			return nil, nil
 		}
 	}
 
@@ -267,7 +276,7 @@ func (u *Updater) PromptForGoAhead(ui libkb.UpdateUI) (err error) {
 		u.G().Log.Debug("- Update.PromptForGoAhead -> %v", err)
 	}()
 
-	if up := u.G().Env.GetUpdatePreferences(); up != nil && up.Auto {
+	if auto := u.G().Env.GetUpdatePreferenceAuto(); auto {
 		u.G().Log.Debug("| going ahead with auto-updates")
 		return nil
 	}
@@ -276,10 +285,10 @@ func (u *Updater) PromptForGoAhead(ui libkb.UpdateUI) (err error) {
 		return libkb.NoUIError{Which: "UpdateUI"}
 	}
 
-	upa := keybase1.UpdatePromptArg{
-		Version: u.config.Version,
-	}
+	upa := keybase1.UpdatePromptArg{}
+	upa.Update.Version = u.config.Version
 	var upr keybase1.UpdatePromptRes
+
 	upr, err = ui.UpdatePrompt(context.TODO(), upa)
 	if err != nil {
 		return err
@@ -288,14 +297,21 @@ func (u *Updater) PromptForGoAhead(ui libkb.UpdateUI) (err error) {
 
 	if upr.AlwaysAutoInstall {
 		cw.SetUpdatePreferenceAuto(true)
-	} else if upr.SkipVersion {
-		cw.SetUpdatePreferenceSkip(u.config.Version)
 	}
-	if !upr.DoInstall {
-		err = libkb.CanceledError{M: "user canceled update"}
+	switch upr.Action {
+	case keybase1.UpdateAction_UPDATE:
+	case keybase1.UpdateAction_SKIP:
+		err = libkb.CanceledError{M: "skipped update"}
+		cw.SetUpdatePreferenceSkip(u.config.Version)
+	case keybase1.UpdateAction_SNOOZE:
+		err = libkb.CanceledError{M: "snoozed update"}
+		cw.SetUpdatePreferenceSnoozeUntil(upr.SnoozeUntil)
+	case keybase1.UpdateAction_CANCEL:
+		err = libkb.CanceledError{M: "canceled update"}
+	default:
+		err = libkb.CanceledError{M: "unexpected cancelation"}
 	}
 	return err
-
 }
 
 func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update *keybase1.Update) (err error) {
@@ -363,10 +379,7 @@ func UpdaterStartTicker(g *libkb.GlobalContext) *Updater {
 
 func (u *Updater) updateTick() {
 	ui, _ := u.G().UIRouter.GetUpdateUI()
-	auto := false
-	if up := u.G().Env.GetUpdatePreferences(); up != nil && up.Auto {
-		auto = true
-	}
+	auto := u.G().Env.GetUpdatePreferenceAuto()
 	if UpdateAutomatically && (ui != nil || auto) {
 		update, err := u.Update(ui)
 		if err != nil {

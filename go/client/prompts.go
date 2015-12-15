@@ -44,5 +44,5 @@ const (
 	PromptDescriptorDeprovisionWhichUser
 	PromptDescriptorUpdateDo
 	PromptDescriptorUpdateAuto
-	PromptDescriptorUpdateSkipVersion
+	PromptDescriptorUpdateSnooze
 )

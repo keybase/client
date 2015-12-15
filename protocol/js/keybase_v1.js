@@ -1189,9 +1189,40 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
-  'updateUi': {},
+  'updateUi': {
+    'LogLevel': {
+      'none': 0,
+      'debug': 1,
+      'info': 2,
+      'notice': 3,
+      'warn': 4,
+      'error': 5,
+      'critical': 6,
+      'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
+    },
+    'UpdateAction': {
+      'update': 0,
+      'skip': 1,
+      'snooze': 2,
+      'cancel': 3
+    }
+  },
   'user': {
     'LogLevel': {
       'none': 0,

@@ -218,6 +218,10 @@
       "type" : "string"
     } ]
   }, {
+    "type" : "enum",
+    "name" : "UpdateType",
+    "symbols" : [ "NORMAL_0", "BUGFIX_1", "CRITICAL_2" ]
+  }, {
     "type" : "record",
     "name" : "Update",
     "fields" : [ {
@@ -229,6 +233,9 @@
     }, {
       "name" : "description",
       "type" : "string"
+    }, {
+      "name" : "type",
+      "type" : "UpdateType"
     }, {
       "name" : "asset",
       "type" : "Asset"
@@ -254,16 +261,6 @@
       "type" : "string"
     }, {
       "name" : "channel",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UpdatePreferences",
-    "fields" : [ {
-      "name" : "auto",
-      "type" : "boolean"
-    }, {
-      "name" : "skip",
       "type" : "string"
     } ]
   }, {

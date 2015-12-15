@@ -4636,10 +4636,15 @@ export type Asset = {
   url: string;
 }
 
+export type update_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
 export type update_Update = {
   version: string;
   name: string;
   description: string;
+  type: UpdateType;
   asset: Asset;
 }
 
@@ -4647,6 +4652,7 @@ export type Update = {
   version: string;
   name: string;
   description: string;
+  type: UpdateType;
   asset: Asset;
 }
 
@@ -4668,16 +4674,6 @@ export type UpdateConfig = {
   channel: string;
 }
 
-export type update_UpdatePreferences = {
-  auto: boolean;
-  skip: string;
-}
-
-export type UpdatePreferences = {
-  auto: boolean;
-  skip: string;
-}
-
 export type update_UpdateResult = {
   update?: ?Update;
 }
@@ -4686,18 +4682,124 @@ export type UpdateResult = {
   update?: ?Update;
 }
 
+export type updateUi_Time = {
+}
+
+export type updateUi_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type updateUi_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type updateUi_UID = {
+}
+
+export type updateUi_DeviceID = {
+}
+
+export type updateUi_SigID = {
+}
+
+export type updateUi_KID = {
+}
+
+export type updateUi_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type updateUi_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type updateUi_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type updateUi_User = {
+  uid: UID;
+  username: string;
+}
+
+export type updateUi_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type updateUi_Stream = {
+  fd: int;
+}
+
+export type updateUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type updateUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type updateUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type updateUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type updateUi_Asset = {
+  name: string;
+  url: string;
+}
+
+export type updateUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type updateUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type updateUi_UpdateAction = 0 /* 'UPDATE_0' */ | 1 /* 'SKIP_1' */ | 2 /* 'SNOOZE_2' */ | 3 /* 'CANCEL_3' */
+
+export type UpdateAction = 0 /* 'UPDATE_0' */ | 1 /* 'SKIP_1' */ | 2 /* 'SNOOZE_2' */ | 3 /* 'CANCEL_3' */
+
 export type updateUi_UpdatePromptRes = {
-  doInstall: boolean;
+  action: UpdateAction;
   alwaysAutoInstall: boolean;
-  skipVersion: boolean;
-  repromptInSeconds: int;
+  snoozeUntil: Time;
 }
 
 export type UpdatePromptRes = {
-  doInstall: boolean;
+  action: UpdateAction;
   alwaysAutoInstall: boolean;
-  skipVersion: boolean;
-  repromptInSeconds: int;
+  snoozeUntil: Time;
 }
 
 export type user_Time = {
