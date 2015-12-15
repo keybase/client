@@ -208,6 +208,7 @@ place of `"SaltPack\0"`.
       # key box
       43kXP5KE+t7XizlTqpCJRWLp3Hf/+3g9dgYyu27++MXEq44AYhY5pLpzjJGzNaHk,
     ],
+    # subsequent recipients...
   ],
 ]
 
@@ -217,6 +218,7 @@ place of `"SaltPack\0"`.
   [
     # the first recipient's tag box
     60e3MFjj9yd4IF23eLXaWk5Vfk3+YkjQdDU/zNu3M7A=
+    # subsequent tag boxes...
   ],
   # payload secretbox, with the tag stripped
   kEzDRKm2P6hB/U7+cnPco2AI+CiCI6+VDEZx1JVoPLtKY3pN2Ncr,
@@ -228,6 +230,7 @@ place of `"SaltPack\0"`.
   [
     # the first recipient's tag box
     MD8+n5xxYKbt/z0DlmjQHRvt9k0TYjpJXDzr+azv1cc=
+    # subsequent tag boxes...
   ],
   # the empty stripped payload secretbox (a zero-length byte string)
   ""
