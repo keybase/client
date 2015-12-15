@@ -27,6 +27,27 @@ our messages to have:
   by formatting them as a SaltPack message. Alice's SaltPack client should fail
   to decrypt these forgeries.
 
+## Design
+
+- Alice creates a random 32-byte symmetric key for the payload of the message.
+  Each recipient gets a copy of this symmetric key encrypted with their public
+  key.
+- Alice splits the plaintext into 1 MB chunks and encrypts them with the
+  symmetric key. The nonce for each payload includes a sequence number, so
+  packets can't be dropped or reordered. The last packet is empty, to signify
+  the end of the message and detect truncation.
+- Alice also creates independent random 32-byte MAC keys for each recipient,
+  encrypted alongside the symmetric key above. She uses these to authenticate
+  each chunk of the message to each recipient. If Alice sends a message to Bob
+  and Charlie, this stops Bob from forging new messages that appears to also be
+  from Alice to Charlie, because Bob doesn't know Charlie's MAC key.
+  - Multiple devices belonging to the same recipient may share the same MAC
+    key.
+- To avoid revealing her public key to eavesdroppers, Alice generates an
+  ephemeral asymmetric keypair. She encrypts her real public key for each
+  recipient, using the ephemeral private key, and she sends the ephemeral
+  public key in the clear.
+
 ## Format
 
 An encrypted message is a series of concatenated MessagePack objects. The first
@@ -51,8 +72,8 @@ The header packet is a MessagePack list with these contents:
 - **mode** is the number 0, for encryption. (1 and 2 are attached and detached
   signing.)
 - **ephemeral_public** is an ephemeral NaCl public encryption key, 32 bytes.
-  The ephemeral keypair is generated at random by the sender and is only used
-  for one message.
+  The ephemeral keypair is generated at random by the sender and only used for
+  one message.
 - **recipients** is a list of "recipient tuples", one for each recipient
   device.
 
