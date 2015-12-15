@@ -24,6 +24,7 @@ func main() {
 
 	outPtr := flag.String("o", "rsrc_windows.syso", "resource output pathname")
 	printverPtr := flag.Bool("v", false, "print version to console (no .syso output)")
+	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
 	iconPtr := flag.String("i", "../../../keybase/public/images/favicon.ico", "icon pathname")
 
 	flag.Parse()
@@ -41,7 +42,11 @@ func main() {
 
 	if *printverPtr {
 		fmt.Printf("%d.%d.%d-%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
-		//		fmt.Printf("%s", libkb.VersionString())
+		return
+	}
+
+	if *printWinVerPtr {
+		fmt.Printf("%d.%d.%d.%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
 		return
 	}
 
