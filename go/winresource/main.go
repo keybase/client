@@ -40,7 +40,7 @@ func main() {
 	}
 
 	if *printverPtr {
-		fmt.Printf("%d.%d.%d.%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
+		fmt.Printf("%d.%d.%d-%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
 		//		fmt.Printf("%s", libkb.VersionString())
 		return
 	}
