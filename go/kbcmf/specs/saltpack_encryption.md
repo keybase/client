@@ -98,10 +98,10 @@ A recipient tuple is a list of three things:
   32-bytes. This field may be null, when the recipients are anonymous.
 - **sender_box** is a NaCl box containing the sender's long-term NaCl public
   encryption key. It's encrypted with the recipient's public key and the
-  ephemeral private key. See also [Random Nonces](#random-nonces) below.
+  ephemeral private key. See also [Nonces](#nonces) below.
 - **key_box** is a NaCl box containing the symmetric message key. It's
   encrypted with the recipient's public key and the sender's long-term private
-  key. Again see [Random Nonces](#random-nonces) below.
+  key. Again see [Nonces](#nonces) below.
 
 The goal of encrypting the **sender_box** is that only recipients of the
 message can see who the sender is.
@@ -124,10 +124,11 @@ A payload packet is a MessagePack list with these contents:
 - **tag_boxes** is a list of NaCl boxes, one for each recipient. They contain
   the 16-byte authenticator for the following **payload_secretbox**. They're
   encrypted with the recipient's public key and the sender's long-term private
-  key. See [Random Nonces](#random-nonces) below.
+  key. See [Nonces](#nonces) below.
 - **payload_secretbox** is a NaCl secretbox containing a chunk of the plaintext
   bytes, max size 1 MB. It's encrypted with the symmetric message key. The
-  first 16 bytes (the Poly1305 authenticator) are stripped off.
+  first 16 bytes (the Poly1305 authenticator) are stripped off. Again see
+  [Nonces](#nonces) below.
 
 The purpose of the **tag_boxes** is to prevent recipients from reusing the
 header packet and the symmetric message key to forge new messages that appear
@@ -138,12 +139,7 @@ a safety measure. To open the secretbox, recipients must first open the tag
 box, verifying that the payload packet was written by the original sender,
 before prepending the tag to **payload_secretbox** and opening that.
 
-The nonce for the **payload_secretbox** is 16 null bytes followed by a 64-bit
-unsigned big-endian sequence number, where the first payload packet is sequence
-number 0. This nonce doesn't need to be random, because the symmetric message
-key is generated at random for every new message.
-
-### Random Nonces
+### Nonces
 
 The sender boxes, key boxes, and tag boxes are all encrypted with long-term
 keys, so it's important that they never reuse nonces. We use a pseudorandom
@@ -152,22 +148,24 @@ the SHA512 of the concatenation of these values:
 - `"SaltPack\0"` (`\0` is a [null
   byte](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html))
 - `"encryption nonce prefix\0"`
-- the ephemeral public key
+- the 32-byte **ephemeral_public** key
 
 The nonce for each box is the concatenation of `P` and a 64-bit big-endian
-unsigned counter. To determine the counter, let `R` be the number of recipients
-and `i` by the index of any given recipient. That is, `i` is `0` for the first
-recipient and `i` is `R-1` for the last recipient.
+unsigned counter. For each **sender_box** the counter is 0. For each
+**key_box** the counter is 1. For each **tag_box** we increment the counter, so
+the first **tag_box** is 2, the next is 3, and so on. For each
+**payload_secretbox**, the nonce is the same as for the associated
+**tag_boxes**. The strict ordering of nonces should make it impossible to drop
+or reorder any payload packets.
 
-The counter for each **sender_box** is `i`.
+We might be concerned about reusing the same nonce for each recipient here. For
+example, a recipient key could show up more than once in the recipients list.
+However, note that all the sender boxes encrypt the same sender, all the key
+boxes encrypt the same key, and all the tag boxes encrypt the same tag. So if
+the same recipient shows up twice, we'll produce exactly the same boxes for
+them the second time.
 
-The counter for each **key_box** is `R+i`.
-
-Let `p` be the sequence number of each payload packet, as in the previous
-section, where `p` is `0` for the first payload packet. The counter for each
-**tag box** is `((2+p)*R)+i`.
-
-Beyone avoiding nonce reuse, we also want to prevent abuse of the decryption
+Besides avoiding nonce reuse, we also want to prevent abuse of the decryption
 key. Alice might use Bob's public key to encrypt many kinds of messages,
 besides just SaltPack messages. If Mallory intercepted one of these, she could
 assemble a fake SaltPack message using the intercepted box, in the hope that
