@@ -29,7 +29,7 @@ export function startTimer (): (dispatch: Dispatch, getState: any) => void {
           clearInterval(intervalId)
         }
         engine.rpc('track.checkTracking')
-      }, 60000)
+      }, Constants.rpcUpdateTimerSeconds)
     }
   }
 }

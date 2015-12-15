@@ -4,12 +4,13 @@
 package service
 
 import (
+	"time"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
-	"time"
 )
 
 // TrackHandler is the RPC handler for the track interface.
@@ -70,7 +71,7 @@ func (h *TrackHandler) Untrack(_ context.Context, arg keybase1.UntrackArg) error
 
 func (h *TrackHandler) CheckTracking(_ context.Context, sessionID int) error {
 	// Rate-limited to once every fifty seconds.
-	if !h.G().RateLimits.GetPermission(libkb.CheckTrackingRateLimit, 50*time.Second) {
+	if !h.G().RateLimits.GetPermission(libkb.CheckTrackingRateLimit, libkb.TrackingRateLimitSeconds * time.Second) {
 		h.G().Log.Debug("Skipping CheckTracking due to rate limit.")
 		return nil
 	}

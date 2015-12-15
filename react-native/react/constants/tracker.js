@@ -44,3 +44,5 @@ export const userUpdated = 'tracker:userUpdated'
 
 export const startTimer = 'tracker:startTimer'
 export const stopTimer = 'tracker:stopTimer'
+
+export const rpcUpdateTimerSeconds = 60 * 1000
