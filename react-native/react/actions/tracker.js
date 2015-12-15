@@ -50,18 +50,18 @@ export function registerTrackerChangeListener (): (dispatch: Dispatch) => void {
         tracking: true
       }
     }
+    engine.listenGeneralIncomingRpc('keybase.1.NotifyTracking.trackingChanged', function (args) {
+      dispatch({
+        type: Constants.userUpdated,
+        payload: args
+      })
+    })
+
     engine.listenOnConnect(() => {
       engine.rpc('notifyCtl.setNotifications', param, {}, (error, response) => {
         if (error != null) {
           console.error('error in toggling notifications: ', error)
         }
-      })
-    })
-
-    engine.listenGeneralIncomingRpc('keybase.1.NotifyTracking.trackingChanged', function (args) {
-      dispatch({
-        type: Constants.userUpdated,
-        payload: args
       })
     })
   }
