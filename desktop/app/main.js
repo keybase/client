@@ -18,7 +18,7 @@ const mb = menubar({
   width: 150, height: isDev ? 192 : 160,
   preloadWindow: true,
   icon: menubarIconPath,
-  showDockIcon: true
+  showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
 })
 
 mb.on('after-create-window', () => {

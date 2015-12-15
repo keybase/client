@@ -130,6 +130,12 @@ package_app() {
   cp -R $installer_app $resources_dir/KeybaseInstaller.app
 }
 
+update_plist() {
+  cd $out_dir
+  # App shouldn't display dock icon on startup
+  /usr/libexec/plistBuddy -c "Add :LSUIElement bool true" Keybase.app/Contents/Info.plist
+}
+
 sign() {
   cd $out_dir
   code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
@@ -173,6 +179,7 @@ clean
 get_deps
 package_electron
 package_app
+update_plist
 sign
 package_dmg
 create_zip
