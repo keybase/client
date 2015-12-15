@@ -104,10 +104,6 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Errorf("Couldn't get logged in user: %v", err)
-	}
 	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
@@ -164,10 +160,6 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Errorf("Couldn't get logged in user: %v", err)
-	}
 	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
@@ -244,6 +236,193 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
 }
 
+// nullBlockCache is a BlockCache implementation that doesn't do any
+// caching.
+type nullBlockCache struct{}
+
+var _ BlockCache = nullBlockCache{}
+
+func (nullBlockCache) Get(ptr BlockPointer, branch BranchName) (Block, error) {
+	return nil, NoSuchBlockError{ptr.ID}
+}
+
+func (nullBlockCache) CheckForKnownPtr(tlf TlfID, block *FileBlock) (BlockPointer, error) {
+	return BlockPointer{}, nil
+}
+
+func (nullBlockCache) Put(ptr BlockPointer, tlf TlfID, block Block) error {
+	return nil
+}
+
+func (nullBlockCache) PutDirty(ptr BlockPointer, branch BranchName, block Block) error {
+	return nil
+}
+
+func (nullBlockCache) Delete(id BlockID) error {
+	return nil
+}
+
+func (nullBlockCache) DeleteDirty(ptr BlockPointer, branch BranchName) error {
+	return nil
+}
+
+func (nullBlockCache) IsDirty(ptr BlockPointer, branch BranchName) bool {
+	return false
+}
+
+// staller is a pair of channels. Whenever something is to be
+// stalled, a value is sent on stalled (if not blocked), and then
+// unstall is waited on.
+type staller struct {
+	stalled chan<- struct{}
+	unstall <-chan struct{}
+}
+
+// stallingBlockOps is an implementation of BlockOps whose operations
+// stall depending on a particular value in those operations'
+// contexts. In particular, if ctx.Value(stallKey) is a key in
+// stallMap, the corresponding staller is used to stall the operation.
+type stallingBlockOps struct {
+	stallKey interface{}
+	stallMap map[interface{}]staller
+	delegate BlockOps
+}
+
+var _ BlockOps = (*stallingBlockOps)(nil)
+
+func (f *stallingBlockOps) maybeStall(ctx context.Context) {
+	v := ctx.Value(f.stallKey)
+	chans, ok := f.stallMap[v]
+	if ok {
+		select {
+		case chans.stalled <- struct{}{}:
+		default:
+		}
+		<-chans.unstall
+	}
+}
+
+func (f *stallingBlockOps) Get(
+	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
+	block Block) error {
+	f.maybeStall(ctx)
+	return f.delegate.Get(ctx, md, blockPtr, block)
+}
+
+func (f *stallingBlockOps) Ready(
+	ctx context.Context, md *RootMetadata, block Block) (
+	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
+	f.maybeStall(ctx)
+	return f.delegate.Ready(ctx, md, block)
+}
+
+func (f *stallingBlockOps) Put(
+	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
+	readyBlockData ReadyBlockData) error {
+	f.maybeStall(ctx)
+	return f.delegate.Put(ctx, md, blockPtr, readyBlockData)
+}
+
+func (f *stallingBlockOps) Delete(
+	ctx context.Context, md *RootMetadata, id BlockID,
+	context BlockContext) error {
+	f.maybeStall(ctx)
+	return f.delegate.Delete(ctx, md, id, context)
+}
+
+// Test that a block write can happen concurrently with a block
+// read. This is a regression test for KBFS-536.
+func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
+	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer config.Shutdown()
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, uid)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Turn off block caching.
+	config.SetBlockCache(nullBlockCache{})
+
+	// We only need to know the first time we stall.
+	onReadStalledCh := make(chan struct{}, 1)
+	onWriteStalledCh := make(chan struct{}, 1)
+
+	readUnstallCh := make(chan struct{})
+	writeUnstallCh := make(chan struct{})
+
+	stallKey := "requestName"
+	readValue := "read"
+	writeValue := "write"
+
+	config.SetBlockOps(&stallingBlockOps{
+		stallKey: stallKey,
+		stallMap: map[interface{}]staller{
+			readValue: staller{
+				stalled: onReadStalledCh,
+				unstall: readUnstallCh,
+			},
+			writeValue: staller{
+				stalled: onWriteStalledCh,
+				unstall: writeUnstallCh,
+			},
+		},
+		delegate: config.BlockOps(),
+	})
+
+	var wg sync.WaitGroup
+
+	// Wait for the read to stall.
+	wg.Add(1)
+	var readErr error
+	go func() {
+		defer wg.Done()
+
+		readCtx := context.WithValue(ctx, stallKey, readValue)
+		_, readErr = kbfsOps.GetDirChildren(readCtx, rootNode)
+	}()
+	<-onReadStalledCh
+
+	// Wait for the write to stall.
+	wg.Add(1)
+	var writeErr error
+	go func() {
+		defer wg.Done()
+
+		data := []byte{1}
+		writeCtx := context.WithValue(ctx, stallKey, writeValue)
+		err = kbfsOps.Write(writeCtx, fileNode, data, 0)
+	}()
+	<-onWriteStalledCh
+
+	// Unstall the read, which shouldn't blow up.
+	close(readUnstallCh)
+
+	// Finally, unstall the write.
+	close(writeUnstallCh)
+
+	wg.Wait()
+
+	// Do these in the main goroutine since t isn't goroutine
+	// safe, and do these after wg.Wait() since we only know
+	// they're set after the goroutines exit.
+	if readErr != nil {
+		t.Errorf("Couldn't get children: %v", readErr)
+	}
+	if writeErr != nil {
+		t.Errorf("Couldn't write file: %v", writeErr)
+	}
+}
+
 // Test that a write can survive a folder BlockPointer update
 func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
@@ -252,10 +431,6 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Errorf("Couldn't get logged in user: %v", err)
-	}
 	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
@@ -305,10 +480,6 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Errorf("Couldn't get logged in user: %v", err)
-	}
 	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
@@ -380,7 +551,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 		t.Errorf("Got wrong data %v; expected %v", buf, expectedData)
 	}
 
-	// now unblock Sync and make sure there was no error
+	// now unstall Sync and make sure there was no error
 	m.enter <- struct{}{}
 	err = <-errChan
 	if err != nil {
@@ -421,10 +592,6 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Errorf("Couldn't get logged in user: %v", err)
-	}
 	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
@@ -543,10 +710,6 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
-	uid, err := config.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Errorf("Couldn't get logged in user: %v", err)
-	}
 	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
 		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)

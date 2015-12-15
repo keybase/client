@@ -54,6 +54,43 @@ const (
 	secondsBetweenBackgroundFlushes = 10
 )
 
+// blockLock is just like a sync.RWMutex, but with an extra operation
+// (DoRUnlockedIfPossible).
+type blockLock struct {
+	mu     sync.RWMutex
+	locked bool
+}
+
+func (bl *blockLock) Lock() {
+	bl.mu.Lock()
+	bl.locked = true
+}
+
+func (bl *blockLock) Unlock() {
+	bl.locked = false
+	bl.mu.Unlock()
+}
+
+func (bl *blockLock) RLock() {
+	bl.mu.RLock()
+}
+
+func (bl *blockLock) RUnlock() {
+	bl.mu.RUnlock()
+}
+
+// DoRUnlockedIfPossible must be called when r- or w-locked. If
+// r-locked, r-unlocks, runs the given function, and r-locks after
+// it's done. Otherwise, just runs the given function.
+func (bl *blockLock) DoRUnlockedIfPossible(f func()) {
+	if !bl.locked {
+		bl.RUnlock()
+		defer bl.RLock()
+	}
+
+	f()
+}
+
 // FolderBranchOps implements the KBFSOps interface for a specific
 // branch of a specific folder.  It is go-routine safe for operations
 // within the folder.
@@ -109,13 +146,12 @@ const (
 // blocks, so we can't just reuse the blocks that were modified during
 // the sync.)
 type FolderBranchOps struct {
-	config           Config
-	folderBranch     FolderBranch
-	bid              BranchID // protected by writerLock
-	bType            branchType
-	head             *RootMetadata
-	observers        []Observer
-	blockWriteLocked bool // blockLock is locked for writing tracks
+	config       Config
+	folderBranch FolderBranch
+	bid          BranchID // protected by writerLock
+	bType        branchType
+	head         *RootMetadata
+	observers    []Observer
 	// Which blocks are currently being synced, so that writes and
 	// truncates can do copy-on-write to avoid messing up the ongoing
 	// sync.  The bool value is true if the block needs to be
@@ -145,7 +181,7 @@ type FolderBranchOps struct {
 
 	// protects access to blocks in this folder and to
 	// copyFileBlocks/deferredWrites
-	blockLock sync.RWMutex
+	blockLock blockLock
 
 	obsLock   sync.RWMutex // protects access to observers
 	cacheLock sync.Mutex   // protects unrefCache and deCache
@@ -658,20 +694,6 @@ func (fbo *FolderBranchOps) getBlockLocked(ctx context.Context,
 		return block, nil
 	}
 
-	// Unlock the blockLock while we wait for the network, only if
-	// it's locked for reading.  If it's locked for writing, that
-	// indicates we are performing an atomic write operation, and we
-	// need to ensure that nothing else comes in and modifies the
-	// blocks, so don't unlock.
-	doLock := true
-	if !fbo.blockWriteLocked {
-		fbo.blockLock.RUnlock()
-		defer func() {
-			if doLock {
-				fbo.blockLock.RLock()
-			}
-		}()
-	}
 	// TODO: add an optimization here that will avoid fetching the
 	// same block twice from over the network
 
@@ -685,15 +707,20 @@ func (fbo *FolderBranchOps) getBlockLocked(ctx context.Context,
 	}
 
 	bops := fbo.config.BlockOps()
-	if err := bops.Get(ctx, md, dir.tailPointer(), block); err != nil {
+
+	// Unlock the blockLock while we wait for the network, only if
+	// it's locked for reading.  If it's locked for writing, that
+	// indicates we are performing an atomic write operation, and we
+	// need to ensure that nothing else comes in and modifies the
+	// blocks, so don't unlock.
+	var err error
+	fbo.blockLock.DoRUnlockedIfPossible(func() {
+		err = bops.Get(ctx, md, dir.tailPointer(), block)
+	})
+	if err != nil {
 		return nil, err
 	}
 
-	// relock before accessing the cache
-	doLock = false
-	if !fbo.blockWriteLocked {
-		fbo.blockLock.RLock()
-	}
 	if err := bcache.Put(dir.tailPointer(), fbo.id(), block); err != nil {
 		return nil, err
 	}
@@ -2384,9 +2411,7 @@ func (fbo *FolderBranchOps) Write(
 		return err
 	}
 
-	fbo.blockWriteLocked = true
 	defer func() {
-		fbo.blockWriteLocked = false
 		fbo.doDeferWrite = false
 	}()
 
@@ -2554,9 +2579,7 @@ func (fbo *FolderBranchOps) Truncate(
 		return err
 	}
 
-	fbo.blockWriteLocked = true
 	defer func() {
-		fbo.blockWriteLocked = false
 		fbo.doDeferWrite = false
 	}()
 
