@@ -17,7 +17,7 @@ several properties that we'll want to keep:
 
 Building on what NaCl boxes give us, there are several other properties we want
 our messages to have:
-- Multiple recipients, with multiple devices per recipient.
+- Multiple recipients.
 - Streaming. Recipients should be able to to decrypt a message of any size
   without needing to fit the whole thing in RAM. At the same time, decryption
   should never output any unauthenticated bytes.
@@ -82,8 +82,7 @@ The header packet is a MessagePack list with these contents:
 - **ephemeral_public** is an ephemeral NaCl public encryption key, 32 bytes.
   The ephemeral keypair is generated at random by the sender and only used for
   one message.
-- **recipients** is a list of "recipient tuples", one for each recipient
-  device.
+- **recipients** is a list of "recipient tuples", one for each recipient key.
 
 A recipient tuple is a list of three things:
 
