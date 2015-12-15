@@ -1,21 +1,24 @@
 # SaltPack Binary Signing Format
 
-As with the encryption format, we want our signing format to have some
-properties on top of a plain NaCl signature:
+As with the [encryption format](saltpack_encryption.md), we want our signing
+format to have some properties on top of a standard NaCl signature:
 - Streaming. We want to be able to verify a message of any size, without
   fitting the whole thing in RAM, and without requiring a second pass to output
   attached plaintext. But we sould only ever output verified data.
 - Abuse resistance. Alice might use the same signing key for many applications
-  besides SaltPack. Mallory (an attacker) could [try to trick Alice into signing
+  besides SaltPack. Mallory (an attacker) could [try to trick Alice into
+  signing
   messages](https://blog.sandstorm.io/news/2015-05-01-is-that-ascii-or-protobuf.html)
   that are meaningful to other applications. Alice should avoid signing bytes
   that Mallory could have chosen.
 
+## Design
+
 We define two signing formats: one attached and one detached. The attached
 format will have a header packet and payload packets similar to the [encryption
 format](saltpack_encryption.md), with an empty packet at the end of the
-message. The detached format will contain just a header packet, with no
-payload.
+message, and an incrementing counter to prevent reordering. The detached format
+will contain just a header packet, with no payload.
 
 Both formats will hash a random nonce along with the plaintext, and then sign
 the resulting hash. The goal for this nonce is to guarantee that we always sign
@@ -23,7 +26,7 @@ bytes that are unpredictable to an attacker. Without the nonce, an attacker
 giving us plaintexts to sign might be able to find one whose hash had some
 desirable substring, which could be meaningful to another application.
 
-## Attached Format
+## Attached Implementation
 
 An attached signature is a header packet, followed by any number of non-empty
 payload packets, followed by an empty payload packet. An attached signing
@@ -67,7 +70,7 @@ concatenation of three values:
 
 What the sender signs is the concatenation of three other values:
 - `"SaltPack\0"`
-- `"attached\0"`
+- `"attached signature\0"`
 - the SHA512 hash above
 
 Some applications might use the SaltPack format, but don't want signature
@@ -77,7 +80,7 @@ format name at the start of the header, these applications should use a
 string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
 place of `"SaltPack\0"`.
 
-## Detached Format
+## Detached Implementation
 
 A detached signature is similar to an attached signature header packet by
 itself, with an extra signature field at the end.
@@ -108,5 +111,5 @@ concatenation of two values:
 
 What the sender signs is the concatenation of three other values:
 - `"SaltPack\0"`
-- `"detached\0"`
+- `"detached signature\0"`
 - the SHA512 hash above
