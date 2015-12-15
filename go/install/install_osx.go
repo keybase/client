@@ -284,18 +284,14 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 	if err != nil {
 		return nil, err
 	}
-	mountPath := kbfsMountPath(g.Env.GetHome(), runMode)
 
-	// Create mount dir if it doesn't exist
-	if _, err := os.Stat(mountPath); os.IsNotExist(err) {
-		// Make the dir so we can't go into it while unmounted.
-		err := os.MkdirAll(mountPath, 0600)
-		if err != nil {
-			return nil, err
-		}
+	mountPath := kbfsMountPath(runMode)
+	_, err = os.Stat(mountPath)
+	if err != nil {
+		return nil, err
 	}
 
-	plistArgs := []string{"-mount-type=force", mountPath}
+	plistArgs := []string{mountPath}
 	envVars := DefaultLaunchdEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars)
@@ -527,7 +523,7 @@ func uninstallKBFS(g *libkb.GlobalContext) error {
 		return err
 	}
 
-	mountPath := kbfsMountPath(g.Env.GetHome(), g.Env.GetRunMode())
+	mountPath := kbfsMountPath(g.Env.GetRunMode())
 	if _, err := os.Stat(mountPath); os.IsNotExist(err) {
 		return nil
 	}
@@ -635,16 +631,16 @@ func kbfsBinName(runMode libkb.RunMode) string {
 	}
 }
 
-func kbfsMountPath(homeDir string, runMode libkb.RunMode) string {
+func kbfsMountPath(runMode libkb.RunMode) string {
 	switch runMode {
 	case libkb.DevelRunMode:
-		return filepath.Join(homeDir, "Keybase.devel")
+		return "/keybase.devel"
 
 	case libkb.StagingRunMode:
-		return filepath.Join(homeDir, "Keybase.stage")
+		return "/keybase.staging"
 
 	case libkb.ProductionRunMode:
-		return filepath.Join(homeDir, "Keybase")
+		return "/keybase"
 
 	default:
 		panic("Invalid run mode")

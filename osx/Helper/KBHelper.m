@@ -16,9 +16,8 @@
 
 + (int)run {
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
-  NSString *bundleVersion = NSBundle.mainBundle.infoDictionary[@"CFBundleVersion"];
 
-  KBLog(@"Starting keybase.Helper: %@-%@", version, bundleVersion);
+  KBLog(@"Starting keybase.Helper: %@", version);
 
   xpc_connection_t service = xpc_connection_create_mach_service("keybase.Helper", dispatch_get_main_queue(), XPC_CONNECTION_MACH_SERVICE_LISTENER);
   if (!service) {
@@ -67,10 +66,10 @@
 
   if ([method isEqualToString:@"version"]) {
     [self version:completion];
-  } else if ([method isEqualToString:@"kext_load"]) {
+  } else if ([method isEqualToString:@"kextLoad"]) {
     [KBKext loadKextID:args[@"kextID"] path:args[@"kextPath"] completion:completion];
-  } else if ([method isEqualToString:@"kext_unload"]) {
-    // For some reason passing through args[@"kextID"] causes the helper to crash on kext_unload only.
+  } else if ([method isEqualToString:@"kextUnload"]) {
+    // For some reason passing through args[@"kextID"] causes the helper to crash on kextUnload only.
     // TODO: Figure out why. (Maybe string has to be const?)
     NSString *kextID = [self checkKextID:args[@"kextID"]];
     if (kextID) {
@@ -78,12 +77,14 @@
     } else {
       completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid kextID"), nil);
     }
-  } else if ([method isEqualToString:@"kext_install"]) {
+  } else if ([method isEqualToString:@"kextInstall"]) {
     [KBKext installWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
-  } else if ([method isEqualToString:@"kext_uninstall"]) {
+  } else if ([method isEqualToString:@"kextUninstall"]) {
     [KBKext uninstallWithDestination:args[@"destination"] kextID:args[@"kextID"] completion:completion];
   } else if ([method isEqualToString:@"trash"]) {
     [self trash:args[@"path"] completion:completion];
+  } else if ([method isEqualToString:@"createDirectory"]) {
+    [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] completion:completion];
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }
@@ -91,12 +92,25 @@
 
 - (void)version:(void (^)(NSError *error, id value))completion {
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
-  NSString *build = NSBundle.mainBundle.infoDictionary[@"CFBundleVersion"];
   NSDictionary *response = @{
                              @"version": version,
-                             @"build": build,
                              };
   completion(nil, response);
+}
+
+- (void)createDirectory:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions completion:(void (^)(NSError *error, id value))completion {
+  NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
+  attributes[NSFilePosixPermissions] = permissions;
+  attributes[NSFileOwnerAccountID] = uid;
+  attributes[NSFileGroupOwnerAccountID] = gid;
+
+  NSError *error = nil;
+  if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:attributes error:&error]) {
+    completion(error, nil);
+    return;
+  }
+
+  completion(nil, @{});
 }
 
 - (void)trash:(NSString *)path completion:(void (^)(NSError *error, id value))completion {
@@ -111,7 +125,7 @@
   if (![NSFileManager.defaultManager trashItemAtURL:[NSURL fileURLWithPath:path] resultingItemURL:&outURL error:&error]) {
     completion(error, nil);
   } else {
-    completion(nil, [outURL absoluteString]);
+    completion(nil, @{@"outURL": [outURL absoluteString]});
   }
 }
 

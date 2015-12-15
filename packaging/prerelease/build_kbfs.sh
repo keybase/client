@@ -15,10 +15,11 @@ cd $repodir
 date_last_commit=`date -r $(git log -n1 --format="%at") +%Y%m%d%H%M%S`
 commit_short=`git log -1 --pretty=format:%h`
 build="$date_last_commit+$commit_short"
+KBFS_BUILD=${KBFS_BUILD:-$build}
 
 echo "Building kbfs"
 GO15VENDOREXPERIMENT=0 go get -u github.com/keybase/kbfs/kbfsfuse
-GO15VENDOREXPERIMENT=0 go build -a -tags "production" -ldflags "-X github.com/keybase/kbfs/libkbfs.CustomBuild=$build" -o $build_dir/kbfs github.com/keybase/kbfs/kbfsfuse
+GO15VENDOREXPERIMENT=0 go build -a -tags "production" -ldflags "-X github.com/keybase/kbfs/libkbfs.CustomBuild=$KBFS_BUILD" -o $build_dir/kbfs github.com/keybase/kbfs/kbfsfuse
 
 kbfs_version=`$build_dir/kbfs -version`
 echo "KBFS version: $kbfs_version"
