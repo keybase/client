@@ -776,8 +776,12 @@ func TestProvisionGPGNoEldest(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err == nil {
+	err := RunEngine(eng, ctx)
+	if err == nil {
 		t.Fatal("expected a failure in login")
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Fatalf("error type: %T, expected libkb.NotFoundError", err)
 	}
 
 	// now try passphrase provisioning
