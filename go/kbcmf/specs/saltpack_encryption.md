@@ -134,8 +134,9 @@ header packet and the symmetric message key to forge new messages that appear
 to be from the same sender to other recipients. (Recipients can forge messages
 that appear to be sent to them only, not messages that appear to be sent to
 anyone else.) Stripping the authenticator tag from the **payload_secretbox** is
-a safety measure; it makes it difficult for an implementation to skip this
-step.
+a safety measure. To open the secretbox, recipients must first open the tag
+box, verifying that the payload packet was written by the original sender,
+before prepending the tag to **payload_secretbox** and opening that.
 
 The nonce for the **payload_secretbox** is 16 null bytes followed by a 64-bit
 unsigned big-endian sequence number, where the first payload packet is sequence
