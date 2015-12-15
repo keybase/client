@@ -27,16 +27,16 @@ func NewKeybaseUpdateSource(g *libkb.GlobalContext) KeybaseUpdateSource {
 func (k KeybaseUpdateSource) FindUpdate(config keybase1.UpdateConfig) (update *keybase1.Update, err error) {
 	APIArgs := libkb.HTTPArgs{
 		"version":  libkb.S{Val: config.Version},
-		"os_name":  libkb.S{Val: config.OsName},
+		"platform": libkb.S{Val: config.OsName},
 		"run_mode": libkb.S{Val: string(k.G().Env.GetRunMode())},
 		"channel":  libkb.S{Val: config.Channel},
 	}
 
 	var res updateResponse
 	err = k.G().API.GetDecode(libkb.APIArg{
-		Endpoint: "update.json",
+		Endpoint: "pkg/update",
 		Args:     APIArgs,
-	}, res)
+	}, &res)
 	if err != nil {
 		return
 	}

@@ -70,6 +70,8 @@ func (n *signupUI) GetGPGUI() libkb.GPGUI {
 	return client.NewGPGUI(n.G(), n.GetTerminalUI(), false, "")
 }
 
+func (n *signupUI) GetUpdateUI() libkb.UpdateUI { return nil }
+
 func (n *signupSecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	res.Passphrase = n.info.passphrase
 	n.G().Log.Debug("| GetNewPassphrase: %v -> %v", arg, res)

@@ -42,6 +42,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdTrack(cl, g),
 		NewCmdUnlock(cl),
 		NewCmdUntrack(cl, g),
+		NewCmdUpdate(cl, g),
 		NewCmdVersion(cl, g),
 	}
 	ret = append(ret, getBuildSpecificCommands(cl, g)...)
