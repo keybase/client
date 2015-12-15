@@ -84,7 +84,7 @@
   } else if ([method isEqualToString:@"trash"]) {
     [self trash:args[@"path"] completion:completion];
   } else if ([method isEqualToString:@"createDirectory"]) {
-    [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] completion:completion];
+    [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }
@@ -98,7 +98,7 @@
   completion(nil, response);
 }
 
-- (void)createDirectory:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions completion:(void (^)(NSError *error, id value))completion {
+- (void)createDirectory:(NSString *)directory uid:(NSNumber *)uid gid:(NSNumber *)gid permissions:(NSNumber *)permissions excludeFromBackup:(BOOL)excludeFromBackup completion:(void (^)(NSError *error, id value))completion {
   NSMutableDictionary *attributes = [NSMutableDictionary dictionary];
   attributes[NSFilePosixPermissions] = permissions;
   attributes[NSFileOwnerAccountID] = uid;
@@ -108,6 +108,15 @@
   if (![NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:attributes error:&error]) {
     completion(error, nil);
     return;
+  }
+
+  if (excludeFromBackup) {
+    NSURL *directoryURL = [NSURL fileURLWithPath:directory];
+    OSStatus status = CSBackupSetItemExcluded((__bridge CFURLRef)directoryURL, YES, YES);
+    if (status != noErr) {
+      completion(KBMakeError(status, @"Error trying to exclude from backup"), nil);
+      return;
+    }
   }
 
   completion(nil, @{});

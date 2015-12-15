@@ -72,7 +72,7 @@
   gid_t gid = getgid();
   // Make the dir 0600 so we can't go into it while unmounted.
   NSNumber *permissions = [NSNumber numberWithShort:0600];
-  [self.helperTool.helper sendRequest:@"createDirectory" params:@[@{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions}] completion:^(NSError *error, id value) {
+  [self.helperTool.helper sendRequest:@"createDirectory" params:@[@{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

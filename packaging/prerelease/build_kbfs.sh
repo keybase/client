@@ -5,6 +5,8 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
+NOPULL=${NOPULL:-0} # Don't check and pull repos
+
 build_dir=${BUILD_DIR:-/tmp/build_kbfs}
 mkdir -p $build_dir
 
@@ -18,7 +20,9 @@ build="$date_last_commit+$commit_short"
 KBFS_BUILD=${KBFS_BUILD:-$build}
 
 echo "Building kbfs"
-GO15VENDOREXPERIMENT=0 go get -u github.com/keybase/kbfs/kbfsfuse
+if [ ! "$NOPULL" = "1" ]; then
+  GO15VENDOREXPERIMENT=0 go get -u github.com/keybase/kbfs/kbfsfuse
+fi
 GO15VENDOREXPERIMENT=0 go build -a -tags "production" -ldflags "-X github.com/keybase/kbfs/libkbfs.CustomBuild=$KBFS_BUILD" -o $build_dir/kbfs github.com/keybase/kbfs/kbfsfuse
 
 kbfs_version=`$build_dir/kbfs -version`
