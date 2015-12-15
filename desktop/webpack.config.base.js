@@ -1,6 +1,13 @@
 const webpack = require('webpack')
 const path = require('path')
 
+const defines = {
+  '__HOT__': JSON.stringify(process.env.HOT === 'true'),
+  '__DEV__': JSON.stringify(process.env.NODE_ENV !== 'production')
+}
+
+console.log('Injecting defines: ', defines)
+
 module.exports = {
   module: {
     loaders: [{
@@ -30,16 +37,7 @@ module.exports = {
     modulesDirectories: [path.join(__dirname, 'node_modules')]
   },
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        'HOT': JSON.stringify(process.env.HOT),
-        'NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-        'KEYBASE_RUN_MODE': JSON.stringify(process.env.KEYBASE_RUN_MODE),
-        'XDG_RUNTIME_DIR': JSON.stringify(process.env.XDG_RUNTIME_DIR),
-        'HOME': JSON.stringify(process.env.HOME)
-      },
-      'process.platform': JSON.stringify(process.platform) // TODO make sure this doesn't mess up cross platform builds
-    })
+    new webpack.DefinePlugin(defines)
   ],
   externals: [
     'nslog'
