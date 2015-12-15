@@ -115,7 +115,7 @@ The sender then signs the concatenation of three values:
 - `"detached signature\0"`
 - the SHA512 hash above
 
-## Example
+## Examples
 
 An attached signature:
 
