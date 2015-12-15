@@ -108,7 +108,8 @@ message can see who the sender is.
 
 When decrypting, clients should compute the ephemeral shared secret and then
 try to open each of the sender boxes. In the NaCl interface, computing the
-shared secret is done with the `crypto_box_beforenm` function. (This does a
+shared secret is done with the
+[`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html) function. (This does a
 Curve25519 multiplication and an HSalsa20 key derivation.)
 
 ### Payload Packets
@@ -152,9 +153,9 @@ the SHA512 of the concatenation of these values:
 
 The nonce for each box is the concatenation of `P` and a 64-bit big-endian
 unsigned counter. For each **sender_box** the counter is 0. For each
-**key_box** the counter is 1. For each **tag_box** we increment the counter, so
-the first **tag_box** is 2, the next is 3, and so on. For each
-**payload_secretbox**, the nonce is the same as for the associated
+**key_box** the counter is 1. For each payload packet we then increment the
+counter, so the first set of **tag_boxes** is 2, the next is 3, and so on. For
+each **payload_secretbox**, the nonce is the same as for the associated
 **tag_boxes**. The strict ordering of nonces should make it impossible to drop
 or reorder any payload packets.
 

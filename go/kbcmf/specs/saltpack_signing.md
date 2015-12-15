@@ -68,7 +68,7 @@ concatenation of three values:
   the first payload packet is zero
 - the **payload_chunk**
 
-What the sender signs is the concatenation of three other values:
+The sender then signs the concatenation of three values:
 - `"SaltPack\0"`
 - `"attached signature\0"`
 - the SHA512 hash above
@@ -100,7 +100,8 @@ itself, with an extra signature field at the end.
 - **version** is a list of the major and minor versions, currently `[1, 0]`.
 - **mode** is the number 2, for attached signing. (0 is encryption, and 1 is
   attached signing.)
-- **sender_public** is the sender's long-term NaCl signing public key, 32 bytes.
+- **sender_public** is the sender's long-term NaCl public signing key, 32
+  bytes.
 - **nonce** is 16 random bytes.
 - **signature** a detached NaCl signature, 64 bytes
 
@@ -109,7 +110,7 @@ concatenation of two values:
 - the **nonce** from above
 - the entire plaintext
 
-What the sender signs is the concatenation of three other values:
+The sender then signs the concatenation of three values:
 - `"SaltPack\0"`
 - `"detached signature\0"`
 - the SHA512 hash above
