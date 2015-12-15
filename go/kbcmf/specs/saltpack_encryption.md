@@ -91,10 +91,10 @@ A recipient tuple is a list of three things:
   32-bytes. This field may be null, when the recipients are anonymous.
 - **sender_box** is a NaCl box containing the sender's long-term NaCl public
   encryption key. It's encrypted with the recipient's public key and the
-  ephemeral private key. See also [Nonces](#Nonces) below.
+  ephemeral private key. See also [Nonces](#nonces) below.
 - **keys_box** is a NaCl box containing the recipient's "key set", another
   MessagePack list. It's encrypted with the recipient's public key and the
-  sender's long-term private key. Again see [Nonces](#Nonces) below.
+  sender's long-term private key. Again see [Nonces](#nonces) below.
 
 The goal of encrypting the **sender_box** with the ephemeral key is that only
 recipients of the message should be able to see who the sender is. The goal of
@@ -118,15 +118,23 @@ of three things:
 ]
 ```
 
-- **mac_group** specifies which MAC this recipient should check. Each payload
-  packet includes a list of MACs, and **mac_group** is an index in that list.
-  Different devices belonging to the same person may share a MAC group.
+- **mac_group** tells the recipient which MAC is intended for them in each of
+  the payload packets. Example below. Different devices belonging to the same
+  person may share a MAC group. To make this number constant size, we set the
+  2<sup>31</sup> bit before serializing it and unset that bit after
+  deserializing it.
 - **mac_key** is a NaCl HMAC key, 32 bytes. Each **mac_key** is generated at
   random by the sender and shared by each recipient device in the corresponding
   **mac_group**.
 - **message_key** is a NaCl symmetric encryption key, 32 bytes, which is used
   to encrypt the payload packets. The message key is generated at random by the
   sender and shared by all the recipients.
+
+For example, Bob opens his **keys_box** and sees the value of **mac_group** is
+`0x80000001`. He unsets the 2<sup>31</sup> bit and determines that his unmasked
+group is 1. Then as Bob decrypts each payload packet, he verifies the MAC at
+index 1 in the payload packet's list of MACs. See [Payload
+Packets](#payload-packets) for how those MACs are computed.
 
 ### Nonces
 
