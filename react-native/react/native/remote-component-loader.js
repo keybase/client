@@ -78,7 +78,7 @@ class RemoteComponentLoader extends Component {
       if (props.waitForState &&
           // Make sure we only do this if we haven't loaded the state yet
           !this.state.loaded &&
-          // Only do this if the store hasn't been filled yet.
+          // Only do this if the store hasn't been filled yet
           Object.keys(this.store.getState()).length === 0) {
         const unsub = this.store.subscribe(() => {
           currentWindow.show()
@@ -86,8 +86,8 @@ class RemoteComponentLoader extends Component {
           unsub()
         })
       } else {
-        // If we've received props, and the loaded state was false
-        // That means we should show the window
+        // If we've received props, and the loaded state was false, that
+        // means we should show the window
         if (this.state.loaded === false) {
           currentWindow.show()
         }
@@ -97,7 +97,7 @@ class RemoteComponentLoader extends Component {
 
     ipcRenderer.on('remoteUnmount', () => {
       setImmediate(() => this.setState({unmounted: true}))
-      // Hide the window since we've effective told it to close
+      // Hide the window since we've effectively told it to close
       currentWindow.hide()
     })
     ipcRenderer.send('registerRemoteUnmount', currentWindow.id)
@@ -107,7 +107,8 @@ class RemoteComponentLoader extends Component {
 
   componentDidUpdate (prevProps, prevState) {
     if (!prevState.unmounted && this.state.unmounted) {
-      // Close the window now that the remote-components unmount lifecycle method has finished
+      // Close the window now that the remote-component's unmount
+      // lifecycle method has finished
       currentWindow.close()
     }
   }
