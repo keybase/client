@@ -12,9 +12,6 @@ import (
 type PrivateMetadata struct {
 	// directory entry for the root directory block
 	Dir DirEntry
-	// the last KB user with writer permissions to this TLF
-	// who wrote this metadata
-	LastWriterChanged keybase1.UID
 
 	// m_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
 	TLFPrivateKey TLFPrivateKey
@@ -29,7 +26,7 @@ type PrivateMetadata struct {
 // Equals returns true if the given PrivateMetadata is equal to this
 // PrivateMetadata.
 func (pm PrivateMetadata) Equals(other PrivateMetadata) bool {
-	return pm.Dir == other.Dir && pm.LastWriterChanged == other.LastWriterChanged &&
+	return pm.Dir == other.Dir &&
 		pm.TLFPrivateKey == other.TLFPrivateKey &&
 		pm.Changes.Equals(other.Changes)
 }
@@ -78,6 +75,9 @@ const (
 type WriterMetadata struct {
 	// Serialized, possibly encrypted, version of the PrivateMetadata
 	SerializedPrivateMetadata []byte `codec:"data"`
+	// The last KB user with writer permissions to this TLF
+	// who modified this WriterMetadata
+	LastModifyingWriter keybase1.UID
 	// For public TLFs (since those don't have any keys at all).
 	Writers []keybase1.UID `codec:",omitempty"`
 	// For private TLFs. Writer key generations for this metadata. The
@@ -107,8 +107,8 @@ type RootMetadata struct {
 	// that it's only been changed by writers.
 	WriterMetadataSigInfo SignatureInfo
 
-	// The last KB user who wrote this metadata
-	LastUserChanged keybase1.UID
+	// The last KB user who modified this RootMetadata
+	LastModifyingUser keybase1.UID
 	// Flags
 	Flags MetadataFlags
 	// The revision number

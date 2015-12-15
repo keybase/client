@@ -98,7 +98,7 @@ func TestFBStatusAllFields(t *testing.T) {
 	u, id, h := makeID(t, config, false)
 	md := NewRootMetadataForTest(h, id)
 	md.WFlags = MetadataFlagUnmerged
-	md.data.LastWriterChanged = u
+	md.LastModifyingWriter = u
 
 	// make two nodes with expected PathFromNode calls
 	n1 := newMockNode(mockCtrl)

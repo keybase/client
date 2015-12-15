@@ -461,7 +461,7 @@ func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
 	// entries and create chains for the BlockPointers that are
 	// affected directly by the operation.
 	for _, rmd := range rmds {
-		writerName, err := kbpki.GetNormalizedUsername(ctx, rmd.data.LastWriterChanged)
+		writerName, err := kbpki.GetNormalizedUsername(ctx, rmd.LastModifyingWriter)
 		if err != nil {
 			return nil, err
 		}

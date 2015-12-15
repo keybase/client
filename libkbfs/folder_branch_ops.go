@@ -678,7 +678,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 
 	// finally, write out the new metadata
-	md.data.LastWriterChanged = uid
+	md.LastModifyingWriter = uid
 	if err = fbo.config.MDOps().Put(ctx, md); err != nil {
 		return err
 	}
@@ -1755,7 +1755,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	}
 
 	// finally, write out the new metadata
-	md.data.LastWriterChanged = uid
+	md.LastModifyingWriter = uid
 	mdops := fbo.config.MDOps()
 
 	doUnmergedPut, wasStaged := true, fbo.staged

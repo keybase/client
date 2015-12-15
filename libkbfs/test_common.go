@@ -270,8 +270,8 @@ func NewFolderWithIDAndWriter(t *testing.T, id TlfID, revision MetadataRevision,
 
 	rmd := NewRootMetadataForTest(h, id)
 	rmd.Revision = revision
-	rmd.data.LastWriterChanged = h.Writers[0]
-	rmd.LastUserChanged = h.Writers[0]
+	rmd.LastModifyingWriter = h.Writers[0]
+	rmd.LastModifyingUser = h.Writers[0]
 	if !public {
 		AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
 	}

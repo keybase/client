@@ -47,7 +47,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		}
 
 		// Make sure the last writer is really a valid writer
-		writer := rmds.MD.data.LastWriterChanged
+		writer := rmds.MD.LastModifyingWriter
 		if !handle.IsWriter(writer) {
 			return MDMismatchError{
 				handle.ToString(ctx, md.config),
@@ -77,7 +77,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		}
 
 		// Make sure the last user to change the blob is really a valid reader
-		user := rmds.MD.LastUserChanged
+		user := rmds.MD.LastModifyingUser
 		if !handle.IsReader(user) {
 			return MDMismatchError{
 				handle.ToString(ctx, md.config),
@@ -296,7 +296,7 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 
 	handle := rmd.GetTlfHandle()
 	if rmd.ID.IsPublic() {
-		rmd.data.LastWriterChanged = me
+		rmd.LastModifyingWriter = me
 
 		// Encode the private metadata
 
@@ -306,7 +306,7 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 		}
 		rmd.SerializedPrivateMetadata = encodedPrivateMetadata
 	} else if handle.IsWriter(me) {
-		rmd.data.LastWriterChanged = me
+		rmd.LastModifyingWriter = me
 
 		// Encrypt and encode the private metadata
 
@@ -344,7 +344,7 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 	}
 
 	// Record the last user to modify this metadata
-	rmd.LastUserChanged = me
+	rmd.LastModifyingUser = me
 
 	// encode the root metadata and sign it
 	buf, err := codec.Encode(rmd)
