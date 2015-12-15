@@ -63,8 +63,21 @@
   return [NSString gh_isBlank:self.serviceStatus.pid] ? KBInstallRuntimeStatusStopped : KBInstallRuntimeStatusStarted;
 }
 
-- (BOOL)mountDirExists {
-  return [NSFileManager.defaultManager fileExistsAtPath:self.config.mountDir isDirectory:nil];
+- (BOOL)checkMountDir {
+  NSString *directory = self.config.mountDir;
+  BOOL exists = [NSFileManager.defaultManager fileExistsAtPath:directory isDirectory:nil];
+  if (exists) {
+    NSError *error = nil;
+    NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:directory error:&error];
+    if (attributes) {
+      DDLogDebug(@"Mount directory=%@, attributes=%@", directory, attributes);
+    } else {
+      DDLogDebug(@"Mount directory error: %@", error);
+    }
+  } else {
+    DDLogDebug(@"Mount directory doesn't exist: %@", directory);
+  }
+  return exists;
 }
 
 - (void)createMountDir:(KBCompletion)completion {
@@ -72,13 +85,15 @@
   gid_t gid = getgid();
   // Make the dir 0600 so we can't go into it while unmounted.
   NSNumber *permissions = [NSNumber numberWithShort:0600];
-  [self.helperTool.helper sendRequest:@"createDirectory" params:@[@{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)}] completion:^(NSError *error, id value) {
+  NSDictionary *params = @{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)};
+  DDLogDebug(@"Creating mount directory: %@", params);
+  [self.helperTool.helper sendRequest:@"createDirectory" params:@[params] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)install:(KBCompletion)completion {
-  if (![self mountDirExists]) {
+  if (![self checkMountDir]) {
     [self createMountDir:^(NSError *error) {
       if (error) {
         completion(error);
