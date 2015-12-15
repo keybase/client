@@ -4,7 +4,6 @@ import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 // $FlowIssue .desktop issue
 import Render from './render'
-import engine from '../engine'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
