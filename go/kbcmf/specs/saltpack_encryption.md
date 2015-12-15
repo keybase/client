@@ -19,7 +19,8 @@ Building on what NaCl boxes give us, there are several other properties we want
 our messages to have:
 - Multiple recipients, with multiple devices per recipient.
 - Streaming. Recipients should be able to to decrypt a message of any size
-  without needing to fit the whole thing in RAM.
+  without needing to fit the whole thing in RAM. At the same time, decryption
+  should never output any unauthenticated bytes.
 - Abuse resistance. Alice might use the same encryption key for many
   applications besides SaltPack. If Mallory intercepts some of these other
   ciphertexts, she could [try to trick Alice into decrypting
