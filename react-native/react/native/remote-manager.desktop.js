@@ -10,7 +10,7 @@ import {registerTrackerChangeListener} from '../actions/tracker'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 
-import type {GUIEntryFeatures} from '../constants/types/flow-types'
+import type {GUIEntryFeatures, Action, Dispatch} from '../constants/types/flow-types'
 import type {TrackerState} from '../reducers/tracker'
 import type {PinentryState} from '../reducers/pinentry'
 
@@ -141,6 +141,7 @@ RemoteManager.propTypes = {
   pinentryOnSubmit: React.PropTypes.any,
   registerPinentryListener: React.PropTypes.any,
   registerIdentifyUi: React.PropTypes.any,
+  registerTrackerChangeListener: React.PropTypes.any,
   onCloseFromHeader: React.PropTypes.any,
   trackerServerStarted: React.PropTypes.bool,
   startTimer: React.PropTypes.any,

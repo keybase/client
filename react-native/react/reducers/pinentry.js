@@ -2,8 +2,8 @@
 
 import * as Constants from '../constants/pinentry'
 
-import type {Feature, GUIEntryFeatures, GUIEntryArg} from '../constants/types/flow-types'
-import type {PinentryActions, NewPinentryAction, RegisterPinentryListenerAction} from  '../constants/pinentry'
+import type {Feature, GUIEntryFeatures} from '../constants/types/flow-types'
+import type {PinentryActions} from '../constants/pinentry'
 
 // TODO: have a root state that maps session id to pinentry popup
 

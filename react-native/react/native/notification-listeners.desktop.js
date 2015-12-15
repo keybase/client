@@ -51,7 +51,7 @@ export default function (notify) {
       }
       const body = `Files in ${tlf} ${notification.status}`
 
-      function rateLimitAllowsNotify(action, state, tlf) {
+      function rateLimitAllowsNotify (action, state, tlf) {
         if (!(action in sentNotifications)) {
           sentNotifications[action] = {}
         }

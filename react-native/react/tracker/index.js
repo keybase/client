@@ -139,7 +139,9 @@ Tracker.propTypes = {
   onFollowHelp: React.PropTypes.any,
   onFollowChecked: React.PropTypes.any,
   registerIdentifyUi: React.PropTypes.any,
-  closed: React.PropTypes.bool.isRequired
+  closed: React.PropTypes.bool.isRequired,
+  startTimer: React.PropTypes.any,
+  stopTimer: React.PropTypes.any
 }
 
 export default connect(

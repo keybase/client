@@ -7,7 +7,6 @@ import commonStyles from '../styles/common'
 import type {Styled} from '../styles/common'
 
 import {normal, checking, warning} from '../constants/tracker'
-import type {SimpleProofState} from '../constants/tracker'
 
 import type {ActionProps} from './action.render.types'
 
