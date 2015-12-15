@@ -16,10 +16,10 @@
 - engine: bugfix for user switching (PR: keybase/client#1474)
 - Fix goroutine leak in RPC calls (PR: keybase/client#1462)
 - Fix buggy "No device found No device found" error message
-   (Commit: 8b96270704ac840ee22837f5c404948206742791)
+  - (Commit: 8b96270704ac840ee22837f5c404948206742791)
 - Fix PGP command line identify/track, flags (PR: keybase/client#1475)
-- Installer tweak: don't prompt to start service (windows)
-- Ansi color code support for terminal (Windows)
+- Installer tweak: don't prompt to start service on windows (PR: keybase/client#1495)
+- Ansi color code support for terminal on Windows (PR: keybase/client#1481)
 - EdDSA for OpenPGP support (PR: keybase/client#1519)
 - Resolve RPC support (PR: keybase/client#1520)
 
