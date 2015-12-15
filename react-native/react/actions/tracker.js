@@ -18,7 +18,7 @@ type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootT
 
 // TODO make actions for all the call back stuff.
 
-export function startTimer (): (dispatch: Dispatch, getState: any) => void {
+export function startTimer (): TrackerActionCreator {
   return (dispatch, getState) => {
     // Increments timerActive as a count of open tracker popups.
     dispatch({type: Constants.startTimer})
@@ -43,7 +43,7 @@ export function stopTimer (): Action {
   }
 }
 
-export function registerTrackerChangeListener (): (dispatch: Dispatch) => void {
+export function registerTrackerChangeListener (): TrackerActionCreator {
   return dispatch => {
     const param = {
       channels: {

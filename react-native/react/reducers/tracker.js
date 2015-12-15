@@ -31,7 +31,8 @@ export type TrackerState = {
 
 export type State = {
   serverStarted: boolean,
-  trackers: {[key: string]: TrackerState}
+  trackers: {[key: string]: TrackerState},
+  timerActive: number
 }
 
 const initialProofState = checking

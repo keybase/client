@@ -10,7 +10,9 @@ import {registerTrackerChangeListener} from '../actions/tracker'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 
-import type {GUIEntryFeatures, Action, Dispatch} from '../constants/types/flow-types'
+import type {GUIEntryFeatures} from '../constants/types/flow-types'
+import type {Action, Dispatch} from '../constants/types/flux'
+
 import type {TrackerState} from '../reducers/tracker'
 import type {PinentryState} from '../reducers/pinentry'
 
@@ -19,6 +21,7 @@ export type RemoteManagerProps = {
   pinentryOnCancel: (sessionID: number) => void,
   pinentryOnSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
   registerIdentifyUi: () => void,
+  registerTrackerChangeListener: () => void,
   onCloseFromHeader: () => void,
   trackerServerStarted: boolean,
   startTimer: (dispatch: Dispatch, getState: any) => void,
