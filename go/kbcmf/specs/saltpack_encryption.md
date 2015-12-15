@@ -90,7 +90,7 @@ A recipient tuple is a list of three things:
 [
     recipient_public,
     sender_box,
-    keys_box,
+    key_box,
 ]
 ```
 
@@ -98,80 +98,83 @@ A recipient tuple is a list of three things:
   32-bytes. This field may be null, when the recipients are anonymous.
 - **sender_box** is a NaCl box containing the sender's long-term NaCl public
   encryption key. It's encrypted with the recipient's public key and the
-  ephemeral private key. See also [Nonces](#nonces) below.
-- **keys_box** is a NaCl box containing the recipient's "key set", another
-  MessagePack list. It's encrypted with the recipient's public key and the
-  sender's long-term private key. Again see [Nonces](#nonces) below.
+  ephemeral private key. See also [Random Nonces](#random-nonces) below.
+- **key_box** is a NaCl box containing the symmetric message key. It's
+  encrypted with the recipient's public key and the sender's long-term private
+  key. Again see [Random Nonces](#random-nonces) below.
 
-The goal of encrypting the **sender_box** with the ephemeral key is that only
-recipients of the message should be able to see who the sender is. The goal of
-encrypting the **keys_box** with the sender's long-term key is that, by opening
-that box with the sender's public key, the recipient can prove the sender is
-authentic.
+The goal of encrypting the **sender_box** is that only recipients of the
+message can see who the sender is.
 
 When decrypting, clients should compute the ephemeral shared secret and then
 try to open each of the sender boxes. In the NaCl interface, computing the
 shared secret is done with the `crypto_box_beforenm` function. (This does a
 Curve25519 multiplication and an HSalsa20 key derivation.)
 
-Each recipient's key set, encrypted in the **keys_box** above, is also a list
-of three things:
+### Payload Packets
+A payload packet is a MessagePack list with these contents:
 
 ```
 [
-    mac_group,
-    mac_key,
-    message_key,
+    tag_boxes,
+    payload_secretbox,
 ]
 ```
 
-- **mac_group** tells the recipient which MAC is intended for them in each of
-  the payload packets. Example below. Different devices belonging to the same
-  person may share a MAC group. To make this number constant size, we set the
-  2<sup>31</sup> bit before serializing it and unset that bit after
-  deserializing it.
-- **mac_key** is a NaCl HMAC key, 32 bytes. Each **mac_key** is generated at
-  random by the sender and shared by each recipient device in the corresponding
-  **mac_group**.
-- **message_key** is a NaCl symmetric encryption key, 32 bytes, which is used
-  to encrypt the payload packets. The message key is generated at random by the
-  sender and shared by all the recipients.
+- **tag_boxes** is a list of NaCl boxes, one for each recipient. They contain
+  the 16-byte authenticator for the following **payload_secretbox**. They're
+  encrypted with the recipient's public key and the sender's long-term private
+  key. See [Random Nonces](#random-nonces) below.
+- **payload_secretbox** is a NaCl secretbox containing a chunk of the plaintext
+  bytes, max size 1 MB. It's encrypted with the symmetric message key. The
+  first 16 bytes (the Poly1305 authenticator) are stripped off.
 
-For example, Bob opens his **keys_box** and sees the value of **mac_group** is
-`0x80000001`. He unsets the 2<sup>31</sup> bit and determines that his unmasked
-group is 1. Then as Bob decrypts each payload packet, he verifies the MAC at
-index 1 in the payload packet's list of MACs. See [Payload
-Packets](#payload-packets) for how those MACs are computed.
+The purpose of the **tag_boxes** is to prevent recipients from reusing the
+header packet and the symmetric message key to forge new messages that appear
+to be from the same sender to other recipients. (Recipients can forge messages
+that appear to be sent to them only, not messages that appear to be sent to
+anyone else.) Stripping the authenticator tag from the **payload_secretbox** is
+a safety measure; it makes it difficult for an implementation to skip this
+step.
+
+The nonce for the **payload_secretbox** is 16 null bytes followed by a 64-bit
+unsigned big-endian sequence number, where the first payload packet is sequence
+number 0. This nonce doesn't need to be random, because the symmetric message
+key is generated at random for every new message.
 
 ### Random Nonces
 
-All NaCl nonces are 24 bytes. Define the pre-nonce `P` to be the first 20 bytes
-of the SHA512 of the concatenation of these values:
+The sender boxes, key boxes, and tag boxes are all encrypted with long-term
+keys, so it's important that they never reuse nonces. We use a pseudorandom
+prefix to avoid this. Define the nonce prefix `P` to be the first 16 bytes of
+the SHA512 of the concatenation of these values:
 - `"SaltPack\0"` (`\0` is a [null
   byte](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html))
-- `"nonce\0"`
+- `"encryption nonce prefix\0"`
 - the ephemeral public key
 
-Also define `R` to be the index of the recipient tuple in question, in the
-recipients list.
+The nonce for each box is the concatenation of `P` and a 64-bit big-endian
+unsigned counter. To determine the counter, let `R` be the number of recipients
+and `i` by the index of any given recipient. That is, `i` is `0` for the first
+recipient and `i` is `R-1` for the last recipient.
 
-The nonce for each **sender_box** is `P` concatenated with the 32-bit
-big-endian unsigned representation of `2*R`.
+The counter for each **sender_box** is `i`.
 
-The nonce for each **keys_box** is `P` concatenated with the 32-bit big-endian
-unsigned representation of `2*R + 1`.
+The counter for each **key_box** is `R+i`.
 
-These nonces are used with long-term keys, so we need to make sure we never
-reuse them. Because the ephemeral keypair is generated at random for each
-message, nonce reuse should be very unlikely.
+Let `p` be the sequence number of each payload packet, as in the previous
+section, where `p` is `0` for the first payload packet. The counter for each
+**tag box** is `((2+p)*R)+i`.
 
-We also want to prevent abuse of the decryption key. Alice might use Bob's
-public key to encrypt many kinds of messages, besides just SaltPack messages.
-If Mallory intercepted one of these, she could assemble a fake SaltPack message
-using the intercepted box, in the hope that Bob might reveal something about
-its contents by decrypting it. The `P` prefix makes this sort of attack
-difficult. Unless Mallory can compute enough hashes to choose a 20-byte prefix,
-she can't control the nonce that Bob uses to decrypt.
+Beyone avoiding nonce reuse, we also want to prevent abuse of the decryption
+key. Alice might use Bob's public key to encrypt many kinds of messages,
+besides just SaltPack messages. If Mallory intercepted one of these, she could
+assemble a fake SaltPack message using the intercepted box, in the hope that
+Bob might reveal something about its contents by decrypting it. If we used a
+random nonce transmitted in the message header, Mallory could pick the nonce to
+fit the intercepted box. Using the `P` prefix instead makes this attack
+difficult. Unless Mallory can compute enough hashes to find one with a specific
+16-byte prefix, she can't control the nonce that Bob uses to decrypt.
 
 Some applications might use the SaltPack format, but don't want decryption
 compatibility with other SaltPack applications. In addition to changing the
@@ -179,30 +182,3 @@ format name at the start of the header, these applications should use a
 [different null-terminated context
 string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
 place of `"SaltPack\0"`.
-
-### Payload Packets
-A payload packet is a MessagePack list with these contents:
-
-```
-[
-    payload_secretbox,
-    macs,
-]
-```
-
-- **payload_secretbox** is a NaCl secretbox containing a chunk of the plaintext
-  bytes, max size 1 MB. It's encrypted with the **message_key**.
-- **macs** is a list of NaCl MACs (HMAC-SHA512, first 32 bytes). The indices in
-  this list correspond to the different **mac_group** numbers of the
-  recipients.
-
-The nonce for each **payload_secretbox** is 16 null bytes followed by a 64-bit
-unsigned big-endian sequence number, where the first payload packet is sequence
-number 0. These nonces don't need to be random, because the **message_key** is
-unique for each message.
-
-MACs are computed over the packet sequence number (same as the in the nonce
-above) concatenated with the first 16 bytes of **payload_secretbox** (the
-Poly1305 tag). The goal of the MACs is to prevent any of the recipients from
-changing the message, since all of the payload secretboxes are made with the
-**message_key** that all the recipeints share.
