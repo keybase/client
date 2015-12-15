@@ -22,5 +22,15 @@ config.plugins.push(
   })
 )
 
+if (process.env.HOT === 'true') {
+  const HMR = 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
+
+  Object.keys(config.entry).forEach(k => {
+    if (k !== 'main') { // node-only thread can't be hot loaded...
+      config.entry[k] = [HMR].concat(config.entry[k])
+    }
+  })
+}
+
 config.target = webpackTargetElectronRenderer(config)
 module.exports = config
