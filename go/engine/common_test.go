@@ -6,6 +6,7 @@ package engine
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -189,6 +190,17 @@ func AssertProvisioned(tc libkb.TestContext) error {
 	}
 	if !prov {
 		return libkb.LoginRequiredError{}
+	}
+	return nil
+}
+
+func AssertNotProvisioned(tc libkb.TestContext) error {
+	prov, err := tc.G.LoginState().LoggedInProvisionedLoad()
+	if err != nil {
+		return err
+	}
+	if prov {
+		return errors.New("AssertNotProvisioned failed:  user is provisioned")
 	}
 	return nil
 }

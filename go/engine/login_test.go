@@ -784,6 +784,10 @@ func TestProvisionGPGNoEldest(t *testing.T) {
 		t.Fatalf("error type: %T, expected libkb.NotFoundError", err)
 	}
 
+	if err := AssertNotProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+
 	// now try passphrase provisioning
 	ctx.ProvisionUI = newTestProvisionUIPassphrase()
 
