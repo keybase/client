@@ -46,9 +46,9 @@ module.exports = {
     __dirname: true
   },
   entry: {
-    index: './renderer/index.js',
-    main: './app/main.js',
-    launcher: './renderer/launcher.js',
-    'remote-component-loader': '../react-native/react/native/remote-component-loader.js'
+    index: ['./renderer/index.js'], //'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'],
+    main: ['./app/main.js'], //'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'],
+    launcher: ['./renderer/launcher.js'], //'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'],
+    'remote-component-loader': ['../react-native/react/native/remote-component-loader.js']//, 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr']
   }
 }

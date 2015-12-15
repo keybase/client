@@ -21,3 +21,7 @@ for (var i = 0; i < tags.length; ++i) {
     shell.openExternal(event.target.href)
   })
 }
+
+//quit.value = "yo"
+console.log('aaa')
+
