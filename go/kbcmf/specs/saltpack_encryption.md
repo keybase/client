@@ -162,9 +162,9 @@ or reorder any payload packets.
 We might be concerned about reusing the same nonce for each recipient here. For
 example, a recipient key could show up more than once in the recipients list.
 However, note that all the sender boxes encrypt the same sender, all the key
-boxes encrypt the same key, and all the tag boxes encrypt the same tag. So if
-the same recipient shows up twice, we'll produce exactly the same boxes for
-them the second time.
+boxes encrypt the same key, and all the tag boxes in a given payload packet
+encrypt the same tag. So if the same recipient shows up twice, we'll produce
+exactly the same boxes for them the second time.
 
 Besides avoiding nonce reuse, we also want to prevent abuse of the decryption
 key. Alice might use Bob's public key to encrypt many kinds of messages,
