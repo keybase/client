@@ -30,11 +30,22 @@ type TrackerProps = {
   onFollowHelp: () => void,
   onFollowChecked: () => void,
   registerIdentifyUi: () => void,
-  closed: boolean
+  registerTrackerChangeListener: () => void,
+  closed: boolean,
+  startTimer: () => void,
+  stopTimer: () => void
 }
 
 class Tracker extends Component {
   props: TrackerProps;
+
+  componentWillMount () {
+    this.props.startTimer()
+  }
+
+  componentWillUnmount () {
+    this.props.stopTimer()
+  }
 
   render () {
     if (this.props.closed) {
@@ -131,7 +142,10 @@ Tracker.propTypes = {
   onFollowHelp: React.PropTypes.any,
   onFollowChecked: React.PropTypes.any,
   registerIdentifyUi: React.PropTypes.any,
-  closed: React.PropTypes.bool.isRequired
+  registerTrackerChangeListener: React.PropTypes.any,
+  closed: React.PropTypes.bool.isRequired,
+  startTimer: React.PropTypes.any,
+  stopTimer: React.PropTypes.any
 }
 
 export default connect(
