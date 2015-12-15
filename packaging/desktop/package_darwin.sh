@@ -68,7 +68,7 @@ resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-darwin.tgz"
 kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
-installer_url="https://github.com/keybase/client/releases/download/v1.0.5-6/KeybaseInstaller-1.1.1.tgz"
+installer_url="https://github.com/keybase/client/releases/download/v1.0.6-0/KeybaseInstaller-1.1.3.tgz"
 
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
@@ -133,7 +133,7 @@ package_app() {
 update_plist() {
   cd $out_dir
   # App shouldn't display dock icon on startup
-  /usr/libexec/plistBuddy -c "Add :LSUIElement bool true" Keybase.app/Contents/Info.plist
+  /usr/libexec/plistBuddy -c "Add :LSUIElement bool true" $app_name.app/Contents/Info.plist
 }
 
 sign() {

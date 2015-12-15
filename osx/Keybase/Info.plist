@@ -19,19 +19,19 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.1</string>
+	<string>1.1.3</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.1.1</string>
+	<string>1.1.3</string>
 	<key>KBFuseBuild</key>
 	<string>3.0.9</string>
 	<key>KBFuseVersion</key>
 	<string>3.0.9</string>
 	<key>KBHelperBuild</key>
-	<string>1.0.18</string>
+	<string>1.0.20</string>
 	<key>KBHelperVersion</key>
-	<string>1.0.18</string>
+	<string>1.0.20</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
