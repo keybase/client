@@ -13,5 +13,5 @@ const name = 'dist/main.hot.bundle.js'
 const file = fs.createWriteStream(name)
 http.get('http://localhost:4000/dist/main.bundle.js', function(response) {
   response.pipe(file)
-  spawn(electron, [name])
+  spawn(electron, [name, process.argv.slice(1)])
 })

@@ -4,8 +4,7 @@ import Window from './window'
 import splash from './splash'
 import installer from './installer'
 import {app} from 'electron'
-import {showDevTools} from '../../react-native/react/local-debug.desktop'
-import {isDev} from '../../react-native/react/constants/platform'
+import {showMainWindow, showDevTools} from '../../react-native/react/local-debug.desktop'
 import {helpURL} from '../../react-native/react/constants/urls'
 import resolveAssets from '../resolve-assets'
 import hotPath from '../hot-path'
@@ -14,8 +13,8 @@ import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 const menubarIconPath = resolveAssets('./Icon.png')
 
 const mb = menubar({
-  index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}&debug=${!!isDev}`,
-  width: 150, height: isDev ? 192 : 160,
+  index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}`,
+  width: 150, height: showMainWindow ? 192 : 160,
   preloadWindow: true,
   icon: menubarIconPath,
   showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
