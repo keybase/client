@@ -1,5 +1,4 @@
 // Builds our code, serves changes if NO_SERVER is false
-const path = require('path')
 const express = require('express')
 const webpack = require('webpack')
 const config = Object.assign({}, require('./webpack.config.development'))
@@ -8,21 +7,21 @@ const PORT = 4000
 const compiler = webpack(config)
 
 // Just build output files and don't run a hot server
-const NO_SERVER = (process.env.NO_SERVER && process.env.NO_SERVER == 'true') || false
+const NO_SERVER = (process.env.NO_SERVER && process.env.NO_SERVER === 'true') || false
 
 if (NO_SERVER) {
   console.log('Starting local file build')
-  compiler.run(function(err, stats) {
-    if(err) {
+  compiler.run(function (err, stats) {
+    if (err) {
       console.error(err)
       return
     }
     var jsonStats = stats.toJson()
-    if(jsonStats.errors.length > 0) {
+    if (jsonStats.errors.length > 0) {
       console.error(jsonStats.errors.join('\n'))
       return
     }
-    if(jsonStats.warnings.length > 0) {
+    if (jsonStats.warnings.length > 0) {
       console.log(jsonStats.warnings.join('\n'))
       return
     }
@@ -41,8 +40,6 @@ if (NO_SERVER) {
   }))
 
   app.use(require('webpack-hot-middleware')(compiler))
-
-  app.get('*', (req, res) => { res.json({}) })
 
   app.listen(PORT, 'localhost', err => {
     if (err) {
