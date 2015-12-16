@@ -346,6 +346,11 @@ func kbfs_libdokan_GetVolumeInformation(
 //export kbfs_libdokan_Mounted
 func kbfs_libdokan_Mounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("Mounted")
+	ec := mounterTableGet(uint32(pfi.DokanOptions.GlobalContext))
+	select {
+	case ec <- nil:
+	default:
+	}
 	err := getfs(pfi).Mounted()
 	return errToNT(err)
 }

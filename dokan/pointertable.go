@@ -15,22 +15,25 @@ import (
  */
 
 var fsTable = make([]FileSystem, 0, 2)
+var mounterTable = make([]chan error, 0, 2)
 var fiTable = map[uint32]File{}
 var fiIdx uint32
 var fsTableLock sync.Mutex
 
-func fsTableStore(fs FileSystem) uint32 {
+func fsTableStore(fs FileSystem, ec chan error) uint32 {
 	fsTableLock.Lock()
 	defer fsTableLock.Unlock()
 
 	for i, c := range fsTable {
 		if c == nil {
 			fsTable[i] = fs
+			mounterTable[i] = ec
 			return uint32(i)
 		}
 	}
 
 	fsTable = append(fsTable, fs)
+	mounterTable = append(mounterTable, ec)
 	return uint32(len(fsTable) - 1)
 }
 
@@ -38,6 +41,7 @@ func fsTableFree(slot uint32) {
 	fsTableLock.Lock()
 	if int(slot) < len(fsTable) {
 		fsTable[slot] = nil
+		mounterTable[slot] = nil
 	}
 	fsTableLock.Unlock()
 }
@@ -47,6 +51,13 @@ func fsTableGet(slot uint32) FileSystem {
 	var fs = fsTable[slot]
 	fsTableLock.Unlock()
 	return fs
+}
+
+func mounterTableGet(slot uint32) chan error {
+	fsTableLock.Lock()
+	var ec = mounterTable[slot]
+	fsTableLock.Unlock()
+	return ec
 }
 
 func fsTableStoreFile(global uint32, fi File) uint32 {
