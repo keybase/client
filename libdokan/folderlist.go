@@ -130,10 +130,26 @@ func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.Favori
 			if !ok {
 				return nil
 			}
+
+			dh, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config, fav.Name)
+			if err != nil {
+				break
+			}
+
+			if fl.public && !dh.HasPublic() {
+				break
+			}
+
 			var ns dokan.NamedStat
 			ns.Name = fav.Name
 			ns.FileAttributes = fileAttributeDirectory
 			ns.NumberOfLinks = 1
+
+			if canon := dh.ToString(ctx, fl.fs.config); canon != fav.Name {
+				ns.FileAttributes = fileAttributeReparsePoint
+				ns.ReparsePointTag = reparsePointTagSymlink
+			}
+
 			results <- ns
 		case <-ctx.Done():
 			return ctx.Err()
