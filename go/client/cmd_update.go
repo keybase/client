@@ -41,11 +41,14 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "u, url",
 				Usage: "Custom URL.",
 			},
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "Force update.",
+			},
 		},
 		ArgumentHelp: "",
 		Usage:        "Update Keybase",
 		Action: func(c *cli.Context) {
-			cl.SetForkCmd(libcmdline.NoFork)
 			cl.ChooseCommand(NewCmdUpdateRunner(g), "update", c)
 		},
 	}
@@ -86,8 +89,9 @@ func (v *CmdUpdate) ParseArgv(ctx *cli.Context) error {
 	}
 
 	v.config.Source = ctx.String("source")
-	v.config.OsName = runtime.GOOS
+	v.config.Platform = runtime.GOOS
 	v.config.URL = ctx.String("url")
+	v.config.Force = ctx.Bool("force")
 
 	if v.config.DestinationPath == "" {
 		return fmt.Errorf("No default destination path for this environment")
@@ -115,18 +119,9 @@ func (v *CmdUpdate) Run() error {
 
 	v.G().Log.Debug("Config: %#v", *v.config)
 
-	res, err := client.Update(context.TODO(), keybase1.UpdateArg{
+	_, err = client.Update(context.TODO(), keybase1.UpdateArg{
 		Config:    *v.config,
 		CheckOnly: v.checkOnly,
 	})
-	if err != nil {
-		return err
-	}
-
-	if res.Update == nil {
-		v.G().Log.Info("No update")
-	} else {
-		v.G().Log.Info("Update: %s", res.Update.Asset.Url)
-	}
-	return nil
+	return err
 }

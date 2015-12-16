@@ -200,7 +200,7 @@ func ListServices() (*keybase1.ServicesStatus, error) {
 }
 
 func ShowServices(out io.Writer) error {
-	err := launchd.ShowServices([]string{"keybase.service", "homebrew.mxcl.keybase"}, "Keybase", out)
+	err := launchd.ShowServices([]string{"keybase.service.", "homebrew.mxcl.keybase"}, "Keybase", out)
 	if err != nil {
 		return err
 	}

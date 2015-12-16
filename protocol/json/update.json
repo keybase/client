@@ -248,7 +248,7 @@
       "name" : "version",
       "type" : "string"
     }, {
-      "name" : "osName",
+      "name" : "platform",
       "type" : "string"
     }, {
       "name" : "destinationPath",
@@ -262,6 +262,9 @@
     }, {
       "name" : "channel",
       "type" : "string"
+    }, {
+      "name" : "force",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "record",
@@ -281,13 +284,6 @@
         "type" : "boolean"
       } ],
       "response" : "UpdateResult"
-    },
-    "updateNotification" : {
-      "request" : [ {
-        "name" : "update",
-        "type" : "Update"
-      } ],
-      "response" : "null"
     }
   }
 }

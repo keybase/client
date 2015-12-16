@@ -34,9 +34,15 @@ func OpenTempFile(prefix string, suffix string, mode os.FileMode) (string, *os.F
 	return filename, file, err
 }
 
+// TempFileName returns a temporary random filename
+func TempFileName(prefix string) (tmp string, err error) {
+	tmp, err = RandString(prefix, 20)
+	return
+}
+
 // TempFile returns a random path name in os.TempDir()
 func TempFile(prefix string) (string, error) {
-	tmp, err := RandString(prefix, 20)
+	tmp, err := TempFileName(prefix)
 	if err != nil {
 		return "", err
 	}
