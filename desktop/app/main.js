@@ -14,7 +14,7 @@ const menubarIconPath = resolveAssets('./Icon.png')
 
 const mb = menubar({
   index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}`,
-  width: 150, height: showMainWindow ? 192 : 160,
+  width: 320,
   preloadWindow: true,
   icon: menubarIconPath,
   showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
@@ -57,6 +57,10 @@ const mainWindow = new Window(
     openDevTools: true
   }
 )
+
+ipc.on('closeMenubar', () => {
+  mb.hideWindow()
+})
 
 ipc.on('showMain', () => {
   mainWindow.show(true)
