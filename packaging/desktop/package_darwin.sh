@@ -68,15 +68,15 @@ resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-darwin.tgz"
 kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
-installer_url="https://github.com/keybase/client/releases/download/v1.0.5-6/KeybaseInstaller-1.1.1.tgz"
+installer_url="https://github.com/keybase/client/releases/download/v1.0.6-0/KeybaseInstaller-1.1.5.tgz"
 
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
 installer_app="$tmp_dir/KeybaseInstaller.app"
 
 app_version=$keybase_version
-dmg_name="${app_name}App-${app_version}${comment}.dmg"
-zip_name="${app_name}App-${app_version}${comment}.zip"
+dmg_name="${app_name}-${app_version}${comment}.dmg"
+zip_name="${app_name}-${app_version}${comment}.zip"
 
 clean() {
   echo "Cleaning"
@@ -130,6 +130,12 @@ package_app() {
   cp -R $installer_app $resources_dir/KeybaseInstaller.app
 }
 
+update_plist() {
+  cd $out_dir
+  # App shouldn't display dock icon on startup
+  /usr/libexec/plistBuddy -c "Add :LSUIElement bool true" $app_name.app/Contents/Info.plist
+}
+
 sign() {
   cd $out_dir
   code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
@@ -159,20 +165,24 @@ create_zip() {
 
 save() {
   cd $out_dir
-  if [ ! "$save_dir" = "" ]; then
+  if [ "$save_dir" = "" ]; then
+    echo "Saved files to $out_dir"
+  else
     mkdir -p $save_dir
+    cd $save_dir
     echo "Saved files to $save_dir"
     mv $dmg_name $save_dir
     mv $zip_name $save_dir
-  else
-    echo "Saved files to $out_dir"
   fi
+
+  $release_bin -version $app_version -src $zip_name update-json > update.json
 }
 
 clean
 get_deps
 package_electron
 package_app
+update_plist
 sign
 package_dmg
 create_zip

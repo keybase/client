@@ -224,7 +224,7 @@ func TestFullProtocolXProvisioneeFailDidCounterSign(t *testing.T) {
 func TestFullProtocolXProvisioneeSlowHello(t *testing.T) {
 	results := testProtocolXWithBehavior(t, BadProvisioneeSlowHello)
 	for i, e := range results {
-		if !eeq(e, ErrTimedOut) && !eeq(e, io.EOF) {
+		if !eeq(e, ErrTimedOut) && !eeq(e, io.EOF) && !eeq(e, ErrHelloTimeout) {
 			t.Fatalf("Bad error %d: %v", i, e)
 		}
 	}

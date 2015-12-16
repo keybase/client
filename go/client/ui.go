@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -518,6 +519,56 @@ func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRe
 	p.render(arg.Text)
 	return nil
 }
+
+//============================================================
+
+type UpdateUI struct {
+	terminal libkb.TerminalUI
+	noPrompt bool
+}
+
+func (u UpdateUI) UpdatePrompt(_ context.Context, arg keybase1.UpdatePromptArg) (res keybase1.UpdatePromptRes, err error) {
+	if u.noPrompt {
+		res.Action = keybase1.UpdateAction_UPDATE
+		return res, err
+	}
+	u.terminal.Printf("There is a new update available (version %s)\n", arg.Update.Version)
+	if len(arg.Update.Description) != 0 {
+		u.terminal.Printf("  %s\n", arg.Update.Description)
+	}
+	prompt := "Install update?"
+	var doUpdate bool
+	doUpdate, err = u.terminal.PromptYesNo(PromptDescriptorUpdateDo, prompt, libkb.PromptDefaultYes)
+	if err != nil {
+		return res, err
+	}
+	if doUpdate {
+		res.Action = keybase1.UpdateAction_UPDATE
+		prompt = "Auto-update in the future?"
+		res.AlwaysAutoInstall, err = u.terminal.PromptYesNo(PromptDescriptorUpdateAuto, prompt, libkb.PromptDefaultYes)
+	} else {
+		prompt = "Snooze for one day?"
+		var snooze bool
+		snooze, err = u.terminal.PromptYesNo(PromptDescriptorUpdateSnooze, prompt, libkb.PromptDefaultYes)
+		if snooze {
+			res.Action = keybase1.UpdateAction_SNOOZE
+			res.SnoozeUntil = keybase1.ToTime(time.Now().Add(time.Hour * 24))
+		} else {
+			res.Action = keybase1.UpdateAction_CANCEL
+		}
+	}
+	return res, err
+}
+
+func (ui *UI) GetUpdateUI() libkb.UpdateUI {
+	return UpdateUI{terminal: ui.GetTerminalUI()}
+}
+
+func NewUpdateUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.UpdateUiProtocol(g.UI.GetUpdateUI())
+}
+
+var _ libkb.UpdateUI = UpdateUI{}
 
 //============================================================
 

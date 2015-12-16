@@ -4,13 +4,17 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"path"
 	"runtime"
 	"strings"
 
+	keybase1 "github.com/keybase/client/go/protocol"
 	gh "github.com/keybase/client/go/tools/release/github"
 )
 
@@ -109,5 +113,21 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	case "update-json":
+		urlString := fmt.Sprintf("https://keybase-app.s3.amazonaws.com/%s", url.QueryEscape(*src))
+		fileName := path.Base(*src)
+		update := keybase1.Update{
+			Version: *version,
+			Name:    tag(*version),
+			Asset: keybase1.Asset{
+				Name: fileName,
+				Url:  urlString,
+			},
+		}
+		out, err := json.MarshalIndent(update, "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Fprintf(os.Stdout, "%s\n", out)
 	}
 }

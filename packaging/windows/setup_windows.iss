@@ -5,6 +5,11 @@
 #ifndef MyAppVersion
 #define MyAppVersion "1.0"
 #endif
+; Use semantic version to name the installer,
+; but we still need the x.x.x.x version because Windows.
+#ifndef MySemVersion
+#define MySemVersion MyAppVersion
+#endif
 #define MyAppPublisher "Keybase, Inc."
 #define MyAppURL "http://www.keybase.io/"
 #define MyExeName "keybase.exe"
@@ -36,7 +41,7 @@ AppCopyright=Copyright (c) 2015, Keybase
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-OutputBaseFilename=keybase_setup_{#MyAppVersion}_{#MyGoArch}
+OutputBaseFilename=keybase_setup_{#MySemVersion}_{#MyGoArch}
 SetupIconFile={#MyGoPath}\src\github.com\keybase\keybase\public\images\favicon.ico
 Compression=lzma
 SolidCompression=yes

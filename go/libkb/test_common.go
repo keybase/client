@@ -326,6 +326,9 @@ func (n *nullui) GetLogUI() LogUI {
 func (n *nullui) GetPgpUI() PgpUI {
 	return nil
 }
+func (n *nullui) GetUpdateUI() UpdateUI {
+	return nil
+}
 func (n *nullui) GetProvisionUI(KexRole) ProvisionUI {
 	return nil
 }

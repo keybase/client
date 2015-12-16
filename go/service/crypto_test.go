@@ -25,6 +25,10 @@ func (f fakeUIRouter) GetSecretUI() (libkb.SecretUI, error) {
 	return f.secretUI, f.secretUIErr
 }
 
+func (f fakeUIRouter) GetUpdateUI() (libkb.UpdateUI, error) {
+	return nil, errors.New("Unexpected GetUpdateUI call")
+}
+
 func (f fakeUIRouter) Shutdown() {}
 
 type nullSecretUI struct{}

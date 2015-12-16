@@ -5,6 +5,7 @@
 import {createRouterState} from './reducers/router'
 import * as Tabs from './constants/tabs'
 import {isDev} from './constants/platform'
+import {updateConfig} from './command-line.desktop.js'
 
 let config = {
   overrideRouterState: null,
@@ -14,6 +15,7 @@ let config = {
   printRPC: false,
   showDevTools: false,
   showAllTrackers: false,
+  showMainWindow: false,
   reduxDevToolsSelect: state => state // only watch a subset of the store
 }
 
@@ -24,9 +26,12 @@ if (isDev && false) {
   config.allowStartupFailure = true
   config.printRPC = true
   config.showDevTools = true
+  config.showMainWindow = true
   config.showAllTrackers = true
   config.reduxDevToolsSelect = state => state.tracker
 }
+
+config = updateConfig(config)
 
 export const {
   overrideRouterState,
@@ -35,6 +40,7 @@ export const {
   allowStartupFailure,
   printRPC,
   showDevTools,
+  showMainWindow,
   showAllTrackers,
   reduxDevToolsSelect
 } = config

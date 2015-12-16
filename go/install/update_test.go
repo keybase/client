@@ -12,15 +12,23 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"golang.org/x/net/context"
 )
 
 func NewTestUpdater(t *testing.T, config keybase1.UpdateConfig) Updater {
 	context := libkb.NewGlobalContext()
+	context.Init()
 	context.Log = logger.NewTestLogger(t)
 	return NewUpdater(context, config, testUpdateSource{})
 }
 
 type testUpdateSource struct{}
+
+type nullUpdateUI struct{}
+
+func (u nullUpdateUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg) (keybase1.UpdatePromptRes, error) {
+	return keybase1.UpdatePromptRes{Action: keybase1.UpdateAction_UPDATE}, nil
+}
 
 func (u testUpdateSource) FindUpdate(config keybase1.UpdateConfig) (release *keybase1.Update, err error) {
 	return &keybase1.Update{
@@ -44,7 +52,7 @@ func NewDefaultTestUpdateConfig() keybase1.UpdateConfig {
 
 func TestUpdater(t *testing.T) {
 	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
-	update, err := u.Update()
+	update, err := u.Update(nullUpdateUI{})
 	if err != nil {
 		t.Error(err)
 	}

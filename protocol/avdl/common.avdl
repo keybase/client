@@ -108,4 +108,26 @@ protocol Common {
 
 	    UserVersionVector uvv;
 	}
+
+	/**
+     Asset describes a downloadable file.
+     */
+	record Asset {
+		string name;
+		string url;
+	}
+
+	enum UpdateType {
+		NORMAL_0,
+		BUGFIX_1,
+		CRITICAL_2
+	}
+
+	record Update {
+		string version; // Sematic version, e.g. 1.2.3-400
+		string name;
+		string description;
+		UpdateType type;
+		Asset asset;
+	}
 }

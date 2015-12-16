@@ -324,9 +324,14 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 	ctx := Context{IdentifyUI: i}
 
 	starts := 0
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		tc.G.Log.Debug("In BG: waiting for UI notification on startCh")
 		<-i.startCh
 		starts++
+		tc.G.Log.Debug("In BG: waited for UI notification on startCh")
+		wg.Done()
 	}()
 
 	i.checkStatusHook = func(l libkb.SigHint) libkb.ProofError {
@@ -345,6 +350,7 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 	if _, ok := err.(libkb.ProofError); !ok {
 		t.Fatalf("Wanted an error of type libkb.ProofError; got %T", err)
 	}
+	wg.Wait()
 	if starts != 1 {
 		t.Fatalf("Expected the UI to have started")
 	}

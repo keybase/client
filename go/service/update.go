@@ -26,7 +26,9 @@ func NewUpdateHandler(xp rpc.Transporter, g *libkb.GlobalContext) *UpdateHandler
 }
 
 func (h *UpdateHandler) Update(_ context.Context, arg keybase1.UpdateArg) (result keybase1.UpdateResult, err error) {
-	ctx := engine.Context{}
+	ctx := engine.Context{
+		UpdateUI: h.getUpdateUI(),
+	}
 	eng := engine.NewUpdateEngine(h.G(), arg.Config, arg.CheckOnly)
 	err = engine.RunEngine(eng, &ctx)
 	if err != nil {

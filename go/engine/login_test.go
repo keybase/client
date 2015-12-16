@@ -749,6 +749,64 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 	}
 }
 
+// User with no eldest key tries to provision via GPG.
+func TestProvisionGPGNoEldest(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	username, passphrase := createFakeUserWithNoKeys(tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// make a gpg keyring
+	if err := tc2.GenerateGPGKeyring(username); err != nil {
+		t.Fatal(err)
+	}
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
+		LoginUI:     &libkb.TestLoginUI{Username: username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("expected a failure in login")
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Fatalf("error type: %T, expected libkb.NotFoundError", err)
+	}
+
+	if err := AssertNotProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now try passphrase provisioning
+	ctx.ProvisionUI = newTestProvisionUIPassphrase()
+
+	eng = NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any keys, login should have fixed that:
+	testUserHasDeviceKey(tc2)
+
+	// and they should have a paper backup key
+	hasOnePaperDev(tc2, &FakeUser{Username: username, Passphrase: passphrase})
+
+	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestProvisionDupDevice(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")

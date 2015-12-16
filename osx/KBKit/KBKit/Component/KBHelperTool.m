@@ -39,7 +39,7 @@
 }
 
 - (KBSemVersion *)bundleVersion {
-  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"] build:NSBundle.mainBundle.infoDictionary[@"KBHelperBuild"]];
+  return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"] build:nil];
 }
 
 - (MPXPCClient *)helper {
@@ -75,7 +75,7 @@
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall info:info error:error];
       completion(self.componentStatus);
     } else {
-      KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:KBIfNull(versions[@"build"], nil)];
+      KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:nil];
       if (runningVersion) info[@"Version"] = [runningVersion description];
       if ([bundleVersion isGreaterThan:runningVersion]) {
         if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];

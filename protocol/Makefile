@@ -58,6 +58,7 @@ build-stamp: \
 	json/track.json \
 	json/ui.json \
 	json/update.json \
+	json/update_ui.json \
 	json/user.json
 	@mkdir -p json
 	date > $@

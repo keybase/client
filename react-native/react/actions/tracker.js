@@ -18,6 +18,55 @@ type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootT
 
 // TODO make actions for all the call back stuff.
 
+export function startTimer (): TrackerActionCreator {
+  return (dispatch, getState) => {
+    // Increments timerActive as a count of open tracker popups.
+    dispatch({type: Constants.startTimer})
+    const timerActive = getState().tracker.timerActive
+    if (timerActive === 1) {
+      // We're transitioning from 0->1, no tracker popups to one, start timer.
+      const intervalId = setInterval(() => {
+        const timerActive = getState().tracker.timerActive
+        if (timerActive <= 0) {
+          // All popups are closed now.
+          clearInterval(intervalId)
+        }
+        engine.rpc('track.checkTracking')
+      }, Constants.rpcUpdateTimerSeconds)
+    }
+  }
+}
+
+export function stopTimer (): Action {
+  return {
+    type: Constants.stopTimer
+  }
+}
+
+export function registerTrackerChangeListener (): TrackerActionCreator {
+  return dispatch => {
+    const param = {
+      channels: {
+        tracking: true
+      }
+    }
+    engine.listenGeneralIncomingRpc('keybase.1.NotifyTracking.trackingChanged', function (args) {
+      dispatch({
+        type: Constants.userUpdated,
+        payload: args
+      })
+    })
+
+    engine.listenOnConnect(() => {
+      engine.rpc('notifyCtl.setNotifications', param, {}, (error, response) => {
+        if (error != null) {
+          console.error('error in toggling notifications: ', error)
+        }
+      })
+    })
+  }
+}
+
 export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
     engine.rpc('delegateUiCtl.registerIdentifyUI', {}, {}, (error, response) => {

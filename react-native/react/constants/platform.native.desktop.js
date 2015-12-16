@@ -1,7 +1,9 @@
 import {OS_DESKTOP} from './platform.shared'
 import path from 'path'
 
-export const isDev = process.env.NODE_ENV === 'development'
+/* eslint-disable no-undef */ // Injected by webpack
+export const isDev = __DEV__
+/* eslint-enable no-undef */
 export const OS = OS_DESKTOP
 export const isMobile = false
 

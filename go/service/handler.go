@@ -103,6 +103,10 @@ func (h *BaseHandler) getGPGUI(sessionID int) libkb.GPGUI {
 	return NewRemoteGPGUI(sessionID, h.rpcClient())
 }
 
+func (h *BaseHandler) getUpdateUI() libkb.UpdateUI {
+	return keybase1.UpdateUiClient{Cli: h.rpcClient()}
+}
+
 func (h *BaseHandler) getSecretUICli() *keybase1.SecretUiClient {
 	return h.secretCli
 }
@@ -145,4 +149,13 @@ func (h *BaseHandler) NewRemoteSkipPromptIdentifyUI(sessionID int, g *libkb.Glob
 	c := h.NewRemoteIdentifyUI(sessionID, g)
 	c.skipPrompt = true
 	return c
+}
+
+type UpdateUI struct {
+	sessionID int
+	cli       *keybase1.UpdateUiClient
+}
+
+func (u *UpdateUI) UpdatePrompt(ctx context.Context, arg keybase1.UpdatePromptArg) (res keybase1.UpdatePromptRes, err error) {
+	return u.cli.UpdatePrompt(ctx, arg)
 }
