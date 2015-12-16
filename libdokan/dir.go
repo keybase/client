@@ -308,6 +308,25 @@ func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) erro
 
 }
 
+// CanDeleteDirectory - return just nil
+// TODO check for permissions here.
+func (d *Dir) CanDeleteDirectory(*dokan.FileInfo) (err error) {
+	ctx := context.TODO()
+	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
+	d.folder.fs.log.CDebugf(ctx, "Dir CanDeleteDirectory")
+	defer func() { d.folder.fs.reportErr(ctx, err) }()
+
+	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
+	if err != nil {
+		return errToDokan(err)
+	}
+	if len(children) > 0 {
+		return dokan.ErrDirectoryNotEmpty
+	}
+
+	return nil
+}
+
 // Cleanup - forget references, perform deletions etc.
 func (d *Dir) Cleanup(fi *dokan.FileInfo) {
 	var err error

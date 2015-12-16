@@ -14,11 +14,6 @@ type FileSystem interface {
 	CreateFile(fi *FileInfo, data *CreateData) (file File, isDirectory bool, err error)
 	GetDiskFreeSpace() (FreeSpace, error)
 
-	// CanDeleteFile and CanDeleteDirectory should check whether the file/directory
-	// can be deleted. The actual deletion should be done by checking
-	// FileInfo.DeleteOnClose in Cleanup.
-	CanDeleteFile(*FileInfo) error
-	CanDeleteDirectory(*FileInfo) error
 	MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error
 
 	GetVolumeInformation() (VolumeInformation, error)
@@ -61,6 +56,12 @@ type File interface {
 
 	LockFile(fi *FileInfo, offset int64, length int64) error
 	UnlockFile(fi *FileInfo, offset int64, length int64) error
+
+	// CanDeleteFile and CanDeleteDirectory should check whether the file/directory
+	// can be deleted. The actual deletion should be done by checking
+	// FileInfo.DeleteOnClose in Cleanup.
+	CanDeleteFile(*FileInfo) error
+	CanDeleteDirectory(*FileInfo) error
 }
 
 // FreeSpace - semantics as with WINAPI GetDiskFreeSpaceEx
@@ -150,6 +151,8 @@ const (
 	ErrNotSupported = NtError(0xC00000BB)
 	// ErrFileIsADirectory - file is a directory.
 	ErrFileIsADirectory = NtError(0xC00000BA)
+	// ErrDirectoryNotEmpty - wanted an empty dir - it is not empty.
+	ErrDirectoryNotEmpty = NtError(0xC0000101)
 	// ErrFileAlreadyExists - file already exists - fatal.
 	ErrFileAlreadyExists = NtError(0xC000003A)
 	// StatusObjectNameExists - already exists, may be non-fatal...

@@ -256,16 +256,6 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	return nil
 }
 
-// CanDeleteFile checks whether a file could be deleted.
-func (*FS) CanDeleteFile(*dokan.FileInfo) error {
-	return nil
-}
-
-// CanDeleteDirectory checks whether a directory could be removed.
-func (*FS) CanDeleteDirectory(*dokan.FileInfo) error {
-	return nil
-}
-
 // Mounted is called from dokan on unmount.
 func (f *FS) Mounted() error {
 	return nil

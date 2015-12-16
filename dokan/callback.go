@@ -217,7 +217,7 @@ func kbfs_libdokan_DeleteFile(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("DeleteFile '%v' %v", d16{fname}, *pfi)
-	err := getfs(pfi).CanDeleteFile(makeFI(fname, pfi))
+	err := getfi(pfi).CanDeleteFile(makeFI(fname, pfi))
 	return errToNT(err)
 }
 
@@ -226,7 +226,7 @@ func kbfs_libdokan_DeleteDirectory(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("DeleteDirectory '%v' %v", d16{fname}, *pfi)
-	err := getfs(pfi).CanDeleteDirectory(makeFI(fname, pfi))
+	err := getfi(pfi).CanDeleteDirectory(makeFI(fname, pfi))
 	return errToNT(err)
 }
 

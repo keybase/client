@@ -37,6 +37,12 @@ func (f *File) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
 	return deToStat(f.folder.fs.config.KBFSOps().Stat(ctx, f.node))
 }
 
+// CanDeleteFile - return just nil
+// TODO check for permissions here.
+func (*File) CanDeleteFile(*dokan.FileInfo) error {
+	return nil
+}
+
 // Cleanup - for dokan, remember to handle deletions.
 func (f *File) Cleanup(fi *dokan.FileInfo) {
 	var err error
