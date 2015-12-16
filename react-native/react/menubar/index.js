@@ -4,6 +4,9 @@
 import React, {Component} from '../base-react'
 import Render from './index.render'
 import {connect} from '../base-redux'
+import {bindActionCreators} from 'redux'
+
+import * as favoriteAction from '../actions/favorite'
 
 import {remote, shell} from 'electron'
 import {ipcRenderer} from 'electron'
@@ -12,11 +15,28 @@ import {kbfsPath} from '../constants/platform'
 
 export type MenubarProps = {
   username: ?string,
+  folders: ?string,
+  favoriteList: () => void,
   debug: ?boolean
 }
 
 class Menubar extends Component {
   props: MenubarProps;
+
+  checkForFolders () {
+    if (this.props.username && !this.props.folders) {
+      this.props.favoriteList()
+    }
+  }
+
+  componentDidMount () {
+    this.checkForFolders()
+  }
+
+  componentDidUpdate () {
+    this.checkForFolders()
+  }
+
   render () {
     const openingMessage = this.props.username ? 'Be sure to drink your Ovaltine.' : "Looks like you aren't logged in. Try running `keybase login`"
 
@@ -40,5 +60,9 @@ class Menubar extends Component {
 }
 
 export default connect(
-  state => ({username: state.config && state.config.status && state.config.status.user && state.config.status.user.username})
+  state => ({
+    username: state.config && state.config.status && state.config.status.user && state.config.status.user.username,
+    folders: state.favorite.folders
+  }),
+  dispatch => bindActionCreators(favoriteAction, dispatch)
 )(Menubar)
