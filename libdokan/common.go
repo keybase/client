@@ -80,13 +80,15 @@ func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 
 // errToDokan makes some libkbfs errors easier to digest in dokan. Not needed in most places.
 func errToDokan(err error) error {
-	if err != nil {
-		if _, ok := err.(libkbfs.NoSuchNameError); ok {
-			return dokan.ErrObjectPathNotFound
-		}
-		return err
+	switch err.(type) {
+	case libkbfs.NoSuchNameError:
+		return dokan.ErrObjectPathNotFound
+	case libkbfs.NoSuchUserError:
+		return dokan.ErrObjectPathNotFound
+	case nil:
+		return nil
 	}
-	return nil
+	return err
 }
 
 // defaultDirectoryInformation returns default directory information.
