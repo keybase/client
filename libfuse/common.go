@@ -43,12 +43,12 @@ func NewContextWithOpID(ctx context.Context,
 	return context.WithValue(ctx, CtxIDKey, id)
 }
 
-// fillAttr sets attributes based on the dir entry. It only handles fields
-// common to all direntry types.
-func fillAttr(de *libkbfs.DirEntry, a *fuse.Attr) {
+// fillAttr sets attributes based on the entry info. It only handles fields
+// common to all entryinfo types.
+func fillAttr(ei *libkbfs.EntryInfo, a *fuse.Attr) {
 	a.Valid = 1 * time.Minute
 
-	a.Size = de.Size
-	a.Mtime = time.Unix(0, de.Mtime)
-	a.Ctime = time.Unix(0, de.Ctime)
+	a.Size = ei.Size
+	a.Mtime = time.Unix(0, ei.Mtime)
+	a.Ctime = time.Unix(0, ei.Ctime)
 }

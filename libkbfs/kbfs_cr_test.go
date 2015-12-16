@@ -412,7 +412,8 @@ func TestMultiUserWrite(t *testing.T) {
 	}
 
 	// The writer should be user 2, even before the Sync
-	de, err := kbfsOps2.Stat(ctx, fileNode2)
+	ops := kbfsOps2.(*KBFSOpsStandard).getOpsByNode(fileNode2)
+	de, err := ops.statEntry(ctx, fileNode2)
 	if err != nil {
 		t.Fatalf("Couldn't lookup file: %v", err)
 	}

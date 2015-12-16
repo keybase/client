@@ -35,7 +35,7 @@ type conflictInput struct {
 // background.
 type ConflictResolver struct {
 	config     Config
-	fbo        *FolderBranchOps
+	fbo        *folderBranchOps
 	inputChan  chan conflictInput
 	inputGroup sync.WaitGroup
 	log        logger.Logger
@@ -50,7 +50,7 @@ type ConflictResolver struct {
 // NewConflictResolver constructs a new ConflictResolver (and launches
 // any necessary background goroutines).
 func NewConflictResolver(
-	config Config, fbo *FolderBranchOps) *ConflictResolver {
+	config Config, fbo *folderBranchOps) *ConflictResolver {
 	// make a logger with an appropriate module name
 	branchSuffix := ""
 	if fbo.branch() != MasterBranch {

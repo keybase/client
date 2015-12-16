@@ -219,16 +219,15 @@ func (k *LibKBFS) ReadFile(u User, file Node, off, len int64) (data string, err 
 func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPath string, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	var entry libkbfs.DirEntry
-	file, entry, err = kbfsOps.Lookup(context.Background(), parentDir.(libkbfs.Node), name)
+	file, ei, err := kbfsOps.Lookup(context.Background(), parentDir.(libkbfs.Node), name)
 	if err != nil {
 		return file, symPath, err
 	}
 	if file != nil {
 		k.refs[config][file.(libkbfs.Node).GetID()] = true
 	}
-	if entry.Type == libkbfs.Sym {
-		symPath = entry.SymPath
+	if ei.Type == libkbfs.Sym {
+		symPath = ei.SymPath
 	}
 	return file, symPath, nil
 }

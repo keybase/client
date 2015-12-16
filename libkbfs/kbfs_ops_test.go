@@ -182,7 +182,7 @@ func makeID(t *testing.T, config *ConfigMock, public bool) (keybase1.UID, TlfID,
 	return uid, id, h
 }
 
-func getOps(config Config, id TlfID) *FolderBranchOps {
+func getOps(config Config, id TlfID) *folderBranchOps {
 	return config.KBFSOps().(*KBFSOpsStandard).
 		getOps(FolderBranch{id, MasterBranch})
 }
@@ -210,7 +210,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
 	rmd.data.Dir.Type = Dir
 
-	n, de, h, err := config.KBFSOps().
+	n, ei, h, err := config.KBFSOps().
 		GetRootNode(ctx, FolderBranch{id, MasterBranch})
 	if err != nil {
 		t.Errorf("Got error on root MD: %v", err)
@@ -224,8 +224,8 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 		t.Errorf("Got bad MD back: path size %d", len(p.path))
 	} else if p.path[0].ID != rmd.data.Dir.ID {
 		t.Errorf("Got bad MD back: root ID %v", p.path[0].ID)
-	} else if de != rmd.data.Dir {
-		t.Errorf("Got bad MD back: direntry %v", de)
+	} else if ei != rmd.data.Dir.EntryInfo {
+		t.Errorf("Got bad MD back: entry info %v", ei)
 	} else if h != rmd.GetTlfHandle() {
 		t.Errorf("Got bad handle back: handle %v", h)
 	}
@@ -309,7 +309,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	config.mockMdops.EXPECT().Put(gomock.Any(), rmd).Return(nil)
 	config.mockMdcache.EXPECT().Put(rmd).Return(nil)
 
-	n, de, h, err := config.KBFSOps().
+	n, ei, h, err := config.KBFSOps().
 		GetRootNode(ctx, FolderBranch{id, MasterBranch})
 
 	if err != nil {
@@ -324,15 +324,13 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 		t.Errorf("Got bad MD back: path size %d", len(p.path))
 	} else if p.path[0].ID != rootPtr.ID {
 		t.Errorf("Got bad MD back: root ID %v", p.path[0].ID)
-	} else if de.Type != Dir {
+	} else if ei.Type != Dir {
 		t.Error("Got bad MD non-dir rootID back")
-	} else if de.EncodedSize != uint32(len(readyBlockData.buf)) {
-		t.Errorf("Got bad MD EncodedSize back: %d", de.EncodedSize)
-	} else if de.Size != uint64(plainSize) {
-		t.Errorf("Got bad MD Size back: %d", de.Size)
-	} else if de.Mtime == 0 {
+	} else if ei.Size != uint64(plainSize) {
+		t.Errorf("Got bad MD Size back: %d", ei.Size)
+	} else if ei.Mtime == 0 {
 		t.Error("Got zero MD MTime back")
-	} else if de.Ctime == 0 {
+	} else if ei.Ctime == 0 {
 		t.Error("Got zero MD CTime back")
 	} else if h != rmd.GetTlfHandle() {
 		t.Errorf("Got bad handle back: handle %v", h)
@@ -409,7 +407,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	ops := getOps(config, id)
 	ops.head = rmd
 
-	n, de, err :=
+	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
 		t.Errorf("Got error on root MD for handle: %v", err)
@@ -421,16 +419,14 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		t.Errorf("Got bad MD back: path size %d", len(p.path))
 	} else if p.path[0].ID != rmd.data.Dir.ID {
 		t.Errorf("Got bad MD back: root ID %v", p.path[0].ID)
-	} else if de.EncodedSize != 15 {
-		t.Errorf("Got bad MD EncodedSize back: %d", de.EncodedSize)
-	} else if de.Type != Dir {
+	} else if ei.Type != Dir {
 		t.Error("Got bad MD non-dir rootID back")
-	} else if de.Size != 10 {
-		t.Errorf("Got bad MD Size back: %d", de.Size)
-	} else if de.Mtime != 1 {
-		t.Errorf("Got bad MD MTime back: %d", de.Mtime)
-	} else if de.Ctime != 2 {
-		t.Errorf("Got bad MD CTime back: %d", de.Ctime)
+	} else if ei.Size != 10 {
+		t.Errorf("Got bad MD Size back: %d", ei.Size)
+	} else if ei.Mtime != 1 {
+		t.Errorf("Got bad MD MTime back: %d", ei.Mtime)
+	} else if ei.Ctime != 2 {
+		t.Errorf("Got bad MD CTime back: %d", ei.Ctime)
 	}
 }
 
@@ -461,7 +457,7 @@ func makeBIFromID(id BlockID, user keybase1.UID) BlockInfo {
 	}
 }
 
-func nodeFromPath(t *testing.T, ops *FolderBranchOps, p path) Node {
+func nodeFromPath(t *testing.T, ops *folderBranchOps, p path) Node {
 	var prevNode Node
 	// populate the node cache with all the nodes we'll need
 	for _, pathNode := range p.path {
@@ -657,16 +653,16 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 
 	testPutBlockInCache(config, aNode.BlockPointer, id, dirBlock)
 
-	bn, de, err := config.KBFSOps().Lookup(ctx, n, "b")
+	bn, ei, err := config.KBFSOps().Lookup(ctx, n, "b")
 	if err != nil {
 		t.Errorf("Error on Lookup: %v", err)
 	}
 	bPath := ops.nodeCache.PathFromNode(bn)
 	expectedBNode := pathNode{makeBP(bID, rmd, config, u), "b"}
 	expectedBNode.KeyGen = 1
-	if de != dirBlock.Children["b"] {
-		t.Errorf("Lookup returned a bad directory entry: %v vs %v",
-			de, dirBlock.Children["b"])
+	if ei != dirBlock.Children["b"].EntryInfo {
+		t.Errorf("Lookup returned a bad entry info: %v vs %v",
+			ei, dirBlock.Children["b"].EntryInfo)
 	} else if bPath.path[2] != expectedBNode {
 		t.Errorf("Bad path node after lookup: %v vs %v",
 			bPath.path[2], expectedBNode)
@@ -699,13 +695,13 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 
 	testPutBlockInCache(config, aNode.BlockPointer, id, dirBlock)
 
-	bn, de, err := config.KBFSOps().Lookup(ctx, n, "b")
+	bn, ei, err := config.KBFSOps().Lookup(ctx, n, "b")
 	if err != nil {
 		t.Errorf("Error on Lookup: %v", err)
 	}
-	if de != dirBlock.Children["b"] {
+	if ei != dirBlock.Children["b"].EntryInfo {
 		t.Errorf("Lookup returned a bad directory entry: %v vs %v",
-			de, dirBlock.Children["b"])
+			ei, dirBlock.Children["b"].EntryInfo)
 	} else if bn != nil {
 		t.Errorf("Node for symlink is not nil: %v", bn)
 	}
@@ -814,13 +810,13 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 
 	testPutBlockInCache(config, aNode.BlockPointer, id, dirBlock)
 
-	de, err := config.KBFSOps().Stat(ctx, n)
+	ei, err := config.KBFSOps().Stat(ctx, n)
 	if err != nil {
 		t.Errorf("Error on Stat: %v", err)
 	}
-	if de != dirBlock.Children["b"] {
-		t.Errorf("Stat returned a bad directory entry: %v vs %v",
-			de, dirBlock.Children["b"])
+	if ei != dirBlock.Children["b"].EntryInfo {
+		t.Errorf("Stat returned a bad entry info: %v vs %v",
+			ei, dirBlock.Children["b"].EntryInfo)
 	}
 }
 
@@ -2450,7 +2446,7 @@ func checkSyncOp(t *testing.T, so *syncOp, filePtr BlockPointer,
 	}
 }
 
-func checkSyncOpInCache(t *testing.T, ops *FolderBranchOps,
+func checkSyncOpInCache(t *testing.T, ops *folderBranchOps,
 	filePtr BlockPointer, writes []WriteRange) {
 	// check the in-progress syncOp
 	si, ok := ops.unrefCache[stripBP(filePtr)]

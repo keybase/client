@@ -208,19 +208,17 @@ func (p kbfsPath) join(childName string) (childPath kbfsPath, err error) {
 }
 
 // Returns a nil node if p doesn't have type tlfPath.
-func (p kbfsPath) getNode(ctx context.Context, config libkbfs.Config) (n libkbfs.Node, de libkbfs.DirEntry, err error) {
+func (p kbfsPath) getNode(ctx context.Context, config libkbfs.Config) (n libkbfs.Node, ei libkbfs.EntryInfo, err error) {
 	defer func() {
 		if err != nil {
 			n = nil
-			de = libkbfs.DirEntry{}
+			ei = libkbfs.EntryInfo{}
 		}
 	}()
 
 	if p.pathType != tlfPath {
-		de = libkbfs.DirEntry{
-			EntryInfo: libkbfs.EntryInfo{
-				Type: libkbfs.Dir,
-			},
+		ei = libkbfs.EntryInfo{
+			Type: libkbfs.Dir,
 		}
 		return
 	}
@@ -245,18 +243,18 @@ func (p kbfsPath) getNode(ctx context.Context, config libkbfs.Config) (n libkbfs
 		}
 	}
 
-	n, de, err = config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
+	n, ei, err = config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
 	if err != nil {
 		return
 	}
 
 	for _, component := range p.tlfComponents {
-		cn, cde, err := config.KBFSOps().Lookup(ctx, n, component)
+		cn, cei, err := config.KBFSOps().Lookup(ctx, n, component)
 		if err != nil {
-			return nil, libkbfs.DirEntry{}, err
+			return nil, libkbfs.EntryInfo{}, err
 		}
 		n = cn
-		de = cde
+		ei = cei
 	}
 
 	return

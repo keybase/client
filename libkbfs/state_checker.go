@@ -25,7 +25,7 @@ func NewStateChecker(config Config) *StateChecker {
 // the blocksFound map, if the given path represents an indirect
 // block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
-	ops *FolderBranchOps, md *RootMetadata, file path,
+	ops *folderBranchOps, md *RootMetadata, file path,
 	blocksFound map[BlockPointer]bool) error {
 	block, err := ops.getBlockForReading(ctx, md, file, NewFileBlock)
 	if err != nil {
@@ -57,7 +57,7 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 // the blocksFound map, and then recursively checks all
 // subdirectories.
 func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
-	ops *FolderBranchOps, md *RootMetadata, dir path,
+	ops *folderBranchOps, md *RootMetadata, dir path,
 	blocksFound map[BlockPointer]bool) error {
 	block, err := ops.getBlockForReading(ctx, md, dir, NewDirBlock)
 	if err != nil {

@@ -94,52 +94,52 @@ type KBFSOps interface {
 	// top-level folders.  This is a remote-access operation.
 	GetFavorites(ctx context.Context) ([]*Favorite, error)
 	// GetOrCreateRootNodeByHandle returns the root node and root
-	// directory entry associated with the given TlfHandle and branch,
+	// entry info associated with the given TlfHandle and branch,
 	// if the logged-in user has read permissions to the top-level
 	// folder.  It creates the folder if one doesn't exist yet (and
 	// branch == MasterBranch), and the logged-in user has write
 	// permissions to the top-level folder.  This is a remote-access
 	// operation.
 	GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle,
-		branch BranchName) (Node, DirEntry, error)
-	// GetRootNode returns the root node, root directory entry, and
+		branch BranchName) (Node, EntryInfo, error)
+	// GetRootNode returns the root node, root entry info, and
 	// handle associated with the given TlfID and branch, if the
 	// logged-in user has read permissions to the top-level folder.
 	// This is a remote-access operation.
 	GetRootNode(ctx context.Context, folderBranch FolderBranch) (
-		Node, DirEntry, *TlfHandle, error)
+		Node, EntryInfo, *TlfHandle, error)
 	// GetDirChildren returns a map of children in the directory,
 	// mapped to their EntryInfo, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access
 	// operation.
 	GetDirChildren(ctx context.Context, dir Node) (map[string]EntryInfo, error)
-	// Lookup returns the Node and directory entry associated with a
+	// Lookup returns the Node and entry info associated with a
 	// given name in a directory, if the logged-in user has read
 	// permissions to the top-level folder.  The returned Node is nil
 	// if the name is a symlink.  This is a remote-access operation.
-	Lookup(ctx context.Context, dir Node, name string) (Node, DirEntry, error)
-	// Stat returns the directory entry associated with a
+	Lookup(ctx context.Context, dir Node, name string) (Node, EntryInfo, error)
+	// Stat returns the entry info associated with a
 	// given Node, if the logged-in user has read permissions to the
 	// top-level folder.  This is a remote-access operation.
-	Stat(ctx context.Context, node Node) (DirEntry, error)
+	Stat(ctx context.Context, node Node) (EntryInfo, error)
 	// CreateDir creates a new subdirectory under the given node, if
 	// the logged-in user has write permission to the top-level
 	// folder.  Returns the new Node for the created subdirectory, and
-	// its new directory entry.  This is a remote-sync operation.
+	// its new entry info.  This is a remote-sync operation.
 	CreateDir(ctx context.Context, dir Node, name string) (
-		Node, DirEntry, error)
+		Node, EntryInfo, error)
 	// CreateFile creates a new file under the given node, if the
 	// logged-in user has write permission to the top-level folder.
 	// Returns the new Node for the created file, and its new
-	// directory entry.  This is a remote-sync operation.
+	// entry info.  This is a remote-sync operation.
 	CreateFile(ctx context.Context, dir Node, name string, isEx bool) (
-		Node, DirEntry, error)
+		Node, EntryInfo, error)
 	// CreateLink creates a new symlink under the given node, if the
 	// logged-in user has write permission to the top-level folder.
-	// Returns the new directory entry for the created symlink.  This
+	// Returns the new entry info for the created symlink.  This
 	// is a remote-sync operation.
 	CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (
-		DirEntry, error)
+		EntryInfo, error)
 	// RemoveDir removes the subdirectory represented by the given
 	// node, if the logged-in user has write permission to the
 	// top-level folder.  Will return an error if the subdirectory is

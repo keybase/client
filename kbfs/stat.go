@@ -15,31 +15,31 @@ func statNode(ctx context.Context, config libkbfs.Config, nodePathStr string) er
 		return err
 	}
 
-	n, de, err := p.getNode(ctx, config)
+	n, ei, err := p.getNode(ctx, config)
 	if err != nil {
 		return err
 	}
 
-	// If n is non-nil, ignore the DirEntry returned by
+	// If n is non-nil, ignore the EntryInfo returned by
 	// p.getNode() so we can exercise the Stat() codepath. We
 	// can't compare the two, since they might legitimately differ
 	// due to races.
 	if n != nil {
-		de, err = config.KBFSOps().Stat(ctx, n)
+		ei, err = config.KBFSOps().Stat(ctx, n)
 		if err != nil {
 			return err
 		}
 	}
 
 	var symPathStr string
-	if de.Type == libkbfs.Sym {
-		symPathStr = fmt.Sprintf("SymPath: %s, ", de.SymPath)
+	if ei.Type == libkbfs.Sym {
+		symPathStr = fmt.Sprintf("SymPath: %s, ", ei.SymPath)
 	}
 
-	mtimeStr := time.Unix(0, de.Mtime).String()
-	ctimeStr := time.Unix(0, de.Ctime).String()
+	mtimeStr := time.Unix(0, ei.Mtime).String()
+	ctimeStr := time.Unix(0, ei.Ctime).String()
 
-	fmt.Printf("{Type: %s, Size: %d, %sMtime: %s, Ctime: %s}\n", de.Type, de.Size, symPathStr, mtimeStr, ctimeStr)
+	fmt.Printf("{Type: %s, Size: %d, %sMtime: %s, Ctime: %s}\n", ei.Type, ei.Size, symPathStr, mtimeStr, ctimeStr)
 
 	return nil
 }

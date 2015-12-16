@@ -202,10 +202,10 @@ func (_mr *_MockKBFSOpsRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites", arg0)
 }
 
-func (_m *MockKBFSOps) GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle, branch BranchName) (Node, DirEntry, error) {
+func (_m *MockKBFSOps) GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
 	ret := _m.ctrl.Call(_m, "GetOrCreateRootNodeForHandle", ctx, handle, branch)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(DirEntry)
+	ret1, _ := ret[1].(EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -214,10 +214,10 @@ func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNodeForHandle(arg0, arg1, arg2 i
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNodeForHandle", arg0, arg1, arg2)
 }
 
-func (_m *MockKBFSOps) GetRootNode(ctx context.Context, folderBranch FolderBranch) (Node, DirEntry, *TlfHandle, error) {
+func (_m *MockKBFSOps) GetRootNode(ctx context.Context, folderBranch FolderBranch) (Node, EntryInfo, *TlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetRootNode", ctx, folderBranch)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(DirEntry)
+	ret1, _ := ret[1].(EntryInfo)
 	ret2, _ := ret[2].(*TlfHandle)
 	ret3, _ := ret[3].(error)
 	return ret0, ret1, ret2, ret3
@@ -238,10 +238,10 @@ func (_mr *_MockKBFSOpsRecorder) GetDirChildren(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDirChildren", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) Lookup(ctx context.Context, dir Node, name string) (Node, DirEntry, error) {
+func (_m *MockKBFSOps) Lookup(ctx context.Context, dir Node, name string) (Node, EntryInfo, error) {
 	ret := _m.ctrl.Call(_m, "Lookup", ctx, dir, name)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(DirEntry)
+	ret1, _ := ret[1].(EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -250,9 +250,9 @@ func (_mr *_MockKBFSOpsRecorder) Lookup(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Lookup", arg0, arg1, arg2)
 }
 
-func (_m *MockKBFSOps) Stat(ctx context.Context, node Node) (DirEntry, error) {
+func (_m *MockKBFSOps) Stat(ctx context.Context, node Node) (EntryInfo, error) {
 	ret := _m.ctrl.Call(_m, "Stat", ctx, node)
-	ret0, _ := ret[0].(DirEntry)
+	ret0, _ := ret[0].(EntryInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -261,10 +261,10 @@ func (_mr *_MockKBFSOpsRecorder) Stat(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Stat", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) CreateDir(ctx context.Context, dir Node, name string) (Node, DirEntry, error) {
+func (_m *MockKBFSOps) CreateDir(ctx context.Context, dir Node, name string) (Node, EntryInfo, error) {
 	ret := _m.ctrl.Call(_m, "CreateDir", ctx, dir, name)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(DirEntry)
+	ret1, _ := ret[1].(EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -273,10 +273,10 @@ func (_mr *_MockKBFSOpsRecorder) CreateDir(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateDir", arg0, arg1, arg2)
 }
 
-func (_m *MockKBFSOps) CreateFile(ctx context.Context, dir Node, name string, isEx bool) (Node, DirEntry, error) {
+func (_m *MockKBFSOps) CreateFile(ctx context.Context, dir Node, name string, isEx bool) (Node, EntryInfo, error) {
 	ret := _m.ctrl.Call(_m, "CreateFile", ctx, dir, name, isEx)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(DirEntry)
+	ret1, _ := ret[1].(EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -285,9 +285,9 @@ func (_mr *_MockKBFSOpsRecorder) CreateFile(arg0, arg1, arg2, arg3 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateFile", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockKBFSOps) CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (DirEntry, error) {
+func (_m *MockKBFSOps) CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (EntryInfo, error) {
 	ret := _m.ctrl.Call(_m, "CreateLink", ctx, dir, fromName, toPath)
-	ret0, _ := ret[0].(DirEntry)
+	ret0, _ := ret[0].(EntryInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
