@@ -84,10 +84,9 @@ func TestSecretUI(t *testing.T) {
 }
 
 type secretUI struct {
-	getNewPassphrase      bool
-	getPaperKeyPassphrase bool
-	getSecret             bool
-	getPassphrase         bool
+	getNewPassphrase bool
+	getSecret        bool
+	getPassphrase    bool
 }
 
 // secretUI implements the keybase1.IdentifyUiInterface
@@ -100,11 +99,6 @@ func newSecretUI() *secretUI {
 func (s *secretUI) GetNewPassphrase(context.Context, keybase1.GetNewPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	s.getNewPassphrase = true
 	return res, nil
-}
-
-func (s *secretUI) GetPaperKeyPassphrase(context.Context, keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	s.getPaperKeyPassphrase = true
-	return "", nil
 }
 
 func (s *secretUI) GetSecret(context.Context, keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {

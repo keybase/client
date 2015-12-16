@@ -41,10 +41,6 @@ func (nullSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.Get
 	return keybase1.GetPassphraseRes{}, nil
 }
 
-func (nullSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	return "", nil
-}
-
 func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	return keybase1.GetPassphraseRes{}, nil
 }

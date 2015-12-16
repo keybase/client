@@ -306,10 +306,6 @@ func (c *CmdStress) secretUIProtocol() rpc.Protocol {
 	return keybase1.SecretUiProtocol(c)
 }
 
-func (c *CmdStress) GetPaperKeyPassphrase(_ context.Context, arg keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	return "", nil
-}
-
 func (c *CmdStress) GetNewPassphrase(_ context.Context, arg keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
 	return keybase1.GetPassphraseRes{Passphrase: c.passphrase}, nil
 }

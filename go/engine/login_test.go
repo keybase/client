@@ -421,8 +421,8 @@ func TestProvisionPaper(t *testing.T) {
 	if provLoginUI.CalledGetEmailOrUsername != 0 {
 		t.Errorf("expected 0 calls to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
 	}
-	if secUI.CalledGetKBPassphrase {
-		t.Error("expected no calls to GetKeybasePassphrase, but it was called")
+	if secUI.CalledGetPassphrase {
+		t.Error("expected no calls to GetPassphrase, but it was called")
 	}
 }
 

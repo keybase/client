@@ -95,11 +95,6 @@ func (m *GetPassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keyb
 	return keybase1.GetPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
 }
 
-func (m *GetPassphraseMock) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	m.LastErr = errors.New("GetBackupPassphrase unexpectedly called")
-	return "invalid passphrase", m.LastErr
-}
-
 func (m *GetPassphraseMock) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	if m.Called {
 		m.LastErr = errors.New("GetPassphrase unexpectedly called more than once")

@@ -78,11 +78,6 @@ func (n *signupSecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (res
 	return res, err
 }
 
-func (n *signupSecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (res string, err error) {
-	err = fmt.Errorf("GetPaperKeyPassphrase unimplemented")
-	return res, err
-}
-
 func (n *signupSecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
 	err = fmt.Errorf("GetSecret unimplemented")
 	return res, err
