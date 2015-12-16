@@ -41,14 +41,14 @@ type CmdLogin struct {
 	username   string
 	clientType keybase1.ClientType
 	cancel     func()
-	done       chan bool
+	done       chan struct{}
 }
 
 func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
 	return &CmdLogin{
 		Contextified: libkb.NewContextified(g),
 		clientType:   keybase1.ClientType_CLI,
-		done:         make(chan bool, 1),
+		done:         make(chan struct{}, 1),
 	}
 }
 
@@ -83,7 +83,7 @@ func (c *CmdLogin) Run() error {
 			DeviceType: libkb.DeviceTypeDesktop,
 			ClientType: c.clientType,
 		})
-	c.done <- true
+	c.done <- struct{}{}
 	return err
 }
 
