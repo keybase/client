@@ -30,6 +30,7 @@ BUILD_DIR=$build_dir_kbfs ./build_kbfs.sh
 
 cd $dir/../desktop
 save_dir="/tmp/build_desktop"
+rm -rf $save_dir
 SAVE_DIR=$save_dir KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" ./package_darwin.sh
 
 if [ ! "$PKG_ONLY" = "1" ] && [ ! "$NOPULL" = "1" ]; then
