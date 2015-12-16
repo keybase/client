@@ -666,7 +666,7 @@ type SecretUI struct {
 	parent *UI
 }
 
-func (ui SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
+func (ui SecretUI) getSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
 	return ui.parent.SecretEntry.Get(pinentry, term, ui.parent.ErrorWriter())
 }
 
@@ -726,7 +726,7 @@ func (ui SecretUI) passphrasePrompt(arg libkb.PromptArg) (text string, storeSecr
 
 		tp = tp + ": "
 
-		res, err = ui.GetSecret(keybase1.SecretEntryArg{
+		res, err = ui.getSecret(keybase1.SecretEntryArg{
 			Err:            emp,
 			Desc:           arg.PinentryDesc,
 			Prompt:         arg.PinentryPrompt,

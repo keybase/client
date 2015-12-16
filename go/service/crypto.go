@@ -43,10 +43,6 @@ type errorSecretUI struct {
 
 var _ libkb.SecretUI = errorSecretUI{}
 
-func (e errorSecretUI) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	return nil, libkb.LoginRequiredError{Context: e.reason}
-}
-
 func (e errorSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{Context: e.reason}
 }

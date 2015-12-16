@@ -18,15 +18,6 @@ func NewSecretUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	return keybase1.SecretUiProtocol(&SecretUIServer{g.UI.GetSecretUI()})
 }
 
-func (s *SecretUIServer) GetSecret(_ context.Context, arg keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {
-	var resp *keybase1.SecretEntryRes
-	resp, err = s.eng.GetSecret(arg.Pinentry, arg.Terminal)
-	if resp != nil {
-		res = *resp
-	}
-	return
-}
-
 func (s *SecretUIServer) GetPassphrase(_ context.Context, arg keybase1.GetPassphraseArg) (keybase1.GetPassphraseRes, error) {
 	return s.eng.GetPassphrase(arg.Pinentry, arg.Terminal)
 }

@@ -4621,12 +4621,6 @@ type GUIEntryArg struct {
 	Features    GUIEntryFeatures `codec:"features" json:"features"`
 }
 
-type GetSecretArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Pinentry  SecretEntryArg  `codec:"pinentry" json:"pinentry"`
-	Terminal  *SecretEntryArg `codec:"terminal,omitempty" json:"terminal,omitempty"`
-}
-
 type GetPassphraseArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Pinentry  GUIEntryArg     `codec:"pinentry" json:"pinentry"`
@@ -4634,7 +4628,6 @@ type GetPassphraseArg struct {
 }
 
 type SecretUiInterface interface {
-	GetSecret(context.Context, GetSecretArg) (SecretEntryRes, error)
 	GetPassphrase(context.Context, GetPassphraseArg) (GetPassphraseRes, error)
 }
 
@@ -4642,22 +4635,6 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.secretUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"getSecret": {
-				MakeArg: func() interface{} {
-					ret := make([]GetSecretArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetSecretArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetSecretArg)(nil), args)
-						return
-					}
-					ret, err = i.GetSecret(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"getPassphrase": {
 				MakeArg: func() interface{} {
 					ret := make([]GetPassphraseArg, 1)
@@ -4680,11 +4657,6 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 
 type SecretUiClient struct {
 	Cli GenericClient
-}
-
-func (c SecretUiClient) GetSecret(ctx context.Context, __arg GetSecretArg) (res SecretEntryRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.secretUi.getSecret", []interface{}{__arg}, &res)
-	return
 }
 
 func (c SecretUiClient) GetPassphrase(ctx context.Context, __arg GetPassphraseArg) (res GetPassphraseRes, err error) {

@@ -72,11 +72,6 @@ func (n *signupUI) GetGPGUI() libkb.GPGUI {
 
 func (n *signupUI) GetUpdateUI() libkb.UpdateUI { return nil }
 
-func (n *signupSecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
-	err = fmt.Errorf("GetSecret unimplemented")
-	return res, err
-}
-
 func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	res.Passphrase = n.info.passphrase
 	n.G().Log.Debug("| GetPassphrase: %v -> %v", p, res)

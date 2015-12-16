@@ -57,12 +57,6 @@ type SecretUI struct {
 	cli       *keybase1.SecretUiClient
 }
 
-// GetSecret gets a free-form secret from a pinentry
-func (l *SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	res, err := l.cli.GetSecret(context.TODO(), keybase1.GetSecretArg{SessionID: l.sessionID, Pinentry: pinentry, Terminal: terminal})
-	return &res, err
-}
-
 // GetPassphrase gets the current keybase passphrase from delegated pinentry.
 func (l *SecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	return l.cli.GetPassphrase(context.TODO(), keybase1.GetPassphraseArg{SessionID: l.sessionID, Pinentry: pinentry, Terminal: terminal})

@@ -421,9 +421,6 @@ func TestProvisionPaper(t *testing.T) {
 	if provLoginUI.CalledGetEmailOrUsername != 0 {
 		t.Errorf("expected 0 calls to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
 	}
-	if secUI.CalledGetPassphrase {
-		t.Error("expected no calls to GetPassphrase, but it was called")
-	}
 }
 
 // Provision device using a private GPG key (not synced to keybase

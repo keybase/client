@@ -33,10 +33,6 @@ func (f fakeUIRouter) Shutdown() {}
 
 type nullSecretUI struct{}
 
-func (nullSecretUI) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	return nil, nil
-}
-
 func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	return keybase1.GetPassphraseRes{}, nil
 }
