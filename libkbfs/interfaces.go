@@ -758,7 +758,7 @@ type BlockServer interface {
 	// the block, and fills in the provided block object with its
 	// contents, if the logged-in user has read permission for that
 	// block.
-	Get(ctx context.Context, id BlockID, context BlockContext) (
+	Get(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) (
 		[]byte, BlockCryptKeyServerHalf, error)
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block

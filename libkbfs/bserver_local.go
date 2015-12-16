@@ -35,7 +35,7 @@ func NewBlockServerMemory(config Config) (*BlockServerLocal, error) {
 }
 
 // Get implements the BlockServer interface for BlockServerLocal
-func (b *BlockServerLocal) Get(ctx context.Context, id BlockID,
+func (b *BlockServerLocal) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	b.log.CDebugf(ctx, "BlockServerLocal.Get id=%s uid=%s",
 		id, context.GetWriter())

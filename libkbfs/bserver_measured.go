@@ -37,11 +37,11 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 }
 
 // Get implements the BlockServer interface for BlockServerMeasured.
-func (b BlockServerMeasured) Get(ctx context.Context, id BlockID,
+func (b BlockServerMeasured) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext) (
 	buf []byte, serverHalf BlockCryptKeyServerHalf, err error) {
 	b.getTimer.Time(func() {
-		buf, serverHalf, err = b.delegate.Get(ctx, id, context)
+		buf, serverHalf, err = b.delegate.Get(ctx, id, tlfID, context)
 	})
 	return buf, serverHalf, err
 }
