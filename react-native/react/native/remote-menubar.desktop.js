@@ -1,7 +1,5 @@
 /* @flow */
-
-import {remote} from 'electron'
-
+/* eslint-disable react/prop-types */
 import React, {Component} from '../base-react'
 
 import {Provider} from 'react-redux'
@@ -13,7 +11,8 @@ const store = new RemoteStore({})
 
 export default class RemoteMenubar extends Component {
   props: {
-    onSizeChange: () => void
+    onSizeChange: () => void,
+    debug: ?boolean
   };
 
   componentDidUpdate () {
@@ -30,7 +29,7 @@ export default class RemoteMenubar extends Component {
   render () {
     return (
       <Provider store={store}>
-        <Menubar/>
+        <Menubar debug={!!this.props.debug}/>
       </Provider>
     )
   }

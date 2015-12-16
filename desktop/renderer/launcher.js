@@ -2,6 +2,7 @@ import {remote} from 'electron'
 import React from 'react'
 import Menubar from '../../react-native/react/native/remote-menubar'
 import reactDOM from 'react-dom'
+import {showMainWindow} from '../../react-native/react/local-debug.desktop'
 
 // The menubar has a variable height, and we want to account for that until a certain height
 // After that height, we'll just use the scroll bar
@@ -19,4 +20,4 @@ const resizeWindowForComponent = () => {
   })
 }
 
-reactDOM.render(React.createElement(Menubar, {debug: window.getQueryVariable('debug') === 'true', onSizeChange: resizeWindowForComponent}), document.getElementById('root'))
+reactDOM.render(React.createElement(Menubar, {debug: showMainWindow, onSizeChange: resizeWindowForComponent}), document.getElementById('root'))
