@@ -37,9 +37,6 @@ type FS struct {
 	// sending/receiving)
 	notificationMutex sync.RWMutex
 
-	// mounted can be used to wait till the filesystem is mounted.
-	mounted sync.WaitGroup
-
 	root *Root
 }
 
@@ -62,7 +59,6 @@ func NewFS(config libkbfs.Config, debug bool) *FS {
 			public:  true,
 			folders: make(map[string]*Dir),
 		}}
-	f.mounted.Add(1)
 	return f
 }
 
@@ -121,7 +117,7 @@ func (caf *createData) isTruncate() bool {
 
 // isOpenReparsePoint checks the flags whether a reparse point open is wanted, return false when caf=nil.
 func (caf *createData) isOpenReparsePoint() bool {
-	return caf != nil && caf.FileAttributes&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
+	return caf.CreateOptions&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
 }
 
 func (caf *createData) mayNotBeDirectory() bool {
@@ -139,7 +135,11 @@ func (f *FS) openRaw(fi *dokan.FileInfo, caf *createData) (dokan.File, bool, err
 	if err != nil {
 		return nil, false, err
 	}
-	return f.open(fi, ps, caf)
+	file, isd, err := f.open(fi, ps, caf)
+	if err != nil {
+		err = errToDokan(err)
+	}
+	return file, isd, err
 }
 
 // open tries to open a file deferring to more specific implementations.
@@ -268,7 +268,6 @@ func (*FS) CanDeleteDirectory(*dokan.FileInfo) error {
 
 // Mounted is called from dokan on unmount.
 func (f *FS) Mounted() error {
-	f.mounted.Done()
 	return nil
 }
 

@@ -25,6 +25,7 @@ type DefaultMounter struct {
 	dir   string
 	force bool
 	fs    dokan.FileSystem
+	mnt   *dokan.MountHandle
 }
 
 // NewDefaultMounter creates a default mounter.
@@ -37,15 +38,17 @@ func NewForceMounter(dir string) DefaultMounter {
 	return DefaultMounter{dir: dir, force: true}
 }
 
-// Mount uses default mount
+// Mount uses default mount and blocks.
 func (m DefaultMounter) Mount(fs dokan.FileSystem) error {
 	m.fs = fs
-	return dokan.Mount(m.fs, m.dir[0])
+	mnt, err := dokan.Mount(m.fs, m.dir[0])
+	mnt.BlockTillDone()
+	return err
 }
 
 // Unmount uses default unmount
 func (m DefaultMounter) Unmount() error {
-	return nil
+	return m.mnt.Close()
 }
 
 // Dir returns mount directory.

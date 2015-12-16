@@ -61,7 +61,6 @@ func Start(mounter Mounter, options StartOptions) *Error {
 	if err != nil {
 		return MountError(err.Error())
 	}
-	mounter.Unmount()
 
 	return nil
 }
