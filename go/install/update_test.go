@@ -44,7 +44,7 @@ func (u testUpdateSource) FindUpdate(config keybase1.UpdateConfig) (release *key
 func NewDefaultTestUpdateConfig() keybase1.UpdateConfig {
 	return keybase1.UpdateConfig{
 		Version:         "1.0.0",
-		OsName:          runtime.GOOS,
+		Platform:        runtime.GOOS,
 		DestinationPath: path.Join(os.TempDir(), "Test"),
 		Source:          "local",
 	}
