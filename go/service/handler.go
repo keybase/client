@@ -69,12 +69,6 @@ func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (keybase1.
 	return l.cli.GetNewPassphrase(context.TODO(), arg)
 }
 
-// GetKeybasePassphrase gets the current keybase passphrase from pinentry.
-func (l *SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
-	arg.SessionID = l.sessionID
-	return l.cli.GetKeybasePassphrase(context.TODO(), arg)
-}
-
 // GetPaperKeyPassphrase gets a paper key passphrase from pinentry (if
 // possible).
 func (l *SecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (string, error) {

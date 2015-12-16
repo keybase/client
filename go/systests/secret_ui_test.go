@@ -84,7 +84,6 @@ func TestSecretUI(t *testing.T) {
 }
 
 type secretUI struct {
-	getKeybasePassphrase  bool
 	getNewPassphrase      bool
 	getPaperKeyPassphrase bool
 	getSecret             bool
@@ -96,11 +95,6 @@ var _ keybase1.SecretUiInterface = (*secretUI)(nil)
 
 func newSecretUI() *secretUI {
 	return &secretUI{}
-}
-
-func (s *secretUI) GetKeybasePassphrase(context.Context, keybase1.GetKeybasePassphraseArg) (res keybase1.GetPassphraseRes, err error) {
-	s.getKeybasePassphrase = true
-	return res, nil
 }
 
 func (s *secretUI) GetNewPassphrase(context.Context, keybase1.GetNewPassphraseArg) (res keybase1.GetPassphraseRes, err error) {

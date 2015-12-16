@@ -3755,6 +3755,36 @@ export type secretUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type secretUi_Asset = {
+  name: string;
+  url: string;
+}
+
+export type Asset = {
+  name: string;
+  url: string;
+}
+
+export type secretUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type secretUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type secretUi_SecretEntryArg = {
   desc: string;
   prompt: string;
@@ -4631,24 +4661,9 @@ export type update_Asset = {
   url: string;
 }
 
-export type Asset = {
-  name: string;
-  url: string;
-}
-
 export type update_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
 
-export type UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
 export type update_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
-export type Update = {
   version: string;
   name: string;
   description: string;

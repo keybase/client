@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type fakeUIRouter struct {
@@ -38,10 +38,6 @@ func (nullSecretUI) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryArg)
 }
 
 func (nullSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, nil
-}
-
-func (nullSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
 	return keybase1.GetPassphraseRes{}, nil
 }
 

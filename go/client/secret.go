@@ -31,10 +31,6 @@ func (s *SecretUIServer) GetNewPassphrase(_ context.Context, arg keybase1.GetNew
 	return s.eng.GetNewPassphrase(arg)
 }
 
-func (s *SecretUIServer) GetKeybasePassphrase(_ context.Context, arg keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
-	return s.eng.GetKeybasePassphrase(arg)
-}
-
 func (s *SecretUIServer) GetPaperKeyPassphrase(_ context.Context, arg keybase1.GetPaperKeyPassphraseArg) (string, error) {
 	return s.eng.GetPaperKeyPassphrase(arg)
 }

@@ -4558,6 +4558,27 @@ func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err 
 	return
 }
 
+type Asset struct {
+	Name string `codec:"name" json:"name"`
+	Url  string `codec:"url" json:"url"`
+}
+
+type UpdateType int
+
+const (
+	UpdateType_NORMAL   UpdateType = 0
+	UpdateType_BUGFIX   UpdateType = 1
+	UpdateType_CRITICAL UpdateType = 2
+)
+
+type Update struct {
+	Version     string     `codec:"version" json:"version"`
+	Name        string     `codec:"name" json:"name"`
+	Description string     `codec:"description" json:"description"`
+	Type        UpdateType `codec:"type" json:"type"`
+	Asset       Asset      `codec:"asset" json:"asset"`
+}
+
 type SecretEntryArg struct {
 	Desc           string `codec:"desc" json:"desc"`
 	Prompt         string `codec:"prompt" json:"prompt"`
@@ -4615,12 +4636,6 @@ type GetNewPassphraseArg struct {
 	UseSecretStore bool   `codec:"useSecretStore" json:"useSecretStore"`
 }
 
-type GetKeybasePassphraseArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-	Retry     string `codec:"retry" json:"retry"`
-}
-
 type GetPaperKeyPassphraseArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
@@ -4635,7 +4650,6 @@ type GetPassphraseArg struct {
 type SecretUiInterface interface {
 	GetSecret(context.Context, GetSecretArg) (SecretEntryRes, error)
 	GetNewPassphrase(context.Context, GetNewPassphraseArg) (GetPassphraseRes, error)
-	GetKeybasePassphrase(context.Context, GetKeybasePassphraseArg) (GetPassphraseRes, error)
 	GetPaperKeyPassphrase(context.Context, GetPaperKeyPassphraseArg) (string, error)
 	GetPassphrase(context.Context, GetPassphraseArg) (GetPassphraseRes, error)
 }
@@ -4672,22 +4686,6 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetNewPassphrase(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"getKeybasePassphrase": {
-				MakeArg: func() interface{} {
-					ret := make([]GetKeybasePassphraseArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetKeybasePassphraseArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetKeybasePassphraseArg)(nil), args)
-						return
-					}
-					ret, err = i.GetKeybasePassphrase(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4739,11 +4737,6 @@ func (c SecretUiClient) GetSecret(ctx context.Context, __arg GetSecretArg) (res 
 
 func (c SecretUiClient) GetNewPassphrase(ctx context.Context, __arg GetNewPassphraseArg) (res GetPassphraseRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
-	return
-}
-
-func (c SecretUiClient) GetKeybasePassphrase(ctx context.Context, __arg GetKeybasePassphraseArg) (res GetPassphraseRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.secretUi.getKeybasePassphrase", []interface{}{__arg}, &res)
 	return
 }
 
@@ -5415,27 +5408,6 @@ type UiClient struct {
 func (c UiClient) PromptYesNo(ctx context.Context, __arg PromptYesNoArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ui.promptYesNo", []interface{}{__arg}, &res)
 	return
-}
-
-type Asset struct {
-	Name string `codec:"name" json:"name"`
-	Url  string `codec:"url" json:"url"`
-}
-
-type UpdateType int
-
-const (
-	UpdateType_NORMAL   UpdateType = 0
-	UpdateType_BUGFIX   UpdateType = 1
-	UpdateType_CRITICAL UpdateType = 2
-)
-
-type Update struct {
-	Version     string     `codec:"version" json:"version"`
-	Name        string     `codec:"name" json:"name"`
-	Description string     `codec:"description" json:"description"`
-	Type        UpdateType `codec:"type" json:"type"`
-	Asset       Asset      `codec:"asset" json:"asset"`
 }
 
 type UpdateConfig struct {
