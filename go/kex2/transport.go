@@ -15,6 +15,7 @@ import (
 
 	"github.com/ugorji/go/codec"
 	"golang.org/x/crypto/nacl/secretbox"
+	"golang.org/x/net/context"
 )
 
 // DeviceID is a 16-byte identifier that each side of key exchange has. It's
@@ -88,6 +89,8 @@ type Conn struct {
 	errMutex sync.Mutex
 	readErr  error
 	writeErr error
+
+	ctx context.Context
 }
 
 const sessionIDText = "Kex v2 Session ID"
@@ -96,7 +99,7 @@ const sessionIDText = "Kex v2 Session ID"
 // both ends of the connection, regardless of which order the two started
 // their conntection. Will communicate with the other end via the given message router.
 // You can specify an optional timeout to cancel any reads longer than that timeout.
-func NewConn(r MessageRouter, s Secret, d DeviceID, readTimeout time.Duration) (con net.Conn, err error) {
+func NewConn(ctx context.Context, r MessageRouter, s Secret, d DeviceID, readTimeout time.Duration) (con net.Conn, err error) {
 	mac := hmac.New(sha256.New, []byte(s[:]))
 	mac.Write([]byte(sessionIDText))
 	tmp := mac.Sum(nil)
@@ -110,6 +113,7 @@ func NewConn(r MessageRouter, s Secret, d DeviceID, readTimeout time.Duration) (
 		readSeqno:   0,
 		readTimeout: readTimeout,
 		writeSeqno:  0,
+		ctx:         ctx,
 	}
 	return ret, nil
 }
@@ -342,6 +346,12 @@ func (c *Conn) pollLoop(poll time.Duration) (msgs [][]byte, err error) {
 		totalWaitTime = time.Since(start)
 		if err != nil || len(msgs) > 0 || totalWaitTime >= poll {
 			return
+		}
+
+		select {
+		case <-c.ctx.Done():
+			return nil, ErrCanceled
+		default:
 		}
 	}
 }

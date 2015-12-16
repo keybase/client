@@ -90,7 +90,7 @@ func (p *provisionee) run() (err error) {
 }
 
 func (p *provisionee) startServer(s Secret) (err error) {
-	if p.conn, err = NewConn(p.arg.Mr, s, p.deviceID, p.arg.Timeout); err != nil {
+	if p.conn, err = NewConn(p.arg.Ctx, p.arg.Mr, s, p.deviceID, p.arg.Timeout); err != nil {
 		return err
 	}
 	prot := keybase1.Kex2ProvisioneeProtocol(p)
@@ -107,6 +107,7 @@ func (p *provisionee) startServer(s Secret) (err error) {
 }
 
 func (p *provisionee) pickFirstConnection() (err error) {
+
 	select {
 	case <-p.start:
 	case sec := <-p.arg.SecretChannel:
@@ -119,7 +120,7 @@ func (p *provisionee) pickFirstConnection() (err error) {
 			return err
 		}
 		cli := keybase1.Kex2ProvisionerClient{Cli: rpc.NewClient(p.xp, nil)}
-		if err = cli.KexStart(context.TODO()); err != nil {
+		if err = cli.KexStart(p.arg.Ctx); err != nil {
 			return err
 		}
 	case <-p.arg.Ctx.Done():
