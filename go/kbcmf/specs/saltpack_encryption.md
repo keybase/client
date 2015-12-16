@@ -1,5 +1,11 @@
 # SaltPack Binary Encryption Format
 
+**Changelog**
+- 16 Dec 2015
+  - Unify the sender box and the key box into a single "recipient box".
+- 15 Dec 2015
+  - Initial version.
+
 The main building block of our encrypted message format will be NaCl's
 [box](http://nacl.cr.yp.to/box.html) and
 [secretbox](http://nacl.cr.yp.to/secretbox.html) constructions. These have
@@ -82,29 +88,41 @@ The header packet is a MessagePack list with these contents:
 - **ephemeral_public** is an ephemeral NaCl public encryption key, 32 bytes.
   The ephemeral keypair is generated at random by the sender and only used for
   one message.
-- **recipients** is a list of "recipient tuples", one for each recipient key.
+- **recipients** is a list of pairs, one for each recipient key.
 
-A recipient tuple is a list of three things:
+A recipient pair is a two-element list:
 
 ```
 [
     recipient_public,
-    sender_box,
-    key_box,
+    recipient_box,
 ]
 ```
 
-- **recipient_public** is the recipient's long-term NaCl public encryption key,
-  32-bytes. This field may be null, when the recipients are anonymous.
-- **sender_box** is a NaCl box containing the sender's long-term NaCl public
-  encryption key. It's encrypted with the recipient's public key and the
-  ephemeral private key. See also [Nonces](#nonces) below.
-- **key_box** is a NaCl box containing the symmetric message key. It's
-  encrypted with the recipient's public key and the sender's long-term private
-  key. Again see [Nonces](#nonces) below.
+- **recipient_public** is the recipient's long-term NaCl public encryption key.
+  This field may be null, when the recipients are anonymous.
+- **recipient_box** is a NaCl box encrypted with the recipient's public key and
+  the ephemeral private key.
 
-The goal of encrypting the **sender_box** is that only recipients of the
-message can see who the sender is.
+The the **recipient_box** contains another two-element MessagePack list:
+
+```
+[
+    sender_public,
+    message_key,
+]
+```
+
+- **sender_public** is the sender's long-term NaCl public encryption key.
+- **message_key** is a NaCl symmetric key used to encrypt the payload packets.
+  The message key is generated at random by the sender and only used for one
+  message.
+
+Putting the sender's key in the **recipient_box** allows Alice to stay
+anonymous to Mallory. If Alice wants to be anonymous to Bob as well, she can
+reuse the ephemeral key as her long term key. When the ephemeral key and the
+sender key are the same, clients may indicate that a message is "intentionally
+anonymous" as opposed to "from an unknown sender".
 
 When decrypting, clients should compute the ephemeral shared secret and then
 try to open each of the sender boxes. In the NaCl interface, computing the
@@ -203,10 +221,8 @@ place of `"SaltPack\0"`.
     [
       # recipient public key (null in this case, for an anonymous recipient)
       null,
-      # sender box
-      7SJhM/1gyKpJFlpwXRWag0t2tI5l9ZrI337BcWrnjGZQugVYj7t8Re7MpJjBpcnt,
-      # key box
-      43kXP5KE+t7XizlTqpCJRWLp3Hf/+3g9dgYyu27++MXEq44AYhY5pLpzjJGzNaHk,
+      # recipient box
+      yYTf3JDEYYxfKsHpF0yd5V4Ud7CAxFSJQCj5fV3x6WDGvxsmg/QQW6Qe3muB7uyg5PdlxEOg7fsmEXcFBEBDM9IzmvWsFZnqHk7yaLnkLd9mHeJLtw==,
     ],
     # subsequent recipients...
   ],
