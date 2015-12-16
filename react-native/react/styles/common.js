@@ -18,15 +18,25 @@ const buttonCommon = {
 }
 
 export const colors = {
-  lightBlue: '#00BFF0',
+  black: '#333333',
   grey: 'grey',
-  orange: '#FA855E',
+  grey80: '#cccccc',
+  gray65: '#a6a6a6',
+  warmGrey: '#777777',
+  paleGrey: '#ebf0f5',
+  greyBackground: '#f7f7f6',
+  white: '#f6f6f4',
+  trueWhite: '#ffffff',
+  lightBlue: '#00bff0',
+  orange: '#fa855e',
   red: 'red',
-  greyBackground: '#F7F7F6',
+  freshGreen: '#90d05c',
+  robinsEggBlue: '#86e2f9',
+  lightTeal: '#8ad2e6',
   error: '#d0021b'
 }
 
-export default StyleSheet.create({
+const buttons = {
   button: {
     ...buttonCommon
   },
@@ -42,10 +52,14 @@ export default StyleSheet.create({
   },
   disabledButton: {
     ...buttonCommon,
-    color: '#777777',
+    color: colors.warmGrey,
     backgroundColor: '#999999',
     textDecorationLine: 'line-through'
-  },
+  }
+}
+
+export default StyleSheet.create({
+  ...buttons,
   error: {
     backgroundColor: 'red',
     color: 'black'
@@ -58,7 +72,7 @@ export default StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#CCCCCC'
+    backgroundColor: colors.grey80
   },
   textInput: {
     borderColor: '#0f0f0f',
@@ -72,10 +86,14 @@ export default StyleSheet.create({
     padding: 4
   },
   greyText: {
-    color: '#a6a6a6'
+    color: colors.grey65
   },
   centerText: {
     textAlign: 'center'
+  },
+  transparentBlack: {
+    color: colors.black,
+    opacity: 0.6
   },
   ...nativeStyles
 })

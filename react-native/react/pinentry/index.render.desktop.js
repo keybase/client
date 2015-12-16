@@ -103,8 +103,8 @@ PinentryRender.propTypes = {
 const styles = {
   container: {
     ...commonStyles.flexBoxColumn,
+    ...commonStyles.fontRegular,
     backgroundColor: 'white',
-    fontFamily: 'Noto Sans',
     fontSize: 15,
     width: 513
   },

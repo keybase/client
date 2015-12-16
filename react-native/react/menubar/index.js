@@ -8,6 +8,8 @@ import {connect} from '../base-redux'
 import {remote, shell} from 'electron'
 import {ipcRenderer} from 'electron'
 
+import {kbfsPath} from '../constants/platform'
+
 export type MenubarProps = {
   username: ?string,
   debug: ?boolean
@@ -22,7 +24,6 @@ class Menubar extends Component {
 
     // TODO change this to /keybase when all our mount points are `/keybase/...`
     // TODO Support linux
-    const kbfsPath = `${process.env.HOME}/keybase`
     const openKBFS = () => { shell.openItem(kbfsPath); closeMenubar() }
     const openKBFSPublic = () => { shell.openItem(`${kbfsPath}/public/${this.props.username}`); closeMenubar() }
     const openKBFSPrivate = () => { shell.openItem(`${kbfsPath}/private/${this.props.username}`); closeMenubar() }

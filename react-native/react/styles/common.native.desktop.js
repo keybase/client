@@ -52,6 +52,9 @@ export const styles = {
     ...flexBox,
     flexDirection: 'row'
   },
+  fontRegular: {
+    fontFamily: 'Noto Sans'
+  },
   fontBold: {
     fontFamily: 'Noto Sans Bold'
   },
