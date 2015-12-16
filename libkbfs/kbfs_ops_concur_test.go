@@ -237,37 +237,87 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 }
 
 // nullBlockCache is a BlockCache implementation that doesn't do any
-// caching.
-type nullBlockCache struct{}
+// caching. It still needs to handle dirty blocks, though.
+type nullBlockCache struct {
+	// dirtyBlockID is defined in bcache.go.
+	dirty     map[dirtyBlockID]Block
+	dirtyLock sync.RWMutex
+}
 
-var _ BlockCache = nullBlockCache{}
+var _ BlockCache = (*nullBlockCache)(nil)
 
-func (nullBlockCache) Get(ptr BlockPointer, branch BranchName) (Block, error) {
+func newNullBlockCache() *nullBlockCache {
+	return &nullBlockCache{
+		dirty: make(map[dirtyBlockID]Block),
+	}
+}
+
+func (b *nullBlockCache) Get(ptr BlockPointer, branch BranchName) (Block, error) {
+	dirtyID := dirtyBlockID{
+		id:       ptr.ID,
+		refNonce: ptr.RefNonce,
+		branch:   branch,
+	}
+
+	b.dirtyLock.RLock()
+	defer b.dirtyLock.RUnlock()
+
+	if block, ok := b.dirty[dirtyID]; ok {
+		return block, nil
+	}
+
 	return nil, NoSuchBlockError{ptr.ID}
 }
 
-func (nullBlockCache) CheckForKnownPtr(tlf TlfID, block *FileBlock) (BlockPointer, error) {
+func (b *nullBlockCache) CheckForKnownPtr(tlf TlfID, block *FileBlock) (BlockPointer, error) {
 	return BlockPointer{}, nil
 }
 
-func (nullBlockCache) Put(ptr BlockPointer, tlf TlfID, block Block) error {
+func (b *nullBlockCache) Put(ptr BlockPointer, tlf TlfID, block Block) error {
 	return nil
 }
 
-func (nullBlockCache) PutDirty(ptr BlockPointer, branch BranchName, block Block) error {
+func (b *nullBlockCache) PutDirty(ptr BlockPointer, branch BranchName, block Block) error {
+	dirtyID := dirtyBlockID{
+		id:       ptr.ID,
+		refNonce: ptr.RefNonce,
+		branch:   branch,
+	}
+
+	b.dirtyLock.Lock()
+	defer b.dirtyLock.Unlock()
+	b.dirty[dirtyID] = block
 	return nil
 }
 
-func (nullBlockCache) Delete(id BlockID) error {
+func (b *nullBlockCache) Delete(id BlockID) error {
 	return nil
 }
 
-func (nullBlockCache) DeleteDirty(ptr BlockPointer, branch BranchName) error {
+func (b *nullBlockCache) DeleteDirty(ptr BlockPointer, branch BranchName) error {
+	dirtyID := dirtyBlockID{
+		id:       ptr.ID,
+		refNonce: ptr.RefNonce,
+		branch:   branch,
+	}
+
+	b.dirtyLock.Lock()
+	defer b.dirtyLock.Unlock()
+	delete(b.dirty, dirtyID)
 	return nil
 }
 
-func (nullBlockCache) IsDirty(ptr BlockPointer, branch BranchName) bool {
-	return false
+func (b *nullBlockCache) IsDirty(ptr BlockPointer, branch BranchName) bool {
+	dirtyID := dirtyBlockID{
+		id:       ptr.ID,
+		refNonce: ptr.RefNonce,
+		branch:   branch,
+	}
+
+	b.dirtyLock.RLock()
+	defer b.dirtyLock.RUnlock()
+	_, isDirty := b.dirty[dirtyID]
+	return isDirty
 }
 
 // staller is a pair of channels. Whenever something is to be
@@ -336,6 +386,9 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer config.Shutdown()
 
+	// Turn off block caching.
+	config.SetBlockCache(newNullBlockCache())
+
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
@@ -349,9 +402,6 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-
-	// Turn off block caching.
-	config.SetBlockCache(nullBlockCache{})
 
 	// We only need to know the first time we stall.
 	onReadStalledCh := make(chan struct{}, 1)
@@ -400,7 +450,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 
 		data := []byte{1}
 		writeCtx := context.WithValue(ctx, stallKey, writeValue)
-		err = kbfsOps.Write(writeCtx, fileNode, data, 0)
+		writeErr = kbfsOps.Write(writeCtx, fileNode, data, 0)
 	}()
 	<-onWriteStalledCh
 
@@ -420,6 +470,277 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	}
 	if writeErr != nil {
 		t.Errorf("Couldn't write file: %v", writeErr)
+	}
+}
+
+// mdRecordingKeyManager records the last *RootMetadata argument seen
+// in its KeyManager methods.
+type mdRecordingKeyManager struct {
+	lastMD   *RootMetadata
+	lastMDMu sync.RWMutex
+	delegate KeyManager
+}
+
+func (km *mdRecordingKeyManager) getLastMD() *RootMetadata {
+	km.lastMDMu.RLock()
+	defer km.lastMDMu.RUnlock()
+	return km.lastMD
+}
+
+func (km *mdRecordingKeyManager) setLastMD(md *RootMetadata) {
+	km.lastMDMu.Lock()
+	defer km.lastMDMu.Unlock()
+	km.lastMD = md
+}
+
+func (km *mdRecordingKeyManager) GetTLFCryptKeyForEncryption(
+	ctx context.Context, md *RootMetadata) (TLFCryptKey, error) {
+	km.setLastMD(md)
+	return km.delegate.GetTLFCryptKeyForEncryption(ctx, md)
+}
+
+func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
+	ctx context.Context, md *RootMetadata) (TLFCryptKey, error) {
+	km.setLastMD(md)
+	return km.delegate.GetTLFCryptKeyForMDDecryption(ctx, md)
+}
+
+func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
+	ctx context.Context, md *RootMetadata, blockPtr BlockPointer) (
+	TLFCryptKey, error) {
+	km.setLastMD(md)
+	return km.delegate.GetTLFCryptKeyForBlockDecryption(ctx, md, blockPtr)
+}
+
+func (km *mdRecordingKeyManager) Rekey(
+	ctx context.Context, md *RootMetadata) (bool, error) {
+	km.setLastMD(md)
+	return km.delegate.Rekey(ctx, md)
+}
+
+// Test that a sync can happen concurrently with a write. This is a
+// regression test for KBFS-558.
+func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
+	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer config.Shutdown()
+
+	km := &mdRecordingKeyManager{delegate: config.KeyManager()}
+
+	config.SetKeyManager(km)
+
+	// Turn off block caching.
+	config.SetBlockCache(newNullBlockCache())
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, uid)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	// Write to file to mark it dirty.
+	data := []byte{1}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write to file: %v", err)
+	}
+
+	fbo := kbfsOps.(*KBFSOpsStandard).getOps(rootNode.GetFolderBranch())
+	if fbo.getState() != dirtyState {
+		t.Fatal("Unexpectedly not in dirty state")
+	}
+
+	// We only need to know the second time we stall on the sync.
+	onSyncStalledCh := make(chan struct{}, 2)
+
+	syncUnstallCh := make(chan struct{})
+
+	stallKey := "requestName"
+	syncValue := "sync"
+
+	config.SetBlockOps(&stallingBlockOps{
+		stallKey: stallKey,
+		stallMap: map[interface{}]staller{
+			syncValue: staller{
+				stalled: onSyncStalledCh,
+				unstall: syncUnstallCh,
+			},
+		},
+		delegate: config.BlockOps(),
+	})
+
+	var wg sync.WaitGroup
+
+	// Wait for the sync to stall twice; the first time for the
+	// file block, and the second time (after the file block has
+	// been marked copy-on-write) for the dir block.
+	wg.Add(1)
+	var syncErr error
+	go func() {
+		defer wg.Done()
+
+		syncCtx := context.WithValue(ctx, stallKey, syncValue)
+		syncErr = kbfsOps.Sync(syncCtx, fileNode)
+	}()
+	<-onSyncStalledCh
+	syncUnstallCh <- struct{}{}
+	<-onSyncStalledCh
+
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	deferredWriteLen := func() int {
+		fbo.blockLock.Lock()
+		defer fbo.blockLock.Unlock()
+		return len(fbo.deferredWrites)
+	}()
+	if deferredWriteLen != 1 {
+		t.Errorf("Unexpected deferred write count %d",
+			deferredWriteLen)
+	}
+
+	// Unstall the sync.
+	close(syncUnstallCh)
+
+	wg.Wait()
+
+	// Do this in the main goroutine since t isn't goroutine safe,
+	// and do this after wg.Wait() since we only know it's set
+	// after the goroutine exits.
+	if syncErr != nil {
+		t.Errorf("Couldn't sync: %v", syncErr)
+	}
+
+	md, err := fbo.getMDLocked(ctx, read)
+	if err != nil {
+		t.Errorf("Couldn't get MD: %v", err)
+	}
+
+	lastMD := km.getLastMD()
+
+	if md != lastMD {
+		t.Error("Last MD seen by key manager != head")
+	}
+}
+
+// Test that a sync can happen concurrently with a truncate. This is a
+// regression test for KBFS-558.
+func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
+	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer config.Shutdown()
+
+	km := &mdRecordingKeyManager{delegate: config.KeyManager()}
+
+	config.SetKeyManager(km)
+
+	// Turn off block caching.
+	config.SetBlockCache(newNullBlockCache())
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, uid)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	// Write to file to mark it dirty.
+	data := []byte{1}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write to file: %v", err)
+	}
+
+	fbo := kbfsOps.(*KBFSOpsStandard).getOps(rootNode.GetFolderBranch())
+	if fbo.getState() != dirtyState {
+		t.Fatal("Unexpectedly not in dirty state")
+	}
+
+	// We only need to know the second time we stall on the sync.
+	onSyncStalledCh := make(chan struct{}, 2)
+
+	syncUnstallCh := make(chan struct{})
+
+	stallKey := "requestName"
+	syncValue := "sync"
+
+	config.SetBlockOps(&stallingBlockOps{
+		stallKey: stallKey,
+		stallMap: map[interface{}]staller{
+			syncValue: staller{
+				stalled: onSyncStalledCh,
+				unstall: syncUnstallCh,
+			},
+		},
+		delegate: config.BlockOps(),
+	})
+
+	var wg sync.WaitGroup
+
+	// Wait for the sync to stall twice; the first time for the
+	// file block, and the second time (after the file block has
+	// been marked copy-on-write) for the dir block.
+	wg.Add(1)
+	var syncErr error
+	go func() {
+		defer wg.Done()
+
+		syncCtx := context.WithValue(ctx, stallKey, syncValue)
+		syncErr = kbfsOps.Sync(syncCtx, fileNode)
+	}()
+	<-onSyncStalledCh
+	syncUnstallCh <- struct{}{}
+	<-onSyncStalledCh
+
+	err = kbfsOps.Truncate(ctx, fileNode, 0)
+	if err != nil {
+		t.Errorf("Couldn't truncate file: %v", err)
+	}
+
+	deferredWriteLen := func() int {
+		fbo.blockLock.Lock()
+		defer fbo.blockLock.Unlock()
+		return len(fbo.deferredWrites)
+	}()
+	if deferredWriteLen != 1 {
+		t.Errorf("Unexpected deferred write count %d",
+			deferredWriteLen)
+	}
+
+	// Unstall the sync.
+	close(syncUnstallCh)
+
+	wg.Wait()
+
+	// Do this in the main goroutine since t isn't goroutine safe,
+	// and do this after wg.Wait() since we only know it's set
+	// after the goroutine exits.
+	if syncErr != nil {
+		t.Errorf("Couldn't sync: %v", syncErr)
+	}
+
+	md, err := fbo.getMDLocked(ctx, read)
+	if err != nil {
+		t.Errorf("Couldn't get MD: %v", err)
+	}
+
+	lastMD := km.getLastMD()
+
+	if md != lastMD {
+		t.Error("Last MD seen by key manager != head")
 	}
 }
 

@@ -408,6 +408,10 @@ type KeyCache interface {
 
 // BlockCache gets and puts plaintext dir blocks and file blocks into
 // a cache.
+//
+// TODO: Separate out the operations needed for correctness
+// ({Put,Delete,Is}Dirty, Get() consulting dirty blocks) from the ones
+// that affect only performance (everything else).
 type BlockCache interface {
 	// Get gets the block associated with the given block ID.  Returns
 	// the dirty block for the given ID, if one exists.

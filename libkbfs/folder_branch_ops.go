@@ -2553,7 +2553,7 @@ func (fbo *folderBranchOps) Write(
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, rmd *RootMetadata, f path) error {
 				return fbo.writeDataLocked(
-					ctx, md, f, dataCopy, off, false)
+					ctx, rmd, f, dataCopy, off, false)
 			})
 	}
 
@@ -2713,7 +2713,7 @@ func (fbo *folderBranchOps) Truncate(
 		// using the new file path.
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, rmd *RootMetadata, f path) error {
-				return fbo.truncateLocked(ctx, md, f, size, false)
+				return fbo.truncateLocked(ctx, rmd, f, size, false)
 			})
 	}
 
