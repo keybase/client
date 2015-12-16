@@ -5,7 +5,6 @@ package client
 
 import (
 	"errors"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -41,12 +40,14 @@ type CmdLogin struct {
 	username   string
 	clientType keybase1.ClientType
 	cancel     func()
+	done       chan bool
 }
 
 func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
 	return &CmdLogin{
 		Contextified: libkb.NewContextified(g),
 		clientType:   keybase1.ClientType_CLI,
+		done:         make(chan bool, 1),
 	}
 }
 
@@ -70,14 +71,19 @@ func (c *CmdLogin) Run() error {
 	// instead of using Command.Cancel().
 	ctx, cancel := context.WithCancel(context.Background())
 	c.cancel = cancel
-	defer c.cancel()
+	defer func() {
+		c.cancel()
+		c.cancel = nil
+	}()
 
-	return client.Login(ctx,
+	err = client.Login(ctx,
 		keybase1.LoginArg{
 			Username:   c.username,
 			DeviceType: libkb.DeviceTypeDesktop,
 			ClientType: c.clientType,
 		})
+	c.done <- true
+	return err
 }
 
 func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
@@ -115,12 +121,13 @@ func (c *CmdLogin) Cancel() error {
 		c.G().Log.Debug("command cancel function exists, calling it")
 		c.cancel()
 
-		// hack:
 		// In go-framed-msgpack-rpc, dispatch.handleCall() starts a goroutine to check the context being
-		// canceled.  Without this sleep, there's (often) no time for the goroutine to receive the
-		// context.Done() before keybase/main.go shuts down everything.
-		// In practice, the sleep never lasts 5 seconds, just long enough for everything to get canceled.
-		time.Sleep(5 * time.Second)
+		// canceled.
+		// So, need to wait here for call to actually finish in order for the cancel message to make it
+		// to the daemon.
+		c.G().Log.Debug("waiting for command to finish")
+		<-c.done
+		c.G().Log.Debug("command finished, cancel complete")
 	}
 	return nil
 }
