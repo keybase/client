@@ -170,9 +170,9 @@ save() {
   else
     mkdir -p $save_dir
     cd $save_dir
+    mv $out_dir/$dmg_name .
+    mv $out_dir/$zip_name .
     echo "Saved files to $save_dir"
-    mv $dmg_name $save_dir
-    mv $zip_name $save_dir
   fi
 
   $release_bin -version $app_version -src $zip_name update-json > update.json
