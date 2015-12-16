@@ -295,39 +295,41 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 	crypto := md.config.Crypto()
 
 	handle := rmd.GetTlfHandle()
-	if rmd.ID.IsPublic() {
-		rmd.LastModifyingWriter = me
-
-		// Encode the private metadata
-
-		encodedPrivateMetadata, err := codec.Encode(rmd.data)
-		if err != nil {
-			return nil, err
-		}
-		rmd.SerializedPrivateMetadata = encodedPrivateMetadata
-	} else if handle.IsWriter(me) {
-		rmd.LastModifyingWriter = me
-
-		// Encrypt and encode the private metadata
-
-		k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
-		if err != nil {
-			return nil, err
-		}
-
-		encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(&rmd.data, k)
-		if err != nil {
-			return nil, err
-		}
-
-		encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
-		if err != nil {
-			return nil, err
-		}
-
-		rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
-	}
 	if rmd.ID.IsPublic() || handle.IsWriter(me) {
+
+		// Record the last writer to modify this writer metadata
+		rmd.LastModifyingWriter = me
+
+		if rmd.ID.IsPublic() {
+
+			// Encode the private metadata
+
+			encodedPrivateMetadata, err := codec.Encode(rmd.data)
+			if err != nil {
+				return nil, err
+			}
+			rmd.SerializedPrivateMetadata = encodedPrivateMetadata
+		} else if handle.IsWriter(me) {
+
+			// Encrypt and encode the private metadata
+
+			k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
+			if err != nil {
+				return nil, err
+			}
+
+			encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(&rmd.data, k)
+			if err != nil {
+				return nil, err
+			}
+
+			encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
+			if err != nil {
+				return nil, err
+			}
+
+			rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
+		}
 
 		// Sign the writer metadata
 

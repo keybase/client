@@ -726,8 +726,8 @@ type BlockOps interface {
 // MDServer gets and puts metadata for each top-level directory.  The
 // instantiation should be able to fetch session/user details via KBPKI.  On a
 // put, the server is responsible for 1) ensuring the user has write
-// permissions; 2) ensuring the writer appears as LastWriterChanged; 3)
-// ensuring the LastWriterChanged matches the current session; and 4) detecting
+// permissions; 2) ensuring the writer appears as LastModifyingWriter; 3)
+// ensuring the LastModifyingWriter matches the current session; and 4) detecting
 // conflicting writes based on the previous root block ID (i.e., when it
 // supports strict consistency).  On a get, it verifies the logged-in user has
 // read permissions.
