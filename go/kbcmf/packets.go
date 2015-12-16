@@ -7,38 +7,42 @@ import ()
 
 type receiverKeysPlaintext struct {
 	_struct    bool   `codec:",toarray"`
-	GroupID    uint32 `codec:"gid"`
-	MACKey     []byte `codec:"mac,omitempty"`
-	SessionKey []byte `codec:"sess"`
+	Sender     []byte `codec:"sender"`
+	SessionKey []byte `codec:"session_key"`
 }
 
 type receiverKeysCiphertexts struct {
-	_struct bool   `codec:",toarray"`
-	KID     []byte `codec:"key_id"`
-	Keys    []byte `codec:"keys"`
-	Sender  []byte `codec:"sender"`
+	_struct     bool   `codec:",toarray"`
+	ReceiverKID []byte `codec:"receiver_key_id"`
+	Keys        []byte `codec:"keys"`
+}
+
+// Version is a major.minor pair that shows the version of the whole file
+type Version struct {
+	_struct bool `codec:",toarray"`
+	Major   int  `codec:"major"`
+	Minor   int  `codec:"minor"`
 }
 
 // EncryptionHeader is the first packet in an encrypted message.
 // It contains the encryptions of the session keys, and various
 // message metadata.
 type EncryptionHeader struct {
-	_struct   bool                      `codec:",toarray"`
-	Version   PacketVersion             `codec:"vers"`
-	Tag       PacketTag                 `codec:"tag"`
-	Receivers []receiverKeysCiphertexts `codec:"rcvrs"`
-	Sender    []byte                    `codec:"sender"`
-	seqno     PacketSeqno
+	_struct    bool                      `codec:",toarray"`
+	FormatName string                    `codec:"format_name"`
+	Version    Version                   `codec:"vers"`
+	Type       PacketType                `codec:"type"`
+	Sender     []byte                    `codec:"sender"`
+	Receivers  []receiverKeysCiphertexts `codec:"rcvrs"`
+	seqno      PacketSeqno
 }
 
 // EncryptionBlock contains a block of encrypted data. It cointains
 // the ciphertext, and any necessary MACs.
 type EncryptionBlock struct {
-	_struct    bool          `codec:",toarray"`
-	Version    PacketVersion `codec:"vers"`
-	Tag        PacketTag     `codec:"tag"`
-	Ciphertext []byte        `codec:"ctext"`
-	MACs       [][]byte      `codec:"macs"`
+	_struct    bool     `codec:",toarray"`
+	Tags       [][]byte `codec:"tags"`
+	Ciphertext []byte   `codec:"ctext"`
 	seqno      PacketSeqno
 }
 
@@ -50,26 +54,11 @@ func verifyRawKey(k []byte) error {
 }
 
 func (h *EncryptionHeader) validate() error {
-	if h.Tag != PacketTagEncryptionHeader {
-		return ErrWrongPacketTag{h.seqno, PacketTagEncryptionHeader, h.Tag}
+	if h.Type != PacketTypeEncryption {
+		return ErrWrongPacketType{h.seqno, PacketTypeEncryption, h.Type}
 	}
-	if h.Version != PacketVersion1 {
+	if h.Version.Major != SaltPackCurrentVersion.Major {
 		return ErrBadVersion{h.seqno, h.Version}
-	}
-
-	if err := verifyRawKey(h.Sender); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (b *EncryptionBlock) validate() error {
-	if b.Tag != PacketTagEncryptionBlock {
-		return ErrWrongPacketTag{b.seqno, PacketTagEncryptionBlock, b.Tag}
-	}
-	if b.Version != PacketVersion1 {
-		return ErrBadVersion{b.seqno, b.Version}
 	}
 	return nil
 }

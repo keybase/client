@@ -8,7 +8,6 @@ import (
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha512"
-	"encoding/binary"
 	"github.com/ugorji/go/codec"
 	"golang.org/x/crypto/poly1305"
 )
@@ -35,20 +34,6 @@ func randomFill(b []byte) (err error) {
 	return nil
 }
 
-func (n *Nonce) writeCounter(i uint64) {
-	binary.BigEndian.PutUint64((*n)[16:], i)
-}
-
-func (n *Nonce) writeCounter32(i uint32) {
-	binary.BigEndian.PutUint32((*n)[20:], i)
-}
-
-func (e encryptionBlockNumber) newCounterNonce() *Nonce {
-	var ret Nonce
-	ret.writeCounter(uint64(e))
-	return &ret
-}
-
 func (e encryptionBlockNumber) check() error {
 	if e >= encryptionBlockNumber(0xffffffffffffffff) {
 		return ErrPacketOverflow
@@ -60,15 +45,6 @@ func hmacSHA512(key []byte, data []byte) []byte {
 	hasher := hmac.New(sha512.New, key)
 	hasher.Write(data)
 	return hasher.Sum(nil)[0:32]
-}
-
-func keyToNonce(nonce *Nonce, pk BoxPublicKey) {
-	raw := *pk.ToRawBoxKeyPointer()
-	nonceRandLen := 20
-	hasher := sha512.New()
-	hasher.Write(raw[:])
-	res := hasher.Sum(nil)
-	copy((*nonce)[0:nonceRandLen], res)
 }
 
 func hashNonceAndAuthTag(nonce *Nonce, ciphertext []byte) []byte {

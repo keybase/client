@@ -11,7 +11,7 @@ import (
 var (
 	// ErrNoDecryptionKey is an error indicating no decryption key was found for the
 	// incoming message. You'll get one of these if you respond to a Keyring.LookupSecretBoxKey
-	// request with a (-1,nil) return value.
+	// request with a (-1,nil) return value, and no hidden keys are found.
 	ErrNoDecryptionKey = errors.New("no decryption key found for message")
 
 	// ErrNoSenderKey indicates that on decryption we couldn't find a public key
@@ -31,13 +31,6 @@ var (
 	// of randomness, so this should never happen
 	ErrInsufficientRandomness = errors.New("could not collect enough randomness")
 
-	// ErrNoGroupMACKey is produced when we lack a group MAC key but the authenticated
-	// ciphertexts indicated that one was required.
-	ErrNoGroupMACKey = errors.New("no group MAC key, but we needed one")
-
-	// Should never happen, so not exported.
-	errPacketUnderflow = errors.New("no negative packet numbers allowed")
-
 	// ErrBadArmorFrame shows up when the ASCII armor frame has non-ASCII
 	ErrBadArmorFrame = errors.New("bad frame found; had non-ASCII")
 
@@ -45,8 +38,7 @@ var (
 	// imported.
 	ErrBadEphemeralKey = errors.New("bad ephermal key in header")
 
-	// ErrBadReceivers shows up when you pass a bad receivers object -- either one
-	// that was empty, or one that had an empty group.
+	// ErrBadReceivers shows up when you pass a bad receivers vector
 	ErrBadReceivers = errors.New("bad receivers argument")
 
 	// ErrBadSenderKey is returned if a key with the wrong number of bytes
@@ -54,38 +46,31 @@ var (
 	ErrBadSenderKey = errors.New("bad sender key; must be 32 bytes")
 )
 
-// ErrMACMismatch is generated when a MAC fails to check properly. It specifies
+// ErrBadTag is generated when a Tag fails to Unbox properly. It specifies
 // which Packet sequence number the bad packet was in.
-type ErrMACMismatch PacketSeqno
+type ErrBadTag PacketSeqno
 
 // ErrBadCiphertext is generated when decryption fails due to improper authentication. It specifies
 // which Packet sequence number the bad packet was in.
 type ErrBadCiphertext PacketSeqno
 
-// ErrUnexpectedMAC is produced when an encryption includes an additional MAC but
-// none was needed.
-type ErrUnexpectedMAC PacketSeqno
-
 // ErrRepeatedKey is produced during encryption if a key is repeated; keys must be
 // unique.
 type ErrRepeatedKey []byte
 
-// ErrBadGroupID is produced if a GroupID is encountered that out-of-range
-type ErrBadGroupID int
-
 // ErrWrongPacketTag is produced if one packet tag was expected, but a packet
 // of another tag was found.
-type ErrWrongPacketTag struct {
+type ErrWrongPacketType struct {
 	seqno    PacketSeqno
-	wanted   PacketTag
-	received PacketTag
+	wanted   PacketType
+	received PacketType
 }
 
 // ErrBadVersion is returned if a packet of an unsupported version is found.
 // Current, only Version1 is supported.
 type ErrBadVersion struct {
 	seqno    PacketSeqno
-	received PacketVersion
+	received Version
 }
 
 // ErrBadArmorHeader shows up when we get the wrong value for our header
@@ -110,24 +95,18 @@ func (e ErrBadArmorHeader) Error() string {
 		e.wanted, e.received)
 }
 
-func (e ErrWrongPacketTag) Error() string {
-	return fmt.Sprintf("In packet %d: wanted tag=%d; got tag=%d", e.seqno, e.wanted, e.received)
+func (e ErrWrongPacketType) Error() string {
+	return fmt.Sprintf("In packet %d: wanted type=%d; got type=%d", e.seqno, e.wanted, e.received)
 }
 func (e ErrBadVersion) Error() string {
-	return fmt.Sprintf("In packet %d: unsupported version (%d)", e.seqno, e.received)
+	return fmt.Sprintf("In packet %d: unsupported version (%v)", e.seqno, e.received)
 }
 func (e ErrBadCiphertext) Error() string {
 	return fmt.Sprintf("In packet %d: bad ciphertext; failed Poly1305", e)
 }
-func (e ErrUnexpectedMAC) Error() string {
-	return fmt.Sprintf("In packet %d: unexpected MAC (there was only 1 receiver)", e)
-}
-func (e ErrMACMismatch) Error() string {
-	return fmt.Sprintf("In packet %d: MAC mismatch", e)
+func (e ErrBadTag) Error() string {
+	return fmt.Sprintf("In packet %d: bad Poly1305 tag; data was corrupted in transit", e)
 }
 func (e ErrRepeatedKey) Error() string {
 	return fmt.Sprintf("Repeated recipient key: %x", e)
-}
-func (e ErrBadGroupID) Error() string {
-	return fmt.Sprintf("Bad group ID (no MAC keys available for it): %d", e)
 }

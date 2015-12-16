@@ -27,6 +27,9 @@ type decryptStream struct {
 	keys       *receiverKeysPlaintext
 	sessionKey SymmetricKey
 	buf        []byte
+	nonce      *Nonce
+	macKey     BoxPrecomputedSharedKey
+	position   int
 }
 
 func (ds *decryptStream) Read(b []byte) (n int, err error) {
@@ -131,74 +134,79 @@ func (ds *decryptStream) assertEndOfStream() error {
 	return err
 }
 
-func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, nonce *Nonce, ephemeralKey BoxPublicKey) (BoxSecretKey, []byte, int, error) {
+func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, BoxPrecomputedSharedKey, []byte, int, error) {
 	var kids [][]byte
 	for _, r := range hdr.Receivers {
-		if r.KID != nil {
-			kids = append(kids, r.KID)
+		if r.ReceiverKID != nil {
+			kids = append(kids, r.ReceiverKID)
 		}
 	}
 
 	i, sk := ds.ring.LookupBoxSecretKey(kids)
 	if i < 0 || sk == nil {
-		return nil, nil, -1, nil
+		return nil, nil, nil, -1, nil
 	}
 
 	// Decrypt the sender's public key
-	nonce.writeCounter32(uint32(2 * i))
-	senderPublicRawKey, err := sk.Unbox(ephemeralKey, nonce, hdr.Receivers[i].Sender)
+	shared := sk.Precompute(ephemeralKey)
+	keysRaw, err := shared.Unbox(ds.nonce.ForKeyBox(), hdr.Receivers[i].Keys)
 	if err != nil {
-		return nil, nil, -1, err
+		return nil, nil, nil, -1, err
 	}
-	return sk, senderPublicRawKey, i, err
+
+	return sk, shared, keysRaw, i, err
 }
 
-func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, nonce *Nonce, ephemeralKey BoxPublicKey) (BoxSecretKey, []byte, int, error) {
+func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, BoxPrecomputedSharedKey, []byte, int) {
 	secretKeys := ds.ring.GetAllSecretKeys()
-	var bpsk BoxPrecomputedSharedKey
 
 	for _, secretKey := range secretKeys {
-		bpsk = secretKey.Precompute(ephemeralKey)
+		shared := secretKey.Precompute(ephemeralKey)
 
 		for i, r := range hdr.Receivers {
-			// Decrypt the sender's public key
-			nonce.writeCounter32(uint32(2 * i))
-			senderPublicRawKey, err := bpsk.Unbox(nonce, r.Sender)
+			keysRaw, err := shared.Unbox(ds.nonce.ForKeyBox(), r.Keys)
 			if err == nil {
-				return secretKey, senderPublicRawKey, i, nil
+				return secretKey, shared, keysRaw, i
 			}
 		}
 	}
 
-	return nil, nil, -1, nil
+	return nil, nil, nil, -1
 }
 
 func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	if err := hdr.validate(); err != nil {
 		return err
 	}
+
 	ephemeralKey := ds.ring.ImportEphemeralKey(hdr.Sender)
 	if ephemeralKey == nil {
 		return ErrBadEphemeralKey
 	}
 
-	var nonce Nonce
-	keyToNonce(&nonce, ephemeralKey)
+	ds.nonce = NewNonceForEncryption(ephemeralKey)
 
-	secretKey, senderPublicRawKey, i, err := ds.tryVisibleReceivers(hdr, &nonce, ephemeralKey)
+	var secretKey BoxSecretKey
+	var keysPacked []byte
+	var err error
+
+	secretKey, ds.macKey, keysPacked, ds.position, err = ds.tryVisibleReceivers(hdr, ephemeralKey)
 	if err != nil {
 		return err
 	}
 	if secretKey == nil {
-		secretKey, senderPublicRawKey, i, err = ds.tryHiddenReceivers(hdr, &nonce, ephemeralKey)
+		secretKey, ds.macKey, keysPacked, ds.position = ds.tryHiddenReceivers(hdr, ephemeralKey)
 	}
-	if err != nil {
-		return err
-	}
-	if secretKey == nil || i < 0 {
+	if secretKey == nil || ds.position < 0 {
 		return ErrNoDecryptionKey
 	}
-	if err := verifyRawKey(senderPublicRawKey); err != nil {
+
+	var keys receiverKeysPlaintext
+	if err = decodeFromBytes(&keys, keysPacked); err != nil {
+		return err
+	}
+
+	if err := verifyRawKey(keys.Sender); err != nil {
 		return err
 	}
 
@@ -206,60 +214,20 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	// it for use. However, if the sender key is the same as the ephemeral
 	// key, then assume "anonymous mode", so use the already imported anonymous
 	// key.
-	pk := ephemeralKey
-	if !hmac.Equal(hdr.Sender, senderPublicRawKey) {
-		pk = ds.ring.LookupBoxPublicKey(senderPublicRawKey)
-		if pk == nil {
+	if !hmac.Equal(hdr.Sender, keys.Sender) {
+		longLivedSenderKey := ds.ring.LookupBoxPublicKey(keys.Sender)
+		if longLivedSenderKey == nil {
 			return ErrNoSenderKey
 		}
+		ds.macKey = secretKey.Precompute(longLivedSenderKey)
 	}
 
-	nonce.writeCounter32(uint32(2*i + 1))
+	copy(ds.sessionKey[:], keys.SessionKey)
 
-	keysPacked, err := secretKey.Unbox(pk, &nonce, hdr.Receivers[i].Keys)
-	if err != nil {
-		return err
-	}
-
-	var keys receiverKeysPlaintext
-	if err = decodeFromBytes(&keys, keysPacked); err != nil {
-		return err
-	}
-	ds.keys = &keys
-	copy(ds.sessionKey[:], ds.keys.SessionKey)
-
-	return nil
-}
-
-func (ds *decryptStream) checkMAC(bl *EncryptionBlock, b []byte) error {
-	if (ds.keys.GroupID & groupIDMask) != groupIDMask {
-		return ErrBadGroupID(ds.keys.GroupID)
-	}
-	gid := (ds.keys.GroupID ^ groupIDMask)
-
-	if gid < 0 || int64(len(bl.MACs)) <= int64(gid) {
-		return ErrBadGroupID(gid)
-	}
-
-	if len(ds.keys.MACKey) == 0 {
-		return ErrNoGroupMACKey
-	}
-
-	mac := hmacSHA512(ds.keys.MACKey, b)
-	if !hmac.Equal(mac, bl.MACs[gid]) {
-		return ErrMACMismatch(bl.seqno)
-	}
 	return nil
 }
 
 func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, error) {
-	if err := bl.validate(); err != nil {
-		return nil, err
-	}
-
-	if bl.seqno <= 0 {
-		return nil, errPacketUnderflow
-	}
 
 	blockNum := encryptionBlockNumber(bl.seqno - 1)
 
@@ -267,16 +235,17 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 		return nil, err
 	}
 
-	nonce := blockNum.newCounterNonce()
+	nonce := ds.nonce.ForPayloadBox(blockNum)
 
-	plaintext, ok := secretbox.Open([]byte{}, bl.Ciphertext, (*[24]byte)(nonce), (*[32]byte)(&ds.sessionKey))
-	if !ok {
-		return nil, ErrBadCiphertext(bl.seqno)
+	tag, err := ds.macKey.Unbox(nonce, bl.Tags[ds.position])
+	if err != nil {
+		return nil, ErrBadTag(bl.seqno)
 	}
 
-	sum := hashNonceAndAuthTag(nonce, bl.Ciphertext)
-	if err := ds.checkMAC(bl, sum[:]); err != nil {
-		return nil, err
+	ciphertext := append(tag, bl.Ciphertext...)
+	plaintext, ok := secretbox.Open([]byte{}, ciphertext, (*[24]byte)(nonce), (*[32]byte)(&ds.sessionKey))
+	if !ok {
+		return nil, ErrBadCiphertext(bl.seqno)
 	}
 
 	// The encoding of the empty buffer implies the EOF.  But otherwise, all mechanisms are the same.

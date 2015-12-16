@@ -28,13 +28,15 @@ type boxSecretKey struct {
 }
 
 type keyring struct {
-	keys     map[string]BoxSecretKey
-	iterable bool
+	keys      map[string]BoxSecretKey
+	blacklist map[string]struct{}
+	iterable  bool
 }
 
 func newKeyring() *keyring {
 	return &keyring{
-		keys: make(map[string]BoxSecretKey),
+		keys:      make(map[string]BoxSecretKey),
+		blacklist: make(map[string]struct{}),
 	}
 }
 
@@ -43,11 +45,12 @@ func (r *keyring) insert(k BoxSecretKey) {
 }
 
 func (r *keyring) LookupBoxPublicKey(kid []byte) BoxPublicKey {
-	priv := r.keys[hex.EncodeToString(kid)]
-	if priv == nil {
+	if _, found := r.blacklist[hex.EncodeToString(kid)]; found {
 		return nil
 	}
-	return priv.GetPublicKey()
+	ret := boxPublicKey{}
+	copy(ret.key[:], kid)
+	return &ret
 }
 
 func (r *keyring) ImportEphemeralKey(kid []byte) BoxPublicKey {
@@ -116,6 +119,11 @@ func (b boxPrecomputedSharedKey) Unbox(nonce *Nonce, msg []byte) ([]byte, error)
 	return out, nil
 }
 
+func (b boxPrecomputedSharedKey) Box(nonce *Nonce, msg []byte) ([]byte, error) {
+	out := box.SealAfterPrecomputation([]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&b))
+	return out, nil
+}
+
 func (b boxSecretKey) Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) ([]byte, error) {
 	ret := box.Seal([]byte{}, msg, (*[24]byte)(nonce),
 		(*[32]byte)(receiver.ToRawBoxKeyPointer()), (*[32]byte)(&b.key))
@@ -123,6 +131,7 @@ func (b boxSecretKey) Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) ([]by
 }
 
 var errPublicKeyDecryptionFailed = errors.New("public key decryption failed")
+var errPublicKeyEncryptionFailed = errors.New("public key encryption failed")
 
 func (b boxSecretKey) Unbox(sender BoxPublicKey, nonce *Nonce, msg []byte) ([]byte, error) {
 	out, ok := box.Open([]byte{}, msg, (*[24]byte)(nonce),
@@ -177,29 +186,10 @@ func newBoxKey(t *testing.T) BoxSecretKey {
 	return ret
 }
 
-func TestSmallEncryptionOneReceiver(t *testing.T) {
-	msg := []byte("secret message!")
-	testRoundTrip(t, msg, nil, nil)
-}
-
-func TestMediumEncryptionOneReceiver(t *testing.T) {
-	buf := make([]byte, 1024*10)
-	if _, err := rand.Read(buf); err != nil {
-		t.Fatal(err)
-	}
-	testRoundTrip(t, buf, nil, nil)
-}
-
-func TestBiggishEncryptionOneReceiver(t *testing.T) {
-	buf := make([]byte, 1024*100)
-	if _, err := rand.Read(buf); err != nil {
-		t.Fatal(err)
-	}
-	testRoundTrip(t, buf, nil, nil)
-}
-
-type options struct {
-	readSize int
+func newBoxKeyBlacklistPublic(t *testing.T) BoxSecretKey {
+	ret := newBoxKey(t)
+	kr.blacklist[hex.EncodeToString(ret.GetPublicKey().ToKID())] = struct{}{}
+	return ret
 }
 
 func randomMsg(t *testing.T, sz int) []byte {
@@ -210,40 +200,8 @@ func randomMsg(t *testing.T, sz int) []byte {
 	return out
 }
 
-func testRealEncryptor(t *testing.T, sz int) {
-	msg := make([]byte, sz)
-	if _, err := rand.Read(msg); err != nil {
-		t.Fatal(err)
-	}
-	sndr := newBoxKey(t)
-	var ciphertext bytes.Buffer
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
-	strm, err := NewEncryptStream(&ciphertext, sndr, receivers)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := strm.Write(msg); err != nil {
-		t.Fatal(err)
-	}
-	if err := strm.Close(); err != nil {
-		t.Fatal(err)
-	}
-
-	msg2, err := Open(ciphertext.Bytes(), kr)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(msg2, msg) {
-		t.Fatal("decryption mismatch")
-	}
-}
-
-func TestRealEncryptorSmall(t *testing.T) {
-	testRealEncryptor(t, 101)
-}
-
-func TestRealEncryptorBig(t *testing.T) {
-	testRealEncryptor(t, 1024*1024*3)
+type options struct {
+	readSize int
 }
 
 func slowRead(r io.Reader, sz int) ([]byte, error) {
@@ -263,11 +221,11 @@ func slowRead(r io.Reader, sz int) ([]byte, error) {
 	return res, nil
 }
 
-func testRoundTrip(t *testing.T, msg []byte, receivers [][]BoxPublicKey, opts *options) {
+func testRoundTrip(t *testing.T, msg []byte, receivers []BoxPublicKey, opts *options) {
 	sndr := newBoxKey(t)
 	var ciphertext bytes.Buffer
 	if receivers == nil {
-		receivers = [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+		receivers = []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	}
 	strm, err := newTestEncryptStream(&ciphertext, sndr, receivers,
 		testEncryptionOptions{blockSize: 1024})
@@ -300,24 +258,75 @@ func testRoundTrip(t *testing.T, msg []byte, receivers [][]BoxPublicKey, opts *o
 	}
 }
 
+func TestSmallEncryptionOneReceiver(t *testing.T) {
+	msg := []byte("secret message!")
+	testRoundTrip(t, msg, nil, nil)
+}
+
+func TestMediumEncryptionOneReceiver(t *testing.T) {
+	buf := make([]byte, 1024*10)
+	if _, err := rand.Read(buf); err != nil {
+		t.Fatal(err)
+	}
+	testRoundTrip(t, buf, nil, nil)
+}
+
+func TestBiggishEncryptionOneReceiver(t *testing.T) {
+	buf := make([]byte, 1024*100)
+	if _, err := rand.Read(buf); err != nil {
+		t.Fatal(err)
+	}
+	testRoundTrip(t, buf, nil, nil)
+}
+
+func testRealEncryptor(t *testing.T, sz int) {
+	msg := make([]byte, sz)
+	if _, err := rand.Read(msg); err != nil {
+		t.Fatal(err)
+	}
+	sndr := newBoxKey(t)
+	var ciphertext bytes.Buffer
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
+	strm, err := NewEncryptStream(&ciphertext, sndr, receivers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := strm.Write(msg); err != nil {
+		t.Fatal(err)
+	}
+	if err := strm.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	msg2, err := Open(ciphertext.Bytes(), kr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(msg2, msg) {
+		t.Fatal("decryption mismatch")
+	}
+}
+
+func TestRealEncryptorSmall(t *testing.T) {
+	testRealEncryptor(t, 101)
+}
+
+func TestRealEncryptorBig(t *testing.T) {
+	testRealEncryptor(t, 1024*1024*3)
+}
+
 func TestRoundTripMedium6Receivers(t *testing.T) {
 	msg := make([]byte, 1024*3)
 	if _, err := rand.Read(msg); err != nil {
 		t.Fatal(err)
 	}
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKey(t).GetPublicKey(),
-		},
+	receivers := []BoxPublicKey{
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
 	}
 	testRoundTrip(t, msg, receivers, nil)
 }
@@ -327,19 +336,13 @@ func TestRoundTripSmall6Receivers(t *testing.T) {
 	if _, err := rand.Read(msg); err != nil {
 		t.Fatal(err)
 	}
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKey(t).GetPublicKey(),
-		},
+	receivers := []BoxPublicKey{
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
 	}
 	testRoundTrip(t, msg, receivers, nil)
 }
@@ -348,19 +351,13 @@ func TestReceiverNotFound(t *testing.T) {
 	sndr := newBoxKey(t)
 	msg := []byte("those who die stay with us forever, as bones")
 	var out bytes.Buffer
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
+	receivers := []BoxPublicKey{
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
 	}
 
 	strm, err := newTestEncryptStream(&out, sndr, receivers,
@@ -384,7 +381,7 @@ func TestTruncation(t *testing.T) {
 	sndr := newBoxKey(t)
 	var out bytes.Buffer
 	msg := []byte("this message is going to be truncated")
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	strm, err := newTestEncryptStream(&out, sndr, receivers,
 		testEncryptionOptions{blockSize: 1024})
 	if err != nil {
@@ -431,7 +428,7 @@ func TestMediumEncryptionOneReceiverMediumReads(t *testing.T) {
 
 func testSealAndOpen(t *testing.T, sz int) {
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	plaintext := make([]byte, sz)
 	if _, err := rand.Read(plaintext); err != nil {
 		t.Fatal(err)
@@ -457,11 +454,11 @@ func TestSealAndOpenBig(t *testing.T) {
 	testSealAndOpen(t, 1024*1024*3)
 }
 
-func TestSealAndOpenTwoGroups(t *testing.T) {
+func TestSealAndOpenTwoReceivers(t *testing.T) {
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{newBoxKeyNoInsert(t).GetPublicKey()},
-		[]BoxPublicKey{newBoxKey(t).GetPublicKey()},
+	receivers := []BoxPublicKey{
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
 	}
 	plaintext := make([]byte, 1024*10)
 	if _, err := rand.Read(plaintext); err != nil {
@@ -483,10 +480,7 @@ func TestSealAndOpenTwoGroups(t *testing.T) {
 func TestRepeatedKey(t *testing.T) {
 	sender := newBoxKey(t)
 	pk := newBoxKey(t).GetPublicKey()
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{pk},
-		[]BoxPublicKey{pk},
-	}
+	receivers := []BoxPublicKey{pk, pk}
 	plaintext := randomMsg(t, 1024*3)
 	_, err := Seal(plaintext, sender, receivers)
 	if _, ok := err.(ErrRepeatedKey); !ok {
@@ -496,21 +490,7 @@ func TestRepeatedKey(t *testing.T) {
 
 func TestEmptyReceivers(t *testing.T) {
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{}
-	plaintext := randomMsg(t, 1024*3)
-	_, err := Seal(plaintext, sender, receivers)
-	if err != ErrBadReceivers {
-		t.Fatalf("Wanted error %v but got %v\n", ErrBadReceivers, err)
-	}
-}
-
-func TestEmptyReceiverGroup(t *testing.T) {
-	sender := newBoxKey(t)
-	pk := newBoxKey(t).GetPublicKey()
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{pk},
-		[]BoxPublicKey{},
-	}
+	receivers := []BoxPublicKey{}
 	plaintext := randomMsg(t, 1024*3)
 	_, err := Seal(plaintext, sender, receivers)
 	if err != ErrBadReceivers {
@@ -521,12 +501,14 @@ func TestEmptyReceiverGroup(t *testing.T) {
 func TestCorruptHeaderNonce(t *testing.T) {
 	msg := randomMsg(t, 129)
 	teo := testEncryptionOptions{
-		corruptHeaderNonce: func(n *Nonce, gid int, rid int, slot int) {
-			(*n)[4] ^= 1
+		corruptKeysNonce: func(n *Nonce, rid int) *Nonce {
+			ret := *n
+			ret[4] ^= 1
+			return &ret
 		},
 	}
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	ciphertext, err := testSeal(msg, sender, receivers, teo)
 	if err != nil {
 		t.Fatal(err)
@@ -537,31 +519,28 @@ func TestCorruptHeaderNonce(t *testing.T) {
 	}
 }
 
-func testCorruptHeaderNonceG2R1(t *testing.T, slotToCorrupt int) {
+func TestCorruptHeaderNonceR5(t *testing.T) {
 	msg := randomMsg(t, 129)
 	teo := testEncryptionOptions{
-		corruptHeaderNonce: func(n *Nonce, gid int, rid int, slot int) {
-			if gid == 2 && rid == 1 && slot == slotToCorrupt {
-				(*n)[4] ^= 1
+		corruptKeysNonce: func(n *Nonce, rid int) *Nonce {
+			if rid == 5 {
+				ret := *n
+				ret[4] ^= 1
+				return &ret
 			}
+			return n
 		},
 	}
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKey(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
+	receivers := []BoxPublicKey{
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
 	}
 	ciphertext, err := testSeal(msg, sender, receivers, teo)
 	if err != nil {
@@ -575,10 +554,13 @@ func testCorruptHeaderNonceG2R1(t *testing.T, slotToCorrupt int) {
 	// If someone else's encryption was tampered with, we don't care and
 	// shouldn't get an error.
 	teo = testEncryptionOptions{
-		corruptHeaderNonce: func(n *Nonce, gid int, rid int, slot int) {
-			if gid == 2 && rid == 3 && slot == slotToCorrupt {
-				(*n)[4] ^= 1
+		corruptKeysNonce: func(n *Nonce, rid int) *Nonce {
+			if rid != 5 {
+				ret := *n
+				ret[4] ^= 1
+				return &ret
 			}
+			return n
 		},
 	}
 	ciphertext, err = testSeal(msg, sender, receivers, teo)
@@ -591,38 +573,25 @@ func testCorruptHeaderNonceG2R1(t *testing.T, slotToCorrupt int) {
 	}
 }
 
-func TestCorruptHeaderNonceKeysG2R1(t *testing.T) {
-	testCorruptHeaderNonceG2R1(t, 1)
-}
-func TestCorruptHeaderNonceSenderG2R1(t *testing.T) {
-	testCorruptHeaderNonceG2R1(t, 0)
-}
-
-func TestCorruptReceiverKeysCiphertextG2R1(t *testing.T) {
+func TestCorruptReceiverKeysCiphertextR5(t *testing.T) {
 	msg := randomMsg(t, 129)
 	teo := testEncryptionOptions{
-		corruptReceiverKeysCiphertext: func(rkc *receiverKeysCiphertexts, gid int, rid int) {
-			if gid == 2 && rid == 1 {
+		corruptReceiverKeysCiphertext: func(rkc *receiverKeysCiphertexts, rid int) {
+			if rid == 5 {
 				rkc.Keys[35] ^= 1
 			}
 		},
 	}
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKey(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
+	receivers := []BoxPublicKey{
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
 	}
 	ciphertext, err := testSeal(msg, sender, receivers, teo)
 	if err != nil {
@@ -636,8 +605,8 @@ func TestCorruptReceiverKeysCiphertextG2R1(t *testing.T) {
 	// If someone else's encryption was tampered with, we don't care and
 	// shouldn't get an error.
 	teo = testEncryptionOptions{
-		corruptReceiverKeysCiphertext: func(rkc *receiverKeysCiphertexts, gid int, rid int) {
-			if gid == 2 && rid == 2 {
+		corruptReceiverKeysCiphertext: func(rkc *receiverKeysCiphertexts, rid int) {
+			if rid != 5 {
 				rkc.Keys[35] ^= 1
 			}
 		},
@@ -654,101 +623,42 @@ func TestCorruptReceiverKeysCiphertextG2R1(t *testing.T) {
 
 // TestCorruptRewceiverKeys tests what happens if the encryptor messes up in
 // formulating the **plaintext** input of the encrypted session keys.  We try
-// fiddling all of the keys below, in the case of multiple receivers in multiple
-// groups.
-func TestCorruptReceiverKeysPlaintextG1R0(t *testing.T) {
+// fiddling all of the keys below, in the case of multiple receivers.
+func TestCorruptReceiverKeysPlaintext(t *testing.T) {
 	msg := randomMsg(t, 129)
 
 	// First try to supply a bogus group ID that's out of bounds.
 	teo := testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == 1 && rid == 0 {
-				rkp.GroupID = (100 | groupIDMask)
+		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, rid int) {
+			if rid == 2 {
+				rkp.Sender[3] ^= 1
 			}
 		},
 	}
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newBoxKeyNoInsert(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newBoxKey(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
+	receivers := []BoxPublicKey{
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
 	}
+
 	ciphertext, err := testSeal(msg, sender, receivers, teo)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
-	if badgroup, ok := err.(ErrBadGroupID); !ok {
-		t.Fatalf("Wanted a 'Bad Group ID' error")
-	} else if int(badgroup) != 100 {
-		t.Fatalf("Wrong bad group (wanted 100, got %d)", badgroup)
-	}
 
-	// Now supply the wrong group ID
-	teo = testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == 1 && rid == 0 {
-				rkp.GroupID = groupIDMask
-			}
-		},
-	}
-	ciphertext, err = testSeal(msg, sender, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	// If we've corrupted the sender key, the first thing that will fail is the
+	// Tag check for this receiver on packet #1.
 	_, err = Open(ciphertext, kr)
-	if mm, ok := err.(ErrMACMismatch); !ok {
-		t.Fatalf("Wanted MAC mismatch error but got %v", err)
-	} else if int(mm) != 1 {
-		t.Fatalf("Wanted a failure in packet %d, but got %d", 1, mm)
-	}
-
-	// Now zero out the MAC key even though one was explicitly promised for
-	// this operation.
-	teo = testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == 1 && rid == 0 {
-				rkp.MACKey = nil
-			}
-		},
-	}
-	ciphertext, err = testSeal(msg, sender, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if err != ErrNoGroupMACKey {
-		t.Fatalf("Got wrong error; wanted %v but got %v", ErrNoGroupMACKey, err)
-	}
-
-	// Now corrupt the MAC key
-	teo = testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == 1 && rid == 0 {
-				rkp.MACKey[3] ^= 1
-			}
-		},
-	}
-	ciphertext, err = testSeal(msg, sender, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if mm, ok := err.(ErrMACMismatch); !ok {
-		t.Fatalf("Got wrong error; wanted MAC mismatch but got %v", err)
-	} else if int(mm) != 1 {
-		t.Fatalf("Wanted a failure in packet %d but got %d", 1, mm)
+	if ebt, ok := err.(ErrBadTag); !ok || int(ebt) != 1 {
+		t.Fatalf("Got wrong error; wanted %v but got %v", ErrNoSenderKey, ErrBadTag(1))
 	}
 
 	// Finally let's corrupt the session key
 	teo = testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == 1 && rid == 0 {
+		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, rid int) {
+			if rid == 2 {
 				sk := make([]byte, len(rkp.SessionKey))
 				copy(sk, rkp.SessionKey)
 				sk[3] ^= 1
@@ -767,42 +677,11 @@ func TestCorruptReceiverKeysPlaintextG1R0(t *testing.T) {
 		t.Fatalf("Wanted a failure in packet %d but got %d", 1, mm)
 	}
 
-}
-
-func TestCorruptReceiverKeysPlaintextOneGroup(t *testing.T) {
-	msg := randomMsg(t, 129)
-
-	// First try to supply a bogus group ID that's out of bounds.
-	teo := testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == 0 && rid == 0 {
-				rkp.GroupID = (100 | groupIDMask)
-			}
-		},
-	}
-	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newBoxKey(t).GetPublicKey(),
-			newBoxKeyNoInsert(t).GetPublicKey(),
-		},
-	}
-	ciphertext, err := testSeal(msg, sender, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if badgroup, ok := err.(ErrBadGroupID); !ok {
-		t.Fatalf("Wanted a 'Bad Group ID' error; got %v", err)
-	} else if int(badgroup) != 100 {
-		t.Fatalf("Wrong bad group (wanted 100, got %d)", badgroup)
-	}
-
-	// Now zero out the MAC key.
+	// Test Bad Sender Key
 	teo = testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == 0 && rid == 0 {
-				rkp.MACKey = make([]byte, 32)
+		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, rid int) {
+			if rid == 2 {
+				rkp.Sender = rkp.Sender[0 : len(rkp.Sender)-1]
 			}
 		},
 	}
@@ -811,39 +690,14 @@ func TestCorruptReceiverKeysPlaintextOneGroup(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if eum, ok := err.(ErrMACMismatch); !ok {
-		t.Fatalf("Got wrong error; wanted 'MAC mismatch' but got %v", err)
-	} else if int(eum) != 1 {
-		t.Fatalf("Got wrong packet; wanted %d but got %d", 1, eum)
+	if err != ErrBadSenderKey {
+		t.Fatalf("Bad error: wanted %v but got %v", ErrBadSenderKey, err)
 	}
-
-	// Finally let's corrupt the session key
-	teo = testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == 0 && rid == 0 {
-				sk := make([]byte, len(rkp.SessionKey))
-				copy(sk, rkp.SessionKey)
-				sk[3] ^= 1
-				rkp.SessionKey = sk
-			}
-		},
-	}
-	ciphertext, err = testSeal(msg, sender, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if mm, ok := err.(ErrBadCiphertext); !ok {
-		t.Fatalf("Got wrong error; wanted 'Bad Ciphertext' but got %v", err)
-	} else if int(mm) != 1 {
-		t.Fatalf("Wanted a failure in packet %d but got %d", 1, mm)
-	}
-
 }
 
 func TestMissingFooter(t *testing.T) {
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	msg := randomMsg(t, 1024*9)
 	ciphertext, err := testSeal(msg, sender, receivers, testEncryptionOptions{
 		skipFooter: true,
@@ -860,7 +714,7 @@ func TestMissingFooter(t *testing.T) {
 
 func TestCorruptEncryption(t *testing.T) {
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	msg := randomMsg(t, 1024*9)
 
 	// First check that a corrupted ciphertext fails the Poly1305
@@ -868,7 +722,7 @@ func TestCorruptEncryption(t *testing.T) {
 		blockSize: 1024,
 		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
 			if ebn == 2 {
-				eb.Ciphertext[40] ^= 1
+				eb.Ciphertext[8] ^= 1
 			}
 		},
 	})
@@ -887,7 +741,7 @@ func TestCorruptEncryption(t *testing.T) {
 		blockSize: 1024,
 		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
 			if ebn == 2 {
-				eb.Ciphertext[2] ^= 1
+				eb.Tags[0][2] ^= 1
 			}
 		},
 	})
@@ -895,136 +749,36 @@ func TestCorruptEncryption(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if mm, ok := err.(ErrBadCiphertext); !ok {
-		t.Fatalf("Got wrong error; wanted 'Bad ciphertext; failed Poly1305' but got %v", err)
+	if mm, ok := err.(ErrBadTag); !ok {
+		t.Fatalf("Got wrong error; wanted 'Bad Tag; failed Poly1305' but got %v", err)
 	} else if int(mm) != 3 {
 		t.Fatalf("Wanted a failure in packet %d but got %d", 3, mm)
 	}
 
-	// Next check what happens if we mangle the Version
-	ciphertext, err = testSeal(msg, sender, receivers, testEncryptionOptions{
-		blockSize: 1024,
-		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
-			if ebn == 2 {
-				eb.Version = PacketVersion(2)
-			}
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if ebv, ok := err.(ErrBadVersion); !ok {
-		t.Fatalf("Got wrong error; wanted 'Bad Version' but got %v", err)
-	} else if int(ebv.seqno) != 3 {
-		t.Fatalf("Wanted a failure in packet %d but got %d", 3, ebv.seqno)
-	} else if ebv.received != PacketVersion(2) {
-		t.Fatalf("got wrong version # in error message: %d", ebv.received)
-	}
-
-	// Next check what happens if we mangle the Tag
-	ciphertext, err = testSeal(msg, sender, receivers, testEncryptionOptions{
-		blockSize: 1024,
-		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
-			if ebn == 2 {
-				eb.Tag = PacketTagEncryptionHeader
-			}
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if ebv, ok := err.(ErrWrongPacketTag); !ok {
-		t.Fatalf("Got wrong error; wanted 'Bad Version' but got %v", err)
-	} else if int(ebv.seqno) != 3 {
-		t.Fatalf("Wanted a failure in packet %d but got %d", 3, ebv.seqno)
-	} else if ebv.wanted != PacketTagEncryptionBlock {
-		t.Fatalf("got wrong version wanted in error message: %d", ebv.wanted)
-	} else if ebv.received != PacketTagEncryptionHeader {
-		t.Fatalf("got wrong version received error message: %d", ebv.received)
-	}
-
-	// Next check what happens if we mangle the MAC
-	receivers = [][]BoxPublicKey{
-		[]BoxPublicKey{newBoxKeyNoInsert(t).GetPublicKey()},
-		[]BoxPublicKey{newBoxKey(t).GetPublicKey()},
-	}
-	ciphertext, err = testSeal(msg, sender, receivers, testEncryptionOptions{
-		blockSize: 1024,
-		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
-			if ebn == 2 {
-				eb.MACs[1][5] ^= 1
-			}
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if mm, ok := err.(ErrMACMismatch); !ok {
-		t.Fatalf("Expected a 'MAC Mismatch' error but got %v", err)
-	} else if int(mm) != 3 {
-		t.Fatalf("Wanted error packet %d but got %d", 3, mm)
-	}
-
-	// Next check what happens if we swap macs for blocks 0 and 1 for 2 rewceivers
+	// Next check what happens if we swap nonces for blocks 0 and 1
 	msg = randomMsg(t, 1024*2-1)
 	ciphertext, err = testSeal(msg, sender, receivers, testEncryptionOptions{
 		blockSize: 1024,
-		corruptNonce: func(n *Nonce, ebn encryptionBlockNumber) {
-			var nn *Nonce
+		corruptPayloadNonce: func(n *Nonce, ebn encryptionBlockNumber) *Nonce {
 			switch ebn {
 			case 1:
-				nn = encryptionBlockNumber(0).newCounterNonce()
+				tmp := *n
+				return tmp.ForPayloadBox(encryptionBlockNumber(0))
 			case 0:
-				nn = encryptionBlockNumber(1).newCounterNonce()
-			case 2:
-				nn = n
-			default:
-				t.Fatalf("didn't expected packet %d", ebn)
+				tmp := *n
+				return tmp.ForPayloadBox(encryptionBlockNumber(1))
 			}
-			*n = *nn
+			return n
 		},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if emm, ok := err.(ErrBadCiphertext); !ok {
-		t.Fatalf("Expected a 'bad ciphertext' error but got %v", err)
+	if emm, ok := err.(ErrBadTag); !ok {
+		t.Fatalf("Expected a 'bad tag' error but got %v", err)
 	} else if int(emm) != 1 {
 		t.Fatalf("Wanted error packet %d but got %d", 1, emm)
-	}
-
-	// Next check what happens if we swap macs for blocks 0 and 1 for 1 receiver
-	msg = randomMsg(t, 1024*2-1)
-	receivers = [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
-	ciphertext, err = testSeal(msg, sender, receivers, testEncryptionOptions{
-		blockSize: 1024,
-		corruptNonce: func(n *Nonce, ebn encryptionBlockNumber) {
-			var nn *Nonce
-			switch ebn {
-			case 1:
-				nn = encryptionBlockNumber(0).newCounterNonce()
-			case 0:
-				nn = encryptionBlockNumber(1).newCounterNonce()
-			case 2:
-				nn = n
-			default:
-				t.Fatalf("didn't expected packet %d", ebn)
-			}
-			*n = *nn
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if ebct, ok := err.(ErrBadCiphertext); !ok {
-		t.Fatalf("Expected a 'ErrBadCiphertext' error but got %v", err)
-	} else if int(ebct) != 1 {
-		t.Fatalf("Wanted error packet %d but got %d", 1, ebct)
 	}
 }
 
@@ -1032,21 +786,24 @@ func TestCorruptNonce(t *testing.T) {
 	msg := randomMsg(t, 1024*11)
 	teo := testEncryptionOptions{
 		blockSize: 1024,
-		corruptNonce: func(n *Nonce, ebn encryptionBlockNumber) {
+		corruptPayloadNonce: func(n *Nonce, ebn encryptionBlockNumber) *Nonce {
 			if ebn == 2 {
-				(*n)[23]++
+				ret := *n
+				ret[23]++
+				return &ret
 			}
+			return n
 		},
 	}
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	ciphertext, err := testSeal(msg, sender, receivers, teo)
 	if err != nil {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if bcte, ok := err.(ErrBadCiphertext); !ok {
-		t.Fatalf("Wanted error 'ErrBadCiphertext' but got %v", err)
+	if bcte, ok := err.(ErrBadTag); !ok {
+		t.Fatalf("Wanted error 'ErrBadTag' but got %v", err)
 	} else if int(bcte) != 3 {
 		t.Fatalf("wrong packet; wanted %d but got %d", 3, bcte)
 	}
@@ -1059,11 +816,11 @@ func TestCorruptHeader(t *testing.T) {
 	teo := testEncryptionOptions{
 		blockSize: 1024,
 		corruptHeader: func(eh *EncryptionHeader) {
-			eh.Version = PacketVersion(2)
+			eh.Version.Major = 2
 		},
 	}
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	ciphertext, err := testSeal(msg, sender, receivers, teo)
 	if err != nil {
 		t.Fatal(err)
@@ -1073,15 +830,15 @@ func TestCorruptHeader(t *testing.T) {
 		t.Fatalf("Got wrong error; wanted 'Bad Version' but got %v", err)
 	} else if int(ebv.seqno) != 0 {
 		t.Fatalf("Wanted a failure in packet %d but got %d", 0, ebv.seqno)
-	} else if ebv.received != PacketVersion(2) {
-		t.Fatalf("got wrong version # in error message: %d", ebv.received)
+	} else if ebv.received.Major != 2 {
+		t.Fatalf("got wrong version # in error message: %v", ebv.received.Major)
 	}
 
 	// Test bad header Tag
 	teo = testEncryptionOptions{
 		blockSize: 1024,
 		corruptHeader: func(eh *EncryptionHeader) {
-			eh.Tag = PacketTagEncryptionBlock
+			eh.Type = PacketTypeAttachedSignature
 		},
 	}
 	ciphertext, err = testSeal(msg, sender, receivers, teo)
@@ -1089,36 +846,20 @@ func TestCorruptHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if ebv, ok := err.(ErrWrongPacketTag); !ok {
-		t.Fatalf("Got wrong error; wanted 'Bad Version' but got %v", err)
+	if ebv, ok := err.(ErrWrongPacketType); !ok {
+		t.Fatalf("Got wrong error; wanted 'Bad Type' but got %v", err)
 	} else if int(ebv.seqno) != 0 {
 		t.Fatalf("Wanted a failure in packet %d but got %d", 0, ebv.seqno)
-	} else if ebv.wanted != PacketTagEncryptionHeader {
+	} else if ebv.wanted != PacketTypeEncryption {
 		t.Fatalf("got wrong wanted in error message: %d", ebv.wanted)
-	} else if ebv.received != PacketTagEncryptionBlock {
+	} else if ebv.received != PacketTypeAttachedSignature {
 		t.Fatalf("got wrong received in error message: %d", ebv.received)
-	}
-
-	// Test Bad Sender Key
-	teo = testEncryptionOptions{
-		blockSize: 1024,
-		corruptHeader: func(eh *EncryptionHeader) {
-			eh.Sender = eh.Sender[0:30]
-		},
-	}
-	ciphertext, err = testSeal(msg, sender, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if err != ErrBadSenderKey {
-		t.Fatalf("Bad error: wanted %v but got %v", ErrBadEphemeralKey, err)
 	}
 
 	// Corrupt Plaintext Keys after packing
 	teo = testEncryptionOptions{
 		blockSize: 1024,
-		corruptReceiverKeysPlaintextPacked: func(b []byte, gid int, rid int) {
+		corruptReceiverKeysPlaintextPacked: func(b []byte, rid int) {
 			b[0] = 0xff
 			b[1] = 0xff
 		},
@@ -1153,8 +894,8 @@ func TestCorruptHeader(t *testing.T) {
 }
 
 func TestNoSenderKey(t *testing.T) {
-	sender := newBoxKeyNoInsert(t)
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	sender := newBoxKeyBlacklistPublic(t)
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	msg := randomMsg(t, 1024*9)
 	ciphertext, err := testSeal(msg, sender, receivers, testEncryptionOptions{
 		blockSize: 1024,
@@ -1170,7 +911,7 @@ func TestNoSenderKey(t *testing.T) {
 
 func TestSealAndOpenTrailingGarbage(t *testing.T) {
 	sender := newBoxKey(t)
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	plaintext := randomMsg(t, 1024*3)
 	ciphertext, err := Seal(plaintext, sender, receivers)
 	if err != nil {
@@ -1186,7 +927,7 @@ func TestSealAndOpenTrailingGarbage(t *testing.T) {
 }
 
 func TestAnonymousSender(t *testing.T) {
-	receivers := [][]BoxPublicKey{{newBoxKey(t).GetPublicKey()}}
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
 	plaintext := randomMsg(t, 1024*3)
 	ciphertext, err := Seal(plaintext, nil, receivers)
 	if err != nil {
@@ -1199,21 +940,15 @@ func TestAnonymousSender(t *testing.T) {
 }
 
 func TestAllAnonymous(t *testing.T) {
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-		},
-		[]BoxPublicKey{
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-			newHiddenBoxKey(t).GetPublicKey(),
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-		},
+	receivers := []BoxPublicKey{
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKey(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
 	}
 	plaintext := randomMsg(t, 1024*3)
 	ciphertext, err := Seal(plaintext, nil, receivers)
@@ -1229,7 +964,7 @@ func TestAllAnonymous(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	receivers[2][1] = newHiddenBoxKeyNoInsert(t).GetPublicKey()
+	receivers[5] = newHiddenBoxKeyNoInsert(t).GetPublicKey()
 	ciphertext, err = Seal(plaintext, nil, receivers)
 	if err != nil {
 		t.Fatal(err)
@@ -1240,12 +975,12 @@ func TestAllAnonymous(t *testing.T) {
 	}
 }
 
-func TestCorruptSenderKey(t *testing.T) {
-	receivers := [][]BoxPublicKey{{newHiddenBoxKey(t).GetPublicKey()}}
+func TestCorruptEmpheralKey(t *testing.T) {
+	receivers := []BoxPublicKey{newHiddenBoxKey(t).GetPublicKey()}
 	plaintext := randomMsg(t, 1024*3)
 	teo := testEncryptionOptions{
-		corruptHeaderSenderKey: func(k []byte, gid int, rid int) []byte {
-			return k[0 : len(k)-1]
+		corruptHeader: func(eh *EncryptionHeader) {
+			eh.Sender = eh.Sender[0 : len(eh.Sender)-1]
 		},
 	}
 	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
@@ -1253,18 +988,16 @@ func TestCorruptSenderKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if err != ErrBadSenderKey {
-		t.Fatalf("Got %v but wanted %v", err, ErrBadSenderKey)
+	if err != ErrBadEphemeralKey {
+		t.Fatalf("Got %v but wanted %v", err, ErrBadEphemeralKey)
 	}
 }
 
 func TestCiphertextSwapKeys(t *testing.T) {
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-			newHiddenBoxKey(t).GetPublicKey(),
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-		},
+	receivers := []BoxPublicKey{
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKey(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
 	}
 	plaintext := randomMsg(t, 1024*3)
 	teo := testEncryptionOptions{
@@ -1279,55 +1012,5 @@ func TestCiphertextSwapKeys(t *testing.T) {
 	_, err = Open(ciphertext, kr)
 	if err != errPublicKeyDecryptionFailed {
 		t.Fatalf("Got %v but wanted %v", err, errPublicKeyDecryptionFailed)
-	}
-}
-
-func TestCiphertextSwapSenders(t *testing.T) {
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-			newHiddenBoxKey(t).GetPublicKey(),
-			newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-		},
-	}
-	plaintext := randomMsg(t, 1024*3)
-	teo := testEncryptionOptions{
-		corruptHeader: func(h *EncryptionHeader) {
-			h.Receivers[1].Sender, h.Receivers[0].Sender = h.Receivers[0].Sender, h.Receivers[1].Sender
-		},
-	}
-	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if err != errPublicKeyDecryptionFailed {
-		t.Fatalf("Got %v but wanted %v", err, errPublicKeyDecryptionFailed)
-	}
-}
-
-func TestBadGroupIDTopBit(t *testing.T) {
-	receivers := [][]BoxPublicKey{
-		[]BoxPublicKey{
-			newHiddenBoxKey(t).GetPublicKey(),
-		},
-	}
-	plaintext := randomMsg(t, 1024*3)
-	teo := testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, gid int, rid int) {
-			if gid == 0 && rid == 0 {
-				rkp.GroupID ^= groupIDMask
-			}
-		},
-	}
-	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = Open(ciphertext, kr)
-	if berr, ok := err.(ErrBadGroupID); !ok {
-		t.Fatalf("Got %v but wanted %v", err, ErrBadGroupID(0))
-	} else if int(berr) != 0 {
-		t.Fatalf("Wanted bad group id 0; got %d", int(berr))
 	}
 }

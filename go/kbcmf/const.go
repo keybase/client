@@ -3,31 +3,23 @@
 
 package kbcmf
 
-// PacketTag is an int used to describe what "tag" or "type" of packet it is.
-type PacketTag int
-
-// PacketVersion is an int used to capture the packet version. Right now, only
-// Version=1 is supported
-type PacketVersion int
+// PacketType is an int used to describe what "type" of packet it is.
+type PacketType int
 
 // PacketSeqno is a special int type used to describe which packet in the
 // sequence we're dealing with.  The header is always at seqno=0. Other packets
 // follow. Note that there is a distinction between PacketSeqno and EncryptionBlockNumber.
 // In general, the former is one more than the latter.
-type PacketSeqno int
+type PacketSeqno uint64
 
-// PacketTagEncryptionHeader is a packet tag to describe the first packet
-// in an encryption message.
-const PacketTagEncryptionHeader PacketTag = 1
+// PacketTypeEncryptionHeader is a packet type to describe an encryption message
+const PacketTypeEncryption PacketType = 0
 
-// PacketTagEncryptionBlock is a packet tag to describe the body of an encryption.
-const PacketTagEncryptionBlock PacketTag = 2
-
-// PacketTagSignature is a packet tag for describing a signature packet
-const PacketTagSignature PacketTag = 3
+// PacketTypeAttachedSignature is a packet type to describe an attached signature
+const PacketTypeAttachedSignature PacketType = 1
 
 // PacketVersion1 is currently the only supported packet version
-const PacketVersion1 PacketVersion = 1
+var SaltPackCurrentVersion = Version{Major: 1, Minor: 0}
 
 // EncryptionBlockSize is by default 1MB and can't currently be tweaked.
 const EncryptionBlockSize int = 1048576
@@ -40,6 +32,6 @@ const EncryptionArmorHeader = "BEGIN KEYBASE ENCRYPTED MESSAGE"
 // armored KB message
 const EncryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
 
-// groupIDMask is OR'ed into group IDs, so that they all are encoded as full
-// 32-bit integers
-const groupIDMask uint32 = 0x80000000
+const SaltPackFormatName = "SaltPack"
+
+const NoncePrefixEncryption = "encryption nonce prefix"
