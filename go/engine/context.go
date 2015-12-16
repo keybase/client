@@ -23,7 +23,7 @@ type Context struct {
 	UpdateUI    libkb.UpdateUI
 
 	LoginContext libkb.LoginContext
-	NContext     context.Context
+	NetContext   context.Context
 }
 
 func (c *Context) HasUI(kind libkb.UIKind) bool {
@@ -50,9 +50,9 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 	panic(fmt.Sprintf("unhandled kind:  %d", kind))
 }
 
-func (c *Context) NetContext() context.Context {
-	if c.NContext == nil {
+func (c *Context) GetNetContext() context.Context {
+	if c.NetContext == nil {
 		return context.TODO()
 	}
-	return c.NContext
+	return c.NetContext
 }
