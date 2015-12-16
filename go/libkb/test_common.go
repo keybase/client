@@ -349,12 +349,11 @@ func (n *nullui) Shutdown() error {
 }
 
 type TestSecretUI struct {
-	Passphrase             string
-	BackupPassphrase       string
-	StoreSecret            bool
-	CalledGetSecret        bool
-	CalledGetNewPassphrase bool
-	CalledGetPassphrase    bool
+	Passphrase          string
+	BackupPassphrase    string
+	StoreSecret         bool
+	CalledGetSecret     bool
+	CalledGetPassphrase bool
 }
 
 func (t *TestSecretUI) GetSecret(p keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
@@ -364,11 +363,6 @@ func (t *TestSecretUI) GetSecret(p keybase1.SecretEntryArg, terminal *keybase1.S
 		Canceled:    false,
 		StoreSecret: p.UseSecretStore && t.StoreSecret,
 	}, nil
-}
-
-func (t *TestSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	t.CalledGetNewPassphrase = true
-	return keybase1.GetPassphraseRes{Passphrase: t.Passphrase}, nil
 }
 
 func (t *TestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {

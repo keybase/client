@@ -47,10 +47,6 @@ func (e errorSecretUI) GetSecret(keybase1.SecretEntryArg, *keybase1.SecretEntryA
 	return nil, libkb.LoginRequiredError{Context: e.reason}
 }
 
-func (e errorSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{Context: e.reason}
-}
-
 func (e errorSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{Context: e.reason}
 }

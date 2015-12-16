@@ -695,55 +695,6 @@ func (ui *UI) Shutdown() error {
 	return err
 }
 
-func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres keybase1.GetPassphraseRes, err error) {
-
-	arg := libkb.PromptArg{
-		TerminalPrompt: earg.TerminalPrompt,
-		PinentryDesc:   earg.PinentryDesc,
-		PinentryPrompt: earg.PinentryPrompt,
-		RetryMessage:   earg.RetryMessage,
-		Checker:        &libkb.CheckPassphraseNew,
-		UseSecretStore: earg.UseSecretStore,
-	}
-
-	orig := arg
-	var rm string
-	var text string
-
-	for {
-		text = ""
-		var text2 string
-		arg = orig
-		if len(rm) > 0 {
-			arg.RetryMessage = rm
-			rm = ""
-		}
-
-		if text, eres.StoreSecret, err = ui.passphrasePrompt(arg); err != nil {
-			return
-		}
-
-		arg.TerminalPrompt = arg.TerminalPrompt + " [confirm]"
-		arg.PinentryDesc = "Please reenter your passphase for confirmation"
-		arg.RetryMessage = ""
-		arg.Checker = nil
-
-		arg2 := arg
-		arg2.UseSecretStore = false
-		if text2, _, err = ui.passphrasePrompt(arg2); err != nil {
-			return
-		}
-		if text == text2 {
-			break
-		} else {
-			rm = "Password mismatch"
-		}
-	}
-
-	eres.Passphrase = text
-	return
-}
-
 func (ui SecretUI) GetPassphrase(pin keybase1.GUIEntryArg, term *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	res.Passphrase, res.StoreSecret, err = ui.passphrasePrompt(libkb.PromptArg{
 		TerminalPrompt: pin.Prompt,

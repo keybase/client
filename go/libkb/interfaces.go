@@ -286,7 +286,6 @@ type ProveUI interface {
 
 type SecretUI interface {
 	GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error)
-	GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error)
 	GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error)
 }
 

@@ -4627,15 +4627,6 @@ type GetSecretArg struct {
 	Terminal  *SecretEntryArg `codec:"terminal,omitempty" json:"terminal,omitempty"`
 }
 
-type GetNewPassphraseArg struct {
-	SessionID      int    `codec:"sessionID" json:"sessionID"`
-	TerminalPrompt string `codec:"terminalPrompt" json:"terminalPrompt"`
-	PinentryDesc   string `codec:"pinentryDesc" json:"pinentryDesc"`
-	PinentryPrompt string `codec:"pinentryPrompt" json:"pinentryPrompt"`
-	RetryMessage   string `codec:"retryMessage" json:"retryMessage"`
-	UseSecretStore bool   `codec:"useSecretStore" json:"useSecretStore"`
-}
-
 type GetPassphraseArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Pinentry  GUIEntryArg     `codec:"pinentry" json:"pinentry"`
@@ -4644,7 +4635,6 @@ type GetPassphraseArg struct {
 
 type SecretUiInterface interface {
 	GetSecret(context.Context, GetSecretArg) (SecretEntryRes, error)
-	GetNewPassphrase(context.Context, GetNewPassphraseArg) (GetPassphraseRes, error)
 	GetPassphrase(context.Context, GetPassphraseArg) (GetPassphraseRes, error)
 }
 
@@ -4664,22 +4654,6 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetSecret(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"getNewPassphrase": {
-				MakeArg: func() interface{} {
-					ret := make([]GetNewPassphraseArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetNewPassphraseArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetNewPassphraseArg)(nil), args)
-						return
-					}
-					ret, err = i.GetNewPassphrase(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4710,11 +4684,6 @@ type SecretUiClient struct {
 
 func (c SecretUiClient) GetSecret(ctx context.Context, __arg GetSecretArg) (res SecretEntryRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.secretUi.getSecret", []interface{}{__arg}, &res)
-	return
-}
-
-func (c SecretUiClient) GetNewPassphrase(ctx context.Context, __arg GetNewPassphraseArg) (res GetPassphraseRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
 	return
 }
 
