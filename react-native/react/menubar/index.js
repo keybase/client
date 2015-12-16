@@ -9,7 +9,8 @@ import {remote, shell} from 'electron'
 import {ipcRenderer} from 'electron'
 
 export type MenubarProps = {
-  username: ?string
+  username: ?string,
+  debug: ?boolean
 }
 
 class Menubar extends Component {
@@ -33,7 +34,7 @@ class Menubar extends Component {
     const openingButtonInfo = this.props.username && {text: 'Get Started', onClick: showHelp}
 
     // TODO (pull this debug from somewhere
-    return <Render {...{username: this.props.username, openingMessage: openingMessage, debug: true, openingButtonInfo, openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, quit}}/>
+    return <Render {...{username: this.props.username, openingMessage: openingMessage, debug: !!this.props.debug, openingButtonInfo, openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, quit}}/>
   }
 }
 
