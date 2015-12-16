@@ -309,7 +309,7 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 				return nil, err
 			}
 			rmd.SerializedPrivateMetadata = encodedPrivateMetadata
-		} else if handle.IsWriter(me) {
+		} else {
 
 			// Encrypt and encode the private metadata
 
