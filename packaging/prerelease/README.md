@@ -11,7 +11,7 @@ There are two ways to set the build number:
 - By changing `DefaultBuild` in `libkb/version.go`
 - By setting `libkb.CustomBuild` ldflag at compile time
 
-For the `libkb.CustomBuild` ldflag, the prerelease scripts use the date format `+%Y%m%d%H%M%S` (or the latest git commit) so that we can build without having to change the build number and commit changes to the repo.
+For the `libkb.CustomBuild` ldflag, the prerelease scripts use the date format `+%Y%m%d%H%M%S` (of the latest git commit) so that we can build without having to change the build number and commit changes to the repo.
 
 This date format is meant to be both human readable and an ordered number. (An epoch is ordered and not human readable,
 and other formats with dashes and dots are not numeric.) For example, 20151215102019 is 12/15/2015 at 10:20:19. We like keeping build number an ordered number (instead of alpha.1) so that we can prevent downgrades.
