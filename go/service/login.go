@@ -89,7 +89,7 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 		ProvisionUI: h.getProvisionUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID),
 		GPGUI:       h.getGPGUI(arg.SessionID),
-		NContext:    ctx,
+		NetContext:  ctx,
 	}
 	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.Username, arg.ClientType)
 	return engine.RunEngine(eng, ectx)
