@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -125,9 +126,12 @@ func (c *CmdLogin) Cancel() error {
 		// canceled.
 		// So, need to wait here for call to actually finish in order for the cancel message to make it
 		// to the daemon.
-		c.G().Log.Debug("waiting for command to finish")
-		<-c.done
-		c.G().Log.Debug("command finished, cancel complete")
+		select {
+		case <-c.done:
+			c.G().Log.Debug("command finished, cancel complete")
+		case <-time.After(5 * time.Second):
+			c.G().Log.Debug("timed out waiting for command to finish")
+		}
 	}
 	return nil
 }
