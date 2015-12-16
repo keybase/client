@@ -5440,11 +5440,12 @@ type Update struct {
 
 type UpdateConfig struct {
 	Version         string `codec:"version" json:"version"`
-	OsName          string `codec:"osName" json:"osName"`
+	Platform        string `codec:"platform" json:"platform"`
 	DestinationPath string `codec:"destinationPath" json:"destinationPath"`
 	Source          string `codec:"source" json:"source"`
 	URL             string `codec:"URL" json:"URL"`
 	Channel         string `codec:"channel" json:"channel"`
+	Force           bool   `codec:"force" json:"force"`
 }
 
 type UpdateResult struct {
@@ -5456,13 +5457,8 @@ type UpdateArg struct {
 	CheckOnly bool         `codec:"checkOnly" json:"checkOnly"`
 }
 
-type UpdateNotificationArg struct {
-	Update Update `codec:"update" json:"update"`
-}
-
 type UpdateInterface interface {
 	Update(context.Context, UpdateArg) (UpdateResult, error)
-	UpdateNotification(context.Context, Update) error
 }
 
 func UpdateProtocol(i UpdateInterface) rpc.Protocol {
@@ -5485,22 +5481,6 @@ func UpdateProtocol(i UpdateInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"updateNotification": {
-				MakeArg: func() interface{} {
-					ret := make([]UpdateNotificationArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]UpdateNotificationArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]UpdateNotificationArg)(nil), args)
-						return
-					}
-					err = i.UpdateNotification(ctx, (*typedArgs)[0].Update)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 		},
 	}
 }
@@ -5511,12 +5491,6 @@ type UpdateClient struct {
 
 func (c UpdateClient) Update(ctx context.Context, __arg UpdateArg) (res UpdateResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.update.update", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UpdateClient) UpdateNotification(ctx context.Context, update Update) (err error) {
-	__arg := UpdateNotificationArg{Update: update}
-	err = c.Cli.Call(ctx, "keybase.1.update.updateNotification", []interface{}{__arg}, nil)
 	return
 }
 

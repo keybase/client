@@ -4658,20 +4658,22 @@ export type Update = {
 
 export type update_UpdateConfig = {
   version: string;
-  osName: string;
+  platform: string;
   destinationPath: string;
   source: string;
   URL: string;
   channel: string;
+  force: boolean;
 }
 
 export type UpdateConfig = {
   version: string;
-  osName: string;
+  platform: string;
   destinationPath: string;
   source: string;
   URL: string;
   channel: string;
+  force: boolean;
 }
 
 export type update_UpdateResult = {
