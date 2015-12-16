@@ -187,17 +187,32 @@ func NewWriteAccessError(ctx context.Context, config Config, dir *TlfHandle,
 	return WriteAccessError{uid.String(), dirname}
 }
 
-// NotDirError indicates that the user tried to perform a
-// directory-specific operation on something that isn't a
-// subdirectory.
-type NotDirError struct {
-	path path
+// NotFileBlockError indicates that a file block was expected but a
+// block of a different type was found.
+//
+// ptr and branch should be filled in, but p may be empty.
+type NotFileBlockError struct {
+	ptr    BlockPointer
+	branch BranchName
+	p      path
 }
 
-// Error implements the error interface for NotDirError
-func (e NotDirError) Error() string {
-	return fmt.Sprintf("%s is not a directory (in folder %s)",
-		&e.path, e.path.Tlf)
+func (e NotFileBlockError) Error() string {
+	return fmt.Sprintf("The block at %s is not a file block (branch=%s, path=%s)", e.ptr, e.branch, e.p)
+}
+
+// NotDirBlockError indicates that a file block was expected but a
+// block of a different type was found.
+//
+// ptr and branch should be filled in, but p may be empty.
+type NotDirBlockError struct {
+	ptr    BlockPointer
+	branch BranchName
+	p      path
+}
+
+func (e NotDirBlockError) Error() string {
+	return fmt.Sprintf("The block at %s is not a dir block (branch=%s, path=%s)", e.ptr, e.branch, e.p)
 }
 
 // NotFileError indicates that the user tried to perform a

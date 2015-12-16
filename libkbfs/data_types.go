@@ -816,16 +816,22 @@ func (p path) parentPath() *path {
 	return &path{p.FolderBranch, p.path[:len(p.path)-1]}
 }
 
-// childPathNoPtr returns a new Path with the addition of a new entry
-// with the given name.  That final PathNode will have no BlockPointer.
-func (p path) ChildPathNoPtr(name string) *path {
-	child := &path{
+// ChildPath returns a new Path with the addition of a new entry
+// with the given name and BlockPointer.
+func (p path) ChildPath(name string, ptr BlockPointer) path {
+	child := path{
 		FolderBranch: p.FolderBranch,
 		path:         make([]pathNode, len(p.path), len(p.path)+1),
 	}
 	copy(child.path, p.path)
-	child.path = append(child.path, pathNode{Name: name})
+	child.path = append(child.path, pathNode{Name: name, BlockPointer: ptr})
 	return child
+}
+
+// ChildPathNoPtr returns a new Path with the addition of a new entry
+// with the given name.  That final PathNode will have no BlockPointer.
+func (p path) ChildPathNoPtr(name string) path {
+	return p.ChildPath(name, BlockPointer{})
 }
 
 // hasPublic returns whether or not this is a top-level folder that

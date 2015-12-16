@@ -430,9 +430,7 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 			return nil, fmt.Errorf("Change original (%v -> %v) didn't work",
 				unmergedOriginal, mergedOriginal)
 		}
-		newPath := *unmergedPath.ChildPathNoPtr(cop.NewName)
-		newPath.path[len(newPath.path)-1].BlockPointer =
-			unmergedChain.mostRecent
+		newPath := unmergedPath.ChildPath(cop.NewName, unmergedChain.mostRecent)
 		// recurse for this chain
 		newPaths, err := cr.checkPathForMerge(ctx, unmergedChain, newPath,
 			unmergedChains, mergedChains)
@@ -1475,13 +1473,9 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	if block, ok := lbc[ptr]; ok {
 		return block, nil
 	}
-	block, err := cr.fbo.getBlockForReading(ctx, md, dir, NewDirBlock)
+	dblock, err := cr.fbo.getDirBlockForReading(ctx, md, ptr, dir.Branch, dir)
 	if err != nil {
 		return nil, err
-	}
-	dblock, ok := block.(*DirBlock)
-	if !ok {
-		return nil, NotDirError{dir}
 	}
 	dblock = dblock.DeepCopy()
 	lbc[ptr] = dblock
@@ -1496,15 +1490,9 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	md *RootMetadata, mergedMostRecent BlockPointer, parentPath path,
 	name string, ptr BlockPointer, blocks fileBlockMap) (
 	BlockPointer, error) {
-	file := *parentPath.ChildPathNoPtr(name)
-	file.path[len(file.path)-1].BlockPointer = ptr
-	block, err := cr.fbo.getBlockForReading(ctx, md, file, NewFileBlock)
+	fblock, err := cr.fbo.getFileBlockForReading(ctx, md, ptr, parentPath.Branch, parentPath.ChildPath(name, ptr))
 	if err != nil {
 		return BlockPointer{}, err
-	}
-	fblock, ok := block.(*FileBlock)
-	if !ok {
-		return BlockPointer{}, NotFileError{file}
 	}
 	fblock = fblock.DeepCopy()
 	newPtr := ptr
@@ -1657,21 +1645,12 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 						// Use this merged block
 						uBlock = mergedBlock
 					} else {
-						// Fetch the specified one (fake the full
-						// path).  Don't need to make a copy since this
+						// Fetch the specified one. Don't need to make a copy since this
 						// will just be a source block.
-						dir := path{
-							FolderBranch: mergedPath.FolderBranch,
-							path:         []pathNode{{BlockPointer: newPtr}},
-						}
-						block, err := cr.fbo.getBlockForReading(ctx,
-							mergedChains.mostRecentMD, dir, NewDirBlock)
+						dBlock, err := cr.fbo.getDirBlockForReading(ctx,
+							mergedChains.mostRecentMD, newPtr, mergedPath.Branch, path{})
 						if err != nil {
 							return err
-						}
-						dBlock, ok := block.(*DirBlock)
-						if !ok {
-							return NotDirError{dir}
 						}
 						uBlock = dBlock
 					}
@@ -2000,10 +1979,12 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 	// If this has no children, then sync it, as far back as stopAt.
 	if len(node.children) == 0 {
 		// Look for the directory block or the new file block.
+		entryType := Dir
 		var block Block
 		var ok bool
-		entryType := Dir
 		block, ok = lbc[node.ptr]
+		// non-nil exactly when entryType != Dir.
+		var fblock *FileBlock
 		if !ok {
 			// This must be a file, so look it up in the parent
 			if node.parent == nil {
@@ -2016,11 +1997,12 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 				return nil, fmt.Errorf("No file blocks found for parent %v",
 					node.parent.ptr)
 			}
-			block, ok = fileBlocks[node.mergedPath.tailName()]
+			fblock, ok = fileBlocks[node.mergedPath.tailName()]
 			if !ok {
 				return nil, fmt.Errorf("No file block found name %s under "+
 					"parent %v", node.mergedPath.tailName(), node.parent.ptr)
 			}
+			block = fblock
 			entryType = File // TODO: FIXME for Ex and Sym
 		}
 
@@ -2033,10 +2015,6 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, newMD *RootMetadata,
 		}
 
 		if entryType != Dir {
-			fblock, ok := block.(*FileBlock)
-			if !ok {
-				return nil, NotFileError{node.mergedPath}
-			}
 			if fblock.IsInd {
 				// For an indirect file block, make sure a new
 				// reference is made for every child block.
