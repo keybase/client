@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"strings"
 
 	"github.com/nlopes/slack"
@@ -138,15 +137,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	gopath := os.Getenv("GOPATH")
-	if token == "" {
-		log.Fatal("GOPATH is not set")
-	}
-
 	// For debugging
 	bot.AddCommand(Command{trigger: "date", execute: "/bin/date", showResult: true})
 
-	buildpath := path.Join(gopath, "src/github.com/keybase/client/packaging/prerelease/build_app_darwin.sh")
+	buildpath := "/bin/launchctl start keybase.prerelease"
 	bot.AddCommand(Command{trigger: "build", execute: buildpath})
 
 	bot.Listen()
