@@ -81,6 +81,12 @@ app_version=$keybase_version
 dmg_name="${app_name}-${app_version}${comment}.dmg"
 zip_name="${app_name}-${app_version}${comment}.zip"
 
+send_message() {
+  if [ ! "$slack_token" = "" ] && [ ! "$slack_channel" = "" ]; then
+    echo $1 | slackcat -c $slack_channel -k $slack_token -p
+  fi
+}
+
 clean() {
   echo "Cleaning"
   rm -rf $build_dir
@@ -183,14 +189,11 @@ save() {
   if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
     s3cmd sync --skip-existing --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
   fi
+
+  slack_message "Built $app_version at https://$bucket_name.s3.amazonaws.com/$dmg_name"
 }
 
-announce() {
-  if [ ! "$slack_token" = "" ] && [ ! "$slack_channel" = "" ]; then
-    echo "Built $app_version at https://$bucket_name.s3.amazonaws.com/$dmg_name" | slackcat -c $slack_channel -k $slack_token -p
-  fi
-}
-
+slack_message "Building $app_version"
 clean
 get_deps
 package_electron
@@ -200,4 +203,3 @@ sign
 package_dmg
 create_zip
 save
-announce
