@@ -6,7 +6,7 @@ export const isDev = __DEV__
 /* eslint-enable no-undef */
 export const OS = OS_DESKTOP
 export const isMobile = false
-export const kbfsPath = `${process.env.HOME}/keybase`
+export const kbfsPath = '/keybase'
 
 const runMode = process.env.KEYBASE_RUN_MODE || 'prod'
 
