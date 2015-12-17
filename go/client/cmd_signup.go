@@ -356,7 +356,7 @@ func (s *CmdSignup) MakePrompter() {
 		Defval:           s.defaultDevice,
 		Name:             "devname",
 		Prompt:           "A public name for this device",
-		Checker:          &libkb.CheckNotEmpty,
+		Checker:          &libkb.CheckDeviceName,
 		PromptDescriptor: PromptDescriptorSignupDevice,
 	}
 
