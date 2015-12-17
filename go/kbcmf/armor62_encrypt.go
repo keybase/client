@@ -26,17 +26,13 @@ func (c closeForwarder) Close() error {
 // NewEncryptArmor62Stream creates a stream that consumes plaintext data.
 // It will write out encrypted data to the io.Writer passed in as ciphertext.
 // The encryption is from the specified sender, and is encrypted for the
-// given receivers.  Note that receivers as specified as two-dimensional array.
-// Each inner group of receivers shares the same pairwise MAC-key, so should
-// represent a logic receiver split across multiple devices.  Each group of
-// receivers represents a mutually distrustful set of receivers, and will each
-// get their own pairwise-MAC keys.
+// given receivers.
 //
 // The ciphertext is additionally armored with the recommended armor62-style format.
 //
 // Returns an io.WriteCloser that accepts plaintext data to be encrypted; and
 // also returns an error if initialization failed.
-func NewEncryptArmor62Stream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey) (plaintext io.WriteCloser, err error) {
+func NewEncryptArmor62Stream(ciphertext io.Writer, sender BoxSecretKey, receivers []BoxPublicKey) (plaintext io.WriteCloser, err error) {
 	enc, err := NewArmor62EncoderStream(ciphertext, EncryptionArmorHeader, EncryptionArmorFooter)
 	if err != nil {
 		return nil, err
@@ -50,7 +46,7 @@ func NewEncryptArmor62Stream(ciphertext io.Writer, sender BoxSecretKey, receiver
 
 // EncryptArmor62Seal is the non-streaming version of NewEncryptArmor62Stream, which
 // inputs a plaintext (in bytes) and output a ciphertext (as a string).
-func EncryptArmor62Seal(plaintext []byte, sender BoxSecretKey, receivers [][]BoxPublicKey) (string, error) {
+func EncryptArmor62Seal(plaintext []byte, sender BoxSecretKey, receivers []BoxPublicKey) (string, error) {
 	var buf bytes.Buffer
 	enc, err := NewEncryptArmor62Stream(&buf, sender, receivers)
 	if err != nil {

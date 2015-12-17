@@ -5,7 +5,6 @@ package kbcmf
 
 import (
 	"bytes"
-	"encoding/hex"
 	"golang.org/x/crypto/nacl/secretbox"
 	"io"
 )
@@ -14,14 +13,12 @@ type testEncryptionOptions struct {
 	blockSize                          int
 	skipFooter                         bool
 	corruptEncryptionBlock             func(bl *EncryptionBlock, ebn encryptionBlockNumber)
-	corruptNonce                       func(n *Nonce, ebn encryptionBlockNumber)
-	corruptMacKey                      func(k *SymmetricKey, i int)
-	corruptReceiverKeysPlaintext       func(rk *receiverKeysPlaintext, gid int, rid int)
-	corruptReceiverKeysPlaintextPacked func(b []byte, gid int, rid int)
-	corruptReceiverKeysCiphertext      func(rk *receiverKeysCiphertexts, gid int, rid int)
-	corruptHeaderNonce                 func(n *Nonce, gid int, rid int, slot int)
+	corruptPayloadNonce                func(n *Nonce, ebn encryptionBlockNumber) *Nonce
+	corruptKeysNonce                   func(n *Nonce, rid int) *Nonce
+	corruptReceiverKeysPlaintext       func(rk *receiverKeysPlaintext, rid int)
+	corruptReceiverKeysPlaintextPacked func(b []byte, rid int)
+	corruptReceiverKeysCiphertext      func(rk *receiverKeysCiphertexts, rid int)
 	corruptHeader                      func(eh *EncryptionHeader)
-	corruptHeaderSenderKey             func(sk []byte, git int, rid int) []byte
 	corruptHeaderPacked                func(b []byte)
 }
 
@@ -39,8 +36,9 @@ type testEncryptStream struct {
 	sessionKey SymmetricKey
 	buffer     bytes.Buffer
 	inblock    []byte
-	macGroups  []SymmetricKey
 	options    testEncryptionOptions
+	tagKeys    []BoxPrecomputedSharedKey
+	nonce      *Nonce
 
 	numBlocks encryptionBlockNumber // the lower 64 bits of the nonce
 
@@ -80,15 +78,6 @@ func (pes *testEncryptStream) Write(plaintext []byte) (int, error) {
 	return ret, nil
 }
 
-func (pes *testEncryptStream) macForAllGroups(b []byte) [][]byte {
-	var macs [][]byte
-	for _, key := range pes.macGroups {
-		mac := hmacSHA512(key[:], b)
-		macs = append(macs, mac)
-	}
-	return macs
-}
-
 func (pes *testEncryptStream) encryptBlock() error {
 	var n int
 	var err error
@@ -105,21 +94,27 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 		return err
 	}
 
-	nonce := pes.numBlocks.newCounterNonce()
+	nonce := pes.nonce.ForPayloadBox(pes.numBlocks)
 
-	if pes.options.corruptNonce != nil {
-		pes.options.corruptNonce(nonce, pes.numBlocks)
+	if pes.options.corruptPayloadNonce != nil {
+		nonce = pes.options.corruptPayloadNonce(nonce, pes.numBlocks)
 	}
 
-	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.sessionKey))
-	// Compute the MAC over the nonce and the ciphertext
-	sum := hashNonceAndAuthTag(nonce, ciphertext)
-	macs := pes.macForAllGroups(sum)
+	raw := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.sessionKey))
+
+	tag := raw[0:secretbox.Overhead]
+	ciphertext := raw[secretbox.Overhead:]
+
 	block := EncryptionBlock{
-		Version:    PacketVersion1,
-		Tag:        PacketTagEncryptionBlock,
-		Ciphertext: ciphertext,
-		MACs:       macs,
+		PayloadCiphertext: ciphertext,
+	}
+
+	for _, tagKey := range pes.tagKeys {
+		tag, err := tagKey.Box(nonce, tag)
+		if err != nil {
+			return err
+		}
+		block.TagCiphertexts = append(block.TagCiphertexts, tag)
 	}
 
 	if pes.options.corruptEncryptionBlock != nil {
@@ -127,122 +122,97 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 	}
 
 	if err := pes.encoder.Encode(block); err != nil {
-		return nil
+		return err
 	}
 
 	pes.numBlocks++
 	return nil
 }
 
-func (pes *testEncryptStream) init(sender BoxSecretKey, receivers [][]BoxPublicKey) error {
+func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) error {
 
-	ephemeralKey, err := receivers[0][0].CreateEphemeralKey()
+	ephemeralKey, err := receivers[0].CreateEphemeralKey()
 	if err != nil {
 		return err
 	}
 
 	// If we have a NULL Sender key, then we really want an ephemeral key
 	// as the main encryption key.
+	senderAnon := false
 	if sender == nil {
 		sender = ephemeralKey
+		senderAnon = true
 	}
 
 	eh := &EncryptionHeader{
-		Version:   PacketVersion1,
-		Tag:       PacketTagEncryptionHeader,
-		Sender:    ephemeralKey.GetPublicKey().ToKID(),
-		Receivers: make([]receiverKeysCiphertexts, 0, len(receivers)),
+		FormatName: SaltPackFormatName,
+		Version:    SaltPackCurrentVersion,
+		Type:       MessageTypeEncryption,
+		Sender:     ephemeralKey.GetPublicKey().ToKID(),
+		Receivers:  make([]receiverKeysCiphertexts, 0, len(receivers)),
 	}
 	pes.header = eh
 	if err := randomFill(pes.sessionKey[:]); err != nil {
 		return err
 	}
 
-	var nonce Nonce
-	keyToNonce(&nonce, ephemeralKey.GetPublicKey())
+	pes.nonce = NewNonceForEncryption(ephemeralKey.GetPublicKey())
+	nonce := pes.nonce.ForKeyBox()
 
-	d := make(map[string]struct{})
+	for rid, receiver := range receivers {
 
-	var i uint32
+		rkp := receiverKeysPlaintext{
+			Sender:     sender.GetPublicKey().ToKID(),
+			SessionKey: pes.sessionKey[:],
+		}
 
-	for gid, group := range receivers {
-		var macKey SymmetricKey
-		if err := randomFill(macKey[:]); err != nil {
+		if pes.options.corruptReceiverKeysPlaintext != nil {
+			pes.options.corruptReceiverKeysPlaintext(&rkp, rid)
+		}
+
+		rkpPacked, err := encodeToBytes(rkp)
+		if err != nil {
 			return err
 		}
-		pes.macGroups = append(pes.macGroups, macKey)
-
-		if pes.options.corruptMacKey != nil {
-			pes.options.corruptMacKey(&macKey, gid)
+		if pes.options.corruptReceiverKeysPlaintextPacked != nil {
+			pes.options.corruptReceiverKeysPlaintextPacked(rkpPacked, rid)
 		}
 
-		for rid, receiver := range group {
-			kid := receiver.ToKID()
-			kidString := hex.EncodeToString(kid)
-			if _, found := d[kidString]; found {
-				return ErrRepeatedKey(kid)
-			}
-			d[kidString] = struct{}{}
-
-			pt := receiverKeysPlaintext{
-				GroupID:    (uint32(gid) | groupIDMask),
-				SessionKey: pes.sessionKey[:],
-				MACKey:     macKey[:],
-			}
-
-			if pes.options.corruptReceiverKeysPlaintext != nil {
-				pes.options.corruptReceiverKeysPlaintext(&pt, gid, rid)
-			}
-
-			pte, err := encodeToBytes(pt)
-			if pes.options.corruptReceiverKeysPlaintextPacked != nil {
-				pes.options.corruptReceiverKeysPlaintextPacked(pte, gid, rid)
-			}
-			if err != nil {
-				return err
-			}
-			nonce.writeCounter32(i)
-			i++
-
-			if pes.options.corruptHeaderNonce != nil {
-				pes.options.corruptHeaderNonce(&nonce, gid, rid, 0)
-			}
-
-			skp := sender.GetPublicKey().ToKID()
-			if pes.options.corruptHeaderSenderKey != nil {
-				skp = pes.options.corruptHeaderSenderKey(skp, gid, rid)
-			}
-
-			ske, err := ephemeralKey.Box(receiver, &nonce, skp)
-			if err != nil {
-				return err
-			}
-
-			if pes.options.corruptHeaderNonce != nil {
-				pes.options.corruptHeaderNonce(&nonce, gid, rid, 1)
-			}
-
-			nonce.writeCounter32(i)
-			i++
-
-			ptec, err := sender.Box(receiver, &nonce, pte)
-			if err != nil {
-				return err
-			}
-
-			rkc := receiverKeysCiphertexts{
-				KID:    kid,
-				Keys:   ptec,
-				Sender: ske,
-			}
-
-			if pes.options.corruptReceiverKeysCiphertext != nil {
-				pes.options.corruptReceiverKeysCiphertext(&rkc, gid, rid)
-			}
-
-			eh.Receivers = append(eh.Receivers, rkc)
+		if err != nil {
+			return err
 		}
+
+		nonceTmp := nonce
+		if pes.options.corruptKeysNonce != nil {
+			nonceTmp = pes.options.corruptKeysNonce(nonceTmp, rid)
+		}
+
+		keys, err := ephemeralKey.Box(receiver, nonceTmp, rkpPacked)
+		if err != nil {
+			return err
+		}
+
+		rkc := receiverKeysCiphertexts{
+			ReceiverKID: receiver.ToKID(),
+			Keys:        keys,
+		}
+
+		if pes.options.corruptReceiverKeysCiphertext != nil {
+			pes.options.corruptReceiverKeysCiphertext(&rkc, rid)
+		}
+
+		eh.Receivers = append(eh.Receivers, rkc)
+
+		var tagKey BoxPrecomputedSharedKey
+		if !senderAnon {
+			tagKey = sender.Precompute(receiver)
+		} else {
+			tagKey = ephemeralKey.Precompute(receiver)
+		}
+
+		pes.tagKeys = append(pes.tagKeys, tagKey)
 	}
+
 	if pes.options.corruptHeader != nil {
 		pes.options.corruptHeader(eh)
 	}
@@ -269,7 +239,7 @@ func (pes *testEncryptStream) writeFooter() error {
 
 // Options are available mainly for testing.  Can't think of a good reason for
 // end-users to have to specify options.
-func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [][]BoxPublicKey, options testEncryptionOptions) (plaintext io.WriteCloser, err error) {
+func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers []BoxPublicKey, options testEncryptionOptions) (plaintext io.WriteCloser, err error) {
 	pes := &testEncryptStream{
 		output:  ciphertext,
 		encoder: newEncoder(ciphertext),
@@ -282,7 +252,7 @@ func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [
 	return pes, nil
 }
 
-func testSeal(plaintext []byte, sender BoxSecretKey, receivers [][]BoxPublicKey, options testEncryptionOptions) (out []byte, err error) {
+func testSeal(plaintext []byte, sender BoxSecretKey, receivers []BoxPublicKey, options testEncryptionOptions) (out []byte, err error) {
 	var buf bytes.Buffer
 	es, err := newTestEncryptStream(&buf, sender, receivers, options)
 	if err != nil {

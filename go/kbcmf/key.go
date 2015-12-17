@@ -10,7 +10,7 @@ import ()
 type RawBoxKey [32]byte
 
 // SymmetricKey is a template for a symmetric key, a 32-byte static
-// buffer.  Used for both NaCl SecretBox and also HMAC keys.
+// buffer.  Used for both NaCl SecretBox.
 type SymmetricKey [32]byte
 
 // BoxPublicKey is an generic interface to NaCl's public key Box function.
@@ -34,13 +34,10 @@ type BoxPublicKey interface {
 	HideIdentity() bool
 }
 
-// Nonce is a NaCl-style nonce, with 24 bytes of data, some of which can be
-// counter values, and some of which can be truly random values.
-type Nonce [24]byte
-
 // BoxPrecomputedSharedKey results from a Precomputation below.
 type BoxPrecomputedSharedKey interface {
 	Unbox(nonce *Nonce, msg []byte) ([]byte, error)
+	Box(nonce *Nonce, msg []byte) ([]byte, error)
 }
 
 // BoxSecretKey is the secret key corresponding to a BoxPublicKey
