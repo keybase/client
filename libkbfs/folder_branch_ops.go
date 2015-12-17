@@ -3650,26 +3650,34 @@ func (fbo *folderBranchOps) notifyOneOp(ctx context.Context, op op,
 		}
 
 		// Fix up any cached de entry
-		if dirEntry, ok := fbo.deCache[p.tailPointer()]; ok {
-			if fileEntry, ok := dirEntry[de.BlockPointer]; ok {
-				// Get the real dir block; we can't use getEntry()
-				// since it swaps in the cached dir entry.
-				dblock, err := fbo.getDirBlockForReading(ctx, md,
-					p.tailPointer(), p.Branch, path{})
-				if err != nil {
-					return
-				}
-
-				if realEntry, ok := dblock.Children[realOp.Name]; ok {
-					switch realOp.Attr {
-					case exAttr:
-						fileEntry.Type = realEntry.Type
-					case mtimeAttr:
-						fileEntry.Mtime = realEntry.Mtime
+		err = func() error {
+			fbo.cacheLock.Lock()
+			defer fbo.cacheLock.Unlock()
+			if dirEntry, ok := fbo.deCache[p.tailPointer()]; ok {
+				if fileEntry, ok := dirEntry[de.BlockPointer]; ok {
+					// Get the real dir block; we can't use getEntry()
+					// since it swaps in the cached dir entry.
+					dblock, err := fbo.getDirBlockForReading(ctx, md,
+						p.tailPointer(), p.Branch, p)
+					if err != nil {
+						return err
 					}
-					dirEntry[de.BlockPointer] = fileEntry
+
+					if realEntry, ok := dblock.Children[realOp.Name]; ok {
+						switch realOp.Attr {
+						case exAttr:
+							fileEntry.Type = realEntry.Type
+						case mtimeAttr:
+							fileEntry.Mtime = realEntry.Mtime
+						}
+						dirEntry[de.BlockPointer] = fileEntry
+					}
 				}
 			}
+			return nil
+		}()
+		if err != nil {
+			return
 		}
 
 		changes = append(changes, NodeChange{
