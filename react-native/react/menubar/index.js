@@ -61,7 +61,7 @@ class Menubar extends Component {
         folderName: f.name,
         isPublic: !f.private,
         // TODO we don't get this information right now,
-        isEmpty: true,
+        isEmpty: false,
         openFolder: () => { shell.openItem(`${kbfsPath}/${f.private ? 'private' : 'public'}/${f.name}`); closeMenubar() }
       }
     })

@@ -224,8 +224,8 @@ class FolderList extends Component {
       openFolder: this.props.openKBFSPublic
     }
 
-    const privateFolders = [].concat([personalPrivateFolder], folders.filter(f => !f.isPublic))
-    const publicFolders = [].concat([personalPublicFolder], folders.filter(f => f.isPublic))
+    const privateFolders = [personalPrivateFolder].concat(folders.filter(f => !f.isPublic))
+    const publicFolders = [personalPublicFolder].concat(folders.filter(f => f.isPublic))
 
     return (
       <div style={{display: 'flex', flexDirection: 'column', backgroundColor: colors.trueWhite, paddingTop: 17, paddingLeft: 18, paddingBottom: 9, maxHeight: 400, overflow: 'scroll'}}>
@@ -286,8 +286,8 @@ const personalTLDStyle = {
 }
 
 const SVGFolderIcon = svgPath => ({
-  height: 25,
+  height: 28,
   width: 25,
-  backgroundPositionY: -3,
-  backgroundImage: `url(${svgPath})`
+  backgroundImage: `url(${svgPath})`,
+  backgroundRepeat: 'no-repeat'
 })
