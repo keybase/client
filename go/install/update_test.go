@@ -4,6 +4,8 @@
 package install
 
 import (
+	"archive/zip"
+	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -31,13 +33,18 @@ func (u nullUpdateUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg
 }
 
 func (u testUpdateSource) FindUpdate(config keybase1.UpdateConfig) (release *keybase1.Update, err error) {
+	path, err := createTestUpdateZip()
+	if err != nil {
+		return nil, err
+	}
+
 	return &keybase1.Update{
 		Version:     "1.0.1",
 		Name:        "Test",
 		Description: "Bug fixes",
 		Asset: keybase1.Asset{
 			Name: "Test-1.0.1.zip",
-			Url:  "https://keybase-app.s3.amazonaws.com/Test-1.0.1.zip",
+			Url:  fmt.Sprintf("file://%s", path),
 		}}, nil
 }
 
@@ -46,7 +53,7 @@ func NewDefaultTestUpdateConfig() keybase1.UpdateConfig {
 		Version:         "1.0.0",
 		Platform:        runtime.GOOS,
 		DestinationPath: path.Join(os.TempDir(), "Test"),
-		Source:          "local",
+		Source:          "test",
 	}
 }
 
@@ -72,36 +79,28 @@ func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
 	}
 }
 
-func TestUpdateDownloadAsset(t *testing.T) {
-	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
-
-	asset := keybase1.Asset{Name: "Test-1.0.1.zip", Url: "https://keybase-app.s3.amazonaws.com/Test-1.0.1.zip"}
-
-	// Clear any cached file
-	assetPath := u.pathForFilename(asset.Name)
-	os.Remove(assetPath)
-
-	dlpath, cached, err := u.downloadAsset(asset)
+func createTestUpdateZip() (string, error) {
+	path := path.Join(os.TempDir(), "Test.zip")
+	if _, err := os.Stat("/path/to/whatever"); err == nil {
+		return path, nil
+	}
+	zipFile, err := os.Create(path)
 	if err != nil {
-		t.Error(err)
+		return "", err
 	}
-	defer os.Remove(dlpath)
-	if cached {
-		t.Errorf("Shouldn't have been cached")
-	}
-	if dlpath == "" {
-		t.Errorf("No download path")
-	}
+	defer zipFile.Close()
 
-	// Download again, check it was cached
-	dlpath, cached, err = u.downloadAsset(asset)
+	w := zip.NewWriter(zipFile)
+	f, err := w.Create("Test/Test.txt")
 	if err != nil {
-		t.Error(err)
+		return "", err
 	}
-	if !cached {
-		t.Errorf("Not cached")
+	_, err = f.Write([]byte("This is a test file for updates"))
+	if err != nil {
 	}
-	if dlpath == "" {
-		t.Errorf("No download path")
+	err = w.Close()
+	if err != nil {
+		return "", err
 	}
+	return path, nil
 }

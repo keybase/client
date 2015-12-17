@@ -8,14 +8,13 @@ cd "$dir"
 build_dir=${BUILD_DIR:-/tmp/build_keybase}
 mkdir -p $build_dir
 
-# This might be different for linux, e.g. date -d @$(git log -n1 --format="%at") +%Y%m%d%H%M%S`
-date_last_commit=`date -r $(git log -n1 --format="%at") +%Y%m%d%H%M%S`
+current_date=`date +%Y%m%d%H%M%S`
 commit_short=`git log -1 --pretty=format:%h`
-build="$date_last_commit+$commit_short"
+build="$current_date+$commit_short"
 keybase_build=${KEYBASE_BUILD:-$build}
 
 echo "Building $build_dir/keybase ($keybase_build)"
-GO15VENDOREXPERIMENT=1 go build -a -tags "production" -ldflags "-X github.com/keybase/client/go/libkb.CustomBuild=$keybase_build" -o $build_dir/keybase github.com/keybase/client/go/keybase
+GO15VENDOREXPERIMENT=1 go build -a -tags "prerelease production" -ldflags "-X github.com/keybase/client/go/libkb.CustomBuild=$keybase_build" -o $build_dir/keybase github.com/keybase/client/go/keybase
 
 version=`$build_dir/keybase version -S`
 echo "Keybase version: $version"

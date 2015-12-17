@@ -12,6 +12,13 @@ tmp_dir="$dir/tmp"
 bucket_name=${BUCKET_NAME:-}
 slack_token=${SLACK_TOKEN:-}
 slack_channel=${SLACK_CHANNEL:-}
+run_mode="prod"
+
+s3host=""
+if [ ! "$bucket_name" = "" ]; then
+  # Use this syntax since bucket_name might have dots (.)
+  s3host="https://s3.amazonaws.com/$bucket_name"
+fi
 
 # Ensure we have packaging tools
 npm install
@@ -22,16 +29,16 @@ keybase_version=""
 kbfs_version=""
 comment=""
 
-KEYBASE_BINPATH=${KEYBASE_BINPATH:-}
-KBFS_BINPATH=${KBFS_BINPATH:-}
+keybase_binpath=${KEYBASE_BINPATH:-}
+kbfs_binpath=${KBFS_BINPATH:-}
 
 echo "Loading release tool"
 go install github.com/keybase/client/go/tools/release
 release_bin="$GOPATH/bin/release"
 
 if [ "$keybase_version" = "" ]; then
-  if [ ! "$KEYBASE_BINPATH" = "" ]; then
-    keybase_version=`$KEYBASE_BINPATH version -S`
+  if [ ! "$keybase_binpath" = "" ]; then
+    keybase_version=`$keybase_binpath version -S`
     echo "Using keybase (bin) version: $keybase_version"
   else
     keybase_version=`$release_bin --repo=client latest-version`
@@ -40,8 +47,8 @@ if [ "$keybase_version" = "" ]; then
 fi
 
 if [ "$kbfs_version" = "" ]; then
-  if [ ! "$KBFS_BINPATH" = "" ]; then
-    kbfs_version=`$KBFS_BINPATH -version`
+  if [ ! "$kbfs_binpath" = "" ]; then
+    kbfs_version=`$kbfs_binpath -version`
     echo "Using kbfs (bin) version: $kbfs_version"
   else
     kbfs_version=`$release_bin --repo=kbfs-beta latest-version`
@@ -179,10 +186,12 @@ save() {
     echo "Saved files to $save_dir"
   fi
 
-  $release_bin -version $app_version -src $zip_name update-json > update.json
+  if [ ! "$s3host" = "" ]; then
+    $release_bin -version $app_version -src $zip_name -host $s3host update-json > update-darwin-$run_mode.json
+  fi
 
   if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
-    s3cmd sync --skip-existing --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
+    s3cmd sync --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
   fi
 }
 
@@ -196,4 +205,4 @@ package_dmg
 create_zip
 save
 
-"$client_dir/packaging/slack/send.sh" "Built $app_version at https://$bucket_name.s3.amazonaws.com"
+"$client_dir/packaging/slack/send.sh" "Built $app_version at $s3host"

@@ -41,6 +41,16 @@ func NewUpdater(g *libkb.GlobalContext, config keybase1.UpdateConfig, source sou
 	}
 }
 
+func NewKeybaseUpdater(g *libkb.GlobalContext) *Updater {
+	config := DefaultUpdaterConfig(g)
+	if config == nil {
+		g.Log.Info("No updater available for this environment")
+		return nil
+	}
+	updater := NewUpdater(g, *config, sources.NewKeybaseUpdateSource(g))
+	return &updater
+}
+
 func (u Updater) Config() keybase1.UpdateConfig {
 	return u.config
 }
@@ -385,17 +395,6 @@ func DefaultUpdaterConfig(g *libkb.GlobalContext) *keybase1.UpdateConfig {
 
 var UpdateAutomatically = true
 var UpdateCheckDuration = (24 * time.Hour)
-
-func UpdaterStartTicker(g *libkb.GlobalContext) *Updater {
-	config := DefaultUpdaterConfig(g)
-	if config == nil {
-		g.Log.Info("No updater available for this environment")
-		return nil
-	}
-	updater := NewUpdater(g, *config, sources.NewKeybaseUpdateSource(g))
-	updater.StartUpdateCheck()
-	return &updater
-}
 
 func (u *Updater) updateTick() {
 	ui, _ := u.G().UIRouter.GetUpdateUI()

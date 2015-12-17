@@ -49,7 +49,7 @@ func (u *UpdateEngine) Run(ctx *Context) (err error) {
 		u.G().Log.Debug("- UpdateEngine Run")
 	}()
 
-	source, err := sources.UpdateSourceForName(u.G(), u.config.Source)
+	source, err := sources.NewUpdateSourceForName(u.G(), u.config.Source)
 	if err != nil {
 		return
 	}
