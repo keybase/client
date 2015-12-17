@@ -9,25 +9,27 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-type CmdPassphraseChange struct{}
+type CmdPassphraseChange struct {
+	libkb.Contextified
+}
 
-func NewCmdPassphraseChange(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPassphraseChange(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "change",
 		Usage: "Change your keybase account passphrase.",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPassphraseChange{}, "change", c)
+			cl.ChooseCommand(&CmdPassphraseChange{Contextified: libkb.NewContextified(g)}, "change", c)
 		},
 	}
 }
 
 func (c *CmdPassphraseChange) Run() error {
-	pp, err := PromptNewPassphrase(G)
+	pp, err := PromptNewPassphrase(c.G())
 	if err != nil {
 		return err
 	}
 
-	if err := passphraseChange(G, newChangeArg(pp, false)); err != nil {
+	if err := passphraseChange(c.G(), newChangeArg(pp, false)); err != nil {
 		GlobUI.Println()
 		GlobUI.Println("There was a problem during the standard update of your passphrase.")
 		GlobUI.Printf("\n%s\n\n", err)
@@ -37,7 +39,7 @@ func (c *CmdPassphraseChange) Run() error {
 		return err
 	}
 
-	G.Log.Info("Passphrase changed.")
+	c.G().Log.Info("Passphrase changed.")
 	return nil
 }
 

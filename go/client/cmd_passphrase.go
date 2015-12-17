@@ -6,15 +6,16 @@ package client
 import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 )
 
-func NewCmdPassphrase(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPassphrase(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "passphrase",
 		Usage: "Change or recover your keybase passphrase",
 		Subcommands: []cli.Command{
-			NewCmdPassphraseChange(cl),
-			NewCmdPassphraseRecover(cl),
+			NewCmdPassphraseChange(cl, g),
+			NewCmdPassphraseRecover(cl, g),
 		},
 	}
 }

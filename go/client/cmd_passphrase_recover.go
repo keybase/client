@@ -9,14 +9,16 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-type CmdPassphraseRecover struct{}
+type CmdPassphraseRecover struct {
+	libkb.Contextified
+}
 
-func NewCmdPassphraseRecover(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPassphraseRecover(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "recover",
 		Usage: "Recover your keybase account passphrase",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPassphraseRecover{}, "recover", c)
+			cl.ChooseCommand(&CmdPassphraseRecover{Contextified: libkb.NewContextified(g)}, "recover", c)
 		},
 	}
 }
@@ -31,11 +33,11 @@ func (c *CmdPassphraseRecover) Run() error {
 	if err := c.confirm(); err != nil {
 		return err
 	}
-	pp, err := PromptNewPassphrase(G)
+	pp, err := PromptNewPassphrase(c.G())
 	if err != nil {
 		return err
 	}
-	return passphraseChange(G, newChangeArg(pp, true))
+	return passphraseChange(c.G(), newChangeArg(pp, true))
 }
 
 func (c *CmdPassphraseRecover) ParseArgv(ctx *cli.Context) error {
