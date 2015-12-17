@@ -25,6 +25,10 @@ declare module 'material-ui/lib/svg-icons/navigation/close' {
 declare class Notification {
 }
 
+declare module 'resolveAssets' {
+  declare var exports: (s: string) => string;
+}
+
 // Algebraic data types
 // This is a bit hacky, but it gives you strong gaurantees.
 

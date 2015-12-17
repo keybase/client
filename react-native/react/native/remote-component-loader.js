@@ -32,7 +32,6 @@ class RemoteComponentLoader extends Component {
 
     const substore = getQueryVariable('substore')
     this.store = new RemoteStore({substore})
-    this.store.dispatch = this.store.dispatch.bind(this.store)
 
     const componentToLoad = getQueryVariable('component')
 
