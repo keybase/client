@@ -1,8 +1,6 @@
 /* @flow */
 import {ipcRenderer} from 'electron'
 
-import type {Action, Dispatch} from '../constants/types/flux'
-
 export default class RemoteStore {
   listeners: Array<Function>;
   internalState: any;
@@ -21,6 +19,7 @@ export default class RemoteStore {
 
     this.listeners = []
     this.internalState = {}
+    this.dispatch = this.dispatch.bind(this)
   }
 
   getState (): any {
