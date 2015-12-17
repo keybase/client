@@ -10,7 +10,8 @@ import resolveAssets from '../resolve-assets'
 import hotPath from '../hot-path'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 
-const menubarIconPath = resolveAssets('./Icon.png')
+const menubarIconPath = resolveAssets('../react-native/react/images/menubarIcon/topBar_iconTemplate.png')
+const menubarLoadingIconPath = resolveAssets('../react-native/react/images/menubarIcon/topBar_icon_loadingTemplate.png')
 
 const mb = menubar({
   index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}`,
@@ -18,6 +19,14 @@ const mb = menubar({
   preloadWindow: true,
   icon: menubarIconPath,
   showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
+})
+
+ipc.on('showTrayLoading', () => {
+  mb.tray.setImage(menubarLoadingIconPath)
+})
+
+ipc.on('showTrayNormal', () => {
+  mb.tray.setImage(menubarIconPath)
 })
 
 mb.on('after-create-window', () => {
