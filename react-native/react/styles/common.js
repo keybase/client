@@ -24,6 +24,7 @@ export const colors = {
   grey65: '#a6a6a6',
   warmGrey: '#777777',
   paleGrey: '#ebf0f5',
+  transparentGrey: 'rgba(68, 68, 68, 0.10)',
   greyBackground: '#f7f7f6',
   white: '#f6f6f4',
   trueWhite: '#ffffff',
