@@ -19,6 +19,7 @@ export default class RemoteStore {
 
     this.listeners = []
     this.internalState = {}
+    // $FlowIssue With reading methods inside constructor
     this.dispatch = this.dispatch.bind(this)
   }
 
