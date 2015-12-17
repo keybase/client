@@ -989,17 +989,19 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 		return
 	}
 
-	var block *DirBlock
+	var dblock *DirBlock
 	fbo.execReadThenWrite(func(rtype reqType) error {
-		block, err = fbo.getDirLocked(ctx, md, dirPath, rtype)
+		dblock, err = fbo.getDirLocked(ctx, md, dirPath, rtype)
 		return err
 	})
 	if err != nil {
 		return
 	}
 
+	dblock = fbo.updateDirBlock(ctx, dirPath, dblock)
+
 	children = make(map[string]EntryInfo)
-	for k, de := range block.Children {
+	for k, de := range dblock.Children {
 		children[k] = de.EntryInfo
 	}
 	return
