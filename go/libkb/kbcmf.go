@@ -51,6 +51,11 @@ func (k naclBoxPrecomputedSharedKey) Unbox(nonce *kbcmf.Nonce, msg []byte) (
 	return ret, nil
 }
 
+func (k naclBoxPrecomputedSharedKey) Box(nonce *kbcmf.Nonce, msg []byte) ([]byte, error) {
+	ret := box.SealAfterPrecomputation([]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&k))
+	return ret, nil
+}
+
 type naclBoxSecretKey NaclDHKeyPair
 
 var _ kbcmf.BoxSecretKey = naclBoxSecretKey{}
