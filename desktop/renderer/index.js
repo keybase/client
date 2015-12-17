@@ -15,6 +15,7 @@ import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 // For Remote Components
 import RemoteManager from '../../react-native/react/native/remote-manager'
 import {ipcMain} from 'remote'
+import net from 'net'
 
 let DevTools = null
 let DebugPanel = null
@@ -40,6 +41,16 @@ function NotifyPopup (title: string, opts: Object): void {
 class Keybase extends Component {
   constructor () {
     super()
+
+    // This net.connect() is a heinous hack.
+    //
+    // On Windows, but *only* in the renderer thread, our RPC connection
+    // hangs until other random net module operations, at which point it
+    // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
+    // bug, who knows.
+    if (process.platform === 'win32') {
+      net.connect({})
+    }
 
     this.state = {
       panelShowing: false
