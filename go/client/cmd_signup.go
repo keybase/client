@@ -215,7 +215,7 @@ func (s *CmdSignup) prompt() (err error) {
 		// use a delegated secret ui when available.
 		//
 		var res keybase1.GetPassphraseRes
-		res, err = libkb.GetSignupPassphrase(s.G().UI.GetSecretUI())
+		res, err = s.promptPassphrase()
 		if err != nil {
 			return
 		}
@@ -459,4 +459,53 @@ func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {
 	}
 
 	return
+}
+
+func (s *CmdSignup) promptPassphrase() (keybase1.GetPassphraseRes, error) {
+	arg := libkb.DefaultPassphraseArg()
+	arg.WindowTitle = "Passphrase"
+	arg.Prompt = "Pick a strong passphrase (12+ characters)"
+	res, err := s.promptPassphraseUntilCheck(arg, &libkb.CheckPassphraseNew)
+	if err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	}
+
+	// get confirmation
+	match := &libkb.Checker{
+		F: func(s string) bool {
+			return s == res.Passphrase
+		},
+		Hint: "Passphrase mismatch",
+	}
+	arg.RetryLabel = ""
+	arg.Prompt = "Please reenter your passphrase for confirmation"
+	_, err = s.promptPassphraseUntilCheck(arg, match)
+	if err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	}
+
+	return res, nil
+}
+
+func (s *CmdSignup) promptPassphraseUntilCheck(arg keybase1.GUIEntryArg, checker *libkb.Checker) (keybase1.GetPassphraseRes, error) {
+	cli, err := GetAccountClient(s.G())
+	if err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	}
+	promptArg := keybase1.PassphrasePromptArg{
+		GuiArg: arg,
+	}
+	for i := 0; i < 10; i++ {
+		s.G().Log.Debug("gui arg: %+v", arg)
+		res, err := cli.PassphrasePrompt(context.TODO(), promptArg)
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, err
+		}
+		if checker.F(res.Passphrase) {
+			return res, nil
+		}
+		promptArg.GuiArg.RetryLabel = checker.Hint
+	}
+
+	return keybase1.GetPassphraseRes{}, libkb.RetryExhaustedError{}
 }

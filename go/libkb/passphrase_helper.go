@@ -42,32 +42,6 @@ func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
 	return res.Passphrase, nil
 }
 
-func GetSignupPassphrase(ui SecretUI) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg()
-	arg.WindowTitle = "Passphrase"
-	arg.Prompt = "Pick a strong passphrase (12+ characters)"
-	res, err := getPassphraseUntilCheck(ui, arg, &CheckPassphraseNew)
-	if err != nil {
-		return keybase1.GetPassphraseRes{}, err
-	}
-
-	// get confirmation
-	match := &Checker{
-		F: func(s string) bool {
-			return s == res.Passphrase
-		},
-		Hint: "Passphrase mismatch",
-	}
-	arg.RetryLabel = ""
-	arg.Prompt = "Please reenter your passphrase for confirmation"
-	_, err = getPassphraseUntilCheck(ui, arg, match)
-	if err != nil {
-		return keybase1.GetPassphraseRes{}, err
-	}
-
-	return res, nil
-}
-
 func GetNewPassphrase(ui SecretUI) (keybase1.GetPassphraseRes, error) {
 	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Pick a new passphrase"
