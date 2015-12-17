@@ -9,21 +9,42 @@ func blockCacheTestInit(t *testing.T, capacity int) Config {
 	return config
 }
 
-func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, dirty bool) {
-	block := NewFileBlock()
+func testBcachePutWithBlock(t *testing.T, id BlockID, bcache BlockCache, lifetime BlockCacheLifetime, block Block) {
 	ptr := BlockPointer{ID: id}
 	tlf := FakeTlfID(1, false)
 	branch := MasterBranch
 
 	// put the block
-	if dirty {
-		if err := bcache.PutDirty(ptr, branch, block); err != nil {
-			t.Errorf("Got error on PutDirty for block %s: %v", id, err)
-		}
-	} else {
-		if err := bcache.Put(ptr, tlf, block); err != nil {
-			t.Errorf("Got error on Put for block %s: %v", id, err)
-		}
+	if err := bcache.Put(ptr, tlf, block, lifetime); err != nil {
+		t.Errorf("Got error on Put for block %s: %v", id, err)
+	}
+
+	// make sure we can get it successfully
+	if block2, err := bcache.Get(ptr, branch); err != nil {
+		t.Errorf("Got error on get for block %s: %v", id, err)
+	} else if block2 != block {
+		t.Errorf("Got %v, expected %v", block2, block)
+	}
+
+	// make sure its dirty status is right
+	if bcache.IsDirty(ptr, branch) {
+		t.Errorf("Block %s unexpectedly dirty", id)
+	}
+}
+
+func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, lifetime BlockCacheLifetime) {
+	block := NewFileBlock()
+	testBcachePutWithBlock(t, id, bcache, lifetime, block)
+}
+
+func testBcachePutDirty(t *testing.T, id BlockID, bcache BlockCache) {
+	block := NewFileBlock()
+	ptr := BlockPointer{ID: id}
+	branch := MasterBranch
+
+	// put the block
+	if err := bcache.PutDirty(ptr, branch, block); err != nil {
+		t.Errorf("Got error on PutDirty for block %s: %v", id, err)
 	}
 
 	// make sure we can get it successfully
@@ -34,8 +55,8 @@ func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, dirty bool) {
 	}
 
 	// make sure its dirty status is right
-	if bcache.IsDirty(ptr, branch) != dirty {
-		t.Errorf("Wrong dirty status for block %s", id)
+	if !bcache.IsDirty(ptr, branch) {
+		t.Errorf("Block %s unexpectedly not dirty", id)
 	}
 }
 
@@ -52,13 +73,14 @@ func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 func TestBcachePut(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
 	defer config.Shutdown()
-	testBcachePut(t, fakeBlockID(1), config.BlockCache(), false)
+	testBcachePut(t, fakeBlockID(1), config.BlockCache(), TransientEntry)
+	testBcachePut(t, fakeBlockID(2), config.BlockCache(), PermanentEntry)
 }
 
 func TestBcachePutDirty(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
 	defer config.Shutdown()
-	testBcachePut(t, fakeBlockID(1), config.BlockCache(), true)
+	testBcachePutDirty(t, fakeBlockID(1), config.BlockCache())
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
@@ -66,10 +88,10 @@ func TestBcachePutPastCapacity(t *testing.T) {
 	defer config.Shutdown()
 	bcache := config.BlockCache()
 	id1 := fakeBlockID(1)
-	testBcachePut(t, id1, bcache, false)
+	testBcachePut(t, id1, bcache, TransientEntry)
 	id2 := fakeBlockID(2)
-	testBcachePut(t, id2, bcache, false)
-	testBcachePut(t, fakeBlockID(3), bcache, false)
+	testBcachePut(t, id2, bcache, TransientEntry)
+	testBcachePut(t, fakeBlockID(3), bcache, TransientEntry)
 
 	// now block 1 should have been kicked out
 	testExpectedMissing(t, id1, bcache)
@@ -79,11 +101,14 @@ func TestBcachePutPastCapacity(t *testing.T) {
 		t.Errorf("Got unexpected error on 2nd get: %v", err)
 	}
 
+	// permanent blocks don't count
+	testBcachePut(t, fakeBlockID(4), config.BlockCache(), PermanentEntry)
+
 	// dirty blocks don't count
-	testBcachePut(t, fakeBlockID(4), bcache, true)
-	testBcachePut(t, fakeBlockID(5), bcache, true)
-	testBcachePut(t, fakeBlockID(6), bcache, true)
-	testBcachePut(t, fakeBlockID(7), bcache, true)
+	testBcachePutDirty(t, fakeBlockID(5), bcache)
+	testBcachePutDirty(t, fakeBlockID(6), bcache)
+	testBcachePutDirty(t, fakeBlockID(7), bcache)
+	testBcachePutDirty(t, fakeBlockID(8), bcache)
 
 	// 2 should still be there
 	if _, err := bcache.Get(BlockPointer{ID: id2}, MasterBranch); err != nil {
@@ -97,7 +122,7 @@ func TestBcachePutDuplicateDirty(t *testing.T) {
 	bcache := config.BlockCache()
 	// put one under the default block pointer and branch name (clean)
 	id1 := fakeBlockID(1)
-	testBcachePut(t, id1, bcache, false)
+	testBcachePut(t, id1, bcache, TransientEntry)
 	cleanBranch := MasterBranch
 
 	// Then dirty a different reference nonce, and make sure the
@@ -150,7 +175,7 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 	ptr := BlockPointer{ID: id}
 	tlf := FakeTlfID(1, false)
 
-	err := bcache.Put(ptr, tlf, block)
+	err := bcache.Put(ptr, tlf, block, TransientEntry)
 	if err != nil {
 		t.Errorf("Couldn't put block: %v", err)
 	}
@@ -160,6 +185,30 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 		t.Errorf("Unexpected error checking id: %v", err)
 	} else if checkedPtr != ptr {
 		t.Errorf("Unexpected pointer; got %v, expected %v", checkedPtr, id)
+	}
+}
+
+func TestBcacheCheckPtrPermanent(t *testing.T) {
+	config := blockCacheTestInit(t, 100)
+	defer config.Shutdown()
+	bcache := config.BlockCache()
+
+	block := NewFileBlock().(*FileBlock)
+	block.Contents = []byte{1, 2, 3, 4}
+	id := fakeBlockID(1)
+	ptr := BlockPointer{ID: id}
+	tlf := FakeTlfID(1, false)
+
+	err := bcache.Put(ptr, tlf, block, PermanentEntry)
+	if err != nil {
+		t.Errorf("Couldn't put block: %v", err)
+	}
+
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
+	if err != nil {
+		t.Errorf("Unexpected error checking id: %v", err)
+	} else if checkedPtr != (BlockPointer{}) {
+		t.Errorf("Unexpected non-zero pointer %v", checkedPtr)
 	}
 }
 
@@ -174,7 +223,7 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 	ptr := BlockPointer{ID: id}
 	tlf := FakeTlfID(1, false)
 
-	err := bcache.Put(ptr, tlf, block)
+	err := bcache.Put(ptr, tlf, block, TransientEntry)
 	if err != nil {
 		t.Errorf("Couldn't put block: %v", err)
 	}
@@ -189,17 +238,21 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 	}
 }
 
-func TestBcacheDelete(t *testing.T) {
+func TestBcacheDeletePermanent(t *testing.T) {
 	config := blockCacheTestInit(t, 100)
 	defer config.Shutdown()
 	bcache := config.BlockCache()
 
 	id1 := fakeBlockID(1)
-	testBcachePut(t, id1, bcache, false)
-	id2 := fakeBlockID(2)
-	testBcachePut(t, id2, bcache, false)
+	testBcachePut(t, id1, bcache, PermanentEntry)
 
-	bcache.Delete(id1)
+	id2 := fakeBlockID(2)
+	block2 := NewFileBlock()
+	testBcachePutWithBlock(t, id2, bcache, TransientEntry, block2)
+	testBcachePutWithBlock(t, id2, bcache, PermanentEntry, block2)
+
+	bcache.DeletePermanent(id1)
+	bcache.DeletePermanent(id2)
 	testExpectedMissing(t, id1, bcache)
 
 	// 2 should still be there
@@ -214,9 +267,9 @@ func TestBcacheDeleteDirty(t *testing.T) {
 	bcache := config.BlockCache()
 
 	id1 := fakeBlockID(1)
-	testBcachePut(t, id1, bcache, true)
+	testBcachePutDirty(t, id1, bcache)
 	id2 := fakeBlockID(2)
-	testBcachePut(t, id2, bcache, false)
+	testBcachePut(t, id2, bcache, TransientEntry)
 
 	bcache.DeleteDirty(BlockPointer{ID: id1}, MasterBranch)
 	testExpectedMissing(t, id1, bcache)
@@ -224,5 +277,44 @@ func TestBcacheDeleteDirty(t *testing.T) {
 	// 2 should still be there
 	if _, err := bcache.Get(BlockPointer{ID: id2}, MasterBranch); err != nil {
 		t.Errorf("Got unexpected error on 2nd get: %v", err)
+	}
+}
+
+func TestBcacheEmptyTransient(t *testing.T) {
+	config := blockCacheTestInit(t, 0)
+	defer config.Shutdown()
+
+	bcache := config.BlockCache()
+
+	block := NewFileBlock()
+	id := fakeBlockID(1)
+	ptr := BlockPointer{ID: id}
+	tlf := FakeTlfID(1, false)
+	branch := MasterBranch
+
+	// Make sure all the operations work even if the cache has no
+	// transient capacity.
+
+	if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
+		t.Errorf("Got error on Put for block %s: %v", id, err)
+	}
+
+	_, err := bcache.Get(ptr, branch)
+	if _, ok := err.(NoSuchBlockError); !ok {
+		t.Errorf("Got unexpected error %v", err)
+	}
+
+	if bcache.IsDirty(ptr, branch) {
+		t.Errorf("Block %s unexpectedly dirty", id)
+	}
+
+	err = bcache.DeletePermanent(id)
+	if err != nil {
+		t.Errorf("Got unexpected error %v", err)
+	}
+
+	_, err = bcache.CheckForKnownPtr(tlf, block.(*FileBlock))
+	if err != nil {
+		t.Errorf("Got unexpected error %v", err)
 	}
 }

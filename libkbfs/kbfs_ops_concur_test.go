@@ -220,96 +220,12 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	// there should be 5 blocks at this point: the original root block
 	// + 2 modifications (create + write), the top indirect file block
 	// and a modification (write).
-	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).blocks.Len()
+	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).cleanTransient.Len()
 	if numCleanBlocks != 5 {
 		t.Errorf("Unexpected number of cached clean blocks: %d\n",
 			numCleanBlocks)
 	}
 	TestStateForTlf(t, ctx, config, rootNode.GetFolderBranch().Tlf)
-}
-
-// nullBlockCache is a BlockCache implementation that doesn't do any
-// caching. It still needs to handle dirty blocks, though.
-type nullBlockCache struct {
-	// dirtyBlockID is defined in bcache.go.
-	dirty     map[dirtyBlockID]Block
-	dirtyLock sync.RWMutex
-}
-
-var _ BlockCache = (*nullBlockCache)(nil)
-
-func newNullBlockCache() *nullBlockCache {
-	return &nullBlockCache{
-		dirty: make(map[dirtyBlockID]Block),
-	}
-}
-
-func (b *nullBlockCache) Get(ptr BlockPointer, branch BranchName) (Block, error) {
-	dirtyID := dirtyBlockID{
-		id:       ptr.ID,
-		refNonce: ptr.RefNonce,
-		branch:   branch,
-	}
-
-	b.dirtyLock.RLock()
-	defer b.dirtyLock.RUnlock()
-
-	if block, ok := b.dirty[dirtyID]; ok {
-		return block, nil
-	}
-
-	return nil, NoSuchBlockError{ptr.ID}
-}
-
-func (b *nullBlockCache) CheckForKnownPtr(tlf TlfID, block *FileBlock) (BlockPointer, error) {
-	return BlockPointer{}, nil
-}
-
-func (b *nullBlockCache) Put(ptr BlockPointer, tlf TlfID, block Block) error {
-	return nil
-}
-
-func (b *nullBlockCache) PutDirty(ptr BlockPointer, branch BranchName, block Block) error {
-	dirtyID := dirtyBlockID{
-		id:       ptr.ID,
-		refNonce: ptr.RefNonce,
-		branch:   branch,
-	}
-
-	b.dirtyLock.Lock()
-	defer b.dirtyLock.Unlock()
-	b.dirty[dirtyID] = block
-	return nil
-}
-
-func (b *nullBlockCache) Delete(id BlockID) error {
-	return nil
-}
-
-func (b *nullBlockCache) DeleteDirty(ptr BlockPointer, branch BranchName) error {
-	dirtyID := dirtyBlockID{
-		id:       ptr.ID,
-		refNonce: ptr.RefNonce,
-		branch:   branch,
-	}
-
-	b.dirtyLock.Lock()
-	defer b.dirtyLock.Unlock()
-	delete(b.dirty, dirtyID)
-	return nil
-}
-
-func (b *nullBlockCache) IsDirty(ptr BlockPointer, branch BranchName) bool {
-	dirtyID := dirtyBlockID{
-		id:       ptr.ID,
-		refNonce: ptr.RefNonce,
-		branch:   branch,
-	}
-
-	b.dirtyLock.RLock()
-	defer b.dirtyLock.RUnlock()
-	_, isDirty := b.dirty[dirtyID]
-	return isDirty
 }
 
 // staller is a pair of channels. Whenever something is to be
@@ -385,8 +301,8 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer config.Shutdown()
 
-	// Turn off block caching.
-	config.SetBlockCache(newNullBlockCache())
+	// Turn off transient block caching.
+	config.SetBlockCache(NewBlockCacheStandard(config, 0))
 
 	// Create a file.
 	kbfsOps := config.KBFSOps()
@@ -529,7 +445,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	config.SetKeyManager(km)
 
 	// Turn off block caching.
-	config.SetBlockCache(newNullBlockCache())
+	config.SetBlockCache(NewBlockCacheStandard(config, 0))
 
 	// Create a file.
 	kbfsOps := config.KBFSOps()
@@ -640,7 +556,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config.SetKeyManager(km)
 
 	// Turn off block caching.
-	config.SetBlockCache(newNullBlockCache())
+	config.SetBlockCache(NewBlockCacheStandard(config, 0))
 
 	// Create a file.
 	kbfsOps := config.KBFSOps()
@@ -743,13 +659,14 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 // Test that a sync can happen concurrently with a read for a file
 // large enough to have indirect blocks without messing anything
-// up. This is a regression test for KBFS-537.
+// up. This should pass with -race. This is a regression test for
+// KBFS-537.
 func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer config.Shutdown()
 
 	// Turn off block caching.
-	config.SetBlockCache(newNullBlockCache())
+	config.SetBlockCache(NewBlockCacheStandard(config, 0))
 
 	// Use the smallest block size possible.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -890,7 +807,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// there should be 7 blocks at this point: the original root block
 	// + 2 modifications (create + write), the top indirect file block
 	// and a modification (write), and its two children blocks.
-	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).blocks.Len()
+	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).cleanTransient.Len()
 	if numCleanBlocks != 7 {
 		t.Errorf("Unexpected number of cached clean blocks: %d\n",
 			numCleanBlocks)

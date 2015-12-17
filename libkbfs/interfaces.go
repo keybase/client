@@ -406,33 +406,51 @@ type KeyCache interface {
 	PutTLFCryptKey(TlfID, KeyGen, TLFCryptKey) error
 }
 
+// BlockCacheLifetime denotes the lifetime of an entry in BlockCache.
+type BlockCacheLifetime int
+
+const (
+	// TransientEntry means that the cache entry may be evicted at
+	// any time.
+	TransientEntry BlockCacheLifetime = iota
+	// PermanentEntry means that the cache entry must remain until
+	// explicitly removed from the cache.
+	PermanentEntry
+)
+
 // BlockCache gets and puts plaintext dir blocks and file blocks into
 // a cache.
-//
-// TODO: Separate out the operations needed for correctness
-// ({Put,Delete,Is}Dirty, Get() consulting dirty blocks) from the ones
-// that affect only performance (everything else).
 type BlockCache interface {
 	// Get gets the block associated with the given block ID.  Returns
 	// the dirty block for the given ID, if one exists.
 	Get(ptr BlockPointer, branch BranchName) (Block, error)
-	// CheckForKnownPtr sees whether this client already knows a block
-	// ID for the given file block (which must be a direct file block
-	// containing data), within the top-level folder.  Returns the
-	// full BlockPointer associated with that ID, including key and
-	// data versions.  If no ID is known, return an uninitialized
-	// BlockPointer and a nil error.
+	// CheckForKnownPtr sees whether this cache has a transient
+	// entry for the given file block, which must be a direct file
+	// block containing data).  Returns the full BlockPointer
+	// associated with that ID, including key and data versions.
+	// If no ID is known, return an uninitialized BlockPointer and
+	// a nil error.
 	CheckForKnownPtr(tlf TlfID, block *FileBlock) (BlockPointer, error)
 	// Put stores the final (content-addressable) block associated
-	// with the given block ID.
-	Put(ptr BlockPointer, tlf TlfID, block Block) error
-	// PutDirty stores a dirty block currently identified by the given
-	// block pointer and branch name.
+	// with the given block ID. If lifetime is TransientEntry,
+	// then it is assumed that the block exists on the server and
+	// the entry may be evicted from the cache at any time. If
+	// lifetime is PermanentEntry, then it is assumed that the
+	// block doesn't exist on the server and must remain in the
+	// cache until explicitly removed. As an intermediary state,
+	// as when a block is being sent to the server, the block may
+	// be put into the cache both with TransientEntry and
+	// PermanentEntry -- these are two separate entries. This is
+	// fine, since the block should be the same.
+	Put(ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) error
+	// PutDirty stores a dirty block currently identified by the
+	// given block pointer and branch name. (The lifetime is
+	// implicitly permanent.)
 	PutDirty(ptr BlockPointer, branch BranchName, block Block) error
-	// Delete removes the (non-dirty) block associated with the given
-	// block ID from the cache.  No error is returned if no block
-	// exists for the given ID.
-	Delete(id BlockID) error
+	// Delete removes the permanent entry for the non-dirty block
+	// associated with the given block ID from the cache.  No
+	// error is returned if no block exists for the given ID.
+	DeletePermanent(id BlockID) error
 	// DeleteDirty removes the dirty block associated with the given
 	// block pointer and branch from the cache.  No error is returned
 	// if no block exists for the given ID.

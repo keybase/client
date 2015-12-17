@@ -944,14 +944,14 @@ func (_mr *_MockBlockCacheRecorder) CheckForKnownPtr(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForKnownPtr", arg0, arg1)
 }
 
-func (_m *MockBlockCache) Put(ptr BlockPointer, tlf TlfID, block Block) error {
-	ret := _m.ctrl.Call(_m, "Put", ptr, tlf, block)
+func (_m *MockBlockCache) Put(ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) error {
+	ret := _m.ctrl.Call(_m, "Put", ptr, tlf, block, lifetime)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
+func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockBlockCache) PutDirty(ptr BlockPointer, branch BranchName, block Block) error {
@@ -964,14 +964,14 @@ func (_mr *_MockBlockCacheRecorder) PutDirty(arg0, arg1, arg2 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutDirty", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockCache) Delete(id BlockID) error {
-	ret := _m.ctrl.Call(_m, "Delete", id)
+func (_m *MockBlockCache) DeletePermanent(id BlockID) error {
+	ret := _m.ctrl.Call(_m, "DeletePermanent", id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockCacheRecorder) Delete(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0)
+func (_mr *_MockBlockCacheRecorder) DeletePermanent(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeletePermanent", arg0)
 }
 
 func (_m *MockBlockCache) DeleteDirty(ptr BlockPointer, branch BranchName) error {
@@ -2374,24 +2374,6 @@ func (_m *MockConfig) DoBackgroundFlushes() bool {
 
 func (_mr *_MockConfigRecorder) DoBackgroundFlushes() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DoBackgroundFlushes")
-}
-
-func (_m *MockConfig) RootCerts() []byte {
-	ret := _m.ctrl.Call(_m, "RootCerts")
-	ret0, _ := ret[0].([]byte)
-	return ret0
-}
-
-func (_mr *_MockConfigRecorder) RootCerts() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RootCerts")
-}
-
-func (_m *MockConfig) SetRootCerts(_param0 []byte) {
-	_m.ctrl.Call(_m, "SetRootCerts", _param0)
-}
-
-func (_mr *_MockConfigRecorder) SetRootCerts(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRootCerts", arg0)
 }
 
 func (_m *MockConfig) MakeLogger(module string) logger.Logger {

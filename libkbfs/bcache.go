@@ -26,55 +26,81 @@ type idCacheKey struct {
 // forked and modified on different branches and under different
 // references simultaneously.
 type BlockCacheStandard struct {
-	config    Config
-	blocks    *lru.Cache
-	ids       *lru.Cache
-	dirty     map[dirtyBlockID]Block
+	config Config
+
+	ids *lru.Cache
+
+	cleanTransient *lru.Cache
+
+	cleanLock      sync.RWMutex
+	cleanPermanent map[BlockID]Block
+
 	dirtyLock sync.RWMutex
+	dirty     map[dirtyBlockID]Block
 }
 
 // NewBlockCacheStandard constructs a new BlockCacheStandard instance
-// with the given cache capacity.
-func NewBlockCacheStandard(config Config, capacity int) *BlockCacheStandard {
-	blockLRU, err := lru.New(capacity)
-	if err != nil {
-		return nil
-	}
-	idLRU, err := lru.New(capacity)
-	if err != nil {
-		return nil
+// with the given transient capacity.
+func NewBlockCacheStandard(config Config, transientCapacity int) *BlockCacheStandard {
+	var transientCleanLRU, idLRU *lru.Cache
+	if transientCapacity > 0 {
+		var err error
+		// TODO: Plumb error up.
+		idLRU, err = lru.New(transientCapacity)
+		if err != nil {
+			return nil
+		}
+
+		transientCleanLRU, err = lru.New(transientCapacity)
+		if err != nil {
+			return nil
+		}
 	}
 	return &BlockCacheStandard{
-		config:    config,
-		blocks:    blockLRU,
-		ids:       idLRU,
-		dirty:     make(map[dirtyBlockID]Block),
-		dirtyLock: sync.RWMutex{},
+		config:         config,
+		ids:            idLRU,
+		cleanTransient: transientCleanLRU,
+		cleanPermanent: make(map[BlockID]Block),
+		dirty:          make(map[dirtyBlockID]Block),
 	}
 }
 
 // Get implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
 	Block, error) {
-	dirtyID := dirtyBlockID{
-		id:       ptr.ID,
-		refNonce: ptr.RefNonce,
-		branch:   branch,
-	}
-
-	b.dirtyLock.RLock()
-	defer b.dirtyLock.RUnlock()
-
-	if block, ok := b.dirty[dirtyID]; ok {
-		return block, nil
-	}
-	if tmp, ok := b.blocks.Get(ptr.ID); ok {
-		block, ok := tmp.(Block)
-		if !ok {
-			return nil, BadDataError{ptr.ID}
+	block := func() Block {
+		dirtyID := dirtyBlockID{
+			id:       ptr.ID,
+			refNonce: ptr.RefNonce,
+			branch:   branch,
 		}
+		b.dirtyLock.RLock()
+		defer b.dirtyLock.RUnlock()
+		return b.dirty[dirtyID]
+	}()
+	if block != nil {
 		return block, nil
 	}
+
+	if b.cleanTransient != nil {
+		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
+			block, ok := tmp.(Block)
+			if !ok {
+				return nil, BadDataError{ptr.ID}
+			}
+			return block, nil
+		}
+	}
+
+	block = func() Block {
+		b.cleanLock.RLock()
+		defer b.cleanLock.RUnlock()
+		return b.cleanPermanent[ptr.ID]
+	}()
+	if block != nil {
+		return block, nil
+	}
+
 	return nil, NoSuchBlockError{ptr.ID}
 }
 
@@ -83,6 +109,10 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
 	BlockPointer, error) {
 	if block.IsInd {
 		return BlockPointer{}, NotDirectFileBlockError{}
+	}
+
+	if b.ids == nil {
+		return BlockPointer{}, nil
 	}
 
 	_, hash := DoRawDefaultHash(block.Contents)
@@ -101,11 +131,27 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
 
 // Put implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Put(
-	ptr BlockPointer, tlf TlfID, block Block) error {
-	b.blocks.Add(ptr.ID, block)
+	ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) error {
+	switch lifetime {
+	case TransientEntry:
+		if b.cleanTransient != nil {
+			b.cleanTransient.Add(ptr.ID, block)
+		}
 
-	// If it's the right type of block, store the hash -> ID mapping
-	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
+	case PermanentEntry:
+		func() {
+			b.cleanLock.Lock()
+			defer b.cleanLock.Unlock()
+			b.cleanPermanent[ptr.ID] = block
+		}()
+
+	default:
+		return fmt.Errorf("Unknown lifetime %v", lifetime)
+	}
+
+	// If it's the right type of block and lifetime, store the
+	// hash -> ID mapping.
+	if fBlock, ok := block.(*FileBlock); b.ids != nil && lifetime == TransientEntry && ok && !fBlock.IsInd {
 		_, hash := DoRawDefaultHash(fBlock.Contents)
 		key := idCacheKey{tlf, hash}
 		// zero out the refnonce, it doesn't matter
@@ -131,9 +177,12 @@ func (b *BlockCacheStandard) PutDirty(ptr BlockPointer,
 	return nil
 }
 
-// Delete implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Delete(id BlockID) error {
-	b.blocks.Remove(id)
+// DeletePermanent implements the BlockCache interface for
+// BlockCacheStandard.
+func (b *BlockCacheStandard) DeletePermanent(id BlockID) error {
+	b.cleanLock.Lock()
+	defer b.cleanLock.Unlock()
+	delete(b.cleanPermanent, id)
 	return nil
 }
 

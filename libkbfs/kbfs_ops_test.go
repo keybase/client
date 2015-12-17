@@ -122,13 +122,13 @@ func checkBlockCache(t *testing.T, config *ConfigMock,
 	bcache := config.BlockCache().(*BlockCacheStandard)
 	// make sure the LRU consists of exactly the right set of clean blocks
 	for _, id := range expectedCleanBlocks {
-		_, ok := bcache.blocks.Get(id)
+		_, ok := bcache.cleanTransient.Get(id)
 		if !ok {
 			t.Errorf("BlockCache missing clean block %v at the end of the test",
 				id)
 		}
 	}
-	if bcache.blocks.Len() != len(expectedCleanBlocks) {
+	if bcache.cleanTransient.Len() != len(expectedCleanBlocks) {
 		t.Errorf("BlockCache has extra clean blocks at end of test")
 	}
 
@@ -489,7 +489,7 @@ func nodeFromPath(t *testing.T, ops *folderBranchOps, p path) Node {
 
 func testPutBlockInCache(config *ConfigMock, ptr BlockPointer, id TlfID,
 	block Block) {
-	config.BlockCache().Put(ptr, id, block)
+	config.BlockCache().Put(ptr, id, block, TransientEntry)
 }
 
 func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
@@ -3733,8 +3733,18 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
 	}
 	c2 := config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd}, block).
 		After(c1).Return(newID, len(block.Contents), readyBlockData, nil)
+
+	newPtr := BlockPointer{ID: newID}
+	if config.mockBcache != nil {
+		config.mockBcache.EXPECT().Put(ptrMatcher{newPtr}, rmd.ID, block, PermanentEntry).Return(nil)
+		config.mockBcache.EXPECT().DeletePermanent(newID).Return(nil)
+	} else {
+		// Nothing to do, since the cache entry is added and
+		// removed.
+	}
+
 	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
-		ptrMatcher{BlockPointer{ID: newID}}, gomock.Any()).Return(nil)
+		ptrMatcher{newPtr}, gomock.Any()).Return(nil)
 	return c2
 }
 
@@ -3964,8 +3974,8 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 }
 
 func putAndCleanAnyBlock(config *ConfigMock, p path) {
-	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any()).
-		Do(func(ptr BlockPointer, tlf TlfID, block Block) {
+	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), TransientEntry).
+		Do(func(ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) {
 		config.mockBcache.EXPECT().
 			Get(ptrMatcher{BlockPointer{ID: ptr.ID}}, p.Branch).
 			AnyTimes().Return(block, nil)
