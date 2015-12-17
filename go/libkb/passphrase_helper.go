@@ -69,7 +69,7 @@ func GetNewPassphrase(ui SecretUI) (keybase1.GetPassphraseRes, error) {
 }
 
 func getPassphraseUntilCheck(ui SecretUI, arg keybase1.GUIEntryArg, checker *Checker) (keybase1.GetPassphraseRes, error) {
-	for {
+	for i := 0; i < 10; i++ {
 		res, err := ui.GetPassphrase(arg, nil)
 		if err != nil {
 			return keybase1.GetPassphraseRes{}, err
@@ -82,6 +82,8 @@ func getPassphraseUntilCheck(ui SecretUI, arg keybase1.GUIEntryArg, checker *Che
 		}
 		arg.RetryLabel = checker.Hint
 	}
+
+	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
 func DefaultPassphraseArg() keybase1.GUIEntryArg {

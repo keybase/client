@@ -54,6 +54,7 @@ func (s *CmdTestPassphrase) Run() (err error) {
 	if err != nil {
 		return err
 	}
+	res.Passphrase = "[passphrase redacted]"
 	s.G().Log.Debug("passphrase prompt result: %+v", res)
 	return nil
 }
