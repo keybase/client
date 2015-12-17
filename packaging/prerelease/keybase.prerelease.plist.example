@@ -11,6 +11,10 @@
         <string>/Users/test/go</string>
         <key>GITHUB_TOKEN</key>
         <string></string>
+        <key>SLACK_TOKEN</key>
+        <string></string>
+        <key>SLACK_CHANNEL</key>
+        <string></string>
         <key>PATH</key>
         <string>/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin</string>
     </dict>
@@ -25,14 +29,10 @@
     <dict>
         <key>Hour</key>
         <integer>00</integer>
-        <key>Minute</key>
-        <integer>14</integer>
     </dict>
-    <key>RunAtLoad</key>
-    <true/>
     <key>StandardErrorPath</key>
-    <string>/Users/test/Library/Logs/keybase.prerelease.nightly.log</string>
+    <string>/Users/test/Library/Logs/keybase.prerelease.log</string>
     <key>StandardOutPath</key>
-    <string>/Users/test/Library/Logs/keybase.prerelease.nightly.log</string>
+    <string>/Users/test/Library/Logs/keybase.prerelease.log</string>
 </dict>
 </plist>

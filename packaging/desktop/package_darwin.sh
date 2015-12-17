@@ -9,6 +9,9 @@ client_dir="$dir/../.."
 build_dir=${BUILD_DIR:-"$dir/build"}
 save_dir=${SAVE_DIR:-}
 tmp_dir="$dir/tmp"
+bucket_name=${BUCKET_NAME:-}
+slack_token=${SLACK_TOKEN:-}
+slack_channel=${SLACK_CHANNEL:-}
 
 # Ensure we have packaging tools
 npm install
@@ -176,6 +179,16 @@ save() {
   fi
 
   $release_bin -version $app_version -src $zip_name update-json > update.json
+
+  if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
+    s3cmd sync --skip-existing --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
+  fi
+}
+
+announce() {
+  if [ ! "$slack_token" = "" ] && [ ! "$slack_channel" = "" ]; then
+    echo "Built $app_version at https://$bucket_name.s3.amazonaws.com/$dmg_name" | slackcat -c $slack_channel -k $slack_token -p
+  fi
 }
 
 clean
@@ -187,3 +200,4 @@ sign
 package_dmg
 create_zip
 save
+announce
