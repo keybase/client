@@ -6,8 +6,7 @@ import path from 'path'
 import fs from 'fs'
 import {shell} from 'electron'
 
-const splashFilename = 'started.txt'
-const filePath = path.join(process.platform === win32 ? dataRoot : splashRoot, splashFilename)
+const filePath = path.join(process.platform === win32 ? dataRoot : splashRoot, 'started.txt')
 
 export default () => {
   fs.stat(filePath, (err, stats) => {
