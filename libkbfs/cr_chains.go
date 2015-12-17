@@ -112,6 +112,13 @@ type renameInfo struct {
 	newName           string
 }
 
+func (ri renameInfo) String() string {
+	return fmt.Sprintf(
+		"renameInfo{originalOldParent: %s, oldName: %s, originalNewParent: %s, newName: %s}",
+		ri.originalOldParent, ri.oldName,
+		ri.originalNewParent, ri.newName)
+}
+
 // crChains contains a crChain for every KBFS node affected by the
 // operations over a given set of MD updates.  The chains are indexed
 // by both the starting (original) and ending (most recent) pointers.

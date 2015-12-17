@@ -34,17 +34,17 @@ type conflictInput struct {
 // ConflictResolver is responsible for resolving conflicts in the
 // background.
 type ConflictResolver struct {
-	config     Config
-	fbo        *folderBranchOps
-	inputChan  chan conflictInput
+	config Config
+	fbo    *folderBranchOps
+
+	inputChanLock sync.RWMutex
+	inputChan     chan conflictInput
+
 	inputGroup sync.WaitGroup
 	log        logger.Logger
 
-	shutdown     bool
-	shutdownLock sync.RWMutex
-
-	currInput conflictInput
 	inputLock sync.Mutex
+	currInput conflictInput
 }
 
 // NewConflictResolver constructs a new ConflictResolver (and launches
@@ -61,21 +61,46 @@ func NewConflictResolver(
 		branchSuffix))
 
 	cr := &ConflictResolver{
-		config:    config,
-		fbo:       fbo,
-		inputChan: make(chan conflictInput),
-		log:       log,
+		config: config,
+		fbo:    fbo,
+		log:    log,
 		currInput: conflictInput{
 			unmerged: MetadataRevisionUninitialized,
 			merged:   MetadataRevisionUninitialized,
 		},
 	}
 
-	go cr.processInput()
+	cr.startProcessing()
 	return cr
 }
 
-func (cr *ConflictResolver) processInput() {
+func (cr *ConflictResolver) startProcessing() {
+	cr.inputChanLock.Lock()
+	defer cr.inputChanLock.Unlock()
+
+	if cr.inputChan != nil {
+		return
+	}
+	cr.inputChan = make(chan conflictInput)
+	go cr.processInput(cr.inputChan)
+}
+
+func (cr *ConflictResolver) stopProcessing() {
+	cr.inputChanLock.Lock()
+	defer cr.inputChanLock.Unlock()
+
+	if cr.inputChan == nil {
+		return
+	}
+	close(cr.inputChan)
+	cr.inputChan = nil
+}
+
+// processInput processes conflict resolution jobs from the given
+// channel until it is closed. This function uses a parameter for the
+// channel instead of accessing cr.inputChan directly so that it
+// doesn't have to hold inputChanLock.
+func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxCRIDKey] = CtxCROpID
 	backgroundCtx := logger.NewContextWithLogTags(context.Background(), logTags)
@@ -86,7 +111,7 @@ func (cr *ConflictResolver) processInput() {
 			cancel()
 		}
 	}()
-	for ci := range cr.inputChan {
+	for ci := range inputChan {
 		ctx := backgroundCtx
 		id, err := MakeRandomRequestID()
 		if err != nil {
@@ -128,9 +153,9 @@ func (cr *ConflictResolver) processInput() {
 // numbers, and kicks off the resolution process.
 func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 	merged MetadataRevision) {
-	cr.shutdownLock.RLock()
-	defer cr.shutdownLock.RUnlock()
-	if cr.shutdown {
+	cr.inputChanLock.RLock()
+	defer cr.inputChanLock.RUnlock()
+	if cr.inputChan == nil {
 		return
 	}
 
@@ -159,39 +184,21 @@ func (cr *ConflictResolver) Wait(ctx context.Context) error {
 	}
 }
 
-// shutdownLocked requires that the caller hold shutdownLock for writing.
-func (cr *ConflictResolver) shutdownLocked() {
-	cr.shutdown = true
-	close(cr.inputChan)
-}
-
 // Shutdown cancels any ongoing resolutions and stops any background
 // goroutines.
 func (cr *ConflictResolver) Shutdown() {
-	cr.shutdownLock.Lock()
-	defer cr.shutdownLock.Unlock()
-	cr.shutdownLocked()
+	cr.stopProcessing()
 }
 
 // Pause cancels any ongoing resolutions and prevents any new ones from
 // starting.
 func (cr *ConflictResolver) Pause() {
-	cr.shutdownLock.Lock()
-	defer cr.shutdownLock.Unlock()
-	cr.shutdownLocked()
-	cr.inputChan = make(chan conflictInput)
+	cr.stopProcessing()
 }
 
 // Restart re-enables conflict resolution.
 func (cr *ConflictResolver) Restart() {
-	cr.shutdownLock.Lock()
-	defer cr.shutdownLock.Unlock()
-	if !cr.shutdown {
-		return
-	}
-
-	cr.shutdown = false
-	go cr.processInput()
+	cr.startProcessing()
 }
 
 func (cr *ConflictResolver) checkDone(ctx context.Context) error {

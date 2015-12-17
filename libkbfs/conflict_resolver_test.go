@@ -332,7 +332,6 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	// user2 makes a file (causes a conflict, and goes unstaged)
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false)
@@ -393,7 +392,6 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	// user2 makes a file in dir B
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dirB2, "file2", false)
@@ -439,7 +437,6 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	nodesB := testCRSharedFolderForUsers(t, uid1, configs,
 		[]string{"dirA", "dirB"})
@@ -531,7 +528,6 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	nodesB := testCRSharedFolderForUsers(t, uid1, configs,
 		[]string{"dirA", "dirB"})
@@ -617,7 +613,6 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	nodesB := testCRSharedFolderForUsers(t, uid1, configs,
 		[]string{"dirA", "dirB"})
@@ -800,7 +795,6 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	dirRootPtr := cr2.fbo.nodeCache.PathFromNode(dirRoot2).tailPointer()
 
@@ -876,7 +870,6 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	// pause user 2
 	_, err = DisableUpdatesForTesting(config2, fb)
@@ -941,7 +934,6 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	// user1 creates file
 	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file", false)
@@ -1051,7 +1043,6 @@ func TestCRDoActionsSimple(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	// user2 makes a file (causes a conflict, and goes unstaged)
 	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false)
@@ -1149,7 +1140,6 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	cr1 := testCRGetCROrBust(t, config1, fb)
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
-	cr2.inputChan = make(chan conflictInput)
 
 	// user1 writes the file
 	err = config1.KBFSOps().Write(ctx, file1, []byte{1, 2, 3}, 0)
