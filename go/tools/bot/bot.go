@@ -21,9 +21,10 @@ type Bot struct {
 }
 
 type Command struct {
-	trigger    string // Trigger without the ! (e.g. "build")
-	execute    string // Command to execute
-	showResult bool   // Whether to output result back to channel
+	trigger    string   // Trigger without the ! (e.g. "build")
+	execute    string   // Command to execute
+	args       []string // Args for command
+	showResult bool     // Whether to output result back to channel
 }
 
 func NewBot(token string) (*Bot, error) {
@@ -65,7 +66,7 @@ func (b *Bot) RunCommand(trigger string, channel string) {
 }
 
 func (b *Bot) execute(command Command, channel string) {
-	out, err := exec.Command(command.execute).Output()
+	out, err := exec.Command(command.execute, command.args...).Output()
 	if err != nil {
 		log.Printf("Error %s running: %#v; %s\n", err, command, out)
 		b.SendMessage(fmt.Sprintf("Oops, there was an error in !%s", command.trigger), channel)
@@ -73,9 +74,7 @@ func (b *Bot) execute(command Command, channel string) {
 	}
 	log.Printf("Output: %s\n", out)
 	if command.showResult {
-		b.SendMessage(fmt.Sprintf("Finished !%s, the output was %s", command.trigger, out), channel)
-	} else {
-		b.SendMessage(fmt.Sprintf("Finished !%s", command.trigger), channel)
+		b.SendMessage(fmt.Sprintf("%s", command.trigger, out), channel)
 	}
 }
 
@@ -140,8 +139,7 @@ func main() {
 	// For debugging
 	bot.AddCommand(Command{trigger: "date", execute: "/bin/date", showResult: true})
 
-	buildpath := "/bin/launchctl start keybase.prerelease"
-	bot.AddCommand(Command{trigger: "build", execute: buildpath})
+	bot.AddCommand(Command{trigger: "build", execute: "/bin/launchctl", args: []string{"start", "keybase.prerelease"}})
 
 	bot.Listen()
 }
