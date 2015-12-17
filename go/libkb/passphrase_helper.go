@@ -7,7 +7,7 @@ import (
 )
 
 func GetKeybasePassphrase(ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
-	arg := defaultPassphraseArg()
+	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
 	arg.RetryLabel = retryMsg
@@ -15,7 +15,7 @@ func GetKeybasePassphrase(ui SecretUI, username, retryMsg string) (keybase1.GetP
 }
 
 func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := defaultPassphraseArg()
+	arg := DefaultPassphraseArg()
 	arg.WindowTitle = title
 	arg.Prompt = prompt
 	arg.RetryLabel = retryMsg
@@ -27,7 +27,7 @@ func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore boo
 }
 
 func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
-	arg := defaultPassphraseArg()
+	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Paper backup key passphrase"
 	if len(username) == 0 {
 		username = "your account"
@@ -43,7 +43,7 @@ func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
 }
 
 func GetSignupPassphrase(ui SecretUI) (keybase1.GetPassphraseRes, error) {
-	arg := defaultPassphraseArg()
+	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Passphrase"
 	arg.Prompt = "Pick a strong passphrase (12+ characters)"
 	res, err := getPassphraseUntilCheck(ui, arg, &CheckPassphraseNew)
@@ -69,7 +69,7 @@ func GetSignupPassphrase(ui SecretUI) (keybase1.GetPassphraseRes, error) {
 }
 
 func GetNewPassphrase(ui SecretUI) (keybase1.GetPassphraseRes, error) {
-	arg := defaultPassphraseArg()
+	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Pick a new passphrase"
 	arg.Prompt = "Pick a new strong passphrase (12+ characters)"
 	res, err := getPassphraseUntilCheck(ui, arg, &CheckPassphraseNew)
@@ -110,7 +110,7 @@ func getPassphraseUntilCheck(ui SecretUI, arg keybase1.GUIEntryArg, checker *Che
 	}
 }
 
-func defaultPassphraseArg() keybase1.GUIEntryArg {
+func DefaultPassphraseArg() keybase1.GUIEntryArg {
 	return keybase1.GUIEntryArg{
 		SubmitLabel: "Submit",
 		CancelLabel: "Cancel",

@@ -1,0 +1,29 @@
+
+@namespace("keybase.1")
+protocol passphraseCommon {
+	record Feature {
+		boolean allow;
+		boolean defaultValue;
+		boolean readonly;  /* if true we don't send the value back */
+		string label;
+	}
+
+	record GUIEntryFeatures {
+		Feature storeSecret;
+		Feature showTyping;
+	}
+
+	record GUIEntryArg {
+		string windowTitle;
+		string prompt;
+		string submitLabel;
+		string cancelLabel;
+		string retryLabel;
+		GUIEntryFeatures features;
+	}
+
+	record GetPassphraseRes {
+		string passphrase;
+		boolean storeSecret;
+	}
+}
