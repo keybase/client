@@ -3,8 +3,8 @@
 
 package kbcmf
 
-// PacketType is an int used to describe what "type" of packet it is.
-type PacketType int
+// MessageType is an int used to describe what "type" of message it is.
+type MessageType int
 
 // PacketSeqno is a special int type used to describe which packet in the
 // sequence we're dealing with.  The header is always at seqno=0. Other packets
@@ -12,13 +12,13 @@ type PacketType int
 // In general, the former is one more than the latter.
 type PacketSeqno uint64
 
-// PacketTypeEncryptionHeader is a packet type to describe an encryption message
-const PacketTypeEncryption PacketType = 0
+// MessageTypeEncryption is a packet type to describe an encryption message
+const MessageTypeEncryption MessageType = 0
 
-// PacketTypeAttachedSignature is a packet type to describe an attached signature
-const PacketTypeAttachedSignature PacketType = 1
+// MessageTypeAttachedSignature is a packet type to describe an attached signature
+const MessageTypeAttachedSignature MessageType = 1
 
-// PacketVersion1 is currently the only supported packet version
+// SaltPackCurrentVersion is currently the only supported packet version, 1.0
 var SaltPackCurrentVersion = Version{Major: 1, Minor: 0}
 
 // EncryptionBlockSize is by default 1MB and can't currently be tweaked.
@@ -32,6 +32,10 @@ const EncryptionArmorHeader = "BEGIN KEYBASE ENCRYPTED MESSAGE"
 // armored KB message
 const EncryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
 
+// SaltPackFormatName is the publicly advertised name of the format,
+// used in the header of the message and also in Nonce creation.
 const SaltPackFormatName = "SaltPack"
 
+// NoncePrefixEncryption is the prefix used to create the nonce when
+// using the nonce for encryption.
 const NoncePrefixEncryption = "encryption nonce prefix"

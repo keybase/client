@@ -722,7 +722,7 @@ func TestCorruptEncryption(t *testing.T) {
 		blockSize: 1024,
 		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
 			if ebn == 2 {
-				eb.Ciphertext[8] ^= 1
+				eb.PayloadCiphertext[8] ^= 1
 			}
 		},
 	})
@@ -741,7 +741,7 @@ func TestCorruptEncryption(t *testing.T) {
 		blockSize: 1024,
 		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
 			if ebn == 2 {
-				eb.Tags[0][2] ^= 1
+				eb.TagCiphertexts[0][2] ^= 1
 			}
 		},
 	})
@@ -838,7 +838,7 @@ func TestCorruptHeader(t *testing.T) {
 	teo = testEncryptionOptions{
 		blockSize: 1024,
 		corruptHeader: func(eh *EncryptionHeader) {
-			eh.Type = PacketTypeAttachedSignature
+			eh.Type = MessageTypeAttachedSignature
 		},
 	}
 	ciphertext, err = testSeal(msg, sender, receivers, teo)
@@ -846,13 +846,11 @@ func TestCorruptHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Open(ciphertext, kr)
-	if ebv, ok := err.(ErrWrongPacketType); !ok {
+	if ebv, ok := err.(ErrWrongMessageType); !ok {
 		t.Fatalf("Got wrong error; wanted 'Bad Type' but got %v", err)
-	} else if int(ebv.seqno) != 0 {
-		t.Fatalf("Wanted a failure in packet %d but got %d", 0, ebv.seqno)
-	} else if ebv.wanted != PacketTypeEncryption {
+	} else if ebv.wanted != MessageTypeEncryption {
 		t.Fatalf("got wrong wanted in error message: %d", ebv.wanted)
-	} else if ebv.received != PacketTypeAttachedSignature {
+	} else if ebv.received != MessageTypeAttachedSignature {
 		t.Fatalf("got wrong received in error message: %d", ebv.received)
 	}
 
@@ -1012,5 +1010,27 @@ func TestCiphertextSwapKeys(t *testing.T) {
 	_, err = Open(ciphertext, kr)
 	if err != errPublicKeyDecryptionFailed {
 		t.Fatalf("Got %v but wanted %v", err, errPublicKeyDecryptionFailed)
+	}
+}
+
+func TestEmptyReceiverKID(t *testing.T) {
+	receivers := []BoxPublicKey{
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKey(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+	}
+	plaintext := randomMsg(t, 1024*3)
+	teo := testEncryptionOptions{
+		corruptReceiverKeysCiphertext: func(rkc *receiverKeysCiphertexts, rid int) {
+			rkc.ReceiverKID = []byte{}
+		},
+	}
+	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = Open(ciphertext, kr)
+	if err != ErrNoDecryptionKey {
+		t.Fatalf("Got %v but wanted %v", err, ErrNoDecryptionKey)
 	}
 }

@@ -5,9 +5,7 @@ package kbcmf
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha512"
 	"github.com/ugorji/go/codec"
 	"golang.org/x/crypto/poly1305"
 )
@@ -39,12 +37,6 @@ func (e encryptionBlockNumber) check() error {
 		return ErrPacketOverflow
 	}
 	return nil
-}
-
-func hmacSHA512(key []byte, data []byte) []byte {
-	hasher := hmac.New(sha512.New, key)
-	hasher.Write(data)
-	return hasher.Sum(nil)[0:32]
 }
 
 func hashNonceAndAuthTag(nonce *Nonce, ciphertext []byte) []byte {

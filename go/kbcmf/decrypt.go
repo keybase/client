@@ -28,7 +28,7 @@ type decryptStream struct {
 	sessionKey SymmetricKey
 	buf        []byte
 	nonce      *Nonce
-	macKey     BoxPrecomputedSharedKey
+	tagKey     BoxPrecomputedSharedKey
 	position   int
 }
 
@@ -190,12 +190,12 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	var keysPacked []byte
 	var err error
 
-	secretKey, ds.macKey, keysPacked, ds.position, err = ds.tryVisibleReceivers(hdr, ephemeralKey)
+	secretKey, ds.tagKey, keysPacked, ds.position, err = ds.tryVisibleReceivers(hdr, ephemeralKey)
 	if err != nil {
 		return err
 	}
 	if secretKey == nil {
-		secretKey, ds.macKey, keysPacked, ds.position = ds.tryHiddenReceivers(hdr, ephemeralKey)
+		secretKey, ds.tagKey, keysPacked, ds.position = ds.tryHiddenReceivers(hdr, ephemeralKey)
 	}
 	if secretKey == nil || ds.position < 0 {
 		return ErrNoDecryptionKey
@@ -219,7 +219,7 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 		if longLivedSenderKey == nil {
 			return ErrNoSenderKey
 		}
-		ds.macKey = secretKey.Precompute(longLivedSenderKey)
+		ds.tagKey = secretKey.Precompute(longLivedSenderKey)
 	}
 
 	copy(ds.sessionKey[:], keys.SessionKey)
@@ -237,12 +237,12 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 
 	nonce := ds.nonce.ForPayloadBox(blockNum)
 
-	tag, err := ds.macKey.Unbox(nonce, bl.Tags[ds.position])
+	tag, err := ds.tagKey.Unbox(nonce, bl.TagCiphertexts[ds.position])
 	if err != nil {
 		return nil, ErrBadTag(bl.seqno)
 	}
 
-	ciphertext := append(tag, bl.Ciphertext...)
+	ciphertext := append(tag, bl.PayloadCiphertext...)
 	plaintext, ok := secretbox.Open([]byte{}, ciphertext, (*[24]byte)(nonce), (*[32]byte)(&ds.sessionKey))
 	if !ok {
 		return nil, ErrBadCiphertext(bl.seqno)

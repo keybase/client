@@ -77,7 +77,7 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 	}
 
 	uplus := kf.UsersPlusDeviceKeys()
-	receivers := make([]libkb.NaclDHKeyPublic, len(uplus))
+	var receivers []libkb.NaclDHKeyPublic
 	for _, up := range uplus {
 		for _, k := range up.Keys {
 			if !k.IsSibkey {
@@ -89,7 +89,6 @@ func (e *KBCMFEncrypt) Run(ctx *Context) (err error) {
 				if !ok {
 					return libkb.KeyCannotEncryptError{}
 				}
-
 				receivers = append(receivers, kp.Public)
 			}
 		}

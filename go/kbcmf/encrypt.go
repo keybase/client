@@ -18,7 +18,7 @@ type encryptStream struct {
 	buffer     bytes.Buffer
 	nonce      *Nonce
 	inblock    []byte
-	macKeys    []BoxPrecomputedSharedKey
+	tagKeys    []BoxPrecomputedSharedKey
 
 	numBlocks encryptionBlockNumber // the lower 64 bits of the nonce
 
@@ -74,15 +74,15 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 	ciphertext := raw[secretbox.Overhead:]
 
 	block := EncryptionBlock{
-		Ciphertext: ciphertext,
+		PayloadCiphertext: ciphertext,
 	}
 
-	for _, macKey := range es.macKeys {
-		tag, err := macKey.Box(nonce, tag)
+	for _, tagKey := range es.tagKeys {
+		tag, err := tagKey.Box(nonce, tag)
 		if err != nil {
 			return err
 		}
-		block.Tags = append(block.Tags, tag)
+		block.TagCiphertexts = append(block.TagCiphertexts, tag)
 	}
 
 	if err := es.encoder.Encode(block); err != nil {
@@ -147,7 +147,7 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 	eh := &EncryptionHeader{
 		FormatName: SaltPackFormatName,
 		Version:    SaltPackCurrentVersion,
-		Type:       PacketTypeEncryption,
+		Type:       MessageTypeEncryption,
 		Sender:     ephemeralKey.GetPublicKey().ToKID(),
 		Receivers:  make([]receiverKeysCiphertexts, 0, len(receivers)),
 	}
@@ -172,9 +172,9 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 
 	for _, receiver := range receivers {
 
-		emphemeralShared := ephemeralKey.Precompute(receiver)
+		ephemeralShared := ephemeralKey.Precompute(receiver)
 
-		keys, err := emphemeralShared.Box(nonce, rkpPacked)
+		keys, err := ephemeralShared.Box(nonce, rkpPacked)
 		if err != nil {
 			return err
 		}
@@ -188,11 +188,11 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 
 		eh.Receivers = append(eh.Receivers, rkc)
 
-		macKey := emphemeralShared
+		tagKey := ephemeralShared
 		if !senderAnon {
-			macKey = sender.Precompute(receiver)
+			tagKey = sender.Precompute(receiver)
 		}
-		es.macKeys = append(es.macKeys, macKey)
+		es.tagKeys = append(es.tagKeys, tagKey)
 	}
 	return nil
 }

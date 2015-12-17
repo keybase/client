@@ -10,7 +10,7 @@ import ()
 type RawBoxKey [32]byte
 
 // SymmetricKey is a template for a symmetric key, a 32-byte static
-// buffer.  Used for both NaCl SecretBox and also HMAC keys.
+// buffer.  Used for both NaCl SecretBox.
 type SymmetricKey [32]byte
 
 // BoxPublicKey is an generic interface to NaCl's public key Box function.

@@ -31,19 +31,19 @@ type EncryptionHeader struct {
 	_struct    bool                      `codec:",toarray"`
 	FormatName string                    `codec:"format_name"`
 	Version    Version                   `codec:"vers"`
-	Type       PacketType                `codec:"type"`
+	Type       MessageType               `codec:"type"`
 	Sender     []byte                    `codec:"sender"`
 	Receivers  []receiverKeysCiphertexts `codec:"rcvrs"`
 	seqno      PacketSeqno
 }
 
 // EncryptionBlock contains a block of encrypted data. It cointains
-// the ciphertext, and any necessary MACs.
+// the ciphertext, and any necessary authentication Tags.
 type EncryptionBlock struct {
-	_struct    bool     `codec:",toarray"`
-	Tags       [][]byte `codec:"tags"`
-	Ciphertext []byte   `codec:"ctext"`
-	seqno      PacketSeqno
+	_struct           bool     `codec:",toarray"`
+	TagCiphertexts    [][]byte `codec:"tags"`
+	PayloadCiphertext []byte   `codec:"ctext"`
+	seqno             PacketSeqno
 }
 
 func verifyRawKey(k []byte) error {
@@ -54,8 +54,8 @@ func verifyRawKey(k []byte) error {
 }
 
 func (h *EncryptionHeader) validate() error {
-	if h.Type != PacketTypeEncryption {
-		return ErrWrongPacketType{h.seqno, PacketTypeEncryption, h.Type}
+	if h.Type != MessageTypeEncryption {
+		return ErrWrongMessageType{MessageTypeEncryption, h.Type}
 	}
 	if h.Version.Major != SaltPackCurrentVersion.Major {
 		return ErrBadVersion{h.seqno, h.Version}

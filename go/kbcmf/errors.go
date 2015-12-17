@@ -58,12 +58,11 @@ type ErrBadCiphertext PacketSeqno
 // unique.
 type ErrRepeatedKey []byte
 
-// ErrWrongPacketTag is produced if one packet tag was expected, but a packet
+// ErrWrongMessageType is produced if one packet tag was expected, but a packet
 // of another tag was found.
-type ErrWrongPacketType struct {
-	seqno    PacketSeqno
-	wanted   PacketType
-	received PacketType
+type ErrWrongMessageType struct {
+	wanted   MessageType
+	received MessageType
 }
 
 // ErrBadVersion is returned if a packet of an unsupported version is found.
@@ -95,8 +94,8 @@ func (e ErrBadArmorHeader) Error() string {
 		e.wanted, e.received)
 }
 
-func (e ErrWrongPacketType) Error() string {
-	return fmt.Sprintf("In packet %d: wanted type=%d; got type=%d", e.seqno, e.wanted, e.received)
+func (e ErrWrongMessageType) Error() string {
+	return fmt.Sprintf("Wanted type=%d; got type=%d", e.wanted, e.received)
 }
 func (e ErrBadVersion) Error() string {
 	return fmt.Sprintf("In packet %d: unsupported version (%v)", e.seqno, e.received)
@@ -108,5 +107,5 @@ func (e ErrBadTag) Error() string {
 	return fmt.Sprintf("In packet %d: bad Poly1305 tag; data was corrupted in transit", e)
 }
 func (e ErrRepeatedKey) Error() string {
-	return fmt.Sprintf("Repeated recipient key: %x", e)
+	return fmt.Sprintf("Repeated recipient key: %x", []byte(e))
 }

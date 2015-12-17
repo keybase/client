@@ -37,7 +37,7 @@ type testEncryptStream struct {
 	buffer     bytes.Buffer
 	inblock    []byte
 	options    testEncryptionOptions
-	macKeys    []BoxPrecomputedSharedKey
+	tagKeys    []BoxPrecomputedSharedKey
 	nonce      *Nonce
 
 	numBlocks encryptionBlockNumber // the lower 64 bits of the nonce
@@ -106,15 +106,15 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 	ciphertext := raw[secretbox.Overhead:]
 
 	block := EncryptionBlock{
-		Ciphertext: ciphertext,
+		PayloadCiphertext: ciphertext,
 	}
 
-	for _, macKey := range pes.macKeys {
-		tag, err := macKey.Box(nonce, tag)
+	for _, tagKey := range pes.tagKeys {
+		tag, err := tagKey.Box(nonce, tag)
 		if err != nil {
 			return err
 		}
-		block.Tags = append(block.Tags, tag)
+		block.TagCiphertexts = append(block.TagCiphertexts, tag)
 	}
 
 	if pes.options.corruptEncryptionBlock != nil {
@@ -147,7 +147,7 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 	eh := &EncryptionHeader{
 		FormatName: SaltPackFormatName,
 		Version:    SaltPackCurrentVersion,
-		Type:       PacketTypeEncryption,
+		Type:       MessageTypeEncryption,
 		Sender:     ephemeralKey.GetPublicKey().ToKID(),
 		Receivers:  make([]receiverKeysCiphertexts, 0, len(receivers)),
 	}
@@ -203,14 +203,14 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 
 		eh.Receivers = append(eh.Receivers, rkc)
 
-		var macKey BoxPrecomputedSharedKey
+		var tagKey BoxPrecomputedSharedKey
 		if !senderAnon {
-			macKey = sender.Precompute(receiver)
+			tagKey = sender.Precompute(receiver)
 		} else {
-			macKey = ephemeralKey.Precompute(receiver)
+			tagKey = ephemeralKey.Precompute(receiver)
 		}
 
-		pes.macKeys = append(pes.macKeys, macKey)
+		pes.tagKeys = append(pes.tagKeys, tagKey)
 	}
 
 	if pes.options.corruptHeader != nil {
