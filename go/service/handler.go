@@ -57,32 +57,7 @@ type SecretUI struct {
 	cli       *keybase1.SecretUiClient
 }
 
-// GetSecret gets a free-form secret from a pinentry
-func (l *SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	res, err := l.cli.GetSecret(context.TODO(), keybase1.GetSecretArg{SessionID: l.sessionID, Pinentry: pinentry, Terminal: terminal})
-	return &res, err
-}
-
-// GetNewPassphrase gets a new passphrase from pinentry
-func (l *SecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	arg.SessionID = l.sessionID
-	return l.cli.GetNewPassphrase(context.TODO(), arg)
-}
-
-// GetKeybasePassphrase gets the current keybase passphrase from pinentry.
-func (l *SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
-	arg.SessionID = l.sessionID
-	return l.cli.GetKeybasePassphrase(context.TODO(), arg)
-}
-
-// GetPaperKeyPassphrase gets a paper key passphrase from pinentry (if
-// possible).
-func (l *SecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	arg.SessionID = l.sessionID
-	return l.cli.GetPaperKeyPassphrase(context.TODO(), arg)
-}
-
-// GetPinSecret gets the current keybase passphrase from delegated pinentry.
+// GetPassphrase gets the current keybase passphrase from delegated pinentry.
 func (l *SecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	return l.cli.GetPassphrase(context.TODO(), keybase1.GetPassphraseArg{SessionID: l.sessionID, Pinentry: pinentry, Terminal: terminal})
 }

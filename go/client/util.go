@@ -4,16 +4,12 @@
 package client
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/libkb"
 )
 
+// TODO: get rid of this as part of CORE-2205
 func promptNewPassphrase() (string, error) {
-	arg := keybase1.GetNewPassphraseArg{
-		TerminalPrompt: "Pick a new strong passphrase",
-		PinentryDesc:   "Pick a new strong passphrase (12+ characters)",
-		PinentryPrompt: "New Passphrase",
-	}
-	res, err := G.UI.GetSecretUI().GetNewPassphrase(arg)
+	res, err := libkb.GetNewPassphrase(G.UI.GetSecretUI())
 	if err != nil {
 		return "", err
 	}

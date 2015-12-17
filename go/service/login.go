@@ -82,14 +82,15 @@ func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *LoginHandler) Login(_ context.Context, arg keybase1.LoginArg) error {
-	ctx := &engine.Context{
+func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
+	ectx := &engine.Context{
 		LogUI:       h.getLogUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
 		ProvisionUI: h.getProvisionUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID),
 		GPGUI:       h.getGPGUI(arg.SessionID),
+		NetContext:  ctx,
 	}
 	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.Username, arg.ClientType)
-	return engine.RunEngine(eng, ctx)
+	return engine.RunEngine(eng, ectx)
 }

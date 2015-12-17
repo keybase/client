@@ -418,8 +418,8 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if secretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly called")
+	if secretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly called")
 	}
 
 	backupPassphrase := beng.Passphrase()
@@ -615,8 +615,8 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if secretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly called")
+	if secretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly called")
 	}
 
 	backupPassphrase := beng.Passphrase()

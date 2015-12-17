@@ -3,6 +3,7 @@ package unzip
 import (
 	"archive/zip"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -32,26 +33,40 @@ func Unzip(src, dest string) error {
 			}
 		}()
 
-		path := filepath.Join(dest, f.Name)
+		filePath := filepath.Join(dest, f.Name)
+		fileInfo := f.FileInfo()
 
-		if f.FileInfo().IsDir() {
-			os.MkdirAll(path, f.Mode())
-		} else {
-			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if fileInfo.IsDir() {
+			err := os.MkdirAll(filePath, fileInfo.Mode())
 			if err != nil {
 				return err
 			}
-			defer func() {
-				if err := f.Close(); err != nil {
-					panic(err)
-				}
-			}()
+		} else {
+			err := os.MkdirAll(filepath.Dir(filePath), 0755)
+			if err != nil {
+				return err
+			}
 
-			_, err = io.Copy(f, rc)
+			if fileInfo.Mode()&os.ModeSymlink != 0 {
+				linkName, err := ioutil.ReadAll(rc)
+				if err != nil {
+					return err
+				}
+				return os.Symlink(string(linkName), filePath)
+			}
+
+			fileCopy, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileInfo.Mode())
+			if err != nil {
+				return err
+			}
+			defer fileCopy.Close()
+
+			_, err = io.Copy(fileCopy, rc)
 			if err != nil {
 				return err
 			}
 		}
+
 		return nil
 	}
 

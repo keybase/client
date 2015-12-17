@@ -14,6 +14,7 @@ config.output.publicPath = 'http://localhost:4000/dist/'
 // config.bail = true
 
 config.plugins.push(
+  new webpack.optimize.OccurenceOrderPlugin(),
   new webpack.HotModuleReplacementPlugin(),
   new webpack.NoErrorsPlugin(),
   new webpack.DefinePlugin({
@@ -21,5 +22,14 @@ config.plugins.push(
   })
 )
 
+if (process.env.HOT === 'true') {
+  const HMR = 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
+
+  Object.keys(config.entry).forEach(k => {
+    if (k !== 'main') { // node-only thread can't be hot loaded...
+      config.entry[k] = [HMR].concat(config.entry[k]) // Note: all entry points need `if (module.hot) {module.hot.accept()}` to allow hot auto loads to work
+    }
+  })
+}
 config.target = webpackTargetElectronRenderer(config)
 module.exports = config

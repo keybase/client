@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -39,12 +40,15 @@ type CmdLogin struct {
 	libkb.Contextified
 	username   string
 	clientType keybase1.ClientType
+	cancel     func()
+	done       chan struct{}
 }
 
 func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
 	return &CmdLogin{
 		Contextified: libkb.NewContextified(g),
 		clientType:   keybase1.ClientType_CLI,
+		done:         make(chan struct{}, 1),
 	}
 }
 
@@ -62,12 +66,25 @@ func (c *CmdLogin) Run() error {
 	if err != nil {
 		return err
 	}
-	return client.Login(context.TODO(),
+
+	// TODO: it would be nice to move this up a level and have keybase/main.go create
+	// a context and pass it to Command.Run(), then it can handle cancel itself
+	// instead of using Command.Cancel().
+	ctx, cancel := context.WithCancel(context.Background())
+	c.cancel = cancel
+	defer func() {
+		c.cancel()
+		c.cancel = nil
+	}()
+
+	err = client.Login(ctx,
 		keybase1.LoginArg{
 			Username:   c.username,
 			DeviceType: libkb.DeviceTypeDesktop,
 			ClientType: c.clientType,
 		})
+	c.done <- struct{}{}
+	return err
 }
 
 func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
@@ -97,4 +114,24 @@ func (c *CmdLogin) GetUsage() libkb.Usage {
 		KbKeyring: true,
 		API:       true,
 	}
+}
+
+func (c *CmdLogin) Cancel() error {
+	c.G().Log.Debug("received request to cancel running login command")
+	if c.cancel != nil {
+		c.G().Log.Debug("command cancel function exists, calling it")
+		c.cancel()
+
+		// In go-framed-msgpack-rpc, dispatch.handleCall() starts a goroutine to check the context being
+		// canceled.
+		// So, need to wait here for call to actually finish in order for the cancel message to make it
+		// to the daemon.
+		select {
+		case <-c.done:
+			c.G().Log.Debug("command finished, cancel complete")
+		case <-time.After(5 * time.Second):
+			c.G().Log.Debug("timed out waiting for command to finish")
+		}
+	}
+	return nil
 }

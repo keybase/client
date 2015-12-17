@@ -7,6 +7,10 @@ import RemoteStore from './remote-store'
 
 import commonStyles from '../styles/common'
 
+if (module.hot) {
+  module.hot.accept()
+}
+
 const currentWindow = remote.getCurrentWindow()
 
 window.console.log = (...args) => ipcRenderer.send('console.log', args)

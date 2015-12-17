@@ -9,11 +9,12 @@ protocol update {
     */
   record UpdateConfig {
     string version;
-    string osName;
+    string platform; // Platform, e.g "darwin"
     string destinationPath;
     string source; // Source to check, empty string for default
     string URL; // Custom source URL
     string channel; // Update channel, empty string for default
+    boolean force; // Force the update to be re-applied
   }
 
   record UpdateResult {
@@ -22,5 +23,4 @@ protocol update {
 
   UpdateResult update(UpdateConfig config, boolean checkOnly);
 
-  void updateNotification(Update update);
 }

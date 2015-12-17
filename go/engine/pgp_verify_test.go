@@ -122,13 +122,9 @@ func verify(ctx *Context, tc libkb.TestContext, msg, sig, name string, valid boo
 	if !ok {
 		tc.T.Fatalf("%s: invalid secret ui: %T", name, ctx.SecretUI)
 	}
-	if s.CalledGetSecret {
-		tc.T.Errorf("%s: called get secret, shouldn't have", name)
-		s.CalledGetSecret = false // reset it for next caller
-	}
-	if s.CalledGetKBPassphrase {
-		tc.T.Errorf("%s: called get kb passphrase, shouldn't have", name)
-		s.CalledGetKBPassphrase = false // reset it for next caller
+	if s.CalledGetPassphrase {
+		tc.T.Errorf("%s: called get passphrase, shouldn't have", name)
+		s.CalledGetPassphrase = false // reset it for next caller
 	}
 	p, ok := ctx.PgpUI.(*TestPgpUI)
 	if !ok {

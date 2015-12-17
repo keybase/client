@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -70,7 +69,7 @@ func (u *Updater) CheckForUpdate() (update *keybase1.Update, err error) {
 		return
 	}
 
-	u.G().Log.Info("Found update with version: %s", update.Version)
+	u.G().Log.Info("Checking update with version: %s", update.Version)
 	updateSemVersion, err := semver.Make(update.Version)
 	if err != nil {
 		return
@@ -88,6 +87,10 @@ func (u *Updater) CheckForUpdate() (update *keybase1.Update, err error) {
 
 	if updateSemVersion.EQ(currentSemVersion) {
 		// Versions are the same, we are up to date
+		u.G().Log.Info("Update matches current version: %s = %s", updateSemVersion, currentSemVersion)
+		if !u.config.Force {
+			update = nil
+		}
 		return
 	} else if updateSemVersion.LT(currentSemVersion) {
 		err = fmt.Errorf("Update is older version: %s < %s", updateSemVersion, currentSemVersion)
@@ -144,12 +147,15 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 	}
 
 	req, _ := http.NewRequest("GET", url.String(), nil)
-	u.G().Log.Info("Using etag: %s", etag)
 	if etag != "" {
+		u.G().Log.Info("Using etag: %s", etag)
 		req.Header.Set("If-None-Match", etag)
 	}
-	client := &http.Client{}
-	u.G().Log.Info("Request %#v", url.String())
+	timeout := time.Duration(20 * time.Minute)
+	client := &http.Client{
+		Timeout: timeout,
+	}
+	u.G().Log.Info("Request %s", url.String())
 	resp, err := client.Do(req)
 	if err != nil {
 		return
@@ -165,19 +171,27 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 	}
 
 	savePath := fmt.Sprintf("%s.download", fpath)
+	if _, err = os.Stat(savePath); err == nil {
+		u.G().Log.Info("Removing existing partial download: %s", savePath)
+		err = os.Remove(savePath)
+		if err != nil {
+			return
+		}
+	}
 	file, err := os.OpenFile(savePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, libkb.PermFile)
 	if err != nil {
 		return
 	}
 	defer file.Close()
+	u.G().Log.Info("Saving to %s", fpath)
 	n, err := io.Copy(file, resp.Body)
-	u.G().Log.Info("Saving %d bytes to %s", n, fpath)
+	u.G().Log.Info("Wrote %d bytes", n)
 	if err != nil {
 		return
 	}
 
 	if _, err = os.Stat(fpath); err == nil {
-		u.G().Log.Info("Removing existing bad download: %s", fpath)
+		u.G().Log.Info("Removing existing download: %s", fpath)
 		err = os.Remove(fpath)
 		if err != nil {
 			return
@@ -234,12 +248,17 @@ func (u *Updater) checkUpdate(sourcePath string, destinationPath string) error {
 
 func (u *Updater) apply(src string, dest string) error {
 	if _, err := os.Stat(dest); err == nil {
-		tmpDirName, err := libkb.TempFile(fmt.Sprintf("%s.", path.Base(dest)))
+		tmpFileName, err := libkb.TempFileName(fmt.Sprintf("%s.", path.Base(dest)))
 		if err != nil {
 			return err
 		}
-		u.G().Log.Info("Moving (existing) %s to %s", dest, tmpDirName)
-		err = os.Rename(dest, tmpDirName)
+		tmpPath := path.Join(os.TempDir(), "KeybaseBackup", tmpFileName)
+		err = libkb.MakeParentDirs(tmpPath)
+		if err != nil {
+			return err
+		}
+		u.G().Log.Info("Moving (existing) %s to %s", dest, tmpPath)
+		err = os.Rename(dest, tmpPath)
 		if err != nil {
 			return err
 		}
@@ -265,63 +284,67 @@ func (u *Updater) Update(ui libkb.UpdateUI) (update *keybase1.Update, err error)
 		return
 	}
 
-	err = u.ApplyUpdate(ui, update)
+	err = u.ApplyUpdate(ui, *update)
 	return
 }
 
-func (u *Updater) PromptForGoAhead(ui libkb.UpdateUI) (err error) {
+func (u *Updater) PromptForUpdateAction(ui libkb.UpdateUI, update keybase1.Update) (err error) {
 
-	u.G().Log.Debug("+ Update.PromptForGoAhead")
+	u.G().Log.Debug("+ Update.PromptForUpdateAction")
 	defer func() {
-		u.G().Log.Debug("- Update.PromptForGoAhead -> %v", err)
+		u.G().Log.Debug("- Update.PromptForUpdateAction -> %v", err)
 	}()
 
 	if auto := u.G().Env.GetUpdatePreferenceAuto(); auto {
 		u.G().Log.Debug("| going ahead with auto-updates")
-		return nil
+		return
 	}
 
 	if ui == nil {
-		return libkb.NoUIError{Which: "UpdateUI"}
+		err = libkb.NoUIError{Which: "UpdateUI"}
+		return
 	}
 
-	upa := keybase1.UpdatePromptArg{}
-	upa.Update.Version = u.config.Version
-	var upr keybase1.UpdatePromptRes
+	updatePrompt := keybase1.UpdatePromptArg{Update: update}
+	var updatePromptResponse keybase1.UpdatePromptRes
 
-	upr, err = ui.UpdatePrompt(context.TODO(), upa)
+	updatePromptResponse, err = ui.UpdatePrompt(context.TODO(), updatePrompt)
 	if err != nil {
-		return err
+		return
 	}
-	cw := u.G().Env.GetConfigWriter()
+	configWriter := u.G().Env.GetConfigWriter()
 
-	if upr.AlwaysAutoInstall {
-		cw.SetUpdatePreferenceAuto(true)
+	if updatePromptResponse.AlwaysAutoInstall {
+		configWriter.SetUpdatePreferenceAuto(true)
 	}
-	switch upr.Action {
+	switch updatePromptResponse.Action {
 	case keybase1.UpdateAction_UPDATE:
 	case keybase1.UpdateAction_SKIP:
 		err = libkb.CanceledError{M: "skipped update"}
-		cw.SetUpdatePreferenceSkip(u.config.Version)
+		configWriter.SetUpdatePreferenceSkip(update.Version)
 	case keybase1.UpdateAction_SNOOZE:
 		err = libkb.CanceledError{M: "snoozed update"}
-		cw.SetUpdatePreferenceSnoozeUntil(upr.SnoozeUntil)
+		configWriter.SetUpdatePreferenceSnoozeUntil(updatePromptResponse.SnoozeUntil)
 	case keybase1.UpdateAction_CANCEL:
 		err = libkb.CanceledError{M: "canceled update"}
 	default:
 		err = libkb.CanceledError{M: "unexpected cancelation"}
 	}
-	return err
+	return
 }
 
-func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update *keybase1.Update) (err error) {
+func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update) (err error) {
 	downloadPath, _, err := u.downloadAsset(update.Asset)
 	if err != nil {
 		return
 	}
 
-	if err = u.PromptForGoAhead(ui); err != nil {
-		return err
+	if u.config.Force {
+		u.G().Log.Info("Forcing update")
+	} else {
+		if err = u.PromptForUpdateAction(ui, update); err != nil {
+			return err
+		}
 	}
 
 	unzipPath, err := u.unpack(downloadPath)
@@ -356,9 +379,6 @@ func DefaultUpdaterConfig(g *libkb.GlobalContext) *keybase1.UpdateConfig {
 	switch {
 	case runtime.GOOS == "darwin" && g.Env.GetRunMode() == libkb.ProductionRunMode:
 		ret.DestinationPath = "/Applications/Keybase.app"
-	case g.Env.GetRunMode() == libkb.DevelRunMode:
-		d := filepath.Join(os.TempDir(), "keybase")
-		ret.DestinationPath = d
 	}
 	return ret
 }

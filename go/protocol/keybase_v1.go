@@ -2151,83 +2151,6 @@ type InstallClient struct {
 	Cli GenericClient
 }
 
-type KBCMFEncryptOptions struct {
-	Recipients   []string     `codec:"recipients" json:"recipients"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
-}
-
-type KbcmfEncryptArg struct {
-	SessionID int                 `codec:"sessionID" json:"sessionID"`
-	Source    Stream              `codec:"source" json:"source"`
-	Sink      Stream              `codec:"sink" json:"sink"`
-	Opts      KBCMFEncryptOptions `codec:"opts" json:"opts"`
-}
-
-type KbcmfDecryptArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Source    Stream `codec:"source" json:"source"`
-	Sink      Stream `codec:"sink" json:"sink"`
-}
-
-type KbcmfInterface interface {
-	KbcmfEncrypt(context.Context, KbcmfEncryptArg) error
-	KbcmfDecrypt(context.Context, KbcmfDecryptArg) error
-}
-
-func KbcmfProtocol(i KbcmfInterface) rpc.Protocol {
-	return rpc.Protocol{
-		Name: "keybase.1.kbcmf",
-		Methods: map[string]rpc.ServeHandlerDescription{
-			"kbcmfEncrypt": {
-				MakeArg: func() interface{} {
-					ret := make([]KbcmfEncryptArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]KbcmfEncryptArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]KbcmfEncryptArg)(nil), args)
-						return
-					}
-					err = i.KbcmfEncrypt(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"kbcmfDecrypt": {
-				MakeArg: func() interface{} {
-					ret := make([]KbcmfDecryptArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]KbcmfDecryptArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]KbcmfDecryptArg)(nil), args)
-						return
-					}
-					err = i.KbcmfDecrypt(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-		},
-	}
-}
-
-type KbcmfClient struct {
-	Cli GenericClient
-}
-
-func (c KbcmfClient) KbcmfEncrypt(ctx context.Context, __arg KbcmfEncryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbcmf.kbcmfEncrypt", []interface{}{__arg}, nil)
-	return
-}
-
-func (c KbcmfClient) KbcmfDecrypt(ctx context.Context, __arg KbcmfDecryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbcmf.kbcmfDecrypt", []interface{}{__arg}, nil)
-	return
-}
-
 type FSStatusCode int
 
 const (
@@ -4558,6 +4481,104 @@ func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err 
 	return
 }
 
+type Asset struct {
+	Name string `codec:"name" json:"name"`
+	Url  string `codec:"url" json:"url"`
+}
+
+type UpdateType int
+
+const (
+	UpdateType_NORMAL   UpdateType = 0
+	UpdateType_BUGFIX   UpdateType = 1
+	UpdateType_CRITICAL UpdateType = 2
+)
+
+type Update struct {
+	Version     string     `codec:"version" json:"version"`
+	Name        string     `codec:"name" json:"name"`
+	Description string     `codec:"description" json:"description"`
+	Type        UpdateType `codec:"type" json:"type"`
+	Asset       Asset      `codec:"asset" json:"asset"`
+}
+
+type SaltPackEncryptOptions struct {
+	Recipients   []string     `codec:"recipients" json:"recipients"`
+	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+}
+
+type SaltPackEncryptArg struct {
+	SessionID int                    `codec:"sessionID" json:"sessionID"`
+	Source    Stream                 `codec:"source" json:"source"`
+	Sink      Stream                 `codec:"sink" json:"sink"`
+	Opts      SaltPackEncryptOptions `codec:"opts" json:"opts"`
+}
+
+type SaltPackDecryptArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Source    Stream `codec:"source" json:"source"`
+	Sink      Stream `codec:"sink" json:"sink"`
+}
+
+type SaltPackInterface interface {
+	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
+	SaltPackDecrypt(context.Context, SaltPackDecryptArg) error
+}
+
+func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.saltPack",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"saltPackEncrypt": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackEncryptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackEncryptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackEncryptArg)(nil), args)
+						return
+					}
+					err = i.SaltPackEncrypt(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"saltPackDecrypt": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackDecryptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackDecryptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackDecryptArg)(nil), args)
+						return
+					}
+					err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type SaltPackClient struct {
+	Cli GenericClient
+}
+
+func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackEncrypt", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, nil)
+	return
+}
+
 type SecretEntryArg struct {
 	Desc           string `codec:"desc" json:"desc"`
 	Prompt         string `codec:"prompt" json:"prompt"`
@@ -4600,32 +4621,6 @@ type GUIEntryArg struct {
 	Features    GUIEntryFeatures `codec:"features" json:"features"`
 }
 
-type GetSecretArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Pinentry  SecretEntryArg  `codec:"pinentry" json:"pinentry"`
-	Terminal  *SecretEntryArg `codec:"terminal,omitempty" json:"terminal,omitempty"`
-}
-
-type GetNewPassphraseArg struct {
-	SessionID      int    `codec:"sessionID" json:"sessionID"`
-	TerminalPrompt string `codec:"terminalPrompt" json:"terminalPrompt"`
-	PinentryDesc   string `codec:"pinentryDesc" json:"pinentryDesc"`
-	PinentryPrompt string `codec:"pinentryPrompt" json:"pinentryPrompt"`
-	RetryMessage   string `codec:"retryMessage" json:"retryMessage"`
-	UseSecretStore bool   `codec:"useSecretStore" json:"useSecretStore"`
-}
-
-type GetKeybasePassphraseArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-	Retry     string `codec:"retry" json:"retry"`
-}
-
-type GetPaperKeyPassphraseArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-}
-
 type GetPassphraseArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Pinentry  GUIEntryArg     `codec:"pinentry" json:"pinentry"`
@@ -4633,10 +4628,6 @@ type GetPassphraseArg struct {
 }
 
 type SecretUiInterface interface {
-	GetSecret(context.Context, GetSecretArg) (SecretEntryRes, error)
-	GetNewPassphrase(context.Context, GetNewPassphraseArg) (GetPassphraseRes, error)
-	GetKeybasePassphrase(context.Context, GetKeybasePassphraseArg) (GetPassphraseRes, error)
-	GetPaperKeyPassphrase(context.Context, GetPaperKeyPassphraseArg) (string, error)
 	GetPassphrase(context.Context, GetPassphraseArg) (GetPassphraseRes, error)
 }
 
@@ -4644,70 +4635,6 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.secretUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"getSecret": {
-				MakeArg: func() interface{} {
-					ret := make([]GetSecretArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetSecretArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetSecretArg)(nil), args)
-						return
-					}
-					ret, err = i.GetSecret(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"getNewPassphrase": {
-				MakeArg: func() interface{} {
-					ret := make([]GetNewPassphraseArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetNewPassphraseArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetNewPassphraseArg)(nil), args)
-						return
-					}
-					ret, err = i.GetNewPassphrase(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"getKeybasePassphrase": {
-				MakeArg: func() interface{} {
-					ret := make([]GetKeybasePassphraseArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetKeybasePassphraseArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetKeybasePassphraseArg)(nil), args)
-						return
-					}
-					ret, err = i.GetKeybasePassphrase(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"getPaperKeyPassphrase": {
-				MakeArg: func() interface{} {
-					ret := make([]GetPaperKeyPassphraseArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetPaperKeyPassphraseArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetPaperKeyPassphraseArg)(nil), args)
-						return
-					}
-					ret, err = i.GetPaperKeyPassphrase(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"getPassphrase": {
 				MakeArg: func() interface{} {
 					ret := make([]GetPassphraseArg, 1)
@@ -4730,26 +4657,6 @@ func SecretUiProtocol(i SecretUiInterface) rpc.Protocol {
 
 type SecretUiClient struct {
 	Cli GenericClient
-}
-
-func (c SecretUiClient) GetSecret(ctx context.Context, __arg GetSecretArg) (res SecretEntryRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.secretUi.getSecret", []interface{}{__arg}, &res)
-	return
-}
-
-func (c SecretUiClient) GetNewPassphrase(ctx context.Context, __arg GetNewPassphraseArg) (res GetPassphraseRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.secretUi.getNewPassphrase", []interface{}{__arg}, &res)
-	return
-}
-
-func (c SecretUiClient) GetKeybasePassphrase(ctx context.Context, __arg GetKeybasePassphraseArg) (res GetPassphraseRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.secretUi.getKeybasePassphrase", []interface{}{__arg}, &res)
-	return
-}
-
-func (c SecretUiClient) GetPaperKeyPassphrase(ctx context.Context, __arg GetPaperKeyPassphraseArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.secretUi.getPaperKeyPassphrase", []interface{}{__arg}, &res)
-	return
 }
 
 func (c SecretUiClient) GetPassphrase(ctx context.Context, __arg GetPassphraseArg) (res GetPassphraseRes, err error) {
@@ -5417,34 +5324,14 @@ func (c UiClient) PromptYesNo(ctx context.Context, __arg PromptYesNoArg) (res bo
 	return
 }
 
-type Asset struct {
-	Name string `codec:"name" json:"name"`
-	Url  string `codec:"url" json:"url"`
-}
-
-type UpdateType int
-
-const (
-	UpdateType_NORMAL   UpdateType = 0
-	UpdateType_BUGFIX   UpdateType = 1
-	UpdateType_CRITICAL UpdateType = 2
-)
-
-type Update struct {
-	Version     string     `codec:"version" json:"version"`
-	Name        string     `codec:"name" json:"name"`
-	Description string     `codec:"description" json:"description"`
-	Type        UpdateType `codec:"type" json:"type"`
-	Asset       Asset      `codec:"asset" json:"asset"`
-}
-
 type UpdateConfig struct {
 	Version         string `codec:"version" json:"version"`
-	OsName          string `codec:"osName" json:"osName"`
+	Platform        string `codec:"platform" json:"platform"`
 	DestinationPath string `codec:"destinationPath" json:"destinationPath"`
 	Source          string `codec:"source" json:"source"`
 	URL             string `codec:"URL" json:"URL"`
 	Channel         string `codec:"channel" json:"channel"`
+	Force           bool   `codec:"force" json:"force"`
 }
 
 type UpdateResult struct {
@@ -5456,13 +5343,8 @@ type UpdateArg struct {
 	CheckOnly bool         `codec:"checkOnly" json:"checkOnly"`
 }
 
-type UpdateNotificationArg struct {
-	Update Update `codec:"update" json:"update"`
-}
-
 type UpdateInterface interface {
 	Update(context.Context, UpdateArg) (UpdateResult, error)
-	UpdateNotification(context.Context, Update) error
 }
 
 func UpdateProtocol(i UpdateInterface) rpc.Protocol {
@@ -5485,22 +5367,6 @@ func UpdateProtocol(i UpdateInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"updateNotification": {
-				MakeArg: func() interface{} {
-					ret := make([]UpdateNotificationArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]UpdateNotificationArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]UpdateNotificationArg)(nil), args)
-						return
-					}
-					err = i.UpdateNotification(ctx, (*typedArgs)[0].Update)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 		},
 	}
 }
@@ -5511,12 +5377,6 @@ type UpdateClient struct {
 
 func (c UpdateClient) Update(ctx context.Context, __arg UpdateArg) (res UpdateResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.update.update", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UpdateClient) UpdateNotification(ctx context.Context, update Update) (err error) {
-	__arg := UpdateNotificationArg{Update: update}
-	err = c.Cli.Call(ctx, "keybase.1.update.updateNotification", []interface{}{__arg}, nil)
 	return
 }
 

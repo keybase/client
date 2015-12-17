@@ -125,7 +125,7 @@ func (e *LoginProvision) Run(ctx *Context) error {
 // kex2 protocol.
 func (e *LoginProvision) device(ctx *Context) error {
 	arg := keybase1.ChooseDeviceTypeArg{Kind: keybase1.ChooseType_EXISTING_DEVICE}
-	provisionerType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), arg)
+	provisionerType, err := ctx.ProvisionUI.ChooseDeviceType(ctx.GetNetContext(), arg)
 	if err != nil {
 		return err
 	}
@@ -483,7 +483,7 @@ func (e *LoginProvision) deviceName(ctx *Context) (string, error) {
 	arg := keybase1.PromptNewDeviceNameArg{
 		ExistingDevices: names,
 	}
-	return ctx.ProvisionUI.PromptNewDeviceName(context.TODO(), arg)
+	return ctx.ProvisionUI.PromptNewDeviceName(ctx.GetNetContext(), arg)
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.
@@ -503,7 +503,7 @@ func (e *LoginProvision) promptEmailOrUsername(ctx *Context) (string, error) {
 	if len(e.arg.Username) != 0 {
 		return e.arg.Username, nil
 	}
-	return ctx.LoginUI.GetEmailOrUsername(context.TODO(), 0)
+	return ctx.LoginUI.GetEmailOrUsername(ctx.GetNetContext(), 0)
 }
 
 // If emailOrUsername looks like an email address, it will get a
@@ -627,7 +627,7 @@ func (e *LoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, e
 	arg := keybase1.ChooseProvisioningMethodArg{
 		GpgOption: hasGPGPrivate,
 	}
-	return ctx.ProvisionUI.ChooseProvisioningMethod(context.TODO(), arg)
+	return ctx.ProvisionUI.ChooseProvisioningMethod(ctx.GetNetContext(), arg)
 }
 
 // runMethod runs the function for the chosen provisioning method.
@@ -766,7 +766,7 @@ func (e *LoginProvision) selectGPGKey(ctx *Context) (fp *libkb.PGPFingerprint, e
 		fingerprints[key.ID64] = key.GetFingerprint()
 	}
 
-	keyid, err := ctx.GPGUI.SelectKey(context.TODO(), keybase1.SelectKeyArg{Keys: gks})
+	keyid, err := ctx.GPGUI.SelectKey(ctx.GetNetContext(), keybase1.SelectKeyArg{Keys: gks})
 	if err != nil {
 		return nil, err
 	}
@@ -885,7 +885,7 @@ func (e *LoginProvision) displaySuccess(ctx *Context) error {
 		Username:   e.username,
 		DeviceName: e.devname,
 	}
-	return ctx.ProvisionUI.ProvisioneeSuccess(context.TODO(), sarg)
+	return ctx.ProvisionUI.ProvisioneeSuccess(ctx.GetNetContext(), sarg)
 }
 
 func (e *LoginProvision) cleanup() {

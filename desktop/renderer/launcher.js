@@ -4,6 +4,10 @@ import Menubar from '../../react-native/react/native/remote-menubar'
 import reactDOM from 'react-dom'
 import {showMainWindow} from '../../react-native/react/local-debug.desktop'
 
+if (module.hot) {
+  module.hot.accept()
+}
+
 // The menubar has a variable height, and we want to account for that until a certain height
 // After that height, we'll just use the scroll bar
 const currentWindow = remote.getCurrentWindow()

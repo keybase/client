@@ -85,26 +85,6 @@ type GetPassphraseMock struct {
 	LastErr     error
 }
 
-func (m *GetPassphraseMock) GetSecret(arg keybase1.SecretEntryArg, _ *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	m.LastErr = errors.New("GetSecret unexpectedly called")
-	return &keybase1.SecretEntryRes{Text: "invalid passphrase"}, nil
-}
-
-func (m *GetPassphraseMock) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	m.LastErr = errors.New("GetNewPassphrase unexpectedly called")
-	return keybase1.GetPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
-}
-
-func (m *GetPassphraseMock) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
-	m.LastErr = errors.New("GetKeybasePassphrase unexpectedly called")
-	return keybase1.GetPassphraseRes{Passphrase: "invalid passphrase"}, m.LastErr
-}
-
-func (m *GetPassphraseMock) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	m.LastErr = errors.New("GetBackupPassphrase unexpectedly called")
-	return "invalid passphrase", m.LastErr
-}
-
 func (m *GetPassphraseMock) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	if m.Called {
 		m.LastErr = errors.New("GetPassphrase unexpectedly called more than once")

@@ -27,7 +27,7 @@ func NewKeybaseUpdateSource(g *libkb.GlobalContext) KeybaseUpdateSource {
 func (k KeybaseUpdateSource) FindUpdate(config keybase1.UpdateConfig) (update *keybase1.Update, err error) {
 	APIArgs := libkb.HTTPArgs{
 		"version":  libkb.S{Val: config.Version},
-		"platform": libkb.S{Val: config.OsName},
+		"platform": libkb.S{Val: config.Platform},
 		"run_mode": libkb.S{Val: string(k.G().Env.GetRunMode())},
 		"channel":  libkb.S{Val: config.Channel},
 	}

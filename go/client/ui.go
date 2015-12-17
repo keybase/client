@@ -666,7 +666,7 @@ type SecretUI struct {
 	parent *UI
 }
 
-func (ui SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
+func (ui SecretUI) getSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
 	return ui.parent.SecretEntry.Get(pinentry, term, ui.parent.ErrorWriter())
 }
 
@@ -693,81 +693,6 @@ func (ui *UI) Shutdown() error {
 		err = ui.Terminal.Shutdown()
 	}
 	return err
-}
-
-func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres keybase1.GetPassphraseRes, err error) {
-
-	arg := libkb.PromptArg{
-		TerminalPrompt: earg.TerminalPrompt,
-		PinentryDesc:   earg.PinentryDesc,
-		PinentryPrompt: earg.PinentryPrompt,
-		RetryMessage:   earg.RetryMessage,
-		Checker:        &libkb.CheckPassphraseNew,
-		UseSecretStore: earg.UseSecretStore,
-	}
-
-	orig := arg
-	var rm string
-	var text string
-
-	for {
-		text = ""
-		var text2 string
-		arg = orig
-		if len(rm) > 0 {
-			arg.RetryMessage = rm
-			rm = ""
-		}
-
-		if text, eres.StoreSecret, err = ui.passphrasePrompt(arg); err != nil {
-			return
-		}
-
-		arg.TerminalPrompt = arg.TerminalPrompt + " [confirm]"
-		arg.PinentryDesc = "Please reenter your passphase for confirmation"
-		arg.RetryMessage = ""
-		arg.Checker = nil
-
-		arg2 := arg
-		arg2.UseSecretStore = false
-		if text2, _, err = ui.passphrasePrompt(arg2); err != nil {
-			return
-		}
-		if text == text2 {
-			break
-		} else {
-			rm = "Password mismatch"
-		}
-	}
-
-	eres.Passphrase = text
-	return
-}
-
-func (ui SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (res keybase1.GetPassphraseRes, err error) {
-	desc := fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", arg.Username)
-	res.Passphrase, res.StoreSecret, err = ui.passphrasePrompt(libkb.PromptArg{
-		TerminalPrompt: "keybase passphrase",
-		PinentryPrompt: "Your passphrase",
-		PinentryDesc:   desc,
-		Checker:        &libkb.CheckPassphraseSimple,
-		RetryMessage:   arg.Retry,
-		UseSecretStore: true,
-	})
-	return
-}
-
-func (ui SecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (text string, err error) {
-	desc := fmt.Sprintf("Please enter a paper backup key passphrase for %s", arg.Username)
-	text, _, err = ui.passphrasePrompt(libkb.PromptArg{
-		TerminalPrompt: "paper backup key passphrase",
-		PinentryPrompt: "Paper backup key passphrase",
-		PinentryDesc:   desc,
-		Checker:        &libkb.CheckPassphraseSimple,
-		RetryMessage:   "",
-		UseSecretStore: false,
-	})
-	return
 }
 
 func (ui SecretUI) GetPassphrase(pin keybase1.GUIEntryArg, term *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
@@ -801,7 +726,7 @@ func (ui SecretUI) passphrasePrompt(arg libkb.PromptArg) (text string, storeSecr
 
 		tp = tp + ": "
 
-		res, err = ui.GetSecret(keybase1.SecretEntryArg{
+		res, err = ui.getSecret(keybase1.SecretEntryArg{
 			Err:            emp,
 			Desc:           arg.PinentryDesc,
 			Prompt:         arg.PinentryPrompt,

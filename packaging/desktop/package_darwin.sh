@@ -9,6 +9,9 @@ client_dir="$dir/../.."
 build_dir=${BUILD_DIR:-"$dir/build"}
 save_dir=${SAVE_DIR:-}
 tmp_dir="$dir/tmp"
+bucket_name=${BUCKET_NAME:-}
+slack_token=${SLACK_TOKEN:-}
+slack_channel=${SLACK_CHANNEL:-}
 
 # Ensure we have packaging tools
 npm install
@@ -134,6 +137,7 @@ update_plist() {
   cd $out_dir
   # App shouldn't display dock icon on startup
   /usr/libexec/plistBuddy -c "Add :LSUIElement bool true" $app_name.app/Contents/Info.plist
+  /usr/libexec/plistBuddy -c "Add :NSSupportsSuddenTermination bool true" $app_name.app/Contents/Info.plist
 }
 
 sign() {
@@ -170,12 +174,16 @@ save() {
   else
     mkdir -p $save_dir
     cd $save_dir
+    mv $out_dir/$dmg_name .
+    mv $out_dir/$zip_name .
     echo "Saved files to $save_dir"
-    mv $dmg_name $save_dir
-    mv $zip_name $save_dir
   fi
 
   $release_bin -version $app_version -src $zip_name update-json > update.json
+
+  if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
+    s3cmd sync --skip-existing --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
+  fi
 }
 
 clean
@@ -187,3 +195,5 @@ sign
 package_dmg
 create_zip
 save
+
+"$client_dir/packaging/slack/send.sh" "Built $app_version at https://$bucket_name.s3.amazonaws.com"

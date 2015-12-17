@@ -9,14 +9,14 @@ import (
 	context "golang.org/x/net/context"
 )
 
-// NotifyCtlHandler is the RPC handler for notify control messages
+// DelegateUICtlHandler is the RPC handler for notify control messages
 type DelegateUICtlHandler struct {
 	libkb.Contextified
 	*BaseHandler
 	id libkb.ConnectionID
 }
 
-// NewNotifyCtlHandler creates a new handler for setting up notification
+// NewDelegateUICtlHandler creates a new handler for setting up notification
 // channels
 func NewDelegateUICtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalContext) *DelegateUICtlHandler {
 	return &DelegateUICtlHandler{

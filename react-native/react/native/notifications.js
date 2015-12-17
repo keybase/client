@@ -11,7 +11,7 @@ type NotifyFn = (title: string, opts: Object) => void
 
 export default function (notify: NotifyFn) {
   if (initialized) {
-    throw new Error('notifications were already initialized')
+    return
   }
 
   const param = {
