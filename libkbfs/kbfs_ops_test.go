@@ -4505,3 +4505,54 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 		t.Errorf("Entry info unexpectedly changed from %+v to %+v", ei, newEi)
 	}
 }
+
+func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
+	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer config.Shutdown()
+
+	// create a file.
+	kbfsOps := config.KBFSOps()
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, uid)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Write to it.
+	data := []byte{1}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write to file: %v", err)
+	}
+
+	// Stat it.
+	ei, err := kbfsOps.Stat(ctx, fileNode)
+	if err != nil {
+		t.Fatalf("Couldn't stat file: %v", err)
+	}
+	if ei.Size != 1 {
+		t.Errorf("Stat size %d unexpectedly not 1", ei.Size)
+	}
+
+	// Rename it.
+	err = kbfsOps.Rename(ctx, rootNode, "a", rootNode, "b")
+	if err != nil {
+		t.Fatalf("Couldn't rename; %v", err)
+	}
+
+	// Get the stats via GetDirChildren.
+	eis, err := kbfsOps.GetDirChildren(ctx, rootNode)
+	if err != nil {
+		t.Fatalf("Couldn't stat file: %v", err)
+	}
+	if ei != eis["b"] {
+		t.Errorf("Entry info unexpectedly changed from %+v to %+v",
+			ei, eis["b"])
+	}
+}
