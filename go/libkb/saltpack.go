@@ -6,25 +6,25 @@ package libkb
 import (
 	"bytes"
 
-	"github.com/keybase/client/go/kbcmf"
+	"github.com/keybase/client/go/saltpack"
 	"golang.org/x/crypto/nacl/box"
 )
 
-// Wrap types from naclwrap.go in kbcmf interfaces.
+// Wrap types from naclwrap.go in saltpack interfaces.
 
 type naclBoxPublicKey NaclDHKeyPublic
 
-var _ kbcmf.BoxPublicKey = naclBoxPublicKey{}
+var _ saltpack.BoxPublicKey = naclBoxPublicKey{}
 
 func (b naclBoxPublicKey) ToKID() []byte {
 	return b[:]
 }
 
-func (b naclBoxPublicKey) ToRawBoxKeyPointer() *kbcmf.RawBoxKey {
-	return (*kbcmf.RawBoxKey)(&b)
+func (b naclBoxPublicKey) ToRawBoxKeyPointer() *saltpack.RawBoxKey {
+	return (*saltpack.RawBoxKey)(&b)
 }
 
-func (b naclBoxPublicKey) CreateEphemeralKey() (kbcmf.BoxSecretKey, error) {
+func (b naclBoxPublicKey) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {
 	kp, err := GenerateNaclDHKeyPair()
 	if err != nil {
 		return nil, err
@@ -39,9 +39,9 @@ func (b naclBoxPublicKey) HideIdentity() bool {
 
 type naclBoxPrecomputedSharedKey [32]byte
 
-var _ kbcmf.BoxPrecomputedSharedKey = naclBoxPrecomputedSharedKey{}
+var _ saltpack.BoxPrecomputedSharedKey = naclBoxPrecomputedSharedKey{}
 
-func (k naclBoxPrecomputedSharedKey) Unbox(nonce *kbcmf.Nonce, msg []byte) (
+func (k naclBoxPrecomputedSharedKey) Unbox(nonce *saltpack.Nonce, msg []byte) (
 	[]byte, error) {
 	ret, ok := box.OpenAfterPrecomputation(
 		[]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&k))
@@ -51,17 +51,17 @@ func (k naclBoxPrecomputedSharedKey) Unbox(nonce *kbcmf.Nonce, msg []byte) (
 	return ret, nil
 }
 
-func (k naclBoxPrecomputedSharedKey) Box(nonce *kbcmf.Nonce, msg []byte) ([]byte, error) {
+func (k naclBoxPrecomputedSharedKey) Box(nonce *saltpack.Nonce, msg []byte) ([]byte, error) {
 	ret := box.SealAfterPrecomputation([]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&k))
 	return ret, nil
 }
 
 type naclBoxSecretKey NaclDHKeyPair
 
-var _ kbcmf.BoxSecretKey = naclBoxSecretKey{}
+var _ saltpack.BoxSecretKey = naclBoxSecretKey{}
 
 func (n naclBoxSecretKey) Box(
-	receiver kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) (
+	receiver saltpack.BoxPublicKey, nonce *saltpack.Nonce, msg []byte) (
 	[]byte, error) {
 	ret := box.Seal([]byte{}, msg, (*[24]byte)(nonce),
 		(*[32]byte)(receiver.ToRawBoxKeyPointer()),
@@ -70,7 +70,7 @@ func (n naclBoxSecretKey) Box(
 }
 
 func (n naclBoxSecretKey) Unbox(
-	sender kbcmf.BoxPublicKey, nonce *kbcmf.Nonce, msg []byte) (
+	sender saltpack.BoxPublicKey, nonce *saltpack.Nonce, msg []byte) (
 	[]byte, error) {
 	ret, ok := box.Open([]byte{}, msg, (*[24]byte)(nonce),
 		(*[32]byte)(sender.ToRawBoxKeyPointer()),
@@ -81,12 +81,12 @@ func (n naclBoxSecretKey) Unbox(
 	return ret, nil
 }
 
-func (n naclBoxSecretKey) GetPublicKey() kbcmf.BoxPublicKey {
+func (n naclBoxSecretKey) GetPublicKey() saltpack.BoxPublicKey {
 	return naclBoxPublicKey(n.Public)
 }
 
 func (n naclBoxSecretKey) Precompute(
-	sender kbcmf.BoxPublicKey) kbcmf.BoxPrecomputedSharedKey {
+	sender saltpack.BoxPublicKey) saltpack.BoxPrecomputedSharedKey {
 	var res naclBoxPrecomputedSharedKey
 	box.Precompute((*[32]byte)(&res),
 		(*[32]byte)(sender.ToRawBoxKeyPointer()),
@@ -97,10 +97,10 @@ func (n naclBoxSecretKey) Precompute(
 // A secret key also functions as a keyring with a single key.
 type naclKeyring naclBoxSecretKey
 
-var _ kbcmf.Keyring = naclKeyring{}
+var _ saltpack.Keyring = naclKeyring{}
 
 func (n naclKeyring) LookupBoxSecretKey(
-	kids [][]byte) (int, kbcmf.BoxSecretKey) {
+	kids [][]byte) (int, saltpack.BoxSecretKey) {
 	sk := (naclBoxSecretKey)(n)
 	pkKid := sk.GetPublicKey().ToKID()
 	for i, kid := range kids {
@@ -112,7 +112,7 @@ func (n naclKeyring) LookupBoxSecretKey(
 	return -1, nil
 }
 
-func (n naclKeyring) LookupBoxPublicKey(kid []byte) kbcmf.BoxPublicKey {
+func (n naclKeyring) LookupBoxPublicKey(kid []byte) saltpack.BoxPublicKey {
 	var pk naclBoxPublicKey
 	if len(kid) != len(pk) {
 		return nil
@@ -121,10 +121,10 @@ func (n naclKeyring) LookupBoxPublicKey(kid []byte) kbcmf.BoxPublicKey {
 	return pk
 }
 
-func (n naclKeyring) GetAllSecretKeys() []kbcmf.BoxSecretKey {
-	return []kbcmf.BoxSecretKey{naclBoxSecretKey(n)}
+func (n naclKeyring) GetAllSecretKeys() []saltpack.BoxSecretKey {
+	return []saltpack.BoxSecretKey{naclBoxSecretKey(n)}
 }
 
-func (n naclKeyring) ImportEphemeralKey(kid []byte) kbcmf.BoxPublicKey {
+func (n naclKeyring) ImportEphemeralKey(kid []byte) saltpack.BoxPublicKey {
 	return n.LookupBoxPublicKey(kid)
 }

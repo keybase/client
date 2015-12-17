@@ -6,19 +6,19 @@ package libkb
 import (
 	"io"
 
-	"github.com/keybase/client/go/kbcmf"
+	"github.com/keybase/client/go/saltpack"
 )
 
-// KBCMFEncrypt reads from the given source, encrypts it for the given
+// saltpackEncrypt reads from the given source, encrypts it for the given
 // receivers from the given sender, armors it, and writes it to sink.
-func KBCMFEncrypt(
+func SaltPackEncrypt(
 	source io.Reader, sink io.WriteCloser,
 	receivers []NaclDHKeyPublic, sender NaclDHKeyPair) error {
-	var receiverBoxKeys []kbcmf.BoxPublicKey
+	var receiverBoxKeys []saltpack.BoxPublicKey
 	for _, k := range receivers {
 		receiverBoxKeys = append(receiverBoxKeys, naclBoxPublicKey(k))
 	}
-	plainsink, err := kbcmf.NewEncryptArmor62Stream(
+	plainsink, err := saltpack.NewEncryptArmor62Stream(
 		sink, naclBoxSecretKey(sender), receiverBoxKeys)
 	if err != nil {
 		return err

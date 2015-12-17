@@ -1,4 +1,4 @@
-package kbcmf
+package saltpack
 
 import (
 	"crypto/sha512"

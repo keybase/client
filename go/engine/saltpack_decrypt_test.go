@@ -10,10 +10,10 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func TestKBCMFDecrypt(t *testing.T) {
-	tc := SetupEngineTest(t, "KBCMFDecrypt")
+func TestSaltPackDecrypt(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltPackDecrypt")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(tc, "kbcmf")
+	fu := CreateAndSignupFakeUser(tc, "naclp")
 
 	// encrypt a message
 	msg := "10 days in Japan"
@@ -24,12 +24,12 @@ func TestKBCMFDecrypt(t *testing.T) {
 		LogUI:      tc.G.UI.GetLogUI(),
 	}
 	// Should encrypt for self, too.
-	arg := &KBCMFEncryptArg{
+	arg := &SaltPackEncryptArg{
 		Recips: []string{},
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 	}
-	enc := NewKBCMFEncrypt(arg, tc.G)
+	enc := NewSaltPackEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -39,11 +39,11 @@ func TestKBCMFDecrypt(t *testing.T) {
 
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
-	decarg := &KBCMFDecryptArg{
+	decarg := &SaltPackDecryptArg{
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewKBCMFDecrypt(decarg, tc.G)
+	dec := NewSaltPackDecrypt(decarg, tc.G)
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}

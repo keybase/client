@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/kbcmf"
+	"github.com/keybase/client/go/saltpack"
 )
 
 type outputBuffer struct {
@@ -21,7 +21,7 @@ func (ob outputBuffer) Close() error {
 
 // Encrypt a message, and make sure recipients can decode it, and
 // non-recipients can't decode it.
-func TestKbcmfEncDec(t *testing.T) {
+func TestsaltpackEncDec(t *testing.T) {
 	senderKP, err := GenerateNaclDHKeyPair()
 	if err != nil {
 		t.Fatal(err)
@@ -47,24 +47,24 @@ func TestKbcmfEncDec(t *testing.T) {
 
 	var buf outputBuffer
 
-	err = KBCMFEncrypt(
+	err = SaltPackEncrypt(
 		strings.NewReader(message), &buf, receiverPKs, senderKP)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	ciphertext := buf.String()
-	if !strings.HasPrefix(ciphertext, kbcmf.EncryptionArmorHeader) {
+	if !strings.HasPrefix(ciphertext, saltpack.EncryptionArmorHeader) {
 		t.Errorf("ciphertext doesn't have header: %s", ciphertext)
 	}
 
-	if !strings.HasSuffix(ciphertext, kbcmf.EncryptionArmorFooter+".\n") {
+	if !strings.HasSuffix(ciphertext, saltpack.EncryptionArmorFooter+".\n") {
 		t.Errorf("ciphertext doesn't have footer: %s", ciphertext)
 	}
 
 	for _, key := range receiverKPs {
 		buf.Reset()
-		err = KBCMFDecrypt(
+		err = SaltPackDecrypt(
 			strings.NewReader(ciphertext),
 			&buf, key)
 		if err != nil {
@@ -83,9 +83,9 @@ func TestKbcmfEncDec(t *testing.T) {
 
 	for _, kp := range nonReceiverKPs {
 		buf.Reset()
-		err = KBCMFDecrypt(
+		err = SaltPackDecrypt(
 			strings.NewReader(ciphertext), &buf, kp)
-		if err != kbcmf.ErrNoDecryptionKey {
+		if err != saltpack.ErrNoDecryptionKey {
 			t.Fatal(err)
 		}
 	}

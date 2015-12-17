@@ -9,47 +9,47 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-type KBCMFDecryptArg struct {
+type SaltPackDecryptArg struct {
 	Source io.Reader
 	Sink   io.WriteCloser
 }
 
-// KBCMFDecrypt decrypts data read from a source into a sink.
-type KBCMFDecrypt struct {
-	arg *KBCMFDecryptArg
+// SaltPackDecrypt decrypts data read from a source into a sink.
+type SaltPackDecrypt struct {
+	arg *SaltPackDecryptArg
 	libkb.Contextified
 }
 
-// NewKBCMFDecrypt creates a KBCMFDecrypt engine.
-func NewKBCMFDecrypt(arg *KBCMFDecryptArg, g *libkb.GlobalContext) *KBCMFDecrypt {
-	return &KBCMFDecrypt{
+// NewSaltPackDecrypt creates a SaltPackDecrypt engine.
+func NewSaltPackDecrypt(arg *SaltPackDecryptArg, g *libkb.GlobalContext) *SaltPackDecrypt {
+	return &SaltPackDecrypt{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *KBCMFDecrypt) Name() string {
-	return "KBCMFDecrypt"
+func (e *SaltPackDecrypt) Name() string {
+	return "SaltPackDecrypt"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *KBCMFDecrypt) Prereqs() Prereqs {
+func (e *SaltPackDecrypt) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *KBCMFDecrypt) RequiredUIs() []libkb.UIKind {
+func (e *SaltPackDecrypt) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *KBCMFDecrypt) SubConsumers() []libkb.UIConsumer {
+func (e *SaltPackDecrypt) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
 // Run starts the engine.
-func (e *KBCMFDecrypt) Run(ctx *Context) (err error) {
+func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
@@ -71,5 +71,5 @@ func (e *KBCMFDecrypt) Run(ctx *Context) (err error) {
 		return libkb.KeyCannotDecryptError{}
 	}
 
-	return libkb.KBCMFDecrypt(e.arg.Source, e.arg.Sink, kp)
+	return libkb.SaltPackDecrypt(e.arg.Source, e.arg.Sink, kp)
 }
