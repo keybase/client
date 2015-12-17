@@ -46,7 +46,7 @@ func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 }
 
 func (c *CmdDecrypt) Run() error {
-	cli, err := GetKBCMFClient(c.G())
+	cli, err := GetSaltPackClient(c.G())
 	if err != nil {
 		return err
 	}
@@ -68,8 +68,8 @@ func (c *CmdDecrypt) Run() error {
 	// TODO: If we fail to decrypt, try to detect which devices
 	// might have worked for the user:
 	// https://keybase.atlassian.net/browse/CORE-2144 .
-	arg := keybase1.KbcmfDecryptArg{Source: src, Sink: snk}
-	err = cli.KbcmfDecrypt(context.TODO(), arg)
+	arg := keybase1.SaltPackDecryptArg{Source: src, Sink: snk}
+	err = cli.SaltPackDecrypt(context.TODO(), arg)
 
 	cerr := c.filter.Close(err)
 	return libkb.PickFirstError(err, cerr)

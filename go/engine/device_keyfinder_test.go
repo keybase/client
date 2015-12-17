@@ -16,9 +16,9 @@ func TestDeviceKeyfinder(t *testing.T) {
 	tc := SetupEngineTest(t, "DeviceKeyfinder")
 	defer tc.Cleanup()
 
-	u1 := CreateAndSignupFakeUser(tc, "kbcmf")
-	u2 := CreateAndSignupFakeUser(tc, "kbcmf")
-	u3 := CreateAndSignupFakeUser(tc, "kbcmf")
+	u1 := CreateAndSignupFakeUser(tc, "naclp")
+	u2 := CreateAndSignupFakeUser(tc, "naclp")
+	u3 := CreateAndSignupFakeUser(tc, "naclp")
 
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
@@ -52,9 +52,9 @@ func TestDeviceKeyfinderNoTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "DeviceKeyfinder")
 	defer tc.Cleanup()
 
-	u1 := CreateAndSignupFakeUser(tc, "kbcmf")
-	u2 := CreateAndSignupFakeUser(tc, "kbcmf")
-	u3 := CreateAndSignupFakeUser(tc, "kbcmf")
+	u1 := CreateAndSignupFakeUser(tc, "naclp")
+	u2 := CreateAndSignupFakeUser(tc, "naclp")
+	u3 := CreateAndSignupFakeUser(tc, "naclp")
 
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),

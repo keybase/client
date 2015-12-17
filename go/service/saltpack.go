@@ -11,23 +11,23 @@ import (
 	"golang.org/x/net/context"
 )
 
-type KBCMFHandler struct {
+type SaltPackHandler struct {
 	*BaseHandler
 	libkb.Contextified
 }
 
-func NewKBCMFHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KBCMFHandler {
-	return &KBCMFHandler{
+func NewSaltPackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltPackHandler {
+	return &SaltPackHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (h *KBCMFHandler) KbcmfDecrypt(_ context.Context, arg keybase1.KbcmfDecryptArg) error {
+func (h *SaltPackHandler) SaltPackDecrypt(_ context.Context, arg keybase1.SaltPackDecryptArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-	earg := &engine.KBCMFDecryptArg{
+	earg := &engine.SaltPackDecryptArg{
 		Sink:   snk,
 		Source: src,
 	}
@@ -36,15 +36,15 @@ func (h *KBCMFHandler) KbcmfDecrypt(_ context.Context, arg keybase1.KbcmfDecrypt
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewKBCMFDecrypt(earg, h.G())
+	eng := engine.NewSaltPackDecrypt(earg, h.G())
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *KBCMFHandler) KbcmfEncrypt(_ context.Context, arg keybase1.KbcmfEncryptArg) error {
+func (h *SaltPackHandler) SaltPackEncrypt(_ context.Context, arg keybase1.SaltPackEncryptArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-	earg := &engine.KBCMFEncryptArg{
+	earg := &engine.SaltPackEncryptArg{
 		Recips:       arg.Opts.Recipients,
 		Sink:         snk,
 		Source:       src,
@@ -55,6 +55,6 @@ func (h *KBCMFHandler) KbcmfEncrypt(_ context.Context, arg keybase1.KbcmfEncrypt
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewKBCMFEncrypt(earg, h.G())
+	eng := engine.NewSaltPackEncrypt(earg, h.G())
 	return engine.RunEngine(eng, ctx)
 }

@@ -2151,83 +2151,6 @@ type InstallClient struct {
 	Cli GenericClient
 }
 
-type KBCMFEncryptOptions struct {
-	Recipients   []string     `codec:"recipients" json:"recipients"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
-}
-
-type KbcmfEncryptArg struct {
-	SessionID int                 `codec:"sessionID" json:"sessionID"`
-	Source    Stream              `codec:"source" json:"source"`
-	Sink      Stream              `codec:"sink" json:"sink"`
-	Opts      KBCMFEncryptOptions `codec:"opts" json:"opts"`
-}
-
-type KbcmfDecryptArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Source    Stream `codec:"source" json:"source"`
-	Sink      Stream `codec:"sink" json:"sink"`
-}
-
-type KbcmfInterface interface {
-	KbcmfEncrypt(context.Context, KbcmfEncryptArg) error
-	KbcmfDecrypt(context.Context, KbcmfDecryptArg) error
-}
-
-func KbcmfProtocol(i KbcmfInterface) rpc.Protocol {
-	return rpc.Protocol{
-		Name: "keybase.1.kbcmf",
-		Methods: map[string]rpc.ServeHandlerDescription{
-			"kbcmfEncrypt": {
-				MakeArg: func() interface{} {
-					ret := make([]KbcmfEncryptArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]KbcmfEncryptArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]KbcmfEncryptArg)(nil), args)
-						return
-					}
-					err = i.KbcmfEncrypt(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"kbcmfDecrypt": {
-				MakeArg: func() interface{} {
-					ret := make([]KbcmfDecryptArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]KbcmfDecryptArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]KbcmfDecryptArg)(nil), args)
-						return
-					}
-					err = i.KbcmfDecrypt(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-		},
-	}
-}
-
-type KbcmfClient struct {
-	Cli GenericClient
-}
-
-func (c KbcmfClient) KbcmfEncrypt(ctx context.Context, __arg KbcmfEncryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbcmf.kbcmfEncrypt", []interface{}{__arg}, nil)
-	return
-}
-
-func (c KbcmfClient) KbcmfDecrypt(ctx context.Context, __arg KbcmfDecryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbcmf.kbcmfDecrypt", []interface{}{__arg}, nil)
-	return
-}
-
 type FSStatusCode int
 
 const (
@@ -4577,6 +4500,83 @@ type Update struct {
 	Description string     `codec:"description" json:"description"`
 	Type        UpdateType `codec:"type" json:"type"`
 	Asset       Asset      `codec:"asset" json:"asset"`
+}
+
+type SaltPackEncryptOptions struct {
+	Recipients   []string     `codec:"recipients" json:"recipients"`
+	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+}
+
+type SaltPackEncryptArg struct {
+	SessionID int                    `codec:"sessionID" json:"sessionID"`
+	Source    Stream                 `codec:"source" json:"source"`
+	Sink      Stream                 `codec:"sink" json:"sink"`
+	Opts      SaltPackEncryptOptions `codec:"opts" json:"opts"`
+}
+
+type SaltPackDecryptArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Source    Stream `codec:"source" json:"source"`
+	Sink      Stream `codec:"sink" json:"sink"`
+}
+
+type SaltPackInterface interface {
+	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
+	SaltPackDecrypt(context.Context, SaltPackDecryptArg) error
+}
+
+func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.saltPack",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"saltPackEncrypt": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackEncryptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackEncryptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackEncryptArg)(nil), args)
+						return
+					}
+					err = i.SaltPackEncrypt(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"saltPackDecrypt": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackDecryptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackDecryptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackDecryptArg)(nil), args)
+						return
+					}
+					err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type SaltPackClient struct {
+	Cli GenericClient
+}
+
+func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackEncrypt", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, nil)
+	return
 }
 
 type SecretEntryArg struct {

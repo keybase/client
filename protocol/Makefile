@@ -28,7 +28,6 @@ build-stamp: \
 	json/identify.json \
 	json/identify_ui.json \
 	json/install.json \
-	json/kbcmf.json \
 	json/kbfs.json \
 	json/kex2provisioner.json \
 	json/kex2provisionee.json \
@@ -49,6 +48,7 @@ build-stamp: \
 	json/provision_ui.json \
 	json/quota.json \
 	json/revoke.json \
+	json/saltpack.json \
 	json/secret_ui.json \
 	json/session.json \
 	json/signup.json \

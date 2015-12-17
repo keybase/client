@@ -6,13 +6,13 @@ package libkb
 import (
 	"io"
 
-	"github.com/keybase/client/go/kbcmf"
+	"github.com/keybase/client/go/saltpack"
 )
 
-func KBCMFDecrypt(
+func SaltPackDecrypt(
 	source io.Reader, sink io.WriteCloser,
 	deviceEncryptionKey NaclDHKeyPair) error {
-	plainsource, frame, err := kbcmf.NewDearmor62DecryptStream(
+	plainsource, frame, err := saltpack.NewDearmor62DecryptStream(
 		source, naclKeyring(deviceEncryptionKey))
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func KBCMFDecrypt(
 
 	// TODO: Check header inline, and only warn if the footer
 	// doesn't match.
-	err = kbcmf.CheckArmor62Frame(frame)
+	err = saltpack.CheckArmor62Frame(frame)
 	if err != nil {
 		return err
 	}
