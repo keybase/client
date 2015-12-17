@@ -678,7 +678,7 @@ type makeNewBlock func() Block
 // getBlockHelperLocked retrieves the block pointed to by ptr, which
 // must be valid, either from the cache or from the server.
 //
-// This must be called only be get{File,Dir}BlockHelperLocked().
+// This must be called only by get{File,Dir}BlockHelperLocked().
 //
 // blockLock should be taken for reading by the caller.
 func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
@@ -725,7 +725,7 @@ func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
 // which must be valid, either from the cache or from the server. An
 // error is returned if the retrieved block is not a file block.
 //
-// This must be called only be getFileBlockForReading(),
+// This must be called only by getFileBlockForReading(),
 // getFileBlockLocked(), and getFileLocked(). And unrefEntry(), I
 // guess.
 //
@@ -753,7 +753,7 @@ func (fbo *folderBranchOps) getFileBlockHelperLocked(ctx context.Context,
 // must be valid, either from the cache or from the server. An error
 // is returned if the retrieved block is not a dir block.
 //
-// This must be called only be getDirBlockForReading() and
+// This must be called only by getDirBlockForReading() and
 // getDirLocked().
 //
 // p is used only when reporting errors, and can be empty.

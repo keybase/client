@@ -321,54 +321,61 @@ type staller struct {
 }
 
 // stallingBlockOps is an implementation of BlockOps whose operations
-// stall depending on a particular value in those operations'
-// contexts. In particular, if ctx.Value(stallKey) is a key in
-// stallMap, the corresponding staller is used to stall the operation.
+// sometimes stall. In particular, if the operation name matches
+// stallOpName, and ctx.Value(stallKey) is a key in the corresponding
+// staller is used to stall the operation.
 type stallingBlockOps struct {
-	stallKey interface{}
-	stallMap map[interface{}]staller
-	delegate BlockOps
+	stallOpName string
+	stallKey    interface{}
+	stallMap    map[interface{}]staller
+	delegate    BlockOps
 }
 
 var _ BlockOps = (*stallingBlockOps)(nil)
 
-func (f *stallingBlockOps) maybeStall(ctx context.Context) {
+func (f *stallingBlockOps) maybeStall(ctx context.Context, opName string) {
+	if opName != f.stallOpName {
+		return
+	}
+
 	v := ctx.Value(f.stallKey)
 	chans, ok := f.stallMap[v]
-	if ok {
-		select {
-		case chans.stalled <- struct{}{}:
-		default:
-		}
-		<-chans.unstall
+	if !ok {
+		return
 	}
+
+	select {
+	case chans.stalled <- struct{}{}:
+	default:
+	}
+	<-chans.unstall
 }
 
 func (f *stallingBlockOps) Get(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 	block Block) error {
-	f.maybeStall(ctx)
+	f.maybeStall(ctx, "get")
 	return f.delegate.Get(ctx, md, blockPtr, block)
 }
 
 func (f *stallingBlockOps) Ready(
 	ctx context.Context, md *RootMetadata, block Block) (
 	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
-	f.maybeStall(ctx)
+	f.maybeStall(ctx, "ready")
 	return f.delegate.Ready(ctx, md, block)
 }
 
 func (f *stallingBlockOps) Put(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData) error {
-	f.maybeStall(ctx)
+	f.maybeStall(ctx, "put")
 	return f.delegate.Put(ctx, md, blockPtr, readyBlockData)
 }
 
 func (f *stallingBlockOps) Delete(
 	ctx context.Context, md *RootMetadata, id BlockID,
 	context BlockContext) error {
-	f.maybeStall(ctx)
+	f.maybeStall(ctx, "delete")
 	return f.delegate.Delete(ctx, md, id, context)
 }
 
@@ -381,7 +388,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	// Turn off block caching.
 	config.SetBlockCache(newNullBlockCache())
 
-	// create and write to a file
+	// Create a file.
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
 	h.Writers = append(h.Writers, uid)
@@ -407,7 +414,8 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	writeValue := "write"
 
 	config.SetBlockOps(&stallingBlockOps{
-		stallKey: stallKey,
+		stallOpName: "get",
+		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			readValue: staller{
 				stalled: onReadStalledCh,
@@ -423,7 +431,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	// Wait for the read to stall.
+	// Start the read and wait for it to stall.
 	wg.Add(1)
 	var readErr error
 	go func() {
@@ -434,7 +442,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	}()
 	<-onReadStalledCh
 
-	// Wait for the write to stall.
+	// Start the write and wait for it to stall.
 	wg.Add(1)
 	var writeErr error
 	go func() {
@@ -523,7 +531,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	// Turn off block caching.
 	config.SetBlockCache(newNullBlockCache())
 
-	// create and write to a file
+	// Create a file.
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
 	h.Writers = append(h.Writers, uid)
@@ -536,6 +544,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+
 	// Write to file to mark it dirty.
 	data := []byte{1}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -548,16 +557,16 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
 
-	// We only need to know the second time we stall on the sync.
-	onSyncStalledCh := make(chan struct{}, 2)
-
+	// We only need to know the first time we stall.
+	onSyncStalledCh := make(chan struct{}, 1)
 	syncUnstallCh := make(chan struct{})
 
 	stallKey := "requestName"
 	syncValue := "sync"
 
 	config.SetBlockOps(&stallingBlockOps{
-		stallKey: stallKey,
+		stallOpName: "get",
+		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			syncValue: staller{
 				stalled: onSyncStalledCh,
@@ -569,9 +578,8 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	// Wait for the sync to stall twice; the first time for the
-	// file block, and the second time (after the file block has
-	// been marked copy-on-write) for the dir block.
+	// Start the sync and wait for it to stall (on getting the dir
+	// block).
 	wg.Add(1)
 	var syncErr error
 	go func() {
@@ -580,8 +588,6 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 		syncCtx := context.WithValue(ctx, stallKey, syncValue)
 		syncErr = kbfsOps.Sync(syncCtx, fileNode)
 	}()
-	<-onSyncStalledCh
-	syncUnstallCh <- struct{}{}
 	<-onSyncStalledCh
 
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -636,7 +642,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	// Turn off block caching.
 	config.SetBlockCache(newNullBlockCache())
 
-	// create and write to a file
+	// Create a file.
 	kbfsOps := config.KBFSOps()
 	h := NewTlfHandle()
 	h.Writers = append(h.Writers, uid)
@@ -649,6 +655,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+
 	// Write to file to mark it dirty.
 	data := []byte{1}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -661,8 +668,8 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
 
-	// We only need to know the second time we stall on the sync.
-	onSyncStalledCh := make(chan struct{}, 2)
+	// We only need to know the first time we stall.
+	onSyncStalledCh := make(chan struct{}, 1)
 
 	syncUnstallCh := make(chan struct{})
 
@@ -670,7 +677,8 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	syncValue := "sync"
 
 	config.SetBlockOps(&stallingBlockOps{
-		stallKey: stallKey,
+		stallOpName: "get",
+		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			syncValue: staller{
 				stalled: onSyncStalledCh,
@@ -682,9 +690,8 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	// Wait for the sync to stall twice; the first time for the
-	// file block, and the second time (after the file block has
-	// been marked copy-on-write) for the dir block.
+	// Start the sync and wait for it to stall (on getting the dir
+	// block).
 	wg.Add(1)
 	var syncErr error
 	go func() {
@@ -693,8 +700,6 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 		syncCtx := context.WithValue(ctx, stallKey, syncValue)
 		syncErr = kbfsOps.Sync(syncCtx, fileNode)
 	}()
-	<-onSyncStalledCh
-	syncUnstallCh <- struct{}{}
 	<-onSyncStalledCh
 
 	err = kbfsOps.Truncate(ctx, fileNode, 0)
@@ -733,6 +738,72 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 	if md != lastMD {
 		t.Error("Last MD seen by key manager != head")
+	}
+}
+
+// Test that a sync can happen concurrently with a read for a file
+// large enough to have indirect blocks without messing anything
+// up. This is a regression test for KBFS-537.
+func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
+	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer config.Shutdown()
+
+	// Turn off block caching.
+	config.SetBlockCache(newNullBlockCache())
+
+	// Use the smallest block size possible.
+	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	if err != nil {
+		t.Fatalf("Couldn't create block splitter: %v", err)
+	}
+	config.SetBlockSplitter(bsplitter)
+
+	// Create a file.
+	kbfsOps := config.KBFSOps()
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, uid)
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	// Write to file to make an indirect block.
+	data := make([]byte, bsplitter.maxSize+1)
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write to file: %v", err)
+	}
+
+	// Decouple the read context from the sync context.
+	readCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Read in a loop in a separate goroutine until we encounter
+	// an error or the test ends.
+	go func() {
+	outer:
+		for {
+			select {
+			case <-readCtx.Done():
+				break outer
+			default:
+			}
+
+			_, err := kbfsOps.Read(readCtx, fileNode, data, 0)
+			if err != nil {
+				t.Fatalf("Couldn't read file: %v", err)
+				break
+			}
+		}
+	}()
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
 	}
 }
 

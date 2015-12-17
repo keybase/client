@@ -41,12 +41,19 @@ func makeBserverMemStorage() *bserverMemStorage {
 func (s *bserverMemStorage) get(id BlockID) (blockEntry, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	return s.m[id], nil
+
+	entry, ok := s.m[id]
+	if !ok {
+		return blockEntry{}, BServerErrorBlockNonExistent{}
+	}
+
+	return entry, nil
 }
 
 func (s *bserverMemStorage) put(id BlockID, entry blockEntry) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
 	s.m[id] = entry
 	return nil
 }
@@ -129,7 +136,14 @@ func (s *bserverFileStorage) getLocked(p string) (blockEntry, error) {
 func (s *bserverFileStorage) get(id BlockID) (blockEntry, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	return s.getLocked(s.buildPath(id))
+	entry, err := s.getLocked(s.buildPath(id))
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = BServerErrorBlockNonExistent{}
+		}
+		return blockEntry{}, err
+	}
+	return entry, nil
 }
 
 func (s *bserverFileStorage) putLocked(p string, entry blockEntry) error {
@@ -159,7 +173,7 @@ func (s *bserverFileStorage) addReference(id BlockID, refNonce BlockRefNonce) er
 	p := s.buildPath(id)
 	entry, err := s.getLocked(p)
 	if err != nil {
-		if err == leveldb.ErrNotFound {
+		if os.IsNotExist(err) {
 			return IncrementMissingBlockError{id}
 		}
 		return err
@@ -176,7 +190,7 @@ func (s *bserverFileStorage) removeReference(id BlockID, refNonce BlockRefNonce)
 	p := s.buildPath(id)
 	entry, err := s.getLocked(p)
 	if err != nil {
-		if err == leveldb.ErrNotFound {
+		if os.IsNotExist(err) {
 			// This block is already gone; no error.
 			return nil
 		}
@@ -226,7 +240,14 @@ func (s *bserverLeveldbStorage) getLocked(id BlockID) (blockEntry, error) {
 func (s *bserverLeveldbStorage) get(id BlockID) (blockEntry, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	return s.getLocked(id)
+	entry, err := s.getLocked(id)
+	if err != nil {
+		if err == leveldb.ErrNotFound {
+			err = BServerErrorBlockNonExistent{}
+		}
+		return blockEntry{}, err
+	}
+	return entry, nil
 }
 
 func (s *bserverLeveldbStorage) putLocked(id BlockID, entry blockEntry) error {
