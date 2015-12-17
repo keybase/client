@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
 
@@ -39,15 +39,7 @@ func (cl *CounterLock) GetCount() int {
 
 func kbfsOpsConcurInit(t *testing.T, users ...libkb.NormalizedUsername) (
 	Config, keybase1.UID, context.Context) {
-	config := MakeTestConfigOrBust(t, users...)
-
-	currentUID, err := config.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ctx := context.Background()
-	return config, currentUID, ctx
+	return kbfsOpsInitNoMocks(t, users...)
 }
 
 // Test that only one of two concurrent GetRootMD requests can end up

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
@@ -98,6 +99,21 @@ func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	config.ctr.CheckForFailures()
 	config.KBFSOps().(*KBFSOpsStandard).Shutdown()
 	mockCtrl.Finish()
+}
+
+// kbfsOpsInitNoMocks returns a config that doesn't use any mocks. The
+// shutdown call is just config.Shutdown().
+func kbfsOpsInitNoMocks(t *testing.T, users ...libkb.NormalizedUsername) (
+	Config, keybase1.UID, context.Context) {
+	config := MakeTestConfigOrBust(t, users...)
+
+	currentUID, err := config.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+	return config, currentUID, ctx
 }
 
 func checkBlockCache(t *testing.T, config *ConfigMock,
