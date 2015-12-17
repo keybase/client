@@ -3,10 +3,9 @@ import {socketRoot, dataRoot} from '../../react-native/react/constants/platform.
 import {helpURL} from '../../react-native/react/constants/urls'
 import path from 'path'
 
+const filePath = path.join(process.platform === 'win32' ? dataRoot : splashRoot, 'started.txt')
 import fs from 'fs'
 import {shell} from 'electron'
-
-const filePath = path.join(process.platform === 'win32' ? dataRoot : splashRoot, 'started.txt')
 
 export default () => {
   fs.stat(filePath, (err, stats) => {
