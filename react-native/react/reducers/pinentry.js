@@ -54,7 +54,7 @@ export default function (state: RootPinentryState = initialState, action: Pinent
         const features = action.payload.features
         // Long form function to add annotation to help flow
         const reducer = function (m, f): EnabledFeatures {
-          return {...m, f: features[f]}
+          return {...m, [f]: features[f]}
         }
         const enabledFeatures = Object.keys(features).filter(f => features[f].allow).reduce(reducer, ({}: EnabledFeatures))
 
