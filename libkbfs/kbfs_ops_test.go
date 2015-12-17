@@ -4457,7 +4457,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 }
 
 func TestKBFSOpsWriteRenameStat(t *testing.T) {
-	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, uid, ctx := kbfsOpsInitNoMocks(t, "test_user")
 	defer config.Shutdown()
 
 	// create a file.
@@ -4507,7 +4507,7 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 }
 
 func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
-	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, uid, ctx := kbfsOpsInitNoMocks(t, "test_user")
 	defer config.Shutdown()
 
 	// create a file.
