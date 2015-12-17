@@ -142,6 +142,46 @@ class FolderRow extends Component {
   }
 }
 
+class CollapsableFolderList extends Component {
+  props: {
+    username: string,
+    folders: Array<FolderInfo>,
+    folderDisplayLimit: number,
+    collapsed: boolean,
+    onExpand: () => void
+  };
+
+  separator (key) {
+    return <div key={key} style={{...commonStyles.separator, backgroundColor: colors.transparentGrey}}/>
+  }
+
+  render () {
+    const {collapsed, onExpand, username, folderDisplayLimit} = this.props
+    const folderToElement = f => <FolderRow key={f.folderName} username={username} folder={f}/>
+
+    let {folders} = this.props
+    let truncatedCount = 0
+    // Check if it's bigger by one because it's pointless to have a button
+    // that says show all for just one more thing
+    if (collapsed && folders.length > folderDisplayLimit + 1) {
+      folders = folders.slice(0, folderDisplayLimit)
+      truncatedCount = this.props.folders.length - folderDisplayLimit
+    }
+
+    return (
+      <div>
+        {intersperseFn(i => this.separator(i), folders.map(folderToElement))}
+        {truncatedCount > 0 &&
+          <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 10}}>
+            <FlatButton
+              style={{...commonStyles.primaryButton, ...commonStyles.fontRegular, fontSize: 17, width: null}}
+              onClick={onExpand} label={`Show all (+${truncatedCount})`}/>
+          </div>}
+      </div>
+    )
+  }
+}
+
 class FolderList extends Component {
   props: {
     username: string,
@@ -150,8 +190,17 @@ class FolderList extends Component {
     openKBFSPrivate: () => void
   };
 
-  separator (key) {
-    return <div key={key} style={{...commonStyles.separator, backgroundColor: colors.transparentGrey}}/>
+  state: {
+    privateCollapsed: boolean,
+    publicCollapsed: boolean
+  };
+
+  constructor (props) {
+    super(props)
+    this.state = {
+      privateCollapsed: true,
+      publicCollapsed: true
+    }
   }
 
   render () {
@@ -175,21 +224,29 @@ class FolderList extends Component {
       openFolder: this.props.openKBFSPublic
     }
 
-    const folderToElement = f => <FolderRow key={f.folderName} username={username} folder={f}/>
-
-    const privateFolders = [].concat([personalPrivateFolder], folders.filter(f => !f.isPublic)).map(folderToElement)
-    const publicFolders = [].concat([personalPublicFolder], folders.filter(f => f.isPublic)).map(folderToElement)
+    const privateFolders = [].concat([personalPrivateFolder], folders.filter(f => !f.isPublic))
+    const publicFolders = [].concat([personalPublicFolder], folders.filter(f => f.isPublic))
 
     return (
-      <div style={{display: 'flex', flexDirection: 'column', backgroundColor: colors.trueWhite, paddingTop: 17, paddingLeft: 18, paddingBottom: 9}}>
+      <div style={{display: 'flex', flexDirection: 'column', backgroundColor: colors.trueWhite, paddingTop: 17, paddingLeft: 18, paddingBottom: 9, maxHeight: 400, overflow: 'scroll'}}>
         <div>
           <div style={{...rootFolderStyle}}>private/</div>
-          {intersperseFn(i => this.separator(i), privateFolders)}
+          <CollapsableFolderList
+            username={username}
+            folders={privateFolders}
+            folderDisplayLimit={5}
+            collapsed={this.state.privateCollapsed}
+            onExpand={() => { this.setState({privateCollapsed: false}) }}/>
         </div>
 
         <div>
           <div style={{...rootFolderStyle, marginTop: 14}}>public/</div>
-          {intersperseFn(i => this.separator(i), publicFolders)}
+          <CollapsableFolderList
+            username={username}
+            folders={publicFolders}
+            folderDisplayLimit={5}
+            collapsed={this.state.publicCollapsed}
+            onExpand={() => { this.setState({publicCollapsed: false}) }}/>
         </div>
       </div>
     )
