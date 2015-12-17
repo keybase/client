@@ -168,10 +168,8 @@ func (p *provisioner) runProtocol() (err error) {
 	if err != nil {
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), p.arg.HelloTimeout)
-	defer cancel()
 	var res keybase1.HelloRes
-	if res, err = cli.Hello(ctx, helloArg); err != nil {
+	if res, err = cli.Hello(context.TODO(), helloArg); err != nil {
 		return
 	}
 	if p.canceled {
