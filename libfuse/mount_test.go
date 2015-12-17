@@ -1367,6 +1367,59 @@ func TestSetattrFileMtime(t *testing.T) {
 	}
 	testStateForPrivateFolder(t, config, "jdoe")
 }
+func TestSetattrFileMtimeAfterWrite(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer config.Shutdown()
+	mnt, _, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	const input2 = "second round of content"
+	{
+		ctx := context.Background()
+		dh, err := libkbfs.ParseTlfHandle(ctx, config, "jdoe")
+		if err != nil {
+			t.Fatalf("cannot parse folder for jdoe: %v", err)
+		}
+		ops := config.KBFSOps()
+		jdoe, _, err := ops.GetOrCreateRootNodeForHandle(ctx, dh,
+			libkbfs.MasterBranch)
+		if err != nil {
+			t.Fatal(err)
+		}
+		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := ops.Write(ctx, myfile, []byte(input2), 0); err != nil {
+			t.Fatal(err)
+		}
+		// Don't sync
+	}
+
+	mtime := time.Date(2015, 1, 2, 3, 4, 5, 6, time.Local)
+	// KBFS does not respect atime (which is ok), but we need to give
+	// something to the syscall.
+	atime := time.Date(2015, 7, 8, 9, 10, 11, 12, time.Local)
+	if err := os.Chtimes(p, atime, mtime); err != nil {
+		t.Fatal(err)
+	}
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.ModTime(), mtime; !fsTimeEqual(g, e) {
+		t.Errorf("wrong mtime: %v !~= %v", g, e)
+	}
+	testStateForPrivateFolder(t, config, "jdoe")
+}
 
 func TestSetattrFileMtimeNow(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
