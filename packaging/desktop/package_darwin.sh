@@ -196,4 +196,4 @@ package_dmg
 create_zip
 save
 
-"$clientdir/packaging/slack/send.sh" "Built $app_version at https://$bucket_name.s3.amazonaws.com"
+"$client_dir/packaging/slack/send.sh" "Built $app_version at https://$bucket_name.s3.amazonaws.com"
