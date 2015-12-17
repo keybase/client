@@ -6,14 +6,8 @@ import path from 'path'
 import fs from 'fs'
 import {shell} from 'electron'
 
-let baseDir
-if (process.platform === 'win32') {
-  baseDir = dataRoot
-} else {
-  baseDir = socketRoot
-}
 const splashFilename = 'started.txt'
-const filePath = path.join(baseDir, splashFilename)
+const filePath = path.join(process.platform === win32 ? dataRoot : splashRoot, splashFilename)
 
 export default () => {
   fs.stat(filePath, (err, stats) => {
