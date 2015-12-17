@@ -490,7 +490,9 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 		// pointer into the new (de-dup'd) pointer.  newMergedEntry is
 		// not yet the final pointer (that happens during syncBlock),
 		// but a later stage will convert it.
-		rop.AddUpdate(unmergedEntry.BlockPointer, newMergedEntry.BlockPointer)
+		if rua.symPath == "" {
+			rop.AddUpdate(unmergedEntry.BlockPointer, newMergedEntry.BlockPointer)
+		}
 		err := prependOpsToChain(mergedMostRecent, mergedChains,
 			rop, newCreateOp(rua.fromName, mergedMostRecent, mergedEntry.Type))
 		if err != nil {
