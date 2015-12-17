@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
 )
 
 func TestSaltPackEncrypt(t *testing.T) {
@@ -24,25 +23,29 @@ func TestSaltPackEncrypt(t *testing.T) {
 	}
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
 
-	sink := libkb.NewBufferCloser()
-	arg := &SaltPackEncryptArg{
-		Recips: []string{u1.Username, u2.Username, u3.Username},
-		Source: strings.NewReader("track and encrypt, track and encrypt"),
-		Sink:   sink,
-		TrackOptions: keybase1.TrackOptions{
-			BypassConfirm: true,
-		},
-	}
+	run := func(Recips []string) {
+		sink := libkb.NewBufferCloser()
+		arg := &SaltPackEncryptArg{
+			Recips: Recips,
+			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
+			Sink:   sink,
+		}
 
-	eng := NewSaltPackEncrypt(arg, tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
+		eng := NewSaltPackEncrypt(arg, tc.G)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
 
-	out := sink.Bytes()
-	if len(out) == 0 {
-		t.Fatal("no output")
+		out := sink.Bytes()
+		if len(out) == 0 {
+			t.Fatal("no output")
+		}
 	}
+	run([]string{u1.Username, u2.Username})
+
+	// If we add ourselves, we should be smart and not error out
+	// (We are u3 in this case)
+	run([]string{u1.Username, u2.Username, u3.Username})
 }
 
 func TestSaltPackEncryptSelfNoKey(t *testing.T) {

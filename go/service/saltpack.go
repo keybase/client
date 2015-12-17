@@ -45,10 +45,9 @@ func (h *SaltPackHandler) SaltPackEncrypt(_ context.Context, arg keybase1.SaltPa
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 	earg := &engine.SaltPackEncryptArg{
-		Recips:       arg.Opts.Recipients,
-		Sink:         snk,
-		Source:       src,
-		TrackOptions: arg.Opts.TrackOptions,
+		Recips: arg.Opts.Recipients,
+		Sink:   snk,
+		Source: src,
 	}
 
 	ctx := &engine.Context{

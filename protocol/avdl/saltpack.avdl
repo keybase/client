@@ -6,7 +6,8 @@ protocol saltPack {
 
   record SaltPackEncryptOptions {
     array<string> recipients; // user assertions
-    TrackOptions trackOptions;
+    boolean hideSelf;
+    boolean encryptForSelf;
   }
 
   void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltPackEncryptOptions opts);

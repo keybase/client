@@ -26,6 +26,9 @@ protocol identify {
     UserPlusKeys upk;
   }
 
-  Identify2Res identify2WithUID(int sessionID, UID uid, string userAssertion, IdentifyReason reason, boolean useDelegateUI=false);
+  /*
+   * Note that UID can be empty, in which case a resolution is also forced.
+   */
+  Identify2Res identify2(int sessionID, UID uid, string userAssertion, IdentifyReason reason, boolean useDelegateUI=false);
 
 }

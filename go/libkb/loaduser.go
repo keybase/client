@@ -11,6 +11,7 @@ import (
 )
 
 type LoadUserArg struct {
+	Contextified
 	UID                      keybase1.UID
 	Name                     string // Can also be an assertion like foo@twitter
 	PublicKeyOptional        bool
@@ -20,7 +21,7 @@ type LoadUserArg struct {
 	AllKeys                  bool
 	LoginContext             LoginContext
 	AbortIfSigchainUnchanged bool
-	Contextified
+	ResolveBody              *jsonw.Wrapper // some load paths plumb this through
 }
 
 func NewLoadUserArg(g *GlobalContext) LoadUserArg {
@@ -143,8 +144,15 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	G.Log.Debug("| resolved to %s", arg.UID)
 
+	// We can get the user object's body from either the resolution result or
+	// if it was plumbed through as a parameter.
+	resolveBody := rres.body
+	if resolveBody == nil {
+		resolveBody = arg.ResolveBody
+	}
+
 	// load user from local, remote
-	ret, refresh, err = loadUser(arg.G(), arg.UID, rres, arg.ForceReload)
+	ret, refresh, err = loadUser(arg.G(), arg.UID, resolveBody, arg.ForceReload)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +208,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return
 }
 
-func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool) (*User, bool, error) {
+func loadUser(g *GlobalContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, force bool) (*User, bool, error) {
 	local, err := loadUserFromLocalStorage(g, uid)
 	var refresh bool
 	if err != nil {
@@ -229,7 +237,7 @@ func loadUser(g *GlobalContext, uid keybase1.UID, rres ResolveResult, force bool
 	var ret *User
 	if !loadRemote && !force {
 		ret = local
-	} else if ret, err = loadUserFromServer(g, uid, rres.body); err != nil {
+	} else if ret, err = loadUserFromServer(g, uid, resolveBody); err != nil {
 		return nil, refresh, err
 	}
 

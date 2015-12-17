@@ -627,6 +627,7 @@ const (
 	StatusCode_SCReloginRequired        StatusCode = 274
 	StatusCode_SCResolutionFailed       StatusCode = 275
 	StatusCode_SCProfileNotPublic       StatusCode = 276
+	StatusCode_SCIdentifyFailed         StatusCode = 277
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCMissingResult          StatusCode = 801
 	StatusCode_SCKeyNotFound            StatusCode = 901
@@ -1449,6 +1450,27 @@ func (c GpgUiClient) Sign(ctx context.Context, __arg SignArg) (res string, err e
 	return
 }
 
+type Asset struct {
+	Name string `codec:"name" json:"name"`
+	Url  string `codec:"url" json:"url"`
+}
+
+type UpdateType int
+
+const (
+	UpdateType_NORMAL   UpdateType = 0
+	UpdateType_BUGFIX   UpdateType = 1
+	UpdateType_CRITICAL UpdateType = 2
+)
+
+type Update struct {
+	Version     string     `codec:"version" json:"version"`
+	Name        string     `codec:"name" json:"name"`
+	Description string     `codec:"description" json:"description"`
+	Type        UpdateType `codec:"type" json:"type"`
+	Asset       Asset      `codec:"asset" json:"asset"`
+}
+
 type ProofState int
 
 const (
@@ -1623,7 +1645,7 @@ type IdentifyArg struct {
 	Source           IdentifySource `codec:"source" json:"source"`
 }
 
-type Identify2WithUIDArg struct {
+type Identify2Arg struct {
 	SessionID     int            `codec:"sessionID" json:"sessionID"`
 	Uid           UID            `codec:"uid" json:"uid"`
 	UserAssertion string         `codec:"userAssertion" json:"userAssertion"`
@@ -1634,7 +1656,7 @@ type Identify2WithUIDArg struct {
 type IdentifyInterface interface {
 	Resolve(context.Context, string) (UID, error)
 	Identify(context.Context, IdentifyArg) (IdentifyRes, error)
-	Identify2WithUID(context.Context, Identify2WithUIDArg) (Identify2Res, error)
+	Identify2(context.Context, Identify2Arg) (Identify2Res, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
@@ -1673,18 +1695,18 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"identify2WithUID": {
+			"identify2": {
 				MakeArg: func() interface{} {
-					ret := make([]Identify2WithUIDArg, 1)
+					ret := make([]Identify2Arg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]Identify2WithUIDArg)
+					typedArgs, ok := args.(*[]Identify2Arg)
 					if !ok {
-						err = rpc.NewTypeError((*[]Identify2WithUIDArg)(nil), args)
+						err = rpc.NewTypeError((*[]Identify2Arg)(nil), args)
 						return
 					}
-					ret, err = i.Identify2WithUID(ctx, (*typedArgs)[0])
+					ret, err = i.Identify2(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1708,8 +1730,8 @@ func (c IdentifyClient) Identify(ctx context.Context, __arg IdentifyArg) (res Id
 	return
 }
 
-func (c IdentifyClient) Identify2WithUID(ctx context.Context, __arg Identify2WithUIDArg) (res Identify2Res, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify.identify2WithUID", []interface{}{__arg}, &res)
+func (c IdentifyClient) Identify2(ctx context.Context, __arg Identify2Arg) (res Identify2Res, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identify.identify2", []interface{}{__arg}, &res)
 	return
 }
 
@@ -4605,8 +4627,9 @@ func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err 
 }
 
 type SaltPackEncryptOptions struct {
-	Recipients   []string     `codec:"recipients" json:"recipients"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+	Recipients     []string `codec:"recipients" json:"recipients"`
+	HideSelf       bool     `codec:"hideSelf" json:"hideSelf"`
+	EncryptForSelf bool     `codec:"encryptForSelf" json:"encryptForSelf"`
 }
 
 type SaltPackEncryptArg struct {

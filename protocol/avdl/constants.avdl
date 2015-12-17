@@ -14,6 +14,7 @@ protocol constants {
     SCReloginRequired_274,
     SCResolutionFailed_275,
     SCProfileNotPublic_276,
+    SCIdentifyFailed_277,
     SCBadSignupUsernameTaken_701,
     SCMissingResult_801,
     SCKeyNotFound_901,

@@ -34,6 +34,10 @@ func (res *ResolveResult) GetError() error {
 	return res.err
 }
 
+func (res *ResolveResult) GetBody() *jsonw.Wrapper {
+	return res.body
+}
+
 func (r *Resolver) ResolveWithBody(input string) ResolveResult {
 	return r.resolve(input, true)
 }
@@ -53,6 +57,14 @@ func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
 }
 
 func (r *Resolver) ResolveFullExpression(input string) (res ResolveResult) {
+	return r.resolveFullExpression(input, false)
+}
+
+func (r *Resolver) ResolveFullExpressionWithBody(input string) (res ResolveResult) {
+	return r.resolveFullExpression(input, true)
+}
+
+func (r *Resolver) resolveFullExpression(input string, withBody bool) (res ResolveResult) {
 	var expr AssertionExpression
 	expr, res.err = AssertionParseAndOnly(input)
 	if res.err != nil {
@@ -63,7 +75,7 @@ func (r *Resolver) ResolveFullExpression(input string) (res ResolveResult) {
 		res.err = ResolutionError{Input: input, Msg: "Cannot find a resolvable factor"}
 		return res
 	}
-	return r.resolveURL(u, input, false)
+	return r.resolveURL(u, input, withBody)
 }
 
 func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool) ResolveResult {
@@ -210,7 +222,7 @@ func (r *Resolver) putCache(key string, res ResolveResult) {
 	if r.cache == nil {
 		return
 	}
-	res.body = nil
 	res.cachedAt = r.nowFunc()
+	res.body = nil // Don't cache body
 	r.cache.Set(key, &res)
 }

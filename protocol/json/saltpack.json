@@ -413,8 +413,11 @@
         "items" : "string"
       }
     }, {
-      "name" : "trackOptions",
-      "type" : "TrackOptions"
+      "name" : "hideSelf",
+      "type" : "boolean"
+    }, {
+      "name" : "encryptForSelf",
+      "type" : "boolean"
     } ]
   } ],
   "messages" : {

@@ -139,6 +139,14 @@ func (k KID) ToBytes() []byte {
 	return b
 }
 
+func (k KID) GetKeyType() byte {
+	raw := k.ToBytes()
+	if len(raw) < 2 {
+		return 0
+	}
+	return raw[1]
+}
+
 func (k KID) ToShortIDString() string {
 	return encode(k.ToBytes()[0:12])
 }
