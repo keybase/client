@@ -27,7 +27,7 @@ class Menubar extends Component {
   props: MenubarProps;
 
   checkForFolders () {
-    if (this.props.username && !this.props.folders) {
+    if (this.props.username && this.props.loggedIn && !this.props.folders) {
       this.props.favoriteList()
     }
   }
@@ -74,6 +74,7 @@ class Menubar extends Component {
 export default connect(
   state => ({
     username: state.config && state.config.status && state.config.status.user && state.config.status.user.username,
+    loggedIn: state.config && state.config.status && state.config.status.loggedIn,
     folders: state.favorite && state.favorite.folders
   }),
   dispatch => bindActionCreators(favoriteAction, dispatch)
