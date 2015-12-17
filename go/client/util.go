@@ -34,7 +34,8 @@ func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 }
 
 func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, promptConfirm string) (keybase1.GetPassphraseRes, error) {
-	res, err := promptPassphraseUntilCheck(g, arg, &libkb.CheckPassphraseNew)
+	prompter := newClientPrompter(g)
+	res, err := libkb.GetPassphraseUntilCheck(arg, prompter, &libkb.CheckPassphraseNew)
 	if err != nil {
 		return keybase1.GetPassphraseRes{}, err
 	}
@@ -48,7 +49,7 @@ func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, p
 	}
 	arg.RetryLabel = ""
 	arg.Prompt = promptConfirm
-	_, err = promptPassphraseUntilCheck(g, arg, match)
+	_, err = libkb.GetPassphraseUntilCheck(arg, prompter, match)
 	if err != nil {
 		return keybase1.GetPassphraseRes{}, err
 	}
@@ -56,24 +57,23 @@ func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, p
 	return res, nil
 }
 
-func promptPassphraseUntilCheck(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, checker *libkb.Checker) (keybase1.GetPassphraseRes, error) {
-	cli, err := GetAccountClient(g)
+type clientPrompter struct {
+	libkb.Contextified
+}
+
+var _ libkb.PassphrasePrompter = &clientPrompter{}
+
+func newClientPrompter(g *libkb.GlobalContext) *clientPrompter {
+	return &clientPrompter{Contextified: libkb.NewContextified(g)}
+}
+
+func (c *clientPrompter) Prompt(arg keybase1.GUIEntryArg) (keybase1.GetPassphraseRes, error) {
+	cli, err := GetAccountClient(c.G())
 	if err != nil {
 		return keybase1.GetPassphraseRes{}, err
 	}
 	promptArg := keybase1.PassphrasePromptArg{
 		GuiArg: arg,
 	}
-	for i := 0; i < 10; i++ {
-		res, err := cli.PassphrasePrompt(context.TODO(), promptArg)
-		if err != nil {
-			return keybase1.GetPassphraseRes{}, err
-		}
-		if checker.F(res.Passphrase) {
-			return res, nil
-		}
-		promptArg.GuiArg.RetryLabel = checker.Hint
-	}
-
-	return keybase1.GetPassphraseRes{}, libkb.RetryExhaustedError{}
+	return cli.PassphrasePrompt(context.TODO(), promptArg)
 }
