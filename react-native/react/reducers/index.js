@@ -13,6 +13,7 @@ import {isDev} from '../constants/platform'
 import serialize from './serialize'
 import tracker from './tracker'
 import pinentry from './pinentry'
+import favorite from './favorite'
 
 import * as Constants from '../constants/dev'
 
@@ -42,7 +43,8 @@ const combinedReducer = combineReducers({
   profile,
   config,
   tracker,
-  pinentry
+  pinentry,
+  favorite
 })
 
 let reducer

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
 import remote from 'remote'
 import {ipcRenderer} from 'electron'
+import RemoteStore from './remote-store'
 
 import commonStyles from '../styles/common'
 
@@ -15,46 +16,6 @@ const currentWindow = remote.getCurrentWindow()
 window.console.log = (...args) => ipcRenderer.send('console.log', args)
 window.console.warn = (...args) => ipcRenderer.send('console.warn', args)
 window.console.error = (...args) => ipcRenderer.send('console.error', args)
-
-class RemoteStore {
-  constructor (props) {
-    ipcRenderer.on('stateChange', (event, arg) => {
-      this.internalState = props.substore ? {[props.substore]: arg} : arg
-      this._publishChange()
-    })
-
-    ipcRenderer.send('subscribeStore', props.substore)
-
-    this.listeners = []
-    this.internalState = {}
-  }
-
-  getState () {
-    return this.internalState
-  }
-
-  dispatch (action) {
-    // TODO use our middlewares
-    if (action.constructor === Function) {
-      action(a => this.dispatch(a), () => this.getState())
-    } else {
-      ipcRenderer.send('dispatchAction', action)
-    }
-  }
-
-  subscribe (listener) {
-    this.listeners.push(listener)
-    return listener => {
-      this.listeners = this.listeners.filter(l => l !== listener)
-    }
-  }
-
-  _publishChange () {
-    this.listeners.forEach(l => {
-      setImmediate(l)
-    })
-  }
-}
 
 function getQueryVariable (variable) {
   var query = window.location.search.substring(1)
@@ -75,7 +36,6 @@ class RemoteComponentLoader extends Component {
 
     const substore = getQueryVariable('substore')
     this.store = new RemoteStore({substore})
-    this.store.dispatch = this.store.dispatch.bind(this.store)
 
     const componentToLoad = getQueryVariable('component')
 

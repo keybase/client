@@ -1,0 +1,15 @@
+/* @flow */
+import React, {Component} from '../base-react'
+
+export default class Render extends Component {
+  props: {
+    debug?: boolean
+  };
+}
+
+export type FolderInfo = {
+  folderName: string,
+  isPublic: boolean,
+  isEmpty: boolean,
+  openFolder: () => void
+}
