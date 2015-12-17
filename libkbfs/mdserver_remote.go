@@ -170,6 +170,7 @@ func (md *MDServerRemote) OnDisconnected(status DisconnectStatus) {
 	if md.authToken != nil {
 		md.authToken.Shutdown()
 	}
+	md.config.RekeyQueue().Clear()
 }
 
 // ShouldThrottle implements the ConnectionHandler interface.
@@ -340,9 +341,14 @@ func (md *MDServerRemote) FolderNeedsRekey(_ context.Context, arg keybase1.Folde
 	if id == NullTlfID {
 		return MDServerErrorBadRequest{"Invalid folder ID"}
 	}
-
-	// TODO: send this to a rekeyer routine.
 	md.log.Debug("MDServerRemote: folder needs rekey: %s", id.String())
+	// queue the folder for rekeying
+	errChan := md.config.RekeyQueue().Enqueue(id)
+	select {
+	case err := <-errChan:
+		md.log.Warning("MDServerRemote: error queueing %s for rekey: %v", id, err)
+	default:
+	}
 	return nil
 }
 

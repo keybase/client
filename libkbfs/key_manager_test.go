@@ -304,7 +304,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	}
 
 	// now user 1 should rekey
-	err = kbfsOps1.RekeyForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %v", err)
 	}
@@ -331,7 +331,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)
 
 	// rekey again
-	err = kbfsOps1.RekeyForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %v", err)
 	}

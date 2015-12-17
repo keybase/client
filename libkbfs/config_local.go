@@ -48,6 +48,7 @@ type ConfigLocal struct {
 	maxFileBytes uint64
 	maxNameBytes uint32
 	maxDirBytes  uint64
+	rekeyQueue RekeyQueue
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -164,6 +165,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetBlockOps(&BlockOpsStandard{config})
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
+	config.SetRekeyQueue(NewRekeyQueueStandard(config))
 
 	config.maxFileBytes = maxFileBytesDefault
 	config.maxNameBytes = maxNameBytesDefault
@@ -437,6 +439,16 @@ func (c *ConfigLocal) MetricsRegistry() metrics.Registry {
 	return c.registry
 }
 
+// SetRekeyQueue implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetRekeyQueue(r RekeyQueue) {
+	c.rekeyQueue = r
+}
+
+// RekeyQueue implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) RekeyQueue() RekeyQueue {
+	return c.rekeyQueue
+}
+
 // SetMetricsRegistry implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetMetricsRegistry(r metrics.Registry) {
 	c.registry = r
@@ -446,6 +458,7 @@ func (c *ConfigLocal) SetMetricsRegistry(r metrics.Registry) {
 func (c *ConfigLocal) Shutdown() error {
 	err := c.KBFSOps().Shutdown()
 	// Continue with shutdown regardless of err.
+	c.RekeyQueue().Clear()
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
 	c.KeybaseDaemon().Shutdown()

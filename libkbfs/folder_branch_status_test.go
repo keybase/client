@@ -112,6 +112,8 @@ func TestFBStatusAllFields(t *testing.T) {
 	fbsk.addDirtyNode(n1)
 	fbsk.addDirtyNode(n2)
 
+	config.mockRekeyQueue.EXPECT().IsRekeyPending(id)
+
 	// check the returned status for accuracy
 	status, _, err := fbsk.getStatus(ctx)
 	if err != nil {

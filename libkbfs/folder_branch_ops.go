@@ -4420,14 +4420,14 @@ func (fbo *folderBranchOps) UnstageForTesting(
 	}
 }
 
-// TODO: remove once we have automatic rekeying
-func (fbo *folderBranchOps) RekeyForTesting(
-	ctx context.Context, folderBranch FolderBranch) (err error) {
-	fbo.log.CDebugf(ctx, "RekeyForTesting")
+// Rekey rekeys the given folder.
+func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
+	fbo.log.CDebugf(ctx, "Rekey")
 	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
 
-	if folderBranch != fbo.folderBranch {
-		return WrongOpsError{fbo.folderBranch, folderBranch}
+	fb := FolderBranch{tlf, MasterBranch}
+	if fb != fbo.folderBranch {
+		return WrongOpsError{fbo.folderBranch, fb}
 	}
 
 	lState := makeFBOLockState()

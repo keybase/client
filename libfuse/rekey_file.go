@@ -38,8 +38,7 @@ func (f *RekeyFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	if len(req.Data) == 0 {
 		return nil
 	}
-	err = f.folder.fs.config.KBFSOps().
-		RekeyForTesting(ctx, f.folder.folderBranch)
+	err = f.folder.fs.config.KBFSOps().Rekey(ctx, f.folder.folderBranch.Tlf)
 	if err != nil {
 		return err
 	}

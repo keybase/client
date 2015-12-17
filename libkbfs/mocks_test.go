@@ -427,14 +427,14 @@ func (_mr *_MockKBFSOpsRecorder) UnstageForTesting(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnstageForTesting", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) RekeyForTesting(ctx context.Context, folderBranch FolderBranch) error {
-	ret := _m.ctrl.Call(_m, "RekeyForTesting", ctx, folderBranch)
+func (_m *MockKBFSOps) Rekey(ctx context.Context, id TlfID) error {
+	ret := _m.ctrl.Call(_m, "Rekey", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKBFSOpsRecorder) RekeyForTesting(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RekeyForTesting", arg0, arg1)
+func (_mr *_MockKBFSOpsRecorder) Rekey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Rekey", arg0, arg1)
 }
 
 func (_m *MockKBFSOps) SyncFromServer(ctx context.Context, folderBranch FolderBranch) error {
@@ -2407,6 +2407,24 @@ func (_mr *_MockConfigRecorder) DataVersion() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DataVersion")
 }
 
+func (_m *MockConfig) RekeyQueue() RekeyQueue {
+	ret := _m.ctrl.Call(_m, "RekeyQueue")
+	ret0, _ := ret[0].(RekeyQueue)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) RekeyQueue() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RekeyQueue")
+}
+
+func (_m *MockConfig) SetRekeyQueue(_param0 RekeyQueue) {
+	_m.ctrl.Call(_m, "SetRekeyQueue", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetRekeyQueue(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRekeyQueue", arg0)
+}
+
 func (_m *MockConfig) ReqsBufSize() int {
 	ret := _m.ctrl.Call(_m, "ReqsBufSize")
 	ret0, _ := ret[0].(int)
@@ -2710,4 +2728,53 @@ func (_m *MockcrAction) String() string {
 
 func (_mr *_MockcrActionRecorder) String() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "String")
+}
+
+// Mock of RekeyQueue interface
+type MockRekeyQueue struct {
+	ctrl     *gomock.Controller
+	recorder *_MockRekeyQueueRecorder
+}
+
+// Recorder for MockRekeyQueue (not exported)
+type _MockRekeyQueueRecorder struct {
+	mock *MockRekeyQueue
+}
+
+func NewMockRekeyQueue(ctrl *gomock.Controller) *MockRekeyQueue {
+	mock := &MockRekeyQueue{ctrl: ctrl}
+	mock.recorder = &_MockRekeyQueueRecorder{mock}
+	return mock
+}
+
+func (_m *MockRekeyQueue) EXPECT() *_MockRekeyQueueRecorder {
+	return _m.recorder
+}
+
+func (_m *MockRekeyQueue) Enqueue(_param0 TlfID) <-chan error {
+	ret := _m.ctrl.Call(_m, "Enqueue", _param0)
+	ret0, _ := ret[0].(<-chan error)
+	return ret0
+}
+
+func (_mr *_MockRekeyQueueRecorder) Enqueue(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Enqueue", arg0)
+}
+
+func (_m *MockRekeyQueue) IsRekeyPending(_param0 TlfID) bool {
+	ret := _m.ctrl.Call(_m, "IsRekeyPending", _param0)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockRekeyQueueRecorder) IsRekeyPending(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsRekeyPending", arg0)
+}
+
+func (_m *MockRekeyQueue) Clear() {
+	_m.ctrl.Call(_m, "Clear")
+}
+
+func (_mr *_MockRekeyQueueRecorder) Clear() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Clear")
 }

@@ -281,12 +281,11 @@ func (fs *KBFSOpsStandard) UnstageForTesting(
 	return ops.UnstageForTesting(ctx, folderBranch)
 }
 
-// RekeyForTesting implements the KBFSOps interface for KBFSOpsStandard
-// TODO: remove once we have automatic rekeying
-func (fs *KBFSOpsStandard) RekeyForTesting(
-	ctx context.Context, folderBranch FolderBranch) error {
-	ops := fs.getOps(folderBranch)
-	return ops.RekeyForTesting(ctx, folderBranch)
+// Rekey implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) Rekey(ctx context.Context, id TlfID) error {
+	// We currently only support rekeys of master branches.
+	ops := fs.getOps(FolderBranch{Tlf: id, Branch: MasterBranch})
+	return ops.Rekey(ctx, id)
 }
 
 // SyncFromServer implements the KBFSOps interface for KBFSOpsStandard

@@ -222,9 +222,8 @@ type KBFSOps interface {
 	// folder-branch. TODO: remove this once we have automatic
 	// conflict resolution.
 	UnstageForTesting(ctx context.Context, folderBranch FolderBranch) error
-	// RekeyForTesting rekeys this folder. TODO: remove this once we
-	// have automatic rekeying.
-	RekeyForTesting(ctx context.Context, folderBranch FolderBranch) error
+	// Rekey rekeys this folder.
+	Rekey(ctx context.Context, id TlfID) error
 	// SyncFromServer blocks until the local client has contacted the
 	// server and guaranteed that all known updates for the given
 	// top-level folder have been applied locally (and notifications
@@ -936,6 +935,8 @@ type Config interface {
 	ConflictRenamer() ConflictRenamer
 	SetConflictRenamer(ConflictRenamer)
 	DataVersion() DataVer
+	RekeyQueue() RekeyQueue
+	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
@@ -1064,4 +1065,15 @@ type crAction interface {
 	// String returns a string representation for this crAction, used
 	// for debugging.
 	String() string
+}
+
+// RekeyQueue is a managed queue of folders needing some rekey action taken upon them
+// by the current client.
+type RekeyQueue interface {
+	// Enqueue enqueues a folder for rekey action.
+	Enqueue(TlfID) <-chan error
+	// IsRekeyPending returns true if the given folder is in the rekey queue.
+	IsRekeyPending(TlfID) bool
+	// Clear cancels all pending rekey actions and clears the queue.
+	Clear()
 }
