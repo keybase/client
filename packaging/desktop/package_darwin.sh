@@ -81,12 +81,6 @@ app_version=$keybase_version
 dmg_name="${app_name}-${app_version}${comment}.dmg"
 zip_name="${app_name}-${app_version}${comment}.zip"
 
-slack_message() {
-  if [ ! "$slack_token" = "" ] && [ ! "$slack_channel" = "" ]; then
-    echo $1 | slackcat -c $slack_channel -k $slack_token -p
-  fi
-}
-
 clean() {
   echo "Cleaning"
   rm -rf $build_dir
@@ -202,4 +196,4 @@ package_dmg
 create_zip
 save
 
-slack_message "Built $app_version at https://$bucket_name.s3.amazonaws.com/$dmg_name"
+"$clientdir/packaging/slack/send.sh" "Built $app_version at https://$bucket_name.s3.amazonaws.com"
