@@ -21,7 +21,7 @@ func (ob outputBuffer) Close() error {
 
 // Encrypt a message, and make sure recipients can decode it, and
 // non-recipients can't decode it.
-func TestsaltpackEncDec(t *testing.T) {
+func TestSaltpackEncDec(t *testing.T) {
 	senderKP, err := GenerateNaclDHKeyPair()
 	if err != nil {
 		t.Fatal(err)
