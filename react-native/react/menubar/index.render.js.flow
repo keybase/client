@@ -6,3 +6,10 @@ export default class Render extends Component {
     debug?: boolean
   };
 }
+
+export type FolderInfo = {
+  folderName: string,
+  isPublic: boolean,
+  isEmpty: boolean,
+  openFolder: () => void
+}
