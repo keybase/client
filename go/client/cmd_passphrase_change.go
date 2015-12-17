@@ -22,7 +22,7 @@ func NewCmdPassphraseChange(cl *libcmdline.CommandLine) cli.Command {
 }
 
 func (c *CmdPassphraseChange) Run() error {
-	pp, err := promptNewPassphrase()
+	pp, err := PromptNewPassphrase(G)
 	if err != nil {
 		return err
 	}

@@ -31,7 +31,7 @@ func (c *CmdPassphraseRecover) Run() error {
 	if err := c.confirm(); err != nil {
 		return err
 	}
-	pp, err := promptNewPassphrase()
+	pp, err := PromptNewPassphrase(G)
 	if err != nil {
 		return err
 	}
