@@ -115,6 +115,7 @@ protocol Common {
 	record Asset {
 		string name;
 		string url;
+		string localPath; // If downloaded, path to file locally
 	}
 
 	enum UpdateType {

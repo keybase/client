@@ -2,7 +2,7 @@
 @namespace("keybase.1")
 protocol update {
 
-  import idl "common.avdl";
+  import idl "update_common.avdl";
 
   /**
     Configuration for checking and applying updates.

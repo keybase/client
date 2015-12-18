@@ -216,6 +216,9 @@
     }, {
       "name" : "url",
       "type" : "string"
+    }, {
+      "name" : "localPath",
+      "type" : "string"
     } ]
   }, {
     "type" : "enum",

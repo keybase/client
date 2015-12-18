@@ -1,14 +1,14 @@
 
 @namespace("keybase.1")
 protocol account {
-	import idl "passphrase_common.avdl";
+  import idl "passphrase_common.avdl";
 
-	/**
-	  Change the passphrase from old to new. If old isn't set, and force is false,
-	  then prompt at the UI for it. If old isn't set and force is true, then we'll
-	  try to force a passphrase change.
-	 */
-	void passphraseChange(int sessionID, string oldPassphrase, string passphrase, boolean force);
+  /**
+    Change the passphrase from old to new. If old isn't set, and force is false,
+    then prompt at the UI for it. If old isn't set and force is true, then we'll
+    try to force a passphrase change.
+   */
+  void passphraseChange(int sessionID, string oldPassphrase, string passphrase, boolean force);
 
-	GetPassphraseRes passphrasePrompt(int sessionID, GUIEntryArg guiArg);
+  GetPassphraseRes passphrasePrompt(int sessionID, GUIEntryArg guiArg);
 }
