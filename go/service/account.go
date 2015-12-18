@@ -32,13 +32,16 @@ func (h *AccountHandler) PassphraseChange(_ context.Context, arg keybase1.Passph
 }
 
 func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.PassphrasePromptArg) (keybase1.GetPassphraseRes, error) {
-	ui, err := h.G().UIRouter.GetSecretUI()
-	if err != nil {
-		return keybase1.GetPassphraseRes{}, err
-	}
-	if ui == nil {
-		h.G().Log.Debug("delegate secret ui unavailable, falling back to standard one")
-		ui = h.getSecretUI(arg.SessionID)
+	ui := h.getSecretUI(arg.SessionID)
+	if h.G().UIRouter != nil {
+		delegateUI, err := h.G().UIRouter.GetSecretUI()
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, err
+		}
+		if delegateUI != nil {
+			ui = delegateUI
+			h.G().Log.Debug("using delegate secret UI")
+		}
 	}
 
 	return ui.GetPassphrase(arg.GuiArg, nil)
