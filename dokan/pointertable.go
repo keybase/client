@@ -39,25 +39,23 @@ func fsTableStore(fs FileSystem, ec chan error) uint32 {
 
 func fsTableFree(slot uint32) {
 	fsTableLock.Lock()
+	defer fsTableLock.Unlock()
 	if int(slot) < len(fsTable) {
 		fsTable[slot] = nil
 		mounterTable[slot] = nil
 	}
-	fsTableLock.Unlock()
 }
 
 func fsTableGet(slot uint32) FileSystem {
 	fsTableLock.Lock()
-	var fs = fsTable[slot]
-	fsTableLock.Unlock()
-	return fs
+	defer fsTableLock.Unlock()
+	return fsTable[slot]
 }
 
 func mounterTableGet(slot uint32) chan error {
 	fsTableLock.Lock()
-	var ec = mounterTable[slot]
-	fsTableLock.Unlock()
-	return ec
+	defer fsTableLock.Unlock()
+	return mounterTable[slot]
 }
 
 func fsTableStoreFile(global uint32, fi File) uint32 {
@@ -83,15 +81,15 @@ func fsTableStoreFile(global uint32, fi File) uint32 {
 
 func fsTableGetFile(file uint32) File {
 	fsTableLock.Lock()
+	defer fsTableLock.Unlock()
 	var fi = fiTable[file]
-	fsTableLock.Unlock()
 	debug("FID get", file, fi)
 	return fi
 }
 
 func fsTableFreeFile(global uint32, file uint32) {
 	fsTableLock.Lock()
+	defer fsTableLock.Unlock()
 	debug("FID free", global, file, "=>", fiTable[file], "# of open files:", len(fiTable))
 	delete(fiTable, file)
-	fsTableLock.Unlock()
 }
