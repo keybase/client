@@ -280,10 +280,10 @@ func (t emptyFS) CreateFile(fi *FileInfo, cd *CreateData) (File, bool, error) {
 	return emptyFile{}, true, nil
 }
 func (t emptyFile) CanDeleteFile(*FileInfo) error {
-	return dokan.ErrAccessDenied
+	return ErrAccessDenied
 }
 func (t emptyFile) CanDeleteDirectory(*FileInfo) error {
-	return dokan.ErrAccessDenied
+	return ErrAccessDenied
 }
 func (t emptyFile) SetEndOfFile(fi *FileInfo, length int64) error {
 	debug("emptyFile.SetEndOfFile")
