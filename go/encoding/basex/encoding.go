@@ -17,15 +17,14 @@ const invalidByte = byte(0xFE)
 // Encoding is a radix X encoding/decoding scheme, defined by X-length
 // character alphabet.
 type Encoding struct {
-	encode                 []byte
-	decodeMap              [256]byte
-	base256BlockLen        int
-	baseXBlockLen          int
-	base                   int
-	logOfBase              float64
-	baseBig                *big.Int
-	maxEncodedBitsPerBlock int
-	skipBytes              string
+	encode          []byte
+	decodeMap       [256]byte
+	base256BlockLen int
+	baseXBlockLen   int
+	base            int
+	logOfBase       float64
+	baseBig         *big.Int
+	skipBytes       string
 }
 
 // NewEncoding returns a new Encoding defined by the given alphabet,
@@ -46,23 +45,16 @@ func NewEncoding(encoder string, base256BlockLen int, skipBytes string) *Encodin
 	// output block length.  We need to round up to fit the overflow.
 	baseXBlockLen := int(math.Ceil(float64(8*base256BlockLen) / logOfBase))
 
-	// maxEncodedBitsPerBlock determines the maximum number of bits
-	// we can fit into an encoded block of the given block length.
-	// We're actually not going to be using this many bits, but we
-	// need to know for the purposes of left shifting during encoding.
-	maxEncodedBitsPerBlock := int(math.Floor(logOfBase * float64(baseXBlockLen)))
-
 	// Code adapted from encoding/base64/base64.go in the standard
 	// Go libraries.
 	e := &Encoding{
-		encode:                 make([]byte, base),
-		base:                   base,
-		base256BlockLen:        base256BlockLen,
-		baseXBlockLen:          baseXBlockLen,
-		logOfBase:              logOfBase,
-		baseBig:                big.NewInt(int64(base)),
-		maxEncodedBitsPerBlock: maxEncodedBitsPerBlock,
-		skipBytes:              skipBytes,
+		encode:          make([]byte, base),
+		base:            base,
+		base256BlockLen: base256BlockLen,
+		baseXBlockLen:   baseXBlockLen,
+		logOfBase:       logOfBase,
+		baseBig:         big.NewInt(int64(base)),
+		skipBytes:       skipBytes,
 	}
 	copy(e.encode[:], encoder)
 
@@ -119,27 +111,6 @@ func (enc *Encoding) IsValidByte(b byte) bool {
 	return enc.decodeMap[b] != invalidByte
 }
 
-// extraBits returns the number of bits in the encoding that we'll need
-// to shift over.
-func (enc *Encoding) extraBits(decodedLen, encodedLen int) uint {
-	var encodedBits int
-
-	// The fast path is that we have a full block, so use the precomputed
-	// value.
-	if encodedLen == enc.baseXBlockLen {
-		encodedBits = enc.maxEncodedBitsPerBlock
-	} else {
-		// The slow path means we have to compute the encodedBits
-		// as a function of the input encoded block. It involves floating-point
-		// operations so we try not to do it unless we have to.
-		encodedBits = int(math.Floor(enc.logOfBase * float64(encodedLen)))
-	}
-	decodedBits := decodedLen * 8
-
-	// This is the "fluff" that we need to shift over.
-	return uint(encodedBits - decodedBits)
-}
-
 // encodeBlock fills the dst buffer with the encoding of src.
 // It is assumed the buffers are appropriately sized, and no
 // bounds checks are performed.  In particular, the dst buffer will
@@ -152,10 +123,6 @@ func (enc *Encoding) encodeBlock(dst, src []byte) {
 	quo := new(big.Int)
 
 	encodedLen := enc.EncodedLen(len(src))
-
-	// Shift over the given number of extra Bits, so that all of our
-	// wasted bits are on the right.
-	num = num.Lsh(num, enc.extraBits(len(src), encodedLen))
 
 	p := encodedLen - 1
 
@@ -236,10 +203,6 @@ func (enc *Encoding) decodeBlock(dst []byte, src []byte, baseOffset int) (int, i
 	}
 
 	paddedLen := enc.DecodedLen(numGoodChars)
-
-	// Compute the corresponding right shift, to move the number
-	// over to its natural base.
-	res = res.Rsh(res, enc.extraBits(paddedLen, numGoodChars))
 
 	// Use big-endian representation (the default with Go's library)
 	raw := res.Bytes()
