@@ -103,8 +103,8 @@ func (log *Standard) initLogging(iow io.Writer) {
 	initLoggingBackendOnce.Do(func() {
 		logBackend := logging.NewLogBackend(iow, "", 0)
 		logging.SetBackend(logBackend)
-		logging.SetLevel(logging.INFO, log.module)
 	})
+	logging.SetLevel(logging.INFO, log.module)
 }
 
 func (log *Standard) prepareString(
