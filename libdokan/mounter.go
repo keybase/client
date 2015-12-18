@@ -42,7 +42,11 @@ func NewForceMounter(dir string) DefaultMounter {
 func (m DefaultMounter) Mount(fs dokan.FileSystem) error {
 	m.fs = fs
 	mnt, err := dokan.Mount(m.fs, m.dir[0])
-	mnt.BlockTillDone()
+	if err != nil {
+		return err
+	}
+	m.mnt = mnt
+	m.mnt.BlockTillDone()
 	return err
 }
 

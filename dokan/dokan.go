@@ -28,18 +28,19 @@ func Mount(fs FileSystem, driveLetter byte) (*MountHandle, error) {
 		}
 		close(ec)
 	}()
+	// Currently in mount this is the only receive in the channel.
+	// There are two sends one in the above code and one in the
+	// sending a nil when the filesystem is mounted in callback.go
 	err := <-ec
 	if err != nil {
-		return nil, err
+		ctx.Free()
+		ctx = nil
 	}
-	return &MountHandle{ctx, ec, driveLetter}, nil
+	return &MountHandle{ctx, ec, driveLetter}, err
 }
 
 // Close unmounts the filesystem.
 func (m *MountHandle) Close() error {
-	if m == nil {
-		return nil
-	}
 	err := Unmount(m.driveLetter)
 	m.ctx.Free()
 	m.ctx = nil
@@ -47,13 +48,11 @@ func (m *MountHandle) Close() error {
 }
 
 // BlockTillDone blocks till Dokan is done.
-func (m *MountHandle) BlockTillDone() {
-	if m != nil {
-		for {
-			_, ok := <-m.errChan
-			if !ok {
-				return
-			}
-		}
-	}
+func (m *MountHandle) BlockTillDone() error {
+	// Two cases:
+	// 1) Mount got send from Mounted hook
+	// 2) Mount got send from Mount (which errored) and closed the channel
+	// In case 1 we get the Mount result here and ok, in 2 we get nil and not ok.
+	err, _ := <-m.errChan
+	return err
 }
