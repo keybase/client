@@ -4,7 +4,7 @@ As with the [encryption format](saltpack_encryption.md), we want our signing
 format to have some properties on top of a standard NaCl signature:
 - Streaming. We want to be able to verify a message of any size, without
   fitting the whole thing in RAM, and without requiring a second pass to output
-  attached plaintext. But we sould only ever output verified data.
+  attached plaintext. But we should only ever output verified data.
 - Abuse resistance. Alice might use the same signing key for many applications
   besides SaltPack. Mallory (an attacker) could [try to trick Alice into
   signing
