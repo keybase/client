@@ -51,6 +51,7 @@ func NewContextWithOpID(ctx context.Context,
 }
 
 // deToStat converts from a libkbfs.Direntry and error to a *dokan.Stat and error.
+// Note that handling symlinks to directories requires extra processing not done here.
 func deToStat(de libkbfs.DirEntry, err error) (*dokan.Stat, error) {
 	if err != nil {
 		return nil, errToDokan(err)
@@ -60,7 +61,8 @@ func deToStat(de libkbfs.DirEntry, err error) (*dokan.Stat, error) {
 	return st, nil
 }
 
-// fillStat fill a dokan.Stat from a libkbfs.DirEntry
+// fillStat fill a dokan.Stat from a libkbfs.DirEntry.
+// Note that handling symlinks to directories requires extra processing not done here.
 func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 	a.FileSize = int64(de.Size)
 	a.LastWrite = time.Unix(0, de.Mtime)
@@ -85,6 +87,8 @@ func errToDokan(err error) error {
 		return dokan.ErrObjectPathNotFound
 	case libkbfs.NoSuchUserError:
 		return dokan.ErrObjectPathNotFound
+	case libkbfs.MDServerErrorUnauthorized:
+		return dokan.ErrAccessDenied
 	case nil:
 		return nil
 	}
@@ -107,10 +111,19 @@ func defaultFileInformation() (*dokan.Stat, error) {
 	return &st, nil
 }
 
-// defaultSymlinkInformation returns default symlink information,
-func defaultSymlinkInformation() (*dokan.Stat, error) {
+// defaultSymlinkFileInformation returns default symlink to file information.
+func defaultSymlinkFileInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
 	st.FileAttributes = fileAttributeReparsePoint
+	st.ReparsePointTag = reparsePointTagSymlink
+	st.NumberOfLinks = 1
+	return &st, nil
+}
+
+// defaultSymlinkDirInformation returns default symlink to directory information.
+func defaultSymlinkDirInformation() (*dokan.Stat, error) {
+	var st dokan.Stat
+	st.FileAttributes = fileAttributeReparsePoint | fileAttributeDirectory
 	st.ReparsePointTag = reparsePointTagSymlink
 	st.NumberOfLinks = 1
 	return &st, nil

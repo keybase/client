@@ -72,6 +72,9 @@ func (f *UpdatesFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n 
 			return 0, err
 		}
 	}
+	// Because we store state in the folder it must not be forgotten
+	// even if it appears empty and unused.
+	f.folder.noForget = true
 
 	return len(bs), err
 }

@@ -31,10 +31,16 @@ func newFile(folder *Folder, node libkbfs.Node, name string, parent libkbfs.Node
 func (f *File) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
 	ctx := context.TODO()
 	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
-	f.folder.fs.log.CDebugf(ctx, "File Attr")
+	f.folder.fs.log.CDebugf(ctx, "File GetFileInformation node=%v start", f.node)
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
-	return deToStat(f.folder.fs.config.KBFSOps().Stat(ctx, f.node))
+	a, err = deToStat(f.folder.fs.config.KBFSOps().Stat(ctx, f.node))
+	if a != nil {
+		f.folder.fs.log.CDebugf(ctx, "File GetFileInformation node=%v => %v", f.node, *a)
+	} else {
+		f.folder.fs.log.CDebugf(ctx, "File GetFileInformation node=%v => Error %T %v", f.node, err, err)
+	}
+	return a, err
 }
 
 // CanDeleteFile - return just nil
@@ -54,6 +60,8 @@ func (f *File) Cleanup(fi *dokan.FileInfo) {
 		defer func() { f.folder.fs.reportErr(ctx, err) }()
 
 		err = f.folder.fs.config.KBFSOps().RemoveEntry(ctx, f.parent, f.name)
+	} else {
+		err = f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
 	}
 
 	f.folder.forgetNode(f.node)

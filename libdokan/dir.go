@@ -41,6 +41,10 @@ type Folder struct {
 	// file system.  Sending a struct{}{} on this channel will unpause
 	// the updates.
 	updateChan chan<- struct{}
+
+	// noForget is turned on when the folder may not be forgotten
+	// because it has attached special file state with it.
+	noForget bool
 }
 
 // forgetNode forgets a formerly active child with basename name.
@@ -49,7 +53,7 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 	defer f.mu.Unlock()
 
 	delete(f.nodes, node.GetID())
-	if len(f.nodes) == 0 {
+	if len(f.nodes) == 0 && !f.noForget {
 		f.list.forgetFolder(f)
 	}
 }
@@ -87,10 +91,10 @@ func newDir(folder *Folder, node libkbfs.Node, name string, parent libkbfs.Node)
 }
 
 // GetFileInformation for dokan.
-func (d *Dir) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
+func (d *Dir) GetFileInformation(*dokan.FileInfo) (st *dokan.Stat, err error) {
 	ctx := context.TODO()
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
-	d.folder.fs.log.CDebugf(ctx, "Dir Attr")
+	d.folder.fs.log.CDebugf(ctx, "Dir GetFileInformation")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
 	return deToStat(d.folder.fs.config.KBFSOps().Stat(ctx, d.node))
@@ -111,7 +115,7 @@ func lastStr(strs []string) string {
 }
 
 // open tries to open a file. This handles special files and defaults to openDir for the common case.
-func (d *Dir) open(fi *dokan.FileInfo, path []string, caf *createData) (dokan.File, bool, error) {
+func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
 	// Error and metrics file already handled in fs.go.
 	switch lastStr(path) {
 
@@ -144,14 +148,14 @@ func (d *Dir) open(fi *dokan.FileInfo, path []string, caf *createData) (dokan.Fi
 		return child, false, nil
 	}
 
-	return openDir(d, fi, path, caf)
+	return openDir(d, ctx, oc, path)
 }
 
 // openDir is the complex path lookup procedure.
-func openDir(d *Dir, fi *dokan.FileInfo, path []string, caf *createData) (dokan.File, bool, error) {
-	ctx := context.TODO()
-	maxRedirections := 30
-
+func openDir(d *Dir, ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
+	d.folder.fs.log.CDebugf(ctx, "Dir openDir %v", path)
+	origPath := path
+	rootDir := d
 	for len(path) > 0 {
 		leaf := len(path) == 1
 		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0])
@@ -160,18 +164,18 @@ func openDir(d *Dir, fi *dokan.FileInfo, path []string, caf *createData) (dokan.
 		if leaf {
 			notFound := isNoSuchNameError(err)
 			switch {
-			case notFound && caf.isCreateDirectory():
-				return d.mkdir(fi, path[0])
-			case notFound && caf.isCreation():
-				return d.create(fi, path[0], caf)
-			case !notFound && caf.isExistingError():
+			case notFound && oc.isCreateDirectory():
+				return d.mkdir(ctx, oc, path[0])
+			case notFound && oc.isCreation():
+				return d.create(ctx, oc, path[0])
+			case !notFound && oc.isExistingError():
 				return nil, false, dokan.ErrFileAlreadyExists
 			}
 		}
 
 		// Return errors from Lookup
 		if err != nil {
-			return nil, false, errToDokan(err)
+			return nil, false, err
 		}
 
 		if newNode != nil {
@@ -184,7 +188,7 @@ func openDir(d *Dir, fi *dokan.FileInfo, path []string, caf *createData) (dokan.
 				return nil, false, fmt.Errorf("unhandled node type: %T", f)
 			case nil:
 			case *File:
-				return openFile(ctx, path, caf, x)
+				return openFile(ctx, oc, path, x)
 			case *Dir:
 				d = x
 				path = path[1:]
@@ -196,7 +200,7 @@ func openDir(d *Dir, fi *dokan.FileInfo, path []string, caf *createData) (dokan.
 			return nil, false, fmt.Errorf("unhandled entry type: %v", de.Type)
 		case libkbfs.File, libkbfs.Exec:
 			child := newFile(d.folder, newNode, path[0], d.node)
-			f, _, err := openFile(ctx, path, caf, child)
+			f, _, err := openFile(ctx, oc, path, child)
 			if err == nil {
 				d.folder.lockedAddNode(newNode, child)
 			}
@@ -207,36 +211,22 @@ func openDir(d *Dir, fi *dokan.FileInfo, path []string, caf *createData) (dokan.
 			d = child
 			path = path[1:]
 		case libkbfs.Sym:
-			maxRedirections--
-			if maxRedirections < 0 {
-				return nil, false, dokan.ErrObjectPathNotFound
-			}
-			if leaf && caf.isOpenReparsePoint() {
-				// a Symlink is never included in Folder.nodes, as it doesn't
-				// have a libkbfs.Node to keep track of renames.
-				return &Symlink{parent: d, name: path[0]}, false, nil
-			}
-			// reference symlink, symbolic links always use '/' instead of '\'.
-			// also only support symlinks inside this directory for now.
-			if de.SymPath == "" || de.SymPath[0] == '/' || strings.ContainsAny(de.SymPath, `/\`) {
-				return nil, false, dokan.ErrNotSupported
-			}
-			path[0] = de.SymPath
+			return openSymlink(ctx, oc, d, rootDir, origPath, path, de.SymPath)
 		}
 	}
-	if caf.mayNotBeDirectory() {
+	if oc.mayNotBeDirectory() {
 		return nil, true, dokan.ErrFileIsADirectory
 	}
 	return d, true, nil
 }
 
-func openFile(ctx context.Context, path []string, caf *createData, f *File) (dokan.File, bool, error) {
+func openFile(ctx context.Context, oc *openContext, path []string, f *File) (dokan.File, bool, error) {
 	var err error
 	// Files only allowed as leafs...
 	if len(path) > 1 {
 		return nil, false, dokan.ErrObjectPathNotFound
 	}
-	if caf.isTruncate() {
+	if oc.isTruncate() {
 		err = f.folder.fs.config.KBFSOps().Truncate(ctx, f.node, 0)
 	}
 	if err != nil {
@@ -245,10 +235,39 @@ func openFile(ctx context.Context, path []string, caf *createData, f *File) (dok
 	return f, false, nil
 }
 
-func (d *Dir) create(fi *dokan.FileInfo, name string, caf *createData) (f dokan.File, isDir bool, err error) {
-	ctx := context.TODO()
+func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir, origPath []string, path []string, target string) (dokan.File, bool, error) {
+	oc.maxRedirections--
+	if oc.maxRedirections < 0 {
+		return nil, false, dokan.ErrObjectPathNotFound
+	}
+	// Take relevant prefix of original path.
+	origPath = origPath[:len(origPath)-len(path)]
+	if len(path) == 1 && oc.isOpenReparsePoint() {
+		// a Symlink is never included in Folder.nodes, as it doesn't
+		// have a libkbfs.Node to keep track of renames.
+		// Here we may get an error if the symlink destination does not exist.
+		// which is fine, treat such non-existing targets as symlinks to a file.
+		isDir, err := resolveSymlinkIsDir(ctx, oc, rootDir, origPath, target)
+		parent.folder.fs.log.CDebugf(ctx, "openSymlink leaf returned %v,%v => %v,%v", origPath, target, isDir, err)
+		return &Symlink{parent: parent, name: path[0], isTargetADirectory: isDir}, isDir, nil
+	}
+	// reference symlink, symbolic links always use '/' instead of '\'.
+	if target == "" || target[0] == '/' {
+		return nil, false, dokan.ErrNotSupported
+	}
+
+	dst, err := resolveSymlinkPath(ctx, origPath, target)
+	parent.folder.fs.log.CDebugf(ctx, "openSymlink resolve returned %v,%v => %v,%v", origPath, target, dst, err)
+	if err != nil {
+		return nil, false, err
+	}
+	dst = append(dst, path[1:]...)
+	return rootDir.open(ctx, oc, dst)
+}
+
+func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, isDir bool, err error) {
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
-	d.folder.fs.log.CDebugf(ctx, "Dir Create %s %v", name, caf)
+	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
 	isExec := false // Windows lacks executable modes.
@@ -263,8 +282,7 @@ func (d *Dir) create(fi *dokan.FileInfo, name string, caf *createData) (f dokan.
 	return child, false, nil
 }
 
-func (d *Dir) mkdir(fi *dokan.FileInfo, name string) (f *Dir, isDir bool, err error) {
-	ctx := context.TODO()
+func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (f *Dir, isDir bool, err error) {
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
@@ -290,22 +308,28 @@ func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) erro
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
+	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll => %v, %v", children, err)
 	if err != nil {
 		return err
 	}
 
+	empty := true
 	var ns dokan.NamedStat
 	ns.NumberOfLinks = 1
 	for name, de := range children {
+		empty = false
 		ns.Name = name
+		// TODO perhaps resolve symlinks here?
 		fillStat(&ns.Stat, &de)
 		err = callback(&ns)
 		if err != nil {
 			return err
 		}
 	}
+	if empty {
+		return dokan.ErrObjectNameNotFound
+	}
 	return nil
-
 }
 
 // CanDeleteDirectory - return just nil
@@ -339,6 +363,36 @@ func (d *Dir) Cleanup(fi *dokan.FileInfo) {
 
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)
 	}
-
 	d.folder.forgetNode(d.node)
+}
+
+func resolveSymlinkPath(ctx context.Context, origPath []string, targetPath string) ([]string, error) {
+	pathComponents := make([]string, len(origPath), len(origPath)+1)
+	copy(pathComponents, origPath)
+
+	for _, p := range strings.FieldsFunc(targetPath, isPathSeparator) {
+		switch p {
+		case ".":
+		case "..":
+			if len(pathComponents) == 0 {
+				return nil, dokan.ErrNotSupported
+			}
+			pathComponents = pathComponents[:len(pathComponents)-1]
+		default:
+			pathComponents = append(pathComponents, p)
+		}
+	}
+	return pathComponents, nil
+}
+
+func resolveSymlinkIsDir(ctx context.Context, oc *openContext, rootDir *Dir, origPath []string, targetPath string) (bool, error) {
+	dst, err := resolveSymlinkPath(ctx, origPath, targetPath)
+	if err != nil {
+		return false, err
+	}
+	_, isDir, err := rootDir.open(ctx, oc, dst)
+	return isDir, err
+}
+func isPathSeparator(r rune) bool {
+	return r == '/' || r == '\\'
 }

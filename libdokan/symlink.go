@@ -20,7 +20,9 @@ type Symlink struct {
 	// Lookup etc always get new nodes, limiting the lifetime of a
 	// single Symlink value.
 	parent *Dir
-	name   string
+	// isTargetADirectory - Some Windows programs want to know.
+	isTargetADirectory bool
+	name               string
 	emptyFile
 }
 
@@ -36,5 +38,8 @@ func (s *Symlink) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error)
 		return nil, errToDokan(err)
 	}
 
-	return defaultSymlinkInformation()
+	if s.isTargetADirectory {
+		return defaultSymlinkDirInformation()
+	}
+	return defaultSymlinkFileInformation()
 }
