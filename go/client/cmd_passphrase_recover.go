@@ -24,9 +24,10 @@ func NewCmdPassphraseRecover(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 }
 
 func (c *CmdPassphraseRecover) confirm() error {
-	GlobUI.Println("Password recovery will put your account on probation for 5 days.")
-	GlobUI.Println("You won't be able to perform certain actions, like revoking devices.")
-	return GlobUI.PromptForConfirmation("Continue with password recovery?")
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("Password recovery will put your account on probation for 5 days.\n")
+	ui.Printf("You won't be able to perform certain actions, like revoking devices.\n")
+	return ui.PromptForConfirmation("Continue with password recovery?")
 }
 
 func (c *CmdPassphraseRecover) Run() error {

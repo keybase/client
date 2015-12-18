@@ -30,12 +30,11 @@ func (c *CmdPassphraseChange) Run() error {
 	}
 
 	if err := passphraseChange(c.G(), newChangeArg(pp, false)); err != nil {
-		GlobUI.Println()
-		GlobUI.Println("There was a problem during the standard update of your passphrase.")
-		GlobUI.Printf("\n%s\n\n", err)
-		GlobUI.Println("If you have forgotten your existing passphrase, you can recover")
-		GlobUI.Println("your account with the command 'keybase passphrase recover'.")
-		GlobUI.Println()
+		dui := c.G().UI.GetDumbOutputUI()
+		dui.Printf("\nThere was a problem during the standard update of your passphrase.")
+		dui.Printf("\n%s\n\n", err)
+		dui.Printf("If you have forgotten your existing passphrase, you can recover\n")
+		dui.Printf("your account with the command 'keybase passphrase recover'.\n\n")
 		return err
 	}
 
