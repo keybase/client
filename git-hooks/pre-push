@@ -3,28 +3,27 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-# git gofmt pre-commit hook
+# git gofmt pre-push hook
 #
-# To use, store as .git/hooks/pre-commit inside your repository and make sure
-# it has execute permissions.
+# To use, store as .git/hooks/pre-push inside your repository and make
+# sure it has execute permissions. This can be used instead of the
+# pre-commit hook for workflows where the cleanliness of each
+# individual commit doesn't matter (e.g., ones that squash commits
+# before pushing).
 #
 # This script does not handle file names that contain spaces.
 
-# Please keep the pre-push hook in sync with this file.
+# Please keep this file in sync with pre-commit. (See pre-commit for
+# comments as to why we duplicate the code here.) The only difference
+# is that we don't do a git diff check in this file, since that only
+# applies to an unapplied commit.
 #
-# It would be possible to factor out the common code into an included
-# file, since git hooks always run in the root of the repo (
-# https://stackoverflow.com/questions/7065224/ ), but we symlink these
-# files from the KBFS repo, so it would fail there unless the includes
-# were also symlinked. It might be possible to create a
-# install-git-hooks script that does it all for you, or to do some
-# more bash magic to resolve the symlink (difficult to do
-# cross-platform!), but it's not worth the effort right now,
-# especially since it's possible that the two repos will eventually be
-# merged.
+# TODO: It might be possible to do something similar to the git diff
+# check, but comparing against the remote HEAD, which is passed in as
+# one of the parameters.
 
 check_go_fmt() {
-	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/)
+	gofiles=$(git ls-files | grep '.go$' | grep -v go/vendor/)
 	[ -z "$gofiles" ] && return 0
 
 	unformatted=$(gofmt -l $gofiles)
@@ -41,9 +40,6 @@ check_go_fmt() {
 }
 
 check_go_vet() {
-	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/)
-	[ -z "$gofiles" ] && return 0
-
 	warnings=$(go vet $(go list ./... 2>&1 | grep -v vendor))
 	[ -z "$warnings" ] && return 0
 
