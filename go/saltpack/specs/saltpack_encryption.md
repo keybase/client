@@ -208,7 +208,7 @@ place of `"SaltPack\0"`.
 # header packet
 [
   # format name
-  "SaltBox",
+  "SaltPack",
   # major and minor version
   [1, 0],
   # mode (0 = encryption)
