@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -127,7 +128,7 @@ func computeEtag(path string) (string, error) {
 }
 
 func (u *Updater) pathForFilename(filename string) string {
-	return path.Join(os.TempDir(), "KeybaseUpdates", filename)
+	return filepath.Join(os.TempDir(), "KeybaseUpdates", filename)
 }
 
 func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool, err error) {
@@ -137,7 +138,9 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 	}
 
 	if url.Scheme == "file" {
-		fpath = url.Path
+		// This is only used for testing, where "file://" is hardcoded.
+		// "file:\\" doesn't work on Windows here.
+		fpath = asset.Url[7:]
 		u.G().Log.Info("Using local path: %s", fpath)
 		return
 	}
@@ -262,7 +265,7 @@ func (u *Updater) apply(src string, dest string) error {
 		if err != nil {
 			return err
 		}
-		tmpPath := path.Join(os.TempDir(), "KeybaseBackup", tmpFileName)
+		tmpPath := filepath.Join(os.TempDir(), "KeybaseBackup", tmpFileName)
 		err = libkb.MakeParentDirs(tmpPath)
 		if err != nil {
 			return err
@@ -363,8 +366,9 @@ func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update) (err er
 	}
 	u.G().Log.Info("Unzip path: %s", unzipPath)
 
-	baseName := path.Base(u.config.DestinationPath)
-	sourcePath := path.Join(unzipPath, baseName)
+	baseName := filepath.Base(u.config.DestinationPath)
+	sourcePath := filepath.Join(unzipPath, baseName)
+
 	err = u.checkUpdate(sourcePath, u.config.DestinationPath)
 	if err != nil {
 		return
