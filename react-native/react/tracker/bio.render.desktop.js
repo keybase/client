@@ -3,12 +3,10 @@
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
 import commonStyles, {colors} from '../styles/common'
-import type {Styled} from '../styles/common'
-
-import path from 'path'
 import resolveAssets from '../../../desktop/resolve-assets'
 
-import type {BioProps} from './bio.render.types'
+import type {Styled} from '../styles/common'
+import type {BioProps} from './bio.render'
 
 const noAvatar = `file:///${resolveAssets('../react-native/react/images/no-avatar@2x.png')}`
 

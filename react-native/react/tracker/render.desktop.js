@@ -6,10 +6,9 @@ import Header from './header.render.desktop'
 import Action from './action.render.desktop'
 import Bio from './bio.render.desktop'
 import Proofs from './proofs.render.desktop'
-
-import type {RenderProps} from './render.types'
-
 import commonStyles from '../styles/common'
+
+import type {RenderProps} from './render'
 
 export default class Render extends Component {
   props: RenderProps;
