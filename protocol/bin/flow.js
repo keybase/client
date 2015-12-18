@@ -93,12 +93,17 @@ function parseInnerType (t) {
   }
 }
 
+function parseEnumSymbol (s) {
+  var parts = s.split('_')
+  return parseInt(parts.pop(), 10)
+}
+
 function parseEnum (t) {
-  return parseUnion(t.symbols.map((s, i) => `${i} /* '${s}' */`))
+  return parseUnion(t.symbols.map(s => `${parseEnumSymbol(s)} /* '${s}' */`))
 }
 
 function parseMaybe (t) {
-  var maybeType = t.filter((x) => x !== 'null')[0]
+  var maybeType = t.filter(x => x !== 'null')[0]
   return `?${maybeType}`
 }
 

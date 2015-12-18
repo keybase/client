@@ -557,9 +557,9 @@ export type Config = {
   forkType: ForkType;
 }
 
-export type constants_StatusCode = 0 /* 'SCOk_0' */ | 1 /* 'SCLoginRequired_201' */ | 2 /* 'SCBadSession_202' */ | 3 /* 'SCBadLoginUserNotFound_203' */ | 4 /* 'SCBadLoginPassword_204' */ | 5 /* 'SCNotFound_205' */ | 6 /* 'SCGeneric_218' */ | 7 /* 'SCAlreadyLoggedIn_235' */ | 8 /* 'SCCanceled_237' */ | 9 /* 'SCReloginRequired_274' */ | 10 /* 'SCResolutionFailed_275' */ | 11 /* 'SCProfileNotPublic_276' */ | 12 /* 'SCBadSignupUsernameTaken_701' */ | 13 /* 'SCMissingResult_801' */ | 14 /* 'SCKeyNotFound_901' */ | 15 /* 'SCKeyInUse_907' */ | 16 /* 'SCKeyBadGen_913' */ | 17 /* 'SCKeyNoSecret_914' */ | 18 /* 'SCKeyBadUIDs_915' */ | 19 /* 'SCKeyNoActive_916' */ | 20 /* 'SCKeyNoSig_917' */ | 21 /* 'SCKeyBadSig_918' */ | 22 /* 'SCKeyBadEldest_919' */ | 23 /* 'SCKeyNoEldest_920' */ | 24 /* 'SCKeyDuplicateUpdate_921' */ | 25 /* 'SCSibkeyAlreadyExists_922' */ | 26 /* 'SCDecryptionKeyNotFound_924' */ | 27 /* 'SCBadTrackSession_1301' */ | 28 /* 'SCDeviceNotFound_1409' */ | 29 /* 'SCDeviceMismatch_1410' */ | 30 /* 'SCDeviceRequired_1411' */ | 31 /* 'SCStreamExists_1501' */ | 32 /* 'SCStreamNotFound_1502' */ | 33 /* 'SCStreamWrongKind_1503' */ | 34 /* 'SCStreamEOF_1504' */ | 35 /* 'SCAPINetworkError_1601' */ | 36 /* 'SCTimeout_1602' */ | 37 /* 'SCProofError_1701' */ | 38 /* 'SCIdentificationExpired_1702' */ | 39 /* 'SCSelfNotFound_1703' */ | 40 /* 'SCBadKexPhrase_1704' */ | 41 /* 'SCNoUIDelegation_1705' */
+export type constants_StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_201' */ | 202 /* 'SCBadSession_202' */ | 204 /* 'SCBadLoginPassword_204' */ | 205 /* 'SCNotFound_205' */ | 218 /* 'SCGeneric_218' */ | 235 /* 'SCAlreadyLoggedIn_235' */ | 237 /* 'SCCanceled_237' */ | 274 /* 'SCReloginRequired_274' */ | 275 /* 'SCResolutionFailed_275' */ | 276 /* 'SCProfileNotPublic_276' */ | 701 /* 'SCBadSignupUsernameTaken_701' */ | 801 /* 'SCMissingResult_801' */ | 901 /* 'SCKeyNotFound_901' */ | 907 /* 'SCKeyInUse_907' */ | 913 /* 'SCKeyBadGen_913' */ | 914 /* 'SCKeyNoSecret_914' */ | 915 /* 'SCKeyBadUIDs_915' */ | 916 /* 'SCKeyNoActive_916' */ | 917 /* 'SCKeyNoSig_917' */ | 918 /* 'SCKeyBadSig_918' */ | 919 /* 'SCKeyBadEldest_919' */ | 920 /* 'SCKeyNoEldest_920' */ | 921 /* 'SCKeyDuplicateUpdate_921' */ | 922 /* 'SCSibkeyAlreadyExists_922' */ | 924 /* 'SCDecryptionKeyNotFound_924' */ | 1301 /* 'SCBadTrackSession_1301' */ | 1409 /* 'SCDeviceNotFound_1409' */ | 1410 /* 'SCDeviceMismatch_1410' */ | 1411 /* 'SCDeviceRequired_1411' */ | 1501 /* 'SCStreamExists_1501' */ | 1502 /* 'SCStreamNotFound_1502' */ | 1503 /* 'SCStreamWrongKind_1503' */ | 1504 /* 'SCStreamEOF_1504' */ | 1601 /* 'SCAPINetworkError_1601' */ | 1602 /* 'SCTimeout_1602' */ | 1701 /* 'SCProofError_1701' */ | 1702 /* 'SCIdentificationExpired_1702' */ | 1703 /* 'SCSelfNotFound_1703' */ | 1704 /* 'SCBadKexPhrase_1704' */ | 1705 /* 'SCNoUIDelegation_1705' */
 
-export type StatusCode = 0 /* 'SCOk_0' */ | 1 /* 'SCLoginRequired_201' */ | 2 /* 'SCBadSession_202' */ | 3 /* 'SCBadLoginUserNotFound_203' */ | 4 /* 'SCBadLoginPassword_204' */ | 5 /* 'SCNotFound_205' */ | 6 /* 'SCGeneric_218' */ | 7 /* 'SCAlreadyLoggedIn_235' */ | 8 /* 'SCCanceled_237' */ | 9 /* 'SCReloginRequired_274' */ | 10 /* 'SCResolutionFailed_275' */ | 11 /* 'SCProfileNotPublic_276' */ | 12 /* 'SCBadSignupUsernameTaken_701' */ | 13 /* 'SCMissingResult_801' */ | 14 /* 'SCKeyNotFound_901' */ | 15 /* 'SCKeyInUse_907' */ | 16 /* 'SCKeyBadGen_913' */ | 17 /* 'SCKeyNoSecret_914' */ | 18 /* 'SCKeyBadUIDs_915' */ | 19 /* 'SCKeyNoActive_916' */ | 20 /* 'SCKeyNoSig_917' */ | 21 /* 'SCKeyBadSig_918' */ | 22 /* 'SCKeyBadEldest_919' */ | 23 /* 'SCKeyNoEldest_920' */ | 24 /* 'SCKeyDuplicateUpdate_921' */ | 25 /* 'SCSibkeyAlreadyExists_922' */ | 26 /* 'SCDecryptionKeyNotFound_924' */ | 27 /* 'SCBadTrackSession_1301' */ | 28 /* 'SCDeviceNotFound_1409' */ | 29 /* 'SCDeviceMismatch_1410' */ | 30 /* 'SCDeviceRequired_1411' */ | 31 /* 'SCStreamExists_1501' */ | 32 /* 'SCStreamNotFound_1502' */ | 33 /* 'SCStreamWrongKind_1503' */ | 34 /* 'SCStreamEOF_1504' */ | 35 /* 'SCAPINetworkError_1601' */ | 36 /* 'SCTimeout_1602' */ | 37 /* 'SCProofError_1701' */ | 38 /* 'SCIdentificationExpired_1702' */ | 39 /* 'SCSelfNotFound_1703' */ | 40 /* 'SCBadKexPhrase_1704' */ | 41 /* 'SCNoUIDelegation_1705' */
+export type StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_201' */ | 202 /* 'SCBadSession_202' */ | 204 /* 'SCBadLoginPassword_204' */ | 205 /* 'SCNotFound_205' */ | 218 /* 'SCGeneric_218' */ | 235 /* 'SCAlreadyLoggedIn_235' */ | 237 /* 'SCCanceled_237' */ | 274 /* 'SCReloginRequired_274' */ | 275 /* 'SCResolutionFailed_275' */ | 276 /* 'SCProfileNotPublic_276' */ | 701 /* 'SCBadSignupUsernameTaken_701' */ | 801 /* 'SCMissingResult_801' */ | 901 /* 'SCKeyNotFound_901' */ | 907 /* 'SCKeyInUse_907' */ | 913 /* 'SCKeyBadGen_913' */ | 914 /* 'SCKeyNoSecret_914' */ | 915 /* 'SCKeyBadUIDs_915' */ | 916 /* 'SCKeyNoActive_916' */ | 917 /* 'SCKeyNoSig_917' */ | 918 /* 'SCKeyBadSig_918' */ | 919 /* 'SCKeyBadEldest_919' */ | 920 /* 'SCKeyNoEldest_920' */ | 921 /* 'SCKeyDuplicateUpdate_921' */ | 922 /* 'SCSibkeyAlreadyExists_922' */ | 924 /* 'SCDecryptionKeyNotFound_924' */ | 1301 /* 'SCBadTrackSession_1301' */ | 1409 /* 'SCDeviceNotFound_1409' */ | 1410 /* 'SCDeviceMismatch_1410' */ | 1411 /* 'SCDeviceRequired_1411' */ | 1501 /* 'SCStreamExists_1501' */ | 1502 /* 'SCStreamNotFound_1502' */ | 1503 /* 'SCStreamWrongKind_1503' */ | 1504 /* 'SCStreamEOF_1504' */ | 1601 /* 'SCAPINetworkError_1601' */ | 1602 /* 'SCTimeout_1602' */ | 1701 /* 'SCProofError_1701' */ | 1702 /* 'SCIdentificationExpired_1702' */ | 1703 /* 'SCSelfNotFound_1703' */ | 1704 /* 'SCBadKexPhrase_1704' */ | 1705 /* 'SCNoUIDelegation_1705' */
 
 export type crypto_ED25519SignatureInfo = {
   sig: ED25519Signature;
@@ -676,9 +676,9 @@ export type ctl_Update = {
   asset: Asset;
 }
 
-export type ctl_ExitCode = 0 /* 'OK_0' */ | 1 /* 'NOTOK_2' */ | 2 /* 'RESTART_4' */
+export type ctl_ExitCode = 0 /* 'OK_0' */ | 2 /* 'NOTOK_2' */ | 4 /* 'RESTART_4' */
 
-export type ExitCode = 0 /* 'OK_0' */ | 1 /* 'NOTOK_2' */ | 2 /* 'RESTART_4' */
+export type ExitCode = 0 /* 'OK_0' */ | 2 /* 'NOTOK_2' */ | 4 /* 'RESTART_4' */
 
 export type debugging_FirstStepResult = {
   valPlusTwo: int;
@@ -1255,13 +1255,13 @@ export type identify_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP
 
 export type ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
-export type identify_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
+export type identify_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 100 /* 'BASE_ERROR_100' */ | 101 /* 'HOST_UNREACHABLE_101' */ | 103 /* 'PERMISSION_DENIED_103' */ | 106 /* 'FAILED_PARSE_106' */ | 107 /* 'DNS_ERROR_107' */ | 108 /* 'AUTH_FAILED_108' */ | 150 /* 'HTTP_500_150' */ | 160 /* 'TIMEOUT_160' */ | 170 /* 'INTERNAL_ERROR_170' */ | 200 /* 'BASE_HARD_ERROR_200' */ | 201 /* 'NOT_FOUND_201' */ | 202 /* 'CONTENT_FAILURE_202' */ | 203 /* 'BAD_USERNAME_203' */ | 204 /* 'BAD_REMOTE_ID_204' */ | 205 /* 'TEXT_NOT_FOUND_205' */ | 206 /* 'BAD_ARGS_206' */ | 207 /* 'CONTENT_MISSING_207' */ | 208 /* 'TITLE_NOT_FOUND_208' */ | 209 /* 'SERVICE_ERROR_209' */ | 210 /* 'TOR_SKIPPED_210' */ | 211 /* 'TOR_INCOMPATIBLE_211' */ | 230 /* 'HTTP_300_230' */ | 240 /* 'HTTP_400_240' */ | 260 /* 'HTTP_OTHER_260' */ | 270 /* 'EMPTY_JSON_270' */ | 301 /* 'DELETED_301' */ | 302 /* 'SERVICE_DEAD_302' */ | 303 /* 'BAD_SIGNATURE_303' */ | 304 /* 'BAD_API_URL_304' */ | 305 /* 'UNKNOWN_TYPE_305' */ | 306 /* 'NO_HINT_306' */ | 307 /* 'BAD_HINT_TEXT_307' */
 
-export type ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
+export type ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 100 /* 'BASE_ERROR_100' */ | 101 /* 'HOST_UNREACHABLE_101' */ | 103 /* 'PERMISSION_DENIED_103' */ | 106 /* 'FAILED_PARSE_106' */ | 107 /* 'DNS_ERROR_107' */ | 108 /* 'AUTH_FAILED_108' */ | 150 /* 'HTTP_500_150' */ | 160 /* 'TIMEOUT_160' */ | 170 /* 'INTERNAL_ERROR_170' */ | 200 /* 'BASE_HARD_ERROR_200' */ | 201 /* 'NOT_FOUND_201' */ | 202 /* 'CONTENT_FAILURE_202' */ | 203 /* 'BAD_USERNAME_203' */ | 204 /* 'BAD_REMOTE_ID_204' */ | 205 /* 'TEXT_NOT_FOUND_205' */ | 206 /* 'BAD_ARGS_206' */ | 207 /* 'CONTENT_MISSING_207' */ | 208 /* 'TITLE_NOT_FOUND_208' */ | 209 /* 'SERVICE_ERROR_209' */ | 210 /* 'TOR_SKIPPED_210' */ | 211 /* 'TOR_INCOMPATIBLE_211' */ | 230 /* 'HTTP_300_230' */ | 240 /* 'HTTP_400_240' */ | 260 /* 'HTTP_OTHER_260' */ | 270 /* 'EMPTY_JSON_270' */ | 301 /* 'DELETED_301' */ | 302 /* 'SERVICE_DEAD_302' */ | 303 /* 'BAD_SIGNATURE_303' */ | 304 /* 'BAD_API_URL_304' */ | 305 /* 'UNKNOWN_TYPE_305' */ | 306 /* 'NO_HINT_306' */ | 307 /* 'BAD_HINT_TEXT_307' */
 
-export type identify_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+export type identify_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 1000 /* 'GENERIC_WEB_SITE_1000' */ | 1001 /* 'DNS_1001' */ | 100001 /* 'ROOTER_100001' */
 
-export type ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+export type ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 1000 /* 'GENERIC_WEB_SITE_1000' */ | 1001 /* 'DNS_1001' */ | 100001 /* 'ROOTER_100001' */
 
 export type identify_TrackToken = {
 }
@@ -1295,9 +1295,9 @@ export type TrackSummary = {
   isRemote: boolean;
 }
 
-export type identify_TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
+export type identify_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /* 'NEW_FAIL_PROOFS_3' */ | 4 /* 'UPDATE_BROKEN_4' */ | 5 /* 'UPDATE_NEW_PROOFS_5' */ | 6 /* 'UPDATE_OK_6' */
 
-export type TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
+export type TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /* 'NEW_FAIL_PROOFS_3' */ | 4 /* 'UPDATE_BROKEN_4' */ | 5 /* 'UPDATE_NEW_PROOFS_5' */ | 6 /* 'UPDATE_OK_6' */
 
 export type identify_TrackOptions = {
   localOnly: boolean;
@@ -1502,9 +1502,9 @@ export type identifyUi_Update = {
 
 export type identifyUi_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
-export type identifyUi_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
+export type identifyUi_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 100 /* 'BASE_ERROR_100' */ | 101 /* 'HOST_UNREACHABLE_101' */ | 103 /* 'PERMISSION_DENIED_103' */ | 106 /* 'FAILED_PARSE_106' */ | 107 /* 'DNS_ERROR_107' */ | 108 /* 'AUTH_FAILED_108' */ | 150 /* 'HTTP_500_150' */ | 160 /* 'TIMEOUT_160' */ | 170 /* 'INTERNAL_ERROR_170' */ | 200 /* 'BASE_HARD_ERROR_200' */ | 201 /* 'NOT_FOUND_201' */ | 202 /* 'CONTENT_FAILURE_202' */ | 203 /* 'BAD_USERNAME_203' */ | 204 /* 'BAD_REMOTE_ID_204' */ | 205 /* 'TEXT_NOT_FOUND_205' */ | 206 /* 'BAD_ARGS_206' */ | 207 /* 'CONTENT_MISSING_207' */ | 208 /* 'TITLE_NOT_FOUND_208' */ | 209 /* 'SERVICE_ERROR_209' */ | 210 /* 'TOR_SKIPPED_210' */ | 211 /* 'TOR_INCOMPATIBLE_211' */ | 230 /* 'HTTP_300_230' */ | 240 /* 'HTTP_400_240' */ | 260 /* 'HTTP_OTHER_260' */ | 270 /* 'EMPTY_JSON_270' */ | 301 /* 'DELETED_301' */ | 302 /* 'SERVICE_DEAD_302' */ | 303 /* 'BAD_SIGNATURE_303' */ | 304 /* 'BAD_API_URL_304' */ | 305 /* 'UNKNOWN_TYPE_305' */ | 306 /* 'NO_HINT_306' */ | 307 /* 'BAD_HINT_TEXT_307' */
 
-export type identifyUi_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+export type identifyUi_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 1000 /* 'GENERIC_WEB_SITE_1000' */ | 1001 /* 'DNS_1001' */ | 100001 /* 'ROOTER_100001' */
 
 export type identifyUi_TrackToken = {
 }
@@ -1522,7 +1522,7 @@ export type identifyUi_TrackSummary = {
   isRemote: boolean;
 }
 
-export type identifyUi_TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
+export type identifyUi_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /* 'NEW_FAIL_PROOFS_3' */ | 4 /* 'UPDATE_BROKEN_4' */ | 5 /* 'UPDATE_NEW_PROOFS_5' */ | 6 /* 'UPDATE_OK_6' */
 
 export type identifyUi_TrackOptions = {
   localOnly: boolean;
@@ -1817,9 +1817,9 @@ export type install_Update = {
   asset: Asset;
 }
 
-export type install_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
+export type install_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 4 /* 'INSTALLED_4' */
 
-export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
+export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 4 /* 'INSTALLED_4' */
 
 export type install_InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
 
@@ -3075,9 +3075,9 @@ export type pgp_Update = {
 
 export type pgp_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
-export type pgp_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
+export type pgp_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 100 /* 'BASE_ERROR_100' */ | 101 /* 'HOST_UNREACHABLE_101' */ | 103 /* 'PERMISSION_DENIED_103' */ | 106 /* 'FAILED_PARSE_106' */ | 107 /* 'DNS_ERROR_107' */ | 108 /* 'AUTH_FAILED_108' */ | 150 /* 'HTTP_500_150' */ | 160 /* 'TIMEOUT_160' */ | 170 /* 'INTERNAL_ERROR_170' */ | 200 /* 'BASE_HARD_ERROR_200' */ | 201 /* 'NOT_FOUND_201' */ | 202 /* 'CONTENT_FAILURE_202' */ | 203 /* 'BAD_USERNAME_203' */ | 204 /* 'BAD_REMOTE_ID_204' */ | 205 /* 'TEXT_NOT_FOUND_205' */ | 206 /* 'BAD_ARGS_206' */ | 207 /* 'CONTENT_MISSING_207' */ | 208 /* 'TITLE_NOT_FOUND_208' */ | 209 /* 'SERVICE_ERROR_209' */ | 210 /* 'TOR_SKIPPED_210' */ | 211 /* 'TOR_INCOMPATIBLE_211' */ | 230 /* 'HTTP_300_230' */ | 240 /* 'HTTP_400_240' */ | 260 /* 'HTTP_OTHER_260' */ | 270 /* 'EMPTY_JSON_270' */ | 301 /* 'DELETED_301' */ | 302 /* 'SERVICE_DEAD_302' */ | 303 /* 'BAD_SIGNATURE_303' */ | 304 /* 'BAD_API_URL_304' */ | 305 /* 'UNKNOWN_TYPE_305' */ | 306 /* 'NO_HINT_306' */ | 307 /* 'BAD_HINT_TEXT_307' */
 
-export type pgp_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+export type pgp_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 1000 /* 'GENERIC_WEB_SITE_1000' */ | 1001 /* 'DNS_1001' */ | 100001 /* 'ROOTER_100001' */
 
 export type pgp_TrackToken = {
 }
@@ -3095,7 +3095,7 @@ export type pgp_TrackSummary = {
   isRemote: boolean;
 }
 
-export type pgp_TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
+export type pgp_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /* 'NEW_FAIL_PROOFS_3' */ | 4 /* 'UPDATE_BROKEN_4' */ | 5 /* 'UPDATE_NEW_PROOFS_5' */ | 6 /* 'UPDATE_OK_6' */
 
 export type pgp_TrackOptions = {
   localOnly: boolean;
@@ -3457,9 +3457,9 @@ export type prove_Update = {
 
 export type prove_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
-export type prove_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
+export type prove_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 100 /* 'BASE_ERROR_100' */ | 101 /* 'HOST_UNREACHABLE_101' */ | 103 /* 'PERMISSION_DENIED_103' */ | 106 /* 'FAILED_PARSE_106' */ | 107 /* 'DNS_ERROR_107' */ | 108 /* 'AUTH_FAILED_108' */ | 150 /* 'HTTP_500_150' */ | 160 /* 'TIMEOUT_160' */ | 170 /* 'INTERNAL_ERROR_170' */ | 200 /* 'BASE_HARD_ERROR_200' */ | 201 /* 'NOT_FOUND_201' */ | 202 /* 'CONTENT_FAILURE_202' */ | 203 /* 'BAD_USERNAME_203' */ | 204 /* 'BAD_REMOTE_ID_204' */ | 205 /* 'TEXT_NOT_FOUND_205' */ | 206 /* 'BAD_ARGS_206' */ | 207 /* 'CONTENT_MISSING_207' */ | 208 /* 'TITLE_NOT_FOUND_208' */ | 209 /* 'SERVICE_ERROR_209' */ | 210 /* 'TOR_SKIPPED_210' */ | 211 /* 'TOR_INCOMPATIBLE_211' */ | 230 /* 'HTTP_300_230' */ | 240 /* 'HTTP_400_240' */ | 260 /* 'HTTP_OTHER_260' */ | 270 /* 'EMPTY_JSON_270' */ | 301 /* 'DELETED_301' */ | 302 /* 'SERVICE_DEAD_302' */ | 303 /* 'BAD_SIGNATURE_303' */ | 304 /* 'BAD_API_URL_304' */ | 305 /* 'UNKNOWN_TYPE_305' */ | 306 /* 'NO_HINT_306' */ | 307 /* 'BAD_HINT_TEXT_307' */
 
-export type prove_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+export type prove_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 1000 /* 'GENERIC_WEB_SITE_1000' */ | 1001 /* 'DNS_1001' */ | 100001 /* 'ROOTER_100001' */
 
 export type prove_TrackToken = {
 }
@@ -3477,7 +3477,7 @@ export type prove_TrackSummary = {
   isRemote: boolean;
 }
 
-export type prove_TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
+export type prove_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /* 'NEW_FAIL_PROOFS_3' */ | 4 /* 'UPDATE_BROKEN_4' */ | 5 /* 'UPDATE_NEW_PROOFS_5' */ | 6 /* 'UPDATE_OK_6' */
 
 export type prove_TrackOptions = {
   localOnly: boolean;
@@ -4108,9 +4108,9 @@ export type saltPack_Update = {
 
 export type saltPack_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
-export type saltPack_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
+export type saltPack_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 100 /* 'BASE_ERROR_100' */ | 101 /* 'HOST_UNREACHABLE_101' */ | 103 /* 'PERMISSION_DENIED_103' */ | 106 /* 'FAILED_PARSE_106' */ | 107 /* 'DNS_ERROR_107' */ | 108 /* 'AUTH_FAILED_108' */ | 150 /* 'HTTP_500_150' */ | 160 /* 'TIMEOUT_160' */ | 170 /* 'INTERNAL_ERROR_170' */ | 200 /* 'BASE_HARD_ERROR_200' */ | 201 /* 'NOT_FOUND_201' */ | 202 /* 'CONTENT_FAILURE_202' */ | 203 /* 'BAD_USERNAME_203' */ | 204 /* 'BAD_REMOTE_ID_204' */ | 205 /* 'TEXT_NOT_FOUND_205' */ | 206 /* 'BAD_ARGS_206' */ | 207 /* 'CONTENT_MISSING_207' */ | 208 /* 'TITLE_NOT_FOUND_208' */ | 209 /* 'SERVICE_ERROR_209' */ | 210 /* 'TOR_SKIPPED_210' */ | 211 /* 'TOR_INCOMPATIBLE_211' */ | 230 /* 'HTTP_300_230' */ | 240 /* 'HTTP_400_240' */ | 260 /* 'HTTP_OTHER_260' */ | 270 /* 'EMPTY_JSON_270' */ | 301 /* 'DELETED_301' */ | 302 /* 'SERVICE_DEAD_302' */ | 303 /* 'BAD_SIGNATURE_303' */ | 304 /* 'BAD_API_URL_304' */ | 305 /* 'UNKNOWN_TYPE_305' */ | 306 /* 'NO_HINT_306' */ | 307 /* 'BAD_HINT_TEXT_307' */
 
-export type saltPack_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+export type saltPack_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 1000 /* 'GENERIC_WEB_SITE_1000' */ | 1001 /* 'DNS_1001' */ | 100001 /* 'ROOTER_100001' */
 
 export type saltPack_TrackToken = {
 }
@@ -4128,7 +4128,7 @@ export type saltPack_TrackSummary = {
   isRemote: boolean;
 }
 
-export type saltPack_TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
+export type saltPack_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /* 'NEW_FAIL_PROOFS_3' */ | 4 /* 'UPDATE_BROKEN_4' */ | 5 /* 'UPDATE_NEW_PROOFS_5' */ | 6 /* 'UPDATE_OK_6' */
 
 export type saltPack_TrackOptions = {
   localOnly: boolean;
@@ -4861,9 +4861,9 @@ export type track_Update = {
 
 export type track_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
-export type track_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
+export type track_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 100 /* 'BASE_ERROR_100' */ | 101 /* 'HOST_UNREACHABLE_101' */ | 103 /* 'PERMISSION_DENIED_103' */ | 106 /* 'FAILED_PARSE_106' */ | 107 /* 'DNS_ERROR_107' */ | 108 /* 'AUTH_FAILED_108' */ | 150 /* 'HTTP_500_150' */ | 160 /* 'TIMEOUT_160' */ | 170 /* 'INTERNAL_ERROR_170' */ | 200 /* 'BASE_HARD_ERROR_200' */ | 201 /* 'NOT_FOUND_201' */ | 202 /* 'CONTENT_FAILURE_202' */ | 203 /* 'BAD_USERNAME_203' */ | 204 /* 'BAD_REMOTE_ID_204' */ | 205 /* 'TEXT_NOT_FOUND_205' */ | 206 /* 'BAD_ARGS_206' */ | 207 /* 'CONTENT_MISSING_207' */ | 208 /* 'TITLE_NOT_FOUND_208' */ | 209 /* 'SERVICE_ERROR_209' */ | 210 /* 'TOR_SKIPPED_210' */ | 211 /* 'TOR_INCOMPATIBLE_211' */ | 230 /* 'HTTP_300_230' */ | 240 /* 'HTTP_400_240' */ | 260 /* 'HTTP_OTHER_260' */ | 270 /* 'EMPTY_JSON_270' */ | 301 /* 'DELETED_301' */ | 302 /* 'SERVICE_DEAD_302' */ | 303 /* 'BAD_SIGNATURE_303' */ | 304 /* 'BAD_API_URL_304' */ | 305 /* 'UNKNOWN_TYPE_305' */ | 306 /* 'NO_HINT_306' */ | 307 /* 'BAD_HINT_TEXT_307' */
 
-export type track_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+export type track_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 1000 /* 'GENERIC_WEB_SITE_1000' */ | 1001 /* 'DNS_1001' */ | 100001 /* 'ROOTER_100001' */
 
 export type track_TrackToken = {
 }
@@ -4881,7 +4881,7 @@ export type track_TrackSummary = {
   isRemote: boolean;
 }
 
-export type track_TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
+export type track_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /* 'NEW_FAIL_PROOFS_3' */ | 4 /* 'UPDATE_BROKEN_4' */ | 5 /* 'UPDATE_NEW_PROOFS_5' */ | 6 /* 'UPDATE_OK_6' */
 
 export type track_TrackOptions = {
   localOnly: boolean;
