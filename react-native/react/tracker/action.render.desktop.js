@@ -34,7 +34,7 @@ export default class ActionRender extends Component {
   }
 
   renderWarningNotFollowed (): ReactElement {
-    const title = this.props.renderChangedTitle
+    const title = this.props.failedProofsNotFollowingText
 
     return (
       <div style={{...styles.normalContainer, ...this.props.style}}>
@@ -93,6 +93,7 @@ ActionRender.propTypes = {
   onUnfollow: React.PropTypes.func.isRequired,
   onFollowChecked: React.PropTypes.func.isRequired,
   renderChangedTitle: React.PropTypes.string.isRequired,
+  failedProofsNotFollowingText: React.PropTypes.string.isRequired,
   style: React.PropTypes.object.isRequired
 }
 

@@ -56,6 +56,8 @@ class Tracker extends Component {
     const renderChangedTitle = this.props.proofState === warning ? `${this.props.username} added some identity proofs.`
       : `Some of ${this.props.username}'s proofs are compromised or have changed.`
 
+    const failedProofsNotFollowingText = `Some of ${this.props.username}'s proofs couldn't be verified. Track the working proofs?`
+
     const renderProps: RenderProps = {
       bioProps: {
         username: this.props.username,
@@ -69,6 +71,7 @@ class Tracker extends Component {
         state: this.props.proofState,
         username: this.props.username,
         renderChangedTitle,
+        failedProofsNotFollowingText,
         shouldFollow: this.props.shouldFollow,
         onClose: () => this.props.onCloseFromActionBar(this.props.username),
         onRefollow: () => this.props.onRefollow(this.props.username),
