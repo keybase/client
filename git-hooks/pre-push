@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-# git gofmt pre-push hook
+# git gofmt, go vet, and golint pre-push hook
 #
 # To use, store as .git/hooks/pre-push inside your repository and make
 # sure it has execute permissions. This can be used instead of the

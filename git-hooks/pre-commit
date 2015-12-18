@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-# git gofmt pre-commit hook
+# git gofmt, go vet, and golint pre-commit hook
 #
 # To use, store as .git/hooks/pre-commit inside your repository and make sure
 # it has execute permissions.
