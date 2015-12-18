@@ -2,13 +2,11 @@
 
 import React, {Component} from '../base-react'
 import {FlatButton} from 'material-ui'
-
 import commonStyles from '../styles/common'
-import type {Styled} from '../styles/common'
-
 import {normal, checking, warning} from '../constants/tracker'
 
-import type {ActionProps} from './action.render.types'
+import type {Styled} from '../styles/common'
+import type {ActionProps} from './action.render'
 
 export default class ActionRender extends Component {
   props: ActionProps & Styled;
@@ -94,7 +92,8 @@ ActionRender.propTypes = {
   onFollowChecked: React.PropTypes.func.isRequired,
   renderChangedTitle: React.PropTypes.string.isRequired,
   failedProofsNotFollowingText: React.PropTypes.string.isRequired,
-  style: React.PropTypes.object.isRequired
+  style: React.PropTypes.object.isRequired,
+  currentlyFollowing: React.PropTypes.bool.isRequired
 }
 
 const styles = {
