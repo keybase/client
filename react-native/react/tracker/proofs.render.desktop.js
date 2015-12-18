@@ -4,8 +4,9 @@ import React, {Component} from '../base-react'
 import commonStyles, {colors} from '../styles/common'
 import {checking, revoked} from '../constants/tracker'
 import {metaNew, metaUpgraded} from '../constants/tracker'
-import {remote} from 'electron'
-const {shell} = remote
+import electron from 'electron'
+
+const shell = electron.shell || electron.remote.shell
 
 import type {Proof, ProofsProps} from './proofs.render'
 
@@ -65,12 +66,16 @@ export default class ProofsRender extends Component {
     )
   }
 
+  onClickUsername () {
+    shell.openExternal(`https://keybase.io/${this.props.username}`)
+  }
+
   render (): ReactElement {
     return (
       <div style={styles.container}>
         <div styles={styles.userContainer}>
           <span>keybase.io/</span>
-          <span style={styles.keybaseUsername}>{this.props.username}</span>
+          <span className='hover-underline' onClick={() => this.onClickUsername()} style={styles.keybaseUsername}>{this.props.username}</span>
         </div>
         <div style={styles.hr}></div>
         {this.props.proofs.map(p => this.renderProofRow(p))}
@@ -102,6 +107,7 @@ const styles = {
   },
   keybaseUsername: {
     ...commonStyles.fontBold,
+    ...commonStyles.clickable,
     color: colors.orange
   },
   hr: {
