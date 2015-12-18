@@ -42,6 +42,6 @@ var extraSignupFlags = []cli.Flag{
 	},
 	cli.BoolFlag{
 		Name:  "devel",
-		Usage: "run the client in development mode",
+		Usage: "Run the client in development mode",
 	},
 }
