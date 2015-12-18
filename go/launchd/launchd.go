@@ -119,12 +119,15 @@ func (s Service) Uninstall() (err error) {
 }
 
 // ListServices will return service with label that starts with a filter string.
-func ListServices(filters []string) ([]Service, error) {
-	files, err := ioutil.ReadDir(launchAgentDir())
-	if err != nil {
-		return nil, err
+func ListServices(filters []string) (services []Service, err error) {
+	launchAgentDir := launchAgentDir()
+	if _, derr := os.Stat(launchAgentDir); os.IsNotExist(derr) {
+		return
 	}
-	var services []Service
+	files, err := ioutil.ReadDir(launchAgentDir)
+	if err != nil {
+		return
+	}
 	for _, f := range files {
 		fileName := f.Name()
 		suffix := ".plist"
@@ -137,7 +140,7 @@ func ListServices(filters []string) ([]Service, error) {
 			}
 		}
 	}
-	return services, nil
+	return
 }
 
 // ServiceStatus defines status for a service
