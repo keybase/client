@@ -50,7 +50,8 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("+ DeviceAdd.Run()")
 	defer func() { e.G().Log.Debug("- DeviceAdd.Run() -> %s", libkb.ErrToOk(err)) }()
 
-	provisioneeType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), 0)
+	arg := keybase1.ChooseDeviceTypeArg{Kind: keybase1.ChooseType_NEW_DEVICE}
+	provisioneeType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), arg)
 	if err != nil {
 		return err
 	}
@@ -115,6 +116,9 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 
 	// run provisioner
 	if err = RunEngine(provisioner, ctx); err != nil {
+		if err == kex2.ErrHelloTimeout {
+			return libkb.CanceledError{M: "Failed to provision device: are you sure you typed the secret properly?"}
+		}
 		return err
 	}
 

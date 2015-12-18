@@ -5,10 +5,10 @@ package client
 
 import (
 	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/pinentry"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"io"
 )
 
 type SecretEntry struct {
@@ -17,10 +17,6 @@ type SecretEntry struct {
 	terminal *Terminal
 	initRes  *error
 	tty      string
-}
-
-type Printer interface {
-	Printf(format string, a ...interface{}) (n int, err error)
 }
 
 func NewSecretEntry(g *libkb.GlobalContext, t *Terminal, tty string) *SecretEntry {
@@ -66,7 +62,7 @@ func (se *SecretEntry) Init() (err error) {
 	return err
 }
 
-func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, termArg *keybase1.SecretEntryArg, printer Printer) (res *keybase1.SecretEntryRes, err error) {
+func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, termArg *keybase1.SecretEntryArg, w io.Writer) (res *keybase1.SecretEntryRes, err error) {
 
 	if err = se.Init(); err != nil {
 		return
@@ -74,7 +70,7 @@ func (se *SecretEntry) Get(arg keybase1.SecretEntryArg, termArg *keybase1.Secret
 
 	if pe := se.pinentry; pe != nil {
 		if len(arg.Reason) > 0 {
-			printer.Printf("Collecting your passphrase for %s.\n", arg.Reason)
+			fmt.Fprintf(w, "Collecting your passphrase for %s.\n", arg.Reason)
 		}
 		res, err = pe.Get(arg)
 	} else if se.terminal == nil {

@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func IsLoggedIn(e Engine, ctx *Context) (bool, error) {
@@ -43,13 +42,17 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 		return nil, libkb.NoPaperKeysError{}
 	}
 
-	passphrase, err := ctx.SecretUI.GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg{Username: me.GetName()})
+	passphrase, err := libkb.GetPaperKeyPassphrase(ctx.SecretUI, me.GetName())
 	if err != nil {
 		return nil, err
 	}
 	paperPhrase := libkb.NewPaperKeyPhrase(passphrase)
-	if paperPhrase.Version() != libkb.PaperKeyVersion {
-		g.Log.Debug("paper version mismatch:  generated paper key version = %d, libkb version = %d", paperPhrase.Version(), libkb.PaperKeyVersion)
+	version, err := paperPhrase.Version()
+	if err != nil {
+		return nil, err
+	}
+	if version != libkb.PaperKeyVersion {
+		g.Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
 		return nil, libkb.KeyVersionError{}
 	}
 

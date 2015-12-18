@@ -23,15 +23,13 @@ const objToJS = state => {
 
 // Only log if isDev
 const loggerMiddleware = createLogger({
-  predicate: (getState, action) => isDev,
-  transformer: objToJS,
+  duration: true,
+  stateTransformer: objToJS,
   actionTransformer: objToJS
 })
 
-const createStoreWithMiddleware = applyMiddleware(
-  thunkMiddleware,
-  loggerMiddleware
-)
+const createStoreWithMiddleware = isDev ? applyMiddleware(thunkMiddleware, loggerMiddleware)
+  : applyMiddleware(thunkMiddleware)
 
 export default function configureStore (initialState: ?any) {
   return configureStoreNative(createStoreWithMiddleware)(rootReducer, initialState)

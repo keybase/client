@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol pgpUi {
+  import idl "common.avdl";
+
+  void outputSignatureSuccess(int sessionID, string fingerprint, string username, Time signedAt);
+}

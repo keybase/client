@@ -1,3 +1,30 @@
+- Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
+- Periodic polling for new tracking statements (PR: keybase/client#1500)
+- Testing command for fake new tracking notifications
+  (Commit: 540c01b9017502f95e4723f36a906684ff1f4ce6)
+- terminal: dumb down miniline to not allow arrow movement,
+  which doesn't work across all terminals, in particular,
+  those that don't support ESC-u and ESC-e position saving.
+  (Commit: ba3cd333dfcc8180a64219470ef48d7dfba207f9)
+- Better device-name error message
+  (Commit: c2d35f362915fb6fe8bcf220418424eb1a443594)
+
+## 1.0.6-1
+- Fix verify command (PR: keybase/client#1522)
+- Fix coinbase proof instructions (PR: keybase/client#1521)
+
+## 1.0.6
+- libkb: Load optimizations; don't load unneeded fields (PR: keybase/client#1473)
+- engine: bugfix for user switching (PR: keybase/client#1474)
+- Fix goroutine leak in RPC calls (PR: keybase/client#1462)
+- Fix buggy "No device found No device found" error message
+  - (Commit: 8b96270704ac840ee22837f5c404948206742791)
+- Fix PGP command line identify/track, flags (PR: keybase/client#1475)
+- Installer tweak: don't prompt to start service on windows (PR: keybase/client#1495)
+- Ansi color code support for terminal on Windows (PR: keybase/client#1481)
+- EdDSA for OpenPGP support (PR: keybase/client#1519)
+- Resolve RPC support (PR: keybase/client#1520)
+
 ## 1.0.5-0 (2015-12-01)
 
 - Fix bug where cancelled RPC calls would cause hangs (PR: keybase/client#1433)

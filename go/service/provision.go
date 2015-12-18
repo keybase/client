@@ -27,8 +27,9 @@ func (u *RemoteProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg ke
 	return u.cli.ChooseProvisioningMethod(ctx, arg)
 }
 
-func (u *RemoteProvisionUI) ChooseDeviceType(ctx context.Context, _ int) (keybase1.DeviceType, error) {
-	return u.cli.ChooseDeviceType(ctx, u.sessionID)
+func (u *RemoteProvisionUI) ChooseDeviceType(ctx context.Context, arg keybase1.ChooseDeviceTypeArg) (keybase1.DeviceType, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.ChooseDeviceType(ctx, arg)
 }
 
 func (u *RemoteProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.DisplayAndPromptSecretArg) (keybase1.SecretResponse, error) {

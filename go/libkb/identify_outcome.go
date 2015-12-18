@@ -21,15 +21,12 @@ type IdentifyOutcome struct {
 	Warnings     []Warning
 	TrackUsed    *TrackLookup
 	TrackEqual   bool // Whether the track statement was equal to what we saw
-	MeSet        bool // whether me was set at the time
 	TrackOptions keybase1.TrackOptions
 	Reason       keybase1.IdentifyReason
 }
 
-func NewIdentifyOutcome(m bool) *IdentifyOutcome {
-	return &IdentifyOutcome{
-		MeSet: m,
-	}
+func NewIdentifyOutcome() *IdentifyOutcome {
+	return &IdentifyOutcome{}
 }
 
 func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
@@ -44,8 +41,8 @@ func (i *IdentifyOutcome) ActiveProofs() []RemoteProofChainLink {
 	return i.remoteProofLinks().Active()
 }
 
-func (i *IdentifyOutcome) AddProofsToSet(existing *ProofSet) {
-	i.remoteProofLinks().AddProofsToSet(existing)
+func (i *IdentifyOutcome) AddProofsToSet(existing *ProofSet, okStates []keybase1.ProofState) {
+	i.remoteProofLinks().AddProofsToSet(existing, okStates)
 }
 
 func (i *IdentifyOutcome) TrackSet() *TrackSet {
@@ -160,6 +157,21 @@ func (i IdentifyOutcome) TrackStatus() keybase1.TrackStatus {
 		return keybase1.TrackStatus_NEW_FAIL_PROOFS
 	}
 	return keybase1.TrackStatus_NEW_OK
+}
+
+func (i IdentifyOutcome) IsOK() bool {
+	switch i.TrackStatus() {
+	case keybase1.TrackStatus_UPDATE_NEW_PROOFS:
+		return true
+	case keybase1.TrackStatus_UPDATE_OK:
+		return true
+	case keybase1.TrackStatus_NEW_ZERO_PROOFS:
+		return true
+	case keybase1.TrackStatus_NEW_OK:
+		return true
+	default:
+		return false
+	}
 }
 
 func (i IdentifyOutcome) TrackingStatement() *jsonw.Wrapper {

@@ -21,10 +21,17 @@ protocol provisionUi {
     DESKTOP_0,
     MOBILE_1
   }
+
+  enum ChooseType {
+    EXISTING_DEVICE_0,
+    NEW_DEVICE_1
+  }
   /**
    If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.
+   If selecting the existing device type, set kind to EXISTING_DEVICE_0.
+   If selecting the new device type, set kind to NEW_DEVICE_1.
    */
-  DeviceType chooseDeviceType(int sessionID);
+  DeviceType chooseDeviceType(int sessionID, ChooseType kind);
 
   /**
    SecretResponse should be returned by DisplayAndPromptSecret.  Use either secret or phrase.

@@ -9,14 +9,14 @@ import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
 import {warning} from '../constants/tracker'
 
-// TODO move these into render.type.js
 import type {RenderProps} from './render.types'
 import type {UserInfo} from './bio.render.types'
 import type {Proof} from './proofs.render.types'
 import type {SimpleProofState} from '../constants/tracker'
 
+import type {TrackSummary} from '../constants/types/flow-types'
+
 type TrackerProps = {
-  serverStarted: boolean,
   proofState: SimpleProofState,
   username: ?string,
   shouldFollow: ?boolean,
@@ -30,11 +30,23 @@ type TrackerProps = {
   onFollowHelp: () => void,
   onFollowChecked: () => void,
   registerIdentifyUi: () => void,
-  closed: boolean
+  registerTrackerChangeListener: () => void,
+  closed: boolean,
+  lastTrack: ?TrackSummary,
+  startTimer: () => void,
+  stopTimer: () => void
 }
 
 class Tracker extends Component {
   props: TrackerProps;
+
+  componentWillMount () {
+    this.props.startTimer()
+  }
+
+  componentWillUnmount () {
+    this.props.stopTimer()
+  }
 
   render () {
     if (this.props.closed) {
@@ -43,6 +55,8 @@ class Tracker extends Component {
 
     const renderChangedTitle = this.props.proofState === warning ? `${this.props.username} added some identity proofs.`
       : `Some of ${this.props.username}'s proofs are compromised or have changed.`
+
+    const failedProofsNotFollowingText = `Some of ${this.props.username}'s proofs couldn't be verified. Track the working proofs?`
 
     const renderProps: RenderProps = {
       bioProps: {
@@ -57,12 +71,14 @@ class Tracker extends Component {
         state: this.props.proofState,
         username: this.props.username,
         renderChangedTitle,
+        failedProofsNotFollowingText,
         shouldFollow: this.props.shouldFollow,
         onClose: () => this.props.onCloseFromActionBar(this.props.username),
         onRefollow: () => this.props.onRefollow(this.props.username),
         onUnfollow: () => this.props.onUnfollow(this.props.username),
         onFollowHelp: () => this.props.onFollowHelp(this.props.username),
-        onFollowChecked: checked => this.props.onFollowChecked(checked, this.props.username)
+        onFollowChecked: checked => this.props.onFollowChecked(checked, this.props.username),
+        currentlyFollowing: !!this.props.lastTrack
       },
       proofsProps: {
         username: this.props.username,
@@ -117,7 +133,6 @@ const mockData = {
 }
 
 Tracker.propTypes = {
-  serverStarted: React.PropTypes.any,
   proofState: React.PropTypes.any,
   username: React.PropTypes.any,
   shouldFollow: React.PropTypes.any,
@@ -131,7 +146,11 @@ Tracker.propTypes = {
   onFollowHelp: React.PropTypes.any,
   onFollowChecked: React.PropTypes.any,
   registerIdentifyUi: React.PropTypes.any,
-  closed: React.PropTypes.bool.isRequired
+  registerTrackerChangeListener: React.PropTypes.any,
+  closed: React.PropTypes.bool.isRequired,
+  lastTrack: React.PropTypes.any,
+  startTimer: React.PropTypes.any,
+  stopTimer: React.PropTypes.any
 }
 
 export default connect(

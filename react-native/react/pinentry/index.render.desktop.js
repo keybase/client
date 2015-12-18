@@ -2,37 +2,58 @@ import React, {Component} from '../base-react'
 import {TextField, FlatButton, Checkbox} from 'material-ui'
 import Header from '../common-adapters/header'
 import path from 'path'
-
+import resolveAssets from '../../../desktop/resolve-assets'
 import commonStyles, {colors} from '../styles/common'
 
 export default class PinentryRender extends Component {
-  componentWillMount () {
+  constructor (props) {
+    super(props)
+
     this.state = {
       passphrase: '',
-      features: {}
+      features: {},
+      showTyping: false
     }
     for (const feature in this.props.features) {
-      this.state.features[feature] = this.props.features[feature].allow
+      this.state.features[feature] = this.props.features[feature].defaultValue
+
+      if (feature === 'showTyping') {
+        this.state.showTyping = this.props.features[feature].defaultValue
+      }
+    }
+  }
+
+  onCheck (feature, checked) {
+    this.setState({
+      features: {
+        ...this.state.features,
+        [feature]: checked
+      }
+    })
+
+    if (feature === 'showTyping') {
+      this.setState({showTyping: checked})
     }
   }
 
   render () {
+    const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
     return (
       <div style={{...commonStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', backgroundColor: 'blue'}}>
         <div style={styles.container}>
           <Header
             style={styles.header}
-            title='Passphrase needed'
+            title={this.props.windowTitle}
             onClose={() => this.props.onCancel()}
           />
           <div style={styles.bodyContainer}>
-            <img style={styles.logo} src={`file:///${path.resolve('../react-native/react/images/service/keybase.png')}`}/>
+            <img style={styles.logo} src={`file:///${resolveAssets('../react-native/react/images/service/keybase.png')}`}/>
             <div style={styles.body}>
               <p style={styles.prompt}>{this.props.prompt}</p>
               <div style={styles.checkContainer}>
                 {Object.keys(this.props.features).map(feature => {
                   return (
-                  <div style={styles.checkWrapper}>
+                  <div>
                     <Checkbox
                       labelStyle={styles.checkLabel}
                       iconStyle={styles.checkIcon}
@@ -40,9 +61,9 @@ export default class PinentryRender extends Component {
                       name={feature}
                       value={feature}
                       label={this.props.features[feature].label}
-                      defaultChecked={this.props.features[feature].allow}
-                      style={{marginTop: 30}}
-                      onCheck={(_, checked) => { this.state.features[feature] = checked }}/>
+                      defaultChecked={this.props.features[feature].defaultValue}
+                      style={styles.checkbox}
+                      onCheck={(_, checked) => this.onCheck(feature, checked)}/>
                   </div>
                   )
                 })}
@@ -52,12 +73,15 @@ export default class PinentryRender extends Component {
                 onChange={e => this.setState({passphrase: e.target.value})}
                 floatingLabelText='Your passphrase'
                 value={this.state.passphrase}
+                type={this.state.showTyping ? 'text' : 'password'}
+                onEnterKeyDown={submitPassphrase}
                 autoFocus />
+              <p style={styles.error}>{this.props.retryLabel}</p>
             </div>
           </div>
           <div style={styles.action}>
-            <FlatButton style={commonStyles.secondaryButton} label='Cancel' onClick={() => this.props.onCancel()} />
-            <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onSubmit(this.state.passphrase, this.state.features)} />
+            <FlatButton style={commonStyles.secondaryButton} label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
+            <FlatButton style={commonStyles.primaryButton} label={this.props.submitLabel || 'Close'} primary onClick={submitPassphrase} />
           </div>
         </div>
       </div>
@@ -71,16 +95,17 @@ PinentryRender.propTypes = {
   features: React.PropTypes.object.isRequired,
   prompt: React.PropTypes.string.isRequired,
   retryLabel: React.PropTypes.string.isRequired,
+  cancelLabel: React.PropTypes.string,
+  submitLabel: React.PropTypes.string,
   windowTitle: React.PropTypes.string.isRequired
 }
 
 const styles = {
   container: {
     ...commonStyles.flexBoxColumn,
+    ...commonStyles.fontRegular,
     backgroundColor: 'white',
-    fontFamily: 'Noto Sans',
     fontSize: 15,
-    height: 184,
     width: 513
   },
   header: {
@@ -91,8 +116,13 @@ const styles = {
     paddingLeft: 9,
     paddingRight: 15,
     paddingTop: 14,
-    paddingBottom: 27,
+    paddingBottom: 6,
     backgroundColor: colors.greyBackground
+  },
+  error: {
+    height: 21,
+    color: colors.error,
+    margin: 0
   },
   body: {
     ...commonStyles.flexBoxColumn,
@@ -105,6 +135,7 @@ const styles = {
     alignItems: 'center',
     height: 49,
     paddingTop: 9,
+    paddingBottom: 9,
     paddingRight: 15
   },
   logo: {
@@ -120,7 +151,11 @@ const styles = {
     justifyContent: 'flex-end',
     position: 'absolute',
     right: 0,
-    top: 20
+    bottom: 55
+  },
+  checkbox: {
+    marginTop: 30,
+    marginLeft: 10
   },
   checkLabel: {
     ...commonStyles.noWrapCheckboxLabel,

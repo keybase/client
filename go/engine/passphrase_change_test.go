@@ -161,8 +161,8 @@ func TestPassphraseChangeKnownPrompt(t *testing.T) {
 
 	verifyPassphraseChange(tc, u, newPassphrase)
 
-	if !secui.CalledGetKBPassphrase {
-		t.Errorf("get kb passphrase not called")
+	if !secui.CalledGetPassphrase {
+		t.Errorf("get passphrase not called")
 	}
 
 	u.Passphrase = newPassphrase
@@ -181,7 +181,7 @@ func TestPassphraseChangeAfterPubkeyLogin(t *testing.T) {
 
 	secui := u.NewSecretUI()
 	u.LoginWithSecretUI(secui, tc.G)
-	if !secui.CalledGetKBPassphrase {
+	if !secui.CalledGetPassphrase {
 		t.Errorf("get keybase passphrase not called")
 	}
 
@@ -224,7 +224,7 @@ func TestPassphraseChangeKnownNotSupplied(t *testing.T) {
 
 	verifyPassphraseChange(tc, u, newPassphrase)
 
-	if secui.CalledGetKBPassphrase {
+	if secui.CalledGetPassphrase {
 		t.Errorf("get kb passphrase called")
 	}
 
@@ -321,7 +321,7 @@ func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{BackupPassphrase: backupPassphrase}
+	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
@@ -363,7 +363,7 @@ func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{BackupPassphrase: backupPassphrase}
+	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
 
 	Logout(tc)
 
@@ -418,12 +418,12 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if secretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly called")
+	if secretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly called")
 	}
 
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{BackupPassphrase: backupPassphrase}
+	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
 
 	Logout(tc)
 
@@ -472,7 +472,7 @@ func TestPassphraseChangePGPUsage(t *testing.T) {
 
 	verifyPassphraseChange(tc, u, newPassphrase)
 
-	if !secui.CalledGetKBPassphrase {
+	if !secui.CalledGetPassphrase {
 		t.Errorf("get kb passphrase not called")
 	}
 
@@ -510,7 +510,7 @@ func TestPassphraseChangePGP3Sec(t *testing.T) {
 
 	verifyPassphraseChange(tc, u, newPassphrase)
 
-	if !secui.CalledGetKBPassphrase {
+	if !secui.CalledGetPassphrase {
 		t.Errorf("get kb passphrase not called")
 	}
 
@@ -541,7 +541,7 @@ func TestPassphraseChangeLoggedOutBackupKeyPlusPGP(t *testing.T) {
 		t.Fatal(err)
 	}
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{BackupPassphrase: backupPassphrase}
+	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
 
 	Logout(tc)
 
@@ -615,12 +615,12 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if secretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly called")
+	if secretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly called")
 	}
 
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{BackupPassphrase: backupPassphrase}
+	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
 
 	Logout(tc)
 
@@ -690,7 +690,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 
 	verifyPassphraseChange(tc, u, newPassphrase)
 
-	if !secui.CalledGetKBPassphrase {
+	if !secui.CalledGetPassphrase {
 		t.Errorf("get kb passphrase not called")
 	}
 

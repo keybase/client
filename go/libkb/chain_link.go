@@ -182,7 +182,8 @@ type ChainLink struct {
 	unpacked    *ChainLinkUnpacked
 	cki         *ComputedKeyInfos
 
-	typed TypedChainLink
+	typed                  TypedChainLink
+	isOwnNewLinkFromServer bool
 }
 
 // Returns whether or not this chain link is bad, and if so, what the
@@ -689,6 +690,7 @@ func (c ChainLink) ToMerkleTriple() *MerkleTriple {
 	return &MerkleTriple{
 		Seqno:  c.GetSeqno(),
 		LinkID: c.id,
+		SigID:  c.GetSigID(),
 	}
 }
 

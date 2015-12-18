@@ -52,6 +52,10 @@ type AssertionAnd struct {
 	factors []AssertionExpression
 }
 
+func (a AssertionAnd) Len() int {
+	return len(a.factors)
+}
+
 func (a AssertionAnd) HasOr() bool {
 	for _, f := range a.factors {
 		if f.HasOr() {
@@ -77,6 +81,16 @@ func (a AssertionAnd) MatchSet(ps ProofSet) bool {
 	return true
 }
 
+func (a AssertionAnd) HasFactor(pf Proof) bool {
+	ps := NewProofSet([]Proof{pf})
+	for _, f := range a.factors {
+		if f.MatchSet(*ps) {
+			return true
+		}
+	}
+	return false
+}
+
 func (a AssertionAnd) String() string {
 	v := make([]string, len(a.factors))
 	for i, f := range a.factors {
@@ -93,6 +107,7 @@ type AssertionURL interface {
 	IsUID() bool
 	ToUID() keybase1.UID
 	IsSocial() bool
+	IsRemote() bool
 	IsFingerprint() bool
 	MatchProof(p Proof) bool
 	ToKeyValuePair() (string, string)
@@ -146,6 +161,7 @@ func (a AssertionHTTP) Keys() []string               { return []string{"http", "
 func (b AssertionURLBase) Keys() []string            { return []string{b.Key} }
 func (b AssertionURLBase) IsKeybase() bool           { return false }
 func (b AssertionURLBase) IsSocial() bool            { return false }
+func (b AssertionURLBase) IsRemote() bool            { return false }
 func (b AssertionURLBase) IsFingerprint() bool       { return false }
 func (b AssertionURLBase) IsUID() bool               { return false }
 func (b AssertionURLBase) ToUID() (ret keybase1.UID) { return ret }
@@ -269,6 +285,8 @@ func parseToKVPair(s string) (key string, value string, err error) {
 
 func (a AssertionKeybase) IsKeybase() bool         { return true }
 func (a AssertionSocial) IsSocial() bool           { return true }
+func (a AssertionSocial) IsRemote() bool           { return true }
+func (a AssertionWeb) IsRemote() bool              { return true }
 func (a AssertionFingerprint) IsFingerprint() bool { return true }
 func (a AssertionUID) IsUID() bool                 { return true }
 
@@ -391,4 +409,56 @@ func RegisterSocialNetwork(s string) {
 		_socialNetworks = make(map[string]bool)
 	}
 	_socialNetworks[s] = true
+}
+
+func FindBestIdentifyComponentURL(e AssertionExpression) AssertionURL {
+	urls := e.CollectUrls(nil)
+	if len(urls) == 0 {
+		return nil
+	}
+
+	var uid, kb, soc, fp AssertionURL
+
+	for _, u := range urls {
+		if u.IsUID() {
+			uid = u
+			break
+		}
+
+		if u.IsKeybase() {
+			kb = u
+		} else if u.IsFingerprint() && fp == nil {
+			fp = u
+		} else if u.IsSocial() && soc == nil {
+			soc = u
+		}
+	}
+
+	order := []AssertionURL{uid, kb, fp, soc, urls[0]}
+	for _, p := range order {
+		if p != nil {
+			return p
+		}
+	}
+	return nil
+}
+
+func FindBestIdentifyComponent(e AssertionExpression) string {
+	u := FindBestIdentifyComponentURL(e)
+	if u == nil {
+		return ""
+	}
+	return u.String()
+}
+
+func CollectAssertions(e AssertionExpression) (remotes AssertionAnd, locals AssertionAnd) {
+	urls := e.CollectUrls(nil)
+	for _, u := range urls {
+		if u.IsRemote() {
+			remotes.factors = append(remotes.factors, u)
+		} else {
+			locals.factors = append(locals.factors, u)
+		}
+	}
+	return remotes, locals
 }

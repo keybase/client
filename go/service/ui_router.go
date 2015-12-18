@@ -112,3 +112,13 @@ func (u *UIRouter) GetSecretUI() (libkb.SecretUI, error) {
 	scli := keybase1.SecretUiClient{Cli: cli}
 	return &SecretUI{cli: &scli}, nil
 }
+
+func (u *UIRouter) GetUpdateUI() (libkb.UpdateUI, error) {
+	x := u.getUI(libkb.UpdateUIKind)
+	if x == nil {
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	scli := keybase1.UpdateUiClient{Cli: cli}
+	return &UpdateUI{cli: &scli}, nil
+}

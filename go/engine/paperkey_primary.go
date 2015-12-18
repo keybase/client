@@ -75,5 +75,12 @@ func (e *PaperKeyPrimary) Run(ctx *Context) error {
 		return err
 	}
 
-	return ctx.LoginUI.DisplayPrimaryPaperKey(context.TODO(), keybase1.DisplayPrimaryPaperKeyArg{Phrase: e.passphrase.String()})
+	// If they refuse to write down their key, don't kill the login flow, just print an
+	// ugly warning, which likely they won't see...
+	w := ctx.LoginUI.DisplayPrimaryPaperKey(context.TODO(), keybase1.DisplayPrimaryPaperKeyArg{Phrase: e.passphrase.String()})
+	if w != nil {
+		e.G().Log.Errorf("Display paper key failure: %s", w.Error())
+	}
+
+	return nil
 }

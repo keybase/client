@@ -116,7 +116,7 @@ func (t GithubServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 func init() {
 	RegisterServiceType(GithubServiceType{})
 	RegisterSocialNetwork("github")
-	RegisterProofCheckHook("github",
+	RegisterMakeProofCheckerFunc("github",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewGithubChecker(l)
 		})

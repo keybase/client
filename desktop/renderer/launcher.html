@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<style>
-html {
-  font: 12px "Helvetica Neue", Helvetica, sans-serif;
-  -webkit-user-select: none;
-  cursor: default;
-}
-
-button {
-  display: block;
-  width: 100%;
-  height: 30px;
-  margin: 10px 0;
-}
-
-</style>
-
-<button type=button id=showHelp>Help</button>
-<button type=button id=showMain>Main</button>
-<button type=button id=quit>Quit</button>
-
-<script>
-const ipc = require('electron').ipcRenderer;
-
-showHelp.addEventListener('click', () => { ipc.send('showHelp'); })
-showMain.addEventListener('click', () => { ipc.send('showMain'); })
-quit.addEventListener('click', () => { require('remote').require('app').quit(); })
-</script>
+<html>
+  <head>
+    <title>Keybase</title>
+    <link href="./style.css" rel="stylesheet">
+    <link href="../node_modules/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="./launcher.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      function getQueryVariable(variable) {
+        var query = window.location.search.substring(1)
+          var vars = query.split("&")
+          for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=")
+              if(pair[0] == variable){
+                return pair[1]
+              }
+          }
+        return false
+      }
+      var script = document.createElement('script')
+      script.src = getQueryVariable('src')
+      document.getElementsByTagName('head')[0].appendChild(script)
+    </script>
+  </body>
+</html>

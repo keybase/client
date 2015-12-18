@@ -10,14 +10,16 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"golang.org/x/net/context"
+
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/spotty"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"sync"
 )
 
 type UI struct {
@@ -40,6 +42,8 @@ type BaseIdentifyUI struct {
 
 func (ui BaseIdentifyUI) SetStrict(b bool) {}
 
+func (ui BaseIdentifyUI) DisplayUserCard(keybase1.UserCard) {}
+
 type IdentifyUI struct {
 	BaseIdentifyUI
 }
@@ -56,7 +60,7 @@ func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
 	return ui.parent.Output(stmt)
 }
 
-func (ui BaseIdentifyUI) ReportTrackToken(_ libkb.IdentifyCacheToken) error {
+func (ui BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
 	return nil
 }
 
@@ -175,7 +179,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 }
 
 func (ui BaseIdentifyUI) ReportHook(s string) {
-	os.Stderr.Write([]byte(s + "\n"))
+	ui.parent.ErrorWriter().Write([]byte(s + "\n"))
 }
 
 func (ui BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
@@ -445,6 +449,11 @@ func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
 	return ProvisionUI{parent: ui, role: role}
 }
 
+func (ui *UI) GetPgpUI() libkb.PgpUI {
+	// PGPUI goes to stderr so it doesn't munge up stdout
+	return PgpUI{w: ui.ErrorWriter()}
+}
+
 //============================================================
 
 type ProveUI struct {
@@ -513,6 +522,56 @@ func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRe
 
 //============================================================
 
+type UpdateUI struct {
+	terminal libkb.TerminalUI
+	noPrompt bool
+}
+
+func (u UpdateUI) UpdatePrompt(_ context.Context, arg keybase1.UpdatePromptArg) (res keybase1.UpdatePromptRes, err error) {
+	if u.noPrompt {
+		res.Action = keybase1.UpdateAction_UPDATE
+		return res, err
+	}
+	u.terminal.Printf("There is a new update available (version %s)\n", arg.Update.Version)
+	if len(arg.Update.Description) != 0 {
+		u.terminal.Printf("  %s\n", arg.Update.Description)
+	}
+	prompt := "Install update?"
+	var doUpdate bool
+	doUpdate, err = u.terminal.PromptYesNo(PromptDescriptorUpdateDo, prompt, libkb.PromptDefaultYes)
+	if err != nil {
+		return res, err
+	}
+	if doUpdate {
+		res.Action = keybase1.UpdateAction_UPDATE
+		prompt = "Auto-update in the future?"
+		res.AlwaysAutoInstall, err = u.terminal.PromptYesNo(PromptDescriptorUpdateAuto, prompt, libkb.PromptDefaultYes)
+	} else {
+		prompt = "Snooze for one day?"
+		var snooze bool
+		snooze, err = u.terminal.PromptYesNo(PromptDescriptorUpdateSnooze, prompt, libkb.PromptDefaultYes)
+		if snooze {
+			res.Action = keybase1.UpdateAction_SNOOZE
+			res.SnoozeUntil = keybase1.ToTime(time.Now().Add(time.Hour * 24))
+		} else {
+			res.Action = keybase1.UpdateAction_CANCEL
+		}
+	}
+	return res, err
+}
+
+func (ui *UI) GetUpdateUI() libkb.UpdateUI {
+	return UpdateUI{terminal: ui.GetTerminalUI()}
+}
+
+func NewUpdateUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.UpdateUiProtocol(g.UI.GetUpdateUI())
+}
+
+var _ libkb.UpdateUI = UpdateUI{}
+
+//============================================================
+
 type LoginUI struct {
 	parent   libkb.TerminalUI
 	noPrompt bool
@@ -523,8 +582,8 @@ func NewLoginUI(t libkb.TerminalUI, noPrompt bool) LoginUI {
 }
 
 func (l LoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
-	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username", false,
-		libkb.CheckUsername)
+	return PromptWithChecker(PromptDescriptorLoginUsername, l.parent, "Your keybase username or email address", false,
+		libkb.CheckEmailOrUsername)
 }
 
 func (l LoginUI) PromptRevokePaperKeys(_ context.Context, arg keybase1.PromptRevokePaperKeysArg) (bool, error) {
@@ -607,8 +666,8 @@ type SecretUI struct {
 	parent *UI
 }
 
-func (ui SecretUI) GetSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	return ui.parent.SecretEntry.Get(pinentry, term, ui.parent)
+func (ui SecretUI) getSecret(pinentry keybase1.SecretEntryArg, term *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
+	return ui.parent.SecretEntry.Get(pinentry, term, ui.parent.ErrorWriter())
 }
 
 func (ui *UI) Configure() error {
@@ -636,100 +695,19 @@ func (ui *UI) Shutdown() error {
 	return err
 }
 
-func (ui SecretUI) GetNewPassphrase(earg keybase1.GetNewPassphraseArg) (eres keybase1.GetPassphraseRes, err error) {
-
-	arg := libkb.PromptArg{
-		TerminalPrompt: earg.TerminalPrompt,
-		PinentryDesc:   earg.PinentryDesc,
-		PinentryPrompt: earg.PinentryPrompt,
-		RetryMessage:   earg.RetryMessage,
-		Checker:        &libkb.CheckPassphraseNew,
-		UseSecretStore: earg.UseSecretStore,
-	}
-
-	orig := arg
-	var rm string
-	var text string
-
-	for {
-		text = ""
-		var text2 string
-		arg = orig
-		if len(rm) > 0 {
-			arg.RetryMessage = rm
-			rm = ""
-		}
-
-		if text, eres.StoreSecret, err = ui.ppprompt(arg); err != nil {
-			return
-		}
-
-		arg.TerminalPrompt = arg.TerminalPrompt + " [confirm]"
-		arg.PinentryDesc = "Please reenter your passphase for confirmation"
-		arg.RetryMessage = ""
-		arg.Checker = nil
-
-		arg2 := arg
-		arg2.UseSecretStore = false
-		if text2, _, err = ui.ppprompt(arg2); err != nil {
-			return
-		}
-		if text == text2 {
-			break
-		} else {
-			rm = "Password mismatch"
-		}
-	}
-
-	eres.Passphrase = text
-	return
-}
-
-func (ui SecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (res keybase1.GetPassphraseRes, err error) {
-	desc := fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", arg.Username)
-	res.Passphrase, res.StoreSecret, err = ui.ppprompt(libkb.PromptArg{
-		TerminalPrompt: "keybase passphrase",
-		PinentryPrompt: "Your passphrase",
-		PinentryDesc:   desc,
-		Checker:        &libkb.CheckPassphraseSimple,
-		RetryMessage:   arg.Retry,
-		UseSecretStore: true,
-	})
-	return
-}
-
-func (ui SecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (text string, err error) {
-	desc := fmt.Sprintf("Please enter a paper backup key passphrase for %s", arg.Username)
-	text, _, err = ui.ppprompt(libkb.PromptArg{
-		TerminalPrompt: "paper backup key passphrase",
-		PinentryPrompt: "Paper backup key passphrase",
-		PinentryDesc:   desc,
-		Checker:        &libkb.CheckPassphraseSimple,
-		RetryMessage:   "",
-		UseSecretStore: false,
-	})
-	return
-}
-
 func (ui SecretUI) GetPassphrase(pin keybase1.GUIEntryArg, term *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
-	// if this gets called, then the delegate ui wasn't available.
-	// so only use the terminal
-	if term == nil {
-		term = &keybase1.SecretEntryArg{
-			Prompt:         pin.Prompt,
-			UseSecretStore: pin.Features.SecretStorage.Allow,
-		}
-	}
-	s, err := ui.parent.Terminal.GetSecret(term)
-	if err != nil {
-		return res, err
-	}
-	res.Passphrase = s.Text
-	res.StoreSecret = s.StoreSecret
-	return res, nil
+	res.Passphrase, res.StoreSecret, err = ui.passphrasePrompt(libkb.PromptArg{
+		TerminalPrompt: pin.Prompt,
+		PinentryPrompt: pin.WindowTitle,
+		PinentryDesc:   pin.Prompt,
+		Checker:        &libkb.CheckPassphraseSimple,
+		RetryMessage:   pin.RetryLabel,
+		UseSecretStore: pin.Features.StoreSecret.Allow,
+	})
+	return res, err
 }
 
-func (ui SecretUI) ppprompt(arg libkb.PromptArg) (text string, storeSecret bool, err error) {
+func (ui SecretUI) passphrasePrompt(arg libkb.PromptArg) (text string, storeSecret bool, err error) {
 
 	first := true
 	var res *keybase1.SecretEntryRes
@@ -748,7 +726,7 @@ func (ui SecretUI) ppprompt(arg libkb.PromptArg) (text string, storeSecret bool,
 
 		tp = tp + ": "
 
-		res, err = ui.GetSecret(keybase1.SecretEntryArg{
+		res, err = ui.getSecret(keybase1.SecretEntryArg{
 			Err:            emp,
 			Desc:           arg.PinentryDesc,
 			Prompt:         arg.PinentryPrompt,
@@ -874,6 +852,9 @@ func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
 		},
 	}
 	err = NewPrompter([]*Field{field}, ui.GetTerminalUI()).Run()
+	if err != nil {
+		return -1, err
+	}
 	if p := field.Value; p == nil {
 		err = ErrInputCanceled
 	} else {
@@ -899,6 +880,9 @@ func PromptSelectionOrCancel(pd libkb.PromptDescriptor, ui libkb.TerminalUI, pro
 		PromptDescriptor: pd,
 	}
 	err = NewPrompter([]*Field{field}, ui).Run()
+	if err != nil {
+		return -1, err
+	}
 	if p := field.Value; p == nil || *p == "q" {
 		err = ErrInputCanceled
 	} else {
@@ -925,7 +909,11 @@ func (ui *UI) Output(s string) error {
 }
 
 func (ui *UI) OutputWriter() io.Writer {
-	return os.Stdout
+	return libkb.OutputWriter()
+}
+
+func (ui *UI) ErrorWriter() io.Writer {
+	return libkb.ErrorWriter()
 }
 
 func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {

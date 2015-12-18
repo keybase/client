@@ -6,6 +6,7 @@ package engine
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -193,6 +194,17 @@ func AssertProvisioned(tc libkb.TestContext) error {
 	return nil
 }
 
+func AssertNotProvisioned(tc libkb.TestContext) error {
+	prov, err := tc.G.LoginState().LoggedInProvisionedLoad()
+	if err != nil {
+		return err
+	}
+	if prov {
+		return errors.New("AssertNotProvisioned failed:  user is provisioned")
+	}
+	return nil
+}
+
 func AssertLoggedIn(tc libkb.TestContext) error {
 	if !LoggedIn(tc) {
 		return libkb.LoginRequiredError{}
@@ -245,8 +257,8 @@ func testEngineWithSecretStore(
 	}
 	runEngine(tc, fu, &testSecretUI)
 
-	if !testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly not called")
+	if !testSecretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly not called")
 	}
 
 	tc.ResetLoginState()
@@ -254,7 +266,7 @@ func testEngineWithSecretStore(
 	testSecretUI = libkb.TestSecretUI{}
 	runEngine(tc, fu, &testSecretUI)
 
-	if testSecretUI.CalledGetSecret {
-		t.Fatal("GetSecret() unexpectedly called")
+	if testSecretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly called")
 	}
 }

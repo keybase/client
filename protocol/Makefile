@@ -17,6 +17,7 @@ build-stamp: \
 	json/block.json \
 	json/btc.json \
 	json/config.json \
+	json/constants.json \
 	json/crypto.json \
 	json/ctl.json \
 	json/debugging.json \
@@ -26,7 +27,7 @@ build-stamp: \
 	json/gpg_ui.json \
 	json/identify.json \
 	json/identify_ui.json \
-	json/kbcmf.json \
+	json/install.json \
 	json/kbfs.json \
 	json/kex2provisioner.json \
 	json/kex2provisionee.json \
@@ -38,13 +39,16 @@ build-stamp: \
 	json/notify_ctl.json \
 	json/notify_fs.json \
 	json/notify_session.json \
+	json/notify_tracking.json \
 	json/notify_users.json \
 	json/pgp.json \
+	json/pgp_ui.json \
 	json/prove.json \
 	json/prove_ui.json \
 	json/provision_ui.json \
 	json/quota.json \
 	json/revoke.json \
+	json/saltpack.json \
 	json/secret_ui.json \
 	json/session.json \
 	json/signup.json \
@@ -53,6 +57,8 @@ build-stamp: \
 	json/test.json \
 	json/track.json \
 	json/ui.json \
+	json/update.json \
+	json/update_ui.json \
 	json/user.json
 	@mkdir -p json
 	date > $@
@@ -69,10 +75,12 @@ objc-build-stamp: build-stamp
 js/flow-types.js: build-stamp
 	@mkdir -p js/
 	node ./bin/flow.js
+	cp ./js/flow-types.js ../react-native/react/constants/types
 
 js/keybase_v1.js: build-stamp
 	@mkdir -p js/
 	node ./bin/js.js
+	cp ./js/keybase_v1.js ../react-native/react/constants/types
 
 swift-build-stamp: build-stamp
 	ruby ./bin/swift.rb

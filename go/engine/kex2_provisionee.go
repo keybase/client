@@ -94,7 +94,7 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 	}
 
 	karg := kex2.KexBaseArg{
-		Ctx:           context.TODO(),
+		Ctx:           ctx.GetNetContext(),
 		Mr:            libkb.NewKexRouter(e.G()),
 		DeviceID:      e.device.ID,
 		Secret:        e.secret,

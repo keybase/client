@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/packet"
 )
@@ -24,8 +23,6 @@ type ScanKeys struct {
 	// keys  openpgp.EntityList
 	skbs  []*libkb.SKB // all skb blocks for local keys
 	secui libkb.SecretUI
-	idui  libkb.IdentifyUI
-	opts  *keybase1.TrackOptions
 	owner *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
 	me    *libkb.User
 	libkb.Contextified
@@ -38,11 +35,9 @@ var _ openpgp.KeyRing = &ScanKeys{}
 
 // NewScanKeys creates a ScanKeys type.  If there is a login
 // session, it will load the pgp keys for that user.
-func NewScanKeys(secui libkb.SecretUI, idui libkb.IdentifyUI, opts *keybase1.TrackOptions, g *libkb.GlobalContext) (*ScanKeys, error) {
+func NewScanKeys(secui libkb.SecretUI, g *libkb.GlobalContext) (*ScanKeys, error) {
 	sk := &ScanKeys{
 		secui:        secui,
-		idui:         idui,
-		opts:         opts,
 		Contextified: libkb.NewContextified(g),
 	}
 	var err error
@@ -204,8 +199,7 @@ func (s *ScanKeys) coalesceBlocks(ring *libkb.SKBKeyringFile, synced *libkb.SKB)
 }
 
 // scan finds the user on the api server for the key id.  Then it
-// uses PGPKeyfinder to find the public pgp keys for the user,
-// identifying/tracking along the way.
+// uses PGPKeyfinder to find the public pgp keys for the user.
 func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 	// lookup the user on the api server by the key id.
 	username, uid, err := s.apiLookup(id)
@@ -218,13 +212,8 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 	}
 
 	// use PGPKeyfinder engine to get the pgp keys for the user
-	// could use "uid://xxxxxxx" instead of username here, but the log output
-	// is more user-friendly with usernames.
-	arg := &PGPKeyfinderArg{Users: []string{username}}
-	if s.opts != nil {
-		arg.TrackOptions = *s.opts
-	}
-	ctx := &Context{SecretUI: s.secui, IdentifyUI: s.idui}
+	arg := &PGPKeyfinderArg{Usernames: []string{username}}
+	ctx := &Context{}
 	eng := NewPGPKeyfinder(arg, s.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return nil, err

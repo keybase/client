@@ -72,6 +72,8 @@ module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.png$' -> 'RelativeImageStub'
 module.name_mapper='^\..*base-react$' -> 'React'
 
+module.name_mapper='^\..*resolve-assets' -> 'resolveAssets'
+
 suppress_type=$FlowIssue
 suppress_type=$FlowFixMe
 suppress_type=$FixMe
@@ -82,4 +84,4 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowFixedInNextDeploy
 suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
 
 [version]
-0.19.0
+0.19.1

@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -148,6 +149,10 @@ func (f *JSONConfigFile) SetIntAtPath(p string, v int) error {
 	return f.setValueAtPath(p, getInt, v)
 }
 
+func (f *JSONConfigFile) SetInt64AtPath(p string, v int64) error {
+	return f.setValueAtPath(p, getInt, v)
+}
+
 func (f *JSONConfigFile) SetNullAtPath(p string) (err error) {
 	existing := f.jw.AtPath(p)
 	if !existing.IsNil() || existing.Error() != nil {
@@ -198,7 +203,7 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 	}
 
 	if f.jw.AtKey("users").AtKey(nu.String()).IsNil() {
-		return UserNotFoundError{msg: nu.String()}
+		return UserNotFoundError{Msg: nu.String()}
 	}
 
 	f.jw.SetKey("current_user", jsonw.NewString(nu.String()))
@@ -566,4 +571,43 @@ func (f JSONConfigFile) GetSplitLogOutput() (bool, bool) {
 
 func (f JSONConfigFile) GetSecurityAccessGroupOverride() (bool, bool) {
 	return false, false
+}
+
+func (f JSONConfigFile) GetUpdatePreferenceAuto() (bool, bool) {
+	return f.GetBoolAtPath("updates.auto")
+}
+
+func (f JSONConfigFile) GetUpdatePreferenceSnoozeUntil() keybase1.Time {
+	var ret keybase1.Time
+	s, _ := f.GetStringAtPath("updates.snooze")
+	if len(s) == 0 {
+		return ret
+	}
+	u, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return ret
+	}
+	ret = keybase1.Time(u)
+	return ret
+}
+
+func (f JSONConfigFile) GetUpdatePreferenceSkip() string {
+	s, _ := f.GetStringAtPath("updates.skip")
+	return s
+}
+
+func (f *JSONConfigFile) SetUpdatePreferenceAuto(b bool) error {
+	return f.SetBoolAtPath("updates.auto", b)
+}
+
+func (f *JSONConfigFile) SetUpdatePreferenceSkip(v string) error {
+	return f.SetStringAtPath("updates.skip", v)
+}
+
+func (f *JSONConfigFile) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
+	path := "updates.snooze"
+	if t == keybase1.Time(0) {
+		return f.SetNullAtPath(path)
+	}
+	return f.SetStringAtPath(path, fmt.Sprintf("%d", t))
 }

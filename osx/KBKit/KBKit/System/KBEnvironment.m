@@ -30,10 +30,11 @@
 - (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath {
   if ((self = [super init])) {
     _config = config;
-    _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel] servicePath:servicePath];
-    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel] servicePath:servicePath];
-
     KBHelperTool *helperTool = [[KBHelperTool alloc] initWithConfig:config];
+
+    _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel] servicePath:servicePath];
+    _kbfs = [[KBFSService alloc] initWithConfig:config helperTool:helperTool label:[config launchdKBFSLabel] servicePath:servicePath];
+
     KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
 
     _installables = [NSArray arrayWithObjects:_service, helperTool, fuse, _kbfs, nil];

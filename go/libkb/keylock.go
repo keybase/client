@@ -3,11 +3,7 @@
 
 package libkb
 
-import (
-	"fmt"
-
-	keybase1 "github.com/keybase/client/go/protocol"
-)
+import "fmt"
 
 type KeyUnlocker struct {
 	Tries          int
@@ -39,33 +35,25 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 
 	prompt := "Your key passphrase"
 
-	for i := 0; (arg.Tries <= 0 || i < arg.Tries) && ret == nil && err == nil; i++ {
-		var res *keybase1.SecretEntryRes
-		res, err = arg.UI.GetSecret(keybase1.SecretEntryArg{
-			Err:            emsg,
-			Desc:           desc,
-			Prompt:         prompt,
-			Reason:         arg.Reason,
-			UseSecretStore: arg.UseSecretStore,
-		}, nil)
-
-		if err == nil && res.Canceled {
-			err = CanceledError{"Attempt to unlock secret key entry canceled"}
-		} else if err != nil {
-			// noop
-		} else if ret, err = arg.Unlocker(res.Text, res.StoreSecret); err == nil {
-			// noop
-		} else if _, ok := err.(PassphraseError); ok {
+	for i := 0; arg.Tries <= 0 || i < arg.Tries; i++ {
+		res, err := GetSecret(arg.UI, prompt, desc, emsg, arg.UseSecretStore)
+		if err != nil {
+			// probably canceled
+			return nil, err
+		}
+		ret, err = arg.Unlocker(res.Passphrase, res.StoreSecret)
+		if err == nil {
+			// success
+			return ret, nil
+		}
+		if _, ok := err.(PassphraseError); ok {
+			// keep trying
 			emsg = "Failed to unlock key; bad passphrase"
-			err = nil
+		} else {
+			// unretryable error
+			return nil, err
 		}
 	}
 
-	if ret == nil && err == nil {
-		err = fmt.Errorf("Too many failures; giving up")
-	}
-	if err != nil {
-		ret = nil
-	}
-	return
+	return nil, fmt.Errorf("Too many failures; giving up")
 }

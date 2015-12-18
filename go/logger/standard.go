@@ -5,13 +5,14 @@ package logger
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	logging "github.com/op/go-logging"
+	logging "github.com/keybase/go-logging"
 	"golang.org/x/net/context"
 )
 
@@ -71,8 +72,8 @@ type Standard struct {
 }
 
 // New creates a new Standard logger for module.
-func New(module string) *Standard {
-	return NewWithCallDepth(module, 0)
+func New(module string, iow io.Writer) *Standard {
+	return NewWithCallDepth(module, 0, iow)
 }
 
 // Verify Standard fully implements the Logger interface.
@@ -81,7 +82,7 @@ var _ Logger = (*Standard)(nil)
 // NewWithCallDepth creates a new Standard logger for module, and when
 // printing file names and line numbers, it goes extraCallDepth up the
 // stack from where logger was invoked.
-func NewWithCallDepth(module string, extraCallDepth int) *Standard {
+func NewWithCallDepth(module string, extraCallDepth int, iow io.Writer) *Standard {
 	log := logging.MustGetLogger(module)
 	log.ExtraCalldepth = 1 + extraCallDepth
 	ret := &Standard{
@@ -91,16 +92,16 @@ func NewWithCallDepth(module string, extraCallDepth int) *Standard {
 		externalLoggersCount: 0,
 		externalLogLevel:     keybase1.LogLevel_INFO,
 	}
-	ret.initLogging()
+	ret.initLogging(iow)
 	return ret
 }
 
-func (log *Standard) initLogging() {
+func (log *Standard) initLogging(iow io.Writer) {
 	// Logging is always done to stderr. It's the responsibility of the
 	// launcher (like launchd on OSX, or the autoforking code) to set up stderr
 	// to point to the appropriate log file.
 	initLoggingBackendOnce.Do(func() {
-		logBackend := logging.NewLogBackend(os.Stderr, "", 0)
+		logBackend := logging.NewLogBackend(iow, "", 0)
 		logging.SetBackend(logBackend)
 		logging.SetLevel(logging.INFO, log.module)
 	})

@@ -1,19 +1,26 @@
 <html>
   <head>
     <title>Keybase</title>
+    <link rel="stylesheet" type="text/css" href="../../../desktop/renderer/style.css" />
+    <link rel="stylesheet" type="text/css" href="../../../desktop/node_modules/font-awesome/css/font-awesome.min.css" />
   </head>
   <body>
     <div id="remoteComponent"></div>
     <script>
-      var path = require('path')
-      require("babel/register")({
-        extensions: [".desktop.js", ".es6", ".es", ".jsx", ".js"]
-      })
-
-      require('./remote-component-loader')
-      var injector = require('./inject-styles')
-      injector(document, path.resolve(__dirname, '../../../desktop/renderer/style.css'))
-      injector(document, path.resolve(__dirname, '../../../desktop/node_modules/font-awesome/css/font-awesome.min.css'))
+      function getQueryVariable(variable) {
+        var query = window.location.search.substring(1)
+          var vars = query.split("&")
+          for (var i=0;i<vars.length;i++) {
+            var pair = vars[i].split("=")
+              if(pair[0] == variable){
+                return pair[1]
+              }
+          }
+        return false
+      }
+      var script = document.createElement('script')
+      script.src = getQueryVariable('src')
+      document.getElementsByTagName('head')[0].appendChild(script)
     </script>
   </body>
 </html>

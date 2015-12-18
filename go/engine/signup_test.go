@@ -68,7 +68,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mockGetPassphrase := &GetKeybasePassphraseMock{
+	mockGetPassphrase := &GetPassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
 	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetPassphrase, nil); err != nil {

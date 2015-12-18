@@ -201,8 +201,8 @@ func TestTrackRetrack(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !secretUI.CalledGetSecret {
-		t.Errorf("expected get secret call")
+	if !secretUI.CalledGetPassphrase {
+		t.Errorf("expected get passphrase call")
 	}
 
 	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
@@ -223,7 +223,7 @@ func TestTrackRetrack(t *testing.T) {
 	}, "clear stream cache")
 
 	// reset the flag
-	secretUI.CalledGetSecret = false
+	secretUI.CalledGetPassphrase = false
 
 	eng = NewTrackEngine(arg, tc.G)
 	err = RunEngine(eng, ctx)
@@ -231,7 +231,7 @@ func TestTrackRetrack(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if secretUI.CalledGetSecret {
+	if secretUI.CalledGetPassphrase {
 		t.Errorf("get secret called on retrack")
 	}
 

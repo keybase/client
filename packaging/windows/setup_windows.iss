@@ -5,6 +5,11 @@
 #ifndef MyAppVersion
 #define MyAppVersion "1.0"
 #endif
+; Use semantic version to name the installer,
+; but we still need the x.x.x.x version because Windows.
+#ifndef MySemVersion
+#define MySemVersion MyAppVersion
+#endif
 #define MyAppPublisher "Keybase, Inc."
 #define MyAppURL "http://www.keybase.io/"
 #define MyExeName "keybase.exe"
@@ -36,7 +41,7 @@ AppCopyright=Copyright (c) 2015, Keybase
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-OutputBaseFilename=keybase_setup_{#MyAppVersion}_{#MyGoArch}
+OutputBaseFilename=keybase_setup_{#MySemVersion}_{#MyGoArch}
 SetupIconFile={#MyGoPath}\src\github.com\keybase\keybase\public\images\favicon.ico
 Compression=lzma
 SolidCompression=yes
@@ -44,7 +49,7 @@ UninstallDisplayIcon={app}\keybase.exe
 VersionInfoVersion={#MyAppVersion}
 DisableDirPage=auto
 DisableProgramGroupPage=auto
-CreateUninstallRegKey=no
+; CreateUninstallRegKey=no
 ; Comment this out for development
 ; (there doesn't seem to be a way to make it conditional)
 SignTool=SignCommand
@@ -68,7 +73,6 @@ Root: "HKCU"; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Keyba
 WelcomeLabel2=This will install [name/ver] on your computer.
 
 [Run]
-Filename: "{app}\keybase.exe"; Parameters: "ctl watchdog"; WorkingDir: "{app}"; Flags: postinstall runhidden nowait; Description: "Start Keybase service"
 
 [UninstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
@@ -140,10 +144,14 @@ begin
 end;
  
 procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+
 begin
   if  CurStep=ssPostInstall then
     begin
-         CreateStartupScript();
+      CreateStartupScript();
+      ExecAsOriginalUser(ExpandConstant('{app}\{#MyExeName}'), 'ctl watchdog', '', SW_HIDE, ewNoWait, ResultCode);
     end
 end;
 

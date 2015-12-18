@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -51,7 +52,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			label := args[0]
 			binPath := args[1]
 			plistArgs := args[2:]
-			envVars := defaultLaunchdEnvVars(g, label)
+			envVars := install.DefaultLaunchdEnvVars(g, label)
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
 			err := launchd.Install(plist, os.Stdout)
@@ -69,16 +70,9 @@ func NewCmdLaunchdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 		ArgumentHelp: "<label>",
 		Usage:        "Uninstall a keybase launchd service",
 		Action: func(c *cli.Context) {
-			// TODO: Use ChooseCommand
-			args := c.Args()
-			if len(args) < 1 {
-				g.Log.Fatalf("No label specified.")
-			}
-			err := launchd.Uninstall(args[0], os.Stdout)
-			if err != nil {
-				g.Log.Fatalf("%v", err)
-			}
-			os.Exit(0)
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(NewCmdLaunchdActionRunner(g, "uninstall"), "uninstall", c)
 		},
 	}
 }
@@ -107,16 +101,9 @@ func NewCmdLaunchdRestart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		ArgumentHelp: "<label>",
 		Usage:        "Restart a keybase launchd service",
 		Action: func(c *cli.Context) {
-			// TODO: Use ChooseCommand
-			args := c.Args()
-			if len(args) < 1 {
-				g.Log.Fatalf("No label specified.")
-			}
-			err := launchd.Restart(args[0], os.Stdout)
-			if err != nil {
-				g.Log.Fatalf("%v", err)
-			}
-			os.Exit(0)
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(NewCmdLaunchdActionRunner(g, "restart"), "restart", c)
 		},
 	}
 }
@@ -127,16 +114,9 @@ func NewCmdLaunchdStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		ArgumentHelp: "<label>",
 		Usage:        "Start a keybase launchd service",
 		Action: func(c *cli.Context) {
-			// TODO: Use ChooseCommand
-			args := c.Args()
-			if len(args) < 1 {
-				g.Log.Fatalf("No label specified")
-			}
-			err := launchd.Start(args[0], os.Stdout)
-			if err != nil {
-				g.Log.Fatalf("%v", err)
-			}
-			os.Exit(0)
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(NewCmdLaunchdActionRunner(g, "start"), "start", c)
 		},
 	}
 }
@@ -147,16 +127,9 @@ func NewCmdLaunchdStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 		ArgumentHelp: "<label>",
 		Usage:        "Stop a keybase launchd service",
 		Action: func(c *cli.Context) {
-			// TODO: Use ChooseCommand
-			args := c.Args()
-			if len(args) < 1 {
-				g.Log.Fatalf("No label specified.")
-			}
-			err := launchd.Stop(args[0], os.Stdout)
-			if err != nil {
-				g.Log.Fatalf("%v", err)
-			}
-			os.Exit(0)
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(NewCmdLaunchdActionRunner(g, "stop"), "stop", c)
 		},
 	}
 }
@@ -209,7 +182,7 @@ func (v *CmdLaunchdList) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdLaunchdList) Run() error {
 	if v.format == "json" {
-		servicesStatus, err := listServices()
+		servicesStatus, err := install.ListServices()
 		if err != nil {
 			return err
 		}
@@ -219,7 +192,7 @@ func (v *CmdLaunchdList) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else if v.format == "" {
-		return showServices(v.G().UI.GetTerminalUI().OutputWriter())
+		return install.ShowServices(v.G().UI.GetTerminalUI().OutputWriter())
 	} else {
 		return fmt.Errorf("Invalid format: %s", v.format)
 	}
@@ -256,9 +229,9 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 func (v *CmdLaunchdStatus) Run() error {
 	var st keybase1.ServiceStatus
 	if v.name == "service" {
-		st = keybaseServiceStatus(v.G(), v.label)
+		st = install.KeybaseServiceStatus(v.G(), v.label)
 	} else if v.name == "kbfs" {
-		st = kbfsServiceStatus(v.G(), v.label)
+		st = install.KBFSServiceStatus(v.G(), v.label)
 	} else {
 		return fmt.Errorf("Invalid service name: %s", v.name)
 	}
@@ -273,5 +246,46 @@ func (v *CmdLaunchdStatus) Run() error {
 
 		fmt.Fprintf(os.Stdout, "%#v\n", st)
 	}
+	return nil
+}
+
+type CmdLaunchdAction struct {
+	libkb.Contextified
+	action string
+	label  string
+}
+
+func NewCmdLaunchdActionRunner(g *libkb.GlobalContext, action string) *CmdLaunchdAction {
+	return &CmdLaunchdAction{
+		Contextified: libkb.NewContextified(g),
+		action:       action,
+	}
+}
+
+func (v *CmdLaunchdAction) GetUsage() libkb.Usage {
+	return libkb.Usage{}
+}
+
+func (v *CmdLaunchdAction) ParseArgv(ctx *cli.Context) error {
+	args := ctx.Args()
+	if len(args) < 1 {
+		return fmt.Errorf("Need to specify launchd label")
+	}
+	v.label = args[0]
+	return nil
+}
+
+func (v *CmdLaunchdAction) Run() error {
+	switch v.action {
+	case "start":
+		return launchd.Start(v.label, os.Stdout)
+	case "restart":
+		return launchd.Restart(v.label, os.Stdout)
+	case "stop":
+		return launchd.Stop(v.label, os.Stdout)
+	case "uninstall":
+		return launchd.Uninstall(v.label, os.Stdout)
+	}
+
 	return nil
 }

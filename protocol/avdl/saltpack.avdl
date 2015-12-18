@@ -1,0 +1,15 @@
+@namespace("keybase.1")
+
+protocol saltPack {
+  import idl "common.avdl";
+  import idl "identify_common.avdl";
+
+  record SaltPackEncryptOptions {
+    array<string> recipients; // user assertions
+    TrackOptions trackOptions;
+  }
+
+  void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltPackEncryptOptions opts);
+
+  void saltPackDecrypt(int sessionID, Stream source, Stream sink);
+}

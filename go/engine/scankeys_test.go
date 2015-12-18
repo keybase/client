@@ -11,7 +11,7 @@ func TestScanKeys(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "login")
 
-	sk, err := NewScanKeys(fu.NewSecretUI(), &FakeIdentifyUI{}, nil, tc.G)
+	sk, err := NewScanKeys(fu.NewSecretUI(), tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +27,7 @@ func TestScanKeysSync(t *testing.T) {
 	defer tc.Cleanup()
 	fu := createFakeUserWithPGPOnly(t, tc)
 
-	sk, err := NewScanKeys(fu.NewSecretUI(), &FakeIdentifyUI{}, nil, tc.G)
+	sk, err := NewScanKeys(fu.NewSecretUI(), tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}

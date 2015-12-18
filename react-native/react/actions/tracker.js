@@ -7,18 +7,68 @@ import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 
 import type {State as RootTrackerState} from '../reducers/tracker'
+import type {ConfigState} from '../reducers/config'
 
 import type {CallMap} from '../engine/call-map-middleware'
-import type {UserSummary} from '../constants/types/flow-types'
 import type {Action, Dispatch} from '../constants/types/flux'
-import type {UserInfo} from '../tracker/bio.render.types'
 
-import type {Identity, IdentifyKey, TrackSummary, User, Cryptocurrency, IdentifyOutcome, RemoteProof, LinkCheckResult, TrackOptions} from '../constants/types/flow-types'
+import type {Identity, IdentifyKey, TrackSummary, User, Cryptocurrency, IdentifyOutcome, RemoteProof, LinkCheckResult, TrackOptions, UserCard} from '../constants/types/flow-types'
+
+type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void
 
 // TODO make actions for all the call back stuff.
 
-export function registerIdentifyUi (): (dispatch: Dispatch) => void {
+export function startTimer (): TrackerActionCreator {
+  return (dispatch, getState) => {
+    // Increments timerActive as a count of open tracker popups.
+    dispatch({type: Constants.startTimer})
+    const timerActive = getState().tracker.timerActive
+    if (timerActive === 1) {
+      // We're transitioning from 0->1, no tracker popups to one, start timer.
+      const intervalId = setInterval(() => {
+        const timerActive = getState().tracker.timerActive
+        if (timerActive <= 0) {
+          // All popups are closed now.
+          clearInterval(intervalId)
+        }
+        engine.rpc('track.checkTracking')
+      }, Constants.rpcUpdateTimerSeconds)
+    }
+  }
+}
+
+export function stopTimer (): Action {
+  return {
+    type: Constants.stopTimer
+  }
+}
+
+export function registerTrackerChangeListener (): TrackerActionCreator {
   return dispatch => {
+    const param = {
+      channels: {
+        tracking: true
+      }
+    }
+    engine.listenGeneralIncomingRpc('keybase.1.NotifyTracking.trackingChanged', function (args) {
+      dispatch({
+        type: Constants.userUpdated,
+        payload: args
+      })
+    })
+
+    engine.listenOnConnect(() => {
+      engine.rpc('notifyCtl.setNotifications', param, {}, (error, response) => {
+        if (error != null) {
+          console.error('error in toggling notifications: ', error)
+        }
+      })
+    })
+  }
+}
+
+export function registerIdentifyUi (): TrackerActionCreator {
+  return (dispatch, getState) => {
     engine.rpc('delegateUiCtl.registerIdentifyUI', {}, {}, (error, response) => {
       if (error != null) {
         console.error('error in registering identify ui: ', error)
@@ -29,7 +79,7 @@ export function registerIdentifyUi (): (dispatch: Dispatch) => void {
       engine,
       'keybase.1.identifyUi.delegateIdentifyUI',
       'keybase.1.identifyUi.finish',
-      () => serverCallMap(dispatch)
+      () => serverCallMap(dispatch, getState)
     )
     dispatch({
       type: Constants.registerIdentifyUi,
@@ -62,7 +112,7 @@ export function onFollowChecked (newFollowCheckedValue: boolean, username: strin
   }
 }
 
-export function onRefollow (username: string): Action {
+export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     console.log('onRefollow')
     trackUser(username, getState())
@@ -73,7 +123,7 @@ export function onRefollow (username: string): Action {
   }
 }
 
-export function onUnfollow (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+export function onUnfollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     engine.rpc('track.untrack', {username}, {}, (err, response) => {
       if (err) {
@@ -147,45 +197,28 @@ export function onCloseFromHeader (username: string): Action {
   }
 }
 
-function loadUserInfo (uid: any, username:string): (dispatch: Dispatch) => void {
-  return dispatch => {
-    engine.rpc('user.loadUncheckedUserSummaries', {uids: [uid]}, {}, (error: ?any, response: Array<UserSummary>) => {
-      if (error) {
-        console.log(error)
-        return
-      }
-
-      const onlyUser: ?UserSummary = response[0]
-      if (!onlyUser) {
-        console.log('Did not get back a user summary')
-        return
-      }
-
-      dispatch(updateUserInfo({
-        fullname: onlyUser.fullName,
-        avatar: onlyUser.thumbnail,
-        // TODO: get this data from somewhere
-        location: '', // TODO: get location data
-        followersCount: -1,
-        followingCount: -1,
-        followsYou: false
-      }, username))
-    })
-  }
-}
-
-function updateUserInfo (userInfo: UserInfo, username: string): Action {
+function updateUserInfo (userCard: UserCard, username: string, getState: () => {tracker: RootTrackerState, config: ConfigState}): Action {
+  const config = getState().config.config
+  const serverURI = config && config.serverURI
   return {
     type: Constants.updateUserInfo,
     payload: {
-      userInfo,
+      userInfo: {
+        fullname: userCard.fullName,
+        followersCount: userCard.followers,
+        followingCount: userCard.following,
+        followsYou: userCard.theyFollowYou,
+        avatar: `${serverURI}/${username}/picture`,
+        location: userCard.location
+      },
       username
     }
   }
 }
 
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
-function serverCallMap (dispatch: Dispatch): CallMap {
+function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
+  /* eslint-disable arrow-parens */
   const sessionIDToUsername: { [key: number]: string } = {}
   const identifyUi = {
     start: (params: {sessionID: number, username: string}) => {
@@ -224,7 +257,6 @@ function serverCallMap (dispatch: Dispatch): CallMap {
       const username = sessionIDToUsername[params.sessionID]
       // This is the first spot that we have access to the user, so let's use that to get
       // The user information
-      dispatch(loadUserInfo(params.user.uid, username))
 
       dispatch({
         type: Constants.setProofs,
@@ -253,6 +285,10 @@ function serverCallMap (dispatch: Dispatch): CallMap {
     },
     displayCryptocurrency: (params: {sessionID: number, c: Cryptocurrency}) => {
     },
+    displayUserCard: (params: {sessionID: number, card: UserCard}) => {
+      const username = sessionIDToUsername[params.sessionID]
+      dispatch(updateUserInfo(params.card, username, getState))
+    },
     reportTrackToken: (params: {sessionID: number, trackToken: string}) => {
       const username = sessionIDToUsername[params.sessionID]
       const {trackToken} = params
@@ -277,6 +313,7 @@ function serverCallMap (dispatch: Dispatch): CallMap {
   }
 
   return promisifyResponses(flattenCallMap({keybase: {'1': {identifyUi}}}))
+  /* eslint-enable arrow-parens */
 }
 
 function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult, username: string): Action {

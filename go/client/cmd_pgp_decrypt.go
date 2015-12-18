@@ -24,10 +24,6 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Name:  "i, infile",
 				Usage: "Specify an input file.",
 			},
-			cli.BoolFlag{
-				Name:  "l, local",
-				Usage: "Only track locally, don't send a statement to the server.",
-			},
 			cli.StringFlag{
 				Name:  "m, message",
 				Usage: "Provide the message on the command line.",
@@ -44,10 +40,6 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Name:  "S, signed-by",
 				Usage: "Assert signed by the given user (can use user assertion format).",
 			},
-			cli.BoolFlag{
-				Name:  "y",
-				Usage: "Approve remote tracking without prompting.",
-			},
 		},
 		Description: `Use of this command requires at least one PGP secret key imported
    into the local Keybase keyring. It will try all secret keys in the local keyring that match the
@@ -58,9 +50,8 @@ func NewCmdPGPDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 type CmdPGPDecrypt struct {
 	libkb.Contextified
 	UnixFilter
-	trackOptions keybase1.TrackOptions
-	signed       bool
-	signedBy     string
+	signed   bool
+	signedBy string
 }
 
 func (c *CmdPGPDecrypt) Run() error {
@@ -71,7 +62,8 @@ func (c *CmdPGPDecrypt) Run() error {
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
 		NewSecretUIProtocol(c.G()),
-		NewIdentifyTrackUIProtocol(c.G()),
+		NewPgpUIProtocol(c.G()),
+		NewIdentifyUIProtocol(c.G()),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
@@ -83,7 +75,6 @@ func (c *CmdPGPDecrypt) Run() error {
 	opts := keybase1.PGPDecryptOptions{
 		AssertSigned: c.signed,
 		SignedBy:     c.signedBy,
-		TrackOptions: c.trackOptions,
 	}
 	arg := keybase1.PGPDecryptArg{Source: src, Sink: snk, Opts: opts}
 	_, err = cli.PGPDecrypt(context.TODO(), arg)
@@ -102,10 +93,6 @@ func (c *CmdPGPDecrypt) ParseArgv(ctx *cli.Context) error {
 	infile := ctx.String("infile")
 	if err := c.FilterInit(msg, infile, outfile); err != nil {
 		return err
-	}
-	c.trackOptions = keybase1.TrackOptions{
-		LocalOnly:     ctx.Bool("local"),
-		BypassConfirm: ctx.Bool("y"),
 	}
 	c.signed = ctx.Bool("signed")
 	c.signedBy = ctx.String("signed-by")

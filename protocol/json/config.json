@@ -159,6 +159,54 @@
     "name" : "LogLevel",
     "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
   }, {
+    "type" : "enum",
+    "name" : "ClientType",
+    "symbols" : [ "CLI_0", "GUI_1" ]
+  }, {
+    "type" : "record",
+    "name" : "UserVersionVector",
+    "fields" : [ {
+      "name" : "id",
+      "type" : "long"
+    }, {
+      "name" : "sigHints",
+      "type" : "int"
+    }, {
+      "name" : "sigChain",
+      "type" : "long"
+    }, {
+      "name" : "cachedAt",
+      "type" : "Time"
+    }, {
+      "name" : "lastIdentifiedAt",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UserPlusKeys",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "deviceKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "keys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "uvv",
+      "type" : "UserVersionVector"
+    } ]
+  }, {
     "type" : "record",
     "name" : "GetCurrentStatusRes",
     "fields" : [ {
@@ -220,117 +268,6 @@
     }, {
       "name" : "forkType",
       "type" : "ForkType"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "InstallStatus",
-    "doc" : "Install status describes state of install for a component or service.",
-    "symbols" : [ "UNKNOWN_0", "ERROR_1", "NOT_INSTALLED_2", "INSTALLED_4" ]
-  }, {
-    "type" : "enum",
-    "name" : "InstallAction",
-    "symbols" : [ "UNKNOWN_0", "NONE_1", "UPGRADE_2", "REINSTALL_3", "INSTALL_4" ]
-  }, {
-    "type" : "record",
-    "name" : "ServiceStatus",
-    "fields" : [ {
-      "name" : "version",
-      "type" : "string"
-    }, {
-      "name" : "label",
-      "type" : "string"
-    }, {
-      "name" : "pid",
-      "type" : "string"
-    }, {
-      "name" : "lastExitStatus",
-      "type" : "string"
-    }, {
-      "name" : "bundleVersion",
-      "type" : "string"
-    }, {
-      "name" : "installStatus",
-      "type" : "InstallStatus"
-    }, {
-      "name" : "installAction",
-      "type" : "InstallAction"
-    }, {
-      "name" : "status",
-      "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ServicesStatus",
-    "fields" : [ {
-      "name" : "service",
-      "type" : {
-        "type" : "array",
-        "items" : "ServiceStatus"
-      }
-    }, {
-      "name" : "kbfs",
-      "type" : {
-        "type" : "array",
-        "items" : "ServiceStatus"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "FuseMountInfo",
-    "fields" : [ {
-      "name" : "path",
-      "type" : "string"
-    }, {
-      "name" : "fstype",
-      "type" : "string"
-    }, {
-      "name" : "output",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "FuseStatus",
-    "fields" : [ {
-      "name" : "version",
-      "type" : "string"
-    }, {
-      "name" : "bundleVersion",
-      "type" : "string"
-    }, {
-      "name" : "kextID",
-      "type" : "string"
-    }, {
-      "name" : "path",
-      "type" : "string"
-    }, {
-      "name" : "kextStarted",
-      "type" : "boolean"
-    }, {
-      "name" : "installStatus",
-      "type" : "InstallStatus"
-    }, {
-      "name" : "installAction",
-      "type" : "InstallAction"
-    }, {
-      "name" : "mountInfos",
-      "type" : {
-        "type" : "array",
-        "items" : "FuseMountInfo"
-      }
-    }, {
-      "name" : "status",
-      "type" : "Status"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ComponentStatus",
-    "doc" : "ComponentStatus defines a components status.\n    Names can be \"cli,\" \"service\", \"kbfs\".",
-    "fields" : [ {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "status",
-      "type" : "Status"
     } ]
   } ],
   "messages" : {

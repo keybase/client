@@ -6,16 +6,19 @@ package engine
 import (
 	"time"
 
-	"github.com/dustin/go-humanize"
+	"golang.org/x/net/context"
+
+	// humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // OutputSignatureSuccess prints the details of a successful verification.
 func OutputSignatureSuccess(ctx *Context, fingerprint libkb.PGPFingerprint, owner *libkb.User, signatureTime time.Time) {
-	if signatureTime.IsZero() {
-		ctx.LogUI.Notice("Signature verified. Signed by %s.", owner.GetName())
-	} else {
-		ctx.LogUI.Notice("Signature verified. Signed by %s %s (%s).", owner.GetName(), humanize.Time(signatureTime), signatureTime)
+	arg := keybase1.OutputSignatureSuccessArg{
+		Fingerprint: fingerprint.String(),
+		Username:    owner.GetName(),
+		SignedAt:    keybase1.TimeFromSeconds(signatureTime.Unix()),
 	}
-	ctx.LogUI.Notice("PGP Fingerprint: %s.", fingerprint)
+	ctx.PgpUI.OutputSignatureSuccess(context.TODO(), arg)
 }

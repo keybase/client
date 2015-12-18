@@ -44,10 +44,21 @@ func (h *AccountHandler) PassphrasePrompt(_ context.Context, sessionID int) erro
 	guiArg := keybase1.GUIEntryArg{
 		WindowTitle: "Passphrase needed",
 		Prompt:      "Please enter the passphrase to unlock your secret key",
+		SubmitLabel: "Unlock",
+		CancelLabel: "Cancel",
+		RetryLabel:  "",
 		Features: keybase1.GUIEntryFeatures{
-			SecretStorage: keybase1.SecretStorageFeature{
-				Allow: true,
-				Label: "Save in Keychain",
+			StoreSecret: keybase1.Feature{
+				Allow:        true,
+				DefaultValue: true,
+				Readonly:     false,
+				Label:        "Save in Keychain",
+			},
+			ShowTyping: keybase1.Feature{
+				Allow:        false,
+				Readonly:     true,
+				DefaultValue: false,
+				Label:        "Show typing",
 			},
 		},
 	}

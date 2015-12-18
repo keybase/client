@@ -137,7 +137,15 @@ func (u *User) ToTrackingStatementBasics(errp *error) *jsonw.Wrapper {
 }
 
 func (u *User) ToTrackingStatementSeqTail() *jsonw.Wrapper {
-	return u.sigs.AtKey("last")
+	mul := u.GetPublicChainTail()
+	if mul == nil {
+		return jsonw.NewNil()
+	}
+	ret := jsonw.NewDictionary()
+	ret.SetKey("sig_id", jsonw.NewString(mul.SigID.ToString(true)))
+	ret.SetKey("seqno", jsonw.NewInt(int(mul.Seqno)))
+	ret.SetKey("payload_hash", jsonw.NewString(mul.LinkID.String()))
+	return ret
 }
 
 func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (err error) {

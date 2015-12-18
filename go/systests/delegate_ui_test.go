@@ -130,6 +130,12 @@ func (d *delegateUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryp
 	}
 	return nil
 }
+func (d *delegateUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
+	if err := d.checkStarted(); err != nil {
+		return err
+	}
+	return nil
+}
 func (d *delegateUI) Confirm(context.Context, keybase1.ConfirmArg) (res keybase1.ConfirmResult, err error) {
 	if err = d.checkStarted(); err != nil {
 		return res, err

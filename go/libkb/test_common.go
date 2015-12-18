@@ -323,6 +323,12 @@ func (n *nullui) GetGPGUI() GPGUI {
 func (n *nullui) GetLogUI() LogUI {
 	return n.gctx.Log
 }
+func (n *nullui) GetPgpUI() PgpUI {
+	return nil
+}
+func (n *nullui) GetUpdateUI() UpdateUI {
+	return nil
+}
 func (n *nullui) GetProvisionUI(KexRole) ProvisionUI {
 	return nil
 }
@@ -343,45 +349,17 @@ func (n *nullui) Shutdown() error {
 }
 
 type TestSecretUI struct {
-	Passphrase             string
-	BackupPassphrase       string
-	StoreSecret            bool
-	CalledGetSecret        bool
-	CalledGetKBPassphrase  bool
-	CalledGetBUPassphrase  bool
-	CalledGetNewPassphrase bool
-	CalledGetPassphrase    bool
-}
-
-func (t *TestSecretUI) GetSecret(p keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error) {
-	t.CalledGetSecret = true
-	return &keybase1.SecretEntryRes{
-		Text:        t.Passphrase,
-		Canceled:    false,
-		StoreSecret: p.UseSecretStore && t.StoreSecret,
-	}, nil
-}
-
-func (t *TestSecretUI) GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error) {
-	t.CalledGetNewPassphrase = true
-	return keybase1.GetPassphraseRes{Passphrase: t.Passphrase}, nil
-}
-
-func (t *TestSecretUI) GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error) {
-	t.CalledGetKBPassphrase = true
-	return keybase1.GetPassphraseRes{Passphrase: t.Passphrase, StoreSecret: t.StoreSecret}, nil
-}
-
-func (t *TestSecretUI) GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	t.CalledGetBUPassphrase = true
-	return t.BackupPassphrase, nil
+	Passphrase          string
+	BackupPassphrase    string
+	StoreSecret         bool
+	CalledGetPassphrase bool
 }
 
 func (t *TestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	t.CalledGetPassphrase = true
 	return keybase1.GetPassphraseRes{
 		Passphrase:  t.Passphrase,
-		StoreSecret: p.Features.SecretStorage.Allow && t.StoreSecret,
+		StoreSecret: p.Features.StoreSecret.Allow && t.StoreSecret,
 	}, nil
 }
 

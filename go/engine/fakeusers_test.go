@@ -185,6 +185,55 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 	return fu
 }
 
+// multiple pgp keys, but only the one with fu.Email associated w/
+// keybase account
+func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alternateEmail string) *FakeUser {
+	fu := NewFakeUserOrBust(t, "login")
+	if err := tc.GenerateGPGKeyring(fu.Email, alternateEmail); err != nil {
+		t.Fatal(err)
+	}
+
+	secui := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
+	s := NewSignupEngine(nil, tc.G)
+	ctx := &Context{
+		GPGUI:    newGPGSelectEmailUI(fu.Email),
+		SecretUI: secui,
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
+	}
+
+	f := func(a libkb.LoginContext) error {
+		if err := s.genPassphraseStream(a, fu.Passphrase); err != nil {
+			return err
+		}
+
+		if err := s.join(a, fu.Username, fu.Email, testInviteCode, true); err != nil {
+			t.Fatal(err)
+		}
+
+		fu.User = s.GetMe()
+
+		// fake the lks:
+		if err := s.fakeLKS(); err != nil {
+			return err
+		}
+
+		// this will add the GPG key for fu.Email to their account
+		if err := s.addGPG(a, ctx, false); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPMultSubset"); err != nil {
+		t.Fatal(err)
+	}
+	// now it should have two pgp keys...
+
+	return fu
+}
+
 func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 	fu := CreateAndSignupFakeUser(tc, "pgp")
 

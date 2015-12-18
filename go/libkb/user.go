@@ -5,10 +5,9 @@ package libkb
 
 import (
 	"fmt"
-	"io"
-
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	"io"
 )
 
 type UserBasic interface {
@@ -20,7 +19,6 @@ type User struct {
 	// Raw JSON element read from the server or our local DB.
 	basics     *jsonw.Wrapper
 	publicKeys *jsonw.Wrapper
-	sigs       *jsonw.Wrapper
 	pictures   *jsonw.Wrapper
 
 	// Processed fields
@@ -61,7 +59,6 @@ func NewUser(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
 	return &User{
 		basics:       o.AtKey("basics"),
 		publicKeys:   o.AtKey("public_keys"),
-		sigs:         o.AtKey("sigs"),
 		pictures:     o.AtKey("pictures"),
 		keyFamily:    kf,
 		id:           uid,
@@ -108,6 +105,13 @@ func (u *User) GetComputedKeyInfos() *ComputedKeyInfos {
 		return nil
 	}
 	return u.sigChain().GetComputedKeyInfos()
+}
+
+func (u *User) GetSigHintsVersion() int {
+	if u.sigHints == nil {
+		return 0
+	}
+	return u.sigHints.version
 }
 
 func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
@@ -187,30 +191,6 @@ func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 	return ckf.GetEncryptionSubkeyForDevice(did)
 }
 
-func (u *User) GetServerSeqno() (i int, err error) {
-	i = -1
-
-	u.G().Log.Debug("+ Get server seqno for user: %s", u.name)
-	res, err := u.G().API.Get(APIArg{
-		Endpoint:    "user/lookup",
-		NeedSession: false,
-		Args: HTTPArgs{
-			"username": S{u.name},
-			"fields":   S{"sigs"},
-		},
-		Contextified: u.Contextified,
-	})
-	if err != nil {
-		return
-	}
-	i, err = res.Body.AtKey("them").AtKey("sigs").AtKey("last").AtKey("seqno").GetInt()
-	if err != nil {
-		return
-	}
-	u.G().Log.Debug("- Server seqno: %s -> %d", u.name, i)
-	return i, err
-}
-
 func (u *User) CheckBasicsFreshness(server int64) (current bool, err error) {
 	var stored int64
 	if stored, err = u.GetIDVersion(); err == nil {
@@ -284,7 +264,6 @@ func (u *User) StoreTopLevel() error {
 	jw.SetKey("id", UIDWrapper(u.id))
 	jw.SetKey("basics", u.basics)
 	jw.SetKey("public_keys", u.publicKeys)
-	jw.SetKey("sigs", u.sigs)
 	jw.SetKey("pictures", u.pictures)
 
 	err := u.G().LocalDb.Put(
@@ -395,6 +374,13 @@ func (u *User) SyncSecrets() error {
 // May return an empty KID
 func (u *User) GetEldestKID() (ret keybase1.KID) {
 	return u.leaf.eldest
+}
+
+func (u *User) GetPublicChainTail() *MerkleTriple {
+	if u.sigChainMem == nil {
+		return nil
+	}
+	return u.sigChain().GetCurrentTailTriple()
 }
 
 func (u *User) IDTable() *IdentityTable {
@@ -591,20 +577,25 @@ func (u *User) DeviceNames() ([]string, error) {
 
 // Returns whether or not the current install has an active device
 // sibkey.
-func (u *User) HasDeviceInCurrentInstall() bool {
+func (u *User) HasDeviceInCurrentInstall(did keybase1.DeviceID) bool {
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
 		return false
 	}
-	did := u.G().Env.GetDeviceID()
-	if did.IsNil() {
-		return false
-	}
+
 	_, err := ckf.GetSibkeyForDevice(did)
 	if err != nil {
 		return false
 	}
 	return true
+}
+
+func (u *User) HasCurrentDeviceInCurrentInstall() bool {
+	did := u.G().Env.GetDeviceID()
+	if did.IsNil() {
+		return false
+	}
+	return u.HasDeviceInCurrentInstall(did)
 }
 
 func (u *User) SigningKeyPub() (GenericKey, error) {
@@ -673,4 +664,20 @@ func (u *User) LinkFromSigID(sigID keybase1.SigID) *ChainLink {
 
 func (u *User) SigChainDump(w io.Writer) {
 	u.sigChain().Dump(w)
+}
+
+func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeys) bool {
+	idv, _ := u.GetIDVersion()
+	if upk.Uvv.Id == 0 || idv != upk.Uvv.Id {
+		return false
+	}
+	shv := u.GetSigHintsVersion()
+	if upk.Uvv.SigHints == 0 || shv != upk.Uvv.SigHints {
+		return false
+	}
+	scv := u.GetSigChainLastKnownSeqno()
+	if upk.Uvv.SigChain == 0 || int64(scv) != upk.Uvv.SigChain {
+		return false
+	}
+	return true
 }

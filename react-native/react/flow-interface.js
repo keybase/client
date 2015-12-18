@@ -6,6 +6,10 @@ declare module 'Interpolation' {
   declare var exports: any;
 }
 
+declare module 'electron' {
+  declare var exports: any;
+}
+
 declare module 'redux-devtools' {
   declare var exports: any;
 }
@@ -19,6 +23,10 @@ declare module 'material-ui/lib/svg-icons/navigation/close' {
 }
 
 declare class Notification {
+}
+
+declare module 'resolveAssets' {
+  declare var exports: (s: string) => string;
 }
 
 // Algebraic data types

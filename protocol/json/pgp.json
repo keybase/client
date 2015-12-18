@@ -160,6 +160,54 @@
     "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
   }, {
     "type" : "enum",
+    "name" : "ClientType",
+    "symbols" : [ "CLI_0", "GUI_1" ]
+  }, {
+    "type" : "record",
+    "name" : "UserVersionVector",
+    "fields" : [ {
+      "name" : "id",
+      "type" : "long"
+    }, {
+      "name" : "sigHints",
+      "type" : "int"
+    }, {
+      "name" : "sigChain",
+      "type" : "long"
+    }, {
+      "name" : "cachedAt",
+      "type" : "Time"
+    }, {
+      "name" : "lastIdentifiedAt",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UserPlusKeys",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "deviceKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "keys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "uvv",
+      "type" : "UserVersionVector"
+    } ]
+  }, {
+    "type" : "enum",
     "name" : "ProofState",
     "symbols" : [ "NONE_0", "OK_1", "TEMP_FAILURE_2", "PERM_FAILURE_3", "LOOKING_4", "SUPERSEDED_5", "POSTED_6", "REVOKED_7" ]
   }, {
@@ -171,6 +219,11 @@
     "type" : "enum",
     "name" : "ProofType",
     "symbols" : [ "NONE_0", "KEYBASE_1", "TWITTER_2", "GITHUB_3", "REDDIT_4", "COINBASE_5", "HACKERNEWS_6", "GENERIC_WEB_SITE_1000", "DNS_1001", "ROOTER_100001" ]
+  }, {
+    "type" : "record",
+    "name" : "TrackToken",
+    "fields" : [ ],
+    "typedef" : "string"
   }, {
     "type" : "enum",
     "name" : "TrackDiffType",
@@ -289,7 +342,7 @@
       "type" : "IdentifyOutcome"
     }, {
       "name" : "trackToken",
-      "type" : "string"
+      "type" : "TrackToken"
     } ]
   }, {
     "type" : "record",
@@ -355,6 +408,9 @@
       "name" : "keyQuery",
       "type" : "string"
     }, {
+      "name" : "skipTrack",
+      "type" : "boolean"
+    }, {
       "name" : "trackOptions",
       "type" : "TrackOptions"
     } ]
@@ -384,9 +440,6 @@
     }, {
       "name" : "signedBy",
       "type" : "string"
-    }, {
-      "name" : "trackOptions",
-      "type" : "TrackOptions"
     } ]
   }, {
     "type" : "record",
@@ -394,9 +447,6 @@
     "fields" : [ {
       "name" : "signedBy",
       "type" : "string"
-    }, {
-      "name" : "trackOptions",
-      "type" : "TrackOptions"
     }, {
       "name" : "signature",
       "type" : "bytes"
@@ -592,16 +642,6 @@
       }, {
         "name" : "pushSecret",
         "type" : "boolean"
-      } ],
-      "response" : "null"
-    },
-    "pgpKeyGenDefault" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "createUids",
-        "type" : "PGPCreateUids"
       } ],
       "response" : "null"
     },

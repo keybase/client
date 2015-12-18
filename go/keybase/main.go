@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -148,7 +149,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	} else if libkb.IsBrewBuild {
 		// If we're running in Brew mode, we might need to install ourselves as a persistent
 		// service for future invocations of the command.
-		newProc, err = client.AutoInstall(g, "", false)
+		newProc, err = install.AutoInstall(g, "", false)
 		if err != nil {
 			return err
 		}

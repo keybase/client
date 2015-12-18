@@ -11,8 +11,6 @@ import (
 	"encoding/base32"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"math"
 	"math/big"
@@ -22,7 +20,26 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
+
+// CustomBuild can be set at compile time to override Build
+var CustomBuild string
+
+// Build returns the custom or default build
+func Build() string {
+	if CustomBuild != "" {
+		return CustomBuild
+	}
+	return DefaultBuild
+}
+
+// VersionString returns semantic version string
+func VersionString() string {
+	return fmt.Sprintf("%s-%s", Version, Build())
+}
 
 func ErrToOk(err error) string {
 	if err == nil {
@@ -155,7 +172,7 @@ type SafeWriter interface {
 func SafeWriteToFile(t SafeWriter, mode os.FileMode) error {
 	fn := t.GetFilename()
 	G.Log.Debug(fmt.Sprintf("+ Writing to %s", fn))
-	tmpfn, tmp, err := TempFile(fn, mode)
+	tmpfn, tmp, err := OpenTempFile(fn, "", mode)
 	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil {
 		return err
@@ -390,4 +407,9 @@ func RandString(prefix string, numbytes int) (string, error) {
 		str = strings.Join([]string{prefix, str}, "")
 	}
 	return str, nil
+}
+
+func Trace(log logger.Logger, msg string, f func() error) func() {
+	log.Debug("+ %s", msg)
+	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }

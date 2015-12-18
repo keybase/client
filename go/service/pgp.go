@@ -11,6 +11,22 @@ import (
 	"golang.org/x/net/context"
 )
 
+type RemotePgpUI struct {
+	sessionID int
+	cli       keybase1.PGPUiClient
+}
+
+func NewRemotePgpUI(sessionID int, c *rpc.Client) *RemotePgpUI {
+	return &RemotePgpUI{
+		sessionID: sessionID,
+		cli:       keybase1.PGPUiClient{Cli: c},
+	}
+}
+
+func (u *RemotePgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSignatureSuccessArg) error {
+	return u.cli.OutputSignatureSuccess(ctx, arg)
+}
+
 type PGPHandler struct {
 	*BaseHandler
 	libkb.Contextified
@@ -57,6 +73,7 @@ func (h *PGPHandler) PGPEncrypt(_ context.Context, arg keybase1.PGPEncryptArg) e
 		NoSelf:       arg.Opts.NoSelf,
 		BinaryOutput: arg.Opts.BinaryOut,
 		KeyQuery:     arg.Opts.KeyQuery,
+		SkipTrack:    arg.Opts.SkipTrack,
 		TrackOptions: arg.Opts.TrackOptions,
 	}
 	ctx := &engine.Context{
@@ -76,12 +93,12 @@ func (h *PGPHandler) PGPDecrypt(_ context.Context, arg keybase1.PGPDecryptArg) (
 		Source:       src,
 		AssertSigned: arg.Opts.AssertSigned,
 		SignedBy:     arg.Opts.SignedBy,
-		TrackOptions: arg.Opts.TrackOptions,
 	}
 	ctx := &engine.Context{
 		SecretUI:   h.getSecretUI(arg.SessionID),
 		IdentifyUI: h.NewRemoteSkipPromptIdentifyUI(arg.SessionID, h.G()),
 		LogUI:      h.getLogUI(arg.SessionID),
+		PgpUI:      h.getPgpUI(arg.SessionID),
 	}
 	eng := engine.NewPGPDecrypt(earg, h.G())
 	err := engine.RunEngine(eng, ctx)
@@ -96,15 +113,15 @@ func (h *PGPHandler) PGPVerify(_ context.Context, arg keybase1.PGPVerifyArg) (ke
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	earg := &engine.PGPVerifyArg{
-		Source:       src,
-		Signature:    arg.Opts.Signature,
-		SignedBy:     arg.Opts.SignedBy,
-		TrackOptions: arg.Opts.TrackOptions,
+		Source:    src,
+		Signature: arg.Opts.Signature,
+		SignedBy:  arg.Opts.SignedBy,
 	}
 	ctx := &engine.Context{
 		SecretUI:   h.getSecretUI(arg.SessionID),
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		LogUI:      h.getLogUI(arg.SessionID),
+		PgpUI:      h.getPgpUI(arg.SessionID),
 	}
 	eng := engine.NewPGPVerify(earg, h.G())
 	err := engine.RunEngine(eng, ctx)
@@ -174,27 +191,12 @@ func (h *PGPHandler) PGPExportByKID(_ context.Context, arg keybase1.PGPExportByK
 func (h *PGPHandler) PGPExportByFingerprint(_ context.Context, arg keybase1.PGPExportByFingerprintArg) (ret []keybase1.KeyInfo, err error) {
 	return h.export(arg.SessionID, engine.NewPGPKeyExportByFingerprintEngine(arg, h.G()))
 }
-func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) (err error) {
+func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) error {
+	ctx := &engine.Context{LogUI: h.getLogUI(arg.SessionID), SecretUI: h.getSecretUI(arg.SessionID)}
 	earg := engine.ImportPGPKeyImportEngineArg(arg)
-	return h.keygen(arg.SessionID, earg, true)
-}
-
-func (h *PGPHandler) keygen(sessionID int, earg engine.PGPKeyImportEngineArg, doInteractive bool) (err error) {
-	ctx := &engine.Context{LogUI: h.getLogUI(sessionID), SecretUI: h.getSecretUI(sessionID)}
 	earg.Gen.AddDefaultUID()
 	eng := engine.NewPGPKeyImportEngine(earg)
-	err = engine.RunEngine(eng, ctx)
-	return err
-}
-
-func (h *PGPHandler) PGPKeyGenDefault(_ context.Context, arg keybase1.PGPKeyGenDefaultArg) (err error) {
-	earg := engine.PGPKeyImportEngineArg{
-		Gen: &libkb.PGPGenArg{
-			Ids:         libkb.ImportPGPIdentities(arg.CreateUids.Ids),
-			NoDefPGPUid: !arg.CreateUids.UseDefault,
-		},
-	}
-	return h.keygen(arg.SessionID, earg, false)
+	return engine.RunEngine(eng, ctx)
 }
 
 func (h *PGPHandler) PGPDeletePrimary(_ context.Context, sessionID int) (err error) {

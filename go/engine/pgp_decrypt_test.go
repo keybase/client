@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -18,6 +20,7 @@ func decengctx(fu *FakeUser, tc libkb.TestContext) *Context {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
+		PgpUI:      &TestPgpUI{},
 	}
 }
 
@@ -184,7 +187,12 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	recipient.LoginOrBust(tcRecipient)
 
 	rtrackUI := &FakeIdentifyUI{}
-	ctx = &Context{IdentifyUI: rtrackUI, SecretUI: recipient.NewSecretUI(), LogUI: tcRecipient.G.UI.GetLogUI()}
+	ctx = &Context{
+		IdentifyUI: rtrackUI,
+		SecretUI:   recipient.NewSecretUI(),
+		LogUI:      tcRecipient.G.UI.GetLogUI(),
+		PgpUI:      &TestPgpUI{},
+	}
 
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
@@ -192,7 +200,6 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 		Source:       bytes.NewReader(out),
 		Sink:         decoded,
 		AssertSigned: true,
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
 	}
 	dec := NewPGPDecrypt(decarg, tcRecipient.G)
 	if err := RunEngine(dec, ctx); err != nil {
@@ -201,6 +208,76 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	decmsg := string(decoded.Bytes())
 	if decmsg != msg {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
+	}
+}
+
+// TestPGPDecryptSignedIdentify tests that the signer is
+// identified regardless of AssertSigned, SignedBy args.
+func TestPGPDecryptSignedIdentify(t *testing.T) {
+	tcRecipient := SetupEngineTest(t, "PGPDecrypt - Recipient")
+	defer tcRecipient.Cleanup()
+	recipient := createFakeUserWithPGPSibkey(tcRecipient)
+	Logout(tcRecipient)
+
+	tcSigner := SetupEngineTest(t, "PGPDecrypt - Signer")
+	defer tcSigner.Cleanup()
+	signer := createFakeUserWithPGPSibkey(tcSigner)
+
+	// encrypt a message
+	msg := "We pride ourselves on being meticulous; no issue is too small."
+	ctx := decengctx(signer, tcSigner)
+	sink := libkb.NewBufferCloser()
+	arg := &PGPEncryptArg{
+		Recips:       []string{recipient.Username},
+		Source:       strings.NewReader(msg),
+		Sink:         sink,
+		BinaryOutput: true,
+		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+	}
+	enc := NewPGPEncrypt(arg, tcSigner.G)
+	if err := RunEngine(enc, ctx); err != nil {
+		t.Fatal(err)
+	}
+	out := sink.Bytes()
+
+	t.Logf("encrypted data: %x", out)
+
+	// signer logs out, recipient logs in:
+	t.Logf("signer (%q) logging out", signer.Username)
+	Logout(tcSigner)
+	libkb.G = tcRecipient.G
+	t.Logf("recipient (%q) logging in", recipient.Username)
+	recipient.LoginOrBust(tcRecipient)
+
+	idUI := &FakeIdentifyUI{}
+	pgpUI := &TestPgpUI{}
+	ctx = &Context{
+		IdentifyUI: idUI,
+		SecretUI:   recipient.NewSecretUI(),
+		LogUI:      tcRecipient.G.UI.GetLogUI(),
+		PgpUI:      pgpUI,
+	}
+
+	// decrypt it
+	decoded := libkb.NewBufferCloser()
+	decarg := &PGPDecryptArg{
+		Source:       bytes.NewReader(out),
+		Sink:         decoded,
+		AssertSigned: false,
+	}
+	dec := NewPGPDecrypt(decarg, tcRecipient.G)
+	if err := RunEngine(dec, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if idUI.User == nil {
+		t.Fatal("identify ui user is nil")
+	}
+	if idUI.User.Username != signer.Username {
+		t.Errorf("idUI username: %q, expected %q", idUI.User.Username, signer.Username)
+	}
+	if pgpUI.OutputCount != 1 {
+		t.Errorf("PgpUI output called %d times, expected 1", pgpUI.OutputCount)
 	}
 }
 
@@ -306,4 +383,13 @@ func TestPGPDecryptClearsign(t *testing.T) {
 			t.Errorf("%s: signature status entity is nil", test.name)
 		}
 	}
+}
+
+type TestPgpUI struct {
+	OutputCount int
+}
+
+func (t *TestPgpUI) OutputSignatureSuccess(context.Context, keybase1.OutputSignatureSuccessArg) error {
+	t.OutputCount++
+	return nil
 }

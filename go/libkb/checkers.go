@@ -65,7 +65,18 @@ var CheckDeviceName = Checker{
 		bad := regexp.MustCompile(`  |[ '+_-]$|['+_-][ ]?['+_-]`)
 		return len(s) >= 3 && len(s) <= 64 && re.MatchString(s) && !bad.MatchString(s)
 	},
-	Hint: "between 3 and 64 characters long",
+	Hint: "between 3 and 64 characters long; use a-Z, 0-9, space, plus, underscore, dash and apostrophe",
+}
+
+var CheckKex2SecretPhrase = Checker{
+	F: func(s string) bool {
+		if err := validPhrase(s, Kex2PhraseEntropy); err != nil {
+			G.Log.Debug("invalid kex2 phrase: %s", err)
+			return false
+		}
+		return true
+	},
+	Hint: "It looks like there was a typo in the secret phrase. Please try again.",
 }
 
 func IsYes(s string) bool {

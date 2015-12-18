@@ -5,6 +5,7 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -16,6 +17,7 @@ type PGPEncryptArg struct {
 	Recips       []string // user assertions
 	Source       io.Reader
 	Sink         io.WriteCloser
+	SkipTrack    bool
 	NoSign       bool
 	NoSelf       bool
 	BinaryOutput bool
@@ -27,6 +29,7 @@ type PGPEncryptArg struct {
 // for a set of users.  It will track them if necessary.
 type PGPEncrypt struct {
 	arg *PGPEncryptArg
+	me  *libkb.User
 	libkb.Contextified
 }
 
@@ -78,18 +81,19 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		if !e.arg.NoSelf {
 			return libkb.LoginRequiredError{Context: "you must be logged in to encrypt for yourself"}
 		}
+	} else {
+		me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+		if err != nil {
+			return err
+		}
+		e.me = me
 	}
 
 	var mykey *libkb.PGPKeyBundle
 	var signer *libkb.PGPKeyBundle
 	if !e.arg.NoSign {
-		me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-		if err != nil {
-			return err
-		}
-
 		ska := libkb.SecretKeyArg{
-			Me:       me,
+			Me:       e.me,
 			KeyType:  libkb.PGPKeyType,
 			KeyQuery: e.arg.KeyQuery,
 		}
@@ -106,15 +110,13 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 		signer = mykey
 	}
 
-	var skipTrack = true
-	if e.arg.TrackOptions.BypassConfirm {
-		skipTrack = false
+	usernames, err := e.verifyUsers(ctx, e.arg.Recips, ok)
+	if err != nil {
+		return err
 	}
 
 	kfarg := &PGPKeyfinderArg{
-		Users:        e.arg.Recips,
-		SkipTrack:    skipTrack,
-		TrackOptions: e.arg.TrackOptions,
+		Usernames: usernames,
 	}
 
 	kf := NewPGPKeyfinder(kfarg, e.G())
@@ -177,6 +179,59 @@ func (e *PGPEncrypt) loadSelfKey() (*libkb.PGPKeyBundle, error) {
 		return nil, libkb.NoKeyError{Msg: "No PGP key found for encrypting for self"}
 	}
 	return keys[0], nil
+}
+
+func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn bool) ([]string, error) {
+	var names []string
+	for _, userAssert := range assertions {
+		var err error
+		var username string
+		if loggedIn && !e.arg.SkipTrack {
+			username, err = e.trackUser(ctx, userAssert)
+		} else {
+			username, err = e.identifyUser(ctx, userAssert)
+		}
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, username)
+	}
+	return names, nil
+}
+
+func (e *PGPEncrypt) trackUser(ctx *Context, assertion string) (string, error) {
+	e.G().Log.Debug("pgp encrypt: tracking user %q", assertion)
+	arg := &TrackEngineArg{
+		Me:                e.me,
+		UserAssertion:     assertion,
+		Options:           e.arg.TrackOptions,
+		AllowSelfIdentify: true,
+	}
+	eng := NewTrackEngine(arg, e.G())
+	if err := RunEngine(eng, ctx); err != nil {
+		// ignore SelfTrackError
+		if _, ok := err.(libkb.SelfTrackError); !ok {
+			return "", err
+		}
+	}
+	if eng.User() == nil {
+		if e.me != nil {
+			panic(fmt.Sprintf("nil user after tracking %q (me = %q)", assertion, e.me.GetName()))
+		} else {
+			panic(fmt.Sprintf("nil user after tracking %q (me = nil too)", assertion))
+		}
+	}
+	return eng.User().GetName(), nil
+}
+
+func (e *PGPEncrypt) identifyUser(ctx *Context, assertion string) (string, error) {
+	e.G().Log.Debug("pgp encrypt: identifying user %q", assertion)
+	arg := NewIdentifyArg(assertion, false, false)
+	eng := NewIdentify(arg, e.G())
+	if err := RunEngine(eng, ctx); err != nil {
+		return "", err
+	}
+	return eng.User().GetName(), nil
 }
 
 // keyset maintains a set of pgp keys, preserving insertion order.

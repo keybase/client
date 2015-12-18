@@ -118,21 +118,9 @@ func (lr *lineReader) readEscape() (err error) {
 	if err != nil {
 		return
 	}
-	switch b {
-	case byte('A'), byte('B'): // up and down, noop
-	case byte('C'): // right
-		if lr.pos == len(lr.buf) {
-			return
-		}
-		err = lr.esc("C")
-		lr.pos++
-	case byte('D'): // left
-		if lr.pos == 0 {
-			return
-		}
-		err = lr.esc("D")
-		lr.pos--
-	}
+	// Ignore all movement sequences, like 'A', 'B', 'C' and 'D'
+	// We can reintroduce them after we solve the bugs cited
+	// CORE-2027
 	return
 }
 

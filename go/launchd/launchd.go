@@ -87,6 +87,11 @@ func (s Service) Install(p Plist) (err error) {
 	plist := p.plist()
 	plistDest := s.plistDestination()
 
+	// See GH issue: https://github.com/keybase/client/pull/1399#issuecomment-164810645
+	if err := libkb.MakeParentDirs(plistDest); err != nil {
+		return err
+	}
+
 	fmt.Fprintf(s.writer, "Saving %s\n", plistDest)
 	file := libkb.NewFile(plistDest, []byte(plist), 0644)
 	err = file.Save()

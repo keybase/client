@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/clearsign"
@@ -19,10 +18,9 @@ import (
 )
 
 type PGPVerifyArg struct {
-	Source       io.Reader
-	Signature    []byte
-	SignedBy     string
-	TrackOptions keybase1.TrackOptions
+	Source    io.Reader
+	Signature []byte
+	SignedBy  string
 }
 
 // PGPVerify is an engine.
@@ -54,7 +52,7 @@ func (e *PGPVerify) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PGPVerify) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{libkb.PgpUIKind}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -92,7 +90,7 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 		Source:       e.peek,
 		Sink:         libkb.NopWriteCloser{W: ioutil.Discard},
 		AssertSigned: true,
-		TrackOptions: e.arg.TrackOptions,
+		SignedBy:     e.arg.SignedBy,
 	}
 	eng := NewPGPDecrypt(arg, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
@@ -101,16 +99,12 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 	e.signStatus = eng.SignatureStatus()
 	e.owner = eng.Owner()
 
-	if err := e.checkSignedBy(ctx); err != nil {
-		return err
-	}
-
 	return nil
 }
 
 // runDetached verifies a detached signature
 func (e *PGPVerify) runDetached(ctx *Context) error {
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
+	sk, err := NewScanKeys(ctx.SecretUI, e.G())
 	if err != nil {
 		return err
 	}
@@ -176,7 +170,7 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 		return err
 	}
 
-	sk, err := NewScanKeys(ctx.SecretUI, ctx.IdentifyUI, &e.arg.TrackOptions, e.G())
+	sk, err := NewScanKeys(ctx.SecretUI, e.G())
 	if err != nil {
 		return err
 	}

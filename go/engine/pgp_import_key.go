@@ -228,7 +228,7 @@ func (e *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
 		}
 		return err
 	}
-	err = gpg.ExportKey(*e.bundle)
+	err = gpg.ExportKey(*e.bundle, true /* export private key */)
 	if err == nil {
 		ctx.LogUI.Info("Exported new key to the local GPG keychain")
 	}

@@ -41,12 +41,6 @@ protocol user {
     Time trackTime;
   }
 
-  record UserPlusKeys {
-    UID uid;
-    string username;
-    array<PublicKey> deviceKeys;
-  }
-
   /**
     Load user summaries for the supplied uids.
     They are "unchecked" in that the client is not verifying the info from the server.

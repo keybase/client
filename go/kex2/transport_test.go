@@ -12,6 +12,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 type message struct {
@@ -210,7 +212,7 @@ func genDeviceID(t *testing.T) (ret DeviceID) {
 }
 
 func genNewConn(t *testing.T, mr MessageRouter, s Secret, d DeviceID, rt time.Duration) net.Conn {
-	ret, err := NewConn(mr, s, d, rt)
+	ret, err := NewConn(context.TODO(), mr, s, d, rt)
 	if err != nil {
 		t.Fatal(err)
 	}

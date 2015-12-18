@@ -66,10 +66,12 @@ const (
 	UserCacheMaxAge      = 5 * time.Minute
 	PGPFingerprintHexLen = 40
 
-	ProofCacheSize      = 0x1000
-	ProofCacheLongDur   = 6 * time.Hour
-	ProofCacheMediumDur = 30 * time.Minute
-	ProofCacheShortDur  = 1 * time.Minute
+	ProofCacheSize             = 0x1000
+	ProofCacheLongDur          = 6 * time.Hour
+	ProofCacheMediumDur        = 30 * time.Minute
+	ProofCacheShortDur         = 1 * time.Minute
+	Identify2CacheLongTimeout  = 6 * time.Hour
+	Identify2CacheShortTimeout = 1 * time.Minute
 
 	SigShortIDBytes = 27
 )
@@ -99,44 +101,47 @@ const (
 
 // Status codes.  This list should match keybase/lib/constants.iced.
 const (
-	SCOk                     = 0
-	SCLoginRequired          = 201
-	SCBadSession             = 202
-	SCBadLoginPassword       = 204
-	SCNotFound               = 205
-	SCGeneric                = 218
-	SCAlreadyLoggedIn        = 235
-	SCCanceled               = 237
-	SCReloginRequired        = 274
-	SCBadSignupUsernameTaken = 701
-	SCKeyNotFound            = 901
-	SCKeyInUse               = 907
-	SCKeyBadGen              = 913
-	SCKeyNoSecret            = 914
-	SCKeyBadUIDs             = 915
-	SCKeyNoActive            = 916
-	SCKeyNoSig               = 917
-	SCKeyBadSig              = 918
-	SCKeyBadEldest           = 919
-	SCKeyNoEldest            = 920
-	SCKeyDuplicateUpdate     = 921
-	SCSibkeyAlreadyExists    = 922
-	SCDecryptionKeyNotFound  = 924
-	SCBadTrackSession        = 1301
-	SCDeviceNotFound         = 1409
-	SCDeviceMismatch         = 1410
-	SCDeviceRequired         = 1411
-	SCStreamExists           = 1501
-	SCStreamNotFound         = 1502
-	SCStreamWrongKind        = 1503
-	SCStreamEOF              = 1504
-	SCAPINetworkError        = 1601
-	SCTimeout                = 1602
-	SCProofError             = 1701
-	SCIdentificationExpired  = 1702
-	SCSelfNotFound           = 1703
-	SCBadKexPhrase           = 1704
-	SCNoUIDelegation         = 1705
+	SCOk                     = int(keybase1.StatusCode_SCOk)
+	SCLoginRequired          = int(keybase1.StatusCode_SCLoginRequired)
+	SCBadSession             = int(keybase1.StatusCode_SCBadSession)
+	SCBadLoginPassword       = int(keybase1.StatusCode_SCBadLoginPassword)
+	SCNotFound               = int(keybase1.StatusCode_SCNotFound)
+	SCGeneric                = int(keybase1.StatusCode_SCGeneric)
+	SCAlreadyLoggedIn        = int(keybase1.StatusCode_SCAlreadyLoggedIn)
+	SCCanceled               = int(keybase1.StatusCode_SCCanceled)
+	SCReloginRequired        = int(keybase1.StatusCode_SCReloginRequired)
+	SCResolutionFailed       = int(keybase1.StatusCode_SCResolutionFailed)
+	SCProfileNotPublic       = int(keybase1.StatusCode_SCProfileNotPublic)
+	SCBadSignupUsernameTaken = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
+	SCMissingResult          = int(keybase1.StatusCode_SCMissingResult)
+	SCKeyNotFound            = int(keybase1.StatusCode_SCKeyNotFound)
+	SCKeyInUse               = int(keybase1.StatusCode_SCKeyInUse)
+	SCKeyBadGen              = int(keybase1.StatusCode_SCKeyBadGen)
+	SCKeyNoSecret            = int(keybase1.StatusCode_SCKeyNoSecret)
+	SCKeyBadUIDs             = int(keybase1.StatusCode_SCKeyBadUIDs)
+	SCKeyNoActive            = int(keybase1.StatusCode_SCKeyNoActive)
+	SCKeyNoSig               = int(keybase1.StatusCode_SCKeyNoSig)
+	SCKeyBadSig              = int(keybase1.StatusCode_SCKeyBadSig)
+	SCKeyBadEldest           = int(keybase1.StatusCode_SCKeyBadEldest)
+	SCKeyNoEldest            = int(keybase1.StatusCode_SCKeyNoEldest)
+	SCKeyDuplicateUpdate     = int(keybase1.StatusCode_SCKeyDuplicateUpdate)
+	SCSibkeyAlreadyExists    = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
+	SCDecryptionKeyNotFound  = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
+	SCBadTrackSession        = int(keybase1.StatusCode_SCBadTrackSession)
+	SCDeviceNotFound         = int(keybase1.StatusCode_SCDeviceNotFound)
+	SCDeviceMismatch         = int(keybase1.StatusCode_SCDeviceMismatch)
+	SCDeviceRequired         = int(keybase1.StatusCode_SCDeviceRequired)
+	SCStreamExists           = int(keybase1.StatusCode_SCStreamExists)
+	SCStreamNotFound         = int(keybase1.StatusCode_SCStreamNotFound)
+	SCStreamWrongKind        = int(keybase1.StatusCode_SCStreamWrongKind)
+	SCStreamEOF              = int(keybase1.StatusCode_SCStreamEOF)
+	SCAPINetworkError        = int(keybase1.StatusCode_SCAPINetworkError)
+	SCTimeout                = int(keybase1.StatusCode_SCTimeout)
+	SCProofError             = int(keybase1.StatusCode_SCProofError)
+	SCIdentificationExpired  = int(keybase1.StatusCode_SCIdentificationExpired)
+	SCSelfNotFound           = int(keybase1.StatusCode_SCSelfNotFound)
+	SCBadKexPhrase           = int(keybase1.StatusCode_SCBadKexPhrase)
+	SCNoUIDelegation         = int(keybase1.StatusCode_SCNoUIDelegation)
 )
 
 const (
@@ -336,6 +341,8 @@ const (
 const UserSummaryLimit = 500 // max number of user summaries in one request
 
 const MinPassphraseLength = 12
+
+const TrackingRateLimitSeconds = 50
 
 type KexRole int
 

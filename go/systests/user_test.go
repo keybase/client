@@ -70,29 +70,11 @@ func (n *signupUI) GetGPGUI() libkb.GPGUI {
 	return client.NewGPGUI(n.G(), n.GetTerminalUI(), false, "")
 }
 
-func (n *signupSecretUI) GetNewPassphrase(arg keybase1.GetNewPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
-	res.Passphrase = n.info.passphrase
-	n.G().Log.Debug("| GetNewPassphrase: %v -> %v", arg, res)
-	return res, err
-}
-
-func (n *signupSecretUI) GetKeybasePassphrase(arg keybase1.GetKeybasePassphraseArg) (res keybase1.GetPassphraseRes, err error) {
-	err = fmt.Errorf("GetKeybasePassphrase unimplemented")
-	return res, err
-}
-
-func (n *signupSecretUI) GetPaperKeyPassphrase(arg keybase1.GetPaperKeyPassphraseArg) (res string, err error) {
-	err = fmt.Errorf("GetPaperKeyPassphrase unimplemented")
-	return res, err
-}
-
-func (n *signupSecretUI) GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (res *keybase1.SecretEntryRes, err error) {
-	err = fmt.Errorf("GetSecret unimplemented")
-	return res, err
-}
+func (n *signupUI) GetUpdateUI() libkb.UpdateUI { return nil }
 
 func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
-	err = fmt.Errorf("GetPassphrase unimplemented")
+	res.Passphrase = n.info.passphrase
+	n.G().Log.Debug("| GetPassphrase: %v -> %v", p, res)
 	return res, err
 }
 
@@ -134,6 +116,9 @@ func (n *signupTerminalUI) Write(b []byte) (int, error) {
 func (n *signupTerminalUI) OutputWriter() io.Writer {
 	return n
 }
+func (n *signupTerminalUI) ErrorWriter() io.Writer {
+	return n
+}
 
 func (n *signupTerminalUI) PromptYesNo(pd libkb.PromptDescriptor, s string, def libkb.PromptDefault) (ret bool, err error) {
 	switch pd {
@@ -162,7 +147,7 @@ func randomUser(prefix string) *signupInfo {
 	return &signupInfo{
 		username:   username,
 		email:      username + "@noemail.keybase.io",
-		passphrase: sffx,
+		passphrase: sffx + sffx,
 	}
 }
 

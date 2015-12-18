@@ -43,8 +43,8 @@ Render.propTypes = {
 const styles = {
   container: {
     ...commonStyles.flexBoxColumn,
+    ...commonStyles.fontRegular,
     backgroundColor: 'white',
-    fontFamily: 'Noto Sans',
     fontSize: 15,
     height: 332,
     width: 520

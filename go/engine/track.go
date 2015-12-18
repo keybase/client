@@ -11,10 +11,11 @@ import (
 )
 
 type TrackEngineArg struct {
-	UserAssertion    string
-	Me               *libkb.User
-	Options          keybase1.TrackOptions
-	ForceRemoteCheck bool
+	UserAssertion     string
+	Me                *libkb.User
+	Options           keybase1.TrackOptions
+	ForceRemoteCheck  bool
+	AllowSelfIdentify bool
 }
 
 type TrackEngine struct {
@@ -56,9 +57,9 @@ func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 
 func (e *TrackEngine) Run(ctx *Context) error {
 	iarg := NewIdentifyTrackArg(e.arg.UserAssertion, true, e.arg.ForceRemoteCheck, e.arg.Options)
+	iarg.AllowSelf = e.arg.AllowSelfIdentify
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
-		e.G().Log.Info("identify run err: %s", err)
 		return err
 	}
 

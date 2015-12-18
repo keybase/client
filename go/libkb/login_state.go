@@ -163,6 +163,15 @@ func (s *LoginState) ExternalFunc(f loginHandler, name string) error {
 	return s.loginHandle(f, nil, name)
 }
 
+func (s *LoginState) VerifyEmailAddress(email string, secretUI SecretUI, after afterFn) (err error) {
+	defer Trace(s.G().Log, "VerifyEmailAddress", func() error { return err })()
+
+	err = s.loginHandle(func(lctx LoginContext) error {
+		return s.tryPassphrasePromptLogin(lctx, email, secretUI)
+	}, after, "loginWithPassphrase")
+	return err
+}
+
 func (s *LoginState) Shutdown() error {
 	var err error
 	aerr := s.Account(func(a *Account) {
@@ -653,11 +662,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 		}
 
 		s.G().Log.Debug("| stretchPassphraseIfNecessary: getting keybase passphrase via ui")
-		arg := keybase1.GetKeybasePassphraseArg{
-			Username: un,
-			Retry:    retry,
-		}
-		res, err := ui.GetKeybasePassphrase(arg)
+		res, err := GetKeybasePassphrase(ui, un, retry)
 		if err != nil {
 			return false, err
 		}
@@ -747,8 +752,8 @@ func (s *LoginState) acctHandle(f acctHandler, name string) error {
 	case s.acctReqs <- req:
 		// this is just during debugging:
 	case <-time.After(5 * time.Second):
-		s.G().Log.Warning("timed out sending acct request %q", name)
-		s.G().Log.Warning("active request: %s", s.activeReq)
+		s.G().Log.Debug("timed out sending acct request %q", name)
+		s.G().Log.Debug("active request: %s", s.activeReq)
 		debug.PrintStack()
 		return TimeoutError{}
 	}

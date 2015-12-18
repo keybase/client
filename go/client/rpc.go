@@ -46,10 +46,10 @@ func GetConfigClient(g *libkb.GlobalContext) (cli keybase1.ConfigClient, err err
 	return
 }
 
-func GetKBCMFClient(g *libkb.GlobalContext) (cli keybase1.KbcmfClient, err error) {
+func GetSaltPackClient(g *libkb.GlobalContext) (cli keybase1.SaltPackClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
-		cli = keybase1.KbcmfClient{Cli: rcli}
+		cli = keybase1.SaltPackClient{Cli: rcli}
 	}
 	return
 }
@@ -99,9 +99,9 @@ func GetProveClient() (cli keybase1.ProveClient, err error) {
 	return
 }
 
-func GetTrackClient() (cli keybase1.TrackClient, err error) {
+func GetTrackClient(g *libkb.GlobalContext) (cli keybase1.TrackClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.TrackClient{Cli: rcli}
 	}
 	return
@@ -194,5 +194,14 @@ func GetKBFSClient(g *libkb.GlobalContext) (cli keybase1.KbfsClient, err error) 
 		return cli, err
 	}
 	cli = keybase1.KbfsClient{Cli: rcli}
+	return cli, nil
+}
+
+func GetUpdateClient(g *libkb.GlobalContext) (cli keybase1.UpdateClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.UpdateClient{Cli: rcli}
 	return cli, nil
 }
