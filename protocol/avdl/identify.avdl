@@ -5,13 +5,13 @@ protocol identify {
   import idl "identify_common.avdl";
 
   enum IdentifySource {
-	CLI_0,
-	KBFS_1
+    CLI_0,
+    KBFS_1
   }
 
   /**
-   * Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
-   * an error.
+    Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
+    an error.
    */
   UID Resolve(string assertion);
 

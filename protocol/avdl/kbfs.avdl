@@ -5,18 +5,19 @@
  */
 
 protocol kbfs {
-  	import idl "kbfs_common.avdl";
 
-	/* Idea is that kbfs would call the function below whenever these 
-           actions are performed on a file.
+  import idl "kbfs_common.avdl";
 
-	   Note that this list/interface is very temporary and highly likely 
-           to change significantly. 
+  /**
+    Idea is that kbfs would call the function below whenever these actions are
+    performed on a file.
 
-	   It is just a starting point to get kbfs notifications
-           through the daemon to the clients.
+    Note that this list/interface is very temporary and highly likely to change
+    significantly.
+
+    It is just a starting point to get kbfs notifications through the daemon to
+    the clients.
         */
-	void FSEvent(FSNotification event);
+  void FSEvent(FSNotification event);
 
 }
-

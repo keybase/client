@@ -2,20 +2,21 @@
 @namespace("keybase.1")
 protocol updateUi {
 
-	import idl "common.avdl";
+  import idl "common.avdl";
+  import idl "update_common.avdl";
 
-	enum UpdateAction {
-		UPDATE_0,
-		SKIP_1,
-		SNOOZE_2,
-		CANCEL_3
-	}
+  enum UpdateAction {
+    UPDATE_0,
+    SKIP_1,
+    SNOOZE_2,
+    CANCEL_3
+  }
 
-	record UpdatePromptRes {
-		UpdateAction action;
-		boolean alwaysAutoInstall;
-		Time snoozeUntil;
-	}
+  record UpdatePromptRes {
+    UpdateAction action;
+    boolean alwaysAutoInstall;
+    Time snoozeUntil;
+  }
 
-	UpdatePromptRes updatePrompt(int sessionID, Update update);
+  UpdatePromptRes updatePrompt(int sessionID, Update update);
 }

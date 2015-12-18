@@ -202,8 +202,9 @@ type UserPlusKeys struct {
 }
 
 type Asset struct {
-	Name string `codec:"name" json:"name"`
-	Url  string `codec:"url" json:"url"`
+	Name      string `codec:"name" json:"name"`
+	Url       string `codec:"url" json:"url"`
+	LocalPath string `codec:"localPath" json:"localPath"`
 }
 
 type UpdateType int

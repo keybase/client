@@ -5,9 +5,9 @@ protocol ctl {
   import idl "common.avdl";
 
   enum ExitCode {
-	OK_0,
-	NOTOK_2,
-	RESTART_4
+    OK_0,
+    NOTOK_2,
+    RESTART_4
   }
 
   void stop(int sessionID, ExitCode exitCode);

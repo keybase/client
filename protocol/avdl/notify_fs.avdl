@@ -1,8 +1,9 @@
 @namespace("keybase.1")
 protocol NotifyFS {
-  	import idl "kbfs_common.avdl";
 
-	@notify("")
-	void FSActivity(FSNotification notification);
+  import idl "kbfs_common.avdl";
+
+  @notify("")
+  void FSActivity(FSNotification notification);
 
 }

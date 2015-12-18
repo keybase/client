@@ -216,6 +216,9 @@
     }, {
       "name" : "url",
       "type" : "string"
+    }, {
+      "name" : "localPath",
+      "type" : "string"
     } ]
   }, {
     "type" : "enum",
@@ -414,7 +417,7 @@
   } ],
   "messages" : {
     "Resolve" : {
-      "doc" : "* Resolve an assertion to a UID. On failure, resolves to an empty UID and returns\n   * an error.",
+      "doc" : "Resolve an assertion to a UID. On failure, resolves to an empty UID and returns\n    an error.",
       "request" : [ {
         "name" : "assertion",
         "type" : "string"
