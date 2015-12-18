@@ -34,12 +34,17 @@ module Test
     class StringArray < FFI::Struct
       layout :size, :long_long,
              :array, :pointer
+      # Hold direct references to element memory pointers, so they
+      # don't get garbage collected.
+      @ptrs = []
 
       # create from a ruby array
       def self.from_a(array)
         strings = FFI::MemoryPointer.new(:pointer, array.size)
         array.each_with_index do |s,i|
-          strings[i].put_pointer(0, FFI::MemoryPointer.from_string(s))
+          ptr = FFI::MemoryPointer.from_string(s)
+          strings[i].put_pointer(0, ptr)
+          @ptrs << ptr
         end
         arg = StringArray.new
         arg[:size] = array.size
