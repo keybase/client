@@ -61,6 +61,11 @@ export const styles = {
   fontItalic: {
     fontFamily: 'Noto Sans Italic'
   },
+  vr: {
+    maxWidth: 1,
+    minWidth: 1,
+    backgroundColor: 'rgba(0,0,0,0.1)'
+  },
   hr: {
     minHeight: 1,
     maxHeight: 1,

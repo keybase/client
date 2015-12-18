@@ -34,7 +34,10 @@ function getQueryVariable (variable) {
 class RemoteComponentLoader extends Component {
   constructor (props) {
     super(props)
-    this.state = {loaded: false, unmounted: false}
+    this.state = {
+      loaded: false,
+      unmounted: false
+    }
 
     const substore = getQueryVariable('substore')
     this.store = new RemoteStore({substore})
@@ -43,7 +46,8 @@ class RemoteComponentLoader extends Component {
 
     const component = {
       tracker: require('../tracker'),
-      pinentry: require('../pinentry')
+      pinentry: require('../pinentry'),
+      update: require('../update')
     }
 
     if (!componentToLoad || !component[componentToLoad]) {

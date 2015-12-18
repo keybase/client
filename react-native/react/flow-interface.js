@@ -14,6 +14,10 @@ declare module 'redux-devtools' {
   declare var exports: any;
 }
 
+declare module 'marked' {
+  declare var exports: any;
+}
+
 declare module 'material-ui' {
   declare var exports: any;
 }
