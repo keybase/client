@@ -21,6 +21,14 @@ const permDir os.FileMode = 0700
 var initLoggingBackendOnce sync.Once
 var logRotateMutex sync.Mutex
 
+// Map from module name to whether SetLevel() has been called for that
+// module.
+var initLoggingSetLevelCalled map[string]bool
+
+// Protects access to initLoggingSetLevelCalled and the actual
+// SetLevel call.
+var initLoggingSetLevelMutex sync.Mutex
+
 // CtxStandardLoggerKey is a type defining context keys used by the
 // Standard logger.
 type CtxStandardLoggerKey int
@@ -104,7 +112,16 @@ func (log *Standard) initLogging(iow io.Writer) {
 		logBackend := logging.NewLogBackend(iow, "", 0)
 		logging.SetBackend(logBackend)
 	})
-	logging.SetLevel(logging.INFO, log.module)
+
+	initLoggingSetLevelMutex.Lock()
+	defer initLoggingSetLevelMutex.Unlock()
+	if initLoggingSetLevelCalled == nil {
+		initLoggingSetLevelCalled = make(map[string]bool)
+	}
+	if !initLoggingSetLevelCalled[log.module] {
+		logging.SetLevel(logging.INFO, log.module)
+		initLoggingSetLevelCalled[log.module] = true
+	}
 }
 
 func (log *Standard) prepareString(
