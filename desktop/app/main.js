@@ -14,6 +14,16 @@ import consoleHack from './console-hack'
 
 consoleHack()
 
+if (showDevTools) {
+  app.on('browser-window-created', (e, win) => {
+    win = win || BrowserWindow.getFocusedWindow()
+
+    if (win) {
+      win.openDevTools()
+    }
+  })
+}
+
 // Only one app per app in osx...
 if (process.platform === 'darwin') {
   menuHelper()
@@ -36,12 +46,6 @@ ipc.on('showTrayLoading', () => {
 
 ipc.on('showTrayNormal', () => {
   mb.tray.setImage(menubarIconPath)
-})
-
-mb.on('after-create-window', () => {
-  if (showDevTools) {
-    mb.window.openDevTools()
-  }
 })
 
 mb.on('ready', () => {
