@@ -4,12 +4,15 @@ import Window from './window'
 import splash from './splash'
 import installer from './installer'
 import {app} from 'electron'
-import {showMainWindow, showDevTools} from '../../react-native/react/local-debug.desktop'
+import {showDevTools} from '../../react-native/react/local-debug.desktop'
 import {helpURL} from '../../react-native/react/constants/urls'
 import resolveAssets from '../resolve-assets'
 import hotPath from '../hot-path'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 import menuHelper from './menu-helper'
+import consoleHack from './console-hack'
+
+consoleHack()
 
 // Only one app per app in osx...
 if (process.platform === 'darwin') {
