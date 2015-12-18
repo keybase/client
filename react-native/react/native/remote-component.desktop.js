@@ -1,5 +1,4 @@
 import React, {Component} from '../base-react'
-import {showDevTools} from '../local-debug'
 import {remote, ipcRenderer} from 'electron'
 import resolveAssets from '../../../desktop/resolve-assets'
 import menuHelper from '../../../desktop/app/menu-helper'
@@ -14,10 +13,6 @@ export default class RemoteComponent extends Component {
 
     menuHelper(this.remoteWindow)
     this.closed = false
-
-    if (showDevTools) {
-      this.remoteWindow.toggleDevTools()
-    }
 
     this.remoteWindow.on('needProps', () => {
       this.remoteWindow.emit('hasProps', {...this.props})
