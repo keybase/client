@@ -60,7 +60,7 @@ type BoxSecretKey interface {
 	Precompute(sender BoxPublicKey) BoxPrecomputedSharedKey
 }
 
-// Keyring is an interface used with decryption; it is call to recover
+// Keyring is an interface used with decryption; it is called to recover
 // public or private keys during the decryption process. Calls can block
 // on network action.
 type Keyring interface {

@@ -12,24 +12,31 @@ type MessageType int
 // In general, the former is one more than the latter.
 type PacketSeqno uint64
 
-// MessageTypeEncryption is a packet type to describe an encryption message
+// MessageTypeEncryption is a packet type to describe an
+// encryption message.
 const MessageTypeEncryption MessageType = 0
 
-// MessageTypeAttachedSignature is a packet type to describe an attached signature
+// MessageTypeAttachedSignature is a packet type to describe an
+// attached signature.
 const MessageTypeAttachedSignature MessageType = 1
 
-// SaltPackCurrentVersion is currently the only supported packet version, 1.0
+// MessageTypeDetachedSignature is a packet type to describe a
+// detached signature.
+const MessageTypeDetachedSignature MessageType = 2
+
+// SaltPackCurrentVersion is currently the only supported packet
+// version, 1.0.
 var SaltPackCurrentVersion = Version{Major: 1, Minor: 0}
 
 // EncryptionBlockSize is by default 1MB and can't currently be tweaked.
 const EncryptionBlockSize int = 1048576
 
 // EncryptionArmorHeader is the header that marks the start of an encrypted
-// armored KB message
+// armored KB message.
 const EncryptionArmorHeader = "BEGIN KEYBASE ENCRYPTED MESSAGE"
 
 // EncryptionArmorFooter is the footer that marks the end of an encrypted
-// armored KB message
+// armored KB message.
 const EncryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
 
 // SaltPackFormatName is the publicly advertised name of the format,

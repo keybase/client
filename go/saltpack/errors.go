@@ -47,6 +47,10 @@ var (
 
 	// ErrBadLookup is when the user-provided key lookup gives a bad value
 	ErrBadLookup = errors.New("bad key lookup")
+
+	// ErrNoStream is returned if a stream constructor returned a nil
+	// stream.
+	ErrNoStream = errors.New("no stream")
 )
 
 // ErrBadTag is generated when a Tag fails to Unbox properly. It specifies

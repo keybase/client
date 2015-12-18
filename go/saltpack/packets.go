@@ -3,8 +3,6 @@
 
 package saltpack
 
-import ()
-
 type receiverKeysPlaintext struct {
 	_struct    bool   `codec:",toarray"`
 	Sender     []byte `codec:"sender"`
@@ -37,7 +35,7 @@ type EncryptionHeader struct {
 	seqno      PacketSeqno
 }
 
-// EncryptionBlock contains a block of encrypted data. It cointains
+// EncryptionBlock contains a block of encrypted data. It contains
 // the ciphertext, and any necessary authentication Tags.
 type EncryptionBlock struct {
 	_struct           bool     `codec:",toarray"`
@@ -61,4 +59,51 @@ func (h *EncryptionHeader) validate() error {
 		return ErrBadVersion{h.seqno, h.Version}
 	}
 	return nil
+}
+
+// SignatureHeaderAttached is the first packet in a signed
+// message.
+type SignatureHeaderAttached struct {
+	_struct      bool        `codec:",toarray"`
+	FormatName   string      `codec:"format_name"`
+	Version      Version     `codec:"vers"`
+	Type         MessageType `codec:"type"`
+	SenderPublic []byte      `codec:"sender_public"`
+	Nonce        []byte      `codec:"nonce"`
+	seqno        PacketSeqno
+}
+
+func (h *SignatureHeaderAttached) validate() error {
+	if h.Type != MessageTypeAttachedSignature {
+		return ErrWrongMessageType{MessageTypeAttachedSignature, h.Type}
+	}
+	if h.Version.Major != SaltPackCurrentVersion.Major {
+		return ErrBadVersion{h.seqno, h.Version}
+	}
+	return nil
+}
+
+// SignatureHeaderDetached is the only packet in a detached
+// signature.
+type SignatureHeaderDetached struct {
+	SignatureHeaderAttached
+	Signature []byte `codec:"signature"`
+}
+
+func (h *SignatureHeaderDetached) validate() error {
+	if h.Type != MessageTypeDetachedSignature {
+		return ErrWrongMessageType{MessageTypeDetachedSignature, h.Type}
+	}
+	if h.Version.Major != SaltPackCurrentVersion.Major {
+		return ErrBadVersion{h.seqno, h.Version}
+	}
+	return nil
+}
+
+// SignatureBlock contains a block of signed data.
+type SignatureBlock struct {
+	_struct      bool   `codec:",toarray"`
+	Signature    []byte `codec:"signature"`
+	PayloadChunk []byte `codec:"payload_chunk"`
+	seqno        PacketSeqno
 }
