@@ -13,8 +13,14 @@
 #
 # This script does not handle file names that contain spaces.
 
-# Please keep this file in sync with pre-commit. The only difference
-# is that we don't do a git diff check in this file.
+# Please keep this file in sync with pre-commit. (See pre-commit for
+# comments as to why we duplicate the code here.) The only difference
+# is that we don't do a git diff check in this file, since that only
+# applies to an unapplied commit.
+#
+# TODO: It might be possible to do something similar to the git diff
+# check, but comparing against the remote HEAD, which is passed in as
+# one of the parameters.
 
 check_go_fmt() {
 	gofiles=$(git ls-files | grep '.go$' | grep -v go/vendor/)
