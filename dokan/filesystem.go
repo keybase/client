@@ -154,7 +154,7 @@ const (
 	// ErrDirectoryNotEmpty - wanted an empty dir - it is not empty.
 	ErrDirectoryNotEmpty = NtError(0xC0000101)
 	// ErrFileAlreadyExists - file already exists - fatal.
-	ErrFileAlreadyExists = NtError(0xC000003A)
+	ErrFileAlreadyExists = NtError(0xC0000035)
 	// StatusObjectNameExists - already exists, may be non-fatal...
 	StatusObjectNameExists = NtError(0x40000000)
 )
