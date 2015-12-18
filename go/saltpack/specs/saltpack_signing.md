@@ -123,7 +123,7 @@ An attached signature:
 # header packet
 [
   # format name
-  "SaltBox",
+  "SaltPack",
   # major and minor version
   [1, 0],
   # mode (1 = attached signing)
@@ -157,7 +157,7 @@ A detached signature:
 # header packet (the only packet)
 [
   # format name
-  "SaltBox",
+  "SaltPack",
   # major and minor version
   [1, 0],
   # mode (2 = detached signing)
