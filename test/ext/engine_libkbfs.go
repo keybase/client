@@ -14,7 +14,7 @@ import (
 // LibKBFS implements the Engine interface for direct test harness usage of libkbfs.
 type LibKBFS struct {
 	// hack: hold references on behalf of the test harness
-	refs map[libkbfs.Config]map[libkbfs.NodeID]bool
+	refs map[libkbfs.Config]map[libkbfs.Node]bool
 	// channels used to re-enable updates if disabled
 	updateChannels map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{}
 	// test object, mostly for logging
@@ -27,7 +27,7 @@ var _ Engine = (*LibKBFS)(nil)
 // Init implements the Engine interface.
 func (k *LibKBFS) Init() {
 	// Initialize reference holder and channels maps
-	k.refs = make(map[libkbfs.Config]map[libkbfs.NodeID]bool)
+	k.refs = make(map[libkbfs.Config]map[libkbfs.Node]bool)
 	k.updateChannels =
 		make(map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{})
 }
@@ -71,7 +71,7 @@ func (k *LibKBFS) InitTest(blockSize int64, blockChangeSize int64,
 	clock := libkbfs.TestClock{T: time.Time{}}
 	config.SetClock(clock)
 	userMap[users[0]] = config
-	k.refs[config] = make(map[libkbfs.NodeID]bool)
+	k.refs[config] = make(map[libkbfs.Node]bool)
 	k.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
 
 	if len(normalized) == 1 {
@@ -83,7 +83,7 @@ func (k *LibKBFS) InitTest(blockSize int64, blockChangeSize int64,
 		c := libkbfs.ConfigAsUser(config, name)
 		c.SetClock(clock)
 		userMap[users[i+1]] = c
-		k.refs[c] = make(map[libkbfs.NodeID]bool)
+		k.refs[c] = make(map[libkbfs.Node]bool)
 		k.updateChannels[c] = make(map[libkbfs.NodeID]chan<- struct{})
 	}
 	return userMap
@@ -128,7 +128,7 @@ func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []string, readers []
 	if err != nil {
 		return dir, err
 	}
-	k.refs[config][dir.(libkbfs.Node).GetID()] = true
+	k.refs[config][dir.(libkbfs.Node)] = true
 	return dir, nil
 }
 
@@ -140,7 +140,7 @@ func (k *LibKBFS) CreateDir(u User, parentDir Node, name string) (dir Node, err 
 	if err != nil {
 		return dir, err
 	}
-	k.refs[config][dir.(libkbfs.Node).GetID()] = true
+	k.refs[config][dir.(libkbfs.Node)] = true
 	return dir, nil
 }
 
@@ -152,7 +152,7 @@ func (k *LibKBFS) CreateFile(u User, parentDir Node, name string) (file Node, er
 	if err != nil {
 		return file, err
 	}
-	k.refs[config][file.(libkbfs.Node).GetID()] = true
+	k.refs[config][file.(libkbfs.Node)] = true
 	return file, nil
 }
 
@@ -224,7 +224,7 @@ func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPat
 		return file, symPath, err
 	}
 	if file != nil {
-		k.refs[config][file.(libkbfs.Node).GetID()] = true
+		k.refs[config][file.(libkbfs.Node)] = true
 	}
 	if ei.Type == libkbfs.Sym {
 		symPath = ei.SymPath
@@ -302,7 +302,7 @@ func (k *LibKBFS) SyncFromServer(u User, dir Node) (err error) {
 func (k *LibKBFS) Shutdown(u User) {
 	config := u.(*libkbfs.ConfigLocal)
 	// drop references
-	k.refs[config] = make(map[libkbfs.NodeID]bool)
+	k.refs[config] = make(map[libkbfs.Node]bool)
 	delete(k.refs, config)
 	// clear update channels
 	k.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
