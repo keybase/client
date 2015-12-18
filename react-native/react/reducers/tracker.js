@@ -66,12 +66,13 @@ function initialTrackerState (username: string): TrackerState {
 }
 
 function updateUserState (state: TrackerState, action: Action): TrackerState {
+  let shouldFollow: boolean
   switch (action.type) {
     case Constants.onFollowChecked:
       if (action.payload == null) {
         return state
       }
-      let shouldFollow: boolean = action.payload.shouldFollow
+      shouldFollow = action.payload.shouldFollow
 
       return {
         ...state,

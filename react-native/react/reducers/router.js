@@ -11,7 +11,7 @@ export type RouterState = MapADT2<'uri', URI, 'history', History> // eslint-disa
 
 const initialState: RouterState = createRouterState(['nav'], [])
 
-export function createRouterState (uri: Array<string>, history: Array<Array<string>>) {
+export function createRouterState (uri: Array<string>, history: Array<Array<string>>): RouterState {
   return Map({
     uri: parseUri(uri),
     history: List(history.map(parseUri))
