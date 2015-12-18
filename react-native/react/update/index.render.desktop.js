@@ -7,6 +7,7 @@ import {clipboard} from 'electron'
 import resolveAssets from '../../../desktop/resolve-assets'
 import marked from 'marked'
 import type {RenderProps} from './index.render'
+import {autoResize} from '../native/remote-component-helper'
 
 export default class UpdateRender extends Component {
   props: RenderProps;
@@ -21,6 +22,10 @@ export default class UpdateRender extends Component {
   onCopy () {
     clipboard.writeText(this.props.updateCommand)
     this.refs.clipboardSnackbar.show()
+  }
+
+  componentDidMount () {
+    autoResize()
   }
 
   render (): ReactElement {

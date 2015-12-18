@@ -34,8 +34,7 @@ class RemoteComponentLoader extends Component {
     super(props)
     this.state = {
       loaded: false,
-      unmounted: false,
-      autoResize: getQueryVariable('autoResize') === 'true'
+      unmounted: false
     }
 
     const substore = getQueryVariable('substore')
@@ -94,18 +93,6 @@ class RemoteComponentLoader extends Component {
       // Close the window now that the remote-component's unmount
       // lifecycle method has finished
       currentWindow.close()
-    } else if (this.state.autoResize) {
-      this.resizeWindow()
-    }
-  }
-
-  resizeWindow () {
-    currentWindow.setSize(window.remoteComponent.scrollWidth, window.remoteComponent.scrollHeight)
-  }
-
-  componentDidMount () {
-    if (this.state.autoResize) {
-      this.resizeWindow()
     }
   }
 

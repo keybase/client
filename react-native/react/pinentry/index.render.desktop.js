@@ -3,6 +3,7 @@ import {TextField, FlatButton, Checkbox} from 'material-ui'
 import Header from '../common-adapters/header'
 import resolveAssets from '../../../desktop/resolve-assets'
 import commonStyles, {colors} from '../styles/common'
+import {autoResize} from '../native/remote-component-helper'
 
 export default class PinentryRender extends Component {
   constructor (props) {
@@ -33,6 +34,10 @@ export default class PinentryRender extends Component {
     if (feature === 'showTyping') {
       this.setState({showTyping: checked})
     }
+  }
+
+  componentDidMount () {
+    autoResize()
   }
 
   render () {
@@ -96,7 +101,8 @@ PinentryRender.propTypes = {
   retryLabel: React.PropTypes.string.isRequired,
   cancelLabel: React.PropTypes.string,
   submitLabel: React.PropTypes.string,
-  windowTitle: React.PropTypes.string.isRequired
+  windowTitle: React.PropTypes.string.isRequired,
+  requestResize: React.PropTypes.object.isRequired
 }
 
 const styles = {

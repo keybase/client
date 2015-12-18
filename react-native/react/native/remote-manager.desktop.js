@@ -152,7 +152,7 @@ class RemoteManager extends Component {
     }
 
     const windowOpts = {
-      width: 480, height: 1430 + 20 /* TEMP workaround for header mouse clicks in osx */,
+      width: 480, height: 430 + 20 /* TEMP workaround for header mouse clicks in osx */,
       resizable: true,
       fullscreen: false,
       show: false,
@@ -161,7 +161,6 @@ class RemoteManager extends Component {
 
     return (
       <RemoteComponent
-        autoResize
         windowsOpts={windowOpts}
         waitForState
         component='update'
