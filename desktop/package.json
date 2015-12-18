@@ -4,6 +4,7 @@
   "description": "",
   "main": "./dist/main.bundle.js",
   "scripts": {
+    "start": "npm run build-dev && npm run start-cold",
     "start-hot": "HOT=true NODE_ENV=development node client.js",
     "start-cold": "NODE_ENV=development electron ./dist/main.bundle.js",
     "build-dev": "NODE_ENV=development NO_SERVER=true DEBUG='express:*' node server.js",

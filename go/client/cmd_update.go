@@ -34,8 +34,10 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Usage: "Destination of where to apply update.",
 			},
 			cli.StringFlag{
-				Name:  "s, source",
-				Usage: fmt.Sprintf("Update source (%s).", sources.Sources),
+				Name: "s, source",
+				Usage: fmt.Sprintf("Update source (%s). Default is %q.",
+					sources.UpdateSourcesDescription(", "),
+					string(sources.DefaultUpdateSourceName())),
 			},
 			cli.StringFlag{
 				Name:  "u, url",

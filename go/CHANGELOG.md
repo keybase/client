@@ -6,6 +6,8 @@
   which doesn't work across all terminals, in particular,
   those that don't support ESC-u and ESC-e position saving.
   (Commit: ba3cd333dfcc8180a64219470ef48d7dfba207f9)
+- Better device-name error message
+  (Commit: c2d35f362915fb6fe8bcf220418424eb1a443594)
 
 ## 1.0.6-1
 - Fix verify command (PR: keybase/client#1522)

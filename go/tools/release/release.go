@@ -34,6 +34,7 @@ var repo = flag.String("repo", "client", "Repository in keybase")
 var version = flag.String("version", "", "Version for tag")
 var src = flag.String("src", "", "Path to source file")
 var dest = flag.String("dest", "", "Path to destination file")
+var host = flag.String("host", "", "Host")
 var pkg = flag.String("pkg", "", "Package name")
 
 func main() {
@@ -45,16 +46,6 @@ func main() {
 	action := flag.Arg(0)
 
 	switch action {
-	case "increment-build":
-		ver, build, err := SplitVersion(*version)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = WriteVersion(ver, build+1, *pkg, *dest)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("%s-%d", ver, build+1)
 	case "latest-version":
 		tag, err := gh.LatestTag("keybase", *repo, githubToken(false))
 		if err != nil {
@@ -114,7 +105,7 @@ func main() {
 			log.Fatal(err)
 		}
 	case "update-json":
-		urlString := fmt.Sprintf("https://keybase-app.s3.amazonaws.com/%s", url.QueryEscape(*src))
+		urlString := fmt.Sprintf("%s/%s", *host, url.QueryEscape(*src))
 		fileName := path.Base(*src)
 		update := keybase1.Update{
 			Version: *version,

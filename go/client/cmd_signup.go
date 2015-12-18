@@ -208,14 +208,8 @@ func (s *CmdSignup) prompt() (err error) {
 
 	f := s.fields.passphraseRetry
 	if f.Disabled || libkb.IsYes(f.GetValue()) {
-		// note that since this is running in the client, it is not
-		// possible to use a delegated SecretUI.
-		//
-		// TODO: this should move to the daemon so that it can
-		// use a delegated secret ui when available.
-		//
 		var res keybase1.GetPassphraseRes
-		res, err = libkb.GetSignupPassphrase(s.G().UI.GetSecretUI())
+		res, err = PromptPassphrase(s.G())
 		if err != nil {
 			return
 		}
@@ -356,7 +350,7 @@ func (s *CmdSignup) MakePrompter() {
 		Defval:           s.defaultDevice,
 		Name:             "devname",
 		Prompt:           "A public name for this device",
-		Checker:          &libkb.CheckNotEmpty,
+		Checker:          &libkb.CheckDeviceName,
 		PromptDescriptor: PromptDescriptorSignupDevice,
 	}
 

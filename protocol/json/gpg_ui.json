@@ -208,6 +208,40 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "Asset",
+    "doc" : "Asset describes a downloadable file.",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "url",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "UpdateType",
+    "symbols" : [ "NORMAL_0", "BUGFIX_1", "CRITICAL_2" ]
+  }, {
+    "type" : "record",
+    "name" : "Update",
+    "fields" : [ {
+      "name" : "version",
+      "type" : "string"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "description",
+      "type" : "string"
+    }, {
+      "name" : "type",
+      "type" : "UpdateType"
+    }, {
+      "name" : "asset",
+      "type" : "Asset"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "GPGKey",
     "fields" : [ {
       "name" : "algorithm",

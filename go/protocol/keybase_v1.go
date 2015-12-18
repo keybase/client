@@ -9,6 +9,32 @@ type GenericClient interface {
 	Call(ctx context.Context, s string, args interface{}, res interface{}) error
 }
 
+type Feature struct {
+	Allow        bool   `codec:"allow" json:"allow"`
+	DefaultValue bool   `codec:"defaultValue" json:"defaultValue"`
+	Readonly     bool   `codec:"readonly" json:"readonly"`
+	Label        string `codec:"label" json:"label"`
+}
+
+type GUIEntryFeatures struct {
+	StoreSecret Feature `codec:"storeSecret" json:"storeSecret"`
+	ShowTyping  Feature `codec:"showTyping" json:"showTyping"`
+}
+
+type GUIEntryArg struct {
+	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
+	Prompt      string           `codec:"prompt" json:"prompt"`
+	SubmitLabel string           `codec:"submitLabel" json:"submitLabel"`
+	CancelLabel string           `codec:"cancelLabel" json:"cancelLabel"`
+	RetryLabel  string           `codec:"retryLabel" json:"retryLabel"`
+	Features    GUIEntryFeatures `codec:"features" json:"features"`
+}
+
+type GetPassphraseRes struct {
+	Passphrase  string `codec:"passphrase" json:"passphrase"`
+	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
+}
+
 type PassphraseChangeArg struct {
 	SessionID     int    `codec:"sessionID" json:"sessionID"`
 	OldPassphrase string `codec:"oldPassphrase" json:"oldPassphrase"`
@@ -17,12 +43,13 @@ type PassphraseChangeArg struct {
 }
 
 type PassphrasePromptArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	GuiArg    GUIEntryArg `codec:"guiArg" json:"guiArg"`
 }
 
 type AccountInterface interface {
 	PassphraseChange(context.Context, PassphraseChangeArg) error
-	PassphrasePrompt(context.Context, int) error
+	PassphrasePrompt(context.Context, PassphrasePromptArg) (GetPassphraseRes, error)
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -56,7 +83,7 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PassphrasePromptArg)(nil), args)
 						return
 					}
-					err = i.PassphrasePrompt(ctx, (*typedArgs)[0].SessionID)
+					ret, err = i.PassphrasePrompt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -74,9 +101,8 @@ func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseCha
 	return
 }
 
-func (c AccountClient) PassphrasePrompt(ctx context.Context, sessionID int) (err error) {
-	__arg := PassphrasePromptArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.account.passphrasePrompt", []interface{}{__arg}, nil)
+func (c AccountClient) PassphrasePrompt(ctx context.Context, __arg PassphrasePromptArg) (res GetPassphraseRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.passphrasePrompt", []interface{}{__arg}, &res)
 	return
 }
 
@@ -173,6 +199,27 @@ type UserPlusKeys struct {
 	DeviceKeys []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
 	Keys       []PublicKey       `codec:"keys" json:"keys"`
 	Uvv        UserVersionVector `codec:"uvv" json:"uvv"`
+}
+
+type Asset struct {
+	Name string `codec:"name" json:"name"`
+	Url  string `codec:"url" json:"url"`
+}
+
+type UpdateType int
+
+const (
+	UpdateType_NORMAL   UpdateType = 0
+	UpdateType_BUGFIX   UpdateType = 1
+	UpdateType_CRITICAL UpdateType = 2
+)
+
+type Update struct {
+	Version     string     `codec:"version" json:"version"`
+	Name        string     `codec:"name" json:"name"`
+	Description string     `codec:"description" json:"description"`
+	Type        UpdateType `codec:"type" json:"type"`
+	Asset       Asset      `codec:"asset" json:"asset"`
 }
 
 type BlockIdCombo struct {
@@ -4481,27 +4528,6 @@ func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err 
 	return
 }
 
-type Asset struct {
-	Name string `codec:"name" json:"name"`
-	Url  string `codec:"url" json:"url"`
-}
-
-type UpdateType int
-
-const (
-	UpdateType_NORMAL   UpdateType = 0
-	UpdateType_BUGFIX   UpdateType = 1
-	UpdateType_CRITICAL UpdateType = 2
-)
-
-type Update struct {
-	Version     string     `codec:"version" json:"version"`
-	Name        string     `codec:"name" json:"name"`
-	Description string     `codec:"description" json:"description"`
-	Type        UpdateType `codec:"type" json:"type"`
-	Asset       Asset      `codec:"asset" json:"asset"`
-}
-
 type SaltPackEncryptOptions struct {
 	Recipients   []string     `codec:"recipients" json:"recipients"`
 	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
@@ -4593,32 +4619,6 @@ type SecretEntryRes struct {
 	Text        string `codec:"text" json:"text"`
 	Canceled    bool   `codec:"canceled" json:"canceled"`
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
-}
-
-type GetPassphraseRes struct {
-	Passphrase  string `codec:"passphrase" json:"passphrase"`
-	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
-}
-
-type Feature struct {
-	Allow        bool   `codec:"allow" json:"allow"`
-	DefaultValue bool   `codec:"defaultValue" json:"defaultValue"`
-	Readonly     bool   `codec:"readonly" json:"readonly"`
-	Label        string `codec:"label" json:"label"`
-}
-
-type GUIEntryFeatures struct {
-	StoreSecret Feature `codec:"storeSecret" json:"storeSecret"`
-	ShowTyping  Feature `codec:"showTyping" json:"showTyping"`
-}
-
-type GUIEntryArg struct {
-	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
-	Prompt      string           `codec:"prompt" json:"prompt"`
-	SubmitLabel string           `codec:"submitLabel" json:"submitLabel"`
-	CancelLabel string           `codec:"cancelLabel" json:"cancelLabel"`
-	RetryLabel  string           `codec:"retryLabel" json:"retryLabel"`
-	Features    GUIEntryFeatures `codec:"features" json:"features"`
 }
 
 type GetPassphraseArg struct {

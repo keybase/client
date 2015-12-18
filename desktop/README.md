@@ -22,3 +22,15 @@ To run:
 npm install
 npm start
 ```
+
+Available npm run commands:
+
+ - npm start: Build a development bundle and start the app off of those files (If you're running the app once)
+ - hot-server: Start the hot-reloading server
+ - start-hot: Connect to a hot-reloading server (If you're developing and want to see changes as you make them)
+
+ - build-dev: Build a development bundle
+ - build-prod: Build a production bundle
+ - start-cold: Start the app off of the build-dev bundles
+
+ - package: Make an electron application build

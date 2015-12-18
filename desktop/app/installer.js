@@ -4,7 +4,7 @@ import {exec} from 'child_process';
 import path from 'path';
 import fs from 'fs';
 
-import {runMode} from '../../react-native/react/constants/platform'
+import {runMode} from '../../react-native/react/constants/platform.native.desktop'
 
 export default (callback) => {
   const appPath = app.getAppPath()
@@ -15,11 +15,14 @@ export default (callback) => {
   fs.access(installerExec, fs.X_OK , function (err) {
     if (runMode != "prod") {
       // Only run in prod
+      nslog("Installer not available (runMode=%s)", runMode)
+      callback(null);
       return
     }
 
     if (err) {
-      // Installer is not available
+      // Installer is not accessible
+      nslog("Installer not available (not found) ", runMode)
       callback(null);
       return
     }

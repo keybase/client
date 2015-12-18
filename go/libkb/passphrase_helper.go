@@ -7,15 +7,15 @@ import (
 )
 
 func GetKeybasePassphrase(ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
-	arg := defaultPassphraseArg()
+	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
 	arg.RetryLabel = retryMsg
-	return getPassphraseUntilCheck(ui, arg, &CheckPassphraseSimple)
+	return GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
 }
 
 func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := defaultPassphraseArg()
+	arg := DefaultPassphraseArg()
 	arg.WindowTitle = title
 	arg.Prompt = prompt
 	arg.RetryLabel = retryMsg
@@ -23,11 +23,11 @@ func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore boo
 	// is false (in the case of mocked secret store tests on linux, for
 	// example). So, pass this through:
 	arg.Features.StoreSecret.Allow = allowSecretStore
-	return getPassphraseUntilCheck(ui, arg, &CheckPassphraseSimple)
+	return GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
 }
 
 func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
-	arg := defaultPassphraseArg()
+	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Paper backup key passphrase"
 	if len(username) == 0 {
 		username = "your account"
@@ -35,68 +35,34 @@ func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
 	arg.Prompt = fmt.Sprintf("Please enter a paper backup key passphrase for %s", username)
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
-	res, err := getPassphraseUntilCheck(ui, arg, &CheckPassphraseSimple)
+	res, err := GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
 	if err != nil {
 		return "", err
 	}
 	return res.Passphrase, nil
 }
 
-func GetSignupPassphrase(ui SecretUI) (keybase1.GetPassphraseRes, error) {
-	arg := defaultPassphraseArg()
-	arg.WindowTitle = "Passphrase"
-	arg.Prompt = "Pick a strong passphrase (12+ characters)"
-	res, err := getPassphraseUntilCheck(ui, arg, &CheckPassphraseNew)
-	if err != nil {
-		return keybase1.GetPassphraseRes{}, err
-	}
-
-	// get confirmation
-	match := &Checker{
-		F: func(s string) bool {
-			return s == res.Passphrase
-		},
-		Hint: "Passphrase mismatch",
-	}
-	arg.RetryLabel = ""
-	arg.Prompt = "Please reenter your passphrase for confirmation"
-	_, err = getPassphraseUntilCheck(ui, arg, match)
-	if err != nil {
-		return keybase1.GetPassphraseRes{}, err
-	}
-
-	return res, nil
+type PassphrasePrompter interface {
+	Prompt(keybase1.GUIEntryArg) (keybase1.GetPassphraseRes, error)
 }
 
-func GetNewPassphrase(ui SecretUI) (keybase1.GetPassphraseRes, error) {
-	arg := defaultPassphraseArg()
-	arg.WindowTitle = "Pick a new passphrase"
-	arg.Prompt = "Pick a new strong passphrase (12+ characters)"
-	res, err := getPassphraseUntilCheck(ui, arg, &CheckPassphraseNew)
-	if err != nil {
-		return keybase1.GetPassphraseRes{}, err
-	}
-
-	// get confirmation
-	match := &Checker{
-		F: func(s string) bool {
-			return s == res.Passphrase
-		},
-		Hint: "Passphrase mismatch",
-	}
-	arg.RetryLabel = ""
-	arg.Prompt = "Please reenter your new passphrase for confirmation"
-	_, err = getPassphraseUntilCheck(ui, arg, match)
-	if err != nil {
-		return keybase1.GetPassphraseRes{}, err
-	}
-
-	return res, nil
+type uiPrompter struct {
+	ui SecretUI
 }
 
-func getPassphraseUntilCheck(ui SecretUI, arg keybase1.GUIEntryArg, checker *Checker) (keybase1.GetPassphraseRes, error) {
-	for {
-		res, err := ui.GetPassphrase(arg, nil)
+var _ PassphrasePrompter = &uiPrompter{}
+
+func newUIPrompter(ui SecretUI) *uiPrompter {
+	return &uiPrompter{ui: ui}
+}
+
+func (u *uiPrompter) Prompt(arg keybase1.GUIEntryArg) (keybase1.GetPassphraseRes, error) {
+	return u.ui.GetPassphrase(arg, nil)
+}
+
+func GetPassphraseUntilCheck(arg keybase1.GUIEntryArg, prompter PassphrasePrompter, checker *Checker) (keybase1.GetPassphraseRes, error) {
+	for i := 0; i < 10; i++ {
+		res, err := prompter.Prompt(arg)
 		if err != nil {
 			return keybase1.GetPassphraseRes{}, err
 		}
@@ -108,9 +74,11 @@ func getPassphraseUntilCheck(ui SecretUI, arg keybase1.GUIEntryArg, checker *Che
 		}
 		arg.RetryLabel = checker.Hint
 	}
+
+	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
-func defaultPassphraseArg() keybase1.GUIEntryArg {
+func DefaultPassphraseArg() keybase1.GUIEntryArg {
 	return keybase1.GUIEntryArg{
 		SubmitLabel: "Submit",
 		CancelLabel: "Cancel",

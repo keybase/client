@@ -4,13 +4,23 @@ import Window from './window'
 import splash from './splash'
 import installer from './installer'
 import {app} from 'electron'
-import {showMainWindow, showDevTools} from '../../react-native/react/local-debug.desktop'
+import {showDevTools} from '../../react-native/react/local-debug.desktop'
 import {helpURL} from '../../react-native/react/constants/urls'
 import resolveAssets from '../resolve-assets'
 import hotPath from '../hot-path'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
+import menuHelper from './menu-helper'
+import consoleHack from './console-hack'
 
-const menubarIconPath = resolveAssets('./Icon.png')
+consoleHack()
+
+// Only one app per app in osx...
+if (process.platform === 'darwin') {
+  menuHelper()
+}
+
+const menubarIconPath = resolveAssets('../react-native/react/images/menubarIcon/topBar_iconTemplate.png')
+const menubarLoadingIconPath = resolveAssets('../react-native/react/images/menubarIcon/topBar_icon_loadingTemplate.png')
 
 const mb = menubar({
   index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}`,
@@ -18,6 +28,14 @@ const mb = menubar({
   preloadWindow: true,
   icon: menubarIconPath,
   showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
+})
+
+ipc.on('showTrayLoading', () => {
+  mb.tray.setImage(menubarLoadingIconPath)
+})
+
+ipc.on('showTrayNormal', () => {
+  mb.tray.setImage(menubarIconPath)
 })
 
 mb.on('after-create-window', () => {
@@ -67,6 +85,8 @@ ipc.on('showMain', () => {
   if (showDevTools && mainWindow.window) {
     mainWindow.window.toggleDevTools()
   }
+
+  menuHelper(mainWindow.window)
 })
 
 ipc.on('showHelp', () => {
