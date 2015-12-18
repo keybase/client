@@ -11,3 +11,6 @@ export function canonicalizeUsernames (username: string, usernames: Array<string
   return [].concat(usernames.filter(u => u === username), usernames.filter(u => u !== username))
 }
 
+export function stripPublicTag (folderName: string): string {
+  return folderName.replace('#public', '')
+}

@@ -6,7 +6,7 @@ import {FlatButton} from 'material-ui'
 import resolveAssets from '../../../desktop/resolve-assets'
 
 import {intersperseFn} from '../util/arrays'
-import {parseFolderNameToUsers, canonicalizeUsernames} from '../util/kbfs'
+import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
 
 import commonStyles, {colors} from '../styles/common'
 
@@ -225,7 +225,7 @@ class FolderList extends Component {
     }
 
     const privateFolders = [personalPrivateFolder].concat(folders.filter(f => !f.isPublic))
-    const publicFolders = [personalPublicFolder].concat(folders.filter(f => f.isPublic))
+    const publicFolders = [personalPublicFolder].concat(folders.filter(f => f.isPublic)).map(f => ({...f, folderName: stripPublicTag(f.folderName)}))
 
     return (
       <div style={{display: 'flex', flexDirection: 'column', flexGrow: 2, backgroundColor: colors.trueWhite, paddingTop: 17, paddingLeft: 18, paddingBottom: 9, overflow: 'scroll'}}>
@@ -233,7 +233,7 @@ class FolderList extends Component {
           <div style={{...rootFolderStyle}}>private/</div>
           <CollapsableFolderList
             username={username}
-            folders={privateFolders.concat(publicFolders)}
+            folders={privateFolders}
             folderDisplayLimit={5}
             collapsed={this.state.privateCollapsed}
             onExpand={() => { this.setState({privateCollapsed: false}) }}/>
