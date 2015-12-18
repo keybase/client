@@ -21,11 +21,11 @@ export default class BioRender extends Component {
   }
 
   onClickFollowers () {
-    shell.openExternal(`https://keybase.io/${this.props.username}#followers`)
+    shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
   }
 
   onClickFollowing () {
-    shell.openExternal(`https://keybase.io/${this.props.username}#followers`)
+    shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
   }
 
   render (): ReactElement {
