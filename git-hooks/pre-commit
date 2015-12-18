@@ -11,6 +11,17 @@
 # This script does not handle file names that contain spaces.
 
 # Please keep the pre-push hook in sync with this file.
+#
+# It would be possible to factor out the common code into an included
+# file, since git hooks always run in the root of the repo (
+# https://stackoverflow.com/questions/7065224/ ), but we symlink these
+# files from the KBFS repo, so it would fail there unless the includes
+# were also symlinked. It might be possible to create a
+# install-git-hooks script that does it all for you, or to do some
+# more bash magic to resolve the symlink (difficult to do
+# cross-platform!), but it's not worth the effort right now,
+# especially since it's possible that the two repos will eventually be
+# merged.
 
 check_go_fmt() {
 	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/)
