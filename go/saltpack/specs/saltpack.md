@@ -22,4 +22,4 @@ Thus, "SaltPack" (pronounced "NaCl pack"). The spec is in three parts:
 
 - [a binary encryption format](saltpack_encryption.md)
 - [a binary signing format](saltpack_signing.md)
-- an ASCII armor scheme (TODO)
+- [an ASCII armor scheme](saltpack_armor.md)
