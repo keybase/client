@@ -9,6 +9,12 @@ import {helpURL} from '../../react-native/react/constants/urls'
 import resolveAssets from '../resolve-assets'
 import hotPath from '../hot-path'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
+import menuHelper from './menu-helper'
+
+// Only one app per app in osx...
+if (process.platform === 'darwin') {
+  menuHelper()
+}
 
 const menubarIconPath = resolveAssets('../react-native/react/images/menubarIcon/topBar_iconTemplate.png')
 const menubarLoadingIconPath = resolveAssets('../react-native/react/images/menubarIcon/topBar_icon_loadingTemplate.png')
@@ -76,6 +82,8 @@ ipc.on('showMain', () => {
   if (showDevTools && mainWindow.window) {
     mainWindow.window.toggleDevTools()
   }
+
+  menuHelper(mainWindow.window)
 })
 
 ipc.on('showHelp', () => {

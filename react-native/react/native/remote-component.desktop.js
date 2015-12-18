@@ -2,6 +2,7 @@ import React, {Component} from '../base-react'
 import {showDevTools} from '../local-debug'
 import {remote, ipcRenderer} from 'electron'
 import resolveAssets from '../../../desktop/resolve-assets'
+import menuHelper from '../../../desktop/app/menu-helper'
 import hotPath from '../../../desktop/hot-path'
 
 const {BrowserWindow} = remote
@@ -10,6 +11,8 @@ export default class RemoteComponent extends Component {
   componentWillMount () {
     const windowsOpts = {width: 500, height: 300, fullscreen: false, show: false, ...this.props.windowsOpts}
     this.remoteWindow = new BrowserWindow(windowsOpts)
+
+    menuHelper(this.remoteWindow)
     this.closed = false
 
     if (showDevTools) {
