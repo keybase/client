@@ -6,7 +6,7 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
 GOPATH=${GOPATH:-}
-NOPULL=${NOPULL:-0} # Don't check and pull repos
+NOPULL=${NOPULL:-} # Don't check and pull repos
 
 if [ "$GOPATH" = "" ]; then
   echo "No GOPATH"
@@ -16,23 +16,20 @@ fi
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
 clientdir="$GOPATH/src/github.com/keybase/client"
+bucket_name="prerelease.keybase.io"
 
 "$clientdir/packaging/slack/send.sh" "Starting build"
 
 if [ ! "$NOPULL" = "1" ]; then
   "$clientdir/packaging/check_status_and_pull.sh" "$clientdir"
-fi
-BUILD_DIR=$build_dir_keybase ./build_keybase.sh
-
-if [ ! "$NOPULL" = "1" ]; then
   "$clientdir/packaging/check_status_and_pull.sh" "$GOPATH/src/github.com/keybase/kbfs"
+# else
+#   # Only save to bucket if we are checked and pulled
+#   bucket_name=""
 fi
-BUILD_DIR=$build_dir_kbfs ./build_kbfs.sh
 
-bucket_name="keybase-app"
-if [ "$NOPULL" = "1" ]; then
-  bucket_name=""
-fi
+BUILD_DIR=$build_dir_keybase ./build_keybase.sh
+BUILD_DIR=$build_dir_kbfs ./build_kbfs.sh
 
 cd $dir/../desktop
 save_dir="/tmp/build_desktop"

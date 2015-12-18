@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/install/sources"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -145,6 +146,13 @@ func (d *Service) Run() (err error) {
 	var l net.Listener
 	if l, err = d.ConfigRPCServer(); err != nil {
 		return
+	}
+
+	if sources.IsPrerelease {
+		d.updater = install.NewKeybaseUpdater(d.G())
+		if d.updater != nil {
+			d.updater.StartUpdateCheck()
+		}
 	}
 
 	d.checkTrackingEveryHour()

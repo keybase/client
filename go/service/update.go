@@ -4,8 +4,6 @@
 package service
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -36,8 +34,4 @@ func (h *UpdateHandler) Update(_ context.Context, arg keybase1.UpdateArg) (resul
 	}
 	result = keybase1.UpdateResult{Update: eng.Result}
 	return
-}
-
-func (h *UpdateHandler) UpdateNotification(_ context.Context, arg keybase1.Update) error {
-	return fmt.Errorf("Unsupported")
 }
