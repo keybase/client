@@ -62,6 +62,8 @@ ipc.on('showMain', () => {
   if (showDevTools && mainWindow.window) {
     mainWindow.window.toggleDevTools()
   }
+
+  menuHelper(mainWindow.window)
 })
 
 ipc.on('showHelp', () => {
