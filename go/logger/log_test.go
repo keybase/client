@@ -11,6 +11,7 @@ import (
 	logging "github.com/keybase/go-logging"
 )
 
+// This test must pass with -race.
 func TestInitLogging(t *testing.T) {
 	var l1, l2 *Standard
 
