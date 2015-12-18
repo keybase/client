@@ -20,14 +20,35 @@ export default class ActionRender extends Component {
       return this.renderPending()
     } else if (this.props.state === normal) {
       return this.renderNormal(username)
-    } else {
+    } else if (this.props.currentlyFollowing) {
       return this.renderChanged()
+    } else {
+      return this.renderWarningNotFollowed()
     }
   }
 
   renderPending (): ReactElement {
     return (
       <div><p> Loading... </p></div>
+    )
+  }
+
+  renderWarningNotFollowed (): ReactElement {
+    const title = this.props.failedProofsNotFollowingText
+
+    return (
+      <div style={{...styles.normalContainer, ...this.props.style}}>
+        <i style={this.props.state === warning ? styles.flagWarning : styles.flagError} className='fa fa-flag'></i>
+        <div style={styles.textContainer}>
+          <span style={styles.changedMessage}>{title}</span>
+        </div>
+        <div style={styles.checkContainer} onClick={() => this.props.onFollowChecked(!this.props.shouldFollow)}>
+          <i style={styles.check} className={`fa ${this.props.shouldFollow ? 'fa-check-square-o' : 'fa-square-o'}`}></i>
+          <span style={styles.track}>Track</span>
+          <i style={styles.eye} className='fa fa-eye'></i>
+        </div>
+        <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onClose()} />
+      </div>
     )
   }
 
@@ -72,6 +93,7 @@ ActionRender.propTypes = {
   onUnfollow: React.PropTypes.func.isRequired,
   onFollowChecked: React.PropTypes.func.isRequired,
   renderChangedTitle: React.PropTypes.string.isRequired,
+  failedProofsNotFollowingText: React.PropTypes.string.isRequired,
   style: React.PropTypes.object.isRequired
 }
 
