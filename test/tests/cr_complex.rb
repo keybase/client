@@ -597,4 +597,28 @@ module Test
       read "a/d/e/f", "hello"
     end
   end
+
+  # bob moves a file that was removed by alice executable
+  test :cr_unmerged_move_of_removed_file, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkdir "a"
+      write "a/b", "hello"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      rm "a/b"
+    end
+    as bob, sync: false do
+      rename "a/b", "a/c"
+      reenable_updates
+      lsdir "a/", { "c$" => "FILE" }
+      read "a/c", "hello"
+    end
+    as alice do
+      lsdir "a/", { "c$" => "FILE" }
+      read "a/c", "hello"
+    end
+  end
 end

@@ -76,7 +76,77 @@ module Test
     end
   end
 
-  # Test a resurrected rm'd merged file
+  # bob resurrects a file that was removed by alice
+  test :cr_conflict_write_to_removed_multiblock_file, block_size: 20, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkdir "a"
+      write "a/b", "0123456789" * 15
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      rm "a/b"
+    end
+    as bob, sync: false do
+      write "a/b", "9876543210" * 15
+      reenable_updates
+      lsdir "a/", { "b$" => "FILE" }
+      read "a/b", "9876543210" * 15
+    end
+    as alice do
+      lsdir "a/", { "b$" => "FILE" }
+      read "a/b", "9876543210" * 15
+    end
+  end
 
-  # TODO: test md.RefBlocks, md.UnrefBlocks, and md.DiskUsage as well!
+  # bob makes a file that was removed by alice executable
+  test :cr_conflict_setex_to_removed_multiblock_file, block_size: 20, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkdir "a"
+      write "a/b", "0123456789" * 15
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      rm "a/b"
+    end
+    as bob, sync: false do
+      setex "a/b", true
+      reenable_updates
+      lsdir "a/", { "b$" => "EXEC" }
+      read "a/b", "0123456789" * 15
+    end
+    as alice do
+      lsdir "a/", { "b$" => "EXEC" }
+      read "a/b", "0123456789" * 15
+    end
+  end
+
+  # bob moves a file that was removed by alice executable
+  test :cr_conflict_move_removed_multiblock_file, block_size: 20, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkdir "a"
+      write "a/b", "0123456789" * 15
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      rm "a/b"
+    end
+    as bob, sync: false do
+      rename "a/b", "a/c"
+      reenable_updates
+      lsdir "a/", { "c$" => "FILE" }
+      read "a/c", "0123456789" * 15
+    end
+    as alice do
+      lsdir "a/", { "c$" => "FILE" }
+      read "a/c", "0123456789" * 15
+    end
+  end
+
+  # TODO: test md.RefBytes, md.UnrefBytes, and md.DiskUsage as well!
 end

@@ -502,6 +502,33 @@ type createMapKey struct {
 	name string
 }
 
+// addChildBlocksIfIndirectFile adds refblocks for all child blocks of
+// the given file.  It will return an error if called with a pointer
+// that doesn't represent a file.
+func (cr *ConflictResolver) addChildBlocksIfIndirectFile(ctx context.Context,
+	original BlockPointer, unmergedChains *crChains, currPath path,
+	op op) error {
+	mostRecent, err := unmergedChains.mostRecentFromOriginalOrSame(original)
+	if err != nil {
+		return err
+	}
+	// For files with indirect pointers, and all child blocks
+	// as refblocks for the re-created file.
+	fblock, err := cr.fbo.getFileBlockForReading(ctx,
+		unmergedChains.mostRecentMD, mostRecent, currPath.Branch, currPath)
+	if err != nil {
+		return err
+	}
+	if fblock.IsInd {
+		cr.log.CDebugf(ctx, "Adding child pointers for recreated "+
+			"file %s", currPath)
+		for _, ptr := range fblock.IPtrs {
+			op.AddRefBlock(ptr.BlockPointer)
+		}
+	}
+	return nil
+}
+
 // resolvedMergedPathTail takes an unmerged path, and returns as much
 // of the tail-end of the corresponding merged path that it can, using
 // only information within the chains.  It may not be able to return a
@@ -608,6 +635,14 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 		co.AddUpdate(parentOriginal, parentOriginal)
 		co.setFinalPath(parentPath)
 		co.AddRefBlock(currOriginal)
+
+		if co.Type != Dir {
+			err = cr.addChildBlocksIfIndirectFile(ctx, currOriginal,
+				unmergedChains, currPath, co)
+			if err != nil {
+				return path{}, BlockPointer{}, nil, err
+			}
+		}
 
 		// If this happens to have been renamed on the unmerged
 		// branch, drop the rm half of the rename operation; just
@@ -1859,7 +1894,7 @@ type crRenameHelperKey struct {
 	name           string
 }
 
-// crMakeRevertedOps changes the BlockPointers of the corresponding
+// makeRevertedOps changes the BlockPointers of the corresponding
 // operations for the given set of paths back to their originals,
 // which allows other parts of conflict resolution to more easily
 // build up the local and remote notifications needed.  Also, it
@@ -1867,7 +1902,9 @@ type crRenameHelperKey struct {
 // the purposes of notification, so this should only be called after
 // all conflicts and actions have been resolved.  It returns the
 // complete slice of reverted operations.
-func crMakeRevertedOps(sortedPaths []path, chains *crChains) ([]op, error) {
+func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
+	sortedPaths []path, chains *crChains, otherChains *crChains) (
+	[]op, error) {
 	var ops []op
 	// Build a map of directory {original, name} -> renamed original.
 	// This will help us map create ops to the corresponding old
@@ -1883,7 +1920,7 @@ func crMakeRevertedOps(sortedPaths []path, chains *crChains) ([]op, error) {
 		ptr := sortedPaths[i].tailPointer()
 		chain, ok := chains.byMostRecent[ptr]
 		if !ok {
-			return nil, fmt.Errorf("crMakeRevertedOps: Couldn't find chain "+
+			return nil, fmt.Errorf("makeRevertedOps: Couldn't find chain "+
 				"for %v", ptr)
 		}
 
@@ -1912,26 +1949,40 @@ func crMakeRevertedOps(sortedPaths []path, chains *crChains) ([]op, error) {
 						chain.original, cop.NewName)
 				}
 
-				ri, ok := chains.renamedOriginals[renameOriginal]
-				if !ok {
-					return nil, fmt.Errorf("Couldn't find the rename info "+
-						"for original %v", renameOriginal)
-				}
-
-				rop := newRenameOp(ri.oldName, ri.originalOldParent, ri.newName,
-					ri.originalNewParent, renameOriginal, cop.Type)
-				// Set the Dir.Ref fields to be the same as the Unref
-				// -- they will be fixed up later.
-				rop.AddUpdate(ri.originalOldParent, ri.originalOldParent)
-				rop.AddUpdate(ri.originalNewParent, ri.originalNewParent)
-				for _, ptr := range cop.Unrefs() {
-					origPtr, err := chains.originalFromMostRecentOrSame(ptr)
-					if err != nil {
-						return nil, err
+				if otherChains.isDeleted(renameOriginal) {
+					// If we are re-instating a deleted node, just use
+					// the create op.
+					op = chains.copyOpAndRevertUnrefsToOriginals(cop)
+					if cop.Type != Dir {
+						err := cr.addChildBlocksIfIndirectFile(ctx,
+							renameOriginal, chains, cop.getFinalPath(), op)
+						if err != nil {
+							return nil, err
+						}
 					}
-					rop.AddUnrefBlock(origPtr)
+				} else {
+					ri, ok := chains.renamedOriginals[renameOriginal]
+					if !ok {
+						return nil, fmt.Errorf("Couldn't find the rename info "+
+							"for original %v", renameOriginal)
+					}
+
+					rop := newRenameOp(ri.oldName, ri.originalOldParent,
+						ri.newName, ri.originalNewParent, renameOriginal,
+						cop.Type)
+					// Set the Dir.Ref fields to be the same as the Unref
+					// -- they will be fixed up later.
+					rop.AddUpdate(ri.originalOldParent, ri.originalOldParent)
+					rop.AddUpdate(ri.originalNewParent, ri.originalNewParent)
+					for _, ptr := range cop.Unrefs() {
+						origPtr, err := chains.originalFromMostRecentOrSame(ptr)
+						if err != nil {
+							return nil, err
+						}
+						rop.AddUnrefBlock(origPtr)
+					}
+					op = rop
 				}
-				op = rop
 			} else {
 				op = chains.copyOpAndRevertUnrefsToOriginals(op)
 			}
@@ -2024,7 +2075,8 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 		unmergedPaths = append(newPaths, unmergedPaths...)
 	}
 
-	ops, err := crMakeRevertedOps(unmergedPaths, unmergedChains)
+	ops, err := cr.makeRevertedOps(ctx, unmergedPaths, unmergedChains,
+		mergedChains)
 	if err != nil {
 		return nil, err
 	}
@@ -2616,7 +2668,8 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	}
 	sort.Sort(crSortedPaths(mergedPaths))
 
-	ops, err := crMakeRevertedOps(mergedPaths, mergedChains)
+	ops, err := cr.makeRevertedOps(ctx, mergedPaths, mergedChains,
+		unmergedChains)
 	if err != nil {
 		return nil, err
 	}
