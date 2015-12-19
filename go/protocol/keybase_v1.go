@@ -1450,27 +1450,6 @@ func (c GpgUiClient) Sign(ctx context.Context, __arg SignArg) (res string, err e
 	return
 }
 
-type Asset struct {
-	Name string `codec:"name" json:"name"`
-	Url  string `codec:"url" json:"url"`
-}
-
-type UpdateType int
-
-const (
-	UpdateType_NORMAL   UpdateType = 0
-	UpdateType_BUGFIX   UpdateType = 1
-	UpdateType_CRITICAL UpdateType = 2
-)
-
-type Update struct {
-	Version     string     `codec:"version" json:"version"`
-	Name        string     `codec:"name" json:"name"`
-	Description string     `codec:"description" json:"description"`
-	Type        UpdateType `codec:"type" json:"type"`
-	Asset       Asset      `codec:"asset" json:"asset"`
-}
-
 type ProofState int
 
 const (
