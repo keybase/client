@@ -1,8 +1,8 @@
 package rpc
 
 import (
-	"io"
 	"golang.org/x/net/context"
+	"io"
 )
 
 type dispatcher interface {

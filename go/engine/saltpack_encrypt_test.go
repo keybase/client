@@ -60,7 +60,7 @@ func TestSaltPackEncryptSelfNoKey(t *testing.T) {
 
 	sink := libkb.NewBufferCloser()
 	arg := &SaltPackEncryptArg{
-		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Recips: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 	}
@@ -69,5 +69,28 @@ func TestSaltPackEncryptSelfNoKey(t *testing.T) {
 	err := RunEngine(eng, ctx)
 	if _, ok := err.(libkb.NoKeyError); !ok {
 		t.Fatalf("expected error type libkb.NoKeyError, got %T (%s)", err, err)
+	}
+}
+
+func TestSaltPackEncryptLoggedOut(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltPackEncrypt")
+	defer tc.Cleanup()
+
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	ctx := &Context{IdentifyUI: trackUI}
+
+	sink := libkb.NewBufferCloser()
+	arg := &SaltPackEncryptArg{
+		Recips: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
+		Source: strings.NewReader("track and encrypt, track and encrypt"),
+		Sink:   sink,
+	}
+
+	eng := NewSaltPackEncrypt(arg, tc.G)
+	err := RunEngine(eng, ctx)
+	if err != nil {
+		t.Fatalf("Got unexpected error: %s", err)
 	}
 }
