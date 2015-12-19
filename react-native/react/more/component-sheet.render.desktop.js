@@ -1,10 +1,19 @@
 import React, {Component} from '../base-react'
 import {Paper, AppBar, FlatButton} from 'material-ui'
+import {connect} from '../base-redux'
 import commonStyles from '../styles/common'
 import Header from '../common-adapters/header'
 import path from 'path'
+import Tracker from '../tracker'
 
 import Menubar from '../menubar'
+
+import {devEditAction} from '../reducers/devEdit'
+
+// Tracker constants
+import {normal, warning, error, checking, revoked} from '../constants/tracker'
+import {statusNone, statusOk, statusLocal, statusFound, statusRemoteFail, statusTorSkipped, statusTorIncompatible, statusDeleted} from '../constants/tracker'
+import * as TrackerConstants from '../constants/tracker'
 
 const Container = props => {
   return (
@@ -27,6 +36,9 @@ export default class Render extends Component {
   render () {
     return (
       <div style={{...commonStyles.flexBoxColumn, flex: 1, overflowY: 'auto'}}>
+        <Container title='Tracker'>
+          <ConnectedTrackerDev/>
+        </Container>
         <Container title='Menubar'>
           <Menubar/>
         </Container>
@@ -46,3 +58,64 @@ export default class Render extends Component {
   )
   }
 }
+
+class TrackerDev extends Component {
+  constructor (props) {
+    super(props)
+    this.state = {}
+  }
+
+  usernamePicker () {
+    const usernames = Object.keys(this.props.trackers).map(u => <FlatButton key={u} label={u} onClick={() => this.setState({username: u})}/>)
+    return (
+      <div>
+        Pick your username: {usernames}
+      </div>
+    )
+  }
+
+  updateProofKey (username, key, values) {
+    const tracker = this.props.trackers[username]
+
+    const updateProofKey = (index, value) => {
+      this.props.dispatch(devEditAction(['tracker', 'trackers', username, 'proofs', index, key], value))
+      this.props.dispatch({type: TrackerConstants.updateProofState, payload: {username}})
+    }
+
+    const valueButtons = index => values.map(v => <FlatButton label={v} onClick={() => updateProofKey(index, v)}/>)
+    return (
+      <div>
+        {tracker.proofs.map((p, i) => <div> {key} for {`${p.name}@${p.type}`}: {valueButtons(i)} </div>)}
+      </div>
+    )
+  }
+
+  updateOverallProof (username, key, values) {
+    const tracker = this.props.trackers[username]
+    const updateProofKey = (index, value) => this.props.dispatch(devEditAction(['tracker', 'trackers', username, 'proofs', index, key], value))
+
+    const valueButtons = index => values.map(v => <FlatButton label={v} onClick={() => updateProofKey(index, v)}/>)
+    return (
+      <div>
+        {tracker.proofs.map((p, i) => <div> {key} for {p.name}: {valueButtons(i)} </div>)}
+      </div>
+    )
+  }
+
+  render () {
+    // {this.updateProofKey(this.state.username, 'status', [statusNone, statusOk, statusLocal, statusFound, statusRemoteFail, statusTorSkipped, statusTorIncompatible, statusDeleted])}
+    if (this.state.username) {
+      return (
+        <div>
+          {this.usernamePicker(this.state.username)}
+          {this.updateProofKey(this.state.username, 'state', [normal, warning, error, checking, revoked])}
+          <Tracker username={this.state.username}/>
+        </div>
+      )
+    } else {
+      return this.usernamePicker()
+    }
+  }
+}
+
+const ConnectedTrackerDev = connect(state => state.tracker, dispatch => ({dispatch}))(TrackerDev)
