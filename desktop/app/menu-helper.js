@@ -35,7 +35,15 @@ export default function makeMenu (window) {
         {label: 'Minimize', accelerator: 'CmdOrCtrl+M', role: 'minimize'},
         {label: 'Close', accelerator: 'CmdOrCtrl+W', role: 'close'},
         {type: 'separator'},
-        {label: 'Bring All to Front', role: 'front'}
+        {label: 'Bring All to Front', role: 'front'},
+        {label: 'Reload',
+          accelerator: 'CmdOrCtrl+R',
+          click: (item, focusedWindow) => focusedWindow && focusedWindow.reload()
+        },
+        {label: 'Toggle Developer Tools',
+          accelerator: (() => (process.platform === 'darwin') ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
+          click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools()
+        }
       ]
     }, {
       label: 'Help',
