@@ -7,7 +7,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -52,7 +52,7 @@ func NewDefaultTestUpdateConfig() keybase1.UpdateConfig {
 	return keybase1.UpdateConfig{
 		Version:         "1.0.0",
 		Platform:        runtime.GOOS,
-		DestinationPath: path.Join(os.TempDir(), "Test"),
+		DestinationPath: filepath.Join(os.TempDir(), "Test"),
 		Source:          "test",
 	}
 }
@@ -80,7 +80,7 @@ func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
 }
 
 func createTestUpdateZip() (string, error) {
-	path := path.Join(os.TempDir(), "Test.zip")
+	path := filepath.Join(os.TempDir(), "Test.zip")
 	if _, err := os.Stat("/path/to/whatever"); err == nil {
 		return path, nil
 	}
