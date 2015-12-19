@@ -25,6 +25,7 @@ func TestSaltPackDecrypt(t *testing.T) {
 	}
 	// Should encrypt for self, too.
 	arg := &SaltPackEncryptArg{
+		Recips: []string{},
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 	}

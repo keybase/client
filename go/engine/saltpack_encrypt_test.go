@@ -4,10 +4,10 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"strings"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 func TestSaltPackEncrypt(t *testing.T) {
@@ -26,7 +26,7 @@ func TestSaltPackEncrypt(t *testing.T) {
 	run := func(Recips []string) {
 		sink := libkb.NewBufferCloser()
 		arg := &SaltPackEncryptArg{
-			Opts:   keybase1.SaltPackEncryptOptions{Recipients: Recips},
+			Recips: Recips,
 			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
 			Sink:   sink,
 		}
@@ -60,9 +60,7 @@ func TestSaltPackEncryptSelfNoKey(t *testing.T) {
 
 	sink := libkb.NewBufferCloser()
 	arg := &SaltPackEncryptArg{
-		Opts: keybase1.SaltPackEncryptOptions{
-			Recipients: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
-		},
+		Recips: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 	}
@@ -85,9 +83,7 @@ func TestSaltPackEncryptLoggedOut(t *testing.T) {
 
 	sink := libkb.NewBufferCloser()
 	arg := &SaltPackEncryptArg{
-		Opts: keybase1.SaltPackEncryptOptions{
-			Recipients: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
-		},
+		Recips: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 	}
