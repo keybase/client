@@ -257,8 +257,8 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/service",
-			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
-			"revisionTime": "2015-12-18T17:01:58-08:00"
+			"revision": "f24ba8a237fb400fbca634a54b31464b4f48e4bd",
+			"revisionTime": "2015-12-19T11:39:36-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/spotty",
