@@ -242,7 +242,6 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 		ds.mki.SenderIsAnon = true
 		ds.mki.SenderKey = ephemeralKey
 	}
-
 	copy(ds.sessionKey[:], keys.SessionKey)
 
 	return nil
