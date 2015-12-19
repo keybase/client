@@ -88,10 +88,7 @@ func (c *CmdEncrypt) Run() error {
 	}
 	arg := keybase1.SaltPackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltPackEncrypt(context.TODO(), arg)
-	c.G().Log.Warning("back with err -> %v", err)
-
 	cerr := c.filter.Close(err)
-	c.G().Log.Warning("Filter close -> %v", cerr)
 	return libkb.PickFirstError(err, cerr)
 }
 
