@@ -260,6 +260,19 @@
       "name" : "snoozeUntil",
       "type" : "Time"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "UpdateQuitRes",
+    "fields" : [ {
+      "name" : "quit",
+      "type" : "boolean"
+    }, {
+      "name" : "pid",
+      "type" : "int"
+    }, {
+      "name" : "applicationPath",
+      "type" : "string"
+    } ]
   } ],
   "messages" : {
     "updatePrompt" : {
@@ -271,6 +284,10 @@
         "type" : "Update"
       } ],
       "response" : "UpdatePromptRes"
+    },
+    "updateQuit" : {
+      "request" : [ ],
+      "response" : "UpdateQuitRes"
     }
   }
 }

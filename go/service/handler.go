@@ -134,3 +134,7 @@ type UpdateUI struct {
 func (u *UpdateUI) UpdatePrompt(ctx context.Context, arg keybase1.UpdatePromptArg) (res keybase1.UpdatePromptRes, err error) {
 	return u.cli.UpdatePrompt(ctx, arg)
 }
+
+func (u *UpdateUI) UpdateQuit(ctx context.Context) (res keybase1.UpdateQuitRes, err error) {
+	return u.cli.UpdateQuit(ctx)
+}

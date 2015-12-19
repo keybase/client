@@ -5050,7 +5050,7 @@ export type update_Update = {
   asset: Asset;
 }
 
-export type update_UpdateConfig = {
+export type update_UpdateOptions = {
   version: string;
   platform: string;
   destinationPath: string;
@@ -5060,7 +5060,7 @@ export type update_UpdateConfig = {
   force: boolean;
 }
 
-export type UpdateConfig = {
+export type UpdateOptions = {
   version: string;
   platform: string;
   destinationPath: string;
@@ -5197,6 +5197,18 @@ export type UpdatePromptRes = {
   action: UpdateAction;
   alwaysAutoInstall: boolean;
   snoozeUntil: Time;
+}
+
+export type updateUi_UpdateQuitRes = {
+  quit: boolean;
+  pid: int;
+  applicationPath: string;
+}
+
+export type UpdateQuitRes = {
+  quit: boolean;
+  pid: int;
+  applicationPath: string;
 }
 
 export type user_Time = {

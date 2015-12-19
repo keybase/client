@@ -83,6 +83,12 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	} else {
 		v.components = strings.Split(ctx.String("components"), ",")
 	}
+
+	// Brew uses the auto installer by default
+	if libkb.IsBrewBuild && v.installer == "" {
+		v.installer = "auto"
+	}
+
 	return nil
 }
 

@@ -19,7 +19,75 @@ import (
 
 func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name: "update",
+		Name:         "update",
+		Usage:        "The updater",
+		ArgumentHelp: "[arguments...]",
+		Subcommands: []cli.Command{
+			NewCmdUpdateCheck(cl, g),
+			NewCmdUpdateCustom(cl, g),
+		},
+	}
+}
+
+func NewCmdUpdateCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name: "check",
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "Force update.",
+			},
+		},
+		ArgumentHelp: "",
+		Usage:        "Perform an update check",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(NewCmdUpdateCheckRunner(g), "check", c)
+		},
+	}
+}
+
+type CmdUpdateCheck struct {
+	libkb.Contextified
+	force bool
+}
+
+func NewCmdUpdateCheckRunner(g *libkb.GlobalContext) *CmdUpdateCheck {
+	return &CmdUpdateCheck{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *CmdUpdateCheck) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		API:    true,
+		Config: true,
+	}
+}
+
+func (v *CmdUpdateCheck) ParseArgv(ctx *cli.Context) error {
+	v.force = ctx.Bool("force")
+	return nil
+}
+
+func (v *CmdUpdateCheck) Run() error {
+	protocols := []rpc.Protocol{
+		NewUpdateUIProtocol(v.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, v.G()); err != nil {
+		return err
+	}
+
+	client, err := GetUpdateClient(v.G())
+	if err != nil {
+		return err
+	}
+
+	return client.UpdateCheck(context.TODO(), v.force)
+}
+
+func NewCmdUpdateCustom(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name: "custom",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "c, check-only",
@@ -49,60 +117,58 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Update Keybase",
+		Usage:        "Run the updater with custom options",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdUpdateRunner(g), "update", c)
+			cl.ChooseCommand(NewCmdUpdateCustomRunner(g), "run", c)
 		},
 	}
 }
 
-type CmdUpdate struct {
+type CmdUpdateCustom struct {
 	libkb.Contextified
 	checkOnly bool
 	source    string
-	config    *keybase1.UpdateConfig
+	options   *keybase1.UpdateOptions
 }
 
-func NewCmdUpdateRunner(g *libkb.GlobalContext) *CmdUpdate {
-	return &CmdUpdate{
+func NewCmdUpdateCustomRunner(g *libkb.GlobalContext) *CmdUpdateCustom {
+	return &CmdUpdateCustom{
 		Contextified: libkb.NewContextified(g),
-		config:       install.DefaultUpdaterConfig(g),
+		options:      install.DefaultUpdaterOptions(g),
 	}
 }
 
-func (v *CmdUpdate) GetUsage() libkb.Usage {
+func (v *CmdUpdateCustom) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		API:    true,
 		Config: true,
 	}
 }
 
-func (v *CmdUpdate) ParseArgv(ctx *cli.Context) error {
-	v.checkOnly = ctx.Bool("check-only")
-
+func (v *CmdUpdateCustom) ParseArgv(ctx *cli.Context) error {
 	currentVersion := ctx.String("current-version")
 	if currentVersion != "" {
-		v.config.Version = currentVersion
+		v.options.Version = currentVersion
 	}
 
 	destinationPath := ctx.String("destination-path")
 	if destinationPath != "" {
-		v.config.DestinationPath = destinationPath
+		v.options.DestinationPath = destinationPath
 	}
 
-	v.config.Source = ctx.String("source")
-	v.config.Platform = runtime.GOOS
-	v.config.URL = ctx.String("url")
-	v.config.Force = ctx.Bool("force")
+	v.options.Source = ctx.String("source")
+	v.options.Platform = runtime.GOOS
+	v.options.URL = ctx.String("url")
+	v.options.Force = ctx.Bool("force")
 
-	if v.config.DestinationPath == "" {
+	if v.options.DestinationPath == "" {
 		return fmt.Errorf("No default destination path for this environment")
 	}
 
 	return nil
 }
 
-func (v *CmdUpdate) Run() error {
+func (v *CmdUpdateCustom) Run() error {
 	if libkb.IsBrewBuild {
 		return fmt.Errorf("Update is not supported for brew install. Use \"brew update && brew upgrade keybase\" instead.")
 	}
@@ -119,11 +185,8 @@ func (v *CmdUpdate) Run() error {
 		return err
 	}
 
-	v.G().Log.Debug("Config: %#v", *v.config)
+	v.G().Log.Debug("Options: %#v", *v.options)
 
-	_, err = client.Update(context.TODO(), keybase1.UpdateArg{
-		Config:    *v.config,
-		CheckOnly: v.checkOnly,
-	})
+	_, err = client.Update(context.TODO(), *v.options)
 	return err
 }

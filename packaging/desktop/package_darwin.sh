@@ -33,7 +33,7 @@ keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 
 echo "Loading release tool"
-go install github.com/keybase/client/go/tools/release
+go install github.com/keybase/release
 release_bin="$GOPATH/bin/release"
 
 if [ "$keybase_version" = "" ]; then
@@ -41,7 +41,7 @@ if [ "$keybase_version" = "" ]; then
     keybase_version=`$keybase_binpath version -S`
     echo "Using keybase (bin) version: $keybase_version"
   else
-    keybase_version=`$release_bin --repo=client latest-version`
+    keybase_version=`$release_bin latest-version --user=keybase --repo=client`
     echo "Using latest keybase version: $keybase_version"
   fi
 fi
@@ -51,7 +51,7 @@ if [ "$kbfs_version" = "" ]; then
     kbfs_version=`$kbfs_binpath -version`
     echo "Using kbfs (bin) version: $kbfs_version"
   else
-    kbfs_version=`$release_bin --repo=kbfs-beta latest-version`
+    kbfs_version=`$release_bin latest-version --user=keybase --repo=kbfs-beta`
     echo "Using latest kbfs-beta version: $kbfs_version"
   fi
 fi
@@ -187,7 +187,7 @@ save() {
   fi
 
   if [ ! "$s3host" = "" ]; then
-    $release_bin -version $app_version -src $zip_name -host $s3host update-json > update-darwin-$run_mode.json
+    $release_bin update-json --version=$app_version --src=$zip_name --uri=$s3host > update-darwin-$run_mode.json
   fi
 
   if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then

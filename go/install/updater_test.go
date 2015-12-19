@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func NewTestUpdater(t *testing.T, config keybase1.UpdateConfig) Updater {
+func NewTestUpdater(t *testing.T, config keybase1.UpdateOptions) Updater {
 	context := libkb.NewGlobalContext()
 	context.Init()
 	context.Log = logger.NewTestLogger(t)
@@ -32,7 +32,15 @@ func (u nullUpdateUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg
 	return keybase1.UpdatePromptRes{Action: keybase1.UpdateAction_UPDATE}, nil
 }
 
-func (u testUpdateSource) FindUpdate(config keybase1.UpdateConfig) (release *keybase1.Update, err error) {
+func (u nullUpdateUI) UpdateQuit(_ context.Context) (keybase1.UpdateQuitRes, error) {
+	return keybase1.UpdateQuitRes{Quit: false}, nil
+}
+
+func (u testUpdateSource) Description() string {
+	return "Test"
+}
+
+func (u testUpdateSource) FindUpdate(config keybase1.UpdateOptions) (release *keybase1.Update, err error) {
 	path, err := createTestUpdateZip()
 	if err != nil {
 		return nil, err
@@ -48,8 +56,8 @@ func (u testUpdateSource) FindUpdate(config keybase1.UpdateConfig) (release *key
 		}}, nil
 }
 
-func NewDefaultTestUpdateConfig() keybase1.UpdateConfig {
-	return keybase1.UpdateConfig{
+func NewDefaultTestUpdateConfig() keybase1.UpdateOptions {
+	return keybase1.UpdateOptions{
 		Version:         "1.0.0",
 		Platform:        runtime.GOOS,
 		DestinationPath: filepath.Join(os.TempDir(), "Test"),
@@ -59,7 +67,7 @@ func NewDefaultTestUpdateConfig() keybase1.UpdateConfig {
 
 func TestUpdater(t *testing.T) {
 	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
-	update, err := u.Update(nullUpdateUI{})
+	update, err := u.Update(nullUpdateUI{}, false, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -71,9 +79,9 @@ func TestUpdater(t *testing.T) {
 
 func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
 	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
-	u.config.Version = "100000000.0.0"
+	u.options.Version = "100000000.0.0"
 
-	_, err := u.CheckForUpdate()
+	_, err := u.CheckForUpdate(true, false, false)
 	if err == nil {
 		t.Fatal("We should've errored since the update version is less then the current version")
 	}

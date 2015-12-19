@@ -4,7 +4,10 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -14,24 +17,33 @@ import (
 type UpdateHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	updateChecker *install.UpdateChecker
 }
 
-func NewUpdateHandler(xp rpc.Transporter, g *libkb.GlobalContext) *UpdateHandler {
+func NewUpdateHandler(xp rpc.Transporter, g *libkb.GlobalContext, updateChecker *install.UpdateChecker) *UpdateHandler {
 	return &UpdateHandler{
-		BaseHandler:  NewBaseHandler(xp),
-		Contextified: libkb.NewContextified(g),
+		BaseHandler:   NewBaseHandler(xp),
+		Contextified:  libkb.NewContextified(g),
+		updateChecker: updateChecker,
 	}
 }
 
-func (h *UpdateHandler) Update(_ context.Context, arg keybase1.UpdateArg) (result keybase1.UpdateResult, err error) {
+func (h *UpdateHandler) Update(_ context.Context, options keybase1.UpdateOptions) (result keybase1.UpdateResult, err error) {
 	ctx := engine.Context{
 		UpdateUI: h.getUpdateUI(),
 	}
-	eng := engine.NewUpdateEngine(h.G(), arg.Config, arg.CheckOnly)
+	eng := engine.NewUpdateEngine(h.G(), options)
 	err = engine.RunEngine(eng, &ctx)
 	if err != nil {
 		return
 	}
 	result = keybase1.UpdateResult{Update: eng.Result}
 	return
+}
+
+func (h *UpdateHandler) UpdateCheck(_ context.Context, force bool) error {
+	if h.updateChecker == nil {
+		return fmt.Errorf("No updater available")
+	}
+	return h.updateChecker.Check(force, true)
 }

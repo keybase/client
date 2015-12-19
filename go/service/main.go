@@ -21,13 +21,13 @@ import (
 
 type Service struct {
 	libkb.Contextified
-	isDaemon bool
-	chdirTo  string
-	lockPid  *libkb.LockPIDFile
-	ForkType keybase1.ForkType
-	startCh  chan struct{}
-	stopCh   chan keybase1.ExitCode
-	updater  *install.Updater
+	isDaemon      bool
+	chdirTo       string
+	lockPid       *libkb.LockPIDFile
+	ForkType      keybase1.ForkType
+	startCh       chan struct{}
+	stopCh        chan keybase1.ExitCode
+	updateChecker *install.UpdateChecker
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -65,7 +65,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.RevokeProtocol(NewRevokeHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
-		keybase1.UpdateProtocol(NewUpdateHandler(xp, g)),
+		keybase1.UpdateProtocol(NewUpdateHandler(xp, g, d.updateChecker)),
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g)),
@@ -149,9 +149,11 @@ func (d *Service) Run() (err error) {
 	}
 
 	if sources.IsPrerelease {
-		d.updater = install.NewKeybaseUpdater(d.G())
-		if d.updater != nil {
-			d.updater.StartUpdateCheck()
+		updater := install.NewDefaultUpdater(d.G())
+		if updater != nil {
+			updateChecker := install.NewUpdateChecker(*updater)
+			d.updateChecker = &updateChecker
+			d.updateChecker.Start()
 		}
 	}
 

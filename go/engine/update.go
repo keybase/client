@@ -12,16 +12,14 @@ import (
 
 type UpdateEngine struct {
 	libkb.Contextified
-	config    keybase1.UpdateConfig
-	checkOnly bool
-	Result    *keybase1.Update
+	options keybase1.UpdateOptions
+	Result  *keybase1.Update
 }
 
-func NewUpdateEngine(g *libkb.GlobalContext, config keybase1.UpdateConfig, checkOnly bool) *UpdateEngine {
+func NewUpdateEngine(g *libkb.GlobalContext, options keybase1.UpdateOptions) *UpdateEngine {
 	return &UpdateEngine{
 		Contextified: libkb.NewContextified(g),
-		config:       config,
-		checkOnly:    checkOnly,
+		options:      options,
 	}
 }
 
@@ -49,18 +47,13 @@ func (u *UpdateEngine) Run(ctx *Context) (err error) {
 		u.G().Log.Debug("- UpdateEngine Run")
 	}()
 
-	source, err := sources.NewUpdateSourceForName(u.G(), u.config.Source)
+	source, err := sources.NewUpdateSourceFromString(u.G(), u.options.Source)
 	if err != nil {
 		return
 	}
 
-	updater := install.NewUpdater(u.G(), u.config, source)
-	var update *keybase1.Update
-	if u.checkOnly {
-		update, err = updater.CheckForUpdate()
-	} else {
-		update, err = updater.Update(ctx.UpdateUI)
-	}
+	updater := install.NewUpdater(u.G(), u.options, source)
+	update, err := updater.Update(ctx.UpdateUI, u.options.Force, true)
 	if err != nil {
 		return
 	}
