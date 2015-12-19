@@ -109,25 +109,20 @@ if (app.dock) {
 }
 
 // Don't quit the app, instead try to close all windows
-app.on('before-quit', event => {
+app.on('close-windows', event => {
   const windows = BrowserWindow.getAllWindows()
   windows.forEach(w => {
     // We tell it to close, we can register handlers for the 'close' event if we want to
     // keep this window alive or hide it instead.
     w.close()
   })
-
-  event.preventDefault()
 })
 
-app.on('destroy', event => {
+app.on('before-quit', event => {
   const windows = BrowserWindow.getAllWindows()
   windows.forEach(w => {
     w.destroy()
   })
-
-  // exit successfully
-  app.exit(0)
 
   // TODO: send some event to the service to tell it to shutdown all the things as well
 })

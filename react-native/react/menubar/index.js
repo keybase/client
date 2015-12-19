@@ -53,7 +53,7 @@ class Menubar extends Component {
 
     const showMain = () => { ipcRenderer.send('showMain'); closeMenubar() }
     const showHelp = () => { ipcRenderer.send('showHelp'); closeMenubar() }
-    const quit = () => remote.app.emit('destroy')
+    const quit = () => remote.app.quit()
 
     const openingButtonInfo = this.props.username && {text: 'Get Started', onClick: showHelp}
     const folders = (this.props.folders || []).map(function (f: Folder): FolderInfo {
