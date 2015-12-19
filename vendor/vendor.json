@@ -1,0 +1,717 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"path": "bazil.org/fuse",
+			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
+			"revisionTime": "2015-12-02T10:18:56-08:00"
+		},
+		{
+			"path": "bazil.org/fuse/fs",
+			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
+			"revisionTime": "2015-12-02T10:18:56-08:00"
+		},
+		{
+			"path": "bazil.org/fuse/fs/fstestutil",
+			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
+			"revisionTime": "2015-12-02T10:18:56-08:00"
+		},
+		{
+			"path": "bazil.org/fuse/fuseutil",
+			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
+			"revisionTime": "2015-12-02T10:18:56-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/code.google.com/p/rsc/gf256",
+			"path": "code.google.com/p/rsc/gf256",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/code.google.com/p/rsc/qr",
+			"path": "code.google.com/p/rsc/qr",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/code.google.com/p/rsc/qr/coding",
+			"path": "code.google.com/p/rsc/qr/coding",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/PuerkitoBio/goquery",
+			"path": "github.com/PuerkitoBio/goquery",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/Sirupsen/logrus",
+			"revision": "446d1c146faa8ed3f4218f056fcd165f6bcfda81",
+			"revisionTime": "2015-12-04T09:14:43-05:00"
+		},
+		{
+			"path": "github.com/Sirupsen/logrus/hooks/syslog",
+			"revision": "446d1c146faa8ed3f4218f056fcd165f6bcfda81",
+			"revisionTime": "2015-12-04T09:14:43-05:00"
+		},
+		{
+			"path": "github.com/aalness/goamz/dynamodb",
+			"revision": "e99e12e71c4ad4c892c7bfa647a6a42280c7b2ea",
+			"revisionTime": "2015-11-10T10:03:32-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/agl/ed25519",
+			"path": "github.com/agl/ed25519",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/agl/ed25519/edwards25519",
+			"path": "github.com/agl/ed25519/edwards25519",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/andybalholm/cascadia",
+			"path": "github.com/andybalholm/cascadia",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/bitly/go-simplejson",
+			"revision": "aabad6e819789e569bd6aabf444c935aa9ba1e44",
+			"revisionTime": "2015-09-15T09:53:35-07:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/blang/semver",
+			"path": "github.com/blang/semver",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/cenkalti/backoff",
+			"revision": "4dc77674aceaabba2c7e3da25d4c823edfb73f99",
+			"revisionTime": "2015-08-14T12:43:33+03:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/dustin/go-humanize",
+			"path": "github.com/dustin/go-humanize",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/eapache/channels",
+			"revision": "47238d5aae8c0fefd518ef2bee46290909cf8263",
+			"revisionTime": "2015-11-22T21:55:56-05:00"
+		},
+		{
+			"path": "github.com/eapache/queue",
+			"revision": "ded5959c0d4e360646dc9e9908cff48666781367",
+			"revisionTime": "2015-06-06T07:53:03-04:00"
+		},
+		{
+			"path": "github.com/go-errors/errors",
+			"revision": "a41850380601eeb43f4350f7d17c6bbd8944aaf8",
+			"revisionTime": "2015-09-05T19:33:21-07:00"
+		},
+		{
+			"path": "github.com/goamz/goamz/aws",
+			"revision": "be371d06631a6ea076cccefc6654fa5c29be074d",
+			"revisionTime": "2015-10-22T11:50:32+02:00"
+		},
+		{
+			"path": "github.com/goamz/goamz/s3",
+			"revision": "be371d06631a6ea076cccefc6654fa5c29be074d",
+			"revisionTime": "2015-10-22T11:50:32+02:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/golang/groupcache/singleflight",
+			"path": "github.com/golang/groupcache/singleflight",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/golang/mock/gomock",
+			"revision": "58a501f87109a45c68afc54e6b1368398678d386",
+			"revisionTime": "2015-12-12T20:20:50-08:00"
+		},
+		{
+			"path": "github.com/golang/protobuf/proto",
+			"revision": "57346232f21afd1b0138cc10fbdd43c4d17e6c16",
+			"revisionTime": "2015-11-16T10:08:30+11:00"
+		},
+		{
+			"path": "github.com/golang/snappy",
+			"revision": "723cc1e459b8eea2dea4583200fd60757d40097a",
+			"revisionTime": "2015-07-30T13:18:44+10:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/google/go-snappy/snappy",
+			"path": "github.com/google/go-snappy/snappy",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/hashicorp/golang-lru",
+			"path": "github.com/hashicorp/golang-lru",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/hashicorp/golang-lru/internal",
+			"revision": "b361c4c189a958f7d0ad435952611c140751afe2",
+			"revisionTime": "2015-11-28T23:30:29-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/cli",
+			"path": "github.com/keybase/cli",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/auth",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/client",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/encoding/basex",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/engine",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/install",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/install/sources",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/kex2",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/launchd",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/libcmdline",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/libkb",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/logger",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/minterm",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/mounter",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/pinentry",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/protocol",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/qrcode",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/saltpack",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/service",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/spotty",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/tools/release/github",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/tools/zip",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp",
+			"path": "github.com/keybase/go-crypto/openpgp",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp/armor",
+			"path": "github.com/keybase/go-crypto/openpgp/armor",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp/clearsign",
+			"path": "github.com/keybase/go-crypto/openpgp/clearsign",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp/elgamal",
+			"path": "github.com/keybase/go-crypto/openpgp/elgamal",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp/errors",
+			"path": "github.com/keybase/go-crypto/openpgp/errors",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp/packet",
+			"path": "github.com/keybase/go-crypto/openpgp/packet",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp/s2k",
+			"path": "github.com/keybase/go-crypto/openpgp/s2k",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/go-framed-msgpack-rpc",
+			"path": "github.com/keybase/go-framed-msgpack-rpc",
+			"revision": "5f85a2a031aa3a8ebd07895a3576fc9f30ea774a",
+			"revisionTime": "2015-12-02T18:35:35-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-jsonw",
+			"path": "github.com/keybase/go-jsonw",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-kext",
+			"path": "github.com/keybase/go-kext",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-keychain",
+			"path": "github.com/keybase/go-keychain",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-logging",
+			"path": "github.com/keybase/go-logging",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-osxkeychain",
+			"path": "github.com/keybase/go-osxkeychain",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-triplesec",
+			"path": "github.com/keybase/go-triplesec",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-triplesec/sha3",
+			"path": "github.com/keybase/go-triplesec/sha3",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/gopass",
+			"path": "github.com/keybase/gopass",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/miniline",
+			"path": "github.com/keybase/miniline",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/kr/text",
+			"path": "github.com/kr/text",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/mattn/go-sqlite3",
+			"revision": "5651a9d9d49ec25811d08220ee972080378d52ea",
+			"revisionTime": "2015-11-06T23:54:04+09:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/github.com/natefinch/npipe",
+			"path": "github.com/natefinch/npipe",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "github.com/rcrowley/go-metrics",
+			"revision": "7839c01b09d2b1d7068034e5fe6e423f6ac5be22",
+			"revisionTime": "2015-11-29T16:13:40-08:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb",
+			"path": "github.com/syndtr/goleveldb/leveldb",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/cache",
+			"path": "github.com/syndtr/goleveldb/leveldb/cache",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/comparer",
+			"path": "github.com/syndtr/goleveldb/leveldb/comparer",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/errors",
+			"path": "github.com/syndtr/goleveldb/leveldb/errors",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/filter",
+			"path": "github.com/syndtr/goleveldb/leveldb/filter",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/iterator",
+			"path": "github.com/syndtr/goleveldb/leveldb/iterator",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/journal",
+			"path": "github.com/syndtr/goleveldb/leveldb/journal",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/memdb",
+			"path": "github.com/syndtr/goleveldb/leveldb/memdb",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/opt",
+			"path": "github.com/syndtr/goleveldb/leveldb/opt",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/storage",
+			"path": "github.com/syndtr/goleveldb/leveldb/storage",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/table",
+			"path": "github.com/syndtr/goleveldb/leveldb/table",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/util",
+			"path": "github.com/syndtr/goleveldb/leveldb/util",
+			"revision": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6",
+			"revisionTime": "2015-12-10T08:36:11+07:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/github.com/ugorji/go/codec",
+			"path": "github.com/ugorji/go/codec",
+			"revision": "646ae4a518c1c3be0739df898118d9bccf993858",
+			"revisionTime": "2015-12-18T14:34:38-05:00"
+		},
+		{
+			"path": "github.com/vaughan0/go-ini",
+			"revision": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1",
+			"revisionTime": "2013-09-23T16:52:12+02:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/golang.org/x/crypto/cast5",
+			"path": "golang.org/x/crypto/cast5",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/golang.org/x/crypto/curve25519",
+			"path": "golang.org/x/crypto/curve25519",
+			"revision": "69e2a90ed92d",
+			"revisionTime": "2014-11-21T14:11:46-08:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/golang.org/x/crypto/nacl/box",
+			"path": "golang.org/x/crypto/nacl/box",
+			"revision": "69e2a90ed92d",
+			"revisionTime": "2014-11-21T14:11:46-08:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/golang.org/x/crypto/nacl/secretbox",
+			"path": "golang.org/x/crypto/nacl/secretbox",
+			"revision": "69e2a90ed92d",
+			"revisionTime": "2014-11-21T14:11:46-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/golang.org/x/crypto/pbkdf2",
+			"path": "golang.org/x/crypto/pbkdf2",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/golang.org/x/crypto/poly1305",
+			"path": "golang.org/x/crypto/poly1305",
+			"revision": "69e2a90ed92d",
+			"revisionTime": "2014-11-21T14:11:46-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/golang.org/x/crypto/salsa20",
+			"path": "golang.org/x/crypto/salsa20",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/golang.org/x/crypto/salsa20/salsa",
+			"path": "golang.org/x/crypto/salsa20/salsa",
+			"revision": "69e2a90ed92d",
+			"revisionTime": "2014-11-21T14:11:46-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/golang.org/x/crypto/scrypt",
+			"path": "golang.org/x/crypto/scrypt",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/golang.org/x/crypto/ssh/terminal",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/golang.org/x/crypto/twofish",
+			"path": "golang.org/x/crypto/twofish",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/kbfs/vendor/golang.org/x/net/context",
+			"path": "golang.org/x/net/context",
+			"revision": "68a055e15f0ce90989da5564fd947fb72ce67513",
+			"revisionTime": "2015-12-17T21:40:13+01:00"
+		},
+		{
+			"path": "golang.org/x/net/context/ctxhttp",
+			"revision": "68a055e15f0ce90989da5564fd947fb72ce67513",
+			"revisionTime": "2015-12-17T21:40:13+01:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/golang.org/x/net/html",
+			"path": "golang.org/x/net/html",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/golang.org/x/net/html/atom",
+			"path": "golang.org/x/net/html/atom",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"path": "golang.org/x/net/http2",
+			"revision": "68a055e15f0ce90989da5564fd947fb72ce67513",
+			"revisionTime": "2015-12-17T21:40:13+01:00"
+		},
+		{
+			"path": "golang.org/x/net/http2/hpack",
+			"revision": "68a055e15f0ce90989da5564fd947fb72ce67513",
+			"revisionTime": "2015-12-17T21:40:13+01:00"
+		},
+		{
+			"path": "golang.org/x/net/internal/timeseries",
+			"revision": "68a055e15f0ce90989da5564fd947fb72ce67513",
+			"revisionTime": "2015-12-17T21:40:13+01:00"
+		},
+		{
+			"path": "golang.org/x/net/trace",
+			"revision": "68a055e15f0ce90989da5564fd947fb72ce67513",
+			"revisionTime": "2015-12-17T21:40:13+01:00"
+		},
+		{
+			"path": "golang.org/x/oauth2",
+			"revision": "442624c9ec9243441e83b374a9e22ac549b5c51d",
+			"revisionTime": "2015-11-16T13:49:40-08:00"
+		},
+		{
+			"path": "golang.org/x/oauth2/google",
+			"revision": "442624c9ec9243441e83b374a9e22ac549b5c51d",
+			"revisionTime": "2015-11-16T13:49:40-08:00"
+		},
+		{
+			"path": "golang.org/x/oauth2/internal",
+			"revision": "442624c9ec9243441e83b374a9e22ac549b5c51d",
+			"revisionTime": "2015-11-16T13:49:40-08:00"
+		},
+		{
+			"path": "golang.org/x/oauth2/jws",
+			"revision": "442624c9ec9243441e83b374a9e22ac549b5c51d",
+			"revisionTime": "2015-11-16T13:49:40-08:00"
+		},
+		{
+			"path": "golang.org/x/oauth2/jwt",
+			"revision": "442624c9ec9243441e83b374a9e22ac549b5c51d",
+			"revisionTime": "2015-11-16T13:49:40-08:00"
+		},
+		{
+			"path": "golang.org/x/sys/unix",
+			"revision": "833a04a10549a95dc34458c195cbad61bbb6cb4d",
+			"revisionTime": "2015-12-10T17:34:15-08:00"
+		},
+		{
+			"path": "golang.org/x/sys/windows/registry",
+			"revision": "833a04a10549a95dc34458c195cbad61bbb6cb4d",
+			"revisionTime": "2015-12-10T17:34:15-08:00"
+		},
+		{
+			"path": "google.golang.org/api/gensupport",
+			"revision": "030d584ade5f79aa2ed0ce067e8f7da50c9a10d5",
+			"revisionTime": "2015-11-15T22:49:48-08:00"
+		},
+		{
+			"path": "google.golang.org/api/googleapi",
+			"revision": "030d584ade5f79aa2ed0ce067e8f7da50c9a10d5",
+			"revisionTime": "2015-11-15T22:49:48-08:00"
+		},
+		{
+			"path": "google.golang.org/api/googleapi/internal/uritemplates",
+			"revision": "030d584ade5f79aa2ed0ce067e8f7da50c9a10d5",
+			"revisionTime": "2015-11-15T22:49:48-08:00"
+		},
+		{
+			"path": "google.golang.org/api/storage/v1",
+			"revision": "030d584ade5f79aa2ed0ce067e8f7da50c9a10d5",
+			"revisionTime": "2015-11-15T22:49:48-08:00"
+		},
+		{
+			"path": "google.golang.org/cloud",
+			"revision": "975617b05ea8a58727e6c1a06b6161ff4185a9f2",
+			"revisionTime": "2015-11-04T17:14:34-05:00"
+		},
+		{
+			"path": "google.golang.org/cloud/compute/metadata",
+			"revision": "975617b05ea8a58727e6c1a06b6161ff4185a9f2",
+			"revisionTime": "2015-11-04T17:14:34-05:00"
+		},
+		{
+			"path": "google.golang.org/cloud/internal",
+			"revision": "975617b05ea8a58727e6c1a06b6161ff4185a9f2",
+			"revisionTime": "2015-11-04T17:14:34-05:00"
+		},
+		{
+			"path": "google.golang.org/cloud/internal/opts",
+			"revision": "975617b05ea8a58727e6c1a06b6161ff4185a9f2",
+			"revisionTime": "2015-11-04T17:14:34-05:00"
+		},
+		{
+			"path": "google.golang.org/cloud/storage",
+			"revision": "975617b05ea8a58727e6c1a06b6161ff4185a9f2",
+			"revisionTime": "2015-11-04T17:14:34-05:00"
+		},
+		{
+			"path": "google.golang.org/grpc",
+			"revision": "2011d72ca3b5637b963367c586bacce50ff08bf7",
+			"revisionTime": "2015-11-19T09:37:42-08:00"
+		},
+		{
+			"path": "google.golang.org/grpc/codes",
+			"revision": "2011d72ca3b5637b963367c586bacce50ff08bf7",
+			"revisionTime": "2015-11-19T09:37:42-08:00"
+		},
+		{
+			"path": "google.golang.org/grpc/credentials",
+			"revision": "2011d72ca3b5637b963367c586bacce50ff08bf7",
+			"revisionTime": "2015-11-19T09:37:42-08:00"
+		},
+		{
+			"path": "google.golang.org/grpc/grpclog",
+			"revision": "2011d72ca3b5637b963367c586bacce50ff08bf7",
+			"revisionTime": "2015-11-19T09:37:42-08:00"
+		},
+		{
+			"path": "google.golang.org/grpc/metadata",
+			"revision": "2011d72ca3b5637b963367c586bacce50ff08bf7",
+			"revisionTime": "2015-11-19T09:37:42-08:00"
+		},
+		{
+			"path": "google.golang.org/grpc/transport",
+			"revision": "2011d72ca3b5637b963367c586bacce50ff08bf7",
+			"revisionTime": "2015-11-19T09:37:42-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/h12.me/socks",
+			"path": "h12.me/socks",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		},
+		{
+			"origin": "github.com/keybase/client/go/vendor/stathat.com/c/ramcache",
+			"path": "stathat.com/c/ramcache",
+			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
+			"revisionTime": "2015-12-18T17:01:58-08:00"
+		}
+	]
+}

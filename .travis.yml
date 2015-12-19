@@ -1,26 +1,20 @@
 language: go
 go:
   - 1.5
-install:
-  - cd ..
-  - git clone git@github.com:keybase/client
-  - cd client
-  - GO15VENDOREXPERIMENT=1 go build ./...
-  - cd ../kbfs
-  - GO15VENDOREXPERIMENT=0 go get ./...
+install: true
 script:
-  - GO15VENDOREXPERIMENT=0 go build ./...
+  - export GO15VENDOREXPERIMENT=1
   - go get -u github.com/golang/lint/golint
   - go install github.com/golang/lint/golint
   - make lint
-  - go vet ./...
-  - cd libkbfs && go get -t && go test
-  - cd ../bserver && go get -t && go test
-  - cd ../mdserver && go get -t && go test && go test -tags integration
+  - go vet $(go list ./... 2>&1 | grep -v /vendor/)
+  - cd libkbfs && go test
+  - cd ../bserver && go test
+  - cd ../mdserver && go test && go test -tags integration
   # run libkbfs test suite against the real mdserver
   # TODO: why does the below sometimes hang? uncomment when fixed
   #- cd mdserver && go build && { KBFS_BIND_ADDR=127.0.0.1:8125 ./mdserver 2> /dev/null & } && cd ../../libkbfs/ && KEYBASE_TEST_MDSERVER_ADDR=127.0.0.1:8125 go test && killall -9 mdserver
-  - cd ../libfuse && go get -t && go test -c
+  - cd ../libfuse && go test -c
   - cd ../test
   - make test
 notifications:
