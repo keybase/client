@@ -556,6 +556,8 @@ func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	<-i.startCh
+	<-i.finishCh
 }
 
 var tracyUID = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
