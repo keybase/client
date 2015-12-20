@@ -378,6 +378,11 @@
 			"revisionTime": "2015-06-09T11:52:15-07:00"
 		},
 		{
+			"path": "golang.org/x/sys/windows/registry",
+			"revision": "354f231ae1a9ca2d3a6a1a7c5d40b1213d761675",
+			"revisionTime": "2015-10-08T13:13:40-07:00"
+		},
+		{
 			"path": "h12.me/socks",
 			"revision": "c19db44edd3ca0f7992809b55412dbb57805bc8e",
 			"revisionTime": "2015-04-10T14:41:13+08:00"
