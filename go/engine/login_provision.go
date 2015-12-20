@@ -786,12 +786,10 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 	username, uid, err := libkb.PGPLookupFingerprint(e.G(), fp)
 	if err != nil {
 		e.G().Log.Debug("error finding user for fp %s: %s", fp, err)
+		if ase, ok := err.(libkb.AppStatusError); ok && ase.Code == libkb.SCKeyNotFound {
+			err = libkb.NotFoundError{Msg: fmt.Sprintf("No keybase user found for PGP fingerprint %s; please try a different GPG key or another provisioning method", fp)}
+		}
 		return err
-	}
-
-	// even if there was no error, make sure it found something
-	if len(username) == 0 {
-		return libkb.NotFoundError{Msg: fmt.Sprintf("No keybase user found for PGP fingerprint %s; please try a different GPG key or another provisioning method", fp)}
 	}
 
 	e.G().Log.Debug("found user (%q, %q) for key %s", username, uid, fp)

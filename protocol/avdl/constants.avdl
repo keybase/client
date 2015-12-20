@@ -5,6 +5,7 @@ protocol constants {
     SCOk_0,
     SCLoginRequired_201,
     SCBadSession_202,
+    SCBadLoginUserNotFound_203,
     SCBadLoginPassword_204,
     SCNotFound_205,
     SCGeneric_218,

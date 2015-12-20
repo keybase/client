@@ -9,8 +9,12 @@ import (
 )
 
 type updateResponse struct {
-	Status keybase1.Status `codec:"status" json:"status"`
+	Status libkb.AppStatus `json:"status"`
 	Update keybase1.Update `codec:"update" json:"update"`
+}
+
+func (k *updateResponse) GetAppStatus() *libkb.AppStatus {
+	return &k.Status
 }
 
 // KeybaseUpdateSource finds releases/updates from custom url (used primarily for testing)

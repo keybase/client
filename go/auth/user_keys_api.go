@@ -27,8 +27,13 @@ type serverState struct {
 }
 
 type pubsubResponse struct {
+	Status      libkb.AppStatus      `json:"status"`
 	ServerState serverState          `json:"server_state"`
 	Messages    []pubsubMessageOuter `json:"messages"`
+}
+
+func (p *pubsubResponse) GetAppStatus() *libkb.AppStatus {
+	return &p.Status
 }
 
 var _ UserKeyAPIer = (*userKeyAPI)(nil)
@@ -39,8 +44,13 @@ type userKeysResPublicKeys struct {
 }
 
 type userKeyRes struct {
+	Status     libkb.AppStatus       `json:"status"`
 	Username   string                `json:"username"`
 	PublicKeys userKeysResPublicKeys `json:"public_keys"`
+}
+
+func (k *userKeyRes) GetAppStatus() *libkb.AppStatus {
+	return &k.Status
 }
 
 type userKeyAPI struct {

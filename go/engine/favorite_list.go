@@ -44,8 +44,13 @@ func (e *FavoriteList) SubConsumers() []libkb.UIConsumer {
 }
 
 type FavoritesResult struct {
+	Status    libkb.AppStatus   `json:"status"`
 	Favorites []keybase1.Folder `json:"favorites"`
 	Ignored   []keybase1.Folder `json:"ignored"`
+}
+
+func (f *FavoritesResult) GetAppStatus() *libkb.AppStatus {
+	return &f.Status
 }
 
 // Run starts the engine.
