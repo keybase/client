@@ -239,7 +239,7 @@ func testRoundTrip(t *testing.T, msg []byte, receivers []BoxPublicKey, opts *opt
 		t.Fatal(err)
 	}
 
-	plaintextStream, err := NewDecryptStream(&ciphertext, kr)
+	_, plaintextStream, err := NewDecryptStream(&ciphertext, kr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -298,12 +298,27 @@ func testRealEncryptor(t *testing.T, sz int) {
 		t.Fatal(err)
 	}
 
-	msg2, err := Open(ciphertext.Bytes(), kr)
+	mki, msg2, err := Open(ciphertext.Bytes(), kr)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(msg2, msg) {
 		t.Fatal("decryption mismatch")
+	}
+	if mki.SenderIsAnon {
+		t.Fatal("sender should't be anon")
+	}
+	if mki.ReceiverIsAnon {
+		t.Fatal("receiver shouldn't be anon")
+	}
+	if !PublicKeyEqual(sndr.GetPublicKey(), mki.SenderKey) {
+		t.Fatal("got wrong sender key")
+	}
+	if !PublicKeyEqual(receivers[0], mki.ReceiverKey.GetPublicKey()) {
+		t.Fatal("wrong receiver key")
+	}
+	if mki.NumAnonReceivers != 0 {
+		t.Fatal("wrong number of anon receivers")
 	}
 }
 
@@ -371,7 +386,7 @@ func TestReceiverNotFound(t *testing.T) {
 	if err := strm.Close(); err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(out.Bytes(), kr)
+	_, _, err = Open(out.Bytes(), kr)
 	if err != ErrNoDecryptionKey {
 		t.Fatalf("expected an ErrNoDecryptionkey; got %v", err)
 	}
@@ -396,7 +411,7 @@ func TestTruncation(t *testing.T) {
 
 	ciphertext := out.Bytes()
 	trunced1 := ciphertext[0 : len(ciphertext)-51]
-	_, err = Open(trunced1, kr)
+	_, _, err = Open(trunced1, kr)
 	if err != io.ErrUnexpectedEOF {
 		t.Fatalf("Wanted an %v; but got %v\n", io.ErrUnexpectedEOF, err)
 	}
@@ -437,7 +452,7 @@ func testSealAndOpen(t *testing.T, sz int) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plaintext2, err := Open(ciphertext, kr)
+	_, plaintext2, err := Open(ciphertext, kr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -468,7 +483,7 @@ func TestSealAndOpenTwoReceivers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	plaintext2, err := Open(ciphertext, kr)
+	_, plaintext2, err := Open(ciphertext, kr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -513,7 +528,7 @@ func TestCorruptHeaderNonce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != errPublicKeyDecryptionFailed {
 		t.Fatalf("Wanted an error %v; got %v", errPublicKeyDecryptionFailed, err)
 	}
@@ -546,7 +561,7 @@ func TestCorruptHeaderNonceR5(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != errPublicKeyDecryptionFailed {
 		t.Fatalf("Wanted an error %v; got %v", errPublicKeyDecryptionFailed, err)
 	}
@@ -567,7 +582,7 @@ func TestCorruptHeaderNonceR5(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -597,7 +612,7 @@ func TestCorruptReceiverKeysCiphertextR5(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != errPublicKeyDecryptionFailed {
 		t.Fatalf("Wanted an error %v; got %v", errPublicKeyDecryptionFailed, err)
 	}
@@ -615,7 +630,7 @@ func TestCorruptReceiverKeysCiphertextR5(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -650,7 +665,7 @@ func TestCorruptReceiverKeysPlaintext(t *testing.T) {
 
 	// If we've corrupted the sender key, the first thing that will fail is the
 	// Tag check for this receiver on packet #1.
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if ebt, ok := err.(ErrBadTag); !ok || int(ebt) != 1 {
 		t.Fatalf("Got wrong error; wanted %v but got %v", ErrNoSenderKey, ErrBadTag(1))
 	}
@@ -670,7 +685,7 @@ func TestCorruptReceiverKeysPlaintext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if mm, ok := err.(ErrBadCiphertext); !ok {
 		t.Fatalf("Got wrong error; wanted 'Bad Ciphertext' but got %v", err)
 	} else if int(mm) != 1 {
@@ -689,7 +704,7 @@ func TestCorruptReceiverKeysPlaintext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != ErrBadSenderKey {
 		t.Fatalf("Bad error: wanted %v but got %v", ErrBadSenderKey, err)
 	}
@@ -706,7 +721,7 @@ func TestMissingFooter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != io.ErrUnexpectedEOF {
 		t.Fatalf("Wanted %v but got %v", io.ErrUnexpectedEOF, err)
 	}
@@ -729,7 +744,7 @@ func TestCorruptEncryption(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if mm, ok := err.(ErrBadCiphertext); !ok {
 		t.Fatalf("Got wrong error; wanted 'Bad Ciphertext' but got %v", err)
 	} else if int(mm) != 3 {
@@ -748,7 +763,7 @@ func TestCorruptEncryption(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if mm, ok := err.(ErrBadTag); !ok {
 		t.Fatalf("Got wrong error; wanted 'Bad Tag; failed Poly1305' but got %v", err)
 	} else if int(mm) != 3 {
@@ -774,7 +789,7 @@ func TestCorruptEncryption(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if emm, ok := err.(ErrBadTag); !ok {
 		t.Fatalf("Expected a 'bad tag' error but got %v", err)
 	} else if int(emm) != 1 {
@@ -801,7 +816,7 @@ func TestCorruptNonce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if bcte, ok := err.(ErrBadTag); !ok {
 		t.Fatalf("Wanted error 'ErrBadTag' but got %v", err)
 	} else if int(bcte) != 3 {
@@ -825,7 +840,7 @@ func TestCorruptHeader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if ebv, ok := err.(ErrBadVersion); !ok {
 		t.Fatalf("Got wrong error; wanted 'Bad Version' but got %v", err)
 	} else if int(ebv.seqno) != 0 {
@@ -845,7 +860,7 @@ func TestCorruptHeader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if ebv, ok := err.(ErrWrongMessageType); !ok {
 		t.Fatalf("Got wrong error; wanted 'Bad Type' but got %v", err)
 	} else if ebv.wanted != MessageTypeEncryption {
@@ -866,7 +881,7 @@ func TestCorruptHeader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err == nil || err.Error() != "only encoded map or array can be decoded into a struct" {
 		t.Fatalf("wanted a msgpack decode error")
 	}
@@ -885,7 +900,7 @@ func TestCorruptHeader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err == nil || err.Error() != "only encoded map or array can be decoded into a struct" {
 		t.Fatalf("wanted a msgpack decode error")
 	}
@@ -901,7 +916,7 @@ func TestNoSenderKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != ErrNoSenderKey {
 		t.Fatalf("Wanted %v but got %v", ErrNoSenderKey, err)
 	}
@@ -918,7 +933,7 @@ func TestSealAndOpenTrailingGarbage(t *testing.T) {
 	var buf bytes.Buffer
 	buf.Write(ciphertext)
 	newEncoder(&buf).Encode(randomMsg(t, 14))
-	_, err = Open(buf.Bytes(), kr)
+	_, _, err = Open(buf.Bytes(), kr)
 	if err != ErrTrailingGarbage {
 		t.Fatalf("Wanted 'ErrTrailingGarbage' but got %v", err)
 	}
@@ -931,7 +946,7 @@ func TestAnonymousSender(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -953,13 +968,30 @@ func TestAllAnonymous(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != ErrNoDecryptionKey {
 		t.Fatalf("Got %v but wanted %v", err, ErrNoDecryptionKey)
 	}
-	_, err = Open(ciphertext, kr.makeIterable())
+
+	var mki *MessageKeyInfo
+	mki, _, err = Open(ciphertext, kr.makeIterable())
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !mki.SenderIsAnon {
+		t.Fatal("sender should be anon")
+	}
+	if !mki.ReceiverIsAnon {
+		t.Fatal("receiver should be anon")
+	}
+	if !PublicKeyEqual(receivers[5], mki.ReceiverKey.GetPublicKey()) {
+		t.Fatal("wrong receiver key")
+	}
+	if mki.NumAnonReceivers != 8 {
+		t.Fatal("wrong number of anon receivers")
+	}
+	if len(mki.NamedReceivers) > 0 {
+		t.Fatal("got named receivers")
 	}
 
 	receivers[5] = newHiddenBoxKeyNoInsert(t).GetPublicKey()
@@ -967,10 +999,25 @@ func TestAllAnonymous(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr.makeIterable())
+
+	mki, _, err = Open(ciphertext, kr.makeIterable())
 	if err != ErrNoDecryptionKey {
 		t.Fatalf("Got %v but wanted %v", err, ErrNoDecryptionKey)
 	}
+
+	if mki.SenderIsAnon {
+		t.Fatal("that the sender is anon isn't known!")
+	}
+	if mki.ReceiverKey != nil {
+		t.Fatal("non-nil receiver key")
+	}
+	if mki.NumAnonReceivers != 8 {
+		t.Fatal("wrong number of anon receivers")
+	}
+	if len(mki.NamedReceivers) > 0 {
+		t.Fatal("got named receivers")
+	}
+
 }
 
 func TestCorruptEmpheralKey(t *testing.T) {
@@ -985,7 +1032,7 @@ func TestCorruptEmpheralKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != ErrBadEphemeralKey {
 		t.Fatalf("Got %v but wanted %v", err, ErrBadEphemeralKey)
 	}
@@ -1007,7 +1054,7 @@ func TestCiphertextSwapKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != errPublicKeyDecryptionFailed {
 		t.Fatalf("Got %v but wanted %v", err, errPublicKeyDecryptionFailed)
 	}
@@ -1029,7 +1076,7 @@ func TestEmptyReceiverKID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, kr)
 	if err != ErrNoDecryptionKey {
 		t.Fatalf("Got %v but wanted %v", err, ErrNoDecryptionKey)
 	}

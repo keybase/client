@@ -12,35 +12,35 @@ import (
 // NewDearmor62DecryptStream makes a new stream that dearmors and decrypts the given
 // Reader stream. Pass it a keyring so that it can lookup private and public keys
 // as necessary
-func NewDearmor62DecryptStream(ciphertext io.Reader, kr Keyring) (plaintext io.Reader, frame Frame, err error) {
+func NewDearmor62DecryptStream(ciphertext io.Reader, kr Keyring) (*MessageKeyInfo, io.Reader, Frame, error) {
 	dearmored, frame, err := NewArmor62DecoderStream(ciphertext)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	r, err := NewDecryptStream(dearmored, kr)
+	mki, r, err := NewDecryptStream(dearmored, kr)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return r, frame, nil
+	return mki, r, frame, nil
 }
 
 // Dearmor62DecryptOpen takes an armor62'ed, encrypted ciphertext and attempts to
 // dearmor and decrypt it, using the provided keyring. Checks that the frames in the
 // armor are as expected.
-func Dearmor62DecryptOpen(ciphertext string, kr Keyring) (plaintext []byte, err error) {
+func Dearmor62DecryptOpen(ciphertext string, kr Keyring) (*MessageKeyInfo, []byte, error) {
 	buf := bytes.NewBufferString(ciphertext)
-	s, frame, err := NewDearmor62DecryptStream(buf, kr)
+	mki, s, frame, err := NewDearmor62DecryptStream(buf, kr)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	out, err := ioutil.ReadAll(s)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err = CheckArmor62Frame(frame); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return out, nil
+	return mki, out, nil
 }
 
 // CheckArmor62Frame checks that the frame matches our standard

@@ -14,7 +14,6 @@ import (
 type decryptState int
 
 const (
-	stateHeader      decryptState = iota
 	stateBody        decryptState = iota
 	stateEndOfStream decryptState = iota
 )
@@ -30,6 +29,17 @@ type decryptStream struct {
 	nonce      *Nonce
 	tagKey     BoxPrecomputedSharedKey
 	position   int
+	mki        MessageKeyInfo
+}
+
+// MessageKeyInfo conveys all of the data about the keys used in this encrypted message.
+type MessageKeyInfo struct {
+	SenderKey        BoxPublicKey
+	SenderIsAnon     bool
+	ReceiverKey      BoxSecretKey
+	ReceiverIsAnon   bool
+	NamedReceivers   [][]byte
+	NumAnonReceivers int
 }
 
 func (ds *decryptStream) Read(b []byte) (n int, err error) {
@@ -60,13 +70,6 @@ func (ds *decryptStream) read(b []byte) (n int, err error) {
 
 	// We have three states we can be in, but we can definitely
 	// fall through during one read, so be careful.
-
-	if ds.state == stateHeader {
-		if ds.err = ds.readHeader(); ds.err != nil {
-			return 0, ds.err
-		}
-		ds.state = stateBody
-	}
 
 	if ds.state == stateBody {
 		var last bool
@@ -141,6 +144,7 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey
 			kids = append(kids, r.ReceiverKID)
 		}
 	}
+	ds.mki.NamedReceivers = kids
 
 	i, sk := ds.ring.LookupBoxSecretKey(kids)
 	if i < 0 || sk == nil {
@@ -160,13 +164,22 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey
 func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, BoxPrecomputedSharedKey, []byte, int) {
 	secretKeys := ds.ring.GetAllSecretKeys()
 
+	for _, r := range hdr.Receivers {
+		if len(r.ReceiverKID) == 0 {
+			ds.mki.NumAnonReceivers++
+		}
+	}
+
 	for _, secretKey := range secretKeys {
+
 		shared := secretKey.Precompute(ephemeralKey)
 
 		for i, r := range hdr.Receivers {
-			keysRaw, err := shared.Unbox(ds.nonce.ForKeyBox(), r.Keys)
-			if err == nil {
-				return secretKey, shared, keysRaw, i
+			if len(r.ReceiverKID) == 0 {
+				keysRaw, err := shared.Unbox(ds.nonce.ForKeyBox(), r.Keys)
+				if err == nil {
+					return secretKey, shared, keysRaw, i
+				}
 			}
 		}
 	}
@@ -196,10 +209,12 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	}
 	if secretKey == nil {
 		secretKey, ds.tagKey, keysPacked, ds.position = ds.tryHiddenReceivers(hdr, ephemeralKey)
+		ds.mki.ReceiverIsAnon = true
 	}
 	if secretKey == nil || ds.position < 0 {
 		return ErrNoDecryptionKey
 	}
+	ds.mki.ReceiverKey = secretKey
 
 	var keys receiverKeysPlaintext
 	if err = decodeFromBytes(&keys, keysPacked); err != nil {
@@ -220,6 +235,10 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 			return ErrNoSenderKey
 		}
 		ds.tagKey = secretKey.Precompute(longLivedSenderKey)
+		ds.mki.SenderKey = longLivedSenderKey
+	} else {
+		ds.mki.SenderIsAnon = true
+		ds.mki.SenderKey = ephemeralKey
 	}
 
 	copy(ds.sessionKey[:], keys.SessionKey)
@@ -255,26 +274,43 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 	return plaintext, nil
 }
 
-// NewDecryptStream starts a streaming decryption. You should give it an io.Writer
-// to write plaintext output to, and also a Keyring to lookup private and public keys
-// as necessary. The stream will only ever write validated data.  It returns
-// an io.Writer that you can write the ciphertext stream to, and an error if anything
-// goes wrong in the construction process.
-func NewDecryptStream(r io.Reader, keyring Keyring) (ds io.Reader, err error) {
-	ds = &decryptStream{
+// NewDecryptStream starts a streaming decryption. It synchronously ingests
+// and parses the given Reader's encryption header. It consults the passed
+// keyring for the decryption keys needed to decrypt the message. On failure,
+// it returns a null Reader and an error message. On success, it returns a
+// Reader with the plaintext stream, and a nil error. In either case, it will
+// return a `MessageKeyInfo` which tells about who the sender was, and which of the
+// Receiver's keys was used to decrypt the message.
+//
+// Note that the caller has an opportunity not to ingest the plaintext if he
+// doesn't trust the sender revealed in the MessageKeyInfo.
+//
+func NewDecryptStream(r io.Reader, keyring Keyring) (mki *MessageKeyInfo, plaintext io.Reader, err error) {
+	ds := &decryptStream{
 		ring: keyring,
 		fmps: newFramedMsgpackStream(r),
 	}
-	return ds, nil
+
+	err = ds.readHeader()
+	if err != nil {
+		return &ds.mki, nil, err
+	}
+
+	return &ds.mki, ds, nil
 }
 
 // Open simply opens a ciphertext given the set of keys in the specified keyring.
-// It return a plaintext on sucess, and an error on failure.
-func Open(ciphertext []byte, keyring Keyring) (plaintext []byte, err error) {
+// It returns a plaintext on sucess, and an error on failure. It returns the header's
+// MessageKeyInfo in either case.
+func Open(ciphertext []byte, keyring Keyring) (i *MessageKeyInfo, plaintext []byte, err error) {
 	buf := bytes.NewBuffer(ciphertext)
-	plaintextStream, err := NewDecryptStream(buf, keyring)
+	mki, plaintextStream, err := NewDecryptStream(buf, keyring)
 	if err != nil {
-		return nil, err
+		return mki, nil, err
 	}
-	return ioutil.ReadAll(plaintextStream)
+	ret, err := ioutil.ReadAll(plaintextStream)
+	if err != nil {
+		return nil, nil, err
+	}
+	return mki, ret, err
 }
