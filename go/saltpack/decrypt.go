@@ -34,10 +34,14 @@ type decryptStream struct {
 
 // MessageKeyInfo conveys all of the data about the keys used in this encrypted message.
 type MessageKeyInfo struct {
-	SenderKey        BoxPublicKey
-	SenderIsAnon     bool
-	ReceiverKey      BoxSecretKey
-	ReceiverIsAnon   bool
+	// These fields are cryptographically verified
+	SenderKey      BoxPublicKey
+	SenderIsAnon   bool
+	ReceiverKey    BoxSecretKey
+	ReceiverIsAnon bool
+
+	// These fields are not cryptographically verified, and are just repeated from what
+	// we saw in the incoming message.
 	NamedReceivers   [][]byte
 	NumAnonReceivers int
 }
