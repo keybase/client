@@ -1081,3 +1081,23 @@ func TestEmptyReceiverKID(t *testing.T) {
 		t.Fatalf("Got %v but wanted %v", err, ErrNoDecryptionKey)
 	}
 }
+
+func TestAnonymousThenNamed(t *testing.T) {
+	receivers := []BoxPublicKey{
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
+	}
+	plaintext := randomMsg(t, 1024*3)
+	ciphertext, err := Seal(plaintext, nil, receivers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Open(ciphertext, kr)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
