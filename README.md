@@ -9,15 +9,14 @@ To run the KBFS FUSE client:
 * Check out https://github.com/keybase/keybase, and follow its
   README.md to install and run a local copy of the Keybase webserver
   on port 3000.
+* Install Go 1.5.
 
 * Check out https://github.com/keybase/client, and do:
 
-        go get -u -f ./...
-        cd client/go/keybase && go build && cd ../../..
         ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/github.com/keybase/kbfs/.git/hooks/
         go get -u github.com/golang/lint/golint
         go get golang.org/x/tools/cmd/vet
-        
+
 If the last command fails please see [here](https://groups.google.com/forum/#!msg/golang-nuts/lz0nPiUwfUk/E92u9uZhMHYJ).
 
 * Run the service
@@ -36,7 +35,7 @@ Now, in kbfs/:
     go get -u ./...
     ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit .git/pre-commit
     cd kbfsfuse
-    go build
+    GO15VENDOREXPERIMENT=1 go build
     mkdir /tmp/kbfs  # or whatever you prefer
     HOME=~/kbtest ./kbfsfuse -debug -client /tmp/kbfs
 
@@ -68,7 +67,17 @@ Though it doesn't happen automatically, we also expect your code to be
 as "lint-free" as possible.  Running golint is easy from the top-level
 kbfs directory:
 
-    make golint
+    make lint
+
+# Vendoring
+
+KBFS vendors all of its dependencies into the local `vendor`
+directory.  To add or update dependencies, use the `govendor` tool, as
+follows:
+
+    go install github.com/kardianos/govendor
+    govendor add github.com/foo/bar  # or `govendor update`
+    git add vendor
 
 # Testing
 
