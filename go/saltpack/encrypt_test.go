@@ -31,6 +31,7 @@ type keyring struct {
 	keys      map[string]BoxSecretKey
 	blacklist map[string]struct{}
 	iterable  bool
+	bad       bool
 }
 
 func newKeyring() *keyring {
@@ -81,6 +82,9 @@ func (r *keyring) makeIterable() *keyring {
 func (r *keyring) LookupBoxSecretKey(kids [][]byte) (int, BoxSecretKey) {
 	for i, kid := range kids {
 		if key, _ := r.keys[hex.EncodeToString(kid)]; key != nil {
+			if r.bad {
+				return (len(kids)*4 + i), key
+			}
 			return i, key
 		}
 	}
@@ -1087,9 +1091,9 @@ func TestAnonymousThenNamed(t *testing.T) {
 		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
 		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
 		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
 		newBoxKey(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
 	}
 	plaintext := randomMsg(t, 1024*3)
 	ciphertext, err := Seal(plaintext, nil, receivers)
@@ -1100,4 +1104,26 @@ func TestAnonymousThenNamed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestBadKeyLookup(t *testing.T) {
+	receivers := []BoxPublicKey{
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+	}
+	plaintext := randomMsg(t, 1024*3)
+	ciphertext, err := Seal(plaintext, nil, receivers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kr.bad = true
+	_, _, err = Open(ciphertext, kr)
+	if err != ErrBadLookup {
+		t.Fatal(err)
+	}
+	kr.bad = false
 }

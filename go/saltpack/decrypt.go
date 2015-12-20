@@ -139,8 +139,10 @@ func (ds *decryptStream) assertEndOfStream() error {
 
 func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, BoxPrecomputedSharedKey, []byte, int, error) {
 	var kids [][]byte
-	for _, r := range hdr.Receivers {
-		if r.ReceiverKID != nil {
+	tab := make(map[int]int)
+	for i, r := range hdr.Receivers {
+		if len(r.ReceiverKID) != 0 {
+			tab[len(kids)] = i // Keep track of where it was in the original list
 			kids = append(kids, r.ReceiverKID)
 		}
 	}
@@ -153,12 +155,18 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey
 
 	// Decrypt the sender's public key
 	shared := sk.Precompute(ephemeralKey)
-	keysRaw, err := shared.Unbox(ds.nonce.ForKeyBox(), hdr.Receivers[i].Keys)
+
+	orig, ok := tab[i]
+	if !ok {
+		return nil, nil, nil, -1, ErrBadLookup
+	}
+
+	keysRaw, err := shared.Unbox(ds.nonce.ForKeyBox(), hdr.Receivers[orig].Keys)
 	if err != nil {
 		return nil, nil, nil, -1, err
 	}
 
-	return sk, shared, keysRaw, i, err
+	return sk, shared, keysRaw, orig, err
 }
 
 func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, BoxPrecomputedSharedKey, []byte, int) {
