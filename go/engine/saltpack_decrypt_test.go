@@ -8,7 +8,15 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
+	"golang.org/x/net/context"
 )
+
+type fakeSaltPackUI struct{}
+
+func (s fakeSaltPackUI) SaltPackPromptForDecrypt(_ context.Context, arg keybase1.SaltPackPromptForDecryptArg) (err error) {
+	return nil
+}
 
 func TestSaltPackDecrypt(t *testing.T) {
 	tc := SetupEngineTest(t, "SaltPackDecrypt")
@@ -22,6 +30,7 @@ func TestSaltPackDecrypt(t *testing.T) {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
+		SaltPackUI: &fakeSaltPackUI{},
 	}
 	// Should encrypt for self, too.
 	arg := &SaltPackEncryptArg{

@@ -419,6 +419,13 @@
       "name" : "noSelfEncrypt",
       "type" : "boolean"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "SaltPackDecryptOptions",
+    "fields" : [ {
+      "name" : "interactive",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
     "saltPackEncrypt" : {
@@ -447,6 +454,9 @@
       }, {
         "name" : "sink",
         "type" : "Stream"
+      }, {
+        "name" : "opts",
+        "type" : "SaltPackDecryptOptions"
       } ],
       "response" : "null"
     }

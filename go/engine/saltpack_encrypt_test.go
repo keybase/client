@@ -112,7 +112,11 @@ func TestSaltPackEncryptNoSelf(t *testing.T) {
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	ctx := &Context{IdentifyUI: trackUI, SecretUI: u2.NewSecretUI()}
+	ctx := &Context{
+		IdentifyUI: trackUI,
+		SecretUI:   u2.NewSecretUI(),
+		SaltPackUI: &fakeSaltPackUI{},
+	}
 
 	sink := libkb.NewBufferCloser()
 	arg := &SaltPackEncryptArg{
@@ -149,7 +153,7 @@ func TestSaltPackEncryptNoSelf(t *testing.T) {
 	Logout(tc)
 	u1.Login(tc.G)
 
-	ctx = &Context{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
+	ctx.SecretUI = u1.NewSecretUI()
 	decarg.Source = strings.NewReader(string(out))
 	dec = NewSaltPackDecrypt(decarg, tc.G)
 	err = RunEngine(dec, ctx)

@@ -108,7 +108,7 @@ func (i *Identify2WithUIDTester) Finish() {
 	i.finishCh <- struct{}{}
 }
 
-func (i *Identify2WithUIDTester) Start(string) {
+func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason) {
 	i.startCh <- struct{}{}
 }
 

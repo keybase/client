@@ -49,6 +49,7 @@ build-stamp: \
 	json/quota.json \
 	json/revoke.json \
 	json/saltpack.json \
+	json/saltpack_ui.json \
 	json/secret_ui.json \
 	json/session.json \
 	json/signup.json \

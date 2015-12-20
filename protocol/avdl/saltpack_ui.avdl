@@ -1,0 +1,18 @@
+
+@namespace("keybase.1")
+protocol saltPackUi {
+  import idl "common.avdl";
+
+  enum SaltPackSenderType {
+  	NOT_TRACKED_0,
+  	UNKNOWN_1,
+  	ANONYMOUS_2,
+  	TRACKING_BROKE_3,
+  	TRACKING_OK_4
+  }
+
+  // Users might want to prevent a decryption on the basis of who sent the message,
+  // and if something fishy might have happened.
+  void saltPackPromptForDecrypt(int sessionID, UID uid, string username, SaltPackSenderType senderType);
+
+}

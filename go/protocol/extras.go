@@ -446,3 +446,10 @@ func (f Folder) ToString() string {
 func (t TrackToken) String() string {
 	return string(t)
 }
+
+func KIDFromRawKey(b []byte, keyType byte) KID {
+	tmp := []byte{KidVersion, keyType}
+	tmp = append(tmp, b...)
+	tmp = append(tmp, byte(KidSuffix))
+	return KIDFromSlice(tmp)
+}

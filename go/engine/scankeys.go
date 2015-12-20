@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/packet"
 )
@@ -238,7 +239,7 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 
 // apiLookup gets the username and uid from the api server for the
 // key id.
-func (s *ScanKeys) apiLookup(id uint64) (username, uid string, err error) {
+func (s *ScanKeys) apiLookup(id uint64) (username string, uid keybase1.UID, err error) {
 	return libkb.PGPLookup(s.G(), id)
 }
 

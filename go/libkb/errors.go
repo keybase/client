@@ -1235,3 +1235,11 @@ type NoUIDError struct{}
 func (e NoUIDError) Error() string {
 	return "No UID given but one was expected"
 }
+
+//=============================================================================
+
+type TrackingBrokeError struct{}
+
+func (e TrackingBrokeError) Error() string {
+	return "Tracking broke"
+}

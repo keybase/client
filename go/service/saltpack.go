@@ -16,6 +16,23 @@ type SaltPackHandler struct {
 	libkb.Contextified
 }
 
+type RemoteSaltPackUI struct {
+	sessionID int
+	cli       keybase1.SaltPackUiClient
+}
+
+func NewRemoteSaltPackUI(sessionID int, c *rpc.Client) *RemoteSaltPackUI {
+	return &RemoteSaltPackUI{
+		sessionID: sessionID,
+		cli:       keybase1.SaltPackUiClient{Cli: c},
+	}
+}
+
+func (r *RemoteSaltPackUI) SaltPackPromptForDecrypt(ctx context.Context, arg keybase1.SaltPackPromptForDecryptArg) (err error) {
+	arg.SessionID = r.sessionID
+	return r.cli.SaltPackPromptForDecrypt(ctx, arg)
+}
+
 func NewSaltPackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltPackHandler {
 	return &SaltPackHandler{
 		BaseHandler:  NewBaseHandler(xp),
@@ -30,11 +47,13 @@ func (h *SaltPackHandler) SaltPackDecrypt(_ context.Context, arg keybase1.SaltPa
 	earg := &engine.SaltPackDecryptArg{
 		Sink:   snk,
 		Source: src,
+		Opts:   arg.Opts,
 	}
 
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID),
+		SaltPackUI: h.getSaltPackUI(arg.SessionID),
 	}
 	eng := engine.NewSaltPackDecrypt(earg, h.G())
 	return engine.RunEngine(eng, ctx)

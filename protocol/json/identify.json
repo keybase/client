@@ -304,10 +304,20 @@
       "type" : "boolean"
     } ]
   }, {
+    "type" : "enum",
+    "name" : "IdentifyReasonType",
+    "symbols" : [ "NONE_0", "ID_1", "TRACK_2", "ENCRYPT_3", "DECRYPT_4", "VERIFY_5", "RESOURCE_6" ]
+  }, {
     "type" : "record",
     "name" : "IdentifyReason",
     "fields" : [ {
+      "name" : "type",
+      "type" : "IdentifyReasonType"
+    }, {
       "name" : "reason",
+      "type" : "string"
+    }, {
+      "name" : "resource",
       "type" : "string"
     } ]
   }, {
@@ -468,6 +478,14 @@
         "type" : "IdentifyReason"
       }, {
         "name" : "useDelegateUI",
+        "type" : "boolean",
+        "default" : false
+      }, {
+        "name" : "alwaysBlock",
+        "type" : "boolean",
+        "default" : false
+      }, {
+        "name" : "noErrorOnTrackFailure",
         "type" : "boolean",
         "default" : false
       } ],

@@ -24,6 +24,7 @@ type Context struct {
 
 	LoginContext libkb.LoginContext
 	NetContext   context.Context
+	SaltPackUI   libkb.SaltPackUI
 }
 
 func (c *Context) HasUI(kind libkb.UIKind) bool {
@@ -46,6 +47,8 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 		return c.ProvisionUI != nil
 	case libkb.UpdateUIKind:
 		return c.UpdateUI != nil
+	case libkb.SaltPackUIKind:
+		return c.SaltPackUI != nil
 	}
 	panic(fmt.Sprintf("unhandled kind:  %d", kind))
 }

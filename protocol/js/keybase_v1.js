@@ -84,6 +84,7 @@ export default {
       'scresolutionfailed': 275,
       'scprofilenotpublic': 276,
       'scidentifyfailed': 277,
+      'sctrackingbroke': 278,
       'scbadsignupusernametaken': 701,
       'scmissingresult': 801,
       'sckeynotfound': 901,
@@ -328,6 +329,15 @@ export default {
       'updateNewProofs': 5,
       'updateOk': 6
     },
+    'IdentifyReasonType': {
+      'none': 0,
+      'id': 1,
+      'track': 2,
+      'encrypt': 3,
+      'decrypt': 4,
+      'verify': 5,
+      'resource': 6
+    },
     'IdentifySource': {
       'cli': 0,
       'kbfs': 1
@@ -432,6 +442,15 @@ export default {
       'updateBroken': 4,
       'updateNewProofs': 5,
       'updateOk': 6
+    },
+    'IdentifyReasonType': {
+      'none': 0,
+      'id': 1,
+      'track': 2,
+      'encrypt': 3,
+      'decrypt': 4,
+      'verify': 5,
+      'resource': 6
     }
   },
   'install': {
@@ -1119,6 +1138,34 @@ export default {
       'updateOk': 6
     }
   },
+  'saltPackUi': {
+    'LogLevel': {
+      'none': 0,
+      'debug': 1,
+      'info': 2,
+      'notice': 3,
+      'warn': 4,
+      'error': 5,
+      'critical': 6,
+      'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
+    },
+    'SaltPackSenderType': {
+      'notTracked': 0,
+      'unknown': 1,
+      'anonymous': 2,
+      'trackingBroke': 3,
+      'trackingOk': 4
+    }
+  },
   'secretUi': {},
   'session': {
     'LogLevel': {
@@ -1304,6 +1351,15 @@ export default {
       'updateBroken': 4,
       'updateNewProofs': 5,
       'updateOk': 6
+    },
+    'IdentifyReasonType': {
+      'none': 0,
+      'id': 1,
+      'track': 2,
+      'encrypt': 3,
+      'decrypt': 4,
+      'verify': 5,
+      'resource': 6
     }
   },
   'ui': {

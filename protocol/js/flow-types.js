@@ -557,9 +557,9 @@ export type Config = {
   forkType: ForkType;
 }
 
-export type constants_StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_201' */ | 202 /* 'SCBadSession_202' */ | 203 /* 'SCBadLoginUserNotFound_203' */ | 204 /* 'SCBadLoginPassword_204' */ | 205 /* 'SCNotFound_205' */ | 218 /* 'SCGeneric_218' */ | 235 /* 'SCAlreadyLoggedIn_235' */ | 237 /* 'SCCanceled_237' */ | 274 /* 'SCReloginRequired_274' */ | 275 /* 'SCResolutionFailed_275' */ | 276 /* 'SCProfileNotPublic_276' */ | 277 /* 'SCIdentifyFailed_277' */ | 701 /* 'SCBadSignupUsernameTaken_701' */ | 801 /* 'SCMissingResult_801' */ | 901 /* 'SCKeyNotFound_901' */ | 907 /* 'SCKeyInUse_907' */ | 913 /* 'SCKeyBadGen_913' */ | 914 /* 'SCKeyNoSecret_914' */ | 915 /* 'SCKeyBadUIDs_915' */ | 916 /* 'SCKeyNoActive_916' */ | 917 /* 'SCKeyNoSig_917' */ | 918 /* 'SCKeyBadSig_918' */ | 919 /* 'SCKeyBadEldest_919' */ | 920 /* 'SCKeyNoEldest_920' */ | 921 /* 'SCKeyDuplicateUpdate_921' */ | 922 /* 'SCSibkeyAlreadyExists_922' */ | 924 /* 'SCDecryptionKeyNotFound_924' */ | 1301 /* 'SCBadTrackSession_1301' */ | 1409 /* 'SCDeviceNotFound_1409' */ | 1410 /* 'SCDeviceMismatch_1410' */ | 1411 /* 'SCDeviceRequired_1411' */ | 1501 /* 'SCStreamExists_1501' */ | 1502 /* 'SCStreamNotFound_1502' */ | 1503 /* 'SCStreamWrongKind_1503' */ | 1504 /* 'SCStreamEOF_1504' */ | 1601 /* 'SCAPINetworkError_1601' */ | 1602 /* 'SCTimeout_1602' */ | 1701 /* 'SCProofError_1701' */ | 1702 /* 'SCIdentificationExpired_1702' */ | 1703 /* 'SCSelfNotFound_1703' */ | 1704 /* 'SCBadKexPhrase_1704' */ | 1705 /* 'SCNoUIDelegation_1705' */
+export type constants_StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_201' */ | 202 /* 'SCBadSession_202' */ | 203 /* 'SCBadLoginUserNotFound_203' */ | 204 /* 'SCBadLoginPassword_204' */ | 205 /* 'SCNotFound_205' */ | 218 /* 'SCGeneric_218' */ | 235 /* 'SCAlreadyLoggedIn_235' */ | 237 /* 'SCCanceled_237' */ | 274 /* 'SCReloginRequired_274' */ | 275 /* 'SCResolutionFailed_275' */ | 276 /* 'SCProfileNotPublic_276' */ | 277 /* 'SCIdentifyFailed_277' */ | 278 /* 'SCTrackingBroke_278' */ | 701 /* 'SCBadSignupUsernameTaken_701' */ | 801 /* 'SCMissingResult_801' */ | 901 /* 'SCKeyNotFound_901' */ | 907 /* 'SCKeyInUse_907' */ | 913 /* 'SCKeyBadGen_913' */ | 914 /* 'SCKeyNoSecret_914' */ | 915 /* 'SCKeyBadUIDs_915' */ | 916 /* 'SCKeyNoActive_916' */ | 917 /* 'SCKeyNoSig_917' */ | 918 /* 'SCKeyBadSig_918' */ | 919 /* 'SCKeyBadEldest_919' */ | 920 /* 'SCKeyNoEldest_920' */ | 921 /* 'SCKeyDuplicateUpdate_921' */ | 922 /* 'SCSibkeyAlreadyExists_922' */ | 924 /* 'SCDecryptionKeyNotFound_924' */ | 1301 /* 'SCBadTrackSession_1301' */ | 1409 /* 'SCDeviceNotFound_1409' */ | 1410 /* 'SCDeviceMismatch_1410' */ | 1411 /* 'SCDeviceRequired_1411' */ | 1501 /* 'SCStreamExists_1501' */ | 1502 /* 'SCStreamNotFound_1502' */ | 1503 /* 'SCStreamWrongKind_1503' */ | 1504 /* 'SCStreamEOF_1504' */ | 1601 /* 'SCAPINetworkError_1601' */ | 1602 /* 'SCTimeout_1602' */ | 1701 /* 'SCProofError_1701' */ | 1702 /* 'SCIdentificationExpired_1702' */ | 1703 /* 'SCSelfNotFound_1703' */ | 1704 /* 'SCBadKexPhrase_1704' */ | 1705 /* 'SCNoUIDelegation_1705' */
 
-export type StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_201' */ | 202 /* 'SCBadSession_202' */ | 203 /* 'SCBadLoginUserNotFound_203' */ | 204 /* 'SCBadLoginPassword_204' */ | 205 /* 'SCNotFound_205' */ | 218 /* 'SCGeneric_218' */ | 235 /* 'SCAlreadyLoggedIn_235' */ | 237 /* 'SCCanceled_237' */ | 274 /* 'SCReloginRequired_274' */ | 275 /* 'SCResolutionFailed_275' */ | 276 /* 'SCProfileNotPublic_276' */ | 277 /* 'SCIdentifyFailed_277' */ | 701 /* 'SCBadSignupUsernameTaken_701' */ | 801 /* 'SCMissingResult_801' */ | 901 /* 'SCKeyNotFound_901' */ | 907 /* 'SCKeyInUse_907' */ | 913 /* 'SCKeyBadGen_913' */ | 914 /* 'SCKeyNoSecret_914' */ | 915 /* 'SCKeyBadUIDs_915' */ | 916 /* 'SCKeyNoActive_916' */ | 917 /* 'SCKeyNoSig_917' */ | 918 /* 'SCKeyBadSig_918' */ | 919 /* 'SCKeyBadEldest_919' */ | 920 /* 'SCKeyNoEldest_920' */ | 921 /* 'SCKeyDuplicateUpdate_921' */ | 922 /* 'SCSibkeyAlreadyExists_922' */ | 924 /* 'SCDecryptionKeyNotFound_924' */ | 1301 /* 'SCBadTrackSession_1301' */ | 1409 /* 'SCDeviceNotFound_1409' */ | 1410 /* 'SCDeviceMismatch_1410' */ | 1411 /* 'SCDeviceRequired_1411' */ | 1501 /* 'SCStreamExists_1501' */ | 1502 /* 'SCStreamNotFound_1502' */ | 1503 /* 'SCStreamWrongKind_1503' */ | 1504 /* 'SCStreamEOF_1504' */ | 1601 /* 'SCAPINetworkError_1601' */ | 1602 /* 'SCTimeout_1602' */ | 1701 /* 'SCProofError_1701' */ | 1702 /* 'SCIdentificationExpired_1702' */ | 1703 /* 'SCSelfNotFound_1703' */ | 1704 /* 'SCBadKexPhrase_1704' */ | 1705 /* 'SCNoUIDelegation_1705' */
+export type StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_201' */ | 202 /* 'SCBadSession_202' */ | 203 /* 'SCBadLoginUserNotFound_203' */ | 204 /* 'SCBadLoginPassword_204' */ | 205 /* 'SCNotFound_205' */ | 218 /* 'SCGeneric_218' */ | 235 /* 'SCAlreadyLoggedIn_235' */ | 237 /* 'SCCanceled_237' */ | 274 /* 'SCReloginRequired_274' */ | 275 /* 'SCResolutionFailed_275' */ | 276 /* 'SCProfileNotPublic_276' */ | 277 /* 'SCIdentifyFailed_277' */ | 278 /* 'SCTrackingBroke_278' */ | 701 /* 'SCBadSignupUsernameTaken_701' */ | 801 /* 'SCMissingResult_801' */ | 901 /* 'SCKeyNotFound_901' */ | 907 /* 'SCKeyInUse_907' */ | 913 /* 'SCKeyBadGen_913' */ | 914 /* 'SCKeyNoSecret_914' */ | 915 /* 'SCKeyBadUIDs_915' */ | 916 /* 'SCKeyNoActive_916' */ | 917 /* 'SCKeyNoSig_917' */ | 918 /* 'SCKeyBadSig_918' */ | 919 /* 'SCKeyBadEldest_919' */ | 920 /* 'SCKeyNoEldest_920' */ | 921 /* 'SCKeyDuplicateUpdate_921' */ | 922 /* 'SCSibkeyAlreadyExists_922' */ | 924 /* 'SCDecryptionKeyNotFound_924' */ | 1301 /* 'SCBadTrackSession_1301' */ | 1409 /* 'SCDeviceNotFound_1409' */ | 1410 /* 'SCDeviceMismatch_1410' */ | 1411 /* 'SCDeviceRequired_1411' */ | 1501 /* 'SCStreamExists_1501' */ | 1502 /* 'SCStreamNotFound_1502' */ | 1503 /* 'SCStreamWrongKind_1503' */ | 1504 /* 'SCStreamEOF_1504' */ | 1601 /* 'SCAPINetworkError_1601' */ | 1602 /* 'SCTimeout_1602' */ | 1701 /* 'SCProofError_1701' */ | 1702 /* 'SCIdentificationExpired_1702' */ | 1703 /* 'SCSelfNotFound_1703' */ | 1704 /* 'SCBadKexPhrase_1704' */ | 1705 /* 'SCNoUIDelegation_1705' */
 
 export type crypto_ED25519SignatureInfo = {
   sig: ED25519Signature;
@@ -1309,12 +1309,20 @@ export type TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type identify_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
+
+export type IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
+
 export type identify_IdentifyReason = {
+  type: IdentifyReasonType;
   reason: string;
+  resource: string;
 }
 
 export type IdentifyReason = {
+  type: IdentifyReasonType;
   reason: string;
+  resource: string;
 }
 
 export type identify_IdentifyOutcome = {
@@ -1529,8 +1537,12 @@ export type identifyUi_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type identifyUi_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
+
 export type identifyUi_IdentifyReason = {
+  type: IdentifyReasonType;
   reason: string;
+  resource: string;
 }
 
 export type identifyUi_IdentifyOutcome = {
@@ -4206,6 +4218,123 @@ export type SaltPackEncryptOptions = {
   noSelfEncrypt: boolean;
 }
 
+export type saltPack_SaltPackDecryptOptions = {
+  interactive: boolean;
+}
+
+export type SaltPackDecryptOptions = {
+  interactive: boolean;
+}
+
+export type saltPackUi_Time = {
+}
+
+export type saltPackUi_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type saltPackUi_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type saltPackUi_UID = {
+}
+
+export type saltPackUi_DeviceID = {
+}
+
+export type saltPackUi_SigID = {
+}
+
+export type saltPackUi_KID = {
+}
+
+export type saltPackUi_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type saltPackUi_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type saltPackUi_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type saltPackUi_User = {
+  uid: UID;
+  username: string;
+}
+
+export type saltPackUi_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type saltPackUi_Stream = {
+  fd: int;
+}
+
+export type saltPackUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type saltPackUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type saltPackUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type saltPackUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type saltPackUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type saltPackUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type saltPackUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type saltPackUi_SaltPackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */
+
+export type SaltPackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */
+
 export type secretUi_Feature = {
   allow: boolean;
   defaultValue: boolean;
@@ -4912,8 +5041,12 @@ export type track_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type track_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
+
 export type track_IdentifyReason = {
+  type: IdentifyReasonType;
   reason: string;
+  resource: string;
 }
 
 export type track_IdentifyOutcome = {

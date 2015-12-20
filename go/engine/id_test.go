@@ -219,7 +219,7 @@ func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) {
 }
 func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) {
 }
-func (ui *FakeIdentifyUI) Start(username string) {
+func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason) {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.StartCount++

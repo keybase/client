@@ -221,8 +221,8 @@ func (u *RemoteIdentifyUI) DisplayUserCard(card keybase1.UserCard) {
 	return
 }
 
-func (u *RemoteIdentifyUI) Start(username string) {
-	u.uicli.Start(context.TODO(), keybase1.StartArg{SessionID: u.sessionID, Username: username})
+func (u *RemoteIdentifyUI) Start(username string, reason keybase1.IdentifyReason) {
+	u.uicli.Start(context.TODO(), keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason})
 }
 
 func (u *RemoteIdentifyUI) Finish() {

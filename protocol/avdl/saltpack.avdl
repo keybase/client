@@ -10,7 +10,11 @@ protocol saltPack {
     boolean noSelfEncrypt;
   }
 
+  record SaltPackDecryptOptions {
+  	boolean interactive;
+  }
+
   void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltPackEncryptOptions opts);
 
-  void saltPackDecrypt(int sessionID, Stream source, Stream sink);
+  void saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
 }

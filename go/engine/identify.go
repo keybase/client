@@ -36,6 +36,7 @@ type IdentifyArg struct {
 	TrackOptions keybase1.TrackOptions
 
 	Source keybase1.IdentifySource
+	Reason keybase1.IdentifyReason
 }
 
 func NewIdentifyArg(targetUsername string, withTracking, forceRemoteCheck bool) *IdentifyArg {
@@ -119,7 +120,7 @@ func (e *Identify) Run(ctx *Context) error {
 		}
 	}
 
-	ctx.IdentifyUI.Start(e.user.GetName())
+	ctx.IdentifyUI.Start(e.user.GetName(), e.arg.Reason)
 
 	e.outcome, err = e.run(ctx)
 	if err != nil {

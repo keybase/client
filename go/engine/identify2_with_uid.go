@@ -21,6 +21,14 @@ type Identify2WithUIDTestArgs struct {
 	clock    func() time.Time
 }
 
+type identify2TrackType int
+
+const (
+	identify2NoTrack identify2TrackType = iota
+	identify2TrackOK
+	identify2TrackBroke
+)
+
 //
 // TODOs:
 //   - think harder about what we're caching in failure cases; right now we're only
@@ -105,7 +113,7 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
 func (e *Identify2WithUID) run(ctx *Context) {
 	err := e.runReturnError(ctx)
-	e.unblock(err)
+	e.unblock( /* isFinal */ true, err)
 }
 
 func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
@@ -175,7 +183,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 	// we can unblock the RPC caller here, and perform the identifyUI operations
 	// in the background.
 	if !e.useTracking && !e.useRemoteAssertions() {
-		e.unblock(nil)
+		e.unblock( /* isFinal */ false, nil)
 	}
 
 	if err = e.runIdentifyUI(ctx); err != nil {
@@ -192,10 +200,14 @@ func (e *Identify2WithUID) getNow() time.Time {
 	return time.Now()
 }
 
-func (e *Identify2WithUID) unblock(err error) {
+func (e *Identify2WithUID) unblock(isFinal bool, err error) {
 	e.G().Log.Debug("| unblocking...")
-	e.resultCh <- err
-	e.G().Log.Debug("| unblock sent...")
+	if e.arg.AlwaysBlock && !isFinal {
+		e.G().Log.Debug("| skipping unblock; isFinal=%v; AlwaysBlock=%v...", isFinal, e.arg.AlwaysBlock)
+	} else {
+		e.resultCh <- err
+		e.G().Log.Debug("| unblock sent...")
+	}
 }
 
 func (e *Identify2WithUID) maybeCacheResult() {
@@ -262,7 +274,7 @@ func (e *Identify2WithUID) CCLCheckCompleted(lcr *libkb.LinkCheckResult) {
 
 	if e.remotesError != nil || e.remotesCompleted {
 		e.G().Log.Debug("| unblocking, with err = %v", e.remotesError)
-		e.unblock(e.remotesError)
+		e.unblock(false, e.remotesError)
 	}
 }
 
@@ -313,7 +325,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.G().Log.Debug("+ runIdentifyUI(%s)", e.them.GetName())
 	e.remotesReceived = libkb.NewProofSet(nil)
 
-	ctx.IdentifyUI.Start(e.them.GetName())
+	ctx.IdentifyUI.Start(e.them.GetName(), e.arg.Reason)
 	for _, k := range e.identifyKeys {
 		ctx.IdentifyUI.DisplayKey(k)
 	}
@@ -326,8 +338,9 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
 	e.maybeCacheResult()
 
-	if err == nil {
-		err = e.state.Result().GetError()
+	if err == nil && !e.arg.NoErrorOnTrackFailure {
+		// We only care about tracking errors in this case; hence GetErrorLax
+		_, err = e.state.Result().GetErrorLax()
 	}
 
 	e.G().Log.Debug("- runIdentifyUI(%s) -> %v", e.them.GetName(), err)
@@ -464,4 +477,15 @@ func (e *Identify2WithUID) getCache() libkb.Identify2Cacher {
 		return e.testArgs.cache
 	}
 	return e.G().Identify2Cache
+}
+
+func (e *Identify2WithUID) getTrackType() identify2TrackType {
+	switch {
+	case !e.useTracking || e.state.Result() == nil:
+		return identify2NoTrack
+	case e.state.Result().IsOK():
+		return identify2TrackOK
+	default:
+		return identify2TrackBroke
+	}
 }
