@@ -1010,7 +1010,7 @@ func TestAllAnonymous(t *testing.T) {
 	}
 
 	if mki.SenderIsAnon {
-		t.Fatal("that the sender is anon isn't known!")
+		t.Fatal("that the sender shouldn't be anonymous")
 	}
 	if mki.ReceiverKey != nil {
 		t.Fatal("non-nil receiver key")
