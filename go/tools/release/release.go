@@ -4,19 +4,23 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"path"
 	"runtime"
+	"strings"
 
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 	gh "github.com/keybase/client/go/tools/release/github"
 )
 
-func githubToken() string {
+func githubToken(required bool) string {
 	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
+	if token == "" && required {
 		log.Fatal("No GITHUB_TOKEN set")
 	}
 	return token
@@ -27,9 +31,11 @@ func tag(version string) string {
 }
 
 var repo = flag.String("repo", "client", "Repository in keybase")
-var version = flag.String("version", libkb.VersionString(), "Version for tag")
+var version = flag.String("version", "", "Version for tag")
 var src = flag.String("src", "", "Path to source file")
 var dest = flag.String("dest", "", "Path to destination file")
+var host = flag.String("host", "", "Host")
+var pkg = flag.String("pkg", "", "Package name")
 
 func main() {
 	flag.Parse()
@@ -40,15 +46,19 @@ func main() {
 	action := flag.Arg(0)
 
 	switch action {
-	case "version":
-		fmt.Printf("%s", libkb.VersionString())
-	case "increment-build":
-		err := libkb.WriteVersion(libkb.Version, libkb.Build+1, *src)
+	case "latest-version":
+		tag, err := gh.LatestTag("keybase", *repo, githubToken(false))
 		if err != nil {
 			log.Fatal(err)
 		}
+		if strings.HasPrefix(tag.Name, "v") {
+			version := tag.Name[1:]
+			fmt.Printf("%s", version)
+		}
+	case "os-name":
+		fmt.Printf("%s", runtime.GOOS)
 	case "url":
-		release, err := gh.ReleaseOfTag("keybase", *repo, tag(*version), githubToken())
+		release, err := gh.ReleaseOfTag("keybase", *repo, tag(*version), githubToken(false))
 		if _, ok := err.(*gh.ErrNotFound); ok {
 			// No release
 		} else if err != nil {
@@ -57,22 +67,30 @@ func main() {
 			fmt.Printf("%s", release.URL)
 		}
 	case "create":
-		err := gh.CreateRelease(githubToken(), *repo, tag(*version), tag(*version))
+		if *version == "" {
+			log.Fatal("No version")
+		}
+		err := gh.CreateRelease(githubToken(true), *repo, tag(*version), tag(*version))
 		if err != nil {
 			log.Fatal(err)
 		}
 	case "upload":
-		defaultDest := fmt.Sprintf("keybase-%s-%s.tgz", *version, runtime.GOOS)
+		if *src == "" {
+			log.Fatal("Need to specify src")
+		}
+		if *version == "" {
+			log.Fatal("No version")
+		}
 		if *dest == "" {
-			dest = &defaultDest
+			dest = src
 		}
 		log.Printf("Uploading %s as %s (%s)", *src, *dest, tag(*version))
-		err := gh.Upload(githubToken(), *repo, tag(*version), *dest, *src)
+		err := gh.Upload(githubToken(true), *repo, tag(*version), *dest, *src)
 		if err != nil {
 			log.Fatal(err)
 		}
 	case "download-source":
-		err := gh.DownloadSource(githubToken(), *repo, tag(*version))
+		err := gh.DownloadSource(githubToken(false), *repo, tag(*version))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -82,9 +100,25 @@ func main() {
 			src = &defaultSrc
 		}
 		log.Printf("Downloading %s (%s)", *src, tag(*version))
-		err := gh.DownloadAsset(githubToken(), *repo, tag(*version), *src)
+		err := gh.DownloadAsset(githubToken(false), *repo, tag(*version), *src)
 		if err != nil {
 			log.Fatal(err)
 		}
+	case "update-json":
+		urlString := fmt.Sprintf("%s/%s", *host, url.QueryEscape(*src))
+		fileName := path.Base(*src)
+		update := keybase1.Update{
+			Version: *version,
+			Name:    tag(*version),
+			Asset: keybase1.Asset{
+				Name: fileName,
+				Url:  urlString,
+			},
+		}
+		out, err := json.MarshalIndent(update, "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Fprintf(os.Stdout, "%s\n", out)
 	}
 }

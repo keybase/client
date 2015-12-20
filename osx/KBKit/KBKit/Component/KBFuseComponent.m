@@ -13,8 +13,6 @@
 #import "KBFormatter.h"
 #import "KBTask.h"
 
-#import <IOKit/kext/KextManager.h>
-
 @interface KBFuseComponent ()
 @property KBDebugPropertiesView *infoView;
 @property KBSemVersion *version;
@@ -129,25 +127,25 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)_install:(KBCompletion)completion {
-  [self.helperTool.helper sendRequest:@"kext_install" params:@[@{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
+  [self.helperTool.helper sendRequest:@"kextInstall" params:@[@{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  [self.helperTool.helper sendRequest:@"kext_uninstall" params:@[@{@"destination": self.destination, @"kextID": self.kextID}] completion:^(NSError *error, id value) {
+  [self.helperTool.helper sendRequest:@"kextUninstall" params:@[@{@"destination": self.destination, @"kextID": self.kextID}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)start:(KBCompletion)completion {
-  [self.helperTool.helper sendRequest:@"kext_load" params:@[@{@"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
+  [self.helperTool.helper sendRequest:@"kextLoad" params:@[@{@"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)stop:(KBCompletion)completion {
-  [self.helperTool.helper sendRequest:@"kext_unload" params:@[@{@"kextID": self.kextID}] completion:^(NSError *error, id value) {
+  [self.helperTool.helper sendRequest:@"kextUnload" params:@[@{@"kextID": self.kextID}] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

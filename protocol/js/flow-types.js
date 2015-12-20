@@ -1,6 +1,7 @@
 /* @flow */
 
 export type int = number
+export type long = number
 export type double = number
 export type bytes = any
 export type BlockRefNonce = any
@@ -8,6 +9,58 @@ export type ED25519PublicKey = any
 export type ED25519Signature = any
 export type Time = number
 export type SigID = string
+export type account_Feature = {
+  allow: boolean;
+  defaultValue: boolean;
+  readonly: boolean;
+  label: string;
+}
+
+export type Feature = {
+  allow: boolean;
+  defaultValue: boolean;
+  readonly: boolean;
+  label: string;
+}
+
+export type account_GUIEntryFeatures = {
+  storeSecret: Feature;
+  showTyping: Feature;
+}
+
+export type GUIEntryFeatures = {
+  storeSecret: Feature;
+  showTyping: Feature;
+}
+
+export type account_GUIEntryArg = {
+  windowTitle: string;
+  prompt: string;
+  submitLabel: string;
+  cancelLabel: string;
+  retryLabel: string;
+  features: GUIEntryFeatures;
+}
+
+export type GUIEntryArg = {
+  windowTitle: string;
+  prompt: string;
+  submitLabel: string;
+  cancelLabel: string;
+  retryLabel: string;
+  features: GUIEntryFeatures;
+}
+
+export type account_GetPassphraseRes = {
+  passphrase: string;
+  storeSecret: boolean;
+}
+
+export type GetPassphraseRes = {
+  passphrase: string;
+  storeSecret: boolean;
+}
+
 export type block_Time = {
 }
 
@@ -148,6 +201,70 @@ export type block_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
 export type ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type block_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type block_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type block_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type block_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type block_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type block_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -253,6 +370,38 @@ export type BTC_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' 
 
 export type BTC_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type BTC_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type BTC_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type BTC_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type BTC_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type BTC_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type config_Time = {
 }
 
@@ -326,6 +475,38 @@ export type config_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_
 
 export type config_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type config_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type config_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type config_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type config_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type config_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type config_GetCurrentStatusRes = {
   configured: boolean;
   registered: boolean;
@@ -376,91 +557,9 @@ export type Config = {
   forkType: ForkType;
 }
 
-export type config_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
+export type constants_StatusCode = 0 /* 'SCOk_0' */ | 1 /* 'SCLoginRequired_201' */ | 2 /* 'SCBadSession_202' */ | 3 /* 'SCBadLoginPassword_204' */ | 4 /* 'SCNotFound_205' */ | 5 /* 'SCGeneric_218' */ | 6 /* 'SCAlreadyLoggedIn_235' */ | 7 /* 'SCCanceled_237' */ | 8 /* 'SCReloginRequired_274' */ | 9 /* 'SCResolutionFailed_275' */ | 10 /* 'SCProfileNotPublic_276' */ | 11 /* 'SCBadSignupUsernameTaken_701' */ | 12 /* 'SCMissingResult_801' */ | 13 /* 'SCKeyNotFound_901' */ | 14 /* 'SCKeyInUse_907' */ | 15 /* 'SCKeyBadGen_913' */ | 16 /* 'SCKeyNoSecret_914' */ | 17 /* 'SCKeyBadUIDs_915' */ | 18 /* 'SCKeyNoActive_916' */ | 19 /* 'SCKeyNoSig_917' */ | 20 /* 'SCKeyBadSig_918' */ | 21 /* 'SCKeyBadEldest_919' */ | 22 /* 'SCKeyNoEldest_920' */ | 23 /* 'SCKeyDuplicateUpdate_921' */ | 24 /* 'SCSibkeyAlreadyExists_922' */ | 25 /* 'SCDecryptionKeyNotFound_924' */ | 26 /* 'SCBadTrackSession_1301' */ | 27 /* 'SCDeviceNotFound_1409' */ | 28 /* 'SCDeviceMismatch_1410' */ | 29 /* 'SCDeviceRequired_1411' */ | 30 /* 'SCStreamExists_1501' */ | 31 /* 'SCStreamNotFound_1502' */ | 32 /* 'SCStreamWrongKind_1503' */ | 33 /* 'SCStreamEOF_1504' */ | 34 /* 'SCAPINetworkError_1601' */ | 35 /* 'SCTimeout_1602' */ | 36 /* 'SCProofError_1701' */ | 37 /* 'SCIdentificationExpired_1702' */ | 38 /* 'SCSelfNotFound_1703' */ | 39 /* 'SCBadKexPhrase_1704' */ | 40 /* 'SCNoUIDelegation_1705' */
 
-export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
-
-export type config_InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
-
-export type InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
-
-export type config_ServiceStatus = {
-  version: string;
-  label: string;
-  pid: string;
-  lastExitStatus: string;
-  bundleVersion: string;
-  installStatus: InstallStatus;
-  installAction: InstallAction;
-  status: Status;
-}
-
-export type ServiceStatus = {
-  version: string;
-  label: string;
-  pid: string;
-  lastExitStatus: string;
-  bundleVersion: string;
-  installStatus: InstallStatus;
-  installAction: InstallAction;
-  status: Status;
-}
-
-export type config_ServicesStatus = {
-  service: Array<ServiceStatus>;
-  kbfs: Array<ServiceStatus>;
-}
-
-export type ServicesStatus = {
-  service: Array<ServiceStatus>;
-  kbfs: Array<ServiceStatus>;
-}
-
-export type config_FuseMountInfo = {
-  path: string;
-  fstype: string;
-  output: string;
-}
-
-export type FuseMountInfo = {
-  path: string;
-  fstype: string;
-  output: string;
-}
-
-export type config_FuseStatus = {
-  version: string;
-  bundleVersion: string;
-  kextID: string;
-  path: string;
-  kextStarted: boolean;
-  installStatus: InstallStatus;
-  installAction: InstallAction;
-  mountInfos: Array<FuseMountInfo>;
-  status: Status;
-}
-
-export type FuseStatus = {
-  version: string;
-  bundleVersion: string;
-  kextID: string;
-  path: string;
-  kextStarted: boolean;
-  installStatus: InstallStatus;
-  installAction: InstallAction;
-  mountInfos: Array<FuseMountInfo>;
-  status: Status;
-}
-
-export type config_ComponentStatus = {
-  name: string;
-  status: Status;
-}
-
-export type ComponentStatus = {
-  name: string;
-  status: Status;
-}
+export type StatusCode = 0 /* 'SCOk_0' */ | 1 /* 'SCLoginRequired_201' */ | 2 /* 'SCBadSession_202' */ | 3 /* 'SCBadLoginPassword_204' */ | 4 /* 'SCNotFound_205' */ | 5 /* 'SCGeneric_218' */ | 6 /* 'SCAlreadyLoggedIn_235' */ | 7 /* 'SCCanceled_237' */ | 8 /* 'SCReloginRequired_274' */ | 9 /* 'SCResolutionFailed_275' */ | 10 /* 'SCProfileNotPublic_276' */ | 11 /* 'SCBadSignupUsernameTaken_701' */ | 12 /* 'SCMissingResult_801' */ | 13 /* 'SCKeyNotFound_901' */ | 14 /* 'SCKeyInUse_907' */ | 15 /* 'SCKeyBadGen_913' */ | 16 /* 'SCKeyNoSecret_914' */ | 17 /* 'SCKeyBadUIDs_915' */ | 18 /* 'SCKeyNoActive_916' */ | 19 /* 'SCKeyNoSig_917' */ | 20 /* 'SCKeyBadSig_918' */ | 21 /* 'SCKeyBadEldest_919' */ | 22 /* 'SCKeyNoEldest_920' */ | 23 /* 'SCKeyDuplicateUpdate_921' */ | 24 /* 'SCSibkeyAlreadyExists_922' */ | 25 /* 'SCDecryptionKeyNotFound_924' */ | 26 /* 'SCBadTrackSession_1301' */ | 27 /* 'SCDeviceNotFound_1409' */ | 28 /* 'SCDeviceMismatch_1410' */ | 29 /* 'SCDeviceRequired_1411' */ | 30 /* 'SCStreamExists_1501' */ | 31 /* 'SCStreamNotFound_1502' */ | 32 /* 'SCStreamWrongKind_1503' */ | 33 /* 'SCStreamEOF_1504' */ | 34 /* 'SCAPINetworkError_1601' */ | 35 /* 'SCTimeout_1602' */ | 36 /* 'SCProofError_1701' */ | 37 /* 'SCIdentificationExpired_1702' */ | 38 /* 'SCSelfNotFound_1703' */ | 39 /* 'SCBadKexPhrase_1704' */ | 40 /* 'SCNoUIDelegation_1705' */
 
 export type crypto_ED25519SignatureInfo = {
   sig: ED25519Signature;
@@ -544,6 +643,38 @@ export type ctl_Stream = {
 export type ctl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type ctl_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type ctl_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type ctl_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type ctl_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type ctl_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type ctl_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
 
 export type ctl_ExitCode = 0 /* 'OK_0' */ | 1 /* 'NOTOK_2' */ | 2 /* 'RESTART_4' */
 
@@ -630,6 +761,38 @@ export type delegateUiCtl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /*
 
 export type delegateUiCtl_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type delegateUiCtl_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type delegateUiCtl_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type delegateUiCtl_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type delegateUiCtl_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type delegateUiCtl_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type device_Time = {
 }
 
@@ -703,6 +866,38 @@ export type device_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_
 
 export type device_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type device_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type device_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type device_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type device_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type device_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type favorite_Time = {
 }
 
@@ -775,6 +970,38 @@ export type favorite_Stream = {
 export type favorite_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type favorite_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type favorite_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type favorite_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type favorite_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type favorite_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type favorite_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
 
 export type favorite_Folder = {
   name: string;
@@ -860,6 +1087,38 @@ export type gpgUi_Stream = {
 export type gpgUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type gpgUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type gpgUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type gpgUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type gpgUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type gpgUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type gpgUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
 
 export type gpgUi_GPGKey = {
   algorithm: string;
@@ -960,6 +1219,38 @@ export type identify_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INF
 
 export type identify_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type identify_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type identify_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type identify_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type identify_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type identify_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type identify_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
 export type ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
@@ -971,6 +1262,12 @@ export type ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ 
 export type identify_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
 
 export type ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+
+export type identify_TrackToken = {
+}
+
+export type TrackToken = {
+}
 
 export type identify_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
@@ -1058,14 +1355,14 @@ export type identify_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type identify_RemoteProof = {
@@ -1089,6 +1386,14 @@ export type RemoteProof = {
 export type identify_IdentifySource = 0 /* 'CLI_0' */ | 1 /* 'KBFS_1' */
 
 export type IdentifySource = 0 /* 'CLI_0' */ | 1 /* 'KBFS_1' */
+
+export type identify_Identify2Res = {
+  upk: UserPlusKeys;
+}
+
+export type Identify2Res = {
+  upk: UserPlusKeys;
+}
 
 export type identifyUi_Time = {
 }
@@ -1163,11 +1468,46 @@ export type identifyUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'I
 
 export type identifyUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type identifyUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type identifyUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type identifyUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type identifyUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type identifyUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type identifyUi_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
 export type identifyUi_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
 
 export type identifyUi_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+
+export type identifyUi_TrackToken = {
+}
 
 export type identifyUi_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
@@ -1214,7 +1554,7 @@ export type identifyUi_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type identifyUi_RemoteProof = {
@@ -1372,45 +1712,45 @@ export type ConfirmResult = {
   remoteConfirmed: boolean;
 }
 
-export type kbcmf_Time = {
+export type install_Time = {
 }
 
-export type kbcmf_StringKVPair = {
+export type install_StringKVPair = {
   key: string;
   value: string;
 }
 
-export type kbcmf_Status = {
+export type install_Status = {
   code: int;
   name: string;
   desc: string;
   fields: Array<StringKVPair>;
 }
 
-export type kbcmf_UID = {
+export type install_UID = {
 }
 
-export type kbcmf_DeviceID = {
+export type install_DeviceID = {
 }
 
-export type kbcmf_SigID = {
+export type install_SigID = {
 }
 
-export type kbcmf_KID = {
+export type install_KID = {
 }
 
-export type kbcmf_Text = {
+export type install_Text = {
   data: string;
   markup: boolean;
 }
 
-export type kbcmf_PGPIdentity = {
+export type install_PGPIdentity = {
   username: string;
   comment: string;
   email: string;
 }
 
-export type kbcmf_PublicKey = {
+export type install_PublicKey = {
   KID: KID;
   PGPFingerprint: string;
   PGPIdentities: Array<PGPIdentity>;
@@ -1424,12 +1764,12 @@ export type kbcmf_PublicKey = {
   eTime: Time;
 }
 
-export type kbcmf_User = {
+export type install_User = {
   uid: UID;
   username: string;
 }
 
-export type kbcmf_Device = {
+export type install_Device = {
   type: string;
   name: string;
   deviceID: DeviceID;
@@ -1437,85 +1777,130 @@ export type kbcmf_Device = {
   mTime: Time;
 }
 
-export type kbcmf_Stream = {
+export type install_Stream = {
   fd: int;
 }
 
-export type kbcmf_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+export type install_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type kbcmf_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type install_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
-export type kbcmf_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
-
-export type kbcmf_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
-
-export type kbcmf_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
-
-export type kbcmf_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
-
-export type kbcmf_TrackDiff = {
-  type: TrackDiffType;
-  displayMarkup: string;
+export type install_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
 }
 
-export type kbcmf_TrackSummary = {
+export type install_UserPlusKeys = {
+  uid: UID;
   username: string;
-  time: Time;
-  isRemote: boolean;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
 }
 
-export type kbcmf_TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
-
-export type kbcmf_TrackOptions = {
-  localOnly: boolean;
-  bypassConfirm: boolean;
+export type install_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
 }
 
-export type kbcmf_IdentifyReason = {
-  reason: string;
+export type install_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type install_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
 }
 
-export type kbcmf_IdentifyOutcome = {
-  username: string;
-  status?: ?Status;
-  warnings: Array<string>;
-  trackUsed?: ?TrackSummary;
-  trackStatus: TrackStatus;
-  numTrackFailures: int;
-  numTrackChanges: int;
-  numProofFailures: int;
-  numRevoked: int;
-  numProofSuccesses: int;
-  revoked: Array<TrackDiff>;
-  trackOptions: TrackOptions;
-  forPGPPull: boolean;
-  reason: IdentifyReason;
+export type install_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
+
+export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 3 /* 'INSTALLED_4' */
+
+export type install_InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
+
+export type InstallAction = 0 /* 'UNKNOWN_0' */ | 1 /* 'NONE_1' */ | 2 /* 'UPGRADE_2' */ | 3 /* 'REINSTALL_3' */ | 4 /* 'INSTALL_4' */
+
+export type install_ServiceStatus = {
+  version: string;
+  label: string;
+  pid: string;
+  lastExitStatus: string;
+  bundleVersion: string;
+  installStatus: InstallStatus;
+  installAction: InstallAction;
+  status: Status;
 }
 
-export type kbcmf_IdentifyRes = {
-  user?: ?User;
-  publicKeys: Array<PublicKey>;
-  outcome: IdentifyOutcome;
-  trackToken: string;
+export type ServiceStatus = {
+  version: string;
+  label: string;
+  pid: string;
+  lastExitStatus: string;
+  bundleVersion: string;
+  installStatus: InstallStatus;
+  installAction: InstallAction;
+  status: Status;
 }
 
-export type kbcmf_RemoteProof = {
-  proofType: ProofType;
-  key: string;
-  value: string;
-  displayMarkup: string;
-  sigID: SigID;
-  mTime: Time;
+export type install_ServicesStatus = {
+  service: Array<ServiceStatus>;
+  kbfs: Array<ServiceStatus>;
 }
 
-export type kbcmf_KBCMFEncryptOptions = {
-  recipients: Array<string>;
-  trackOptions: TrackOptions;
+export type ServicesStatus = {
+  service: Array<ServiceStatus>;
+  kbfs: Array<ServiceStatus>;
 }
 
-export type KBCMFEncryptOptions = {
-  recipients: Array<string>;
-  trackOptions: TrackOptions;
+export type install_FuseMountInfo = {
+  path: string;
+  fstype: string;
+  output: string;
+}
+
+export type FuseMountInfo = {
+  path: string;
+  fstype: string;
+  output: string;
+}
+
+export type install_FuseStatus = {
+  version: string;
+  bundleVersion: string;
+  kextID: string;
+  path: string;
+  kextStarted: boolean;
+  installStatus: InstallStatus;
+  installAction: InstallAction;
+  mountInfos: Array<FuseMountInfo>;
+  status: Status;
+}
+
+export type FuseStatus = {
+  version: string;
+  bundleVersion: string;
+  kextID: string;
+  path: string;
+  kextStarted: boolean;
+  installStatus: InstallStatus;
+  installAction: InstallAction;
+  mountInfos: Array<FuseMountInfo>;
+  status: Status;
+}
+
+export type install_ComponentStatus = {
+  name: string;
+  status: Status;
+}
+
+export type ComponentStatus = {
+  name: string;
+  status: Status;
 }
 
 export type kbfs_FSStatusCode = 0 /* 'START_0' */ | 1 /* 'FINISH_1' */ | 2 /* 'ERROR_2' */
@@ -1614,6 +1999,38 @@ export type Kex2Provisionee_Stream = {
 export type Kex2Provisionee_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type Kex2Provisionee_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type Kex2Provisionee_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type Kex2Provisionee_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type Kex2Provisionee_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type Kex2Provisionee_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type Kex2Provisionee_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
 
 export type Kex2Provisionee_PassphraseStream = {
   passphraseStream: bytes;
@@ -1716,6 +2133,38 @@ export type logUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2
 
 export type logUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type logUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type logUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type logUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type logUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type logUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type login_Time = {
 }
 
@@ -1788,6 +2237,38 @@ export type login_Stream = {
 export type login_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type login_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type login_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type login_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type login_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type login_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type login_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
 
 export type login_ConfiguredAccount = {
   username: string;
@@ -1872,6 +2353,38 @@ export type loginUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO
 
 export type loginUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type loginUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type loginUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type loginUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type loginUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type loginUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type metadata_Time = {
 }
 
@@ -1944,6 +2457,38 @@ export type metadata_Stream = {
 export type metadata_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type metadata_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type metadata_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type metadata_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type metadata_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type metadata_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type metadata_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
 
 export type metadata_BlockIdCombo = {
   blockHash: string;
@@ -2045,6 +2590,38 @@ export type metadataUpdate_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /
 
 export type metadataUpdate_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type metadataUpdate_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type metadataUpdate_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type metadataUpdate_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type metadataUpdate_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type metadataUpdate_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type metadataUpdate_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -2123,16 +2700,50 @@ export type notifyCtl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'IN
 
 export type notifyCtl_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type notifyCtl_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type notifyCtl_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type notifyCtl_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type notifyCtl_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type notifyCtl_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type notifyCtl_NotificationChannels = {
   session: boolean;
   users: boolean;
   kbfs: boolean;
+  tracking: boolean;
 }
 
 export type NotificationChannels = {
   session: boolean;
   users: boolean;
   kbfs: boolean;
+  tracking: boolean;
 }
 
 export type NotifyFS_FSStatusCode = 0 /* 'START_0' */ | 1 /* 'FINISH_1' */ | 2 /* 'ERROR_2' */
@@ -2145,6 +2756,111 @@ export type NotifyFS_FSNotification = {
   status: string;
   statusCode: FSStatusCode;
   notificationType: FSNotificationType;
+}
+
+export type NotifyTracking_Time = {
+}
+
+export type NotifyTracking_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type NotifyTracking_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type NotifyTracking_UID = {
+}
+
+export type NotifyTracking_DeviceID = {
+}
+
+export type NotifyTracking_SigID = {
+}
+
+export type NotifyTracking_KID = {
+}
+
+export type NotifyTracking_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type NotifyTracking_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type NotifyTracking_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type NotifyTracking_User = {
+  uid: UID;
+  username: string;
+}
+
+export type NotifyTracking_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type NotifyTracking_Stream = {
+  fd: int;
+}
+
+export type NotifyTracking_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type NotifyTracking_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type NotifyTracking_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type NotifyTracking_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type NotifyTracking_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type NotifyTracking_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type NotifyTracking_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
 }
 
 export type NotifyUsers_Time = {
@@ -2220,6 +2936,38 @@ export type NotifyUsers_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* '
 
 export type NotifyUsers_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type NotifyUsers_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type NotifyUsers_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type NotifyUsers_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type NotifyUsers_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type NotifyUsers_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type pgp_Time = {
 }
 
@@ -2293,11 +3041,46 @@ export type pgp_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' 
 
 export type pgp_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type pgp_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type pgp_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type pgp_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type pgp_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type pgp_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type pgp_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
 export type pgp_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
 
 export type pgp_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+
+export type pgp_TrackToken = {
+}
 
 export type pgp_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
@@ -2344,7 +3127,7 @@ export type pgp_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type pgp_RemoteProof = {
@@ -2535,6 +3318,38 @@ export type pgpUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2
 
 export type pgpUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type pgpUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type pgpUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type pgpUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type pgpUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type pgpUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type prove_Time = {
 }
 
@@ -2608,11 +3423,46 @@ export type prove_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2
 
 export type prove_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type prove_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type prove_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type prove_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type prove_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type prove_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type prove_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
 export type prove_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
 
 export type prove_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+
+export type prove_TrackToken = {
+}
 
 export type prove_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
@@ -2659,7 +3509,7 @@ export type prove_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type prove_RemoteProof = {
@@ -2764,6 +3614,38 @@ export type proveUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO
 
 export type proveUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type proveUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type proveUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type proveUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type proveUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type proveUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type proveUi_PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
 
 export type PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
@@ -2841,6 +3723,38 @@ export type provisionUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* '
 
 export type provisionUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type provisionUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type provisionUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type provisionUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type provisionUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type provisionUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type provisionUi_ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASSPHRASE_2' */ | 3 /* 'GPG_IMPORT_3' */ | 4 /* 'GPG_SIGN_4' */
 
 export type ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASSPHRASE_2' */ | 3 /* 'GPG_IMPORT_3' */ | 4 /* 'GPG_SIGN_4' */
@@ -2848,6 +3762,10 @@ export type ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 
 export type provisionUi_DeviceType = 0 /* 'DESKTOP_0' */ | 1 /* 'MOBILE_1' */
 
 export type DeviceType = 0 /* 'DESKTOP_0' */ | 1 /* 'MOBILE_1' */
+
+export type provisionUi_ChooseType = 0 /* 'EXISTING_DEVICE_0' */ | 1 /* 'NEW_DEVICE_1' */
+
+export type ChooseType = 0 /* 'EXISTING_DEVICE_0' */ | 1 /* 'NEW_DEVICE_1' */
 
 export type provisionUi_SecretResponse = {
   secret: bytes;
@@ -2931,6 +3849,38 @@ export type quota_Stream = {
 export type quota_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type quota_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type quota_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type quota_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type quota_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type quota_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type quota_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
 
 export type quota_VerifySessionRes = {
   uid: UID;
@@ -3019,45 +3969,77 @@ export type revoke_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_
 
 export type revoke_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
-export type secretUi_Time = {
+export type revoke_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
 }
 
-export type secretUi_StringKVPair = {
+export type revoke_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type revoke_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type revoke_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type revoke_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type saltPack_Time = {
+}
+
+export type saltPack_StringKVPair = {
   key: string;
   value: string;
 }
 
-export type secretUi_Status = {
+export type saltPack_Status = {
   code: int;
   name: string;
   desc: string;
   fields: Array<StringKVPair>;
 }
 
-export type secretUi_UID = {
+export type saltPack_UID = {
 }
 
-export type secretUi_DeviceID = {
+export type saltPack_DeviceID = {
 }
 
-export type secretUi_SigID = {
+export type saltPack_SigID = {
 }
 
-export type secretUi_KID = {
+export type saltPack_KID = {
 }
 
-export type secretUi_Text = {
+export type saltPack_Text = {
   data: string;
   markup: boolean;
 }
 
-export type secretUi_PGPIdentity = {
+export type saltPack_PGPIdentity = {
   username: string;
   comment: string;
   email: string;
 }
 
-export type secretUi_PublicKey = {
+export type saltPack_PublicKey = {
   KID: KID;
   PGPFingerprint: string;
   PGPIdentities: Array<PGPIdentity>;
@@ -3071,12 +4053,12 @@ export type secretUi_PublicKey = {
   eTime: Time;
 }
 
-export type secretUi_User = {
+export type saltPack_User = {
   uid: UID;
   username: string;
 }
 
-export type secretUi_Device = {
+export type saltPack_Device = {
   type: string;
   name: string;
   deviceID: DeviceID;
@@ -3084,13 +4066,147 @@ export type secretUi_Device = {
   mTime: Time;
 }
 
-export type secretUi_Stream = {
+export type saltPack_Stream = {
   fd: int;
 }
 
-export type secretUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+export type saltPack_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type secretUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type saltPack_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type saltPack_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type saltPack_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type saltPack_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type saltPack_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type saltPack_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type saltPack_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
+
+export type saltPack_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
+
+export type saltPack_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+
+export type saltPack_TrackToken = {
+}
+
+export type saltPack_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
+
+export type saltPack_TrackDiff = {
+  type: TrackDiffType;
+  displayMarkup: string;
+}
+
+export type saltPack_TrackSummary = {
+  username: string;
+  time: Time;
+  isRemote: boolean;
+}
+
+export type saltPack_TrackStatus = 0 /* 'NEW_OK_1' */ | 1 /* 'NEW_ZERO_PROOFS_2' */ | 2 /* 'NEW_FAIL_PROOFS_3' */ | 3 /* 'UPDATE_BROKEN_4' */ | 4 /* 'UPDATE_NEW_PROOFS_5' */ | 5 /* 'UPDATE_OK_6' */
+
+export type saltPack_TrackOptions = {
+  localOnly: boolean;
+  bypassConfirm: boolean;
+}
+
+export type saltPack_IdentifyReason = {
+  reason: string;
+}
+
+export type saltPack_IdentifyOutcome = {
+  username: string;
+  status?: ?Status;
+  warnings: Array<string>;
+  trackUsed?: ?TrackSummary;
+  trackStatus: TrackStatus;
+  numTrackFailures: int;
+  numTrackChanges: int;
+  numProofFailures: int;
+  numRevoked: int;
+  numProofSuccesses: int;
+  revoked: Array<TrackDiff>;
+  trackOptions: TrackOptions;
+  forPGPPull: boolean;
+  reason: IdentifyReason;
+}
+
+export type saltPack_IdentifyRes = {
+  user?: ?User;
+  publicKeys: Array<PublicKey>;
+  outcome: IdentifyOutcome;
+  trackToken: TrackToken;
+}
+
+export type saltPack_RemoteProof = {
+  proofType: ProofType;
+  key: string;
+  value: string;
+  displayMarkup: string;
+  sigID: SigID;
+  mTime: Time;
+}
+
+export type saltPack_SaltPackEncryptOptions = {
+  recipients: Array<string>;
+  trackOptions: TrackOptions;
+}
+
+export type SaltPackEncryptOptions = {
+  recipients: Array<string>;
+  trackOptions: TrackOptions;
+}
+
+export type secretUi_Feature = {
+  allow: boolean;
+  defaultValue: boolean;
+  readonly: boolean;
+  label: string;
+}
+
+export type secretUi_GUIEntryFeatures = {
+  storeSecret: Feature;
+  showTyping: Feature;
+}
+
+export type secretUi_GUIEntryArg = {
+  windowTitle: string;
+  prompt: string;
+  submitLabel: string;
+  cancelLabel: string;
+  retryLabel: string;
+  features: GUIEntryFeatures;
+}
+
+export type secretUi_GetPassphraseRes = {
+  passphrase: string;
+  storeSecret: boolean;
+}
 
 export type secretUi_SecretEntryArg = {
   desc: string;
@@ -3122,58 +4238,6 @@ export type SecretEntryRes = {
   text: string;
   canceled: boolean;
   storeSecret: boolean;
-}
-
-export type secretUi_GetPassphraseRes = {
-  passphrase: string;
-  storeSecret: boolean;
-}
-
-export type GetPassphraseRes = {
-  passphrase: string;
-  storeSecret: boolean;
-}
-
-export type secretUi_Feature = {
-  allow: boolean;
-  defaultValue: boolean;
-  readonly: boolean;
-  label: string;
-}
-
-export type Feature = {
-  allow: boolean;
-  defaultValue: boolean;
-  readonly: boolean;
-  label: string;
-}
-
-export type secretUi_GUIEntryFeatures = {
-  storeSecret: Feature;
-  showTyping: Feature;
-}
-
-export type GUIEntryFeatures = {
-  storeSecret: Feature;
-  showTyping: Feature;
-}
-
-export type secretUi_GUIEntryArg = {
-  windowTitle: string;
-  prompt: string;
-  submitLabel: string;
-  cancelLabel: string;
-  retryLabel: string;
-  features: GUIEntryFeatures;
-}
-
-export type GUIEntryArg = {
-  windowTitle: string;
-  prompt: string;
-  submitLabel: string;
-  cancelLabel: string;
-  retryLabel: string;
-  features: GUIEntryFeatures;
 }
 
 export type session_Time = {
@@ -3248,6 +4312,38 @@ export type session_Stream = {
 export type session_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type session_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type session_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type session_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type session_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type session_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type session_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
 
 export type session_Session = {
   uid: UID;
@@ -3338,6 +4434,38 @@ export type signup_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_
 
 export type signup_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type signup_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type signup_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type signup_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type signup_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type signup_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type signup_SignupRes = {
   passphraseOk: boolean;
   postOk: boolean;
@@ -3422,6 +4550,38 @@ export type sigs_Stream = {
 export type sigs_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
 export type sigs_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type sigs_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type sigs_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type sigs_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type sigs_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type sigs_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
 
 export type sigs_Sig = {
   seqno: int;
@@ -3554,6 +4714,38 @@ export type streamUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INF
 
 export type streamUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type streamUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type streamUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type streamUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type streamUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type streamUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type test_Test = {
   reply: string;
 }
@@ -3635,11 +4827,46 @@ export type track_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2
 
 export type track_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type track_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type track_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type track_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type track_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type track_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type track_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
 export type track_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 4 /* 'BASE_ERROR_100' */ | 5 /* 'HOST_UNREACHABLE_101' */ | 6 /* 'PERMISSION_DENIED_103' */ | 7 /* 'FAILED_PARSE_106' */ | 8 /* 'DNS_ERROR_107' */ | 9 /* 'AUTH_FAILED_108' */ | 10 /* 'HTTP_500_150' */ | 11 /* 'TIMEOUT_160' */ | 12 /* 'INTERNAL_ERROR_170' */ | 13 /* 'BASE_HARD_ERROR_200' */ | 14 /* 'NOT_FOUND_201' */ | 15 /* 'CONTENT_FAILURE_202' */ | 16 /* 'BAD_USERNAME_203' */ | 17 /* 'BAD_REMOTE_ID_204' */ | 18 /* 'TEXT_NOT_FOUND_205' */ | 19 /* 'BAD_ARGS_206' */ | 20 /* 'CONTENT_MISSING_207' */ | 21 /* 'TITLE_NOT_FOUND_208' */ | 22 /* 'SERVICE_ERROR_209' */ | 23 /* 'TOR_SKIPPED_210' */ | 24 /* 'TOR_INCOMPATIBLE_211' */ | 25 /* 'HTTP_300_230' */ | 26 /* 'HTTP_400_240' */ | 27 /* 'HTTP_OTHER_260' */ | 28 /* 'EMPTY_JSON_270' */ | 29 /* 'DELETED_301' */ | 30 /* 'SERVICE_DEAD_302' */ | 31 /* 'BAD_SIGNATURE_303' */ | 32 /* 'BAD_API_URL_304' */ | 33 /* 'UNKNOWN_TYPE_305' */ | 34 /* 'NO_HINT_306' */ | 35 /* 'BAD_HINT_TEXT_307' */
 
 export type track_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 7 /* 'GENERIC_WEB_SITE_1000' */ | 8 /* 'DNS_1001' */ | 9 /* 'ROOTER_100001' */
+
+export type track_TrackToken = {
+}
 
 export type track_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
@@ -3686,7 +4913,7 @@ export type track_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
-  trackToken: string;
+  trackToken: TrackToken;
 }
 
 export type track_RemoteProof = {
@@ -3771,9 +4998,206 @@ export type ui_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' *
 
 export type ui_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type ui_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type ui_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type ui_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type ui_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type ui_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type ui_PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
 
 export type PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
+
+export type update_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type update_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type update_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type update_UpdateConfig = {
+  version: string;
+  platform: string;
+  destinationPath: string;
+  source: string;
+  URL: string;
+  channel: string;
+  force: boolean;
+}
+
+export type UpdateConfig = {
+  version: string;
+  platform: string;
+  destinationPath: string;
+  source: string;
+  URL: string;
+  channel: string;
+  force: boolean;
+}
+
+export type update_UpdateResult = {
+  update?: ?Update;
+}
+
+export type UpdateResult = {
+  update?: ?Update;
+}
+
+export type updateUi_Time = {
+}
+
+export type updateUi_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type updateUi_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type updateUi_UID = {
+}
+
+export type updateUi_DeviceID = {
+}
+
+export type updateUi_SigID = {
+}
+
+export type updateUi_KID = {
+}
+
+export type updateUi_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type updateUi_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type updateUi_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type updateUi_User = {
+  uid: UID;
+  username: string;
+}
+
+export type updateUi_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type updateUi_Stream = {
+  fd: int;
+}
+
+export type updateUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type updateUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type updateUi_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type updateUi_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type updateUi_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type updateUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type updateUi_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type updateUi_UpdateAction = 0 /* 'UPDATE_0' */ | 1 /* 'SKIP_1' */ | 2 /* 'SNOOZE_2' */ | 3 /* 'CANCEL_3' */
+
+export type UpdateAction = 0 /* 'UPDATE_0' */ | 1 /* 'SKIP_1' */ | 2 /* 'SNOOZE_2' */ | 3 /* 'CANCEL_3' */
+
+export type updateUi_UpdatePromptRes = {
+  action: UpdateAction;
+  alwaysAutoInstall: boolean;
+  snoozeUntil: Time;
+}
+
+export type UpdatePromptRes = {
+  action: UpdateAction;
+  alwaysAutoInstall: boolean;
+  snoozeUntil: Time;
+}
 
 export type user_Time = {
 }
@@ -3848,6 +5272,38 @@ export type user_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2'
 
 export type user_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
+export type user_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type user_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type user_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type user_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type user_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type user_Tracker = {
   tracker: UID;
   status: int;
@@ -3916,18 +5372,6 @@ export type UserSummary = {
   proofs: Proofs;
   sigIDDisplay: string;
   trackTime: Time;
-}
-
-export type user_UserPlusKeys = {
-  uid: UID;
-  username: string;
-  deviceKeys: Array<PublicKey>;
-}
-
-export type UserPlusKeys = {
-  uid: UID;
-  username: string;
-  deviceKeys: Array<PublicKey>;
 }
 
 export type user_SearchComponent = {

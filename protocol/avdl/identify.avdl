@@ -5,9 +5,15 @@ protocol identify {
   import idl "identify_common.avdl";
 
   enum IdentifySource {
-	CLI_0,
-	KBFS_1
+    CLI_0,
+    KBFS_1
   }
+
+  /**
+    Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
+    an error.
+   */
+  UID Resolve(string assertion);
 
   /**
     Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
@@ -15,5 +21,11 @@ protocol identify {
     If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).
     */
   IdentifyRes identify(int sessionID, string userAssertion, boolean trackStatement=false, boolean forceRemoteCheck=false, boolean useDelegateUI=false, IdentifyReason reason, IdentifySource source);
+
+  record Identify2Res {
+    UserPlusKeys upk;
+  }
+
+  Identify2Res identify2WithUID(int sessionID, UID uid, string userAssertion, IdentifyReason reason, boolean useDelegateUI=false);
 
 }

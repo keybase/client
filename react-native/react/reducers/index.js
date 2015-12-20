@@ -12,6 +12,9 @@ import type {State} from '../constants/reducer'
 import {isDev} from '../constants/platform'
 import serialize from './serialize'
 import tracker from './tracker'
+import pinentry from './pinentry'
+import favorite from './favorite'
+import update from './update'
 
 import * as Constants from '../constants/dev'
 
@@ -40,7 +43,10 @@ const combinedReducer = combineReducers({
   search,
   profile,
   config,
-  tracker
+  tracker,
+  pinentry,
+  favorite,
+  update
 })
 
 let reducer

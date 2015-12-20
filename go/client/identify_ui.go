@@ -66,7 +66,7 @@ func (i *IdentifyUIServer) DisplayTrackStatement(_ context.Context, arg keybase1
 }
 
 func (i *IdentifyUIServer) ReportTrackToken(_ context.Context, arg keybase1.ReportTrackTokenArg) error {
-	i.ui.ReportTrackToken(libkb.IdentifyCacheToken(arg.TrackToken))
+	i.ui.ReportTrackToken(arg.TrackToken)
 	return nil
 }
 

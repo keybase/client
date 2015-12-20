@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -32,8 +33,7 @@ func (s *CmdTestPassphrase) GetUsage() libkb.Usage {
 }
 
 func (s *CmdTestPassphrase) Run() (err error) {
-	s.G().Log.Debug("+ CmdTestPassphrase.Run")
-	defer func() { s.G().Log.Debug("- CmdTestPassphrase.Run -> %s", libkb.ErrToOk(err)) }()
+	defer libkb.Trace(s.G().Log, "CmdTestPassphrase.Run", func() error { return err })()
 
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(s.G()),
@@ -47,6 +47,14 @@ func (s *CmdTestPassphrase) Run() (err error) {
 		return err
 	}
 
-	err = cli.PassphrasePrompt(context.TODO(), 0)
-	return err
+	arg := keybase1.PassphrasePromptArg{
+		GuiArg: libkb.DefaultPassphraseArg(),
+	}
+	res, err := cli.PassphrasePrompt(context.TODO(), arg)
+	if err != nil {
+		return err
+	}
+	res.Passphrase = "[passphrase redacted]"
+	s.G().Log.Debug("passphrase prompt result: %+v", res)
+	return nil
 }

@@ -235,7 +235,7 @@ func (ui *FakeIdentifyUI) DisplayTrackStatement(string) (err error) {
 }
 func (ui *FakeIdentifyUI) DisplayUserCard(keybase1.UserCard) {
 }
-func (ui *FakeIdentifyUI) ReportTrackToken(libkb.IdentifyCacheToken) error {
+func (ui *FakeIdentifyUI) ReportTrackToken(keybase1.TrackToken) error {
 	return nil
 }
 func (ui *FakeIdentifyUI) SetStrict(b bool) {

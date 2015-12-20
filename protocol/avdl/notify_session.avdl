@@ -2,7 +2,7 @@
 @namespace("keybase.1")
 protocol NotifySession {
 
-	@notify("")
-	void loggedOut();
+  @notify("")
+  void loggedOut();
 
 }

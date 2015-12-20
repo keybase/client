@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>keybase.prerelease</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>GOPATH</key>
+        <string>/Users/test/go</string>
+        <key>GITHUB_TOKEN</key>
+        <string></string>
+        <key>SLACK_TOKEN</key>
+        <string></string>
+        <key>SLACK_CHANNEL</key>
+        <string></string>
+        <key>PATH</key>
+        <string>/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin</string>
+    </dict>
+    <key>UserName</key>
+    <string>test</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/test/go/src/github.com/keybase/client/packaging/prerelease/build_app_darwin.sh</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>00</integer>
+    </dict>
+    <key>StandardErrorPath</key>
+    <string>/Users/test/Library/Logs/keybase.prerelease.log</string>
+    <key>StandardOutPath</key>
+    <string>/Users/test/Library/Logs/keybase.prerelease.log</string>
+</dict>
+</plist>

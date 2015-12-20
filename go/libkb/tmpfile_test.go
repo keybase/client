@@ -10,10 +10,11 @@ import (
 )
 
 func TestTempFile(t *testing.T) {
-	name, file, err := TempFile("test", 0700)
+	name, file, err := OpenTempFile("test", "", 0700)
 	if err != nil {
 		t.Errorf("%s", err)
 	}
+	defer file.Close()
 	if file == nil {
 		t.Fatalf("No file")
 	}

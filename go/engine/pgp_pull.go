@@ -224,7 +224,7 @@ func (e *PGPPullEngine) exportKeysToGPG(ctx *Context, user *libkb.User, tfp map[
 			continue
 		}
 
-		if err := e.gpgClient.ExportKey(*bundle); err != nil {
+		if err := e.gpgClient.ExportKey(*bundle, false /* export public key only */); err != nil {
 			return err
 		}
 

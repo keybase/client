@@ -11,7 +11,7 @@ import (
 type IDRes struct {
 	Outcome           *libkb.IdentifyOutcome
 	User              *libkb.User
-	TrackToken        libkb.IdentifyCacheToken
+	TrackToken        keybase1.TrackToken
 	ComputedKeyFamily *libkb.ComputedKeyFamily
 }
 
@@ -118,7 +118,7 @@ func (ir *IDRes) Export() *keybase1.IdentifyRes {
 	return &keybase1.IdentifyRes{
 		Outcome:    *((*ir.Outcome).Export()),
 		User:       ir.User.Export(),
-		TrackToken: ir.TrackToken.Export(),
+		TrackToken: ir.TrackToken,
 		PublicKeys: ir.ComputedKeyFamily.Export(),
 	}
 }

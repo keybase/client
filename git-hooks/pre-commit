@@ -3,15 +3,28 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-# git gofmt pre-commit hook
+# git gofmt, go vet, and golint pre-commit hook
 #
 # To use, store as .git/hooks/pre-commit inside your repository and make sure
 # it has execute permissions.
 #
 # This script does not handle file names that contain spaces.
 
+# Please keep the pre-push hook in sync with this file.
+#
+# It would be possible to factor out the common code into an included
+# file, since git hooks always run in the root of the repo (
+# https://stackoverflow.com/questions/7065224/ ), but we symlink these
+# files from the KBFS repo, so it would fail there unless the includes
+# were also symlinked. It might be possible to create a
+# install-git-hooks script that does it all for you, or to do some
+# more bash magic to resolve the symlink (difficult to do
+# cross-platform!), but it's not worth the effort right now,
+# especially since it's possible that the two repos will eventually be
+# merged.
+
 check_go_fmt() {
-	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/)
+	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/ | grep -v vendor/)
 	[ -z "$gofiles" ] && return 0
 
 	unformatted=$(gofmt -l $gofiles)
@@ -31,7 +44,7 @@ check_go_vet() {
 	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/)
 	[ -z "$gofiles" ] && return 0
 
-	warnings=$(go vet $(go list ./... | grep -v vendor) 2>&1)
+	warnings=$(go vet $(go list ./... 2>&1 | grep -v vendor))
 	[ -z "$warnings" ] && return 0
 
 	# go vet found issues
@@ -61,97 +74,8 @@ check_make_lint() {
     exit 1
 }
 
-#
-# report bad files and die if there are any
-#
-dieOnBadFiles()
-{
-    if [ -n "$badFiles" ]
-    then
-        echo "$hookName hook failure" 1>&2
-        echo '-----------------------------------' 1>&2
-        echo "$@" 1>&2
-        echo '' 1>&2
-        echo "File(s):" 1>&2
-        echo "$badFiles" 1>&2
-        echo ''  1>&2
-        exit 1
-    fi
-}
-
-#
-# qualify 'git grep' to check cached value or from a specific commit
-#
-gitScope()
-{
-    if [ "$#" -gt 0 ]
-    then
-        echo "$1:"
-    else
-        echo "--cached -- "
-    fi
-}
-
-#
-# limit line length to 80-columns
-#
-checkLineLength()
-{
-    echo "$hookName: check line lengths ..." 1>&2
-
-    scope=$(gitScope $@)
-
-    badFiles=$(
-    for f in $fileList
-    do
-        # limit to *.go files
-        case "$f" in
-        (*.go)
-            # parse line numbers from grep output:
-            #        <lineNr>:   contents
-            lines=$(git grep -hn -e '^.\{81,\}' $scope"$f" |
-                sed -e 's@:.*@@' |
-                tr '\n' ' '
-            )
-            [ -n "$lines" ] && echo "$Indent$f -- lines: $lines"
-        ;;
-        esac
-    done
-    )
-
-    dieOnBadFiles "Limit code to 80 columns before pushing"
-}
-
-#-----------------------------------------------------------------------------
-# Check content that will be added by this commit.
-
-if git rev-parse --verify HEAD > /dev/null 2>&1
-then
-    against=HEAD
-else
-    # Initial commit: diff against an empty tree object
-    against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
-fi
-
-# called manually with arguments for the files/directories to be tested?
-if [ "$#" -gt 0 ]
-then
-    case "$1" in
-    -h | -help)
-        die "interactive usage: supply list of files/directories to check"
-        ;;
-    esac
-
-    # obtain list of all specified files/directories
-    fileList=$(git ls-files -- $@ 2>/dev/null)
-else
-    # list of all files to be committed
-    fileList=$(git diff-index --cached --name-only $against --)
-fi
-
 #-----------------------------------------------------------------------------
 
-# checkLineLength
 check_go_fmt
 check_go_vet
 check_make_lint

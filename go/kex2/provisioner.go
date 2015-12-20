@@ -15,7 +15,8 @@ import (
 
 type provisioner struct {
 	baseDevice
-	arg ProvisionerArg
+	arg           ProvisionerArg
+	helloReceived bool
 }
 
 // Provisioner is an interface that abstracts out the crypto and session
@@ -30,10 +31,14 @@ type Provisioner interface {
 // to run its course
 type ProvisionerArg struct {
 	KexBaseArg
-	Provisioner Provisioner
+	Provisioner  Provisioner
+	HelloTimeout time.Duration
 }
 
 func newProvisioner(arg ProvisionerArg) *provisioner {
+	if arg.HelloTimeout == 0 {
+		arg.HelloTimeout = arg.Timeout
+	}
 	ret := &provisioner{
 		baseDevice: baseDevice{
 			start: make(chan struct{}),
@@ -104,7 +109,7 @@ func (p *provisioner) pickFirstConnection() (err error) {
 	// If not, we'll just have to wait for a message on p.arg.SecretChannel
 	// and use the provisionee's channel.
 	if len(p.arg.Secret) != 0 {
-		if conn, err = NewConn(p.arg.Mr, p.arg.Secret, p.deviceID, p.arg.Timeout); err != nil {
+		if conn, err = NewConn(p.arg.Ctx, p.arg.Mr, p.arg.Secret, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}
 		prot := keybase1.Kex2ProvisionerProtocol(p)
@@ -127,7 +132,7 @@ func (p *provisioner) pickFirstConnection() (err error) {
 		if len(sec) != SecretLen {
 			return ErrBadSecret
 		}
-		if p.conn, err = NewConn(p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
+		if p.conn, err = NewConn(p.arg.Ctx, p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}
 		p.xp = rpc.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(), nil)
@@ -149,6 +154,9 @@ func (p *provisioner) runProtocolWithCancel() (err error) {
 		p.canceled = true
 		return ErrCanceled
 	case err = <-ch:
+		if _, ok := err.(rpc.CanceledError); ok && !p.helloReceived {
+			return ErrHelloTimeout
+		}
 		return err
 	}
 }
@@ -167,6 +175,7 @@ func (p *provisioner) runProtocol() (err error) {
 	if p.canceled {
 		return ErrCanceled
 	}
+	p.helloReceived = true
 	var counterSigned []byte
 	if counterSigned, err = p.arg.Provisioner.CounterSign(res); err != nil {
 		return err

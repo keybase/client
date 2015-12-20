@@ -1,0 +1,87 @@
+{
+  "protocol" : "update",
+  "namespace" : "keybase.1",
+  "types" : [ {
+    "type" : "record",
+    "name" : "Asset",
+    "doc" : "Asset describes a downloadable file.",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "url",
+      "type" : "string"
+    }, {
+      "name" : "localPath",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "UpdateType",
+    "symbols" : [ "NORMAL_0", "BUGFIX_1", "CRITICAL_2" ]
+  }, {
+    "type" : "record",
+    "name" : "Update",
+    "fields" : [ {
+      "name" : "version",
+      "type" : "string"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "description",
+      "type" : "string"
+    }, {
+      "name" : "type",
+      "type" : "UpdateType"
+    }, {
+      "name" : "asset",
+      "type" : "Asset"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UpdateConfig",
+    "doc" : "Configuration for checking and applying updates.",
+    "fields" : [ {
+      "name" : "version",
+      "type" : "string"
+    }, {
+      "name" : "platform",
+      "type" : "string"
+    }, {
+      "name" : "destinationPath",
+      "type" : "string"
+    }, {
+      "name" : "source",
+      "type" : "string"
+    }, {
+      "name" : "URL",
+      "type" : "string"
+    }, {
+      "name" : "channel",
+      "type" : "string"
+    }, {
+      "name" : "force",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UpdateResult",
+    "fields" : [ {
+      "name" : "update",
+      "type" : [ "null", "Update" ]
+    } ]
+  } ],
+  "messages" : {
+    "update" : {
+      "request" : [ {
+        "name" : "config",
+        "type" : "UpdateConfig"
+      }, {
+        "name" : "checkOnly",
+        "type" : "boolean"
+      } ],
+      "response" : "UpdateResult"
+    }
+  }
+}

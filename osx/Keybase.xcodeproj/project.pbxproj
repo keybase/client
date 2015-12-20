@@ -91,7 +91,6 @@
 		001392701B06B18A0082DEA8 /* DmgBackground.pxm */ = {isa = PBXFileReference; lastKnownFileType = file; path = DmgBackground.pxm; sourceTree = "<group>"; };
 		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
 		001392731B06B18A0082DEA8 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		0013928C1B0BE5DC0082DEA8 /* uninstall_helper */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = uninstall_helper; sourceTree = "<group>"; };
 		001C6B371B24F8630048F086 /* Share.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Share.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		001C6B3A1B24F8630048F086 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		001C6B3B1B24F8630048F086 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
@@ -280,7 +279,6 @@
 				003C454C1AE6CECD00431829 /* KBKext.m */,
 				003C454E1AE6D1CA00431829 /* KBHelperDefines.h */,
 				003C454F1AE6D1CA00431829 /* KBHelperDefines.m */,
-				0013928C1B0BE5DC0082DEA8 /* uninstall_helper */,
 				003F6C921BEC287600638A74 /* KBHelperTest.h */,
 				003F6C931BEC287600638A74 /* KBHelperTest.m */,
 			);

@@ -163,6 +163,87 @@
     "name" : "ClientType",
     "symbols" : [ "CLI_0", "GUI_1" ]
   }, {
+    "type" : "record",
+    "name" : "UserVersionVector",
+    "fields" : [ {
+      "name" : "id",
+      "type" : "long"
+    }, {
+      "name" : "sigHints",
+      "type" : "int"
+    }, {
+      "name" : "sigChain",
+      "type" : "long"
+    }, {
+      "name" : "cachedAt",
+      "type" : "Time"
+    }, {
+      "name" : "lastIdentifiedAt",
+      "type" : "Time"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UserPlusKeys",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "deviceKeys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "keys",
+      "type" : {
+        "type" : "array",
+        "items" : "PublicKey"
+      }
+    }, {
+      "name" : "uvv",
+      "type" : "UserVersionVector"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "Asset",
+    "doc" : "Asset describes a downloadable file.",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "url",
+      "type" : "string"
+    }, {
+      "name" : "localPath",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "enum",
+    "name" : "UpdateType",
+    "symbols" : [ "NORMAL_0", "BUGFIX_1", "CRITICAL_2" ]
+  }, {
+    "type" : "record",
+    "name" : "Update",
+    "fields" : [ {
+      "name" : "version",
+      "type" : "string"
+    }, {
+      "name" : "name",
+      "type" : "string"
+    }, {
+      "name" : "description",
+      "type" : "string"
+    }, {
+      "name" : "type",
+      "type" : "UpdateType"
+    }, {
+      "name" : "asset",
+      "type" : "Asset"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "ProvisionMethod",
     "symbols" : [ "DEVICE_0", "PAPER_KEY_1", "PASSPHRASE_2", "GPG_IMPORT_3", "GPG_SIGN_4" ]
@@ -170,6 +251,10 @@
     "type" : "enum",
     "name" : "DeviceType",
     "symbols" : [ "DESKTOP_0", "MOBILE_1" ]
+  }, {
+    "type" : "enum",
+    "name" : "ChooseType",
+    "symbols" : [ "EXISTING_DEVICE_0", "NEW_DEVICE_1" ]
   }, {
     "type" : "record",
     "name" : "SecretResponse",
@@ -195,10 +280,13 @@
       "response" : "ProvisionMethod"
     },
     "chooseDeviceType" : {
-      "doc" : "If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.",
+      "doc" : "If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.\n   If selecting the existing device type, set kind to EXISTING_DEVICE_0.\n   If selecting the new device type, set kind to NEW_DEVICE_1.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
+      }, {
+        "name" : "kind",
+        "type" : "ChooseType"
       } ],
       "response" : "DeviceType"
     },

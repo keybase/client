@@ -5,10 +5,9 @@ package libkb
 
 import (
 	"fmt"
-	"io"
-
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	"io"
 )
 
 type UserBasic interface {
@@ -106,6 +105,13 @@ func (u *User) GetComputedKeyInfos() *ComputedKeyInfos {
 		return nil
 	}
 	return u.sigChain().GetComputedKeyInfos()
+}
+
+func (u *User) GetSigHintsVersion() int {
+	if u.sigHints == nil {
+		return 0
+	}
+	return u.sigHints.version
 }
 
 func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
@@ -658,4 +664,20 @@ func (u *User) LinkFromSigID(sigID keybase1.SigID) *ChainLink {
 
 func (u *User) SigChainDump(w io.Writer) {
 	u.sigChain().Dump(w)
+}
+
+func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeys) bool {
+	idv, _ := u.GetIDVersion()
+	if upk.Uvv.Id == 0 || idv != upk.Uvv.Id {
+		return false
+	}
+	shv := u.GetSigHintsVersion()
+	if upk.Uvv.SigHints == 0 || shv != upk.Uvv.SigHints {
+		return false
+	}
+	scv := u.GetSigChainLastKnownSeqno()
+	if upk.Uvv.SigChain == 0 || int64(scv) != upk.Uvv.SigChain {
+		return false
+	}
+	return true
 }

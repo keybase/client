@@ -1,0 +1,26 @@
+
+@namespace("keybase.1")
+protocol update {
+
+  import idl "update_common.avdl";
+
+  /**
+    Configuration for checking and applying updates.
+    */
+  record UpdateConfig {
+    string version;
+    string platform; // Platform, e.g "darwin"
+    string destinationPath;
+    string source; // Source to check, empty string for default
+    string URL; // Custom source URL
+    string channel; // Update channel, empty string for default
+    boolean force; // Force the update to be re-applied
+  }
+
+  record UpdateResult {
+    union { null, Update } update;
+  }
+
+  UpdateResult update(UpdateConfig config, boolean checkOnly);
+
+}

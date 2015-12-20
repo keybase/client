@@ -1,12 +1,14 @@
 import React, {Component} from '../base-react'
 import {TextField, FlatButton, Checkbox} from 'material-ui'
 import Header from '../common-adapters/header'
-import path from 'path'
-
+import resolveAssets from '../../../desktop/resolve-assets'
 import commonStyles, {colors} from '../styles/common'
+import {autoResize} from '../native/remote-component-helper'
 
 export default class PinentryRender extends Component {
-  componentWillMount () {
+  constructor (props) {
+    super(props)
+
     this.state = {
       passphrase: '',
       features: {},
@@ -14,6 +16,10 @@ export default class PinentryRender extends Component {
     }
     for (const feature in this.props.features) {
       this.state.features[feature] = this.props.features[feature].defaultValue
+
+      if (feature === 'showTyping') {
+        this.state.showTyping = this.props.features[feature].defaultValue
+      }
     }
   }
 
@@ -30,17 +36,22 @@ export default class PinentryRender extends Component {
     }
   }
 
+  componentDidMount () {
+    autoResize()
+  }
+
   render () {
+    const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
     return (
       <div style={{...commonStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', backgroundColor: 'blue'}}>
         <div style={styles.container}>
           <Header
             style={styles.header}
-            title='Passphrase needed'
+            title={this.props.windowTitle}
             onClose={() => this.props.onCancel()}
           />
           <div style={styles.bodyContainer}>
-            <img style={styles.logo} src={`file:///${path.resolve('../react-native/react/images/service/keybase.png')}`}/>
+            <img style={styles.logo} src={`file:///${resolveAssets('../react-native/react/images/service/keybase.png')}`}/>
             <div style={styles.body}>
               <p style={styles.prompt}>{this.props.prompt}</p>
               <div style={styles.checkContainer}>
@@ -54,7 +65,7 @@ export default class PinentryRender extends Component {
                       name={feature}
                       value={feature}
                       label={this.props.features[feature].label}
-                      defaultChecked={this.props.features[feature].allow}
+                      defaultChecked={this.props.features[feature].defaultValue}
                       style={styles.checkbox}
                       onCheck={(_, checked) => this.onCheck(feature, checked)}/>
                   </div>
@@ -67,13 +78,14 @@ export default class PinentryRender extends Component {
                 floatingLabelText='Your passphrase'
                 value={this.state.passphrase}
                 type={this.state.showTyping ? 'text' : 'password'}
+                onEnterKeyDown={submitPassphrase}
                 autoFocus />
               <p style={styles.error}>{this.props.retryLabel}</p>
             </div>
           </div>
           <div style={styles.action}>
             <FlatButton style={commonStyles.secondaryButton} label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
-            <FlatButton style={commonStyles.primaryButton} label={this.props.submitLabel || 'Close'} primary onClick={() => this.props.onSubmit(this.state.passphrase, this.state.features)} />
+            <FlatButton style={commonStyles.primaryButton} label={this.props.submitLabel || 'Close'} primary onClick={submitPassphrase} />
           </div>
         </div>
       </div>
@@ -89,16 +101,16 @@ PinentryRender.propTypes = {
   retryLabel: React.PropTypes.string.isRequired,
   cancelLabel: React.PropTypes.string,
   submitLabel: React.PropTypes.string,
-  windowTitle: React.PropTypes.string.isRequired
+  windowTitle: React.PropTypes.string.isRequired,
+  requestResize: React.PropTypes.object.isRequired
 }
 
 const styles = {
   container: {
     ...commonStyles.flexBoxColumn,
+    ...commonStyles.fontRegular,
     backgroundColor: 'white',
-    fontFamily: 'Noto Sans',
     fontSize: 15,
-    height: 184,
     width: 513
   },
   header: {
@@ -128,6 +140,7 @@ const styles = {
     alignItems: 'center',
     height: 49,
     paddingTop: 9,
+    paddingBottom: 9,
     paddingRight: 15
   },
   logo: {
@@ -143,7 +156,7 @@ const styles = {
     justifyContent: 'flex-end',
     position: 'absolute',
     right: 0,
-    top: 20
+    bottom: 55
   },
   checkbox: {
     marginTop: 30,

@@ -11,7 +11,7 @@
 #import "KBHelper.h"
 #import "KBHelperDefines.h"
 
-#define TEST 1
+#define TEST 0
 
 #if TEST
 #import "KBHelperTest.h"

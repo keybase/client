@@ -104,8 +104,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "17da0855f3fa1809de0b060efff88f21ca39b3fa",
-			"revisionTime": "2015-11-30T12:02:06-05:00"
+			"revision": "8950ad63d2448f4bb5a2904e93bff7adeca4f03d",
+			"revisionTime": "2015-12-11T16:26:19-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
@@ -129,8 +129,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "17da0855f3fa1809de0b060efff88f21ca39b3fa",
-			"revisionTime": "2015-11-30T12:02:06-05:00"
+			"revision": "15508dc67cb7bac53e9a95a31efd04e83d27bb97",
+			"revisionTime": "2015-12-11T20:52:55-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
@@ -156,6 +156,11 @@
 			"path": "github.com/keybase/go-keychain",
 			"revision": "5b9b2fabbf4433c8c613329a87470b716abf12af",
 			"revisionTime": "2015-11-17T11:50:13-08:00"
+		},
+		{
+			"path": "github.com/keybase/go-logging",
+			"revision": "d7b8c00ee8a21d4cfe58c75c0f09c6d3d030d80f",
+			"revisionTime": "2015-12-09T11:25:47-08:00"
 		},
 		{
 			"path": "github.com/keybase/go-osxkeychain",
@@ -184,8 +189,8 @@
 		},
 		{
 			"path": "github.com/keybase/miniline",
-			"revision": "52e080cafce9259a7343c686aee3254637482472",
-			"revisionTime": "2015-10-05T10:18:12-07:00"
+			"revision": "e88a8de513f98c2ad471a993c6b6dbfdad81a0d8",
+			"revisionTime": "2015-12-14T09:36:09-05:00"
 		},
 		{
 			"path": "github.com/kr/pty",
@@ -201,11 +206,6 @@
 			"path": "github.com/natefinch/npipe",
 			"revision": "0938d701e50e580f5925c773055eb6d6b32a0cbc",
 			"revisionTime": "2014-10-08T16:43:58+02:00"
-		},
-		{
-			"path": "github.com/op/go-logging",
-			"revision": "f2de3fa73ede49624df5ca7467011ac4fcd43635",
-			"revisionTime": "2015-11-24T23:46:48+01:00"
 		},
 		{
 			"path": "github.com/syndtr/goleveldb/leveldb",
@@ -376,6 +376,11 @@
 			"path": "golang.org/x/net/html/atom",
 			"revision": "dfcbca9c45aeabb8971affa4f76b2d40f6f72328",
 			"revisionTime": "2015-06-09T11:52:15-07:00"
+		},
+		{
+			"path": "golang.org/x/sys/windows/registry",
+			"revision": "354f231ae1a9ca2d3a6a1a7c5d40b1213d761675",
+			"revisionTime": "2015-10-08T13:13:40-07:00"
 		},
 		{
 			"path": "h12.me/socks",

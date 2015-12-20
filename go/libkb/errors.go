@@ -23,7 +23,7 @@ type ProofError interface {
 
 func ProofErrorIsSoft(pe ProofError) bool {
 	s := pe.GetProofStatus()
-	return s >= keybase1.ProofStatus_BASE_ERROR && s < keybase1.ProofStatus_BASE_HARD_ERROR
+	return (s >= keybase1.ProofStatus_BASE_ERROR && s < keybase1.ProofStatus_BASE_HARD_ERROR)
 }
 
 func ProofErrorToState(pe ProofError) keybase1.ProofState {
@@ -180,12 +180,12 @@ func (e UnexpectedKeyError) Error() string {
 //=============================================================================
 
 type UserNotFoundError struct {
-	uid keybase1.UID
-	msg string
+	UID keybase1.UID
+	Msg string
 }
 
 func (u UserNotFoundError) Error() string {
-	return fmt.Sprintf("User %s wasn't found (%s)", u.uid, u.msg)
+	return fmt.Sprintf("User %s wasn't found (%s)", u.UID, u.Msg)
 }
 
 //=============================================================================
@@ -219,14 +219,14 @@ func (e BadSigError) Error() string {
 //=============================================================================
 
 type NotFoundError struct {
-	msg string
+	Msg string
 }
 
 func (e NotFoundError) Error() string {
-	if len(e.msg) == 0 {
+	if len(e.Msg) == 0 {
 		return "Not found"
 	}
-	return e.msg
+	return e.Msg
 }
 
 //=============================================================================
@@ -559,12 +559,30 @@ func (h ProtocolDowngradeError) Error() string {
 
 //=============================================================================
 
+type ProfileNotPublicError struct {
+	msg string
+}
+
+func (p ProfileNotPublicError) Error() string {
+	return p.msg
+}
+
+//=============================================================================
+
 type BadUsernameError struct {
-	n string
+	N string
 }
 
 func (e BadUsernameError) Error() string {
-	return "Bad username: '" + e.n + "'"
+	return "Bad username: '" + e.N + "'"
+}
+
+//=============================================================================
+
+type BadNameError string
+
+func (e BadNameError) Error() string {
+	return fmt.Sprintf("Bad username or email: %s", string(e))
 }
 
 //=============================================================================
@@ -755,6 +773,8 @@ type ProofNotFoundForUsernameError struct {
 func (e ProofNotFoundForUsernameError) Error() string {
 	return fmt.Sprintf("proof not found for %q on %q", e.Username, e.Service)
 }
+
+//=============================================================================
 
 //=============================================================================
 
@@ -1098,6 +1118,14 @@ func (e IdentifyTimeoutError) Error() string {
 
 //=============================================================================
 
+type IdentifyDidNotCompleteError struct{}
+
+func (e IdentifyDidNotCompleteError) Error() string {
+	return "Identification did not complete."
+}
+
+//=============================================================================
+
 type NotLatestSubchainError struct {
 	Msg string
 }
@@ -1173,4 +1201,30 @@ type UIDelegationUnavailableError struct{}
 
 func (e UIDelegationUnavailableError) Error() string {
 	return "This process does not support UI delegation"
+}
+
+//=============================================================================
+
+type UnmetAssertionError struct {
+	User   string
+	Remote bool
+}
+
+func (e UnmetAssertionError) Error() string {
+	which := "local"
+	if e.Remote {
+		which = "remote"
+	}
+	return fmt.Sprintf("Unmet %s assertions for user %q", which, e.User)
+}
+
+//=============================================================================
+
+type ResolutionError struct {
+	Input string
+	Msg   string
+}
+
+func (e ResolutionError) Error() string {
+	return fmt.Sprintf("In resolving '%s': %s", e.Input, e.Msg)
 }

@@ -8,8 +8,11 @@ import (
 	"net"
 	"os"
 	"path"
+	"time"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/install/sources"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -24,6 +27,7 @@ type Service struct {
 	ForkType keybase1.ForkType
 	startCh  chan struct{}
 	stopCh   chan keybase1.ExitCode
+	updater  *install.Updater
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -44,13 +48,13 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
 		keybase1.ConfigProtocol(NewConfigHandler(xp, g, d)),
-		keybase1.CryptoProtocol(NewCryptoHandler(xp, g)),
+		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
 		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
-		keybase1.KbcmfProtocol(NewKBCMFHandler(xp, g)),
+		keybase1.SaltPackProtocol(NewSaltPackHandler(xp, g)),
 		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.ProveProtocol(NewProveHandler(xp, g)),
@@ -61,6 +65,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.RevokeProtocol(NewRevokeHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
+		keybase1.UpdateProtocol(NewUpdateHandler(xp, g)),
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g)),
@@ -143,6 +148,15 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
+	if sources.IsPrerelease {
+		d.updater = install.NewKeybaseUpdater(d.G())
+		if d.updater != nil {
+			d.updater.StartUpdateCheck()
+		}
+	}
+
+	d.checkTrackingEveryHour()
+
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
@@ -182,6 +196,17 @@ func (d *Service) writeServiceInfo() error {
 	// Write runtime info file
 	rtInfo := libkb.KeybaseServiceInfo(d.G())
 	return rtInfo.WriteFile(path.Join(runtimeDir, "keybased.info"))
+}
+
+func (d *Service) checkTrackingEveryHour() {
+	ticker := time.NewTicker(1 * time.Hour)
+	go func() {
+		for {
+			<-ticker.C
+			d.G().Log.Debug("Checking tracks on an hour timer.")
+			libkb.CheckTracking(d.G())
+		}
+	}()
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and

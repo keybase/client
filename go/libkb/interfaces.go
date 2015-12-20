@@ -136,6 +136,10 @@ type ConfigReader interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
 
+	GetUpdatePreferenceAuto() (bool, bool)
+	GetUpdatePreferenceSkip() string
+	GetUpdatePreferenceSnoozeUntil() keybase1.Time
+
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
 	GetTorProxy() string
@@ -156,6 +160,9 @@ type ConfigWriter interface {
 	SetIntAtPath(string, int) error
 	SetNullAtPath(string) error
 	DeleteAtPath(string)
+	SetUpdatePreferenceAuto(bool) error
+	SetUpdatePreferenceSkip(string) error
+	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	Reset()
 	Save() error
 	BeginTransaction() (ConfigWriterTransacter, error)
@@ -243,7 +250,7 @@ type IdentifyUI interface {
 	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User)
 	DisplayTrackStatement(string) error
 	DisplayUserCard(keybase1.UserCard)
-	ReportTrackToken(IdentifyCacheToken) error
+	ReportTrackToken(keybase1.TrackToken) error
 	SetStrict(b bool)
 	Finish()
 }
@@ -278,10 +285,6 @@ type ProveUI interface {
 }
 
 type SecretUI interface {
-	GetSecret(pinentry keybase1.SecretEntryArg, terminal *keybase1.SecretEntryArg) (*keybase1.SecretEntryRes, error)
-	GetNewPassphrase(keybase1.GetNewPassphraseArg) (keybase1.GetPassphraseRes, error)
-	GetKeybasePassphrase(keybase1.GetKeybasePassphraseArg) (keybase1.GetPassphraseRes, error)
-	GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg) (string, error)
 	GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error)
 }
 
@@ -304,6 +307,10 @@ type PgpUI interface {
 
 type ProvisionUI interface {
 	keybase1.ProvisionUiInterface
+}
+
+type UpdateUI interface {
+	keybase1.UpdateUiInterface
 }
 
 type PromptDefault int
@@ -344,14 +351,20 @@ type UI interface {
 	GetGPGUI() GPGUI
 	GetProvisionUI(role KexRole) ProvisionUI
 	GetPgpUI() PgpUI
+	GetUpdateUI() UpdateUI
 	Configure() error
 	Shutdown() error
 }
 
 type UIRouter interface {
 	SetUI(ConnectionID, UIKind)
+
+	// Both of these are allowed to return nil for the UI even if
+	// error is nil.
 	GetIdentifyUI() (IdentifyUI, error)
 	GetSecretUI() (SecretUI, error)
+	GetUpdateUI() (UpdateUI, error)
+
 	Shutdown()
 }
 

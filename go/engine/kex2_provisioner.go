@@ -107,8 +107,9 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 		Timeout:       5 * time.Minute,
 	}
 	parg := kex2.ProvisionerArg{
-		KexBaseArg:  karg,
-		Provisioner: e,
+		KexBaseArg:   karg,
+		Provisioner:  e,
+		HelloTimeout: 15 * time.Second,
 	}
 	if err := kex2.RunProvisioner(parg); err != nil {
 		return err

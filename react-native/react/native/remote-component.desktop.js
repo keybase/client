@@ -1,41 +1,45 @@
 import React, {Component} from '../base-react'
-import remote from 'remote'
-import {showDevTools} from '../local-debug'
+import {remote, ipcRenderer} from 'electron'
+import resolveAssets from '../../../desktop/resolve-assets'
+import menuHelper from '../../../desktop/app/menu-helper'
+import hotPath from '../../../desktop/hot-path'
 
-const BrowserWindow = remote.require('browser-window')
+const {BrowserWindow} = remote
 
 export default class RemoteComponent extends Component {
   componentWillMount () {
     const windowsOpts = {width: 500, height: 300, fullscreen: false, show: false, ...this.props.windowsOpts}
     this.remoteWindow = new BrowserWindow(windowsOpts)
-    this.closed = false
 
-    if (showDevTools) {
-      this.remoteWindow.toggleDevTools()
-    }
+    menuHelper(this.remoteWindow)
+    this.closed = false
 
     this.remoteWindow.on('needProps', () => {
       this.remoteWindow.emit('hasProps', {...this.props})
     })
 
+    ipcRenderer.send('showDockIconForRemoteWindow', this.remoteWindow.id)
+    ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindow.id)
+
     // Remember if we close, it's an error to try to close an already closed window
-    this.remoteWindow.on('close', () => {
-      if (!this.closed) {
-        this.closed = true
-        this.props.onRemoteClose && this.props.onRemoteClose()
+    ipcRenderer.on('remoteWindowClosed', (event, remoteWindowId) => {
+      if (remoteWindowId === this.remoteWindow.id) {
+        if (!this.closed) {
+          this.closed = true
+          this.props.onRemoteClose && this.props.onRemoteClose()
+        }
       }
     })
 
     const componentRequireName = this.props.component
     const substore = this.props.substore
-
-    this.remoteWindow.loadUrl(`file://${__dirname}/remoteComponent.html#${componentRequireName || ''}:${substore || ''}`)
+    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&substore=${substore || ''}&src=${hotPath('remote-component-loader.bundle.js')}`)
   }
 
   componentWillUnmount () {
     if (!this.closed) {
       this.closed = true
-      this.remoteWindow.close()
+      ipcRenderer.send('remoteUnmount', this.remoteWindow.id)
     }
   }
 

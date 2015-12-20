@@ -46,6 +46,15 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 	}
 }
 
+func (h *IdentifyHandler) Identify2WithUID(_ context.Context, arg keybase1.Identify2WithUIDArg) (res keybase1.Identify2Res, err error) {
+	return res, nil
+}
+
+func (h *IdentifyHandler) Resolve(_ context.Context, arg string) (keybase1.UID, error) {
+	rres := h.G().Resolver.ResolveFullExpression(arg)
+	return rres.GetUID(), rres.GetError()
+}
+
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
 	var do = func() (interface{}, error) {
 		if arg.Source == keybase1.IdentifySource_KBFS {
@@ -194,8 +203,8 @@ func (u *RemoteIdentifyUI) DisplayTrackStatement(s string) error {
 	return u.uicli.DisplayTrackStatement(context.TODO(), keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
 }
 
-func (u *RemoteIdentifyUI) ReportTrackToken(token libkb.IdentifyCacheToken) error {
-	return u.uicli.ReportTrackToken(context.TODO(), keybase1.ReportTrackTokenArg{TrackToken: string(token), SessionID: u.sessionID})
+func (u *RemoteIdentifyUI) ReportTrackToken(token keybase1.TrackToken) error {
+	return u.uicli.ReportTrackToken(context.TODO(), keybase1.ReportTrackTokenArg{TrackToken: token, SessionID: u.sessionID})
 }
 
 func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {

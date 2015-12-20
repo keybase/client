@@ -124,7 +124,8 @@ func (e *LoginProvision) Run(ctx *Context) error {
 // device provisions this device with an existing device using the
 // kex2 protocol.
 func (e *LoginProvision) device(ctx *Context) error {
-	provisionerType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), 0)
+	arg := keybase1.ChooseDeviceTypeArg{Kind: keybase1.ChooseType_EXISTING_DEVICE}
+	provisionerType, err := ctx.ProvisionUI.ChooseDeviceType(ctx.GetNetContext(), arg)
 	if err != nil {
 		return err
 	}
@@ -308,8 +309,19 @@ func (e *LoginProvision) paper(ctx *Context) error {
 // synced pgp key.  Any other situations require different
 // provisioning methods.
 func (e *LoginProvision) passphrase(ctx *Context) error {
-	// prompt for the username (if not provided) and load the user:
-	var err error
+	// prompt for the email or username
+	emailOrUsername, err := e.promptEmailOrUsername(ctx)
+	if err != nil {
+		return err
+	}
+
+	// check if they provided a username or email address.
+	// If email address, checkEmailOrUsername will get a login session
+	// in order to get the username.
+	if err := e.checkEmailOrUsername(ctx, emailOrUsername); err != nil {
+		return err
+	}
+
 	e.user, err = e.loadUser(ctx)
 	if err != nil {
 		return err
@@ -458,7 +470,7 @@ func (e *LoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error)
 		}
 		return cached.PassphraseStream(), nil
 	}
-	return e.G().LoginState().GetPassphraseStreamForUser(ctx.SecretUI, e.arg.Username)
+	return e.G().LoginState().GetPassphraseStreamForUser(ctx.SecretUI, e.username)
 }
 
 // deviceName gets a new device name from the user.
@@ -471,7 +483,7 @@ func (e *LoginProvision) deviceName(ctx *Context) (string, error) {
 	arg := keybase1.PromptNewDeviceNameArg{
 		ExistingDevices: names,
 	}
-	return ctx.ProvisionUI.PromptNewDeviceName(context.TODO(), arg)
+	return ctx.ProvisionUI.PromptNewDeviceName(ctx.GetNetContext(), arg)
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.
@@ -485,17 +497,46 @@ func (e *LoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 	return nil
 }
 
-// loadUser will prompt for username (if not provided) and load the user.
-func (e *LoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
-	if len(e.arg.Username) == 0 {
-		username, err := ctx.LoginUI.GetEmailOrUsername(context.TODO(), 0)
-		if err != nil {
-			return nil, err
-		}
-		e.arg.Username = username
+// promptEmailOrUsername will ask the user for an email address or
+// username (if necessary).
+func (e *LoginProvision) promptEmailOrUsername(ctx *Context) (string, error) {
+	if len(e.arg.Username) != 0 {
+		return e.arg.Username, nil
 	}
-	e.G().Log.Debug("LoginProvision: loading user %s", e.arg.Username)
-	arg := libkb.NewLoadUserByNameArg(e.G(), e.arg.Username)
+	return ctx.LoginUI.GetEmailOrUsername(ctx.GetNetContext(), 0)
+}
+
+// If emailOrUsername looks like an email address, it will get a
+// login session in order to map the email address to a keybase user.
+func (e *LoginProvision) checkEmailOrUsername(ctx *Context, emailOrUsername string) error {
+	if len(emailOrUsername) == 0 {
+		return libkb.NoUsernameError{}
+	}
+	if libkb.CheckUsername.F(emailOrUsername) {
+		e.username = emailOrUsername
+		return nil
+	}
+	if !libkb.CheckEmail.F(emailOrUsername) {
+		return libkb.BadNameError(emailOrUsername)
+	}
+
+	// emailOrUsername looks like an email address
+	e.G().Log.Debug("%q looks like an email address, must get login session to get user", emailOrUsername)
+	// need to login with it in order to get the username
+	var afterLogin = func(lctx libkb.LoginContext) error {
+		e.username = lctx.LocalSession().GetUsername().String()
+		return nil
+	}
+	return e.G().LoginState().VerifyEmailAddress(emailOrUsername, ctx.SecretUI, afterLogin)
+}
+
+// loadUser will load the user by name specified in e.username.
+func (e *LoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
+	if len(e.username) == 0 {
+		return nil, libkb.NoUsernameError{}
+	}
+	e.G().Log.Debug("LoginProvision: loading user %s", e.username)
+	arg := libkb.NewLoadUserByNameArg(e.G(), e.username)
 	arg.PublicKeyOptional = true
 	return libkb.LoadUser(arg)
 }
@@ -532,7 +573,7 @@ func (e *LoginProvision) hasGPGPrivate() bool {
 		return false
 	}
 
-	e.G().Log.Debug("have gpg.  num private keys: %d", index.Len())
+	e.G().Log.Debug("have gpg. num private keys: %d", index.Len())
 
 	return index.Len() > 0
 }
@@ -586,7 +627,7 @@ func (e *LoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, e
 	arg := keybase1.ChooseProvisioningMethodArg{
 		GpgOption: hasGPGPrivate,
 	}
-	return ctx.ProvisionUI.ChooseProvisioningMethod(context.TODO(), arg)
+	return ctx.ProvisionUI.ChooseProvisioningMethod(ctx.GetNetContext(), arg)
 }
 
 // runMethod runs the function for the chosen provisioning method.
@@ -640,7 +681,11 @@ func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
 	}
 
 	// get KID for the pgp key
-	kid, err := e.user.GetComputedKeyFamily().FindKIDFromFingerprint(*fp)
+	kf := e.user.GetComputedKeyFamily()
+	if kf == nil {
+		return nil, libkb.KeyFamilyError{Msg: "no key family for user"}
+	}
+	kid, err := kf.FindKIDFromFingerprint(*fp)
 	if err != nil {
 		return nil, err
 	}
@@ -721,7 +766,7 @@ func (e *LoginProvision) selectGPGKey(ctx *Context) (fp *libkb.PGPFingerprint, e
 		fingerprints[key.ID64] = key.GetFingerprint()
 	}
 
-	keyid, err := ctx.GPGUI.SelectKey(context.TODO(), keybase1.SelectKeyArg{Keys: gks})
+	keyid, err := ctx.GPGUI.SelectKey(ctx.GetNetContext(), keybase1.SelectKeyArg{Keys: gks})
 	if err != nil {
 		return nil, err
 	}
@@ -743,10 +788,16 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 		e.G().Log.Debug("error finding user for fp %s: %s", fp, err)
 		return err
 	}
-	e.G().Log.Debug("found user (%s, %s) for key %s", username, uid, fp)
+
+	// even if there was no error, make sure it found something
+	if len(username) == 0 {
+		return libkb.NotFoundError{Msg: fmt.Sprintf("No keybase user found for PGP fingerprint %s; please try a different GPG key or another provisioning method", fp)}
+	}
+
+	e.G().Log.Debug("found user (%q, %q) for key %s", username, uid, fp)
 
 	// if so, will have username from that
-	e.arg.Username = username
+	e.username = username
 	e.user, err = e.loadUser(ctx)
 	if err != nil {
 		return err
@@ -756,13 +807,17 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 }
 
 func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
-	passphrase, err := ctx.SecretUI.GetPaperKeyPassphrase(keybase1.GetPaperKeyPassphraseArg{})
+	passphrase, err := libkb.GetPaperKeyPassphrase(ctx.SecretUI, "")
 	if err != nil {
 		return nil, err
 	}
 	paperPhrase := libkb.NewPaperKeyPhrase(passphrase)
-	if paperPhrase.Version() != libkb.PaperKeyVersion {
-		e.G().Log.Debug("paper version mismatch:  generated paper key version = %d, libkb version = %d", paperPhrase.Version(), libkb.PaperKeyVersion)
+	version, err := paperPhrase.Version()
+	if err != nil {
+		return nil, err
+	}
+	if version != libkb.PaperKeyVersion {
+		e.G().Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
 		return nil, libkb.KeyVersionError{}
 	}
 
@@ -830,7 +885,7 @@ func (e *LoginProvision) displaySuccess(ctx *Context) error {
 		Username:   e.username,
 		DeviceName: e.devname,
 	}
-	return ctx.ProvisionUI.ProvisioneeSuccess(context.TODO(), sarg)
+	return ctx.ProvisionUI.ProvisioneeSuccess(ctx.GetNetContext(), sarg)
 }
 
 func (e *LoginProvision) cleanup() {

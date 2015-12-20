@@ -21,17 +21,14 @@ before_install:
     fi
 install: true
 script:
+  - export GO15VENDOREXPERIMENT=1
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
       docker pull $CI_HOST/kbweb;
       travis_retry docker run --name kbweb3000 -d -p 3000:3000 $CI_HOST/kbweb;
-      cd go && ./test/check_or_start_kbweb.sh && GO15VENDOREXPERIMENT=1 travis_wait go test -timeout 30m $(go list ./... | grep -v /vendor/);
+      cd go && ./test/check_or_start_kbweb.sh && ./test/run_tests.sh;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
-      cd go && KEYBASE_SERVER_URI=http://ci1.keybase.io GO15VENDOREXPERIMENT=1 travis_wait go test -timeout 30m $(go list ./... | grep -v /vendor/);
-    fi
-after_success:
-  - if [ $TRAVIS_OS_NAME == 'osx' ] && [ $TRAVIS_BRANCH == 'master' ]; then
-      ./packaging/keybase.sh
+      cd go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && ./test/run_tests.sh;
     fi
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then

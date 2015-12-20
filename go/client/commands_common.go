@@ -31,7 +31,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdLogin(cl, g),
 		NewCmdLogout(cl, g),
 		NewCmdPaperKey(cl),
-		NewCmdPassphrase(cl),
+		NewCmdPassphrase(cl, g),
 		NewCmdPGP(cl, g),
 		NewCmdPing(cl),
 		NewCmdProve(cl),
@@ -39,9 +39,10 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdSigs(cl),
 		NewCmdSignup(cl, g),
 		NewCmdStatus(cl),
-		NewCmdTrack(cl),
+		NewCmdTrack(cl, g),
 		NewCmdUnlock(cl),
-		NewCmdUntrack(cl),
+		NewCmdUntrack(cl, g),
+		NewCmdUpdate(cl, g),
 		NewCmdVersion(cl, g),
 	}
 	ret = append(ret, getBuildSpecificCommands(cl, g)...)

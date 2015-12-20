@@ -5,4 +5,5 @@ protocol delegateUiCtl {
 
   void registerIdentifyUI();
   void registerSecretUI();
+  void registerUpdateUI();
 }

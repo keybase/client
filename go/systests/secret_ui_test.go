@@ -68,9 +68,9 @@ func TestSecretUI(t *testing.T) {
 	}
 
 	// check that delegate ui was called:
-	if !sui.getKeybasePassphrase {
+	if !sui.getPassphrase {
 		t.Logf("secret ui: %+v", sui)
-		t.Error("delegate secret UI GetKeybasePassphrase was not called during login cmd")
+		t.Error("delegate secret UI GetPassphrase was not called during login cmd")
 	}
 
 	stopper := client.NewCmdCtlStopRunner(tc1.G)
@@ -84,11 +84,7 @@ func TestSecretUI(t *testing.T) {
 }
 
 type secretUI struct {
-	getKeybasePassphrase  bool
-	getNewPassphrase      bool
-	getPaperKeyPassphrase bool
-	getSecret             bool
-	getPassphrase         bool
+	getPassphrase bool
 }
 
 // secretUI implements the keybase1.IdentifyUiInterface
@@ -98,28 +94,9 @@ func newSecretUI() *secretUI {
 	return &secretUI{}
 }
 
-func (s *secretUI) GetKeybasePassphrase(context.Context, keybase1.GetKeybasePassphraseArg) (res keybase1.GetPassphraseRes, err error) {
-	s.getKeybasePassphrase = true
-	return res, nil
-}
-
-func (s *secretUI) GetNewPassphrase(context.Context, keybase1.GetNewPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
-	s.getNewPassphrase = true
-	return res, nil
-}
-
-func (s *secretUI) GetPaperKeyPassphrase(context.Context, keybase1.GetPaperKeyPassphraseArg) (string, error) {
-	s.getPaperKeyPassphrase = true
-	return "", nil
-}
-
-func (s *secretUI) GetSecret(context.Context, keybase1.GetSecretArg) (res keybase1.SecretEntryRes, err error) {
-	s.getSecret = true
-	return res, nil
-}
-
 func (s *secretUI) GetPassphrase(context.Context, keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	s.getPassphrase = true
+	res.Passphrase = "XXXXXXXXXXXX"
 	return res, nil
 }
 
@@ -160,7 +137,7 @@ type provisionUI struct {
 func (u *provisionUI) ChooseProvisioningMethod(context.Context, keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
 	return keybase1.ProvisionMethod_PASSPHRASE, nil
 }
-func (u *provisionUI) ChooseDeviceType(context.Context, int) (r keybase1.DeviceType, e error) {
+func (u *provisionUI) ChooseDeviceType(context.Context, keybase1.ChooseDeviceTypeArg) (r keybase1.DeviceType, e error) {
 	return
 }
 func (u *provisionUI) DisplayAndPromptSecret(context.Context, keybase1.DisplayAndPromptSecretArg) (r keybase1.SecretResponse, e error) {

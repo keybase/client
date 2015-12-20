@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"crypto/sha256"
+	"errors"
 	"strings"
 )
 
@@ -48,9 +49,12 @@ func (p PaperKeyPhrase) Bytes() []byte {
 
 // Version calculates the phrase version.  0-15 are possible
 // versions.
-func (p PaperKeyPhrase) Version() uint8 {
+func (p PaperKeyPhrase) Version() (uint8, error) {
 	words := p.words()
-	return wordVersion(words[len(words)-1])
+	if len(words) == 0 {
+		return 0, errors.New("empty paper key phrase")
+	}
+	return wordVersion(words[len(words)-1]), nil
 }
 
 // Prefix returns the first two words in the phrase.

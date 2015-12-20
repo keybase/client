@@ -52,15 +52,26 @@ export const styles = {
     ...flexBox,
     flexDirection: 'row'
   },
+  fontRegular: {
+    fontFamily: 'Noto Sans'
+  },
   fontBold: {
     fontFamily: 'Noto Sans Bold'
   },
   fontItalic: {
     fontFamily: 'Noto Sans Italic'
   },
+  vr: {
+    maxWidth: 1,
+    minWidth: 1,
+    backgroundColor: 'rgba(0,0,0,0.1)'
+  },
   hr: {
     minHeight: 1,
     maxHeight: 1,
     backgroundColor: 'rgba(0,0,0,0.1)'
+  },
+  loadingContainer: {
+    backgroundColor: '#F7F7F7'
   }
 }

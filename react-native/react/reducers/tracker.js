@@ -31,13 +31,15 @@ export type TrackerState = {
 
 export type State = {
   serverStarted: boolean,
-  trackers: {[key: string]: TrackerState}
+  trackers: {[key: string]: TrackerState},
+  timerActive: number
 }
 
 const initialProofState = checking
 
 const initialState: State = {
   serverStarted: false,
+  timerActive: 0,
   trackers: {}
 }
 
@@ -64,12 +66,13 @@ function initialTrackerState (username: string): TrackerState {
 }
 
 function updateUserState (state: TrackerState, action: Action): TrackerState {
+  let shouldFollow: boolean
   switch (action.type) {
     case Constants.onFollowChecked:
       if (action.payload == null) {
         return state
       }
-      const shouldFollow: boolean = action.payload.shouldFollow
+      shouldFollow = action.payload.shouldFollow
 
       return {
         ...state,
@@ -79,6 +82,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         trackToken: action.payload && action.payload.trackToken
+      }
+    case Constants.userUpdated:
+      return {
+        ...state,
+        closed: true
       }
     case Constants.onCloseFromActionBar:
       return {
@@ -108,8 +116,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 
       let proofState: SimpleProofState = error
 
+      shouldFollow = false
+
       if (allOk) {
         proofState = normal
+        shouldFollow = true
       } else if (anyWarnings) {
         proofState = warning
       } else if (anyError) {
@@ -120,6 +131,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 
       return {
         ...state,
+        shouldFollow,
         proofState
       }
 
@@ -194,6 +206,18 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 export default function (state: State = initialState, action: Action): State {
   const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
   const trackerState = username ? state.trackers[username] : null
+  switch (action.type) {
+    case Constants.startTimer:
+      return {
+        ...state,
+        timerActive: state.timerActive + 1
+      }
+    case Constants.stopTimer:
+      return {
+        ...state,
+        timerActive: state.timerActive - 1
+      }
+  }
 
   if (trackerState) {
     const newTrackerState = updateUserState(trackerState, action)

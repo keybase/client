@@ -6,7 +6,9 @@ export default class MetaNavigatorRender extends Component {
     const {componentAtTop} = getComponentAtTop(rootComponent, uri)
     const Module = componentAtTop.component
 
-    return <Module {...componentAtTop.props} />
+    return (
+      <Module {...componentAtTop.props} />
+    )
   }
 }
 

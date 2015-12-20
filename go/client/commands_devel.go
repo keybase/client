@@ -15,9 +15,11 @@ import (
 
 func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
+		NewCmdCheckTracking(cl, g),
 		NewCmdDecrypt(cl, g),
 		NewCmdEncrypt(cl, g),
 		NewCmdFavorite(cl),
+		NewCmdFakeTrackingChanged(cl, g),
 		NewCmdShowNotifications(cl, g),
 		NewCmdStress(cl),
 		NewCmdTestPassphrase(cl, g),
@@ -40,6 +42,6 @@ var extraSignupFlags = []cli.Flag{
 	},
 	cli.BoolFlag{
 		Name:  "devel",
-		Usage: "run the client in development mode",
+		Usage: "Run the client in development mode",
 	},
 }

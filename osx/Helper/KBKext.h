@@ -27,4 +27,7 @@
 
 + (void)unloadKextID:(NSString *)kextID completion:(KBOnCompletion)completion;
 
+
++ (BOOL)updateLoaderFileAttributes:(NSString *)destination error:(NSError **)error;
+
 @end

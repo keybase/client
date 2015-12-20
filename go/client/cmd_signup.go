@@ -205,17 +205,11 @@ func (s *CmdSignup) prompt() (err error) {
 		s.G().Log.Debug("| Prompter failed\n")
 		return
 	}
-	arg := keybase1.GetNewPassphraseArg{
-		TerminalPrompt: "Pick a strong passphrase",
-		PinentryDesc:   "Pick a strong passphrase (12+ characters)",
-		PinentryPrompt: "Passphrase",
-		UseSecretStore: libkb.HasSecretStore(),
-	}
 
 	f := s.fields.passphraseRetry
 	if f.Disabled || libkb.IsYes(f.GetValue()) {
 		var res keybase1.GetPassphraseRes
-		res, err = s.G().UI.GetSecretUI().GetNewPassphrase(arg)
+		res, err = PromptPassphrase(s.G())
 		if err != nil {
 			return
 		}
@@ -356,7 +350,7 @@ func (s *CmdSignup) MakePrompter() {
 		Defval:           s.defaultDevice,
 		Name:             "devname",
 		Prompt:           "A public name for this device",
-		Checker:          &libkb.CheckNotEmpty,
+		Checker:          &libkb.CheckDeviceName,
 		PromptDescriptor: PromptDescriptorSignupDevice,
 	}
 

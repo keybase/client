@@ -167,7 +167,7 @@ func (t HackerNewsServiceType) PreProofCheck(un string) (markup *Markup, err err
 func init() {
 	RegisterServiceType(HackerNewsServiceType{})
 	RegisterSocialNetwork("hackernews")
-	RegisterProofCheckHook("hackernews",
+	RegisterMakeProofCheckerFunc("hackernews",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewHackerNewsChecker(l)
 		})

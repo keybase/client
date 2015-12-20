@@ -34,7 +34,10 @@ func (e *LoginCurrentDevice) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *LoginCurrentDevice) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{
+		libkb.LoginUIKind,
+		libkb.SecretUIKind,
+	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.

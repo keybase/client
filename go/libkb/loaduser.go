@@ -11,14 +11,15 @@ import (
 )
 
 type LoadUserArg struct {
-	UID               keybase1.UID
-	Name              string // Can also be an assertion like foo@twitter
-	PublicKeyOptional bool
-	NoCacheResult     bool // currently ignore
-	Self              bool
-	ForceReload       bool
-	AllKeys           bool
-	LoginContext      LoginContext
+	UID                      keybase1.UID
+	Name                     string // Can also be an assertion like foo@twitter
+	PublicKeyOptional        bool
+	NoCacheResult            bool // currently ignore
+	Self                     bool
+	ForceReload              bool
+	AllKeys                  bool
+	LoginContext             LoginContext
+	AbortIfSigchainUnchanged bool
 	Contextified
 }
 
@@ -78,10 +79,10 @@ func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 	if len(arg.Name) == 0 {
 		// this won't happen anymore because check moved to
 		// checkUIDName() func, but just in case
-		return rres, fmt.Errorf("resolveUID:  no uid or name")
+		return rres, fmt.Errorf("resolveUID: no uid or name")
 	}
 
-	if rres = ResolveUID(arg.Name); rres.err != nil {
+	if rres = arg.G().Resolver.ResolveWithBody(arg.Name); rres.err != nil {
 		return rres, rres.err
 	}
 
@@ -157,6 +158,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	if err = ret.LoadSigChains(arg.AllKeys, &ret.leaf, arg.Self); err != nil {
 		return
+	}
+
+	if arg.AbortIfSigchainUnchanged && ret.sigChain().wasFullyCached {
+		return nil, nil
 	}
 
 	if ret.sigHints, err = LoadAndRefreshSigHints(ret.id, arg.G()); err != nil {
@@ -322,19 +327,6 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID, cacheOK bool) (keybase
 		return up, fmt.Errorf("Nil UID")
 	}
 
-	if cacheOK {
-		up, err := g.UserCache.Get(uid)
-		if err == nil {
-			return *up, nil
-		}
-		if err != nil {
-			// not going to bail on cache error, just log it:
-			if _, ok := err.(NotFoundError); !ok {
-				g.Log.Debug("UserCache Get error: %s", err)
-			}
-		}
-	}
-
 	arg := NewLoadUserArg(g)
 	arg.UID = uid
 	arg.PublicKeyOptional = true
@@ -351,11 +343,6 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID, cacheOK bool) (keybase
 	up.Username = u.GetNormalizedName().String()
 	if u.GetComputedKeyFamily() != nil {
 		up.DeviceKeys = u.GetComputedKeyFamily().ExportDeviceKeys()
-	}
-
-	err = g.UserCache.Insert(&up)
-	if err != nil {
-		g.Log.Debug("UserCache Set error: %s", err)
 	}
 
 	return up, nil

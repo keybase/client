@@ -99,7 +99,7 @@ declare module 'immutable' {
    * "unset" index and an index set to `undefined`. `List#forEach` visits all
    * indices from 0 to size, regardless of if they where explicitly defined.
    */
-  declare class List<T> extends IndexedCollection<T> {
+  declare interface List<T> extends IndexedCollection<T> {
 
     /**
     * Create a new immutable List containing the values of the provided
@@ -372,7 +372,7 @@ declare module 'immutable' {
    *
    * Implemented by a hash-array mapped trie.
    */
-  declare class Map<K, V> extends KeyedCollection<K, V> {
+  declare interface Map<K, V> extends KeyedCollection<K, V> {
     /**
     * Creates a new Immutable Map.
     *
@@ -664,7 +664,7 @@ declare module 'immutable' {
    * stable.
    */
 
-  declare class OrderedMap<K, V> extends Map<K, V> {
+  declare interface OrderedMap<K, V> extends Map<K, V> {
     /**
     * Creates a new Immutable OrderedMap.
     *
@@ -701,7 +701,7 @@ declare module 'immutable' {
    * `Immutable.is`, enabling Sets to uniquely include other Immutable
    * collections, custom value types, and NaN.
    */
-  declare class Set<T> extends SetCollection<T> {
+  declare interface Set<T> extends SetCollection<T> {
     /**
     * Create a new immutable Set containing the values of the provided
     * iterable-like.
@@ -803,7 +803,7 @@ declare module 'immutable' {
    * consume more memory. `OrderedSet#add` is amoratized O(log32 N), but not
    * stable.
    */
-  declare class OrderedSet<T> extends Set<T> {
+  declare interface OrderedSet<T> extends Set<T> {
     /**
     * Create a new immutable OrderedSet containing the values of the provided
     * iterable-like.
@@ -845,7 +845,7 @@ declare module 'immutable' {
    *
    * Stack is implemented with a Single-Linked List.
    */
-  declare class Stack<T> extends IndexedCollection<T> {
+  declare interface Stack<T> extends IndexedCollection<T> {
     /**
     * Create a new immutable Stack containing the values of the provided
     * iterable-like.

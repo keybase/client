@@ -1,0 +1,77 @@
+#!/bin/sh
+# Copyright 2012 The Go Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+# git gofmt, go vet, and golint pre-push hook
+#
+# To use, store as .git/hooks/pre-push inside your repository and make
+# sure it has execute permissions. This can be used instead of the
+# pre-commit hook for workflows where the cleanliness of each
+# individual commit doesn't matter (e.g., ones that squash commits
+# before pushing).
+#
+# This script does not handle file names that contain spaces.
+
+# Please keep this file in sync with pre-commit. (See pre-commit for
+# comments as to why we duplicate the code here.) The only difference
+# is that we don't do a git diff check in this file, since that only
+# applies to an unapplied commit.
+#
+# TODO: It might be possible to do something similar to the git diff
+# check, but comparing against the remote HEAD, which is passed in as
+# one of the parameters.
+
+check_go_fmt() {
+	gofiles=$(git ls-files | grep '.go$' | grep -v go/vendor/)
+	[ -z "$gofiles" ] && return 0
+
+	unformatted=$(gofmt -l $gofiles)
+	[ -z "$unformatted" ] && return 0
+
+	# Some files are not gofmt'd. Print message and fail.
+
+	echo >&2 "Go files must be formatted with gofmt. Please run:"
+	for fn in $unformatted; do
+		echo >&2 "  gofmt -w $PWD/$fn"
+	done
+
+	exit 1
+}
+
+check_go_vet() {
+	warnings=$(go vet $(go list ./... 2>&1 | grep -v vendor))
+	[ -z "$warnings" ] && return 0
+
+	# go vet found issues
+
+	echo >&2 "go vet found issues:"
+	echo >&2 $warnings
+
+	exit 1
+}
+
+check_make_lint() {
+    if ! which golint > /dev/null 2>&1 ; then
+      echo >&2 "golint is not installed"
+      exit 1
+    fi
+    # Try the root dir.  If that doesn't work, see if there's a go subdir.
+    lint=$(make -s lint 2> /dev/null)
+    if [ $? -eq 2 ] ; then
+        lint=$(make -s -C go lint 2> /dev/null)
+    fi
+    [ -z "$lint" -o "$lint" = "Lint-free!" ] && return 0
+
+    # make lint found issues
+    echo >&2 "go lint found issues:"
+    echo >&2 "$lint"
+
+    exit 1
+}
+
+#-----------------------------------------------------------------------------
+
+check_go_fmt
+check_go_vet
+check_make_lint

@@ -9,12 +9,26 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 )
 
 const (
-	APIURL = "https://api.github.com"
+	GithubAPIURL = "https://api.github.com"
 )
+
+func githubURL(host string, token string) (u *url.URL, err error) {
+	u, err = url.Parse(host)
+	if err != nil {
+		return
+	}
+	data := url.Values{}
+	if token != "" {
+		data.Set("access_token", token)
+	}
+	u.RawQuery = data.Encode()
+	return
+}
 
 // materializeFile takes a physical file or stream (named pipe, user input,
 // ...) and returns an io.Reader and the number of bytes that can be read
@@ -94,8 +108,8 @@ func DoAuthRequest(method, url, bodyType, token string, headers map[string]strin
 	return resp, nil
 }
 
-func Get(uri string, v interface{}) error {
-	resp, err := http.Get(APIURL + uri)
+func Get(url string, v interface{}) error {
+	resp, err := http.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -104,7 +118,7 @@ func Get(uri string, v interface{}) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("github did not response with 200 OK but with %v", resp.Status)
+		return fmt.Errorf("%s responded with %v", url, resp.Status)
 	}
 
 	var r io.Reader = resp.Body

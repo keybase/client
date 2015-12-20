@@ -31,44 +31,18 @@ func (h *AccountHandler) PassphraseChange(_ context.Context, arg keybase1.Passph
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *AccountHandler) PassphrasePrompt(_ context.Context, sessionID int) error {
-	ui, err := h.G().UIRouter.GetSecretUI()
-	if err != nil {
-		return err
-	}
-	if ui == nil {
-		h.G().Log.Debug("delegate secret ui unavailable, falling back to standard one")
-		ui = h.getSecretUI(sessionID)
-	}
-
-	guiArg := keybase1.GUIEntryArg{
-		WindowTitle: "Passphrase needed",
-		Prompt:      "Please enter the passphrase to unlock your secret key",
-		SubmitLabel: "Unlock",
-		CancelLabel: "Cancel",
-		RetryLabel:  "",
-		Features: keybase1.GUIEntryFeatures{
-			StoreSecret: keybase1.Feature{
-				Allow:        true,
-				DefaultValue: true,
-				Readonly:     false,
-				Label:        "Save in Keychain",
-			},
-			ShowTyping: keybase1.Feature{
-				Allow:        false,
-				Readonly:     true,
-				DefaultValue: false,
-				Label:        "Show typing",
-			},
-		},
+func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.PassphrasePromptArg) (keybase1.GetPassphraseRes, error) {
+	ui := h.getSecretUI(arg.SessionID)
+	if h.G().UIRouter != nil {
+		delegateUI, err := h.G().UIRouter.GetSecretUI()
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, err
+		}
+		if delegateUI != nil {
+			ui = delegateUI
+			h.G().Log.Debug("using delegate secret UI")
+		}
 	}
 
-	res, err := ui.GetPassphrase(guiArg, nil)
-	if err != nil {
-		return err
-	}
-
-	h.G().Log.Debug("result: %+v", res)
-
-	return nil
+	return ui.GetPassphrase(arg.GuiArg, nil)
 }

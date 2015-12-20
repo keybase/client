@@ -16,14 +16,15 @@
 @property NSString *label;
 @property NSString *servicePath;
 @property KBRServiceStatus *serviceStatus;
-
+@property KBHelperTool *helperTool;
 @property YOView *infoView;
 @end
 
 @implementation KBFSService
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath {
+- (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool label:(NSString *)label servicePath:(NSString *)servicePath {
   if ((self = [self initWithConfig:config name:@"KBFS" info:@"The filesystem service" image:[KBIcons imageForIcon:KBIconNetwork]])) {
+    _helperTool = helperTool;
     _label = label;
     _servicePath = servicePath;
   }
@@ -62,7 +63,50 @@
   return [NSString gh_isBlank:self.serviceStatus.pid] ? KBInstallRuntimeStatusStopped : KBInstallRuntimeStatusStarted;
 }
 
+- (BOOL)checkMountDir {
+  NSString *directory = self.config.mountDir;
+  BOOL exists = [NSFileManager.defaultManager fileExistsAtPath:directory isDirectory:nil];
+  if (exists) {
+    NSError *error = nil;
+    NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:directory error:&error];
+    if (attributes) {
+      DDLogDebug(@"Mount directory=%@, attributes=%@", directory, attributes);
+    } else {
+      DDLogDebug(@"Mount directory error: %@", error);
+    }
+  } else {
+    DDLogDebug(@"Mount directory doesn't exist: %@", directory);
+  }
+  return exists;
+}
+
+- (void)createMountDir:(KBCompletion)completion {
+  uid_t uid = getuid();
+  gid_t gid = getgid();
+  // Make the dir 0600 so we can't go into it while unmounted.
+  NSNumber *permissions = [NSNumber numberWithShort:0600];
+  NSDictionary *params = @{@"directory": self.config.mountDir, @"uid": @(uid), @"gid": @(gid), @"permissions": permissions, @"excludeFromBackup": @(YES)};
+  DDLogDebug(@"Creating mount directory: %@", params);
+  [self.helperTool.helper sendRequest:@"createDirectory" params:@[params] completion:^(NSError *error, id value) {
+    completion(error);
+  }];
+}
+
 - (void)install:(KBCompletion)completion {
+  if (![self checkMountDir]) {
+    [self createMountDir:^(NSError *error) {
+      if (error) {
+        completion(error);
+        return;
+      }
+      [self _install:completion];
+    }];
+  } else {
+    [self _install:completion];
+  }
+}
+
+- (void)_install:(KBCompletion)completion {
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath];
   [KBTask execute:binPath args:@[@"-d", @"install", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
