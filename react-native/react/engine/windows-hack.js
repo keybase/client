@@ -1,3 +1,5 @@
+import net from 'net'
+
 export default function windowsHack () {
   // This net.connect() is a heinous hack.
   //
@@ -9,8 +11,8 @@ export default function windowsHack () {
   if (process.platform === 'win32') {
     console.log('b')
     var fake = net.connect({})
-    fake.on('error', function (err) {
-      console.debug(err)
-    })
+    // net.connect({}) throws; we don't need to see the error, but we
+    // do need it not to raise up to the main thread.
+    fake.on('error', function () {})
   }
 }
