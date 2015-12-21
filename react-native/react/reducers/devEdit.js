@@ -1,14 +1,19 @@
 /* @flow */
 
 import type {State} from '../constants/reducer'
+import type {Action} from '../constants/types/flux'
 
-function updateInKeypath (map: Object | Array<any>, keyPath: Array<String>, v: any): Object | Array<any> {
+function updateInKeypath (map: any, keyPath: Array<String | number>, v: any): any {
   const frontKey = keyPath[0]
-  var copy
+  var copy: any
   if (keyPath.length === 1) {
     if (map.constructor === Array) {
       copy = [].concat(map)
-      copy[frontKey] = v
+      if (typeof frontKey === 'number') {
+        copy[frontKey] = v
+      } else {
+        console.error('Accessing an array without a number')
+      }
       return copy
     }
     return {...map, [frontKey]: v}
@@ -16,7 +21,11 @@ function updateInKeypath (map: Object | Array<any>, keyPath: Array<String>, v: a
 
   if (map.constructor === Array) {
     copy = [].concat(map)
-    copy[frontKey] = updateInKeypath(copy[frontKey], keyPath.slice(1), v)
+    if (typeof frontKey === 'number') {
+      copy[frontKey] = updateInKeypath(copy[frontKey], keyPath.slice(1), v)
+    } else {
+      console.error('Accessing an array without a number')
+    }
     return copy
   }
   return {...map, [frontKey]: updateInKeypath(map[frontKey], keyPath.slice(1), v)}
@@ -33,7 +42,7 @@ export default function (state: State, action: any): State {
   return state
 }
 
-export function devEditAction (keyPath, newValue) {
+export function devEditAction (keyPath: Array<String>, newValue: any): Action {
   return {
     type: 'dev:devEdit',
     payload: {keyPath, newValue}
