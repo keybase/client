@@ -33,6 +33,7 @@ keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 
 echo "Loading release tool"
+go get github.com/keybase/release
 go install github.com/keybase/release
 release_bin="$GOPATH/bin/release"
 
