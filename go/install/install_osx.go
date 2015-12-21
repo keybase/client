@@ -568,7 +568,7 @@ func brewPath(formula string) (string, error) {
 	// Get the homebrew install path prefix for this formula
 	prefixOutput, err := exec.Command("brew", "--prefix", formula).Output()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Error checking brew path: %s", err)
 	}
 	prefix := strings.TrimSpace(string(prefixOutput))
 	return prefix, nil
