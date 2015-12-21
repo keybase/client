@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -50,8 +51,10 @@ func realMain() (exitStatus int) {
 		serverRootDir = serverRootDirFlag
 	}
 
+	log := logger.NewWithCallDepth("", 1, os.Stderr)
+
 	config, err := libkbfs.Init(localUser, serverRootDir, *cpuprofile,
-		*memprofile, nil, *debug, *bserverAddr, *mdserverAddr)
+		*memprofile, nil, *debug, *bserverAddr, *mdserverAddr, log)
 	if err != nil {
 		printError("kbfs", err)
 		exitStatus = 1
@@ -59,6 +62,10 @@ func realMain() (exitStatus int) {
 	}
 
 	defer libkbfs.Shutdown(*memprofile)
+
+	// TODO: Make the logging level WARNING instead of INFO, or
+	// figure out some other way to log the full folder-branch
+	// name for kbfsfuse but not for kbfs.
 
 	cmd := flag.Arg(0)
 	args := flag.Args()[1:]

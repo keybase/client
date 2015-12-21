@@ -156,7 +156,10 @@ func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (md *MDServerRemote) OnDisconnected() {
+func (md *MDServerRemote) OnDisconnected(status DisconnectStatus) {
+	if status == StartingNonFirstConnection {
+		md.log.Warning("MDServerRemote is disconnected")
+	}
 	md.cancelObservers()
 	md.resetPingTicker(0)
 	if md.authToken != nil {

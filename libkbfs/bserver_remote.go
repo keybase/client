@@ -120,8 +120,10 @@ func (b *BlockServerRemote) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (b *BlockServerRemote) OnDisconnected() {
-	b.log.Warning("BlockServerRemote is disconnected")
+func (b *BlockServerRemote) OnDisconnected(status DisconnectStatus) {
+	if status == StartingNonFirstConnection {
+		b.log.Warning("BlockServerRemote is disconnected")
+	}
 	if b.authToken != nil {
 		b.authToken.Shutdown()
 	}

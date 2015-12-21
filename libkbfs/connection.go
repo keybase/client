@@ -16,6 +16,22 @@ import (
 	"golang.org/x/net/context"
 )
 
+// DisconnectStatus is the connection information passed to
+// ConnectionHandler.OnDisconnected().
+type DisconnectStatus int
+
+const (
+	// UsingExistingConnection means that an existing
+	// connection will be used.
+	UsingExistingConnection = 1
+	// StartingFirstConnection means that a connection will be
+	// started, and this is the first one.
+	StartingFirstConnection = iota
+	// StartingNonFirstConnection means that a connection will be
+	// started, and this is not the first one.
+	StartingNonFirstConnection DisconnectStatus = iota
+)
+
 // ConnectionHandler is the callback interface for interacting with the connection.
 type ConnectionHandler interface {
 	// OnConnect is called immediately after a connection has been
@@ -29,8 +45,9 @@ type ConnectionHandler interface {
 	// OnDoCommandError is called whenever there is an error during DoCommand
 	OnDoCommandError(err error, nextTime time.Duration)
 
-	// OnDisconnected is called whenever the connection notices it is disconnected.
-	OnDisconnected()
+	// OnDisconnected is called whenever the connection notices it
+	// is disconnected.
+	OnDisconnected(status DisconnectStatus)
 
 	// ShouldThrottle is called whenever an error is returned by
 	// an RPC function passed to Connection.DoCommand(), and
@@ -163,11 +180,13 @@ type Connection struct {
 	transport      ConnectionTransport
 	errorUnwrapper rpc.ErrorUnwrapper
 
-	mutex         sync.Mutex // protects: client, reconnectChan, and cancelFunc
-	client        keybase1.GenericClient
-	server        *rpc.Server
-	reconnectChan chan struct{}
-	cancelFunc    context.CancelFunc // used to cancel the reconnect loop
+	// protects everything below.
+	mutex             sync.Mutex
+	client            keybase1.GenericClient
+	server            *rpc.Server
+	reconnectChan     chan struct{}
+	cancelFunc        context.CancelFunc // used to cancel the reconnect loop
+	reconnectedBefore bool
 }
 
 // NewTLSConnection returns a connection that tries to connect to the
@@ -283,11 +302,11 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 		// already connected
 		return nil
 	}
-	// inform the handler of our disconnected state
-	c.handler.OnDisconnected()
 	// kick-off a connection and wait for it to complete
 	// or for the caller to cancel.
-	reconnectChan := c.getReconnectChan()
+	reconnectChan, disconnectStatus := c.getReconnectChan()
+	// inform the handler of our disconnected state
+	c.handler.OnDisconnected(disconnectStatus)
 	select {
 	case <-ctx.Done():
 		// caller canceled
@@ -314,18 +333,28 @@ func (c *Connection) IsConnected() bool {
 }
 
 // This will either kick-off a new reconnection attempt or wait for an
-// existing attempt. Returns the channel associated with an attempt.
-func (c *Connection) getReconnectChan() chan struct{} {
+// existing attempt. Returns the channel associated with an attempt,
+// and whether or not a new one was created.
+func (c *Connection) getReconnectChan() (
+	reconnectChan chan struct{}, disconnectStatus DisconnectStatus) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if c.reconnectChan == nil {
 		var ctx context.Context
 		// for canceling the reconnect loop via Shutdown()
 		ctx, c.cancelFunc = context.WithCancel(context.Background())
-		c.reconnectChan = make(chan struct{}, 20)
+		c.reconnectChan = make(chan struct{})
+		if c.reconnectedBefore {
+			disconnectStatus = StartingNonFirstConnection
+		} else {
+			disconnectStatus = StartingFirstConnection
+			c.reconnectedBefore = true
+		}
 		go c.doReconnect(ctx, c.reconnectChan)
+	} else {
+		disconnectStatus = UsingExistingConnection
 	}
-	return c.reconnectChan
+	return c.reconnectChan, disconnectStatus
 }
 
 // doReconnect attempts a reconnection.

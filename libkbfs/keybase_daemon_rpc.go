@@ -193,8 +193,10 @@ func (k *KeybaseDaemonRPC) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (k *KeybaseDaemonRPC) OnDisconnected() {
-	k.log.Warning("KeybaseDaemonRPC is disconnected")
+func (k *KeybaseDaemonRPC) OnDisconnected(status DisconnectStatus) {
+	if status == StartingNonFirstConnection {
+		k.log.Warning("KeybaseDaemonRPC is disconnected")
+	}
 }
 
 // ShouldThrottle implements the ConnectionHandler interface.

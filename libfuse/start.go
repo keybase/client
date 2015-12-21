@@ -48,9 +48,12 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		}
 	}
 
+	log := logger.NewWithCallDepth("", 1, os.Stderr)
+	log.Info("KBFS version %s", libkbfs.VersionString())
+
 	config, err := libkbfs.Init(options.LocalUser, options.ServerRootDir,
 		options.CPUProfile, options.MemProfile, onInterruptFn, options.Debug,
-		options.BServerAddr, options.MDServerAddr)
+		options.BServerAddr, options.MDServerAddr, log)
 	if err != nil {
 		return InitError(err.Error())
 	}

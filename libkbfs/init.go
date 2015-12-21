@@ -54,7 +54,7 @@ func makeKeyServer(config Config, serverRootDir *string, keyserverAddr string) (
 	return keyServer, nil
 }
 
-func makeBlockServer(config Config, serverRootDir *string, bserverAddr string) (
+func makeBlockServer(config Config, serverRootDir *string, bserverAddr string, log logger.Logger) (
 	BlockServer, error) {
 	if len(bserverAddr) == 0 {
 		if serverRootDir == nil {
@@ -65,7 +65,7 @@ func makeBlockServer(config Config, serverRootDir *string, bserverAddr string) (
 		return NewBlockServerLocal(config, blockPath)
 	}
 
-	fmt.Printf("Using remote bserver %s\n", bserverAddr)
+	log.Debug("Using remote bserver %s", bserverAddr)
 	return NewBlockServerRemote(config, bserverAddr), nil
 }
 
@@ -125,7 +125,7 @@ func makeKeybaseDaemon(config Config, serverRootDir *string, localUser libkb.Nor
 // defer).
 func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfilePath,
 	memProfilePath string, onInterruptFn func(), debug bool,
-	bserverAddr, mdserverAddr string) (Config, error) {
+	bserverAddr, mdserverAddr string, log logger.Logger) (Config, error) {
 	if cpuProfilePath != "" {
 		// Let the GC/OS clean up the file handle.
 		f, err := os.Create(cpuProfilePath)
@@ -188,9 +188,6 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	libkb.G.ConfigureCaches()
 	libkb.G.ConfigureMerkleClient()
 
-	lg := logger.NewWithCallDepth("", 1, os.Stderr)
-	lg.Info("KBFS version %s", VersionString())
-
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
 	if libkb.G.Env.GetRunMode() == libkb.StagingRunMode &&
@@ -223,9 +220,8 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 
 	client.InitUI()
 	if err := client.GlobUI.Configure(); err != nil {
-		lg := logger.NewWithCallDepth("", 1, os.Stderr)
-		lg.Warning("problem configuring UI: %s", err)
-		lg.Warning("ignoring for now...")
+		log.Warning("problem configuring UI: %s", err)
+		log.Warning("ignoring for now...")
 	}
 
 	daemon, err := makeKeybaseDaemon(config, serverRootDir, localUser, config.Codec(), config.MakeLogger(""))
@@ -253,7 +249,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 		config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
 	}
 
-	bserv, err := makeBlockServer(config, serverRootDir, bserverAddr)
+	bserv, err := makeBlockServer(config, serverRootDir, bserverAddr, log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %v", err)
 	}

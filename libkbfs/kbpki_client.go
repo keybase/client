@@ -39,7 +39,7 @@ func (k *KBPKIClient) GetCurrentUID(ctx context.Context) (keybase1.UID, error) {
 		// unless we want anonymous browsing of public data
 		return keybase1.UID(""), err
 	}
-	k.log.CInfof(ctx, "logged in user uid = %s", s.UID)
+	k.log.CDebugf(ctx, "logged in user uid = %s", s.UID)
 	return s.UID, nil
 }
 
