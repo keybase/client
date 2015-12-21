@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -236,7 +235,7 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 			return
 		}
 	}
-	u.G().Log.Info("Moving %s to %s", path.Base(savePath), path.Base(fpath))
+	u.G().Log.Info("Moving %s to %s", filepath.Base(savePath), filepath.Base(fpath))
 	err = os.Rename(savePath, fpath)
 	return
 }
@@ -286,7 +285,7 @@ func (u *Updater) checkUpdate(sourcePath string, destinationPath string) error {
 
 func (u *Updater) apply(src string, dest string) error {
 	if _, err := os.Stat(dest); err == nil {
-		tmpFileName, err := libkb.TempFileName(fmt.Sprintf("%s.", path.Base(dest)))
+		tmpFileName, err := libkb.TempFileName(fmt.Sprintf("%s.", filepath.Base(dest)))
 		if err != nil {
 			return err
 		}
@@ -394,8 +393,8 @@ func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update, force b
 	}
 	u.G().Log.Info("Unzip path: %s", unzipPath)
 
-	baseName := path.Base(u.options.DestinationPath)
-	sourcePath := path.Join(unzipPath, baseName)
+	baseName := filepath.Base(u.options.DestinationPath)
+	sourcePath := filepath.Join(unzipPath, baseName)
 	err = u.checkUpdate(sourcePath, u.options.DestinationPath)
 	if err != nil {
 		return
@@ -425,7 +424,7 @@ func (u *Updater) Restart(ui libkb.UpdateUI) (didQuit bool, err error) {
 	}
 
 	if !updateQuitResponse.Quit {
-		u.G().Log.Warning("App canceled quit (for restart) after update")
+		u.G().Log.Warning("App quit (for restart) was canceled or unsupported after update")
 		return
 	}
 
