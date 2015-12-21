@@ -100,17 +100,17 @@ get_deps() {
   cd $tmp_dir
   echo "Downloading dependencies"
 
-  if [ ! "$KEYBASE_BINPATH" = "" ]; then
-    echo "Using local keybase binpath: $KEYBASE_BINPATH"
-    cp $KEYBASE_BINPATH .
+  if [ ! "$keybase_binpath" = "" ]; then
+    echo "Using local keybase binpath: $keybase_binpath"
+    cp $keybase_binpath .
   else
     echo "Getting $keybase_url"
     curl -J -L -Ss $keybase_url | tar zx
   fi
 
-  if [ ! "$KBFS_BINPATH" = "" ]; then
-    echo "Using local kbfs binpath: $KBFS_BINPATH"
-    cp $KBFS_BINPATH .
+  if [ ! "$kbfs_binpath" = "" ]; then
+    echo "Using local kbfs binpath: $kbfs_binpath"
+    cp $kbfs_binpath .
   else
     echo "Getting $kbfs_url"
     curl -J -L -Ss $kbfs_url | tar zx
