@@ -6,7 +6,7 @@ import {FlatButton} from 'material-ui'
 import resolveAssets from '../../../desktop/resolve-assets'
 
 import {intersperseFn} from '../util/arrays'
-import {parseFolderNameToUsers, canonicalizeUsernames} from '../util/kbfs'
+import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
 
 import commonStyles, {colors} from '../styles/common'
 
@@ -46,7 +46,7 @@ export default class Render extends Component {
     const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, quit, openingButtonInfo} = this.props
 
     return (
-      <div style={{backgroundColor: colors.white, width: 320, ...commonStyles.fontRegular}}>
+      <div style={{backgroundColor: colors.white, ...commonStyles.fontRegular, display: 'flex', flexDirection: 'column', height: '100%'}}>
         <Header openKBFS={openKBFS} showHelp={showHelp}/>
         {this.props.openingMessage && <OpeningMessage message={this.props.openingMessage} buttonInfo={openingButtonInfo} showHelp={showHelp}/>}
         {this.props.username && <FolderList username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders}/>}
@@ -225,10 +225,10 @@ class FolderList extends Component {
     }
 
     const privateFolders = [personalPrivateFolder].concat(folders.filter(f => !f.isPublic))
-    const publicFolders = [personalPublicFolder].concat(folders.filter(f => f.isPublic))
+    const publicFolders = [personalPublicFolder].concat(folders.filter(f => f.isPublic)).map(f => ({...f, folderName: stripPublicTag(f.folderName)}))
 
     return (
-      <div style={{display: 'flex', flexDirection: 'column', backgroundColor: colors.trueWhite, paddingTop: 17, paddingLeft: 18, paddingBottom: 9, maxHeight: 400, overflow: 'scroll'}}>
+      <div style={{display: 'flex', flexDirection: 'column', flexGrow: 2, backgroundColor: colors.trueWhite, paddingTop: 17, paddingLeft: 18, paddingBottom: 9, overflow: 'scroll'}}>
         <div>
           <div style={{...rootFolderStyle}}>private/</div>
           <CollapsableFolderList
@@ -288,6 +288,7 @@ const personalTLDStyle = {
 const SVGFolderIcon = svgPath => ({
   height: 28,
   width: 25,
+  marginTop: 2,
   backgroundImage: `url(${svgPath})`,
   backgroundRepeat: 'no-repeat'
 })

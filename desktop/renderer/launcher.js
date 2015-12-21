@@ -15,14 +15,15 @@ if (module.hot) {
 // The menubar has a variable height, and we want to account for that until a certain height
 // After that height, we'll just use the scroll bar
 const currentWindow = remote.getCurrentWindow()
-let cachedSizes = {width: 0, height: 0}
+const width = 320
+let cachedHeight = 300
 const resizeWindowForComponent = () => {
   setImmediate(() => {
     const r = document.getElementById('root')
-    const [width, height] = [r.scrollWidth, r.scrollHeight]
-    if (width !== cachedSizes.width || height !== cachedSizes.height) {
-      currentWindow.setContentSize(width, height)
-      cachedSizes = {width, height}
+    const height = r.scrollHeight
+    if (height !== cachedHeight) {
+      currentWindow.setSize(width, height)
+      cachedHeight = height
     }
   })
 }
