@@ -64,6 +64,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SigsProtocol(NewSigsHandler(xp, g)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, g)),
 		keybase1.RevokeProtocol(NewRevokeHandler(xp, g)),
+		keybase1.SecretKeysProtocol(NewSecretKeysHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
 		keybase1.UpdateProtocol(NewUpdateHandler(xp, g, d.updateChecker)),

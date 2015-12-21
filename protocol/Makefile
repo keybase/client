@@ -50,6 +50,7 @@ build-stamp: \
 	json/revoke.json \
 	json/saltpack.json \
 	json/saltpack_ui.json \
+	json/secretkeys.json \
 	json/secret_ui.json \
 	json/session.json \
 	json/signup.json \

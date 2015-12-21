@@ -1194,6 +1194,27 @@ export default {
     }
   },
   'secretUi': {},
+  'SecretKeys': {
+    'LogLevel': {
+      'none': 0,
+      'debug': 1,
+      'info': 2,
+      'notice': 3,
+      'warn': 4,
+      'error': 5,
+      'critical': 6,
+      'fatal': 7
+    },
+    'ClientType': {
+      'cli': 0,
+      'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
+    }
+  },
   'session': {
     'LogLevel': {
       'none': 0,

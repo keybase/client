@@ -4491,6 +4491,121 @@ export type SecretEntryRes = {
   storeSecret: boolean;
 }
 
+export type SecretKeys_Time = {
+}
+
+export type SecretKeys_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type SecretKeys_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type SecretKeys_UID = {
+}
+
+export type SecretKeys_DeviceID = {
+}
+
+export type SecretKeys_SigID = {
+}
+
+export type SecretKeys_KID = {
+}
+
+export type SecretKeys_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type SecretKeys_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type SecretKeys_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type SecretKeys_User = {
+  uid: UID;
+  username: string;
+}
+
+export type SecretKeys_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+}
+
+export type SecretKeys_Stream = {
+  fd: int;
+}
+
+export type SecretKeys_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type SecretKeys_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type SecretKeys_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type SecretKeys_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type SecretKeys_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type SecretKeys_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type SecretKeys_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type SecretKeys_SecretKeys = {
+  signing: NaclSigningKeyPrivate;
+  encryption: NaclDHKeyPrivate;
+}
+
+export type SecretKeys = {
+  signing: NaclSigningKeyPrivate;
+  encryption: NaclDHKeyPrivate;
+}
+
 export type session_Time = {
 }
 
