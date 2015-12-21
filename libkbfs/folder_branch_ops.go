@@ -2607,9 +2607,6 @@ func (fbo *folderBranchOps) Write(
 			filePath.tailPointer())
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, rmd *RootMetadata, f path) error {
-				// Clear the old deCache entry
-				fbo.clearDeCacheEntryLocked(
-					f.parentPath().tailPointer(), filePath.tailPointer())
 				// Write the data again
 				return fbo.writeDataLocked(
 					ctx, rmd, f, dataCopy, off, false)
@@ -2774,9 +2771,6 @@ func (fbo *folderBranchOps) Truncate(
 			filePath.tailPointer())
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, rmd *RootMetadata, f path) error {
-				// Clear the old deCache entry
-				fbo.clearDeCacheEntryLocked(
-					f.parentPath().tailPointer(), filePath.tailPointer())
 				return fbo.truncateLocked(ctx, rmd, f, size, false)
 			})
 	}
@@ -3274,6 +3268,13 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context, file path) (
 	stillDirty = len(fbo.deferredWrites) != 0
 	fbo.deferredWrites = nil
 	for _, f := range writes {
+		// Clear the old deCache entry
+		func() {
+			fbo.cacheLock.Lock()
+			defer fbo.cacheLock.Unlock()
+			fbo.clearDeCacheEntryLocked(
+				newPath.parentPath().tailPointer(), file.tailPointer())
+		}()
 		// we can safely read head here because we hold writerLock
 		err = f(ctx, fbo.head, newPath)
 		if err != nil {
