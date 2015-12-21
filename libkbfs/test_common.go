@@ -488,9 +488,9 @@ func (tc TestClock) Now() time.Time {
 	return tc.T
 }
 
-// ShutdownConfigOrBust shuts down the given config, but fails the
+// CheckConfigAndShutdown shuts down the given config, but fails the
 // test if there's an error.
-func ShutdownConfigOrBust(t *testing.T, config Config) {
+func CheckConfigAndShutdown(t *testing.T, config Config) {
 	if err := config.Shutdown(); err != nil {
 		t.Errorf(err.Error())
 	}

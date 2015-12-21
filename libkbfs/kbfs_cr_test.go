@@ -67,10 +67,10 @@ func TestBasicMDUpdate(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer ShutdownConfigOrBust(t, config1)
+	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer ShutdownConfigOrBust(t, config2)
+	defer CheckConfigAndShutdown(t, config2)
 	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -137,10 +137,10 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer ShutdownConfigOrBust(t, config1)
+	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer ShutdownConfigOrBust(t, config2)
+	defer CheckConfigAndShutdown(t, config2)
 	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -230,10 +230,10 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer ShutdownConfigOrBust(t, config1)
+	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer ShutdownConfigOrBust(t, config2)
+	defer CheckConfigAndShutdown(t, config2)
 	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -305,9 +305,9 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	// now re-login the users, and make sure 1 can see the changes,
 	// but 2 can't
 	config1B := ConfigAsUser(config1.(*ConfigLocal), userName1)
-	defer ShutdownConfigOrBust(t, config1B)
+	defer CheckConfigAndShutdown(t, config1B)
 	config2B := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer ShutdownConfigOrBust(t, config2B)
+	defer CheckConfigAndShutdown(t, config2B)
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
@@ -365,10 +365,10 @@ func TestMultiUserWrite(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer ShutdownConfigOrBust(t, config1)
+	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer ShutdownConfigOrBust(t, config2)
+	defer CheckConfigAndShutdown(t, config2)
 	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -442,10 +442,10 @@ func TestBasicCRNoConflict(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer ShutdownConfigOrBust(t, config1)
+	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer ShutdownConfigOrBust(t, config2)
+	defer CheckConfigAndShutdown(t, config2)
 	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -543,10 +543,10 @@ func TestBasicCRFileConflict(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer ShutdownConfigOrBust(t, config1)
+	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
-	defer ShutdownConfigOrBust(t, config2)
+	defer CheckConfigAndShutdown(t, config2)
 	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
 	if err != nil {
 		t.Fatal(err)

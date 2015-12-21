@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -29,10 +30,18 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by KBFSOpsStandard.
 func (fs *KBFSOpsStandard) Shutdown() error {
+	var errors []error
 	for _, ops := range fs.ops {
 		if err := ops.Shutdown(); err != nil {
-			return err
+			errors = append(errors, err)
+			// Continue on and try to shut down the other FBOs.
 		}
+	}
+	if len(errors) == 1 {
+		return errors[0]
+	} else if len(errors) > 1 {
+		// Aggregate errors
+		return fmt.Errorf("Multiple errors on shutdown: %v", errors)
 	}
 	return nil
 }

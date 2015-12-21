@@ -2542,7 +2542,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 	return nil
 }
 
-// writerLock must be taken by caller.
+// cacheLock must be taken by caller.
 func (fbo *folderBranchOps) clearDeCacheEntryLocked(parentPtr BlockPointer,
 	filePtr BlockPointer) {
 	// Clear the old deCache entry
@@ -4148,6 +4148,8 @@ func (fbo *folderBranchOps) SyncFromServer(
 	}
 
 	if fbo.getState() != cleanState {
+		fbo.cacheLock.Lock()
+		defer fbo.cacheLock.Unlock()
 		for parent, deMap := range fbo.deCache {
 			for file := range deMap {
 				fbo.log.CDebugf(ctx, "DeCache entry left: %v -> %v", parent, file)

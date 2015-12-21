@@ -261,10 +261,10 @@ module Test
 
   # bob renames a file over an existing file
   test :cr_unmerged_rename_file_over_file, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkfile "a/b", "hello"
       mkfile "a/c", "world"
-   end
+    end
     as bob do
       disable_updates
     end
@@ -287,10 +287,10 @@ module Test
 
   # bob renames a directory over an existing file
   test :cr_unmerged_rename_dir_over_file, writers: ["alice", "bob"] do |alice, bob|
-   as alice do
+    as alice do
       mkfile "a/b", "hello"
       mkfile "a/c/d", "world"
-   end
+    end
     as bob do
       disable_updates
     end

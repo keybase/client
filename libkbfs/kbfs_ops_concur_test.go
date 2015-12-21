@@ -47,7 +47,7 @@ func kbfsOpsConcurInit(t *testing.T, users ...libkb.NormalizedUsername) (
 // then get it from the MD cache.
 func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer ShutdownConfigOrBust(t, config)
+	defer CheckConfigAndShutdown(t, config)
 	m := NewMDOpsConcurTest(uid)
 	config.SetMDOps(m)
 
@@ -90,7 +90,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 // Test that a read can happen concurrently with a sync
 func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer ShutdownConfigOrBust(t, config)
+	defer CheckConfigAndShutdown(t, config)
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
@@ -145,7 +145,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 // Test that a write can happen concurrently with a sync
 func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer ShutdownConfigOrBust(t, config)
+	defer CheckConfigAndShutdown(t, config)
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
@@ -555,7 +555,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 // regression test for KBFS-558.
 func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer ShutdownConfigOrBust(t, config)
+	defer CheckConfigAndShutdown(t, config)
 
 	km := &mdRecordingKeyManager{delegate: config.KeyManager()}
 
@@ -778,7 +778,7 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 // are multiple blocks in the file.
 func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer ShutdownConfigOrBust(t, config)
+	defer CheckConfigAndShutdown(t, config)
 
 	// make blocks small
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
@@ -892,7 +892,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		t.Skip("Skipping because we are not putting blocks in parallel.")
 	}
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer ShutdownConfigOrBust(t, config)
+	defer CheckConfigAndShutdown(t, config)
 
 	// give it a remote block server with a fake client
 	fc := NewFakeBServerClient(nil, nil, nil)
@@ -1003,7 +1003,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 // cancel the remaining puts.
 func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer ShutdownConfigOrBust(t, config)
+	defer CheckConfigAndShutdown(t, config)
 
 	// give it a mock'd block server
 	ctr := NewSafeTestReporter(t)

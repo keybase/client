@@ -2149,10 +2149,7 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 		}
 		resolvedPath = mergedPaths[next]
 		for i, ptr := range ptrsToAppend {
-			resolvedPath.path = append(resolvedPath.path, pathNode{
-				BlockPointer: ptr,
-				Name:         namesToAppend[i],
-			})
+			resolvedPath = resolvedPath.ChildPath(namesToAppend[i], ptr)
 		}
 	}
 
