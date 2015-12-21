@@ -18,6 +18,7 @@ type FS struct {
 	fuse   *fs.Server
 	conn   *fuse.Conn
 	log    logger.Logger
+	errLog logger.Logger
 
 	// notifications is a channel for notification functions (which
 	// take no value and have no return value).
@@ -34,13 +35,17 @@ type FS struct {
 
 // NewFS creates an FS
 func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
-	log := logger.New("kbfsfuse", os.Stderr)
+	log := logger.NewWithCallDepth("kbfsfuse", 1, os.Stderr)
+	// We need extra depth for errors, so that we can report the line
+	// number for the caller of reportErr, not reportErr itself.
+	errLog := logger.NewWithCallDepth("kbfsfuse", 2, os.Stderr)
 	if debug {
 		// Turn on debugging.  TODO: allow a proper log file and
 		// style to be specified.
 		log.Configure("", true, "")
+		errLog.Configure("", true, "")
 	}
-	return &FS{config: config, conn: conn, log: log}
+	return &FS{config: config, conn: conn, log: log, errLog: errLog}
 }
 
 func (f *FS) processNotifications(ctx context.Context) {
@@ -124,7 +129,7 @@ var _ fs.FSStatfser = (*FS)(nil)
 
 func (f *FS) reportErr(ctx context.Context, err error) {
 	if err == nil {
-		f.log.CDebugf(ctx, "Request complete")
+		f.errLog.CDebugf(ctx, "Request complete")
 		return
 	}
 
@@ -134,7 +139,7 @@ func (f *FS) reportErr(ctx context.Context, err error) {
 	//
 	// TODO: Classify errors and escalate the logging level of the
 	// important ones.
-	f.log.CDebugf(ctx, err.Error())
+	f.errLog.CDebugf(ctx, err.Error())
 }
 
 // Root implements the fs.FS interface for FS.
