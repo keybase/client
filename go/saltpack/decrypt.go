@@ -12,18 +12,11 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
-type decryptState int
-
-const (
-	stateBody        decryptState = iota
-	stateEndOfStream decryptState = iota
-)
-
 type decryptStream struct {
 	ring       Keyring
 	fmps       *framedMsgpackStream
 	err        error
-	state      decryptState
+	state      readState
 	keys       *receiverKeysPlaintext
 	sessionKey SymmetricKey
 	buf        []byte

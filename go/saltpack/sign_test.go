@@ -6,9 +6,13 @@ package saltpack
 import "testing"
 
 func TestSign(t *testing.T) {
-	out, err := Sign([]byte("The Complete Book of Tools"), nil, MessageTypeAttachedSignature)
+	msg := randomMsg(t, 128)
+	key := newBoxKey(t)
+	out, err := Sign(msg, key, MessageTypeAttachedSignature)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_ = out
+	if len(out) == 0 {
+		t.Fatal("Sign returned no error and no output")
+	}
 }

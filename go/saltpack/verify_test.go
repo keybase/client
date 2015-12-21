@@ -9,20 +9,20 @@ import (
 )
 
 func TestVerify(t *testing.T) {
-	t.Skip()
-	in := []byte("The Complete Book of Tools")
-	smsg, err := Sign(in, nil, MessageTypeAttachedSignature)
+	in := randomMsg(t, 128)
+	key := newBoxKey(t)
+	smsg, err := Sign(in, key, MessageTypeAttachedSignature)
 	if err != nil {
 		t.Fatal(err)
 	}
-	skey, msg, err := Verify(smsg)
+	skey, msg, err := Verify(smsg, kr)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !bytes.Equal(skey.ToKID(), key.GetPublicKey().ToKID()) {
+		t.Errorf("sender key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 	}
 	if !bytes.Equal(msg, in) {
-		t.Errorf("verified msg %q, expected %q", msg, in)
+		t.Errorf("verified msg '%x', expected '%x'", msg, in)
 	}
-
-	_ = skey
-
 }

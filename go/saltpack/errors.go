@@ -14,7 +14,7 @@ var (
 	// request with a (-1,nil) return value, and no hidden keys are found.
 	ErrNoDecryptionKey = errors.New("no decryption key found for message")
 
-	// ErrNoSenderKey indicates that on decryption we couldn't find a public key
+	// ErrNoSenderKey indicates that on decryption/verification we couldn't find a public key
 	// for the sender.
 	ErrNoSenderKey = errors.New("no sender key found for message")
 
@@ -51,6 +51,9 @@ var (
 	// ErrNoStream is returned if a stream constructor returned a nil
 	// stream.
 	ErrNoStream = errors.New("no stream")
+
+	// ErrHeaderNotRead is returned if a stream is read before the header is processed.
+	ErrHeaderNotRead = errors.New("message read before header processed")
 )
 
 // ErrBadTag is generated when a Tag fails to Unbox properly. It specifies
@@ -68,7 +71,7 @@ type ErrRepeatedKey []byte
 // ErrWrongMessageType is produced if one packet tag was expected, but a packet
 // of another tag was found.
 type ErrWrongMessageType struct {
-	wanted   MessageType
+	wanted   []MessageType
 	received MessageType
 }
 
@@ -102,7 +105,7 @@ func (e ErrBadArmorHeader) Error() string {
 }
 
 func (e ErrWrongMessageType) Error() string {
-	return fmt.Sprintf("Wanted type=%d; got type=%d", e.wanted, e.received)
+	return fmt.Sprintf("Wanted type=%v; got type=%d", e.wanted, e.received)
 }
 func (e ErrBadVersion) Error() string {
 	return fmt.Sprintf("In packet %d: unsupported version (%v)", e.seqno, e.received)
@@ -115,4 +118,14 @@ func (e ErrBadTag) Error() string {
 }
 func (e ErrRepeatedKey) Error() string {
 	return fmt.Sprintf("Repeated recipient key: %x", []byte(e))
+}
+
+// ErrInvalidParameter signifies that a function was called with
+// an invalid parameter.
+type ErrInvalidParameter struct {
+	message string
+}
+
+func (e ErrInvalidParameter) Error() string {
+	return fmt.Sprintf("Invalid parameter: %s", e.message)
 }

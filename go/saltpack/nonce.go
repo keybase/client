@@ -1,6 +1,7 @@
 package saltpack
 
 import (
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
 	"hash"
@@ -59,4 +60,16 @@ func NewNonceForEncryption(ephemeralPublicKey BoxPublicKey) *Nonce {
 	var out Nonce
 	copy(out[0:16], res)
 	return &out
+}
+
+// SigNonce is a nonce for signatures.
+type SigNonce [16]byte
+
+// NewSigNonce creates a SigNonce with random bytes.
+func NewSigNonce() (SigNonce, error) {
+	var n SigNonce
+	if _, err := rand.Read(n[:]); err != nil {
+		return SigNonce{}, err
+	}
+	return n, nil
 }

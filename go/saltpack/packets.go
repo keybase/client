@@ -53,7 +53,7 @@ func verifyRawKey(k []byte) error {
 
 func (h *EncryptionHeader) validate() error {
 	if h.Type != MessageTypeEncryption {
-		return ErrWrongMessageType{MessageTypeEncryption, h.Type}
+		return ErrWrongMessageType{[]MessageType{MessageTypeEncryption}, h.Type}
 	}
 	if h.Version.Major != SaltPackCurrentVersion.Major {
 		return ErrBadVersion{h.seqno, h.Version}
@@ -61,38 +61,41 @@ func (h *EncryptionHeader) validate() error {
 	return nil
 }
 
-// SignatureHeaderAttached is the first packet in a signed
-// message.
-type SignatureHeaderAttached struct {
+// SignatureHeader is the first packet in a signed message.
+type SignatureHeader struct {
 	_struct      bool        `codec:",toarray"`
 	FormatName   string      `codec:"format_name"`
 	Version      Version     `codec:"vers"`
 	Type         MessageType `codec:"type"`
 	SenderPublic []byte      `codec:"sender_public"`
 	Nonce        []byte      `codec:"nonce"`
+	Signature    []byte      `codec:"signature,omitempty"`
 	seqno        PacketSeqno
 }
 
-func (h *SignatureHeaderAttached) validate() error {
-	if h.Type != MessageTypeAttachedSignature {
-		return ErrWrongMessageType{MessageTypeAttachedSignature, h.Type}
+func newSignatureHeader(sender BoxPublicKey) (*SignatureHeader, error) {
+	nonce, err := NewSigNonce()
+	if err != nil {
+		return nil, err
 	}
-	if h.Version.Major != SaltPackCurrentVersion.Major {
-		return ErrBadVersion{h.seqno, h.Version}
+
+	header := &SignatureHeader{
+		FormatName:   SaltPackFormatName,
+		Version:      SaltPackCurrentVersion,
+		Type:         MessageTypeAttachedSignature,
+		SenderPublic: sender.ToKID(),
+		Nonce:        nonce[:],
 	}
-	return nil
+
+	return header, nil
 }
 
-// SignatureHeaderDetached is the only packet in a detached
-// signature.
-type SignatureHeaderDetached struct {
-	SignatureHeaderAttached
-	Signature []byte `codec:"signature"`
-}
-
-func (h *SignatureHeaderDetached) validate() error {
-	if h.Type != MessageTypeDetachedSignature {
-		return ErrWrongMessageType{MessageTypeDetachedSignature, h.Type}
+func (h *SignatureHeader) validate() error {
+	if h.Type != MessageTypeAttachedSignature && h.Type != MessageTypeDetachedSignature {
+		return ErrWrongMessageType{
+			wanted:   []MessageType{MessageTypeAttachedSignature, MessageTypeDetachedSignature},
+			received: h.Type,
+		}
 	}
 	if h.Version.Major != SaltPackCurrentVersion.Major {
 		return ErrBadVersion{h.seqno, h.Version}

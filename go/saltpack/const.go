@@ -46,3 +46,14 @@ const SaltPackFormatName = "SaltPack"
 // NoncePrefixEncryption is the prefix used to create the nonce when
 // using the nonce for encryption.
 const NoncePrefixEncryption = "encryption nonce prefix"
+
+// SignatureBlockSize is by default 1MB and can't currently be tweaked.
+const SignatureBlockSize int = 1048576
+
+type readState int
+
+const (
+	stateHeader readState = iota
+	stateBody
+	stateEndOfStream
+)

@@ -5,60 +5,143 @@ package saltpack
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"io/ioutil"
 )
 
 // NewVerifyStream creates a stream that consumes data from reader
 // r.  It returns the signer's public key and a reader that only
-// contains verified data.
-func NewVerifyStream(r io.Reader) (skey BoxPublicKey, vs io.Reader, err error) {
-	return nil, &verifyStream{}, nil
-}
-
-// NewVerifyKeyringStream creates a stream that consumes data from reader
-// r.  It returns the signer's public key and a reader that only
-// contains verified data.  If the signer's public key is not in
-// the supplied keyring, it will return an error.
-func NewVerifyKeyringStream(r io.Reader, keyring Keyring) (skey BoxPublicKey, vs io.Reader, err error) {
-	return nil, &verifyStream{}, nil
+// contains verified data.  If the signer's key is not in keyring,
+// it will return an error.
+func NewVerifyStream(r io.Reader, keyring Keyring) (skey BoxPublicKey, vs io.Reader, err error) {
+	s := newVerifyStream(r)
+	hdr, err := s.readHeader()
+	if err != nil {
+		return nil, nil, err
+	}
+	skey = keyring.LookupBoxPublicKey(hdr.SenderPublic)
+	if skey == nil {
+		return nil, nil, ErrNoSenderKey
+	}
+	return skey, s, nil
 }
 
 // Verify checks the signature in signedMsg.  It returns the
 // signer's public key and a verified message.
-func Verify(signedMsg []byte) (skey BoxPublicKey, verifiedMsg []byte, err error) {
-	return verifyBytes(signedMsg, NewVerifyStream)
-}
-
-// VerifyKeyring checks the signature in signedMsg and ensures
-// that the signer's publice key is in the supplied keyring.  It
-// reutrns the signer's public key and a verified message.
-func VerifyKeyring(signedMsg []byte, keyring Keyring) (skey BoxPublicKey, verifiedMsg []byte, err error) {
-	var ms = func(r io.Reader) (BoxPublicKey, io.Reader, error) {
-		return NewVerifyKeyringStream(r, keyring)
-	}
-	return verifyBytes(signedMsg, ms)
-}
-
-func verifyBytes(signedMsg []byte, makeStream func(io.Reader) (BoxPublicKey, io.Reader, error)) (BoxPublicKey, []byte, error) {
-	buf := bytes.NewBuffer(signedMsg)
-	skey, stream, err := makeStream(buf)
+func Verify(signedMsg []byte, keyring Keyring) (skey BoxPublicKey, verifiedMsg []byte, err error) {
+	// return verifyBytes(signedMsg, NewVerifyStream)
+	skey, stream, err := NewVerifyStream(bytes.NewReader(signedMsg), keyring)
 	if err != nil {
 		return nil, nil, err
 	}
 	if stream == nil {
 		return nil, nil, ErrNoStream
 	}
-	verifiedMsg, err := ioutil.ReadAll(stream)
+	if skey == nil {
+		return nil, nil, ErrNoSenderKey
+	}
+
+	verifiedMsg, err = ioutil.ReadAll(stream)
 	if err != nil {
 		return nil, nil, err
 	}
 	return skey, verifiedMsg, nil
 }
 
-type verifyStream struct{}
+type verifyStream struct {
+	stream *framedMsgpackStream
+	state  readState
+	buffer []byte
+}
 
-func (v *verifyStream) Read([]byte) (int, error) {
-	return 0, errors.New("not yet implemented")
+func newVerifyStream(r io.Reader) *verifyStream {
+	return &verifyStream{
+		stream: newFramedMsgpackStream(r),
+	}
+}
+
+func (v *verifyStream) Read(p []byte) (n int, err error) {
+	if v.state == stateHeader {
+		return 0, ErrHeaderNotRead
+	}
+	if v.state == stateEndOfStream {
+		return 0, io.EOF
+	}
+
+	for n == 0 && err == nil {
+		n, err = v.read(p)
+	}
+	if err == io.EOF && v.state != stateEndOfStream {
+		err = io.ErrUnexpectedEOF
+	}
+	return n, err
+}
+
+func (v *verifyStream) read(p []byte) (int, error) {
+	// if data in the buffer, then start by copying it into output slice
+	if len(v.buffer) > 0 {
+		n := copy(p, v.buffer)
+		v.buffer = v.buffer[n:]
+		return n, nil
+	}
+
+	n, last, err := v.readBlock(p)
+	if err != nil {
+		return n, err
+	}
+	if last {
+		v.state = stateEndOfStream
+		if err := v.assertEndOfStream(); err != nil {
+			return n, err
+		}
+	}
+
+	return n, nil
+}
+
+func (v *verifyStream) readHeader() (*SignatureHeader, error) {
+	var hdr SignatureHeader
+	seqno, err := v.stream.Read(&hdr)
+	if err != nil {
+		return nil, err
+	}
+	hdr.seqno = seqno
+	v.state = stateBody
+	return &hdr, nil
+}
+
+func (v *verifyStream) readBlock(p []byte) (int, bool, error) {
+	var block SignatureBlock
+	seqno, err := v.stream.Read(&block)
+	if err != nil {
+		return 0, false, err
+	}
+	block.seqno = seqno
+
+	data, err := v.processBlock(&block)
+	if err != nil {
+		return 0, false, err
+	}
+	if data == nil || len(data) == 0 {
+		return 0, true, err
+	}
+
+	n := copy(p, data)
+	v.buffer = data[n:]
+
+	return n, false, err
+}
+
+func (v *verifyStream) processBlock(block *SignatureBlock) ([]byte, error) {
+	// XXX temporary
+	return block.PayloadChunk, nil
+}
+
+func (v *verifyStream) assertEndOfStream() error {
+	var i interface{}
+	_, err := v.stream.Read(&i)
+	if err == nil {
+		err = ErrTrailingGarbage
+	}
+	return err
 }

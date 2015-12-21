@@ -867,7 +867,7 @@ func TestCorruptHeader(t *testing.T) {
 	_, _, err = Open(ciphertext, kr)
 	if ebv, ok := err.(ErrWrongMessageType); !ok {
 		t.Fatalf("Got wrong error; wanted 'Bad Type' but got %v", err)
-	} else if ebv.wanted != MessageTypeEncryption {
+	} else if ebv.wanted[0] != MessageTypeEncryption {
 		t.Fatalf("got wrong wanted in error message: %d", ebv.wanted)
 	} else if ebv.received != MessageTypeAttachedSignature {
 		t.Fatalf("got wrong received in error message: %d", ebv.received)
