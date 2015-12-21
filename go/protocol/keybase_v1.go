@@ -5326,7 +5326,7 @@ func (c UiClient) PromptYesNo(ctx context.Context, __arg PromptYesNoArg) (res bo
 	return
 }
 
-type UpdateConfig struct {
+type UpdateOptions struct {
 	Version         string `codec:"version" json:"version"`
 	Platform        string `codec:"platform" json:"platform"`
 	DestinationPath string `codec:"destinationPath" json:"destinationPath"`
@@ -5341,12 +5341,16 @@ type UpdateResult struct {
 }
 
 type UpdateArg struct {
-	Config    UpdateConfig `codec:"config" json:"config"`
-	CheckOnly bool         `codec:"checkOnly" json:"checkOnly"`
+	Options UpdateOptions `codec:"options" json:"options"`
+}
+
+type UpdateCheckArg struct {
+	Force bool `codec:"force" json:"force"`
 }
 
 type UpdateInterface interface {
-	Update(context.Context, UpdateArg) (UpdateResult, error)
+	Update(context.Context, UpdateOptions) (UpdateResult, error)
+	UpdateCheck(context.Context, bool) error
 }
 
 func UpdateProtocol(i UpdateInterface) rpc.Protocol {
@@ -5364,7 +5368,23 @@ func UpdateProtocol(i UpdateInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]UpdateArg)(nil), args)
 						return
 					}
-					ret, err = i.Update(ctx, (*typedArgs)[0])
+					ret, err = i.Update(ctx, (*typedArgs)[0].Options)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"updateCheck": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdateCheckArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpdateCheckArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdateCheckArg)(nil), args)
+						return
+					}
+					err = i.UpdateCheck(ctx, (*typedArgs)[0].Force)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5377,8 +5397,15 @@ type UpdateClient struct {
 	Cli GenericClient
 }
 
-func (c UpdateClient) Update(ctx context.Context, __arg UpdateArg) (res UpdateResult, err error) {
+func (c UpdateClient) Update(ctx context.Context, options UpdateOptions) (res UpdateResult, err error) {
+	__arg := UpdateArg{Options: options}
 	err = c.Cli.Call(ctx, "keybase.1.update.update", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UpdateClient) UpdateCheck(ctx context.Context, force bool) (err error) {
+	__arg := UpdateCheckArg{Force: force}
+	err = c.Cli.Call(ctx, "keybase.1.update.updateCheck", []interface{}{__arg}, nil)
 	return
 }
 
@@ -5397,13 +5424,23 @@ type UpdatePromptRes struct {
 	SnoozeUntil       Time         `codec:"snoozeUntil" json:"snoozeUntil"`
 }
 
+type UpdateQuitRes struct {
+	Quit            bool   `codec:"quit" json:"quit"`
+	Pid             int    `codec:"pid" json:"pid"`
+	ApplicationPath string `codec:"applicationPath" json:"applicationPath"`
+}
+
 type UpdatePromptArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Update    Update `codec:"update" json:"update"`
 }
 
+type UpdateQuitArg struct {
+}
+
 type UpdateUiInterface interface {
 	UpdatePrompt(context.Context, UpdatePromptArg) (UpdatePromptRes, error)
+	UpdateQuit(context.Context) (UpdateQuitRes, error)
 }
 
 func UpdateUiProtocol(i UpdateUiInterface) rpc.Protocol {
@@ -5426,6 +5463,17 @@ func UpdateUiProtocol(i UpdateUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"updateQuit": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdateQuitArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.UpdateQuit(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5436,6 +5484,11 @@ type UpdateUiClient struct {
 
 func (c UpdateUiClient) UpdatePrompt(ctx context.Context, __arg UpdatePromptArg) (res UpdatePromptRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.updateUi.updatePrompt", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UpdateUiClient) UpdateQuit(ctx context.Context) (res UpdateQuitRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.updateUi.updateQuit", []interface{}{UpdateQuitArg{}}, &res)
 	return
 }
 

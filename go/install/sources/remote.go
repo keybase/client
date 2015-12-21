@@ -26,12 +26,16 @@ func NewRemoteUpdateSource(g *libkb.GlobalContext, defaultURI string) RemoteUpda
 	}
 }
 
-func (k RemoteUpdateSource) FindUpdate(config keybase1.UpdateConfig) (update *keybase1.Update, err error) {
+func (k RemoteUpdateSource) Description() string {
+	return fmt.Sprintf("Remote (%s)", k.defaultURI)
+}
+
+func (k RemoteUpdateSource) FindUpdate(options keybase1.UpdateOptions) (update *keybase1.Update, err error) {
 	sourceURL := ""
-	if config.URL != "" {
-		sourceURL = config.URL
+	if options.URL != "" {
+		sourceURL = options.URL
 	} else if k.defaultURI != "" {
-		sourceURL = fmt.Sprintf("%s/update-%s-%s.json", k.defaultURI, config.Platform, string(k.G().Env.GetRunMode()))
+		sourceURL = fmt.Sprintf("%s/update-%s-%s.json", k.defaultURI, options.Platform, string(k.G().Env.GetRunMode()))
 	}
 	if sourceURL == "" {
 		err = fmt.Errorf("No source URL for remote")

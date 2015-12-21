@@ -10,7 +10,7 @@ cd "$dir"
 build_dir="/tmp/build_kbfs"
 
 echo "Loading release tool"
-go install github.com/keybase/client/go/tools/release
+go install github.com/keybase/release
 release_bin="$GOPATH/bin/release"
 
 version=$VERSION
@@ -28,7 +28,7 @@ fi
 
 check_release() {
   echo "Checking for existing release: $version"
-  api_url=`$release_bin --repo=kbfs-beta --version=$version url`
+  api_url=`$release_bin url --user=keybase --repo=kbfs-beta --version=$version`
   if [ ! "$api_url" = "" ]; then
     echo "Release already exists"
     exit 0
@@ -65,11 +65,11 @@ build() {
 
 create_release() {
   cd "$build_dir"
-  osname=`$release_bin os-name`
+  platform=`$release_bin platform`
   echo "Creating release"
-  $release_bin -version "$version" -repo "kbfs-beta" create
+  $release_bin create --version="$version" --user="keybase" --repo="kbfs-beta"
   echo "Uploading release"
-  $release_bin -src "$tgz" -dest "kbfs-$version-$osname.tgz" -version "$version" -repo "kbfs-beta" upload
+  $release_bin upload --src="$tgz" --dest="kbfs-$version-$platform.tgz" --version="$version" --user="keybase" --repo="kbfs-beta"
 }
 
 check_release

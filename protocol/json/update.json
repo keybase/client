@@ -40,8 +40,8 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "UpdateConfig",
-    "doc" : "Configuration for checking and applying updates.",
+    "name" : "UpdateOptions",
+    "doc" : "Options for updating.",
     "fields" : [ {
       "name" : "version",
       "type" : "string"
@@ -74,14 +74,20 @@
   } ],
   "messages" : {
     "update" : {
+      "doc" : "Perform the update with options.",
       "request" : [ {
-        "name" : "config",
-        "type" : "UpdateConfig"
-      }, {
-        "name" : "checkOnly",
-        "type" : "boolean"
+        "name" : "options",
+        "type" : "UpdateOptions"
       } ],
       "response" : "UpdateResult"
+    },
+    "updateCheck" : {
+      "doc" : "Perform an update check.",
+      "request" : [ {
+        "name" : "force",
+        "type" : "boolean"
+      } ],
+      "response" : "null"
     }
   }
 }

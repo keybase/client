@@ -17,3 +17,28 @@ This date format is meant to be both human readable and an ordered number. (An e
 and other formats with dashes and dots are not numeric.) For example, 20151215102019 is 12/15/2015 at 10:20:19. We like keeping build number an ordered number (instead of alpha.1) so that we can prevent downgrades and see what time the build occurred.
 
 In addition, a comment with a short sha of the last commit is added as well allowing you to pinpoint more easily where in the git history the build was made.
+
+### Building
+
+To build and deploy the app:
+
+```
+./build_app_darwin.sh
+```
+
+### Scheduling Builds
+
+There is an example of a plist to for scheduled builds.
+
+```
+launchctl load ~/Library/LaunchAgents/keybase.prerelease.plist
+```
+
+### Dev/Local Builds
+
+For faster debugging/testing, you can build keybase or KBFS directly into an
+existing app install:
+
+```
+BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_keybase.sh
+```

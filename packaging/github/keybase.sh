@@ -12,12 +12,12 @@ build_dir="/tmp/build_keybase"
 clientdir="$GOPATH/src/github.com/keybase/client"
 
 echo "Loading release tool"
-go install github.com/keybase/client/go/tools/release
+go install github.com/keybase/release
 release_bin="$GOPATH/bin/release"
 
 version="${VERSION:-}"
 if [ "$version" = "" ]; then
-  version=`$release_bin --repo=client latest-version`
+  version=`$release_bin latest-version --user=keybase --repo=client`
 fi
 tag="v$version"
 tgz="keybase-$version.tgz"
@@ -30,7 +30,7 @@ fi
 
 check_release() {
   echo "Checking for existing release: $version"
-  api_url=`$release_bin --repo=client --version=$version url`
+  api_url=`$release_bin url --user=keybase --repo=client --version=$version`
   if [ ! "$api_url" = "" ]; then
     echo "Release already exists"
     exit 0
@@ -66,11 +66,11 @@ build() {
 
 create_release() {
   cd "$build_dir"
-  osname=`$release_bin os-name`
+  osname=`$release_bin platform`
   echo "Creating release"
-  $release_bin -version "$version" -repo "client" create
+  $release_bin create --version="$version" --user="keybase" --repo="client"
   echo "Uploading release"
-  $release_bin --src="$tgz" --dest="keybase-$version-$osname.tgz" -version "$version" -repo "client" upload
+  $release_bin upload --src="$tgz" --dest="keybase-$version-$osname.tgz" --version="$version" --user="keybase" --repo="client"
 }
 
 check_release

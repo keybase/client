@@ -5,6 +5,12 @@
 
 package install
 
+import "fmt"
+
 func (u *Updater) checkPlatformSpecificUpdate(sourcePath string, destinationPath string) error {
 	return nil
+}
+
+func openApplication(applicationPath string) error {
+	return fmt.Errorf("Open application not supported on this platform")
 }

@@ -12,15 +12,15 @@ clientdir="$GOPATH/src/github.com/keybase/client"
 "$clientdir/packaging/check_status_and_pull.sh" "$repodir"
 
 echo "Loading release tool"
-go install github.com/keybase/client/go/tools/release
+go install github.com/keybase/release
 release_bin="$GOPATH/bin/release"
 
-keybase_version=`$release_bin --repo=client latest-version`
+keybase_version=`$release_bin latest-version --user=keybase --repo=client`
 echo "Using latest keybase version: $keybase_version"
 
 kbfs_version=$VERSION
 if [ "$kbfs_version" = "" ]; then
-  kbfs_version=`$release_bin --repo=kbfs latest-version`
+  kbfs_version=`$release_bin latest-version --user=keybase --repo=kbfs`
   echo "Using latest kbfs version: $kbfs_version"
 fi
 

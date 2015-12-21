@@ -5,9 +5,9 @@ protocol update {
   import idl "update_common.avdl";
 
   /**
-    Configuration for checking and applying updates.
+    Options for updating.
     */
-  record UpdateConfig {
+  record UpdateOptions {
     string version;
     string platform; // Platform, e.g "darwin"
     string destinationPath;
@@ -21,6 +21,14 @@ protocol update {
     union { null, Update } update;
   }
 
-  UpdateResult update(UpdateConfig config, boolean checkOnly);
+  /**
+   Perform the update with options.
+   */
+  UpdateResult update(UpdateOptions options);
+
+  /**
+    Perform an update check.
+    */
+  void updateCheck(boolean force);
 
 }
