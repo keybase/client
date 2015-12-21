@@ -2,18 +2,19 @@
 
 import React, {Component} from '../base-react'
 import commonStyles, {colors} from '../styles/common'
-
 import {checking, revoked} from '../constants/tracker'
 import {metaNew, metaUpgraded} from '../constants/tracker'
+import electron from 'electron'
 
-import type {Proof, ProofsProps} from './proofs.render.types'
+const shell = electron.shell || electron.remote.shell
+
+import type {Proof, ProofsProps} from './proofs.render'
 
 export default class ProofsRender extends Component {
   props: ProofsProps;
 
-  // TODO hook this up
   openLink (url: string): void {
-    window.open(url)
+    shell.openExternal(url)
   }
 
   renderProofRow (proof: Proof): ReactElement {
@@ -22,7 +23,7 @@ export default class ProofsRender extends Component {
       [metaUpgraded]: colors.orange
     }[proof.meta] : null
 
-    const onTouchTap = () => {
+    const onClick = () => {
       if (proof.state !== checking) {
         console.log('should open hint link:', proof.humanUrl)
         proof.humanUrl && this.openLink(proof.humanUrl)
@@ -52,16 +53,21 @@ export default class ProofsRender extends Component {
 
     return (
       <div style={styles.row} key={proof.id}>
-        <i style={styles.platform} className={'fa ' + icon} title={proof.type} onTouchTap={onTouchTap}></i>
+        <i style={styles.platform} className={'fa ' + icon} title={proof.type} onClick={onClick}></i>
         <div style={styles.usernameContainer}>
           <span
-            style={{...styles.username, ...{textDecoration: proof.status === revoked ? 'line-through' : 'inherit'}}}
-            onTouchTap={onTouchTap}>{proof.name}</span>
+            className='hover-underline'
+            style={{...styles.username, ...(proof.status === revoked ? {textDecoration: 'line-through'} : {})}}
+            onClick={onClick}>{proof.name}</span>
           {proof.meta && <span style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</span>}
         </div>
-        <span className='fa fa-certificate' style={{...styles.status, color: statusColor}} onTouchTap={onTouchTap}></span>
+        <span className='fa fa-certificate hover-underline' style={{...styles.status, color: statusColor}} onClick={onClick}></span>
       </div>
     )
+  }
+
+  onClickUsername () {
+    shell.openExternal(`https://keybase.io/${this.props.username}`)
   }
 
   render (): ReactElement {
@@ -69,7 +75,7 @@ export default class ProofsRender extends Component {
       <div style={styles.container}>
         <div styles={styles.userContainer}>
           <span>keybase.io/</span>
-          <span style={styles.keybaseUsername}>{this.props.username}</span>
+          <span className='hover-underline' onClick={() => this.onClickUsername()} style={styles.keybaseUsername}>{this.props.username}</span>
         </div>
         <div style={styles.hr}></div>
         {this.props.proofs.map(p => this.renderProofRow(p))}
@@ -101,6 +107,7 @@ const styles = {
   },
   keybaseUsername: {
     ...commonStyles.fontBold,
+    ...commonStyles.clickable,
     color: colors.orange
   },
   hr: {

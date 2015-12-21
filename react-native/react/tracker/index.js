@@ -9,9 +9,9 @@ import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
 import {warning} from '../constants/tracker'
 
-import type {RenderProps} from './render.types'
-import type {UserInfo} from './bio.render.types'
-import type {Proof} from './proofs.render.types'
+import type {RenderProps} from './render'
+import type {UserInfo} from './bio.render'
+import type {Proof} from './proofs.render'
 import type {SimpleProofState} from '../constants/tracker'
 
 import type {TrackSummary} from '../constants/types/flow-types'

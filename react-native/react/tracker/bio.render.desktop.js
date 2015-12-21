@@ -3,31 +3,44 @@
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
 import commonStyles, {colors} from '../styles/common'
-import type {Styled} from '../styles/common'
-
-import path from 'path'
 import resolveAssets from '../../../desktop/resolve-assets'
+import electron from 'electron'
 
-import type {BioProps} from './bio.render.types'
+const shell = electron.shell || electron.remote.shell
+
+import type {Styled} from '../styles/common'
+import type {BioProps} from './bio.render'
 
 const noAvatar = `file:///${resolveAssets('../react-native/react/images/no-avatar@2x.png')}`
 
 export default class BioRender extends Component {
   props: BioProps & Styled;
 
+  onClickAvatar () {
+    shell.openExternal(`https://keybase.io/${this.props.username}`)
+  }
+
+  onClickFollowers () {
+    shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
+  }
+
+  onClickFollowing () {
+    shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
+  }
+
   render (): ReactElement {
     const {userInfo} = this.props
 
     return (
       <div style={styles.container}>
-        <Paper style={styles.avatarContainer} zDepth={1} circle>
+        <Paper onClick={() => this.onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
           <img src={(userInfo && userInfo.avatar) || noAvatar} style={styles.avatar}/>
         </Paper>
         {userInfo && userInfo.followsYou && <span style={styles.followsYou}>Tracks you</span>}
         <p style={styles.fullname}>{userInfo && userInfo.fullname}</p>
         <p style={styles.location}>{userInfo && userInfo.location}</p>
-        <p style={styles.following}>Tracking: {userInfo && userInfo.followingCount}</p>
-        <p style={styles.followers}>Trackers: {userInfo && userInfo.followersCount}</p>
+        <p className='hover-underline' onClick={() => this.onClickFollowing()} style={styles.following}>Tracking: {userInfo && userInfo.followingCount}</p>
+        <p className='hover-underline' onClick={() => this.onClickFollowers()} style={styles.followers}>Trackers: {userInfo && userInfo.followersCount}</p>
       </div>
     )
   }
@@ -56,6 +69,7 @@ const styles = {
     width: 100
   },
   avatar: {
+    ...commonStyles.clickable,
     width: 100,
     height: 100
   },
@@ -88,6 +102,7 @@ const styles = {
     marginTop: 4
   },
   following: {
+    ...commonStyles.clickable,
     color: colors.lightBlue,
     fontSize: 13,
     lineHeight: '16px',
@@ -95,6 +110,7 @@ const styles = {
     marginTop: 4
   },
   followers: {
+    ...commonStyles.clickable,
     color: colors.lightBlue,
     fontSize: 13,
     lineHeight: '16px',

@@ -1,12 +1,11 @@
 /* @flow */
 
 import React, {Component} from '../base-react'
-import path from 'path'
-import type {Styled} from '../styles/common'
 import Header from '../common-adapters/header'
 import resolveAssets from '../../../desktop/resolve-assets'
 
-import type {HeaderProps} from './header.render.types'
+import type {Styled} from '../styles/common'
+import type {HeaderProps} from './header.render'
 
 export default class HeaderRender extends Component {
   props: HeaderProps & Styled;
