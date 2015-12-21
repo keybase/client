@@ -80,6 +80,7 @@ function startPack () {
       return console.error(err)
     }
 
+    fs.copySync('./dist', 'build/desktop/sourcemaps', {filter: f => f.endsWith('.map')})
     fs.copySync('./dist', 'build/desktop/dist', {filter: f => f.endsWith('.js')})
 
     del('release')

@@ -88,6 +88,7 @@ installer_app="$tmp_dir/KeybaseInstaller.app"
 app_version=$keybase_version
 dmg_name="${app_name}-${app_version}${comment}.dmg"
 zip_name="${app_name}-${app_version}${comment}.zip"
+sourcemap_name="${app_name}-${app_version}${comment}.map.zip"
 
 clean() {
   echo "Cleaning"
@@ -168,6 +169,12 @@ package_dmg() {
   $node_bin/appdmg $appdmg $dmg_name
 }
 
+create_sourcemap_zip() {
+  cd $out_dir
+  echo "Creating $sourcemap_name"
+  zip -j $sourcemap_name $client_dir/desktop/dist/*.map
+}
+
 create_zip() {
   cd $out_dir
   echo "Creating $zip_name"
@@ -210,6 +217,7 @@ package_app
 update_plist
 sign
 package_dmg
+create_sourcemap_zip
 create_zip
 save
 
