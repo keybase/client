@@ -11,10 +11,13 @@ import type {ConfigState} from '../reducers/config'
 import {snoozeTimeSecs} from '../constants/update'
 import type {Dispatch} from '../constants/types/flux'
 
-let updateResponse: ?{result: (payload: any) => void}
+import {remote} from 'electron'
+import path from 'path'
+
+let updatePromptResponse: ?{result: (payload: any) => void}
 
 export function registerUpdateListener (): (dispatch: Dispatch, getState: () => {config: ConfigState}) => void {
-  updateResponse = null
+  updatePromptResponse = null
   return (dispatch, getState) => {
     engine.listenOnConnect(() => {
       engine.rpc('delegateUiCtl.registerUpdateUI', {}, {}, (error, response) => {
@@ -43,7 +46,7 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
     'keybase.1.updateUi.updatePrompt': (payload: {update: Update}, response) => {
       console.log('Asked for update prompt')
 
-      updateResponse = response
+      updatePromptResponse = response
       const {version, description, type, asset} = payload.update
 
       const windowTitle = {
@@ -78,38 +81,52 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
           canUpdate: !updateCommand
         }
       }: ShowUpdateAction))
+    },
+    'keybase.1.updateUi.updateQuit': (param, response) => {
+
+      const appPath = remote.app.getAppPath()
+
+      // This returns the app bundle path on OS X in production mode.
+      // TODO: Find a better, cross-platform way of resolving the real app path.
+      const applicationPath = path.resolve(appPath, "..", "..", "..")
+
+      response.result({
+        quit: true,
+        pid: remote.process.pid,
+        applicationPath: applicationPath,
+      })
     }
   }
 }
 
-function sendResponse (payload: any /* UpdatePromptRes */): void {
-  if (!updateResponse) {
+function sendUpdatePromptResponse (payload: any /* UpdatePromptRes */): void {
+  if (!updatePromptResponse) {
     console.error('Update send response with incorrect flow')
     return
   }
 
-  updateResponse.result(payload)
-  updateResponse = null
+  updatePromptResponse.result(payload)
+  updatePromptResponse = null
 }
 
 export function onCancel (): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch(({type: Constants.onCancel}: OnCancelAction))
-    sendResponse({action: updateUi.UpdateAction.cancel})
+    sendUpdatePromptResponse({action: updateUi.UpdateAction.cancel})
   }
 }
 
 export function onSkip (): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch(({type: Constants.onSkip}: OnSkipAction))
-    sendResponse({action: updateUi.UpdateAction.skip})
+    sendUpdatePromptResponse({action: updateUi.UpdateAction.skip})
   }
 }
 
 export function onSnooze (): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch(({type: Constants.onSnooze}: OnSnoozeAction))
-    sendResponse({
+    sendUpdatePromptResponse({
       action: updateUi.UpdateAction.snooze,
       snoozeUntil: Date.now() + snoozeTimeSecs * 1000
     })
@@ -119,7 +136,7 @@ export function onSnooze (): (dispatch: Dispatch) => void {
 export function onUpdate (alwaysAutoInstall: bool): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch(({type: Constants.onUpdate}: OnUpdateAction))
-    sendResponse({
+    sendUpdatePromptResponse({
       action: updateUi.UpdateAction.update,
       alwaysAutoInstall
     })
