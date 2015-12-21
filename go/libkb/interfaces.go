@@ -187,15 +187,14 @@ type Command interface {
 type JSONPayload map[string]interface{}
 
 type APIArg struct {
-	Endpoint    string
-	uArgs       url.Values
-	Args        HTTPArgs
-	JSONPayload JSONPayload
-	NeedSession bool
-	SessionR    SessionReader
-	HTTPStatus  []int
-	AppStatus   []string
-	DecodeTo    interface{}
+	Endpoint       string
+	uArgs          url.Values
+	Args           HTTPArgs
+	JSONPayload    JSONPayload
+	NeedSession    bool
+	SessionR       SessionReader
+	HTTPStatus     []int
+	AppStatusCodes []int
 	Contextified
 }
 
@@ -203,7 +202,18 @@ type APIRes struct {
 	Status     *jsonw.Wrapper
 	Body       *jsonw.Wrapper
 	HTTPStatus int
-	AppStatus  string
+	AppStatus  *AppStatus
+}
+
+type AppStatus struct {
+	Code   int               `json:"code"`
+	Name   string            `json:"name"`
+	Desc   string            `json:"desc"`
+	Fields map[string]string `json:"fields"`
+}
+
+type APIResponseWrapper interface {
+	GetAppStatus() *AppStatus
 }
 
 type ExternalHTMLRes struct {
@@ -224,11 +234,11 @@ type ExternalAPIRes struct {
 type API interface {
 	Get(APIArg) (*APIRes, error)
 	GetResp(APIArg) (*http.Response, error)
-	GetDecode(APIArg, interface{}) error
+	GetDecode(APIArg, APIResponseWrapper) error
 	Post(APIArg) (*APIRes, error)
 	PostJSON(APIArg) (*APIRes, error)
 	PostResp(APIArg) (*http.Response, error)
-	PostDecode(APIArg, interface{}) error
+	PostDecode(APIArg, APIResponseWrapper) error
 }
 
 type ExternalAPI interface {

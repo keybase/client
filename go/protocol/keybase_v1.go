@@ -598,6 +598,7 @@ const (
 	StatusCode_SCOk                     StatusCode = 0
 	StatusCode_SCLoginRequired          StatusCode = 201
 	StatusCode_SCBadSession             StatusCode = 202
+	StatusCode_SCBadLoginUserNotFound   StatusCode = 203
 	StatusCode_SCBadLoginPassword       StatusCode = 204
 	StatusCode_SCNotFound               StatusCode = 205
 	StatusCode_SCGeneric                StatusCode = 218

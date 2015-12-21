@@ -6,10 +6,8 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	"strings"
-
 	keybase1 "github.com/keybase/client/go/protocol"
-	jsonw "github.com/keybase/go-jsonw"
+	"strings"
 )
 
 //=============================================================================
@@ -369,22 +367,12 @@ func (a AppStatusError) IsBadField(s string) bool {
 	return found
 }
 
-func NewAppStatusError(jw *jsonw.Wrapper) AppStatusError {
-	code, _ := jw.AtKey("code").GetInt64()
-	desc, _ := jw.AtKey("desc").GetString()
-	name, _ := jw.AtKey("name").GetString()
-	tab := make(map[string]string)
-	fields := jw.AtKey("fields")
-	if keys, _ := fields.Keys(); keys != nil && len(keys) > 0 {
-		for _, k := range keys {
-			tab[k], _ = fields.AtKey(k).GetString()
-		}
-	}
+func NewAppStatusError(ast *AppStatus) AppStatusError {
 	return AppStatusError{
-		Code:   int(code),
-		Name:   name,
-		Desc:   desc,
-		Fields: tab,
+		Code:   ast.Code,
+		Name:   ast.Name,
+		Desc:   ast.Desc,
+		Fields: ast.Fields,
 	}
 }
 

@@ -74,6 +74,7 @@ export default {
       'scok': 0,
       'scloginrequired': 201,
       'scbadsession': 202,
+      'scbadloginusernotfound': 203,
       'scbadloginpassword': 204,
       'scnotfound': 205,
       'scgeneric': 218,
