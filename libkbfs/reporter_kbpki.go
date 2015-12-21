@@ -38,9 +38,10 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNotification) {
 	select {
 	case r.notifyBuffer <- notification:
-		r.log.Debug("ReporterKBPKI: Notify -> %+v", notification)
+		r.log.CDebugf(ctx, "ReporterKBPKI: Notify -> %+v", notification)
 	default:
-		r.log.Debug("ReporterKBPKI: notify buffer full, dropping %+v", notification)
+		r.log.CDebugf(ctx, "ReporterKBPKI: notify buffer full, dropping %+v",
+			notification)
 	}
 }
 
@@ -54,11 +55,13 @@ func (r *ReporterKBPKI) Shutdown() {
 // the keybase daemon.
 func (r *ReporterKBPKI) send() {
 	for notification := range r.notifyBuffer {
-		r.log.Debug("ReporterKBPKI: sending notification %+v", notification)
 		var ctx context.Context
 		ctx, r.canceler = context.WithCancel(context.Background())
+		r.log.CDebugf(ctx, "ReporterKBPKI: sending notification %+v",
+			notification)
 		if err := r.config.KBPKI().Notify(ctx, notification); err != nil {
-			r.log.Debug("ReporterKBPKI: error sending notification: %s", err)
+			r.log.CDebugf(ctx, "ReporterKBPKI: error sending notification: %s",
+				err)
 		}
 		r.canceler()
 	}
