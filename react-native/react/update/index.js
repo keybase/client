@@ -14,4 +14,14 @@ class Update extends Component {
 
 Update.propTypes = UpdateRender.propTypes
 
-export default connect(state => state.update)(Update)
+export default connect(
+  state => state.update,
+    undefined,
+    (stateProps, dispatchProps, ownProps) => {
+      return {
+        ...stateProps,
+        ...dispatchProps,
+        ...ownProps
+      }
+    }
+)(Update)

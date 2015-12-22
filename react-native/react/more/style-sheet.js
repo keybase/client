@@ -1,18 +1,18 @@
 import React, {Component} from '../base-react'
 import Render from './style-sheet.render'
-import {colors} from '../styles/common'
+import {globalColors} from '../styles/style-guide'
 
 export default class StyleSheet extends Component {
   render () {
     return <Render
       {...this.props}
-      colors={colors}
+      colors={globalColors}
     />
   }
 
   static parseRoute () {
     return {
-      componentAtTop: {title: 'Styleshet'}
+      componentAtTop: {title: 'Stylesheet'}
     }
   }
 }
