@@ -320,8 +320,8 @@
 		{
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/go-framed-msgpack-rpc",
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "5f85a2a031aa3a8ebd07895a3576fc9f30ea774a",
-			"revisionTime": "2015-12-02T18:35:35-08:00"
+			"revision": "4e25f5ec641df586094c295c65df85e2836b5d10",
+			"revisionTime": "2015-12-22T12:35:00-08:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-jsonw",

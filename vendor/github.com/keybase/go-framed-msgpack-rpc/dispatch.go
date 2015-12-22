@@ -163,8 +163,12 @@ func (d *dispatch) nextSeqid() seqNumber {
 func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper) error {
 	profiler := d.log.StartProfiler("call %s", name)
 	call := newCall(ctx, name, arg, res, u, profiler)
-	d.callCh <- call
-	return <-call.resultCh
+	select {
+	case d.callCh <- call:
+		return <-call.resultCh
+	case <-d.stopCh:
+		return DisconnectedError{}
+	}
 }
 
 func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) error {
