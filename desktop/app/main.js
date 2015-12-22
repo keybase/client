@@ -87,7 +87,7 @@ ipc.on('closeMenubar', () => {
 ipc.on('showMain', () => {
   mainWindow.show(true)
   if (showDevTools && mainWindow.window) {
-    mainWindow.window.toggleDevTools()
+    mainWindow.window.openDevTools()
   }
 
   menuHelper(mainWindow.window)
