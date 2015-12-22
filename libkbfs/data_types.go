@@ -24,6 +24,10 @@ const (
 	PublicUIDName = "public"
 )
 
+// disallowedPrefixes must not be allowed at the beginning of any
+// user-created directory entry name.
+var disallowedPrefixes = [...]string{".kbfs"}
+
 // UserInfo contains all the info about a keybase user that kbfs cares
 // about.
 type UserInfo struct {

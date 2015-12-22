@@ -44,6 +44,14 @@ func (e WriteAccessError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
 
+var _ fuse.ErrorNumber = DisallowedPrefixError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// DisallowedPrefixError.
+func (e DisallowedPrefixError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EINVAL)
+}
+
 // Errno implements the fuse.ErrorNumber interface for BServerErrorUnauthorized.
 func (e BServerErrorUnauthorized) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)

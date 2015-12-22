@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -1656,10 +1657,23 @@ func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	return de, nil
 }
 
+func checkDisallowedPrefixes(name string) error {
+	for _, prefix := range disallowedPrefixes {
+		if strings.HasPrefix(name, prefix) {
+			return DisallowedPrefixError{name, prefix}
+		}
+	}
+	return nil
+}
+
 // entryType must not by Sym.  writerLock must be taken by caller.
 func (fbo *folderBranchOps) createEntryLocked(
 	ctx context.Context, dir Node, name string, entryType EntryType) (
 	Node, DirEntry, error) {
+	if err := checkDisallowedPrefixes(name); err != nil {
+		return nil, DirEntry{}, err
+	}
+
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {
@@ -1780,6 +1794,10 @@ func (fbo *folderBranchOps) CreateFile(
 func (fbo *folderBranchOps) createLinkLocked(
 	ctx context.Context, dir Node, fromName string, toPath string) (
 	DirEntry, error) {
+	if err := checkDisallowedPrefixes(fromName); err != nil {
+		return DirEntry{}, err
+	}
+
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(ctx)
 	if err != nil {

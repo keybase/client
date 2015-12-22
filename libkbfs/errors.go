@@ -722,3 +722,16 @@ type NoChainFoundError struct {
 func (e NoChainFoundError) Error() string {
 	return fmt.Sprintf("No chain found for %v", e.ptr)
 }
+
+// DisallowedPrefixError indicates that the user attempted to create
+// an entry using a name with a disallowed prefix.
+type DisallowedPrefixError struct {
+	name   string
+	prefix string
+}
+
+// Error implements the error interface for NoChainFoundError.
+func (e DisallowedPrefixError) Error() string {
+	return fmt.Sprintf("Cannot create %s because it has the prefix %s",
+		e.name, e.prefix)
+}

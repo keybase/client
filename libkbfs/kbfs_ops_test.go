@@ -1267,6 +1267,64 @@ func TestCreateLinkFailDupName(t *testing.T) {
 	testCreateEntryFailDupName(t, false)
 }
 
+func testCreateEntryFailKBFSPrefix(t *testing.T, et EntryType) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	u, id, rmd := makeIDAndRMD(t, config)
+
+	rootID := fakeBlockID(42)
+	aID := fakeBlockID(43)
+	rootBlock := NewDirBlock().(*DirBlock)
+	rootBlock.Children["a"] = DirEntry{
+		BlockInfo: makeBIFromID(aID, u),
+		EntryInfo: EntryInfo{
+			Type: Dir,
+		},
+	}
+	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
+	ops := getOps(config, id)
+	n := nodeFromPath(t, ops, p)
+
+	name := ".kbfs_status"
+	expectedErr := DisallowedPrefixError{name, ".kbfs"}
+
+	var err error
+	// dir and link have different checks for dup name
+	switch et {
+	case Dir:
+		_, _, err = config.KBFSOps().CreateDir(ctx, n, name)
+	case Sym:
+		_, err = config.KBFSOps().CreateLink(ctx, n, name, "a")
+	case Exec:
+		_, _, err = config.KBFSOps().CreateFile(ctx, n, name, true)
+	case File:
+		_, _, err = config.KBFSOps().CreateFile(ctx, n, name, false)
+	}
+	if err == nil {
+		t.Errorf("Got no expected error on create")
+	} else if err != expectedErr {
+		t.Errorf("Got unexpected error on create: %v", err)
+	}
+}
+
+func TestCreateDirFailKBFSPrefix(t *testing.T) {
+	testCreateEntryFailKBFSPrefix(t, Dir)
+}
+
+func TestCreateFileFailKBFSPrefix(t *testing.T) {
+	testCreateEntryFailKBFSPrefix(t, File)
+}
+
+func TestCreateExecFailKBFSPrefix(t *testing.T) {
+	testCreateEntryFailKBFSPrefix(t, Exec)
+}
+
+func TestCreateLinkFailKBFSPrefix(t *testing.T) {
+	testCreateEntryFailKBFSPrefix(t, Sym)
+}
+
 func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
