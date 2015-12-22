@@ -73,16 +73,15 @@ type SigningPublicKey interface {
 	// this public key.
 	Verify(message []byte, signature []byte) (bool, error)
 
-	// ToKID outputs the "key ID" that corresponds to this BoxPublicKey.
+	// ToKID outputs the "key ID" that corresponds to this SigningPublicKey.
 	// You can do whatever you'd like here, but probably it makes sense just
 	// to output the public key as is.
 	ToKID() []byte
 }
 
-// Keyring is an interface used with decryption/verification; it
-// is called to recover public or private keys during the
-// decryption/verification process. Calls can block on network
-// action.
+// Keyring is an interface used with decryption; it is called to
+// recover public or private keys during the decryption process.
+// Calls can block on network action.
 type Keyring interface {
 	// LookupBoxSecretKey looks in the Keyring for the secret key corresponding
 	// to one of the given Key IDs.  Returns the index and the key on success,
@@ -93,9 +92,6 @@ type Keyring interface {
 	// For most cases, the key ID will be the key itself.
 	LookupBoxPublicKey(kid []byte) BoxPublicKey
 
-	// LookupSigningPublicKey returns a public signing key for the specified key ID.
-	LookupSigningPublicKey(kid []byte) SigningPublicKey
-
 	// GetAllSecretKeys returns all keys, needed if we want to support
 	// "hidden" receivers via trial and error
 	GetAllSecretKeys() []BoxSecretKey
@@ -104,6 +100,11 @@ type Keyring interface {
 	// BoxPublicKey format. This key has never been seen before, so
 	// will be ephemeral.
 	ImportEphemeralKey(kid []byte) BoxPublicKey
+}
+
+type SigKeyring interface {
+	// LookupSigningPublicKey returns a public signing key for the specified key ID.
+	LookupSigningPublicKey(kid []byte) SigningPublicKey
 }
 
 // SecretKeyEqual returns true if the two secret keys are equal.

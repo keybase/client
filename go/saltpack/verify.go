@@ -13,7 +13,7 @@ import (
 // r.  It returns the signer's public key and a reader that only
 // contains verified data.  If the signer's key is not in keyring,
 // it will return an error.
-func NewVerifyStream(r io.Reader, keyring Keyring) (skey SigningPublicKey, vs io.Reader, err error) {
+func NewVerifyStream(r io.Reader, keyring SigKeyring) (skey SigningPublicKey, vs io.Reader, err error) {
 	s := newVerifyStream(r)
 	hdr, err := s.readHeader()
 	if err != nil {
@@ -29,7 +29,7 @@ func NewVerifyStream(r io.Reader, keyring Keyring) (skey SigningPublicKey, vs io
 
 // Verify checks the signature in signedMsg.  It returns the
 // signer's public key and a verified message.
-func Verify(signedMsg []byte, keyring Keyring) (skey SigningPublicKey, verifiedMsg []byte, err error) {
+func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifiedMsg []byte, err error) {
 	// return verifyBytes(signedMsg, NewVerifyStream)
 	skey, stream, err := NewVerifyStream(bytes.NewReader(signedMsg), keyring)
 	if err != nil {
