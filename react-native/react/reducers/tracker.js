@@ -5,7 +5,7 @@ import {showAllTrackers} from '../local-debug'
 
 import * as Constants from '../constants/tracker'
 import {normal, warning, error, checking} from '../constants/tracker'
-import {metaNew, metaUpgraded} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase_v1'
 
@@ -13,12 +13,13 @@ import type {UserInfo} from '../tracker/bio.render'
 import type {Proof} from '../tracker/proofs.render'
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
-import type {Identity, RemoteProof, LinkCheckResult, ProofState, identifyUi_TrackDiffType, TrackSummary} from '../constants/types/flow-types'
+import type {Identity, RemoteProof, LinkCheckResult, ProofState, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
   serverActive: boolean,
-  proofState: SimpleProofState,
+  trackerState: SimpleProofState,
+  trackerMessage: ?string,
   username: string,
   shouldFollow: ?boolean,
   reason: string,
@@ -47,7 +48,8 @@ function initialTrackerState (username: string): TrackerState {
   return {
     serverActive: false,
     username,
-    proofState: initialProofState,
+    trackerState: initialProofState,
+    trackerMessage: null,
     shouldFollow: true,
     proofs: [],
     reason: '', // TODO: get the reason
@@ -114,25 +116,19 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const anyError: boolean = proofs.reduce((acc, p) => acc || p.state === error, false)
       const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === checking, false)
 
-      let proofState: SimpleProofState = error
+      // Helper to reduce boiler plate.
+      const anyMetaCheck = (v: SimpleProofMeta) => ((acc, p) => acc || p.meta === v)
 
-      shouldFollow = false
-
-      if (allOk) {
-        proofState = normal
-        shouldFollow = true
-      } else if (anyWarnings) {
-        proofState = warning
-      } else if (anyError) {
-        proofState = error
-      } else if (anyPending) {
-        proofState = checking
-      }
+      const anyDeletedProofs : boolean = proofs.reduce(anyMetaCheck(metaDeleted), false)
+      const anyUnreachableProofs : boolean = proofs.reduce(anyMetaCheck(metaUnreachable), false)
+      const anyUpgradedProofs : boolean = proofs.reduce(anyMetaCheck(metaUpgraded), false)
+      const anyNewProofs: boolean = proofs.reduce(anyMetaCheck(metaNew), false)
 
       return {
         ...state,
-        shouldFollow,
-        proofState
+        shouldFollow: deriveShouldFollow(allOk),
+        trackerState: deriveTrackerState(allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs),
+        trackerMessage: deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs)
       }
 
     case Constants.setProofs:
@@ -190,7 +186,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         return state
       }
 
-      if (state.proofState !== checking && (state.proofState !== normal || !state.lastTrack)) {
+      if (state.trackerState !== checking && (state.trackerState !== normal || !state.lastTrack)) {
         return {
           ...state,
           closed: false
@@ -294,18 +290,64 @@ function proofStateToSimpleProofState (proofState: ProofState): SimpleProofState
   }
 }
 
-function trackDiffToSimpleProofMeta (diff: identifyUi_TrackDiffType): ?SimpleProofMeta {
+function trackDiffToSimpleProofMeta (diff: TrackDiffType): ?SimpleProofMeta {
+  /* eslint-disable key-spacing*/
   return {
-    [0]: null, /* 'NONE_0' */
-    [1]: null, /* 'ERROR_1' */
-    [2]: null, /* 'CLASH_2' */
-    [3]: null, /* 'REVOKED_3' */
-    [4]: metaUpgraded, /* 'UPGRADED_4' */
-    [5]: metaNew, /* 'NEW_5' */
-    [6]: null, /* 'REMOTE_FAIL_6' */
-    [7]: null, /* 'REMOTE_WORKING_7' */
-    [8]: null /* 'REMOTE_CHANGED_8' */
+    [identify.TrackDiffType.none]         : null,
+    [identify.TrackDiffType.error]        : null,
+    [identify.TrackDiffType.clash]        : null,
+    [identify.TrackDiffType.revoked]      : null,
+    [identify.TrackDiffType.upgraded]     : metaUpgraded,
+    [identify.TrackDiffType.new]          : metaNew,
+    [identify.TrackDiffType.remotefail]   : null,
+    [identify.TrackDiffType.remoteworking]: null,
+    [identify.TrackDiffType.remotechanged]: null,
+    [identify.TrackDiffType.neweldest]    : null
   }[diff]
+  /* eslint-enable key-spacing*/
+}
+
+function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
+  // The full mapping between the proof status we get back from the server
+  // and a simplified representation that we show the users.
+  return {
+    [identify.ProofStatus.none]: null,
+    [identify.ProofStatus.ok]: null,
+    [identify.ProofStatus.local]: null,
+    [identify.ProofStatus.found]: null,
+    [identify.ProofStatus.baseError]: null,
+    [identify.ProofStatus.hostUnreachable]: metaUnreachable,
+    [identify.ProofStatus.permissionDenied]: metaUnreachable,
+    [identify.ProofStatus.failedParse]: metaUnreachable,
+    [identify.ProofStatus.dnsError]: metaUnreachable,
+    [identify.ProofStatus.authFailed]: metaUnreachable,
+    [identify.ProofStatus.http500]: metaUnreachable,
+    [identify.ProofStatus.timeout]: metaUnreachable,
+    [identify.ProofStatus.internalError]: metaUnreachable,
+    [identify.ProofStatus.baseHardError]: metaUnreachable,
+    [identify.ProofStatus.notFound]: metaUnreachable,
+    [identify.ProofStatus.contentFailure]: metaUnreachable,
+    [identify.ProofStatus.badUsername]: metaUnreachable,
+    [identify.ProofStatus.badRemoteId]: metaUnreachable,
+    [identify.ProofStatus.textNotFound]: metaUnreachable,
+    [identify.ProofStatus.badArgs]: metaUnreachable,
+    [identify.ProofStatus.contentMissing]: metaUnreachable,
+    [identify.ProofStatus.titleNotFound]: metaUnreachable,
+    [identify.ProofStatus.serviceError]: metaUnreachable,
+    [identify.ProofStatus.torSkipped]: null,
+    [identify.ProofStatus.torIncompatible]: null,
+    [identify.ProofStatus.http300]: metaUnreachable,
+    [identify.ProofStatus.http400]: metaUnreachable,
+    [identify.ProofStatus.httpOther]: metaUnreachable,
+    [identify.ProofStatus.emptyJson]: metaUnreachable,
+    [identify.ProofStatus.deleted]: metaDeleted,
+    [identify.ProofStatus.serviceDead]: metaUnreachable,
+    [identify.ProofStatus.badSignature]: metaUnreachable,
+    [identify.ProofStatus.badApiUrl]: metaUnreachable,
+    [identify.ProofStatus.unknownType]: metaUnreachable,
+    [identify.ProofStatus.noHint]: metaUnreachable,
+    [identify.ProofStatus.badHintText]: metaUnreachable
+  }[status]
 }
 
 function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
@@ -318,15 +360,19 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
   }
 
-  let meta = trackDiffToSimpleProofMeta(0)
-  if (lcr && lcr.diff && lcr.diff.type) {
-    meta = trackDiffToSimpleProofMeta(lcr.diff.type)
+  let diffMeta: ?SimpleProofMeta
+  let statusMeta: ?SimpleProofMeta
+  if (lcr && lcr.diff && lcr.diff.type != null) {
+    diffMeta = trackDiffToSimpleProofMeta(lcr.diff.type)
+  }
+  if (lcr && lcr.proofResult && lcr.proofResult.status != null) {
+    statusMeta = proofStatusToSimpleProofMeta(lcr.proofResult.status)
   }
 
   return {
     state: proofState,
     id: rp.sigID,
-    meta: meta,
+    meta: statusMeta || diffMeta,
     type: proofType,
     color: stateToColor(proofState),
     name: rp.displayMarkup,
@@ -349,4 +395,48 @@ function updateProof (proofs: Array<Proof>, rp: RemoteProof, lcr: LinkCheckResul
   }
 
   return updated
+}
+
+function deriveTrackerState (
+  allOk: boolean,
+  anyWarnings: boolean,
+  anyError: boolean,
+  anyPending: boolean,
+  anyDeletedProofs : boolean,
+  anyUnreachableProofs : boolean
+): SimpleProofState {
+  if (anyWarnings || anyUnreachableProofs) {
+    return warning
+  } else if (anyError || anyDeletedProofs) {
+    return error
+  } else if (anyPending) {
+    return checking
+  } else if (allOk) {
+    return normal
+  }
+
+  return error
+}
+
+function deriveTrackerMessage (
+  username: string,
+  allOk: boolean,
+  anyDeletedProofs : boolean,
+  anyUnreachableProofs : boolean,
+  anyUpgradedProofs : boolean,
+  anyNewProofs: boolean
+): ?string {
+  if (anyDeletedProofs) {
+    return `${username} deleted some proofs.`
+  } else if (anyUnreachableProofs) {
+    return `Some of ${username}’s proofs are compromised or have changed.`
+  } else if (anyUpgradedProofs) {
+    return `${username} added some identity proofs.`
+  } else if (allOk) {
+    return null
+  }
+}
+
+function deriveShouldFollow (allOk: boolean): boolean {
+  return allOk
 }

@@ -3,7 +3,7 @@
 import React, {Component} from '../base-react'
 import commonStyles, {colors} from '../styles/common'
 import {checking, revoked} from '../constants/tracker'
-import {metaNew, metaUpgraded} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
 import electron from 'electron'
 
 const shell = electron.shell || electron.remote.shell
@@ -20,7 +20,10 @@ export default class ProofsRender extends Component {
   renderProofRow (proof: Proof): ReactElement {
     const metaColor = proof.meta ? {
       [metaNew]: colors.orange,
-      [metaUpgraded]: colors.orange
+      [metaUpgraded]: colors.orange,
+      [metaUnreachable]: colors.orange,
+      [metaPending]: colors.orange,
+      [metaDeleted]: colors.orange
     }[proof.meta] : null
 
     const onClick = () => {

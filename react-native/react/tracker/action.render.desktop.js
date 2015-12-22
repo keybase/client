@@ -57,8 +57,9 @@ export default class ActionRender extends Component {
       <div style={{...styles.normalContainer, ...this.props.style}}>
         <i style={this.props.state === warning ? styles.flagWarning : styles.flagError} className='fa fa-flag'></i>
         <div style={styles.textContainer}>
-          <span style={styles.changedMessage}>{title}</span>
+          {title && <span style={styles.changedMessage}>{title}</span>}
         </div>
+
         <FlatButton style={commonStyles.secondaryButton} label='Untrack' onClick={() => this.props.onUnfollow()} />
         <FlatButton style={commonStyles.primaryButton} label='Retrack' primary onClick={() => this.props.onRefollow()} />
       </div>

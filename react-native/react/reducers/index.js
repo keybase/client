@@ -16,6 +16,8 @@ import pinentry from './pinentry'
 import favorite from './favorite'
 import update from './update'
 
+import devEdit from './devEdit'
+
 import * as Constants from '../constants/dev'
 
 let history = List()
@@ -53,9 +55,11 @@ let reducer
 if (isDev) {
   reducer = function (state: State, action: any): State {
     return (
-      serialize(
-        timeTravel(
-          combinedReducer(state, action),
+      devEdit(
+        serialize(
+          timeTravel(
+            combinedReducer(state, action),
+            action),
           action),
         action)
     )

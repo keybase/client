@@ -228,7 +228,7 @@ class FolderList extends Component {
     const publicFolders = [personalPublicFolder].concat(folders.filter(f => f.isPublic)).map(f => ({...f, folderName: stripPublicTag(f.folderName)}))
 
     return (
-      <div style={{display: 'flex', flexDirection: 'column', flexGrow: 2, backgroundColor: colors.trueWhite, paddingTop: 17, paddingLeft: 18, paddingBottom: 9, overflow: 'scroll'}}>
+      <div style={{display: 'flex', flexDirection: 'column', flexGrow: 2, backgroundColor: colors.trueWhite, paddingTop: 17, paddingLeft: 18, paddingBottom: 9, overflowY: 'scroll', overflowX: 'hidden'}}>
         <div>
           <div style={{...rootFolderStyle}}>private/</div>
           <CollapsableFolderList
