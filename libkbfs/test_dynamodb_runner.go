@@ -29,6 +29,8 @@ const (
 	LocalDynamoDBPidFile = "dynamodb.pid"
 	// LocalDynamoDBJarFile is the name of the local dynamodb server jar file.
 	LocalDynamoDBJarFile = "DynamoDBLocal.jar"
+	// LocalDynamoDBUri is the default local dynamodb URI.
+	LocalDynamoDBUri = "http://127.0.0.1:8000"
 )
 
 // TestDynamoDBRunner manages starting/stopping a local dynamodb test server.
@@ -164,6 +166,16 @@ func (tdr *TestDynamoDBRunner) Run(t logger.TestLogBackend) {
 		tdr.cmd.Wait()
 	}()
 
-	// XXX TODO: look for a listener
-	time.Sleep(2 * time.Second)
+	// wait for it to come up
+	ok := false
+	for i := 0; i < 200; i++ {
+		if _, err := http.Get(LocalDynamoDBUri); err == nil {
+			ok = true
+			break
+		}
+		time.Sleep(time.Millisecond * 250)
+	}
+	if !ok {
+		t.Fatal("dynamodb did not start up cleanly")
+	}
 }
