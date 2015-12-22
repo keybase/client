@@ -7,7 +7,7 @@ export type ActionProps = {
   currentlyFollowing: boolean,
   username: ?string,
   shouldFollow: ?boolean,
-  renderChangedTitle: string,
+  renderChangedTitle: ?string,
   failedProofsNotFollowingText: string,
   onClose: () => void,
   onRefollow: () => void,

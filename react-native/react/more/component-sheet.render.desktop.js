@@ -12,7 +12,8 @@ import {devEditAction} from '../reducers/devEdit'
 
 // Tracker constants
 import {normal, warning, error, checking, revoked} from '../constants/tracker'
-import {statusNone, statusOk, statusLocal, statusFound, statusRemoteFail, statusTorSkipped, statusTorIncompatible, statusDeleted} from '../constants/tracker'
+import {metaUpgraded, metaNew, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
+
 import * as TrackerConstants from '../constants/tracker'
 
 const Container = props => {
@@ -103,12 +104,12 @@ class TrackerDev extends Component {
   }
 
   render () {
-    // {this.updateProofKey(this.state.username, 'status', [statusNone, statusOk, statusLocal, statusFound, statusRemoteFail, statusTorSkipped, statusTorIncompatible, statusDeleted])}
     if (this.state.username) {
       return (
         <div>
           {this.usernamePicker(this.state.username)}
           {this.updateProofKey(this.state.username, 'state', [normal, warning, error, checking, revoked])}
+          {this.updateProofKey(this.state.username, 'meta', [metaUpgraded, metaNew, metaUnreachable, metaPending, metaDeleted, metaNone])}
           <Tracker username={this.state.username}/>
         </div>
       )
