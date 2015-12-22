@@ -1,12 +1,12 @@
 import React, {Component} from '../base-react'
-import {Paper, AppBar, FlatButton} from 'material-ui'
+import {FlatButton} from 'material-ui'
 import {connect} from '../base-redux'
 import commonStyles from '../styles/common'
 import Header from '../common-adapters/header'
 import path from 'path'
 import Tracker from '../tracker'
-
 import Menubar from '../menubar'
+import Container from './dev-container'
 
 import {devEditAction} from '../reducers/devEdit'
 
@@ -15,23 +15,6 @@ import {normal, warning, error, checking, revoked} from '../constants/tracker'
 import {metaUpgraded, metaNew, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
 
 import * as TrackerConstants from '../constants/tracker'
-
-const Container = props => {
-  return (
-    <Paper zDepth={5} style={{margin: 20}}>
-      <AppBar title={props.title}/>
-      <div style={{margin: 10}}>
-        {props.children}
-      </div>
-    </Paper>
-  )
-}
-
-Container.propTypes = {
-  title: React.PropTypes.string,
-  style: React.PropTypes.object,
-  children: React.PropTypes.node.isRequired
-}
 
 export default class Render extends Component {
   render () {
@@ -48,12 +31,6 @@ export default class Render extends Component {
         </Container>
         <Container title='Header' style={{backgroundColor: 'red'}}>
           <Header icon={`file:///${path.resolve(__dirname, '../images/service/keybase.png')}`} title='Title' onClose={() => {}}/>
-        </Container>
-        <Container title='FlatButton Primary' style={{backgroundColor: 'red'}}>
-          <FlatButton style={commonStyles.primaryButton} label='Primary' primary />
-        </Container>
-        <Container title='FlatButton Secondary' style={{backgroundColor: 'red'}}>
-          <FlatButton style={commonStyles.secondaryButton} label='Secondary'/>
         </Container>
       </div>
   )

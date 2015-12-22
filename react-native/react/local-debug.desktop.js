@@ -20,7 +20,7 @@ let config = {
 }
 
 if (isDev && false) {
-  config.overrideRouterState = createRouterState(['devMenu', 'components'], [])
+  config.overrideRouterState = createRouterState(['devMenu', 'styleSheet'], [])
   config.overrideActiveTab = Tabs.moreTab
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
