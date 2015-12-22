@@ -6,9 +6,10 @@ package saltpack
 import (
 	"bytes"
 	"crypto/hmac"
-	"golang.org/x/crypto/nacl/secretbox"
 	"io"
 	"io/ioutil"
+
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 type decryptState int
@@ -104,7 +105,12 @@ func (ds *decryptStream) readHeader() error {
 		return err
 	}
 	hdr.seqno = seqno
-	return ds.processEncryptionHeader(&hdr)
+	err = ds.processEncryptionHeader(&hdr)
+	if err != nil {
+		return err
+	}
+	ds.state = stateBody
+	return nil
 }
 
 func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) {
