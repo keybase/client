@@ -60,6 +60,7 @@ type BoxSecretKey interface {
 	Precompute(sender BoxPublicKey) BoxPrecomputedSharedKey
 }
 
+// SigningSecretKey is a secret NaCl key that can sign messages.
 type SigningSecretKey interface {
 	// Sign signs message with this secret key.
 	Sign(message []byte) ([]byte, error)
@@ -68,6 +69,8 @@ type SigningSecretKey interface {
 	PublicKey() SigningPublicKey
 }
 
+// SigningPublicKey is a public NaCl key that can verify
+// signatures.
 type SigningPublicKey interface {
 	// Verify verifies that signature is a valid signature of message for
 	// this public key.
@@ -102,6 +105,8 @@ type Keyring interface {
 	ImportEphemeralKey(kid []byte) BoxPublicKey
 }
 
+// SigKeyring is an interface used during verification to find
+// the public key for the signer of a message.
 type SigKeyring interface {
 	// LookupSigningPublicKey returns a public signing key for the specified key ID.
 	LookupSigningPublicKey(kid []byte) SigningPublicKey

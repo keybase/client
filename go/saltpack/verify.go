@@ -48,6 +48,9 @@ func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifi
 	return skey, verifiedMsg, nil
 }
 
+// VerifyDetached verifies that signature is a valid signature for
+// message, and that the public key for the signer is in keyring.
+// It returns the signer's public key.
 func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey SigningPublicKey, err error) {
 	s := newVerifyStream(bytes.NewBuffer(signature))
 	hdr, err := s.readHeader(MessageTypeDetachedSignature)
