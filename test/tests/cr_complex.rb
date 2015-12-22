@@ -488,4 +488,54 @@ module Test
       read "b/d", "goodbye"
     end
   end
+
+  # bob moves and setexes a file that was removed by alice executable
+  test :cr_conflict_move_and_setex_written_file, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkdir "a"
+      write "a/b", "hello"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      write "a/b", "world"
+    end
+    as bob, sync: false do
+      rename "a/b", "a/c"
+      setex "a/c", true
+      reenable_updates
+      lsdir "a/", { "c$" => "EXEC" }
+      read "a/c", "hello"
+    end
+    as alice do
+      lsdir "a/", { "c$" => "EXEC" }
+      read "a/c", "hello"
+    end
+  end
+
+  # bob moves and setexes a file that was removed by alice executable
+  test :cr_conflict_move_and_setex_removed_file, skip: true, writers: ["alice", "bob"] do |alice, bob|
+    as alice do
+      mkdir "a"
+      write "a/b", "hello"
+    end
+    as bob do
+      disable_updates
+    end
+    as alice do
+      rm "a/b"
+    end
+    as bob, sync: false do
+      rename "a/b", "a/c"
+      setex "a/c", true
+      reenable_updates
+      lsdir "a/", { "c$" => "EXEC" }
+      read "a/c", "hello"
+    end
+    as alice do
+      lsdir "a/", { "c$" => "EXEC" }
+      read "a/c", "hello"
+    end
+  end
 end
