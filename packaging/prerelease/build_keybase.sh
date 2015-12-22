@@ -8,7 +8,7 @@ cd "$dir"
 build_dir=${BUILD_DIR:-/tmp/build_keybase}
 mkdir -p $build_dir
 
-current_date=`date +%Y%m%d%H%M%S`
+current_date=`date -u +%Y%m%d%H%M%S` # UTC
 commit_short=`git log -1 --pretty=format:%h`
 build="$current_date+$commit_short"
 keybase_build=${KEYBASE_BUILD:-$build}

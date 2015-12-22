@@ -175,6 +175,12 @@ create_zip() {
   ditto -c -k --sequesterRsrc --keepParent $app_name.app $zip_name
 }
 
+s3sync() {
+  if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
+    s3cmd sync --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
+  fi
+}
+
 save() {
   cd $out_dir
   if [ "$save_dir" = "" ]; then
@@ -187,13 +193,13 @@ save() {
     echo "Saved files to $save_dir"
   fi
 
+  s3sync
+
   if [ ! "$s3host" = "" ]; then
     $release_bin update-json --version=$app_version --src=$zip_name --uri=$s3host > update-darwin-$run_mode.json
     $release_bin index-html --bucket-name=$bucket_name --prefix="Keybase-" --suffix=".dmg" --dest="index.html"
-  fi
-
-  if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
-    s3cmd sync --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
+    # Sync again with new update.json and index.html
+    s3sync
   fi
 }
 
