@@ -23,7 +23,7 @@
 # one of the parameters.
 
 check_go_fmt() {
-	gofiles=$(git ls-files | grep '.go$' | grep -v go/vendor/)
+	gofiles=$(git ls-files | grep '.go$' | grep -v go/vendor/ | grep -v vendor/)
 	[ -z "$gofiles" ] && return 0
 
 	unformatted=$(gofmt -l $gofiles)
