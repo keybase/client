@@ -11,7 +11,7 @@ import (
 func TestVerify(t *testing.T) {
 	in := randomMsg(t, 128)
 	key := newSigPrivKey(t)
-	smsg, err := Sign(in, key, MessageTypeAttachedSignature)
+	smsg, err := Sign(in, key)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -57,6 +57,9 @@ var (
 
 	// ErrBadSignature is returned when verification of a block fails.
 	ErrBadSignature = errors.New("invalid signature")
+
+	// ErrNoDetachedSignature is returned when there is no signature in the header.
+	ErrNoDetachedSignature = errors.New("no detached signature")
 )
 
 // ErrBadTag is generated when a Tag fails to Unbox properly. It specifies

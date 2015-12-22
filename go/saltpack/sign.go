@@ -7,29 +7,20 @@ import (
 	"bytes"
 	"crypto/sha512"
 	"encoding/binary"
-	"errors"
-	"fmt"
 	"io"
 )
 
 // NewSignStream creates a stream that consumes plaintext data.
 // It will write out signed data to the io.Writer passed in as
-// signedtext.
-func NewSignStream(signedtext io.Writer, signer SigningSecretKey, mode MessageType) (stream io.WriteCloser, err error) {
-	switch mode {
-	case MessageTypeAttachedSignature:
-		return newSignAttachedStream(signedtext, signer)
-	case MessageTypeDetachedSignature:
-		return nil, errors.New("detached not yet implemented")
-	default:
-		return nil, ErrInvalidParameter{message: fmt.Sprintf("unknown sign mode: %v", mode)}
-	}
+// signedtext.  NewSignStream only generates attached signatures.
+func NewSignStream(signedtext io.Writer, signer SigningSecretKey) (stream io.WriteCloser, err error) {
+	return newSignAttachedStream(signedtext, signer)
 }
 
-// Sign signs a plaintext from signer.
-func Sign(plaintext []byte, signer SigningSecretKey, mode MessageType) ([]byte, error) {
+// Sign creates an attached signature message of plaintext from signer.
+func Sign(plaintext []byte, signer SigningSecretKey) ([]byte, error) {
 	var buf bytes.Buffer
-	s, err := NewSignStream(&buf, signer, mode)
+	s, err := NewSignStream(&buf, signer)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +34,23 @@ func Sign(plaintext []byte, signer SigningSecretKey, mode MessageType) ([]byte, 
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+// SignDetached returns a detached signature of plaintext from
+// signer.
+func SignDetached(plaintext []byte, signer SigningSecretKey) ([]byte, error) {
+	header, err := newSignatureHeader(signer.PublicKey())
+	if err != nil {
+		return nil, err
+	}
+
+	signature, err := signer.Sign(computeDetachedDigest(header.Nonce, plaintext))
+	if err != nil {
+		return nil, err
+	}
+	header.Signature = signature
+
+	return encodeToBytes(header)
 }
 
 type signAttachedStream struct {
@@ -142,10 +150,10 @@ func (s *signAttachedStream) writeFooter() error {
 }
 
 func (s *signAttachedStream) computeSig(block *SignatureBlock) ([]byte, error) {
-	return s.secretKey.Sign(computeSigDigest(s.header.Nonce, block))
+	return s.secretKey.Sign(computeAttachedDigest(s.header.Nonce, block))
 }
 
-func computeSigDigest(nonce []byte, block *SignatureBlock) []byte {
+func computeAttachedDigest(nonce []byte, block *SignatureBlock) []byte {
 	hasher := sha512.New()
 	hasher.Write(nonce)
 	binary.Write(hasher, binary.BigEndian, block.seqno)
@@ -155,6 +163,19 @@ func computeSigDigest(nonce []byte, block *SignatureBlock) []byte {
 	buf.Write(hasher.Sum(nil))
 	writeNullString(&buf, SaltPackFormatName)
 	writeNullString(&buf, SignatureAttachedString)
+
+	return buf.Bytes()
+}
+
+func computeDetachedDigest(nonce []byte, plaintext []byte) []byte {
+	hasher := sha512.New()
+	hasher.Write(nonce)
+	hasher.Write(plaintext)
+
+	var buf bytes.Buffer
+	buf.Write(hasher.Sum(nil))
+	writeNullString(&buf, SaltPackFormatName)
+	writeNullString(&buf, SignatureDetachedString)
 
 	return buf.Bytes()
 }

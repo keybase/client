@@ -30,7 +30,6 @@ func NewVerifyStream(r io.Reader, keyring SigKeyring) (skey SigningPublicKey, vs
 // Verify checks the signature in signedMsg.  It returns the
 // signer's public key and a verified message.
 func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifiedMsg []byte, err error) {
-	// return verifyBytes(signedMsg, NewVerifyStream)
 	skey, stream, err := NewVerifyStream(bytes.NewReader(signedMsg), keyring)
 	if err != nil {
 		return nil, nil, err
@@ -47,6 +46,32 @@ func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifi
 		return nil, nil, err
 	}
 	return skey, verifiedMsg, nil
+}
+
+func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey SigningPublicKey, err error) {
+	s := newVerifyStream(bytes.NewBuffer(signature))
+	hdr, err := s.readHeader()
+	if err != nil {
+		return nil, err
+	}
+	if len(hdr.Signature) == 0 {
+		return nil, ErrNoDetachedSignature
+	}
+	skey = keyring.LookupSigningPublicKey(hdr.SenderPublic)
+	if skey == nil {
+		return nil, ErrNoSenderKey
+	}
+
+	ok, err := skey.Verify(computeDetachedDigest(hdr.Nonce, message), hdr.Signature)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, ErrBadSignature
+	}
+
+	return skey, nil
+
 }
 
 type verifyStream struct {
@@ -110,6 +135,9 @@ func (v *verifyStream) readHeader() (*SignatureHeader, error) {
 	}
 	hdr.seqno = seqno
 	v.header = &hdr
+	if err := v.header.validate(); err != nil {
+		return nil, err
+	}
 	v.state = stateBody
 	return &hdr, nil
 }
@@ -137,7 +165,7 @@ func (v *verifyStream) readBlock(p []byte) (int, bool, error) {
 }
 
 func (v *verifyStream) processBlock(block *SignatureBlock) ([]byte, error) {
-	ok, err := v.publicKey.Verify(computeSigDigest(v.header.Nonce, block), block.Signature)
+	ok, err := v.publicKey.Verify(computeAttachedDigest(v.header.Nonce, block), block.Signature)
 	if err != nil {
 		return nil, err
 	}

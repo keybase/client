@@ -54,6 +54,10 @@ const SignatureBlockSize int = 1048576
 // each payload packet.
 const SignatureAttachedString = "attached signature"
 
+// SignatureDetachedString is part of the data that is signed in
+// a detached signature.
+const SignatureDetachedString = "detached signature"
+
 type readState int
 
 const (

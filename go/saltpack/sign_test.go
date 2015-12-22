@@ -65,7 +65,7 @@ func (s *sigPrivKey) PublicKey() SigningPublicKey {
 func TestSign(t *testing.T) {
 	msg := randomMsg(t, 128)
 	key := newSigPrivKey(t)
-	out, err := Sign(msg, key, MessageTypeAttachedSignature)
+	out, err := Sign(msg, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func TestSign(t *testing.T) {
 
 func testSignAndVerify(t *testing.T, message []byte) {
 	key := newSigPrivKey(t)
-	smsg, err := Sign(message, key, MessageTypeAttachedSignature)
+	smsg, err := Sign(message, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestSignMessageSizes(t *testing.T) {
 
 func TestSignTruncation(t *testing.T) {
 	key := newSigPrivKey(t)
-	smsg, err := Sign(randomMsg(t, 128), key, MessageTypeAttachedSignature)
+	smsg, err := Sign(randomMsg(t, 128), key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,4 +124,24 @@ func TestSignTruncation(t *testing.T) {
 		t.Errorf("error: %v, expected %v", err, io.ErrUnexpectedEOF)
 	}
 
+}
+
+func TestSignDetached(t *testing.T) {
+	key := newSigPrivKey(t)
+	msg := randomMsg(t, 128)
+	sig, err := SignDetached(msg, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(sig) == 0 {
+		t.Fatal("empty sig and no error from SignDetached")
+	}
+
+	skey, err := VerifyDetached(msg, sig, kr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(skey.ToKID(), key.PublicKey().ToKID()) {
+		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
+	}
 }
