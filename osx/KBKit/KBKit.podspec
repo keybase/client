@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.dependency "GHKit"
   s.dependency "ObjectiveSugar"
   s.dependency "CocoaLumberjack"
-  s.dependency "AFNetworking"
+  s.dependency "AFNetworking", "~> 2.0"
   s.dependency "GHKeychain"
   s.dependency "Mantle"
   s.dependency "MPMessagePack"

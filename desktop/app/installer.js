@@ -9,7 +9,7 @@ import {runMode} from '../../react-native/react/constants/platform.native.deskto
 export default (callback) => {
   const appPath = app.getAppPath()
   const resourcesPath = path.resolve(appPath, "..")
-  const servicePath = path.resolve(appPath, "..", "..", "SharedSupport", "bin")
+  const appBundlePath = path.resolve(appPath, "..", "..", "..")
   const installerExec = path.resolve(resourcesPath, "KeybaseInstaller.app", "Contents", "MacOS", "Keybase")
 
   fs.access(installerExec, fs.X_OK , function (err) {
@@ -22,12 +22,12 @@ export default (callback) => {
 
     if (err) {
       // Installer is not accessible
-      nslog("Installer not available (not found) ", runMode)
+      nslog("Installer not available (not found)")
       callback(null);
       return
     }
 
-    var cmd = [installerExec, "--service-path="+servicePath, "--run-mode=prod"].join(" ");
+    var cmd = [installerExec, "--app-path="+appBundlePath, "--run-mode=prod"].join(" ");
     exec(cmd, function(err, stdout, stderr) {
       nslog("Installer: ", err, stdout, stderr);
       callback(err);

@@ -20,9 +20,6 @@
 @implementation KBInstaller
 
 - (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force completion:(void (^)(NSArray *installables))completion {
-  // Ensure application support dir is available
-  [KBWorkspace applicationSupport:nil create:YES error:nil]; // TODO Handle error
-
   // TODO force
 
   KBRunOver *rover = [[KBRunOver alloc] init];

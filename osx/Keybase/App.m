@@ -129,7 +129,7 @@
    */
 
   if ([identifier isEqualTo:@"Preferences.LaunchAtLogin"]) {
-    return @([self isLoginEnabledForURL:[NSURL fileURLWithPath:NSBundle.mainBundle.executablePath]]);
+    return @([KBLoginItem isLoginEnabledForURL:[NSURL fileURLWithPath:NSBundle.mainBundle.executablePath]]);
   }
 
   return nil;
@@ -147,7 +147,9 @@
    SUUpdater.sharedUpdater.sendsSystemProfile = [value boolValue];
    */
   if ([identifier isEqualTo:@"Preferences.LaunchAtLogin"]) {
-    [self setLoginEnabled:[value boolValue] forURL:[NSURL fileURLWithPath:NSBundle.mainBundle.executablePath]];
+    NSError *error = nil;
+    [KBLoginItem setLoginEnabled:[value boolValue] URL:NSBundle.mainBundle.bundleURL error:&error];
+    if (error) DDLogError(@"Error configuring login item: %@", error);
   } else {
     // Not found
     return NO;
@@ -159,57 +161,5 @@
 
   return YES;
 }
-
-- (void)findLoginItemForURL:(NSURL *)URL completion:(void (^)(LSSharedFileListRef loginItems, LSSharedFileListItemRef item))completion {
-  LSSharedFileListRef loginItemsRef = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
-  if (!loginItemsRef) return;
-
-  UInt32 seed = 0U;
-  BOOL found = NO;
-  CFArrayRef currentLoginItemsRef = LSSharedFileListCopySnapshot(loginItemsRef, &seed);
-  NSArray *currentLoginItems = (__bridge NSArray *)currentLoginItemsRef;
-  for (id itemObject in currentLoginItems) {
-    LSSharedFileListItemRef itemRef = (__bridge LSSharedFileListItemRef)itemObject;
-
-    UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
-    CFErrorRef errorRef;
-    CFURLRef URLRef = LSSharedFileListItemCopyResolvedURL(itemRef, resolutionFlags, &errorRef);
-    if ([URL isEqualTo:(__bridge NSURL *)URLRef]) {
-      completion(loginItemsRef, itemRef);
-      found = YES;
-      break;
-    }
-  }
-
-  if (!found) {
-    completion(loginItemsRef, NULL);
-  }
-
-  CFRelease(currentLoginItemsRef);
-  CFRelease(loginItemsRef);
-}
-
-- (BOOL)isLoginEnabledForURL:(NSURL *)URL {
-  __block BOOL found = NO;
-  [self findLoginItemForURL:URL completion:^(LSSharedFileListRef loginItems, LSSharedFileListItemRef item) {
-    found = (item != NULL);
-  }];
-  return found;
-}
-
-- (void)setLoginEnabled:(BOOL)loginEnabled forURL:(NSURL *)URL {
-  [self findLoginItemForURL:URL completion:^(LSSharedFileListRef loginItems, LSSharedFileListItemRef itemRef) {
-    if (loginEnabled && !itemRef) {
-      itemRef = LSSharedFileListInsertItemURL(loginItems, kLSSharedFileListItemLast, (CFStringRef)@"Keybase", NULL, (__bridge CFURLRef)URL, NULL, NULL);
-      CFRelease(itemRef);
-    } else if (!loginEnabled && itemRef) {
-      OSStatus status = LSSharedFileListItemRemove(loginItems, itemRef);
-      if (status != noErr) {
-        DDLogError(@"Error removing login item: %@", @(status));
-      }
-    }
-  }];
-}
-
 
 @end

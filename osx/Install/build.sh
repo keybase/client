@@ -109,3 +109,5 @@ echo " "
 spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
 
 tar zcvpf $app_name-$app_version.tgz KeybaseInstaller.app
+
+open $build_dest

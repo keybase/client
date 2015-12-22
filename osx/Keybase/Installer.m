@@ -12,8 +12,9 @@
 #import <GBCli/GBCli.h>
 
 @interface Installer ()
-@property NSString *servicePath;
+@property NSString *appPath;
 @property NSString *runMode;
+@property GBSettings *settings;
 @end
 
 @implementation Installer
@@ -22,22 +23,24 @@
   [KBWorkspace setupLogging];
 
   NSArray *args = NSProcessInfo.processInfo.arguments;
-  GBSettings *settings = [GBSettings settingsWithName:@"CLI" parent:nil];
+  self.settings = [GBSettings settingsWithName:@"CLI" parent:nil];
 #if DEBUG
-  [settings setObject:@"/Applications/Keybase.app/Contents/SharedSupport/bin" forKey:@"service-path"];
-  [settings setObject:@"prod" forKey:@"run-mode"];
+  [self.settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
+  [self.settings setObject:@"prod" forKey:@"run-mode"];
 #endif
   GBCommandLineParser *parser = [[GBCommandLineParser alloc] init];
-  [parser registerOption:@"service-path" shortcut:'s' requirement:GBValueRequired];
+  [parser registerOption:@"app-path" shortcut:'a' requirement:GBValueRequired];
   [parser registerOption:@"run-mode" shortcut:'r' requirement:GBValueRequired];
-  [parser registerSettings:settings];
+  [parser registerSettings:self.settings];
   NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
   [parser parseOptionsWithArguments:subargs commandLine:args[0]];
-  self.runMode = [settings objectForKey:@"run-mode"];
+  self.runMode = [self.settings objectForKey:@"run-mode"];
   NSAssert(self.runMode, @"No run mode");
-  self.servicePath = [settings objectForKey:@"service-path"];
+  self.appPath = [self.settings objectForKey:@"app-path"];
+  NSAssert(self.appPath, @"No app path");
 
   [self install:^(NSError *error) {
+    [self afterInstall];
     [self quit:self];
   }];
 }
@@ -52,7 +55,9 @@
 
 - (void)install:(KBCompletion)completion {
   NSString *runMode = self.runMode; //NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
-  KBEnvironment *environment = [KBEnvironment environmentForRunModeString:runMode servicePath:self.servicePath];
+  NSString *servicePath = [self.appPath stringByAppendingPathComponent:@"Contents/SharedSupport/bin"];
+  KBEnvironment *environment = [KBEnvironment environmentForRunModeString:runMode servicePath:servicePath];
+
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installWithEnvironment:environment force:NO completion:^(NSArray *installables) {
     for (KBInstallable *installable in installables) {
@@ -62,6 +67,29 @@
     }
     completion(nil);
   }];
+}
+
+- (void)afterInstall {
+  /**
+  if (!![self.settings objectForKey:@"run-at-login"]) {
+    [self setRunAtLogin:[self.settings boolForKey:@"run-at-login"]];
+  }
+   */
+
+  // TODO: Read setting from config instead of always enabling
+  [self setRunAtLogin:YES];
+}
+
+- (void)setRunAtLogin:(BOOL)runAtLogin {
+  NSBundle *appBundle = [NSBundle bundleWithPath:self.appPath];
+  if (!appBundle) {
+    DDLogError(@"No app bundle to use for login item");
+    return;
+  }
+  DDLogDebug(@"Set login item: %@ for %@", @(runAtLogin), appBundle);
+  NSError *error = nil;
+  [KBLoginItem setLoginEnabled:runAtLogin URL:appBundle.bundleURL error:&error];
+  if (error) DDLogError(@"Error enabling login item: %@", error);
 }
 
 /*

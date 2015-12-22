@@ -37,6 +37,7 @@ FOUNDATION_EXPORT const unsigned char KBKitVersionString[];
 // System
 #import <KBKit/KBEnvConfig.h>
 #import <KBKit/KBEnvironment.h>
+#import <KBKit/KBLoginItem.h>
 
 // Component
 #import <KBKit/KBComponent.h>

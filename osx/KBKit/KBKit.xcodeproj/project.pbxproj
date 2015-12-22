@@ -335,6 +335,8 @@
 		00010DEB1BE1A0B900A9C285 /* KBEnvConfigTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE51BE1A0B900A9C285 /* KBEnvConfigTest.m */; };
 		00010DEC1BE1A0B900A9C285 /* KBFormatterTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE61BE1A0B900A9C285 /* KBFormatterTest.m */; };
 		00010DEF1BE1A0B900A9C285 /* KBSemVersionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 00010DE91BE1A0B900A9C285 /* KBSemVersionTest.m */; };
+		004E09C81C28CA0F00E3A061 /* KBLoginItem.h in Headers */ = {isa = PBXBuildFile; fileRef = 004E09C61C28CA0F00E3A061 /* KBLoginItem.h */; };
+		004E09C91C28CA0F00E3A061 /* KBLoginItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 004E09C71C28CA0F00E3A061 /* KBLoginItem.m */; };
 		008949981BFBB60C00CB605A /* KBCustomEnvView.m in Sources */ = {isa = PBXBuildFile; fileRef = 008949961BFBB60C00CB605A /* KBCustomEnvView.m */; };
 		008949991BFBB60C00CB605A /* KBCustomEnvView.h in Headers */ = {isa = PBXBuildFile; fileRef = 008949971BFBB60C00CB605A /* KBCustomEnvView.h */; };
 		00B82BD21BE9424600C1FC72 /* KBTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 00B82BD01BE9424600C1FC72 /* KBTask.h */; };
@@ -416,7 +418,7 @@
 		00010B6C1BE19F8800A9C285 /* KBWorkspace.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = KBWorkspace.m; path = KBKit/KBWorkspace.m; sourceTree = SOURCE_ROOT; };
 		00010B6E1BE19F8800A9C285 /* KBLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLog.h; sourceTree = "<group>"; };
 		00010B6F1BE19F8800A9C285 /* KBLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLog.m; sourceTree = "<group>"; };
-		00010B701BE19F8800A9C285 /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; };
+		00010B701BE19F8800A9C285 /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		00010B721BE19F8800A9C285 /* KBPrefAdvancedView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefAdvancedView.h; sourceTree = "<group>"; };
 		00010B731BE19F8800A9C285 /* KBPrefAdvancedView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBPrefAdvancedView.m; sourceTree = "<group>"; };
 		00010B741BE19F8800A9C285 /* KBPrefButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBPrefButton.h; sourceTree = "<group>"; };
@@ -686,6 +688,8 @@
 		00010DE61BE1A0B900A9C285 /* KBFormatterTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBFormatterTest.m; sourceTree = "<group>"; };
 		00010DE91BE1A0B900A9C285 /* KBSemVersionTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSemVersionTest.m; sourceTree = "<group>"; };
 		00010DF01BE1AC3D00A9C285 /* KBKit.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = KBKit.podspec; sourceTree = "<group>"; };
+		004E09C61C28CA0F00E3A061 /* KBLoginItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLoginItem.h; sourceTree = "<group>"; };
+		004E09C71C28CA0F00E3A061 /* KBLoginItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLoginItem.m; sourceTree = "<group>"; };
 		008949961BFBB60C00CB605A /* KBCustomEnvView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCustomEnvView.m; sourceTree = "<group>"; };
 		008949971BFBB60C00CB605A /* KBCustomEnvView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCustomEnvView.h; sourceTree = "<group>"; };
 		00B82BD01BE9424600C1FC72 /* KBTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTask.h; sourceTree = "<group>"; };
@@ -934,6 +938,8 @@
 				00010BA31BE19F8800A9C285 /* KBPrivilegedTask.m */,
 				00B82BD01BE9424600C1FC72 /* KBTask.h */,
 				00B82BD11BE9424600C1FC72 /* KBTask.m */,
+				004E09C61C28CA0F00E3A061 /* KBLoginItem.h */,
+				004E09C71C28CA0F00E3A061 /* KBLoginItem.m */,
 			);
 			name = System;
 			path = KBKit/System;
@@ -1406,6 +1412,7 @@
 				00010D8C1BE19F8900A9C285 /* KBPGPSignFilesView.h in Headers */,
 				00010D381BE19F8900A9C285 /* KBFoldersView.h in Headers */,
 				00010D361BE19F8900A9C285 /* KBFoldersAppView.h in Headers */,
+				004E09C81C28CA0F00E3A061 /* KBLoginItem.h in Headers */,
 				00010CBF1BE19F8900A9C285 /* KBFileWriter.h in Headers */,
 				00010D101BE19F8900A9C285 /* KBDebugPropertiesView.h in Headers */,
 				00010CD31BE19F8900A9C285 /* KBLog.h in Headers */,
@@ -1722,6 +1729,7 @@
 				00010D791BE19F8900A9C285 /* KBPGPEncryptAppView.m in Sources */,
 				00010CFB1BE19F8900A9C285 /* KBEnvConfig.m in Sources */,
 				00010D891BE19F8900A9C285 /* KBPGPSignAppView.m in Sources */,
+				004E09C91C28CA0F00E3A061 /* KBLoginItem.m in Sources */,
 				00010D051BE19F8900A9C285 /* KBPrivilegedTask.m in Sources */,
 				00010D991BE19F8900A9C285 /* KBPGPVerify.m in Sources */,
 				00010D091BE19F8900A9C285 /* KBAppDebug.m in Sources */,

@@ -30,7 +30,7 @@ PODS:
   - GHKit (2.0.0)
   - GHODictionary (1.0.9)
   - KBKit (0.1.6):
-    - AFNetworking
+    - AFNetworking (~> 2.0)
     - CocoaLumberjack
     - GHKeychain
     - GHKit
@@ -42,9 +42,9 @@ PODS:
     - ObjectiveSugar
     - Tikppa
     - YOLayout
-  - Mantle (2.0.5):
-    - Mantle/extobjc (= 2.0.5)
-  - Mantle/extobjc (2.0.5)
+  - Mantle (2.0.6):
+    - Mantle/extobjc (= 2.0.6)
+  - Mantle/extobjc (2.0.6)
   - MASPreferences (1.1.2)
   - MDPSplitView (1.0.2)
   - MPMessagePack (1.3.3):
@@ -81,8 +81,8 @@ SPEC CHECKSUMS:
   GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
   GHODictionary: 1f7873492445e0f33ac19575a358c3c91926b564
-  KBKit: 01d8cd244a9c009ef50f0cd859a602f1ba6e8908
-  Mantle: 1912395033f601de5adc8ee91e48f46e4c7051ad
+  KBKit: 7e2361ea1a39a5bd1d22f11729b7b646ce6616ac
+  Mantle: 299966b00759634931699f69cb6a30b9239b944d
   MASPreferences: 32d8a2c5ef1d60b63240f5676b011ff72e194cb1
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
   MPMessagePack: 0de75102afb01a48cb312b9570336f46659b410f
