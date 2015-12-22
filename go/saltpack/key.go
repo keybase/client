@@ -15,13 +15,16 @@ type RawBoxKey [32]byte
 // buffer.  Used for both NaCl SecretBox.
 type SymmetricKey [32]byte
 
-// BoxPublicKey is an generic interface to NaCl's public key Box function.
-type BoxPublicKey interface {
-
+type KIDExtractor interface {
 	// ToKID outputs the "key ID" that corresponds to this BoxPublicKey.
 	// You can do whatever you'd like here, but probably it makes sense just
 	// to output the public key as is.
 	ToKID() []byte
+}
+
+// BoxPublicKey is an generic interface to NaCl's public key Box function.
+type BoxPublicKey interface {
+	KIDExtractor
 
 	// ToRawBoxKeyPointer returns this public key as a *[32]byte,
 	// for use with nacl.box.Seal
@@ -72,14 +75,11 @@ type SigningSecretKey interface {
 // SigningPublicKey is a public NaCl key that can verify
 // signatures.
 type SigningPublicKey interface {
+	KIDExtractor
+
 	// Verify verifies that signature is a valid signature of message for
 	// this public key.
 	Verify(message []byte, signature []byte) (bool, error)
-
-	// ToKID outputs the "key ID" that corresponds to this SigningPublicKey.
-	// You can do whatever you'd like here, but probably it makes sense just
-	// to output the public key as is.
-	ToKID() []byte
 }
 
 // Keyring is an interface used with decryption; it is called to
@@ -119,5 +119,10 @@ func SecretKeyEqual(sk1, sk2 BoxSecretKey) bool {
 
 // PublicKeyEqual returns true if the two public keys are equal.
 func PublicKeyEqual(pk1, pk2 BoxPublicKey) bool {
-	return hmac.Equal(pk1.ToKID(), pk2.ToKID())
+	return KIDEqual(pk1, pk2)
+}
+
+// KIDEqual return true if the KIDs for two keys are equal.
+func KIDEqual(k1, k2 KIDExtractor) bool {
+	return hmac.Equal(k1.ToKID(), k2.ToKID())
 }

@@ -87,7 +87,7 @@ func testSignAndVerify(t *testing.T, message []byte) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(skey.ToKID(), key.PublicKey().ToKID()) {
+	if !KIDEqual(skey, key.PublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
 	}
 	if !bytes.Equal(vmsg, message) {
@@ -141,7 +141,7 @@ func TestSignDetached(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(skey.ToKID(), key.PublicKey().ToKID()) {
+	if !KIDEqual(skey, key.PublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
 	}
 }

@@ -21,7 +21,7 @@ func TestVerify(t *testing.T) {
 		t.Logf("signed msg: %x", smsg)
 		t.Fatal(err)
 	}
-	if !bytes.Equal(skey.ToKID(), key.PublicKey().ToKID()) {
+	if !KIDEqual(skey, key.PublicKey()) {
 		t.Errorf("sender key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
 	}
 	if !bytes.Equal(msg, in) {
