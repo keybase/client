@@ -17,7 +17,6 @@ import {ipcRenderer} from 'electron'
 import RemoteManager from '../../react-native/react/native/remote-manager'
 import {ipcMain} from 'remote'
 import consoleHack from '../app/console-hack'
-import net from 'net'
 
 consoleHack()
 
