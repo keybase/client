@@ -7,9 +7,7 @@ export default function windowsHack () {
   // hangs until other random net module operations, at which point it
   // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
   // bug, who knows.
-  console.log('in windowshack')
   if (process.platform === 'win32') {
-    console.log('b')
     var fake = net.connect({})
     // net.connect({}) throws; we don't need to see the error, but we
     // do need it not to raise up to the main thread.

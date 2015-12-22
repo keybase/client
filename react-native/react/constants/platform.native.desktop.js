@@ -26,7 +26,7 @@ function buildWin32SocketRoot() {
   if (/^[a-zA-Z]:/.test(appdata)) {
     appdata = appdata.slice(2)
   }
-  return `\\\\.\\pipe\\kbservice\\${appdata}\\Keybase`
+  return `\\\\.\\pipe\\kbservice${appdata}\\Keybase`
 }
 
 function findSocketRoot () {
@@ -39,10 +39,6 @@ function findSocketRoot () {
   return paths[process.platform]
 }
 
-export const socketRoot = findSocketRoot()
-export const socketName = 'keybased.sock'
-export const socketPath = path.join(socketRoot, socketName)
-
 function findDataRoot () {
   const paths = {
     'darwin': `${process.env.HOME}/Library/Application Support/${envedPathOSX[runMode]}/`,
@@ -53,4 +49,8 @@ function findDataRoot () {
   return paths[process.platform]
 }
 
+export const socketRoot = findSocketRoot()
+export const socketName = 'keybased.sock'
+export const socketPath = path.join(socketRoot, socketName)
 export const dataRoot = findDataRoot()
+export const splashRoot = process.platform === 'win32' ? dataRoot : socketRoot
