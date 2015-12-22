@@ -1,7 +1,7 @@
 import enums from '../../react/constants/types/keybase_v1'
 import path from 'path'
 import type {FSNotification} from '../../react/constants/types/flow-types'
-import {stripPublicTag} from '../util/kbfs'
+import {getTLF} from '../util/kbfs'
 
 // TODO: Once we have access to the Redux store from the thread running
 // notification listeners, store the sentNotifications map in it.
@@ -36,14 +36,7 @@ export default function (notify) {
       }
 
       const basedir = notification.filename.split(path.sep)[0]
-      let tlf
-      if (notification.publicTopLevelFolder) {
-        // Public filenames look like cjb#public/foo.txt
-        tlf = `/public/${stripPublicTag(basedir)}`
-      } else {
-        // Private filenames look like cjb/foo.txt
-        tlf = `/private/${basedir}`
-      }
+      const tlf = getTLF(notification.publicTopLevelFolder, basedir)
 
       let title = `KBFS: ${action}`
       // Don't show starting or finished, but do show error.

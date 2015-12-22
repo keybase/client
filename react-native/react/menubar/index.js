@@ -5,6 +5,7 @@ import React, {Component} from '../base-react'
 import Render from './index.render'
 import {connect} from '../base-redux'
 import {bindActionCreators} from 'redux'
+import {getTLF} from '../util/kbfs'
 
 import * as favoriteAction from '../actions/favorite'
 
@@ -62,7 +63,7 @@ class Menubar extends Component {
         isPublic: !f.private,
         // TODO we don't get this information right now,
         isEmpty: false,
-        openFolder: () => { setImmediate(() => shell.openItem(`${kbfsPath}/${f.private ? 'private' : 'public'}/${f.name}`)); closeMenubar() }
+        openFolder: () => { setImmediate(() => shell.openItem(`${kbfsPath}${getTLF(!f.private, f.name)}`)); closeMenubar() }
       }
     })
 

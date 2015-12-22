@@ -14,3 +14,13 @@ export function canonicalizeUsernames (username: string, usernames: Array<string
 export function stripPublicTag (folderName: string): string {
   return folderName.replace('#public', '')
 }
+
+export function getTLF (isPublic: boolean, basedir: string): string {
+  if (isPublic) {
+    // Public filenames look like cjb#public/foo.txt
+    return `/public/${stripPublicTag(basedir)}`
+  } else {
+    // Private filenames look like cjb/foo.txt
+    return `/private/${basedir}`
+  }
+}
