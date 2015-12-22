@@ -7,7 +7,7 @@ script:
   - go get -u github.com/golang/lint/golint
   - go install github.com/golang/lint/golint
   - make lint
-  - go vet $(go list ./... 2>&1 | grep -v /vendor/)
+  - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
   - cd libkbfs && go test
   - cd ../bserver && go test
   - cd ../mdserver && go test && go test -tags integration
