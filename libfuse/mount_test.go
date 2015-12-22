@@ -35,6 +35,7 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 	filesys := &FS{
 		config: config,
 		log:    logger.NewTestLogger(t),
+		errLog: logger.NewTestLogger(t),
 	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, CtxAppIDKey, filesys)
