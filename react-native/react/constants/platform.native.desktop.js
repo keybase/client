@@ -26,7 +26,15 @@ function buildWin32SocketRoot() {
   if (/^[a-zA-Z]:/.test(appdata)) {
     appdata = appdata.slice(2)
   }
-  return `\\\\.\\pipe\\kbservice${appdata}\\Keybase`
+  // Handle runModes, prod has no extension.
+  let extension
+  if (runMode === 'devel') {
+    extension = '.Devel'
+  } else if (runMode === 'staging') {
+    extension = '.Staging'
+  }
+  let path = `\\\\.\\pipe\\kbservice${appdata}\\Keybase${extension}`
+  return path
 }
 
 function findSocketRoot () {
