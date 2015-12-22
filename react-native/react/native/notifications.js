@@ -3,6 +3,7 @@
 import engine from '../engine'
 // $FlowIssue can't deal with platform files
 import ListenerCreator from './notification-listeners'
+import setNotifications from '../util/setNotifications'
 
 var initialized = false
 
@@ -14,19 +15,11 @@ export default function (notify: NotifyFn) {
     return
   }
 
-  const param = {
-    channels: {
+  engine.listenOnConnect(() => {
+    setNotifications({
       session: true,
       users: true,
       kbfs: true
-    }
-  }
-
-  engine.listenOnConnect(() => {
-    engine.rpc('notifyCtl.setNotifications', param, {}, (error, response) => {
-      if (error != null) {
-        console.error('error in toggling notifications: ', error)
-      }
     })
   })
 
