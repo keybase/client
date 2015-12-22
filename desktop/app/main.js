@@ -67,7 +67,7 @@ ipc.on('subscribeStore', event => {
 // Work around an OS X bug that leaves a gap in the status bar if you exit
 // without removing your status bar icon.
 if (process.platform === 'darwin') {
-  mb.app.on('destroy', () => {
+  mb.app.on('before-quit', () => {
     mb.tray && mb.tray.destroy()
   })
 }
