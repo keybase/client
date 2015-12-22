@@ -189,6 +189,7 @@ save() {
 
   if [ ! "$s3host" = "" ]; then
     $release_bin update-json --version=$app_version --src=$zip_name --uri=$s3host > update-darwin-$run_mode.json
+    $release_bin index-html --bucket-name=$bucket_name --prefix="Keybase-" --suffix=".dmg" --dest="index.html"
   fi
 
   if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
@@ -206,4 +207,4 @@ package_dmg
 create_zip
 save
 
-"$client_dir/packaging/slack/send.sh" "Built $app_version at $s3host"
+"$client_dir/packaging/slack/send.sh" "Built $app_version at $s3host/index.html"
