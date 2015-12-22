@@ -60,6 +60,10 @@ var (
 
 	// ErrNoDetachedSignature is returned when there is no signature in the header.
 	ErrNoDetachedSignature = errors.New("no detached signature")
+
+	// ErrDetachedSignaturePresent is returned when there is a signature in the header and
+	// there shouldn't be.
+	ErrDetachedSignaturePresent = errors.New("detached signature present")
 )
 
 // ErrBadTag is generated when a Tag fails to Unbox properly. It specifies
@@ -77,7 +81,7 @@ type ErrRepeatedKey []byte
 // ErrWrongMessageType is produced if one packet tag was expected, but a packet
 // of another tag was found.
 type ErrWrongMessageType struct {
-	wanted   []MessageType
+	wanted   MessageType
 	received MessageType
 }
 
@@ -111,7 +115,7 @@ func (e ErrBadArmorHeader) Error() string {
 }
 
 func (e ErrWrongMessageType) Error() string {
-	return fmt.Sprintf("Wanted type=%v; got type=%d", e.wanted, e.received)
+	return fmt.Sprintf("Wanted type=%d; got type=%d", e.wanted, e.received)
 }
 func (e ErrBadVersion) Error() string {
 	return fmt.Sprintf("In packet %d: unsupported version (%v)", e.seqno, e.received)

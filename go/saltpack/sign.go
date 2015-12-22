@@ -39,7 +39,7 @@ func Sign(plaintext []byte, signer SigningSecretKey) ([]byte, error) {
 // SignDetached returns a detached signature of plaintext from
 // signer.
 func SignDetached(plaintext []byte, signer SigningSecretKey) ([]byte, error) {
-	header, err := newSignatureHeader(signer.PublicKey())
+	header, err := newSignatureHeader(signer.PublicKey(), MessageTypeDetachedSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func newSignAttachedStream(w io.Writer, signer SigningSecretKey) (*signAttachedS
 		return nil, ErrInvalidParameter{message: "no signing key provided"}
 	}
 
-	header, err := newSignatureHeader(signer.PublicKey())
+	header, err := newSignatureHeader(signer.PublicKey(), MessageTypeAttachedSignature)
 	if err != nil {
 		return nil, err
 	}

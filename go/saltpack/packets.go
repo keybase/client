@@ -53,7 +53,7 @@ func verifyRawKey(k []byte) error {
 
 func (h *EncryptionHeader) validate() error {
 	if h.Type != MessageTypeEncryption {
-		return ErrWrongMessageType{[]MessageType{MessageTypeEncryption}, h.Type}
+		return ErrWrongMessageType{MessageTypeEncryption, h.Type}
 	}
 	if h.Version.Major != SaltPackCurrentVersion.Major {
 		return ErrBadVersion{h.seqno, h.Version}
@@ -73,7 +73,7 @@ type SignatureHeader struct {
 	seqno        PacketSeqno
 }
 
-func newSignatureHeader(sender SigningPublicKey) (*SignatureHeader, error) {
+func newSignatureHeader(sender SigningPublicKey, msgType MessageType) (*SignatureHeader, error) {
 	nonce, err := NewSigNonce()
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func newSignatureHeader(sender SigningPublicKey) (*SignatureHeader, error) {
 	header := &SignatureHeader{
 		FormatName:   SaltPackFormatName,
 		Version:      SaltPackCurrentVersion,
-		Type:         MessageTypeAttachedSignature,
+		Type:         msgType,
 		SenderPublic: sender.ToKID(),
 		Nonce:        nonce[:],
 	}
@@ -90,16 +90,27 @@ func newSignatureHeader(sender SigningPublicKey) (*SignatureHeader, error) {
 	return header, nil
 }
 
-func (h *SignatureHeader) validate() error {
-	if h.Type != MessageTypeAttachedSignature && h.Type != MessageTypeDetachedSignature {
+func (h *SignatureHeader) validate(msgType MessageType) error {
+	if h.Type != msgType {
 		return ErrWrongMessageType{
-			wanted:   []MessageType{MessageTypeAttachedSignature, MessageTypeDetachedSignature},
+			wanted:   msgType,
 			received: h.Type,
 		}
 	}
 	if h.Version.Major != SaltPackCurrentVersion.Major {
 		return ErrBadVersion{h.seqno, h.Version}
 	}
+
+	if msgType == MessageTypeAttachedSignature {
+		if len(h.Signature) != 0 {
+			return ErrDetachedSignaturePresent
+		}
+	} else if msgType == MessageTypeDetachedSignature {
+		if len(h.Signature) == 0 {
+			return ErrNoDetachedSignature
+		}
+	}
+
 	return nil
 }
 

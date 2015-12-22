@@ -15,7 +15,7 @@ import (
 // it will return an error.
 func NewVerifyStream(r io.Reader, keyring SigKeyring) (skey SigningPublicKey, vs io.Reader, err error) {
 	s := newVerifyStream(r)
-	hdr, err := s.readHeader()
+	hdr, err := s.readHeader(MessageTypeAttachedSignature)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -50,7 +50,7 @@ func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifi
 
 func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey SigningPublicKey, err error) {
 	s := newVerifyStream(bytes.NewBuffer(signature))
-	hdr, err := s.readHeader()
+	hdr, err := s.readHeader(MessageTypeDetachedSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,6 @@ func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey Signing
 	}
 
 	return skey, nil
-
 }
 
 type verifyStream struct {
@@ -127,7 +126,7 @@ func (v *verifyStream) read(p []byte) (int, error) {
 	return n, nil
 }
 
-func (v *verifyStream) readHeader() (*SignatureHeader, error) {
+func (v *verifyStream) readHeader(msgType MessageType) (*SignatureHeader, error) {
 	var hdr SignatureHeader
 	seqno, err := v.stream.Read(&hdr)
 	if err != nil {
@@ -135,7 +134,7 @@ func (v *verifyStream) readHeader() (*SignatureHeader, error) {
 	}
 	hdr.seqno = seqno
 	v.header = &hdr
-	if err := v.header.validate(); err != nil {
+	if err := v.header.validate(msgType); err != nil {
 		return nil, err
 	}
 	v.state = stateBody
