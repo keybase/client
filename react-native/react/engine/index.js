@@ -8,9 +8,12 @@ const {client: {Client: RpcClient}} = rpc
 
 import {Buffer} from 'buffer'
 import NativeEventEmitter from '../common-adapters/native-event-emitter'
+import windowsHack from './windows-hack'
 
 class Engine {
   constructor () {
+    windowsHack()
+
     this.program = 'keybase.1'
     this.rpcClient = new RpcClient(
       new Transport(

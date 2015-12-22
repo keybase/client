@@ -20,10 +20,36 @@ const envedPathOSX = {
   prod: 'Keybase'
 }
 
+function buildWin32SocketRoot() {
+  let appdata = process.env.APPDATA
+  // Remove leading drive letter e.g. C:
+  if (/^[a-zA-Z]:/.test(appdata)) {
+    appdata = appdata.slice(2)
+  }
+  // Handle runModes, prod has no extension.
+  let extension = ''
+  if (runMode !== 'production') {
+    extension = runMode.charAt(0).toUpperCase() + runMode.substr(1)
+  }
+  let path = `\\\\.\\pipe\\kbservice${appdata}\\Keybase${extension}`
+  return path
+}
+
 function findSocketRoot () {
   const paths = {
     'darwin': `${process.env.HOME}/Library/Caches/${envedPathOSX[runMode]}/`,
-    'linux': runMode === 'prod' ? `${process.env.XDG_RUNTIME_DIR}/keybase/` : `${process.env.XDG_RUNTIME_DIR}/keybase.${runMode}/`
+    'linux': runMode === 'prod' ? `${process.env.XDG_RUNTIME_DIR}/keybase/` : `${process.env.XDG_RUNTIME_DIR}/keybase.${runMode}/`,
+    'win32': buildWin32SocketRoot()
+  }
+
+  return paths[process.platform]
+}
+
+function findDataRoot () {
+  const paths = {
+    'darwin': `${process.env.HOME}/Library/Application Support/${envedPathOSX[runMode]}/`,
+    'linux': `${process.env.XDG_DATA_DIR}/keybase.${runMode}/`,
+    'win32': `${process.env.APPDATA}\\Keybase\\`
   }
 
   return paths[process.platform]
@@ -32,14 +58,5 @@ function findSocketRoot () {
 export const socketRoot = findSocketRoot()
 export const socketName = 'keybased.sock'
 export const socketPath = path.join(socketRoot, socketName)
-
-function findDataRoot () {
-  const paths = {
-    'darwin': `${process.env.HOME}/Library/Application Support/${envedPathOSX[runMode]}/`,
-    'linux': `${process.env.XDG_DATA_DIR}/keybase.${runMode}/`
-  }
-
-  return paths[process.platform]
-}
-
 export const dataRoot = findDataRoot()
+export const splashRoot = process.platform === 'win32' ? dataRoot : socketRoot
