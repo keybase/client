@@ -27,8 +27,13 @@ type serverState struct {
 }
 
 type pubsubResponse struct {
+	Status      libkb.AppStatus      `json:"status"`
 	ServerState serverState          `json:"server_state"`
 	Messages    []pubsubMessageOuter `json:"messages"`
+}
+
+func (p *pubsubResponse) GetAppStatus() *libkb.AppStatus {
+	return &p.Status
 }
 
 var _ UserKeyAPIer = (*userKeyAPI)(nil)
@@ -39,8 +44,13 @@ type userKeysResPublicKeys struct {
 }
 
 type userKeyRes struct {
+	Status     libkb.AppStatus       `json:"status"`
 	Username   string                `json:"username"`
 	PublicKeys userKeysResPublicKeys `json:"public_keys"`
+}
+
+func (k *userKeyRes) GetAppStatus() *libkb.AppStatus {
+	return &k.Status
 }
 
 type userKeyAPI struct {
@@ -50,7 +60,8 @@ type userKeyAPI struct {
 	instanceID    string
 }
 
-func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (un libkb.NormalizedUsername, kids []keybase1.KID, err error) {
+func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
+	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, err error) {
 	u.log.Debug("+ GetUser")
 	defer func() {
 		u.log.Debug("- GetUser -> %v", err)
@@ -63,17 +74,10 @@ func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (un libkb.No
 		},
 	}, &ukr)
 	if err != nil {
-		return "", nil, err
+		return "", nil, nil, err
 	}
 	un = libkb.NewNormalizedUsername(ukr.Username)
-	for _, k := range ukr.PublicKeys.Sibkeys {
-		kids = append(kids, k)
-	}
-	for _, k := range ukr.PublicKeys.Subkeys {
-		kids = append(kids, k)
-	}
-
-	return un, kids, nil
+	return un, ukr.PublicKeys.Sibkeys, ukr.PublicKeys.Subkeys, nil
 }
 
 func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, err error) {

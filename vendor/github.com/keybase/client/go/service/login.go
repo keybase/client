@@ -48,12 +48,12 @@ func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email s
 		Args: libkb.HTTPArgs{
 			"email_or_username": libkb.S{Val: email},
 		},
-		AppStatus: []string{"OK", "BAD_LOGIN_USER_NOT_FOUND"},
+		AppStatusCodes: []int{libkb.SCOk, libkb.SCBadLoginUserNotFound},
 	})
 	if err != nil {
 		return err
 	}
-	if res.AppStatus == "BAD_LOGIN_USER_NOT_FOUND" {
+	if res.AppStatus.Code == libkb.SCBadLoginUserNotFound {
 		return libkb.NotFoundError{}
 	}
 	return nil

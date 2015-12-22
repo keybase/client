@@ -7,6 +7,7 @@ package install
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"syscall"
 	"time"
@@ -58,4 +59,9 @@ func (u *Updater) checkPlatformSpecificUpdate(sourcePath string, destinationPath
 	}
 
 	return nil
+}
+
+func openApplication(applicationPath string) error {
+	_, err := exec.Command("/usr/bin/open", applicationPath).Output()
+	return err
 }

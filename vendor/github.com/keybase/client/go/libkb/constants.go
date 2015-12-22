@@ -104,6 +104,7 @@ const (
 	SCOk                     = int(keybase1.StatusCode_SCOk)
 	SCLoginRequired          = int(keybase1.StatusCode_SCLoginRequired)
 	SCBadSession             = int(keybase1.StatusCode_SCBadSession)
+	SCBadLoginUserNotFound   = int(keybase1.StatusCode_SCBadLoginUserNotFound)
 	SCBadLoginPassword       = int(keybase1.StatusCode_SCBadLoginPassword)
 	SCNotFound               = int(keybase1.StatusCode_SCNotFound)
 	SCGeneric                = int(keybase1.StatusCode_SCGeneric)

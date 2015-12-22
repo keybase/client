@@ -34,6 +34,14 @@ func (e BadKeyError) Error() string {
 	return fmt.Sprintf("Bad key error: %s not active for %s", e.kid, e.uid)
 }
 
+// KeysNotEqualError is raised when compared keys sets aren't equal.
+type KeysNotEqualError struct {
+}
+
+func (e KeysNotEqualError) Error() string {
+	return "Keys not equal"
+}
+
 // InvalidTokenTypeError is raised when the given token is not of the expected type.
 type InvalidTokenTypeError struct {
 	expected string

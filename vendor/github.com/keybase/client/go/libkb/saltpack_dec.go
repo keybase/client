@@ -12,7 +12,7 @@ import (
 func SaltPackDecrypt(
 	source io.Reader, sink io.WriteCloser,
 	deviceEncryptionKey NaclDHKeyPair) error {
-	plainsource, frame, err := saltpack.NewDearmor62DecryptStream(
+	_, plainsource, frame, err := saltpack.NewDearmor62DecryptStream(
 		source, naclKeyring(deviceEncryptionKey))
 	if err != nil {
 		return err

@@ -41,6 +41,17 @@ func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2
 	return err
 }
 
+type kexResp struct {
+	Msgs []struct {
+		Msg string `json:"msg"`
+	} `json:"msgs"`
+	Status AppStatus `json:"status"`
+}
+
+func (k *kexResp) GetAppStatus() *AppStatus {
+	return &k.Status
+}
+
 // Get implements Get in the kex2.MessageRouter interface.
 func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.Seqno, poll time.Duration) (msgs [][]byte, err error) {
 	k.G().Log.Debug("+ KexRouter.Get(%x, %x, %d, %s)", sessID, receiver, low, poll)
@@ -62,17 +73,8 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 		},
 		Contextified: NewContextified(k.G()),
 	}
+	var j kexResp
 
-	var j struct {
-		Msgs []struct {
-			Msg string `json:"msg"`
-		} `json:"msgs"`
-		Status struct {
-			Code int    `json:"code"`
-			Name string `json:"name"`
-			Desc string `json:"desc"`
-		}
-	}
 	if err = k.G().API.GetDecode(arg, &j); err != nil {
 		return nil, err
 	}

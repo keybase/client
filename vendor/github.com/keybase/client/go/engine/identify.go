@@ -290,6 +290,27 @@ func (e *Identify) DidShortCircuit() bool {
 	return e.selfShortCircuit
 }
 
+type card struct {
+	Status        libkb.AppStatus `json:"status"`
+	FollowSummary struct {
+		Following int `json:"following"`
+		Followers int `json:"followers"`
+	} `json:"follow_summary"`
+	Profile struct {
+		FullName string `json:"full_name"`
+		Location string `json:"location"`
+		Bio      string `json:"bio"`
+		Website  string `json:"website"`
+		Twitter  string `json:"twitter"`
+	} `json:"profile"`
+	YouFollowThem bool `json:"you_follow_them"`
+	TheyFollowYou bool `json:"they_follow_you"`
+}
+
+func (c *card) GetAppStatus() *libkb.AppStatus {
+	return &c.Status
+}
+
 func (e *Identify) displayUserCard(ctx *Context) {
 	arg := libkb.APIArg{
 		Endpoint:     "user/card",
@@ -298,21 +319,7 @@ func (e *Identify) displayUserCard(ctx *Context) {
 		Args:         libkb.HTTPArgs{"uid": libkb.S{Val: e.user.GetUID().String()}},
 	}
 
-	var card struct {
-		FollowSummary struct {
-			Following int `json:"following"`
-			Followers int `json:"followers"`
-		} `json:"follow_summary"`
-		Profile struct {
-			FullName string `json:"full_name"`
-			Location string `json:"location"`
-			Bio      string `json:"bio"`
-			Website  string `json:"website"`
-			Twitter  string `json:"twitter"`
-		} `json:"profile"`
-		YouFollowThem bool `json:"you_follow_them"`
-		TheyFollowYou bool `json:"they_follow_you"`
-	}
+	var card card
 
 	if err := e.G().API.GetDecode(arg, &card); err != nil {
 		e.G().Log.Warning("error getting user/card for %s: %s\n", e.user.GetUID(), err)

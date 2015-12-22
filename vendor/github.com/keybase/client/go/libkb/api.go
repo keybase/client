@@ -345,40 +345,37 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	}
 }
 
-func (a *InternalAPIEngine) checkAppStatus(arg APIArg, jw *jsonw.Wrapper) (string, error) {
-	var set []string
+func (a *InternalAPIEngine) checkAppStatusFromJSONWrapper(arg APIArg, jw *jsonw.Wrapper) (*AppStatus, error) {
+	var ast AppStatus
+	if err := jw.UnmarshalAgain(&ast); err != nil {
+		return nil, err
+	}
+	return &ast, a.checkAppStatus(arg, &ast)
+}
 
-	resName, err := jw.AtKey("name").GetString()
-	if err != nil {
-		err = fmt.Errorf("Cannot find status name in reply")
-		return "", err
+func (a *InternalAPIEngine) checkAppStatus(arg APIArg, ast *AppStatus) error {
+	set := arg.AppStatusCodes
+
+	if len(set) == 0 {
+		set = []int{SCOk}
 	}
 
-	if arg.AppStatus == nil || len(arg.AppStatus) == 0 {
-		set = []string{"OK"}
-	} else {
-		set = arg.AppStatus
-	}
 	for _, status := range set {
-		if resName == status {
-			return resName, nil
+		if ast.Code == status {
+			return nil
 		}
 	}
 
 	// check if there was a bad session error:
-	if err := a.checkSessionExpired(arg, jw); err != nil {
-		return "", err
+	if err := a.checkSessionExpired(arg, ast); err != nil {
+		return err
 	}
 
-	return "", NewAppStatusError(jw)
+	return NewAppStatusError(ast)
 }
 
-func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, status *jsonw.Wrapper) error {
-	code, err := status.AtKey("code").GetInt()
-	if err != nil {
-		return fmt.Errorf("Cannot find status 'code' in reply")
-	}
-	if code != SCBadSession {
+func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) error {
+	if ast.Code != SCBadSession {
 		return nil
 	}
 	var loggedIn bool
@@ -426,14 +423,17 @@ func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, error) {
 
 // GetDecode performs a GET request and decodes the response via
 // JSON into the value pointed to by v.
-func (a *InternalAPIEngine) GetDecode(arg APIArg, v interface{}) error {
+func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	resp, err := a.GetResp(arg)
 	if err != nil {
 		return err
 	}
 	dec := json.NewDecoder(resp.Body)
 	defer resp.Body.Close()
-	return dec.Decode(&v)
+	if err = dec.Decode(&v); err != nil {
+		return err
+	}
+	return a.checkAppStatus(arg, v.GetAppStatus())
 }
 
 func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
@@ -470,14 +470,17 @@ func (a *InternalAPIEngine) PostResp(arg APIArg) (*http.Response, error) {
 	return resp, nil
 }
 
-func (a *InternalAPIEngine) PostDecode(arg APIArg, v interface{}) error {
+func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 	resp, err := a.PostResp(arg)
 	if err != nil {
 		return err
 	}
 	dec := json.NewDecoder(resp.Body)
 	defer resp.Body.Close()
-	return dec.Decode(&v)
+	if err = dec.Decode(&v); err != nil {
+		return err
+	}
+	return a.checkAppStatus(arg, v.GetAppStatus())
 }
 
 func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
@@ -494,7 +497,7 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 
 	// Check for an "OK" or whichever app-level replies were allowed by
 	// http.AppStatus
-	appStatus, err := a.checkAppStatus(arg, status)
+	appStatus, err := a.checkAppStatusFromJSONWrapper(arg, status)
 	if err != nil {
 		return nil, err
 	}

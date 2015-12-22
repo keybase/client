@@ -21,6 +21,16 @@ type pgpLookupArg struct {
 	uintID uint64
 }
 
+type keyBasicsReply struct {
+	Status   AppStatus `json:"status"`
+	Username string    `json:"username"`
+	UID      string    `json:"uid"`
+}
+
+func (k *keyBasicsReply) GetAppStatus() *AppStatus {
+	return &k.Status
+}
+
 func pgpLookup(g *GlobalContext, arg pgpLookupArg) (username, uid string, err error) {
 	httpArgs := make(HTTPArgs)
 	switch {
@@ -34,10 +44,7 @@ func pgpLookup(g *GlobalContext, arg pgpLookupArg) (username, uid string, err er
 		return "", "", InvalidArgumentError{Msg: "invalid pgp lookup arg"}
 	}
 
-	var data struct {
-		Username string
-		UID      string
-	}
+	var data keyBasicsReply
 
 	// lookup key on api server
 	args := APIArg{

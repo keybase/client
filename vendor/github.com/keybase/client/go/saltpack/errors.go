@@ -44,6 +44,9 @@ var (
 	// ErrBadSenderKey is returned if a key with the wrong number of bytes
 	// is discovered in the encryption header.
 	ErrBadSenderKey = errors.New("bad sender key; must be 32 bytes")
+
+	// ErrBadLookup is when the user-provided key lookup gives a bad value
+	ErrBadLookup = errors.New("bad key lookup")
 )
 
 // ErrBadTag is generated when a Tag fails to Unbox properly. It specifies

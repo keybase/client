@@ -309,12 +309,12 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 			"hmac_pwh":          S{hex.EncodeToString(lgpw)},
 			"login_session":     S{loginSessionEncoded},
 		},
-		AppStatus: []string{"OK", "BAD_LOGIN_PASSWORD"},
+		AppStatusCodes: []int{SCOk, SCBadLoginPassword},
 	})
 	if err != nil {
 		return nil, err
 	}
-	if res.AppStatus == "BAD_LOGIN_PASSWORD" {
+	if res.AppStatus.Code == SCBadLoginPassword {
 		err = PassphraseError{"server rejected login attempt"}
 		return nil, err
 	}

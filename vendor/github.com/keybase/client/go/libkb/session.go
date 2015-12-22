@@ -253,10 +253,10 @@ func (s *Session) check() error {
 	}
 
 	res, err := s.G().API.Get(APIArg{
-		SessionR:    s,
-		Endpoint:    "sesscheck",
-		NeedSession: true,
-		AppStatus:   []string{"OK", "BAD_SESSION"},
+		SessionR:       s,
+		Endpoint:       "sesscheck",
+		NeedSession:    true,
+		AppStatusCodes: []int{SCOk, SCBadSession},
 	})
 
 	if err != nil {
@@ -265,7 +265,7 @@ func (s *Session) check() error {
 
 	s.checked = true
 
-	if res.AppStatus == "OK" {
+	if res.AppStatus.Code == SCOk {
 		s.G().Log.Debug("| Stored session checked out")
 		var err error
 		var uid keybase1.UID

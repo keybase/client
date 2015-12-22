@@ -560,6 +560,10 @@ func (u UpdateUI) UpdatePrompt(_ context.Context, arg keybase1.UpdatePromptArg) 
 	return res, err
 }
 
+func (u UpdateUI) UpdateQuit(_ context.Context) (res keybase1.UpdateQuitRes, err error) {
+	return keybase1.UpdateQuitRes{Quit: false}, nil
+}
+
 func (ui *UI) GetUpdateUI() libkb.UpdateUI {
 	return UpdateUI{terminal: ui.GetTerminalUI()}
 }

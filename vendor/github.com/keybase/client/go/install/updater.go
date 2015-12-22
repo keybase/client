@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -28,54 +27,67 @@ import (
 
 type Updater struct {
 	libkb.Contextified
-	config keybase1.UpdateConfig
-	source sources.UpdateSource
-	ticker *time.Ticker
+	options keybase1.UpdateOptions
+	source  sources.UpdateSource
 }
 
-func NewUpdater(g *libkb.GlobalContext, config keybase1.UpdateConfig, source sources.UpdateSource) Updater {
-	g.Log.Debug("New updater with config: %#v", config)
+func NewUpdater(g *libkb.GlobalContext, options keybase1.UpdateOptions, source sources.UpdateSource) Updater {
+	g.Log.Debug("New updater with options: %#v", options)
 	return Updater{
 		Contextified: libkb.NewContextified(g),
-		config:       config,
+		options:      options,
 		source:       source,
 	}
 }
 
-func NewKeybaseUpdater(g *libkb.GlobalContext) *Updater {
-	config := DefaultUpdaterConfig(g)
-	if config == nil {
+func NewDefaultUpdater(g *libkb.GlobalContext) *Updater {
+	options := DefaultUpdaterOptions(g)
+	if options == nil {
 		g.Log.Info("No updater available for this environment")
 		return nil
 	}
-	updater := NewUpdater(g, *config, sources.NewKeybaseUpdateSource(g))
+	source := sources.DefaultUpdateSource(g)
+	if source == nil {
+		g.Log.Info("No updater source available for this environment")
+		return nil
+	}
+	updater := NewUpdater(g, *options, source)
 	return &updater
 }
 
-func (u Updater) Config() keybase1.UpdateConfig {
-	return u.config
+func (u Updater) Options() keybase1.UpdateOptions {
+	return u.options
 }
 
-func (u *Updater) CheckForUpdate() (update *keybase1.Update, err error) {
-	u.G().Log.Info("Checking for update, current version is %s", u.config.Version)
+func (u *Updater) CheckForUpdate(skipAssetDownload bool, force bool, requested bool) (update *keybase1.Update, err error) {
+	u.G().Log.Info("Checking for update, current version is %s", u.options.Version)
 
-	if snz := u.G().Env.GetUpdatePreferenceSnoozeUntil(); snz > 0 {
-		snoozeUntil := keybase1.FromTime(snz)
-		if time.Now().Before(snoozeUntil) {
-			u.G().Log.Info("Snoozing until %s", snoozeUntil)
-			return nil, nil
-		}
-		u.G().Log.Debug("Snooze expired at %s", snoozeUntil)
-		// Clear out the snooze
-		u.G().Env.GetConfigWriter().SetUpdatePreferenceSnoozeUntil(keybase1.Time(0))
+	if u.options.Force {
+		force = true
 	}
 
-	currentSemVersion, err := semver.Make(u.config.Version)
+	// Don't snooze if the user requested/wants an update (check)
+	if !requested && !force {
+		if snz := u.G().Env.GetUpdatePreferenceSnoozeUntil(); snz > 0 {
+			snoozeUntil := keybase1.FromTime(snz)
+			if time.Now().Before(snoozeUntil) {
+				u.G().Log.Info("Snoozing until %s", snoozeUntil)
+				return nil, nil
+			}
+			u.G().Log.Debug("Snooze expired at %s", snoozeUntil)
+			// Clear out the snooze
+			u.G().Env.GetConfigWriter().SetUpdatePreferenceSnoozeUntil(keybase1.Time(0))
+		}
+	}
+
+	currentSemVersion, err := semver.Make(u.options.Version)
 	if err != nil {
 		return
 	}
 
-	update, err = u.source.FindUpdate(u.config)
+	u.G().Log.Info("Using updater source: %s", u.source.Description())
+	u.G().Log.Debug("Using options: %#v", u.options)
+	update, err = u.source.FindUpdate(u.options)
 	if err != nil || update == nil {
 		return
 	}
@@ -99,13 +111,26 @@ func (u *Updater) CheckForUpdate() (update *keybase1.Update, err error) {
 	if updateSemVersion.EQ(currentSemVersion) {
 		// Versions are the same, we are up to date
 		u.G().Log.Info("Update matches current version: %s = %s", updateSemVersion, currentSemVersion)
-		if !u.config.Force {
+		if !force {
 			update = nil
+			return
 		}
-		return
 	} else if updateSemVersion.LT(currentSemVersion) {
-		err = fmt.Errorf("Update is older version: %s < %s", updateSemVersion, currentSemVersion)
-		return
+		u.G().Log.Info("Update is older version: %s < %s", updateSemVersion, currentSemVersion)
+		if !force {
+			err = fmt.Errorf("Update is older version: %s < %s", updateSemVersion, currentSemVersion)
+			update = nil
+			return
+		}
+	}
+
+	if !skipAssetDownload {
+		downloadPath, _, dlerr := u.downloadAsset(update.Asset)
+		if dlerr != nil {
+			err = dlerr
+			return
+		}
+		update.Asset.LocalPath = downloadPath
 	}
 
 	return
@@ -210,13 +235,12 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 			return
 		}
 	}
-	u.G().Log.Info("Moving %s to %s", path.Base(savePath), path.Base(fpath))
+	u.G().Log.Info("Moving %s to %s", filepath.Base(savePath), filepath.Base(fpath))
 	err = os.Rename(savePath, fpath)
 	return
 }
 
 func (u *Updater) unpack(filename string) (string, error) {
-
 	u.G().Log.Debug("unpack %s", filename)
 	if !strings.HasSuffix(filename, ".zip") {
 		u.G().Log.Debug("File isn't compressed, so won't unzip: %q", filename)
@@ -261,7 +285,7 @@ func (u *Updater) checkUpdate(sourcePath string, destinationPath string) error {
 
 func (u *Updater) apply(src string, dest string) error {
 	if _, err := os.Stat(dest); err == nil {
-		tmpFileName, err := libkb.TempFileName(fmt.Sprintf("%s.", path.Base(dest)))
+		tmpFileName, err := libkb.TempFileName(fmt.Sprintf("%s.", filepath.Base(dest)))
 		if err != nil {
 			return err
 		}
@@ -287,8 +311,8 @@ func (u *Updater) apply(src string, dest string) error {
 }
 
 // Update checks, downloads and performs an update.
-func (u *Updater) Update(ui libkb.UpdateUI) (update *keybase1.Update, err error) {
-	update, err = u.CheckForUpdate()
+func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (update *keybase1.Update, err error) {
+	update, err = u.CheckForUpdate(false, force, requested)
 	if err != nil {
 		return
 	}
@@ -297,7 +321,12 @@ func (u *Updater) Update(ui libkb.UpdateUI) (update *keybase1.Update, err error)
 		return
 	}
 
-	err = u.ApplyUpdate(ui, *update)
+	err = u.ApplyUpdate(ui, *update, force)
+	if err != nil {
+		return
+	}
+
+	_, err = u.Restart(ui)
 	return
 }
 
@@ -314,14 +343,11 @@ func (u *Updater) PromptForUpdateAction(ui libkb.UpdateUI, update keybase1.Updat
 	}
 
 	if ui == nil {
-		err = libkb.NoUIError{Which: "UpdateUI"}
+		err = libkb.NoUIError{Which: "Update"}
 		return
 	}
 
-	updatePrompt := keybase1.UpdatePromptArg{Update: update}
-	var updatePromptResponse keybase1.UpdatePromptRes
-
-	updatePromptResponse, err = ui.UpdatePrompt(context.TODO(), updatePrompt)
+	updatePromptResponse, err := ui.UpdatePrompt(context.TODO(), keybase1.UpdatePromptArg{Update: update})
 	if err != nil {
 		return
 	}
@@ -346,35 +372,35 @@ func (u *Updater) PromptForUpdateAction(ui libkb.UpdateUI, update keybase1.Updat
 	return
 }
 
-func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update) (err error) {
-	downloadPath, _, err := u.downloadAsset(update.Asset)
-	if err != nil {
-		return
+func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update, force bool) (err error) {
+	if u.options.Force {
+		force = true
 	}
-
-	if u.config.Force {
-		u.G().Log.Info("Forcing update")
-	} else {
+	if !force {
 		if err = u.PromptForUpdateAction(ui, update); err != nil {
-			return err
+			return
 		}
 	}
 
-	unzipPath, err := u.unpack(downloadPath)
+	if update.Asset.LocalPath == "" {
+		err = fmt.Errorf("No local asset path for update")
+		return
+	}
+
+	unzipPath, err := u.unpack(update.Asset.LocalPath)
 	if err != nil {
 		return
 	}
 	u.G().Log.Info("Unzip path: %s", unzipPath)
 
-	baseName := filepath.Base(u.config.DestinationPath)
+	baseName := filepath.Base(u.options.DestinationPath)
 	sourcePath := filepath.Join(unzipPath, baseName)
-
-	err = u.checkUpdate(sourcePath, u.config.DestinationPath)
+	err = u.checkUpdate(sourcePath, u.options.DestinationPath)
 	if err != nil {
 		return
 	}
 
-	err = u.apply(sourcePath, u.config.DestinationPath)
+	err = u.apply(sourcePath, u.options.DestinationPath)
 	if err != nil {
 		return
 	}
@@ -384,56 +410,60 @@ func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update) (err er
 	return
 }
 
-// DefaultUpdaterConfig returns update config for this environment
-func DefaultUpdaterConfig(g *libkb.GlobalContext) *keybase1.UpdateConfig {
-	ret := &keybase1.UpdateConfig{
-		Version: libkb.VersionString(),
-		Channel: "main", // The default channel
+func (u *Updater) Restart(ui libkb.UpdateUI) (didQuit bool, err error) {
+	if ui == nil {
+		err = libkb.NoUIError{Which: "Update"}
+		return
+	}
+
+	u.G().Log.Info("Restarting app")
+	u.G().Log.Debug("Asking if it safe to quit the app")
+	updateQuitResponse, err := ui.UpdateQuit(context.TODO())
+	if err != nil {
+		return
+	}
+
+	if !updateQuitResponse.Quit {
+		u.G().Log.Warning("App quit (for restart) was canceled or unsupported after update")
+		return
+	}
+
+	if updateQuitResponse.Pid == 0 {
+		err = fmt.Errorf("Invalid PID: %d", updateQuitResponse.Pid)
+		return
+	}
+
+	u.G().Log.Debug("App reported its PID as %d", updateQuitResponse.Pid)
+	p, err := os.FindProcess(updateQuitResponse.Pid)
+	if err != nil {
+		return
+	}
+	u.G().Log.Debug("Killing app")
+	err = p.Kill()
+	if err != nil {
+		return
+	}
+	didQuit = true
+
+	u.G().Log.Debug("Opening app at %s", updateQuitResponse.ApplicationPath)
+	err = openApplication(updateQuitResponse.ApplicationPath)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// DefaultUpdaterOptions returns update config for this environment
+func DefaultUpdaterOptions(g *libkb.GlobalContext) *keybase1.UpdateOptions {
+	ret := &keybase1.UpdateOptions{
+		Version:  libkb.VersionString(),
+		Channel:  "main", // The default channel
+		Platform: runtime.GOOS,
 	}
 	switch {
 	case runtime.GOOS == "darwin" && g.Env.GetRunMode() == libkb.ProductionRunMode:
 		ret.DestinationPath = "/Applications/Keybase.app"
 	}
 	return ret
-}
-
-var UpdateAutomatically = true
-var UpdateCheckDuration = (24 * time.Hour)
-
-func (u *Updater) updateTick() {
-	ui, _ := u.G().UIRouter.GetUpdateUI()
-	auto := u.G().Env.GetUpdatePreferenceAuto()
-	if UpdateAutomatically && (ui != nil || auto) {
-		update, err := u.Update(ui)
-		if err != nil {
-			u.G().Log.Errorf("Error trying to update: %s", err)
-		} else if update != nil {
-			u.G().Log.Errorf("Applied update: %#v", update)
-		}
-	} else {
-		update, err := u.CheckForUpdate()
-		if err != nil {
-			u.G().Log.Errorf("Error checking for update: %s", err)
-		} else if update != nil {
-			// TODO: Notify of update
-		}
-	}
-}
-
-func (u *Updater) StartUpdateCheck() {
-	if u.ticker != nil {
-		return
-	}
-	u.ticker = time.NewTicker(UpdateCheckDuration)
-	go func() {
-		for t := range u.ticker.C {
-			u.G().Log.Info("Checking for update (%s)", t)
-			u.updateTick()
-		}
-	}()
-}
-
-func (u *Updater) StopUpdateCheck() {
-	u.ticker.Stop()
-	u.ticker = nil
 }
