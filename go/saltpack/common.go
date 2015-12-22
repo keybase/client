@@ -6,6 +6,8 @@ package saltpack
 import (
 	"bytes"
 	"crypto/rand"
+	"io"
+
 	"github.com/ugorji/go/codec"
 	"golang.org/x/crypto/poly1305"
 )
@@ -44,4 +46,9 @@ func hashNonceAndAuthTag(nonce *Nonce, ciphertext []byte) []byte {
 	buf.Write((*nonce)[:])
 	buf.Write(ciphertext[0:poly1305.TagSize])
 	return buf.Bytes()
+}
+
+func writeNullString(w io.Writer, s string) {
+	w.Write([]byte(s))
+	w.Write([]byte{0})
 }

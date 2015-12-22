@@ -13,22 +13,23 @@ import (
 // r.  It returns the signer's public key and a reader that only
 // contains verified data.  If the signer's key is not in keyring,
 // it will return an error.
-func NewVerifyStream(r io.Reader, keyring Keyring) (skey BoxPublicKey, vs io.Reader, err error) {
+func NewVerifyStream(r io.Reader, keyring Keyring) (skey SigningPublicKey, vs io.Reader, err error) {
 	s := newVerifyStream(r)
 	hdr, err := s.readHeader()
 	if err != nil {
 		return nil, nil, err
 	}
-	skey = keyring.LookupBoxPublicKey(hdr.SenderPublic)
+	skey = keyring.LookupSigningPublicKey(hdr.SenderPublic)
 	if skey == nil {
 		return nil, nil, ErrNoSenderKey
 	}
+	s.publicKey = skey
 	return skey, s, nil
 }
 
 // Verify checks the signature in signedMsg.  It returns the
 // signer's public key and a verified message.
-func Verify(signedMsg []byte, keyring Keyring) (skey BoxPublicKey, verifiedMsg []byte, err error) {
+func Verify(signedMsg []byte, keyring Keyring) (skey SigningPublicKey, verifiedMsg []byte, err error) {
 	// return verifyBytes(signedMsg, NewVerifyStream)
 	skey, stream, err := NewVerifyStream(bytes.NewReader(signedMsg), keyring)
 	if err != nil {
@@ -49,9 +50,11 @@ func Verify(signedMsg []byte, keyring Keyring) (skey BoxPublicKey, verifiedMsg [
 }
 
 type verifyStream struct {
-	stream *framedMsgpackStream
-	state  readState
-	buffer []byte
+	stream    *framedMsgpackStream
+	state     readState
+	buffer    []byte
+	header    *SignatureHeader
+	publicKey SigningPublicKey
 }
 
 func newVerifyStream(r io.Reader) *verifyStream {
@@ -106,6 +109,7 @@ func (v *verifyStream) readHeader() (*SignatureHeader, error) {
 		return nil, err
 	}
 	hdr.seqno = seqno
+	v.header = &hdr
 	v.state = stateBody
 	return &hdr, nil
 }
@@ -133,7 +137,13 @@ func (v *verifyStream) readBlock(p []byte) (int, bool, error) {
 }
 
 func (v *verifyStream) processBlock(block *SignatureBlock) ([]byte, error) {
-	// XXX temporary
+	ok, err := v.publicKey.Verify(computeSigDigest(v.header.Nonce, block), block.Signature)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, ErrBadSignature
+	}
 	return block.PayloadChunk, nil
 }
 

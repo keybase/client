@@ -5,6 +5,8 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/sha512"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -13,10 +15,10 @@ import (
 // NewSignStream creates a stream that consumes plaintext data.
 // It will write out signed data to the io.Writer passed in as
 // signedtext.
-func NewSignStream(signedtext io.Writer, sender BoxSecretKey, mode MessageType) (stream io.WriteCloser, err error) {
+func NewSignStream(signedtext io.Writer, signer SigningSecretKey, mode MessageType) (stream io.WriteCloser, err error) {
 	switch mode {
 	case MessageTypeAttachedSignature:
-		return newSignAttachedStream(signedtext, sender)
+		return newSignAttachedStream(signedtext, signer)
 	case MessageTypeDetachedSignature:
 		return nil, errors.New("detached not yet implemented")
 	default:
@@ -24,10 +26,10 @@ func NewSignStream(signedtext io.Writer, sender BoxSecretKey, mode MessageType) 
 	}
 }
 
-// Sign signs a plaintext from sender.
-func Sign(plaintext []byte, sender BoxSecretKey, mode MessageType) ([]byte, error) {
+// Sign signs a plaintext from signer.
+func Sign(plaintext []byte, signer SigningSecretKey, mode MessageType) ([]byte, error) {
 	var buf bytes.Buffer
-	s, err := NewSignStream(&buf, sender, mode)
+	s, err := NewSignStream(&buf, signer, mode)
 	if err != nil {
 		return nil, err
 	}
@@ -49,22 +51,25 @@ type signAttachedStream struct {
 	encoder     encoder
 	buffer      bytes.Buffer
 	block       []byte
+	seqno       PacketSeqno
+	secretKey   SigningSecretKey
 }
 
-func newSignAttachedStream(w io.Writer, sender BoxSecretKey) (*signAttachedStream, error) {
-	if sender == nil {
-		return nil, ErrInvalidParameter{message: "no sender key provided"}
+func newSignAttachedStream(w io.Writer, signer SigningSecretKey) (*signAttachedStream, error) {
+	if signer == nil {
+		return nil, ErrInvalidParameter{message: "no signing key provided"}
 	}
 
-	header, err := newSignatureHeader(sender.GetPublicKey())
+	header, err := newSignatureHeader(signer.PublicKey())
 	if err != nil {
 		return nil, err
 	}
 
 	stream := &signAttachedStream{
-		header:  header,
-		encoder: newEncoder(w),
-		block:   make([]byte, SignatureBlockSize),
+		header:    header,
+		encoder:   newEncoder(w),
+		block:     make([]byte, SignatureBlockSize),
+		secretKey: signer,
 	}
 
 	return stream, nil
@@ -76,7 +81,12 @@ func (s *signAttachedStream) Write(p []byte) (int, error) {
 		if err := s.encoder.Encode(s.header); err != nil {
 			return 0, err
 		}
+
+		// this doesn't follow the spec, but I think header should have seqno=0, first packet should have seqno=1.
+		// spec says header has seqno=0, first packet has seqno=0.
+		s.seqno++
 	}
+
 	n, err := s.buffer.Write(p)
 	if err != nil {
 		return 0, err
@@ -111,10 +121,40 @@ func (s *signAttachedStream) signBlock() error {
 func (s *signAttachedStream) signBytes(b []byte) error {
 	block := SignatureBlock{
 		PayloadChunk: b,
+		seqno:        s.seqno,
 	}
-	return s.encoder.Encode(block)
+	sig, err := s.computeSig(&block)
+	if err != nil {
+		return err
+	}
+	block.Signature = sig
+
+	if err := s.encoder.Encode(block); err != nil {
+		return err
+	}
+
+	s.seqno++
+	return nil
 }
 
 func (s *signAttachedStream) writeFooter() error {
 	return s.signBytes([]byte{})
+}
+
+func (s *signAttachedStream) computeSig(block *SignatureBlock) ([]byte, error) {
+	return s.secretKey.Sign(computeSigDigest(s.header.Nonce, block))
+}
+
+func computeSigDigest(nonce []byte, block *SignatureBlock) []byte {
+	hasher := sha512.New()
+	hasher.Write(nonce)
+	binary.Write(hasher, binary.BigEndian, block.seqno)
+	hasher.Write(block.PayloadChunk)
+
+	var buf bytes.Buffer
+	buf.Write(hasher.Sum(nil))
+	writeNullString(&buf, SaltPackFormatName)
+	writeNullString(&buf, SignatureAttachedString)
+
+	return buf.Bytes()
 }

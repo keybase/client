@@ -50,6 +50,10 @@ const NoncePrefixEncryption = "encryption nonce prefix"
 // SignatureBlockSize is by default 1MB and can't currently be tweaked.
 const SignatureBlockSize int = 1048576
 
+// SignatureAttachedString is part of the data that is signed in
+// each payload packet.
+const SignatureAttachedString = "attached signature"
+
 type readState int
 
 const (

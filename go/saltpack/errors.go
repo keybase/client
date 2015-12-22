@@ -54,6 +54,9 @@ var (
 
 	// ErrHeaderNotRead is returned if a stream is read before the header is processed.
 	ErrHeaderNotRead = errors.New("message read before header processed")
+
+	// ErrBadSignature is returned when verification of a block fails.
+	ErrBadSignature = errors.New("invalid signature")
 )
 
 // ErrBadTag is generated when a Tag fails to Unbox properly. It specifies

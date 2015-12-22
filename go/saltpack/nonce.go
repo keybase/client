@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
-	"hash"
 )
 
 // Nonce is a NaCl-style nonce, with 24 bytes of data, some of which can be
@@ -38,11 +37,6 @@ func (n *Nonce) ForKeyBox() *Nonce {
 	return n
 }
 
-func writeStringToHash(h hash.Hash, s string) {
-	h.Write([]byte(s))
-	h.Write([]byte{0})
-}
-
 // NewNonceForEncryption creates a new nonce for the purposes of an encrypted
 // message. It is a deterministic function of the ephemeral public key used
 // for this encrypted message.
@@ -53,8 +47,8 @@ func writeStringToHash(h hash.Hash, s string) {
 func NewNonceForEncryption(ephemeralPublicKey BoxPublicKey) *Nonce {
 	raw := *ephemeralPublicKey.ToRawBoxKeyPointer()
 	hasher := sha512.New()
-	writeStringToHash(hasher, SaltPackFormatName)
-	writeStringToHash(hasher, NoncePrefixEncryption)
+	writeNullString(hasher, SaltPackFormatName)
+	writeNullString(hasher, NoncePrefixEncryption)
 	hasher.Write(raw[:])
 	res := hasher.Sum(nil)
 	var out Nonce

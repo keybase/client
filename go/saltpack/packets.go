@@ -73,7 +73,7 @@ type SignatureHeader struct {
 	seqno        PacketSeqno
 }
 
-func newSignatureHeader(sender BoxPublicKey) (*SignatureHeader, error) {
+func newSignatureHeader(sender SigningPublicKey) (*SignatureHeader, error) {
 	nonce, err := NewSigNonce()
 	if err != nil {
 		return nil, err

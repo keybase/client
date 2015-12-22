@@ -29,6 +29,7 @@ type boxSecretKey struct {
 
 type keyring struct {
 	keys      map[string]BoxSecretKey
+	sigKeys   map[string]SigningSecretKey
 	blacklist map[string]struct{}
 	iterable  bool
 	bad       bool
@@ -37,12 +38,17 @@ type keyring struct {
 func newKeyring() *keyring {
 	return &keyring{
 		keys:      make(map[string]BoxSecretKey),
+		sigKeys:   make(map[string]SigningSecretKey),
 		blacklist: make(map[string]struct{}),
 	}
 }
 
 func (r *keyring) insert(k BoxSecretKey) {
 	r.keys[hex.EncodeToString(k.GetPublicKey().ToKID())] = k
+}
+
+func (r *keyring) insertSigningKey(k SigningSecretKey) {
+	r.sigKeys[hex.EncodeToString(k.PublicKey().ToKID())] = k
 }
 
 func (r *keyring) LookupBoxPublicKey(kid []byte) BoxPublicKey {
@@ -52,6 +58,14 @@ func (r *keyring) LookupBoxPublicKey(kid []byte) BoxPublicKey {
 	ret := boxPublicKey{}
 	copy(ret.key[:], kid)
 	return &ret
+}
+
+func (r *keyring) LookupSigningPublicKey(kid []byte) SigningPublicKey {
+	key, ok := r.sigKeys[hex.EncodeToString(kid)]
+	if !ok {
+		return nil
+	}
+	return key.PublicKey()
 }
 
 func (r *keyring) ImportEphemeralKey(kid []byte) BoxPublicKey {
