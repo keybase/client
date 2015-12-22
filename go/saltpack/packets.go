@@ -3,6 +3,8 @@
 
 package saltpack
 
+import "fmt"
+
 type receiverKeysPlaintext struct {
 	_struct    bool   `codec:",toarray"`
 	Sender     []byte `codec:"sender"`
@@ -109,6 +111,8 @@ func (h *SignatureHeader) validate(msgType MessageType) error {
 		if len(h.Signature) == 0 {
 			return ErrNoDetachedSignature
 		}
+	} else {
+		return ErrInvalidParameter{message: fmt.Sprintf("signature header must be MessageTypeAttachedSignature or MessageTypeDetachedSignature, not %d", msgType)}
 	}
 
 	return nil
