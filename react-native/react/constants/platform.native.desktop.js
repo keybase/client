@@ -27,11 +27,9 @@ function buildWin32SocketRoot() {
     appdata = appdata.slice(2)
   }
   // Handle runModes, prod has no extension.
-  let extension
-  if (runMode === 'devel') {
-    extension = '.Devel'
-  } else if (runMode === 'staging') {
-    extension = '.Staging'
+  let extension = ''
+  if (runMode !== 'production') {
+    extension = runMode.charAt(0).toUpperCase() + runMode.substr(1)
   }
   let path = `\\\\.\\pipe\\kbservice${appdata}\\Keybase${extension}`
   return path
