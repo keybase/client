@@ -34,3 +34,15 @@ Available npm run commands:
  - start-cold: Start the app off of the build-dev bundles
 
  - package: Make an electron application build
+
+Environment variables:
+
+ - $HOME: Home dir to use. Useful for multiple parallel installs
+ - $KEYBASE_RUN_MODE: production | devel. Which server to hit
+ - $KEYBASE_APP_DEBUG: Debug settings. Devtools, extra logging
+
+Use
+```
+launchctl setenv KEYBASE_APP_DEBUG true
+```
+to debug the production app
