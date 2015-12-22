@@ -3653,27 +3653,34 @@ func (fbo *folderBranchOps) notifyOneOp(ctx context.Context, op op,
 		err = func() error {
 			fbo.cacheLock.Lock()
 			defer fbo.cacheLock.Unlock()
-			if dirEntry, ok := fbo.deCache[p.tailPointer()]; ok {
-				if fileEntry, ok := dirEntry[de.BlockPointer]; ok {
-					// Get the real dir block; we can't use getEntry()
-					// since it swaps in the cached dir entry.
-					dblock, err := fbo.getDirBlockForReading(ctx, md,
-						p.tailPointer(), p.Branch, p)
-					if err != nil {
-						return err
-					}
-
-					if realEntry, ok := dblock.Children[realOp.Name]; ok {
-						switch realOp.Attr {
-						case exAttr:
-							fileEntry.Type = realEntry.Type
-						case mtimeAttr:
-							fileEntry.Mtime = realEntry.Mtime
-						}
-						dirEntry[de.BlockPointer] = fileEntry
-					}
-				}
+			dirEntry, ok := fbo.deCache[p.tailPointer()]
+			if !ok {
+				return nil
 			}
+			fileEntry, ok := dirEntry[de.BlockPointer]
+			if !ok {
+				return nil
+			}
+			// Get the real dir block; we can't use getEntry()
+			// since it swaps in the cached dir entry.
+			dblock, err := fbo.getDirBlockForReading(ctx, md,
+				p.tailPointer(), p.Branch, p)
+			if err != nil {
+				return err
+			}
+
+			realEntry, ok := dblock.Children[realOp.Name]
+			if !ok {
+				return nil
+			}
+
+			switch realOp.Attr {
+			case exAttr:
+				fileEntry.Type = realEntry.Type
+			case mtimeAttr:
+				fileEntry.Mtime = realEntry.Mtime
+			}
+			dirEntry[de.BlockPointer] = fileEntry
 			return nil
 		}()
 		if err != nil {
