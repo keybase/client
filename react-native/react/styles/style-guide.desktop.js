@@ -1,6 +1,5 @@
 // Styles from our designers
 
-/* ---------------------------------------- */
 export const globalColors = {
   blue: '#00bff0',
   green: '#90d05c',
@@ -17,7 +16,6 @@ export const globalColors = {
   white: '#ffffff'
 }
 
-/* ---------------------------------------- */
 const font = {
   fontRegular: {
     fontFamily: 'Noto Sans'
@@ -48,121 +46,7 @@ const util = {
   }
 }
 
-const buttonCommon = {
-  ...font.fontRegular,
-  borderRadius: 61,
-  color: globalColors.white,
-  fontSize: 18,
-  height: 32,
-  lineHeight: '24px',
-  textTransform: 'none'
-}
-
-const button = {
-  buttonPrimary: {
-    ...buttonCommon,
-    backgroundColor: globalColors.green
-  },
-  buttonSeconary: {
-    ...buttonCommon,
-    backgroundColor: globalColors.blue,
-    marginRight: 7
-  },
-  buttonLabel: {
-    paddingLeft: 24,
-    paddingRight: 24
-  }
-}
-
-const inputCommon = {
-  ...font.fontRegular,
-  border: `solid ${globalColors.grey3} 1px`,
-  paddingLeft: 9,
-  paddingRight: 9
-}
-
-const inputMultiCommon = {
-  ...inputCommon,
-  backgroundColor: globalColors.grey4
-}
-
-const input = {
-  input: {
-    height: 70
-  },
-  inputNormal: {
-    ...inputCommon,
-    height: 30
-  },
-  inputWithError: {
-    ...inputCommon,
-    height: 30,
-    borderColor: globalColors.highRiskWarning
-  },
-  inputMultiNormal: {
-    ...inputMultiCommon
-  },
-  inputMultiWithError: {
-    ...inputMultiCommon,
-    borderColor: globalColors.highRiskWarning
-  },
-  inputUnderline: {
-    display: 'none'
-  },
-  inputError: {
-    ...font.fontRegular,
-    fontSize: 13,
-    lineHeight: '17px',
-    paddingTop: 5
-  },
-  inputHint: {
-    ...font.fontRegular,
-    left: 0
-  },
-  inputFloatingLabel: {
-    ...font.fontRegular,
-    left: 9,
-    top: 19
-  }
-}
-
-const textCommon = {
-  ...font.fontRegular,
-  ...util.noSelect,
-  color: globalColors.grey1,
-  cursor: 'default'
-}
-
-const text = {
-  textHeader: {
-    ...textCommon,
-    ...font.fontBold,
-    fontSize: 18,
-    lineHeight: '22px',
-    letterSpacing: '0.5px'
-  },
-  textBody: {
-    ...textCommon,
-    fontSize: 15,
-    lineHeight: '20px',
-    letterSpacing: '0.2px'
-  },
-  textLinkMixin: {
-    color: globalColors.blue,
-    cursor: 'pointer'
-  },
-  textSmallMixin: {
-    fontSize: 13,
-    lineHeight: '17px'
-  },
-  textReversedMixin: {
-    color: globalColors.white
-  }
-}
-
 export const globalStyles = {
-  ...button,
-  ...input,
-  ...text,
+  ...font,
   ...util
 }
