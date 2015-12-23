@@ -48,9 +48,6 @@ var (
 	// ErrBadLookup is when the user-provided key lookup gives a bad value
 	ErrBadLookup = errors.New("bad key lookup")
 
-	// ErrHeaderNotRead is returned if a stream is read before the header is processed.
-	ErrHeaderNotRead = errors.New("message read before header processed")
-
 	// ErrBadSignature is returned when verification of a block fails.
 	ErrBadSignature = errors.New("invalid signature")
 
