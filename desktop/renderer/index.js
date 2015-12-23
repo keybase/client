@@ -17,6 +17,7 @@ import {ipcRenderer} from 'electron'
 import RemoteManager from '../../react-native/react/native/remote-manager'
 import {ipcMain} from 'remote'
 import consoleHack from '../app/console-hack'
+import _ from 'lodash'
 
 consoleHack()
 
@@ -67,10 +68,10 @@ class Keybase extends Component {
     ipcMain.removeAllListeners('stateChange')
     ipcMain.removeAllListeners('subscribeStore')
 
-    ipcMain.on('dispatchAction', (event, incomingAction) => {
-      // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
-      const action = {...incomingAction}
-      setImmediate(() => store.dispatch(action))
+    ipcMain.on('dispatchAction', (event, action) => {
+      // we MUST clone this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
+      // This is because we get a remote proxy object, instead of a normal object
+      setImmediate(() => store.dispatch(_.cloneDeep(action)))
     })
 
     ipcMain.on('subscribeStore', (event, substore) => {
