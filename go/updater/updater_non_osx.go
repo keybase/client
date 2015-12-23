@@ -3,7 +3,7 @@
 
 // +build !darwin
 
-package install
+package updater
 
 import "fmt"
 

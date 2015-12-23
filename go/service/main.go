@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/install"
-	"github.com/keybase/client/go/install/sources"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/updater"
+	"github.com/keybase/client/go/updater/sources"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -27,7 +27,7 @@ type Service struct {
 	ForkType      keybase1.ForkType
 	startCh       chan struct{}
 	stopCh        chan keybase1.ExitCode
-	updateChecker *install.UpdateChecker
+	updateChecker *updater.UpdateChecker
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -149,9 +149,9 @@ func (d *Service) Run() (err error) {
 	}
 
 	if sources.IsPrerelease {
-		updater := install.NewDefaultUpdater(d.G())
-		if updater != nil {
-			updateChecker := install.NewUpdateChecker(*updater)
+		updr := updater.NewDefaultUpdater(d.G())
+		if updr != nil {
+			updateChecker := updater.NewUpdateChecker(*updr)
 			d.updateChecker = &updateChecker
 			d.updateChecker.Start()
 		}

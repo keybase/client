@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package install
+package updater
 
 import (
 	"crypto/md5"
@@ -16,13 +16,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/install/sources"
+	"github.com/blang/semver"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	zip "github.com/keybase/client/go/tools/zip"
-	context "golang.org/x/net/context"
-
-	"github.com/blang/semver"
+	"github.com/keybase/client/go/updater/sources"
+	"golang.org/x/net/context"
 )
 
 type Updater struct {

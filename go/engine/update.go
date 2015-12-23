@@ -4,10 +4,10 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/install"
-	"github.com/keybase/client/go/install/sources"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/updater"
+	"github.com/keybase/client/go/updater/sources"
 )
 
 type UpdateEngine struct {
@@ -52,8 +52,8 @@ func (u *UpdateEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	updater := install.NewUpdater(u.G(), u.options, source)
-	update, err := updater.Update(ctx.UpdateUI, u.options.Force, true)
+	updr := updater.NewUpdater(u.G(), u.options, source)
+	update, err := updr.Update(ctx.UpdateUI, u.options.Force, true)
 	if err != nil {
 		return
 	}

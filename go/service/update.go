@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/engine"
-	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/updater"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
@@ -17,10 +17,10 @@ import (
 type UpdateHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	updateChecker *install.UpdateChecker
+	updateChecker *updater.UpdateChecker
 }
 
-func NewUpdateHandler(xp rpc.Transporter, g *libkb.GlobalContext, updateChecker *install.UpdateChecker) *UpdateHandler {
+func NewUpdateHandler(xp rpc.Transporter, g *libkb.GlobalContext, updateChecker *updater.UpdateChecker) *UpdateHandler {
 	return &UpdateHandler{
 		BaseHandler:   NewBaseHandler(xp),
 		Contextified:  libkb.NewContextified(g),
