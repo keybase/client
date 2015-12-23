@@ -25,14 +25,17 @@ func (s *sigPubKey) ToKID() []byte {
 	return s.key[:]
 }
 
-func (s *sigPubKey) Verify(message []byte, signature []byte) (bool, error) {
+func (s *sigPubKey) Verify(message []byte, signature []byte) error {
 	if len(signature) != ed25519.SignatureSize {
-		return false, fmt.Errorf("signature size: %d, expected %d", len(signature), ed25519.SignatureSize)
+		return fmt.Errorf("signature size: %d, expected %d", len(signature), ed25519.SignatureSize)
 	}
 	var fixed [ed25519.SignatureSize]byte
 	copy(fixed[:], signature)
 
-	return ed25519.Verify(&s.key, message, &fixed), nil
+	if !ed25519.Verify(&s.key, message, &fixed) {
+		return ErrBadSignature
+	}
+	return nil
 }
 
 type sigPrivKey struct {

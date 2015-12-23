@@ -65,12 +65,8 @@ func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey Signing
 		return nil, ErrNoSenderKey
 	}
 
-	ok, err := skey.Verify(computeDetachedDigest(hdr.Nonce, message), hdr.Signature)
-	if err != nil {
+	if err := skey.Verify(computeDetachedDigest(hdr.Nonce, message), hdr.Signature); err != nil {
 		return nil, err
-	}
-	if !ok {
-		return nil, ErrBadSignature
 	}
 
 	return skey, nil
@@ -167,12 +163,8 @@ func (v *verifyStream) readBlock(p []byte) (int, bool, error) {
 }
 
 func (v *verifyStream) processBlock(block *SignatureBlock) ([]byte, error) {
-	ok, err := v.publicKey.Verify(computeAttachedDigest(v.header.Nonce, block), block.Signature)
-	if err != nil {
+	if err := v.publicKey.Verify(computeAttachedDigest(v.header.Nonce, block), block.Signature); err != nil {
 		return nil, err
-	}
-	if !ok {
-		return nil, ErrBadSignature
 	}
 	return block.PayloadChunk, nil
 }

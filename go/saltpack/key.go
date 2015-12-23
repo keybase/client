@@ -79,7 +79,7 @@ type SigningPublicKey interface {
 
 	// Verify verifies that signature is a valid signature of message for
 	// this public key.
-	Verify(message []byte, signature []byte) (bool, error)
+	Verify(message []byte, signature []byte) error
 }
 
 // Keyring is an interface used with decryption; it is called to
