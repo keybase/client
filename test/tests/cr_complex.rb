@@ -515,7 +515,7 @@ module Test
   end
 
   # bob moves and setexes a file that was removed by alice executable
-  test :cr_conflict_move_and_setex_removed_file, skip: true, writers: ["alice", "bob"] do |alice, bob|
+  test :cr_conflict_move_and_setex_removed_file, writers: ["alice", "bob"] do |alice, bob|
     as alice do
       mkdir "a"
       write "a/b", "hello"
