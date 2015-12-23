@@ -15,7 +15,7 @@ import (
 type DeviceKeyfinder struct {
 	libkb.Contextified
 	arg     DeviceKeyfinderArg
-	userMap map[keybase1.UID]UserPlusDeviceKeys
+	userMap map[keybase1.UID](*keybase1.UserPlusKeys)
 }
 
 type DeviceKeyfinderArg struct {
@@ -25,17 +25,12 @@ type DeviceKeyfinderArg struct {
 	Self            *libkb.User
 }
 
-type UserPlusDeviceKeys struct {
-	Upk   *keybase1.UserPlusKeys
-	Index int
-}
-
 // NewDeviceKeyfinder creates a DeviceKeyfinder engine.
 func NewDeviceKeyfinder(g *libkb.GlobalContext, arg DeviceKeyfinderArg) *DeviceKeyfinder {
 	return &DeviceKeyfinder{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
-		userMap:      make(map[keybase1.UID]UserPlusDeviceKeys),
+		userMap:      make(map[keybase1.UID](*keybase1.UserPlusKeys)),
 	}
 }
 
@@ -74,7 +69,7 @@ func (e *DeviceKeyfinder) Run(ctx *Context) (err error) {
 
 // UsersPlusDeviceKeys returns the users found while running the engine,
 // plus their device keys.
-func (e *DeviceKeyfinder) UsersPlusDeviceKeys() map[keybase1.UID]UserPlusDeviceKeys {
+func (e *DeviceKeyfinder) UsersPlusKeys() map[keybase1.UID](*keybase1.UserPlusKeys) {
 	return e.userMap
 }
 
@@ -148,11 +143,7 @@ func (e *DeviceKeyfinder) addUser(ir *keybase1.Identify2Res) error {
 		return err
 	}
 
-	index := len(e.userMap)
-	e.userMap[upk.Uid] = UserPlusDeviceKeys{
-		Upk:   upk,
-		Index: index,
-	}
+	e.userMap[upk.Uid] = upk
 
 	return nil
 }
