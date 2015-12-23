@@ -658,12 +658,20 @@ func (dua *dropUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 			unmergedMostRecent)
 	}
 
+	found := false
 	for i, op := range unmergedChain.ops {
 		if op == dua.op {
 			unmergedChain.ops =
 				append(unmergedChain.ops[:i], unmergedChain.ops[i+1:]...)
+			found = true
 			break
 		}
+	}
+
+	// Return early if this chain didn't contain the op; no need to
+	// invert on the merged chain in that case.
+	if !found {
+		return nil
 	}
 
 	invertedOp := invertOpForLocalNotifications(dua.op)
