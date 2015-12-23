@@ -1326,8 +1326,8 @@ func TestSetattrFileMtime(t *testing.T) {
 	if g, e := fi.ModTime(), mtime; !fsTimeEqual(g, e) {
 		t.Errorf("wrong mtime: %v !~= %v", g, e)
 	}
-	testStateForPrivateFolder(t, config, "jdoe")
 }
+
 func TestSetattrFileMtimeAfterWrite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer config.Shutdown()
