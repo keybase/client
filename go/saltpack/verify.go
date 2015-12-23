@@ -14,12 +14,11 @@ import (
 // contains verified data.  If the signer's key is not in keyring,
 // it will return an error.
 func NewVerifyStream(r io.Reader, keyring SigKeyring) (skey SigningPublicKey, vs io.Reader, err error) {
-	s := newVerifyStream(r)
-	hdr, err := s.readHeader(MessageTypeAttachedSignature)
+	s, err := newVerifyStream(r, MessageTypeAttachedSignature)
 	if err != nil {
 		return nil, nil, err
 	}
-	skey = keyring.LookupSigningPublicKey(hdr.SenderPublic)
+	skey = keyring.LookupSigningPublicKey(s.header.SenderPublic)
 	if skey == nil {
 		return nil, nil, ErrNoSenderKey
 	}
@@ -49,20 +48,19 @@ func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifi
 // message, and that the public key for the signer is in keyring.
 // It returns the signer's public key.
 func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey SigningPublicKey, err error) {
-	s := newVerifyStream(bytes.NewBuffer(signature))
-	hdr, err := s.readHeader(MessageTypeDetachedSignature)
+	s, err := newVerifyStream(bytes.NewBuffer(signature), MessageTypeDetachedSignature)
 	if err != nil {
 		return nil, err
 	}
-	if len(hdr.Signature) == 0 {
+	if len(s.header.Signature) == 0 {
 		return nil, ErrNoDetachedSignature
 	}
-	skey = keyring.LookupSigningPublicKey(hdr.SenderPublic)
+	skey = keyring.LookupSigningPublicKey(s.header.SenderPublic)
 	if skey == nil {
 		return nil, ErrNoSenderKey
 	}
 
-	if err := skey.Verify(computeDetachedDigest(hdr.Nonce, message), hdr.Signature); err != nil {
+	if err := skey.Verify(computeDetachedDigest(s.header.Nonce, message), s.header.Signature); err != nil {
 		return nil, err
 	}
 
@@ -77,16 +75,19 @@ type verifyStream struct {
 	publicKey SigningPublicKey
 }
 
-func newVerifyStream(r io.Reader) *verifyStream {
-	return &verifyStream{
+func newVerifyStream(r io.Reader, msgType MessageType) (*verifyStream, error) {
+	s := &verifyStream{
 		stream: newMsgpackStream(r),
 	}
+	hdr, err := s.readHeader(msgType)
+	if err != nil {
+		return nil, err
+	}
+	s.header = hdr
+	return s, nil
 }
 
 func (v *verifyStream) Read(p []byte) (n int, err error) {
-	if v.state == stateHeader {
-		return 0, ErrHeaderNotRead
-	}
 	if v.state == stateEndOfStream {
 		return 0, io.EOF
 	}

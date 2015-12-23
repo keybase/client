@@ -61,7 +61,6 @@ const SignatureDetachedString = "detached signature"
 type readState int
 
 const (
-	stateHeader readState = iota
-	stateBody
+	stateBody readState = iota
 	stateEndOfStream
 )
