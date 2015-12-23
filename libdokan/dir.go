@@ -148,11 +148,11 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		return child, false, nil
 	}
 
-	return openDir(d, ctx, oc, path)
+	return openDir(ctx, d, oc, path)
 }
 
 // openDir is the complex path lookup procedure.
-func openDir(d *Dir, ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
+func openDir(ctx context.Context, d *Dir, oc *openContext, path []string) (dokan.File, bool, error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir openDir %v", path)
 	origPath := path
 	rootDir := d
@@ -235,9 +235,8 @@ func openFile(ctx context.Context, oc *openContext, path []string, f *File) (dok
 	return f, false, nil
 }
 
-func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir, origPath []string, path []string, target string) (dokan.File, bool, error) {
-	oc.maxRedirections--
-	if oc.maxRedirections < 0 {
+func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir, origPath, path []string, target string) (dokan.File, bool, error) {
+	if !oc.reduceRedirectionsLeft() {
 		return nil, false, dokan.ErrObjectPathNotFound
 	}
 	// Take relevant prefix of original path.

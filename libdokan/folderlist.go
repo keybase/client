@@ -46,7 +46,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		return fl, true, nil
 	}
 
-	for ; oc.maxRedirections > 0; oc.maxRedirections-- {
+	for oc.reduceRedirectionsLeft() {
 		name := path[0]
 
 		fl.mu.Lock()

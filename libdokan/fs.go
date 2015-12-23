@@ -84,55 +84,62 @@ func (*FS) GetDiskFreeSpace() (dokan.FreeSpace, error) {
 type openContext struct {
 	fi *dokan.FileInfo
 	*dokan.CreateData
-	maxRedirections int
+	redirectionsLeft int
+}
+
+// reduceRedictionsLeft reduces redirections and returns whether there are
+// redirections left (true), or whether processing should be stopped (false).
+func (oc *openContext) reduceRedirectionsLeft() bool {
+	oc.redirectionsLeft--
+	return oc.redirectionsLeft > 0
 }
 
 // isCreation checks the flags whether a file creation is wanted.
-func (caf *openContext) isCreateDirectory() bool {
-	return caf.isCreation() && caf.CreateOptions&fileDirectoryFile != 0
+func (oc *openContext) isCreateDirectory() bool {
+	return oc.isCreation() && oc.CreateOptions&fileDirectoryFile != 0
 }
 
 const fileDirectoryFile = 1
 
-// isCreation checks the flags whether a file creation is wanted, return false when caf=nil.
-func (caf *openContext) isCreation() bool {
-	switch caf.CreateDisposition {
+// isCreation checks the flags whether a file creation is wanted.
+func (oc *openContext) isCreation() bool {
+	switch oc.CreateDisposition {
 	case dokan.FILE_SUPERSEDE, dokan.FILE_CREATE, dokan.FILE_OPEN_IF, dokan.FILE_OVERWRITE_IF:
 		return true
 	}
 	return false
 }
-func (caf *openContext) isExistingError() bool {
-	switch caf.CreateDisposition {
+func (oc *openContext) isExistingError() bool {
+	switch oc.CreateDisposition {
 	case dokan.FILE_CREATE:
 		return true
 	}
 	return false
 }
 
-// isTruncate checks the flags whether a file truncation is wanted, return false when caf=nil.
-func (caf *openContext) isTruncate() bool {
-	switch caf.CreateDisposition {
+// isTruncate checks the flags whether a file truncation is wanted.
+func (oc *openContext) isTruncate() bool {
+	switch oc.CreateDisposition {
 	case dokan.FILE_SUPERSEDE, dokan.FILE_OVERWRITE, dokan.FILE_OVERWRITE_IF:
 		return true
 	}
 	return false
 }
 
-// isOpenReparsePoint checks the flags whether a reparse point open is wanted, return false when caf=nil.
-func (caf *openContext) isOpenReparsePoint() bool {
-	return caf.CreateOptions&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
+// isOpenReparsePoint checks the flags whether a reparse point open is wanted.
+func (oc *openContext) isOpenReparsePoint() bool {
+	return oc.CreateOptions&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
 }
 
-func (caf *openContext) mayNotBeDirectory() bool {
-	return caf.CreateOptions&dokan.FILE_NON_DIRECTORY_FILE != 0
+func (oc *openContext) mayNotBeDirectory() bool {
+	return oc.CreateOptions&dokan.FILE_NON_DIRECTORY_FILE != 0
 }
 
 func newSyntheticOpenContext() *openContext {
 	var oc openContext
 	oc.CreateData = &dokan.CreateData{}
 	oc.CreateDisposition = dokan.FILE_OPEN
-	oc.maxRedirections = 30
+	oc.redirectionsLeft = 30
 	return &oc
 }
 
@@ -148,7 +155,7 @@ func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateD
 	if err != nil {
 		return nil, false, err
 	}
-	oc := openContext{fi: fi, CreateData: caf, maxRedirections: 30}
+	oc := openContext{fi: fi, CreateData: caf, redirectionsLeft: 30}
 	file, isd, err := f.open(ctx, &oc, ps)
 	if err != nil {
 		err = errToDokan(err)
