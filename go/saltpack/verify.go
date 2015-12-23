@@ -34,9 +34,6 @@ func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifi
 	if err != nil {
 		return nil, nil, err
 	}
-	if stream == nil {
-		return nil, nil, ErrNoStream
-	}
 	if skey == nil {
 		return nil, nil, ErrNoSenderKey
 	}

@@ -48,10 +48,6 @@ var (
 	// ErrBadLookup is when the user-provided key lookup gives a bad value
 	ErrBadLookup = errors.New("bad key lookup")
 
-	// ErrNoStream is returned if a stream constructor returned a nil
-	// stream.
-	ErrNoStream = errors.New("no stream")
-
 	// ErrHeaderNotRead is returned if a stream is read before the header is processed.
 	ErrHeaderNotRead = errors.New("message read before header processed")
 
