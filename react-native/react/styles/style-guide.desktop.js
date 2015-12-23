@@ -70,7 +70,7 @@ const button = {
   },
   buttonLabel: {
     paddingLeft: 24,
-    paddingRight: 27
+    paddingRight: 24
   }
 }
 
