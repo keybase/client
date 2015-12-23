@@ -21,6 +21,7 @@ import (
 func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "launchd",
+		Usage:        "Manage launchd",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			NewCmdLaunchdInstall(cl, g),
@@ -37,8 +38,8 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "install",
-		ArgumentHelp: "<label> <path/to/keybase> <args>",
 		Usage:        "Install a launchd service",
+		ArgumentHelp: "<label> <executable> <args>",
 		Action: func(c *cli.Context) {
 			// TODO: Use ChooseCommand
 			args := c.Args()
@@ -46,7 +47,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 				g.Log.Fatalf("No label specified.")
 			}
 			if len(args) < 2 {
-				g.Log.Fatalf("No path to keybase executable specified.")
+				g.Log.Fatalf("No executable specified.")
 			}
 
 			label := args[0]
@@ -67,8 +68,8 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 func NewCmdLaunchdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "uninstall",
+		Usage:        "Uninstall a Keybase launchd service",
 		ArgumentHelp: "<label>",
-		Usage:        "Uninstall a keybase launchd service",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -80,7 +81,7 @@ func NewCmdLaunchdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 func NewCmdLaunchdList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "list",
-		Usage: "List keybase launchd services",
+		Usage: "List Keybase launchd services",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "f, format",
@@ -98,8 +99,8 @@ func NewCmdLaunchdList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 func NewCmdLaunchdRestart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "restart",
+		Usage:        "Restart a Keybase launchd service",
 		ArgumentHelp: "<label>",
-		Usage:        "Restart a keybase launchd service",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -111,8 +112,8 @@ func NewCmdLaunchdRestart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 func NewCmdLaunchdStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "start",
+		Usage:        "Start a Keybase launchd service",
 		ArgumentHelp: "<label>",
-		Usage:        "Start a keybase launchd service",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -124,8 +125,8 @@ func NewCmdLaunchdStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 func NewCmdLaunchdStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "stop",
+		Usage:        "Stop a Keybase launchd service",
 		ArgumentHelp: "<label>",
-		Usage:        "Stop a keybase launchd service",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -136,7 +137,9 @@ func NewCmdLaunchdStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 
 func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name: "status",
+		Name:         "status",
+		Usage:        "Status for a Keybase launchd service",
+		ArgumentHelp: "<service-name>",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "b, bundle-version",
@@ -147,8 +150,6 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
 			},
 		},
-		ArgumentHelp: "<service-name>",
-		Usage:        "Status for keybase launchd service, including for installing or updating",
 		Action: func(c *cli.Context) {
 			// This is to bypass the logui protocol registration in main.go which is
 			// triggering a connection before our Run() is called. See that file for
