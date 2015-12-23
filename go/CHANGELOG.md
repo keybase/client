@@ -14,6 +14,10 @@
 - Fix coinbase proof instructions (PR: keybase/client#1521)
 
 ## 1.0.6
+- SecretUI only has GetPassphrase now (PR: keybase/client#1493)
+- Allow generated PGP private key export to GPG (PR: keybase/client#1524)
+- Help detect typos in device add (PR: keybase/client#1529)
+- Fix login cancel (PR: keybase/client#1546)
 - libkb: Load optimizations; don't load unneeded fields (PR: keybase/client#1473)
 - engine: bugfix for user switching (PR: keybase/client#1474)
 - Fix goroutine leak in RPC calls (PR: keybase/client#1462)
