@@ -52,6 +52,25 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return child, nil
 	}
 
+	// Before parsing the tlf handle (which results in identify calls
+	// that cause tracker popups, first see if there's any quick
+	// normalization of usernames we can do.  For example, this avoids
+	// an identify in the case of "HEAD" which might just be a shell
+	// trying to look for a git repo rather than a real user lookup
+	// for "head" (KBFS-531).  Note that the name might still contain
+	// assertions, which will result in another alias in a subsequent
+	// lookup.
+	normalizedName, err := libkbfs.NormalizeUserNamesInTLF(req.Name)
+	if err != nil {
+		return nil, err
+	}
+	if normalizedName != req.Name {
+		n := &Alias{
+			canon: normalizedName,
+		}
+		return n, nil
+	}
+
 	dh, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config, req.Name)
 	if err != nil {
 		return nil, err

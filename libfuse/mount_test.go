@@ -261,6 +261,35 @@ func TestStatAlias(t *testing.T) {
 	testStateForPrivateFolder(t, config, "jdoe")
 }
 
+// Test that we can determine a normalized alias without any identify
+// calls (regression test for KBFS-531).
+func TestStatAliasCausesNoIdentifies(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer config.Shutdown()
+
+	mnt, _, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	p := path.Join(mnt.Dir, PublicName, "HEAD")
+	// Even though "head" is not a real user in our config, this stat
+	// should succeed because no identify calls should be triggered.
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.Mode().String(), `Lrwxrwxrwx`; g != e {
+		t.Errorf("wrong mode for alias : %q != %q", g, e)
+	}
+	target, err := os.Readlink(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := target, "head"; g != e {
+		t.Errorf("wrong alias symlink target: %q != %q", g, e)
+	}
+}
+
 func TestStatMyPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer config.Shutdown()
