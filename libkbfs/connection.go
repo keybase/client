@@ -186,9 +186,9 @@ type Connection struct {
 	client            keybase1.GenericClient
 	server            *rpc.Server
 	reconnectChan     chan struct{}
+	reconnectErrPtr   *error             // Filled in with fatal reconnect err (if any) before reconnectChan is closed
 	cancelFunc        context.CancelFunc // used to cancel the reconnect loop
 	reconnectedBefore bool
-	connErr           *error
 }
 
 // NewTLSConnection returns a connection that tries to connect to the
@@ -306,7 +306,7 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 	}
 	// kick-off a connection and wait for it to complete
 	// or for the caller to cancel.
-	reconnectChan, disconnectStatus, connErr := c.getReconnectChan()
+	reconnectChan, disconnectStatus, reconnectErrPtr := c.getReconnectChan()
 	// inform the handler of our disconnected state
 	c.handler.OnDisconnected(disconnectStatus)
 	select {
@@ -314,12 +314,9 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 		// caller canceled
 		return ctx.Err()
 	case <-reconnectChan:
-		// Something unretriable happened to shut down the connection.
-		if *connErr != nil {
-			return *connErr
-		}
-		// reconnect complete
-		return nil
+		// Reconnect complete.  If something unretriable happened to
+		// shut down the connection, this will be non-nil.
+		return *reconnectErrPtr
 	}
 }
 
@@ -340,10 +337,12 @@ func (c *Connection) IsConnected() bool {
 
 // This will either kick-off a new reconnection attempt or wait for an
 // existing attempt. Returns the channel associated with an attempt,
-// and whether or not a new one was created.
+// and whether or not a new one was created.  If a fatal error
+// happens, reconnectErrPtr will be filled in before reconnectChan is
+// closed.
 func (c *Connection) getReconnectChan() (
 	reconnectChan chan struct{}, disconnectStatus DisconnectStatus,
-	connErr *error) {
+	reconnectErrPtr *error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if c.reconnectChan == nil {
@@ -351,18 +350,18 @@ func (c *Connection) getReconnectChan() (
 		// for canceling the reconnect loop via Shutdown()
 		ctx, c.cancelFunc = context.WithCancel(context.Background())
 		c.reconnectChan = make(chan struct{})
-		c.connErr = new(error)
+		c.reconnectErrPtr = new(error)
 		if c.reconnectedBefore {
 			disconnectStatus = StartingNonFirstConnection
 		} else {
 			disconnectStatus = StartingFirstConnection
 			c.reconnectedBefore = true
 		}
-		go c.doReconnect(ctx, c.reconnectChan, c.connErr)
+		go c.doReconnect(ctx, c.reconnectChan, c.reconnectErrPtr)
 	} else {
 		disconnectStatus = UsingExistingConnection
 	}
-	return c.reconnectChan, disconnectStatus, c.connErr
+	return c.reconnectChan, disconnectStatus, c.reconnectErrPtr
 }
 
 // dontRetryOnConnect if the error indicates a condition that
@@ -374,16 +373,26 @@ func dontRetryOnConnect(err error) bool {
 	return inputCanceled
 }
 
-// doReconnect attempts a reconnection.
+// doReconnect attempts a reconnection.  It assumes that reconnectChan
+// and reconnectErrPtr are the same ones in c, but are passed in to
+// avoid having to take the mutex at the beginning of the method.
 func (c *Connection) doReconnect(ctx context.Context,
-	reconnectChan chan struct{}, connErr *error) {
+	reconnectChan chan struct{}, reconnectErrPtr *error) {
 	// retry w/exponential backoff
 	backoff.RetryNotify(func() error {
 		// try to connect
 		err := c.connect(ctx)
-		// context was canceled by Shutdown() or a user action
-		if ctx.Err() != nil || dontRetryOnConnect(err) {
-			*connErr = err
+		select {
+		case <-ctx.Done():
+			// context was canceled by Shutdown() or a user action
+			*reconnectErrPtr = ctx.Err()
+			// short-circuit Retry
+			return nil
+		default:
+		}
+		if dontRetryOnConnect(err) {
+			// A fatal error happened.
+			*reconnectErrPtr = err
 			// short-circuit Retry
 			return nil
 		}
@@ -398,7 +407,7 @@ func (c *Connection) doReconnect(ctx context.Context,
 	close(reconnectChan)
 	c.reconnectChan = nil
 	c.cancelFunc = nil
-	c.connErr = nil
+	c.reconnectErrPtr = nil
 }
 
 // GetClient returns an RPC client that uses DoCommand() for RPC
