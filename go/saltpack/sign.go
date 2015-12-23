@@ -24,9 +24,6 @@ func Sign(plaintext []byte, signer SigningSecretKey) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if s == nil {
-		return nil, ErrNoStream
-	}
 	if _, err := s.Write(plaintext); err != nil {
 		return nil, err
 	}
