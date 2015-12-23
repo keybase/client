@@ -82,7 +82,7 @@ func (ds *decryptStream) read(b []byte) (n int, err error) {
 	}
 
 	if ds.state == stateEndOfStream {
-		ds.err = ds.assertEndOfStream()
+		ds.err = assertEndOfStream(ds.mps)
 		if ds.err != nil {
 			return 0, ds.err
 		}
@@ -129,15 +129,6 @@ func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) 
 	ds.buf = plaintext[n:]
 
 	return n, false, err
-}
-
-func (ds *decryptStream) assertEndOfStream() error {
-	var i interface{}
-	_, err := ds.mps.Read(&i)
-	if err == nil {
-		err = ErrTrailingGarbage
-	}
-	return err
 }
 
 func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, BoxPrecomputedSharedKey, []byte, int, error) {

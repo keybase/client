@@ -121,7 +121,7 @@ func (v *verifyStream) read(p []byte) (int, error) {
 	}
 	if last {
 		v.state = stateEndOfStream
-		if err := v.assertEndOfStream(); err != nil {
+		if err := assertEndOfStream(v.stream); err != nil {
 			return n, err
 		}
 	}
@@ -175,13 +175,4 @@ func (v *verifyStream) processBlock(block *SignatureBlock) ([]byte, error) {
 		return nil, ErrBadSignature
 	}
 	return block.PayloadChunk, nil
-}
-
-func (v *verifyStream) assertEndOfStream() error {
-	var i interface{}
-	_, err := v.stream.Read(&i)
-	if err == nil {
-		err = ErrTrailingGarbage
-	}
-	return err
 }

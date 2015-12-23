@@ -52,3 +52,12 @@ func writeNullTerminatedString(w io.Writer, s string) {
 	w.Write([]byte(s))
 	w.Write([]byte{0})
 }
+
+func assertEndOfStream(stream *msgpackStream) error {
+	var i interface{}
+	_, err := stream.Read(&i)
+	if err == nil {
+		err = ErrTrailingGarbage
+	}
+	return err
+}
