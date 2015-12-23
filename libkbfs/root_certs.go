@@ -1,5 +1,10 @@
 package libkbfs
 
+import (
+	"os"
+	"strings"
+)
+
 // TestRootCert is a CA cert which can be used for testing TLS support.
 // 127.0.0.1 is the only supported address.
 const TestRootCert = `Certificate:
@@ -278,3 +283,32 @@ d2mdg2gjlOVBCfTEAe7cgUx9/lraQwUurUjDO3g54NZo/pcoc9koIW+Ai+saF5gA
 UnFkqAOuEw0y4Fxzr9pw9naKF3KMlEJf6CiDJ4xspNzPZFupuepKitRrlrzofYuW
 OXgZAw==
 -----END CERTIFICATE-----`
+
+const (
+	// EnvTestRootCertPEM is the environment variable name for the
+	// CA cert PEM the client uses to verify the KBFS servers when
+	// testing. Any certificate present here overrides any
+	// certificate inferred from a server address.
+	EnvTestRootCertPEM = "KEYBASE_TEST_ROOT_CERT_PEM"
+)
+
+// GetRootCerts returns a byte array with the appropriate root certs
+// for the given host:port string.
+func GetRootCerts(serverAddr string) []byte {
+	// Use the environment variable, if set.
+	envTestRootCert := os.Getenv(EnvTestRootCertPEM)
+	if len(envTestRootCert) != 0 {
+		return []byte(envTestRootCert)
+	}
+
+	if strings.HasSuffix(serverAddr, "dev.keybase.io:443") {
+		return []byte(DevRootCerts)
+	}
+
+	if strings.HasSuffix(serverAddr, "kbfs.keybase.io:443") {
+		return []byte(ProductionRootCerts)
+	}
+
+	// Fall back to the test cert.
+	return []byte(TestRootCert)
+}

@@ -1,18 +1,106 @@
 package libkbfs
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"runtime/pprof"
-	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
+
+// InitParams contains the initialization parameters for Init(). It is
+// usually filled in by the flags parser passed into AddFlags().
+type InitParams struct {
+	// Whether to print debug messages.
+	Debug bool
+	// If non-empty, where to write a CPU profile.
+	CPUProfile string
+	// If non-empty, where to write a memory profile.
+	MemProfile string
+
+	// If non-empty, the host:port of the block server. If empty,
+	// a default value is used depending on the run mode.
+	BServerAddr string
+	// If non-empty the host:port of the metadata server. If
+	// empty, a default value is used depending on the run mode.
+	MDServerAddr string
+
+	// If true, use in-memory servers and ignore BServerAddr,
+	// MDServerAddr, and ServerRootDir.
+	ServerInMemory bool
+	// If non-empty, use on-disk servers and ignore BServerAddr
+	// and MDServerAddr.
+	ServerRootDir string
+	// Fake local user name. Only used if ServerInMemory is set or
+	// if ServerRootDir is non-empty.
+	LocalUser string
+}
+
+var libkbOnce sync.Once
+
+func initLibkb() {
+	libkbOnce.Do(func() {
+		libkb.G.Init()
+		libkb.G.ConfigureConfig()
+		libkb.G.ConfigureLogging()
+		libkb.G.ConfigureCaches()
+		libkb.G.ConfigureMerkleClient()
+	})
+}
+
+func getRunMode() libkb.RunMode {
+	// Initialize libkb.G.Env.
+	initLibkb()
+	return libkb.G.Env.GetRunMode()
+}
+
+// GetDefaultBServer returns the default value for the -bserver flag.
+func GetDefaultBServer() string {
+	switch getRunMode() {
+	case libkb.StagingRunMode:
+		return "bserver.dev.keybase.io:443"
+	case libkb.ProductionRunMode:
+		return "bserver.kbfs.keybase.io:443"
+	default:
+		return ""
+	}
+}
+
+// GetDefaultMDServer returns the default value for the -mdserver flag.
+func GetDefaultMDServer() string {
+	switch getRunMode() {
+	case libkb.StagingRunMode:
+		return "mdserver.dev.keybase.io:443"
+	case libkb.ProductionRunMode:
+		return "mdserver.kbfs.keybase.io:443"
+	default:
+		return ""
+	}
+}
+
+// AddFlags adds libkbfs flags to the given FlagSet. Returns an
+// InitParams that will be filled in once the given FlagSet is parsed.
+func AddFlags(flags *flag.FlagSet) *InitParams {
+	var params InitParams
+	flags.BoolVar(&params.Debug, "debug", false, "Print debug messages")
+	flags.StringVar(&params.CPUProfile, "cpuprofile", "", "write cpu profile to file")
+	flags.StringVar(&params.MemProfile, "memprofile", "", "write memory profile to file")
+
+	flags.StringVar(&params.BServerAddr, "bserver", GetDefaultBServer(), "host:port of the block server")
+	flags.StringVar(&params.MDServerAddr, "mdserver", GetDefaultMDServer(), "host:port of the metadata server")
+
+	flags.BoolVar(&params.ServerInMemory, "server-in-memory", false, "use in-memory server (and ignore -bserver, -mdserver, and -server-root)")
+	flags.StringVar(&params.ServerRootDir, "server-root", "", "directory to put local server files (and ignore -bserver and -mdserver)")
+	flags.StringVar(&params.LocalUser, "localuser", "", "fake local user (used only with -server-in-memory or -server-root)")
+	return &params
+}
 
 func makeMDServer(config Config, serverRootDir *string, mdserverAddr string) (
 	MDServer, error) {
@@ -108,14 +196,7 @@ func makeKeybaseDaemon(config Config, serverRootDir *string, localUser libkb.Nor
 	return NewKeybaseDaemonDisk(localUID, localUsers, favPath, codec)
 }
 
-// Init initializes a config and returns it. If localUser is
-// non-empty, libkbfs does not communicate to any remote servers and
-// instead uses fake implementations of various servers.
-//
-// If serverRootDir is nil, an in-memory server is used. If it is
-// non-nil and points to the empty string, the current working
-// directory is used. Otherwise, the pointed-to string is treated as a
-// path.
+// Init initializes a config and returns it.
 //
 // onInterruptFn is called whenever an interrupt signal is received
 // (e.g., if the user hits Ctrl-C).
@@ -123,12 +204,19 @@ func makeKeybaseDaemon(config Config, serverRootDir *string, localUser libkb.Nor
 // Init should be called at the beginning of main. Shutdown (see
 // below) should then be called at the end of main (usually via
 // defer).
-func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfilePath,
-	memProfilePath string, onInterruptFn func(), debug bool,
-	bserverAddr, mdserverAddr string, log logger.Logger) (Config, error) {
-	if cpuProfilePath != "" {
+func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, error) {
+	initLibkb()
+
+	localUser := libkb.NewNormalizedUsername(params.LocalUser)
+
+	var serverRootDir *string
+	if !params.ServerInMemory {
+		serverRootDir = &params.ServerRootDir
+	}
+
+	if params.CPUProfile != "" {
 		// Let the GC/OS clean up the file handle.
-		f, err := os.Create(cpuProfilePath)
+		f, err := os.Create(params.CPUProfile)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +228,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 	go func() {
 		_ = <-interruptChan
 
-		Shutdown(memProfilePath)
+		Shutdown(params.MemProfile)
 
 		if onInterruptFn != nil {
 			onInterruptFn()
@@ -174,7 +262,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 		// Add log depth so that context-based messages get the right
 		// file printed out.
 		lg := logger.NewWithCallDepth(mname, 1, os.Stderr)
-		if debug {
+		if params.Debug {
 			// Turn on debugging.  TODO: allow a proper log file and
 			// style to be specified.
 			lg.Configure("", true, "")
@@ -182,32 +270,16 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 		return lg
 	})
 
-	libkb.G.Init()
-	libkb.G.ConfigureConfig()
-	libkb.G.ConfigureLogging()
-	libkb.G.ConfigureCaches()
-	libkb.G.ConfigureMerkleClient()
-
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
-	if libkb.G.Env.GetRunMode() == libkb.StagingRunMode &&
-		strings.HasSuffix(bserverAddr, "dev.keybase.io:443") &&
-		strings.HasSuffix(mdserverAddr, "dev.keybase.io:443") {
-		config.SetRootCerts([]byte(DevRootCerts))
-	} else if libkb.G.Env.GetRunMode() == libkb.ProductionRunMode &&
-		strings.HasSuffix(bserverAddr, "kbfs.keybase.io:443") &&
-		strings.HasSuffix(mdserverAddr, "kbfs.keybase.io:443") {
-		config.SetRootCerts([]byte(ProductionRootCerts))
-	}
-
-	mdServer, err := makeMDServer(config, serverRootDir, mdserverAddr)
+	mdServer, err := makeMDServer(config, serverRootDir, params.MDServerAddr)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %v", err)
 	}
 	config.SetMDServer(mdServer)
 
 	// note: the mdserver is the keyserver at the moment.
-	keyServer, err := makeKeyServer(config, serverRootDir, mdserverAddr)
+	keyServer, err := makeKeyServer(config, serverRootDir, params.MDServerAddr)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating key server: %v", err)
 	}
@@ -249,7 +321,7 @@ func Init(localUser libkb.NormalizedUsername, serverRootDir *string, cpuProfileP
 		config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
 	}
 
-	bserv, err := makeBlockServer(config, serverRootDir, bserverAddr, log)
+	bserv, err := makeBlockServer(config, serverRootDir, params.BServerAddr, log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %v", err)
 	}

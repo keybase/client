@@ -12,15 +12,9 @@ import (
 
 // StartOptions are options for starting up
 type StartOptions struct {
-	LocalUser     libkb.NormalizedUsername
-	ServerRootDir *string
-	CPUProfile    string
-	MemProfile    string
-	RuntimeDir    string
-	Label         string
-	Debug         bool
-	BServerAddr   string
-	MDServerAddr  string
+	KbfsParams libkbfs.InitParams
+	RuntimeDir string
+	Label      string
 }
 
 // Start the filesystem
@@ -51,14 +45,12 @@ func Start(mounter Mounter, options StartOptions) *Error {
 	log := logger.NewWithCallDepth("", 1, os.Stderr)
 	log.Info("KBFS version %s", libkbfs.VersionString())
 
-	config, err := libkbfs.Init(options.LocalUser, options.ServerRootDir,
-		options.CPUProfile, options.MemProfile, onInterruptFn, options.Debug,
-		options.BServerAddr, options.MDServerAddr, log)
+	config, err := libkbfs.Init(options.KbfsParams, onInterruptFn, log)
 	if err != nil {
 		return InitError(err.Error())
 	}
 
-	defer libkbfs.Shutdown(options.MemProfile)
+	defer libkbfs.Shutdown(options.KbfsParams.MemProfile)
 
 	if options.RuntimeDir != "" {
 		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.Build(), options.Label, os.Getpid())
@@ -68,7 +60,7 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		}
 	}
 
-	fs := NewFS(config, c, options.Debug)
+	fs := NewFS(config, c, options.KbfsParams.Debug)
 	ctx := context.WithValue(context.Background(), CtxAppIDKey, &fs)
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxIDKey] = CtxOpID

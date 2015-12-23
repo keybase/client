@@ -58,8 +58,8 @@ type ConnectionHandler interface {
 
 // ConnectionTransportTLS is a ConnectionTransport implementation that uses TLS+rpc.
 type ConnectionTransportTLS struct {
-	config  Config
-	srvAddr string
+	rootCerts []byte
+	srvAddr   string
 
 	// Protects everything below.
 	mutex           sync.Mutex
@@ -78,7 +78,7 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 	err := runUnlessCanceled(ctx, func() error {
 		// load CA certificate
 		certs := x509.NewCertPool()
-		if !certs.AppendCertsFromPEM(ct.config.RootCerts()) {
+		if !certs.AppendCertsFromPEM(ct.rootCerts) {
 			return errors.New("Unable to load root certificates")
 		}
 		// connect
@@ -191,9 +191,9 @@ type Connection struct {
 
 // NewTLSConnection returns a connection that tries to connect to the
 // given server address with TLS.
-func NewTLSConnection(config Config, srvAddr string,
+func NewTLSConnection(config Config, srvAddr string, rootCerts []byte,
 	errorUnwrapper rpc.ErrorUnwrapper, handler ConnectionHandler, connectNow bool) *Connection {
-	transport := &ConnectionTransportTLS{config: config, srvAddr: srvAddr}
+	transport := &ConnectionTransportTLS{rootCerts: rootCerts, srvAddr: srvAddr}
 	return newConnectionWithTransport(config, handler, transport, errorUnwrapper, connectNow)
 }
 

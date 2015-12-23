@@ -1,21 +1,10 @@
 package libkbfs
 
 import (
-	"os"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	metrics "github.com/rcrowley/go-metrics"
-)
-
-const (
-	// EnvTestRootCertPEM is the environment variable name for the CA cert
-	// PEM the client uses to verify the KBFS servers when testing. Any
-	// certificate present here is the default. If none is specified we'll
-	// then default to the hardcoded test certificate. Individual run modes
-	// can override either of these.
-	EnvTestRootCertPEM = "KEYBASE_TEST_ROOT_CERT_PEM"
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -41,7 +30,6 @@ type ConfigLocal struct {
 	notifier  Notifier
 	clock     Clock
 	renamer   ConflictRenamer
-	rootCerts []byte
 	registry  metrics.Registry
 	loggerFn  func(prefix string) logger.Logger
 	noBGFlush bool // logic opposite so the default value is the common setting
@@ -161,16 +149,6 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetBlockOps(&BlockOpsStandard{config})
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
-
-	// Set the cert to be the environment variable, if it exists.
-	envTestRootCert := os.Getenv(EnvTestRootCertPEM)
-	if len(envTestRootCert) != 0 {
-		// Some integration tests specify this via the environment.
-		config.SetRootCerts([]byte(envTestRootCert))
-	} else {
-		// If none specified use a hard-coded test certificate.
-		config.SetRootCerts([]byte(TestRootCert))
-	}
 
 	// Don't bother creating the registry if UseNilMetrics is set.
 	if !metrics.UseNilMetrics {
@@ -394,16 +372,6 @@ func (c *ConfigLocal) DoBackgroundFlushes() bool {
 // ReqsBufSize implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ReqsBufSize() int {
 	return 20
-}
-
-// RootCerts implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) RootCerts() []byte {
-	return c.rootCerts
-}
-
-// SetRootCerts implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetRootCerts(pem []byte) {
-	c.rootCerts = pem
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.

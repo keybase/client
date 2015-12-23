@@ -897,8 +897,6 @@ type Config interface {
 	// flush dirty files, even without a sync from the user.  Should
 	// be true except for during some testing.
 	DoBackgroundFlushes() bool
-	RootCerts() []byte
-	SetRootCerts([]byte)
 	MakeLogger(module string) logger.Logger
 	SetLoggerMaker(func(module string) logger.Logger)
 	// MetricsRegistry may be nil, which should be interpreted as

@@ -53,7 +53,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 		BServerTokenServer, BServerTokenExpireIn,
 		BServerClientName, BServerClientVersion, bs)
 	// This will connect only on-demand due to the last argument.
-	conn := NewTLSConnection(config, blkSrvAddr, bServerErrorUnwrapper{}, bs, false)
+	conn := NewTLSConnection(config, blkSrvAddr, GetRootCerts(blkSrvAddr), bServerErrorUnwrapper{}, bs, false)
 	bs.client = keybase1.BlockClient{Cli: conn.GetClient()}
 	bs.shutdownFn = conn.Shutdown
 	return bs
