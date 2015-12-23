@@ -551,6 +551,37 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 			return path{}, BlockPointer{}, nil, err
 		}
 
+		// Drop the merged rmOp since we're recreating it, and we
+		// don't want to replay that notification locally.
+		mergedChain, ok := mergedChains.byOriginal[parentOriginal]
+		if !ok {
+			continue
+		}
+		mergedMostRecent, err :=
+			mergedChains.mostRecentFromOriginalOrSame(currOriginal)
+		if err != nil {
+			return path{}, BlockPointer{}, nil, err
+		}
+	outer:
+		for i, op := range mergedChain.ops {
+			ro, ok := op.(*rmOp)
+			if !ok {
+				continue
+			}
+			// Use the unref'd pointer, and not the name, to identify
+			// the operation, since renames might have happened on the
+			// merged branch.
+			for _, unref := range ro.Unrefs() {
+				if unref != mergedMostRecent {
+					continue
+				}
+
+				mergedChain.ops =
+					append(mergedChain.ops[:i], mergedChain.ops[i+1:]...)
+				break outer
+			}
+		}
+
 		_, de, err :=
 			cr.fbo.getEntry(ctx, unmergedChains.mostRecentMD, currPath)
 		if err != nil {
@@ -560,7 +591,46 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 		co.AddUpdate(parentOriginal, parentOriginal)
 		co.setFinalPath(parentPath)
 		co.AddRefBlock(currOriginal)
-		recreateOps = append(recreateOps, co)
+
+		// If this happens to have been renamed on the unmerged
+		// branch, drop the rm half of the rename operation; just
+		// leave it as a create.
+		if ri, ok := unmergedChains.renamedOriginals[currOriginal]; ok {
+			oldParent, ok := unmergedChains.byOriginal[ri.originalOldParent]
+			if !ok {
+				continue
+			}
+			for _, op := range oldParent.ops {
+				ro, ok := op.(*rmOp)
+				if !ok {
+					continue
+				}
+				if ro.OldName == ri.oldName {
+					ro.dropThis = true
+					break
+				}
+			}
+
+			// Replace the create op with the new recreate op,
+			// which contains the proper refblock.
+			newParent, ok := unmergedChains.byOriginal[ri.originalNewParent]
+			if !ok {
+				continue
+			}
+			for i, op := range newParent.ops {
+				oldCo, ok := op.(*createOp)
+				if !ok {
+					continue
+				}
+				if oldCo.NewName == ri.newName {
+					newParent.ops[i] = co
+					break
+				}
+			}
+		} else {
+			recreateOps = append(recreateOps, co)
+		}
+
 		currOriginal = parentOriginal
 		currPath = parentPath
 	}
