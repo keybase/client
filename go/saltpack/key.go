@@ -15,8 +15,10 @@ type RawBoxKey [32]byte
 // buffer.  Used for both NaCl SecretBox.
 type SymmetricKey [32]byte
 
+// KIDExtractor key types can output a key ID corresponding to the
+// key.
 type KIDExtractor interface {
-	// ToKID outputs the "key ID" that corresponds to this BoxPublicKey.
+	// ToKID outputs the "key ID" that corresponds to this key.
 	// You can do whatever you'd like here, but probably it makes sense just
 	// to output the public key as is.
 	ToKID() []byte
