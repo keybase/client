@@ -14,26 +14,29 @@ import (
  * defined in this file.
  */
 
-var fsTable = make([]FileSystem, 0, 2)
-var mounterTable = make([]chan error, 0, 2)
+var fsTableLock sync.Mutex
+var fsTable = make([]fsTableEntry, 0, 2)
+var fiTableLock sync.Mutex
 var fiTable = map[uint32]File{}
 var fiIdx uint32
-var fsTableLock sync.Mutex
+
+type fsTableEntry struct {
+	fs      FileSystem
+	errChan chan error
+}
 
 func fsTableStore(fs FileSystem, ec chan error) uint32 {
 	fsTableLock.Lock()
 	defer fsTableLock.Unlock()
 
 	for i, c := range fsTable {
-		if c == nil {
-			fsTable[i] = fs
-			mounterTable[i] = ec
+		if c.fs == nil {
+			fsTable[i] = fsTableEntry{fs: fs, errChan: ec}
 			return uint32(i)
 		}
 	}
 
-	fsTable = append(fsTable, fs)
-	mounterTable = append(mounterTable, ec)
+	fsTable = append(fsTable, fsTableEntry{fs: fs, errChan: ec})
 	return uint32(len(fsTable) - 1)
 }
 
@@ -41,26 +44,25 @@ func fsTableFree(slot uint32) {
 	fsTableLock.Lock()
 	defer fsTableLock.Unlock()
 	if int(slot) < len(fsTable) {
-		fsTable[slot] = nil
-		mounterTable[slot] = nil
+		fsTable[slot] = fsTableEntry{}
 	}
 }
 
 func fsTableGet(slot uint32) FileSystem {
 	fsTableLock.Lock()
 	defer fsTableLock.Unlock()
-	return fsTable[slot]
+	return fsTable[slot].fs
 }
 
-func mounterTableGet(slot uint32) chan error {
+func fsTableGetErrChan(slot uint32) chan error {
 	fsTableLock.Lock()
 	defer fsTableLock.Unlock()
-	return mounterTable[slot]
+	return fsTable[slot].errChan
 }
 
-func fsTableStoreFile(global uint32, fi File) uint32 {
-	fsTableLock.Lock()
-	defer fsTableLock.Unlock()
+func fiTableStoreFile(global uint32, fi File) uint32 {
+	fiTableLock.Lock()
+	defer fiTableLock.Unlock()
 	for {
 		// Just use a simple counter (inside the lock)
 		// to look for potential free file handles.
@@ -79,17 +81,17 @@ func fsTableStoreFile(global uint32, fi File) uint32 {
 	}
 }
 
-func fsTableGetFile(file uint32) File {
-	fsTableLock.Lock()
-	defer fsTableLock.Unlock()
+func fiTableGetFile(file uint32) File {
+	fiTableLock.Lock()
+	defer fiTableLock.Unlock()
 	var fi = fiTable[file]
 	debug("FID get", file, fi)
 	return fi
 }
 
-func fsTableFreeFile(global uint32, file uint32) {
-	fsTableLock.Lock()
-	defer fsTableLock.Unlock()
+func fiTableFreeFile(global uint32, file uint32) {
+	fiTableLock.Lock()
+	defer fiTableLock.Unlock()
 	debug("FID free", global, file, "=>", fiTable[file], "# of open files:", len(fiTable))
 	delete(fiTable, file)
 }

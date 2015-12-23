@@ -32,13 +32,13 @@ func getfs(fi C.PDOKAN_FILE_INFO) FileSystem {
 }
 
 func getfi(fi C.PDOKAN_FILE_INFO) File {
-	return fsTableGetFile(uint32(fi.Context))
+	return fiTableGetFile(uint32(fi.Context))
 }
 
 func fiStore(pfi C.PDOKAN_FILE_INFO, fi File, err error) C.NTSTATUS {
 	debug("->", fi, err)
 	if fi != nil {
-		pfi.Context = C.ULONG64(fsTableStoreFile(uint32(pfi.DokanOptions.GlobalContext), fi))
+		pfi.Context = C.ULONG64(fiTableStoreFile(uint32(pfi.DokanOptions.GlobalContext), fi))
 	}
 	return errToNT(err)
 }

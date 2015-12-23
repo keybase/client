@@ -56,7 +56,7 @@ func kbfs_libdokan_Cleanup(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
 func kbfs_libdokan_CloseFile(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
 	debugf("CloseFile '%v' %v\n", d16{fname}, *pfi)
 	getfi(pfi).CloseFile(makeFI(fname, pfi))
-	fsTableFreeFile(uint32(pfi.DokanOptions.GlobalContext), uint32(pfi.Context))
+	fiTableFreeFile(uint32(pfi.DokanOptions.GlobalContext), uint32(pfi.Context))
 	pfi.Context = 0
 }
 
@@ -346,11 +346,9 @@ func kbfs_libdokan_GetVolumeInformation(
 //export kbfs_libdokan_Mounted
 func kbfs_libdokan_Mounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("Mounted")
-	ec := mounterTableGet(uint32(pfi.DokanOptions.GlobalContext))
-	select {
-	case ec <- nil:
-	default:
-	}
+	// Signal that the filesystem is mounted and can be used.
+	fsTableGetErrChan(uint32(pfi.DokanOptions.GlobalContext)) <- nil
+	// Dokan wants a NTSTATUS here, but is discarding it.
 	err := getfs(pfi).Mounted()
 	return errToNT(err)
 }
