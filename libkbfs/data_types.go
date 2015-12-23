@@ -513,20 +513,56 @@ func sortUIDS(m map[keybase1.UID]struct{}) []keybase1.UID {
 	return s
 }
 
+func splitTLFNameIntoWritersAndReaders(name string) (
+	writerNames []string, readerNames []string, err error) {
+	splitNames := strings.SplitN(name, ReaderSep, 3)
+	if len(splitNames) > 2 {
+		return nil, nil, BadTLFNameError{name}
+	}
+	writerNames = strings.Split(splitNames[0], ",")
+	if len(splitNames) > 1 {
+		readerNames = strings.Split(splitNames[1], ",")
+	}
+	return writerNames, readerNames, nil
+}
+
+// NormalizeUserNamesInTLF parses the given TLF folder name and,
+// without doing any resolutions or identify calls, normalizes all
+// elements of the name that are bare user names.
+//
+// Note that this normalizes (i.e., lower-cases) any assertions in the
+// name as well, but doesn't resolve them.  This is safe since the
+// libkb assertion parser does that same thing.
+func NormalizeUserNamesInTLF(name string) (string, error) {
+	writerNames, readerNames, err := splitTLFNameIntoWritersAndReaders(name)
+	if err != nil {
+		return "", err
+	}
+	cWriterNames := make([]string, len(writerNames))
+	for i, w := range writerNames {
+		cWriterNames[i] = libkb.NewNormalizedUsername(w).String()
+	}
+	sort.Strings(cWriterNames)
+	ret := strings.Join(cWriterNames, ",")
+	if len(readerNames) > 0 {
+		cReaderNames := make([]string, len(readerNames))
+		for i, r := range readerNames {
+			cReaderNames[i] = libkb.NewNormalizedUsername(r).String()
+		}
+		sort.Strings(cReaderNames)
+		ret += ReaderSep + strings.Join(cReaderNames, ",")
+	}
+	return ret, nil
+}
+
 // ParseTlfHandle parses a TlfHandle from an encoded string. See
 // ToString for the opposite direction.
 func ParseTlfHandle(ctx context.Context, config Config, name string) (
 	*TlfHandle, error) {
-	splitNames := strings.SplitN(name, ReaderSep, 3)
-	if len(splitNames) > 2 {
-		return nil, BadTLFNameError{name}
+	writerNames, readerNames, err := splitTLFNameIntoWritersAndReaders(name)
+	if err != nil {
+		return nil, err
 	}
-	writerNames := strings.Split(splitNames[0], ",")
-	var readerNames []string
-	if len(splitNames) > 1 {
-		readerNames = strings.Split(splitNames[1], ",")
-	}
-
 	// parallelize the resolutions for each user
 	errCh := make(chan error, 1)
 	wc := make(chan keybase1.UID, len(writerNames))
