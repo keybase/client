@@ -6,6 +6,8 @@ package saltpack
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/sha512"
+	"encoding/binary"
 	"io"
 
 	"github.com/ugorji/go/codec"
@@ -60,4 +62,31 @@ func assertEndOfStream(stream *msgpackStream) error {
 		err = ErrTrailingGarbage
 	}
 	return err
+}
+
+func computeAttachedDigest(nonce []byte, block *SignatureBlock) []byte {
+	hasher := sha512.New()
+	hasher.Write(nonce)
+	binary.Write(hasher, binary.BigEndian, block.seqno)
+	hasher.Write(block.PayloadChunk)
+
+	var buf bytes.Buffer
+	writeNullTerminatedString(&buf, SaltPackFormatName)
+	writeNullTerminatedString(&buf, SignatureAttachedString)
+	buf.Write(hasher.Sum(nil))
+
+	return buf.Bytes()
+}
+
+func computeDetachedDigest(nonce []byte, plaintext []byte) []byte {
+	hasher := sha512.New()
+	hasher.Write(nonce)
+	hasher.Write(plaintext)
+
+	var buf bytes.Buffer
+	writeNullTerminatedString(&buf, SaltPackFormatName)
+	writeNullTerminatedString(&buf, SignatureDetachedString)
+	buf.Write(hasher.Sum(nil))
+
+	return buf.Bytes()
 }
