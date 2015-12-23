@@ -820,3 +820,15 @@ func (e *Env) GetUpdatePreferenceSkip() string {
 func (e *Env) GetUpdatePreferenceSnoozeUntil() keybase1.Time {
 	return e.config.GetUpdatePreferenceSnoozeUntil()
 }
+
+func (e *Env) SetUpdatePreferenceAuto(b bool) error {
+	return e.GetConfigWriter().SetUpdatePreferenceAuto(b)
+}
+
+func (e *Env) SetUpdatePreferenceSkip(v string) error {
+	return e.GetConfigWriter().SetUpdatePreferenceSkip(v)
+}
+
+func (e *Env) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
+	return e.GetConfigWriter().SetUpdatePreferenceSnoozeUntil(t)
+}

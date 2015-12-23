@@ -5,6 +5,7 @@ package sources
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -19,12 +20,16 @@ func (k *updateResponse) GetAppStatus() *libkb.AppStatus {
 
 // KeybaseUpdateSource finds releases/updates from custom url (used primarily for testing)
 type KeybaseUpdateSource struct {
-	libkb.Contextified
+	log     logger.Logger
+	api     libkb.API
+	runMode libkb.RunMode
 }
 
-func NewKeybaseUpdateSource(g *libkb.GlobalContext) KeybaseUpdateSource {
+func NewKeybaseUpdateSource(log logger.Logger, api libkb.API, runMode libkb.RunMode) KeybaseUpdateSource {
 	return KeybaseUpdateSource{
-		Contextified: libkb.NewContextified(g),
+		log:     log,
+		api:     api,
+		runMode: runMode,
 	}
 }
 
@@ -36,12 +41,12 @@ func (k KeybaseUpdateSource) FindUpdate(options keybase1.UpdateOptions) (update 
 	APIArgs := libkb.HTTPArgs{
 		"version":  libkb.S{Val: options.Version},
 		"platform": libkb.S{Val: options.Platform},
-		"run_mode": libkb.S{Val: string(k.G().Env.GetRunMode())},
+		"run_mode": libkb.S{Val: string(k.runMode)},
 		"channel":  libkb.S{Val: options.Channel},
 	}
 
 	var res updateResponse
-	err = k.G().API.GetDecode(libkb.APIArg{
+	err = k.api.GetDecode(libkb.APIArg{
 		Endpoint: "pkg/update",
 		Args:     APIArgs,
 	}, &res)
