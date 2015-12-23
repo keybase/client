@@ -77,7 +77,7 @@ func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey Signing
 }
 
 type verifyStream struct {
-	stream    *framedMsgpackStream
+	stream    *msgpackStream
 	state     readState
 	buffer    []byte
 	header    *SignatureHeader
@@ -86,7 +86,7 @@ type verifyStream struct {
 
 func newVerifyStream(r io.Reader) *verifyStream {
 	return &verifyStream{
-		stream: newFramedMsgpackStream(r),
+		stream: newMsgpackStream(r),
 	}
 }
 

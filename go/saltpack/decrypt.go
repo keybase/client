@@ -14,7 +14,7 @@ import (
 
 type decryptStream struct {
 	ring       Keyring
-	fmps       *framedMsgpackStream
+	mps        *msgpackStream
 	err        error
 	state      readState
 	keys       *receiverKeysPlaintext
@@ -93,7 +93,7 @@ func (ds *decryptStream) read(b []byte) (n int, err error) {
 
 func (ds *decryptStream) readHeader() error {
 	var hdr EncryptionHeader
-	seqno, err := ds.fmps.Read(&hdr)
+	seqno, err := ds.mps.Read(&hdr)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func (ds *decryptStream) readHeader() error {
 func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) {
 	var eb EncryptionBlock
 	var seqno PacketSeqno
-	seqno, err = ds.fmps.Read(&eb)
+	seqno, err = ds.mps.Read(&eb)
 	if err != nil {
 		return 0, false, err
 	}
@@ -133,7 +133,7 @@ func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) 
 
 func (ds *decryptStream) assertEndOfStream() error {
 	var i interface{}
-	_, err := ds.fmps.Read(&i)
+	_, err := ds.mps.Read(&i)
 	if err == nil {
 		err = ErrTrailingGarbage
 	}
@@ -299,7 +299,7 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 func NewDecryptStream(r io.Reader, keyring Keyring) (mki *MessageKeyInfo, plaintext io.Reader, err error) {
 	ds := &decryptStream{
 		ring: keyring,
-		fmps: newFramedMsgpackStream(r),
+		mps:  newMsgpackStream(r),
 	}
 
 	err = ds.readHeader()
