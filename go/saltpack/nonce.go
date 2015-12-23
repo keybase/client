@@ -47,8 +47,8 @@ func (n *Nonce) ForKeyBox() *Nonce {
 func NewNonceForEncryption(ephemeralPublicKey BoxPublicKey) *Nonce {
 	raw := *ephemeralPublicKey.ToRawBoxKeyPointer()
 	hasher := sha512.New()
-	writeNullString(hasher, SaltPackFormatName)
-	writeNullString(hasher, NoncePrefixEncryption)
+	writeNullTerminatedString(hasher, SaltPackFormatName)
+	writeNullTerminatedString(hasher, NoncePrefixEncryption)
 	hasher.Write(raw[:])
 	res := hasher.Sum(nil)
 	var out Nonce

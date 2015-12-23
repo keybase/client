@@ -161,8 +161,8 @@ func computeAttachedDigest(nonce []byte, block *SignatureBlock) []byte {
 
 	var buf bytes.Buffer
 	buf.Write(hasher.Sum(nil))
-	writeNullString(&buf, SaltPackFormatName)
-	writeNullString(&buf, SignatureAttachedString)
+	writeNullTerminatedString(&buf, SaltPackFormatName)
+	writeNullTerminatedString(&buf, SignatureAttachedString)
 
 	return buf.Bytes()
 }
@@ -174,8 +174,8 @@ func computeDetachedDigest(nonce []byte, plaintext []byte) []byte {
 
 	var buf bytes.Buffer
 	buf.Write(hasher.Sum(nil))
-	writeNullString(&buf, SaltPackFormatName)
-	writeNullString(&buf, SignatureDetachedString)
+	writeNullTerminatedString(&buf, SaltPackFormatName)
+	writeNullTerminatedString(&buf, SignatureDetachedString)
 
 	return buf.Bytes()
 }

@@ -48,7 +48,7 @@ func hashNonceAndAuthTag(nonce *Nonce, ciphertext []byte) []byte {
 	return buf.Bytes()
 }
 
-func writeNullString(w io.Writer, s string) {
+func writeNullTerminatedString(w io.Writer, s string) {
 	w.Write([]byte(s))
 	w.Write([]byte{0})
 }
