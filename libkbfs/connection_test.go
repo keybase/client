@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -17,6 +18,8 @@ type unitTester struct {
 	numConnectErrors int
 	numDisconnects   int
 	doneChan         chan bool
+	errToThrow       error
+	alwaysFail       bool
 }
 
 // OnConnect implements the ConnectionHandler interface.
@@ -49,8 +52,8 @@ func (ut *unitTester) ShouldThrottle(err error) bool {
 // Dial implements the ConnectionTransport interface.
 func (ut *unitTester) Dial(ctx context.Context) (
 	rpc.Transporter, error) {
-	if ut.numConnectErrors == 0 {
-		return nil, errors.New("intentional error to trigger reconnect")
+	if ut.alwaysFail || ut.numConnectErrors == 0 {
+		return nil, ut.errToThrow
 	}
 	return nil, nil
 }
@@ -85,7 +88,10 @@ func (ut *unitTester) Err() error {
 // Test a basic reconnect flow.
 func TestReconnectBasic(t *testing.T) {
 	config := NewConfigLocal()
-	unitTester := &unitTester{doneChan: make(chan bool)}
+	unitTester := &unitTester{
+		doneChan:   make(chan bool),
+		errToThrow: errors.New("intentional error to trigger reconnect"),
+	}
 	conn := newConnectionWithTransport(config, unitTester, unitTester, libkb.ErrorUnwrapper{}, true)
 	defer conn.Shutdown()
 	timeout := time.After(2 * time.Second)
@@ -97,6 +103,25 @@ func TestReconnectBasic(t *testing.T) {
 	}
 	if err := unitTester.Err(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// Test when a user cancels a connection.
+func TestReconnectCanceled(t *testing.T) {
+	config := NewConfigLocal()
+	cancelErr := client.InputCanceledError{}
+	unitTester := &unitTester{
+		doneChan:   make(chan bool),
+		errToThrow: cancelErr,
+		alwaysFail: true,
+	}
+	conn := newConnectionWithTransport(config, unitTester, unitTester, libkb.ErrorUnwrapper{}, true)
+	defer conn.Shutdown()
+	// Test that any command fails with the expected error.
+	err := conn.DoCommand(context.Background(),
+		func(keybase1.GenericClient) error { return nil })
+	if err != cancelErr {
+		t.Fatalf("Error wasn't InputCanceled: %v", err)
 	}
 }
 
@@ -146,7 +171,10 @@ func (eu testErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispa
 func TestDoCommandThrottle(t *testing.T) {
 	config := NewConfigLocal()
 	setTestLogger(config, t)
-	unitTester := &unitTester{doneChan: make(chan bool)}
+	unitTester := &unitTester{
+		doneChan:   make(chan bool),
+		errToThrow: errors.New("intentional error to trigger reconnect"),
+	}
 
 	throttleErr := errors.New("throttle")
 	conn := newConnectionWithTransport(config, unitTester, unitTester, testErrorUnwrapper{}, true)

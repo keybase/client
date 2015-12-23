@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -187,6 +188,7 @@ type Connection struct {
 	reconnectChan     chan struct{}
 	cancelFunc        context.CancelFunc // used to cancel the reconnect loop
 	reconnectedBefore bool
+	connErr           *error
 }
 
 // NewTLSConnection returns a connection that tries to connect to the
@@ -304,7 +306,7 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 	}
 	// kick-off a connection and wait for it to complete
 	// or for the caller to cancel.
-	reconnectChan, disconnectStatus := c.getReconnectChan()
+	reconnectChan, disconnectStatus, connErr := c.getReconnectChan()
 	// inform the handler of our disconnected state
 	c.handler.OnDisconnected(disconnectStatus)
 	select {
@@ -312,6 +314,10 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 		// caller canceled
 		return ctx.Err()
 	case <-reconnectChan:
+		// Something unretriable happened to shut down the connection.
+		if *connErr != nil {
+			return *connErr
+		}
 		// reconnect complete
 		return nil
 	}
@@ -336,7 +342,8 @@ func (c *Connection) IsConnected() bool {
 // existing attempt. Returns the channel associated with an attempt,
 // and whether or not a new one was created.
 func (c *Connection) getReconnectChan() (
-	reconnectChan chan struct{}, disconnectStatus DisconnectStatus) {
+	reconnectChan chan struct{}, disconnectStatus DisconnectStatus,
+	connErr *error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if c.reconnectChan == nil {
@@ -344,28 +351,39 @@ func (c *Connection) getReconnectChan() (
 		// for canceling the reconnect loop via Shutdown()
 		ctx, c.cancelFunc = context.WithCancel(context.Background())
 		c.reconnectChan = make(chan struct{})
+		c.connErr = new(error)
 		if c.reconnectedBefore {
 			disconnectStatus = StartingNonFirstConnection
 		} else {
 			disconnectStatus = StartingFirstConnection
 			c.reconnectedBefore = true
 		}
-		go c.doReconnect(ctx, c.reconnectChan)
+		go c.doReconnect(ctx, c.reconnectChan, c.connErr)
 	} else {
 		disconnectStatus = UsingExistingConnection
 	}
-	return c.reconnectChan, disconnectStatus
+	return c.reconnectChan, disconnectStatus, c.connErr
+}
+
+// dontRetryOnConnect if the error indicates a condition that
+// shouldn't be retried.
+func dontRetryOnConnect(err error) bool {
+	// InputCanceledError likely means the user canceled a login
+	// dialog.
+	_, inputCanceled := err.(client.InputCanceledError)
+	return inputCanceled
 }
 
 // doReconnect attempts a reconnection.
-func (c *Connection) doReconnect(ctx context.Context, reconnectChan chan struct{}) {
+func (c *Connection) doReconnect(ctx context.Context,
+	reconnectChan chan struct{}, connErr *error) {
 	// retry w/exponential backoff
 	backoff.RetryNotify(func() error {
 		// try to connect
 		err := c.connect(ctx)
-		// context was canceled by Shutdown()
-		if ctx.Err() != nil {
-			c.handler = nil // drop the circular reference
+		// context was canceled by Shutdown() or a user action
+		if ctx.Err() != nil || dontRetryOnConnect(err) {
+			*connErr = err
 			// short-circuit Retry
 			return nil
 		}
@@ -380,6 +398,7 @@ func (c *Connection) doReconnect(ctx context.Context, reconnectChan chan struct{
 	close(reconnectChan)
 	c.reconnectChan = nil
 	c.cancelFunc = nil
+	c.connErr = nil
 }
 
 // GetClient returns an RPC client that uses DoCommand() for RPC
@@ -408,6 +427,7 @@ func (c *Connection) Shutdown() {
 		// close the connection
 		c.transport.Close()
 	}
+	c.handler = nil // drop the circular reference
 }
 
 type connectionClient struct {
