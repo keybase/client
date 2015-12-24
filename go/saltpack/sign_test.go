@@ -170,3 +170,64 @@ func TestSignDetached(t *testing.T) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
 	}
 }
+
+func TestSignDetachedVerifyAttached(t *testing.T) {
+	key := newSigPrivKey(t)
+	msg := randomMsg(t, 128)
+	sig, err := SignDetached(msg, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(sig) == 0 {
+		t.Fatal("empty sig and no error from SignDetached")
+	}
+
+	// try verifying detached signature using Verify instead of VerifyDetached
+	skey, vmsg, err := Verify(sig, kr)
+	if err == nil {
+		t.Fatal("Verify succeeded, expected it to fail")
+	}
+	if _, ok := err.(ErrWrongMessageType); !ok {
+		t.Errorf("error %T, expected ErrWrongMessageType", err)
+	}
+	if skey != nil {
+		t.Errorf("skey: %x, expected nil", skey)
+	}
+	if vmsg != nil {
+		t.Errorf("vmsg: %x, expected nil", vmsg)
+	}
+}
+
+func TestSignAttachedVerifyDetached(t *testing.T) {
+	key := newSigPrivKey(t)
+	msg := randomMsg(t, 128)
+	smsg, err := Sign(msg, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	skey, err := VerifyDetached(msg, smsg, kr)
+	if err == nil {
+		t.Fatal("VerifyDetached succeeded, expected it to fail")
+	}
+	if _, ok := err.(ErrWrongMessageType); !ok {
+		t.Errorf("error %T, expected ErrWrongMessageType", err)
+	}
+	if skey != nil {
+		t.Errorf("skey: %x, expected nil", skey)
+	}
+}
+
+func TestSignBadKey(t *testing.T) {
+	key := newSigPrivKey(t)
+	rand.Read(key.private[:])
+	msg := randomMsg(t, 128)
+	smsg, err := Sign(msg, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Verify(smsg, kr)
+	if err != ErrBadSignature {
+		t.Errorf("error: %v, expected ErrBadSignature", err)
+	}
+}
