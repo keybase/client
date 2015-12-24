@@ -231,6 +231,38 @@ replicating the 4-zeroes special case (`z`), or the even-more-obscure 4-spaces
 special case (`y`), we wouldn't be able to achieve Base85 decoding
 compatibility anyway.
 
+### Comparison to Base65536
+
+[Base65536](https://www.npmjs.com/package/base65536) is an "encoding" that
+tries to fit as much data as possible into a tweet. It works because Twitter's
+140-character limit is defined over Unicode code points rather than actual
+ecoded bytes. So by picking an alphabet of thousands of unicode characters, we
+can encode more than one byte per character. Base65535 is able to fit 255 bytes
+into just 128 code points.
+
+BaseX works over any alphabet, including long ones. Which leads us to wonder,
+how long can a Twitter alphabet be? The [largest encodable Unicode code
+point](https://en.wikipedia.org/wiki/Code_point) is 1,114,111 (U+10FFFF).
+However, Twitter does [NFC Unicode
+normalization](https://dev.twitter.com/overview/api/counting-characters), so we
+have to be careful to avoid [code points that don't have the NFC_Quick_Check
+property](http://www.unicode.org/Public/8.0.0/ucd/DerivedNormalizationProps.txt).
+We also need to avoid certain [Unicode
+categories](http://unicode.org/reports/tr44/#General_Category_Values): the
+Control, Format, and Separator categories (because Twitter sometimes strips
+them) and the Surrogate category (because it's [invalid in
+UTF8](https://en.wikipedia.org/wiki/UTF-8#Invalid_code_points)). What's left,
+if we didn't miss anything and until Twitter changes something, is 1,110,602
+characters that can pass through a tweet unscathed. How many bytes can we
+encode with that, if we use a 140-character block?
+
+    B = floor( C / 8 * log_2(A) )
+      = floor( 140 / 8 * log_2(1110602) )
+      = 351
+
+Here's a tweet [encoding the first 351 characters of lorem
+ipsum](https://twitter.com/oconnor663/status/680171387353448448).
+
 ## Framing the BaseX Payload
 
 Before getting to the BaseX payload, the decoder parses the header and footer:
