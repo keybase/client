@@ -3,6 +3,7 @@ package libfuse
 import (
 	"os"
 	"sync"
+	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -96,6 +97,14 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	}
 
 	rootNode, _, err := fl.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
+	if _, isWriteErr := err.(libkbfs.WriteAccessError); isWriteErr {
+		fl.fs.log.CDebugf(ctx, "Local user doesn't have permission to create "+
+			" %s and it doesn't exist yet, so making an empty folder", req.Name)
+		// Only cache this empty folder for a minute, in case a valid
+		// writer comes along and creates it.
+		resp.EntryValid = 60 * time.Second
+		return &EmptyFolder{fl.fs}, nil
+	}
 	if err != nil {
 		// TODO make errors aware of fuse
 		return nil, err
