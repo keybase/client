@@ -144,6 +144,15 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return id, rmds, err
 	}
 
+	// Non-readers shouldn't be able to create the dir.
+	uid, err := md.config.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		return id, nil, err
+	}
+	if !handle.IsReader(uid) {
+		return id, nil, MDServerErrorUnauthorized{}
+	}
+
 	// Allocate a new random ID.
 	id, err = md.config.Crypto().MakeRandomTlfID(handle.IsPublic())
 	if err != nil {
