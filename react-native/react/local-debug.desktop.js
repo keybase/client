@@ -19,8 +19,8 @@ let config = {
   reduxDevToolsSelect: state => state // only watch a subset of the store
 }
 
-if (isDev && false) {
-  config.overrideRouterState = createRouterState(['devMenu', 'styleSheet'], [])
+if (isDev && true) {
+  config.overrideRouterState = createRouterState(['devMenu', 'components'], [])
   config.overrideActiveTab = Tabs.moreTab
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true

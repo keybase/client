@@ -3,10 +3,10 @@ import {FlatButton} from 'material-ui'
 import {connect} from '../base-redux'
 import commonStyles from '../styles/common'
 import Header from '../common-adapters/header'
-import path from 'path'
 import Tracker from '../tracker'
 import Menubar from '../menubar'
 import Container from './dev-container'
+import Update from '../update/index.js'
 
 import {devEditAction} from '../reducers/devEdit'
 
@@ -20,6 +20,25 @@ export default class Render extends Component {
   render () {
     return (
       <div style={{...commonStyles.flexBoxColumn, flex: 1, overflowY: 'auto'}}>
+        <Container title='Updater'>
+          <Update
+            isCritical
+            windowTitle='Title'
+            oldVersion='1.2.3'
+            newVersion='3.2.1'
+            description={`# This is a list
+  - one
+  - two
+  - three`}
+            alwaysUpdate={false}
+            setAlwaysUpdate={() => {}}
+            snoozeTime='24 hours'
+            updateCommand='ls -laR > /dev/null'
+            canUpdate
+            onUpdate={() => {}}
+            onSnooze={() => {}}
+          />
+        </Container>
         <Container title='Tracker'>
           <ConnectedTrackerDev/>
         </Container>
@@ -27,10 +46,10 @@ export default class Render extends Component {
           <Menubar/>
         </Container>
         <Container title='Header No Close'>
-          <Header icon={`file:///${path.resolve(__dirname, '../images/service/keybase.png')}`} title='Title'/>
+          <Header icon title='Title'/>
         </Container>
         <Container title='Header' style={{backgroundColor: 'red'}}>
-          <Header icon={`file:///${path.resolve(__dirname, '../images/service/keybase.png')}`} title='Title' onClose={() => {}}/>
+          <Header icon title='Title' onClose={() => {}}/>
         </Container>
       </div>
   )

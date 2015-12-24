@@ -4,7 +4,6 @@ import {Snackbar, Checkbox, FlatButton} from 'material-ui'
 import commonStyles, {colors} from '../styles/common'
 import Header from '../common-adapters/header'
 import {clipboard} from 'electron'
-import resolveAssets from '../../../desktop/resolve-assets'
 import marked from 'marked'
 import type {RenderProps} from './index.render'
 import {autoResize} from '../native/remote-component-helper'
@@ -37,8 +36,7 @@ export default class UpdateRender extends Component {
       <div style={styles.container}>
         <style>{realCSS}</style>
         <Header
-          style={styles.header}
-          icon={`file://${resolveAssets('../react-native/react/images/service/keybase.png')}`}
+          icon
           title={this.props.windowTitle}
           onClose={() => this.props.onSnooze()}
         />
@@ -123,9 +121,6 @@ const styles = {
   critical: {
     margin: 0,
     fontSize: 12
-  },
-  header: {
-    height: 34
   },
   body: {
     paddingLeft: 30,

@@ -14,7 +14,7 @@ export default class HeaderRender extends Component {
     return (
       <Header
         style={{...this.props.style, ...styles.header}}
-        icon={`file://${resolveAssets('../react-native/react/images/service/keybase.png')}`}
+        icon
         title={this.props.reason}
         onClose={this.props.onClose}
       />

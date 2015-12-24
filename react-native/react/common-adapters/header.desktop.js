@@ -2,13 +2,14 @@
 
 import React, {Component} from '../base-react'
 import commonStyles from '../styles/common'
+import resolveAssets from '../../../desktop/resolve-assets'
 
 export default class Header extends Component {
   render (): ReactElement {
     return (
       <div style={{...this.props.style, ...styles.container}}>
         {this.props.children}
-        {this.props.icon && <img style={styles.logo} src={this.props.icon}/>}
+        {this.props.icon && <img style={styles.logo} src={`file://${resolveAssets('../react-native/react/images/service/keybase.png')}`}/>}
         <p style={styles.title}>{this.props.title}</p>
         {this.props.onClose && (
           <div style={styles.close} onClick={() => this.props.onClose()}>
@@ -21,7 +22,7 @@ export default class Header extends Component {
 }
 
 Header.propTypes = {
-  icon: React.PropTypes.string,
+  icon: React.PropTypes.bool,
   children: React.PropTypes.any,
   title: React.PropTypes.string,
   onClose: React.PropTypes.func,
@@ -36,7 +37,8 @@ const styles = {
     ...commonStyles.noSelect,
     paddingLeft: 9,
     paddingRight: 9,
-    alignItems: 'center'
+    alignItems: 'center',
+    height: 35 + 20 // TEMP workaround above
   },
   logo: {
     width: 22,
