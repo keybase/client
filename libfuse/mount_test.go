@@ -1633,6 +1633,20 @@ func TestReaddirOtherFolderAsReader(t *testing.T) {
 	testStateForPrivateFolder(t, config, "jdoe#wsmith")
 }
 
+func TestReaddirMissingOtherFolderAsReader(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
+	defer config.Shutdown()
+	c2 := libkbfs.ConfigAsUser(config, "wsmith")
+	defer c2.Shutdown()
+	mnt, _, cancelFn := makeFS(t, c2)
+	defer mnt.Close()
+	defer cancelFn()
+
+	// Check that folder that doesn't exist yet looks empty
+	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe#wsmith"),
+		map[string]fileInfoCheck{})
+}
+
 func TestStatOtherFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer config.Shutdown()
@@ -1718,28 +1732,6 @@ func TestStatOtherFolderPublic(t *testing.T) {
 	testStateForPublicFolder(t, config, "jdoe")
 }
 
-func TestStatOtherFolderPublicFirstUse(t *testing.T) {
-	// This triggers a different error than with the warmup.
-	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer config.Shutdown()
-
-	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer c2.Shutdown()
-	mnt, _, cancelFn := makeFS(t, c2)
-	defer mnt.Close()
-	defer cancelFn()
-
-	switch _, err := os.Lstat(path.Join(mnt.Dir, PublicName, "jdoe")); err := err.(type) {
-	case *os.PathError:
-		if g, e := err.Err, syscall.EACCES; g != e {
-			t.Fatalf("wrong error: %v != %v", g, e)
-		}
-	default:
-		t.Fatalf("expected a PathError, got %T: %v", err, err)
-	}
-	testStateForPublicFolder(t, config, "jdoe")
-}
-
 func TestReadPublicFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer config.Shutdown()
@@ -1795,6 +1787,20 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 		"myfile": nil,
 	})
 	testStateForPublicFolder(t, config, "jdoe")
+}
+
+func TestReaddirMissingFolderPublicAsAnyone(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
+	defer config.Shutdown()
+	c2 := libkbfs.ConfigAsUser(config, "wsmith")
+	defer c2.Shutdown()
+	mnt, _, cancelFn := makeFS(t, c2)
+	defer mnt.Close()
+	defer cancelFn()
+
+	// Make sure a public folder, not yet created by its writer, looks empty.
+	checkDir(t, path.Join(mnt.Dir, PublicName, "jdoe"),
+		map[string]fileInfoCheck{})
 }
 
 func TestReaddirOtherFolderAsAnyone(t *testing.T) {
