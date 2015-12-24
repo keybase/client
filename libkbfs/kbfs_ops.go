@@ -124,6 +124,9 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 	}
 
 	node, ei, _, err := ops.GetRootNode(ctx, fb)
+	if err != nil {
+		return nil, EntryInfo{}, err
+	}
 	return node, ei, nil
 }
 
