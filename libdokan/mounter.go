@@ -9,6 +9,7 @@ package libdokan
 import (
 	"fmt"
 	"path"
+	"sync"
 
 	"github.com/keybase/kbfs/dokan"
 )
@@ -22,41 +23,59 @@ type Mounter interface {
 
 // DefaultMounter will only call fuse.Mount and fuse.Unmount directly
 type DefaultMounter struct {
+	lock  sync.Mutex
 	dir   string
 	force bool
-	fs    dokan.FileSystem
 	mnt   *dokan.MountHandle
 }
 
 // NewDefaultMounter creates a default mounter.
-func NewDefaultMounter(dir string) DefaultMounter {
-	return DefaultMounter{dir: dir, force: false}
+func NewDefaultMounter(dir string) *DefaultMounter {
+	return &DefaultMounter{dir: dir, force: false}
 }
 
 // NewForceMounter creates a force mounter.
-func NewForceMounter(dir string) DefaultMounter {
-	return DefaultMounter{dir: dir, force: true}
+func NewForceMounter(dir string) *DefaultMounter {
+	return &DefaultMounter{dir: dir, force: true}
 }
 
 // Mount uses default mount and blocks.
-func (m DefaultMounter) Mount(fs dokan.FileSystem) error {
-	m.fs = fs
-	mnt, err := dokan.Mount(m.fs, m.dir[0])
+func (m *DefaultMounter) Mount(fs dokan.FileSystem) error {
+	h, err := m.mountHelper(fs)
 	if err != nil {
 		return err
 	}
-	m.mnt = mnt
-	m.mnt.BlockTillDone()
-	return err
+	return h.BlockTillDone()
+}
+
+// mountHelper is needed since Unmount may be called from an another
+// go-routine.
+func (m *DefaultMounter) mountHelper(fs dokan.FileSystem) (*dokan.MountHandle, error) {
+	// m.dir is constant and safe to access outside the lock.
+	handle, err := dokan.Mount(fs, m.dir[0])
+	if err != nil {
+		return nil, err
+	}
+
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.mnt = handle
+	return handle, nil
 }
 
 // Unmount uses default unmount
-func (m DefaultMounter) Unmount() error {
-	return m.mnt.Close()
+func (m *DefaultMounter) Unmount() error {
+	if m.mnt == nil {
+		return nil
+	}
+	m.lock.Lock()
+	h := m.mnt
+	m.lock.Unlock()
+	return h.Close()
 }
 
 // Dir returns mount directory.
-func (m DefaultMounter) Dir() string {
+func (m *DefaultMounter) Dir() string {
 	return m.dir
 }
 
