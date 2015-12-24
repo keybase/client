@@ -125,3 +125,25 @@ func testTweakSign(plaintext []byte, signer SigningSecretKey, opts testSignOptio
 	}
 	return buf.Bytes(), nil
 }
+
+func testTweakSignDetached(plaintext []byte, signer SigningSecretKey, opts testSignOptions) ([]byte, error) {
+	if signer == nil {
+		return nil, ErrInvalidParameter{message: "no signing key provided"}
+	}
+	header, err := newSignatureHeader(signer.PublicKey(), MessageTypeDetachedSignature)
+	if err != nil {
+		return nil, err
+	}
+
+	signature, err := signer.Sign(computeDetachedDigest(header.Nonce, plaintext))
+	if err != nil {
+		return nil, err
+	}
+	header.Signature = signature
+
+	if opts.corruptHeader != nil {
+		opts.corruptHeader(header)
+	}
+
+	return encodeToBytes(header)
+}

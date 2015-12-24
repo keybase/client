@@ -49,9 +49,7 @@ func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey Signing
 	if err != nil {
 		return nil, err
 	}
-	if len(s.header.Signature) == 0 {
-		return nil, ErrNoDetachedSignature
-	}
+
 	skey = keyring.LookupSigningPublicKey(s.header.SenderPublic)
 	if skey == nil {
 		return nil, ErrNoSenderKey

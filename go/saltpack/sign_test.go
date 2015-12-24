@@ -294,6 +294,11 @@ func TestSignErrSigner(t *testing.T) {
 	if err == nil {
 		t.Errorf("Sign with err key didn't fail")
 	}
+
+	_, err = SignDetached(msg, key)
+	if err == nil {
+		t.Errorf("SignDetached with err key didn't fail")
+	}
 }
 
 func TestSignNilPubKey(t *testing.T) {
@@ -302,6 +307,11 @@ func TestSignNilPubKey(t *testing.T) {
 	_, err := Sign(msg, key)
 	if err == nil {
 		t.Errorf("Sign with nil pub key didn't fail")
+	}
+
+	_, err = SignDetached(msg, key)
+	if err == nil {
+		t.Errorf("SignDetached with nil pub key didn't fail")
 	}
 }
 
@@ -354,6 +364,91 @@ func TestSignCorruptHeader(t *testing.T) {
 	_, _, err = Verify(smsg, kr)
 	if _, ok := err.(ErrBadVersion); !ok {
 		t.Errorf("error: %v (%T), expected ErrBadVersion", err, err)
+	}
+
+	// change the message type from attached to detached
+	opts.corruptHeader = func(sh *SignatureHeader) {
+		sh.Type = MessageTypeDetachedSignature
+	}
+	smsg, err = testTweakSign(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Verify(smsg, kr)
+	if _, ok := err.(ErrWrongMessageType); !ok {
+		t.Errorf("error: %v (%T), expected ErrWrongMessageType", err, err)
+	}
+
+	// change the message type to encryption
+	opts.corruptHeader = func(sh *SignatureHeader) {
+		sh.Type = MessageTypeEncryption
+	}
+	smsg, err = testTweakSign(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Verify(smsg, kr)
+	if _, ok := err.(ErrWrongMessageType); !ok {
+		t.Errorf("error: %v (%T), expected ErrWrongMessageType", err, err)
+	}
+}
+
+func TestSignDetachedCorruptHeader(t *testing.T) {
+	key := newSigPrivKey(t)
+	msg := randomMsg(t, 128)
+
+	var opts testSignOptions
+
+	// first try with no corruption
+	sig, err := testTweakSignDetached(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	skey, err := VerifyDetached(msg, sig, kr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !KIDEqual(skey, key.PublicKey()) {
+		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
+	}
+
+	// remove the signature from the header
+	opts.corruptHeader = func(sh *SignatureHeader) {
+		sh.Signature = nil
+	}
+	sig, err = testTweakSignDetached(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = VerifyDetached(msg, sig, kr)
+	if err != ErrNoDetachedSignature {
+		t.Errorf("VerifyDetached error: %v, expected ErrNoDetachedSignature", err)
+	}
+
+	// change the message type to attached
+	opts.corruptHeader = func(sh *SignatureHeader) {
+		sh.Type = MessageTypeAttachedSignature
+	}
+	sig, err = testTweakSignDetached(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = VerifyDetached(msg, sig, kr)
+	if _, ok := err.(ErrWrongMessageType); !ok {
+		t.Errorf("error: %v (%T), expected ErrWrongMessageType", err, err)
+	}
+
+	// change the message type to encryption
+	opts.corruptHeader = func(sh *SignatureHeader) {
+		sh.Type = MessageTypeEncryption
+	}
+	sig, err = testTweakSignDetached(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = VerifyDetached(msg, sig, kr)
+	if _, ok := err.(ErrWrongMessageType); !ok {
+		t.Errorf("error: %v (%T), expected ErrWrongMessageType", err, err)
 	}
 }
 
