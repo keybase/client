@@ -468,11 +468,15 @@ typedef struct _FILE_NETWORK_OPEN_INFORMATION {
 #define FILE_WRITE_TO_END_OF_FILE 0xffffffff
 #define FILE_USE_FILE_POINTER_POSITION 0xfffffffe
 
+/* Commented out because old mingw defines NTSTATUS in
+   ntdef.h and that also defines _UNICODE_STRING thus
+   creating a conflict.
 // https://msdn.microsoft.com/en-us/library/windows/hardware/ff564879(v=vs.85).aspx
 typedef struct _UNICODE_STRING {
   USHORT Length;
   USHORT MaximumLength;
   PWSTR Buffer;
 } UNICODE_STRING, *PUNICODE_STRING;
+*/
 
 #endif // _FILEINFO_H_

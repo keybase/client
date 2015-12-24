@@ -7,8 +7,22 @@
 
 #if defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__BORLANDC__)
 
+#define UNICODE 1
+#define _UNICODE 1
+
 #include <stdint.h>
+#include <windows.h>
+#include <ntdef.h>
 #include <ntstatus.h>
+
+/* Compatibility for older toolchains */
+#define PWIN32_FIND_DATAW LPWIN32_FIND_DATAW
+typedef struct kbfs_WIN32_FIND_STREAM_DATA_ {
+    LARGE_INTEGER StreamSize;
+    WCHAR cStreamName[MAX_PATH + 36];
+} kbfs_WIN32_FIND_STREAM_DATA,*kbfs_PWIN32_FIND_STREAM_DATA;
+#define PWIN32_FIND_STREAM_DATA kbfs_PWIN32_FIND_STREAM_DATA
+
 
 #include "dokan_header/dokan.h"
 

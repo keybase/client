@@ -7,7 +7,7 @@
 package dokan
 
 /*
-#cgo LDFLAGS: -L. -ldokan
+#cgo LDFLAGS: -L${SRCDIR} -ldokan
 #include "bridge.h"
 */
 import "C"
@@ -286,9 +286,9 @@ func kbfs_libdokan_UnlockFile(
 
 //export kbfs_libdokan_GetDiskFreeSpace
 func kbfs_libdokan_GetDiskFreeSpace(
-	FreeBytesAvailable C.PULONGLONG,
-	TotalNumberOfBytes C.PULONGLONG,
-	TotalNumberOfFreeBytes C.PULONGLONG,
+	FreeBytesAvailable *C.ULONGLONG,
+	TotalNumberOfBytes *C.ULONGLONG,
+	TotalNumberOfFreeBytes *C.ULONGLONG,
 	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("GetDiskFreeSpace", *FileInfo)
 	fs, err := getfs(FileInfo).GetDiskFreeSpace()

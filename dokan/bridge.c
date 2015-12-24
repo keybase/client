@@ -185,15 +185,15 @@ static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_UnlockFile(LPCWSTR FileName,
 
 
 // see Win32 API GetDiskFreeSpaceEx
-extern NTSTATUS kbfs_libdokan_GetDiskFreeSpace(PULONGLONG FreeBytesAvailable,
-					       PULONGLONG TotalNumberOfBytes,
-					       PULONGLONG TotalNumberOfFreeBytes,
+extern NTSTATUS kbfs_libdokan_GetDiskFreeSpace(ULONGLONG* FreeBytesAvailable,
+					       ULONGLONG* TotalNumberOfBytes,
+					       ULONGLONG* TotalNumberOfFreeBytes,
 					       PDOKAN_FILE_INFO FileInfo);
 static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_GetDiskFreeSpace(PULONGLONG FreeBytesAvailable,
 								PULONGLONG TotalNumberOfBytes,
 								PULONGLONG TotalNumberOfFreeBytes,
 								PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_GetDiskFreeSpace(FreeBytesAvailable, TotalNumberOfBytes, TotalNumberOfFreeBytes, FileInfo);
+  return kbfs_libdokan_GetDiskFreeSpace((ULONGLONG*)FreeBytesAvailable, (ULONGLONG*)TotalNumberOfBytes, (ULONGLONG*)TotalNumberOfFreeBytes, FileInfo);
 }
 
 // see Win32 API GetVolumeInformation
