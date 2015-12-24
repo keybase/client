@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"sync"
 	"testing"
 
 	"github.com/agl/ed25519"
@@ -75,6 +76,27 @@ func TestSign(t *testing.T) {
 	if len(out) == 0 {
 		t.Fatal("Sign returned no error and no output")
 	}
+}
+
+func TestSignConcurrent(t *testing.T) {
+	msg := randomMsg(t, 128)
+	key := newSigPrivKey(t)
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			out, err := Sign(msg, key)
+			if err != nil {
+				t.Error(err)
+			}
+			if len(out) == 0 {
+				t.Error("Sign returned no error and no output")
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
 }
 
 func testSignAndVerify(t *testing.T, message []byte) {
