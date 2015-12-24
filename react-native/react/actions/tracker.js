@@ -6,6 +6,8 @@ import engine from '../engine'
 import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 
+import setNotifications from '../util/setNotifications'
+
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {ConfigState} from '../reducers/config'
 
@@ -45,11 +47,6 @@ export function stopTimer (): Action {
 
 export function registerTrackerChangeListener (): TrackerActionCreator {
   return dispatch => {
-    const param = {
-      channels: {
-        tracking: true
-      }
-    }
     engine.listenGeneralIncomingRpc('keybase.1.NotifyTracking.trackingChanged', function (args) {
       dispatch({
         type: Constants.userUpdated,
@@ -58,11 +55,7 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
     })
 
     engine.listenOnConnect(() => {
-      engine.rpc('notifyCtl.setNotifications', param, {}, (error, response) => {
-        if (error != null) {
-          console.error('error in toggling notifications: ', error)
-        }
-      })
+      setNotifications({tracking: true})
     })
   }
 }
