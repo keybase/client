@@ -10,6 +10,7 @@ export default class RemoteComponent extends Component {
   componentWillMount () {
     const windowsOpts = {width: 500, height: 300, fullscreen: false, show: false, ...this.props.windowsOpts}
     this.remoteWindow = new BrowserWindow(windowsOpts)
+    const myRemoteWindowId = this.remoteWindow.id
 
     menuHelper(this.remoteWindow)
     this.closed = false
@@ -23,7 +24,7 @@ export default class RemoteComponent extends Component {
 
     // Remember if we close, it's an error to try to close an already closed window
     ipcRenderer.on('remoteWindowClosed', (event, remoteWindowId) => {
-      if (remoteWindowId === this.remoteWindow.id) {
+      if (remoteWindowId === myRemoteWindowId) {
         if (!this.closed) {
           this.closed = true
           this.props.onRemoteClose && this.props.onRemoteClose()
