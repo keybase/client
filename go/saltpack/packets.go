@@ -76,6 +76,9 @@ type SignatureHeader struct {
 }
 
 func newSignatureHeader(sender SigningPublicKey, msgType MessageType) (*SignatureHeader, error) {
+	if sender == nil {
+		return nil, ErrInvalidParameter{message: "no public signing key provided"}
+	}
 	nonce, err := NewSigNonce()
 	if err != nil {
 		return nil, err

@@ -33,9 +33,6 @@ func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifi
 	if err != nil {
 		return nil, nil, err
 	}
-	if skey == nil {
-		return nil, nil, ErrNoSenderKey
-	}
 
 	verifiedMsg, err = ioutil.ReadAll(stream)
 	if err != nil {

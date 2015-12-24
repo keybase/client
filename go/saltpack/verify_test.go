@@ -60,26 +60,40 @@ func TestVerifyConcurrent(t *testing.T) {
 	wg.Wait()
 }
 
-/*
-func TestVerifyFuzzCrash(t *testing.T) {
-	b, err := hex.DecodeString(kid)
+func TestVerifyEmptyKeyring(t *testing.T) {
+	in := randomMsg(t, 128)
+	key := newSigPrivKey(t)
+	smsg, err := Sign(in, key)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
-	var k [ed25519.PublicKeySize]byte
-	copy(k[:], b)
-	key := newSigPubKey(k)
 
-	bmsg := []byte(fmsg)
-	Verify(bmsg, singleKeyring{key})
+	_, _, err = Verify(smsg, emptySigKeyring{})
+	if err == nil {
+		t.Fatal("Verify worked with empty keyring")
+	}
+	if err != ErrNoSenderKey {
+		t.Errorf("error: %v, expected ErrNoSenderKey", err)
+	}
 }
 
-type singleKeyring struct {
-	*sigPubKey
+func TestVerifyDetachedEmptyKeyring(t *testing.T) {
+	key := newSigPrivKey(t)
+	msg := randomMsg(t, 128)
+	sig, err := SignDetached(msg, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = VerifyDetached(msg, sig, emptySigKeyring{})
+	if err == nil {
+		t.Fatal("VerifyDetached worked with empty keyring")
+	}
+	if err != ErrNoSenderKey {
+		t.Errorf("error: %v, expected ErrNoSenderKey", err)
+	}
 }
 
-func (k singleKeyring) LookupSigningPublicKey(kid []byte) SigningPublicKey {
-	// for the sake of fuzzing, just return this key all the time
-	return k
-}
-*/
+type emptySigKeyring struct{}
+
+func (k emptySigKeyring) LookupSigningPublicKey(kid []byte) SigningPublicKey { return nil }

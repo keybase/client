@@ -6,6 +6,7 @@ package saltpack
 import (
 	"bytes"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
 	"sync"
@@ -66,6 +67,16 @@ func (s *sigPrivKey) PublicKey() SigningPublicKey {
 	return s.public
 }
 
+type sigErrKey struct{}
+
+func (s *sigErrKey) Sign(message []byte) ([]byte, error) { return nil, errors.New("sign error") }
+func (s *sigErrKey) PublicKey() SigningPublicKey         { return &sigPubKey{} }
+
+type sigNilPubKey struct{}
+
+func (s *sigNilPubKey) Sign(message []byte) ([]byte, error) { return nil, errors.New("sign error") }
+func (s *sigNilPubKey) PublicKey() SigningPublicKey         { return nil }
+
 func TestSign(t *testing.T) {
 	msg := randomMsg(t, 128)
 	key := newSigPrivKey(t)
@@ -96,7 +107,6 @@ func TestSignConcurrent(t *testing.T) {
 		}()
 	}
 	wg.Wait()
-
 }
 
 func testSignAndVerify(t *testing.T, message []byte) {
@@ -230,4 +240,123 @@ func TestSignBadKey(t *testing.T) {
 	if err != ErrBadSignature {
 		t.Errorf("error: %v, expected ErrBadSignature", err)
 	}
+
+	sig, err := SignDetached(msg, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = VerifyDetached(msg, sig, kr)
+	if err != ErrBadSignature {
+		t.Errorf("error: %v, expected ErrBadSignature", err)
+	}
 }
+
+func TestSignNilKey(t *testing.T) {
+	msg := randomMsg(t, 128)
+	_, err := Sign(msg, nil)
+	if err == nil {
+		t.Fatal("Sign with nil key didn't fail")
+	}
+	if _, ok := err.(ErrInvalidParameter); !ok {
+		t.Errorf("error %T, expected ErrInvalidParameter", err)
+	}
+
+	_, err = SignDetached(msg, nil)
+	if err == nil {
+		t.Fatal("SignDetached with nil key didn't fail")
+	}
+	if _, ok := err.(ErrInvalidParameter); !ok {
+		t.Errorf("error %T, expected ErrInvalidParameter", err)
+	}
+}
+
+func TestSignBadRandReader(t *testing.T) {
+	key := newSigPrivKey(t)
+	msg := randomMsg(t, 128)
+
+	r := rand.Reader
+	defer func() {
+		rand.Reader = r
+	}()
+	rand.Reader = errReader{}
+
+	_, err := Sign(msg, key)
+	if err == nil {
+		t.Errorf("Sign with errReader for rand.Reader didn't fail")
+	}
+}
+
+// test signing with a key that always returns errors for Sign().
+func TestSignErrSigner(t *testing.T) {
+	key := new(sigErrKey)
+	msg := randomMsg(t, 128)
+	_, err := Sign(msg, key)
+	if err == nil {
+		t.Errorf("Sign with err key didn't fail")
+	}
+}
+
+func TestSignNilPubKey(t *testing.T) {
+	key := new(sigNilPubKey)
+	msg := randomMsg(t, 128)
+	_, err := Sign(msg, key)
+	if err == nil {
+		t.Errorf("Sign with nil pub key didn't fail")
+	}
+}
+
+func TestSignCorruptHeader(t *testing.T) {
+	key := newSigPrivKey(t)
+	msg := randomMsg(t, 128)
+
+	var opts testSignOptions
+
+	// first try with no corruption
+	smsg, err := testTweakSign(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(smsg) == 0 {
+		t.Fatal("Sign returned no error and no output")
+	}
+	skey, vmsg, err := Verify(smsg, kr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !KIDEqual(skey, key.PublicKey()) {
+		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
+	}
+	if !bytes.Equal(vmsg, msg) {
+		t.Errorf("verified msg '%x', expected '%x'", vmsg, msg)
+	}
+
+	// add a Signature to attached header
+	opts.corruptHeader = func(sh *SignatureHeader) {
+		sh.Signature = randomMsg(t, 64)
+	}
+	smsg, err = testTweakSign(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Verify(smsg, kr)
+	if err != ErrDetachedSignaturePresent {
+		t.Errorf("error: %v, expected ErrDetachedSignaturePresent", err)
+	}
+
+	// change the version
+	opts.corruptHeader = func(sh *SignatureHeader) {
+		sh.Version = Version{Major: SaltPackCurrentVersion.Major + 1, Minor: 0}
+	}
+	smsg, err = testTweakSign(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Verify(smsg, kr)
+	if _, ok := err.(ErrBadVersion); !ok {
+		t.Errorf("error: %v (%T), expected ErrBadVersion", err, err)
+	}
+}
+
+type errReader struct{}
+
+func (e errReader) Read(p []byte) (int, error) { return 0, errors.New("read error") }
