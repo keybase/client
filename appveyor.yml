@@ -1,0 +1,41 @@
+install:
+
+environment:
+  global:
+    GOPATH: c:\work\
+    KEYBASE_SERVER_URI: https://ci1.keybase.io
+    CGO_ENABLED: 1
+    GOARCH: 386
+    GO15VENDOREXPERIMENT: 1
+    CC: c:\MinGW\bin\gcc
+    CPATH: C:\MinGW\include;C:\MinGW\include\ddk
+
+# clone directory
+clone_folder: c:\work\src\github.com\keybase\kbfs
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# build platform, i.e. x86, x64, Any CPU. This setting is optional.
+platform: x86
+
+# scripts to run before build
+before_build:
+
+# scripts to run after build
+after_build:
+
+# to run your custom scripts instead of automatic MSBuild
+build_script:
+  - SET PATH=%PATH%;c:\MinGW\bin
+  - cd kbfsdokan
+  - gcc -v
+  - go env
+  - go build
+
+# to disable automatic builds
+#build: off
+
+# to run your custom scripts instead of automatic tests
+test_script:
