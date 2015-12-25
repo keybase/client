@@ -13,9 +13,13 @@ config.output.publicPath = 'http://localhost:4000/dist/'
 // Uncomment below to figure out packaging bugs
 // config.bail = true
 
+config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
+
+if (process.env.HOT === 'true') {
+  config.plugins.push(new webpack.HotModuleReplacementPlugin())
+}
+
 config.plugins.push(
-  new webpack.optimize.OccurenceOrderPlugin(),
-  new webpack.HotModuleReplacementPlugin(),
   new webpack.NoErrorsPlugin(),
   new webpack.DefinePlugin({
     '__DEV__': true

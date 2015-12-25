@@ -4,7 +4,6 @@
 
 import {createRouterState} from './reducers/router'
 import * as Tabs from './constants/tabs'
-import {isDev} from './constants/platform'
 import {updateConfig} from './command-line.desktop.js'
 
 let config = {
@@ -19,7 +18,7 @@ let config = {
   reduxDevToolsSelect: state => state // only watch a subset of the store
 }
 
-if (isDev && false) {
+if (__DEV__ && false) { // eslint-disable-line no-undef
   config.overrideRouterState = createRouterState(['devMenu', 'components'], [])
   config.overrideActiveTab = Tabs.moreTab
   config.skipLoginRouteToRoot = true

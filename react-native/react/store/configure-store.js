@@ -4,7 +4,6 @@ import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import rootReducer from '../reducers'
 import Immutable from 'immutable'
-import {isDev} from '../constants/platform'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -21,14 +20,15 @@ const objToJS = state => {
   return newState
 }
 
-// Only log if isDev
+// Only log if __DEV__
 const loggerMiddleware = createLogger({
   duration: true,
   stateTransformer: objToJS,
   actionTransformer: objToJS
 })
 
-const createStoreWithMiddleware = isDev ? applyMiddleware(thunkMiddleware, loggerMiddleware)
+const createStoreWithMiddleware = __DEV__ // eslint-disable-line no-undef
+  ? applyMiddleware(thunkMiddleware, loggerMiddleware)
   : applyMiddleware(thunkMiddleware)
 
 export default function configureStore (initialState: ?any) {

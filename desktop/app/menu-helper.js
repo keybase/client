@@ -1,6 +1,5 @@
 // Can't tell which thread we're in so let's try both
 const electron = require('electron')
-const isDev = require('../../react-native/react/constants/platform').isDev
 
 const Menu = electron.Menu || electron.remote.Menu
 const app = electron.app || electron.remote.app
@@ -41,7 +40,7 @@ export default function makeMenu (window) {
           accelerator: 'CmdOrCtrl+R',
           click: (item, focusedWindow) => focusedWindow && focusedWindow.reload()
         }
-      ].concat(isDev ? ([
+      ].concat(__DEV__ ? ([ // eslint-disable-line no-undef
         {label: 'Toggle Developer Tools',
           accelerator: (() => (process.platform === 'darwin') ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
           click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools()

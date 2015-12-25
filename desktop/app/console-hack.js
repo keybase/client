@@ -1,8 +1,7 @@
 import util from 'util'
-import {isDev} from '../../react-native/react/local-debug'
 
 export default () => {
-  if (!isDev) {
+  if (!__DEV__) { // eslint-disable-line no-undef
     return
   }
 

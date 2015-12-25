@@ -6,7 +6,6 @@ import {Provider} from 'react-redux'
 import configureStore from '../../react-native/react/store/configure-store'
 import Nav from '../../react-native/react/nav'
 import injectTapEventPlugin from 'react-tap-event-plugin'
-import {isDev} from '../../react-native/react/constants/platform'
 import {reduxDevToolsSelect} from '../../react-native/react/local-debug.desktop'
 
 import ListenForNotifications from '../../react-native/react/native/notifications'
@@ -29,7 +28,7 @@ if (module.hot) {
   module.hot.accept()
 }
 
-if (isDev) {
+if (__DEV__) { // eslint-disable-line no-undef
   const RDT = require('redux-devtools/lib/react')
   DevTools = RDT.DevTools
   DebugPanel = RDT.DebugPanel
@@ -50,7 +49,7 @@ class Keybase extends Component {
       panelShowing: false
     }
 
-    if (isDev) {
+    if (__DEV__) { // eslint-disable-line no-undef
       if (typeof window !== 'undefined') {
         window.addEventListener('keydown', event => {
           if (event.ctrlKey && event.keyCode === 72) {
@@ -75,6 +74,8 @@ class Keybase extends Component {
     })
 
     ipcMain.on('subscribeStore', (event, substore) => {
+      const sender = event.sender // cache this since this is actually a sync-rpc call...
+
       const getStore = () => {
         if (substore) {
           return store.getState()[substore] || {}
@@ -83,10 +84,10 @@ class Keybase extends Component {
         }
       }
 
-      event.sender.send('stateChange', getStore())
+      sender.send('stateChange', getStore())
       store.subscribe(() => {
         // TODO: use transit
-        event.sender.send('stateChange', getStore())
+        sender.send('stateChange', getStore())
       })
     })
 
@@ -111,7 +112,7 @@ class Keybase extends Component {
   }
 
   render () {
-    if (isDev) {
+    if (__DEV__) { // eslint-disable-line no-undef
       return (
         <div style={{position: 'absolute', width: '100%', height: '100%', display: 'flex'}}>
           {this.renderNav()}

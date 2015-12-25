@@ -46,7 +46,8 @@ if (!SKIP_OPTIMIZE) {
         keep_fargs: true,
         keep_fnames: false
       }
-    })
+    }),
+    new webpack.optimize.DedupePlugin()
   )
 } else {
   console.error('Skipping optimize step!')

@@ -1,16 +1,13 @@
 import {OS_DESKTOP} from './platform.shared'
 import path from 'path'
 
-/* eslint-disable no-undef */ // Injected by webpack
-export const isDev = __DEV__
-/* eslint-enable no-undef */
 export const OS = OS_DESKTOP
 export const isMobile = false
 export const kbfsPath = `/keybase`
 
 export const runMode = process.env.KEYBASE_RUN_MODE || 'prod'
 
-if (isDev) {
+if (__DEV__) { // eslint-disable-line no-undef
   console.log(`Run mode: ${runMode}`)
 }
 
@@ -20,7 +17,7 @@ const envedPathOSX = {
   prod: 'Keybase'
 }
 
-function buildWin32SocketRoot() {
+function buildWin32SocketRoot () {
   let appdata = process.env.APPDATA
   // Remove leading drive letter e.g. C:
   if (/^[a-zA-Z]:/.test(appdata)) {
