@@ -25,5 +25,7 @@ protocol block {
   void addReference(string folder, BlockReference ref);
   void delReference(string folder, BlockReference ref);
   array<BlockReference> archiveReference(string folder, array<BlockReference> refs);
-  
+
+  bytes getUserQuotaInfo();
+ 
 }
