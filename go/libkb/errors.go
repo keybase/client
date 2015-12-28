@@ -1114,6 +1114,17 @@ func (e IdentifyDidNotCompleteError) Error() string {
 
 //=============================================================================
 
+type IdentifyFailedError struct {
+	Assertion string
+	Reason    string
+}
+
+func (e IdentifyFailedError) Error() string {
+	return fmt.Sprintf("For user %q: %s", e.Assertion, e.Reason)
+}
+
+//=============================================================================
+
 type NotLatestSubchainError struct {
 	Msg string
 }
@@ -1215,4 +1226,12 @@ type ResolutionError struct {
 
 func (e ResolutionError) Error() string {
 	return fmt.Sprintf("In resolving '%s': %s", e.Input, e.Msg)
+}
+
+//=============================================================================
+
+type NoUIDError struct{}
+
+func (e NoUIDError) Error() string {
+	return "No UID given but one was expected"
 }

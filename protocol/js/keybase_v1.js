@@ -83,6 +83,7 @@ export default {
       'screloginrequired': 274,
       'scresolutionfailed': 275,
       'scprofilenotpublic': 276,
+      'scidentifyfailed': 277,
       'scbadsignupusernametaken': 701,
       'scmissingresult': 801,
       'sckeynotfound': 901,

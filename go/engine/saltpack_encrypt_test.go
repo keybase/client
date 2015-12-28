@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
 )
 
 func TestSaltPackEncrypt(t *testing.T) {
@@ -24,25 +23,29 @@ func TestSaltPackEncrypt(t *testing.T) {
 	}
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
 
-	sink := libkb.NewBufferCloser()
-	arg := &SaltPackEncryptArg{
-		Recips: []string{u1.Username, u2.Username, u3.Username},
-		Source: strings.NewReader("track and encrypt, track and encrypt"),
-		Sink:   sink,
-		TrackOptions: keybase1.TrackOptions{
-			BypassConfirm: true,
-		},
-	}
+	run := func(Recips []string) {
+		sink := libkb.NewBufferCloser()
+		arg := &SaltPackEncryptArg{
+			Recips: Recips,
+			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
+			Sink:   sink,
+		}
 
-	eng := NewSaltPackEncrypt(arg, tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
+		eng := NewSaltPackEncrypt(arg, tc.G)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
 
-	out := sink.Bytes()
-	if len(out) == 0 {
-		t.Fatal("no output")
+		out := sink.Bytes()
+		if len(out) == 0 {
+			t.Fatal("no output")
+		}
 	}
+	run([]string{u1.Username, u2.Username})
+
+	// If we add ourselves, we should be smart and not error out
+	// (We are u3 in this case)
+	run([]string{u1.Username, u2.Username, u3.Username})
 }
 
 func TestSaltPackEncryptSelfNoKey(t *testing.T) {
@@ -57,7 +60,7 @@ func TestSaltPackEncryptSelfNoKey(t *testing.T) {
 
 	sink := libkb.NewBufferCloser()
 	arg := &SaltPackEncryptArg{
-		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Recips: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 	}
@@ -66,5 +69,28 @@ func TestSaltPackEncryptSelfNoKey(t *testing.T) {
 	err := RunEngine(eng, ctx)
 	if _, ok := err.(libkb.NoKeyError); !ok {
 		t.Fatalf("expected error type libkb.NoKeyError, got %T (%s)", err, err)
+	}
+}
+
+func TestSaltPackEncryptLoggedOut(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltPackEncrypt")
+	defer tc.Cleanup()
+
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	ctx := &Context{IdentifyUI: trackUI}
+
+	sink := libkb.NewBufferCloser()
+	arg := &SaltPackEncryptArg{
+		Recips: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
+		Source: strings.NewReader("track and encrypt, track and encrypt"),
+		Sink:   sink,
+	}
+
+	eng := NewSaltPackEncrypt(arg, tc.G)
+	err := RunEngine(eng, ctx)
+	if err != nil {
+		t.Fatalf("Got unexpected error: %s", err)
 	}
 }

@@ -453,7 +453,7 @@
       } ],
       "response" : "IdentifyRes"
     },
-    "identify2WithUID" : {
+    "identify2" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

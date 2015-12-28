@@ -242,6 +242,12 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return UIDelegationUnavailableError{}
 	case SCProfileNotPublic:
 		return ProfileNotPublicError{msg: s.Desc}
+	case SCIdentifyFailed:
+		var assertion string
+		if len(s.Fields) > 0 && s.Fields[0].Key == "assertion" {
+			assertion = s.Fields[0].Value
+		}
+		return IdentifyFailedError{Assertion: assertion, Reason: s.Desc}
 	case SCResolutionFailed:
 		var input string
 		if len(s.Fields) > 0 && s.Fields[0].Key == "input" {
@@ -886,6 +892,17 @@ func (e ResolutionError) ToStatus() keybase1.Status {
 		Desc: e.Msg,
 		Fields: []keybase1.StringKVPair{
 			{"input", e.Input},
+		},
+	}
+}
+
+func (e IdentifyFailedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCIdentifyFailed,
+		Name: "SC_IDENTIFY_FAILED",
+		Desc: e.Reason,
+		Fields: []keybase1.StringKVPair{
+			{"assertion", e.Assertion},
 		},
 	}
 }

@@ -17,3 +17,11 @@ func GetKID(w *jsonw.Wrapper) (kid keybase1.KID, err error) {
 	kid = keybase1.KIDFromString(s)
 	return
 }
+
+func KIDIsDeviceVerify(kid keybase1.KID) bool {
+	return kid.GetKeyType() == KIDNaclEddsa
+}
+
+func KIDIsDeviceEncrypt(kid keybase1.KID) bool {
+	return kid.GetKeyType() == KIDNaclDH
+}

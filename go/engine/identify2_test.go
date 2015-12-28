@@ -155,7 +155,7 @@ func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
@@ -172,7 +172,7 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithTrack")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
@@ -197,7 +197,7 @@ func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrack")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
 	eng := NewIdentify2WithUID(tc.G, arg)
@@ -229,7 +229,7 @@ func TestIdentify2WithUIDWithAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "tacovontaco@twitter",
 	}
@@ -253,7 +253,7 @@ func TestIdentify2WithUIDWithAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "tacovontaco@twitter+t_tracy@rooter",
 	}
@@ -277,7 +277,7 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithNonExistentAssertion")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "beyonce@twitter",
 	}
@@ -311,7 +311,7 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAssertion")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "tacovontaco@twitter",
 	}
@@ -361,7 +361,7 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAncillaryAssertion")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "tacoplusplus@github+t_tracy@rooter",
 	}
@@ -410,7 +410,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
 	run := func() {
@@ -481,7 +481,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDLocalAssertions")
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
-	arg := &keybase1.Identify2WithUIDArg{
+	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
 	run := func() {
@@ -538,6 +538,26 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(3, 1, 1, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
+}
+
+func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
+	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
+	i := newIdentify2WithUIDTester(tc.G)
+	tc.G.ProofCheckerFactory = i
+	arg := &keybase1.Identify2Arg{
+		UserAssertion: "tacovontaco@twitter+t_tracy@rooter",
+	}
+	eng := NewResolveThenIdentify2(tc.G, arg)
+	eng.testArgs = &Identify2WithUIDTestArgs{
+		noMe: true,
+	}
+	ctx := Context{IdentifyUI: i}
+	err := eng.Run(&ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	<-i.startCh
+	<-i.finishCh
 }
 
 var tracyUID = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")

@@ -17,9 +17,8 @@ import (
 
 type CmdEncrypt struct {
 	libkb.Contextified
-	filter       UnixFilter
-	recipients   []string
-	trackOptions keybase1.TrackOptions
+	filter     UnixFilter
+	recipients []string
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -85,12 +84,10 @@ func (c *CmdEncrypt) Run() error {
 	}
 
 	opts := keybase1.SaltPackEncryptOptions{
-		Recipients:   c.recipients,
-		TrackOptions: c.trackOptions,
+		Recipients: c.recipients,
 	}
 	arg := keybase1.SaltPackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltPackEncrypt(context.TODO(), arg)
-
 	cerr := c.filter.Close(err)
 	return libkb.PickFirstError(err, cerr)
 }
@@ -114,11 +111,6 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	infile := ctx.String("infile")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
-	}
-
-	c.trackOptions = keybase1.TrackOptions{
-		LocalOnly:     ctx.Bool("local"),
-		BypassConfirm: ctx.Bool("y"),
 	}
 
 	return nil

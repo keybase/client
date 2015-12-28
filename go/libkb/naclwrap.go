@@ -587,6 +587,11 @@ func (k NaclDHKeyPair) CanEncrypt() bool { return true }
 // CanDecrypt returns true if there's a private key available
 func (k NaclDHKeyPair) CanDecrypt() bool { return k.Private != nil }
 
+func (k NaclDHKeyPair) IsNil() bool {
+	var empty NaclDHKeyPublic
+	return bytes.Equal(k.Public[:], empty[:])
+}
+
 // Encrypt a message for the given sender.  If sender is nil, an ephemeral
 // keypair will be invented
 func (k NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncryptionInfo, error) {

@@ -6,6 +6,7 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	jsonw "github.com/keybase/go-jsonw"
 	"sync"
 	"time"
 )
@@ -33,10 +34,13 @@ type Identify2WithUIDTestArgs struct {
 type Identify2WithUID struct {
 	libkb.Contextified
 
-	arg        *keybase1.Identify2WithUIDArg
+	arg        *keybase1.Identify2Arg
 	testArgs   *Identify2WithUIDTestArgs
 	trackToken keybase1.TrackToken
 	cachedRes  *keybase1.UserPlusKeys
+
+	// If we just resolved a user, then we can plumb this through to loadUser()
+	ResolveBody *jsonw.Wrapper
 
 	me   *libkb.User
 	them *libkb.User
@@ -67,7 +71,7 @@ func (e *Identify2WithUID) Name() string {
 	return "Identify2WithUID"
 }
 
-func NewIdentify2WithUID(g *libkb.GlobalContext, arg *keybase1.Identify2WithUIDArg) *Identify2WithUID {
+func NewIdentify2WithUID(g *libkb.GlobalContext, arg *keybase1.Identify2Arg) *Identify2WithUID {
 	return &Identify2WithUID{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
@@ -83,6 +87,10 @@ func (e *Identify2WithUID) Prereqs() Prereqs {
 func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
 	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+
+	if e.arg.Uid.IsNil() {
+		return libkb.NoUIDError{}
+	}
 
 	// Only the first send matters, but we don't want to block the subsequent no-op
 	// sends. This code will break when we have more than 100 unblocking opportunities.
@@ -102,11 +110,15 @@ func (e *Identify2WithUID) run(ctx *Context) {
 
 func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 
-	e.G().Log.Debug("+ acquire singleflight lock")
+	e.G().Log.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
 	lock := locktab.AcquireOnName(e.arg.Uid.String())
-	e.G().Log.Debug("- acquired")
+	e.G().Log.Debug("- acquired singleflight lock")
 
-	defer lock.Release()
+	defer func() {
+		e.G().Log.Debug("+ Releasing singleflight lock for %s", e.arg.Uid)
+		lock.Release()
+		e.G().Log.Debug("- Released singleflight lock")
+	}()
 
 	if e.loadAssertion(); err != nil {
 		return err
@@ -183,6 +195,7 @@ func (e *Identify2WithUID) getNow() time.Time {
 func (e *Identify2WithUID) unblock(err error) {
 	e.G().Log.Debug("| unblocking...")
 	e.resultCh <- err
+	e.G().Log.Debug("| unblock sent...")
 }
 
 func (e *Identify2WithUID) maybeCacheResult() {
@@ -307,10 +320,10 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName()))
 	ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export())
 	e.them.IDTable().Identify(e.state, false /* ForceRemoteCheck */, ctx.IdentifyUI, e)
+	e.insertTrackToken(ctx)
 	ctx.IdentifyUI.Finish()
 
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
-	e.insertTrackToken(ctx)
 	e.maybeCacheResult()
 
 	if err == nil {
@@ -384,6 +397,7 @@ func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
 func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	arg := libkb.NewLoadUserArg(e.G())
 	arg.UID = e.arg.Uid
+	arg.ResolveBody = e.ResolveBody
 	e.them, err = libkb.LoadUser(arg)
 	if e.them == nil {
 		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
