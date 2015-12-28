@@ -10,19 +10,22 @@ import (
 	"net/http"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // RemoteUpdateSource finds releases/updates from custom url feed (used primarily for testing)
 type RemoteUpdateSource struct {
-	libkb.Contextified
+	log        logger.Logger
+	runMode    libkb.RunMode
 	defaultURI string
 }
 
-func NewRemoteUpdateSource(g *libkb.GlobalContext, defaultURI string) RemoteUpdateSource {
+func NewRemoteUpdateSource(log logger.Logger, runMode libkb.RunMode, defaultURI string) RemoteUpdateSource {
 	return RemoteUpdateSource{
-		Contextified: libkb.NewContextified(g),
-		defaultURI:   defaultURI,
+		log:        log,
+		runMode:    runMode,
+		defaultURI: defaultURI,
 	}
 }
 
@@ -35,7 +38,7 @@ func (k RemoteUpdateSource) FindUpdate(options keybase1.UpdateOptions) (update *
 	if options.URL != "" {
 		sourceURL = options.URL
 	} else if k.defaultURI != "" {
-		sourceURL = fmt.Sprintf("%s/update-%s-%s.json", k.defaultURI, options.Platform, string(k.G().Env.GetRunMode()))
+		sourceURL = fmt.Sprintf("%s/update-%s-%s.json", k.defaultURI, options.Platform, string(k.runMode))
 	}
 	if sourceURL == "" {
 		err = fmt.Errorf("No source URL for remote")
@@ -43,7 +46,7 @@ func (k RemoteUpdateSource) FindUpdate(options keybase1.UpdateOptions) (update *
 	}
 	req, err := http.NewRequest("GET", sourceURL, nil)
 	client := &http.Client{}
-	k.G().Log.Info("Request %#v", sourceURL)
+	k.log.Info("Request %#v", sourceURL)
 	resp, err := client.Do(req)
 	if resp != nil {
 		defer resp.Body.Close()
@@ -65,7 +68,7 @@ func (k RemoteUpdateSource) FindUpdate(options keybase1.UpdateOptions) (update *
 	}
 	update = &obj
 
-	k.G().Log.Debug("Received update %#v", update)
+	k.log.Debug("Received update %#v", update)
 
 	return
 }
