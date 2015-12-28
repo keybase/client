@@ -276,6 +276,16 @@
 			"revisionTime": "2015-12-26T23:26:19-05:00"
 		},
 		{
+			"path": "github.com/keybase/client/go/updater",
+			"revision": "5075c7ddef4a777a67b783aa836452939b87509b",
+			"revisionTime": "2015-12-26T23:26:19-05:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/updater/sources",
+			"revision": "5075c7ddef4a777a67b783aa836452939b87509b",
+			"revisionTime": "2015-12-26T23:26:19-05:00"
+		},
+		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp",
 			"path": "github.com/keybase/go-crypto/openpgp",
 			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
