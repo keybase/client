@@ -29,7 +29,12 @@ after_build:
 # to run your custom scripts instead of automatic MSBuild
 build_script:
   - SET PATH=%PATH%;c:\MinGW\bin
-  - cd kbfsdokan
+  - git clone git@github.com:keybase/kbfs-binary-windows.git c:\work\src\github.com\keybase\kbfs-binary-windows
+  - cd c:\work\src\github.com\keybase\kbfs-binary-windows
+# throwaway branch to check out locally at a specific tag  
+  - git checkout -b dokan-v0.8.0-RC4 dokan-v0.8.0-RC4
+  - copy dokan\dokan.lib ..\kbfs\dokan
+  - cd ..\kbfs\kbfsdokan
   - gcc -v
   - go env
   - go build
