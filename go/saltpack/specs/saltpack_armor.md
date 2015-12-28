@@ -251,9 +251,10 @@ categories](http://unicode.org/reports/tr44/#General_Category_Values): the
 Control, Format, and Separator categories (because Twitter sometimes strips
 them) and the Surrogate category (because it's [invalid in
 UTF8](https://en.wikipedia.org/wiki/UTF-8#Invalid_code_points)). What's left,
-if we didn't miss anything and until Twitter changes something, is 1,110,602
-characters that can pass through a tweet unscathed. How many bytes can we
-encode with that, if we use a 140-character block?
+if we didn't miss anything and until Twitter changes something, is [1,110,602
+characters that can pass through a tweet
+unscathed](https://gist.github.com/oconnor663/e9c878161e7a63517747#file-alphabet-txt).
+How many bytes can we encode with that, if we use a 140-character block?
 
     B = floor( C / 8 * log_2(A) )
       = floor( 140 / 8 * log_2(1110602) )
