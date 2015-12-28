@@ -16,9 +16,8 @@ We define the BaseX encoding scheme below, in a way that's independent of any
 particular alphabet or block size. For SaltPack we then select a 62-character
 alphabet (all the digits and letters, in ASCII order) and a 32-byte input block
 size, which gives us 43-character output blocks and a packing efficiency of
-74.42%, compared to Base64's 75%. Finally we design some rules for spacing and
-delimiting the output, to make parsing reliable and to make the whole thing
-wrap nicely.
+74.42%, compared to Base64's 75%. Finally we specify how the decoder recognizes
+the header and footer lines and strips whitespace.
 
 Here's the SaltPack armor encoding of the standard lorem ipsum paragraph:
 
@@ -178,7 +177,7 @@ Letters:            E    |     1     |     h
 ```
 
 If Base64 compatibility were a goal, we could have added an extra encoding step
-after converting the 2 input bytes to an integer, where we bitshifted that
+after converting the input bytes to an integer, where we bitshifted that
 integer 2 places to the left. (For a 1-byte block, the equivalent would be 4
 places to the left.) The general rule for all alphabets and block sizes
 could've been to compute the number of "extra bits" available in the encoding
@@ -267,16 +266,21 @@ ipsum](https://twitter.com/oconnor663/status/680171387353448448).
 
 Before getting to the BaseX payload, the decoder parses the header and footer:
 
-1. Collect input up to the first period, stripping the leading and trailing
-   whitespace. This is the header.
-2. Assert that the header matches `\s*BEGIN (\w+ )?SALTPACK (\w+ )?MESSAGE.`
+1. Collect input up to the first period, stripping any leading whitespace. This
+   is the header.
+2. Assert that the header matches
+
+   ```
+   BEGIN ([a-zA-Z0-9]+ )?SALTPACK ([a-zA-Z0-9]+ )?MESSAGE.
+   ```
+
    The first optional word is for an application name (like `KEYBASE`) and the
    second is for a message type (like `ENCRYPTED`).
 3. Collect input up to the second period. This is the payload. If the
    implementation is streaming, it may decode the payload before the following
    steps.
-4. Collect input up to the third period, stripping the leading and trailing
-   whitespace. This is the footer.
+4. Collect input up to the third period, stripping any leading whitespace. This
+   is the footer.
 5. Assert that the footer matches the header, with `END` instead of `BEGIN`.
 
 We use periods to delimit the header and footer to make parsing easier.
@@ -284,14 +288,15 @@ Although we've been careful to avoid special characters in the payload, we're
 not worried about these periods getting garbled (into `…` for example), because
 they only occur one at a time.
 
-The payload itself gets a bit more preprocessing:
+The payload is decoded like this:
 
-1. Strip all whitespace from each line.
-2. Strip any `>` characters at the beginning of each line. This is for
-   compatibility with email clients that use the `>` character for quoting.
-3. Join all the lines into chunks of 43 characters, and decode these as BaseX
-   blocks in the 62-character SaltPack alphabet. Decode any leftover characters
-   as a single short block.
+1. Strip all whitespace and `>` characters. The latter is for compatibility
+   with email clients that use `>` for quoting.
+2. Chunk the remaining characters into blocks of 43. The last block may be
+   shorter.
+3. Decode each of these blocks with BaseX, using the 62-character alphabet
+   `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz` (all the
+   digits and letters, in ASCII order).
 
 That gives the encoder some flexibility in formatting. Our encoder emits a
 space every 15 characters and a newline every 200 words. That's what felt
