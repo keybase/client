@@ -23,13 +23,13 @@ type testUser struct {
 type testState struct {
 	sync.Mutex
 
-	users    map[keybase1.UID](*testUser)
-	changes  []keybase1.UID
-	now      time.Time
-	evictCh  chan keybase1.UID
-	tickerCh chan struct{}
-	pokeCh   chan struct{}
-	numGets  int
+	users     map[keybase1.UID](*testUser)
+	changes   []keybase1.UID
+	now       time.Time
+	evictCh   chan keybase1.UID
+	pokeCh    chan struct{}
+	startOnce sync.Once
+	numGets   int
 }
 
 var seq uint32
@@ -88,11 +88,10 @@ func (ts *testState) mutateUser(uid keybase1.UID, mutator func(u *testUser)) boo
 
 func newTestState() *testState {
 	return &testState{
-		users:    make(map[keybase1.UID](*testUser)),
-		now:      time.Unix(100, 0),
-		evictCh:  make(chan keybase1.UID, 1),
-		tickerCh: make(chan struct{}, 10),
-		pokeCh:   make(chan struct{}),
+		users:   make(map[keybase1.UID](*testUser)),
+		now:     time.Unix(100, 0),
+		evictCh: make(chan keybase1.UID, 1),
+		pokeCh:  make(chan struct{}),
 	}
 }
 
@@ -116,11 +115,8 @@ func (ts *testState) GetUser(_ context.Context, uid keybase1.UID) (
 }
 
 func (ts *testState) PollForChanges(_ context.Context) ([]keybase1.UID, error) {
-	ts.sleep(pollWait)
-
 	ts.Lock()
 	defer ts.Unlock()
-
 	ret := ts.changes
 	ts.changes = nil
 	return ret, nil
@@ -135,18 +131,6 @@ func (ts *testState) tick(d time.Duration) {
 	ts.now = ts.now.Add(d)
 	ts.Unlock()
 	ts.pokeCh <- struct{}{}
-	ts.tickerCh <- struct{}{}
-}
-
-func (ts *testState) sleep(d time.Duration) {
-	stop := ts.Now().Add(d)
-	done := false
-	for !done {
-		<-ts.tickerCh
-		if !ts.Now().Before(stop) {
-			done = true
-		}
-	}
 }
 
 func (ts *testState) Now() time.Time {
@@ -198,7 +182,7 @@ func TestSimple(t *testing.T) {
 		u.sibkeys = u.sibkeys[1:]
 	})
 
-	// Advance the clock PollWait duration, so that our polling of the server
+	// Advance just an iota, so that our polling of the server
 	// has a chance to complete.
 	S.tick(pollWait)
 
@@ -234,7 +218,6 @@ func TestSimple(t *testing.T) {
 	if S.numGets != 3 {
 		t.Fatal("expected 3 gets")
 	}
-
 	S.tick(cacheTimeout + time.Millisecond)
 
 	// u0 should now be gone since we haven't touched him in over cacheTimeout
