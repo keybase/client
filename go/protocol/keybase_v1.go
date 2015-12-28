@@ -252,7 +252,8 @@ type PutBlockArg struct {
 }
 
 type GetBlockArg struct {
-	Bid BlockIdCombo `codec:"bid" json:"bid"`
+	Bid    BlockIdCombo `codec:"bid" json:"bid"`
+	Folder string       `codec:"folder" json:"folder"`
 }
 
 type AddReferenceArg struct {
@@ -276,7 +277,7 @@ type GetUserQuotaInfoArg struct {
 type BlockInterface interface {
 	AuthenticateSession(context.Context, string) error
 	PutBlock(context.Context, PutBlockArg) error
-	GetBlock(context.Context, BlockIdCombo) (GetBlockRes, error)
+	GetBlock(context.Context, GetBlockArg) (GetBlockRes, error)
 	AddReference(context.Context, AddReferenceArg) error
 	DelReference(context.Context, DelReferenceArg) error
 	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
@@ -330,7 +331,7 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetBlockArg)(nil), args)
 						return
 					}
-					ret, err = i.GetBlock(ctx, (*typedArgs)[0].Bid)
+					ret, err = i.GetBlock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -413,8 +414,7 @@ func (c BlockClient) PutBlock(ctx context.Context, __arg PutBlockArg) (err error
 	return
 }
 
-func (c BlockClient) GetBlock(ctx context.Context, bid BlockIdCombo) (res GetBlockRes, err error) {
-	__arg := GetBlockArg{Bid: bid}
+func (c BlockClient) GetBlock(ctx context.Context, __arg GetBlockArg) (res GetBlockRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.getBlock", []interface{}{__arg}, &res)
 	return
 }
