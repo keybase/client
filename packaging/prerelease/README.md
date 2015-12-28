@@ -41,4 +41,5 @@ existing app install:
 
 ```
 BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_keybase.sh
+BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_kbfs.sh
 ```

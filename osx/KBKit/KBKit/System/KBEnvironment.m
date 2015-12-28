@@ -37,7 +37,7 @@
 
     KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
 
-    _installables = [NSArray arrayWithObjects:_service, helperTool, fuse, _kbfs, nil];
+    _installables = [NSArray arrayWithObjects:helperTool, _service, fuse, _kbfs, nil];
 
     _services = [NSArray arrayWithObjects:_service, _kbfs, nil];
     _components = [NSMutableArray arrayWithObjects:_service, _kbfs, helperTool, fuse, nil];
