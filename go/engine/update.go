@@ -110,6 +110,7 @@ func DefaultUpdaterOptions(g *libkb.GlobalContext) *keybase1.UpdateOptions {
 		Version:  libkb.VersionString(),
 		Channel:  "main", // The default channel
 		Platform: runtime.GOOS,
+		Source:   string(sources.DefaultUpdateSourceName()),
 	}
 	switch {
 	case runtime.GOOS == "darwin" && g.Env.GetRunMode() == libkb.ProductionRunMode:
