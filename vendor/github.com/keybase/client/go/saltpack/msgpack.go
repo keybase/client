@@ -4,8 +4,9 @@
 package saltpack
 
 import (
-	"github.com/ugorji/go/codec"
 	"io"
+
+	"github.com/ugorji/go/codec"
 )
 
 type encoder interface {
@@ -26,16 +27,16 @@ func decodeFromBytes(p interface{}, b []byte) error {
 	return codec.NewDecoderBytes(b, codecHandle()).Decode(p)
 }
 
-type framedMsgpackStream struct {
+type msgpackStream struct {
 	decoder *codec.Decoder
 	seqno   PacketSeqno
 }
 
-func newFramedMsgpackStream(r io.Reader) *framedMsgpackStream {
-	return &framedMsgpackStream{decoder: codec.NewDecoder(r, codecHandle())}
+func newMsgpackStream(r io.Reader) *msgpackStream {
+	return &msgpackStream{decoder: codec.NewDecoder(r, codecHandle())}
 }
 
-func (r *framedMsgpackStream) Read(i interface{}) (ret PacketSeqno, err error) {
+func (r *msgpackStream) Read(i interface{}) (ret PacketSeqno, err error) {
 	if err = r.decoder.Decode(i); err != nil {
 		return ret, err
 	}

@@ -1,9 +1,9 @@
 package saltpack
 
 import (
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
-	"hash"
 )
 
 // Nonce is a NaCl-style nonce, with 24 bytes of data, some of which can be
@@ -37,11 +37,6 @@ func (n *Nonce) ForKeyBox() *Nonce {
 	return n
 }
 
-func writeStringToHash(h hash.Hash, s string) {
-	h.Write([]byte(s))
-	h.Write([]byte{0})
-}
-
 // NewNonceForEncryption creates a new nonce for the purposes of an encrypted
 // message. It is a deterministic function of the ephemeral public key used
 // for this encrypted message.
@@ -52,11 +47,23 @@ func writeStringToHash(h hash.Hash, s string) {
 func NewNonceForEncryption(ephemeralPublicKey BoxPublicKey) *Nonce {
 	raw := *ephemeralPublicKey.ToRawBoxKeyPointer()
 	hasher := sha512.New()
-	writeStringToHash(hasher, SaltPackFormatName)
-	writeStringToHash(hasher, NoncePrefixEncryption)
+	writeNullTerminatedString(hasher, SaltPackFormatName)
+	writeNullTerminatedString(hasher, NoncePrefixEncryption)
 	hasher.Write(raw[:])
 	res := hasher.Sum(nil)
 	var out Nonce
 	copy(out[0:16], res)
 	return &out
+}
+
+// SigNonce is a nonce for signatures.
+type SigNonce [16]byte
+
+// NewSigNonce creates a SigNonce with random bytes.
+func NewSigNonce() (SigNonce, error) {
+	var n SigNonce
+	if _, err := rand.Read(n[:]); err != nil {
+		return SigNonce{}, err
+	}
+	return n, nil
 }

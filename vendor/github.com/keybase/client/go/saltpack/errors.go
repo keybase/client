@@ -14,7 +14,7 @@ var (
 	// request with a (-1,nil) return value, and no hidden keys are found.
 	ErrNoDecryptionKey = errors.New("no decryption key found for message")
 
-	// ErrNoSenderKey indicates that on decryption we couldn't find a public key
+	// ErrNoSenderKey indicates that on decryption/verification we couldn't find a public key
 	// for the sender.
 	ErrNoSenderKey = errors.New("no sender key found for message")
 
@@ -47,6 +47,16 @@ var (
 
 	// ErrBadLookup is when the user-provided key lookup gives a bad value
 	ErrBadLookup = errors.New("bad key lookup")
+
+	// ErrBadSignature is returned when verification of a block fails.
+	ErrBadSignature = errors.New("invalid signature")
+
+	// ErrNoDetachedSignature is returned when there is no signature in the header.
+	ErrNoDetachedSignature = errors.New("no detached signature")
+
+	// ErrDetachedSignaturePresent is returned when there is a signature in the header and
+	// there shouldn't be.
+	ErrDetachedSignaturePresent = errors.New("detached signature present")
 )
 
 // ErrBadTag is generated when a Tag fails to Unbox properly. It specifies
@@ -111,4 +121,14 @@ func (e ErrBadTag) Error() string {
 }
 func (e ErrRepeatedKey) Error() string {
 	return fmt.Sprintf("Repeated recipient key: %x", []byte(e))
+}
+
+// ErrInvalidParameter signifies that a function was called with
+// an invalid parameter.
+type ErrInvalidParameter struct {
+	message string
+}
+
+func (e ErrInvalidParameter) Error() string {
+	return fmt.Sprintf("Invalid parameter: %s", e.message)
 }

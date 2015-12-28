@@ -15,13 +15,18 @@ type RawBoxKey [32]byte
 // buffer.  Used for both NaCl SecretBox.
 type SymmetricKey [32]byte
 
-// BoxPublicKey is an generic interface to NaCl's public key Box function.
-type BoxPublicKey interface {
-
-	// ToKID outputs the "key ID" that corresponds to this BoxPublicKey.
+// KIDExtractor key types can output a key ID corresponding to the
+// key.
+type KIDExtractor interface {
+	// ToKID outputs the "key ID" that corresponds to this key.
 	// You can do whatever you'd like here, but probably it makes sense just
 	// to output the public key as is.
 	ToKID() []byte
+}
+
+// BoxPublicKey is an generic interface to NaCl's public key Box function.
+type BoxPublicKey interface {
+	KIDExtractor
 
 	// ToRawBoxKeyPointer returns this public key as a *[32]byte,
 	// for use with nacl.box.Seal
@@ -60,9 +65,28 @@ type BoxSecretKey interface {
 	Precompute(sender BoxPublicKey) BoxPrecomputedSharedKey
 }
 
-// Keyring is an interface used with decryption; it is call to recover
-// public or private keys during the decryption process. Calls can block
-// on network action.
+// SigningSecretKey is a secret NaCl key that can sign messages.
+type SigningSecretKey interface {
+	// Sign signs message with this secret key.
+	Sign(message []byte) ([]byte, error)
+
+	// PublicKey gets the public key associated with this secret key.
+	PublicKey() SigningPublicKey
+}
+
+// SigningPublicKey is a public NaCl key that can verify
+// signatures.
+type SigningPublicKey interface {
+	KIDExtractor
+
+	// Verify verifies that signature is a valid signature of message for
+	// this public key.
+	Verify(message []byte, signature []byte) error
+}
+
+// Keyring is an interface used with decryption; it is called to
+// recover public or private keys during the decryption process.
+// Calls can block on network action.
 type Keyring interface {
 	// LookupBoxSecretKey looks in the Keyring for the secret key corresponding
 	// to one of the given Key IDs.  Returns the index and the key on success,
@@ -83,6 +107,13 @@ type Keyring interface {
 	ImportEphemeralKey(kid []byte) BoxPublicKey
 }
 
+// SigKeyring is an interface used during verification to find
+// the public key for the signer of a message.
+type SigKeyring interface {
+	// LookupSigningPublicKey returns a public signing key for the specified key ID.
+	LookupSigningPublicKey(kid []byte) SigningPublicKey
+}
+
 // SecretKeyEqual returns true if the two secret keys are equal.
 func SecretKeyEqual(sk1, sk2 BoxSecretKey) bool {
 	return PublicKeyEqual(sk1.GetPublicKey(), sk2.GetPublicKey())
@@ -90,5 +121,10 @@ func SecretKeyEqual(sk1, sk2 BoxSecretKey) bool {
 
 // PublicKeyEqual returns true if the two public keys are equal.
 func PublicKeyEqual(pk1, pk2 BoxPublicKey) bool {
-	return hmac.Equal(pk1.ToKID(), pk2.ToKID())
+	return KIDEqual(pk1, pk2)
+}
+
+// KIDEqual return true if the KIDs for two keys are equal.
+func KIDEqual(k1, k2 KIDExtractor) bool {
+	return hmac.Equal(k1.ToKID(), k2.ToKID())
 }

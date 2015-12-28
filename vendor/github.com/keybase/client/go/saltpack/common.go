@@ -6,6 +6,10 @@ package saltpack
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/sha512"
+	"encoding/binary"
+	"io"
+
 	"github.com/ugorji/go/codec"
 	"golang.org/x/crypto/poly1305"
 )
@@ -43,5 +47,46 @@ func hashNonceAndAuthTag(nonce *Nonce, ciphertext []byte) []byte {
 	var buf bytes.Buffer
 	buf.Write((*nonce)[:])
 	buf.Write(ciphertext[0:poly1305.TagSize])
+	return buf.Bytes()
+}
+
+func writeNullTerminatedString(w io.Writer, s string) {
+	w.Write([]byte(s))
+	w.Write([]byte{0})
+}
+
+func assertEndOfStream(stream *msgpackStream) error {
+	var i interface{}
+	_, err := stream.Read(&i)
+	if err == nil {
+		err = ErrTrailingGarbage
+	}
+	return err
+}
+
+func computeAttachedDigest(nonce []byte, block *SignatureBlock) []byte {
+	hasher := sha512.New()
+	hasher.Write(nonce)
+	binary.Write(hasher, binary.BigEndian, block.seqno)
+	hasher.Write(block.PayloadChunk)
+
+	var buf bytes.Buffer
+	writeNullTerminatedString(&buf, SaltPackFormatName)
+	writeNullTerminatedString(&buf, SignatureAttachedString)
+	buf.Write(hasher.Sum(nil))
+
+	return buf.Bytes()
+}
+
+func computeDetachedDigest(nonce []byte, plaintext []byte) []byte {
+	hasher := sha512.New()
+	hasher.Write(nonce)
+	hasher.Write(plaintext)
+
+	var buf bytes.Buffer
+	writeNullTerminatedString(&buf, SaltPackFormatName)
+	writeNullTerminatedString(&buf, SignatureDetachedString)
+	buf.Write(hasher.Sum(nil))
+
 	return buf.Bytes()
 }

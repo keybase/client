@@ -6,23 +6,17 @@ package saltpack
 import (
 	"bytes"
 	"crypto/hmac"
-	"golang.org/x/crypto/nacl/secretbox"
 	"io"
 	"io/ioutil"
-)
 
-type decryptState int
-
-const (
-	stateBody        decryptState = iota
-	stateEndOfStream decryptState = iota
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 type decryptStream struct {
 	ring       Keyring
-	fmps       *framedMsgpackStream
+	mps        *msgpackStream
 	err        error
-	state      decryptState
+	state      readState
 	keys       *receiverKeysPlaintext
 	sessionKey SymmetricKey
 	buf        []byte
@@ -88,7 +82,7 @@ func (ds *decryptStream) read(b []byte) (n int, err error) {
 	}
 
 	if ds.state == stateEndOfStream {
-		ds.err = ds.assertEndOfStream()
+		ds.err = assertEndOfStream(ds.mps)
 		if ds.err != nil {
 			return 0, ds.err
 		}
@@ -99,18 +93,23 @@ func (ds *decryptStream) read(b []byte) (n int, err error) {
 
 func (ds *decryptStream) readHeader() error {
 	var hdr EncryptionHeader
-	seqno, err := ds.fmps.Read(&hdr)
+	seqno, err := ds.mps.Read(&hdr)
 	if err != nil {
 		return err
 	}
 	hdr.seqno = seqno
-	return ds.processEncryptionHeader(&hdr)
+	err = ds.processEncryptionHeader(&hdr)
+	if err != nil {
+		return err
+	}
+	ds.state = stateBody
+	return nil
 }
 
 func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) {
 	var eb EncryptionBlock
 	var seqno PacketSeqno
-	seqno, err = ds.fmps.Read(&eb)
+	seqno, err = ds.mps.Read(&eb)
 	if err != nil {
 		return 0, false, err
 	}
@@ -130,15 +129,6 @@ func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) 
 	ds.buf = plaintext[n:]
 
 	return n, false, err
-}
-
-func (ds *decryptStream) assertEndOfStream() error {
-	var i interface{}
-	_, err := ds.fmps.Read(&i)
-	if err == nil {
-		err = ErrTrailingGarbage
-	}
-	return err
 }
 
 func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, BoxPrecomputedSharedKey, []byte, int, error) {
@@ -300,7 +290,7 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 func NewDecryptStream(r io.Reader, keyring Keyring) (mki *MessageKeyInfo, plaintext io.Reader, err error) {
 	ds := &decryptStream{
 		ring: keyring,
-		fmps: newFramedMsgpackStream(r),
+		mps:  newMsgpackStream(r),
 	}
 
 	err = ds.readHeader()

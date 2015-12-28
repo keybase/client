@@ -3,7 +3,7 @@
 
 package saltpack
 
-import ()
+import "fmt"
 
 type receiverKeysPlaintext struct {
 	_struct    bool   `codec:",toarray"`
@@ -37,7 +37,7 @@ type EncryptionHeader struct {
 	seqno      PacketSeqno
 }
 
-// EncryptionBlock contains a block of encrypted data. It cointains
+// EncryptionBlock contains a block of encrypted data. It contains
 // the ciphertext, and any necessary authentication Tags.
 type EncryptionBlock struct {
 	_struct           bool     `codec:",toarray"`
@@ -61,4 +61,67 @@ func (h *EncryptionHeader) validate() error {
 		return ErrBadVersion{h.seqno, h.Version}
 	}
 	return nil
+}
+
+// SignatureHeader is the first packet in a signed message.
+type SignatureHeader struct {
+	_struct      bool        `codec:",toarray"`
+	FormatName   string      `codec:"format_name"`
+	Version      Version     `codec:"vers"`
+	Type         MessageType `codec:"type"`
+	SenderPublic []byte      `codec:"sender_public"`
+	Nonce        []byte      `codec:"nonce"`
+	Signature    []byte      `codec:"signature,omitempty"`
+	seqno        PacketSeqno
+}
+
+func newSignatureHeader(sender SigningPublicKey, msgType MessageType) (*SignatureHeader, error) {
+	nonce, err := NewSigNonce()
+	if err != nil {
+		return nil, err
+	}
+
+	header := &SignatureHeader{
+		FormatName:   SaltPackFormatName,
+		Version:      SaltPackCurrentVersion,
+		Type:         msgType,
+		SenderPublic: sender.ToKID(),
+		Nonce:        nonce[:],
+	}
+
+	return header, nil
+}
+
+func (h *SignatureHeader) validate(msgType MessageType) error {
+	if h.Type != msgType {
+		return ErrWrongMessageType{
+			wanted:   msgType,
+			received: h.Type,
+		}
+	}
+	if h.Version.Major != SaltPackCurrentVersion.Major {
+		return ErrBadVersion{h.seqno, h.Version}
+	}
+
+	if msgType == MessageTypeAttachedSignature {
+		if len(h.Signature) != 0 {
+			return ErrDetachedSignaturePresent
+		}
+	} else if msgType == MessageTypeDetachedSignature {
+		if len(h.Signature) == 0 {
+			return ErrNoDetachedSignature
+		}
+	} else {
+		return ErrInvalidParameter{message: fmt.Sprintf("signature header must be MessageTypeAttachedSignature or MessageTypeDetachedSignature, not %d", msgType)}
+	}
+
+	return nil
+}
+
+// SignatureBlock contains a block of signed data.
+type SignatureBlock struct {
+	_struct      bool   `codec:",toarray"`
+	Signature    []byte `codec:"signature"`
+	PayloadChunk []byte `codec:"payload_chunk"`
+	seqno        PacketSeqno
 }
