@@ -147,12 +147,15 @@ func computeEtag(path string) (string, error) {
 	return hex.EncodeToString(hash.Sum(result)), nil
 }
 
-func (u *Updater) pathForFilename(filename string) string {
-	return filepath.Join(os.TempDir(), "KeybaseUpdates", filename)
-}
-
 func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool, err error) {
 	url, err := url.Parse(asset.Url)
+	if err != nil {
+		return
+	}
+
+	filename := asset.Name
+	fpath = pathForUpdaterFilename(filename)
+	err = libkb.MakeParentDirs(fpath)
 	if err != nil {
 		return
 	}
@@ -160,17 +163,17 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 	if url.Scheme == "file" {
 		// This is only used for testing, where "file://" is hardcoded.
 		// "file:\\" doesn't work on Windows here.
-		fpath = asset.Url[7:]
+		localpath := asset.Url[7:]
+
+		err = copyFile(localpath, fpath)
+		if err != nil {
+			return
+		}
+
 		u.log.Info("Using local path: %s", fpath)
 		return
 	}
 
-	filename := asset.Name
-	fpath = u.pathForFilename(filename)
-	err = libkb.MakeParentDirs(fpath)
-	if err != nil {
-		return
-	}
 	etag := ""
 	if _, err = os.Stat(fpath); err == nil {
 		etag, err = computeEtag(fpath)
@@ -242,14 +245,14 @@ func (u *Updater) unpack(filename string) (string, error) {
 		return filename, nil
 	}
 
-	unzipDest := fmt.Sprintf("%s.unzipped", filename)
-	u.log.Info("Unzipping %q -> %q", filename, unzipDest)
-	err := zip.Unzip(filename, unzipDest)
+	unzipDestination := unzipDestination(filename)
+	u.log.Info("Unzipping %q -> %q", filename, unzipDestination)
+	err := zip.Unzip(filename, unzipDestination)
 	if err != nil {
 		return "", err
 	}
 
-	return unzipDest, nil
+	return unzipDestination, nil
 }
 
 func (u *Updater) checkUpdate(sourcePath string, destinationPath string) error {
@@ -278,31 +281,28 @@ func (u *Updater) checkUpdate(sourcePath string, destinationPath string) error {
 	return u.checkPlatformSpecificUpdate(sourcePath, destinationPath)
 }
 
-func (u *Updater) apply(src string, dest string) error {
-	if _, err := os.Stat(dest); err == nil {
-		tmpFileName, err := libkb.TempFileName(fmt.Sprintf("%s.", filepath.Base(dest)))
-		if err != nil {
-			return err
+func (u *Updater) apply(src string, dest string) (tmpPath string, err error) {
+	if _, sterr := os.Stat(dest); sterr == nil {
+		tmpFileName, terr := libkb.TempFileName(fmt.Sprintf("%s.", filepath.Base(dest)))
+		if terr != nil {
+			err = terr
+			return
 		}
-		tmpPath := filepath.Join(os.TempDir(), "KeybaseBackup", tmpFileName)
+		tmpPath = filepath.Join(backupDir(), tmpFileName)
 		err = libkb.MakeParentDirs(tmpPath)
 		if err != nil {
-			return err
+			return
 		}
 		u.log.Info("Moving (existing) %s to %s", dest, tmpPath)
 		err = os.Rename(dest, tmpPath)
 		if err != nil {
-			return err
+			return
 		}
 	}
 
 	u.log.Info("Moving (update) %s to %s", src, dest)
-	err := os.Rename(src, dest)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	err = os.Rename(src, dest)
+	return
 }
 
 // Update checks, downloads and performs an update.
@@ -316,12 +316,15 @@ func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (update 
 		return
 	}
 
-	err = u.ApplyUpdate(ui, *update, force)
+	tmpFileName, err := u.ApplyUpdate(ui, *update, force)
 	if err != nil {
 		return
 	}
 
 	_, err = u.Restart(ui)
+
+	u.cleanup([]string{unzipDestination(update.Asset.LocalPath), update.Asset.LocalPath, tmpFileName})
+
 	return
 }
 
@@ -366,7 +369,7 @@ func (u *Updater) PromptForUpdateAction(ui libkb.UpdateUI, update keybase1.Updat
 	return
 }
 
-func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update, force bool) (err error) {
+func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update, force bool) (tmpPath string, err error) {
 	if u.options.Force {
 		force = true
 	}
@@ -394,7 +397,7 @@ func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update, force b
 		return
 	}
 
-	err = u.apply(sourcePath, u.options.DestinationPath)
+	tmpPath, err = u.apply(sourcePath, u.options.DestinationPath)
 	if err != nil {
 		return
 	}
@@ -446,4 +449,48 @@ func (u *Updater) Restart(ui libkb.UpdateUI) (didQuit bool, err error) {
 	}
 
 	return
+}
+
+func (u *Updater) cleanup(files []string) {
+	u.log.Debug("Cleaning up after update")
+	for _, f := range files {
+		u.log.Debug("Removing %s", f)
+		if f != "" {
+			err := os.RemoveAll(f)
+			if err != nil {
+				u.log.Warning("Error trying to remove file (cleaning up after update): %s", err)
+			}
+		}
+	}
+}
+
+func pathForUpdaterFilename(filename string) string {
+	return filepath.Join(os.TempDir(), "KeybaseUpdates", filename)
+}
+
+func backupDir() string {
+	return filepath.Join(os.TempDir(), "KeybaseBackup")
+}
+
+func unzipDestination(filename string) string {
+	return fmt.Sprintf("%s.unzipped", filename)
+}
+
+func copyFile(sourcePath string, destinationPath string) error {
+	in, err := os.Open(sourcePath)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.Create(destinationPath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	cerr := out.Close()
+	if err != nil {
+		return err
+	}
+	return cerr
 }
