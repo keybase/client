@@ -5,7 +5,11 @@
 
 package libkb
 
-import keychain "github.com/keybase/go-keychain"
+import (
+	"encoding/base64"
+
+	keychain "github.com/keybase/go-keychain"
+)
 
 type KeychainSecretStore struct {
 	Contextified
@@ -19,7 +23,8 @@ func (k KeychainSecretStore) getServiceName() string {
 }
 
 func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
-	item := keychain.NewGenericPassword(k.getServiceName(), k.accountName, "", secret, "")
+	encodedSecret := base64.StdEncoding.EncodeToString(secret)
+	item := keychain.NewGenericPassword(k.getServiceName(), k.accountName, "", []byte(encodedSecret), "")
 	item.SetSynchronizable(keychain.SynchronizableNo)
 	item.SetAccessible(keychain.AccessibleAfterFirstUnlockThisDeviceOnly)
 	// TODO: Since we access keychain item in launchd service (background), it's
@@ -31,7 +36,17 @@ func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
 }
 
 func (k KeychainSecretStore) RetrieveSecret() ([]byte, error) {
-	return keychain.GetGenericPassword(k.getServiceName(), k.accountName, "", "")
+	encodedSecret, err := keychain.GetGenericPassword(k.getServiceName(), k.accountName, "", "")
+	if err != nil {
+		return nil, err
+	}
+
+	secret, err := base64.StdEncoding.DecodeString(string(encodedSecret))
+	if err != nil {
+		return nil, err
+	}
+
+	return secret, nil
 }
 
 func (k KeychainSecretStore) ClearSecret() (err error) {
