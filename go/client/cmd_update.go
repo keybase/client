@@ -8,10 +8,10 @@ import (
 	"runtime"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/updater"
 	"github.com/keybase/client/go/updater/sources"
 	"github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
@@ -134,7 +134,7 @@ type CmdUpdateCustom struct {
 func NewCmdUpdateCustomRunner(g *libkb.GlobalContext) *CmdUpdateCustom {
 	return &CmdUpdateCustom{
 		Contextified: libkb.NewContextified(g),
-		options:      updater.DefaultUpdaterOptions(g),
+		options:      engine.DefaultUpdaterOptions(g),
 	}
 }
 

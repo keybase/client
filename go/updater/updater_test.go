@@ -11,17 +11,13 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
 
-func NewTestUpdater(t *testing.T, config keybase1.UpdateOptions) Updater {
-	context := libkb.NewGlobalContext()
-	context.Init()
-	context.Log = logger.NewTestLogger(t)
-	return NewUpdater(context, config, testUpdateSource{})
+func NewTestUpdater(t *testing.T, options keybase1.UpdateOptions) Updater {
+	return NewUpdater(options, testUpdateSource{}, testConfig{}, logger.NewTestLogger(t))
 }
 
 type testUpdateSource struct{}
@@ -54,6 +50,32 @@ func (u testUpdateSource) FindUpdate(config keybase1.UpdateOptions) (release *ke
 			Name: "Test-1.0.1.zip",
 			Url:  fmt.Sprintf("file://%s", path),
 		}}, nil
+}
+
+type testConfig struct{}
+
+func (c testConfig) GetUpdatePreferenceAuto() bool {
+	return false
+}
+
+func (c testConfig) GetUpdatePreferenceSnoozeUntil() keybase1.Time {
+	return keybase1.Time(0)
+}
+
+func (c testConfig) GetUpdatePreferenceSkip() string {
+	return ""
+}
+
+func (c testConfig) SetUpdatePreferenceAuto(b bool) error {
+	panic("Unsupported")
+}
+
+func (c testConfig) SetUpdatePreferenceSkip(v string) error {
+	panic("Unsupported")
+}
+
+func (c testConfig) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
+	panic("Unsupported")
 }
 
 func NewDefaultTestUpdateConfig() keybase1.UpdateOptions {
