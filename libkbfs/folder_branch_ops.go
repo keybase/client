@@ -2935,6 +2935,8 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context, file path) (
 		// Unfortunately the parent pointer in the path is probably
 		// wrong now, so we have to iterate through the decache to
 		// find the entry to remove.
+		fbo.cacheLock.Lock()
+		defer fbo.cacheLock.Unlock()
 		for parentPtr, deMap := range fbo.deCache {
 			for filePtr := range deMap {
 				if filePtr == file.tailPointer() {

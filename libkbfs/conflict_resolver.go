@@ -1429,7 +1429,6 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 	unmergedChains *crChains, mergedChains *crChains) error {
 	for _, unmergedChain := range unmergedChains.byMostRecent {
-		original := unmergedChain.original
 		// First check for nodes that have been deleted in the unmerged
 		// branch, but modified in the merged branch, and drop those
 		// unmerged operations.
@@ -1465,7 +1464,7 @@ func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 					ro.dropThis = true
 					// Need to prepend a create here to the merged parent,
 					// in order catch any conflicts.
-					parentOriginal := original
+					parentOriginal := unmergedChain.original
 					name := ro.OldName
 					if newParent, newName, ok :=
 						mergedChains.renamedParentAndName(unrefOriginal); ok {
