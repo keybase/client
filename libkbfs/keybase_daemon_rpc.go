@@ -290,8 +290,6 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 	if err != nil {
 		return SessionInfo{}, err
 	}
-	k.log.CDebugf(ctx, "got device subkey %s",
-		deviceSubkey.GetKID().ToShortIDString())
 	cryptPublicKey := CryptPublicKey{deviceSubkey.GetKID()}
 	verifyingKey := VerifyingKey{deviceSibkey.GetKID()}
 	s := SessionInfo{
@@ -300,6 +298,10 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 		CryptPublicKey: cryptPublicKey,
 		VerifyingKey:   verifyingKey,
 	}
+
+	k.log.CDebugf(
+		ctx, "new session with uid %s, crypt public key %s, and verifying key %s",
+		s.UID, s.CryptPublicKey, s.VerifyingKey)
 
 	k.setCachedCurrentSession(s)
 

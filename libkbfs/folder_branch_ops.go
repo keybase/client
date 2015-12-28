@@ -3061,7 +3061,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context, file path) (
 		for i, ptr := range fblock.IPtrs {
 			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
-				return true, &InconsistentEncodedSizeError{ptr.BlockInfo}
+				return true, InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
 				_, _, _, block, _, _, err := fbo.getFileBlockAtOffsetLocked(
@@ -3245,13 +3245,13 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 		return
 	}
 
-	fbo.writerLock.Lock()
-	defer fbo.writerLock.Unlock()
 	filePath, err := fbo.pathFromNode(file)
 	if err != nil {
 		return err
 	}
 
+	fbo.writerLock.Lock()
+	defer fbo.writerLock.Unlock()
 	stillDirty, err := fbo.syncLocked(ctx, filePath)
 	if err != nil {
 		return err
@@ -4243,8 +4243,9 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 					if err != nil {
 						// Just log the warning and keep trying to
 						// sync the rest of the dirty files.
-						fbo.log.CWarningf(ctx, "Couldn't sync dirty file %v",
-							ptr)
+						p := fbo.nodeCache.PathFromNode(node)
+						fbo.log.CWarningf(ctx, "Couldn't sync dirty file with ptr=%v, nodeID=%v, and path=%v: %v",
+							ptr, node.GetID(), p, err)
 					}
 				}
 				return nil
