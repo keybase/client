@@ -50,9 +50,9 @@ func NewContextWithOpID(ctx context.Context,
 	return context.WithValue(ctx, CtxIDKey, id)
 }
 
-// deToStat converts from a libkbfs.Direntry and error to a *dokan.Stat and error.
+// eiToStat converts from a libkbfs.EntryInfo and error to a *dokan.Stat and error.
 // Note that handling symlinks to directories requires extra processing not done here.
-func deToStat(ei libkbfs.EntryInfo, err error) (*dokan.Stat, error) {
+func eiToStat(ei libkbfs.EntryInfo, err error) (*dokan.Stat, error) {
 	if err != nil {
 		return nil, errToDokan(err)
 	}

@@ -34,7 +34,7 @@ func (f *File) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
 	f.folder.fs.log.CDebugf(ctx, "File GetFileInformation node=%v start", f.node)
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
-	a, err = deToStat(f.folder.fs.config.KBFSOps().Stat(ctx, f.node))
+	a, err = eiToStat(f.folder.fs.config.KBFSOps().Stat(ctx, f.node))
 	if a != nil {
 		f.folder.fs.log.CDebugf(ctx, "File GetFileInformation node=%v => %v", f.node, *a)
 	} else {

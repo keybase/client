@@ -97,7 +97,7 @@ func (d *Dir) GetFileInformation(*dokan.FileInfo) (st *dokan.Stat, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir GetFileInformation")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
-	return deToStat(d.folder.fs.config.KBFSOps().Stat(ctx, d.node))
+	return eiToStat(d.folder.fs.config.KBFSOps().Stat(ctx, d.node))
 }
 
 // isNoSuchNameError checks for libkbfs.NoSuchNameError.
