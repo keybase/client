@@ -1,6 +1,9 @@
 # SaltPack Binary Encryption Format
 
 **Changelog**
+- 29 Dec 2015
+  - We had incorrectly assumed it was hard for other recipients to find a
+    Poly1305 collision. Use a hash instead, where we need preimage resistance.
 - 16 Dec 2015
   - Unify the sender box and the key box into a single "recipient box".
 - 15 Dec 2015
@@ -125,7 +128,7 @@ sender key are the same, clients may indicate that a message is "intentionally
 anonymous" as opposed to "from an unknown sender".
 
 When decrypting, clients should compute the ephemeral shared secret and then
-try to open each of the sender boxes. In the NaCl interface, computing the
+try to open each of the recipient boxes. In the NaCl interface, computing the
 shared secret is done with the
 [`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html) function. (This does a
 Curve25519 multiplication and an HSalsa20 key derivation.)
@@ -135,55 +138,64 @@ A payload packet is a MessagePack list with these contents:
 
 ```
 [
-    tag_boxes,
+    hash_authenticators,
     payload_secretbox,
 ]
 ```
 
-- **tag_boxes** is a list of NaCl boxes, one for each recipient. They contain
-  the 16-byte authenticator for the following **payload_secretbox**. They're
-  encrypted with the recipient's public key and the sender's long-term private
-  key. See [Nonces](#nonces) below.
+- **hash_authenticators** is a list of 16-byte Poly1305 tags, one for each
+  recipient, which authenticate the hash of the **payload_secretbox**.
 - **payload_secretbox** is a NaCl secretbox containing a chunk of the plaintext
-  bytes, max size 1 MB. It's encrypted with the symmetric message key. The
-  first 16 bytes (the Poly1305 authenticator) are stripped off. Again see
+  bytes, max size 1 MB. It's encrypted with the symmetric message key. See
   [Nonces](#nonces) below.
 
-The purpose of the **tag_boxes** is to prevent recipients from reusing the
-header packet and the symmetric message key to forge new messages that appear
-to be from the same sender to other recipients. (Recipients can forge messages
-that appear to be sent to them only, not messages that appear to be sent to
-anyone else.) To open a **payload_secretbox**, recipients must first open their
-corresponding tag box, which proves that the packet was written by the original
-sender, before prepending the tag to secretbox and opening that. Stripping the
-tag from the secretbox is a safety measure, to prevent implementations from
-skipping this verification step.
+We compute the authenticators in three steps:
+
+- Compute the SHA512 of the **payload_secretbox**.
+- For each recipient, put that hash in a NaCl box, using the sender and
+  recipient's long-term keys. See [Nonces](#nonces) below.
+- Take the first 16 bytes of each box, which hold the Poly1305 tag.
+
+The purpose of the **hash_authenticators** is to prevent recipients from
+reusing the header packet and the symmetric message key to forge new messages
+that appear to be from the same sender to other recipients. (Recipients should
+be able to forge messages that appear to be sent to them only, not messages
+that appear to be sent to anyone else.) Before opening the
+**payload_secretbox**, recipients must compute the authenticator and verify
+that it matches what's in the **hash_authenticators** list.
+
+Using NaCl's [`crypto_box`](http://nacl.cr.yp.to/box.html) to compute the
+authenticators takes more time than using
+[`crypto_onetime_auth`](http://nacl.cr.yp.to/onetimeauth.html) directly.
+Likewise, using [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) to
+encrypt the payload takes more time and 16 bytes more space than using
+[`crypto_stream_xor`](http://nacl.cr.yp.to/stream.html) directly. Nonetheless,
+we prefer box and secretbox for ease of implementation. Many languages have
+NaCl implementations that don't expose lower-level functions.
 
 ### Nonces
 
-The sender boxes, key boxes, and tag boxes are all encrypted with long-term
-keys, so it's important that they never reuse nonces. We use a pseudorandom
-prefix to avoid this. Define the nonce prefix `P` to be the first 16 bytes of
-the SHA512 of the concatenation of these values:
+We use a pseudorandom prefix to avoid nonce reuse. Define the nonce prefix `P`
+to be the first 16 bytes of the SHA512 of the concatenation of these values:
 - `"SaltPack\0"` (`\0` is a [null
   byte](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html))
 - `"encryption nonce prefix\0"`
 - the 32-byte **ephemeral_public** key
 
 The nonce for each box is the concatenation of `P` and a 64-bit big-endian
-unsigned counter. For each **sender_box** the counter is 0. For each
-**key_box** the counter is 1. For each payload packet we then increment the
-counter, so the first set of **tag_boxes** is 2, the next is 3, and so on. For
-each **payload_secretbox**, the nonce is the same as for the associated
-**tag_boxes**. The strict ordering of nonces should make it impossible to drop
-or reorder any payload packets.
+unsigned counter. For each **recipient_box** the counter is 0. For each payload
+packet we then increment the counter, so the first set of
+**hash_authenticators** is 1, the next is 2, and so on. For each
+**payload_secretbox**, the nonce is the same as for the associated
+**hash_authenticators**. The strict ordering of nonces should make it
+impossible to drop or reorder any payload packets.
 
 We might be concerned about reusing the same nonce for each recipient here. For
 example, a recipient key could show up more than once in the recipients list.
-However, note that all the sender boxes encrypt the same sender, all the key
-boxes encrypt the same key, and all the tag boxes in a given payload packet
-encrypt the same tag. So if the same recipient shows up twice, we'll produce
-exactly the same boxes for them the second time.
+However, note that all the recipient boxes contain the same keys, and all the
+authenticator boxes in a given payload packet contain the same hash. So if the
+same recipient shows up twice, we'll produce identical boxes for them the
+second time.
 
 Besides avoiding nonce reuse, we also want to prevent abuse of the decryption
 key. Alice might use Bob's public key to encrypt many kinds of messages,
@@ -230,25 +242,25 @@ place of `"SaltPack\0"`.
 
 # payload packet
 [
-  # tag boxes
+  # hash authenticators
   [
-    # the first recipient's tag box
-    60e3MFjj9yd4IF23eLXaWk5Vfk3+YkjQdDU/zNu3M7A=,
-    # subsequent tag boxes...
+    # the first recipient's authenticator
+    Kf7jX3b41HUsMkBPPwITsw==,
+    # subsequent authenticators...
   ],
-  # payload secretbox, with the tag stripped
+  # payload secretbox
   kEzDRKm2P6hB/U7+cnPco2AI+CiCI6+VDEZx1JVoPLtKY3pN2Ncr,
 ]
 
 # empty payload packet
 [
-  # tag boxes
+  # hash authenticators
   [
-    # the first recipient's tag box
-    MD8+n5xxYKbt/z0DlmjQHRvt9k0TYjpJXDzr+azv1cc=,
-    # subsequent tag boxes...
+    # the first recipient's authenticator
+    scFuUduo1tFLbWajQOXTzw==,
+    # subsequent authenticators...
   ],
-  # the empty stripped payload secretbox (a zero-length byte string)
-  "",
+  # the empty payload secretbox
+  tuyQFSrWggxxAG044yUkWA==,
 ]
 ```
