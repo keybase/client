@@ -111,8 +111,12 @@ func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
 
 func createTestUpdateZip() (string, error) {
 	path := filepath.Join(os.TempDir(), "Test.zip")
-	if _, err := os.Stat("/path/to/whatever"); err == nil {
-		return path, nil
+	// Clear if exists
+	if _, err := os.Stat(path); err == nil {
+		err := os.Remove(path)
+		if err != nil {
+			return "", err
+		}
 	}
 	zipFile, err := os.Create(path)
 	if err != nil {
