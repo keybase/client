@@ -64,7 +64,7 @@ func KeybaseFuseStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.Fu
 	st.Version = kextInfo.Version
 	st.KextStarted = kextInfo.Started
 
-	installStatus, installAction, status := install.Status(st.Version, st.BundleVersion, "")
+	installStatus, installAction, status := install.ResolveInstallStatus(st.Version, st.BundleVersion, "")
 	st.InstallStatus = installStatus
 	st.InstallAction = installAction
 	st.Status = status

@@ -10,13 +10,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/mounter"
@@ -32,118 +29,78 @@ const (
 	AppKBFSLabel     ServiceLabel = "keybase.kbfs"
 )
 
-func KeybaseServiceStatus(g *libkb.GlobalContext, label string) keybase1.ServiceStatus {
+func KeybaseServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.ServiceStatus) {
 	if label == "" {
 		label = defaultServiceLabel(g.Env.GetRunMode())
 	}
 	kbService := launchd.NewService(label)
 
-	st, done := serviceStatusFromLaunchd(kbService, path.Join(g.Env.GetRuntimeDir(), "keybased.info"))
-	st.BundleVersion = libkb.VersionString()
-	if done {
-		return st
+	status, err := serviceStatusFromLaunchd(kbService, path.Join(g.Env.GetRuntimeDir(), "keybased.info"))
+	status.BundleVersion = libkb.VersionString()
+	if err != nil {
+		return
+	}
+	if status.InstallStatus == keybase1.InstallStatus_NOT_INSTALLED {
+		return
 	}
 
-	installStatus, installAction, status := Status(st.Version, st.BundleVersion, st.LastExitStatus)
-	st.InstallStatus = installStatus
-	st.InstallAction = installAction
-	st.Status = status
-	return st
+	installStatus, installAction, kbStatus := ResolveInstallStatus(status.Version, status.BundleVersion, status.LastExitStatus)
+	status.InstallStatus = installStatus
+	status.InstallAction = installAction
+	status.Status = kbStatus
+	return
 }
 
-func KBFSServiceStatus(g *libkb.GlobalContext, label string) keybase1.ServiceStatus {
+func KBFSServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.ServiceStatus) {
 	if label == "" {
 		label = defaultKBFSLabel(g.Env.GetRunMode())
 	}
 	kbfsService := launchd.NewService(label)
 
-	st, done := serviceStatusFromLaunchd(kbfsService, path.Join(g.Env.GetRuntimeDir(), "kbfs.info"))
+	status, err := serviceStatusFromLaunchd(kbfsService, path.Join(g.Env.GetRuntimeDir(), "kbfs.info"))
+	if err != nil {
+		return
+	}
 	bundleVersion, err := kbfsBundleVersion(g, "")
 	if err != nil {
-		st.Status = errorStatus("STATUS_ERROR", err.Error())
-		return st
+		status.Status = errorStatus("STATUS_ERROR", err.Error())
+		return
 	}
-	st.BundleVersion = bundleVersion
-	if done {
-		return st
+	status.BundleVersion = bundleVersion
+	if status.InstallStatus == keybase1.InstallStatus_NOT_INSTALLED {
+		return
 	}
 
-	installStatus, installAction, status := Status(st.Version, st.BundleVersion, st.LastExitStatus)
-	st.InstallStatus = installStatus
-	st.InstallAction = installAction
-	st.Status = status
-	return st
+	installStatus, installAction, kbStatus := ResolveInstallStatus(status.Version, status.BundleVersion, status.LastExitStatus)
+	status.InstallStatus = installStatus
+	status.InstallAction = installAction
+	status.Status = kbStatus
+	return
 }
 
-func errorStatus(name string, desc string) keybase1.Status {
-	return keybase1.Status{Code: libkb.SCGeneric, Name: name, Desc: desc}
-}
-
-func Status(version string, bundleVersion string, lastExitStatus string) (keybase1.InstallStatus, keybase1.InstallAction, keybase1.Status) {
-	installStatus := keybase1.InstallStatus_UNKNOWN
-	installAction := keybase1.InstallAction_UNKNOWN
-	if version != "" && bundleVersion != "" {
-		sv, err := semver.Make(version)
-		if err != nil {
-			return keybase1.InstallStatus_ERROR,
-				keybase1.InstallAction_REINSTALL,
-				errorStatus("INSTALL_ERROR", err.Error())
-		}
-		bsv, err := semver.Make(bundleVersion)
-		// Invalid bundle bersion
-		if err != nil {
-			return keybase1.InstallStatus_ERROR,
-				keybase1.InstallAction_NONE,
-				errorStatus("INSTALL_ERROR", err.Error())
-		}
-		if bsv.GT(sv) {
-			installStatus = keybase1.InstallStatus_INSTALLED
-			installAction = keybase1.InstallAction_UPGRADE
-		} else if bsv.EQ(sv) {
-			installStatus = keybase1.InstallStatus_INSTALLED
-			installAction = keybase1.InstallAction_NONE
-		} else if bsv.LT(sv) {
-			return keybase1.InstallStatus_ERROR,
-				keybase1.InstallAction_NONE,
-				errorStatus("INSTALL_ERROR", fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version))
-		}
-	} else if version != "" && bundleVersion == "" {
-		installStatus = keybase1.InstallStatus_INSTALLED
-	} else if version == "" && bundleVersion != "" {
-		installStatus = keybase1.InstallStatus_NOT_INSTALLED
-		installAction = keybase1.InstallAction_INSTALL
-	}
-
-	// If we have an unknown install status, then let's try to re-install.
-	if bundleVersion != "" && installStatus == keybase1.InstallStatus_UNKNOWN && (version != "" || lastExitStatus != "") {
-		installAction = keybase1.InstallAction_REINSTALL
-		installStatus = keybase1.InstallStatus_INSTALLED
-	}
-
-	return installStatus, installAction, keybase1.Status{Name: "OK"}
-}
-
-func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (keybase1.ServiceStatus, bool) {
-	status := keybase1.ServiceStatus{
+func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (status keybase1.ServiceStatus, err error) {
+	status = keybase1.ServiceStatus{
 		Label: ls.Label(),
 	}
 
-	st, err := ls.LoadStatus()
+	launchdStatus, err := ls.LoadStatus()
 	if err != nil {
+		status.InstallStatus = keybase1.InstallStatus_ERROR
+		status.InstallAction = keybase1.InstallAction_NONE
 		status.Status = errorStatus("LAUNCHD_ERROR", err.Error())
-		return status, true
+		return
 	}
 
-	if st == nil {
+	if launchdStatus == nil {
 		status.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
 		status.InstallAction = keybase1.InstallAction_INSTALL
 		status.Status = keybase1.Status{Name: "OK"}
-		return status, true
+		return
 	}
 
-	status.Label = st.Label()
-	status.Pid = st.Pid()
-	status.LastExitStatus = st.LastExitStatus()
+	status.Label = launchdStatus.Label()
+	status.Pid = launchdStatus.Pid()
+	status.LastExitStatus = launchdStatus.LastExitStatus()
 
 	// Check service info file (if present) and if the service is running (has a PID)
 	var serviceInfo *libkb.ServiceInfo
@@ -154,7 +111,7 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (keybase1.Ser
 				status.InstallStatus = keybase1.InstallStatus_ERROR
 				status.InstallAction = keybase1.InstallAction_REINSTALL
 				status.Status = errorStatus("LAUNCHD_ERROR", err.Error())
-				return status, true
+				return
 			}
 		}
 		if serviceInfo != nil {
@@ -165,20 +122,19 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (keybase1.Ser
 	if status.Pid == "" {
 		status.InstallStatus = keybase1.InstallStatus_ERROR
 		status.InstallAction = keybase1.InstallAction_REINSTALL
-		status.Status = errorStatus("LAUNCHD_ERROR", fmt.Sprintf("%s is not running", st.Label()))
-		return status, true
+		err = fmt.Errorf("%s is not running", status.Label)
+		status.Status = errorStatus("LAUNCHD_ERROR", err.Error())
+		return
 	}
 
-	return status, false
+	status.Status = keybase1.Status{Name: "OK"}
+	return
 }
 
 func serviceStatusesFromLaunchd(ls []launchd.Service) []keybase1.ServiceStatus {
 	c := []keybase1.ServiceStatus{}
 	for _, l := range ls {
-		s, done := serviceStatusFromLaunchd(l, "")
-		if !done {
-			s.Status = keybase1.Status{Name: "OK"}
-		}
+		s, _ := serviceStatusFromLaunchd(l, "")
 		c = append(c, s)
 	}
 	return c
@@ -234,10 +190,6 @@ func defaultKBFSLabel(runMode libkb.RunMode) string {
 	return AppKBFSLabel.labelForRunMode(runMode)
 }
 
-func serviceInfoPath(g *libkb.GlobalContext) string {
-	return path.Join(g.Env.GetRuntimeDir(), "keybased.info")
-}
-
 func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.ServiceStatus, error) {
 	label := defaultServiceLabel(g.Env.GetRunMode())
 	plistArgs := []string{"service"}
@@ -250,9 +202,8 @@ func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.Se
 	}
 
 	kbService := launchd.NewService(label)
-	st, _ := serviceStatusFromLaunchd(kbService, serviceInfoPath(g))
-
-	return &st, nil
+	st, err := serviceStatusFromLaunchd(kbService, serviceInfoPath(g))
+	return &st, err
 }
 
 // Uninstall keybase all services for this run mode.
@@ -260,21 +211,6 @@ func uninstallKeybaseServices(runMode libkb.RunMode) error {
 	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), ioutil.Discard)
 	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), ioutil.Discard)
 	return libkb.CombineErrors(err1, err2)
-}
-
-func kbfsBundleVersion(g *libkb.GlobalContext, binPath string) (string, error) {
-	runMode := g.Env.GetRunMode()
-	kbfsBinPath, err := kbfsBinPath(runMode, binPath)
-	if err != nil {
-		return "", err
-	}
-
-	kbfsVersionOutput, err := exec.Command(kbfsBinPath, "--version").Output()
-	if err != nil {
-		return "", err
-	}
-	kbfsVersion := strings.TrimSpace(string(kbfsVersionOutput))
-	return kbfsVersion, nil
 }
 
 func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.ServiceStatus, error) {
@@ -301,9 +237,8 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 	}
 
 	kbfsService := launchd.NewService(label)
-	st, _ := serviceStatusFromLaunchd(kbfsService, "")
-
-	return &st, nil
+	st, err := serviceStatusFromLaunchd(kbfsService, "")
+	return &st, err
 }
 
 func uninstallKBFSServices(runMode libkb.RunMode) error {
@@ -408,17 +343,6 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool) e
 	return nil
 }
 
-func createCommandLine(binPath string, linkPath string) error {
-	if _, err := os.Lstat(linkPath); err == nil {
-		err := os.Remove(linkPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	return os.Symlink(binPath, linkPath)
-}
-
 func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 	bp, err := chooseBinPath(binPath)
 	if err != nil {
@@ -499,20 +423,6 @@ func Uninstall(g *libkb.GlobalContext, components []string) []keybase1.Component
 	return status
 }
 
-func uninstallCommandLine(g *libkb.GlobalContext) error {
-	linkPath := filepath.Join("/usr/local/bin", binName())
-
-	fi, err := os.Lstat(linkPath)
-	if os.IsNotExist(err) {
-		return nil
-	}
-	isLink := (fi.Mode()&os.ModeSymlink != 0)
-	if !isLink {
-		return fmt.Errorf("Path is not a symlink: %s", linkPath)
-	}
-	return os.Remove(linkPath)
-}
-
 func uninstallService(g *libkb.GlobalContext) error {
 	return uninstallKeybaseServices(g.Env.GetRunMode())
 }
@@ -545,106 +455,6 @@ func uninstallKBFS(g *libkb.GlobalContext) error {
 		return fmt.Errorf("Mount has files after unmounting: %s", mountPath)
 	}
 	return trashDir(g, mountPath)
-}
-
-// We're only moving the folder in case something somehow managed to get at it
-// in between unmounting and checking if it had files.
-func trashDir(g *libkb.GlobalContext, dir string) error {
-	randString, err := libkb.RandString("Trash.", 20)
-	if err != nil {
-		return err
-	}
-	return os.Rename(dir, filepath.Join(g.Env.GetCacheDir(), randString))
-}
-
-func chooseBinPath(bp string) (string, error) {
-	if bp != "" {
-		return bp, nil
-	}
-	return binPath()
-}
-
-func brewPath(formula string) (string, error) {
-	// Get the homebrew install path prefix for this formula
-	prefixOutput, err := exec.Command("brew", "--prefix", formula).Output()
-	if err != nil {
-		return "", fmt.Errorf("Error checking brew path: %s", err)
-	}
-	prefix := strings.TrimSpace(string(prefixOutput))
-	return prefix, nil
-}
-
-func binPath() (string, error) {
-	if libkb.IsBrewBuild {
-		binName := binName()
-		prefix, err := brewPath(binName)
-		if err != nil {
-			return "", err
-		}
-		return filepath.Join(prefix, "bin", binName), nil
-	}
-
-	path := os.Args[0]
-	if !strings.HasPrefix(path, "/") {
-		return path, fmt.Errorf("We need to be run with an absolute path to this executable to determine its full path.")
-	}
-
-	return path, nil
-}
-
-func binName() string {
-	return filepath.Base(os.Args[0])
-}
-
-func kbfsBinPath(runMode libkb.RunMode, binPath string) (string, error) {
-	// If it's brew lookup path by formula name
-	kbfsBinName := kbfsBinName(runMode)
-	if libkb.IsBrewBuild {
-		prefix, err := brewPath(kbfsBinName)
-		if err != nil {
-			return "", err
-		}
-		return filepath.Join(prefix, "bin", kbfsBinName), nil
-	}
-
-	// Use the same directory as the binPath
-	path, err := chooseBinPath(binPath)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(filepath.Dir(path), kbfsBinName), nil
-}
-
-func kbfsBinName(runMode libkb.RunMode) string {
-	switch runMode {
-	case libkb.DevelRunMode:
-		return "kbfsdev"
-
-	case libkb.StagingRunMode:
-		return "kbfsstage"
-
-	case libkb.ProductionRunMode:
-		return "kbfs"
-
-	default:
-		panic("Invalid run mode")
-	}
-}
-
-func kbfsMountPath(runMode libkb.RunMode) string {
-	switch runMode {
-	case libkb.DevelRunMode:
-		return "/keybase.devel"
-
-	case libkb.StagingRunMode:
-		return "/keybase.staging"
-
-	case libkb.ProductionRunMode:
-		return "/keybase"
-
-	default:
-		panic("Invalid run mode")
-	}
 }
 
 func AutoInstallWithStatus(g *libkb.GlobalContext, binPath string, force bool) []keybase1.ComponentStatus {
