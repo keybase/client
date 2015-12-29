@@ -105,9 +105,10 @@ func NewWithCallDepth(module string, extraCallDepth int, iow io.Writer) *Standar
 }
 
 func (log *Standard) initLogging(iow io.Writer) {
-	// Logging is always done to stderr. It's the responsibility of the
-	// launcher (like launchd on OSX, or the autoforking code) to set up stderr
-	// to point to the appropriate log file.
+	// Logging is always done to the given io.Writer. It's the
+	// responsibility of the launcher (like launchd on OSX, or the
+	// autoforking code) to set it up to point to the appropriate
+	// log file.
 	initLoggingBackendOnce.Do(func() {
 		logBackend := logging.NewLogBackend(iow, "", 0)
 		logging.SetBackend(logBackend)
