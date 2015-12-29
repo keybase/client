@@ -45,3 +45,9 @@ func (t emptyFile) LockFile(fi *dokan.FileInfo, offset int64, length int64) erro
 func (t emptyFile) UnlockFile(fi *dokan.FileInfo, offset int64, length int64) error {
 	return dokan.ErrNotSupported
 }
+func (t emptyFile) CanDeleteFile(*dokan.FileInfo) error {
+	return nil
+}
+func (t emptyFile) CanDeleteDirectory(*dokan.FileInfo) error {
+	return nil
+}

@@ -15,7 +15,8 @@ import (
 	"errors"
 )
 
-func Unmount(driveLetter rune) error {
+// Unmount a drive mounted by dokan.
+func Unmount(driveLetter byte) error {
 	debug("Unmount: Calling Dokan.Unmount")
 	res := C.DokanUnmount(C.WCHAR(driveLetter))
 	if res == C.FALSE {

@@ -19,12 +19,14 @@ import (
 )
 
 func TestEmptyFS(t *testing.T) {
-	s0 := fsTableStore(errorFS{})
+	s0 := fsTableStore(errorFS{}, nil)
 	defer fsTableFree(s0)
 	fs := newTestFS()
-	go Mount(fs, 'T')
-	fs.mounted.Wait()
-	defer Unmount('T')
+	mnt, err := Mount(fs, 'T')
+	if err != nil {
+		t.Fatal("Mount failed:", err)
+	}
+	defer mnt.Close()
 	testShouldNotExist(t)
 	testHelloTxt(t)
 	testRAMFile(t)
@@ -277,11 +279,11 @@ func (t emptyFS) CreateFile(fi *FileInfo, cd *CreateData) (File, bool, error) {
 	debug("emptyFS.CreateFile")
 	return emptyFile{}, true, nil
 }
-func (t emptyFS) CanDeleteFile(*FileInfo) error {
-	return nil
+func (t emptyFile) CanDeleteFile(*FileInfo) error {
+	return ErrAccessDenied
 }
-func (t emptyFS) CanDeleteDirectory(*FileInfo) error {
-	return nil
+func (t emptyFile) CanDeleteDirectory(*FileInfo) error {
+	return ErrAccessDenied
 }
 func (t emptyFile) SetEndOfFile(fi *FileInfo, length int64) error {
 	debug("emptyFile.SetEndOfFile")
@@ -334,20 +336,17 @@ func (t emptyFile) UnlockFile(fi *FileInfo, offset int64, length int64) error {
 
 type testFS struct {
 	emptyFS
-	mounted sync.WaitGroup
 	ramFile *ramFile
 }
 
 func newTestFS() *testFS {
 	var t testFS
-	t.mounted.Add(1)
 	t.ramFile = newRAMFile()
 	return &t
 }
 
 func (t *testFS) Mounted() error {
 	debug("testFS.Mounted")
-	t.mounted.Done()
 	return nil
 }
 

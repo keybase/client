@@ -50,17 +50,19 @@ func NewContextWithOpID(ctx context.Context,
 	return context.WithValue(ctx, CtxIDKey, id)
 }
 
-// deToStat converts from a libkbfs.Direntry and error to a *dokan.Stat and error.
-func deToStat(de libkbfs.DirEntry, err error) (*dokan.Stat, error) {
+// eiToStat converts from a libkbfs.EntryInfo and error to a *dokan.Stat and error.
+// Note that handling symlinks to directories requires extra processing not done here.
+func eiToStat(ei libkbfs.EntryInfo, err error) (*dokan.Stat, error) {
 	if err != nil {
 		return nil, errToDokan(err)
 	}
 	st := &dokan.Stat{}
-	fillStat(st, &de.EntryInfo)
+	fillStat(st, &ei)
 	return st, nil
 }
 
-// fillStat fill a dokan.Stat from a libkbfs.DirEntry
+// fillStat fill a dokan.Stat from a libkbfs.DirEntry.
+// Note that handling symlinks to directories requires extra processing not done here.
 func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 	a.FileSize = int64(de.Size)
 	a.LastWrite = time.Unix(0, de.Mtime)
@@ -80,13 +82,17 @@ func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 
 // errToDokan makes some libkbfs errors easier to digest in dokan. Not needed in most places.
 func errToDokan(err error) error {
-	if err != nil {
-		if _, ok := err.(libkbfs.NoSuchNameError); ok {
-			return dokan.ErrObjectPathNotFound
-		}
-		return err
+	switch err.(type) {
+	case libkbfs.NoSuchNameError:
+		return dokan.ErrObjectPathNotFound
+	case libkbfs.NoSuchUserError:
+		return dokan.ErrObjectPathNotFound
+	case libkbfs.MDServerErrorUnauthorized:
+		return dokan.ErrAccessDenied
+	case nil:
+		return nil
 	}
-	return nil
+	return err
 }
 
 // defaultDirectoryInformation returns default directory information.
@@ -105,10 +111,19 @@ func defaultFileInformation() (*dokan.Stat, error) {
 	return &st, nil
 }
 
-// defaultSymlinkInformation returns default symlink information,
-func defaultSymlinkInformation() (*dokan.Stat, error) {
+// defaultSymlinkFileInformation returns default symlink to file information.
+func defaultSymlinkFileInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
 	st.FileAttributes = fileAttributeReparsePoint
+	st.ReparsePointTag = reparsePointTagSymlink
+	st.NumberOfLinks = 1
+	return &st, nil
+}
+
+// defaultSymlinkDirInformation returns default symlink to directory information.
+func defaultSymlinkDirInformation() (*dokan.Stat, error) {
+	var st dokan.Stat
+	st.FileAttributes = fileAttributeReparsePoint | fileAttributeDirectory
 	st.ReparsePointTag = reparsePointTagSymlink
 	st.NumberOfLinks = 1
 	return &st, nil

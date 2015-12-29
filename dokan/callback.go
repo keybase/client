@@ -7,7 +7,7 @@
 package dokan
 
 /*
-#cgo LDFLAGS: -L. -ldokan
+#cgo LDFLAGS: -L${SRCDIR} -ldokan
 #include "bridge.h"
 */
 import "C"
@@ -56,7 +56,7 @@ func kbfs_libdokan_Cleanup(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
 func kbfs_libdokan_CloseFile(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
 	debugf("CloseFile '%v' %v\n", d16{fname}, *pfi)
 	getfi(pfi).CloseFile(makeFI(fname, pfi))
-	fsTableFreeFile(uint32(pfi.DokanOptions.GlobalContext), uint32(pfi.Context))
+	fiTableFreeFile(uint32(pfi.DokanOptions.GlobalContext), uint32(pfi.Context))
 	pfi.Context = 0
 }
 
@@ -217,7 +217,7 @@ func kbfs_libdokan_DeleteFile(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("DeleteFile '%v' %v", d16{fname}, *pfi)
-	err := getfs(pfi).CanDeleteFile(makeFI(fname, pfi))
+	err := getfi(pfi).CanDeleteFile(makeFI(fname, pfi))
 	return errToNT(err)
 }
 
@@ -226,7 +226,7 @@ func kbfs_libdokan_DeleteDirectory(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("DeleteDirectory '%v' %v", d16{fname}, *pfi)
-	err := getfs(pfi).CanDeleteDirectory(makeFI(fname, pfi))
+	err := getfi(pfi).CanDeleteDirectory(makeFI(fname, pfi))
 	return errToNT(err)
 }
 
@@ -286,9 +286,9 @@ func kbfs_libdokan_UnlockFile(
 
 //export kbfs_libdokan_GetDiskFreeSpace
 func kbfs_libdokan_GetDiskFreeSpace(
-	FreeBytesAvailable C.PULONGLONG,
-	TotalNumberOfBytes C.PULONGLONG,
-	TotalNumberOfFreeBytes C.PULONGLONG,
+	FreeBytesAvailable *C.ULONGLONG,
+	TotalNumberOfBytes *C.ULONGLONG,
+	TotalNumberOfFreeBytes *C.ULONGLONG,
 	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("GetDiskFreeSpace", *FileInfo)
 	fs, err := getfs(FileInfo).GetDiskFreeSpace()
@@ -346,6 +346,9 @@ func kbfs_libdokan_GetVolumeInformation(
 //export kbfs_libdokan_Mounted
 func kbfs_libdokan_Mounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("Mounted")
+	// Signal that the filesystem is mounted and can be used.
+	fsTableGetErrChan(uint32(pfi.DokanOptions.GlobalContext)) <- nil
+	// Dokan wants a NTSTATUS here, but is discarding it.
 	err := getfs(pfi).Mounted()
 	return errToNT(err)
 }

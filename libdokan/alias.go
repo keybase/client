@@ -19,5 +19,5 @@ type Alias struct {
 
 // GetFileInformation for dokan.
 func (s *Alias) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
-	return defaultSymlinkInformation()
+	return defaultSymlinkDirInformation()
 }

@@ -37,9 +37,6 @@ type FS struct {
 	// sending/receiving)
 	notificationMutex sync.RWMutex
 
-	// mounted can be used to wait till the filesystem is mounted.
-	mounted sync.WaitGroup
-
 	root *Root
 }
 
@@ -62,7 +59,6 @@ func NewFS(config libkbfs.Config, debug bool) *FS {
 			public:  true,
 			folders: make(map[string]*Dir),
 		}}
-	f.mounted.Add(1)
 	return f
 }
 
@@ -84,71 +80,96 @@ func (*FS) GetDiskFreeSpace() (dokan.FreeSpace, error) {
 	return dokan.FreeSpace{}, nil
 }
 
-// createData stores the flags for CreateFile calls
-type createData dokan.CreateData
+// openContext is for opening files.
+type openContext struct {
+	fi *dokan.FileInfo
+	*dokan.CreateData
+	redirectionsLeft int
+}
 
-// isCreation checks the flags whether a file creation is wanted, return false when caf=nil.
-func (caf *createData) isCreateDirectory() bool {
-	return caf.isCreation() && caf.CreateOptions&fileDirectoryFile != 0
+// reduceRedictionsLeft reduces redirections and returns whether there are
+// redirections left (true), or whether processing should be stopped (false).
+func (oc *openContext) reduceRedirectionsLeft() bool {
+	oc.redirectionsLeft--
+	return oc.redirectionsLeft > 0
+}
+
+// isCreation checks the flags whether a file creation is wanted.
+func (oc *openContext) isCreateDirectory() bool {
+	return oc.isCreation() && oc.CreateOptions&fileDirectoryFile != 0
 }
 
 const fileDirectoryFile = 1
 
-// isCreation checks the flags whether a file creation is wanted, return false when caf=nil.
-func (caf *createData) isCreation() bool {
-	switch caf.CreateDisposition {
+// isCreation checks the flags whether a file creation is wanted.
+func (oc *openContext) isCreation() bool {
+	switch oc.CreateDisposition {
 	case dokan.FILE_SUPERSEDE, dokan.FILE_CREATE, dokan.FILE_OPEN_IF, dokan.FILE_OVERWRITE_IF:
 		return true
 	}
 	return false
 }
-func (caf *createData) isExistingError() bool {
-	switch caf.CreateDisposition {
+func (oc *openContext) isExistingError() bool {
+	switch oc.CreateDisposition {
 	case dokan.FILE_CREATE:
 		return true
 	}
 	return false
 }
 
-// isTruncate checks the flags whether a file truncation is wanted, return false when caf=nil.
-func (caf *createData) isTruncate() bool {
-	switch caf.CreateDisposition {
+// isTruncate checks the flags whether a file truncation is wanted.
+func (oc *openContext) isTruncate() bool {
+	switch oc.CreateDisposition {
 	case dokan.FILE_SUPERSEDE, dokan.FILE_OVERWRITE, dokan.FILE_OVERWRITE_IF:
 		return true
 	}
 	return false
 }
 
-// isOpenReparsePoint checks the flags whether a reparse point open is wanted, return false when caf=nil.
-func (caf *createData) isOpenReparsePoint() bool {
-	return caf != nil && caf.FileAttributes&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
+// isOpenReparsePoint checks the flags whether a reparse point open is wanted.
+func (oc *openContext) isOpenReparsePoint() bool {
+	return oc.CreateOptions&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
 }
 
-func (caf *createData) mayNotBeDirectory() bool {
-	return caf.CreateOptions&dokan.FILE_NON_DIRECTORY_FILE != 0
+func (oc *openContext) mayNotBeDirectory() bool {
+	return oc.CreateOptions&dokan.FILE_NON_DIRECTORY_FILE != 0
+}
+
+func newSyntheticOpenContext() *openContext {
+	var oc openContext
+	oc.CreateData = &dokan.CreateData{}
+	oc.CreateDisposition = dokan.FILE_OPEN
+	oc.redirectionsLeft = 30
+	return &oc
 }
 
 // CreateFile called from dokan, may be a file or directory.
 func (f *FS) CreateFile(fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
-	return f.openRaw(fi, (*createData)(cd))
+	ctx := context.TODO()
+	return f.openRaw(ctx, fi, cd)
 }
 
 // openRaw is a wrapper between CreateFile/CreateDirectory/OpenDirectory and open
-func (f *FS) openRaw(fi *dokan.FileInfo, caf *createData) (dokan.File, bool, error) {
-	ps, err := pathSplit(fi.Path())
+func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateData) (dokan.File, bool, error) {
+	ps, err := windowsPathSplit(fi.Path())
 	if err != nil {
 		return nil, false, err
 	}
-	return f.open(fi, ps, caf)
+	oc := openContext{fi: fi, CreateData: caf, redirectionsLeft: 30}
+	file, isd, err := f.open(ctx, &oc, ps)
+	if err != nil {
+		err = errToDokan(err)
+	}
+	return file, isd, err
 }
 
 // open tries to open a file deferring to more specific implementations.
-func (f *FS) open(fi *dokan.FileInfo, ps []string, caf *createData) (dokan.File, bool, error) {
+func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File, bool, error) {
 	switch {
 	case len(ps) < 1:
 		return nil, false, dokan.ErrObjectNameNotFound
 	case len(ps) == 1 && ps[0] == ``:
-		if caf.mayNotBeDirectory() {
+		if oc.mayNotBeDirectory() {
 			return nil, true, dokan.ErrFileIsADirectory
 		}
 		return f.root, true, nil
@@ -157,14 +178,17 @@ func (f *FS) open(fi *dokan.FileInfo, ps []string, caf *createData) (dokan.File,
 	case MetricsFileName == ps[len(ps)-1]:
 		return NewMetricsFile(f), false, nil
 	case PublicName == ps[0]:
-		return f.root.public.open(fi, ps[1:], caf)
+		return f.root.public.open(ctx, oc, ps[1:])
 	case PrivateName == ps[0]:
-		return f.root.private.open(fi, ps[1:], caf)
+		return f.root.private.open(ctx, oc, ps[1:])
 	}
 	return nil, false, dokan.ErrObjectNameNotFound
 }
 
-func pathSplit(raw string) ([]string, error) {
+// windowsPathSplit handles paths we get from Dokan.
+// As a special case `` means `\`, it gets generated
+// on special occasions.
+func windowsPathSplit(raw string) ([]string, error) {
 	if raw == `` {
 		raw = `\`
 	}
@@ -178,18 +202,18 @@ func pathSplit(raw string) ([]string, error) {
 func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
 	ctx := context.TODO()
 	ctx = NewContextWithOpID(ctx, f.log)
-	f.log.CDebugf(ctx, "Dir Rename")
+	f.log.CDebugf(ctx, "FS Rename start replaceExisting=%v", replaceExisting)
 	defer func() { f.reportErr(ctx, err) }()
 
-	var cd createData
-	cd.CreateDisposition = dokan.FILE_OPEN
-	src, _, err := f.openRaw(source, &cd)
+	oc := newSyntheticOpenContext()
+	src, _, err := f.openRaw(ctx, source, oc.CreateData)
+	f.log.CDebugf(ctx, "FS Rename source open -> %v,%v srcType %T", src, err, src)
 	if err != nil {
 		return err
 	}
 
 	// Destination directory, not the destination file
-	dstPath, err := pathSplit(targetPath)
+	dstPath, err := windowsPathSplit(targetPath)
 	if err != nil {
 		return err
 	}
@@ -198,7 +222,8 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	}
 	dstDirPath := dstPath[0 : len(dstPath)-1]
 
-	dst, dstIsDir, err := f.open(nil, dstDirPath, &cd)
+	dst, dstIsDir, err := f.open(ctx, oc, dstDirPath)
+	f.log.CDebugf(ctx, "FS Rename dest open %v -> %v,%v,%v dstType %T", dstDirPath, dst, dstIsDir, err, dst)
 	if err != nil {
 		return err
 	}
@@ -223,6 +248,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 		srcFolder = x.folder
 		srcParent = x.parent
 		srcName = x.name
+		f.log.CDebugf(ctx, "FS Rename srcnode %v srcdirnode %v dstdirnode %v", x.node.GetID(), srcParent.GetID(), ddst.node.GetID())
 	}
 
 	if srcFolder != ddst.folder {
@@ -231,7 +257,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 
 	// here we race...
 	if !replaceExisting {
-		_, _, err := f.open(nil, dstPath, &cd)
+		_, _, err := f.open(ctx, oc, dstPath)
 		if err != dokan.ErrObjectPathNotFound {
 			return errors.New("Refusing to replace existing target!")
 		}
@@ -241,8 +267,10 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	// overwritten node, if any, will be removed from Folder.nodes, if
 	// it is there in the first place, by its Forget
 
+	f.log.CDebugf(ctx, "FS Rename KBFSOps().Rename(ctx,%v,%v,%v,%v)", srcParent, srcName, ddst.node, dstPath[len(dstPath)-1])
 	if err := srcFolder.fs.config.KBFSOps().Rename(
 		ctx, srcParent, srcName, ddst.node, dstPath[len(dstPath)-1]); err != nil {
+		f.log.CDebugf(ctx, "FS Rename KBFSOps().Rename FAILED %v", err)
 		return err
 	}
 
@@ -253,22 +281,12 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 		x.parent = ddst.node
 	}
 
-	return nil
-}
-
-// CanDeleteFile checks whether a file could be deleted.
-func (*FS) CanDeleteFile(*dokan.FileInfo) error {
-	return nil
-}
-
-// CanDeleteDirectory checks whether a directory could be removed.
-func (*FS) CanDeleteDirectory(*dokan.FileInfo) error {
+	f.log.CDebugf(ctx, "FS Rename SUCCESS")
 	return nil
 }
 
 // Mounted is called from dokan on unmount.
 func (f *FS) Mounted() error {
-	f.mounted.Done()
 	return nil
 }
 

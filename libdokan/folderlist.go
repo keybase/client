@@ -34,20 +34,19 @@ func (*FolderList) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
 
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
-func (fl *FolderList) open(fi *dokan.FileInfo, path []string, caf *createData) (f dokan.File, isDir bool, err error) {
-	ctx := context.TODO()
+func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
 	ctx = NewContextWithOpID(ctx, fl.fs.log)
 	fl.fs.log.CDebugf(ctx, "FL Lookup %s", path)
 	defer func() { fl.fs.reportErr(ctx, err) }()
 
 	if len(path) == 0 {
-		if caf.mayNotBeDirectory() {
+		if oc.mayNotBeDirectory() {
 			return nil, true, dokan.ErrFileIsADirectory
 		}
 		return fl, true, nil
 	}
 
-	for maxRedirections := 30; maxRedirections > 0; maxRedirections-- {
+	for oc.reduceRedirectionsLeft() {
 		name := path[0]
 
 		fl.mu.Lock()
@@ -55,9 +54,11 @@ func (fl *FolderList) open(fi *dokan.FileInfo, path []string, caf *createData) (
 		fl.mu.Unlock()
 
 		if ok {
-			return child.open(fi, path[1:], caf)
+			fl.fs.log.CDebugf(ctx, "FL Lookup recursing to child %q", name)
+			return child.open(ctx, oc, path[1:])
 		}
 
+		fl.fs.log.CDebugf(ctx, "FL Lookup continuing")
 		dh, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config, name)
 		if err != nil {
 			return nil, false, err
@@ -69,7 +70,8 @@ func (fl *FolderList) open(fi *dokan.FileInfo, path []string, caf *createData) (
 		}
 
 		if canon := dh.ToString(ctx, fl.fs.config); canon != name {
-			if len(path) == 1 && caf.isOpenReparsePoint() {
+			if len(path) == 1 && oc.isOpenReparsePoint() {
+				fl.fs.log.CDebugf(ctx, "FL Lookup returning ALIAS")
 				return &Alias{canon: canon}, false, nil
 			}
 			path[0] = canon
@@ -107,7 +109,7 @@ func (fl *FolderList) open(fi *dokan.FileInfo, path []string, caf *createData) (
 		folder.nodes[rootNode.GetID()] = child
 		fl.folders[name] = child
 		fl.mu.Unlock()
-		return child.open(fi, path[1:], caf)
+		return child.open(ctx, oc, path[1:])
 	}
 	return nil, false, dokan.ErrObjectPathNotFound
 }
@@ -130,10 +132,26 @@ func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.Favori
 			if !ok {
 				return nil
 			}
+
+			dh, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config, fav.Name)
+			if err != nil {
+				break
+			}
+
+			if fl.public && !dh.HasPublic() {
+				break
+			}
+
 			var ns dokan.NamedStat
 			ns.Name = fav.Name
 			ns.FileAttributes = fileAttributeDirectory
 			ns.NumberOfLinks = 1
+
+			if canon := dh.ToString(ctx, fl.fs.config); canon != fav.Name {
+				ns.FileAttributes = fileAttributeReparsePoint
+				ns.ReparsePointTag = reparsePointTagSymlink
+			}
+
 			results <- ns
 		case <-ctx.Done():
 			return ctx.Err()
@@ -185,6 +203,7 @@ func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedSt
 		close(results)
 	}()
 
+	empty := true
 outer:
 	for {
 		select {
@@ -192,6 +211,7 @@ outer:
 			if !ok {
 				break outer
 			}
+			empty = false
 			err = callback(&dirent)
 			if err != nil {
 				return err
@@ -199,6 +219,9 @@ outer:
 		case err := <-errCh:
 			return err
 		}
+	}
+	if empty {
+		return dokan.ErrObjectNameNotFound
 	}
 	return nil
 }

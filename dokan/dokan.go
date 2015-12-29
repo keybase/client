@@ -7,10 +7,50 @@
 // Package dokan is a binding to the Dokan usermode filesystem binding library on Windows.
 package dokan
 
-// Mount mounts a FileSystem to the given drive letter.
-func Mount(fs FileSystem, driveletter byte) error {
-	var slot = fsTableStore(fs)
+// MountHandle holds a reference to a mounted filesystem.
+type MountHandle struct {
+	ctx         *dokanCtx
+	errChan     chan error
+	driveLetter byte
+}
+
+// Mount mounts a FileSystem to the given drive letter and returns when it has been mounted
+// or there is an error.
+func Mount(fs FileSystem, driveLetter byte) (*MountHandle, error) {
+	var ec = make(chan error, 2)
+	var slot = fsTableStore(fs, ec)
 	ctx := allocCtx(slot)
-	defer ctx.Free()
-	return ctx.Run(driveletter)
+	go func() {
+		ec <- ctx.Run(driveLetter)
+		close(ec)
+	}()
+	// This gets a send from either
+	// 1) DokanMain from ctx.Run returns an error before mount
+	// 2) After the filesystem is mounted from handling the Mounted callback.
+	// Thus either the filesystem was mounted ok or it was not mounted
+	// and an err is not nil. DokanMain does not return errors after the
+	// mount, but if such errors occured they can be catched by BlockTillDone.
+	err := <-ec
+	if err != nil {
+		ctx.Free()
+		return nil, err
+	}
+	return &MountHandle{ctx, ec, driveLetter}, nil
+}
+
+// Close unmounts the filesystem.
+func (m *MountHandle) Close() error {
+	err := Unmount(m.driveLetter)
+	m.ctx.Free()
+	m.ctx = nil
+	return err
+}
+
+// BlockTillDone blocks till Dokan is done.
+func (m *MountHandle) BlockTillDone() error {
+	// Two cases:
+	// 1) Mount got send from Mounted hook (nil) and we wait for the ctx.Run case
+	// 2) Mount got send from Mount (which errored) and closed the channel
+	err, _ := <-m.errChan
+	return err
 }

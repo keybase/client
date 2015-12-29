@@ -13,33 +13,47 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libdokan"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
-var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
-var memprofile = flag.String("memprofile", "", "write memory profile to file")
-var localUserFlag = flag.String("localuser", "", "fake local user")
-var serverRootDirFlag = flag.String("server-root", "", "directory to put local server files (default is cwd)")
-var serverInMemoryFlag = flag.Bool("server-in-memory", false, "use in-memory server (and ignore -server-root)")
 var runtimeDir = flag.String("runtime-dir", os.Getenv("KEYBASE_RUNTIME_DIR"), "runtime directory")
 var label = flag.String("label", os.Getenv("KEYBASE_LABEL"), "label to help identify if running as a service")
 var mountType = flag.String("mount-type", defaultMountType, "mount type: default, force")
 var debug = flag.Bool("debug", false, "Print debug messages")
 var version = flag.Bool("version", false, "Print version")
-var bserverAddr = flag.String("bserver", defaultBServerURI, "host:port of the block server")
-var mdserverAddr = flag.String("mdserver", defaultMDServerURI, "host:port of the metadata server")
 
-const usageStr = `Usage:
-  kbfsdokan [-localuser=<user>] [-debug]
-    [-server-in-memory|-server-root=path/to/dir]
-    [-bserver=host:port] [-mdserver=host:port] /path/to/mountpoint
+const usageFormatStr = `Usage:
+  kbfsdokan -version
+
+  kbfsdokan [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
+    [-bserver=%s] [-mdserver=%s]
+    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
+    /path/to/mountpoint
+
+  kbfsdokan [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
+    [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
+    [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
+    /path/to/mountpoint
 
 `
 
+func getUsageStr() string {
+	defaultBServer := libkbfs.GetDefaultBServer()
+	if len(defaultBServer) == 0 {
+		defaultBServer = "host:port"
+	}
+	defaultMDServer := libkbfs.GetDefaultMDServer()
+	if len(defaultMDServer) == 0 {
+		defaultMDServer = "host:port"
+	}
+	return fmt.Sprintf(usageFormatStr, defaultBServer, defaultMDServer)
+}
+
 func start() *libdokan.Error {
+	kbfsParams := libkbfs.AddFlags(flag.CommandLine)
+
 	flag.Parse()
 
 	if *version {
@@ -48,23 +62,13 @@ func start() *libdokan.Error {
 	}
 
 	if len(flag.Args()) < 1 {
-		fmt.Print(usageStr)
+		fmt.Print(getUsageStr())
 		return libdokan.InitError("no mount specified")
 	}
 
-	localUser := libkb.NewNormalizedUsername(*localUserFlag)
-
-	if *debug {
+	if kbfsParams.Debug {
 		log := logger.NewWithCallDepth("DOKAN", 1, os.Stderr)
 		log.Configure("", true, "")
-		//		dokan.Debug = func(msg interface{}) {
-		//			log.Debug("%s", msg)
-		//		}
-	}
-
-	var serverRootDir *string
-	if !*serverInMemoryFlag {
-		serverRootDir = serverRootDirFlag
 	}
 
 	mountpoint := flag.Arg(0)
@@ -76,15 +80,9 @@ func start() *libdokan.Error {
 	}
 
 	options := libdokan.StartOptions{
-		LocalUser:     localUser,
-		ServerRootDir: serverRootDir,
-		CPUProfile:    *cpuprofile,
-		MemProfile:    *memprofile,
-		RuntimeDir:    *runtimeDir,
-		Label:         *label,
-		Debug:         *debug,
-		BServerAddr:   *bserverAddr,
-		MDServerAddr:  *mdserverAddr,
+		KbfsParams: *kbfsParams,
+		RuntimeDir: *runtimeDir,
+		Label:      *label,
 	}
 
 	return libdokan.Start(mounter, options)
