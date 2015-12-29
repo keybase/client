@@ -99,6 +99,14 @@ func (f *File) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, er
 	f.folder.fs.log.CDebugf(ctx, "File Write sz=%d ", len(bs))
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
+	if offset == -1 {
+		ei, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
+		if err != nil {
+			return 0, err
+		}
+		offset = int64(ei.Size)
+	}
+
 	err = f.folder.fs.config.KBFSOps().Write(
 		ctx, f.node, bs, offset)
 	return len(bs), err
