@@ -1384,7 +1384,7 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		return
 	}
 	md.data.cachedChanges = *changes
-	changes.Pointer = info.BlockPointer
+	changes.Info = info
 	changes.Ops = nil
 	md.RefBytes += uint64(info.EncodedSize)
 	md.DiskUsage += uint64(info.EncodedSize)
@@ -4058,13 +4058,12 @@ func (fbo *folderBranchOps) reembedBlockChanges(ctx context.Context,
 	// if any of the operations have unembedded block ops, fetch those
 	// now and fix them up.  TODO: parallelize me.
 	for _, rmd := range rmds {
-		if rmd.data.Changes.Pointer == zeroPtr {
+		if rmd.data.Changes.Info.BlockPointer == zeroPtr {
 			continue
 		}
 
-		fblock, err := fbo.getFileBlockForReading(
-			ctx, lState, rmd, rmd.data.Changes.Pointer,
-			fbo.folderBranch.Branch, path{})
+		fblock, err := fbo.getFileBlockForReading(ctx, lState, rmd,
+			rmd.data.Changes.Info.BlockPointer, fbo.folderBranch.Branch, path{})
 		if err != nil {
 			return err
 		}

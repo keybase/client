@@ -899,7 +899,7 @@ func (p path) hasPublic() bool {
 type BlockChanges struct {
 	// If this is set, the actual changes are stored in a block (where
 	// the block contains a serialized version of BlockChanges)
-	Pointer BlockPointer `codec:"p,omitempty"`
+	Info BlockInfo `codec:"p,omitempty"`
 	// An ordered list of operations completed in this update
 	Ops opsList `codec:"o,omitempty"`
 	// Estimate the number of bytes that this set of changes will take to encode
@@ -910,7 +910,7 @@ type BlockChanges struct {
 // BlockChanges.  Currently does not check for equality at the
 // operation level.
 func (bc BlockChanges) Equals(other BlockChanges) bool {
-	if bc.Pointer != other.Pointer || len(bc.Ops) != len(other.Ops) ||
+	if bc.Info != other.Info || len(bc.Ops) != len(other.Ops) ||
 		bc.sizeEstimate != other.sizeEstimate {
 		return false
 	}
