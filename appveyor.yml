@@ -34,7 +34,11 @@ build_script:
 # throwaway branch to check out locally at a specific tag  
   - git checkout -b dokan-v0.8.0 dokan-v0.8.0
   - copy dokan\dokan.lib ..\kbfs\dokan
-  - cd ..\kbfs\kbfsdokan
+  - cd ..\kbfs\dokan
+  - go test -c
+  - cd ..\libdokan
+  - go test -c
+  - cd ..\kbfsdokan
   - gcc -v
   - go env
   - go build
