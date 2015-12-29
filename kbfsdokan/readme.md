@@ -59,8 +59,3 @@ dir
 mkdir foo
 notepad bar.txt
 ```
-
-## Issue: symbolic links only inside the current directory
-
-This is quite simple to fix, the only issue is to escape unix paths properly and safely
-to avoid referencing something an user might not want to reference.
