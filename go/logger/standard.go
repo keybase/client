@@ -253,10 +253,14 @@ func (log *Standard) Configure(style string, debug bool, filename string) {
 	log.filename = filename
 
 	var logfmt string
-	if debug {
-		logfmt = fancyFormat
+	if log.isTerminal {
+		if debug {
+			logfmt = fancyFormat
+		} else {
+			logfmt = defaultFormat
+		}
 	} else {
-		logfmt = defaultFormat
+		logfmt = fileFormat
 	}
 
 	// Override the format above if an explicit style was specified.
