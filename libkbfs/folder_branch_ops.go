@@ -4265,8 +4265,12 @@ func (fbo *folderBranchOps) registerForUpdates() {
 			case unpause := <-fbo.updatePauseChan:
 				fbo.log.CInfof(ctx, "Updates paused")
 				// wait to be unpaused
-				<-unpause
-				fbo.log.CInfof(ctx, "Updates unpaused")
+				select {
+				case <-unpause:
+					fbo.log.CInfof(ctx, "Updates unpaused")
+				case <-ctx.Done():
+					return ctx.Err()
+				}
 			case <-ctx.Done():
 				return ctx.Err()
 			}

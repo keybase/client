@@ -14,7 +14,7 @@ import (
 func TestMDServerBasics(t *testing.T) {
 	// setup
 	config := MakeTestConfigOrBust(t, "test_user")
-	defer config.MDServer().Shutdown()
+	defer config.Shutdown()
 	mdServer := config.MDServer()
 	ctx := context.Background()
 	uid, err := config.KBPKI().GetCurrentUID(ctx)
@@ -190,7 +190,7 @@ func TestMDServerBasics(t *testing.T) {
 func TestMDServerRegisterForUpdate(t *testing.T) {
 	// setup
 	config := MakeTestConfigOrBust(t, "test_user")
-	defer config.MDServer().Shutdown()
+	defer config.Shutdown()
 	mdServer := config.MDServer()
 	ctx := context.Background()
 
