@@ -40,10 +40,10 @@ type EncryptionHeader struct {
 // EncryptionBlock contains a block of encrypted data. It contains
 // the ciphertext, and any necessary authentication Tags.
 type EncryptionBlock struct {
-	_struct           bool     `codec:",toarray"`
-	TagCiphertexts    [][]byte `codec:"tags"`
-	PayloadCiphertext []byte   `codec:"ctext"`
-	seqno             PacketSeqno
+	_struct            bool     `codec:",toarray"`
+	HashAuthenticators [][]byte `codec:"authenticators"`
+	PayloadCiphertext  []byte   `codec:"ctext"`
+	seqno              PacketSeqno
 }
 
 func verifyRawKey(k []byte) error {

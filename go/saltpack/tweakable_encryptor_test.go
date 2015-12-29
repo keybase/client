@@ -5,6 +5,7 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/sha512"
 	"golang.org/x/crypto/nacl/secretbox"
 	"io"
 )
@@ -100,21 +101,20 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 		nonce = pes.options.corruptPayloadNonce(nonce, pes.numBlocks)
 	}
 
-	raw := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.sessionKey))
-
-	tag := raw[0:secretbox.Overhead]
-	ciphertext := raw[secretbox.Overhead:]
+	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.sessionKey))
+	hash := sha512.Sum512(ciphertext)
 
 	block := EncryptionBlock{
 		PayloadCiphertext: ciphertext,
 	}
 
 	for _, tagKey := range pes.tagKeys {
-		tag, err := tagKey.Box(nonce, tag)
+		hashBox, err := tagKey.Box(nonce, hash[:])
 		if err != nil {
 			return err
 		}
-		block.TagCiphertexts = append(block.TagCiphertexts, tag)
+		authenticator := hashBox[:secretbox.Overhead]
+		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)
 	}
 
 	if pes.options.corruptEncryptionBlock != nil {

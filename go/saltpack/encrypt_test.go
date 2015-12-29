@@ -763,7 +763,7 @@ func TestCorruptEncryption(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, _, err = Open(ciphertext, kr)
-	if mm, ok := err.(ErrBadCiphertext); !ok {
+	if mm, ok := err.(ErrBadTag); !ok {
 		t.Fatalf("Got wrong error; wanted 'Bad Ciphertext' but got %v", err)
 	} else if int(mm) != 3 {
 		t.Fatalf("Wanted a failure in packet %d but got %d", 3, mm)
@@ -774,7 +774,7 @@ func TestCorruptEncryption(t *testing.T) {
 		blockSize: 1024,
 		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
 			if ebn == 2 {
-				eb.TagCiphertexts[0][2] ^= 1
+				eb.HashAuthenticators[0][2] ^= 1
 			}
 		},
 	})
