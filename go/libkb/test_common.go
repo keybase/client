@@ -165,7 +165,7 @@ func (tc *TestContext) ResetLoginState() {
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {
-	usernames, err := GetUsersWithStoredSecrets(tc.G)
+	usernames, err := tc.G.GetUsersWithStoredSecrets()
 	if err != nil {
 		return err
 	}

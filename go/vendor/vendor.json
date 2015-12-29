@@ -163,11 +163,6 @@
 			"revisionTime": "2015-12-09T11:25:47-08:00"
 		},
 		{
-			"path": "github.com/keybase/go-osxkeychain",
-			"revision": "895167325dc959eeb550354611609b1191f3403f",
-			"revisionTime": "2015-09-29T10:58:21-05:00"
-		},
-		{
 			"path": "github.com/keybase/go-triplesec",
 			"revision": "b360b8252869a5ac88df3ed7897bc3b6d1e55dd2",
 			"revisionTime": "2015-06-12T09:33:55-07:00"

@@ -58,7 +58,7 @@ func (s secretStoreAccountName) ClearSecret() (err error) {
 	return s.externalKeyStore.ClearSecret(s.accountName)
 }
 
-func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
+func NewSecretStore(c SecretStoreContext, username NormalizedUsername) SecretStore {
 	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
 		return nil
@@ -71,7 +71,7 @@ func HasSecretStore() bool {
 	return getGlobalExternalKeyStore() != nil
 }
 
-func GetUsersWithStoredSecrets(g *GlobalContext) ([]string, error) {
+func GetUsersWithStoredSecrets(c SecretStoreContext) ([]string, error) {
 	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
 		return nil, nil

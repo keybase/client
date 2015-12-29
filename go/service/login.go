@@ -25,7 +25,7 @@ func NewLoginHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LoginHandler {
 }
 
 func (h *LoginHandler) GetConfiguredAccounts(_ context.Context, sessionID int) ([]keybase1.ConfiguredAccount, error) {
-	return libkb.GetConfiguredAccounts(h.G())
+	return h.G().GetConfiguredAccounts()
 }
 
 func (h *LoginHandler) Logout(_ context.Context, sessionID int) error {

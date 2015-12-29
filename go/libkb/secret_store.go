@@ -21,12 +21,14 @@ type SecretStore interface {
 	ClearSecret() error
 }
 
-// NewSecretStore(g *GlobalContext, username string), HasSecretStore(),
-// GetUsersWithStoredSecrets(g *GlobalContext) ([]string, error), and
-// GetTerminalPrompt() are defined in platform-specific files.
+type SecretStoreContext interface {
+	GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error)
+	GetStoredSecretServiceName() string
+	GetStoredSecretAccessGroup() string
+}
 
-func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, error) {
-	currentUsername, otherUsernames, err := g.Env.GetConfig().GetAllUsernames()
+func GetConfiguredAccounts(c SecretStoreContext) ([]keybase1.ConfiguredAccount, error) {
+	currentUsername, otherUsernames, err := c.GetAllUserNames()
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +43,7 @@ func GetConfiguredAccounts(g *GlobalContext) ([]keybase1.ConfiguredAccount, erro
 		}
 	}
 
-	storedSecretUsernames, err := GetUsersWithStoredSecrets(g)
+	storedSecretUsernames, err := GetUsersWithStoredSecrets(c)
 	if err != nil {
 		return nil, err
 	}
