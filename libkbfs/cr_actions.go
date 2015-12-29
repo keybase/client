@@ -16,11 +16,13 @@ import (
 // this action may copy the /merged/ entry instead of the unmerged
 // one.
 type copyUnmergedEntryAction struct {
-	fromName string
-	toName   string
-	symPath  string
-	sizeOnly bool
-	unique   bool
+	fromName      string
+	toName        string
+	symPath       string
+	sizeOnly      bool
+	unique        bool
+	unmergedEntry DirEntry
+	attr          []attrChange
 }
 
 func fixupNamesInOps(fromName string, toName string, ops []op,
@@ -79,15 +81,25 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 	}
 
 	// If:
-	//   * The entry BlockPointer has no unmerged chain with ops; AND
+	//   * The entry BlockPointer has no unmerged chain with no (or
+	//     attr-only) ops; AND
 	//   * The entry BlockPointer does have a merged chain
 	// copy the merged entry instead by fetching the block for its merged
 	// most recent parent and using that as the source, just copying over
 	// the "sizeAttr" fields.
 	ptr := unmergedEntry.BlockPointer
 	if chain, ok := unmergedChains.byMostRecent[ptr]; ok {
-		if len(chain.ops) > 0 {
-			return false, zeroPtr, nil
+		// If the chain has only setAttr ops, we still want to do the
+		// swap, but we need to preserve those unmerged attr changes.
+		for _, op := range chain.ops {
+			// As soon as we find an op that is NOT a setAttrOp, we
+			// should abort the swap.  Otherwise save the changed
+			// attributes so we can re-apply them during do().
+			if sao, ok := op.(*setAttrOp); ok {
+				cuea.attr = append(cuea.attr, sao.Attr)
+			} else {
+				return false, zeroPtr, nil
+			}
 		}
 		ptr = chain.original
 	}
@@ -98,11 +110,12 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 	// If this entry was renamed, use the new parent; otherwise,
 	// return zeroPtr.
 	parentOrig, newName, ok := mergedChains.renamedParentAndName(ptr)
+	cuea.unmergedEntry = unmergedEntry
+	cuea.sizeOnly = true
 	if !ok {
 		// What about the unmerged branch?
 		ri, ok := unmergedChains.renamedOriginals[ptr]
 		if !ok {
-			cuea.sizeOnly = true
 			return true, zeroPtr, nil
 		}
 		parentOrig = ri.originalOldParent
@@ -113,7 +126,6 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 	if err != nil {
 		return false, zeroPtr, err
 	}
-	cuea.sizeOnly = true
 	cuea.fromName = newName
 	return true, parentMostRecent, nil
 }
@@ -164,7 +176,18 @@ func (cuea *copyUnmergedEntryAction) do(ctx context.Context,
 			mergedBlock.Children[cuea.toName] = entry
 			return nil
 		}
+		// copy any attrs that were explicitly set on the unmerged
+		// branch.
+		for _, a := range cuea.attr {
+			switch a {
+			case exAttr:
+				unmergedEntry.Type = cuea.unmergedEntry.Type
+			case mtimeAttr:
+				unmergedEntry.Mtime = cuea.unmergedEntry.Mtime
+			}
+		}
 	}
+
 	mergedBlock.Children[cuea.toName] = unmergedEntry
 	return nil
 }

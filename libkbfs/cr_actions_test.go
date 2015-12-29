@@ -7,8 +7,10 @@ import (
 
 func TestCRActionsCollapseNoChange(t *testing.T) {
 	al := crActionList{
-		&copyUnmergedEntryAction{"old1", "new1", "", false, false},
-		&copyUnmergedEntryAction{"old2", "new2", "", false, false},
+		&copyUnmergedEntryAction{"old1", "new1", "", false, false,
+			DirEntry{}, nil},
+		&copyUnmergedEntryAction{"old2", "new2", "", false, false,
+			DirEntry{}, nil},
 		&renameUnmergedAction{"old3", "new3", ""},
 		&renameMergedAction{"old4", "new4", "", BlockPointer{}},
 		&copyUnmergedAttrAction{"old5", "new5", []attrChange{mtimeAttr}},
@@ -23,7 +25,8 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 func TestCRActionsCollapseEntry(t *testing.T) {
 	al := crActionList{
 		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}},
-		&copyUnmergedEntryAction{"old", "new", "", false, false},
+		&copyUnmergedEntryAction{"old", "new", "", false, false,
+			DirEntry{}, nil},
 		&renameUnmergedAction{"old", "new", ""},
 	}
 

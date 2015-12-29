@@ -1811,10 +1811,12 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 						// Use this merged block
 						uBlock = mergedBlock
 					} else {
-						// Fetch the specified one. Don't need to make a copy since this
-						// will just be a source block.
+						// Fetch the specified one. Don't need to make
+						// a copy since this will just be a source
+						// block.
 						dBlock, err := cr.fbo.getDirBlockForReading(ctx,
-							mergedChains.mostRecentMD, newPtr, mergedPath.Branch, path{})
+							mergedChains.mostRecentMD, newPtr,
+							mergedPath.Branch, path{})
 						if err != nil {
 							return err
 						}

@@ -506,11 +506,11 @@ module Test
       setex "a/c", true
       reenable_updates
       lsdir "a/", { "c$" => "EXEC" }
-      read "a/c", "hello"
+      read "a/c", "world"
     end
     as alice do
       lsdir "a/", { "c$" => "EXEC" }
-      read "a/c", "hello"
+      read "a/c", "world"
     end
   end
 
