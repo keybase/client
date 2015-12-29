@@ -124,7 +124,7 @@ module Test
     end
   end
 
-  # bob moves a file that was removed by alice executable
+  # bob moves a file that was removed by alice
   test :cr_conflict_move_removed_multiblock_file, block_size: 20, writers: ["alice", "bob"] do |alice, bob|
     as alice do
       mkdir "a"

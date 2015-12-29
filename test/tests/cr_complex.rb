@@ -489,7 +489,7 @@ module Test
     end
   end
 
-  # bob moves and setexes a file that was removed by alice executable
+  # bob moves and setexes a file that was written by alice
   test :cr_conflict_move_and_setex_written_file, writers: ["alice", "bob"] do |alice, bob|
     as alice do
       mkdir "a"
@@ -514,7 +514,7 @@ module Test
     end
   end
 
-  # bob moves and setexes a file that was removed by alice executable
+  # bob moves and setexes a file that was removed by alice
   test :cr_conflict_move_and_setex_removed_file, writers: ["alice", "bob"] do |alice, bob|
     as alice do
       mkdir "a"
@@ -598,7 +598,7 @@ module Test
     end
   end
 
-  # bob moves a file that was removed by alice executable
+  # bob moves a file that was removed by alice
   test :cr_unmerged_move_of_removed_file, writers: ["alice", "bob"] do |alice, bob|
     as alice do
       mkdir "a"
