@@ -39,9 +39,6 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin(defines)
   ],
-  externals: [
-    'nslog'
-  ],
   node: {
     __dirname: true
   },

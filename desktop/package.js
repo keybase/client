@@ -25,18 +25,12 @@ fs.copySync('../react-native/react/native', 'build/react-native/react/native', {
 fs.copySync('../react-native/react/images', 'build/react-native/react/images')
 fs.copySync('./node_modules/font-awesome/css/font-awesome.min.css', 'build/desktop/node_modules/font-awesome/css/font-awesome.min.css')
 fs.copySync('./node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'build/desktop/node_modules/font-awesome/fonts/fontawesome-webfont.woff2')
-fs.copySync('./node_modules/nslog/package.json', 'build/desktop/node_modules/nslog/package.json')
-fs.copySync('./node_modules/nslog/lib/nslog.js', 'build/desktop/node_modules/nslog/lib/nslog.js')
-fs.copySync('./node_modules/nslog/build/Release/nslog.node', 'build/desktop/node_modules/nslog/build/Release/nslog.node')
 fs.copySync('./renderer', 'build/desktop/renderer', {filter: f => !f.endsWith('.js')})
 
 fs.writeJsonSync('build/package.json', {
   name: appName,
   version: appVersion,
-  main: 'desktop/dist/main.bundle.js',
-  dependencies: {
-    'nslog': '^3.0.0'
-  }
+  main: 'desktop/dist/main.bundle.js'
 })
 
 const DEFAULT_OPTS = {

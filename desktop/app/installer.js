@@ -1,5 +1,4 @@
 import {app} from 'electron';
-import nslog from 'nslog';
 import {exec} from 'child_process';
 import path from 'path';
 import fs from 'fs';
@@ -15,21 +14,21 @@ export default (callback) => {
   fs.access(installerExec, fs.X_OK , function (err) {
     if (runMode != "prod") {
       // Only run in prod
-      nslog("Installer not available (runMode=%s)", runMode)
+      console.log("Installer not available (runMode=%s)", runMode)
       callback(null);
       return
     }
 
     if (err) {
       // Installer is not accessible
-      nslog("Installer not available (not found)")
+      console.log("Installer not available (not found)")
       callback(null);
       return
     }
 
     var cmd = [installerExec, "--app-path="+appBundlePath, "--run-mode=prod"].join(" ");
     exec(cmd, function(err, stdout, stderr) {
-      nslog("Installer: ", err, stdout, stderr);
+      console.log("Installer: ", err, stdout, stderr);
       callback(err);
     });
   });
