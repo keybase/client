@@ -50,7 +50,13 @@ func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
 	}
 
 	// decrypt the block
-	return b.config.Crypto().DecryptBlock(encryptedBlock, blockCryptKey, block)
+	err = b.config.Crypto().DecryptBlock(encryptedBlock, blockCryptKey, block)
+	if err != nil {
+		return err
+	}
+
+	block.SetEncodedSize(uint32(len(buf)))
+	return nil
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.
@@ -112,6 +118,9 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, md *RootMetadata,
 	if err != nil {
 		return
 	}
+
+	// Cache the encoded size.
+	block.SetEncodedSize(uint32(encodedSize))
 
 	return
 }
