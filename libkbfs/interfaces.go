@@ -14,7 +14,14 @@ import (
 )
 
 // Block just needs to be (de)serialized using msgpack
-type Block interface{}
+type Block interface {
+	// GetEncodedSize returns the encoded size of this block, but only
+	// if it has been previously set; otherwise it returns 0.
+	GetEncodedSize() uint32
+	// SetEncodedSize sets the encoded size of this block, locally
+	// caching it.  The encoded size is not serialized.
+	SetEncodedSize(size uint32)
+}
 
 // BlockContext is used by the server to help identify blocks
 type BlockContext interface {

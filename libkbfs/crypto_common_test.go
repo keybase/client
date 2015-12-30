@@ -659,7 +659,7 @@ func TestEncryptBlock(t *testing.T) {
 
 	cryptKey := makeBlockCryptKey(t, &c)
 
-	block := 50
+	block := TestBlock{50}
 	expectedEncodedBlock, err := config.Codec().Encode(block)
 	if err != nil {
 		t.Fatal(err)
@@ -693,7 +693,7 @@ func TestDecryptBlockSecretboxSeal(t *testing.T) {
 
 	cryptKey := makeBlockCryptKey(t, &c)
 
-	block := 50
+	block := TestBlock{50}
 
 	encodedBlock, err := config.Codec().Encode(block)
 	if err != nil {
@@ -707,7 +707,7 @@ func TestDecryptBlockSecretboxSeal(t *testing.T) {
 
 	encryptedBlock := EncryptedBlock(secretboxSealEncoded(t, &c, paddedBlock, cryptKey.Key))
 
-	var decryptedBlock int
+	var decryptedBlock TestBlock
 	err = c.DecryptBlock(encryptedBlock, cryptKey, &decryptedBlock)
 	if err != nil {
 		t.Fatal(err)
@@ -726,14 +726,14 @@ func TestDecryptEncryptedBlock(t *testing.T) {
 
 	cryptKey := makeBlockCryptKey(t, &c)
 
-	block := 50
+	block := TestBlock{50}
 
 	_, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	var decryptedBlock int
+	var decryptedBlock TestBlock
 	err = c.DecryptBlock(encryptedBlock, cryptKey, &decryptedBlock)
 	if err != nil {
 		t.Fatal(err)
@@ -751,7 +751,7 @@ func TestDecryptBlockFailures(t *testing.T) {
 
 	cryptKey := makeBlockCryptKey(t, &c)
 
-	block := 50
+	block := TestBlock{50}
 
 	_, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
 	if err != nil {
@@ -760,7 +760,7 @@ func TestDecryptBlockFailures(t *testing.T) {
 
 	checkDecryptionFailures(t, encryptedData(encryptedBlock), cryptKey,
 		func(encryptedData encryptedData, key interface{}) error {
-			var dummy int
+			var dummy TestBlock
 			return c.DecryptBlock(EncryptedBlock(encryptedData), key.(BlockCryptKey), &dummy)
 		},
 		func(key interface{}) interface{} {
@@ -867,6 +867,15 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 	}
 }
 
+type testBlockArray []byte
+
+func (tba testBlockArray) GetEncodedSize() uint32 {
+	return 0
+}
+
+func (tba testBlockArray) SetEncodedSize(size uint32) {
+}
+
 // Test that block encrypted data length is the same for data
 // length within same power of 2.
 func TestBlockEncryptedLen(t *testing.T) {
@@ -876,7 +885,7 @@ func TestBlockEncryptedLen(t *testing.T) {
 
 	var expectedLen int
 	for i := 1025; i < 2000; i++ {
-		data := make([]byte, i)
+		data := make(testBlockArray, i)
 		if err := cryptoRandRead(data); err != nil {
 			t.Fatal(err)
 		}

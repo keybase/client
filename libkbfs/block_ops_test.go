@@ -54,6 +54,13 @@ type TestBlock struct {
 	A int
 }
 
+func (tb TestBlock) GetEncodedSize() uint32 {
+	return 0
+}
+
+func (tb TestBlock) SetEncodedSize(size uint32) {
+}
+
 func blockOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config *ConfigMock, ctx context.Context) {
 	ctr := NewSafeTestReporter(t)

@@ -1027,8 +1027,21 @@ type IndirectFilePtr struct {
 // CommonBlock holds block data that is common for both subdirectories
 // and files.
 type CommonBlock struct {
-	// is this block so big it requires indirect pointers?
+	// IsInd indicates where this block is so big it requires indirect pointers
 	IsInd bool
+	// cachedEncodedSize is the locally-cached (non-serialized)
+	// encoded size for this block.
+	cachedEncodedSize uint32
+}
+
+// GetEncodedSize implements the Block interface for CommonBlock
+func (cb CommonBlock) GetEncodedSize() uint32 {
+	return cb.cachedEncodedSize
+}
+
+// SetEncodedSize implements the Block interface for CommonBlock
+func (cb *CommonBlock) SetEncodedSize(size uint32) {
+	cb.cachedEncodedSize = size
 }
 
 // DirBlock is the contents of a directory

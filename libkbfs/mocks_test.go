@@ -37,6 +37,24 @@ func (_m *MockBlock) EXPECT() *_MockBlockRecorder {
 	return _m.recorder
 }
 
+func (_m *MockBlock) GetEncodedSize() uint32 {
+	ret := _m.ctrl.Call(_m, "GetEncodedSize")
+	ret0, _ := ret[0].(uint32)
+	return ret0
+}
+
+func (_mr *_MockBlockRecorder) GetEncodedSize() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetEncodedSize")
+}
+
+func (_m *MockBlock) SetEncodedSize(size uint32) {
+	_m.ctrl.Call(_m, "SetEncodedSize", size)
+}
+
+func (_mr *_MockBlockRecorder) SetEncodedSize(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetEncodedSize", arg0)
+}
+
 // Mock of BlockContext interface
 type MockBlockContext struct {
 	ctrl     *gomock.Controller
