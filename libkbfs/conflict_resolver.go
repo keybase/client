@@ -1984,7 +1984,10 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 					// Set the Dir.Ref fields to be the same as the Unref
 					// -- they will be fixed up later.
 					rop.AddUpdate(ri.originalOldParent, ri.originalOldParent)
-					rop.AddUpdate(ri.originalNewParent, ri.originalNewParent)
+					if ri.originalNewParent != ri.originalOldParent {
+						rop.AddUpdate(ri.originalNewParent,
+							ri.originalNewParent)
+					}
 					for _, ptr := range cop.Unrefs() {
 						origPtr, err := chains.originalFromMostRecentOrSame(ptr)
 						if err != nil {
@@ -2190,6 +2193,7 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
 			}
 			*ptr = newPtr
 		}
+
 		newOps = append(newOps, op)
 	}
 	return newOps, nil
@@ -2638,8 +2642,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		// for the block.  However, the other ops will be using the
 		// original pointer as the unref, so use that as the key.
 		updates[update.Unref] = update.Ref
-		chain, ok := mergedChains.byMostRecent[update.Unref]
-		if ok {
+		if chain, ok := mergedChains.byMostRecent[update.Unref]; ok {
 			updates[chain.original] = update.Ref
 		}
 
