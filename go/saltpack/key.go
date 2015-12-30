@@ -44,7 +44,7 @@ type BoxPublicKey interface {
 // BoxPrecomputedSharedKey results from a Precomputation below.
 type BoxPrecomputedSharedKey interface {
 	Unbox(nonce *Nonce, msg []byte) ([]byte, error)
-	Box(nonce *Nonce, msg []byte) ([]byte, error)
+	Box(nonce *Nonce, msg []byte) []byte
 }
 
 // BoxSecretKey is the secret key corresponding to a BoxPublicKey

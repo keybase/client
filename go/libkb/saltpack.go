@@ -52,9 +52,9 @@ func (k naclBoxPrecomputedSharedKey) Unbox(nonce *saltpack.Nonce, msg []byte) (
 	return ret, nil
 }
 
-func (k naclBoxPrecomputedSharedKey) Box(nonce *saltpack.Nonce, msg []byte) ([]byte, error) {
+func (k naclBoxPrecomputedSharedKey) Box(nonce *saltpack.Nonce, msg []byte) []byte {
 	ret := box.SealAfterPrecomputation([]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&k))
-	return ret, nil
+	return ret
 }
 
 type naclBoxSecretKey NaclDHKeyPair

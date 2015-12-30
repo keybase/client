@@ -260,10 +260,7 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 	ciphertext := bl.PayloadCiphertext
 	hash := sha512.Sum512(ciphertext)
 
-	hashBox, err := ds.tagKey.Box(nonce, hash[:])
-	if err != nil {
-		return nil, err
-	}
+	hashBox := ds.tagKey.Box(nonce, hash[:])
 	ourAuthenticator := hashBox[:secretbox.Overhead]
 
 	if !hmac.Equal(ourAuthenticator, bl.HashAuthenticators[ds.position]) {

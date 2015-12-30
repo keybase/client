@@ -77,10 +77,7 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 	}
 
 	for _, tagKey := range es.tagKeys {
-		hashBox, err := tagKey.Box(nonce, hash[:])
-		if err != nil {
-			return err
-		}
+		hashBox := tagKey.Box(nonce, hash[:])
 		authenticator := hashBox[:secretbox.Overhead]
 		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)
 	}
@@ -174,7 +171,7 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 
 		ephemeralShared := ephemeralKey.Precompute(receiver)
 
-		keys, err := ephemeralShared.Box(nonce, rkpPacked)
+		keys := ephemeralShared.Box(nonce, rkpPacked)
 		if err != nil {
 			return err
 		}

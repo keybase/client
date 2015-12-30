@@ -109,10 +109,7 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 	}
 
 	for _, tagKey := range pes.tagKeys {
-		hashBox, err := tagKey.Box(nonce, hash[:])
-		if err != nil {
-			return err
-		}
+		hashBox := tagKey.Box(nonce, hash[:])
 		authenticator := hashBox[:secretbox.Overhead]
 		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)
 	}

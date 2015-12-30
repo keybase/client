@@ -137,9 +137,9 @@ func (b boxPrecomputedSharedKey) Unbox(nonce *Nonce, msg []byte) ([]byte, error)
 	return out, nil
 }
 
-func (b boxPrecomputedSharedKey) Box(nonce *Nonce, msg []byte) ([]byte, error) {
+func (b boxPrecomputedSharedKey) Box(nonce *Nonce, msg []byte) []byte {
 	out := box.SealAfterPrecomputation([]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&b))
-	return out, nil
+	return out
 }
 
 func (b boxSecretKey) Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) ([]byte, error) {
