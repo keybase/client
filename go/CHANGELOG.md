@@ -1,5 +1,6 @@
 - Fix hang in auth C/I tests (commit: 0a30c4ca47bd4d7b936f8bccf46afc00b143d5a7)
 - Better `keybase exp encrypt`/identification interaction (PR: keybase/client#1577)
+- Allow disabling self-encryption in `keybase exp encrypt` (PR: keybase/client#1606)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
