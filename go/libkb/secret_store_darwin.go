@@ -7,7 +7,6 @@ package libkb
 
 import (
 	"encoding/base64"
-
 	keychain "github.com/keybase/go-keychain"
 )
 
@@ -37,7 +36,12 @@ func (k KeychainSecretStore) RetrieveSecret() ([]byte, error) {
 		return nil, err
 	}
 
+	if len(encodedSecret) == 0 {
+		return nil, SecretStoreError{Msg: "no key found for " + k.accountName}
+	}
+
 	secret, err := base64.StdEncoding.DecodeString(string(encodedSecret))
+
 	if err != nil {
 		return nil, err
 	}
