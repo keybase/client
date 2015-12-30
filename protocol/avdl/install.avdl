@@ -56,12 +56,20 @@ protocol install {
     Status status;
   }
 
-  /**
-    ComponentStatus defines a components status.
-    Names can be "cli," "service", "kbfs".
-   */
-  record ComponentStatus {
+  record ComponentResult {
     string name;
     Status status;
   }
+
+  record InstallResult {
+    array<ComponentResult> componentResults;
+    Status status;
+    boolean fatal;
+  }
+
+  record UninstallResult {
+    array<ComponentResult> componentResults;
+    Status status;
+  }
+
 }

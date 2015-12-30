@@ -345,11 +345,39 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "ComponentStatus",
-    "doc" : "ComponentStatus defines a components status.\n    Names can be \"cli,\" \"service\", \"kbfs\".",
+    "name" : "ComponentResult",
     "fields" : [ {
       "name" : "name",
       "type" : "string"
+    }, {
+      "name" : "status",
+      "type" : "Status"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "InstallResult",
+    "fields" : [ {
+      "name" : "componentResults",
+      "type" : {
+        "type" : "array",
+        "items" : "ComponentResult"
+      }
+    }, {
+      "name" : "status",
+      "type" : "Status"
+    }, {
+      "name" : "fatal",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "UninstallResult",
+    "fields" : [ {
+      "name" : "componentResults",
+      "type" : {
+        "type" : "array",
+        "items" : "ComponentResult"
+      }
     }, {
       "name" : "status",
       "type" : "Status"

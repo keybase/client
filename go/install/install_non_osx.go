@@ -14,3 +14,7 @@ import (
 func AutoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bool, err error) {
 	return false, fmt.Errorf("Auto install only supported for OS X")
 }
+
+func CheckIfValidLocation() error {
+	return nil
+}

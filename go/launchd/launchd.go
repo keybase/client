@@ -237,9 +237,9 @@ func ShowServices(filters []string, name string, out io.Writer) (err error) {
 		return
 	}
 	if len(services) > 0 {
-		fmt.Fprintf(out, "%s %s:\n", name, libkb.Pluralize(len(services), "service", "services", false))
+		fmt.Fprintf(out, "%s:\n", name)
 		for _, service := range services {
-			fmt.Fprintf(out, "%s\n", service.StatusDescription())
+			fmt.Fprintf(out, "  %s\n", service.StatusDescription())
 		}
 		fmt.Fprintf(out, "\n")
 	} else {
