@@ -60,6 +60,7 @@ func (n NullConfiguration) GetTorHiddenAddress() string                   { retu
 func (n NullConfiguration) GetTorProxy() string                           { return "" }
 func (n NullConfiguration) GetUpdatePreferenceAuto() (bool, bool)         { return false, false }
 func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time { return keybase1.Time(0) }
+func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time           { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdatePreferenceSkip() string               { return "" }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
@@ -821,6 +822,10 @@ func (e *Env) GetUpdatePreferenceSnoozeUntil() keybase1.Time {
 	return e.config.GetUpdatePreferenceSnoozeUntil()
 }
 
+func (e *Env) GetUpdateLastChecked() keybase1.Time {
+	return e.config.GetUpdateLastChecked()
+}
+
 func (e *Env) SetUpdatePreferenceAuto(b bool) error {
 	return e.GetConfigWriter().SetUpdatePreferenceAuto(b)
 }
@@ -831,4 +836,8 @@ func (e *Env) SetUpdatePreferenceSkip(v string) error {
 
 func (e *Env) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
 	return e.GetConfigWriter().SetUpdatePreferenceSnoozeUntil(t)
+}
+
+func (e *Env) SetUpdateLastChecked(t keybase1.Time) error {
+	return e.GetConfigWriter().SetUpdateLastChecked(t)
 }
