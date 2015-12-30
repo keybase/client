@@ -31,6 +31,9 @@ type KeybaseDaemonRPC struct {
 	userCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
 	userCache map[keybase1.UID]UserInfo
+
+	lastNotificationFilenameLock sync.Mutex
+	lastNotificationFilename     string
 }
 
 var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
@@ -325,6 +328,18 @@ func (k *KeybaseDaemonRPC) FavoriteList(ctx context.Context, sessionID int) ([]k
 
 // Notify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
+	// Reduce log spam by not repeating log lines for
+	// notifications with the same filename.
+	//
+	// TODO: Only do this in debug mode.
+	func() {
+		k.lastNotificationFilenameLock.Lock()
+		defer k.lastNotificationFilenameLock.Unlock()
+		if notification.Filename != k.lastNotificationFilename {
+			k.lastNotificationFilename = notification.Filename
+			k.log.CDebugf(ctx, "Sending notification for %s", notification.Filename)
+		}
+	}()
 	return k.kbfsClient.FSEvent(ctx, *notification)
 }
 
