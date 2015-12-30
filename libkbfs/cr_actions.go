@@ -638,12 +638,6 @@ func (rma *renameMergedAction) updateOps(unmergedMostRecent BlockPointer,
 	}
 
 	if !unmergedChain.isFile() {
-		// The entry that gets created in the unmerged branch:
-		unmergedEntry, ok := mergedBlock.Children[rma.fromName]
-		if !ok {
-			return NoSuchNameError{rma.fromName}
-		}
-
 		// The entry that gets renamed in the unmerged branch:
 		mergedEntry, ok := mergedBlock.Children[rma.toName]
 		if !ok {
@@ -651,12 +645,10 @@ func (rma *renameMergedAction) updateOps(unmergedMostRecent BlockPointer,
 		}
 
 		// Prepend a rename for the merged copy to the unmerged set of
-		// operations, with another create for the unmerged file, for remote
-		// playback.
+		// operations.
 		rop := newRenameOp(rma.fromName, unmergedMostRecent, rma.toName,
 			unmergedMostRecent, mergedEntry.BlockPointer, mergedEntry.Type)
-		err := prependOpsToChain(unmergedMostRecent, unmergedChains, rop,
-			newCreateOp(rma.fromName, unmergedMostRecent, unmergedEntry.Type))
+		err := prependOpsToChain(unmergedMostRecent, unmergedChains, rop)
 		if err != nil {
 			return err
 		}
