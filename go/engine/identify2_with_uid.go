@@ -91,6 +91,10 @@ func (e *Identify2WithUID) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
+func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
+	return k == libkb.IdentifyUIKind && e.arg.UseDelegateUI
+}
+
 // Run then engine
 func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
