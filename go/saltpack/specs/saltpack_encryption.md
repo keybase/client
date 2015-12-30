@@ -120,51 +120,60 @@ The the **recipient box** contains another two-element MessagePack list:
 - The **sender public key** is the sender's long-term NaCl public encryption
   key.
 - The **message key** is a NaCl symmetric key used to encrypt the payload
-  packets. The message key is generated at random by the sender and only used
-  for one message.
+  packets. This key is generated at random by the sender and only used for one
+  message.
 
 Putting the sender's key in the **recipient box** allows Alice to stay
 anonymous to Mallory. If Alice wants to be anonymous to Bob as well, she can
-reuse the ephemeral key as her long term key. When the ephemeral key and the
+reuse the ephemeral key as her sender key. When the ephemeral key and the
 sender key are the same, clients may indicate that a message is "intentionally
 anonymous" as opposed to "from an unknown sender".
 
 When decrypting, clients should compute the ephemeral shared secret and then
 try to open each of the recipient boxes. In the NaCl interface, computing the
 shared secret is done with the
-[`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html) function. (This does a
-Curve25519 multiplication and an HSalsa20 key derivation.)
+[`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html) function, which does a
+Curve25519 multiplication and an HSalsa20 key derivation, to avoid repeating
+those steps in [`crypto_box_open`](http://nacl.cr.yp.to/box.html).
 
 ### Payload Packets
 A payload packet is a MessagePack list with these contents:
 
 ```
 [
-    hash authenticators list,
+    authenticators list,
     payload secretbox,
 ]
 ```
 
-- The **hash authenticators list** contains 16-byte Poly1305 tags, one for each
-  recipient, which authenticate the hash of the **payload secretbox**.
+- The **authenticators list** contains 16-byte Poly1305 tags, one for each
+  recipient, which authenticate the **payload secretbox**.
 - The **payload secretbox** is a NaCl secretbox containing a chunk of the
   plaintext bytes, max size 1 MB. It's encrypted with the symmetric message
   key. See [Nonces](#nonces) below.
 
-We compute the authenticators in three steps:
+If Mallory doesn't have the **message key**, she can't modify the **payload
+secretbox** without breaking authentication. However, if Mallory is one of the
+recipients, then she will have the key, and she could modify the payload. The
+**authenticators list** is there to prevent this attack, protecting the
+recipients from each other.
+
+We compute each recipient's authenticator in three steps:
 
 - Compute the SHA512 of the **payload secretbox**.
-- For each recipient, encrypt that hash in a NaCl box, using the sender and
-  recipient's long-term keys. See [Nonces](#nonces) below.
-- Take the first 16 bytes of each box, which comprise the Poly1305 tag.
+- Encrypt that hash in a NaCl box, using the sender's and the recipient's
+  long-term keys. See [Nonces](#nonces) below.
+- The authenticator is the first 16 bytes of that box.
 
-The purpose of the authenticators is to prevent recipients from reusing the
-header packet and the symmetric message key to forge new messages that appear
-to be from the same sender to other recipients. (Recipients should be able to
-forge messages that appear to be sent to them only, not messages that appear to
-be sent to anyone else.) Before opening the **payload secretbox**, recipients
-must compute the authenticator and verify that it matches what's in the **hash
-authenticators list**.
+The index of each authenticator in the list corresponds to the index of that
+recipient in the header. Before opening the **payload secretbox** in each
+payload packet, recipients must recompute the authenticator and check that it
+matches what's in the **authenticators list**.
+
+Our authenticators cover the SHA512 of the payload, rather than the payload
+itself, to save time when a large message has many recipients. This relies on
+the collision resistance of SHA512 for security, in addition to the normal
+assumptions that go into NaCl.
 
 Using NaCl's [`crypto_box`](http://nacl.cr.yp.to/box.html) to compute the
 authenticators takes more time than using
@@ -173,7 +182,7 @@ Likewise, using [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) to
 encrypt the payload takes more time and 16 bytes more space than using
 [`crypto_stream_xor`](http://nacl.cr.yp.to/stream.html) directly. Nonetheless,
 we prefer box and secretbox for ease of implementation. Many languages have
-NaCl implementations that don't expose lower-level functions.
+NaCl libraries that only expose these higher-level constructions.
 
 ### Nonces
 
@@ -186,9 +195,9 @@ to be the first 16 bytes of the SHA512 of the concatenation of these values:
 
 The nonce for each box is then the concatenation of `P` and a 64-bit big-endian
 unsigned counter. For each **recipient box** the counter is 0. For each payload
-packet we then increment the counter, so the first set of hash authenticators
-is 1, the next is 2, and so on. For each **payload secretbox**, the nonce is
-the same as for the associated hash authenticators. The strict ordering of
+packet we then increment the counter, so the first packet's **authenticators
+list** uses 1, the next uses 2, and so on. For each **payload secretbox**, the
+nonce is the same as for the associated authenticators. The strict ordering of
 nonces should make it impossible to drop or reorder any payload packets.
 
 We might be concerned about reusing the same nonce for each recipient here. For
@@ -198,15 +207,16 @@ authenticator boxes related to a given payload packet contain the same hash. So
 if the same recipient shows up twice, we'll produce identical boxes for them
 the second time.
 
-Besides avoiding nonce reuse, we also want to prevent abuse of the decryption
-key. Alice might use Bob's public key to encrypt many kinds of messages,
-besides just SaltPack messages. If Mallory intercepted one of these, she could
-assemble a fake SaltPack message using the intercepted box, in the hope that
-Bob might reveal something about its contents by decrypting it. If we used a
-random nonce transmitted in the message header, Mallory could choose the nonce
-to match an intercepted box. Using the `P` prefix instead makes this attack
-difficult. Unless Mallory can compute enough hashes to find one with a specific
-16-byte prefix, she can't control the nonce that Bob uses to decrypt.
+Besides avoiding nonce reuse and enforcing the packet order, we also want to
+prevent abuse of the decryption key. Alice might use Bob's public key to
+encrypt many kinds of messages, besides just SaltPack messages. If Mallory
+intercepted one of these, she could assemble a fake SaltPack message using the
+intercepted box, in the hope that Bob might reveal something about its contents
+by decrypting it. If we used a random nonce transmitted in the message header,
+Mallory could choose the nonce to match an intercepted box. Using the `P`
+prefix instead makes this attack difficult. Unless Mallory can compute enough
+hashes to find one with a specific 16-byte prefix, she can't control the nonce
+that Bob uses to decrypt.
 
 Some applications might use the SaltPack format, but don't want decryption
 compatibility with other SaltPack applications. In addition to changing the
@@ -243,7 +253,7 @@ place of `"SaltPack\0"`.
 
 # payload packet
 [
-  # hash authenticators list
+  # authenticators list
   [
     # the first recipient's authenticator
     Kf7jX3b41HUsMkBPPwITsw==,
@@ -255,7 +265,7 @@ place of `"SaltPack\0"`.
 
 # empty payload packet
 [
-  # hash authenticators list
+  # authenticators list
   [
     # the first recipient's authenticator
     scFuUduo1tFLbWajQOXTzw==,
