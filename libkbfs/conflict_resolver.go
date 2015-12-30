@@ -1564,7 +1564,7 @@ func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 					co.AddRefBlock(c.mostRecent)
 					writerName, err :=
 						cr.config.KBPKI().GetNormalizedUsername(
-							ctx, mergedChains.mostRecentMD.data.LastWriter)
+							ctx, mergedChains.mostRecentMD.LastModifyingWriter)
 					if err != nil {
 						return err
 					}
