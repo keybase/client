@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"os"
 
-	kc "github.com/keybase/go-osxkeychain"
+	"github.com/keybase/go-keychain"
 )
 
 const (
@@ -78,11 +78,19 @@ func (pi *pinentryInstance) shouldStoreSecret(info pinentrySecretStoreInfo) bool
 	// up saying that the client wants to access the user's
 	// keychain. But this will do for now until we write our own
 	// pinentry.
-	attributes := kc.GenericPasswordAttributes{
-		ServiceName: pinentryServiceName,
-		AccountName: string(info),
+	query := keychain.NewItem()
+	query.SetSecClass(keychain.SecClassGenericPassword)
+	query.SetService(pinentryServiceName)
+	query.SetAccount(string(info))
+	err := keychain.DeleteItem(query)
+	if err == nil {
+		// Entry was found and deleted.
+		return true
 	}
-	return (kc.FindAndRemoveGenericPassword(&attributes) == nil)
+	// Either err == errSecItemNotFound, in which case no entry
+	// was found, or there was some other error, in which case we
+	// default to false.
+	return false
 }
 
 func HasWindows() bool {
