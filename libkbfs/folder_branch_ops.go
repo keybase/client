@@ -816,8 +816,8 @@ type makeNewBlock func() Block
 //
 // blockLock should be taken for reading by the caller.
 func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, ptr BlockPointer,
-	branch BranchName, newBlock makeNewBlock) (
+	lState *lockState, md *RootMetadata, ptr BlockPointer, branch BranchName,
+	newBlock makeNewBlock, doCache bool) (
 	Block, error) {
 	if !ptr.IsValid() {
 		return nil, InvalidBlockPointerError{ptr}
@@ -849,8 +849,10 @@ func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
 		return nil, err
 	}
 
-	if err := bcache.Put(ptr, fbo.id(), block, TransientEntry); err != nil {
-		return nil, err
+	if doCache {
+		if err := bcache.Put(ptr, fbo.id(), block, TransientEntry); err != nil {
+			return nil, err
+		}
 	}
 	return block, nil
 }
@@ -872,7 +874,7 @@ func (fbo *folderBranchOps) getFileBlockHelperLocked(ctx context.Context,
 	branch BranchName, p path) (
 	*FileBlock, error) {
 	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, md, ptr, branch, NewFileBlock)
+		ctx, lState, md, ptr, branch, NewFileBlock, true)
 	if err != nil {
 		return nil, err
 	}
@@ -883,6 +885,23 @@ func (fbo *folderBranchOps) getFileBlockHelperLocked(ctx context.Context,
 	}
 
 	return fblock, nil
+}
+
+// getBlockForReading retrieves the block pointed to by ptr, which
+// must be valid, either from the cache or from the server.  The
+// returned block may have a generic type (not DirBlock or FileBlock).
+//
+// This should be called for "internal" operations, like conflict
+// resolution and state checking, which don't know what kind of block
+// the pointer refers to.  The block will not be cached, if it wasn't
+// in the cache already.
+func (fbo *folderBranchOps) getBlockForReading(ctx context.Context,
+	lState *lockState, md *RootMetadata, ptr BlockPointer, branch BranchName) (
+	Block, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	return fbo.getBlockHelperLocked(ctx, lState, md, ptr, branch,
+		NewCommonBlock, false)
 }
 
 // getDirBlockHelperLocked retrieves the block pointed to by ptr, which
@@ -899,7 +918,7 @@ func (fbo *folderBranchOps) getDirBlockHelperLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, ptr BlockPointer,
 	branch BranchName, p path) (*DirBlock, error) {
 	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, md, ptr, branch, NewDirBlock)
+		ctx, lState, md, ptr, branch, NewDirBlock, true)
 	if err != nil {
 		return nil, err
 	}

@@ -2420,6 +2420,112 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 	return bps, nil
 }
 
+// calculateResolutionBytes figured out how many bytes are referenced
+// and unreferenced in the merged branch by this resolution.  It
+// should be called before the block changes are unembedded in md.
+func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
+	lState *lockState, md *RootMetadata, bps *blockPutState,
+	unmergedChains *crChains, mergedChains *crChains) error {
+	md.RefBytes = 0
+	md.UnrefBytes = 0
+	md.DiskUsage = mergedChains.mostRecentMD.DiskUsage
+
+	// Track the refs and unrefs in a set, to ensure no duplicates
+	refs := make(map[BlockPointer]bool)
+	unrefs := make(map[BlockPointer]bool)
+	for _, op := range md.data.Changes.Ops {
+		for _, ptr := range op.Refs() {
+			refs[ptr] = true
+		}
+		for _, ptr := range op.Unrefs() {
+			unrefs[ptr] = true
+			delete(refs, ptr)
+		}
+		for _, update := range op.AllUpdates() {
+			if update.Unref != update.Ref {
+				unrefs[update.Unref] = true
+				delete(refs, update.Unref)
+			}
+
+			refs[update.Ref] = true
+		}
+	}
+
+	localBlocks := make(map[BlockPointer]Block)
+	for _, bs := range bps.blockStates {
+		if bs.block != nil {
+			localBlocks[bs.blockPtr] = bs.block
+		}
+	}
+
+	// Add bytes for every ref'd block.
+	var err error
+	for ptr := range refs {
+		block, ok := localBlocks[ptr]
+		if !ok {
+			// Look up the block to get its size.  Since we don't know
+			// whether this is a file or directory, just look it up
+			// generically.
+			//
+			// TODO: If the block wasn't already in the cache, this
+			// call won't cache it, so it's kind of wasting work.
+			// Furthermore, we might be able to get the encoded size
+			// from other sources as well (such as its directory entry
+			// or its indirect file block) if we happened to have come
+			// across it before.
+			block, err = cr.fbo.getBlockForReading(ctx, lState, md, ptr,
+				cr.fbo.branch())
+			if err != nil {
+				return err
+			}
+		}
+
+		cr.log.CDebugf(ctx, "Ref'ing block %v", ptr)
+		size := uint64(block.GetEncodedSize())
+		md.RefBytes += size
+		md.DiskUsage += size
+	}
+
+	// Subtract bytes for every unref'd block that wasn't created in
+	// the unmerged branch
+	for ptr := range unrefs {
+		original, ok := unmergedChains.originals[ptr]
+		if !ok {
+			original = ptr
+		}
+		if original != ptr || unmergedChains.isCreated(original) {
+			// Only unref pointers that weren't created as part of the
+			// unmerged branch.  Either they existed already or they were
+			// created as part of the merged branch.
+			continue
+		}
+		// Also make sure this wasn't already removed on the merged branch.
+		original, ok = mergedChains.originals[ptr]
+		if !ok {
+			original = ptr
+		}
+		if mergedChains.isDeleted(original) {
+			continue
+		}
+
+		block, err := cr.fbo.getBlockForReading(ctx, lState,
+			mergedChains.mostRecentMD, ptr, cr.fbo.branch())
+		if err != nil {
+			return err
+		}
+
+		cr.log.CDebugf(ctx, "Unref'ing block %v", ptr)
+		size := uint64(block.GetEncodedSize())
+		md.UnrefBytes += size
+		md.DiskUsage -= size
+	}
+
+	cr.log.CDebugf(ctx, "New md byte usage: %d ref, %d unref, %d total usage "+
+		"(previously %d)", md.RefBytes, md.UnrefBytes, md.DiskUsage,
+		mergedChains.mostRecentMD.DiskUsage)
+	return nil
+}
+
 // syncBlocks takes in the complete set of paths affected by this
 // conflict resolution, and organizes them into a tree, which it then
 // syncs using syncTree.  It also puts all the resulting blocks to the
@@ -2590,6 +2696,12 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 			cr.log.CDebugf(ctx, "remote op %s: update: %v -> %v", op,
 				update.Unref, update.Ref)
 		}
+	}
+
+	err = cr.calculateResolutionUsage(ctx, lState, md, bps, unmergedChains,
+		mergedChains)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	// do the block changes need their own blocks?

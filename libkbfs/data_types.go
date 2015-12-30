@@ -1044,6 +1044,11 @@ func (cb *CommonBlock) SetEncodedSize(size uint32) {
 	cb.cachedEncodedSize = size
 }
 
+// NewCommonBlock returns a generic block, unsuitable for caching.
+func NewCommonBlock() Block {
+	return &CommonBlock{}
+}
+
 // DirBlock is the contents of a directory
 type DirBlock struct {
 	CommonBlock
