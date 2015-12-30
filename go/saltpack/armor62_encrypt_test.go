@@ -61,7 +61,7 @@ func TestDearmor62DecryptSlowReader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := CheckArmor62Frame(frame); err != nil {
+	if err := CheckArmor62Frame(frame, EncryptionArmorHeader, EncryptionArmorFooter); err != nil {
 		t.Fatal(err)
 	}
 
