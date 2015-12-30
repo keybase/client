@@ -45,6 +45,7 @@ func (e *SaltPackDecrypt) Prereqs() Prereqs {
 func (e *SaltPackDecrypt) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.SaltPackUIKind,
+		libkb.SecretUIKind,
 	}
 }
 
