@@ -1647,6 +1647,7 @@ type Identify2Arg struct {
 	UseDelegateUI         bool           `codec:"useDelegateUI" json:"useDelegateUI"`
 	AlwaysBlock           bool           `codec:"alwaysBlock" json:"alwaysBlock"`
 	NoErrorOnTrackFailure bool           `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
+	ForceRemoteCheck      bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
 type IdentifyInterface interface {
@@ -4641,7 +4642,8 @@ type SaltPackEncryptOptions struct {
 }
 
 type SaltPackDecryptOptions struct {
-	Interactive bool `codec:"interactive" json:"interactive"`
+	Interactive      bool `codec:"interactive" json:"interactive"`
+	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
 type SaltPackEncryptArg struct {

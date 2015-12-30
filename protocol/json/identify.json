@@ -488,6 +488,10 @@
         "name" : "noErrorOnTrackFailure",
         "type" : "boolean",
         "default" : false
+      }, {
+        "name" : "forceRemoteCheck",
+        "type" : "boolean",
+        "default" : false
       } ],
       "response" : "Identify2Res"
     }

@@ -331,7 +331,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	}
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName()))
 	ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export())
-	e.them.IDTable().Identify(e.state, false /* ForceRemoteCheck */, ctx.IdentifyUI, e)
+	e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e)
 	e.insertTrackToken(ctx)
 	ctx.IdentifyUI.Finish()
 

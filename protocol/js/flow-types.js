@@ -4169,8 +4169,12 @@ export type saltPack_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type saltPack_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
+
 export type saltPack_IdentifyReason = {
+  type: IdentifyReasonType;
   reason: string;
+  resource: string;
 }
 
 export type saltPack_IdentifyOutcome = {
@@ -4220,10 +4224,12 @@ export type SaltPackEncryptOptions = {
 
 export type saltPack_SaltPackDecryptOptions = {
   interactive: boolean;
+  forceRemoteCheck: boolean;
 }
 
 export type SaltPackDecryptOptions = {
   interactive: boolean;
+  forceRemoteCheck: boolean;
 }
 
 export type saltPackUi_Time = {

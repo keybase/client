@@ -12,6 +12,7 @@ protocol saltPack {
 
   record SaltPackDecryptOptions {
   	boolean interactive;
+  	boolean forceRemoteCheck;
   }
 
   void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltPackEncryptOptions opts);

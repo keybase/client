@@ -57,7 +57,8 @@ func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason) 
 	case keybase1.IdentifyReasonType_ENCRYPT:
 		msg = "Identifying recipient "
 	case keybase1.IdentifyReasonType_DECRYPT:
-		msg = "Identifying sender "
+		ui.G().Log.Info("Message authored by " + ColorString("bold", username) + "; identifying...")
+		return
 	}
 	ui.G().Log.Info(msg + ColorString("bold", username))
 }

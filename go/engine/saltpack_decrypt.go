@@ -67,6 +67,7 @@ func (e *SaltPackDecrypt) identifySender(ctx *Context, arg *keybase1.SaltPackPro
 		Uid:                   arg.Uid,
 		UseDelegateUI:         !e.arg.Opts.Interactive,
 		AlwaysBlock:           e.arg.Opts.Interactive,
+		ForceRemoteCheck:      e.arg.Opts.ForceRemoteCheck,
 		NoErrorOnTrackFailure: true,
 		Reason: keybase1.IdentifyReason{
 			Reason: "Identify who encrypted this message",
@@ -90,7 +91,6 @@ func (e *SaltPackDecrypt) identifySender(ctx *Context, arg *keybase1.SaltPackPro
 
 func (e *SaltPackDecrypt) computeSenderArg(ctx *Context, mki *saltpack.MessageKeyInfo, arg *keybase1.SaltPackPromptForDecryptArg) (err error) {
 	defer e.G().Trace("SaltPackDecrypt::computeSenderArg", func() error { return err })()
-
 	if mki.SenderIsAnon {
 		arg.SenderType = keybase1.SaltPackSenderType_ANONYMOUS
 		return
@@ -155,7 +155,6 @@ func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
 
 	hook := func(mki *saltpack.MessageKeyInfo) error {
 		return e.promptForDecrypt(ctx, mki)
-
 	}
 
 	e.G().Log.Debug("| SaltPackDecrypt")
