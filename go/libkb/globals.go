@@ -437,3 +437,15 @@ func (g *GlobalContext) GetStoredSecretAccessGroup() string {
 func (g *GlobalContext) GetUsersWithStoredSecrets() ([]string, error) {
 	return GetUsersWithStoredSecrets(g)
 }
+
+func (g *GlobalContext) GetCacheDir() string {
+	return g.Env.GetCacheDir()
+}
+
+func (g *GlobalContext) GetRuntimeDir() string {
+	return g.Env.GetRuntimeDir()
+}
+
+func (g *GlobalContext) GetRunMode() RunMode {
+	return g.Env.GetRunMode()
+}

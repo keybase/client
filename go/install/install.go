@@ -16,6 +16,47 @@ import (
 	"github.com/keybase/client/go/protocol"
 )
 
+type Context interface {
+	GetCacheDir() string
+	GetRuntimeDir() string
+	GetRunMode() libkb.RunMode
+}
+
+type ComponentName string
+
+const (
+	ComponentNameCLI     ComponentName = "cli"
+	ComponentNameService ComponentName = "service"
+	ComponentNameKBFS    ComponentName = "kbfs"
+	ComponentNameUnknown ComponentName = "unknown"
+)
+
+var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS}
+
+func (c ComponentName) String() string {
+	switch c {
+	case ComponentNameCLI:
+		return "Command Line"
+	case ComponentNameService:
+		return "Service"
+	case ComponentNameKBFS:
+		return "KBFS"
+	}
+	return "Unknown"
+}
+
+func ComponentNameFromString(s string) ComponentName {
+	switch s {
+	case string(ComponentNameCLI):
+		return ComponentNameCLI
+	case string(ComponentNameService):
+		return ComponentNameService
+	case string(ComponentNameKBFS):
+		return ComponentNameKBFS
+	}
+	return ComponentNameUnknown
+}
+
 func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus string) (installStatus keybase1.InstallStatus, installAction keybase1.InstallAction, status keybase1.Status) {
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	installAction = keybase1.InstallAction_UNKNOWN
@@ -68,12 +109,16 @@ func errorStatus(name string, desc string) keybase1.Status {
 	return keybase1.Status{Code: libkb.SCGeneric, Name: name, Desc: desc}
 }
 
-func serviceInfoPath(g *libkb.GlobalContext) string {
-	return path.Join(g.Env.GetRuntimeDir(), "keybased.info")
+func ErrorStatus(name string, desc string) keybase1.Status {
+	return errorStatus(name, desc)
 }
 
-func kbfsBundleVersion(g *libkb.GlobalContext, binPath string) (string, error) {
-	runMode := g.Env.GetRunMode()
+func serviceInfoPath(context Context) string {
+	return path.Join(context.GetRuntimeDir(), "keybased.info")
+}
+
+func kbfsBundleVersion(context Context, binPath string) (string, error) {
+	runMode := context.GetRunMode()
 	kbfsBinPath, err := kbfsBinPath(runMode, binPath)
 	if err != nil {
 		return "", err
@@ -98,7 +143,7 @@ func createCommandLine(binPath string, linkPath string) error {
 	return os.Symlink(binPath, linkPath)
 }
 
-func uninstallCommandLine(g *libkb.GlobalContext) error {
+func uninstallCommandLine() error {
 	linkPath := filepath.Join("/usr/local/bin", binName())
 
 	fi, err := os.Lstat(linkPath)
@@ -114,12 +159,12 @@ func uninstallCommandLine(g *libkb.GlobalContext) error {
 
 // We're only moving the folder in case something somehow managed to get at it
 // in between unmounting and checking if it had files.
-func trashDir(g *libkb.GlobalContext, dir string) error {
+func trashDir(context Context, dir string) error {
 	randString, err := libkb.RandString("Trash.", 20)
 	if err != nil {
 		return err
 	}
-	return os.Rename(dir, filepath.Join(g.Env.GetCacheDir(), randString))
+	return os.Rename(dir, filepath.Join(context.GetCacheDir(), randString))
 }
 
 func chooseBinPath(bp string) (string, error) {

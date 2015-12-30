@@ -1893,13 +1893,35 @@ export type FuseStatus = {
   status: Status;
 }
 
-export type install_ComponentStatus = {
+export type install_ComponentResult = {
   name: string;
   status: Status;
 }
 
-export type ComponentStatus = {
+export type ComponentResult = {
   name: string;
+  status: Status;
+}
+
+export type install_InstallResult = {
+  componentResults: Array<ComponentResult>;
+  status: Status;
+  fatal: boolean;
+}
+
+export type InstallResult = {
+  componentResults: Array<ComponentResult>;
+  status: Status;
+  fatal: boolean;
+}
+
+export type install_UninstallResult = {
+  componentResults: Array<ComponentResult>;
+  status: Status;
+}
+
+export type UninstallResult = {
+  componentResults: Array<ComponentResult>;
   status: Status;
 }
 

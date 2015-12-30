@@ -2202,9 +2202,20 @@ type FuseStatus struct {
 	Status        Status          `codec:"status" json:"status"`
 }
 
-type ComponentStatus struct {
+type ComponentResult struct {
 	Name   string `codec:"name" json:"name"`
 	Status Status `codec:"status" json:"status"`
+}
+
+type InstallResult struct {
+	ComponentResults []ComponentResult `codec:"componentResults" json:"componentResults"`
+	Status           Status            `codec:"status" json:"status"`
+	Fatal            bool              `codec:"fatal" json:"fatal"`
+}
+
+type UninstallResult struct {
+	ComponentResults []ComponentResult `codec:"componentResults" json:"componentResults"`
+	Status           Status            `codec:"status" json:"status"`
 }
 
 type InstallInterface interface {
