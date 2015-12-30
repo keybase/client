@@ -7,6 +7,7 @@ package libkb
 
 import (
 	"encoding/base64"
+
 	keychain "github.com/keybase/go-keychain"
 )
 
@@ -35,13 +36,11 @@ func (k KeychainSecretStore) RetrieveSecret() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	if len(encodedSecret) == 0 {
-		return nil, SecretStoreError{Msg: "no key found for " + k.accountName}
+	if encodedSecret == nil {
+		return nil, SecretStoreError{Msg: "No secret for " + k.accountName}
 	}
 
 	secret, err := base64.StdEncoding.DecodeString(string(encodedSecret))
-
 	if err != nil {
 		return nil, err
 	}
@@ -49,10 +48,14 @@ func (k KeychainSecretStore) RetrieveSecret() ([]byte, error) {
 	return secret, nil
 }
 
-func (k KeychainSecretStore) ClearSecret() (err error) {
+func (k KeychainSecretStore) ClearSecret() error {
 	query := keychain.NewGenericPassword(k.serviceName(), k.accountName, "", nil, "")
 	query.SetMatchLimit(keychain.MatchLimitAll)
-	return keychain.DeleteItem(query)
+	err := keychain.DeleteItem(query)
+	if err == keychain.ErrorItemNotFound {
+		return nil
+	}
+	return err
 }
 
 func NewSecretStore(context SecretStoreContext, username NormalizedUsername) SecretStore {
