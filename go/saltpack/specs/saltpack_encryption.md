@@ -182,7 +182,7 @@ to be the first 16 bytes of the SHA512 of the concatenation of these values:
 - `"encryption nonce prefix\0"`
 - the 32-byte **ephemeral_public** key
 
-The nonce for each box is the concatenation of `P` and a 64-bit big-endian
+The nonce for each box is then the concatenation of `P` and a 64-bit big-endian
 unsigned counter. For each **recipient_box** the counter is 0. For each payload
 packet we then increment the counter, so the first set of
 **hash_authenticators** is 1, the next is 2, and so on. For each
@@ -193,17 +193,17 @@ impossible to drop or reorder any payload packets.
 We might be concerned about reusing the same nonce for each recipient here. For
 example, a recipient key could show up more than once in the recipients list.
 However, note that all the recipient boxes contain the same keys, and all the
-authenticator boxes in a given payload packet contain the same hash. So if the
-same recipient shows up twice, we'll produce identical boxes for them the
-second time.
+authenticator boxes related to a given payload packet contain the same hash. So
+if the same recipient shows up twice, we'll produce identical boxes for them
+the second time.
 
 Besides avoiding nonce reuse, we also want to prevent abuse of the decryption
 key. Alice might use Bob's public key to encrypt many kinds of messages,
 besides just SaltPack messages. If Mallory intercepted one of these, she could
 assemble a fake SaltPack message using the intercepted box, in the hope that
 Bob might reveal something about its contents by decrypting it. If we used a
-random nonce transmitted in the message header, Mallory could pick the nonce to
-fit the intercepted box. Using the `P` prefix instead makes this attack
+random nonce transmitted in the message header, Mallory could choose the nonce
+to match an intercepted box. Using the `P` prefix instead makes this attack
 difficult. Unless Mallory can compute enough hashes to find one with a specific
 16-byte prefix, she can't control the nonce that Bob uses to decrypt.
 
@@ -227,16 +227,16 @@ place of `"SaltPack\0"`.
   0,
   # ephemeral public key
   LfqrHp8MXAjgaRgwDVc354+xT+KbCZaAgXXRL7bLWwI=,
-  # recipient tuples
+  # recipient pairs
   [
-    # the first recipient
+    # the first recipient pair
     [
       # recipient public key (null in this case, for an anonymous recipient)
       null,
       # recipient box
       yYTf3JDEYYxfKsHpF0yd5V4Ud7CAxFSJQCj5fV3x6WDGvxsmg/QQW6Qe3muB7uyg5PdlxEOg7fsmEXcFBEBDM9IzmvWsFZnqHk7yaLnkLd9mHeJLtw==,
     ],
-    # subsequent recipients...
+    # subsequent recipient pairs...
   ],
 ]
 
