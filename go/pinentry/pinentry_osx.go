@@ -82,7 +82,9 @@ func (pi *pinentryInstance) shouldStoreSecret(info pinentrySecretStoreInfo) bool
 	query.SetSecClass(keychain.SecClassGenericPassword)
 	query.SetService(pinentryServiceName)
 	query.SetAccount(string(info))
+	query.SetMatchLimit(keychain.MatchLimitAll)
 	err := keychain.DeleteItem(query)
+	fmt.Printf("Trying to delete %v %v, got %v\n", pinentryServiceName, info, err)
 	if err == nil {
 		// Entry was found and deleted.
 		return true
