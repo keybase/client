@@ -6,6 +6,7 @@ package libkb
 import (
 	"bytes"
 
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/saltpack"
 	"golang.org/x/crypto/nacl/box"
 )
@@ -127,4 +128,12 @@ func (n naclKeyring) GetAllSecretKeys() []saltpack.BoxSecretKey {
 
 func (n naclKeyring) ImportEphemeralKey(kid []byte) saltpack.BoxPublicKey {
 	return n.LookupBoxPublicKey(kid)
+}
+
+func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) (ret keybase1.KID) {
+	if k == nil {
+		return ret
+	}
+	p := k.ToKID()
+	return keybase1.KIDFromRawKey(p, KIDNaclDH)
 }

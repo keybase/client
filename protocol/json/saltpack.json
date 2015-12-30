@@ -304,10 +304,20 @@
       "type" : "boolean"
     } ]
   }, {
+    "type" : "enum",
+    "name" : "IdentifyReasonType",
+    "symbols" : [ "NONE_0", "ID_1", "TRACK_2", "ENCRYPT_3", "DECRYPT_4", "VERIFY_5", "RESOURCE_6" ]
+  }, {
     "type" : "record",
     "name" : "IdentifyReason",
     "fields" : [ {
+      "name" : "type",
+      "type" : "IdentifyReasonType"
+    }, {
       "name" : "reason",
+      "type" : "string"
+    }, {
+      "name" : "resource",
       "type" : "string"
     } ]
   }, {
@@ -419,6 +429,16 @@
       "name" : "noSelfEncrypt",
       "type" : "boolean"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "SaltPackDecryptOptions",
+    "fields" : [ {
+      "name" : "interactive",
+      "type" : "boolean"
+    }, {
+      "name" : "forceRemoteCheck",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
     "saltPackEncrypt" : {
@@ -447,6 +467,9 @@
       }, {
         "name" : "sink",
         "type" : "Stream"
+      }, {
+        "name" : "opts",
+        "type" : "SaltPackDecryptOptions"
       } ],
       "response" : "null"
     }

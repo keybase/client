@@ -18,7 +18,7 @@ type trackingUI struct {
 	signupUI
 }
 
-func (n *trackingUI) GetIdentifyTrackUI(strict bool) libkb.IdentifyUI {
+func (n *trackingUI) GetIdentifyTrackUI() libkb.IdentifyUI {
 	return &identifyUI{}
 }
 
@@ -31,7 +31,7 @@ func (*identifyUI) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, e
 		RemoteConfirmed:   true,
 	}, nil
 }
-func (*identifyUI) Start(string)                                                          {}
+func (*identifyUI) Start(string, keybase1.IdentifyReason)                                 {}
 func (*identifyUI) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)    {}
 func (*identifyUI) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) {}
 func (*identifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency)                         {}

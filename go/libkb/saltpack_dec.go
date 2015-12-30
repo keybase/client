@@ -11,11 +11,17 @@ import (
 
 func SaltPackDecrypt(
 	source io.Reader, sink io.WriteCloser,
-	deviceEncryptionKey NaclDHKeyPair) error {
-	_, plainsource, frame, err := saltpack.NewDearmor62DecryptStream(
+	deviceEncryptionKey NaclDHKeyPair, checkSender func(*saltpack.MessageKeyInfo) error) error {
+	mki, plainsource, frame, err := saltpack.NewDearmor62DecryptStream(
 		source, naclKeyring(deviceEncryptionKey))
 	if err != nil {
 		return err
+	}
+
+	if checkSender != nil {
+		if err = checkSender(mki); err != nil {
+			return err
+		}
 	}
 
 	n, err := io.Copy(sink, plainsource)

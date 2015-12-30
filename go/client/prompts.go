@@ -45,4 +45,5 @@ const (
 	PromptDescriptorUpdateDo
 	PromptDescriptorUpdateAuto
 	PromptDescriptorUpdateSnooze
+	PromptDescriptorDecryptInteractive
 )

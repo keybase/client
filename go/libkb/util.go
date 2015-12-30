@@ -414,6 +414,10 @@ func Trace(log logger.Logger, msg string, f func() error) func() {
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
 
+func (g *GlobalContext) Trace(msg string, f func() error) func() {
+	return Trace(g.Log, msg, f)
+}
+
 // SplitByRunes splits string by runes
 func SplitByRunes(s string, separators []rune) []string {
 	f := func(r rune) bool {

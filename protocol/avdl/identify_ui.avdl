@@ -1,4 +1,3 @@
-
 @namespace("keybase.1")
 protocol identifyUi {
   import idl "common.avdl";
@@ -83,7 +82,7 @@ protocol identifyUi {
   // following exchange. Return 0 on failure.
   int delegateIdentifyUI();
 
-  void start(int sessionID, string username);
+  void start(int sessionID, string username, IdentifyReason reason);
   void displayKey(int sessionID, IdentifyKey key);
   void reportLastTrack(int sessionID, union { null, TrackSummary } track);
   void launchNetworkChecks(int sessionID, Identity identity, User user);

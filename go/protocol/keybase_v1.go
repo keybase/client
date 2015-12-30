@@ -628,6 +628,7 @@ const (
 	StatusCode_SCResolutionFailed       StatusCode = 275
 	StatusCode_SCProfileNotPublic       StatusCode = 276
 	StatusCode_SCIdentifyFailed         StatusCode = 277
+	StatusCode_SCTrackingBroke          StatusCode = 278
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCMissingResult          StatusCode = 801
 	StatusCode_SCKeyNotFound            StatusCode = 901
@@ -1562,8 +1563,22 @@ type TrackOptions struct {
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
 }
 
+type IdentifyReasonType int
+
+const (
+	IdentifyReasonType_NONE     IdentifyReasonType = 0
+	IdentifyReasonType_ID       IdentifyReasonType = 1
+	IdentifyReasonType_TRACK    IdentifyReasonType = 2
+	IdentifyReasonType_ENCRYPT  IdentifyReasonType = 3
+	IdentifyReasonType_DECRYPT  IdentifyReasonType = 4
+	IdentifyReasonType_VERIFY   IdentifyReasonType = 5
+	IdentifyReasonType_RESOURCE IdentifyReasonType = 6
+)
+
 type IdentifyReason struct {
-	Reason string `codec:"reason" json:"reason"`
+	Type     IdentifyReasonType `codec:"type" json:"type"`
+	Reason   string             `codec:"reason" json:"reason"`
+	Resource string             `codec:"resource" json:"resource"`
 }
 
 type IdentifyOutcome struct {
@@ -1625,11 +1640,14 @@ type IdentifyArg struct {
 }
 
 type Identify2Arg struct {
-	SessionID     int            `codec:"sessionID" json:"sessionID"`
-	Uid           UID            `codec:"uid" json:"uid"`
-	UserAssertion string         `codec:"userAssertion" json:"userAssertion"`
-	Reason        IdentifyReason `codec:"reason" json:"reason"`
-	UseDelegateUI bool           `codec:"useDelegateUI" json:"useDelegateUI"`
+	SessionID             int            `codec:"sessionID" json:"sessionID"`
+	Uid                   UID            `codec:"uid" json:"uid"`
+	UserAssertion         string         `codec:"userAssertion" json:"userAssertion"`
+	Reason                IdentifyReason `codec:"reason" json:"reason"`
+	UseDelegateUI         bool           `codec:"useDelegateUI" json:"useDelegateUI"`
+	AlwaysBlock           bool           `codec:"alwaysBlock" json:"alwaysBlock"`
+	NoErrorOnTrackFailure bool           `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
+	ForceRemoteCheck      bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
 type IdentifyInterface interface {
@@ -1791,8 +1809,9 @@ type DelegateIdentifyUIArg struct {
 }
 
 type StartArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Username  string         `codec:"username" json:"username"`
+	Reason    IdentifyReason `codec:"reason" json:"reason"`
 }
 
 type DisplayKeyArg struct {
@@ -4622,6 +4641,11 @@ type SaltPackEncryptOptions struct {
 	NoSelfEncrypt bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
 }
 
+type SaltPackDecryptOptions struct {
+	Interactive      bool `codec:"interactive" json:"interactive"`
+	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+}
+
 type SaltPackEncryptArg struct {
 	SessionID int                    `codec:"sessionID" json:"sessionID"`
 	Source    Stream                 `codec:"source" json:"source"`
@@ -4630,9 +4654,10 @@ type SaltPackEncryptArg struct {
 }
 
 type SaltPackDecryptArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Source    Stream `codec:"source" json:"source"`
-	Sink      Stream `codec:"sink" json:"sink"`
+	SessionID int                    `codec:"sessionID" json:"sessionID"`
+	Source    Stream                 `codec:"source" json:"source"`
+	Sink      Stream                 `codec:"sink" json:"sink"`
+	Opts      SaltPackDecryptOptions `codec:"opts" json:"opts"`
 }
 
 type SaltPackInterface interface {
@@ -4691,6 +4716,64 @@ func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncry
 
 func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, nil)
+	return
+}
+
+type SaltPackSenderType int
+
+const (
+	SaltPackSenderType_NOT_TRACKED    SaltPackSenderType = 0
+	SaltPackSenderType_UNKNOWN        SaltPackSenderType = 1
+	SaltPackSenderType_ANONYMOUS      SaltPackSenderType = 2
+	SaltPackSenderType_TRACKING_BROKE SaltPackSenderType = 3
+	SaltPackSenderType_TRACKING_OK    SaltPackSenderType = 4
+)
+
+type SaltPackSender struct {
+	Uid        UID                `codec:"uid" json:"uid"`
+	Username   string             `codec:"username" json:"username"`
+	SenderType SaltPackSenderType `codec:"senderType" json:"senderType"`
+}
+
+type SaltPackPromptForDecryptArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Sender    SaltPackSender `codec:"sender" json:"sender"`
+}
+
+type SaltPackUiInterface interface {
+	SaltPackPromptForDecrypt(context.Context, SaltPackPromptForDecryptArg) error
+}
+
+func SaltPackUiProtocol(i SaltPackUiInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.saltPackUi",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"saltPackPromptForDecrypt": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackPromptForDecryptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackPromptForDecryptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackPromptForDecryptArg)(nil), args)
+						return
+					}
+					err = i.SaltPackPromptForDecrypt(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type SaltPackUiClient struct {
+	Cli GenericClient
+}
+
+func (c SaltPackUiClient) SaltPackPromptForDecrypt(ctx context.Context, __arg SaltPackPromptForDecryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackPromptForDecrypt", []interface{}{__arg}, nil)
 	return
 }
 

@@ -85,6 +85,9 @@ func (e *DeviceKeyfinder) identifyUsers(ctx *Context) error {
 func (e *DeviceKeyfinder) identifyUser(ctx *Context, user string) error {
 	arg := keybase1.Identify2Arg{
 		UserAssertion: user,
+		Reason: keybase1.IdentifyReason{
+			Type: keybase1.IdentifyReasonType_ENCRYPT,
+		},
 	}
 	eng := NewResolveThenIdentify2(e.G(), &arg)
 	if err := RunEngine(eng, ctx); err != nil {

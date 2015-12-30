@@ -57,8 +57,20 @@ protocol identifyCommon {
 		boolean bypassConfirm;
 	}
 
+	enum IdentifyReasonType {
+		NONE_0,
+		ID_1,
+		TRACK_2,
+		ENCRYPT_3,
+		DECRYPT_4,
+		VERIFY_5,
+		RESOURCE_6
+	}
+
 	record IdentifyReason {
+		IdentifyReasonType type;
 		string reason;
+		string resource;
 	}
 
 	record IdentifyOutcome {

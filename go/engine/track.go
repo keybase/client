@@ -58,6 +58,7 @@ func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 func (e *TrackEngine) Run(ctx *Context) error {
 	iarg := NewIdentifyTrackArg(e.arg.UserAssertion, true, e.arg.ForceRemoteCheck, e.arg.Options)
 	iarg.AllowSelf = e.arg.AllowSelfIdentify
+	iarg.Reason.Type = keybase1.IdentifyReasonType_TRACK
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
 		return err

@@ -248,6 +248,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			assertion = s.Fields[0].Value
 		}
 		return IdentifyFailedError{Assertion: assertion, Reason: s.Desc}
+	case SCTrackingBroke:
+		return TrackingBrokeError{}
 	case SCResolutionFailed:
 		var input string
 		if len(s.Fields) > 0 && s.Fields[0].Key == "input" {
@@ -912,5 +914,12 @@ func (e ProfileNotPublicError) ToStatus() keybase1.Status {
 		Code: SCProfileNotPublic,
 		Name: "SC_PROFILE_NOT_PUBLIC",
 		Desc: e.msg,
+	}
+}
+
+func (e TrackingBrokeError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCTrackingBroke,
+		Name: "SC_TRACKING_BROKE",
 	}
 }
