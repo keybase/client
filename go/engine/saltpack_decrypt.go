@@ -19,15 +19,15 @@ type SaltPackDecryptArg struct {
 
 // SaltPackDecrypt decrypts data read from a source into a sink.
 type SaltPackDecrypt struct {
-	arg *SaltPackDecryptArg
 	libkb.Contextified
+	arg *SaltPackDecryptArg
 }
 
 // NewSaltPackDecrypt creates a SaltPackDecrypt engine.
 func NewSaltPackDecrypt(arg *SaltPackDecryptArg, g *libkb.GlobalContext) *SaltPackDecrypt {
 	return &SaltPackDecrypt{
-		arg:          arg,
 		Contextified: libkb.NewContextified(g),
+		arg:          arg,
 	}
 }
 
@@ -51,71 +51,31 @@ func (e *SaltPackDecrypt) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *SaltPackDecrypt) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&Identify2WithUID{},
+		&SaltPackSenderIdentify{},
 	}
-}
-
-func (e *SaltPackDecrypt) lookupSender(ctx *Context, mki *saltpack.MessageKeyInfo, arg *keybase1.SaltPackPromptForDecryptArg) (err error) {
-	defer e.G().Trace("SaltPackDecrypt::lookupSender", func() error { return err })()
-	arg.Username, arg.Uid, err = libkb.KeyLookupByBoxPublicKey(e.G(), mki.SenderKey)
-	return err
-}
-
-func (e *SaltPackDecrypt) identifySender(ctx *Context, arg *keybase1.SaltPackPromptForDecryptArg) (err error) {
-	defer e.G().Trace("SaltPackDecrypt::identifySender", func() error { return err })()
-	iarg := keybase1.Identify2Arg{
-		Uid:                   arg.Uid,
-		UseDelegateUI:         !e.arg.Opts.Interactive,
-		AlwaysBlock:           e.arg.Opts.Interactive,
-		ForceRemoteCheck:      e.arg.Opts.ForceRemoteCheck,
-		NoErrorOnTrackFailure: true,
-		Reason: keybase1.IdentifyReason{
-			Reason: "Identify who encrypted this message",
-			Type:   keybase1.IdentifyReasonType_DECRYPT,
-		},
-	}
-	eng := NewIdentify2WithUID(e.G(), &iarg)
-	if err = eng.Run(ctx); err != nil {
-		return err
-	}
-	switch eng.getTrackType() {
-	case identify2NoTrack:
-		arg.SenderType = keybase1.SaltPackSenderType_NOT_TRACKED
-	case identify2TrackOK:
-		arg.SenderType = keybase1.SaltPackSenderType_TRACKING_OK
-	default:
-		arg.SenderType = keybase1.SaltPackSenderType_TRACKING_BROKE
-	}
-	return nil
-}
-
-func (e *SaltPackDecrypt) computeSenderArg(ctx *Context, mki *saltpack.MessageKeyInfo, arg *keybase1.SaltPackPromptForDecryptArg) (err error) {
-	defer e.G().Trace("SaltPackDecrypt::computeSenderArg", func() error { return err })()
-	if mki.SenderIsAnon {
-		arg.SenderType = keybase1.SaltPackSenderType_ANONYMOUS
-		return
-	}
-
-	if err = e.lookupSender(ctx, mki, arg); err != nil {
-		if _, ok := err.(libkb.NotFoundError); ok {
-			arg.SenderType = keybase1.SaltPackSenderType_UNKNOWN
-			err = nil
-		}
-		return err
-	}
-
-	if err = e.identifySender(ctx, arg); err != nil {
-		return err
-	}
-	return
 }
 
 func (e *SaltPackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKeyInfo) (err error) {
 	defer e.G().Trace("SaltPackDecrypt::promptForDecrypt", func() error { return err })()
 
-	arg := keybase1.SaltPackPromptForDecryptArg{}
-	if err = e.computeSenderArg(ctx, mki, &arg); err != nil {
+	spsiArg := SaltPackSenderIdentifyArg{
+		isAnon:           mki.SenderIsAnon,
+		publicKey:        libkb.BoxPublicKeyToKeybaseKID(mki.SenderKey),
+		interactive:      e.arg.Opts.Interactive,
+		forceRemoteCheck: e.arg.Opts.ForceRemoteCheck,
+		reason: keybase1.IdentifyReason{
+			Reason: "Identify who encrypted this message",
+			Type:   keybase1.IdentifyReasonType_DECRYPT,
+		},
+	}
+
+	spsiEng := NewSaltPackSenderIdentify(e.G(), &spsiArg)
+	if err = RunEngine(spsiEng, ctx); err != nil {
 		return err
+	}
+
+	arg := keybase1.SaltPackPromptForDecryptArg{
+		Sender: spsiEng.Result(),
 	}
 
 	err = ctx.SaltPackUI.SaltPackPromptForDecrypt(context.TODO(), arg)

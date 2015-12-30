@@ -4729,11 +4729,15 @@ const (
 	SaltPackSenderType_TRACKING_OK    SaltPackSenderType = 4
 )
 
-type SaltPackPromptForDecryptArg struct {
-	SessionID  int                `codec:"sessionID" json:"sessionID"`
+type SaltPackSender struct {
 	Uid        UID                `codec:"uid" json:"uid"`
 	Username   string             `codec:"username" json:"username"`
 	SenderType SaltPackSenderType `codec:"senderType" json:"senderType"`
+}
+
+type SaltPackPromptForDecryptArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Sender    SaltPackSender `codec:"sender" json:"sender"`
 }
 
 type SaltPackUiInterface interface {

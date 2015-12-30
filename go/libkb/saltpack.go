@@ -130,7 +130,10 @@ func (n naclKeyring) ImportEphemeralKey(kid []byte) saltpack.BoxPublicKey {
 	return n.LookupBoxPublicKey(kid)
 }
 
-func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) keybase1.KID {
+func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) (ret keybase1.KID) {
+	if k == nil {
+		return ret
+	}
 	p := k.ToKID()
 	return keybase1.KIDFromRawKey(p, KIDNaclDH)
 }

@@ -21,13 +21,13 @@ type SaltPackUI struct {
 }
 
 func (s *SaltPackUI) doNonInteractive(arg keybase1.SaltPackPromptForDecryptArg) error {
-	switch arg.SenderType {
+	switch arg.Sender.SenderType {
 	case keybase1.SaltPackSenderType_TRACKING_BROKE:
 		if s.force {
 			s.G().Log.Warning("Tracking statement is broken for sender, but forcing through.")
 			return nil
 		}
-		return libkb.IdentifyFailedError{Assertion: arg.Username, Reason: "tracking broke"}
+		return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "tracking broke"}
 	default:
 		return nil
 	}
@@ -36,7 +36,7 @@ func (s *SaltPackUI) doNonInteractive(arg keybase1.SaltPackPromptForDecryptArg) 
 func (s *SaltPackUI) doInteractive(arg keybase1.SaltPackPromptForDecryptArg) error {
 	var why string
 	def := libkb.PromptDefaultYes
-	switch arg.SenderType {
+	switch arg.Sender.SenderType {
 	case keybase1.SaltPackSenderType_TRACKING_OK:
 		return nil
 	case keybase1.SaltPackSenderType_NOT_TRACKED:

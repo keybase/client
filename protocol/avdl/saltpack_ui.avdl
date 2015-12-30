@@ -11,8 +11,14 @@ protocol saltPackUi {
   	TRACKING_OK_4
   }
 
+  record SaltPackSender {
+    UID uid;
+    string username;
+    SaltPackSenderType senderType;
+  }
+
   // Users might want to prevent a decryption on the basis of who sent the message,
   // and if something fishy might have happened.
-  void saltPackPromptForDecrypt(int sessionID, UID uid, string username, SaltPackSenderType senderType);
+  void saltPackPromptForDecrypt(int sessionID, SaltPackSender sender);
 
 }

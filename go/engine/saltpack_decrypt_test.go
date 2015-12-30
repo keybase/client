@@ -153,8 +153,8 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 	}
 	dec := NewSaltPackDecrypt(decarg, tc.G)
 	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
-		if arg.SenderType != keybase1.SaltPackSenderType_TRACKING_OK {
-			t.Fatalf("Bad sender type: %v", arg.SenderType)
+		if arg.Sender.SenderType != keybase1.SaltPackSenderType_TRACKING_OK {
+			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
 		}
 		return nil
 	}
@@ -175,8 +175,8 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 	}
 	dec = NewSaltPackDecrypt(decarg, tc.G)
 	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
-		if arg.SenderType != keybase1.SaltPackSenderType_ANONYMOUS {
-			t.Fatalf("Bad sender type: %v", arg.SenderType)
+		if arg.Sender.SenderType != keybase1.SaltPackSenderType_ANONYMOUS {
+			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
 		}
 		return nil
 	}
@@ -212,8 +212,8 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 	dec = NewSaltPackDecrypt(decarg, tc.G)
 	errTrackingBroke := errors.New("tracking broke")
 	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
-		if arg.SenderType != keybase1.SaltPackSenderType_TRACKING_BROKE {
-			t.Fatalf("Bad sender type: %v", arg.SenderType)
+		if arg.Sender.SenderType != keybase1.SaltPackSenderType_TRACKING_BROKE {
+			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
 		}
 		return errTrackingBroke
 	}

@@ -4341,6 +4341,18 @@ export type saltPackUi_SaltPackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKN
 
 export type SaltPackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */
 
+export type saltPackUi_SaltPackSender = {
+  uid: UID;
+  username: string;
+  senderType: SaltPackSenderType;
+}
+
+export type SaltPackSender = {
+  uid: UID;
+  username: string;
+  senderType: SaltPackSenderType;
+}
+
 export type secretUi_Feature = {
   allow: boolean;
   defaultValue: boolean;

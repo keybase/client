@@ -247,6 +247,19 @@
     "type" : "enum",
     "name" : "SaltPackSenderType",
     "symbols" : [ "NOT_TRACKED_0", "UNKNOWN_1", "ANONYMOUS_2", "TRACKING_BROKE_3", "TRACKING_OK_4" ]
+  }, {
+    "type" : "record",
+    "name" : "SaltPackSender",
+    "fields" : [ {
+      "name" : "uid",
+      "type" : "UID"
+    }, {
+      "name" : "username",
+      "type" : "string"
+    }, {
+      "name" : "senderType",
+      "type" : "SaltPackSenderType"
+    } ]
   } ],
   "messages" : {
     "saltPackPromptForDecrypt" : {
@@ -254,14 +267,8 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "uid",
-        "type" : "UID"
-      }, {
-        "name" : "username",
-        "type" : "string"
-      }, {
-        "name" : "senderType",
-        "type" : "SaltPackSenderType"
+        "name" : "sender",
+        "type" : "SaltPackSender"
       } ],
       "response" : "null"
     }
