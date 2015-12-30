@@ -49,7 +49,7 @@ func (s *SaltPackUI) doInteractive(arg keybase1.SaltPackPromptForDecryptArg) err
 		why = "You track the sender of this message, but their tracking statement is broken"
 		def = libkb.PromptDefaultNo
 	}
-	why += ". Go ahead and decrypt? "
+	why += ". Go ahead and decrypt?"
 	ok, err := s.terminal.PromptYesNo(PromptDescriptorDecryptInteractive, why, def)
 	if err != nil {
 		return err
