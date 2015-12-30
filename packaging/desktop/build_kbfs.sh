@@ -26,19 +26,14 @@ tar zxpf $tgz
 rm $tgz
 echo "Creating GOPATH"
 go_dir=/tmp/go
+rm -rf "$go_dir"
 mkdir -p $go_dir/src/github.com
 mv kbfs-beta-$version $go_dir/src/github.com/keybase
 
-build() {
-  tags=$1
-  kbfs_bin=$2
+kbfs_build="/tmp/build_kbfs2"
+mkdir -p "$kbfs_build"
 
-  echo "Getting deps"
-  GO15VENDOREXPERIMENT=0 GOPATH=$go_dir go get github.com/keybase/kbfs/kbfsfuse
-  echo "Building $kbfs_bin"
-  GO15VENDOREXPERIMENT=0 GOPATH=$go_dir go build -a -tags "$tags" -o $kbfs_bin github.com/keybase/kbfs/kbfsfuse
+TAGS="production" GOPATH="$go_dir" KBFS_BUILD=0 BUILD_DIR="$kbfs_build" $dir/../prerelease/build_kbfs.sh
 
-  tar zcvpf $kbfs_bin-$version.tgz $kbfs_bin
-}
-
-build production kbfs
+cd "$kbfs_build"
+tar zcvpf kbfs-$version.tgz kbfs

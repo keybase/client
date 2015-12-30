@@ -15,16 +15,12 @@ echo "Loading release tool"
 go install github.com/keybase/release
 release_bin="$GOPATH/bin/release"
 
-keybase_version=`$release_bin latest-version --user=keybase --repo=client`
-echo "Using latest keybase version: $keybase_version"
-
 kbfs_version=$VERSION
 if [ "$kbfs_version" = "" ]; then
   kbfs_version=`$release_bin latest-version --user=keybase --repo=kbfs`
   echo "Using latest kbfs version: $kbfs_version"
 fi
 
-./export.sh client $repodir "v$keybase_version"
 ./export.sh kbfs $repodir "v$kbfs_version"
 
 cd $repodir

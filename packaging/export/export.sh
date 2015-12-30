@@ -7,10 +7,8 @@ EXPORT=$1
 if [ "$EXPORT" = "" ]; then
   echo "No dirs specified"
   exit 1
-elif [ "$EXPORT" = "client" ]; then
-  DIRS=(go protocol packaging)
 elif [ "$EXPORT" = "kbfs" ]; then
-  DIRS=(kbfs kbfsfuse libfuse libkbfs)
+  DIRS=(kbfs kbfsfuse libfuse libkbfs vendor)
 fi
 
 # Source dir (private repo)

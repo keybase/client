@@ -23,9 +23,9 @@ bucket_name="prerelease.keybase.io"
 if [ ! "$NOPULL" = "1" ]; then
   "$clientdir/packaging/check_status_and_pull.sh" "$clientdir"
   "$clientdir/packaging/check_status_and_pull.sh" "$GOPATH/src/github.com/keybase/kbfs"
-# else
-#   # Only save to bucket if we are checked and pulled
-#   bucket_name=""
+ else
+  # Only save to bucket if we are checked and pulled
+  bucket_name=""
 fi
 
 BUILD_DIR=$build_dir_keybase ./build_keybase.sh
