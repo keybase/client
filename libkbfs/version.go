@@ -4,4 +4,4 @@ package libkbfs
 const Version = "1.0.0"
 
 // DefaultBuild is the current build number
-const DefaultBuild = "32"
+const DefaultBuild = "33"
