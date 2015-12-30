@@ -51,10 +51,7 @@ func (e *SaltPackDecrypt) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
 
-	e.G().Log.Debug("+ SaltPackDecrypt::Run")
-	defer func() {
-		e.G().Log.Debug("- SaltPackDecrypt::Run -> %v", err)
-	}()
+	defer libkb.Trace(e.G().Log, "SaltPackDecrypt::Run", func() error { return err })()
 
 	var me *libkb.User
 	me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
@@ -66,6 +63,7 @@ func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
+	e.G().Log.Debug("| GetSecretKeyWithPrompt")
 	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(
 		ctx.LoginContext, ska, ctx.SecretUI,
 		"decrypting a message/file")
@@ -78,8 +76,7 @@ func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
 		return libkb.KeyCannotDecryptError{}
 	}
 
-	e.G().Log.Debug("| run SaltPackDecrypt")
+	e.G().Log.Debug("| SaltPackDecrypt")
 	err = libkb.SaltPackDecrypt(e.arg.Source, e.arg.Sink, kp)
-	e.G().Log.Debug("| SaltPackDecrypt -> %v", err)
 	return err
 }
