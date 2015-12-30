@@ -76,19 +76,19 @@ The header packet is a MessagePack list with these contents:
 
 ```
 [
-    format_name,
+    format name,
     version,
     mode,
-    ephemeral_public,
+    ephemeral public,
     recipients,
 ]
 ```
 
-- **format_name** is the string "SaltPack".
+- **format name** is the string "SaltPack".
 - **version** is a list of the major and minor versions, currently `[1, 0]`.
 - **mode** is the number 0, for encryption. (1 and 2 are attached and detached
   signing.)
-- **ephemeral_public** is an ephemeral NaCl public encryption key, 32 bytes.
+- **ephemeral public** is an ephemeral NaCl public encryption key, 32 bytes.
   The ephemeral keypair is generated at random by the sender and only used for
   one message.
 - **recipients** is a list of pairs, one for each recipient key.
@@ -97,31 +97,31 @@ A recipient pair is a two-element list:
 
 ```
 [
-    recipient_public,
-    recipient_box,
+    recipient public,
+    recipient box,
 ]
 ```
 
-- **recipient_public** is the recipient's long-term NaCl public encryption key.
+- **recipient public** is the recipient's long-term NaCl public encryption key.
   This field may be null, when the recipients are anonymous.
-- **recipient_box** is a NaCl box encrypted with the recipient's public key and
+- **recipient box** is a NaCl box encrypted with the recipient's public key and
   the ephemeral private key.
 
-The the **recipient_box** contains another two-element MessagePack list:
+The the **recipient box** contains another two-element MessagePack list:
 
 ```
 [
-    sender_public,
-    message_key,
+    sender public,
+    message key,
 ]
 ```
 
-- **sender_public** is the sender's long-term NaCl public encryption key.
-- **message_key** is a NaCl symmetric key used to encrypt the payload packets.
+- **sender public** is the sender's long-term NaCl public encryption key.
+- **message key** is a NaCl symmetric key used to encrypt the payload packets.
   The message key is generated at random by the sender and only used for one
   message.
 
-Putting the sender's key in the **recipient_box** allows Alice to stay
+Putting the sender's key in the **recipient box** allows Alice to stay
 anonymous to Mallory. If Alice wants to be anonymous to Bob as well, she can
 reuse the ephemeral key as her long term key. When the ephemeral key and the
 sender key are the same, clients may indicate that a message is "intentionally
@@ -138,31 +138,31 @@ A payload packet is a MessagePack list with these contents:
 
 ```
 [
-    hash_authenticators,
-    payload_secretbox,
+    hash authenticators,
+    payload secretbox,
 ]
 ```
 
-- **hash_authenticators** is a list of 16-byte Poly1305 tags, one for each
-  recipient, which authenticate the hash of the **payload_secretbox**.
-- **payload_secretbox** is a NaCl secretbox containing a chunk of the plaintext
+- **hash authenticators** is a list of 16-byte Poly1305 tags, one for each
+  recipient, which authenticate the hash of the **payload secretbox**.
+- **payload secretbox** is a NaCl secretbox containing a chunk of the plaintext
   bytes, max size 1 MB. It's encrypted with the symmetric message key. See
   [Nonces](#nonces) below.
 
 We compute the authenticators in three steps:
 
-- Compute the SHA512 of the **payload_secretbox**.
-- For each recipient, put that hash in a NaCl box, using the sender and
+- Compute the SHA512 of the **payload secretbox**.
+- For each recipient, encrypt that hash in a NaCl box, using the sender and
   recipient's long-term keys. See [Nonces](#nonces) below.
-- Take the first 16 bytes of each box, which hold the Poly1305 tag.
+- Take the first 16 bytes of each box, which comprise the Poly1305 tag.
 
-The purpose of the **hash_authenticators** is to prevent recipients from
+The purpose of the **hash authenticators** is to prevent recipients from
 reusing the header packet and the symmetric message key to forge new messages
 that appear to be from the same sender to other recipients. (Recipients should
 be able to forge messages that appear to be sent to them only, not messages
 that appear to be sent to anyone else.) Before opening the
-**payload_secretbox**, recipients must compute the authenticator and verify
-that it matches what's in the **hash_authenticators** list.
+**payload secretbox**, recipients must compute the authenticator and verify
+that it matches what's in the **hash authenticators** list.
 
 Using NaCl's [`crypto_box`](http://nacl.cr.yp.to/box.html) to compute the
 authenticators takes more time than using
@@ -180,14 +180,14 @@ to be the first 16 bytes of the SHA512 of the concatenation of these values:
 - `"SaltPack\0"` (`\0` is a [null
   byte](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html))
 - `"encryption nonce prefix\0"`
-- the 32-byte **ephemeral_public** key
+- the 32-byte **ephemeral public** key
 
 The nonce for each box is then the concatenation of `P` and a 64-bit big-endian
-unsigned counter. For each **recipient_box** the counter is 0. For each payload
+unsigned counter. For each **recipient box** the counter is 0. For each payload
 packet we then increment the counter, so the first set of
-**hash_authenticators** is 1, the next is 2, and so on. For each
-**payload_secretbox**, the nonce is the same as for the associated
-**hash_authenticators**. The strict ordering of nonces should make it
+**hash authenticators** is 1, the next is 2, and so on. For each
+**payload secretbox**, the nonce is the same as for the associated
+**hash authenticators**. The strict ordering of nonces should make it
 impossible to drop or reorder any payload packets.
 
 We might be concerned about reusing the same nonce for each recipient here. For
