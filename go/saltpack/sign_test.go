@@ -161,6 +161,48 @@ func TestSignTruncation(t *testing.T) {
 
 }
 
+func TestSignSkipBlock(t *testing.T) {
+	key := newSigPrivKey(t)
+	var opts testSignOptions
+	numBlocks := 10
+	opts.skipBlock = func(n PacketSeqno) bool {
+		return int(n) == numBlocks-1
+	}
+	smsg, err := testTweakSign(randomMsg(t, numBlocks*1024*1024), key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	skey, vmsg, err := Verify(smsg, kr)
+	if skey != nil {
+		t.Errorf("Verify returned a key for a message with a missing block")
+	}
+	if vmsg != nil {
+		t.Errorf("Verify returned a message for a message with missing block")
+	}
+	if err != io.ErrUnexpectedEOF {
+		t.Errorf("error: %v, expected %v", err, io.ErrUnexpectedEOF)
+	}
+}
+
+func TestSignSkipFooter(t *testing.T) {
+	key := newSigPrivKey(t)
+	opts := testSignOptions{skipFooter: true}
+	smsg, err := testTweakSign(randomMsg(t, 128), key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	skey, vmsg, err := Verify(smsg, kr)
+	if skey != nil {
+		t.Errorf("Verify returned a key for a message without a footer")
+	}
+	if vmsg != nil {
+		t.Errorf("Verify returned a message for a signed message without a footer")
+	}
+	if err != io.ErrUnexpectedEOF {
+		t.Errorf("error: %v, expected %v", err, io.ErrUnexpectedEOF)
+	}
+}
+
 func TestSignDetached(t *testing.T) {
 	key := newSigPrivKey(t)
 	msg := randomMsg(t, 128)

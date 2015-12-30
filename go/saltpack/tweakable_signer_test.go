@@ -10,6 +10,8 @@ import (
 
 type testSignOptions struct {
 	corruptHeader func(sh *SignatureHeader)
+	skipBlock     func(blockNum PacketSeqno) bool
+	skipFooter    bool
 }
 
 type testSignStream struct {
@@ -20,6 +22,7 @@ type testSignStream struct {
 	block       []byte
 	seqno       PacketSeqno
 	secretKey   SigningSecretKey
+	options     testSignOptions
 }
 
 func newTestSignStream(w io.Writer, signer SigningSecretKey, opts testSignOptions) (*testSignStream, error) {
@@ -40,6 +43,7 @@ func newTestSignStream(w io.Writer, signer SigningSecretKey, opts testSignOption
 		encoder:   newEncoder(w),
 		block:     make([]byte, SignatureBlockSize),
 		secretKey: signer,
+		options:   opts,
 	}
 
 	return stream, nil
@@ -73,6 +77,11 @@ func (s *testSignStream) Close() error {
 			return err
 		}
 	}
+
+	if s.options.skipFooter {
+		return nil
+	}
+
 	return s.writeFooter()
 }
 
@@ -95,11 +104,13 @@ func (s *testSignStream) signBytes(b []byte) error {
 	}
 	block.Signature = sig
 
-	if err := s.encoder.Encode(block); err != nil {
-		return err
+	if s.options.skipBlock == nil || !s.options.skipBlock(s.seqno) {
+		if err := s.encoder.Encode(block); err != nil {
+			return err
+		}
+		s.seqno++
 	}
 
-	s.seqno++
 	return nil
 }
 
