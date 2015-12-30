@@ -8,7 +8,7 @@ script:
   - go install github.com/golang/lint/golint
   - make lint
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
-  - cd libkbfs && go test
+  - cd libkbfs && go test -c && ./libkbfs.test -test.timeout 4m
   - cd ../bserver && go test
   - cd ../mdserver && go test && go test -tags integration
   # run libkbfs test suite against the real mdserver
