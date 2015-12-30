@@ -5,15 +5,14 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 )
 
 type SaltPackEncryptArg struct {
-	Recips        []string // user assertions
-	Source        io.Reader
-	Sink          io.WriteCloser
-	NoSelfEncrypt bool
-	HideSender    bool
+	Opts   keybase1.SaltPackEncryptOptions
+	Source io.Reader
+	Sink   io.WriteCloser
 }
 
 // SaltPackEncrypt encrypts data read from a source into a sink
@@ -86,8 +85,10 @@ func (e *SaltPackEncrypt) loadMe(ctx *Context) error {
 
 // Run starts the engine.
 func (e *SaltPackEncrypt) Run(ctx *Context) (err error) {
-
-	libkb.Trace(e.G().Log, "SaltPackEncrypt::Run", func() error { return err })
+	e.G().Log.Debug("+ SaltPackEncrypt::Run")
+	defer func() {
+		e.G().Log.Debug("- SaltPackEncrypt::Run -> %v", err)
+	}()
 
 	var receivers []libkb.NaclDHKeyPublic
 	var sender libkb.NaclDHKeyPair
@@ -96,7 +97,7 @@ func (e *SaltPackEncrypt) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	if !e.arg.NoSelfEncrypt && e.me != nil {
+	if !e.arg.Opts.NoSelfEncrypt && e.me != nil {
 		receivers, err = e.loadMyPublicKeys()
 		if err != nil {
 			return err
@@ -104,7 +105,7 @@ func (e *SaltPackEncrypt) Run(ctx *Context) (err error) {
 	}
 
 	kfarg := DeviceKeyfinderArg{
-		Users:           e.arg.Recips,
+		Users:           e.arg.Opts.Recipients,
 		NeedEncryptKeys: true,
 		Self:            e.me,
 	}
@@ -128,7 +129,7 @@ func (e *SaltPackEncrypt) Run(ctx *Context) (err error) {
 		}
 	}
 
-	if !e.arg.HideSender && e.me != nil {
+	if !e.arg.Opts.HideSelf && e.me != nil {
 		ska := libkb.SecretKeyArg{
 			Me:      e.me,
 			KeyType: libkb.DeviceEncryptionKeyType,

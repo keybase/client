@@ -4197,13 +4197,13 @@ export type saltPack_RemoteProof = {
 export type saltPack_SaltPackEncryptOptions = {
   recipients: Array<string>;
   hideSelf: boolean;
-  encryptForSelf: boolean;
+  noSelfEncrypt: boolean;
 }
 
 export type SaltPackEncryptOptions = {
   recipients: Array<string>;
   hideSelf: boolean;
-  encryptForSelf: boolean;
+  noSelfEncrypt: boolean;
 }
 
 export type secretUi_Feature = {
