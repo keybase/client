@@ -1690,12 +1690,12 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 type fileBlockMap map[BlockPointer]map[string]*FileBlock
 
 func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
-	lState *lockState, md *RootMetadata, mergedMostRecent BlockPointer,
-	parentPath path, name string, ptr BlockPointer, blocks fileBlockMap) (
+	lState *lockState, chains *crChains, mergedMostRecent BlockPointer, parentPath path,
+	name string, ptr BlockPointer, blocks fileBlockMap) (
 	BlockPointer, error) {
-	fblock, err := cr.fbo.getFileBlockForReading(
-		ctx, lState, md, ptr, parentPath.Branch,
-		parentPath.ChildPath(name, ptr))
+	md := chains.mostRecentMD
+	fblock, err := cr.fbo.getFileBlockForReading(ctx, lState, md, ptr,
+		parentPath.Branch, parentPath.ChildPath(name, ptr))
 	if err != nil {
 		return BlockPointer{}, err
 	}
@@ -1725,6 +1725,10 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 		}
 		newPtr.SetWriter(uid)
 	}
+	// Mark this as having been created during this chain, so that
+	// later during block accounting we can infer the origin of the
+	// block.
+	chains.createdOriginals[newPtr] = true
 
 	if _, ok := blocks[mergedMostRecent]; !ok {
 		blocks[mergedMostRecent] = make(map[string]*FileBlock)
@@ -1733,14 +1737,15 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	// Dup all of the leaf blocks.
 	// TODO: deal with multiple levels of indirection.
 	if fblock.IsInd {
-		for i, ptr := range fblock.IPtrs {
+		for i, iptr := range fblock.IPtrs {
 			// Generate a new nonce for each one.
-			ptr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()
+			iptr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()
 			if err != nil {
 				return BlockPointer{}, err
 			}
-			ptr.SetWriter(uid)
-			fblock.IPtrs[i] = ptr
+			iptr.SetWriter(uid)
+			fblock.IPtrs[i] = iptr
+			chains.createdOriginals[iptr.BlockPointer] = true
 		}
 	}
 
@@ -1825,14 +1830,13 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 			// IDs, and later we will ready them.
 			unmergedFetcher := func(ctx context.Context, name string,
 				ptr BlockPointer) (BlockPointer, error) {
-				return cr.makeFileBlockDeepCopy(ctx,
-					lState, unmergedChains.mostRecentMD, mergedPath.tailPointer(),
-					unmergedPath, name, ptr, newFileBlocks)
+				return cr.makeFileBlockDeepCopy(ctx, lState, unmergedChains,
+					mergedPath.tailPointer(), unmergedPath, name, ptr,
+					newFileBlocks)
 			}
 			mergedFetcher := func(ctx context.Context, name string,
 				ptr BlockPointer) (BlockPointer, error) {
-				return cr.makeFileBlockDeepCopy(ctx,
-					lState, mergedChains.mostRecentMD,
+				return cr.makeFileBlockDeepCopy(ctx, lState, mergedChains,
 					mergedPath.tailPointer(), mergedPath, name,
 					ptr, newFileBlocks)
 			}
