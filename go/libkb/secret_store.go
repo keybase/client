@@ -3,9 +3,7 @@
 
 package libkb
 
-import (
-	keybase1 "github.com/keybase/client/go/protocol"
-)
+import keybase1 "github.com/keybase/client/go/protocol"
 
 type SecretRetriever interface {
 	RetrieveSecret() ([]byte, error)
