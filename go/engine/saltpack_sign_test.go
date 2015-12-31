@@ -5,6 +5,7 @@ package engine
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -16,7 +17,9 @@ func TestSaltPackSignDeviceRequired(t *testing.T) {
 	tc := SetupEngineTest(t, "sign")
 	defer tc.Cleanup()
 
-	ctx := &Context{}
+	ctx := &Context{
+		SecretUI: &libkb.TestSecretUI{},
+	}
 	eng := NewSaltPackSign(nil, tc.G)
 	err := RunEngine(eng, ctx)
 	if err == nil {
@@ -32,7 +35,6 @@ func TestSaltPackSignVerify(t *testing.T) {
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "sign")
-	_ = fu
 
 	for _, test := range signTests {
 		var sink bytes.Buffer
@@ -43,7 +45,9 @@ func TestSaltPackSignVerify(t *testing.T) {
 		}
 
 		eng := NewSaltPackSign(sarg, tc.G)
-		ctx := &Context{}
+		ctx := &Context{
+			SecretUI: fu.NewSecretUI(),
+		}
 
 		if err := RunEngine(eng, ctx); err != nil {
 			t.Errorf("%s: run error: %s", test.name, err)
@@ -55,6 +59,8 @@ func TestSaltPackSignVerify(t *testing.T) {
 		if len(sig) == 0 {
 			t.Errorf("%s: empty sig", test.name)
 		}
+
+		fmt.Printf("sig:\n%s\n", sig)
 
 		varg := &SaltPackVerifyArg{
 			Source: strings.NewReader(sig),
