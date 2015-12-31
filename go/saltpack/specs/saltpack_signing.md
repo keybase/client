@@ -21,10 +21,10 @@ message, and an incrementing counter to prevent reordering. The detached format
 will contain just a header packet, with no payload.
 
 Both formats will hash a random nonce along with the plaintext, and then sign
-the resulting hash. The goal for this nonce is to guarantee that we always sign
-bytes that are unpredictable to an attacker. Without the nonce, an attacker
-giving us plaintexts to sign might be able to find one whose hash had some
-desirable substring, which could be meaningful to another application.
+the resulting hash. This nonce serves two purposes. First, in the attached
+format, it prevents an attacker from swapping in payload packets from other
+messages. Second, in both formats, it helps us avoid signing bytes that an
+attacker could predict in advance.
 
 ## Attached Implementation
 
