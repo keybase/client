@@ -112,14 +112,6 @@ func (s *testSignStream) signBytes(b []byte) error {
 			s.seqno++
 			return nil
 		}
-
-		if s.savedBlock != nil {
-			if err := s.encoder.Encode(*s.savedBlock); err != nil {
-				return err
-			}
-			s.savedBlock = nil
-			return nil
-		}
 	}
 
 	if s.options.skipBlock == nil || !s.options.skipBlock(s.seqno) {
@@ -127,6 +119,16 @@ func (s *testSignStream) signBytes(b []byte) error {
 			return err
 		}
 		s.seqno++
+	}
+
+	if s.options.swapBlock {
+		if s.savedBlock != nil {
+			if err := s.encoder.Encode(*s.savedBlock); err != nil {
+				return err
+			}
+			s.savedBlock = nil
+			return nil
+		}
 	}
 
 	return nil
