@@ -634,7 +634,6 @@ func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
 func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapper, err error) {
 
 	bpath := uidS
-	pos := 0
 	lastTyp := 0
 
 	for i, step := range path {
@@ -652,14 +651,10 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 		}
 
 		plen := len(step.prefix)
-
-		epos := pos + plen
-		if bpath[pos:epos] != step.prefix {
-			err = fmt.Errorf("Path mismatch at level %d: %s != %s",
-				i, bpath[pos:epos], step.prefix)
+		if plen > 0 && bpath[:plen] != step.prefix {
+			err = fmt.Errorf("Path mismatch at level %d: %s != %s", i, bpath[:plen], step.prefix)
 			break
 		}
-		pos = epos
 
 		lastTyp, err = jw.AtKey("type").GetInt()
 		if err != nil {
