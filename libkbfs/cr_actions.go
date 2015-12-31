@@ -514,7 +514,8 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 		// not yet the final pointer (that happens during syncBlock),
 		// but a later stage will convert it.
 		if rua.symPath == "" {
-			rop.AddUpdate(unmergedEntry.BlockPointer, newMergedEntry.BlockPointer)
+			rop.AddUpdate(unmergedEntry.BlockPointer,
+				newMergedEntry.BlockPointer)
 		}
 		err := prependOpsToChain(mergedMostRecent, mergedChains,
 			rop, newCreateOp(rua.fromName, mergedMostRecent, mergedEntry.Type))
@@ -525,28 +526,33 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 		// Before merging the unmerged ops, create a file with the new
 		// name, unless the create already exists.
 		found := false
+		var co *createOp
 		for _, op := range unmergedChain.ops {
-			if co, ok := op.(*createOp); ok && co.NewName == rua.toName {
+			var ok bool
+			if co, ok = op.(*createOp); ok && co.NewName == rua.toName {
 				found = true
 				if len(co.RefBlocks) > 0 {
 					co.RefBlocks[0] = newMergedEntry.BlockPointer
-				}
-				if unmergedEntry.BlockPointer != newMergedEntry.BlockPointer {
-					co.AddUnrefBlock(unmergedEntry.BlockPointer)
 				}
 				break
 			}
 		}
 		if !found {
-			co := newCreateOp(rua.toName, unmergedMostRecent, mergedEntry.Type)
+			co = newCreateOp(rua.toName, unmergedMostRecent, mergedEntry.Type)
 			co.AddRefBlock(newMergedEntry.BlockPointer)
-			if unmergedEntry.BlockPointer != newMergedEntry.BlockPointer {
-				co.AddUnrefBlock(unmergedEntry.BlockPointer)
-			}
 			err = prependOpsToChain(unmergedMostRecent, unmergedChains, co)
 			if err != nil {
 				return err
 			}
+		}
+		// Since we copied the node, unref the old block but only if
+		// it's not a symlink and the name changed.  If the name is
+		// the same, it means the old block pointer is still in use
+		// because we just did a copy of a node still in use in the
+		// merged branch.
+		if unmergedEntry.BlockPointer != newMergedEntry.BlockPointer &&
+			rua.fromName != rua.toName && rua.symPath == "" {
+			co.AddUnrefBlock(unmergedEntry.BlockPointer)
 		}
 	}
 
