@@ -494,6 +494,22 @@
         "type" : "SaltPackDecryptOptions"
       } ],
       "response" : "SaltPackEncryptedMessageInfo"
+    },
+    "saltPackSign" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "source",
+        "type" : "Stream"
+      }, {
+        "name" : "sink",
+        "type" : "Stream"
+      }, {
+        "name" : "detached",
+        "type" : "boolean"
+      } ],
+      "response" : "null"
     }
   }
 }

@@ -78,3 +78,7 @@ func (h *SaltPackHandler) SaltPackEncrypt(_ context.Context, arg keybase1.SaltPa
 	eng := engine.NewSaltPackEncrypt(earg, h.G())
 	return engine.RunEngine(eng, ctx)
 }
+
+func (h *SaltPackHandler) SaltPackSign(context.Context, keybase1.SaltPackSignArg) error {
+	return nil
+}

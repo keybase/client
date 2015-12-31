@@ -4671,9 +4671,17 @@ type SaltPackDecryptArg struct {
 	Opts      SaltPackDecryptOptions `codec:"opts" json:"opts"`
 }
 
+type SaltPackSignArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Source    Stream `codec:"source" json:"source"`
+	Sink      Stream `codec:"sink" json:"sink"`
+	Detached  bool   `codec:"detached" json:"detached"`
+}
+
 type SaltPackInterface interface {
 	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
 	SaltPackDecrypt(context.Context, SaltPackDecryptArg) (SaltPackEncryptedMessageInfo, error)
+	SaltPackSign(context.Context, SaltPackSignArg) error
 }
 
 func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
@@ -4712,6 +4720,22 @@ func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"saltPackSign": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackSignArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackSignArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackSignArg)(nil), args)
+						return
+					}
+					err = i.SaltPackSign(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4727,6 +4751,11 @@ func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncry
 
 func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (res SaltPackEncryptedMessageInfo, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SaltPackClient) SaltPackSign(ctx context.Context, __arg SaltPackSignArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackSign", []interface{}{__arg}, nil)
 	return
 }
 

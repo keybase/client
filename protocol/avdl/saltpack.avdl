@@ -24,4 +24,5 @@ protocol saltPack {
   }
 
   SaltPackEncryptedMessageInfo saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
+  void saltPackSign(int sessionID, Stream source, Stream sink, boolean detached);
 }
