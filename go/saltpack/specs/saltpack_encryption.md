@@ -171,9 +171,9 @@ payload packet, recipients must recompute the authenticator and check that it
 matches what's in the **authenticators list**.
 
 Our authenticators cover the SHA512 of the payload, rather than the payload
-itself, to save time when a large message has many recipients. This relies on
-the collision resistance of SHA512 for security, in addition to the normal
-assumptions that go into NaCl.
+itself, to save time when a large message has many recipients. This assumes the
+second preimage resistance of SHA512, in addition to the assumptions that go
+into NaCl.
 
 Using NaCl's [`crypto_box`](http://nacl.cr.yp.to/box.html) to compute the
 authenticators takes more time than using
