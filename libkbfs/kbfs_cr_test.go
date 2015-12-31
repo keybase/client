@@ -355,9 +355,11 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	readAndCompareData(t, config1B, ctx, h, data2, userName2)
 	readAndCompareData(t, config2B, ctx, h, data2, userName2)
-	checkStatus(t, ctx, config1B.KBFSOps(), false, userName2, nil,
+	// u1 is head writer since UnstageForTesting actually updates the
+	// MD with a gcOp.
+	checkStatus(t, ctx, config1B.KBFSOps(), false, userName1, nil,
 		rootNode1.GetFolderBranch(), "Node 1 (after unstage)")
-	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2, nil,
+	checkStatus(t, ctx, config2B.KBFSOps(), false, userName1, nil,
 		rootNode2.GetFolderBranch(), "Node 2 (after unstage)")
 }
 

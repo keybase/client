@@ -4261,18 +4261,18 @@ func (fbo *folderBranchOps) getUnmergedMDUpdatesLocked(
 		fbo.bid, fbo.getCurrMDRevision(lState))
 }
 
-// mdWriterLock should be held by caller.
+// mdWriterLock should be held by caller.  Returns a list of block
+// pointers that were created during the staged era.
 func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
-	ctx context.Context, lState *lockState) error {
-	currHead, unmergedRmds, err :=
-		fbo.getUnmergedMDUpdatesLocked(ctx, lState)
+	ctx context.Context, lState *lockState) ([]BlockPointer, error) {
+	currHead, unmergedRmds, err := fbo.getUnmergedMDUpdatesLocked(ctx, lState)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = fbo.undoMDUpdatesLocked(ctx, lState, unmergedRmds)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We have arrived at the branch point.  The new root is
@@ -4283,17 +4283,17 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	// the updates.
 	fbo.setStagedLocked(lState, false, NullBranchID)
 
-	rmds, err :=
-		getMDRange(ctx, fbo.config, fbo.id(), NullBranchID, currHead, currHead, Merged)
+	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
+		currHead, currHead, Merged)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(rmds) == 0 {
-		return fmt.Errorf("Couldn't find the branch point %d", currHead)
+		return nil, fmt.Errorf("Couldn't find the branch point %d", currHead)
 	}
 	err = fbo.setHeadLocked(ctx, lState, rmds[0])
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Now that we're back on the merged branch, forget about all the
@@ -4302,7 +4302,25 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	for _, rmd := range unmergedRmds {
 		mdcache.Delete(rmd)
 	}
-	return nil
+
+	// Return all new refs
+	var unmergedPtrs []BlockPointer
+	for _, rmd := range unmergedRmds {
+		for _, op := range rmd.data.Changes.Ops {
+			for _, ptr := range op.Refs() {
+				if ptr != zeroPtr {
+					unmergedPtrs = append(unmergedPtrs, ptr)
+				}
+			}
+			for _, update := range op.AllUpdates() {
+				if update.Ref != zeroPtr {
+					unmergedPtrs = append(unmergedPtrs, update.Ref)
+				}
+			}
+		}
+	}
+
+	return unmergedPtrs, nil
 }
 
 // TODO: remove once we have automatic conflict resolution
@@ -4350,7 +4368,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 
 		// fetch all of my unstaged updates, and undo them one at a time
 		bid, wasStaged := fbo.bid, fbo.staged
-		err := fbo.undoUnmergedMDUpdatesLocked(freshCtx, lState)
+		unmergedPtrs, err := fbo.undoUnmergedMDUpdatesLocked(freshCtx, lState)
 		if err != nil {
 			c <- err
 			return
@@ -4366,7 +4384,26 @@ func (fbo *folderBranchOps) UnstageForTesting(
 		}
 
 		// now go forward in time, if possible
-		c <- fbo.getAndApplyMDUpdates(freshCtx, lState, fbo.applyMDUpdatesLocked)
+		err = fbo.getAndApplyMDUpdates(freshCtx, lState,
+			fbo.applyMDUpdatesLocked)
+		if err != nil {
+			c <- err
+			return
+		}
+
+		md, err := fbo.getMDForWriteLocked(ctx, lState)
+		if err != nil {
+			c <- err
+			return
+		}
+
+		// Finally, create a gcOp with the newly-unref'd pointers.
+		gcOp := newGCOp()
+		for _, ptr := range unmergedPtrs {
+			gcOp.AddUnrefBlock(ptr)
+		}
+		md.AddOp(gcOp)
+		c <- fbo.finalizeMDWriteLocked(ctx, lState, md, &blockPutState{})
 	}()
 
 	select {
