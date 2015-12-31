@@ -17,5 +17,11 @@ protocol saltPack {
 
   void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltPackEncryptOptions opts);
 
-  void saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
+  record SaltPackEncryptedMessageInfo {
+  	array<Device> devices;
+  	int numAnonReceivers;
+  	boolean receiverIsAnon;
+  }
+
+  SaltPackEncryptedMessageInfo saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
 }

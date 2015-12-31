@@ -19,7 +19,7 @@ func NewDearmor62DecryptStream(ciphertext io.Reader, kr Keyring) (*MessageKeyInf
 	}
 	mki, r, err := NewDecryptStream(dearmored, kr)
 	if err != nil {
-		return nil, nil, nil, err
+		return mki, nil, nil, err
 	}
 	return mki, r, frame, nil
 }
@@ -31,14 +31,14 @@ func Dearmor62DecryptOpen(ciphertext string, kr Keyring) (*MessageKeyInfo, []byt
 	buf := bytes.NewBufferString(ciphertext)
 	mki, s, frame, err := NewDearmor62DecryptStream(buf, kr)
 	if err != nil {
-		return nil, nil, err
+		return mki, nil, err
 	}
 	out, err := ioutil.ReadAll(s)
 	if err != nil {
-		return nil, nil, err
+		return mki, nil, err
 	}
 	if err = CheckArmor62Frame(frame, EncryptionArmorHeader, EncryptionArmorFooter); err != nil {
-		return nil, nil, err
+		return mki, nil, err
 	}
 	return mki, out, nil
 }

@@ -806,6 +806,15 @@ export default {
       'updateNewProofs': 5,
       'updateOk': 6
     },
+    'IdentifyReasonType': {
+      'none': 0,
+      'id': 1,
+      'track': 2,
+      'encrypt': 3,
+      'decrypt': 4,
+      'verify': 5,
+      'resource': 6
+    },
     'SignMode': {
       'attached': 0,
       'detached': 1,
@@ -932,6 +941,15 @@ export default {
       'updateBroken': 4,
       'updateNewProofs': 5,
       'updateOk': 6
+    },
+    'IdentifyReasonType': {
+      'none': 0,
+      'id': 1,
+      'track': 2,
+      'encrypt': 3,
+      'decrypt': 4,
+      'verify': 5,
+      'resource': 6
     }
   },
   'proveUi': {

@@ -6,7 +6,6 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	saltpack "github.com/keybase/client/go/saltpack"
 	"strings"
 	"testing"
 )
@@ -146,8 +145,8 @@ func TestSaltPackEncryptNoSelf(t *testing.T) {
 	}
 	dec := NewSaltPackDecrypt(decarg, tc.G)
 	err := RunEngine(dec, ctx)
-	if err != saltpack.ErrNoDecryptionKey {
-		t.Fatalf("Expected err=%v, but got %v", saltpack.ErrNoDecryptionKey, err)
+	if _, ok := err.(libkb.NoDecryptionKeyError); !ok {
+		t.Fatalf("Expected err type %T, but got %T", libkb.NoDecryptionKeyError{}, err)
 	}
 
 	Logout(tc)

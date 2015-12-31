@@ -21,6 +21,7 @@ type SaltPackDecryptArg struct {
 type SaltPackDecrypt struct {
 	libkb.Contextified
 	arg *SaltPackDecryptArg
+	res keybase1.SaltPackEncryptedMessageInfo
 }
 
 // NewSaltPackDecrypt creates a SaltPackDecrypt engine.
@@ -86,6 +87,23 @@ func (e *SaltPackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKe
 	return err
 }
 
+func (e *SaltPackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageKeyInfo) {
+	if mki == nil {
+		return
+	}
+	ckf := me.GetComputedKeyFamily()
+	for _, nr := range mki.NamedReceivers {
+		kid := keybase1.KIDFromRawKey(nr, libkb.KIDNaclDH)
+		if dev, _ := ckf.GetDeviceForKID(kid); dev != nil {
+			edev := dev.ProtExport()
+			edev.EncryptKey = kid
+			e.res.Devices = append(e.res.Devices, *edev)
+		}
+	}
+	e.res.NumAnonReceivers = mki.NumAnonReceivers
+	e.res.ReceiverIsAnon = mki.ReceiverIsAnon
+}
+
 // Run starts the engine.
 func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
 	defer e.G().Trace("SaltPackDecrypt::Run", func() error { return err })()
@@ -119,6 +137,17 @@ func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
 	}
 
 	e.G().Log.Debug("| SaltPackDecrypt")
-	err = libkb.SaltPackDecrypt(e.arg.Source, e.arg.Sink, kp, hook)
+	var mki *saltpack.MessageKeyInfo
+	mki, err = libkb.SaltPackDecrypt(e.arg.Source, e.arg.Sink, kp, hook)
+	if err == saltpack.ErrNoDecryptionKey {
+		err = libkb.NoDecryptionKeyError{Msg: "no suitable device key found"}
+	}
+
+	e.makeMessageInfo(me, mki)
+
 	return err
+}
+
+func (e *SaltPackDecrypt) MessageInfo() keybase1.SaltPackEncryptedMessageInfo {
+	return e.res
 }

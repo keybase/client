@@ -146,6 +146,12 @@
     }, {
       "name" : "mTime",
       "type" : "Time"
+    }, {
+      "name" : "encryptKey",
+      "type" : "KID"
+    }, {
+      "name" : "verifyKey",
+      "type" : "KID"
     } ]
   }, {
     "type" : "record",

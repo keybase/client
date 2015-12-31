@@ -175,6 +175,8 @@ export type block_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type Device = {
@@ -183,6 +185,8 @@ export type Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type block_Stream = {
@@ -360,6 +364,8 @@ export type BTC_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type BTC_Stream = {
@@ -465,6 +471,8 @@ export type config_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type config_Stream = {
@@ -634,6 +642,8 @@ export type ctl_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type ctl_Stream = {
@@ -751,6 +761,8 @@ export type delegateUiCtl_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type delegateUiCtl_Stream = {
@@ -856,6 +868,8 @@ export type device_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type device_Stream = {
@@ -961,6 +975,8 @@ export type favorite_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type favorite_Stream = {
@@ -1078,6 +1094,8 @@ export type gpgUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type gpgUi_Stream = {
@@ -1209,6 +1227,8 @@ export type identify_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type identify_Stream = {
@@ -1466,6 +1486,8 @@ export type identifyUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type identifyUi_Stream = {
@@ -1787,6 +1809,8 @@ export type install_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type install_Stream = {
@@ -2024,6 +2048,8 @@ export type Kex2Provisionee_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type Kex2Provisionee_Stream = {
@@ -2157,6 +2183,8 @@ export type logUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type logUi_Stream = {
@@ -2262,6 +2290,8 @@ export type login_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type login_Stream = {
@@ -2377,6 +2407,8 @@ export type loginUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type loginUi_Stream = {
@@ -2482,6 +2514,8 @@ export type metadata_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type metadata_Stream = {
@@ -2614,6 +2648,8 @@ export type metadataUpdate_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type metadataUpdate_Stream = {
@@ -2724,6 +2760,8 @@ export type notifyCtl_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type notifyCtl_Stream = {
@@ -2855,6 +2893,8 @@ export type NotifyTracking_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type NotifyTracking_Stream = {
@@ -2960,6 +3000,8 @@ export type NotifyUsers_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type NotifyUsers_Stream = {
@@ -3065,6 +3107,8 @@ export type pgp_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type pgp_Stream = {
@@ -3136,8 +3180,12 @@ export type pgp_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type pgp_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
+
 export type pgp_IdentifyReason = {
+  type: IdentifyReasonType;
   reason: string;
+  resource: string;
 }
 
 export type pgp_IdentifyOutcome = {
@@ -3342,6 +3390,8 @@ export type pgpUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type pgpUi_Stream = {
@@ -3447,6 +3497,8 @@ export type prove_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type prove_Stream = {
@@ -3518,8 +3570,12 @@ export type prove_TrackOptions = {
   bypassConfirm: boolean;
 }
 
+export type prove_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
+
 export type prove_IdentifyReason = {
+  type: IdentifyReasonType;
   reason: string;
+  resource: string;
 }
 
 export type prove_IdentifyOutcome = {
@@ -3638,6 +3694,8 @@ export type proveUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type proveUi_Stream = {
@@ -3747,6 +3805,8 @@ export type provisionUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type provisionUi_Stream = {
@@ -3874,6 +3934,8 @@ export type quota_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type quota_Stream = {
@@ -3993,6 +4055,8 @@ export type revoke_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type revoke_Stream = {
@@ -4098,6 +4162,8 @@ export type saltPack_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type saltPack_Stream = {
@@ -4232,6 +4298,18 @@ export type SaltPackDecryptOptions = {
   forceRemoteCheck: boolean;
 }
 
+export type saltPack_SaltPackEncryptedMessageInfo = {
+  devices: Array<Device>;
+  numAnonReceivers: int;
+  receiverIsAnon: boolean;
+}
+
+export type SaltPackEncryptedMessageInfo = {
+  devices: Array<Device>;
+  numAnonReceivers: int;
+  receiverIsAnon: boolean;
+}
+
 export type saltPackUi_Time = {
 }
 
@@ -4295,6 +4373,8 @@ export type saltPackUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type saltPackUi_Stream = {
@@ -4474,6 +4554,8 @@ export type session_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type session_Stream = {
@@ -4595,6 +4677,8 @@ export type signup_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type signup_Stream = {
@@ -4712,6 +4796,8 @@ export type sigs_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type sigs_Stream = {
@@ -4875,6 +4961,8 @@ export type streamUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type streamUi_Stream = {
@@ -4988,6 +5076,8 @@ export type track_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type track_Stream = {
@@ -5163,6 +5253,8 @@ export type ui_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type ui_Stream = {
@@ -5316,6 +5408,8 @@ export type updateUi_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type updateUi_Stream = {
@@ -5449,6 +5543,8 @@ export type user_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type user_Stream = {
