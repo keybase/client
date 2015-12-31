@@ -61,6 +61,7 @@ func (b *BlockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID,
 		BlockData:     buf,
 		Refs:          make(map[BlockRefNonce]bool),
 		KeyServerHalf: serverHalf,
+		Tlf:           tlfID,
 	}
 	entry.Refs[zeroBlockRefNonce] = true
 	return b.s.put(id, entry)
@@ -103,6 +104,13 @@ func (b *BlockServerLocal) ArchiveBlockReferences(ctx context.Context,
 	}
 
 	return nil
+}
+
+// getAll returns all the known block references, and should only be
+// used during testing.
+func (b *BlockServerLocal) getAll(tlf TlfID) (
+	map[BlockID]map[BlockRefNonce]bool, error) {
+	return b.s.getAll(tlf)
 }
 
 // Shutdown implements the BlockServer interface for BlockServerLocal.
