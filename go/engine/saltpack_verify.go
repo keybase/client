@@ -51,5 +51,16 @@ func (e *SaltPackVerify) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *SaltPackVerify) Run(ctx *Context) error {
+	if len(e.arg.Signature) > 0 {
+		return e.detached()
+	}
+	return e.attached()
+}
+
+func (e *SaltPackVerify) attached() error {
+	return nil
+}
+
+func (e *SaltPackVerify) detached() error {
 	return nil
 }
