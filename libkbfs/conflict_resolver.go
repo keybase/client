@@ -1735,7 +1735,6 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	if err != nil {
 		return BlockPointer{}, err
 	}
-	cr.log.CDebugf(ctx, "Deep copying file %s: %v", name, newPtr)
 	if fblock.IsInd {
 		newID, err := cr.config.Crypto().MakeTemporaryBlockID()
 		if err != nil {
@@ -1755,6 +1754,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 		}
 		newPtr.SetWriter(uid)
 	}
+	cr.log.CDebugf(ctx, "Deep copying file %s: %v -> %v", name, ptr, newPtr)
 	// Mark this as having been created during this chain, so that
 	// later during block accounting we can infer the origin of the
 	// block.
@@ -2554,6 +2554,28 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 		md.DiskUsage -= size
 	}
 
+	// Any blocks that were created on the unmerged branch, but didn't
+	// survive the resolution, should be marked as unreferenced in the
+	// resolution.
+	toUnref := make(map[BlockPointer]bool)
+	for ptr := range unmergedChains.originals {
+		cr.log.CDebugf(ctx, "Unref-considering %v", ptr)
+		if !refs[ptr] && !unrefs[ptr] {
+			cr.log.CDebugf(ctx, "Unref-doing %v", ptr)
+			toUnref[ptr] = true
+		}
+	}
+	for ptr := range unmergedChains.createdOriginals {
+		cr.log.CDebugf(ctx, "Unref-considering %v (original)", ptr)
+		if !refs[ptr] && !unrefs[ptr] && unmergedChains.byOriginal[ptr] != nil {
+			cr.log.CDebugf(ctx, "Unref-doing %v (original)", ptr)
+			toUnref[ptr] = true
+		}
+	}
+	for ptr := range toUnref {
+		md.data.Changes.Ops[0].AddUnrefBlock(ptr)
+	}
+
 	cr.log.CDebugf(ctx, "New md byte usage: %d ref, %d unref, %d total usage "+
 		"(previously %d)", md.RefBytes, md.UnrefBytes, md.DiskUsage,
 		mergedChains.mostRecentMD.DiskUsage)
@@ -2717,6 +2739,21 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// Clean up any gc updates that don't refer to blocks that exist
+	// in the merged branch.
+	var newUpdates []blockUpdate
+	for _, update := range gcOp.Updates {
+		// Ignore it if it doesn't descend from an original block
+		// pointer or one created in the merged branch.
+		if _, ok := unmergedChains.originals[update.Unref]; !ok &&
+			mergedChains.byMostRecent[update.Unref] == nil {
+			cr.log.CDebugf(ctx, "Skipping update from %v", update.Unref)
+			continue
+		}
+		newUpdates = append(newUpdates, update)
+	}
+	gcOp.Updates = newUpdates
 
 	newOps[0] = gcOp // move the dummy ops to the front
 	md.data.Changes.Ops = newOps
