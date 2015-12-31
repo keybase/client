@@ -310,7 +310,8 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	}
 
 	// this device should be able to read now
-	_, _, err = kbfsOps2Dev2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	root2Dev2, _, err :=
+		kbfsOps2Dev2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
 	if err != nil {
 		t.Fatalf("Got unexpected error after rekey: %v", err)
 	}
@@ -329,10 +330,6 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)
 
-	c := make(chan struct{})
-	config2Dev2.Notifier().RegisterForChanges(
-		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c, nil})
-
 	// rekey again
 	err = kbfsOps1.RekeyForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
@@ -345,8 +342,10 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
-	// wait for device 2 to see the file
-	<-c
+	err = kbfsOps2Dev2.SyncFromServer(ctx, root2Dev2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
 
 	// device 2 should still work
 	rootNode2, _, err :=
