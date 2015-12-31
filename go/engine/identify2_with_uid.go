@@ -335,7 +335,12 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	}
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName()))
 	ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export())
+
+	waiter := displayUserCardAsync(e.G(), ctx, e.them.GetUID(), (e.me != nil))
 	e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e)
+
+	waiter()
+
 	e.insertTrackToken(ctx)
 	ctx.IdentifyUI.Finish()
 
