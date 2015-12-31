@@ -41,19 +41,19 @@ const EncryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
 
 // SignedArmorHeader is the header that marks the start of signed
 // armored KB message.
-const SignedArmorHeader = "BEGIN KEYBASE SIGNED MESSAGE"
+const SignedArmorHeader = "BEGIN KEYBASE SALTPACK SIGNED MESSAGE"
 
 // SignedArmorFooter is the footer that marks the end of signed
 // armored KB message.
-const SignedArmorFooter = "END KEYBASE SIGNED MESSAGE"
+const SignedArmorFooter = "END KEYBASE SALTPACK SIGNED MESSAGE"
 
 // DetachedSignatureArmorHeader is the header that marks the start of
 // a detached armored KB signature.
-const DetachedSignatureArmorHeader = "BEGIN KEYBASE DETACHED SIGNATURE"
+const DetachedSignatureArmorHeader = "BEGIN KEYBASE SALTPACK DETACHED SIGNATURE"
 
 // DetachedSignatureArmorFooter is the footer that marks the end of
 // a detached armored KB signature.
-const DetachedSignatureArmorFooter = "END KEYBASE DETACHED SIGNATURE"
+const DetachedSignatureArmorFooter = "END KEYBASE SALTPACK DETACHED SIGNATURE"
 
 // SaltPackFormatName is the publicly advertised name of the format,
 // used in the header of the message and also in Nonce creation.
