@@ -98,19 +98,16 @@ func TestBasicMDUpdate(t *testing.T) {
 		t.Fatalf("Couldn't get status")
 	}
 
-	// register client 2 as a listener before the create happens
-	c := make(chan struct{})
-	config2.Notifier().RegisterForChanges(
-		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c, nil})
-
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
-	// Wait for the next batch change notification
-	<-c
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
 
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	if err != nil {
@@ -180,11 +177,6 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 		t.Errorf("Couldn't get root: %v", err)
 	}
 
-	// register client 2 as a listener before the create happens
-	c := make(chan struct{})
-	config2.Notifier().RegisterForChanges(
-		[]FolderBranch{rootNode1.GetFolderBranch()}, &testCRObserver{c, nil})
-
 	// now user 1 renames the old file, and creates a new one
 	err = kbfsOps1.Rename(ctx, rootNode1, "a", rootNode1, "b")
 	if err != nil {
@@ -195,9 +187,10 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
-	// Wait for the next 2 batch change notifications
-	<-c
-	<-c
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
 
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	if err != nil {
