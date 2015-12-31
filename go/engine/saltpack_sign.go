@@ -56,6 +56,8 @@ func (e *SaltPackSign) Run(ctx *Context) error {
 	if err := e.loadKey(); err != nil {
 		return err
 	}
+	e.arg.Sink.Write([]byte("signed"))
+	e.arg.Sink.Close()
 	return nil
 }
 

@@ -6,6 +6,7 @@ package engine
 import (
 	"bytes"
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -36,12 +37,12 @@ func TestSaltPackSignVerify(t *testing.T) {
 	for _, test := range signTests {
 		var sink bytes.Buffer
 
-		earg := &SaltPackSignArg{
+		sarg := &SaltPackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
 			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
 		}
 
-		eng := NewSaltPackSign(earg, tc.G)
+		eng := NewSaltPackSign(sarg, tc.G)
 		ctx := &Context{}
 
 		if err := RunEngine(eng, ctx); err != nil {
@@ -55,12 +56,14 @@ func TestSaltPackSignVerify(t *testing.T) {
 			t.Errorf("%s: empty sig", test.name)
 		}
 
-		/*
-			_, err = key.VerifyString(sig, []byte(test.input))
-			if err != nil {
-				t.Errorf("%s: verify error: %s", test.name, err)
-				continue
-			}
-		*/
+		varg := &SaltPackVerifyArg{
+			Source: strings.NewReader(sig),
+		}
+		veng := NewSaltPackVerify(varg, tc.G)
+
+		if err := RunEngine(veng, ctx); err != nil {
+			t.Errorf("%s: verify error: %s", test.name, err)
+			continue
+		}
 	}
 }
