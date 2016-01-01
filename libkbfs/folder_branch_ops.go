@@ -4104,12 +4104,13 @@ func (fbo *folderBranchOps) reembedBlockChanges(ctx context.Context,
 	// if any of the operations have unembedded block ops, fetch those
 	// now and fix them up.  TODO: parallelize me.
 	for _, rmd := range rmds {
-		if rmd.data.Changes.Info.BlockPointer == zeroPtr {
+		info := rmd.data.Changes.Info
+		if info.BlockPointer == zeroPtr {
 			continue
 		}
 
 		fblock, err := fbo.getFileBlockForReading(ctx, lState, rmd,
-			rmd.data.Changes.Info.BlockPointer, fbo.folderBranch.Branch, path{})
+			info.BlockPointer, fbo.folderBranch.Branch, path{})
 		if err != nil {
 			return err
 		}
@@ -4118,6 +4119,9 @@ func (fbo *folderBranchOps) reembedBlockChanges(ctx context.Context,
 		if err != nil {
 			return err
 		}
+		// The changes block pointer is an implicit ref block
+		rmd.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
+		rmd.data.Changes.Info = info
 	}
 	return nil
 }
