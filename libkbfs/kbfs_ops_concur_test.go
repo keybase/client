@@ -142,8 +142,8 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	}
 }
 
-// Test that a write can happen concurrently with a sync
-func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
+// Test that writes can happen concurrently with a sync
+func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
@@ -179,22 +179,26 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 	// wait until Sync gets stuck at MDOps.Put()
 	m.start <- struct{}{}
 
-	// now make sure we can write the file and see the new byte we wrote
-	newData := []byte{2}
-	err = kbfsOps.Write(ctx, fileNode, newData, 1)
-	if err != nil {
-		t.Errorf("Couldn't write data: %v\n", err)
-	}
+	expectedData := make([]byte, len(data))
+	copy(expectedData, data)
+	for i := 0; i < n; i++ {
+		// now make sure we can write the file and see the new byte we wrote
+		newData := []byte{byte(i + 2)}
+		err = kbfsOps.Write(ctx, fileNode, newData, int64(i+1))
+		if err != nil {
+			t.Errorf("Couldn't write data: %v\n", err)
+		}
 
-	// read the data back
-	buf := make([]byte, 2)
-	nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
-	if err != nil {
-		t.Errorf("Couldn't read data: %v\n", err)
-	}
-	expectedData := append(data, newData...)
-	if nr != 2 || !bytes.Equal(expectedData, buf) {
-		t.Errorf("Got wrong data %v; expected %v", buf, expectedData)
+		// read the data back
+		buf := make([]byte, i+2)
+		nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
+		if err != nil {
+			t.Errorf("Couldn't read data: %v\n", err)
+		}
+		expectedData = append(expectedData, newData...)
+		if nr != int64(i+2) || !bytes.Equal(expectedData, buf) {
+			t.Errorf("Got wrong data %v; expected %v", buf, expectedData)
+		}
 	}
 
 	// now unblock Sync and make sure there was no error
@@ -206,12 +210,12 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 
 	// finally, make sure we can still read it after the sync too
 	// (even though the second write hasn't been sync'd yet)
-	buf2 := make([]byte, 2)
-	nr, err = kbfsOps.Read(ctx, fileNode, buf2, 0)
+	buf2 := make([]byte, n+1)
+	nr, err := kbfsOps.Read(ctx, fileNode, buf2, 0)
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
-	if nr != 2 || !bytes.Equal(expectedData, buf2) {
+	if nr != int64(n+1) || !bytes.Equal(expectedData, buf2) {
 		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 	}
 
@@ -223,15 +227,17 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 		t.Errorf("Unexpected number of cached clean blocks: %d\n",
 			numCleanBlocks)
 	}
+}
 
-	// Final sync to clean up
-	go func() {
-		m.start <- struct{}{}
-		m.enter <- struct{}{}
-	}()
-	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
-		t.Errorf("Couldn't sync the final write")
-	}
+// Test that a write can happen concurrently with a sync
+func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
+	testKBFSOpsConcurWritesDuringSync(t, 1)
+}
+
+// Test that multiple writes can happen concurrently with a sync
+// (regression for KBFS-616)
+func TestKBFSOpsConcurMultipleWritesDuringSync(t *testing.T) {
+	testKBFSOpsConcurWritesDuringSync(t, 10)
 }
 
 // staller is a pair of channels. Whenever something is to be
