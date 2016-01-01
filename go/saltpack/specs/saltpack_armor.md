@@ -36,7 +36,7 @@ a block of B bytes with an alphabet of length A:
 
 1. Compute C, the length of the output character block. C is the smallest
    integer such that `256^B <= A^C`. (`^` means "to the power of" here and
-   below.) The most direct way to compute C is `ceiling(8*B/log_2(A))`.
+   below.) The most direct way to compute C is `ceiling(B*8/log_2(A))`.
 2. Interpret the bytes as a big-endian unsigned integer. For blocks longer than
    8 bytes, this usually requires a bignum library.
 3. Convert that number into a list of C digits in base A, by repeatedly taking
@@ -48,7 +48,7 @@ To decode a block of C characters with an alphabet of length A:
 
 1. Compute B, the length of the output byte block. B is the largest integer
    such that `256^B <= A^C`. The most direct way to compute B is
-   `floor(C/8*log_2(A))`.
+   `floor(C*log_2(A)/8)`.
 2. Using the alphabet, map the characters in the block into a list of base A
    digits.
 3. Multiply those digits by successive powers of A, and sum them together into
@@ -109,7 +109,7 @@ eternal mystery of what these blocks could mean.
 To pick an efficient block size, it helps to make a table of B and C values,
 using the formula for C from above:
 
-    C = ceiling( 8 * B / log_2(A) )
+    C = ceiling( B * 8 / log_2(A) )
 
 Here's the table for a 62-character alphabet, showing only the block sizes
 where efficiency goes up:
@@ -256,8 +256,8 @@ characters that can pass through a tweet
 unscathed](https://gist.github.com/oconnor663/e9c878161e7a63517747#file-alphabet-txt).
 How many bytes can we encode with that, if we use a 140-character block?
 
-    B = floor( C / 8 * log_2(A) )
-      = floor( 140 / 8 * log_2(1110602) )
+    B = floor( C * log_2(A) / 8 )
+      = floor( 140 * log_2(1110602) / 8 )
       = 351
 
 Here's a tweet [encoding the first 351 characters of lorem
