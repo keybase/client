@@ -260,7 +260,7 @@ How many bytes can we encode with that, if we use a 140-character block?
       = floor( 140 * log_2(1110602) / 8 )
       = 351
 
-Here's a tweet [encoding the first 351 characters of lorem
+Here's a tweet [encoding the first 351 bytes of lorem
 ipsum](https://twitter.com/oconnor663/status/680171387353448448).
 
 ## Framing the BaseX Payload
