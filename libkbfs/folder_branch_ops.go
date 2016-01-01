@@ -92,6 +92,22 @@ func (bl *blockLock) DoRUnlockedIfPossible(f func()) {
 	f()
 }
 
+// syncBlockState represents that state of a block with respect to
+// whether it's currently being synced.  There can be three states:
+//  1) Not being synced
+//  2) Being synced and not yet re-dirtied: any write needs to
+//     make a copy of the block before dirtying it.  Also, all writes must be
+//     deferred.
+//  3) Being synced and already re-dirtied: no copies are needed, but all
+//     writes must still be deferred.
+type syncBlockState int
+
+const (
+	blockNotBeingSynced syncBlockState = iota
+	blockSyncingNotDirty
+	blockSyncingAndDirty
+)
+
 // folderBranchOps implements the KBFSOps interface for a specific
 // branch of a specific folder.  It is go-routine safe for operations
 // within the folder.
@@ -155,9 +171,11 @@ type folderBranchOps struct {
 	observers    []Observer
 	// Which blocks are currently being synced, so that writes and
 	// truncates can do copy-on-write to avoid messing up the ongoing
-	// sync.  The bool value is true if the block needs to be
-	// copied before written to.
-	copyFileBlocks map[BlockPointer]bool
+	// sync.  If it is blockSyncingNotDirty, then any read of the
+	// block should result in a deep copy and any writes should be
+	// deferred; if it is blockSyncingAndDirty, then just any writes
+	// should be deferred.
+	fileBlockStates map[BlockPointer]syncBlockState
 	// Writes and truncates for blocks that were being sync'd, and
 	// need to be replayed after the sync finishes on top of the new
 	// versions of the blocks.
@@ -180,7 +198,7 @@ type folderBranchOps struct {
 	writerLock sync.Locker  // taken by any method making MD modifications
 	headLock   sync.RWMutex // protects access to the MD
 
-	// protects access to blocks in this folder, copyFileBlocks,
+	// protects access to blocks in this folder, fileBlockStates,
 	// and deferredWrites.
 	blockLock blockLock
 
@@ -235,12 +253,12 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 	log.CInfof(nil, "Created new folder-branch for %s", tlfStringFull)
 
 	fbo := &folderBranchOps{
-		config:         config,
-		folderBranch:   fb,
-		bid:            BranchID{},
-		bType:          bType,
-		observers:      make([]Observer, 0),
-		copyFileBlocks: make(map[BlockPointer]bool),
+		config:          config,
+		folderBranch:    fb,
+		bid:             BranchID{},
+		bType:           bType,
+		observers:       make([]Observer, 0),
+		fileBlockStates: make(map[BlockPointer]syncBlockState),
 		deferredWrites: make(
 			[]func(context.Context, *RootMetadata, path) error, 0),
 		unrefCache:      make(map[BlockPointer]*syncInfo),
@@ -876,7 +894,7 @@ func (fbo *folderBranchOps) getFileBlockLocked(ctx context.Context,
 		// being sync'd and needs a copy even though it's
 		// already dirty.
 		if !fbo.config.BlockCache().IsDirty(ptr, file.Branch) ||
-			fbo.copyFileBlocks[ptr] {
+			fbo.fileBlockStates[ptr] == blockSyncingNotDirty {
 			fblock = fblock.DeepCopy()
 		}
 	}
@@ -1260,14 +1278,20 @@ func (fbo *folderBranchOps) cacheBlockIfNotYetDirtyLocked(
 	ptr BlockPointer, branch BranchName, block Block) error {
 	if !fbo.config.BlockCache().IsDirty(ptr, branch) {
 		return fbo.config.BlockCache().PutDirty(ptr, branch, block)
-	} else if fbo.copyFileBlocks[ptr] {
-		fbo.copyFileBlocks[ptr] = false
+	} else if fbo.fileBlockStates[ptr] != blockNotBeingSynced {
+		if fbo.fileBlockStates[ptr] == blockSyncingNotDirty {
+			// Overwrite the dirty block if this is a copy-on-write
+			// during a sync.  Don't worry, the old dirty block is
+			// safe in the sync goroutine (and also probably saved to
+			// the cache under its new ID already.
+			err := fbo.config.BlockCache().PutDirty(ptr, branch, block)
+			if err != nil {
+				return err
+			}
+			// Future writes can use this same block.
+			fbo.fileBlockStates[ptr] = blockSyncingAndDirty
+		}
 		fbo.doDeferWrite = true
-		// Overwrite the dirty block if this is a copy-on-write during
-		// a sync.  Don't worry, the old dirty block is safe in the
-		// sync goroutine (and also probably saved to the cache under
-		// its new ID already.
-		return fbo.config.BlockCache().PutDirty(ptr, branch, block)
 	}
 	return nil
 }
@@ -2527,7 +2551,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 		// that any write to a file while it's being sync'd will be
 		// deferred, even if it's to a block that's not currently
 		// being sync'd, since this top-most block will always be in
-		// the copyFileBlocks set.
+		// the fileBlockStates map.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
 			file.tailPointer(), file.Branch, fblock); err != nil {
 			return err
@@ -2687,7 +2711,7 @@ func (fbo *folderBranchOps) truncateLocked(
 		// that any truncate to a file while it's being sync'd will be
 		// deferred, even if it's to a block that's not currently
 		// being sync'd, since this top-most block will always be in
-		// the copyFileBlocks set.
+		// the fileBlockStates map.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
 			file.tailPointer(), file.Branch, fblock); err != nil {
 			return err
@@ -3151,12 +3175,12 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context, file path) (
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(newInfo)
 				bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
-				fbo.copyFileBlocks[localPtr] = true
+				fbo.fileBlockStates[localPtr] = blockSyncingNotDirty
 			}
 		}
 	}
 
-	fbo.copyFileBlocks[file.tailPointer()] = true
+	fbo.fileBlockStates[file.tailPointer()] = blockSyncingNotDirty
 	doUnlock = false
 	fbo.blockLock.Unlock()
 
@@ -3247,7 +3271,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context, file path) (
 		// Clear the updated de from the cache.  We are guaranteed that
 		// any concurrent write to this file was deferred, even if it was
 		// to a block that wasn't currently being sync'd, since the
-		// top-most block is always in copyFileBlocks and is always
+		// top-most block is always in fileBlockStates and is always
 		// dirtied during a write/truncate.
 		if doDeleteDe {
 			fbo.clearDeCacheEntryLocked(parentPtr, filePtr)
@@ -3263,7 +3287,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context, file path) (
 		return true, err
 	}
 
-	fbo.copyFileBlocks = make(map[BlockPointer]bool)
+	fbo.fileBlockStates = make(map[BlockPointer]syncBlockState)
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
 	writes := fbo.deferredWrites
