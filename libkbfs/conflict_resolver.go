@@ -1759,6 +1759,16 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	// later during block accounting we can infer the origin of the
 	// block.
 	chains.createdOriginals[newPtr] = true
+	// If this file was created within the branch, we should clean up
+	// all the old block pointers.
+	original, err := chains.originalFromMostRecentOrSame(ptr)
+	if err != nil {
+		return BlockPointer{}, err
+	}
+	newlyCreated := chains.isCreated(original)
+	if newlyCreated {
+		chains.toUnrefPointers[original] = true
+	}
 
 	if _, ok := blocks[mergedMostRecent]; !ok {
 		blocks[mergedMostRecent] = make(map[string]*FileBlock)
@@ -1768,6 +1778,10 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	// TODO: deal with multiple levels of indirection.
 	if fblock.IsInd {
 		for i, iptr := range fblock.IPtrs {
+			if newlyCreated {
+				chains.toUnrefPointers[iptr.BlockPointer] = true
+			}
+
 			// Generate a new nonce for each one.
 			iptr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()
 			if err != nil {
@@ -2469,7 +2483,10 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	unrefs := make(map[BlockPointer]bool)
 	for _, op := range md.data.Changes.Ops {
 		for _, ptr := range op.Refs() {
-			refs[ptr] = true
+			// Don't add usage it's an unembedded block change pointer.
+			if _, ok := unmergedChains.blockChangePointers[ptr]; !ok {
+				refs[ptr] = true
+			}
 		}
 		for _, ptr := range op.Unrefs() {
 			unrefs[ptr] = true
@@ -2529,8 +2546,8 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 		}
 		if original != ptr || unmergedChains.isCreated(original) {
 			// Only unref pointers that weren't created as part of the
-			// unmerged branch.  Either they existed already or they were
-			// created as part of the merged branch.
+			// unmerged branch.  Either they existed already or they
+			// were created as part of the merged branch.
 			continue
 		}
 		// Also make sure this wasn't already removed on the merged branch.
@@ -2570,10 +2587,18 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 		if !refs[ptr] && !unrefs[ptr] && unmergedChains.byOriginal[ptr] != nil {
 			cr.log.CDebugf(ctx, "Unref-doing %v (original)", ptr)
 			toUnref[ptr] = true
+		} else if _, ok := unmergedChains.blockChangePointers[ptr]; ok {
+			cr.log.CDebugf(ctx, "Unref-doing %v (original block change)", ptr)
+			toUnref[ptr] = true
+		} else if _, ok := unmergedChains.toUnrefPointers[ptr]; ok {
+			cr.log.CDebugf(ctx, "Unref-doing %v (original forced)", ptr)
+			toUnref[ptr] = true
 		}
 	}
 	for ptr := range toUnref {
-		md.data.Changes.Ops[0].AddUnrefBlock(ptr)
+		// Put the unrefs on the final operations, to cancel out any
+		// refs in earlier ops.
+		md.data.Changes.Ops[len(md.data.Changes.Ops)-1].AddUnrefBlock(ptr)
 	}
 
 	cr.log.CDebugf(ctx, "New md byte usage: %d ref, %d unref, %d total usage "+
@@ -2747,8 +2772,11 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		// Ignore it if it doesn't descend from an original block
 		// pointer or one created in the merged branch.
 		if _, ok := unmergedChains.originals[update.Unref]; !ok &&
+			unmergedChains.byOriginal[update.Unref] == nil &&
 			mergedChains.byMostRecent[update.Unref] == nil {
-			cr.log.CDebugf(ctx, "Skipping update from %v", update.Unref)
+			cr.log.CDebugf(ctx, "Turning update from %v into just a ref for %v",
+				update.Unref, update.Ref)
+			gcOp.AddRefBlock(update.Ref)
 			continue
 		}
 		newUpdates = append(newUpdates, update)
