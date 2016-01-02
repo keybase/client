@@ -18,14 +18,15 @@ import (
 // device.
 type LoginProvision struct {
 	libkb.Contextified
-	arg          *LoginProvisionArg
-	user         *libkb.User
-	lks          *libkb.LKSec
-	signingKey   libkb.GenericKey
-	gpgCli       *libkb.GpgCLI
-	username     string
-	devname      string
-	cleanupOnErr bool
+	arg           *LoginProvisionArg
+	user          *libkb.User
+	lks           *libkb.LKSec
+	signingKey    libkb.GenericKey
+	encryptionKey libkb.GenericKey
+	gpgCli        *libkb.GpgCLI
+	username      string
+	devname       string
+	cleanupOnErr  bool
 }
 
 type LoginProvisionArg struct {
@@ -494,6 +495,7 @@ func (e *LoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 	}
 
 	e.signingKey = eng.SigningKey()
+	e.encryptionKey = eng.EncryptionKey()
 	return nil
 }
 

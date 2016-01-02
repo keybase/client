@@ -22,10 +22,11 @@ func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
 var testInviteCode = "202020202020202020202020"
 
 type FakeUser struct {
-	Username   string
-	Email      string
-	Passphrase string
-	User       *libkb.User
+	Username      string
+	Email         string
+	Passphrase    string
+	User          *libkb.User
+	EncryptionKey libkb.GenericKey
 }
 
 func NewFakeUser(prefix string) (fu *FakeUser, err error) {
@@ -85,6 +86,7 @@ func SignupFakeUserWithArg(tc libkb.TestContext, fu *FakeUser, arg SignupEngineR
 	if err != nil {
 		tc.T.Fatal(err)
 	}
+	fu.EncryptionKey = s.encryptionKey
 	return s
 }
 
