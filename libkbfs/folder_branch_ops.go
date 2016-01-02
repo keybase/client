@@ -171,10 +171,10 @@ type folderBranchOps struct {
 	observers    []Observer
 	// Which blocks are currently being synced, so that writes and
 	// truncates can do copy-on-write to avoid messing up the ongoing
-	// sync.  If it is blockSyncingNotDirty, then any read of the
-	// block should result in a deep copy and any writes should be
-	// deferred; if it is blockSyncingAndDirty, then just any writes
-	// should be deferred.
+	// sync.  If it is blockSyncingNotDirty, then any write to the
+	// block should result in a deep copy and those writes should be
+	// deferred; if it is blockSyncingAndDirty, then just defer the
+	// writes.
 	fileBlockStates map[BlockPointer]syncBlockState
 	// Writes and truncates for blocks that were being sync'd, and
 	// need to be replayed after the sync finishes on top of the new
@@ -1278,21 +1278,27 @@ func (fbo *folderBranchOps) cacheBlockIfNotYetDirtyLocked(
 	ptr BlockPointer, branch BranchName, block Block) error {
 	if !fbo.config.BlockCache().IsDirty(ptr, branch) {
 		return fbo.config.BlockCache().PutDirty(ptr, branch, block)
-	} else if fbo.fileBlockStates[ptr] != blockNotBeingSynced {
-		if fbo.fileBlockStates[ptr] == blockSyncingNotDirty {
-			// Overwrite the dirty block if this is a copy-on-write
-			// during a sync.  Don't worry, the old dirty block is
-			// safe in the sync goroutine (and also probably saved to
-			// the cache under its new ID already.
-			err := fbo.config.BlockCache().PutDirty(ptr, branch, block)
-			if err != nil {
-				return err
-			}
-			// Future writes can use this same block.
-			fbo.fileBlockStates[ptr] = blockSyncingAndDirty
+	}
+
+	switch fbo.fileBlockStates[ptr] {
+	case blockNotBeingSynced:
+		// Nothing to do
+	case blockSyncingNotDirty:
+		// Overwrite the dirty block if this is a copy-on-write during
+		// a sync.  Don't worry, the old dirty block is safe in the
+		// sync goroutine (and also probably saved t the cache under
+		// its new ID already.
+		err := fbo.config.BlockCache().PutDirty(ptr, branch, block)
+		if err != nil {
+			return err
 		}
+		// Future writes can use this same block.
+		fbo.fileBlockStates[ptr] = blockSyncingAndDirty
+		fbo.doDeferWrite = true
+	case blockSyncingAndDirty:
 		fbo.doDeferWrite = true
 	}
+
 	return nil
 }
 
