@@ -129,8 +129,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "15508dc67cb7bac53e9a95a31efd04e83d27bb97",
-			"revisionTime": "2015-12-11T20:52:55-05:00"
+			"revision": "efcbe7c088855b9f77cc2fd38508a00c178555f6",
+			"revisionTime": "2016-01-02T19:24:56-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",

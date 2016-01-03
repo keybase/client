@@ -3,6 +3,7 @@
 - Allow disabling self-encryption in `keybase exp encrypt` (PR: keybase/client#1606)
 - `keybase exp decrypt` now properly identifies senders, and allows for interactive
   mode if requested (PRs: keybase/client#1613, keybase/client#1617)
+- Implement OpenPGP PolicyURI subpacket (via vendored PR: keybase/go-crypto#3)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)

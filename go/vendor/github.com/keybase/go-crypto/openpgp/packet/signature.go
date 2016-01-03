@@ -66,6 +66,9 @@ type Signature struct {
 	RevocationReason     *uint8
 	RevocationReasonText string
 
+	// PolicyURI is optional. See RFC 4880, Section 5.2.3.20 for details
+	PolicyURI string
+
 	// MDC is set if this signature has a feature packet that indicates
 	// support for MDC subpackets.
 	MDC bool
@@ -205,6 +208,7 @@ const (
 	prefHashAlgosSubpacket       signatureSubpacketType = 21
 	prefCompressionSubpacket     signatureSubpacketType = 22
 	primaryUserIdSubpacket       signatureSubpacketType = 25
+	policyURI                    signatureSubpacketType = 26
 	keyFlagsSubpacket            signatureSubpacketType = 27
 	reasonForRevocationSubpacket signatureSubpacketType = 29
 	featuresSubpacket            signatureSubpacketType = 30
@@ -386,6 +390,9 @@ func parseSignatureSubpacket(sig *Signature, subpacket []byte, isHashed bool) (r
 		if sigType := sig.EmbeddedSignature.SigType; sigType != SigTypePrimaryKeyBinding {
 			return nil, errors.StructuralError("cross-signature has unexpected type " + strconv.Itoa(int(sigType)))
 		}
+	case policyURI:
+		// See RFC 4880, Section 5.2.3.20
+		sig.PolicyURI = string(subpacket[:])
 	default:
 		if isCritical {
 			err = errors.UnsupportedError("unknown critical signature subpacket type " + strconv.Itoa(int(packetType)))
