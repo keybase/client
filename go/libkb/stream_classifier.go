@@ -85,10 +85,10 @@ const (
 	CryptoMessageTypeSignature = 4
 )
 
-// StreamType tells what Format the stream is, if it's a Public signature or a Private
+// StreamClassification tells what Format the stream is, if it's a Public signature or a Private
 // Message, if it's a detached or attached signature in the public case, and if it's
 // armored or binary.
-type StreamType struct {
+type StreamClassification struct {
 	Format  CryptoMessageFormat
 	Type    CryptoMessageType
 	Armored bool
@@ -123,7 +123,7 @@ type saltPackHeaderPrefix struct {
 	Type       saltpack.MessageType `codec:"type"`
 }
 
-func isSaltPackBinary(b []byte, st *StreamType) bool {
+func isSaltPackBinary(b []byte, sc *StreamClassification) bool {
 	if len(b) < 2 {
 		return false
 	}
@@ -147,19 +147,19 @@ func isSaltPackBinary(b []byte, st *StreamType) bool {
 	}
 	switch sphp.Type {
 	case saltpack.MessageTypeEncryption:
-		st.Type = CryptoMessageTypeEncryption
+		sc.Type = CryptoMessageTypeEncryption
 	case saltpack.MessageTypeAttachedSignature:
-		st.Type = CryptoMessageTypeAttachedSignature
+		sc.Type = CryptoMessageTypeAttachedSignature
 	case saltpack.MessageTypeDetachedSignature:
-		st.Type = CryptoMessageTypeDetachedSignature
+		sc.Type = CryptoMessageTypeDetachedSignature
 	default:
 		return false
 	}
-	st.Format = CryptoMessageFormatSaltPack
+	sc.Format = CryptoMessageFormatSaltPack
 	return true
 }
 
-func isPGPBinary(b []byte, st *StreamType) bool {
+func isPGPBinary(b []byte, sc *StreamClassification) bool {
 	if len(b) < 2 {
 		return false
 	}
@@ -179,18 +179,18 @@ func isPGPBinary(b []byte, st *StreamType) bool {
 	switch tag {
 	case 0x1:
 		// Encrypted session Key
-		st.Type = CryptoMessageTypeEncryption
+		sc.Type = CryptoMessageTypeEncryption
 	case 0x2:
 		// Detached signature
-		st.Type = CryptoMessageTypeDetachedSignature
+		sc.Type = CryptoMessageTypeDetachedSignature
 	case 0x4, 0x8:
 		// Either a compressed message or just a one-pass signature type. In either case,
 		// it's likely a signature.
-		st.Type = CryptoMessageTypeAttachedSignature
+		sc.Type = CryptoMessageTypeAttachedSignature
 	default:
 		return false
 	}
-	st.Format = CryptoMessageFormatPGP
+	sc.Format = CryptoMessageFormatPGP
 	return true
 }
 
@@ -199,35 +199,39 @@ func isPGPBinary(b []byte, st *StreamType) bool {
 // should read from instead, in addition to the classification. If classification
 // fails, there will be a `UnknownStreamError`, or additional EOF errors if the
 // stream ended beform classification could go.
-func ClassifyStream(r io.Reader) (st StreamType, out io.Reader, err error) {
+func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err error) {
 	peeker := NewStreamPeeker(r)
 	var buf [100]byte
 	var n int
 	if n, err = peeker.Peek(buf[:]); err != nil {
-		return st, peeker, err
+		return sc, peeker, err
 	}
 	sb := string(buf[:n])
 	switch {
 	case strings.HasPrefix(sb, "-----BEGIN PGP MESSAGE-----"):
-		st.Format = CryptoMessageFormatPGP
-		st.Armored = true
-		st.Type = CryptoMessageTypeAmbiguous
+		sc.Format = CryptoMessageFormatPGP
+		sc.Armored = true
+		sc.Type = CryptoMessageTypeAmbiguous
+	case strings.HasPrefix(sb, "-----BEGIN PGP SIGNATURE-----"):
+		sc.Format = CryptoMessageFormatPGP
+		sc.Armored = true
+		sc.Type = CryptoMessageTypeDetachedSignature
 	case strings.HasPrefix(sb, "BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE."):
-		st.Format = CryptoMessageFormatSaltPack
-		st.Armored = true
-		st.Type = CryptoMessageTypeEncryption
+		sc.Format = CryptoMessageFormatSaltPack
+		sc.Armored = true
+		sc.Type = CryptoMessageTypeEncryption
 	case strings.HasPrefix(sb, "BEGIN KEYBASE SALTPACK SIGNED MESSAGE."):
-		st.Format = CryptoMessageFormatSaltPack
-		st.Armored = true
-		st.Type = CryptoMessageTypeSignature
+		sc.Format = CryptoMessageFormatSaltPack
+		sc.Armored = true
+		sc.Type = CryptoMessageTypeSignature
 	case isBase64KeybaseV0Sig(sb):
-		st.Format = CryptoMessageFormatKeybaseV0
-		st.Armored = true
-		st.Type = CryptoMessageTypeAttachedSignature
-	case isSaltPackBinary(buf[:n], &st):
-	case isPGPBinary(buf[:n], &st):
+		sc.Format = CryptoMessageFormatKeybaseV0
+		sc.Armored = true
+		sc.Type = CryptoMessageTypeAttachedSignature
+	case isSaltPackBinary(buf[:n], &sc):
+	case isPGPBinary(buf[:n], &sc):
 	default:
 		err = UnknownStreamError{}
 	}
-	return st, peeker, err
+	return sc, peeker, err
 }
