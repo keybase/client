@@ -1243,3 +1243,11 @@ type TrackingBrokeError struct{}
 func (e TrackingBrokeError) Error() string {
 	return "Tracking broke"
 }
+
+//=============================================================================
+
+type UnknownStreamError struct{}
+
+func (e UnknownStreamError) Error() string {
+	return "unknown stream format"
+}
