@@ -6,7 +6,7 @@ Dokan implements a binding to dokan.dll, libdokan the
 libkbfs dokan interface and kbfsdokan a simple program
 for trying it out.
 
-## Install Dokan from https://github.com/dokan-dev/dokany/releases/tag/v0.8.0-RC4
+## Install Dokan from https://github.com/dokan-dev/dokany/releases/tag/v0.8.0
 
 ## Install a C toolchain
 
@@ -29,11 +29,11 @@ for trying it out.
 + 32-bit builds want 32 bit dokan.dll and dokan.lib.
 + 64-bit builds want 64 bit dokan.dll and don't need a lib-file.
 
-The correct files with 0.8.0-RC4 for 32 bit are:
+The correct files with 0.8.0 for 32 bit are:
 
 ```
-dokan.lib           size:  5500 bytes         sha1: 96cf91e81e8c983aea04fcdd1d9e53ed699d6c7c
-dokan.dll           size: 53488 bytes         sha1: df3f5323f0a4e31651dca6c561f446a6256aa0c2
+dokan.lib           size:  5500 bytes         sha1: 1c9316a567b805c4a6adaf0abe1424fffb36a3bd
+dokan.dll           size: 53488 bytes         sha1: 5c4fc6b6e3083e575eed06de3115a6d05b30db02
 ```
 
 ## Troubleshooting: `C source files not allowed when not using cgo or SWIG: bridge.c`
@@ -59,8 +59,3 @@ dir
 mkdir foo
 notepad bar.txt
 ```
-
-## Issue: symbolic links only inside the current directory
-
-This is quite simple to fix, the only issue is to escape unix paths properly and safely
-to avoid referencing something an user might not want to reference.
