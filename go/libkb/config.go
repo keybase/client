@@ -578,11 +578,11 @@ func (f JSONConfigFile) GetUpdatePreferenceAuto() (bool, bool) {
 }
 
 func (f JSONConfigFile) GetUpdatePreferenceSnoozeUntil() keybase1.Time {
-	return f.GetTime("updates.snooze")
+	return f.GetTimeAtPath("updates.snooze")
 }
 
 func (f JSONConfigFile) GetUpdateLastChecked() keybase1.Time {
-	return f.GetTime("updates.last_checked")
+	return f.GetTimeAtPath("updates.last_checked")
 }
 
 func (f JSONConfigFile) GetUpdatePreferenceSkip() string {
@@ -599,14 +599,14 @@ func (f *JSONConfigFile) SetUpdatePreferenceSkip(v string) error {
 }
 
 func (f *JSONConfigFile) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
-	return f.SetTime("updates.snooze", t)
+	return f.SetTimeAtPath("updates.snooze", t)
 }
 
 func (f *JSONConfigFile) SetUpdateLastChecked(t keybase1.Time) error {
-	return f.SetTime("updates.last_checked", t)
+	return f.SetTimeAtPath("updates.last_checked", t)
 }
 
-func (f JSONConfigFile) GetTime(path string) keybase1.Time {
+func (f JSONConfigFile) GetTimeAtPath(path string) keybase1.Time {
 	var ret keybase1.Time
 	s, _ := f.GetStringAtPath(path)
 	if len(s) == 0 {
@@ -620,7 +620,7 @@ func (f JSONConfigFile) GetTime(path string) keybase1.Time {
 	return ret
 }
 
-func (f *JSONConfigFile) SetTime(path string, t keybase1.Time) error {
+func (f *JSONConfigFile) SetTimeAtPath(path string, t keybase1.Time) error {
 	if t == keybase1.Time(0) {
 		return f.SetNullAtPath(path)
 	}
