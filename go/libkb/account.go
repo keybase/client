@@ -106,7 +106,7 @@ func (a *Account) Logout() error {
 
 	a.UnloadLocalSession()
 	a.loginSession = nil
-	a.skbKeyring = nil
+	a.ClearKeyring()
 
 	a.secretSyncer.Clear()
 	a.secretSyncer = NewSecretSyncer(a.G())
@@ -421,4 +421,8 @@ func (a *Account) ClearCachedSecretKeys() {
 	a.G().Log.Debug("clearing cached secret keys")
 	a.secSigKey = nil
 	a.secEncKey = nil
+}
+
+func (a *Account) ClearKeyring() {
+	a.skbKeyring = nil
 }

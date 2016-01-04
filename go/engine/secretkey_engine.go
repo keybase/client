@@ -50,6 +50,14 @@ func (e *SecretKeysEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
+	// Clear out all the cached secret key state. This forces a password prompt
+	// below.
+	e.G().LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
+		a.ClearKeyring()
+	}, "clear stream cache")
+
 	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
