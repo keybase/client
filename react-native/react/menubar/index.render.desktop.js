@@ -208,7 +208,7 @@ class FolderList extends Component {
 
     // Remove folders that are just our personal ones, we'll add those in later
     // For consistency. Since we aren't gauranteed we have favorited our own folders.
-    const folders = this.props.folders.filter(f => f.folderName !== username)
+    const folders = this.props.folders.filter(f => stripPublicTag(f.folderName) !== username)
 
     const personalPrivateFolder: FolderInfo = {
       folderName: username,
