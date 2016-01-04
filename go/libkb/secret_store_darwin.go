@@ -23,6 +23,7 @@ func (k KeychainSecretStore) serviceName() string {
 }
 
 func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
+	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
 	encodedSecret := base64.StdEncoding.EncodeToString(secret)
 	item := keychain.NewGenericPassword(k.serviceName(), k.accountName, "", []byte(encodedSecret), k.accessGroup())
 	item.SetSynchronizable(k.synchronizable())
