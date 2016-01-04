@@ -27,20 +27,15 @@ build_root="${2:-$(mktemp -d)}"
 
 echo "Building $mode mode in $build_root"
 
-build_electron() {
-  echo "building Electron client"
+install_electron_dependencies() {
+  echo "Installing Node modules for Electron"
   # Remove the line below once this branch is in master.
   git checkout cjb/DESKTOP-114-linux-electron-2
   # Can't seem to get the right packages installed under NODE_ENV=production.
   export NODE_ENV=development
-  backto=`pwd`
-  cd ../../
-  cd react-native
-  npm i
-  cd ../desktop
-  npm i
+  (cd ../../react-native && npm i)
+  (cd ../../desktop && npm i)
   export NODE_ENV=production
-  cd $backto
 }
 
 build_one_architecture() {
@@ -71,22 +66,19 @@ build_one_architecture() {
 
   # Now the Electron build.
   echo "Building Electron client for $electron_arch"
-  backto=`pwd`
-  cd ../../desktop
-  node package.js --platform linux --arch $electron_arch
-  cp -r release/linux-${electron_arch}/Keybase-linux-${electron_arch}/* "$dest/build/opt/keybase"
+  (cd ../../desktop && node package.js --platform linux --arch $electron_arch)
+  (cd ../../desktop && rsync -a release/linux-${electron_arch}/Keybase-linux-${electron_arch}/ "$dest/build/opt/keybase")
 
   fakeroot dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
 
   # Write the version number to a file for the caller's convenience.
   echo -n "$version" > "$dest/VERSION"
-  cd $backto
 }
 
 # Note that Go names the x86 architecture differently than Debian does, which
 # is why we need these two variables.
 
-build_electron
+install_electron_dependencies
 
 export GOARCH=amd64
 export debian_arch=amd64
