@@ -1,9 +1,8 @@
 import React, {Component} from '../base-react'
-import {TextField, FlatButton, Checkbox} from 'material-ui'
-import Header from '../common-adapters/header'
 import resolveAssets from '../../../desktop/resolve-assets'
-import commonStyles, {colors} from '../styles/common'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import {autoResize} from '../native/remote-component-helper'
+import {Checkbox, Header, Input, Text, Button} from '../common-adapters'
 
 export default class PinentryRender extends Component {
   constructor (props) {
@@ -43,7 +42,7 @@ export default class PinentryRender extends Component {
   render () {
     const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
     return (
-      <div style={{...commonStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', backgroundColor: 'blue'}}>
+      <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', backgroundColor: 'blue'}}>
         <div style={styles.container}>
           <Header
             style={styles.header}
@@ -55,37 +54,33 @@ export default class PinentryRender extends Component {
             <div style={styles.body}>
               <p style={styles.prompt}>{this.props.prompt}</p>
               <div style={styles.checkContainer}>
+                <Text style={styles.hint} type='Body' small>Your key passphrase:</Text>
                 {Object.keys(this.props.features).map(feature => {
                   return (
-                  <div>
                     <Checkbox
-                      labelStyle={styles.checkLabel}
-                      iconStyle={styles.checkIcon}
+                      style={styles.checkbox}
                       key={feature}
                       name={feature}
-                      value={feature}
+                      checked={this.state.features[feature]}
                       label={this.props.features[feature].label}
-                      defaultChecked={this.props.features[feature].defaultValue}
-                      style={styles.checkbox}
-                      onCheck={(_, checked) => this.onCheck(feature, checked)}/>
-                  </div>
+                      onCheck={checked => this.onCheck(feature, checked)}/>
                   )
                 })}
               </div>
-              <TextField
+              <Input
                 style={styles.input}
                 onChange={e => this.setState({passphrase: e.target.value})}
-                floatingLabelText='Your passphrase'
                 value={this.state.passphrase}
                 type={this.state.showTyping ? 'text' : 'password'}
                 onEnterKeyDown={submitPassphrase}
-                autoFocus />
-              <p style={styles.error}>{this.props.retryLabel}</p>
+                autoFocus
+              />
+              <Text type='Error'>{this.props.retryLabel}</Text>
             </div>
           </div>
           <div style={styles.action}>
-            <FlatButton style={commonStyles.secondaryButton} label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
-            <FlatButton style={commonStyles.primaryButton} label={this.props.submitLabel || 'Close'} primary onClick={submitPassphrase} />
+            <Button label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
+            <Button primary label={this.props.submitLabel || 'Close'} onClick={submitPassphrase} />
           </div>
         </div>
       </div>
@@ -101,14 +96,13 @@ PinentryRender.propTypes = {
   retryLabel: React.PropTypes.string.isRequired,
   cancelLabel: React.PropTypes.string,
   submitLabel: React.PropTypes.string,
-  windowTitle: React.PropTypes.string.isRequired,
-  requestResize: React.PropTypes.object.isRequired
+  windowTitle: React.PropTypes.string.isRequired
 }
 
 const styles = {
   container: {
-    ...commonStyles.flexBoxColumn,
-    ...commonStyles.fontRegular,
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.fontRegular,
     backgroundColor: 'white',
     fontSize: 15,
     width: 513
@@ -117,25 +111,20 @@ const styles = {
     height: 34
   },
   bodyContainer: {
-    ...commonStyles.flexBoxRow,
+    ...globalStyles.flexBoxRow,
     paddingLeft: 9,
     paddingRight: 15,
     paddingTop: 14,
     paddingBottom: 6,
-    backgroundColor: colors.greyBackground
-  },
-  error: {
-    height: 21,
-    color: colors.error,
-    margin: 0
+    backgroundColor: globalColors.grey5
   },
   body: {
-    ...commonStyles.flexBoxColumn,
+    ...globalStyles.flexBoxColumn,
     position: 'relative',
     flex: 1
   },
   action: {
-    ...commonStyles.flexBoxRow,
+    ...globalStyles.flexBoxRow,
     justifyContent: 'flex-end',
     alignItems: 'center',
     height: 49,
@@ -152,24 +141,24 @@ const styles = {
     marginTop: 0
   },
   checkContainer: {
-    ...commonStyles.flexBoxRow,
+    ...globalStyles.flexBoxRow,
     justifyContent: 'flex-end',
-    position: 'absolute',
-    right: 0,
-    bottom: 55
+    marginTop: 22,
+    marginBottom: 2,
+    flex: 1
+  },
+  hint: {
+    flex: 1,
+    color: globalColors.black
   },
   checkbox: {
-    marginTop: 30,
+    ...globalStyles.topMost,
+    color: globalColors.black,
     marginLeft: 10
   },
-  checkLabel: {
-    ...commonStyles.noWrapCheckboxLabel,
-    fontSize: 13
-  },
-  checkIcon: {
-    marginRight: 4
-  },
   input: {
-    width: 'initial'
+    width: 'initial',
+    height: 'initial',
+    marginBottom: 2
   }
 }

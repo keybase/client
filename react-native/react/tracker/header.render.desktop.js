@@ -1,8 +1,7 @@
 /* @flow */
 
 import React, {Component} from '../base-react'
-import Header from '../common-adapters/header'
-import resolveAssets from '../../../desktop/resolve-assets'
+import {Header} from '../common-adapters'
 
 import type {Styled} from '../styles/common'
 import type {HeaderProps} from './header.render'

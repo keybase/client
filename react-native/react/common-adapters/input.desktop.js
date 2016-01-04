@@ -1,6 +1,7 @@
 import React, {Component} from '../base-react'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors} from '../styles/style-guide'
+import {styles as TextStyles} from './text'
 
 // Floating label isn't very controllable, not going to make this pixel perfect
 
@@ -15,7 +16,7 @@ export default class Input extends Component {
 
     return (
       <TextField
-        defaultValue={this.props.defaultValue}
+        autoFocus={this.props.autoFocus}
         errorStyle={styles.inputError}
         errorText={this.props.errorText}
         floatingLabelStyle={styles.inputFloatingLabel}
@@ -23,25 +24,33 @@ export default class Input extends Component {
         hintStyle={styles.inputHint}
         hintText={this.props.hintText}
         inputStyle={inputStyle}
-        style={{...styles.input, ...this.props.style}}
-        underlineStyle={styles.inputUnderline}
         multiLine={this.props.multiLine}
+        onChange={this.props.onChange}
+        onEnterKeyDown={this.props.onEnterKeyDown}
         rows={this.props.rows}
         rowsMax={this.props.rowsMax}
+        style={{...styles.input, ...this.props.style}}
+        type={this.props.type}
+        underlineStyle={styles.inputUnderline}
+        value={this.props.value}
         />
     )
   }
 }
 
 Input.propTypes = {
-  defaultValue: React.PropTypes.string,
+  autoFocus: React.PropTypes.bool,
   errorText: React.PropTypes.string,
   floatingLabelText: React.PropTypes.string,
   hintText: React.PropTypes.string,
   multiLine: React.PropTypes.bool,
+  onChange: React.PropTypes.func,
+  onEnterKeyDown: React.PropTypes.func,
   rows: React.PropTypes.number,
   rowsMax: React.PropTypes.number,
-  style: React.PropTypes.object
+  style: React.PropTypes.object,
+  type: React.PropTypes.string,
+  value: React.PropTypes.string
 }
 
 const inputCommon = {
@@ -58,7 +67,8 @@ const inputMultiCommon = {
 
 export const styles = {
   input: {
-    height: 70
+    ...TextStyles.textBody,
+    height: 70,
   },
   inputNormal: {
     ...inputCommon,
