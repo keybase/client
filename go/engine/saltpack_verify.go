@@ -4,15 +4,19 @@
 package engine
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/saltpack"
 )
 
 // SaltPackVerify is an engine.
 type SaltPackVerify struct {
 	libkb.Contextified
 	arg *SaltPackVerifyArg
+	key libkb.NaclSigningKeyPair
 }
 
 type SaltPackVerifyArg struct {
@@ -46,7 +50,7 @@ func (e *SaltPackVerify) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *SaltPackVerify) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{&SaltPackSenderIdentify{}}
 }
 
 // Run starts the engine.
@@ -54,13 +58,38 @@ func (e *SaltPackVerify) Run(ctx *Context) error {
 	if len(e.arg.Signature) > 0 {
 		return e.detached()
 	}
-	return e.attached()
+	return e.attached(ctx)
 }
 
-func (e *SaltPackVerify) attached() error {
-	return nil
+func (e *SaltPackVerify) attached(ctx *Context) error {
+	hook := func(key saltpack.SigningPublicKey) error {
+		return e.identifySender(ctx, key)
+	}
+	var buf bytes.Buffer
+	return libkb.SaltPackVerify(e.G(), e.arg.Source, libkb.NopWriteCloser{W: &buf}, hook)
 }
 
 func (e *SaltPackVerify) detached() error {
+	return nil
+}
+
+func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublicKey) (err error) {
+	defer e.G().Trace("SaltPackVerify::identifySender", func() error { return err })()
+
+	spsiArg := SaltPackSenderIdentifyArg{
+		publicKey:   libkb.SigningPublicKeyToKeybaseKID(key),
+		interactive: true,
+		reason: keybase1.IdentifyReason{
+			Reason: "Identify who signed this message",
+			Type:   keybase1.IdentifyReasonType_VERIFY,
+		},
+		userAssertion: e.arg.SignedBy,
+	}
+
+	spsiEng := NewSaltPackSenderIdentify(e.G(), &spsiArg)
+	if err = RunEngine(spsiEng, ctx); err != nil {
+		return err
+	}
+
 	return nil
 }

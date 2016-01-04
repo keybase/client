@@ -130,6 +130,39 @@ func testSignAndVerify(t *testing.T, message []byte) {
 	}
 }
 
+func TestSignEmptyMessage(t *testing.T) {
+	var msg []byte
+	testSignAndVerify(t, msg)
+}
+
+func TestSignEmptyStream(t *testing.T) {
+	key := newSigPrivKey(t)
+	var buf bytes.Buffer
+	s, err := NewSignStream(&buf, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// just close the stream
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	smsg := buf.Bytes()
+	if len(smsg) == 0 {
+		t.Fatal("empty signed message")
+	}
+
+	skey, vmsg, err := Verify(smsg, kr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !KIDEqual(skey, key.PublicKey()) {
+		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
+	}
+	if len(vmsg) != 0 {
+		t.Errorf("verified msg '%x', expected empty", vmsg)
+	}
+}
+
 func TestSignMessageSizes(t *testing.T) {
 	sizes := []int{10, 128, 1024, 1100, 1024 * 10, 1024*10 + 64, 1024 * 100, 1024*100 + 99, 1024 * 1024 * 3}
 	for _, size := range sizes {

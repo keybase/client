@@ -46,7 +46,8 @@ func TestSaltPackSignVerify(t *testing.T) {
 
 		eng := NewSaltPackSign(sarg, tc.G)
 		ctx := &Context{
-			SecretUI: fu.NewSecretUI(),
+			IdentifyUI: &FakeIdentifyUI{},
+			SecretUI:   fu.NewSecretUI(),
 		}
 
 		if err := RunEngine(eng, ctx); err != nil {

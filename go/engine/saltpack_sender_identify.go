@@ -14,6 +14,7 @@ type SaltPackSenderIdentifyArg struct {
 	interactive      bool
 	forceRemoteCheck bool
 	reason           keybase1.IdentifyReason
+	userAssertion    string // optional
 }
 
 type SaltPackSenderIdentify struct {
@@ -88,6 +89,7 @@ func (e *SaltPackSenderIdentify) identifySender(ctx *Context) (err error) {
 		ForceRemoteCheck:      e.arg.forceRemoteCheck,
 		NoErrorOnTrackFailure: true,
 		Reason:                e.arg.reason,
+		UserAssertion:         e.arg.userAssertion,
 	}
 	eng := NewIdentify2WithUID(e.G(), &iarg)
 	if err = RunEngine(eng, ctx); err != nil {

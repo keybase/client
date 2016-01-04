@@ -61,6 +61,13 @@ func (s *signAttachedStream) Write(p []byte) (int, error) {
 }
 
 func (s *signAttachedStream) Close() error {
+	if !s.wroteHeader {
+		s.wroteHeader = true
+		if err := s.encoder.Encode(s.header); err != nil {
+			return err
+		}
+	}
+
 	for s.buffer.Len() > 0 {
 		if err := s.signBlock(); err != nil {
 			return err

@@ -9,6 +9,7 @@ import (
 
 	"github.com/agl/ed25519"
 
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/saltpack"
 )
 
@@ -71,4 +72,12 @@ func (s saltSignerPublic) Verify(msg, sig []byte) error {
 	}
 
 	return nil
+}
+
+func SigningPublicKeyToKeybaseKID(k saltpack.SigningPublicKey) (ret keybase1.KID) {
+	if k == nil {
+		return ret
+	}
+	p := k.ToKID()
+	return keybase1.KIDFromRawKey(p, KIDNaclEddsa)
 }
