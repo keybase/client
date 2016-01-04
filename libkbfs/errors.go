@@ -404,15 +404,15 @@ func (e InconsistentEncodedSizeError) Error() string {
 		"encoded size = %d bytes", e.info.ID, e.info.EncodedSize)
 }
 
-// WriteNeededInReadRequest indicates that the system needs write
-// permissions to successfully complete a read operation, so it should
-// retry in write mode.
-type WriteNeededInReadRequest struct {
+// MDWriteNeededInRequest indicates that the system needs MD write
+// permissions to successfully complete an operation, so it should
+// retry in mdWrite mode.
+type MDWriteNeededInRequest struct {
 }
 
-// Error implements the error interface for WriteNeededInReadRequest
-func (e WriteNeededInReadRequest) Error() string {
-	return "This request needs exclusive access, but doesn't have it."
+// Error implements the error interface for MDWriteNeededInRequest
+func (e MDWriteNeededInRequest) Error() string {
+	return "This request needs MD write access, but doesn't have it."
 }
 
 // UnknownSigVer indicates that we can't process a signature because

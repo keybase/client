@@ -57,7 +57,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	cl := &CounterLock{}
 
 	ops := getOps(config, dir)
-	ops.writerLock = cl
+	ops.mdWriterLock = cl
 	for i := 0; i < n; i++ {
 		go func() {
 			_, _, _, err := config.KBFSOps().
@@ -545,7 +545,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 		t.Errorf("Couldn't sync: %v", syncErr)
 	}
 
-	md, err := fbo.getMDLocked(ctx, read)
+	md, err := fbo.getMDLocked(ctx, mdRead)
 	if err != nil {
 		t.Errorf("Couldn't get MD: %v", err)
 	}
@@ -657,7 +657,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 		t.Errorf("Couldn't sync: %v", syncErr)
 	}
 
-	md, err := fbo.getMDLocked(ctx, read)
+	md, err := fbo.getMDLocked(ctx, mdRead)
 	if err != nil {
 		t.Errorf("Couldn't get MD: %v", err)
 	}
