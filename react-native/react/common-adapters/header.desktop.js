@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from '../base-react'
-import commonStyles from '../styles/common'
+import {globalStyles, globalColors, globalHacks} from '../styles/style-guide'
 import resolveAssets from '../../../desktop/resolve-assets'
 
 export default class Header extends Component {
@@ -31,29 +31,33 @@ Header.propTypes = {
 
 const styles = {
   container: {
-    paddingTop: 20, // TEMP workaround for https://github.com/atom/electron/issues/983, you don't get mouse events in the header
-    ...commonStyles.flexBoxRow,
-    ...commonStyles.windowDragging,
-    ...commonStyles.noSelect,
-    paddingLeft: 9,
-    paddingRight: 9,
+    ...globalStyles.flexBoxRow,
+    ...globalStyles.windowDragging,
+    ...globalStyles.noSelect,
+    paddingLeft: 10,
+    paddingRight: 10,
     alignItems: 'center',
-    height: 35 + 20 // TEMP workaround above
+    height: 35 + globalHacks.framelessWindowDeadzone,
+    borderTop: `solid ${globalColors.grey4} ${globalHacks.framelessWindowDeadzone}px`
   },
   logo: {
     width: 22,
     height: 22,
-    marginRight: 7
+    marginRight: 8
   },
   title: {
-    color: '#20C0EF',
+    ...globalStyles.fontRegular,
+    fontSize: 15,
+    lineHeight: '20px',
+    color: globalColors.grey1,
     flex: 1
   },
   close: {
-    ...commonStyles.flexBoxRow,
-    ...commonStyles.clickable,
-    ...commonStyles.windowDraggingClickable,
-    color: '#D0D4DA',
+    ...globalStyles.flexBoxRow,
+    ...globalStyles.clickable,
+    ...globalStyles.windowDraggingClickable,
+    color: globalColors.grey4,
+    fontSize: 16,
     alignItems: 'center',
     justifyContent: 'center',
     width: 30,

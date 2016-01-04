@@ -1,3 +1,4 @@
+/* @flow */
 // Styles from our designers
 
 export const globalColors = {
@@ -25,6 +26,9 @@ const font = {
   },
   fontItalic: {
     fontFamily: 'Noto Sans Italic'
+  },
+  fontCourier: {
+    fontFamily: 'Courier'
   }
 }
 
@@ -43,10 +47,24 @@ const util = {
   },
   noSelect: {
     WebkitUserSelect: 'none'
+  },
+  windowDragging: { // allow frameless window dragging
+    WebkitAppRegion: 'drag'
+  },
+  windowDraggingClickable: { // allow things in frameless regions to be clicked and not dragged
+    WebkitAppRegion: 'no-drag'
+  },
+  rounded: {
+    borderRadius: 3
   }
 }
 
 export const globalStyles = {
   ...font,
   ...util
+}
+
+// Workarounds to various things that are broken
+export const globalHacks = {
+  framelessWindowDeadzone: 20 // workaround for https://github.com/atom/electron/issues/983, you don't get mouse events in the header on frameless windows
 }

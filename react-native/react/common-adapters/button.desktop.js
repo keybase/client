@@ -1,3 +1,5 @@
+/* @flow */
+
 import React, {Component} from '../base-react'
 import {FlatButton} from 'material-ui'
 import {globalStyles, globalColors} from '../styles/style-guide'
@@ -39,7 +41,7 @@ export const styles = {
   buttonSeconary: {
     ...buttonCommon,
     backgroundColor: globalColors.blue,
-    marginRight: 7
+    marginRight: 10
   },
   buttonLabel: {
     paddingLeft: 24,
