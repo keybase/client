@@ -153,7 +153,7 @@ func (d *Service) Run() (err error) {
 	if sources.IsPrerelease {
 		updr := engine.NewDefaultUpdater(d.G())
 		if updr != nil {
-			updateChecker := updater.NewUpdateChecker(*updr, d.G().UIRouter, d.G().Log)
+			updateChecker := updater.NewUpdateChecker(updr, d.G().UIRouter, d.G().Log)
 			d.updateChecker = &updateChecker
 			d.updateChecker.Start()
 		}

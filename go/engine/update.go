@@ -75,8 +75,7 @@ func NewDefaultUpdater(g *libkb.GlobalContext) *updater.Updater {
 		g.Log.Info("No updater source available for this environment")
 		return nil
 	}
-	updr := updater.NewUpdater(*options, source, g.Env, g.Log)
-	return &updr
+	return updater.NewUpdater(*options, source, g.Env, g.Log)
 }
 
 func DefaultUpdateSource(g *libkb.GlobalContext) sources.UpdateSource {

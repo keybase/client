@@ -139,6 +139,7 @@ type ConfigReader interface {
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
+	GetUpdateLastChecked() keybase1.Time
 
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
@@ -163,6 +164,7 @@ type ConfigWriter interface {
 	SetUpdatePreferenceAuto(bool) error
 	SetUpdatePreferenceSkip(string) error
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
+	SetUpdateLastChecked(keybase1.Time) error
 	Reset()
 	Save() error
 	BeginTransaction() (ConfigWriterTransacter, error)

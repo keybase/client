@@ -16,7 +16,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func NewTestUpdater(t *testing.T, options keybase1.UpdateOptions) Updater {
+func NewTestUpdater(t *testing.T, options keybase1.UpdateOptions) *Updater {
 	return NewUpdater(options, testUpdateSource{}, testConfig{}, logger.NewTestLogger(t))
 }
 
@@ -52,7 +52,9 @@ func (u testUpdateSource) FindUpdate(config keybase1.UpdateOptions) (release *ke
 		}}, nil
 }
 
-type testConfig struct{}
+type testConfig struct {
+	lastChecked keybase1.Time
+}
 
 func (c testConfig) GetUpdatePreferenceAuto() bool {
 	return false
@@ -60,6 +62,10 @@ func (c testConfig) GetUpdatePreferenceAuto() bool {
 
 func (c testConfig) GetUpdatePreferenceSnoozeUntil() keybase1.Time {
 	return keybase1.Time(0)
+}
+
+func (c testConfig) GetUpdateLastChecked() keybase1.Time {
+	return c.lastChecked
 }
 
 func (c testConfig) GetUpdatePreferenceSkip() string {
@@ -76,6 +82,11 @@ func (c testConfig) SetUpdatePreferenceSkip(v string) error {
 
 func (c testConfig) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
 	panic("Unsupported")
+}
+
+func (c testConfig) SetUpdateLastChecked(t keybase1.Time) error {
+	c.lastChecked = t
+	return nil
 }
 
 func NewDefaultTestUpdateConfig() keybase1.UpdateOptions {
@@ -103,9 +114,12 @@ func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
 	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
 	u.options.Version = "100000000.0.0"
 
-	_, err := u.CheckForUpdate(true, false, false)
-	if err == nil {
-		t.Fatal("We should've errored since the update version is less then the current version")
+	update, err := u.checkForUpdate(true, false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if update != nil {
+		t.Fatal("Shouldn't have update since our version is newer")
 	}
 }
 

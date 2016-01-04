@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/blang/semver"
@@ -29,20 +30,23 @@ type Updater struct {
 	source  sources.UpdateSource
 	config  Config
 	log     logger.Logger
+	sync.Mutex
 }
 
 type Config interface {
 	GetUpdatePreferenceAuto() bool
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 	GetUpdatePreferenceSkip() string
+	GetUpdateLastChecked() keybase1.Time
 	SetUpdatePreferenceAuto(b bool) error
 	SetUpdatePreferenceSkip(v string) error
 	SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error
+	SetUpdateLastChecked(t keybase1.Time) error
 }
 
-func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, config Config, log logger.Logger) Updater {
+func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, config Config, log logger.Logger) *Updater {
 	log.Debug("New updater with options: %#v", options)
-	return Updater{
+	return &Updater{
 		options: options,
 		source:  source,
 		config:  config,
@@ -50,18 +54,18 @@ func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, con
 	}
 }
 
-func (u Updater) Options() keybase1.UpdateOptions {
+func (u *Updater) Options() keybase1.UpdateOptions {
 	return u.options
 }
 
-func (u *Updater) CheckForUpdate(skipAssetDownload bool, force bool, requested bool) (update *keybase1.Update, err error) {
+func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested bool) (update *keybase1.Update, err error) {
 	u.log.Info("Checking for update, current version is %s", u.options.Version)
 
 	if u.options.Force {
 		force = true
 	}
 
-	// Don't snooze if the user requested/wants an update (check)
+	// Don't snooze if the user requested/wants an update (check) or we're forcing a check
 	if !requested && !force {
 		if snz := u.config.GetUpdatePreferenceSnoozeUntil(); snz > 0 {
 			snoozeUntil := keybase1.FromTime(snz)
@@ -113,7 +117,6 @@ func (u *Updater) CheckForUpdate(skipAssetDownload bool, force bool, requested b
 	} else if updateSemVersion.LT(currentSemVersion) {
 		u.log.Info("Update is older version: %s < %s", updateSemVersion, currentSemVersion)
 		if !force {
-			err = fmt.Errorf("Update is older version: %s < %s", updateSemVersion, currentSemVersion)
 			update = nil
 			return
 		}
@@ -307,7 +310,10 @@ func (u *Updater) apply(src string, dest string) (tmpPath string, err error) {
 
 // Update checks, downloads and performs an update.
 func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (update *keybase1.Update, err error) {
-	update, err = u.CheckForUpdate(false, force, requested)
+	u.Lock()
+	defer u.Unlock()
+
+	update, err = u.checkForUpdate(false, force, requested)
 	if err != nil {
 		return
 	}
@@ -316,23 +322,23 @@ func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (update 
 		return
 	}
 
-	tmpFileName, err := u.ApplyUpdate(ui, *update, force)
+	tmpFileName, err := u.applyUpdate(ui, *update, force)
 	if err != nil {
 		return
 	}
 
-	_, err = u.Restart(ui)
+	_, err = u.restart(ui)
 
 	u.cleanup([]string{unzipDestination(update.Asset.LocalPath), update.Asset.LocalPath, tmpFileName})
 
 	return
 }
 
-func (u *Updater) PromptForUpdateAction(ui libkb.UpdateUI, update keybase1.Update) (err error) {
+func (u *Updater) promptForUpdateAction(ui libkb.UpdateUI, update keybase1.Update) (err error) {
 
-	u.log.Debug("+ Update.PromptForUpdateAction")
+	u.log.Debug("+ Updater.promptForUpdateAction")
 	defer func() {
-		u.log.Debug("- Update.PromptForUpdateAction -> %v", err)
+		u.log.Debug("- Updater.promptForUpdateAction -> %v", err)
 	}()
 
 	if auto := u.config.GetUpdatePreferenceAuto(); auto {
@@ -369,12 +375,12 @@ func (u *Updater) PromptForUpdateAction(ui libkb.UpdateUI, update keybase1.Updat
 	return
 }
 
-func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update, force bool) (tmpPath string, err error) {
+func (u *Updater) applyUpdate(ui libkb.UpdateUI, update keybase1.Update, force bool) (tmpPath string, err error) {
 	if u.options.Force {
 		force = true
 	}
 	if !force {
-		if err = u.PromptForUpdateAction(ui, update); err != nil {
+		if err = u.promptForUpdateAction(ui, update); err != nil {
 			return
 		}
 	}
@@ -407,7 +413,7 @@ func (u *Updater) ApplyUpdate(ui libkb.UpdateUI, update keybase1.Update, force b
 	return
 }
 
-func (u *Updater) Restart(ui libkb.UpdateUI) (didQuit bool, err error) {
+func (u *Updater) restart(ui libkb.UpdateUI) (didQuit bool, err error) {
 	if ui == nil {
 		err = libkb.NoUIError{Which: "Update"}
 		return

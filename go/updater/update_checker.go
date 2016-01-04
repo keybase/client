@@ -9,10 +9,12 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/updater/sources"
 )
 
 type UpdateChecker struct {
-	updater Updater
+	updater *Updater
 	ui      UI
 	ticker  *time.Ticker
 	log     logger.Logger
@@ -22,9 +24,7 @@ type UI interface {
 	GetUpdateUI() (libkb.UpdateUI, error)
 }
 
-var UpdateCheckDuration = (24 * time.Hour)
-
-func NewUpdateChecker(updater Updater, ui UI, log logger.Logger) UpdateChecker {
+func NewUpdateChecker(updater *Updater, ui UI, log logger.Logger) UpdateChecker {
 	return UpdateChecker{
 		updater: updater,
 		ui:      ui,
@@ -37,10 +37,21 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 	if ui == nil && !force {
 		return fmt.Errorf("No UI for update check")
 	}
+
+	if lastCheckedPTime := u.updater.config.GetUpdateLastChecked(); lastCheckedPTime > 0 {
+		lastChecked := keybase1.FromTime(lastCheckedPTime)
+		if time.Now().Before(lastChecked.Add(checkDuration())) {
+			u.log.Debug("Already checked: %s", lastChecked)
+			return nil
+		}
+	}
+
 	_, err := u.updater.Update(ui, force, requested)
 	if err != nil {
 		return err
 	}
+	u.log.Debug("Updater checked")
+	u.updater.config.SetUpdateLastChecked(keybase1.ToTime(time.Now()))
 	return nil
 }
 
@@ -48,7 +59,7 @@ func (u *UpdateChecker) Start() {
 	if u.ticker != nil {
 		return
 	}
-	u.ticker = time.NewTicker(UpdateCheckDuration)
+	u.ticker = time.NewTicker(tickDuration())
 	go func() {
 		for _ = range u.ticker.C {
 			u.log.Info("Checking for update (ticker)")
@@ -60,4 +71,20 @@ func (u *UpdateChecker) Start() {
 func (u *UpdateChecker) Stop() {
 	u.ticker.Stop()
 	u.ticker = nil
+}
+
+// checkDuration is how often to check for updates
+func checkDuration() time.Duration {
+	if sources.IsPrerelease {
+		return time.Hour
+	}
+	return 24 * time.Hour
+}
+
+// tickDuration is how often to call check (should be less than checkDuration or snooze min)
+func tickDuration() time.Duration {
+	if sources.IsPrerelease {
+		return 15 * time.Minute
+	}
+	return time.Hour
 }
