@@ -99,8 +99,8 @@
 		},
 		{
 			"path": "github.com/keybase/cli",
-			"revision": "afca8e2de89ac3486e8e61af44d21da8cedb4487",
-			"revisionTime": "2015-09-21T11:51:56-05:00"
+			"revision": "e6e9e8a8632cbb2c934597de965adf8b4b77472f",
+			"revisionTime": "2016-01-04T13:35:02-08:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",

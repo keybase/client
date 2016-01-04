@@ -201,3 +201,17 @@ func (c Command) startApp(ctx *Context) error {
 
 	return app.RunAsSubcommand(ctx)
 }
+
+type ByName []Command
+
+func (c ByName) Len() int {
+	return len(c)
+}
+
+func (c ByName) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+func (c ByName) Less(i, j int) bool {
+	return c[i].Name < c[j].Name
+}
