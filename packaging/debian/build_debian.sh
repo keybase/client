@@ -27,11 +27,23 @@ build_root="${2:-$(mktemp -d)}"
 
 echo "Building $mode mode in $build_root"
 
+install_electron_dependencies() {
+  echo "Installing Node modules for Electron"
+  # Remove the line below once this branch is in master.
+  git checkout cjb/DESKTOP-114-linux-electron-2
+  # Can't seem to get the right packages installed under NODE_ENV=production.
+  export NODE_ENV=development
+  (cd ../../react-native && npm i)
+  (cd ../../desktop && npm i)
+  export NODE_ENV=production
+}
+
 build_one_architecture() {
   echo "building Go client for $GOARCH"
   dest="$build_root/$debian_arch"
   mkdir -p "$dest/build/usr/bin"
   mkdir -p "$dest/build/DEBIAN"
+  mkdir -p "$dest/build/opt/keybase"
 
   # `go build` reads $GOARCH
   # XXX: Go does not build tags reliably prior to 1.5 without -a. See:
@@ -52,6 +64,11 @@ build_one_architecture() {
     > "$dest/build/DEBIAN/control"
   cp "$here/postinst" "$dest/build/DEBIAN/"
 
+  # Now the Electron build.
+  echo "Building Electron client for $electron_arch"
+  (cd ../../desktop && node package.js --platform linux --arch $electron_arch)
+  (cd ../../desktop && rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" "$dest/build/opt/keybase")
+
   fakeroot dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
 
   # Write the version number to a file for the caller's convenience.
@@ -60,10 +77,15 @@ build_one_architecture() {
 
 # Note that Go names the x86 architecture differently than Debian does, which
 # is why we need these two variables.
-export GOARCH=386
-export debian_arch=i386
-build_one_architecture
+
+install_electron_dependencies
 
 export GOARCH=amd64
 export debian_arch=amd64
+export electron_arch=x64
+build_one_architecture
+
+export GOARCH=386
+export debian_arch=i386
+export electron_arch=ia32
 build_one_architecture
