@@ -26,35 +26,46 @@ type SignatureStatus struct {
 	RecipientKeyIDs []uint64
 }
 
-func PGPDecryptWithBundles(source io.Reader, sink io.Writer, keys []*PGPKeyBundle) (*SignatureStatus, error) {
+func PGPDecryptWithBundles(g *GlobalContext, source io.Reader, sink io.Writer, keys []*PGPKeyBundle) (*SignatureStatus, error) {
 	opkr := make(openpgp.EntityList, len(keys))
 	for i, k := range keys {
 		opkr[i] = k.Entity
 	}
-	return PGPDecrypt(source, sink, opkr)
+	return PGPDecrypt(g, source, sink, opkr)
 }
 
-func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
-	peeker := NewPeeker(source)
+func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
 
-	var r io.Reader
-	r = peeker
+	var sc StreamClassification
+	var err error
 
-	armored, clearsigned := PGPDetect(peeker)
-	if clearsigned {
-		return pgpDecryptClearsign(peeker, sink, kr)
+	sc, source, err = ClassifyStream(source)
+	if err != nil {
+		return nil, err
 	}
 
-	if armored {
-		b, err := armor.Decode(r)
+	if sc.Format != CryptoMessageFormatPGP {
+		return nil, WrongCryptoFormatError{
+			Wanted:    CryptoMessageFormatPGP,
+			Received:  sc.Format,
+			Operation: "decrypt",
+		}
+	}
+
+	if sc.Type == CryptoMessageTypeClearSignature {
+		return pgpDecryptClearsign(g, source, sink, kr)
+	}
+
+	if sc.Armored {
+		b, err := armor.Decode(source)
 		if err != nil {
 			return nil, err
 		}
-		r = b.Body
+		source = b.Body
 	}
 
-	G.Log.Debug("Calling into openpgp ReadMessage for decryption")
-	md, err := openpgp.ReadMessage(r, kr, nil, nil)
+	g.Log.Debug("Calling into openpgp ReadMessage for decryption")
+	md, err := openpgp.ReadMessage(source, kr, nil, nil)
 	if err != nil {
 		if err == errors.ErrKeyIncorrect {
 			return nil, NoDecryptionKeyError{Msg: "unable to find a PGP decryption key for this message"}
@@ -63,14 +74,14 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 	}
 
 	if md.IsSigned {
-		G.Log.Debug("message is signed (SignedByKeyId: %+v) (have key? %v)", md.SignedByKeyId, md.SignedBy != nil)
+		g.Log.Debug("message is signed (SignedByKeyId: %+v) (have key? %v)", md.SignedByKeyId, md.SignedBy != nil)
 	}
 
 	n, err := io.Copy(sink, md.UnverifiedBody)
 	if err != nil {
 		return nil, err
 	}
-	G.Log.Debug("PGPDecrypt: copied %d bytes to writer", n)
+	g.Log.Debug("PGPDecrypt: copied %d bytes to writer", n)
 
 	var status SignatureStatus
 	if md.IsSigned {
@@ -94,7 +105,7 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 	return &status, nil
 }
 
-func pgpDecryptClearsign(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
+func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
 	// clearsign decode only works with the whole data slice, not a reader
 	// so have to read it all here:
 	msg, err := ioutil.ReadAll(source)
@@ -115,7 +126,7 @@ func pgpDecryptClearsign(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (
 	if err != nil {
 		return nil, err
 	}
-	G.Log.Debug("PGPDecrypt: copied %d bytes to writer", n)
+	g.Log.Debug("PGPDecrypt: copied %d bytes to writer", n)
 
 	var status SignatureStatus
 	if signer == nil {

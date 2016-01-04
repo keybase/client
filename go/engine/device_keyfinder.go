@@ -106,8 +106,10 @@ func (e *DeviceKeyfinder) hasUser(upk *keybase1.UserPlusKeys) bool {
 
 func (e *DeviceKeyfinder) filterKeys(upk *keybase1.UserPlusKeys) error {
 	var keys []keybase1.PublicKey
+	hasPGP := false
 	for _, key := range upk.Keys {
 		if len(key.PGPFingerprint) != 0 {
+			hasPGP = true
 			continue
 		}
 		if e.arg.NeedVerifyKeys && !libkb.KIDIsDeviceVerify(key.KID) {
@@ -119,8 +121,7 @@ func (e *DeviceKeyfinder) filterKeys(upk *keybase1.UserPlusKeys) error {
 		keys = append(keys, key)
 	}
 	if len(keys) == 0 {
-		msg := fmt.Sprintf("User %s doesn't have any suitable keys", upk.Username)
-		return libkb.NoKeyError{Msg: msg}
+		return libkb.NoNaClEncryptionKeyError{User: upk.Username, HasPGPKey: hasPGP}
 	}
 	upk.Keys = keys
 	return nil

@@ -191,6 +191,13 @@ func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 	return ckf.GetEncryptionSubkeyForDevice(did)
 }
 
+func (u *User) HasEncryptionSubkey() bool {
+	if ckf := u.GetComputedKeyFamily(); ckf != nil {
+		return ckf.HasActiveEncryptionSubkey()
+	}
+	return false
+}
+
 func (u *User) CheckBasicsFreshness(server int64) (current bool, err error) {
 	var stored int64
 	if stored, err = u.GetIDVersion(); err == nil {

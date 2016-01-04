@@ -100,6 +100,8 @@ export default {
       'sckeyduplicateupdate': 921,
       'scsibkeyalreadyexists': 922,
       'scdecryptionkeynotfound': 924,
+      'sckeynopgpencryption': 927,
+      'sckeynosaltpackencryption': 928,
       'scbadtracksession': 1301,
       'scdevicenotfound': 1409,
       'scdevicemismatch': 1410,

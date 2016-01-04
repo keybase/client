@@ -56,17 +56,17 @@ func (p *StreamPeeker) Peek(buf []byte) (n int, err error) {
 }
 
 // CryptoMessageFormat is one of the known crypto message formats that we admit
-type CryptoMessageFormat int
+type CryptoMessageFormat string
 
 const (
 	// CryptoMessageFormatPGP is for PGP
-	CryptoMessageFormatPGP CryptoMessageFormat = 0
+	CryptoMessageFormatPGP CryptoMessageFormat = "pgp"
 	// CryptoMessageFormatKeybaseV0 is for the zeroth version of Keybase signatures, which
 	// will eventually be deprecated.
-	CryptoMessageFormatKeybaseV0 CryptoMessageFormat = 1
+	CryptoMessageFormatKeybaseV0 CryptoMessageFormat = "kbv0"
 	// CryptoMessageFormatSaltPack is the SaltPack messaging format for encrypted and signed
 	// messages
-	CryptoMessageFormatSaltPack CryptoMessageFormat = 2
+	CryptoMessageFormatSaltPack CryptoMessageFormat = "saltpack"
 )
 
 // CryptoMessageType says what type of crypto message it is, regardless of Format
@@ -79,10 +79,12 @@ const (
 	CryptoMessageTypeAttachedSignature CryptoMessageType = 1
 	// CryptoMessageTypeDetachedSignature is for a detached signature
 	CryptoMessageTypeDetachedSignature CryptoMessageType = 2
+	// CryptoMessageTypeClearSignature is for PGP clearsigning
+	CryptoMessageTypeClearSignature CryptoMessageType = 3
 	// CryptoMessageTypeAmbiguous is for an ambiguous message based on the stream prefix
-	CryptoMessageTypeAmbiguous = 3
+	CryptoMessageTypeAmbiguous CryptoMessageType = 4
 	// CryptoMessageTypeSignature is for a sig that can be either attached or detached
-	CryptoMessageTypeSignature = 4
+	CryptoMessageTypeSignature CryptoMessageType = 5
 )
 
 // StreamClassification tells what Format the stream is, if it's a Public signature or a Private
@@ -195,7 +197,7 @@ func isPGPBinary(b []byte, sc *StreamClassification) bool {
 }
 
 // ClassifyStream takes a stream reader in, and returns a likely classification
-// of that stream without consuming an data from it. It returns a reader that you
+// of that stream without consuming any data from it. It returns a reader that you
 // should read from instead, in addition to the classification. If classification
 // fails, there will be a `UnknownStreamError`, or additional EOF errors if the
 // stream ended beform classification could go.
@@ -216,11 +218,15 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		sc.Format = CryptoMessageFormatPGP
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeDetachedSignature
-	case strings.HasPrefix(sb, "BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE."):
+	case strings.HasPrefix(sb, "-----BEGIN PGP SIGNED MESSAGE-----"):
+		sc.Format = CryptoMessageFormatPGP
+		sc.Armored = true
+		sc.Type = CryptoMessageTypeClearSignature
+	case strings.HasPrefix(sb, saltpack.EncryptionArmorHeader+"."):
 		sc.Format = CryptoMessageFormatSaltPack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeEncryption
-	case strings.HasPrefix(sb, "BEGIN KEYBASE SALTPACK SIGNED MESSAGE."):
+	case strings.HasPrefix(sb, saltpack.SignedArmorHeader+"."):
 		sc.Format = CryptoMessageFormatSaltPack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeSignature

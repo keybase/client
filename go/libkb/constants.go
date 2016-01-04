@@ -145,6 +145,9 @@ const (
 	SCNoUIDelegation         = int(keybase1.StatusCode_SCNoUIDelegation)
 	SCIdentifyFailed         = int(keybase1.StatusCode_SCIdentifyFailed)
 	SCTrackingBroke          = int(keybase1.StatusCode_SCTrackingBroke)
+	SCKeyNoPGPEncryption     = int(keybase1.StatusCode_SCKeyNoPGPEncryption)
+	SCKeyNoNaClEncryption    = int(keybase1.StatusCode_SCKeyNoNaClEncryption)
+	SCWrongCryptoFormat      = int(keybase1.StatusCode_SCWrongCryptoFormat)
 )
 
 const (
