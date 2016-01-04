@@ -13,6 +13,7 @@ const fs = require('fs-extra')
 const appName = 'Keybase'
 const shouldUseAsar = argv.asar || argv.a || false
 const shouldBuildAll = argv.all || false
+const shouldBuildArch = argv.arch || false
 const appVersion = argv.appVersion || '0.0.0'
 const comment = argv.comment || ''
 
@@ -94,6 +95,9 @@ function startPack () {
             pack(plat, arch, log(plat, arch))
           })
         })
+      } else if (shouldBuildArch) {
+        // build for specified arch on current platform only
+        pack(os.platform(), shouldBuildArch, log(os.platform(), shouldBuildArch))
       } else {
         // build for current platform only
         pack(os.platform(), os.arch(), log(os.platform(), os.arch()))
