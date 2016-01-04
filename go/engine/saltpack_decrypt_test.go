@@ -13,7 +13,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	// "fmt"
 )
 
 type fakeSaltPackUI struct{}

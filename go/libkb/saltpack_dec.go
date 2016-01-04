@@ -9,7 +9,7 @@ import (
 )
 
 func SaltPackDecrypt(
-	source io.Reader, sink io.WriteCloser,
+	g *GlobalContext, source io.Reader, sink io.WriteCloser,
 	deviceEncryptionKey NaclDHKeyPair,
 	checkSender func(*saltpack.MessageKeyInfo) error) (*saltpack.MessageKeyInfo, error) {
 
@@ -37,7 +37,7 @@ func SaltPackDecrypt(
 		return mki, err
 	}
 
-	G.Log.Debug("Decrypt: read %d bytes", n)
+	g.Log.Debug("Decrypt: read %d bytes", n)
 
 	if err := sink.Close(); err != nil {
 		return mki, err
