@@ -29,8 +29,6 @@ echo "Building $mode mode in $build_root"
 
 install_electron_dependencies() {
   echo "Installing Node modules for Electron"
-  # Remove the line below once this branch is in master.
-  git checkout cjb/DESKTOP-114-linux-electron-2
   # Can't seem to get the right packages installed under NODE_ENV=production.
   export NODE_ENV=development
   (cd ../../react-native && npm i)
