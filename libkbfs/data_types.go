@@ -736,14 +736,51 @@ func (m MergeStatus) String() string {
 
 //UsageStat is a tuple containing quota usage and amount of archived bytes
 type UsageStat struct {
-	Usage    int64
-	Archived int64
+	UsageBytes     int64
+	UsageBlocks    int64
+	ArchivedBytes  int64
+	ArchivedBlocks int64
+}
+
+//AccumOne records the usage of one block, whose size is denoted by change
+//A positive change means the block is newly added, negative means the block
+//is deleted. If archive is true, it means the block is archived.
+func (u *UsageStat) AccumOne(change int, archived bool) {
+	if change == 0 {
+		return
+	}
+	if archived {
+		u.ArchivedBytes += int64(change)
+		if change > 0 {
+			u.ArchivedBlocks++
+		} else {
+			u.ArchivedBlocks--
+		}
+	} else {
+		u.UsageBytes += int64(change)
+		if change > 0 {
+			u.UsageBlocks++
+		} else {
+			u.UsageBlocks--
+		}
+	}
+}
+
+// Accum combines changes to the existing UserQuotaInfo object using accumulation function accumF.
+func (u *UsageStat) Accum(another *UsageStat, accumF func(int64, int64) int64) {
+	if another == nil {
+		return
+	}
+	u.UsageBytes = accumF(u.UsageBytes, another.UsageBytes)
+	u.UsageBlocks = accumF(u.UsageBlocks, another.UsageBlocks)
+	u.ArchivedBytes = accumF(u.ArchivedBytes, another.ArchivedBytes)
+	u.ArchivedBlocks = accumF(u.ArchivedBlocks, another.ArchivedBlocks)
 }
 
 //UserQuotaInfo contains a user's quota usage information
 type UserQuotaInfo struct {
 	Folders map[string]*UsageStat
-	Total   UsageStat
+	Total   *UsageStat
 	Limit   int64
 }
 
@@ -752,14 +789,12 @@ func (u *UserQuotaInfo) Accum(another *UserQuotaInfo, accumF func(int64, int64) 
 	if another == nil {
 		return
 	}
-	u.Total.Usage = accumF(u.Total.Usage, another.Total.Usage)
-	u.Total.Archived = accumF(u.Total.Archived, another.Total.Archived)
+	u.Total.Accum(another.Total, accumF)
 	for f, change := range another.Folders {
 		if _, ok := u.Folders[f]; !ok {
 			u.Folders[f] = &UsageStat{}
 		}
-		u.Folders[f].Usage = accumF(u.Folders[f].Usage, change.Usage)
-		u.Folders[f].Archived = accumF(u.Folders[f].Archived, change.Archived)
+		u.Folders[f].Accum(change, accumF)
 	}
 }
 

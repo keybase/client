@@ -92,6 +92,11 @@
 			"revisionTime": "2015-09-05T19:33:21-07:00"
 		},
 		{
+			"path": "github.com/go-sql-driver/mysql",
+			"revision": "d512f204a577a4ab037a1816604c48c9c13210be",
+			"revisionTime": "2015-11-12T17:33:55+01:00"
+		},
+		{
 			"path": "github.com/goamz/goamz/aws",
 			"revision": "be371d06631a6ea076cccefc6654fa5c29be074d",
 			"revisionTime": "2015-10-22T11:50:32+02:00"
