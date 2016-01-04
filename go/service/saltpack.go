@@ -40,7 +40,7 @@ func NewSaltPackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltPackHan
 	}
 }
 
-func (h *SaltPackHandler) SaltPackDecrypt(_ context.Context, arg keybase1.SaltPackDecryptArg) error {
+func (h *SaltPackHandler) SaltPackDecrypt(_ context.Context, arg keybase1.SaltPackDecryptArg) (info keybase1.SaltPackEncryptedMessageInfo, err error) {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
@@ -56,7 +56,9 @@ func (h *SaltPackHandler) SaltPackDecrypt(_ context.Context, arg keybase1.SaltPa
 		SaltPackUI: h.getSaltPackUI(arg.SessionID),
 	}
 	eng := engine.NewSaltPackDecrypt(earg, h.G())
-	return engine.RunEngine(eng, ctx)
+	err = engine.RunEngine(eng, ctx)
+	info = eng.MessageInfo()
+	return info, err
 }
 
 func (h *SaltPackHandler) SaltPackEncrypt(_ context.Context, arg keybase1.SaltPackEncryptArg) error {

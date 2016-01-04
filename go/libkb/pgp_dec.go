@@ -57,7 +57,7 @@ func PGPDecrypt(source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*Signatur
 	md, err := openpgp.ReadMessage(r, kr, nil, nil)
 	if err != nil {
 		if err == errors.ErrKeyIncorrect {
-			return nil, PGPNoDecryptionKeyError{Msg: "unable to find decryption key for this message"}
+			return nil, NoDecryptionKeyError{Msg: "unable to find a PGP decryption key for this message"}
 		}
 		return nil, err
 	}

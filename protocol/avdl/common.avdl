@@ -65,6 +65,8 @@ protocol Common {
 		DeviceID deviceID;
 		Time cTime;
 		Time mTime;
+		KID encryptKey;
+		KID verifyKey;
 	}
 
 	record Stream {

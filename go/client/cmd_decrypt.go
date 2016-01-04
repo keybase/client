@@ -6,6 +6,8 @@ package client
 import (
 	"golang.org/x/net/context"
 
+	"fmt"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -114,6 +116,31 @@ func NewCmdDecryptRunner(g *libkb.GlobalContext) *CmdDecrypt {
 	}
 }
 
+func (c *CmdDecrypt) explainDecryptionFailure(info *keybase1.SaltPackEncryptedMessageInfo) {
+	if info == nil {
+		return
+	}
+	out := c.G().UI.GetTerminalUI().ErrorWriter()
+	prnt := func(s string, args ...interface{}) {
+		fmt.Fprintf(out, s, args...)
+	}
+	if len(info.Devices) > 0 {
+		prnt("Decryption failed; try one of these devices instead:\n")
+		for _, d := range info.Devices {
+			t := keybase1.FromTime(d.CTime)
+			prnt("  * %s (%s); provisioned %s (%s)\n", ColorString("bold", d.Name), d.Type,
+				humanize.Time(t), t.Format("2006-01-02 15:04:05 MST"))
+		}
+		if info.NumAnonReceivers > 0 {
+			prnt("Additionally, there were %d hidden receivers for this message\n", info.NumAnonReceivers)
+		}
+	} else if info.NumAnonReceivers > 0 {
+		prnt("Decryption failed; it was encrypted for %d hidden receivers, which may or may not you\n", info.NumAnonReceivers)
+	} else {
+		prnt("Decryption failed; message wasn't encrypted for any of your known keys\n")
+	}
+}
+
 func (c *CmdDecrypt) Run() error {
 	cli, err := GetSaltPackClient(c.G())
 	if err != nil {
@@ -139,15 +166,16 @@ func (c *CmdDecrypt) Run() error {
 		return err
 	}
 
-	// TODO: If we fail to decrypt, try to detect which devices
-	// might have worked for the user:
-	// https://keybase.atlassian.net/browse/CORE-2144 .
+	var info keybase1.SaltPackEncryptedMessageInfo
 	arg := keybase1.SaltPackDecryptArg{
 		Source: src,
 		Sink:   snk,
 		Opts:   c.opts,
 	}
-	err = cli.SaltPackDecrypt(context.TODO(), arg)
+	info, err = cli.SaltPackDecrypt(context.TODO(), arg)
+	if _, ok := err.(libkb.NoDecryptionKeyError); ok {
+		c.explainDecryptionFailure(&info)
+	}
 
 	cerr := c.filter.Close(err)
 	return libkb.PickFirstError(err, cerr)

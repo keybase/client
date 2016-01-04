@@ -146,6 +146,12 @@
     }, {
       "name" : "mTime",
       "type" : "Time"
+    }, {
+      "name" : "encryptKey",
+      "type" : "KID"
+    }, {
+      "name" : "verifyKey",
+      "type" : "KID"
     } ]
   }, {
     "type" : "record",
@@ -439,6 +445,22 @@
       "name" : "forceRemoteCheck",
       "type" : "boolean"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "SaltPackEncryptedMessageInfo",
+    "fields" : [ {
+      "name" : "devices",
+      "type" : {
+        "type" : "array",
+        "items" : "Device"
+      }
+    }, {
+      "name" : "numAnonReceivers",
+      "type" : "int"
+    }, {
+      "name" : "receiverIsAnon",
+      "type" : "boolean"
+    } ]
   } ],
   "messages" : {
     "saltPackEncrypt" : {
@@ -471,7 +493,7 @@
         "name" : "opts",
         "type" : "SaltPackDecryptOptions"
       } ],
-      "response" : "null"
+      "response" : "SaltPackEncryptedMessageInfo"
     }
   }
 }

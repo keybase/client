@@ -4,11 +4,14 @@
 package engine
 
 import (
+	"crypto/rand"
 	"errors"
+	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -219,5 +222,183 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 	}
 	if err = RunEngine(dec, ctx); err != errTrackingBroke {
 		t.Fatalf("Expected an error %v; but got %v", errTrackingBroke, err)
+	}
+}
+
+func TestSaltPackNoEncryptionForDevice(t *testing.T) {
+
+	// device X (provisioner) context:
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "kex2provionee")
+	defer tcY.Cleanup()
+
+	// device Z is the encryptor's device
+	tcZ := SetupEngineTest(t, "encryptor")
+	defer tcZ.Cleanup()
+
+	// provisioner needs to be logged in
+	userX := CreateAndSignupFakeUser(tcX, "naclp")
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	encryptor := CreateAndSignupFakeUser(tcZ, "naclp")
+	spui := testDecryptSaltPackUI{}
+
+	// encrypt a message with encryption / tcZ
+	msg := "10 days in Japan"
+	sink := libkb.NewBufferCloser()
+	ctx := &Context{
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   encryptor.NewSecretUI(),
+		LogUI:      tcZ.G.UI.GetLogUI(),
+		SaltPackUI: &spui,
+	}
+
+	arg := &SaltPackEncryptArg{
+		Source: strings.NewReader(msg),
+		Sink:   sink,
+		Opts: keybase1.SaltPackEncryptOptions{
+			Recipients: []string{
+				userX.Username,
+			},
+		},
+	}
+	enc := NewSaltPackEncrypt(arg, tcZ.G)
+	if err := RunEngine(enc, ctx); err != nil {
+		t.Fatal(err)
+	}
+	out := sink.String()
+
+	// decrypt it with userX / tcX
+	decoded := libkb.NewBufferCloser()
+	decarg := &SaltPackDecryptArg{
+		Source: strings.NewReader(out),
+		Sink:   decoded,
+	}
+	dec := NewSaltPackDecrypt(decarg, tcX.G)
+	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
+		if arg.Sender.SenderType != keybase1.SaltPackSenderType_NOT_TRACKED {
+			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
+		}
+		return nil
+	}
+	ctx = &Context{
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   userX.NewSecretUI(),
+		LogUI:      tcX.G.UI.GetLogUI(),
+		SaltPackUI: &spui,
+	}
+
+	if err := RunEngine(dec, ctx); err != nil {
+		t.Fatal(err)
+	}
+	decmsg := decoded.String()
+	// Should work!
+	if decmsg != msg {
+		t.Fatalf("decoded: %s, expected: %s", decmsg, msg)
+	}
+
+	// Now make a new device
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	ctx = &Context{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
+	}()
+
+	// start provisioner
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ctx := &Context{
+			SecretUI:    userX.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		if err := RunEngine(provisioner, ctx); err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
+	}()
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	wg.Wait()
+
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	// Now try and fail to decrypt with device Y (via tcY)
+	decoded = libkb.NewBufferCloser()
+	decarg = &SaltPackDecryptArg{
+		Source: strings.NewReader(out),
+		Sink:   decoded,
+	}
+	dec = NewSaltPackDecrypt(decarg, tcY.G)
+	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
+		t.Fatal("should not be prompted for decryption")
+		return nil
+	}
+	ctx = &Context{
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   userX.NewSecretUI(),
+		LogUI:      tcY.G.UI.GetLogUI(),
+		SaltPackUI: &spui,
+	}
+
+	if err := RunEngine(dec, ctx); err == nil {
+		t.Fatal("Should have seen a decryption error")
+	}
+
+	// Make sure we get the right helpful debug message back
+	me := dec.MessageInfo()
+	if len(me.Devices) != 2 {
+		t.Fatalf("expected 2 valid devices; got %d", len(me.Devices))
+	}
+
+	backup := 0
+	desktops := 0
+	for _, d := range me.Devices {
+		switch d.Type {
+		case "backup":
+			backup++
+		case "desktop":
+			desktops++
+			if !userX.EncryptionKey.GetKID().Equal(d.EncryptKey) {
+				t.Fatal("got wrong encryption key for good possibilities")
+			}
+		default:
+			t.Fatalf("wrong kind of device: %s\n", d.Type)
+		}
+	}
+	if backup != 1 {
+		t.Fatal("Only wanted 1 backup key")
+	}
+	if desktops != 1 {
+		t.Fatal("only wanted 1 desktop key")
 	}
 }

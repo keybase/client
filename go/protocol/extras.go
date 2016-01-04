@@ -374,6 +374,10 @@ func TimeFromSeconds(seconds int64) Time {
 	return Time(seconds * 1000)
 }
 
+func (t Time) IsZero() bool        { return t == 0 }
+func (t Time) After(t2 Time) bool  { return t > t2 }
+func (t Time) Before(t2 Time) bool { return t < t2 }
+
 func FormatTime(t Time) string {
 	layout := "2006-01-02 15:04:05 MST"
 	return FromTime(t).Format(layout)

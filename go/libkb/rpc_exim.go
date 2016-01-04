@@ -224,6 +224,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return SelfNotFoundError{msg: s.Desc}
 	case SCDeviceNotFound:
 		return NoDeviceError{Reason: s.Desc}
+	case SCDecryptionKeyNotFound:
+		return NoDecryptionKeyError{Msg: s.Desc}
 	case SCTimeout:
 		return TimeoutError{}
 	case SCDeviceMismatch:
@@ -785,7 +787,7 @@ func (e ProofNotFoundForUsernameError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-func (e PGPNoDecryptionKeyError) ToStatus() (s keybase1.Status) {
+func (e NoDecryptionKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SCDecryptionKeyNotFound
 	s.Name = "KEY_NOT_FOUND_DECRYPTION"
 	s.Desc = e.Msg

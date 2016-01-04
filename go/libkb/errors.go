@@ -1022,12 +1022,12 @@ func (e APINetError) Error() string {
 
 //=============================================================================
 
-type PGPNoDecryptionKeyError struct {
+type NoDecryptionKeyError struct {
 	Msg string
 }
 
-func (e PGPNoDecryptionKeyError) Error() string {
-	return fmt.Sprintf("pgp decrypt error: %s", e.Msg)
+func (e NoDecryptionKeyError) Error() string {
+	return fmt.Sprintf("decrypt error: %s", e.Msg)
 }
 
 //=============================================================================

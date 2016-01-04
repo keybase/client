@@ -12,14 +12,15 @@ import (
 )
 
 type SignupEngine struct {
-	pwsalt     []byte
-	ppStream   *libkb.PassphraseStream
-	tsec       *triplesec.Cipher
-	uid        keybase1.UID
-	me         *libkb.User
-	signingKey libkb.GenericKey
-	arg        *SignupEngineRunArg
-	lks        *libkb.LKSec
+	pwsalt        []byte
+	ppStream      *libkb.PassphraseStream
+	tsec          *triplesec.Cipher
+	uid           keybase1.UID
+	me            *libkb.User
+	signingKey    libkb.GenericKey
+	encryptionKey libkb.GenericKey
+	arg           *SignupEngineRunArg
+	lks           *libkb.LKSec
 	libkb.Contextified
 }
 
@@ -163,6 +164,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 		return err
 	}
 	s.signingKey = eng.SigningKey()
+	s.encryptionKey = eng.EncryptionKey()
 
 	if err := ctx.LoginContext.LocalSession().SetDeviceProvisioned(s.G().Env.GetDeviceID()); err != nil {
 		// this isn't a fatal error, session will stay in memory...

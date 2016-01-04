@@ -154,11 +154,13 @@ type User struct {
 }
 
 type Device struct {
-	Type     string   `codec:"type" json:"type"`
-	Name     string   `codec:"name" json:"name"`
-	DeviceID DeviceID `codec:"deviceID" json:"deviceID"`
-	CTime    Time     `codec:"cTime" json:"cTime"`
-	MTime    Time     `codec:"mTime" json:"mTime"`
+	Type       string   `codec:"type" json:"type"`
+	Name       string   `codec:"name" json:"name"`
+	DeviceID   DeviceID `codec:"deviceID" json:"deviceID"`
+	CTime      Time     `codec:"cTime" json:"cTime"`
+	MTime      Time     `codec:"mTime" json:"mTime"`
+	EncryptKey KID      `codec:"encryptKey" json:"encryptKey"`
+	VerifyKey  KID      `codec:"verifyKey" json:"verifyKey"`
 }
 
 type Stream struct {
@@ -4646,6 +4648,12 @@ type SaltPackDecryptOptions struct {
 	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
+type SaltPackEncryptedMessageInfo struct {
+	Devices          []Device `codec:"devices" json:"devices"`
+	NumAnonReceivers int      `codec:"numAnonReceivers" json:"numAnonReceivers"`
+	ReceiverIsAnon   bool     `codec:"receiverIsAnon" json:"receiverIsAnon"`
+}
+
 type SaltPackEncryptArg struct {
 	SessionID int                    `codec:"sessionID" json:"sessionID"`
 	Source    Stream                 `codec:"source" json:"source"`
@@ -4662,7 +4670,7 @@ type SaltPackDecryptArg struct {
 
 type SaltPackInterface interface {
 	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
-	SaltPackDecrypt(context.Context, SaltPackDecryptArg) error
+	SaltPackDecrypt(context.Context, SaltPackDecryptArg) (SaltPackEncryptedMessageInfo, error)
 }
 
 func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
@@ -4696,7 +4704,7 @@ func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SaltPackDecryptArg)(nil), args)
 						return
 					}
-					err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
+					ret, err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4714,8 +4722,8 @@ func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncry
 	return
 }
 
-func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, nil)
+func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (res SaltPackEncryptedMessageInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, &res)
 	return
 }
 
