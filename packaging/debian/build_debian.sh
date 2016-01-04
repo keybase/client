@@ -67,7 +67,7 @@ build_one_architecture() {
   # Now the Electron build.
   echo "Building Electron client for $electron_arch"
   (cd ../../desktop && node package.js --platform linux --arch $electron_arch)
-  (cd ../../desktop && rsync -a release/linux-${electron_arch}/Keybase-linux-${electron_arch}/ "$dest/build/opt/keybase")
+  (cd ../../desktop && rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" "$dest/build/opt/keybase")
 
   fakeroot dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
 
