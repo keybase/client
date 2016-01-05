@@ -3,7 +3,7 @@
 import React, {Component} from '../base-react'
 import {FlatButton} from 'material-ui'
 import commonStyles from '../styles/common'
-import {normal, checking, warning} from '../constants/tracker'
+import {normal, checking, warning, loggedOut} from '../constants/tracker'
 
 import type {Styled} from '../styles/common'
 import type {ActionProps} from './action.render'
@@ -14,7 +14,9 @@ export default class ActionRender extends Component {
   render (): ReactElement {
     const {username, state} = this.props
 
-    if (state === checking || !username) {
+    if (state === loggedOut) {
+      return this.renderLoggedOut()
+    } else if (state === checking || !username) {
       return this.renderPending()
     } else if (this.props.state === normal) {
       return this.renderNormal(username)
@@ -81,6 +83,19 @@ export default class ActionRender extends Component {
       </div>
     )
   }
+
+  renderLoggedOut (): ReactElement {
+    return (
+      <div style={{...styles.normalContainer, ...this.props.style}}>
+        <i style={styles.flagWarning} className='fa fa-exclamation-triangle'></i>
+        <div style={styles.textContainer}>
+          <span style={styles.changedMessage}>You should <span style={styles.command}>keybase login</span> or <span style={styles.command}>keybase signup</span> from the terminal for more options.</span>
+        </div>
+
+        <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onClose()} />
+      </div>
+    )
+  }
 }
 
 ActionRender.propTypes = {
@@ -123,6 +138,11 @@ const styles = {
   changedMessage: {
     ...commonStyles.fontBold,
     color: '#4444',
+    textAlign: 'center'
+  },
+  command: {
+    fontFamily: 'Courier',
+    color: '#5D86B4',
     textAlign: 'center'
   },
   checkContainer: {
