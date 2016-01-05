@@ -36,6 +36,7 @@ type IdentifyArg struct {
 	TrackOptions keybase1.TrackOptions
 
 	Source keybase1.IdentifySource
+	Reason keybase1.IdentifyReason
 }
 
 func NewIdentifyArg(targetUsername string, withTracking, forceRemoteCheck bool) *IdentifyArg {
@@ -119,7 +120,7 @@ func (e *Identify) Run(ctx *Context) error {
 		}
 	}
 
-	ctx.IdentifyUI.Start(e.user.GetName())
+	ctx.IdentifyUI.Start(e.user.GetName(), e.arg.Reason)
 
 	e.outcome, err = e.run(ctx)
 	if err != nil {
@@ -191,17 +192,10 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	is.Precompute(ctx.IdentifyUI.DisplayKey)
 
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		e.displayUserCard(ctx)
-		wg.Done()
-	}()
+	waiter := e.displayUserCardAsync(ctx)
 
 	e.user.IDTable().Identify(is, e.arg.ForceRemoteCheck, ctx.IdentifyUI, nil)
-
-	wg.Wait()
+	waiter()
 
 	base := e.user.BaseProofSet()
 	res.AddProofsToSet(base, []keybase1.ProofState{keybase1.ProofState_OK})
@@ -311,27 +305,29 @@ func (c *card) GetAppStatus() *libkb.AppStatus {
 	return &c.Status
 }
 
-func (e *Identify) displayUserCard(ctx *Context) {
+func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
+	defer g.Trace("getUserCard", func() error { return err })()
+
 	arg := libkb.APIArg{
 		Endpoint:     "user/card",
-		NeedSession:  e.me != nil,
-		Contextified: libkb.NewContextified(e.G()),
-		Args:         libkb.HTTPArgs{"uid": libkb.S{Val: e.user.GetUID().String()}},
+		NeedSession:  useSession,
+		Contextified: libkb.NewContextified(g),
+		Args:         libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
 	}
 
 	var card card
 
-	if err := e.G().API.GetDecode(arg, &card); err != nil {
-		e.G().Log.Warning("error getting user/card for %s: %s\n", e.user.GetUID(), err)
-		return
+	if err = g.API.GetDecode(arg, &card); err != nil {
+		g.Log.Warning("error getting user/card for %s: %s\n", uid, err)
+		return nil, err
 	}
 
-	e.G().Log.Debug("user card: %+v", card)
+	g.Log.Debug("user card: %+v", card)
 
-	kcard := keybase1.UserCard{
+	ret = &keybase1.UserCard{
 		Following:     card.FollowSummary.Following,
 		Followers:     card.FollowSummary.Followers,
-		Uid:           e.user.GetUID(),
+		Uid:           uid,
 		FullName:      card.Profile.FullName,
 		Location:      card.Profile.Location,
 		Bio:           card.Profile.Bio,
@@ -340,6 +336,26 @@ func (e *Identify) displayUserCard(ctx *Context) {
 		YouFollowThem: card.YouFollowThem,
 		TheyFollowYou: card.TheyFollowYou,
 	}
+	return ret, nil
+}
 
-	ctx.IdentifyUI.DisplayUserCard(kcard)
+func displayUserCard(g *libkb.GlobalContext, ctx *Context, uid keybase1.UID, useSession bool) {
+	card, _ := getUserCard(g, uid, useSession)
+	if card != nil {
+		ctx.IdentifyUI.DisplayUserCard(*card)
+	}
+}
+
+func displayUserCardAsync(g *libkb.GlobalContext, ctx *Context, uid keybase1.UID, useSession bool) (waiter func()) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		displayUserCard(g, ctx, uid, useSession)
+		wg.Done()
+	}()
+	return func() { wg.Wait() }
+}
+
+func (e *Identify) displayUserCardAsync(ctx *Context) (waiter func()) {
+	return displayUserCardAsync(e.G(), ctx, e.user.GetUID(), (e.me != nil))
 }

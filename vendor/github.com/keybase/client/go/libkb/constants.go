@@ -143,6 +143,8 @@ const (
 	SCSelfNotFound           = int(keybase1.StatusCode_SCSelfNotFound)
 	SCBadKexPhrase           = int(keybase1.StatusCode_SCBadKexPhrase)
 	SCNoUIDelegation         = int(keybase1.StatusCode_SCNoUIDelegation)
+	SCIdentifyFailed         = int(keybase1.StatusCode_SCIdentifyFailed)
+	SCTrackingBroke          = int(keybase1.StatusCode_SCTrackingBroke)
 )
 
 const (

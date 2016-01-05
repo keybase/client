@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -63,6 +64,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SigsProtocol(NewSigsHandler(xp, g)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, g)),
 		keybase1.RevokeProtocol(NewRevokeHandler(xp, g)),
+		keybase1.SecretKeysProtocol(NewSecretKeysHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
 		keybase1.UpdateProtocol(NewUpdateHandler(xp, g, d.updateChecker)),
@@ -149,9 +151,9 @@ func (d *Service) Run() (err error) {
 	}
 
 	if sources.IsPrerelease {
-		updr := updater.NewDefaultUpdater(d.G())
+		updr := engine.NewDefaultUpdater(d.G())
 		if updr != nil {
-			updateChecker := updater.NewUpdateChecker(*updr)
+			updateChecker := updater.NewUpdateChecker(updr, d.G().UIRouter, d.G().Log)
 			d.updateChecker = &updateChecker
 			d.updateChecker.Start()
 		}

@@ -17,6 +17,7 @@ import (
 type Source interface {
 	io.ReadCloser
 	Open() error
+	CloseWithError(error) error
 }
 
 type Sink interface {
@@ -43,7 +44,8 @@ func (b *BufferSource) Read(p []byte) (n int, err error) {
 	return b.buf.Read(p)
 }
 
-func (b *BufferSource) Close() error { return nil }
+func (b *BufferSource) Close() error               { return nil }
+func (b *BufferSource) CloseWithError(error) error { return nil }
 
 type StdinSource struct {
 	open bool
@@ -78,6 +80,14 @@ func (b *StdinSource) Close() error {
 	}
 	b.open = false
 	return err
+}
+
+func (b *StdinSource) CloseWithError(e error) error {
+	if e != nil {
+		b.open = false
+		return nil
+	}
+	return b.Close()
 }
 
 func (b *StdinSource) Read(p []byte) (n int, err error) {
@@ -116,6 +126,10 @@ func (s *FileSource) Close() error {
 	err := s.file.Close()
 	s.file = nil
 	return err
+}
+
+func (s *FileSource) CloseWithError(e error) error {
+	return s.Close()
 }
 
 func (s *FileSource) Read(p []byte) (n int, err error) {
@@ -260,7 +274,7 @@ func (u *UnixFilter) FilterOpen() error {
 }
 
 func (u *UnixFilter) Close(inerr error) error {
-	e1 := u.source.Close()
+	e1 := u.source.CloseWithError(inerr)
 	e2 := u.sink.Close()
 	e3 := u.sink.HitError(inerr)
 	return libkb.PickFirstError(e1, e2, e3)

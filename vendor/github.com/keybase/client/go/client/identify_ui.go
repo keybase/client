@@ -19,7 +19,7 @@ func NewIdentifyUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 }
 
 func NewIdentifyTrackUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
-	ui := g.UI.GetIdentifyTrackUI(true)
+	ui := g.UI.GetIdentifyTrackUI()
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{ui})
 }
 
@@ -76,7 +76,7 @@ func (i *IdentifyUIServer) DisplayUserCard(_ context.Context, arg keybase1.Displ
 }
 
 func (i *IdentifyUIServer) Start(_ context.Context, arg keybase1.StartArg) error {
-	i.ui.Start(arg.Username)
+	i.ui.Start(arg.Username, arg.Reason)
 	return nil
 }
 

@@ -18,14 +18,15 @@ import (
 // device.
 type LoginProvision struct {
 	libkb.Contextified
-	arg          *LoginProvisionArg
-	user         *libkb.User
-	lks          *libkb.LKSec
-	signingKey   libkb.GenericKey
-	gpgCli       *libkb.GpgCLI
-	username     string
-	devname      string
-	cleanupOnErr bool
+	arg           *LoginProvisionArg
+	user          *libkb.User
+	lks           *libkb.LKSec
+	signingKey    libkb.GenericKey
+	encryptionKey libkb.GenericKey
+	gpgCli        *libkb.GpgCLI
+	username      string
+	devname       string
+	cleanupOnErr  bool
 }
 
 type LoginProvisionArg struct {
@@ -494,6 +495,7 @@ func (e *LoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 	}
 
 	e.signingKey = eng.SigningKey()
+	e.encryptionKey = eng.EncryptionKey()
 	return nil
 }
 
@@ -786,8 +788,9 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 	username, uid, err := libkb.PGPLookupFingerprint(e.G(), fp)
 	if err != nil {
 		e.G().Log.Debug("error finding user for fp %s: %s", fp, err)
-		if ase, ok := err.(libkb.AppStatusError); ok && ase.Code == libkb.SCKeyNotFound {
-			err = libkb.NotFoundError{Msg: fmt.Sprintf("No keybase user found for PGP fingerprint %s; please try a different GPG key or another provisioning method", fp)}
+		if nfe, ok := err.(libkb.NotFoundError); ok {
+			nfe.Msg = fmt.Sprintf("No keybase user found for PGP fingerprint %s; please try a different GPG key or another provisioning method", fp)
+			err = nfe
 		}
 		return err
 	}

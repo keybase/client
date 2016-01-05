@@ -830,26 +830,30 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did keybase1.DeviceID
 
 // GetDeviceForKey gets the device that this key is bound to, if any.
 func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (*Device, error) {
-	dev, err := ckf.getDeviceForKid(key.GetKID())
+	return ckf.GetDeviceForKID(key.GetKID())
+}
+
+func (ckf *ComputedKeyFamily) GetDeviceForKID(kid keybase1.KID) (*Device, error) {
+	dev, err := ckf.getDeviceForKidHelper(kid)
 	if err == nil && dev != nil {
 		return dev, nil
 	}
 
 	// this could be a subkey, so try to find device for the parent
-	cki, found := ckf.cki.Infos[key.GetKID()]
+	cki, found := ckf.cki.Infos[kid]
 	if !found {
-		return nil, NoDeviceError{Reason: fmt.Sprintf("for key ID %s", key.GetKID())}
+		return nil, NoDeviceError{Reason: fmt.Sprintf("for key ID %s", kid)}
 	}
 	parent := cki.Parent
 	if parent.IsNil() {
-		return nil, NoDeviceError{Reason: fmt.Sprintf("for key ID %s", key.GetKID())}
+		return nil, NoDeviceError{Reason: fmt.Sprintf("for key ID %s", kid)}
 	}
 
-	return ckf.getDeviceForKid(parent)
+	return ckf.getDeviceForKidHelper(parent)
 
 }
 
-func (ckf *ComputedKeyFamily) getDeviceForKid(kid keybase1.KID) (ret *Device, err error) {
+func (ckf *ComputedKeyFamily) getDeviceForKidHelper(kid keybase1.KID) (ret *Device, err error) {
 	if didString, found := ckf.cki.KIDToDeviceID[kid]; found {
 		ret = ckf.cki.Devices[didString]
 	}

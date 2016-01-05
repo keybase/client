@@ -6,6 +6,7 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	jsonw "github.com/keybase/go-jsonw"
 	"sync"
 	"time"
 )
@@ -20,6 +21,14 @@ type Identify2WithUIDTestArgs struct {
 	clock    func() time.Time
 }
 
+type identify2TrackType int
+
+const (
+	identify2NoTrack identify2TrackType = iota
+	identify2TrackOK
+	identify2TrackBroke
+)
+
 //
 // TODOs:
 //   - think harder about what we're caching in failure cases; right now we're only
@@ -33,10 +42,13 @@ type Identify2WithUIDTestArgs struct {
 type Identify2WithUID struct {
 	libkb.Contextified
 
-	arg        *keybase1.Identify2WithUIDArg
+	arg        *keybase1.Identify2Arg
 	testArgs   *Identify2WithUIDTestArgs
 	trackToken keybase1.TrackToken
 	cachedRes  *keybase1.UserPlusKeys
+
+	// If we just resolved a user, then we can plumb this through to loadUser()
+	ResolveBody *jsonw.Wrapper
 
 	me   *libkb.User
 	them *libkb.User
@@ -67,7 +79,7 @@ func (e *Identify2WithUID) Name() string {
 	return "Identify2WithUID"
 }
 
-func NewIdentify2WithUID(g *libkb.GlobalContext, arg *keybase1.Identify2WithUIDArg) *Identify2WithUID {
+func NewIdentify2WithUID(g *libkb.GlobalContext, arg *keybase1.Identify2Arg) *Identify2WithUID {
 	return &Identify2WithUID{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
@@ -79,10 +91,18 @@ func (e *Identify2WithUID) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
+func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
+	return k == libkb.IdentifyUIKind && e.arg.UseDelegateUI
+}
+
 // Run then engine
 func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
 	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+
+	if e.arg.Uid.IsNil() {
+		return libkb.NoUIDError{}
+	}
 
 	// Only the first send matters, but we don't want to block the subsequent no-op
 	// sends. This code will break when we have more than 100 unblocking opportunities.
@@ -97,16 +117,20 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
 func (e *Identify2WithUID) run(ctx *Context) {
 	err := e.runReturnError(ctx)
-	e.unblock(err)
+	e.unblock( /* isFinal */ true, err)
 }
 
 func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 
-	e.G().Log.Debug("+ acquire singleflight lock")
+	e.G().Log.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
 	lock := locktab.AcquireOnName(e.arg.Uid.String())
-	e.G().Log.Debug("- acquired")
+	e.G().Log.Debug("- acquired singleflight lock")
 
-	defer lock.Release()
+	defer func() {
+		e.G().Log.Debug("+ Releasing singleflight lock for %s", e.arg.Uid)
+		lock.Release()
+		e.G().Log.Debug("- Released singleflight lock")
+	}()
 
 	if e.loadAssertion(); err != nil {
 		return err
@@ -163,7 +187,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 	// we can unblock the RPC caller here, and perform the identifyUI operations
 	// in the background.
 	if !e.useTracking && !e.useRemoteAssertions() {
-		e.unblock(nil)
+		e.unblock( /* isFinal */ false, nil)
 	}
 
 	if err = e.runIdentifyUI(ctx); err != nil {
@@ -180,9 +204,14 @@ func (e *Identify2WithUID) getNow() time.Time {
 	return time.Now()
 }
 
-func (e *Identify2WithUID) unblock(err error) {
+func (e *Identify2WithUID) unblock(isFinal bool, err error) {
 	e.G().Log.Debug("| unblocking...")
-	e.resultCh <- err
+	if e.arg.AlwaysBlock && !isFinal {
+		e.G().Log.Debug("| skipping unblock; isFinal=%v; AlwaysBlock=%v...", isFinal, e.arg.AlwaysBlock)
+	} else {
+		e.resultCh <- err
+		e.G().Log.Debug("| unblock sent...")
+	}
 }
 
 func (e *Identify2WithUID) maybeCacheResult() {
@@ -249,7 +278,7 @@ func (e *Identify2WithUID) CCLCheckCompleted(lcr *libkb.LinkCheckResult) {
 
 	if e.remotesError != nil || e.remotesCompleted {
 		e.G().Log.Debug("| unblocking, with err = %v", e.remotesError)
-		e.unblock(e.remotesError)
+		e.unblock(false, e.remotesError)
 	}
 }
 
@@ -300,21 +329,27 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.G().Log.Debug("+ runIdentifyUI(%s)", e.them.GetName())
 	e.remotesReceived = libkb.NewProofSet(nil)
 
-	ctx.IdentifyUI.Start(e.them.GetName())
+	ctx.IdentifyUI.Start(e.them.GetName(), e.arg.Reason)
 	for _, k := range e.identifyKeys {
 		ctx.IdentifyUI.DisplayKey(k)
 	}
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName()))
 	ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export())
-	e.them.IDTable().Identify(e.state, false /* ForceRemoteCheck */, ctx.IdentifyUI, e)
+
+	waiter := displayUserCardAsync(e.G(), ctx, e.them.GetUID(), (e.me != nil))
+	e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e)
+
+	waiter()
+
+	e.insertTrackToken(ctx)
 	ctx.IdentifyUI.Finish()
 
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
-	e.insertTrackToken(ctx)
 	e.maybeCacheResult()
 
-	if err == nil {
-		err = e.state.Result().GetError()
+	if err == nil && !e.arg.NoErrorOnTrackFailure {
+		// We only care about tracking errors in this case; hence GetErrorLax
+		_, err = e.state.Result().GetErrorLax()
 	}
 
 	e.G().Log.Debug("- runIdentifyUI(%s) -> %v", e.them.GetName(), err)
@@ -384,6 +419,7 @@ func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
 func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	arg := libkb.NewLoadUserArg(e.G())
 	arg.UID = e.arg.Uid
+	arg.ResolveBody = e.ResolveBody
 	e.them, err = libkb.LoadUser(arg)
 	if e.them == nil {
 		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
@@ -450,4 +486,15 @@ func (e *Identify2WithUID) getCache() libkb.Identify2Cacher {
 		return e.testArgs.cache
 	}
 	return e.G().Identify2Cache
+}
+
+func (e *Identify2WithUID) getTrackType() identify2TrackType {
+	switch {
+	case !e.useTracking || e.state.Result() == nil:
+		return identify2NoTrack
+	case e.state.Result().IsOK():
+		return identify2TrackOK
+	default:
+		return identify2TrackBroke
+	}
 }

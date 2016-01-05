@@ -224,6 +224,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return SelfNotFoundError{msg: s.Desc}
 	case SCDeviceNotFound:
 		return NoDeviceError{Reason: s.Desc}
+	case SCDecryptionKeyNotFound:
+		return NoDecryptionKeyError{Msg: s.Desc}
 	case SCTimeout:
 		return TimeoutError{}
 	case SCDeviceMismatch:
@@ -242,6 +244,14 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return UIDelegationUnavailableError{}
 	case SCProfileNotPublic:
 		return ProfileNotPublicError{msg: s.Desc}
+	case SCIdentifyFailed:
+		var assertion string
+		if len(s.Fields) > 0 && s.Fields[0].Key == "assertion" {
+			assertion = s.Fields[0].Value
+		}
+		return IdentifyFailedError{Assertion: assertion, Reason: s.Desc}
+	case SCTrackingBroke:
+		return TrackingBrokeError{}
 	case SCResolutionFailed:
 		var input string
 		if len(s.Fields) > 0 && s.Fields[0].Key == "input" {
@@ -777,7 +787,7 @@ func (e ProofNotFoundForUsernameError) ToStatus() (s keybase1.Status) {
 	return
 }
 
-func (e PGPNoDecryptionKeyError) ToStatus() (s keybase1.Status) {
+func (e NoDecryptionKeyError) ToStatus() (s keybase1.Status) {
 	s.Code = SCDecryptionKeyNotFound
 	s.Name = "KEY_NOT_FOUND_DECRYPTION"
 	s.Desc = e.Msg
@@ -890,10 +900,28 @@ func (e ResolutionError) ToStatus() keybase1.Status {
 	}
 }
 
+func (e IdentifyFailedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCIdentifyFailed,
+		Name: "SC_IDENTIFY_FAILED",
+		Desc: e.Reason,
+		Fields: []keybase1.StringKVPair{
+			{"assertion", e.Assertion},
+		},
+	}
+}
+
 func (e ProfileNotPublicError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCProfileNotPublic,
 		Name: "SC_PROFILE_NOT_PUBLIC",
 		Desc: e.msg,
+	}
+}
+
+func (e TrackingBrokeError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCTrackingBroke,
+		Name: "SC_TRACKING_BROKE",
 	}
 }

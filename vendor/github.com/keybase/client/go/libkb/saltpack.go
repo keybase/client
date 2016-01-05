@@ -6,6 +6,7 @@ package libkb
 import (
 	"bytes"
 
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/saltpack"
 	"golang.org/x/crypto/nacl/box"
 )
@@ -51,9 +52,9 @@ func (k naclBoxPrecomputedSharedKey) Unbox(nonce *saltpack.Nonce, msg []byte) (
 	return ret, nil
 }
 
-func (k naclBoxPrecomputedSharedKey) Box(nonce *saltpack.Nonce, msg []byte) ([]byte, error) {
+func (k naclBoxPrecomputedSharedKey) Box(nonce *saltpack.Nonce, msg []byte) []byte {
 	ret := box.SealAfterPrecomputation([]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&k))
-	return ret, nil
+	return ret
 }
 
 type naclBoxSecretKey NaclDHKeyPair
@@ -127,4 +128,12 @@ func (n naclKeyring) GetAllSecretKeys() []saltpack.BoxSecretKey {
 
 func (n naclKeyring) ImportEphemeralKey(kid []byte) saltpack.BoxPublicKey {
 	return n.LookupBoxPublicKey(kid)
+}
+
+func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) (ret keybase1.KID) {
+	if k == nil {
+		return ret
+	}
+	p := k.ToKID()
+	return keybase1.KIDFromRawKey(p, KIDNaclDH)
 }

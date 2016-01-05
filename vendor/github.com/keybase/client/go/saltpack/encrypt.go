@@ -5,6 +5,7 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/sha512"
 	"encoding/hex"
 	"golang.org/x/crypto/nacl/secretbox"
 	"io"
@@ -68,21 +69,17 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 	}
 
 	nonce := es.nonce.ForPayloadBox(es.numBlocks)
-	raw := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&es.sessionKey))
-
-	tag := raw[0:secretbox.Overhead]
-	ciphertext := raw[secretbox.Overhead:]
+	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&es.sessionKey))
+	hash := sha512.Sum512(ciphertext)
 
 	block := EncryptionBlock{
 		PayloadCiphertext: ciphertext,
 	}
 
 	for _, tagKey := range es.tagKeys {
-		tag, err := tagKey.Box(nonce, tag)
-		if err != nil {
-			return err
-		}
-		block.TagCiphertexts = append(block.TagCiphertexts, tag)
+		hashBox := tagKey.Box(nonce, hash[:])
+		authenticator := hashBox[:secretbox.Overhead]
+		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)
 	}
 
 	if err := es.encoder.Encode(block); err != nil {
@@ -174,7 +171,7 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 
 		ephemeralShared := ephemeralKey.Precompute(receiver)
 
-		keys, err := ephemeralShared.Box(nonce, rkpPacked)
+		keys := ephemeralShared.Box(nonce, rkpPacked)
 		if err != nil {
 			return err
 		}

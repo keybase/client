@@ -1022,12 +1022,12 @@ func (e APINetError) Error() string {
 
 //=============================================================================
 
-type PGPNoDecryptionKeyError struct {
+type NoDecryptionKeyError struct {
 	Msg string
 }
 
-func (e PGPNoDecryptionKeyError) Error() string {
-	return fmt.Sprintf("pgp decrypt error: %s", e.Msg)
+func (e NoDecryptionKeyError) Error() string {
+	return fmt.Sprintf("decrypt error: %s", e.Msg)
 }
 
 //=============================================================================
@@ -1110,6 +1110,17 @@ type IdentifyDidNotCompleteError struct{}
 
 func (e IdentifyDidNotCompleteError) Error() string {
 	return "Identification did not complete."
+}
+
+//=============================================================================
+
+type IdentifyFailedError struct {
+	Assertion string
+	Reason    string
+}
+
+func (e IdentifyFailedError) Error() string {
+	return fmt.Sprintf("For user %q: %s", e.Assertion, e.Reason)
 }
 
 //=============================================================================
@@ -1215,4 +1226,20 @@ type ResolutionError struct {
 
 func (e ResolutionError) Error() string {
 	return fmt.Sprintf("In resolving '%s': %s", e.Input, e.Msg)
+}
+
+//=============================================================================
+
+type NoUIDError struct{}
+
+func (e NoUIDError) Error() string {
+	return "No UID given but one was expected"
+}
+
+//=============================================================================
+
+type TrackingBrokeError struct{}
+
+func (e TrackingBrokeError) Error() string {
+	return "Tracking broke"
 }

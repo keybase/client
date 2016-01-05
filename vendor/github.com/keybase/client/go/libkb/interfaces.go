@@ -139,6 +139,7 @@ type ConfigReader interface {
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
+	GetUpdateLastChecked() keybase1.Time
 
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
@@ -163,6 +164,7 @@ type ConfigWriter interface {
 	SetUpdatePreferenceAuto(bool) error
 	SetUpdatePreferenceSkip(string) error
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
+	SetUpdateLastChecked(keybase1.Time) error
 	Reset()
 	Save() error
 	BeginTransaction() (ConfigWriterTransacter, error)
@@ -250,7 +252,7 @@ type ExternalAPI interface {
 }
 
 type IdentifyUI interface {
-	Start(string)
+	Start(string, keybase1.IdentifyReason)
 	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)
 	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)
 	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
@@ -296,6 +298,10 @@ type ProveUI interface {
 
 type SecretUI interface {
 	GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error)
+}
+
+type SaltPackUI interface {
+	SaltPackPromptForDecrypt(context.Context, keybase1.SaltPackPromptForDecryptArg) error
 }
 
 type LogUI interface {
@@ -351,7 +357,7 @@ type DumbOutputUI interface {
 
 type UI interface {
 	GetIdentifyUI() IdentifyUI
-	GetIdentifyTrackUI(strict bool) IdentifyUI
+	GetIdentifyTrackUI() IdentifyUI
 	GetLoginUI() LoginUI
 	GetSecretUI() SecretUI
 	GetTerminalUI() TerminalUI

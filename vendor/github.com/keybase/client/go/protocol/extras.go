@@ -139,6 +139,14 @@ func (k KID) ToBytes() []byte {
 	return b
 }
 
+func (k KID) GetKeyType() byte {
+	raw := k.ToBytes()
+	if len(raw) < 2 {
+		return 0
+	}
+	return raw[1]
+}
+
 func (k KID) ToShortIDString() string {
 	return encode(k.ToBytes()[0:12])
 }
@@ -366,6 +374,10 @@ func TimeFromSeconds(seconds int64) Time {
 	return Time(seconds * 1000)
 }
 
+func (t Time) IsZero() bool        { return t == 0 }
+func (t Time) After(t2 Time) bool  { return t > t2 }
+func (t Time) Before(t2 Time) bool { return t < t2 }
+
 func FormatTime(t Time) string {
 	layout := "2006-01-02 15:04:05 MST"
 	return FromTime(t).Format(layout)
@@ -437,4 +449,11 @@ func (f Folder) ToString() string {
 
 func (t TrackToken) String() string {
 	return string(t)
+}
+
+func KIDFromRawKey(b []byte, keyType byte) KID {
+	tmp := []byte{KidVersion, keyType}
+	tmp = append(tmp, b...)
+	tmp = append(tmp, byte(KidSuffix))
+	return KIDFromSlice(tmp)
 }

@@ -92,6 +92,12 @@ type ColorWriter struct {
 	mutex *sync.Mutex
 }
 
+// Fd returns the underlying file descriptor. This is mainly to
+// support checking whether it's a terminal or not.
+func (cw *ColorWriter) Fd() uintptr {
+	return cw.fd
+}
+
 // Rough emulation of Ansi terminal codes.
 // Parse the string, pick out the codes, and convert to
 // calls to SetConsoleTextAttribute.

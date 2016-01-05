@@ -17,9 +17,9 @@ import (
 
 type CmdEncrypt struct {
 	libkb.Contextified
-	filter       UnixFilter
-	recipients   []string
-	trackOptions keybase1.TrackOptions
+	filter        UnixFilter
+	recipients    []string
+	noSelfEncrypt bool
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -37,16 +37,9 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			// https://keybase.atlassian.net/browse/CORE-2142
 			// .
 			//
-			// TODO: Make self-encryption optional:
-			// https://keybase.atlassian.net/browse/CORE-2143
-			// .
 			cli.StringFlag{
 				Name:  "i, infile",
 				Usage: "Specify an input file.",
-			},
-			cli.BoolFlag{
-				Name:  "l, local",
-				Usage: "Only track locally, don't send a statement to the server.",
 			},
 			cli.StringFlag{
 				Name:  "m, message",
@@ -57,8 +50,8 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Specify an outfile (stdout by default).",
 			},
 			cli.BoolFlag{
-				Name:  "y",
-				Usage: "Approve remote tracking without prompting.",
+				Name:  "no-self",
+				Usage: "Don't encrypt for yourself",
 			},
 		},
 	}
@@ -73,7 +66,7 @@ func (c *CmdEncrypt) Run() error {
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
 		NewSecretUIProtocol(c.G()),
-		NewIdentifyTrackUIProtocol(c.G()),
+		NewIdentifyUIProtocol(c.G()),
 	}
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
@@ -85,12 +78,11 @@ func (c *CmdEncrypt) Run() error {
 	}
 
 	opts := keybase1.SaltPackEncryptOptions{
-		Recipients:   c.recipients,
-		TrackOptions: c.trackOptions,
+		Recipients:    c.recipients,
+		NoSelfEncrypt: c.noSelfEncrypt,
 	}
 	arg := keybase1.SaltPackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltPackEncrypt(context.TODO(), arg)
-
 	cerr := c.filter.Close(err)
 	return libkb.PickFirstError(err, cerr)
 }
@@ -112,13 +104,9 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
+	c.noSelfEncrypt = ctx.Bool("no-self")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
-	}
-
-	c.trackOptions = keybase1.TrackOptions{
-		LocalOnly:     ctx.Bool("local"),
-		BypassConfirm: ctx.Bool("y"),
 	}
 
 	return nil

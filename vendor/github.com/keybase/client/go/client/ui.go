@@ -37,6 +37,7 @@ type UI struct {
 var _ libkb.TerminalUI = (*UI)(nil)
 
 type BaseIdentifyUI struct {
+	libkb.Contextified
 	parent *UI
 }
 
@@ -48,12 +49,18 @@ type IdentifyUI struct {
 	BaseIdentifyUI
 }
 
-func (ui *IdentifyTrackUI) Start(username string) {
-	G.Log.Info("Generating tracking statement for " + ColorString("bold", username))
-}
-
-func (ui *IdentifyUI) Start(username string) {
-	G.Log.Info("Identifying " + ColorString("bold", username))
+func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason) {
+	msg := "Identifying "
+	switch reason.Type {
+	case keybase1.IdentifyReasonType_TRACK:
+		msg = "Generating tracking statement for "
+	case keybase1.IdentifyReasonType_ENCRYPT:
+		msg = "Identifying recipient "
+	case keybase1.IdentifyReasonType_DECRYPT:
+		ui.G().Log.Info("Message authored by " + ColorString("bold", username) + "; identifying...")
+		return
+	}
+	ui.G().Log.Info(msg + ColorString("bold", username))
 }
 
 func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
@@ -97,7 +104,7 @@ func (ui IdentifyTrackUI) SetStrict(b bool) {
 
 func (ui IdentifyTrackUI) ReportRevoked(del []keybase1.TrackDiff) {
 	if len(del) > 0 {
-		G.Log.Warning("Some proofs you previously tracked were revoked:")
+		ui.G().Log.Warning("Some proofs you previously tracked were revoked:")
 		for _, d := range del {
 			ui.ReportHook(BADX + " " + TrackDiffToColoredString(d))
 		}
@@ -132,7 +139,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 			" is still valid; update it to reflect new proofs?"
 		promptDefault = libkb.PromptDefaultYes
 	case keybase1.TrackStatus_UPDATE_OK:
-		G.Log.Info("Your tracking statement is up-to-date")
+		ui.G().Log.Info("Your tracking statement is up-to-date")
 		trackChanged = false
 	case keybase1.TrackStatus_NEW_ZERO_PROOFS:
 		prompt = "We found an account for " + username +
@@ -394,15 +401,26 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
 }
 
 func (ui BaseIdentifyUI) Warning(m string) {
-	G.Log.Warning(m)
+	ui.G().Log.Warning(m)
 }
 
-func (ui *UI) GetIdentifyTrackUI(strict bool) libkb.IdentifyUI {
-	return &IdentifyTrackUI{BaseIdentifyUI{parent: ui}, strict}
+func (ui *UI) GetIdentifyTrackUI() libkb.IdentifyUI {
+	return &IdentifyTrackUI{
+		BaseIdentifyUI: BaseIdentifyUI{
+			Contextified: libkb.NewContextified(ui.G()),
+			parent:       ui,
+		},
+		strict: true,
+	}
 }
 
 func (ui *UI) GetIdentifyUI() libkb.IdentifyUI {
-	return &IdentifyUI{BaseIdentifyUI{parent: ui}}
+	return &IdentifyUI{
+		BaseIdentifyUI{
+			Contextified: libkb.NewContextified(ui.G()),
+			parent:       ui,
+		},
+	}
 }
 
 func (ui *UI) GetLoginUI() libkb.LoginUI {
@@ -418,7 +436,7 @@ func (ui *UI) GetProveUI() libkb.ProveUI {
 }
 
 func (ui *UI) GetLogUI() libkb.LogUI {
-	return G.Log
+	return ui.G().Log
 }
 
 func (ui *UI) getTTY() string {
@@ -937,3 +955,5 @@ func (ui *UI) PrintfStderr(format string, a ...interface{}) (n int, err error) {
 func NewLoginUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	return keybase1.LoginUiProtocol(g.UI.GetLoginUI())
 }
+
+//=====================================================

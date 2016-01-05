@@ -205,3 +205,12 @@ func GetUpdateClient(g *libkb.GlobalContext) (cli keybase1.UpdateClient, err err
 	cli = keybase1.UpdateClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetSecretKeysClient(g *libkb.GlobalContext) (cli keybase1.SecretKeysClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.SecretKeysClient{Cli: rcli}
+	return cli, nil
+}

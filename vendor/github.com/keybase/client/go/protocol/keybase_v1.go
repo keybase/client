@@ -154,11 +154,13 @@ type User struct {
 }
 
 type Device struct {
-	Type     string   `codec:"type" json:"type"`
-	Name     string   `codec:"name" json:"name"`
-	DeviceID DeviceID `codec:"deviceID" json:"deviceID"`
-	CTime    Time     `codec:"cTime" json:"cTime"`
-	MTime    Time     `codec:"mTime" json:"mTime"`
+	Type       string   `codec:"type" json:"type"`
+	Name       string   `codec:"name" json:"name"`
+	DeviceID   DeviceID `codec:"deviceID" json:"deviceID"`
+	CTime      Time     `codec:"cTime" json:"cTime"`
+	MTime      Time     `codec:"mTime" json:"mTime"`
+	EncryptKey KID      `codec:"encryptKey" json:"encryptKey"`
+	VerifyKey  KID      `codec:"verifyKey" json:"verifyKey"`
 }
 
 type Stream struct {
@@ -627,6 +629,8 @@ const (
 	StatusCode_SCReloginRequired        StatusCode = 274
 	StatusCode_SCResolutionFailed       StatusCode = 275
 	StatusCode_SCProfileNotPublic       StatusCode = 276
+	StatusCode_SCIdentifyFailed         StatusCode = 277
+	StatusCode_SCTrackingBroke          StatusCode = 278
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCMissingResult          StatusCode = 801
 	StatusCode_SCKeyNotFound            StatusCode = 901
@@ -1561,8 +1565,22 @@ type TrackOptions struct {
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
 }
 
+type IdentifyReasonType int
+
+const (
+	IdentifyReasonType_NONE     IdentifyReasonType = 0
+	IdentifyReasonType_ID       IdentifyReasonType = 1
+	IdentifyReasonType_TRACK    IdentifyReasonType = 2
+	IdentifyReasonType_ENCRYPT  IdentifyReasonType = 3
+	IdentifyReasonType_DECRYPT  IdentifyReasonType = 4
+	IdentifyReasonType_VERIFY   IdentifyReasonType = 5
+	IdentifyReasonType_RESOURCE IdentifyReasonType = 6
+)
+
 type IdentifyReason struct {
-	Reason string `codec:"reason" json:"reason"`
+	Type     IdentifyReasonType `codec:"type" json:"type"`
+	Reason   string             `codec:"reason" json:"reason"`
+	Resource string             `codec:"resource" json:"resource"`
 }
 
 type IdentifyOutcome struct {
@@ -1623,18 +1641,21 @@ type IdentifyArg struct {
 	Source           IdentifySource `codec:"source" json:"source"`
 }
 
-type Identify2WithUIDArg struct {
-	SessionID     int            `codec:"sessionID" json:"sessionID"`
-	Uid           UID            `codec:"uid" json:"uid"`
-	UserAssertion string         `codec:"userAssertion" json:"userAssertion"`
-	Reason        IdentifyReason `codec:"reason" json:"reason"`
-	UseDelegateUI bool           `codec:"useDelegateUI" json:"useDelegateUI"`
+type Identify2Arg struct {
+	SessionID             int            `codec:"sessionID" json:"sessionID"`
+	Uid                   UID            `codec:"uid" json:"uid"`
+	UserAssertion         string         `codec:"userAssertion" json:"userAssertion"`
+	Reason                IdentifyReason `codec:"reason" json:"reason"`
+	UseDelegateUI         bool           `codec:"useDelegateUI" json:"useDelegateUI"`
+	AlwaysBlock           bool           `codec:"alwaysBlock" json:"alwaysBlock"`
+	NoErrorOnTrackFailure bool           `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
+	ForceRemoteCheck      bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
 type IdentifyInterface interface {
 	Resolve(context.Context, string) (UID, error)
 	Identify(context.Context, IdentifyArg) (IdentifyRes, error)
-	Identify2WithUID(context.Context, Identify2WithUIDArg) (Identify2Res, error)
+	Identify2(context.Context, Identify2Arg) (Identify2Res, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
@@ -1673,18 +1694,18 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"identify2WithUID": {
+			"identify2": {
 				MakeArg: func() interface{} {
-					ret := make([]Identify2WithUIDArg, 1)
+					ret := make([]Identify2Arg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]Identify2WithUIDArg)
+					typedArgs, ok := args.(*[]Identify2Arg)
 					if !ok {
-						err = rpc.NewTypeError((*[]Identify2WithUIDArg)(nil), args)
+						err = rpc.NewTypeError((*[]Identify2Arg)(nil), args)
 						return
 					}
-					ret, err = i.Identify2WithUID(ctx, (*typedArgs)[0])
+					ret, err = i.Identify2(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1708,8 +1729,8 @@ func (c IdentifyClient) Identify(ctx context.Context, __arg IdentifyArg) (res Id
 	return
 }
 
-func (c IdentifyClient) Identify2WithUID(ctx context.Context, __arg Identify2WithUIDArg) (res Identify2Res, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify.identify2WithUID", []interface{}{__arg}, &res)
+func (c IdentifyClient) Identify2(ctx context.Context, __arg Identify2Arg) (res Identify2Res, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identify.identify2", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1790,8 +1811,9 @@ type DelegateIdentifyUIArg struct {
 }
 
 type StartArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Username  string         `codec:"username" json:"username"`
+	Reason    IdentifyReason `codec:"reason" json:"reason"`
 }
 
 type DisplayKeyArg struct {
@@ -2201,9 +2223,20 @@ type FuseStatus struct {
 	Status        Status          `codec:"status" json:"status"`
 }
 
-type ComponentStatus struct {
+type ComponentResult struct {
 	Name   string `codec:"name" json:"name"`
 	Status Status `codec:"status" json:"status"`
+}
+
+type InstallResult struct {
+	ComponentResults []ComponentResult `codec:"componentResults" json:"componentResults"`
+	Status           Status            `codec:"status" json:"status"`
+	Fatal            bool              `codec:"fatal" json:"fatal"`
+}
+
+type UninstallResult struct {
+	ComponentResults []ComponentResult `codec:"componentResults" json:"componentResults"`
+	Status           Status            `codec:"status" json:"status"`
 }
 
 type InstallInterface interface {
@@ -4605,8 +4638,20 @@ func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err 
 }
 
 type SaltPackEncryptOptions struct {
-	Recipients   []string     `codec:"recipients" json:"recipients"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+	Recipients    []string `codec:"recipients" json:"recipients"`
+	HideSelf      bool     `codec:"hideSelf" json:"hideSelf"`
+	NoSelfEncrypt bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
+}
+
+type SaltPackDecryptOptions struct {
+	Interactive      bool `codec:"interactive" json:"interactive"`
+	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+}
+
+type SaltPackEncryptedMessageInfo struct {
+	Devices          []Device `codec:"devices" json:"devices"`
+	NumAnonReceivers int      `codec:"numAnonReceivers" json:"numAnonReceivers"`
+	ReceiverIsAnon   bool     `codec:"receiverIsAnon" json:"receiverIsAnon"`
 }
 
 type SaltPackEncryptArg struct {
@@ -4617,14 +4662,15 @@ type SaltPackEncryptArg struct {
 }
 
 type SaltPackDecryptArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Source    Stream `codec:"source" json:"source"`
-	Sink      Stream `codec:"sink" json:"sink"`
+	SessionID int                    `codec:"sessionID" json:"sessionID"`
+	Source    Stream                 `codec:"source" json:"source"`
+	Sink      Stream                 `codec:"sink" json:"sink"`
+	Opts      SaltPackDecryptOptions `codec:"opts" json:"opts"`
 }
 
 type SaltPackInterface interface {
 	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
-	SaltPackDecrypt(context.Context, SaltPackDecryptArg) error
+	SaltPackDecrypt(context.Context, SaltPackDecryptArg) (SaltPackEncryptedMessageInfo, error)
 }
 
 func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
@@ -4658,7 +4704,7 @@ func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SaltPackDecryptArg)(nil), args)
 						return
 					}
-					err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
+					ret, err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4676,8 +4722,66 @@ func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncry
 	return
 }
 
-func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, nil)
+func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (res SaltPackEncryptedMessageInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, &res)
+	return
+}
+
+type SaltPackSenderType int
+
+const (
+	SaltPackSenderType_NOT_TRACKED    SaltPackSenderType = 0
+	SaltPackSenderType_UNKNOWN        SaltPackSenderType = 1
+	SaltPackSenderType_ANONYMOUS      SaltPackSenderType = 2
+	SaltPackSenderType_TRACKING_BROKE SaltPackSenderType = 3
+	SaltPackSenderType_TRACKING_OK    SaltPackSenderType = 4
+)
+
+type SaltPackSender struct {
+	Uid        UID                `codec:"uid" json:"uid"`
+	Username   string             `codec:"username" json:"username"`
+	SenderType SaltPackSenderType `codec:"senderType" json:"senderType"`
+}
+
+type SaltPackPromptForDecryptArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Sender    SaltPackSender `codec:"sender" json:"sender"`
+}
+
+type SaltPackUiInterface interface {
+	SaltPackPromptForDecrypt(context.Context, SaltPackPromptForDecryptArg) error
+}
+
+func SaltPackUiProtocol(i SaltPackUiInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.saltPackUi",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"saltPackPromptForDecrypt": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackPromptForDecryptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackPromptForDecryptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackPromptForDecryptArg)(nil), args)
+						return
+					}
+					err = i.SaltPackPromptForDecrypt(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type SaltPackUiClient struct {
+	Cli GenericClient
+}
+
+func (c SaltPackUiClient) SaltPackPromptForDecrypt(ctx context.Context, __arg SaltPackPromptForDecryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackPromptForDecrypt", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4737,6 +4841,57 @@ type SecretUiClient struct {
 
 func (c SecretUiClient) GetPassphrase(ctx context.Context, __arg GetPassphraseArg) (res GetPassphraseRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.secretUi.getPassphrase", []interface{}{__arg}, &res)
+	return
+}
+
+type NaclSigningKeyPublic [32]byte
+type NaclSigningKeyPrivate [64]byte
+type NaclDHKeyPublic [32]byte
+type NaclDHKeyPrivate [32]byte
+type SecretKeys struct {
+	Signing    NaclSigningKeyPrivate `codec:"signing" json:"signing"`
+	Encryption NaclDHKeyPrivate      `codec:"encryption" json:"encryption"`
+}
+
+type GetSecretKeysArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type SecretKeysInterface interface {
+	GetSecretKeys(context.Context, int) (SecretKeys, error)
+}
+
+func SecretKeysProtocol(i SecretKeysInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.SecretKeys",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"getSecretKeys": {
+				MakeArg: func() interface{} {
+					ret := make([]GetSecretKeysArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetSecretKeysArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetSecretKeysArg)(nil), args)
+						return
+					}
+					ret, err = i.GetSecretKeys(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type SecretKeysClient struct {
+	Cli GenericClient
+}
+
+func (c SecretKeysClient) GetSecretKeys(ctx context.Context, sessionID int) (res SecretKeys, err error) {
+	__arg := GetSecretKeysArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.SecretKeys.getSecretKeys", []interface{}{__arg}, &res)
 	return
 }
 

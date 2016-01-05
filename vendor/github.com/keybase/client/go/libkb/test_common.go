@@ -165,7 +165,7 @@ func (tc *TestContext) ResetLoginState() {
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {
-	usernames, err := GetUsersWithStoredSecrets(tc.G)
+	usernames, err := tc.G.GetUsersWithStoredSecrets()
 	if err != nil {
 		return err
 	}
@@ -299,10 +299,7 @@ func (n *nullui) GetDumbOutputUI() DumbOutputUI {
 func (n *nullui) GetIdentifyUI() IdentifyUI {
 	return nil
 }
-func (n *nullui) GetIdentifySelfUI() IdentifyUI {
-	return nil
-}
-func (n *nullui) GetIdentifyTrackUI(strict bool) IdentifyUI {
+func (n *nullui) GetIdentifyTrackUI() IdentifyUI {
 	return nil
 }
 func (n *nullui) GetLoginUI() LoginUI {
@@ -336,9 +333,6 @@ func (n *nullui) Prompt(string, bool, Checker) (string, error) {
 	return "", nil
 }
 func (n *nullui) PromptForConfirmation(prompt string) error {
-	return nil
-}
-func (n *nullui) GetIdentifyLubaUI() IdentifyUI {
 	return nil
 }
 func (n *nullui) Configure() error {

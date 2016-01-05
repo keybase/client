@@ -417,3 +417,35 @@ func NewContextified(gc *GlobalContext) Contextified {
 type Contexitifier interface {
 	G() *GlobalContext
 }
+
+func (g *GlobalContext) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
+	return GetConfiguredAccounts(g)
+}
+
+func (g *GlobalContext) GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error) {
+	return g.Env.GetConfig().GetAllUsernames()
+}
+
+func (g *GlobalContext) GetStoredSecretServiceName() string {
+	return g.Env.GetStoredSecretServiceName()
+}
+
+func (g *GlobalContext) GetStoredSecretAccessGroup() string {
+	return g.Env.GetStoredSecretAccessGroup()
+}
+
+func (g *GlobalContext) GetUsersWithStoredSecrets() ([]string, error) {
+	return GetUsersWithStoredSecrets(g)
+}
+
+func (g *GlobalContext) GetCacheDir() string {
+	return g.Env.GetCacheDir()
+}
+
+func (g *GlobalContext) GetRuntimeDir() string {
+	return g.Env.GetRuntimeDir()
+}
+
+func (g *GlobalContext) GetRunMode() RunMode {
+	return g.Env.GetRunMode()
+}

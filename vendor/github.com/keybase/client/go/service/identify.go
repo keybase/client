@@ -46,7 +46,7 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 	}
 }
 
-func (h *IdentifyHandler) Identify2WithUID(_ context.Context, arg keybase1.Identify2WithUIDArg) (res keybase1.Identify2Res, err error) {
+func (h *IdentifyHandler) Identify2(_ context.Context, _ keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
 	return res, nil
 }
 
@@ -221,8 +221,8 @@ func (u *RemoteIdentifyUI) DisplayUserCard(card keybase1.UserCard) {
 	return
 }
 
-func (u *RemoteIdentifyUI) Start(username string) {
-	u.uicli.Start(context.TODO(), keybase1.StartArg{SessionID: u.sessionID, Username: username})
+func (u *RemoteIdentifyUI) Start(username string, reason keybase1.IdentifyReason) {
+	u.uicli.Start(context.TODO(), keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason})
 }
 
 func (u *RemoteIdentifyUI) Finish() {

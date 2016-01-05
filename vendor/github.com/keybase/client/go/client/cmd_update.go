@@ -5,13 +5,12 @@ package client
 
 import (
 	"fmt"
-	"runtime"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/updater"
 	"github.com/keybase/client/go/updater/sources"
 	"github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
@@ -86,26 +85,23 @@ func (v *CmdUpdateCheck) Run() error {
 }
 
 func NewCmdUpdateCustom(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	defaultOptions := engine.DefaultUpdaterOptions(g)
 	return cli.Command{
 		Name: "custom",
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "c, check-only",
-				Usage: "Only check for update.",
-			},
-			cli.StringFlag{
 				Name:  "e, current-version",
-				Usage: "Current version of to override.",
+				Usage: fmt.Sprintf("Current version. Default is %q.", defaultOptions.Version),
 			},
 			cli.StringFlag{
 				Name:  "d, destination-path",
-				Usage: "Destination of where to apply update.",
+				Usage: fmt.Sprintf("Destination of where to apply update. Default is %q.", defaultOptions.DestinationPath),
 			},
 			cli.StringFlag{
 				Name: "s, source",
 				Usage: fmt.Sprintf("Update source (%s). Default is %q.",
 					sources.UpdateSourcesDescription(", "),
-					string(sources.DefaultUpdateSourceName())),
+					defaultOptions.Source),
 			},
 			cli.StringFlag{
 				Name:  "u, url",
@@ -119,7 +115,7 @@ func NewCmdUpdateCustom(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		ArgumentHelp: "",
 		Usage:        "Run the updater with custom options",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdUpdateCustomRunner(g), "run", c)
+			cl.ChooseCommand(NewCmdUpdateCustomRunner(g, defaultOptions), "run", c)
 		},
 	}
 }
@@ -131,10 +127,10 @@ type CmdUpdateCustom struct {
 	options   *keybase1.UpdateOptions
 }
 
-func NewCmdUpdateCustomRunner(g *libkb.GlobalContext) *CmdUpdateCustom {
+func NewCmdUpdateCustomRunner(g *libkb.GlobalContext, options *keybase1.UpdateOptions) *CmdUpdateCustom {
 	return &CmdUpdateCustom{
 		Contextified: libkb.NewContextified(g),
-		options:      updater.DefaultUpdaterOptions(g),
+		options:      options,
 	}
 }
 
@@ -156,8 +152,11 @@ func (v *CmdUpdateCustom) ParseArgv(ctx *cli.Context) error {
 		v.options.DestinationPath = destinationPath
 	}
 
-	v.options.Source = ctx.String("source")
-	v.options.Platform = runtime.GOOS
+	source := ctx.String("source")
+	if source != "" {
+		v.options.Source = source
+	}
+
 	v.options.URL = ctx.String("url")
 	v.options.Force = ctx.Bool("force")
 

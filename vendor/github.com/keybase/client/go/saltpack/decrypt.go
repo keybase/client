@@ -6,6 +6,7 @@ package saltpack
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/sha512"
 	"io"
 	"io/ioutil"
 
@@ -242,7 +243,6 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 		ds.mki.SenderIsAnon = true
 		ds.mki.SenderKey = ephemeralKey
 	}
-
 	copy(ds.sessionKey[:], keys.SessionKey)
 
 	return nil
@@ -257,13 +257,16 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 	}
 
 	nonce := ds.nonce.ForPayloadBox(blockNum)
+	ciphertext := bl.PayloadCiphertext
+	hash := sha512.Sum512(ciphertext)
 
-	tag, err := ds.tagKey.Unbox(nonce, bl.TagCiphertexts[ds.position])
-	if err != nil {
+	hashBox := ds.tagKey.Box(nonce, hash[:])
+	ourAuthenticator := hashBox[:secretbox.Overhead]
+
+	if !hmac.Equal(ourAuthenticator, bl.HashAuthenticators[ds.position]) {
 		return nil, ErrBadTag(bl.seqno)
 	}
 
-	ciphertext := append(tag, bl.PayloadCiphertext...)
 	plaintext, ok := secretbox.Open([]byte{}, ciphertext, (*[24]byte)(nonce), (*[32]byte)(&ds.sessionKey))
 	if !ok {
 		return nil, ErrBadCiphertext(bl.seqno)

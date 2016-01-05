@@ -5,7 +5,7 @@
 
 package libkb
 
-func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
+func NewSecretStore(c SecretStoreContext, username NormalizedUsername) SecretStore {
 	return nil
 }
 
@@ -13,7 +13,7 @@ func HasSecretStore() bool {
 	return false
 }
 
-func GetUsersWithStoredSecrets(g *GlobalContext) ([]string, error) {
+func GetUsersWithStoredSecrets(c SecretStoreContext) ([]string, error) {
 	return nil, nil
 }
 

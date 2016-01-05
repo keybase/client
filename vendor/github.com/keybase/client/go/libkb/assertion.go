@@ -417,7 +417,7 @@ func FindBestIdentifyComponentURL(e AssertionExpression) AssertionURL {
 		return nil
 	}
 
-	var uid, kb, soc, fp AssertionURL
+	var uid, kb, soc, fp, rooter AssertionURL
 
 	for _, u := range urls {
 		if u.IsUID() {
@@ -429,12 +429,17 @@ func FindBestIdentifyComponentURL(e AssertionExpression) AssertionURL {
 			kb = u
 		} else if u.IsFingerprint() && fp == nil {
 			fp = u
-		} else if u.IsSocial() && soc == nil {
-			soc = u
+		} else if u.IsSocial() {
+			k, _ := u.ToKeyValuePair()
+			if k == "rooter" {
+				rooter = u
+			} else if soc == nil {
+				soc = u
+			}
 		}
 	}
 
-	order := []AssertionURL{uid, kb, fp, soc, urls[0]}
+	order := []AssertionURL{uid, kb, fp, rooter, soc, urls[0]}
 	for _, p := range order {
 		if p != nil {
 			return p

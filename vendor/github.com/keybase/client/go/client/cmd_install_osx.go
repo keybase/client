@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -92,25 +92,38 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdInstall) Run() error {
-	var components []keybase1.ComponentStatus
-	if v.installer == "auto" {
-		components = install.AutoInstallWithStatus(v.G(), v.binPath, v.force)
-	} else if v.installer == "" {
-		components = install.Install(v.G(), v.binPath, v.components, v.force)
-	} else {
-		return fmt.Errorf("Invalid install type: %s", v.installer)
+func (v *CmdInstall) runInstall() keybase1.InstallResult {
+	err := install.CheckIfValidLocation()
+	if err != nil {
+		v.G().Log.Errorf("%s", err)
+		return keybase1.InstallResult{Status: install.ErrorStatus("INVALID_LOCATION", err.Error()), Fatal: true}
 	}
+
+	if v.installer == "auto" {
+		return install.AutoInstallWithStatus(v.G(), v.binPath, v.force)
+	} else if v.installer == "" {
+		return install.Install(v.G(), v.binPath, v.components, v.force)
+	}
+
+	return keybase1.InstallResult{Status: install.ErrorStatus("INVALID_INSTALLER", fmt.Sprintf("Invalid installer: %s", v.installer))}
+}
+
+func (v *CmdInstall) outputResult(result keybase1.InstallResult) {
+	for _, cr := range result.ComponentResults {
+		cn := install.ComponentNameFromString(cr.Name)
+		v.G().Log.Info("%s: %s", cn.String(), cr.Status.Desc)
+	}
+}
+
+func (v *CmdInstall) Run() error {
+	result := v.runInstall()
+	v.outputResult(result)
 	if v.format == "json" {
-		out, err := json.MarshalIndent(components, "", "  ")
+		out, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
 			return err
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
-	} else {
-		for _, c := range components {
-			v.G().Log.Info("Installer for %s: %s %s", c.Name, c.Status.Name, c.Status.Desc)
-		}
 	}
 	return nil
 }
@@ -125,7 +138,7 @@ func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 			cli.StringFlag{
 				Name:  "c, components",
-				Usage: "Components to uninstall, comma separated. Specify 'cli' for command line, 'service' for service, kbfs for 'kbfs', or blank for all.",
+				Usage: "Components to uninstall, comma separated. Specify 'cli' for command line, 'service' for service, 'kbfs' for KBFS, or blank for all.",
 			},
 		},
 		ArgumentHelp: "",
@@ -157,39 +170,47 @@ func (v *CmdUninstall) GetUsage() libkb.Usage {
 func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 	v.format = ctx.String("format")
 	if ctx.String("components") == "" {
-		v.components = []string{"service", "kbfs"}
+		if libkb.IsBrewBuild {
+			v.components = []string{"service"}
+		} else {
+			v.components = []string{"service", "kbfs"}
+		}
 	} else {
 		v.components = strings.Split(ctx.String("components"), ",")
 	}
 	return nil
 }
 
+func (v *CmdUninstall) outputResult(result keybase1.UninstallResult) {
+	for _, cr := range result.ComponentResults {
+		cn := install.ComponentNameFromString(cr.Name)
+		v.G().Log.Info("%s: %s", cn.String(), cr.Status.Desc)
+	}
+}
+
 func (v *CmdUninstall) Run() error {
-	components := install.Uninstall(v.G(), v.components)
+	result := install.Uninstall(v.G(), v.components)
+	v.outputResult(result)
 	if v.format == "json" {
-		out, err := json.MarshalIndent(components, "", "  ")
+		out, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
 			return err
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
-	} else {
-		for _, c := range components {
-			v.G().Log.Info("Uninstaller for %s: %s %s", c.Name, c.Status.Name, c.Status.Desc)
-		}
 	}
 	return nil
 }
 
 func DiagnoseSocketError(ui libkb.UI, err error) {
 	t := ui.GetTerminalUI()
-	services, err := launchd.ListServices([]string{"keybase."})
+	services, err := launchd.ListServices([]string{"keybase.service.", "homebrew.mxcl.keybase"})
 	if err != nil {
 		t.Printf("Error checking launchd services: %v\n\n", err)
 		return
 	}
 
 	if len(services) == 0 {
-		t.Printf("\nThere are no Keybase services installed. You may need to re-install.\n")
+		t.Printf("\nThere are no Keybase services installed, you might try running: keybase install\n\n")
 	} else if len(services) > 1 {
 		t.Printf("\nWe found multiple services:\n")
 		for _, service := range services {

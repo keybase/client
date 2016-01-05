@@ -557,7 +557,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 	}
 
 	if jw := b.payloadJSON.AtPath("body.device"); !jw.IsNil() {
-		if device, err = ParseDevice(jw); err != nil {
+		if device, err = ParseDevice(jw, b.GetCTime()); err != nil {
 			return
 		}
 	}
@@ -706,7 +706,7 @@ type DeviceChainLink struct {
 
 func ParseDeviceChainLink(b GenericChainLink) (ret *DeviceChainLink, err error) {
 	var dobj *Device
-	if dobj, err = ParseDevice(b.payloadJSON.AtPath("body.device")); err != nil {
+	if dobj, err = ParseDevice(b.payloadJSON.AtPath("body.device"), b.GetCTime()); err != nil {
 	} else {
 		ret = &DeviceChainLink{b, dobj}
 	}
@@ -841,7 +841,7 @@ type RevokeChainLink struct {
 func ParseRevokeChainLink(b GenericChainLink) (ret *RevokeChainLink, err error) {
 	var device *Device
 	if jw := b.payloadJSON.AtPath("body.device"); !jw.IsNil() {
-		if device, err = ParseDevice(jw); err != nil {
+		if device, err = ParseDevice(jw, b.GetCTime()); err != nil {
 			return
 		}
 	}
@@ -914,7 +914,7 @@ func (s *SelfSigChainLink) GetProofType() keybase1.ProofType { return keybase1.P
 
 func (s *SelfSigChainLink) ParseDevice() (err error) {
 	if jw := s.payloadJSON.AtPath("body.device"); !jw.IsNil() {
-		s.device, err = ParseDevice(jw)
+		s.device, err = ParseDevice(jw, s.GetCTime())
 	}
 	return err
 }

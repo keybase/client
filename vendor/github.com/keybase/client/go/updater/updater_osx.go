@@ -34,7 +34,7 @@ func (u *Updater) checkPlatformSpecificUpdate(sourcePath string, destinationPath
 	// Get uid, gid of destination
 	uid := destFileInfo.Sys().(*syscall.Stat_t).Uid
 	gid := destFileInfo.Sys().(*syscall.Stat_t).Gid
-	u.G().Log.Info("Destination: %s, Uid: %d, Gid: %d", destinationPath, uid, gid)
+	u.log.Info("Destination: %s, Uid: %d, Gid: %d", destinationPath, uid, gid)
 
 	walk := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -52,7 +52,7 @@ func (u *Updater) checkPlatformSpecificUpdate(sourcePath string, destinationPath
 		return nil
 	}
 
-	u.G().Log.Info("Touching, chowning files in %s", sourcePath)
+	u.log.Info("Touching, chowning files in %s", sourcePath)
 	err = filepath.Walk(sourcePath, walk)
 	if err != nil {
 		return err

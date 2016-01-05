@@ -19,7 +19,7 @@ func NewDearmor62DecryptStream(ciphertext io.Reader, kr Keyring) (*MessageKeyInf
 	}
 	mki, r, err := NewDecryptStream(dearmored, kr)
 	if err != nil {
-		return nil, nil, nil, err
+		return mki, nil, nil, err
 	}
 	return mki, r, frame, nil
 }
@@ -31,30 +31,30 @@ func Dearmor62DecryptOpen(ciphertext string, kr Keyring) (*MessageKeyInfo, []byt
 	buf := bytes.NewBufferString(ciphertext)
 	mki, s, frame, err := NewDearmor62DecryptStream(buf, kr)
 	if err != nil {
-		return nil, nil, err
+		return mki, nil, err
 	}
 	out, err := ioutil.ReadAll(s)
 	if err != nil {
-		return nil, nil, err
+		return mki, nil, err
 	}
-	if err = CheckArmor62Frame(frame); err != nil {
-		return nil, nil, err
+	if err = CheckArmor62Frame(frame, EncryptionArmorHeader, EncryptionArmorFooter); err != nil {
+		return mki, nil, err
 	}
 	return mki, out, nil
 }
 
 // CheckArmor62Frame checks that the frame matches our standard
 // keybase begin/end frame
-func CheckArmor62Frame(frame Frame) error {
+func CheckArmor62Frame(frame Frame, header, footer string) error {
 	if hdr, err := frame.GetHeader(); err != nil {
 		return err
-	} else if hdr != EncryptionArmorHeader {
-		return ErrBadArmorHeader{EncryptionArmorHeader, hdr}
+	} else if hdr != header {
+		return ErrBadArmorHeader{header, hdr}
 	}
 	if ftr, err := frame.GetFooter(); err != nil {
 		return err
-	} else if ftr != EncryptionArmorFooter {
-		return ErrBadArmorFooter{EncryptionArmorFooter, ftr}
+	} else if ftr != footer {
+		return ErrBadArmorFooter{footer, ftr}
 	}
 	return nil
 }

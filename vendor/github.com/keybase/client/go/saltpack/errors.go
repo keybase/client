@@ -59,8 +59,9 @@ var (
 	ErrDetachedSignaturePresent = errors.New("detached signature present")
 )
 
-// ErrBadTag is generated when a Tag fails to Unbox properly. It specifies
-// which Packet sequence number the bad packet was in.
+// ErrBadTag is generated when a payload hash doesn't match the hash
+// authenticator. It specifies which Packet sequence number the bad packet was
+// in.
 type ErrBadTag PacketSeqno
 
 // ErrBadCiphertext is generated when decryption fails due to improper authentication. It specifies

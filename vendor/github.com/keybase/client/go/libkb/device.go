@@ -6,6 +6,7 @@ package libkb
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	"time"
 )
 
 const (
@@ -35,6 +36,8 @@ type Device struct {
 	Description *string           `json:"name,omitempty"`
 	Status      *int              `json:"status,omitempty"`
 	Type        string            `json:"type"`
+	CTime       keybase1.Time     `json:"ctime"`
+	MTime       keybase1.Time     `json:"mtime"`
 }
 
 // NewPaperDevice creates a new paper backup key device
@@ -55,10 +58,12 @@ func NewPaperDevice(passphrasePrefix string) (*Device, error) {
 	return d, nil
 }
 
-func ParseDevice(jw *jsonw.Wrapper) (ret *Device, err error) {
+func ParseDevice(jw *jsonw.Wrapper, t time.Time) (ret *Device, err error) {
 	var obj Device
 	if err = jw.UnmarshalAgain(&obj); err == nil {
 		ret = &obj
+		ret.CTime = keybase1.ToTime(t)
+		ret.MTime = keybase1.ToTime(t)
 	}
 	return
 }
@@ -73,6 +78,12 @@ func (d *Device) Merge(d2 *Device) {
 	}
 	if d2.Status != nil {
 		d.Status = d2.Status
+	}
+	if d2.CTime.Before(d.CTime) && !d2.CTime.IsZero() {
+		d.CTime = d2.CTime
+	}
+	if d2.MTime.After(d.MTime) || d.MTime.IsZero() {
+		d.MTime = d2.MTime
 	}
 }
 
@@ -99,6 +110,8 @@ func (d *Device) ProtExport() *keybase1.Device {
 	ex := &keybase1.Device{
 		Type:     d.Type,
 		DeviceID: d.ID,
+		CTime:    d.CTime,
+		MTime:    d.MTime,
 	}
 	if d.Description != nil {
 		ex.Name = *d.Description

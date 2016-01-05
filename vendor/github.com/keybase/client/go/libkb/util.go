@@ -413,3 +413,25 @@ func Trace(log logger.Logger, msg string, f func() error) func() {
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
+
+func (g *GlobalContext) Trace(msg string, f func() error) func() {
+	return Trace(g.Log, msg, f)
+}
+
+// SplitByRunes splits string by runes
+func SplitByRunes(s string, separators []rune) []string {
+	f := func(r rune) bool {
+		for _, s := range separators {
+			if r == s {
+				return true
+			}
+		}
+		return false
+	}
+	return strings.FieldsFunc(s, f)
+}
+
+// SplitPath return string split by path separator: SplitPath("/a/b/c") => []string{"a", "b", "c"}
+func SplitPath(s string) []string {
+	return SplitByRunes(s, []rune{filepath.Separator})
+}

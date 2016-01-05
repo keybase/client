@@ -4,9 +4,8 @@
 package libkb
 
 import (
-	"io"
-
 	"github.com/keybase/client/go/saltpack"
+	"io"
 )
 
 // saltpackEncrypt reads from the given source, encrypts it for the given
@@ -18,8 +17,13 @@ func SaltPackEncrypt(
 	for _, k := range receivers {
 		receiverBoxKeys = append(receiverBoxKeys, naclBoxPublicKey(k))
 	}
-	plainsink, err := saltpack.NewEncryptArmor62Stream(
-		sink, naclBoxSecretKey(sender), receiverBoxKeys)
+
+	var bsk saltpack.BoxSecretKey
+	if !sender.IsNil() {
+		bsk = naclBoxSecretKey(sender)
+	}
+
+	plainsink, err := saltpack.NewEncryptArmor62Stream(sink, bsk, receiverBoxKeys)
 	if err != nil {
 		return err
 	}

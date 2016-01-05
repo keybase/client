@@ -15,21 +15,14 @@ import (
 type DeviceKeyfinder struct {
 	libkb.Contextified
 	arg     DeviceKeyfinderArg
-	userMap map[keybase1.UID]UserPlusDeviceKeys
+	userMap map[keybase1.UID](*keybase1.UserPlusKeys)
 }
 
 type DeviceKeyfinderArg struct {
-	Users []string
-	// If nil, no tracking is done.
-	Me           *libkb.User
-	TrackOptions keybase1.TrackOptions
-}
-
-type UserPlusDeviceKeys struct {
-	User      *libkb.User
-	Index     int
-	IsTracked bool
-	Keys      []keybase1.PublicKey
+	Users           []string
+	NeedEncryptKeys bool
+	NeedVerifyKeys  bool
+	Self            *libkb.User
 }
 
 // NewDeviceKeyfinder creates a DeviceKeyfinder engine.
@@ -37,7 +30,7 @@ func NewDeviceKeyfinder(g *libkb.GlobalContext, arg DeviceKeyfinderArg) *DeviceK
 	return &DeviceKeyfinder{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
-		userMap:      make(map[keybase1.UID]UserPlusDeviceKeys),
+		userMap:      make(map[keybase1.UID](*keybase1.UserPlusKeys)),
 	}
 }
 
@@ -59,115 +52,101 @@ func (e *DeviceKeyfinder) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *DeviceKeyfinder) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&TrackEngine{},
-		&Identify{},
+		&ResolveThenIdentify2{},
 	}
 }
 
 // Run starts the engine.
-func (e *DeviceKeyfinder) Run(ctx *Context) error {
-	err := e.verifyUsers(ctx)
+func (e *DeviceKeyfinder) Run(ctx *Context) (err error) {
+	libkb.Trace(e.G().Log, "DeviceKeyfinder::Run", func() error { return err })
+
+	err = e.identifyUsers(ctx)
 	if err != nil {
 		return err
 	}
-
-	err = e.loadKeys(ctx)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 // UsersPlusDeviceKeys returns the users found while running the engine,
 // plus their device keys.
-func (e *DeviceKeyfinder) UsersPlusDeviceKeys() map[keybase1.UID]UserPlusDeviceKeys {
+func (e *DeviceKeyfinder) UsersPlusKeys() map[keybase1.UID](*keybase1.UserPlusKeys) {
 	return e.userMap
 }
 
-func (e *DeviceKeyfinder) verifyUsers(ctx *Context) error {
+func (e *DeviceKeyfinder) identifyUsers(ctx *Context) error {
 	for _, u := range e.arg.Users {
-		if e.arg.Me != nil {
-			if err := e.trackUser(ctx, u); err != nil {
-				return err
-			}
-		} else {
-			if err := e.identifyUser(ctx, u); err != nil {
-				return err
-			}
+		if err := e.identifyUser(ctx, u); err != nil {
+			return err
 		}
 	}
-
 	return nil
 }
 
-func (e *DeviceKeyfinder) loadKeys(ctx *Context) error {
-	// get the device keys for all the users
-	for uid, uwk := range e.userMap {
-		var keys []keybase1.PublicKey
-		ckf := uwk.User.GetComputedKeyFamily()
-		if ckf != nil {
-			keys = ckf.ExportDeviceKeys()
-		}
-
-		if len(keys) == 0 {
-			return fmt.Errorf("User %s doesn't have a device key", uwk.User.GetName())
-		}
-		uwk.Keys = keys
-		e.userMap[uid] = uwk
-	}
-
-	return nil
-}
-
-func (e *DeviceKeyfinder) trackUser(ctx *Context, username string) error {
-	e.G().Log.Debug("tracking user %q", username)
-	arg := &TrackEngineArg{
-		Me:            e.arg.Me,
-		UserAssertion: username,
-		Options:       e.arg.TrackOptions,
-	}
-	eng := NewTrackEngine(arg, e.G())
-	err := RunEngine(eng, ctx)
-	// ignore self track errors
-	if _, ok := err.(libkb.SelfTrackError); ok {
-		e.addUser(e.arg.Me, false)
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	e.addUser(eng.User(), true)
-	return nil
-}
-
-// PC: maybe we need to bring the TrackUI back for the
-// context...so that this one can use an IdentifyUI and trackUser
-// can use a TrackUI...
 func (e *DeviceKeyfinder) identifyUser(ctx *Context, user string) error {
-	arg := NewIdentifyArg(user, false, false)
-	eng := NewIdentify(arg, e.G())
+	arg := keybase1.Identify2Arg{
+		UserAssertion: user,
+		Reason: keybase1.IdentifyReason{
+			Type: keybase1.IdentifyReasonType_ENCRYPT,
+		},
+	}
+	eng := NewResolveThenIdentify2(e.G(), &arg)
 	if err := RunEngine(eng, ctx); err != nil {
+		return libkb.IdentifyFailedError{Assertion: user, Reason: err.Error()}
+	}
+	if err := e.addUser(eng.Result()); err != nil {
 		return err
 	}
-	e.addUser(eng.User(), false)
 	return nil
 }
 
-func (e *DeviceKeyfinder) hasUser(user *libkb.User) bool {
-	_, ok := e.userMap[user.GetUID()]
+func (e *DeviceKeyfinder) hasUser(upk *keybase1.UserPlusKeys) bool {
+	_, ok := e.userMap[upk.Uid]
 	return ok
 }
 
-func (e *DeviceKeyfinder) addUser(user *libkb.User, tracked bool) {
-	if e.hasUser(user) {
-		return
+func (e *DeviceKeyfinder) filterKeys(upk *keybase1.UserPlusKeys) error {
+	var keys []keybase1.PublicKey
+	for _, key := range upk.Keys {
+		if len(key.PGPFingerprint) != 0 {
+			continue
+		}
+		if e.arg.NeedVerifyKeys && !libkb.KIDIsDeviceVerify(key.KID) {
+			continue
+		}
+		if e.arg.NeedEncryptKeys && !libkb.KIDIsDeviceEncrypt(key.KID) {
+			continue
+		}
+		keys = append(keys, key)
+	}
+	if len(keys) == 0 {
+		msg := fmt.Sprintf("User %s doesn't have any suitable keys", upk.Username)
+		return libkb.NoKeyError{Msg: msg}
+	}
+	upk.Keys = keys
+	return nil
+}
+
+func (e *DeviceKeyfinder) addUser(ir *keybase1.Identify2Res) error {
+
+	if ir == nil {
+		return fmt.Errorf("Null result from Identify2")
+	}
+	upk := &ir.Upk
+
+	if e.hasUser(upk) {
+		return nil
 	}
 
-	index := len(e.userMap)
-	e.userMap[user.GetUID()] = UserPlusDeviceKeys{
-		User:      user,
-		Index:     index,
-		IsTracked: tracked,
+	if e.arg.Self != nil && e.arg.Self.GetUID().Equal(upk.Uid) {
+		e.G().Log.Debug("skipping self in DevicekeyFinder (uid=%s)", upk.Uid)
+		return nil
 	}
+
+	if err := e.filterKeys(upk); err != nil {
+		return err
+	}
+
+	e.userMap[upk.Uid] = upk
+
+	return nil
 }

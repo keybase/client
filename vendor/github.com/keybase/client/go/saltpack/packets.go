@@ -40,10 +40,10 @@ type EncryptionHeader struct {
 // EncryptionBlock contains a block of encrypted data. It contains
 // the ciphertext, and any necessary authentication Tags.
 type EncryptionBlock struct {
-	_struct           bool     `codec:",toarray"`
-	TagCiphertexts    [][]byte `codec:"tags"`
-	PayloadCiphertext []byte   `codec:"ctext"`
-	seqno             PacketSeqno
+	_struct            bool     `codec:",toarray"`
+	HashAuthenticators [][]byte `codec:"authenticators"`
+	PayloadCiphertext  []byte   `codec:"ctext"`
+	seqno              PacketSeqno
 }
 
 func verifyRawKey(k []byte) error {
@@ -76,6 +76,9 @@ type SignatureHeader struct {
 }
 
 func newSignatureHeader(sender SigningPublicKey, msgType MessageType) (*SignatureHeader, error) {
+	if sender == nil {
+		return nil, ErrInvalidParameter{message: "no public signing key provided"}
+	}
 	nonce, err := NewSigNonce()
 	if err != nil {
 		return nil, err

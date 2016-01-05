@@ -121,7 +121,7 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 	api.clientsMu.Lock()
 	client, found := api.clients[key]
 	if !found {
-		G.Log.Debug("| Cli wasn't found; remaking for cookied=%v", cookied)
+		api.G().Log.Debug("| Cli wasn't found; remaking for cookied=%v", cookied)
 		client = NewClient(api.G().Env, api.config, cookied)
 		api.clients[key] = client
 	}
@@ -132,13 +132,13 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 func (api *BaseAPIEngine) PrepareGet(url url.URL, arg APIArg) (*http.Request, error) {
 	url.RawQuery = arg.getHTTPArgs().Encode()
 	ruri := url.String()
-	G.Log.Debug(fmt.Sprintf("+ API GET request to %s", ruri))
+	api.G().Log.Debug(fmt.Sprintf("+ API GET request to %s", ruri))
 	return http.NewRequest("GET", ruri, nil)
 }
 
 func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*http.Request, error) {
 	ruri := url.String()
-	G.Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
+	api.G().Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
 
 	var body io.Reader
 
@@ -194,20 +194,20 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		timerType = TimerXAPI
 	}
 
-	if G.Env.GetAPIDump() {
+	if arg.G().Env.GetAPIDump() {
 		jpStr, _ := json.MarshalIndent(arg.JSONPayload, "", "  ")
 		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
-		G.Log.Debug(fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
+		arg.G().Log.Debug(fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
 	}
 
-	timer := G.Timers.Start(timerType)
+	timer := arg.G().Timers.Start(timerType)
 	resp, err = cli.cli.Do(req)
 	timer.Report(req.Method + " " + arg.Endpoint)
 
 	if err != nil {
 		return nil, nil, APINetError{err: err}
 	}
-	G.Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
+	arg.G().Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
 
 	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
 	err = checkHTTPStatus(arg, resp)
@@ -233,9 +233,9 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		}
 
 		jw = jsonw.NewWrapper(obj)
-		if G.Env.GetAPIDump() {
+		if arg.G().Env.GetAPIDump() {
 			b, _ := json.MarshalIndent(obj, "", "  ")
-			G.Log.Debug(fmt.Sprintf("| full reply: %s", b))
+			arg.G().Log.Debug(fmt.Sprintf("| full reply: %s", b))
 		}
 	}
 
@@ -331,12 +331,12 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
 			req.Header.Add("X-Keybase-Session", tok)
 		} else {
-			G.Log.Warning("fixHeaders: need session, but session token empty")
+			a.G().Log.Warning("fixHeaders: need session, but session token empty")
 		}
 		if len(csrf) > 0 && a.G().Env.GetTorMode().UseCSRF() {
 			req.Header.Add("X-CSRF-Token", csrf)
 		} else {
-			G.Log.Warning("fixHeaders: need session, but session csrf empty")
+			a.G().Log.Warning("fixHeaders: need session, but session csrf empty")
 		}
 	}
 	if a.G().Env.GetTorMode().UseHeaders() {

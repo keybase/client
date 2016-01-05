@@ -4,18 +4,15 @@
 package engine
 
 import (
-	"fmt"
-	"io"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"io"
 )
 
 type SaltPackEncryptArg struct {
-	Recips       []string // user assertions
-	Source       io.Reader
-	Sink         io.WriteCloser
-	TrackOptions keybase1.TrackOptions
+	Opts   keybase1.SaltPackEncryptOptions
+	Source io.Reader
+	Sink   io.WriteCloser
 }
 
 // SaltPackEncrypt encrypts data read from a source into a sink
@@ -23,6 +20,7 @@ type SaltPackEncryptArg struct {
 type SaltPackEncrypt struct {
 	arg *SaltPackEncryptArg
 	libkb.Contextified
+	me *libkb.User
 }
 
 // NewSaltPackEncrypt creates a SaltPackEncrypt engine.
@@ -55,59 +53,99 @@ func (e *SaltPackEncrypt) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
+func (e *SaltPackEncrypt) loadMyPublicKeys() ([]libkb.NaclDHKeyPublic, error) {
+
+	var ret []libkb.NaclDHKeyPublic
+
+	ckf := e.me.GetComputedKeyFamily()
+	if ckf == nil {
+		return ret, libkb.NoKeyError{Msg: "no suitable encryption keys found for you"}
+	}
+	keys := ckf.GetAllActiveSubkeys()
+	for _, key := range keys {
+		if kp, ok := key.(libkb.NaclDHKeyPair); ok {
+			ret = append(ret, kp.Public)
+		}
+	}
+
+	if len(ret) == 0 {
+		return ret, libkb.NoKeyError{Msg: "no suitable encryption keys found for you"}
+	}
+	return ret, nil
+}
+
+func (e *SaltPackEncrypt) loadMe(ctx *Context) error {
+	loggedIn, err := IsLoggedIn(e, ctx)
+	if err != nil || !loggedIn {
+		return err
+	}
+	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	return err
+}
+
 // Run starts the engine.
 func (e *SaltPackEncrypt) Run(ctx *Context) (err error) {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
+	e.G().Log.Debug("+ SaltPackEncrypt::Run")
+	defer func() {
+		e.G().Log.Debug("- SaltPackEncrypt::Run -> %v", err)
+	}()
+
+	var receivers []libkb.NaclDHKeyPublic
+	var sender libkb.NaclDHKeyPair
+
+	if err = e.loadMe(ctx); err != nil {
 		return err
 	}
 
-	// TODO: Add switch to not encrypt for oneself.
-	meAssertion := fmt.Sprintf("uid:%s", me.GetUID())
-	users := append([]string{meAssertion}, e.arg.Recips...)
+	if !e.arg.Opts.NoSelfEncrypt && e.me != nil {
+		receivers, err = e.loadMyPublicKeys()
+		if err != nil {
+			return err
+		}
+	}
+
 	kfarg := DeviceKeyfinderArg{
-		Me:           me,
-		Users:        users,
-		TrackOptions: e.arg.TrackOptions,
+		Users:           e.arg.Opts.Recipients,
+		NeedEncryptKeys: true,
+		Self:            e.me,
 	}
 
 	kf := NewDeviceKeyfinder(e.G(), kfarg)
 	if err := RunEngine(kf, ctx); err != nil {
 		return err
 	}
-
-	uplus := kf.UsersPlusDeviceKeys()
-	var receivers []libkb.NaclDHKeyPublic
+	uplus := kf.UsersPlusKeys()
 	for _, up := range uplus {
 		for _, k := range up.Keys {
-			if !k.IsSibkey {
-				gk, err := libkb.ImportKeypairFromKID(k.KID)
-				if err != nil {
-					return err
-				}
-				kp, ok := gk.(libkb.NaclDHKeyPair)
-				if !ok {
-					return libkb.KeyCannotEncryptError{}
-				}
-				receivers = append(receivers, kp.Public)
+			gk, err := libkb.ImportKeypairFromKID(k.KID)
+			if err != nil {
+				return err
 			}
+			kp, ok := gk.(libkb.NaclDHKeyPair)
+			if !ok {
+				return libkb.KeyCannotEncryptError{}
+			}
+			receivers = append(receivers, kp.Public)
 		}
 	}
 
-	ska := libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceEncryptionKeyType,
-	}
-	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(
-		ctx.LoginContext, ska, ctx.SecretUI,
-		"encrypting a message/file")
-	if err != nil {
-		return err
-	}
-	kp, ok := key.(libkb.NaclDHKeyPair)
-	if !ok || kp.Private == nil {
-		return libkb.KeyCannotDecryptError{}
+	if !e.arg.Opts.HideSelf && e.me != nil {
+		ska := libkb.SecretKeyArg{
+			Me:      e.me,
+			KeyType: libkb.DeviceEncryptionKeyType,
+		}
+		key, err := e.G().Keyrings.GetSecretKeyWithPrompt(
+			ctx.LoginContext, ska, ctx.SecretUI,
+			"encrypting a message/file")
+		if err != nil {
+			return err
+		}
+		kp, ok := key.(libkb.NaclDHKeyPair)
+		if !ok || kp.Private == nil {
+			return libkb.KeyCannotDecryptError{}
+		}
+		sender = kp
 	}
 
-	return libkb.SaltPackEncrypt(e.arg.Source, e.arg.Sink, receivers, kp)
+	return libkb.SaltPackEncrypt(e.arg.Source, e.arg.Sink, receivers, sender)
 }

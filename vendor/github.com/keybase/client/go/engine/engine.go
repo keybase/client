@@ -22,6 +22,10 @@ type Engine interface {
 	G() *libkb.GlobalContext
 }
 
+type UIDelegateWanter interface {
+	WantDelegate(libkb.UIKind) bool
+}
+
 func runPrereqs(e Engine, ctx *Context) (err error) {
 	prq := e.Prereqs()
 
@@ -83,7 +87,7 @@ func delegateUIs(e Engine, ctx *Context) error {
 	// currently, only doing this for SecretUI, but in future,
 	// perhaps should iterate over all registered UIs in UIRouter.
 
-	if requiresUI(e, ctx, libkb.SecretUIKind) {
+	if requiresUI(e, libkb.SecretUIKind) {
 		if ui, err := e.G().UIRouter.GetSecretUI(); err != nil {
 			return err
 		} else if ui != nil {
@@ -92,7 +96,7 @@ func delegateUIs(e Engine, ctx *Context) error {
 		}
 	}
 
-	if requiresUI(e, ctx, libkb.UpdateUIKind) {
+	if requiresUI(e, libkb.UpdateUIKind) {
 		if ui, err := e.G().UIRouter.GetUpdateUI(); err != nil {
 			return err
 		} else if ui != nil {
@@ -101,7 +105,27 @@ func delegateUIs(e Engine, ctx *Context) error {
 		}
 	}
 
+	if wantsDelegateUI(e, libkb.IdentifyUIKind) {
+		e.G().Log.Debug("IdentifyUI wanted for engine %q", e.Name())
+		if ui, err := e.G().UIRouter.GetIdentifyUI(); err != nil {
+			return err
+		} else if ui != nil {
+			e.G().Log.Debug("using delegated identify UI for engine %q", e.Name())
+			ctx.IdentifyUI = ui
+		}
+	}
+
 	return nil
+}
+
+func wantsDelegateUI(e Engine, kind libkb.UIKind) bool {
+	if !requiresUI(e, kind) {
+		return false
+	}
+	if i, ok := e.(UIDelegateWanter); ok {
+		return i.WantDelegate(kind)
+	}
+	return false
 }
 
 func check(c libkb.UIConsumer, ctx *Context) error {
@@ -127,7 +151,7 @@ func checkUI(c libkb.UIConsumer, ctx *Context) error {
 	return nil
 }
 
-func requiresUI(c libkb.UIConsumer, ctx *Context, kind libkb.UIKind) bool {
+func requiresUI(c libkb.UIConsumer, kind libkb.UIKind) bool {
 	for _, ui := range c.RequiredUIs() {
 		if ui == kind {
 			return true
@@ -135,7 +159,7 @@ func requiresUI(c libkb.UIConsumer, ctx *Context, kind libkb.UIKind) bool {
 	}
 
 	for _, sub := range c.SubConsumers() {
-		if requiresUI(sub, ctx, kind) {
+		if requiresUI(sub, kind) {
 			return true
 		}
 	}
