@@ -49,7 +49,7 @@ func (k *LibKBFS) InitTest(blockSize int64, blockChangeSize int64,
 	// Set the block sizes, if any
 	if blockSize > 0 || blockChangeSize > 0 {
 		if blockSize == 0 {
-			blockSize = 64 * 1024
+			blockSize = 512 * 1024
 		}
 		if blockChangeSize < 0 {
 			panic("Can't handle negative blockChangeSize")
