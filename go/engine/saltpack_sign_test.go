@@ -68,6 +68,8 @@ func TestSaltPackSignVerify(t *testing.T) {
 		}
 		veng := NewSaltPackVerify(varg, tc.G)
 
+		ctx.SaltPackUI = fakeSaltPackUI{}
+
 		if err := RunEngine(veng, ctx); err != nil {
 			t.Errorf("%s: verify error: %s", test.name, err)
 			continue
@@ -110,6 +112,8 @@ func TestSaltPackSignVerify(t *testing.T) {
 			},
 		}
 		veng := NewSaltPackVerify(varg, tc.G)
+
+		ctx.SaltPackUI = fakeSaltPackUI{}
 
 		if err := RunEngine(veng, ctx); err != nil {
 			t.Errorf("(detached) %s: verify error: %s", test.name, err)
