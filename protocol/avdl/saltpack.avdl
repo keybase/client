@@ -33,7 +33,6 @@ protocol saltPack {
   }
 
   SaltPackEncryptedMessageInfo saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
-  void saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
   void saltPackSign(int sessionID, Stream source, Stream sink, SaltPackSignOptions opts);
   void saltPackVerify(int sessionID, Stream source, Stream sink, SaltPackVerifyOptions opts);
 }

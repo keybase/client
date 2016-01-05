@@ -510,7 +510,7 @@
         "name" : "opts",
         "type" : "SaltPackDecryptOptions"
       } ],
-      "response" : "null"
+      "response" : "SaltPackEncryptedMessageInfo"
     },
     "saltPackSign" : {
       "request" : [ {

@@ -4696,7 +4696,7 @@ type SaltPackVerifyArg struct {
 
 type SaltPackInterface interface {
 	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
-	SaltPackDecrypt(context.Context, SaltPackDecryptArg) error
+	SaltPackDecrypt(context.Context, SaltPackDecryptArg) (SaltPackEncryptedMessageInfo, error)
 	SaltPackSign(context.Context, SaltPackSignArg) error
 	SaltPackVerify(context.Context, SaltPackVerifyArg) error
 }
@@ -4732,7 +4732,7 @@ func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SaltPackDecryptArg)(nil), args)
 						return
 					}
-					err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
+					ret, err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4782,8 +4782,8 @@ func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncry
 	return
 }
 
-func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, nil)
+func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (res SaltPackEncryptedMessageInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, &res)
 	return
 }
 
