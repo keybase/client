@@ -42,6 +42,23 @@ func SaltPackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, che
 	return nil
 }
 
+func SaltPackVerifyDetached(g *GlobalContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
+	kr := echoKeyring{Contextified: NewContextified(g)}
+	skey, err := saltpack.Dearmor62VerifyDetachedReader(message, string(signature), kr)
+	if err != nil {
+		g.Log.Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
+		return err
+	}
+
+	if checkSender != nil {
+		if err = checkSender(skey); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type echoKeyring struct {
 	Contextified
 }

@@ -47,10 +47,11 @@ func Dearmor62Verify(signedMsg string, keyring SigKeyring) (skey SigningPublicKe
 	return skey, verifiedMsg, nil
 }
 
-// Dearmor62VerifyDetached verifies that signature is a valid
-// armor62-encoded signature for message, and that the public key
-// for the signer is in keyring. It returns the signer's public key.
-func Dearmor62VerifyDetached(message []byte, signature string, keyring SigKeyring) (skey SigningPublicKey, err error) {
+// Dearmor62VerifyDetachedReader verifies that signature is a valid
+// armor62-encoded signature for entire message read from Reader,
+// and that the public key for the signer is in keyring. It returns
+// the signer's public key.
+func Dearmor62VerifyDetachedReader(r io.Reader, signature string, keyring SigKeyring) (skey SigningPublicKey, err error) {
 	dearmored, header, footer, err := Armor62Open(signature)
 	if err != nil {
 		return nil, err
@@ -62,5 +63,12 @@ func Dearmor62VerifyDetached(message []byte, signature string, keyring SigKeyrin
 		return nil, ErrBadArmorFooter{DetachedSignatureArmorFooter, footer}
 	}
 
-	return VerifyDetached(message, dearmored, keyring)
+	return VerifyDetachedReader(r, dearmored, keyring)
+}
+
+// Dearmor62VerifyDetached verifies that signature is a valid
+// armor62-encoded signature for message, and that the public key
+// for the signer is in keyring. It returns the signer's public key.
+func Dearmor62VerifyDetached(message []byte, signature string, keyring SigKeyring) (skey SigningPublicKey, err error) {
+	return Dearmor62VerifyDetachedReader(bytes.NewReader(message), signature, keyring)
 }

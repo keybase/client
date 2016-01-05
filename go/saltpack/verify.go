@@ -5,6 +5,7 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/sha512"
 	"io"
 	"io/ioutil"
 )
@@ -26,7 +27,7 @@ func NewVerifyStream(r io.Reader, keyring SigKeyring) (skey SigningPublicKey, vs
 	return skey, s, nil
 }
 
-// Verify checks the signature in signedMsg.  It returns the
+// Verify checks the signature in signedMsg. It returns the
 // signer's public key and a verified message.
 func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifiedMsg []byte, err error) {
 	skey, stream, err := NewVerifyStream(bytes.NewReader(signedMsg), keyring)
@@ -41,10 +42,10 @@ func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifi
 	return skey, verifiedMsg, nil
 }
 
-// VerifyDetached verifies that signature is a valid signature for
-// message, and that the public key for the signer is in keyring.
-// It returns the signer's public key.
-func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey SigningPublicKey, err error) {
+// VerifyDetachedReader verifies that signature is a valid signature for
+// entire message read from message Reader, and that the public key for
+// the signer is in keyring. It returns the signer's public key.
+func VerifyDetachedReader(message io.Reader, signature []byte, keyring SigKeyring) (skey SigningPublicKey, err error) {
 	s, err := newVerifyStream(bytes.NewBuffer(signature), MessageTypeDetachedSignature)
 	if err != nil {
 		return nil, err
@@ -55,9 +56,22 @@ func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey Signing
 		return nil, ErrNoSenderKey
 	}
 
-	if err := skey.Verify(computeDetachedDigest(s.header.Nonce, message), s.header.Signature); err != nil {
+	hasher := sha512.New()
+	hasher.Write(s.header.Nonce)
+	if _, err := io.Copy(hasher, message); err != nil {
+		return nil, err
+	}
+
+	if err := skey.Verify(detachedDigest(hasher.Sum(nil)), s.header.Signature); err != nil {
 		return nil, err
 	}
 
 	return skey, nil
+}
+
+// VerifyDetached verifies that signature is a valid signature for
+// message, and that the public key for the signer is in keyring.
+// It returns the signer's public key.
+func VerifyDetached(message, signature []byte, keyring SigKeyring) (skey SigningPublicKey, err error) {
+	return VerifyDetachedReader(bytes.NewReader(message), signature, keyring)
 }

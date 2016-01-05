@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func TestSaltPackSignDeviceRequired(t *testing.T) {
@@ -35,6 +36,8 @@ func TestSaltPackSignVerify(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "sign")
 
+	// signTests are defined in pgp_sign_test.  Make sure that saltpack sign can
+	// sign/verify the same messages as pgp.
 	for _, test := range signTests {
 		var sink bytes.Buffer
 
@@ -67,6 +70,47 @@ func TestSaltPackSignVerify(t *testing.T) {
 
 		if err := RunEngine(veng, ctx); err != nil {
 			t.Errorf("%s: verify error: %s", test.name, err)
+			continue
+		}
+	}
+
+	// now try the same messages, but generate detached signatures
+	for _, test := range signTests {
+		var sink bytes.Buffer
+
+		sarg := &SaltPackSignArg{
+			Sink:   libkb.NopWriteCloser{W: &sink},
+			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
+			Opts: keybase1.SaltPackSignOptions{
+				Detached: true,
+			},
+		}
+
+		eng := NewSaltPackSign(sarg, tc.G)
+		ctx := &Context{
+			IdentifyUI: &FakeIdentifyUI{},
+			SecretUI:   fu.NewSecretUI(),
+		}
+
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Errorf("(detached) %s: run error: %s", test.name, err)
+			continue
+		}
+
+		sig := sink.Bytes()
+
+		if len(sig) == 0 {
+			t.Errorf("(detached) %s: empty sig", test.name)
+		}
+
+		varg := &SaltPackVerifyArg{
+			Source:    strings.NewReader(test.input),
+			Signature: sig,
+		}
+		veng := NewSaltPackVerify(varg, tc.G)
+
+		if err := RunEngine(veng, ctx); err != nil {
+			t.Errorf("(detached) %s: verify error: %s", test.name, err)
 			continue
 		}
 	}

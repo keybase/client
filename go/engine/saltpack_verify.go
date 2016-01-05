@@ -56,7 +56,7 @@ func (e *SaltPackVerify) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *SaltPackVerify) Run(ctx *Context) error {
 	if len(e.arg.Signature) > 0 {
-		return e.detached()
+		return e.detached(ctx)
 	}
 	return e.attached(ctx)
 }
@@ -69,8 +69,11 @@ func (e *SaltPackVerify) attached(ctx *Context) error {
 	return libkb.SaltPackVerify(e.G(), e.arg.Source, libkb.NopWriteCloser{W: &buf}, hook)
 }
 
-func (e *SaltPackVerify) detached() error {
-	return nil
+func (e *SaltPackVerify) detached(ctx *Context) error {
+	hook := func(key saltpack.SigningPublicKey) error {
+		return e.identifySender(ctx, key)
+	}
+	return libkb.SaltPackVerifyDetached(e.G(), e.arg.Source, e.arg.Signature, hook)
 }
 
 func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublicKey) (err error) {
