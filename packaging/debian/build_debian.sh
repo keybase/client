@@ -49,6 +49,8 @@ build_one_architecture() {
   go build -a -tags "$go_tags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
   go build -a -tags "$go_tags" -o "$dest/build/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
 
+  cp run_keybase.sh "$dest/build/usr/bin/run_keybase.sh"
+
   version="$("$here/../version.sh")"
 
   # Installed-Size is a required field in the control file. Without it Ubuntu
