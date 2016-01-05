@@ -78,6 +78,7 @@ func (c *CmdVerify) Run() (err error) {
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
 		NewSecretUIProtocol(c.G()),
+		NewIdentifyUIProtocol(c.G()),
 	}
 
 	cli, err := GetSaltPackClient(c.G())
