@@ -1848,6 +1848,31 @@ func checkDisallowedPrefixes(name string) error {
 	return nil
 }
 
+func (fbo *folderBranchOps) checkNewDirSize(ctx context.Context,
+	lState *lockState, md *RootMetadata, dirPath path, newName string) error {
+	// Check that the directory isn't past capacity already.
+	var currSize uint64
+	if dirPath.hasValidParent() {
+		_, de, err := fbo.getEntry(ctx, lState, md, dirPath)
+		if err != nil {
+			return err
+		}
+		currSize = de.Size
+	} else {
+		// dirPath is just the root.
+		currSize = md.data.Dir.Size
+	}
+	// Just an approximation since it doesn't include the size of the
+	// directory entry itself, but that's ok -- at worst it'll be an
+	// off-by-one-entry error, and since there's a maximum name length
+	// we can't get in too much trouble.
+	if currSize+uint64(len(newName)) > fbo.config.MaxDirSize() {
+		return DirTooBigError{dirPath, currSize + uint64(len(newName)),
+			fbo.config.MaxDirSize()}
+	}
+	return nil
+}
+
 // entryType must not by Sym.  mdWriterLock must be taken by caller.
 func (fbo *folderBranchOps) createEntryLocked(
 	ctx context.Context, lState *lockState, dir Node, name string,
@@ -1891,25 +1916,8 @@ func (fbo *folderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, NameExistsError{name}
 	}
 
-	// Check that the directory isn't past capacity already.
-	var currSize uint64
-	if dirPath.hasValidParent() {
-		_, de, err := fbo.getEntry(ctx, lState, md, dirPath)
-		if err != nil {
-			return nil, DirEntry{}, err
-		}
-		currSize = de.Size
-	} else {
-		// dirPath is just the root.
-		currSize = md.data.Dir.Size
-	}
-	// Just an approximation since it doesn't include the size of the
-	// directory entry itself, but that's ok -- at worst it'll be an
-	// off-by-one-entry error, and since there's a maximum name length
-	// we can't get in too much trouble.
-	if currSize+uint64(len(name)) > fbo.config.MaxDirSize() {
-		return nil, DirEntry{}, DirTooBigError{dirPath,
-			currSize + uint64(len(name)), fbo.config.MaxDirSize()}
+	if err := fbo.checkNewDirSize(ctx, lState, md, dirPath, name); err != nil {
+		return nil, DirEntry{}, err
 	}
 
 	md.AddOp(newCreateOp(name, dirPath.tailPointer(), entryType))
@@ -2011,6 +2019,11 @@ func (fbo *folderBranchOps) createLinkLocked(
 		return DirEntry{}, err
 	}
 
+	if uint32(len(fromName)) > fbo.config.MaxNameLength() {
+		return DirEntry{},
+			NameTooLongError{fromName, fbo.config.MaxNameLength()}
+	}
+
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
 	if err != nil {
@@ -2036,6 +2049,11 @@ func (fbo *folderBranchOps) createLinkLocked(
 	// does name already exist?
 	if _, ok := dblock.Children[fromName]; ok {
 		return DirEntry{}, NameExistsError{fromName}
+	}
+
+	if err := fbo.checkNewDirSize(ctx, lState, md,
+		dirPath, fromName); err != nil {
+		return DirEntry{}, err
 	}
 
 	md.AddOp(newCreateOp(fromName, dirPath.tailPointer(), Sym))
