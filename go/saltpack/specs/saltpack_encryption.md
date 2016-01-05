@@ -58,7 +58,7 @@ keys each is handled the same as sending to one recipient with twenty keys,
 or twenty recipients with one key each.
 
 Finally, the scheme accommodates anonymous receivers and anonymous senders. Thus,
-each message needs an emphemeral sender public key, used only for this one message,
+each message needs an ephemeral sender public key, used only for this one message,
 to hide the sender's true identity. Some implementations of the scheme can
 choose to reveal the keys of the receivers to make user-friendlier errors
 messages on decryption failures (e.g., "Can't decrypt this message on your
@@ -108,7 +108,7 @@ A recipient pair is a two-element list:
 - The **recipient box** is a NaCl box encrypted with the recipient's public key
   and the ephemeral private key.
 
-The the **recipient box** contains another two-element MessagePack list:
+The **recipient box** contains another two-element MessagePack list:
 
 ```
 [

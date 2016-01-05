@@ -225,7 +225,7 @@ the "extra bits" computation in the previous section.
 
 As with the Base64-compatibility-shift, though, we avoid this sort of scheme
 for BaseX. It would have the same drawbacks: limited value, extra complexity,
-and a less intuitive encoded result. Also becase we have no intention of
+and a less intuitive encoded result. Also because we have no intention of
 replicating the 4-zeroes special case (`z`), or the even-more-obscure 4-spaces
 special case (`y`), we wouldn't be able to achieve Base85 decoding
 compatibility anyway.
@@ -235,7 +235,7 @@ compatibility anyway.
 [Base65536](https://www.npmjs.com/package/base65536) is an "encoding" that
 tries to fit as much data as possible into a tweet. It works because Twitter's
 140-character limit is defined over Unicode code points rather than actual
-ecoded bytes. So by picking an alphabet of thousands of unicode characters, we
+ecoded bytes. So by picking an alphabet of thousands of Unicode characters, we
 can encode more than one byte per character. Base65535 is able to fit 255 bytes
 into just 128 code points.
 
