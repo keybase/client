@@ -5,7 +5,6 @@ package engine
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -60,8 +59,6 @@ func TestSaltPackSignVerify(t *testing.T) {
 		if len(sig) == 0 {
 			t.Errorf("%s: empty sig", test.name)
 		}
-
-		fmt.Printf("sig:\n%s\n", sig)
 
 		varg := &SaltPackVerifyArg{
 			Source: strings.NewReader(sig),

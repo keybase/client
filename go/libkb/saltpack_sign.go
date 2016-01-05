@@ -14,6 +14,14 @@ import (
 )
 
 func SaltPackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair) error {
+	return saltpackSign(g, source, sink, key, saltpack.NewSignArmor62Stream)
+}
+
+func SaltPackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair) error {
+	return saltpackSign(g, source, sink, key, saltpack.NewSignDetachedArmor62Stream)
+}
+
+func saltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, streamer func(io.Writer, saltpack.SigningSecretKey) (io.WriteCloser, error)) error {
 	defer func() {
 		if err := source.Close(); err != nil {
 			g.Log.Warning("error closing source: %s", err)
@@ -23,7 +31,7 @@ func SaltPackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, k
 		}
 	}()
 
-	stream, err := saltpack.NewSignArmor62Stream(sink, saltSigner{key})
+	stream, err := streamer(sink, saltSigner{key})
 	if err != nil {
 		return err
 	}

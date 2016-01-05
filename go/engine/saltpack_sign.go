@@ -61,7 +61,9 @@ func (e *SaltPackSign) Run(ctx *Context) error {
 		return err
 	}
 
-	// TODO: check detached flag
+	if e.arg.Opts.Detached {
+		return libkb.SaltPackSignDetached(e.G(), e.arg.Source, e.arg.Sink, e.key)
+	}
 
 	return libkb.SaltPackSign(e.G(), e.arg.Source, e.arg.Sink, e.key)
 }
