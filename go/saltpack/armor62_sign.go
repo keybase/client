@@ -3,14 +3,11 @@
 
 package saltpack
 
-import (
-	"bytes"
-	"io"
-)
+import "io"
 
 // NewSignArmor62Stream creates a stream that consumes plaintext data.
 // It will write out signed data to the io.Writer passed in as
-// signedtext.  NewSignStream only generates attached signatures.
+// signedtext.  NewSignArmor62Stream only generates attached signatures.
 //
 // The signed data is armored with the recommended armor62-style
 // format.
@@ -28,25 +25,37 @@ func NewSignArmor62Stream(signedtext io.Writer, signer SigningSecretKey) (stream
 
 // SignArmor62 creates an attached armored signature message of plaintext from signer.
 func SignArmor62(plaintext []byte, signer SigningSecretKey) (string, error) {
-	var buf bytes.Buffer
-	s, err := NewSignArmor62Stream(&buf, signer)
+	buf, err := signToStream(plaintext, signer, NewSignArmor62Stream)
 	if err != nil {
-		return "", err
-	}
-	if _, err := s.Write(plaintext); err != nil {
-		return "", err
-	}
-	if err := s.Close(); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
+// NewSignDetachedArmor62Stream creates a stream that consumes plaintext data.
+// It will write out the detached signature to the io.Writer passed in as
+// detachedsig.  NewSignDetachedArmor62Stream only generates detached signatures.
+//
+// The signature is armored with the recommended armor62-style
+// format.
+func NewSignDetachedArmor62Stream(detachedsig io.Writer, signer SigningSecretKey) (stream io.WriteCloser, err error) {
+	enc, err := NewArmor62EncoderStream(detachedsig, DetachedSignatureArmorHeader, DetachedSignatureArmorFooter)
+	if err != nil {
+		return nil, err
+	}
+	out, err := NewSignDetachedStream(enc, signer)
+	if err != nil {
+		return nil, err
+	}
+	return closeForwarder([]io.WriteCloser{out, enc}), nil
+
+}
+
 // SignDetachedArmor62 returns a detached armored signature of plaintext from signer.
 func SignDetachedArmor62(plaintext []byte, signer SigningSecretKey) (string, error) {
-	sig, err := SignDetached(plaintext, signer)
+	buf, err := signToStream(plaintext, signer, NewSignDetachedArmor62Stream)
 	if err != nil {
 		return "", err
 	}
-	return Armor62Seal(sig, DetachedSignatureArmorHeader, DetachedSignatureArmorFooter)
+	return buf.String(), nil
 }

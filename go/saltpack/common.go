@@ -83,10 +83,14 @@ func computeDetachedDigest(nonce []byte, plaintext []byte) []byte {
 	hasher.Write(nonce)
 	hasher.Write(plaintext)
 
+	return detachedDigest(hasher.Sum(nil))
+}
+
+func detachedDigest(sum []byte) []byte {
 	var buf bytes.Buffer
 	writeNullTerminatedString(&buf, SaltPackFormatName)
 	writeNullTerminatedString(&buf, SignatureDetachedString)
-	buf.Write(hasher.Sum(nil))
+	buf.Write(sum)
 
 	return buf.Bytes()
 }

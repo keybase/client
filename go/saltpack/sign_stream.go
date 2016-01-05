@@ -5,6 +5,8 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/sha512"
+	"hash"
 	"io"
 )
 
@@ -109,4 +111,51 @@ func (s *signAttachedStream) writeFooter() error {
 
 func (s *signAttachedStream) computeSig(block *SignatureBlock) ([]byte, error) {
 	return s.secretKey.Sign(computeAttachedDigest(s.header.Nonce, block))
+}
+
+type signDetachedStream struct {
+	header    *SignatureHeader
+	encoder   encoder
+	secretKey SigningSecretKey
+	hasher    hash.Hash
+}
+
+func newSignDetachedStream(w io.Writer, signer SigningSecretKey) (*signDetachedStream, error) {
+	if signer == nil {
+		return nil, ErrInvalidParameter{message: "no signing key provided"}
+	}
+
+	header, err := newSignatureHeader(signer.PublicKey(), MessageTypeDetachedSignature)
+	if err != nil {
+		return nil, err
+	}
+
+	stream := &signDetachedStream{
+		header:    header,
+		encoder:   newEncoder(w),
+		secretKey: signer,
+		hasher:    sha512.New(),
+	}
+
+	stream.hasher.Write(stream.header.Nonce)
+
+	return stream, nil
+}
+
+func (s *signDetachedStream) Write(p []byte) (int, error) {
+	return s.hasher.Write(p)
+}
+
+func (s *signDetachedStream) Close() error {
+	signature, err := s.secretKey.Sign(detachedDigest(s.hasher.Sum(nil)))
+	if err != nil {
+		return err
+	}
+	s.header.Signature = signature
+
+	if err := s.encoder.Encode(s.header); err != nil {
+		return err
+	}
+
+	return nil
 }
