@@ -1880,15 +1880,15 @@ func (fbo *folderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, err
 	}
 
-	dirPath, dblock, err := func() (path, *DirBlock, error) {
+	dblock, err := func() (*DirBlock, error) {
 		fbo.blockLock.RLock(lState)
 		defer fbo.blockLock.RUnlock(lState)
 
 		dblock, err := fbo.getDirLocked(ctx, lState, md, dirPath, mdWrite)
 		if err != nil {
-			return path{}, nil, err
+			return nil, err
 		}
-		return dirPath, dblock, nil
+		return dblock, nil
 	}()
 	if err != nil {
 		return nil, DirEntry{}, err
