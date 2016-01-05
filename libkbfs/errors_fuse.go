@@ -72,3 +72,17 @@ var _ fuse.ErrorNumber = FileTooBigError{}
 func (e FileTooBigError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EFBIG)
 }
+
+var _ fuse.ErrorNumber = NameTooLongError{}
+
+// Errno implements the fuse.ErrorNumber interface for NameTooLongError.
+func (e NameTooLongError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.ENAMETOOLONG)
+}
+
+var _ fuse.ErrorNumber = DirTooBigError{}
+
+// Errno implements the fuse.ErrorNumber interface for DirTooBigError.
+func (e DirTooBigError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EFBIG)
+}

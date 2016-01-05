@@ -56,6 +56,12 @@ const (
 	// Max supported size of a file in KBFS.  TODO: increase this once
 	// we support multiple levels of indirection.
 	maxFileSize = 2 * 1024 * 1024 * 1024
+	// Max supported size of a directory entry name.
+	maxNameLength = 255
+	// Maximum number of entries allowed within a directory. TODO:
+	// increase this once we support levels of indirection for
+	// directories.
+	maxNumDirEntries = 1024
 )
 
 type fboMutexLevel mutexLevel
@@ -1859,6 +1865,10 @@ func (fbo *folderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, err
 	}
 
+	if len(name) > maxNameLength {
+		return nil, DirEntry{}, NameTooLongError{name, maxNameLength}
+	}
+
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
 	if err != nil {
@@ -1887,6 +1897,11 @@ func (fbo *folderBranchOps) createEntryLocked(
 	// does name already exist?
 	if _, ok := dblock.Children[name]; ok {
 		return nil, DirEntry{}, NameExistsError{name}
+	}
+
+	if len(dblock.Children) >= maxNumDirEntries {
+		return nil, DirEntry{}, DirTooBigError{dirPath,
+			int64(len(dblock.Children) + 1), maxNumDirEntries}
 	}
 
 	md.AddOp(newCreateOp(name, dirPath.tailPointer(), entryType))
