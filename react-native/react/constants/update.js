@@ -16,7 +16,7 @@ export type RegisterUpdateListenerAction = TypedAction<'update:registerUpdateLis
 export type OnCancelAction = TypedAction<'update:onCancel', void, any>
 export type OnSkipAction = TypedAction<'update:onSkip', void, any>
 export type OnSnoozeAction = TypedAction<'update:onSnooze', void, any>
-export type OnUpdateAction = TypedAction<'update:onUpdate', void, any>
+export type OnUpdateAction = TypedAction<'update:onUpdate', {alwaysAutoInstall: bool}, any>
 export type SetAlwaysUpdateAction = TypedAction<'update:setAlwaysUpdate', {alwaysUpdate: bool}, any>
 
 export type UpdateActions = ShowUpdateAction | RegisterUpdateListenerAction | OnSkipAction | OnSnoozeAction | OnUpdateAction | OnCancelAction | SetAlwaysUpdateAction

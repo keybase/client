@@ -37,7 +37,7 @@ export type RemoteManagerProps = {
   updateOnSkip: () => void,
   updateOnCancel: () => void,
   updateOnSnooze: () => void,
-  updateOnUpdate: () => void,
+  updateOnUpdate: (alwaysAutoInstall: bool) => void,
   setAlwaysUpdate: (alwaysUpdate: bool) => void
 }
 
@@ -168,7 +168,7 @@ class RemoteManager extends Component {
         onCancel={() => this.props.updateOnCancel()}
         onSkip={() => this.props.updateOnSkip()}
         onSnooze={() => this.props.updateOnSnooze()}
-        onUpdate={() => this.props.updateOnUpdate()}
+        onUpdate={alwaysAutoInstall => this.props.updateOnUpdate(alwaysAutoInstall)}
         onRemoteClose={() => this.props.updateOnCancel()}
         setAlwaysUpdate={alwaysUpdate => this.props.setAlwaysUpdate(alwaysUpdate)}
       />
