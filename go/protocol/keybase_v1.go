@@ -1650,6 +1650,7 @@ type Identify2Arg struct {
 	AlwaysBlock           bool           `codec:"alwaysBlock" json:"alwaysBlock"`
 	NoErrorOnTrackFailure bool           `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
 	ForceRemoteCheck      bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	NeedProofSet          bool           `codec:"needProofSet" json:"needProofSet"`
 }
 
 type IdentifyInterface interface {
