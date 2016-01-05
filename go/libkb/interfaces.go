@@ -302,6 +302,7 @@ type SecretUI interface {
 
 type SaltPackUI interface {
 	SaltPackPromptForDecrypt(context.Context, keybase1.SaltPackPromptForDecryptArg) error
+	SaltPackSignatureSuccess(context.Context, keybase1.SaltPackSignatureSuccessArg) error
 }
 
 type LogUI interface {

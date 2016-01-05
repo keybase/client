@@ -48,6 +48,7 @@ type CmdVerify struct {
 	UnixFilter
 	detachedData []byte
 	signedBy     string
+	spui         *SaltPackUI
 }
 
 func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
@@ -75,16 +76,23 @@ func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdVerify) Run() (err error) {
-	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(),
-		NewSecretUIProtocol(c.G()),
-		NewIdentifyUIProtocol(c.G()),
-	}
-
 	cli, err := GetSaltPackClient(c.G())
 	if err != nil {
 		return err
 	}
+
+	c.spui = &SaltPackUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
+
+	protocols := []rpc.Protocol{
+		NewStreamUIProtocol(),
+		NewSecretUIProtocol(c.G()),
+		NewIdentifyUIProtocol(c.G()),
+		keybase1.SaltPackUiProtocol(c.spui),
+	}
+
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
 	}

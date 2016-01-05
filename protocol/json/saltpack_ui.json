@@ -277,6 +277,22 @@
         "type" : "SaltPackSender"
       } ],
       "response" : "null"
+    },
+    "saltPackSignatureSuccess" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "signingKID",
+        "type" : "KID"
+      }, {
+        "name" : "signedAt",
+        "type" : "Time"
+      }, {
+        "name" : "sender",
+        "type" : "SaltPackSender"
+      } ],
+      "response" : "null"
     }
   }
 }

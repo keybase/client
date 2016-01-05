@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"io"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/saltpack"
@@ -44,7 +46,9 @@ func (e *SaltPackVerify) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *SaltPackVerify) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{
+		libkb.SaltPackUIKind,
+	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -78,8 +82,9 @@ func (e *SaltPackVerify) detached(ctx *Context) error {
 func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublicKey) (err error) {
 	defer e.G().Trace("SaltPackVerify::identifySender", func() error { return err })()
 
+	kid := libkb.SigningPublicKeyToKeybaseKID(key)
 	spsiArg := SaltPackSenderIdentifyArg{
-		publicKey:   libkb.SigningPublicKeyToKeybaseKID(key),
+		publicKey:   kid,
 		interactive: true,
 		reason: keybase1.IdentifyReason{
 			Reason: "Identify who signed this message",
@@ -92,6 +97,12 @@ func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublic
 	if err = RunEngine(spsiEng, ctx); err != nil {
 		return err
 	}
+
+	arg := keybase1.SaltPackSignatureSuccessArg{
+		Sender:     spsiEng.Result(),
+		SigningKID: kid,
+	}
+	ctx.SaltPackUI.SaltPackSignatureSuccess(context.TODO(), arg)
 
 	return nil
 }

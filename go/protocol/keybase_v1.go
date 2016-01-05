@@ -4818,8 +4818,16 @@ type SaltPackPromptForDecryptArg struct {
 	Sender    SaltPackSender `codec:"sender" json:"sender"`
 }
 
+type SaltPackSignatureSuccessArg struct {
+	SessionID  int            `codec:"sessionID" json:"sessionID"`
+	SigningKID KID            `codec:"signingKID" json:"signingKID"`
+	SignedAt   Time           `codec:"signedAt" json:"signedAt"`
+	Sender     SaltPackSender `codec:"sender" json:"sender"`
+}
+
 type SaltPackUiInterface interface {
 	SaltPackPromptForDecrypt(context.Context, SaltPackPromptForDecryptArg) error
+	SaltPackSignatureSuccess(context.Context, SaltPackSignatureSuccessArg) error
 }
 
 func SaltPackUiProtocol(i SaltPackUiInterface) rpc.Protocol {
@@ -4842,6 +4850,22 @@ func SaltPackUiProtocol(i SaltPackUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"saltPackSignatureSuccess": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackSignatureSuccessArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackSignatureSuccessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackSignatureSuccessArg)(nil), args)
+						return
+					}
+					err = i.SaltPackSignatureSuccess(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4852,6 +4876,11 @@ type SaltPackUiClient struct {
 
 func (c SaltPackUiClient) SaltPackPromptForDecrypt(ctx context.Context, __arg SaltPackPromptForDecryptArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackPromptForDecrypt", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SaltPackUiClient) SaltPackSignatureSuccess(ctx context.Context, __arg SaltPackSignatureSuccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackSignatureSuccess", []interface{}{__arg}, nil)
 	return
 }
 
