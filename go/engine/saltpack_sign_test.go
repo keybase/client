@@ -104,8 +104,10 @@ func TestSaltPackSignVerify(t *testing.T) {
 		}
 
 		varg := &SaltPackVerifyArg{
-			Source:    strings.NewReader(test.input),
-			Signature: sig,
+			Source: strings.NewReader(test.input),
+			Opts: keybase1.SaltPackVerifyOptions{
+				Signature: sig,
+			},
 		}
 		veng := NewSaltPackVerify(varg, tc.G)
 

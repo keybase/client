@@ -6,18 +6,23 @@ package engine
 import (
 	"crypto/rand"
 	"errors"
+	"strings"
+	"sync"
+	"testing"
+
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
-	"strings"
-	"sync"
-	"testing"
 )
 
 type fakeSaltPackUI struct{}
 
 func (s fakeSaltPackUI) SaltPackPromptForDecrypt(_ context.Context, arg keybase1.SaltPackPromptForDecryptArg) (err error) {
+	return nil
+}
+
+func (s fakeSaltPackUI) SaltPackSignatureSuccess(_ context.Context, arg keybase1.SaltPackSignatureSuccessArg) error {
 	return nil
 }
 
@@ -94,6 +99,7 @@ HTngZWUk8Tjn6Q8zrnnoB92G1G+rZHAiChgBFQCaYDBsWa0Pia6Vm+10OAIulGGj
 }
 
 type testDecryptSaltPackUI struct {
+	fakeSaltPackUI
 	f func(arg keybase1.SaltPackPromptForDecryptArg) error
 }
 
