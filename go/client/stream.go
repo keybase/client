@@ -4,10 +4,11 @@
 package client
 
 import (
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewStreamUIProtocol() rpc.Protocol {
-	return keybase1.StreamUiProtocol(G.XStreams)
+func NewStreamUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.StreamUiProtocol(g.XStreams)
 }

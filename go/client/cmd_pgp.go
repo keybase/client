@@ -19,7 +19,7 @@ func NewCmdPGP(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 			NewCmdPGPPull(cl, g),
 			NewCmdPGPUpdate(cl),
 			NewCmdPGPSelect(cl),
-			NewCmdPGPSign(cl),
+			NewCmdPGPSign(cl, g),
 			NewCmdPGPEncrypt(cl, g),
 			NewCmdPGPDecrypt(cl, g),
 			NewCmdPGPVerify(cl, g),

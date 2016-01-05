@@ -51,7 +51,7 @@ func (c *CmdStress) rpcClient() (*rpc.Client, error) {
 		return nil, err
 	}
 	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(),
+		NewStreamUIProtocol(G),
 		c.secretUIProtocol(),
 		NewIdentifyUIProtocol(G),
 		c.gpgUIProtocol(),

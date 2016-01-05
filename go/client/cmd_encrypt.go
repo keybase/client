@@ -11,8 +11,8 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
-	"github.com/keybase/go-framed-msgpack-rpc"
+	keybase1 "github.com/keybase/client/go/protocol"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type CmdEncrypt struct {
@@ -64,11 +64,11 @@ func (c *CmdEncrypt) Run() error {
 	}
 
 	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(),
+		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 		NewIdentifyUIProtocol(c.G()),
 	}
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 

@@ -76,7 +76,7 @@ func (s *SaltPackUI) SaltPackSignatureSuccess(_ context.Context, arg keybase1.Sa
 	}
 	s.terminal.Printf(ColorString("green", fmt.Sprintf("Signature verified. %s.\n", un)))
 	if arg.Sender.SenderType == keybase1.SaltPackSenderType_UNKNOWN {
-		s.terminal.Printf(ColorString("green", fmt.Sprintf("Signing key ID: %x.\n", arg.SigningKID.ToShortIDString())))
+		s.terminal.Printf(ColorString("green", fmt.Sprintf("Signing key ID: %s.\n", arg.SigningKID)))
 	}
 
 	return nil

@@ -63,7 +63,7 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 
 func (s *CmdSign) Run() (err error) {
 	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(),
+		NewStreamUIProtocol(s.G()),
 		NewSecretUIProtocol(s.G()),
 	}
 
@@ -71,7 +71,7 @@ func (s *CmdSign) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
 	snk, src, err := s.ClientFilterOpen()

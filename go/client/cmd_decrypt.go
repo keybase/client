@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 
 	"fmt"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -97,7 +98,7 @@ func (c *CmdDecrypt) Run() error {
 	c.spui.terminal = c.G().UI.GetTerminalUI()
 
 	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(),
+		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 		NewIdentifyUIProtocol(c.G()),
 		keybase1.SaltPackUiProtocol(c.spui),

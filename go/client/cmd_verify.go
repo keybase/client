@@ -87,13 +87,13 @@ func (c *CmdVerify) Run() (err error) {
 	}
 
 	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(),
+		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 		NewIdentifyUIProtocol(c.G()),
 		keybase1.SaltPackUiProtocol(c.spui),
 	}
 
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 	snk, src, err := c.ClientFilterOpen()
