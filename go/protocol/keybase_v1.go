@@ -4655,6 +4655,11 @@ type SaltPackSignOptions struct {
 	Detached bool `codec:"detached" json:"detached"`
 }
 
+type SaltPackVerifyOptions struct {
+	SignedBy  string `codec:"signedBy" json:"signedBy"`
+	Signature []byte `codec:"signature" json:"signature"`
+}
+
 type SaltPackEncryptedMessageInfo struct {
 	Devices          []Device `codec:"devices" json:"devices"`
 	NumAnonReceivers int      `codec:"numAnonReceivers" json:"numAnonReceivers"`
@@ -4682,10 +4687,18 @@ type SaltPackSignArg struct {
 	Opts      SaltPackSignOptions `codec:"opts" json:"opts"`
 }
 
+type SaltPackVerifyArg struct {
+	SessionID int                   `codec:"sessionID" json:"sessionID"`
+	Source    Stream                `codec:"source" json:"source"`
+	Sink      Stream                `codec:"sink" json:"sink"`
+	Opts      SaltPackVerifyOptions `codec:"opts" json:"opts"`
+}
+
 type SaltPackInterface interface {
 	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
 	SaltPackDecrypt(context.Context, SaltPackDecryptArg) error
 	SaltPackSign(context.Context, SaltPackSignArg) error
+	SaltPackVerify(context.Context, SaltPackVerifyArg) error
 }
 
 func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
@@ -4740,6 +4753,22 @@ func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"saltPackVerify": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackVerifyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackVerifyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackVerifyArg)(nil), args)
+						return
+					}
+					err = i.SaltPackVerify(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4760,6 +4789,11 @@ func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecry
 
 func (c SaltPackClient) SaltPackSign(ctx context.Context, __arg SaltPackSignArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackSign", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SaltPackClient) SaltPackVerify(ctx context.Context, __arg SaltPackVerifyArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackVerify", []interface{}{__arg}, nil)
 	return
 }
 

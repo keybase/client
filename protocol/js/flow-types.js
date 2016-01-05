@@ -4306,6 +4306,16 @@ export type SaltPackSignOptions = {
   detached: boolean;
 }
 
+export type saltPack_SaltPackVerifyOptions = {
+  signedBy: string;
+  signature: bytes;
+}
+
+export type SaltPackVerifyOptions = {
+  signedBy: string;
+  signature: bytes;
+}
+
 export type saltPack_SaltPackEncryptedMessageInfo = {
   devices: Array<Device>;
   numAnonReceivers: int;
@@ -4562,6 +4572,8 @@ export type SecretKeys_Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
 }
 
 export type SecretKeys_Stream = {

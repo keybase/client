@@ -64,7 +64,7 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 func (s *CmdSign) Run() (err error) {
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(),
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(s.G()),
 	}
 
 	cli, err := GetSaltPackClient(s.G())

@@ -20,9 +20,8 @@ type SaltPackVerify struct {
 }
 
 type SaltPackVerifyArg struct {
-	Source    io.Reader
-	Signature []byte
-	SignedBy  string
+	Source io.Reader
+	Opts   keybase1.SaltPackVerifyOptions
 }
 
 // NewSaltPackVerify creates a SaltPackVerify engine.
@@ -55,7 +54,7 @@ func (e *SaltPackVerify) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *SaltPackVerify) Run(ctx *Context) error {
-	if len(e.arg.Signature) > 0 {
+	if len(e.arg.Opts.Signature) > 0 {
 		return e.detached(ctx)
 	}
 	return e.attached(ctx)
@@ -73,7 +72,7 @@ func (e *SaltPackVerify) detached(ctx *Context) error {
 	hook := func(key saltpack.SigningPublicKey) error {
 		return e.identifySender(ctx, key)
 	}
-	return libkb.SaltPackVerifyDetached(e.G(), e.arg.Source, e.arg.Signature, hook)
+	return libkb.SaltPackVerifyDetached(e.G(), e.arg.Source, e.arg.Opts.Signature, hook)
 }
 
 func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublicKey) (err error) {
@@ -86,7 +85,7 @@ func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublic
 			Reason: "Identify who signed this message",
 			Type:   keybase1.IdentifyReasonType_VERIFY,
 		},
-		userAssertion: e.arg.SignedBy,
+		userAssertion: e.arg.Opts.SignedBy,
 	}
 
 	spsiEng := NewSaltPackSenderIdentify(e.G(), &spsiArg)

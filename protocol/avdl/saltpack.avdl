@@ -19,6 +19,11 @@ protocol saltPack {
 	boolean detached;
   }
 
+  record SaltPackVerifyOptions {
+	string signedBy; // optional
+    	bytes signature; // detached signature data (currently only armored supported), can be empty
+  }
+
   void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltPackEncryptOptions opts);
 
   record SaltPackEncryptedMessageInfo {
@@ -30,4 +35,5 @@ protocol saltPack {
   SaltPackEncryptedMessageInfo saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
   void saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
   void saltPackSign(int sessionID, Stream source, Stream sink, SaltPackSignOptions opts);
+  void saltPackVerify(int sessionID, Stream source, Stream sink, SaltPackVerifyOptions opts);
 }

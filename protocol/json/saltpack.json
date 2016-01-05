@@ -454,6 +454,16 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "SaltPackVerifyOptions",
+    "fields" : [ {
+      "name" : "signedBy",
+      "type" : "string"
+    }, {
+      "name" : "signature",
+      "type" : "bytes"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "SaltPackEncryptedMessageInfo",
     "fields" : [ {
       "name" : "devices",
@@ -515,6 +525,22 @@
       }, {
         "name" : "opts",
         "type" : "SaltPackSignOptions"
+      } ],
+      "response" : "null"
+    },
+    "saltPackVerify" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "source",
+        "type" : "Stream"
+      }, {
+        "name" : "sink",
+        "type" : "Stream"
+      }, {
+        "name" : "opts",
+        "type" : "SaltPackVerifyOptions"
       } ],
       "response" : "null"
     }

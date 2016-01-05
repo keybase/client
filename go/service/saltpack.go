@@ -96,3 +96,19 @@ func (h *SaltPackHandler) SaltPackSign(_ context.Context, arg keybase1.SaltPackS
 	eng := engine.NewSaltPackSign(earg, h.G())
 	return engine.RunEngine(eng, ctx)
 }
+
+func (h *SaltPackHandler) SaltPackVerify(_ context.Context, arg keybase1.SaltPackVerifyArg) error {
+	cli := h.getStreamUICli()
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
+	earg := &engine.SaltPackVerifyArg{
+		Opts:   arg.Opts,
+		Source: src,
+	}
+
+	ctx := &engine.Context{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+		SecretUI:   h.getSecretUI(arg.SessionID),
+	}
+	eng := engine.NewSaltPackVerify(earg, h.G())
+	return engine.RunEngine(eng, ctx)
+}

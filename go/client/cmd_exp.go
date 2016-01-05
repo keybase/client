@@ -16,6 +16,7 @@ func NewCmdExp(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 			NewCmdDecrypt(cl, g),
 			NewCmdEncrypt(cl, g),
 			NewCmdSign(cl, g),
+			NewCmdVerify(cl, g),
 		},
 	}
 }
