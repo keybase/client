@@ -473,7 +473,8 @@ func RestartCRForTesting(config Config, folderBranch FolderBranch) error {
 	ops.cr.Restart()
 	// Start a resolution for anything we've missed.
 	if ops.staged {
-		ops.cr.Resolve(ops.getCurrMDRevision(), MetadataRevisionUninitialized)
+		lState := makeFBOLockState()
+		ops.cr.Resolve(ops.getCurrMDRevision(lState), MetadataRevisionUninitialized)
 	}
 	return nil
 }

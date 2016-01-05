@@ -25,9 +25,10 @@ func NewStateChecker(config Config) *StateChecker {
 // the blocksFound map, if the given path represents an indirect
 // block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
-	ops *folderBranchOps, md *RootMetadata, file path,
+	lState *lockState, ops *folderBranchOps, md *RootMetadata, file path,
 	blocksFound map[BlockPointer]bool) error {
-	fblock, err := ops.getFileBlockForReading(ctx, md, file.tailPointer(), file.Branch, file)
+	fblock, err := ops.getFileBlockForReading(
+		ctx, lState, md, file.tailPointer(), file.Branch, file)
 	if err != nil {
 		return err
 	}
@@ -40,7 +41,7 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 	for _, childPtr := range fblock.IPtrs {
 		blocksFound[childPtr.BlockPointer] = true
 		p := parentPath.ChildPath(file.tailName(), childPtr.BlockPointer)
-		err := sc.findAllFileBlocks(ctx, ops, md, p, blocksFound)
+		err := sc.findAllFileBlocks(ctx, lState, ops, md, p, blocksFound)
 		if err != nil {
 			return err
 		}
@@ -52,9 +53,10 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 // the blocksFound map, and then recursively checks all
 // subdirectories.
 func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
-	ops *folderBranchOps, md *RootMetadata, dir path,
+	lState *lockState, ops *folderBranchOps, md *RootMetadata, dir path,
 	blocksFound map[BlockPointer]bool) error {
-	dblock, err := ops.getDirBlockForReading(ctx, md, dir.tailPointer(), dir.Branch, dir)
+	dblock, err := ops.getDirBlockForReading(
+		ctx, lState, md, dir.tailPointer(), dir.Branch, dir)
 	if err != nil {
 		return err
 	}
@@ -68,13 +70,15 @@ func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 		p := dir.ChildPath(name, de.BlockPointer)
 
 		if de.Type == Dir {
-			err := sc.findAllBlocksInPath(ctx, ops, md, p, blocksFound)
+			err := sc.findAllBlocksInPath(
+				ctx, lState, ops, md, p, blocksFound)
 			if err != nil {
 				return err
 			}
 		} else {
 			// If it's a file, check to see if it's indirect.
-			err := sc.findAllFileBlocks(ctx, ops, md, p, blocksFound)
+			err := sc.findAllFileBlocks(
+				ctx, lState, ops, md, p, blocksFound)
 			if err != nil {
 				return err
 			}
@@ -98,6 +102,8 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		return nil
 	}
 
+	lState := makeFBOLockState()
+
 	// Re-embed block changes.
 	kbfsOps, ok := sc.config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
@@ -105,7 +111,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	}
 	fb := FolderBranch{tlf, MasterBranch}
 	ops := kbfsOps.getOps(fb)
-	if err := ops.reembedBlockChanges(ctx, rmds); err != nil {
+	if err := ops.reembedBlockChanges(ctx, lState, rmds); err != nil {
 		return err
 	}
 
@@ -147,7 +153,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	}
 	actualLiveBlocks := make(map[BlockPointer]bool)
 	actualLiveBlocks[rootPath.tailPointer()] = true
-	if err := sc.findAllBlocksInPath(ctx, ops, currMD, rootPath,
+	if err := sc.findAllBlocksInPath(ctx, lState, ops, currMD, rootPath,
 		actualLiveBlocks); err != nil {
 		return err
 	}

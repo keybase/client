@@ -214,10 +214,11 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 	expectedRecreateOps []*createOp,
 	expectedActions map[BlockPointer]crActionList) {
 	ctx := context.Background()
+	lState := makeFBOLockState()
 
 	// Step 1 -- check the chains and paths
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, _, err := cr.buildChainsAndPaths(ctx)
+		recreateOps, _, err := cr.buildChainsAndPaths(ctx, lState)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
@@ -1051,9 +1052,11 @@ func TestCRDoActionsSimple(t *testing.T) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
+	lState := makeFBOLockState()
+
 	// Now run through conflict resolution manually for user2.
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, _, err := cr2.buildChainsAndPaths(ctx)
+		recreateOps, _, err := cr2.buildChainsAndPaths(ctx, lState)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
@@ -1066,7 +1069,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 
 	lbc := make(localBcache)
 	newFileBlocks := make(fileBlockMap)
-	err = cr2.doActions(ctx, unmergedChains, mergedChains,
+	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks)
 	if err != nil {
 		t.Fatalf("Couldn't do actions: %v", err)
@@ -1163,9 +1166,11 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
+	lState := makeFBOLockState()
+
 	// Now run through conflict resolution manually for user2.
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, _, err := cr2.buildChainsAndPaths(ctx)
+		recreateOps, _, err := cr2.buildChainsAndPaths(ctx, lState)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
@@ -1178,7 +1183,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 
 	lbc := make(localBcache)
 	newFileBlocks := make(fileBlockMap)
-	err = cr2.doActions(ctx, unmergedChains, mergedChains,
+	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks)
 	if err != nil {
 		t.Fatalf("Couldn't do actions: %v", err)

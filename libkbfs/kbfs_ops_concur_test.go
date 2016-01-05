@@ -57,7 +57,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	cl := &CounterLock{}
 
 	ops := getOps(config, dir)
-	ops.mdWriterLock = cl
+	ops.mdWriterLock.locker = cl
 	for i := 0; i < n; i++ {
 		go func() {
 			_, _, _, err := config.KBFSOps().
@@ -523,9 +523,11 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
+	lState := makeFBOLockState()
+
 	deferredWriteLen := func() int {
-		fbo.blockLock.Lock()
-		defer fbo.blockLock.Unlock()
+		fbo.blockLock.Lock(lState)
+		defer fbo.blockLock.Unlock(lState)
 		return len(fbo.deferredWrites)
 	}()
 	if deferredWriteLen != 1 {
@@ -545,7 +547,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 		t.Errorf("Couldn't sync: %v", syncErr)
 	}
 
-	md, err := fbo.getMDLocked(ctx, mdRead)
+	md, err := fbo.getMDLocked(ctx, lState, mdRead)
 	if err != nil {
 		t.Errorf("Couldn't get MD: %v", err)
 	}
@@ -635,9 +637,11 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 		t.Errorf("Couldn't truncate file: %v", err)
 	}
 
+	lState := makeFBOLockState()
+
 	deferredWriteLen := func() int {
-		fbo.blockLock.Lock()
-		defer fbo.blockLock.Unlock()
+		fbo.blockLock.Lock(lState)
+		defer fbo.blockLock.Unlock(lState)
 		return len(fbo.deferredWrites)
 	}()
 	if deferredWriteLen != 1 {
@@ -657,7 +661,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 		t.Errorf("Couldn't sync: %v", syncErr)
 	}
 
-	md, err := fbo.getMDLocked(ctx, mdRead)
+	md, err := fbo.getMDLocked(ctx, lState, mdRead)
 	if err != nil {
 		t.Errorf("Couldn't get MD: %v", err)
 	}

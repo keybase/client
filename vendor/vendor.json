@@ -96,6 +96,11 @@
 			"revisionTime": "2015-08-14T12:43:33+03:00"
 		},
 		{
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d",
+			"revisionTime": "2015-11-05T15:09:06-06:00"
+		},
+		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/dustin/go-humanize",
 			"path": "github.com/dustin/go-humanize",
 			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
@@ -405,9 +410,24 @@
 			"revisionTime": "2015-12-18T17:01:58-08:00"
 		},
 		{
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "e8554b8641db39598be7f6342874b958f12ae1d4",
+			"revisionTime": "2015-12-07T19:24:34+01:00"
+		},
+		{
 			"path": "github.com/rcrowley/go-metrics",
 			"revision": "7839c01b09d2b1d7068034e5fe6e423f6ac5be22",
 			"revisionTime": "2015-11-29T16:13:40-08:00"
+		},
+		{
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "5b9da39b66e8e994455c2525c4421c8cc00a7f93",
+			"revisionTime": "2016-01-02T12:02:58+01:00"
+		},
+		{
+			"path": "github.com/stretchr/testify/require",
+			"revision": "5b9da39b66e8e994455c2525c4421c8cc00a7f93",
+			"revisionTime": "2016-01-02T12:02:58+01:00"
 		},
 		{
 			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb",
