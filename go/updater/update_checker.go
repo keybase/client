@@ -38,11 +38,13 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 		return fmt.Errorf("No UI for update check")
 	}
 
-	if lastCheckedPTime := u.updater.config.GetUpdateLastChecked(); lastCheckedPTime > 0 {
-		lastChecked := keybase1.FromTime(lastCheckedPTime)
-		if time.Now().Before(lastChecked.Add(checkDuration())) {
-			u.log.Debug("Already checked: %s", lastChecked)
-			return nil
+	if !requested && !force {
+		if lastCheckedPTime := u.updater.config.GetUpdateLastChecked(); lastCheckedPTime > 0 {
+			lastChecked := keybase1.FromTime(lastCheckedPTime)
+			if time.Now().Before(lastChecked.Add(checkDuration())) {
+				u.log.Debug("Already checked: %s", lastChecked)
+				return nil
+			}
 		}
 	}
 
