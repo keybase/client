@@ -15,5 +15,5 @@ go install github.com/keybase/release
 release_bin="$GOPATH/bin/release"
 
 mkdir -p $save_dir
-$release_bin index-html --bucket-name="$bucket_name" --prefixes="darwin/,linux/" --dest="$save_dir/index.html"
+$release_bin index-html --bucket-name="$bucket_name" --prefixes="darwin/,linux/,electron-sourcemaps/" --dest="$save_dir/index.html"
 s3cmd sync --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
