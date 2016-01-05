@@ -68,15 +68,17 @@ func (s *SaltPackUI) SaltPackPromptForDecrypt(_ context.Context, arg keybase1.Sa
 }
 
 func (s *SaltPackUI) SaltPackVerifySuccess(_ context.Context, arg keybase1.SaltPackVerifySuccessArg) error {
+	// write messages to stderr
+	w := s.terminal.ErrorWriter()
 	var un string
 	if arg.Sender.SenderType == keybase1.SaltPackSenderType_UNKNOWN {
 		un = "The signer of this message is unknown to Keybase"
 	} else {
 		un = fmt.Sprintf("Signed by %s", ColorString("bold", arg.Sender.Username))
 	}
-	s.terminal.Printf(ColorString("green", fmt.Sprintf("Signature verified. %s.\n", un)))
+	fmt.Fprintf(w, ColorString("green", fmt.Sprintf("Signature verified. %s.\n", un)))
 	if arg.Sender.SenderType == keybase1.SaltPackSenderType_UNKNOWN {
-		s.terminal.Printf(ColorString("green", fmt.Sprintf("Signing key ID: %s.\n", arg.SigningKID)))
+		fmt.Fprintf(w, ColorString("green", fmt.Sprintf("Signing key ID: %s.\n", arg.SigningKID)))
 	}
 
 	return nil
