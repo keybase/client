@@ -1885,7 +1885,6 @@ func (fbo *folderBranchOps) createLinkLocked(
 		return fbo.getDirLocked(ctx, md, dirPath, mdWrite)
 	}()
 	if err != nil {
-		fbo.blockLock.RUnlock()
 		return DirEntry{}, err
 	}
 
