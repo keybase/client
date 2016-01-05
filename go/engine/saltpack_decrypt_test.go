@@ -22,7 +22,7 @@ func (s fakeSaltPackUI) SaltPackPromptForDecrypt(_ context.Context, arg keybase1
 	return nil
 }
 
-func (s fakeSaltPackUI) SaltPackSignatureSuccess(_ context.Context, arg keybase1.SaltPackSignatureSuccessArg) error {
+func (s fakeSaltPackUI) SaltPackVerifySuccess(_ context.Context, arg keybase1.SaltPackVerifySuccessArg) error {
 	return nil
 }
 

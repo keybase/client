@@ -4818,16 +4818,15 @@ type SaltPackPromptForDecryptArg struct {
 	Sender    SaltPackSender `codec:"sender" json:"sender"`
 }
 
-type SaltPackSignatureSuccessArg struct {
+type SaltPackVerifySuccessArg struct {
 	SessionID  int            `codec:"sessionID" json:"sessionID"`
 	SigningKID KID            `codec:"signingKID" json:"signingKID"`
-	SignedAt   Time           `codec:"signedAt" json:"signedAt"`
 	Sender     SaltPackSender `codec:"sender" json:"sender"`
 }
 
 type SaltPackUiInterface interface {
 	SaltPackPromptForDecrypt(context.Context, SaltPackPromptForDecryptArg) error
-	SaltPackSignatureSuccess(context.Context, SaltPackSignatureSuccessArg) error
+	SaltPackVerifySuccess(context.Context, SaltPackVerifySuccessArg) error
 }
 
 func SaltPackUiProtocol(i SaltPackUiInterface) rpc.Protocol {
@@ -4850,18 +4849,18 @@ func SaltPackUiProtocol(i SaltPackUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"saltPackSignatureSuccess": {
+			"saltPackVerifySuccess": {
 				MakeArg: func() interface{} {
-					ret := make([]SaltPackSignatureSuccessArg, 1)
+					ret := make([]SaltPackVerifySuccessArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SaltPackSignatureSuccessArg)
+					typedArgs, ok := args.(*[]SaltPackVerifySuccessArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SaltPackSignatureSuccessArg)(nil), args)
+						err = rpc.NewTypeError((*[]SaltPackVerifySuccessArg)(nil), args)
 						return
 					}
-					err = i.SaltPackSignatureSuccess(ctx, (*typedArgs)[0])
+					err = i.SaltPackVerifySuccess(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4879,8 +4878,8 @@ func (c SaltPackUiClient) SaltPackPromptForDecrypt(ctx context.Context, __arg Sa
 	return
 }
 
-func (c SaltPackUiClient) SaltPackSignatureSuccess(ctx context.Context, __arg SaltPackSignatureSuccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackSignatureSuccess", []interface{}{__arg}, nil)
+func (c SaltPackUiClient) SaltPackVerifySuccess(ctx context.Context, __arg SaltPackVerifySuccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackVerifySuccess", []interface{}{__arg}, nil)
 	return
 }
 

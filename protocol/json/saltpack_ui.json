@@ -278,16 +278,13 @@
       } ],
       "response" : "null"
     },
-    "saltPackSignatureSuccess" : {
+    "saltPackVerifySuccess" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "signingKID",
         "type" : "KID"
-      }, {
-        "name" : "signedAt",
-        "type" : "Time"
       }, {
         "name" : "sender",
         "type" : "SaltPackSender"

@@ -67,7 +67,7 @@ func (s *SaltPackUI) SaltPackPromptForDecrypt(_ context.Context, arg keybase1.Sa
 	return s.doInteractive(arg)
 }
 
-func (s *SaltPackUI) SaltPackSignatureSuccess(_ context.Context, arg keybase1.SaltPackSignatureSuccessArg) error {
+func (s *SaltPackUI) SaltPackVerifySuccess(_ context.Context, arg keybase1.SaltPackVerifySuccessArg) error {
 	var un string
 	if arg.Sender.SenderType == keybase1.SaltPackSenderType_UNKNOWN {
 		un = "The signer of this message is unknown to Keybase"

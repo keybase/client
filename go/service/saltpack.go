@@ -33,9 +33,9 @@ func (r *RemoteSaltPackUI) SaltPackPromptForDecrypt(ctx context.Context, arg key
 	return r.cli.SaltPackPromptForDecrypt(ctx, arg)
 }
 
-func (r *RemoteSaltPackUI) SaltPackSignatureSuccess(ctx context.Context, arg keybase1.SaltPackSignatureSuccessArg) (err error) {
+func (r *RemoteSaltPackUI) SaltPackVerifySuccess(ctx context.Context, arg keybase1.SaltPackVerifySuccessArg) (err error) {
 	arg.SessionID = r.sessionID
-	return r.cli.SaltPackSignatureSuccess(ctx, arg)
+	return r.cli.SaltPackVerifySuccess(ctx, arg)
 }
 
 func NewSaltPackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltPackHandler {

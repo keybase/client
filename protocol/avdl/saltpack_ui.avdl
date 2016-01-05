@@ -21,5 +21,5 @@ protocol saltPackUi {
   // and if something fishy might have happened.
   void saltPackPromptForDecrypt(int sessionID, SaltPackSender sender);
 
-  void saltPackSignatureSuccess(int sessionID, KID signingKID, SaltPackSender sender);
+  void saltPackVerifySuccess(int sessionID, KID signingKID, SaltPackSender sender);
 }

@@ -98,11 +98,11 @@ func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublic
 		return err
 	}
 
-	arg := keybase1.SaltPackSignatureSuccessArg{
+	arg := keybase1.SaltPackVerifySuccessArg{
 		Sender:     spsiEng.Result(),
 		SigningKID: kid,
 	}
-	ctx.SaltPackUI.SaltPackSignatureSuccess(context.TODO(), arg)
+	ctx.SaltPackUI.SaltPackVerifySuccess(context.TODO(), arg)
 
 	return nil
 }
