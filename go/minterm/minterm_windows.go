@@ -16,8 +16,8 @@ func (m *MinTerm) open() error {
 		return err
 	}
 
-	m.out = fout
-	fd := int(m.out.Fd())
+	m.termFile = fout
+	fd := int(m.termFile.Fd())
 	w, h, err := terminal.GetSize(fd)
 	if err != nil {
 		return err
