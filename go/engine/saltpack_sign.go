@@ -83,7 +83,7 @@ func (e *SaltPackSign) loadKey(ctx *Context) error {
 	}
 	kp, ok := key.(libkb.NaclSigningKeyPair)
 	if !ok || kp.Private == nil {
-		return libkb.KeyCannotDecryptError{}
+		return libkb.KeyCannotSignError{}
 	}
 	e.key = kp
 	return nil
