@@ -10,8 +10,6 @@ build_dir=${BUILD_DIR:-"$dir/build"}
 save_dir=${SAVE_DIR:-}
 tmp_dir="$dir/tmp"
 bucket_name=${BUCKET_NAME:-}
-slack_token=${SLACK_TOKEN:-}
-slack_channel=${SLACK_CHANNEL:-}
 run_mode="prod"
 platform="darwin"
 
@@ -200,18 +198,15 @@ save() {
     echo "Saving files to $platform_dir"
     mkdir -p $platform_dir
     mv $out_dir/$dmg_name $platform_dir
-    mv $out_dir/$zip_name $platform_dir
+    mkdir -p "$platform_dir-updates"
+    mv $out_dir/$zip_name "$platform_dir-updates"
+  fi
+
+  if [ ! "$s3host" = "" ]; then
+    $release_bin update-json --version=$app_version --src="$platform-updates/$zip_name" --uri="$s3host/$platform-updates" > update-$platform-$run_mode.json
   fi
 
   s3sync
-
-  if [ ! "$s3host" = "" ]; then
-    echo "Generating index files..."
-    $release_bin update-json --version=$app_version --src="$platform/$zip_name" --uri="$s3host/$platform" > update-$platform-$run_mode.json
-    $release_bin index-html --bucket-name="$bucket_name" --prefix="$platform/Keybase-" --suffix=".dmg" --dest="index.html"
-    # Sync again with new files
-    s3sync
-  fi
 }
 
 clean
@@ -224,5 +219,3 @@ package_dmg
 create_sourcemap_zip
 create_zip
 save
-
-"$client_dir/packaging/slack/send.sh" "Built $app_version at $s3host/index.html"

@@ -15,14 +15,14 @@ fi
 
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
-clientdir="$GOPATH/src/github.com/keybase/client"
+client_dir="$GOPATH/src/github.com/keybase/client"
 bucket_name="prerelease.keybase.io"
 
-"$clientdir/packaging/slack/send.sh" "Starting build"
+"$client_dir/packaging/slack/send.sh" "Starting build"
 
 if [ ! "$NOPULL" = "1" ]; then
-  "$clientdir/packaging/check_status_and_pull.sh" "$clientdir"
-  "$clientdir/packaging/check_status_and_pull.sh" "$GOPATH/src/github.com/keybase/kbfs"
+  "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
+  "$client_dir/packaging/check_status_and_pull.sh" "$GOPATH/src/github.com/keybase/kbfs"
  else
   # Save to alternate testing bucket if we are building local
   bucket_name="prerelease-testing"
@@ -35,3 +35,8 @@ cd $dir/../desktop
 save_dir="/tmp/build_desktop"
 rm -rf $save_dir
 SAVE_DIR=$save_dir KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME=$bucket_name ./package_darwin.sh
+
+cd $dir
+SAVE_DIR=$save_dir BUCKET_NAME=$bucket_name ./s3_index.sh
+
+"$client_dir/packaging/slack/send.sh" "See https://s3.amazonaws.com/$bucket_name/index.html"
