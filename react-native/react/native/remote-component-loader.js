@@ -13,7 +13,18 @@ if (module.hot) {
   module.hot.accept()
 }
 
-const currentWindow = remote.getCurrentWindow()
+// Defer this since it's a sync call
+const getCurrentWindow = (function () {
+  let currentWindow = null
+
+  return function () {
+    if (!currentWindow) {
+      currentWindow = remote.getCurrentWindow()
+    }
+
+    return currentWindow
+  }
+})()
 
 window.console.log = (...args) => ipcRenderer.send('console.log', args)
 window.console.warn = (...args) => ipcRenderer.send('console.warn', args)
@@ -58,6 +69,8 @@ class RemoteComponentLoader extends Component {
   }
 
   componentWillMount () {
+    const currentWindow = getCurrentWindow()
+
     currentWindow.on('hasProps', props => {
       // Maybe we need to wait for the state to arrive at the beginning
       if (props.waitForState &&
@@ -66,7 +79,7 @@ class RemoteComponentLoader extends Component {
           // Only do this if the store hasn't been filled yet
           Object.keys(this.store.getState()).length === 0) {
         const unsub = this.store.subscribe(() => {
-          currentWindow.show()
+          getCurrentWindow().show()
           this.setState({props: props, loaded: true})
           unsub()
         })
@@ -83,7 +96,7 @@ class RemoteComponentLoader extends Component {
     ipcRenderer.on('remoteUnmount', () => {
       setImmediate(() => this.setState({unmounted: true}))
       // Hide the window since we've effectively told it to close
-      currentWindow.hide()
+      getCurrentWindow().hide()
     })
     ipcRenderer.send('registerRemoteUnmount', currentWindow.id)
 
@@ -94,7 +107,7 @@ class RemoteComponentLoader extends Component {
     if (!prevState.unmounted && this.state.unmounted) {
       // Close the window now that the remote-component's unmount
       // lifecycle method has finished
-      currentWindow.close()
+      getCurrentWindow().close()
     }
   }
 

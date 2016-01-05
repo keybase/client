@@ -9,7 +9,6 @@ import config from './config'
 import tabbedRouter from './tabbed-router'
 import {List} from 'immutable'
 import type {State} from '../constants/reducer'
-import {isDev} from '../constants/platform'
 import serialize from './serialize'
 import tracker from './tracker'
 import pinentry from './pinentry'
@@ -52,7 +51,7 @@ const combinedReducer = combineReducers({
 })
 
 let reducer
-if (isDev) {
+if (__DEV__) { // eslint-disable-line no-undef
   reducer = function (state: State, action: any): State {
     return (
       devEdit(

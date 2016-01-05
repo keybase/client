@@ -1,5 +1,3 @@
-export const isDev = true
-
 // Actions
 export const serializeRestore = 'dev:restoreState'
 export const serializeSave = 'dev:saveState'

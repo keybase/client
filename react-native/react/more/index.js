@@ -2,7 +2,6 @@ import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 import {navigateTo} from '../actions/router'
 import MenuList from './menu-list'
-import {isDev} from '../constants/platform'
 
 class More extends Component {
   constructor (props) {
@@ -22,7 +21,7 @@ class More extends Component {
       ]
     }
 
-    if (isDev) {
+    if (__DEV__) { // eslint-disable-line no-undef
       this.state.menuItems.push({
         name: 'Dev Menu',
         hasChildren: true,

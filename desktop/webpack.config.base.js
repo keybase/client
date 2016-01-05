@@ -3,7 +3,8 @@ const path = require('path')
 
 const defines = {
   '__HOT__': JSON.stringify(process.env.HOT === 'true'),
-  '__DEV__': JSON.stringify(process.env.NODE_ENV !== 'production')
+  '__DEV__': JSON.stringify(process.env.NODE_ENV !== 'production'),
+  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
 }
 
 console.log('Injecting defines: ', defines)

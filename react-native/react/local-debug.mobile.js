@@ -4,7 +4,6 @@
 
 import {createRouterState} from './reducers/router'
 import * as Tabs from './constants/tabs'
-import {isDev} from './constants/platform'
 
 let config = {
   overrideRouterState: null,
@@ -14,7 +13,7 @@ let config = {
   printRPC: false
 }
 
-if (isDev && false) {
+if (__DEV__ && false) { // eslint-disable-line no-undef
   config.overrideRouterState = createRouterState([], [])
   config.overrideActiveTab = Tabs.devicesTab
   config.skipLoginRouteToRoot = true
