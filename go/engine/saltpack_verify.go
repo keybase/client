@@ -83,8 +83,7 @@ func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublic
 
 	kid := libkb.SigningPublicKeyToKeybaseKID(key)
 	spsiArg := SaltPackSenderIdentifyArg{
-		publicKey:   kid,
-		interactive: true,
+		publicKey: kid,
 		reason: keybase1.IdentifyReason{
 			Reason: "Identify who signed this message",
 			Type:   keybase1.IdentifyReasonType_VERIFY,
