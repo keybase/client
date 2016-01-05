@@ -39,4 +39,4 @@ SAVE_DIR=$save_dir KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$b
 cd $dir
 SAVE_DIR=$save_dir BUCKET_NAME=$bucket_name ./s3_index.sh
 
-"$client_dir/packaging/slack/send.sh" "See https://s3.amazonaws.com/$bucket_name/index.html"
+"$client_dir/packaging/slack/send.sh" "Finished build. See https://s3.amazonaws.com/$bucket_name/index.html"

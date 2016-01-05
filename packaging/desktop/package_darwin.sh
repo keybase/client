@@ -32,7 +32,7 @@ keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 
 echo "Loading release tool"
-go get github.com/keybase/release
+go get -u github.com/keybase/release
 go install github.com/keybase/release
 release_bin="$GOPATH/bin/release"
 
@@ -170,7 +170,7 @@ package_dmg() {
 
 create_sourcemap_zip() {
   cd $out_dir
-  echo "Creating $sourcemap_name to $client_dir/desktop/dist"
+  echo "Creating $sourcemap_name from $client_dir/desktop/dist"
   zip -j $sourcemap_name $client_dir/desktop/dist/*.map
 }
 
@@ -196,10 +196,15 @@ save() {
     cd $save_dir
     platform_dir="$save_dir/$platform"
     echo "Saving files to $platform_dir"
+    # DMG
     mkdir -p $platform_dir
     mv $out_dir/$dmg_name $platform_dir
+    # Zip
     mkdir -p "$platform_dir-updates"
     mv $out_dir/$zip_name "$platform_dir-updates"
+    # Sourcemap
+    mkdir -p "$save_dir/electron-sourcemaps"
+    mv "$out_dir/$sourcemap_name" "$save_dir/electron-sourcemaps"
   fi
 
   if [ ! "$s3host" = "" ]; then
