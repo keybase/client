@@ -82,17 +82,25 @@ func (pi *pinentryInstance) shouldStoreSecret(info pinentrySecretStoreInfo) bool
 	query.SetSecClass(keychain.SecClassGenericPassword)
 	query.SetService(pinentryServiceName)
 	query.SetAccount(string(info))
-	query.SetMatchLimit(keychain.MatchLimitAll)
-	err := keychain.DeleteItem(query)
-	fmt.Printf("Trying to delete %v %v, got %v\n", pinentryServiceName, info, err)
-	if err == nil {
-		// Entry was found and deleted.
-		return true
+	query.SetMatchLimit(keychain.MatchLimitOne)
+
+	// We need to query and delete by item reference because the
+	// OSX keychain API only allows us to delete unowned items
+	// this way.
+	query.SetReturnRef(true)
+	ref, err := keychain.QueryItemRef(query)
+	if ref == nil || err != nil {
+		// Entry was not found or if there was any error we default to false
+		return false
 	}
-	// Either err == errSecItemNotFound, in which case no entry
-	// was found, or there was some other error, in which case we
-	// default to false.
-	return false
+	defer keychain.Release(ref)
+	err = keychain.DeleteItemRef(ref)
+	if err != nil {
+		// If there was any error we default to false
+		return false
+	}
+	// Entry was found and deleted
+	return true
 }
 
 func HasWindows() bool {
