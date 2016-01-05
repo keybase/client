@@ -53,15 +53,15 @@ const (
 	// Time between checks for dirty files to flush, in case Sync is
 	// never called.
 	secondsBetweenBackgroundFlushes = 10
-	// Max supported size of a file in KBFS.  TODO: increase this once
-	// we support multiple levels of indirection.
+	// Max supported plaintext size of a file in KBFS.  TODO: increase
+	// this once we support multiple levels of indirection.
 	maxFileSize = 2 * 1024 * 1024 * 1024
 	// Max supported size of a directory entry name.
 	maxNameLength = 255
-	// Maximum number of entries allowed within a directory. TODO:
+	// Maximum supported plaintext size of a directory in KBFS. TODO:
 	// increase this once we support levels of indirection for
 	// directories.
-	maxNumDirEntries = 1024
+	maxDirSize = 512 * 1024
 )
 
 type fboMutexLevel mutexLevel
@@ -1899,9 +1899,25 @@ func (fbo *folderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, NameExistsError{name}
 	}
 
-	if len(dblock.Children) >= maxNumDirEntries {
+	// Check that the directory isn't past capacity already.
+	var currSize uint64
+	if dirPath.hasValidParent() {
+		_, de, err := fbo.getEntry(ctx, lState, md, dirPath)
+		if err != nil {
+			return nil, DirEntry{}, err
+		}
+		currSize = de.Size
+	} else {
+		// dirPath is just the root.
+		currSize = md.data.Dir.Size
+	}
+	// Just an approximation since it doesn't include the size of the
+	// directory entry itself, but that's ok -- at worst it'll be an
+	// off-by-one-entry error, and since there's a maximum name length
+	// we can't get in too much trouble.
+	if currSize+uint64(len(name)) > maxDirSize {
 		return nil, DirEntry{}, DirTooBigError{dirPath,
-			int64(len(dblock.Children) + 1), maxNumDirEntries}
+			currSize + uint64(len(name)), maxDirSize}
 	}
 
 	md.AddOp(newCreateOp(name, dirPath.tailPointer(), entryType))

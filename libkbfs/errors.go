@@ -779,13 +779,13 @@ func (e NameTooLongError) Error() string {
 // that would be bigger than KBFS's supported size.
 type DirTooBigError struct {
 	p          path
-	size       int64
-	maxAllowed int64
+	size       uint64
+	maxAllowed uint64
 }
 
 // Error implements the error interface for DirTooBigError.
 func (e DirTooBigError) Error() string {
-	return fmt.Sprintf("Directory %s would have increased to %d entries, "+
-		"which is over the supported limit of %d bytes", e.p,
+	return fmt.Sprintf("Directory %s would have increased to at least %d "+
+		"bytes, which is over the supported limit of %d bytes", e.p,
 		e.size, e.maxAllowed)
 }
