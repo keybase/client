@@ -47,6 +47,7 @@ build_one_architecture() {
   # XXX: Go does not build tags reliably prior to 1.5 without -a. See:
   #      https://github.com/golang/go/issues/11165
   go build -a -tags "$go_tags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
+  go build -a -tags "$go_tags" -o "$dest/build/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
 
   version="$("$here/../version.sh")"
 
