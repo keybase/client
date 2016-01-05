@@ -1,33 +1,50 @@
+#!/bin/bash
 
-#!/bin/sh
-
-set -e # Fail on error
+set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
-repodir="$GOPATH/src/github.com/keybase/kbfs-beta"
+src_dir="$GOPATH/src/github.com/keybase/kbfs"
+dest_dir="$GOPATH/src/github.com/keybase/kbfs-beta"
 clientdir="$GOPATH/src/github.com/keybase/client"
+name=kbfs
+kbfs_dirs=(kbfs kbfsfuse libfuse libkbfs vendor)
 
-"$clientdir/packaging/check_status_and_pull.sh" "$repodir"
+"$clientdir/packaging/check_status_and_pull.sh" "$src_dir"
+"$clientdir/packaging/check_status_and_pull.sh" "$dest_dir"
 
-echo "Loading release tool"
-go install github.com/keybase/release
-release_bin="$GOPATH/bin/release"
-
-kbfs_version=$VERSION
-if [ "$kbfs_version" = "" ]; then
-  kbfs_version=`$release_bin latest-version --user=keybase --repo=kbfs`
-  echo "Using latest kbfs version: $kbfs_version"
+if [ ! -d "$src_dir" ]; then
+  echo "$src_dir doesn't exist"
+  exit 2
 fi
 
-./export.sh kbfs $repodir "v$kbfs_version"
+if [ ! -d "$dest_dir" ]; then
+  echo "$dest_dir doesn't exist"
+  exit 2
+fi
 
-cd $repodir
-tag="v$kbfs_version"
-echo "Committing and tagging: $tag"
+echo "Source: $src_dir"
+echo "Dirs to export: $kbfs_dirs"
+echo "Destination: $dest_dir"
+echo " "
+
+# Archive the repo
+cd $src_dir
+echo "Building git archive"
+git archive --format tar HEAD > $src_dir/$name.tar
+
+# Copy archive to dest and unpack
+echo "Unpacking archive in $dest_dir"
+cd $dest_dir
+rm -rf $name
+mkdir -p $name
+tar xpf $src_dir/kbfs.tar -C kbfs ${kbfs_dirs[@]}
+
+rm $src_dir/$name.tar
+
+cd $dest_dir
+echo "Committing"
 git add .
-git commit -m "New version: $kbfs_version"
-git tag -m "$tag" -a "$tag"
+git commit -m "Updating repo"
 git push
-git push --tags
