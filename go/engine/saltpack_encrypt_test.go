@@ -99,6 +99,45 @@ func TestSaltPackEncryptLoggedOut(t *testing.T) {
 	}
 }
 
+func TestSaltPackEncryptNoNaclOnlyPGP(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltPackEncrypt")
+	defer tc.Cleanup()
+
+	u2 := createFakeUserWithPGPOnly(t, tc)
+	Logout(tc)
+	u1 := CreateAndSignupFakeUser(tc, "nalcp")
+
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	ctx := &Context{
+		IdentifyUI: trackUI,
+		SecretUI:   u1.NewSecretUI(),
+		SaltPackUI: &fakeSaltPackUI{},
+	}
+
+	msg := "this will never work"
+	sink := libkb.NewBufferCloser()
+	arg := &SaltPackEncryptArg{
+		Opts: keybase1.SaltPackEncryptOptions{
+			Recipients:    []string{u2.Username},
+			NoSelfEncrypt: true,
+		},
+		Source: strings.NewReader(msg),
+		Sink:   sink,
+	}
+
+	eng := NewSaltPackEncrypt(arg, tc.G)
+	err := RunEngine(eng, ctx)
+	if perr, ok := err.(libkb.NoNaClEncryptionKeyError); !ok {
+		t.Fatalf("Got wrong error type: %T %v", err, err)
+	} else if !perr.HasPGPKey {
+		t.Fatalf("Should have a PGP key")
+	} else if perr.User != u2.Username {
+		t.Fatalf("Wrong username")
+	}
+}
+
 func TestSaltPackEncryptNoSelf(t *testing.T) {
 	tc := SetupEngineTest(t, "SaltPackEncrypt")
 	defer tc.Cleanup()

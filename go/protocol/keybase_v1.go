@@ -631,6 +631,7 @@ const (
 	StatusCode_SCProfileNotPublic       StatusCode = 276
 	StatusCode_SCIdentifyFailed         StatusCode = 277
 	StatusCode_SCTrackingBroke          StatusCode = 278
+	StatusCode_SCWrongCryptoFormat      StatusCode = 279
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCMissingResult          StatusCode = 801
 	StatusCode_SCKeyNotFound            StatusCode = 901
@@ -646,6 +647,8 @@ const (
 	StatusCode_SCKeyDuplicateUpdate     StatusCode = 921
 	StatusCode_SCSibkeyAlreadyExists    StatusCode = 922
 	StatusCode_SCDecryptionKeyNotFound  StatusCode = 924
+	StatusCode_SCKeyNoPGPEncryption     StatusCode = 927
+	StatusCode_SCKeyNoNaClEncryption    StatusCode = 928
 	StatusCode_SCBadTrackSession        StatusCode = 1301
 	StatusCode_SCDeviceNotFound         StatusCode = 1409
 	StatusCode_SCDeviceMismatch         StatusCode = 1410

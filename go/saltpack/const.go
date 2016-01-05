@@ -33,11 +33,11 @@ const EncryptionBlockSize int = 1048576
 
 // EncryptionArmorHeader is the header that marks the start of an encrypted
 // armored KB message.
-const EncryptionArmorHeader = "BEGIN KEYBASE ENCRYPTED MESSAGE"
+const EncryptionArmorHeader = "BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE"
 
 // EncryptionArmorFooter is the footer that marks the end of an encrypted
 // armored KB message.
-const EncryptionArmorFooter = "END KEYBASE ENCRYPTED MESSAGE"
+const EncryptionArmorFooter = "END KEYBASE SALTPACK ENCRYPTED MESSAGE"
 
 // SignedArmorHeader is the header that marks the start of signed
 // armored KB message.

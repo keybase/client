@@ -13,6 +13,18 @@ func SaltPackDecrypt(
 	deviceEncryptionKey NaclDHKeyPair,
 	checkSender func(*saltpack.MessageKeyInfo) error) (*saltpack.MessageKeyInfo, error) {
 
+	if sc, newSource, err := ClassifyStream(source); err != nil {
+		return nil, err
+	} else if sc.Format != CryptoMessageFormatSaltPack {
+		return nil, WrongCryptoFormatError{
+			Wanted:    CryptoMessageFormatSaltPack,
+			Received:  sc.Format,
+			Operation: "decrypt",
+		}
+	} else {
+		source = newSource
+	}
+
 	mki, plainsource, frame, err := saltpack.NewDearmor62DecryptStream(
 		source, naclKeyring(deviceEncryptionKey))
 	if err != nil {

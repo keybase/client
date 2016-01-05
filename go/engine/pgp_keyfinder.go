@@ -4,8 +4,6 @@
 package engine
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -90,7 +88,10 @@ func (e *PGPKeyfinder) loadKeys(ctx *Context) {
 	for _, x := range e.uplus {
 		keys := x.User.GetActivePGPKeys(true)
 		if len(keys) == 0 {
-			e.runerr = fmt.Errorf("User %s doesn't have a pgp key", x.User.GetName())
+			e.runerr = libkb.NoPGPEncryptionKeyError{
+				User:         x.User.GetName(),
+				HasDeviceKey: x.User.HasEncryptionSubkey(),
+			}
 			return
 		}
 		x.Keys = keys
