@@ -6,7 +6,7 @@ import "syscall"
 import "unsafe"
 import "unicode/utf16"
 
-func getch() byte {
+func getch(termDescriptor int) byte {
 	modkernel32 := syscall.NewLazyDLL("kernel32.dll")
 	procReadConsole := modkernel32.NewProc("ReadConsoleW")
 	procGetConsoleMode := modkernel32.NewProc("GetConsoleMode")
@@ -14,7 +14,7 @@ func getch() byte {
 
 	var mode uint32
 	pMode := &mode
-	procGetConsoleMode.Call(uintptr(syscall.Stdin), uintptr(unsafe.Pointer(pMode)))
+	procGetConsoleMode.Call(uintptr(termDescriptor), uintptr(unsafe.Pointer(pMode)))
 
 	var echoMode, lineMode uint32
 	echoMode = 4
@@ -22,16 +22,16 @@ func getch() byte {
 	var newMode uint32
 	newMode = mode ^ (echoMode | lineMode)
 
-	procSetConsoleMode.Call(uintptr(syscall.Stdin), uintptr(newMode))
+	procSetConsoleMode.Call(uintptr(termDescriptor), uintptr(newMode))
 
 	line := make([]uint16, 1)
 	pLine := &line[0]
 	var n uint16
-	procReadConsole.Call(uintptr(syscall.Stdin), uintptr(unsafe.Pointer(pLine)), uintptr(len(line)), uintptr(unsafe.Pointer(&n)))
+	procReadConsole.Call(uintptr(termDescriptor), uintptr(unsafe.Pointer(pLine)), uintptr(len(line)), uintptr(unsafe.Pointer(&n)))
 
 	b := []byte(string(utf16.Decode(line)))
 
-	procSetConsoleMode.Call(uintptr(syscall.Stdin), uintptr(mode))
+	procSetConsoleMode.Call(uintptr(termDescriptor), uintptr(mode))
 
 	// Not sure how this could happen, but it did for someone
 	if len(b) > 0 {

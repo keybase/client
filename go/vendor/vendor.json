@@ -179,8 +179,8 @@
 		},
 		{
 			"path": "github.com/keybase/gopass",
-			"revision": "af52fa39b72c0515bd730d2edbfd3d842253dc17",
-			"revisionTime": "2015-06-04T16:15:13-05:00"
+			"revision": "8cb3611ab4d378cb4ff58ed723a4ea0557f81adb",
+			"revisionTime": "2016-01-05T18:46:37-05:00"
 		},
 		{
 			"path": "github.com/keybase/keybase-test-vectors/go",
