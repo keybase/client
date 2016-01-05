@@ -4,6 +4,9 @@
 - `keybase exp decrypt` now properly identifies senders, and allows for interactive
   mode if requested (PRs: keybase/client#1613, keybase/client#1617)
 - Implement OpenPGP PolicyURI subpacket (via vendored PR: keybase/go-crypto#3)
+- OpenPGP better check for nil signing subkeys 
+    (via vendored keybase/go-crypto commit de6e298306e9dfba84a8f4f9042ee6c2bb02df85)
+- SaltPack: descriptive error message on failed decryption (PR: keybase/client#1625)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
