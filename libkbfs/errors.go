@@ -747,3 +747,17 @@ func (e DisallowedPrefixError) Error() string {
 	return fmt.Sprintf("Cannot create %s because it has the prefix %s",
 		e.name, e.prefix)
 }
+
+// FileTooBigError indicates that the user tried to write a file that
+// would be bigger than KBFS's supported size.
+type FileTooBigError struct {
+	p          path
+	size       int64
+	maxAllowed int64
+}
+
+// Error implements the error interface for FileTooBigError.
+func (e FileTooBigError) Error() string {
+	return fmt.Sprintf("File %s would have increased to %d bytes, which is "+
+		"over the supported limit of %d bytes", e.p, e.size, e.maxAllowed)
+}

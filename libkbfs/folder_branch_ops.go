@@ -53,6 +53,9 @@ const (
 	// Time between checks for dirty files to flush, in case Sync is
 	// never called.
 	secondsBetweenBackgroundFlushes = 10
+	// Max supported size of a file in KBFS.  TODO: increase this once
+	// we support multiple levels of indirection.
+	maxFileSize = 2 * 1024 * 1024 * 1024
 )
 
 type fboMutexLevel mutexLevel
@@ -2589,6 +2592,10 @@ func (fbo *folderBranchOps) getOrCreateSyncInfoLocked(de DirEntry) *syncInfo {
 func (fbo *folderBranchOps) writeDataLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
 	data []byte, off int64, doNotify bool) error {
+	if size := off + int64(len(data)); size > maxFileSize {
+		return FileTooBigError{file, size, maxFileSize}
+	}
+
 	// check writer status explicitly
 	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {

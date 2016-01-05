@@ -65,3 +65,10 @@ var _ fuse.ErrorNumber = MDServerErrorUnauthorized{}
 func (e MDServerErrorUnauthorized) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
+
+var _ fuse.ErrorNumber = FileTooBigError{}
+
+// Errno implements the fuse.ErrorNumber interface for FileTooBigError.
+func (e FileTooBigError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EFBIG)
+}
