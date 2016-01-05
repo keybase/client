@@ -4,7 +4,6 @@
 package engine
 
 import (
-	"bytes"
 	"io"
 
 	"golang.org/x/net/context"
@@ -22,6 +21,7 @@ type SaltPackVerify struct {
 }
 
 type SaltPackVerifyArg struct {
+	Sink   io.WriteCloser
 	Source io.Reader
 	Opts   keybase1.SaltPackVerifyOptions
 }
@@ -68,8 +68,7 @@ func (e *SaltPackVerify) attached(ctx *Context) error {
 	hook := func(key saltpack.SigningPublicKey) error {
 		return e.identifySender(ctx, key)
 	}
-	var buf bytes.Buffer
-	return libkb.SaltPackVerify(e.G(), e.arg.Source, libkb.NopWriteCloser{W: &buf}, hook)
+	return libkb.SaltPackVerify(e.G(), e.arg.Source, e.arg.Sink, hook)
 }
 
 func (e *SaltPackVerify) detached(ctx *Context) error {

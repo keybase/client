@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"io/ioutil"
 
 	"golang.org/x/net/context"
@@ -35,6 +36,14 @@ func NewCmdVerify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "m, message",
 				Usage: "Provide the message to verify on the command line.",
 			},
+			cli.BoolFlag{
+				Name:  "no-output",
+				Usage: "Don't output the verified message.",
+			},
+			cli.StringFlag{
+				Name:  "o, outfile",
+				Usage: "Specify an outfile (stdout by default).",
+			},
 			cli.StringFlag{
 				Name:  "S, signed-by",
 				Usage: "Assert signed by the given user (can use user assertion format).",
@@ -58,7 +67,14 @@ func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
 
 	msg := ctx.String("message")
 	infile := ctx.String("infile")
-	if err := c.FilterInit(msg, infile, "/dev/null"); err != nil {
+	outfile := ctx.String("outfile")
+	if ctx.Bool("no-output") {
+		if len(outfile) > 0 {
+			return errors.New("Cannot specify an outfile and no-output")
+		}
+		outfile = "/dev/null"
+	}
+	if err := c.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}
 	c.signedBy = ctx.String("signed-by")

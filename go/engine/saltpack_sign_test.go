@@ -64,6 +64,7 @@ func TestSaltPackSignVerify(t *testing.T) {
 		}
 
 		varg := &SaltPackVerifyArg{
+			Sink:   libkb.NopWriteCloser{W: &sink},
 			Source: strings.NewReader(sig),
 		}
 		veng := NewSaltPackVerify(varg, tc.G)
@@ -106,6 +107,7 @@ func TestSaltPackSignVerify(t *testing.T) {
 		}
 
 		varg := &SaltPackVerifyArg{
+			Sink:   libkb.NopWriteCloser{W: &sink},
 			Source: strings.NewReader(test.input),
 			Opts: keybase1.SaltPackVerifyOptions{
 				Signature: sig,

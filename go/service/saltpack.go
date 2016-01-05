@@ -105,8 +105,10 @@ func (h *SaltPackHandler) SaltPackSign(_ context.Context, arg keybase1.SaltPackS
 func (h *SaltPackHandler) SaltPackVerify(_ context.Context, arg keybase1.SaltPackVerifyArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
+	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 	earg := &engine.SaltPackVerifyArg{
 		Opts:   arg.Opts,
+		Sink:   snk,
 		Source: src,
 	}
 
