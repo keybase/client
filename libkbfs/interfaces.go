@@ -924,6 +924,14 @@ type Config interface {
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
+	// MaxFileSize indicates the maximum supported plaintext size of a file.
+	MaxFileSize() uint64
+	// MaxNameLength indicates the maximum supported size of a
+	// directory entry name.
+	MaxNameLength() uint32
+	// MaxDirSize indicates the maximum supported plaintext size of a
+	// directory.
+	MaxDirSize() uint64
 	// DoBackgroundFlushes says whether we should periodically try to
 	// flush dirty files, even without a sync from the user.  Should
 	// be true except for during some testing.

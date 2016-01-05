@@ -7,32 +7,47 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 )
 
+const (
+	// Max supported plaintext size of a file in KBFS.  TODO: increase
+	// this once we support multiple levels of indirection.
+	maxFileSizeDefault = 2 * 1024 * 1024 * 1024
+	// Max supported size of a directory entry name.
+	maxNameLengthDefault = 255
+	// Maximum supported plaintext size of a directory in KBFS. TODO:
+	// increase this once we support levels of indirection for
+	// directories.
+	maxDirSizeDefault = 512 * 1024
+)
+
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
-	kbfs      KBFSOps
-	kbpki     KBPKI
-	keyman    KeyManager
-	rep       Reporter
-	mdcache   MDCache
-	kcache    KeyCache
-	bcache    BlockCache
-	crypto    Crypto
-	codec     Codec
-	mdops     MDOps
-	kops      KeyOps
-	bops      BlockOps
-	mdserv    MDServer
-	bserv     BlockServer
-	keyserv   KeyServer
-	daemon    KeybaseDaemon
-	bsplit    BlockSplitter
-	notifier  Notifier
-	clock     Clock
-	renamer   ConflictRenamer
-	registry  metrics.Registry
-	loggerFn  func(prefix string) logger.Logger
-	noBGFlush bool // logic opposite so the default value is the common setting
+	kbfs       KBFSOps
+	kbpki      KBPKI
+	keyman     KeyManager
+	rep        Reporter
+	mdcache    MDCache
+	kcache     KeyCache
+	bcache     BlockCache
+	crypto     Crypto
+	codec      Codec
+	mdops      MDOps
+	kops       KeyOps
+	bops       BlockOps
+	mdserv     MDServer
+	bserv      BlockServer
+	keyserv    KeyServer
+	daemon     KeybaseDaemon
+	bsplit     BlockSplitter
+	notifier   Notifier
+	clock      Clock
+	renamer    ConflictRenamer
+	registry   metrics.Registry
+	loggerFn   func(prefix string) logger.Logger
+	noBGFlush  bool // logic opposite so the default value is the common setting
+	maxFileSz  uint64
+	maxNameLen uint32
+	maxDirSz   uint64
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -149,6 +164,10 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetBlockOps(&BlockOpsStandard{config})
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
+
+	config.maxFileSz = maxFileSizeDefault
+	config.maxNameLen = maxNameLengthDefault
+	config.maxDirSz = maxDirSizeDefault
 
 	// Don't bother creating the registry if UseNilMetrics is set.
 	if !metrics.UseNilMetrics {
@@ -372,6 +391,21 @@ func (c *ConfigLocal) DoBackgroundFlushes() bool {
 // ReqsBufSize implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ReqsBufSize() int {
 	return 20
+}
+
+// MaxFileSize implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MaxFileSize() uint64 {
+	return c.maxFileSz
+}
+
+// MaxNameLength implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MaxNameLength() uint32 {
+	return c.maxNameLen
+}
+
+// MaxDirSize implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MaxDirSize() uint64 {
+	return c.maxDirSz
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.

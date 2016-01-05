@@ -2388,6 +2388,36 @@ func (_mr *_MockConfigRecorder) ReqsBufSize() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReqsBufSize")
 }
 
+func (_m *MockConfig) MaxFileSize() uint64 {
+	ret := _m.ctrl.Call(_m, "MaxFileSize")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) MaxFileSize() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxFileSize")
+}
+
+func (_m *MockConfig) MaxNameLength() uint32 {
+	ret := _m.ctrl.Call(_m, "MaxNameLength")
+	ret0, _ := ret[0].(uint32)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) MaxNameLength() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxNameLength")
+}
+
+func (_m *MockConfig) MaxDirSize() uint64 {
+	ret := _m.ctrl.Call(_m, "MaxDirSize")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) MaxDirSize() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxDirSize")
+}
+
 func (_m *MockConfig) DoBackgroundFlushes() bool {
 	ret := _m.ctrl.Call(_m, "DoBackgroundFlushes")
 	ret0, _ := ret[0].(bool)

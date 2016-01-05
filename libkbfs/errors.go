@@ -753,7 +753,7 @@ func (e DisallowedPrefixError) Error() string {
 type FileTooBigError struct {
 	p          path
 	size       int64
-	maxAllowed int64
+	maxAllowed uint64
 }
 
 // Error implements the error interface for FileTooBigError.
@@ -766,7 +766,7 @@ func (e FileTooBigError) Error() string {
 // entry name that would be bigger than KBFS's supported size.
 type NameTooLongError struct {
 	name       string
-	maxAllowed int64
+	maxAllowed uint32
 }
 
 // Error implements the error interface for NameTooLongError.

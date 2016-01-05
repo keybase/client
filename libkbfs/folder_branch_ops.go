@@ -53,15 +53,6 @@ const (
 	// Time between checks for dirty files to flush, in case Sync is
 	// never called.
 	secondsBetweenBackgroundFlushes = 10
-	// Max supported plaintext size of a file in KBFS.  TODO: increase
-	// this once we support multiple levels of indirection.
-	maxFileSize = 2 * 1024 * 1024 * 1024
-	// Max supported size of a directory entry name.
-	maxNameLength = 255
-	// Maximum supported plaintext size of a directory in KBFS. TODO:
-	// increase this once we support levels of indirection for
-	// directories.
-	maxDirSize = 512 * 1024
 )
 
 type fboMutexLevel mutexLevel
@@ -1865,8 +1856,9 @@ func (fbo *folderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, err
 	}
 
-	if len(name) > maxNameLength {
-		return nil, DirEntry{}, NameTooLongError{name, maxNameLength}
+	if uint32(len(name)) > fbo.config.MaxNameLength() {
+		return nil, DirEntry{},
+			NameTooLongError{name, fbo.config.MaxNameLength()}
 	}
 
 	// verify we have permission to write
@@ -1915,9 +1907,9 @@ func (fbo *folderBranchOps) createEntryLocked(
 	// directory entry itself, but that's ok -- at worst it'll be an
 	// off-by-one-entry error, and since there's a maximum name length
 	// we can't get in too much trouble.
-	if currSize+uint64(len(name)) > maxDirSize {
+	if currSize+uint64(len(name)) > fbo.config.MaxDirSize() {
 		return nil, DirEntry{}, DirTooBigError{dirPath,
-			currSize + uint64(len(name)), maxDirSize}
+			currSize + uint64(len(name)), fbo.config.MaxDirSize()}
 	}
 
 	md.AddOp(newCreateOp(name, dirPath.tailPointer(), entryType))
@@ -2623,8 +2615,8 @@ func (fbo *folderBranchOps) getOrCreateSyncInfoLocked(de DirEntry) *syncInfo {
 func (fbo *folderBranchOps) writeDataLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
 	data []byte, off int64, doNotify bool) error {
-	if size := off + int64(len(data)); size > maxFileSize {
-		return FileTooBigError{file, size, maxFileSize}
+	if size := off + int64(len(data)); uint64(size) > fbo.config.MaxFileSize() {
+		return FileTooBigError{file, size, fbo.config.MaxFileSize()}
 	}
 
 	// check writer status explicitly
