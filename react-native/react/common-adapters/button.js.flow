@@ -3,6 +3,7 @@
 import React, {Component} from '../base-react'
 
 export type Props = {
+  onClick: Function,
   label: string,
   style: Object,
   primary: bool

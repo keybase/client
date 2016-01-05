@@ -12,6 +12,7 @@ export default class Button extends Component {
     const rootStyle = this.props.primary ? styles.buttonPrimary : styles.buttonSeconary
     return (
       <FlatButton
+        onClick={this.props.onClick}
         style={{...rootStyle, ...this.props.style}}
         labelStyle={styles.buttonLabel}
         label={this.props.label}
@@ -21,6 +22,7 @@ export default class Button extends Component {
 }
 
 Button.propTypes = {
+  onClick: React.PropTypes.func.isRequired,
   label: React.PropTypes.string,
   style: React.PropTypes.object,
   primary: React.PropTypes.bool
