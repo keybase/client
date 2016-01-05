@@ -62,6 +62,35 @@ func TestSaltPackDecrypt(t *testing.T) {
 	if decmsg != msg {
 		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
 	}
+
+	pgpMsg := `-----BEGIN PGP MESSAGE-----
+Version: GnuPG v1
+
+hQEMA5gKPw0B/gTfAQf+JacZcP+4d1cdmRV5qlrDUhK3qm5dtzAh8KE3z6OMSOmE
+fUAdMZweHZMkWA5C1OZbvZ6SKaFLFHjmiD0DWlcdiXsvgPH9RpTHOSrxdjRlBuwK
+JBz5OrDM/OStIam6jKcxBcrI43JkWOG64AOwJ4Rx3OjAnzbKJKeUCAaopbXc2M5O
+iyTPzEsexRFjSfPGRk9cQD5zfar3Qjk2cRWElgABiQczWtfNAQ3NyQLzmRU6mw+i
+ZLoViAwQm2BMYa2i6MYOJCQtxHLwZCtAbRXTGFZ2nP0gVVX50KIeL/rnzrQ4I05M
+CljEVk3BBSQBl3jqecfT2Ooh+rwgf3VSQ684HIEt5dI/Aama8l7S3ypwVyt8gWhN
+HTngZWUk8Tjn6Q8zrnnoB92G1G+rZHAiChgBFQCaYDBsWa0Pia6Vm+10OAIulGGj
+=pNG+
+-----END PGP MESSAGE-----
+`
+	decoded = libkb.NewBufferCloser()
+	decarg = &SaltPackDecryptArg{
+		Source: strings.NewReader(pgpMsg),
+		Sink:   decoded,
+	}
+	dec = NewSaltPackDecrypt(decarg, tc.G)
+	err := RunEngine(dec, ctx)
+	if wse, ok := err.(libkb.WrongCryptoFormatError); !ok {
+		t.Fatalf("Wanted a WrongCryptoFormat error, but got %T (%v)", err, err)
+	} else if wse.Wanted != libkb.CryptoMessageFormatSaltPack ||
+		wse.Received != libkb.CryptoMessageFormatPGP ||
+		wse.Operation != "decrypt" {
+		t.Fatalf("Bad error: %v", wse)
+	}
+
 }
 
 type testDecryptSaltPackUI struct {

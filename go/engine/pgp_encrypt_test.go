@@ -42,6 +42,38 @@ func TestPGPEncrypt(t *testing.T) {
 	}
 }
 
+func TestPGPEncryptNoPGPNaClOnly(t *testing.T) {
+	tc := SetupEngineTest(t, "TestPGPEncryptNoPGPNaClOnly")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "nalcp")
+	Logout(tc)
+	u2 := createFakeUserWithPGPSibkey(tc)
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: u2.NewSecretUI()}
+
+	sink := libkb.NewBufferCloser()
+	arg := &PGPEncryptArg{
+		Recips:       []string{u1.Username},
+		Source:       strings.NewReader("track and encrypt, track and encrypt"),
+		Sink:         sink,
+		NoSign:       true,
+		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+	}
+
+	eng := NewPGPEncrypt(arg, tc.G)
+	err := RunEngine(eng, ctx)
+	if perr, ok := err.(libkb.NoPGPEncryptionKeyError); !ok {
+		t.Fatalf("Got wrong error type: %T %v", err, err)
+	} else if !perr.HasDeviceKey {
+		t.Fatalf("Should have a PGP key")
+	} else if perr.User != u1.Username {
+		t.Fatalf("Wrong username")
+	}
+}
+
 func TestPGPEncryptSelfNoKey(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPEncrypt")
 	defer tc.Cleanup()
