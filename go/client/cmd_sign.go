@@ -76,7 +76,13 @@ func (s *CmdSign) Run() (err error) {
 	}
 	snk, src, err := s.ClientFilterOpen()
 	if err == nil {
-		arg := keybase1.SaltPackSignArg{Source: src, Sink: snk, Detached: s.detached}
+		arg := keybase1.SaltPackSignArg{
+			Source: src,
+			Sink:   snk,
+			Opts: keybase1.SaltPackSignOptions{
+				Detached: s.detached,
+			},
+		}
 		err = cli.SaltPackSign(context.TODO(), arg)
 	}
 	cerr := s.Close(err)

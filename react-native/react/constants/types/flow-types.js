@@ -4298,6 +4298,14 @@ export type SaltPackDecryptOptions = {
   forceRemoteCheck: boolean;
 }
 
+export type saltPack_SaltPackSignOptions = {
+  detached: boolean;
+}
+
+export type SaltPackSignOptions = {
+  detached: boolean;
+}
+
 export type saltPack_SaltPackEncryptedMessageInfo = {
   devices: Array<Device>;
   numAnonReceivers: int;

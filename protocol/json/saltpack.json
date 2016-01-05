@@ -447,6 +447,13 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "SaltPackSignOptions",
+    "fields" : [ {
+      "name" : "detached",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "SaltPackEncryptedMessageInfo",
     "fields" : [ {
       "name" : "devices",
@@ -493,7 +500,7 @@
         "name" : "opts",
         "type" : "SaltPackDecryptOptions"
       } ],
-      "response" : "SaltPackEncryptedMessageInfo"
+      "response" : "null"
     },
     "saltPackSign" : {
       "request" : [ {
@@ -506,8 +513,8 @@
         "name" : "sink",
         "type" : "Stream"
       }, {
-        "name" : "detached",
-        "type" : "boolean"
+        "name" : "opts",
+        "type" : "SaltPackSignOptions"
       } ],
       "response" : "null"
     }

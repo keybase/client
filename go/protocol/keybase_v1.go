@@ -4651,6 +4651,10 @@ type SaltPackDecryptOptions struct {
 	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
+type SaltPackSignOptions struct {
+	Detached bool `codec:"detached" json:"detached"`
+}
+
 type SaltPackEncryptedMessageInfo struct {
 	Devices          []Device `codec:"devices" json:"devices"`
 	NumAnonReceivers int      `codec:"numAnonReceivers" json:"numAnonReceivers"`
@@ -4672,15 +4676,15 @@ type SaltPackDecryptArg struct {
 }
 
 type SaltPackSignArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Source    Stream `codec:"source" json:"source"`
-	Sink      Stream `codec:"sink" json:"sink"`
-	Detached  bool   `codec:"detached" json:"detached"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Source    Stream              `codec:"source" json:"source"`
+	Sink      Stream              `codec:"sink" json:"sink"`
+	Opts      SaltPackSignOptions `codec:"opts" json:"opts"`
 }
 
 type SaltPackInterface interface {
 	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
-	SaltPackDecrypt(context.Context, SaltPackDecryptArg) (SaltPackEncryptedMessageInfo, error)
+	SaltPackDecrypt(context.Context, SaltPackDecryptArg) error
 	SaltPackSign(context.Context, SaltPackSignArg) error
 }
 
@@ -4715,7 +4719,7 @@ func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SaltPackDecryptArg)(nil), args)
 						return
 					}
-					ret, err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
+					err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4749,8 +4753,8 @@ func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncry
 	return
 }
 
-func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (res SaltPackEncryptedMessageInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, &res)
+func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, nil)
 	return
 }
 

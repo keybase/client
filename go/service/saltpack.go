@@ -79,6 +79,20 @@ func (h *SaltPackHandler) SaltPackEncrypt(_ context.Context, arg keybase1.SaltPa
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *SaltPackHandler) SaltPackSign(context.Context, keybase1.SaltPackSignArg) error {
-	return nil
+func (h *SaltPackHandler) SaltPackSign(_ context.Context, arg keybase1.SaltPackSignArg) error {
+	cli := h.getStreamUICli()
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
+	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
+	earg := &engine.SaltPackSignArg{
+		Opts:   arg.Opts,
+		Sink:   snk,
+		Source: src,
+	}
+
+	ctx := &engine.Context{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+		SecretUI:   h.getSecretUI(arg.SessionID),
+	}
+	eng := engine.NewSaltPackSign(earg, h.G())
+	return engine.RunEngine(eng, ctx)
 }

@@ -15,6 +15,10 @@ protocol saltPack {
   	boolean forceRemoteCheck;
   }
 
+  record SaltPackSignOptions {
+	boolean detached;
+  }
+
   void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltPackEncryptOptions opts);
 
   record SaltPackEncryptedMessageInfo {
@@ -24,5 +28,6 @@ protocol saltPack {
   }
 
   SaltPackEncryptedMessageInfo saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
-  void saltPackSign(int sessionID, Stream source, Stream sink, boolean detached);
+  void saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
+  void saltPackSign(int sessionID, Stream source, Stream sink, SaltPackSignOptions opts);
 }

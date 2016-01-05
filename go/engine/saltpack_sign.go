@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // SaltPackSign is an engine.
@@ -17,9 +18,9 @@ type SaltPackSign struct {
 }
 
 type SaltPackSignArg struct {
-	Sink     io.WriteCloser
-	Source   io.ReadCloser
-	Detached bool
+	Sink   io.WriteCloser
+	Source io.ReadCloser
+	Opts   keybase1.SaltPackSignOptions
 }
 
 // NewSaltPackSign creates a SaltPackSign engine.
