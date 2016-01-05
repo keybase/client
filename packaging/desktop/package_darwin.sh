@@ -13,6 +13,7 @@ bucket_name=${BUCKET_NAME:-}
 slack_token=${SLACK_TOKEN:-}
 slack_channel=${SLACK_CHANNEL:-}
 run_mode="prod"
+platform="darwin"
 
 s3host=""
 if [ ! "$bucket_name" = "" ]; then
@@ -171,7 +172,7 @@ package_dmg() {
 
 create_sourcemap_zip() {
   cd $out_dir
-  echo "Creating $sourcemap_name"
+  echo "Creating $sourcemap_name to $client_dir/desktop/dist"
   zip -j $sourcemap_name $client_dir/desktop/dist/*.map
 }
 
@@ -195,17 +196,20 @@ save() {
   else
     mkdir -p $save_dir
     cd $save_dir
-    mv $out_dir/$dmg_name .
-    mv $out_dir/$zip_name .
-    echo "Saved files to $save_dir"
+    platform_dir="$save_dir/$platform"
+    echo "Saving files to $platform_dir"
+    mkdir -p $platform_dir
+    mv $out_dir/$dmg_name $platform_dir
+    mv $out_dir/$zip_name $platform_dir
   fi
 
   s3sync
 
   if [ ! "$s3host" = "" ]; then
-    $release_bin update-json --version=$app_version --src=$zip_name --uri=$s3host > update-darwin-$run_mode.json
-    $release_bin index-html --bucket-name=$bucket_name --prefix="Keybase-" --suffix=".dmg" --dest="index.html"
-    # Sync again with new update.json and index.html
+    echo "Generating index files..."
+    $release_bin update-json --version=$app_version --src="$platform/$zip_name" --uri="$s3host/$platform" > update-$platform-$run_mode.json
+    $release_bin index-html --bucket-name="$bucket_name" --prefix="$platform/Keybase-" --suffix=".dmg" --dest="index.html"
+    # Sync again with new files
     s3sync
   fi
 }

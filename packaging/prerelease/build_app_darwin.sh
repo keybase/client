@@ -24,8 +24,8 @@ if [ ! "$NOPULL" = "1" ]; then
   "$clientdir/packaging/check_status_and_pull.sh" "$clientdir"
   "$clientdir/packaging/check_status_and_pull.sh" "$GOPATH/src/github.com/keybase/kbfs"
  else
-  # Only save to bucket if we are checked and pulled
-  bucket_name=""
+  # Save to alternate testing bucket if we are building local
+  bucket_name="prerelease-testing"
 fi
 
 BUILD_DIR=$build_dir_keybase ./build_keybase.sh
