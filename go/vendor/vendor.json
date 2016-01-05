@@ -104,8 +104,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "8950ad63d2448f4bb5a2904e93bff7adeca4f03d",
-			"revisionTime": "2015-12-11T16:26:19-05:00"
+			"revision": "de6e298306e9dfba84a8f4f9042ee6c2bb02df85",
+			"revisionTime": "2016-01-05T09:24:37-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",

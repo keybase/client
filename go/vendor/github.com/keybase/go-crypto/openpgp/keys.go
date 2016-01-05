@@ -132,6 +132,7 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 	for i, subkey := range e.Subkeys {
 		if subkey.Sig.FlagsValid &&
 			subkey.Sig.FlagSign &&
+			subkey.PrivateKey.PrivateKey != nil &&
 			subkey.PublicKey.PubKeyAlgo.CanSign() &&
 			!subkey.Sig.KeyExpired(now) {
 			candidateSubkey = i
