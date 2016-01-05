@@ -1276,6 +1276,88 @@ func TestCreateLinkFailDupName(t *testing.T) {
 	testCreateEntryFailDupName(t, false)
 }
 
+func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	u, id, rmd := makeIDAndRMD(t, config)
+
+	rootID := fakeBlockID(42)
+	rootBlock := NewDirBlock().(*DirBlock)
+	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
+	ops := getOps(config, id)
+	n := nodeFromPath(t, ops, p)
+
+	config.maxNameLen = 2
+	name := "aaa"
+
+	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
+	expectedErr := NameTooLongError{name, config.maxNameLen}
+
+	var err error
+	// dir and link have different checks for dup name
+	if isDir {
+		_, _, err = config.KBFSOps().CreateDir(ctx, n, name)
+	} else {
+		_, err = config.KBFSOps().CreateLink(ctx, n, name, "b")
+	}
+	if err == nil {
+		t.Errorf("Got no expected error on create")
+	} else if err != expectedErr {
+		t.Errorf("Got unexpected error on create: %v", err)
+	}
+}
+
+func TestCreateDirFailNameTooLong(t *testing.T) {
+	testCreateEntryFailNameTooLong(t, true)
+}
+
+func TestCreateLinkFailNameTooLong(t *testing.T) {
+	testCreateEntryFailNameTooLong(t, false)
+}
+
+func testCreateEntryFailDirTooBig(t *testing.T, isDir bool) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	u, id, rmd := makeIDAndRMD(t, config)
+
+	rootID := fakeBlockID(42)
+	rootBlock := NewDirBlock().(*DirBlock)
+	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
+	ops := getOps(config, id)
+	n := nodeFromPath(t, ops, p)
+	rmd.data.Dir.Size = 10
+
+	config.maxDirSz = 12
+	name := "aaa"
+
+	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
+
+	var err error
+	// dir and link have different checks for dup name
+	if isDir {
+		_, _, err = config.KBFSOps().CreateDir(ctx, n, name)
+	} else {
+		_, err = config.KBFSOps().CreateLink(ctx, n, name, "b")
+	}
+	if err == nil {
+		t.Errorf("Got no expected error on create")
+	} else if _, ok := err.(DirTooBigError); !ok {
+		t.Errorf("Got unexpected error on create: %v", err)
+	}
+}
+
+func TestCreateDirFailDirTooBig(t *testing.T) {
+	testCreateEntryFailDirTooBig(t, true)
+}
+
+func TestCreateLinkFailDirTooBig(t *testing.T) {
+	testCreateEntryFailDirTooBig(t, false)
+}
+
 func testCreateEntryFailKBFSPrefix(t *testing.T, et EntryType) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
@@ -2930,6 +3012,44 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 			fileBlock.IPtrs[0].BlockPointer: p.Branch,
 			fileBlock.IPtrs[1].BlockPointer: p.Branch,
 		})
+}
+
+func TestKBFSOpsWriteFailTooBig(t *testing.T) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, true)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	uid, id, rmd := makeIDAndRMD(t, config)
+
+	rootID := fakeBlockID(42)
+	fileID := fakeBlockID(43)
+	rootBlock := NewDirBlock().(*DirBlock)
+	rootBlock.Children["f"] = DirEntry{
+		BlockInfo: BlockInfo{
+			BlockPointer: makeBP(fileID, rmd, config, uid),
+			EncodedSize:  1,
+		},
+		EntryInfo: EntryInfo{
+			Type: File,
+			Size: 10,
+		},
+	}
+	fileBlock := NewFileBlock().(*FileBlock)
+	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
+	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
+	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
+	ops := getOps(config, id)
+	n := nodeFromPath(t, ops, p)
+	data := []byte{6, 7, 8}
+
+	config.maxFileSz = 12
+
+	err := config.KBFSOps().Write(ctx, n, data, 10)
+	if err == nil {
+		t.Errorf("Got no expected error on Write")
+	} else if _, ok := err.(FileTooBigError); !ok {
+		t.Errorf("Got unexpected error on Write: %v", err)
+	}
 }
 
 // Read tests check the same error cases, so no need for similar write
