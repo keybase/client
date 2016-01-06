@@ -17,10 +17,11 @@ export default class Text extends Component {
       ...(this.props.link ? styles.textLinkMixin : {}),
       ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.reversed ? styles.textReversedMixin : {}),
+      ...(this.props.onClick ? globalStyles.clickable : {}),
       ...this.props.style
     }
 
-    return <p className={this.props.link ? 'hover-underline' : ''} style={style}>{this.props.children}</p>
+    return <p className={this.props.link ? 'hover-underline' : ''} style={style} onClick={this.props.onClick}>{this.props.children}</p>
   }
 }
 
@@ -30,7 +31,8 @@ Text.propTypes = {
   small: React.PropTypes.bool,
   reversed: React.PropTypes.bool,
   children: React.PropTypes.node,
-  style: React.PropTypes.object
+  style: React.PropTypes.object,
+  onClick: React.PropTypes.func
 }
 
 const textCommon = {

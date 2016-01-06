@@ -2,26 +2,63 @@
 /*eslint-disable react/prop-types */ // Since we're using flow types for props
 
 import React, {Component} from '../base-react'
-import {FlatButton} from 'material-ui'
 import resolveAssets from '../../../desktop/resolve-assets'
 
 import {intersperseFn} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
 
-import commonStyles, {colors} from '../styles/common'
+import {globalStyles, globalColors} from '../styles/style-guide'
+import {Text, Button, Divider} from '../common-adapters/index.desktop.js'
 
 // This is the only data that the renderer cares about for a folder
 import type {FolderInfo} from './index.render'
 
-const folderIcon = {
-  public: {
-    empty: `file:///${resolveAssets('../react-native/react/images/folders/kb-folder-public-empty.svg')}`,
-    full: `file:///${resolveAssets('../react-native/react/images/folders/kb-folder-public-full.svg')}`
-  },
-  private: {
-    empty: `file:///${resolveAssets('../react-native/react/images/folders/kb-folder-private-empty.svg')}`,
-    full: `file:///${resolveAssets('../react-native/react/images/folders/kb-folder-private-full.svg')}`
-  }
+function iconPath (isPublic, isEmpty) {
+  const pubPart = isPublic ? 'public' : 'private'
+  const emptyPart = isEmpty ? 'empty' : 'full'
+  return 'file:///' + resolveAssets(`../react-native/react/images/folders/kb-folder-${pubPart}-${emptyPart}.svg`)
+}
+
+const Header = props => {
+  const openKBFS: () => void = props.openKBFS
+  const showHelp: () => void = props.showHelp
+
+  return (
+    <div style={styles.header}>
+      <i className={`fa fa-folder`} style={{...styles.icons, fontSize: 17, marginRight: 10}} onClick={openKBFS}/>
+      <i className={`fa fa-globe`} style={{...styles.icons, fontSize: 16}} onClick={showHelp}/>
+    </div>
+  )
+}
+
+const OpeningMessage = props => {
+  const message: string = props.message
+  const buttonInfo: ?{
+    text: string,
+    onClick: () => void
+  } = props.buttonInfo
+
+  return (
+    <div style={styles.openingMessage}>
+      <Text style={{textAlign: 'center', marginTop: 18, marginBottom: 11}} type='Body' reversed>{message}</Text>
+      {buttonInfo && <Button style={{marginBottom: 22}} onClick={buttonInfo.onClick} label={buttonInfo.text}/>}
+    </div>
+  )
+}
+
+const Footer = props => {
+  const debug: boolean = props.debug
+  const showHelp: () => void = props.showHelp
+  const showMain: () => void = props.showMain
+  const quit: () => void = props.quit
+
+  return (
+    <div style={styles.footer}>
+      <Text type='Body' small onClick={showHelp}>Help</Text>
+      {debug && <Text type='Body' small onClick={showMain}>Debug</Text>}
+      <Text type='Body' small onClick={quit}>Quit</Text>
+    </div>
+  )
 }
 
 export default class Render extends Component {
@@ -46,48 +83,14 @@ export default class Render extends Component {
     const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, quit, openingButtonInfo} = this.props
 
     return (
-      <div style={{backgroundColor: colors.white, ...commonStyles.fontRegular, display: 'flex', flexDirection: 'column', height: '100%'}}>
-        <Header openKBFS={openKBFS} showHelp={showHelp}/>
-        {this.props.openingMessage && <OpeningMessage message={this.props.openingMessage} buttonInfo={openingButtonInfo} showHelp={showHelp}/>}
-        {this.props.username && <FolderList username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders}/>}
-        <Footer debug={this.props.debug || false} showHelp={showHelp} quit={quit} showMain={showMain}/>
-      </div>
-    )
-  }
-}
-
-class Header extends Component {
-  props: {
-    openKBFS: () => void,
-    showHelp: () => void
-  };
-
-  render () {
-    return (
-      <div style={{display: 'flex', flexDirection: 'row', paddingTop: 11, paddingLeft: 11, paddingBottom: 8}}>
-        <i className={`fa fa-folder`} style={{...commonStyles.clickable, color: colors.warmGrey, fontSize: 16, marginRight: 10}} onClick={this.props.openKBFS}/>
-        <i className={`fa fa-globe`} style={{...commonStyles.clickable, color: colors.warmGrey}} onClick={this.props.showHelp}/>
-      </div>
-    )
-  }
-}
-
-class OpeningMessage extends Component {
-  props: {
-    message: string,
-    buttonInfo: ?{
-      text: string,
-      onClick: () => void
-    }
-  };
-
-  render () {
-    const {buttonInfo} = this.props
-    return (
-      <div style={{backgroundColor: colors.lightBlue, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-        <div style={{textAlign: 'center', color: colors.trueWhite, marginTop: 18, marginBottom: 11, marginRight: 32, marginLeft: 32}}>{this.props.message}</div>
-        <div>
-          {buttonInfo && <FlatButton style={{...commonStyles.primaryButton, ...commonStyles.fontRegular, fontSize: 17, marginBottom: 22}} onClick={buttonInfo.onClick} label={buttonInfo.text}/>}
+      <div style={styles.container}>
+        <div style={styles.arrow}/>
+        <div style={styles.body}>
+          <Header openKBFS={openKBFS} showHelp={showHelp}/>
+          {this.props.openingMessage && <OpeningMessage message={this.props.openingMessage} buttonInfo={openingButtonInfo}/>}
+          {this.props.username && <FolderList username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders}/>}
+          {!this.props.username && <div style={{flex: 1, backgroundColor: globalColors.white}}/>}
+          <Footer debug={this.props.debug || false} showHelp={showHelp} quit={quit} showMain={showMain}/>
         </div>
       </div>
     )
@@ -101,7 +104,7 @@ class FolderRow extends Component {
   };
 
   renderFolderText (text, color, key = null) {
-    return <div key={key || text} style={{...personalTLDStyle, color}}>{text}</div>
+    return <Text type='Body' key={key || text} style={{color}}>{text}</Text>
   }
 
   // Folder name is rendered a bit weird. If we only have our name it's the normal color
@@ -111,31 +114,33 @@ class FolderRow extends Component {
     let folderText
 
     if (username === folderName) {
-      folderText = [this.renderFolderText(username, colors.lightBlue)]
+      folderText = [this.renderFolderText(username, globalColors.blue)]
     } else {
       let users = canonicalizeUsernames(username, parseFolderNameToUsers(folderName))
 
       folderText = users.map(u => {
         if (u === username) {
-          return this.renderFolderText(u, colors.lightTeal)
+          return this.renderFolderText(u, globalColors.lightBlue)
         }
-        return this.renderFolderText(u, colors.lightBlue)
+        return this.renderFolderText(u, globalColors.blue)
       })
     }
 
+    console.log(folderText)
+
     return (
-      <div style={{...commonStyles.clickable, display: 'flex', flexDirection: 'row'}} onClick={openFolder}>
-        {intersperseFn(i => this.renderFolderText(',', colors.lightTeal, i), folderText)}
+      <div style={{...globalStyles.clickable, ...globalStyles.flexBoxRow, flexWrap: 'wrap', marginTop: 2}} onClick={openFolder}>
+        {intersperseFn(i => this.renderFolderText(',', globalColors.lightBlue, i), folderText)}
       </div>
     )
   }
 
   render () {
     const {folder: {isPublic, isEmpty, openFolder}} = this.props
-    const iconPath = folderIcon[isPublic ? 'public' : 'private'][isEmpty ? 'empty' : 'full']
+
     return (
-      <div style={{display: 'flex', flexDirection: 'row', height: 40, alignItems: 'center'}}>
-        <div style={{...commonStyles.clickable, ...SVGFolderIcon(iconPath), marginRight: 6}} onClick={openFolder}/>
+      <div style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', paddingTop: 10, paddingBottom: 10}}>
+        <div style={{...globalStyles.clickable, ...SVGFolderIcon(iconPath(isPublic, isEmpty)), marginRight: 6}} onClick={openFolder}/>
         {this.renderFolderName()}
       </div>
     )
@@ -151,10 +156,6 @@ class CollapsableFolderList extends Component {
     onExpand: () => void
   };
 
-  separator (key) {
-    return <div key={key} style={{...commonStyles.separator, backgroundColor: colors.transparentGrey}}/>
-  }
-
   render () {
     const {collapsed, onExpand, username, folderDisplayLimit} = this.props
     const folderToElement = f => <FolderRow key={f.folderName} username={username} folder={f}/>
@@ -169,14 +170,9 @@ class CollapsableFolderList extends Component {
     }
 
     return (
-      <div>
-        {intersperseFn(i => this.separator(i), folders.map(folderToElement))}
-        {truncatedCount > 0 &&
-          <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 10}}>
-            <FlatButton
-              style={{...commonStyles.primaryButton, ...commonStyles.fontRegular, fontSize: 17, width: null}}
-              onClick={onExpand} label={`Show all (+${truncatedCount})`}/>
-          </div>}
+      <div style={{...globalStyles.flexBoxColumn}}>
+        {intersperseFn(i => <Divider key={i} />, folders.map(folderToElement))}
+        {truncatedCount > 0 && <Button primary onClick={onExpand} label={`Show all (+${truncatedCount})`} style={{alignSelf: 'center'}}/>}
       </div>
     )
   }
@@ -228,9 +224,9 @@ class FolderList extends Component {
     const publicFolders = [personalPublicFolder].concat(folders.filter(f => f.isPublic)).map(f => ({...f, folderName: stripPublicTag(f.folderName)}))
 
     return (
-      <div style={{display: 'flex', flexDirection: 'column', flexGrow: 2, backgroundColor: colors.trueWhite, paddingTop: 17, paddingLeft: 18, paddingBottom: 9, overflowY: 'scroll', overflowX: 'hidden'}}>
+      <div style={styles.folderList}>
         <div>
-          <div style={{...rootFolderStyle}}>private/</div>
+          <Text type='Body'>private/</Text>
           <CollapsableFolderList
             username={username}
             folders={privateFolders}
@@ -240,7 +236,7 @@ class FolderList extends Component {
         </div>
 
         <div>
-          <div style={{...rootFolderStyle, marginTop: 14}}>public/</div>
+          <Text type='Body' style={{marginTop: 20}}>public/</Text>
           <CollapsableFolderList
             username={username}
             folders={publicFolders}
@@ -253,42 +249,72 @@ class FolderList extends Component {
   }
 }
 
-class Footer extends Component {
-  props: {
-    debug: boolean,
-    showHelp: () => void,
-    showMain: () => void,
-    quit: () => void
-  };
-
-  render () {
-    return (
-      <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', paddingLeft: 11, paddingRight: 11, paddingTop: 8, paddingBottom: 8}}>
-        <div style={{...commonStyles.clickable, ...commonStyles.transparentBlack, fontSize: 13, lineHeight: '17px'}} onClick={this.props.showHelp}>Help</div>
-        {this.props.debug && <div style={{...commonStyles.clickable, ...commonStyles.transparentBlack, fontSize: 13, lineHeight: '17px'}} onClick={this.props.showMain}>Debug</div>}
-        <div style={{...commonStyles.clickable, ...commonStyles.transparentBlack, fontSize: 13, lineHeight: '17px'}} onClick={this.props.quit}>Quit</div>
-      </div>
-    )
+const styles = {
+  container: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1
+  },
+  body: {
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.rounded,
+    overflow: 'hidden',
+    height: 364,
+    minHeight: 364,
+    maxHeight: 364,
+    flex: 1
+  },
+  arrow: {
+    width: 0,
+    height: 10,
+    minHeight: 10,
+    borderLeft: '7px solid transparent',
+    borderRight: '7px solid transparent',
+    borderBottom: `5px solid ${globalColors.grey5}`,
+    alignSelf: 'center'
+  },
+  header: {
+    ...globalStyles.flexBoxRow,
+    backgroundColor: globalColors.grey5,
+    minHeight: 32,
+    maxHeight: 32,
+    padding: 10
+  },
+  icons: {
+    ...globalStyles.clickable,
+    color: globalColors.grey2
+  },
+  openingMessage: {
+    ...globalStyles.flexBoxColumn,
+    backgroundColor: globalColors.blue,
+    alignItems: 'center'
+  },
+  folderList: {
+    ...globalStyles.flexBoxColumn,
+    backgroundColor: globalColors.white,
+    flex: 1,
+    paddingTop: 17,
+    paddingLeft: 18,
+    paddingBottom: 9,
+    overflowY: 'scroll',
+    overflowX: 'hidden'
+  },
+  footer: {
+    ...globalStyles.flexBoxRow,
+    backgroundColor: globalColors.grey5,
+    justifyContent: 'space-between',
+    padding: 10
+  },
+  personalTLDStyle: {
+    fontSize: 15,
+    lineHeight: '18px',
+    color: globalColors.lightBlue
   }
-}
-
-const rootFolderStyle = {
-  fontSize: 15,
-  lineHeight: '17px',
-  color: colors.black,
-  marginBottom: 12
-}
-
-const personalTLDStyle = {
-  fontSize: 15,
-  lineHeight: '18px',
-  color: colors.lightBlue
 }
 
 const SVGFolderIcon = svgPath => ({
   height: 28,
-  width: 25,
-  marginTop: 2,
+  minWidth: 25,
+  maxWidth: 25,
   backgroundImage: `url(${svgPath})`,
   backgroundRepeat: 'no-repeat'
 })
