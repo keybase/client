@@ -1,6 +1,10 @@
 # SaltPack Binary Encryption Format
 
 **Changelog**
+- 5 Jan 2015
+  - Move the sender's public key out of the recipient box and into a separate
+    secretbox with its own field in the header. That saves us the overhead of
+    encrypting it for every recipient.
 - 29 Dec 2015
   - We had incorrectly assumed it was hard for other recipients to find a
     Poly1305 collision. Use a hash instead, where we need preimage resistance.
@@ -60,7 +64,7 @@ or twenty recipients with one key each.
 Finally, the scheme accommodates anonymous receivers and anonymous senders. Thus,
 each message needs an ephemeral sender public key, used only for this one message,
 to hide the sender's true identity. Some implementations of the scheme can
-choose to reveal the keys of the receivers to make user-friendlier errors
+choose to reveal the keys of the receivers to make user-friendlier error
 messages on decryption failures (e.g., "Can't decrypt this message on your
 phone, but try your laptop.")  If the sender wants to decrypt the message
 at a later date, she simply adds her public keys to the list of recipients.
@@ -80,6 +84,7 @@ The header packet is a MessagePack list with these contents:
     version,
     mode,
     ephemeral public key,
+    sender public key secretbox,
     recipients list,
 ]
 ```
@@ -89,52 +94,45 @@ The header packet is a MessagePack list with these contents:
   `[1, 0]`.
 - The **mode** is the number 0, for encryption. (1 and 2 are attached and
   detached signing.)
-- The **ephemeral public key** is an ephemeral NaCl public encryption key, 32
-  bytes. The ephemeral keypair is generated at random by the sender and only
-  used for one message.
-- The **recipients list** contains a recipient pair for each recipient key.
+- The **ephemeral public key** is a NaCl public encryption key, 32 bytes. The
+  ephemeral keypair is generated at random by the sender and only used for one
+  message.
+- The **sender public key secretbox** is a NaCl secretbox containing the
+  sender's long-term public key, encrypted with the **payload key**.
+- The **recipients list** contains a recipient pair for each recipient key,
+  including an encrypted copy of the **payload key**. See below.
 
 A recipient pair is a two-element list:
 
 ```
 [
     recipient public key,
-    recipient box,
+    payload key box,
 ]
 ```
 
 - The **recipient public key** is the recipient's long-term NaCl public
   encryption key. This field may be null, when the recipients are anonymous.
-- The **recipient box** is a NaCl box encrypted with the recipient's public key
-  and the ephemeral private key.
+- The **payload key box** is a NaCl box encrypted with the recipient's public
+  key and the ephemeral private key. It contains the **payload key**, a 32-byte
+  NaCl symmetric encryption key used to encrypt the **sender public key
+  secretbox** above that the **payload secretbox** in each payload packet
+  below. The sender generates a random payload key for each message.
 
-The **recipient box** contains another two-element MessagePack list:
+Recipients should compute the ephemeral shared secret and then try to open each
+of the **payload key boxes**. In the NaCl interface, computing a shared secret
+is done with the [`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html)
+function, which does a Curve25519 multiplication and an HSalsa20 key
+derivation, to avoid repeating those steps in
+[`crypto_box_open`](http://nacl.cr.yp.to/box.html). After obtaining the
+**payload key**, clients open the **sender public key secretbox** and obtain
+the sender's public key. Both keys are used to decrypt payload packets below.
 
-```
-[
-    sender public key,
-    message key,
-]
-```
-
-- The **sender public key** is the sender's long-term NaCl public encryption
-  key.
-- The **message key** is a NaCl symmetric key used to encrypt the payload
-  packets. This key is generated at random by the sender and only used for one
-  message.
-
-Putting the sender's key in the **recipient box** allows Alice to stay
-anonymous to Mallory. If Alice wants to be anonymous to Bob as well, she can
-reuse the ephemeral key as her sender key. When the ephemeral key and the
-sender key are the same, clients may indicate that a message is "intentionally
-anonymous" as opposed to "from an unknown sender".
-
-When decrypting, clients should compute the ephemeral shared secret and then
-try to open each of the recipient boxes. In the NaCl interface, computing the
-shared secret is done with the
-[`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html) function, which does a
-Curve25519 multiplication and an HSalsa20 key derivation, to avoid repeating
-those steps in [`crypto_box_open`](http://nacl.cr.yp.to/box.html).
+Encrypting the sender's long-term public key allows Alice to stay anonymous to
+Mallory. If Alice wants to be anonymous to Bob as well, she can reuse the
+ephemeral key as her sender key. When the ephemeral key and the sender key are
+the same, clients may indicate that a message is "intentionally anonymous" as
+opposed to "from an unknown sender".
 
 Note that when parsing lists in general, if a list is longer than expected,
 clients should allow the extra fields and ignore them. That flexibility allows
@@ -153,10 +151,10 @@ A payload packet is a MessagePack list with these contents:
 - The **authenticators list** contains 16-byte Poly1305 tags, one for each
   recipient, which authenticate the **payload secretbox**.
 - The **payload secretbox** is a NaCl secretbox containing a chunk of the
-  plaintext bytes, max size 1 MB. It's encrypted with the symmetric message
-  key. See [Nonces](#nonces) below.
+  plaintext bytes, max size 1 MB. It's encrypted with the **payload key**. See
+  [Nonces](#nonces) below.
 
-If Mallory doesn't have the **message key**, she can't modify the **payload
+If Mallory doesn't have the **payload key**, she can't modify the **payload
 secretbox** without breaking authentication. However, if Mallory is one of the
 recipients, then she will have the key, and she could modify the payload. The
 **authenticators list** is there to prevent this attack, protecting the
@@ -165,8 +163,8 @@ recipients from each other.
 We compute each recipient's authenticator in three steps:
 
 - Compute the SHA512 of the **payload secretbox**.
-- Encrypt that hash in a NaCl box, using the sender's and the recipient's
-  long-term keys. See [Nonces](#nonces) below.
+- Encrypt that hash in a NaCl box, using the sender and recipient's long-term
+  keys. See [Nonces](#nonces) below.
 - The authenticator is the first 16 bytes of that box.
 
 The index of each authenticator in the list corresponds to the index of that
@@ -241,15 +239,17 @@ place of `"SaltPack\0"`.
   # mode (0 = encryption)
   0,
   # ephemeral public key
-  LfqrHp8MXAjgaRgwDVc354+xT+KbCZaAgXXRL7bLWwI=,
+  e1c7c20fc7ac2012fe4066f5350ae3bbcdb1d243a6ae9706710727611e6efa65,
+  # sender public key secretbox
+  86eb1d6032e9a199ecbf844b8d0bb0cde096f84c08a07960f1ea929cee907df5b5e7757ca612a121a7927ffd0cf8fcde,
   # recipient pairs
   [
     # the first recipient pair
     [
       # recipient public key (null in this case, for an anonymous recipient)
       null,
-      # recipient box
-      yYTf3JDEYYxfKsHpF0yd5V4Ud7CAxFSJQCj5fV3x6WDGvxsmg/QQW6Qe3muB7uyg5PdlxEOg7fsmEXcFBEBDM9IzmvWsFZnqHk7yaLnkLd9mHeJLtw==,
+      # payload key box
+      36b1d43f73660961bb8033ad880db2b4b5b00b7a08908cb00551de07719a9455f48672eae697ea0270be6ffe1d3740da,
     ],
     # subsequent recipient pairs...
   ],
@@ -260,11 +260,11 @@ place of `"SaltPack\0"`.
   # authenticators list
   [
     # the first recipient's authenticator
-    Kf7jX3b41HUsMkBPPwITsw==,
+    c84eafa03ede35d527b24785ca8b7226,
     # subsequent authenticators...
   ],
   # payload secretbox
-  kEzDRKm2P6hB/U7+cnPco2AI+CiCI6+VDEZx1JVoPLtKY3pN2Ncr,
+  b3f359cfaa303a6f38378b2525d0f731911dd8d73af53f,
 ]
 
 # empty payload packet
@@ -272,10 +272,10 @@ place of `"SaltPack\0"`.
   # authenticators list
   [
     # the first recipient's authenticator
-    scFuUduo1tFLbWajQOXTzw==,
+    c556aade21fd10054603560faa6ce535,
     # subsequent authenticators...
   ],
   # the empty payload secretbox
-  tuyQFSrWggxxAG044yUkWA==,
+  16585d2741f0be03882d8df76905535a,
 ]
 ```
