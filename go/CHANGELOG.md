@@ -10,6 +10,7 @@
 - Preserve external log message order (PR: keybase/client#1641)
 - SaltPack: implement sign/verify commands (PR: keybase/client#1635)
 - SaltPack: implement sign/verify package (PR: keybase/client#1596 keybase/client#1612 keybase/client#1614)
+- Fix merkle tree path mismatch bug (PR: keybase/client#1621)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
