@@ -292,6 +292,10 @@ type folderBranchOps struct {
 	// Can be used to turn off notifications for a while (e.g., for testing)
 	updatePauseChan chan (<-chan struct{})
 
+	// A queue of MD updates for this folder that need to have their
+	// unref's blocks archived
+	archiveChan chan *RootMetadata
+
 	// How to resolve conflicts
 	cr *ConflictResolver
 }
@@ -342,11 +346,13 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		log:             log,
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
+		archiveChan:     make(chan *RootMetadata, 25),
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
+	go fbo.archiveBlocksInBackground()
 	return fbo
 }
 
@@ -4568,4 +4574,32 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 		fbo.notifyOneOpLocked(ctx, lState, op, md)
 	}
 	return nil
+}
+
+func (fbo *folderBranchOps) archiveBlocksInBackground() {
+	for {
+		select {
+		case md := <-fbo.archiveChan:
+			var ptrs []BlockPointer
+			for _, op := range md.data.Changes.Ops {
+				for _, ptr := range op.Unrefs() {
+					ptrs = append(ptrs, ptr)
+				}
+				for _, update := range op.AllUpdates() {
+					ptrs = append(ptrs, update.Unref)
+				}
+			}
+			fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
+				fbo.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
+					"of revision %d", len(ptrs), md.Revision)
+				err = fbo.config.BlockOps().Archive(ctx, md, ptrs)
+				if err != nil {
+					fbo.log.CWarningf(ctx, "Couldn't archive blocks: %v", err)
+				}
+				return err
+			})
+		case <-fbo.shutdownChan:
+			return
+		}
+	}
 }
