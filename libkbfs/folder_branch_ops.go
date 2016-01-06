@@ -295,6 +295,10 @@ type folderBranchOps struct {
 	// A queue of MD updates for this folder that need to have their
 	// unref's blocks archived
 	archiveChan chan *RootMetadata
+	// archiveGroup can be Wait'd on to ensure that all outstanding
+	// archivals are completed.  Calls to Wait() and Add() should be
+	// protected by mdWriterLock.
+	archiveGroup sync.WaitGroup
 
 	// How to resolve conflicts
 	cr *ConflictResolver
@@ -1716,6 +1720,12 @@ func (fbo *folderBranchOps) isRevisionConflict(err error) bool {
 		isConflictDiskUsage || isConditionFailed
 }
 
+// mdWriterLock must be held by the caller.
+func (fbo *folderBranchOps) archiveLocked(md *RootMetadata) {
+	fbo.archiveGroup.Add(1)
+	fbo.archiveChan <- md
+}
+
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState) error {
@@ -1796,7 +1806,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	}
 
 	// Archive the old, unref'd blocks
-	fbo.archiveChan <- md
+	fbo.archiveLocked(md)
 
 	fbo.notifyBatchLocked(ctx, lState, md)
 	return nil
@@ -4362,6 +4372,13 @@ func (fbo *folderBranchOps) SyncFromServer(
 		}
 		return err
 	}
+
+	// Wait for all the asynchronous block archiving to hit the block
+	// server.
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	fbo.archiveGroup.Wait()
+
 	return nil
 }
 
@@ -4570,7 +4587,7 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	fbo.setStagedLocked(lState, false, NullBranchID)
 
 	// Archive the old, unref'd blocks
-	fbo.archiveChan <- md
+	fbo.archiveLocked(md)
 
 	// notifyOneOp for every fixed-up merged op.
 	for _, op := range newOps {
@@ -4593,6 +4610,7 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 				}
 			}
 			fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
+				defer fbo.archiveGroup.Done()
 				fbo.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
 					"of revision %d", len(ptrs), md.Revision)
 				err = fbo.config.BlockOps().Archive(ctx, md, ptrs)
