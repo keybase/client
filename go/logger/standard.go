@@ -88,6 +88,7 @@ type Standard struct {
 	externalLoggersMutex sync.RWMutex
 
 	buffer chan *entry
+	drop   chan bool
 }
 
 // Verify Standard fully implements the Logger interface.
@@ -122,6 +123,7 @@ func NewWithCallDepth(module string, extraCallDepth int, iow io.Writer) *Standar
 		externalLogLevel:     keybase1.LogLevel_INFO,
 		isTerminal:           isTerminal,
 		buffer:               make(chan *entry, 10000),
+		drop:                 make(chan bool, 1),
 	}
 	ret.initLogging(iow)
 	go ret.processBuffer()
@@ -369,6 +371,32 @@ func (log *Standard) logToExternalLoggers(level keybase1.LogLevel, format string
 	// if buffer is full, don't block, just drop the log message
 	select {
 	case log.buffer <- &e:
+		log.checkDropFlag()
+	default:
+		log.setDropFlag()
+	}
+}
+
+// setDropFlag puts a flag into the drop channel if the channel is
+// empty.  This is to signal that external log messages have been
+// dropped.
+func (log *Standard) setDropFlag() {
+	select {
+	case log.drop <- true:
+	default:
+	}
+}
+
+// checkDropFlag checks to see if anything is in the drop channel.
+// If there is a flag in there, it will tell external loggers that
+// log messages were dropped.
+func (log *Standard) checkDropFlag() {
+	select {
+	case <-log.drop:
+		log.buffer <- &entry{
+			level:  keybase1.LogLevel_WARN,
+			format: "Service log messages were dropped due to full buffer",
+		}
 	default:
 	}
 }
