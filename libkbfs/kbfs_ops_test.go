@@ -4434,9 +4434,9 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		t.Errorf("Got unexpected error on sync: %v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
-	if newRmd.data.Changes.Pointer.ID != changeBlockID {
+	if newRmd.data.cachedChanges.Pointer.ID != changeBlockID {
 		t.Errorf("Got unexpected changeBlocks pointer: %v vs %v",
-			newRmd.data.Changes.Pointer.ID, changeBlockID)
+			newRmd.data.cachedChanges.Pointer.ID, changeBlockID)
 	} else {
 		checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,
 			Exec, "", false)

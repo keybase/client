@@ -1775,6 +1775,12 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 		fbo.setStagedLocked(lState, false, NullBranchID)
 	}
+	// Swap any cached block changes
+	if md.data.Changes.Ops == nil {
+		tmp := md.data.Changes
+		md.data.Changes = md.data.cachedChanges
+		md.data.cachedChanges = tmp
+	}
 	fbo.transitionState(cleanState)
 
 	err = fbo.finalizeBlocks(bps)
@@ -3553,16 +3559,7 @@ func (fbo *folderBranchOps) notifyLocal(ctx context.Context,
 // in md. headLock must be held by the caller.
 func (fbo *folderBranchOps) notifyBatchLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata) {
-	var lastOp op
-	if md.data.Changes.Ops != nil {
-		lastOp = md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
-	} else {
-		// Uh-oh, the block changes have been kicked out into a block.
-		// Use a cached copy instead, and clear it when done.
-		lastOp = md.data.cachedChanges.Ops[len(md.data.cachedChanges.Ops)-1]
-		md.data.cachedChanges.Ops = nil
-	}
-
+	lastOp := md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
 	fbo.notifyOneOpLocked(ctx, lState, lastOp, md)
 }
 
