@@ -242,7 +242,7 @@ func newDecoder(enc *Encoding, r io.Reader) io.Reader {
 	return &decoder{
 		enc:        enc,
 		r:          r,
-		buf:        make([]byte, 128*enc.base256BlockLen),
-		scratchbuf: make([]byte, 128*enc.baseXBlockLen),
+		buf:        make([]byte, 8192*enc.base256BlockLen),
+		scratchbuf: make([]byte, 8192*enc.baseXBlockLen),
 	}
 }
