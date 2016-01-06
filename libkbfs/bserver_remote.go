@@ -247,8 +247,8 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 	return err
 }
 
-// ArchiveBlockReference archives Block references
-func (b *BlockServerRemote) ArchiveBlockReference(ctx context.Context, tlfID TlfID, refs []keybase1.BlockReference) (err error) {
+func (b *BlockServerRemote) archiveBlockReferences(ctx context.Context,
+	tlfID TlfID, refs []keybase1.BlockReference) (err error) {
 	doneRefs := make(map[string]bool)
 	notDone := refs
 	prevProgress := true
@@ -301,7 +301,17 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *UserQuo
 // BlockServerRemote
 func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID]BlockContext) error {
-	return nil
+	refs := make([]keybase1.BlockReference, 0, len(contexts))
+	for id, context := range contexts {
+		refs = append(refs, keybase1.BlockReference{
+			Bid: keybase1.BlockIdCombo{
+				ChargedTo: context.GetCreator(),
+				BlockHash: id.String(),
+			},
+			ChargedTo: context.GetWriter(),
+		})
+	}
+	return b.archiveBlockReferences(ctx, tlfID, refs)
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.
