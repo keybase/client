@@ -140,5 +140,10 @@ func (b *BlockOpsStandard) Delete(ctx context.Context, md *RootMetadata,
 // Archive implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Archive(ctx context.Context, md *RootMetadata,
 	ptrs []BlockPointer) error {
-	return nil
+	contexts := make(map[BlockID]BlockContext)
+	for _, ptr := range ptrs {
+		contexts[ptr.ID] = ptr
+	}
+
+	return b.config.BlockServer().ArchiveBlockReferences(ctx, md.ID, contexts)
 }
