@@ -10,26 +10,6 @@ import (
 
 // compatibility with node client commands:
 
-func NewCmdCompatSign(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name: "sign",
-		Action: func(c *cli.Context) {
-			GlobUI.Println("Use `keybase pgp sign` instead.")
-		},
-		Description: "Use `keybase pgp sign` instead.",
-	}
-}
-
-func NewCmdCompatVerify(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name: "verify",
-		Action: func(c *cli.Context) {
-			GlobUI.Println("Use `keybase pgp verify` instead.")
-		},
-		Description: "Use `keybase pgp verify` instead.",
-	}
-}
-
 func NewCmdCompatDir(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name: "dir",
