@@ -10,6 +10,8 @@ import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {Text, Button, Divider} from '../common-adapters/index.desktop.js'
 
+import {CircularProgress} from 'material-ui'
+
 // This is the only data that the renderer cares about for a folder
 import type {FolderInfo} from './index.render'
 
@@ -33,6 +35,11 @@ const Header = props => {
 
 const OpeningMessage = props => {
   const message: string = props.message
+
+  if (!message) {
+    return null
+  }
+
   const buttonInfo: ?{
     text: string,
     onClick: () => void
@@ -76,7 +83,8 @@ export default class Render extends Component {
       onClick: () => void
     },
     folders: Array<FolderInfo>,
-    debug?: boolean
+    debug?: boolean,
+    loading: boolean
   };
 
   render (): ReactElement {
@@ -88,7 +96,7 @@ export default class Render extends Component {
         <div style={styles.body}>
           <Header openKBFS={openKBFS} showHelp={showHelp}/>
           {this.props.openingMessage && <OpeningMessage message={this.props.openingMessage} buttonInfo={openingButtonInfo}/>}
-          {this.props.username && <FolderList username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders}/>}
+          {this.props.username && <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders}/>}
           {!this.props.username && <div style={{flex: 1, backgroundColor: globalColors.white}}/>}
           <Footer debug={this.props.debug || false} showHelp={showHelp} quit={quit} showMain={showMain}/>
         </div>
@@ -111,20 +119,8 @@ class FolderRow extends Component {
   // If we have our name and someone else, our name is toned down
   renderFolderName () {
     const {username, folder: {folderName, openFolder}} = this.props
-    let folderText
-
-    if (username === folderName) {
-      folderText = [this.renderFolderText(username, globalColors.blue)]
-    } else {
-      let users = canonicalizeUsernames(username, parseFolderNameToUsers(folderName))
-
-      folderText = users.map(u => {
-        if (u === username) {
-          return this.renderFolderText(u, globalColors.lightBlue)
-        }
-        return this.renderFolderText(u, globalColors.blue)
-      })
-    }
+    let users = canonicalizeUsernames(username, parseFolderNameToUsers(folderName))
+    const folderText = users.map(u => this.renderFolderText(u, u === username ? globalColors.lightBlue : globalColors.blue))
 
     return (
       <div style={{...globalStyles.clickable, ...globalStyles.flexBoxRow, flexWrap: 'wrap', marginTop: 2}} onClick={openFolder}>
@@ -178,6 +174,7 @@ class CollapsableFolderList extends Component {
 
 class FolderList extends Component {
   props: {
+    loading: boolean,
     username: string,
     folders: Array<FolderInfo>,
     openKBFSPublic: () => void,
@@ -223,6 +220,9 @@ class FolderList extends Component {
 
     return (
       <div style={styles.folderList}>
+        {this.props.loading && <div style={styles.loader}>
+          <CircularProgress style={styles.loader} mode='indeterminate' size={0.5}/>
+        </div>}
         <div>
           <Text type='Body'>private/</Text>
           <CollapsableFolderList
@@ -255,6 +255,7 @@ const styles = {
   body: {
     ...globalStyles.flexBoxColumn,
     ...globalStyles.rounded,
+    position: 'relative',
     overflow: 'hidden',
     height: 364,
     minHeight: 364,
@@ -289,12 +290,20 @@ const styles = {
   folderList: {
     ...globalStyles.flexBoxColumn,
     backgroundColor: globalColors.white,
+    position: 'relative',
     flex: 1,
     paddingTop: 17,
     paddingLeft: 18,
     paddingBottom: 9,
     overflowY: 'scroll',
     overflowX: 'hidden'
+  },
+  loader: {
+    position: 'absolute',
+    alignSelf: 'center',
+    top: 0,
+    right: 0,
+    opacity: 0.8
   },
   footer: {
     ...globalStyles.flexBoxRow,

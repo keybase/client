@@ -45,7 +45,7 @@ module.exports = {
   },
   entry: {
     index: ['./renderer/index.js'],
-    main: ['./app/main.js'],
+    main: ['./app/index.js'],
     launcher: ['./renderer/launcher.js'],
     'remote-component-loader': ['../react-native/react/native/remote-component-loader.js']
   }

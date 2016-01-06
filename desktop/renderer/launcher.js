@@ -4,9 +4,9 @@ import Menubar from '../../react-native/react/native/remote-menubar'
 import reactDOM from 'react-dom'
 import {showMainWindow} from '../../react-native/react/local-debug.desktop'
 
-import consoleHack from '../app/console-hack'
+import consoleHelper from '../app/console-helper'
 
-consoleHack()
+consoleHelper()
 
 if (module.hot) {
   module.hot.accept()

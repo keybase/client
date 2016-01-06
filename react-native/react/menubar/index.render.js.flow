@@ -3,7 +3,8 @@ import React, {Component} from '../base-react'
 
 export default class Render extends Component {
   props: {
-    debug?: boolean
+    debug?: boolean,
+    loading: boolean
   };
 }
 
