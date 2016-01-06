@@ -213,22 +213,6 @@
 			"revisionTime": "2014-10-08T16:43:58+02:00"
 		},
 		{
-			"origin": "github.com/keybase/client/go/vendor/github.com/stretchr/testify",
-			"path": "github.com/stretchr/testify",
-			"revision": "2b15294402a895a4224659d181866f545991021e",
-			"revisionTime": "2015-09-29T19:35:40+01:00"
-		},
-		{
-			"path": "github.com/stretchr/testify/assert",
-			"revision": "2b15294402a895a4224659d181866f545991021e",
-			"revisionTime": "2015-09-29T19:35:40+01:00"
-		},
-		{
-			"path": "github.com/stretchr/testify/require",
-			"revision": "bcd32dcc8b1e09b14f55703dcf891fdd82561143",
-			"revisionTime": "2015-09-24T18:06:42+01:00"
-		},
-		{
 			"path": "github.com/syndtr/goleveldb/leveldb",
 			"revision": "a06509502ca32565bdf74afc1e573050023f261c",
 			"revisionTime": "2015-06-10T06:54:26+07:00"

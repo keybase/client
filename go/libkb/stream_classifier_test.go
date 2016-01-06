@@ -6,8 +6,6 @@ package libkb
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
-	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
 	"testing"
@@ -23,9 +21,13 @@ func newStreamFromBase64String(t *testing.T, s string) io.Reader {
 
 func assertStreamEqBase64(t *testing.T, r io.Reader, m string) {
 	buf, err := ioutil.ReadAll(r)
-	require.Nil(t, err, "an error occured during stream draining")
+	if err != nil {
+		t.Fatalf("an error occured during stream draining")
+	}
 	m2 := base64.StdEncoding.EncodeToString(buf)
-	require.Equal(t, m, m2, "the whole stream came back out")
+	if m != m2 {
+		t.Fatalf("the whole stream came back out")
+	}
 }
 
 type testVector struct {
@@ -108,10 +110,18 @@ func TestClassifyTestVectors(t *testing.T) {
 		t.Logf("--> Vector %d\n", i)
 		r := newStreamFromBase64String(t, v.msg)
 		sc, r2, err := ClassifyStream(r)
-		require.Nil(t, err, fmt.Sprintf("an error occured while stream classifying (%d)", i))
-		require.Equal(t, sc.Format, v.sc.Format, fmt.Sprintf("format (%d)", i))
-		require.Equal(t, sc.Type, v.sc.Type, fmt.Sprintf("type (%d)", i))
-		require.Equal(t, sc.Armored, v.sc.Armored, fmt.Sprintf("armored (%d)", i))
+		if err != nil {
+			t.Fatalf("an error occured while stream classifying (%d)", i)
+		}
+		if sc.Format != v.sc.Format {
+			t.Fatalf("Bad format (%d)", i)
+		}
+		if sc.Type != v.sc.Type {
+			t.Fatalf("bad type (%d)", i)
+		}
+		if sc.Armored != v.sc.Armored {
+			t.Fatalf("bad armored value (%d)", i)
+		}
 		assertStreamEqBase64(t, r2, v.msg)
 	}
 }
