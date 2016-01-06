@@ -5,16 +5,10 @@ package saltpack
 
 import "fmt"
 
-type receiverKeysPlaintext struct {
-	_struct    bool   `codec:",toarray"`
-	Sender     []byte `codec:"sender"`
-	SessionKey []byte `codec:"session_key"`
-}
-
-type receiverKeysCiphertexts struct {
-	_struct     bool   `codec:",toarray"`
-	ReceiverKID []byte `codec:"receiver_key_id"`
-	Keys        []byte `codec:"keys"`
+type receiverKeys struct {
+	_struct       bool   `codec:",toarray"`
+	ReceiverKID   []byte `codec:"receiver_key_id"`
+	PayloadKeyBox []byte `codec:"payloadkey"`
 }
 
 // Version is a major.minor pair that shows the version of the whole file
@@ -28,13 +22,14 @@ type Version struct {
 // It contains the encryptions of the session keys, and various
 // message metadata.
 type EncryptionHeader struct {
-	_struct    bool                      `codec:",toarray"`
-	FormatName string                    `codec:"format_name"`
-	Version    Version                   `codec:"vers"`
-	Type       MessageType               `codec:"type"`
-	Sender     []byte                    `codec:"sender"`
-	Receivers  []receiverKeysCiphertexts `codec:"rcvrs"`
-	seqno      PacketSeqno
+	_struct         bool           `codec:",toarray"`
+	FormatName      string         `codec:"format_name"`
+	Version         Version        `codec:"vers"`
+	Type            MessageType    `codec:"type"`
+	Ephemeral       []byte         `codec:"ephemeral"`
+	SenderSecretbox []byte         `codec:"sendersecretbox"`
+	Receivers       []receiverKeys `codec:"rcvrs"`
+	seqno           PacketSeqno
 }
 
 // EncryptionBlock contains a block of encrypted data. It contains
@@ -44,13 +39,6 @@ type EncryptionBlock struct {
 	HashAuthenticators [][]byte `codec:"authenticators"`
 	PayloadCiphertext  []byte   `codec:"ctext"`
 	seqno              PacketSeqno
-}
-
-func verifyRawKey(k []byte) error {
-	if len(k) != len(RawBoxKey{}) {
-		return ErrBadSenderKey
-	}
-	return nil
 }
 
 func (h *EncryptionHeader) validate() error {
