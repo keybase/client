@@ -64,7 +64,7 @@ export default class UpdateRender extends Component {
         <div style={styles.actions}>
           <Button label={`Ignore for ${this.props.snoozeTime}`} onClick={() => this.props.onSnooze()} />
           { this.props.canUpdate &&
-            <Button primary label='Update' onClick={() => this.props.onUpdate()} /> }
+            <Button primary label='Update' onClick={() => this.props.onUpdate(this.props.alwaysUpdate)} /> }
           { !this.props.canUpdate &&
             <Button primary label='Done, close!' onClick={() => this.props.onSnooze()} /> }
         </div>
