@@ -461,6 +461,11 @@ func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
 	// entries and create chains for the BlockPointers that are
 	// affected directly by the operation.
 	for _, rmd := range rmds {
+		// No new operations in these.
+		if rmd.IsWriterMetadataCopiedSet() {
+			continue
+		}
+
 		writerName, err := kbpki.GetNormalizedUsername(ctx, rmd.LastModifyingWriter)
 		if err != nil {
 			return nil, err

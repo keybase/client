@@ -63,10 +63,17 @@ func (rkq *RekeyQueueStandard) Enqueue(id TlfID) <-chan error {
 
 // IsRekeyPending implements the RekeyQueue interface for RekeyQueueStandard.
 func (rkq *RekeyQueueStandard) IsRekeyPending(id TlfID) bool {
+	return rkq.GetRekeyChannel(id) != nil
+}
+
+// GetRekeyChannel implements the RekeyQueue interface for RekeyQueueStandard.
+func (rkq *RekeyQueueStandard) GetRekeyChannel(id TlfID) <-chan error {
 	rkq.queueMu.RLock()
 	defer rkq.queueMu.RUnlock()
-	_, exists := rkq.queue[id]
-	return exists
+	if c, exists := rkq.queue[id]; exists {
+		return c
+	}
+	return nil
 }
 
 // Clear implements the RekeyQueue interface for RekeyQueueStandard.

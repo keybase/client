@@ -1,10 +1,12 @@
 package libkbfs
 
 import (
+	"bytes"
 	"sort"
 	"strconv"
 
 	keybase1 "github.com/keybase/client/go/protocol"
+	"golang.org/x/net/context"
 )
 
 // PrivateMetadata contains the portion of metadata that's secret for private
@@ -37,6 +39,7 @@ type MetadataFlags byte
 // Possible flags set in the MetadataFlags bitfield.
 const (
 	MetadataFlagRekey MetadataFlags = 1 << iota
+	MetadataFlagWriterMetadataCopied
 )
 
 // WriterFlags bitfield.
@@ -99,6 +102,43 @@ type WriterMetadata struct {
 	UnrefBytes uint64
 }
 
+// Equals compares two sets of WriterMetadata and returns true if they match.
+func (wm WriterMetadata) Equals(rhs WriterMetadata) bool {
+	if wm.ID != rhs.ID {
+		return false
+	}
+	if wm.BID != rhs.BID {
+		return false
+	}
+	if wm.LastModifyingWriter != rhs.LastModifyingWriter {
+		return false
+	}
+	if wm.WFlags != rhs.WFlags {
+		return false
+	}
+	if wm.DiskUsage != rhs.DiskUsage {
+		return false
+	}
+	if wm.RefBytes != rhs.RefBytes {
+		return false
+	}
+	if wm.UnrefBytes != rhs.UnrefBytes {
+		return false
+	}
+	if !bytes.Equal(wm.SerializedPrivateMetadata, rhs.SerializedPrivateMetadata) {
+		return false
+	}
+	if len(wm.Writers) != len(rhs.Writers) {
+		return false
+	}
+	for i, w := range wm.Writers {
+		if rhs.Writers[i] != w {
+			return false
+		}
+	}
+	return wm.WKeys.DeepEqual(rhs.WKeys)
+}
+
 // RootMetadata is the MD that is signed by the reader or writer.
 type RootMetadata struct {
 	// The metadata that is only editable by the writer
@@ -129,6 +169,20 @@ type RootMetadata struct {
 	mdID MdID
 }
 
+// IsValidRekeyRequest returns true if the current block is a simple rekey wrt the passed block.
+func (md RootMetadata) IsValidRekeyRequest(config Config, prevMd RootMetadata) bool {
+	if !md.IsRekeySet() || !md.IsWriterMetadataCopiedSet() {
+		return false
+	}
+	if md.Revision.Number() != prevMd.Revision.Number()+1 {
+		return false
+	}
+	if !md.RKeys.DeepEqual(prevMd.RKeys) {
+		return false
+	}
+	return md.WriterMetadata.Equals(prevMd.WriterMetadata)
+}
+
 // MergedStatus returns the status of this update -- has it been
 // merged into the main folder or not?
 func (md *RootMetadata) MergedStatus() MergeStatus {
@@ -141,6 +195,12 @@ func (md *RootMetadata) MergedStatus() MergeStatus {
 // IsRekeySet returns true if the rekey bit is set.
 func (md *RootMetadata) IsRekeySet() bool {
 	return md.Flags&MetadataFlagRekey != 0
+}
+
+// IsWriterMetadataCopiedSet returns true if the bit is set indicating the writer metadata
+// was copied.
+func (md *RootMetadata) IsWriterMetadataCopiedSet() bool {
+	return md.Flags&MetadataFlagWriterMetadataCopied != 0
 }
 
 // IsWriter returns whether or not the user+device is an authorized writer.
@@ -199,6 +259,11 @@ func (md RootMetadata) Data() *PrivateMetadata {
 	return &md.data
 }
 
+// IsReadable returns true if the private metadata can be read.
+func (md RootMetadata) IsReadable() bool {
+	return md.ID.IsPublic() || md.data.Dir.IsInitialized()
+}
+
 // increment makes this MD the immediate follower of the given
 // currMD.  It assumes md was deep-copied from currMD.
 func (md *RootMetadata) increment(config Config, currMD *RootMetadata) error {
@@ -226,11 +291,22 @@ func (md RootMetadata) MakeSuccessor(config Config) (RootMetadata, error) {
 	copy(newMd.Writers, md.Writers)
 	newMd.WKeys = md.WKeys.DeepCopy()
 	newMd.RKeys = md.RKeys.DeepCopy()
-	newMd.ClearBlockChanges()
+	if md.IsReadable() {
+		newMd.ClearBlockChanges()
+		// no need to deep copy the full data since we just cleared the
+		// block changes.
+		newMd.data.TLFPrivateKey = md.data.TLFPrivateKey.DeepCopy()
+		// clear the serialized data.
+		newMd.SerializedPrivateMetadata = nil
+		// remove the copied flag (if any.)
+		newMd.Flags &= ^MetadataFlagWriterMetadataCopied
+	} else {
+		// if we can't read it it means we're simply setting the rekey bit
+		// and copying the previous data.
+		newMd.Flags |= MetadataFlagRekey
+		newMd.Flags |= MetadataFlagWriterMetadataCopied
+	}
 	newMd.ClearMetadataID()
-	// no need to deep copy the full data since we just cleared the
-	// block changes.
-	newMd.data.TLFPrivateKey = md.data.TLFPrivateKey.DeepCopy()
 	if err := newMd.increment(config, &md); err != nil {
 		return RootMetadata{}, err
 	}
@@ -418,6 +494,21 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.data.Changes.sizeEstimate = 0
 	md.data.Changes.Info = BlockInfo{}
 	md.data.Changes.Ops = nil
+}
+
+// Helper which returns nil if the md block is uninitialized or readable by
+// the current user. Otherwise an appropriate read access error is returned.
+func (md *RootMetadata) isReadableOrError(ctx context.Context, config Config) error {
+	if !md.IsInitialized() || md.IsReadable() {
+		return nil
+	}
+	// this should only be the case if we're a new device not yet
+	// added to the set of reader/writer keys.
+	uid, err := config.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		return err
+	}
+	return NewReadAccessError(ctx, config, md.GetTlfHandle(), uid)
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server

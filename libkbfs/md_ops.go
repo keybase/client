@@ -34,15 +34,25 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 			k, err := md.config.KeyManager().
 				GetTLFCryptKeyForMDDecryption(ctx, &rmds.MD)
 
+			privateMetadata := &PrivateMetadata{}
 			if err != nil {
-				return err
+				// Get current UID.
+				uid, err := md.config.KBPKI().GetCurrentUID(ctx)
+				if err != nil {
+					return err
+				}
+				isReader := handle.IsReader(uid)
+				if _, isReadAccessError := err.(ReadAccessError); !isReader || !isReadAccessError {
+					// ReadAccessErrors are expected if this client is a valid
+					// folder participant but doesn't have the shared crypt key.
+					return err
+				}
+			} else {
+				privateMetadata, err = crypto.DecryptPrivateMetadata(encryptedPrivateMetadata, k)
+				if err != nil {
+					return err
+				}
 			}
-
-			privateMetadata, err := crypto.DecryptPrivateMetadata(encryptedPrivateMetadata, k)
-			if err != nil {
-				return err
-			}
-
 			rmds.MD.data = *privateMetadata
 		}
 
@@ -293,46 +303,37 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 
 	codec := md.config.Codec()
 	crypto := md.config.Crypto()
-
 	handle := rmd.GetTlfHandle()
-	if rmd.ID.IsPublic() || handle.IsWriter(me) {
 
+	if rmd.ID.IsPublic() || handle.IsWriter(me) {
 		// Record the last writer to modify this writer metadata
 		rmd.LastModifyingWriter = me
 
 		if rmd.ID.IsPublic() {
-
 			// Encode the private metadata
-
 			encodedPrivateMetadata, err := codec.Encode(rmd.data)
 			if err != nil {
 				return nil, err
 			}
 			rmd.SerializedPrivateMetadata = encodedPrivateMetadata
-		} else {
-
+		} else if !rmd.IsWriterMetadataCopiedSet() {
 			// Encrypt and encode the private metadata
-
 			k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
 			if err != nil {
 				return nil, err
 			}
-
 			encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(&rmd.data, k)
 			if err != nil {
 				return nil, err
 			}
-
 			encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
 			if err != nil {
 				return nil, err
 			}
-
 			rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
 		}
 
 		// Sign the writer metadata
-
 		buf, err := codec.Encode(rmd.WriterMetadata)
 		if err != nil {
 			return nil, err

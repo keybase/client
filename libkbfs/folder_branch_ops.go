@@ -543,7 +543,7 @@ func (fbo *folderBranchOps) getMDLocked(
 		}
 	}
 
-	if md.data.Dir.Type != Dir {
+	if md.data.Dir.Type != Dir && (!md.IsInitialized() || md.IsReadable()) {
 		err = fbo.initMDLocked(ctx, lState, md)
 		if err != nil {
 			return nil, err
@@ -601,6 +601,47 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 	if err != nil {
 		return nil, err
 	}
+	return &newMd, nil
+}
+
+// mdWriterLock must be taken by the caller.
+func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
+	ctx context.Context, lState *lockState) (*RootMetadata, error) {
+	md, err := fbo.getMDLocked(ctx, lState, mdWrite)
+	if err != nil {
+		return nil, err
+	}
+
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// must be a reader or writer (it checks both.)
+	if !md.GetTlfHandle().IsReader(uid) {
+		return nil,
+			NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), uid)
+	}
+
+	newMd, err := md.MakeSuccessor(fbo.config)
+	if err != nil {
+		return nil, err
+	}
+
+	if !md.GetTlfHandle().IsWriter(uid) {
+		// readers shouldn't modify writer metadata
+		if !newMd.IsWriterMetadataCopiedSet() {
+			return nil,
+				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), uid)
+		}
+		// readers are currently only allowed to set the rekey bit
+		// TODO: allow readers to fully rekey only themself.
+		if !newMd.IsRekeySet() {
+			return nil,
+				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), uid)
+		}
+	}
+
 	return &newMd, nil
 }
 
@@ -678,7 +719,6 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 
 	// finally, write out the new metadata
-	md.LastModifyingWriter = uid
 	if err = fbo.config.MDOps().Put(ctx, md); err != nil {
 		return err
 	}
@@ -792,6 +832,11 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 			return err
 		})
 	if err != nil {
+		return nil, EntryInfo{}, nil, err
+	}
+
+	// we may be an unkeyed client
+	if err := md.isReadableOrError(ctx, fbo.config); err != nil {
 		return nil, EntryInfo{}, nil, err
 	}
 
@@ -1748,18 +1793,14 @@ func (fbo *folderBranchOps) archiveLocked(md *RootMetadata) {
 
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, bps *blockPutState) error {
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
-	if err != nil {
-		return err
-	}
+	lState *lockState, md *RootMetadata, bps *blockPutState) (err error) {
 
 	// finally, write out the new metadata
-	md.LastModifyingWriter = uid
 	mdops := fbo.config.MDOps()
 
 	doUnmergedPut, wasStaged := true, fbo.staged
 	mergedRev := MetadataRevisionUninitialized
+
 	if !fbo.staged {
 		// only do a normal Put if we're not already staged.
 		err = mdops.Put(ctx, md)
@@ -1772,6 +1813,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		// should be.  Otherwise, just leave it at uninitialized and
 		// let the resolver sort it out.
 		if doUnmergedPut {
+			fbo.log.CDebugf(ctx, "Conflict: %v", err)
 			mergedRev = md.Revision
 		}
 	}
@@ -1804,6 +1846,18 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 
 		fbo.setStagedLocked(lState, false, NullBranchID)
+
+		if md.IsRekeySet() && !md.IsWriterMetadataCopiedSet() {
+			// Queue this folder for rekey if the bit was set and it's not a copy.
+			// This is for the case where we're coming out of conflict resolution.
+			// So why don't we do this in finalizeResolution? Well, we do but we don't
+			// want to block on a rekey so we queue it. Because of that it may fail
+			// due to a conflict with some subsequent write. By also handling it here
+			// we'll always retry if we notice we haven't been successful in clearing
+			// the bit yet. Note that I haven't actually seen this happen but it seems
+			// theoretically possible.
+			defer fbo.config.RekeyQueue().Enqueue(md.ID)
+		}
 	}
 	// Swap any cached block changes so that future local accesses to
 	// this MD (from the cache) can directly access the ops without
@@ -4171,7 +4225,10 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		if err != nil {
 			return err
 		}
-
+		// No new operations in these.
+		if rmd.IsWriterMetadataCopiedSet() {
+			continue
+		}
 		for _, op := range rmd.data.Changes.Ops {
 			fbo.notifyOneOpLocked(ctx, lState, op, rmd)
 		}
@@ -4428,35 +4485,50 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 		return WrongOpsError{fbo.folderBranch, fb}
 	}
 
+	if fbo.staged {
+		return errors.New("Can't rekey while staged.")
+	}
+
+	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	if err != nil {
+		return err
+	}
+
+	cryptKey, err := fbo.config.KBPKI().GetCurrentCryptPublicKey(ctx)
+	if err != nil {
+		return err
+	}
+
 	lState := makeFBOLockState()
 
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
-	if fbo.staged {
-		return errors.New("Can't rekey while staged.")
-	}
-
-	md, err := fbo.getMDForWriteLocked(ctx, lState)
+	md, err := fbo.getMDForRekeyWriteLocked(ctx, lState)
 	if err != nil {
 		return err
 	}
 
-	rekeyDone, err := fbo.config.KeyManager().Rekey(ctx, md)
-	if err != nil {
-		return err
-	}
-
-	// TODO: implement a "forced" option that rekeys even when the
-	// devices haven't changed?
-	if !rekeyDone {
-		fbo.log.CDebugf(ctx, "No rekey necessary")
-		return nil
+	if md.IsWriter(uid, cryptKey.KID) {
+		// TODO: allow readers to rekey just themself
+		rekeyDone, err := fbo.config.KeyManager().Rekey(ctx, md)
+		if err != nil {
+			return err
+		}
+		// TODO: implement a "forced" option that rekeys even when the
+		// devices haven't changed?
+		if !rekeyDone {
+			fbo.log.CDebugf(ctx, "No rekey necessary")
+			return nil
+		}
+		// clear the rekey bit
+		md.Flags &= ^MetadataFlagRekey
 	}
 
 	// add an empty operation to satisfy assumptions elsewhere
 	md.AddOp(newGCOp())
 
+	// we still let readers push a new md block since it will simply be a rekey bit block.
 	err = fbo.finalizeMDWriteLocked(ctx, lState, md, &blockPutState{})
 	if err != nil {
 		return err
@@ -4712,6 +4784,11 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	err = fbo.config.MDServer().PruneBranch(ctx, fbo.id(), fbo.bid)
 	if err != nil {
 		return err
+	}
+
+	// Queue a rekey if the bit was set.
+	if md.IsRekeySet() {
+		defer fbo.config.RekeyQueue().Enqueue(md.ID)
 	}
 
 	// Set the head to the new MD.

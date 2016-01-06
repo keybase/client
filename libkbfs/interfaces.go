@@ -776,6 +776,10 @@ type MDServer interface {
 	RegisterForUpdate(ctx context.Context, id TlfID,
 		currHead MetadataRevision) (<-chan error, error)
 
+	// DisableRekeyUpdatesForTesting disables processing rekey updates
+	// received from the mdserver while testing.
+	DisableRekeyUpdatesForTesting()
+
 	// Shutdown is called to shutdown an MDServer connection.
 	Shutdown()
 }
@@ -1099,6 +1103,8 @@ type RekeyQueue interface {
 	Enqueue(TlfID) <-chan error
 	// IsRekeyPending returns true if the given folder is in the rekey queue.
 	IsRekeyPending(TlfID) bool
+	// GetRekeyChannel will return any rekey completion channel (if pending.)
+	GetRekeyChannel(id TlfID) <-chan error
 	// Clear cancels all pending rekey actions and clears the queue.
 	Clear()
 }

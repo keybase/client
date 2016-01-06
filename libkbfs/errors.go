@@ -811,3 +811,27 @@ type NoCurrentSessionError struct {
 func (e NoCurrentSessionError) Error() string {
 	return "no current session"
 }
+
+// RekeyPermissionError indicates that the user tried to rekey a
+// top-level folder in a manner inconsistent with their permissions.
+type RekeyPermissionError struct {
+	User string
+	Dir  string
+}
+
+// Error implements the error interface for RekeyPermissionError
+func (e RekeyPermissionError) Error() string {
+	return fmt.Sprintf("%s is trying to rekey directory %s in a manner "+
+		"inconsistent with their role", e.User, e.Dir)
+}
+
+// NewRekeyPermissionError constructs a RekeyPermissionError for the given
+// directory and user.
+func NewRekeyPermissionError(ctx context.Context, config Config, dir *TlfHandle,
+	uid keybase1.UID) error {
+	dirname := dir.ToString(ctx, config)
+	if name, err2 := config.KBPKI().GetNormalizedUsername(ctx, uid); err2 == nil {
+		return RekeyPermissionError{string(name), dirname}
+	}
+	return RekeyPermissionError{uid.String(), dirname}
+}

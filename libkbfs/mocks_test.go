@@ -1695,6 +1695,14 @@ func (_mr *_MockMDServerRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdate", arg0, arg1, arg2)
 }
 
+func (_m *MockMDServer) DisableRekeyUpdatesForTesting() {
+	_m.ctrl.Call(_m, "DisableRekeyUpdatesForTesting")
+}
+
+func (_mr *_MockMDServerRecorder) DisableRekeyUpdatesForTesting() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DisableRekeyUpdatesForTesting")
+}
+
 func (_m *MockMDServer) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }
@@ -2778,6 +2786,16 @@ func (_m *MockRekeyQueue) IsRekeyPending(_param0 TlfID) bool {
 
 func (_mr *_MockRekeyQueueRecorder) IsRekeyPending(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsRekeyPending", arg0)
+}
+
+func (_m *MockRekeyQueue) GetRekeyChannel(id TlfID) <-chan error {
+	ret := _m.ctrl.Call(_m, "GetRekeyChannel", id)
+	ret0, _ := ret[0].(<-chan error)
+	return ret0
+}
+
+func (_mr *_MockRekeyQueueRecorder) GetRekeyChannel(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRekeyChannel", arg0)
 }
 
 func (_m *MockRekeyQueue) Clear() {

@@ -1,6 +1,10 @@
 package libkbfs
 
-import keybase1 "github.com/keybase/client/go/protocol"
+import (
+	"reflect"
+
+	keybase1 "github.com/keybase/client/go/protocol"
+)
 
 // All section references below are to https://keybase.io/blog/kbfs-crypto
 // (version 1.3).
@@ -149,6 +153,11 @@ type TLFWriterKeyBundle struct {
 	TLFEphemeralPublicKeys TLFEphemeralPublicKeys `codec:"ePubKey"`
 }
 
+// DeepEqual returns true if two TLFWriterKeyBundles are equal.
+func (tkb TLFWriterKeyBundle) DeepEqual(rhs TLFWriterKeyBundle) bool {
+	return reflect.DeepEqual(tkb, rhs)
+}
+
 // DeepCopy returns a complete copy of this TLFWriterKeyBundle.
 func (tkb *TLFWriterKeyBundle) DeepCopy() *TLFWriterKeyBundle {
 	return &TLFWriterKeyBundle{
@@ -167,6 +176,19 @@ func (tkb TLFWriterKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID
 // TLFWriterKeyGenerations stores a slice of TLFWriterKeyBundle,
 // where the last element is the current generation.
 type TLFWriterKeyGenerations []*TLFWriterKeyBundle
+
+// DeepEqual returns true if two sets of key generations are equal.
+func (tkg TLFWriterKeyGenerations) DeepEqual(rhs TLFWriterKeyGenerations) bool {
+	if len(tkg) != len(rhs) {
+		return false
+	}
+	for i, k := range tkg {
+		if !rhs[i].DeepEqual(*k) {
+			return false
+		}
+	}
+	return true
+}
 
 // DeepCopy returns a complete copy of this TLFKeyGenerations.
 func (tkg TLFWriterKeyGenerations) DeepCopy() TLFWriterKeyGenerations {
@@ -199,6 +221,11 @@ type TLFReaderKeyBundle struct {
 	RKeys UserDeviceKeyInfoMap
 }
 
+// DeepEqual returns true if two TLFReaderKeyBundles are equal.
+func (trb TLFReaderKeyBundle) DeepEqual(rhs TLFReaderKeyBundle) bool {
+	return reflect.DeepEqual(trb, rhs)
+}
+
 // DeepCopy returns a complete copy of this TLFReaderKeyBundle.
 func (trb *TLFReaderKeyBundle) DeepCopy() *TLFReaderKeyBundle {
 	return &TLFReaderKeyBundle{
@@ -215,6 +242,19 @@ func (trb TLFReaderKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID
 // TLFReaderKeyGenerations stores a slice of TLFReaderKeyBundle,
 // where the last element is the current generation.
 type TLFReaderKeyGenerations []*TLFReaderKeyBundle
+
+// DeepEqual returns true if two sets of key generations are equal.
+func (tkg TLFReaderKeyGenerations) DeepEqual(rhs TLFReaderKeyGenerations) bool {
+	if len(tkg) != len(rhs) {
+		return false
+	}
+	for i, k := range tkg {
+		if !rhs[i].DeepEqual(*k) {
+			return false
+		}
+	}
+	return true
+}
 
 // LatestKeyGeneration returns the current key generation for this TLF.
 func (tkg TLFReaderKeyGenerations) LatestKeyGeneration() KeyGen {

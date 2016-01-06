@@ -25,11 +25,12 @@ const (
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
-	config    Config
-	conn      *Connection
-	client    keybase1.MetadataClient
-	log       logger.Logger
-	authToken *AuthToken
+	config       Config
+	conn         *Connection
+	client       keybase1.MetadataClient
+	log          logger.Logger
+	authToken    *AuthToken
+	squelchRekey bool
 
 	observerMu sync.Mutex // protects observers
 	observers  map[TlfID]chan<- error
@@ -345,6 +346,10 @@ func (md *MDServerRemote) FolderNeedsRekey(_ context.Context, arg keybase1.Folde
 		return MDServerErrorBadRequest{"Invalid folder ID"}
 	}
 	md.log.Debug("MDServerRemote: folder needs rekey: %s", id.String())
+	if md.squelchRekey {
+		md.log.Debug("MDServerRemote: rekey updates squelched for testing")
+		return nil
+	}
 	// queue the folder for rekeying
 	errChan := md.config.RekeyQueue().Enqueue(id)
 	select {
@@ -517,4 +522,10 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 		LogTags:   LogTagsFromContextToMap(ctx),
 	}
 	return md.client.PutKeys(ctx, arg)
+}
+
+// DisableRekeyUpdatesForTesting implements the MDServer interface.
+func (md *MDServerRemote) DisableRekeyUpdatesForTesting() {
+	// This doesn't need a lock for testing.
+	md.squelchRekey = true
 }

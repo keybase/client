@@ -125,6 +125,10 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	allKnownBlocks := make(map[BlockPointer]bool)
 	actualLiveBlocks := make(map[BlockPointer]uint32)
 	for _, rmd := range rmds {
+		// Don't process copies.
+		if rmd.IsWriterMetadataCopiedSet() {
+			continue
+		}
 		// Any unembedded block changes also count towards the actual size
 		if info := rmd.data.cachedChanges.Info; info.BlockPointer != zeroPtr {
 			sc.log.CDebugf(ctx, "Unembedded block change: %v, %d",

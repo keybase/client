@@ -134,6 +134,10 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 			return nil, EntryInfo{}, err
 		}
 	}
+	// we might not be able to read the metadata if we aren't in the key group yet.
+	if err := md.isReadableOrError(ctx, fs.config); err != nil {
+		return nil, EntryInfo{}, err
+	}
 
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}
 	ops, err := fs.getOpsByHandle(ctx, h, fb)

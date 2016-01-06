@@ -710,7 +710,9 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 
 	// Read in a loop in a separate goroutine until we encounter
 	// an error or the test ends.
+	c := make(chan struct{})
 	go func() {
+		defer close(c)
 	outer:
 		for {
 			select {
@@ -731,6 +733,9 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
+	cancel()
+	// Wait for the read loop to finish
+	<-c
 }
 
 // Test that a write can survive a folder BlockPointer update
