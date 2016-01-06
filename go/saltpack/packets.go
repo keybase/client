@@ -41,13 +41,6 @@ type EncryptionBlock struct {
 	seqno              PacketSeqno
 }
 
-func verifyRawKey(k []byte) error {
-	if len(k) != len(RawBoxKey{}) {
-		return ErrBadSenderKey
-	}
-	return nil
-}
-
 func (h *EncryptionHeader) validate() error {
 	if h.Type != MessageTypeEncryption {
 		return ErrWrongMessageType{MessageTypeEncryption, h.Type}

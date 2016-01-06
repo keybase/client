@@ -8,12 +8,30 @@ import (
 )
 
 // RawBoxKey is the raw byte-representation of what a box key should
-// look like --- a static 32-byte buffer
+// look like, a static 32-byte buffer. Used for NaCl Box.
 type RawBoxKey [32]byte
 
+func rawBoxKeyFromSlice(slice []byte) *RawBoxKey {
+	var result RawBoxKey
+	if len(slice) != len(result) {
+		return nil
+	}
+	copy(result[:], slice)
+	return &result
+}
+
 // SymmetricKey is a template for a symmetric key, a 32-byte static
-// buffer.  Used for both NaCl SecretBox.
+// buffer. Used for NaCl SecretBox.
 type SymmetricKey [32]byte
+
+func symmetricKeyFromSlice(slice []byte) *SymmetricKey {
+	var result SymmetricKey
+	if len(slice) != len(result) {
+		return nil
+	}
+	copy(result[:], slice)
+	return &result
+}
 
 // KIDExtractor key types can output a key ID corresponding to the
 // key.

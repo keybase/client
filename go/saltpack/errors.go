@@ -45,6 +45,10 @@ var (
 	// open.
 	ErrBadSenderKeySecretbox = errors.New("sender secretbox failed to open")
 
+	// ErrBadPayloadKey is returned if a key with the wrong number of bytes
+	// is discovered in the encryption header.
+	ErrBadPayloadKey = errors.New("bad payload key; must be 32 bytes")
+
 	// ErrBadSenderKey is returned if a key with the wrong number of bytes
 	// is discovered in the encryption header.
 	ErrBadSenderKey = errors.New("bad sender key; must be 32 bytes")
