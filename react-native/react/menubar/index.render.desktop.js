@@ -126,8 +126,6 @@ class FolderRow extends Component {
       })
     }
 
-    console.log(folderText)
-
     return (
       <div style={{...globalStyles.clickable, ...globalStyles.flexBoxRow, flexWrap: 'wrap', marginTop: 2}} onClick={openFolder}>
         {intersperseFn(i => this.renderFolderText(',', globalColors.lightBlue, i), folderText)}
