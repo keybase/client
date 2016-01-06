@@ -45,13 +45,13 @@ var (
 	// open.
 	ErrBadSenderKeySecretbox = errors.New("sender secretbox failed to open")
 
-	// ErrBadPayloadKey is returned if a key with the wrong number of bytes
+	// ErrBadSymmetricKey is returned if a key with the wrong number of bytes
 	// is discovered in the encryption header.
-	ErrBadPayloadKey = errors.New("bad payload key; must be 32 bytes")
+	ErrBadSymmetricKey = errors.New("bad symmetric key; must be 32 bytes")
 
-	// ErrBadSenderKey is returned if a key with the wrong number of bytes
+	// ErrBadBoxKey is returned if a key with the wrong number of bytes
 	// is discovered in the encryption header.
-	ErrBadSenderKey = errors.New("bad sender key; must be 32 bytes")
+	ErrBadBoxKey = errors.New("bad box key; must be 32 bytes")
 
 	// ErrBadLookup is when the user-provided key lookup gives a bad value
 	ErrBadLookup = errors.New("bad key lookup")

@@ -16,7 +16,7 @@ type testEncryptionOptions struct {
 	corruptEncryptionBlock     func(bl *EncryptionBlock, ebn encryptionBlockNumber)
 	corruptPayloadNonce        func(n *Nonce, ebn encryptionBlockNumber) *Nonce
 	corruptKeysNonce           func(n *Nonce, rid int) *Nonce
-	corruptPayloadKey          func(pk []byte, rid int)
+	corruptPayloadKey          func(pk *[]byte, rid int)
 	corruptReceiverKeys        func(rk *receiverKeys, rid int)
 	corruptSenderKeyPlaintext  func(pk *[]byte)
 	corruptSenderKeyCiphertext func(pk []byte)
@@ -170,8 +170,9 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 
 	for rid, receiver := range receivers {
 
+		payloadKeySlice := pes.payloadKey[:]
 		if pes.options.corruptPayloadKey != nil {
-			pes.options.corruptPayloadKey(pes.payloadKey[:], rid)
+			pes.options.corruptPayloadKey(&payloadKeySlice, rid)
 		}
 
 		nonceTmp := nonce
@@ -179,7 +180,7 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 			nonceTmp = pes.options.corruptKeysNonce(nonceTmp, rid)
 		}
 
-		payloadKeyBox, err := ephemeralKey.Box(receiver, nonceTmp, pes.payloadKey[:])
+		payloadKeyBox, err := ephemeralKey.Box(receiver, nonceTmp, payloadKeySlice)
 		if err != nil {
 			return err
 		}

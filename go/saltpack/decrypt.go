@@ -160,9 +160,9 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey
 		return nil, nil, nil, -1, err
 	}
 
-	payloadKey := symmetricKeyFromSlice(payloadKeySlice)
-	if payloadKey == nil {
-		return nil, nil, nil, -1, ErrBadPayloadKey
+	payloadKey, err := symmetricKeyFromSlice(payloadKeySlice)
+	if err != nil {
+		return nil, nil, nil, -1, err
 	}
 
 	return sk, shared, payloadKey, orig, err
@@ -187,9 +187,9 @@ func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey 
 				if err != nil {
 					continue
 				}
-				payloadKey := symmetricKeyFromSlice(payloadKeySlice)
-				if payloadKey == nil {
-					return nil, nil, nil, -1, ErrBadPayloadKey
+				payloadKey, err := symmetricKeyFromSlice(payloadKeySlice)
+				if err != nil {
+					return nil, nil, nil, -1, err
 				}
 				return secretKey, shared, payloadKey, i, nil
 			}
@@ -235,9 +235,9 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	if !ok {
 		return ErrBadSenderKeySecretbox
 	}
-	ds.senderKey = rawBoxKeyFromSlice(senderKeySlice)
-	if ds.senderKey == nil {
-		return ErrBadSenderKey
+	ds.senderKey, err = rawBoxKeyFromSlice(senderKeySlice)
+	if err != nil {
+		return err
 	}
 
 	// Lookup the sender's public key in our keyring, and import

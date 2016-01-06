@@ -657,11 +657,11 @@ func TestCorruptPayloadKeyBoxR5(t *testing.T) {
 func TestCorruptPayloadKeyPlaintext(t *testing.T) {
 	msg := randomMsg(t, 129)
 
-	// Corrupt the payload key.
+	// First try flipping a bit in the payload key.
 	teo := testEncryptionOptions{
-		corruptPayloadKey: func(pk []byte, rid int) {
+		corruptPayloadKey: func(pk *[]byte, rid int) {
 			if rid == 2 {
-				pk[3] ^= 1
+				(*pk)[3] ^= 1
 			}
 		},
 	}
@@ -682,7 +682,37 @@ func TestCorruptPayloadKeyPlaintext(t *testing.T) {
 	// opening the sender secretbox.
 	_, _, err = Open(ciphertext, kr)
 	if err != ErrBadSenderKeySecretbox {
-		t.Fatalf("Got wrong error; wanted %v but got %v", ErrNoSenderKey, ErrBadSenderKeySecretbox)
+		t.Fatalf("Got wrong error; wanted %v but got %v", ErrBadSenderKeySecretbox, err)
+	}
+
+	// Also try truncating the payload key. This should fail with a different
+	// error.
+	teo = testEncryptionOptions{
+		corruptPayloadKey: func(pk *[]byte, rid int) {
+			var shortKey [31]byte
+			*pk = shortKey[:]
+		},
+	}
+	ciphertext, err = testSeal(msg, sender, receivers, teo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Open(ciphertext, kr)
+	if err != ErrBadSymmetricKey {
+		t.Fatalf("Got wrong error; wanted 'Bad Symmetric Key' but got %v", err)
+	}
+
+	// Finally, do the above test again with a hidden receiver.
+	receivers = []BoxPublicKey{
+		newHiddenBoxKey(t).GetPublicKey(),
+	}
+	ciphertext, err = testSeal(msg, sender, receivers, teo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Open(ciphertext, kr)
+	if err != ErrBadSymmetricKey {
+		t.Fatalf("Got wrong error; wanted 'Bad Symmetric Key' but got %v", err)
 	}
 }
 
@@ -727,7 +757,7 @@ func TestCorruptSenderSecretboxPlaintext(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, _, err = Open(ciphertext, kr)
-	if err != ErrBadSenderKey {
+	if err != ErrBadBoxKey {
 		t.Fatalf("Got wrong error; wanted 'Bad Sender Key' but got %v", err)
 	}
 }

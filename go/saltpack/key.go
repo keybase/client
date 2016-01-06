@@ -11,26 +11,26 @@ import (
 // look like, a static 32-byte buffer. Used for NaCl Box.
 type RawBoxKey [32]byte
 
-func rawBoxKeyFromSlice(slice []byte) *RawBoxKey {
+func rawBoxKeyFromSlice(slice []byte) (*RawBoxKey, error) {
 	var result RawBoxKey
 	if len(slice) != len(result) {
-		return nil
+		return nil, ErrBadBoxKey
 	}
 	copy(result[:], slice)
-	return &result
+	return &result, nil
 }
 
 // SymmetricKey is a template for a symmetric key, a 32-byte static
 // buffer. Used for NaCl SecretBox.
 type SymmetricKey [32]byte
 
-func symmetricKeyFromSlice(slice []byte) *SymmetricKey {
+func symmetricKeyFromSlice(slice []byte) (*SymmetricKey, error) {
 	var result SymmetricKey
 	if len(slice) != len(result) {
-		return nil
+		return nil, ErrBadSymmetricKey
 	}
 	copy(result[:], slice)
-	return &result
+	return &result, nil
 }
 
 // KIDExtractor key types can output a key ID corresponding to the
