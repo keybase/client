@@ -14,6 +14,7 @@ type blockEntry struct {
 	BlockData     []byte
 	Refs          map[BlockRefNonce]bool
 	KeyServerHalf BlockCryptKeyServerHalf
+	Archived      bool
 }
 
 // bserverLocalStorage abstracts the various methods of storing blocks
@@ -23,6 +24,7 @@ type bserverLocalStorage interface {
 	put(id BlockID, entry blockEntry) error
 	addReference(id BlockID, refNonce BlockRefNonce) error
 	removeReference(id BlockID, refNonce BlockRefNonce) error
+	archiveReference(id BlockID, refNonce BlockRefNonce) error
 	shutdown()
 }
 
@@ -88,6 +90,20 @@ func (s *bserverMemStorage) removeReference(id BlockID, refNonce BlockRefNonce) 
 	} else {
 		s.m[id] = entry
 	}
+	return nil
+}
+
+func (s *bserverMemStorage) archiveReference(id BlockID, refNonce BlockRefNonce) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	entry, ok := s.m[id]
+	if !ok {
+		return IncrementMissingBlockError{id}
+	}
+
+	entry.Archived = true
+	s.m[id] = entry
 	return nil
 }
 
@@ -204,6 +220,23 @@ func (s *bserverFileStorage) removeReference(id BlockID, refNonce BlockRefNonce)
 	return s.putLocked(p, entry)
 }
 
+func (s *bserverFileStorage) archiveReference(id BlockID, refNonce BlockRefNonce) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	p := s.buildPath(id)
+	entry, err := s.getLocked(p)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return IncrementMissingBlockError{id}
+		}
+		return err
+	}
+
+	entry.Archived = true
+	return s.putLocked(p, entry)
+}
+
 func (s *bserverFileStorage) shutdown() {
 	// Nothing to do.
 }
@@ -298,6 +331,22 @@ func (s *bserverLeveldbStorage) removeReference(id BlockID, refNonce BlockRefNon
 	if len(entry.Refs) == 0 {
 		return s.db.Delete(id.Bytes(), nil)
 	}
+	return s.putLocked(id, entry)
+}
+
+func (s *bserverLeveldbStorage) archiveReference(id BlockID, refNonce BlockRefNonce) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	entry, err := s.getLocked(id)
+	if err != nil {
+		if err == leveldb.ErrNotFound {
+			return IncrementMissingBlockError{id}
+		}
+		return err
+	}
+
+	entry.Archived = true
 	return s.putLocked(id, entry)
 }
 

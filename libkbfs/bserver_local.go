@@ -92,6 +92,16 @@ func (b *BlockServerLocal) RemoveBlockReference(ctx context.Context, id BlockID,
 // BlockServerLocal
 func (b *BlockServerLocal) ArchiveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID]BlockContext) error {
+	for id, context := range contexts {
+		refNonce := context.GetRefNonce()
+		b.log.CDebugf(ctx, "BlockServerLocal.ArchiveBlockReference id=%s "+
+			"refnonce=%s", id, refNonce)
+		err := b.s.archiveReference(id, refNonce)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
