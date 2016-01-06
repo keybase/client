@@ -48,6 +48,11 @@ func (cbo *CheckBlockOps) Delete(ctx context.Context, md *RootMetadata,
 	return cbo.delegate.Delete(ctx, md, id, context)
 }
 
+func (cbo *CheckBlockOps) Archive(ctx context.Context, md *RootMetadata,
+	ptrs []BlockPointer) error {
+	return cbo.delegate.Archive(ctx, md, ptrs)
+}
+
 var tCtxID = "kbfs-ops-test-id"
 
 func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,

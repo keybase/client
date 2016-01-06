@@ -8,11 +8,12 @@ import (
 // BlockServerMeasured delegates to another BlockServer instance but
 // also keeps track of stats.
 type BlockServerMeasured struct {
-	delegate                  BlockServer
-	getTimer                  metrics.Timer
-	putTimer                  metrics.Timer
-	addBlockReferenceTimer    metrics.Timer
-	removeBlockReferenceTimer metrics.Timer
+	delegate                    BlockServer
+	getTimer                    metrics.Timer
+	putTimer                    metrics.Timer
+	addBlockReferenceTimer      metrics.Timer
+	removeBlockReferenceTimer   metrics.Timer
+	archiveBlockReferencesTimer metrics.Timer
 }
 
 var _ BlockServer = BlockServerMeasured{}
@@ -24,12 +25,14 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 	putTimer := metrics.GetOrRegisterTimer("BlockServer.Put", r)
 	addBlockReferenceTimer := metrics.GetOrRegisterTimer("BlockServer.AddBlockReference", r)
 	removeBlockReferenceTimer := metrics.GetOrRegisterTimer("BlockServer.RemoveBlockReference", r)
+	archiveBlockReferencesTimer := metrics.GetOrRegisterTimer("BlockServer.ArchiveBlockReferences", r)
 	return BlockServerMeasured{
-		delegate:                  delegate,
-		getTimer:                  getTimer,
-		putTimer:                  putTimer,
-		addBlockReferenceTimer:    addBlockReferenceTimer,
-		removeBlockReferenceTimer: removeBlockReferenceTimer,
+		delegate:                    delegate,
+		getTimer:                    getTimer,
+		putTimer:                    putTimer,
+		addBlockReferenceTimer:      addBlockReferenceTimer,
+		removeBlockReferenceTimer:   removeBlockReferenceTimer,
+		archiveBlockReferencesTimer: archiveBlockReferencesTimer,
 	}
 }
 
@@ -69,6 +72,16 @@ func (b BlockServerMeasured) RemoveBlockReference(ctx context.Context, id BlockI
 	tlfID TlfID, context BlockContext) (err error) {
 	b.removeBlockReferenceTimer.Time(func() {
 		err = b.delegate.RemoveBlockReference(ctx, id, tlfID, context)
+	})
+	return err
+}
+
+// ArchiveBlockReferences implements the BlockServer interface for
+// BlockServerRemote
+func (b BlockServerMeasured) ArchiveBlockReferences(ctx context.Context,
+	tlfID TlfID, contexts map[BlockID]BlockContext) (err error) {
+	b.archiveBlockReferencesTimer.Time(func() {
+		err = b.delegate.ArchiveBlockReferences(ctx, tlfID, contexts)
 	})
 	return err
 }

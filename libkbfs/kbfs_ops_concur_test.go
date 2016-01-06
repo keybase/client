@@ -307,6 +307,12 @@ func (f *stallingBlockOps) Delete(
 	return f.delegate.Delete(ctx, md, id, context)
 }
 
+func (f *stallingBlockOps) Archive(
+	ctx context.Context, md *RootMetadata, ptrs []BlockPointer) error {
+	f.maybeStall(ctx, "archive")
+	return f.delegate.Archive(ctx, md, ptrs)
+}
+
 // Test that a block write can happen concurrently with a block
 // read. This is a regression test for KBFS-536.
 func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {

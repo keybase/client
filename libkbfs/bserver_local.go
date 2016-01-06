@@ -88,6 +88,13 @@ func (b *BlockServerLocal) RemoveBlockReference(ctx context.Context, id BlockID,
 	return b.s.removeReference(id, refNonce)
 }
 
+// ArchiveBlockReferences implements the BlockServer interface for
+// BlockServerLocal
+func (b *BlockServerLocal) ArchiveBlockReferences(ctx context.Context,
+	tlfID TlfID, contexts map[BlockID]BlockContext) error {
+	return nil
+}
+
 // Shutdown implements the BlockServer interface for BlockServerLocal.
 func (b *BlockServerLocal) Shutdown() {
 	b.s.shutdown()

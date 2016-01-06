@@ -136,3 +136,9 @@ func (b *BlockOpsStandard) Delete(ctx context.Context, md *RootMetadata,
 	err := bserv.RemoveBlockReference(ctx, id, md.ID, context)
 	return err
 }
+
+// Archive implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) Archive(ctx context.Context, md *RootMetadata,
+	ptrs []BlockPointer) error {
+	return nil
+}

@@ -297,6 +297,13 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *UserQuo
 	return UserQuotaInfoDecode(res, b.config)
 }
 
+// ArchiveBlockReferences implements the BlockServer interface for
+// BlockServerRemote
+func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
+	tlfID TlfID, contexts map[BlockID]BlockContext) error {
+	return nil
+}
+
 // Shutdown implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Shutdown() {
 	if b.shutdownFn != nil {

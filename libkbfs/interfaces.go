@@ -676,6 +676,12 @@ type BlockOps interface {
 	// with the given ID and context.
 	Delete(ctx context.Context, md *RootMetadata, id BlockID,
 		context BlockContext) error
+
+	// Archive instructs the server to mark the given block references
+	// as "archived"; that is, they are not being used in the current
+	// view of the folder, and shouldn't be served to anyone other
+	// than folder writers.
+	Archive(ctx context.Context, md *RootMetadata, ptrs []BlockPointer) error
 }
 
 // MDServer gets and puts metadata for each top-level directory.  The
@@ -771,6 +777,13 @@ type BlockServer interface {
 	// the count has already been removed, the call is a no-op.
 	RemoveBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext) error
+
+	// ArchiveBlockReferences marks the given block references as
+	// "archived"; that is, they are not being used in the current
+	// view of the folder, and shouldn't be served to anyone other
+	// than folder writers.
+	ArchiveBlockReferences(ctx context.Context, tlfID TlfID,
+		contexts map[BlockID]BlockContext) error
 
 	// Shutdown is called to shutdown an BlockServer connection.
 	Shutdown()

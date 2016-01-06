@@ -1561,6 +1561,16 @@ func (_mr *_MockBlockOpsRecorder) Delete(arg0, arg1, arg2, arg3 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2, arg3)
 }
 
+func (_m *MockBlockOps) Archive(ctx context.Context, md *RootMetadata, ptrs []BlockPointer) error {
+	ret := _m.ctrl.Call(_m, "Archive", ctx, md, ptrs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockOpsRecorder) Archive(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Archive", arg0, arg1, arg2)
+}
+
 // Mock of MDServer interface
 type MockMDServer struct {
 	ctrl     *gomock.Controller
@@ -1716,6 +1726,16 @@ func (_m *MockBlockServer) RemoveBlockReference(ctx context.Context, id BlockID,
 
 func (_mr *_MockBlockServerRecorder) RemoveBlockReference(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReference", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockBlockServer) ArchiveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID]BlockContext) error {
+	ret := _m.ctrl.Call(_m, "ArchiveBlockReferences", ctx, tlfID, contexts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockServerRecorder) ArchiveBlockReferences(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ArchiveBlockReferences", arg0, arg1, arg2)
 }
 
 func (_m *MockBlockServer) Shutdown() {
