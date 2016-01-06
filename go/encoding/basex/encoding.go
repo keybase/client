@@ -11,20 +11,21 @@ import (
 	"math/big"
 )
 
-const skipByte = byte(0xFF)
-const invalidByte = byte(0xFE)
+var skipByte = big.NewInt(int64(0xFF))
+var invalidByte = big.NewInt(int64(0xFE))
 
 // Encoding is a radix X encoding/decoding scheme, defined by X-length
 // character alphabet.
 type Encoding struct {
 	encode          []byte
-	decodeMap       [256]byte
+	decodeMap       [256](*big.Int)
 	base256BlockLen int
 	baseXBlockLen   int
 	base            int
 	logOfBase       float64
 	baseBig         *big.Int
 	skipBytes       string
+	scratchInt      *big.Int
 }
 
 // NewEncoding returns a new Encoding defined by the given alphabet,
@@ -55,6 +56,7 @@ func NewEncoding(encoder string, base256BlockLen int, skipBytes string) *Encodin
 		logOfBase:       logOfBase,
 		baseBig:         big.NewInt(int64(base)),
 		skipBytes:       skipBytes,
+		scratchInt:      new(big.Int),
 	}
 	copy(e.encode[:], encoder)
 
@@ -71,7 +73,7 @@ func NewEncoding(encoder string, base256BlockLen int, skipBytes string) *Encodin
 		e.decodeMap[i] = val
 	}
 	for i := 0; i < len(encoder); i++ {
-		e.decodeMap[encoder[i]] = byte(i)
+		e.decodeMap[encoder[i]] = big.NewInt(int64(i))
 	}
 	return e
 }
@@ -176,22 +178,23 @@ var ErrInvalidEncodingLength = errors.New("invalid encoding length; either trunc
 func (enc *Encoding) decodeBlock(dst []byte, src []byte, baseOffset int) (int, int, error) {
 	si := 0 // source index
 	numGoodChars := 0
-	res := new(big.Int)
+	res := enc.scratchInt
+	res.SetUint64(0)
 
 	for i, b := range src {
 		v := enc.decodeMap[b]
 		si++
 
-		if v == invalidByte {
+		if v.Cmp(invalidByte) == 0 {
 			return 0, 0, CorruptInputError(i + baseOffset)
 		}
-		if v == skipByte {
+		if v.Cmp(skipByte) == 0 {
 			continue
 		}
 
 		numGoodChars++
 		res.Mul(res, enc.baseBig)
-		res.Add(res, big.NewInt(int64(v)))
+		res.Add(res, v)
 
 		if numGoodChars == enc.baseXBlockLen {
 			break
