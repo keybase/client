@@ -5,7 +5,8 @@ import React, {Component} from '../base-react'
 export type Props = {
   label: string,
   onCheck: Function,
-  checked: bool
+  checked: bool,
+  style: object
 }
 
 declare export default class Checkbox extends React.Component<void, Props, {}> {

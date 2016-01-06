@@ -8,7 +8,8 @@ export default class Text extends Component {
   render () {
     const typeStyle = {
       'Header': styles.textHeader,
-      'Body': styles.textBody
+      'Body': styles.textBody,
+      'Error': styles.textError
     }[this.props.type]
 
     const style = {
@@ -51,6 +52,13 @@ export const styles = {
     ...textCommon,
     fontSize: 15,
     lineHeight: '20px',
+    letterSpacing: '0.2px'
+  },
+  textError: {
+    ...textCommon,
+    color: globalColors.highRiskWarning,
+    fontSize: 13,
+    lineHeight: '17px',
     letterSpacing: '0.2px'
   },
   textLinkMixin: {

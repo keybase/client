@@ -1,98 +1,84 @@
 import React, {Component} from '../base-react'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors} from '../styles/style-guide'
+import {styles as TextStyles} from './text'
+import materialTheme from '../styles/material-theme.desktop'
 
 // Floating label isn't very controllable, not going to make this pixel perfect
 
 export default class Input extends Component {
-  render () {
-    let inputStyle = null
-    if (this.props.multiLine) {
-      inputStyle = this.props.errorText ? styles.inputMultiWithError : styles.inputMultiNormal
-    } else {
-      inputStyle = this.props.errorText ? styles.inputWithError : styles.inputNormal
+  getChildContext () {
+    return {
+      muiTheme: materialTheme
     }
+  }
 
+  render () {
     return (
-      <TextField
-        defaultValue={this.props.defaultValue}
-        errorStyle={styles.inputError}
-        errorText={this.props.errorText}
-        floatingLabelStyle={styles.inputFloatingLabel}
-        floatingLabelText={this.props.floatingLabelText || this.props.hintText}
-        hintStyle={styles.inputHint}
-        hintText={this.props.hintText}
-        inputStyle={inputStyle}
-        style={{...styles.input, ...this.props.style}}
-        underlineStyle={styles.inputUnderline}
-        multiLine={this.props.multiLine}
-        rows={this.props.rows}
-        rowsMax={this.props.rowsMax}
-        />
+      <div style={{...styles.container, ...this.props.style}}>
+        <TextField
+          fullWidth
+          errorStyle={styles.errorStyle}
+          style={styles.input}
+          autoFocus={this.props.autoFocus}
+          errorText={this.props.errorText}
+          floatingLabelText={this.props.floatingLabelText || this.props.hintText}
+          floatingLabelStyle={styles.floatingLabelStyle}
+          hintText={this.props.hintText}
+          multiLine={this.props.multiLine}
+          onChange={this.props.onChange}
+          onEnterKeyDown={this.props.onEnterKeyDown}
+          underlineFocusStyle={styles.underlineFocusStyle}
+          rows={this.props.rows}
+          rowsMax={this.props.rowsMax}
+          type={this.props.type}
+          value={this.props.value}
+          />
+      </div>
     )
   }
 }
 
+Input.childContextTypes = {
+  muiTheme: React.PropTypes.object
+}
+
 Input.propTypes = {
-  defaultValue: React.PropTypes.string,
+  autoFocus: React.PropTypes.bool,
   errorText: React.PropTypes.string,
   floatingLabelText: React.PropTypes.string,
   hintText: React.PropTypes.string,
   multiLine: React.PropTypes.bool,
+  onChange: React.PropTypes.func,
+  onEnterKeyDown: React.PropTypes.func,
   rows: React.PropTypes.number,
   rowsMax: React.PropTypes.number,
-  style: React.PropTypes.object
-}
-
-const inputCommon = {
-  ...globalStyles.fontRegular,
-  border: `solid ${globalColors.grey3} 1px`,
-  paddingLeft: 9,
-  paddingRight: 9
-}
-
-const inputMultiCommon = {
-  ...inputCommon,
-  backgroundColor: globalColors.grey4
+  style: React.PropTypes.object,
+  type: React.PropTypes.string,
+  value: React.PropTypes.string
 }
 
 export const styles = {
+  container: {
+    marginBottom: 8
+  },
   input: {
-    height: 70
+    ...TextStyles.textBody
   },
-  inputNormal: {
-    ...inputCommon,
-    height: 30
+  underlineFocusStyle: {
+    borderColor: globalColors.blue,
+    transition: ''
   },
-  inputWithError: {
-    ...inputCommon,
-    height: 30,
-    borderColor: globalColors.highRiskWarning
-  },
-  inputMultiNormal: {
-    ...inputMultiCommon
-  },
-  inputMultiWithError: {
-    ...inputMultiCommon,
-    borderColor: globalColors.highRiskWarning
-  },
-  inputUnderline: {
-    display: 'none'
-  },
-  inputError: {
+  errorStyle: {
     ...globalStyles.fontRegular,
+    color: globalColors.highRiskWarning,
     fontSize: 13,
     lineHeight: '17px',
-    paddingTop: 5
+    top: -20,
+    bottom: 'initial'
   },
-  inputHint: {
-    ...globalStyles.fontRegular,
-    left: 0
-  },
-  inputFloatingLabel: {
-    ...globalStyles.fontRegular,
-    left: 9,
-    top: 19
+  floatingLabelStyle: {
+    ...globalStyles.fontRegular
   }
 }
 

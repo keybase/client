@@ -56,6 +56,12 @@ const util = {
   },
   rounded: {
     borderRadius: 3
+  },
+  clickable: {
+    cursor: 'pointer'
+  },
+  topMost: {
+    zIndex: 9999
   }
 }
 

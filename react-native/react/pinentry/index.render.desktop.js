@@ -1,9 +1,7 @@
 import React, {Component} from '../base-react'
-import {TextField, FlatButton, Checkbox} from 'material-ui'
-import Header from '../common-adapters/header'
-import resolveAssets from '../../../desktop/resolve-assets'
-import commonStyles, {colors} from '../styles/common'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import {autoResize} from '../native/remote-component-helper'
+import {Checkbox, Header, Input, Text, Button} from '../common-adapters'
 
 export default class PinentryRender extends Component {
   constructor (props) {
@@ -42,50 +40,44 @@ export default class PinentryRender extends Component {
 
   render () {
     const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
+
     return (
-      <div style={{...commonStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', backgroundColor: 'blue'}}>
+      <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', backgroundColor: 'blue'}}>
         <div style={styles.container}>
           <Header
-            style={styles.header}
+            icon
             title={this.props.windowTitle}
             onClose={() => this.props.onCancel()}
           />
-          <div style={styles.bodyContainer}>
-            <img style={styles.logo} src={`file:///${resolveAssets('../react-native/react/images/service/keybase.png')}`}/>
-            <div style={styles.body}>
-              <p style={styles.prompt}>{this.props.prompt}</p>
-              <div style={styles.checkContainer}>
-                {Object.keys(this.props.features).map(feature => {
-                  return (
-                  <div>
-                    <Checkbox
-                      labelStyle={styles.checkLabel}
-                      iconStyle={styles.checkIcon}
-                      key={feature}
-                      name={feature}
-                      value={feature}
-                      label={this.props.features[feature].label}
-                      defaultChecked={this.props.features[feature].defaultValue}
-                      style={styles.checkbox}
-                      onCheck={(_, checked) => this.onCheck(feature, checked)}/>
-                  </div>
-                  )
-                })}
-              </div>
-              <TextField
-                style={styles.input}
-                onChange={e => this.setState({passphrase: e.target.value})}
-                floatingLabelText='Your passphrase'
-                value={this.state.passphrase}
-                type={this.state.showTyping ? 'text' : 'password'}
-                onEnterKeyDown={submitPassphrase}
-                autoFocus />
-              <p style={styles.error}>{this.props.retryLabel}</p>
+          <div style={styles.body}>
+            <Text type='Body'>{this.props.prompt}</Text>
+            <div style={styles.checkContainer}>
+              {Object.keys(this.props.features).map(feature => {
+                return (
+                  <Checkbox
+                    style={styles.checkbox}
+                    key={feature}
+                    name={feature}
+                    checked={this.state.features[feature]}
+                    label={this.props.features[feature].label}
+                    onCheck={checked => this.onCheck(feature, checked)}/>
+                )
+              })}
             </div>
+            <Input
+              errorText={this.props.retryLabel}
+              style={styles.input}
+              onChange={e => this.setState({passphrase: e.target.value})}
+              value={this.state.passphrase}
+              type={this.state.showTyping ? 'text' : 'password'}
+              onEnterKeyDown={submitPassphrase}
+              floatingLabelText='Testing'
+              autoFocus
+            />
           </div>
           <div style={styles.action}>
-            <FlatButton style={commonStyles.secondaryButton} label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
-            <FlatButton style={commonStyles.primaryButton} label={this.props.submitLabel || 'Close'} primary onClick={submitPassphrase} />
+            <Button label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
+            <Button primary label={this.props.submitLabel || 'Close'} onClick={submitPassphrase} />
           </div>
         </div>
       </div>
@@ -101,75 +93,44 @@ PinentryRender.propTypes = {
   retryLabel: React.PropTypes.string.isRequired,
   cancelLabel: React.PropTypes.string,
   submitLabel: React.PropTypes.string,
-  windowTitle: React.PropTypes.string.isRequired,
-  requestResize: React.PropTypes.object.isRequired
+  windowTitle: React.PropTypes.string.isRequired
 }
 
 const styles = {
   container: {
-    ...commonStyles.flexBoxColumn,
-    ...commonStyles.fontRegular,
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.fontRegular,
     backgroundColor: 'white',
     fontSize: 15,
     width: 513
   },
-  header: {
-    height: 34
-  },
-  bodyContainer: {
-    ...commonStyles.flexBoxRow,
-    paddingLeft: 9,
-    paddingRight: 15,
-    paddingTop: 14,
-    paddingBottom: 6,
-    backgroundColor: colors.greyBackground
-  },
-  error: {
-    height: 21,
-    color: colors.error,
-    margin: 0
-  },
   body: {
-    ...commonStyles.flexBoxColumn,
+    ...globalStyles.flexBoxColumn,
+    padding: 20,
+    backgroundColor: globalColors.grey5,
     position: 'relative',
     flex: 1
   },
   action: {
-    ...commonStyles.flexBoxRow,
+    ...globalStyles.flexBoxRow,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    height: 49,
-    paddingTop: 9,
-    paddingBottom: 9,
-    paddingRight: 15
-  },
-  logo: {
-    width: 49,
-    height: 49,
-    marginRight: 14
-  },
-  prompt: {
-    marginTop: 0
+    height: 50,
+    padding: 10
   },
   checkContainer: {
-    ...commonStyles.flexBoxRow,
+    ...globalStyles.flexBoxRow,
     justifyContent: 'flex-end',
-    position: 'absolute',
-    right: 0,
-    bottom: 55
+    marginTop: 22,
+    marginBottom: 2,
+    flex: 1
   },
   checkbox: {
-    marginTop: 30,
+    ...globalStyles.topMost,
+    color: globalColors.black,
     marginLeft: 10
   },
-  checkLabel: {
-    ...commonStyles.noWrapCheckboxLabel,
-    fontSize: 13
-  },
-  checkIcon: {
-    marginRight: 4
-  },
   input: {
-    width: 'initial'
+    marginTop: -35
   }
 }

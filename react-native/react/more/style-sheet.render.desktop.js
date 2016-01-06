@@ -1,10 +1,7 @@
 import React, {Component} from '../base-react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container'
-import Button from '../common-adapters/button'
-import Logo from '../common-adapters/logo'
-import Input from '../common-adapters/input'
-import Text from '../common-adapters/text'
+import {Button, Logo, Input, Text} from '../common-adapters'
 
 export default class Render extends Component {
   render () {
