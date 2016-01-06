@@ -87,8 +87,9 @@ type Standard struct {
 	externalLogLevel     keybase1.LogLevel
 	externalLoggersMutex sync.RWMutex
 
-	buffer chan *entry
-	drop   chan bool
+	buffer   chan *entry
+	drop     chan bool
+	shutdown bool
 }
 
 // Verify Standard fully implements the Logger interface.
@@ -362,6 +363,9 @@ func (log *Standard) RemoveExternalLogger(handle uint64) {
 }
 
 func (log *Standard) logToExternalLoggers(level keybase1.LogLevel, format string, args []interface{}) {
+	if log.shutdown {
+		return
+	}
 	e := entry{
 		level:  level,
 		format: format,
@@ -429,4 +433,5 @@ func (log *Standard) processBuffer() {
 
 func (log *Standard) Shutdown() {
 	close(log.buffer)
+	log.shutdown = true
 }
