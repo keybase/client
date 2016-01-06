@@ -1032,6 +1032,8 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// from the folder creation, then 2 for file creation
 	c := b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).Times(3).Return(nil)
+	b.EXPECT().ArchiveBlockReferences(gomock.Any(), gomock.Any(),
+		gomock.Any()).AnyTimes().Return(nil)
 
 	// make blocks small
 	blockSize := int64(5)

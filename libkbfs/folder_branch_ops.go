@@ -1795,6 +1795,9 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		return err
 	}
 
+	// Archive the old, unref'd blocks
+	fbo.archiveChan <- md
+
 	fbo.notifyBatchLocked(ctx, lState, md)
 	return nil
 }
@@ -4565,6 +4568,9 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 		return err
 	}
 	fbo.setStagedLocked(lState, false, NullBranchID)
+
+	// Archive the old, unref'd blocks
+	fbo.archiveChan <- md
 
 	// notifyOneOp for every fixed-up merged op.
 	for _, op := range newOps {

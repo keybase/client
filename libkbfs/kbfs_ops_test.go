@@ -94,6 +94,10 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	// Ignore Notify calls for now
 	config.mockRep.EXPECT().Notify(gomock.Any(), gomock.Any()).AnyTimes()
 
+	// Ignore Archive calls for now
+	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
+		gomock.Any()).AnyTimes().Return(nil)
+
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
 	ctx = context.WithValue(context.Background(), tCtxID, rand.Int())
