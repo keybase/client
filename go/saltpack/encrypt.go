@@ -15,7 +15,7 @@ type encryptStream struct {
 	output     io.Writer
 	encoder    encoder
 	header     *EncryptionHeader
-	sessionKey SymmetricKey
+	payloadKey SymmetricKey
 	buffer     bytes.Buffer
 	nonce      *Nonce
 	inblock    []byte
@@ -69,7 +69,7 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 	}
 
 	nonce := es.nonce.ForPayloadBox(es.numBlocks)
-	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&es.sessionKey))
+	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&es.payloadKey))
 	hash := sha512.Sum512(ciphertext)
 
 	block := EncryptionBlock{
@@ -145,45 +145,37 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 		FormatName: SaltPackFormatName,
 		Version:    SaltPackCurrentVersion,
 		Type:       MessageTypeEncryption,
-		Sender:     ephemeralKey.GetPublicKey().ToKID(),
-		Receivers:  make([]receiverKeysCiphertexts, 0, len(receivers)),
+		Ephemeral:  ephemeralKey.GetPublicKey().ToKID(),
+		Receivers:  make([]receiverKeys, 0, len(receivers)),
 	}
 	es.header = eh
-	if err := randomFill(es.sessionKey[:]); err != nil {
+	if err := randomFill(es.payloadKey[:]); err != nil {
 		return err
 	}
 
 	es.nonce = NewNonceForEncryption(ephemeralKey.GetPublicKey())
 
-	rkp := receiverKeysPlaintext{
-		Sender:     sender.GetPublicKey().ToKID(),
-		SessionKey: es.sessionKey[:],
-	}
-
-	rkpPacked, err := encodeToBytes(rkp)
-	if err != nil {
-		return err
-	}
-
 	nonce := es.nonce.ForKeyBox()
+
+	eh.SenderSecretbox = secretbox.Seal([]byte{}, sender.GetPublicKey().ToKID(), (*[24]byte)(nonce), (*[32]byte)(&es.payloadKey))
 
 	for _, receiver := range receivers {
 
 		ephemeralShared := ephemeralKey.Precompute(receiver)
 
-		keys := ephemeralShared.Box(nonce, rkpPacked)
+		payloadKeyBox := ephemeralShared.Box(nonce, es.payloadKey[:])
 		if err != nil {
 			return err
 		}
 
-		rkc := receiverKeysCiphertexts{Keys: keys}
+		keys := receiverKeys{PayloadKeyBox: payloadKeyBox}
 
 		// Don't specify the receivers if this public key wants to hide
 		if !receiver.HideIdentity() {
-			rkc.ReceiverKID = receiver.ToKID()
+			keys.ReceiverKID = receiver.ToKID()
 		}
 
-		eh.Receivers = append(eh.Receivers, rkc)
+		eh.Receivers = append(eh.Receivers, keys)
 
 		tagKey := ephemeralShared
 		if !senderAnon {

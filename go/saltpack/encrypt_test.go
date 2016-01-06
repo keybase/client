@@ -606,12 +606,12 @@ func TestCorruptHeaderNonceR5(t *testing.T) {
 	}
 }
 
-func TestCorruptReceiverKeysCiphertextR5(t *testing.T) {
+func TestCorruptPayloadKeyBoxR5(t *testing.T) {
 	msg := randomMsg(t, 129)
 	teo := testEncryptionOptions{
-		corruptReceiverKeysCiphertext: func(rkc *receiverKeysCiphertexts, rid int) {
+		corruptReceiverKeys: func(keys *receiverKeys, rid int) {
 			if rid == 5 {
-				rkc.Keys[35] ^= 1
+				keys.PayloadKeyBox[35] ^= 1
 			}
 		},
 	}
@@ -638,9 +638,9 @@ func TestCorruptReceiverKeysCiphertextR5(t *testing.T) {
 	// If someone else's encryption was tampered with, we don't care and
 	// shouldn't get an error.
 	teo = testEncryptionOptions{
-		corruptReceiverKeysCiphertext: func(rkc *receiverKeysCiphertexts, rid int) {
+		corruptReceiverKeys: func(keys *receiverKeys, rid int) {
 			if rid != 5 {
-				rkc.Keys[35] ^= 1
+				keys.PayloadKeyBox[35] ^= 1
 			}
 		},
 	}
@@ -654,17 +654,14 @@ func TestCorruptReceiverKeysCiphertextR5(t *testing.T) {
 	}
 }
 
-// TestCorruptRewceiverKeys tests what happens if the encryptor messes up in
-// formulating the **plaintext** input of the encrypted session keys.  We try
-// fiddling all of the keys below, in the case of multiple receivers.
-func TestCorruptReceiverKeysPlaintext(t *testing.T) {
+func TestCorruptPayloadKeyPlaintext(t *testing.T) {
 	msg := randomMsg(t, 129)
 
-	// First try to supply a bogus group ID that's out of bounds.
+	// Corrupt the payload key.
 	teo := testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, rid int) {
+		corruptPayloadKey: func(pk []byte, rid int) {
 			if rid == 2 {
-				rkp.Sender[3] ^= 1
+				pk[3] ^= 1
 			}
 		},
 	}
@@ -681,41 +678,48 @@ func TestCorruptReceiverKeysPlaintext(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// If we've corrupted the sender key, the first thing that will fail is the
-	// Tag check for this receiver on packet #1.
+	// If we've corrupted the payload key, the first thing that will fail is
+	// opening the sender secretbox.
 	_, _, err = Open(ciphertext, kr)
-	if ebt, ok := err.(ErrBadTag); !ok || int(ebt) != 1 {
-		t.Fatalf("Got wrong error; wanted %v but got %v", ErrNoSenderKey, ErrBadTag(1))
+	if err != ErrBadSenderKeySecretbox {
+		t.Fatalf("Got wrong error; wanted %v but got %v", ErrNoSenderKey, ErrBadSenderKeySecretbox)
 	}
+}
 
-	// Finally let's corrupt the session key
-	teo = testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, rid int) {
-			if rid == 2 {
-				sk := make([]byte, len(rkp.SessionKey))
-				copy(sk, rkp.SessionKey)
-				sk[3] ^= 1
-				rkp.SessionKey = sk
-			}
+func TestCorruptSenderSecretboxPlaintext(t *testing.T) {
+	msg := randomMsg(t, 129)
+
+	// First try flipping a bit. This should break the first payload packet.
+	teo := testEncryptionOptions{
+		corruptSenderKeyPlaintext: func(pk *[]byte) {
+			(*pk)[3] ^= 1
 		},
 	}
-	ciphertext, err = testSeal(msg, sender, receivers, teo)
+	sender := newBoxKey(t)
+	receivers := []BoxPublicKey{
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+	}
+	ciphertext, err := testSeal(msg, sender, receivers, teo)
 	if err != nil {
 		t.Fatal(err)
 	}
 	_, _, err = Open(ciphertext, kr)
-	if mm, ok := err.(ErrBadCiphertext); !ok {
-		t.Fatalf("Got wrong error; wanted 'Bad Ciphertext' but got %v", err)
+	if mm, ok := err.(ErrBadTag); !ok {
+		t.Fatalf("Got wrong error; wanted 'Bad Tag' but got %v", err)
 	} else if int(mm) != 1 {
 		t.Fatalf("Wanted a failure in packet %d but got %d", 1, mm)
 	}
 
-	// Test Bad Sender Key
+	// Also try truncating the sender key. This should hit the bad length
+	// check.
 	teo = testEncryptionOptions{
-		corruptReceiverKeysPlaintext: func(rkp *receiverKeysPlaintext, rid int) {
-			if rid == 2 {
-				rkp.Sender = rkp.Sender[0 : len(rkp.Sender)-1]
-			}
+		corruptSenderKeyPlaintext: func(pk *[]byte) {
+			var shortKey [31]byte
+			copy(shortKey[:], *pk)
+			*pk = shortKey[:]
 		},
 	}
 	ciphertext, err = testSeal(msg, sender, receivers, teo)
@@ -724,7 +728,32 @@ func TestCorruptReceiverKeysPlaintext(t *testing.T) {
 	}
 	_, _, err = Open(ciphertext, kr)
 	if err != ErrBadSenderKey {
-		t.Fatalf("Bad error: wanted %v but got %v", ErrBadSenderKey, err)
+		t.Fatalf("Got wrong error; wanted 'Bad Sender Key' but got %v", err)
+	}
+}
+
+func TestCorruptSenderSecretboxCiphertext(t *testing.T) {
+	msg := randomMsg(t, 129)
+
+	teo := testEncryptionOptions{
+		corruptSenderKeyCiphertext: func(pk []byte) {
+			pk[3] ^= 1
+		},
+	}
+	sender := newBoxKey(t)
+	receivers := []BoxPublicKey{
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+	}
+	ciphertext, err := testSeal(msg, sender, receivers, teo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Open(ciphertext, kr)
+	if err != ErrBadSenderKeySecretbox {
+		t.Fatalf("Got wrong error; wanted 'Bad Sender Key Secretbox' but got %v", err)
 	}
 }
 
@@ -887,23 +916,6 @@ func TestCorruptHeader(t *testing.T) {
 		t.Fatalf("got wrong received in error message: %d", ebv.received)
 	}
 
-	// Corrupt Plaintext Keys after packing
-	teo = testEncryptionOptions{
-		blockSize: 1024,
-		corruptReceiverKeysPlaintextPacked: func(b []byte, rid int) {
-			b[0] = 0xff
-			b[1] = 0xff
-		},
-	}
-	ciphertext, err = testSeal(msg, sender, receivers, teo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, _, err = Open(ciphertext, kr)
-	if err == nil || err.Error() != "only encoded map or array can be decoded into a struct" {
-		t.Fatalf("wanted a msgpack decode error")
-	}
-
 	// Corrupt Header after packing
 	teo = testEncryptionOptions{
 		blockSize: 1024,
@@ -1043,7 +1055,7 @@ func TestCorruptEmpheralKey(t *testing.T) {
 	plaintext := randomMsg(t, 1024*3)
 	teo := testEncryptionOptions{
 		corruptHeader: func(eh *EncryptionHeader) {
-			eh.Sender = eh.Sender[0 : len(eh.Sender)-1]
+			eh.Ephemeral = eh.Ephemeral[0 : len(eh.Ephemeral)-1]
 		},
 	}
 	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
@@ -1065,7 +1077,7 @@ func TestCiphertextSwapKeys(t *testing.T) {
 	plaintext := randomMsg(t, 1024*3)
 	teo := testEncryptionOptions{
 		corruptHeader: func(h *EncryptionHeader) {
-			h.Receivers[1].Keys, h.Receivers[0].Keys = h.Receivers[0].Keys, h.Receivers[1].Keys
+			h.Receivers[1].PayloadKeyBox, h.Receivers[0].PayloadKeyBox = h.Receivers[0].PayloadKeyBox, h.Receivers[1].PayloadKeyBox
 		},
 	}
 	ciphertext, err := testSeal(plaintext, nil, receivers, teo)
@@ -1086,8 +1098,8 @@ func TestEmptyReceiverKID(t *testing.T) {
 	}
 	plaintext := randomMsg(t, 1024*3)
 	teo := testEncryptionOptions{
-		corruptReceiverKeysCiphertext: func(rkc *receiverKeysCiphertexts, rid int) {
-			rkc.ReceiverKID = []byte{}
+		corruptReceiverKeys: func(keys *receiverKeys, rid int) {
+			keys.ReceiverKID = []byte{}
 		},
 	}
 	ciphertext, err := testSeal(plaintext, nil, receivers, teo)

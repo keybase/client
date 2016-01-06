@@ -41,6 +41,10 @@ var (
 	// ErrBadReceivers shows up when you pass a bad receivers vector
 	ErrBadReceivers = errors.New("bad receivers argument")
 
+	// ErrBadSenderKeySecretbox is returned if the sender secretbox fails to
+	// open.
+	ErrBadSenderKeySecretbox = errors.New("sender secretbox failed to open")
+
 	// ErrBadSenderKey is returned if a key with the wrong number of bytes
 	// is discovered in the encryption header.
 	ErrBadSenderKey = errors.New("bad sender key; must be 32 bytes")
