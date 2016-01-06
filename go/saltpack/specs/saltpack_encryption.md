@@ -136,6 +136,10 @@ shared secret is done with the
 Curve25519 multiplication and an HSalsa20 key derivation, to avoid repeating
 those steps in [`crypto_box_open`](http://nacl.cr.yp.to/box.html).
 
+Note that when parsing lists in general, if a list is longer than expected,
+clients should allow the extra fields and ignore them. That flexibility allows
+us to make additions to the format without breaking backward compatibility.
+
 ### Payload Packets
 A payload packet is a MessagePack list with these contents:
 
