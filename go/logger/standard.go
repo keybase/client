@@ -11,10 +11,11 @@ import (
 	"strings"
 	"sync"
 
-	keybase1 "github.com/keybase/client/go/protocol"
 	logging "github.com/keybase/go-logging"
-	"github.com/mattn/go-isatty"
+	isatty "github.com/mattn/go-isatty"
 	"golang.org/x/net/context"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 const permDir os.FileMode = 0700
@@ -68,6 +69,12 @@ type ExternalLogger interface {
 	Log(level keybase1.LogLevel, format string, args []interface{})
 }
 
+type entry struct {
+	level  keybase1.LogLevel
+	format string
+	args   []interface{}
+}
+
 type Standard struct {
 	internal       *logging.Logger
 	filename       string
@@ -79,15 +86,17 @@ type Standard struct {
 	externalLoggersCount uint64
 	externalLogLevel     keybase1.LogLevel
 	externalLoggersMutex sync.RWMutex
+
+	buffer chan *entry
 }
+
+// Verify Standard fully implements the Logger interface.
+var _ Logger = (*Standard)(nil)
 
 // New creates a new Standard logger for module.
 func New(module string, iow io.Writer) *Standard {
 	return NewWithCallDepth(module, 0, iow)
 }
-
-// Verify Standard fully implements the Logger interface.
-var _ Logger = (*Standard)(nil)
 
 // NewWithCallDepth creates a new Standard logger for module, and when
 // printing file names and line numbers, it goes extraCallDepth up the
@@ -112,8 +121,10 @@ func NewWithCallDepth(module string, extraCallDepth int, iow io.Writer) *Standar
 		externalLoggersCount: 0,
 		externalLogLevel:     keybase1.LogLevel_INFO,
 		isTerminal:           isTerminal,
+		buffer:               make(chan *entry, 10000),
 	}
 	ret.initLogging(iow)
+	go ret.processBuffer()
 	return ret
 }
 
@@ -345,20 +356,20 @@ func (log *Standard) RemoveExternalLogger(handle uint64) {
 	defer log.externalLoggersMutex.Unlock()
 
 	delete(log.externalLoggers, handle)
+	log.externalLoggersCount--
 }
 
 func (log *Standard) logToExternalLoggers(level keybase1.LogLevel, format string, args []interface{}) {
-	log.externalLoggersMutex.RLock()
-	defer log.externalLoggersMutex.RUnlock()
-
-	// Short circuit logs that are more verbose than the current external log
-	// level.
-	if level < log.externalLogLevel {
-		return
+	e := entry{
+		level:  level,
+		format: format,
+		args:   args,
 	}
 
-	for _, externalLogger := range log.externalLoggers {
-		go externalLogger.Log(level, format, args)
+	// if buffer is full, don't block, just drop the log message
+	select {
+	case log.buffer <- &e:
+	default:
 	}
 }
 
@@ -367,4 +378,27 @@ func (log *Standard) SetExternalLogLevel(level keybase1.LogLevel) {
 	defer log.externalLoggersMutex.Unlock()
 
 	log.externalLogLevel = level
+}
+
+func (log *Standard) processBuffer() {
+	for e := range log.buffer {
+		log.externalLoggersMutex.Lock()
+
+		// Short circuit logs that are more verbose than the current external log
+		// level.
+		if e.level < log.externalLogLevel {
+			log.externalLoggersMutex.Unlock()
+			continue
+		}
+
+		for _, externalLogger := range log.externalLoggers {
+			externalLogger.Log(e.level, e.format, e.args)
+		}
+
+		log.externalLoggersMutex.Unlock()
+	}
+}
+
+func (log *Standard) Shutdown() {
+	close(log.buffer)
 }

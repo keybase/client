@@ -38,3 +38,4 @@ func (l *Null) RotateLogFile() error                                           {
 func (l *Null) AddExternalLogger(ExternalLogger) uint64                        { return 0 }
 func (l *Null) RemoveExternalLogger(uint64)                                    {}
 func (l *Null) SetExternalLogLevel(level keybase1.LogLevel)                    {}
+func (l *Null) Shutdown()                                                      {}
