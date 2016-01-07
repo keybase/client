@@ -36,12 +36,20 @@ type conflictInput struct {
 type ConflictResolver struct {
 	config Config
 	fbo    *folderBranchOps
+	log    logger.Logger
 
 	inputChanLock sync.RWMutex
 	inputChan     chan conflictInput
 
-	inputGroup sync.WaitGroup
-	log        logger.Logger
+	// We use a mutex, int, and condition variable to track and
+	// synchronize on the number of outstanding resolves.  We can't
+	// use a sync.WaitGroup because it requires that the Add() and the
+	// Wait() are fully synchronized, which means holding a mutex
+	// during Wait(), which can lead to deadlocks for users of
+	// ConflictResolver.
+	resolveLock sync.Mutex
+	numResolves int
+	resolveCond *sync.Cond
 
 	inputLock sync.Mutex
 	currInput conflictInput
@@ -69,6 +77,7 @@ func NewConflictResolver(
 			merged:   MetadataRevisionUninitialized,
 		},
 	}
+	cr.resolveCond = sync.NewCond(&cr.resolveLock)
 
 	cr.startProcessing()
 	return cr
@@ -94,6 +103,19 @@ func (cr *ConflictResolver) stopProcessing() {
 	}
 	close(cr.inputChan)
 	cr.inputChan = nil
+}
+
+func (cr *ConflictResolver) resolutionDone() {
+	cr.resolveLock.Lock()
+	defer cr.resolveLock.Unlock()
+	if cr.numResolves <= 0 {
+		panic(fmt.Sprintf("Bad number of resolves in resolutionDone: %d",
+			cr.numResolves))
+	}
+	cr.numResolves--
+	if cr.numResolves == 0 {
+		cr.resolveCond.Broadcast()
+	}
 }
 
 // processInput processes conflict resolution jobs from the given
@@ -140,7 +162,7 @@ func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 		}()
 		if !valid {
 			cr.log.CDebugf(ctx, "Ignoring uninteresting input: %v", ci)
-			cr.inputGroup.Done()
+			cr.resolutionDone()
 			continue
 		}
 
@@ -159,7 +181,11 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 		return
 	}
 
-	cr.inputGroup.Add(1)
+	func() {
+		cr.resolveLock.Lock()
+		defer cr.resolveLock.Unlock()
+		cr.numResolves++
+	}()
 	cr.inputChan <- conflictInput{unmerged, merged}
 }
 
@@ -169,10 +195,13 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 func (cr *ConflictResolver) Wait(ctx context.Context) error {
 	c := make(chan struct{}, 1)
 	go func() {
-		// TODO: From the WaitGroup documentation, it's unclear what
-		// happens if you call Wait() when there are no outstanding
-		// CRs, so we might want to avoid calling Wait in that case.
-		cr.inputGroup.Wait()
+		func() {
+			cr.resolveLock.Lock()
+			defer cr.resolveLock.Unlock()
+			for cr.numResolves != 0 {
+				cr.resolveCond.Wait()
+			}
+		}()
 		c <- struct{}{}
 	}()
 
@@ -2885,7 +2914,7 @@ func (e CRWrapError) String() string {
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
-	defer cr.inputGroup.Done()
+	defer cr.resolutionDone()
 	defer func() {
 		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
 		if err != nil {
