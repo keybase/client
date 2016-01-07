@@ -265,10 +265,10 @@ func (b *BlockServerRemote) archiveBlockReferences(ctx context.Context,
 			b.log.CWarningf(ctx, "BlockServerRemote.ArchiveBlockReference err=%v", err)
 		}
 		if len(res) == 0 && !prevProgress {
-			b.log.CErrorf(ctx, "BlockServerRemote.ArchiveBlockReference failed to make proress err=%v", err)
+			b.log.CErrorf(ctx, "BlockServerRemote.ArchiveBlockReference failed to make progress err=%v", err)
 			break
 		}
-		prevProgress = len(res) == 0
+		prevProgress = len(res) != 0
 		for _, ref := range res {
 			doneRefs[ref.Bid.BlockHash+string(ref.Nonce[:])] = true
 		}
