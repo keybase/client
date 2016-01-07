@@ -4799,31 +4799,31 @@ func (c SaltPackClient) SaltPackVerify(ctx context.Context, __arg SaltPackVerify
 	return
 }
 
-type SaltPackSenderType int
+type SaltpackSenderType int
 
 const (
-	SaltPackSenderType_NOT_TRACKED    SaltPackSenderType = 0
-	SaltPackSenderType_UNKNOWN        SaltPackSenderType = 1
-	SaltPackSenderType_ANONYMOUS      SaltPackSenderType = 2
-	SaltPackSenderType_TRACKING_BROKE SaltPackSenderType = 3
-	SaltPackSenderType_TRACKING_OK    SaltPackSenderType = 4
+	SaltpackSenderType_NOT_TRACKED    SaltpackSenderType = 0
+	SaltpackSenderType_UNKNOWN        SaltpackSenderType = 1
+	SaltpackSenderType_ANONYMOUS      SaltpackSenderType = 2
+	SaltpackSenderType_TRACKING_BROKE SaltpackSenderType = 3
+	SaltpackSenderType_TRACKING_OK    SaltpackSenderType = 4
 )
 
-type SaltPackSender struct {
+type SaltpackSender struct {
 	Uid        UID                `codec:"uid" json:"uid"`
 	Username   string             `codec:"username" json:"username"`
-	SenderType SaltPackSenderType `codec:"senderType" json:"senderType"`
+	SenderType SaltpackSenderType `codec:"senderType" json:"senderType"`
 }
 
 type SaltPackPromptForDecryptArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
-	Sender    SaltPackSender `codec:"sender" json:"sender"`
+	Sender    SaltpackSender `codec:"sender" json:"sender"`
 }
 
 type SaltPackVerifySuccessArg struct {
 	SessionID  int            `codec:"sessionID" json:"sessionID"`
 	SigningKID KID            `codec:"signingKID" json:"signingKID"`
-	Sender     SaltPackSender `codec:"sender" json:"sender"`
+	Sender     SaltpackSender `codec:"sender" json:"sender"`
 }
 
 type SaltPackUiInterface interface {
