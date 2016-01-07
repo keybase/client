@@ -39,7 +39,8 @@ Environment variables:
 
  - $HOME: Home dir to use. Useful for multiple parallel installs
  - $KEYBASE_RUN_MODE: production | devel. Which server to hit
- - $KEYBASE_APP_DEBUG: Debug settings. Devtools, extra logging
+ - $KEYBASE_APP_DEBUG: Debug settings, extra logging
+ - $KEYBASE_SHOW_DEVTOOLS: Show devtools
 
 Use
 ```
