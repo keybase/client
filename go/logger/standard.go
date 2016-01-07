@@ -414,12 +414,12 @@ func (log *Standard) SetExternalLogLevel(level keybase1.LogLevel) {
 
 func (log *Standard) processBuffer() {
 	for e := range log.buffer {
-		log.externalLoggersMutex.Lock()
+		log.externalLoggersMutex.RLock()
 
 		// Short circuit logs that are more verbose than the current external log
 		// level.
 		if e.level < log.externalLogLevel {
-			log.externalLoggersMutex.Unlock()
+			log.externalLoggersMutex.RUnlock()
 			continue
 		}
 
@@ -427,7 +427,7 @@ func (log *Standard) processBuffer() {
 			externalLogger.Log(e.level, e.format, e.args)
 		}
 
-		log.externalLoggersMutex.Unlock()
+		log.externalLoggersMutex.RUnlock()
 	}
 }
 
