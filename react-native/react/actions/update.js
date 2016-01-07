@@ -137,12 +137,12 @@ export function onSnooze (): (dispatch: Dispatch) => void {
   }
 }
 
-export function onUpdate (alwaysAutoInstall: bool): (dispatch: Dispatch) => void {
-  return dispatch => {
+export function onUpdate (): (dispatch: Dispatch, getState: () => {update: ShowUpdateState}) => void {
+  return (dispatch, getState) => {
     dispatch(({type: Constants.onUpdate}: OnUpdateAction))
     sendUpdatePromptResponse({
       action: updateUi.UpdateAction.update,
-      alwaysAutoInstall
+      alwaysAutoInstall: getState().update.alwaysUpdate
     })
   }
 }
