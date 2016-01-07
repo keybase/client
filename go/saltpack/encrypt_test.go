@@ -878,6 +878,28 @@ func TestCorruptEncryption(t *testing.T) {
 	}
 }
 
+func TestCorruptButAuthenticPayloadBox(t *testing.T) {
+	sender := newBoxKey(t)
+	receivers := []BoxPublicKey{newBoxKey(t).GetPublicKey()}
+	msg := randomMsg(t, 1024*2-1)
+	ciphertext, err := testSeal(msg, sender, receivers, testEncryptionOptions{
+		corruptCiphertextBeforeHash: func(c []byte, ebn encryptionBlockNumber) {
+			if ebn == 0 {
+				c[0] ^= 1
+			}
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Open(ciphertext, kr)
+	if emm, ok := err.(ErrBadCiphertext); !ok {
+		t.Fatalf("Expected a 'bad ciphertext' error but got %v", err)
+	} else if int(emm) != 1 {
+		t.Fatalf("Wanted error packet %d but got %d", 1, emm)
+	}
+}
+
 func TestCorruptNonce(t *testing.T) {
 	msg := randomMsg(t, 1024*11)
 	teo := testEncryptionOptions{

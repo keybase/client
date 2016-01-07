@@ -11,17 +11,18 @@ import (
 )
 
 type testEncryptionOptions struct {
-	blockSize                  int
-	skipFooter                 bool
-	corruptEncryptionBlock     func(bl *EncryptionBlock, ebn encryptionBlockNumber)
-	corruptPayloadNonce        func(n *Nonce, ebn encryptionBlockNumber) *Nonce
-	corruptKeysNonce           func(n *Nonce, rid int) *Nonce
-	corruptPayloadKey          func(pk *[]byte, rid int)
-	corruptReceiverKeys        func(rk *receiverKeys, rid int)
-	corruptSenderKeyPlaintext  func(pk *[]byte)
-	corruptSenderKeyCiphertext func(pk []byte)
-	corruptHeader              func(eh *EncryptionHeader)
-	corruptHeaderPacked        func(b []byte)
+	blockSize                   int
+	skipFooter                  bool
+	corruptEncryptionBlock      func(bl *EncryptionBlock, ebn encryptionBlockNumber)
+	corruptCiphertextBeforeHash func(c []byte, ebn encryptionBlockNumber)
+	corruptPayloadNonce         func(n *Nonce, ebn encryptionBlockNumber) *Nonce
+	corruptKeysNonce            func(n *Nonce, rid int) *Nonce
+	corruptPayloadKey           func(pk *[]byte, rid int)
+	corruptReceiverKeys         func(rk *receiverKeys, rid int)
+	corruptSenderKeyPlaintext   func(pk *[]byte)
+	corruptSenderKeyCiphertext  func(pk []byte)
+	corruptHeader               func(eh *EncryptionHeader)
+	corruptHeaderPacked         func(b []byte)
 }
 
 func (eo testEncryptionOptions) getBlockSize() int {
@@ -103,6 +104,11 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 	}
 
 	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.payloadKey))
+
+	if pes.options.corruptCiphertextBeforeHash != nil {
+		pes.options.corruptCiphertextBeforeHash(ciphertext, pes.numBlocks)
+	}
+
 	hash := sha512.Sum512(ciphertext)
 
 	block := EncryptionBlock{
