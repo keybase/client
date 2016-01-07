@@ -2,8 +2,9 @@ const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
 const config = Object.assign({}, baseConfig)
+const getenv = require('getenv')
 
-const NO_SOURCE_MAPS = process.env.NO_SOURCE_MAPS === 'true'
+const NO_SOURCE_MAPS = getenv.bool('NO_SOURCE_MAPS', false)
 
 config.debug = true
 config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-eval-source-map'
@@ -15,7 +16,7 @@ config.output.publicPath = 'http://localhost:4000/dist/'
 
 config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
 
-if (process.env.HOT === 'true') {
+if (getenv.bool('HOT', false)) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin())
 }
 
@@ -26,7 +27,7 @@ config.plugins.push(
   })
 )
 
-if (process.env.HOT === 'true') {
+if (getenv.bool('HOT', false)) {
   const HMR = 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
 
   Object.keys(config.entry).forEach(k => {

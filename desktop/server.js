@@ -2,12 +2,13 @@
 const express = require('express')
 const webpack = require('webpack')
 const config = Object.assign({}, require('./webpack.config.development'))
+const getenv = require('getenv')
 
 const PORT = 4000
 const compiler = webpack(config)
 
 // Just build output files and don't run a hot server
-const NO_SERVER = (process.env.NO_SERVER && process.env.NO_SERVER === 'true') || false
+const NO_SERVER = getenv.bool('NO_SERVER', false)
 
 if (NO_SERVER) {
   console.log('Starting local file build')
