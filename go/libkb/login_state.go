@@ -33,12 +33,6 @@ type LoginState struct {
 	loginReqs chan loginReq
 	acctReqs  chan acctReq
 	activeReq string
-
-	// This mechanism is just for testing. For testing purposes, it is sometimes
-	// useful to know when the background cleaner thread is done, so we can
-	// assert that it cleaned up properly.
-	setTimerWaiterReq chan chan struct{}
-	timerWaiter       chan struct{}
 }
 
 // LoginContext is passed to all loginHandler functions.  It
@@ -105,11 +99,10 @@ type afterFn func(LoginContext) error
 // handler goroutine.
 func NewLoginState(g *GlobalContext) *LoginState {
 	res := &LoginState{
-		Contextified:      NewContextified(g),
-		account:           NewAccount(g),
-		loginReqs:         make(chan loginReq),
-		acctReqs:          make(chan acctReq),
-		setTimerWaiterReq: make(chan chan struct{}),
+		Contextified: NewContextified(g),
+		account:      NewAccount(g),
+		loginReqs:    make(chan loginReq),
+		acctReqs:     make(chan acctReq),
 	}
 	go res.requests()
 	return res
@@ -809,17 +802,7 @@ func (s *LoginState) requests() {
 			}
 		case <-timer:
 			s.account.clean()
-			if s.timerWaiter != nil {
-				s.timerWaiter <- struct{}{}
-				s.timerWaiter = nil
-			}
 			timer = maketimer()
-		case w := <-s.setTimerWaiterReq:
-			if s.timerWaiter != nil {
-				s.G().Log.Warning("not overloading current timerwaiter")
-			} else {
-				s.timerWaiter = w
-			}
 		}
 		if loginReqsClosed && acctReqsClosed {
 			break
@@ -1032,15 +1015,4 @@ func (s *LoginState) AccountDump() {
 	if err != nil {
 		s.G().Log.Warning("error getting account for AccountDump: %s", err)
 	}
-}
-
-// WaitForTimerToComplete. Only currently used in testing. Returns a function
-// that you can call, which will wait until the next timer() in the main
-// LoginState loop completes.
-func (s *LoginState) GetTimerCompletionWaiter() func() {
-	ch := make(chan struct{})
-	// Send this new channel into the main loop (via channel)
-	s.setTimerWaiterReq <- ch
-	// Return a message that waits on something to be sent into this channel.
-	return func() { <-ch }
 }

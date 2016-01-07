@@ -52,6 +52,8 @@ type Account struct {
 
 	paperSigKey *timedGenericKey // cached, unlocked paper signing key
 	paperEncKey *timedGenericKey // cached, unlocked paper encryption key
+
+	testPostCleanHook func() // for testing, call this hook after cleaning
 }
 
 func NewAccount(g *GlobalContext) *Account {
@@ -478,6 +480,10 @@ func (a *Account) ClearCachedSecretKeys() {
 	a.paperSigKey = nil
 }
 
+func (a *Account) SetTestPostCleanHook(f func()) {
+	a.testPostCleanHook = f
+}
+
 func (a *Account) clean() {
 	a.G().Log.Debug("Running Account::clean")
 	if a.paperEncKey != nil {
@@ -485,6 +491,9 @@ func (a *Account) clean() {
 	}
 	if a.paperSigKey != nil {
 		a.paperSigKey.clean()
+	}
+	if a.testPostCleanHook != nil {
+		a.testPostCleanHook()
 	}
 }
 

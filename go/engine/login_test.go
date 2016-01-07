@@ -427,16 +427,22 @@ func TestProvisionPaper(t *testing.T) {
 		t.Errorf("expected 0 calls to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
 	}
 	var key libkb.GenericKey
+
+	ch := make(chan struct{})
+	pch := func() {
+		ch <- struct{}{}
+	}
+
 	tc2.G.LoginState().Account(func(a *libkb.Account) {
 		key = a.GetUnlockedPaperEncKey()
+		a.SetTestPostCleanHook(pch)
 	}, "GetUnlockedPaperEncKey")
 	if key == nil {
 		t.Errorf("Got a null paper encryption key")
 	}
 
-	wait := tc2.G.LoginState().GetTimerCompletionWaiter()
 	fakeClock.Advance(libkb.PaperKeyMemoryTimeout + 1*time.Minute)
-	wait()
+	<-ch
 
 	tc2.G.LoginState().Account(func(a *libkb.Account) {
 		key = a.GetUnlockedPaperEncKey()
