@@ -19,8 +19,8 @@ echo %SEMVER%
 ::   http://tsa.starfieldtech.com
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
-SignTool.exe sign /a /tr http://timestamp.digicert.com %1
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-"%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%1 /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" setup_windows.iss
+::SignTool.exe sign /a /tr http://timestamp.digicert.com %1
+::IF %ERRORLEVEL% NEQ 0 (
+::  EXIT /B 1
+::)
+"%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%1 /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" setup_windows_electron.iss
