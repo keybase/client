@@ -62,6 +62,7 @@ func (u *UIRouter) run() {
 			var ret rpc.Transporter
 			if cid, ok := u.uis[o.ui]; ok {
 				if ret = u.cm.LookupConnection(cid); ret == nil {
+					u.G().Log.Debug("UIRouter: connection %v inactive, deleting registered UI %s", cid, o.ui)
 					delete(u.uis, o.ui)
 				}
 			}
@@ -71,7 +72,7 @@ func (u *UIRouter) run() {
 }
 
 func (u *UIRouter) SetUI(c libkb.ConnectionID, k libkb.UIKind) {
-	u.G().Log.Debug("Connection %v registering UI %s", c, k)
+	u.G().Log.Debug("UIRouter: connection %v registering UI %s", c, k)
 	u.setCh <- setObj{c, k}
 }
 
