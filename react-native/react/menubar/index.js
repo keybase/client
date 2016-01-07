@@ -27,9 +27,46 @@ export type MenubarProps = {
 class Menubar extends Component {
   props: MenubarProps;
 
+  constructor (props) {
+    super(props)
+
+    // Normally I'd put this into the store but it's just too slow to get the state correctly through props so we'd get flashes so
+    // instead we manually manage loading state in this one circumstance. DO NOT DO THIS normally
+    this.state = {
+      loading: true
+    }
+
+    const onMenubarShow = () => {
+      this.checkForFolders()
+    }
+
+    const onMenubarHide = () => {
+      this.setState({loading: true})
+    }
+
+    if (module.hot) {
+      module.hot.dispose(() => {
+        ipcRenderer.send('unsubscribeMenubar')
+        ipcRenderer.removeListener('menubarShow', onMenubarShow)
+        ipcRenderer.removeListener('menubarHide', onMenubarHide)
+      })
+    }
+
+    ipcRenderer.send('subscribeMenubar')
+    ipcRenderer.on('menubarShow', onMenubarShow)
+    ipcRenderer.on('menubarHide', onMenubarHide)
+  }
+
   checkForFolders () {
-    if (this.props.username && this.props.loggedIn && !this.props.folders) {
+    if (this.props.username && this.props.loggedIn && !this.props.loading) {
+      this.setState({loading: true})
       this.props.favoriteList()
+    }
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (this.props.folders !== nextProps.folders) {
+      this.setState({loading: false})
     }
   }
 
@@ -37,38 +74,66 @@ class Menubar extends Component {
     this.checkForFolders()
   }
 
-  componentDidUpdate () {
-    this.checkForFolders()
+  closeMenubar () {
+    ipcRenderer.send('closeMenubar')
+  }
+
+  openKBFS () {
+    shell.openItem(kbfsPath)
+    this.closeMenubar()
+  }
+
+  openKBFSPublic () {
+    shell.openItem(`${kbfsPath}/public/${this.props.username}`)
+    this.closeMenubar()
+  }
+
+  openKBFSPrivate () {
+    shell.openItem(`${kbfsPath}/private/${this.props.username}`)
+    this.closeMenubar()
+  }
+
+  showMain () {
+    ipcRenderer.send('showMain')
+    this.closeMenubar()
+  }
+
+  showHelp () {
+    ipcRenderer.send('showHelp')
+    this.closeMenubar()
   }
 
   render () {
-    const openingMessage = this.props.username ? 'Be sure to drink your Ovaltine.' : "Looks like you aren't logged in. Try running `keybase login`"
+    const openingMessage = this.props.username ? 'Keybase Alpha' : 'Looks like you aren\'t logged in. Try running `keybase login`'
 
-    const closeMenubar = () => ipcRenderer.send('closeMenubar')
-
-    // TODO change this to /keybase when all our mount points are `/keybase/...`
-    // TODO Support linux
-    const openKBFS = () => { shell.openItem(kbfsPath); closeMenubar() }
-    const openKBFSPublic = () => { shell.openItem(`${kbfsPath}/public/${this.props.username}`); closeMenubar() }
-    const openKBFSPrivate = () => { shell.openItem(`${kbfsPath}/private/${this.props.username}`); closeMenubar() }
-
-    const showMain = () => { ipcRenderer.send('showMain'); closeMenubar() }
-    const showHelp = () => { ipcRenderer.send('showHelp'); closeMenubar() }
-    const quit = () => remote.app.quit()
-
-    const openingButtonInfo = this.props.username && {text: 'Get Started', onClick: showHelp}
+    const openingButtonInfo = this.props.username && {text: 'WTF?', onClick: this.showHelp}
     const folders = (this.props.folders || []).map(function (f: Folder): FolderInfo {
       return {
         folderName: f.name,
         isPublic: !f.private,
         // TODO we don't get this information right now,
         isEmpty: false,
-        openFolder: () => { setImmediate(() => shell.openItem(`${kbfsPath}${getTLF(!f.private, f.name)}`)); closeMenubar() }
+        openFolder: () => {
+          setImmediate(() => shell.openItem(`${kbfsPath}${getTLF(!f.private, f.name)}`))
+          this.closeMenubar()
+        }
       }
     })
 
-    // TODO (pull this debug from somewhere
-    return <Render {...{username: this.props.username, openingMessage: openingMessage, debug: !!this.props.debug, openingButtonInfo, openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, quit, folders}}/>
+    return <Render
+      username={this.props.username}
+      openingMessage={openingMessage}
+      debug={!!this.props.debug}
+      openingButtonInfo={openingButtonInfo}
+      openKBFS={() => this.openKBFS()}
+      openKBFSPublic={() => this.openKBFSPublic()}
+      openKBFSPrivate={() => this.openKBFSPrivate()}
+      showMain={() => this.showMain()}
+      showHelp={() => this.showHelp()}
+      quit={() => remote.app.quit()}
+      folders={folders}
+      loading={this.state.loading}
+    />
   }
 }
 

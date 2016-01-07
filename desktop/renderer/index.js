@@ -15,10 +15,10 @@ import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 import {ipcRenderer} from 'electron'
 import RemoteManager from '../../react-native/react/native/remote-manager'
 import {ipcMain} from 'remote'
-import consoleHack from '../app/console-hack'
+import consoleHelper from '../app/console-helper'
 import _ from 'lodash'
 
-consoleHack()
+consoleHelper()
 
 let DevTools = null
 let DebugPanel = null

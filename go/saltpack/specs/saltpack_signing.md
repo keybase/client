@@ -129,23 +129,23 @@ An attached signature:
   # mode (1 = attached signing)
   1,
   # sender public key
-  +Wv5iclX59CYwIApHt/FLEu/olkyXvDa55kEZlNHP80=,
+  1f5025dfb138aebee8517fe988d7d73679a55f7da349cb2283bd196907120f7d,
   # nonce
-  2664Qy9MgsPnX1SsVAcUxw==,
+  b5504c63ff77de96ef74a28f9397ff80,
 ]
 
 # payload packet
 [
   # signature
-  lD+n7GkGjQb1lFnmjZj0TOQAoVQsJdYXiRbvXdtStit8iVco2b4hWPvSiEelGxQIAD9JoeJS6Objw7qD3+o8AQ==,
+  2eec257a9c34053f16d4ac6438b5a338670b88e5b1d71c2e51e675d0caf2abb962224b5baaf3ce125a199c7cee75de8cf442c97f74540830e121105094ca580a,
   # payload chunk
-  "The Magic Words are Squeamish Ossifrage",
+  "Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me; thy rod and thy staff they comfort me.",
 ]
 
 # empty payload packet
 [
   # signature
-  0tdb3ItnxTRYzDgn/AUg/2+uHYvAPd+y9PtSnx4ToDMTLorWxQM4ZTQb849s7buQT4CIQL9w6TXxoPARXSzYCQ==,
+  988be76509f02bd882c8fe47829d5813a35ea3a06ca776df8ff7eb85d7cbc3fb52785d40ec42f674cb62429fc52a7f84c1400e3c26e0e3b8b7fd2daf7f915d08,
   # empty payload chunk (a zero-length byte string)
   "",
 ]
@@ -163,10 +163,10 @@ A detached signature:
   # mode (2 = detached signing)
   2,
   # sender public key
-  kbjTB6b/p7TkXe41O9FlvcyppPmdPiBhTt95HhioWls=,
+  14cda529c0bc06d5122d41b862295e5694ecdc9241a4b00a988852c40e08ed9f,
   # nonce
-  58uObqp8j9IxRflCOI0tbw==,
+  7ac1e7bcec1ee1f45960af752dba8772,
   # signature
-  hid+jLqgC1O7CBRDjpsmC/M20b5Fam15KhktLquKu2Gy+KZcKv74qGr7x9wytK0LX87lBoC829qXXJI1JCb6Dg==,
+  eb190b6f77ceb5af1106ac66e47380a01f811cd0c9988aec15d1fbc399f2606146b76104103f7a0f94e267370829cf935d04e8eda60483f4e1bca32f88936c02,
 ]
 ```

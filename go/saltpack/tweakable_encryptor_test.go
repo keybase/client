@@ -11,16 +11,18 @@ import (
 )
 
 type testEncryptionOptions struct {
-	blockSize                          int
-	skipFooter                         bool
-	corruptEncryptionBlock             func(bl *EncryptionBlock, ebn encryptionBlockNumber)
-	corruptPayloadNonce                func(n *Nonce, ebn encryptionBlockNumber) *Nonce
-	corruptKeysNonce                   func(n *Nonce, rid int) *Nonce
-	corruptReceiverKeysPlaintext       func(rk *receiverKeysPlaintext, rid int)
-	corruptReceiverKeysPlaintextPacked func(b []byte, rid int)
-	corruptReceiverKeysCiphertext      func(rk *receiverKeysCiphertexts, rid int)
-	corruptHeader                      func(eh *EncryptionHeader)
-	corruptHeaderPacked                func(b []byte)
+	blockSize                   int
+	skipFooter                  bool
+	corruptEncryptionBlock      func(bl *EncryptionBlock, ebn encryptionBlockNumber)
+	corruptCiphertextBeforeHash func(c []byte, ebn encryptionBlockNumber)
+	corruptPayloadNonce         func(n *Nonce, ebn encryptionBlockNumber) *Nonce
+	corruptKeysNonce            func(n *Nonce, rid int) *Nonce
+	corruptPayloadKey           func(pk *[]byte, rid int)
+	corruptReceiverKeys         func(rk *receiverKeys, rid int)
+	corruptSenderKeyPlaintext   func(pk *[]byte)
+	corruptSenderKeyCiphertext  func(pk []byte)
+	corruptHeader               func(eh *EncryptionHeader)
+	corruptHeaderPacked         func(b []byte)
 }
 
 func (eo testEncryptionOptions) getBlockSize() int {
@@ -34,7 +36,7 @@ type testEncryptStream struct {
 	output     io.Writer
 	encoder    encoder
 	header     *EncryptionHeader
-	sessionKey SymmetricKey
+	payloadKey SymmetricKey
 	buffer     bytes.Buffer
 	inblock    []byte
 	options    testEncryptionOptions
@@ -101,7 +103,12 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 		nonce = pes.options.corruptPayloadNonce(nonce, pes.numBlocks)
 	}
 
-	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.sessionKey))
+	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&pes.payloadKey))
+
+	if pes.options.corruptCiphertextBeforeHash != nil {
+		pes.options.corruptCiphertextBeforeHash(ciphertext, pes.numBlocks)
+	}
+
 	hash := sha512.Sum512(ciphertext)
 
 	block := EncryptionBlock{
@@ -145,38 +152,33 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 		FormatName: SaltPackFormatName,
 		Version:    SaltPackCurrentVersion,
 		Type:       MessageTypeEncryption,
-		Sender:     ephemeralKey.GetPublicKey().ToKID(),
-		Receivers:  make([]receiverKeysCiphertexts, 0, len(receivers)),
+		Ephemeral:  ephemeralKey.GetPublicKey().ToKID(),
+		Receivers:  make([]receiverKeys, 0, len(receivers)),
 	}
 	pes.header = eh
-	if err := randomFill(pes.sessionKey[:]); err != nil {
+	if err := randomFill(pes.payloadKey[:]); err != nil {
 		return err
 	}
 
 	pes.nonce = NewNonceForEncryption(ephemeralKey.GetPublicKey())
 	nonce := pes.nonce.ForKeyBox()
 
+	var senderPlaintext [32]byte
+	copy(senderPlaintext[:], sender.GetPublicKey().ToKID())
+	senderPlaintextSlice := senderPlaintext[:]
+	if pes.options.corruptSenderKeyPlaintext != nil {
+		pes.options.corruptSenderKeyPlaintext(&senderPlaintextSlice)
+	}
+	eh.SenderSecretbox = secretbox.Seal([]byte{}, senderPlaintextSlice, (*[24]byte)(nonce), (*[32]byte)(&pes.payloadKey))
+	if pes.options.corruptSenderKeyCiphertext != nil {
+		pes.options.corruptSenderKeyCiphertext(eh.SenderSecretbox)
+	}
+
 	for rid, receiver := range receivers {
 
-		rkp := receiverKeysPlaintext{
-			Sender:     sender.GetPublicKey().ToKID(),
-			SessionKey: pes.sessionKey[:],
-		}
-
-		if pes.options.corruptReceiverKeysPlaintext != nil {
-			pes.options.corruptReceiverKeysPlaintext(&rkp, rid)
-		}
-
-		rkpPacked, err := encodeToBytes(rkp)
-		if err != nil {
-			return err
-		}
-		if pes.options.corruptReceiverKeysPlaintextPacked != nil {
-			pes.options.corruptReceiverKeysPlaintextPacked(rkpPacked, rid)
-		}
-
-		if err != nil {
-			return err
+		payloadKeySlice := pes.payloadKey[:]
+		if pes.options.corruptPayloadKey != nil {
+			pes.options.corruptPayloadKey(&payloadKeySlice, rid)
 		}
 
 		nonceTmp := nonce
@@ -184,21 +186,25 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 			nonceTmp = pes.options.corruptKeysNonce(nonceTmp, rid)
 		}
 
-		keys, err := ephemeralKey.Box(receiver, nonceTmp, rkpPacked)
+		payloadKeyBox, err := ephemeralKey.Box(receiver, nonceTmp, payloadKeySlice)
 		if err != nil {
 			return err
 		}
 
-		rkc := receiverKeysCiphertexts{
-			ReceiverKID: receiver.ToKID(),
-			Keys:        keys,
+		keys := receiverKeys{
+			PayloadKeyBox: payloadKeyBox,
 		}
 
-		if pes.options.corruptReceiverKeysCiphertext != nil {
-			pes.options.corruptReceiverKeysCiphertext(&rkc, rid)
+		// Don't specify the receivers if this public key wants to hide
+		if !receiver.HideIdentity() {
+			keys.ReceiverKID = receiver.ToKID()
 		}
 
-		eh.Receivers = append(eh.Receivers, rkc)
+		if pes.options.corruptReceiverKeys != nil {
+			pes.options.corruptReceiverKeys(&keys, rid)
+		}
+
+		eh.Receivers = append(eh.Receivers, keys)
 
 		var tagKey BoxPrecomputedSharedKey
 		if !senderAnon {

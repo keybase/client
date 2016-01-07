@@ -4,6 +4,7 @@
 package basex
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"testing"
 )
@@ -93,5 +94,16 @@ func TestBadEncodings(t *testing.T) {
 		if err == nil {
 			t.Errorf("Should have failed to decode '%s' (got %v)", b, buf[0:n])
 		}
+	}
+}
+
+func BenchmarkDecodeBase62(b *testing.B) {
+	r := make([]byte, 1024*1024*16) // 16 MB of data
+	rand.Read(r)
+	data := Base62StdEncoding.EncodeToString(r)
+	b.ResetTimer()
+	b.SetBytes(int64(len(data)))
+	for i := 0; i < b.N; i++ {
+		Base62StdEncoding.DecodeString(data)
 	}
 }

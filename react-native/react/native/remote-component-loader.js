@@ -5,9 +5,9 @@ import remote from 'remote'
 import {ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
 import commonStyles from '../styles/common'
-import consoleHack from '../../../desktop/app/console-hack'
+import consoleHelper from '../../../desktop/app/console-helper'
 
-consoleHack()
+consoleHelper()
 
 if (module.hot) {
   module.hot.accept()

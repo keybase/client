@@ -204,12 +204,12 @@ func (r *filteringReader) Read(p []byte) (int, error) {
 	for n > 0 {
 		offset := 0
 		for i, b := range p[:n] {
-			dm := r.enc.decodeMap[b]
-			if dm == invalidByte {
+			typ := r.enc.getByteType(b)
+			if typ == invalidByteType {
 				return 0, CorruptInputError(r.nRead)
 			}
 			r.nRead++
-			if dm == skipByte {
+			if typ == skipByteType {
 				continue
 			}
 

@@ -7,6 +7,12 @@
 - OpenPGP better check for nil signing subkeys 
     (via vendored keybase/go-crypto commit de6e298306e9dfba84a8f4f9042ee6c2bb02df85)
 - SaltPack: descriptive error message on failed decryption (PR: keybase/client#1625)
+- Preserve external log message order (PR: keybase/client#1641)
+- SaltPack: implement sign/verify commands (PR: keybase/client#1635)
+- SaltPack: implement sign/verify package (PRs: keybase/client#1596, keybase/client#1612, keybase/client#1614)
+- SaltPack: implement the sender secretbox (PR: keybase/client#1645)
+- Fix merkle tree path mismatch bug (PR: keybase/client#1621)
+- encoding: Speed up B62 decoder (PRs: keybase/client#1644, keybase/client#1640)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)

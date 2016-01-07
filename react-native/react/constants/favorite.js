@@ -7,4 +7,3 @@ export const favoriteList = 'favorite:favoriteList'
 export type FavoriteList = TypedAction<'favorite:favoriteList', {folders: Array<Folder>}, void>
 
 export type FavoriteAction = FavoriteList
-

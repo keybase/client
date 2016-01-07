@@ -498,6 +498,10 @@
         "name" : "forceRemoteCheck",
         "type" : "boolean",
         "default" : false
+      }, {
+        "name" : "needProofSet",
+        "type" : "boolean",
+        "default" : false
       } ],
       "response" : "Identify2Res"
     }

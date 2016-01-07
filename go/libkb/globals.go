@@ -235,7 +235,7 @@ func (g *GlobalContext) Shutdown() error {
 	// Wrap in a Once.Do so that we don't inadvertedly
 	// run this code twice.
 	g.shutdownOnce.Do(func() {
-		G.Log.Debug("Calling shutdown first time through")
+		g.Log.Debug("Calling shutdown first time through")
 		didShutdown = true
 
 		epick := FirstErrorPicker{}
@@ -276,12 +276,14 @@ func (g *GlobalContext) Shutdown() error {
 		err = epick.Error()
 
 		g.Log.Debug("exiting shutdown code=%d; err=%v", g.ExitCode, err)
+
+		g.Log.Shutdown()
 	})
 
 	// Make a little bit of a statement if we wind up here a second time
 	// (which is a bug).
 	if !didShutdown {
-		G.Log.Debug("Skipped shutdown on second call")
+		g.Log.Debug("Skipped shutdown on second call")
 	}
 
 	return err
