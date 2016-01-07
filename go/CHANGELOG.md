@@ -14,6 +14,9 @@
 - Fix merkle tree path mismatch bug (PR: keybase/client#1621)
 - encoding: Speed up B62 decoder (PRs: keybase/client#1644, keybase/client#1640)
 - Fix help topics to only display when 'help' is the parent command
+- SaltPack: explain alternatives for failed encryption, and also
+  be smart about decryption using the wrong command on the wrong type
+  of stream; suggest alterntives. (PR: keyase/client#1633)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
