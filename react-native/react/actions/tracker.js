@@ -155,7 +155,7 @@ function trackUser (username: string, state: {tracker: RootTrackerState}): Promi
     bypassConfirm: false
   }
 
-  if (trackerState && trackToken && shouldFollow) {
+  if (trackerState && trackToken && trackerState !== Constants.normal || shouldFollow) {
     return new Promise((resolve, reject) => {
       engine.rpc('track.trackWithToken', {trackToken, options}, {}, (err, response) => {
         if (err) {
