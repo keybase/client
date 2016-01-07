@@ -57,7 +57,7 @@ const DetachedSignatureArmorFooter = "END KEYBASE SALTPACK DETACHED SIGNATURE"
 
 // SaltPackFormatName is the publicly advertised name of the format,
 // used in the header of the message and also in Nonce creation.
-const SaltPackFormatName = "SaltPack"
+const SaltPackFormatName = "saltpack"
 
 // NoncePrefixEncryption is the prefix used to create the nonce when
 // using the nonce for encryption.

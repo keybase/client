@@ -1,5 +1,5 @@
 {
-  "protocol" : "saltPack",
+  "protocol" : "saltpack",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -421,7 +421,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "SaltPackEncryptOptions",
+    "name" : "SaltpackEncryptOptions",
     "fields" : [ {
       "name" : "recipients",
       "type" : {
@@ -437,7 +437,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "SaltPackDecryptOptions",
+    "name" : "SaltpackDecryptOptions",
     "fields" : [ {
       "name" : "interactive",
       "type" : "boolean"
@@ -447,14 +447,14 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "SaltPackSignOptions",
+    "name" : "SaltpackSignOptions",
     "fields" : [ {
       "name" : "detached",
       "type" : "boolean"
     } ]
   }, {
     "type" : "record",
-    "name" : "SaltPackVerifyOptions",
+    "name" : "SaltpackVerifyOptions",
     "fields" : [ {
       "name" : "signedBy",
       "type" : "string"
@@ -464,7 +464,7 @@
     } ]
   }, {
     "type" : "record",
-    "name" : "SaltPackEncryptedMessageInfo",
+    "name" : "SaltpackEncryptedMessageInfo",
     "fields" : [ {
       "name" : "devices",
       "type" : {
@@ -492,11 +492,11 @@
         "type" : "Stream"
       }, {
         "name" : "opts",
-        "type" : "SaltPackEncryptOptions"
+        "type" : "SaltpackEncryptOptions"
       } ],
       "response" : "null"
     },
-    "saltPackDecrypt" : {
+    "saltpackDecrypt" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -508,11 +508,11 @@
         "type" : "Stream"
       }, {
         "name" : "opts",
-        "type" : "SaltPackDecryptOptions"
+        "type" : "SaltpackDecryptOptions"
       } ],
-      "response" : "SaltPackEncryptedMessageInfo"
+      "response" : "SaltpackEncryptedMessageInfo"
     },
-    "saltPackSign" : {
+    "saltpackSign" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -524,11 +524,11 @@
         "type" : "Stream"
       }, {
         "name" : "opts",
-        "type" : "SaltPackSignOptions"
+        "type" : "SaltpackSignOptions"
       } ],
       "response" : "null"
     },
-    "saltPackVerify" : {
+    "saltpackVerify" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -540,7 +540,7 @@
         "type" : "Stream"
       }, {
         "name" : "opts",
-        "type" : "SaltPackVerifyOptions"
+        "type" : "SaltpackVerifyOptions"
       } ],
       "response" : "null"
     }
