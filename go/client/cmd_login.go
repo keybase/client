@@ -84,6 +84,17 @@ func (c *CmdLogin) Run() error {
 			ClientType: c.clientType,
 		})
 	c.done <- struct{}{}
+
+	switch err.(type) {
+	case libkb.NoSyncedPGPKeyError:
+		return c.outputNoSyncedKeyMsg()
+	case libkb.PassphraseError:
+		return c.outputPassphraseErrorMsg()
+
+	}
+	if _, ok := err.(libkb.NoSyncedPGPKeyError); ok {
+	}
+
 	return err
 }
 
@@ -134,4 +145,20 @@ func (c *CmdLogin) Cancel() error {
 		}
 	}
 	return nil
+}
+
+func (c *CmdLogin) outputNoSyncedKeyMsg() error {
+	msg := `
+ERROR!
+
+Sorry, you have a PGP private key that Keybase doesn't have a copy of. 
+You need to prove you're you. Any of these will unlock this computer:
+
+   - reset your account and start fresh: https://keybase.io/#account-reset
+   - install GPG and put your PGP private key on this machine and try again
+   - go back and provision with another device or paper key
+
+`
+
+	return c.G().UI.GetTerminalUI().Output(msg)
 }

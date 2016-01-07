@@ -551,7 +551,7 @@ func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 		return nil, err
 	}
 	if key == nil {
-		return nil, libkb.NoKeyError{Msg: e.noSyncedKeyMsg()}
+		return nil, libkb.NoSyncedPGPKeyError{}
 	}
 
 	e.G().Log.Debug("got synced secret key")
@@ -564,10 +564,6 @@ func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 
 	e.G().Log.Debug("unlocked secret key")
 	return unlocked, nil
-}
-
-func (e *LoginProvision) noSyncedKeyMsg() string {
-	return fmt.Sprintf("ERROR!\n\nSorry, you have a PGP private key that Keybase doesn't have a copy of. You need to prove you're you. Any of these will unlock this computer:\n\n1. reset your account and start fresh: https://keybase.io/%s and click \"reset my keys\" in the gear\n2. install GPG and put your PGP private key on this machine and try again\n3. go back and provision with another device or paper key\n\n", e.user.GetName())
 }
 
 // hasGPGPrivate returns true if GPG is available and contains

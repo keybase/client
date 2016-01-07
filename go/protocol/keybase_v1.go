@@ -649,6 +649,7 @@ const (
 	StatusCode_SCDecryptionKeyNotFound  StatusCode = 924
 	StatusCode_SCKeyNoPGPEncryption     StatusCode = 927
 	StatusCode_SCKeyNoNaClEncryption    StatusCode = 928
+	StatusCode_SCKeySyncedPGPNotFound   StatusCode = 929
 	StatusCode_SCBadTrackSession        StatusCode = 1301
 	StatusCode_SCDeviceNotFound         StatusCode = 1409
 	StatusCode_SCDeviceMismatch         StatusCode = 1410

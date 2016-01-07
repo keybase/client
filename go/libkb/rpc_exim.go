@@ -287,6 +287,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			}
 		}
 		return ret
+	case SCKeySyncedPGPNotFound:
+		return NoSyncedPGPKeyError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -828,6 +830,14 @@ func (e NoKeyError) ToStatus() (s keybase1.Status) {
 	s.Name = "KEY_NOT_FOUND"
 	s.Desc = e.Msg
 	return
+}
+
+func (e NoSyncedPGPKeyError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCKeySyncedPGPNotFound,
+		Name: "KEY_NOT_FOUND_SYNCED_PGP",
+		Desc: e.Error(),
+	}
 }
 
 func (e IdentifyTimeoutError) ToStatus() keybase1.Status {

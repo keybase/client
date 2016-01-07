@@ -126,6 +126,7 @@ const (
 	SCKeyBadEldest           = int(keybase1.StatusCode_SCKeyBadEldest)
 	SCKeyNoEldest            = int(keybase1.StatusCode_SCKeyNoEldest)
 	SCKeyDuplicateUpdate     = int(keybase1.StatusCode_SCKeyDuplicateUpdate)
+	SCKeySyncedPGPNotFound   = int(keybase1.StatusCode_SCKeySyncedPGPNotFound)
 	SCSibkeyAlreadyExists    = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
 	SCDecryptionKeyNotFound  = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCBadTrackSession        = int(keybase1.StatusCode_SCBadTrackSession)

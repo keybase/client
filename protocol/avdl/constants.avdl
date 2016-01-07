@@ -34,6 +34,7 @@ protocol constants {
     SCDecryptionKeyNotFound_924,
     SCKeyNoPGPEncryption_927,
     SCKeyNoNaClEncryption_928,
+    SCKeySyncedPGPNotFound_929,
     SCBadTrackSession_1301,
     SCDeviceNotFound_1409,
     SCDeviceMismatch_1410,

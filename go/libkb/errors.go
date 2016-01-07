@@ -6,8 +6,9 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"strings"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 //=============================================================================
@@ -261,6 +262,12 @@ type NoActiveKeyError struct {
 
 func (e NoActiveKeyError) Error() string {
 	return fmt.Sprintf("user %s has no active keys", e.Username)
+}
+
+type NoSyncedPGPKeyError struct{}
+
+func (e NoSyncedPGPKeyError) Error() string {
+	return "No synced secret PGP key found on keybase.io"
 }
 
 //=============================================================================
