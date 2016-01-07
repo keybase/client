@@ -93,7 +93,7 @@ func DefaultPassphraseArg() keybase1.GUIEntryArg {
 				Allow:        HasSecretStore(),
 				DefaultValue: false,
 				Readonly:     false,
-				Label:        "Store secret",
+				Label:        "Save in Keychain",
 			},
 		},
 	}
