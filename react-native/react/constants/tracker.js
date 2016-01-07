@@ -1,7 +1,7 @@
 /* @flow */
 
 // Simple state of the overall proof result
-export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'
+export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked' | 'loggedOut'
 export type SimpleProofMeta = 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none'
 
 // Constants
@@ -10,6 +10,7 @@ export const warning: SimpleProofState = 'warning'
 export const error: SimpleProofState = 'error'
 export const checking: SimpleProofState = 'checking'
 export const revoked: SimpleProofState = 'revoked'
+export const loggedOut: SimpleProofState = 'loggedOut'
 
 export const metaNone: SimpleProofMeta = 'none'
 export const metaUpgraded: SimpleProofMeta = 'upgraded'
