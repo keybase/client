@@ -1126,9 +1126,9 @@ func TestCorruptEmpheralKey(t *testing.T) {
 
 func TestCiphertextSwapKeys(t *testing.T) {
 	receivers := []BoxPublicKey{
-		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
-		newHiddenBoxKey(t).GetPublicKey(),
-		newHiddenBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
+		newBoxKey(t).GetPublicKey(),
+		newBoxKeyNoInsert(t).GetPublicKey(),
 	}
 	plaintext := randomMsg(t, 1024*3)
 	teo := testEncryptionOptions{
