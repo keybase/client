@@ -2,6 +2,7 @@
 
 declar export var Button: Object
 declar export var Checkbox: Object
+declar export var Divider: Object
 declar export var Input: Object
 declar export var Header: Object
 declar export var Logo: Object

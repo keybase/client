@@ -45,7 +45,7 @@ export const styles = {
   },
   buttonSeconary: {
     ...buttonCommon,
-    backgroundColor: globalColors.blue,
+    backgroundColor: globalColors.lightBlue,
     marginRight: 10
   },
   buttonLabel: {

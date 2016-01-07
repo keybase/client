@@ -11,7 +11,6 @@ import hotPath from '../hot-path'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 import menuHelper from './menu-helper'
 import consoleHack from './console-hack'
-
 consoleHack()
 
 if (showDevTools) {
@@ -35,6 +34,9 @@ const menubarLoadingIconPath = resolveAssets('../react-native/react/images/menub
 const mb = menubar({
   index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}`,
   width: 320,
+  height: 364 + 10, // size plus gap to deal with deadzone
+  transparent: true,
+  resizable: false,
   preloadWindow: true,
   icon: menubarIconPath,
   showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
