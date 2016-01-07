@@ -57,6 +57,10 @@ const util = {
   rounded: {
     borderRadius: 3
   },
+  windowBorder: {
+    border: `solid ${globalColors.grey4}`,
+    borderWidth: 1
+  },
   clickable: {
     cursor: 'pointer'
   },
@@ -72,5 +76,5 @@ export const globalStyles = {
 
 // Workarounds to various things that are broken
 export const globalHacks = {
-  framelessWindowDeadzone: 20 // workaround for https://github.com/atom/electron/issues/983, you don't get mouse events in the header on frameless windows
+  framelessWindowDeadzone: process.platform === 'darwin' ? 20 : 0 // workaround for https://github.com/atom/electron/issues/983, you don't get mouse events in the header on frameless windows
 }

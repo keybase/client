@@ -1,4 +1,4 @@
-import {ipcMain} from 'electron'
+import {ipcMain, ipcRenderer} from 'electron'
 import util from 'util'
 
 export default function pipeLogs () {
@@ -44,4 +44,10 @@ export function ipcLogs () {
     console.log('From remote console.error')
     console.log.apply(console, args)
   })
+}
+
+export function ipcLogsRenderer () {
+  window.console.log = (...args) => ipcRenderer.send('console.log', args)
+  window.console.warn = (...args) => ipcRenderer.send('console.warn', args)
+  window.console.error = (...args) => ipcRenderer.send('console.error', args)
 }
