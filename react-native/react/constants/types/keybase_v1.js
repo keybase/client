@@ -1169,7 +1169,7 @@ export default {
       'resource': 6
     }
   },
-  'saltPackUi': {
+  'saltpackUi': {
     'LogLevel': {
       'none': 0,
       'debug': 1,
@@ -1189,7 +1189,7 @@ export default {
       'bugfix': 1,
       'critical': 2
     },
-    'SaltPackSenderType': {
+    'SaltpackSenderType': {
       'notTracked': 0,
       'unknown': 1,
       'anonymous': 2,
