@@ -15,10 +15,10 @@ const initialState = {
 export default function (state: State = initialState, action: FavoriteAction): State {
   switch (action.type) {
     case Constants.favoriteList:
-      if (action.payload) {
-        return {folders: action.payload.folders}
+      return {
+        ...state,
+        folders: action.payload && action.payload.folders
       }
-      return state
     default:
       return state
   }

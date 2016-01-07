@@ -1,6 +1,7 @@
+import {ipcMain} from 'electron'
 import util from 'util'
 
-export default () => {
+export default function pipeLogs () {
   if (!__DEV__) { // eslint-disable-line no-undef
     return
   }
@@ -23,5 +24,24 @@ export default () => {
         }
       }
     }
+  })
+}
+
+export function ipcLogs () {
+  // Simple ipc logging for debugging remote windows
+
+  ipcMain.on('console.log', (event, args) => {
+    console.log('From remote console.log')
+    console.log.apply(console, args)
+  })
+
+  ipcMain.on('console.warn', (event, args) => {
+    console.log('From remote console.warn')
+    console.log.apply(console, args)
+  })
+
+  ipcMain.on('console.error', (event, args) => {
+    console.log('From remote console.error')
+    console.log.apply(console, args)
   })
 }
