@@ -99,7 +99,7 @@ func (s *bserverMemStorage) archiveReference(id BlockID, refNonce BlockRefNonce)
 
 	entry, ok := s.m[id]
 	if !ok {
-		return IncrementMissingBlockError{id}
+		return ArchiveMissingBlockError{id, refNonce}
 	}
 
 	entry.Archived = true
@@ -228,7 +228,7 @@ func (s *bserverFileStorage) archiveReference(id BlockID, refNonce BlockRefNonce
 	entry, err := s.getLocked(p)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return IncrementMissingBlockError{id}
+			return ArchiveMissingBlockError{id, refNonce}
 		}
 		return err
 	}
@@ -341,7 +341,7 @@ func (s *bserverLeveldbStorage) archiveReference(id BlockID, refNonce BlockRefNo
 	entry, err := s.getLocked(id)
 	if err != nil {
 		if err == leveldb.ErrNotFound {
-			return IncrementMissingBlockError{id}
+			return ArchiveMissingBlockError{id, refNonce}
 		}
 		return err
 	}

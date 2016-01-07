@@ -599,6 +599,18 @@ func (e IncrementMissingBlockError) Error() string {
 		"such block exists on the server", e.ID)
 }
 
+// ArchiveMissingBlockError indicates that we tried to archive a block
+// reference that the server doesn't have.
+type ArchiveMissingBlockError struct {
+	ID  BlockID
+	Ref BlockRefNonce
+}
+
+func (e ArchiveMissingBlockError) Error() string {
+	return fmt.Sprintf("Tried to archive ref %s for block %v, but no "+
+		"such block ref exists on the server", e.Ref, e.ID)
+}
+
 // MDInvalidGetArguments indicates either the handle or top-level folder ID
 // specified in a get request was invalid.
 type MDInvalidGetArguments struct {

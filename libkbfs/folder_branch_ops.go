@@ -1785,11 +1785,12 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 		fbo.setStagedLocked(lState, false, NullBranchID)
 	}
-	// Swap any cached block changes
+	// Swap any cached block changes so that future local accesses to
+	// this MD (from the cache) can directly access the ops without
+	// needing to re-embed the block changes.
 	if md.data.Changes.Ops == nil {
-		tmp := md.data.Changes
-		md.data.Changes = md.data.cachedChanges
-		md.data.cachedChanges = tmp
+		md.data.Changes, md.data.cachedChanges =
+			md.data.cachedChanges, md.data.Changes
 	}
 	fbo.transitionState(cleanState)
 
@@ -4602,9 +4603,7 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 		case md := <-fbo.archiveChan:
 			var ptrs []BlockPointer
 			for _, op := range md.data.Changes.Ops {
-				for _, ptr := range op.Unrefs() {
-					ptrs = append(ptrs, ptr)
-				}
+				ptrs = append(ptrs, op.Unrefs()...)
 				for _, update := range op.AllUpdates() {
 					ptrs = append(ptrs, update.Unref)
 				}
