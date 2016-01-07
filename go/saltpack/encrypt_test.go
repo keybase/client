@@ -702,15 +702,19 @@ func TestCorruptPayloadKeyPlaintext(t *testing.T) {
 		t.Fatalf("Got wrong error; wanted 'Bad Symmetric Key' but got %v", err)
 	}
 
-	// Finally, do the above test again with a hidden receiver.
+	// Finally, do the above test again with a hidden receiver. The default
+	// testing keyring is not iterable, so we need to make a new one.
+	iterableKeyring := newKeyring().makeIterable()
+	sender = newHiddenBoxKeyNoInsert(t)
+	iterableKeyring.insert(sender)
 	receivers = []BoxPublicKey{
-		newHiddenBoxKey(t).GetPublicKey(),
+		sender.GetPublicKey(),
 	}
 	ciphertext, err = testSeal(msg, sender, receivers, teo)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, err = Open(ciphertext, kr)
+	_, _, err = Open(ciphertext, iterableKeyring)
 	if err != ErrBadSymmetricKey {
 		t.Fatalf("Got wrong error; wanted 'Bad Symmetric Key' but got %v", err)
 	}

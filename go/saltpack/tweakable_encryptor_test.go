@@ -186,8 +186,12 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 		}
 
 		keys := receiverKeys{
-			ReceiverKID:   receiver.ToKID(),
 			PayloadKeyBox: payloadKeyBox,
+		}
+
+		// Don't specify the receivers if this public key wants to hide
+		if !receiver.HideIdentity() {
+			keys.ReceiverKID = receiver.ToKID()
 		}
 
 		if pes.options.corruptReceiverKeys != nil {
