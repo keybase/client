@@ -17,17 +17,26 @@ export const globalColors = {
   white: '#ffffff'
 }
 
+const fontCommon = {
+  WebkitFontSmoothing: 'antialiased',
+  textRendering: 'optimizeLegibility'
+}
+
 const font = {
   fontRegular: {
+    ...fontCommon,
     fontFamily: 'Noto Sans'
   },
   fontBold: {
+    ...fontCommon,
     fontFamily: 'Noto Sans Bold'
   },
   fontItalic: {
+    ...fontCommon,
     fontFamily: 'Noto Sans Italic'
   },
   fontCourier: {
+    ...fontCommon,
     fontFamily: 'Courier'
   }
 }
