@@ -71,6 +71,7 @@ func (u *UIRouter) run() {
 }
 
 func (u *UIRouter) SetUI(c libkb.ConnectionID, k libkb.UIKind) {
+	u.G().Log.Debug("Connection %v registering UI %s", c, k)
 	u.setCh <- setObj{c, k}
 }
 
