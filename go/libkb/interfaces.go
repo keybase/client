@@ -390,3 +390,7 @@ type UIConsumer interface {
 	RequiredUIs() []UIKind
 	SubConsumers() []UIConsumer
 }
+
+type Clock interface {
+	Now() time.Time
+}

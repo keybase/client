@@ -7,13 +7,14 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
+	"github.com/jonboulle/clockwork"
+	"golang.org/x/net/context"
 	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"testing"
-
-	"golang.org/x/net/context"
+	"time"
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
@@ -389,6 +390,10 @@ func TestProvisionPaper(t *testing.T) {
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	tc2 := SetupEngineTest(t, "login")
+	fakeClock := clockwork.NewFakeClock()
+	tc2.G.Clock = fakeClock
+	// to pick up the new clock...
+	tc2.G.ResetLoginState()
 	defer tc2.Cleanup()
 
 	secUI := fu.NewSecretUI()
@@ -420,6 +425,24 @@ func TestProvisionPaper(t *testing.T) {
 	}
 	if provLoginUI.CalledGetEmailOrUsername != 0 {
 		t.Errorf("expected 0 calls to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
+	}
+	var key libkb.GenericKey
+	tc2.G.LoginState().Account(func(a *libkb.Account) {
+		key = a.GetUnlockedPaperEncKey()
+	}, "GetUnlockedPaperEncKey")
+	if key == nil {
+		t.Errorf("Got a null paper encryption key")
+	}
+
+	wait := tc2.G.LoginState().GetTimerCompletionWaiter()
+	fakeClock.Advance(libkb.PaperKeyMemoryTimeout + 1*time.Minute)
+	wait()
+
+	tc2.G.LoginState().Account(func(a *libkb.Account) {
+		key = a.GetUnlockedPaperEncKey()
+	}, "GetUnlockedPaperEncKey")
+	if key != nil {
+		t.Errorf("Got a non-null paper encryption key after timeout")
 	}
 }
 
