@@ -1289,11 +1289,11 @@ func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	config.maxNameLen = 2
+	config.maxNameBytes = 2
 	name := "aaa"
 
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
-	expectedErr := NameTooLongError{name, config.maxNameLen}
+	expectedErr := NameTooLongError{name, config.maxNameBytes}
 
 	var err error
 	// dir and link have different checks for dup name
@@ -1331,7 +1331,7 @@ func testCreateEntryFailDirTooBig(t *testing.T, isDir bool) {
 	n := nodeFromPath(t, ops, p)
 	rmd.data.Dir.Size = 10
 
-	config.maxDirSz = 12
+	config.maxDirBytes = 12
 	name := "aaa"
 
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
@@ -3042,7 +3042,7 @@ func TestKBFSOpsWriteFailTooBig(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 	data := []byte{6, 7, 8}
 
-	config.maxFileSz = 12
+	config.maxFileBytes = 12
 
 	err := config.KBFSOps().Write(ctx, n, data, 10)
 	if err == nil {

@@ -1866,9 +1866,9 @@ func (fbo *folderBranchOps) checkNewDirSize(ctx context.Context,
 	// directory entry itself, but that's ok -- at worst it'll be an
 	// off-by-one-entry error, and since there's a maximum name length
 	// we can't get in too much trouble.
-	if currSize+uint64(len(newName)) > fbo.config.MaxDirSize() {
+	if currSize+uint64(len(newName)) > fbo.config.MaxDirBytes() {
 		return DirTooBigError{dirPath, currSize + uint64(len(newName)),
-			fbo.config.MaxDirSize()}
+			fbo.config.MaxDirBytes()}
 	}
 	return nil
 }
@@ -1881,9 +1881,9 @@ func (fbo *folderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, err
 	}
 
-	if uint32(len(name)) > fbo.config.MaxNameLength() {
+	if uint32(len(name)) > fbo.config.MaxNameBytes() {
 		return nil, DirEntry{},
-			NameTooLongError{name, fbo.config.MaxNameLength()}
+			NameTooLongError{name, fbo.config.MaxNameBytes()}
 	}
 
 	// verify we have permission to write
@@ -2019,9 +2019,9 @@ func (fbo *folderBranchOps) createLinkLocked(
 		return DirEntry{}, err
 	}
 
-	if uint32(len(fromName)) > fbo.config.MaxNameLength() {
+	if uint32(len(fromName)) > fbo.config.MaxNameBytes() {
 		return DirEntry{},
-			NameTooLongError{fromName, fbo.config.MaxNameLength()}
+			NameTooLongError{fromName, fbo.config.MaxNameBytes()}
 	}
 
 	// verify we have permission to write
@@ -2633,8 +2633,8 @@ func (fbo *folderBranchOps) getOrCreateSyncInfoLocked(de DirEntry) *syncInfo {
 func (fbo *folderBranchOps) writeDataLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
 	data []byte, off int64, doNotify bool) error {
-	if size := off + int64(len(data)); uint64(size) > fbo.config.MaxFileSize() {
-		return FileTooBigError{file, size, fbo.config.MaxFileSize()}
+	if sz := off + int64(len(data)); uint64(sz) > fbo.config.MaxFileBytes() {
+		return FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
 	}
 
 	// check writer status explicitly

@@ -2388,34 +2388,34 @@ func (_mr *_MockConfigRecorder) ReqsBufSize() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReqsBufSize")
 }
 
-func (_m *MockConfig) MaxFileSize() uint64 {
-	ret := _m.ctrl.Call(_m, "MaxFileSize")
+func (_m *MockConfig) MaxFileBytes() uint64 {
+	ret := _m.ctrl.Call(_m, "MaxFileBytes")
 	ret0, _ := ret[0].(uint64)
 	return ret0
 }
 
-func (_mr *_MockConfigRecorder) MaxFileSize() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxFileSize")
+func (_mr *_MockConfigRecorder) MaxFileBytes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxFileBytes")
 }
 
-func (_m *MockConfig) MaxNameLength() uint32 {
-	ret := _m.ctrl.Call(_m, "MaxNameLength")
+func (_m *MockConfig) MaxNameBytes() uint32 {
+	ret := _m.ctrl.Call(_m, "MaxNameBytes")
 	ret0, _ := ret[0].(uint32)
 	return ret0
 }
 
-func (_mr *_MockConfigRecorder) MaxNameLength() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxNameLength")
+func (_mr *_MockConfigRecorder) MaxNameBytes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxNameBytes")
 }
 
-func (_m *MockConfig) MaxDirSize() uint64 {
-	ret := _m.ctrl.Call(_m, "MaxDirSize")
+func (_m *MockConfig) MaxDirBytes() uint64 {
+	ret := _m.ctrl.Call(_m, "MaxDirBytes")
 	ret0, _ := ret[0].(uint64)
 	return ret0
 }
 
-func (_mr *_MockConfigRecorder) MaxDirSize() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxDirSize")
+func (_mr *_MockConfigRecorder) MaxDirBytes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxDirBytes")
 }
 
 func (_m *MockConfig) DoBackgroundFlushes() bool {

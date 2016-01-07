@@ -10,44 +10,44 @@ import (
 const (
 	// Max supported plaintext size of a file in KBFS.  TODO: increase
 	// this once we support multiple levels of indirection.
-	maxFileSizeDefault = 2 * 1024 * 1024 * 1024
+	maxFileBytesDefault = 2 * 1024 * 1024 * 1024
 	// Max supported size of a directory entry name.
-	maxNameLengthDefault = 255
+	maxNameBytesDefault = 255
 	// Maximum supported plaintext size of a directory in KBFS. TODO:
 	// increase this once we support levels of indirection for
 	// directories.
-	maxDirSizeDefault = 512 * 1024
+	maxDirBytesDefault = 512 * 1024
 )
 
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
-	kbfs       KBFSOps
-	kbpki      KBPKI
-	keyman     KeyManager
-	rep        Reporter
-	mdcache    MDCache
-	kcache     KeyCache
-	bcache     BlockCache
-	crypto     Crypto
-	codec      Codec
-	mdops      MDOps
-	kops       KeyOps
-	bops       BlockOps
-	mdserv     MDServer
-	bserv      BlockServer
-	keyserv    KeyServer
-	daemon     KeybaseDaemon
-	bsplit     BlockSplitter
-	notifier   Notifier
-	clock      Clock
-	renamer    ConflictRenamer
-	registry   metrics.Registry
-	loggerFn   func(prefix string) logger.Logger
-	noBGFlush  bool // logic opposite so the default value is the common setting
-	maxFileSz  uint64
-	maxNameLen uint32
-	maxDirSz   uint64
+	kbfs         KBFSOps
+	kbpki        KBPKI
+	keyman       KeyManager
+	rep          Reporter
+	mdcache      MDCache
+	kcache       KeyCache
+	bcache       BlockCache
+	crypto       Crypto
+	codec        Codec
+	mdops        MDOps
+	kops         KeyOps
+	bops         BlockOps
+	mdserv       MDServer
+	bserv        BlockServer
+	keyserv      KeyServer
+	daemon       KeybaseDaemon
+	bsplit       BlockSplitter
+	notifier     Notifier
+	clock        Clock
+	renamer      ConflictRenamer
+	registry     metrics.Registry
+	loggerFn     func(prefix string) logger.Logger
+	noBGFlush    bool // logic opposite so the default value is the common setting
+	maxFileBytes uint64
+	maxNameBytes uint32
+	maxDirBytes  uint64
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -165,9 +165,9 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
 
-	config.maxFileSz = maxFileSizeDefault
-	config.maxNameLen = maxNameLengthDefault
-	config.maxDirSz = maxDirSizeDefault
+	config.maxFileBytes = maxFileBytesDefault
+	config.maxNameBytes = maxNameBytesDefault
+	config.maxDirBytes = maxDirBytesDefault
 
 	// Don't bother creating the registry if UseNilMetrics is set.
 	if !metrics.UseNilMetrics {
@@ -393,19 +393,19 @@ func (c *ConfigLocal) ReqsBufSize() int {
 	return 20
 }
 
-// MaxFileSize implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) MaxFileSize() uint64 {
-	return c.maxFileSz
+// MaxFileBytes implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MaxFileBytes() uint64 {
+	return c.maxFileBytes
 }
 
-// MaxNameLength implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) MaxNameLength() uint32 {
-	return c.maxNameLen
+// MaxNameBytes implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MaxNameBytes() uint32 {
+	return c.maxNameBytes
 }
 
-// MaxDirSize implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) MaxDirSize() uint64 {
-	return c.maxDirSz
+// MaxDirBytes implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MaxDirBytes() uint64 {
+	return c.maxDirBytes
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.
