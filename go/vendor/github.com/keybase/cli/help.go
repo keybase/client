@@ -145,7 +145,12 @@ func ShowCommandHelp(ctx *Context, command string) {
 
 	for _, h := range ctx.App.HelpTopics {
 		if h.Name == command {
-			HelpPrinter(ctx.App.Writer, h.Body, ctx.App)
+			// only print the help if 'help' is the parent command
+			if ctx.Command.Name == "help" {
+				HelpPrinter(ctx.App.Writer, h.Body, ctx.App)
+			} else {
+				fmt.Fprintf(ctx.App.Writer, "'%s' is a help topic, not a command.  To see the help for '%s', use 'help %s'\n", command, command, command)
+			}
 			return
 		}
 	}

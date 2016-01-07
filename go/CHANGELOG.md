@@ -13,6 +13,7 @@
 - SaltPack: implement the sender secretbox (PR: keybase/client#1645)
 - Fix merkle tree path mismatch bug (PR: keybase/client#1621)
 - encoding: Speed up B62 decoder (PRs: keybase/client#1644, keybase/client#1640)
+- Fix help topics to only display when 'help' is the parent command
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
