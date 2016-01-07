@@ -65,6 +65,15 @@ func LogTagsFromContextToMap(ctx context.Context) (tags map[string]string) {
 	return tags
 }
 
+// BoolForString returns false if trimmed string is "" (empty), "0", "false", or "no"
+func BoolForString(s string) bool {
+	s = strings.TrimSpace(s)
+	if s == "" || s == "0" || s == "false" || s == "no" {
+		return false
+	}
+	return true
+}
+
 // CustomBuild can be set at compile time to override Build
 var CustomBuild string
 
