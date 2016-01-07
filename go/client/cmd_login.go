@@ -159,6 +159,17 @@ You need to prove you're you. Any of these will unlock this computer:
    - go back and provision with another device or paper key
 
 `
+	return c.G().UI.GetTerminalUI().Output(msg)
+}
 
+func (c *CmdLogin) outputPassphraseErrorMsg() error {
+	msg := `
+ERROR!
+
+The server rejected your login attempt.
+
+If you'd like to reset your passphrase, go to https://keybase.io/#password-reset
+
+`
 	return c.G().UI.GetTerminalUI().Output(msg)
 }

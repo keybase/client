@@ -315,7 +315,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 		return nil, err
 	}
 	if res.AppStatus.Code == SCBadLoginPassword {
-		err = PassphraseError{"server rejected login attempt (to reset your passphrase, visit https://keybase.io)"}
+		err = PassphraseError{"server rejected login attempt"}
 		return nil, err
 	}
 
