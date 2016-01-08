@@ -296,6 +296,13 @@ func (fs *KBFSOpsStandard) SyncFromServer(
 	return ops.SyncFromServer(ctx, folderBranch)
 }
 
+// GetUpdateHistory implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetUpdateHistory(ctx context.Context,
+	folderBranch FolderBranch) (history TLFUpdateHistory, err error) {
+	ops := fs.getOps(folderBranch)
+	return ops.GetUpdateHistory(ctx, folderBranch)
+}
+
 // Notifier:
 var _ Notifier = (*KBFSOpsStandard)(nil)
 

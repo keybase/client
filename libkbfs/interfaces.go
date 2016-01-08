@@ -231,6 +231,14 @@ type KBFSOps interface {
 	// sent out to any observers).  It returns an error if this
 	// folder-branch is currently unmerged or dirty locally.
 	SyncFromServer(ctx context.Context, folderBranch FolderBranch) error
+	// GetUpdateHistory returns a complete history of all the merged
+	// updates of the given folder, in a data structure that's
+	// suitable for encoding directly into JSON.  This is an expensive
+	// operation, and should only be used for ocassional debugging.
+	// Note that the history does not include any unmerged changes or
+	// outstanding writes from the local device.
+	GetUpdateHistory(ctx context.Context, folderBranch FolderBranch) (
+		history TLFUpdateHistory, err error)
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown() error

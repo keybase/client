@@ -4716,3 +4716,48 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 		}
 	}
 }
+
+// GetUpdateHistory implements the KBFSOps interface for folderBranchOps
+func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
+	folderBranch FolderBranch) (history TLFUpdateHistory, err error) {
+	fbo.log.CDebugf(ctx, "GetUpdateHistory")
+	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
+
+	if folderBranch != fbo.folderBranch {
+		return TLFUpdateHistory{}, WrongOpsError{fbo.folderBranch, folderBranch}
+	}
+
+	lState := makeFBOLockState()
+
+	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(),
+		MetadataRevisionInitial)
+	if err != nil {
+		return TLFUpdateHistory{}, err
+	}
+	err = fbo.reembedBlockChanges(ctx, lState, rmds)
+	if err != nil {
+		return TLFUpdateHistory{}, err
+	}
+
+	history.Updates = make([]UpdateSummary, 0, len(rmds))
+	for _, rmd := range rmds {
+		updateSummary := UpdateSummary{
+			Revision: rmd.Revision,
+			Ops:      make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+		}
+		for _, op := range rmd.data.Changes.Ops {
+			opSummary := OpSummary{
+				Op:      op.String(),
+				Refs:    op.Refs(),
+				Unrefs:  op.Unrefs(),
+				Updates: make(map[string]BlockPointer),
+			}
+			for _, update := range op.AllUpdates() {
+				opSummary.Updates[update.Unref.String()] = update.Ref
+			}
+			updateSummary.Ops = append(updateSummary.Ops, opSummary)
+		}
+		history.Updates = append(history.Updates, updateSummary)
+	}
+	return history, nil
+}

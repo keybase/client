@@ -1198,3 +1198,24 @@ func UserQuotaInfoDecode(b []byte, config Config) (*UserQuotaInfo, error) {
 
 	return &info, nil
 }
+
+// OpSummary describes the changes performed by a single op, and is
+// suitable for encoding directly as JSON.
+type OpSummary struct {
+	Op      string
+	Refs    []BlockPointer
+	Unrefs  []BlockPointer
+	Updates map[string]BlockPointer
+}
+
+// UpdateSummary describes the operations done by a single MD revision.
+type UpdateSummary struct {
+	Revision MetadataRevision
+	Ops      []OpSummary
+}
+
+// TLFUpdateHistory gives all the summaries of all updates in a TLF's
+// history.
+type TLFUpdateHistory struct {
+	Updates []UpdateSummary
+}

@@ -447,6 +447,17 @@ func (_mr *_MockKBFSOpsRecorder) SyncFromServer(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFromServer", arg0, arg1)
 }
 
+func (_m *MockKBFSOps) GetUpdateHistory(ctx context.Context, folderBranch FolderBranch) (TLFUpdateHistory, error) {
+	ret := _m.ctrl.Call(_m, "GetUpdateHistory", ctx, folderBranch)
+	ret0, _ := ret[0].(TLFUpdateHistory)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBFSOpsRecorder) GetUpdateHistory(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUpdateHistory", arg0, arg1)
+}
+
 func (_m *MockKBFSOps) Shutdown() error {
 	ret := _m.ctrl.Call(_m, "Shutdown")
 	ret0, _ := ret[0].(error)
