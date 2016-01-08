@@ -423,11 +423,19 @@ func (log *Standard) processBuffer() {
 			continue
 		}
 
+		var wg sync.WaitGroup
+
 		for _, externalLogger := range log.externalLoggers {
-			go externalLogger.Log(e.level, e.format, e.args)
+			wg.Add(1)
+			go func(xl ExternalLogger) {
+				xl.Log(e.level, e.format, e.args)
+				wg.Done()
+			}(externalLogger)
 		}
 
 		log.externalLoggersMutex.RUnlock()
+
+		wg.Wait()
 	}
 }
 
