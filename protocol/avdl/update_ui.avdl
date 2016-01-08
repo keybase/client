@@ -20,11 +20,11 @@ protocol updateUi {
 
   UpdatePromptRes updatePrompt(int sessionID, Update update);
 
-	record UpdateQuitRes {
-		boolean quit; // Whether we can quit
-		int pid;
-		string applicationPath; // So the updater can restart
-	}
+  record UpdateQuitRes {
+    boolean quit; // Whether we can quit
+    int pid;
+    string applicationPath; // So the updater can restart
+  }
 
-	UpdateQuitRes updateQuit();
+  UpdateQuitRes updateQuit();
 }

@@ -2,113 +2,113 @@
 @namespace("keybase.1")
 protocol Common {
 
-	@typedef("long")
-	record Time {}
+  @typedef("long")
+  record Time {}
 
-	record StringKVPair {
-		string key;
-		string value;
-	}
+  record StringKVPair {
+    string key;
+    string value;
+  }
 
-	record Status {
-		int code;
-		string name;
-		string desc;
-		array<StringKVPair> fields;
-	}
+  record Status {
+    int code;
+    string name;
+    string desc;
+    array<StringKVPair> fields;
+  }
 
-	@typedef("string")
-	record UID {}
+  @typedef("string")
+  record UID {}
 
-	@typedef("string")
-	record DeviceID {}
+  @typedef("string")
+  record DeviceID {}
 
-	@typedef("string")
-	record SigID {}
+  @typedef("string")
+  record SigID {}
 
-	@typedef("string")
-	record KID {}
+  @typedef("string")
+  record KID {}
 
-	record Text {
-		string data;
-		boolean markup;
-	}
+  record Text {
+    string data;
+    boolean markup;
+  }
 
-	record PGPIdentity {
-		string username;
-		string comment;
-		string email;
-	}
+  record PGPIdentity {
+    string username;
+    string comment;
+    string email;
+  }
 
-	record PublicKey {
-		KID KID;
-		string PGPFingerprint; // empty for non-PGP keys
-		array<PGPIdentity> PGPIdentities; // same
-		boolean isSibkey;
-		boolean isEldest;
-		string parentID;
-		DeviceID deviceID;
-		string deviceDescription;
-		string deviceType;
-		Time cTime;
-		Time eTime;
-	}
+  record PublicKey {
+    KID KID;
+    string PGPFingerprint; // empty for non-PGP keys
+    array<PGPIdentity> PGPIdentities; // same
+    boolean isSibkey;
+    boolean isEldest;
+    string parentID;
+    DeviceID deviceID;
+    string deviceDescription;
+    string deviceType;
+    Time cTime;
+    Time eTime;
+  }
 
-	record User {
-		UID uid;
-		string username;
-	}
+  record User {
+    UID uid;
+    string username;
+  }
 
-	record Device {
-		string type;
-		string name;
-		DeviceID deviceID;
-		Time cTime;
-		Time mTime;
-		KID encryptKey;
-		KID verifyKey;
-	}
+  record Device {
+    string type;
+    string name;
+    DeviceID deviceID;
+    Time cTime;
+    Time mTime;
+    KID encryptKey;
+    KID verifyKey;
+  }
 
-	record Stream {
-		int fd;
-	}
+  record Stream {
+    int fd;
+  }
 
-	enum LogLevel {
-		NONE_0,
-		DEBUG_1,
-		INFO_2,
-		NOTICE_3,
-		WARN_4,
-		ERROR_5,
-		CRITICAL_6,
-		FATAL_7
-	}
+  enum LogLevel {
+    NONE_0,
+    DEBUG_1,
+    INFO_2,
+    NOTICE_3,
+    WARN_4,
+    ERROR_5,
+    CRITICAL_6,
+    FATAL_7
+  }
 
-	enum ClientType {
-		CLI_0,
-		GUI_1
-	}
+  enum ClientType {
+    CLI_0,
+    GUI_1
+  }
 
-	record UserVersionVector {
-	    long id;
-	    int sigHints;
-	    long sigChain;
-	    Time cachedAt;
-	    Time lastIdentifiedAt;
-	}
+  record UserVersionVector {
+      long id;
+      int sigHints;
+      long sigChain;
+      Time cachedAt;
+      Time lastIdentifiedAt;
+  }
 
-	record UserPlusKeys {
-	    UID uid;
-	    string username;
+  record UserPlusKeys {
+      UID uid;
+      string username;
 
-	    // This is a misnomer; it's actually all keys, including PGP; let's deprecate
-	    // this field in a few versions
-	    array<PublicKey> deviceKeys;
+      // This is a misnomer; it's actually all keys, including PGP; let's deprecate
+      // this field in a few versions
+      array<PublicKey> deviceKeys;
 
-	    // A duplicate of deviceKeys above, but with a better name
-	    array<PublicKey> keys;
+      // A duplicate of deviceKeys above, but with a better name
+      array<PublicKey> keys;
 
-	    UserVersionVector uvv;
-	}
-	
+      UserVersionVector uvv;
+  }
+  
 }

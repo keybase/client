@@ -1,12 +1,12 @@
 @namespace("keybase.1")
 
 protocol backendCommon {
-	import idl "common.avdl";
+  import idl "common.avdl";
 
-	record BlockIdCombo{
-		string blockHash;
-		UID chargedTo;
-	}
+  record BlockIdCombo{
+    string blockHash;
+    UID chargedTo;
+  }
 
 }
 

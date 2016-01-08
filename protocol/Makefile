@@ -5,8 +5,6 @@ AVRO=java -jar jar/avro-tools-1.7.7.jar idl
 ICED=node_modules/.bin/iced
 
 json/%.json: avdl/%.avdl
-	@ # Uncomment to convert tabs to spaces
-	@ # expand -t 2 $< > $<~ && mv $<~ $<
 	$(AVRO) $< $@~ && mv $@~ $@
 
 config:
@@ -94,6 +92,9 @@ clean:
 deps:
 	npm install
 
-build: build-stamp ../go/protocol/keybase_v1.go js/keybase_v1.js js/flow-types.js
+fmt:	
+	@./fmt.sh
+
+build: fmt build-stamp ../go/protocol/keybase_v1.go js/keybase_v1.js js/flow-types.js
 
 .PHONY: test setup config
