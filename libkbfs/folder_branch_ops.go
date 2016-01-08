@@ -4740,10 +4740,24 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 	}
 
 	history.Updates = make([]UpdateSummary, 0, len(rmds))
+	writerNames := make(map[keybase1.UID]string)
 	for _, rmd := range rmds {
+		writer, ok := writerNames[rmd.data.LastWriter]
+		if !ok {
+			name, err := fbo.config.KBPKI().
+				GetNormalizedUsername(ctx, rmd.data.LastWriter)
+			if err != nil {
+				return TLFUpdateHistory{}, err
+			}
+			writer = string(name)
+			writerNames[rmd.data.LastWriter] = writer
+		}
 		updateSummary := UpdateSummary{
-			Revision: rmd.Revision,
-			Ops:      make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+			Revision:  rmd.Revision,
+			Date:      time.Unix(0, rmd.data.Dir.Mtime),
+			Writer:    writer,
+			LiveBytes: rmd.DiskUsage,
+			Ops:       make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
 		}
 		for _, op := range rmd.data.Changes.Ops {
 			opSummary := OpSummary{
