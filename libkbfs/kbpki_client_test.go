@@ -22,7 +22,7 @@ func makeTestKBPKIClient(t *testing.T) (
 func TestKBPKIClientResolveAssertion(t *testing.T) {
 	c, _, _ := makeTestKBPKIClient(t)
 
-	u, err := c.ResolveAssertion(context.Background(), "test_name1")
+	u, err := c.ResolveAssertion(context.Background(), "test_name1", "")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -115,7 +115,7 @@ type KeybaseDaemonLocal struct {
 var _ KeybaseDaemon = KeybaseDaemonLocal{}
 
 // Identify implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) Identify(ctx context.Context, assertion string) (
+func (k KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason string) (
 	UserInfo, error) {
 	uid, ok := k.asserts[assertion]
 	if !ok {

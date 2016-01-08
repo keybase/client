@@ -469,7 +469,7 @@ func TlfHandleDecode(b []byte, config Config) (*TlfHandle, error) {
 	return &handle, nil
 }
 
-func resolveUser(ctx context.Context, config Config, name string,
+func resolveUser(ctx context.Context, config Config, name, reason string,
 	errCh chan<- error, results chan<- keybase1.UID) {
 	// short-circuit if this is the special public user:
 	if name == PublicUIDName {
@@ -477,7 +477,7 @@ func resolveUser(ctx context.Context, config Config, name string,
 		return
 	}
 
-	uid, err := config.KBPKI().ResolveAssertion(ctx, name)
+	uid, err := config.KBPKI().ResolveAssertion(ctx, name, reason)
 	if err != nil {
 		select {
 		case errCh <- err:
@@ -570,10 +570,12 @@ func ParseTlfHandle(ctx context.Context, config Config, name string) (
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	for _, user := range writerNames {
-		go resolveUser(ctx, config, user, errCh, wc)
+		reason := fmt.Sprintf("To confirm %s is a writer of folder %s", user, name)
+		go resolveUser(ctx, config, user, reason, errCh, wc)
 	}
 	for _, user := range readerNames {
-		go resolveUser(ctx, config, user, errCh, rc)
+		reason := fmt.Sprintf("To confirm %s is a reader of folder %s", user, name)
+		go resolveUser(ctx, config, user, reason, errCh, rc)
 	}
 
 	usedWNames := make(map[keybase1.UID]struct{}, len(writerNames))

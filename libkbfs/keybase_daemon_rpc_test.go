@@ -39,7 +39,7 @@ func newKeybaseDaemonRPCWithFakeClient(t *testing.T) (
 func TestKeybaseDaemonRPCIdentifyCanceled(t *testing.T) {
 	c, ctlChan := newKeybaseDaemonRPCWithFakeClient(t)
 	f := func(ctx context.Context) error {
-		_, err := c.Identify(ctx, "")
+		_, err := c.Identify(ctx, "", "")
 		return err
 	}
 	testWithCanceledContext(t, context.Background(), ctlChan, ctlChan, f)
@@ -82,8 +82,8 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 		c.currentSessionCalled = true
 		return nil
 
-	case "keybase.1.identify.identify":
-		arg := args.([]interface{})[0].(keybase1.IdentifyArg)
+	case "keybase.1.identify.identify2":
+		arg := args.([]interface{})[0].(keybase1.Identify2Arg)
 		uidStr := strings.TrimPrefix(arg.UserAssertion, "uid:")
 		if len(uidStr) == len(arg.UserAssertion) {
 			return fmt.Errorf("Non-uid assertion %s", arg.UserAssertion)
@@ -95,8 +95,8 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 			return fmt.Errorf("Could not find user info for UID %s", uid)
 		}
 
-		*res.(*keybase1.IdentifyRes) = keybase1.IdentifyRes{
-			User: &keybase1.User{
+		*res.(*keybase1.Identify2Res) = keybase1.Identify2Res{
+			Upk: keybase1.UserPlusKeys{
 				Uid:      uid,
 				Username: string(userInfo.Name),
 			},
@@ -216,7 +216,7 @@ func testIdentify(
 	client.identifyCalled = false
 
 	ctx := context.Background()
-	info, err := c.Identify(ctx, "uid:"+string(uid))
+	info, err := c.Identify(ctx, "uid:"+string(uid), "")
 	if err != nil {
 		t.Fatal(err)
 	}

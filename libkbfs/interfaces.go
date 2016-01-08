@@ -242,7 +242,7 @@ type KeybaseDaemon interface {
 	// Identify, given an assertion, returns a UserInfo struct
 	// with the user that matches that assertion, or an error
 	// otherwise.
-	Identify(ctx context.Context, assertion string) (UserInfo, error)
+	Identify(ctx context.Context, assertion, reason string) (UserInfo, error)
 
 	// LoadUserPlusKeys returns a UserInfo struct for a
 	// user with the specified UID.
@@ -291,7 +291,7 @@ type KBPKI interface {
 
 	// ResolveAssertion loads a user by assertion (could also be a
 	// username).
-	ResolveAssertion(ctx context.Context, input string) (keybase1.UID, error)
+	ResolveAssertion(ctx context.Context, assertion, reason string) (keybase1.UID, error)
 	// GetNormalizedUsername returns the normalized username
 	// corresponding to the given UID.
 	GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)

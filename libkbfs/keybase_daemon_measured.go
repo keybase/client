@@ -44,10 +44,10 @@ func NewKeybaseDaemonMeasured(delegate KeybaseDaemon, r metrics.Registry) Keybas
 }
 
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonMeasured.
-func (k KeybaseDaemonMeasured) Identify(ctx context.Context, assertion string) (
+func (k KeybaseDaemonMeasured) Identify(ctx context.Context, assertion, reason string) (
 	userInfo UserInfo, err error) {
 	k.identifyTimer.Time(func() {
-		userInfo, err = k.delegate.Identify(ctx, assertion)
+		userInfo, err = k.delegate.Identify(ctx, assertion, reason)
 	})
 	return userInfo, err
 }

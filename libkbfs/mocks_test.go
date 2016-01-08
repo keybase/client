@@ -478,15 +478,15 @@ func (_m *MockKeybaseDaemon) EXPECT() *_MockKeybaseDaemonRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeybaseDaemon) Identify(ctx context.Context, assertion string) (UserInfo, error) {
-	ret := _m.ctrl.Call(_m, "Identify", ctx, assertion)
+func (_m *MockKeybaseDaemon) Identify(ctx context.Context, assertion string, reason string) (UserInfo, error) {
+	ret := _m.ctrl.Call(_m, "Identify", ctx, assertion, reason)
 	ret0, _ := ret[0].(UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) Identify(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1)
+func (_mr *_MockKeybaseDaemonRecorder) Identify(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1, arg2)
 }
 
 func (_m *MockKeybaseDaemon) LoadUserPlusKeys(ctx context.Context, uid protocol.UID) (UserInfo, error) {
@@ -625,15 +625,15 @@ func (_mr *_MockKBPKIRecorder) GetCurrentVerifyingKey(arg0 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentVerifyingKey", arg0)
 }
 
-func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, input string) (protocol.UID, error) {
-	ret := _m.ctrl.Call(_m, "ResolveAssertion", ctx, input)
+func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, assertion string, reason string) (protocol.UID, error) {
+	ret := _m.ctrl.Call(_m, "ResolveAssertion", ctx, assertion, reason)
 	ret0, _ := ret[0].(protocol.UID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) ResolveAssertion(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveAssertion", arg0, arg1)
+func (_mr *_MockKBPKIRecorder) ResolveAssertion(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveAssertion", arg0, arg1, arg2)
 }
 
 func (_m *MockKBPKI) GetNormalizedUsername(ctx context.Context, uid protocol.UID) (libkb.NormalizedUsername, error) {

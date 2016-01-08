@@ -170,7 +170,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	folders := []keybase1.Folder{handle1.ToKBFolder(ctx, config), handle2.ToKBFolder(ctx, config)}
 
 	config.mockKbpki.EXPECT().FavoriteList(ctx).Return(folders, nil)
-	config.mockKbpki.EXPECT().ResolveAssertion(gomock.Any(), gomock.Any()).AnyTimes().Return(keybase1.UID(""), nil)
+	config.mockKbpki.EXPECT().ResolveAssertion(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(keybase1.UID(""), nil)
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
 	if err != nil {

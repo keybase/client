@@ -208,37 +208,22 @@ func (k *KeybaseDaemonRPC) ShouldThrottle(err error) bool {
 }
 
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
-func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion string) (
+func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion, reason string) (
 	UserInfo, error) {
 	// setting UseDelegateUI to true here will cause daemon to use
 	// registered identify ui providers instead of terminal if any
 	// are available.  If not, then it will use the terminal UI.
-	arg := keybase1.IdentifyArg{
+	arg := keybase1.Identify2Arg{
 		UserAssertion: assertion,
 		UseDelegateUI: true,
-		Source:        keybase1.IdentifySource_KBFS,
+		Reason:        keybase1.IdentifyReason{Reason: reason},
 	}
-	res, err := k.identifyClient.Identify(ctx, arg)
+	res, err := k.identifyClient.Identify2(ctx, arg)
 	if err != nil {
 		return UserInfo{}, err
 	}
 
-	uid := res.User.Uid
-	verifyingKeys, cryptPublicKeys, err := k.filterKeys(ctx, uid, res.PublicKeys)
-	if err != nil {
-		return UserInfo{}, err
-	}
-
-	u := UserInfo{
-		Name:            libkb.NewNormalizedUsername(res.User.Username),
-		UID:             uid,
-		VerifyingKeys:   verifyingKeys,
-		CryptPublicKeys: cryptPublicKeys,
-	}
-
-	k.setCachedUserInfo(uid, u)
-
-	return u, nil
+	return k.processUserPlusKeys(ctx, res.Upk)
 }
 
 // LoadUserPlusKeys implements the KeybaseDaemon interface for KeybaseDaemonRPC.
@@ -255,20 +240,24 @@ func (k *KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 		return UserInfo{}, err
 	}
 
-	verifyingKeys, cryptPublicKeys, err := k.filterKeys(ctx, uid, res.DeviceKeys)
+	return k.processUserPlusKeys(ctx, res)
+}
+
+func (k *KeybaseDaemonRPC) processUserPlusKeys(
+	ctx context.Context, upk keybase1.UserPlusKeys) (UserInfo, error) {
+	verifyingKeys, cryptPublicKeys, err := k.filterKeys(ctx, upk.Uid, upk.DeviceKeys)
 	if err != nil {
 		return UserInfo{}, err
 	}
 
 	u := UserInfo{
-		Name:            libkb.NewNormalizedUsername(res.Username),
-		UID:             res.Uid,
+		Name:            libkb.NewNormalizedUsername(upk.Username),
+		UID:             upk.Uid,
 		VerifyingKeys:   verifyingKeys,
 		CryptPublicKeys: cryptPublicKeys,
 	}
 
-	k.setCachedUserInfo(uid, u)
-
+	k.setCachedUserInfo(upk.Uid, u)
 	return u, nil
 }
 
