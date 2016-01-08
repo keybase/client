@@ -769,6 +769,13 @@ func (s *LoginState) acctHandle(f acctHandler, name string) error {
 // the loginReqs and acctReqs channels are closed.
 func (s *LoginState) requests() {
 	var loginReqsClosed, acctReqsClosed bool
+
+	// Run a cleanup routine on the Account object every minute.
+	// We're supposed to timeout & cleanup Paper Keys after an hour of inactivity.
+	maketimer := func() <-chan time.Time { return s.G().GetClock().After(1 * time.Minute) }
+	timer := maketimer()
+	s.G().Log.Debug("LoginState: Running request loop")
+
 	for {
 		select {
 		case req, ok := <-s.loginReqs:
@@ -793,6 +800,9 @@ func (s *LoginState) requests() {
 			} else {
 				acctReqsClosed = true
 			}
+		case <-timer:
+			s.account.clean()
+			timer = maketimer()
 		}
 		if loginReqsClosed && acctReqsClosed {
 			break

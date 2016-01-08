@@ -97,6 +97,8 @@ const (
 	KeyExpireIn       = OneYearInSeconds * 16 // 16 years
 	SubkeyExpireIn    = OneYearInSeconds * 16 // 16 years
 	AuthExpireIn      = OneYearInSeconds      // 1 year
+
+	PaperKeyMemoryTimeout = time.Hour
 )
 
 // Status codes.  This list should match keybase/lib/constants.iced.

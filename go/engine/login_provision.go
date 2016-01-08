@@ -812,18 +812,14 @@ func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 	if err != nil {
 		return nil, err
 	}
-	paperPhrase := libkb.NewPaperKeyPhrase(passphrase)
-	version, err := paperPhrase.Version()
+
+	paperPhrase, err := libkb.NewPaperKeyPhraseCheckVersion(e.G(), passphrase)
 	if err != nil {
 		return nil, err
 	}
-	if version != libkb.PaperKeyVersion {
-		e.G().Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
-		return nil, libkb.KeyVersionError{}
-	}
 
 	bkarg := &PaperKeyGenArg{
-		Passphrase: libkb.NewPaperKeyPhrase(passphrase),
+		Passphrase: paperPhrase,
 		SkipPush:   true,
 	}
 	bkeng := NewPaperKeyGen(bkarg, e.G())
@@ -831,7 +827,14 @@ func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 		return nil, err
 	}
 
-	return &keypair{sigKey: bkeng.SigKey(), encKey: bkeng.EncKey()}, nil
+	kp := &keypair{sigKey: bkeng.SigKey(), encKey: bkeng.EncKey()}
+	if err := e.G().LoginState().Account(func(a *libkb.Account) {
+		a.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
+	}, "UnlockedPaperKey"); err != nil {
+		return nil, err
+	}
+
+	return kp, nil
 }
 
 func (e *LoginProvision) loadUserByKID(kid keybase1.KID) (*libkb.User, error) {

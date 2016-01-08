@@ -18,13 +18,13 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"os"
 	"runtime"
 	"sync"
-
-	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type ShutdownHook func() error
@@ -63,12 +63,14 @@ type GlobalContext struct {
 	ProofCheckerFactory ProofCheckerFactory // Makes new ProofCheckers
 	ExitCode            keybase1.ExitCode   // Value to return to OS on Exit()
 	RateLimits          *RateLimits         // tracks the last time certain actions were taken
+	Clock               clockwork.Clock     // RealClock unless we're testing
 }
 
 func NewGlobalContext() *GlobalContext {
 	return &GlobalContext{
 		Log:                 logger.New("keybase", ErrorWriter()),
 		ProofCheckerFactory: defaultProofCheckerFactory,
+		Clock:               clockwork.NewRealClock(),
 	}
 }
 
@@ -120,6 +122,11 @@ func (g *GlobalContext) LoginState() *LoginState {
 	defer g.loginStateMu.RUnlock()
 
 	return g.loginState
+}
+
+// ResetLoginState is mainly used for testing...
+func (g *GlobalContext) ResetLoginState() {
+	g.createLoginStateLocked()
 }
 
 func (g *GlobalContext) Logout() error {
@@ -450,4 +457,11 @@ func (g *GlobalContext) GetRuntimeDir() string {
 
 func (g *GlobalContext) GetRunMode() RunMode {
 	return g.Env.GetRunMode()
+}
+
+func (g *GlobalContext) GetClock() clockwork.Clock {
+	if g.Clock == nil {
+		return clockwork.NewRealClock()
+	}
+	return g.Clock
 }
