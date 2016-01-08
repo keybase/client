@@ -1,11 +1,12 @@
 import {OS_DESKTOP} from './platform.shared'
 import path from 'path'
+import getenv from 'getenv'
 
 export const OS = OS_DESKTOP
 export const isMobile = false
 export const kbfsPath = `/keybase`
 
-export const runMode = process.env.KEYBASE_RUN_MODE || 'prod'
+export const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
 
 if (__DEV__) { // eslint-disable-line no-undef
   console.log(`Run mode: ${runMode}`)
@@ -18,7 +19,7 @@ const envedPathOSX = {
 }
 
 function buildWin32SocketRoot () {
-  let appdata = process.env.APPDATA
+  let appdata = getenv('APPDATA', '')
   // Remove leading drive letter e.g. C:
   if (/^[a-zA-Z]:/.test(appdata)) {
     appdata = appdata.slice(2)
@@ -34,8 +35,8 @@ function buildWin32SocketRoot () {
 
 function findSocketRoot () {
   const paths = {
-    'darwin': `${process.env.HOME}/Library/Caches/${envedPathOSX[runMode]}/`,
-    'linux': runMode === 'prod' ? `${process.env.XDG_RUNTIME_DIR}/keybase/` : `${process.env.XDG_RUNTIME_DIR}/keybase.${runMode}/`,
+    'darwin': `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`,
+    'linux': runMode === 'prod' ? `${getenv('XDG_RUNTIME_DIR', '')}/keybase/` : `${getenv('XDG_RUNTIME_DIR', '')}/keybase.${runMode}/`,
     'win32': buildWin32SocketRoot()
   }
 
@@ -44,9 +45,9 @@ function findSocketRoot () {
 
 function findDataRoot () {
   const paths = {
-    'darwin': `${process.env.HOME}/Library/Application Support/${envedPathOSX[runMode]}/`,
-    'linux': `${process.env.XDG_DATA_DIR}/keybase.${runMode}/`,
-    'win32': `${process.env.APPDATA}\\Keybase\\`
+    'darwin': `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`,
+    'linux': `${getenv('XDG_DATA_DIR', '')}/keybase.${runMode}/`,
+    'win32': `${getenv('APPDATA', '')}\\Keybase\\`
   }
 
   return paths[process.platform]

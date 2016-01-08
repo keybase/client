@@ -1,10 +1,11 @@
 const webpack = require('webpack')
 const path = require('path')
+const getenv = require('getenv')
 
 const defines = {
-  '__HOT__': JSON.stringify(process.env.HOT === 'true'),
-  '__DEV__': JSON.stringify(process.env.NODE_ENV !== 'production'),
-  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+  '__HOT__': JSON.stringify(getenv.bool('HOT', false)),
+  '__DEV__': JSON.stringify(getenv('NODE_ENV') !== 'production'),
+  'process.env.NODE_ENV': JSON.stringify(getenv('NODE_ENV'))
 }
 
 console.log('Injecting defines: ', defines)
