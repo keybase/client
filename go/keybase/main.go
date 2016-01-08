@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 
 	"golang.org/x/net/context"
 
@@ -103,9 +104,18 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		g.Log.Debug("- configureProcesses -> %v", err)
 	}()
 
-	// No need to configure if we're a service
+	// On Linux, the service configures its own autostart file. Otherwise, no
+	// need to configure if we're a service.
 	if cl.IsService() {
-		return err
+		g.Log.Debug("| in configureProcesses, is service")
+		if runtime.GOOS == "linux" {
+			g.Log.Debug("| calling AutoInstall")
+			_, err := install.AutoInstall(g, "", false)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 
 	// Start the server on the other end, possibly.
