@@ -89,7 +89,7 @@ func GetDefaultMDServer() string {
 // InitParams that will be filled in once the given FlagSet is parsed.
 func AddFlags(flags *flag.FlagSet) *InitParams {
 	var params InitParams
-	flags.BoolVar(&params.Debug, "debug", false, "Print debug messages")
+	flags.BoolVar(&params.Debug, "debug", BoolForString(os.Getenv("KBFS_DEBUG")), "Print debug messages")
 	flags.StringVar(&params.CPUProfile, "cpuprofile", "", "write cpu profile to file")
 	flags.StringVar(&params.MemProfile, "memprofile", "", "write memory profile to file")
 
