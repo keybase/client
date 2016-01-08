@@ -3225,19 +3225,10 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 
 	// A list of permanent entries added to the block cache, which
 	// should be removed after the blocks have been sent to the
-	// server, or on error.
+	// server.  They are not removed on an error, because in that case
+	// the file is still dirty locally and may get another chance to
+	// be sync'd.
 	var syncIndirectFileBlockPtrs []BlockPointer
-	defer func() {
-		fbo.blockLock.Lock(lState)
-		defer fbo.blockLock.Unlock(lState)
-
-		for _, ptr := range syncIndirectFileBlockPtrs {
-			err := bcache.DeletePermanent(ptr.ID)
-			if err != nil {
-				fbo.log.CWarningf(ctx, "Error when deleting %v from cache: %v", ptr.ID, err)
-			}
-		}
-	}()
 
 	// notify the daemon that a write is being performed
 	fbo.config.Reporter().Notify(ctx, writeNotification(file, false))
