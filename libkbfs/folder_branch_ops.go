@@ -3269,6 +3269,14 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		return true, fmt.Errorf("No syncOp found for file pointer %v", filePtr)
 	}
 	md.AddOp(si.op)
+	defer func() {
+		if err != nil {
+			// If there was an error, we need to back out any changes
+			// that might have been filled into the sync op, because
+			// it could get reused again in a later Sync call.
+			si.op.resetUpdateState()
+		}
+	}()
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
 	// notifications will never happen within a file.
