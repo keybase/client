@@ -2576,28 +2576,23 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	// resolution.
 	toUnref := make(map[BlockPointer]bool)
 	for ptr := range unmergedChains.originals {
-		cr.log.CDebugf(ctx, "Unref-considering %v", ptr)
 		if !refs[ptr] && !unrefs[ptr] {
-			cr.log.CDebugf(ctx, "Unref-doing %v", ptr)
 			toUnref[ptr] = true
 		}
 	}
 	for ptr := range unmergedChains.createdOriginals {
-		cr.log.CDebugf(ctx, "Unref-considering %v (original)", ptr)
 		if !refs[ptr] && !unrefs[ptr] && unmergedChains.byOriginal[ptr] != nil {
-			cr.log.CDebugf(ctx, "Unref-doing %v (original)", ptr)
 			toUnref[ptr] = true
 		} else if _, ok := unmergedChains.blockChangePointers[ptr]; ok {
-			cr.log.CDebugf(ctx, "Unref-doing %v (original block change)", ptr)
 			toUnref[ptr] = true
 		} else if _, ok := unmergedChains.toUnrefPointers[ptr]; ok {
-			cr.log.CDebugf(ctx, "Unref-doing %v (original forced)", ptr)
 			toUnref[ptr] = true
 		}
 	}
 	for ptr := range toUnref {
 		// Put the unrefs on the final operations, to cancel out any
-		// refs in earlier ops.
+		// stray refs in earlier ops.
+		cr.log.CDebugf(ctx, "Unreferencing dropped block %v", ptr)
 		md.data.Changes.Ops[len(md.data.Changes.Ops)-1].AddUnrefBlock(ptr)
 	}
 
