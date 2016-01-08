@@ -119,5 +119,6 @@ func UnboxBytes32(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 }
 
 func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (res keybase1.UnboxAnyRes, err error) {
+	defer g.Trace("UnboxBytes32Any", func() error { return err })
 	return
 }
