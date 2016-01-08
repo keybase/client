@@ -16,14 +16,17 @@ import (
 )
 
 type CmdPGPDrop struct {
-	id string
+	id keybase1.KID
 }
 
-func (c *CmdPGPDrop) ParseArgv(ctx *cli.Context) error {
+func (c *CmdPGPDrop) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("drop takes exactly one key")
 	}
-	c.id = ctx.Args()[0]
+	c.id, err = keybase1.KIDFromStringChecked(ctx.Args()[0])
+	if err != nil {
+		return fmt.Errorf("bad key: %v", err)
+	}
 	return nil
 }
 

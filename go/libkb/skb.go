@@ -93,25 +93,44 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 		return nil, fmt.Errorf("nil lks")
 	}
 	var pk, sk bytes.Buffer
+	ret = NewSKB(lks.G())
 
-	err = key.Entity.SerializePrivate(&sk, nil)
+	serializePublic := func() error { return key.Entity.Serialize(&pk) }
+	serializePrivate := func() error { return key.Entity.SerializePrivate(&sk, nil) }
+
+	// NOTE(maxtaco): For imported keys, it is crucial to serialize the public key
+	// **before** the private key, since the latter operation destructively
+	// removes signature subpackets from the key serialization.
+	// This was the cause of keybase/keybase-issues#1906.
+	//
+	// Urg, there's still more.  For generated keys, it's the opposite.
+	// We have to sign the key components first (via SerializePrivate)
+	// so we can export them publically.
+
+	if key.Generated {
+		err = serializePrivate()
+		if err == nil {
+			err = serializePublic()
+		}
+	} else {
+		err = serializePublic()
+		if err == nil {
+			err = serializePrivate()
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	ret = NewSKB(lks.G())
 	ret.Priv.Data, err = lks.Encrypt(sk.Bytes())
 	if err != nil {
 		return nil, err
 	}
 	ret.Priv.Encryption = LKSecVersion
 	ret.Priv.PassphraseGeneration = int(lks.Generation())
-
-	err = key.Entity.Serialize(&pk)
-	if err != nil {
-		return nil, err
-	}
 	ret.Pub = pk.Bytes()
+
 	ret.Type = key.GetAlgoType()
 
 	return ret, nil
@@ -119,7 +138,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 
 func (s *SKB) Dump() {
 	if s == nil {
-		s.G().Log.Debug("SKB Dump:  skb is nil\n")
+		s.G().Log.Debug("SKB Dump: skb is nil\n")
 		return
 	}
 	s.G().Log.Debug("skb: %+v, uid = %s\n", s, s.uid)

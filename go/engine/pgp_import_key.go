@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type PGPKeyImportEngine struct {
@@ -335,4 +336,11 @@ func PGPCheckMulti(me *libkb.User, allowMulti bool) (err error) {
 		err = libkb.KeyExistsError{Key: pgps[0].GetFingerprintP()}
 	}
 	return
+}
+
+func (e *PGPKeyImportEngine) GetKID() (kid keybase1.KID) {
+	if e.bundle == nil {
+		return kid
+	}
+	return e.bundle.GetKID()
 }

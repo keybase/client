@@ -19,10 +19,10 @@ const (
 
 type RevokeEngine struct {
 	libkb.Contextified
-	deviceID  keybase1.DeviceID
-	kidString string
-	mode      RevokeMode
-	force     bool
+	deviceID keybase1.DeviceID
+	kid      keybase1.KID
+	mode     RevokeMode
+	force    bool
 }
 
 type RevokeDeviceEngineArgs struct {
@@ -39,9 +39,9 @@ func NewRevokeDeviceEngine(args RevokeDeviceEngineArgs, g *libkb.GlobalContext) 
 	}
 }
 
-func NewRevokeKeyEngine(kid string, g *libkb.GlobalContext) *RevokeEngine {
+func NewRevokeKeyEngine(kid keybase1.KID, g *libkb.GlobalContext) *RevokeEngine {
 	return &RevokeEngine{
-		kidString:    kid,
+		kid:          kid,
 		mode:         RevokeKey,
 		Contextified: libkb.NewContextified(g),
 	}
@@ -76,20 +76,20 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 		}
 		return deviceKeys, nil
 	} else if e.mode == RevokeKey {
-		kid := keybase1.KIDFromString(e.kidString)
+		kid := e.kid
 		key, err := me.GetComputedKeyFamily().FindKeyWithKIDUnsafe(kid)
 		if err != nil {
 			return nil, err
 		}
 		if !libkb.IsPGP(key) {
-			return nil, fmt.Errorf("Key %s is not a PGP key. To revoke device keys, use the `device remove` command.", e.kidString)
+			return nil, fmt.Errorf("Key %s is not a PGP key. To revoke device keys, use the `device remove` command.", e.kid)
 		}
 		for _, activePGPKey := range me.GetComputedKeyFamily().GetActivePGPKeys(false /* sibkeys only */) {
 			if activePGPKey.GetKID().Equal(kid) {
 				return []keybase1.KID{kid}, nil
 			}
 		}
-		return nil, fmt.Errorf("PGP key %s is not active", e.kidString)
+		return nil, fmt.Errorf("PGP key %s is not active", e.kid)
 	} else {
 		return nil, fmt.Errorf("Unknown revoke mode: %d", e.mode)
 	}
