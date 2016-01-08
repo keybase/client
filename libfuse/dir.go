@@ -237,6 +237,9 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	case StatusFileName:
 		return NewStatusFile(d.folder, resp), nil
 
+	case UpdateHistoryFileName:
+		return NewUpdateHistoryFile(d.folder, resp), nil
+
 	case UnstageFileName:
 		resp.EntryValid = 0
 		child := &UnstageFile{
