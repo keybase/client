@@ -3171,12 +3171,6 @@ func (fbo *folderBranchOps) mergeUnrefCacheLocked(file path, md *RootMetadata) {
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	lState *lockState, file path) (stillDirty bool, err error) {
-	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked(ctx, lState)
-	if err != nil {
-		return true, err
-	}
-
 	// if the cache for this file isn't dirty, we're done
 	fbo.blockLock.RLock(lState)
 	bcache := fbo.config.BlockCache()
@@ -3185,6 +3179,12 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		return false, nil
 	}
 	fbo.blockLock.RUnlock(lState)
+
+	// verify we have permission to write
+	md, err := fbo.getMDForWriteLocked(ctx, lState)
+	if err != nil {
+		return true, err
+	}
 
 	// If the MD doesn't match the MD expected by the path, that
 	// implies we are using a cached path, which implies the node has
