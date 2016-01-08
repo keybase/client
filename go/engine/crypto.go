@@ -120,5 +120,75 @@ func UnboxBytes32(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 
 func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (res keybase1.UnboxAnyRes, err error) {
 	defer g.Trace("UnboxBytes32Any", func() error { return err })
+
+	key, err := getMatchingSecretKey(g, secretUI, arg)
+	if err != nil {
+		return bytes32, err
+	}
+
+	g.Log.Debug("found key for unbox: %s", key.GetKID())
+
 	return
+}
+
+func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (libkb.GenericKey, error) {
+	var key libkb.GenericKey
+
+	// first check cached keys
+	err := g.LoginState().Account(func(a *libkb.Account) {
+		// check device key first
+		dkey, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
+		if err == nil {
+			if kidMatch(dkey, arg.Pairs) {
+				key = dkey
+				return
+			}
+		}
+
+		// check paper key
+		pkey := a.GetUnlockedPaperEncKey()
+		if kidMatch(pkey, arg.Pairs) {
+			key = pkey
+			return
+		}
+	}, "UnboxBytes32Any")
+	if err != nil {
+		return nil, err
+	}
+	if key != nil {
+		return key, nil
+	}
+
+	// load the user and see if any key is available
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
+	if err != nil {
+		return nil, err
+	}
+
+	// see if the device encryption key could work
+	ekey, err := me.GetDeviceSubkey()
+	if err == nil {
+		if kidMatch(ekey, arg.Pairs) {
+			// unlock this key
+			skarg := libkb.SecretKeyArg{
+				Me:      me,
+				KeyType: libkb.DeviceEncryptionKeyType,
+			}
+			return g.Keyrings.GetSecretKeyWithPrompt(nil, skarg, secretUI, arg.Reason)
+		}
+	}
+
+	// go through the paper keys. find any that match. use secretui to prompt for one of them.
+
+	return nil, libkb.NoSecretKeyError{}
+}
+
+func kidMatch(key libkb.GenericKey, pairs []keybase1.CiphertextKIDPair) bool {
+	kid := key.GetKID()
+	for _, pair := range pairs {
+		if kid.Equal(pair.Kid) {
+			return true
+		}
+	}
+	return false
 }
