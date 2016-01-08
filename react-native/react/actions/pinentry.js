@@ -51,7 +51,7 @@ export function onCancel (sessionID: number): (dipatch: Dispatch) => void {
   return dispatch => {
     dispatch({type: Constants.onCancel, payload: {sessionID}})
     uglyResponse(sessionID, null, {
-      code: constants.StatusCode.sccanceled,
+      code: constants.StatusCode.scinputcanceled,
       desc: 'Input canceled'
     })
   }

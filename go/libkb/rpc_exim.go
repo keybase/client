@@ -202,6 +202,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return LoggedInError{}
 	case SCCanceled:
 		return CanceledError{s.Desc}
+	case SCInputCanceled:
+		return InputCanceledError{}
 	case SCKeyNoSecret:
 		return NoSecretKeyError{}
 	case SCLoginRequired:
@@ -493,6 +495,15 @@ func (c CanceledError) ToStatus() (s keybase1.Status) {
 	s.Code = SCCanceled
 	s.Name = "CANCELED"
 	s.Desc = c.M
+	return
+}
+
+//=============================================================================
+
+func (e InputCanceledError) ToStatus() (s keybase1.Status) {
+	s.Code = SCInputCanceled
+	s.Name = "CANCELED"
+	s.Desc = "Input canceled"
 	return
 }
 

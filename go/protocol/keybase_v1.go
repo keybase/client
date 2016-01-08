@@ -604,6 +604,7 @@ const (
 	StatusCode_SCGeneric                StatusCode = 218
 	StatusCode_SCAlreadyLoggedIn        StatusCode = 235
 	StatusCode_SCCanceled               StatusCode = 237
+	StatusCode_SCInputCanceled          StatusCode = 238
 	StatusCode_SCReloginRequired        StatusCode = 274
 	StatusCode_SCResolutionFailed       StatusCode = 275
 	StatusCode_SCProfileNotPublic       StatusCode = 276

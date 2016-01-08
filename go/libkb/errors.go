@@ -977,6 +977,12 @@ func (c CanceledError) Error() string {
 	return c.M
 }
 
+type InputCanceledError struct{}
+
+func (e InputCanceledError) Error() string {
+	return "Input canceled"
+}
+
 //=============================================================================
 
 type NoDeviceError struct {

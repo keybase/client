@@ -65,6 +65,7 @@ export default {
       'scgeneric': 218,
       'scalreadyloggedin': 235,
       'sccanceled': 237,
+      'scinputcanceled': 238,
       'screloginrequired': 274,
       'scresolutionfailed': 275,
       'scprofilenotpublic': 276,
