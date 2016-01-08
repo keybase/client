@@ -106,7 +106,7 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 }
 
 func (u *UIRouter) GetSecretUI() (ui libkb.SecretUI, err error) {
-	u.G().Trace("UIRouter.GetSecretUI", func() error { return err })
+	defer u.G().Trace("UIRouter.GetSecretUI", func() error { return err })
 	x := u.getUI(libkb.SecretUIKind)
 	if x == nil {
 		u.G().Log.Debug("| getUI(libkb.SecretUIKind) returned nil")

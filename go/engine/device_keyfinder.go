@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // DeviceKeyfinder is an engine to find device keys for users (loaded by
@@ -58,7 +58,7 @@ func (e *DeviceKeyfinder) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceKeyfinder) Run(ctx *Context) (err error) {
-	libkb.Trace(e.G().Log, "DeviceKeyfinder::Run", func() error { return err })
+	defer libkb.Trace(e.G().Log, "DeviceKeyfinder::Run", func() error { return err })
 
 	err = e.identifyUsers(ctx)
 	if err != nil {

@@ -63,7 +63,7 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 }
 
 func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
-	e.G().Trace("ResolveThenIdentify2::Run", func() error { return err })
+	defer e.G().Trace("ResolveThenIdentify2::Run", func() error { return err })
 
 	e.i2eng = NewIdentify2WithUID(e.G(), e.arg)
 
