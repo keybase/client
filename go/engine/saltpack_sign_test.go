@@ -13,14 +13,14 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-func TestSaltPackSignDeviceRequired(t *testing.T) {
+func TestSaltpackSignDeviceRequired(t *testing.T) {
 	tc := SetupEngineTest(t, "sign")
 	defer tc.Cleanup()
 
 	ctx := &Context{
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewSaltPackSign(nil, tc.G)
+	eng := NewSaltpackSign(nil, tc.G)
 	err := RunEngine(eng, ctx)
 	if err == nil {
 		t.Fatal("sign not logged in returned no error")
@@ -30,7 +30,7 @@ func TestSaltPackSignDeviceRequired(t *testing.T) {
 	}
 }
 
-func TestSaltPackSignVerify(t *testing.T) {
+func TestSaltpackSignVerify(t *testing.T) {
 	tc := SetupEngineTest(t, "sign")
 	defer tc.Cleanup()
 
@@ -41,12 +41,12 @@ func TestSaltPackSignVerify(t *testing.T) {
 	for _, test := range signTests {
 		var sink bytes.Buffer
 
-		sarg := &SaltPackSignArg{
+		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
 			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
 		}
 
-		eng := NewSaltPackSign(sarg, tc.G)
+		eng := NewSaltpackSign(sarg, tc.G)
 		ctx := &Context{
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   fu.NewSecretUI(),
@@ -63,13 +63,13 @@ func TestSaltPackSignVerify(t *testing.T) {
 			t.Errorf("%s: empty sig", test.name)
 		}
 
-		varg := &SaltPackVerifyArg{
+		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
 			Source: strings.NewReader(sig),
 		}
-		veng := NewSaltPackVerify(varg, tc.G)
+		veng := NewSaltpackVerify(varg, tc.G)
 
-		ctx.SaltPackUI = fakeSaltPackUI{}
+		ctx.SaltpackUI = fakeSaltpackUI{}
 
 		if err := RunEngine(veng, ctx); err != nil {
 			t.Errorf("%s: verify error: %s", test.name, err)
@@ -81,15 +81,15 @@ func TestSaltPackSignVerify(t *testing.T) {
 	for _, test := range signTests {
 		var sink bytes.Buffer
 
-		sarg := &SaltPackSignArg{
+		sarg := &SaltpackSignArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
 			Source: ioutil.NopCloser(bytes.NewBufferString(test.input)),
-			Opts: keybase1.SaltPackSignOptions{
+			Opts: keybase1.SaltpackSignOptions{
 				Detached: true,
 			},
 		}
 
-		eng := NewSaltPackSign(sarg, tc.G)
+		eng := NewSaltpackSign(sarg, tc.G)
 		ctx := &Context{
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   fu.NewSecretUI(),
@@ -106,16 +106,16 @@ func TestSaltPackSignVerify(t *testing.T) {
 			t.Errorf("(detached) %s: empty sig", test.name)
 		}
 
-		varg := &SaltPackVerifyArg{
+		varg := &SaltpackVerifyArg{
 			Sink:   libkb.NopWriteCloser{W: &sink},
 			Source: strings.NewReader(test.input),
-			Opts: keybase1.SaltPackVerifyOptions{
+			Opts: keybase1.SaltpackVerifyOptions{
 				Signature: sig,
 			},
 		}
-		veng := NewSaltPackVerify(varg, tc.G)
+		veng := NewSaltpackVerify(varg, tc.G)
 
-		ctx.SaltPackUI = fakeSaltPackUI{}
+		ctx.SaltpackUI = fakeSaltpackUI{}
 
 		if err := RunEngine(veng, ctx); err != nil {
 			t.Errorf("(detached) %s: verify error: %s", test.name, err)

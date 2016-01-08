@@ -1,5 +1,5 @@
 {
-  "protocol" : "saltPackUi",
+  "protocol" : "saltpackUi",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -214,11 +214,11 @@
     } ]
   }, {
     "type" : "enum",
-    "name" : "SaltPackSenderType",
+    "name" : "SaltpackSenderType",
     "symbols" : [ "NOT_TRACKED_0", "UNKNOWN_1", "ANONYMOUS_2", "TRACKING_BROKE_3", "TRACKING_OK_4" ]
   }, {
     "type" : "record",
-    "name" : "SaltPackSender",
+    "name" : "SaltpackSender",
     "fields" : [ {
       "name" : "uid",
       "type" : "UID"
@@ -227,21 +227,21 @@
       "type" : "string"
     }, {
       "name" : "senderType",
-      "type" : "SaltPackSenderType"
+      "type" : "SaltpackSenderType"
     } ]
   } ],
   "messages" : {
-    "saltPackPromptForDecrypt" : {
+    "saltpackPromptForDecrypt" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
       }, {
         "name" : "sender",
-        "type" : "SaltPackSender"
+        "type" : "SaltpackSender"
       } ],
       "response" : "null"
     },
-    "saltPackVerifySuccess" : {
+    "saltpackVerifySuccess" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -250,7 +250,7 @@
         "type" : "KID"
       }, {
         "name" : "sender",
-        "type" : "SaltPackSender"
+        "type" : "SaltpackSender"
       } ],
       "response" : "null"
     }

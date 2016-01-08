@@ -13,76 +13,76 @@ import (
 	"github.com/keybase/client/go/saltpack"
 )
 
-// SaltPackVerify is an engine.
-type SaltPackVerify struct {
+// SaltpackVerify is an engine.
+type SaltpackVerify struct {
 	libkb.Contextified
-	arg *SaltPackVerifyArg
+	arg *SaltpackVerifyArg
 	key libkb.NaclSigningKeyPair
 }
 
-type SaltPackVerifyArg struct {
+type SaltpackVerifyArg struct {
 	Sink   io.WriteCloser
 	Source io.Reader
-	Opts   keybase1.SaltPackVerifyOptions
+	Opts   keybase1.SaltpackVerifyOptions
 }
 
-// NewSaltPackVerify creates a SaltPackVerify engine.
-func NewSaltPackVerify(arg *SaltPackVerifyArg, g *libkb.GlobalContext) *SaltPackVerify {
-	return &SaltPackVerify{
+// NewSaltpackVerify creates a SaltpackVerify engine.
+func NewSaltpackVerify(arg *SaltpackVerifyArg, g *libkb.GlobalContext) *SaltpackVerify {
+	return &SaltpackVerify{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *SaltPackVerify) Name() string {
-	return "SaltPackVerify"
+func (e *SaltpackVerify) Name() string {
+	return "SaltpackVerify"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *SaltPackVerify) Prereqs() Prereqs {
+func (e *SaltpackVerify) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *SaltPackVerify) RequiredUIs() []libkb.UIKind {
+func (e *SaltpackVerify) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
-		libkb.SaltPackUIKind,
+		libkb.SaltpackUIKind,
 	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *SaltPackVerify) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{&SaltPackSenderIdentify{}}
+func (e *SaltpackVerify) SubConsumers() []libkb.UIConsumer {
+	return []libkb.UIConsumer{&SaltpackSenderIdentify{}}
 }
 
 // Run starts the engine.
-func (e *SaltPackVerify) Run(ctx *Context) error {
+func (e *SaltpackVerify) Run(ctx *Context) error {
 	if len(e.arg.Opts.Signature) > 0 {
 		return e.detached(ctx)
 	}
 	return e.attached(ctx)
 }
 
-func (e *SaltPackVerify) attached(ctx *Context) error {
+func (e *SaltpackVerify) attached(ctx *Context) error {
 	hook := func(key saltpack.SigningPublicKey) error {
 		return e.identifySender(ctx, key)
 	}
-	return libkb.SaltPackVerify(e.G(), e.arg.Source, e.arg.Sink, hook)
+	return libkb.SaltpackVerify(e.G(), e.arg.Source, e.arg.Sink, hook)
 }
 
-func (e *SaltPackVerify) detached(ctx *Context) error {
+func (e *SaltpackVerify) detached(ctx *Context) error {
 	hook := func(key saltpack.SigningPublicKey) error {
 		return e.identifySender(ctx, key)
 	}
-	return libkb.SaltPackVerifyDetached(e.G(), e.arg.Source, e.arg.Opts.Signature, hook)
+	return libkb.SaltpackVerifyDetached(e.G(), e.arg.Source, e.arg.Opts.Signature, hook)
 }
 
-func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublicKey) (err error) {
-	defer e.G().Trace("SaltPackVerify::identifySender", func() error { return err })()
+func (e *SaltpackVerify) identifySender(ctx *Context, key saltpack.SigningPublicKey) (err error) {
+	defer e.G().Trace("SaltpackVerify::identifySender", func() error { return err })()
 
 	kid := libkb.SigningPublicKeyToKeybaseKID(key)
-	spsiArg := SaltPackSenderIdentifyArg{
+	spsiArg := SaltpackSenderIdentifyArg{
 		publicKey: kid,
 		reason: keybase1.IdentifyReason{
 			Reason: "Identify who signed this message",
@@ -91,16 +91,16 @@ func (e *SaltPackVerify) identifySender(ctx *Context, key saltpack.SigningPublic
 		userAssertion: e.arg.Opts.SignedBy,
 	}
 
-	spsiEng := NewSaltPackSenderIdentify(e.G(), &spsiArg)
+	spsiEng := NewSaltpackSenderIdentify(e.G(), &spsiArg)
 	if err = RunEngine(spsiEng, ctx); err != nil {
 		return err
 	}
 
-	arg := keybase1.SaltPackVerifySuccessArg{
+	arg := keybase1.SaltpackVerifySuccessArg{
 		Sender:     spsiEng.Result(),
 		SigningKID: kid,
 	}
-	ctx.SaltPackUI.SaltPackVerifySuccess(context.TODO(), arg)
+	ctx.SaltpackUI.SaltpackVerifySuccess(context.TODO(), arg)
 
 	return nil
 }

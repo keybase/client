@@ -67,7 +67,7 @@ func (s *CmdSign) Run() (err error) {
 		NewSecretUIProtocol(s.G()),
 	}
 
-	cli, err := GetSaltPackClient(s.G())
+	cli, err := GetSaltpackClient(s.G())
 	if err != nil {
 		return err
 	}
@@ -76,14 +76,14 @@ func (s *CmdSign) Run() (err error) {
 	}
 	snk, src, err := s.ClientFilterOpen()
 	if err == nil {
-		arg := keybase1.SaltPackSignArg{
+		arg := keybase1.SaltpackSignArg{
 			Source: src,
 			Sink:   snk,
-			Opts: keybase1.SaltPackSignOptions{
+			Opts: keybase1.SaltpackSignOptions{
 				Detached: s.detached,
 			},
 		}
-		err = cli.SaltPackSign(context.TODO(), arg)
+		err = cli.SaltpackSign(context.TODO(), arg)
 	}
 	cerr := s.Close(err)
 	return libkb.PickFirstError(err, cerr)

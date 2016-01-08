@@ -57,7 +57,7 @@ type CmdVerify struct {
 	UnixFilter
 	detachedData []byte
 	signedBy     string
-	spui         *SaltPackUI
+	spui         *SaltpackUI
 }
 
 func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
@@ -92,12 +92,12 @@ func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdVerify) Run() (err error) {
-	cli, err := GetSaltPackClient(c.G())
+	cli, err := GetSaltpackClient(c.G())
 	if err != nil {
 		return err
 	}
 
-	c.spui = &SaltPackUI{
+	c.spui = &SaltpackUI{
 		Contextified: libkb.NewContextified(c.G()),
 		terminal:     c.G().UI.GetTerminalUI(),
 	}
@@ -106,7 +106,7 @@ func (c *CmdVerify) Run() (err error) {
 		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 		NewIdentifyUIProtocol(c.G()),
-		keybase1.SaltPackUiProtocol(c.spui),
+		keybase1.SaltpackUiProtocol(c.spui),
 	}
 
 	if err = RegisterProtocolsWithContext(protocols, c.G()); err != nil {
@@ -114,15 +114,15 @@ func (c *CmdVerify) Run() (err error) {
 	}
 	snk, src, err := c.ClientFilterOpen()
 	if err == nil {
-		arg := keybase1.SaltPackVerifyArg{
+		arg := keybase1.SaltpackVerifyArg{
 			Source: src,
 			Sink:   snk,
-			Opts: keybase1.SaltPackVerifyOptions{
+			Opts: keybase1.SaltpackVerifyOptions{
 				Signature: c.detachedData,
 				SignedBy:  c.signedBy,
 			},
 		}
-		err = cli.SaltPackVerify(context.TODO(), arg)
+		err = cli.SaltpackVerify(context.TODO(), arg)
 	}
 	cerr := c.Close(err)
 	return libkb.PickFirstError(err, cerr)
