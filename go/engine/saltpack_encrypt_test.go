@@ -10,8 +10,8 @@ import (
 	"testing"
 )
 
-func TestSaltPackEncrypt(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltPackEncrypt")
+func TestSaltpackEncrypt(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncrypt")
 	defer tc.Cleanup()
 
 	u1 := CreateAndSignupFakeUser(tc, "nalcp")
@@ -25,13 +25,13 @@ func TestSaltPackEncrypt(t *testing.T) {
 
 	run := func(Recips []string) {
 		sink := libkb.NewBufferCloser()
-		arg := &SaltPackEncryptArg{
-			Opts:   keybase1.SaltPackEncryptOptions{Recipients: Recips},
+		arg := &SaltpackEncryptArg{
+			Opts:   keybase1.SaltpackEncryptOptions{Recipients: Recips},
 			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
 			Sink:   sink,
 		}
 
-		eng := NewSaltPackEncrypt(arg, tc.G)
+		eng := NewSaltpackEncrypt(arg, tc.G)
 		if err := RunEngine(eng, ctx); err != nil {
 			t.Fatal(err)
 		}
@@ -48,8 +48,8 @@ func TestSaltPackEncrypt(t *testing.T) {
 	run([]string{u1.Username, u2.Username, u3.Username})
 }
 
-func TestSaltPackEncryptSelfNoKey(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltPackEncrypt")
+func TestSaltpackEncryptSelfNoKey(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncrypt")
 	defer tc.Cleanup()
 
 	_, passphrase := createFakeUserWithNoKeys(tc)
@@ -59,23 +59,23 @@ func TestSaltPackEncryptSelfNoKey(t *testing.T) {
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: &libkb.TestSecretUI{Passphrase: passphrase}}
 
 	sink := libkb.NewBufferCloser()
-	arg := &SaltPackEncryptArg{
-		Opts: keybase1.SaltPackEncryptOptions{
+	arg := &SaltpackEncryptArg{
+		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
 		},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 	}
 
-	eng := NewSaltPackEncrypt(arg, tc.G)
+	eng := NewSaltpackEncrypt(arg, tc.G)
 	err := RunEngine(eng, ctx)
 	if _, ok := err.(libkb.NoKeyError); !ok {
 		t.Fatalf("expected error type libkb.NoKeyError, got %T (%s)", err, err)
 	}
 }
 
-func TestSaltPackEncryptLoggedOut(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltPackEncrypt")
+func TestSaltpackEncryptLoggedOut(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncrypt")
 	defer tc.Cleanup()
 
 	trackUI := &FakeIdentifyUI{
@@ -84,23 +84,23 @@ func TestSaltPackEncryptLoggedOut(t *testing.T) {
 	ctx := &Context{IdentifyUI: trackUI}
 
 	sink := libkb.NewBufferCloser()
-	arg := &SaltPackEncryptArg{
-		Opts: keybase1.SaltPackEncryptOptions{
+	arg := &SaltpackEncryptArg{
+		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
 		},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 	}
 
-	eng := NewSaltPackEncrypt(arg, tc.G)
+	eng := NewSaltpackEncrypt(arg, tc.G)
 	err := RunEngine(eng, ctx)
 	if err != nil {
 		t.Fatalf("Got unexpected error: %s", err)
 	}
 }
 
-func TestSaltPackEncryptNoNaclOnlyPGP(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltPackEncrypt")
+func TestSaltpackEncryptNoNaclOnlyPGP(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncrypt")
 	defer tc.Cleanup()
 
 	u2 := createFakeUserWithPGPOnly(t, tc)
@@ -113,13 +113,13 @@ func TestSaltPackEncryptNoNaclOnlyPGP(t *testing.T) {
 	ctx := &Context{
 		IdentifyUI: trackUI,
 		SecretUI:   u1.NewSecretUI(),
-		SaltPackUI: &fakeSaltPackUI{},
+		SaltpackUI: &fakeSaltpackUI{},
 	}
 
 	msg := "this will never work"
 	sink := libkb.NewBufferCloser()
-	arg := &SaltPackEncryptArg{
-		Opts: keybase1.SaltPackEncryptOptions{
+	arg := &SaltpackEncryptArg{
+		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients:    []string{u2.Username},
 			NoSelfEncrypt: true,
 		},
@@ -127,7 +127,7 @@ func TestSaltPackEncryptNoNaclOnlyPGP(t *testing.T) {
 		Sink:   sink,
 	}
 
-	eng := NewSaltPackEncrypt(arg, tc.G)
+	eng := NewSaltpackEncrypt(arg, tc.G)
 	err := RunEngine(eng, ctx)
 	if perr, ok := err.(libkb.NoNaClEncryptionKeyError); !ok {
 		t.Fatalf("Got wrong error type: %T %v", err, err)
@@ -138,8 +138,8 @@ func TestSaltPackEncryptNoNaclOnlyPGP(t *testing.T) {
 	}
 }
 
-func TestSaltPackEncryptNoSelf(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltPackEncrypt")
+func TestSaltpackEncryptNoSelf(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncrypt")
 	defer tc.Cleanup()
 
 	u1 := CreateAndSignupFakeUser(tc, "nalcp")
@@ -153,12 +153,12 @@ func TestSaltPackEncryptNoSelf(t *testing.T) {
 	ctx := &Context{
 		IdentifyUI: trackUI,
 		SecretUI:   u2.NewSecretUI(),
-		SaltPackUI: &fakeSaltPackUI{},
+		SaltpackUI: &fakeSaltpackUI{},
 	}
 
 	sink := libkb.NewBufferCloser()
-	arg := &SaltPackEncryptArg{
-		Opts: keybase1.SaltPackEncryptOptions{
+	arg := &SaltpackEncryptArg{
+		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients:    []string{u1.Username},
 			NoSelfEncrypt: true,
 		},
@@ -166,7 +166,7 @@ func TestSaltPackEncryptNoSelf(t *testing.T) {
 		Sink:   sink,
 	}
 
-	eng := NewSaltPackEncrypt(arg, tc.G)
+	eng := NewSaltpackEncrypt(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -178,11 +178,11 @@ func TestSaltPackEncryptNoSelf(t *testing.T) {
 
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
-	decarg := &SaltPackDecryptArg{
+	decarg := &SaltpackDecryptArg{
 		Source: strings.NewReader(string(out)),
 		Sink:   decoded,
 	}
-	dec := NewSaltPackDecrypt(decarg, tc.G)
+	dec := NewSaltpackDecrypt(decarg, tc.G)
 	err := RunEngine(dec, ctx)
 	if _, ok := err.(libkb.NoDecryptionKeyError); !ok {
 		t.Fatalf("Expected err type %T, but got %T", libkb.NoDecryptionKeyError{}, err)
@@ -193,7 +193,7 @@ func TestSaltPackEncryptNoSelf(t *testing.T) {
 
 	ctx.SecretUI = u1.NewSecretUI()
 	decarg.Source = strings.NewReader(string(out))
-	dec = NewSaltPackDecrypt(decarg, tc.G)
+	dec = NewSaltpackDecrypt(decarg, tc.G)
 	err = RunEngine(dec, ctx)
 	if err != nil {
 		t.Fatal(err)

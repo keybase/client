@@ -449,7 +449,7 @@ func TestSignCorruptHeader(t *testing.T) {
 
 	// change the version
 	opts.corruptHeader = func(sh *SignatureHeader) {
-		sh.Version = Version{Major: SaltPackCurrentVersion.Major + 1, Minor: 0}
+		sh.Version = Version{Major: SaltpackCurrentVersion.Major + 1, Minor: 0}
 	}
 	smsg, err = testTweakSign(msg, key, opts)
 	if err != nil {

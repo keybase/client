@@ -11,45 +11,45 @@ import (
 	"golang.org/x/net/context"
 )
 
-type SaltPackHandler struct {
+type SaltpackHandler struct {
 	*BaseHandler
 	libkb.Contextified
 }
 
-type RemoteSaltPackUI struct {
+type RemoteSaltpackUI struct {
 	sessionID int
-	cli       keybase1.SaltPackUiClient
+	cli       keybase1.SaltpackUiClient
 }
 
-func NewRemoteSaltPackUI(sessionID int, c *rpc.Client) *RemoteSaltPackUI {
-	return &RemoteSaltPackUI{
+func NewRemoteSaltpackUI(sessionID int, c *rpc.Client) *RemoteSaltpackUI {
+	return &RemoteSaltpackUI{
 		sessionID: sessionID,
-		cli:       keybase1.SaltPackUiClient{Cli: c},
+		cli:       keybase1.SaltpackUiClient{Cli: c},
 	}
 }
 
-func (r *RemoteSaltPackUI) SaltPackPromptForDecrypt(ctx context.Context, arg keybase1.SaltPackPromptForDecryptArg) (err error) {
+func (r *RemoteSaltpackUI) SaltpackPromptForDecrypt(ctx context.Context, arg keybase1.SaltpackPromptForDecryptArg) (err error) {
 	arg.SessionID = r.sessionID
-	return r.cli.SaltPackPromptForDecrypt(ctx, arg)
+	return r.cli.SaltpackPromptForDecrypt(ctx, arg)
 }
 
-func (r *RemoteSaltPackUI) SaltPackVerifySuccess(ctx context.Context, arg keybase1.SaltPackVerifySuccessArg) (err error) {
+func (r *RemoteSaltpackUI) SaltpackVerifySuccess(ctx context.Context, arg keybase1.SaltpackVerifySuccessArg) (err error) {
 	arg.SessionID = r.sessionID
-	return r.cli.SaltPackVerifySuccess(ctx, arg)
+	return r.cli.SaltpackVerifySuccess(ctx, arg)
 }
 
-func NewSaltPackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltPackHandler {
-	return &SaltPackHandler{
+func NewSaltpackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltpackHandler {
+	return &SaltpackHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (h *SaltPackHandler) SaltPackDecrypt(_ context.Context, arg keybase1.SaltPackDecryptArg) (info keybase1.SaltPackEncryptedMessageInfo, err error) {
+func (h *SaltpackHandler) SaltpackDecrypt(_ context.Context, arg keybase1.SaltpackDecryptArg) (info keybase1.SaltpackEncryptedMessageInfo, err error) {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-	earg := &engine.SaltPackDecryptArg{
+	earg := &engine.SaltpackDecryptArg{
 		Sink:   snk,
 		Source: src,
 		Opts:   arg.Opts,
@@ -58,19 +58,19 @@ func (h *SaltPackHandler) SaltPackDecrypt(_ context.Context, arg keybase1.SaltPa
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID),
-		SaltPackUI: h.getSaltPackUI(arg.SessionID),
+		SaltpackUI: h.getSaltpackUI(arg.SessionID),
 	}
-	eng := engine.NewSaltPackDecrypt(earg, h.G())
+	eng := engine.NewSaltpackDecrypt(earg, h.G())
 	err = engine.RunEngine(eng, ctx)
 	info = eng.MessageInfo()
 	return info, err
 }
 
-func (h *SaltPackHandler) SaltPackEncrypt(_ context.Context, arg keybase1.SaltPackEncryptArg) error {
+func (h *SaltpackHandler) SaltpackEncrypt(_ context.Context, arg keybase1.SaltpackEncryptArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-	earg := &engine.SaltPackEncryptArg{
+	earg := &engine.SaltpackEncryptArg{
 		Opts:   arg.Opts,
 		Sink:   snk,
 		Source: src,
@@ -80,15 +80,15 @@ func (h *SaltPackHandler) SaltPackEncrypt(_ context.Context, arg keybase1.SaltPa
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewSaltPackEncrypt(earg, h.G())
+	eng := engine.NewSaltpackEncrypt(earg, h.G())
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *SaltPackHandler) SaltPackSign(_ context.Context, arg keybase1.SaltPackSignArg) error {
+func (h *SaltpackHandler) SaltpackSign(_ context.Context, arg keybase1.SaltpackSignArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-	earg := &engine.SaltPackSignArg{
+	earg := &engine.SaltpackSignArg{
 		Opts:   arg.Opts,
 		Sink:   snk,
 		Source: src,
@@ -98,15 +98,15 @@ func (h *SaltPackHandler) SaltPackSign(_ context.Context, arg keybase1.SaltPackS
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewSaltPackSign(earg, h.G())
+	eng := engine.NewSaltpackSign(earg, h.G())
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *SaltPackHandler) SaltPackVerify(_ context.Context, arg keybase1.SaltPackVerifyArg) error {
+func (h *SaltpackHandler) SaltpackVerify(_ context.Context, arg keybase1.SaltpackVerifyArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-	earg := &engine.SaltPackVerifyArg{
+	earg := &engine.SaltpackVerifyArg{
 		Opts:   arg.Opts,
 		Sink:   snk,
 		Source: src,
@@ -115,8 +115,8 @@ func (h *SaltPackHandler) SaltPackVerify(_ context.Context, arg keybase1.SaltPac
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID),
-		SaltPackUI: h.getSaltPackUI(arg.SessionID),
+		SaltpackUI: h.getSaltpackUI(arg.SessionID),
 	}
-	eng := engine.NewSaltPackVerify(earg, h.G())
+	eng := engine.NewSaltpackVerify(earg, h.G())
 	return engine.RunEngine(eng, ctx)
 }

@@ -1059,7 +1059,7 @@ export default {
       'critical': 2
     }
   },
-  'saltPack': {
+  'saltpack': {
     'LogLevel': {
       'none': 0,
       'debug': 1,

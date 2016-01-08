@@ -1293,13 +1293,13 @@ type WrongCryptoFormatError struct {
 func (e WrongCryptoFormatError) Error() string {
 	ret := "Wrong crypto message format"
 	switch {
-	case e.Wanted == CryptoMessageFormatPGP && e.Received == CryptoMessageFormatSaltPack:
-		ret += "; wanted PGP but got SaltPack"
+	case e.Wanted == CryptoMessageFormatPGP && e.Received == CryptoMessageFormatSaltpack:
+		ret += "; wanted PGP but got saltpack"
 		if len(e.Operation) > 0 {
 			ret += "; try `keybase " + e.Operation + "` instead"
 		}
-	case e.Wanted == CryptoMessageFormatSaltPack && e.Received == CryptoMessageFormatPGP:
-		ret += "; wanted SaltPack but got PGP"
+	case e.Wanted == CryptoMessageFormatSaltpack && e.Received == CryptoMessageFormatPGP:
+		ret += "; wanted saltpack but got PGP"
 		if len(e.Operation) > 0 {
 			ret += "; try `keybase pgp " + e.Operation + "` instead"
 		}

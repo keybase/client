@@ -16,18 +16,18 @@ import (
 	"golang.org/x/net/context"
 )
 
-type fakeSaltPackUI struct{}
+type fakeSaltpackUI struct{}
 
-func (s fakeSaltPackUI) SaltPackPromptForDecrypt(_ context.Context, arg keybase1.SaltPackPromptForDecryptArg) (err error) {
+func (s fakeSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.SaltpackPromptForDecryptArg) (err error) {
 	return nil
 }
 
-func (s fakeSaltPackUI) SaltPackVerifySuccess(_ context.Context, arg keybase1.SaltPackVerifySuccessArg) error {
+func (s fakeSaltpackUI) SaltpackVerifySuccess(_ context.Context, arg keybase1.SaltpackVerifySuccessArg) error {
 	return nil
 }
 
-func TestSaltPackDecrypt(t *testing.T) {
-	tc := SetupEngineTest(t, "SaltPackDecrypt")
+func TestSaltpackDecrypt(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackDecrypt")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "naclp")
 
@@ -38,14 +38,14 @@ func TestSaltPackDecrypt(t *testing.T) {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
-		SaltPackUI: &fakeSaltPackUI{},
+		SaltpackUI: &fakeSaltpackUI{},
 	}
 	// Should encrypt for self, too.
-	arg := &SaltPackEncryptArg{
+	arg := &SaltpackEncryptArg{
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 	}
-	enc := NewSaltPackEncrypt(arg, tc.G)
+	enc := NewSaltpackEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -55,11 +55,11 @@ func TestSaltPackDecrypt(t *testing.T) {
 
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
-	decarg := &SaltPackDecryptArg{
+	decarg := &SaltpackDecryptArg{
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltPackDecrypt(decarg, tc.G)
+	dec := NewSaltpackDecrypt(decarg, tc.G)
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -82,15 +82,15 @@ HTngZWUk8Tjn6Q8zrnnoB92G1G+rZHAiChgBFQCaYDBsWa0Pia6Vm+10OAIulGGj
 -----END PGP MESSAGE-----
 `
 	decoded = libkb.NewBufferCloser()
-	decarg = &SaltPackDecryptArg{
+	decarg = &SaltpackDecryptArg{
 		Source: strings.NewReader(pgpMsg),
 		Sink:   decoded,
 	}
-	dec = NewSaltPackDecrypt(decarg, tc.G)
+	dec = NewSaltpackDecrypt(decarg, tc.G)
 	err := RunEngine(dec, ctx)
 	if wse, ok := err.(libkb.WrongCryptoFormatError); !ok {
 		t.Fatalf("Wanted a WrongCryptoFormat error, but got %T (%v)", err, err)
-	} else if wse.Wanted != libkb.CryptoMessageFormatSaltPack ||
+	} else if wse.Wanted != libkb.CryptoMessageFormatSaltpack ||
 		wse.Received != libkb.CryptoMessageFormatPGP ||
 		wse.Operation != "decrypt" {
 		t.Fatalf("Bad error: %v", wse)
@@ -98,21 +98,21 @@ HTngZWUk8Tjn6Q8zrnnoB92G1G+rZHAiChgBFQCaYDBsWa0Pia6Vm+10OAIulGGj
 
 }
 
-type testDecryptSaltPackUI struct {
-	fakeSaltPackUI
-	f func(arg keybase1.SaltPackPromptForDecryptArg) error
+type testDecryptSaltpackUI struct {
+	fakeSaltpackUI
+	f func(arg keybase1.SaltpackPromptForDecryptArg) error
 }
 
-func (t *testDecryptSaltPackUI) SaltPackPromptForDecrypt(_ context.Context, arg keybase1.SaltPackPromptForDecryptArg) (err error) {
+func (t *testDecryptSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.SaltpackPromptForDecryptArg) (err error) {
 	if t.f == nil {
 		return nil
 	}
 	return t.f(arg)
 }
 
-func TestSaltPackDecryptBrokenTrack(t *testing.T) {
+func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 
-	tc := SetupEngineTest(t, "SaltPackDecrypt")
+	tc := SetupEngineTest(t, "SaltpackDecrypt")
 	defer tc.Cleanup()
 
 	// create a user to track the proofUser
@@ -126,7 +126,7 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	spui := testDecryptSaltPackUI{}
+	spui := testDecryptSaltpackUI{}
 
 	// encrypt a message
 	msg := "10 days in Japan"
@@ -135,20 +135,20 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   proofUser.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
-		SaltPackUI: &spui,
+		SaltpackUI: &spui,
 	}
 
-	arg := &SaltPackEncryptArg{
+	arg := &SaltpackEncryptArg{
 		Source: strings.NewReader(msg),
 		Sink:   sink,
-		Opts: keybase1.SaltPackEncryptOptions{
+		Opts: keybase1.SaltpackEncryptOptions{
 			NoSelfEncrypt: true,
 			Recipients: []string{
 				trackUser.Username,
 			},
 		},
 	}
-	enc := NewSaltPackEncrypt(arg, tc.G)
+	enc := NewSaltpackEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -159,7 +159,7 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 	sink = libkb.NewBufferCloser()
 	arg.Source = strings.NewReader(msg)
 	arg.Sink = sink
-	enc = NewSaltPackEncrypt(arg, tc.G)
+	enc = NewSaltpackEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -185,13 +185,13 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
-	decarg := &SaltPackDecryptArg{
+	decarg := &SaltpackDecryptArg{
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltPackDecrypt(decarg, tc.G)
-	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
-		if arg.Sender.SenderType != keybase1.SaltPackSenderType_TRACKING_OK {
+	dec := NewSaltpackDecrypt(decarg, tc.G)
+	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
+		if arg.Sender.SenderType != keybase1.SaltpackSenderType_TRACKING_OK {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
 		}
 		return nil
@@ -207,13 +207,13 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 
 	// now decrypt the hidden-self message
 	decoded = libkb.NewBufferCloser()
-	decarg = &SaltPackDecryptArg{
+	decarg = &SaltpackDecryptArg{
 		Source: strings.NewReader(outHidden),
 		Sink:   decoded,
 	}
-	dec = NewSaltPackDecrypt(decarg, tc.G)
-	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
-		if arg.Sender.SenderType != keybase1.SaltPackSenderType_ANONYMOUS {
+	dec = NewSaltpackDecrypt(decarg, tc.G)
+	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
+		if arg.Sender.SenderType != keybase1.SaltpackSenderType_ANONYMOUS {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
 		}
 		return nil
@@ -240,17 +240,17 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 	// broken.
 	trackUser.LoginOrBust(tc)
 	decoded = libkb.NewBufferCloser()
-	decarg = &SaltPackDecryptArg{
+	decarg = &SaltpackDecryptArg{
 		Source: strings.NewReader(out),
 		Sink:   decoded,
-		Opts: keybase1.SaltPackDecryptOptions{
+		Opts: keybase1.SaltpackDecryptOptions{
 			ForceRemoteCheck: true,
 		},
 	}
-	dec = NewSaltPackDecrypt(decarg, tc.G)
+	dec = NewSaltpackDecrypt(decarg, tc.G)
 	errTrackingBroke := errors.New("tracking broke")
-	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
-		if arg.Sender.SenderType != keybase1.SaltPackSenderType_TRACKING_BROKE {
+	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
+		if arg.Sender.SenderType != keybase1.SaltpackSenderType_TRACKING_BROKE {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
 		}
 		return errTrackingBroke
@@ -260,7 +260,7 @@ func TestSaltPackDecryptBrokenTrack(t *testing.T) {
 	}
 }
 
-func TestSaltPackNoEncryptionForDevice(t *testing.T) {
+func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -282,7 +282,7 @@ func TestSaltPackNoEncryptionForDevice(t *testing.T) {
 	}
 
 	encryptor := CreateAndSignupFakeUser(tcZ, "naclp")
-	spui := testDecryptSaltPackUI{}
+	spui := testDecryptSaltpackUI{}
 
 	// encrypt a message with encryption / tcZ
 	msg := "10 days in Japan"
@@ -291,19 +291,19 @@ func TestSaltPackNoEncryptionForDevice(t *testing.T) {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   encryptor.NewSecretUI(),
 		LogUI:      tcZ.G.UI.GetLogUI(),
-		SaltPackUI: &spui,
+		SaltpackUI: &spui,
 	}
 
-	arg := &SaltPackEncryptArg{
+	arg := &SaltpackEncryptArg{
 		Source: strings.NewReader(msg),
 		Sink:   sink,
-		Opts: keybase1.SaltPackEncryptOptions{
+		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients: []string{
 				userX.Username,
 			},
 		},
 	}
-	enc := NewSaltPackEncrypt(arg, tcZ.G)
+	enc := NewSaltpackEncrypt(arg, tcZ.G)
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -311,13 +311,13 @@ func TestSaltPackNoEncryptionForDevice(t *testing.T) {
 
 	// decrypt it with userX / tcX
 	decoded := libkb.NewBufferCloser()
-	decarg := &SaltPackDecryptArg{
+	decarg := &SaltpackDecryptArg{
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltPackDecrypt(decarg, tcX.G)
-	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
-		if arg.Sender.SenderType != keybase1.SaltPackSenderType_NOT_TRACKED {
+	dec := NewSaltpackDecrypt(decarg, tcX.G)
+	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
+		if arg.Sender.SenderType != keybase1.SaltpackSenderType_NOT_TRACKED {
 			t.Fatalf("Bad sender type: %v", arg.Sender.SenderType)
 		}
 		return nil
@@ -326,7 +326,7 @@ func TestSaltPackNoEncryptionForDevice(t *testing.T) {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   userX.NewSecretUI(),
 		LogUI:      tcX.G.UI.GetLogUI(),
-		SaltPackUI: &spui,
+		SaltpackUI: &spui,
 	}
 
 	if err := RunEngine(dec, ctx); err != nil {
@@ -389,12 +389,12 @@ func TestSaltPackNoEncryptionForDevice(t *testing.T) {
 
 	// Now try and fail to decrypt with device Y (via tcY)
 	decoded = libkb.NewBufferCloser()
-	decarg = &SaltPackDecryptArg{
+	decarg = &SaltpackDecryptArg{
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec = NewSaltPackDecrypt(decarg, tcY.G)
-	spui.f = func(arg keybase1.SaltPackPromptForDecryptArg) error {
+	dec = NewSaltpackDecrypt(decarg, tcY.G)
+	spui.f = func(arg keybase1.SaltpackPromptForDecryptArg) error {
 		t.Fatal("should not be prompted for decryption")
 		return nil
 	}
@@ -402,7 +402,7 @@ func TestSaltPackNoEncryptionForDevice(t *testing.T) {
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   userX.NewSecretUI(),
 		LogUI:      tcY.G.UI.GetLogUI(),
-		SaltPackUI: &spui,
+		SaltpackUI: &spui,
 	}
 
 	if err := RunEngine(dec, ctx); err == nil {

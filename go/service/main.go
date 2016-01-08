@@ -55,7 +55,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
-		keybase1.SaltPackProtocol(NewSaltPackHandler(xp, g)),
+		keybase1.SaltpackProtocol(NewSaltpackHandler(xp, g)),
 		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.ProveProtocol(NewProveHandler(xp, g)),
@@ -136,6 +136,11 @@ func (d *Service) Run() (err error) {
 		} else {
 			d.G().Log.Info("Changing runtime dir to %s", d.chdirTo)
 		}
+	}
+
+	// Explicitly set fork type here based on KEYBASE_LABEL
+	if len(d.G().Env.GetLabel()) > 0 && d.ForkType == keybase1.ForkType_NONE {
+		d.ForkType = keybase1.ForkType_LAUNCHD
 	}
 
 	if err = d.GetExclusiveLock(); err != nil {

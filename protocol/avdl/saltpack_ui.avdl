@@ -3,7 +3,7 @@
 protocol saltpackUi {
   import idl "common.avdl";
 
-  enum SaltPackSenderType {
+  enum SaltpackSenderType {
   	NOT_TRACKED_0,
   	UNKNOWN_1,
   	ANONYMOUS_2,
@@ -11,10 +11,10 @@ protocol saltpackUi {
   	TRACKING_OK_4
   }
 
-  record SaltPackSender {
+  record SaltpackSender {
     UID uid;
     string username;
-    SaltPackSenderType senderType;
+    SaltpackSenderType senderType;
   }
 
   // Users might want to prevent a decryption on the basis of who sent the message,

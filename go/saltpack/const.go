@@ -24,40 +24,40 @@ const MessageTypeAttachedSignature MessageType = 1
 // detached signature.
 const MessageTypeDetachedSignature MessageType = 2
 
-// SaltPackCurrentVersion is currently the only supported packet
+// SaltpackCurrentVersion is currently the only supported packet
 // version, 1.0.
-var SaltPackCurrentVersion = Version{Major: 1, Minor: 0}
+var SaltpackCurrentVersion = Version{Major: 1, Minor: 0}
 
 // EncryptionBlockSize is by default 1MB and can't currently be tweaked.
 const EncryptionBlockSize int = 1048576
 
 // EncryptionArmorHeader is the header that marks the start of an encrypted
 // armored KB message.
-const EncryptionArmorHeader = "BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE"
+const EncryptionArmorHeader = "BEGIN KEYBASE Saltpack ENCRYPTED MESSAGE"
 
 // EncryptionArmorFooter is the footer that marks the end of an encrypted
 // armored KB message.
-const EncryptionArmorFooter = "END KEYBASE SALTPACK ENCRYPTED MESSAGE"
+const EncryptionArmorFooter = "END KEYBASE Saltpack ENCRYPTED MESSAGE"
 
 // SignedArmorHeader is the header that marks the start of signed
 // armored KB message.
-const SignedArmorHeader = "BEGIN KEYBASE SALTPACK SIGNED MESSAGE"
+const SignedArmorHeader = "BEGIN KEYBASE Saltpack SIGNED MESSAGE"
 
 // SignedArmorFooter is the footer that marks the end of signed
 // armored KB message.
-const SignedArmorFooter = "END KEYBASE SALTPACK SIGNED MESSAGE"
+const SignedArmorFooter = "END KEYBASE Saltpack SIGNED MESSAGE"
 
 // DetachedSignatureArmorHeader is the header that marks the start of
 // a detached armored KB signature.
-const DetachedSignatureArmorHeader = "BEGIN KEYBASE SALTPACK DETACHED SIGNATURE"
+const DetachedSignatureArmorHeader = "BEGIN KEYBASE Saltpack DETACHED SIGNATURE"
 
 // DetachedSignatureArmorFooter is the footer that marks the end of
 // a detached armored KB signature.
-const DetachedSignatureArmorFooter = "END KEYBASE SALTPACK DETACHED SIGNATURE"
+const DetachedSignatureArmorFooter = "END KEYBASE Saltpack DETACHED SIGNATURE"
 
-// SaltPackFormatName is the publicly advertised name of the format,
+// SaltpackFormatName is the publicly advertised name of the format,
 // used in the header of the message and also in Nonce creation.
-const SaltPackFormatName = "saltpack"
+const SaltpackFormatName = "Saltpack"
 
 // NoncePrefixEncryption is the prefix used to create the nonce when
 // using the nonce for encryption.

@@ -4642,27 +4642,27 @@ func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err 
 	return
 }
 
-type SaltpackEncryptOptions struct {
+type SaltPackEncryptOptions struct {
 	Recipients    []string `codec:"recipients" json:"recipients"`
 	HideSelf      bool     `codec:"hideSelf" json:"hideSelf"`
 	NoSelfEncrypt bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
 }
 
-type SaltpackDecryptOptions struct {
+type SaltPackDecryptOptions struct {
 	Interactive      bool `codec:"interactive" json:"interactive"`
 	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
-type SaltpackSignOptions struct {
+type SaltPackSignOptions struct {
 	Detached bool `codec:"detached" json:"detached"`
 }
 
-type SaltpackVerifyOptions struct {
+type SaltPackVerifyOptions struct {
 	SignedBy  string `codec:"signedBy" json:"signedBy"`
 	Signature []byte `codec:"signature" json:"signature"`
 }
 
-type SaltpackEncryptedMessageInfo struct {
+type SaltPackEncryptedMessageInfo struct {
 	Devices          []Device `codec:"devices" json:"devices"`
 	NumAnonReceivers int      `codec:"numAnonReceivers" json:"numAnonReceivers"`
 	ReceiverIsAnon   bool     `codec:"receiverIsAnon" json:"receiverIsAnon"`
@@ -4672,40 +4672,40 @@ type SaltPackEncryptArg struct {
 	SessionID int                    `codec:"sessionID" json:"sessionID"`
 	Source    Stream                 `codec:"source" json:"source"`
 	Sink      Stream                 `codec:"sink" json:"sink"`
-	Opts      SaltpackEncryptOptions `codec:"opts" json:"opts"`
+	Opts      SaltPackEncryptOptions `codec:"opts" json:"opts"`
 }
 
-type SaltPackDecryptArg struct {
+type SaltpackDecryptArg struct {
 	SessionID int                    `codec:"sessionID" json:"sessionID"`
 	Source    Stream                 `codec:"source" json:"source"`
 	Sink      Stream                 `codec:"sink" json:"sink"`
-	Opts      SaltpackDecryptOptions `codec:"opts" json:"opts"`
+	Opts      SaltPackDecryptOptions `codec:"opts" json:"opts"`
 }
 
-type SaltPackSignArg struct {
+type SaltpackSignArg struct {
 	SessionID int                 `codec:"sessionID" json:"sessionID"`
 	Source    Stream              `codec:"source" json:"source"`
 	Sink      Stream              `codec:"sink" json:"sink"`
-	Opts      SaltpackSignOptions `codec:"opts" json:"opts"`
+	Opts      SaltPackSignOptions `codec:"opts" json:"opts"`
 }
 
-type SaltPackVerifyArg struct {
+type SaltpackVerifyArg struct {
 	SessionID int                   `codec:"sessionID" json:"sessionID"`
 	Source    Stream                `codec:"source" json:"source"`
 	Sink      Stream                `codec:"sink" json:"sink"`
-	Opts      SaltpackVerifyOptions `codec:"opts" json:"opts"`
+	Opts      SaltPackVerifyOptions `codec:"opts" json:"opts"`
 }
 
-type SaltPackInterface interface {
+type SaltpackInterface interface {
 	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
 	SaltPackDecrypt(context.Context, SaltPackDecryptArg) (SaltpackEncryptedMessageInfo, error)
-	SaltPackSign(context.Context, SaltPackSignArg) error
-	SaltPackVerify(context.Context, SaltPackVerifyArg) error
+	SaltpackSign(context.Context, SaltpackSignArg) error
+	SaltpackVerify(context.Context, SaltpackVerifyArg) error
 }
 
-func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
+func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 	return rpc.Protocol{
-		Name: "keybase.1.saltPack",
+		Name: "keybase.1.saltpack",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"saltPackEncrypt": {
 				MakeArg: func() interface{} {
@@ -4723,50 +4723,50 @@ func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"saltPackDecrypt": {
+			"saltpackDecrypt": {
 				MakeArg: func() interface{} {
-					ret := make([]SaltPackDecryptArg, 1)
+					ret := make([]SaltpackDecryptArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SaltPackDecryptArg)
+					typedArgs, ok := args.(*[]SaltpackDecryptArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SaltPackDecryptArg)(nil), args)
+						err = rpc.NewTypeError((*[]SaltpackDecryptArg)(nil), args)
 						return
 					}
-					ret, err = i.SaltPackDecrypt(ctx, (*typedArgs)[0])
+					ret, err = i.SaltpackDecrypt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"saltPackSign": {
+			"saltpackSign": {
 				MakeArg: func() interface{} {
-					ret := make([]SaltPackSignArg, 1)
+					ret := make([]SaltpackSignArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SaltPackSignArg)
+					typedArgs, ok := args.(*[]SaltpackSignArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SaltPackSignArg)(nil), args)
+						err = rpc.NewTypeError((*[]SaltpackSignArg)(nil), args)
 						return
 					}
-					err = i.SaltPackSign(ctx, (*typedArgs)[0])
+					err = i.SaltpackSign(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"saltPackVerify": {
+			"saltpackVerify": {
 				MakeArg: func() interface{} {
-					ret := make([]SaltPackVerifyArg, 1)
+					ret := make([]SaltpackVerifyArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SaltPackVerifyArg)
+					typedArgs, ok := args.(*[]SaltpackVerifyArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SaltPackVerifyArg)(nil), args)
+						err = rpc.NewTypeError((*[]SaltpackVerifyArg)(nil), args)
 						return
 					}
-					err = i.SaltPackVerify(ctx, (*typedArgs)[0])
+					err = i.SaltpackVerify(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4775,94 +4775,94 @@ func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
 	}
 }
 
-type SaltPackClient struct {
+type SaltpackClient struct {
 	Cli GenericClient
 }
 
-func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackEncrypt", []interface{}{__arg}, nil)
+func (c SaltpackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltPackEncrypt", []interface{}{__arg}, nil)
 	return
 }
 
 func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (res SaltpackEncryptedMessageInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackDecrypt", []interface{}{__arg}, &res)
 	return
 }
 
-func (c SaltPackClient) SaltPackSign(ctx context.Context, __arg SaltPackSignArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackSign", []interface{}{__arg}, nil)
+func (c SaltpackClient) SaltpackSign(ctx context.Context, __arg SaltpackSignArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSign", []interface{}{__arg}, nil)
 	return
 }
 
-func (c SaltPackClient) SaltPackVerify(ctx context.Context, __arg SaltPackVerifyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackVerify", []interface{}{__arg}, nil)
+func (c SaltpackClient) SaltpackVerify(ctx context.Context, __arg SaltpackVerifyArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerify", []interface{}{__arg}, nil)
 	return
 }
 
-type SaltpackSenderType int
+type SaltPackSenderType int
 
 const (
-	SaltpackSenderType_NOT_TRACKED    SaltpackSenderType = 0
-	SaltpackSenderType_UNKNOWN        SaltpackSenderType = 1
-	SaltpackSenderType_ANONYMOUS      SaltpackSenderType = 2
-	SaltpackSenderType_TRACKING_BROKE SaltpackSenderType = 3
-	SaltpackSenderType_TRACKING_OK    SaltpackSenderType = 4
+	SaltPackSenderType_NOT_TRACKED    SaltPackSenderType = 0
+	SaltPackSenderType_UNKNOWN        SaltPackSenderType = 1
+	SaltPackSenderType_ANONYMOUS      SaltPackSenderType = 2
+	SaltPackSenderType_TRACKING_BROKE SaltPackSenderType = 3
+	SaltPackSenderType_TRACKING_OK    SaltPackSenderType = 4
 )
 
-type SaltpackSender struct {
+type SaltPackSender struct {
 	Uid        UID                `codec:"uid" json:"uid"`
 	Username   string             `codec:"username" json:"username"`
-	SenderType SaltpackSenderType `codec:"senderType" json:"senderType"`
+	SenderType SaltPackSenderType `codec:"senderType" json:"senderType"`
 }
 
-type SaltpackPromptForDecryptArg struct {
+type SaltPackPromptForDecryptArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
-	Sender    SaltpackSender `codec:"sender" json:"sender"`
+	Sender    SaltPackSender `codec:"sender" json:"sender"`
 }
 
-type SaltpackVerifySuccessArg struct {
+type SaltPackVerifySuccessArg struct {
 	SessionID  int            `codec:"sessionID" json:"sessionID"`
 	SigningKID KID            `codec:"signingKID" json:"signingKID"`
-	Sender     SaltpackSender `codec:"sender" json:"sender"`
+	Sender     SaltPackSender `codec:"sender" json:"sender"`
 }
 
-type SaltpackUiInterface interface {
-	SaltpackPromptForDecrypt(context.Context, SaltpackPromptForDecryptArg) error
-	SaltpackVerifySuccess(context.Context, SaltpackVerifySuccessArg) error
+type SaltPackUiInterface interface {
+	SaltPackPromptForDecrypt(context.Context, SaltPackPromptForDecryptArg) error
+	SaltPackVerifySuccess(context.Context, SaltPackVerifySuccessArg) error
 }
 
-func SaltpackUiProtocol(i SaltpackUiInterface) rpc.Protocol {
+func SaltPackUiProtocol(i SaltPackUiInterface) rpc.Protocol {
 	return rpc.Protocol{
-		Name: "keybase.1.saltpackUi",
+		Name: "keybase.1.saltPackUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"saltpackPromptForDecrypt": {
+			"saltPackPromptForDecrypt": {
 				MakeArg: func() interface{} {
-					ret := make([]SaltpackPromptForDecryptArg, 1)
+					ret := make([]SaltPackPromptForDecryptArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SaltpackPromptForDecryptArg)
+					typedArgs, ok := args.(*[]SaltPackPromptForDecryptArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SaltpackPromptForDecryptArg)(nil), args)
+						err = rpc.NewTypeError((*[]SaltPackPromptForDecryptArg)(nil), args)
 						return
 					}
-					err = i.SaltpackPromptForDecrypt(ctx, (*typedArgs)[0])
+					err = i.SaltPackPromptForDecrypt(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"saltpackVerifySuccess": {
+			"saltPackVerifySuccess": {
 				MakeArg: func() interface{} {
-					ret := make([]SaltpackVerifySuccessArg, 1)
+					ret := make([]SaltPackVerifySuccessArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SaltpackVerifySuccessArg)
+					typedArgs, ok := args.(*[]SaltPackVerifySuccessArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SaltpackVerifySuccessArg)(nil), args)
+						err = rpc.NewTypeError((*[]SaltPackVerifySuccessArg)(nil), args)
 						return
 					}
-					err = i.SaltpackVerifySuccess(ctx, (*typedArgs)[0])
+					err = i.SaltPackVerifySuccess(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4871,17 +4871,17 @@ func SaltpackUiProtocol(i SaltpackUiInterface) rpc.Protocol {
 	}
 }
 
-type SaltpackUiClient struct {
+type SaltPackUiClient struct {
 	Cli GenericClient
 }
 
-func (c SaltpackUiClient) SaltpackPromptForDecrypt(ctx context.Context, __arg SaltpackPromptForDecryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackPromptForDecrypt", []interface{}{__arg}, nil)
+func (c SaltPackUiClient) SaltPackPromptForDecrypt(ctx context.Context, __arg SaltPackPromptForDecryptArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackPromptForDecrypt", []interface{}{__arg}, nil)
 	return
 }
 
-func (c SaltpackUiClient) SaltpackVerifySuccess(ctx context.Context, __arg SaltpackVerifySuccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifySuccess", []interface{}{__arg}, nil)
+func (c SaltPackUiClient) SaltPackVerifySuccess(ctx context.Context, __arg SaltPackVerifySuccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackVerifySuccess", []interface{}{__arg}, nil)
 	return
 }
 
