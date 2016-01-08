@@ -1169,7 +1169,7 @@ export default {
       'resource': 6
     }
   },
-  'saltPackUi': {
+  'saltpackUi': {
     'LogLevel': {
       'none': 0,
       'debug': 1,

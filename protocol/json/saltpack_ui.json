@@ -1,5 +1,5 @@
 {
-  "protocol" : "saltPackUi",
+  "protocol" : "saltpackUi",
   "namespace" : "keybase.1",
   "types" : [ {
     "type" : "record",
@@ -268,7 +268,7 @@
     } ]
   } ],
   "messages" : {
-    "saltPackPromptForDecrypt" : {
+    "saltpackPromptForDecrypt" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -278,7 +278,7 @@
       } ],
       "response" : "null"
     },
-    "saltPackVerifySuccess" : {
+    "saltpackVerifySuccess" : {
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
