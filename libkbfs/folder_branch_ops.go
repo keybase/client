@@ -40,10 +40,12 @@ const (
 )
 
 type syncInfo struct {
-	oldInfo BlockInfo
-	op      *syncOp
-	unrefs  []BlockInfo
-	bps     *blockPutState
+	oldInfo    BlockInfo
+	op         *syncOp
+	unrefs     []BlockInfo
+	bps        *blockPutState
+	refBytes   uint64
+	unrefBytes uint64
 }
 
 // Constants used in this file.  TODO: Make these configurable?
@@ -3270,7 +3272,22 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	}()
 	if si.bps == nil {
 		si.bps = newBlockPutState(1)
+	} else {
+		// reinstate byte accounting from the previous Sync
+		md.RefBytes = si.refBytes
+		md.DiskUsage += si.refBytes
+		md.UnrefBytes = si.unrefBytes
+		md.DiskUsage -= si.unrefBytes
+		syncIndirectFileBlockPtrs = append(syncIndirectFileBlockPtrs,
+			si.op.Refs()...)
 	}
+	doSaveBytes := true
+	defer func() {
+		if doSaveBytes {
+			si.refBytes = md.RefBytes
+			si.unrefBytes = md.UnrefBytes
+		}
+	}()
 
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
@@ -3460,6 +3477,12 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	if err != nil {
 		return true, err
 	}
+
+	// All bytes past this point don't need to be saved, since they
+	// are specific to this sync.
+	doSaveBytes = false
+	si.refBytes = md.RefBytes
+	si.unrefBytes = md.UnrefBytes
 
 	newPath, _, newBps, err :=
 		fbo.syncBlockAndCheckEmbed(ctx, lState, md, fblock, *parentPath,

@@ -1100,7 +1100,10 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// wait for proceedChan to close, so we know the errPtr has been set
 	<-proceedChan
 
-	// make sure the error'd file didn't make it to the cache
+	// Make sure the error'd file didn't make it to the actual cache
+	// -- it's still in the permanent cache because the file might
+	// still be read or sync'd later.
+	config.BlockCache().DeletePermanent(errPtr.ID)
 	if _, err := config.BlockCache().Get(errPtr, MasterBranch); err == nil {
 		t.Errorf("Failed block put for %v left block in cache", errPtr)
 	}
