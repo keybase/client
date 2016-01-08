@@ -123,7 +123,7 @@ func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybas
 
 	key, err := getMatchingSecretKey(g, secretUI, arg)
 	if err != nil {
-		return bytes32, err
+		return res, err
 	}
 
 	g.Log.Debug("found key for unbox: %s", key.GetKID())
