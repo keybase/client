@@ -70,6 +70,11 @@ build_one_architecture() {
   (cd ../../desktop && node package.js --platform linux --arch $electron_arch)
   (cd ../../desktop && rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" "$dest/build/opt/keybase")
 
+  # Create the /keybase mount point.
+  mount_point="$dest/build/keybase"
+  mkdir "$mount_point"
+  chmod 777 "$mount_point"
+
   fakeroot dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
 
   # Write the version number to a file for the caller's convenience.
