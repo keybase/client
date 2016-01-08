@@ -1,6 +1,8 @@
 @namespace("keybase.1")
 
 protocol crypto {
+  import idl "common.avdl";
+
   fixed ED25519PublicKey(32);
   fixed ED25519Signature(64);
 
@@ -38,4 +40,11 @@ protocol crypto {
     SecretEntryArg object passed into secretUi.getSecret().
     */
   Bytes32 unboxBytes32(EncryptedBytes32 encryptedBytes32, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
+ 
+  record CiphertextKIDPair {
+    KID kid;
+    EncryptedBytes32 ciphertext;
+  }
+
+  Bytes32 unboxBytes32Any(array<CiphertextKIDPair> pairs, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
 }

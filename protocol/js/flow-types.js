@@ -505,6 +505,113 @@ export type constants_StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_20
 
 export type StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_201' */ | 202 /* 'SCBadSession_202' */ | 203 /* 'SCBadLoginUserNotFound_203' */ | 204 /* 'SCBadLoginPassword_204' */ | 205 /* 'SCNotFound_205' */ | 218 /* 'SCGeneric_218' */ | 235 /* 'SCAlreadyLoggedIn_235' */ | 237 /* 'SCCanceled_237' */ | 238 /* 'SCInputCanceled_238' */ | 274 /* 'SCReloginRequired_274' */ | 275 /* 'SCResolutionFailed_275' */ | 276 /* 'SCProfileNotPublic_276' */ | 277 /* 'SCIdentifyFailed_277' */ | 278 /* 'SCTrackingBroke_278' */ | 279 /* 'SCWrongCryptoFormat_279' */ | 701 /* 'SCBadSignupUsernameTaken_701' */ | 801 /* 'SCMissingResult_801' */ | 901 /* 'SCKeyNotFound_901' */ | 907 /* 'SCKeyInUse_907' */ | 913 /* 'SCKeyBadGen_913' */ | 914 /* 'SCKeyNoSecret_914' */ | 915 /* 'SCKeyBadUIDs_915' */ | 916 /* 'SCKeyNoActive_916' */ | 917 /* 'SCKeyNoSig_917' */ | 918 /* 'SCKeyBadSig_918' */ | 919 /* 'SCKeyBadEldest_919' */ | 920 /* 'SCKeyNoEldest_920' */ | 921 /* 'SCKeyDuplicateUpdate_921' */ | 922 /* 'SCSibkeyAlreadyExists_922' */ | 924 /* 'SCDecryptionKeyNotFound_924' */ | 927 /* 'SCKeyNoPGPEncryption_927' */ | 928 /* 'SCKeyNoNaClEncryption_928' */ | 929 /* 'SCKeySyncedPGPNotFound_929' */ | 1301 /* 'SCBadTrackSession_1301' */ | 1409 /* 'SCDeviceNotFound_1409' */ | 1410 /* 'SCDeviceMismatch_1410' */ | 1411 /* 'SCDeviceRequired_1411' */ | 1501 /* 'SCStreamExists_1501' */ | 1502 /* 'SCStreamNotFound_1502' */ | 1503 /* 'SCStreamWrongKind_1503' */ | 1504 /* 'SCStreamEOF_1504' */ | 1601 /* 'SCAPINetworkError_1601' */ | 1602 /* 'SCTimeout_1602' */ | 1701 /* 'SCProofError_1701' */ | 1702 /* 'SCIdentificationExpired_1702' */ | 1703 /* 'SCSelfNotFound_1703' */ | 1704 /* 'SCBadKexPhrase_1704' */ | 1705 /* 'SCNoUIDelegation_1705' */
 
+export type crypto_Time = {
+}
+
+export type crypto_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type crypto_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type crypto_UID = {
+}
+
+export type crypto_DeviceID = {
+}
+
+export type crypto_SigID = {
+}
+
+export type crypto_KID = {
+}
+
+export type crypto_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type crypto_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type crypto_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type crypto_User = {
+  uid: UID;
+  username: string;
+}
+
+export type crypto_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
+}
+
+export type crypto_Stream = {
+  fd: int;
+}
+
+export type crypto_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type crypto_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type crypto_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type crypto_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
+export type crypto_Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
+export type crypto_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
+export type crypto_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
 export type crypto_ED25519SignatureInfo = {
   sig: ED25519Signature;
   publicKey: ED25519PublicKey;
@@ -513,6 +620,16 @@ export type crypto_ED25519SignatureInfo = {
 export type ED25519SignatureInfo = {
   sig: ED25519Signature;
   publicKey: ED25519PublicKey;
+}
+
+export type crypto_CiphertextKIDPair = {
+  kid: KID;
+  ciphertext: EncryptedBytes32;
+}
+
+export type CiphertextKIDPair = {
+  kid: KID;
+  ciphertext: EncryptedBytes32;
 }
 
 export type ctl_Time = {
