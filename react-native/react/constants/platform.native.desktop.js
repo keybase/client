@@ -12,6 +12,12 @@ if (__DEV__) { // eslint-disable-line no-undef
   console.log(`Run mode: ${runMode}`)
 }
 
+const envedPathLinux = {
+  staging: 'keybase.staging',
+  devel: 'keybase.devel',
+  prod: 'keybase'
+}
+
 const envedPathOSX = {
   staging: 'KeybaseStaging',
   devel: 'KeybaseDevel',
@@ -44,9 +50,10 @@ function findSocketRoot () {
 }
 
 function findDataRoot () {
+  linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`,
-    'linux': `${getenv('XDG_DATA_DIR', '')}/keybase.${runMode}/`,
+    'linux': `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`,
     'win32': `${getenv('APPDATA', '')}\\Keybase\\`
   }
 
