@@ -185,6 +185,12 @@ func TestKeybaseDaemonSessionCache(t *testing.T) {
 
 	// Should be cached again.
 	testCurrentSession(t, client, c, session, expectCached)
+
+	// Should invalidate cache.
+	c.OnDisconnected(UsingExistingConnection)
+
+	// Should fill cache again.
+	testCurrentSession(t, client, c, session, expectCall)
 }
 
 func testLoadUserPlusKeys(
@@ -286,4 +292,11 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 
 	// Should be cached again.
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCached)
+
+	// Should invalidate cache for all users.
+	c.OnDisconnected(UsingExistingConnection)
+
+	// Should fill cache again.
+	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCall)
+	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCall)
 }

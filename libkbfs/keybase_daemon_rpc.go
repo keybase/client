@@ -136,6 +136,13 @@ func (k *KeybaseDaemonRPC) setCachedUserInfo(uid keybase1.UID, info UserInfo) {
 	}
 }
 
+func (k *KeybaseDaemonRPC) clearCaches() {
+	k.setCachedCurrentSession(SessionInfo{})
+	k.userCacheLock.Lock()
+	defer k.userCacheLock.Unlock()
+	k.userCache = make(map[keybase1.UID]UserInfo)
+}
+
 // LoggedOut implements keybase1.NotifySessionInterface.
 func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
 	k.log.CDebugf(ctx, "Current session logged out")
@@ -200,6 +207,8 @@ func (k *KeybaseDaemonRPC) OnDisconnected(status DisconnectStatus) {
 	if status == StartingNonFirstConnection {
 		k.log.Warning("KeybaseDaemonRPC is disconnected")
 	}
+
+	k.clearCaches()
 }
 
 // ShouldThrottle implements the ConnectionHandler interface.
