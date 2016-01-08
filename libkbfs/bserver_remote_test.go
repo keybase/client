@@ -75,6 +75,15 @@ func (fc *FakeBServerClient) Call(_ context.Context, s string, args interface{},
 		}
 		return nil
 
+	case "keybase.1.block.addReference":
+		return nil
+
+	case "keybase.1.block.archiveReference":
+		archiveArgs := args.([]interface{})[0].(keybase1.ArchiveReferenceArg)
+		archiveRes := res.(*[]keybase1.BlockReference)
+		*archiveRes = archiveArgs.Refs
+		return nil
+
 	default:
 		return fmt.Errorf("Unknown call: %s %v %v", s, args, res)
 	}

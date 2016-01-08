@@ -1013,6 +1013,20 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		t.Error("Worker unexpectedly ready")
 	default:
 	}
+
+	// As a regression for KBFS-635, test that a second sync succeeds,
+	// and that future operations also succeed.
+	fc.readyChan = nil
+	fc.goChan = nil
+	fc.finishChan = nil
+	ctx = context.Background()
+	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+		t.Fatalf("Second sync failed: %v", err)
+	}
+
+	if _, _, err := kbfsOps.CreateFile(ctx, rootNode, "b", false); err != nil {
+		t.Fatalf("Couldn't create file after sync: %v", err)
+	}
 }
 
 // Test that, when writing multiple blocks in parallel, one error will
