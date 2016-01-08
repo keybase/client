@@ -138,6 +138,11 @@ func (d *Service) Run() (err error) {
 		}
 	}
 
+	// Explicitly set fork type here based on KEYBASE_LABEL
+	if len(d.G().Env.GetLabel()) > 0 {
+		d.ForkType = keybase1.ForkType_LAUNCHD
+	}
+
 	if err = d.GetExclusiveLock(); err != nil {
 		return
 	}
