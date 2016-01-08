@@ -4642,27 +4642,27 @@ func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err 
 	return
 }
 
-type SaltPackEncryptOptions struct {
+type SaltpackEncryptOptions struct {
 	Recipients    []string `codec:"recipients" json:"recipients"`
 	HideSelf      bool     `codec:"hideSelf" json:"hideSelf"`
 	NoSelfEncrypt bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
 }
 
-type SaltPackDecryptOptions struct {
+type SaltpackDecryptOptions struct {
 	Interactive      bool `codec:"interactive" json:"interactive"`
 	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
-type SaltPackSignOptions struct {
+type SaltpackSignOptions struct {
 	Detached bool `codec:"detached" json:"detached"`
 }
 
-type SaltPackVerifyOptions struct {
+type SaltpackVerifyOptions struct {
 	SignedBy  string `codec:"signedBy" json:"signedBy"`
 	Signature []byte `codec:"signature" json:"signature"`
 }
 
-type SaltPackEncryptedMessageInfo struct {
+type SaltpackEncryptedMessageInfo struct {
 	Devices          []Device `codec:"devices" json:"devices"`
 	NumAnonReceivers int      `codec:"numAnonReceivers" json:"numAnonReceivers"`
 	ReceiverIsAnon   bool     `codec:"receiverIsAnon" json:"receiverIsAnon"`
@@ -4672,33 +4672,33 @@ type SaltPackEncryptArg struct {
 	SessionID int                    `codec:"sessionID" json:"sessionID"`
 	Source    Stream                 `codec:"source" json:"source"`
 	Sink      Stream                 `codec:"sink" json:"sink"`
-	Opts      SaltPackEncryptOptions `codec:"opts" json:"opts"`
+	Opts      SaltpackEncryptOptions `codec:"opts" json:"opts"`
 }
 
 type SaltPackDecryptArg struct {
 	SessionID int                    `codec:"sessionID" json:"sessionID"`
 	Source    Stream                 `codec:"source" json:"source"`
 	Sink      Stream                 `codec:"sink" json:"sink"`
-	Opts      SaltPackDecryptOptions `codec:"opts" json:"opts"`
+	Opts      SaltpackDecryptOptions `codec:"opts" json:"opts"`
 }
 
 type SaltPackSignArg struct {
 	SessionID int                 `codec:"sessionID" json:"sessionID"`
 	Source    Stream              `codec:"source" json:"source"`
 	Sink      Stream              `codec:"sink" json:"sink"`
-	Opts      SaltPackSignOptions `codec:"opts" json:"opts"`
+	Opts      SaltpackSignOptions `codec:"opts" json:"opts"`
 }
 
 type SaltPackVerifyArg struct {
 	SessionID int                   `codec:"sessionID" json:"sessionID"`
 	Source    Stream                `codec:"source" json:"source"`
 	Sink      Stream                `codec:"sink" json:"sink"`
-	Opts      SaltPackVerifyOptions `codec:"opts" json:"opts"`
+	Opts      SaltpackVerifyOptions `codec:"opts" json:"opts"`
 }
 
 type SaltPackInterface interface {
 	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
-	SaltPackDecrypt(context.Context, SaltPackDecryptArg) (SaltPackEncryptedMessageInfo, error)
+	SaltPackDecrypt(context.Context, SaltPackDecryptArg) (SaltpackEncryptedMessageInfo, error)
 	SaltPackSign(context.Context, SaltPackSignArg) error
 	SaltPackVerify(context.Context, SaltPackVerifyArg) error
 }
@@ -4784,7 +4784,7 @@ func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncry
 	return
 }
 
-func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (res SaltPackEncryptedMessageInfo, err error) {
+func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (res SaltpackEncryptedMessageInfo, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, &res)
 	return
 }

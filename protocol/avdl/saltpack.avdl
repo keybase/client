@@ -4,35 +4,35 @@ protocol saltPack {
   import idl "common.avdl";
   import idl "identify_common.avdl";
 
-  record SaltPackEncryptOptions {
+  record SaltpackEncryptOptions {
     array<string> recipients; // user assertions
     boolean hideSelf;
     boolean noSelfEncrypt;
   }
 
-  record SaltPackDecryptOptions {
+  record SaltpackDecryptOptions {
   	boolean interactive;
   	boolean forceRemoteCheck;
   }
 
-  record SaltPackSignOptions {
+  record SaltpackSignOptions {
 	boolean detached;
   }
 
-  record SaltPackVerifyOptions {
+  record SaltpackVerifyOptions {
 	string signedBy; // optional
     	bytes signature; // detached signature data (currently only armored supported), can be empty
   }
 
-  void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltPackEncryptOptions opts);
+  void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltpackEncryptOptions opts);
 
-  record SaltPackEncryptedMessageInfo {
+  record SaltpackEncryptedMessageInfo {
   	array<Device> devices;
   	int numAnonReceivers;
   	boolean receiverIsAnon;
   }
 
-  SaltPackEncryptedMessageInfo saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
-  void saltPackSign(int sessionID, Stream source, Stream sink, SaltPackSignOptions opts);
-  void saltPackVerify(int sessionID, Stream source, Stream sink, SaltPackVerifyOptions opts);
+  SaltpackEncryptedMessageInfo saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltpackDecryptOptions opts);
+  void saltPackSign(int sessionID, Stream source, Stream sink, SaltpackSignOptions opts);
+  void saltPackVerify(int sessionID, Stream source, Stream sink, SaltpackVerifyOptions opts);
 }
