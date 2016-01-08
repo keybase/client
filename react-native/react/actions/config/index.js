@@ -34,6 +34,15 @@ export function startup () {
         }
       })
     })
+
+    // Also call getCurrentStatus if the service goes away/comes back.
+    engine.listenOnConnect(() => {
+      engine.rpc('config.getCurrentStatus', {}, incomingMap, (error, status) => {
+        if (error) {
+          console.log(`Error calling getCurrentStatus: ${error}`)
+        }
+      })
+    })
   }
 }
 
