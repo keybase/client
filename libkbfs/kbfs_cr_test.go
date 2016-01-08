@@ -344,6 +344,15 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		}
 	}
 
+	if err := config1B.KBFSOps().
+		SyncFromServer(ctx, rootNode1.GetFolderBranch()); err != nil {
+		t.Fatal("Couldn't sync user 1 from server")
+	}
+	if err := config2B.KBFSOps().
+		SyncFromServer(ctx, rootNode2.GetFolderBranch()); err != nil {
+		t.Fatal("Couldn't sync user 2 from server")
+	}
+
 	readAndCompareData(t, config1B, ctx, h, data2, userName2)
 	readAndCompareData(t, config2B, ctx, h, data2, userName2)
 	checkStatus(t, ctx, config1B.KBFSOps(), false, userName2, nil,
