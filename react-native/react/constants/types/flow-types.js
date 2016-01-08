@@ -237,38 +237,6 @@ export type UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type block_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type block_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type block_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
-export type Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type block_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -392,22 +360,6 @@ export type BTC_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type BTC_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type BTC_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type BTC_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type config_Time = {
 }
 
@@ -497,22 +449,6 @@ export type config_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type config_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type config_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type config_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type config_GetCurrentStatusRes = {
@@ -670,22 +606,6 @@ export type ctl_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type ctl_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type ctl_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type ctl_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type ctl_ExitCode = 0 /* 'OK_0' */ | 2 /* 'NOTOK_2' */ | 4 /* 'RESTART_4' */
 
 export type ExitCode = 0 /* 'OK_0' */ | 2 /* 'NOTOK_2' */ | 4 /* 'RESTART_4' */
@@ -789,22 +709,6 @@ export type delegateUiCtl_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type delegateUiCtl_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type delegateUiCtl_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type delegateUiCtl_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type device_Time = {
 }
 
@@ -896,22 +800,6 @@ export type device_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type device_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type device_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type device_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type favorite_Time = {
 }
 
@@ -1001,22 +889,6 @@ export type favorite_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type favorite_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type favorite_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type favorite_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type favorite_Folder = {
@@ -1120,22 +992,6 @@ export type gpgUi_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type gpgUi_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type gpgUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type gpgUi_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type gpgUi_GPGKey = {
@@ -1253,22 +1109,6 @@ export type identify_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type identify_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type identify_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type identify_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type identify_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
@@ -1512,22 +1352,6 @@ export type identifyUi_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type identifyUi_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type identifyUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type identifyUi_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type identifyUi_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
@@ -1837,22 +1661,6 @@ export type install_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type install_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type install_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type install_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type install_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 4 /* 'INSTALLED_4' */
 
 export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 4 /* 'INSTALLED_4' */
@@ -2076,22 +1884,6 @@ export type Kex2Provisionee_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type Kex2Provisionee_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type Kex2Provisionee_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type Kex2Provisionee_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type Kex2Provisionee_PassphraseStream = {
   passphraseStream: bytes;
   generation: int;
@@ -2211,22 +2003,6 @@ export type logUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type logUi_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type logUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type logUi_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type login_Time = {
 }
 
@@ -2316,22 +2092,6 @@ export type login_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type login_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type login_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type login_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type login_ConfiguredAccount = {
@@ -2435,22 +2195,6 @@ export type loginUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type loginUi_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type loginUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type loginUi_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type metadata_Time = {
 }
 
@@ -2540,22 +2284,6 @@ export type metadata_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type metadata_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type metadata_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type metadata_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type metadata_BlockIdCombo = {
@@ -2676,22 +2404,6 @@ export type metadataUpdate_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type metadataUpdate_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type metadataUpdate_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type metadataUpdate_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type metadataUpdate_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -2786,22 +2498,6 @@ export type notifyCtl_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type notifyCtl_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type notifyCtl_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type notifyCtl_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type notifyCtl_NotificationChannels = {
@@ -2921,22 +2617,6 @@ export type NotifyTracking_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type NotifyTracking_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type NotifyTracking_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type NotifyTracking_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type NotifyUsers_Time = {
 }
 
@@ -3028,22 +2708,6 @@ export type NotifyUsers_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type NotifyUsers_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type NotifyUsers_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type NotifyUsers_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type pgp_Time = {
 }
 
@@ -3133,22 +2797,6 @@ export type pgp_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type pgp_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type pgp_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type pgp_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type pgp_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
@@ -3418,22 +3066,6 @@ export type pgpUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type pgpUi_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type pgpUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type pgpUi_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type prove_Time = {
 }
 
@@ -3523,22 +3155,6 @@ export type prove_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type prove_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type prove_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type prove_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type prove_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
@@ -3722,22 +3338,6 @@ export type proveUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type proveUi_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type proveUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type proveUi_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type proveUi_PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
 
 export type PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
@@ -3831,22 +3431,6 @@ export type provisionUi_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type provisionUi_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type provisionUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type provisionUi_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type provisionUi_ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASSPHRASE_2' */ | 3 /* 'GPG_IMPORT_3' */ | 4 /* 'GPG_SIGN_4' */
@@ -3962,22 +3546,6 @@ export type quota_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type quota_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type quota_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type quota_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type quota_VerifySessionRes = {
   uid: UID;
   sid: string;
@@ -4083,22 +3651,6 @@ export type revoke_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type revoke_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type revoke_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type revoke_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type saltPack_Time = {
 }
 
@@ -4188,22 +3740,6 @@ export type saltPack_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type saltPack_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type saltPack_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type saltPack_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type saltPack_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
@@ -4419,22 +3955,6 @@ export type saltPackUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type saltPackUi_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type saltPackUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type saltPackUi_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type saltPackUi_SaltPackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */
 
 export type SaltPackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */
@@ -4600,22 +4120,6 @@ export type SecretKeys_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type SecretKeys_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type SecretKeys_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type SecretKeys_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type SecretKeys_SecretKeys = {
   signing: NaclSigningKeyPrivate;
   encryption: NaclDHKeyPrivate;
@@ -4715,22 +4219,6 @@ export type session_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type session_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type session_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type session_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type session_Session = {
@@ -4840,22 +4328,6 @@ export type signup_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type signup_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type signup_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type signup_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type signup_SignupRes = {
   passphraseOk: boolean;
   postOk: boolean;
@@ -4957,22 +4429,6 @@ export type sigs_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type sigs_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type sigs_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type sigs_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type sigs_Sig = {
@@ -5124,22 +4580,6 @@ export type streamUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type streamUi_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type streamUi_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type streamUi_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type test_Test = {
   reply: string;
 }
@@ -5237,22 +4677,6 @@ export type track_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type track_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type track_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type track_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type track_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
@@ -5416,22 +4840,6 @@ export type ui_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type ui_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type ui_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type ui_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type ui_PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
 
 export type PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
@@ -5442,9 +4850,25 @@ export type update_Asset = {
   localPath: string;
 }
 
+export type Asset = {
+  name: string;
+  url: string;
+  localPath: string;
+}
+
 export type update_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
 
+export type UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
+
 export type update_Update = {
+  version: string;
+  name: string;
+  description: string;
+  type: UpdateType;
+  asset: Asset;
+}
+
+export type Update = {
   version: string;
   name: string;
   description: string;
@@ -5704,22 +5128,6 @@ export type user_UserPlusKeys = {
   deviceKeys: Array<PublicKey>;
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
-}
-
-export type user_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type user_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type user_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
 }
 
 export type user_Tracker = {
