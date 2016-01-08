@@ -3841,41 +3841,6 @@ func TestSyncCleanSuccess(t *testing.T) {
 	checkBlockCache(t, config, nil, nil)
 }
 
-func TestSyncCleanFailWrongUser(t *testing.T) {
-	mockCtrl, config, ctx := kbfsOpsInit(t, false)
-	defer kbfsTestShutdown(mockCtrl, config)
-
-	u := keybase1.MakeTestUID(15)
-	writerUID := keybase1.MakeTestUID(16)
-	id, h, _ := newDir(t, config, 1, true, false)
-	h.Readers = []keybase1.UID{u}
-	h.Writers = []keybase1.UID{writerUID}
-	rmd := NewRootMetadataForTest(h, id)
-
-	expectUsernameCalls(h, config)
-	config.mockMdops.EXPECT().
-		GetUnmergedForTLF(gomock.Any(), id, gomock.Any()).Return(nil, nil)
-	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(rmd, nil)
-	config.mockKbpki.EXPECT().GetCurrentUID(ctx).AnyTimes().Return(u, nil)
-
-	rootID := fakeBlockID(42)
-	rmd.data.Dir.ID = rootID
-	aID := fakeBlockID(43)
-	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
-	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
-	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
-	ops := getOps(config, id)
-	n := nodeFromPath(t, ops, p)
-
-	// fsync a
-	err := config.KBFSOps().Sync(ctx, n)
-	if err == nil {
-		t.Errorf("Got unexpected non-error on sync: %v", err)
-	} else if _, ok := err.(WriteAccessError); !ok {
-		t.Errorf("Got unexpected error type on sync: %v", err)
-	}
-}
-
 func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
 	ptr BlockPointer, block *FileBlock, splitAt int64,
 	padSize int) *gomock.Call {
