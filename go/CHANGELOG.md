@@ -16,7 +16,8 @@
 - Fix help topics to only display when 'help' is the parent command
 - SaltPack: explain alternatives for failed encryption, and also
   be smart about decryption using the wrong command on the wrong type
-  of stream; suggest alterntives. (PR: keyase/client#1633)
+  of stream; suggest alterntives. (PR: keybase/client#1633)
+- service: hook Identify2 RPC up to engine (PR: keybase/client#1662)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
