@@ -11,6 +11,7 @@ protocol constants {
     SCGeneric_218,
     SCAlreadyLoggedIn_235,
     SCCanceled_237,
+    SCInputCanceled_238,
     SCReloginRequired_274,
     SCResolutionFailed_275,
     SCProfileNotPublic_276,
