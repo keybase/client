@@ -36,6 +36,9 @@ install_electron_dependencies() {
   export NODE_ENV=production
 }
 
+###
+### TODO: Factor all of this out. Add a config for enabling the KBFS/GUI build.
+###
 build_one_architecture() {
   echo "building Go client for $GOARCH"
   dest="$build_root/$debian_arch"
