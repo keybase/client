@@ -57,4 +57,4 @@ export const socketRoot = findSocketRoot()
 export const socketName = 'keybased.sock'
 export const socketPath = path.join(socketRoot, socketName)
 export const dataRoot = findDataRoot()
-export const splashRoot = process.platform === 'win32' ? dataRoot : socketRoot
+export const splashRoot = process.platform === 'darwin' ? socketRoot : dataRoot
