@@ -4,10 +4,11 @@ import {Provider} from 'react-redux'
 import remote from 'remote'
 import {ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
-import commonStyles from '../styles/common'
-import consoleHelper from '../../../desktop/app/console-helper'
+import consoleHelper, {ipcLogsRenderer} from '../../../desktop/app/console-helper'
+import {globalStyles, globalColors, globalHacks} from '../styles/style-guide'
 
 consoleHelper()
+ipcLogsRenderer()
 
 if (module.hot) {
   module.hot.accept()
@@ -25,10 +26,6 @@ const getCurrentWindow = (function () {
     return currentWindow
   }
 })()
-
-window.console.log = (...args) => ipcRenderer.send('console.log', args)
-window.console.warn = (...args) => ipcRenderer.send('console.warn', args)
-window.console.error = (...args) => ipcRenderer.send('console.error', args)
 
 function getQueryVariable (variable) {
   var query = window.location.search.substring(1)
@@ -118,16 +115,32 @@ class RemoteComponentLoader extends Component {
   render () {
     const Component = this.Component
     if (!this.state.loaded) {
-      return <div style={commonStyles.loadingContainer}></div>
+      return <div style={styles.loading}></div>
     }
     if (this.state.unmounted) {
       return <div/>
     }
     return (
-      <Provider store={this.store}>
-        <Component {...this.state.props}/>
-      </Provider>
+      <div style={styles.container}>
+        <Provider store={this.store}>
+          <Component {...this.state.props}/>
+        </Provider>
+      </div>
     )
+  }
+}
+
+const styles = {
+  container: {
+    ...globalStyles.rounded,
+    ...globalStyles.windowBorder,
+    marginTop: globalHacks.framelessWindowDeadzone,
+    marginBottom: globalHacks.framelessWindowDeadzone,
+    overflow: 'hidden',
+    backgroundColor: globalColors.white
+  },
+  loading: {
+    backgroundColor: globalColors.grey5
   }
 }
 

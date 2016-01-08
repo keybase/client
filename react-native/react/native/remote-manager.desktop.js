@@ -90,12 +90,7 @@ class RemoteManager extends Component {
       if (!this.state.popups[username]) {
         popups[username] = (
           <RemoteComponent
-            windowsOpts={{
-              height: 332,
-              width: 520,
-              frame: false,
-              resizable: false
-            }}
+            windowsOpts={{height: 339, width: 520}}
             waitForState
             onRemoteClose={() => this.props.onCloseFromHeader(username)}
             component='tracker'
@@ -116,14 +111,6 @@ class RemoteManager extends Component {
   }
 
   pinentryRemoteComponents () {
-    const windowOpts = {
-      width: 513, height: 260 + 20 /* TEMP workaround for header mouse clicks in osx */,
-      resizable: true,
-      fullscreen: false,
-      show: false,
-      frame: false
-    }
-
     const {pinentryStates} = this.props
 
     return Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map(pSessionID => {
@@ -132,7 +119,7 @@ class RemoteManager extends Component {
       const onSubmit = this.props.pinentryOnSubmit.bind(null, sid)
       return (
         <RemoteComponent
-          windowsOpts={windowOpts}
+          windowsOpts={{width: 513, height: 260}}
           waitForState
           onRemoteClose={onCancel}
           component='pinentry'
@@ -151,17 +138,9 @@ class RemoteManager extends Component {
       return
     }
 
-    const windowOpts = {
-      width: 480, height: 430 + 20 /* TEMP workaround for header mouse clicks in osx */,
-      resizable: true,
-      fullscreen: false,
-      show: false,
-      frame: false
-    }
-
     return (
       <RemoteComponent
-        windowsOpts={windowOpts}
+        windowsOpts={{width: 480, height: 430}}
         waitForState
         component='update'
         substore='update'

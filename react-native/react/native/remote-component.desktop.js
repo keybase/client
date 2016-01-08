@@ -3,12 +3,24 @@ import {remote, ipcRenderer} from 'electron'
 import resolveAssets from '../../../desktop/resolve-assets'
 import menuHelper from '../../../desktop/app/menu-helper'
 import hotPath from '../../../desktop/hot-path'
+import {globalHacks} from '../styles/style-guide'
 
 const {BrowserWindow} = remote
 
 export default class RemoteComponent extends Component {
   componentWillMount () {
-    const windowsOpts = {width: 500, height: 300, fullscreen: false, show: false, ...this.props.windowsOpts}
+    const windowsOpts = {
+      width: 500,
+      height: 300,
+      fullscreen: false,
+      show: false,
+      resizable: false,
+      frame: false,
+      transparent: true,
+      ...this.props.windowsOpts}
+
+    windowsOpts.height += globalHacks.framelessWindowDeadzone
+
     this.remoteWindow = new BrowserWindow(windowsOpts)
     const myRemoteWindowId = this.remoteWindow.id
 
