@@ -36,12 +36,13 @@ func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdID) makeArg() keybase1.IdentifyArg {
-	return keybase1.IdentifyArg{
-		UserAssertion:  v.user,
-		TrackStatement: v.trackStatement,
-		UseDelegateUI:  v.useDelegateUI,
-		Reason:         keybase1.IdentifyReason{Reason: "CLI id command"},
+func (v *CmdID) makeArg() keybase1.Identify2Arg {
+	return keybase1.Identify2Arg{
+		UserAssertion: v.user,
+		UseDelegateUI: v.useDelegateUI,
+		Reason:        keybase1.IdentifyReason{Reason: "CLI id command"},
+		AlwaysBlock:   true,
+		NeedProofSet:  true,
 	}
 }
 
@@ -61,7 +62,7 @@ func (v *CmdID) Run() error {
 	}
 
 	arg := v.makeArg()
-	_, err = cli.Identify(context.TODO(), arg)
+	_, err = cli.Identify2(context.TODO(), arg)
 	if _, ok := err.(libkb.SelfNotFoundError); ok {
 		msg := `Could not find UID or username for you on this device.
 You can either specify a user to id: keybase id <username>
