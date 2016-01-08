@@ -197,20 +197,31 @@ class Engine {
     const sessionID = param.sessionID = this.getSessionID()
     this.sessionIDToIncomingCall[sessionID] = incomingCallMap
 
-    if (printRPC) {
-      console.log('RPC ▶', method, param)
+    const invoke = () => {
+      if (printRPC) {
+        console.log('RPC ▶', method, param)
+      }
+
+      this.rpcClient.invoke(method, [param], (err, data) => {
+        if (printRPC) {
+          console.log('RPC ◀', method, param, err, data)
+        }
+        // deregister incomingCallbacks
+        delete this.sessionIDToIncomingCall[sessionID]
+        if (callback) {
+          callback(err, data)
+        }
+      })
     }
 
-    this.rpcClient.invoke(method, [param], (err, data) => {
+    if (__DEV__ && process.env.KEYBASE_RPC_DELAY) { // eslint-disable-line no-undef
       if (printRPC) {
-        console.log('RPC ◀', method, param, err, data)
+        console.log('RPC [DELAYED] ▶', method, param)
       }
-      // deregister incomingCallbacks
-      delete this.sessionIDToIncomingCall[sessionID]
-      if (callback) {
-        callback(err, data)
-      }
-    })
+      setTimeout(invoke, process.env.KEYBASE_RPC_DELAY)
+    } else {
+      invoke()
+    }
   }
 
   reset () {

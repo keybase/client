@@ -41,6 +41,7 @@ Environment variables:
  - $KEYBASE_RUN_MODE: production | devel. Which server to hit
  - $KEYBASE_APP_DEBUG: Debug settings, extra logging
  - $KEYBASE_SHOW_DEVTOOLS: Show devtools
+ - $KEYBASE_RPC_DELAY: Number of ms to delay all RPC calls (requires debug mode)
 
 Use
 ```
