@@ -54,18 +54,18 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
       })
     })
 
-    engine.listenOnConnect(() => {
-      setNotifications({tracking: true})
-    })
+    setNotifications({tracking: true})
   }
 }
 
 export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
-    engine.rpc('delegateUiCtl.registerIdentifyUI', {}, {}, (error, response) => {
-      if (error != null) {
-        console.error('error in registering identify ui: ', error)
-      }
+    engine.listenOnConnect('registerIdentifyUi', () => {
+      engine.rpc('delegateUiCtl.registerIdentifyUI', {}, {}, (error, response) => {
+        if (error != null) {
+          console.error('error in registering identify ui: ', error)
+        }
+      })
     })
 
     createServer(
@@ -74,6 +74,7 @@ export function registerIdentifyUi (): TrackerActionCreator {
       'keybase.1.identifyUi.finish',
       () => serverCallMap(dispatch, getState)
     )
+
     dispatch({
       type: Constants.registerIdentifyUi,
       payload: {

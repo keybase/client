@@ -45,14 +45,20 @@ class Engine {
     this.serverListeners = {}
 
     // A list of functions to call when we connect
-    this.onConnectFns = []
+    this.onConnectFns = {}
   }
 
   onConnect () {
-    this.onConnectFns.forEach(f => f())
+    this.inListenerCallback = true
+    Object.keys(this.onConnectFns).forEach(k => this.onConnectFns[k]())
+    this.inListenerCallback = false
   }
 
-  listenOnConnect (f) {
+  listenOnConnect (key, f) {
+    if (this.inListenerCallback) {
+      throw new Error('Ran a listenOnConnect within another listenOnConnect')
+    }
+
     // The transport is already connected, so let's call this function right away
     if (!this.rpcClient.transport.needsConnect) {
       f()
@@ -60,7 +66,7 @@ class Engine {
 
     // Regardless if we were connected or not, we'll add this to the callback fns
     // that should be called when we connect.
-    this.onConnectFns.push(f)
+    this.onConnectFns[key] = f
   }
 
   getSessionID () {
@@ -83,15 +89,14 @@ class Engine {
     )
   }
 
+  // Bind a single callback to a method.
+  // Newer calls to this will overwrite older listeners, and older listeners will not get called.
   listenGeneralIncomingRpc (method, listener) {
-    if (!this.generalListeners[method]) {
-      this.generalListeners[method] = []
-    }
-    this.generalListeners[method].push(listener)
+    this.generalListeners[method] = listener
   }
 
-  unlistenGeneralIncomingRpc (method, listener) {
-    this.generalListeners[method] = (this.generalListeners[method] || []).filter(l => l !== listener)
+  removeGeneralIncomingRpc (method) {
+    this.listenGeneralIncomingRpc(method, () => {})
   }
 
   listenServerInit (method, listener) {

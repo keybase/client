@@ -3,7 +3,7 @@ import engine from '../engine'
 import type {Text} from '../constants/types/flow-types'
 
 export default function ListenLogUi () {
-  engine.listenOnConnect(() => {
+  engine.listenOnConnect('ListenLogUi', () => {
     engine.listenGeneralIncomingRpc('keybase.1.logUi.log', (params: {text: Text}) => {
       console.log('keybase.1.logUi.log:', params.text.data)
     })
