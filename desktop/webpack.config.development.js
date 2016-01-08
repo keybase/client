@@ -5,6 +5,13 @@ const config = Object.assign({}, baseConfig)
 const getenv = require('getenv')
 
 const NO_SOURCE_MAPS = getenv.bool('NO_SOURCE_MAPS', false)
+const defines = {
+  '__DEV__': true,
+  'process.env.NODE_ENV': JSON.stringify('development')
+
+}
+
+console.log('Injecting dev defines: ', defines)
 
 config.debug = true
 config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-eval-source-map'
@@ -22,9 +29,7 @@ if (getenv.bool('HOT', false)) {
 
 config.plugins.push(
   new webpack.NoErrorsPlugin(),
-  new webpack.DefinePlugin({
-    '__DEV__': true
-  })
+  new webpack.DefinePlugin(defines)
 )
 
 if (getenv.bool('HOT', false)) {

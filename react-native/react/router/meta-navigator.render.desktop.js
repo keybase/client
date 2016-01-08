@@ -35,7 +35,9 @@ const styles = {
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#cccccc'
+    backgroundColor: '#cccccc',
+    opacity: 0.8,
+    zIndex: 9999
   }
 }
 

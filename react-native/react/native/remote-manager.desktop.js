@@ -68,6 +68,8 @@ class RemoteManager extends Component {
 
   shouldComponentUpdate (nextProps, nextState) {
     // different window states
+    console.log('aaaa', this.windowStates(nextProps.trackers), this.windowStates(this.props.trackers))
+
     if (this.windowStates(nextProps.trackers) !== this.windowStates(this.props.trackers)) {
       return true
     }

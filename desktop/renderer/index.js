@@ -6,8 +6,6 @@ import {Provider} from 'react-redux'
 import configureStore from '../../react-native/react/store/configure-store'
 import Nav from '../../react-native/react/nav'
 import injectTapEventPlugin from 'react-tap-event-plugin'
-import {reduxDevToolsSelect} from '../../react-native/react/local-debug.desktop'
-
 import ListenForNotifications from '../../react-native/react/native/notifications'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 
@@ -20,19 +18,8 @@ import _ from 'lodash'
 
 consoleHelper()
 
-let DevTools = null
-let DebugPanel = null
-let LogMonitor = null
-
 if (module.hot) {
   module.hot.accept()
-}
-
-if (__DEV__) { // eslint-disable-line no-undef
-  const RDT = require('redux-devtools/lib/react')
-  DevTools = RDT.DevTools
-  DebugPanel = RDT.DebugPanel
-  LogMonitor = RDT.LogMonitor
 }
 
 const store = configureStore()
@@ -100,30 +87,22 @@ class Keybase extends Component {
     ListenLogUi()
   }
 
-  renderNav () {
+  render () {
+    let dt = null
+    if (__DEV__) { // eslint-disable-line no-undef
+      const DevTools = require('./redux-dev-tools')
+      dt = <DevTools />
+    }
+
     return (
       <Provider store={store}>
         <div style={{display: 'flex', flex: 1}}>
           <RemoteManager />
           <Nav />
+          {dt}
         </div>
       </Provider>
     )
-  }
-
-  render () {
-    if (__DEV__) { // eslint-disable-line no-undef
-      return (
-        <div style={{position: 'absolute', width: '100%', height: '100%', display: 'flex'}}>
-          {this.renderNav()}
-          <DebugPanel style={{height: '100%', width: this.state.panelShowing ? '30%' : 0, position: 'relative', maxHeight: 'initial'}}>
-            <DevTools store={store} monitor={LogMonitor} visibleOnLoad={false} select={reduxDevToolsSelect}/>
-          </DebugPanel>
-        </div>
-      )
-    } else {
-      return this.renderNav()
-    }
   }
 }
 

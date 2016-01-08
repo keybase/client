@@ -1,5 +1,5 @@
 import React, {Component} from '../base-react'
-import Select from 'react-select'
+// import Select from 'react-select'
 
 export default class Search extends Component {
   constructor (props) {
@@ -80,20 +80,21 @@ export default class Search extends Component {
   }
 
   render () {
+    // TODO material design and not this
+        // <Select
+          // filterOptions={this.filterOptions}
+          // value={this.state.search}
+          // searchingText='Searching...'
+          // asyncOptions={this.loadOptions.bind(this)}
+          // cacheAsyncResults={false}
+          // autoload={false}
+          // style={styles.item}
+          // optionRenderer={this.renderOption}
+          // placeholder='Search for a user'
+          // multi
+          // />
     return (
       <div style={styles.container}>
-        <Select
-          filterOptions={this.filterOptions}
-          value={this.state.search}
-          searchingText='Searching...'
-          asyncOptions={this.loadOptions.bind(this)}
-          cacheAsyncResults={false}
-          autoload={false}
-          style={styles.item}
-          optionRenderer={this.renderOption}
-          placeholder='Search for a user'
-          multi
-          />
       </div>
     )
   }

@@ -11,6 +11,14 @@ import storeHelper from './store-helper'
 import mainWindow from './main-window'
 import helpHelper from './help-helper'
 
+// MUST do this else we get limited by simultaneous hot reload event streams
+app.commandLine.appendSwitch('ignore-connections-limit', 'localhost')
+
+if (__DEV__) { // eslint-disable-line no-undef
+  app.commandLine.appendSwitch('enable-logging')
+  app.commandLine.appendSwitch('v', 3)
+}
+
 consoleHelper()
 ipcLogs()
 devTools()

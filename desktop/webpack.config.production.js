@@ -4,16 +4,20 @@ const baseConfig = require('./webpack.config.base')
 const config = Object.assign({}, baseConfig)
 
 const SKIP_OPTIMIZE = false
+const defines = {
+  '__DEV__': false,
+  'process.env.NODE_ENV': JSON.stringify('production')
+}
+
+console.log('Injecting production defines: ', defines)
 
 config.devtool = 'source-map'
 config.output.publicPath = '/dist/'
 config.cache = false // Electron exposes the module as 2 different things depending on the context....
 
 config.plugins.push(
-  new webpack.optimize.OccurenceOrderPlugin(),
-  new webpack.DefinePlugin({
-    '__DEV__': false
-  })
+  new webpack.DefinePlugin(defines),
+  new webpack.optimize.OccurenceOrderPlugin()
 )
 
 if (!SKIP_OPTIMIZE) {
