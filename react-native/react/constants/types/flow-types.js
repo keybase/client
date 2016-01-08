@@ -596,22 +596,6 @@ export type crypto_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type crypto_Asset = {
-  name: string;
-  url: string;
-  localPath: string;
-}
-
-export type crypto_UpdateType = 0 /* 'NORMAL_0' */ | 1 /* 'BUGFIX_1' */ | 2 /* 'CRITICAL_2' */
-
-export type crypto_Update = {
-  version: string;
-  name: string;
-  description: string;
-  type: UpdateType;
-  asset: Asset;
-}
-
 export type crypto_ED25519SignatureInfo = {
   sig: ED25519Signature;
   publicKey: ED25519PublicKey;
@@ -630,6 +614,16 @@ export type crypto_CiphertextKIDPair = {
 export type CiphertextKIDPair = {
   kid: KID;
   ciphertext: EncryptedBytes32;
+}
+
+export type crypto_UnboxAnyRes = {
+  kid: KID;
+  plaintext: Bytes32;
+}
+
+export type UnboxAnyRes = {
+  kid: KID;
+  plaintext: Bytes32;
 }
 
 export type ctl_Time = {

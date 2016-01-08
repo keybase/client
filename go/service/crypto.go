@@ -72,6 +72,6 @@ func (c *CryptoHandler) UnboxBytes32(_ context.Context, arg keybase1.UnboxBytes3
 	return engine.UnboxBytes32(c.G(), c.getSecretUI(arg.Reason), arg)
 }
 
-func (c *CryptoHandler) UnboxBytes32Any(_ context.Context, arg keybase1.UnboxBytes32AnyArg) (keybase1.Bytes32, error) {
+func (c *CryptoHandler) UnboxBytes32Any(_ context.Context, arg keybase1.UnboxBytes32AnyArg) (keybase1.UnboxAnyRes, error) {
 	return engine.UnboxBytes32Any(c.G(), c.getSecretUI(arg.Reason), arg)
 }

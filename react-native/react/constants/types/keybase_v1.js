@@ -121,11 +121,6 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
-    },
-    'UpdateType': {
-      'normal': 0,
-      'bugfix': 1,
-      'critical': 2
     }
   },
   'ctl': {

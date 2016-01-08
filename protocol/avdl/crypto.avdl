@@ -46,5 +46,10 @@ protocol crypto {
     EncryptedBytes32 ciphertext;
   }
 
-  Bytes32 unboxBytes32Any(array<CiphertextKIDPair> pairs, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
+  record UnboxAnyRes {
+    KID kid;                 // the KID that was used for decryption
+    Bytes32 plaintext;       // decrypted data
+  }
+
+  UnboxAnyRes unboxBytes32Any(array<CiphertextKIDPair> pairs, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
 }

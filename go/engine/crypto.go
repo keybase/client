@@ -118,6 +118,6 @@ func UnboxBytes32(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 	return
 }
 
-func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (bytes32 keybase1.Bytes32, err error) {
+func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (res keybase1.UnboxAnyRes, err error) {
 	return
 }

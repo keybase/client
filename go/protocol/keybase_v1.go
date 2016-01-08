@@ -676,6 +676,11 @@ type CiphertextKIDPair struct {
 	Ciphertext EncryptedBytes32 `codec:"ciphertext" json:"ciphertext"`
 }
 
+type UnboxAnyRes struct {
+	Kid       KID     `codec:"kid" json:"kid"`
+	Plaintext Bytes32 `codec:"plaintext" json:"plaintext"`
+}
+
 type SignED25519Arg struct {
 	Msg    []byte `codec:"msg" json:"msg"`
 	Reason string `codec:"reason" json:"reason"`
@@ -704,7 +709,7 @@ type CryptoInterface interface {
 	SignED25519(context.Context, SignED25519Arg) (ED25519SignatureInfo, error)
 	SignToString(context.Context, SignToStringArg) (string, error)
 	UnboxBytes32(context.Context, UnboxBytes32Arg) (Bytes32, error)
-	UnboxBytes32Any(context.Context, UnboxBytes32AnyArg) (Bytes32, error)
+	UnboxBytes32Any(context.Context, UnboxBytes32AnyArg) (UnboxAnyRes, error)
 }
 
 func CryptoProtocol(i CryptoInterface) rpc.Protocol {
@@ -798,7 +803,7 @@ func (c CryptoClient) UnboxBytes32(ctx context.Context, __arg UnboxBytes32Arg) (
 	return
 }
 
-func (c CryptoClient) UnboxBytes32Any(ctx context.Context, __arg UnboxBytes32AnyArg) (res Bytes32, err error) {
+func (c CryptoClient) UnboxBytes32Any(ctx context.Context, __arg UnboxBytes32AnyArg) (res UnboxAnyRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.crypto.unboxBytes32Any", []interface{}{__arg}, &res)
 	return
 }
