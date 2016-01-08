@@ -977,6 +977,20 @@ func (c CanceledError) Error() string {
 	return c.M
 }
 
+type InputCanceledError struct{}
+
+func (e InputCanceledError) Error() string {
+	return "Input canceled"
+}
+
+func (e InputCanceledError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCCanceled,
+		Name: "CANCELED",
+		Desc: "Input canceled",
+	}
+}
+
 //=============================================================================
 
 type NoDeviceError struct {
