@@ -1813,6 +1813,8 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	if md.data.Changes.Ops == nil {
 		md.data.Changes, md.data.cachedChanges =
 			md.data.cachedChanges, md.data.Changes
+		md.data.Changes.Ops[0].
+			AddRefBlock(md.data.cachedChanges.Info.BlockPointer)
 	}
 	fbo.transitionState(cleanState)
 
@@ -4121,7 +4123,7 @@ func (fbo *folderBranchOps) reembedBlockChanges(ctx context.Context,
 		}
 		// The changes block pointer is an implicit ref block
 		rmd.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
-		rmd.data.Changes.Info = info
+		rmd.data.cachedChanges.Info = info
 	}
 	return nil
 }

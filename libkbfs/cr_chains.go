@@ -466,8 +466,8 @@ func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
 			return nil, err
 		}
 
-		if rmd.data.Changes.Info.BlockPointer != zeroPtr {
-			ccs.blockChangePointers[rmd.data.Changes.Info.BlockPointer] = true
+		if ptr := rmd.data.cachedChanges.Info.BlockPointer; ptr != zeroPtr {
+			ccs.blockChangePointers[ptr] = true
 		}
 
 		for _, op := range rmd.data.Changes.Ops {
