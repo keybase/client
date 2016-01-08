@@ -1,25 +1,25 @@
 @namespace("keybase.1")
 
 protocol kbfsCommon {
-	enum FSStatusCode {
-		START_0,
-		FINISH_1,
-		ERROR_2
-	}
+  enum FSStatusCode {
+    START_0,
+    FINISH_1,
+    ERROR_2
+  }
 
-	enum FSNotificationType {
-		ENCRYPTING_0,
-		DECRYPTING_1,
-		SIGNING_2,
-		VERIFYING_3,
-		REKEYING_4
-	}
+  enum FSNotificationType {
+    ENCRYPTING_0,
+    DECRYPTING_1,
+    SIGNING_2,
+    VERIFYING_3,
+    REKEYING_4
+  }
 
-	record FSNotification {
-		boolean publicTopLevelFolder;
-		string filename;
-		string status;
-		FSStatusCode statusCode;
-		FSNotificationType notificationType;
-	}
+  record FSNotification {
+    boolean publicTopLevelFolder;
+    string filename;
+    string status;
+    FSStatusCode statusCode;
+    FSNotificationType notificationType;
+  }
 }

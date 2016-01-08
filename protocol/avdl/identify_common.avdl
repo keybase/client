@@ -1,108 +1,108 @@
 @namespace("keybase.1")
 
 protocol identifyCommon {
-	import idl "common.avdl";
-	import idl "prove_common.avdl";
+  import idl "common.avdl";
+  import idl "prove_common.avdl";
 
-	@typedef("string")
-	record TrackToken {}
+  @typedef("string")
+  record TrackToken {}
 
-	enum TrackDiffType {
-		NONE_0,
-		ERROR_1,
-		CLASH_2,
-		REVOKED_3,
-		UPGRADED_4,
-		NEW_5,
-		REMOTE_FAIL_6,
-		REMOTE_WORKING_7,
-		REMOTE_CHANGED_8,
-		NEW_ELDEST_9
-	}
+  enum TrackDiffType {
+    NONE_0,
+    ERROR_1,
+    CLASH_2,
+    REVOKED_3,
+    UPGRADED_4,
+    NEW_5,
+    REMOTE_FAIL_6,
+    REMOTE_WORKING_7,
+    REMOTE_CHANGED_8,
+    NEW_ELDEST_9
+  }
 
-	record TrackDiff {
-		TrackDiffType type;
-		string displayMarkup;
-	}
+  record TrackDiff {
+    TrackDiffType type;
+    string displayMarkup;
+  }
 
-	record TrackSummary {
-		string username;
-		Time time;
-		boolean isRemote;
-	}
+  record TrackSummary {
+    string username;
+    Time time;
+    boolean isRemote;
+  }
 
-	/**
-		TrackStatus is a summary of this track before the track is approved by the
-		user.
-		NEW_*: New tracks
-		UPDATE_*: Update to an existing track
-		NEW_OK: Everything ok
-		NEW_ZERO_PROOFS: User being tracked has no proofs
-		NEW_FAIL_PROOFS: User being tracked has some failed proofs
-		UPDATE_BROKEN: Previous tracking statement broken, this one will fix it.
-		UPDATE_NEW_PROOFS: Previous tracking statement ok, but there are new proofs since previous tracking statement generated
-		UPDATE_OK: No changes to previous tracking statement
-		*/
-	enum TrackStatus {
-		NEW_OK_1,
-		NEW_ZERO_PROOFS_2,
-		NEW_FAIL_PROOFS_3,
-		UPDATE_BROKEN_4,
-		UPDATE_NEW_PROOFS_5,
-		UPDATE_OK_6
-	}
+  /**
+    TrackStatus is a summary of this track before the track is approved by the
+    user.
+    NEW_*: New tracks
+    UPDATE_*: Update to an existing track
+    NEW_OK: Everything ok
+    NEW_ZERO_PROOFS: User being tracked has no proofs
+    NEW_FAIL_PROOFS: User being tracked has some failed proofs
+    UPDATE_BROKEN: Previous tracking statement broken, this one will fix it.
+    UPDATE_NEW_PROOFS: Previous tracking statement ok, but there are new proofs since previous tracking statement generated
+    UPDATE_OK: No changes to previous tracking statement
+    */
+  enum TrackStatus {
+    NEW_OK_1,
+    NEW_ZERO_PROOFS_2,
+    NEW_FAIL_PROOFS_3,
+    UPDATE_BROKEN_4,
+    UPDATE_NEW_PROOFS_5,
+    UPDATE_OK_6
+  }
 
-	record TrackOptions {
-		boolean localOnly;
-		boolean bypassConfirm;
-	}
+  record TrackOptions {
+    boolean localOnly;
+    boolean bypassConfirm;
+  }
 
-	enum IdentifyReasonType {
-		NONE_0,
-		ID_1,
-		TRACK_2,
-		ENCRYPT_3,
-		DECRYPT_4,
-		VERIFY_5,
-		RESOURCE_6
-	}
+  enum IdentifyReasonType {
+    NONE_0,
+    ID_1,
+    TRACK_2,
+    ENCRYPT_3,
+    DECRYPT_4,
+    VERIFY_5,
+    RESOURCE_6
+  }
 
-	record IdentifyReason {
-		IdentifyReasonType type;
-		string reason;
-		string resource;
-	}
+  record IdentifyReason {
+    IdentifyReasonType type;
+    string reason;
+    string resource;
+  }
 
-	record IdentifyOutcome {
-		string username;
-		union { null, Status } status;
-		array<string> warnings;
-		union { null, TrackSummary } trackUsed;
-		TrackStatus trackStatus;
-		int numTrackFailures;
-		int numTrackChanges;
-		int numProofFailures;
-		int numRevoked;
-		int numProofSuccesses;
-		array<TrackDiff> revoked;
-		TrackOptions trackOptions;
-		boolean forPGPPull;
-		IdentifyReason reason;
-	}
+  record IdentifyOutcome {
+    string username;
+    union { null, Status } status;
+    array<string> warnings;
+    union { null, TrackSummary } trackUsed;
+    TrackStatus trackStatus;
+    int numTrackFailures;
+    int numTrackChanges;
+    int numProofFailures;
+    int numRevoked;
+    int numProofSuccesses;
+    array<TrackDiff> revoked;
+    TrackOptions trackOptions;
+    boolean forPGPPull;
+    IdentifyReason reason;
+  }
 
-	record IdentifyRes {
-		union { null, User } user;
-		array<PublicKey> publicKeys;
-		IdentifyOutcome outcome;
-		TrackToken trackToken;
-	}
+  record IdentifyRes {
+    union { null, User } user;
+    array<PublicKey> publicKeys;
+    IdentifyOutcome outcome;
+    TrackToken trackToken;
+  }
 
-	record RemoteProof {
-		ProofType proofType;
-		string key;
-		string value;
-		string displayMarkup;
-		SigID sigID;
-		Time mTime;
-	}
+  record RemoteProof {
+    ProofType proofType;
+    string key;
+    string value;
+    string displayMarkup;
+    SigID sigID;
+    Time mTime;
+  }
 }
