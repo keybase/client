@@ -85,12 +85,12 @@ func (c *CmdLogin) Run() error {
 		})
 	c.done <- struct{}{}
 
+	// Provide explicit error messages in these two cases.
 	switch err.(type) {
 	case libkb.NoSyncedPGPKeyError:
-		c.outputNoSyncedKeyMsg()
+		err = c.errNoSyncedKey()
 	case libkb.PassphraseError:
-		c.outputPassphraseErrorMsg()
-
+		err = c.errPassphrase()
 	}
 
 	return err
@@ -145,9 +145,8 @@ func (c *CmdLogin) Cancel() error {
 	return nil
 }
 
-func (c *CmdLogin) outputNoSyncedKeyMsg() {
-	msg := `
-ERROR!
+func (c *CmdLogin) errNoSyncedKey() error {
+	return errors.New(`in Login
 
 Sorry, you have a PGP private key that Keybase doesn't have a copy of.
 You need to prove you're you. Any of these will unlock this computer:
@@ -155,21 +154,14 @@ You need to prove you're you. Any of these will unlock this computer:
    - reset your account and start fresh: https://keybase.io/#account-reset
    - install GPG and put your PGP private key on this machine and try again
    - go back and provision with another device or paper key
-
-`
-	c.G().UI.GetDumbOutputUI().PrintfStderr(msg)
-	return
+`)
 }
 
-func (c *CmdLogin) outputPassphraseErrorMsg() {
-	msg := `
-ERROR!
+func (c *CmdLogin) errPassphrase() error {
+	return errors.New(`in Login
 
 The server rejected your login attempt.
 
 If you'd like to reset your passphrase, go to https://keybase.io/#password-reset
-
-`
-	c.G().UI.GetDumbOutputUI().PrintfStderr(msg)
-	return
+`)
 }
