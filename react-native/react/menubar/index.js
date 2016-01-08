@@ -99,7 +99,12 @@ class Menubar extends Component {
   }
 
   showHelp () {
-    ipcRenderer.send('showHelp')
+    ipcRenderer.send('openURL', 'help')
+    this.closeMenubar()
+  }
+
+  showUser (username: ?string) {
+    ipcRenderer.send('openURL', 'user', {username})
     this.closeMenubar()
   }
 
@@ -130,6 +135,7 @@ class Menubar extends Component {
       openKBFSPrivate={() => this.openKBFSPrivate()}
       showMain={() => this.showMain()}
       showHelp={() => this.showHelp()}
+      showUser={user => this.showUser(user)}
       quit={() => remote.app.quit()}
       folders={folders}
       loading={this.state.loading}

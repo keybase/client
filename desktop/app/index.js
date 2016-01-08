@@ -9,7 +9,7 @@ import devTools from './dev-tools'
 import menuBar from './menu-bar'
 import storeHelper from './store-helper'
 import mainWindow from './main-window'
-import helpHelper from './help-helper'
+import urlHelper from './url-helper'
 
 consoleHelper()
 ipcLogs()
@@ -17,7 +17,7 @@ devTools()
 menuBar()
 storeHelper()
 mainWindow()
-helpHelper()
+urlHelper()
 ListenLogUi()
 
 // Only one app per app in osx...

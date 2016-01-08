@@ -23,12 +23,12 @@ function iconPath (isPublic, isEmpty) {
 
 const Header = props => {
   const openKBFS: () => void = props.openKBFS
-  const showHelp: () => void = props.showHelp
+  const showUser: () => void = props.showUser
 
   return (
     <div style={styles.header}>
       <i className={`fa fa-folder`} style={{...styles.icons, fontSize: 17, marginRight: 10}} onClick={openKBFS}/>
-      <i className={`fa fa-globe`} style={{...styles.icons, fontSize: 16}} onClick={showHelp}/>
+      <i className={`fa fa-globe`} style={{...styles.icons, fontSize: 16}} onClick={showUser}/>
     </div>
   )
 }
@@ -77,6 +77,7 @@ export default class Render extends Component {
     openKBFSPrivate: () => void,
     showMain: () => void,
     showHelp: () => void,
+    showUser: (username: ?string) => void,
     quit: () => void,
     openingButtonInfo: {
       text: string,
@@ -88,13 +89,13 @@ export default class Render extends Component {
   };
 
   render (): ReactElement {
-    const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, quit, openingButtonInfo} = this.props
+    const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, showUser, quit, openingButtonInfo, username} = this.props
 
     return (
       <div style={styles.container}>
         <div style={styles.arrow}/>
         <div style={styles.body}>
-          <Header openKBFS={openKBFS} showHelp={showHelp}/>
+          <Header openKBFS={openKBFS} showUser={() => showUser(username)}/>
           {this.props.openingMessage && <OpeningMessage message={this.props.openingMessage} buttonInfo={openingButtonInfo}/>}
           {this.props.username && <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders}/>}
           {!this.props.username && <div style={{flex: 1, backgroundColor: globalColors.white}}/>}
