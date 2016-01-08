@@ -3,8 +3,6 @@
 import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 
-import engine from '../engine'
-
 import {bindActionCreators} from 'redux'
 import {registerIdentifyUi, onCloseFromHeader as trackerOnCloseFromHeader, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../actions/tracker'
 import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../actions/pinentry'
@@ -52,12 +50,10 @@ class RemoteManager extends Component {
   }
 
   componentWillMount () {
-    engine.listenOnConnect(() => {
-      this.props.registerIdentifyUi()
-      this.props.registerPinentryListener()
-      this.props.registerTrackerChangeListener()
-      this.props.registerUpdateListener()
-    })
+    this.props.registerIdentifyUi()
+    this.props.registerPinentryListener()
+    this.props.registerTrackerChangeListener()
+    this.props.registerUpdateListener()
   }
 
   windowStates (trackers) {

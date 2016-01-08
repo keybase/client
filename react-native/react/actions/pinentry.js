@@ -14,7 +14,7 @@ const uglySessionIDResponseMapper: {[key: number]: Function} = {}
 
 export function registerPinentryListener (): (dispatch: Dispatch) => void {
   return dispatch => {
-    engine.listenOnConnect(() => {
+    engine.listenOnConnect('registerSecretUI', () => {
       engine.rpc('delegateUiCtl.registerSecretUI', {}, {}, (error, response) => {
         if (error != null) {
           console.error('error in registering secret ui: ', error)

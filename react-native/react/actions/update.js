@@ -19,7 +19,7 @@ let updatePromptResponse: ?{result: (payload: any) => void}
 export function registerUpdateListener (): (dispatch: Dispatch, getState: () => {config: ConfigState}) => void {
   updatePromptResponse = null
   return (dispatch, getState) => {
-    engine.listenOnConnect(() => {
+    engine.listenOnConnect('registerUpdateUI', () => {
       engine.rpc('delegateUiCtl.registerUpdateUI', {}, {}, (error, response) => {
         if (error != null) {
           console.error('error in registering update ui: ', error)

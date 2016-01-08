@@ -14,13 +14,15 @@ let channelsSet = {}
 export default function (channels: NotificationChannels): Promise<void> {
   return new Promise((resolve, reject) => {
     channelsSet = {...channelsSet, ...channels}
-    engine.rpc('notifyCtl.setNotifications', {channels: channelsSet}, {}, (error, response) => {
-      if (error != null) {
-        console.error('error in toggling notifications: ', error)
-        reject(error)
-      } else {
-        resolve()
-      }
+    engine.listenOnConnect('setNotifications', () => {
+      engine.rpc('notifyCtl.setNotifications', {channels: channelsSet}, {}, (error, response) => {
+        if (error != null) {
+          console.error('error in toggling notifications: ', error)
+          reject(error)
+        } else {
+          resolve()
+        }
+      })
     })
   })
 }

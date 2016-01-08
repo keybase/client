@@ -15,12 +15,10 @@ export default function (notify: NotifyFn) {
     return
   }
 
-  engine.listenOnConnect(() => {
-    setNotifications({
-      session: true,
-      users: true,
-      kbfs: true
-    })
+  setNotifications({
+    session: true,
+    users: true,
+    kbfs: true
   })
 
   const listeners = ListenerCreator(notify)
