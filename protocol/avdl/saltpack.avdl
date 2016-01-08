@@ -1,6 +1,6 @@
 @namespace("keybase.1")
 
-protocol saltPack {
+protocol saltpack {
   import idl "common.avdl";
   import idl "identify_common.avdl";
 
@@ -32,7 +32,7 @@ protocol saltPack {
   	boolean receiverIsAnon;
   }
 
-  SaltPackEncryptedMessageInfo saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
-  void saltPackSign(int sessionID, Stream source, Stream sink, SaltPackSignOptions opts);
-  void saltPackVerify(int sessionID, Stream source, Stream sink, SaltPackVerifyOptions opts);
+  SaltpackEncryptedMessageInfo saltpackDecrypt(int sessionID, Stream source, Stream sink, SaltpackDecryptOptions opts);
+  void saltPackSign(int sessionID, Stream source, Stream sink, SaltpackSignOptions opts);
+  void saltPackVerify(int sessionID, Stream source, Stream sink, SaltpackVerifyOptions opts);
 }

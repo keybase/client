@@ -10,7 +10,7 @@ import (
 
 // saltpackEncrypt reads from the given source, encrypts it for the given
 // receivers from the given sender, armors it, and writes it to sink.
-func SaltPackEncrypt(
+func SaltpackEncrypt(
 	source io.Reader, sink io.WriteCloser,
 	receivers []NaclDHKeyPublic, sender NaclDHKeyPair) error {
 	var receiverBoxKeys []saltpack.BoxPublicKey

@@ -45,7 +45,7 @@ func (h *EncryptionHeader) validate() error {
 	if h.Type != MessageTypeEncryption {
 		return ErrWrongMessageType{MessageTypeEncryption, h.Type}
 	}
-	if h.Version.Major != SaltPackCurrentVersion.Major {
+	if h.Version.Major != SaltpackCurrentVersion.Major {
 		return ErrBadVersion{h.seqno, h.Version}
 	}
 	return nil
@@ -73,8 +73,8 @@ func newSignatureHeader(sender SigningPublicKey, msgType MessageType) (*Signatur
 	}
 
 	header := &SignatureHeader{
-		FormatName:   SaltPackFormatName,
-		Version:      SaltPackCurrentVersion,
+		FormatName:   SaltpackFormatName,
+		Version:      SaltpackCurrentVersion,
 		Type:         msgType,
 		SenderPublic: sender.ToKID(),
 		Nonce:        nonce[:],
@@ -90,7 +90,7 @@ func (h *SignatureHeader) validate(msgType MessageType) error {
 			received: h.Type,
 		}
 	}
-	if h.Version.Major != SaltPackCurrentVersion.Major {
+	if h.Version.Major != SaltpackCurrentVersion.Major {
 		return ErrBadVersion{h.seqno, h.Version}
 	}
 
