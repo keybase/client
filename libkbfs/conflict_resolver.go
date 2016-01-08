@@ -41,15 +41,15 @@ type ConflictResolver struct {
 	inputChanLock sync.RWMutex
 	inputChan     chan conflictInput
 
-	// We use a mutex, int, and condition variable to track and
-	// synchronize on the number of outstanding resolves.  We can't
-	// use a sync.WaitGroup because it requires that the Add() and the
+	// We use a mutex, int, and channel to track and synchronize on
+	// the number of outstanding resolves.  We can't use a
+	// sync.WaitGroup because it requires that the Add() and the
 	// Wait() are fully synchronized, which means holding a mutex
 	// during Wait(), which can lead to deadlocks for users of
 	// ConflictResolver.
 	resolveLock sync.Mutex
 	numResolves int
-	resolveCond *sync.Cond
+	isIdleCh    chan struct{} // leave as nil when initializing
 
 	inputLock sync.Mutex
 	currInput conflictInput
@@ -77,7 +77,6 @@ func NewConflictResolver(
 			merged:   MetadataRevisionUninitialized,
 		},
 	}
-	cr.resolveCond = sync.NewCond(&cr.resolveLock)
 
 	cr.startProcessing()
 	return cr
@@ -114,7 +113,8 @@ func (cr *ConflictResolver) resolutionDone() {
 	}
 	cr.numResolves--
 	if cr.numResolves == 0 {
-		cr.resolveCond.Broadcast()
+		close(cr.isIdleCh)
+		cr.isIdleCh = nil
 	}
 }
 
@@ -184,6 +184,9 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 	func() {
 		cr.resolveLock.Lock()
 		defer cr.resolveLock.Unlock()
+		if cr.numResolves == 0 {
+			cr.isIdleCh = make(chan struct{})
+		}
 		cr.numResolves++
 	}()
 	cr.inputChan <- conflictInput{unmerged, merged}
@@ -193,20 +196,18 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 // complete (though not necessarily successful), or until the given
 // context is canceled.
 func (cr *ConflictResolver) Wait(ctx context.Context) error {
-	c := make(chan struct{}, 1)
-	go func() {
-		func() {
-			cr.resolveLock.Lock()
-			defer cr.resolveLock.Unlock()
-			for cr.numResolves != 0 {
-				cr.resolveCond.Wait()
-			}
-		}()
-		c <- struct{}{}
+	idleCh := func() chan struct{} {
+		cr.resolveLock.Lock()
+		defer cr.resolveLock.Unlock()
+		return cr.isIdleCh
 	}()
 
+	if idleCh == nil {
+		return nil
+	}
+
 	select {
-	case <-c:
+	case <-idleCh:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
