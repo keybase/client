@@ -424,7 +424,7 @@ func (log *Standard) processBuffer() {
 		}
 
 		for _, externalLogger := range log.externalLoggers {
-			externalLogger.Log(e.level, e.format, e.args)
+			go externalLogger.Log(e.level, e.format, e.args)
 		}
 
 		log.externalLoggersMutex.RUnlock()
