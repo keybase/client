@@ -25,7 +25,6 @@ import (
 	"os"
 	"runtime"
 	"sync"
-	"time"
 )
 
 type ShutdownHook func() error
@@ -460,16 +459,9 @@ func (g *GlobalContext) GetRunMode() RunMode {
 	return g.Env.GetRunMode()
 }
 
-func (g *GlobalContext) Now() time.Time {
+func (g *GlobalContext) GetClock() clockwork.Clock {
 	if g.Clock == nil {
-		return time.Now()
+		return clockwork.NewRealClock()
 	}
-	return g.Clock.Now()
-}
-
-func (g *GlobalContext) After(d time.Duration) <-chan time.Time {
-	if g.Clock == nil {
-		return time.After(d)
-	}
-	return g.Clock.After(d)
+	return g.Clock
 }

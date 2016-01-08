@@ -22,18 +22,18 @@ func newTimedGenericKey(g *GlobalContext, k GenericKey, w string) *timedGenericK
 	return &timedGenericKey{
 		Contextified: NewContextified(g),
 		key:          k,
-		atime:        g.Now(),
+		atime:        g.GetClock().Now(),
 		which:        w,
 	}
 }
 
 func (t *timedGenericKey) getKey() GenericKey {
-	t.atime = t.G().Now()
+	t.atime = t.G().GetClock().Now()
 	return t.key
 }
 
 func (t *timedGenericKey) clean() {
-	now := t.G().Now()
+	now := t.G().GetClock().Now()
 	if t.key != nil && (now.Sub(t.atime) > PaperKeyMemoryTimeout) {
 		t.G().Log.Debug("Cleaned out key %q at %s", t.which, now)
 		t.key = nil
