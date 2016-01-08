@@ -43,6 +43,7 @@ type syncInfo struct {
 	oldInfo BlockInfo
 	op      *syncOp
 	unrefs  []BlockInfo
+	bps     *blockPutState
 }
 
 // Constants used in this file.  TODO: Make these configurable?
@@ -3257,7 +3258,6 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		return true, err
 	}
 
-	bps := newBlockPutState(1)
 	filePtr := stripBP(file.tailPointer())
 	si, ok := func() (*syncInfo, bool) {
 		fbo.cacheLock.Lock()
@@ -3277,6 +3277,10 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 			si.op.resetUpdateState()
 		}
 	}()
+	if si.bps == nil {
+		si.bps = newBlockPutState(1)
+	}
+
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
 	// notifications will never happen within a file.
@@ -3296,7 +3300,6 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		// TODO: Verify that any getFileBlock... calls here
 		// only use the dirty cache and not the network, since
 		// the blocks are be dirty.
-
 		for i := 0; i < len(fblock.IPtrs); i++ {
 			ptr := fblock.IPtrs[i]
 			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
@@ -3420,7 +3423,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(newInfo)
-				bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
+				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
 				fbo.fileBlockStates[localPtr] = blockSyncingNotDirty
 			}
 		}
@@ -3473,7 +3476,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	if err != nil {
 		return true, err
 	}
-	newBps.mergeOtherBps(bps)
+	newBps.mergeOtherBps(si.bps)
 
 	err = fbo.doBlockPuts(ctx, md, *newBps)
 	if err != nil {
