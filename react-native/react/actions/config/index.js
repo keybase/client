@@ -19,20 +19,27 @@ export function startup () {
         dispatch({type: Constants.startupLoaded, payload: error, error: true})
         return
       }
-      engine.rpc('config.getCurrentStatus', {}, incomingMap, (error, status) => {
-        if (error) {
-          dispatch({type: Constants.startupLoaded, payload: error, error: true})
-          return
-        }
-        dispatch({
-          type: Constants.startupLoaded,
-          payload: {config, status}
-        })
 
-        if (status.loggedIn) {
-          dispatch(autoLogin())
-        }
-      })
+      function getCurrentStatus () {
+        engine.rpc('config.getCurrentStatus', {}, incomingMap, (error, status) => {
+          if (error) {
+            dispatch({type: Constants.startupLoaded, payload: error, error: true})
+            return
+          }
+          dispatch({
+            type: Constants.startupLoaded,
+            payload: {config, status}
+          })
+
+          if (status.loggedIn) {
+            dispatch(autoLogin())
+          }
+        })
+      }
+
+      getCurrentStatus()
+      // Also call getCurrentStatus if the service goes away/comes back.
+      engine.listenOnConnect(getCurrentStatus)
     })
   }
 }
