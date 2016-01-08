@@ -29,8 +29,8 @@ func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device
 	return activeDevices, append(sibkeys, subkeys...)
 }
 
-func doRevokeKey(tc libkb.TestContext, u *FakeUser, id string) error {
-	revokeEngine := NewRevokeKeyEngine(id, tc.G)
+func doRevokeKey(tc libkb.TestContext, u *FakeUser, kid keybase1.KID) error {
+	revokeEngine := NewRevokeKeyEngine(kid, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
@@ -120,7 +120,7 @@ func TestRevokeKey(t *testing.T) {
 		t.Fatal("Expected to find PGP key")
 	}
 
-	err := doRevokeKey(tc, u, (*pgpKey).GetKID().String())
+	err := doRevokeKey(tc, u, (*pgpKey).GetKID())
 	if err != nil {
 		tc.T.Fatal(err)
 	}

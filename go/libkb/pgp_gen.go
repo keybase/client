@@ -132,7 +132,7 @@ func GeneratePGPKeyBundle(arg PGPGenArg, logUI LogUI) (*PGPKeyBundle, error) {
 	e.Subkeys[0].PrivateKey.IsSubkey = true
 	e.Subkeys[0].Sig.KeyLifetimeSecs = ui32p(arg.SubkeyLifetime)
 
-	return NewPGPKeyBundle(e), nil
+	return NewGeneratedPGPKeyBundle(e), nil
 }
 
 // CreateIDs creates identities for KeyGenArg.Ids if none exist.

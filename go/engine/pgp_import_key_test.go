@@ -105,14 +105,22 @@ func TestPGPImportPublicKey(t *testing.T) {
 }
 
 func TestIssue454(t *testing.T) {
-	t.Skip("this test only works once")
-	tc := SetupEngineTest(t, "pgp454")
+	testImportKey(t, "pgp454", keyIssue454, "test")
+}
+
+func TestIssue2147(t *testing.T) {
+	testImportKey(t, "issue2147", keyIssue2147, keyIssue2147Passphrase)
+}
+
+func testImportKey(t *testing.T, which string, armor string, pp string) {
+	tc := SetupEngineTest(t, which)
 	defer tc.Cleanup()
 
 	CreateAndSignupFakeUser(tc, "login")
-	secui := &libkb.TestSecretUI{Passphrase: "test"}
+	secui := &libkb.TestSecretUI{Passphrase: pp}
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(keyIssue454), false, tc.G)
+	eng, err := NewPGPKeyImportEngineFromBytes([]byte(armor), false, tc.G)
+	eng.arg.OnlySave = true
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -363,3 +371,97 @@ ejqLyhhGTnPydDtFrzsGkw3Qz5r1K2p88A2mGkix3/H0CnkcSSTxI/ID2OQndQOZ
 LpRtxqDTDVA6H/R+dqEhg/ni2jAapEr4VzIbew==
 =bXrj
 -----END PGP PRIVATE KEY BLOCK-----`
+
+const keyIssue2147 = `-----BEGIN PGP PRIVATE KEY BLOCK-----
+Version: GnuPG v1
+
+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
+=aaae
+-----END PGP PRIVATE KEY BLOCK-----
+`
+const keyIssue2147Passphrase = "abcd"

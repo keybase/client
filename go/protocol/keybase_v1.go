@@ -4564,8 +4564,8 @@ func (c QuotaClient) VerifySession(ctx context.Context, session string) (res Ver
 }
 
 type RevokeKeyArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	KeyID     string `codec:"keyID" json:"keyID"`
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	KeyID     KID `codec:"keyID" json:"keyID"`
 }
 
 type RevokeDeviceArg struct {
