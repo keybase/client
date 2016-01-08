@@ -40,6 +40,10 @@ func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keyba
 	var err error
 
 	aerr := h.G().LoginState().Account(func(a *libkb.Account) {
+		_, err = a.LoggedInProvisionedLoad()
+		if err != nil {
+			return
+		}
 		uid, username, token, deviceSubkey, deviceSibkey, err = a.UserInfo()
 	}, "Service - SessionHandler - UserInfo")
 	if aerr != nil {
