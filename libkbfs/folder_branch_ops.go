@@ -3180,7 +3180,9 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	}
 	fbo.blockLock.RUnlock(lState)
 
-	// verify we have permission to write
+	// Verify we have permission to write.  We do this after the dirty
+	// check because otherwise readers who sync clean files on close
+	// would get an error.
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
 	if err != nil {
 		return true, err
