@@ -46,10 +46,10 @@ func GetConfigClient(g *libkb.GlobalContext) (cli keybase1.ConfigClient, err err
 	return
 }
 
-func GetSaltPackClient(g *libkb.GlobalContext) (cli keybase1.SaltPackClient, err error) {
+func GetSaltpackClient(g *libkb.GlobalContext) (cli keybase1.SaltpackClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
-		cli = keybase1.SaltPackClient{Cli: rcli}
+		cli = keybase1.SaltpackClient{Cli: rcli}
 	}
 	return
 }

@@ -8,7 +8,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-type SaltPackSenderIdentifyArg struct {
+type SaltpackSenderIdentifyArg struct {
 	publicKey        keybase1.KID
 	isAnon           bool
 	interactive      bool
@@ -17,51 +17,51 @@ type SaltPackSenderIdentifyArg struct {
 	userAssertion    string // optional
 }
 
-type SaltPackSenderIdentify struct {
+type SaltpackSenderIdentify struct {
 	libkb.Contextified
-	arg *SaltPackSenderIdentifyArg
-	res keybase1.SaltPackSender
+	arg *SaltpackSenderIdentifyArg
+	res keybase1.SaltpackSender
 }
 
-func (e *SaltPackSenderIdentify) Name() string {
-	return "SaltPackSenderIdentify"
+func (e *SaltpackSenderIdentify) Name() string {
+	return "SaltpackSenderIdentify"
 }
 
-func NewSaltPackSenderIdentify(g *libkb.GlobalContext, arg *SaltPackSenderIdentifyArg) *SaltPackSenderIdentify {
-	return &SaltPackSenderIdentify{
+func NewSaltpackSenderIdentify(g *libkb.GlobalContext, arg *SaltpackSenderIdentifyArg) *SaltpackSenderIdentify {
+	return &SaltpackSenderIdentify{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
 	}
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *SaltPackSenderIdentify) Prereqs() Prereqs {
+func (e *SaltpackSenderIdentify) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *SaltPackSenderIdentify) RequiredUIs() []libkb.UIKind {
+func (e *SaltpackSenderIdentify) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *SaltPackSenderIdentify) SubConsumers() []libkb.UIConsumer {
+func (e *SaltpackSenderIdentify) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&Identify2WithUID{},
 	}
 }
 
-func (e *SaltPackSenderIdentify) Run(ctx *Context) (err error) {
-	defer e.G().Trace("SaltPackSenderIdentify::Run", func() error { return err })()
+func (e *SaltpackSenderIdentify) Run(ctx *Context) (err error) {
+	defer e.G().Trace("SaltpackSenderIdentify::Run", func() error { return err })()
 
 	if e.arg.isAnon {
-		e.res.SenderType = keybase1.SaltPackSenderType_ANONYMOUS
+		e.res.SenderType = keybase1.SaltpackSenderType_ANONYMOUS
 		return
 	}
 
 	if err = e.lookupSender(); err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {
-			e.res.SenderType = keybase1.SaltPackSenderType_UNKNOWN
+			e.res.SenderType = keybase1.SaltpackSenderType_UNKNOWN
 			err = nil
 		}
 		return err
@@ -74,14 +74,14 @@ func (e *SaltPackSenderIdentify) Run(ctx *Context) (err error) {
 	return nil
 }
 
-func (e *SaltPackSenderIdentify) lookupSender() (err error) {
-	defer e.G().Trace("SaltPackDecrypt::lookupSender", func() error { return err })()
+func (e *SaltpackSenderIdentify) lookupSender() (err error) {
+	defer e.G().Trace("SaltpackDecrypt::lookupSender", func() error { return err })()
 	e.res.Username, e.res.Uid, err = libkb.KeyLookupKID(e.G(), e.arg.publicKey)
 	return err
 }
 
-func (e *SaltPackSenderIdentify) identifySender(ctx *Context) (err error) {
-	defer e.G().Trace("SaltPackDecrypt::identifySender", func() error { return err })()
+func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
+	defer e.G().Trace("SaltpackDecrypt::identifySender", func() error { return err })()
 	iarg := keybase1.Identify2Arg{
 		Uid:                   e.res.Uid,
 		UseDelegateUI:         !e.arg.interactive,
@@ -97,15 +97,15 @@ func (e *SaltPackSenderIdentify) identifySender(ctx *Context) (err error) {
 	}
 	switch eng.getTrackType() {
 	case identify2NoTrack:
-		e.res.SenderType = keybase1.SaltPackSenderType_NOT_TRACKED
+		e.res.SenderType = keybase1.SaltpackSenderType_NOT_TRACKED
 	case identify2TrackOK:
-		e.res.SenderType = keybase1.SaltPackSenderType_TRACKING_OK
+		e.res.SenderType = keybase1.SaltpackSenderType_TRACKING_OK
 	default:
-		e.res.SenderType = keybase1.SaltPackSenderType_TRACKING_BROKE
+		e.res.SenderType = keybase1.SaltpackSenderType_TRACKING_BROKE
 	}
 	return nil
 }
 
-func (e *SaltPackSenderIdentify) Result() keybase1.SaltPackSender {
+func (e *SaltpackSenderIdentify) Result() keybase1.SaltpackSender {
 	return e.res
 }

@@ -58,7 +58,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 }
 
 func (c *CmdEncrypt) Run() error {
-	cli, err := GetSaltPackClient(c.G())
+	cli, err := GetSaltpackClient(c.G())
 	if err != nil {
 		return err
 	}
@@ -77,12 +77,12 @@ func (c *CmdEncrypt) Run() error {
 		return err
 	}
 
-	opts := keybase1.SaltPackEncryptOptions{
+	opts := keybase1.SaltpackEncryptOptions{
 		Recipients:    c.recipients,
 		NoSelfEncrypt: c.noSelfEncrypt,
 	}
-	arg := keybase1.SaltPackEncryptArg{Source: src, Sink: snk, Opts: opts}
-	err = cli.SaltPackEncrypt(context.TODO(), arg)
+	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
+	err = cli.SaltpackEncrypt(context.TODO(), arg)
 	cerr := c.filter.Close(err)
 	return libkb.PickFirstError(err, cerr)
 }

@@ -55,7 +55,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
-		keybase1.SaltPackProtocol(NewSaltPackHandler(xp, g)),
+		keybase1.SaltpackProtocol(NewSaltpackHandler(xp, g)),
 		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.ProveProtocol(NewProveHandler(xp, g)),

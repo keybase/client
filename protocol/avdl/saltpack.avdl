@@ -1,38 +1,38 @@
 @namespace("keybase.1")
 
-protocol saltPack {
+protocol saltpack {
   import idl "common.avdl";
   import idl "identify_common.avdl";
 
-  record SaltPackEncryptOptions {
+  record SaltpackEncryptOptions {
     array<string> recipients; // user assertions
     boolean hideSelf;
     boolean noSelfEncrypt;
   }
 
-  record SaltPackDecryptOptions {
-    boolean interactive;
-    boolean forceRemoteCheck;
+  record SaltpackDecryptOptions {
+  	boolean interactive;
+  	boolean forceRemoteCheck;
   }
 
-  record SaltPackSignOptions {
-  boolean detached;
+  record SaltpackSignOptions {
+	boolean detached;
   }
 
-  record SaltPackVerifyOptions {
-  string signedBy; // optional
-      bytes signature; // detached signature data (currently only armored supported), can be empty
+  record SaltpackVerifyOptions {
+	string signedBy; // optional
+    	bytes signature; // detached signature data (currently only armored supported), can be empty
   }
 
-  void saltPackEncrypt(int sessionID, Stream source, Stream sink, SaltPackEncryptOptions opts);
+  void saltpackEncrypt(int sessionID, Stream source, Stream sink, SaltpackEncryptOptions opts);
 
-  record SaltPackEncryptedMessageInfo {
-    array<Device> devices;
-    int numAnonReceivers;
-    boolean receiverIsAnon;
+  record SaltpackEncryptedMessageInfo {
+  	array<Device> devices;
+  	int numAnonReceivers;
+  	boolean receiverIsAnon;
   }
 
-  SaltPackEncryptedMessageInfo saltPackDecrypt(int sessionID, Stream source, Stream sink, SaltPackDecryptOptions opts);
-  void saltPackSign(int sessionID, Stream source, Stream sink, SaltPackSignOptions opts);
-  void saltPackVerify(int sessionID, Stream source, Stream sink, SaltPackVerifyOptions opts);
+  SaltpackEncryptedMessageInfo saltpackDecrypt(int sessionID, Stream source, Stream sink, SaltpackDecryptOptions opts);
+  void saltpackSign(int sessionID, Stream source, Stream sink, SaltpackSignOptions opts);
+  void saltpackVerify(int sessionID, Stream source, Stream sink, SaltpackVerifyOptions opts);
 }

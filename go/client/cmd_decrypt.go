@@ -20,8 +20,8 @@ type CmdDecrypt struct {
 	libkb.Contextified
 	filter     UnixFilter
 	recipients []string
-	spui       *SaltPackUI
-	opts       keybase1.SaltPackDecryptOptions
+	spui       *SaltpackUI
+	opts       keybase1.SaltpackDecryptOptions
 }
 
 func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -62,7 +62,7 @@ func NewCmdDecryptRunner(g *libkb.GlobalContext) *CmdDecrypt {
 	}
 }
 
-func (c *CmdDecrypt) explainDecryptionFailure(info *keybase1.SaltPackEncryptedMessageInfo) {
+func (c *CmdDecrypt) explainDecryptionFailure(info *keybase1.SaltpackEncryptedMessageInfo) {
 	if info == nil {
 		return
 	}
@@ -88,7 +88,7 @@ func (c *CmdDecrypt) explainDecryptionFailure(info *keybase1.SaltPackEncryptedMe
 }
 
 func (c *CmdDecrypt) Run() error {
-	cli, err := GetSaltPackClient(c.G())
+	cli, err := GetSaltpackClient(c.G())
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (c *CmdDecrypt) Run() error {
 		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 		NewIdentifyUIProtocol(c.G()),
-		keybase1.SaltPackUiProtocol(c.spui),
+		keybase1.SaltpackUiProtocol(c.spui),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
@@ -112,13 +112,13 @@ func (c *CmdDecrypt) Run() error {
 		return err
 	}
 
-	var info keybase1.SaltPackEncryptedMessageInfo
-	arg := keybase1.SaltPackDecryptArg{
+	var info keybase1.SaltpackEncryptedMessageInfo
+	arg := keybase1.SaltpackDecryptArg{
 		Source: src,
 		Sink:   snk,
 		Opts:   c.opts,
 	}
-	info, err = cli.SaltPackDecrypt(context.TODO(), arg)
+	info, err = cli.SaltpackDecrypt(context.TODO(), arg)
 	if _, ok := err.(libkb.NoDecryptionKeyError); ok {
 		c.explainDecryptionFailure(&info)
 	}
@@ -140,7 +140,7 @@ func (c *CmdDecrypt) ParseArgv(ctx *cli.Context) error {
 		return UnexpectedArgsError("decrypt")
 	}
 	interactive := ctx.Bool("interactive")
-	c.spui = &SaltPackUI{
+	c.spui = &SaltpackUI{
 		Contextified: libkb.NewContextified(c.G()),
 		interactive:  interactive,
 		force:        ctx.Bool("force"),

@@ -14,6 +14,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'BTC': {
@@ -30,6 +35,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'config': {
@@ -46,6 +56,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     },
     'ForkType': {
       'none': 0,
@@ -65,7 +80,6 @@ export default {
       'scgeneric': 218,
       'scalreadyloggedin': 235,
       'sccanceled': 237,
-      'scinputcanceled': 238,
       'screloginrequired': 274,
       'scresolutionfailed': 275,
       'scprofilenotpublic': 276,
@@ -138,6 +152,11 @@ export default {
       'cli': 0,
       'gui': 1
     },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
+    },
     'ExitCode': {
       'ok': 0,
       'notok': 2,
@@ -159,6 +178,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'device': {
@@ -175,6 +199,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'favorite': {
@@ -191,6 +220,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'gpgUi': {
@@ -207,6 +241,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'identify': {
@@ -223,6 +262,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     },
     'ProofState': {
       'none': 0,
@@ -334,6 +378,11 @@ export default {
       'cli': 0,
       'gui': 1
     },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
+    },
     'ProofState': {
       'none': 0,
       'ok': 1,
@@ -440,6 +489,11 @@ export default {
       'cli': 0,
       'gui': 1
     },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
+    },
     'InstallStatus': {
       'unknown': 0,
       'error': 1,
@@ -482,6 +536,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'Kex2Provisioner': {},
@@ -499,6 +558,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'login': {
@@ -515,6 +579,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'loginUi': {
@@ -531,6 +600,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'metadata': {
@@ -547,6 +621,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'metadataUpdate': {
@@ -563,6 +642,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'notifyCtl': {
@@ -579,6 +663,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'NotifyFS': {
@@ -610,6 +699,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'NotifyUsers': {
@@ -626,6 +720,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'pgp': {
@@ -642,6 +741,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     },
     'ProofState': {
       'none': 0,
@@ -753,6 +857,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'prove': {
@@ -769,6 +878,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     },
     'ProofState': {
       'none': 0,
@@ -876,6 +990,11 @@ export default {
       'cli': 0,
       'gui': 1
     },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
+    },
     'PromptOverwriteType': {
       'social': 0,
       'site': 1
@@ -895,6 +1014,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     },
     'ProvisionMethod': {
       'device': 0,
@@ -926,6 +1050,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'revoke': {
@@ -942,9 +1071,14 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
-  'saltPack': {
+  'saltpack': {
     'LogLevel': {
       'none': 0,
       'debug': 1,
@@ -958,6 +1092,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     },
     'ProofState': {
       'none': 0,
@@ -1050,7 +1189,7 @@ export default {
       'resource': 6
     }
   },
-  'saltPackUi': {
+  'saltpackUi': {
     'LogLevel': {
       'none': 0,
       'debug': 1,
@@ -1065,7 +1204,12 @@ export default {
       'cli': 0,
       'gui': 1
     },
-    'SaltPackSenderType': {
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
+    },
+    'SaltpackSenderType': {
       'notTracked': 0,
       'unknown': 1,
       'anonymous': 2,
@@ -1088,6 +1232,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'session': {
@@ -1104,6 +1253,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'signup': {
@@ -1120,6 +1274,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'sigs': {
@@ -1136,6 +1295,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'streamUi': {
@@ -1152,6 +1316,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   },
   'test': {},
@@ -1169,6 +1338,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     },
     'ProofState': {
       'none': 0,
@@ -1276,6 +1450,11 @@ export default {
       'cli': 0,
       'gui': 1
     },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
+    },
     'PromptDefault': {
       'none': 0,
       'yes': 1,
@@ -1330,6 +1509,11 @@ export default {
     'ClientType': {
       'cli': 0,
       'gui': 1
+    },
+    'UpdateType': {
+      'normal': 0,
+      'bugfix': 1,
+      'critical': 2
     }
   }
 }

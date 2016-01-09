@@ -17,7 +17,7 @@ const (
 	ProvisionUIKind
 	PgpUIKind
 	UpdateUIKind
-	SaltPackUIKind
+	SaltpackUIKind
 )
 
 func (u UIKind) String() string {
@@ -40,8 +40,8 @@ func (u UIKind) String() string {
 		return "PgpUI"
 	case UpdateUIKind:
 		return "UpdateUI"
-	case SaltPackUIKind:
-		return "SaltPackUI"
+	case SaltpackUIKind:
+		return "SaltpackUI"
 	}
 	panic(fmt.Sprintf("unhandled uikind: %d", u))
 }

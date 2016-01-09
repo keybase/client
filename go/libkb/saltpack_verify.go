@@ -10,7 +10,7 @@ import (
 	"github.com/keybase/client/go/saltpack"
 )
 
-func SaltPackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {
+func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {
 	kr := echoKeyring{Contextified: NewContextified(g)}
 	skey, vs, frame, err := saltpack.NewDearmor62VerifyStream(source, kr)
 	if err != nil {
@@ -42,7 +42,7 @@ func SaltPackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, che
 	return nil
 }
 
-func SaltPackVerifyDetached(g *GlobalContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
+func SaltpackVerifyDetached(g *GlobalContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
 	kr := echoKeyring{Contextified: NewContextified(g)}
 	skey, err := saltpack.Dearmor62VerifyDetachedReader(message, string(signature), kr)
 	if err != nil {

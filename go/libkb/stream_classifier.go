@@ -64,9 +64,9 @@ const (
 	// CryptoMessageFormatKeybaseV0 is for the zeroth version of Keybase signatures, which
 	// will eventually be deprecated.
 	CryptoMessageFormatKeybaseV0 CryptoMessageFormat = "kbv0"
-	// CryptoMessageFormatSaltPack is the SaltPack messaging format for encrypted and signed
+	// CryptoMessageFormatSaltpack is the Saltpack messaging format for encrypted and signed
 	// messages
-	CryptoMessageFormatSaltPack CryptoMessageFormat = "saltpack"
+	CryptoMessageFormatSaltpack CryptoMessageFormat = "saltpack"
 )
 
 // CryptoMessageType says what type of crypto message it is, regardless of Format
@@ -118,14 +118,14 @@ func isBase64KeybaseV0Sig(s string) bool {
 }
 
 // Just the fields of the salt pack header that we care about
-type saltPackHeaderPrefix struct {
+type saltpackHeaderPrefix struct {
 	_struct    bool                 `codec:",toarray"`
 	FormatName string               `codec:"format_name"`
 	Version    saltpack.Version     `codec:"vers"`
 	Type       saltpack.MessageType `codec:"type"`
 }
 
-func isSaltPackBinary(b []byte, sc *StreamClassification) bool {
+func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 	if len(b) < 2 {
 		return false
 	}
@@ -140,11 +140,11 @@ func isSaltPackBinary(b []byte, sc *StreamClassification) bool {
 	// first 3 fields, and don't want to bother slurping in more than that.
 	tmp[0] = 0x93
 	var mh codec.MsgpackHandle
-	var sphp saltPackHeaderPrefix
+	var sphp saltpackHeaderPrefix
 	if err := codec.NewDecoderBytes(tmp, &mh).Decode(&sphp); err != nil {
 		return false
 	}
-	if sphp.FormatName != saltpack.SaltPackFormatName {
+	if sphp.FormatName != saltpack.SaltpackFormatName {
 		return false
 	}
 	switch sphp.Type {
@@ -157,7 +157,7 @@ func isSaltPackBinary(b []byte, sc *StreamClassification) bool {
 	default:
 		return false
 	}
-	sc.Format = CryptoMessageFormatSaltPack
+	sc.Format = CryptoMessageFormatSaltpack
 	return true
 }
 
@@ -223,18 +223,18 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeClearSignature
 	case strings.HasPrefix(sb, saltpack.EncryptionArmorHeader+"."):
-		sc.Format = CryptoMessageFormatSaltPack
+		sc.Format = CryptoMessageFormatSaltpack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeEncryption
 	case strings.HasPrefix(sb, saltpack.SignedArmorHeader+"."):
-		sc.Format = CryptoMessageFormatSaltPack
+		sc.Format = CryptoMessageFormatSaltpack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeSignature
 	case isBase64KeybaseV0Sig(sb):
 		sc.Format = CryptoMessageFormatKeybaseV0
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeAttachedSignature
-	case isSaltPackBinary(buf[:n], &sc):
+	case isSaltpackBinary(buf[:n], &sc):
 	case isPGPBinary(buf[:n], &sc):
 	default:
 		err = UnknownStreamError{}

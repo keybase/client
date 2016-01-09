@@ -11,56 +11,56 @@ import (
 	"io"
 )
 
-type SaltPackDecryptArg struct {
+type SaltpackDecryptArg struct {
 	Source io.Reader
 	Sink   io.WriteCloser
-	Opts   keybase1.SaltPackDecryptOptions
+	Opts   keybase1.SaltpackDecryptOptions
 }
 
-// SaltPackDecrypt decrypts data read from a source into a sink.
-type SaltPackDecrypt struct {
+// SaltpackDecrypt decrypts data read from a source into a sink.
+type SaltpackDecrypt struct {
 	libkb.Contextified
-	arg *SaltPackDecryptArg
-	res keybase1.SaltPackEncryptedMessageInfo
+	arg *SaltpackDecryptArg
+	res keybase1.SaltpackEncryptedMessageInfo
 }
 
-// NewSaltPackDecrypt creates a SaltPackDecrypt engine.
-func NewSaltPackDecrypt(arg *SaltPackDecryptArg, g *libkb.GlobalContext) *SaltPackDecrypt {
-	return &SaltPackDecrypt{
+// NewSaltpackDecrypt creates a SaltpackDecrypt engine.
+func NewSaltpackDecrypt(arg *SaltpackDecryptArg, g *libkb.GlobalContext) *SaltpackDecrypt {
+	return &SaltpackDecrypt{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
 	}
 }
 
 // Name is the unique engine name.
-func (e *SaltPackDecrypt) Name() string {
-	return "SaltPackDecrypt"
+func (e *SaltpackDecrypt) Name() string {
+	return "SaltpackDecrypt"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *SaltPackDecrypt) Prereqs() Prereqs {
+func (e *SaltpackDecrypt) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *SaltPackDecrypt) RequiredUIs() []libkb.UIKind {
+func (e *SaltpackDecrypt) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
-		libkb.SaltPackUIKind,
+		libkb.SaltpackUIKind,
 		libkb.SecretUIKind,
 	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *SaltPackDecrypt) SubConsumers() []libkb.UIConsumer {
+func (e *SaltpackDecrypt) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&SaltPackSenderIdentify{},
+		&SaltpackSenderIdentify{},
 	}
 }
 
-func (e *SaltPackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKeyInfo) (err error) {
-	defer e.G().Trace("SaltPackDecrypt::promptForDecrypt", func() error { return err })()
+func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKeyInfo) (err error) {
+	defer e.G().Trace("SaltpackDecrypt::promptForDecrypt", func() error { return err })()
 
-	spsiArg := SaltPackSenderIdentifyArg{
+	spsiArg := SaltpackSenderIdentifyArg{
 		isAnon:           mki.SenderIsAnon,
 		publicKey:        libkb.BoxPublicKeyToKeybaseKID(mki.SenderKey),
 		interactive:      e.arg.Opts.Interactive,
@@ -71,23 +71,23 @@ func (e *SaltPackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKe
 		},
 	}
 
-	spsiEng := NewSaltPackSenderIdentify(e.G(), &spsiArg)
+	spsiEng := NewSaltpackSenderIdentify(e.G(), &spsiArg)
 	if err = RunEngine(spsiEng, ctx); err != nil {
 		return err
 	}
 
-	arg := keybase1.SaltPackPromptForDecryptArg{
+	arg := keybase1.SaltpackPromptForDecryptArg{
 		Sender: spsiEng.Result(),
 	}
 
-	err = ctx.SaltPackUI.SaltPackPromptForDecrypt(context.TODO(), arg)
+	err = ctx.SaltpackUI.SaltpackPromptForDecrypt(context.TODO(), arg)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (e *SaltPackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageKeyInfo) {
+func (e *SaltpackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageKeyInfo) {
 	if mki == nil {
 		return
 	}
@@ -105,8 +105,8 @@ func (e *SaltPackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageK
 }
 
 // Run starts the engine.
-func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
-	defer e.G().Trace("SaltPackDecrypt::Run", func() error { return err })()
+func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
+	defer e.G().Trace("SaltpackDecrypt::Run", func() error { return err })()
 
 	var me *libkb.User
 	me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
@@ -136,9 +136,9 @@ func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
 		return e.promptForDecrypt(ctx, mki)
 	}
 
-	e.G().Log.Debug("| SaltPackDecrypt")
+	e.G().Log.Debug("| SaltpackDecrypt")
 	var mki *saltpack.MessageKeyInfo
-	mki, err = libkb.SaltPackDecrypt(e.G(), e.arg.Source, e.arg.Sink, kp, hook)
+	mki, err = libkb.SaltpackDecrypt(e.G(), e.arg.Source, e.arg.Sink, kp, hook)
 	if err == saltpack.ErrNoDecryptionKey {
 		err = libkb.NoDecryptionKeyError{Msg: "no suitable device key found"}
 	}
@@ -148,6 +148,6 @@ func (e *SaltPackDecrypt) Run(ctx *Context) (err error) {
 	return err
 }
 
-func (e *SaltPackDecrypt) MessageInfo() keybase1.SaltPackEncryptedMessageInfo {
+func (e *SaltpackDecrypt) MessageInfo() keybase1.SaltpackEncryptedMessageInfo {
 	return e.res
 }
