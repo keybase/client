@@ -29,46 +29,43 @@ func NewDearmor62VerifyStream(r io.Reader, keyring SigKeyring) (skey SigningPubl
 // Dearmor62Verify checks the signature in signedMsg.  It returns the
 // signer's public key and a verified message.  It expects
 // signedMsg to be armor62-encoded.
-func Dearmor62Verify(signedMsg string, keyring SigKeyring) (skey SigningPublicKey, verifiedMsg []byte, err error) {
+func Dearmor62Verify(signedMsg string, keyring SigKeyring) (skey SigningPublicKey, verifiedMsg []byte, brand string, err error) {
 	skey, stream, frame, err := NewDearmor62VerifyStream(bytes.NewBufferString(signedMsg), keyring)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	verifiedMsg, err = ioutil.ReadAll(stream)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
-	if err = CheckArmor62Frame(frame, SignedArmorHeader, SignedArmorFooter); err != nil {
-		return nil, nil, err
+	if brand, err = CheckArmor62Frame(frame, MessageTypeAttachedSignature); err != nil {
+		return nil, nil, "", err
 	}
 
-	return skey, verifiedMsg, nil
+	return skey, verifiedMsg, brand, nil
 }
 
 // Dearmor62VerifyDetachedReader verifies that signature is a valid
 // armor62-encoded signature for entire message read from Reader,
 // and that the public key for the signer is in keyring. It returns
 // the signer's public key.
-func Dearmor62VerifyDetachedReader(r io.Reader, signature string, keyring SigKeyring) (skey SigningPublicKey, err error) {
+func Dearmor62VerifyDetachedReader(r io.Reader, signature string, keyring SigKeyring) (skey SigningPublicKey, brand string, err error) {
 	dearmored, header, footer, err := Armor62Open(signature)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	if header != DetachedSignatureArmorHeader {
-		return nil, ErrBadArmorHeader{DetachedSignatureArmorHeader, header}
+	if brand, err = CheckArmor62(header, footer, MessageTypeDetachedSignature); err != nil {
+		return nil, "", err
 	}
-	if footer != DetachedSignatureArmorFooter {
-		return nil, ErrBadArmorFooter{DetachedSignatureArmorFooter, footer}
-	}
-
-	return VerifyDetachedReader(r, dearmored, keyring)
+	skey, err = VerifyDetachedReader(r, dearmored, keyring)
+	return skey, brand, err
 }
 
 // Dearmor62VerifyDetached verifies that signature is a valid
 // armor62-encoded signature for message, and that the public key
 // for the signer is in keyring. It returns the signer's public key.
-func Dearmor62VerifyDetached(message []byte, signature string, keyring SigKeyring) (skey SigningPublicKey, err error) {
+func Dearmor62VerifyDetached(message []byte, signature string, keyring SigKeyring) (skey SigningPublicKey, brand string, err error) {
 	return Dearmor62VerifyDetachedReader(bytes.NewReader(message), signature, keyring)
 }

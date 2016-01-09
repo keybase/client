@@ -54,11 +54,11 @@ func TestSaltpackEncDec(t *testing.T) {
 	}
 
 	ciphertext := buf.String()
-	if !strings.HasPrefix(ciphertext, saltpack.EncryptionArmorHeader) {
+	if !strings.HasPrefix(ciphertext, saltpack.MakeArmorHeader(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)) {
 		t.Errorf("ciphertext doesn't have header: %s", ciphertext)
 	}
 
-	if !strings.HasSuffix(ciphertext, saltpack.EncryptionArmorFooter+".\n") {
+	if !strings.HasSuffix(ciphertext, saltpack.MakeArmorFooter(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)+".\n") {
 		t.Errorf("ciphertext doesn't have footer: %s", ciphertext)
 	}
 
