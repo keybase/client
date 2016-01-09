@@ -41,7 +41,8 @@ func getEncodedStatus(ctx context.Context, folder *Folder) (
 func NewStatusFile(folder *Folder) *SpecialReadFile {
 	return &SpecialReadFile{
 		read: func() ([]byte, time.Time, error) {
-			return getEncodedStatus(context.TODO(), folder)
+			ctx := NewContextWithOpID(folder.fs)
+			return getEncodedStatus(ctx, folder)
 		},
 	}
 }

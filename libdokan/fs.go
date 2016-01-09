@@ -39,6 +39,9 @@ type FS struct {
 
 	root *Root
 
+	// context is the top level context for this filesystem
+	context context.Context
+
 	// currentUserSID stores the Windows identity of the user running
 	// this process.
 	currentUserSID *syscall.SID
@@ -159,7 +162,7 @@ func newSyntheticOpenContext() *openContext {
 
 // CreateFile called from dokan, may be a file or directory.
 func (f *FS) CreateFile(fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
-	ctx := context.TODO()
+	ctx := NewContextWithOpID(f)
 	return f.openRaw(ctx, fi, cd)
 }
 
@@ -214,8 +217,7 @@ func windowsPathSplit(raw string) ([]string, error) {
 
 // MoveFile tries to move a file.
 func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, f.log)
+	ctx := NewContextWithOpID(f)
 	f.log.CDebugf(ctx, "FS Rename start replaceExisting=%v", replaceExisting)
 	defer func() { f.reportErr(ctx, err) }()
 
@@ -225,6 +227,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	if err != nil {
 		return err
 	}
+	defer src.Cleanup(nil)
 
 	// Destination directory, not the destination file
 	dstPath, err := windowsPathSplit(targetPath)
@@ -241,6 +244,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	if err != nil {
 		return err
 	}
+	defer dst.Cleanup(nil)
 	if !dstIsDir {
 		return errors.New("Tried to move to a non-directory path")
 	}

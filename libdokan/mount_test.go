@@ -54,11 +54,15 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (*compatMount, *FS, func(
 
 func makeFSE(t testing.TB, config *libkbfs.ConfigLocal, driveLetter byte) (*compatMount, *FS, func()) {
 	getDriveLetterLock(driveLetter).Lock()
-	filesys := NewFS(config, true)
+	filesys, err := NewFS(config, true)
+	if err != nil {
+		t.Fatalf("NewFS failed: %q", err.Error())
+	}
 	filesys.log = logger.NewTestLogger(t)
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, CtxAppIDKey, filesys)
 	ctx, cancelFn := context.WithCancel(ctx)
+	filesys.context = ctx
 
 	mnt, err := dokan.Mount(filesys, driveLetter)
 	if err != nil {

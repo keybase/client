@@ -53,10 +53,13 @@ func Start(mounter Mounter, options StartOptions) *Error {
 	if err != nil {
 		return InitError(err.Error())
 	}
+	// Creating the context might be better done in NewFS, but
+	// remains here for parity with libfuse.
 	ctx := context.WithValue(context.Background(), CtxAppIDKey, &fs)
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxIDKey] = CtxOpID
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
+	fs.context = ctx
 
 	fs.launchNotificationProcessor(ctx)
 	err = mounter.Mount(fs)

@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 // DisableUpdatesFileName is the name of the KBFS update-disabling
@@ -34,8 +33,7 @@ type UpdatesFile struct {
 
 // WriteFile performs writes for dokan.
 func (f *UpdatesFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
+	ctx := NewContextWithOpID(f.folder.fs)
 	f.folder.fs.log.CDebugf(ctx, "UpdatesFile (enable: %t) Write", f.enable)
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	if len(bs) == 0 {

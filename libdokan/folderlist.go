@@ -34,7 +34,6 @@ func (*FolderList) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
-	ctx = NewContextWithOpID(ctx, fl.fs.log)
 	fl.fs.log.CDebugf(ctx, "FL Lookup %s", path)
 	defer func() { fl.fs.reportErr(ctx, err) }()
 
@@ -160,8 +159,7 @@ func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.Favori
 
 // FindFiles for dokan.
 func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, fl.fs.log)
+	ctx := NewContextWithOpID(fl.fs)
 	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
 	defer func() { fl.fs.reportErr(ctx, err) }()
 	favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)

@@ -7,8 +7,6 @@
 package libdokan
 
 import (
-	"golang.org/x/net/context"
-
 	"github.com/keybase/kbfs/dokan"
 )
 
@@ -27,8 +25,7 @@ type UnstageFile struct {
 
 // WriteFile implements writes for dokan.
 func (f *UnstageFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
+	ctx := NewContextWithOpID(f.folder.fs)
 	f.folder.fs.log.CDebugf(ctx, "UnstageFile Write")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	if len(bs) == 0 {

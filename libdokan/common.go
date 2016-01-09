@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -40,14 +39,13 @@ const (
 
 // NewContextWithOpID adds a unique ID to this context, identifying
 // a particular request.
-func NewContextWithOpID(ctx context.Context,
-	log logger.Logger) context.Context {
+func NewContextWithOpID(fs *FS) context.Context {
 	id, err := libkbfs.MakeRandomRequestID()
 	if err != nil {
-		log.Errorf("Couldn't make request ID: %v", err)
-		return ctx
+		fs.log.Errorf("Couldn't make request ID: %v", err)
+		return fs.context
 	}
-	return context.WithValue(ctx, CtxIDKey, id)
+	return context.WithValue(fs.context, CtxIDKey, id)
 }
 
 // eiToStat converts from a libkbfs.EntryInfo and error to a *dokan.Stat and error.
