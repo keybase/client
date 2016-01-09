@@ -30,6 +30,7 @@ protocol prove_common {
     FAILED_PARSE_106,
     DNS_ERROR_107,
     AUTH_FAILED_108,
+    HTTP_429_129,
     HTTP_500_150,
     TIMEOUT_160,
     INTERNAL_ERROR_170,

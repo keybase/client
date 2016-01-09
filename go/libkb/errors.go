@@ -88,7 +88,11 @@ func XapiError(err error, u string) *ProofAPIError {
 		case 3:
 			code = keybase1.ProofStatus_HTTP_300
 		case 4:
-			code = keybase1.ProofStatus_HTTP_400
+			if ae.Code == 429 {
+				code = keybase1.ProofStatus_HTTP_429
+			} else {
+				code = keybase1.ProofStatus_HTTP_400
+			}
 		case 5:
 			code = keybase1.ProofStatus_HTTP_500
 		default:

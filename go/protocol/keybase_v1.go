@@ -1501,6 +1501,7 @@ const (
 	ProofStatus_FAILED_PARSE      ProofStatus = 106
 	ProofStatus_DNS_ERROR         ProofStatus = 107
 	ProofStatus_AUTH_FAILED       ProofStatus = 108
+	ProofStatus_HTTP_429          ProofStatus = 129
 	ProofStatus_HTTP_500          ProofStatus = 150
 	ProofStatus_TIMEOUT           ProofStatus = 160
 	ProofStatus_INTERNAL_ERROR    ProofStatus = 170
