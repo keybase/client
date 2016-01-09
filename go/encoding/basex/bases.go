@@ -31,4 +31,4 @@ var Base62StdEncodingStrict = NewEncoding(base62EncodeStd, 32, "")
 
 // Base62StdEncoding is the standard 62-encoding, with a 32-byte input block and, a
 // 43-byte output block. Foreign chracters are ignored
-var Base62StdEncoding = NewEncoding(base62EncodeStd, 32, skipChars)
+var Base62StdEncoding = NewEncoding(base62EncodeStd, 32, "\t\n\r >")
