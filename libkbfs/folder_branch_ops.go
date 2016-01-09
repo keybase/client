@@ -4435,6 +4435,10 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
+	if fbo.staged {
+		return errors.New("Can't rekey while staged.")
+	}
+
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
 	if err != nil {
 		return err
