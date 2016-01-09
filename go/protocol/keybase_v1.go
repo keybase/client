@@ -5694,11 +5694,12 @@ const (
 )
 
 type Update struct {
-	Version     string     `codec:"version" json:"version"`
-	Name        string     `codec:"name" json:"name"`
-	Description string     `codec:"description" json:"description"`
-	Type        UpdateType `codec:"type" json:"type"`
-	Asset       Asset      `codec:"asset" json:"asset"`
+	Version      string     `codec:"version" json:"version"`
+	Name         string     `codec:"name" json:"name"`
+	Description  string     `codec:"description" json:"description"`
+	Instructions *string    `codec:"instructions,omitempty" json:"instructions,omitempty"`
+	Type         UpdateType `codec:"type" json:"type"`
+	Asset        Asset      `codec:"asset" json:"asset"`
 }
 
 type UpdateOptions struct {
