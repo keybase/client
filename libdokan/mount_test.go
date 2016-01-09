@@ -2179,8 +2179,7 @@ func TestStatusFile(t *testing.T) {
 
 // TODO: remove once we have automatic conflict resolution tests
 func TestUnstageFile(t *testing.T) {
-	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
-		"user2")
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	mnt1, _, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
@@ -2285,8 +2284,7 @@ func TestUnstageFile(t *testing.T) {
 }
 
 func TestSimpleCRNoConflict(t *testing.T) {
-	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
-		"user2")
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	mnt1, fs1, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
