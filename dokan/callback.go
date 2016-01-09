@@ -38,7 +38,8 @@ func kbfs_libdokan_CreateFile(
 		CreateDisposition: uint32(CreateDisposition),
 		CreateOptions:     uint32(CreateOptions),
 	}
-	debugf("CreateFile '%v' %#v %v\n", d16{fname}, cd, *pfi)
+	debugf("CreateFile '%v' %#v pid: %v\n",
+		d16{fname}, cd, pfi.ProcessId)
 	fi, isDir, err := getfs(pfi).CreateFile(makeFI(fname, pfi), &cd)
 	if isDir {
 		pfi.IsDirectory = 1
