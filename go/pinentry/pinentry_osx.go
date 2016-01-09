@@ -89,17 +89,24 @@ func (pi *pinentryInstance) shouldStoreSecret(info pinentrySecretStoreInfo) bool
 	// this way.
 	query.SetReturnRef(true)
 	ref, err := keychain.QueryItemRef(query)
-	if ref == nil || err != nil {
-		// Entry was not found or if there was any error we default to false
+	if err != nil {
+		// Default to false if there was an error.
 		return false
 	}
+	if ref == nil {
+		// If not found, return false.
+		return false
+	}
+
 	defer keychain.Release(ref)
+
 	err = keychain.DeleteItemRef(ref)
 	if err != nil {
-		// If there was any error we default to false
+		// Default to false if there was an error deleting.
 		return false
 	}
-	// Entry was found and deleted
+
+	// Entry was found and deleted.
 	return true
 }
 
