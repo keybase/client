@@ -246,6 +246,9 @@
       "name" : "description",
       "type" : "string"
     }, {
+      "name" : "instructions",
+      "type" : [ "null", "string" ]
+    }, {
       "name" : "type",
       "type" : "UpdateType"
     }, {

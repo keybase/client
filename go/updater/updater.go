@@ -100,6 +100,18 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 		return
 	}
 
+	// do only if instructions are empty/nil
+	if update.Instructions == nil || *update.Instructions == "" {
+		instructions, err := libkb.PlatformSpecificUpgradeInstructionsString()
+		u.log.Info("Updating instructions! %s, err: %s", instructions, err)
+		if err == nil {
+			update.Instructions = new(string)
+			*update.Instructions = instructions
+		} else {
+			update.Instructions = nil
+		}
+	}
+
 	if skp := u.config.GetUpdatePreferenceSkip(); len(skp) != 0 {
 		u.log.Debug("Update preference: skip %s", skp)
 		if vers, err := semver.Make(skp); err != nil {

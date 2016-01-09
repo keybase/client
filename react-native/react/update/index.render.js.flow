@@ -9,7 +9,7 @@ export type RenderProps = {
   alwaysUpdate: bool,
   setAlwaysUpdate: (alwaysUpdate: bool) => void,
   snoozeTime: string,
-  updateCommand: string,
+  updateCommand: ?string,
   canUpdate: bool,
   onUpdate: () => void,
   onSnooze: () => void

@@ -24,6 +24,7 @@ protocol updateCommon {
     string version; // Sematic version, e.g. 1.2.3-400
     string name;
     string description;
+    union { null, string } instructions; // String representing distro-specific upgrade instructions
     UpdateType type;
     union { null, Time } publishedAt;
     union { null, Asset } asset;

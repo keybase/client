@@ -5228,6 +5228,7 @@ export type update_Update = {
   version: string;
   name: string;
   description: string;
+  instructions?: ?string;
   type: UpdateType;
   publishedAt?: ?Time;
   asset?: ?Asset;
@@ -5237,6 +5238,7 @@ export type Update = {
   version: string;
   name: string;
   description: string;
+  instructions?: ?string;
   type: UpdateType;
   publishedAt?: ?Time;
   asset?: ?Asset;
@@ -5374,6 +5376,7 @@ export type updateUi_Update = {
   version: string;
   name: string;
   description: string;
+  instructions?: ?string;
   type: UpdateType;
   publishedAt?: ?Time;
   asset?: ?Asset;

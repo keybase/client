@@ -48,7 +48,7 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       console.log('Asked for update prompt')
 
       updatePromptResponse = response
-      const {version, description, type, asset} = payload.update
+      const {version, description, instructions, type, asset} = payload.update
 
       const windowTitle = {
         [updateUi.UpdateType.normal]: 'Keybase Update',
@@ -64,7 +64,8 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
           oldVersion = config.version
         }
       }
-      const updateCommand = ['darwin', 'win32'].indexOf(process.platform) === -1 ? 'TODO get this from server' : null
+
+      const updateCommand = (instructions && instructions.length) ? instructions : null
 
       dispatch(({
         type: Constants.showUpdatePrompt,
