@@ -18,6 +18,8 @@
   be smart about decryption using the wrong command on the wrong type
   of stream; suggest alterntives. (PR: keybase/client#1633)
 - service: hook Identify2 RPC up to engine (PR: keybase/client#1662)
+- openpgp: ignore broken signature packets, since some keys are mangled
+  due to misbehaving clients and/or key servers (via vendored PR: keybase/go-crypto#4)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)

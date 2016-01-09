@@ -368,11 +368,12 @@ EachPacket:
 				}
 
 				if (sig.SigType == packet.SigTypePositiveCert || sig.SigType == packet.SigTypeGenericCert) && sig.IssuerKeyId != nil && *sig.IssuerKeyId == e.PrimaryKey.KeyId {
-					if err = e.PrimaryKey.VerifyUserIdSignature(pkt.Id, e.PrimaryKey, sig); err != nil {
-						return nil, errors.StructuralError("user ID self-signature invalid: " + err.Error())
+					if err = e.PrimaryKey.VerifyUserIdSignature(pkt.Id, e.PrimaryKey, sig); err == nil {
+						current.SelfSignature = sig
+						break
+					} else {
+						// Ignore it; some keys have busted self-sigs
 					}
-					current.SelfSignature = sig
-					break
 				}
 				current.Signatures = append(current.Signatures, sig)
 			}
