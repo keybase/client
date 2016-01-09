@@ -9,7 +9,6 @@
 #import "KBProgressView.h"
 
 #import "KBProgressOverlayView.h"
-#import "KBErrorView.h"
 
 @interface KBProgressView ()
 @property KBProgressOverlayView *progressView;

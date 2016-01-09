@@ -19,7 +19,7 @@
 
 @implementation KBInstaller
 
-- (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force completion:(void (^)(NSArray *installables))completion {
+- (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force completion:(void (^)(NSError *error, NSArray *installables))completion {
   // TODO force
 
   KBRunOver *rover = [[KBRunOver alloc] init];
@@ -33,8 +33,40 @@
       }];
     }];
   };
-  rover.completion = completion;
+  rover.completion = ^(NSArray *installables) {
+    for (KBInstallable *installable in installables) {
+      NSString *name = installable.name;
+      NSString *desc = [[installable installDescription:@"\n"] join:@"\n"];
+      DDLogInfo(@"%@: %@", name, desc);
+    }
+    completion([self combineErrors:installables], installables);
+  };
   [rover run];
+}
+
+- (NSError *)combineErrors:(NSArray *)installables {
+  BOOL installed = YES;
+  NSMutableArray *errorMessages = [NSMutableArray array];
+  for (KBInstallable *installable in installables) {
+    if (installable.error) {
+      NSString *errorMessage = NSStringWithFormat(@"%@ (%@)", installable.error.localizedDescription, @(installable.error.code));
+      if (![errorMessages containsObject:errorMessage]) [errorMessages addObject:errorMessage];
+    }
+    installed &= [installable isInstalled];
+  }
+
+  if ([errorMessages count] == 0) {
+    if (!installed) {
+      // No errors but not everything was installed (this hopefully shouldn't happen)
+      return KBMakeError(-1, @"Unknown install error");
+    } else {
+      // Success (no errors)
+      return nil;
+    }
+  }
+
+  return KBMakeError(-1, @"%@", [errorMessages join:@". "]);
+
 }
 
 - (void)refreshStatusWithEnvironment:(KBEnvironment *)environment completion:(dispatch_block_t)completion {

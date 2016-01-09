@@ -46,6 +46,7 @@
 
         case KBRTrackDiffTypeUpgraded:
         case KBRTrackDiffTypeNew:
+        case KBRTrackDiffTypeNewEldest:
           color = KBAppearance.currentAppearance.successColor;
           label = diff.displayMarkup;
           break;

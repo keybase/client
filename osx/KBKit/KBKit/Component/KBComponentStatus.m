@@ -45,6 +45,14 @@
   return componentStatus;
 }
 
++ (instancetype)componentStatusWithError:(NSError *)error {
+  KBComponentStatus *componentStatus = [[KBComponentStatus alloc] init];
+  componentStatus.installStatus = KBRInstallStatusError;
+  componentStatus.installAction = KBRInstallActionNone;
+  componentStatus.error = error;
+  return componentStatus;
+}
+
 + (instancetype)componentStatusWithServiceStatus:(KBRServiceStatus *)serviceStatus {
   KBComponentStatus *componentStatus = [[KBComponentStatus alloc] init];
   componentStatus.installStatus = serviceStatus.installStatus;
@@ -89,7 +97,7 @@
   return info;
 }
 
-- (NSString *)statusDescription {
+- (NSString *)statusDescription:(NSString *)delimeter {
   NSMutableArray *str = [NSMutableArray array];
   [str addObject:NSStringFromKBRInstallStatus(_installStatus)];
   
@@ -97,9 +105,9 @@
   for (id key in _info) {
     [infos addObject:NSStringWithFormat(@"%@: %@", key, _info[key])];
   }
-  if ([infos count] > 0) [str addObject:NSStringWithFormat(@"\n%@", [infos join:@"\n"])];
+  if ([infos count] > 0) [str addObject:[infos join:delimeter]];
 
-  return [str join:@" "];
+  return [str join:@", "];
 }
 
 @end

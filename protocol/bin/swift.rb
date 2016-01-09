@@ -9,6 +9,14 @@ end
 
 script_path = File.expand_path(File.dirname(__FILE__))
 
+out_dir = nil
+if ARGV.length == 1 then
+  out_dir = ARGV[0]
+  puts "Out dir: #{out_dir}"
+else
+  #puts "No output directory specified"
+end
+
 paths = Dir["#{script_path}/../json/*.json"]
 
 @defined_types = []
@@ -386,25 +394,24 @@ import SwiftyJSON
 EOS
 end
 
-#path = "#{script_path}/../swift"
-path = "/Users/gabe/Projects/Frameworks/KeybaseSwift/KeybaseSwift"
-
-File.open("#{path}/Requests.swift", "w") do |f|
-  f.write(header("Requests.swift"))
-  @requests.each do |name, lines|
-    f.write("\n\n\n//\n")
-    f.write("// #{name}\n")
-    f.write("//\n\n")
-    f.write(lines.join("\n"))
+if !out_dir.nil? then
+  File.open("#{out_dir}/Requests.swift", "w") do |f|
+    f.write(header("Requests.swift"))
+    @requests.each do |name, lines|
+      f.write("\n\n\n//\n")
+      f.write("// #{name}\n")
+      f.write("//\n\n")
+      f.write(lines.join("\n"))
+    end
   end
-end
 
-File.open("#{path}/Models.swift", "w") do |f|
-  f.write(header("Models.swift"))
-  @records.each do |name, lines|
-    f.write("\n\n\n//\n")
-    f.write("// #{name}\n")
-    f.write("//\n\n")
-    f.write(lines.join("\n"))
+  File.open("#{out_dir}/Models.swift", "w") do |f|
+    f.write(header("Models.swift"))
+    @records.each do |name, lines|
+      f.write("\n\n\n//\n")
+      f.write("// #{name}\n")
+      f.write("//\n\n")
+      f.write(lines.join("\n"))
+    end
   end
 end

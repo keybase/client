@@ -465,10 +465,11 @@
     KBRPGPCreateUids *uids = [[KBRPGPCreateUids alloc] init];
     uids.useDefault = YES;
     KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
-    [request pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
-      completion(error);
-      [self refresh];
-    }];
+    NSAssert(NO, @"Unsupported");
+//    [request pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
+//      completion(error);
+//      [self refresh];
+//    }];
   };
   [progressView openAndDoIt:(KBWindow *)self.window];
 }

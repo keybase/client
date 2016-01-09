@@ -104,7 +104,12 @@ export default {
       'scidentificationexpired': 1702,
       'scselfnotfound': 1703,
       'scbadkexphrase': 1704,
-      'scnouidelegation': 1705
+      'scnouidelegation': 1705,
+      'scinvalidversionerror': 1800,
+      'scoldversionerror': 1801,
+      'scinvalidlocationerror': 1802,
+      'scservicestatuserror': 1803,
+      'scinstallerror': 1804
     }
   },
   'crypto': {

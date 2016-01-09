@@ -1,26 +1,25 @@
 //
 //  KBInstallStatusView.m
-//  Keybase
+//  KBKit
 //
-//  Created by Gabriel on 5/10/15.
-//  Copyright (c) 2015 Gabriel Handford. All rights reserved.
+//  Created by Gabriel on 1/6/16.
+//  Copyright © 2016 Gabriel Handford. All rights reserved.
 //
 
 #import "KBInstallStatusView.h"
 
 #import "KBHeaderLabelView.h"
 #import "KBInstaller.h"
-#import "KBRunOver.h"
-#import "KBApp.h"
-#import "KBKeybaseLaunchd.h"
 
-@interface KBInstallStatusView ()
+#import <YOLayout/YOVBorderLayout.h>
+
+@interface KBInstallStatusView () <NSSharingServicePickerDelegate>
+@property KBLabel *header;
 @property KBLabel *infoLabel;
-@property YOView *installStatusView;
-@property YOHBox *buttons;
+@property KBTextView *textView;
+@property YOHBox *debugOptionsView;
+@property YOHBox *buttonViews;
 @property YOHBox *skipButtons;
-
-@property (nonatomic) KBEnvironment *environment;
 @end
 
 @implementation KBInstallStatusView
@@ -28,106 +27,134 @@
 - (void)viewInit {
   [super viewInit];
   [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
-  GHWeakSelf gself = self;
+  YOVBox *topView = [YOVBox box];
+  {
+    YOVBox *headerView = [YOVBox box:@{@"spacing": @(20), @"insets": @"0,0,20,0"}];
+    {
+      _header = [[KBLabel alloc] init];
+      [headerView addSubview:_header];
 
-  YOVBox *contentView = [YOVBox box:@{@"spacing": @(20), @"insets": @(20)}];
-  [self addSubview:contentView];
+      _infoLabel = [[KBLabel alloc] init];
+      [headerView addSubview:_infoLabel];
+    }
+    [topView addSubview:headerView];
+    [topView addSubview:[KBBox horizontalLine]];
+  }
+  [self addSubview:topView];
 
-  NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
+  _textView = [[KBTextView alloc] init];
+  _textView.editable = NO;
+  _textView.view.textContainerInset = CGSizeMake(5, 5);
+  [self addSubview:_textView];
 
-  KBLabel *header = [[KBLabel alloc] init];
-  [header setText:NSStringWithFormat(@"Keybase Status (%@)", runMode) style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
-  [contentView addSubview:header];
+  YOVBox *bottomView = [YOVBox box];
+  {
+    [bottomView addSubview:[KBBox horizontalLine]];
+    YOVBox *footerView = [YOVBox box:@{@"spacing": @(20), @"insets": @"20,0,0,0"}];
+    {
+  //    _debugOptionsView = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
+  //    [_debugOptionsView addSubview:[KBButton buttonWithText:@"Open Control Panel" style:KBButtonStyleLink options:0 targetBlock:^{ self.onSelect(KBInstallStatusSelectControlPanel); }]];
+  //    [bottomView addSubview:_debugOptionsView];
 
-  _infoLabel = [[KBLabel alloc] init];
-  [contentView addSubview:_infoLabel];
+      _buttonViews = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];    
+      [footerView addSubview:_buttonViews];
+    }
+    [bottomView addSubview:footerView];
+  }
+  [self addSubview:bottomView];
 
-  _installStatusView = [YOVBox box:@{@"spacing": @(10), @"insets": @"10,0,10,0"}];
-  _installStatusView.identifier = @"InstallStatus";
-  [contentView addSubview:_installStatusView];
-
-  YOHBox *debugView = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
-  [debugView addSubview:[KBButton buttonWithText:@"Open Control Panel" style:KBButtonStyleLink options:0 targetBlock:^{ [self controlPanel]; }]];
-  [contentView addSubview:debugView];
-
-  _buttons = [YOHBox box:@{@"horizontalAlignment": @"center", @"spacing": @(10)}];
-  [contentView addSubview:_buttons];
-  KBButton *closeButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];
-  closeButton.targetBlock = ^{ [self.window close]; };
-  //  quitButton = ^{ [NSApp terminate:0]; };
-  [_buttons addSubview:closeButton];
-//  KBButton *skipButton = [KBButton buttonWithText:@"Skip" style:KBButtonStyleDefault];
-//  skipButton.targetBlock = ^{ [gself skip]; };
-//  [_buttons addSubview:skipButton];
-  KBButton *refreshButton = [KBButton buttonWithText:@"Refresh" style:KBButtonStyleDefault];
-  refreshButton.targetBlock = ^{ [gself refresh]; };
-  [_buttons addSubview:refreshButton];
-  KBButton *nextButton = [KBButton buttonWithText:@"Install" style:KBButtonStylePrimary];
-  nextButton.targetBlock = ^{ [gself install]; };
-  [_buttons addSubview:nextButton];  
-
-  self.viewLayout = [YOLayout center:contentView];
+  self.viewLayout = [YOVBorderLayout layoutWithCenter:_textView top:@[topView] bottom:@[bottomView] insets:UIEdgeInsetsMake(20, 0, 20, 0) spacing:0];
 }
 
-- (void)viewDidAppear:(BOOL)animated {
-  //
+- (void)viewDidAppear:(BOOL)animated { }
+
+- (void)setTitle:(NSString *)title headerText:(NSString *)headerText {
+  [_header setText:title style:KBTextStyleHeaderLarge alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByTruncatingTail];
+  [_infoLabel setText:headerText style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
 }
 
-- (void)controlPanel {
-  [KBApp.app openControlPanel];
-}
+- (void)setButtons:(NSArray *)buttons {
+  NSArray *views = [_buttonViews.subviews copy];
+  for (NSView *subview in views) [subview removeFromSuperview];
 
-- (void)install {
-  [KBActivity setProgressEnabled:YES sender:self];
-  KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installWithEnvironment:_environment force:NO completion:^(NSArray *installables) {
-    [KBActivity setProgressEnabled:NO sender:self];
-    [self showInstallables];
-  }];
-}
-
-- (void)refresh {
-  [KBActivity setProgressEnabled:YES sender:self];
-  KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer refreshStatusWithEnvironment:_environment completion:^() {
-    [KBActivity setProgressEnabled:NO sender:self];
-    [self showInstallables];
-  }];
-}
-
-- (void)skip {
-  self.completion();
+  for (NSView *view in buttons) {
+    [_buttonViews addSubview:view];
+  }
+  [self setNeedsLayout];
 }
 
 - (void)setEnvironment:(KBEnvironment *)environment {
   _environment = environment;
-  [self showInstallables];
+  [self refreshInstallables];
 }
 
-- (void)showInstallables {
-  NSArray *installViews = [_installStatusView.subviews copy];
-  for (NSView *subview in installViews) [subview removeFromSuperview];
-
-  [_infoLabel setText:@"Here is the status of all the Keybase components." style:KBTextStyleDefault alignment:NSCenterTextAlignment lineBreakMode:NSLineBreakByWordWrapping];
-
-  for (KBInstallable *installable in _environment.installables) {
-    NSString *name = installable.name;
-
-    NSString *statusDescription = [[installable statusDescription] join:@"\n"];
-
-    KBHeaderLabelView *label = [KBHeaderLabelView headerLabelViewWithHeader:name headerOptions:0 text:statusDescription style:KBTextStyleDefault options:0 lineBreakMode:NSLineBreakByWordWrapping];
-    label.columnRatio = 0.5;
-
-    NSString *action = [installable action];
-    if (action) {
-      [label addText:action style:KBTextStyleDefault options:KBTextOptionsStrong lineBreakMode:NSLineBreakByWordWrapping targetBlock:nil];
-    }
-
-    [_installStatusView addSubview:label];
-  }
-
-  [_installStatusView setNeedsLayout];
+- (void)setDebugOptionsViewEnabled:(BOOL)debugOptionsViewEnabled {
+  _debugOptionsView.hidden = !debugOptionsViewEnabled;
   [self setNeedsLayout];
 }
 
+- (void)refreshInstallables {
+  NSMutableString *info = [NSMutableString stringWithCapacity:1024 * 1024];
+
+  NSDictionary *installerInfo = NSBundle.mainBundle.infoDictionary;
+  [info appendString:NSStringWithFormat(@"Installer: %@\n", installerInfo[@"CFBundleVersion"])];
+
+  for (KBInstallable *installable in _environment.installables) {
+    NSString *name = installable.name;
+    [info appendString:NSStringWithFormat(@"%@: ", name)];
+    NSString *action = [installable action];
+    if (action) {
+      [info appendString:NSStringWithFormat(@"%@, ", action)];
+    }
+
+    NSString *desc = [[installable installDescription:@", "] join:@", "];
+    [info appendString:desc];
+
+    [info appendString:@"\n"];
+  }
+
+  [info appendString:@"\n"];
+
+  if (_log) {
+    [info appendString:@"Log:\n"];
+    [info appendString:[_log messages]];
+  }
+
+  [_textView setText:info style:KBTextStyleDefault options:KBTextOptionsMonospace alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+  [self setNeedsLayout];
+}
+
+- (void)refresh {
+  [KBActivity setProgressEnabled:YES sender:self];
+  [_log clear];
+  _textView.attributedText = nil;
+  KBInstaller *installer = [[KBInstaller alloc] init];
+  [installer refreshStatusWithEnvironment:self.environment completion:^() {
+    [KBActivity setProgressEnabled:NO sender:self];
+    [self refreshInstallables];
+  }];
+}
+
+- (void)install {
+  [KBActivity setProgressEnabled:YES sender:self];
+  [_log clear];
+  _textView.attributedText = nil;
+  KBInstaller *installer = [[KBInstaller alloc] init];
+  [installer installWithEnvironment:self.environment force:NO completion:^(NSError *error, NSArray *installables) {
+    [KBActivity setProgressEnabled:NO sender:self];
+    [self refreshInstallables];
+  }];
+}
+
+- (void)share:(id)sender completion:(dispatch_block_t)completion {
+  NSMutableArray *items = [NSMutableArray array];
+  [items addObject:_textView.text];
+
+  NSSharingServicePicker *sharingServicePicker = [[NSSharingServicePicker alloc] initWithItems:items];
+  sharingServicePicker.delegate = self;
+  [sharingServicePicker showRelativeToRect:[sender bounds] ofView:sender preferredEdge:NSMinYEdge];
+  completion();
+}
+
 @end
+

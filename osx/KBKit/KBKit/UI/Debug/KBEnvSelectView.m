@@ -16,7 +16,6 @@
 
 #import "KBService.h"
 #import "KBFSService.h"
-#import "KBInstaller.h"
 #import "MDPSplitView.h"
 
 #import <Tikppa/Tikppa.h>

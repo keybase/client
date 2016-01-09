@@ -60,7 +60,14 @@ FOUNDATION_EXPORT const unsigned char KBKitVersionString[];
 #import <KBKit/KBStream.h>
 #import <KBKit/KBWriter.h>
 
+// Log
+#import <KBKit/KBMemLogger.h>
+
 // UI
+#import <KBKit/KBUIAppearance.h>
+#import <KBKit/KBErrorView.h>
+#import <KBKit/KBStatusView.h>
+#import <KBKit/KBInstallStatusView.h>
 
 // Utils
 #import <KBKit/KBFormatter.h>

@@ -90,24 +90,17 @@
       [gself.delegate RPClient:gself didLog:requestParams.text.data];
       completion(nil, nil);
       return;
-    } else if ([method isEqualToString:@"keybase.1.secretUi.getSecret"]) {
+    } else if ([method isEqualToString:@"keybase.1.secretUi.getPassphrase"]) {
       KBLog(KBLogRPC|KBLogDebug, @"Password prompt: %@", KBDescription(params));
-      KBRGetSecretRequestParams *requestParams = [[KBRGetSecretRequestParams alloc] initWithParams:params];
-      [gself.delegate RPClient:gself didRequestSecretForPrompt:requestParams.pinentry.prompt info:@"" details:requestParams.pinentry.desc previousError:requestParams.pinentry.err completion:^(NSString *secret) {
+      KBRGetPassphraseRequestParams *requestParams = [[KBRGetPassphraseRequestParams alloc] initWithParams:params];
+      [gself.delegate RPClient:gself didRequestSecretForPrompt:requestParams.pinentry.prompt info:@"" details:@"" previousError:nil completion:^(NSString *secret) {
         KBRSecretEntryRes *entry = [[KBRSecretEntryRes alloc] init];
         entry.text = secret;
         entry.canceled = !secret;
         completion(nil, entry);
       }];
       return;
-    } else if ([method isEqualToString:@"keybase.1.secretUi.getKeybasePassphrase"]) {
-      KBLog(KBLogRPC|KBLogDebug, @"Password prompt: %@", KBDescription(params));
-      KBRGetKeybasePassphraseRequestParams *requestParams = [[KBRGetKeybasePassphraseRequestParams alloc] initWithParams:params];
-      [gself.delegate RPClient:gself didRequestKeybasePassphraseForUsername:requestParams.username completion:^(NSString *passphrase) {
-        completion(nil, passphrase);
-      }];
-      return;
-    }
+    } 
 
     id sessionId = [[params lastObject] objectForKey:@"sessionID"];
     MPRequestHandler requestHandler;

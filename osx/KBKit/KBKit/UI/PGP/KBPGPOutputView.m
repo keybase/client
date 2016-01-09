@@ -12,7 +12,7 @@
 #import "KBPGPVerifiedView.h"
 #import "KBPGPOutputFooterView.h"
 
-@interface KBPGPOutputView ()
+@interface KBPGPOutputView () <NSSharingServicePickerDelegate>
 @property KBPGPTextView *textView;
 @property KBPGPVerifiedView *verifiedView;
 @property KBPGPOutputFooterView *footerView;

@@ -22,6 +22,7 @@
 
 @interface KBHelperTool ()
 @property KBDebugPropertiesView *infoView;
+@property (nonatomic) MPXPCClient *helper;
 @end
 
 @implementation KBHelperTool
@@ -44,7 +45,9 @@
 
 - (MPXPCClient *)helper {
   // Always use a new helper tool since it can be interrupted if stale or updated.
-  return [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  [_helper close];
+  _helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  return _helper;
 }
 
 - (void)componentDidUpdate {

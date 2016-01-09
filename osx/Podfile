@@ -1,13 +1,15 @@
-platform :osx, "10.10"
-
-target "Keybase" do
+target "Installer" do
+  platform :osx, "10.10"
   pod "ObjectiveSugar"
   pod "GBCli"
+  pod "Slash", :git => "https://github.com/chrisdevereux/Slash"
+  pod "MPMessagePack", :path => "~/Projects/MPMessagePack"
   pod "KBKit", :path => "KBKit"
 end
 
 # This runs as a privileged helper so keep dependencies
 # here to a minimum.
 target "keybase.Helper" do
-  pod "MPMessagePack"
+  platform :osx, "10.10"
+  pod "MPMessagePack", :path => "~/Projects/MPMessagePack"
 end

@@ -34,7 +34,35 @@
   return KBInstallRuntimeStatusNone;
 }
 
-- (NSArray *)statusDescription {
++ (NSError *)checkForStatusErrorFromResponse:(id)response {
+  if ([response isKindOfClass:NSDictionary.class]) {
+    NSDictionary *dict = (NSDictionary *)response;
+    NSDictionary *status = dict[@"status"];
+    NSInteger code = [status[@"code"] integerValue];
+    if (code != 0) {
+      return KBMakeError(code, @"%@", status[@"desc"]);
+    }
+  }
+  return nil;
+}
+
+- (BOOL)isInstalled {
+  if (self.error) return NO;
+  if (self.componentStatus.error) return NO;
+  if (self.componentStatus.installStatus != KBRInstallStatusInstalled) return NO;
+  return YES;
+}
+
+- (NSArray *)installDescription:(NSString *)delimeter {
+  NSMutableArray *desc = [NSMutableArray array];
+  if (self.error) {
+    [desc addObject:NSStringWithFormat(@"Install Error: %@", self.error.localizedDescription)];
+  }
+  [desc addObjectsFromArray:[self statusDescription:delimeter]];
+  return desc;
+}
+
+- (NSArray *)statusDescription:(NSString *)delimeter {
   NSMutableArray *status = [NSMutableArray array];
   if (self.isInstallDisabled) {
     [status addObject:@"Install Disabled"];
@@ -42,7 +70,7 @@
   if (self.componentStatus.error) {
     [status addObject:NSStringWithFormat(@"Error: %@", self.componentStatus.error.localizedDescription)];
   }
-  [status gh_addObject:self.componentStatus.statusDescription];
+  [status gh_addObject:[self.componentStatus statusDescription:delimeter]];
   return status;
 }
 

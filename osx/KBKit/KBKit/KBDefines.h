@@ -8,6 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
+#import <GHKit/GHKit.h>
+#import <ObjectiveSugar/ObjectiveSugar.h>
+
 #import <CocoaLumberjack/CocoaLumberjack.h>
 static const int ddLogLevel = DDLogLevelDebug;
 

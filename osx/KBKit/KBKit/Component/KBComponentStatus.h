@@ -30,9 +30,11 @@ NSString *NSStringFromKBRInstallAction(KBRInstallAction action);
 
 + (instancetype)componentStatusWithServiceStatus:(KBRServiceStatus *)serviceStatus;
 
++ (instancetype)componentStatusWithError:(NSError *)error;
+
 - (BOOL)needsInstallOrUpgrade;
 
-- (NSString *)statusDescription;
+- (NSString *)statusDescription:(NSString *)delimeter;
 
 - (GHODictionary *)statusInfo;
 
