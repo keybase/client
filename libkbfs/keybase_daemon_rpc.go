@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"os"
 	"sync"
 	"time"
 
@@ -21,8 +22,12 @@ type KeybaseDaemonRPC struct {
 	sessionClient  keybase1.SessionInterface
 	favoriteClient keybase1.FavoriteInterface
 	kbfsClient     keybase1.KbfsInterface
-	shutdownFn     func()
 	log            logger.Logger
+
+	// Only used when there's a real connection (i.e., not in
+	// testing).
+	shutdownFn func()
+	daemonLog  logger.Logger
 
 	sessionCacheLock sync.RWMutex
 	// Set to the zero value when invalidated.
@@ -46,11 +51,15 @@ var _ KeybaseDaemon = (*KeybaseDaemonRPC)(nil)
 
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
-func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.Logger) *KeybaseDaemonRPC {
+func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.Logger, debug bool) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(kbCtx, log)
 	conn := NewSharedKeybaseConnection(kbCtx, config, k)
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
+	k.daemonLog = logger.NewWithCallDepth("daemon", 1, os.Stderr)
+	if debug {
+		k.daemonLog.Configure("", true, "")
+	}
 	return k
 }
 
@@ -157,12 +166,41 @@ func (k *KeybaseDaemonRPC) UserChanged(ctx context.Context, uid keybase1.UID) er
 	return nil
 }
 
+type daemonLogUI struct {
+	log logger.Logger
+}
+
+var _ keybase1.LogUiInterface = daemonLogUI{}
+
+func (l daemonLogUI) Log(ctx context.Context, arg keybase1.LogArg) error {
+	format := "%s"
+	// arg.Text.Markup should always be false, so ignore it.
+	s := arg.Text.Data
+	switch arg.Level {
+	case keybase1.LogLevel_DEBUG:
+		l.log.CDebugf(ctx, format, s)
+	case keybase1.LogLevel_INFO:
+		l.log.CInfof(ctx, format, s)
+	case keybase1.LogLevel_WARN:
+		l.log.CWarningf(ctx, format, s)
+	case keybase1.LogLevel_ERROR:
+		l.log.CErrorf(ctx, format, s)
+	case keybase1.LogLevel_NOTICE:
+		l.log.CNoticef(ctx, format, s)
+	case keybase1.LogLevel_CRITICAL:
+		l.log.CCriticalf(ctx, format, s)
+	default:
+		l.log.CWarningf(ctx, format, s)
+	}
+	return nil
+}
+
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	conn *Connection, rawClient keybase1.GenericClient,
 	server *rpc.Server) error {
 	protocols := []rpc.Protocol{
-		client.NewLogUIProtocol(),
+		keybase1.LogUiProtocol(daemonLogUI{k.daemonLog}),
 		client.NewIdentifyUIProtocol(k.G()),
 		keybase1.NotifySessionProtocol(k),
 		keybase1.NotifyUsersProtocol(k),

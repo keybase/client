@@ -174,10 +174,10 @@ func makeBlockServer(config Config, serverInMemory bool, serverRootDir, bserverA
 	return NewBlockServerRemote(config, bserverAddr), nil
 }
 
-func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string, localUser libkb.NormalizedUsername, codec Codec, log logger.Logger) (KeybaseDaemon, error) {
+func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string, localUser libkb.NormalizedUsername, codec Codec, log logger.Logger, debug bool) (KeybaseDaemon, error) {
 	if len(localUser) == 0 {
 		libkb.G.ConfigureSocketInfo()
-		return NewKeybaseDaemonRPC(config, libkb.G, log), nil
+		return NewKeybaseDaemonRPC(config, libkb.G, log, debug), nil
 	}
 
 	users := []libkb.NormalizedUsername{"strib", "max", "chris", "fred"}
@@ -324,7 +324,7 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 		log.Warning("ignoring for now...")
 	}
 
-	daemon, err := makeKeybaseDaemon(config, params.ServerInMemory, params.ServerRootDir, localUser, config.Codec(), config.MakeLogger(""))
+	daemon, err := makeKeybaseDaemon(config, params.ServerInMemory, params.ServerRootDir, localUser, config.Codec(), config.MakeLogger(""), params.Debug)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating daemon: %s", err)
 	}
