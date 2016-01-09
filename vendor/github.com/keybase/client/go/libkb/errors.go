@@ -6,8 +6,9 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"strings"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 //=============================================================================
@@ -261,6 +262,12 @@ type NoActiveKeyError struct {
 
 func (e NoActiveKeyError) Error() string {
 	return fmt.Sprintf("user %s has no active keys", e.Username)
+}
+
+type NoSyncedPGPKeyError struct{}
+
+func (e NoSyncedPGPKeyError) Error() string {
+	return "No synced secret PGP key found on keybase.io"
 }
 
 //=============================================================================
@@ -637,6 +644,32 @@ func (k KeyUnimplementedError) Error() string {
 	return "Key function isn't implemented yet"
 }
 
+type NoPGPEncryptionKeyError struct {
+	User         string
+	HasDeviceKey bool
+}
+
+func (e NoPGPEncryptionKeyError) Error() string {
+	var other string
+	if e.HasDeviceKey {
+		other = "; they do have a device key, so you can `keybase encrypt` to them instead"
+	}
+	return fmt.Sprintf("User %s doesn't have a PGP key%s", e.User, other)
+}
+
+type NoNaClEncryptionKeyError struct {
+	User      string
+	HasPGPKey bool
+}
+
+func (e NoNaClEncryptionKeyError) Error() string {
+	var other string
+	if e.HasPGPKey {
+		other = "; they do have a PGP key, so you can `keybase pgp encrypt` to them instead"
+	}
+	return fmt.Sprintf("User %s doesn't have a device key%s", e.User, other)
+}
+
 //=============================================================================
 
 type DecryptBadPacketTypeError struct{}
@@ -944,6 +977,12 @@ func (c CanceledError) Error() string {
 	return c.M
 }
 
+type InputCanceledError struct{}
+
+func (e InputCanceledError) Error() string {
+	return "Input canceled"
+}
+
 //=============================================================================
 
 type NoDeviceError struct {
@@ -1242,4 +1281,34 @@ type TrackingBrokeError struct{}
 
 func (e TrackingBrokeError) Error() string {
 	return "Tracking broke"
+}
+
+//=============================================================================
+
+type UnknownStreamError struct{}
+
+func (e UnknownStreamError) Error() string {
+	return "unknown stream format"
+}
+
+type WrongCryptoFormatError struct {
+	Wanted, Received CryptoMessageFormat
+	Operation        string
+}
+
+func (e WrongCryptoFormatError) Error() string {
+	ret := "Wrong crypto message format"
+	switch {
+	case e.Wanted == CryptoMessageFormatPGP && e.Received == CryptoMessageFormatSaltPack:
+		ret += "; wanted PGP but got SaltPack"
+		if len(e.Operation) > 0 {
+			ret += "; try `keybase " + e.Operation + "` instead"
+		}
+	case e.Wanted == CryptoMessageFormatSaltPack && e.Received == CryptoMessageFormatPGP:
+		ret += "; wanted SaltPack but got PGP"
+		if len(e.Operation) > 0 {
+			ret += "; try `keybase pgp " + e.Operation + "` instead"
+		}
+	}
+	return ret
 }

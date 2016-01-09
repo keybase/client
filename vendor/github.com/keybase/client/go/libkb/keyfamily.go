@@ -828,6 +828,18 @@ func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did keybase1.DeviceID
 	return
 }
 
+func (ckf *ComputedKeyFamily) HasActiveEncryptionSubkey() bool {
+	for kid := range ckf.cki.Infos {
+		if !kid.IsValid() {
+			continue
+		}
+		if key, err := ckf.FindActiveEncryptionSubkey(kid); key != nil && err == nil {
+			return true
+		}
+	}
+	return false
+}
+
 // GetDeviceForKey gets the device that this key is bound to, if any.
 func (ckf *ComputedKeyFamily) GetDeviceForKey(key GenericKey) (*Device, error) {
 	return ckf.GetDeviceForKID(key.GetKID())

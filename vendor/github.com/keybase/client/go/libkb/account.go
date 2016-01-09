@@ -8,7 +8,37 @@ import (
 	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol"
 	triplesec "github.com/keybase/go-triplesec"
+	"time"
 )
+
+type timedGenericKey struct {
+	Contextified
+	key   GenericKey
+	which string
+	atime time.Time
+}
+
+func newTimedGenericKey(g *GlobalContext, k GenericKey, w string) *timedGenericKey {
+	return &timedGenericKey{
+		Contextified: NewContextified(g),
+		key:          k,
+		atime:        g.GetClock().Now(),
+		which:        w,
+	}
+}
+
+func (t *timedGenericKey) getKey() GenericKey {
+	t.atime = t.G().GetClock().Now()
+	return t.key
+}
+
+func (t *timedGenericKey) clean() {
+	now := t.G().GetClock().Now()
+	if t.key != nil && (now.Sub(t.atime) > PaperKeyMemoryTimeout) {
+		t.G().Log.Debug("Cleaned out key %q at %s", t.which, now)
+		t.key = nil
+	}
+}
 
 type Account struct {
 	Contextified
@@ -19,6 +49,11 @@ type Account struct {
 	skbKeyring   *SKBKeyringFile
 	secSigKey    GenericKey // cached secret signing key
 	secEncKey    GenericKey // cache secret encryption key
+
+	paperSigKey *timedGenericKey // cached, unlocked paper signing key
+	paperEncKey *timedGenericKey // cached, unlocked paper encryption key
+
+	testPostCleanHook func() // for testing, call this hook after cleaning
 }
 
 func NewAccount(g *GlobalContext) *Account {
@@ -417,10 +452,49 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
 	return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
 }
 
+func (a *Account) SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error {
+	a.paperSigKey = newTimedGenericKey(a.G(), sig, "paper signing key")
+	a.paperEncKey = newTimedGenericKey(a.G(), enc, "paper encryption key")
+	return nil
+}
+
+func (a *Account) GetUnlockedPaperSigKey() GenericKey {
+	if a.paperSigKey == nil {
+		return nil
+	}
+	return a.paperSigKey.getKey()
+}
+
+func (a *Account) GetUnlockedPaperEncKey() GenericKey {
+	if a.paperEncKey == nil {
+		return nil
+	}
+	return a.paperEncKey.getKey()
+}
+
 func (a *Account) ClearCachedSecretKeys() {
 	a.G().Log.Debug("clearing cached secret keys")
 	a.secSigKey = nil
 	a.secEncKey = nil
+	a.paperEncKey = nil
+	a.paperSigKey = nil
+}
+
+func (a *Account) SetTestPostCleanHook(f func()) {
+	a.testPostCleanHook = f
+}
+
+func (a *Account) clean() {
+	a.G().Log.Debug("Running Account::clean")
+	if a.paperEncKey != nil {
+		a.paperEncKey.clean()
+	}
+	if a.paperSigKey != nil {
+		a.paperSigKey.clean()
+	}
+	if a.testPostCleanHook != nil {
+		a.testPostCleanHook()
+	}
 }
 
 func (a *Account) ClearKeyring() {

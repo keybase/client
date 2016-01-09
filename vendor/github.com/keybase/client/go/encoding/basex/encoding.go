@@ -11,20 +11,19 @@ import (
 	"math/big"
 )
 
-const skipByte = byte(0xFF)
-const invalidByte = byte(0xFE)
-
 // Encoding is a radix X encoding/decoding scheme, defined by X-length
 // character alphabet.
 type Encoding struct {
 	encode          []byte
-	decodeMap       [256]byte
+	decodeMap       [256](*big.Int)
+	skipMap         [256]bool
 	base256BlockLen int
 	baseXBlockLen   int
 	base            int
 	logOfBase       float64
 	baseBig         *big.Int
 	skipBytes       string
+	scratchInt      *big.Int
 }
 
 // NewEncoding returns a new Encoding defined by the given alphabet,
@@ -55,23 +54,15 @@ func NewEncoding(encoder string, base256BlockLen int, skipBytes string) *Encodin
 		logOfBase:       logOfBase,
 		baseBig:         big.NewInt(int64(base)),
 		skipBytes:       skipBytes,
+		scratchInt:      new(big.Int),
 	}
 	copy(e.encode[:], encoder)
 
-	var skipMap [256]bool
 	for _, c := range skipBytes {
-		skipMap[c] = true
-	}
-
-	for i := 0; i < len(e.decodeMap); i++ {
-		val := invalidByte
-		if skipMap[i] {
-			val = skipByte
-		}
-		e.decodeMap[i] = val
+		e.skipMap[c] = true
 	}
 	for i := 0; i < len(encoder); i++ {
-		e.decodeMap[encoder[i]] = byte(i)
+		e.decodeMap[encoder[i]] = big.NewInt(int64(i))
 	}
 	return e
 }
@@ -100,6 +91,25 @@ func (enc *Encoding) Encode(dst, src []byte) {
 	}
 }
 
+type byteType int
+
+const (
+	normalByteType  byteType = 0
+	skipByteType    byteType = 1
+	invalidByteType byteType = 2
+)
+
+func (enc *Encoding) getByteType(b byte) byteType {
+	if enc.decodeMap[b] != nil {
+		return normalByteType
+	}
+	if enc.skipMap[b] {
+		return skipByteType
+	}
+	return invalidByteType
+
+}
+
 func (enc *Encoding) hasSkipBytes() bool {
 	return len(enc.skipBytes) > 0
 }
@@ -108,7 +118,7 @@ func (enc *Encoding) hasSkipBytes() bool {
 // decoding. Can be either from the main alphabet or the skip
 // alphabet to be considered valid.
 func (enc *Encoding) IsValidByte(b byte) bool {
-	return enc.decodeMap[b] != invalidByte
+	return enc.decodeMap[b] != nil || enc.skipMap[b]
 }
 
 // encodeBlock fills the dst buffer with the encoding of src.
@@ -176,22 +186,23 @@ var ErrInvalidEncodingLength = errors.New("invalid encoding length; either trunc
 func (enc *Encoding) decodeBlock(dst []byte, src []byte, baseOffset int) (int, int, error) {
 	si := 0 // source index
 	numGoodChars := 0
-	res := new(big.Int)
+	res := enc.scratchInt
+	res.SetUint64(0)
 
 	for i, b := range src {
 		v := enc.decodeMap[b]
 		si++
 
-		if v == invalidByte {
+		if v == nil {
+			if enc.skipMap[b] {
+				continue
+			}
 			return 0, 0, CorruptInputError(i + baseOffset)
-		}
-		if v == skipByte {
-			continue
 		}
 
 		numGoodChars++
 		res.Mul(res, enc.baseBig)
-		res.Add(res, big.NewInt(int64(v)))
+		res.Add(res, v)
 
 		if numGoodChars == enc.baseXBlockLen {
 			break

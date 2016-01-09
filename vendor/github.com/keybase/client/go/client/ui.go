@@ -759,7 +759,7 @@ func (ui SecretUI) passphrasePrompt(arg libkb.PromptArg) (text string, storeSecr
 		})
 
 		if err == nil && res.Canceled {
-			err = InputCanceledError{}
+			err = libkb.InputCanceledError{}
 		}
 		if err != nil {
 			break
@@ -859,7 +859,7 @@ func (ui *UI) PromptYesNo(_ libkb.PromptDescriptor, p string, def libkb.PromptDe
 	return ui.Terminal.PromptYesNo(p, def)
 }
 
-var ErrInputCanceled InputCanceledError
+var ErrInputCanceled libkb.InputCanceledError
 
 func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {
 	field := &Field{

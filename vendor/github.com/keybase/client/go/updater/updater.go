@@ -13,10 +13,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/golang/groupcache/singleflight"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -26,11 +26,11 @@ import (
 )
 
 type Updater struct {
-	options keybase1.UpdateOptions
-	source  sources.UpdateSource
-	config  Config
-	log     logger.Logger
-	sync.Mutex
+	options   keybase1.UpdateOptions
+	source    sources.UpdateSource
+	config    Config
+	log       logger.Logger
+	callGroup singleflight.Group
 }
 
 type Config interface {
@@ -309,10 +309,20 @@ func (u *Updater) apply(src string, dest string) (tmpPath string, err error) {
 }
 
 // Update checks, downloads and performs an update.
-func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (update *keybase1.Update, err error) {
-	u.Lock()
-	defer u.Unlock()
+func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (*keybase1.Update, error) {
+	do := func() (interface{}, error) {
+		return u.update(ui, force, requested)
+	}
+	any, err := u.callGroup.Do("update", do)
 
+	update, ok := any.(*keybase1.Update)
+	if !ok {
+		return nil, fmt.Errorf("Invalid type returned by updater singleflight")
+	}
+	return update, err
+}
+
+func (u *Updater) update(ui libkb.UpdateUI, force bool, requested bool) (update *keybase1.Update, err error) {
 	update, err = u.checkForUpdate(false, force, requested)
 	if err != nil {
 		return
@@ -322,7 +332,7 @@ func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (update 
 		return
 	}
 
-	tmpFileName, err := u.applyUpdate(ui, *update, force)
+	tmpFileName, err := u.applyUpdate(ui, *update)
 	if err != nil {
 		return
 	}
@@ -356,6 +366,7 @@ func (u *Updater) promptForUpdateAction(ui libkb.UpdateUI, update keybase1.Updat
 		return
 	}
 
+	u.log.Debug("Update prompt respose: %#v", updatePromptResponse)
 	if updatePromptResponse.AlwaysAutoInstall {
 		u.config.SetUpdatePreferenceAuto(true)
 	}
@@ -375,14 +386,9 @@ func (u *Updater) promptForUpdateAction(ui libkb.UpdateUI, update keybase1.Updat
 	return
 }
 
-func (u *Updater) applyUpdate(ui libkb.UpdateUI, update keybase1.Update, force bool) (tmpPath string, err error) {
-	if u.options.Force {
-		force = true
-	}
-	if !force {
-		if err = u.promptForUpdateAction(ui, update); err != nil {
-			return
-		}
+func (u *Updater) applyUpdate(ui libkb.UpdateUI, update keybase1.Update) (tmpPath string, err error) {
+	if err = u.promptForUpdateAction(ui, update); err != nil {
+		return
 	}
 
 	if update.Asset.LocalPath == "" {

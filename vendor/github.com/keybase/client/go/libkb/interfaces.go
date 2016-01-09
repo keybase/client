@@ -302,6 +302,7 @@ type SecretUI interface {
 
 type SaltPackUI interface {
 	SaltPackPromptForDecrypt(context.Context, keybase1.SaltPackPromptForDecryptArg) error
+	SaltPackVerifySuccess(context.Context, keybase1.SaltPackVerifySuccessArg) error
 }
 
 type LogUI interface {
@@ -388,4 +389,8 @@ type UIConsumer interface {
 	Name() string
 	RequiredUIs() []UIKind
 	SubConsumers() []UIConsumer
+}
+
+type Clock interface {
+	Now() time.Time
 }

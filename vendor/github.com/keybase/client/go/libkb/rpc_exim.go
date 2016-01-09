@@ -202,6 +202,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return LoggedInError{}
 	case SCCanceled:
 		return CanceledError{s.Desc}
+	case SCInputCanceled:
+		return InputCanceledError{}
 	case SCKeyNoSecret:
 		return NoSecretKeyError{}
 	case SCLoginRequired:
@@ -258,6 +260,37 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			input = s.Fields[0].Value
 		}
 		return ResolutionError{Msg: s.Desc, Input: input}
+	case SCKeyNoPGPEncryption:
+		ret := NoPGPEncryptionKeyError{User: s.Desc}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "device":
+				ret.HasDeviceKey = true
+			}
+		}
+		return ret
+	case SCKeyNoNaClEncryption:
+		ret := NoNaClEncryptionKeyError{User: s.Desc}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "pgp":
+				ret.HasPGPKey = true
+			}
+		}
+		return ret
+	case SCWrongCryptoFormat:
+		ret := WrongCryptoFormatError{Operation: s.Desc}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "wanted":
+				ret.Wanted = CryptoMessageFormat(field.Value)
+			case "received":
+				ret.Received = CryptoMessageFormat(field.Value)
+			}
+		}
+		return ret
+	case SCKeySyncedPGPNotFound:
+		return NoSyncedPGPKeyError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -462,6 +495,15 @@ func (c CanceledError) ToStatus() (s keybase1.Status) {
 	s.Code = SCCanceled
 	s.Name = "CANCELED"
 	s.Desc = c.M
+	return
+}
+
+//=============================================================================
+
+func (e InputCanceledError) ToStatus() (s keybase1.Status) {
+	s.Code = SCInputCanceled
+	s.Name = "CANCELED"
+	s.Desc = "Input canceled"
 	return
 }
 
@@ -801,6 +843,14 @@ func (e NoKeyError) ToStatus() (s keybase1.Status) {
 	return
 }
 
+func (e NoSyncedPGPKeyError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCKeySyncedPGPNotFound,
+		Name: "KEY_NOT_FOUND_SYNCED_PGP",
+		Desc: e.Error(),
+	}
+}
+
 func (e IdentifyTimeoutError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCIdentificationExpired,
@@ -924,4 +974,45 @@ func (e TrackingBrokeError) ToStatus() keybase1.Status {
 		Code: SCTrackingBroke,
 		Name: "SC_TRACKING_BROKE",
 	}
+}
+
+func (e NoPGPEncryptionKeyError) ToStatus() keybase1.Status {
+	ret := keybase1.Status{
+		Code: SCKeyNoPGPEncryption,
+		Name: "SC_KEY_NO_PGP_ENCRYPTION",
+		Desc: e.User,
+	}
+	if e.HasDeviceKey {
+		ret.Fields = []keybase1.StringKVPair{
+			{"device", "1"},
+		}
+	}
+	return ret
+}
+
+func (e NoNaClEncryptionKeyError) ToStatus() keybase1.Status {
+	ret := keybase1.Status{
+		Code: SCKeyNoNaClEncryption,
+		Name: "SC_KEY_NO_NACL_ENCRYPTION",
+		Desc: e.User,
+	}
+	if e.HasPGPKey {
+		ret.Fields = []keybase1.StringKVPair{
+			{"pgp", "1"},
+		}
+	}
+	return ret
+}
+
+func (e WrongCryptoFormatError) ToStatus() keybase1.Status {
+	ret := keybase1.Status{
+		Code: SCWrongCryptoFormat,
+		Name: "SC_WRONG_CRYPTO_FORMAT",
+		Desc: e.Operation,
+		Fields: []keybase1.StringKVPair{
+			{"wanted", string(e.Wanted)},
+			{"received", string(e.Received)},
+		},
+	}
+	return ret
 }

@@ -26,7 +26,7 @@ type PGPVerifyArg struct {
 // PGPVerify is an engine.
 type PGPVerify struct {
 	arg        *PGPVerifyArg
-	peek       *libkb.Peeker
+	source     io.Reader
 	signStatus *libkb.SignatureStatus
 	owner      *libkb.User
 	libkb.Contextified
@@ -66,14 +66,28 @@ func (e *PGPVerify) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPVerify) Run(ctx *Context) error {
-	e.peek = libkb.NewPeeker(e.arg.Source)
-	if libkb.IsClearsign(e.peek) {
-		return e.runClearsign(ctx)
+	var err error
+	defer e.G().Trace("PGPVerify::Run", func() error { return err })()
+	var sc libkb.StreamClassification
+	sc, e.source, err = libkb.ClassifyStream(e.arg.Source)
+
+	// For a Detached signature, we'll be expecting an UnknownStreamError
+	if err != nil {
+		if _, ok := err.(libkb.UnknownStreamError); !ok || len(e.arg.Signature) == 0 {
+			return err
+		}
+	}
+
+	if sc.Format == libkb.CryptoMessageFormatPGP && sc.Type == libkb.CryptoMessageTypeClearSignature {
+		err = e.runClearsign(ctx)
+		return err
 	}
 	if len(e.arg.Signature) == 0 {
-		return e.runAttached(ctx)
+		err = e.runAttached(ctx)
+		return err
 	}
-	return e.runDetached(ctx)
+	err = e.runDetached(ctx)
+	return err
 }
 
 func (e *PGPVerify) SignatureStatus() *libkb.SignatureStatus {
@@ -87,7 +101,7 @@ func (e *PGPVerify) Owner() *libkb.User {
 // runAttached verifies an attached signature
 func (e *PGPVerify) runAttached(ctx *Context) error {
 	arg := &PGPDecryptArg{
-		Source:       e.peek,
+		Source:       e.source,
 		Sink:         libkb.NopWriteCloser{W: ioutil.Discard},
 		AssertSigned: true,
 		SignedBy:     e.arg.SignedBy,
@@ -112,7 +126,7 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 	if libkb.IsArmored(e.arg.Signature) {
 		checkfn = openpgp.CheckArmoredDetachedSignature
 	}
-	signer, err := checkfn(sk, e.peek, bytes.NewReader(e.arg.Signature))
+	signer, err := checkfn(sk, e.source, bytes.NewReader(e.arg.Signature))
 	if err != nil {
 		return err
 	}
@@ -156,7 +170,7 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 func (e *PGPVerify) runClearsign(ctx *Context) error {
 	// clearsign decode only works with the whole data slice, not a reader
 	// so have to read it all here:
-	msg, err := ioutil.ReadAll(e.peek)
+	msg, err := ioutil.ReadAll(e.source)
 	if err != nil {
 		return err
 	}

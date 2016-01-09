@@ -17,8 +17,35 @@ func NewSignStream(signedtext io.Writer, signer SigningSecretKey) (stream io.Wri
 
 // Sign creates an attached signature message of plaintext from signer.
 func Sign(plaintext []byte, signer SigningSecretKey) ([]byte, error) {
+	buf, err := signToStream(plaintext, signer, NewSignStream)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// NewSignDetachedStream creates a stream that consumes plaintext
+// data.  It will write out a detached signature to the io.Writer
+// passed in as detachedsig.
+func NewSignDetachedStream(detachedsig io.Writer, signer SigningSecretKey) (stream io.WriteCloser, err error) {
+	return newSignDetachedStream(detachedsig, signer)
+}
+
+// SignDetached returns a detached signature of plaintext from
+// signer.
+func SignDetached(plaintext []byte, signer SigningSecretKey) ([]byte, error) {
+	buf, err := signToStream(plaintext, signer, NewSignDetachedStream)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// signToStream creates a signature for plaintext with signer,
+// using streamer to generate a signing stream.
+func signToStream(plaintext []byte, signer SigningSecretKey, streamer func(io.Writer, SigningSecretKey) (io.WriteCloser, error)) (*bytes.Buffer, error) {
 	var buf bytes.Buffer
-	s, err := NewSignStream(&buf, signer)
+	s, err := streamer(&buf, signer)
 	if err != nil {
 		return nil, err
 	}
@@ -28,25 +55,6 @@ func Sign(plaintext []byte, signer SigningSecretKey) ([]byte, error) {
 	if err := s.Close(); err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
-}
 
-// SignDetached returns a detached signature of plaintext from
-// signer.
-func SignDetached(plaintext []byte, signer SigningSecretKey) ([]byte, error) {
-	if signer == nil {
-		return nil, ErrInvalidParameter{message: "no signing key provided"}
-	}
-	header, err := newSignatureHeader(signer.PublicKey(), MessageTypeDetachedSignature)
-	if err != nil {
-		return nil, err
-	}
-
-	signature, err := signer.Sign(computeDetachedDigest(header.Nonce, plaintext))
-	if err != nil {
-		return nil, err
-	}
-	header.Signature = signature
-
-	return encodeToBytes(header)
+	return &buf, nil
 }

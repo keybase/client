@@ -59,19 +59,15 @@ func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPDecrypt) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ PGPDecrypt::Run")
-	defer func() {
-		e.G().Log.Debug("- PGPDecrypt::Run %s", err)
-	}()
+	defer e.G().Trace("PGPDecrypt::Run", func() error { return err })()
 
 	e.G().Log.Debug("| ScanKeys")
-
 	sk, err := NewScanKeys(ctx.SecretUI, e.G())
 	if err != nil {
 		return err
 	}
 	e.G().Log.Debug("| PGPDecrypt")
-	e.signStatus, err = libkb.PGPDecrypt(e.arg.Source, e.arg.Sink, sk)
+	e.signStatus, err = libkb.PGPDecrypt(e.G(), e.arg.Source, e.arg.Sink, sk)
 	if err != nil {
 		return err
 	}

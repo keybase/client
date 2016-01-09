@@ -46,8 +46,20 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 	}
 }
 
-func (h *IdentifyHandler) Identify2(_ context.Context, _ keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
-	return res, nil
+func (h *IdentifyHandler) Identify2(_ context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
+	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
+	logui := h.getLogUI(arg.SessionID)
+	ctx := engine.Context{
+		LogUI:      logui,
+		IdentifyUI: iui,
+	}
+	eng := engine.NewResolveThenIdentify2(h.G(), &arg)
+	err = engine.RunEngine(eng, &ctx)
+	resp := eng.Result()
+	if resp != nil {
+		res = *resp
+	}
+	return res, err
 }
 
 func (h *IdentifyHandler) Resolve(_ context.Context, arg string) (keybase1.UID, error) {

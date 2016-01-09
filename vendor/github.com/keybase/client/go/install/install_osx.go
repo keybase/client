@@ -229,7 +229,8 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 		return nil, err
 	}
 
-	plistArgs := []string{mountPath}
+	// TODO: Remove when doing real release
+	plistArgs := []string{"-debug", mountPath}
 	envVars := DefaultLaunchdEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars)

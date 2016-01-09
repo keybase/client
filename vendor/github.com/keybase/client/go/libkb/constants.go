@@ -97,6 +97,8 @@ const (
 	KeyExpireIn       = OneYearInSeconds * 16 // 16 years
 	SubkeyExpireIn    = OneYearInSeconds * 16 // 16 years
 	AuthExpireIn      = OneYearInSeconds      // 1 year
+
+	PaperKeyMemoryTimeout = time.Hour
 )
 
 // Status codes.  This list should match keybase/lib/constants.iced.
@@ -110,6 +112,7 @@ const (
 	SCGeneric                = int(keybase1.StatusCode_SCGeneric)
 	SCAlreadyLoggedIn        = int(keybase1.StatusCode_SCAlreadyLoggedIn)
 	SCCanceled               = int(keybase1.StatusCode_SCCanceled)
+	SCInputCanceled          = int(keybase1.StatusCode_SCInputCanceled)
 	SCReloginRequired        = int(keybase1.StatusCode_SCReloginRequired)
 	SCResolutionFailed       = int(keybase1.StatusCode_SCResolutionFailed)
 	SCProfileNotPublic       = int(keybase1.StatusCode_SCProfileNotPublic)
@@ -126,6 +129,7 @@ const (
 	SCKeyBadEldest           = int(keybase1.StatusCode_SCKeyBadEldest)
 	SCKeyNoEldest            = int(keybase1.StatusCode_SCKeyNoEldest)
 	SCKeyDuplicateUpdate     = int(keybase1.StatusCode_SCKeyDuplicateUpdate)
+	SCKeySyncedPGPNotFound   = int(keybase1.StatusCode_SCKeySyncedPGPNotFound)
 	SCSibkeyAlreadyExists    = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
 	SCDecryptionKeyNotFound  = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCBadTrackSession        = int(keybase1.StatusCode_SCBadTrackSession)
@@ -145,6 +149,9 @@ const (
 	SCNoUIDelegation         = int(keybase1.StatusCode_SCNoUIDelegation)
 	SCIdentifyFailed         = int(keybase1.StatusCode_SCIdentifyFailed)
 	SCTrackingBroke          = int(keybase1.StatusCode_SCTrackingBroke)
+	SCKeyNoPGPEncryption     = int(keybase1.StatusCode_SCKeyNoPGPEncryption)
+	SCKeyNoNaClEncryption    = int(keybase1.StatusCode_SCKeyNoNaClEncryption)
+	SCWrongCryptoFormat      = int(keybase1.StatusCode_SCWrongCryptoFormat)
 )
 
 const (

@@ -10,7 +10,7 @@ var ErrInterrupted = errors.New("Interrupted")
 // getPasswd returns the input read from terminal.
 // If masked is true, typing will be matched by asterisks on the screen.
 // Otherwise, typing will echo nothing.
-func getPasswd(masked bool) ([]byte, error) {
+func getPasswd(termDescriptor int, masked bool) ([]byte, error) {
 	var pass, bs, mask []byte
 	if masked {
 		bs = []byte("\b \b")
@@ -19,7 +19,7 @@ func getPasswd(masked bool) ([]byte, error) {
 
 	var err error
 	for {
-		if v := getch(); v == 127 || v == 8 {
+		if v := getch(termDescriptor); v == 127 || v == 8 {
 			if l := len(pass); l > 0 {
 				pass = pass[:l-1]
 				os.Stdout.Write(bs)
@@ -43,12 +43,12 @@ func getPasswd(masked bool) ([]byte, error) {
 
 // GetPasswd returns the password read from the terminal without echoing input.
 // The returned byte array does not include end-of-line characters.
-func GetPasswd() ([]byte, error) {
-	return getPasswd(false)
+func GetPasswd(termDescriptor int) ([]byte, error) {
+	return getPasswd(termDescriptor, false)
 }
 
 // GetPasswdMasked returns the password read from the terminal, echoing asterisks.
 // The returned byte array does not include end-of-line characters.
-func GetPasswdMasked() ([]byte, error) {
-	return getPasswd(true)
+func GetPasswdMasked(termDescriptor int) ([]byte, error) {
+	return getPasswd(termDescriptor, true)
 }

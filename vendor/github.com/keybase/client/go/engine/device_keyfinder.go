@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 // DeviceKeyfinder is an engine to find device keys for users (loaded by
@@ -58,7 +58,7 @@ func (e *DeviceKeyfinder) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceKeyfinder) Run(ctx *Context) (err error) {
-	libkb.Trace(e.G().Log, "DeviceKeyfinder::Run", func() error { return err })
+	defer libkb.Trace(e.G().Log, "DeviceKeyfinder::Run", func() error { return err })
 
 	err = e.identifyUsers(ctx)
 	if err != nil {
@@ -106,8 +106,10 @@ func (e *DeviceKeyfinder) hasUser(upk *keybase1.UserPlusKeys) bool {
 
 func (e *DeviceKeyfinder) filterKeys(upk *keybase1.UserPlusKeys) error {
 	var keys []keybase1.PublicKey
+	hasPGP := false
 	for _, key := range upk.Keys {
 		if len(key.PGPFingerprint) != 0 {
+			hasPGP = true
 			continue
 		}
 		if e.arg.NeedVerifyKeys && !libkb.KIDIsDeviceVerify(key.KID) {
@@ -119,8 +121,7 @@ func (e *DeviceKeyfinder) filterKeys(upk *keybase1.UserPlusKeys) error {
 		keys = append(keys, key)
 	}
 	if len(keys) == 0 {
-		msg := fmt.Sprintf("User %s doesn't have any suitable keys", upk.Username)
-		return libkb.NoKeyError{Msg: msg}
+		return libkb.NoNaClEncryptionKeyError{User: upk.Username, HasPGPKey: hasPGP}
 	}
 	upk.Keys = keys
 	return nil

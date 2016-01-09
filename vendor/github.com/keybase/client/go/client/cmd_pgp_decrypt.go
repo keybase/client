@@ -60,12 +60,12 @@ func (c *CmdPGPDecrypt) Run() error {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(),
+		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 		NewPgpUIProtocol(c.G()),
 		NewIdentifyUIProtocol(c.G()),
 	}
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 	snk, src, err := c.ClientFilterOpen()

@@ -11,14 +11,21 @@ import (
 )
 
 func (m *MinTerm) open() error {
+	// Must be O_RDWR, or we can't mask the password as the user types it.
+	fin, err := os.OpenFile("CONIN$", os.O_RDWR, 0)
+	if err != nil {
+		return err
+	}
+	// Must be O_RDWR, or else GetSize below breaks.
 	fout, err := os.OpenFile("CONOUT$", os.O_RDWR, 0)
 	if err != nil {
 		return err
 	}
 
-	m.out = fout
-	fd := int(m.out.Fd())
-	w, h, err := terminal.GetSize(fd)
+	m.termIn = fin
+	m.termOut = fout
+	fdout := int(fout.Fd())
+	w, h, err := terminal.GetSize(fdout)
 	if err != nil {
 		return err
 	}

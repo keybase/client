@@ -123,8 +123,7 @@ keybase encrypt t_bob -m 'a secret message...'
 
 # ...and more...
 `,
-	/*
-	   	"https://gist.githubusercontent.com/kbtester2/3cbaad55bfae3ed948d9/raw/0c5a148629e3f405ed8d640b8fa432a073da56c8/keybase.md": `### Keybase proof
+	"https://gist.githubusercontent.com/kbtester2/3cbaad55bfae3ed948d9/raw/0c5a148629e3f405ed8d640b8fa432a073da56c8/keybase.md": `### Keybase proof
 
 	   I hereby claim:
 
@@ -214,7 +213,7 @@ keybase encrypt t_bob -m 'a secret message...'
 	   # ...and more...
 
 	   	`,
-	   	"https://gist.githubusercontent.com/tacoplusplus/d21a10f2d7f6447dba7d/raw/cfeb4ffbec5f555bddf4ce23ea43bcb7613c6577/keybase.md": `### Keybase proof
+	"https://gist.githubusercontent.com/tacoplusplus/d21a10f2d7f6447dba7d/raw/cfeb4ffbec5f555bddf4ce23ea43bcb7613c6577/keybase.md": `### Keybase proof
 
 	   I hereby claim:
 
@@ -302,5 +301,4 @@ keybase encrypt t_bob -m 'a secret message...'
 	   keybase encrypt t_charlie -m 'a secret message...'
 
 	   # ...and more...`,
-	*/
 }

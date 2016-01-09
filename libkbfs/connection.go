@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
-	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -369,7 +368,7 @@ func (c *Connection) getReconnectChan() (
 func dontRetryOnConnect(err error) bool {
 	// InputCanceledError likely means the user canceled a login
 	// dialog.
-	_, inputCanceled := err.(client.InputCanceledError)
+	_, inputCanceled := err.(libkb.InputCanceledError)
 	return inputCanceled
 }
 

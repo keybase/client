@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type CmdPassphraseChange struct {
@@ -24,6 +25,13 @@ func NewCmdPassphraseChange(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 }
 
 func (c *CmdPassphraseChange) Run() error {
+	protocols := []rpc.Protocol{
+		NewSecretUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
+
 	pp, err := PromptNewPassphrase(c.G())
 	if err != nil {
 		return err

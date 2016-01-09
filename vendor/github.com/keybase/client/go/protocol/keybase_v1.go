@@ -203,28 +203,6 @@ type UserPlusKeys struct {
 	Uvv        UserVersionVector `codec:"uvv" json:"uvv"`
 }
 
-type Asset struct {
-	Name      string `codec:"name" json:"name"`
-	Url       string `codec:"url" json:"url"`
-	LocalPath string `codec:"localPath" json:"localPath"`
-}
-
-type UpdateType int
-
-const (
-	UpdateType_NORMAL   UpdateType = 0
-	UpdateType_BUGFIX   UpdateType = 1
-	UpdateType_CRITICAL UpdateType = 2
-)
-
-type Update struct {
-	Version     string     `codec:"version" json:"version"`
-	Name        string     `codec:"name" json:"name"`
-	Description string     `codec:"description" json:"description"`
-	Type        UpdateType `codec:"type" json:"type"`
-	Asset       Asset      `codec:"asset" json:"asset"`
-}
-
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
@@ -626,11 +604,13 @@ const (
 	StatusCode_SCGeneric                StatusCode = 218
 	StatusCode_SCAlreadyLoggedIn        StatusCode = 235
 	StatusCode_SCCanceled               StatusCode = 237
+	StatusCode_SCInputCanceled          StatusCode = 238
 	StatusCode_SCReloginRequired        StatusCode = 274
 	StatusCode_SCResolutionFailed       StatusCode = 275
 	StatusCode_SCProfileNotPublic       StatusCode = 276
 	StatusCode_SCIdentifyFailed         StatusCode = 277
 	StatusCode_SCTrackingBroke          StatusCode = 278
+	StatusCode_SCWrongCryptoFormat      StatusCode = 279
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCMissingResult          StatusCode = 801
 	StatusCode_SCKeyNotFound            StatusCode = 901
@@ -646,6 +626,9 @@ const (
 	StatusCode_SCKeyDuplicateUpdate     StatusCode = 921
 	StatusCode_SCSibkeyAlreadyExists    StatusCode = 922
 	StatusCode_SCDecryptionKeyNotFound  StatusCode = 924
+	StatusCode_SCKeyNoPGPEncryption     StatusCode = 927
+	StatusCode_SCKeyNoNaClEncryption    StatusCode = 928
+	StatusCode_SCKeySyncedPGPNotFound   StatusCode = 929
 	StatusCode_SCBadTrackSession        StatusCode = 1301
 	StatusCode_SCDeviceNotFound         StatusCode = 1409
 	StatusCode_SCDeviceMismatch         StatusCode = 1410
@@ -1650,6 +1633,7 @@ type Identify2Arg struct {
 	AlwaysBlock           bool           `codec:"alwaysBlock" json:"alwaysBlock"`
 	NoErrorOnTrackFailure bool           `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
 	ForceRemoteCheck      bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	NeedProofSet          bool           `codec:"needProofSet" json:"needProofSet"`
 }
 
 type IdentifyInterface interface {
@@ -4648,6 +4632,15 @@ type SaltPackDecryptOptions struct {
 	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 }
 
+type SaltPackSignOptions struct {
+	Detached bool `codec:"detached" json:"detached"`
+}
+
+type SaltPackVerifyOptions struct {
+	SignedBy  string `codec:"signedBy" json:"signedBy"`
+	Signature []byte `codec:"signature" json:"signature"`
+}
+
 type SaltPackEncryptedMessageInfo struct {
 	Devices          []Device `codec:"devices" json:"devices"`
 	NumAnonReceivers int      `codec:"numAnonReceivers" json:"numAnonReceivers"`
@@ -4668,9 +4661,25 @@ type SaltPackDecryptArg struct {
 	Opts      SaltPackDecryptOptions `codec:"opts" json:"opts"`
 }
 
+type SaltPackSignArg struct {
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Source    Stream              `codec:"source" json:"source"`
+	Sink      Stream              `codec:"sink" json:"sink"`
+	Opts      SaltPackSignOptions `codec:"opts" json:"opts"`
+}
+
+type SaltPackVerifyArg struct {
+	SessionID int                   `codec:"sessionID" json:"sessionID"`
+	Source    Stream                `codec:"source" json:"source"`
+	Sink      Stream                `codec:"sink" json:"sink"`
+	Opts      SaltPackVerifyOptions `codec:"opts" json:"opts"`
+}
+
 type SaltPackInterface interface {
 	SaltPackEncrypt(context.Context, SaltPackEncryptArg) error
 	SaltPackDecrypt(context.Context, SaltPackDecryptArg) (SaltPackEncryptedMessageInfo, error)
+	SaltPackSign(context.Context, SaltPackSignArg) error
+	SaltPackVerify(context.Context, SaltPackVerifyArg) error
 }
 
 func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
@@ -4709,6 +4718,38 @@ func SaltPackProtocol(i SaltPackInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"saltPackSign": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackSignArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackSignArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackSignArg)(nil), args)
+						return
+					}
+					err = i.SaltPackSign(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"saltPackVerify": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackVerifyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackVerifyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackVerifyArg)(nil), args)
+						return
+					}
+					err = i.SaltPackVerify(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4724,6 +4765,16 @@ func (c SaltPackClient) SaltPackEncrypt(ctx context.Context, __arg SaltPackEncry
 
 func (c SaltPackClient) SaltPackDecrypt(ctx context.Context, __arg SaltPackDecryptArg) (res SaltPackEncryptedMessageInfo, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackDecrypt", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SaltPackClient) SaltPackSign(ctx context.Context, __arg SaltPackSignArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackSign", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SaltPackClient) SaltPackVerify(ctx context.Context, __arg SaltPackVerifyArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPack.saltPackVerify", []interface{}{__arg}, nil)
 	return
 }
 
@@ -4748,8 +4799,15 @@ type SaltPackPromptForDecryptArg struct {
 	Sender    SaltPackSender `codec:"sender" json:"sender"`
 }
 
+type SaltPackVerifySuccessArg struct {
+	SessionID  int            `codec:"sessionID" json:"sessionID"`
+	SigningKID KID            `codec:"signingKID" json:"signingKID"`
+	Sender     SaltPackSender `codec:"sender" json:"sender"`
+}
+
 type SaltPackUiInterface interface {
 	SaltPackPromptForDecrypt(context.Context, SaltPackPromptForDecryptArg) error
+	SaltPackVerifySuccess(context.Context, SaltPackVerifySuccessArg) error
 }
 
 func SaltPackUiProtocol(i SaltPackUiInterface) rpc.Protocol {
@@ -4772,6 +4830,22 @@ func SaltPackUiProtocol(i SaltPackUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"saltPackVerifySuccess": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltPackVerifySuccessArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltPackVerifySuccessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltPackVerifySuccessArg)(nil), args)
+						return
+					}
+					err = i.SaltPackVerifySuccess(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4782,6 +4856,11 @@ type SaltPackUiClient struct {
 
 func (c SaltPackUiClient) SaltPackPromptForDecrypt(ctx context.Context, __arg SaltPackPromptForDecryptArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackPromptForDecrypt", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SaltPackUiClient) SaltPackVerifySuccess(ctx context.Context, __arg SaltPackVerifySuccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltPackUi.saltPackVerifySuccess", []interface{}{__arg}, nil)
 	return
 }
 
@@ -5553,6 +5632,28 @@ type UiClient struct {
 func (c UiClient) PromptYesNo(ctx context.Context, __arg PromptYesNoArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ui.promptYesNo", []interface{}{__arg}, &res)
 	return
+}
+
+type Asset struct {
+	Name      string `codec:"name" json:"name"`
+	Url       string `codec:"url" json:"url"`
+	LocalPath string `codec:"localPath" json:"localPath"`
+}
+
+type UpdateType int
+
+const (
+	UpdateType_NORMAL   UpdateType = 0
+	UpdateType_BUGFIX   UpdateType = 1
+	UpdateType_CRITICAL UpdateType = 2
+)
+
+type Update struct {
+	Version     string     `codec:"version" json:"version"`
+	Name        string     `codec:"name" json:"name"`
+	Description string     `codec:"description" json:"description"`
+	Type        UpdateType `codec:"type" json:"type"`
+	Asset       Asset      `codec:"asset" json:"asset"`
 }
 
 type UpdateOptions struct {

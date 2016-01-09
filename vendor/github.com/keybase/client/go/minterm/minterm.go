@@ -16,9 +16,10 @@ import (
 
 // MinTerm is a minimal terminal interface.
 type MinTerm struct {
-	out    *os.File
-	width  int
-	height int
+	termIn  *os.File
+	termOut *os.File
+	width   int
+	height  int
 }
 
 var ErrPromptInterrupted = errors.New("prompt interrupted")
@@ -36,12 +37,14 @@ func New() (*MinTerm, error) {
 
 // Shutdown closes the terminal.
 func (m *MinTerm) Shutdown() error {
-	if m.out == nil {
-		return nil
-	}
 	// this can hang waiting for newline, so do it in a goroutine.
 	// application shutting down, so will get closed by os anyway...
-	go m.out.Close()
+	if m.termIn != nil {
+		go m.termIn.Close()
+	}
+	if m.termOut != nil {
+		go m.termOut.Close()
+	}
 	return nil
 }
 
@@ -52,7 +55,7 @@ func (m *MinTerm) Size() (int, int) {
 
 // Write writes a string to the terminal.
 func (m *MinTerm) Write(s string) error {
-	_, err := fmt.Fprint(m.out, s)
+	_, err := fmt.Fprint(m.termOut, s)
 	return err
 }
 
@@ -73,7 +76,7 @@ func (m *MinTerm) PromptPassword(prompt string) (string, error) {
 	if !strings.HasSuffix(prompt, ": ") {
 		m.Write(": ")
 	}
-	b, err := gopass.GetPasswd()
+	b, err := gopass.GetPasswd(int(m.termIn.Fd()))
 	if err != nil {
 		if err == gopass.ErrInterrupted {
 			err = ErrPromptInterrupted

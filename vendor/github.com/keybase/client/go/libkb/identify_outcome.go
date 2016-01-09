@@ -223,7 +223,7 @@ func (i IdentifyOutcome) GetError() error {
 }
 
 func (i IdentifyOutcome) GetErrorLax() (Warnings, error) {
-	return i.GetErrorAndWarnings(true)
+	return i.GetErrorAndWarnings(false)
 }
 
 type byDisplayString []*LinkCheckResult

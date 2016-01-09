@@ -16,12 +16,12 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewCmdPGPSign(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPSign(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "sign",
 		Usage: "PGP sign a document.",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPSign{}, "sign", c)
+			cl.ChooseCommand(&CmdPGPSign{Contextified: libkb.NewContextified(g)}, "sign", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -67,6 +67,7 @@ func NewCmdPGPSign(cl *libcmdline.CommandLine) cli.Command {
 }
 
 type CmdPGPSign struct {
+	libkb.Contextified
 	UnixFilter
 	msg  string
 	opts keybase1.PGPSignOptions
@@ -108,15 +109,15 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 
 func (s *CmdPGPSign) Run() (err error) {
 	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(),
-		NewSecretUIProtocol(G),
+		NewStreamUIProtocol(s.G()),
+		NewSecretUIProtocol(s.G()),
 	}
 
 	cli, err := GetPGPClient()
 	if err != nil {
 		return err
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
 	snk, src, err := s.ClientFilterOpen()

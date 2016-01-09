@@ -44,24 +44,37 @@ func (e *ResolveThenIdentify2) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
-	libkb.Trace(e.G().Log, "ResolveThenIdentify2::Run", func() error { return err })
+func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
+	if !e.arg.Uid.IsNil() {
+		return nil
+	}
 
 	rres := e.G().Resolver.ResolveFullExpressionWithBody(e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
 		return err
 	}
 	e.arg.Uid = rres.GetUID()
-	e.i2eng = NewIdentify2WithUID(e.G(), e.arg)
-
-	// For testing
-	e.i2eng.testArgs = e.testArgs
 
 	// An optimization --- plumb through the resolve body for when we load the
 	// user. This will save a round trip to the server.
 	e.i2eng.ResolveBody = rres.GetBody()
 
-	return e.i2eng.Run(ctx)
+	return nil
+}
+
+func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
+	defer e.G().Trace("ResolveThenIdentify2::Run", func() error { return err })
+
+	e.i2eng = NewIdentify2WithUID(e.G(), e.arg)
+
+	if err = e.resolveUID(ctx); err != nil {
+		return
+	}
+
+	// For testing
+	e.i2eng.testArgs = e.testArgs
+
+	return RunEngine(e.i2eng, ctx)
 }
 
 func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {

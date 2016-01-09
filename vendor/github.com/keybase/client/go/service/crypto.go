@@ -33,6 +33,8 @@ func (c *CryptoHandler) getDelegatedSecretUI() libkb.SecretUI {
 		c.G().Log.Debug("UIRouter.GetSecretUI() returned nil")
 	}
 
+	c.G().Log.Debug("CryptoHandler: using delegated SecretUI")
+
 	return ui
 }
 

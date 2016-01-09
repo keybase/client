@@ -26,7 +26,7 @@ func passphraseChange(g *libkb.GlobalContext, arg keybase1.PassphraseChangeArg) 
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(g),
 	}
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, g); err != nil {
 		return err
 	}
 	return cli.PassphraseChange(context.TODO(), arg)

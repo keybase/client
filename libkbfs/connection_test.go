@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -109,7 +108,7 @@ func TestReconnectBasic(t *testing.T) {
 // Test when a user cancels a connection.
 func TestReconnectCanceled(t *testing.T) {
 	config := NewConfigLocal()
-	cancelErr := client.InputCanceledError{}
+	cancelErr := libkb.InputCanceledError{}
 	unitTester := &unitTester{
 		doneChan:   make(chan bool),
 		errToThrow: cancelErr,
