@@ -38,17 +38,30 @@ type FS struct {
 	notificationMutex sync.RWMutex
 
 	root *Root
+
+	// currentUserSID stores the Windows identity of the user running
+	// this process.
+	currentUserSID *syscall.SID
 }
 
 // NewFS creates an FS
-func NewFS(config libkbfs.Config, debug bool) *FS {
-	log := logger.New("kbfsfuse", os.Stderr)
+func NewFS(config libkbfs.Config, debug bool) (*FS, error) {
+	log := logger.New("kbfsdokan", os.Stderr)
 	if debug {
 		// Turn on debugging.  TODO: allow a proper log file and
 		// style to be specified.
 		log.Configure("", true, "")
 	}
-	f := &FS{config: config, log: log}
+	sid, err := dokan.CurrentProcessUserSid()
+	if err != nil {
+		return nil, err
+	}
+	f := &FS{
+		config:         config,
+		log:            log,
+		currentUserSID: sid,
+	}
+
 	f.root = &Root{
 		private: &FolderList{
 			fs:      f,
@@ -59,7 +72,8 @@ func NewFS(config libkbfs.Config, debug bool) *FS {
 			public:  true,
 			folders: make(map[string]*Dir),
 		}}
-	return f
+
+	return f, nil
 }
 
 var vinfo = dokan.VolumeInformation{

@@ -49,7 +49,10 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		}
 	}
 
-	fs := NewFS(config, options.KbfsParams.Debug)
+	fs, err := NewFS(config, options.KbfsParams.Debug)
+	if err != nil {
+		return InitError(err.Error())
+	}
 	ctx := context.WithValue(context.Background(), CtxAppIDKey, &fs)
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxIDKey] = CtxOpID
