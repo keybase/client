@@ -33,6 +33,9 @@ if (NO_SERVER) {
 
   app.use(require('webpack-dev-middleware')(compiler, {
     publicPath: config.output.publicPath,
+    hot: true,
+    lazy: false,
+    headers: {'Access-Control-Allow-Origin': '*'},
     stats: {
       colors: true,
       quiet: false,
