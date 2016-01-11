@@ -2,6 +2,7 @@ import enums from '../../react/constants/types/keybase_v1'
 import path from 'path'
 import type {FSNotification} from '../../react/constants/types/flow-types'
 import {getTLF} from '../util/kbfs'
+import {remote} from 'electron'
 
 // TODO: Once we have access to the Redux store from the thread running
 // notification listeners, store the sentNotifications map in it.
@@ -11,6 +12,7 @@ export default function (notify) {
   return {
     'keybase.1.NotifySession.loggedOut': () => {
       notify('Logged Out')
+      remote.app.emit('close-windows')
     },
     'keybase.1.NotifyFS.FSActivity': params => {
       const notification: FSNotification = params.notification
