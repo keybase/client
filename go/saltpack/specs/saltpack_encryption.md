@@ -1,6 +1,9 @@
 # Saltpack Binary Encryption Format
 
 **Changelog**
+- 11 Jan 2015
+  - Authenticate the entire header in every payload packet, and use HMAC for
+    authentication instead of the dicey crypto_box hack.
 - 5 Jan 2015
   - Move the sender's public key out of the recipient box and into a separate
     secretbox with its own field in the header. That saves us the overhead of
@@ -84,7 +87,7 @@ The header packet is a MessagePack list with these contents:
     version,
     mode,
     ephemeral public key,
-    sender public key secretbox,
+    sender secretbox,
     recipients list,
 ]
 ```
@@ -97,7 +100,7 @@ The header packet is a MessagePack list with these contents:
 - The **ephemeral public key** is a NaCl public encryption key, 32 bytes. The
   ephemeral keypair is generated at random by the sender and only used for one
   message.
-- The **sender public key secretbox** is a NaCl secretbox containing the
+- The **sender secretbox** is a NaCl secretbox containing the
   sender's long-term public key, encrypted with the **payload key**.
 - The **recipients list** contains a recipient pair for each recipient key,
   including an encrypted copy of the **payload key**. See below.
@@ -114,10 +117,11 @@ A recipient pair is a two-element list:
 - The **recipient public key** is the recipient's long-term NaCl public
   encryption key. This field may be null, when the recipients are anonymous.
 - The **payload key box** is a NaCl box encrypted with the recipient's public
-  key and the ephemeral private key. It contains the **payload key**, a 32-byte
-  NaCl symmetric encryption key used to encrypt the **sender public key
-  secretbox** above that the **payload secretbox** in each payload packet
-  below. The sender generates a random payload key for each message.
+  key and the ephemeral private key. See also [Nonces](#Nonces) below. It
+  contains the **payload key**, a 32-byte NaCl symmetric encryption key, which
+  is used to encrypt the **sender secretbox** above and the **payload
+  secretbox** in each payload packet below. The sender generates a random
+  payload key for each message.
 
 Recipients should compute the ephemeral shared secret and then try to open each
 of the **payload key boxes**. In the NaCl interface, computing a shared secret
@@ -125,8 +129,8 @@ is done with the [`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html)
 function, which does a Curve25519 multiplication and an HSalsa20 key
 derivation, to avoid repeating those steps in
 [`crypto_box_open`](http://nacl.cr.yp.to/box.html). After obtaining the
-**payload key**, clients open the **sender public key secretbox** and obtain
-the sender's public key. Both keys are used to decrypt payload packets below.
+**payload key**, clients open the **sender secretbox** and obtain the sender's
+public key.
 
 Encrypting the sender's long-term public key allows Alice to stay anonymous to
 Mallory. If Alice wants to be anonymous to Bob as well, she can reuse the
@@ -135,8 +139,31 @@ the same, clients may indicate that a message is "intentionally anonymous" as
 opposed to "from an unknown sender".
 
 Note that when parsing lists in general, if a list is longer than expected,
-clients should allow the extra fields and ignore them. That flexibility allows
-us to make additions to the format without breaking backward compatibility.
+clients should allow the extra fields and ignore them. That allows us to make
+future additions to the format without breaking backward compatibility.
+
+After parsing the header packet, recipients compute two related values: the
+**header hash** and the **MAC key**. These are used to authenticate payload
+packets below.
+
+The **header hash** is the SHA512 of all the bytes that make up the header
+packet, including any ignored fields. Because most MessagePack libraries don't
+expose the bytes they read from a stream, saltpack implementations are allowed
+to *reserialize* the header to get the header bytes. To guarantee senders and
+recipients serialize MessagePack objects in the same way, a MessagePack
+implementation used with saltpack has to follow these rules (most of them do):
+
+- Encodings must be minimal. For example, an array of less than 16 elements
+  must use the `fixarray` format.
+- Raw bytes must use the `bin` format. (Some implementations [require a
+  flag](https://github.com/msgpack/msgpack-python#string-and-binary-type) for
+  this.)
+- Positive integers must used the unsigned integer formats.
+
+The **MAC key** is a 32-byte secret key, unique to each recipient. It's
+computed by encrypting 32 zero bytes in a NaCl box with the sender and
+recipient's long-term keys. The **MAC key** is the last 32 bytes of that
+48-byte NaCl box.
 
 ### Payload Packets
 A payload packet is a MessagePack list with these contents:
@@ -148,7 +175,7 @@ A payload packet is a MessagePack list with these contents:
 ]
 ```
 
-- The **authenticators list** contains 16-byte Poly1305 tags, one for each
+- The **authenticators list** contains 32-byte HMAC tags, one for each
   recipient, which authenticate the **payload secretbox**.
 - The **payload secretbox** is a NaCl secretbox containing a chunk of the
   plaintext bytes, max size 1 MB. It's encrypted with the **payload key**. See
@@ -160,54 +187,61 @@ recipients, then she will have the key, and she could modify the payload. The
 **authenticators list** is there to prevent this attack, protecting the
 recipients from each other.
 
-We compute each recipient's authenticator in three steps:
+We compute the authenticators in three steps:
 
-- Compute the SHA512 of the **payload secretbox**.
-- Encrypt that hash in a NaCl box, using the sender and recipient's long-term
-  keys. See [Nonces](#nonces) below.
-- The authenticator is the first 16 bytes of that box.
+- Serialize the packet number as a 64-bit unsigned big-endian integer, where
+  the first payload packet is number 1.
+- Compute the SHA512 of the concatenation of the **header hash**, the packet
+  number, and the **payload secretbox**.
+- For each recipient, compute the HMAC-SHA512 of the hash above, using that
+  recipient's **MAC key**.
+- Take the first 32 bytes of each HMAC. This is equivalent to NaCl's
+  [`crypto_auth`](http://nacl.cr.yp.to/auth.html) function.
 
 The index of each authenticator in the list corresponds to the index of that
 recipient in the header. Before opening the **payload secretbox** in each
 payload packet, recipients must recompute the authenticator and check that it
-matches what's in the **authenticators list**.
+matches what's in the **authenticators list**, using a constant-time
+comparison.
 
 Our authenticators cover the SHA512 of the payload, rather than the payload
 itself, to save time when a large message has many recipients. This assumes the
 second preimage resistance of SHA512, in addition to the assumptions that go
 into NaCl.
 
-Using NaCl's [`crypto_box`](http://nacl.cr.yp.to/box.html) to compute the
-authenticators takes more time than using
-[`crypto_onetime_auth`](http://nacl.cr.yp.to/onetimeauth.html) directly.
-Likewise, using [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) to
-encrypt the payload takes more time and 16 bytes more space than using
-[`crypto_stream_xor`](http://nacl.cr.yp.to/stream.html) directly. Nonetheless,
-we prefer box and secretbox for ease of implementation. Many languages have
-NaCl libraries that only expose these higher-level constructions.
+Using [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) to encrypt the
+payload takes more time and 16 bytes more space than
+[`crypto_stream_xor`](http://nacl.cr.yp.to/stream.html) would. Likewise, using
+[`crypto_box`](http://nacl.cr.yp.to/box.html) to compute the MAC key takes more
+time than [`crypto_stream`](http://nacl.cr.yp.to/stream.html) would.
+Nonetheless, we prefer box and secretbox for ease of implementation. Many
+languages have NaCl libraries that only expose these higher-level
+constructions.
 
 ### Nonces
 
 We use a pseudorandom prefix to avoid nonce reuse. Define the nonce prefix `P`
-to be the first 16 bytes of the SHA512 of the concatenation of these values:
+to be the first 23 bytes of the SHA512 of the concatenation of these values:
 - `"saltpack\0"` (`\0` is a [null
   byte](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html))
 - `"encryption nonce prefix\0"`
 - the 32-byte **ephemeral public key**
 
-The nonce for each box is then the concatenation of `P` and a 64-bit big-endian
-unsigned counter. For each **recipient box** the counter is 0. For each payload
-packet we then increment the counter, so the first packet's **authenticators
-list** uses 1, the next uses 2, and so on. For each **payload secretbox**, the
-nonce is the same as for the associated authenticators. The strict ordering of
-nonces should make it impossible to drop or reorder any payload packets.
+The 24-byte nonce for each public-key box is then concatenation of `P` and an
+extra byte. For each **recipient box** the extra byte is 0. For computing each
+**MAC key**, the extra byte is 1.
 
-We might be concerned about reusing the same nonce for each recipient here. For
-example, a recipient key could show up more than once in the recipients list.
-However, note that all the recipient boxes contain the same keys, and all the
-authenticator boxes related to a given payload packet contain the same hash. So
-if the same recipient shows up twice, we'll produce identical boxes for them
-the second time.
+The 24-byte nonce for each secretbox is a counter, 16 zero bytes followed by
+the packet number as a 64-bit unsigned big-endian integer. For the **sender
+secretbox** in the header, the packet number is 0. For the **payload
+secretbox** in each payload packet, the first packet is 1, the second is 2, and
+so on.
+
+We might be concerned about reusing the same public-key nonce for each
+recipient here. For example, a recipient key could show up more than once in
+the recipients list. However, note that in both cases we're boxing the same
+message to all recipients. So if the same recipient shows up twice, we'll
+produce identical boxes for them the second time.
 
 Besides avoiding nonce reuse and enforcing the packet order, we also want to
 prevent abuse of the decryption key. Alice might use Bob's public key to
@@ -217,7 +251,7 @@ intercepted box, in the hope that Bob might reveal something about its contents
 by decrypting it. If we used a random nonce transmitted in the message header,
 Mallory could choose the nonce to match an intercepted box. Using the `P`
 prefix instead makes this attack difficult. Unless Mallory can compute enough
-hashes to find one with a specific 16-byte prefix, she can't control the nonce
+hashes to find one with a specific 23-byte prefix, she can't control the nonce
 that Bob uses to decrypt.
 
 Some applications might use the saltpack format, but don't want decryption
@@ -225,7 +259,7 @@ compatibility with other saltpack applications. In addition to changing the
 format name at the start of the header, these applications should use a
 [different null-terminated context
 string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
-place of `"saltpack\0"`.
+place of `"saltpack\0"` above.
 
 ## Example
 
@@ -240,7 +274,7 @@ place of `"saltpack\0"`.
   0,
   # ephemeral public key
   e1c7c20fc7ac2012fe4066f5350ae3bbcdb1d243a6ae9706710727611e6efa65,
-  # sender public key secretbox
+  # sender secretbox
   86eb1d6032e9a199ecbf844b8d0bb0cde096f84c08a07960f1ea929cee907df5b5e7757ca612a121a7927ffd0cf8fcde,
   # recipient pairs
   [
@@ -260,7 +294,7 @@ place of `"saltpack\0"`.
   # authenticators list
   [
     # the first recipient's authenticator
-    c84eafa03ede35d527b24785ca8b7226,
+    c84eafa03ede35d527b24785ca8b722c84eafa03ede35d527b24785ca8b72266,
     # subsequent authenticators...
   ],
   # payload secretbox
@@ -272,7 +306,7 @@ place of `"saltpack\0"`.
   # authenticators list
   [
     # the first recipient's authenticator
-    c556aade21fd10054603560faa6ce535,
+    c556aade21fd10054603560faa6ce53c556aade21fd10054603560faa6ce5355,
     # subsequent authenticators...
   ],
   # the empty payload secretbox
