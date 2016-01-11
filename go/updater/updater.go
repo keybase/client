@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -58,7 +59,7 @@ func (u *Updater) Options() keybase1.UpdateOptions {
 	return u.options
 }
 
-func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested bool) (update *keybase1.Update, err error) {
+func (u *Updater) checkForUpdate(force bool, requested bool) (update *keybase1.Update, err error) {
 	u.log.Info("Checking for update, current version is %s", u.options.Version)
 
 	if u.options.Force {
@@ -122,7 +123,7 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 		}
 	}
 
-	if !skipAssetDownload {
+	if !u.shouldSkipAssetDownload() {
 		downloadPath, _, dlerr := u.downloadAsset(update.Asset)
 		if dlerr != nil {
 			err = dlerr
@@ -323,12 +324,20 @@ func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (*keybas
 }
 
 func (u *Updater) update(ui libkb.UpdateUI, force bool, requested bool) (update *keybase1.Update, err error) {
-	update, err = u.checkForUpdate(false, force, requested)
+	update, err = u.checkForUpdate(force, requested)
 	if err != nil {
 		return
 	}
 	if update == nil {
 		// No update available
+		return
+	}
+
+	if err = u.promptForUpdateAction(ui, *update); err != nil {
+		return
+	}
+
+	if u.shouldSkipAssetDownload() {
 		return
 	}
 
@@ -387,10 +396,6 @@ func (u *Updater) promptForUpdateAction(ui libkb.UpdateUI, update keybase1.Updat
 }
 
 func (u *Updater) applyUpdate(ui libkb.UpdateUI, update keybase1.Update) (tmpPath string, err error) {
-	if err = u.promptForUpdateAction(ui, update); err != nil {
-		return
-	}
-
 	if update.Asset.LocalPath == "" {
 		err = fmt.Errorf("No local asset path for update")
 		return
@@ -505,4 +510,13 @@ func copyFile(sourcePath string, destinationPath string) error {
 		return err
 	}
 	return cerr
+}
+
+// Right now only OSX uses the updater to actually download files, but other
+// platforms can use it to prompt the user to manually update.
+func (u *Updater) shouldSkipAssetDownload() bool {
+	if runtime.GOOS == "darwin" {
+		return false
+	}
+	return true
 }

@@ -114,7 +114,7 @@ func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
 	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
 	u.options.Version = "100000000.0.0"
 
-	update, err := u.checkForUpdate(true, false, false)
+	update, err := u.checkForUpdate(false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
