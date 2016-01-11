@@ -3762,45 +3762,45 @@ export type revoke_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type saltPack_Time = {
+export type saltpack_Time = {
 }
 
-export type saltPack_StringKVPair = {
+export type saltpack_StringKVPair = {
   key: string;
   value: string;
 }
 
-export type saltPack_Status = {
+export type saltpack_Status = {
   code: int;
   name: string;
   desc: string;
   fields: Array<StringKVPair>;
 }
 
-export type saltPack_UID = {
+export type saltpack_UID = {
 }
 
-export type saltPack_DeviceID = {
+export type saltpack_DeviceID = {
 }
 
-export type saltPack_SigID = {
+export type saltpack_SigID = {
 }
 
-export type saltPack_KID = {
+export type saltpack_KID = {
 }
 
-export type saltPack_Text = {
+export type saltpack_Text = {
   data: string;
   markup: boolean;
 }
 
-export type saltPack_PGPIdentity = {
+export type saltpack_PGPIdentity = {
   username: string;
   comment: string;
   email: string;
 }
 
-export type saltPack_PublicKey = {
+export type saltpack_PublicKey = {
   KID: KID;
   PGPFingerprint: string;
   PGPIdentities: Array<PGPIdentity>;
@@ -3814,12 +3814,12 @@ export type saltPack_PublicKey = {
   eTime: Time;
 }
 
-export type saltPack_User = {
+export type saltpack_User = {
   uid: UID;
   username: string;
 }
 
-export type saltPack_Device = {
+export type saltpack_Device = {
   type: string;
   name: string;
   deviceID: DeviceID;
@@ -3829,15 +3829,15 @@ export type saltPack_Device = {
   verifyKey: KID;
 }
 
-export type saltPack_Stream = {
+export type saltpack_Stream = {
   fd: int;
 }
 
-export type saltPack_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+export type saltpack_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type saltPack_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type saltpack_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
-export type saltPack_UserVersionVector = {
+export type saltpack_UserVersionVector = {
   id: long;
   sigHints: int;
   sigChain: long;
@@ -3845,7 +3845,7 @@ export type saltPack_UserVersionVector = {
   lastIdentifiedAt: Time;
 }
 
-export type saltPack_UserPlusKeys = {
+export type saltpack_UserPlusKeys = {
   uid: UID;
   username: string;
   deviceKeys: Array<PublicKey>;
@@ -3853,44 +3853,44 @@ export type saltPack_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type saltPack_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
+export type saltpack_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
-export type saltPack_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 100 /* 'BASE_ERROR_100' */ | 101 /* 'HOST_UNREACHABLE_101' */ | 103 /* 'PERMISSION_DENIED_103' */ | 106 /* 'FAILED_PARSE_106' */ | 107 /* 'DNS_ERROR_107' */ | 108 /* 'AUTH_FAILED_108' */ | 129 /* 'HTTP_429_129' */ | 150 /* 'HTTP_500_150' */ | 160 /* 'TIMEOUT_160' */ | 170 /* 'INTERNAL_ERROR_170' */ | 200 /* 'BASE_HARD_ERROR_200' */ | 201 /* 'NOT_FOUND_201' */ | 202 /* 'CONTENT_FAILURE_202' */ | 203 /* 'BAD_USERNAME_203' */ | 204 /* 'BAD_REMOTE_ID_204' */ | 205 /* 'TEXT_NOT_FOUND_205' */ | 206 /* 'BAD_ARGS_206' */ | 207 /* 'CONTENT_MISSING_207' */ | 208 /* 'TITLE_NOT_FOUND_208' */ | 209 /* 'SERVICE_ERROR_209' */ | 210 /* 'TOR_SKIPPED_210' */ | 211 /* 'TOR_INCOMPATIBLE_211' */ | 230 /* 'HTTP_300_230' */ | 240 /* 'HTTP_400_240' */ | 260 /* 'HTTP_OTHER_260' */ | 270 /* 'EMPTY_JSON_270' */ | 301 /* 'DELETED_301' */ | 302 /* 'SERVICE_DEAD_302' */ | 303 /* 'BAD_SIGNATURE_303' */ | 304 /* 'BAD_API_URL_304' */ | 305 /* 'UNKNOWN_TYPE_305' */ | 306 /* 'NO_HINT_306' */ | 307 /* 'BAD_HINT_TEXT_307' */
+export type saltpack_ProofStatus = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'LOCAL_2' */ | 3 /* 'FOUND_3' */ | 100 /* 'BASE_ERROR_100' */ | 101 /* 'HOST_UNREACHABLE_101' */ | 103 /* 'PERMISSION_DENIED_103' */ | 106 /* 'FAILED_PARSE_106' */ | 107 /* 'DNS_ERROR_107' */ | 108 /* 'AUTH_FAILED_108' */ | 129 /* 'HTTP_429_129' */ | 150 /* 'HTTP_500_150' */ | 160 /* 'TIMEOUT_160' */ | 170 /* 'INTERNAL_ERROR_170' */ | 200 /* 'BASE_HARD_ERROR_200' */ | 201 /* 'NOT_FOUND_201' */ | 202 /* 'CONTENT_FAILURE_202' */ | 203 /* 'BAD_USERNAME_203' */ | 204 /* 'BAD_REMOTE_ID_204' */ | 205 /* 'TEXT_NOT_FOUND_205' */ | 206 /* 'BAD_ARGS_206' */ | 207 /* 'CONTENT_MISSING_207' */ | 208 /* 'TITLE_NOT_FOUND_208' */ | 209 /* 'SERVICE_ERROR_209' */ | 210 /* 'TOR_SKIPPED_210' */ | 211 /* 'TOR_INCOMPATIBLE_211' */ | 230 /* 'HTTP_300_230' */ | 240 /* 'HTTP_400_240' */ | 260 /* 'HTTP_OTHER_260' */ | 270 /* 'EMPTY_JSON_270' */ | 301 /* 'DELETED_301' */ | 302 /* 'SERVICE_DEAD_302' */ | 303 /* 'BAD_SIGNATURE_303' */ | 304 /* 'BAD_API_URL_304' */ | 305 /* 'UNKNOWN_TYPE_305' */ | 306 /* 'NO_HINT_306' */ | 307 /* 'BAD_HINT_TEXT_307' */
 
-export type saltPack_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 1000 /* 'GENERIC_WEB_SITE_1000' */ | 1001 /* 'DNS_1001' */ | 100001 /* 'ROOTER_100001' */
+export type saltpack_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITTER_2' */ | 3 /* 'GITHUB_3' */ | 4 /* 'REDDIT_4' */ | 5 /* 'COINBASE_5' */ | 6 /* 'HACKERNEWS_6' */ | 1000 /* 'GENERIC_WEB_SITE_1000' */ | 1001 /* 'DNS_1001' */ | 100001 /* 'ROOTER_100001' */
 
-export type saltPack_TrackToken = {
+export type saltpack_TrackToken = {
 }
 
-export type saltPack_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
+export type saltpack_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
 
-export type saltPack_TrackDiff = {
+export type saltpack_TrackDiff = {
   type: TrackDiffType;
   displayMarkup: string;
 }
 
-export type saltPack_TrackSummary = {
+export type saltpack_TrackSummary = {
   username: string;
   time: Time;
   isRemote: boolean;
 }
 
-export type saltPack_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /* 'NEW_FAIL_PROOFS_3' */ | 4 /* 'UPDATE_BROKEN_4' */ | 5 /* 'UPDATE_NEW_PROOFS_5' */ | 6 /* 'UPDATE_OK_6' */
+export type saltpack_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /* 'NEW_FAIL_PROOFS_3' */ | 4 /* 'UPDATE_BROKEN_4' */ | 5 /* 'UPDATE_NEW_PROOFS_5' */ | 6 /* 'UPDATE_OK_6' */
 
-export type saltPack_TrackOptions = {
+export type saltpack_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
 }
 
-export type saltPack_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
+export type saltpack_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
 
-export type saltPack_IdentifyReason = {
+export type saltpack_IdentifyReason = {
   type: IdentifyReasonType;
   reason: string;
   resource: string;
 }
 
-export type saltPack_IdentifyOutcome = {
+export type saltpack_IdentifyOutcome = {
   username: string;
   status?: ?Status;
   warnings: Array<string>;
@@ -3907,14 +3907,14 @@ export type saltPack_IdentifyOutcome = {
   reason: IdentifyReason;
 }
 
-export type saltPack_IdentifyRes = {
+export type saltpack_IdentifyRes = {
   user?: ?User;
   publicKeys: Array<PublicKey>;
   outcome: IdentifyOutcome;
   trackToken: TrackToken;
 }
 
-export type saltPack_RemoteProof = {
+export type saltpack_RemoteProof = {
   proofType: ProofType;
   key: string;
   value: string;
@@ -3923,97 +3923,97 @@ export type saltPack_RemoteProof = {
   mTime: Time;
 }
 
-export type saltPack_SaltPackEncryptOptions = {
+export type saltpack_SaltpackEncryptOptions = {
   recipients: Array<string>;
   hideSelf: boolean;
   noSelfEncrypt: boolean;
 }
 
-export type SaltPackEncryptOptions = {
+export type SaltpackEncryptOptions = {
   recipients: Array<string>;
   hideSelf: boolean;
   noSelfEncrypt: boolean;
 }
 
-export type saltPack_SaltPackDecryptOptions = {
+export type saltpack_SaltpackDecryptOptions = {
   interactive: boolean;
   forceRemoteCheck: boolean;
 }
 
-export type SaltPackDecryptOptions = {
+export type SaltpackDecryptOptions = {
   interactive: boolean;
   forceRemoteCheck: boolean;
 }
 
-export type saltPack_SaltPackSignOptions = {
+export type saltpack_SaltpackSignOptions = {
   detached: boolean;
 }
 
-export type SaltPackSignOptions = {
+export type SaltpackSignOptions = {
   detached: boolean;
 }
 
-export type saltPack_SaltPackVerifyOptions = {
+export type saltpack_SaltpackVerifyOptions = {
   signedBy: string;
   signature: bytes;
 }
 
-export type SaltPackVerifyOptions = {
+export type SaltpackVerifyOptions = {
   signedBy: string;
   signature: bytes;
 }
 
-export type saltPack_SaltPackEncryptedMessageInfo = {
+export type saltpack_SaltpackEncryptedMessageInfo = {
   devices: Array<Device>;
   numAnonReceivers: int;
   receiverIsAnon: boolean;
 }
 
-export type SaltPackEncryptedMessageInfo = {
+export type SaltpackEncryptedMessageInfo = {
   devices: Array<Device>;
   numAnonReceivers: int;
   receiverIsAnon: boolean;
 }
 
-export type saltPackUi_Time = {
+export type saltpackUi_Time = {
 }
 
-export type saltPackUi_StringKVPair = {
+export type saltpackUi_StringKVPair = {
   key: string;
   value: string;
 }
 
-export type saltPackUi_Status = {
+export type saltpackUi_Status = {
   code: int;
   name: string;
   desc: string;
   fields: Array<StringKVPair>;
 }
 
-export type saltPackUi_UID = {
+export type saltpackUi_UID = {
 }
 
-export type saltPackUi_DeviceID = {
+export type saltpackUi_DeviceID = {
 }
 
-export type saltPackUi_SigID = {
+export type saltpackUi_SigID = {
 }
 
-export type saltPackUi_KID = {
+export type saltpackUi_KID = {
 }
 
-export type saltPackUi_Text = {
+export type saltpackUi_Text = {
   data: string;
   markup: boolean;
 }
 
-export type saltPackUi_PGPIdentity = {
+export type saltpackUi_PGPIdentity = {
   username: string;
   comment: string;
   email: string;
 }
 
-export type saltPackUi_PublicKey = {
+export type saltpackUi_PublicKey = {
   KID: KID;
   PGPFingerprint: string;
   PGPIdentities: Array<PGPIdentity>;
@@ -4027,12 +4027,12 @@ export type saltPackUi_PublicKey = {
   eTime: Time;
 }
 
-export type saltPackUi_User = {
+export type saltpackUi_User = {
   uid: UID;
   username: string;
 }
 
-export type saltPackUi_Device = {
+export type saltpackUi_Device = {
   type: string;
   name: string;
   deviceID: DeviceID;
@@ -4042,15 +4042,15 @@ export type saltPackUi_Device = {
   verifyKey: KID;
 }
 
-export type saltPackUi_Stream = {
+export type saltpackUi_Stream = {
   fd: int;
 }
 
-export type saltPackUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+export type saltpackUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type saltPackUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type saltpackUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
 
-export type saltPackUi_UserVersionVector = {
+export type saltpackUi_UserVersionVector = {
   id: long;
   sigHints: int;
   sigChain: long;
@@ -4058,7 +4058,7 @@ export type saltPackUi_UserVersionVector = {
   lastIdentifiedAt: Time;
 }
 
-export type saltPackUi_UserPlusKeys = {
+export type saltpackUi_UserPlusKeys = {
   uid: UID;
   username: string;
   deviceKeys: Array<PublicKey>;
@@ -4066,20 +4066,20 @@ export type saltPackUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
-export type saltPackUi_SaltPackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */
+export type saltpackUi_SaltpackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */
 
-export type SaltPackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */
+export type SaltpackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */
 
-export type saltPackUi_SaltPackSender = {
+export type saltpackUi_SaltpackSender = {
   uid: UID;
   username: string;
-  senderType: SaltPackSenderType;
+  senderType: SaltpackSenderType;
 }
 
-export type SaltPackSender = {
+export type SaltpackSender = {
   uid: UID;
   username: string;
-  senderType: SaltPackSenderType;
+  senderType: SaltpackSenderType;
 }
 
 export type secretUi_Feature = {
