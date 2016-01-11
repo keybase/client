@@ -1,4 +1,4 @@
-# SaltPack Binary Encryption Format
+# Saltpack Binary Encryption Format
 
 **Changelog**
 - 5 Jan 2015
@@ -35,10 +35,10 @@ our messages to have:
   without needing to fit the whole thing in RAM. At the same time, decryption
   should never output any unauthenticated bytes.
 - Abuse resistance. Alice might use the same encryption key for many
-  applications besides SaltPack. If Mallory intercepts some of these other
+  applications besides saltpack. If Mallory intercepts some of these other
   ciphertexts, she could [try to trick Alice into decrypting
   them](https://blog.sandstorm.io/news/2015-05-01-is-that-ascii-or-protobuf.html)
-  by formatting them as a SaltPack message. Alice's SaltPack client should fail
+  by formatting them as a saltpack message. Alice's saltpack client should fail
   to decrypt these forgeries.
 
 ## Design
@@ -89,7 +89,7 @@ The header packet is a MessagePack list with these contents:
 ]
 ```
 
-- The **format name** is the string "SaltPack".
+- The **format name** is the string "saltpack".
 - The **version** is a list of the major and minor versions, currently
   `[1, 0]`.
 - The **mode** is the number 0, for encryption. (1 and 2 are attached and
@@ -190,7 +190,7 @@ NaCl libraries that only expose these higher-level constructions.
 
 We use a pseudorandom prefix to avoid nonce reuse. Define the nonce prefix `P`
 to be the first 16 bytes of the SHA512 of the concatenation of these values:
-- `"SaltPack\0"` (`\0` is a [null
+- `"saltpack\0"` (`\0` is a [null
   byte](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html))
 - `"encryption nonce prefix\0"`
 - the 32-byte **ephemeral public key**
@@ -211,8 +211,8 @@ the second time.
 
 Besides avoiding nonce reuse and enforcing the packet order, we also want to
 prevent abuse of the decryption key. Alice might use Bob's public key to
-encrypt many kinds of messages, besides just SaltPack messages. If Mallory
-intercepted one of these, she could assemble a fake SaltPack message using the
+encrypt many kinds of messages, besides just saltpack messages. If Mallory
+intercepted one of these, she could assemble a fake saltpack message using the
 intercepted box, in the hope that Bob might reveal something about its contents
 by decrypting it. If we used a random nonce transmitted in the message header,
 Mallory could choose the nonce to match an intercepted box. Using the `P`
@@ -220,12 +220,12 @@ prefix instead makes this attack difficult. Unless Mallory can compute enough
 hashes to find one with a specific 16-byte prefix, she can't control the nonce
 that Bob uses to decrypt.
 
-Some applications might use the SaltPack format, but don't want decryption
-compatibility with other SaltPack applications. In addition to changing the
+Some applications might use the saltpack format, but don't want decryption
+compatibility with other saltpack applications. In addition to changing the
 format name at the start of the header, these applications should use a
 [different null-terminated context
 string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
-place of `"SaltPack\0"`.
+place of `"saltpack\0"`.
 
 ## Example
 
@@ -233,7 +233,7 @@ place of `"SaltPack\0"`.
 # header packet
 [
   # format name
-  "SaltPack",
+  "saltpack",
   # major and minor version
   [1, 0],
   # mode (0 = encryption)
