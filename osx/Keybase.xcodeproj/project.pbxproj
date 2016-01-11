@@ -7,10 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0005BC9E1C445ADB0062EF1D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 003608161C442EB100B3300E /* main.m */; };
+		0005BCA01C445AFB0062EF1D /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43551A3A9E6C006118A9 /* MainMenu.xib */; };
+		0005BCA11C445AFF0062EF1D /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 003608111C442EB100B3300E /* MainMenu.xib */; };
+		0005BCA21C445BA20062EF1D /* Status.m in Sources */ = {isa = PBXBuildFile; fileRef = 0036080E1C442E7D00B3300E /* Status.m */; };
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
 		001C6B3C1B24F8630048F086 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001C6B3B1B24F8630048F086 /* icon.icns */; };
 		001C6B401B24F8630048F086 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 001C6B3F1B24F8630048F086 /* ShareViewController.m */; };
-		0033F47C1C406EBA00317C79 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0033F47B1C406EBA00317C79 /* Images.xcassets */; };
 		003B40451B265F7B000B7D3B /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
 		003B40471B265F7B000B7D3B /* KBKext.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBKext.m */; };
 		003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454F1AE6D1CA00431829 /* KBHelperDefines.m */; };
@@ -24,15 +27,26 @@
 		009E136B1B27B39300C72B28 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 009E136A1B27B39300C72B28 /* icon.icns */; };
 		009E136F1B27B39300C72B28 /* ActionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E136E1B27B39300C72B28 /* ActionViewController.m */; };
 		009E13711B27B39300C72B28 /* ActionViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 009E13701B27B39300C72B28 /* ActionViewController.xib */; };
-		009E167D1B28AF6800C72B28 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00CC43551A3A9E6C006118A9 /* MainMenu.xib */; };
 		00AA043C1C03D6AF0047E448 /* Installer.m in Sources */ = {isa = PBXBuildFile; fileRef = 00AA043B1C03D6AF0047E448 /* Installer.m */; };
 		00CC43521A3A9E6C006118A9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43511A3A9E6C006118A9 /* main.m */; };
 		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
+		00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E1CEEE1C44313B00ED3A35 /* Media.xcassets */; };
+		00E1CEF01C44313B00ED3A35 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E1CEEE1C44313B00ED3A35 /* Media.xcassets */; };
+		00E1CEF51C4432F900ED3A35 /* Settings.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E1CEF41C4432F900ED3A35 /* Settings.m */; };
+		00E1CEF61C4432F900ED3A35 /* Settings.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E1CEF41C4432F900ED3A35 /* Settings.m */; };
 		140F37DCFE61D8AA9A83FF5C /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AF01BC4A44FA5C6796C1C820 /* libPods-keybase.Helper.a */; };
+		2B53DDCDBBFA7E3B74F64EE3 /* libPods-Status.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECBDAE14DC630518EBC27C76 /* libPods-Status.a */; };
 		E144464761C164A1896A2D78 /* libPods-Installer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C3C8C0FAD444743EC88E6FF1 /* libPods-Installer.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0036082D1C442EED00B3300E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0036081B1C442ED200B3300E;
+			remoteInfo = Status;
+		};
 		004624C71B29FB2B00E218AC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
@@ -83,6 +97,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0005BCA31C445BC30062EF1D /* Status.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = Status.entitlements; path = Status/Status.entitlements; sourceTree = "<group>"; };
 		001392701B06B18A0082DEA8 /* DmgBackground.pxm */ = {isa = PBXFileReference; lastKnownFileType = file; path = DmgBackground.pxm; sourceTree = "<group>"; };
 		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
 		001392731B06B18A0082DEA8 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -92,7 +107,12 @@
 		001C6B3D1B24F8630048F086 /* Share.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Share.entitlements; sourceTree = "<group>"; };
 		001C6B3E1B24F8630048F086 /* ShareViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
 		001C6B3F1B24F8630048F086 /* ShareViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
-		0033F47B1C406EBA00317C79 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		0036080D1C442E7D00B3300E /* Status.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Status.h; path = Status/Status.h; sourceTree = "<group>"; };
+		0036080E1C442E7D00B3300E /* Status.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Status.m; path = Status/Status.m; sourceTree = "<group>"; };
+		003608121C442EB100B3300E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = MainMenu.xib; sourceTree = "<group>"; };
+		003608141C442EB100B3300E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Status/Info.plist; sourceTree = "<group>"; };
+		003608161C442EB100B3300E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Status/main.m; sourceTree = "<group>"; };
+		0036081C1C442ED200B3300E /* KeybaseStatus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KeybaseStatus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		003C454B1AE6CECD00431829 /* KBKext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKext.h; sourceTree = "<group>"; };
 		003C454C1AE6CECD00431829 /* KBKext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBKext.m; sourceTree = "<group>"; };
 		003C454E1AE6D1CA00431829 /* KBHelperDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBHelperDefines.h; sourceTree = "<group>"; };
@@ -115,7 +135,7 @@
 		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		008949841BFA97B000CB605A /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = kbfuse.bundle; path = kbfuse/kbfuse.bundle; sourceTree = "<group>"; };
 		009E135B1B27654200C72B28 /* ShareViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ShareViewController.xib; sourceTree = "<group>"; };
-		009E13611B2794CF00C72B28 /* Keybase.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Keybase.entitlements; sourceTree = "<group>"; };
+		009E13611B2794CF00C72B28 /* Installer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Installer.entitlements; sourceTree = "<group>"; };
 		009E13661B27B39300C72B28 /* Action.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Action.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		009E13691B27B39300C72B28 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		009E136A1B27B39300C72B28 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
@@ -132,15 +152,21 @@
 		00CC43511A3A9E6C006118A9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		00CC43561A3A9E6C006118A9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		00DAF5BE1B2F885D000D7F9A /* Social.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Social.framework; path = System/Library/Frameworks/Social.framework; sourceTree = SDKROOT; };
+		00E1CEEE1C44313B00ED3A35 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
+		00E1CEF31C4432F900ED3A35 /* Settings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Settings.h; sourceTree = "<group>"; };
+		00E1CEF41C4432F900ED3A35 /* Settings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Settings.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		10F5D4AFBFC1E22180FEFFCD /* Pods-Installer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.debug.xcconfig"; sourceTree = "<group>"; };
 		398CF2F9A9EB653FFE008EB6 /* Pods-Installer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.release.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.release.xcconfig"; sourceTree = "<group>"; };
 		50CECECF69AD315C4D376EB8 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
+		8A6B4620AD7904EFA1B59736 /* Pods-Status.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Status.release.xcconfig"; path = "Pods/Target Support Files/Pods-Status/Pods-Status.release.xcconfig"; sourceTree = "<group>"; };
+		A15A4EEA7C37D549AE45695A /* Pods-Status.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Status.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Status/Pods-Status.debug.xcconfig"; sourceTree = "<group>"; };
 		AF01BC4A44FA5C6796C1C820 /* libPods-keybase.Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-keybase.Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3C8C0FAD444743EC88E6FF1 /* libPods-Installer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Installer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2BEDB094F7E7A69C2DD1031 /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 		DA5BD47C7019FB979DD332FE /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF54D7C94B2D7756B784F46B /* Pods-keybase.Helper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.debug.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.debug.xcconfig"; sourceTree = "<group>"; };
+		ECBDAE14DC630518EBC27C76 /* libPods-Status.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Status.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEBE5DD9D5816FD9CB306E1D /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -150,6 +176,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		003608191C442ED200B3300E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B53DDCDBBFA7E3B74F64EE3 /* libPods-Status.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,6 +231,7 @@
 		0013926F1B06B18A0082DEA8 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				00E1CEEE1C44313B00ED3A35 /* Media.xcassets */,
 				001392701B06B18A0082DEA8 /* DmgBackground.pxm */,
 				001392711B06B18A0082DEA8 /* Fuse.icns */,
 				001392731B06B18A0082DEA8 /* README.md */,
@@ -221,6 +256,27 @@
 				001C6B3A1B24F8630048F086 /* Info.plist */,
 				001C6B3B1B24F8630048F086 /* icon.icns */,
 				001C6B3D1B24F8630048F086 /* Share.entitlements */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		0036080C1C442E6100B3300E /* Status */ = {
+			isa = PBXGroup;
+			children = (
+				0036080D1C442E7D00B3300E /* Status.h */,
+				0036080E1C442E7D00B3300E /* Status.m */,
+				003608171C442EB500B3300E /* Supporting Files */,
+			);
+			name = Status;
+			sourceTree = "<group>";
+		};
+		003608171C442EB500B3300E /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				0005BCA31C445BC30062EF1D /* Status.entitlements */,
+				003608111C442EB100B3300E /* MainMenu.xib */,
+				003608141C442EB100B3300E /* Info.plist */,
+				003608161C442EB100B3300E /* main.m */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -323,7 +379,9 @@
 				00F808061A4A5F600038BC63 /* README.md */,
 				004D14961A3BCF1F0083888D /* Podfile */,
 				00CC434B1A3A9E6C006118A9 /* Installer */,
+				0036080C1C442E6100B3300E /* Status */,
 				00734B291B263FB500F3B714 /* Extensions */,
+				00E1CEF21C4432E600ED3A35 /* Utils */,
 				0013926F1B06B18A0082DEA8 /* Resources */,
 				0057B0BB1AE57A7A00BFB0E7 /* Helper */,
 				00566A531A9BAD4800CA236E /* Scripts */,
@@ -343,6 +401,7 @@
 				00AA750F1B27635D0069A6CC /* Tests.xctest */,
 				009E13661B27B39300C72B28 /* Action.appex */,
 				004624B11B2917AB00E218AC /* FinderSync.appex */,
+				0036081C1C442ED200B3300E /* KeybaseStatus.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -352,7 +411,6 @@
 			children = (
 				00AA043A1C03D6AF0047E448 /* Installer.h */,
 				00AA043B1C03D6AF0047E448 /* Installer.m */,
-				0033F47B1C406EBA00317C79 /* Images.xcassets */,
 				00CC434C1A3A9E6C006118A9 /* Supporting Files */,
 			);
 			path = Installer;
@@ -361,12 +419,21 @@
 		00CC434C1A3A9E6C006118A9 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				009E13611B2794CF00C72B28 /* Keybase.entitlements */,
+				009E13611B2794CF00C72B28 /* Installer.entitlements */,
 				00CC43551A3A9E6C006118A9 /* MainMenu.xib */,
 				00CC434D1A3A9E6C006118A9 /* Info.plist */,
 				00CC43511A3A9E6C006118A9 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		00E1CEF21C4432E600ED3A35 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				00E1CEF31C4432F900ED3A35 /* Settings.h */,
+				00E1CEF41C4432F900ED3A35 /* Settings.m */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 		468C135BF6D934E5DFBB8513 /* Frameworks */ = {
@@ -377,6 +444,7 @@
 				DA5BD47C7019FB979DD332FE /* libPods-Keybase.a */,
 				AF01BC4A44FA5C6796C1C820 /* libPods-keybase.Helper.a */,
 				C3C8C0FAD444743EC88E6FF1 /* libPods-Installer.a */,
+				ECBDAE14DC630518EBC27C76 /* libPods-Status.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -399,6 +467,8 @@
 				50CECECF69AD315C4D376EB8 /* Pods-keybase.Helper.release.xcconfig */,
 				10F5D4AFBFC1E22180FEFFCD /* Pods-Installer.debug.xcconfig */,
 				398CF2F9A9EB653FFE008EB6 /* Pods-Installer.release.xcconfig */,
+				A15A4EEA7C37D549AE45695A /* Pods-Status.debug.xcconfig */,
+				8A6B4620AD7904EFA1B59736 /* Pods-Status.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -422,6 +492,26 @@
 			productName = Share;
 			productReference = 001C6B371B24F8630048F086 /* Share.appex */;
 			productType = "com.apple.product-type.app-extension";
+		};
+		0036081B1C442ED200B3300E /* Status */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0036082A1C442ED300B3300E /* Build configuration list for PBXNativeTarget "Status" */;
+			buildPhases = (
+				2EFDB1F8CFCA17D60F106C8A /* Check Pods Manifest.lock */,
+				003608181C442ED200B3300E /* Sources */,
+				003608191C442ED200B3300E /* Frameworks */,
+				0036081A1C442ED200B3300E /* Resources */,
+				6DDFBFD461DBB29084739629 /* Embed Pods Frameworks */,
+				38CEFEB2D5410D87D00C3A1C /* Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Status;
+			productName = Status;
+			productReference = 0036081C1C442ED200B3300E /* KeybaseStatus.app */;
+			productType = "com.apple.product-type.application";
 		};
 		004624B01B2917AB00E218AC /* FinderSync */ = {
 			isa = PBXNativeTarget;
@@ -487,6 +577,7 @@
 			);
 			dependencies = (
 				004624C81B29FB2B00E218AC /* PBXTargetDependency */,
+				0036082E1C442EED00B3300E /* PBXTargetDependency */,
 			);
 			name = Tests;
 			productName = Tests;
@@ -540,6 +631,18 @@
 								enabled = 1;
 							};
 							com.apple.Sandbox = {
+								enabled = 1;
+							};
+						};
+					};
+					0036081B1C442ED200B3300E = {
+						CreatedOnToolsVersion = 7.2;
+						DevelopmentTeam = 99229SGT5K;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.Mac = {
+								enabled = 1;
+							};
+							com.apple.Keychain = {
 								enabled = 1;
 							};
 						};
@@ -608,6 +711,7 @@
 			projectRoot = "";
 			targets = (
 				00CC43481A3A9E6C006118A9 /* Installer */,
+				0036081B1C442ED200B3300E /* Status */,
 				0057B0B31AE57A4900BFB0E7 /* keybase.Helper */,
 				001C6B361B24F8630048F086 /* Share */,
 				009E13651B27B39300C72B28 /* Action */,
@@ -624,6 +728,15 @@
 			files = (
 				009E135C1B27654200C72B28 /* ShareViewController.xib in Resources */,
 				001C6B3C1B24F8630048F086 /* icon.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0036081A1C442ED200B3300E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00E1CEF01C44313B00ED3A35 /* Media.xcassets in Resources */,
+				0005BCA11C445AFF0062EF1D /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -655,9 +768,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
-				0033F47C1C406EBA00317C79 /* Images.xcassets in Resources */,
 				008949851BFA97B000CB605A /* kbfuse.bundle in Resources */,
-				009E167D1B28AF6800C72B28 /* MainMenu.xib in Resources */,
+				00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */,
+				0005BCA01C445AFB0062EF1D /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -693,6 +806,21 @@
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
+		2EFDB1F8CFCA17D60F106C8A /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
 		31DBF31B106778E35FDA2CC8 /* Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -708,6 +836,21 @@
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
+		38CEFEB2D5410D87D00C3A1C /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Status/Pods-Status-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		625C86A0B17F430F8CA6DAD5 /* Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -721,6 +864,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6DDFBFD461DBB29084739629 /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Status/Pods-Status-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		6EBF4CB0181E5A8EE38B470D /* Embed Pods Frameworks */ = {
@@ -764,6 +922,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		003608181C442ED200B3300E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0005BC9E1C445ADB0062EF1D /* main.m in Sources */,
+				0005BCA21C445BA20062EF1D /* Status.m in Sources */,
+				00E1CEF61C4432F900ED3A35 /* Settings.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		004624AD1B2917AB00E218AC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -803,6 +971,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00E1CEF51C4432F900ED3A35 /* Settings.m in Sources */,
 				00CC43521A3A9E6C006118A9 /* main.m in Sources */,
 				00AA043C1C03D6AF0047E448 /* Installer.m in Sources */,
 			);
@@ -811,6 +980,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		0036082E1C442EED00B3300E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0036081B1C442ED200B3300E /* Status */;
+			targetProxy = 0036082D1C442EED00B3300E /* PBXContainerItemProxy */;
+		};
 		004624C81B29FB2B00E218AC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 00CC43481A3A9E6C006118A9 /* Installer */;
@@ -824,6 +998,15 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		003608111C442EB100B3300E /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				003608121C442EB100B3300E /* Base */,
+			);
+			name = MainMenu.xib;
+			path = Status/Base.lproj;
+			sourceTree = "<group>";
+		};
 		00CC43551A3A9E6C006118A9 /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -870,6 +1053,44 @@
 				PRODUCT_NAME = Share;
 				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		0036082B1C442ED300B3300E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A15A4EEA7C37D549AE45695A /* Pods-Status.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Status/Status.entitlements;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Status/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Status;
+				PRODUCT_NAME = KeybaseStatus;
+				PROVISIONING_PROFILE = "";
+			};
+			name = Debug;
+		};
+		0036082C1C442ED300B3300E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8A6B4620AD7904EFA1B59736 /* Pods-Status.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Status/Status.entitlements;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Status/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Status;
+				PRODUCT_NAME = KeybaseStatus;
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
@@ -1133,7 +1354,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Installer/Keybase.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Installer/Installer.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1141,7 +1362,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Installer/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				PRODUCT_BUNDLE_IDENTIFIER = keybase.Keybase;
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1155,7 +1376,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Installer/Keybase.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Installer/Installer.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1163,7 +1384,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Installer/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				PRODUCT_BUNDLE_IDENTIFIER = keybase.Keybase;
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
 			};
@@ -1177,6 +1398,15 @@
 			buildConfigurations = (
 				001C6B471B24F8630048F086 /* Debug */,
 				001C6B481B24F8630048F086 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0036082A1C442ED300B3300E /* Build configuration list for PBXNativeTarget "Status" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0036082B1C442ED300B3300E /* Debug */,
+				0036082C1C442ED300B3300E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
