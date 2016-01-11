@@ -274,8 +274,8 @@
 		},
 		{
 			"path": "github.com/ugorji/go/codec",
-			"revision": "821cda7e48749cacf7cad2c6ed01e96457ca7e9d",
-			"revisionTime": "2015-05-15T07:49:16-04:00"
+			"revision": "646ae4a518c1c3be0739df898118d9bccf993858",
+			"revisionTime": "2015-12-18T14:34:38-05:00"
 		},
 		{
 			"path": "golang.org/x/crypto/cast5",
