@@ -1,4 +1,4 @@
-# SaltPack Binary Signing Format
+# Saltpack Binary Signing Format
 
 As with the [encryption format](saltpack_encryption.md), we want our signing
 format to have some properties on top of a standard NaCl signature:
@@ -6,7 +6,7 @@ format to have some properties on top of a standard NaCl signature:
   fitting the whole thing in RAM, and without requiring a second pass to output
   attached plaintext. But we should only ever output verified data.
 - Abuse resistance. Alice might use the same signing key for many applications
-  besides SaltPack. Mallory (an attacker) could [try to trick Alice into
+  besides saltpack. Mallory (an attacker) could [try to trick Alice into
   signing
   messages](https://blog.sandstorm.io/news/2015-05-01-is-that-ascii-or-protobuf.html)
   that are meaningful to other applications. Alice should avoid signing bytes
@@ -42,7 +42,7 @@ header packet is a MessagePack array that looks like this:
 ]
 ```
 
-- **format_name** is the string "SaltPack".
+- **format_name** is the string "saltpack".
 - **version** is a list of the major and minor versions, currently `[1, 0]`.
 - **mode** is the number 1, for attached signing. (0 is encryption, and 2 is
   detached signing.)
@@ -69,16 +69,16 @@ concatenation of three values:
 - the **payload_chunk**
 
 The sender then signs the concatenation of three values:
-- `"SaltPack\0"`
+- `"saltpack\0"`
 - `"attached signature\0"`
 - the SHA512 hash above
 
-Some applications might use the SaltPack format, but don't want signature
-compatibility with other SaltPack applications. In addition to changing the
+Some applications might use the saltpack format, but don't want signature
+compatibility with other saltpack applications. In addition to changing the
 format name at the start of the header, these applications should use a
 [different null-terminated context
 string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
-place of `"SaltPack\0"`.
+place of `"saltpack\0"`.
 
 ## Detached Implementation
 
@@ -96,7 +96,7 @@ itself, with an extra signature field at the end.
 ]
 ```
 
-- **format_name** is the string "SaltPack".
+- **format_name** is the string "saltpack".
 - **version** is a list of the major and minor versions, currently `[1, 0]`.
 - **mode** is the number 2, for attached signing. (0 is encryption, and 1 is
   attached signing.)
@@ -111,7 +111,7 @@ concatenation of two values:
 - the entire plaintext
 
 The sender then signs the concatenation of three values:
-- `"SaltPack\0"`
+- `"saltpack\0"`
 - `"detached signature\0"`
 - the SHA512 hash above
 
@@ -123,7 +123,7 @@ An attached signature:
 # header packet
 [
   # format name
-  "SaltPack",
+  "saltpack",
   # major and minor version
   [1, 0],
   # mode (1 = attached signing)
@@ -157,7 +157,7 @@ A detached signature:
 # header packet (the only packet)
 [
   # format name
-  "SaltPack",
+  "saltpack",
   # major and minor version
   [1, 0],
   # mode (2 = detached signing)
