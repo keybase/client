@@ -194,7 +194,6 @@ func (h *PGPHandler) PGPExportByFingerprint(_ context.Context, arg keybase1.PGPE
 func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) error {
 	ctx := &engine.Context{LogUI: h.getLogUI(arg.SessionID), SecretUI: h.getSecretUI(arg.SessionID)}
 	earg := engine.ImportPGPKeyImportEngineArg(arg)
-	earg.Gen.AddDefaultUID()
 	eng := engine.NewPGPKeyImportEngine(earg)
 	return engine.RunEngine(eng, ctx)
 }

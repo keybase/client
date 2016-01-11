@@ -16,6 +16,7 @@ import (
 )
 
 type CmdPGPGen struct {
+	libkb.Contextified
 	arg engine.PGPKeyImportEngineArg
 }
 
@@ -28,12 +29,8 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 	} else {
 		g := libkb.PGPGenArg{}
 		g.PGPUids = ctx.StringSlice("pgp-uid")
-		g.NoDefPGPUid = ctx.Bool("no-default-pgp-uid")
-		v.arg.AllowMulti = ctx.Bool("multi")
 		v.arg.DoExport = !ctx.Bool("no-export")
-		if g.NoDefPGPUid && len(g.PGPUids) == 0 {
-			err = fmt.Errorf("if you don't want the default PGP uid, you must supply a PGP uid with the --pgp-uid option")
-		}
+		v.arg.AllowMulti = ctx.Bool("multi")
 		if ctx.Bool("debug") {
 			g.PrimaryBits = SmallKey
 			g.SubkeyBits = SmallKey
@@ -55,10 +52,16 @@ func (v *CmdPGPGen) Run() (err error) {
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	if err = v.arg.Gen.CreatePGPIDs(); err != nil {
+
+	// Prompt for user IDs if none given on command line
+	if len(v.arg.Gen.PGPUids) == 0 {
+		if err = v.propmptPGPIDs(); err != nil {
+			return err
+		}
+	} else if err = v.arg.Gen.CreatePGPIDs(); err != nil {
 		return err
 	}
-	v.arg.PushSecret, err = GlobUI.PromptYesNo(PromptDescriptorPGPGenPushSecret, "Push an encrypted copy of your new secret key to the Keybase.io server?", libkb.PromptDefaultYes)
+	v.arg.PushSecret, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenPushSecret, "Push an encrypted copy of your new secret key to the Keybase.io server?", libkb.PromptDefaultYes)
 	if err != nil {
 		return err
 	}
@@ -66,6 +69,67 @@ func (v *CmdPGPGen) Run() (err error) {
 	err = cli.PGPKeyGen(context.TODO(), v.arg.Export())
 	err = AddPGPMultiInstructions(err)
 	return err
+}
+
+var CheckRealName = libkb.Checker{
+	F: func(s string) bool {
+		nameId, err := libkb.ParseIdentity(s)
+		if err != nil {
+			return false
+		}
+		return len(nameId.Username) > 0 && len(nameId.Comment) == 0 && len(nameId.Email) == 0
+	},
+	Hint: "for example: \"Ned Snowben\"",
+}
+
+var CheckOptionalEmail = libkb.Checker{
+	F: func(s string) bool {
+		if len(s) == 0 {
+			return true
+		}
+		return libkb.CheckEmail.F(s)
+	},
+	Hint: libkb.CheckEmail.Hint,
+}
+
+func (v *CmdPGPGen) propmptPGPIDs() (err error) {
+	id := libkb.Identity{}
+	prompt := "Enter your real name, which will be publicly visible in your new key"
+	id.Username, err = PromptWithChecker(PromptDescriptorPGPGenEnterID, v.G().UI.GetTerminalUI(), prompt, false, CheckRealName)
+	if err != nil {
+		return
+	}
+	// Email required for primary ID
+	prompt = "Enter a public email address for your key"
+	id.Email, err = PromptWithChecker(PromptDescriptorPGPGenEnterID, v.G().UI.GetTerminalUI(), prompt, false, libkb.CheckEmail)
+	if err != nil {
+		return
+	}
+	v.arg.Gen.Ids = append(v.arg.Gen.Ids, id)
+
+	emailsSeen := make(map[string]struct{})
+
+	emailsSeen[id.Email] = struct{}{}
+
+	idAdditional := libkb.Identity{}
+	prompt = "Enter another email address (or <enter> when done)"
+	for {
+		idAdditional.Email, err = PromptWithChecker(PromptDescriptorPGPGenEnterID, v.G().UI.GetTerminalUI(), prompt, false, CheckOptionalEmail)
+		if err != nil || len(idAdditional.Email) == 0 {
+			break
+		}
+
+		// Make sure it hasn't been added already
+		if _, ok := emailsSeen[idAdditional.Email]; ok {
+			v.G().Log.Warning("Email already applied to this key")
+			continue
+		}
+
+		emailsSeen[idAdditional.Email] = struct{}{}
+		v.arg.Gen.Ids = append(v.arg.Gen.Ids, idAdditional)
+	}
+
+	return
 }
 
 func AddPGPMultiInstructions(err error) error {
@@ -81,7 +145,7 @@ func AddPGPMultiInstructions(err error) error {
 	return err
 }
 
-func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPGen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "gen",
 		Usage: "Generate a new PGP key and write to local secret keychain",
@@ -94,10 +158,6 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "pgp-uid",
 				Usage: "Specify custom PGP uid(s).",
 				Value: &cli.StringSlice{},
-			},
-			cli.BoolFlag{
-				Name:  "no-default-pgp-uid",
-				Usage: "Do not include the default PGP uid 'username@keybase.io' in the key.",
 			},
 			cli.BoolFlag{
 				Name:  "multi",
@@ -130,7 +190,7 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
    to select storage of their encrypted secret PGP key on the Keybase
    servers.`,
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPGen{}, "gen", c)
+			cl.ChooseCommand(&CmdPGPGen{Contextified: libkb.NewContextified(g)}, "gen", c)
 		},
 	}
 }
