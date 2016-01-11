@@ -15,12 +15,13 @@ export default class UpdateRender extends Component {
     super(props)
 
     this.state = {
+      snackbarOpen: false
     }
   }
 
   onCopy () {
     clipboard.writeText(this.props.updateCommand)
-    this.refs.clipboardSnackbar.show()
+    this.setState({snackbarOpen: true})
   }
 
   componentDidMount () {
@@ -76,9 +77,10 @@ export default class UpdateRender extends Component {
               onCheck={checked => this.props.setAlwaysUpdate(checked)}/>
           </div> }
         <Snackbar
-          ref='clipboardSnackbar'
           message='Copied to clipboard!'
-          autoHideDuration='1000'
+          autoHideDuration={1000}
+          onRequestClose={() => this.setState({snackbarOpen: false})}
+          open={this.state.snackbarOpen}
         />
       </div>
     )

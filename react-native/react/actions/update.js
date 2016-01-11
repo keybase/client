@@ -82,22 +82,22 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
         }
       }: ShowUpdateAction))
     },
-    'keybase.1.updateUi.updateQuit': (param, response) => {
 
+    'keybase.1.updateUi.updateQuit': (param, response) => {
       const appPath = remote.app.getAppPath()
 
       // This returns the app bundle path on OS X in production mode.
       // TODO: Find a better, cross-platform way of resolving the real app path.
-      const applicationPath = path.resolve(appPath, "..", "..", "..")
+      const applicationPath = path.resolve(appPath, '..', '..', '..')
       var quit = false
-      if (path.basename(applicationPath) == "Keybase.app") {
+      if (path.basename(applicationPath) === 'Keybase.app') {
         quit = true
       }
 
       response.result({
         quit,
         pid: remote.process.pid,
-        applicationPath: applicationPath,
+        applicationPath: applicationPath
       })
     }
   }
