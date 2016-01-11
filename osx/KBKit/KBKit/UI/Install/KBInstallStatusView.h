@@ -45,4 +45,6 @@ typedef void (^KBInstallStatusOnSelect)(KBInstallStatusSelect select);
 
 - (void)share:(id)sender completion:(dispatch_block_t)completion;
 
+- (void)clear;
+
 @end

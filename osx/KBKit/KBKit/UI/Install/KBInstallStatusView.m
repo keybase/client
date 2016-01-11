@@ -26,7 +26,7 @@
 
 - (void)viewInit {
   [super viewInit];
-  [self kb_setBackgroundColor:KBAppearance.currentAppearance.backgroundColor];
+  [self kb_setBackgroundColor:KBAppearance.currentAppearance.secondaryBackgroundColor];
   YOVBox *topView = [YOVBox box];
   {
     YOVBox *headerView = [YOVBox box:@{@"spacing": @(20), @"insets": @"0,0,20,0"}];
@@ -97,7 +97,7 @@
   NSMutableString *info = [NSMutableString stringWithCapacity:1024 * 1024];
 
   NSDictionary *installerInfo = NSBundle.mainBundle.infoDictionary;
-  [info appendString:NSStringWithFormat(@"Installer: %@\n", installerInfo[@"CFBundleVersion"])];
+  [info appendString:NSStringWithFormat(@"%@: %@\n", installerInfo[@"CFBundleName"], installerInfo[@"CFBundleVersion"])];
 
   for (KBInstallable *installable in _environment.installables) {
     NSString *name = installable.name;
@@ -124,10 +124,15 @@
   [self setNeedsLayout];
 }
 
+- (void)clear {
+  _textView.attributedText = nil;
+}
+
 - (void)refresh {
+  NSAssert(self.environment, @"No environment");
   [KBActivity setProgressEnabled:YES sender:self];
   [_log clear];
-  _textView.attributedText = nil;
+  [self clear];
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer refreshStatusWithEnvironment:self.environment completion:^() {
     [KBActivity setProgressEnabled:NO sender:self];
@@ -136,9 +141,10 @@
 }
 
 - (void)install {
+  NSAssert(self.environment, @"No environment");
   [KBActivity setProgressEnabled:YES sender:self];
   [_log clear];
-  _textView.attributedText = nil;
+  [self clear];
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installWithEnvironment:self.environment force:NO completion:^(NSError *error, NSArray *installables) {
     [KBActivity setProgressEnabled:NO sender:self];

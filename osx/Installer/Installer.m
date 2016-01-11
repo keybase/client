@@ -9,12 +9,10 @@
 #import "Installer.h"
 
 #import <KBKit/KBKit.h>
-#import <GBCli/GBCli.h>
+#import "Settings.h"
 
 @interface Installer ()
-@property NSString *appPath;
-@property NSString *runMode;
-@property GBSettings *settings;
+@property Settings *settings;
 //@property KBMemLogger *memLogger;
 @end
 
@@ -35,23 +33,13 @@ typedef NS_ENUM (NSInteger, KBExit) {
 
   [KBAppearance setCurrentAppearance:[KBUIAppearance appearance]];
 
-  NSArray *args = NSProcessInfo.processInfo.arguments;
-  self.settings = [GBSettings settingsWithName:@"CLI" parent:nil];
+  GBSettings *settings = [GBSettings settingsWithName:@"Settings" parent:nil];
 #if DEBUG
-  [self.settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
-//  [self.settings setObject:@"/Volumes/Keybase/Keybase.app" forKey:@"app-path"];
-  [self.settings setObject:@"prod" forKey:@"run-mode"];
+  [settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
+  //  [self.settings setObject:@"/Volumes/Keybase/Keybase.app" forKey:@"app-path"];
+  [settings setObject:@"prod" forKey:@"run-mode"];
 #endif
-  GBCommandLineParser *parser = [[GBCommandLineParser alloc] init];
-  [parser registerOption:@"app-path" shortcut:'a' requirement:GBValueRequired];
-  [parser registerOption:@"run-mode" shortcut:'r' requirement:GBValueRequired];
-  [parser registerSettings:self.settings];
-  NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
-  [parser parseOptionsWithArguments:subargs commandLine:args[0]];
-  self.runMode = [self.settings objectForKey:@"run-mode"];
-  NSAssert(self.runMode, @"No run mode");
-  self.appPath = [self.settings objectForKey:@"app-path"];
-  NSAssert(self.appPath, @"No app path");
+  _settings = [[Settings alloc] initWithSettings:settings];
 
   [self install:^(NSError *error, KBEnvironment *environment, KBExit exitCode) {
     if (!error) {
@@ -73,9 +61,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
 }
 
 - (void)install:(void (^)(NSError *error, KBEnvironment *environment, KBExit exit))completion {
-  NSString *runMode = self.runMode;
-  NSString *servicePath = [self.appPath stringByAppendingPathComponent:@"Contents/SharedSupport/bin"];
-  KBEnvironment *environment = [KBEnvironment environmentForRunModeString:runMode servicePath:servicePath];
+  KBEnvironment *environment = [self.settings environment];
 
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installWithEnvironment:environment force:NO completion:^(NSError *error, NSArray *installables) {
@@ -97,7 +83,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
 }
 
 - (void)setRunAtLogin:(BOOL)runAtLogin {
-  NSBundle *appBundle = [NSBundle bundleWithPath:self.appPath];
+  NSBundle *appBundle = [NSBundle bundleWithPath:self.settings.appPath];
   if (!appBundle) {
     DDLogError(@"No app bundle to use for login item");
     return;
@@ -128,31 +114,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
     completion(error, KBExitIgnore);
   } else if (response == NSAlertThirdButtonReturn) {
     completion(error, KBExitMoreDetails);
-    //[self showStatus:environment error:error completion:completion];
   }
 }
-
-//- (void)showModalWindow:(NSView *)view {
-//  KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:view title:@"Keybase"];
-//  KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(700, 600) retain:YES];
-//  window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask | NSClosableWindowMask;
-//  [window center];
-//  window.level = NSFloatingWindowLevel;
-//  [window makeKeyAndOrderFront:nil];
-//}
-
-//- (void)showStatus:(KBEnvironment *)environment error:(NSError *)error completion:(KBCompletion)completion {
-//  KBInstallStatusView *view = [[KBInstallStatusView alloc] init];
-//  [view setDebugOptionsViewEnabled:NO];
-//  [view setTitle:@"Error Report" headerText:@"Below is a report of what happened. You can send this to us, and we'll try to help fix it."];
-//  [view setLog:_memLogger];
-//
-//  KBButton *closeButton = [KBButton buttonWithText:@"Close" style:KBButtonStyleDefault];
-//  closeButton.targetBlock = ^{ completion(error); };
-//  [view setButtons:@[closeButton]];
-//
-//  [view setEnvironment:environment];
-//  [self showModalWindow:view];
-//}
 
 @end
