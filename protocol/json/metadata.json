@@ -372,6 +372,25 @@
       } ],
       "response" : "bytes"
     },
+    "deleteKey" : {
+      "request" : [ {
+        "name" : "uid",
+        "type" : "UID"
+      }, {
+        "name" : "deviceKID",
+        "type" : "KID"
+      }, {
+        "name" : "keyHalfID",
+        "type" : "bytes"
+      }, {
+        "name" : "logTags",
+        "type" : {
+          "type" : "map",
+          "values" : "string"
+        }
+      } ],
+      "response" : "null"
+    },
     "truncateLock" : {
       "request" : [ {
         "name" : "folderID",
