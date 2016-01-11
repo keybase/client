@@ -154,6 +154,25 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 	if bytes32 != expectedBytes32 {
 		t.Errorf("expected %s, got %s", expectedBytes32, bytes32)
 	}
+
+	// also test UnboxBytes32Any:
+	arg := keybase1.UnboxBytes32AnyArg{
+		Pairs: []keybase1.CiphertextKIDPair{
+			{Kid: kp.GetKID(), Ciphertext: encryptedBytes32},
+		},
+		Nonce:          nonce,
+		PeersPublicKey: peersPublicKey,
+	}
+	res, err := UnboxBytes32Any(tc.G, secretUI, arg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Plaintext != expectedBytes32 {
+		t.Errorf("UnboxBytes32Any plaintext: %x, expected %x", res.Plaintext, expectedBytes32)
+	}
+	if res.Kid.IsNil() {
+		t.Errorf("UnboxBytes32Any kid is nil")
+	}
 }
 
 // Test that CryptoHandler.UnboxBytes32() propagates any decryption
@@ -169,8 +188,8 @@ func TestCryptoUnboxBytes32DecryptionError(t *testing.T) {
 	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 
 	_, err := UnboxBytes32(tc.G, secretUI, keybase1.UnboxBytes32Arg{})
-	if err != (libkb.DecryptionError{}) {
-		t.Errorf("expected nil, got %v", err)
+	if _, ok := err.(libkb.DecryptionError); !ok {
+		t.Errorf("expected libkb.DecryptionError, got %T", err)
 	}
 }
 
@@ -256,4 +275,108 @@ func TestCachedSecretKey(t *testing.T) {
 
 	assertNotCachedSecretKey(tc, libkb.DeviceSigningKeyType)
 	assertNotCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
+}
+
+func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
+	tc := SetupEngineTest(t, "crypto")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "fu")
+
+	// create a paper key and cache it
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: u.NewSecretUI(),
+	}
+	peng := NewPaperKey(tc.G)
+	if err := RunEngine(peng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	err := tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.SetUnlockedPaperKey(peng.SigKey(), peng.EncKey())
+	}, "TestCryptoUnboxBytes32AnyPaper")
+
+	key := peng.EncKey()
+	kp, ok := key.(libkb.NaclDHKeyPair)
+	if !ok {
+		t.Fatalf("paper enc key type: %T, expected libkb.NaclDHKeyPair", key)
+	}
+	if kp.Private == nil {
+		t.Fatalf("paper enc key has nil private key")
+	}
+
+	peerKp, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedBytes32 := keybase1.Bytes32{0, 1, 2, 3, 4, 5}
+	nonce := [24]byte{6, 7, 8, 9, 10}
+	peersPublicKey := keybase1.BoxPublicKey(peerKp.Public)
+
+	encryptedData := box.Seal(nil, expectedBytes32[:], &nonce, (*[32]byte)(&kp.Public), (*[32]byte)(peerKp.Private))
+
+	var encryptedBytes32 keybase1.EncryptedBytes32
+	if len(encryptedBytes32) != len(encryptedData) {
+		t.Fatalf("Expected %d bytes, got %d", len(encryptedBytes32), len(encryptedData))
+	}
+
+	copy(encryptedBytes32[:], encryptedData)
+
+	_, err = UnboxBytes32(tc.G, u.NewSecretUI(), keybase1.UnboxBytes32Arg{
+		EncryptedBytes32: encryptedBytes32,
+		Nonce:            nonce,
+		PeersPublicKey:   peersPublicKey,
+	})
+
+	// this should fail
+	if err == nil {
+		t.Fatal("UnboxBytes32 worked with paper key encrypted data")
+	}
+	if _, ok := err.(libkb.DecryptionError); !ok {
+		t.Fatalf("error %T, expected libkb.DecryptionError", err)
+	}
+
+	// this should work
+	arg := keybase1.UnboxBytes32AnyArg{
+		Pairs: []keybase1.CiphertextKIDPair{
+			{Kid: kp.GetKID(), Ciphertext: encryptedBytes32},
+		},
+		Nonce:          nonce,
+		PeersPublicKey: peersPublicKey,
+	}
+	res, err := UnboxBytes32Any(tc.G, u.NewSecretUI(), arg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Plaintext != expectedBytes32 {
+		t.Errorf("UnboxBytes32Any plaintext: %x, expected %x", res.Plaintext, expectedBytes32)
+	}
+	if res.Kid.IsNil() {
+		t.Errorf("UnboxBytes32Any kid is nil")
+	}
+
+	// clear the paper key cache to test getting a paper key via UI
+	err = tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearCachedSecretKeys()
+	}, "TestCryptoUnboxBytes32AnyPaper")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// set the passphrase in the secretUI to the paper key
+	secretUI := u.NewSecretUI()
+	secretUI.Passphrase = peng.Passphrase()
+
+	res, err = UnboxBytes32Any(tc.G, secretUI, arg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Plaintext != expectedBytes32 {
+		t.Errorf("UnboxBytes32Any plaintext: %x, expected %x", res.Plaintext, expectedBytes32)
+	}
+	if res.Kid.IsNil() {
+		t.Errorf("UnboxBytes32Any kid is nil")
+	}
 }

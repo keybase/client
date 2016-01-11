@@ -684,6 +684,7 @@ type CiphertextKIDPair struct {
 type UnboxAnyRes struct {
 	Kid       KID     `codec:"kid" json:"kid"`
 	Plaintext Bytes32 `codec:"plaintext" json:"plaintext"`
+	Index     int     `codec:"index" json:"index"`
 }
 
 type SignED25519Arg struct {
