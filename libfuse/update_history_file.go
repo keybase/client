@@ -35,8 +35,8 @@ func NewUpdateHistoryFile(folder *Folder,
 	resp *fuse.LookupResponse) *SpecialReadFile {
 	resp.EntryValid = 0
 	return &SpecialReadFile{
-		read: func() ([]byte, time.Time, error) {
-			return getEncodedUpdateHistory(context.TODO(), folder)
+		read: func(ctx context.Context) ([]byte, time.Time, error) {
+			return getEncodedUpdateHistory(ctx, folder)
 		},
 	}
 }

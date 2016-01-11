@@ -7,6 +7,7 @@ import (
 	"bazil.org/fuse"
 	"github.com/go-errors/errors"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 // jsonReportedError stringifies the reported error before marshalling
@@ -52,7 +53,7 @@ func getEncodedErrors(fs *FS) (data []byte, t time.Time, err error) {
 func NewErrorFile(fs *FS, resp *fuse.LookupResponse) *SpecialReadFile {
 	resp.EntryValid = 0
 	return &SpecialReadFile{
-		read: func() ([]byte, time.Time, error) {
+		read: func(_ context.Context) ([]byte, time.Time, error) {
 			return getEncodedErrors(fs)
 		},
 	}

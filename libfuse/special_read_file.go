@@ -11,14 +11,14 @@ import (
 // SpecialReadFile represents a file whose contents are determined by
 // a function.
 type SpecialReadFile struct {
-	read func() ([]byte, time.Time, error)
+	read func(context.Context) ([]byte, time.Time, error)
 }
 
 var _ fs.Node = (*SpecialReadFile)(nil)
 
 // Attr implements the fs.Node interface for SpecialReadFile.
 func (f *SpecialReadFile) Attr(ctx context.Context, a *fuse.Attr) error {
-	data, t, err := f.read()
+	data, t, err := f.read(ctx)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ var _ fs.NodeOpener = (*SpecialReadFile)(nil)
 // Open implements the fs.NodeOpener interface for SpecialReadFile.
 func (f *SpecialReadFile) Open(ctx context.Context, req *fuse.OpenRequest,
 	resp *fuse.OpenResponse) (fs.Handle, error) {
-	data, _, err := f.read()
+	data, _, err := f.read(ctx)
 	if err != nil {
 		return nil, err
 	}
