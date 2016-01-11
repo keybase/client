@@ -4,11 +4,11 @@ protocol saltpackUi {
   import idl "common.avdl";
 
   enum SaltpackSenderType {
-  	NOT_TRACKED_0,
-  	UNKNOWN_1,
-  	ANONYMOUS_2,
-  	TRACKING_BROKE_3,
-  	TRACKING_OK_4
+    NOT_TRACKED_0,
+    UNKNOWN_1,
+    ANONYMOUS_2,
+    TRACKING_BROKE_3,
+    TRACKING_OK_4
   }
 
   record SaltpackSender {
