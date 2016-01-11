@@ -18,12 +18,20 @@ func msg(sz int) []byte {
 	return res
 }
 
-const hdr = "BEGIN KBr ENCRYPTED MESSAGE"
-const ftr = "END KBr ENCRYPTED MESSAGE"
+const ourBrand = "ACME"
+
+func brandCheck(t *testing.T, received string) {
+	if received != ourBrand {
+		t.Fatalf("brand mismatch; wanted %q but got %q", ourBrand, received)
+	}
+}
+
+const hdr = "BEGIN ACME SALTPACK ENCRYPTED MESSAGE"
+const ftr = "END ACME SALTPACK ENCRYPTED MESSAGE"
 
 func testArmor(t *testing.T, sz int) {
 	m := msg(sz)
-	a, e := Armor62Seal(m, hdr, ftr)
+	a, e := Armor62Seal(m, MessageTypeEncryption, ourBrand)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -64,7 +72,7 @@ func TestArmor65536(t *testing.T) {
 func TestSlowWriter(t *testing.T) {
 	m := msg(1024 * 16)
 	var out bytes.Buffer
-	enc, err := NewArmor62EncoderStream(&out, hdr, ftr)
+	enc, err := NewArmor62EncoderStream(&out, MessageTypeEncryption, ourBrand)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +115,7 @@ func (sr *slowReader) Read(b []byte) (int, error) {
 func TestSlowReader(t *testing.T) {
 	var sr slowReader
 	m := msg(1024 * 32)
-	a, err := Armor62Seal(m, hdr, ftr)
+	a, err := Armor62Seal(m, MessageTypeEncryption, ourBrand)
 	if err != nil {
 		t.Fatal(err)
 	}

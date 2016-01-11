@@ -21,7 +21,7 @@ func SaltpackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteC
 	return saltpackSign(g, source, sink, key, saltpack.NewSignDetachedArmor62Stream)
 }
 
-func saltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, streamer func(io.Writer, saltpack.SigningSecretKey) (io.WriteCloser, error)) error {
+func saltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, streamer func(io.Writer, saltpack.SigningSecretKey, string) (io.WriteCloser, error)) error {
 	defer func() {
 		if err := source.Close(); err != nil {
 			g.Log.Warning("error closing source: %s", err)
@@ -31,7 +31,7 @@ func saltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, k
 		}
 	}()
 
-	stream, err := streamer(sink, saltSigner{key})
+	stream, err := streamer(sink, saltSigner{key}, KeybaseSaltpackBrand)
 	if err != nil {
 		return err
 	}

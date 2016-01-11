@@ -31,29 +31,9 @@ var SaltpackCurrentVersion = Version{Major: 1, Minor: 0}
 // EncryptionBlockSize is by default 1MB and can't currently be tweaked.
 const EncryptionBlockSize int = 1048576
 
-// EncryptionArmorHeader is the header that marks the start of an encrypted
-// armored KB message.
-const EncryptionArmorHeader = "BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE"
-
-// EncryptionArmorFooter is the footer that marks the end of an encrypted
-// armored KB message.
-const EncryptionArmorFooter = "END KEYBASE SALTPACK ENCRYPTED MESSAGE"
-
-// SignedArmorHeader is the header that marks the start of signed
-// armored KB message.
-const SignedArmorHeader = "BEGIN KEYBASE SALTPACK SIGNED MESSAGE"
-
-// SignedArmorFooter is the footer that marks the end of signed
-// armored KB message.
-const SignedArmorFooter = "END KEYBASE SALTPACK SIGNED MESSAGE"
-
-// DetachedSignatureArmorHeader is the header that marks the start of
-// a detached armored KB signature.
-const DetachedSignatureArmorHeader = "BEGIN KEYBASE SALTPACK DETACHED SIGNATURE"
-
-// DetachedSignatureArmorFooter is the footer that marks the end of
-// a detached armored KB signature.
-const DetachedSignatureArmorFooter = "END KEYBASE SALTPACK DETACHED SIGNATURE"
+const encryptionArmorString = "ENCRYPTED MESSAGE"
+const signedArmorString = "SIGNED MESSAGE"
+const detachedSignatureArmorString = "DETACHED SIGNATURE"
 
 // SaltpackFormatName is the publicly advertised name of the format,
 // used in the header of the message and also in Nonce creation.

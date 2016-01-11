@@ -44,8 +44,12 @@ func SaltpackDecrypt(
 
 	// TODO: Check header inline, and only warn if the footer
 	// doesn't match.
-	err = saltpack.CheckArmor62Frame(frame, saltpack.EncryptionArmorHeader, saltpack.EncryptionArmorFooter)
+	var brand string
+	brand, err = saltpack.CheckArmor62Frame(frame, saltpack.MessageTypeEncryption)
 	if err != nil {
+		return mki, err
+	}
+	if err = checkSaltpackBrand(brand); err != nil {
 		return mki, err
 	}
 
