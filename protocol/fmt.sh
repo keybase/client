@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e -u -o pipefail # Fail on error
-
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
@@ -10,7 +8,7 @@ for f in *.avdl; do
   expand -t 2 $f > ~$f
 
   # Only mv if changed
-  diff -q ~$f $f
+  diff -q ~$f $f > /dev/null
   if [ "$?" = "1" ]; then
     mv ~$f $f
   else
