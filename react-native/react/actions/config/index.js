@@ -39,7 +39,7 @@ export function startup () {
 
       getCurrentStatus()
       // Also call getCurrentStatus if the service goes away/comes back.
-      engine.listenOnConnect(getCurrentStatus)
+      engine.listenOnConnect('getCurrentStatus', getCurrentStatus)
     })
   }
 }

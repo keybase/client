@@ -55,6 +55,10 @@ class Engine {
   }
 
   listenOnConnect (key, f) {
+    if (!f) {
+      throw new Error('Null callback sent to listenOnConnect')
+    }
+
     if (this.inListenerCallback) {
       throw new Error('Ran a listenOnConnect within another listenOnConnect')
     }
@@ -159,11 +163,15 @@ class Engine {
   }
 
   _generalIncomingRpc (method, param, response) {
-    (this.generalListeners[method] || []).forEach(listener => {
-      // make wrapper so we only call this once
-      const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
-      listener(param, wrappedResponse)
-    })
+    const listener = this.generalListeners[method]
+
+    if (!listener) {
+      return
+    }
+
+    // make wrapper so we only call this once
+    const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
+    listener(param, wrappedResponse)
   }
 
   _rpcIncoming (payload) {
