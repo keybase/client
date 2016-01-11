@@ -110,8 +110,8 @@ func (h *BaseHandler) getStreamUICli() *keybase1.StreamUiClient {
 	return &keybase1.StreamUiClient{Cli: h.rpcClient()}
 }
 
-func (h *BaseHandler) getSaltPackUI(sessionID int) libkb.SaltPackUI {
-	return NewRemoteSaltPackUI(sessionID, h.rpcClient())
+func (h *BaseHandler) getSaltpackUI(sessionID int) libkb.SaltpackUI {
+	return NewRemoteSaltpackUI(sessionID, h.rpcClient())
 }
 
 func (h *BaseHandler) NewRemoteIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI {

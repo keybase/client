@@ -116,15 +116,15 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
+	rmd := makeRMD()
+
 	// expect one call to fetch a block, and one to decrypt it
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	decData := TestBlock{42}
-
-	rmd := makeRMD()
 
 	expectBlockDecrypt(config, rmd, blockPtr, encData, decData, nil)
 
@@ -143,14 +143,13 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
+	rmd := makeRMD()
 	// fail the fetch call
 	id := fakeBlockID(1)
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr).Return(
 		nil, BlockCryptKeyServerHalf{}, err)
-
-	rmd := makeRMD()
 
 	if err2 := config.BlockOps().Get(ctx, rmd, blockPtr, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
@@ -161,15 +160,14 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
+	rmd := makeRMD()
 	// expect one call to fetch a block, then fail to decrypt i
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	err := errors.New("Fake fail")
-
-	rmd := makeRMD()
 
 	expectBlockDecrypt(config, rmd, blockPtr, encData, TestBlock{}, err)
 

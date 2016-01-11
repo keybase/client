@@ -9,51 +9,51 @@ import (
 	"io"
 )
 
-type SaltPackEncryptArg struct {
-	Opts   keybase1.SaltPackEncryptOptions
+type SaltpackEncryptArg struct {
+	Opts   keybase1.SaltpackEncryptOptions
 	Source io.Reader
 	Sink   io.WriteCloser
 }
 
-// SaltPackEncrypt encrypts data read from a source into a sink
+// SaltpackEncrypt encrypts data read from a source into a sink
 // for a set of users.  It will track them if necessary.
-type SaltPackEncrypt struct {
-	arg *SaltPackEncryptArg
+type SaltpackEncrypt struct {
+	arg *SaltpackEncryptArg
 	libkb.Contextified
 	me *libkb.User
 }
 
-// NewSaltPackEncrypt creates a SaltPackEncrypt engine.
-func NewSaltPackEncrypt(arg *SaltPackEncryptArg, g *libkb.GlobalContext) *SaltPackEncrypt {
-	return &SaltPackEncrypt{
+// NewSaltpackEncrypt creates a SaltpackEncrypt engine.
+func NewSaltpackEncrypt(arg *SaltpackEncryptArg, g *libkb.GlobalContext) *SaltpackEncrypt {
+	return &SaltpackEncrypt{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *SaltPackEncrypt) Name() string {
-	return "SaltPackEncrypt"
+func (e *SaltpackEncrypt) Name() string {
+	return "SaltpackEncrypt"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *SaltPackEncrypt) Prereqs() Prereqs {
+func (e *SaltpackEncrypt) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *SaltPackEncrypt) RequiredUIs() []libkb.UIKind {
+func (e *SaltpackEncrypt) RequiredUIs() []libkb.UIKind {
 	return nil
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *SaltPackEncrypt) SubConsumers() []libkb.UIConsumer {
+func (e *SaltpackEncrypt) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DeviceKeyfinder{},
 	}
 }
 
-func (e *SaltPackEncrypt) loadMyPublicKeys() ([]libkb.NaclDHKeyPublic, error) {
+func (e *SaltpackEncrypt) loadMyPublicKeys() ([]libkb.NaclDHKeyPublic, error) {
 
 	var ret []libkb.NaclDHKeyPublic
 
@@ -74,7 +74,7 @@ func (e *SaltPackEncrypt) loadMyPublicKeys() ([]libkb.NaclDHKeyPublic, error) {
 	return ret, nil
 }
 
-func (e *SaltPackEncrypt) loadMe(ctx *Context) error {
+func (e *SaltpackEncrypt) loadMe(ctx *Context) error {
 	loggedIn, err := IsLoggedIn(e, ctx)
 	if err != nil || !loggedIn {
 		return err
@@ -84,10 +84,10 @@ func (e *SaltPackEncrypt) loadMe(ctx *Context) error {
 }
 
 // Run starts the engine.
-func (e *SaltPackEncrypt) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ SaltPackEncrypt::Run")
+func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
+	e.G().Log.Debug("+ SaltpackEncrypt::Run")
 	defer func() {
-		e.G().Log.Debug("- SaltPackEncrypt::Run -> %v", err)
+		e.G().Log.Debug("- SaltpackEncrypt::Run -> %v", err)
 	}()
 
 	var receivers []libkb.NaclDHKeyPublic
@@ -147,5 +147,5 @@ func (e *SaltPackEncrypt) Run(ctx *Context) (err error) {
 		sender = kp
 	}
 
-	return libkb.SaltPackEncrypt(e.arg.Source, e.arg.Sink, receivers, sender)
+	return libkb.SaltpackEncrypt(e.arg.Source, e.arg.Sink, receivers, sender)
 }

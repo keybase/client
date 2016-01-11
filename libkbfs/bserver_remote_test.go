@@ -57,7 +57,7 @@ func (fc *FakeBServerClient) Call(_ context.Context, s string, args interface{},
 		putArgs := args.([]interface{})[0].(keybase1.PutBlockArg)
 		fc.blocksLock.Lock()
 		defer fc.blocksLock.Unlock()
-		fc.blocks[keybase1.GetBlockArg{Bid: putArgs.Bid}] =
+		fc.blocks[keybase1.GetBlockArg{Bid: putArgs.Bid, Folder: putArgs.Folder}] =
 			keybase1.GetBlockRes{BlockKey: putArgs.BlockKey, Buf: putArgs.Buf}
 		return nil
 
@@ -118,7 +118,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	}
 
 	// Now get the same block back
-	buf, key, err := b.Get(ctx, bID, bCtx)
+	buf, key, err := b.Get(ctx, bID, tlfID, bCtx)
 	if err != nil {
 		t.Fatalf("Get returned an error: %v", err)
 	}

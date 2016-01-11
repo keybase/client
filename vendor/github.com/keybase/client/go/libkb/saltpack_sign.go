@@ -13,11 +13,11 @@ import (
 	"github.com/keybase/client/go/saltpack"
 )
 
-func SaltPackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair) error {
+func SaltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair) error {
 	return saltpackSign(g, source, sink, key, saltpack.NewSignArmor62Stream)
 }
 
-func SaltPackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair) error {
+func SaltpackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair) error {
 	return saltpackSign(g, source, sink, key, saltpack.NewSignDetachedArmor62Stream)
 }
 

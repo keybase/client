@@ -58,8 +58,8 @@
 		},
 		{
 			"path": "github.com/aalness/goamz/dynamodb",
-			"revision": "e99e12e71c4ad4c892c7bfa647a6a42280c7b2ea",
-			"revisionTime": "2015-11-10T10:03:32-08:00"
+			"revision": "a27ed01b0b6b9eb07e158894b0720513d94b40db",
+			"revisionTime": "2015-12-30T19:31:06-08:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/agl/ed25519",
@@ -182,28 +182,28 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/client",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/encoding/basex",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/engine",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/install",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/install/sources",
@@ -212,68 +212,68 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/launchd",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/libcmdline",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/minterm",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/mounter",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/pinentry",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/qrcode",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/saltpack",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/service",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/spotty",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/tools/release/github",
@@ -282,18 +282,18 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/tools/zip",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/updater",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/updater/sources",
-			"revision": "d69d59dee122dcb9d3b28ff9f5f64d22b3583a52",
-			"revisionTime": "2016-01-08T12:30:46-08:00"
+			"revision": "3376af31030d65946c22a58b0c6c7b2cebb6d401",
+			"revisionTime": "2016-01-11T12:22:04-05:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp",
