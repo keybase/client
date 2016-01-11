@@ -11,25 +11,25 @@ protocol saltpack {
   }
 
   record SaltpackDecryptOptions {
-  	boolean interactive;
-  	boolean forceRemoteCheck;
+    boolean interactive;
+    boolean forceRemoteCheck;
   }
 
   record SaltpackSignOptions {
-	boolean detached;
+    boolean detached;
   }
 
   record SaltpackVerifyOptions {
-	string signedBy; // optional
-    	bytes signature; // detached signature data (currently only armored supported), can be empty
+    string signedBy; // optional
+    bytes signature; // detached signature data (currently only armored supported), can be empty
   }
 
   void saltpackEncrypt(int sessionID, Stream source, Stream sink, SaltpackEncryptOptions opts);
 
   record SaltpackEncryptedMessageInfo {
-  	array<Device> devices;
-  	int numAnonReceivers;
-  	boolean receiverIsAnon;
+    array<Device> devices;
+    int numAnonReceivers;
+    boolean receiverIsAnon;
   }
 
   SaltpackEncryptedMessageInfo saltpackDecrypt(int sessionID, Stream source, Stream sink, SaltpackDecryptOptions opts);

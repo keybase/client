@@ -101,7 +101,7 @@ const (
 	PaperKeyMemoryTimeout = time.Hour
 )
 
-// Status codes.  This list should match keybase/lib/constants.iced.
+// Status codes.  This list should match keybase/lib/status_codes.iced.
 const (
 	SCOk                     = int(keybase1.StatusCode_SCOk)
 	SCLoginRequired          = int(keybase1.StatusCode_SCLoginRequired)
