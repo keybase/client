@@ -6,6 +6,7 @@ package openpgp
 
 import (
 	"crypto/rsa"
+	"fmt"
 	"io"
 	"time"
 
@@ -445,8 +446,8 @@ func addSubkey(e *Entity, packets *packet.Reader, pub *packet.PublicKey, priv *p
 	if !ok {
 		return errors.StructuralError("subkey packet not followed by signature")
 	}
-	if subKey.Sig.SigType != packet.SigTypeSubkeyBinding && subKey.Sig.SigType != packet.SigTypeSubkeyRevocation {
-		return errors.StructuralError("subkey signature with wrong type")
+	if st := subKey.Sig.SigType; st != packet.SigTypeSubkeyBinding && st != packet.SigTypeSubkeyRevocation {
+		return errors.StructuralError(fmt.Sprintf("subkey signature with wrong type (%d)", int(st)))
 	}
 	err = e.PrimaryKey.VerifyKeySignature(subKey.PublicKey, subKey.Sig)
 	if err != nil {
