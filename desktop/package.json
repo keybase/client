@@ -11,7 +11,8 @@
     "build-prod": "NODE_ENV=production webpack --config webpack.config.production.js --progress --profile --colors",
     "package": "NODE_ENV=production node package.js",
     "hot-server": "HOT=true NODE_ENV=production DEBUG='express:*' node server.js",
-    "postinstall": "./node_modules/.bin/electron-rebuild"
+    "postinstall": "./node_modules/.bin/electron-rebuild",
+    "inject-sourcemaps-prod": "a(){ cp \"$1\"/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a"
   },
   "keywords": [],
   "author": "",
