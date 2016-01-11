@@ -16,12 +16,12 @@ protocol saltpack {
   }
 
   record SaltpackSignOptions {
-  boolean detached;
+    boolean detached;
   }
 
   record SaltpackVerifyOptions {
-  string signedBy; // optional
-      bytes signature; // detached signature data (currently only armored supported), can be empty
+    string signedBy; // optional
+    bytes signature; // detached signature data (currently only armored supported), can be empty
   }
 
   void saltpackEncrypt(int sessionID, Stream source, Stream sink, SaltpackEncryptOptions opts);
