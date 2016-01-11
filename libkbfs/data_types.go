@@ -1203,9 +1203,9 @@ func UserQuotaInfoDecode(b []byte, config Config) (*UserQuotaInfo, error) {
 // suitable for encoding directly as JSON.
 type OpSummary struct {
 	Op      string
-	Refs    []BlockPointer
-	Unrefs  []BlockPointer
-	Updates map[string]BlockPointer
+	Refs    []string
+	Unrefs  []string
+	Updates map[string]string
 }
 
 // UpdateSummary describes the operations done by a single MD revision.
@@ -1220,5 +1220,7 @@ type UpdateSummary struct {
 // TLFUpdateHistory gives all the summaries of all updates in a TLF's
 // history.
 type TLFUpdateHistory struct {
+	ID      string
+	Name    string
 	Updates []UpdateSummary
 }

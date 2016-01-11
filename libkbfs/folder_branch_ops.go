@@ -4739,6 +4739,11 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 		return TLFUpdateHistory{}, err
 	}
 
+	if len(rmds) > 0 {
+		rmd := rmds[len(rmds)-1]
+		history.ID = rmd.ID.String()
+		history.Name = rmd.GetTlfHandle().ToString(ctx, fbo.config)
+	}
 	history.Updates = make([]UpdateSummary, 0, len(rmds))
 	writerNames := make(map[keybase1.UID]string)
 	for _, rmd := range rmds {
@@ -4762,12 +4767,18 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 		for _, op := range rmd.data.Changes.Ops {
 			opSummary := OpSummary{
 				Op:      op.String(),
-				Refs:    op.Refs(),
-				Unrefs:  op.Unrefs(),
-				Updates: make(map[string]BlockPointer),
+				Refs:    make([]string, 0, len(op.Refs())),
+				Unrefs:  make([]string, 0, len(op.Unrefs())),
+				Updates: make(map[string]string),
+			}
+			for _, ptr := range op.Refs() {
+				opSummary.Refs = append(opSummary.Refs, ptr.String())
+			}
+			for _, ptr := range op.Unrefs() {
+				opSummary.Unrefs = append(opSummary.Unrefs, ptr.String())
 			}
 			for _, update := range op.AllUpdates() {
-				opSummary.Updates[update.Unref.String()] = update.Ref
+				opSummary.Updates[update.Unref.String()] = update.Ref.String()
 			}
 			updateSummary.Ops = append(updateSummary.Ops, opSummary)
 		}
