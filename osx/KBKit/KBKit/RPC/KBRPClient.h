@@ -38,7 +38,6 @@ typedef void (^KBRPClientOnSecret)(NSString *secret);
 - (void)RPClient:(KBRPClient *)RPClient didLog:(NSString *)message;
 
 - (void)RPClient:(KBRPClient *)RPClient didRequestSecretForPrompt:(NSString *)prompt info:(NSString *)info details:(NSString *)details previousError:(NSString *)previousError completion:(KBRPClientOnSecret)completion;
-- (void)RPClient:(KBRPClient *)RPClient didRequestKeybasePassphraseForUsername:(NSString *)username completion:(KBRPClientOnPassphrase)completion;
 @end
 
 @interface KBRPClient : NSObject <MPMessagePackClientDelegate>

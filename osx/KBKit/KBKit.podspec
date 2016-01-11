@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
   s.dependency "Mantle"
   s.dependency "MPMessagePack"
   s.dependency "GHODictionary"
-  s.dependency "MASPreferences"
+  #s.dependency "MASPreferences"
   s.dependency "MDPSplitView"
   s.dependency "Tikppa"
 

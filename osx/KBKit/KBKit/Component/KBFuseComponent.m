@@ -12,6 +12,7 @@
 #import "KBSemVersion.h"
 #import "KBFormatter.h"
 #import "KBTask.h"
+#import "KBDefines.h"
 
 @interface KBFuseComponent ()
 @property KBDebugPropertiesView *infoView;
@@ -48,7 +49,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 + (void)status:(NSString *)binPath bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnFuseStatus)completion {
   NSString *bundleVersionFlag = NSStringWithFormat(@"--bundle-version=%@", [bundleVersion description]);
-  [KBTask execute:binPath args:@[@"fuse", @"status", bundleVersionFlag] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask execute:binPath args:@[@"-d", @"--log-format=plain", @"fuse", @"status", bundleVersionFlag] completion:^(NSError *error, NSData *outData, NSData *errData) {
     if (error) {
       completion(error, nil);
       return;
@@ -78,27 +79,31 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
   [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
 
-    GHODictionary *info = [GHODictionary dictionary];
-    info[@"Version"] = KBIfBlank(fuseStatus.version, nil);
-
-    if (![fuseStatus.version isEqualToString:fuseStatus.bundleVersion]) {
-      info[@"Bundle Version"] = KBIfBlank(fuseStatus.bundleVersion, nil);
-    }
-
-    if (![NSString gh_isBlank:fuseStatus.kextID]) {
-      info[@"Kext ID"] = KBIfBlank(fuseStatus.kextID, nil);
-      info[@"Kext Loaded"] = fuseStatus.kextStarted ? @"Yes" : @"No";
-    }
-    info[@"Path"] = KBIfBlank(fuseStatus.path, nil);
-
-    if (fuseStatus.status.code > 0) {
-      error = KBMakeError(fuseStatus.status.code, @"%@", fuseStatus.status.desc);
-    }
-
-    KBComponentStatus *componentStatus = [KBComponentStatus componentStatusWithInstallStatus:fuseStatus.installStatus installAction:fuseStatus.installAction info:info error:error];
-
     self.fuseStatus = fuseStatus;
-    self.componentStatus = componentStatus;
+    if (error) {
+      self.componentStatus = [KBComponentStatus componentStatusWithError:error];
+    } else {
+
+      GHODictionary *info = [GHODictionary dictionary];
+      info[@"Version"] = KBIfBlank(fuseStatus.version, nil);
+
+      if (![fuseStatus.version isEqualToString:fuseStatus.bundleVersion]) {
+        info[@"Bundle Version"] = KBIfBlank(fuseStatus.bundleVersion, nil);
+      }
+
+      if (![NSString gh_isBlank:fuseStatus.kextID]) {
+        info[@"Kext ID"] = KBIfBlank(fuseStatus.kextID, nil);
+        info[@"Kext Loaded"] = fuseStatus.kextStarted ? @"Yes" : @"No";
+      }
+      info[@"Path"] = KBIfBlank(fuseStatus.path, nil);
+
+      if (fuseStatus.status.code > 0) {
+        error = KBMakeError(fuseStatus.status.code, @"%@", fuseStatus.status.desc);
+      }
+
+      KBComponentStatus *componentStatus = [KBComponentStatus componentStatusWithInstallStatus:fuseStatus.installStatus installAction:fuseStatus.installAction info:info error:error];
+      self.componentStatus = componentStatus;
+    }
 
     [self componentDidUpdate];
     completion(self.componentStatus);
@@ -114,6 +119,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   [self refreshComponent:^(KBComponentStatus *cs) {
     // Upgrades currently unsupported for Fuse
     if (cs.installAction == KBRInstallActionUpgrade) {
+      DDLogDebug(@"Needs upgrade but not supported yet");
       completion(nil);
       return;
     }

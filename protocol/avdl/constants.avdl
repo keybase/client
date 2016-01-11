@@ -50,7 +50,12 @@ protocol constants {
     SCIdentificationExpired_1702,
     SCSelfNotFound_1703,
     SCBadKexPhrase_1704,
-    SCNoUIDelegation_1705
+    SCNoUIDelegation_1705,
+    SCInvalidVersionError_1800,
+    SCOldVersionError_1801,
+    SCInvalidLocationError_1802,
+    SCServiceStatusError_1803,
+    SCInstallError_1804
   }
 
 }

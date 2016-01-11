@@ -26,7 +26,7 @@
 #import "KBDebugViews.h"
 #import "KBAppProgressView.h"
 #import "KBSecretPromptView.h"
-#import "KBInstallStatusView.h"
+#import "KBInstallStatusAppView.h"
 #import "KBAppDebug.h"
 #import "KBNotifications.h"
 #import "KBStatusView.h"
@@ -117,7 +117,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 - (void)install:(KBCompletion)completion {
   [self showInProgress:@"Loading"];
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installWithEnvironment:_environment force:NO completion:^(NSArray *installables) {
+  [installer installWithEnvironment:_environment force:NO completion:^(NSError *error, NSArray *installables) {
     [self showInstallStatusView:completion];
   }];
 }
@@ -247,7 +247,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 }
 
 - (void)showInstallStatusView:(KBCompletion)completion {
-  KBInstallStatusView *view = [[KBInstallStatusView alloc] init];
+  KBInstallStatusAppView *view = [[KBInstallStatusAppView alloc] init];
   [view setEnvironment:self.environment];
   view.completion = ^() {
     [self showConnect:completion];

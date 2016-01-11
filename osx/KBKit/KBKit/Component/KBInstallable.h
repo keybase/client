@@ -45,7 +45,12 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 - (KBInstallRuntimeStatus)runtimeStatus;
 
-- (NSArray *)statusDescription;
+- (NSArray *)installDescription:(NSString *)delimeter;
+- (NSArray *)statusDescription:(NSString *)delimeter;
 - (NSString *)action;
+
++ (NSError *)checkForStatusErrorFromResponse:(id)response;
+
+- (BOOL)isInstalled;
 
 @end

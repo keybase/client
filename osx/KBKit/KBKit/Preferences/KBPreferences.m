@@ -9,7 +9,7 @@
 #import "KBPreferences.h"
 
 #import <Cocoa/Cocoa.h>
-#import <MASPreferences/MASPreferencesWindowController.h>
+//#import <MASPreferences/MASPreferencesWindowController.h>
 #import <Tikppa/Tikppa.h>
 
 #import "KBPrefGeneralView.h"
@@ -18,11 +18,11 @@
 #import "KBDefines.h"
 
 @interface KBPreferences ()
-@property MASPreferencesWindowController *preferencesWindowController;
+//@property MASPreferencesWindowController *preferencesWindowController;
 @property NSUserDefaults *userDefaults;
 @end
 
-@interface KBPreferencesViewController : NSViewController <MASPreferencesViewController>
+@interface KBPreferencesViewController : NSViewController //<MASPreferencesViewController>
 @property (nonatomic) NSImage *toolbarItemImage;
 @property (nonatomic) NSString *toolbarItemLabel;
 @end
@@ -35,7 +35,7 @@
 - (void)openWithUserDefaults:(NSUserDefaults *)userDefaults sender:(id)sender {
   _userDefaults = userDefaults;
 
-  [_preferencesWindowController.window close];
+  //[_preferencesWindowController.window close];
 
   KBPreferencesViewController *generalViewController = [[KBPreferencesViewController alloc] init];
   generalViewController.view = [[KBPrefGeneralView alloc] initWithPreferences:self];
@@ -64,14 +64,16 @@
     [(YOView *)[viewController view] layoutView];
   }
 
+  /*
   _preferencesWindowController = [[MASPreferencesWindowController alloc] initWithViewControllers:controllers title:@"Preferences"];
 
   [[sender window] kb_addChildWindow:_preferencesWindowController.window rect:CGRectMake(0, 0, 600, 400) position:KBWindowPositionCenter];
   [_preferencesWindowController.window makeKeyAndOrderFront:nil];
+   */
 }
 
 - (void)close {
-  [_preferencesWindowController close];
+  //[_preferencesWindowController close];
 }
 
 - (void)saveConfig {

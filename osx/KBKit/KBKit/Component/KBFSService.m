@@ -108,14 +108,15 @@
 
 - (void)_install:(KBCompletion)completion {
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath];
-  [KBTask execute:binPath args:@[@"-d", @"install", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask executeForJSONWithCommand:binPath args:@[@"-d", @"--log-format=plain", @"install", @"--format=json", @"--components=kbfs"] completion:^(NSError *error, id response) {
+    if (!error) error = [KBInstallable checkForStatusErrorFromResponse:response];
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath];
-  [KBTask execute:binPath args:@[@"-d", @"uninstall", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask execute:binPath args:@[@"-d", @"--log-format=plain", @"uninstall", @"--components=kbfs"] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }
@@ -131,7 +132,11 @@
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] name:@"kbfs" completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
     self.serviceStatus = serviceStatus;
-    self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
+    if (error) {
+      self.componentStatus = [KBComponentStatus componentStatusWithError:error];
+    } else {
+      self.componentStatus = [KBComponentStatus componentStatusWithServiceStatus:serviceStatus];
+    }
     [self componentDidUpdate];
     completion(self.componentStatus);
   }];

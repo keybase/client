@@ -65,7 +65,7 @@ func KBFSServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.Se
 	}
 	bundleVersion, err := kbfsBundleVersion(g, "")
 	if err != nil {
-		status.Status = errorStatus("STATUS_ERROR", err.Error())
+		status.Status = keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())
 		return
 	}
 	status.BundleVersion = bundleVersion
@@ -89,7 +89,7 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (status keyba
 	if err != nil {
 		status.InstallStatus = keybase1.InstallStatus_ERROR
 		status.InstallAction = keybase1.InstallAction_NONE
-		status.Status = errorStatus("LAUNCHD_ERROR", err.Error())
+		status.Status = keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())
 		return
 	}
 
@@ -112,7 +112,7 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (status keyba
 			if err != nil {
 				status.InstallStatus = keybase1.InstallStatus_ERROR
 				status.InstallAction = keybase1.InstallAction_REINSTALL
-				status.Status = errorStatus("LAUNCHD_ERROR", err.Error())
+				status.Status = keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())
 				return
 			}
 		}
@@ -125,7 +125,7 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (status keyba
 		status.InstallStatus = keybase1.InstallStatus_ERROR
 		status.InstallAction = keybase1.InstallAction_REINSTALL
 		err = fmt.Errorf("%s is not running", status.Label)
-		status.Status = errorStatus("LAUNCHD_ERROR", err.Error())
+		status.Status = keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())
 		return
 	}
 
@@ -437,7 +437,7 @@ func uninstallKBFS(g *libkb.GlobalContext) error {
 func AutoInstallWithStatus(g *libkb.GlobalContext, binPath string, force bool) keybase1.InstallResult {
 	_, res, err := autoInstall(g, binPath, force)
 	if err != nil {
-		return keybase1.InstallResult{Status: ErrorStatus("INSTALL_ERROR", err.Error())}
+		return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
 	}
 	return NewInstallResult(res)
 }
@@ -477,17 +477,17 @@ func autoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bo
 	return
 }
 
-func CheckIfValidLocation() error {
+func CheckIfValidLocation() *keybase1.Error {
 	bp, err := binPath()
 	if err != nil {
-		return err
+		return keybase1.FromError(err)
 	}
 	inDMG, _, err := isPathInDMG(bp)
 	if err != nil {
-		return err
+		return keybase1.FromError(err)
 	}
 	if inDMG {
-		return fmt.Errorf("You should copy Keybase to /Applications before running.")
+		return keybase1.NewError(keybase1.StatusCode_SCInvalidLocationError, "You should copy Keybase to /Applications before running.")
 	}
 	return nil
 }
@@ -564,15 +564,15 @@ func statusFromResults(componentResults []keybase1.ComponentResult) keybase1.Sta
 	}
 
 	if len(errorMessages) > 0 {
-		return ErrorStatus("ERROR", strings.Join(errorMessages, ". "))
+		return keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, strings.Join(errorMessages, ". "))
 	}
 
-	return keybase1.Status{Name: "OK", Desc: "OK"}
+	return keybase1.StatusOK()
 }
 
 func componentResult(name string, err error) keybase1.ComponentResult {
 	if err != nil {
-		return keybase1.ComponentResult{Name: string(name), Status: errorStatus("INSTALL_ERROR", err.Error())}
+		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
 	}
-	return keybase1.ComponentResult{Name: string(name), Status: keybase1.Status{Name: "OK", Desc: "OK"}}
+	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK()}
 }

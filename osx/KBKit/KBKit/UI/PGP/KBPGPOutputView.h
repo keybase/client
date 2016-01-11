@@ -13,7 +13,7 @@
 #import "KBRPC.h"
 #import "KBPGPOutputFooterView.h"
 
-@interface KBPGPOutputView : YOView <NSSharingServicePickerDelegate>
+@interface KBPGPOutputView : YOView
 
 @property KBNavigationView *navigation;
 @property KBRPClient *client;

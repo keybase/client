@@ -1,25 +1,48 @@
 //
 //  KBInstallStatusView.h
-//  Keybase
+//  KBKit
 //
-//  Created by Gabriel on 5/10/15.
-//  Copyright (c) 2015 Gabriel Handford. All rights reserved.
+//  Created by Gabriel on 1/6/16.
+//  Copyright © 2016 Gabriel Handford. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
-
 #import <Tikppa/Tikppa.h>
-#import "KBRPC.h"
-#import "KBInstaller.h"
+#import "KBEnvironment.h"
+#import "KBMemLogger.h"
+
+
+typedef NS_ENUM (NSInteger, KBInstallStatusSelect) {
+  KBInstallStatusSelectQuit,
+  KBInstallStatusSelectSkip,
+  KBInstallStatusSelectRefresh,
+  KBInstallStatusSelectReinstall,
+  KBInstallStatusSelectControlPanel,
+};
+
+typedef void (^KBInstallStatusOnSelect)(KBInstallStatusSelect select);
 
 @interface KBInstallStatusView : YOView
 
 @property KBNavigationView *navigation;
-@property KBRPClient *client;
+@property (nonatomic) KBEnvironment *environment;
+@property KBMemLogger *log;
 
-@property (copy) dispatch_block_t completion;
+@property (copy) KBInstallStatusOnSelect onSelect;
 
-- (void)setEnvironment:(KBEnvironment *)environment;
+- (void)setDebugOptionsViewEnabled:(BOOL)debugOptionsViewEnabled;
+
+- (void)setTitle:(NSString *)title headerText:(NSString *)headerText;
+
+- (void)refreshInstallables;
+
+- (void)setButtons:(NSArray *)buttons;
+
+- (void)refresh;
+
+- (void)install;
+
+- (void)share:(id)sender completion:(dispatch_block_t)completion;
 
 @end

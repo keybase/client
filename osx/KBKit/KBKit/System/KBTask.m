@@ -28,19 +28,25 @@
     NSData *errData = [errRead readDataToEndOfFile];
     dispatch_async(dispatch_get_main_queue(), ^{
       // TODO Check termination status and complete with error if > 0
-
-      DDLogDebug(@"Task (out): %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
-      DDLogDebug(@"Task (err): %@", [[NSString alloc] initWithData:errData encoding:NSUTF8StringEncoding]);
+      DDLogDebug(@"Task (done): %@, %@", @(t.terminationStatus), @(t.terminationReason));
+      if ([outData length] > 0) {
+        DDLogDebug(@"Task (out): %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
+      }
+      if ([errData length] > 0) {
+        DDLogDebug(@"Task (err): %@", [[NSString alloc] initWithData:errData encoding:NSUTF8StringEncoding]);
+      }
 
       completion(nil, outData, errData);
     });
   };
 
   @try {
-    DDLogDebug(@"Task: %@ %@", command, [args componentsJoinedByString:@" "]);
+    DDLogDebug(@"Task: %@ %@", command, [args join:@" "]);
     [task launch];
   } @catch (NSException *e) {
-    completion(KBMakeError(-1, @"%@ (%@ %@)", e.reason, command, args), nil, nil);
+    NSString *errorMessage = NSStringWithFormat(@"%@ (%@ %@)", e.reason, command, [args join:@" "]);
+    DDLogError(@"Error running task: %@", errorMessage);
+    completion(KBMakeError(-1, @"%@", errorMessage), nil, nil);
   }
 }
 

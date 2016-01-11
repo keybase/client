@@ -32,8 +32,7 @@ keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 
 echo "Loading release tool"
-go get -u github.com/keybase/release
-go install github.com/keybase/release
+"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$GOPATH/bin/release"
 
 if [ "$keybase_version" = "" ]; then
@@ -78,7 +77,7 @@ resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-darwin.tgz"
 kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
-installer_url="https://github.com/keybase/client/releases/download/v1.0.6-0/KeybaseInstaller-1.1.7.tgz"
+installer_url="https://github.com/keybase/client/releases/download/v1.0.6-0/KeybaseInstaller-1.1.8.tgz"
 
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
@@ -159,10 +158,10 @@ package_dmg() {
   cd $out_dir
   appdmg="appdmg.json"
 
-  osx_installer="$client_dir/osx/Install"
-  cp $osx_installer/appdmg/$appdmg .
-  cp $osx_installer/appdmg/Background.png .
-  cp $osx_installer/appdmg/Keybase.icns .
+  osx_scripts="$client_dir/osx/Scripts"
+  cp $osx_scripts/appdmg/$appdmg .
+  cp $osx_scripts/appdmg/Background.png .
+  cp $osx_scripts/appdmg/Keybase.icns .
 
   rm -rf $dmg_name
   $node_bin/appdmg $appdmg $dmg_name

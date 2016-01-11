@@ -69,6 +69,7 @@ build-stamp: \
 	gofmt -w $@
 
 objc-build-stamp: build-stamp
+	@ # Runs without generating files (to validate)
 	ruby ./bin/objc.rb
 	date > $@
 
@@ -83,6 +84,7 @@ js/keybase_v1.js: build-stamp
 	cp ./js/keybase_v1.js ../react-native/react/constants/types
 
 swift-build-stamp: build-stamp
+	@ # Runs without generating files (to validate)
 	ruby ./bin/swift.rb
 	date > $@
 
@@ -92,9 +94,9 @@ clean:
 deps:
 	npm install
 
-fmt:	
+fmt:
 	@./fmt.sh
 
-build: fmt build-stamp ../go/protocol/keybase_v1.go js/keybase_v1.js js/flow-types.js
+build: fmt build-stamp ../go/protocol/keybase_v1.go js/keybase_v1.js js/flow-types.js objc-build-stamp swift-build-stamp
 
 .PHONY: test setup config

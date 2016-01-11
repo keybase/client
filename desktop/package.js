@@ -51,7 +51,7 @@ const DEFAULT_OPTS = {
   ].concat(devDeps.map(name => `/node_modules/${name}($|/)`))
 }
 
-const icon = argv.icon || argv.i || '../osx/Install/appdmg/Keybase.icns'
+const icon = argv.icon || argv.i || '../media/icons/Keybase.icns'
 
 if (icon) {
   DEFAULT_OPTS.icon = icon

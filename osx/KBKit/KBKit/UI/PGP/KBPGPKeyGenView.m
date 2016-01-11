@@ -88,14 +88,15 @@
   [KBActivity setProgressEnabled:YES sender:self];
   KBRPgpRequest *request = [[KBRPgpRequest alloc] initWithClient:self.client];
   //BOOL pushSecret = _pushPrivateCheckbox.state == NSOnState;
-  [request pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
-    [self.navigation setProgressEnabled:NO];
-    if (error) {
-      [KBActivity setError:error sender:self];
-      return;
-    }
-    self.completion();
-  }];
+  NSAssert(NO, @"Unsupported");
+//  [request pgpKeyGenDefaultWithCreateUids:uids completion:^(NSError *error) {
+//    [self.navigation setProgressEnabled:NO];
+//    if (error) {
+//      [KBActivity setError:error sender:self];
+//      return;
+//    }
+//    self.completion();
+//  }];
 }
 
 @end
