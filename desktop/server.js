@@ -8,7 +8,7 @@ const PORT = 4000
 const compiler = webpack(config)
 
 // Just build output files and don't run a hot server
-const NO_SERVER = getenv.bool('NO_SERVER', false)
+const NO_SERVER = getenv.boolish('NO_SERVER', false)
 
 if (NO_SERVER) {
   console.log('Starting local file build')
