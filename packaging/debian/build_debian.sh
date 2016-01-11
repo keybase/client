@@ -50,15 +50,29 @@ build_one_architecture() {
   # XXX: Go does not build tags reliably prior to 1.5 without -a. See:
   #      https://github.com/golang/go/issues/11165
   go build -a -tags "$go_tags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
-  go build -a -tags "$go_tags" -o "$dest/build/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
 
   cp run_keybase.sh "$dest/build/usr/bin/run_keybase.sh"
 
-  version="$("$here/../version.sh")"
+  if [ -n "${KEYBASE_INCLUDE_KBFS:-}" ] ; then
+    # Build KBFS.
+    go build -a -tags "$go_tags" -o "$dest/build/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
+    # Now the Electron build.
+    echo "Building Electron client for $electron_arch"
+    (cd ../../desktop && node package.js --platform linux --arch $electron_arch)
+    (cd ../../desktop && rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" "$dest/build/opt/keybase")
+    # Create the /keybase mount point.
+    mount_point="$dest/build/keybase"
+    mkdir "$mount_point"
+    chmod 777 "$mount_point"
+  else
+    echo "SKIPPING kbfs and electron."
+  fi
 
   # Installed-Size is a required field in the control file. Without it Ubuntu
   # users will see warnings.
   size="$(du --summarize --block-size=1024 "$dest/build" | awk '{print $1}')"
+
+  version="$("$here/../version.sh")"
 
   cat "$here/control.template" \
     | sed "s/@@NAME@@/$binary_name/" \
@@ -67,16 +81,6 @@ build_one_architecture() {
     | sed "s/@@SIZE@@/$size/" \
     > "$dest/build/DEBIAN/control"
   cp "$here/postinst" "$dest/build/DEBIAN/"
-
-  # Now the Electron build.
-  echo "Building Electron client for $electron_arch"
-  (cd ../../desktop && node package.js --platform linux --arch $electron_arch)
-  (cd ../../desktop && rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" "$dest/build/opt/keybase")
-
-  # Create the /keybase mount point.
-  mount_point="$dest/build/keybase"
-  mkdir "$mount_point"
-  chmod 777 "$mount_point"
 
   fakeroot dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
 
@@ -87,7 +91,9 @@ build_one_architecture() {
 # Note that Go names the x86 architecture differently than Debian does, which
 # is why we need these two variables.
 
-install_electron_dependencies
+if [ -n "${KEYBASE_INCLUDE_KBFS:-}" ] ; then
+  install_electron_dependencies
+fi
 
 export GOARCH=amd64
 export debian_arch=amd64
