@@ -278,6 +278,9 @@
       "request" : [ {
         "name" : "bid",
         "type" : "BlockIdCombo"
+      }, {
+        "name" : "folder",
+        "type" : "string"
       } ],
       "response" : "GetBlockRes"
     },

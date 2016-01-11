@@ -20,7 +20,7 @@ protocol block {
   void authenticateSession(string signature);
 
   void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
-  GetBlockRes getBlock(BlockIdCombo bid);
+  GetBlockRes getBlock(BlockIdCombo bid, string folder);
 
   void addReference(string folder, BlockReference ref);
   void delReference(string folder, BlockReference ref);
