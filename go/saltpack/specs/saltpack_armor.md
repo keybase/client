@@ -1,6 +1,6 @@
-# SaltPack ASCII Armor Format
+# Saltpack ASCII Armor Format
 
-Like PGP, SaltPack encrypted and signed messages are binary formats. We need to
+Like PGP, saltpack encrypted and signed messages are binary formats. We need to
 wrap them in ASCII armor, to let people paste them into websites and apps that
 handle text.
 
@@ -13,13 +13,13 @@ where they interpret slashes and underscores as italics and strip them out.
 Even something as innocuous as `...` might turn into `…` and break decoding.
 
 We define the BaseX encoding scheme below, in a way that's independent of any
-particular alphabet or block size. For SaltPack we then select a 62-character
+particular alphabet or block size. For saltpack we then select a 62-character
 alphabet (all the digits and letters, in ASCII order) and a 32-byte input block
 size, which gives us 43-character output blocks and a packing efficiency of
 74.42%, compared to Base64's 75%. Finally we specify how the decoder recognizes
 the header and footer lines and strips whitespace.
 
-Here's the SaltPack armor encoding of the standard lorem ipsum paragraph:
+Here's the saltpack armor encoding of the standard lorem ipsum paragraph:
 
 > BEGIN SALTPACK MESSAGE.
 >
@@ -143,7 +143,7 @@ We can compare these efficiency figures to the theoretical maximum for a
                    = log_2(62) / 8
                    ≈ 0.7443
 
-The table above helped us pick the 32-byte block size for SaltPack. It hits an
+The table above helped us pick the 32-byte block size for saltpack. It hits an
 efficiency sweet spot without being absurdly large.
 
 ### Comparison to Base64
@@ -194,7 +194,7 @@ However, BaseX doesn't bother with this adjustment, for a few reasons:
 The last point is clear when we look at how single-byte blocks are encoded. In
 standard Base64, the bytes 0x00, 0x01, and 0x02 encode to `AA`, `AQ`, and `Ag`.
 In the same alphabet, BaseX would encodes those bytes as `AA`, `AB`, and `AC`.
-The 62-character SaltPack alphabet starts with the ASCII numerals, so those
+The 62-character saltpack alphabet starts with the ASCII numerals, so those
 bytes encode to `00`, `01`, and `02`, which is even nicer.
 
 ### Comparison to Base85

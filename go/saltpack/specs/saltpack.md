@@ -1,4 +1,4 @@
-# SaltPack
+# Saltpack
 ### An Alternative to the PGP Message Format
 
 Keybase today supports both PGP and NaCl keys. NaCl is the more modern of the
@@ -18,7 +18,7 @@ We start with some simplifying decisions:
 - We'll use [MessagePack](http://msgpack.org/index.html) for all the binary
   formatting.
 
-Thus, "SaltPack" (pronounced "NaCl pack"). The spec is in three parts:
+Thus, "saltpack" (pronounced "NaCl pack"). The spec is in three parts:
 
 - [a binary encryption format](saltpack_encryption.md)
 - [a binary signing format](saltpack_signing.md)
