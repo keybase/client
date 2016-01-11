@@ -20,6 +20,8 @@
 - service: hook Identify2 RPC up to engine (PR: keybase/client#1662)
 - openpgp: ignore broken signature packets, since some keys are mangled
   due to misbehaving clients and/or key servers (via vendored PR: keybase/go-crypto#4)
+- openpgp: slightly better error messages for bad subkey signatures
+   (via vendored commit: 5604f1eaa4e038e23bdbbf5bb364fe167ff03e07)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)
