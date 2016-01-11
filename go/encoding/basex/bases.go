@@ -9,7 +9,7 @@ package basex
 // of NewEncoding() for more details.
 //
 // Note that this skip char list is in ASCII order
-const skipChars = "\t\n\r !\"#$%&'()*+,-./0:;<=>?@IOl[\\]^_`{|}~"
+const b58skipChars = "\t\n\r !\"#$%&'()*+,-./0:;<=>?@IOl[\\]^_`{|}~"
 
 // Bitcoin-style encoding
 const base58EncodeStd = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
@@ -20,7 +20,7 @@ var Base58StdEncodingStrict = NewEncoding(base58EncodeStd, 19, "")
 
 // Base58StdEncoding is the standard base58-encoding. Foreign characters are ignored
 // as long as they're from the blessed set.
-var Base58StdEncoding = NewEncoding(base58EncodeStd, 19, skipChars)
+var Base58StdEncoding = NewEncoding(base58EncodeStd, 19, b58skipChars)
 
 // Unlike Base64, we put the digits first.
 const base62EncodeStd = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
