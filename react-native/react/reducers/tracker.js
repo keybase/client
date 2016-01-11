@@ -7,7 +7,7 @@ import * as Constants from '../constants/tracker'
 import * as ConfigConstants from '../constants/config'
 
 import {normal, warning, error, checking, loggedOut} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaDeleted} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase_v1'
 
@@ -210,7 +210,7 @@ export default function (state: State = initialState, action: Action): State {
     case ConfigConstants.startupLoaded:
       return {
         ...state,
-        loggedIn: action.payload.status.loggedIn
+        loggedIn: action.payload && action.payload.status.loggedIn
       }
     case Constants.startTimer:
       return {

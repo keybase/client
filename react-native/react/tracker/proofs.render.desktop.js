@@ -48,6 +48,7 @@ export default class ProofsRender extends Component {
 
     const statusColor = {
       normal: colors.lightBlue,
+      loggedOut: colors.lightBlue,
       checking: colors.grey,
       revoked: colors.orange,
       warning: colors.orange,
