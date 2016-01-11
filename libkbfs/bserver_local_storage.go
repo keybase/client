@@ -1,7 +1,7 @@
 package libkbfs
 
 import (
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -185,7 +185,7 @@ func (s *bserverFileStorage) get(id BlockID) (blockEntry, error) {
 
 func (s *bserverFileStorage) getAll(tlf TlfID) (
 	map[BlockID]map[BlockRefNonce]bool, error) {
-	return nil, fmt.Errorf("getAll not yet implemented for bserverFileStorage")
+	return nil, errors.New("getAll not yet implemented for bserverFileStorage")
 }
 
 func (s *bserverFileStorage) putLocked(p string, entry blockEntry) error {
@@ -312,7 +312,7 @@ func (s *bserverLeveldbStorage) get(id BlockID) (blockEntry, error) {
 func (s *bserverLeveldbStorage) getAll(tlf TlfID) (
 	map[BlockID]map[BlockRefNonce]bool, error) {
 	return nil,
-		fmt.Errorf("getAll not yet implemented for bserverLeveldbStorage")
+		errors.New("getAll not yet implemented for bserverLeveldbStorage")
 }
 
 func (s *bserverLeveldbStorage) putLocked(id BlockID, entry blockEntry) error {

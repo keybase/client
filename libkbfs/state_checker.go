@@ -226,7 +226,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	// the block server knows about.
 	bserverLocal, ok := sc.config.BlockServer().(*BlockServerLocal)
 	if !ok {
-		return fmt.Errorf("StateChecker only works against BlockServerLocal")
+		return errors.New("StateChecker only works against BlockServerLocal")
 	}
 	bserverKnownBlocks, err := bserverLocal.getAll(tlf)
 	if err != nil {
