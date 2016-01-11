@@ -51,7 +51,7 @@
     "babel-plugin-react-transform": "^1.1.1",
     "del": "^2.2.0",
     "electron-packager": "^5.1.0",
-    "electron-prebuilt": "mafintosh/electron-prebuilt#d76ae84fcd974114aa4da2809b8442ad8b9d43c2",
+    "electron-prebuilt": "0.36.3",
     "electron-rebuild": "^1.0.1",
     "eslint": "^1.10.3",
     "eslint-config-standard": "^4.4.0",

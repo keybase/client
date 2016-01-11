@@ -71,7 +71,7 @@ export default class PinentryRender extends Component {
               value={this.state.passphrase}
               type={this.state.showTyping ? 'text' : 'password'}
               onEnterKeyDown={submitPassphrase}
-              floatingLabelText='Testing'
+              floatingLabelText='Your passphrase'
               autoFocus
             />
           </div>
@@ -108,8 +108,7 @@ const styles = {
     ...globalStyles.flexBoxColumn,
     padding: 20,
     backgroundColor: globalColors.grey5,
-    position: 'relative',
-    flex: 1
+    position: 'relative'
   },
   action: {
     ...globalStyles.flexBoxRow,
