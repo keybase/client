@@ -46,4 +46,5 @@ const (
 	PromptDescriptorUpdateAuto
 	PromptDescriptorUpdateSnooze
 	PromptDescriptorDecryptInteractive
+	PromptDescriptorPGPGenEnterID
 )
