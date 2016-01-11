@@ -3,7 +3,7 @@ const path = require('path')
 const getenv = require('getenv')
 
 const defines = {
-  '__HOT__': JSON.stringify(getenv.boolish('HOT', false))
+  '__HOT__': JSON.stringify(getenv.bool('HOT', false))
 }
 
 console.log('Injecting defines: ', defines)

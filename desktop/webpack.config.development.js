@@ -4,7 +4,7 @@ const baseConfig = require('./webpack.config.base')
 const config = Object.assign({}, baseConfig)
 const getenv = require('getenv')
 
-const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
+const NO_SOURCE_MAPS = getenv.bool('NO_SOURCE_MAPS', false)
 const defines = {
   '__DEV__': true,
   'process.env.NODE_ENV': JSON.stringify('development')
@@ -23,7 +23,7 @@ config.output.publicPath = 'http://localhost:4000/dist/'
 
 config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
 
-if (getenv.boolish('HOT', false)) {
+if (getenv.bool('HOT', false)) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin())
 }
 
@@ -32,7 +32,7 @@ config.plugins.push(
   new webpack.DefinePlugin(defines)
 )
 
-if (getenv.boolish('HOT', false)) {
+if (getenv.bool('HOT', false)) {
   const HMR = 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
 
   Object.keys(config.entry).forEach(k => {
