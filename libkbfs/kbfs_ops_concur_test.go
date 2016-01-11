@@ -1027,6 +1027,9 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	if _, _, err := kbfsOps.CreateFile(ctx, rootNode, "b", false); err != nil {
 		t.Fatalf("Couldn't create file after sync: %v", err)
 	}
+
+	// Avoid checking state when using a fake block server.
+	config.MDServer().Shutdown()
 }
 
 // Test that, when writing multiple blocks in parallel, one error will
