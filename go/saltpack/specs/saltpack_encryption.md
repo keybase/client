@@ -178,9 +178,10 @@ Recipients parse the header of a message using the following steps:
    [`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html) with the **ephemeral
    public key** and the sender's private key.
 7. Try to open each of the **payload key boxes** in the recipients list using
-   [`crypto_box_afternm`] and the shared secret from #6. (See
-   [Nonces](#nonces).) Successfully opening one gives the **payload key**, and
-   the index of the box that opened is the **recipient index**.
+   [`crypto_box_afternm`](http://nacl.cr.yp.to/box.html) and the shared secret
+   from #6. (See [Nonces](#nonces).) Successfully opening one gives the
+   **payload key**, and the index of the box that opened is the **recipient
+   index**.
 8. Open the **sender secretbox** using
    [`crypto_secretbox_open`](http://nacl.cr.yp.to/secretbox.html) and the
    **payload key** from #7. (See [Nonces](#nonces).)
