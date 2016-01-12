@@ -54,7 +54,7 @@ export default class UpdateRender extends Component {
           <div style={styles.descriptionBlock} dangerouslySetInnerHTML={{__html: whatsNew}} />
         </div>
         { this.props.updateCommand &&
-          <Text style={styles.updateCommandHeader} type='Body'>Linux command:</Text> }
+          <Text style={styles.updateCommandHeader} type='Body'>Terminal command:</Text> }
         { this.props.updateCommand &&
           <div style={styles.command}>
             <Text type='Body' reversed style={{flex: 1}}>&gt; {this.props.updateCommand}</Text>
@@ -96,7 +96,7 @@ UpdateRender.propTypes = {
   alwaysUpdate: React.PropTypes.bool.isRequired,
   setAlwaysUpdate: React.PropTypes.func.isRequired,
   snoozeTime: React.PropTypes.string.isRequired,
-  updateCommand: React.PropTypes.string.isRequired,
+  updateCommand: React.PropTypes.string,
   canUpdate: React.PropTypes.bool.isRequired,
   onUpdate: React.PropTypes.func.isRequired,
   onSnooze: React.PropTypes.func.isRequired

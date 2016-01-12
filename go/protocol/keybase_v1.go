@@ -5723,12 +5723,13 @@ const (
 )
 
 type Update struct {
-	Version     string     `codec:"version" json:"version"`
-	Name        string     `codec:"name" json:"name"`
-	Description string     `codec:"description" json:"description"`
-	Type        UpdateType `codec:"type" json:"type"`
-	PublishedAt *Time      `codec:"publishedAt,omitempty" json:"publishedAt,omitempty"`
-	Asset       *Asset     `codec:"asset,omitempty" json:"asset,omitempty"`
+	Version      string     `codec:"version" json:"version"`
+	Name         string     `codec:"name" json:"name"`
+	Description  string     `codec:"description" json:"description"`
+	Instructions *string    `codec:"instructions,omitempty" json:"instructions,omitempty"`
+	Type         UpdateType `codec:"type" json:"type"`
+	PublishedAt  *Time      `codec:"publishedAt,omitempty" json:"publishedAt,omitempty"`
+	Asset        *Asset     `codec:"asset,omitempty" json:"asset,omitempty"`
 }
 
 type UpdateOptions struct {
