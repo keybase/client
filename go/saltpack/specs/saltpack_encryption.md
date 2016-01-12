@@ -104,7 +104,7 @@ header length
   ephemeral keypair is generated at random by the sender and only used for one
   message.
 - The **sender secretbox** is a NaCl secretbox containing the sender's
-  long-term public key, encrypted with the **payload key**. (See
+  long-term public key, encrypted with the **payload key** from below. (See
   [Nonces](#nonces).)
 - The **recipients list** contains a recipient pair for each recipient key,
   including an encrypted copy of the **payload key**. See below.
@@ -188,6 +188,10 @@ Recipients parse the header of a message using the following steps:
    key and the sender's public key from #8. (See [Nonces](#nonces).) The **MAC
    key** is the last 32 bytes of the resulting box.
 
+If the recipient's public key is shown in the **recipients list** (that is, if
+the recipient is not anonymous), clients may skip all the other **payload key
+boxes** in step #7.
+
 Note that when parsing lists in general, if a list is longer than expected,
 clients should allow the extra fields and ignore them. That allows us to make
 future additions to the format without breaking backward compatibility.
@@ -203,7 +207,8 @@ A payload packet is a MessagePack list with these contents:
 ```
 
 - The **authenticators list** contains 32-byte HMAC tags, one for each
-  recipient, which authenticate the **payload secretbox**.
+  recipient, which authenticate the **payload secretbox** together with the
+  message header.
 - The **payload secretbox** is a NaCl secretbox containing a chunk of the
   plaintext bytes, max size 1 MB. It's encrypted with the **payload key**. (See
   [Nonces](#nonces).)
