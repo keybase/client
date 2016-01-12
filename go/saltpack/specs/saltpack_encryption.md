@@ -244,16 +244,21 @@ Nonetheless, we prefer box and secretbox for ease of implementation. Many
 languages have NaCl libraries that only expose these higher-level
 constructions.
 
+If a message doesn't end with an empty payload packet, clients should show an
+error that the message has been truncated.
+
 ### Nonces
 
-We use a pseudorandom prefix to avoid nonce reuse. Define the nonce prefix `P`
-to be the first 23 bytes of the SHA512 of the concatenation of these values:
+We need to avoid nonce reuse with long-term public keys. We do this by deriving
+nonces from the hash of the ephemeral key, which is unique to each message.
+Define the nonce prefix *P* to be the first 23 bytes of the SHA512 of the
+concatenation of these values:
 - `"saltpack\0"` (`\0` is a [null
   byte](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html))
 - `"encryption nonce prefix\0"`
 - the 32-byte **ephemeral public key**
 
-The 24-byte nonce for each public-key box is then concatenation of `P` and an
+The 24-byte nonce for each public-key box is then concatenation of *P* and an
 extra byte. For each **recipient box** the extra byte is 0. For computing each
 **MAC key**, the extra byte is 1.
 
@@ -264,21 +269,20 @@ secretbox** in each payload packet, the first packet is 1, the second is 2, and
 so on.
 
 We might be concerned about reusing the same public-key nonce for each
-recipient here. For example, a recipient key could show up more than once in
-the recipients list. However, note that in both cases we're boxing the same
-message to all recipients. So if the same recipient shows up twice, we'll
-produce identical boxes for them the second time.
+recipient here, since a recipient key could show up more than once in the
+recipients list. However, note that we're always boxing the same message for
+all recipients. If the same recipient shows up twice, we'll produce identical
+boxes for them the second time.
 
-Besides avoiding nonce reuse and enforcing the packet order, we also want to
-prevent abuse of the decryption key. Alice might use Bob's public key to
-encrypt many kinds of messages, besides just saltpack messages. If Mallory
-intercepted one of these, she could assemble a fake saltpack message using the
-intercepted box, in the hope that Bob might reveal something about its contents
-by decrypting it. If we used a random nonce transmitted in the message header,
-Mallory could choose the nonce to match an intercepted box. Using the `P`
-prefix instead makes this attack difficult. Unless Mallory can compute enough
-hashes to find one with a specific 23-byte prefix, she can't control the nonce
-that Bob uses to decrypt.
+Besides avoiding nonce reuse, we also want to prevent abuse of the decryption
+key. Alice might use Bob's public key to encrypt many kinds of messages,
+besides just saltpack messages. If Mallory intercepted one of these, she could
+assemble a fake saltpack message using the intercepted box, in the hope that
+Bob might reveal something about its contents by decrypting it. If we used a
+random nonce transmitted in the message header, Mallory could choose the nonce
+to match an intercepted box. Using the *P* prefix instead makes this attack
+difficult. Unless Mallory can compute enough hashes to find one with a specific
+23-byte prefix, she can't control the nonce that Bob uses to decrypt.
 
 Some applications might use the saltpack format, but don't want decryption
 compatibility with other saltpack applications. In addition to changing the
