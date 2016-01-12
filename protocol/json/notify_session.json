@@ -7,6 +7,13 @@
       "notify" : "",
       "request" : [ ],
       "response" : "null"
+    },
+    "loggedIn" : {
+      "request" : [ {
+        "name" : "username",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

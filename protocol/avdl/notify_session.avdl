@@ -4,5 +4,5 @@ protocol NotifySession {
 
   @notify("")
   void loggedOut();
-
+  void loggedIn(string username);
 }
