@@ -252,6 +252,24 @@ func TestStatAliasCausesNoIdentifies(t *testing.T) {
 	}
 }
 
+func TestRemoveAlias(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe,jdoe")
+	switch err := os.Remove(p); err := err.(type) {
+	case *os.PathError:
+		if g, e := err.Err, syscall.EPERM; g != e {
+			t.Fatalf("wrong error: %v != %v", g, e)
+		}
+	default:
+		t.Fatalf("expected a PathError, got %T: %v", err, err)
+	}
+}
+
 func TestStatMyPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)

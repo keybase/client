@@ -195,3 +195,10 @@ outer:
 	}
 	return res, nil
 }
+
+var _ fs.NodeRemover = (*Dir)(nil)
+
+// Remove implements the fs.NodeRemover interface for FolderList.
+func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
+	return fuse.EPERM
+}
