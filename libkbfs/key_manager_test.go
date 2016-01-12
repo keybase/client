@@ -254,7 +254,7 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 	}
 }
 
-func TestKeyManagerRekeyAddDevice(t *testing.T) {
+func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
 	defer CheckConfigAndShutdown(t, config1)
@@ -392,6 +392,26 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	_, err = kbfsOps2Dev3.Read(ctx, bNode, buf, 0)
 	if err != nil {
 		t.Fatalf("Device 3 couldn't read b: %v", err)
+	}
+
+	// Make sure the server-side keys for the revoked device are gone
+	// for all keygens.
+	rmd, err := config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't get latest md: %v", err)
+	}
+	currKeyGen := rmd.LatestKeyGeneration()
+	// clear the key cache
+	config2.SetKeyCache(NewKeyCacheStandard(5000))
+	km2, ok := config2.KeyManager().(*KeyManagerStandard)
+	if !ok {
+		t.Fatal("Wrong kind of key manager for config2")
+	}
+	for keyGen := KeyGen(FirstValidKeyGen); keyGen <= currKeyGen; keyGen++ {
+		_, err = km2.getTLFCryptKey(ctx, rmd, keyGen)
+		if err == nil {
+			t.Errorf("User 2 could still fetch a key for keygen %d", keyGen)
+		}
 	}
 }
 
