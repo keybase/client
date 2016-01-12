@@ -94,26 +94,7 @@
 }
 
 - (void)refreshInstallables {
-  NSMutableString *info = [NSMutableString stringWithCapacity:1024 * 1024];
-
-  NSDictionary *installerInfo = NSBundle.mainBundle.infoDictionary;
-  [info appendString:NSStringWithFormat(@"%@: %@\n", installerInfo[@"CFBundleName"], installerInfo[@"CFBundleVersion"])];
-
-  for (KBInstallable *installable in _environment.installables) {
-    NSString *name = installable.name;
-    [info appendString:NSStringWithFormat(@"%@: ", name)];
-    NSString *action = [installable action];
-    if (action) {
-      [info appendString:NSStringWithFormat(@"%@, ", action)];
-    }
-
-    NSString *desc = [[installable installDescription:@", "] join:@", "];
-    [info appendString:desc];
-
-    [info appendString:@"\n"];
-  }
-
-  [info appendString:@"\n"];
+  NSMutableString *info = [NSMutableString stringWithString:[_environment debugInstallables]];
 
   if (_log) {
     [info appendString:@"Log:\n"];

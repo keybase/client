@@ -48,10 +48,13 @@
   BOOL installed = YES;
   NSMutableArray *errorMessages = [NSMutableArray array];
   for (KBInstallable *installable in installables) {
+    NSString *errorMessage = nil;
     if (installable.error) {
-      NSString *errorMessage = NSStringWithFormat(@"%@ (%@)", installable.error.localizedDescription, @(installable.error.code));
-      if (![errorMessages containsObject:errorMessage]) [errorMessages addObject:errorMessage];
+      errorMessage = NSStringWithFormat(@"%@ (%@)", installable.error.localizedDescription, @(installable.error.code));
+    } else if (installable.componentStatus.error) {
+      errorMessage = NSStringWithFormat(@"%@ (%@)", installable.componentStatus.error.localizedDescription, @(installable.componentStatus.error.code));
     }
+    if (errorMessage && ![errorMessages containsObject:errorMessage]) [errorMessages addObject:errorMessage];
     installed &= [installable isInstalled];
   }
 
