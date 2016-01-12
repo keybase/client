@@ -13,7 +13,10 @@ export const navErrorStartingUp = 'navErrorStartingUp'
 export const startupLoading = 'config:startupLoading'
 export const startupLoaded = 'config:startupLoaded'
 
-export const devConfigLoading = 'config:devConfigLoadin'
+export const statusLoaded = 'config:statusLoaded'
+export const configLoaded = 'config:configLoaded'
+
+export const devConfigLoading = 'config:devConfigLoading'
 export const devConfigLoaded = 'config:devConfigLoaded'
 export const devConfigUpdate = 'config:devConfigUpdate'
 export const devConfigSaved = 'config:devConfigSaved'

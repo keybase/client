@@ -2,12 +2,15 @@
 
 import * as Constants from '../constants/config'
 import * as LoginConstants from '../constants/login'
+
+import type {Action} from '../constants/types/flux'
 import type {NavState} from '../constants/config'
+import type {Config, GetCurrentStatusRes} from '../constants/types/flow-types'
 
 export type ConfigState = {
   navState: NavState;
-  status: ?any;
-  config: ?any;
+  status: ?GetCurrentStatusRes;
+  config: ?Config;
   error: ?any;
   devConfig: ?any;
 }
@@ -20,7 +23,7 @@ const initialState: ConfigState = {
   devConfig: null
 }
 
-export default function (state: ConfigState = initialState, action: any): ConfigState {
+export default function (state: ConfigState = initialState, action: Action): ConfigState {
   switch (action.type) {
     case Constants.startupLoading:
       return {
@@ -30,13 +33,32 @@ export default function (state: ConfigState = initialState, action: any): Config
         status: null,
         error: null
       }
+
+    case Constants.configLoaded:
+      if (action.payload && action.payload.config) {
+        return {
+          ...state,
+          config: action.payload.config
+        }
+      }
+      return state
+
+    case Constants.statusLoaded:
+      if (action.payload && action.payload.status) {
+        return {
+          ...state,
+          status: action.payload.status
+        }
+      }
+      return state
+
     case Constants.startupLoaded:
       let navState = Constants.navStartingUp
 
       if (!action.error) {
-        if (!action.payload.status.registered) {
+        if (state.status && state.status.registered) {
           navState = Constants.navNeedsRegistration
-        } else if (!action.payload.status.loggedIn) {
+        } else if (state.status && state.status.loggedIn) {
           navState = Constants.navNeedsLogin
         }
       } else {
@@ -45,8 +67,6 @@ export default function (state: ConfigState = initialState, action: any): Config
 
       return {
         ...state,
-        config: action.error ? null : action.payload.config,
-        status: action.error ? null : action.payload.status,
         error: action.error ? action.payload : null,
         navState
       }

@@ -207,7 +207,7 @@ export default function (state: State = initialState, action: Action): State {
   const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
   const trackerState = username ? state.trackers[username] : null
   switch (action.type) {
-    case ConfigConstants.startupLoaded:
+    case ConfigConstants.statusLoaded:
       return {
         ...state,
         loggedIn: action.payload && action.payload.status.loggedIn

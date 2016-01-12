@@ -79,8 +79,8 @@ export default function (state: LoginState = initialState, action: any): LoginSt
   let toMerge = null
 
   switch (action.type) {
-    case ConfigConstants.startupLoaded:
-      if (action.error) {
+    case ConfigConstants.statusLoaded:
+      if (action.error || action.payload == null) {
         return state
       }
       let myDeviceRole = null
