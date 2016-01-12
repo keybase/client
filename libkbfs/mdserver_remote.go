@@ -524,6 +524,31 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 	return md.client.PutKeys(ctx, arg)
 }
 
+// DeleteTLFCryptKeyServerHalf is an implementation of the KeyServer interface.
+func (md *MDServerRemote) DeleteTLFCryptKeyServerHalf(ctx context.Context,
+	uid keybase1.UID, kid keybase1.KID,
+	serverHalfID TLFCryptKeyServerHalfID) error {
+	// encode the ID
+	idBytes, err := md.config.Codec().Encode(serverHalfID)
+	if err != nil {
+		return err
+	}
+
+	// get the key
+	arg := keybase1.DeleteKeyArg{
+		Uid:       uid,
+		DeviceKID: kid,
+		KeyHalfID: idBytes,
+		LogTags:   LogTagsFromContextToMap(ctx),
+	}
+	err = md.client.DeleteKey(ctx, arg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DisableRekeyUpdatesForTesting implements the MDServer interface.
 func (md *MDServerRemote) DisableRekeyUpdatesForTesting() {
 	// This doesn't need a lock for testing.

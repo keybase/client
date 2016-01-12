@@ -1535,6 +1535,16 @@ func (_mr *_MockKeyOpsRecorder) PutTLFCryptKeyServerHalves(arg0, arg1 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalves", arg0, arg1)
 }
 
+func (_m *MockKeyOps) DeleteTLFCryptKeyServerHalf(ctx context.Context, uid protocol.UID, kid protocol.KID, serverHalfID TLFCryptKeyServerHalfID) error {
+	ret := _m.ctrl.Call(_m, "DeleteTLFCryptKeyServerHalf", ctx, uid, kid, serverHalfID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKeyOpsRecorder) DeleteTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3)
+}
+
 // Mock of BlockOps interface
 type MockBlockOps struct {
 	ctrl     *gomock.Controller
@@ -1883,6 +1893,16 @@ func (_m *MockKeyServer) PutTLFCryptKeyServerHalves(ctx context.Context, serverK
 
 func (_mr *_MockKeyServerRecorder) PutTLFCryptKeyServerHalves(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalves", arg0, arg1)
+}
+
+func (_m *MockKeyServer) DeleteTLFCryptKeyServerHalf(ctx context.Context, uid protocol.UID, kid protocol.KID, serverHalfID TLFCryptKeyServerHalfID) error {
+	ret := _m.ctrl.Call(_m, "DeleteTLFCryptKeyServerHalf", ctx, uid, kid, serverHalfID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKeyServerRecorder) DeleteTLFCryptKeyServerHalf(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockKeyServer) Shutdown() {

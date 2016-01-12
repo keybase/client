@@ -119,6 +119,25 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 	return ks.db.Write(batch, nil)
 }
 
+// DeleteTLFCryptKeyServerHalf implements the KeyOps interface for
+// KeyServerLocal.
+func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
+	_ keybase1.UID, _ keybase1.KID,
+	serverHalfID TLFCryptKeyServerHalfID) error {
+	ks.shutdownLock.RLock()
+	defer ks.shutdownLock.RUnlock()
+	if *ks.shutdown {
+		return errors.New("Key server already shut down")
+	}
+
+	// TODO: verify that the kid is really valid for the given uid
+
+	if err := ks.db.Delete(serverHalfID.ID.Bytes(), nil); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Copies a key server but swaps the config.
 func (ks *KeyServerLocal) copy(config Config) *KeyServerLocal {
 	return &KeyServerLocal{config, ks.db, config.MakeLogger(""), ks.shutdown,

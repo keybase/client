@@ -684,6 +684,12 @@ type KeyOps interface {
 	// set of users and devices.
 	PutTLFCryptKeyServerHalves(ctx context.Context,
 		serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error
+
+	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
+	// device given the key half ID.
+	DeleteTLFCryptKeyServerHalf(ctx context.Context,
+		uid keybase1.UID, kid keybase1.KID,
+		serverHalfID TLFCryptKeyServerHalfID) error
 }
 
 // BlockOps gets and puts data blocks to a BlockServer. It performs
@@ -865,6 +871,12 @@ type KeyServer interface {
 	// set of users and devices.
 	PutTLFCryptKeyServerHalves(ctx context.Context,
 		serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error
+
+	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
+	// device given the key half ID.
+	DeleteTLFCryptKeyServerHalf(ctx context.Context,
+		uid keybase1.UID, kid keybase1.KID,
+		serverHalfID TLFCryptKeyServerHalfID) error
 
 	// Shutdown is called to free any KeyServer resources.
 	Shutdown()

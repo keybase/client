@@ -9,9 +9,10 @@ import (
 // KeyServerMeasured delegates to another KeyServer instance but
 // also keeps track of stats.
 type KeyServerMeasured struct {
-	delegate KeyServer
-	getTimer metrics.Timer
-	putTimer metrics.Timer
+	delegate    KeyServer
+	getTimer    metrics.Timer
+	putTimer    metrics.Timer
+	deleteTimer metrics.Timer
 }
 
 var _ KeyServer = KeyServerMeasured{}
@@ -21,10 +22,12 @@ var _ KeyServer = KeyServerMeasured{}
 func NewKeyServerMeasured(delegate KeyServer, r metrics.Registry) KeyServerMeasured {
 	getTimer := metrics.GetOrRegisterTimer("KeyServer.GetTLFCryptKeyServerHalf", r)
 	putTimer := metrics.GetOrRegisterTimer("KeyServer.PutTLFCryptKeyServerHalves", r)
+	deleteTimer := metrics.GetOrRegisterTimer("KeyServer.DeleteTLFCryptKeyServerHalf", r)
 	return KeyServerMeasured{
-		delegate: delegate,
-		getTimer: getTimer,
-		putTimer: putTimer,
+		delegate:    delegate,
+		getTimer:    getTimer,
+		putTimer:    putTimer,
+		deleteTimer: deleteTimer,
 	}
 }
 
@@ -45,6 +48,18 @@ func (b KeyServerMeasured) PutTLFCryptKeyServerHalves(ctx context.Context,
 	serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) (err error) {
 	b.putTimer.Time(func() {
 		err = b.delegate.PutTLFCryptKeyServerHalves(ctx, serverKeyHalves)
+	})
+	return err
+}
+
+// DeleteTLFCryptKeyServerHalf implements the KeyServer interface for
+// KeyServerMeasured.
+func (b KeyServerMeasured) DeleteTLFCryptKeyServerHalf(ctx context.Context,
+	uid keybase1.UID, kid keybase1.KID,
+	serverHalfID TLFCryptKeyServerHalfID) (err error) {
+	b.deleteTimer.Time(func() {
+		err = b.delegate.DeleteTLFCryptKeyServerHalf(
+			ctx, uid, kid, serverHalfID)
 	})
 	return err
 }
