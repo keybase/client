@@ -24,7 +24,7 @@
     "babel-runtime": "^5.8.34",
     "font-awesome": "^4.4.0",
     "framed-msgpack-rpc": "keybase/node-framed-msgpack-rpc#nojima/keybase-client-changes",
-    "getenv": "keybase/node-getenv",
+    "getenv": "^0.6.0",
     "immutable": "^3.7.5",
     "lodash": "^3.10.1",
     "marked": "^0.3.5",
