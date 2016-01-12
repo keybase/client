@@ -53,7 +53,7 @@ func errToNT(err error) C.NTSTATUS {
 		if ok {
 			code = uint32(n)
 		} else {
-			code = uint32(0xC0000001)
+			code = uint32(ErrAccessDenied)
 		}
 	}
 	return C.NTSTATUS(code)
