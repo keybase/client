@@ -1,8 +1,6 @@
 FROM debian
 MAINTAINER Keybase <admin@keybase.io>
 
-RUN apt-get update
-
 # Install dependencies.
 #   - Debian build requires 'fakeroot' and 'reprepro' (and 'dpkg-deb', but
 #     that's installed by default).
@@ -10,7 +8,12 @@ RUN apt-get update
 #   - The deploy scripts use 'git' to commit and push.
 #   - 'wget' is for downloading Go 1.5 in the next stanza
 #   - 'build-essential' pulls in gcc etc., which Go requires.
-RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential
+RUN apt-get update
+RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential curl
+
+RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
+RUN apt-get update
+RUN apt-get install -y nodejs
 
 # Install Go 1.5, which doesn't exist in the Ubuntu repos yet.
 RUN wget https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz -O /root/go.tar
