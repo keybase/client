@@ -29,6 +29,10 @@ func NewIdentifyOutcome() *IdentifyOutcome {
 	return &IdentifyOutcome{}
 }
 
+func NewIdentifyOutcomeWithUsername(u string) *IdentifyOutcome {
+	return &IdentifyOutcome{Username: u}
+}
+
 func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
 	rpl := NewRemoteProofLinks()
 	for _, p := range i.ProofChecks {
