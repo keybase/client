@@ -2,12 +2,15 @@
 @namespace("keybase.1")
 protocol updateCommon {
 
+  import idl "common.avdl";
+
   /**
     Asset describes a downloadable file.
     */
   record Asset {
     string name;
     string url;
+    string digest;
     string localPath; // If downloaded, path to file locally
   }
 
@@ -22,6 +25,7 @@ protocol updateCommon {
     string name;
     string description;
     UpdateType type;
-    Asset asset;
+    union { null, Time } publishedAt;
+    union { null, Asset } asset;
   }
 }

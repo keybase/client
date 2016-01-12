@@ -223,6 +223,9 @@
       "name" : "url",
       "type" : "string"
     }, {
+      "name" : "digest",
+      "type" : "string"
+    }, {
       "name" : "localPath",
       "type" : "string"
     } ]
@@ -246,8 +249,11 @@
       "name" : "type",
       "type" : "UpdateType"
     }, {
+      "name" : "publishedAt",
+      "type" : [ "null", "Time" ]
+    }, {
       "name" : "asset",
-      "type" : "Asset"
+      "type" : [ "null", "Asset" ]
     } ]
   }, {
     "type" : "enum",

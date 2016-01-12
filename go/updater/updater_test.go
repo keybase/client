@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -42,13 +43,19 @@ func (u testUpdateSource) FindUpdate(config keybase1.UpdateOptions) (release *ke
 		return nil, err
 	}
 
+	digest, err := libkb.DigestForFileAtPath(path)
+	if err != nil {
+		return nil, err
+	}
+
 	return &keybase1.Update{
 		Version:     "1.0.1",
 		Name:        "Test",
 		Description: "Bug fixes",
-		Asset: keybase1.Asset{
-			Name: "Test-1.0.1.zip",
-			Url:  fmt.Sprintf("file://%s", path),
+		Asset: &keybase1.Asset{
+			Name:   "Test-1.0.1.zip",
+			Url:    fmt.Sprintf("file://%s", path),
+			Digest: digest,
 		}}, nil
 }
 
