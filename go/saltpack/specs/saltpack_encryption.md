@@ -106,7 +106,6 @@ header length
 - The **sender secretbox** is a
   [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) containing the
   sender's long-term public key, encrypted with the **payload key** from below.
-  (See [Nonces](#nonces).)
 - The **recipients list** contains a recipient pair for each recipient key,
   including an encrypted copy of the **payload key**. See below.
 
@@ -122,8 +121,8 @@ A recipient pair is a two-element list:
 - The **recipient public key** is the recipient's long-term NaCl public
   encryption key. This field may be null, when the recipients are anonymous.
 - The **payload key box** is a [`crypto_box`](http://nacl.cr.yp.to/box.html)
-  containing a copy of the **payload key**. It's encrypted with the recipient's
-  public key and the ephemeral private key. (See [Nonces](#nonces).)
+  containing a copy of the **payload key**, encrypted with the recipient's
+  public key and the ephemeral private key.
 
 ### Generating a Header Packet
 
@@ -135,7 +134,8 @@ header:
    [`crypto_box_keypair`](http://nacl.cr.yp.to/box.html).
 3. Encrypt the sender's long-term public key using
    [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) with the **payload
-   key**, to create the **sender secretbox**. (See [Nonces](#nonces).)
+   key**, to create the **sender secretbox**. (The [Nonces](#nonces) section
+   below specifies what nonce to use.)
 4. For each recipient, encrypt the **payload key** using
    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
    key and the ephemeral private key. (See [Nonces](#nonces).) Assemble these
