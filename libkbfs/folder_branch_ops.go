@@ -359,7 +359,8 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
-	go fbo.archiveBlocksInBackground()
+	// Turn off block archiving for now: KBFS-641.
+	//go fbo.archiveBlocksInBackground()
 	return fbo
 }
 
@@ -1738,8 +1739,11 @@ func (fbo *folderBranchOps) isRevisionConflict(err error) bool {
 
 // mdWriterLock must be held by the caller.
 func (fbo *folderBranchOps) archiveLocked(md *RootMetadata) {
+	// Turn off block archiving temporarily: KBFS-641
+	/**
 	fbo.archiveGroup.Add(1)
 	fbo.archiveChan <- md
+	*/
 }
 
 // mdWriterLock must be taken by the caller.
