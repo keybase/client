@@ -197,6 +197,48 @@ func (km *KeyManagerStandard) checkForRemovedDevice(ctx context.Context,
 	return false
 }
 
+func (km *KeyManagerStandard) deleteKeysForRemovedDevices(ctx context.Context,
+	md *RootMetadata, info UserDeviceKeyInfoMap,
+	expectedKeys map[keybase1.UID][]CryptPublicKey) error {
+	kops := km.config.KeyOps()
+	for u, kids := range info {
+		keys, ok := expectedKeys[u]
+		if !ok {
+			// The user was completely removed from the handle, which
+			// shouldn't happen but might as well make it work just in
+			// case.
+			km.log.CInfof(ctx, "Rekey %s: removing all server key halves "+
+				"for user %s", md.ID, u)
+			for kid, keyInfo := range kids {
+				err := kops.DeleteTLFCryptKeyServerHalf(ctx, u, kid,
+					keyInfo.ServerHalfID)
+				if err != nil {
+					return err
+				}
+			}
+			continue
+		}
+		keyLookup := make(map[keybase1.KID]bool)
+		for _, key := range keys {
+			keyLookup[key.KID()] = true
+		}
+		for kid, keyInfo := range kids {
+			// Remove any keys that no longer belong.
+			if !keyLookup[kid] {
+				km.log.CInfof(ctx, "Rekey %s: removing server key halves "+
+					" for device %s of user %s", md.ID, kid, u)
+				err := kops.DeleteTLFCryptKeyServerHalf(ctx, u, kid,
+					keyInfo.ServerHalfID)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 // Rekey implements the KeyManager interface for KeyManagerStandard.
 func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	rekeyDone bool, err error) {
@@ -325,6 +367,23 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 		return false, err
 	}
 	md.data.TLFPrivateKey = privKey
+
+	// Delete server-side key halves for any revoked devices.
+	for keygen := KeyGen(FirstValidKeyGen); keygen <= currKeyGen; keygen++ {
+		tkb, err := md.getTLFKeyBundle(keygen)
+		if err != nil {
+			return false, err
+		}
+
+		err = km.deleteKeysForRemovedDevices(ctx, md, tkb.WKeys, wKeys)
+		if err != nil {
+			return false, err
+		}
+		err = km.deleteKeysForRemovedDevices(ctx, md, tkb.RKeys, rKeys)
+		if err != nil {
+			return false, err
+		}
+	}
 
 	// Might as well cache the TLFCryptKey while we're at it.
 	err = km.config.KeyCache().PutTLFCryptKey(md.ID, currKeyGen, tlfCryptKey)
