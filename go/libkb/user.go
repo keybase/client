@@ -415,7 +415,7 @@ func (u *User) VerifySelfSig() error {
 
 	u.G().Log.Debug("+ VerifySelfSig for user %s", u.name)
 
-	if u.IDTable().VerifySelfSig(u.name, u.id) {
+	if u.IDTable().VerifySelfSig(u.GetNormalizedName(), u.id) {
 		u.G().Log.Debug("- VerifySelfSig via SigChain")
 		return nil
 	}

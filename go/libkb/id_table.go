@@ -1070,7 +1070,7 @@ func (idt *IdentityTable) insertRemoteProof(link RemoteProofChainLink) {
 	idt.remoteProofLinks.Insert(link, nil)
 }
 
-func (idt *IdentityTable) VerifySelfSig(s string, uid keybase1.UID) bool {
+func (idt *IdentityTable) VerifySelfSig(nun NormalizedUsername, uid keybase1.UID) bool {
 	list := idt.Order
 	ln := len(list)
 	for i := ln - 1; i >= 0; i-- {
@@ -1079,8 +1079,8 @@ func (idt *IdentityTable) VerifySelfSig(s string, uid keybase1.UID) bool {
 		if link.IsRevoked() {
 			continue
 		}
-		if link.GetUsername() == s && link.GetUID().Equal(uid) {
-			G.Log.Debug("| Found self-signature for %s @%s", s,
+		if NewNormalizedUsername(link.GetUsername()).Eq(nun) && link.GetUID().Equal(uid) {
+			G.Log.Debug("| Found self-signature for %s @%s", string(nun),
 				link.ToDebugString())
 			return true
 		}
