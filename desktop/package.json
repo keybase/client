@@ -68,7 +68,7 @@
     "react-transform-hmr": "^1.0.1",
     "redux-devtools": "^3.0.1",
     "redux-devtools-dock-monitor": "^1.0.1",
-    "redux-devtools-log-monitor": "^1.0.1",
+    "redux-devtools-log-monitor": "^1.0.2",
     "redux-logger": "^2.1.1",
     "webpack": "^1.12.10",
     "webpack-dev-middleware": "^1.4.0",

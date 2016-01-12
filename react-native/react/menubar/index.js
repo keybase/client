@@ -59,13 +59,15 @@ class Menubar extends Component {
 
   checkForFolders () {
     if (this.props.username && this.props.loggedIn && !this.props.loading) {
-      this.setState({loading: true})
-      this.props.favoriteList()
+      setImmediate(() => {
+        this.setState({loading: true})
+        this.props.favoriteList()
+      })
     }
   }
 
   componentWillReceiveProps (nextProps) {
-    if (this.props.folders !== nextProps.folders) {
+    if (this.state.loading && (this.props.folders !== nextProps.folders)) {
       this.setState({loading: false})
     }
   }
@@ -83,13 +85,13 @@ class Menubar extends Component {
     this.closeMenubar()
   }
 
-  openKBFSPublic () {
-    shell.openItem(`${kbfsPath}/public/${this.props.username}`)
+  openKBFSPublic (sub) {
+    shell.openItem(`${kbfsPath}/public/${sub}`)
     this.closeMenubar()
   }
 
-  openKBFSPrivate () {
-    shell.openItem(`${kbfsPath}/private/${this.props.username}`)
+  openKBFSPrivate (sub) {
+    shell.openItem(`${kbfsPath}/private/${sub}`)
     this.closeMenubar()
   }
 
@@ -112,8 +114,9 @@ class Menubar extends Component {
     const openingMessage = this.props.loggedIn ? 'Keybase Alpha' : 'Looks like you aren\'t logged in. Try running `keybase login`'
 
     const openingButtonInfo = this.props.username && {text: 'WTF?', onClick: this.showHelp}
-    const folders = (this.props.folders || []).map(function (f: Folder): FolderInfo {
+    const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => {
       return {
+        type: 'folder',
         folderName: f.name,
         isPublic: !f.private,
         // TODO we don't get this information right now,
@@ -131,8 +134,8 @@ class Menubar extends Component {
       debug={!!this.props.debug}
       openingButtonInfo={openingButtonInfo}
       openKBFS={() => this.openKBFS()}
-      openKBFSPublic={() => this.openKBFSPublic()}
-      openKBFSPrivate={() => this.openKBFSPrivate()}
+      openKBFSPublic={username => this.openKBFSPublic(username)}
+      openKBFSPrivate={username => this.openKBFSPrivate(username)}
       showMain={() => this.showMain()}
       showHelp={() => this.showHelp()}
       showUser={user => this.showUser(user)}

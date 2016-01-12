@@ -2,27 +2,28 @@ import {ipcMain, ipcRenderer} from 'electron'
 import util from 'util'
 import getenv from 'getenv'
 
+const methods = ['log', 'error', 'info']
+const originalConsole = {}
+methods.forEach(k => {
+  originalConsole[k] = console[k]
+})
+
+// override console logging to also go to stdout
+const output = {
+  error: process.stderr
+}
+
 export default function pipeLogs () {
   if (!__DEV__ || getenv.boolish('KEYBASE_SHOW_DEVTOOLS', true)) { // eslint-disable-line no-undef
     return
   }
 
-  // override console logging to also go to stdout
-  const methods = ['log', 'error', 'info']
-  const output = {
-    error: process.stderr
-  }
-  const oldConsole = {}
-
   methods.forEach(k => {
-    if (!oldConsole.hasOwnProperty(k)) {
-      oldConsole[k] = console[k]
-      console[k] = (...args) => {
-        oldConsole[k].apply(console, args)
-        if (args.length) {
-          const out = output[k] || process.stdout
-          out.write(k + ': ' + util.format.apply(util, args))
-        }
+    console[k] = (...args) => {
+      originalConsole[k].apply(console, args)
+      if (args.length) {
+        const out = output[k] || process.stdout
+        out.write(k + ': ' + util.format.apply(util, args))
       }
     }
   })

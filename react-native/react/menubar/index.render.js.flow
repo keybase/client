@@ -9,8 +9,14 @@ export default class Render extends Component {
 }
 
 export type FolderInfo = {
-  folderName: string,
-  isPublic: boolean,
-  isEmpty: boolean,
-  openFolder: () => void
+    type: 'folder',
+    folderName: string,
+    isPublic: boolean,
+    isEmpty: boolean,
+    openFolder: () => void
+} | {
+    type: 'entry',
+    prefix: string,
+    isPublic: boolean,
+    openFolder: (val: string) => void
 }
