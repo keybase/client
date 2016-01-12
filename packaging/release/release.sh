@@ -3,7 +3,7 @@
 #
 # release.sh creates keybase releases.
 #
-# Call it with a mode and version number:  release.sh staging 1.1.12-102
+# Call it with a mode and version number:  release.sh prerelease 1.1.12-102
 #
 # Before you call this, you need to:
 # 1. update the version number in go/libkb/version.go
@@ -22,7 +22,7 @@ set -e -u -o pipefail
 
 if [ "$#" -lt 2 ] ; then
 	echo Usage: release.sh MODE VERSION
-	echo MODE should be staging or production
+	echo MODE should be prerelease or production
 	echo VERSION should be something like 1.0.3-245
 	exit 1
 fi
@@ -31,12 +31,12 @@ mode="$1"
 version="$2"
 version_tag="v$version"
 
-if [ $mode == "staging" ]; then
+if [ $mode == "prerelease" ]; then
 	formula="kbstage"
 elif [ $mode == "production" ]; then
 	formula="keybase"
 else
-	echo "Invalid mode $mode.  Should be staging or production."
+	echo "Invalid mode $mode.  Should be prerelease or production."
 	exit 1
 fi
 

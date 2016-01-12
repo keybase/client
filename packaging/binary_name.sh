@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# Prints out the binary name ("keybase", "kbstage", or "kbdev") that
+# Prints out the binary name ("keybase", "kbdev") that
 # corresponds to the current bulid mode. This script helps us avoid duplicating
 # the same switch statement in all of our packaging scripts.
 
@@ -12,8 +12,8 @@ mode="$("$here/build_mode.sh" "$@")"
 
 if [ "$mode" = "production" ] ; then
   echo keybase
-elif [ "$mode" = "staging" ] ; then
-  echo kbstage
+elif [ "$mode" = "prerelease" ] ; then
+  echo keybase
 elif [ "$mode" = "devel" ] ; then
   echo kbdev
 else

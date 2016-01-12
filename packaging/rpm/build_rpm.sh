@@ -5,7 +5,7 @@
 # /tmp. The package files are created there, in their respective folders.
 #
 # Usage:
-#   ./build_rpm.sh (production|staging|devel) [build_dir]
+#   ./build_rpm.sh (production|prerelease|devel) [build_dir]
 
 set -e -u -o pipefail
 
@@ -15,8 +15,8 @@ mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
 if [ "$mode" = "production" ] ; then
   go_tags="production"
-elif [ "$mode" = "staging" ] ; then
-  go_tags="staging"
+elif [ "$mode" = "prerelease" ] ; then
+  go_tags="prerelease"
 else
   go_tags=""
 fi

@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# This script is for users who want make staging builds from source. See
+# This script is for users who want make prerelease builds from source. See
 # https://keybase.io/docs/client/client_architecture. We don't use it
 # internally.
 
@@ -20,6 +20,6 @@ mkdir -p "$GOPATH/src/github.com/keybase"
 # Link in the client repo.
 ln -s "$(cd .. ; pwd)" "$GOPATH/src/github.com/keybase/client"
 
-# Build the staging binary.
+# Build the prerelease binary.
 echo Building kbstage...
-go build -a -tags staging -o "$build_dir/kbstage" github.com/keybase/client/go/keybase
+go build -a -tags prerelease -o "$build_dir/kbstage" github.com/keybase/client/go/keybase
