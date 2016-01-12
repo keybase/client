@@ -1,0 +1,10 @@
+/* @flow */
+
+import React, {Component} from '../base-react'
+
+export type Props = {
+}
+
+declare export default class Terminal extends React.Component<void, Props, {}> {
+  props: Props;
+}

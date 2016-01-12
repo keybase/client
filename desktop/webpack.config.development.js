@@ -7,8 +7,8 @@ const getenv = require('getenv')
 const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
 const defines = {
   '__DEV__': true,
-  'process.env.NODE_ENV': JSON.stringify('development')
-
+  'process.env.NODE_ENV': JSON.stringify('development'),
+  '__VERSION__': JSON.stringify('Development')
 }
 
 console.log('Injecting dev defines: ', defines)

@@ -1,9 +1,9 @@
-import {remote} from 'electron'
-import React from 'react'
-import Menubar from '../../react-native/react/native/remote-menubar'
 import reactDOM from 'react-dom'
+import React, {Component} from '../../react-native/react/base-react'
 import {showMainWindow} from '../../react-native/react/local-debug.desktop'
-
+import {Provider} from 'react-redux'
+import RemoteStore from '../../react-native/react/native/remote-store.desktop'
+import Menubar from '../../react-native/react/menubar'
 import consoleHelper from '../app/console-helper'
 
 consoleHelper()
@@ -12,20 +12,16 @@ if (module.hot) {
   module.hot.accept()
 }
 
-// The menubar has a variable height, and we want to account for that until a certain height
-// After that height, we'll just use the scroll bar
-const currentWindow = remote.getCurrentWindow()
-const width = 320
-let cachedHeight = 300
-const resizeWindowForComponent = () => {
-  setImmediate(() => {
-    const r = document.getElementById('root')
-    const height = r.scrollHeight
-    if (height !== cachedHeight) {
-      currentWindow.setSize(width, height)
-      cachedHeight = height
-    }
-  })
+const store = new RemoteStore({})
+
+class RemoteMenubar extends Component {
+  render () {
+    return (
+      <Provider store={store}>
+        <Menubar debug={!!showMainWindow}/>
+      </Provider>
+    )
+  }
 }
 
-reactDOM.render(React.createElement(Menubar, {debug: showMainWindow, onSizeChange: resizeWindowForComponent}), document.getElementById('root'))
+reactDOM.render(React.createElement(RemoteMenubar), document.getElementById('root'))

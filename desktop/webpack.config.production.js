@@ -4,6 +4,7 @@ const baseConfig = require('./webpack.config.base')
 const config = Object.assign({}, baseConfig)
 
 const SKIP_OPTIMIZE = false
+// __VERSION__ is injected by package.js
 const defines = {
   '__DEV__': false,
   'process.env.NODE_ENV': JSON.stringify('production')

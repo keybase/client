@@ -21,7 +21,8 @@ export type MenubarProps = {
   username: ?string,
   folders: ?Array<Folder>,
   favoriteList: () => void,
-  debug: ?boolean
+  debug: ?boolean,
+  loggedIn: ?boolean
 }
 
 class Menubar extends Component {
@@ -33,15 +34,19 @@ class Menubar extends Component {
     // Normally I'd put this into the store but it's just too slow to get the state correctly through props so we'd get flashes so
     // instead we manually manage loading state in this one circumstance. DO NOT DO THIS normally
     this.state = {
-      loading: true
+      loading: !!props.username
     }
 
     const onMenubarShow = () => {
-      this.checkForFolders()
+      setImmediate(() => {
+        this.checkForFolders()
+      })
     }
 
     const onMenubarHide = () => {
-      this.setState({loading: true})
+      setImmediate(() => {
+        this.setState({loading: true})
+      })
     }
 
     if (module.hot) {
@@ -59,13 +64,15 @@ class Menubar extends Component {
 
   checkForFolders () {
     if (this.props.username && this.props.loggedIn && !this.props.loading) {
-      this.setState({loading: true})
-      this.props.favoriteList()
+      setImmediate(() => {
+        this.setState({loading: true})
+        this.props.favoriteList()
+      })
     }
   }
 
   componentWillReceiveProps (nextProps) {
-    if (this.props.folders !== nextProps.folders) {
+    if (this.state.loading && (this.props.folders !== nextProps.folders)) {
       this.setState({loading: false})
     }
   }
@@ -83,13 +90,13 @@ class Menubar extends Component {
     this.closeMenubar()
   }
 
-  openKBFSPublic () {
-    shell.openItem(`${kbfsPath}/public/${this.props.username}`)
+  openKBFSPublic (sub) {
+    shell.openItem(`${kbfsPath}/public/${sub}`)
     this.closeMenubar()
   }
 
-  openKBFSPrivate () {
-    shell.openItem(`${kbfsPath}/private/${this.props.username}`)
+  openKBFSPrivate (sub) {
+    shell.openItem(`${kbfsPath}/private/${sub}`)
     this.closeMenubar()
   }
 
@@ -109,11 +116,11 @@ class Menubar extends Component {
   }
 
   render () {
-    const openingMessage = this.props.loggedIn ? 'Keybase Alpha' : 'Looks like you aren\'t logged in. Try running `keybase login`'
-
     const openingButtonInfo = this.props.username && {text: 'WTF?', onClick: () => this.showHelp()}
-    const folders = (this.props.folders || []).map((f: Folder): FolderInfo => {
+    const {username} = this.props
+    const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => {
       return {
+        type: 'folder',
         folderName: f.name,
         isPublic: !f.private,
         // TODO we don't get this information right now,
@@ -126,19 +133,19 @@ class Menubar extends Component {
     })
 
     return <Render
-      username={this.props.username}
-      openingMessage={openingMessage}
+      username={username}
       debug={!!this.props.debug}
       openingButtonInfo={openingButtonInfo}
       openKBFS={() => this.openKBFS()}
-      openKBFSPublic={() => this.openKBFSPublic()}
-      openKBFSPrivate={() => this.openKBFSPrivate()}
+      openKBFSPublic={username => this.openKBFSPublic(username)}
+      openKBFSPrivate={username => this.openKBFSPrivate(username)}
       showMain={() => this.showMain()}
       showHelp={() => this.showHelp()}
       showUser={user => this.showUser(user)}
       quit={() => remote.app.quit()}
       folders={folders}
-      loading={this.state.loading}
+      loading={this.state.loading && !!username}
+      loggedIn={this.props.loggedIn}
     />
   }
 }
