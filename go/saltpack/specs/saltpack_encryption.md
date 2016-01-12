@@ -139,7 +139,8 @@ header:
 4. For each recipient, encrypt the **payload key** using
    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
    key and the ephemeral private key. (See [Nonces](#nonces).) Assemble these
-   into the **recipients list**.
+   into the **recipients list**. Pair these with the recipients' public keys,
+   or `null` for anonymous recipients.
 5. Collect the **format name**, **version**, and **mode** into a list, followed
    by the **ephemeral public key**, the **sender secretbox**, and the nested
    **recipients list**.
