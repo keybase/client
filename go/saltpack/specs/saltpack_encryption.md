@@ -205,8 +205,8 @@ A payload packet is a MessagePack list with these contents:
 - The **authenticators list** contains 32-byte HMAC tags, one for each
   recipient, which authenticate the **payload secretbox**.
 - The **payload secretbox** is a NaCl secretbox containing a chunk of the
-  plaintext bytes, max size 1 MB. It's encrypted with the **payload key**. See
-  [Nonces](#nonces) below.
+  plaintext bytes, max size 1 MB. It's encrypted with the **payload key**. (See
+  [Nonces](#nonces).)
 
 If Mallory doesn't have the **payload key**, she can't modify the **payload
 secretbox** without breaking authentication. However, if Mallory is one of the
@@ -216,22 +216,21 @@ recipients from each other.
 
 We compute the authenticators in three steps:
 
-- Serialize the packet number as a 64-bit unsigned big-endian integer, where
-  the first payload packet is number 1.
-- Compute the SHA512 of the concatenation of the **header hash**, the packet
-  number, and the **payload secretbox**.
-- For each recipient, compute the HMAC-SHA512 of the hash above, using that
-  recipient's **MAC key**.
-- Take the first 32 bytes of each HMAC. This is equivalent to NaCl's
-  [`crypto_auth`](http://nacl.cr.yp.to/auth.html) function.
+1. Concatenate the **header hash**, the nonce from the **payload secretbox**,
+   and the **payload secretbox** itself.
+2. Compute the [`crypto_hash`](http://nacl.cr.yp.to/hash.html) (SHA512) of the
+   bytes from #1.
+3. For each recipient, compute the
+   [`crypto_auth`](http://nacl.cr.yp.to/auth.html) (HMAC-SHA512, truncated to
+   32 bytes) of the hash from #2, using that recipient's **MAC key**.
 
-The index of each authenticator in the list corresponds to the index of that
-recipient in the header. Before opening the **payload secretbox** in each
-payload packet, recipients must recompute the authenticator and check that it
-matches what's in the **authenticators list**, using a constant-time
-comparison.
+The **recipient index** of each authenticator in the list corresponds to the
+index of that recipient's **payload key box** in the header. Before opening the
+**payload secretbox** in each payload packet, recipients must first verify the
+authenticator by repeating steps #1 and #2 and using
+[`crypto_auth_verify`](http://nacl.cr.yp.to/auth.html).
 
-Our authenticators cover the SHA512 of the payload, rather than the payload
+The authenticators cover the SHA512 of the payload, rather than the payload
 itself, to save time when a large message has many recipients. This assumes the
 second preimage resistance of SHA512, in addition to the assumptions that go
 into NaCl.
