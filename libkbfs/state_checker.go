@@ -173,7 +173,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	// Then, using the current MD head, start at the root of the FS
 	// and recursively walk the directory tree to find all the blocks
 	// that are currently accessible.
-	rootNode, _, _, err := ops.GetRootNode(ctx, fb)
+	rootNode, _, _, err := ops.getRootNode(ctx)
 	if err != nil {
 		return err
 	}

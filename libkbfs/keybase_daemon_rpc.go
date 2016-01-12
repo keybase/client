@@ -254,6 +254,12 @@ func (k *KeybaseDaemonRPC) ShouldThrottle(err error) bool {
 	return false
 }
 
+// Resolve implements the KeybaseDaemon interface for KeybaseDaemonRPC.
+func (k *KeybaseDaemonRPC) Resolve(ctx context.Context, assertion string) (
+	keybase1.UID, error) {
+	return k.identifyClient.Resolve(ctx, assertion)
+}
+
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion, reason string) (
 	UserInfo, error) {

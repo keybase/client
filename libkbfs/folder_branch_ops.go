@@ -697,10 +697,10 @@ func (fbo *folderBranchOps) initMDLocked(
 	return nil
 }
 
-func (fbo *folderBranchOps) GetOrCreateRootNodeForHandle(
-	ctx context.Context, handle *TlfHandle, branch BranchName) (
+func (fbo *folderBranchOps) GetOrCreateRootNode(
+	ctx context.Context, name string, public bool, branch BranchName) (
 	node Node, ei EntryInfo, err error) {
-	err = errors.New("GetOrCreateRootNodeForHandle is not supported by " +
+	err = errors.New("GetOrCreateRootNode is not supported by " +
 		"folderBranchOps")
 	return
 }
@@ -769,10 +769,9 @@ func (fbo *folderBranchOps) execMDReadThenMDWrite(
 	return err
 }
 
-func (fbo *folderBranchOps) GetRootNode(ctx context.Context,
-	folderBranch FolderBranch) (
+func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 	node Node, ei EntryInfo, handle *TlfHandle, err error) {
-	fbo.log.CDebugf(ctx, "GetRootNode")
+	fbo.log.CDebugf(ctx, "getRootNode")
 	defer func() {
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Error: %v", err)
@@ -780,11 +779,6 @@ func (fbo *folderBranchOps) GetRootNode(ctx context.Context,
 			fbo.log.CDebugf(ctx, "Done: %p", node.GetID())
 		}
 	}()
-
-	if folderBranch != fbo.folderBranch {
-		return nil, EntryInfo{}, nil,
-			WrongOpsError{fbo.folderBranch, folderBranch}
-	}
 
 	lState := makeFBOLockState()
 

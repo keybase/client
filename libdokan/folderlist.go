@@ -9,7 +9,6 @@ package libdokan
 import (
 	"sync"
 
-	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -59,34 +58,32 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing")
-		dh, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config, name)
-		if err != nil {
-			return nil, false, err
-		}
+		rootNode, _, err :=
+			fl.fs.config.KBFSOps().GetOrCreateRootNode(
+				ctx, name, fl.public, libkbfs.MasterBranch)
+		switch err := err.(type) {
+		case nil:
+			// No error.
+			break
 
-		if fl.public && !dh.HasPublic() {
-			// no public folder exists for this folder
-			return nil, false, dokan.ErrObjectPathNotFound
-		}
-
-		if canon := dh.ToString(ctx, fl.fs.config); canon != name {
+		case libkbfs.TlfNameNotCanonical:
+			// Non-canonical name.
 			if len(path) == 1 && oc.isOpenReparsePoint() {
 				fl.fs.log.CDebugf(ctx, "FL Lookup returning ALIAS")
-				return &Alias{canon: canon}, false, nil
+				return &Alias{canon: err.NameToTry}, false, nil
 			}
-			path[0] = canon
+			path[0] = err.NameToTry
 			continue
-		}
 
-		if fl.public {
-			dh = &libkbfs.TlfHandle{
-				Writers: dh.Writers,
-				Readers: []keybase1.UID{keybase1.PublicUID},
-			}
-		}
+		case libkbfs.NoSuchNameError:
+			// Invalid public TLF.
+			return nil, false, dokan.ErrObjectPathNotFound
 
-		rootNode, _, err := fl.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
-		if err != nil {
+		// TODO: Handle libkbfs.WriteAccessError similarly to
+		// libfuse.
+
+		default:
+			// Some other error.
 			return nil, false, err
 		}
 
@@ -133,23 +130,25 @@ func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.Favori
 				return nil
 			}
 
-			dh, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config, fav.Name)
-			if err != nil {
-				break
-			}
-
-			if fl.public && !dh.HasPublic() {
-				break
-			}
-
 			var ns dokan.NamedStat
 			ns.Name = fav.Name
 			ns.FileAttributes = fileAttributeDirectory
 			ns.NumberOfLinks = 1
 
-			if canon := dh.ToString(ctx, fl.fs.config); canon != fav.Name {
+			_, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config, fav.Name, fl.public)
+			switch err.(type) {
+			case nil:
+				// No error.
+				break
+
+			case libkbfs.TlfNameNotCanonical:
+				// Non-canonical name.
 				ns.FileAttributes = fileAttributeReparsePoint
 				ns.ReparsePointTag = reparsePointTagSymlink
+
+			default:
+				// Some other error.
+				continue
 			}
 
 			results <- ns

@@ -220,29 +220,16 @@ func (_mr *_MockKBFSOpsRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites", arg0)
 }
 
-func (_m *MockKBFSOps) GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
-	ret := _m.ctrl.Call(_m, "GetOrCreateRootNodeForHandle", ctx, handle, branch)
+func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, name string, public bool, branch BranchName) (Node, EntryInfo, error) {
+	ret := _m.ctrl.Call(_m, "GetOrCreateRootNode", ctx, name, public, branch)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNodeForHandle(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNodeForHandle", arg0, arg1, arg2)
-}
-
-func (_m *MockKBFSOps) GetRootNode(ctx context.Context, folderBranch FolderBranch) (Node, EntryInfo, *TlfHandle, error) {
-	ret := _m.ctrl.Call(_m, "GetRootNode", ctx, folderBranch)
-	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(EntryInfo)
-	ret2, _ := ret[2].(*TlfHandle)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
-}
-
-func (_mr *_MockKBFSOpsRecorder) GetRootNode(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootNode", arg0, arg1)
+func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNode(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNode", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockKBFSOps) GetDirChildren(ctx context.Context, dir Node) (map[string]EntryInfo, error) {
@@ -489,6 +476,17 @@ func (_m *MockKeybaseDaemon) EXPECT() *_MockKeybaseDaemonRecorder {
 	return _m.recorder
 }
 
+func (_m *MockKeybaseDaemon) Resolve(ctx context.Context, assertion string) (protocol.UID, error) {
+	ret := _m.ctrl.Call(_m, "Resolve", ctx, assertion)
+	ret0, _ := ret[0].(protocol.UID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseDaemonRecorder) Resolve(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Resolve", arg0, arg1)
+}
+
 func (_m *MockKeybaseDaemon) Identify(ctx context.Context, assertion string, reason string) (UserInfo, error) {
 	ret := _m.ctrl.Call(_m, "Identify", ctx, assertion, reason)
 	ret0, _ := ret[0].(UserInfo)
@@ -636,15 +634,26 @@ func (_mr *_MockKBPKIRecorder) GetCurrentVerifyingKey(arg0 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentVerifyingKey", arg0)
 }
 
-func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, assertion string, reason string) (protocol.UID, error) {
-	ret := _m.ctrl.Call(_m, "ResolveAssertion", ctx, assertion, reason)
+func (_m *MockKBPKI) Resolve(ctx context.Context, assertion string) (protocol.UID, error) {
+	ret := _m.ctrl.Call(_m, "Resolve", ctx, assertion)
 	ret0, _ := ret[0].(protocol.UID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) ResolveAssertion(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveAssertion", arg0, arg1, arg2)
+func (_mr *_MockKBPKIRecorder) Resolve(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Resolve", arg0, arg1)
+}
+
+func (_m *MockKBPKI) Identify(ctx context.Context, assertion string, reason string) (UserInfo, error) {
+	ret := _m.ctrl.Call(_m, "Identify", ctx, assertion, reason)
+	ret0, _ := ret[0].(UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) Identify(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1, arg2)
 }
 
 func (_m *MockKBPKI) GetNormalizedUsername(ctx context.Context, uid protocol.UID) (libkb.NormalizedUsername, error) {

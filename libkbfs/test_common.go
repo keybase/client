@@ -79,6 +79,10 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	config := NewConfigLocal()
 	setTestLogger(config, t)
 
+	kbfsOps := NewKBFSOpsStandard(config)
+	config.SetKBFSOps(kbfsOps)
+	config.SetNotifier(kbfsOps)
+
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
@@ -160,6 +164,10 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *ConfigLocal {
 	c := NewConfigLocal()
 	c.SetLoggerMaker(config.loggerFn)
+
+	kbfsOps := NewKBFSOpsStandard(c)
+	c.SetKBFSOps(kbfsOps)
+	c.SetNotifier(kbfsOps)
 
 	c.SetBlockSplitter(config.BlockSplitter())
 	c.SetKeyManager(NewKeyManagerStandard(c))

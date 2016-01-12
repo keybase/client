@@ -19,14 +19,14 @@ func makeTestKBPKIClient(t *testing.T) (
 	return NewKBPKIClient(config), currentUID, users
 }
 
-func TestKBPKIClientResolveAssertion(t *testing.T) {
+func TestKBPKIClientIdentify(t *testing.T) {
 	c, _, _ := makeTestKBPKIClient(t)
 
-	u, err := c.ResolveAssertion(context.Background(), "test_name1", "")
+	u, err := c.Identify(context.Background(), "test_name1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u == keybase1.UID("") {
+	if u.UID == keybase1.UID("") {
 		t.Fatal("empty user")
 	}
 }

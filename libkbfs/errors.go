@@ -789,3 +789,14 @@ func (e DirTooBigError) Error() string {
 		"bytes, which is over the supported limit of %d bytes", e.p,
 		e.size, e.maxAllowedBytes)
 }
+
+// TlfNameNotCanonical indicates that a name isn't a canonical, and
+// that another (not necessarily canonical) name should be tried.
+type TlfNameNotCanonical struct {
+	Name, NameToTry string
+}
+
+func (e TlfNameNotCanonical) Error() string {
+	return fmt.Sprintf("TLF name %s isn't canonical: try %s instead",
+		e.Name, e.NameToTry)
+}

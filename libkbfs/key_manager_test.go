@@ -256,7 +256,7 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 
 func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, u1, u2)
+	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
@@ -267,13 +267,11 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	}
 
 	// Create a shared folder
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid1)
-	h.Writers = append(h.Writers, uid2)
+	name := u1.String() + "," + u2.String()
 
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err :=
-		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -298,7 +296,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	// wasn't registered when the folder was originally created.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, _, err =
-		kbfsOps2Dev2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if _, ok := err.(ReadAccessError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -311,7 +309,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 
 	// this device should be able to read now
 	root2Dev2, _, err :=
-		kbfsOps2Dev2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Got unexpected error after rekey: %v", err)
 	}
@@ -349,7 +347,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 
 	// device 2 should still work
 	rootNode2, _, err :=
-		kbfsOps2Dev2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Got unexpected error after rekey: %v", err)
 	}
@@ -361,7 +359,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 
 	// but device 1 should now fail
 	kbfsOps2 := config2.KBFSOps()
-	_, _, err = kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+	_, _, err = kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if _, ok := err.(ReadAccessError); !ok {
 		t.Fatalf("Got unexpected error when reading with revoked key: %v", err)
 	}
@@ -370,7 +368,7 @@ func TestKeyManagerRekeyAddDevice(t *testing.T) {
 	// old files
 	kbfsOps2Dev3 := config2Dev3.KBFSOps()
 	rootNode2Dev3, _, err :=
-		kbfsOps2Dev3.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2Dev3.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Device 3 couldn't read root: %v", err)
 	}

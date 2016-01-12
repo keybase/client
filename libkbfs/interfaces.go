@@ -100,21 +100,32 @@ type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
 	GetFavorites(ctx context.Context) ([]*Favorite, error)
-	// GetOrCreateRootNodeByHandle returns the root node and root
-	// entry info associated with the given TlfHandle and branch,
-	// if the logged-in user has read permissions to the top-level
-	// folder.  It creates the folder if one doesn't exist yet (and
+	// GetOrCreateRootNode returns the root node and root entry
+	// info associated with the given name, public flag, and
+	// branch, if the name is the canonical name, and the
+	// logged-in user has read permissions to the top-level
+	// folder. It creates the folder if one doesn't exist yet (and
 	// branch == MasterBranch), and the logged-in user has write
-	// permissions to the top-level folder.  This is a remote-access
-	// operation.
-	GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle,
-		branch BranchName) (Node, EntryInfo, error)
-	// GetRootNode returns the root node, root entry info, and
-	// handle associated with the given TlfID and branch, if the
-	// logged-in user has read permissions to the top-level folder.
-	// This is a remote-access operation.
-	GetRootNode(ctx context.Context, folderBranch FolderBranch) (
-		Node, EntryInfo, *TlfHandle, error)
+	// permissions to the top-level folder.  This is a
+	// remote-access operation.
+	//
+	// Some errors that may be returned and can be specially
+	// handled:
+	//
+	// TlfNameNotCanonical: Returned when the given name is not
+	// canonical -- another name to try (which itself may not be
+	// canonical) is in the error. Usually, you want to treat this
+	// as a symlink to the name to try.
+	//
+	// NoSuchNameError: Returned when public is set and the given
+	// folder has no public folder.
+	//
+	// WriteAccessError: Returned when the folder doesn't exist
+	// yet but the logged-in user doesn't have write permissions
+	// to create it.
+	GetOrCreateRootNode(
+		ctx context.Context, name string, public bool,
+		branch BranchName) (node Node, ei EntryInfo, err error)
 	// GetDirChildren returns a map of children in the directory,
 	// mapped to their EntryInfo, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access
@@ -246,9 +257,15 @@ type KBFSOps interface {
 // KeybaseDaemon is an interface for communicating with the local
 // Keybase daemon.
 type KeybaseDaemon interface {
+	// Resolve, given an assertion, resolves it to a UID. The
+	// authenticity of the given UID shouldn't be trusted, except
+	// to compare it with the current UID.
+	Resolve(ctx context.Context, assertion string) (keybase1.UID, error)
+
 	// Identify, given an assertion, returns a UserInfo struct
 	// with the user that matches that assertion, or an error
-	// otherwise.
+	// otherwise. The reason string is displayed on any tracker
+	// popups spawned.
 	Identify(ctx context.Context, assertion, reason string) (UserInfo, error)
 
 	// LoadUserPlusKeys returns a UserInfo struct for a
@@ -296,9 +313,17 @@ type KBPKI interface {
 	// currently-active device.
 	GetCurrentVerifyingKey(ctx context.Context) (VerifyingKey, error)
 
-	// ResolveAssertion loads a user by assertion (could also be a
-	// username).
-	ResolveAssertion(ctx context.Context, assertion, reason string) (keybase1.UID, error)
+	// Resolve resolves an assertion (which could also be a
+	// username) to a UID.  The authenticity of the given UID
+	// shouldn't be trusted, except to compare it with the current
+	// UID.
+	Resolve(ctx context.Context, assertion string) (keybase1.UID, error)
+
+	// Identify resolves an assertion (which could also be a
+	// username) to a UserInfo struct, spawning tracker popups if
+	// necessary.  The reason string is displayed on any tracker
+	// popups spawned.
+	Identify(ctx context.Context, assertion, reason string) (UserInfo, error)
 	// GetNormalizedUsername returns the normalized username
 	// corresponding to the given UID.
 	GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)

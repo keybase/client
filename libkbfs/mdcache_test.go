@@ -28,6 +28,10 @@ func expectUsernameCall(u keybase1.UID, config *ConfigMock) {
 	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", u))
 	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), u).AnyTimes().
 		Return(name, nil)
+	config.mockKbpki.EXPECT().Resolve(gomock.Any(), string(name)).AnyTimes().
+		Return(u, nil)
+	config.mockKbpki.EXPECT().Identify(gomock.Any(), string(name), gomock.Any()).AnyTimes().
+		Return(UserInfo{Name: name, UID: u}, nil)
 }
 
 func expectUsernameCalls(handle *TlfHandle, config *ConfigMock) {

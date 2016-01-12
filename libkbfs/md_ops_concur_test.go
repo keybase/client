@@ -39,9 +39,9 @@ func (m *MDOpsConcurTest) getForTLF(ctx context.Context, id TlfID, Unmerged bool
 		return nil, fmt.Errorf("More than one caller to GetForTLF()!")
 	}
 	<-m.start
-	dh := NewTlfHandle()
-	dh.Writers = append(dh.Writers, m.uid)
-	return NewRootMetadata(dh, id), nil
+	h := NewTlfHandle()
+	h.Writers = append(h.Writers, m.uid)
+	return NewRootMetadata(h, id), nil
 }
 
 func (m *MDOpsConcurTest) GetForTLF(ctx context.Context, id TlfID) (

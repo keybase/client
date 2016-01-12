@@ -296,6 +296,9 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 		return lg
 	})
 
+	kbfsOps := NewKBFSOpsStandard(config)
+	config.SetKBFSOps(kbfsOps)
+	config.SetNotifier(kbfsOps)
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
 	mdServer, err := makeMDServer(

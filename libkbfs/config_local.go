@@ -153,7 +153,6 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 // NewConfigLocal constructs a new ConfigLocal with default components.
 func NewConfigLocal() *ConfigLocal {
 	config := &ConfigLocal{}
-	config.SetKBFSOps(NewKBFSOpsStandard(config))
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(TimeAndWriterConflictRenamer{config})
@@ -164,7 +163,6 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetMDOps(&MDOpsStandard{config})
 	config.SetBlockOps(&BlockOpsStandard{config})
 	config.SetKeyOps(&KeyOpsStandard{config})
-	config.SetNotifier(config.kbfs.(*KBFSOpsStandard))
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
 
 	config.maxFileBytes = maxFileBytesDefault

@@ -62,14 +62,20 @@ func (k *KBPKIClient) GetCurrentVerifyingKey(ctx context.Context) (
 	return s.VerifyingKey, nil
 }
 
-// ResolveAssertion implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) ResolveAssertion(ctx context.Context, assertion, reason string) (
+// Resolve implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) Resolve(ctx context.Context, assertion string) (
 	keybase1.UID, error) {
-	userInfo, err := k.identify(ctx, assertion, reason)
+	return k.config.KeybaseDaemon().Resolve(ctx, assertion)
+}
+
+// Identify implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
+	UserInfo, error) {
+	userInfo, err := k.config.KeybaseDaemon().Identify(ctx, assertion, reason)
 	if err != nil {
-		return keybase1.UID(""), err
+		return UserInfo{}, err
 	}
-	return userInfo.UID, nil
+	return userInfo, nil
 }
 
 // GetNormalizedUsername implements the KBPKI interface for
@@ -110,11 +116,6 @@ func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 		return nil, err
 	}
 	return userInfo.CryptPublicKeys, nil
-}
-
-func (k *KBPKIClient) identify(ctx context.Context, assertion, reason string) (
-	UserInfo, error) {
-	return k.config.KeybaseDaemon().Identify(ctx, assertion, reason)
 }
 
 func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
