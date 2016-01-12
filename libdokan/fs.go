@@ -89,11 +89,13 @@ var vinfo = dokan.VolumeInformation{
 
 // GetVolumeInformation returns information about the whole filesystem for dokan.
 func (f *FS) GetVolumeInformation() (dokan.VolumeInformation, error) {
+	// TODO should this be refused to other users?
 	return vinfo, nil
 }
 
 // GetDiskFreeSpace returns information about free space on the volume for dokan.
 func (*FS) GetDiskFreeSpace() (dokan.FreeSpace, error) {
+	// TODO should this be refused to other users?
 	return dokan.FreeSpace{}, nil
 }
 
@@ -162,6 +164,10 @@ func newSyntheticOpenContext() *openContext {
 
 // CreateFile called from dokan, may be a file or directory.
 func (f *FS) CreateFile(fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
+	// Only allow the current user access
+	if !fi.IsRequestorUserSidEqualTo(f.currentUserSID) {
+		return nil, false, dokan.ErrAccessDenied
+	}
 	ctx := NewContextWithOpID(f)
 	return f.openRaw(ctx, fi, cd)
 }
@@ -217,6 +223,8 @@ func windowsPathSplit(raw string) ([]string, error) {
 
 // MoveFile tries to move a file.
 func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
+	// User checking is handled by the opening of the source file
+
 	ctx := NewContextWithOpID(f)
 	f.log.CDebugf(ctx, "FS Rename start replaceExisting=%v", replaceExisting)
 	defer func() { f.reportErr(ctx, err) }()
