@@ -30,11 +30,6 @@ type encryptStream struct {
 
 func (es *encryptStream) Write(plaintext []byte) (int, error) {
 
-	if !es.didHeader {
-		es.didHeader = true
-		es.err = es.encoder.Encode(es.header)
-	}
-
 	if es.err != nil {
 		return 0, es.err
 	}
@@ -216,7 +211,8 @@ func NewEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers []Box
 	if err := es.init(sender, receivers); err != nil {
 		return nil, err
 	}
-	return es, nil
+	err = es.encoder.Encode(es.header)
+	return es, err
 }
 
 // Seal a plaintext from the given sender, for the specified receiver groups.

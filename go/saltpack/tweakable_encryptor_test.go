@@ -52,18 +52,6 @@ type testEncryptStream struct {
 
 func (pes *testEncryptStream) Write(plaintext []byte) (int, error) {
 
-	if !pes.didHeader {
-		pes.didHeader = true
-		var b []byte
-		b, pes.err = encodeToBytes(pes.header)
-		if pes.options.corruptHeaderPacked != nil {
-			pes.options.corruptHeaderPacked(b)
-		}
-		if pes.err == nil {
-			_, pes.err = pes.output.Write(b)
-		}
-	}
-
 	if pes.err != nil {
 		return 0, pes.err
 	}
@@ -252,7 +240,15 @@ func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [
 	if err := pes.init(sender, receivers); err != nil {
 		return nil, err
 	}
-	return pes, nil
+	headerBytes, err := encodeToBytes(pes.header)
+	if err != nil {
+		return nil, err
+	}
+	if pes.options.corruptHeaderPacked != nil {
+		pes.options.corruptHeaderPacked(headerBytes)
+	}
+	_, err = pes.output.Write(headerBytes)
+	return pes, err
 }
 
 func testSeal(plaintext []byte, sender BoxSecretKey, receivers []BoxPublicKey, options testEncryptionOptions) (out []byte, err error) {
