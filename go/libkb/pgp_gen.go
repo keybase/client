@@ -21,7 +21,6 @@ type PGPGenArg struct {
 	Ids             Identities
 	Config          *packet.Config
 	PGPUids         []string
-	NoDefPGPUid     bool
 	PrimaryLifetime int
 	SubkeyLifetime  int
 }
@@ -156,18 +155,10 @@ func (a *PGPGenArg) CreatePGPIDs() error {
 	return nil
 }
 
-func (a *PGPGenArg) AddDefaultUID() {
-	if a.NoDefPGPUid {
-		return
-	}
-	a.Ids = append(a.Ids, KeybaseIdentity(""))
-}
-
 func (a *PGPGenArg) MakeAllIds() error {
 	if err := a.CreatePGPIDs(); err != nil {
 		return err
 	}
-	a.AddDefaultUID()
 	return nil
 }
 

@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -28,12 +29,8 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 	} else {
 		g := libkb.PGPGenArg{}
 		g.PGPUids = ctx.StringSlice("pgp-uid")
-		g.NoDefPGPUid = ctx.Bool("no-default-pgp-uid")
-		v.arg.AllowMulti = ctx.Bool("multi")
 		v.arg.DoExport = !ctx.Bool("no-export")
-		if g.NoDefPGPUid && len(g.PGPUids) == 0 {
-			err = fmt.Errorf("if you don't want the default PGP uid, you must supply a PGP uid with the --pgp-uid option")
-		}
+		v.arg.AllowMulti = ctx.Bool("multi")
 		if ctx.Bool("debug") {
 			g.PrimaryBits = SmallKey
 			g.SubkeyBits = SmallKey
@@ -55,6 +52,14 @@ func (v *CmdPGPGen) Run() (err error) {
 	if err = RegisterProtocols(protocols); err != nil {
 		return err
 	}
+
+	// Prompt for user IDs if none given on command line
+	if len(v.arg.Gen.PGPUids) == 0 {
+		if err = v.propmptPGPIDs(); err != nil {
+			return err
+		}
+	}
+
 	if err = v.arg.Gen.CreatePGPIDs(); err != nil {
 		return err
 	}
@@ -66,6 +71,32 @@ func (v *CmdPGPGen) Run() (err error) {
 	err = cli.PGPKeyGen(context.TODO(), v.arg.Export())
 	err = AddPGPMultiInstructions(err)
 	return err
+}
+
+// Duplicates the test in libkb.PGPGenArg.CreatePGPIDs() for interactive input
+var CheckPGPID = libkb.Checker{
+	F: func(s string) bool {
+		if !strings.Contains(s, "<") && libkb.CheckEmail.F(s) {
+			return true
+		}
+		_, err := libkb.ParseIdentity(s)
+		return err == nil
+	},
+	Hint: "2-12 letter id or email, or pgp style id",
+}
+
+func (v *CmdPGPGen) propmptPGPIDs() (err error) {
+	prompt := "Enter default ID"
+	for err == nil {
+		id, err := PromptWithChecker(PromptDescriptorPGPGenEnterID, GlobUI, prompt, false, CheckPGPID)
+		if len(id) > 0 {
+			v.arg.Gen.PGPUids = append(v.arg.Gen.PGPUids, id)
+			prompt = "Enter additional ID (optional)"
+		} else if len(v.arg.Gen.PGPUids) > 0 {
+			return err
+		}
+	}
+	return
 }
 
 func AddPGPMultiInstructions(err error) error {
@@ -94,10 +125,6 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine) cli.Command {
 				Name:  "pgp-uid",
 				Usage: "Specify custom PGP uid(s).",
 				Value: &cli.StringSlice{},
-			},
-			cli.BoolFlag{
-				Name:  "no-default-pgp-uid",
-				Usage: "Do not include the default PGP uid 'username@keybase.io' in the key.",
 			},
 			cli.BoolFlag{
 				Name:  "multi",
