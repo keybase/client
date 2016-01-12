@@ -114,7 +114,7 @@ func (n *NotifyRouter) HandleLogout() {
 	n.G().Log.Debug("- Logout notification sent")
 }
 
-// HandleLogin is called whenever the current user logged out. It will broadcast
+// HandleLogin is called whenever a user logs in. It will broadcast
 // the message to all connections who care about such a mesasge.
 func (n *NotifyRouter) HandleLogin(u string) {
 	if n == nil {
