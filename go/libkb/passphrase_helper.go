@@ -1,7 +1,9 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -35,6 +37,32 @@ func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
 	arg.Prompt = fmt.Sprintf("Please enter a paper backup key passphrase for %s", username)
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
+	res, err := GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	if err != nil {
+		return "", err
+	}
+	return res.Passphrase, nil
+}
+
+func GetPaperKeyForCryptoPassphrase(ui SecretUI, reason string, devices []*Device) (string, error) {
+	if len(devices) == 0 {
+		return "", errors.New("empty device list")
+	}
+	arg := DefaultPassphraseArg()
+	arg.WindowTitle = "Paper backup key passphrase"
+	arg.Features.StoreSecret.Allow = false
+	arg.Features.StoreSecret.Readonly = true
+	if len(devices) == 1 {
+		arg.Prompt = fmt.Sprintf("%s: please enter the paper key '%s...'", reason, *devices[0].Description)
+	} else {
+		descs := make([]string, len(devices))
+		for i, dev := range devices {
+			descs[i] = fmt.Sprintf("'%s...'", *dev.Description)
+		}
+		paperOpts := strings.Join(descs, " or ")
+		arg.Prompt = fmt.Sprintf("%s: please enter one of the following paper keys %s", reason, paperOpts)
+	}
+
 	res, err := GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
 	if err != nil {
 		return "", err

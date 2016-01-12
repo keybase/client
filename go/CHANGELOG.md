@@ -22,6 +22,11 @@
   due to misbehaving clients and/or key servers (via vendored PR: keybase/go-crypto#4)
 - openpgp: slightly better error messages for bad subkey signatures
    (via vendored commit: 5604f1eaa4e038e23bdbbf5bb364fe167ff03e07)
+- openpgp: don't choke on UID revocations (via vendored PR: keybase/go-crypto#5).
+- Fix missing SecretUI protocol for passphrase change/recover
+- Add UnboxBytes32Any() with support for device and paper keys (PR: keybase/client
+#1693)
+- Improve login error messages (PR: keybase/client#1652)
 
 ## 1.0.7
 - Don't mask errors in PromptSeletion (Commit: 060ff319e6b50aad09fd0162e50a3212c4f7516d)

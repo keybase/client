@@ -96,6 +96,9 @@ func (d *notificationDisplay) printf(fmt string, args ...interface{}) error {
 func (d *notificationDisplay) LoggedOut(_ context.Context) error {
 	return d.printf("Logged out\n")
 }
+func (d *notificationDisplay) LoggedIn(_ context.Context, un string) error {
+	return d.printf("Logged in as %q\n", un)
+}
 
 func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) error {
 	return d.printf("User %s changed\n", uid)
