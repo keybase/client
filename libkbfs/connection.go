@@ -321,7 +321,8 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 
 // Returns true if the error indicates we should retry the command.
 func (c *Connection) checkForRetry(err error) bool {
-	return err == io.EOF
+	_, isDisconnected := err.(rpc.DisconnectedError)
+	return isDisconnected || err == io.EOF
 }
 
 // IsConnected returns true if the connection is connected.

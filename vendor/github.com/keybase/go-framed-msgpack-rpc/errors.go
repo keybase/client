@@ -28,18 +28,6 @@ func NewDispatcherError(d string, a ...interface{}) DispatcherError {
 	return DispatcherError{fmt.Sprintf(d, a...)}
 }
 
-type ReceiverError struct {
-	msg string
-}
-
-func (p ReceiverError) Error() string {
-	return "dispatcher error: " + p.msg
-}
-
-func NewReceiverError(d string, a ...interface{}) ReceiverError {
-	return ReceiverError{fmt.Sprintf(d, a...)}
-}
-
 type MethodNotFoundError struct {
 	p string
 	m string
@@ -55,6 +43,12 @@ type ProtocolNotFoundError struct {
 
 func (p ProtocolNotFoundError) Error() string {
 	return "protocol not found: " + p.p
+}
+
+type DisconnectedError struct{}
+
+func (e DisconnectedError) Error() string {
+	return "disconnected; no connection to remote"
 }
 
 type AlreadyRegisteredError struct {
@@ -78,19 +72,17 @@ func NewTypeError(expected, actual interface{}) error {
 }
 
 type CanceledError struct {
-	m string
-	s seqNumber
+	p string
 }
 
 func newCanceledError(method string, seq seqNumber) CanceledError {
 	return CanceledError{
-		m: method,
-		s: seq,
+		p: fmt.Sprintf("call canceled: method %s, seqid %d", method, seq),
 	}
 }
 
 func (c CanceledError) Error() string {
-	return fmt.Sprintf("call canceled: method %s, seqid %d", c.m, c.s)
+	return c.p
 }
 
 type CallNotFoundError struct {
@@ -99,34 +91,4 @@ type CallNotFoundError struct {
 
 func (c CallNotFoundError) Error() string {
 	return fmt.Sprintf("Call not found for sequence number %d", c.seqno)
-}
-
-type NilResultError struct {
-	seqno seqNumber
-}
-
-func (c NilResultError) Error() string {
-	return fmt.Sprintf("Nil result supplied for sequence number %d", c.seqno)
-}
-
-type RPCDecodeError struct {
-	typ MethodType
-	len int
-	err error
-}
-
-func (r RPCDecodeError) Error() string {
-	return fmt.Sprintf("RPC error: type %d, length %d, error: %v", r.typ, r.len, r.err)
-}
-
-func newRPCDecodeError(t MethodType, l int, e error) error {
-	return RPCDecodeError{
-		typ: t,
-		len: l,
-		err: e,
-	}
-}
-
-func newRPCMessageFieldDecodeError(i int, err error) error {
-	return fmt.Errorf("error decoding message field at position %d, error: %v", i, err)
 }

@@ -1,124 +1,93 @@
 package rpc
 
 import (
-	"io"
-
 	"github.com/ugorji/go/codec"
+	"io"
 )
 
 type decoder interface {
 	Decode(interface{}) error
 }
 
-// TODO rename this interface to EncodeAndSend
+type byteReadingDecoder interface {
+	decoder
+	io.ByteReader
+}
+
 type encoder interface {
-	Encode(interface{}) <-chan error
-}
-
-type decoderWrapper struct {
-	*codec.Decoder
-	fieldNumber int
-}
-
-func newDecoderWrapper() *decoderWrapper {
-	return &decoderWrapper{
-		Decoder:     codec.NewDecoderBytes([]byte{}, newCodecMsgpackHandle()),
-		fieldNumber: 0,
-	}
-}
-
-func (dw *decoderWrapper) Decode(i interface{}) error {
-	defer func() {
-		dw.fieldNumber++
-	}()
-
-	err := dw.Decoder.Decode(i)
-	if err != nil {
-		return newRPCMessageFieldDecodeError(dw.fieldNumber, err)
-	}
-	return nil
-}
-
-func newCodecMsgpackHandle() codec.Handle {
-	return &codec.MsgpackHandle{
-		WriteExt:    true,
-		RawToString: true,
-	}
-}
-
-type writeBundle struct {
-	bytes []byte
-	ch    chan error
+	Encode(interface{}) error
 }
 
 type framedMsgpackEncoder struct {
 	handle   codec.Handle
-	writer   io.Writer
-	writeCh  chan writeBundle
-	doneCh   chan struct{}
-	closedCh chan struct{}
+	writeCh  chan []byte
+	resultCh chan error
 }
 
-func newFramedMsgpackEncoder(writer io.Writer) *framedMsgpackEncoder {
-	e := &framedMsgpackEncoder{
-		handle:   newCodecMsgpackHandle(),
-		writer:   writer,
-		writeCh:  make(chan writeBundle),
-		doneCh:   make(chan struct{}),
-		closedCh: make(chan struct{}),
+func newFramedMsgpackEncoder(writeCh chan []byte, resultCh chan error) *framedMsgpackEncoder {
+	mh := &codec.MsgpackHandle{WriteExt: true}
+	return &framedMsgpackEncoder{
+		handle:   mh,
+		writeCh:  writeCh,
+		resultCh: resultCh,
 	}
-	go e.writerLoop()
-	return e
 }
 
-func (e *framedMsgpackEncoder) encodeToBytes(enc *codec.Encoder, i interface{}) (v []byte, err error) {
-	enc.ResetBytes(&v)
+func (e *framedMsgpackEncoder) encodeToBytes(i interface{}) (v []byte, err error) {
+	enc := codec.NewEncoderBytes(&v, e.handle)
 	err = enc.Encode(i)
 	return v, err
 }
 
 func (e *framedMsgpackEncoder) encodeFrame(i interface{}) ([]byte, error) {
-	enc := codec.NewEncoderBytes(&[]byte{}, e.handle)
-	content, err := e.encodeToBytes(enc, i)
+	content, err := e.encodeToBytes(i)
 	if err != nil {
 		return nil, err
 	}
-	length, err := e.encodeToBytes(enc, len(content))
+	length, err := e.encodeToBytes(len(content))
 	if err != nil {
 		return nil, err
 	}
 	return append(length, content...), nil
 }
 
-func (e *framedMsgpackEncoder) Encode(i interface{}) <-chan error {
+func (e *framedMsgpackEncoder) Encode(i interface{}) error {
 	bytes, err := e.encodeFrame(i)
-	ch := make(chan error, 1)
 	if err != nil {
-		ch <- err
-		return ch
+		return err
 	}
-	select {
-	case <-e.doneCh:
-		ch <- io.EOF
-	case e.writeCh <- writeBundle{bytes, ch}:
-	}
-	return ch
+	e.writeCh <- bytes
+	return <-e.resultCh
 }
 
-func (e *framedMsgpackEncoder) writerLoop() {
-	for {
-		select {
-		case <-e.doneCh:
-			close(e.closedCh)
-			return
-		case write := <-e.writeCh:
-			_, err := e.writer.Write(write.bytes)
-			write.ch <- err
-		}
+type byteResult struct {
+	b   byte
+	err error
+}
+
+type framedMsgpackDecoder struct {
+	decoderCh        chan interface{}
+	decoderResultCh  chan error
+	readByteCh       chan struct{}
+	readByteResultCh chan byteResult
+}
+
+func newFramedMsgpackDecoder(decoderCh chan interface{}, decoderResultCh chan error, readByteCh chan struct{}, readByteResultCh chan byteResult) *framedMsgpackDecoder {
+	return &framedMsgpackDecoder{
+		decoderCh:        decoderCh,
+		decoderResultCh:  decoderResultCh,
+		readByteCh:       readByteCh,
+		readByteResultCh: readByteResultCh,
 	}
 }
 
-func (e *framedMsgpackEncoder) Close() <-chan struct{} {
-	close(e.doneCh)
-	return e.closedCh
+func (t *framedMsgpackDecoder) ReadByte() (byte, error) {
+	t.readByteCh <- struct{}{}
+	byteRes := <-t.readByteResultCh
+	return byteRes.b, byteRes.err
+}
+
+func (t *framedMsgpackDecoder) Decode(i interface{}) error {
+	t.decoderCh <- i
+	return <-t.decoderResultCh
 }

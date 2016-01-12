@@ -288,12 +288,11 @@ func (md *mockCodec) ReadByte() (b byte, err error) {
 	return b, err
 }
 
-func (md *mockCodec) Encode(i interface{}) <-chan error {
+func (md *mockCodec) Encode(i interface{}) error {
 	return md.encode(i, nil)
 }
 
-func (md *mockCodec) encode(i interface{}, ch chan struct{}) <-chan error {
-	resultCh := make(chan error, 1)
+func (md *mockCodec) encode(i interface{}, ch chan struct{}) error {
 	v := reflect.ValueOf(i)
 	if v.Kind() == reflect.Slice {
 		for i := 0; i < v.Len(); i++ {
@@ -305,11 +304,9 @@ func (md *mockCodec) encode(i interface{}, ch chan struct{}) <-chan error {
 				ch <- struct{}{}
 			}
 		}
-		resultCh <- nil
-	} else {
-		resultCh <- errors.New("only support encoding slices")
+		return nil
 	}
-	return resultCh
+	return errors.New("only support encoding slices")
 }
 
 func (md *mockCodec) decode(i interface{}) error {
@@ -339,7 +336,7 @@ func newBlockingMockCodec(elems ...interface{}) *blockingMockCodec {
 	md := newMockCodec(elems...)
 	return &blockingMockCodec{
 		mockCodec: *md,
-		ch:        make(chan struct{}, 32),
+		ch:        make(chan struct{}),
 	}
 }
 
@@ -348,7 +345,7 @@ func (md *blockingMockCodec) Decode(i interface{}) error {
 	return md.decode(i)
 }
 
-func (md *blockingMockCodec) Encode(i interface{}) <-chan error {
+func (md *blockingMockCodec) Encode(i interface{}) error {
 	return md.encode(i, md.ch)
 }
 

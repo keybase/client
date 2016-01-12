@@ -11,13 +11,21 @@ func NewServer(xp Transporter, f WrapErrorFunc) *Server {
 
 func (s *Server) Register(p Protocol) error {
 	p.WrapError = s.wrapError
-	return s.xp.RegisterProtocol(p)
+	receiver, err := s.xp.getReceiver()
+	if err != nil {
+		return err
+	}
+	return receiver.RegisterProtocol(p)
 }
 
 // AddCloseListener supplies a channel listener to which
 // the server will send an error when a connection closes
 func (s *Server) AddCloseListener(ch chan error) error {
-	s.xp.AddCloseListener(ch)
+	rec, err := s.xp.getReceiver()
+	if err != nil {
+		return err
+	}
+	rec.AddCloseListener(ch)
 	return nil
 }
 
