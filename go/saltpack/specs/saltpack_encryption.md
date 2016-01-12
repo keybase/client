@@ -103,9 +103,10 @@ header length
 - The **ephemeral public key** is a NaCl public encryption key, 32 bytes. The
   ephemeral keypair is generated at random by the sender and only used for one
   message.
-- The **sender secretbox** is a NaCl secretbox containing the sender's
-  long-term public key, encrypted with the **payload key** from below. (See
-  [Nonces](#nonces).)
+- The **sender secretbox** is a
+  [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) containing the
+  sender's long-term public key, encrypted with the **payload key** from below.
+  (See [Nonces](#nonces).)
 - The **recipients list** contains a recipient pair for each recipient key,
   including an encrypted copy of the **payload key**. See below.
 
@@ -120,9 +121,9 @@ A recipient pair is a two-element list:
 
 - The **recipient public key** is the recipient's long-term NaCl public
   encryption key. This field may be null, when the recipients are anonymous.
-- The **payload key box** is a NaCl box containing a copy of the **payload
-  key**. It's encrypted with the recipient's public key and the ephemeral
-  private key. (See [Nonces](#nonces).)
+- The **payload key box** is a [`crypto_box`](http://nacl.cr.yp.to/box.html)
+  containing a copy of the **payload key**. It's encrypted with the recipient's
+  public key and the ephemeral private key. (See [Nonces](#nonces).)
 
 ### Generating a Header Packet
 
@@ -208,7 +209,7 @@ A payload packet is a MessagePack list with these contents:
 
 - The **authenticators list** contains 32-byte HMAC tags, one for each
   recipient, which authenticate the **payload secretbox** together with the
-  message header.
+  message header. See below.
 - The **payload secretbox** is a NaCl secretbox containing a chunk of the
   plaintext bytes, max size 1 MB. It's encrypted with the **payload key**. (See
   [Nonces](#nonces).)
