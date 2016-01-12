@@ -28,6 +28,12 @@ function NotifyPopup (title: string, opts: Object): void {
   new Notification(title, opts) //eslint-disable-line
 }
 
+// Shallow diff of two objects, returns an object that can be merged with
+// the oldObj to yield the newObj. Doesn't handle deleted keys.
+function shallowDiff (oldObj: Object, newObj: Object): Object {
+  return Object.keys(newObj).reduce((acc, k) => newObj[k] !== oldObj[k] ? (acc[k] = newObj[k]) && acc : acc, {})
+}
+
 class Keybase extends Component {
   constructor () {
     super()
@@ -63,18 +69,28 @@ class Keybase extends Component {
     ipcMain.on('subscribeStore', (event, substore) => {
       const sender = event.sender // cache this since this is actually a sync-rpc call...
 
+      // Keep track of the last state sent so we can make the diffs.
+      let oldState = {}
       const getStore = () => {
         if (substore) {
           return store.getState()[substore] || {}
         } else {
-          return store.getState() || {}
+          const newState = store.getState()
+          const diffState = shallowDiff(oldState, newState) || {}
+          oldState = newState
+          return diffState
         }
       }
 
+      console.log('setting up remote store listener')
       sender.send('stateChange', getStore())
       store.subscribe(() => {
-        // TODO: use transit
-        sender.send('stateChange', getStore())
+        const newState = getStore()
+        console.log('Sending state change!', newState)
+        if (Object.keys(newState).length !== 0) {
+          console.log('There was a difference!', newState)
+          sender.send('stateChange', newState)
+        }
       })
     })
 

@@ -7,7 +7,7 @@ export default class RemoteStore {
 
   constructor (props: {substore?: ?string}) {
     ipcRenderer.on('stateChange', (event, arg) => {
-      this.internalState = props.substore ? {[props.substore]: arg} : arg
+      this.internalState = props.substore ? {[props.substore]: arg} : {...this.internalState, ...arg}
       this._publishChange()
     })
 
