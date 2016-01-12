@@ -105,7 +105,7 @@ header length
   message.
 - The **sender secretbox** is a NaCl secretbox containing the sender's
   long-term public key, encrypted with the **payload key**. (See
-  [Nonces](#Nonces).)
+  [Nonces](#nonces).)
 - The **recipients list** contains a recipient pair for each recipient key,
   including an encrypted copy of the **payload key**. See below.
 
@@ -122,7 +122,7 @@ A recipient pair is a two-element list:
   encryption key. This field may be null, when the recipients are anonymous.
 - The **payload key box** is a NaCl box containing a copy of the **payload
   key**. It's encrypted with the recipient's public key and the ephemeral
-  private key. (See [Nonces](#Nonces).)
+  private key. (See [Nonces](#nonces).)
 
 ### Generating a Header Packet
 
@@ -134,27 +134,28 @@ header:
    [`crypto_box_keypair`](http://nacl.cr.yp.to/box.html).
 3. Encrypt the sender's long-term public key using
    [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) with the **payload
-   key**, to create the **sender secretbox**. (See [Nonces](#Nonces).)
+   key**, to create the **sender secretbox**. (See [Nonces](#nonces).)
 4. For each recipient, encrypt the **payload key** using
    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
-   key and the ephemeral private key. (See [Nonces](#Nonces).) Assemble these
+   key and the ephemeral private key. (See [Nonces](#nonces).) Assemble these
    into the **recipients list**.
 5. Collect the **format name**, **version**, and **mode** into a list, followed
    by the **ephemeral public key**, the **sender secretbox**, and the nested
    **recipients list**.
 6. Serialize the list from #5 into bytes using MessagePack.
 7. Count the number of bytes in #6, and serialize that count into a MessagePack
-   integer.
-8. Append the bytes from #6 to the integer in #7. This is the header.
+   integer. This is the **header length**.
+8. Append the bytes from #6 to the **header length** from #7. This is the
+   header.
 
-   After generating the header, the sender computes two extra values, which
-   will be used below to authenticate the payload:
+    After generating the header, the sender computes two extra values, which
+    will be used below to authenticate the payload:
 
 9. Take the [`crypto_hash`](http://nacl.cr.yp.to/hash.html) (SHA512) of the
    bytes from #6. This is the **header hash**.
 10. For each recipient, encrypt 32 zero bytes using
     [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
-    key and the sender's long-term private key. (See [Nonces](#Nonces).) Take
+    key and the sender's long-term private key. (See [Nonces](#nonces).) Take
     the last 32 bytes of each box. These are the **MAC keys**.
 
 Encrypting the sender's long-term public key in step #3 allows Alice to stay
@@ -163,41 +164,33 @@ reuse the ephemeral key as her sender key. When the ephemeral key and the
 sender key are the same, clients may indicate that a message is "intentionally
 anonymous" as opposed to "from an unknown sender".
 
-Recipients should compute the ephemeral shared secret and then try to open each
-of the **payload key boxes**. In the NaCl interface, computing a shared secret
-is done with the [`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html)
-function, which does a Curve25519 multiplication and an HSalsa20 key
-derivation, to avoid repeating those steps in
-[`crypto_box_open`](http://nacl.cr.yp.to/box.html). After obtaining the
-**payload key**, clients open the **sender secretbox** and obtain the sender's
-public key.
+### Parsing a Header Packet
+
+Recipients parse the header of a message using the following steps:
+
+1. Deserialize the **header length** from the message stream using MessagePack.
+2. Read exactly **header length** bytes from the message stream.
+3. As above, hash the bytes from #2 to give the **header hash**.
+4. Deserialize the bytes from #2 using MessagePack to give the header list.
+5. Sanity check the **format name**, **version**, and **mode**.
+6. Precompute the ephemeral shared secret using
+   [`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html) with the **ephemeral
+   public key** and the sender's private key.
+7. Try to open each of the **payload key boxes** in the recipients list using
+   [`crypto_box_afternm`] and the shared secret from #6. (See
+   [Nonces](#nonces).) Successfully opening one gives the **payload key**, and
+   the index of the box that opened is the **recipient index**.
+8. Open the **sender secretbox** using
+   [`crypto_secretbox_open`](http://nacl.cr.yp.to/secretbox.html) and the
+   **payload key** from #7. (See [Nonces](#nonces).)
+9. Compute the recipient's **MAC key** by encrypting 32 zero bytes using
+   [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's private
+   key and the sender's public key from #8. (See [Nonces](#nonces).) The **MAC
+   key** is the last 32 bytes of the resulting box.
 
 Note that when parsing lists in general, if a list is longer than expected,
 clients should allow the extra fields and ignore them. That allows us to make
 future additions to the format without breaking backward compatibility.
-
-After parsing the header packet, recipients compute two related values: the
-**header hash** and the **MAC key**. These are used to authenticate payload
-packets below.
-
-The **header hash** is the SHA512 of all the bytes that make up the header
-packet, including any ignored fields. Because most MessagePack libraries don't
-expose the bytes they read from a stream, saltpack implementations are allowed
-to *reserialize* the header to get the header bytes. To guarantee senders and
-recipients serialize MessagePack objects in the same way, a MessagePack
-implementation used with saltpack has to follow these rules (most of them do):
-
-- Encodings must be minimal. For example, an array of less than 16 elements
-  must use the `fixarray` format.
-- Raw bytes must use the `bin` format. (Some implementations [require a
-  flag](https://github.com/msgpack/msgpack-python#string-and-binary-type) for
-  this.)
-- Positive integers must used the unsigned integer formats.
-
-The **MAC key** is a 32-byte secret key, unique to each recipient. It's
-computed by encrypting 32 zero bytes in a NaCl box with the sender and
-recipient's long-term keys. The **MAC key** is the last 32 bytes of that
-48-byte NaCl box.
 
 ### Payload Packets
 A payload packet is a MessagePack list with these contents:
