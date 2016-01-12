@@ -49,11 +49,6 @@ func linuxUpgradeInstructionsString() (string, error) {
 	}
 
 	packageName := "keybase"
-	if DefaultRunMode == DevelRunMode {
-		packageName = "kbdev"
-	} else if DefaultRunMode == StagingRunMode {
-		packageName = "kbstage"
-	}
 
 	if hasPackageManager("apt-get") {
 		return "sudo apt-get update && sudo apt-get install " + packageName, nil
@@ -61,6 +56,8 @@ func linuxUpgradeInstructionsString() (string, error) {
 		return "sudo dnf upgrade " + packageName, nil
 	} else if hasPackageManager("yum") {
 		return "sudo yum upgrade " + packageName, nil
+	} else if hasPackageManager("pacman") {
+		return "sudo pacman -Syu", nil
 	}
 
 	return "", fmt.Errorf("Unhandled linux upgrade instruction.")
