@@ -48,7 +48,7 @@ type ConfigLocal struct {
 	maxFileBytes uint64
 	maxNameBytes uint32
 	maxDirBytes  uint64
-	rekeyQueue RekeyQueue
+	rekeyQueue   RekeyQueue
 }
 
 var _ Config = (*ConfigLocal)(nil)
