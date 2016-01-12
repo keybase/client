@@ -294,6 +294,8 @@ place of `"saltpack\0"` above.
 ## Example
 
 ```yaml
+# header length
+150
 # header packet
 [
   # format name
@@ -303,9 +305,9 @@ place of `"saltpack\0"` above.
   # mode (0 = encryption)
   0,
   # ephemeral public key
-  e1c7c20fc7ac2012fe4066f5350ae3bbcdb1d243a6ae9706710727611e6efa65,
+  895e690ba0fd8d15f51adf59e161af3f67518fa6e2eaadd8a666b8a1629c2349,
   # sender secretbox
-  86eb1d6032e9a199ecbf844b8d0bb0cde096f84c08a07960f1ea929cee907df5b5e7757ca612a121a7927ffd0cf8fcde,
+  b49c4c8791cd97f2c244c637df90e343eda4aaa56e37d975d2b7c81d36f44850d77706a51e2ccd57e7f7606565db4b1e,
   # recipient pairs
   [
     # the first recipient pair
@@ -313,7 +315,7 @@ place of `"saltpack\0"` above.
       # recipient public key (null in this case, for an anonymous recipient)
       null,
       # payload key box
-      36b1d43f73660961bb8033ad880db2b4b5b00b7a08908cb00551de07719a9455f48672eae697ea0270be6ffe1d3740da,
+      c16b6126d155d7a39db20825d6c43f856689d0f8665a8da803270e0106ed91a90ef599961492bd6e49c69b43adc22724,
     ],
     # subsequent recipient pairs...
   ],
@@ -324,11 +326,11 @@ place of `"saltpack\0"` above.
   # authenticators list
   [
     # the first recipient's authenticator
-    c84eafa03ede35d527b24785ca8b722c84eafa03ede35d527b24785ca8b72266,
+    f90b04186d599b42779564fc93535e1de486de5fbb98e8a987487799910c10c8,
     # subsequent authenticators...
   ],
   # payload secretbox
-  b3f359cfaa303a6f38378b2525d0f731911dd8d73af53f,
+  f991dbe030e2cfa00a640376f956c68b2d113ec6384441a1834e455acbb046ead9389826e92cb7f91cc7ab30c3d4d38ef5e84d12617f37,
 ]
 
 # empty payload packet
@@ -336,10 +338,10 @@ place of `"saltpack\0"` above.
   # authenticators list
   [
     # the first recipient's authenticator
-    c556aade21fd10054603560faa6ce53c556aade21fd10054603560faa6ce5355,
+    0bd743eb8b9c48ba1888d265cd90dedcc3d56b0a003ef99763af224c1a6501db,
     # subsequent authenticators...
   ],
   # the empty payload secretbox
-  16585d2741f0be03882d8df76905535a,
+  481ef99b4f0d0f918edd82e9f5619a41,
 ]
 ```
