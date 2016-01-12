@@ -13,7 +13,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type Context interface {
@@ -65,7 +65,7 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 		if err != nil {
 			installStatus = keybase1.InstallStatus_ERROR
 			installAction = keybase1.InstallAction_REINSTALL
-			status = errorStatus("INSTALL_ERROR", err.Error())
+			status = keybase1.StatusFromCode(keybase1.StatusCode_SCInvalidVersionError, err.Error())
 			return
 		}
 		bsv, err := semver.Make(bundleVersion)
@@ -73,7 +73,7 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 		if err != nil {
 			installStatus = keybase1.InstallStatus_ERROR
 			installAction = keybase1.InstallAction_NONE
-			status = errorStatus("INSTALL_ERROR", err.Error())
+			status = keybase1.StatusFromCode(keybase1.StatusCode_SCInvalidVersionError, err.Error())
 			return
 		}
 		if bsv.GT(sv) {
@@ -85,7 +85,7 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 		} else if bsv.LT(sv) {
 			installStatus = keybase1.InstallStatus_ERROR
 			installAction = keybase1.InstallAction_NONE
-			status = errorStatus("INSTALL_ERROR", fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version))
+			status = keybase1.StatusFromCode(keybase1.StatusCode_SCOldVersionError, fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version))
 			return
 		}
 	} else if version != "" && bundleVersion == "" {
@@ -101,16 +101,8 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 		installStatus = keybase1.InstallStatus_INSTALLED
 	}
 
-	status = keybase1.Status{Name: "OK"}
+	status = keybase1.StatusOK()
 	return
-}
-
-func errorStatus(name string, desc string) keybase1.Status {
-	return keybase1.Status{Code: libkb.SCGeneric, Name: name, Desc: desc}
-}
-
-func ErrorStatus(name string, desc string) keybase1.Status {
-	return errorStatus(name, desc)
 }
 
 func serviceInfoPath(context Context) string {

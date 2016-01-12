@@ -96,7 +96,7 @@ func (v *CmdInstall) runInstall() keybase1.InstallResult {
 	err := install.CheckIfValidLocation()
 	if err != nil {
 		v.G().Log.Errorf("%s", err)
-		return keybase1.InstallResult{Status: install.ErrorStatus("INVALID_LOCATION", err.Error()), Fatal: true}
+		return keybase1.InstallResult{Status: err.Status(), Fatal: true}
 	}
 
 	if v.installer == "auto" {
@@ -105,7 +105,7 @@ func (v *CmdInstall) runInstall() keybase1.InstallResult {
 		return install.Install(v.G(), v.binPath, v.components, v.force)
 	}
 
-	return keybase1.InstallResult{Status: install.ErrorStatus("INVALID_INSTALLER", fmt.Sprintf("Invalid installer: %s", v.installer))}
+	return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, fmt.Sprintf("Invalid installer: %s", v.installer))}
 }
 
 func (v *CmdInstall) outputResult(result keybase1.InstallResult) {

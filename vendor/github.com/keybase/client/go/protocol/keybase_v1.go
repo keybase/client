@@ -604,7 +604,7 @@ const (
 	StatusCode_SCGeneric                StatusCode = 218
 	StatusCode_SCAlreadyLoggedIn        StatusCode = 235
 	StatusCode_SCCanceled               StatusCode = 237
-	StatusCode_SCInputCanceled          StatusCode = 238
+	StatusCode_SCInputCanceled          StatusCode = 239
 	StatusCode_SCReloginRequired        StatusCode = 274
 	StatusCode_SCResolutionFailed       StatusCode = 275
 	StatusCode_SCProfileNotPublic       StatusCode = 276
@@ -644,6 +644,11 @@ const (
 	StatusCode_SCSelfNotFound           StatusCode = 1703
 	StatusCode_SCBadKexPhrase           StatusCode = 1704
 	StatusCode_SCNoUIDelegation         StatusCode = 1705
+	StatusCode_SCInvalidVersionError    StatusCode = 1800
+	StatusCode_SCOldVersionError        StatusCode = 1801
+	StatusCode_SCInvalidLocationError   StatusCode = 1802
+	StatusCode_SCServiceStatusError     StatusCode = 1803
+	StatusCode_SCInstallError           StatusCode = 1804
 )
 
 type ConstantsInterface interface {

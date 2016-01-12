@@ -457,3 +457,42 @@ func KIDFromRawKey(b []byte, keyType byte) KID {
 	tmp = append(tmp, byte(KidSuffix))
 	return KIDFromSlice(tmp)
 }
+
+type APIStatus interface {
+	Status() Status
+}
+
+type Error struct {
+	code    StatusCode
+	message string
+}
+
+func NewError(code StatusCode, message string) *Error {
+	if code == StatusCode_SCOk {
+		return nil
+	}
+	return &Error{code: code, message: message}
+}
+
+func FromError(err error) *Error {
+	return &Error{code: StatusCode_SCGeneric, message: err.Error()}
+}
+
+func StatusOK() Status {
+	return Status{Code: int(StatusCode_SCOk), Name: "OK", Desc: "OK"}
+}
+
+func StatusFromCode(code StatusCode, message string) Status {
+	if code == StatusCode_SCOk {
+		return StatusOK()
+	}
+	return NewError(code, message).Status()
+}
+
+func (e *Error) Error() string {
+	return e.message
+}
+
+func (e *Error) Status() Status {
+	return Status{Code: int(e.code), Name: "ERROR", Desc: e.message}
+}
