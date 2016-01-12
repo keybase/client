@@ -15,6 +15,7 @@ import (
 	"math"
 	"math/big"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -410,4 +411,21 @@ func SplitByRunes(s string, separators []rune) []string {
 // SplitPath return string split by path separator: SplitPath("/a/b/c") => []string{"a", "b", "c"}
 func SplitPath(s string) []string {
 	return SplitByRunes(s, []rune{filepath.Separator})
+}
+
+// IsSystemAdminUser returns true if current user is root or admin (system user, not Keybase user).
+// WARNING: You shouldn't rely on this for security purposes.
+func IsSystemAdminUser() (isAdminUser bool, match string, err error) {
+	u, err := user.Current()
+	if err != nil {
+		return
+	}
+
+	if u.Uid == "0" {
+		match = "Uid: 0"
+		isAdminUser = true
+		return
+	}
+
+	return
 }
