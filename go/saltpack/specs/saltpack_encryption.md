@@ -79,9 +79,11 @@ is a header packet, followed by any number of non-empty payload packets, and
 finally an empty payload packet.
 
 ### Header Packet
-The header packet is a MessagePack list with these contents:
+The header packet is a MessagePack integer followed by a MessagePack list:
 
 ```
+header length
+
 [
     format name,
     version,
@@ -92,6 +94,7 @@ The header packet is a MessagePack list with these contents:
 ]
 ```
 
+- The **header length** is the number of bytes in the list that follows.
 - The **format name** is the string "saltpack".
 - The **version** is a list of the major and minor versions, currently
   `[1, 0]`.
@@ -100,8 +103,9 @@ The header packet is a MessagePack list with these contents:
 - The **ephemeral public key** is a NaCl public encryption key, 32 bytes. The
   ephemeral keypair is generated at random by the sender and only used for one
   message.
-- The **sender secretbox** is a NaCl secretbox containing the
-  sender's long-term public key, encrypted with the **payload key**.
+- The **sender secretbox** is a NaCl secretbox containing the sender's
+  long-term public key, encrypted with the **payload key**. (See
+  [Nonces](#Nonces).)
 - The **recipients list** contains a recipient pair for each recipient key,
   including an encrypted copy of the **payload key**. See below.
 
@@ -116,12 +120,48 @@ A recipient pair is a two-element list:
 
 - The **recipient public key** is the recipient's long-term NaCl public
   encryption key. This field may be null, when the recipients are anonymous.
-- The **payload key box** is a NaCl box encrypted with the recipient's public
-  key and the ephemeral private key. See also [Nonces](#Nonces) below. It
-  contains the **payload key**, a 32-byte NaCl symmetric encryption key, which
-  is used to encrypt the **sender secretbox** above and the **payload
-  secretbox** in each payload packet below. The sender generates a random
-  payload key for each message.
+- The **payload key box** is a NaCl box containing a copy of the **payload
+  key**. It's encrypted with the recipient's public key and the ephemeral
+  private key. (See [Nonces](#Nonces).)
+
+### Generating a Header Packet
+
+When composing a message, the sender follows these steps to generate the
+header:
+
+1. Generate a random 32-byte **payload key**.
+2. Generate a random ephemeral keypair, using
+   [`crypto_box_keypair`](http://nacl.cr.yp.to/box.html).
+3. Encrypt the sender's long-term public key using
+   [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) with the **payload
+   key**, to create the **sender secretbox**. (See [Nonces](#Nonces).)
+4. For each recipient, encrypt the **payload key** using
+   [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
+   key and the ephemeral private key. (See [Nonces](#Nonces).) Assemble these
+   into the **recipients list**.
+5. Collect the **format name**, **version**, and **mode** into a list, followed
+   by the **ephemeral public key**, the **sender secretbox**, and the nested
+   **recipients list**.
+6. Serialize the list from #5 into bytes using MessagePack.
+7. Count the number of bytes in #6, and serialize that count into a MessagePack
+   integer.
+8. Append the bytes from #6 to the integer in #7. This is the header.
+
+   After generating the header, the sender computes two extra values, which
+   will be used below to authenticate the payload:
+
+9. Take the [`crypto_hash`](http://nacl.cr.yp.to/hash.html) (SHA512) of the
+   bytes from #6. This is the **header hash**.
+10. For each recipient, encrypt 32 zero bytes using
+    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
+    key and the sender's long-term private key. (See [Nonces](#Nonces).) Take
+    the last 32 bytes of each box. These are the **MAC keys**.
+
+Encrypting the sender's long-term public key in step #3 allows Alice to stay
+anonymous to Mallory. If Alice wants to be anonymous to Bob as well, she can
+reuse the ephemeral key as her sender key. When the ephemeral key and the
+sender key are the same, clients may indicate that a message is "intentionally
+anonymous" as opposed to "from an unknown sender".
 
 Recipients should compute the ephemeral shared secret and then try to open each
 of the **payload key boxes**. In the NaCl interface, computing a shared secret
@@ -131,12 +171,6 @@ derivation, to avoid repeating those steps in
 [`crypto_box_open`](http://nacl.cr.yp.to/box.html). After obtaining the
 **payload key**, clients open the **sender secretbox** and obtain the sender's
 public key.
-
-Encrypting the sender's long-term public key allows Alice to stay anonymous to
-Mallory. If Alice wants to be anonymous to Bob as well, she can reuse the
-ephemeral key as her sender key. When the ephemeral key and the sender key are
-the same, clients may indicate that a message is "intentionally anonymous" as
-opposed to "from an unknown sender".
 
 Note that when parsing lists in general, if a list is longer than expected,
 clients should allow the extra fields and ignore them. That allows us to make
