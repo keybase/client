@@ -306,13 +306,16 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID]BlockContext) error {
 	refs := make([]keybase1.BlockReference, 0, len(contexts))
 	for id, context := range contexts {
-		refs = append(refs, keybase1.BlockReference{
+		ref := keybase1.BlockReference{
 			Bid: keybase1.BlockIdCombo{
 				ChargedTo: context.GetCreator(),
 				BlockHash: id.String(),
 			},
 			ChargedTo: context.GetWriter(),
-		})
+		}
+		nonce := context.GetRefNonce()
+		copy(ref.Nonce[:], nonce[:])
+		refs = append(refs, ref)
 	}
 	return b.archiveBlockReferences(ctx, tlfID, refs)
 }
