@@ -211,7 +211,20 @@ func NewEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers []Box
 	if err := es.init(sender, receivers); err != nil {
 		return nil, err
 	}
-	err = es.encoder.Encode(es.header)
+	// Encode the header and the header length, and write them out immediately.
+	headerBytes, err := encodeToBytes(es.header)
+	if err != nil {
+		return nil, err
+	}
+	headerLen, err := encodeToBytes(len(headerBytes))
+	if err != nil {
+		return nil, err
+	}
+	_, err = es.output.Write(headerLen)
+	if err != nil {
+		return nil, err
+	}
+	_, err = es.output.Write(headerBytes)
 	return es, err
 }
 

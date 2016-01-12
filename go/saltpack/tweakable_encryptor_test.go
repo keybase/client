@@ -240,12 +240,21 @@ func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers [
 	if err := pes.init(sender, receivers); err != nil {
 		return nil, err
 	}
+	// Encode the header and the header length, and write them out immediately.
 	headerBytes, err := encodeToBytes(pes.header)
+	if err != nil {
+		return nil, err
+	}
+	headerLen, err := encodeToBytes(len(headerBytes))
 	if err != nil {
 		return nil, err
 	}
 	if pes.options.corruptHeaderPacked != nil {
 		pes.options.corruptHeaderPacked(headerBytes)
+	}
+	_, err = pes.output.Write(headerLen)
+	if err != nil {
+		return nil, err
 	}
 	_, err = pes.output.Write(headerBytes)
 	return pes, err

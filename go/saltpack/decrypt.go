@@ -92,14 +92,27 @@ func (ds *decryptStream) read(b []byte) (n int, err error) {
 	return n, nil
 }
 
-func (ds *decryptStream) readHeader() error {
-	var hdr EncryptionHeader
-	seqno, err := ds.mps.Read(&hdr)
+func (ds *decryptStream) readHeader(rawReader io.Reader) error {
+	// Parse the length of the header.
+	var headerLength int
+	seqno, err := ds.mps.Read(&headerLength)
 	if err != nil {
 		return err
 	}
-	hdr.seqno = seqno
-	err = ds.processEncryptionHeader(&hdr)
+	// Read the header bytes.
+	headerBytes := make([]byte, headerLength)
+	_, err = io.ReadFull(rawReader, headerBytes)
+	if err != nil {
+		return err
+	}
+	// Parse the header bytes.
+	var header EncryptionHeader
+	err = decodeFromBytes(&header, headerBytes)
+	if err != nil {
+		return err
+	}
+	header.seqno = seqno
+	err = ds.processEncryptionHeader(&header)
 	if err != nil {
 		return err
 	}
@@ -307,7 +320,7 @@ func NewDecryptStream(r io.Reader, keyring Keyring) (mki *MessageKeyInfo, plaint
 		mps:  newMsgpackStream(r),
 	}
 
-	err = ds.readHeader()
+	err = ds.readHeader(r)
 	if err != nil {
 		return &ds.mki, nil, err
 	}
