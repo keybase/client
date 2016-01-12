@@ -51,7 +51,7 @@ build_one_architecture() {
   #      https://github.com/golang/go/issues/11165
   go build -a -tags "$go_tags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  cp run_keybase.sh "$dest/build/usr/bin/run_keybase.sh"
+  cp "$here/run_keybase.sh" "$dest/build/usr/bin/run_keybase.sh"
 
   if [ -n "${KEYBASE_INCLUDE_KBFS:-}" ] ; then
     # Build KBFS.
