@@ -8,6 +8,7 @@ import Nav from '../../react-native/react/nav'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import ListenForNotifications from '../../react-native/react/native/notifications'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
+import {reduxDevToolsEnable} from '../../react-native/react/local-debug'
 
 // For Remote Components
 import {ipcRenderer} from 'electron'
@@ -99,7 +100,7 @@ class Keybase extends Component {
 
   render () {
     let dt = null
-    if (__DEV__) { // eslint-disable-line no-undef
+    if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
       const DevTools = require('./redux-dev-tools')
       dt = <DevTools />
     }

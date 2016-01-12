@@ -15,6 +15,8 @@ let config = {
   showDevTools: false,
   showAllTrackers: false,
   showMainWindow: false,
+  reduxDevToolsEnable: false,
+  redirectOnLogout: true,
   reduxDevToolsSelect: state => state // only watch a subset of the store
 }
 
@@ -24,9 +26,11 @@ if (__DEV__ && false) { // eslint-disable-line no-undef
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
   config.printRPC = true
-  config.showDevTools = true
+  config.showDevTools = false
   config.showMainWindow = true
   config.showAllTrackers = true
+  config.reduxDevToolsEnable = false
+  config.redirectOnLogout = false
   config.reduxDevToolsSelect = state => state.tracker
 }
 
