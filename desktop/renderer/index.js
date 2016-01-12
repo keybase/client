@@ -66,30 +66,24 @@ class Keybase extends Component {
       setImmediate(() => store.dispatch(_.cloneDeep(action)))
     })
 
-    ipcMain.on('subscribeStore', (event, substore) => {
+    ipcMain.on('subscribeStore', event => {
       const sender = event.sender // cache this since this is actually a sync-rpc call...
 
       // Keep track of the last state sent so we can make the diffs.
       let oldState = {}
       const getStore = () => {
-        if (substore) {
-          return store.getState()[substore] || {}
-        } else {
-          const newState = store.getState()
-          const diffState = shallowDiff(oldState, newState) || {}
-          oldState = newState
-          return diffState
-        }
+        const newState = store.getState()
+        const diffState = shallowDiff(oldState, newState) || {}
+        oldState = newState
+        return diffState
       }
 
-      console.log('setting up remote store listener')
       sender.send('stateChange', getStore())
       store.subscribe(() => {
-        const newState = getStore()
-        console.log('Sending state change!', newState)
-        if (Object.keys(newState).length !== 0) {
-          console.log('There was a difference!', newState)
-          sender.send('stateChange', newState)
+        const diffState = getStore()
+        console.log('Sending state change!', diffState)
+        if (Object.keys(diffState).length !== 0) {
+          sender.send('stateChange', diffState)
         }
       })
     })
