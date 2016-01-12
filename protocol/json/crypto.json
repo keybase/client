@@ -265,6 +265,9 @@
     }, {
       "name" : "plaintext",
       "type" : "Bytes32"
+    }, {
+      "name" : "index",
+      "type" : "int"
     } ]
   } ],
   "messages" : {

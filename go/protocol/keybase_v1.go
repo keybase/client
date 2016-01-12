@@ -684,6 +684,7 @@ type CiphertextKIDPair struct {
 type UnboxAnyRes struct {
 	Kid       KID     `codec:"kid" json:"kid"`
 	Plaintext Bytes32 `codec:"plaintext" json:"plaintext"`
+	Index     int     `codec:"index" json:"index"`
 }
 
 type SignED25519Arg struct {
@@ -3384,8 +3385,13 @@ func (c NotifyFSClient) FSActivity(ctx context.Context, notification FSNotificat
 type LoggedOutArg struct {
 }
 
+type LoggedInArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
 type NotifySessionInterface interface {
 	LoggedOut(context.Context) error
+	LoggedIn(context.Context, string) error
 }
 
 func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
@@ -3403,6 +3409,22 @@ func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"loggedIn": {
+				MakeArg: func() interface{} {
+					ret := make([]LoggedInArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoggedInArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoggedInArg)(nil), args)
+						return
+					}
+					err = i.LoggedIn(ctx, (*typedArgs)[0].Username)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3413,6 +3435,12 @@ type NotifySessionClient struct {
 
 func (c NotifySessionClient) LoggedOut(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}}, nil)
+	return
+}
+
+func (c NotifySessionClient) LoggedIn(ctx context.Context, username string) (err error) {
+	__arg := LoggedInArg{Username: username}
+	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedIn", []interface{}{__arg}, nil)
 	return
 }
 

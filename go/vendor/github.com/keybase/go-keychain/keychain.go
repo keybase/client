@@ -127,6 +127,7 @@ var matchTypeRef = map[MatchLimit]C.CFTypeRef{
 
 var ReturnAttributesKey = attrKey(C.CFTypeRef(C.kSecReturnAttributes))
 var ReturnDataKey = attrKey(C.CFTypeRef(C.kSecReturnData))
+var ReturnRefKey = attrKey(C.CFTypeRef(C.kSecReturnRef))
 
 // Item for adding, querying or deleting.
 type Item struct {
@@ -202,6 +203,10 @@ func (k *Item) SetReturnData(b bool) {
 	k.attr[ReturnDataKey] = b
 }
 
+func (k *Item) SetReturnRef(b bool) {
+	k.attr[ReturnRefKey] = b
+}
+
 // NewItem is a new empty keychain item.
 func NewItem() Item {
 	return Item{make(map[string]interface{})}
@@ -242,8 +247,8 @@ type QueryResult struct {
 	Data        []byte
 }
 
-// QueryItem returns a list of query results.
-func QueryItem(item Item) ([]QueryResult, error) {
+// QueryItemRef returns query result as CFTypeRef. You must release it when you are done.
+func QueryItemRef(item Item) (C.CFTypeRef, error) {
 	cfDict, err := ConvertMapToCFDictionary(item.attr)
 	if err != nil {
 		return nil, err
@@ -259,6 +264,18 @@ func QueryItem(item Item) ([]QueryResult, error) {
 	if err != nil {
 		return nil, err
 	}
+	return resultsRef, nil
+}
+
+// QueryItem returns a list of query results.
+func QueryItem(item Item) ([]QueryResult, error) {
+	resultsRef, err := QueryItemRef(item)
+	if err != nil {
+		return nil, err
+	}
+	if resultsRef == nil {
+		return nil, nil
+	}
 	defer Release(resultsRef)
 
 	results := make([]QueryResult, 0, 1)
@@ -266,12 +283,17 @@ func QueryItem(item Item) ([]QueryResult, error) {
 	typeID := C.CFGetTypeID(resultsRef)
 	if typeID == C.CFArrayGetTypeID() {
 		arr := CFArrayToArray(C.CFArrayRef(resultsRef))
-		for _, dictRef := range arr {
-			item, err := convertResult(C.CFDictionaryRef(dictRef))
-			if err != nil {
-				return nil, err
+		for _, ref := range arr {
+			typeID := C.CFGetTypeID(ref)
+			if typeID == C.CFDictionaryGetTypeID() {
+				item, err := convertResult(C.CFDictionaryRef(ref))
+				if err != nil {
+					return nil, err
+				}
+				results = append(results, *item)
+			} else {
+				return nil, fmt.Errorf("Invalid result type (If you SetReturnRef(true) you should use QueryItemRef directly).")
 			}
-			results = append(results, *item)
 		}
 	} else if typeID == C.CFDictionaryGetTypeID() {
 		item, err := convertResult(C.CFDictionaryRef(resultsRef))
@@ -370,6 +392,7 @@ func GetGenericPasswordAccounts(service string) ([]string, error) {
 }
 
 // GetGenericPassword returns password data for service and account. This is a convenience method.
+// If item is not found returns nil, nil.
 func GetGenericPassword(service string, account string, label string, accessGroup string) ([]byte, error) {
 	query := NewItem()
 	query.SetSecClass(SecClassGenericPassword)
@@ -390,4 +413,10 @@ func GetGenericPassword(service string, account string, label string, accessGrou
 		return results[0].Data, nil
 	}
 	return nil, nil
+}
+
+// DeleteItemRef deletes a keychain item reference.
+func DeleteItemRef(ref C.CFTypeRef) error {
+	errCode := C.SecKeychainItemDelete(C.SecKeychainItemRef(ref))
+	return checkError(errCode)
 }

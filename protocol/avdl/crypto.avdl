@@ -49,6 +49,7 @@ protocol crypto {
   record UnboxAnyRes {
     KID kid;                 // the KID that was used for decryption
     Bytes32 plaintext;       // decrypted data
+    int index;
   }
 
   UnboxAnyRes unboxBytes32Any(array<CiphertextKIDPair> pairs, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);

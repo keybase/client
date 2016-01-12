@@ -344,7 +344,6 @@ func (n *nullui) Shutdown() error {
 
 type TestSecretUI struct {
 	Passphrase          string
-	BackupPassphrase    string
 	StoreSecret         bool
 	CalledGetPassphrase bool
 }

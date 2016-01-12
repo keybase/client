@@ -74,10 +74,13 @@ Or specify a custom home directory (and use -d for debug):
 
 ### Testing
 
-To test install Boot2Docker and run (if you have access to our server code):
+First follow [these
+instructions](https://github.com/keybase/keybase/blob/76e762699d940ff3f3a0b931ca9f35f68c812f18/README.md#running-the-server-in-a-docker-container)
+to run a docker instance of the server.
+
+Then, run:
 
 ```bash
-docker build -t kbweb .
 make test
 ```
 

@@ -196,6 +196,9 @@ func isPGPBinary(b []byte, sc *StreamClassification) bool {
 	return true
 }
 
+var encryptionArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)
+var signedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeAttachedSignature, KeybaseSaltpackBrand)
+
 // ClassifyStream takes a stream reader in, and returns a likely classification
 // of that stream without consuming any data from it. It returns a reader that you
 // should read from instead, in addition to the classification. If classification
@@ -222,11 +225,11 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		sc.Format = CryptoMessageFormatPGP
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeClearSignature
-	case strings.HasPrefix(sb, saltpack.EncryptionArmorHeader+"."):
+	case strings.HasPrefix(sb, encryptionArmorHeader+"."):
 		sc.Format = CryptoMessageFormatSaltpack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeEncryption
-	case strings.HasPrefix(sb, saltpack.SignedArmorHeader+"."):
+	case strings.HasPrefix(sb, signedArmorHeader+"."):
 		sc.Format = CryptoMessageFormatSaltpack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeSignature

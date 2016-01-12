@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ATSApplicationFontsPath</key>
-	<string>Fonts</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -19,7 +17,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.1.8</string>
 	<key>CFBundleSignature</key>
-	<string>????</string>
+	<string>KEYB</string>
 	<key>CFBundleVersion</key>
 	<string>1.1.8</string>
 	<key>KBFuseBuild</key>
@@ -30,8 +28,6 @@
 	<string>1.0.20</string>
 	<key>KBHelperVersion</key>
 	<string>1.0.20</string>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>

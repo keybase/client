@@ -137,3 +137,10 @@ func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) (ret keybase1.KID) {
 	p := k.ToKID()
 	return keybase1.KIDFromRawKey(p, KIDNaclDH)
 }
+
+func checkSaltpackBrand(b string) error {
+	if b != KeybaseSaltpackBrand {
+		return KeybaseSaltpackError{}
+	}
+	return nil
+}

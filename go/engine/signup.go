@@ -84,6 +84,8 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
+		s.G().NotifyRouter.HandleLogin(s.arg.Username)
+
 		if !s.arg.SkipPaper {
 			if err := s.genPaperKeys(ctx); err != nil {
 				return err

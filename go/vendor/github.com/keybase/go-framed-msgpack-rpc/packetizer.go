@@ -1,64 +1,80 @@
 package rpc
 
+import (
+	"errors"
+	"fmt"
+	"io"
+	"net"
+
+	"github.com/ugorji/go/codec"
+)
+
 type packetizer interface {
-	Packetize() error
+	NextFrame() (rpcMessage, error)
 }
 
 type packetHandler struct {
-	receiver receiver
-	dec      byteReadingDecoder
+	dec          decoder
+	reader       io.Reader
+	frameDecoder *decoderWrapper
+	protocols    *protocolHandler
+	calls        *callContainer
 }
 
-func newPacketHandler(r receiver, dec byteReadingDecoder) *packetHandler {
+func newPacketHandler(reader io.Reader, protocols *protocolHandler, calls *callContainer) *packetHandler {
 	return &packetHandler{
-		receiver: r,
-		dec:      dec,
+		reader:       reader,
+		dec:          codec.NewDecoder(reader, newCodecMsgpackHandle()),
+		frameDecoder: newDecoderWrapper(),
+		protocols:    protocols,
+		calls:        calls,
 	}
 }
 
-func (p *packetHandler) getFrame() (int, error) {
-	var l int
-
-	err := p.dec.Decode(&l)
-
-	return l, err
-}
-
-func (p *packetHandler) getMessage(l int) (err error) {
-	// TODO currently tossing out `l` above. We should either validate it or
-	// not pass it in at all.
-	var b byte
-
-	if b, err = p.dec.ReadByte(); err != nil {
-		return err
+func (p *packetHandler) NextFrame() (rpcMessage, error) {
+	bytes, err := p.loadNextFrame()
+	if err != nil {
+		return nil, err
 	}
-	nb := int(b)
+	if len(bytes) < 1 {
+		return nil, fmt.Errorf("invalid frame size: %d", len(bytes))
+	}
+
+	// Attempt to read the fixarray
+	nb := int(bytes[0])
 
 	// Interpret the byte as the length field of a fixarray of up
 	// to 15 elements: see
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-array
 	// . Do this so we can decode directly into the expected
 	// fields without copying.
-	if nb >= 0x91 && nb <= 0x9f {
-		err = p.receiver.Receive(nb - 0x90)
-	} else {
-		err = NewPacketizerError("wrong message structure prefix (%d)", nb)
+	if nb < 0x91 || nb > 0x9f {
+		return nil, NewPacketizerError("wrong message structure prefix (%d)", nb)
 	}
+	p.frameDecoder.ResetBytes(bytes[1:])
 
-	return err
+	return decodeRPC(nb-0x90, p.frameDecoder, p.protocols, p.calls)
 }
 
-func (p *packetHandler) packetizeOne() (err error) {
-	var n int
-	if n, err = p.getFrame(); err == nil {
-		err = p.getMessage(n)
+func (p *packetHandler) loadNextFrame() ([]byte, error) {
+	// Get the packet length
+	var l int
+	if err := p.dec.Decode(&l); err != nil {
+		if _, ok := err.(*net.OpError); ok {
+			// If the connection is reset or has been closed on this side,
+			// return EOF
+			return nil, io.EOF
+		}
+		return nil, err
 	}
-	return
-}
 
-func (p *packetHandler) Packetize() (err error) {
-	for err == nil {
-		err = p.packetizeOne()
+	bytes := make([]byte, l)
+	len, err := p.reader.Read(bytes)
+	if err != nil {
+		return nil, err
 	}
-	return
+	if len != l {
+		return nil, errors.New("Unable to read desired length")
+	}
+	return bytes, nil
 }

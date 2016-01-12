@@ -623,11 +623,13 @@ export type CiphertextKIDPair = {
 export type crypto_UnboxAnyRes = {
   kid: KID;
   plaintext: Bytes32;
+  index: int;
 }
 
 export type UnboxAnyRes = {
   kid: KID;
   plaintext: Bytes32;
+  index: int;
 }
 
 export type ctl_Time = {

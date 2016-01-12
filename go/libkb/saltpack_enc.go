@@ -23,7 +23,7 @@ func SaltpackEncrypt(
 		bsk = naclBoxSecretKey(sender)
 	}
 
-	plainsink, err := saltpack.NewEncryptArmor62Stream(sink, bsk, receiverBoxKeys)
+	plainsink, err := saltpack.NewEncryptArmor62Stream(sink, bsk, receiverBoxKeys, KeybaseSaltpackBrand)
 	if err != nil {
 		return err
 	}

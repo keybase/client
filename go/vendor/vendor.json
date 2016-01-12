@@ -109,8 +109,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "5604f1eaa4e038e23bdbbf5bb364fe167ff03e07",
-			"revisionTime": "2016-01-11T09:41:30-05:00"
+			"revision": "f36281eca125933db34a24b47c61d11fd9540c4a",
+			"revisionTime": "2016-01-11T17:04:01-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
@@ -144,8 +144,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "4e25f5ec641df586094c295c65df85e2836b5d10",
-			"revisionTime": "2015-12-22T12:35:00-08:00"
+			"revision": "81327294bbea1a79f8f39efefa9c6490ad98f5a4",
+			"revisionTime": "2016-01-12T10:54:08-08:00"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
@@ -159,18 +159,13 @@
 		},
 		{
 			"path": "github.com/keybase/go-keychain",
-			"revision": "5b9b2fabbf4433c8c613329a87470b716abf12af",
-			"revisionTime": "2015-11-17T11:50:13-08:00"
+			"revision": "9cf53c87839ca21086dcaa22d45804df060d6052",
+			"revisionTime": "2016-01-05T14:19:29-08:00"
 		},
 		{
 			"path": "github.com/keybase/go-logging",
 			"revision": "d7b8c00ee8a21d4cfe58c75c0f09c6d3d030d80f",
 			"revisionTime": "2015-12-09T11:25:47-08:00"
-		},
-		{
-			"path": "github.com/keybase/go-osxkeychain",
-			"revision": "4565eafe02fe6b846b1ab5754dbf879a4ebc946a",
-			"revisionTime": "2015-12-29T11:30:16-08:00"
 		},
 		{
 			"path": "github.com/keybase/go-triplesec",
@@ -279,8 +274,8 @@
 		},
 		{
 			"path": "github.com/ugorji/go/codec",
-			"revision": "821cda7e48749cacf7cad2c6ed01e96457ca7e9d",
-			"revisionTime": "2015-05-15T07:49:16-04:00"
+			"revision": "646ae4a518c1c3be0739df898118d9bccf993858",
+			"revisionTime": "2015-12-18T14:34:38-05:00"
 		},
 		{
 			"path": "golang.org/x/crypto/cast5",

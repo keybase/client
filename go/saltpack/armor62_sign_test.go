@@ -11,7 +11,7 @@ import (
 func TestSignArmor62(t *testing.T) {
 	msg := randomMsg(t, 128)
 	key := newSigPrivKey(t)
-	smsg, err := SignArmor62(msg, key)
+	smsg, err := SignArmor62(msg, key, ourBrand)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -19,10 +19,11 @@ func TestSignArmor62(t *testing.T) {
 		t.Fatal("SignArmor62 returned no error and no output")
 	}
 
-	skey, vmsg, err := Dearmor62Verify(smsg, kr)
+	skey, vmsg, brand, err := Dearmor62Verify(smsg, kr)
 	if err != nil {
 		t.Fatal(err)
 	}
+	brandCheck(t, brand)
 	if !KIDEqual(skey, key.PublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
 	}
@@ -34,7 +35,7 @@ func TestSignArmor62(t *testing.T) {
 func TestSignDetachedArmor62(t *testing.T) {
 	msg := randomMsg(t, 128)
 	key := newSigPrivKey(t)
-	sig, err := SignDetachedArmor62(msg, key)
+	sig, err := SignDetachedArmor62(msg, key, ourBrand)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,10 +43,11 @@ func TestSignDetachedArmor62(t *testing.T) {
 		t.Fatal("empty sig and no error from SignDetachedArmor62")
 	}
 
-	skey, err := Dearmor62VerifyDetached(msg, sig, kr)
+	skey, brand, err := Dearmor62VerifyDetached(msg, sig, kr)
 	if err != nil {
 		t.Fatal(err)
 	}
+	brandCheck(t, brand)
 	if !KIDEqual(skey, key.PublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
 	}

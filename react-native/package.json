@@ -13,7 +13,7 @@
   "dependencies": {
     "buffer": "^3.5.4",
     "framed-msgpack-rpc": "keybase/node-framed-msgpack-rpc#nojima/keybase-client-changes",
-    "getenv": "^0.5.0",
+    "getenv": "^0.6.0",
     "iced-runtime": "^1.0.3",
     "immutable": "^3.7.5",
     "lodash": "^3.10.1",
