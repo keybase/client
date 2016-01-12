@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"io"
 	"net"
-	"strings"
 
 	"github.com/ugorji/go/codec"
 )
@@ -17,6 +16,8 @@ type Transporter interface {
 	Run() error
 	RunAsync() error
 	IsConnected() bool
+	AddCloseListener(ch chan<- error)
+	RegisterProtocol(p Protocol) error
 }
 
 type transporter interface {
@@ -26,7 +27,7 @@ type transporter interface {
 type connDecoder struct {
 	decoder
 	net.Conn
-	io.ByteReader
+	Reader *bufio.Reader
 }
 
 func newConnDecoder(c net.Conn) *connDecoder {
@@ -34,29 +35,25 @@ func newConnDecoder(c net.Conn) *connDecoder {
 	mh := &codec.MsgpackHandle{WriteExt: true}
 
 	return &connDecoder{
-		Conn:       c,
-		ByteReader: br,
-		decoder:    codec.NewDecoder(br, mh),
+		Conn:    c,
+		Reader:  br,
+		decoder: codec.NewDecoder(br, mh),
 	}
 }
 
 var _ transporter = (*transport)(nil)
 
 type transport struct {
-	cdec             *connDecoder
-	dispatcher       dispatcher
-	receiver         receiver
-	packetizer       packetizer
-	log              LogInterface
-	wrapError        WrapErrorFunc
-	encodeCh         chan []byte
-	encodeResultCh   chan error
-	readByteCh       chan struct{}
-	readByteResultCh chan byteResult
-	decodeCh         chan interface{}
-	decodeResultCh   chan error
-	startCh          chan struct{}
-	stopCh           chan struct{}
+	cdec       *connDecoder
+	enc        *framedMsgpackEncoder
+	dispatcher dispatcher
+	receiver   receiver
+	packetizer packetizer
+	protocols  *protocolHandler
+	calls      *callContainer
+	log        LogInterface
+	startCh    chan struct{}
+	stopCh     chan struct{}
 }
 
 func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
@@ -70,24 +67,18 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
 	startCh <- struct{}{}
 
 	ret := &transport{
-		cdec:             cdec,
-		log:              log,
-		wrapError:        wef,
-		encodeCh:         make(chan []byte),
-		encodeResultCh:   make(chan error),
-		readByteCh:       make(chan struct{}),
-		readByteResultCh: make(chan byteResult),
-		decodeCh:         make(chan interface{}),
-		decodeResultCh:   make(chan error),
-		startCh:          startCh,
-		stopCh:           make(chan struct{}),
+		cdec:      cdec,
+		log:       log,
+		startCh:   startCh,
+		stopCh:    make(chan struct{}),
+		protocols: newProtocolHandler(wef),
+		calls:     newCallContainer(),
 	}
-	enc := newFramedMsgpackEncoder(ret.encodeCh, ret.encodeResultCh)
-	dec := newFramedMsgpackDecoder(ret.decodeCh, ret.decodeResultCh, ret.readByteCh, ret.readByteResultCh)
-	callRetrievalCh := make(chan callRetrieval)
-	ret.dispatcher = newDispatch(enc, dec, callRetrievalCh, log)
-	ret.receiver = newReceiveHandler(enc, dec, callRetrievalCh, log, wef)
-	ret.packetizer = newPacketHandler(ret.receiver, dec)
+	enc := newFramedMsgpackEncoder(ret.cdec)
+	ret.enc = enc
+	ret.dispatcher = newDispatch(enc, ret.calls, log)
+	ret.receiver = newReceiveHandler(enc, ret.protocols, log)
+	ret.packetizer = newPacketHandler(cdec.Reader, ret.protocols, ret.calls)
 	return ret
 }
 
@@ -102,7 +93,7 @@ func (t *transport) IsConnected() bool {
 
 func (t *transport) Run() error {
 	if !t.IsConnected() {
-		return DisconnectedError{}
+		return io.EOF
 	}
 
 	select {
@@ -115,14 +106,14 @@ func (t *transport) Run() error {
 
 func (t *transport) RunAsync() error {
 	if !t.IsConnected() {
-		return DisconnectedError{}
+		return io.EOF
 	}
 
 	select {
 	case <-t.startCh:
 		go func() {
 			err := t.run()
-			if err != nil {
+			if err != nil && err != io.EOF {
 				t.log.Warning("asynchronous t.run() failed with %v", err)
 			}
 		}()
@@ -133,25 +124,25 @@ func (t *transport) RunAsync() error {
 }
 
 func (t *transport) run() (err error) {
-	// Initialize transport loops
-	readerDone := runInBg(t.readerLoop)
-	writerDone := runInBg(t.writerLoop)
-
 	// Packetize: do work
-	err = t.packetizer.Packetize()
+	for {
+		var rpc rpcMessage
+		if rpc, err = t.packetizer.NextFrame(); err == nil {
+			t.receiver.Receive(rpc)
+			continue
+		}
+		break
+	}
 
 	// Log packetizer completion
 	t.log.TransportError(err)
 
 	// Since the receiver might require the transport, we have to
 	// close it before terminating our loops
-	<-t.dispatcher.Close(err)
-	<-t.receiver.Close(err)
 	close(t.stopCh)
-
-	// Wait for loops to finish before closing the connection
-	<-readerDone
-	<-writerDone
+	t.dispatcher.Close()
+	<-t.receiver.Close(err)
+	<-t.enc.Close()
 
 	// Cleanup
 	t.cdec.Close()
@@ -159,50 +150,24 @@ func (t *transport) run() (err error) {
 	return
 }
 
-func (t *transport) readerLoop() error {
-	for {
-		select {
-		case <-t.stopCh:
-			return nil
-		case i := <-t.decodeCh:
-			err := t.cdec.Decode(i)
-			if err != nil && strings.Index(err.Error(), "use of closed network connection") >= 0 {
-				err = io.EOF
-			}
-			t.decodeResultCh <- err
-		case <-t.readByteCh:
-			b, err := t.cdec.ReadByte()
-			res := byteResult{
-				b:   b,
-				err: err,
-			}
-			t.readByteResultCh <- res
-		}
-	}
-}
-
-func (t *transport) writerLoop() error {
-	for {
-		select {
-		case <-t.stopCh:
-			return nil
-		case bytes := <-t.encodeCh:
-			_, err := t.cdec.Write(bytes)
-			t.encodeResultCh <- err
-		}
-	}
-}
-
 func (t *transport) getDispatcher() (dispatcher, error) {
 	if !t.IsConnected() {
-		return nil, DisconnectedError{}
+		return nil, io.EOF
 	}
 	return t.dispatcher, nil
 }
 
 func (t *transport) getReceiver() (receiver, error) {
 	if !t.IsConnected() {
-		return nil, DisconnectedError{}
+		return nil, io.EOF
 	}
 	return t.receiver, nil
+}
+
+func (t *transport) RegisterProtocol(p Protocol) error {
+	return t.protocols.registerProtocol(p)
+}
+
+func (t *transport) AddCloseListener(ch chan<- error) {
+	t.receiver.AddCloseListener(ch)
 }
