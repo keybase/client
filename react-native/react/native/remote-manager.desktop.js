@@ -91,7 +91,6 @@ class RemoteManager extends Component {
             onRemoteClose={() => this.props.onCloseFromHeader(username)}
             component='tracker'
             username={username}
-            substore='tracker'
             startTimer={this.props.trackerStartTimer}
             stopTimer={this.props.trackerStopTimer}
             key={username}

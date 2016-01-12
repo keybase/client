@@ -81,7 +81,7 @@ class Keybase extends Component {
     ipcRenderer.send('remoteStoreReady')
 
     // Handle notifications from the service
-    ListenForNotifications(NotifyPopup)
+    ListenForNotifications(store.dispatch, NotifyPopup)
 
     // Handle logUi.log
     ListenLogUi()

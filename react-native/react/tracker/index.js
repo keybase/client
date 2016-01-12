@@ -7,7 +7,6 @@ import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
-import {warning} from '../constants/tracker'
 
 import type {RenderProps} from './render'
 import type {UserInfo} from './bio.render'
@@ -17,6 +16,7 @@ import type {SimpleProofState} from '../constants/tracker'
 import type {TrackSummary} from '../constants/types/flow-types'
 
 type TrackerProps = {
+  loggedIn: boolean,
   trackerState: SimpleProofState,
   trackerMessage: ?string,
   username: ?string,
@@ -67,6 +67,7 @@ class Tracker extends Component {
         onClose: () => this.props.onCloseFromHeader(this.props.username)
       },
       actionProps: {
+        loggedIn: this.props.loggedIn,
         state: this.props.trackerState,
         username: this.props.username,
         renderChangedTitle,
@@ -132,6 +133,7 @@ const mockData = {
 }
 
 Tracker.propTypes = {
+  loggedIn: React.PropTypes.bool.isRequired,
   trackerState: React.PropTypes.any,
   trackerMessage: React.PropTypes.any,
   username: React.PropTypes.any,
@@ -154,12 +156,13 @@ Tracker.propTypes = {
 }
 
 export default connect(
-  state => state.tracker,
+  state => ({...state.tracker, loggedIn: state.config.status.loggedIn}),
   dispatch => {
     return bindActionCreators(trackerActions, dispatch)
   },
   (stateProps, dispatchProps, ownProps) => {
     return {
+      loggedIn: stateProps.loggedIn,
       ...stateProps.trackers[ownProps.username],
       ...dispatchProps,
       ...ownProps
