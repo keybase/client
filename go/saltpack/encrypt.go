@@ -82,7 +82,7 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 		authenticatorDigest := hmac.New(sha512.New, macKey)
 		authenticatorDigest.Write(hashToAuthenticate)
 		fullMAC := authenticatorDigest.Sum(nil)
-		truncatedMAC := fullMAC[:32]
+		truncatedMAC := fullMAC[:CryptoAuthLength]
 		block.HashAuthenticators = append(block.HashAuthenticators, truncatedMAC)
 	}
 

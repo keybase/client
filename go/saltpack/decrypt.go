@@ -294,7 +294,7 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 	authenticatorDigest := hmac.New(sha512.New, ds.macKey)
 	authenticatorDigest.Write(hashToAuthenticate)
 	fullMAC := authenticatorDigest.Sum(nil)
-	ourAuthenticator := fullMAC[:32]
+	ourAuthenticator := fullMAC[:CryptoAuthLength]
 	if !hmac.Equal(ourAuthenticator, bl.HashAuthenticators[ds.position]) {
 		return nil, ErrBadTag(bl.seqno)
 	}
