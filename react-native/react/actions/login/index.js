@@ -87,6 +87,7 @@ export function autoLogin () {
     engine.rpc('login.login', {}, {}, (error, status) => {
       if (error) {
         console.log(error)
+        dispatch({type: Constants.loginDone, error: true, payload: error})
       } else {
         dispatch({type: Constants.loginDone, payload: status})
       }
@@ -100,7 +101,7 @@ export function logout () {
       if (error) {
         console.log(error)
       } else {
-        dispatch(logoutDone)
+        dispatch(logoutDone())
       }
     })
   }
