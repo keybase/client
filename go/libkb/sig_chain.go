@@ -163,14 +163,14 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 
 	for i := 0; i < lim; i++ {
 		var link *ChainLink
-		if link, err = ImportLinkFromServer(sc, v.AtIndex(i), selfUID); err != nil {
+		if link, err = ImportLinkFromServer(sc.G(), sc, v.AtIndex(i), selfUID); err != nil {
 			return
 		}
 		if link.GetSeqno() <= low {
 			continue
 		}
 		if selfUID.Equal(link.GetUID()) {
-			sc.G().Log.Debug("| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
+			sc.G().VDL.Log(VLog1, VTagSigChain, "| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
 			link.isOwnNewLinkFromServer = true
 		}
 		links = append(links, link)

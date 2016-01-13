@@ -62,6 +62,7 @@ func (n NullConfiguration) GetUpdatePreferenceAuto() (bool, bool)         { retu
 func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time           { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdatePreferenceSkip() string               { return "" }
+func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -840,4 +841,13 @@ func (e *Env) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
 
 func (e *Env) SetUpdateLastChecked(t keybase1.Time) error {
 	return e.GetConfigWriter().SetUpdateLastChecked(t)
+}
+
+func (e *Env) GetVDebugSetting() string {
+	return e.GetString(
+		func() string { return e.cmd.GetVDebugSetting() },
+		func() string { return os.Getenv("KEYBASE_VDEBUG") },
+		func() string { return e.config.GetVDebugSetting() },
+		func() string { return "" },
+	)
 }

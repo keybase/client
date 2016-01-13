@@ -451,6 +451,9 @@ func (f JSONConfigFile) GetProxy() string {
 func (f JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
 }
+func (f JSONConfigFile) GetVDebugSetting() string {
+	return f.GetTopLevelString("vdebug")
+}
 func (f JSONConfigFile) GetAutoFork() (bool, bool) {
 	return f.GetTopLevelBool("auto_fork")
 }
