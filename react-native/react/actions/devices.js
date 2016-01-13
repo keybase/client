@@ -54,14 +54,7 @@ export function generatePaperKey () {
 
 export function removeDevice (deviceID) {
   return navigateUpOnUnchanged((dispatch, getState, maybeNavigateUp) => {
-    const incomingMap = {
-      'keybase.1.logUi.log': (param, response) => {
-        console.log(param)
-        response.result()
-      }
-    }
-
-    engine.rpc('revoke.revokeDevice', {deviceID, force: false}, incomingMap, error => {
+    engine.rpc('revoke.revokeDevice', {deviceID, force: false}, {}, error => {
       dispatch({
         type: Constants.deviceRemoved,
         payload: error,

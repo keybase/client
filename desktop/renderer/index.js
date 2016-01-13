@@ -6,9 +6,9 @@ import {Provider} from 'react-redux'
 import configureStore from '../../react-native/react/store/configure-store'
 import Nav from '../../react-native/react/nav'
 import injectTapEventPlugin from 'react-tap-event-plugin'
-import ListenForNotifications from '../../react-native/react/native/notifications'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 import {reduxDevToolsEnable} from '../../react-native/react/local-debug'
+import {listenForNotifications} from '../../react-native/react/actions/notifications'
 
 // For Remote Components
 import {ipcRenderer} from 'electron'
@@ -24,10 +24,6 @@ if (module.hot) {
 }
 
 const store = configureStore()
-
-function NotifyPopup (title: string, opts: Object): void {
-  new Notification(title, opts) //eslint-disable-line
-}
 
 // Shallow diff of two objects, returns an object that can be merged with
 // the oldObj to yield the newObj. Doesn't handle deleted keys.
@@ -92,7 +88,7 @@ class Keybase extends Component {
     ipcRenderer.send('remoteStoreReady')
 
     // Handle notifications from the service
-    ListenForNotifications(store.dispatch, NotifyPopup)
+    store.dispatch(listenForNotifications())
 
     // Handle logUi.log
     ListenLogUi()

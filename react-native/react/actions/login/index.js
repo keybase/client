@@ -345,10 +345,6 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
         response.result(deviceName)
       }))
     },
-    'keybase.1.logUi.log': (param, response) => {
-      console.log(param)
-      response.result()
-    },
     'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
       response.result()
     },

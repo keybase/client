@@ -15,7 +15,7 @@ import type {UserInfo} from '../tracker/bio.render'
 import type {Proof} from '../tracker/proofs.render'
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
-import type {Identity, RemoteProof, LinkCheckResult, ProofState, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
+import type {Identity, RemoteProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
@@ -280,7 +280,12 @@ function stateToColor (state: SimpleProofState): string {
   return 'gray'
 }
 
-function proofStateToSimpleProofState (proofState: ProofState): SimpleProofState {
+function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff): SimpleProofState {
+  // If there is no difference in what we've tracked from the server or remote resource it's good.
+  if (diff && remoteDiff && diff.type === identify.TrackDiffType.none && remoteDiff === identify.TrackDiffType.none) {
+    return normal
+  }
+
   const statusName: ?string = mapTagToName(identify.ProofState, proofState)
   switch (statusName) {
     case 'ok':
@@ -360,7 +365,7 @@ function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
 }
 
 function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
-  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state) || checking
+  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
 
   let proofType: string = ''
   if (rp.proofType === identify.ProofType.genericWebSite || rp.proofType === identify.ProofType.dns) {
