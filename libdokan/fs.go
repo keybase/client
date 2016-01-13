@@ -8,7 +8,6 @@ package libdokan
 
 import (
 	"errors"
-	"os"
 	"strings"
 	"sync"
 	"syscall"
@@ -48,13 +47,7 @@ type FS struct {
 }
 
 // NewFS creates an FS
-func NewFS(config libkbfs.Config, debug bool) (*FS, error) {
-	log := logger.New("kbfsdokan", os.Stderr)
-	if debug {
-		// Turn on debugging.  TODO: allow a proper log file and
-		// style to be specified.
-		log.Configure("", true, "")
-	}
+func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, error) {
 	sid, err := dokan.CurrentProcessUserSid()
 	if err != nil {
 		return nil, err
@@ -75,6 +68,14 @@ func NewFS(config libkbfs.Config, debug bool) (*FS, error) {
 			public:  true,
 			folders: make(map[string]*Dir),
 		}}
+
+	ctx = context.WithValue(ctx, CtxAppIDKey, f)
+	logTags := make(logger.CtxLogTags)
+	logTags[CtxIDKey] = CtxOpID
+	ctx = logger.NewContextWithLogTags(ctx, logTags)
+	f.context = ctx
+
+	f.launchNotificationProcessor(ctx)
 
 	return f, nil
 }
