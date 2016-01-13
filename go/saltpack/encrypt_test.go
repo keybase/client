@@ -1207,3 +1207,25 @@ func TestBadKeyLookup(t *testing.T) {
 	}
 	kr.bad = false
 }
+
+func TestCorruptFraming(t *testing.T) {
+	// Create a "ciphertext" where payload length isn't an integer.
+	nonInteger, err := encodeToBytes("I'm a string")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Open(nonInteger, kr)
+	if err != ErrFailedToDecodeHeaderLength {
+		t.Fatal(err)
+	}
+
+	// Create a "ciphertext" where the payload length is a valid integer, but
+	// it's not followed by the promised number of bytes.
+	integer, err := encodeToBytes(1000)
+	tooFewBytes, err := encodeToBytes("less than a thousand bytes")
+	ciphertext := append(integer, tooFewBytes...)
+	_, _, err = Open(ciphertext, kr)
+	if err != ErrFailedToReadHeaderBytes {
+		t.Fatal(err)
+	}
+}

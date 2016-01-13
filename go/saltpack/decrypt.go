@@ -97,13 +97,13 @@ func (ds *decryptStream) readHeader(rawReader io.Reader) error {
 	var headerLength int
 	seqno, err := ds.mps.Read(&headerLength)
 	if err != nil {
-		return err
+		return ErrFailedToDecodeHeaderLength
 	}
 	// Read the header bytes.
 	headerBytes := make([]byte, headerLength)
 	_, err = io.ReadFull(rawReader, headerBytes)
 	if err != nil {
-		return err
+		return ErrFailedToReadHeaderBytes
 	}
 	// Compute the header hash.
 	headerHash := sha512.Sum512(headerBytes)
