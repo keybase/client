@@ -166,6 +166,7 @@ var badWhitespaceChainLinks = map[keybase1.SigID]string{
 }
 
 type ChainLink struct {
+	Contextified
 	parent          *SigChain
 	id              LinkID
 	hashVerified    bool
@@ -199,7 +200,7 @@ func (c *ChainLink) Parent() *SigChain {
 
 func (c *ChainLink) SetParent(parent *SigChain) {
 	if c.parent != nil {
-		G.Log.Warning("changing ChainLink parent")
+		c.G().Log.Warning("changing ChainLink parent")
 	}
 	c.parent = parent
 }
@@ -304,7 +305,7 @@ func (c *ChainLink) GetRevokeKids() []keybase1.KID {
 func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err error) {
 	found = false
 	if t != nil && c.GetSeqno() == t.Seqno {
-		G.Log.Debug("| Found chain tail advertised in Merkle tree @%d", int(t.Seqno))
+		c.G().Log.Debug("| Found chain tail advertised in Merkle tree @%d", int(t.Seqno))
 		found = true
 		if !c.id.Eq(t.LinkID) {
 			err = fmt.Errorf("Bad chain ID at seqno=%d", int(t.Seqno))
@@ -425,14 +426,14 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 		b, e2 := c.packed.AtKey("sig_verified").GetBool()
 		if e2 == nil && b {
 			c.sigVerified = true
-			G.Log.Debug("| Link is marked as 'sig_verified'")
+			c.G().VDL.Log(VLog1, "| Link is marked as 'sig_verified'")
 			if e3 := c.UnpackComputedKeyInfos(c.packed.AtKey("computed_key_infos")); e3 != nil {
-				G.Log.Warning("Problem unpacking computed key infos: %s\n", e3)
+				c.G().Log.Warning("Problem unpacking computed key infos: %s\n", e3)
 			}
 		}
 	}
 
-	G.Log.Debug("| Unpacked Link %s", c.id)
+	c.G().VDL.Log(VLog1, "| Unpacked Link %s", c.id)
 
 	return err
 }
@@ -476,7 +477,7 @@ func (c *ChainLink) VerifyHash() error {
 func (c ChainLink) getFixedPayload() []byte {
 	ret := c.unpacked.payloadJSONStr
 	if s, ok := badWhitespaceChainLinks[c.unpacked.sigID]; ok {
-		G.Log.Debug("Fixing payload by adding newline on link '%s': %s", c.unpacked.sigID, s)
+		c.G().Log.Debug("Fixing payload by adding newline on link '%s': %s", c.unpacked.sigID, s)
 		ret += "\n"
 	}
 	return []byte(ret)
@@ -519,7 +520,7 @@ func (c *ChainLink) GetSigCheckCache() (cki *ComputedKeyInfos) {
 }
 
 func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
-	G.Log.Debug("Caching SigCheck for link %s:", c.id)
+	c.G().Log.Debug("Caching SigCheck for link %s:", c.id)
 	c.sigVerified = true
 	c.dirty = true
 	c.cki = cki
@@ -552,24 +553,25 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 	return
 }
 
-func ImportLinkFromServer(parent *SigChain, jw *jsonw.Wrapper, selfUID keybase1.UID) (ret *ChainLink, err error) {
+func ImportLinkFromServer(g *GlobalContext, parent *SigChain, jw *jsonw.Wrapper, selfUID keybase1.UID) (ret *ChainLink, err error) {
 	var id LinkID
 	GetLinkIDVoid(jw.AtKey("payload_hash"), &id, &err)
 	if err != nil {
 		return
 	}
-	ret = NewChainLink(parent, id, jw)
+	ret = NewChainLink(g, parent, id, jw)
 	if err = ret.Unpack(false, selfUID); err != nil {
 		ret = nil
 	}
 	return
 }
 
-func NewChainLink(parent *SigChain, id LinkID, jw *jsonw.Wrapper) *ChainLink {
+func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID, jw *jsonw.Wrapper) *ChainLink {
 	return &ChainLink{
-		parent: parent,
-		id:     id,
-		packed: jw,
+		Contextified: NewContextified(g),
+		parent:       parent,
+		id:           id,
+		packed:       jw,
 	}
 }
 
@@ -578,7 +580,7 @@ func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*
 	var ret *ChainLink
 	if err == nil {
 		// May as well recheck onload (maybe revisit this)
-		ret = NewChainLink(nil, id, jw)
+		ret = NewChainLink(g, nil, id, jw)
 		if err = ret.Unpack(true, selfUID); err != nil {
 			ret = nil
 		}
@@ -660,7 +662,7 @@ func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
 	if err = g.LocalDb.Put(key, []DbKey{}, c.packed); err != nil {
 		return
 	}
-	g.Log.Debug("| Store Link %s", c.id)
+	g.VDL.Log(VLog1, "| Store Link %s", c.id)
 
 	c.storedLocally = true
 	c.dirty = false

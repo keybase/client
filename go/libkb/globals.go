@@ -31,6 +31,7 @@ type ShutdownHook func() error
 
 type GlobalContext struct {
 	Log               logger.Logger  // Handles all logging
+	VDL               *VDebugLog     // verbose debug log
 	Env               *Env           // Env variables, cmdline args & config
 	Keyrings          *Keyrings      // Gpg Keychains holding keys
 	API               API            // How to make a REST call to the server
@@ -67,8 +68,10 @@ type GlobalContext struct {
 }
 
 func NewGlobalContext() *GlobalContext {
+	log := logger.New("keybase", ErrorWriter())
 	return &GlobalContext{
-		Log:                 logger.New("keybase", ErrorWriter()),
+		Log:                 log,
+		VDL:                 NewVDebugLog(log),
 		ProofCheckerFactory: defaultProofCheckerFactory,
 		Clock:               clockwork.NewRealClock(),
 	}
@@ -155,6 +158,7 @@ func (g *GlobalContext) ConfigureLogging() error {
 	g.Log.Configure(g.Env.GetLogFormat(), g.Env.GetDebug(),
 		g.Env.GetLogFile())
 	g.Output = os.Stdout
+	g.VDL.Configure(g.Env.GetVDebugSetting())
 	return nil
 }
 

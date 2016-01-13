@@ -85,6 +85,9 @@ func (p CommandLine) GetDbFilename() string {
 func (p CommandLine) GetDebug() (bool, bool) {
 	return p.GetBool("debug", true)
 }
+func (p CommandLine) GetVDebugSetting() string {
+	return p.GetGString("vdebug")
+}
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }
@@ -302,6 +305,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "Enable debugging mode.",
+		},
+		cli.StringFlag{
+			Name:  "vdebug",
+			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
 		},
 		cli.StringFlag{
 			Name:  "run-mode",

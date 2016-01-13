@@ -32,6 +32,7 @@ type CommandLine interface {
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
+	GetVDebugSetting() string
 	GetProxy() string
 	GetLogFormat() string
 	GetGpgHome() string
@@ -96,6 +97,7 @@ type ConfigReader interface {
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
+	GetVDebugSetting() string
 	GetAutoFork() (bool, bool)
 	GetUserConfig() (*UserConfig, error)
 	GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error)
