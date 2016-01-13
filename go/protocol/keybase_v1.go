@@ -4698,6 +4698,7 @@ type SaltpackEncryptOptions struct {
 	Recipients    []string `codec:"recipients" json:"recipients"`
 	HideSelf      bool     `codec:"hideSelf" json:"hideSelf"`
 	NoSelfEncrypt bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
+	Binary        bool     `codec:"binary" json:"binary"`
 }
 
 type SaltpackDecryptOptions struct {
@@ -4707,6 +4708,7 @@ type SaltpackDecryptOptions struct {
 
 type SaltpackSignOptions struct {
 	Detached bool `codec:"detached" json:"detached"`
+	Binary   bool `codec:"binary" json:"binary"`
 }
 
 type SaltpackVerifyOptions struct {

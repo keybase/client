@@ -20,6 +20,7 @@ type CmdEncrypt struct {
 	filter        UnixFilter
 	recipients    []string
 	noSelfEncrypt bool
+	binary        bool
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -37,6 +38,10 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			// https://keybase.atlassian.net/browse/CORE-2142
 			// .
 			//
+			cli.BoolFlag{
+				Name:  "b, binary",
+				Usage: "Output in binary (rather than ASCII/armored).",
+			},
 			cli.StringFlag{
 				Name:  "i, infile",
 				Usage: "Specify an input file.",
@@ -80,6 +85,7 @@ func (c *CmdEncrypt) Run() error {
 	opts := keybase1.SaltpackEncryptOptions{
 		Recipients:    c.recipients,
 		NoSelfEncrypt: c.noSelfEncrypt,
+		Binary:        c.binary,
 	}
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
@@ -105,6 +111,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
 	c.noSelfEncrypt = ctx.Bool("no-self")
+	c.binary = ctx.Bool("binary")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}

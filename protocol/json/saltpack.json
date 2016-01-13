@@ -397,6 +397,9 @@
     }, {
       "name" : "noSelfEncrypt",
       "type" : "boolean"
+    }, {
+      "name" : "binary",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "record",
@@ -413,6 +416,9 @@
     "name" : "SaltpackSignOptions",
     "fields" : [ {
       "name" : "detached",
+      "type" : "boolean"
+    }, {
+      "name" : "binary",
       "type" : "boolean"
     } ]
   }, {

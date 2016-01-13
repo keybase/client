@@ -3933,12 +3933,14 @@ export type saltpack_SaltpackEncryptOptions = {
   recipients: Array<string>;
   hideSelf: boolean;
   noSelfEncrypt: boolean;
+  binary: boolean;
 }
 
 export type SaltpackEncryptOptions = {
   recipients: Array<string>;
   hideSelf: boolean;
   noSelfEncrypt: boolean;
+  binary: boolean;
 }
 
 export type saltpack_SaltpackDecryptOptions = {
@@ -3953,10 +3955,12 @@ export type SaltpackDecryptOptions = {
 
 export type saltpack_SaltpackSignOptions = {
   detached: boolean;
+  binary: boolean;
 }
 
 export type SaltpackSignOptions = {
   detached: boolean;
+  binary: boolean;
 }
 
 export type saltpack_SaltpackVerifyOptions = {
