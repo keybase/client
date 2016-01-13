@@ -4,10 +4,11 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"strings"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func TestSaltpackEncrypt(t *testing.T) {
@@ -196,6 +197,52 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	dec = NewSaltpackDecrypt(decarg, tc.G)
 	err = RunEngine(dec, ctx)
 	if err != nil {
+		t.Fatal(err)
+	}
+	decmsg := decoded.String()
+	if decmsg != msg {
+		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
+	}
+}
+
+func TestSaltpackEncryptBinary(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncryptBinary")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "enc")
+
+	// encrypt a message
+	msg := "10 days in Japan"
+	sink := libkb.NewBufferCloser()
+	ctx := &Context{
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   fu.NewSecretUI(),
+		LogUI:      tc.G.UI.GetLogUI(),
+		SaltpackUI: &fakeSaltpackUI{},
+	}
+	// Should encrypt for self, too.
+	arg := &SaltpackEncryptArg{
+		Source: strings.NewReader(msg),
+		Sink:   sink,
+		Opts: keybase1.SaltpackEncryptOptions{
+			Binary: true,
+		},
+	}
+	enc := NewSaltpackEncrypt(arg, tc.G)
+	if err := RunEngine(enc, ctx); err != nil {
+		t.Fatal(err)
+	}
+	out := sink.String()
+
+	t.Logf("encrypted data: %x", out)
+
+	// decrypt it
+	decoded := libkb.NewBufferCloser()
+	decarg := &SaltpackDecryptArg{
+		Source: strings.NewReader(out),
+		Sink:   decoded,
+	}
+	dec := NewSaltpackDecrypt(decarg, tc.G)
+	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}
 	decmsg := decoded.String()
