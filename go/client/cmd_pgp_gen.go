@@ -73,11 +73,11 @@ func (v *CmdPGPGen) Run() (err error) {
 
 var CheckRealName = libkb.Checker{
 	F: func(s string) bool {
-		nameId, err := libkb.ParseIdentity(s)
+		nameID, err := libkb.ParseIdentity(s)
 		if err != nil {
 			return false
 		}
-		return len(nameId.Username) > 0 && len(nameId.Comment) == 0 && len(nameId.Email) == 0
+		return len(nameID.Username) > 0 && len(nameID.Comment) == 0 && len(nameID.Email) == 0
 	},
 	Hint: "for example: \"Ned Snowben\"",
 }
