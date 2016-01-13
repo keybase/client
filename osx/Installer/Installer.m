@@ -13,14 +13,13 @@
 
 @interface Installer ()
 @property Settings *settings;
-//@property KBMemLogger *memLogger;
+@property KBMemLogger *memLogger;
 @end
 
 typedef NS_ENUM (NSInteger, KBExit) {
   KBExitIgnore = 0,
   KBExitNormal = 0,
   KBExitQuit = 1,
-  KBExitMoreDetails = 2,
 };
 
 @implementation Installer
@@ -28,8 +27,8 @@ typedef NS_ENUM (NSInteger, KBExit) {
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   [KBWorkspace setupLogging];
 
-  //_memLogger = [[KBMemLogger alloc] init];
-  //[DDLog addLogger:_memLogger withLevel:DDLogLevelDebug];
+  _memLogger = [[KBMemLogger alloc] init];
+  [DDLog addLogger:_memLogger withLevel:DDLogLevelDebug];
 
   [KBAppearance setCurrentAppearance:[KBUIAppearance appearance]];
 
@@ -106,6 +105,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [alert addButtonWithTitle:@"Quit"];
   [alert addButtonWithTitle:@"Ignore"];
   [alert addButtonWithTitle:@"More Details"];
+
   [alert setAlertStyle:NSWarningAlertStyle];
   NSModalResponse response = [alert runModal];
   if (response == NSAlertFirstButtonReturn) {
@@ -113,7 +113,37 @@ typedef NS_ENUM (NSInteger, KBExit) {
   } else if (response == NSAlertSecondButtonReturn) {
     completion(error, KBExitIgnore);
   } else if (response == NSAlertThirdButtonReturn) {
-    completion(error, KBExitMoreDetails);
+    [self showMoreDetails:error environment:environment completion:completion];
+  }
+}
+
+- (void)showMoreDetails:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
+  NSAlert *alert = [[NSAlert alloc] init];
+  [alert setMessageText:@"Keybase Error"];
+  [alert setInformativeText:error.localizedDescription];
+  [alert addButtonWithTitle:@"Quit"];
+  [alert addButtonWithTitle:@"Ignore"];
+
+  KBTextView *textView = [[KBTextView alloc] init];
+  textView.editable = NO;
+  textView.view.textContainerInset = CGSizeMake(5, 5);
+
+  NSMutableString *info = [NSMutableString stringWithString:[environment debugInstallables]];
+  if (_memLogger) {
+    [info appendString:@"Log:\n"];
+    [info appendString:[_memLogger messages]];
+  }
+  [textView setText:info style:KBTextStyleDefault options:KBTextOptionsMonospace|KBTextOptionsSmall alignment:NSLeftTextAlignment lineBreakMode:NSLineBreakByCharWrapping];
+
+  textView.frame = CGRectMake(0, 0, 500, 200);
+  textView.borderType = NSBezelBorder;
+  alert.accessoryView = textView;
+
+  NSModalResponse response = [alert runModal];
+  if (response == NSAlertFirstButtonReturn) {
+    completion(error, KBExitQuit);
+  } else if (response == NSAlertSecondButtonReturn) {
+    completion(error, KBExitIgnore);
   }
 }
 

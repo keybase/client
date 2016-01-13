@@ -7,7 +7,7 @@ export type Props = {
   title: string,
   onClose: () => void,
   style: Object,
-  children: ?Object
+  children?: ?Object
 }
 
 declare export default class Header extends React.Component<void, Props, {}> {

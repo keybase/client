@@ -3,14 +3,23 @@ import path from 'path'
 import type {FSNotification} from '../../react/constants/types/flow-types'
 import {getTLF} from '../util/kbfs'
 
+import {getCurrentStatus} from '../actions/config'
+import {logoutDone} from '../actions/login'
+
 // TODO: Once we have access to the Redux store from the thread running
 // notification listeners, store the sentNotifications map in it.
 var sentNotifications = {}
 
-export default function (notify) {
+// TODO(mm) Move these to their own actions
+export default function (dispatch, notify) {
   return {
     'keybase.1.NotifySession.loggedOut': () => {
-      notify('Logged Out')
+      notify('Logged out of Keybase')
+      dispatch(logoutDone())
+    },
+    'keybase.1.NotifySession.loggedIn': ({username}: {username: string}) => {
+      notify('Logged in to Keybase as: ' + username)
+      dispatch(getCurrentStatus())
     },
     'keybase.1.NotifyFS.FSActivity': params => {
       const notification: FSNotification = params.notification

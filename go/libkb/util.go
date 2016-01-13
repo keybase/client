@@ -16,6 +16,7 @@ import (
 	"math"
 	"math/big"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -426,5 +427,22 @@ func DigestForFileAtPath(path string) (digest string, err error) {
 		return
 	}
 	digest = hex.EncodeToString(hasher.Sum(nil))
+	return
+}
+
+// IsSystemAdminUser returns true if current user is root or admin (system user, not Keybase user).
+// WARNING: You shouldn't rely on this for security purposes.
+func IsSystemAdminUser() (isAdminUser bool, match string, err error) {
+	u, err := user.Current()
+	if err != nil {
+		return
+	}
+
+	if u.Uid == "0" {
+		match = "Uid: 0"
+		isAdminUser = true
+		return
+	}
+
 	return
 }

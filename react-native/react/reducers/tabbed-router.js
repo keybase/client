@@ -42,7 +42,10 @@ export default function (state: TabbedRouterState = initialState, action: any): 
       }
       return state.set('activeTab', folderTab)
     case LoginConstants.logoutDone:
-      return state.set('activeTab', startupTab)
+      if (LocalDebug.redirectOnLogout) {
+        return state.set('activeTab', startupTab)
+      }
+      return state
     case LoginConstants.needsLogin:
     case LoginConstants.needsRegistering:
       // TODO set the active tab to be startupTab here.

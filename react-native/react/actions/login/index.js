@@ -12,6 +12,7 @@ import {switchTab} from '../tabbed-router'
 import {devicesTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
+import {getCurrentStatus} from '../config'
 
 export function login () {
   return (dispatch, getState) => {
@@ -86,6 +87,7 @@ export function autoLogin () {
     engine.rpc('login.login', {}, {}, (error, status) => {
       if (error) {
         console.log(error)
+        dispatch({type: Constants.loginDone, error: true, payload: error})
       } else {
         dispatch({type: Constants.loginDone, payload: status})
       }
@@ -99,9 +101,17 @@ export function logout () {
       if (error) {
         console.log(error)
       } else {
-        dispatch({type: Constants.logoutDone})
+        dispatch(logoutDone())
       }
     })
+  }
+}
+
+export function logoutDone () {
+  // We've logged out, let's check our current status
+  return dispatch => {
+    dispatch({type: Constants.logoutDone})
+    dispatch(getCurrentStatus())
   }
 }
 
@@ -334,10 +344,6 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
         const {deviceName} = getState().login.deviceName
         response.result(deviceName)
       }))
-    },
-    'keybase.1.logUi.log': (param, response) => {
-      console.log(param)
-      response.result()
     },
     'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
       response.result()

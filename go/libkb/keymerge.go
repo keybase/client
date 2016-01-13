@@ -31,6 +31,15 @@ func (to *PGPKeyBundle) MergeKey(from *PGPKeyBundle) {
 	for name, fromIdentity := range from.Identities {
 		if toIdentity, ok := to.Identities[name]; ok {
 			to.Identities[name].Signatures = combineSignatures(toIdentity.Signatures, fromIdentity.Signatures)
+
+			// There's a primary self-signature that we use. Always take the later
+			// of the two.
+			ssTo := to.Identities[name].SelfSignature
+			ssFrom := fromIdentity.SelfSignature
+			if ssFrom.CreationTime.After(ssTo.CreationTime) {
+				to.Identities[name].SelfSignature = ssFrom
+			}
+
 		} else {
 			to.Identities[fromIdentity.Name] = fromIdentity
 		}

@@ -166,7 +166,6 @@ type ConfigWriter interface {
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	SetUpdateLastChecked(keybase1.Time) error
 	Reset()
-	Save() error
 	BeginTransaction() (ConfigWriterTransacter, error)
 }
 

@@ -16,7 +16,7 @@ const globalRoutes = {}
 import * as Constants from './constants/config'
 import {folderTab, chatTab, peopleTab, devicesTab, moreTab} from './constants/tabs'
 import {switchTab} from './actions/tabbed-router'
-import {startup} from './actions/config'
+import {startup} from './actions/startup'
 import {Tab, Tabs} from 'material-ui'
 
 const tabs = {

@@ -5,11 +5,13 @@ package libkb
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	jsonw "github.com/keybase/go-jsonw"
 	"io"
 	"os"
 	"sync"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type jsonFileTransaction struct {
@@ -84,14 +86,6 @@ func (f *JSONFile) Nuke() error {
 	return err
 }
 
-func (f *JSONFile) getFilename() string {
-	tx := f.getTx()
-	if tx != nil {
-		return tx.tmpname
-	}
-	return f.filename
-}
-
 func (f *JSONFile) BeginTransaction() (ConfigWriterTransacter, error) {
 	tx, err := newJSONFileTransaction(f)
 	if err != nil {
@@ -114,10 +108,25 @@ func (f *JSONFile) setTx(tx *jsonFileTransaction) error {
 	return nil
 }
 
-func (f *JSONFile) getTx() *jsonFileTransaction {
+func (f *JSONFile) getOrMakeTx() (*jsonFileTransaction, bool, error) {
 	f.txMutex.Lock()
 	defer f.txMutex.Unlock()
-	return f.tx
+
+	// if a transaction exists, use it
+	if f.tx != nil {
+		return f.tx, false, nil
+	}
+
+	// make a new transaction
+	tx, err := newJSONFileTransaction(f)
+	if err != nil {
+		return nil, false, err
+	}
+
+	f.tx = tx
+
+	// return true so caller knows that a transaction was created
+	return f.tx, true, nil
 }
 
 func newJSONFileTransaction(f *JSONFile) (*jsonFileTransaction, error) {
@@ -131,13 +140,43 @@ func newJSONFileTransaction(f *JSONFile) (*jsonFileTransaction, error) {
 }
 
 func (f *JSONFile) Save() error {
-	if err := f.save(f.getFilename(), true, 0); err != nil {
+	tx, txCreated, err := f.getOrMakeTx()
+	if err != nil {
 		return err
 	}
+	if txCreated {
+		// if Save() created a transaction, then abort it if it
+		// still exists on exit
+		defer func() {
+			if tx != nil {
+				tx.Abort()
+			}
+		}()
+	}
+
+	if err := f.save(); err != nil {
+		return err
+	}
+
+	if txCreated {
+		// this Save() call created a transaction, so commit it
+		if err := tx.Commit(); err != nil {
+			return err
+		}
+
+		// Commit worked, clear the transaction so defer() doesn't
+		// abort it.
+		tx = nil
+	}
+
 	return nil
 }
 
-func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err error) {
+func (f *JSONFile) save() (err error) {
+	if f.tx == nil {
+		return errors.New("save() called with nil transaction")
+	}
+	filename := f.tx.tmpname
 	f.G().Log.Debug("+ saving %s file %s", f.which, filename)
 
 	err = MakeParentDirs(filename)
@@ -162,10 +201,7 @@ func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err err
 	}
 	var writer *os.File
 	flags := (os.O_WRONLY | os.O_CREATE | os.O_TRUNC)
-	if mode == 0 {
-		mode = PermFile // By default, secrecy
-	}
-	writer, err = os.OpenFile(filename, flags, mode)
+	writer, err = os.OpenFile(filename, flags, PermFile)
 	if err != nil {
 		f.G().Log.Errorf("Failed to open %s file %s for writing: %s",
 			f.which, filename, err)
@@ -173,14 +209,9 @@ func (f *JSONFile) save(filename string, pretty bool, mode os.FileMode) (err err
 	}
 	defer writer.Close()
 
-	if pretty {
-		encoded, err := json.MarshalIndent(dat, "", "    ")
-		if err == nil {
-			_, err = writer.Write(encoded)
-		}
-	} else {
-		encoder := json.NewEncoder(writer)
-		err = encoder.Encode(dat)
+	encoded, err := json.MarshalIndent(dat, "", "    ")
+	if err == nil {
+		_, err = writer.Write(encoded)
 	}
 
 	if err != nil {

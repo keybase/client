@@ -8,6 +8,7 @@ import {updateUi} from '../constants/types/keybase_v1'
 import type {Update} from '../constants/types/flow-types'
 import type {ShowUpdateAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction, OnSnoozeAction, OnUpdateAction, SetAlwaysUpdateAction} from '../constants/update'
 import type {ConfigState} from '../reducers/config'
+import type {ShowUpdateState} from '../reducers/update'
 import {snoozeTimeSecs} from '../constants/update'
 import type {Dispatch} from '../constants/types/flux'
 

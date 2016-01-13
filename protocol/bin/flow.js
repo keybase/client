@@ -16,6 +16,10 @@ export type ED25519PublicKey = any
 export type ED25519Signature = any
 export type Time = number
 export type SigID = string
+export type EncryptedBytes32 = any
+export type Bytes32 = any
+export type NaclDHKeyPrivate = any
+export type NaclSigningKeyPrivate = any
 `
 
 function jsonOnly (file) {

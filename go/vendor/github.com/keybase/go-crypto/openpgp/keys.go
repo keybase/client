@@ -359,12 +359,17 @@ EachPacket:
 			current.UserId = pkt
 		case *packet.Signature:
 
-			// First handle the case of: a self-signature, and no previous self-signature
-			// verified for this UID.
-			if current != nil && current.SelfSignature == nil && (pkt.SigType == packet.SigTypePositiveCert || pkt.SigType == packet.SigTypeGenericCert) && pkt.IssuerKeyId != nil && *pkt.IssuerKeyId == e.PrimaryKey.KeyId {
+			// First handle the case of a self-signature. According to RFC8440,
+			// Section 5.2.3.3, if there are several self-signatures,
+			// we should take the newer one.
+			if current != nil &&
+				(current.SelfSignature == nil || pkt.CreationTime.After(current.SelfSignature.CreationTime)) &&
+				(pkt.SigType == packet.SigTypePositiveCert || pkt.SigType == packet.SigTypeGenericCert) &&
+				pkt.IssuerKeyId != nil &&
+				*pkt.IssuerKeyId == e.PrimaryKey.KeyId {
+
 				if err = e.PrimaryKey.VerifyUserIdSignature(current.Name, e.PrimaryKey, pkt); err == nil {
 
-					// Only set this self-sig once. IT can't be overwritten.
 					current.SelfSignature = pkt
 
 					// NOTE(maxtaco) 2016.01.11

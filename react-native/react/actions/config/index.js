@@ -1,45 +1,38 @@
 import * as Constants from '../../constants/config'
-import {autoLogin} from '../login'
 import engine from '../../engine'
 import * as native from './index.native'
 
-export function startup () {
-  return function (dispatch) {
-    dispatch({type: Constants.startupLoading})
+export function getConfig (): (dispatch: Dispatch) => Promise<void> {
+  return dispatch => {
+    return new Promise((resolve, reject) => {
+      engine.rpc('config.getConfig', {}, {}, (error, config) => {
+        if (error) {
+          reject(error)
+        }
 
-    const incomingMap = {
-      'keybase.1.logUi.log': (param, response) => {
-        console.log(param)
-        response.result()
-      }
-    }
+        dispatch({type: Constants.configLoaded, payload: {config}})
+        resolve()
+      })
+    })
+  }
+}
 
-    engine.rpc('config.getConfig', {}, incomingMap, (error, config) => {
-      if (error) {
-        dispatch({type: Constants.startupLoaded, payload: error, error: true})
-        return
-      }
+export function getCurrentStatus (): (dispatch: Dispatch) => Promise<void> {
+  return dispatch => {
+    return new Promise((resolve, reject) => {
+      engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
+        if (error) {
+          reject(error)
+          return
+        }
 
-      function getCurrentStatus () {
-        engine.rpc('config.getCurrentStatus', {}, incomingMap, (error, status) => {
-          if (error) {
-            dispatch({type: Constants.startupLoaded, payload: error, error: true})
-            return
-          }
-          dispatch({
-            type: Constants.startupLoaded,
-            payload: {config, status}
-          })
-
-          if (status.loggedIn) {
-            dispatch(autoLogin())
-          }
+        dispatch({
+          type: Constants.statusLoaded,
+          payload: {status}
         })
-      }
 
-      getCurrentStatus()
-      // Also call getCurrentStatus if the service goes away/comes back.
-      engine.listenOnConnect('getCurrentStatus', getCurrentStatus)
+        resolve()
+      })
     })
   }
 }
