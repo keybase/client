@@ -395,6 +395,22 @@ func newSyncOp(oldFile BlockPointer) *syncOp {
 	return so
 }
 
+func (so *syncOp) DeepCopy() *syncOp {
+	newSo := &syncOp{
+		File: so.File,
+	}
+	newSo.resetUpdateState()
+	newSo.RefBlocks = make([]BlockPointer, len(so.RefBlocks))
+	copy(newSo.RefBlocks, so.RefBlocks)
+	newSo.UnrefBlocks = make([]BlockPointer, len(so.UnrefBlocks))
+	copy(newSo.UnrefBlocks, so.UnrefBlocks)
+	newSo.Updates = make([]blockUpdate, len(so.Updates))
+	copy(newSo.Updates, so.Updates)
+	newSo.Writes = make([]WriteRange, len(so.Writes))
+	copy(newSo.Writes, so.Writes)
+	return newSo
+}
+
 func (so *syncOp) resetUpdateState() {
 	so.Updates = nil
 	so.customUpdates = make(map[BlockPointer]*blockUpdate)
