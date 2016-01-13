@@ -3,9 +3,7 @@
 
 package basex
 
-import (
-	"io"
-)
+import "io"
 
 // Much of this code is adopted from Go's encoding/base64
 
@@ -189,6 +187,10 @@ func (d *decoder) Read(p []byte) (int, error) {
 	// Shift the bytes in d.buf over from [numBytesToDecode:] to the start of the array
 	d.nbuf -= numBytesToDecode
 	copy(d.buf[0:d.nbuf], d.buf[numBytesToDecode:numBytesToDecode+d.nbuf])
+
+	if ret == 0 && d.err == nil && len(p) != 0 {
+		return 0, io.EOF
+	}
 
 	return ret, d.err
 }
