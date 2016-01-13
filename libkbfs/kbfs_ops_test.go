@@ -4820,3 +4820,66 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 		t.Fatalf("Couldn't create second file: %v", err)
 	}
 }
+
+func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
+	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	// make blocks small
+	blockSize := int64(5)
+	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
+
+	// create a file.
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Write a few blocks
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// Now overwrite those blocks to archive them
+	newData := []byte{11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
+	err = kbfsOps.Write(ctx, fileNode, newData, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// Wait for the archiving to finish
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server")
+	}
+
+	// Now write the original first block, which has been archived,
+	// and make sure it works.
+	err = kbfsOps.Write(ctx, fileNode, data[0:blockSize], 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+}
