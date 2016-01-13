@@ -11,13 +11,13 @@ type Nonce [24]byte
 
 func nonceForSenderKeySecretBox() *Nonce {
 	var n Nonce
-	copy(n[:], "saltpack_sender_key\x00\x00\x00\x00\x00")
+	copy(n[:], "saltpack_sender_secbox\x00\x00")
 	return &n
 }
 
 func nonceForPayloadKeyBox() *Nonce {
 	var n Nonce
-	copy(n[:], "saltpack_payload_key\x00\x00\x00\x00")
+	copy(n[:], "saltpack_payload_key_box")
 	return &n
 }
 
@@ -30,7 +30,7 @@ func nonceForMACKeyBox(headerHash []byte) *Nonce {
 // Construct the nonce for the ith block of payload.
 func nonceForChunkSecretBox(i encryptionBlockNumber) *Nonce {
 	var n Nonce
-	copy(n[0:16], "saltpack_payload")
+	copy(n[0:16], "saltpack_ploadsb")
 	binary.BigEndian.PutUint64(n[16:], uint64(i))
 	return &n
 }

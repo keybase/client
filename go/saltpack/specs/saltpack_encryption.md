@@ -134,12 +134,12 @@ header:
    [`crypto_box_keypair`](http://nacl.cr.yp.to/box.html).
 3. Encrypt the sender's long-term public key using
    [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) with the **payload
-   key** and the nonce `saltpack_sender_key\0\0\0\0\0`, to create the **sender
+   key** and the nonce `saltpack_sender_secbox\0\0`, to create the **sender
    secretbox**. (`\0` is a null byte.)
 4. For each recipient, encrypt the **payload key** using
    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
    key, the ephemeral private key, and the nonce
-   `saltpack_payload_key\0\0\0\0`. Pair these with the recipients' public keys,
+   `saltpack_payload_key_box`. Pair these with the recipients' public keys,
    or `null` for anonymous recipients, and collect the pairs into the
    **recipients list**.
 5. Collect the **format name**, **version**, and **mode** into a list, followed
@@ -190,12 +190,12 @@ Recipients parse the header of a message using the following steps:
    public key** and the sender's private key.
 7. Try to open each of the **payload key boxes** in the recipients list using
    [`crypto_box_afternm`](http://nacl.cr.yp.to/box.html), the shared secret
-   from #6, and the nonce `saltpack_payload_key\0\0\0\0`. Successfully opening
+   from #6, and the nonce `saltpack_payload_key_box`. Successfully opening
    one gives the **payload key**, and the index of the box that worked is the
    **recipient index**.
 8. Open the **sender secretbox** using
    [`crypto_secretbox_open`](http://nacl.cr.yp.to/secretbox.html) with the
-   **payload key** from #7 and the nonce `saltpack_sender_key\0\0\0\0\0`
+   **payload key** from #7 and the nonce `saltpack_sender_secbox\0\0`
 9. Compute the recipient's **MAC key** by encrypting 32 zero bytes using
    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's private
    key, the sender's public key from #8, and the first 24 bytes of the hash
@@ -231,7 +231,7 @@ A payload packet is a MessagePack list with these contents:
   message header. See below.
 - The **payload secretbox** is a NaCl secretbox containing a chunk of the
   plaintext bytes, max size 1 MB. It's encrypted with the **payload key**. The
-  nonce is `saltpack_payloadNNNNNNNN` where `NNNNNNNN` is the packet numer as
+  nonce is `saltpack_ploadsbNNNNNNNN` where `NNNNNNNN` is the packet numer as
   an 8-byte big-endian unsigned integer. The first payload packet is number 0.
 
 If Mallory doesn't have the **payload key**, she can't modify the **payload
