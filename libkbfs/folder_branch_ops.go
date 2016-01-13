@@ -333,6 +333,14 @@ type folderBranchOps struct {
 	// protected by mdWriterLock.
 	archiveGroup sync.WaitGroup
 
+	// blocksToDeleteAfterError is a list of blocks that may have been
+	// Put as part of a failed MD write.  These blocks should be
+	// deleted as soon as possible.  The lock should only be held
+	// immediately around accessing the list.  TODO: Persist these to
+	// disk?
+	blocksToDeleteLock       sync.Mutex
+	blocksToDeleteAfterError []BlockPointer
+
 	// How to resolve conflicts
 	cr *ConflictResolver
 }
@@ -670,6 +678,7 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 	if err != nil {
 		return nil, err
 	}
+
 	return &newMd, nil
 }
 
@@ -1992,6 +2001,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 			defer fbo.config.RekeyQueue().Enqueue(md.ID)
 		}
 	}
+
 	// Swap any cached block changes so that future local accesses to
 	// this MD (from the cache) can directly access the ops without
 	// needing to re-embed the block changes.
@@ -2022,17 +2032,35 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	return nil
 }
 
+func (fbo *folderBranchOps) cleanUpBlockState(bps *blockPutState) {
+	fbo.blocksToDeleteLock.Lock()
+	defer fbo.blocksToDeleteLock.Unlock()
+	// Clean up any blocks that may have been orphaned by this
+	// failure.
+	for _, bs := range bps.blockStates {
+		fbo.blocksToDeleteAfterError =
+			append(fbo.blocksToDeleteAfterError, bs.blockPtr)
+	}
+}
+
 // mdWriterLock must be taken by the caller, but not blockLock
 func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, newBlock Block, dir path,
 	name string, entryType EntryType, mtime bool, ctime bool,
-	stopAt BlockPointer) (DirEntry, error) {
+	stopAt BlockPointer) (de DirEntry, err error) {
 	_, de, bps, err := fbo.syncBlockAndCheckEmbed(
 		ctx, lState, md, newBlock, dir, name, entryType, mtime,
 		ctime, zeroPtr, nil)
 	if err != nil {
 		return DirEntry{}, err
 	}
+
+	defer func() {
+		if err != nil {
+			fbo.cleanUpBlockState(bps)
+		}
+	}()
+
 	err = fbo.doBlockPuts(ctx, md, *bps)
 	if err != nil {
 		// TODO: in theory we could recover from a
@@ -2506,7 +2534,7 @@ func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 func (fbo *folderBranchOps) renameLocked(
 	ctx context.Context, lState *lockState, oldParent path,
 	oldName string, newParent path, newName string,
-	newParentNode Node) error {
+	newParentNode Node) (err error) {
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
 	if err != nil {
@@ -2665,6 +2693,12 @@ func (fbo *folderBranchOps) renameLocked(
 	if oldBps != nil {
 		newBps.mergeOtherBps(oldBps)
 	}
+
+	defer func() {
+		if err != nil {
+			fbo.cleanUpBlockState(newBps)
+		}
+	}()
 
 	err = fbo.doBlockPuts(ctx, md, *newBps)
 	if err != nil {
@@ -3543,16 +3577,9 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 			if isRecoverableBlockError(err) {
 				// This sync will be retried and needs new blocks, so
 				// reset everything in the sync info.
-				bps := si.bps
 				*si = *savedSi
 				if fblock.IsInd {
 					*fblock = *oldFblock
-				}
-				// Unref any blocks that may have been put as part of
-				// this failed put.
-				for _, bs := range bps.blockStates {
-					fbo.log.CDebugf(ctx, "Forgetting block %v", bs.blockPtr)
-					si.op.AddUnrefBlock(bs.blockPtr)
 				}
 			}
 		}
@@ -3778,6 +3805,12 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		return true, err
 	}
 	si.bps.mergeOtherBps(newBps)
+
+	defer func() {
+		if err != nil {
+			fbo.cleanUpBlockState(si.bps)
+		}
+	}()
 
 	err = fbo.doBlockPuts(ctx, md, *si.bps)
 	if err != nil {
@@ -5111,11 +5144,55 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 				defer fbo.archiveGroup.Done()
 				fbo.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
 					"of revision %d", len(ptrs), md.Revision)
-				err = fbo.config.BlockOps().Archive(ctx, md, ptrs)
+				bops := fbo.config.BlockOps()
+				err = bops.Archive(ctx, md, ptrs)
 				if err != nil {
 					fbo.log.CWarningf(ctx, "Couldn't archive blocks: %v", err)
+					return err
 				}
-				return err
+
+				// also attempt to delete any error references
+				lState := makeFBOLockState()
+				md, err := fbo.getMDForRead(ctx, lState)
+				if err != nil {
+					fbo.log.CWarningf(ctx, "Couldn't get MD: %v", err)
+					return err
+				}
+
+				var toDelete []BlockPointer
+				func() {
+					fbo.blocksToDeleteLock.Lock()
+					defer fbo.blocksToDeleteLock.Unlock()
+					toDelete = fbo.blocksToDeleteAfterError
+					fbo.blocksToDeleteAfterError = nil
+				}()
+
+				if len(toDelete) == 0 {
+					return nil
+				}
+
+				var toDeleteAgain []BlockPointer
+				for _, ptr := range toDelete {
+					err := bops.Delete(ctx, md, ptr.ID, ptr)
+					if err != nil {
+						fbo.log.CWarningf(ctx, "Couldn't delete ref %v: %v",
+							ptr, err)
+						toDeleteAgain = append(toDeleteAgain, ptr)
+					}
+				}
+
+				if len(toDeleteAgain) > 0 {
+					func() {
+						fbo.blocksToDeleteLock.Lock()
+						defer fbo.blocksToDeleteLock.Unlock()
+						for _, ptr := range toDeleteAgain {
+							fbo.blocksToDeleteAfterError =
+								append(fbo.blocksToDeleteAfterError, ptr)
+						}
+					}()
+				}
+
+				return nil
 			})
 		case <-fbo.shutdownChan:
 			return
