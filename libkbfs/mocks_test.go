@@ -1024,6 +1024,16 @@ func (_mr *_MockBlockCacheRecorder) DeleteDirty(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteDirty", arg0, arg1)
 }
 
+func (_m *MockBlockCache) DeleteKnownPtr(tlf TlfID, block *FileBlock) error {
+	ret := _m.ctrl.Call(_m, "DeleteKnownPtr", tlf, block)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockCacheRecorder) DeleteKnownPtr(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteKnownPtr", arg0, arg1)
+}
+
 func (_m *MockBlockCache) IsDirty(ptr BlockPointer, branch BranchName) bool {
 	ret := _m.ctrl.Call(_m, "IsDirty", ptr, branch)
 	ret0, _ := ret[0].(bool)

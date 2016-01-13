@@ -266,6 +266,22 @@ func (b *BlockCacheStandard) DeletePermanent(id BlockID) error {
 	return nil
 }
 
+// DeleteKnownPtr implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) DeleteKnownPtr(tlf TlfID, block *FileBlock) error {
+	if block.IsInd {
+		return NotDirectFileBlockError{}
+	}
+
+	if b.ids == nil {
+		return nil
+	}
+
+	_, hash := DoRawDefaultHash(block.Contents)
+	key := idCacheKey{tlf, hash}
+	b.ids.Remove(key)
+	return nil
+}
+
 // DeleteDirty implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) DeleteDirty(
 	ptr BlockPointer, branch BranchName) error {

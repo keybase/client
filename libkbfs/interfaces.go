@@ -494,6 +494,9 @@ type BlockCache interface {
 	// block pointer and branch from the cache.  No error is returned
 	// if no block exists for the given ID.
 	DeleteDirty(ptr BlockPointer, branch BranchName) error
+	// DeleteKnownPtr removes the cached ID for the given file
+	// block. It does not remove the block itself.
+	DeleteKnownPtr(tlf TlfID, block *FileBlock) error
 	// IsDirty states whether or not the block associated with the
 	// given block pointer and branch name is dirty in this cache.
 	IsDirty(ptr BlockPointer, branch BranchName) bool
