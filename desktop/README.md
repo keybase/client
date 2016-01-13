@@ -48,3 +48,13 @@ Use
 launchctl setenv KEYBASE_APP_DEBUG true
 ```
 to debug the production app
+
+Getting sourcemaps to work in the production app:
+
+Download the matching sourcemaps from the build folder. Run the following npm command, passing the path to the unzipped path
+
+```
+npm run inject-sourcemaps-prod -- /mysourcemaps/Keybase-1.0.7-20160111080008+1049d47.map
+```
+
+This will copy the sourcemaps into the application package (if installed in the default location). Otherwise you can just do this yourself
