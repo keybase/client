@@ -59,11 +59,11 @@ func (b *BlockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID,
 
 	entry := blockEntry{
 		BlockData:     buf,
-		Refs:          make(map[BlockRefNonce]bool),
+		Refs:          make(map[BlockRefNonce]blockRefLocalStatus),
 		KeyServerHalf: serverHalf,
 		Tlf:           tlfID,
 	}
-	entry.Refs[zeroBlockRefNonce] = true
+	entry.Refs[zeroBlockRefNonce] = blockRef
 	return b.s.put(id, entry)
 }
 

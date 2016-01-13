@@ -10,12 +10,19 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
+type blockRefLocalStatus int
+
+const (
+	noBlockRef blockRefLocalStatus = iota
+	blockRef
+	archivedBlockRef
+)
+
 type blockEntry struct {
 	// These fields are only exported for serialization purposes.
 	BlockData     []byte
-	Refs          map[BlockRefNonce]bool
+	Refs          map[BlockRefNonce]blockRefLocalStatus
 	KeyServerHalf BlockCryptKeyServerHalf
-	Archived      bool
 	Tlf           TlfID
 }
 
@@ -51,7 +58,6 @@ func (s *bserverMemStorage) get(id BlockID) (blockEntry, error) {
 	if !ok {
 		return blockEntry{}, BServerErrorBlockNonExistent{}
 	}
-
 	return entry, nil
 }
 
@@ -90,9 +96,15 @@ func (s *bserverMemStorage) addReference(id BlockID, refNonce BlockRefNonce) err
 		return IncrementMissingBlockError{id}
 	}
 
-	entry.Refs[refNonce] = true
-	s.m[id] = entry
-	return nil
+	// only add it if there's a non-archived reference
+	for _, status := range entry.Refs {
+		if status == blockRef {
+			entry.Refs[refNonce] = blockRef
+			s.m[id] = entry
+			return nil
+		}
+	}
+	return BServerErrorBlockArchived{""}
 }
 
 func (s *bserverMemStorage) removeReference(id BlockID, refNonce BlockRefNonce) error {
@@ -123,7 +135,7 @@ func (s *bserverMemStorage) archiveReference(id BlockID, refNonce BlockRefNonce)
 		return ArchiveMissingBlockError{id, refNonce}
 	}
 
-	entry.Archived = true
+	entry.Refs[refNonce] = archivedBlockRef
 	s.m[id] = entry
 	return nil
 }
@@ -221,8 +233,14 @@ func (s *bserverFileStorage) addReference(id BlockID, refNonce BlockRefNonce) er
 		return err
 	}
 
-	entry.Refs[refNonce] = true
-	return s.putLocked(p, entry)
+	// only add it if there's a non-archived reference
+	for _, status := range entry.Refs {
+		if status == blockRef {
+			entry.Refs[refNonce] = blockRef
+			return s.putLocked(p, entry)
+		}
+	}
+	return BServerErrorBlockArchived{""}
 }
 
 func (s *bserverFileStorage) removeReference(id BlockID, refNonce BlockRefNonce) error {
@@ -259,7 +277,7 @@ func (s *bserverFileStorage) archiveReference(id BlockID, refNonce BlockRefNonce
 		return err
 	}
 
-	entry.Archived = true
+	entry.Refs[refNonce] = archivedBlockRef
 	return s.putLocked(p, entry)
 }
 
@@ -342,8 +360,13 @@ func (s *bserverLeveldbStorage) addReference(id BlockID, refNonce BlockRefNonce)
 		return err
 	}
 
-	entry.Refs[refNonce] = true
-	return s.putLocked(id, entry)
+	for _, status := range entry.Refs {
+		if status == blockRef {
+			entry.Refs[refNonce] = blockRef
+			return s.putLocked(id, entry)
+		}
+	}
+	return BServerErrorBlockArchived{""}
 }
 
 func (s *bserverLeveldbStorage) removeReference(id BlockID, refNonce BlockRefNonce) error {
@@ -378,7 +401,7 @@ func (s *bserverLeveldbStorage) archiveReference(id BlockID, refNonce BlockRefNo
 		return err
 	}
 
-	entry.Archived = true
+	entry.Refs[refNonce] = archivedBlockRef
 	return s.putLocked(id, entry)
 }
 
