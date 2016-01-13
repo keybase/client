@@ -142,10 +142,10 @@ func (b boxPrecomputedSharedKey) Box(nonce *Nonce, msg []byte) []byte {
 	return out
 }
 
-func (b boxSecretKey) Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) ([]byte, error) {
+func (b boxSecretKey) Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) []byte {
 	ret := box.Seal([]byte{}, msg, (*[24]byte)(nonce),
 		(*[32]byte)(receiver.ToRawBoxKeyPointer()), (*[32]byte)(&b.key))
-	return ret, nil
+	return ret
 }
 
 var errPublicKeyDecryptionFailed = errors.New("public key decryption failed")

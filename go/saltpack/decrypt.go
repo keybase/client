@@ -21,7 +21,8 @@ type decryptStream struct {
 	payloadKey *SymmetricKey
 	senderKey  *RawBoxKey
 	buf        []byte
-	tagKey     BoxPrecomputedSharedKey
+	headerHash []byte
+	macKey     []byte
 	position   int
 	mki        MessageKeyInfo
 }
@@ -104,6 +105,9 @@ func (ds *decryptStream) readHeader(rawReader io.Reader) error {
 	if err != nil {
 		return err
 	}
+	// Compute the header hash.
+	headerHash := sha512.Sum512(headerBytes)
+	ds.headerHash = headerHash[:]
 	// Parse the header bytes.
 	var header EncryptionHeader
 	err = decodeFromBytes(&header, headerBytes)
@@ -144,7 +148,7 @@ func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) 
 	return n, false, err
 }
 
-func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, BoxPrecomputedSharedKey, *SymmetricKey, int, error) {
+func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, *SymmetricKey, int, error) {
 	var kids [][]byte
 	tab := make(map[int]int)
 	for i, r := range hdr.Receivers {
@@ -157,30 +161,28 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey
 
 	i, sk := ds.ring.LookupBoxSecretKey(kids)
 	if i < 0 || sk == nil {
-		return nil, nil, nil, -1, nil
+		return nil, nil, -1, nil
 	}
-
-	shared := sk.Precompute(ephemeralKey)
 
 	orig, ok := tab[i]
 	if !ok {
-		return nil, nil, nil, -1, ErrBadLookup
+		return nil, nil, -1, ErrBadLookup
 	}
 
-	payloadKeySlice, err := shared.Unbox(nonceForPayloadKeyBox(), hdr.Receivers[orig].PayloadKeyBox)
+	payloadKeySlice, err := sk.Unbox(ephemeralKey, nonceForPayloadKeyBox(), hdr.Receivers[orig].PayloadKeyBox)
 	if err != nil {
-		return nil, nil, nil, -1, err
+		return nil, nil, -1, err
 	}
 
 	payloadKey, err := symmetricKeyFromSlice(payloadKeySlice)
 	if err != nil {
-		return nil, nil, nil, -1, err
+		return nil, nil, -1, err
 	}
 
-	return sk, shared, payloadKey, orig, err
+	return sk, payloadKey, orig, err
 }
 
-func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, BoxPrecomputedSharedKey, *SymmetricKey, int, error) {
+func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, *SymmetricKey, int, error) {
 	secretKeys := ds.ring.GetAllSecretKeys()
 
 	for _, r := range hdr.Receivers {
@@ -201,14 +203,14 @@ func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey 
 				}
 				payloadKey, err := symmetricKeyFromSlice(payloadKeySlice)
 				if err != nil {
-					return nil, nil, nil, -1, err
+					return nil, nil, -1, err
 				}
-				return secretKey, shared, payloadKey, i, nil
+				return secretKey, payloadKey, i, nil
 			}
 		}
 	}
 
-	return nil, nil, nil, -1, nil
+	return nil, nil, -1, nil
 }
 
 func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
@@ -224,12 +226,12 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	var secretKey BoxSecretKey
 	var err error
 
-	secretKey, ds.tagKey, ds.payloadKey, ds.position, err = ds.tryVisibleReceivers(hdr, ephemeralKey)
+	secretKey, ds.payloadKey, ds.position, err = ds.tryVisibleReceivers(hdr, ephemeralKey)
 	if err != nil {
 		return err
 	}
 	if secretKey == nil {
-		secretKey, ds.tagKey, ds.payloadKey, ds.position, err = ds.tryHiddenReceivers(hdr, ephemeralKey)
+		secretKey, ds.payloadKey, ds.position, err = ds.tryHiddenReceivers(hdr, ephemeralKey)
 		ds.mki.ReceiverIsAnon = true
 	}
 	if err != nil {
@@ -259,12 +261,15 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 		if longLivedSenderKey == nil {
 			return ErrNoSenderKey
 		}
-		ds.tagKey = secretKey.Precompute(longLivedSenderKey)
 		ds.mki.SenderKey = longLivedSenderKey
 	} else {
 		ds.mki.SenderIsAnon = true
 		ds.mki.SenderKey = ephemeralKey
 	}
+
+	// Compute the MAC key.
+	macKeyBox := secretKey.Box(ds.mki.SenderKey, nonceForMACKeyBox(ds.headerHash[:]), make([]byte, 32))
+	ds.macKey = macKeyBox[16:48]
 
 	return nil
 }
@@ -279,11 +284,17 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 
 	nonce := nonceForChunkSecretBox(blockNum)
 	ciphertext := bl.PayloadCiphertext
-	hash := sha512.Sum512(ciphertext)
 
-	hashBox := ds.tagKey.Box(nonce, hash[:])
-	ourAuthenticator := hashBox[:secretbox.Overhead]
-
+	// Check the authenticator.
+	ciphertextDigest := sha512.New()
+	ciphertextDigest.Write(ds.headerHash)
+	ciphertextDigest.Write(nonce[:])
+	ciphertextDigest.Write(ciphertext)
+	hashToAuthenticate := ciphertextDigest.Sum(nil)
+	authenticatorDigest := hmac.New(sha512.New, ds.macKey)
+	authenticatorDigest.Write(hashToAuthenticate)
+	fullMAC := authenticatorDigest.Sum(nil)
+	ourAuthenticator := fullMAC[:32]
 	if !hmac.Equal(ourAuthenticator, bl.HashAuthenticators[ds.position]) {
 		return nil, ErrBadTag(bl.seqno)
 	}

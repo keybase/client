@@ -5,6 +5,7 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha512"
 	"golang.org/x/crypto/nacl/secretbox"
 	"io"
@@ -40,7 +41,8 @@ type testEncryptStream struct {
 	buffer     bytes.Buffer
 	inblock    []byte
 	options    testEncryptionOptions
-	tagKeys    []BoxPrecomputedSharedKey
+	headerHash []byte
+	macKeys    [][]byte
 
 	numBlocks encryptionBlockNumber // the lower 64 bits of the nonce
 
@@ -96,16 +98,23 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 		pes.options.corruptCiphertextBeforeHash(ciphertext, pes.numBlocks)
 	}
 
-	hash := sha512.Sum512(ciphertext)
-
 	block := EncryptionBlock{
 		PayloadCiphertext: ciphertext,
 	}
 
-	for _, tagKey := range pes.tagKeys {
-		hashBox := tagKey.Box(nonce, hash[:])
-		authenticator := hashBox[:secretbox.Overhead]
-		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)
+	// Compute the digest to authenticate, and authenticate it for each
+	// recipient.
+	ciphertextDigest := sha512.New()
+	ciphertextDigest.Write(pes.headerHash)
+	ciphertextDigest.Write(nonce[:])
+	ciphertextDigest.Write(ciphertext)
+	hashToAuthenticate := ciphertextDigest.Sum(nil)
+	for _, macKey := range pes.macKeys {
+		authenticatorDigest := hmac.New(sha512.New, macKey)
+		authenticatorDigest.Write(hashToAuthenticate)
+		fullMAC := authenticatorDigest.Sum(nil)
+		truncatedMAC := fullMAC[:32]
+		block.HashAuthenticators = append(block.HashAuthenticators, truncatedMAC)
 	}
 
 	if pes.options.corruptEncryptionBlock != nil {
@@ -129,10 +138,8 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 
 	// If we have a NULL Sender key, then we really want an ephemeral key
 	// as the main encryption key.
-	senderAnon := false
 	if sender == nil {
 		sender = ephemeralKey
-		senderAnon = true
 	}
 
 	eh := &EncryptionHeader{
@@ -170,7 +177,7 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 			nonceTmp = pes.options.corruptKeysNonce(nonceTmp, rid)
 		}
 
-		payloadKeyBox, err := ephemeralKey.Box(receiver, nonceTmp, payloadKeySlice)
+		payloadKeyBox := ephemeralKey.Box(receiver, nonceTmp, payloadKeySlice)
 		if err != nil {
 			return err
 		}
@@ -189,21 +196,43 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 		}
 
 		eh.Receivers = append(eh.Receivers, keys)
-
-		var tagKey BoxPrecomputedSharedKey
-		if !senderAnon {
-			tagKey = sender.Precompute(receiver)
-		} else {
-			tagKey = ephemeralKey.Precompute(receiver)
-		}
-
-		pes.tagKeys = append(pes.tagKeys, tagKey)
 	}
 
 	if pes.options.corruptHeader != nil {
 		pes.options.corruptHeader(eh)
 	}
+
+	// Encode the header and the header length, and write them out immediately.
+	headerBytes, err := encodeToBytes(pes.header)
+	if err != nil {
+		return err
+	}
+	headerLen, err := encodeToBytes(len(headerBytes))
+	if err != nil {
+		return err
+	}
+	if pes.options.corruptHeaderPacked != nil {
+		pes.options.corruptHeaderPacked(headerBytes)
+	}
+	headerHash := sha512.Sum512(headerBytes)
+	pes.headerHash = headerHash[:]
+	_, err = pes.output.Write(headerLen)
+	if err != nil {
+		return err
+	}
+	_, err = pes.output.Write(headerBytes)
+
+	// Use the header hash to compute the MAC keys.
+	pes.computeMACKeys(sender, receivers)
+
 	return nil
+}
+
+func (pes *testEncryptStream) computeMACKeys(sender BoxSecretKey, receivers []BoxPublicKey) {
+	for _, receiver := range receivers {
+		macKeyBox := sender.Box(receiver, nonceForMACKeyBox(pes.headerHash[:]), make([]byte, 32))
+		pes.macKeys = append(pes.macKeys, macKeyBox[16:48])
+	}
 }
 
 func (pes *testEncryptStream) Close() error {
@@ -226,33 +255,14 @@ func (pes *testEncryptStream) writeFooter() error {
 
 // Options are available mainly for testing.  Can't think of a good reason for
 // end-users to have to specify options.
-func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers []BoxPublicKey, options testEncryptionOptions) (plaintext io.WriteCloser, err error) {
+func newTestEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers []BoxPublicKey, options testEncryptionOptions) (io.WriteCloser, error) {
 	pes := &testEncryptStream{
 		output:  ciphertext,
 		encoder: newEncoder(ciphertext),
 		options: options,
 		inblock: make([]byte, options.getBlockSize()),
 	}
-	if err := pes.init(sender, receivers); err != nil {
-		return nil, err
-	}
-	// Encode the header and the header length, and write them out immediately.
-	headerBytes, err := encodeToBytes(pes.header)
-	if err != nil {
-		return nil, err
-	}
-	headerLen, err := encodeToBytes(len(headerBytes))
-	if err != nil {
-		return nil, err
-	}
-	if pes.options.corruptHeaderPacked != nil {
-		pes.options.corruptHeaderPacked(headerBytes)
-	}
-	_, err = pes.output.Write(headerLen)
-	if err != nil {
-		return nil, err
-	}
-	_, err = pes.output.Write(headerBytes)
+	err := pes.init(sender, receivers)
 	return pes, err
 }
 
