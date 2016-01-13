@@ -17,7 +17,6 @@ type encryptStream struct {
 	header     *EncryptionHeader
 	payloadKey SymmetricKey
 	buffer     bytes.Buffer
-	nonce      *Nonce
 	inblock    []byte
 	tagKeys    []BoxPrecomputedSharedKey
 
@@ -63,7 +62,7 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 		return err
 	}
 
-	nonce := es.nonce.ForPayloadBox(es.numBlocks)
+	nonce := nonceForChunkSecretBox(es.numBlocks)
 	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&es.payloadKey))
 	hash := sha512.Sum512(ciphertext)
 
@@ -148,17 +147,13 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 		return err
 	}
 
-	es.nonce = NewNonceForEncryption(ephemeralKey.GetPublicKey())
-
-	nonce := es.nonce.ForKeyBox()
-
-	eh.SenderSecretbox = secretbox.Seal([]byte{}, sender.GetPublicKey().ToKID(), (*[24]byte)(nonce), (*[32]byte)(&es.payloadKey))
+	eh.SenderSecretbox = secretbox.Seal([]byte{}, sender.GetPublicKey().ToKID(), (*[24]byte)(nonceForSenderKeySecretBox()), (*[32]byte)(&es.payloadKey))
 
 	for _, receiver := range receivers {
 
 		ephemeralShared := ephemeralKey.Precompute(receiver)
 
-		payloadKeyBox := ephemeralShared.Box(nonce, es.payloadKey[:])
+		payloadKeyBox := ephemeralShared.Box(nonceForPayloadKeyBox(), es.payloadKey[:])
 		if err != nil {
 			return err
 		}

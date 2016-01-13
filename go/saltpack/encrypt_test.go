@@ -858,11 +858,9 @@ func TestCorruptEncryption(t *testing.T) {
 		corruptPayloadNonce: func(n *Nonce, ebn encryptionBlockNumber) *Nonce {
 			switch ebn {
 			case 1:
-				tmp := *n
-				return tmp.ForPayloadBox(encryptionBlockNumber(0))
+				return nonceForChunkSecretBox(encryptionBlockNumber(0))
 			case 0:
-				tmp := *n
-				return tmp.ForPayloadBox(encryptionBlockNumber(1))
+				return nonceForChunkSecretBox(encryptionBlockNumber(1))
 			}
 			return n
 		},

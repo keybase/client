@@ -41,7 +41,6 @@ type testEncryptStream struct {
 	inblock    []byte
 	options    testEncryptionOptions
 	tagKeys    []BoxPrecomputedSharedKey
-	nonce      *Nonce
 
 	numBlocks encryptionBlockNumber // the lower 64 bits of the nonce
 
@@ -85,7 +84,7 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 		return err
 	}
 
-	nonce := pes.nonce.ForPayloadBox(pes.numBlocks)
+	nonce := nonceForChunkSecretBox(pes.numBlocks)
 
 	if pes.options.corruptPayloadNonce != nil {
 		nonce = pes.options.corruptPayloadNonce(nonce, pes.numBlocks)
@@ -148,16 +147,13 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 		return err
 	}
 
-	pes.nonce = NewNonceForEncryption(ephemeralKey.GetPublicKey())
-	nonce := pes.nonce.ForKeyBox()
-
 	var senderPlaintext [32]byte
 	copy(senderPlaintext[:], sender.GetPublicKey().ToKID())
 	senderPlaintextSlice := senderPlaintext[:]
 	if pes.options.corruptSenderKeyPlaintext != nil {
 		pes.options.corruptSenderKeyPlaintext(&senderPlaintextSlice)
 	}
-	eh.SenderSecretbox = secretbox.Seal([]byte{}, senderPlaintextSlice, (*[24]byte)(nonce), (*[32]byte)(&pes.payloadKey))
+	eh.SenderSecretbox = secretbox.Seal([]byte{}, senderPlaintextSlice, (*[24]byte)(nonceForSenderKeySecretBox()), (*[32]byte)(&pes.payloadKey))
 	if pes.options.corruptSenderKeyCiphertext != nil {
 		pes.options.corruptSenderKeyCiphertext(eh.SenderSecretbox)
 	}
@@ -169,7 +165,7 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 			pes.options.corruptPayloadKey(&payloadKeySlice, rid)
 		}
 
-		nonceTmp := nonce
+		nonceTmp := nonceForPayloadKeyBox()
 		if pes.options.corruptKeysNonce != nil {
 			nonceTmp = pes.options.corruptKeysNonce(nonceTmp, rid)
 		}

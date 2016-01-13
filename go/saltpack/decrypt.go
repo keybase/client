@@ -21,7 +21,6 @@ type decryptStream struct {
 	payloadKey *SymmetricKey
 	senderKey  *RawBoxKey
 	buf        []byte
-	nonce      *Nonce
 	tagKey     BoxPrecomputedSharedKey
 	position   int
 	mki        MessageKeyInfo
@@ -168,7 +167,7 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey
 		return nil, nil, nil, -1, ErrBadLookup
 	}
 
-	payloadKeySlice, err := shared.Unbox(ds.nonce.ForKeyBox(), hdr.Receivers[orig].PayloadKeyBox)
+	payloadKeySlice, err := shared.Unbox(nonceForPayloadKeyBox(), hdr.Receivers[orig].PayloadKeyBox)
 	if err != nil {
 		return nil, nil, nil, -1, err
 	}
@@ -196,7 +195,7 @@ func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey 
 
 		for i, r := range hdr.Receivers {
 			if len(r.ReceiverKID) == 0 {
-				payloadKeySlice, err := shared.Unbox(ds.nonce.ForKeyBox(), r.PayloadKeyBox)
+				payloadKeySlice, err := shared.Unbox(nonceForPayloadKeyBox(), r.PayloadKeyBox)
 				if err != nil {
 					continue
 				}
@@ -222,8 +221,6 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 		return ErrBadEphemeralKey
 	}
 
-	ds.nonce = NewNonceForEncryption(ephemeralKey)
-
 	var secretKey BoxSecretKey
 	var err error
 
@@ -244,7 +241,7 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	ds.mki.ReceiverKey = secretKey
 
 	// Decrypt the sender's public key
-	senderKeySlice, ok := secretbox.Open([]byte{}, hdr.SenderSecretbox, (*[24]byte)(ds.nonce), (*[32]byte)(ds.payloadKey))
+	senderKeySlice, ok := secretbox.Open([]byte{}, hdr.SenderSecretbox, (*[24]byte)(nonceForSenderKeySecretBox()), (*[32]byte)(ds.payloadKey))
 	if !ok {
 		return ErrBadSenderKeySecretbox
 	}
@@ -280,7 +277,7 @@ func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, er
 		return nil, err
 	}
 
-	nonce := ds.nonce.ForPayloadBox(blockNum)
+	nonce := nonceForChunkSecretBox(blockNum)
 	ciphertext := bl.PayloadCiphertext
 	hash := sha512.Sum512(ciphertext)
 
