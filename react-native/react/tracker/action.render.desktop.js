@@ -3,7 +3,7 @@
 import React, {Component} from '../base-react'
 import {FlatButton} from 'material-ui'
 import commonStyles from '../styles/common'
-import {normal, checking, warning, loggedOut} from '../constants/tracker'
+import {normal, checking, warning} from '../constants/tracker'
 
 import type {Styled} from '../styles/common'
 import type {ActionProps} from './action.render'
@@ -12,9 +12,9 @@ export default class ActionRender extends Component {
   props: ActionProps & Styled;
 
   render (): ReactElement {
-    const {username, state} = this.props
+    const {username, state, loggedIn} = this.props
 
-    if (state === loggedOut) {
+    if (!loggedIn) {
       return this.renderLoggedOut()
     } else if (state === checking || !username) {
       return this.renderPending()
@@ -100,6 +100,7 @@ export default class ActionRender extends Component {
 
 ActionRender.propTypes = {
   state: React.PropTypes.any.isRequired,
+  loggedIn: React.PropTypes.bool.isRequired,
   username: React.PropTypes.string,
   shouldFollow: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,

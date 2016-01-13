@@ -3,6 +3,7 @@
 import type {SimpleProofState} from '../constants/tracker'
 
 export type ActionProps = {
+  loggedIn: boolean,
   state: SimpleProofState,
   currentlyFollowing: boolean,
   username: ?string,

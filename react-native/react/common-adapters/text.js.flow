@@ -4,11 +4,10 @@ import React, {Component} from '../base-react'
 
 export type Props = {
   type: 'Header' | 'Body',
-  link: bool,
-  small: bool,
-  reversed: bool,
-  children: object,
-  onClick: Function
+  link?: bool,
+  small?: bool,
+  reversed?: bool,
+  onClick?: Function
 }
 
 declare export default class Text extends React.Component<void, Props, {}> {

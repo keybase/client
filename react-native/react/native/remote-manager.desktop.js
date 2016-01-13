@@ -91,7 +91,6 @@ class RemoteManager extends Component {
             onRemoteClose={() => this.props.onCloseFromHeader(username)}
             component='tracker'
             username={username}
-            substore='tracker'
             startTimer={this.props.trackerStartTimer}
             stopTimer={this.props.trackerStopTimer}
             key={username}
@@ -139,7 +138,6 @@ class RemoteManager extends Component {
         windowsOpts={{width: 480, height: 430}}
         waitForState
         component='update'
-        substore='update'
         onCancel={() => this.props.updateOnCancel()}
         onSkip={() => this.props.updateOnSkip()}
         onSnooze={() => this.props.updateOnSnooze()}
