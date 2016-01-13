@@ -149,14 +149,14 @@ export function onFollowHelp (username: string): Action {
 function trackUser (username: string, state: {tracker: RootTrackerState}): Promise<boolean> {
   const trackers = state.tracker.trackers
   const trackerState = trackers[username]
-  const {shouldFollow, trackToken} = (trackerState || {})
+  const {trackToken} = (trackerState || {})
 
   const options: TrackOptions = {
     localOnly: false,
     bypassConfirm: false
   }
 
-  if (trackerState && trackToken && trackerState !== Constants.normal || shouldFollow) {
+  if (trackerState && trackToken) {
     return new Promise((resolve, reject) => {
       engine.rpc('track.trackWithToken', {trackToken, options}, {}, (err, response) => {
         if (err) {
@@ -175,7 +175,10 @@ function trackUser (username: string, state: {tracker: RootTrackerState}): Promi
 
 export function onCloseFromActionBar (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
-    trackUser(username, getState())
+    const {shouldFollow} = getState().tracker.trackers[username].trackerState
+    if (shouldFollow) {
+      trackUser(username, trackerState)
+    }
 
     dispatch({
       type: Constants.onCloseFromActionBar,
