@@ -6,9 +6,10 @@ package libkb
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	triplesec "github.com/keybase/go-triplesec"
-	"time"
 )
 
 type timedGenericKey struct {
@@ -383,34 +384,27 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
 // SaveState saves the logins state to memory, and to the user
 // config file.
 func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
-	cw, err := a.newUserConfigWriter(username, uid, deviceID)
-	if err != nil {
-		return err
-	}
-	if err := cw.Save(); err != nil {
+	if err := a.saveUserConfig(username, uid, deviceID); err != nil {
 		return err
 	}
 	return a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid, deviceID)
 }
 
-func (a *Account) newUserConfigWriter(username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (ConfigWriter, error) {
+func (a *Account) saveUserConfig(username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
 	cw := a.G().Env.GetConfigWriter()
 	if cw == nil {
-		return nil, NoConfigWriterError{}
+		return NoConfigWriterError{}
 	}
 
 	if err := a.LoginSession().Clear(); err != nil {
-		return nil, err
+		return err
 	}
 	salt, err := a.LoginSession().Salt()
 	if err != nil {
-		return nil, err
-	}
-	if err := cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), false); err != nil {
-		return nil, err
+		return err
 	}
 
-	return cw, nil
+	return cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), false)
 }
 
 func (a *Account) Dump() {

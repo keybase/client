@@ -6,10 +6,11 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
-	jsonw "github.com/keybase/go-jsonw"
 	"io"
 	"os"
 	"sync"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type jsonFileTransaction struct {
@@ -120,6 +121,27 @@ func (f *JSONFile) getTx() *jsonFileTransaction {
 	return f.tx
 }
 
+func (f *JSONFile) getOrMakeTx() (*jsonFileTransaction, bool, error) {
+	f.txMutex.Lock()
+	defer f.txMutex.Unlock()
+
+	// if a transaction exists, use it
+	if f.tx != nil {
+		return f.tx, false, nil
+	}
+
+	// make a new transaction
+	tx, err := newJSONFileTransaction(f)
+	if err != nil {
+		return nil, false, err
+	}
+
+	f.tx = tx
+
+	// return true so caller knows that a transaction was created
+	return f.tx, true, nil
+}
+
 func newJSONFileTransaction(f *JSONFile) (*jsonFileTransaction, error) {
 	ret := &jsonFileTransaction{f: f}
 	sffx, err := RandString("", 15)
@@ -131,9 +153,35 @@ func newJSONFileTransaction(f *JSONFile) (*jsonFileTransaction, error) {
 }
 
 func (f *JSONFile) Save() error {
+	tx, txCreated, err := f.getOrMakeTx()
+	if err != nil {
+		return err
+	}
+	if txCreated {
+		// if Save() created a transaction, then abort it if it
+		// still exists on exit
+		defer func() {
+			if tx != nil {
+				tx.Abort()
+			}
+		}()
+	}
+
 	if err := f.save(f.getFilename(), true, 0); err != nil {
 		return err
 	}
+
+	if txCreated {
+		// this Save() call created a transaction, so commit it
+		if err := tx.Commit(); err != nil {
+			return err
+		}
+
+		// Commit worked, clear the transaction so defer() doesn't
+		// abort it.
+		tx = nil
+	}
+
 	return nil
 }
 
