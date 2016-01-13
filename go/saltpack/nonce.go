@@ -5,9 +5,11 @@ import (
 	"encoding/binary"
 )
 
+const NonceBytes = 24
+
 // Nonce is a NaCl-style nonce, with 24 bytes of data, some of which can be
 // counter values, and some of which can be random-ish values.
-type Nonce [24]byte
+type Nonce [NonceBytes]byte
 
 func nonceForSenderKeySecretBox() *Nonce {
 	var n Nonce
@@ -23,7 +25,7 @@ func nonceForPayloadKeyBox() *Nonce {
 
 func nonceForMACKeyBox(headerHash []byte) *Nonce {
 	var n Nonce
-	copy(n[:], headerHash[:24])
+	copy(n[:], headerHash[:NonceBytes])
 	return &n
 }
 
