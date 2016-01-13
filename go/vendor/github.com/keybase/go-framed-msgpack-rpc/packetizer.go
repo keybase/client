@@ -1,7 +1,6 @@
 package rpc
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -69,12 +68,12 @@ func (p *packetHandler) loadNextFrame() ([]byte, error) {
 	}
 
 	bytes := make([]byte, l)
-	len, err := p.reader.Read(bytes)
+	lenRead, err := io.ReadFull(p.reader, bytes)
 	if err != nil {
 		return nil, err
 	}
-	if len != l {
-		return nil, errors.New("Unable to read desired length")
+	if lenRead != l {
+		return nil, fmt.Errorf("Unable to read desired length. Desired: %d, actual: %d", l, lenRead)
 	}
 	return bytes, nil
 }
