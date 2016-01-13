@@ -233,8 +233,6 @@ func TestSaltpackEncryptBinary(t *testing.T) {
 	}
 	out := sink.String()
 
-	t.Logf("encrypted data: %x", out)
-
 	// decrypt it
 	decoded := libkb.NewBufferCloser()
 	decarg := &SaltpackDecryptArg{
