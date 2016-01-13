@@ -6,7 +6,7 @@ import {showAllTrackers} from '../local-debug'
 import * as Constants from '../constants/tracker'
 import * as ConfigConstants from '../constants/config'
 
-import {normal, warning, error, checking, loggedOut} from '../constants/tracker'
+import {normal, warning, error, checking} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaDeleted} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase_v1'
@@ -33,7 +33,6 @@ export type TrackerState = {
 }
 
 export type State = {
-  loggedIn: boolean,
   serverStarted: boolean,
   trackers: {[key: string]: TrackerState},
   timerActive: number
@@ -42,7 +41,6 @@ export type State = {
 const initialProofState = checking
 
 const initialState: State = {
-  loggedIn: false,
   serverStarted: false,
   timerActive: 0,
   trackers: {}
@@ -71,7 +69,7 @@ function initialTrackerState (username: string): TrackerState {
   }
 }
 
-function updateUserState (state: TrackerState, action: Action, loggedIn: boolean): TrackerState {
+function updateUserState (state: TrackerState, action: Action): TrackerState {
   let shouldFollow: boolean
   switch (action.type) {
     case Constants.onFollowChecked:
@@ -131,7 +129,7 @@ function updateUserState (state: TrackerState, action: Action, loggedIn: boolean
       return {
         ...state,
         shouldFollow: deriveShouldFollow(allOk),
-        trackerState: deriveTrackerState(allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, loggedIn),
+        trackerState: deriveTrackerState(allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs),
         trackerMessage: deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs)
       }
 
@@ -207,11 +205,6 @@ export default function (state: State = initialState, action: Action): State {
   const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
   const trackerState = username ? state.trackers[username] : null
   switch (action.type) {
-    case ConfigConstants.startupLoaded:
-      return {
-        ...state,
-        loggedIn: action.payload && action.payload.status.loggedIn
-      }
     case Constants.startTimer:
       return {
         ...state,
@@ -225,7 +218,7 @@ export default function (state: State = initialState, action: Action): State {
   }
 
   if (trackerState) {
-    const newTrackerState = updateUserState(trackerState, action, state.loggedIn)
+    const newTrackerState = updateUserState(trackerState, action)
     if (newTrackerState === trackerState) {
       return state
     }
@@ -413,11 +406,8 @@ function deriveTrackerState (
   anyPending: boolean,
   anyDeletedProofs : boolean,
   anyUnreachableProofs : boolean,
-  loggedIn : boolean
 ): SimpleProofState {
-  if (!loggedIn) {
-    return loggedOut
-  } else if (anyWarnings || anyUnreachableProofs) {
+  if (anyWarnings || anyUnreachableProofs) {
     return warning
   } else if (anyError || anyDeletedProofs) {
     return error

@@ -12,6 +12,7 @@ import {switchTab} from '../tabbed-router'
 import {devicesTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
+import {getCurrentStatus} from '../config'
 
 export function login () {
   return (dispatch, getState) => {
@@ -99,9 +100,17 @@ export function logout () {
       if (error) {
         console.log(error)
       } else {
-        dispatch({type: Constants.logoutDone})
+        dispatch(logoutDone)
       }
     })
+  }
+}
+
+export function logoutDone () {
+  // We've logged out, let's check our current status
+  return dispatch => {
+    dispatch({type: Constants.logoutDone})
+    dispatch(getCurrentStatus())
   }
 }
 

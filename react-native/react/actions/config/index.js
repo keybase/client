@@ -3,43 +3,64 @@ import {autoLogin} from '../login'
 import engine from '../../engine'
 import * as native from './index.native'
 
+const loggingIncomingMap = {
+  'keybase.1.logUi.log': (param, response) => {
+    console.log(param)
+    response.result()
+  }
+}
+
 export function startup () {
   return function (dispatch) {
+    // Also call getCurrentStatus if the service goes away/comes back.
+    engine.listenOnConnect('getCurrentStatus', () => dispatch(getCurrentStatus()))
+
     dispatch({type: Constants.startupLoading})
 
-    const incomingMap = {
-      'keybase.1.logUi.log': (param, response) => {
-        console.log(param)
-        response.result()
-      }
-    }
-
-    engine.rpc('config.getConfig', {}, incomingMap, (error, config) => {
-      if (error) {
+    dispatch(getCurrentStatus())
+      .then(() => dispatch(getConfig()))
+      .then(() => dispatch({type: Constants.startupLoaded}))
+      .catch(error => {
         dispatch({type: Constants.startupLoaded, payload: error, error: true})
-        return
-      }
+      })
+  }
+}
 
-      function getCurrentStatus () {
-        engine.rpc('config.getCurrentStatus', {}, incomingMap, (error, status) => {
-          if (error) {
-            dispatch({type: Constants.startupLoaded, payload: error, error: true})
-            return
-          }
-          dispatch({
-            type: Constants.startupLoaded,
-            payload: {config, status}
-          })
+function getConfig (): (dispatch: Dispatch) => Promise<void> {
+  return dispatch => {
+    return new Promise((resolve, reject) => {
+      engine.rpc('config.getConfig', {}, loggingIncomingMap, (error, config) => {
+        if (error) {
+          reject(error)
+        }
 
-          if (status.loggedIn) {
-            dispatch(autoLogin())
-          }
+        dispatch({type: Constants.configLoaded, payload: {config}})
+        resolve()
+      })
+    })
+  }
+}
+
+export function getCurrentStatus (): (dispatch: Dispatch) => Promise<void> {
+  return dispatch => {
+    return new Promise((resolve, reject) => {
+      engine.rpc('config.getCurrentStatus', {}, loggingIncomingMap, (error, status) => {
+        if (error) {
+          reject(error)
+          return
+        }
+
+        dispatch({
+          type: Constants.statusLoaded,
+          payload: {status}
         })
-      }
 
-      getCurrentStatus()
-      // Also call getCurrentStatus if the service goes away/comes back.
-      engine.listenOnConnect('getCurrentStatus', getCurrentStatus)
+        if (status.loggedIn) {
+          dispatch(autoLogin())
+        }
+
+        resolve()
+      })
     })
   }
 }

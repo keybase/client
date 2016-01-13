@@ -47,8 +47,7 @@ class RemoteComponentLoader extends Component {
       unmounted: false
     }
 
-    const substore = getQueryVariable('substore')
-    this.store = new RemoteStore({substore})
+    this.store = new RemoteStore({})
 
     const componentToLoad = getQueryVariable('component')
 
