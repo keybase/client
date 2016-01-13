@@ -14,11 +14,11 @@ var sentNotifications = {}
 export default function (dispatch, notify) {
   return {
     'keybase.1.NotifySession.loggedOut': () => {
-      notify('Logged Out')
+      notify('Logged out of Keybase')
       dispatch(logoutDone())
     },
     'keybase.1.NotifySession.loggedIn': ({username}: {username: string}) => {
-      notify('Logged in as: ' + username)
+      notify('Logged in to Keybase as: ' + username)
       dispatch(getCurrentStatus())
     },
     'keybase.1.NotifyFS.FSActivity': params => {
