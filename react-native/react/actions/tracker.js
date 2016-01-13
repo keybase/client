@@ -109,7 +109,8 @@ export function onFollowChecked (newFollowCheckedValue: boolean, username: strin
 export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     console.log('onRefollow')
-    trackUser(username, getState())
+    const {trackToken} = (getState().tracker.trackers[username] || {})
+    trackUser(trackToken)
     dispatch({
       type: Constants.onRefollow,
       payload: {username}
@@ -146,17 +147,13 @@ export function onFollowHelp (username: string): Action {
   }
 }
 
-function trackUser (username: string, state: {tracker: RootTrackerState}): Promise<boolean> {
-  const trackers = state.tracker.trackers
-  const trackerState = trackers[username]
-  const {trackToken} = (trackerState || {})
-
+function trackUser (trackToken: string): Promise<boolean> {
   const options: TrackOptions = {
     localOnly: false,
     bypassConfirm: false
   }
 
-  if (trackerState && trackToken) {
+  if (trackToken) {
     return new Promise((resolve, reject) => {
       engine.rpc('track.trackWithToken', {trackToken, options}, {}, (err, response) => {
         if (err) {
@@ -175,9 +172,11 @@ function trackUser (username: string, state: {tracker: RootTrackerState}): Promi
 
 export function onCloseFromActionBar (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
-    const {shouldFollow} = getState().tracker.trackers[username].trackerState
+    const trackerState = getState().tracker.trackers[username]
+    const {shouldFollow} = trackerState
+    const {trackToken} = (trackerState || {})
     if (shouldFollow) {
-      trackUser(username, trackerState)
+      trackUser(trackToken)
     }
 
     dispatch({
