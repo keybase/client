@@ -49,6 +49,8 @@ build_one_architecture() {
   tags=${TAGS:-"prerelease production"}
   platform=${PLATFORM:-`uname`}
   ldflags="-X github.com/keybase/client/go/libkb.CustomBuild=$keybase_build"
+  echo "The build id is '$keybase_build'."
+  echo "The custom ldflags are '$ldflags'."
   go build -a -tags "$tags" -ldflags "$ldflags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
   cp "$here/run_keybase.sh" "$dest/build/usr/bin/run_keybase.sh"
