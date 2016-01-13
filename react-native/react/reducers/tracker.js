@@ -282,7 +282,7 @@ function stateToColor (state: SimpleProofState): string {
 
 function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff): SimpleProofState {
   // If there is no difference in what we've tracked from the server or remote resource it's good.
-  if (diff && remoteDiff && diff.type === identify.TrackDiffType.none && remoteDiff === identify.TrackDiffType.none) {
+  if (diff && remoteDiff && diff.type === identify.TrackDiffType.none && remoteDiff.type === identify.TrackDiffType.none) {
     return normal
   }
 
@@ -419,14 +419,14 @@ function deriveTrackerState (
   anyDeletedProofs : boolean,
   anyUnreachableProofs : boolean,
 ): SimpleProofState {
-  if (anyWarnings || anyUnreachableProofs) {
+  if (allOk) {
+    return normal
+  } else if (anyPending) {
+    return checking
+  } else if (anyWarnings || anyUnreachableProofs) {
     return warning
   } else if (anyError || anyDeletedProofs) {
     return error
-  } else if (anyPending) {
-    return checking
-  } else if (allOk) {
-    return normal
   }
 
   return error
@@ -440,14 +440,14 @@ function deriveTrackerMessage (
   anyUpgradedProofs : boolean,
   anyNewProofs: boolean
 ): ?string {
-  if (anyDeletedProofs) {
+  if (allOk) {
+    return null
+  } else if (anyDeletedProofs) {
     return `${username} deleted some proofs.`
   } else if (anyUnreachableProofs) {
     return `Some of ${username}’s proofs are compromised or have changed.`
   } else if (anyUpgradedProofs) {
     return `${username} added some identity proofs.`
-  } else if (allOk) {
-    return null
   }
 }
 
