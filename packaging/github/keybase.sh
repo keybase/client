@@ -8,11 +8,10 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
 build_dir="/tmp/build_keybase"
-
-clientdir="$GOPATH/src/github.com/keybase/client"
+client_dir="$GOPATH/src/github.com/keybase/client"
 
 echo "Loading release tool"
-go install github.com/keybase/release
+"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$GOPATH/bin/release"
 
 version="${VERSION:-}"
@@ -66,11 +65,11 @@ build() {
 
 create_release() {
   cd "$build_dir"
-  osname=`$release_bin platform`
+  platform=`$release_bin platform`
   echo "Creating release"
-  $release_bin create --version="$version" --user="keybase" --repo="client"
+  $release_bin create --version="$version" --repo="client"
   echo "Uploading release"
-  $release_bin upload --src="$tgz" --dest="keybase-$version-$osname.tgz" --version="$version" --user="keybase" --repo="client"
+  $release_bin upload --src="$tgz" --dest="keybase-$version-$platform.tgz" --version="$version" --repo="client"
 }
 
 check_release

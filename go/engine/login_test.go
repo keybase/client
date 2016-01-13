@@ -297,6 +297,7 @@ func TestProvisionPassphraseBadName(t *testing.T) {
 func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPOnly(t, tc)
+	t.Log("Created fake user")
 	Logout(tc)
 	tc.Cleanup()
 

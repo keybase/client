@@ -25,4 +25,6 @@
 
 + (instancetype)environmentForRunModeString:(NSString *)runModeString servicePath:(NSString *)servicePath;
 
+- (NSString *)debugInstallables;
+
 @end

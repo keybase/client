@@ -1,3 +1,6 @@
+## 1.0.8
+- Do not use current keybase ID as default when generating PGP keys  (PR: keybase/client#1706)
+- Rename SaltPack to saltpack  (PR: keybase/client#1674)
 - Fix hang in auth C/I tests (commit: 0a30c4ca47bd4d7b936f8bccf46afc00b143d5a7)
 - Better `keybase exp encrypt`/identification interaction (PR: keybase/client#1577)
 - Allow disabling self-encryption in `keybase exp encrypt` (PR: keybase/client#1606)

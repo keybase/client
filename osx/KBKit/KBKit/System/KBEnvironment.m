@@ -60,4 +60,27 @@
   return nil;
 }
 
+- (NSString *)debugInstallables {
+  NSMutableString *info = [NSMutableString string];
+  NSDictionary *installerInfo = NSBundle.mainBundle.infoDictionary;
+  [info appendString:NSStringWithFormat(@"%@: %@\n", installerInfo[@"CFBundleName"], installerInfo[@"CFBundleVersion"])];
+
+  for (KBInstallable *installable in self.installables) {
+    NSString *name = installable.name;
+    [info appendString:NSStringWithFormat(@"%@: ", name)];
+    NSString *action = [installable action];
+    if (action) {
+      [info appendString:NSStringWithFormat(@"%@, ", action)];
+    }
+
+    NSString *desc = [[installable installDescription:@", "] join:@", "];
+    [info appendString:desc];
+
+    [info appendString:@"\n"];
+  }
+
+  [info appendString:@"\n"];
+  return info;
+}
+
 @end
