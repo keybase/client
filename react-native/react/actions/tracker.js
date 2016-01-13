@@ -147,7 +147,7 @@ export function onFollowHelp (username: string): Action {
   }
 }
 
-function trackUser (trackToken: string): Promise<boolean> {
+function trackUser (trackToken: ?string): Promise<boolean> {
   const options: TrackOptions = {
     localOnly: false,
     bypassConfirm: false
