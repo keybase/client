@@ -1,11 +1,10 @@
 import engine from '../engine'
-
-import type {Text} from '../constants/types/flow-types'
+import {logUiLog} from '../actions/notifications'
 
 export default function ListenLogUi () {
   engine.listenOnConnect('ListenLogUi', () => {
-    engine.listenGeneralIncomingRpc('keybase.1.logUi.log', (params: {text: Text}) => {
-      console.log('keybase.1.logUi.log:', params.text.data)
+    engine.listenGeneralIncomingRpc('keybase.1.logUi.log', (params: {text: Text, level: LogLevel}) => {
+      logUiLog(params)
     })
     console.log('Registered Listener for logUi.log')
   })

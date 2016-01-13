@@ -14,7 +14,7 @@ import Startup from './start-up'
 
 import {switchTab} from './actions/tabbed-router'
 import {navigateTo, navigateUp} from './actions/router'
-import {startup} from './actions/config'
+import {startup} from './actions/startup'
 
 import * as Constants from './constants/config'
 
