@@ -2,12 +2,13 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
+// +build !dokan,!fuse
+
 package test
 
 import (
 	engine "github.com/keybase/kbfs/test/ext"
 
-	"bytes"
 	"errors"
 	"fmt"
 	"path"
@@ -38,7 +39,7 @@ func test(t *testing.T, actions ...optionOp) {
 		omod(o)
 	}
 	for _, user := range o.users {
-		o.expectSucccess("Shutdown", o.engine.Shutdown(user))
+		o.expectSuccess("Shutdown", o.engine.Shutdown(user))
 	}
 }
 
@@ -46,13 +47,7 @@ func (o *opt) runInitOnce() {
 	if o.initDone {
 		return
 	}
-	userSlice := make([]string, 0, len(o.readers)+len(o.writers))
-	for _, u := range o.readerNames {
-		userSlice = append(userSlice, string(u))
-	}
-	for _, u := range o.writerNames {
-		userSlice = append(userSlice, string(u))
-	}
+	userSlice := concatUserNamesToStrings2(o.readerNames, o.writerNames)
 	o.users = o.engine.InitTest(o.blockSize, o.blockChangeSize, userSlice...)
 
 	for _, uname := range o.readerNames {
@@ -77,36 +72,10 @@ func (o *opt) failf(format string, objs ...interface{}) {
 	o.t.Fatalf(format, objs...)
 }
 
-func (o *opt) expectSucccess(reason string, err error) {
+func (o *opt) expectSuccess(reason string, err error) {
 	if err != nil {
 		o.engine.PrintLog()
 		o.t.Fatalf("Error: %s: %v", reason, err)
-	}
-}
-
-type optionOp func(*opt)
-
-func blockSize(n int64) optionOp {
-	return func(o *opt) {
-		o.blockSize = n
-	}
-}
-
-func blockChangeSize(n int64) optionOp {
-	return func(o *opt) {
-		o.blockChangeSize = n
-	}
-}
-
-func writers(ns ...username) optionOp {
-	return func(o *opt) {
-		o.writerNames = append(o.writerNames, ns...)
-	}
-}
-
-func readers(ns ...username) optionOp {
-	return func(o *opt) {
-		o.readerNames = append(o.readerNames, ns...)
 	}
 }
 
@@ -116,17 +85,6 @@ type ctx struct {
 	rootNode   engine.Node
 	noSyncInit bool
 }
-
-type fileOp struct {
-	operation func(*ctx) error
-	flags     fileOpFlags
-}
-type fileOpFlags uint32
-
-const (
-	Defaults = fileOpFlags(0)
-	IsInit   = fileOpFlags(2)
-)
 
 func as(user username, fops ...fileOp) optionOp {
 	return func(o *opt) {
@@ -138,7 +96,7 @@ func as(user username, fops ...fileOp) optionOp {
 		}
 		root, err := o.engine.GetRootDir(ctx.user, false, o.writers, o.readers)
 		if err != nil {
-			ctx.expectSucccess("GetRootDir", err)
+			ctx.expectSuccess("GetRootDir", err)
 		}
 		ctx.rootNode = root
 
@@ -148,7 +106,7 @@ func as(user username, fops ...fileOp) optionOp {
 				if !ctx.noSyncInit {
 					err = o.engine.SyncFromServer(ctx.user, ctx.rootNode)
 					if err != nil {
-						ctx.expectSucccess("SyncFromServer", err)
+						ctx.expectSuccess("SyncFromServer", err)
 					}
 				}
 				initDone = true
@@ -156,17 +114,10 @@ func as(user username, fops ...fileOp) optionOp {
 			o.t.Log("fop", fop)
 			err = fop.operation(ctx)
 			if err != nil {
-				ctx.expectSucccess("File operation", err)
+				ctx.expectSuccess("File operation", err)
 			}
 		}
 	}
-}
-
-func noSync() fileOp {
-	return fileOp{func(c *ctx) error {
-		c.noSyncInit = true
-		return nil
-	}, IsInit}
 }
 
 func mkdir(name string) fileOp {
@@ -331,22 +282,6 @@ func lsdir(name string, contents m) fileOp {
 	}, Defaults}
 }
 
-func expectError(op fileOp, reason string) fileOp {
-	return fileOp{func(c *ctx) error {
-		err := op.operation(c)
-		if err == nil {
-			return errors.New(reason)
-		}
-		return nil
-	}, Defaults}
-}
-
-func (c *ctx) getNodeExpectSuccess(filepath string, create bool, isFile bool) engine.Node {
-	node, err := c.getNode(filepath, create, isFile)
-	c.expectSucccess("getNode", err)
-	return node
-}
-
 func (c *ctx) getNode(filepath string, create bool, isFile bool) (engine.Node, error) {
 	if filepath == "" || filepath == "/" {
 		return c.rootNode, nil
@@ -391,21 +326,4 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (engine.Node, e
 		}
 	}
 	return node, nil
-}
-
-type m map[string]string
-type username string
-
-const (
-	alice = username("alice")
-	bob   = username("bob")
-	eve   = username("eve")
-)
-
-func ntimesString(n int, s string) string {
-	var bs bytes.Buffer
-	for i := 0; i < n; i++ {
-		bs.WriteString(s)
-	}
-	return bs.String()
 }
