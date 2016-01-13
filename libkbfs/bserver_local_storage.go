@@ -135,6 +135,11 @@ func (s *bserverMemStorage) archiveReference(id BlockID, refNonce BlockRefNonce)
 		return ArchiveMissingBlockError{id, refNonce}
 	}
 
+	_, ok = entry.Refs[refNonce]
+	if !ok {
+		return ArchiveMissingBlockError{id, refNonce}
+	}
+
 	entry.Refs[refNonce] = archivedBlockRef
 	s.m[id] = entry
 	return nil
@@ -277,6 +282,11 @@ func (s *bserverFileStorage) archiveReference(id BlockID, refNonce BlockRefNonce
 		return err
 	}
 
+	_, ok := entry.Refs[refNonce]
+	if !ok {
+		return ArchiveMissingBlockError{id, refNonce}
+	}
+
 	entry.Refs[refNonce] = archivedBlockRef
 	return s.putLocked(p, entry)
 }
@@ -399,6 +409,11 @@ func (s *bserverLeveldbStorage) archiveReference(id BlockID, refNonce BlockRefNo
 			return ArchiveMissingBlockError{id, refNonce}
 		}
 		return err
+	}
+
+	_, ok := entry.Refs[refNonce]
+	if !ok {
+		return ArchiveMissingBlockError{id, refNonce}
 	}
 
 	entry.Refs[refNonce] = archivedBlockRef
