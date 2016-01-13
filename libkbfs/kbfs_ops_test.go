@@ -4783,3 +4783,40 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 			ei, eis["b"])
 	}
 }
+
+func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
+	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	// create a file.
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Remove the file, which will archive the block
+	err = kbfsOps.RemoveEntry(ctx, rootNode, "a")
+	if err != nil {
+		t.Fatalf("Couldn't remove file: %v", err)
+	}
+
+	// Wait for the archiving to finish
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server")
+	}
+
+	// Create a second file, which will use the same initial block ID
+	// from the cache, even though it's been archived, and will be
+	// forced to try again.
+	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create second file: %v", err)
+	}
+}
