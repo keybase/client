@@ -68,7 +68,7 @@ if (version) {
     if (err) {
       DEFAULT_OPTS.version = '0.35.4'
     } else {
-      DEFAULT_OPTS.version = stdout.split('@')[1].split(' ')[0]
+      DEFAULT_OPTS.version = stdout.trim().split('@')[1].split(' ')[0]
     }
     startPack()
   })
