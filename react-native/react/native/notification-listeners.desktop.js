@@ -3,6 +3,7 @@ import path from 'path'
 import type {FSNotification} from '../../react/constants/types/flow-types'
 import {getTLF} from '../util/kbfs'
 
+import {getCurrentStatus} from '../actions/config'
 import {logoutDone} from '../actions/login'
 
 // TODO: Once we have access to the Redux store from the thread running
@@ -15,6 +16,10 @@ export default function (dispatch, notify) {
     'keybase.1.NotifySession.loggedOut': () => {
       notify('Logged Out')
       dispatch(logoutDone())
+    },
+    'keybase.1.NotifySession.loggedIn': ({username}: {username: string}) => {
+      notify('Logged in as: ' + username)
+      dispatch(getCurrentStatus())
     },
     'keybase.1.NotifyFS.FSActivity': params => {
       const notification: FSNotification = params.notification
