@@ -13,15 +13,33 @@ import (
 	"github.com/keybase/client/go/saltpack"
 )
 
-func SaltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair) error {
-	return saltpackSign(g, source, sink, key, saltpack.NewSignArmor62Stream)
+type streamfn func(io.Writer, saltpack.SigningSecretKey, string) (io.WriteCloser, error)
+
+func SaltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool) error {
+	var s streamfn
+	if binary {
+		s = func(w io.Writer, k saltpack.SigningSecretKey, _ string) (io.WriteCloser, error) {
+			return saltpack.NewSignStream(w, k)
+		}
+	} else {
+		s = saltpack.NewSignArmor62Stream
+	}
+	return saltpackSign(g, source, sink, key, s)
 }
 
-func SaltpackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair) error {
-	return saltpackSign(g, source, sink, key, saltpack.NewSignDetachedArmor62Stream)
+func SaltpackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool) error {
+	var s streamfn
+	if binary {
+		s = func(w io.Writer, k saltpack.SigningSecretKey, _ string) (io.WriteCloser, error) {
+			return saltpack.NewSignDetachedStream(w, k)
+		}
+	} else {
+		s = saltpack.NewSignDetachedArmor62Stream
+	}
+	return saltpackSign(g, source, sink, key, s)
 }
 
-func saltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, streamer func(io.Writer, saltpack.SigningSecretKey, string) (io.WriteCloser, error)) error {
+func saltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, streamer streamfn) error {
 	defer func() {
 		if err := source.Close(); err != nil {
 			g.Log.Warning("error closing source: %s", err)

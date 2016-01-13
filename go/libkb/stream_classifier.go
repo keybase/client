@@ -7,10 +7,12 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"github.com/keybase/client/go/saltpack"
-	"github.com/ugorji/go/codec"
+	"fmt"
 	"io"
 	"strings"
+
+	"github.com/keybase/client/go/saltpack"
+	"github.com/ugorji/go/codec"
 )
 
 // StreamPeeker is a reader that takes another reader and allow you to
@@ -127,10 +129,12 @@ type saltpackHeaderPrefix struct {
 
 func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 	if len(b) < 2 {
+		fmt.Printf("a\n")
 		return false
 	}
 
 	if b[0] <= 0x92 || b[0] >= 0x9a {
+		fmt.Printf("b\n")
 		return false
 	}
 	tmp := make([]byte, len(b))
@@ -142,9 +146,11 @@ func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 	var mh codec.MsgpackHandle
 	var sphp saltpackHeaderPrefix
 	if err := codec.NewDecoderBytes(tmp, &mh).Decode(&sphp); err != nil {
+		fmt.Printf("c\n")
 		return false
 	}
 	if sphp.FormatName != saltpack.SaltpackFormatName {
+		fmt.Printf("d\n")
 		return false
 	}
 	switch sphp.Type {
@@ -155,6 +161,7 @@ func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 	case saltpack.MessageTypeDetachedSignature:
 		sc.Type = CryptoMessageTypeDetachedSignature
 	default:
+		fmt.Printf("e\n")
 		return false
 	}
 	sc.Format = CryptoMessageFormatSaltpack
@@ -198,6 +205,7 @@ func isPGPBinary(b []byte, sc *StreamClassification) bool {
 
 var encryptionArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)
 var signedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeAttachedSignature, KeybaseSaltpackBrand)
+var detachedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeDetachedSignature, KeybaseSaltpackBrand)
 
 // ClassifyStream takes a stream reader in, and returns a likely classification
 // of that stream without consuming any data from it. It returns a reader that you
@@ -233,6 +241,10 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		sc.Format = CryptoMessageFormatSaltpack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeSignature
+	case strings.HasPrefix(sb, detachedArmorHeader+"."):
+		sc.Format = CryptoMessageFormatSaltpack
+		sc.Armored = true
+		sc.Type = CryptoMessageTypeDetachedSignature
 	case isBase64KeybaseV0Sig(sb):
 		sc.Format = CryptoMessageFormatKeybaseV0
 		sc.Armored = true
