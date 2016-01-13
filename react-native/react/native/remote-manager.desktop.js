@@ -138,7 +138,6 @@ class RemoteManager extends Component {
         windowsOpts={{width: 480, height: 430}}
         waitForState
         component='update'
-        substore='update'
         onCancel={() => this.props.updateOnCancel()}
         onSkip={() => this.props.updateOnSkip()}
         onSnooze={() => this.props.updateOnSnooze()}
