@@ -135,7 +135,7 @@ func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.Favori
 			ns.FileAttributes = fileAttributeDirectory
 			ns.NumberOfLinks = 1
 
-			_, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config, fav.Name, fl.public)
+			_, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config.KBPKI(), fav.Name, fl.public)
 			switch err.(type) {
 			case nil:
 				// No error.

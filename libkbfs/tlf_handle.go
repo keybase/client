@@ -38,7 +38,7 @@ func TlfHandleDecode(b []byte, config Config) (*TlfHandle, error) {
 	return &handle, nil
 }
 
-func identifyUser(ctx context.Context, config Config, name, reason string,
+func identifyUser(ctx context.Context, kbpki KBPKI, name, reason string,
 	errCh chan<- error, results chan<- UserInfo) {
 	// short-circuit if this is the special public user:
 	if name == PublicUIDName {
@@ -49,7 +49,7 @@ func identifyUser(ctx context.Context, config Config, name, reason string,
 		return
 	}
 
-	userInfo, err := config.KBPKI().Identify(ctx, name, reason)
+	userInfo, err := kbpki.Identify(ctx, name, reason)
 	if err != nil {
 		select {
 		case errCh <- err:
@@ -129,7 +129,7 @@ func normalizeUserNamesInTLF(writerNames, readerNames []string) string {
 }
 
 // identifyTlfHandle parses a TlfHandle from a split TLF name.
-func identifyTlfHandle(ctx context.Context, config Config,
+func identifyTlfHandle(ctx context.Context, kbpki KBPKI,
 	name string, public bool,
 	writerNames, readerNames []string) (*TlfHandle, string, error) {
 	if public && len(readerNames) > 0 {
@@ -143,13 +143,13 @@ func identifyTlfHandle(ctx context.Context, config Config,
 	defer cancel()
 	for _, user := range writerNames {
 		reason := fmt.Sprintf("To confirm %s is a writer of folder %s", user, name)
-		go identifyUser(ctx, config, user, reason, errCh, wc)
+		go identifyUser(ctx, kbpki, user, reason, errCh, wc)
 	}
 
 	rc := make(chan UserInfo, len(readerNames))
 	for _, user := range readerNames {
 		reason := fmt.Sprintf("To confirm %s is a reader of folder %s", user, name)
-		go identifyUser(ctx, config, user, reason, errCh, rc)
+		go identifyUser(ctx, kbpki, user, reason, errCh, rc)
 	}
 
 	usedWNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(writerNames))
@@ -326,7 +326,7 @@ func (h *TlfHandle) Users() []keybase1.UID {
 // ParseTlfHandle parses a TlfHandle from an encoded string. See
 // ToString for the opposite direction.
 func ParseTlfHandle(
-	ctx context.Context, config Config, name string, public bool) (
+	ctx context.Context, kbpki KBPKI, name string, public bool) (
 	*TlfHandle, error) {
 	// Before parsing the tlf handle (which results in identify
 	// calls that cause tracker popups), first see if there's any
@@ -352,8 +352,6 @@ func ParseTlfHandle(
 	if normalizedName != name {
 		return nil, TlfNameNotCanonical{name, normalizedName}
 	}
-
-	kbpki := config.KBPKI()
 
 	currentUID, err := kbpki.GetCurrentUID(ctx)
 	if err != nil {
@@ -388,7 +386,7 @@ func ParseTlfHandle(
 	}
 
 	h, canonicalName, err := identifyTlfHandle(
-		ctx, config, name, public, writerNames, readerNames)
+		ctx, kbpki, name, public, writerNames, readerNames)
 	if err != nil {
 		return nil, err
 	}

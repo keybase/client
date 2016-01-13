@@ -71,11 +71,7 @@ func (k *KBPKIClient) Resolve(ctx context.Context, assertion string) (
 // Identify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 	UserInfo, error) {
-	userInfo, err := k.config.KeybaseDaemon().Identify(ctx, assertion, reason)
-	if err != nil {
-		return UserInfo{}, err
-	}
-	return userInfo, nil
+	return k.config.KeybaseDaemon().Identify(ctx, assertion, reason)
 }
 
 // GetNormalizedUsername implements the KBPKI interface for
