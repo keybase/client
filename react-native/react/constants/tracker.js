@@ -32,6 +32,8 @@ export const updateProofState = 'tracker:updateProofState'
 
 export const reportLastTrack = 'tracker:reportLastTrack'
 
+export const onUserTrackingLoading = 'tracker:userTrackingLoading'
+
 export const onCloseFromActionBar = 'tracker:onCloseFromActionBar'
 export const onCloseFromHeader = 'tracker:onCloseFromHeader'
 

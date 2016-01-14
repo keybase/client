@@ -117,12 +117,20 @@ export function onRefollow (username: string): TrackerActionCreator {
       })
     }
 
+    dispatch(onUserTrackingLoading(username))
     trackUser(trackToken)
       .then(dispatchAction)
       .catch(err => {
         console.error('Couldn\'t track user:', err)
         dispatchAction()
       })
+  }
+}
+
+function onUserTrackingLoading (username: string): Action {
+  return {
+    type: Constants.onUserTrackingLoading,
+    payload: {username}
   }
 }
 
@@ -187,6 +195,7 @@ export function onCloseFromActionBar (username: string): (dispatch: Dispatch, ge
     const dispatchCloseAction = () => dispatch({type: Constants.onCloseFromActionBar, payload: {username}})
 
     if (shouldFollow) {
+      dispatch(onUserTrackingLoading(username))
       trackUser(trackToken)
         .then(dispatchCloseAction)
         .catch(err => {

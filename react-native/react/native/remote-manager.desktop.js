@@ -64,7 +64,7 @@ class RemoteManager extends Component {
 
   shouldComponentUpdate (nextProps, nextState) {
     // different window states
-    if (this.windowStates(nextProps.trackers) !== this.windowStates(this.props.trackers)) {
+    if (nextProps.trackers !== this.props.trackers) {
       return true
     }
 
@@ -83,22 +83,18 @@ class RemoteManager extends Component {
     let popups = {}
 
     Object.keys(nextProps.trackers).forEach(username => {
-      if (!this.state.popups[username]) {
-        popups[username] = (
-          <RemoteComponent
-            windowsOpts={{height: 339, width: 520}}
-            waitForState
-            onRemoteClose={() => this.props.trackerOnCloseFromHeader(username)}
-            component='tracker'
-            username={username}
-            startTimer={this.props.trackerStartTimer}
-            stopTimer={this.props.trackerStopTimer}
-            key={username} />
-        )
-      } else {
-        // keep existing ones
-        popups[username] = this.state.popups[username]
-      }
+      popups[username] = (
+        <RemoteComponent
+        windowsOpts={{height: 339, width: 520}}
+        waitForState
+        hidden={nextProps.trackers[username].hidden}
+        onRemoteClose={() => this.props.trackerOnCloseFromHeader(username)}
+        component='tracker'
+        username={username}
+        startTimer={this.props.trackerStartTimer}
+        stopTimer={this.props.trackerStopTimer}
+        key={username} />
+      )
     })
 
     this.setState({popups})
