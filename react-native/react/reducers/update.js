@@ -40,7 +40,7 @@ export default function (state: ShowUpdateState = initialState, action: UpdateAc
     case Constants.registerUpdateListener:
       return {
         ...state,
-        started: (action.payload && action.payload.started)
+        started: !!(action.payload && action.payload.started)
       }
     case Constants.showUpdatePrompt:
       if (state.started === true && action.payload) {
