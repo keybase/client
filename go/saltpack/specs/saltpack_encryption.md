@@ -251,6 +251,9 @@ index of that recipient's **payload key box** in the header. Before opening the
 authenticator by repeating steps #1 and #2 and then calling
 [`crypto_auth_verify`](http://nacl.cr.yp.to/auth.html).
 
+Unlike the twice-encoded header above, payload packets are once-encoded
+directly to the output stream.
+
 After encrypting the entire message, the sender adds an extra payload packet
 with an empty payload to signify the end. If a message doesn't end with an
 empty payload packet, the receiving client should report an error that the
