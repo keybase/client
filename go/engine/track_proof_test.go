@@ -454,7 +454,7 @@ func TestTrackProofRooterRevoke(t *testing.T) {
 	// revoke the rooter proof
 	Logout(tc)
 	proofUser.LoginOrBust(tc)
-	revEng := NewRevokeSigsEngine([]keybase1.SigID{sigID}, tc.G)
+	revEng := NewRevokeSigsEngine([]string{sigID.ToString(true)}, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: proofUser.NewSecretUI(),
