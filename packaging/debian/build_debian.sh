@@ -115,7 +115,7 @@ export debian_arch=amd64
 export electron_arch=x64
 build_one_architecture
 
-export GOARCH=386
-export debian_arch=i386
-export electron_arch=ia32
-build_one_architecture
+# export GOARCH=386
+# export debian_arch=i386
+# export electron_arch=ia32
+# build_one_architecture
