@@ -6,7 +6,7 @@ package test
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/keybase/kbfs/libkbfs"
@@ -52,7 +52,6 @@ func setBlockSizes(t *testing.T, config libkbfs.Config, blockSize, blockChangeSi
 		if blockChangeSize == 0 {
 			blockChangeSize = 8 * 1024
 		}
-		// TODO: config option for max embed size.
 		bsplit, err := libkbfs.NewBlockSplitterSimple(blockSize,
 			uint64(blockChangeSize), config.Codec())
 		if err != nil {
@@ -62,7 +61,6 @@ func setBlockSizes(t *testing.T, config libkbfs.Config, blockSize, blockChangeSi
 		config.SetBlockSplitter(bsplit)
 	}
 }
-
 
 type optionOp func(*opt)
 
@@ -98,14 +96,17 @@ type fileOpFlags uint32
 
 const (
 	Defaults = fileOpFlags(0)
-	IsInit   = fileOpFlags(2)
+	IsInit   = fileOpFlags(1)
 )
 
 func expectError(op fileOp, reason string) fileOp {
 	return fileOp{func(c *ctx) error {
 		err := op.operation(c)
 		if err == nil {
-			return errors.New(reason)
+			return fmt.Errorf("Didn't get expected error (success while expecting failure): %q", reason)
+		}
+		if err.Error() != reason {
+			return fmt.Errorf("Got the wrong error: expected %q, got %q", reason, err.Error())
 		}
 		return nil
 	}, Defaults}

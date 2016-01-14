@@ -95,9 +95,7 @@ func as(user username, fops ...fileOp) optionOp {
 			user: o.users[string(user)],
 		}
 		root, err := o.engine.GetRootDir(ctx.user, false, o.writers, o.readers)
-		if err != nil {
-			ctx.expectSuccess("GetRootDir", err)
-		}
+		ctx.expectSuccess("GetRootDir", err)
 		ctx.rootNode = root
 
 		initDone := false
@@ -105,17 +103,13 @@ func as(user username, fops ...fileOp) optionOp {
 			if !initDone && fop.flags&IsInit == 0 {
 				if !ctx.noSyncInit {
 					err = o.engine.SyncFromServer(ctx.user, ctx.rootNode)
-					if err != nil {
-						ctx.expectSuccess("SyncFromServer", err)
-					}
+					ctx.expectSuccess("SyncFromServer", err)
 				}
 				initDone = true
 			}
 			o.t.Log("fop", fop)
 			err = fop.operation(ctx)
-			if err != nil {
-				ctx.expectSuccess("File operation", err)
-			}
+			ctx.expectSuccess("File operation", err)
 		}
 	}
 }
@@ -130,10 +124,10 @@ func mkdir(name string) fileOp {
 func write(name string, contents string) fileOp {
 	return fileOp{func(c *ctx) error {
 		f, err := c.getNode(name, true, true)
-		if err == nil {
-			err = c.engine.WriteFile(c.user, f, contents, 0, true)
+		if err != nil {
+			return err
 		}
-		return err
+		return c.engine.WriteFile(c.user, f, contents, 0, true)
 	}, Defaults}
 }
 
@@ -272,11 +266,11 @@ func lsdir(name string, contents m) fileOp {
 					continue outer
 				}
 			}
-			return fmt.Errorf("Not found: %q (unmatched elements %v)", restr, entries)
+			return fmt.Errorf("%s of type %s not found", restr, ty)
 		}
 		// and make sure everything is matched
 		for node, ty := range entries {
-			return fmt.Errorf("Unexpected node %q of type %q found", node, ty)
+			return fmt.Errorf("unexpected %s of type %s found in %s", node, ty, name)
 		}
 		return nil
 	}, Defaults}
