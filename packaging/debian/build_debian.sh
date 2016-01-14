@@ -72,10 +72,6 @@ build_one_architecture() {
     echo "Building Electron client for $electron_arch"
     (cd "$here"/../../desktop && node package.js --platform linux --arch $electron_arch)
     (cd "$here"/../../desktop && rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" "$dest/build/opt/keybase")
-    # Create the /keybase mount point.
-    mount_point="$dest/build/keybase"
-    mkdir "$mount_point"
-    chmod 777 "$mount_point"
   fi
 
   # Installed-Size is a required field in the control file. Without it Ubuntu

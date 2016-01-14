@@ -132,5 +132,13 @@ create_sources_lists() {
   fi
 }
 
+make_keybase_root_dir() {
+  if [ ! -e /keybase ]; then
+    mkdir /keybase
+    chmod 777 /keybase
+  fi
+}
+
 install_key
 create_sources_lists
+make_keybase_root_dir
