@@ -613,11 +613,13 @@ export type ED25519SignatureInfo = {
 export type crypto_CiphertextKIDPair = {
   kid: KID;
   ciphertext: EncryptedBytes32;
+  nonce: BoxNonce;
 }
 
 export type CiphertextKIDPair = {
   kid: KID;
   ciphertext: EncryptedBytes32;
+  nonce: BoxNonce;
 }
 
 export type crypto_UnboxAnyRes = {

@@ -44,6 +44,7 @@ protocol crypto {
   record CiphertextKIDPair {
     KID kid;
     EncryptedBytes32 ciphertext;
+    BoxNonce nonce;
   }
 
   record UnboxAnyRes {
@@ -52,5 +53,5 @@ protocol crypto {
     int index;
   }
 
-  UnboxAnyRes unboxBytes32Any(array<CiphertextKIDPair> pairs, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
+  UnboxAnyRes unboxBytes32Any(array<CiphertextKIDPair> pairs, BoxPublicKey peersPublicKey, string reason);
 }

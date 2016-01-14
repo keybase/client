@@ -255,6 +255,9 @@
     }, {
       "name" : "ciphertext",
       "type" : "EncryptedBytes32"
+    }, {
+      "name" : "nonce",
+      "type" : "BoxNonce"
     } ]
   }, {
     "type" : "record",
@@ -317,9 +320,6 @@
           "type" : "array",
           "items" : "CiphertextKIDPair"
         }
-      }, {
-        "name" : "nonce",
-        "type" : "BoxNonce"
       }, {
         "name" : "peersPublicKey",
         "type" : "BoxPublicKey"

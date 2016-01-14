@@ -112,7 +112,7 @@ func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybas
 	}
 
 	// decrypt the pair's ciphertext
-	plaintext, err := unboxBytes32(key, arg.Pairs[index].Ciphertext, arg.Nonce, arg.PeersPublicKey)
+	plaintext, err := unboxBytes32(key, arg.Pairs[index].Ciphertext, arg.Pairs[index].Nonce, arg.PeersPublicKey)
 	if err != nil {
 		return res, err
 	}
