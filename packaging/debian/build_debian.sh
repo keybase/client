@@ -78,12 +78,10 @@ build_one_architecture() {
   # users will see warnings.
   size="$(du --summarize --block-size=1024 "$dest/build" | awk '{print $1}')"
 
-  version="$("$here/../version.sh")"
-  joint_version="$version-$keybase_build"
-  echo "Version is $joint_version"
+  echo "Version is $KEYBASE_VERSION"
   cat "$here/control.template" \
     | sed "s/@@NAME@@/$binary_name/" \
-    | sed "s/@@VERSION@@/$joint_version/" \
+    | sed "s/@@VERSION@@/$KEYBASE_VERSION/" \
     | sed "s/@@ARCHITECTURE@@/$debian_arch/" \
     | sed "s/@@SIZE@@/$size/" \
     > "$dest/build/DEBIAN/control"
@@ -96,7 +94,7 @@ build_one_architecture() {
   fakeroot dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
 
   # Write the version number to a file for the caller's convenience.
-  echo -n "$version" > "$dest/VERSION"
+  echo -n "$KEYBASE_VERSION" > "$dest/VERSION"
 }
 
 # Note that Go names the x86 architecture differently than Debian does, which
