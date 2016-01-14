@@ -42,24 +42,11 @@ export type RemoteManagerProps = {
 class RemoteManager extends Component {
   props: RemoteManagerProps;
 
-  constructor (props) {
-    super(props)
-    this.state = {
-      popups: {}
-    }
-  }
-
   componentWillMount () {
     this.props.registerIdentifyUi()
     this.props.registerPinentryListener()
     this.props.registerTrackerChangeListener()
     this.props.registerUpdateListener()
-  }
-
-  windowStates (trackers) {
-    return Object.keys(trackers).map(user => {
-      return `${user}:${trackers[user].closed ? 0 : 1}`
-    }).join(',')
   }
 
   shouldComponentUpdate (nextProps, nextState) {
@@ -79,26 +66,21 @@ class RemoteManager extends Component {
     return false
   }
 
-  componentWillReceiveProps (nextProps) {
-    let popups = {}
-
-    Object.keys(nextProps.trackers).forEach(username => {
-      popups[username] = (
-        <RemoteComponent
-          windowsOpts={{height: 339, width: 520}}
-          waitForState
-          ignoreNewProps
-          hidden={nextProps.trackers[username].hidden}
-          onRemoteClose={() => this.props.trackerOnCloseFromHeader(username)}
-          component='tracker'
-          username={username}
-          startTimer={this.props.trackerStartTimer}
-          stopTimer={this.props.trackerStopTimer}
-          key={username} />
-      )
-    })
-
-    this.setState({popups})
+  trackerRemoteComponents () {
+    const {trackers} = this.props
+    return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
+      <RemoteComponent
+        windowsOpts={{height: 339, width: 520}}
+        waitForState
+        ignoreNewProps
+        hidden={trackers[username].hidden}
+        onRemoteClose={() => this.props.trackerOnCloseFromHeader(username)}
+        component='tracker'
+        username={username}
+        startTimer={this.props.trackerStartTimer}
+        stopTimer={this.props.trackerStopTimer}
+        key={username} />
+    ))
   }
 
   pinentryRemoteComponents () {
@@ -147,7 +129,7 @@ class RemoteManager extends Component {
   render () {
     return (
       <div style={{display: 'none'}}>
-        {Object.keys(this.state.popups).filter(username => !this.props.trackers[username].closed).map(username => this.state.popups[username])}
+        {this.trackerRemoteComponents()}
         {this.pinentryRemoteComponents()}
         {this.showUpdatePromptComponents()}
       </div>
