@@ -54,7 +54,7 @@ function initialTrackerState (username: string): TrackerState {
     trackerMessage: null,
     shouldFollow: true,
     proofs: [],
-    reason: '', // TODO: get the reason
+    reason: '',
     closed: true,
     lastTrack: null,
     trackToken: null,
@@ -81,6 +81,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         shouldFollow
+      }
+    case Constants.updateReason:
+      return {
+        ...state,
+        reason: action.payload && action.payload.reason
       }
     case Constants.updateTrackToken:
       return {
