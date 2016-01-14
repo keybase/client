@@ -148,15 +148,14 @@ header:
 6. Serialize the list from #5 into bytes using MessagePack.
 7. Count the number of bytes in #6, and serialize that count into a MessagePack
    integer. This is the **header length**.
-8. Append the bytes from #6 to the **header length** from #7. This is the
-   header.
+8. Concatenate the serialized **header length** from #7 with the serialized
+   list from #6. This is the header.
 
     After generating the header, the sender computes two extra values, which
     will be used below to authenticate the payload:
 
 9. Take the [`crypto_hash`](http://nacl.cr.yp.to/hash.html) (SHA512) of the
-   bytes from #6. This is the **header
-   hash**.
+   bytes from #6. This is the **header hash**.
 10. For each recipient, encrypt 32 zero bytes using
     [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
     key, the sender's long-term private key, and the first 24 bytes of the hash
@@ -180,19 +179,19 @@ same ciphertext twice.
 Recipients parse the header of a message using the following steps:
 
 1. Deserialize the **header length** from the message stream using MessagePack.
-2. Read exactly **header length** bytes from the message stream.
+2. Read exactly **header length** additional bytes from the message stream.
 3. Compute the [`crypto_hash`](http://nacl.cr.yp.to/hash.html) (SHA512) of the
    bytes from #2 to give the **header hash**.
 4. Deserialize the bytes from #2 using MessagePack to give the header list.
 5. Sanity check the **format name**, **version**, and **mode**.
 6. Precompute the ephemeral shared secret using
    [`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html) with the **ephemeral
-   public key** and the sender's private key.
+   public key** and the recipient's private key.
 7. Try to open each of the **payload key boxes** in the recipients list using
-   [`crypto_box_afternm`](http://nacl.cr.yp.to/box.html), the shared secret
-   from #6, and the nonce `saltpack_payload_key_box`. Successfully opening
-   one gives the **payload key**, and the index of the box that worked is the
-   **recipient index**.
+   [`crypto_box_open_afternm`](http://nacl.cr.yp.to/box.html), the precomputed
+   secret from #6, and the nonce `saltpack_payload_key_box`. Successfully
+   opening one gives the **payload key**, and the index of the box that worked
+   is the **recipient index**.
 8. Open the **sender secretbox** using
    [`crypto_secretbox_open`](http://nacl.cr.yp.to/secretbox.html) with the
    **payload key** from #7 and the nonce `saltpack_sender_secbox\0\0`
@@ -228,17 +227,16 @@ A payload packet is a MessagePack list with these contents:
 
 - The **authenticators list** contains 32-byte HMAC tags, one for each
   recipient, which authenticate the **payload secretbox** together with the
-  message header. See below.
+  message header. These are computed with the **MAC keys** derived from the
+  header. See below.
 - The **payload secretbox** is a NaCl secretbox containing a chunk of the
   plaintext bytes, max size 1 MB. It's encrypted with the **payload key**. The
   nonce is `saltpack_ploadsbNNNNNNNN` where `NNNNNNNN` is the packet numer as
   an 8-byte big-endian unsigned integer. The first payload packet is number 0.
 
-If Mallory doesn't have the **payload key**, she can't modify the **payload
-secretbox** without breaking authentication. However, if Mallory is one of the
-recipients, then she will have the key, and she could modify the payload. The
-**authenticators list** is there to prevent this attack, protecting the
-recipients from each other.
+Computing the **MAC keys** is the only step of encrypting a message that
+requires the sender's private key. Thus it's the **authenticators list**,
+generated from those keys, that proves the sender is authentic.
 
 We compute the authenticators in three steps:
 
@@ -269,8 +267,8 @@ into NaCl.
 Using [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) to encrypt the
 payload takes more time and 16 bytes more space than
 [`crypto_stream_xor`](http://nacl.cr.yp.to/stream.html) would. Likewise, using
-[`crypto_box`](http://nacl.cr.yp.to/box.html) to compute the MAC key takes more
-time than [`crypto_stream`](http://nacl.cr.yp.to/stream.html) would.
+[`crypto_box`](http://nacl.cr.yp.to/box.html) to compute the MAC keys takes
+more time than [`crypto_stream`](http://nacl.cr.yp.to/stream.html) would.
 Nonetheless, we prefer box and secretbox for ease of implementation. Many
 languages have NaCl libraries that only expose these higher-level
 constructions.
