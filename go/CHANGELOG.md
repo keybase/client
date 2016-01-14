@@ -1,3 +1,6 @@
+- Binary mode for all saltpack commands (PR: keybase/client#1727)
+- All config save operations use transactions (PR: keybase/client#1724)
+
 ## 1.0.8
 - Do not use current keybase ID as default when generating PGP keys  (PR: keybase/client#1706)
 - Rename SaltPack to saltpack  (PR: keybase/client#1674)
