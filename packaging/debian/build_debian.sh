@@ -29,6 +29,8 @@ install_electron_dependencies() {
   export NODE_ENV=production
 }
 
+current_date=`date -u +%Y%m%d%H%M%S` # UTC
+
 ###
 ### TODO: Factor all of this out. Add a config for enabling the KBFS/GUI build.
 ###
@@ -42,29 +44,37 @@ build_one_architecture() {
   # `go build` reads $GOARCH
   # XXX: Go does not build tags reliably prior to 1.5 without -a. See:
   #      https://github.com/golang/go/issues/11165
-  current_date=`date -u +%Y%m%d%H%M%S` # UTC
   commit_short=`git -C "$here" log -1 --pretty=format:%h`
   build="$current_date+$commit_short"
   keybase_build=${KEYBASE_BUILD:-$build}
-  tags=${TAGS:-"prerelease production"}
+  if [ "$mode" = "prerelease" ] ; then
+    echo building PRERELEASE
+    tags=${TAGS:-"prerelease production"}
+    ldflags="-X github.com/keybase/client/go/libkb.CustomBuild=$keybase_build"
+  else
+    echo building regular release
+    tags=${TAGS:-"production"}
+    ldflags=""
+  fi
   platform=${PLATFORM:-`uname`}
-  ldflags="-X github.com/keybase/client/go/libkb.CustomBuild=$keybase_build"
   echo "The build id is '$keybase_build'."
   echo "The custom ldflags are '$ldflags'."
   go build -a -tags "$tags" -ldflags "$ldflags" -o "$dest/build/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  cp "$here/run_keybase.sh" "$dest/build/usr/bin/run_keybase.sh"
+  if [ "$mode" = "prerelease" ] ; then
+    cp "$here/run_keybase.sh" "$dest/build/usr/bin/run_keybase.sh"
 
-  # Build KBFS.
-  go build -a -tags "$tags" -ldflags "$ldflags" -o "$dest/build/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
-  # Now the Electron build.
-  echo "Building Electron client for $electron_arch"
-  (cd "$here"/../../desktop && node package.js --platform linux --arch $electron_arch)
-  (cd "$here"/../../desktop && rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" "$dest/build/opt/keybase")
-  # Create the /keybase mount point.
-  mount_point="$dest/build/keybase"
-  mkdir "$mount_point"
-  chmod 777 "$mount_point"
+    # Build KBFS.
+    go build -a -tags "$tags" -ldflags "$ldflags" -o "$dest/build/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
+    # Now the Electron build.
+    echo "Building Electron client for $electron_arch"
+    (cd "$here"/../../desktop && node package.js --platform linux --arch $electron_arch)
+    (cd "$here"/../../desktop && rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" "$dest/build/opt/keybase")
+    # Create the /keybase mount point.
+    mount_point="$dest/build/keybase"
+    mkdir "$mount_point"
+    chmod 777 "$mount_point"
+  fi
 
   # Installed-Size is a required field in the control file. Without it Ubuntu
   # users will see warnings.
