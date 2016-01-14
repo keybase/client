@@ -152,6 +152,14 @@ func (k *KeybaseDaemonRPC) clearCaches() {
 	k.userCache = make(map[keybase1.UID]UserInfo)
 }
 
+// LoggedIn implements keybase1.NotifySessionInterface.
+func (k *KeybaseDaemonRPC) LoggedIn(ctx context.Context, name string) error {
+	k.log.CDebugf(ctx, "Current session logged in: %s", name)
+	// Since we don't have the whole session, just clear the cache.
+	k.setCachedCurrentSession(SessionInfo{})
+	return nil
+}
+
 // LoggedOut implements keybase1.NotifySessionInterface.
 func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
 	k.log.CDebugf(ctx, "Current session logged out")
