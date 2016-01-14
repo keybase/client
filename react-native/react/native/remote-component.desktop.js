@@ -17,6 +17,7 @@ export default class RemoteComponent extends Component {
       resizable: false,
       frame: false,
       transparent: true,
+      alwaysOnTop: true,
       ...this.props.windowsOpts}
 
     windowsOpts.height += globalHacks.framelessWindowDeadzone
@@ -56,7 +57,7 @@ export default class RemoteComponent extends Component {
   }
 
   render () {
-    return (<div/>)
+    return (<div>{this.props.component}:{this.remoteWindow.id}</div>)
   }
 
   shouldComponentUpdate (nextProps) {
