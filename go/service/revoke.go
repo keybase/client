@@ -48,6 +48,6 @@ func (h *RevokeHandler) RevokeSigs(_ context.Context, arg keybase1.RevokeSigsArg
 		LogUI:    h.getLogUI(arg.SessionID),
 		SecretUI: h.getSecretUI(arg.SessionID),
 	}
-	eng := engine.NewRevokeSigsEngine(arg.SigIDs, h.G())
+	eng := engine.NewRevokeSigsEngine(arg.SigIDQueries, h.G())
 	return engine.RunEngine(eng, &ctx)
 }

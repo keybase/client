@@ -549,6 +549,17 @@ func (sc *SigChain) GetLinkFromSigID(id keybase1.SigID) *ChainLink {
 	return nil
 }
 
+// GetLinkFromSigIDQuery will return true if it finds a ChainLink
+// with a SigID that starts with query.
+func (sc *SigChain) GetLinkFromSigIDQuery(query string) *ChainLink {
+	for _, link := range sc.chainLinks {
+		if link.GetSigID().Match(query, false) {
+			return link
+		}
+	}
+	return nil
+}
+
 //========================================================================
 
 type ChainType struct {

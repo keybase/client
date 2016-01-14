@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -12,12 +13,12 @@ import (
 
 type RevokeSigsEngine struct {
 	libkb.Contextified
-	sigIDs []keybase1.SigID
+	sigIDQueries []string
 }
 
-func NewRevokeSigsEngine(sigIDs []keybase1.SigID, g *libkb.GlobalContext) *RevokeSigsEngine {
+func NewRevokeSigsEngine(sigIDQueries []string, g *libkb.GlobalContext) *RevokeSigsEngine {
 	return &RevokeSigsEngine{
-		sigIDs:       sigIDs,
+		sigIDQueries: sigIDQueries,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -44,16 +45,16 @@ func (e *RevokeSigsEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *RevokeSigsEngine) getSigIDsToRevoke(me *libkb.User) ([]keybase1.SigID, error) {
-	ret := make([]keybase1.SigID, len(e.sigIDs))
-	copy(ret, e.sigIDs)
-	for _, sigID := range ret {
-		valid, err := me.IsSigIDActive(sigID)
+	ret := make([]keybase1.SigID, len(e.sigIDQueries))
+	for i, query := range e.sigIDQueries {
+		if len(query) < keybase1.SigIDQueryMin {
+			return nil, errors.New("sigID query too short")
+		}
+		sigID, err := me.SigIDSearch(query)
 		if err != nil {
 			return nil, err
 		}
-		if !valid {
-			return nil, fmt.Errorf("Signature '%s' does not exist.", sigID)
-		}
+		ret[i] = sigID
 	}
 	return ret, nil
 }

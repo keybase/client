@@ -16,7 +16,7 @@ import (
 )
 
 type CmdSigsRevoke struct {
-	sigIDs []keybase1.SigID
+	queries []string
 }
 
 func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
@@ -25,7 +25,10 @@ func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
 	}
 
 	for _, arg := range ctx.Args() {
-		c.sigIDs = append(c.sigIDs, keybase1.SigID(arg))
+		if len(arg) < keybase1.SigIDQueryMin {
+			return fmt.Errorf("sig id %q is too short; must be at least 16 characters long", arg)
+		}
+		c.queries = append(c.queries, arg)
 	}
 
 	return nil
@@ -45,7 +48,7 @@ func (c *CmdSigsRevoke) Run() error {
 	}
 
 	return cli.RevokeSigs(context.TODO(), keybase1.RevokeSigsArg{
-		SigIDs: c.sigIDs,
+		SigIDQueries: c.queries,
 	})
 }
 

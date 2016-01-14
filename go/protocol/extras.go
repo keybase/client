@@ -30,6 +30,7 @@ const (
 	SIG_ID_LEN         = 32
 	SIG_ID_SUFFIX      = 0x0f
 	SIG_SHORT_ID_BYTES = 27
+	SigIDQueryMin      = 16
 )
 
 const (
@@ -293,6 +294,22 @@ func (s SigID) Equal(t SigID) bool {
 	return s == t
 }
 
+func (s SigID) Match(q string, exact bool) bool {
+	if s.IsNil() {
+		return false
+	}
+
+	if exact {
+		return strings.ToLower(s.ToString(true)) == strings.ToLower(q)
+	}
+
+	if strings.HasPrefix(s.ToString(true), strings.ToLower(q)) {
+		return true
+	}
+
+	return false
+}
+
 func (s SigID) NotEqual(t SigID) bool {
 	return !s.Equal(t)
 }
@@ -301,7 +318,7 @@ func (s SigID) ToDisplayString(verbose bool) string {
 	if verbose {
 		return string(s)
 	}
-	return fmt.Sprintf("%s...", s[0:6])
+	return fmt.Sprintf("%s...", s[0:16])
 }
 
 func (s SigID) ToString(suffix bool) string {

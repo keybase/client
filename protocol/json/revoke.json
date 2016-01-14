@@ -242,10 +242,10 @@
         "name" : "sessionID",
         "type" : "int"
       }, {
-        "name" : "sigIDs",
+        "name" : "sigIDQueries",
         "type" : {
           "type" : "array",
-          "items" : "SigID"
+          "items" : "string"
         }
       } ],
       "response" : "null"

@@ -5,5 +5,5 @@ protocol revoke {
 
   void revokeKey(int sessionID, KID keyID);
   void revokeDevice(int sessionID, DeviceID deviceID, boolean force);
-  void revokeSigs(int sessionID, array<SigID> sigIDs);
+  void revokeSigs(int sessionID, array<string> sigIDQueries);
 }
