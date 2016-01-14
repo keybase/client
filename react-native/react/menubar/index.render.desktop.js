@@ -9,10 +9,12 @@ import {intersperse} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
 
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Text, Input} from '../common-adapters/index.desktop.js'
+import {Text, Input, Terminal, Icon} from '../common-adapters/index.desktop.js'
 
 import {CircularProgress} from 'material-ui'
-import {cleanup} from '../util/kbfs'
+import {cleanup, allowLoggedOut as allowLoggedOutKBFS} from '../util/kbfs'
+// TODO use this instead of notification after merging
+// import {NotifyPopup} from '../native/notifications'
 
 // This is the only data that the renderer cares about for a folder
 import type {FolderInfo} from './index.render'
@@ -27,10 +29,20 @@ const Header = props => {
   const openKBFS: () => void = props.openKBFS
   const showUser: () => void = props.showUser
 
+  // $FlowIssue ignore
+  const version = __VERSION__ // eslint-disable-line no-undef
+
   return (
     <div style={styles.header}>
-      <i className={`fa fa-folder`} style={{...styles.icons, fontSize: 17, marginRight: 10}} onClick={openKBFS}/>
-      <i className={`fa fa-globe`} style={{...styles.icons, fontSize: 16}} onClick={showUser}/>
+      <Icon hint='Open KBFS folder' type='fa-folder' style={{marginRight: 10}} onClick={openKBFS}/>
+      <Icon hint='Open keybase.io web' type='fa-globe' onClick={showUser}/>
+      <div style={{flex: 1}}/>
+      <Icon hint={`Report a bug for version: ${version}`} type='fa-bug' onClick={ () => {
+        clipboard.writeText(`Keybase GUI Version: ${version}`)
+        shell.openExternal('https://github.com/keybase/client/issues')
+        new Notification('Version copied to clipboard')
+        //NotifyPopup('Version copied to clipboard')
+      }}/>
     </div>
   )
 }
@@ -50,10 +62,26 @@ const Footer = props => {
   )
 }
 
+const LoggedoutMessage = props => {
+  return (
+    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
+      <i style={{alignSelf: 'center', color: globalColors.lowRiskWarning, marginTop: 12}} className='fa fa-exclamation-triangle'></i>
+      <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
+      <Text type='Body' small style={{marginTop: 23, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
+      <Terminal>
+        <Text type='TerminalCommand'>keybase login</Text>
+        <Text type='TerminalEmpty'/>
+        <Text type='TerminalComment'>or if you're new to Keybase:</Text>
+        <Text type='TerminalCommand'>keybase signup</Text>
+      </Terminal>
+      {allowLoggedOutKBFS && <Text type='Body' small style={{marginTop: 22, marginBottom: 7, marginLeft: 10}}>Or access someone's public folder:</Text>}
+    </div>
+  )
+}
+
 export default class Render extends Component {
   props: {
     username: ?string,
-    openingMessage: ?string,
     openKBFS: () => void,
     openKBFSPublic: (username: ?string) => void,
     openKBFSPrivate: (username: ?string) => void,
@@ -78,8 +106,8 @@ export default class Render extends Component {
         <div style={styles.arrow}/>
         <div style={styles.body}>
           <Header openKBFS={openKBFS} showUser={() => showUser(username)}/>
-          {this.props.username && <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders}/>}
-          {!this.props.username && <div style={{flex: 1, backgroundColor: globalColors.white}}/>}
+          {!this.props.username && <LoggedoutMessage />}
+          <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders}/>
           <Footer debug={this.props.debug || false} showHelp={showHelp} quit={quit} showMain={showMain}/>
         </div>
       </div>
@@ -150,7 +178,7 @@ const ShowAll = props => {
 
 class CollapsableFolderList extends Component {
   props: {
-    username: string,
+    username: ?string,
     folders: Array<FolderInfo>,
     folderDisplayLimit: number,
     collapsed: boolean,
@@ -187,24 +215,10 @@ class CollapsableFolderList extends Component {
   }
 }
 
-const Version = props => {
-  // $FlowIssue ignore
-  const version = __VERSION__ // eslint-disable-line no-undef
-  return (
-    <Text
-      type='Body' small link style={{alignSelf: 'flex-end', fontSize: 10}}
-      onClick={() => {
-        clipboard.writeText(`Keybase GUI Version: ${version}`)
-        shell.openExternal('https://github.com/keybase/client/issues')
-        new Notification('Version copied to clipboard') //eslint-disable-line
-      }}
-      >Report Bugs: {version}</Text>)
-}
-
 class FolderList extends Component {
   props: {
     loading: boolean,
-    username: string,
+    username: ?string,
     folders: Array<FolderInfo>,
     openKBFSPublic: (username: ?string) => void,
     openKBFSPrivate: (username: ?string) => void
@@ -226,6 +240,10 @@ class FolderList extends Component {
   render () {
     const {username} = this.props
 
+    if (!this.props.username && !allowLoggedOutKBFS) {
+      return <div style={{flex: 1, backgroundColor: globalColors.grey5}}/>
+    }
+
     // Remove folders that are just our personal ones, we'll add those in later
     // For consistency. Since we aren't gauranteed we have favorited our own folders.
     const folders = this.props.folders.filter(f => f.type === 'entry' || stripPublicTag(f.folderName) !== username)
@@ -233,9 +251,7 @@ class FolderList extends Component {
     let privateFolders = []
     let publicFolders = []
 
-    const isLoggedIn = true // TODO plumb this through
-
-    if (isLoggedIn) {
+    if (username) {
       const personalPrivateFolder: FolderInfo = {
         type: 'folder',
         folderName: username,
@@ -254,12 +270,16 @@ class FolderList extends Component {
       privateFolders.push(privateFolderEntry)
     }
 
-    const personalPublicFolder: FolderInfo = {
-      type: 'folder',
-      folderName: username,
-      isPublic: true,
-      isEmpty: true,
-      openFolder: () => this.props.openKBFSPublic(username)
+    if (username) {
+      const personalPublicFolder: FolderInfo = {
+        type: 'folder',
+        folderName: username,
+        isPublic: true,
+        isEmpty: true,
+        openFolder: () => this.props.openKBFSPublic(username)
+      }
+
+      publicFolders.push(personalPublicFolder)
     }
 
     const publicFolderEntry: FolderInfo = {
@@ -269,7 +289,6 @@ class FolderList extends Component {
       openFolder: folder => this.props.openKBFSPublic(folder)
     }
 
-    publicFolders.push(personalPublicFolder)
     publicFolders.push(publicFolderEntry)
 
     privateFolders = privateFolders.concat(folders.filter(f => !f.isPublic))
@@ -280,7 +299,7 @@ class FolderList extends Component {
     const folderDisplayLimit = 5
 
     return (
-      <div style={styles.folderList}>
+      <div style={{...styles.folderList, overflowY: username ? 'scroll' : 'hidden'}}>
         {this.props.loading && (
           <div style={styles.loader}>
             <CircularProgress style={styles.loader} mode='indeterminate' size={0.5}/>
@@ -305,7 +324,6 @@ class FolderList extends Component {
           onExpand={() => this.setState({publicCollapsed: false})}
           isPublic
           collapsed={this.state.publicCollapsed} />
-        <Version />
       </div>
     )
   }
@@ -341,18 +359,10 @@ const styles = {
   header: {
     ...globalStyles.flexBoxRow,
     backgroundColor: globalColors.grey5,
-    minHeight: 32,
+    color: globalColors.grey2,
+    minHeight: 31,
     maxHeight: 32,
     padding: 10
-  },
-  icons: {
-    ...globalStyles.clickable,
-    color: globalColors.grey2
-  },
-  openingMessage: {
-    ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.blue,
-    alignItems: 'center'
   },
   folderHeader: {
     ...globalStyles.flexBoxRow,

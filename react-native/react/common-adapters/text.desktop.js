@@ -9,7 +9,10 @@ export default class Text extends Component {
     const typeStyle = {
       'Header': styles.textHeader,
       'Body': styles.textBody,
-      'Error': styles.textError
+      'Error': styles.textError,
+      'TerminalCommand': styles.textTerminalCommand,
+      'TerminalComment': styles.textTerminalComment,
+      'TerminalEmpty': styles.textTerminalEmpty
     }[this.props.type]
 
     const style = {
@@ -21,12 +24,18 @@ export default class Text extends Component {
       ...this.props.style
     }
 
-    return <p className={this.props.link ? 'hover-underline' : ''} style={style} onClick={this.props.onClick}>{this.props.children}</p>
+    const terminalPrefix = {
+      TerminalEmpty: <span>&nbsp;</span>,
+      TerminalCommand: <span>> </span>,
+      TerminalComment: <span># </span>
+    }[this.props.type]
+
+    return <p className={this.props.link ? 'hover-underline' : ''} style={style} onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</p>
   }
 }
 
 Text.propTypes = {
-  type: React.PropTypes.oneOf(['Header', 'Body']),
+  type: React.PropTypes.oneOf(['Header', 'Body', 'TerminalCommand', 'TerminalComment', 'TerminalEmpty']),
   link: React.PropTypes.bool,
   small: React.PropTypes.bool,
   reversed: React.PropTypes.bool,
@@ -61,6 +70,31 @@ export const styles = {
     color: globalColors.highRiskWarning,
     fontSize: 13,
     lineHeight: '17px',
+    letterSpacing: '0.2px'
+  },
+  textTerminalCommand: {
+    ...textCommon,
+    ...globalStyles.fontTerminal,
+    color: globalColors.white,
+    fontSize: 13,
+    lineHeight: '16px',
+    letterSpacing: '0.2px'
+  },
+  textTerminalComment: {
+    ...textCommon,
+    ...globalStyles.fontTerminal,
+    color: globalColors.grey2,
+    fontSize: 13,
+    lineHeight: '16px',
+    letterSpacing: '0.2px'
+  },
+  textTerminalEmpty: {
+    ...textCommon,
+    ...globalStyles.fontTerminal,
+    color: globalColors.grey1,
+    fontSize: 13,
+    lineHeight: '16px',
+    minHeight: 20,
     letterSpacing: '0.2px'
   },
   textLinkMixin: {

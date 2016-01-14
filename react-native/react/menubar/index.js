@@ -33,15 +33,19 @@ class Menubar extends Component {
     // Normally I'd put this into the store but it's just too slow to get the state correctly through props so we'd get flashes so
     // instead we manually manage loading state in this one circumstance. DO NOT DO THIS normally
     this.state = {
-      loading: true
+      loading: !!props.username
     }
 
     const onMenubarShow = () => {
-      this.checkForFolders()
+      setImmediate(() => {
+        this.checkForFolders()
+      })
     }
 
     const onMenubarHide = () => {
-      this.setState({loading: true})
+      setImmediate(() => {
+        this.setState({loading: true})
+      })
     }
 
     if (module.hot) {
@@ -111,9 +115,9 @@ class Menubar extends Component {
   }
 
   render () {
-    const openingMessage = this.props.loggedIn ? 'Keybase Alpha' : 'Looks like you aren\'t logged in. Try running `keybase login`'
-
     const openingButtonInfo = this.props.username && {text: 'WTF?', onClick: this.showHelp}
+    const {username} = this.props
+    // const {username} = {username: null}
     const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => {
       return {
         type: 'folder',
@@ -129,8 +133,7 @@ class Menubar extends Component {
     })
 
     return <Render
-      username={this.props.username}
-      openingMessage={openingMessage}
+      username={username}
       debug={!!this.props.debug}
       openingButtonInfo={openingButtonInfo}
       openKBFS={() => this.openKBFS()}
@@ -141,7 +144,7 @@ class Menubar extends Component {
       showUser={user => this.showUser(user)}
       quit={() => remote.app.quit()}
       folders={folders}
-      loading={this.state.loading}
+      loading={this.state.loading && !!username}
     />
   }
 }
