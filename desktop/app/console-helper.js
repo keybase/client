@@ -1,8 +1,9 @@
 import {ipcMain, ipcRenderer} from 'electron'
 import util from 'util'
+import getenv from 'getenv'
 
 export default function pipeLogs () {
-  if (!__DEV__) { // eslint-disable-line no-undef
+  if (!__DEV__ || getenv.boolish('KEYBASE_SHOW_DEVTOOLS', true)) { // eslint-disable-line no-undef
     return
   }
 
