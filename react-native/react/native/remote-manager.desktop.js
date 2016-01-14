@@ -85,15 +85,16 @@ class RemoteManager extends Component {
     Object.keys(nextProps.trackers).forEach(username => {
       popups[username] = (
         <RemoteComponent
-        windowsOpts={{height: 339, width: 520}}
-        waitForState
-        hidden={nextProps.trackers[username].hidden}
-        onRemoteClose={() => this.props.trackerOnCloseFromHeader(username)}
-        component='tracker'
-        username={username}
-        startTimer={this.props.trackerStartTimer}
-        stopTimer={this.props.trackerStopTimer}
-        key={username} />
+          windowsOpts={{height: 339, width: 520}}
+          waitForState
+          ignoreNewProps
+          hidden={nextProps.trackers[username].hidden}
+          onRemoteClose={() => this.props.trackerOnCloseFromHeader(username)}
+          component='tracker'
+          username={username}
+          startTimer={this.props.trackerStartTimer}
+          stopTimer={this.props.trackerStopTimer}
+          key={username} />
       )
     })
 

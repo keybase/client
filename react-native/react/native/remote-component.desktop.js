@@ -67,7 +67,7 @@ export default class RemoteComponent extends Component {
       return false
     }
 
-    if (this.props !== nextProps) {
+    if (!this.props.ignoreNewProps && this.props !== nextProps) {
       this.remoteWindow.emit('hasProps', {...this.props})
     }
 
@@ -88,5 +88,6 @@ RemoteComponent.propTypes = {
   component: React.PropTypes.string.isRequired,
   windowsOpts: React.PropTypes.object,
   onRemoteClose: React.PropTypes.func,
-  hidden: React.PropTypes.bool
+  hidden: React.PropTypes.bool, // Hide the remote window (Does not close the window)
+  ignoreNewProps: React.PropTypes.bool // Do not send the remote window new props. Sometimes the remote component will have it's own store and can get it's own data. It doesn't need us to send it.
 }
