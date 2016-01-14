@@ -26,10 +26,19 @@ export default class ProofsRender extends Component {
       [metaDeleted]: colors.orange
     }[proof.meta] : null
 
-    const onClick = () => {
+    const onClickProof = () => {
       if (proof.state !== checking) {
         console.log('should open hint link:', proof.humanUrl)
         proof.humanUrl && this.openLink(proof.humanUrl)
+      } else {
+        console.log('Proof is loading...')
+      }
+    }
+
+    const onClickProfile = () => {
+      if (proof.state !== checking) {
+        console.log('should open profile link:', proof.profileUrl)
+        proof.profileUrl && this.openLink(proof.profileUrl)
       } else {
         console.log('Proof is loading...')
       }
@@ -57,15 +66,15 @@ export default class ProofsRender extends Component {
 
     return (
       <div style={styles.row} key={proof.id}>
-        <i style={styles.platform} className={'fa ' + icon} title={proof.type} onClick={onClick}></i>
+        <i style={styles.platform} className={'fa ' + icon} title={proof.type} onClick={onClickProfile}></i>
         <div style={styles.usernameContainer}>
           <span
             className='hover-underline'
             style={{...styles.username, ...(proof.status === revoked ? {textDecoration: 'line-through'} : {})}}
-            onClick={onClick}>{proof.name}</span>
+            onClick={onClickProfile}>{proof.name}</span>
           {proof.meta && <span style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</span>}
         </div>
-        <span className='fa fa-certificate hover-underline' style={{...styles.status, color: statusColor}} onClick={onClick}></span>
+        <span className='fa fa-certificate hover-underline' style={{...styles.status, color: statusColor}} onClick={onClickProof}></span>
       </div>
     )
   }
