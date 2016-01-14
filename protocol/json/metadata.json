@@ -237,6 +237,16 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "MDBlock",
+    "fields" : [ {
+      "name" : "version",
+      "type" : "int"
+    }, {
+      "name" : "block",
+      "type" : "bytes"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "MetadataResponse",
     "fields" : [ {
       "name" : "folderID",
@@ -245,7 +255,7 @@
       "name" : "mdBlocks",
       "type" : {
         "type" : "array",
-        "items" : "bytes"
+        "items" : "MDBlock"
       }
     } ]
   } ],

@@ -6,12 +6,17 @@ protocol metadata {
   record KeyHalf {
          UID user;
          KID deviceKID;
-         bytes key; 
+         bytes key;
+  }
+
+  record MDBlock {
+         int version;
+         bytes block;
   }
 
   record MetadataResponse {
          string folderID;
-         array<bytes> mdBlocks;
+         array<MDBlock> mdBlocks;
   }
 
   int authenticate(string signature);

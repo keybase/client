@@ -2422,14 +2422,24 @@ export type KeyHalf = {
   key: bytes;
 }
 
+export type metadata_MDBlock = {
+  version: int;
+  block: bytes;
+}
+
+export type MDBlock = {
+  version: int;
+  block: bytes;
+}
+
 export type metadata_MetadataResponse = {
   folderID: string;
-  mdBlocks: Array<bytes>;
+  mdBlocks: Array<MDBlock>;
 }
 
 export type MetadataResponse = {
   folderID: string;
-  mdBlocks: Array<bytes>;
+  mdBlocks: Array<MDBlock>;
 }
 
 export type metadataUpdate_Time = {
