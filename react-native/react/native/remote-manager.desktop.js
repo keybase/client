@@ -93,8 +93,7 @@ class RemoteManager extends Component {
             username={username}
             startTimer={this.props.trackerStartTimer}
             stopTimer={this.props.trackerStopTimer}
-            key={username}
-            />
+            key={username} />
         )
       } else {
         // keep existing ones
@@ -150,7 +149,7 @@ class RemoteManager extends Component {
 
   render () {
     return (
-      <div>
+      <div style={{display: 'none'}}>
         {Object.keys(this.state.popups).filter(username => !this.props.trackers[username].closed).map(username => this.state.popups[username])}
         {this.pinentryRemoteComponents()}
         {this.showUpdatePromptComponents()}
