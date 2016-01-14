@@ -246,9 +246,9 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 
 	// deserialize blocks
 	rmdses := make([]*RootMetadataSigned, len(response.MdBlocks))
-	for i := range response.MdBlocks {
+	for i, block := range response.MdBlocks {
 		var rmds RootMetadataSigned
-		err = md.config.Codec().Decode(response.MdBlocks[i], &rmds)
+		err = md.config.Codec().Decode(block.Block, &rmds)
 		if err != nil {
 			return id, rmdses, err
 		}
@@ -303,7 +303,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 
 	// put request
 	arg := keybase1.PutMetadataArg{
-		MdBlock: rmdsBytes,
+		MdBlock: keybase1.MDBlock{Block: rmdsBytes},
 		LogTags: LogTagsFromContextToMap(ctx),
 	}
 	return md.client.PutMetadata(ctx, arg)
