@@ -10,7 +10,6 @@ package engine
 
 import (
 	"errors"
-	"os/exec"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -222,13 +221,19 @@ func (e *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
 	}
 	gpg := e.G().GetGpgClient()
 
-	if err := gpg.Configure(); err != nil {
-		if err == exec.ErrNotFound {
-			e.G().Log.Debug("Not saving new key to GPG since no gpg install was found")
-			err = nil
-		}
-		return err
+	ok, err := gpg.CanExec()
+	if err != nil {
+		e.G().Log.Debug("Not saving new key to GPG. Error in gpg.CanExec(): %s", err)
+		// libkb/util_*.go:canExec() can return generic errors, just ignore them
+		// in this situation since export to gpg is on by default in the client
+		// pgp gen command.
+		return nil
 	}
+	if !ok {
+		e.G().Log.Debug("Not saving new key to GPG since no gpg install was found")
+		return nil
+	}
+
 	err = gpg.ExportKey(*e.bundle, true /* export private key */)
 	if err == nil {
 		ctx.LogUI.Info("Exported new key to the local GPG keychain")
