@@ -22,14 +22,9 @@ var (
 	// end of the encryption stream.
 	ErrTrailingGarbage = errors.New("trailing garbage found at end of message")
 
-	// ErrFailedToDecodeHeaderLength indicates that we hit an error in the very
-	// first step of decoding the header, where we expect to read an integer
-	// from the message stream.
-	ErrFailedToDecodeHeaderLength = errors.New("failed to decode header length")
-
-	// ErrFailedToReadHeaderBytes indicates that we failed to read all the
-	// bytes that the header length suggested we should be able to read.
-	ErrFailedToReadHeaderBytes = errors.New("failed to read header bytes promised by the header length")
+	// ErrFailedToReadHeaderBytes indicates that we failed to read the
+	// doubly-encoded header bytes object from the input stream.
+	ErrFailedToReadHeaderBytes = errors.New("failed to read header bytes")
 
 	// ErrPacketOverflow indicates that more than (2^64-2) packets were found in an encryption
 	// stream.  This would indicate a very big message, and results in an error here.

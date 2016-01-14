@@ -170,22 +170,14 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 		eh.Receivers = append(eh.Receivers, keys)
 	}
 
-	// Encode the header and the header length, and write them out immediately.
+	// Encode the header to bytes, hash it, then double encode it.
 	headerBytes, err := encodeToBytes(es.header)
-	if err != nil {
-		return err
-	}
-	headerLen, err := encodeToBytes(len(headerBytes))
 	if err != nil {
 		return err
 	}
 	headerHash := sha512.Sum512(headerBytes)
 	es.headerHash = headerHash[:]
-	_, err = es.output.Write(headerLen)
-	if err != nil {
-		return err
-	}
-	_, err = es.output.Write(headerBytes)
+	err = es.encoder.Encode(headerBytes)
 	if err != nil {
 		return err
 	}

@@ -207,20 +207,15 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 	if err != nil {
 		return err
 	}
-	headerLen, err := encodeToBytes(len(headerBytes))
-	if err != nil {
-		return err
-	}
 	if pes.options.corruptHeaderPacked != nil {
 		pes.options.corruptHeaderPacked(headerBytes)
 	}
 	headerHash := sha512.Sum512(headerBytes)
 	pes.headerHash = headerHash[:]
-	_, err = pes.output.Write(headerLen)
+	err = pes.encoder.Encode(headerBytes)
 	if err != nil {
 		return err
 	}
-	_, err = pes.output.Write(headerBytes)
 
 	// Use the header hash to compute the MAC keys.
 	pes.computeMACKeys(sender, receivers)

@@ -79,11 +79,9 @@ is a header packet, followed by any number of non-empty payload packets, and
 finally an empty payload packet.
 
 ### Header Packet
-The header packet is a MessagePack integer followed by a MessagePack list:
+The header packet is a MessagePack list with these contents:
 
 ```
-header length
-
 [
     format name,
     version,
@@ -94,7 +92,6 @@ header length
 ]
 ```
 
-- The **header length** is the number of bytes in the list that follows.
 - The **format name** is the string "saltpack".
 - The **version** is a list of the major and minor versions, currently
   `[1, 0]`.
@@ -145,22 +142,20 @@ header:
 5. Collect the **format name**, **version**, and **mode** into a list, followed
    by the **ephemeral public key**, the **sender secretbox**, and the nested
    **recipients list**.
-6. Serialize the list from #5 into bytes using MessagePack.
-7. Count the number of bytes in #6, and serialize that count into a MessagePack
-   integer. This is the **header length**.
-8. Concatenate the serialized **header length** from #7 with the serialized
-   list from #6. This is the header.
+6. Serialize the list from #5 into a MessagePack `array` object.
+7. Take the [`crypto_hash`](http://nacl.cr.yp.to/hash.html) (SHA512) of the
+   bytes from #6. This is the **header hash**.
+8. Serialize the bytes from #6 *again* into a MessagePack `bin` object. These
+   twice-encoded bytes are the header packet.
 
-    After generating the header, the sender computes two extra values, which
+    After generating the header, the sender computes the **MAC keys**, which
     will be used below to authenticate the payload:
 
-9. Take the [`crypto_hash`](http://nacl.cr.yp.to/hash.html) (SHA512) of the
-   bytes from #6. This is the **header hash**.
-10. For each recipient, encrypt 32 zero bytes using
-    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
-    key, the sender's long-term private key, and the first 24 bytes of the hash
-    from #9 as a nonce. Take the last 32 bytes of each box. These are the **MAC
-    keys**.
+9. For each recipient, encrypt 32 zero bytes using
+   [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
+   key, the sender's long-term private key, and the first 24 bytes of the
+   **header hash** from #8 as a nonce. Take the last 32 bytes of each box.
+   These are the **MAC keys**.
 
 Encrypting the sender's long-term public key in step #3 allows Alice to stay
 anonymous to Mallory. If Alice wants to be anonymous to Bob as well, she can
@@ -178,24 +173,26 @@ same ciphertext twice.
 
 Recipients parse the header of a message using the following steps:
 
-1. Deserialize the **header length** from the message stream using MessagePack.
-2. Read exactly **header length** additional bytes from the message stream.
-3. Compute the [`crypto_hash`](http://nacl.cr.yp.to/hash.html) (SHA512) of the
-   bytes from #2 to give the **header hash**.
-4. Deserialize the bytes from #2 using MessagePack to give the header list.
-5. Sanity check the **format name**, **version**, and **mode**.
-6. Precompute the ephemeral shared secret using
+1. Deserialize the header bytes from the message stream using MessagePack.
+   (What's on the wire is twice-encoded, so the result of unpacking will be
+   once-encoded bytes.)
+2. Compute the [`crypto_hash`](http://nacl.cr.yp.to/hash.html) (SHA512) of the
+   bytes from #1 to give the **header hash**.
+3. Deserialize the bytes from #1 *again* using MessagePack to give the header
+   list.
+4. Sanity check the **format name**, **version**, and **mode**.
+5. Precompute the ephemeral shared secret using
    [`crypto_box_beforenm`](http://nacl.cr.yp.to/box.html) with the **ephemeral
    public key** and the recipient's private key.
-7. Try to open each of the **payload key boxes** in the recipients list using
+6. Try to open each of the **payload key boxes** in the recipients list using
    [`crypto_box_open_afternm`](http://nacl.cr.yp.to/box.html), the precomputed
    secret from #6, and the nonce `saltpack_payload_key_box`. Successfully
    opening one gives the **payload key**, and the index of the box that worked
    is the **recipient index**.
-8. Open the **sender secretbox** using
+7. Open the **sender secretbox** using
    [`crypto_secretbox_open`](http://nacl.cr.yp.to/secretbox.html) with the
    **payload key** from #7 and the nonce `saltpack_sender_secbox\0\0`
-9. Compute the recipient's **MAC key** by encrypting 32 zero bytes using
+8. Compute the recipient's **MAC key** by encrypting 32 zero bytes using
    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's private
    key, the sender's public key from #8, and the first 24 bytes of the hash
    from #3 as a nonce. The **MAC key** is the last 32 bytes of the resulting
@@ -276,9 +273,7 @@ constructions.
 ## Example
 
 ```yaml
-# header length
-150
-# header packet
+# header packet (on the wire, this is twice-encoded)
 [
   # format name
   "saltpack",

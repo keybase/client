@@ -93,15 +93,9 @@ func (ds *decryptStream) read(b []byte) (n int, err error) {
 }
 
 func (ds *decryptStream) readHeader(rawReader io.Reader) error {
-	// Parse the length of the header.
-	var headerLength int
-	seqno, err := ds.mps.Read(&headerLength)
-	if err != nil {
-		return ErrFailedToDecodeHeaderLength
-	}
 	// Read the header bytes.
-	headerBytes := make([]byte, headerLength)
-	_, err = io.ReadFull(rawReader, headerBytes)
+	headerBytes := []byte{}
+	seqno, err := ds.mps.Read(&headerBytes)
 	if err != nil {
 		return ErrFailedToReadHeaderBytes
 	}
