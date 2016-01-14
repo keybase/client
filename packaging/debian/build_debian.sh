@@ -51,10 +51,12 @@ build_one_architecture() {
     echo building PRERELEASE
     tags=${TAGS:-"prerelease production"}
     ldflags="-X github.com/keybase/client/go/libkb.CustomBuild=$keybase_build"
+    repo_url="http://s3.amazonaws.com/prerelease.keybase.io/deb"
   else
     echo building regular release
     tags=${TAGS:-"production"}
     ldflags=""
+    repo_url="http://dist.keybase.io/linux/deb/repo"
   fi
   platform=${PLATFORM:-`uname`}
   echo "The build id is '$keybase_build'."
@@ -89,7 +91,11 @@ build_one_architecture() {
     | sed "s/@@ARCHITECTURE@@/$debian_arch/" \
     | sed "s/@@SIZE@@/$size/" \
     > "$dest/build/DEBIAN/control"
-  cp "$here/postinst" "$dest/build/DEBIAN/"
+  postinst_dest="$dest/build/DEBIAN/postinst"
+  cat "$here/postinst.template" \
+    | sed "s|@@REPO_URL@@|$repo_url|" \
+    > "$postinst_dest"
+  chmod 755 "$postinst_dest"
 
   fakeroot dpkg-deb --build "$dest/build" "$dest/$binary_name.deb"
 
