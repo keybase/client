@@ -258,6 +258,9 @@
     }, {
       "name" : "nonce",
       "type" : "BoxNonce"
+    }, {
+      "name" : "ePublicKey",
+      "type" : "BoxPublicKey"
     } ]
   }, {
     "type" : "record",
@@ -320,9 +323,6 @@
           "type" : "array",
           "items" : "CiphertextBundle"
         }
-      }, {
-        "name" : "peersPublicKey",
-        "type" : "BoxPublicKey"
       }, {
         "name" : "reason",
         "type" : "string"
