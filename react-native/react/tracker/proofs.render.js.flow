@@ -8,6 +8,7 @@ export type Proof = {
   state: SimpleProofState,
   meta: ?SimpleProofMeta,
   humanUrl: ?string,
+  profileUrl: ?string,
   name: string,
   color: string
 }
