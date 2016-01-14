@@ -2892,7 +2892,7 @@ type AuthenticateArg struct {
 }
 
 type PutMetadataArg struct {
-	MdBlock []byte            `codec:"mdBlock" json:"mdBlock"`
+	MdBlock MDBlock           `codec:"mdBlock" json:"mdBlock"`
 	LogTags map[string]string `codec:"logTags" json:"logTags"`
 }
 

@@ -270,7 +270,7 @@
     "putMetadata" : {
       "request" : [ {
         "name" : "mdBlock",
-        "type" : "bytes"
+        "type" : "MDBlock"
       }, {
         "name" : "logTags",
         "type" : {
