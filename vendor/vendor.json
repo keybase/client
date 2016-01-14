@@ -358,8 +358,8 @@
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-keychain",
 			"path": "github.com/keybase/go-keychain",
-			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
-			"revisionTime": "2015-12-18T17:01:58-08:00"
+			"revision": "9cf53c87839ca21086dcaa22d45804df060d6052",
+			"revisionTime": "2016-01-05T14:19:29-08:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-logging",
