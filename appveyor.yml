@@ -35,17 +35,20 @@ build_script:
   - git checkout -b dokan-v0.8.0 dokan-v0.8.0
   - copy dokan\dokan.lib ..\kbfs\dokan
   - cd ..\kbfs\dokan
+  - go test -i
   - go test -c
   - cd ..\libdokan
+  - go test -i
   - go test -c
   - cd ..\kbfsdokan
-  - gcc -v
-  - go env
   - go build
+  - cd ..\test
+  - go test -i
   - cd ..
 # Eventually there will be more tests, but let's just start with libkbfs for now
 #  - go list ./... | find /V "vendor" > testlist.txt
   - echo github.com/keybase/kbfs/libkbfs > testlist.txt
+  - echo github.com/keybase/kbfs/test >> testlist.txt
   - for /f %%i in (testlist.txt) do (appveyor AddTest %%i -Outcome Running -Framework gotest -Filename %%i & go test -timeout 30m %%i && appveyor UpdateTest %%i -Outcome Passed -Framework gotest -Filename %%i -Duration 0) || (appveyor UpdateTest %%i -Outcome Failed -Framework gotest -Filename %%i -Duration 0 & exit /b 1) 
 
 # to disable automatic builds
