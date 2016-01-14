@@ -81,7 +81,11 @@ func (s Service) Stop(wait bool) error {
 	// We stop by removing the job. This works for non-demand and demand jobs.
 	_, err := exec.Command("/bin/launchctl", "remove", s.label).Output()
 	if wait {
-		err = s.WaitForExit()
+		// The docs say launchd ExitTimeOut defaults to 20 seconds, but in practice
+		// it seems more like 5 seconds before it resorts to a SIGKILL.
+		// Because of the SIGKILL fallback we can use a large timeout here of 25
+		// seconds, which we'll likely never reach unless the process is zombied.
+		err = s.WaitForExit(time.Second * 2)
 		if err != nil {
 			return err
 		}
@@ -90,10 +94,11 @@ func (s Service) Stop(wait bool) error {
 }
 
 // WaitForExit waits for service to exit
-func (s Service) WaitForExit() error {
+func (s Service) WaitForExit(wait time.Duration) error {
 	running := true
-	// Timeout after 5 seconds
-	for i := 0; i < 5; i++ {
+	t := time.Now()
+	i := 1
+	for time.Now().Sub(t) < wait {
 		status, err := s.LoadStatus()
 		if err != nil {
 			return err
@@ -102,10 +107,12 @@ func (s Service) WaitForExit() error {
 			running = false
 			break
 		}
-		if (i+1)%3 == 0 {
+		// Tell user we're waiting for exit after 4 seconds, every 4 seconds
+		if i%4 == 0 {
 			s.info("Waiting for %s to exit...", s.label)
 		}
 		time.Sleep(time.Second)
+		i++
 	}
 	if running {
 		return fmt.Errorf("Waiting for service exit timed out")
