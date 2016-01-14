@@ -13,7 +13,7 @@ RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential
 
 RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
 RUN apt-get update
-RUN apt-get install -y nodejs
+RUN apt-get install -y nodejs awscli
 
 # Install Go 1.5, which doesn't exist in the Ubuntu repos yet.
 RUN wget https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz -O /root/go.tar
