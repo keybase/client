@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io"
 	"strings"
 
@@ -129,12 +128,10 @@ type saltpackHeaderPrefix struct {
 
 func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 	if len(b) < 2 {
-		fmt.Printf("a\n")
 		return false
 	}
 
 	if b[0] <= 0x92 || b[0] >= 0x9a {
-		fmt.Printf("b\n")
 		return false
 	}
 	tmp := make([]byte, len(b))
@@ -146,11 +143,9 @@ func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 	var mh codec.MsgpackHandle
 	var sphp saltpackHeaderPrefix
 	if err := codec.NewDecoderBytes(tmp, &mh).Decode(&sphp); err != nil {
-		fmt.Printf("c\n")
 		return false
 	}
 	if sphp.FormatName != saltpack.SaltpackFormatName {
-		fmt.Printf("d\n")
 		return false
 	}
 	switch sphp.Type {
@@ -161,7 +156,6 @@ func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 	case saltpack.MessageTypeDetachedSignature:
 		sc.Type = CryptoMessageTypeDetachedSignature
 	default:
-		fmt.Printf("e\n")
 		return false
 	}
 	sc.Format = CryptoMessageFormatSaltpack
