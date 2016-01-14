@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"io"
 
@@ -11,8 +12,29 @@ import (
 )
 
 func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {
+	sc, newSource, err := ClassifyStream(source)
+	if err != nil {
+		return err
+	}
+	if sc.Format != CryptoMessageFormatSaltpack {
+		return WrongCryptoFormatError{
+			Wanted:    CryptoMessageFormatSaltpack,
+			Received:  sc.Format,
+			Operation: "verify",
+		}
+	}
+	source = newSource
+
 	kr := echoKeyring{Contextified: NewContextified(g)}
-	skey, vs, frame, err := saltpack.NewDearmor62VerifyStream(source, kr)
+
+	var skey saltpack.SigningPublicKey
+	var vs io.Reader
+	var frame saltpack.Frame
+	if sc.Armored {
+		skey, vs, frame, err = saltpack.NewDearmor62VerifyStream(source, kr)
+	} else {
+		skey, vs, err = saltpack.NewVerifyStream(source, kr)
+	}
 	if err != nil {
 		g.Log.Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
 		return err
@@ -29,10 +51,12 @@ func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, che
 		return err
 	}
 
-	if brand, err := saltpack.CheckArmor62Frame(frame, saltpack.MessageTypeAttachedSignature); err != nil {
-		return err
-	} else if err = checkSaltpackBrand(brand); err != nil {
-		return err
+	if sc.Armored {
+		if brand, err := saltpack.CheckArmor62Frame(frame, saltpack.MessageTypeAttachedSignature); err != nil {
+			return err
+		} else if err = checkSaltpackBrand(brand); err != nil {
+			return err
+		}
 	}
 
 	g.Log.Debug("Verify: read %d bytes", n)
@@ -45,14 +69,37 @@ func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, che
 }
 
 func SaltpackVerifyDetached(g *GlobalContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
-	kr := echoKeyring{Contextified: NewContextified(g)}
-	skey, brand, err := saltpack.Dearmor62VerifyDetachedReader(message, string(signature), kr)
+	sc, _, err := ClassifyStream(bytes.NewReader(signature))
 	if err != nil {
-		g.Log.Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
 		return err
 	}
-	if err = checkSaltpackBrand(brand); err != nil {
-		return err
+	if sc.Format != CryptoMessageFormatSaltpack {
+		return WrongCryptoFormatError{
+			Wanted:    CryptoMessageFormatSaltpack,
+			Received:  sc.Format,
+			Operation: "verify detached",
+		}
+	}
+
+	kr := echoKeyring{Contextified: NewContextified(g)}
+
+	var skey saltpack.SigningPublicKey
+	if sc.Armored {
+		var brand string
+		skey, brand, err = saltpack.Dearmor62VerifyDetachedReader(message, string(signature), kr)
+		if err != nil {
+			g.Log.Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
+			return err
+		}
+		if err = checkSaltpackBrand(brand); err != nil {
+			return err
+		}
+	} else {
+		skey, err = saltpack.VerifyDetachedReader(message, signature, kr)
+		if err != nil {
+			g.Log.Debug("saltpack.VerifyDetachedReader error: %s", err)
+			return err
+		}
 	}
 
 	if checkSender != nil {

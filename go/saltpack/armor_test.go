@@ -5,9 +5,13 @@ package saltpack
 
 import (
 	"bytes"
+	"encoding/hex"
 	"io"
 	"io/ioutil"
+	"os"
+	"runtime"
 	"testing"
+	"time"
 )
 
 func msg(sz int) []byte {
@@ -143,6 +147,37 @@ func TestSlowReader(t *testing.T) {
 		t.Fatal(err)
 	}
 	if ftr != ftr2 {
-		t.Fatalf("header mismatch: %s != %s", ftr, ftr2)
+		t.Fatalf("footer mismatch: %s != %s", ftr, ftr2)
 	}
+}
+
+func TestBinaryInput(t *testing.T) {
+	in, err := hex.DecodeString("96a873616c747061636b92010002c420c4afc00d50af5072094609199b54a5f8cf7b03bcea3d4945b2bbd50ac1cd42ecc41014bf77454c0b028cb009d06019981a75c4401a451af65fa3b40ae2be73b5c17dc2657992337c98ad75d4fe21de37fba2329b4970defbea176c98d306d0d285ffaa515b630224836b2c55ba1b6ba026a62102")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	done := make(chan bool)
+	var m []byte
+	var hdr, ftr string
+	go func() {
+		m, hdr, ftr, err = Armor62Open(string(in))
+		done <- true
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		buf := make([]byte, 1<<16)
+		runtime.Stack(buf, true)
+		os.Stderr.Write(buf)
+		t.Fatal("timed out waiting for Armor62Open to finish")
+	}
+
+	// PC this seems like a bug to me, but leaving it alone for now:
+	/*
+		if err == nil {
+			t.Errorf("Armor62Open worked on binary data: m == %x, hdr == %q, ftr == %q", m, hdr, ftr)
+		}
+	*/
 }

@@ -248,13 +248,16 @@
     "size" : 32
   }, {
     "type" : "record",
-    "name" : "CiphertextKIDPair",
+    "name" : "CiphertextBundle",
     "fields" : [ {
       "name" : "kid",
       "type" : "KID"
     }, {
       "name" : "ciphertext",
       "type" : "EncryptedBytes32"
+    }, {
+      "name" : "nonce",
+      "type" : "BoxNonce"
     } ]
   }, {
     "type" : "record",
@@ -312,14 +315,11 @@
     },
     "unboxBytes32Any" : {
       "request" : [ {
-        "name" : "pairs",
+        "name" : "bundles",
         "type" : {
           "type" : "array",
-          "items" : "CiphertextKIDPair"
+          "items" : "CiphertextBundle"
         }
-      }, {
-        "name" : "nonce",
-        "type" : "BoxNonce"
       }, {
         "name" : "peersPublicKey",
         "type" : "BoxPublicKey"

@@ -282,7 +282,7 @@ function stateToColor (state: SimpleProofState): string {
 
 function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff): SimpleProofState {
   // If there is no difference in what we've tracked from the server or remote resource it's good.
-  if (diff && remoteDiff && diff.type === identify.TrackDiffType.none && remoteDiff === identify.TrackDiffType.none) {
+  if (diff && remoteDiff && diff.type === identify.TrackDiffType.none && remoteDiff.type === identify.TrackDiffType.none) {
     return normal
   }
 
@@ -364,6 +364,23 @@ function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
   }[status]
 }
 
+// TODO Have the service give this information.
+// Currently this is copied from the website: https://github.com/keybase/keybase/blob/658aa97a9ad63733444298353a528e7f8499d8b9/lib/mod/user_lol.iced#L971
+/* eslint-disable no-multi-spaces */
+function proofUrlToProfileUrl (proofType: string, name: string, key: ?string, humanUrl: ?string): string {
+  switch (proofType) {
+    case identify.ProofType.dns            : return `http://${name}`
+    case identify.ProofType.genericWebSite : return `${key}://${name}`
+    case identify.ProofType.twitter        : return `https://twitter.com/${name}`
+    case identify.ProofType.github         : return `https://github.com/${name}`
+    case identify.ProofType.reddit         : return `https://reddit.com/user/${name}`
+    case identify.ProofType.coinbase       : return `https://coinbase.com/${name}`
+    case identify.ProofType.hackernews     : return `https://news.ycombinator.com/user?id=${name}`
+    default: return humanUrl || ''
+  }
+}
+/* eslint-enable no-multi-spaces */
+
 function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
   const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
 
@@ -383,6 +400,8 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     statusMeta = proofStatusToSimpleProofMeta(lcr.proofResult.status)
   }
 
+  const humanUrl = (lcr && lcr.hint && lcr.hint.humanUrl)
+
   return {
     state: proofState,
     id: rp.sigID,
@@ -390,7 +409,8 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     type: proofType,
     color: stateToColor(proofState),
     name: rp.displayMarkup,
-    humanUrl: (lcr && lcr.hint && lcr.hint.humanUrl)
+    humanUrl: humanUrl,
+    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl)
   }
 }
 
@@ -419,14 +439,14 @@ function deriveTrackerState (
   anyDeletedProofs : boolean,
   anyUnreachableProofs : boolean,
 ): SimpleProofState {
-  if (anyWarnings || anyUnreachableProofs) {
+  if (allOk) {
+    return normal
+  } else if (anyPending) {
+    return checking
+  } else if (anyWarnings || anyUnreachableProofs) {
     return warning
   } else if (anyError || anyDeletedProofs) {
     return error
-  } else if (anyPending) {
-    return checking
-  } else if (allOk) {
-    return normal
   }
 
   return error
@@ -440,14 +460,14 @@ function deriveTrackerMessage (
   anyUpgradedProofs : boolean,
   anyNewProofs: boolean
 ): ?string {
-  if (anyDeletedProofs) {
+  if (allOk) {
+    return null
+  } else if (anyDeletedProofs) {
     return `${username} deleted some proofs.`
   } else if (anyUnreachableProofs) {
     return `Some of ${username}’s proofs are compromised or have changed.`
   } else if (anyUpgradedProofs) {
     return `${username} added some identity proofs.`
-  } else if (allOk) {
-    return null
   }
 }
 

@@ -25,7 +25,7 @@ export type RemoteManagerProps = {
   pinentryOnSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
   registerIdentifyUi: () => void,
   registerTrackerChangeListener: () => void,
-  onCloseFromHeader: () => void,
+  trackerOnCloseFromHeader: () => void,
   trackerServerStarted: boolean,
   trackerStartTimer: (dispatch: Dispatch, getState: any) => void,
   trackerStopTimer: () => Action,
@@ -88,13 +88,12 @@ class RemoteManager extends Component {
           <RemoteComponent
             windowsOpts={{height: 339, width: 520}}
             waitForState
-            onRemoteClose={() => this.props.onCloseFromHeader(username)}
+            onRemoteClose={() => this.props.trackerOnCloseFromHeader(username)}
             component='tracker'
             username={username}
             startTimer={this.props.trackerStartTimer}
             stopTimer={this.props.trackerStopTimer}
-            key={username}
-            />
+            key={username} />
         )
       } else {
         // keep existing ones
@@ -150,7 +149,7 @@ class RemoteManager extends Component {
 
   render () {
     return (
-      <div>
+      <div style={{display: 'none'}}>
         {Object.keys(this.state.popups).filter(username => !this.props.trackers[username].closed).map(username => this.state.popups[username])}
         {this.pinentryRemoteComponents()}
         {this.showUpdatePromptComponents()}
@@ -166,7 +165,7 @@ RemoteManager.propTypes = {
   registerUpdateListener: React.PropTypes.func,
   registerIdentifyUi: React.PropTypes.func,
   registerTrackerChangeListener: React.PropTypes.any,
-  onCloseFromHeader: React.PropTypes.func,
+  trackerOnCloseFromHeader: React.PropTypes.func,
   trackerServerStarted: React.PropTypes.bool,
   trackerStartTimer: React.PropTypes.func,
   trackerStopTimer: React.PropTypes.func,

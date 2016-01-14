@@ -8,6 +8,7 @@ protocol saltpack {
     array<string> recipients; // user assertions
     boolean hideSelf;
     boolean noSelfEncrypt;
+    boolean binary;
   }
 
   record SaltpackDecryptOptions {
@@ -17,11 +18,12 @@ protocol saltpack {
 
   record SaltpackSignOptions {
     boolean detached;
+    boolean binary;
   }
 
   record SaltpackVerifyOptions {
     string signedBy; // optional
-    bytes signature; // detached signature data (currently only armored supported), can be empty
+    bytes signature; // detached signature data (binary or armored), can be empty
   }
 
   void saltpackEncrypt(int sessionID, Stream source, Stream sink, SaltpackEncryptOptions opts);

@@ -676,9 +676,10 @@ type Bytes32 [32]byte
 type EncryptedBytes32 [48]byte
 type BoxNonce [24]byte
 type BoxPublicKey [32]byte
-type CiphertextKIDPair struct {
+type CiphertextBundle struct {
 	Kid        KID              `codec:"kid" json:"kid"`
 	Ciphertext EncryptedBytes32 `codec:"ciphertext" json:"ciphertext"`
+	Nonce      BoxNonce         `codec:"nonce" json:"nonce"`
 }
 
 type UnboxAnyRes struct {
@@ -705,10 +706,9 @@ type UnboxBytes32Arg struct {
 }
 
 type UnboxBytes32AnyArg struct {
-	Pairs          []CiphertextKIDPair `codec:"pairs" json:"pairs"`
-	Nonce          BoxNonce            `codec:"nonce" json:"nonce"`
-	PeersPublicKey BoxPublicKey        `codec:"peersPublicKey" json:"peersPublicKey"`
-	Reason         string              `codec:"reason" json:"reason"`
+	Bundles        []CiphertextBundle `codec:"bundles" json:"bundles"`
+	PeersPublicKey BoxPublicKey       `codec:"peersPublicKey" json:"peersPublicKey"`
+	Reason         string             `codec:"reason" json:"reason"`
 }
 
 type CryptoInterface interface {
@@ -4698,6 +4698,7 @@ type SaltpackEncryptOptions struct {
 	Recipients    []string `codec:"recipients" json:"recipients"`
 	HideSelf      bool     `codec:"hideSelf" json:"hideSelf"`
 	NoSelfEncrypt bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
+	Binary        bool     `codec:"binary" json:"binary"`
 }
 
 type SaltpackDecryptOptions struct {
@@ -4707,6 +4708,7 @@ type SaltpackDecryptOptions struct {
 
 type SaltpackSignOptions struct {
 	Detached bool `codec:"detached" json:"detached"`
+	Binary   bool `codec:"binary" json:"binary"`
 }
 
 type SaltpackVerifyOptions struct {

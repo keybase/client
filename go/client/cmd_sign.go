@@ -22,6 +22,10 @@ func NewCmdSign(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
+				Name:  "b, binary",
+				Usage: "Output binary message (default is armored).",
+			},
+			cli.BoolFlag{
 				Name:  "d, detached",
 				Usage: "Detached signature (default is attached).",
 			},
@@ -45,6 +49,7 @@ type CmdSign struct {
 	libkb.Contextified
 	UnixFilter
 	detached bool
+	binary   bool
 }
 
 func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
@@ -53,6 +58,7 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 	}
 
 	s.detached = ctx.Bool("detached")
+	s.binary = ctx.Bool("binary")
 
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
@@ -81,6 +87,7 @@ func (s *CmdSign) Run() (err error) {
 			Sink:   snk,
 			Opts: keybase1.SaltpackSignOptions{
 				Detached: s.detached,
+				Binary:   s.binary,
 			},
 		}
 		err = cli.SaltpackSign(context.TODO(), arg)

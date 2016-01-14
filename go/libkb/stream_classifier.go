@@ -7,10 +7,11 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"github.com/keybase/client/go/saltpack"
-	"github.com/ugorji/go/codec"
 	"io"
 	"strings"
+
+	"github.com/keybase/client/go/saltpack"
+	"github.com/ugorji/go/codec"
 )
 
 // StreamPeeker is a reader that takes another reader and allow you to
@@ -198,6 +199,7 @@ func isPGPBinary(b []byte, sc *StreamClassification) bool {
 
 var encryptionArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)
 var signedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeAttachedSignature, KeybaseSaltpackBrand)
+var detachedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeDetachedSignature, KeybaseSaltpackBrand)
 
 // ClassifyStream takes a stream reader in, and returns a likely classification
 // of that stream without consuming any data from it. It returns a reader that you
@@ -233,6 +235,10 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		sc.Format = CryptoMessageFormatSaltpack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeSignature
+	case strings.HasPrefix(sb, detachedArmorHeader+"."):
+		sc.Format = CryptoMessageFormatSaltpack
+		sc.Armored = true
+		sc.Type = CryptoMessageTypeDetachedSignature
 	case isBase64KeybaseV0Sig(sb):
 		sc.Format = CryptoMessageFormatKeybaseV0
 		sc.Armored = true

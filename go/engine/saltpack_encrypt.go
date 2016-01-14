@@ -4,9 +4,10 @@
 package engine
 
 import (
+	"io"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"io"
 )
 
 type SaltpackEncryptArg struct {
@@ -147,5 +148,12 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 		sender = kp
 	}
 
-	return libkb.SaltpackEncrypt(e.arg.Source, e.arg.Sink, receivers, sender)
+	encarg := libkb.SaltpackEncryptArg{
+		Source:    e.arg.Source,
+		Sink:      e.arg.Sink,
+		Receivers: receivers,
+		Sender:    sender,
+		Binary:    e.arg.Opts.Binary,
+	}
+	return libkb.SaltpackEncrypt(e.G(), &encarg)
 }

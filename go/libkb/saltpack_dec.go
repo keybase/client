@@ -4,8 +4,9 @@
 package libkb
 
 import (
-	"github.com/keybase/client/go/saltpack"
 	"io"
+
+	"github.com/keybase/client/go/saltpack"
 )
 
 func SaltpackDecrypt(
@@ -13,20 +14,30 @@ func SaltpackDecrypt(
 	deviceEncryptionKey NaclDHKeyPair,
 	checkSender func(*saltpack.MessageKeyInfo) error) (*saltpack.MessageKeyInfo, error) {
 
-	if sc, newSource, err := ClassifyStream(source); err != nil {
+	sc, newSource, err := ClassifyStream(source)
+	if err != nil {
 		return nil, err
-	} else if sc.Format != CryptoMessageFormatSaltpack {
+	}
+
+	if sc.Format != CryptoMessageFormatSaltpack {
 		return nil, WrongCryptoFormatError{
 			Wanted:    CryptoMessageFormatSaltpack,
 			Received:  sc.Format,
 			Operation: "decrypt",
 		}
-	} else {
-		source = newSource
 	}
 
-	mki, plainsource, frame, err := saltpack.NewDearmor62DecryptStream(
-		source, naclKeyring(deviceEncryptionKey))
+	source = newSource
+
+	var mki *saltpack.MessageKeyInfo
+	var plainsource io.Reader
+	var frame saltpack.Frame
+	if sc.Armored {
+		mki, plainsource, frame, err = saltpack.NewDearmor62DecryptStream(source, naclKeyring(deviceEncryptionKey))
+	} else {
+		mki, plainsource, err = saltpack.NewDecryptStream(source, naclKeyring(deviceEncryptionKey))
+	}
+
 	if err != nil {
 		return mki, err
 	}
@@ -44,13 +55,15 @@ func SaltpackDecrypt(
 
 	// TODO: Check header inline, and only warn if the footer
 	// doesn't match.
-	var brand string
-	brand, err = saltpack.CheckArmor62Frame(frame, saltpack.MessageTypeEncryption)
-	if err != nil {
-		return mki, err
-	}
-	if err = checkSaltpackBrand(brand); err != nil {
-		return mki, err
+	if sc.Armored {
+		var brand string
+		brand, err = saltpack.CheckArmor62Frame(frame, saltpack.MessageTypeEncryption)
+		if err != nil {
+			return mki, err
+		}
+		if err = checkSaltpackBrand(brand); err != nil {
+			return mki, err
+		}
 	}
 
 	g.Log.Debug("Decrypt: read %d bytes", n)

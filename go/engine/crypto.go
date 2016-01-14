@@ -98,21 +98,21 @@ func UnboxBytes32(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 	return unboxBytes32(encryptionKey, arg.EncryptedBytes32, arg.Nonce, arg.PeersPublicKey)
 }
 
-// UnboxBytes32Any will decrypt any of the KID, ciphertext pairs
-// in arg.Pairs.  Key preference order:  cached device keys,
+// UnboxBytes32Any will decrypt any of the KID, ciphertext, nonce
+// bundles in arg.Bundles.  Key preference order:  cached device keys,
 // cached paper keys, local device key, user-entered paper key.
-// It returns the KID and pair index along with the plaintext.
+// It returns the KID and bundle index along with the plaintext.
 func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (res keybase1.UnboxAnyRes, err error) {
 	defer g.Trace("UnboxBytes32Any", func() error { return err })
 
-	// find a matching secret key for a pair in arg.Pairs
+	// find a matching secret key for a bundle in arg.Bundles
 	key, index, err := getMatchingSecretKey(g, secretUI, arg)
 	if err != nil {
 		return res, err
 	}
 
-	// decrypt the pair's ciphertext
-	plaintext, err := unboxBytes32(key, arg.Pairs[index].Ciphertext, arg.Nonce, arg.PeersPublicKey)
+	// decrypt the bundle's ciphertext
+	plaintext, err := unboxBytes32(key, arg.Bundles[index].Ciphertext, arg.Bundles[index].Nonce, arg.PeersPublicKey)
 	if err != nil {
 		return res, err
 	}
@@ -189,13 +189,13 @@ func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg k
 	return nil, 0, libkb.NoSecretKeyError{}
 }
 
-// check cached keys for arg.Pairs match.
+// check cached keys for arg.Bundles match.
 func matchingCachedKey(g *libkb.GlobalContext, arg keybase1.UnboxBytes32AnyArg) (key libkb.GenericKey, index int, err error) {
 	err = g.LoginState().Account(func(a *libkb.Account) {
 		// check device key first
 		dkey, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
 		if err == nil {
-			if n, ok := kidMatch(dkey, arg.Pairs); ok {
+			if n, ok := kidMatch(dkey, arg.Bundles); ok {
 				key = dkey
 				index = n
 				return
@@ -204,7 +204,7 @@ func matchingCachedKey(g *libkb.GlobalContext, arg keybase1.UnboxBytes32AnyArg) 
 
 		// check paper key
 		pkey := a.GetUnlockedPaperEncKey()
-		if n, ok := kidMatch(pkey, arg.Pairs); ok {
+		if n, ok := kidMatch(pkey, arg.Bundles); ok {
 			key = pkey
 			index = n
 			return
@@ -220,11 +220,11 @@ func matchingCachedKey(g *libkb.GlobalContext, arg keybase1.UnboxBytes32AnyArg) 
 	return nil, 0, nil
 }
 
-// check device key for arg.Pairs match.
+// check device key for arg.Bundles match.
 func matchingDeviceKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg, me *libkb.User) (key libkb.GenericKey, index int, err error) {
 	ekey, err := me.GetDeviceSubkey()
 	if err == nil {
-		if n, ok := kidMatch(ekey, arg.Pairs); ok {
+		if n, ok := kidMatch(ekey, arg.Bundles); ok {
 			// unlock this key
 			skarg := libkb.SecretKeyArg{
 				Me:      me,
@@ -241,7 +241,7 @@ func matchingDeviceKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keyb
 	return nil, 0, nil
 }
 
-// check all the user's paper keys for arg.Pairs match
+// check all the user's paper keys for arg.Bundles match
 func matchingPaperKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg, me *libkb.User) (key libkb.GenericKey, index int, err error) {
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
@@ -253,7 +253,7 @@ func matchingPaperKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keyba
 		if err != nil {
 			return nil, 0, err
 		}
-		if _, ok := kidMatch(enckey, arg.Pairs); ok {
+		if _, ok := kidMatch(enckey, arg.Bundles); ok {
 			g.Log.Debug("matching paper key: %s", *pdev.Description)
 			matchingPaper = append(matchingPaper, pdev)
 		}
@@ -282,7 +282,7 @@ func matchingPaperKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keyba
 	}
 
 	// find the index for the key they entered (and make sure the key they entered matches)
-	if n, ok := kidMatch(bkeng.EncKey(), arg.Pairs); ok {
+	if n, ok := kidMatch(bkeng.EncKey(), arg.Bundles); ok {
 
 		// this key matches, so cache this paper key
 		if err := g.LoginState().Account(func(a *libkb.Account) {
@@ -297,13 +297,13 @@ func matchingPaperKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keyba
 	return nil, 0, nil
 }
 
-func kidMatch(key libkb.GenericKey, pairs []keybase1.CiphertextKIDPair) (int, bool) {
+func kidMatch(key libkb.GenericKey, bundles []keybase1.CiphertextBundle) (int, bool) {
 	if key == nil {
 		return -1, false
 	}
 	kid := key.GetKID()
-	for i, pair := range pairs {
-		if kid.Equal(pair.Kid) {
+	for i, bundle := range bundles {
+		if kid.Equal(bundle.Kid) {
 			return i, true
 		}
 	}

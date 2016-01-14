@@ -47,9 +47,13 @@ func TestSaltpackEncDec(t *testing.T) {
 
 	var buf outputBuffer
 
-	err = SaltpackEncrypt(
-		strings.NewReader(message), &buf, receiverPKs, senderKP)
-	if err != nil {
+	arg := SaltpackEncryptArg{
+		Source:    strings.NewReader(message),
+		Sink:      &buf,
+		Receivers: receiverPKs,
+		Sender:    senderKP,
+	}
+	if err := SaltpackEncrypt(G, &arg); err != nil {
 		t.Fatal(err)
 	}
 

@@ -62,10 +62,10 @@ func (e *SaltpackSign) Run(ctx *Context) error {
 	}
 
 	if e.arg.Opts.Detached {
-		return libkb.SaltpackSignDetached(e.G(), e.arg.Source, e.arg.Sink, e.key)
+		return libkb.SaltpackSignDetached(e.G(), e.arg.Source, e.arg.Sink, e.key, e.arg.Opts.Binary)
 	}
 
-	return libkb.SaltpackSign(e.G(), e.arg.Source, e.arg.Sink, e.key)
+	return libkb.SaltpackSign(e.G(), e.arg.Source, e.arg.Sink, e.key, e.arg.Opts.Binary)
 }
 
 func (e *SaltpackSign) loadKey(ctx *Context) error {
