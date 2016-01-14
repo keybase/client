@@ -610,13 +610,13 @@ export type ED25519SignatureInfo = {
   publicKey: ED25519PublicKey;
 }
 
-export type crypto_CiphertextKIDPair = {
+export type crypto_CiphertextBundle = {
   kid: KID;
   ciphertext: EncryptedBytes32;
   nonce: BoxNonce;
 }
 
-export type CiphertextKIDPair = {
+export type CiphertextBundle = {
   kid: KID;
   ciphertext: EncryptedBytes32;
   nonce: BoxNonce;

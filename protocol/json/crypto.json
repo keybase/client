@@ -248,7 +248,7 @@
     "size" : 32
   }, {
     "type" : "record",
-    "name" : "CiphertextKIDPair",
+    "name" : "CiphertextBundle",
     "fields" : [ {
       "name" : "kid",
       "type" : "KID"
@@ -315,10 +315,10 @@
     },
     "unboxBytes32Any" : {
       "request" : [ {
-        "name" : "pairs",
+        "name" : "bundles",
         "type" : {
           "type" : "array",
-          "items" : "CiphertextKIDPair"
+          "items" : "CiphertextBundle"
         }
       }, {
         "name" : "peersPublicKey",

@@ -676,7 +676,7 @@ type Bytes32 [32]byte
 type EncryptedBytes32 [48]byte
 type BoxNonce [24]byte
 type BoxPublicKey [32]byte
-type CiphertextKIDPair struct {
+type CiphertextBundle struct {
 	Kid        KID              `codec:"kid" json:"kid"`
 	Ciphertext EncryptedBytes32 `codec:"ciphertext" json:"ciphertext"`
 	Nonce      BoxNonce         `codec:"nonce" json:"nonce"`
@@ -706,9 +706,9 @@ type UnboxBytes32Arg struct {
 }
 
 type UnboxBytes32AnyArg struct {
-	Pairs          []CiphertextKIDPair `codec:"pairs" json:"pairs"`
-	PeersPublicKey BoxPublicKey        `codec:"peersPublicKey" json:"peersPublicKey"`
-	Reason         string              `codec:"reason" json:"reason"`
+	Bundles        []CiphertextBundle `codec:"bundles" json:"bundles"`
+	PeersPublicKey BoxPublicKey       `codec:"peersPublicKey" json:"peersPublicKey"`
+	Reason         string             `codec:"reason" json:"reason"`
 }
 
 type CryptoInterface interface {

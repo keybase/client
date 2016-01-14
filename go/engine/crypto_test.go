@@ -157,7 +157,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 
 	// also test UnboxBytes32Any:
 	arg := keybase1.UnboxBytes32AnyArg{
-		Pairs: []keybase1.CiphertextKIDPair{
+		Bundles: []keybase1.CiphertextBundle{
 			{Kid: kp.GetKID(), Ciphertext: encryptedBytes32, Nonce: nonce},
 		},
 		PeersPublicKey: peersPublicKey,
@@ -339,7 +339,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 
 	// this should work
 	arg := keybase1.UnboxBytes32AnyArg{
-		Pairs: []keybase1.CiphertextKIDPair{
+		Bundles: []keybase1.CiphertextBundle{
 			{Kid: kp.GetKID(), Ciphertext: encryptedBytes32, Nonce: nonce},
 		},
 		PeersPublicKey: peersPublicKey,
