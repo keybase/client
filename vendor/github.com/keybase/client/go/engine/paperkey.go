@@ -20,6 +20,7 @@ import (
 // PaperKey is an engine.
 type PaperKey struct {
 	passphrase libkb.PaperKeyPhrase
+	gen        *PaperKeyGen
 	libkb.Contextified
 }
 
@@ -123,8 +124,8 @@ func (e *PaperKey) Run(ctx *Context) error {
 		Me:         me,
 		SigningKey: signingKey,
 	}
-	kgeng := NewPaperKeyGen(kgarg, e.G())
-	if err := RunEngine(kgeng, ctx); err != nil {
+	e.gen = NewPaperKeyGen(kgarg, e.G())
+	if err := RunEngine(e.gen, ctx); err != nil {
 		return err
 	}
 
@@ -134,4 +135,12 @@ func (e *PaperKey) Run(ctx *Context) error {
 
 func (e *PaperKey) Passphrase() string {
 	return e.passphrase.String()
+}
+
+func (e *PaperKey) SigKey() libkb.GenericKey {
+	return e.gen.SigKey()
+}
+
+func (e *PaperKey) EncKey() libkb.GenericKey {
+	return e.gen.EncKey()
 }

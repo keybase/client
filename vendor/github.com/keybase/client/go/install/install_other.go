@@ -13,7 +13,7 @@ import (
 )
 
 func AutoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bool, err error) {
-	return false, fmt.Errorf("Auto install only supported for OS X")
+	return false, fmt.Errorf("Auto install not supported for this build or platform")
 }
 
 func CheckIfValidLocation() *keybase1.Error {

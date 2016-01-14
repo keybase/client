@@ -15,7 +15,7 @@ func NewCmdPGP(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		Usage:        "Manage keybase PGP keys",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
-			NewCmdPGPGen(cl),
+			NewCmdPGPGen(cl, g),
 			NewCmdPGPPull(cl, g),
 			NewCmdPGPUpdate(cl),
 			NewCmdPGPSelect(cl),

@@ -1289,6 +1289,14 @@ func (e TrackingBrokeError) Error() string {
 
 //=============================================================================
 
+type KeybaseSaltpackError struct{}
+
+func (e KeybaseSaltpackError) Error() string {
+	return "Bad use of saltpack for Keybase"
+}
+
+//=============================================================================
+
 type UnknownStreamError struct{}
 
 func (e UnknownStreamError) Error() string {

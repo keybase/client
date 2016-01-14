@@ -59,12 +59,18 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Login) Run(ctx *Context) error {
+
+	sendNotification := func() {
+		e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+	}
+
 	// first see if this device is already provisioned and it is possible to log in:
 	eng := NewLoginCurrentDevice(e.G(), e.username)
 	err := RunEngine(eng, ctx)
 	if err == nil {
 		// login successful
 		e.G().Log.Debug("LoginCurrentDevice.Run() was successful")
+		sendNotification()
 		return nil
 	}
 
@@ -83,7 +89,12 @@ func (e *Login) Run(ctx *Context) error {
 		ClientType: e.clientType,
 	}
 	deng := NewLoginProvision(e.G(), darg)
-	return RunEngine(deng, ctx)
+	if err = RunEngine(deng, ctx); err != nil {
+		return err
+	}
+
+	sendNotification()
+	return nil
 }
 
 // notProvisionedErr will return true if err signifies that login

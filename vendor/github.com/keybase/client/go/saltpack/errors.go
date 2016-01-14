@@ -31,9 +31,6 @@ var (
 	// of randomness, so this should never happen
 	ErrInsufficientRandomness = errors.New("could not collect enough randomness")
 
-	// ErrBadArmorFrame shows up when the ASCII armor frame has non-ASCII
-	ErrBadArmorFrame = errors.New("bad frame found; had non-ASCII")
-
 	// ErrBadEphemeralKey is for when an ephemeral key fails to be properly
 	// imported.
 	ErrBadEphemeralKey = errors.New("bad ephermal key in header")
@@ -94,26 +91,17 @@ type ErrBadVersion struct {
 	received Version
 }
 
-// ErrBadArmorHeader shows up when we get the wrong value for our header
-type ErrBadArmorHeader struct {
-	wanted   string
-	received string
+// ErrBadFrame shows up when the BEGIN or END frames have issues
+type ErrBadFrame struct {
+	msg string
 }
 
-// ErrBadArmorFooter shows up when we get the wrong value for our header
-type ErrBadArmorFooter struct {
-	wanted   string
-	received string
+func (e ErrBadFrame) Error() string {
+	return fmt.Sprintf("Error in framing: %s", e.msg)
 }
 
-func (e ErrBadArmorFooter) Error() string {
-	return fmt.Sprintf("Bad encryption armor footer; wanted '%s' but got '%s'",
-		e.wanted, e.received)
-}
-
-func (e ErrBadArmorHeader) Error() string {
-	return fmt.Sprintf("Bad encryption armor header; wanted '%s' but got '%s'",
-		e.wanted, e.received)
+func makeErrBadFrame(format string, args ...interface{}) error {
+	return ErrBadFrame{fmt.Sprintf(format, args...)}
 }
 
 func (e ErrWrongMessageType) Error() string {

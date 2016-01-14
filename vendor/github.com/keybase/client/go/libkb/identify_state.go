@@ -13,7 +13,7 @@ type IdentifyState struct {
 
 func NewIdentifyState(res *IdentifyOutcome, u *User) IdentifyState {
 	if res == nil {
-		res = &IdentifyOutcome{}
+		res = NewIdentifyOutcomeWithUsername(u.GetName())
 	}
 	return IdentifyState{res: res, u: u}
 }

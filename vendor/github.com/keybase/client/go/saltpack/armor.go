@@ -235,7 +235,7 @@ func (s *framedDecoderStream) isValidByteSequence(p []byte) bool {
 
 func (s *framedDecoderStream) toASCII(buf []byte) (string, error) {
 	if !s.isValidByteSequence(buf) {
-		return "", ErrBadArmorFrame
+		return "", makeErrBadFrame("invalid ASCII sequence")
 	}
 	return strings.TrimSpace(string(buf)), nil
 }

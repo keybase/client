@@ -550,7 +550,17 @@ func (u UpdateUI) UpdatePrompt(_ context.Context, arg keybase1.UpdatePromptArg) 
 		res.Action = keybase1.UpdateAction_UPDATE
 		return res, err
 	}
-	u.terminal.Printf("There is a new update available (version %s)\n", arg.Update.Version)
+
+	var updateType string
+	switch arg.Update.Type {
+	case keybase1.UpdateType_NORMAL:
+		updateType = "update"
+	case keybase1.UpdateType_BUGFIX:
+		updateType = "bugfix update"
+	case keybase1.UpdateType_CRITICAL:
+		updateType = "CRITICAL update"
+	}
+	u.terminal.Printf("There is a new %s available (version %s)\n", updateType, arg.Update.Version)
 	if len(arg.Update.Description) != 0 {
 		u.terminal.Printf("  %s\n", arg.Update.Description)
 	}
