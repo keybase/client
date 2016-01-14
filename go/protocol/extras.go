@@ -318,7 +318,7 @@ func (s SigID) ToDisplayString(verbose bool) string {
 	if verbose {
 		return string(s)
 	}
-	return fmt.Sprintf("%s...", s[0:16])
+	return fmt.Sprintf("%s...", s[0:SigIDQueryMin])
 }
 
 func (s SigID) ToString(suffix bool) string {
