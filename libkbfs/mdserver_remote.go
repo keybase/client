@@ -47,6 +47,9 @@ var _ KeyServer = (*MDServerRemote)(nil)
 // Test that MDServerRemote fully implements the AuthTokenRefreshHandler interface.
 var _ AuthTokenRefreshHandler = (*MDServerRemote)(nil)
 
+// Test that MDServerRemote fully implements the ConnectionHandler interface.
+var _ ConnectionHandler = (*MDServerRemote)(nil)
+
 // NewMDServerRemote returns a new instance of MDServerRemote.
 func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 	mdServer := &MDServerRemote{

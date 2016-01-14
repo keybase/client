@@ -430,7 +430,6 @@ func (c *Connection) Shutdown() {
 		// close the connection
 		c.transport.Close()
 	}
-	c.handler = nil // drop the circular reference
 }
 
 type connectionClient struct {

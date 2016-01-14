@@ -10,10 +10,10 @@ import (
 // RekeyQueueStandard implements the RekeyQueue interface.
 type RekeyQueueStandard struct {
 	config    Config
+	queueMu   sync.RWMutex         // protects all of the below
+	queue     map[TlfID]chan error // if we end up caring about order we should add a slice
 	hasWorkCh chan struct{}
 	cancel    context.CancelFunc
-	queueMu   sync.RWMutex         // protects the below
-	queue     map[TlfID]chan error // if we end up caring about order we should add a slice
 }
 
 // Test that RekeyQueueStandard fully implements the RekeyQueue interface.
@@ -22,13 +22,9 @@ var _ RekeyQueue = (*RekeyQueueStandard)(nil)
 // NewRekeyQueueStandard instantiates a new rekey worker.
 func NewRekeyQueueStandard(config Config) *RekeyQueueStandard {
 	rkq := &RekeyQueueStandard{
-		config:    config,
-		queue:     make(map[TlfID]chan error),
-		hasWorkCh: make(chan struct{}, 1),
+		config: config,
+		queue:  make(map[TlfID]chan error),
 	}
-	var ctx context.Context
-	ctx, rkq.cancel = context.WithCancel(context.Background())
-	go rkq.processRekeys(ctx)
 	return rkq
 }
 
@@ -38,6 +34,14 @@ func (rkq *RekeyQueueStandard) Enqueue(id TlfID) <-chan error {
 	err := func() error {
 		rkq.queueMu.Lock()
 		defer rkq.queueMu.Unlock()
+		if rkq.cancel == nil {
+			// create a new channel
+			rkq.hasWorkCh = make(chan struct{}, 1)
+			// spawn goroutine if needed
+			var ctx context.Context
+			ctx, rkq.cancel = context.WithCancel(context.Background())
+			go rkq.processRekeys(ctx, rkq.hasWorkCh)
+		}
 		if _, exists := rkq.queue[id]; exists {
 			return fmt.Errorf("folder %s already queued for rekey", id)
 		}
@@ -67,10 +71,15 @@ func (rkq *RekeyQueueStandard) IsRekeyPending(id TlfID) bool {
 
 // Clear implements the RekeyQueue interface for RekeyQueueStandard.
 func (rkq *RekeyQueueStandard) Clear() {
-	rkq.cancel()
 	channels := func() []chan error {
 		rkq.queueMu.Lock()
 		defer rkq.queueMu.Unlock()
+		if rkq.cancel != nil {
+			// cancel
+			rkq.cancel()
+			rkq.cancel = nil
+		}
+		// collect channels and clear queue
 		var channels []chan error
 		for _, c := range rkq.queue {
 			channels = append(channels, c)
@@ -102,10 +111,10 @@ func (rkq *RekeyQueueStandard) dequeue(id TlfID, err error) {
 }
 
 // Dedicated goroutine to process the rekey queue.
-func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context) {
+func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan struct{}) {
 	for {
 		select {
-		case <-rkq.hasWorkCh:
+		case <-hasWorkCh:
 			for {
 				id := func() TlfID {
 					rkq.queueMu.Lock()
@@ -121,12 +130,12 @@ func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context) {
 				err := rkq.config.KBFSOps().Rekey(ctx, id)
 				rkq.dequeue(id, err)
 				if ctx.Err() != nil {
-					close(rkq.hasWorkCh)
+					close(hasWorkCh)
 					return
 				}
 			}
 		case <-ctx.Done():
-			close(rkq.hasWorkCh)
+			close(hasWorkCh)
 			return
 		}
 	}
