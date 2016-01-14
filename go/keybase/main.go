@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"syscall"
 
 	"golang.org/x/net/context"
 
@@ -239,7 +240,7 @@ func registerGlobalLogUI(g *libkb.GlobalContext) error {
 
 func HandleSignals() {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM, os.Kill)
 	for {
 		s := <-c
 		if s != nil {
