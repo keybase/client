@@ -236,9 +236,7 @@ func TestCrUnmergedRenameSymlinkInDir(t *testing.T) {
 }
 
 // bob renames a non-conflicting file in the root dir while unstaged
-// TODO: unskip when KBFS-473 is fixed.
 func TestCrUnmergedRenameInRoot(t *testing.T) {
-	t.Skip("unskip when KBFS-473 is fixed")
 	test(t,
 		writers("alice", "bob"),
 		as(alice,
@@ -253,13 +251,13 @@ func TestCrUnmergedRenameInRoot(t *testing.T) {
 		as(bob, noSync(),
 			rename("b", "d"),
 			reenableUpdates(),
-			lsdir("", m{"d": "FILE"}),
+			lsdir("", m{"d": "FILE", "a": "DIR"}),
 			lsdir("a/", m{"c": "FILE"}),
 			read("a/c", "world"),
 			read("d", "hello"),
 		),
 		as(alice,
-			lsdir("", m{"d": "FILE"}),
+			lsdir("", m{"d": "FILE", "a": "DIR"}),
 			lsdir("a/", m{"c": "FILE"}),
 			read("a/c", "world"),
 			read("d", "hello"),
@@ -526,9 +524,7 @@ func TestCrMergedRenameInDir(t *testing.T) {
 }
 
 // alice renames a non-conflicting file in the root dir while bob is unstaged
-// TODO: unskip when KBFS-473 is fixed.
 func TestCrMergedRenameInRoot(t *testing.T) {
-	t.Skip("unskip when KBFS-473 is fixed.")
 	test(t,
 		writers("alice", "bob"),
 		as(alice,
@@ -543,13 +539,13 @@ func TestCrMergedRenameInRoot(t *testing.T) {
 		as(bob, noSync(),
 			write("a/c", "world"),
 			reenableUpdates(),
-			lsdir("", m{"d": "FILE"}),
+			lsdir("", m{"d": "FILE", "a": "DIR"}),
 			lsdir("a/", m{"c": "FILE"}),
 			read("a/c", "world"),
 			read("d", "hello"),
 		),
 		as(alice,
-			lsdir("", m{"d": "FILE"}),
+			lsdir("", m{"d": "FILE", "a": "DIR"}),
 			lsdir("a/", m{"c": "FILE"}),
 			read("a/c", "world"),
 			read("d", "hello"),
