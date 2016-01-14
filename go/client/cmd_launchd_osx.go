@@ -56,7 +56,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			envVars := install.DefaultLaunchdEnvVars(g, label)
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
-			err := launchd.Install(plist, os.Stdout)
+			err := launchd.Install(plist, g.Log)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -193,11 +193,39 @@ func (v *CmdLaunchdList) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else if v.format == "" {
-		return install.ShowServices(v.G().UI.GetTerminalUI().OutputWriter())
+		return v.ShowServices()
 	} else {
 		return fmt.Errorf("Invalid format: %s", v.format)
 	}
 	return nil
+}
+
+func (v *CmdLaunchdList) ShowServices() error {
+	err := v.showServices([]string{"keybase.service.", "homebrew.mxcl.keybase"}, "Keybase")
+	if err != nil {
+		return err
+	}
+	err = v.showServices([]string{"keybase.kbfs.", "homebrew.mxcl.kbfs"}, "KBFS")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (v *CmdLaunchdList) showServices(filters []string, name string) (err error) {
+	services, err := launchd.ListServices(filters)
+	if err != nil {
+		return
+	}
+	ui := v.G().UI.GetTerminalUI()
+	if len(services) > 0 {
+		for _, service := range services {
+			ui.Printf("%s [%s]\n", service.StatusDescription(), name)
+		}
+	} else {
+		ui.Printf("No %s services.\n", name)
+	}
+	return
 }
 
 type CmdLaunchdStatus struct {
@@ -279,13 +307,13 @@ func (v *CmdLaunchdAction) ParseArgv(ctx *cli.Context) error {
 func (v *CmdLaunchdAction) Run() error {
 	switch v.action {
 	case "start":
-		return launchd.Start(v.label, os.Stdout)
+		return launchd.Start(v.label, v.G().Log)
 	case "restart":
-		return launchd.Restart(v.label, os.Stdout)
+		return launchd.Restart(v.label, v.G().Log)
 	case "stop":
-		return launchd.Stop(v.label, os.Stdout)
+		return launchd.Stop(v.label, true, v.G().Log)
 	case "uninstall":
-		return launchd.Uninstall(v.label, os.Stdout)
+		return launchd.Uninstall(v.label, true, v.G().Log)
 	}
 
 	return nil
