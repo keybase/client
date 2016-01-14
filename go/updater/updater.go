@@ -33,6 +33,10 @@ type Updater struct {
 	callGroup singleflight.Group
 }
 
+type UI interface {
+	GetUpdateUI() (libkb.UpdateUI, error)
+}
+
 type Config interface {
 	GetUpdatePreferenceAuto() bool
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
@@ -309,7 +313,7 @@ func (u *Updater) apply(src string, dest string) (tmpPath string, err error) {
 }
 
 // Update checks, downloads and performs an update.
-func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (*keybase1.Update, error) {
+func (u *Updater) Update(ui UI, force bool, requested bool) (*keybase1.Update, error) {
 	do := func() (interface{}, error) {
 		return u.update(ui, force, requested)
 	}
@@ -322,7 +326,7 @@ func (u *Updater) Update(ui libkb.UpdateUI, force bool, requested bool) (*keybas
 	return update, err
 }
 
-func (u *Updater) update(ui libkb.UpdateUI, force bool, requested bool) (update *keybase1.Update, err error) {
+func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Update, err error) {
 	update, err = u.checkForUpdate(false, force, requested)
 	if err != nil {
 		return
@@ -344,7 +348,7 @@ func (u *Updater) update(ui libkb.UpdateUI, force bool, requested bool) (update 
 	return
 }
 
-func (u *Updater) promptForUpdateAction(ui libkb.UpdateUI, update keybase1.Update) (err error) {
+func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err error) {
 
 	u.log.Debug("+ Updater.promptForUpdateAction")
 	defer func() {
@@ -361,7 +365,12 @@ func (u *Updater) promptForUpdateAction(ui libkb.UpdateUI, update keybase1.Updat
 		return
 	}
 
-	updatePromptResponse, err := ui.UpdatePrompt(context.TODO(), keybase1.UpdatePromptArg{Update: update})
+	updateUI, err := u.waitForUI(ui, 5*time.Second)
+	if err != nil {
+		return
+	}
+
+	updatePromptResponse, err := updateUI.UpdatePrompt(context.TODO(), keybase1.UpdatePromptArg{Update: update})
 	if err != nil {
 		return
 	}
@@ -386,7 +395,7 @@ func (u *Updater) promptForUpdateAction(ui libkb.UpdateUI, update keybase1.Updat
 	return
 }
 
-func (u *Updater) applyUpdate(ui libkb.UpdateUI, update keybase1.Update) (tmpPath string, err error) {
+func (u *Updater) applyUpdate(ui UI, update keybase1.Update) (tmpPath string, err error) {
 	if err = u.promptForUpdateAction(ui, update); err != nil {
 		return
 	}
@@ -419,7 +428,7 @@ func (u *Updater) applyUpdate(ui libkb.UpdateUI, update keybase1.Update) (tmpPat
 	return
 }
 
-func (u *Updater) restart(ui libkb.UpdateUI) (didQuit bool, err error) {
+func (u *Updater) restart(ui UI) (didQuit bool, err error) {
 	if ui == nil {
 		err = libkb.NoUIError{Which: "Update"}
 		return
@@ -427,7 +436,11 @@ func (u *Updater) restart(ui libkb.UpdateUI) (didQuit bool, err error) {
 
 	u.log.Info("Restarting app")
 	u.log.Debug("Asking if it safe to quit the app")
-	updateQuitResponse, err := ui.UpdateQuit(context.TODO())
+	updateUI, err := u.waitForUI(ui, 5*time.Second)
+	if err != nil {
+		return
+	}
+	updateQuitResponse, err := updateUI.UpdateQuit(context.TODO())
 	if err != nil {
 		return
 	}
@@ -505,4 +518,24 @@ func copyFile(sourcePath string, destinationPath string) error {
 		return err
 	}
 	return cerr
+}
+
+// waitForUI waits for a UI to be available. A UI might be missing for a few
+// seconds between restarts.
+func (u *Updater) waitForUI(ui UI, wait time.Duration) (updateUI libkb.UpdateUI, err error) {
+	t := time.Now()
+	i := 1
+	for time.Now().Sub(t) < wait {
+		updateUI, err = ui.GetUpdateUI()
+		if err != nil || updateUI != nil {
+			return
+		}
+		// Tell user we're waiting for UI after 4 seconds, every 4 seconds
+		if i%4 == 0 {
+			u.log.Info("Waiting for UI to be available...")
+		}
+		time.Sleep(time.Second)
+		i++
+	}
+	return nil, fmt.Errorf("No UI available for updater")
 }

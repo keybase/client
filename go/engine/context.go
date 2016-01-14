@@ -59,3 +59,7 @@ func (c *Context) GetNetContext() context.Context {
 	}
 	return c.NetContext
 }
+
+func (c *Context) GetUpdateUI() (libkb.UpdateUI, error) {
+	return c.UpdateUI, nil
+}

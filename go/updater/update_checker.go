@@ -4,10 +4,8 @@
 package updater
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/updater/sources"
@@ -20,10 +18,6 @@ type UpdateChecker struct {
 	log     logger.Logger
 }
 
-type UI interface {
-	GetUpdateUI() (libkb.UpdateUI, error)
-}
-
 func NewUpdateChecker(updater *Updater, ui UI, log logger.Logger) UpdateChecker {
 	return UpdateChecker{
 		updater: updater,
@@ -33,11 +27,6 @@ func NewUpdateChecker(updater *Updater, ui UI, log logger.Logger) UpdateChecker 
 }
 
 func (u *UpdateChecker) Check(force bool, requested bool) error {
-	ui, _ := u.ui.GetUpdateUI()
-	if ui == nil && !force {
-		return fmt.Errorf("No UI for update check")
-	}
-
 	if !requested && !force {
 		if lastCheckedPTime := u.updater.config.GetUpdateLastChecked(); lastCheckedPTime > 0 {
 			lastChecked := keybase1.FromTime(lastCheckedPTime)
@@ -48,7 +37,7 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 		}
 	}
 
-	_, err := u.updater.Update(ui, force, requested)
+	_, err := u.updater.Update(u.ui, force, requested)
 	if err != nil {
 		return err
 	}
