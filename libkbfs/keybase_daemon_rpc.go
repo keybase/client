@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -203,13 +202,87 @@ func (l daemonLogUI) Log(ctx context.Context, arg keybase1.LogArg) error {
 	return nil
 }
 
+type daemonIdentifyUI struct {
+	log logger.Logger
+}
+
+var _ keybase1.IdentifyUiInterface = daemonIdentifyUI{}
+
+func (d daemonIdentifyUI) DelegateIdentifyUI(ctx context.Context) (int, error) {
+	d.log.CDebugf(ctx, "DelegateIdentifyUI() (returning 0, UIDelegationUnavailableError{}")
+	return 0, libkb.UIDelegationUnavailableError{}
+}
+
+func (d daemonIdentifyUI) Start(ctx context.Context, arg keybase1.StartArg) error {
+	d.log.CDebugf(ctx, "Start(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) DisplayKey(ctx context.Context, arg keybase1.DisplayKeyArg) error {
+	d.log.CDebugf(ctx, "DisplayKey(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) ReportLastTrack(ctx context.Context, arg keybase1.ReportLastTrackArg) error {
+	d.log.CDebugf(ctx, "ReportLastTrack(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) LaunchNetworkChecks(ctx context.Context, arg keybase1.LaunchNetworkChecksArg) error {
+	d.log.CDebugf(ctx, "LaunchNetworkChecks(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) DisplayTrackStatement(ctx context.Context, arg keybase1.DisplayTrackStatementArg) error {
+	d.log.CDebugf(ctx, "DisplayTrackStatement(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) FinishWebProofCheck(ctx context.Context, arg keybase1.FinishWebProofCheckArg) error {
+	d.log.CDebugf(ctx, "FinishWebProofCheck(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) FinishSocialProofCheck(ctx context.Context, arg keybase1.FinishSocialProofCheckArg) error {
+	d.log.CDebugf(ctx, "FinishSocialProofCheck(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) DisplayCryptocurrency(ctx context.Context, arg keybase1.DisplayCryptocurrencyArg) error {
+	d.log.CDebugf(ctx, "DisplayCryptocurrency(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) ReportTrackToken(ctx context.Context, arg keybase1.ReportTrackTokenArg) error {
+	d.log.CDebugf(ctx, "ReportTrackToken(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) DisplayUserCard(ctx context.Context, arg keybase1.DisplayUserCardArg) error {
+	d.log.CDebugf(ctx, "DisplayUserCard(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) Confirm(ctx context.Context, arg keybase1.ConfirmArg) (keybase1.ConfirmResult, error) {
+	d.log.CDebugf(ctx, "Confirm(%+v) (returning false)", arg)
+	return keybase1.ConfirmResult{
+		IdentityConfirmed: false,
+		RemoteConfirmed:   false,
+	}, nil
+}
+
+func (d daemonIdentifyUI) Finish(ctx context.Context, sessionID int) error {
+	d.log.CDebugf(ctx, "Finish(%d)", sessionID)
+	return nil
+}
+
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	conn *Connection, rawClient keybase1.GenericClient,
 	server *rpc.Server) error {
 	protocols := []rpc.Protocol{
 		keybase1.LogUiProtocol(daemonLogUI{k.daemonLog}),
-		client.NewIdentifyUIProtocol(k.G()),
+		keybase1.IdentifyUiProtocol(daemonIdentifyUI{k.daemonLog}),
 		keybase1.NotifySessionProtocol(k),
 		keybase1.NotifyUsersProtocol(k),
 	}
