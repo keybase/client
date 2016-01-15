@@ -121,6 +121,118 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	return
 }
 
+func (km *KeyManagerStandard) getTLFCryptKeyAny(ctx context.Context,
+	md *RootMetadata, keyGen KeyGen, anyDevice bool) (tlfCryptKey TLFCryptKey, err error) {
+	if md.ID.IsPublic() {
+		tlfCryptKey = PublicTLFCryptKey
+		return
+	}
+
+	if keyGen < FirstValidKeyGen {
+		err = InvalidKeyGenerationError{md.GetTlfHandle(), keyGen}
+		return
+	}
+	// Is this some key we don't know yet?  Shouldn't really ever happen,
+	// since we must have seen the MD that led us to this block, which
+	// should include all the latest keys.  Consider this a failsafe.
+	if keyGen > md.LatestKeyGeneration() {
+		err = NewKeyGenerationError{md.GetTlfHandle(), keyGen}
+		return
+	}
+
+	// look in the cache first
+	kcache := km.config.KeyCache()
+	if tlfCryptKey, err = kcache.GetTLFCryptKey(md.ID, keyGen); err == nil {
+		return
+	}
+
+	// Get the encrypted version of this secret key for this device
+	kbpki := km.config.KBPKI()
+	uid, err := kbpki.GetCurrentUID(ctx)
+	if err != nil {
+		return
+	}
+
+	var clientHalf TLFCryptKeyClientHalf
+	var serverHalf TLFCryptKeyServerHalf
+	crypto := km.config.Crypto()
+	if anyDevice {
+		publicKeys, err := kbpki.GetCryptPublicKeys(ctx, uid)
+		if err != nil {
+			return tlfCryptKey, err
+		}
+
+		keyBundle := make([]keybase1.CiphertextBundle, 0, len(publicKeys))
+		keysInfo := make([]TLFCryptKeyInfo, 0, len(publicKeys))
+		for _, k := range publicKeys {
+			info, ok, err := md.GetTLFCryptKeyInfo(keyGen, uid, k)
+			if ok {
+				ePublicKey, err := md.GetTLFEphemeralPublicKey(keyGen, uid, k)
+				if err != nil {
+					continue
+				}
+				clientHalf, err =
+					crypto.DecryptTLFCryptKeyClientHalfAny(ctx, ePublicKey, info.ClientHalf)
+				if err != nil {
+					continue
+				}
+
+				keysInfo = append(keysInfo, info)
+
+			}
+		}
+		if len(keysInfo) == 0 {
+			err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(), uid)
+			return tlfCryptKey, err
+		}
+	} else {
+		currentCryptPublicKey, err := kbpki.GetCurrentCryptPublicKey(ctx)
+		if err != nil {
+			return tlfCryptKey, err
+		}
+
+		info, ok, err := md.GetTLFCryptKeyInfo(keyGen, uid, currentCryptPublicKey)
+		if err != nil {
+			return tlfCryptKey, err
+		}
+		if !ok {
+			err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(), uid)
+			return tlfCryptKey, err
+		}
+
+		ePublicKey, err := md.GetTLFEphemeralPublicKey(keyGen, uid,
+			currentCryptPublicKey)
+		if err != nil {
+			return tlfCryptKey, err
+		}
+
+		clientHalf, err =
+			crypto.DecryptTLFCryptKeyClientHalf(ctx, ePublicKey, info.ClientHalf)
+		if err != nil {
+			return tlfCryptKey, err
+		}
+
+		// now get the server-side key-half, do the unmasking, cache the result, return
+		// TODO: can parallelize the get() with decryption
+		kops := km.config.KeyOps()
+		serverHalf, err = kops.GetTLFCryptKeyServerHalf(ctx, info.ServerHalfID)
+		if err != nil {
+			return tlfCryptKey, err
+		}
+	}
+
+	if tlfCryptKey, err = crypto.UnmaskTLFCryptKey(serverHalf, clientHalf); err != nil {
+		return
+	}
+
+	if err = kcache.PutTLFCryptKey(md.ID, keyGen, tlfCryptKey); err != nil {
+		tlfCryptKey = TLFCryptKey{}
+		return
+	}
+
+	return
+}
+
 func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 	md *RootMetadata, keyGen KeyGen, wKeys map[keybase1.UID][]CryptPublicKey,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,

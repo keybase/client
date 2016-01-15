@@ -335,8 +335,8 @@ type KBPKI interface {
 	// check for revocation.
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		verifyingKey VerifyingKey) error
-	// GetCryptPublicKeys gets all of a user's crypt public keys (one
-	// per device).
+	// GetCryptPublicKeys gets all of a user's crypt public keys (including
+	// paper keys).
 	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
 		[]CryptPublicKey, error)
 

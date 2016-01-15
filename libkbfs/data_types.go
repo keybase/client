@@ -131,6 +131,15 @@ func (ech EncryptedTLFCryptKeyClientHalf) DeepCopy() (echCopy EncryptedTLFCryptK
 	return
 }
 
+// EncryptedTLFCryptKeyClientAndEphemeral has what's needed to
+// request a client half decryption.
+type EncryptedTLFCryptKeyClientAndEphemeral struct {
+	// ClientHalf contains the encrypted client half of the TLF key
+	ClientHalf EncryptedTLFCryptKeyClientHalf
+	// EPubKey contains the ephemeral public key used to encrypt ClientHalf
+	EPubKey TLFEphemeralPublicKey
+}
+
 // KeyGen is the type of a key generation for a top-level folder.
 type KeyGen int
 
