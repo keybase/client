@@ -9,6 +9,7 @@ const {client: {Client: RpcClient}} = rpc
 import {Buffer} from 'buffer'
 import NativeEventEmitter from '../common-adapters/native-event-emitter'
 import windowsHack from './windows-hack'
+import {log} from '../native/log/logui'
 
 class Engine {
   constructor () {
@@ -174,6 +175,14 @@ class Engine {
     listener(param, wrappedResponse)
   }
 
+  _hasNoHandler(method, callMap, generalIncomingRpcMap) {
+    if (!callMap) {
+      return generalIncomingRpcMap[method] == null
+    }
+
+    return callMap[method] == null
+  }
+
   _rpcIncoming (payload) {
     const {
       method: method,
@@ -189,8 +198,8 @@ class Engine {
       // make wrapper so we only call this once
       const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
       callMap[method](param, wrappedResponse)
-    } else if (callMap && method === 'keybase.1.logUi.log') {
-      logUiLog(param)
+    } else if (method === 'keybase.1.logUi.log' && this._hasNoHandler(method, callMap || {}, this._generalIncomingRpc)) {
+      log(param, response)
     } else if (!sessionID && this.generalListeners[method]) {
       this._generalIncomingRpc(method, param, response)
     } else if (!sessionID && this.serverListeners[method]) {
