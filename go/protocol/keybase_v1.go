@@ -2877,9 +2877,14 @@ type KeyHalf struct {
 	Key       []byte `codec:"key" json:"key"`
 }
 
+type MDBlock struct {
+	Version int    `codec:"version" json:"version"`
+	Block   []byte `codec:"block" json:"block"`
+}
+
 type MetadataResponse struct {
-	FolderID string   `codec:"folderID" json:"folderID"`
-	MdBlocks [][]byte `codec:"mdBlocks" json:"mdBlocks"`
+	FolderID string    `codec:"folderID" json:"folderID"`
+	MdBlocks []MDBlock `codec:"mdBlocks" json:"mdBlocks"`
 }
 
 type AuthenticateArg struct {
@@ -2887,7 +2892,7 @@ type AuthenticateArg struct {
 }
 
 type PutMetadataArg struct {
-	MdBlock []byte            `codec:"mdBlock" json:"mdBlock"`
+	MdBlock MDBlock           `codec:"mdBlock" json:"mdBlock"`
 	LogTags map[string]string `codec:"logTags" json:"logTags"`
 }
 
