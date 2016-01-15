@@ -29,7 +29,9 @@ export default class RemoteComponent extends Component {
     this.closed = false
 
     this.remoteWindow.on('needProps', () => {
-      this.remoteWindow.emit('hasProps', {...this.props})
+      if (!this.remoteWindow.isDestroyed()) {
+        this.remoteWindow.emit('hasProps', {...this.props})
+      }
     })
 
     ipcRenderer.send('showDockIconForRemoteWindow', this.remoteWindow.id)
@@ -61,9 +63,22 @@ export default class RemoteComponent extends Component {
   }
 
   shouldComponentUpdate (nextProps) {
-    if (this.props !== nextProps && this.remoteWindow) {
+    if (!this.remoteWindow.isDestroyed) {
+      return false
+    }
+
+    if (!this.props.ignoreNewProps && this.props !== nextProps) {
       this.remoteWindow.emit('hasProps', {...this.props})
     }
+
+    if (this.props.hidden !== nextProps.hidden) {
+      if (nextProps.hidden) {
+        this.remoteWindow.hide()
+      } else {
+        this.remoteWindow.show()
+      }
+    }
+
     // Always return false because this isn't a real component
     return false
   }
@@ -72,5 +87,7 @@ export default class RemoteComponent extends Component {
 RemoteComponent.propTypes = {
   component: React.PropTypes.string.isRequired,
   windowsOpts: React.PropTypes.object,
-  onRemoteClose: React.PropTypes.func
+  onRemoteClose: React.PropTypes.func,
+  hidden: React.PropTypes.bool, // Hide the remote window (Does not close the window)
+  ignoreNewProps: React.PropTypes.bool // Do not send the remote window new props. Sometimes the remote component will have it's own store and can get it's own data. It doesn't need us to send it.
 }

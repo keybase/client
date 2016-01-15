@@ -11,7 +11,7 @@ import type {Text, LogLevel} from '../constants/types/flow-types'
 import type {LogAction} from '../constants/notifications'
 
 export function logUiLog ({text, level}: {text: Text, level: LogLevel}): LogAction {
-  console.log('fooo: keybase.1.logUi.log:', text.data)
+  console.log('keybase.1.logUi.log:', text.data)
   if (level >= logUi.LogLevel.error) {
     NotifyPopup(text.data, {})
   }

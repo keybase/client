@@ -110,11 +110,27 @@ export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     console.log('onRefollow')
     const {trackToken} = (getState().tracker.trackers[username] || {})
+    const dispatchAction = () => {
+      dispatch({
+        type: Constants.onRefollow,
+        payload: {username}
+      })
+    }
+
+    dispatch(onUserTrackingLoading(username))
     trackUser(trackToken)
-    dispatch({
-      type: Constants.onRefollow,
-      payload: {username}
-    })
+      .then(dispatchAction)
+      .catch(err => {
+        console.error(`Couldn't track user:`, err)
+        dispatchAction()
+      })
+  }
+}
+
+function onUserTrackingLoading (username: string): Action {
+  return {
+    type: Constants.onUserTrackingLoading,
+    payload: {username}
   }
 }
 
@@ -175,14 +191,20 @@ export function onCloseFromActionBar (username: string): (dispatch: Dispatch, ge
     const trackerState = getState().tracker.trackers[username]
     const {shouldFollow} = trackerState
     const {trackToken} = (trackerState || {})
-    if (shouldFollow) {
-      trackUser(trackToken)
-    }
 
-    dispatch({
-      type: Constants.onCloseFromActionBar,
-      payload: {username}
-    })
+    const dispatchCloseAction = () => dispatch({type: Constants.onCloseFromActionBar, payload: {username}})
+
+    if (shouldFollow) {
+      dispatch(onUserTrackingLoading(username))
+      trackUser(trackToken)
+        .then(dispatchCloseAction)
+        .catch(err => {
+          console.error('Couldn\'t track user:', err)
+          dispatchCloseAction()
+        })
+    } else {
+      dispatchCloseAction()
+    }
   }
 }
 

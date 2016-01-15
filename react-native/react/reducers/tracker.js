@@ -27,6 +27,7 @@ export type TrackerState = {
   userInfo: UserInfo,
   proofs: Array<Proof>,
   closed: boolean,
+  hidden: boolean,
   trackToken: ?string,
   lastTrack: ?TrackSummary
 }
@@ -55,6 +56,7 @@ function initialTrackerState (username: string): TrackerState {
     proofs: [],
     reason: null,
     closed: true,
+    hidden: false,
     lastTrack: null,
     trackToken: null,
     userInfo: {
@@ -94,17 +96,20 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.userUpdated:
       return {
         ...state,
-        closed: true
+        closed: true,
+        hidden: false
       }
     case Constants.onCloseFromActionBar:
       return {
         ...state,
-        closed: true
+        closed: true,
+        hidden: false
       }
     case Constants.onCloseFromHeader:
       return {
         ...state,
         closed: true,
+        hidden: false,
         shouldFollow: false // don't follow if they close x out the window
       }
     case Constants.onRefollow:
@@ -177,7 +182,8 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         serverActive,
-        closed
+        closed,
+        hidden: closed ? false : state.hidden
       }
 
     case Constants.reportLastTrack:
@@ -186,11 +192,18 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         lastTrack: action.payload && action.payload.track
       }
 
+    case Constants.onUserTrackingLoading:
+      return {
+        ...state,
+        hidden: true
+      }
+
     case Constants.decideToShowTracker:
       if (showAllTrackers) {
         return {
           ...state,
-          closed: false
+          closed: false,
+          hidden: false
         }
       }
 
@@ -202,7 +215,8 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       if (state.trackerState !== checking && (state.trackerState !== normal || !state.lastTrack)) {
         return {
           ...state,
-          closed: false
+          closed: false,
+          hidden: false
         }
       }
       return state
