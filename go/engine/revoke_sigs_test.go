@@ -77,10 +77,10 @@ func TestRevokeSig(t *testing.T) {
 	nextID := realUser.GetSigIDFromSeqno(SecondPGPSigSeqno).ToString(true)
 
 	// Short prefix should fail:
-	revokeEngine = NewRevokeSigsEngine([]string{nextID[0:8]}, tc.G)
+	revokeEngine = NewRevokeSigsEngine([]string{nextID[0:4]}, tc.G)
 	err = RunEngine(revokeEngine, ctx)
 	if err == nil {
-		t.Fatal("revoke with 8 char prefix didn't return err")
+		t.Fatal("revoke with 4 char prefix didn't return err")
 	}
 	assertNumDevicesAndKeys(tc, u, 2, 5) // no change
 
