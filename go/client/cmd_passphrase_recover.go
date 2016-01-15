@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 type CmdPassphraseRecover struct {
@@ -31,6 +32,13 @@ func (c *CmdPassphraseRecover) confirm() error {
 }
 
 func (c *CmdPassphraseRecover) Run() error {
+	protocols := []rpc.Protocol{
+		NewSecretUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
+
 	if err := c.confirm(); err != nil {
 		return err
 	}
