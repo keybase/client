@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 	"time"
@@ -81,6 +82,12 @@ func TestCRInput(t *testing.T) {
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(),
 		mergedHead+1, gomock.Any()).Return(nil, nil)
 
+	// CR doesn't see any operations and so it does resolution early.
+	// Just cause an error so it doesn't bother the mocks too much.
+	config.mockCrypto.EXPECT().MakeMdID(gomock.Any()).Return(MdID{},
+		errors.New("Stopping resolution process early"))
+	config.mockRep.EXPECT().Report(gomock.Any(), gomock.Any())
+
 	// First try a completely unknown revision
 	cr.Resolve(unmergedHead, MetadataRevisionUninitialized)
 	cr.Wait(ctx)
@@ -150,6 +157,12 @@ func TestCRInputFracturedRange(t *testing.T) {
 	}
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(),
 		mergedHead+1, gomock.Any()).Return(nil, nil)
+
+	// CR doesn't see any operations and so it does resolution early.
+	// Just cause an error so it doesn't bother the mocks too much.
+	config.mockCrypto.EXPECT().MakeMdID(gomock.Any()).Return(MdID{},
+		errors.New("Stopping resolution process early"))
+	config.mockRep.EXPECT().Report(gomock.Any(), gomock.Any())
 
 	// Resolve the fractured revision list
 	cr.Resolve(unmergedHead, MetadataRevisionUninitialized)

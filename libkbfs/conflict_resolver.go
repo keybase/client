@@ -2687,6 +2687,11 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		}
 	}
 
+	updates := make(map[BlockPointer]BlockPointer)
+	if root == nil {
+		return updates, newBlockPutState(0), nil
+	}
+
 	uid, err := cr.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -2708,7 +2713,6 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	}
 
 	// Create an update map, and fix up the gc ops.
-	updates := make(map[BlockPointer]BlockPointer)
 	for i, update := range gcOp.Updates {
 		// The unref should represent the most recent merged pointer
 		// for the block.  However, the other ops will be using the
@@ -3005,9 +3009,13 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	if err != nil {
 		return
 	}
-	if unmergedChains == nil || len(mergedPaths) == 0 {
+	if len(mergedPaths) == 0 {
 		// nothing to do
-		cr.log.CDebugf(ctx, "No updates to resolve")
+		cr.log.CDebugf(ctx, "No updates to resolve, so finishing")
+		lbc := make(localBcache)
+		newFileBlocks := make(fileBlockMap)
+		err = cr.completeResolution(ctx, lState, unmergedChains, mergedChains,
+			unmergedPaths, mergedPaths, lbc, newFileBlocks, unmergedMDs)
 		return
 	}
 
