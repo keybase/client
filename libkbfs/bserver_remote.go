@@ -167,7 +167,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	if kbuf, err = hex.DecodeString(res.BlockKey); err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
-	copy(bk.ServerHalf[:], kbuf)
+	copy(bk.data[:], kbuf)
 	return res.Buf, bk, nil
 }
 

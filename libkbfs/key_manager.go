@@ -158,9 +158,9 @@ func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
 			return true
 		}
 		for _, k := range keys {
-			if _, ok := kids[k.KID]; !ok {
+			if _, ok := kids[k.kid]; !ok {
 				km.log.CInfof(ctx, "Rekey %s: adding new device %s for user %s",
-					md.ID, k.KID, u)
+					md.ID, k.kid, u)
 				return true
 			}
 		}
@@ -182,7 +182,7 @@ func (km *KeyManagerStandard) checkForRemovedDevice(ctx context.Context,
 		}
 		keyLookup := make(map[keybase1.KID]bool)
 		for _, key := range keys {
-			keyLookup[key.KID] = true
+			keyLookup[key.kid] = true
 		}
 		for kid := range kids {
 			// Make sure every kid has an expected key

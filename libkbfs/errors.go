@@ -835,3 +835,22 @@ func NewRekeyPermissionError(ctx context.Context, config Config, dir *TlfHandle,
 	}
 	return RekeyPermissionError{uid.String(), dirname}
 }
+
+// InvalidKIDError is returned whenever an invalid KID is detected.
+type InvalidKIDError struct {
+	kid keybase1.KID
+}
+
+func (e InvalidKIDError) Error() string {
+	return fmt.Sprintf("Invalid KID %s", e.kid)
+}
+
+// InvalidByte32DataError is returned whenever invalid data for a
+// 32-byte type is detected.
+type InvalidByte32DataError struct {
+	data []byte
+}
+
+func (e InvalidByte32DataError) Error() string {
+	return fmt.Sprintf("Invalid byte32 data %v", e.data)
+}

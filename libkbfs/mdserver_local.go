@@ -299,7 +299,7 @@ func (md *MDServerLocal) getCurrentDeviceKID(ctx context.Context) (keybase1.KID,
 	if err != nil {
 		return keybase1.KID(""), err
 	}
-	return key.KID, nil
+	return key.kid, nil
 }
 
 // GetRange implements the MDServer interface for MDServerLocal.

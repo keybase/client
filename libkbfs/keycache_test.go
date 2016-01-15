@@ -8,7 +8,7 @@ import (
 func TestKeyCacheBasic(t *testing.T) {
 	cache := NewKeyCacheStandard(10)
 	tlf := TlfID{id: [TlfIDByteLen]byte{0xf}}
-	key := TLFCryptKey{Key: [32]byte{0xf}}
+	key := MakeTLFCryptKey([32]byte{0xf})
 	keyGen := KeyGen(1)
 	_, err := cache.GetTLFCryptKey(tlf, keyGen)
 	if _, ok := err.(KeyCacheMissError); !ok {
@@ -32,7 +32,7 @@ func TestKeyCacheBasic(t *testing.T) {
 	}
 	for i := 0; i < 11; i++ {
 		tlf = TlfID{id: [TlfIDByteLen]byte{byte(i)}}
-		key = TLFCryptKey{Key: [32]byte{byte(i)}}
+		key = MakeTLFCryptKey([32]byte{byte(i)})
 		err = cache.PutTLFCryptKey(tlf, keyGen, key)
 		if err != nil {
 			t.Fatal(err)

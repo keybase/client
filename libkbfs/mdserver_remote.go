@@ -439,7 +439,7 @@ func (md *MDServerRemote) getFoldersForRekey(ctx context.Context,
 			return err
 		}
 	}
-	return client.GetFoldersForRekey(ctx, cryptKey.KID)
+	return client.GetFoldersForRekey(ctx, cryptKey.kid)
 }
 
 // Shutdown implements the MDServer interface for MDServerRemote.
@@ -479,7 +479,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 	// get the key
 	arg := keybase1.GetKeyArg{
 		KeyHalfID: idBytes,
-		DeviceKID: cryptKey.KID.String(),
+		DeviceKID: cryptKey.kid.String(),
 		LogTags:   LogTagsFromContextToMap(ctx),
 	}
 	keyBytes, err := md.client.GetKey(ctx, arg)

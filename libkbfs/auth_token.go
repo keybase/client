@@ -60,7 +60,7 @@ func (a *AuthToken) Sign(ctx context.Context) (string, error) {
 	}
 
 	// create the token
-	token := auth.NewToken(uid, username, key.KID,
+	token := auth.NewToken(uid, username, key.kid,
 		a.tokenType, a.expireIn, a.clientName, a.clientVersion)
 
 	// sign the token

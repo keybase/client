@@ -104,13 +104,13 @@ func (k *KeybaseDaemonRPC) filterKeys(ctx context.Context, uid keybase1.UID, key
 				ctx, "got verifying key %s for user %s",
 				key.VerboseDescription(), uid)
 			verifyingKeys = append(
-				verifyingKeys, VerifyingKey{key.GetKID()})
+				verifyingKeys, MakeVerifyingKey(key.GetKID()))
 		} else {
 			k.log.CDebugf(
 				ctx, "got crypt public key %s for user %s",
 				key.VerboseDescription(), uid)
 			cryptPublicKeys = append(
-				cryptPublicKeys, CryptPublicKey{key.GetKID()})
+				cryptPublicKeys, MakeCryptPublicKey(key.GetKID()))
 		}
 	}
 	return verifyingKeys, cryptPublicKeys, nil
@@ -420,8 +420,8 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 	if err != nil {
 		return SessionInfo{}, err
 	}
-	cryptPublicKey := CryptPublicKey{deviceSubkey.GetKID()}
-	verifyingKey := VerifyingKey{deviceSibkey.GetKID()}
+	cryptPublicKey := MakeCryptPublicKey(deviceSubkey.GetKID())
+	verifyingKey := MakeVerifyingKey(deviceSibkey.GetKID())
 	s := SessionInfo{
 		UID:            keybase1.UID(res.Uid),
 		Token:          res.Token,

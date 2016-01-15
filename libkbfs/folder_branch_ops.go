@@ -4509,7 +4509,7 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 		return err
 	}
 
-	if md.IsWriter(uid, cryptKey.KID) {
+	if md.IsWriter(uid, cryptKey.kid) {
 		// TODO: allow readers to rekey just themself
 		rekeyDone, err := fbo.config.KeyManager().Rekey(ctx, md)
 		if err != nil {

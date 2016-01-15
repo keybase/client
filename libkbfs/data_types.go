@@ -42,40 +42,6 @@ type SessionInfo struct {
 	VerifyingKey   VerifyingKey
 }
 
-// All section references below are to https://keybase.io/blog/kbfs-crypto
-// (version 1.3).
-
-// A VerifyingKey is a public key that can be used to verify a
-// signature created by the corresponding private signing key. In
-// particular, VerifyingKeys are used to authenticate home and public
-// TLFs. (See 4.2, 4.3.)
-//
-// These are also sometimes known as sibkeys.
-type VerifyingKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto and KBPKI.
-	//
-	// Even though we currently use NaclSignatures, we use a KID
-	// here (which encodes the key type) as we may end up storing
-	// other kinds of signatures.
-	KID keybase1.KID
-}
-
-// IsNil returns true if the VerifyingKey is nil.
-func (k VerifyingKey) IsNil() bool {
-	return len(k.KID) == 0
-}
-
-// DeepCopy makes a copy of the VerifyingKey.
-func (k VerifyingKey) DeepCopy() VerifyingKey {
-	return VerifyingKey{k.KID[:]}
-}
-
-// String imlpements the fmt.Stringer interface for VerifyingKey.
-func (k VerifyingKey) String() string {
-	return k.KID.String()
-}
-
 // SigVer denotes a signature version.
 type SigVer int
 
@@ -92,9 +58,10 @@ func (v SigVer) IsNil() bool {
 // SignatureInfo contains all the info needed to verify a signature
 // for a message.
 type SignatureInfo struct {
-	Version      SigVer
-	Signature    []byte
-	VerifyingKey VerifyingKey
+	// Exported only for serialization purposes.
+	Version      SigVer       `codec:"v"`
+	Signature    []byte       `codec:"s"`
+	VerifyingKey VerifyingKey `codec:"k"`
 }
 
 // IsNil returns true if this SignatureInfo is nil.
@@ -106,7 +73,7 @@ func (s SignatureInfo) IsNil() bool {
 func (s SignatureInfo) DeepCopy() SignatureInfo {
 	signature := make([]byte, len(s.Signature))
 	copy(signature[:], s.Signature[:])
-	return SignatureInfo{s.Version, signature, s.VerifyingKey.DeepCopy()}
+	return SignatureInfo{s.Version, signature, s.VerifyingKey}
 }
 
 // String implements the fmt.Stringer interface for SignatureInfo.
@@ -116,106 +83,14 @@ func (s SignatureInfo) String() string {
 		&s.VerifyingKey)
 }
 
-// A TLFPrivateKey (m_f) is the private half of the permanent
-// keypair associated with a TLF. (See 4.1.1, 5.3.)
-type TLFPrivateKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	PrivateKey [32]byte
-}
-
-// DeepCopy makes a complete copy of the TLFPrivateKey
-func (k TLFPrivateKey) DeepCopy() TLFPrivateKey {
-	return k
-}
-
-// A TLFPublicKey (M_f) is the public half of the permanent keypair
-// associated with a TLF. It is included in the site-wide private-data
-// Merkle tree. (See 4.1.1, 5.3.)
-type TLFPublicKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	PublicKey [32]byte
-}
-
-// DeepCopy makes a complete copy of the TLFPublicKey
-func (k TLFPublicKey) DeepCopy() TLFPublicKey {
-	return k
-}
-
-// TLFEphemeralPrivateKey (m_e) is used (with a CryptPublicKey) to
-// encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for non-public
-// directories. (See 4.1.1.)
-type TLFEphemeralPrivateKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	PrivateKey libkb.NaclDHKeyPrivate
-}
-
-// CryptPublicKey (M_u^i) is used (with a TLFEphemeralPrivateKey) to
-// encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for non-public
-// directories. (See 4.1.1.)  These are also sometimes known as
-// subkeys.
-type CryptPublicKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	//
-	// Even though we currently use nacl/box, we use a KID here
-	// (which encodes the key type) as we may end up storing other
-	// kinds of keys.
-	KID keybase1.KID
-}
-
-func (k CryptPublicKey) String() string {
-	return k.KID.String()
-}
-
-// TLFEphemeralPublicKey (M_e) is used along with a crypt private key
-// to decrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for
-// non-public directories. (See 4.1.1.)
-type TLFEphemeralPublicKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	PublicKey libkb.NaclDHKeyPublic
-}
-
-// DeepCopy makes a complete copy of a TLFEphemeralPublicKey.
-func (k TLFEphemeralPublicKey) DeepCopy() TLFEphemeralPublicKey {
-	return k
-}
-
-func (k TLFEphemeralPublicKey) String() string {
-	return hex.EncodeToString(k.PublicKey[:])
-}
-
 // TLFEphemeralPublicKeys stores a list of TLFEphemeralPublicKey
 type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
 
 // DeepCopy makes a complete copy of a TLFEphemeralPublicKeys
 func (tepk TLFEphemeralPublicKeys) DeepCopy() TLFEphemeralPublicKeys {
 	keys := make(TLFEphemeralPublicKeys, len(tepk))
-	for i, k := range tepk {
-		keys[i] = k.DeepCopy()
-	}
+	copy(keys, tepk)
 	return keys
-}
-
-// TLFCryptKeyServerHalf (s_u^{f,0,i}) is the masked, server-side half
-// of a TLFCryptKey, which can be recovered only with both
-// halves. (See 4.1.1.)
-type TLFCryptKeyServerHalf struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	ServerHalf [32]byte
-}
-
-// TLFCryptKeyClientHalf (t_u^{f,0,i}) is the masked, client-side half
-// of a TLFCryptKey, which can be recovered only with both
-// halves. (See 4.1.1.)
-type TLFCryptKeyClientHalf struct {
-	// Exported only for serialization purposes. Should
-	// only be used by implementations of Crypto.
-	ClientHalf [32]byte
 }
 
 // EncryptionVer denotes a version for the encryption method.
@@ -231,9 +106,9 @@ const (
 type encryptedData struct {
 	// Exported only for serialization purposes. Should only be
 	// used by implementations of Crypto.
-	Version       EncryptionVer
-	EncryptedData []byte
-	Nonce         []byte
+	Version       EncryptionVer `codec:"v"`
+	EncryptedData []byte        `codec:"e"`
+	Nonce         []byte        `codec:"n"`
 }
 
 // EncryptedTLFCryptKeyClientHalf is an encrypted
@@ -254,48 +129,6 @@ func (ech EncryptedTLFCryptKeyClientHalf) DeepCopy() (echCopy EncryptedTLFCryptK
 	echCopy.Nonce = make([]byte, len(ech.Nonce))
 	copy(echCopy.Nonce, ech.Nonce)
 	return
-}
-
-// TLFCryptKey (s^{f,0}) is used to encrypt/decrypt the private
-// portion of TLF metadata. It is also used to mask
-// BlockCryptKeys. (See 4.1.1, 4.1.2.)
-type TLFCryptKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	Key [32]byte
-}
-
-// PublicTLFCryptKey is the TLFCryptKey used for all public TLFs. That
-// means that anyone with just the block key for a public TLF can
-// decrypt that block. This is not the zero TLFCryptKey so that we can
-// distinguish it from an (erroneously?) unset TLFCryptKey.
-var PublicTLFCryptKey = TLFCryptKey{
-	Key: [32]byte{
-		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
-		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
-		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
-		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
-	},
-}
-
-// BlockCryptKeyServerHalf is a masked version of a BlockCryptKey,
-// which can be recovered only with the TLFCryptKey used to mask the
-// server half.
-type BlockCryptKeyServerHalf struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	ServerHalf [32]byte
-}
-
-func (serverHalf BlockCryptKeyServerHalf) String() string {
-	return hex.EncodeToString(serverHalf.ServerHalf[:])
-}
-
-// BlockCryptKey is used to encrypt/decrypt block data. (See 4.1.2.)
-type BlockCryptKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	Key [32]byte
 }
 
 // KeyGen is the type of a key generation for a top-level folder.

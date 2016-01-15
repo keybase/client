@@ -31,7 +31,7 @@ func makeSigningKey(secret SigningKeySecret) (SigningKey, error) {
 
 // getVerifyingKey returns the public key half of this signing key.
 func (k SigningKey) getVerifyingKey() VerifyingKey {
-	return VerifyingKey{k.kp.Public.GetKID()}
+	return MakeVerifyingKey(k.kp.Public.GetKID())
 }
 
 // CryptPrivateKeySecretSize is the size of a CryptPrivateKeySecret.
@@ -62,7 +62,7 @@ func makeCryptPrivateKey(secret CryptPrivateKeySecret) (CryptPrivateKey, error) 
 // GetPublicKey returns the public key corresponding to this private
 // key.
 func (k CryptPrivateKey) getPublicKey() CryptPublicKey {
-	return CryptPublicKey{k.kp.Public.GetKID()}
+	return MakeCryptPublicKey(k.kp.Public.GetKID())
 }
 
 // CryptoLocal implements the Crypto interface by using a local
@@ -113,7 +113,7 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 
 	// This check isn't strictly needed, but parallels the
 	// implementation in CryptoClient.
-	if len(encryptedClientHalf.EncryptedData) != len(clientHalf.ClientHalf)+box.Overhead {
+	if len(encryptedClientHalf.EncryptedData) != len(clientHalf.data)+box.Overhead {
 		err = libkb.DecryptionError{}
 		return
 	}
@@ -125,18 +125,18 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
 
-	decryptedData, ok := box.Open(nil, encryptedClientHalf.EncryptedData, &nonce, (*[32]byte)(&publicKey.PublicKey), (*[32]byte)(c.cryptPrivateKey.kp.Private))
+	decryptedData, ok := box.Open(nil, encryptedClientHalf.EncryptedData, &nonce, (*[32]byte)(&publicKey.data), (*[32]byte)(c.cryptPrivateKey.kp.Private))
 	if !ok {
 		err = libkb.DecryptionError{}
 		return
 	}
 
-	if len(decryptedData) != len(clientHalf.ClientHalf) {
+	if len(decryptedData) != len(clientHalf.data) {
 		err = libkb.DecryptionError{}
 		return
 	}
 
-	copy(clientHalf.ClientHalf[:], decryptedData)
+	copy(clientHalf.data[:], decryptedData)
 	return
 }
 

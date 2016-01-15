@@ -94,14 +94,14 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	}
 
 	for _, key := range userInfo.VerifyingKeys {
-		if verifyingKey.KID.Equal(key.KID) {
+		if verifyingKey.kid.Equal(key.kid) {
 			k.log.CDebugf(ctx, "found verifying key %s for user %s",
-				verifyingKey.KID, uid)
+				verifyingKey.kid, uid)
 			return nil
 		}
 	}
 
-	return KeyNotFoundError{verifyingKey.KID}
+	return KeyNotFoundError{verifyingKey.kid}
 }
 
 // GetCryptPublicKeys implements the KBPKI interface for KBPKIClient.

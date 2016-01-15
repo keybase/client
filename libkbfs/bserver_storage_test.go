@@ -25,7 +25,7 @@ func makeTestEntries(n int) ([]BlockID, []blockEntry, error) {
 		if err != nil {
 			return nil, nil, err
 		}
-		err = cryptoRandRead(entries[i].KeyServerHalf.ServerHalf[:])
+		err = cryptoRandRead(entries[i].KeyServerHalf.data[:])
 		if err != nil {
 			return nil, nil, err
 		}

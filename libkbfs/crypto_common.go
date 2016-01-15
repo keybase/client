@@ -143,18 +143,18 @@ func (c *CryptoCommon) MakeRandomTLFKeys() (
 		return
 	}
 
-	tlfPublicKey = TLFPublicKey{*publicKey}
-	tlfPrivateKey = TLFPrivateKey{*privateKey}
+	tlfPublicKey = MakeTLFPublicKey(*publicKey)
+	tlfPrivateKey = MakeTLFPrivateKey(*privateKey)
 
 	keyPair, err := libkb.GenerateNaclDHKeyPair()
 	if err != nil {
 		return
 	}
 
-	tlfEphemeralPublicKey = TLFEphemeralPublicKey{keyPair.Public}
-	tlfEphemeralPrivateKey = TLFEphemeralPrivateKey{*keyPair.Private}
+	tlfEphemeralPublicKey = MakeTLFEphemeralPublicKey(keyPair.Public)
+	tlfEphemeralPrivateKey = MakeTLFEphemeralPrivateKey(*keyPair.Private)
 
-	err = cryptoRandRead(tlfCryptKey.Key[:])
+	err = cryptoRandRead(tlfCryptKey.data[:])
 	if err != nil {
 		return
 	}
@@ -165,7 +165,7 @@ func (c *CryptoCommon) MakeRandomTLFKeys() (
 // MakeRandomTLFCryptKeyServerHalf implements the Crypto interface for
 // CryptoCommon.
 func (c *CryptoCommon) MakeRandomTLFCryptKeyServerHalf() (serverHalf TLFCryptKeyServerHalf, err error) {
-	err = cryptoRandRead(serverHalf.ServerHalf[:])
+	err = cryptoRandRead(serverHalf.data[:])
 	if err != nil {
 		serverHalf = TLFCryptKeyServerHalf{}
 		return
@@ -176,7 +176,7 @@ func (c *CryptoCommon) MakeRandomTLFCryptKeyServerHalf() (serverHalf TLFCryptKey
 // MakeRandomBlockCryptKeyServerHalf implements the Crypto interface
 // for CryptoCommon.
 func (c *CryptoCommon) MakeRandomBlockCryptKeyServerHalf() (serverHalf BlockCryptKeyServerHalf, err error) {
-	err = cryptoRandRead(serverHalf.ServerHalf[:])
+	err = cryptoRandRead(serverHalf.data[:])
 	if err != nil {
 		serverHalf = BlockCryptKeyServerHalf{}
 		return
@@ -194,19 +194,19 @@ func xorKeys(x, y [32]byte) [32]byte {
 
 // MaskTLFCryptKey implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf, key TLFCryptKey) (clientHalf TLFCryptKeyClientHalf, err error) {
-	clientHalf.ClientHalf = xorKeys(serverHalf.ServerHalf, key.Key)
+	clientHalf.data = xorKeys(serverHalf.data, key.data)
 	return
 }
 
 // UnmaskTLFCryptKey implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) UnmaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf, clientHalf TLFCryptKeyClientHalf) (key TLFCryptKey, err error) {
-	key.Key = xorKeys(serverHalf.ServerHalf, clientHalf.ClientHalf)
+	key.data = xorKeys(serverHalf.data, clientHalf.data)
 	return
 }
 
 // UnmaskBlockCryptKey implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf, tlfCryptKey TLFCryptKey) (key BlockCryptKey, error error) {
-	key.Key = xorKeys(serverHalf.ServerHalf, tlfCryptKey.Key)
+	key.data = xorKeys(serverHalf.data, tlfCryptKey.data)
 	return
 }
 
@@ -222,7 +222,7 @@ func (c *CryptoCommon) Verify(msg []byte, sigInfo SignatureInfo) (err error) {
 		return
 	}
 
-	publicKey := libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.KID.ToBytes())
+	publicKey := libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.kid.ToBytes())
 	if publicKey == nil {
 		err = libkb.KeyCannotVerifyError{}
 		return
@@ -252,7 +252,7 @@ func (c *CryptoCommon) EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPriva
 		return
 	}
 
-	keypair, err := libkb.ImportKeypairFromKID(publicKey.KID)
+	keypair, err := libkb.ImportKeypairFromKID(publicKey.kid)
 	if err != nil {
 		return
 	}
@@ -263,7 +263,7 @@ func (c *CryptoCommon) EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPriva
 		return
 	}
 
-	encryptedData := box.Seal(nil, clientHalf.ClientHalf[:], &nonce, (*[32]byte)(&dhKeyPair.Public), (*[32]byte)(&privateKey.PrivateKey))
+	encryptedData := box.Seal(nil, clientHalf.data[:], &nonce, (*[32]byte)(&dhKeyPair.Public), (*[32]byte)(&privateKey.data))
 
 	encryptedClientHalf = EncryptedTLFCryptKeyClientHalf{
 		Version:       EncryptionSecretbox,
@@ -296,7 +296,7 @@ func (c *CryptoCommon) EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCrypt
 		return
 	}
 
-	encryptedData, err := c.encryptData(encodedPmd, key.Key)
+	encryptedData, err := c.encryptData(encodedPmd, key.data)
 	if err != nil {
 		return
 	}
@@ -326,7 +326,7 @@ func (c *CryptoCommon) decryptData(encryptedData encryptedData, key [32]byte) ([
 
 // DecryptPrivateMetadata implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) DecryptPrivateMetadata(encryptedPmd EncryptedPrivateMetadata, key TLFCryptKey) (*PrivateMetadata, error) {
-	encodedPmd, err := c.decryptData(encryptedData(encryptedPmd), key.Key)
+	encodedPmd, err := c.decryptData(encryptedData(encryptedPmd), key.data)
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +422,7 @@ func (c *CryptoCommon) EncryptBlock(block Block, key BlockCryptKey) (plainSize i
 		return
 	}
 
-	encryptedData, err := c.encryptData(paddedBlock, key.Key)
+	encryptedData, err := c.encryptData(paddedBlock, key.data)
 	if err != nil {
 		return
 	}
@@ -434,7 +434,7 @@ func (c *CryptoCommon) EncryptBlock(block Block, key BlockCryptKey) (plainSize i
 
 // DecryptBlock implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error {
-	paddedBlock, err := c.decryptData(encryptedData(encryptedBlock), key.Key)
+	paddedBlock, err := c.decryptData(encryptedData(encryptedBlock), key.data)
 	if err != nil {
 		return err
 	}
@@ -451,7 +451,7 @@ func (c *CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryp
 func (c *CryptoCommon) GetTLFCryptKeyServerHalfID(
 	user keybase1.UID, deviceKID keybase1.KID,
 	serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
-	key := serverHalf.ServerHalf[:]
+	key := serverHalf.data[:]
 	data := append(user.ToBytes(), deviceKID.ToBytes()...)
 	hmac, err := DefaultHMAC(key, data)
 	if err != nil {
@@ -465,7 +465,7 @@ func (c *CryptoCommon) GetTLFCryptKeyServerHalfID(
 // VerifyTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID,
 	user keybase1.UID, deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) error {
-	key := serverHalf.ServerHalf[:]
+	key := serverHalf.data[:]
 	data := append(user.ToBytes(), deviceKID.ToBytes()...)
 	return serverHalfID.ID.Verify(key, data)
 }

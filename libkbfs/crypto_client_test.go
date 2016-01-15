@@ -48,7 +48,7 @@ func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, r
 		var ed25519Signature keybase1.ED25519Signature
 		copy(ed25519Signature[:], sigInfo.Signature)
 		publicKey :=
-			libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.KID.ToBytes())
+			libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.kid.ToBytes())
 		*sigRes = keybase1.ED25519SignatureInfo{
 			Sig:       ed25519Signature,
 			PublicKey: keybase1.ED25519PublicKey(*publicKey),
@@ -58,7 +58,7 @@ func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, r
 	case "keybase.1.crypto.unboxBytes32":
 		fc.maybeWaitOnChannel()
 		arg := args.([]interface{})[0].(keybase1.UnboxBytes32Arg)
-		publicKey := TLFEphemeralPublicKey{libkb.NaclDHKeyPublic(arg.PeersPublicKey)}
+		publicKey := MakeTLFEphemeralPublicKey(arg.PeersPublicKey)
 		encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
 			Version:       EncryptionSecretbox,
 			EncryptedData: arg.EncryptedBytes32[:],
@@ -70,7 +70,7 @@ func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, r
 			return err
 		}
 		res := res.(*keybase1.Bytes32)
-		*res = clientHalf.ClientHalf
+		*res = clientHalf.data
 		return nil
 
 	default:
@@ -151,7 +151,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	keypair, err := libkb.ImportKeypairFromKID(cryptPrivateKey.getPublicKey().KID)
+	keypair, err := libkb.ImportKeypairFromKID(cryptPrivateKey.getPublicKey().kid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 		t.Fatal(libkb.KeyCannotEncryptError{})
 	}
 
-	encryptedData := box.Seal(nil, clientHalf.ClientHalf[:], &nonce, (*[32]byte)(&dhKeyPair.Public), (*[32]byte)(&ephPrivateKey.PrivateKey))
+	encryptedData := box.Seal(nil, clientHalf.data[:], &nonce, (*[32]byte)(&dhKeyPair.Public), (*[32]byte)(&ephPrivateKey.data))
 	encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
 		Version:       EncryptionSecretbox,
 		Nonce:         nonce[:],
@@ -290,7 +290,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	// Corrupt key.
 
 	ephPublicKeyCorrupt := ephPublicKey
-	ephPublicKeyCorrupt.PublicKey[0] = ^ephPublicKeyCorrupt.PublicKey[0]
+	ephPublicKeyCorrupt.data[0] = ^ephPublicKeyCorrupt.data[0]
 	expectedErr = libkb.DecryptionError{}
 	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKeyCorrupt,
 		encryptedClientHalf)

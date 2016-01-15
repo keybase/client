@@ -295,7 +295,7 @@ func (md RootMetadata) MakeSuccessor(config Config) (RootMetadata, error) {
 		newMd.ClearBlockChanges()
 		// no need to deep copy the full data since we just cleared the
 		// block changes.
-		newMd.data.TLFPrivateKey = md.data.TLFPrivateKey.DeepCopy()
+		newMd.data.TLFPrivateKey = md.data.TLFPrivateKey
 		// clear the serialized data.
 		newMd.SerializedPrivateMetadata = nil
 		// remove the copied flag (if any.)

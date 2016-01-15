@@ -97,7 +97,7 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	sigInfo = SignatureInfo{
 		Version:      SigED25519,
 		Signature:    ed25519SigInfo.Sig[:],
-		VerifyingKey: VerifyingKey{libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()},
+		VerifyingKey: MakeVerifyingKey(libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()),
 	}
 	return
 }
@@ -143,14 +143,14 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	decryptedClientHalf, err := c.client.UnboxBytes32(ctx, keybase1.UnboxBytes32Arg{
 		EncryptedBytes32: encryptedData,
 		Nonce:            nonce,
-		PeersPublicKey:   keybase1.BoxPublicKey(publicKey.PublicKey),
+		PeersPublicKey:   keybase1.BoxPublicKey(publicKey.data),
 		Reason:           "to use kbfs",
 	})
 	if err != nil {
 		return
 	}
 
-	clientHalf = TLFCryptKeyClientHalf{decryptedClientHalf}
+	clientHalf = MakeTLFCryptKeyClientHalf(decryptedClientHalf)
 	return
 }
 

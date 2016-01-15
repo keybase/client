@@ -72,7 +72,7 @@ func (kim DeviceKeyInfoMap) fillInDeviceInfo(crypto Crypto,
 	// TODO: parallelize
 	for _, k := range publicKeys {
 		// Skip existing entries, only fill in new ones
-		if _, ok := kim[k.KID]; ok {
+		if _, ok := kim[k.kid]; ok {
 			continue
 		}
 
@@ -97,17 +97,17 @@ func (kim DeviceKeyInfoMap) fillInDeviceInfo(crypto Crypto,
 
 		var serverHalfID TLFCryptKeyServerHalfID
 		serverHalfID, err =
-			crypto.GetTLFCryptKeyServerHalfID(uid, k.KID, serverHalf)
+			crypto.GetTLFCryptKeyServerHalfID(uid, k.kid, serverHalf)
 		if err != nil {
 			return nil, err
 		}
 
-		kim[k.KID] = TLFCryptKeyInfo{
+		kim[k.kid] = TLFCryptKeyInfo{
 			ClientHalf:   encryptedClientHalf,
 			ServerHalfID: serverHalfID,
 			EPubKeyIndex: ePubIndex,
 		}
-		serverMap[k.KID] = serverHalf
+		serverMap[k.kid] = serverHalf
 	}
 
 	return serverMap, nil
@@ -162,7 +162,7 @@ func (tkb TLFWriterKeyBundle) DeepEqual(rhs TLFWriterKeyBundle) bool {
 func (tkb *TLFWriterKeyBundle) DeepCopy() *TLFWriterKeyBundle {
 	return &TLFWriterKeyBundle{
 		WKeys:                  tkb.WKeys.DeepCopy(),
-		TLFPublicKey:           tkb.TLFPublicKey.DeepCopy(),
+		TLFPublicKey:           tkb.TLFPublicKey,
 		TLFEphemeralPublicKeys: tkb.TLFEphemeralPublicKeys.DeepCopy(),
 	}
 }
@@ -363,7 +363,7 @@ func (tkb *TLFKeyBundle) fillInDevices(crypto Crypto,
 // and device.
 func (tkb TLFKeyBundle) GetTLFCryptKeyInfo(user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (TLFCryptKeyInfo, bool, error) {
-	key := currentCryptPublicKey.KID
+	key := currentCryptPublicKey.kid
 	if u, ok1 := tkb.WKeys[user]; ok1 {
 		info, ok := u[key]
 		return info, ok, nil
@@ -378,7 +378,7 @@ func (tkb TLFKeyBundle) GetTLFCryptKeyInfo(user keybase1.UID,
 // the TLFCryptKeyInfo for the given user and device.
 func (tkb TLFKeyBundle) GetTLFEphemeralPublicKey(user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
-	key := currentCryptPublicKey.KID
+	key := currentCryptPublicKey.kid
 
 	info, ok, err := tkb.GetTLFCryptKeyInfo(user, currentCryptPublicKey)
 	if err != nil {

@@ -423,7 +423,7 @@ func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBu
 		TLFReaderKeyBundle: &TLFReaderKeyBundle{
 			RKeys: UserDeviceKeyInfoMap{
 				uid: {
-					cryptPublicKey.KID: TLFCryptKeyInfo{},
+					cryptPublicKey.kid: TLFCryptKeyInfo{},
 				},
 			},
 		},
@@ -439,7 +439,7 @@ func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBu
 		TLFWriterKeyBundle: &TLFWriterKeyBundle{
 			WKeys: UserDeviceKeyInfoMap{
 				uid: {
-					cryptPublicKey.KID: TLFCryptKeyInfo{},
+					cryptPublicKey.kid: TLFCryptKeyInfo{},
 				},
 			},
 			TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),

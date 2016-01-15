@@ -42,7 +42,7 @@ func testKeyBundleCheckKeys(t *testing.T, config Config, uid keybase1.UID,
 	if err != nil {
 		t.Fatalf("Couldn't decrypt client key half for user %s: %v", uid, err)
 	}
-	serverHalf, ok := serverMap[uid][cryptPublicKey.KID]
+	serverHalf, ok := serverMap[uid][cryptPublicKey.kid]
 	if !ok {
 		t.Fatalf("No server half for user %s", uid)
 	}
