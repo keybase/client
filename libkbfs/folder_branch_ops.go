@@ -606,43 +606,43 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
-	ctx context.Context, lState *lockState) (*RootMetadata, error) {
+	ctx context.Context, lState *lockState) (*RootMetadata, bool, error) {
 	md, err := fbo.getMDLocked(ctx, lState, mdWrite)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	// must be a reader or writer (it checks both.)
 	if !md.GetTlfHandle().IsReader(uid) {
-		return nil,
+		return nil, false,
 			NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), uid)
 	}
 
 	newMd, err := md.MakeSuccessor(fbo.config)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	if !md.GetTlfHandle().IsWriter(uid) {
 		// readers shouldn't modify writer metadata
 		if !newMd.IsWriterMetadataCopiedSet() {
-			return nil,
+			return nil, false,
 				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), uid)
 		}
 		// readers are currently only allowed to set the rekey bit
 		// TODO: allow readers to fully rekey only themself.
 		if !newMd.IsRekeySet() {
-			return nil,
+			return nil, false,
 				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), uid)
 		}
 	}
 
-	return &newMd, nil
+	return &newMd, md.IsRekeySet(), nil
 }
 
 func (fbo *folderBranchOps) nowUnixNano() int64 {
@@ -4504,7 +4504,7 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
-	md, err := fbo.getMDForRekeyWriteLocked(ctx, lState)
+	md, rekeyWasSet, err := fbo.getMDForRekeyWriteLocked(ctx, lState)
 	if err != nil {
 		return err
 	}
@@ -4523,6 +4523,10 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 		}
 		// clear the rekey bit
 		md.Flags &= ^MetadataFlagRekey
+	} else if rekeyWasSet {
+		// Readers shouldn't re-set the rekey bit.
+		fbo.log.CDebugf(ctx, "Rekey bit already set")
+		return nil
 	}
 
 	// add an empty operation to satisfy assumptions elsewhere
