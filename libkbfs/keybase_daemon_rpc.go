@@ -405,6 +405,10 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 
 	res, err := k.sessionClient.CurrentSession(ctx, sessionID)
 	if err != nil {
+		if ncs := (NoCurrentSessionError{}); err.Error() == ncs.Error() {
+			// Use an error with a proper OS error code attached to it.
+			err = ncs
+		}
 		return SessionInfo{}, err
 	}
 	// Import the KIDs to validate them.

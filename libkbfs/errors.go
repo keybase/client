@@ -800,3 +800,14 @@ func (e TlfNameNotCanonical) Error() string {
 	return fmt.Sprintf("TLF name %s isn't canonical: try %s instead",
 		e.Name, e.NameToTry)
 }
+
+// NoCurrentSessionError indicates that the daemon has no current
+// session.  This is basically a wrapper for session.ErrNoSession,
+// needed to give the correct return error code to the OS.
+type NoCurrentSessionError struct {
+}
+
+// Error implements the error interface for NoCurrentSessionError.
+func (e NoCurrentSessionError) Error() string {
+	return "no current session"
+}
