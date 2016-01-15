@@ -233,7 +233,9 @@ A payload packet is a MessagePack list with these contents:
 
 Computing the **MAC keys** is the only step of encrypting a message that
 requires the sender's private key. Thus it's the **authenticators list**,
-generated from those keys, that proves the sender is authentic.
+generated from those keys, that proves the sender is authentic. We also include
+the hash of the entire header as an input to the authenticators, to prevent an
+attacker from modifying the format version or any other header fields.
 
 We compute the authenticators in three steps:
 
