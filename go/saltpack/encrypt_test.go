@@ -276,6 +276,11 @@ func testRoundTrip(t *testing.T, msg []byte, receivers []BoxPublicKey, opts *opt
 	}
 }
 
+func TestEmptyEncryptionOneReceiver(t *testing.T) {
+	msg := []byte{}
+	testRoundTrip(t, msg, nil, nil)
+}
+
 func TestSmallEncryptionOneReceiver(t *testing.T) {
 	msg := []byte("secret message!")
 	testRoundTrip(t, msg, nil, nil)
@@ -1217,5 +1222,31 @@ func TestCorruptFraming(t *testing.T) {
 	_, _, err = Open(nonInteger, kr)
 	if err != ErrFailedToReadHeaderBytes {
 		t.Fatal(err)
+	}
+}
+
+func TestNoWriteMessage(t *testing.T) {
+	// We need to make sure the header is written out, even if we never call
+	// Write() with any payload bytes.
+	receivers := []BoxPublicKey{
+		newBoxKey(t).GetPublicKey(),
+	}
+	var ciphertext bytes.Buffer
+	es, err := NewEncryptStream(&ciphertext, nil, receivers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Usually we would call Write() here. But with an empty message, we don't
+	// have to!
+	err = es.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, plaintext, err := Open(ciphertext.Bytes(), kr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(plaintext) != 0 {
+		t.Fatal("Expected empty plaintext!")
 	}
 }
