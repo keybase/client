@@ -302,6 +302,10 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 // commonArgs must be called inside a LoginState().Account(...)
 // closure
 func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pgpKeys []libkb.GenericKey, existingGen libkb.PassphraseGeneration) (libkb.JSONPayload, error) {
+	// ensure that the login session is loaded
+	if err := a.LoadLoginSession(c.me.GetName()); err != nil {
+		return nil, err
+	}
 	salt, err := a.LoginSession().Salt()
 	if err != nil {
 		return nil, err
