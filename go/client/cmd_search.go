@@ -58,6 +58,10 @@ func UserSummariesForSearchResults(results []keybase1.SearchResult) ([]keybase1.
 	if err != nil {
 		return nil, err
 	}
+	// Don't bother if no results.
+	if len(results) == 0 {
+		return nil, nil
+	}
 
 	uids := make([]keybase1.UID, len(results))
 	for i := range results {
