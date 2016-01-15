@@ -1,3 +1,4 @@
+- Fix passphrase confirmation logic (PR: keybase/client#1752)
 - Fix `keybase passphrase recover` SecretUI, LoginSession issues (PR: keybase/client#1750)
 - Allow `keybase sigs revoke` to work with a prefix, and
   have `keybase sigs list` display Sig IDs that will
