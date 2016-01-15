@@ -1,4 +1,4 @@
-import app from 'app'
+import {app} from 'electron'
 
 var visibleCount = 0
 

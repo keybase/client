@@ -1,7 +1,19 @@
-import {BrowserWindow, app} from 'electron'
+import {BrowserWindow, app, globalShortcut} from 'electron'
 import {showDevTools} from '../../react-native/react/local-debug.desktop'
 
 export default function () {
+  app.on('ready', () => {
+    globalShortcut.register('CommandOrControl+Alt+k+b', () => {
+      BrowserWindow.getAllWindows().map(bw => {
+        bw.openDevTools()
+      })
+    })
+  })
+
+  app.on('will-quit', () => {
+    globalShortcut.unregister('CommandOrControl+Alt+k+b')
+  })
+
   if (!showDevTools) {
     return
   }
