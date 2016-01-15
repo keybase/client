@@ -30,7 +30,7 @@ const (
 	SIG_ID_LEN         = 32
 	SIG_ID_SUFFIX      = 0x0f
 	SIG_SHORT_ID_BYTES = 27
-	SigIDQueryMin      = 16
+	SigIDQueryMin      = 8
 )
 
 const (
