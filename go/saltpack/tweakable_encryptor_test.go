@@ -5,7 +5,6 @@ package saltpack
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"crypto/sha512"
 	"golang.org/x/crypto/nacl/secretbox"
 	"io"
@@ -110,11 +109,8 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 	ciphertextDigest.Write(ciphertext)
 	hashToAuthenticate := ciphertextDigest.Sum(nil)
 	for _, macKey := range pes.macKeys {
-		authenticatorDigest := hmac.New(sha512.New, macKey)
-		authenticatorDigest.Write(hashToAuthenticate)
-		fullMAC := authenticatorDigest.Sum(nil)
-		truncatedMAC := fullMAC[:32]
-		block.HashAuthenticators = append(block.HashAuthenticators, truncatedMAC)
+		authenticator := hmacSHA512256(macKey, hashToAuthenticate)
+		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)
 	}
 
 	if pes.options.corruptEncryptionBlock != nil {

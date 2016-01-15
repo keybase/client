@@ -5,6 +5,7 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
@@ -93,4 +94,16 @@ func detachedDigest(sum []byte) []byte {
 	buf.Write(sum)
 
 	return buf.Bytes()
+}
+
+func hmacSHA512256(key []byte, input []byte) []byte {
+	// Equivalent to crypto_auth, but using Go's builtin HMAC. Truncates
+	// SHA512, instead of actually calling SHA512/256.
+	if len(key) != CryptoAuthKeyBytes {
+		panic("Bad crypto_auth key length")
+	}
+	authenticatorDigest := hmac.New(sha512.New, key)
+	authenticatorDigest.Write(input)
+	fullMAC := authenticatorDigest.Sum(nil)
+	return fullMAC[:CryptoAuthBytes]
 }

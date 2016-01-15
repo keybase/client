@@ -5,7 +5,6 @@ package saltpack
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/hex"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -79,11 +78,8 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 	ciphertextDigest.Write(ciphertext)
 	hashToAuthenticate := ciphertextDigest.Sum(nil)
 	for _, macKey := range es.macKeys {
-		authenticatorDigest := hmac.New(sha512.New, macKey)
-		authenticatorDigest.Write(hashToAuthenticate)
-		fullMAC := authenticatorDigest.Sum(nil)
-		truncatedMAC := fullMAC[:CryptoAuthLength]
-		block.HashAuthenticators = append(block.HashAuthenticators, truncatedMAC)
+		authenticator := hmacSHA512256(macKey, hashToAuthenticate)
+		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)
 	}
 
 	if err := es.encoder.Encode(block); err != nil {
