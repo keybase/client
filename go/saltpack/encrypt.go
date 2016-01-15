@@ -72,11 +72,7 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 
 	// Compute the digest to authenticate, and authenticate it for each
 	// recipient.
-	ciphertextDigest := sha512.New()
-	ciphertextDigest.Write(es.headerHash)
-	ciphertextDigest.Write(nonce[:])
-	ciphertextDigest.Write(ciphertext)
-	hashToAuthenticate := ciphertextDigest.Sum(nil)
+	hashToAuthenticate := computePayloadHash(es.headerHash, nonce, ciphertext)
 	for _, macKey := range es.macKeys {
 		authenticator := hmacSHA512256(macKey, hashToAuthenticate)
 		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)

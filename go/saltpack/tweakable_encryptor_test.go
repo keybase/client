@@ -103,11 +103,7 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 
 	// Compute the digest to authenticate, and authenticate it for each
 	// recipient.
-	ciphertextDigest := sha512.New()
-	ciphertextDigest.Write(pes.headerHash)
-	ciphertextDigest.Write(nonce[:])
-	ciphertextDigest.Write(ciphertext)
-	hashToAuthenticate := ciphertextDigest.Sum(nil)
+	hashToAuthenticate := computePayloadHash(pes.headerHash, nonce, ciphertext)
 	for _, macKey := range pes.macKeys {
 		authenticator := hmacSHA512256(macKey, hashToAuthenticate)
 		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)
