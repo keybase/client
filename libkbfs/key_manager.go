@@ -158,6 +158,7 @@ func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
 			return true
 		}
 		for _, k := range keys {
+			km.log.CDebugf(ctx, "Checking key %v", k.kid)
 			if _, ok := kids[k.kid]; !ok {
 				km.log.CInfof(ctx, "Rekey %s: adding new device %s for user %s",
 					md.ID, k.kid, u)
@@ -216,6 +217,12 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 
 	// TODO: parallelize
 	for _, w := range handle.Writers {
+		// HACK: clear cache
+		if kdm, ok := km.config.KeybaseDaemon().(KeybaseDaemonMeasured); ok {
+			if kdr, ok := kdm.delegate.(*KeybaseDaemonRPC); ok {
+				kdr.setCachedUserInfo(w, UserInfo{})
+			}
+		}
 		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, w)
 		if err != nil {
 			return false, err
@@ -223,6 +230,12 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 		wKeys[w] = publicKeys
 	}
 	for _, r := range handle.Readers {
+		// HACK: clear cache
+		if kdm, ok := km.config.KeybaseDaemon().(KeybaseDaemonMeasured); ok {
+			if kdr, ok := kdm.delegate.(*KeybaseDaemonRPC); ok {
+				kdr.setCachedUserInfo(r, UserInfo{})
+			}
+		}
 		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, r)
 		if err != nil {
 			return false, err
