@@ -48,42 +48,53 @@ func (s ServiceInfo) WriteFile(path string) error {
 
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
-func WaitForServiceInfoFile(path string, pid string, maxAttempts int, wait time.Duration, reason string) (*ServiceInfo, error) {
+func WaitForServiceInfoFile(g *GlobalContext, path string, label string, pid string, maxAttempts int, wait time.Duration, reason string) (*ServiceInfo, error) {
 	if pid == "" {
 		return nil, fmt.Errorf("No pid to wait for")
 	}
 
-	f := func() (*ServiceInfo, bool, error) {
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			return nil, true, nil
+	lookForServiceInfo := func() (*ServiceInfo, error) {
+		if _, ferr := os.Stat(path); os.IsNotExist(ferr) {
+			return nil, nil
 		}
 		dat, err := ioutil.ReadFile(path)
 		if err != nil {
-			return nil, true, err
+			return nil, err
 		}
 		var serviceInfo ServiceInfo
 		err = json.Unmarshal(dat, &serviceInfo)
 		if err != nil {
-			return nil, false, err
+			return nil, err
 		}
 
 		// Make sure the info file is the pid we are waiting for, otherwise it is
 		// still starting up.
-		serviceInfoPid := fmt.Sprintf("%d", serviceInfo.Pid)
-		if serviceInfoPid != pid {
-			return nil, true, fmt.Errorf("Service info pid mismatch: %s != %s", serviceInfoPid, pid)
+		if pid != fmt.Sprintf("%d", serviceInfo.Pid) {
+			return nil, nil
 		}
 
-		return &serviceInfo, false, nil
+		// PIDs match, the service has started up
+		return &serviceInfo, nil
 	}
 
 	attempt := 1
-	serviceInfo, retry, err := f()
-	for attempt < maxAttempts && retry {
+	serviceInfo, lookErr := lookForServiceInfo()
+	for attempt < maxAttempts && serviceInfo == nil {
 		attempt++
+		g.Log.Debug("Waiting for service info file...")
 		time.Sleep(wait)
-		serviceInfo, retry, err = f()
+		serviceInfo, lookErr = lookForServiceInfo()
 	}
 
-	return serviceInfo, err
+	// If no service info was found, let's return an error
+	if serviceInfo == nil {
+		if lookErr == nil {
+			lookErr = fmt.Errorf("%s isn't running (expecting pid=%s)", label, pid)
+		}
+		return nil, lookErr
+	}
+
+	// We succeeded in finding service info
+	g.Log.Debug("Found service info: %#v", *serviceInfo)
+	return serviceInfo, nil
 }

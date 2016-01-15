@@ -35,7 +35,7 @@ func KeybaseServiceStatus(g *libkb.GlobalContext, label string) (status keybase1
 	}
 	kbService := launchd.NewService(label)
 
-	status, err := serviceStatusFromLaunchd(kbService, path.Join(g.Env.GetRuntimeDir(), "keybased.info"))
+	status, err := serviceStatusFromLaunchd(g, kbService, path.Join(g.Env.GetRuntimeDir(), "keybased.info"))
 	status.BundleVersion = libkb.VersionString()
 	if err != nil {
 		return
@@ -57,7 +57,7 @@ func KBFSServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.Se
 	}
 	kbfsService := launchd.NewService(label)
 
-	status, err := serviceStatusFromLaunchd(kbfsService, path.Join(g.Env.GetRuntimeDir(), "kbfs.info"))
+	status, err := serviceStatusFromLaunchd(g, kbfsService, path.Join(g.Env.GetRuntimeDir(), "kbfs.info"))
 	if err != nil {
 		return
 	}
@@ -78,7 +78,7 @@ func KBFSServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.Se
 	return
 }
 
-func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (status keybase1.ServiceStatus, err error) {
+func serviceStatusFromLaunchd(g *libkb.GlobalContext, ls launchd.Service, infoPath string) (status keybase1.ServiceStatus, err error) {
 	status = keybase1.ServiceStatus{
 		Label: ls.Label(),
 	}
@@ -106,7 +106,7 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (status keyba
 	var serviceInfo *libkb.ServiceInfo
 	if infoPath != "" {
 		if status.Pid != "" {
-			serviceInfo, err = libkb.WaitForServiceInfoFile(infoPath, status.Pid, 20, 200*time.Millisecond, "service status")
+			serviceInfo, err = libkb.WaitForServiceInfoFile(g, infoPath, status.Label, status.Pid, 20, 200*time.Millisecond, "service status")
 			if err != nil {
 				status.InstallStatus = keybase1.InstallStatus_ERROR
 				status.InstallAction = keybase1.InstallAction_REINSTALL
@@ -131,16 +131,16 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string) (status keyba
 	return
 }
 
-func serviceStatusesFromLaunchd(ls []launchd.Service) []keybase1.ServiceStatus {
+func serviceStatusesFromLaunchd(g *libkb.GlobalContext, ls []launchd.Service) []keybase1.ServiceStatus {
 	c := []keybase1.ServiceStatus{}
 	for _, l := range ls {
-		s, _ := serviceStatusFromLaunchd(l, "")
+		s, _ := serviceStatusFromLaunchd(g, l, "")
 		c = append(c, s)
 	}
 	return c
 }
 
-func ListServices() (*keybase1.ServicesStatus, error) {
+func ListServices(g *libkb.GlobalContext) (*keybase1.ServicesStatus, error) {
 	services, err := launchd.ListServices([]string{"keybase.service", "homebrew.mxcl.keybase"})
 	if err != nil {
 		return nil, err
@@ -151,8 +151,8 @@ func ListServices() (*keybase1.ServicesStatus, error) {
 	}
 
 	return &keybase1.ServicesStatus{
-		Service: serviceStatusesFromLaunchd(services),
-		Kbfs:    serviceStatusesFromLaunchd(kbfs)}, nil
+		Service: serviceStatusesFromLaunchd(g, services),
+		Kbfs:    serviceStatusesFromLaunchd(g, kbfs)}, nil
 }
 
 func DefaultLaunchdEnvVars(g *libkb.GlobalContext, label string) map[string]string {
@@ -190,7 +190,7 @@ func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.Se
 	}
 
 	kbService := launchd.NewService(label)
-	st, err := serviceStatusFromLaunchd(kbService, serviceInfoPath(g))
+	st, err := serviceStatusFromLaunchd(g, kbService, serviceInfoPath(g))
 	return &st, err
 }
 
@@ -226,7 +226,7 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 	}
 
 	kbfsService := launchd.NewService(label)
-	st, err := serviceStatusFromLaunchd(kbfsService, "")
+	st, err := serviceStatusFromLaunchd(g, kbfsService, "")
 	return &st, err
 }
 
