@@ -8,7 +8,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 )
+
+const LoginSessionMemoryTimeout time.Duration = time.Minute * 5
 
 var ErrLoginSessionNotLoaded = errors.New("LoginSession not loaded")
 var ErrLoginSessionCleared = errors.New("LoginSession already cleared")
@@ -17,9 +20,10 @@ type LoginSession struct {
 	sessionFor      string // set by constructor
 	salt            []byte // retrieved from server, or set by WithSalt constructor
 	loginSessionB64 string
-	loginSession    []byte // decoded from above parameter
-	loaded          bool   // load state
-	cleared         bool   // clear state
+	loginSession    []byte    // decoded from above parameter
+	loaded          bool      // load state
+	cleared         bool      // clear state
+	createTime      time.Time // load time
 	Contextified
 }
 
@@ -79,6 +83,16 @@ func (s *LoginSession) ExistsFor(emailOrUsername string) bool {
 		return false
 	}
 	return true
+}
+
+func (s *LoginSession) NotExpired() bool {
+	now := s.G().GetClock().Now()
+
+	if now.Sub(s.createTime) < LoginSessionMemoryTimeout {
+		return true
+	}
+	s.G().Log.Debug("login_session expired")
+	return false
 }
 
 func (s *LoginSession) Clear() error {
@@ -157,6 +171,7 @@ func (s *LoginSession) Load() error {
 	s.loginSessionB64 = b64
 	s.loginSession = ls
 	s.loaded = true
+	s.createTime = s.G().GetClock().Now()
 
 	return nil
 }
