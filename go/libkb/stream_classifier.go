@@ -127,15 +127,31 @@ type saltpackHeaderPrefix struct {
 }
 
 func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
-	if len(b) < 2 {
+	if len(b) < 6 {
 		return false
 	}
 
-	if b[0] <= 0x92 || b[0] >= 0x9a {
+	// The encryption header is double-encoded. (And signing will be in the
+	// future.) For these headers we need to skip the "bin" tag at the front to
+	// get at the encoded header array.
+	binTagBytesToSkip := 0
+	if b[0] == 0xc4 {
+		binTagBytesToSkip = 2
+	} else if b[0] == 0xc5 {
+		binTagBytesToSkip = 3
+	} else if b[0] == 0xc6 {
+		binTagBytesToSkip = 5
+	}
+
+	// Verify the type of the array and its minimum length, and copy the array
+	// bytes to a scratch buffer.
+	arrayTagByte := b[binTagBytesToSkip]
+	if arrayTagByte <= 0x93 || arrayTagByte >= 0x9f {
+		// TODO: We should allow arrays of more than 15 elements here.
 		return false
 	}
 	tmp := make([]byte, len(b))
-	copy(tmp, b)
+	copy(tmp, b[binTagBytesToSkip:])
 
 	// Hack -- make this a 3-value Msgpack Array, since we only care about the
 	// first 3 fields, and don't want to bother slurping in more than that.
@@ -244,7 +260,9 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeAttachedSignature
 	case isSaltpackBinary(buf[:n], &sc):
+		// Format etc. set by isSaltpackBinary().
 	case isPGPBinary(buf[:n], &sc):
+		// Format etc. set by isPGPBinary().
 	default:
 		err = UnknownStreamError{}
 	}
