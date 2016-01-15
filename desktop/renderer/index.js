@@ -90,7 +90,7 @@ class Keybase extends Component {
 
         const diffState = getStore()
         if (Object.keys(diffState).length !== 0) {
-          if (sender.isDestroyed()) { // We need this extra check due to timing issues
+          if (!sender.isDestroyed()) { // We need this extra check due to timing issues
             sender.send('stateChange', diffState)
           }
         }
