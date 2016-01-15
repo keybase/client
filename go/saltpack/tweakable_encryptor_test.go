@@ -221,8 +221,8 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 
 func (pes *testEncryptStream) computeMACKeys(sender BoxSecretKey, receivers []BoxPublicKey) {
 	for _, receiver := range receivers {
-		macKeyBox := sender.Box(receiver, nonceForMACKeyBox(pes.headerHash[:]), make([]byte, 32))
-		pes.macKeys = append(pes.macKeys, macKeyBox[16:48])
+		macKey := computeMACKey(sender, receiver, pes.headerHash)
+		pes.macKeys = append(pes.macKeys, macKey)
 	}
 }
 

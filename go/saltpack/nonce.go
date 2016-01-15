@@ -24,6 +24,9 @@ func nonceForPayloadKeyBox() *Nonce {
 }
 
 func nonceForMACKeyBox(headerHash []byte) *Nonce {
+	if len(headerHash) != 64 {
+		panic("Header hash shorter than expected.")
+	}
 	var n Nonce
 	copy(n[:], headerHash[:NonceBytes])
 	return &n

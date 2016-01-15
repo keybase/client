@@ -262,8 +262,7 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	}
 
 	// Compute the MAC key.
-	macKeyBox := secretKey.Box(ds.mki.SenderKey, nonceForMACKeyBox(ds.headerHash[:]), make([]byte, 32))
-	ds.macKey = macKeyBox[16:48]
+	ds.macKey = computeMACKey(secretKey, ds.mki.SenderKey, ds.headerHash)
 
 	return nil
 }

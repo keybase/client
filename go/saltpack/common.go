@@ -44,13 +44,6 @@ func (e encryptionBlockNumber) check() error {
 	return nil
 }
 
-func hashNonceAndAuthTag(nonce *Nonce, ciphertext []byte) []byte {
-	var buf bytes.Buffer
-	buf.Write((*nonce)[:])
-	buf.Write(ciphertext[0:poly1305.TagSize])
-	return buf.Bytes()
-}
-
 func writeNullTerminatedString(w io.Writer, s string) {
 	w.Write([]byte(s))
 	w.Write([]byte{0})
@@ -106,4 +99,11 @@ func hmacSHA512256(key []byte, input []byte) []byte {
 	authenticatorDigest.Write(input)
 	fullMAC := authenticatorDigest.Sum(nil)
 	return fullMAC[:CryptoAuthBytes]
+}
+
+func computeMACKey(secret BoxSecretKey, public BoxPublicKey, headerHash []byte) []byte {
+	nonce := nonceForMACKeyBox(headerHash)
+	macKeyBox := secret.Box(public, nonce, make([]byte, CryptoAuthKeyBytes))
+	macKey := macKeyBox[poly1305.TagSize : poly1305.TagSize+CryptoAuthKeyBytes]
+	return macKey
 }
