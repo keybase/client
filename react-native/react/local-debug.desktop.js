@@ -20,7 +20,7 @@ let config = {
   reduxDevToolsSelect: state => state // only watch a subset of the store
 }
 
-if (__DEV__ && true) { // eslint-disable-line no-undef
+if (__DEV__ && false) { // eslint-disable-line no-undef
   config.overrideRouterState = createRouterState(['devMenu', 'components'], [])
   config.overrideActiveTab = Tabs.moreTab
   config.skipLoginRouteToRoot = true
