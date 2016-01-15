@@ -13,8 +13,7 @@ import {Text, Input, Terminal, Icon} from '../common-adapters/index.desktop.js'
 
 import {CircularProgress} from 'material-ui'
 import {cleanup, allowLoggedOut as allowLoggedOutKBFS} from '../util/kbfs'
-// TODO use this instead of notification after merging
-// import {NotifyPopup} from '../native/notifications'
+import {NotifyPopup} from '../native/notifications'
 
 // This is the only data that the renderer cares about for a folder
 import type {FolderInfo} from './index.render'
@@ -40,8 +39,7 @@ const Header = props => {
       <Icon hint={`Report a bug for version: ${version}`} type='fa-bug' onClick={ () => {
         clipboard.writeText(`Keybase GUI Version: ${version}`)
         shell.openExternal('https://github.com/keybase/client/issues')
-        new Notification('Version copied to clipboard')
-        //NotifyPopup('Version copied to clipboard')
+        NotifyPopup('Version copied to clipboard')
       }}/>
     </div>
   )
