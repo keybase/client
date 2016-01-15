@@ -337,12 +337,12 @@ func (nonce BlockRefNonce) String() string {
 
 // BlockPointer contains the identifying information for a block in KBFS.
 type BlockPointer struct {
-	ID      BlockID
-	KeyGen  KeyGen  // if valid, which generation of the TLFKeyBundle to use.
-	DataVer DataVer // if valid, which version of the KBFS data structures is pointed to
+	ID      BlockID `codec:"i"`
+	KeyGen  KeyGen  `codec:"k"` // if valid, which generation of the TLFKeyBundle to use.
+	DataVer DataVer `codec:"d"` // if valid, which version of the KBFS data structures is pointed to
 	// Creator is the UID that was first charged for the initial
 	// reference to this block.
-	Creator keybase1.UID
+	Creator keybase1.UID `codec:"c"`
 	// Writer is the UID that should be charged for this reference to
 	// the block.  If empty, it defaults to Creator.
 	Writer keybase1.UID `codec:"w,omitempty"`
@@ -395,7 +395,7 @@ type BlockInfo struct {
 	// encrypted) data contained in the block. When non-zero,
 	// always at least the size of the plaintext data contained in
 	// the block.
-	EncodedSize uint32
+	EncodedSize uint32 `codec:"e"`
 }
 
 // GetCreator implements the BlockContext interface for BlockPointer.
@@ -737,7 +737,7 @@ type IndirectDirPtr struct {
 	// TODO: Make sure that the block is not dirty when the EncodedSize
 	// field is non-zero.
 	BlockInfo
-	Off string
+	Off string `codec:"o"`
 }
 
 // IndirectFilePtr pairs an indirect file block with the start of that
@@ -746,14 +746,14 @@ type IndirectFilePtr struct {
 	// When the EncodedSize field is non-zero, the block must not
 	// be dirty.
 	BlockInfo
-	Off int64
+	Off int64 `codec:"o"`
 }
 
 // CommonBlock holds block data that is common for both subdirectories
 // and files.
 type CommonBlock struct {
 	// IsInd indicates where this block is so big it requires indirect pointers
-	IsInd bool
+	IsInd bool `codec:"s"`
 	// cachedEncodedSize is the locally-cached (non-serialized)
 	// encoded size for this block.
 	cachedEncodedSize uint32
@@ -778,9 +778,9 @@ func NewCommonBlock() Block {
 type DirBlock struct {
 	CommonBlock
 	// if not indirect, a map of path name to directory entry
-	Children map[string]DirEntry `codec:",omitempty"`
+	Children map[string]DirEntry `codec:"c,omitempty"`
 	// if indirect, contains the indirect pointers to the next level of blocks
-	IPtrs []IndirectDirPtr `codec:",omitempty"`
+	IPtrs []IndirectDirPtr `codec:"i,omitempty"`
 }
 
 // NewDirBlock creates a new, empty DirBlock.
@@ -809,9 +809,9 @@ func (db DirBlock) DeepCopy() *DirBlock {
 type FileBlock struct {
 	CommonBlock
 	// if not indirect, the full contents of this block
-	Contents []byte `codec:",omitempty"`
+	Contents []byte `codec:"c,omitempty"`
 	// if indirect, contains the indirect pointers to the next level of blocks
-	IPtrs []IndirectFilePtr `codec:",omitempty"`
+	IPtrs []IndirectFilePtr `codec:"i,omitempty"`
 }
 
 // NewFileBlock creates a new, empty FileBlock.
