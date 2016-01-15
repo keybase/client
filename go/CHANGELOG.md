@@ -1,3 +1,7 @@
+- Allow `keybase sigs revoke` to work with a prefix, and
+  have `keybase sigs list` display Sig IDs that will
+  work with `keybase sigs revoke` (PR: keybase/client#1739)
+- Fix `pgp gen` export to gpg error if gpg doesn't exist (PR: keybase/client#1735)
 - Binary mode for all saltpack commands (PR: keybase/client#1727)
 - All config save operations use transactions (PR: keybase/client#1724)
 
