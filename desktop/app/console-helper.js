@@ -13,17 +13,6 @@ const output = {
   error: process.stderr
 }
 
-const methods = ['log', 'error', 'info']
-const originalConsole = {}
-methods.forEach(k => {
-  originalConsole[k] = console[k]
-})
-
-// override console logging to also go to stdout
-const output = {
-  error: process.stderr
-}
-
 export default function pipeLogs () {
   if (!__DEV__ || getenv.boolish('KEYBASE_SHOW_DEVTOOLS', true)) { // eslint-disable-line no-undef
     return

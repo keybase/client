@@ -117,7 +117,6 @@ class Menubar extends Component {
   render () {
     const openingButtonInfo = this.props.username && {text: 'WTF?', onClick: this.showHelp}
     const {username} = this.props
-    // const {username} = {username: null}
     const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => {
       return {
         type: 'folder',
