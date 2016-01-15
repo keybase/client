@@ -400,10 +400,12 @@ func uninstallKBFS(g *libkb.GlobalContext) error {
 	if _, err := os.Stat(mountPath); os.IsNotExist(err) {
 		return nil
 	}
+	g.Log.Debug("Checking if mounted: %s", mountPath)
 	mounted, err := mounter.IsMounted(g, mountPath)
 	if err != nil {
 		return err
 	}
+	g.Log.Debug("Mounted: %s", mounted)
 	if mounted {
 		err = mounter.Unmount(g, mountPath, false)
 		if err != nil {
