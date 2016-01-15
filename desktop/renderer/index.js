@@ -78,7 +78,6 @@ class Keybase extends Component {
       sender.send('stateChange', getStore())
       store.subscribe(() => {
         const diffState = getStore()
-        console.log('Sending state change!', diffState)
         if (Object.keys(diffState).length !== 0) {
           sender.send('stateChange', diffState)
         }

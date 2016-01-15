@@ -177,13 +177,9 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 
     case Constants.markActiveIdentifyUi:
       const serverActive = action.payload && !!action.payload.active || false
-      // The server wasn't active and now it is, we reset closed state
-      const closed = !state.serverActive && serverActive ? true : state.closed
       return {
         ...state,
-        serverActive,
-        closed,
-        hidden: closed ? false : state.hidden
+        serverActive
       }
 
     case Constants.reportLastTrack:
@@ -314,9 +310,9 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
       return warning
     case 'revoked':
     case 'permFailure':
+    case 'none':
       return error
     case 'looking':
-    case 'none':
     default:
       return checking
   }
