@@ -217,13 +217,18 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
   /* eslint-disable arrow-parens */
   const sessionIDToUsername: { [key: number]: string } = {}
   const identifyUi = {
-    start: (params: {sessionID: number, username: string}) => {
-      const {username, sessionID} = params
+    start: (params: {sessionID: number, username: string, reason: {reason: string}}) => {
+      const {username, sessionID, reason} = params
       sessionIDToUsername[sessionID] = username
 
       dispatch({
         type: Constants.updateUsername,
         payload: {username}
+      })
+
+      dispatch({
+        type: Constants.updateReason,
+        payload: {username, reason: reason && reason.reason}
       })
 
       dispatch({

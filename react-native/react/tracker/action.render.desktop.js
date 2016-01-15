@@ -107,7 +107,7 @@ ActionRender.propTypes = {
   onRefollow: React.PropTypes.func.isRequired,
   onUnfollow: React.PropTypes.func.isRequired,
   onFollowChecked: React.PropTypes.func.isRequired,
-  renderChangedTitle: React.PropTypes.string.isRequired,
+  renderChangedTitle: React.PropTypes.string,
   failedProofsNotFollowingText: React.PropTypes.string.isRequired,
   style: React.PropTypes.object.isRequired,
   currentlyFollowing: React.PropTypes.bool.isRequired

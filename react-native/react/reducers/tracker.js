@@ -4,7 +4,6 @@
 import {showAllTrackers} from '../local-debug'
 
 import * as Constants from '../constants/tracker'
-import * as ConfigConstants from '../constants/config'
 
 import {normal, warning, error, checking} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaDeleted} from '../constants/tracker'
@@ -24,7 +23,7 @@ export type TrackerState = {
   trackerMessage: ?string,
   username: string,
   shouldFollow: ?boolean,
-  reason: string,
+  reason: ?string,
   userInfo: UserInfo,
   proofs: Array<Proof>,
   closed: boolean,
@@ -54,7 +53,7 @@ function initialTrackerState (username: string): TrackerState {
     trackerMessage: null,
     shouldFollow: true,
     proofs: [],
-    reason: '', // TODO: get the reason
+    reason: null,
     closed: true,
     lastTrack: null,
     trackToken: null,
@@ -81,6 +80,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         shouldFollow
+      }
+    case Constants.updateReason:
+      return {
+        ...state,
+        reason: action.payload && action.payload.reason
       }
     case Constants.updateTrackToken:
       return {

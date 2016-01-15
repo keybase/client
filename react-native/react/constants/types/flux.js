@@ -5,7 +5,7 @@
 // https://github.com/facebook/flow/issues/582
 export type TypedAction<T, P, E> = {
   type: T,
-  payload?: P,
+  payload?: ?P,
   error?: boolean
 }
 
