@@ -35,26 +35,35 @@ func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 
 func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, promptConfirm string) (keybase1.GetPassphraseRes, error) {
 	prompter := newClientPrompter(g)
-	res, err := libkb.GetPassphraseUntilCheck(arg, prompter, &libkb.CheckPassphraseNew)
-	if err != nil {
-		return keybase1.GetPassphraseRes{}, err
+
+	firstPrompt := arg.Prompt
+
+	for i := 0; i < 10; i++ {
+		// get the first passphrase
+		res, err := libkb.GetPassphraseUntilCheck(arg, prompter, &libkb.CheckPassphraseNew)
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, err
+		}
+
+		// get confirmation passphrase
+		arg.RetryLabel = ""
+		arg.Prompt = promptConfirm
+		confirm, err := libkb.GetPassphraseUntilCheck(arg, prompter, &libkb.CheckPassphraseNew)
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, err
+		}
+
+		if res.Passphrase == confirm.Passphrase {
+			// success
+			return res, nil
+		}
+
+		// setup the prompt, label for new first attempt
+		arg.Prompt = firstPrompt
+		arg.RetryLabel = "Passphrase mismatch"
 	}
 
-	// get confirmation
-	match := &libkb.Checker{
-		F: func(s string) bool {
-			return s == res.Passphrase
-		},
-		Hint: "Passphrase mismatch",
-	}
-	arg.RetryLabel = ""
-	arg.Prompt = promptConfirm
-	_, err = libkb.GetPassphraseUntilCheck(arg, prompter, match)
-	if err != nil {
-		return keybase1.GetPassphraseRes{}, err
-	}
-
-	return res, nil
+	return keybase1.GetPassphraseRes{}, libkb.RetryExhaustedError{}
 }
 
 type clientPrompter struct {
