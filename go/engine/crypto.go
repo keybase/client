@@ -112,7 +112,7 @@ func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybas
 	}
 
 	// decrypt the bundle's ciphertext
-	plaintext, err := unboxBytes32(key, arg.Bundles[index].Ciphertext, arg.Bundles[index].Nonce, arg.Bundles[index].EPublicKey)
+	plaintext, err := unboxBytes32(key, arg.Bundles[index].Ciphertext, arg.Bundles[index].Nonce, arg.Bundles[index].PublicKey)
 	if err != nil {
 		return res, err
 	}

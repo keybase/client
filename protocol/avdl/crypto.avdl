@@ -45,7 +45,7 @@ protocol crypto {
     KID kid;
     EncryptedBytes32 ciphertext;
     BoxNonce nonce;
-    BoxPublicKey ePublicKey;
+    BoxPublicKey publicKey;
   }
 
   record UnboxAnyRes {

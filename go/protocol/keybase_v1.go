@@ -680,7 +680,7 @@ type CiphertextBundle struct {
 	Kid        KID              `codec:"kid" json:"kid"`
 	Ciphertext EncryptedBytes32 `codec:"ciphertext" json:"ciphertext"`
 	Nonce      BoxNonce         `codec:"nonce" json:"nonce"`
-	EPublicKey BoxPublicKey     `codec:"ePublicKey" json:"ePublicKey"`
+	PublicKey  BoxPublicKey     `codec:"publicKey" json:"publicKey"`
 }
 
 type UnboxAnyRes struct {

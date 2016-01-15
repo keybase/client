@@ -639,14 +639,14 @@ export type crypto_CiphertextBundle = {
   kid: KID;
   ciphertext: EncryptedBytes32;
   nonce: BoxNonce;
-  ePublicKey: BoxPublicKey;
+  publicKey: BoxPublicKey;
 }
 
 export type CiphertextBundle = {
   kid: KID;
   ciphertext: EncryptedBytes32;
   nonce: BoxNonce;
-  ePublicKey: BoxPublicKey;
+  publicKey: BoxPublicKey;
 }
 
 export type crypto_UnboxAnyRes = {

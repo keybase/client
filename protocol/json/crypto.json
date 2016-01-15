@@ -259,7 +259,7 @@
       "name" : "nonce",
       "type" : "BoxNonce"
     }, {
-      "name" : "ePublicKey",
+      "name" : "publicKey",
       "type" : "BoxPublicKey"
     } ]
   }, {
