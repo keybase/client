@@ -11,23 +11,19 @@
     "build-prod": "NODE_ENV=production webpack --config webpack.config.production.js --progress --profile --colors",
     "package": "NODE_ENV=production node package.js",
     "hot-server": "HOT=true NODE_ENV=production DEBUG='express:*' node server.js",
-    "postinstall": "./node_modules/.bin/electron-rebuild",
-    "inject-sourcemaps-prod": "a(){ cp \"$1\"/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a"
+    "inject-sourcemaps-prod": "a(){ cp \"$1\"/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a",
+    "electron-rebuild": "./node_modules/.bin/electron-rebuild"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "babel": "^5.8.34",
-    "babel-core": "^5.8.34",
-    "babel-loader": "^5.4.0",
-    "babel-runtime": "^5.8.34",
     "font-awesome": "^4.4.0",
     "framed-msgpack-rpc": "keybase/node-framed-msgpack-rpc#nojima/keybase-client-changes",
     "getenv": "^0.6.0",
     "immutable": "^3.7.5",
-    "lodash": "^3.10.1",
+    "lodash": "^4.0.0",
     "marked": "^0.3.5",
     "material-ui": "^0.14.1",
     "menubar": "keybase/menubar",
@@ -35,10 +31,6 @@
     "purepack": "keybase/purepack#nojima/keybase-client-changes",
     "qrcode-generator": "^1.0.0",
     "react": "^0.14.6",
-    "react-addons-create-fragment": "^0.14.6",
-    "react-addons-pure-render-mixin": "^0.14.6",
-    "react-addons-transition-group": "^0.14.6",
-    "react-addons-update": "^0.14.6",
     "react-dom": "^0.14.6",
     "react-flexbox": "^3.0.0",
     "react-redux": "^4.0.6",
@@ -48,11 +40,15 @@
     "redux-thunk": "^1.0.3"
   },
   "devDependencies": {
+    "babel": "^5.8.34",
+    "babel-core": "^5.8.34",
+    "babel-loader": "^5.4.0",
+    "babel-runtime": "^5.8.34",
     "babel-eslint": "^4.1.5",
     "babel-plugin-react-transform": "^1.1.1",
     "del": "^2.2.0",
     "electron-packager": "^5.1.0",
-    "electron-prebuilt": "0.36.3",
+    "electron-prebuilt": "0.36.4",
     "electron-rebuild": "^1.0.1",
     "eslint": "^1.10.3",
     "eslint-config-standard": "^4.4.0",
@@ -74,6 +70,6 @@
     "webpack-dev-middleware": "^1.4.0",
     "webpack-dev-server": "^1.14.0",
     "webpack-hot-middleware": "^2.6.0",
-    "webpack-target-electron-renderer": "^0.3.0"
+    "webpack-target-electron-renderer": "^0.4.0"
   }
 }

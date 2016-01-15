@@ -75,11 +75,24 @@ class Keybase extends Component {
         return diffState
       }
 
-      sender.send('stateChange', getStore())
-      store.subscribe(() => {
+      if (!sender.isDestroyed()) {
+        sender.send('stateChange', getStore())
+      }
+
+      let unsubscribe = store.subscribe(() => {
+        if (sender.isDestroyed()) {
+          if (unsubscribe) {
+            unsubscribe()
+            unsubscribe = null
+          }
+          return
+        }
+
         const diffState = getStore()
         if (Object.keys(diffState).length !== 0) {
-          sender.send('stateChange', diffState)
+          if (sender.isDestroyed()) { // We need this extra check due to timing issues
+            sender.send('stateChange', diffState)
+          }
         }
       })
     })
