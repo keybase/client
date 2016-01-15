@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-func importTrackingLink(t *testing.T) *libkb.TrackChainLink {
+func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
 	jw, err := jsonw.Unmarshal([]byte(trackingServerReply))
 	if err != nil {
 		t.Fatal(err)
 	}
-	cl, err := libkb.ImportLinkFromServer(nil, jw, trackingUID)
+	cl, err := libkb.ImportLinkFromServer(g, nil, jw, trackingUID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,7 +28,7 @@ func importTrackingLink(t *testing.T) *libkb.TrackChainLink {
 }
 
 func TestIdentify2WithUIDImportTrackingLink(t *testing.T) {
-	link := importTrackingLink(t)
+	link := importTrackingLink(t, nil)
 	if link == nil {
 		t.Fatalf("link import failed")
 	}
@@ -179,7 +179,7 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 
 	eng.testArgs = &Identify2WithUIDTestArgs{
 		noMe: true,
-		tcl:  importTrackingLink(t),
+		tcl:  importTrackingLink(t, tc.G),
 	}
 
 	ctx := Context{IdentifyUI: i}
@@ -204,7 +204,7 @@ func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
 
 	eng.testArgs = &Identify2WithUIDTestArgs{
 		noMe: true,
-		tcl:  importTrackingLink(t),
+		tcl:  importTrackingLink(t, tc.G),
 	}
 	i.checkStatusHook = func(l libkb.SigHint) libkb.ProofError {
 		if strings.Contains(l.GetHumanURL(), "twitter") {

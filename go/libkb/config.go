@@ -112,7 +112,7 @@ func (f JSONConfigFile) GetDurationAtPath(p string) (time.Duration, bool) {
 func (f JSONConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
 	f.jw.AtKey(s).GetStringVoid(&ret, &e)
-	f.G().Log.Debug("Config: mapping %s -> %s", s, ret)
+	f.G().VDL.Log(VLog1, "Config: mapping %q -> %q", s, ret)
 	return
 }
 
@@ -450,6 +450,9 @@ func (f JSONConfigFile) GetProxy() string {
 }
 func (f JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
+}
+func (f JSONConfigFile) GetVDebugSetting() string {
+	return f.GetTopLevelString("vdebug")
 }
 func (f JSONConfigFile) GetAutoFork() (bool, bool) {
 	return f.GetTopLevelBool("auto_fork")
