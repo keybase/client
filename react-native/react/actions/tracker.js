@@ -121,7 +121,7 @@ export function onRefollow (username: string): TrackerActionCreator {
     trackUser(trackToken)
       .then(dispatchAction)
       .catch(err => {
-        console.error('Couldn\'t track user:', err)
+        console.error(`Couldn't track user:`, err)
         dispatchAction()
       })
   }
