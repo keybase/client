@@ -194,9 +194,9 @@ Recipients parse the header of a message using the following steps:
    **payload key** from #7 and the nonce `saltpack_sender_key_sbox`
 8. Compute the recipient's **MAC key** by encrypting 32 zero bytes using
    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's private
-   key, the sender's public key from #8, and the first 24 bytes of the hash
-   from #3 as a nonce. The **MAC key** is the last 32 bytes of the resulting
-   box.
+   key, the sender's public key from #8, and the first 24 bytes of the **header
+   hash** from #2 as a nonce. The **MAC key** is the last 32 bytes of the
+   resulting box.
 
 If the recipient's public key is shown in the **recipients list** (that is, if
 the recipient is not anonymous), clients may skip all the other **payload key
