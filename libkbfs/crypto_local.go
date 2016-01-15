@@ -140,5 +140,14 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	return
 }
 
+// DecryptTLFCryptKeyClientHalfAny implements the Crypto interface for
+// CryptoLocal.
+func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
+	keys []EncryptedTLFCryptKeyClientAndEphemeral) (
+	clientHalf TLFCryptKeyClientHalf, index int, err error) {
+	// TODO finish implementing
+	return
+}
+
 // Shutdown implements the Crypto interface for CryptoLocal.
 func (c *CryptoLocal) Shutdown() {}

@@ -157,39 +157,8 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 // DecryptTLFCryptKeyClientHalfAny implements the Crypto interface for
 // CryptoClient.
 func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
-	publicKey TLFEphemeralPublicKey,
-	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
-	clientHalf TLFCryptKeyClientHalf, err error) {
-	if encryptedClientHalf.Version != EncryptionSecretbox {
-		err = UnknownEncryptionVer{encryptedClientHalf.Version}
-		return
-	}
-
-	var encryptedData keybase1.EncryptedBytes32
-	if len(encryptedClientHalf.EncryptedData) != len(encryptedData) {
-		err = libkb.DecryptionError{}
-		return
-	}
-	copy(encryptedData[:], encryptedClientHalf.EncryptedData)
-
-	var nonce keybase1.BoxNonce
-	if len(encryptedClientHalf.Nonce) != len(nonce) {
-		err = InvalidNonceError{encryptedClientHalf.Nonce}
-		return
-	}
-	copy(nonce[:], encryptedClientHalf.Nonce)
-
-	decryptedClientHalf, err := c.client.UnboxBytes32(ctx, keybase1.UnboxBytes32Arg{
-		EncryptedBytes32: encryptedData,
-		Nonce:            nonce,
-		PeersPublicKey:   keybase1.BoxPublicKey(publicKey.data),
-		Reason:           "to use kbfs",
-	})
-	if err != nil {
-		return
-	}
-
-	clientHalf = MakeTLFCryptKeyClientHalf(decryptedClientHalf)
+	keys []EncryptedTLFCryptKeyClientAndEphemeral) (
+	clientHalf TLFCryptKeyClientHalf, index int, err error) {
 	return
 }
 

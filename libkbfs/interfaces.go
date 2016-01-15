@@ -572,6 +572,13 @@ type Crypto interface {
 		encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 		TLFCryptKeyClientHalf, error)
 
+	// DecryptTLFCryptKeyClientHalfAny decrypts one of the
+	// TLFCryptKeyClientHalf using the available private keys and the ephemeral
+	// public key.
+	DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
+		keys []EncryptedTLFCryptKeyClientAndEphemeral) (
+		TLFCryptKeyClientHalf, int, error)
+
 	// GetTLFCryptKeyServerHalfID creates a unique ID for this particular
 	// TLFCryptKeyServerHalf.
 	GetTLFCryptKeyServerHalfID(
