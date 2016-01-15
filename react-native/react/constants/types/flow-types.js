@@ -4,15 +4,6 @@ export type int = number
 export type long = number
 export type double = number
 export type bytes = any
-export type BlockRefNonce = any
-export type ED25519PublicKey = any
-export type ED25519Signature = any
-export type Time = number
-export type SigID = string
-export type EncryptedBytes32 = any
-export type Bytes32 = any
-export type NaclDHKeyPrivate = any
-export type NaclSigningKeyPrivate = any
 export type account_Feature = {
   allow: boolean;
   defaultValue: boolean;
@@ -68,6 +59,9 @@ export type GetPassphraseRes = {
 export type block_Time = {
 }
 
+export type Time = {
+}
+
 export type block_StringKVPair = {
   key: string;
   value: string;
@@ -105,6 +99,9 @@ export type DeviceID = {
 }
 
 export type block_SigID = {
+}
+
+export type SigID = {
 }
 
 export type block_KID = {
@@ -260,6 +257,10 @@ export type GetBlockRes = {
   blockKey: string;
   buf: bytes;
 }
+
+export type block_BlockRefNonce = any
+
+export type BlockRefNonce = any
 
 export type block_BlockReference = {
   bid: BlockIdCombo;
@@ -600,6 +601,14 @@ export type crypto_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type crypto_ED25519PublicKey = any
+
+export type ED25519PublicKey = any
+
+export type crypto_ED25519Signature = any
+
+export type ED25519Signature = any
+
 export type crypto_ED25519SignatureInfo = {
   sig: ED25519Signature;
   publicKey: ED25519PublicKey;
@@ -609,6 +618,22 @@ export type ED25519SignatureInfo = {
   sig: ED25519Signature;
   publicKey: ED25519PublicKey;
 }
+
+export type crypto_Bytes32 = any
+
+export type Bytes32 = any
+
+export type crypto_EncryptedBytes32 = any
+
+export type EncryptedBytes32 = any
+
+export type crypto_BoxNonce = any
+
+export type BoxNonce = any
+
+export type crypto_BoxPublicKey = any
+
+export type BoxPublicKey = any
 
 export type crypto_CiphertextBundle = {
   kid: KID;
@@ -4252,6 +4277,22 @@ export type SecretKeys_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type SecretKeys_NaclSigningKeyPublic = any
+
+export type NaclSigningKeyPublic = any
+
+export type SecretKeys_NaclSigningKeyPrivate = any
+
+export type NaclSigningKeyPrivate = any
+
+export type SecretKeys_NaclDHKeyPublic = any
+
+export type NaclDHKeyPublic = any
+
+export type SecretKeys_NaclDHKeyPrivate = any
+
+export type NaclDHKeyPrivate = any
 
 export type SecretKeys_SecretKeys = {
   signing: NaclSigningKeyPrivate;

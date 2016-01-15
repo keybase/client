@@ -11,15 +11,6 @@ export type int = number
 export type long = number
 export type double = number
 export type bytes = any
-export type BlockRefNonce = any
-export type ED25519PublicKey = any
-export type ED25519Signature = any
-export type Time = number
-export type SigID = string
-export type EncryptedBytes32 = any
-export type Bytes32 = any
-export type NaclDHKeyPrivate = any
-export type NaclSigningKeyPrivate = any
 `
 
 function jsonOnly (file) {
@@ -31,11 +22,6 @@ function load (file) {
 }
 
 var seenTypes = {
-  Time: true, // from prelude
-  BlockRefNonce: true, // from prelude
-  ED25519PublicKey: true, // from prelude
-  ED25519Signature: true, // from prelude
-  SigID: true // from prelude
 }
 
 function analyze (json) {
@@ -45,10 +31,23 @@ function analyze (json) {
         return addRecord(json.protocol + '_', t)
       case 'enum':
         return addEnum(json.protocol + '_', t)
+      case 'fixed':
+        return addFixed(json.protocol + '_', t)
       default:
         return ''
     }
   })
+}
+
+function addFixed (namespace, t) {
+  var typeDef = `export type ${namespace}${t.name} = any`
+  typeDef += '\n\n'
+
+  if (!seenTypes[t.name]) {
+    seenTypes[t.name] = true
+    typeDef += addFixed('', t)
+  }
+  return typeDef
 }
 
 function addEnum (namespace, t) {
