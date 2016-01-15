@@ -7,10 +7,18 @@
 
 set -e -u -o pipefail
 
-version_file="$(dirname "$BASH_SOURCE")/../go/libkb/version.go"
+here="$(dirname "$BASH_SOURCE")"
+mode="$("$here/build_mode.sh" "$@")"
 
+version_file="$(dirname "$BASH_SOURCE")/../go/libkb/version.go"
 version="$(cat "$version_file" | grep 'Version =' | grep -oE '[0-9]+(.[0-9]+)+')"
 
-build_number="$(cat "$version_file" | grep 'Build =' | grep -oE '[0-9]+')"
+if [ "$mode" = "production" ] ; then
+  build="$(cat "$version_file" | grep 'Build =' | grep -oE '[0-9]+')"
+else
+  current_date="$(date -u +%Y%m%d%H%M%S)" # UTC
+  commit_short="$(git -C "$here" log -1 --pretty=format:%h)"
+  build="$current_date+$commit_short"
+fi
 
-echo "$version-$build_number"
+echo "$version-$build"
