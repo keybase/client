@@ -9,7 +9,7 @@ import {intersperse} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
 
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Text, Input, Terminal, Icon} from '../common-adapters/index.desktop.js'
+import {Text, Input, Terminal, Icon} from '../common-adapters/index'
 
 import {CircularProgress} from 'material-ui'
 import {cleanup, allowLoggedOut as allowLoggedOutKBFS} from '../util/kbfs'

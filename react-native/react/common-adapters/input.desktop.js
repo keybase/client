@@ -83,7 +83,7 @@ Input.propTypes = {
   rows: React.PropTypes.number,
   rowsMax: React.PropTypes.number,
   style: React.PropTypes.object,
-  type: React.PropTypes.string,
+  type: React.PropTypes.oneOf(['password', 'text']),
   value: React.PropTypes.string,
   small: React.PropTypes.bool
 }

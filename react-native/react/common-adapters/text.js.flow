@@ -3,7 +3,7 @@
 import React, {Component} from '../base-react'
 
 export type Props = {
-  type: 'Header' | 'Body',
+  type: 'Header' | 'Body' | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty',
   link?: bool,
   small?: bool,
   reversed?: bool,
