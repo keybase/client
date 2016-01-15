@@ -67,7 +67,7 @@ func (ds *decryptStream) read(b []byte) (n int, err error) {
 		return n, nil
 	}
 
-	// We have three states we can be in, but we can definitely
+	// We have two states we can be in, but we can definitely
 	// fall through during one read, so be careful.
 
 	if ds.state == stateBody {

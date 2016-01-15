@@ -18,7 +18,7 @@
 - 15 Dec 2015
   - Initial version.
 
-The main building block of our encrypted message format will be NaCl's
+The main building block of our encrypted message format is NaCl's
 [box](http://nacl.cr.yp.to/box.html) and
 [secretbox](http://nacl.cr.yp.to/secretbox.html) constructions. These have
 several properties that we'll want to keep:
