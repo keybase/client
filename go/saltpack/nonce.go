@@ -13,7 +13,7 @@ type Nonce [NonceBytes]byte
 
 func nonceForSenderKeySecretBox() *Nonce {
 	var n Nonce
-	copy(n[:], "saltpack_sender_secbox\x00\x00")
+	copy(n[:], "saltpack_sender_key_sbox")
 	return &n
 }
 

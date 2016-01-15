@@ -131,8 +131,8 @@ header:
    [`crypto_box_keypair`](http://nacl.cr.yp.to/box.html).
 3. Encrypt the sender's long-term public key using
    [`crypto_secretbox`](http://nacl.cr.yp.to/secretbox.html) with the **payload
-   key** and the nonce `saltpack_sender_secbox\0\0`, to create the **sender
-   secretbox**. (`\0` is a null byte.)
+   key** and the nonce `saltpack_sender_key_sbox`, to create the **sender
+   secretbox**.
 4. For each recipient, encrypt the **payload key** using
    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's public
    key, the ephemeral private key, and the nonce
@@ -191,7 +191,7 @@ Recipients parse the header of a message using the following steps:
    is the **recipient index**.
 7. Open the **sender secretbox** using
    [`crypto_secretbox_open`](http://nacl.cr.yp.to/secretbox.html) with the
-   **payload key** from #7 and the nonce `saltpack_sender_secbox\0\0`
+   **payload key** from #7 and the nonce `saltpack_sender_key_sbox`
 8. Compute the recipient's **MAC key** by encrypting 32 zero bytes using
    [`crypto_box`](http://nacl.cr.yp.to/box.html) with the recipient's private
    key, the sender's public key from #8, and the first 24 bytes of the hash
