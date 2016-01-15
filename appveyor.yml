@@ -43,9 +43,11 @@ build_script:
   - go env
   - go build
   - cd ..
-# Eventually there will be more tests, but let's just start with libkbfs for now
+# Eventually there will be more tests, but let's just start with these for now
 #  - go list ./... | find /V "vendor" > testlist.txt
-  - echo github.com/keybase/kbfs/libkbfs > testlist.txt
+  - echo github.com/keybase/kbfs/dokan > testlist.txt
+  - echo github.com/keybase/kbfs/libkbfs >> testlist.txt
+  - echo github.com/keybase/kbfs/libdokan >> testlist.txt
   - for /f %%i in (testlist.txt) do (appveyor AddTest %%i -Outcome Running -Framework gotest -Filename %%i & go test -timeout 5m %%i && appveyor UpdateTest %%i -Outcome Passed -Framework gotest -Filename %%i -Duration 0) || (appveyor UpdateTest %%i -Outcome Failed -Framework gotest -Filename %%i -Duration 0 & exit /b 1) 
 
 # to disable automatic builds
