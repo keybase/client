@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"reflect"
-	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -79,7 +77,7 @@ func (a *testProtocol) DivMod(args *DivModArgs) (ret *DivModRes, err error) {
 
 func (a *testProtocol) UpdateConstants(args *Constants) error {
 	a.constants = *args
-	a.notifyCh <- struct{}{}
+	close(a.notifyCh)
 	return nil
 }
 
@@ -90,7 +88,7 @@ func (a *testProtocol) GetConstants() (*Constants, error) {
 
 func (a *testProtocol) LongCall(ctx context.Context) (int, error) {
 	defer func() {
-		a.notifyCh <- struct{}{}
+		close(a.notifyCh)
 	}()
 	a.longCallResult = 0
 	for i := 0; i < 100; i++ {
@@ -260,104 +258,4 @@ func (a TestClient) LongCall(ctx context.Context) (ret int, err error) {
 func (a TestClient) LongCallResult(ctx context.Context) (ret int, err error) {
 	err = a.Call(ctx, "test.1.testp.LongCallResult", nil, &ret)
 	return
-}
-
-// mockCodec uses a slice instead of a simple channel wrapper because
-// we need to be able to peek at the head element without removing it
-type mockCodec struct {
-	elems []interface{}
-	mtx   sync.Mutex
-}
-
-func newMockCodec(elems ...interface{}) *mockCodec {
-	md := &mockCodec{
-		elems: make([]interface{}, 0, 32),
-	}
-	for _, i := range elems {
-		md.elems = append(md.elems, i)
-	}
-	return md
-}
-
-func (md *mockCodec) Decode(i interface{}) error {
-	return md.decode(i)
-}
-
-func (md *mockCodec) ReadByte() (b byte, err error) {
-	err = md.Decode(&b)
-	return b, err
-}
-
-func (md *mockCodec) Encode(i interface{}) <-chan error {
-	return md.encode(i, nil)
-}
-
-func (md *mockCodec) encode(i interface{}, ch chan struct{}) <-chan error {
-	resultCh := make(chan error, 1)
-	v := reflect.ValueOf(i)
-	if v.Kind() == reflect.Slice {
-		for i := 0; i < v.Len(); i++ {
-			e := v.Index(i).Interface()
-			md.mtx.Lock()
-			md.elems = append(md.elems, e)
-			md.mtx.Unlock()
-			if ch != nil {
-				ch <- struct{}{}
-			}
-		}
-		resultCh <- nil
-	} else {
-		resultCh <- errors.New("only support encoding slices")
-	}
-	return resultCh
-}
-
-func (md *mockCodec) decode(i interface{}) error {
-	md.mtx.Lock()
-	defer md.mtx.Unlock()
-	if len(md.elems) == 0 {
-		return errors.New("Tried to decode too many elements")
-	}
-	v := reflect.ValueOf(i).Elem()
-	d := reflect.ValueOf(md.elems[0])
-	if d.IsValid() {
-		if !d.Type().AssignableTo(v.Type()) {
-			return fmt.Errorf("Tried to decode incorrect type. Expected: %v, actual: %v", v.Type(), d.Type())
-		}
-		v.Set(d)
-	}
-	md.elems = md.elems[1:]
-	return nil
-}
-
-type blockingMockCodec struct {
-	mockCodec
-	ch chan struct{}
-}
-
-func newBlockingMockCodec(elems ...interface{}) *blockingMockCodec {
-	md := newMockCodec(elems...)
-	return &blockingMockCodec{
-		mockCodec: *md,
-		ch:        make(chan struct{}, 32),
-	}
-}
-
-func (md *blockingMockCodec) Decode(i interface{}) error {
-	<-md.ch
-	return md.decode(i)
-}
-
-func (md *blockingMockCodec) Encode(i interface{}) <-chan error {
-	return md.encode(i, md.ch)
-}
-
-type mockErrorUnwrapper struct{}
-
-func (eu *mockErrorUnwrapper) MakeArg() interface{} {
-	return new(int)
-}
-
-func (eu *mockErrorUnwrapper) UnwrapError(i interface{}) (appErr error, dispatchErr error) {
-	return nil, nil
 }

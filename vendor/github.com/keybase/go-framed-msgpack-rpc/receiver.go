@@ -125,7 +125,7 @@ func (r *receiveHandler) receiveResponse(rpc *rpcResponseMessage) (err error) {
 
 	if callResponseCh == nil {
 		r.log.UnexpectedReply(rpc.SeqNo())
-		return CallNotFoundError{rpc.SeqNo()}
+		return newCallNotFoundError(rpc.SeqNo())
 	}
 
 	callResponseCh <- rpc

@@ -4,6 +4,10 @@ import (
 	"fmt"
 )
 
+type RPCErrorWrapper struct {
+	error
+}
+
 type PacketizerError struct {
 	msg string
 }
@@ -13,7 +17,7 @@ func (p PacketizerError) Error() string {
 }
 
 func NewPacketizerError(d string, a ...interface{}) PacketizerError {
-	return PacketizerError{fmt.Sprintf(d, a...)}
+	return PacketizerError{msg: fmt.Sprintf(d, a...)}
 }
 
 type DispatcherError struct {
@@ -25,7 +29,7 @@ func (p DispatcherError) Error() string {
 }
 
 func NewDispatcherError(d string, a ...interface{}) DispatcherError {
-	return DispatcherError{fmt.Sprintf(d, a...)}
+	return DispatcherError{msg: fmt.Sprintf(d, a...)}
 }
 
 type ReceiverError struct {
@@ -37,12 +41,19 @@ func (p ReceiverError) Error() string {
 }
 
 func NewReceiverError(d string, a ...interface{}) ReceiverError {
-	return ReceiverError{fmt.Sprintf(d, a...)}
+	return ReceiverError{msg: fmt.Sprintf(d, a...)}
 }
 
 type MethodNotFoundError struct {
 	p string
 	m string
+}
+
+func newMethodNotFoundError(p, m string) MethodNotFoundError {
+	return MethodNotFoundError{
+		p: p,
+		m: m,
+	}
 }
 
 func (m MethodNotFoundError) Error() string {
@@ -53,12 +64,20 @@ type ProtocolNotFoundError struct {
 	p string
 }
 
+func newProtocolNotFoundError(p string) ProtocolNotFoundError {
+	return ProtocolNotFoundError{p: p}
+}
+
 func (p ProtocolNotFoundError) Error() string {
 	return "protocol not found: " + p.p
 }
 
 type AlreadyRegisteredError struct {
 	p string
+}
+
+func newAlreadyRegisteredError(p string) AlreadyRegisteredError {
+	return AlreadyRegisteredError{p: p}
 }
 
 func (a AlreadyRegisteredError) Error() string {
@@ -73,28 +92,16 @@ func (t TypeError) Error() string {
 	return t.p
 }
 
-func NewTypeError(expected, actual interface{}) error {
-	return TypeError{fmt.Sprintf("Invalid type for arguments. Expected: %T, actual: %T", expected, actual)}
-}
-
-type CanceledError struct {
-	m string
-	s seqNumber
-}
-
-func newCanceledError(method string, seq seqNumber) CanceledError {
-	return CanceledError{
-		m: method,
-		s: seq,
-	}
-}
-
-func (c CanceledError) Error() string {
-	return fmt.Sprintf("call canceled: method %s, seqid %d", c.m, c.s)
+func NewTypeError(expected, actual interface{}) TypeError {
+	return TypeError{p: fmt.Sprintf("Invalid type for arguments. Expected: %T, actual: %T", expected, actual)}
 }
 
 type CallNotFoundError struct {
 	seqno seqNumber
+}
+
+func newCallNotFoundError(s seqNumber) CallNotFoundError {
+	return CallNotFoundError{seqno: s}
 }
 
 func (c CallNotFoundError) Error() string {
@@ -110,20 +117,20 @@ func (c NilResultError) Error() string {
 }
 
 type RPCDecodeError struct {
+	err error
 	typ MethodType
 	len int
-	err error
 }
 
 func (r RPCDecodeError) Error() string {
 	return fmt.Sprintf("RPC error: type %d, length %d, error: %v", r.typ, r.len, r.err)
 }
 
-func newRPCDecodeError(t MethodType, l int, e error) error {
+func newRPCDecodeError(t MethodType, l int, e error) RPCDecodeError {
 	return RPCDecodeError{
+		err: e,
 		typ: t,
 		len: l,
-		err: e,
 	}
 }
 
