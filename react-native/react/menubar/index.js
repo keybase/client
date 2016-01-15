@@ -21,7 +21,8 @@ export type MenubarProps = {
   username: ?string,
   folders: ?Array<Folder>,
   favoriteList: () => void,
-  debug: ?boolean
+  debug: ?boolean,
+  loggedIn: ?boolean
 }
 
 class Menubar extends Component {
@@ -144,6 +145,7 @@ class Menubar extends Component {
       quit={() => remote.app.quit()}
       folders={folders}
       loading={this.state.loading && !!username}
+      loggedIn={this.props.loggedIn}
     />
   }
 }

@@ -16,7 +16,7 @@ import {cleanup, allowLoggedOut as allowLoggedOutKBFS} from '../util/kbfs'
 import {NotifyPopup} from '../native/notifications'
 
 // This is the only data that the renderer cares about for a folder
-import type {FolderInfo} from './index.render'
+import type {FolderInfo, FolderEntry} from './index.render'
 
 function iconPath (isPublic, isEmpty) {
   const pubPart = isPublic ? 'public' : 'private'
@@ -93,19 +93,20 @@ export default class Render extends Component {
     },
     folders: Array<FolderInfo>,
     debug?: boolean,
-    loading: boolean
+    loading: boolean,
+    loggedIn: boolean
   };
 
   render (): ReactElement {
-    const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, showUser, quit, username} = this.props
+    const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, showUser, quit, username, loggedIn} = this.props
 
     return (
       <div style={styles.container}>
         <div style={styles.arrow}/>
         <div style={styles.body}>
           <Header openKBFS={openKBFS} showUser={() => showUser(username)}/>
-          {!this.props.username && <LoggedoutMessage />}
-          <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders}/>
+          {!loggedIn && <LoggedoutMessage />}
+          <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders} loggedIn={loggedIn}/>
           <Footer debug={this.props.debug || false} showHelp={showHelp} quit={quit} showMain={showMain}/>
         </div>
       </div>
@@ -135,7 +136,7 @@ const FolderRow = props => {
     key={isPublic + line}/>
 }
 
-const FolderEntry = props => {
+const FolderEntryRow = props => {
   const {key, entry} = props
   let inputRef = null
 
@@ -177,7 +178,7 @@ const ShowAll = props => {
 class CollapsableFolderList extends Component {
   props: {
     username: ?string,
-    folders: Array<FolderInfo>,
+    folders: Array<FolderInfo|FolderEntry>,
     folderDisplayLimit: number,
     collapsed: boolean,
     onExpand: Function,
@@ -202,7 +203,7 @@ class CollapsableFolderList extends Component {
           const key = f.type === 'entry' ? `entry${f.prefix}` : `${f.isPublic}:${f.folderName}`
 
           if (f.type === 'entry') {
-            return <FolderEntry key={key} entry={f} />
+            return <FolderEntryRow key={key} entry={f} />
           } else {
             return <FolderRow key={key} username={username} folder={f}/>
           }
@@ -219,7 +220,8 @@ class FolderList extends Component {
     username: ?string,
     folders: Array<FolderInfo>,
     openKBFSPublic: (username: ?string) => void,
-    openKBFSPrivate: (username: ?string) => void
+    openKBFSPrivate: (username: ?string) => void,
+    loggedIn: boolean
   };
 
   state: {
@@ -236,9 +238,9 @@ class FolderList extends Component {
   }
 
   render () {
-    const {username} = this.props
+    const {username, loggedIn} = this.props
 
-    if (!this.props.username && !allowLoggedOutKBFS) {
+    if (!loggedIn && !allowLoggedOutKBFS) {
       return <div style={{flex: 1, backgroundColor: globalColors.grey5}}/>
     }
 
@@ -249,7 +251,7 @@ class FolderList extends Component {
     let privateFolders = []
     let publicFolders = []
 
-    if (username) {
+    if (loggedIn && username) {
       const personalPrivateFolder: FolderInfo = {
         type: 'folder',
         folderName: username,
@@ -259,7 +261,7 @@ class FolderList extends Component {
       }
       privateFolders.push(personalPrivateFolder)
 
-      const privateFolderEntry: FolderInfo = {
+      const privateFolderEntry: FolderEntry = {
         type: 'entry',
         isPublic: false,
         prefix: `${username},`,
@@ -268,7 +270,7 @@ class FolderList extends Component {
       privateFolders.push(privateFolderEntry)
     }
 
-    if (username) {
+    if (loggedIn && username) {
       const personalPublicFolder: FolderInfo = {
         type: 'folder',
         folderName: username,
@@ -280,7 +282,7 @@ class FolderList extends Component {
       publicFolders.push(personalPublicFolder)
     }
 
-    const publicFolderEntry: FolderInfo = {
+    const publicFolderEntry: FolderEntry = {
       type: 'entry',
       isPublic: true,
       prefix: '',
@@ -297,7 +299,7 @@ class FolderList extends Component {
     const folderDisplayLimit = 5
 
     return (
-      <div style={{...styles.folderList, overflowY: username ? 'scroll' : 'hidden'}}>
+      <div style={{...styles.folderList, overflowY: loggedIn ? 'scroll' : 'hidden'}}>
         {this.props.loading && (
           <div style={styles.loader}>
             <CircularProgress style={styles.loader} mode='indeterminate' size={0.5}/>
