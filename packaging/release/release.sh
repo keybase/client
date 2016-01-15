@@ -43,10 +43,12 @@ fi
 clientdir="$GOPATH/src/github.com/keybase/client"
 brewdir=${BREWDIR:-$GOPATH/src/github.com/keybase/homebrew-beta}
 serveropsdir=${SERVEROPSDIR:-$GOPATH/src/github.com/keybase/server-ops}
+kbfsdir=${KBFSDIR:-$GOPATH/src/github.com/keybase/kbfs}
 
 "$clientdir/packaging/check_status_and_pull.sh" "$clientdir"
 "$clientdir/packaging/check_status_and_pull.sh" "$brewdir"
 "$clientdir/packaging/check_status_and_pull.sh" "$serveropsdir"
+"$clientdir/packaging/check_status_and_pull.sh" "$kbfsdir"
 
 version_on_disk="$("$clientdir/packaging/version.sh")"
 
