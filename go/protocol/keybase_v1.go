@@ -1592,6 +1592,7 @@ const (
 type TrackOptions struct {
 	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
+	ForceRetrack  bool `codec:"forceRetrack" json:"forceRetrack"`
 }
 
 type IdentifyReasonType int

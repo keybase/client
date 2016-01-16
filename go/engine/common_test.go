@@ -272,3 +272,68 @@ func testEngineWithSecretStore(
 		t.Fatal("GetPassphrase() unexpectedly called")
 	}
 }
+
+func SetupTwoDevices(t *testing.T, nm string) (user *FakeUser, dev1 libkb.TestContext, dev2 libkb.TestContext, cleanup func()) {
+
+	if len(nm) > 5 {
+		t.Fatalf("Sorry, test name must be fewer than 6 chars (got %q)", nm)
+	}
+
+	// device X (provisioner) context:
+	dev1 = SetupEngineTest(t, nm)
+
+	// device Y (provisionee) context:
+	dev2 = SetupEngineTest(t, nm)
+
+	user = NewFakeUserOrBust(t, nm)
+	arg := MakeTestSignupEngineRunArg(user)
+	loginUI := &paperLoginUI{Username: user.Username}
+	ctx := &Context{
+		LogUI:    dev1.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: user.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(&arg, dev1.G)
+	err := RunEngine(s, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertNumDevicesAndKeys(dev1, user, 2, 4)
+
+	if len(loginUI.PaperPhrase) == 0 {
+		t.Fatal("login ui has no paper key phrase")
+	}
+
+	secUI := user.NewSecretUI()
+	secUI.Passphrase = loginUI.PaperPhrase
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
+	ctx = &Context{
+		ProvisionUI: provUI,
+		LogUI:       dev2.G.UI.GetLogUI(),
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(dev2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(dev2)
+
+	assertNumDevicesAndKeys(dev2, user, 3, 6)
+
+	if err := AssertProvisioned(dev2); err != nil {
+		t.Fatal(err)
+	}
+
+	cleanup = func() {
+		dev1.Cleanup()
+		dev2.Cleanup()
+	}
+
+	return user, dev1, dev2, cleanup
+}
