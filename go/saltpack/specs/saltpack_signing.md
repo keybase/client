@@ -49,6 +49,10 @@ header packet is a MessagePack array that looks like this:
 - **sender_public** is the sender's long-term NaCl signing public key, 32 bytes.
 - **nonce** is 32 random bytes.
 
+As in the [encryption spec](saltpack_encryption.md), the header packet is
+serialized into a MessagePack `array` object, hashed with SHA512 to produce the
+**header hash**, and then serialized *again* into a MessagePack `bin` object.
+
 Payload packets are MessagePack arrays that looks like this:
 
 ```
@@ -63,7 +67,7 @@ Payload packets are MessagePack arrays that looks like this:
 
 To make each signature, the sender first takes the SHA512 hash of the
 concatenation of three values:
-- the **nonce** from above
+- the **payload hash** from above
 - the packet sequence number, as a 64-bit big-endian unsigned integer, where
   the first payload packet is zero
 - the **payload_chunk**
@@ -72,6 +76,11 @@ The sender then signs the concatenation of three values:
 - `"saltpack\0"`
 - `"attached signature\0"`
 - the SHA512 hash above
+
+As in the [encryption spec](saltpack_encryption.md), after encrypting the
+entire message, the sender adds an extra payload packet with an empty payload
+to signify the end. If a message doesn't end with an empty payload packet, the
+receiving client should report an error that the message has been truncated.
 
 Some applications might use the saltpack format, but don't want signature
 compatibility with other saltpack applications. In addition to changing the
@@ -82,8 +91,11 @@ place of `"saltpack\0"`.
 
 ## Detached Implementation
 
-A detached signature is similar to an attached signature header packet by
-itself, with an extra signature field at the end.
+A detached signature header packet is equivalent to an attached signature
+header packet with a different mode (2 instead of 1). As above it's
+twice-encoded, with the **header hash** computed after the first encoding. A
+detached header is followed by a single MessagePack `bin` object, containing
+the 64-byte detached NaCl signature.
 
 ```
 [
@@ -92,22 +104,14 @@ itself, with an extra signature field at the end.
     mode,
     sender_public,
     nonce,
-    signature,
 ]
+
+signature
 ```
 
-- **format_name** is the string "saltpack".
-- **version** is a list of the major and minor versions, currently `[1, 0]`.
-- **mode** is the number 2, for attached signing. (0 is encryption, and 1 is
-  attached signing.)
-- **sender_public** is the sender's long-term NaCl public signing key, 32
-  bytes.
-- **nonce** is 32 random bytes.
-- **signature** a detached NaCl signature, 64 bytes
-
 To make the signature, the sender first takes the SHA512 hash of the
-concatenation of two values:
-- the **nonce** from above
+concatenation of two values::
+- the **header hash** from above
 - the entire plaintext
 
 The sender then signs the concatenation of three values:
