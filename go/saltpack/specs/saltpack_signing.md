@@ -34,19 +34,19 @@ header packet is a MessagePack array that looks like this:
 
 ```
 [
-    format_name,
+    format name,
     version,
     mode,
-    sender_public,
+    sender public key,
     nonce,
 ]
 ```
 
-- **format_name** is the string "saltpack".
+- **format name** is the string "saltpack".
 - **version** is a list of the major and minor versions, currently `[1, 0]`.
 - **mode** is the number 1, for attached signing. (0 is encryption, and 2 is
   detached signing.)
-- **sender_public** is the sender's long-term NaCl signing public key, 32 bytes.
+- **sender public key** is the sender's long-term NaCl signing public key, 32 bytes.
 - **nonce** is 32 random bytes.
 
 As in the [encryption spec](saltpack_encryption.md), the header packet is
@@ -58,19 +58,19 @@ Payload packets are MessagePack arrays that looks like this:
 ```
 [
     signature,
-    payload_chunk,
+    payload chunk,
 ]
 ```
 
 - **signature** is a detached NaCl signature, 64 bytes.
-- **payload_chunk** is a chunk of the plaintext bytes, max size 1 MB.
+- **payload chunk** is a chunk of the plaintext bytes, max size 1 MB.
 
 To make each signature, the sender first takes the SHA512 hash of the
 concatenation of three values:
 - the **payload hash** from above
 - the packet sequence number, as a 64-bit big-endian unsigned integer, where
   the first payload packet is zero
-- the **payload_chunk**
+- the **payload chunk**
 
 The sender then signs the concatenation of three values:
 - `"saltpack\0"`
@@ -99,10 +99,10 @@ the 64-byte detached NaCl signature.
 
 ```
 [
-    format_name,
+    format name,
     version,
     mode,
-    sender_public,
+    sender public key,
     nonce,
 ]
 
