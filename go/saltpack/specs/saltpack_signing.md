@@ -133,15 +133,15 @@ An attached signature:
   # mode (1 = attached signing)
   1,
   # sender public key
-  1f5025dfb138aebee8517fe988d7d73679a55f7da349cb2283bd196907120f7d,
+  033e2d505c9ec79fb16fb40f34d743d5805dd36c844741420671fb57df24ed93,
   # nonce
-  b5504c63ff77de96ef74a28f9397ff80,
+  22737333c279555e6e33a79b1ba06cab47d7689d65b43615393d6d607f1d7a52,
 ]
 
 # payload packet
 [
   # signature
-  2eec257a9c34053f16d4ac6438b5a338670b88e5b1d71c2e51e675d0caf2abb962224b5baaf3ce125a199c7cee75de8cf442c97f74540830e121105094ca580a,
+  bba4e5dff8cc6cea88e1d505d1f9a716ca0e79a142e26896493daf82733b4e220c555a0941e52673c25a384f334e0ccdcb62f89a4f01d13f0cb53961f0f4cc00,
   # payload chunk
   "Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me; thy rod and thy staff they comfort me.",
 ]
@@ -149,7 +149,7 @@ An attached signature:
 # empty payload packet
 [
   # signature
-  988be76509f02bd882c8fe47829d5813a35ea3a06ca776df8ff7eb85d7cbc3fb52785d40ec42f674cb62429fc52a7f84c1400e3c26e0e3b8b7fd2daf7f915d08,
+  3a83ebf3fcc2dd30b8c148cd0097ecc93d265e24e83798d28a1370ef54fc8933a9aa56b7118d147cda2ab2c83b378b1b2104e5c6f2320313fc54d173584b0706,
   # empty payload chunk (a zero-length byte string)
   "",
 ]
@@ -167,10 +167,11 @@ A detached signature:
   # mode (2 = detached signing)
   2,
   # sender public key
-  14cda529c0bc06d5122d41b862295e5694ecdc9241a4b00a988852c40e08ed9f,
+  8a732edded5a23036c4c8caca6a04321f007b2e8b60cab975950a17b4c02ca76,
   # nonce
-  7ac1e7bcec1ee1f45960af752dba8772,
-  # signature
-  eb190b6f77ceb5af1106ac66e47380a01f811cd0c9988aec15d1fbc399f2606146b76104103f7a0f94e267370829cf935d04e8eda60483f4e1bca32f88936c02,
+  38d01af91e8cd9e6a79f19ea55733fea9778be327170d4fd8ed2074d4be0b784,
 ]
+
+# signature
+6628f12374ce7c2a55d1c864e71206296e380586c9e61c3aa3ac1b5f11674bd53b895705183ff54d00fdeb5534b412569f58cb22dc6b3673b9a265e3bffe470d
 ```
