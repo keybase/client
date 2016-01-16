@@ -93,7 +93,7 @@ func (a *Account) LoggedInProvisionedLoad() (bool, error) {
 }
 
 func (a *Account) LoadLoginSession(emailOrUsername string) error {
-	if a.LoginSession().ExistsFor(emailOrUsername) {
+	if a.LoginSession().ExistsFor(emailOrUsername) && a.LoginSession().NotExpired() {
 		return nil
 	}
 
