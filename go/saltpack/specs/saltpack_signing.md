@@ -47,7 +47,7 @@ header packet is a MessagePack array that looks like this:
 - **mode** is the number 1, for attached signing. (0 is encryption, and 2 is
   detached signing.)
 - **sender_public** is the sender's long-term NaCl signing public key, 32 bytes.
-- **nonce** is 16 random bytes.
+- **nonce** is 32 random bytes.
 
 Payload packets are MessagePack arrays that looks like this:
 
@@ -102,7 +102,7 @@ itself, with an extra signature field at the end.
   attached signing.)
 - **sender_public** is the sender's long-term NaCl public signing key, 32
   bytes.
-- **nonce** is 16 random bytes.
+- **nonce** is 32 random bytes.
 - **signature** a detached NaCl signature, 64 bytes
 
 To make the signature, the sender first takes the SHA512 hash of the
