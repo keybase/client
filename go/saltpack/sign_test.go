@@ -434,19 +434,6 @@ func TestSignCorruptHeader(t *testing.T) {
 		t.Errorf("verified msg '%x', expected '%x'", vmsg, msg)
 	}
 
-	// add a Signature to attached header
-	opts.corruptHeader = func(sh *SignatureHeader) {
-		sh.Signature = randomMsg(t, 64)
-	}
-	smsg, err = testTweakSign(msg, key, opts)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, _, err = Verify(smsg, kr)
-	if err != ErrDetachedSignaturePresent {
-		t.Errorf("error: %v, expected ErrDetachedSignaturePresent", err)
-	}
-
 	// change the version
 	opts.corruptHeader = func(sh *SignatureHeader) {
 		sh.Version = Version{Major: SaltpackCurrentVersion.Major + 1, Minor: 0}
@@ -504,19 +491,6 @@ func TestSignDetachedCorruptHeader(t *testing.T) {
 	}
 	if !KIDEqual(skey, key.PublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
-	}
-
-	// remove the signature from the header
-	opts.corruptHeader = func(sh *SignatureHeader) {
-		sh.Signature = nil
-	}
-	sig, err = testTweakSignDetached(msg, key, opts)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = VerifyDetached(msg, sig, kr)
-	if err != ErrNoDetachedSignature {
-		t.Errorf("VerifyDetached error: %v, expected ErrNoDetachedSignature", err)
 	}
 
 	// change the message type to attached

@@ -11,13 +11,12 @@ import (
 )
 
 type signAttachedStream struct {
-	header      *SignatureHeader
-	wroteHeader bool
-	encoder     encoder
-	buffer      bytes.Buffer
-	block       []byte
-	seqno       PacketSeqno
-	secretKey   SigningSecretKey
+	headerHash []byte
+	encoder    encoder
+	buffer     bytes.Buffer
+	block      []byte
+	seqno      PacketSeqno
+	secretKey  SigningSecretKey
 }
 
 func newSignAttachedStream(w io.Writer, signer SigningSecretKey) (*signAttachedStream, error) {
@@ -30,24 +29,35 @@ func newSignAttachedStream(w io.Writer, signer SigningSecretKey) (*signAttachedS
 		return nil, err
 	}
 
+	// Encode the header bytes.
+	headerBytes, err := encodeToBytes(header)
+	if err != nil {
+		return nil, err
+	}
+
+	// Compute the header hash.
+	headerDigest := sha512.New()
+	headerDigest.Write(headerBytes)
+	headerHash := headerDigest.Sum(nil)
+
+	// Create the attached stream object.
 	stream := &signAttachedStream{
-		header:    header,
-		encoder:   newEncoder(w),
-		block:     make([]byte, SignatureBlockSize),
-		secretKey: signer,
+		headerHash: headerHash,
+		encoder:    newEncoder(w),
+		block:      make([]byte, SignatureBlockSize),
+		secretKey:  signer,
+	}
+
+	// Double encode the header bytes onto the wire.
+	err = stream.encoder.Encode(headerBytes)
+	if err != nil {
+		return nil, err
 	}
 
 	return stream, nil
 }
 
 func (s *signAttachedStream) Write(p []byte) (int, error) {
-	if !s.wroteHeader {
-		s.wroteHeader = true
-		if err := s.encoder.Encode(s.header); err != nil {
-			return 0, err
-		}
-	}
-
 	n, err := s.buffer.Write(p)
 	if err != nil {
 		return 0, err
@@ -63,13 +73,6 @@ func (s *signAttachedStream) Write(p []byte) (int, error) {
 }
 
 func (s *signAttachedStream) Close() error {
-	if !s.wroteHeader {
-		s.wroteHeader = true
-		if err := s.encoder.Encode(s.header); err != nil {
-			return err
-		}
-	}
-
 	for s.buffer.Len() > 0 {
 		if err := s.signBlock(); err != nil {
 			return err
@@ -110,11 +113,10 @@ func (s *signAttachedStream) writeFooter() error {
 }
 
 func (s *signAttachedStream) computeSig(block *SignatureBlock) ([]byte, error) {
-	return s.secretKey.Sign(computeAttachedDigest(s.header.Nonce, block))
+	return s.secretKey.Sign(attachedSignatureInput(s.headerHash, block))
 }
 
 type signDetachedStream struct {
-	header    *SignatureHeader
 	encoder   encoder
 	secretKey SigningSecretKey
 	hasher    hash.Hash
@@ -130,14 +132,33 @@ func newSignDetachedStream(w io.Writer, signer SigningSecretKey) (*signDetachedS
 		return nil, err
 	}
 
+	// Encode the header bytes.
+	headerBytes, err := encodeToBytes(header)
+	if err != nil {
+		return nil, err
+	}
+
+	// Compute the header hash.
+	headerDigest := sha512.New()
+	headerDigest.Write(headerBytes)
+	headerHash := headerDigest.Sum(nil)
+
+	// Create the detached stream object.
 	stream := &signDetachedStream{
-		header:    header,
 		encoder:   newEncoder(w),
 		secretKey: signer,
 		hasher:    sha512.New(),
 	}
 
-	stream.hasher.Write(stream.header.Nonce)
+	// Double encode the header bytes onto the wire.
+	err = stream.encoder.Encode(headerBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	// Start off the message digest with the header hash. Subsequent calls to
+	// Write() will push message bytes into this digest.
+	stream.hasher.Write(headerHash)
 
 	return stream, nil
 }
@@ -147,15 +168,10 @@ func (s *signDetachedStream) Write(p []byte) (int, error) {
 }
 
 func (s *signDetachedStream) Close() error {
-	signature, err := s.secretKey.Sign(detachedDigest(s.hasher.Sum(nil)))
+	signature, err := s.secretKey.Sign(detachedSignatureInputFromHash(s.hasher.Sum(nil)))
 	if err != nil {
 		return err
 	}
-	s.header.Signature = signature
 
-	if err := s.encoder.Encode(s.header); err != nil {
-		return err
-	}
-
-	return nil
+	return s.encoder.Encode(signature)
 }

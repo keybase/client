@@ -46,23 +46,36 @@ func Verify(signedMsg []byte, keyring SigKeyring) (skey SigningPublicKey, verifi
 // entire message read from message Reader, and that the public key for
 // the signer is in keyring. It returns the signer's public key.
 func VerifyDetachedReader(message io.Reader, signature []byte, keyring SigKeyring) (skey SigningPublicKey, err error) {
-	s, err := newVerifyStream(bytes.NewBuffer(signature), MessageTypeDetachedSignature)
+	inputBuffer := bytes.NewBuffer(signature)
+
+	// Use a verifyStream to parse the header.
+	s, err := newVerifyStream(inputBuffer, MessageTypeDetachedSignature)
 	if err != nil {
 		return nil, err
 	}
 
+	// Reach inside the verifyStream to parse the signature bytes.
+	var naclSignature []byte
+	_, err = s.stream.Read(&naclSignature)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the public key.
 	skey = keyring.LookupSigningPublicKey(s.header.SenderPublic)
 	if skey == nil {
 		return nil, ErrNoSenderKey
 	}
 
+	// Compute the signed text hash, without requiring us to copy the whole
+	// signed text into memory at once.
 	hasher := sha512.New()
-	hasher.Write(s.header.Nonce)
+	hasher.Write(s.headerHash)
 	if _, err := io.Copy(hasher, message); err != nil {
 		return nil, err
 	}
 
-	if err := skey.Verify(detachedDigest(hasher.Sum(nil)), s.header.Signature); err != nil {
+	if err := skey.Verify(detachedSignatureInputFromHash(hasher.Sum(nil)), naclSignature); err != nil {
 		return nil, err
 	}
 

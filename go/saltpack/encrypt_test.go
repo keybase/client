@@ -949,8 +949,6 @@ func TestCorruptHeader(t *testing.T) {
 	_, _, err = Open(ciphertext, kr)
 	if ebv, ok := err.(ErrBadVersion); !ok {
 		t.Fatalf("Got wrong error; wanted 'Bad Version' but got %v", err)
-	} else if int(ebv.seqno) != 0 {
-		t.Fatalf("Wanted a failure in packet %d but got %d", 0, ebv.seqno)
 	} else if ebv.received.Major != 2 {
 		t.Fatalf("got wrong version # in error message: %v", ebv.received.Major)
 	}

@@ -58,9 +58,9 @@ func assertEndOfStream(stream *msgpackStream) error {
 	return err
 }
 
-func computeAttachedDigest(nonce []byte, block *SignatureBlock) []byte {
+func attachedSignatureInput(headerHash []byte, block *SignatureBlock) []byte {
 	hasher := sha512.New()
-	hasher.Write(nonce)
+	hasher.Write(headerHash)
 	binary.Write(hasher, binary.BigEndian, block.seqno)
 	hasher.Write(block.PayloadChunk)
 
@@ -72,19 +72,19 @@ func computeAttachedDigest(nonce []byte, block *SignatureBlock) []byte {
 	return buf.Bytes()
 }
 
-func computeDetachedDigest(nonce []byte, plaintext []byte) []byte {
+func detachedSignatureInput(headerHash []byte, plaintext []byte) []byte {
 	hasher := sha512.New()
-	hasher.Write(nonce)
+	hasher.Write(headerHash)
 	hasher.Write(plaintext)
 
-	return detachedDigest(hasher.Sum(nil))
+	return detachedSignatureInputFromHash(hasher.Sum(nil))
 }
 
-func detachedDigest(sum []byte) []byte {
+func detachedSignatureInputFromHash(plaintextAndHeaderHash []byte) []byte {
 	var buf bytes.Buffer
 	writeNullTerminatedString(&buf, SaltpackFormatName)
 	writeNullTerminatedString(&buf, SignatureDetachedString)
-	buf.Write(sum)
+	buf.Write(plaintextAndHeaderHash)
 
 	return buf.Bytes()
 }

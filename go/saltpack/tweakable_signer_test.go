@@ -5,6 +5,7 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/sha512"
 	"io"
 )
 
@@ -16,15 +17,14 @@ type testSignOptions struct {
 }
 
 type testSignStream struct {
-	header      *SignatureHeader
-	wroteHeader bool
-	encoder     encoder
-	buffer      bytes.Buffer
-	block       []byte
-	seqno       PacketSeqno
-	secretKey   SigningSecretKey
-	options     testSignOptions
-	savedBlock  *SignatureBlock
+	headerHash []byte
+	encoder    encoder
+	buffer     bytes.Buffer
+	block      []byte
+	seqno      PacketSeqno
+	secretKey  SigningSecretKey
+	options    testSignOptions
+	savedBlock *SignatureBlock
 }
 
 func newTestSignStream(w io.Writer, signer SigningSecretKey, opts testSignOptions) (*testSignStream, error) {
@@ -40,25 +40,35 @@ func newTestSignStream(w io.Writer, signer SigningSecretKey, opts testSignOption
 		opts.corruptHeader(header)
 	}
 
+	// Encode the header bytes.
+	headerBytes, err := encodeToBytes(header)
+	if err != nil {
+		return nil, err
+	}
+
+	// Compute the header hash.
+	headerDigest := sha512.New()
+	headerDigest.Write(headerBytes)
+	headerHash := headerDigest.Sum(nil)
+
 	stream := &testSignStream{
-		header:    header,
-		encoder:   newEncoder(w),
-		block:     make([]byte, SignatureBlockSize),
-		secretKey: signer,
-		options:   opts,
+		headerHash: headerHash,
+		encoder:    newEncoder(w),
+		block:      make([]byte, SignatureBlockSize),
+		secretKey:  signer,
+		options:    opts,
+	}
+
+	// Double encode the header bytes onto the wire.
+	err = stream.encoder.Encode(headerBytes)
+	if err != nil {
+		return nil, err
 	}
 
 	return stream, nil
 }
 
 func (s *testSignStream) Write(p []byte) (int, error) {
-	if !s.wroteHeader {
-		s.wroteHeader = true
-		if err := s.encoder.Encode(s.header); err != nil {
-			return 0, err
-		}
-	}
-
 	n, err := s.buffer.Write(p)
 	if err != nil {
 		return 0, err
@@ -139,7 +149,7 @@ func (s *testSignStream) writeFooter() error {
 }
 
 func (s *testSignStream) computeSig(block *SignatureBlock) ([]byte, error) {
-	return s.secretKey.Sign(computeAttachedDigest(s.header.Nonce, block))
+	return s.secretKey.Sign(attachedSignatureInput(s.headerHash, block))
 }
 
 func testTweakSign(plaintext []byte, signer SigningSecretKey, opts testSignOptions) ([]byte, error) {
@@ -166,15 +176,39 @@ func testTweakSignDetached(plaintext []byte, signer SigningSecretKey, opts testS
 		return nil, err
 	}
 
-	signature, err := signer.Sign(computeDetachedDigest(header.Nonce, plaintext))
-	if err != nil {
-		return nil, err
-	}
-	header.Signature = signature
-
 	if opts.corruptHeader != nil {
 		opts.corruptHeader(header)
 	}
 
-	return encodeToBytes(header)
+	// Encode the header bytes.
+	headerBytes, err := encodeToBytes(header)
+	if err != nil {
+		return nil, err
+	}
+
+	// Compute the header hash.
+	headerDigest := sha512.New()
+	headerDigest.Write(headerBytes)
+	headerHash := headerDigest.Sum(nil)
+
+	// Double encode the header bytes to start the output.
+	output, err := encodeToBytes(headerBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	// Sign the plaintext.
+	signature, err := signer.Sign(detachedSignatureInput(headerHash, plaintext))
+	if err != nil {
+		return nil, err
+	}
+
+	// Append the encoded signature to the output.
+	encodedSig, err := encodeToBytes(signature)
+	if err != nil {
+		return nil, err
+	}
+	output = append(output, encodedSig...)
+
+	return output, nil
 }
