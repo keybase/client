@@ -12,7 +12,6 @@ protocol ctl {
 
   void stop(int sessionID, ExitCode exitCode);
   void logRotate(int sessionID);
-  void setLogLevel(int sessionID, LogLevel level);
   void reload(int sessionID);
   void dbNuke(int sessionID);
 }

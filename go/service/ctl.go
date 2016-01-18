@@ -38,12 +38,6 @@ func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
 	return c.G().Log.RotateLogFile()
 }
 
-func (c *CtlHandler) SetLogLevel(_ context.Context, arg keybase1.SetLogLevelArg) error {
-	// PC: I don't know if this is used by anything anymore:
-	// c.G().Log.SetExternalLogLevel(arg.Level)
-	return nil
-}
-
 func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
 	c.G().Log.Info("Reloading config file")
 	return c.G().ConfigReload()

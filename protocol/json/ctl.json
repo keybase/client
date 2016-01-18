@@ -235,16 +235,6 @@
       } ],
       "response" : "null"
     },
-    "setLogLevel" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "level",
-        "type" : "LogLevel"
-      } ],
-      "response" : "null"
-    },
     "reload" : {
       "request" : [ {
         "name" : "sessionID",
