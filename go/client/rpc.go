@@ -62,6 +62,14 @@ func GetLoginClient(g *libkb.GlobalContext) (cli keybase1.LoginClient, err error
 	return
 }
 
+func GetLogClient(g *libkb.GlobalContext) (cli keybase1.LogClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
+		cli = keybase1.LogClient{Cli: rcli}
+	}
+	return
+}
+
 func RegisterProtocolsWithContext(prots []rpc.Protocol, g *libkb.GlobalContext) (err error) {
 	var srv *rpc.Server
 	if srv, _, err = GetRPCServer(g); err != nil {

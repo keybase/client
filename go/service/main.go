@@ -29,6 +29,7 @@ type Service struct {
 	startCh       chan struct{}
 	stopCh        chan keybase1.ExitCode
 	updateChecker *updater.UpdateChecker
+	logForwarder  *logFwd
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -37,6 +38,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		isDaemon:     isDaemon,
 		startCh:      make(chan struct{}),
 		stopCh:       make(chan keybase1.ExitCode),
+		logForwarder: newLogFwd(),
 	}
 }
 
@@ -44,7 +46,7 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 	return d.startCh
 }
 
-func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, g *libkb.GlobalContext) error {
+func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logq *logQueue, g *libkb.GlobalContext) error {
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
@@ -57,6 +59,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
 		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
+		keybase1.LogProtocol(NewLogHandler(xp, logq, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, g)),
@@ -89,16 +92,19 @@ func (d *Service) Handle(c net.Conn) {
 	server.AddCloseListener(cl)
 	connID := d.G().NotifyRouter.AddConnection(xp, cl)
 
-	if err := d.RegisterProtocols(server, xp, connID, d.G()); err != nil {
+	// create one log queue per connection
+	logq := newLogQueue()
+
+	if err := d.RegisterProtocols(server, xp, connID, logq, d.G()); err != nil {
 		d.G().Log.Warning("RegisterProtocols error: %s", err)
 		return
 	}
 
 	if d.isDaemon {
-		baseHandler := NewBaseHandler(xp)
-		logUI := LogUI{sessionID: 0, cli: baseHandler.getLogUICli()}
-		handle := d.G().Log.AddExternalLogger(&logUI)
-		defer d.G().Log.RemoveExternalLogger(handle)
+		// if this is the daemon, then add the log queue to the forwarder
+		d.logForwarder.Add(logq)
+		// and remove it when done handling this connection
+		defer d.logForwarder.Remove(logq)
 	}
 
 	if err := server.Run(false /* bg */); err != nil {
@@ -106,6 +112,8 @@ func (d *Service) Handle(c net.Conn) {
 			d.G().Log.Warning("Run error: %s", err)
 		}
 	}
+
+	d.G().Log.Debug("Handle() complete for connection %d", connID)
 }
 
 func (d *Service) Run() (err error) {
@@ -123,6 +131,9 @@ func (d *Service) Run() (err error) {
 	// and will also set in motion various go-routine based managers
 	d.G().SetService()
 	d.G().SetUIRouter(NewUIRouter(d.G()))
+
+	// register the service's logForwarder as the external handler for the log module:
+	d.G().Log.SetExternalHandler(d.logForwarder)
 
 	err = d.writeServiceInfo()
 	if err != nil {
