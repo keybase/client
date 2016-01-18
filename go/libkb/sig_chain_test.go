@@ -257,7 +257,7 @@ func createKeyFamily(bundles []string) (*KeyFamily, error) {
 	}
 	publicKeys := jsonw.NewDictionary()
 	publicKeys.SetKey("all_bundles", allKeys)
-	return ParseKeyFamily(publicKeys)
+	return ParseKeyFamily(G, publicKeys)
 }
 
 func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {

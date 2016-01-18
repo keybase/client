@@ -52,7 +52,7 @@ func NewUser(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
 		return nil, fmt.Errorf("user object for %s lacks a name", uid)
 	}
 
-	kf, err := ParseKeyFamily(o.AtKey("public_keys"))
+	kf, err := ParseKeyFamily(g, o.AtKey("public_keys"))
 	if err != nil {
 		return nil, err
 	}

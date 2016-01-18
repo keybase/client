@@ -6,6 +6,11 @@
 - Fix `pgp gen` export to gpg error if gpg doesn't exist (PR: keybase/client#1735)
 - Binary mode for all saltpack commands (PR: keybase/client#1727)
 - All config save operations use transactions (PR: keybase/client#1724)
+- More robust key-parsing on KeyFamily import. Fixed two ways:
+  - Don't error out on bad signatures in the PGP keys themselves
+     (vendored PR: keybase/go-crypto#7)
+  - Skip keys that don't import properly, rather than killing the whole
+     key family import (PR: keybase/client#1766)
 
 ## 1.0.8 (2016-01-13)
 - Do not use current keybase ID as default when generating PGP keys  (PR: keybase/client#1706)
