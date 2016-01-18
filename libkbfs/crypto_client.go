@@ -115,30 +115,37 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 	return
 }
 
-// DecryptTLFCryptKeyClientHalf implements the Crypto interface for
-// CryptoClient.
-func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
-	publicKey TLFEphemeralPublicKey,
-	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
-	clientHalf TLFCryptKeyClientHalf, err error) {
+func prepareTLFCryptKeyClientHalf(encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	encryptedData keybase1.EncryptedBytes32, nonce keybase1.BoxNonce, err error) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
 		err = UnknownEncryptionVer{encryptedClientHalf.Version}
 		return
 	}
 
-	var encryptedData keybase1.EncryptedBytes32
 	if len(encryptedClientHalf.EncryptedData) != len(encryptedData) {
 		err = libkb.DecryptionError{}
 		return
 	}
 	copy(encryptedData[:], encryptedClientHalf.EncryptedData)
 
-	var nonce keybase1.BoxNonce
 	if len(encryptedClientHalf.Nonce) != len(nonce) {
 		err = InvalidNonceError{encryptedClientHalf.Nonce}
 		return
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
+	return encryptedData, nonce, err
+}
+
+// DecryptTLFCryptKeyClientHalf implements the Crypto interface for
+// CryptoClient.
+func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
+	publicKey TLFEphemeralPublicKey,
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	clientHalf TLFCryptKeyClientHalf, err error) {
+	encryptedData, nonce, err := prepareTLFCryptKeyClientHalf(encryptedClientHalf)
+	if err != nil {
+		return
+	}
 
 	decryptedClientHalf, err := c.client.UnboxBytes32(ctx, keybase1.UnboxBytes32Arg{
 		EncryptedBytes32: encryptedData,
@@ -159,7 +166,36 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral) (
 	clientHalf TLFCryptKeyClientHalf, index int, err error) {
-	return
+	if len(keys) == 0 {
+		return clientHalf, index, NoKeysError{}
+	}
+	bundles := make([]keybase1.CiphertextBundle, 0, len(keys))
+	errors := make([]error, 0, len(keys))
+	for _, k := range keys {
+		encryptedData, nonce, err := prepareTLFCryptKeyClientHalf(k.ClientHalf)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		bundles = append(bundles, keybase1.CiphertextBundle{
+			Kid:        k.PubKey.kidContainer.kid,
+			Ciphertext: encryptedData,
+			Nonce:      nonce,
+			PublicKey:  keybase1.BoxPublicKey(k.EPubKey.data),
+		})
+	}
+	if len(bundles) == 0 {
+		err = errors[0]
+		return
+	}
+	res, err := c.client.UnboxBytes32Any(ctx, keybase1.UnboxBytes32AnyArg{
+		Bundles: bundles,
+		Reason:  "to rekey for kbfs",
+	})
+	if err != nil {
+		return
+	}
+	return MakeTLFCryptKeyClientHalf(res.Plaintext), res.Index, nil
 }
 
 // Shutdown implements the Crypto interface for CryptoClient.

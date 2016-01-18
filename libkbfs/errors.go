@@ -534,6 +534,14 @@ func (e InvalidNonceError) Error() string {
 	return fmt.Sprintf("Invalid nonce %v", e.nonce)
 }
 
+// NoKeysError indicates that no keys were provided for a decryption allowing
+// multiple device keys
+type NoKeysError struct{}
+
+func (e NoKeysError) Error() string {
+	return "No keys provided"
+}
+
 // InvalidPublicTLFOperation indicates that an invalid operation was
 // attempted on a public TLF.
 type InvalidPublicTLFOperation struct {

@@ -134,6 +134,8 @@ func (ech EncryptedTLFCryptKeyClientHalf) DeepCopy() (echCopy EncryptedTLFCryptK
 // EncryptedTLFCryptKeyClientAndEphemeral has what's needed to
 // request a client half decryption.
 type EncryptedTLFCryptKeyClientAndEphemeral struct {
+	// PublicKey contains the wrapped Key ID of the public key
+	PubKey CryptPublicKey
 	// ClientHalf contains the encrypted client half of the TLF key
 	ClientHalf EncryptedTLFCryptKeyClientHalf
 	// EPubKey contains the ephemeral public key used to encrypt ClientHalf

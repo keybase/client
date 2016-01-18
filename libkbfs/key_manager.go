@@ -102,6 +102,7 @@ func (km *KeyManagerStandard) getTLFCryptKeyAny(ctx context.Context,
 
 				keysInfo = append(keysInfo, info)
 				keys = append(keys, EncryptedTLFCryptKeyClientAndEphemeral{
+					PubKey:     k,
 					ClientHalf: info.ClientHalf,
 					EPubKey:    ePublicKey,
 				})
@@ -114,6 +115,9 @@ func (km *KeyManagerStandard) getTLFCryptKeyAny(ctx context.Context,
 		var index int
 		clientHalf, index, err =
 			crypto.DecryptTLFCryptKeyClientHalfAny(ctx, keys)
+		if err != nil {
+			return tlfCryptKey, err
+		}
 		info = keysInfo[index]
 	} else {
 		currentCryptPublicKey, err := kbpki.GetCurrentCryptPublicKey(ctx)
@@ -382,7 +386,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	// If there's at least one new device, add that device to every key bundle.
 	if addNewDevice {
 		for keyGen := KeyGen(FirstValidKeyGen); keyGen <= currKeyGen; keyGen++ {
-			currTlfCryptKey, err := km.getTLFCryptKey(ctx, md, keyGen)
+			currTlfCryptKey, err := km.getTLFCryptKeyAny(ctx, md, keyGen, true)
 			if err != nil {
 				return false, err
 			}
