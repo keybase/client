@@ -520,6 +520,24 @@ func TestSignDetachedCorruptHeader(t *testing.T) {
 	}
 }
 
+func TestSignDetachedTruncated(t *testing.T) {
+	key := newSigPrivKey(t)
+	msg := randomMsg(t, 128)
+
+	sig, err := testTweakSignDetached(msg, key, testSignOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// truncate the sig by one byte
+	shortSig := sig[0 : len(sig)-1]
+
+	_, err = VerifyDetached(msg, shortSig, kr)
+	if err == nil {
+		t.Fatal("expected EOF error from truncated sig")
+	}
+}
+
 type errReader struct{}
 
 func (e errReader) Read(p []byte) (int, error) { return 0, errors.New("read error") }
