@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -38,7 +39,7 @@ func (q *logQueue) Setup(name string, level keybase1.LogLevel, ui *LogUI) error 
 	q.processDone = make(chan bool, 1)
 
 	q.active = true
-	go q.processBuffer()
+	go q.processQueue()
 
 	return nil
 }
@@ -81,7 +82,7 @@ func (q *logQueue) Shutdown() {
 	q.buffer = nil
 }
 
-func (q *logQueue) processBuffer() {
+func (q *logQueue) processQueue() {
 	for e := range q.buffer {
 		if e.level < q.level {
 			continue
@@ -100,7 +101,7 @@ func (q *logQueue) setDropFlag() {
 	select {
 	case q.drop <- true:
 		// do this outside the logging mechanism to make sure it gets through
-		fmt.Printf("WARNING: dropping log messages destined for %q due to full log buffer\n", q.name)
+		fmt.Fprintf(os.Stderr, "WARNING: dropping log messages destined for %q due to full log buffer\n", q.name)
 	default:
 	}
 }
