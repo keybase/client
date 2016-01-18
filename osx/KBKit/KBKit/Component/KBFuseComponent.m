@@ -76,6 +76,12 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
+  [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *componentStatus) {
+    completion(componentStatus);
+  }];
+}
+
+- (void)refreshFuseComponent:(void (^)(KBRFuseStatus *fuseStatus, KBComponentStatus *componentStatus))completion {
   KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
   [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
 
@@ -106,7 +112,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
     }
 
     [self componentDidUpdate];
-    completion(self.componentStatus);
+    completion(self.fuseStatus, self.componentStatus);
   }];
 }
 
@@ -115,11 +121,20 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   return self.fuseStatus.kextStarted ? KBInstallRuntimeStatusStarted : KBInstallRuntimeStatusStopped;
 }
 
+- (BOOL)hasKBFuseMounts:(KBRFuseStatus *)fuseStatus {
+  for (KBRFuseMountInfo *mountInfo in fuseStatus.mountInfos) {
+    if ([mountInfo.fstype isEqualToString:@"kbfuse"]) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
 - (void)install:(KBCompletion)completion {
-  [self refreshComponent:^(KBComponentStatus *cs) {
-    // Upgrades currently unsupported for Fuse
-    if (cs.installAction == KBRInstallActionUpgrade) {
-      DDLogDebug(@"Needs upgrade but not supported yet");
+  [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
+    // Upgrades currently unsupported for Fuse if there are mounts
+    if (cs.installAction == KBRInstallActionUpgrade && [self hasKBFuseMounts:fuseStatus]) {
+      DDLogError(@"Fuse needs upgrade but not supported yet if mounts are present");
       completion(nil);
       return;
     }
