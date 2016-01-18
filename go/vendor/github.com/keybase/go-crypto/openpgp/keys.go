@@ -442,24 +442,33 @@ func addSubkey(e *Entity, packets *packet.Reader, pub *packet.PublicKey, priv *p
 	var subKey Subkey
 	subKey.PublicKey = pub
 	subKey.PrivateKey = priv
-	p, err := packets.Next()
-	if err == io.EOF {
-		return io.ErrUnexpectedEOF
-	}
-	if err != nil {
-		return errors.StructuralError("subkey signature invalid: " + err.Error())
-	}
-	var ok bool
-	subKey.Sig, ok = p.(*packet.Signature)
-	if !ok {
-		return errors.StructuralError("subkey packet not followed by signature")
-	}
-	if st := subKey.Sig.SigType; st != packet.SigTypeSubkeyBinding && st != packet.SigTypeSubkeyRevocation {
-		return errors.StructuralError(fmt.Sprintf("subkey signature with wrong type (%d)", int(st)))
-	}
-	err = e.PrimaryKey.VerifyKeySignature(subKey.PublicKey, subKey.Sig)
-	if err != nil {
-		return errors.StructuralError("subkey signature invalid: " + err.Error())
+	for {
+		p, err := packets.Next()
+		if err == io.EOF {
+			return io.ErrUnexpectedEOF
+		}
+		if err != nil {
+			return errors.StructuralError("subkey signature invalid: " + err.Error())
+		}
+		sig, ok := p.(*packet.Signature)
+		if !ok {
+			return errors.StructuralError(fmt.Sprintf("subkey packet not followed by signature (got %T)", p))
+		}
+		if st := sig.SigType; st != packet.SigTypeSubkeyBinding && st != packet.SigTypeSubkeyRevocation {
+
+			// Note(maxtaco):
+			// We used to error out here, but instead, let's fast-forward past
+			// packets that are in the wrong place (like misplaced 0x13 signatures)
+			// until we get to one that works.  For a test case,
+			// see TestWithBadSubkeySignaturePackets.
+			continue
+		}
+		subKey.Sig = sig
+		err = e.PrimaryKey.VerifyKeySignature(subKey.PublicKey, subKey.Sig)
+		if err != nil {
+			return errors.StructuralError("subkey signature invalid: " + err.Error())
+		}
+		break
 	}
 	e.Subkeys = append(e.Subkeys, subKey)
 	return nil
