@@ -309,7 +309,7 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username Norma
 // ParseKeyFamily takes as input a dictionary from a JSON file and returns
 // a parsed version for manipulation in the program.
 func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
-	g.Trace("ParseKeyFamily", func() error { return err })()
+	defer g.Trace("ParseKeyFamily", func() error { return err })()
 
 	if jw == nil || jw.IsNil() {
 		err = KeyFamilyError{"nil record from server"}
@@ -724,7 +724,7 @@ func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle)
 // UpdateDevices takes the Device object from the given ChainLink
 // and updates keys to reflects any device changes encoded therein.
 func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
-	ckf.G().Trace("UpdateDevice", func() error { return err })()
+	defer ckf.G().Trace("UpdateDevice", func() error { return err })()
 
 	var dobj *Device
 	if dobj = tcl.GetDevice(); dobj == nil {
