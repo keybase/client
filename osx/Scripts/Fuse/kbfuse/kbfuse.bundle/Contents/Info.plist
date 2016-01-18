@@ -5,11 +5,11 @@
 	<key>BuildFlavor</key>
 	<string></string>
 	<key>BuildMachineOSBuild</key>
-	<string>14F27</string>
+	<string>14F1509</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.github.kbfuse.filesystems.kbfuse</string>
+	<string>com.github.kbfuse.filesystems.OSXFUSE_NAME_LITERAL</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -17,11 +17,11 @@
 	<key>CFBundlePackageType</key>
 	<string>fs </string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.0.9</string>
+	<string>3.1.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>3.0.9</string>
+	<string>3.1.0</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
