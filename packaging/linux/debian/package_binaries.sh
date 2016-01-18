@@ -30,7 +30,7 @@ else
 fi
 
 build_one_architecture() {
-  echo "Making .deb packages for $debian_arch."
+  echo "Making .deb package for $debian_arch."
   dest="$build_root/$debian_arch/debian"
   mkdir -p "$dest/build/DEBIAN"
 
