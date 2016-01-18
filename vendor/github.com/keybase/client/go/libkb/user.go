@@ -5,9 +5,10 @@ package libkb
 
 import (
 	"fmt"
+	"io"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
-	"io"
 )
 
 type UserBasic interface {
@@ -663,6 +664,21 @@ func (u *User) IsSigIDActive(sigID keybase1.SigID) (bool, error) {
 		return false, fmt.Errorf("Signature ID '%s' is already revoked.", sigID)
 	}
 	return true, nil
+}
+
+func (u *User) SigIDSearch(query string) (keybase1.SigID, error) {
+	if u.sigChain() == nil {
+		return "", fmt.Errorf("User's sig chain is nil.")
+	}
+
+	link := u.sigChain().GetLinkFromSigIDQuery(query)
+	if link == nil {
+		return "", fmt.Errorf("Signature matching query %q does not exist.", query)
+	}
+	if link.revoked {
+		return "", fmt.Errorf("Signature ID '%s' is already revoked.", link.GetSigID())
+	}
+	return link.GetSigID(), nil
 }
 
 func (u *User) LinkFromSigID(sigID keybase1.SigID) *ChainLink {

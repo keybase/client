@@ -22,6 +22,10 @@ var (
 	// end of the encryption stream.
 	ErrTrailingGarbage = errors.New("trailing garbage found at end of message")
 
+	// ErrFailedToReadHeaderBytes indicates that we failed to read the
+	// doubly-encoded header bytes object from the input stream.
+	ErrFailedToReadHeaderBytes = errors.New("failed to read header bytes")
+
 	// ErrPacketOverflow indicates that more than (2^64-2) packets were found in an encryption
 	// stream.  This would indicate a very big message, and results in an error here.
 	ErrPacketOverflow = errors.New("no more than 2^32 packets in a message are supported")
@@ -55,13 +59,6 @@ var (
 
 	// ErrBadSignature is returned when verification of a block fails.
 	ErrBadSignature = errors.New("invalid signature")
-
-	// ErrNoDetachedSignature is returned when there is no signature in the header.
-	ErrNoDetachedSignature = errors.New("no detached signature")
-
-	// ErrDetachedSignaturePresent is returned when there is a signature in the header and
-	// there shouldn't be.
-	ErrDetachedSignaturePresent = errors.New("detached signature present")
 )
 
 // ErrBadTag is generated when a payload hash doesn't match the hash
@@ -87,7 +84,6 @@ type ErrWrongMessageType struct {
 // ErrBadVersion is returned if a packet of an unsupported version is found.
 // Current, only Version1 is supported.
 type ErrBadVersion struct {
-	seqno    PacketSeqno
 	received Version
 }
 
@@ -108,7 +104,7 @@ func (e ErrWrongMessageType) Error() string {
 	return fmt.Sprintf("Wanted type=%d; got type=%d", e.wanted, e.received)
 }
 func (e ErrBadVersion) Error() string {
-	return fmt.Sprintf("In packet %d: unsupported version (%v)", e.seqno, e.received)
+	return fmt.Sprintf("Unsupported version (%v)", e.received)
 }
 func (e ErrBadCiphertext) Error() string {
 	return fmt.Sprintf("In packet %d: bad ciphertext; failed Poly1305", e)

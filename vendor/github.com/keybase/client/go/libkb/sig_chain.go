@@ -163,7 +163,7 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 
 	for i := 0; i < lim; i++ {
 		var link *ChainLink
-		if link, err = ImportLinkFromServer(sc, v.AtIndex(i), selfUID); err != nil {
+		if link, err = ImportLinkFromServer(sc.G(), sc, v.AtIndex(i), selfUID); err != nil {
 			return
 		}
 		if link.GetSeqno() <= low {
@@ -549,6 +549,17 @@ func (sc *SigChain) GetLinkFromSigID(id keybase1.SigID) *ChainLink {
 	return nil
 }
 
+// GetLinkFromSigIDQuery will return true if it finds a ChainLink
+// with a SigID that starts with query.
+func (sc *SigChain) GetLinkFromSigIDQuery(query string) *ChainLink {
+	for _, link := range sc.chainLinks {
+		if link.GetSigID().Match(query, false) {
+			return link
+		}
+	}
+	return nil
+}
+
 //========================================================================
 
 type ChainType struct {
@@ -648,7 +659,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	suid := l.selfUID()
 
 	for curr != nil && goodKey {
-		l.G().Log.Debug("| loading link; curr=%s", curr)
+		l.G().VDL.Log(VLog1, "| loading link; curr=%s", curr)
 		if link, err = ImportLinkFromStorage(curr, suid, l.G()); err != nil {
 			return
 		}
@@ -669,6 +680,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	}
 
 	reverse(links)
+	l.G().Log.Debug("| Loaded %d links", len(links))
 
 	l.links = links
 	return

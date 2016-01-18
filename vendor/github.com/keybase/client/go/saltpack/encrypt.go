@@ -17,9 +17,9 @@ type encryptStream struct {
 	header     *EncryptionHeader
 	payloadKey SymmetricKey
 	buffer     bytes.Buffer
-	nonce      *Nonce
 	inblock    []byte
-	tagKeys    []BoxPrecomputedSharedKey
+	headerHash []byte
+	macKeys    [][]byte
 
 	numBlocks encryptionBlockNumber // the lower 64 bits of the nonce
 
@@ -29,11 +29,6 @@ type encryptStream struct {
 }
 
 func (es *encryptStream) Write(plaintext []byte) (int, error) {
-
-	if !es.didHeader {
-		es.didHeader = true
-		es.err = es.encoder.Encode(es.header)
-	}
 
 	if es.err != nil {
 		return 0, es.err
@@ -68,17 +63,18 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 		return err
 	}
 
-	nonce := es.nonce.ForPayloadBox(es.numBlocks)
+	nonce := nonceForChunkSecretBox(es.numBlocks)
 	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&es.payloadKey))
-	hash := sha512.Sum512(ciphertext)
 
 	block := EncryptionBlock{
 		PayloadCiphertext: ciphertext,
 	}
 
-	for _, tagKey := range es.tagKeys {
-		hashBox := tagKey.Box(nonce, hash[:])
-		authenticator := hashBox[:secretbox.Overhead]
+	// Compute the digest to authenticate, and authenticate it for each
+	// recipient.
+	hashToAuthenticate := computePayloadHash(es.headerHash, nonce, ciphertext)
+	for _, macKey := range es.macKeys {
+		authenticator := hmacSHA512256(macKey, hashToAuthenticate)
 		block.HashAuthenticators = append(block.HashAuthenticators, authenticator)
 	}
 
@@ -135,10 +131,8 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 
 	// If we have a nil Sender key, then we really want the ephemeral key
 	// as the main encryption key.
-	senderAnon := false
 	if sender == nil {
 		sender = ephemeralKey
-		senderAnon = true
 	}
 
 	eh := &EncryptionHeader{
@@ -153,20 +147,10 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 		return err
 	}
 
-	es.nonce = NewNonceForEncryption(ephemeralKey.GetPublicKey())
-
-	nonce := es.nonce.ForKeyBox()
-
-	eh.SenderSecretbox = secretbox.Seal([]byte{}, sender.GetPublicKey().ToKID(), (*[24]byte)(nonce), (*[32]byte)(&es.payloadKey))
+	eh.SenderSecretbox = secretbox.Seal([]byte{}, sender.GetPublicKey().ToKID(), (*[24]byte)(nonceForSenderKeySecretBox()), (*[32]byte)(&es.payloadKey))
 
 	for _, receiver := range receivers {
-
-		ephemeralShared := ephemeralKey.Precompute(receiver)
-
-		payloadKeyBox := ephemeralShared.Box(nonce, es.payloadKey[:])
-		if err != nil {
-			return err
-		}
+		payloadKeyBox := ephemeralKey.Box(receiver, nonceForPayloadKeyBox(), es.payloadKey[:])
 
 		keys := receiverKeys{PayloadKeyBox: payloadKeyBox}
 
@@ -176,14 +160,31 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 		}
 
 		eh.Receivers = append(eh.Receivers, keys)
-
-		tagKey := ephemeralShared
-		if !senderAnon {
-			tagKey = sender.Precompute(receiver)
-		}
-		es.tagKeys = append(es.tagKeys, tagKey)
 	}
+
+	// Encode the header to bytes, hash it, then double encode it.
+	headerBytes, err := encodeToBytes(es.header)
+	if err != nil {
+		return err
+	}
+	headerHash := sha512.Sum512(headerBytes)
+	es.headerHash = headerHash[:]
+	err = es.encoder.Encode(headerBytes)
+	if err != nil {
+		return err
+	}
+
+	// Use the header hash to compute the MAC keys.
+	es.computeMACKeys(sender, receivers)
+
 	return nil
+}
+
+func (es *encryptStream) computeMACKeys(sender BoxSecretKey, receivers []BoxPublicKey) {
+	for _, receiver := range receivers {
+		macKey := computeMACKey(sender, receiver, es.headerHash)
+		es.macKeys = append(es.macKeys, macKey)
+	}
 }
 
 func (es *encryptStream) Close() error {
@@ -207,16 +208,14 @@ func (es *encryptStream) writeFooter() error {
 //
 // Returns an io.WriteClose that accepts plaintext data to be encrypted; and
 // also returns an error if initialization failed.
-func NewEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers []BoxPublicKey) (plaintext io.WriteCloser, err error) {
+func NewEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers []BoxPublicKey) (io.WriteCloser, error) {
 	es := &encryptStream{
 		output:  ciphertext,
 		encoder: newEncoder(ciphertext),
 		inblock: make([]byte, EncryptionBlockSize),
 	}
-	if err := es.init(sender, receivers); err != nil {
-		return nil, err
-	}
-	return es, nil
+	err := es.init(sender, receivers)
+	return es, err
 }
 
 // Seal a plaintext from the given sender, for the specified receiver groups.

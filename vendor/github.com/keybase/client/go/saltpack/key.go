@@ -70,7 +70,7 @@ type BoxSecretKey interface {
 
 	// Box boxes up data, sent from this secret key, and to the receiver
 	// specified.
-	Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) ([]byte, error)
+	Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) []byte
 
 	// Unobx opens up the box, using this secret key as the receiver key
 	// abd the give public key as the sender key.

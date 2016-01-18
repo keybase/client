@@ -54,6 +54,11 @@ const SignatureAttachedString = "attached signature"
 // a detached signature.
 const SignatureDetachedString = "detached signature"
 
+// We truncate HMAC512 to the same link that NaCl's crypto_auth function does.
+const CryptoAuthBytes = 32
+
+const CryptoAuthKeyBytes = 32
+
 type readState int
 
 const (

@@ -5,6 +5,7 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
@@ -43,13 +44,6 @@ func (e encryptionBlockNumber) check() error {
 	return nil
 }
 
-func hashNonceAndAuthTag(nonce *Nonce, ciphertext []byte) []byte {
-	var buf bytes.Buffer
-	buf.Write((*nonce)[:])
-	buf.Write(ciphertext[0:poly1305.TagSize])
-	return buf.Bytes()
-}
-
 func writeNullTerminatedString(w io.Writer, s string) {
 	w.Write([]byte(s))
 	w.Write([]byte{0})
@@ -64,9 +58,9 @@ func assertEndOfStream(stream *msgpackStream) error {
 	return err
 }
 
-func computeAttachedDigest(nonce []byte, block *SignatureBlock) []byte {
+func attachedSignatureInput(headerHash []byte, block *SignatureBlock) []byte {
 	hasher := sha512.New()
-	hasher.Write(nonce)
+	hasher.Write(headerHash)
 	binary.Write(hasher, binary.BigEndian, block.seqno)
 	hasher.Write(block.PayloadChunk)
 
@@ -78,19 +72,52 @@ func computeAttachedDigest(nonce []byte, block *SignatureBlock) []byte {
 	return buf.Bytes()
 }
 
-func computeDetachedDigest(nonce []byte, plaintext []byte) []byte {
+func detachedSignatureInput(headerHash []byte, plaintext []byte) []byte {
 	hasher := sha512.New()
-	hasher.Write(nonce)
+	hasher.Write(headerHash)
 	hasher.Write(plaintext)
 
-	return detachedDigest(hasher.Sum(nil))
+	return detachedSignatureInputFromHash(hasher.Sum(nil))
 }
 
-func detachedDigest(sum []byte) []byte {
+func detachedSignatureInputFromHash(plaintextAndHeaderHash []byte) []byte {
 	var buf bytes.Buffer
 	writeNullTerminatedString(&buf, SaltpackFormatName)
 	writeNullTerminatedString(&buf, SignatureDetachedString)
-	buf.Write(sum)
+	buf.Write(plaintextAndHeaderHash)
 
 	return buf.Bytes()
+}
+
+func hmacSHA512256(key []byte, input []byte) []byte {
+	// Equivalent to crypto_auth, but using Go's builtin HMAC. Truncates
+	// SHA512, instead of actually calling SHA512/256.
+	if len(key) != CryptoAuthKeyBytes {
+		panic("Bad crypto_auth key length")
+	}
+	authenticatorDigest := hmac.New(sha512.New, key)
+	authenticatorDigest.Write(input)
+	fullMAC := authenticatorDigest.Sum(nil)
+	return fullMAC[:CryptoAuthBytes]
+}
+
+func computeMACKey(secret BoxSecretKey, public BoxPublicKey, headerHash []byte) []byte {
+	nonce := nonceForMACKeyBox(headerHash)
+	macKeyBox := secret.Box(public, nonce, make([]byte, CryptoAuthKeyBytes))
+	macKey := macKeyBox[poly1305.TagSize : poly1305.TagSize+CryptoAuthKeyBytes]
+	return macKey
+}
+
+func computePayloadHash(headerHash []byte, nonce *Nonce, payloadCiphertext []byte) []byte {
+	payloadDigest := sha512.New()
+	payloadDigest.Write(headerHash)
+	payloadDigest.Write(nonce[:])
+	payloadDigest.Write(payloadCiphertext)
+	return payloadDigest.Sum(nil)
+}
+
+func sha512OfSlice(slice []byte) []byte {
+	digest := sha512.New()
+	digest.Write(slice)
+	return digest.Sum(nil)
 }

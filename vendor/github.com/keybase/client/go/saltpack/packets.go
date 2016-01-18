@@ -46,7 +46,7 @@ func (h *EncryptionHeader) validate() error {
 		return ErrWrongMessageType{MessageTypeEncryption, h.Type}
 	}
 	if h.Version.Major != SaltpackCurrentVersion.Major {
-		return ErrBadVersion{h.seqno, h.Version}
+		return ErrBadVersion{h.Version}
 	}
 	return nil
 }
@@ -59,8 +59,6 @@ type SignatureHeader struct {
 	Type         MessageType `codec:"type"`
 	SenderPublic []byte      `codec:"sender_public"`
 	Nonce        []byte      `codec:"nonce"`
-	Signature    []byte      `codec:"signature,omitempty"`
-	seqno        PacketSeqno
 }
 
 func newSignatureHeader(sender SigningPublicKey, msgType MessageType) (*SignatureHeader, error) {
@@ -91,18 +89,10 @@ func (h *SignatureHeader) validate(msgType MessageType) error {
 		}
 	}
 	if h.Version.Major != SaltpackCurrentVersion.Major {
-		return ErrBadVersion{h.seqno, h.Version}
+		return ErrBadVersion{h.Version}
 	}
 
-	if msgType == MessageTypeAttachedSignature {
-		if len(h.Signature) != 0 {
-			return ErrDetachedSignaturePresent
-		}
-	} else if msgType == MessageTypeDetachedSignature {
-		if len(h.Signature) == 0 {
-			return ErrNoDetachedSignature
-		}
-	} else {
+	if msgType != MessageTypeAttachedSignature && msgType != MessageTypeDetachedSignature {
 		return ErrInvalidParameter{message: fmt.Sprintf("signature header must be MessageTypeAttachedSignature or MessageTypeDetachedSignature, not %d", msgType)}
 	}
 

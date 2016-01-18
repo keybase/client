@@ -3,27 +3,29 @@
 
 package saltpack
 
-import "io"
+import (
+	"io"
+)
 
 type verifyStream struct {
-	stream    *msgpackStream
-	state     readState
-	buffer    []byte
-	header    *SignatureHeader
-	publicKey SigningPublicKey
+	stream     *msgpackStream
+	state      readState
+	buffer     []byte
+	header     *SignatureHeader
+	headerHash []byte
+	publicKey  SigningPublicKey
+	seqno      PacketSeqno
 }
 
 func newVerifyStream(r io.Reader, msgType MessageType) (*verifyStream, error) {
 	s := &verifyStream{
 		stream: newMsgpackStream(r),
+		seqno:  0,
 	}
-	hdr, err := s.readHeader(msgType)
+	err := s.readHeader(msgType)
 	if err != nil {
 		return nil, err
 	}
-	s.header = hdr
-	// reset the seqno on the stream after reading the header
-	s.stream.seqno = 0
 	return s, nil
 }
 
@@ -63,28 +65,36 @@ func (v *verifyStream) read(p []byte) (int, error) {
 	return n, nil
 }
 
-func (v *verifyStream) readHeader(msgType MessageType) (*SignatureHeader, error) {
-	var hdr SignatureHeader
-	seqno, err := v.stream.Read(&hdr)
+func (v *verifyStream) readHeader(msgType MessageType) error {
+	var headerBytes []byte
+	_, err := v.stream.Read(&headerBytes)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	hdr.seqno = seqno
-	v.header = &hdr
-	if err := v.header.validate(msgType); err != nil {
-		return nil, err
+
+	v.headerHash = sha512OfSlice(headerBytes)
+
+	var header SignatureHeader
+	err = decodeFromBytes(&header, headerBytes)
+	if err != nil {
+		return err
+	}
+	v.header = &header
+	if err := header.validate(msgType); err != nil {
+		return err
 	}
 	v.state = stateBody
-	return &hdr, nil
+	return nil
 }
 
 func (v *verifyStream) readBlock(p []byte) (int, bool, error) {
 	var block SignatureBlock
-	seqno, err := v.stream.Read(&block)
+	_, err := v.stream.Read(&block)
 	if err != nil {
 		return 0, false, err
 	}
-	block.seqno = seqno
+	block.seqno = v.seqno
+	v.seqno++
 
 	data, err := v.processBlock(&block)
 	if err != nil {
@@ -101,7 +111,7 @@ func (v *verifyStream) readBlock(p []byte) (int, bool, error) {
 }
 
 func (v *verifyStream) processBlock(block *SignatureBlock) ([]byte, error) {
-	if err := v.publicKey.Verify(computeAttachedDigest(v.header.Nonce, block), block.Signature); err != nil {
+	if err := v.publicKey.Verify(attachedSignatureInput(v.headerHash, block), block.Signature); err != nil {
 		return nil, err
 	}
 	return block.PayloadChunk, nil

@@ -680,6 +680,7 @@ type CiphertextBundle struct {
 	Kid        KID              `codec:"kid" json:"kid"`
 	Ciphertext EncryptedBytes32 `codec:"ciphertext" json:"ciphertext"`
 	Nonce      BoxNonce         `codec:"nonce" json:"nonce"`
+	PublicKey  BoxPublicKey     `codec:"publicKey" json:"publicKey"`
 }
 
 type UnboxAnyRes struct {
@@ -706,9 +707,8 @@ type UnboxBytes32Arg struct {
 }
 
 type UnboxBytes32AnyArg struct {
-	Bundles        []CiphertextBundle `codec:"bundles" json:"bundles"`
-	PeersPublicKey BoxPublicKey       `codec:"peersPublicKey" json:"peersPublicKey"`
-	Reason         string             `codec:"reason" json:"reason"`
+	Bundles []CiphertextBundle `codec:"bundles" json:"bundles"`
+	Reason  string             `codec:"reason" json:"reason"`
 }
 
 type CryptoInterface interface {
@@ -1592,6 +1592,7 @@ const (
 type TrackOptions struct {
 	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
+	ForceRetrack  bool `codec:"forceRetrack" json:"forceRetrack"`
 }
 
 type IdentifyReasonType int
@@ -4614,8 +4615,8 @@ type RevokeDeviceArg struct {
 }
 
 type RevokeSigsArg struct {
-	SessionID int     `codec:"sessionID" json:"sessionID"`
-	SigIDs    []SigID `codec:"sigIDs" json:"sigIDs"`
+	SessionID    int      `codec:"sessionID" json:"sessionID"`
+	SigIDQueries []string `codec:"sigIDQueries" json:"sigIDQueries"`
 }
 
 type RevokeInterface interface {
