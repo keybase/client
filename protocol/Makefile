@@ -29,6 +29,7 @@ build-stamp: \
 	json/kbfs.json \
 	json/kex2provisioner.json \
 	json/kex2provisionee.json \
+	json/log.json \
 	json/log_ui.json \
 	json/login.json \
 	json/login_ui.json \

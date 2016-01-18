@@ -1,0 +1,6 @@
+@namespace("keybase.1")
+protocol log {
+  import idl "common.avdl";
+
+  void registerLogger(int sessionID, string name, LogLevel level);
+}
