@@ -831,11 +831,6 @@ type LogRotateArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type SetLogLevelArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Level     LogLevel `codec:"level" json:"level"`
-}
-
 type ReloadArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -847,7 +842,6 @@ type DbNukeArg struct {
 type CtlInterface interface {
 	Stop(context.Context, StopArg) error
 	LogRotate(context.Context, int) error
-	SetLogLevel(context.Context, SetLogLevelArg) error
 	Reload(context.Context, int) error
 	DbNuke(context.Context, int) error
 }
@@ -884,22 +878,6 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						return
 					}
 					err = i.LogRotate(ctx, (*typedArgs)[0].SessionID)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"setLogLevel": {
-				MakeArg: func() interface{} {
-					ret := make([]SetLogLevelArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SetLogLevelArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]SetLogLevelArg)(nil), args)
-						return
-					}
-					err = i.SetLogLevel(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -952,11 +930,6 @@ func (c CtlClient) Stop(ctx context.Context, __arg StopArg) (err error) {
 func (c CtlClient) LogRotate(ctx context.Context, sessionID int) (err error) {
 	__arg := LogRotateArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
-	return
-}
-
-func (c CtlClient) SetLogLevel(ctx context.Context, __arg SetLogLevelArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.setLogLevel", []interface{}{__arg}, nil)
 	return
 }
 
