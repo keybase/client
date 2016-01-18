@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -42,6 +43,13 @@ func main() {
 
 	go HandleSignals()
 	err := mainInner(g)
+
+	if g.Env.GetDebug() {
+		// hack to wait a little bit to receive all the log messages from the
+		// service before shutting down in debug mode.
+		time.Sleep(100 * time.Millisecond)
+	}
+
 	e2 := g.Shutdown()
 	if err == nil {
 		err = e2
@@ -209,32 +217,27 @@ func configureLogging(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error 
 		return nil
 	}
 
-	// TODO This triggers a connection to the RPC server before cmd.Run() is
-	// called, so the command has no way to deal with errors on its own.
-	// This should probably be moved into RegisterProtocols?
-	// Also rpc.RegisterProtocolsWithContext seems to automatically add the
-	// LogUIProtocol?
-	return registerGlobalLogUI(g)
-}
-
-func registerGlobalLogUI(g *libkb.GlobalContext) error {
 	protocols := []rpc.Protocol{client.NewLogUIProtocol()}
 	if err := client.RegisterProtocols(protocols); err != nil {
 		return err
 	}
-	// Send our current debugging state, so that the server can avoid
-	// sending us verbose logs when we don't want to read them.
+
 	logLevel := keybase1.LogLevel_INFO
 	if g.Env.GetDebug() {
 		logLevel = keybase1.LogLevel_DEBUG
 	}
-	ctlClient, err := client.GetCtlClient(g)
+	logClient, err := client.GetLogClient(g)
 	if err != nil {
 		return err
 	}
-	g.Log.Debug("Setting remote log level: %v", logLevel)
-	arg := keybase1.SetLogLevelArg{Level: logLevel}
-	ctlClient.SetLogLevel(context.TODO(), arg)
+	arg := keybase1.RegisterLoggerArg{
+		Name:  "CLI client",
+		Level: logLevel,
+	}
+	if err := logClient.RegisterLogger(context.TODO(), arg); err != nil {
+		return err
+	}
+
 	return nil
 }
 

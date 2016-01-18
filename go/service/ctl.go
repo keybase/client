@@ -39,7 +39,8 @@ func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
 }
 
 func (c *CtlHandler) SetLogLevel(_ context.Context, arg keybase1.SetLogLevelArg) error {
-	c.G().Log.SetExternalLogLevel(arg.Level)
+	// PC: I don't know if this is used by anything anymore:
+	// c.G().Log.SetExternalLogLevel(arg.Level)
 	return nil
 }
 

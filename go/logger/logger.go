@@ -8,6 +8,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+type ExternalHandler interface {
+	Log(level keybase1.LogLevel, format string, args []interface{})
+}
+
 type Logger interface {
 	// Debug logs a message at debug level, with formatting args.
 	Debug(format string, args ...interface{})
@@ -54,22 +58,6 @@ type Logger interface {
 	// writing to a file.
 	RotateLogFile() error
 
-	// External loggers are a hack to allow the calls to G.Log.* in the daemon
-	// to be forwarded to the client. Loggers are registered here with
-	// AddExternalLogger when connections are started, and every log that's
-	// done gets replayed for each external logger registered at the time. That
-	// will cause some duplication when multiple clients are connected, but
-	// it's a hack. Ideally in the future every function that needs to log will
-	// have a context.
-	//
-	// Because external loggers are intended to be talking over the RPC
-	// connection, we don't want to push all the voluminous debug logs unless
-	// the client actually wants them. Thus we keep a log level here, and we
-	// drop any logs that are below that level. Clients will set this over RPC
-	// when they connect.
-	AddExternalLogger(externalLogger ExternalLogger) uint64
-	RemoveExternalLogger(handle uint64)
-	SetExternalLogLevel(level keybase1.LogLevel)
-
-	Shutdown()
+	// SetExternalHandler sets a handler that will be called with every log message.
+	SetExternalHandler(handler ExternalHandler)
 }
