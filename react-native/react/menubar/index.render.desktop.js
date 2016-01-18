@@ -292,9 +292,8 @@ class FolderList extends Component {
     publicFolders.push(publicFolderEntry)
 
     privateFolders = privateFolders.concat(folders.filter(f => !f.isPublic))
-    publicFolders = publicFolders.concat(
-    folders.filter(f => f.isPublic))
-    .map(f => f.type === 'entry' ? f : {...f, folderName: stripPublicTag(f.folderName)})
+    publicFolders = publicFolders.concat(folders.filter(f => f.isPublic)).map(f => f.type === 'entry'
+      ? f : {...f, folderName: stripPublicTag(f.folderName)})
 
     const folderDisplayLimit = 5
 
