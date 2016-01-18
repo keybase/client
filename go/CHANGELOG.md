@@ -10,7 +10,7 @@
   - Don't error out on bad signatures in the PGP keys themselves
      (vendored PR: keybase/go-crypto#7)
   - Skip keys that don't import properly, rather than killing the whole
-     key family import ()
+     key family import (PR: keybase/client#1766)
 
 ## 1.0.8 (2016-01-13)
 - Do not use current keybase ID as default when generating PGP keys  (PR: keybase/client#1706)
