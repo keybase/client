@@ -4,7 +4,6 @@
 package saltpack
 
 import (
-	"crypto/sha512"
 	"io"
 )
 
@@ -73,9 +72,7 @@ func (v *verifyStream) readHeader(msgType MessageType) error {
 		return err
 	}
 
-	headerDigest := sha512.New()
-	headerDigest.Write(headerBytes)
-	v.headerHash = headerDigest.Sum(nil)
+	v.headerHash = sha512OfSlice(headerBytes)
 
 	var header SignatureHeader
 	err = decodeFromBytes(&header, headerBytes)

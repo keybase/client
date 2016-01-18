@@ -115,3 +115,9 @@ func computePayloadHash(headerHash []byte, nonce *Nonce, payloadCiphertext []byt
 	payloadDigest.Write(payloadCiphertext)
 	return payloadDigest.Sum(nil)
 }
+
+func sha512OfSlice(slice []byte) []byte {
+	digest := sha512.New()
+	digest.Write(slice)
+	return digest.Sum(nil)
+}

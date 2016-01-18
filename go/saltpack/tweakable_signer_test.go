@@ -5,7 +5,6 @@ package saltpack
 
 import (
 	"bytes"
-	"crypto/sha512"
 	"io"
 )
 
@@ -51,9 +50,7 @@ func newTestSignStream(w io.Writer, signer SigningSecretKey, opts testSignOption
 	}
 
 	// Compute the header hash.
-	headerDigest := sha512.New()
-	headerDigest.Write(headerBytes)
-	headerHash := headerDigest.Sum(nil)
+	headerHash := sha512OfSlice(headerBytes)
 
 	stream := &testSignStream{
 		headerHash: headerHash,
@@ -191,9 +188,7 @@ func testTweakSignDetached(plaintext []byte, signer SigningSecretKey, opts testS
 	}
 
 	// Compute the header hash.
-	headerDigest := sha512.New()
-	headerDigest.Write(headerBytes)
-	headerHash := headerDigest.Sum(nil)
+	headerHash := sha512OfSlice(headerBytes)
 
 	// Double encode the header bytes to start the output.
 	output, err := encodeToBytes(headerBytes)

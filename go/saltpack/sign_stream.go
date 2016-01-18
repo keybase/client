@@ -36,9 +36,7 @@ func newSignAttachedStream(w io.Writer, signer SigningSecretKey) (*signAttachedS
 	}
 
 	// Compute the header hash.
-	headerDigest := sha512.New()
-	headerDigest.Write(headerBytes)
-	headerHash := headerDigest.Sum(nil)
+	headerHash := sha512OfSlice(headerBytes)
 
 	// Create the attached stream object.
 	stream := &signAttachedStream{
@@ -139,9 +137,7 @@ func newSignDetachedStream(w io.Writer, signer SigningSecretKey) (*signDetachedS
 	}
 
 	// Compute the header hash.
-	headerDigest := sha512.New()
-	headerDigest.Write(headerBytes)
-	headerHash := headerDigest.Sum(nil)
+	headerHash := sha512OfSlice(headerBytes)
 
 	// Create the detached stream object.
 	stream := &signDetachedStream{
