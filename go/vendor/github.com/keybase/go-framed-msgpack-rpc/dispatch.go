@@ -45,8 +45,9 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	// Have to add call before encoding otherwise we'll race the response
 	d.calls.AddCall(c)
 	defer d.calls.RemoveCall(c.seqid)
-	errCh := d.writer.Encode([]interface{}{MethodCall, c.seqid, c.method, c.arg})
+	errCh := d.writer.EncodeAndWrite(ctx, []interface{}{MethodCall, c.seqid, c.method, c.arg})
 
+	// Wait for result from encode
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -60,6 +61,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 
 	d.log.ClientCall(c.seqid, c.method, c.arg)
 
+	// Wait for result from call
 	select {
 	case res := <-c.resultCh:
 		d.log.ClientReply(c.seqid, c.method, res.Err(), res.Res())
@@ -72,7 +74,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 }
 
 func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) error {
-	errCh := d.writer.Encode([]interface{}{MethodNotify, name, arg})
+	errCh := d.writer.EncodeAndWrite(ctx, []interface{}{MethodNotify, name, arg})
 	select {
 	case err := <-errCh:
 		if err == nil {
@@ -83,7 +85,7 @@ func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) err
 		return io.EOF
 	case <-ctx.Done():
 		d.log.ClientCancel(-1, name, nil)
-		return newCanceledError(name, -1)
+		return ctx.Err()
 	}
 }
 
@@ -93,7 +95,7 @@ func (d *dispatch) Close() {
 
 func (d *dispatch) handleCancel(c *call) error {
 	d.log.ClientCancel(c.seqid, c.method, nil)
-	errCh := d.writer.Encode([]interface{}{MethodCancel, c.seqid, c.method})
+	errCh := d.writer.EncodeAndWriteAsync([]interface{}{MethodCancel, c.seqid, c.method})
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -102,5 +104,5 @@ func (d *dispatch) handleCancel(c *call) error {
 	default:
 		// Don't block on receiving the error from the Encode
 	}
-	return newCanceledError(c.method, c.seqid)
+	return c.ctx.Err()
 }

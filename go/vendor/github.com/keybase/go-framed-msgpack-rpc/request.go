@@ -49,23 +49,20 @@ func (r *callRequest) LogCompletion(res interface{}, err error) {
 }
 
 func (r *callRequest) Reply(enc encoder, res interface{}, errArg interface{}) (err error) {
+	v := []interface{}{
+		MethodResponse,
+		r.SeqNo(),
+		errArg,
+		res,
+	}
+	errCh := enc.EncodeAndWrite(r.ctx, v)
 	select {
-	case <-r.ctx.Done():
-		err = newCanceledError(r.Name(), r.SeqNo())
-		r.log.Info(err.Error())
-	default:
-		v := []interface{}{
-			MethodResponse,
-			r.SeqNo(),
-			errArg,
-			res,
-		}
-		errCh := enc.Encode(v)
-		// TODO investigate hypothetical server-side hang here
-		err = <-errCh
+	case err := <-errCh:
 		if err != nil {
 			r.log.Warning("Reply error for %d: %s", r.SeqNo(), err.Error())
 		}
+	case <-r.ctx.Done():
+		r.log.Info("Call canceled after reply sent. Seq: %d", r.SeqNo())
 	}
 	return err
 }

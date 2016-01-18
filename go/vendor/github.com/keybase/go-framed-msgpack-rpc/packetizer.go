@@ -36,7 +36,7 @@ func (p *packetHandler) NextFrame() (rpcMessage, error) {
 		return nil, err
 	}
 	if len(bytes) < 1 {
-		return nil, fmt.Errorf("invalid frame size: %d", len(bytes))
+		return nil, NewPacketizerError("invalid frame size: %d", len(bytes))
 	}
 
 	// Attempt to read the fixarray

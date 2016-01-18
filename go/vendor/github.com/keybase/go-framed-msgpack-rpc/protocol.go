@@ -55,7 +55,7 @@ func (h *protocolHandler) registerProtocol(p Protocol) error {
 	defer h.mtx.Unlock()
 
 	if _, found := h.protocols[p.Name]; found {
-		return AlreadyRegisteredError{p.Name}
+		return newAlreadyRegisteredError(p.Name)
 	}
 	h.protocols[p.Name] = p
 	return nil
@@ -68,11 +68,11 @@ func (h *protocolHandler) findServeHandler(name string) (*ServeHandlerDescriptio
 	p, m := splitMethodName(name)
 	prot, found := h.protocols[p]
 	if !found {
-		return nil, h.wef, ProtocolNotFoundError{p}
+		return nil, h.wef, newProtocolNotFoundError(p)
 	}
 	srv, found := prot.Methods[m]
 	if !found {
-		return nil, h.wef, MethodNotFoundError{p, m}
+		return nil, h.wef, newMethodNotFoundError(p, m)
 	}
 	return &srv, prot.WrapError, nil
 }
