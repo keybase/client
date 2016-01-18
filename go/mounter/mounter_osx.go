@@ -20,7 +20,7 @@ func IsMounted(g *libkb.GlobalContext, dir string) (bool, error) {
 	}
 
 	g.Log.Debug("Mount info: %s", mountInfo)
-	if strings.HasPrefix(mountInfo, "mount_") {
+	if strings.Contains(mountInfo, "@kbfuse") {
 		return true, nil
 	}
 

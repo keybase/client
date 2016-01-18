@@ -108,22 +108,16 @@ func (v *CmdInstall) runInstall() keybase1.InstallResult {
 	return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, fmt.Sprintf("Invalid installer: %s", v.installer))}
 }
 
-func (v *CmdInstall) outputResult(result keybase1.InstallResult) {
-	for _, cr := range result.ComponentResults {
-		cn := install.ComponentNameFromString(cr.Name)
-		v.G().Log.Info("%s: %s", cn.String(), cr.Status.Desc)
-	}
-}
-
 func (v *CmdInstall) Run() error {
 	result := v.runInstall()
-	v.outputResult(result)
 	if v.format == "json" {
 		out, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
 			return err
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
+	} else {
+		outputComponentResults(v.G().UI, "Install", result.ComponentResults)
 	}
 	return nil
 }
@@ -181,24 +175,26 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdUninstall) outputResult(result keybase1.UninstallResult) {
-	for _, cr := range result.ComponentResults {
-		cn := install.ComponentNameFromString(cr.Name)
-		v.G().Log.Info("%s: %s", cn.String(), cr.Status.Desc)
-	}
-}
-
 func (v *CmdUninstall) Run() error {
 	result := install.Uninstall(v.G(), v.components)
-	v.outputResult(result)
 	if v.format == "json" {
 		out, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
 			return err
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
+	} else {
+		outputComponentResults(v.G().UI, "Uninstall", result.ComponentResults)
 	}
 	return nil
+}
+
+func outputComponentResults(ui libkb.UI, action string, crs []keybase1.ComponentResult) {
+	term := ui.GetTerminalUI()
+	for _, cr := range crs {
+		cn := install.ComponentNameFromString(cr.Name)
+		term.Printf("%s %s: %s\n", action, cn.String(), cr.Status.Desc)
+	}
 }
 
 func DiagnoseSocketError(ui libkb.UI, err error) {
