@@ -83,7 +83,7 @@ func (s *armorEncoderStream) Close() (err error) {
 			pad = " "
 		}
 	}
-	if _, err := fmt.Fprintf(s.encoded, "%s%c\n\n%s%c\n", pad, s.params.Punctuation, s.footer, s.params.Punctuation); err != nil {
+	if _, err := fmt.Fprintf(s.encoded, "%s%c %s%c\n", pad, s.params.Punctuation, s.footer, s.params.Punctuation); err != nil {
 		return err
 	}
 	return nil
@@ -105,7 +105,7 @@ func NewArmorEncoderStream(encoded io.Writer, header string, footer string, para
 		params:  params,
 	}
 	ret.encoder = basex.NewEncoder(params.Encoding, ret.buf)
-	if _, err := fmt.Fprintf(encoded, "%s%c\n\n", header, params.Punctuation); err != nil {
+	if _, err := fmt.Fprintf(encoded, "%s%c ", header, params.Punctuation); err != nil {
 		return nil, err
 	}
 	return ret, nil
