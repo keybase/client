@@ -111,8 +111,8 @@ class Menubar extends Component {
   render () {
     const openingMessage = this.props.loggedIn ? 'Keybase Alpha' : 'Looks like you aren\'t logged in. Try running `keybase login`'
 
-    const openingButtonInfo = this.props.username && {text: 'WTF?', onClick: this.showHelp}
-    const folders = (this.props.folders || []).map(function (f: Folder): FolderInfo {
+    const openingButtonInfo = this.props.username && {text: 'WTF?', onClick: () => this.showHelp()}
+    const folders = (this.props.folders || []).map((f: Folder): FolderInfo => {
       return {
         folderName: f.name,
         isPublic: !f.private,
