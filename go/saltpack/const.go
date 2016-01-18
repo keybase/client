@@ -48,11 +48,11 @@ const SignatureBlockSize int = 1048576
 
 // SignatureAttachedString is part of the data that is signed in
 // each payload packet.
-const SignatureAttachedString = "attached signature"
+const SignatureAttachedString = "saltpack attached signature\x00"
 
 // SignatureDetachedString is part of the data that is signed in
 // a detached signature.
-const SignatureDetachedString = "detached signature"
+const SignatureDetachedString = "saltpack detached signature\x00"
 
 // We truncate HMAC512 to the same link that NaCl's crypto_auth function does.
 const CryptoAuthBytes = 32

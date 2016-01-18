@@ -76,22 +76,14 @@ concatenation of three values:
   the first payload packet is zero
 - the **payload chunk**
 
-The sender then signs the concatenation of three values:
-- `"saltpack\0"`
-- `"attached signature\0"`
+The sender then signs the concatenation of two values:
+- `"saltpack attached signature\0"`
 - the SHA512 hash above
 
 As in the [encryption spec](saltpack_encryption.md), after encrypting the
 entire message, the sender adds an extra payload packet with an empty payload
 to signify the end. If a message doesn't end with an empty payload packet, the
 receiving client should report an error that the message has been truncated.
-
-Some applications might use the saltpack format, but don't want signature
-compatibility with other saltpack applications. In addition to changing the
-format name at the start of the header, these applications should use a
-[different null-terminated context
-string](https://www.ietf.org/mail-archive/web/tls/current/msg14734.html) in
-place of `"saltpack\0"`.
 
 ## Detached Implementation
 
@@ -118,9 +110,8 @@ concatenation of two values::
 - the **header hash** from above
 - the entire plaintext
 
-The sender then signs the concatenation of three values:
-- `"saltpack\0"`
-- `"detached signature\0"`
+The sender then signs the concatenation of two values:
+- `"saltpack detached signature\0"`
 - the SHA512 hash above
 
 ## Examples
