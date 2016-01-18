@@ -419,7 +419,9 @@ func uninstallKBFS(g *libkb.GlobalContext) error {
 	if !empty {
 		return fmt.Errorf("Mount has files after unmounting: %s", mountPath)
 	}
-	return trashDir(g, mountPath)
+	// TODO: We should remove the mountPath via trashDir(g, mountPath) but given
+	// permissions of /keybase we'll need the priviledged tool to do it instead.
+	return nil
 }
 
 func AutoInstallWithStatus(g *libkb.GlobalContext, binPath string, force bool) keybase1.InstallResult {
