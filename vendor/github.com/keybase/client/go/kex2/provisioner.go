@@ -154,7 +154,7 @@ func (p *provisioner) runProtocolWithCancel() (err error) {
 		p.canceled = true
 		return ErrCanceled
 	case err = <-ch:
-		if _, ok := err.(rpc.CanceledError); ok && !p.helloReceived {
+		if err == context.Canceled && !p.helloReceived {
 			return ErrHelloTimeout
 		}
 		return err

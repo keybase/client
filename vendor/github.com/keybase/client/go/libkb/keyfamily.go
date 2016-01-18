@@ -28,6 +28,8 @@ type KeybaseTime struct {
 // Everything here has been checked by the client. Each ComputedKeyInfo
 // refers to exactly one ServerKeyInfo.
 type ComputedKeyInfo struct {
+	Contextified
+
 	Status KeyStatus
 	Eldest bool
 	Sibkey bool
@@ -52,8 +54,6 @@ type ComputedKeyInfo struct {
 	// legacy behavior of combining every instance of this key that we got from
 	// the server minus revocations.
 	ActivePGPHash string
-
-	Contextified
 }
 
 func (cki ComputedKeyInfo) GetCTime() time.Time {
@@ -68,6 +68,8 @@ func (cki ComputedKeyInfo) GetETime() time.Time {
 // store CKIs separately from the keys, since the server can clobber the
 // former.  We should rewrite CKIs every time we (re)check a user's SigChain
 type ComputedKeyInfos struct {
+	Contextified
+
 	dirty bool // whether it needs to be written to disk or not
 
 	// Map of KID to a computed info
@@ -157,9 +159,9 @@ type KeyFamily struct {
 // what the server returned and is not to be trusted; the ComputedKeyInfos
 // is what we compute as a result of playing the user's sigchain forward.
 type ComputedKeyFamily struct {
+	Contextified
 	kf  *KeyFamily
 	cki *ComputedKeyInfos
-	Contextified
 }
 
 // Insert inserts the given ComputedKeyInfo object 1 or 2 times,
@@ -216,8 +218,9 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 	return ret
 }
 
-func NewComputedKeyInfos() *ComputedKeyInfos {
+func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 	return &ComputedKeyInfos{
+		Contextified:  NewContextified(g),
 		Infos:         make(map[keybase1.KID]*ComputedKeyInfo),
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
@@ -305,11 +308,8 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username Norma
 
 // ParseKeyFamily takes as input a dictionary from a JSON file and returns
 // a parsed version for manipulation in the program.
-func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
-	G.Log.Debug("+ ParseKeyFamily")
-	defer func() {
-		G.Log.Debug("- ParseKeyFamily -> %s", ErrToOk(err))
-	}()
+func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
+	defer g.Trace("ParseKeyFamily", func() error { return err })()
 
 	if jw == nil || jw.IsNil() {
 		err = KeyFamilyError{"nil record from server"}
@@ -317,9 +317,9 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	}
 
 	kf := KeyFamily{
+		Contextified: NewContextified(g),
 		pgp2kid:      make(map[PGPFingerprint]keybase1.KID),
 		kid2pgp:      make(map[keybase1.KID]PGPFingerprint),
-		Contextified: NewContextified(G),
 	}
 
 	// Fill in AllKeys. Somewhat wasteful but probably faster than
@@ -334,10 +334,17 @@ func ParseKeyFamily(jw *jsonw.Wrapper) (ret *KeyFamily, err error) {
 	kf.AllKIDs = make(map[keybase1.KID]bool)
 	kf.PGPKeySets = make(map[keybase1.KID]*PGPKeySet)
 	kf.SingleKeys = make(map[keybase1.KID]GenericKey)
-	for _, bundle := range rkf.AllBundles {
+	for i, bundle := range rkf.AllBundles {
 		newKey, err := ParseGenericKey(bundle)
+
+		// Some users have some historical bad keys, so no reason to crap
+		// out if we can't parse them, especially if there are others than
+		// can do just as well.
 		if err != nil {
-			return nil, err
+			g.Log.Notice("Failed to parse public key at position %d", i)
+			g.Log.Debug("Full key dump follows")
+			g.Log.Debug(bundle)
+			continue
 		}
 
 		kid := newKey.GetKID()
@@ -493,7 +500,7 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 // Delegate marks the given ComputedKeyInfos object that the given kid is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
 func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKID keybase1.KID, pgpHash string, isSibkey bool, ctime, etime time.Time) (err error) {
-	G.Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
+	cki.G().Log.Debug("ComputeKeyInfos::Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kid]
 	if !found {
 		newInfo := NewComputedKeyInfo(false, false, KeyUncancelled, ctime.Unix(), etime.Unix(), pgpHash)
@@ -595,7 +602,7 @@ func (ckf ComputedKeyFamily) FindKeybaseName(s string) bool {
 		}
 		pgp := ckf.kf.PGPKeySets[kid].PermissivelyMergedKey
 		if pgp.FindEmail(kem) {
-			G.Log.Debug("| Found self-sig for %s in key ID: %s", s, kid)
+			ckf.G().Log.Debug("| Found self-sig for %s in key ID: %s", s, kid)
 			return true
 		}
 	}
@@ -707,7 +714,7 @@ func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle)
 			if key, err := ckf.FindKeyWithKIDUnsafe(kid); err == nil {
 				ret = append(ret, key.(*PGPKeyBundle))
 			} else {
-				G.Log.Errorf("KID %s was in a KeyFamily's list of PGP keys, but the key doesn't exist: %s", kid, err)
+				ckf.G().Log.Errorf("KID %s was in a KeyFamily's list of PGP keys, but the key doesn't exist: %s", kid, err)
 			}
 		}
 	}
@@ -717,11 +724,8 @@ func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle)
 // UpdateDevices takes the Device object from the given ChainLink
 // and updates keys to reflects any device changes encoded therein.
 func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
+	defer ckf.G().Trace("UpdateDevice", func() error { return err })()
 
-	G.Log.Debug("+ UpdateDevice")
-	defer func() {
-		G.Log.Debug("- UpdateDevice -> %s", ErrToOk(err))
-	}()
 	var dobj *Device
 	if dobj = tcl.GetDevice(); dobj == nil {
 		return
@@ -730,16 +734,16 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	did := dobj.ID
 	kid := dobj.Kid
 
-	G.Log.Debug("| Device ID=%s; KID=%s", did, kid.String())
+	ckf.G().Log.Debug("| Device ID=%s; KID=%s", did, kid.String())
 
 	var prevKid keybase1.KID
 	if existing, found := ckf.cki.Devices[did]; found {
-		G.Log.Debug("| merge with existing")
+		ckf.G().Log.Debug("| merge with existing")
 		prevKid = existing.Kid
 		existing.Merge(dobj)
 		dobj = existing
 	} else {
-		G.Log.Debug("| New insert")
+		ckf.G().Log.Debug("| New insert")
 		ckf.cki.Devices[did] = dobj
 	}
 
@@ -747,7 +751,7 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	// We might wind up just clobbering it with the same thing, but
 	// that's fine for now.
 	if prevKid.IsValid() {
-		G.Log.Debug("| Clear out old key")
+		ckf.G().Log.Debug("| Clear out old key")
 		delete(ckf.cki.KIDToDeviceID, prevKid)
 	}
 
@@ -759,21 +763,21 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 }
 
 func (ckf *ComputedKeyFamily) getSibkeyKidForDevice(did keybase1.DeviceID) (keybase1.KID, error) {
-	G.Log.Debug("+ getSibkeyKidForDevice(%v)", did)
-	G.Log.Debug("| Devices map: %+v", ckf.cki.Devices)
+	ckf.G().Log.Debug("+ getSibkeyKidForDevice(%v)", did)
+	ckf.G().Log.Debug("| Devices map: %+v", ckf.cki.Devices)
 
 	var kid keybase1.KID
 	device, found := ckf.cki.Devices[did]
 	if !found {
-		G.Log.Debug("device %s not found in cki.Devices", did)
+		ckf.G().Log.Debug("device %s not found in cki.Devices", did)
 		return kid, NoDeviceError{Reason: fmt.Sprintf("for device ID %s", did)}
 	}
 	if !device.Kid.IsValid() {
-		G.Log.Debug("device found, but Kid invalid")
+		ckf.G().Log.Debug("device found, but Kid invalid")
 		return kid, fmt.Errorf("invalid kid for device %s", did)
 	}
 
-	G.Log.Debug("device found, kid: %s", device.Kid.String())
+	ckf.G().Log.Debug("device found, kid: %s", device.Kid.String())
 	return device.Kid, nil
 }
 

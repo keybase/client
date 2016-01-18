@@ -9,7 +9,6 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
-	"io"
 
 	"github.com/ugorji/go/codec"
 	"golang.org/x/crypto/poly1305"
@@ -44,11 +43,6 @@ func (e encryptionBlockNumber) check() error {
 	return nil
 }
 
-func writeNullTerminatedString(w io.Writer, s string) {
-	w.Write([]byte(s))
-	w.Write([]byte{0})
-}
-
 func assertEndOfStream(stream *msgpackStream) error {
 	var i interface{}
 	_, err := stream.Read(&i)
@@ -65,8 +59,7 @@ func attachedSignatureInput(headerHash []byte, block *SignatureBlock) []byte {
 	hasher.Write(block.PayloadChunk)
 
 	var buf bytes.Buffer
-	writeNullTerminatedString(&buf, SaltpackFormatName)
-	writeNullTerminatedString(&buf, SignatureAttachedString)
+	buf.Write([]byte(SignatureAttachedString))
 	buf.Write(hasher.Sum(nil))
 
 	return buf.Bytes()
@@ -82,8 +75,7 @@ func detachedSignatureInput(headerHash []byte, plaintext []byte) []byte {
 
 func detachedSignatureInputFromHash(plaintextAndHeaderHash []byte) []byte {
 	var buf bytes.Buffer
-	writeNullTerminatedString(&buf, SaltpackFormatName)
-	writeNullTerminatedString(&buf, SignatureDetachedString)
+	buf.Write([]byte(SignatureDetachedString))
 	buf.Write(plaintextAndHeaderHash)
 
 	return buf.Bytes()

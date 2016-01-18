@@ -50,7 +50,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 	}
 	if cki == nil {
 		sc.G().Log.Debug("LocalDelegate: creating new cki (signingKid: %s)", signingKid)
-		cki = NewComputedKeyInfos()
+		cki = NewComputedKeyInfos(sc.G())
 		cki.InsertLocalEldestKey(signingKid)
 	}
 
@@ -397,7 +397,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		return
 	}
 
-	cki = NewComputedKeyInfos()
+	cki = NewComputedKeyInfos(sc.G())
 	ckf := ComputedKeyFamily{kf: &kf, cki: cki, Contextified: sc.Contextified}
 
 	first := true
@@ -500,7 +500,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 
 	if ckf.kf == nil || eldest.IsNil() {
 		sc.G().Log.Debug("| VerifyWithKey short-circuit, since no Key available")
-		sc.localCki = NewComputedKeyInfos()
+		sc.localCki = NewComputedKeyInfos(sc.G())
 		ckf.cki = sc.localCki
 		return
 	}
@@ -512,7 +512,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 	if links == nil || len(links) == 0 {
 		sc.G().Log.Debug("| Empty chain after we limited to eldest %s", eldest)
 		eldestKey, _ := ckf.FindKeyWithKIDUnsafe(eldest)
-		sc.localCki = NewComputedKeyInfos()
+		sc.localCki = NewComputedKeyInfos(sc.G())
 		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
 		ckf.cki = sc.localCki
 		return
