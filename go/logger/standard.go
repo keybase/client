@@ -84,7 +84,7 @@ type Standard struct {
 
 	shutdown bool
 
-	handler ExternalHandler
+	externalHandler ExternalHandler
 }
 
 // Verify Standard fully implements the Logger interface.
@@ -161,8 +161,8 @@ func (log *Standard) prepareString(
 
 func (log *Standard) Debug(fmt string, arg ...interface{}) {
 	log.internal.Debug(fmt, arg...)
-	if log.handler != nil {
-		log.handler.Log(keybase1.LogLevel_DEBUG, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_DEBUG, fmt, arg)
 	}
 }
 
@@ -175,8 +175,8 @@ func (log *Standard) CDebugf(ctx context.Context, fmt string,
 
 func (log *Standard) Info(fmt string, arg ...interface{}) {
 	log.internal.Info(fmt, arg...)
-	if log.handler != nil {
-		log.handler.Log(keybase1.LogLevel_INFO, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_INFO, fmt, arg)
 	}
 }
 
@@ -189,8 +189,8 @@ func (log *Standard) CInfof(ctx context.Context, fmt string,
 
 func (log *Standard) Notice(fmt string, arg ...interface{}) {
 	log.internal.Notice(fmt, arg...)
-	if log.handler != nil {
-		log.handler.Log(keybase1.LogLevel_NOTICE, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_NOTICE, fmt, arg)
 	}
 }
 
@@ -203,8 +203,8 @@ func (log *Standard) CNoticef(ctx context.Context, fmt string,
 
 func (log *Standard) Warning(fmt string, arg ...interface{}) {
 	log.internal.Warning(fmt, arg...)
-	if log.handler != nil {
-		log.handler.Log(keybase1.LogLevel_WARN, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_WARN, fmt, arg)
 	}
 }
 
@@ -217,8 +217,8 @@ func (log *Standard) CWarningf(ctx context.Context, fmt string,
 
 func (log *Standard) Error(fmt string, arg ...interface{}) {
 	log.internal.Error(fmt, arg...)
-	if log.handler != nil {
-		log.handler.Log(keybase1.LogLevel_ERROR, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_ERROR, fmt, arg)
 	}
 }
 
@@ -235,8 +235,8 @@ func (log *Standard) CErrorf(ctx context.Context, fmt string,
 
 func (log *Standard) Critical(fmt string, arg ...interface{}) {
 	log.internal.Critical(fmt, arg...)
-	if log.handler != nil {
-		log.handler.Log(keybase1.LogLevel_CRITICAL, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_CRITICAL, fmt, arg)
 	}
 }
 
@@ -249,8 +249,8 @@ func (log *Standard) CCriticalf(ctx context.Context, fmt string,
 
 func (log *Standard) Fatalf(fmt string, arg ...interface{}) {
 	log.internal.Fatalf(fmt, arg...)
-	if log.handler != nil {
-		log.handler.Log(keybase1.LogLevel_FATAL, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_FATAL, fmt, arg)
 	}
 }
 
@@ -348,5 +348,5 @@ func PickFirstError(errors ...error) error {
 }
 
 func (log *Standard) SetExternalHandler(handler ExternalHandler) {
-	log.handler = handler
+	log.externalHandler = handler
 }
