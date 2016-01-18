@@ -1,5 +1,9 @@
 # Saltpack Binary Signing Format
 
+**Changelog**
+- 18 Jan 2015
+  - Double-encode the header, and hash the entire thing into signatures.
+
 As with the [encryption format](saltpack_encryption.md), we want our signing
 format to have some properties on top of a standard NaCl signature:
 - Streaming. We want to be able to verify a message of any size, without

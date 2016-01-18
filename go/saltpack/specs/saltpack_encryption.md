@@ -1,6 +1,8 @@
 # Saltpack Binary Encryption Format
 
 **Changelog**
+- 18 Jan 2015
+  - Double-encode the header instead of doing custom framing.
 - 13 Jan 2015
   - Hardcode nonces that are used with ephemeral keys.
 - 11 Jan 2015
