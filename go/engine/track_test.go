@@ -291,8 +291,14 @@ func TestIdentifyTrackRaceDetection(t *testing.T) {
 	trackee := "t_tracy"
 
 	doID := func(tc libkb.TestContext, fui *FakeIdentifyUI) {
+
 		iarg := &keybase1.Identify2Arg{
 			UserAssertion: trackee,
+			// We need to block on identification so that the track token
+			// is delivered to the UI before we return. Otherwise, the
+			// following call to track might happen before the token
+			// is known.
+			AlwaysBlock: true,
 		}
 		eng := NewResolveThenIdentify2(tc.G, iarg)
 		ctx := Context{IdentifyUI: fui}
