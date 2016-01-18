@@ -134,15 +134,15 @@ func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 	// The encryption header is double-encoded. (And signing will be in the
 	// future.) For these headers we need to skip the "bin" tag at the front to
 	// get at the encoded header array.
-	// TODO: Once all formats use the double-encoded header, require the bin
-	//       tag to be present.
-	binTagBytesToSkip := 0
+	var binTagBytesToSkip int
 	if b[0] == 0xc4 {
 		binTagBytesToSkip = 2
 	} else if b[0] == 0xc5 {
 		binTagBytesToSkip = 3
 	} else if b[0] == 0xc6 {
 		binTagBytesToSkip = 5
+	} else {
+		return false
 	}
 
 	// Verify the type of the array and its minimum length, and copy the array
