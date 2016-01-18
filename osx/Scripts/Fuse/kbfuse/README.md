@@ -1,9 +1,9 @@
 ### Building KBFuse for Keybase
 
-Checkout the OSXFuse (osxfuse-3.0.9) version:
+Checkout the OSXFuse (osxfuse-3.1.0) version:
 
     rm -rf osxfuse
-    git clone --recursive -b osxfuse-3.0.9 git://github.com/osxfuse/osxfuse.git osxfuse
+    git clone --recursive -b osxfuse-3.1.0 git://github.com/osxfuse/osxfuse.git osxfuse
 
 Run script to search/replace osxfuse to kbfuse:
 
@@ -22,6 +22,8 @@ If you get an error compiling you might have to run `brew link gettext --force` 
     cd ..
     rm -rf kbfuse.bundle
     ditto /tmp/kbfuse/fsbundle/kbfuse.fs kbfuse.bundle
+
+You should also backup the /tmp/kbfuse/fsbundle directory in case you need debug symbols.
 
 Sign the kext:
 
