@@ -115,7 +115,7 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 	return
 }
 
-func prepareTLFCryptKeyClientHalf(encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+func (c *CryptoClient) prepareTLFCryptKeyClientHalf(encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 	encryptedData keybase1.EncryptedBytes32, nonce keybase1.BoxNonce, err error) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
 		err = UnknownEncryptionVer{encryptedClientHalf.Version}
@@ -142,7 +142,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey TLFEphemeralPublicKey,
 	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 	clientHalf TLFCryptKeyClientHalf, err error) {
-	encryptedData, nonce, err := prepareTLFCryptKeyClientHalf(encryptedClientHalf)
+	encryptedData, nonce, err := c.prepareTLFCryptKeyClientHalf(encryptedClientHalf)
 	if err != nil {
 		return
 	}
@@ -172,7 +172,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	bundles := make([]keybase1.CiphertextBundle, 0, len(keys))
 	errors := make([]error, 0, len(keys))
 	for _, k := range keys {
-		encryptedData, nonce, err := prepareTLFCryptKeyClientHalf(k.ClientHalf)
+		encryptedData, nonce, err := c.prepareTLFCryptKeyClientHalf(k.ClientHalf)
 		if err != nil {
 			errors = append(errors, err)
 			continue

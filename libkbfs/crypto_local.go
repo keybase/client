@@ -100,12 +100,9 @@ func (c *CryptoLocal) SignToString(ctx context.Context, msg []byte) (
 	return
 }
 
-// DecryptTLFCryptKeyClientHalf implements the Crypto interface for
-// CryptoLocal.
-func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
-	publicKey TLFEphemeralPublicKey,
-	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
-	clientHalf TLFCryptKeyClientHalf, err error) {
+func (c *CryptoLocal) prepareTLFCryptKeyClientHalf(encryptedClientHalf EncryptedTLFCryptKeyClientHalf,
+	clientHalf TLFCryptKeyClientHalf) (
+	nonce [24]byte, err error) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
 		err = UnknownEncryptionVer{encryptedClientHalf.Version}
 		return
@@ -118,12 +115,24 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 		return
 	}
 
-	var nonce [24]byte
 	if len(encryptedClientHalf.Nonce) != len(nonce) {
 		err = InvalidNonceError{encryptedClientHalf.Nonce}
 		return
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
+	return
+}
+
+// DecryptTLFCryptKeyClientHalf implements the Crypto interface for
+// CryptoLocal.
+func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
+	publicKey TLFEphemeralPublicKey,
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	clientHalf TLFCryptKeyClientHalf, err error) {
+	nonce, err := c.prepareTLFCryptKeyClientHalf(encryptedClientHalf, clientHalf)
+	if err != nil {
+		return
+	}
 
 	decryptedData, ok := box.Open(nil, encryptedClientHalf.EncryptedData, &nonce, (*[32]byte)(&publicKey.data), (*[32]byte)(c.cryptPrivateKey.kp.Private))
 	if !ok {
@@ -145,7 +154,23 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral) (
 	clientHalf TLFCryptKeyClientHalf, index int, err error) {
-	// TODO finish implementing
+	if len(keys) == 0 {
+		return clientHalf, index, NoKeysError{}
+	}
+	errors := make([]error, 0, len(keys))
+	for i, k := range keys {
+		nonce, err := c.prepareTLFCryptKeyClientHalf(k.ClientHalf, clientHalf)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		decryptedData, ok := box.Open(nil, k.ClientHalf.EncryptedData, &nonce, (*[32]byte)(&k.EPubKey.data), (*[32]byte)(c.cryptPrivateKey.kp.Private))
+		if ok {
+			copy(clientHalf.data[:], decryptedData)
+			return clientHalf, i, nil
+		}
+	}
+	err = libkb.DecryptionError{}
 	return
 }
 
