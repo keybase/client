@@ -10,10 +10,11 @@ import (
 )
 
 type testSignOptions struct {
-	corruptHeader func(sh *SignatureHeader)
-	swapBlock     bool
-	skipBlock     func(blockNum PacketSeqno) bool
-	skipFooter    bool
+	corruptHeader      func(sh *SignatureHeader)
+	corruptHeaderBytes func(bytes *[]byte)
+	swapBlock          bool
+	skipBlock          func(blockNum PacketSeqno) bool
+	skipFooter         bool
 }
 
 type testSignStream struct {
@@ -44,6 +45,9 @@ func newTestSignStream(w io.Writer, signer SigningSecretKey, opts testSignOption
 	headerBytes, err := encodeToBytes(header)
 	if err != nil {
 		return nil, err
+	}
+	if opts.corruptHeaderBytes != nil {
+		opts.corruptHeaderBytes(&headerBytes)
 	}
 
 	// Compute the header hash.

@@ -472,6 +472,33 @@ func TestSignCorruptHeader(t *testing.T) {
 	if _, ok := err.(ErrWrongMessageType); !ok {
 		t.Errorf("error: %v (%T), expected ErrWrongMessageType", err, err)
 	}
+
+	// make the header the wrong type of object
+	opts = testSignOptions{
+		corruptHeaderBytes: func(bytes *[]byte) {
+			badBytes, _ := encodeToBytes(42)
+			*bytes = badBytes
+		},
+	}
+	smsg, err = testTweakSign(msg, key, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = Verify(smsg, kr)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// truncate the message in the middle of the header
+	smsg, err = testTweakSign(msg, key, testSignOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	truncated := smsg[0:10]
+	_, _, err = Verify(truncated, kr)
+	if err == nil {
+		t.Fatal(err)
+	}
 }
 
 func TestSignDetachedCorruptHeader(t *testing.T) {
