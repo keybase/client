@@ -2061,6 +2061,97 @@ export type Kex2Provisionee_HelloRes = {
 export type HelloRes = {
 }
 
+export type log_Time = {
+}
+
+export type log_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type log_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type log_UID = {
+}
+
+export type log_DeviceID = {
+}
+
+export type log_SigID = {
+}
+
+export type log_KID = {
+}
+
+export type log_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type log_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type log_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type log_User = {
+  uid: UID;
+  username: string;
+}
+
+export type log_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
+}
+
+export type log_Stream = {
+  fd: int;
+}
+
+export type log_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type log_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type log_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type log_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
 export type logUi_Time = {
 }
 
