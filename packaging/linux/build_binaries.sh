@@ -16,6 +16,7 @@ build_root="${2:-$(mktemp -d)}"
 # instead of recomputing the version themselves.
 version="$("$here/../version.sh" "$@")"
 echo -n "$version" > "$build_root/VERSION"
+echo -n "$mode" > "$build_root/MODE"
 
 echo "Building version $version $mode in $build_root"
 
