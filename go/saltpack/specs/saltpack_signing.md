@@ -67,7 +67,7 @@ Payload packets are MessagePack arrays that looks like this:
 
 To make each signature, the sender first takes the SHA512 hash of the
 concatenation of three values:
-- the **payload hash** from above
+- the **header hash** from above
 - the packet sequence number, as a 64-bit big-endian unsigned integer, where
   the first payload packet is zero
 - the **payload chunk**
